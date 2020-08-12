@@ -69,6 +69,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       // inject: false,
       // hash: false,
+      // eslint: {
+      //   enabled: true,
+      //   files: "./src/**/*",
+      // },
       filename: "index.html",
     }),
   ],

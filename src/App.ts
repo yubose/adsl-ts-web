@@ -7,4 +7,6 @@ function component() {
   return element;
 }
 
+const t: string = 5;
+
 document.body.appendChild(component());
