@@ -71,7 +71,7 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.json'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   output: {
