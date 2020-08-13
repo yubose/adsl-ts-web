@@ -1,0 +1,157 @@
+{
+  "EcosObj": {
+    "id": "",
+    "name": "",
+    "type": "0",
+    "ctime": "0"
+  },
+  "Vertex": {
+    ".EcosObj": "",
+    "uid": "",
+    "pk": "",
+    "esk": "",
+    "deat": ""
+  },
+  "VertexAPI": {
+    "get": {
+      "api": "rv"
+    },
+    "store": {
+      "api": "cv"
+    }
+  },
+  "Edge": {
+    ".EcosObj": "",
+    "subtype": "",
+    "bvid": "",
+    "evid": "",
+    "ctime": "",
+    "tage": ""
+  },
+  "EdgeAPI": {
+    "get": {
+      "api": "re",
+      "xfname": "bvid",
+      "maxcount": "1"
+    },
+    "store": {
+      "api": "ce"
+    }
+  },
+  "Document": {
+    ".EcosObj": "",
+    "eid": "",
+    "fid": ""
+  },
+  "DocAPI": {
+    "get": {
+      "api": "rd",
+      "ids": "",
+      "xfname": "",
+      "type": "0",
+      "maxcount": "1"
+    },
+    "store": {
+      "api": "cd",
+      "type": {
+        "isOnServer": "auto",
+        "isZipped": "auto",
+        "isBinary": "0",
+        "isEncryped": "0",
+        "isExtraKeyNeeded": "0",
+        "isEditable": "0",
+        "applicationDataType": "0",
+        "mediaType": "0",
+        "size": "auto"
+      }
+    }
+  },
+  "Message": {
+    "avatar": "https://public.aitmed.com/avatar/JohnDoe.jpg",
+    "to": "",
+    "from": "=.Global.currentUser.name.firstName",
+    "createDate": "",
+    "createTime": "",
+    "subject": "A Subject",
+    "content": "The message",
+    "applicationLink": ""
+  },
+  "Const": {
+    "w9": "101",
+    "workComp": "102"
+  },
+  "DataCache": {
+    "loadingDateTime": "0",
+    "expireTime": "24hr"
+  },
+  "Global": {
+    "currentDateTime": "=.builtIn.currentDateTime",
+    "currentUser": {
+      "dataCache": {
+        ".DataCache": "",
+        "expireTime": "2hr"
+      },
+      "vertex": {
+        ".Vertex": "",
+        "name": {
+          "userName": "userName",
+          "avatar": ""
+        }
+      },
+      "JWT": ""
+    },
+    "contactList": {
+      "dataCache": {
+        ".DataCache": "",
+        "expireTime": "2hr"
+      },
+      "contacts": [".Edge"],
+      "get": {
+        ".EdgeAPI.get": "",
+        "dataKey": "Global.contactList.contacts",
+        "id": "=.Global.currentUser.vertex.id",
+        "type": "10002",
+        "xfname": "bvid",
+        "sCondition": "subtype=1",
+        "maxcount": "1000"
+      }
+    },
+    "rootNotebook": {
+      "edge": {
+        ".Edge": "",
+        "type": "10000",
+        "bvid": ".Global.currentUser.vertex.id"
+      },
+      "edgeAPI": {
+        ".EdgeAPI": "",
+        "get": {
+          "type": "10002",
+          "xfname": "bvid",
+          "dataKey": "Global.rootNotebook.edge"
+        },
+        "store": {
+          "dataKey": "Global.rootNotebook.edge"
+        }
+      }
+    },
+    "actingUser": {
+      "DataCache": {
+        "expireTime": "2hr"
+      },
+      "vertex": ".Vertex"
+    },
+    "VideoChatObjStore": {
+      "reference": {
+        "edge": ""
+      }
+    }
+  },
+  "Credential": {
+    "patientUser": {
+      "vertex": {
+        ".Vertex": "",
+        "type": "patient"
+      }
+    }
+  }
+}
