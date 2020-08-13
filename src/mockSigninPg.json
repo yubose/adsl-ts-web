@@ -1,0 +1,503 @@
+{
+  "MeetingRoomCreate": {
+    "module": "meetingroom",
+    "pageNumber": "90",
+    "init": [
+      {
+        "if": [
+          ".builtIn.SignInOk",
+          "continue",
+          {
+            "goto": "SignIn"
+          }
+        ]
+      },
+      "..listData.hostroom.get"
+    ],
+    "save": ["..newRoomInfo.edgeAPI.store"],
+    "lastTop": "0.0",
+    "listData": {
+      "hostroom": {
+        "links": [
+          {
+            ".Edge": {
+              "name": {
+                "roomName": "Test Room 1",
+                "videoProvider": "twilio"
+              },
+              "deat": {
+                "roomId": "roomId 1",
+                "accessToken": "token1"
+              }
+            }
+          },
+          {
+            ".Edge": {
+              "name": {
+                "roomName": "Test Room 2",
+                "videoProvider": "twilio"
+              },
+              "deat": {
+                "roomId": "roomId 2",
+                "accessToken": "token2"
+              }
+            }
+          }
+        ],
+        "get": {
+          ".EdgeAPI.get": "",
+          "dataKey": "listData.hostroom.links",
+          "id": ".Global.currentUser.vertex.id",
+          "type": "40000",
+          "xfname": "bvid",
+          "sCondition": "refid IS NULL AND tage=0 AND ctime>UNIX_TIMESTAMP()-7200",
+          "maxcount": "20",
+          "obfname": "mtime"
+        }
+      }
+    },
+    "newRoomInfo": {
+      "edge": {
+        ".Edge": "",
+        "id": "",
+        "type": 40000,
+        "bvid": ".Global.currentUser.vertex.id",
+        "name": {
+          "roomName": "New Room",
+          "videoProvider": "twilio"
+        }
+      },
+      "edgeAPI": {
+        ".EdgeAPI": "",
+        "store": {
+          "api": "ce",
+          "dataIn": "newRoomInfo.edge",
+          "dataOut": "createdRoomInfo.edge"
+        }
+      }
+    },
+    "createdRoomInfo": {
+      "edge": {
+        ".Edge": ""
+      }
+    },
+    "components": [
+      {
+        "type": "view",
+        "style": {
+          "left": "0",
+          "top": "0",
+          "width": "1",
+          "height": "1"
+        },
+        "children": [
+          {
+            "type": "view",
+            "style": {
+              "left": "0",
+              "top": "0",
+              "width": "1",
+              "height": "0.2",
+              "backgroundColor": "0x388eccff"
+            },
+            "children": [
+              {
+                "type": "label",
+                "text": "TeleMeeting Room",
+                "style": {
+                  "color": "0xffffffff",
+                  "left": "0.1",
+                  "top": "0.08",
+                  "width": "0.7",
+                  "height": "0.04",
+                  "fontSize": "20",
+                  "fontStyle": "bold"
+                }
+              },
+              {
+                "type": "image",
+                "path": "meetingRoomMore.png",
+                "style": {
+                  "left": "0.83",
+                  "top": "0.07",
+                  "width": "0.08",
+                  "height": "0.06"
+                },
+                "onClick": [
+                  {
+                    "actionType": "pageJump",
+                    "destination": "SideNav"
+                  },
+                  {
+                    "goto": "SideNav"
+                  }
+                ]
+              },
+              {
+                "type": "view",
+                "style": {
+                  "left": "0",
+                  "top": "0.15",
+                  "width": "1",
+                  "height": "0.05"
+                },
+                "children": [
+                  {
+                    "type": "button",
+                    "text": "Invited",
+                    "style": {
+                      "color": "0x9bc6e5ff",
+                      "backgroundColor": "0x388eccff",
+                      "fontSize": "18",
+                      "left": "0",
+                      "top": "0",
+                      "width": "0.33",
+                      "height": "0.05",
+                      "border": {
+                        "style": "1"
+                      },
+                      "display": "inline",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      }
+                    },
+                    "onClick": [
+                      {
+                        "actionType": "pageJump",
+                        "destination": "MeetingRoomInvited"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "button",
+                    "text": "Create",
+                    "style": {
+                      "color": "0xffffffff",
+                      "backgroundColor": "0x388eccff",
+                      "fontSize": "18",
+                      "left": "0.34",
+                      "top": "0",
+                      "width": "0.33",
+                      "height": "0.05",
+                      "border": {
+                        "style": "1"
+                      },
+                      "display": "inline",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      }
+                    },
+                    "onClick": [
+                      {
+                        "actionType": "pageJump",
+                        "destination": "MeetingRoomCreate"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "button",
+                    "text": "History",
+                    "style": {
+                      "color": "0x9bc6e5ff",
+                      "backgroundColor": "0x388eccff",
+                      "fontSize": "18",
+                      "left": "0.67",
+                      "top": "0",
+                      "width": "0.33",
+                      "height": "0.05",
+                      "border": {
+                        "style": "1"
+                      },
+                      "display": "inline",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      }
+                    },
+                    "onClick": [
+                      {
+                        "actionType": "pageJump",
+                        "destination": "MeetingRoomHistory"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "contentType": "listObject",
+            "listObject": "..listData.hostroom.links",
+            "iteratorVar": "itemObject",
+            "style": {
+              "left": "0",
+              "top": "0.2",
+              "width": "1",
+              "height": "0.8"
+            },
+            "children": [
+              {
+                "type": "listItem",
+                "itemObject": "",
+                "onClick": [
+                  {
+                    "actionType": "updateObject",
+                    "dataKey": "Global.rootRoomInfo.edge",
+                    "dataObject": "itemObject"
+                  },
+                  {
+                    "actionType": "pageJump",
+                    "destination": "MeetingLobbyStart"
+                  }
+                ],
+                "style": {
+                  "left": "0",
+                  "top": "0",
+                  "width": "1",
+                  "height": "0.15",
+                  "border": {
+                    "style": "2"
+                  },
+                  "borderWidth": "1",
+                  "borderColor": "0x00000011"
+                },
+                "children": [
+                  {
+                    "type": "label",
+                    "dataKey": "itemObject.name.roomName",
+                    "style": {
+                      "left": "0.08",
+                      "top": "0.03",
+                      "width": "0.8",
+                      "height": "0.04",
+                      "fontSize": "18",
+                      "fontStyle": "bold",
+                      "color": "0x00000088",
+                      "display": "inline",
+                      "textAlign": {
+                        "x": "left",
+                        "y": "center"
+                      }
+                    }
+                  },
+                  {
+                    "type": "label",
+                    "text": "participants name",
+                    "style": {
+                      "left": "0.08",
+                      "top": "0.08",
+                      "width": "0.9",
+                      "height": "0.03",
+                      "fontSize": "18",
+                      "color": "0x00000058"
+                    }
+                  },
+                  {
+                    "type": "image",
+                    "path": "rightArrow.png",
+                    "style": {
+                      "left": "0.88",
+                      "top": "0.02",
+                      "width": "0.08",
+                      "height": "0.04"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "image",
+            "path": "addMeeting.png",
+            "onClick": [
+              {
+                "actionType": "popUp",
+                "popUpView": "confirmView"
+              }
+            ],
+            "style": {
+              "left": "0.7",
+              "top": "0.75",
+              "width": "0.14",
+              "height": "0.08",
+              "backgroundColor": "0x388eccff",
+              "border": {
+                "style": "5"
+              },
+              "borderRadius": "100"
+            }
+          },
+          {
+            "type": "popUp",
+            "viewTag": "confirmView",
+            "style": {
+              "left": "0",
+              "top": "0",
+              "width": "1",
+              "height": "1",
+              "backgroundColor": "0x00000066"
+            },
+            "children": [
+              {
+                "type": "view",
+                "style": {
+                  "left": "0.05",
+                  "top": "0.15",
+                  "width": "0.89333",
+                  "height": "0.35",
+                  "backgroundColor": "0xeeeeeeff",
+                  "border": {
+                    "style": "5"
+                  },
+                  "borderRadius": "15"
+                },
+                "children": [
+                  {
+                    "type": "label",
+                    "text": "Create Room Name",
+                    "style": {
+                      ".LabelStyle": {
+                        "left": "0",
+                        "top": "0.04",
+                        "width": "0.89333",
+                        "height": "0.05",
+                        "color": "0x00000088",
+                        "fontSize": "20",
+                        "fontStyle": "bold",
+                        "display": "inline",
+                        "textAlign": {
+                          "x": "center",
+                          "y": "center"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "textField",
+                    "contentType": "text",
+                    "placeholder": "Please type the title here",
+                    "dataKey": "newRoomInfo.edge.name.roomName",
+                    "style": {
+                      ".LabelStyle": {
+                        "left": "0",
+                        "top": "0.13",
+                        "width": "0.89333",
+                        "height": "0.05",
+                        "color": "0x00000088",
+                        "fontSize": "20",
+                        "display": "inline",
+                        "textAlign": {
+                          "x": "center",
+                          "y": "center"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "divider",
+                    "style": {
+                      ".DividerStyle": {
+                        "left": "0",
+                        "top": "0.25436",
+                        "width": "0.89333",
+                        "height": "0.001",
+                        "backgroundColor": "0x00000088"
+                      }
+                    }
+                  },
+                  {
+                    "type": "button",
+                    "onClick": [
+                      {
+                        "actionType": "popUpDismiss",
+                        "popUpView": "confirmView"
+                      }
+                    ],
+                    "text": "Cancel",
+                    "style": {
+                      ".LabelStyle": {
+                        "left": "0",
+                        "top": "0.275",
+                        "width": "0.42",
+                        "height": "0.06812",
+                        "color": "0x007affff",
+                        "fontSize": "17",
+                        "display": "inline",
+                        "textAlign": {
+                          "x": "center",
+                          "y": "center"
+                        },
+                        "border": {
+                          "style": "5"
+                        },
+                        "borderRadius": "15"
+                      }
+                    }
+                  },
+                  {
+                    "type": "button",
+                    "onClick": [
+                      {
+                        "actionType": "saveObject",
+                        "object": "..save"
+                      },
+                      {
+                        "actionType": "evalObject",
+                        "object": {
+                          ".Global.rootRoomInfo.edge@": "=..createdRoomInfo.edge"
+                        }
+                      },
+                      {
+                        "actionType": "popUpDismiss",
+                        "popUpView": "confirmView"
+                      },
+                      {
+                        "actionType": "pageJump",
+                        "destination": "MeetingLobbyStart"
+                      }
+                    ],
+                    "text": "Confirm",
+                    "style": {
+                      ".LabelStyle": {
+                        "left": "0.45",
+                        "top": "0.275",
+                        "width": "0.42",
+                        "height": "0.06812",
+                        "color": "0x007affff",
+                        "fontSize": "17",
+                        "display": "inline",
+                        "textAlign": {
+                          "x": "center",
+                          "y": "center"
+                        },
+                        "border": {
+                          "style": "5"
+                        },
+                        "borderRadius": "15"
+                      }
+                    }
+                  },
+                  {
+                    "type": "divider",
+                    "style": {
+                      ".DividerStyle": {
+                        "left": "0.45",
+                        "top": "0.26",
+                        "width": "0.001",
+                        "height": "0.07",
+                        "backgroundColor": "0x00000088"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

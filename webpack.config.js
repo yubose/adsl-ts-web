@@ -2,7 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const nodeExternals = require('webpack-node-externals')
 
 console.log('-------------------------------------------')
 console.log(`   NODE_ENV set to ${process.env.NODE_ENV}`)
@@ -22,17 +22,28 @@ module.exports = {
     host: '127.0.0.1',
     port: 3000,
   },
+  externals: [nodeExternals()],
   mode: 'development',
   module: {
     rules: [
       {
         test: /\.ts$/,
-        loader: 'ts-loader',
-        exclude: /node_modules/,
-        options: {
-          // Disable type checker - we will use it in fork plugin
-          transpileOnly: true,
-        },
+        exclude: /(node_modules)/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/preset-env'],
+              plugins: ['lodash', '@babel/plugin-transform-runtime'],
+            },
+          },
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true,
+            },
+          },
+        ],
       },
       {
         test: /\.css$/,
@@ -71,7 +82,6 @@ module.exports = {
     new webpack.EnvironmentPlugin({
       ECOS_ENV: process.env.ECOS_ENV,
     }),
-    new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin({
       filename: 'styles.css',
       chunkFilename: '[id].css',
