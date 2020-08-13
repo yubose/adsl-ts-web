@@ -1,7 +1,14 @@
 const path = require('path')
+const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+
+console.log('-------------------------------------------')
+console.log(`   NODE_ENV set to ${process.env.NODE_ENV}`)
+console.log(`   ECOS_ENV set to ${process.env.ECOS_ENV}`)
+console.log('-------------------------------------------')
+console.log('')
 
 module.exports = {
   entry: './src/index.ts',
@@ -61,6 +68,9 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
   },
   plugins: [
+    new webpack.EnvironmentPlugin({
+      ECOS_ENV: process.env.ECOS_ENV,
+    }),
     new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin({
       filename: 'styles.css',
@@ -74,6 +84,7 @@ module.exports = {
       //   files: "./src/**/*",
       // },
       filename: 'index.html',
+      title: 'AiTmed Web',
     }),
   ],
 }
