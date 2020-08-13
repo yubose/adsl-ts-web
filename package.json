@@ -10,7 +10,9 @@
     "build": "webpack --mode=production",
     "start": "webpack-dev-server --hot --mode=development"
   },
-  "dependencies": {},
+  "dependencies": {
+    "noodl-ui": "0.0.2"
+  },
   "devDependencies": {
     "css-loader": "^4.2.1",
     "file-loader": "^6.0.0",
@@ -25,5 +27,14 @@
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
+  },
+  "prettier": {
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "printWidth": 80,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all"
   }
 }

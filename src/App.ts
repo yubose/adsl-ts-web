@@ -1,12 +1,12 @@
 function component() {
-  const element = document.createElement("div");
+  const element = document.createElement('div')
 
   // Lodash, currently included via a script, is required for this line to work
-  element.innerHTML = "Hello!";
+  element.innerHTML = 'Hello!'
 
-  return element;
+  return element
 }
 
-const t: string = 5;
+const t: string = 5
 
-document.body.appendChild(component());
+document.body.appendChild(component())

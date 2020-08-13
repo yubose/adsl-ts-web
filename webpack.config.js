@@ -1,26 +1,26 @@
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
 module.exports = {
-  entry: "./src/index.ts",
-  devtool: "inline-source-map",
+  entry: './src/index.ts',
+  devtool: 'inline-source-map',
   devServer: {
     compress: true,
     contentBase: [
-      path.join(__dirname, "public"),
-      path.join(__dirname, "src", "assets"),
+      path.join(__dirname, 'public'),
+      path.join(__dirname, 'src', 'assets'),
     ],
-    host: "127.0.0.1",
+    host: '127.0.0.1',
     port: 3000,
   },
-  mode: "development",
+  mode: 'development',
   module: {
     rules: [
       {
         test: /\.ts$/,
-        loader: "ts-loader",
+        loader: 'ts-loader',
         exclude: /node_modules/,
         options: {
           // Disable type checker - we will use it in fork plugin
@@ -30,9 +30,9 @@ module.exports = {
       {
         test: /\.css$/,
         use: [
-          "style-loader",
+          'style-loader',
           {
-            loader: "css-loader",
+            loader: 'css-loader',
             options: {
               importLoaders: 1,
               modules: true,
@@ -43,28 +43,28 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"],
+        use: ['style-loader', 'css-loader'],
         exclude: /\.module\.css$/,
       },
       {
         test: /\.(png|jpe?g|gif|svg)$/i,
-        use: [{ loader: "file-loader" }],
+        use: [{ loader: 'file-loader' }],
       },
     ],
   },
   resolve: {
-    extensions: [".ts", ".js"],
-    modules: [path.resolve(__dirname, "src"), "node_modules"],
+    extensions: ['.ts', '.js'],
+    modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   output: {
-    filename: "[name].[hash].js",
-    path: path.resolve(__dirname, "build"),
+    filename: '[name].[hash].js',
+    path: path.resolve(__dirname, 'build'),
   },
   plugins: [
     new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin({
-      filename: "styles.css",
-      chunkFilename: "[id].css",
+      filename: 'styles.css',
+      chunkFilename: '[id].css',
     }),
     new HtmlWebpackPlugin({
       // inject: false,
@@ -73,7 +73,7 @@ module.exports = {
       //   enabled: true,
       //   files: "./src/**/*",
       // },
-      filename: "index.html",
+      filename: 'index.html',
     }),
   ],
-};
+}
