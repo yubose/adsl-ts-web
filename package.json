@@ -8,12 +8,28 @@
   "private": true,
   "scripts": {
     "build": "webpack --mode=production",
-    "start": "webpack-dev-server --hot --mode=development"
+    "build:stable": "cross-env ECOS_ENV=stable \"npm run build\"",
+    "build:test": "cross-env ECOS_ENV=test \"npm run build\"",
+    "build:deploy:stable": "cross-env ECOS_ENV=stable \"npm run build\" \"npm run deploy:stable\"",
+    "build:deploy:test": "cross-env ECOS_ENV=test \"npm run build\" \"npm run deploy:test\"",
+    "deploy:stable": "bash s3Deploy.sh build",
+    "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
+    "link": "npm link noodl-ui",
+    "start": "webpack-dev-server --hot --mode=development",
+    "start:stable": "cross-env ECOS_ENV=stable \"npm run start\"",
+    "start:test": "cross-env ECOS_ENV=test \"npm run start\"",
+    "tsc": "tsc --watch",
+    "unlink": "npm unlink noodl-ui"
   },
   "dependencies": {
-    "noodl-ui": "0.0.2"
+    "@aitmed/cadl": "^1.0.70",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.96",
+    "immer": "^7.0.7",
+    "noodl-ui": "0.0.2",
+    "twilio-video": "^2.7.2"
   },
   "devDependencies": {
+    "cross-env": "^7.0.2",
     "css-loader": "^4.2.1",
     "file-loader": "^6.0.0",
     "fork-ts-checker-webpack-plugin": "^5.0.14",
