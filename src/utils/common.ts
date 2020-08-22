@@ -1,8 +1,5 @@
-import green from '@material-ui/core/colors/green'
-import deepOrange from '@material-ui/core/colors/deepOrange'
-import teal from '@material-ui/core/colors/teal'
-import red from '@material-ui/core/colors/red'
-import isString from 'lodash/isString'
+import _ from 'lodash'
+import { CreateLoggerOptions } from 'app/types'
 
 /**
  * Runs a series of functions from left to right, passing in the argument of the
@@ -27,12 +24,44 @@ export function decodeUnicode(value: string) {
 }
 
 /**
- * Returns true if value is an html element, false otherwise
- * @param { any } value - Value to check
+ * Runs forEach on each key/value pair of the value, passing in the key as the first
+ * argument and the value as the second argument on each iteration
+ * @param { object } value
+ * @param { function } callback - Callback function to run on each key/value entry
  */
-export function isElement(value: any): value is Element | HTMLDocument {
-  if (!value) return false
-  return value instanceof Element || value instanceof HTMLDocument
+export function forEachEntries<Obj, K extends keyof Obj>(
+  value: Obj,
+  callback: (key: K, value: Obj[K]) => void,
+) {
+  if (value && _.isObject(value)) {
+    _.forEach(_.entries(value), _.spread(callback))
+  }
+}
+
+/**
+ * Runs forEach on each key/value pair of the value, passing in the key as the first
+ * argument and the value as the second argument on each iteration.
+ * This is a recursion version of forEachEntries
+ * @param { object } value
+ * @param { function } callback - Callback function to run on each key/value entry
+ */
+export function forEachDeepEntries<Obj, K extends keyof Obj>(
+  value: Obj,
+  callback: (key: K, value: Obj[K]) => void,
+) {
+  if (value) {
+    if (_.isArray(value)) {
+      _.forEach(value, (val) => forEachDeepEntries(val, callback))
+    } else if (_.isPlainObject(value)) {
+      forEachEntries(value, (innerKey, innerValue: Obj[K]) => {
+        if (_.isPlainObject(innerValue)) {
+          forEachDeepEntries(innerValue, callback as any)
+        } else {
+          callback(innerKey, innerValue)
+        }
+      })
+    }
+  }
 }
 
 /**
@@ -57,49 +86,7 @@ export function isStableEnv() {
  * @param { string } value
  */
 export function isUnicode(value: unknown) {
-  return isString(value) && value.startsWith('\\u')
-}
-
-/** Returns the last element in the array. Otherwise it will return undefined
- * @param { any[] } value
- */
-export function last<T extends any[]>(value: T): T[number] | undefined {
-  if (Array.isArray(value)) {
-    if (value.length) return value[value.length - 1]
-    return value[0]
-  }
-  return
-}
-
-/**
- * Prints data to the console (colors are supported)
- * @param { string } msg - Console message
- */
-export function log(msg: any, style?: any, obj?: any) {
-  let args = [`%c${msg}`]
-  // Object
-  if (msg && typeof msg === 'object') {
-    const options = msg
-    args = [`%c${options.msg}`]
-    let str = 'font-weight:bold;'
-    if (options.color) str += `color:${options.color};`
-    args.push(str)
-    if (options.data) args.push(options.data)
-  }
-  // String
-  else {
-    if (style) {
-      if (typeof style === 'string') {
-        args.push(style)
-      } else {
-        let styleStr = 'font-weight:bold;'
-        if (style.color) styleStr += `color:${style.color};`
-        args.push(styleStr)
-      }
-    }
-    if (obj) args.push(obj)
-  }
-  console.log(...args)
+  return _.isString(value) && value.startsWith('\\u')
 }
 
 /**
@@ -115,33 +102,6 @@ export function openOutboundURL(url: string) {
     a.click()
   }
 }
-
-/**
- * Convenience utility to abstract out the redundancy stuff when logging for success/info/error/warn purposes
- * @param { string | object } msg - A message as a string or an object of options
- */
-function wrapLog(type: 'error' | 'info' | 'success' | 'warn') {
-  return (msg: any, obj?: any) => {
-    let options: { msg?: any; data?: any; color?: string } = { msg: '' }
-    // logError('abc123', {...})
-    if (isString(msg)) {
-      options['msg'] = msg
-      if (obj) options['data'] = obj
-    }
-    // logError({ msg: 'abc123', data: {...} } )
-    else if (msg) options = msg
-    if (type === 'error') options['color'] = red.A400
-    if (type === 'info') options['color'] = teal.A700
-    if (type === 'success') options['color'] = green.A400
-    if (type === 'warn') options['color'] = deepOrange[400]
-    log(options)
-  }
-}
-
-export const logError = wrapLog('error')
-export const logInfo = wrapLog('info')
-export const logSuccess = wrapLog('success')
-export const logWarn = wrapLog('warn')
 
 export interface SerializedError {
   name: string

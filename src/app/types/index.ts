@@ -1,11 +1,14 @@
 import { Status } from '@aitmed/ecos-lvl2-sdk'
-import { ConfigData } from '@aitmed/ecos-lvl2-sdk/dist/types/common/store'
 
 export type AccountStatus = Omit<Status, 'code' | 'config'> & {
   code: null | number
-  config: Partial<ConfigData> | null
+  config: Partial<Status['config']> | null
   phone_number: string
   userId: string
+}
+
+export interface CreateLoggerOptions {
+  prefixes?: string[]
 }
 
 export interface RootConfig {
@@ -33,3 +36,7 @@ export interface NOODLVersion {
   stable: number
   test: number
 }
+
+export type Styles = Record<keyof CSSStyleDeclaration, any>
+
+export * from './storeTypes'

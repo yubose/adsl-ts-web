@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
     "strict": true,
-    "baseUrl": "../node_modules",
+    "baseUrl": "../src",
     "esModuleInterop": true,
     "noEmit": false,
     "target": "es5",
     "lib": ["es5", "es6", "dom"],
-    "types": ["cypress", "@types/testing-library__cypress"],
+    "types": ["cypress"],
     "resolveJsonModule": true
   },
   "include": ["../node_modules/cypress", "**/*.ts", "**/*.d.ts"]

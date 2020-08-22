@@ -1,68 +1,31 @@
 {
-  "color": {
-    "prefix": "color",
-    "body": "import { color } from 'utils/twilio'"
+  "import app": {
+    "prefix": "app",
+    "body": "import app from 'App'"
   },
-  "color from": {
-    "prefix": "colorfrom",
-    "body": "import { getColorFrom } from 'utils/twilio'"
+  "import page": {
+    "prefix": "page",
+    "body": "import page from 'Page'"
   },
-  "logError": {
-    "prefix": "logerror",
-    "body": "import { logError } from 'utils'"
+  "import { Account }": {
+    "prefix": "account",
+    "body": "import { Account } from '@aitmed/cadl'"
   },
-  "logInfo": {
-    "prefix": "loginfo",
-    "body": "import { logInfo } from 'utils'"
+  "import { cadl }": {
+    "prefix": "cadl",
+    "body": "import { cadl } from 'app/client'"
   },
-  "logSuccess": {
-    "prefix": "logsuccess",
-    "body": "import { logSuccess } from 'utils'"
+  "import { noodl }": {
+    "prefix": "noodl",
+    "body": "import { noodl } from 'app/client'"
   },
-  "logWarn": {
-    "prefix": "logwarn",
-    "body": "import { logWarn } from 'utils'"
+  "import { forEachEntries }": {
+    "prefix": "feentries",
+    "body": "import { forEachEntries } from 'utils/common'"
   },
-  "testUtils": {
-    "prefix": "testt",
-    "body": [
-      "import { renderHook } from '@testing-library/react-hooks'",
-      "import { render } from 'utils/testUtils'"
-    ]
-  },
-  "toast": {
-    "prefix": "toast",
-    "body": "import toast from 'utils/toast'"
-  },
-  "rootstate type": {
-    "prefix": "rootstate",
-    "body": "import { RootState } from 'app/types'"
-  },
-  "import button": {
-    "prefix": "btt",
-    "body": "import Button from 'components/common/Button'"
-  },
-  "import Actions component": {
-    "prefix": "actc",
-    "body": "import Actions from 'components/common/Actions'"
-  },
-  "new story": {
-    "prefix": "story",
-    "body": [
-      "import React from 'react'",
-      "import $1 from './$1'",
-      "",
-      "export default {",
-      "  title: '$1',",
-      "  component: $1,",
-      "  decorators: [(s: any) => <div style={{ padding: 25 }}>{s()}</div>],",
-      "}",
-      "",
-      "export const _$1 = () => {",
-      "  return <$1 />",
-      "}",
-      "_$1.story = { name: '$1', }"
-    ]
+  "import { forEachDeepEntries }": {
+    "prefix": "fedentries",
+    "body": "import { forEachDeepEntries } from 'utils/common'"
   },
   "border test": {
     "prefix": "b1",
@@ -84,347 +47,28 @@
     "prefix": "b5",
     "body": "border: '1px solid #fe7200',"
   },
-  "wrapHandler": {
-    "prefix": "wraph",
-    "body": "import { wrapHandler } from 'utils'"
-  },
-  "component": {
-    "prefix": "component",
-    "body": [
-      "import React from 'react'",
-      "import { styled, Theme } from '@material-ui/core/styles'",
-      "",
-      "export interface $1Props {",
-      "  //$4",
-      "}",
-      "",
-      "const Root = styled('div')(({ theme }) => ({",
-      "  root: {",
-      "    // $3",
-      "  },",
-      "}))",
-      "",
-      "function $1(props: React.PropsWithChildren<$1Props>) {",
-      "  return (",
-      "    <Root>",
-      "      $2",
-      "    </Root>",
-      "  )",
-      "}",
-      "",
-      "export default $1"
-    ]
-  },
-  "classnames": {
-    "body": "import cx from 'clsx'",
-    "prefix": "cx"
-  },
-  "meeting ctx": {
-    "body": "import useMeetingCtx from 'components/noodl/Meeting/MeetingContext'",
-    "prefix": "meetctx"
-  },
-  "import useMeetingRoomCtx": {
-    "prefix": "meetingroomctx",
-    "body": "import useMeetingRoomCtx from 'MeetingRoomContext'"
-  },
-  "useRoomCtx": {
-    "prefix": "usemeetingroomctx",
-    "body": "const { room } = useMeetingRoomCtx()"
-  },
-  "useMeetingCtx": {
-    "body": "const meetingCtx = useMeetingCtx()",
-    "prefix": "usemeetctx"
-  },
-  "circular progress": {
-    "body": "import CircularProgress from '@material-ui/core/CircularProgress'",
-    "prefix": "circular"
-  },
-  "import typography": {
-    "body": "import Typography from '@material-ui/core/Typography'",
-    "prefix": "tyy"
-  },
-  "import { makeStyles }": {
-    "body": "import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'",
-    "prefix": "mst"
-  },
-  "import { useDispatch, useSelector } from 'react-redux'": {
-    "body": "import { useDispatch, useSelector } from 'react-redux'",
-    "prefix": "rsd"
-  },
-  "linear progress": {
-    "body": "import LinearProgress from '@material-ui/core/LinearProgress'",
-    "prefix": "linear"
-  },
-  "material styles styled": {
-    "prefix": "cst",
-    "body": ["const $1 = styled('div')(({ theme }) => ({", "  // $2", "}))"]
-  },
-  "import AppBar": {
-    "prefix": "appbar",
-    "body": "import AppBar from '@material-ui/core/AppBar'"
-  },
-  "import Toolbar": {
-    "prefix": "toolbar",
-    "body": "import Toolbar from '@material-ui/core/Toolbar'"
-  },
-  "import Tooltip": {
-    "prefix": "tooltip",
-    "body": "import Tooltip from '@material-ui/core/Tooltip'"
-  },
-  "import Zoom": {
-    "prefix": "zoom",
-    "body": "import Zoom from '@material-ui/core/Zoom'"
-  },
-  "import Fade": {
-    "prefix": "fade",
-    "body": "import Fade from '@material-ui/core/Fade'"
-  },
-  "import Slide": {
-    "prefix": "slide",
-    "body": "import Slide from '@material-ui/core/Slide'"
-  },
-  "import Grow": {
-    "prefix": "grow",
-    "body": "import Grow from '@material-ui/core/Grow'"
-  },
-  "import TextField": {
-    "prefix": "textfield",
-    "body": "import TextField from '@material-ui/core/TextField'"
-  },
-  "import Checkbox": {
-    "prefix": "menu",
-    "body": "import Checkbox from '@material-ui/core/Checkbox'"
-  },
-  "import Menu": {
-    "prefix": "menu",
-    "body": "import Menu from '@material-ui/core/Menu'"
-  },
-  "import MenuItem": {
-    "prefix": "menuitem",
-    "body": "import MenuItem from '@material-ui/core/MenuItem'"
-  },
-  "import IconButton": {
-    "prefix": "iconbtt",
-    "body": "import IconButton from '@material-ui/core/IconButton'"
-  },
-  "import Divider": {
-    "prefix": "divider",
-    "body": "import Divider from '@material-ui/core/Divider'"
-  },
-  "import Select": {
-    "prefix": "select",
-    "body": "import Select from '@material-ui/core/Select'"
-  },
-  "import Paper": {
-    "prefix": "paper",
-    "body": "import Paper from '@material-ui/core/Paper'"
-  },
-  "import Card": {
-    "prefix": "card",
-    "body": "import Card from '@material-ui/core/Card'"
-  },
-  "import Grid": {
-    "prefix": "grid",
-    "body": "import Grid from '@material-ui/core/Grid'"
-  },
-  "import Avatar": {
-    "prefix": "ava",
-    "body": "import Avatar from '@material-ui/core/Avatar'"
-  },
-  "import Badge": {
-    "prefix": "badge",
-    "body": "import Badge from '@material-ui/core/Badge'"
-  },
-  "import List": {
-    "prefix": "list",
-    "body": "import List from '@material-ui/core/List'"
-  },
-  "import ListItem": {
-    "prefix": "listitem",
-    "body": "import ListItem from '@material-ui/core/ListItem'"
-  },
-  "import FilledInput": {
-    "prefix": "filledinput",
-    "body": "import FilledInput from '@material-ui/core/FilledInput'"
-  },
-  "import OutlinedInput": {
-    "prefix": "outlinedinput",
-    "body": "import OutlinedInput from '@material-ui/core/OutlinedInput'"
-  },
-  "import Skeleton": {
-    "prefix": "skeleton",
-    "body": "import Skeleton from '@material-ui/core/Skeleton'"
-  },
-  "import useTheme": {
-    "prefix": "btt",
-    "body": "import useTheme from '@material-ui/core/styles/useTheme'"
-  },
-  "[theme.breakpoints.down('xl')]": {
-    "prefix": "tbxl",
-    "body": ["[theme.breakpoints.down('xl')]: {", "  $1", "},"]
-  },
-  "[theme.breakpoints.down('lg')]": {
-    "prefix": "tbl",
-    "body": ["[theme.breakpoints.down('lg')]: {", "  $1", "},"]
-  },
-  "[theme.breakpoints.down('md')]": {
-    "prefix": "tbm",
-    "body": ["[theme.breakpoints.down('md')]: {", "  $1", "},"]
-  },
-  "[theme.breakpoints.down('sm')]": {
-    "prefix": "tbs",
-    "body": ["[theme.breakpoints.down('sm')]: {", "  $1", "},"]
-  },
-  "[theme.breakpoints.down('xs')]": {
-    "prefix": "tbx",
-    "body": ["[theme.breakpoints.down('xs')]: {", "  $1", "},"]
-  },
-  "import AddIcon": {
-    "prefix": "addicon",
-    "body": "import AddIcon from '@material-ui/icons/Add'"
-  },
-  "import AddNoteIcon": {
-    "prefix": "addnoteicon",
-    "body": "import AddNoteIcon from '@material-ui/icons/PostAdd'"
-  },
-  "import AttachFileIcon": {
-    "prefix": "attachfileicon",
-    "body": "import AttachFileIcon from '@material-ui/icons/AttachFile'"
-  },
-  "import ContactPhoneIcon": {
-    "prefix": "contactphoneicon",
-    "body": "import ContactPhoneIcon from '@material-ui/icons/ContactPhone'"
-  },
-  "import ChromeReaderModeIcon": {
-    "prefix": "chromereadermodeicon",
-    "body": "import ChromeReaderModeIcon from '@material-ui/icons/ChromeReaderMode'"
-  },
-  "import CloseIcon": {
-    "prefix": "closeicon",
-    "body": "import CloseIcon from '@material-ui/icons/Close'"
-  },
-  "import ContactMailIcon": {
-    "prefix": "contactmailicon",
-    "body": "import ContactMailIcon from '@material-ui/icons/ContactMail'"
-  },
-  "import DeleteForeverIcon": {
-    "prefix": "deleteforevericon",
-    "body": "import DeleteForeverIcon from '@material-ui/icons/DeleteForever'"
-  },
-  "import DirectionsRunIcon": {
-    "prefix": "directionsrununicon",
-    "body": "import DirectionsRunIcon from '@material-ui/icons/DirectionsRun'"
-  },
-  "import DoneIcon": {
-    "prefix": "doneicon",
-    "body": "import DoneIcon from '@material-ui/icons/Done'"
-  },
-  "import EditIcon": {
-    "prefix": "editicon",
-    "body": "import EditIcon from '@material-ui/icons/Edit'"
-  },
-  "import ExitToAppIcon": {
-    "prefix": "exittoappicon",
-    "body": "import ExitToAppIcon from '@material-ui/icons/ExitToApp'"
-  },
-  "import FullscreenIcon": {
-    "prefix": "fullscreenicon",
-    "body": "import FullscreenIcon from '@material-ui/icons/Fullscreen'"
-  },
-  "import GetAppIcon": {
-    "prefix": "getappicon",
-    "body": "import GetAppIcon from '@material-ui/icons/GetApp'"
-  },
-  "import GroupAddIcon": {
-    "prefix": "groupaddicon",
-    "body": "import GroupAddIcon from '@material-ui/icons/GroupAdd'"
-  },
-  "import HelpIcon": {
-    "prefix": "helpicon",
-    "body": "import HelpIcon from '@material-ui/icons/Help'"
-  },
-  "import HomeIcon": {
-    "prefix": "homeicon",
-    "body": "import HomeIcon from '@material-ui/icons/Home'"
-  },
-  "import KeyboardReturnIcon": {
-    "prefix": "keyboardreturnicon",
-    "body": "import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn'"
-  },
-  "import ListIcon": {
-    "prefix": "listicon",
-    "body": "import ListIcon from '@material-ui/icons/List'"
-  },
-  "import MoreVertIcon": {
-    "prefix": "moreicon",
-    "body": "import MoreVertIcon from '@material-ui/icons/MoreVert'"
-  },
-  "import NoteIcon": {
-    "prefix": "noteicon",
-    "body": "import NoteIcon from '@material-ui/icons/Assignment'"
-  },
-  "import PersonIcon": {
-    "prefix": "personicon",
-    "body": "import PersonIcon from '@material-ui/icons/Person'"
-  },
-  "import PeopleAltIcon": {
-    "prefix": "peoplealticon",
-    "body": "import PeopleAltIcon from '@material-ui/icons/PeopleAlt'"
-  },
-  "import PeopleOutlineIcon": {
-    "prefix": "peopleoutlineicon",
-    "body": "import PeopleOutlineIcon from '@material-ui/icons/PeopleOutline'"
-  },
-  "import PagesIcon": {
-    "prefix": "pagesicon",
-    "body": "import PagesIcon from '@material-ui/icons/Pages'"
-  },
-  "import PermContactCalendarIcon": {
-    "prefix": "permcontactcalendaricon",
-    "body": "import PermContactCalendarIcon from '@material-ui/icons/PermContactCalendar'"
-  },
-  "import PublishIcon": {
-    "prefix": "publishicon",
-    "body": "import PublishIcon from '@material-ui/icons/Publish'"
-  },
-  "import PublicIcon": {
-    "prefix": "publicicon",
-    "body": "import PublicIcon from '@material-ui/icons/Public'"
-  },
-  "import SaveAltIcon": {
-    "prefix": "savealticon",
-    "body": "import SaveAltIcon from '@material-ui/icons/SaveAlt'"
-  },
-  "import TitleIcon": {
-    "prefix": "titleicon",
-    "body": "import TitleIcon from '@material-ui/icons/Title'"
-  },
-  "import SendIcon": {
-    "prefix": "sendicon",
-    "body": "import SendIcon from '@material-ui/icons/Send'"
-  },
-  "import SupervisedUserCircleIcon": {
-    "prefix": "supervisedusercircleicon",
-    "body": "import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle'"
-  },
-  "import TextFieldsIcon": {
-    "prefix": "textfieldsicon",
-    "body": "import TextFieldsIcon from '@material-ui/icons/TextFields'"
-  },
-  "import TextRotationAngleupIcon": {
-    "prefix": "textrotationangleupicon",
-    "body": "import TextRotationAngleupIcon from '@material-ui/icons/TextRotationAngleup'"
-  },
-  "import UndoIcon": {
-    "prefix": "undoicon",
-    "body": "import UndoIcon from '@material-ui/icons/Undo'"
-  },
-  "import VisibilityIcon": {
-    "prefix": "visibilityicon",
-    "body": "import VisibilityIcon from '@material-ui/icons/Visibility'"
-  },
-  "import VisibilityOffIcon": {
-    "prefix": "visibilityofficon",
-    "body": "import VisibilityOffIcon from '@material-ui/icons/VisibilityOff'"
+  "color": {
+    "prefix": "color",
+    "body": "import { color } from 'utils/twilio'"
+  },
+  "color from": {
+    "prefix": "colorfrom",
+    "body": "import { getColorFrom } from 'utils/twilio'"
+  },
+  "new reducer": {
+    "prefix": "reducer",
+    "body": ["$1(state, { payload }: PayloadAction<$2>) {", "  $3", "},"]
+  },
+  "toDOMNode": {
+    "prefix": "todom",
+    "body": "import { toDOMNode } from 'utils/noodl'"
+  },
+  "test": {
+    "prefix": "test",
+    "body": "import { expect } from 'chai'"
+  },
+  "toast": {
+    "prefix": "toast",
+    "body": "import toast from 'utils/toast'"
   }
 }

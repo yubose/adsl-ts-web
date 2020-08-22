@@ -1,11 +1,43 @@
-import { Account } from '@aitmed/cadl'
+import _ from 'lodash'
+import { ProxiedComponent } from 'noodl-ui'
+import { forEachEntries } from 'utils/common'
 
 /**
- * Wrapper around the original Account.requestVerificationCode
- * needed for cypress to remove the read-only attribute so it can be stubbed
- * @param { string } phoneNumber - Phone number
+ * Takes a parsed NOODL component and transforms its attributes to create a
+ * representable DOM node
+ * @param { ProxiedComponent } component - NOODLComponent that is parsed into a ProxiedComponent
  */
-export async function requestVerificationCode(phoneNumber: string) {
-  const result = await Account.requestVerificationCode(phoneNumber)
-  return result
+export function toDOMNode<K extends keyof HTMLElementTagNameMap>(
+  component: ProxiedComponent,
+) {
+  const node = document.createElement(component.type as K)
+
+  if (node) {
+    forEachEntries(component, (key, value) => {
+      // Traverse the children hierarchy and resolve them as descendants
+      if (key === 'children') {
+        _.forEach(value, (child) => {
+          let childNode
+          if (_.isPlainObject(child)) {
+            childNode = toDOMNode(child)
+            if (childNode) {
+              node?.appendChild(childNode)
+            }
+          } else if (_.isString(child) || _.isFinite(child)) {
+            node.innerHTML += child
+          }
+        })
+      } else if (key === ('style' as any)) {
+        forEachEntries(value, (k: string, v) => {
+          node.style[k as any] = v
+        })
+      } else if (key === 'onClick') {
+        node.onclick = value
+      } else {
+        node?.setAttribute(key as string, value)
+      }
+    })
+  }
+
+  return node
 }

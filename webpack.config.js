@@ -2,7 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const nodeExternals = require('webpack-node-externals')
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
 console.log('-------------------------------------------')
 console.log(`   NODE_ENV set to ${process.env.NODE_ENV}`)
@@ -12,9 +12,8 @@ console.log('')
 
 module.exports = {
   entry: './src/index.ts',
-  devtool: 'inline-source-map',
   devServer: {
-    compress: true,
+    // compress: true,
     contentBase: [
       path.join(__dirname, 'public'),
       path.join(__dirname, 'src', 'assets'),
@@ -22,13 +21,13 @@ module.exports = {
     host: '127.0.0.1',
     port: 3000,
   },
-  externals: [nodeExternals()],
+  externals: [],
   mode: 'development',
   module: {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /(node_modules)/,
+        exclude: /node_modules/,
         use: [
           {
             loader: 'babel-loader',
@@ -40,6 +39,7 @@ module.exports = {
           {
             loader: 'ts-loader',
             options: {
+              silent: true,
               transpileOnly: true,
             },
           },
@@ -79,6 +79,7 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
   },
   plugins: [
+    new ForkTsCheckerWebpackPlugin(),
     new webpack.EnvironmentPlugin({
       ECOS_ENV: process.env.ECOS_ENV,
     }),
@@ -87,12 +88,6 @@ module.exports = {
       chunkFilename: '[id].css',
     }),
     new HtmlWebpackPlugin({
-      // inject: false,
-      // hash: false,
-      // eslint: {
-      //   enabled: true,
-      //   files: "./src/**/*",
-      // },
       filename: 'index.html',
       title: 'AiTmed Web',
     }),
