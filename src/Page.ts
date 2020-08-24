@@ -1,3 +1,4 @@
+import CADL from '@aitmed/cadl'
 import { createBrowserHistory, BrowserHistory, Listener } from 'history'
 import _ from 'lodash'
 import { cadl } from 'app/client'
@@ -27,10 +28,14 @@ export class Page {
     this.nodes = nodes
   }
 
-  public async initializePage(pageName: string) {
-    if (pageName) {
-      await cadl.initPage(pageName)
-    }
+  public async initializePage(...args: Parameters<CADL['initPage']>) {
+    const [pageName, arr = [], options] = args
+    await cadl.initPage(pageName, arr, {
+      builtIn: {
+        goto: () => console.log('builtIn goto invoked'),
+      },
+      ...options,
+    })
   }
 
   public initializeRoute() {

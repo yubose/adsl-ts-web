@@ -13,7 +13,7 @@ console.log('')
 module.exports = {
   entry: './src/index.ts',
   devServer: {
-    // compress: true,
+    compress: false,
     contentBase: [
       path.join(__dirname, 'public'),
       path.join(__dirname, 'src', 'assets'),
@@ -21,6 +21,7 @@ module.exports = {
     host: '127.0.0.1',
     port: 3000,
   },
+  devtool: 'source-map',
   externals: [],
   mode: 'development',
   module: {

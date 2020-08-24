@@ -26,7 +26,7 @@
     "unlink": "npm unlink noodl-ui"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.72",
+    "@aitmed/cadl": "^1.0.74",
     "@aitmed/ecos-lvl2-sdk": "^1.4.96",
     "@reduxjs/toolkit": "^1.4.0",
     "history": "^5.0.0",

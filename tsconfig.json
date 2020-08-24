@@ -9,7 +9,7 @@
     "importsNotUsedAsValues": "preserve",
     "isolatedModules": true,
     "lib": ["es6", "es7", "dom", "dom.iterable", "esnext"],
-    "module": "es2015",
+    "module": "esnext",
     "moduleResolution": "node",
     "outDir": "build",
     "noEmit": true,

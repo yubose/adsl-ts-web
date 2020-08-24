@@ -125,7 +125,7 @@ export class App {
     }
 
     const currentPage = 'SignIn' // TEMP
-    await cadl.initPage(currentPage)
+    await this.page.initializePage(currentPage)
 
     // Initialize the NOODL client / component resolver
     if (!noodl.initialized) {
@@ -219,6 +219,8 @@ export class App {
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
    */
   public render(rawComponents: NOODLComponent[]) {
+    window.components = rawComponents
+
     if (_.isArray(rawComponents)) {
       let rootId = '',
         node

@@ -16,17 +16,21 @@ export function toDOMNode<K extends keyof HTMLElementTagNameMap>(
     forEachEntries(component, (key, value) => {
       // Traverse the children hierarchy and resolve them as descendants
       if (key === 'children') {
-        _.forEach(value, (child) => {
-          let childNode
-          if (_.isPlainObject(child)) {
-            childNode = toDOMNode(child)
-            if (childNode) {
-              node?.appendChild(childNode)
+        if (_.isString(value) || _.isNumber(value)) {
+          node.innerHTML += value
+        } else {
+          _.forEach(value, (child) => {
+            let childNode
+            if (_.isPlainObject(child)) {
+              childNode = toDOMNode(child)
+              if (childNode) {
+                node?.appendChild(childNode)
+              }
+            } else if (_.isString(child) || _.isFinite(child)) {
+              node.innerHTML += child
             }
-          } else if (_.isString(child) || _.isFinite(child)) {
-            node.innerHTML += child
-          }
-        })
+          })
+        }
       } else if (key === ('style' as any)) {
         forEachEntries(value, (k: string, v) => {
           node.style[k as any] = v
