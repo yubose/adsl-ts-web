@@ -6,6 +6,6 @@
   "compilerOptions": {
     "module": "commonjs"
   },
-  "exclude": ["node_modules/**", "__dev__"],
+  "exclude": ["node_modules", "__dev__"],
   "include": ["src/**/*.test.ts"]
 }

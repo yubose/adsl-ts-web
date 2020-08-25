@@ -1,6 +1,32 @@
 import _ from 'lodash'
-import { eventTypes, NOODLComponentProps } from 'noodl-ui'
-import { callAll, forEachEntries } from 'utils/common'
+import { eventTypes, isReference, NOODLComponentProps } from 'noodl-ui'
+import { forEachEntries } from 'utils/common'
+
+export const attachStyles = createAttacher((node, props) => {
+  if (node && props?.style) {
+    forEachEntries(props.style, (k, v) => {
+      node.style[k as any] = v
+    })
+  }
+})
+
+export function composeAttachers(...fns: any[]) {
+  return <E extends HTMLElement>(node: E, props: NOODLComponentProps) => {
+    _.forEach(fns, (fn) => fn?.(node, props))
+  }
+}
+
+export const attachToDOMNode = composeAttachers(
+  attachChildren,
+  attachEventHandlers,
+  attachStyles,
+)
+
+export function createAttacher(fn: ReturnType<typeof composeAttachers>) {
+  return (...args: Parameters<ReturnType<typeof composeAttachers>>) => {
+    return fn(...args)
+  }
+}
 
 /**
  * Takes a parsed NOODL component and transforms its attributes to create a
@@ -11,12 +37,11 @@ export function toDOMNode(props: NOODLComponentProps) {
   const node = document.createElement(props.type)
 
   if (node) {
+    attachToDOMNode(node, props)
     forEachEntries(props, (key, value) => {
       // Traverse the children hierarchy and resolve them as descendants
       if (key === 'children') {
-        if (_.isString(value) || _.isNumber(value)) {
-          node.innerHTML += `${value}`
-        } else {
+        if (_.isObjectLike(value)) {
           _.forEach(value, (child) => {
             let childNode
             if (_.isPlainObject(child)) {
@@ -29,14 +54,8 @@ export function toDOMNode(props: NOODLComponentProps) {
             }
           })
         }
-      } else if (key === ('style' as any)) {
-        forEachEntries(value, (k: string, v) => {
-          node.style[k as any] = v
-        })
-      } else if (key === 'onClick') {
-        node.onclick = value
-      } else {
-        node?.setAttribute(key as string, value)
+      } else if (key && key !== 'style') {
+        node.setAttribute(key, value)
       }
     })
   }
@@ -44,48 +63,39 @@ export function toDOMNode(props: NOODLComponentProps) {
   return node
 }
 
-const attachToDOMNodes = _.flowRight(attachChildren, attachEventHandlers)
-
-const composeAttachers = <N extends HTMLElement>(...fns: Function[]) => (
-  node: N,
-) => (props: NOODLComponentProps) => toDOMNode()
-
-const accumulate = (acc, props) => attachToDOMNodes(props)
-
-export function attachChildren(node: HTMLElement) {
-  return (props: NOODLComponentProps) => {
-    if (props['data-value']) {
-      if (
-        node instanceof HTMLInputElement ||
-        node instanceof HTMLSelectElement ||
-        node instanceof HTMLTextAreaElement
-      ) {
-        node.value = props['data-value']
-      }
-    } else if (props.children) {
-      if (_.isString(props.children) || _.isNumber(props.children)) {
-        node.innerHTML += `${props.children}`
-      }
+export function attachChildren(node: HTMLElement, props: NOODLComponentProps) {
+  if (props['data-value']) {
+    if (
+      node instanceof HTMLInputElement ||
+      node instanceof HTMLSelectElement ||
+      node instanceof HTMLTextAreaElement
+    ) {
+      node.value = props['data-value']
     }
-
-    if (props.placeholder) {
-      //
+  } else if (props.children) {
+    if (_.isString(props.children) || _.isNumber(props.children)) {
+      node.innerHTML += `${props.children}`
     }
-    return props
+  }
+  if (props.placeholder) {
+    if (!isReference(props.placeholder)) {
+      node.setAttribute('placeholder', props.placeholder)
+    }
   }
 }
 
-export function attachEventHandlers(node: HTMLElement) {
-  return (props: NOODLComponentProps) => {
-    if (node) {
-      const numEventTypes = eventTypes.length
-      for (let index = 0; index < numEventTypes; index++) {
-        // Convert camelCase to lowercase
-        const eventType = eventTypes[index]
+export function attachEventHandlers(
+  node: HTMLElement,
+  props: NOODLComponentProps,
+) {
+  if (node) {
+    const numEventTypes = eventTypes.length
+    for (let index = 0; index < numEventTypes; index++) {
+      // Convert camelCase to lowercase
+      const eventType = eventTypes[index]
 
-        if (props[eventType]) {
-          node.addEventListener(eventType, props[eventType])
-        }
+      if (props[eventType]) {
+        node[eventType.toLowerCase()] = props[eventType]
       }
     }
   }
