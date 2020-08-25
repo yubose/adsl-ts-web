@@ -1,30 +1,133 @@
 import _ from 'lodash'
-import { eventTypes, isReference, NOODLComponentProps } from 'noodl-ui'
+import {
+  noodlEventTypes,
+  isReference,
+  NOODLComponentProps,
+  SelectOption,
+} from 'noodl-ui'
 import { forEachEntries } from 'utils/common'
 
-export const attachStyles = createAttacher((node, props) => {
-  if (node && props?.style) {
-    forEachEntries(props.style, (k, v) => {
+// TODO do a more generic solution
+const keysHandling = [
+  'children',
+  'data-value',
+  'onClick',
+  'options',
+  'placeholder',
+  'style',
+] as const
+
+export const attachChildren = createAttacher(
+  (node: HTMLElement, { key, value, props }) => {
+    if (key === 'children') {
+      if (_.isString(value) || _.isNumber(value)) {
+        node.innerHTML += `${value}`
+      } else if (_.isArray(value)) {
+        _.forEach(value, toDOMNode)
+      }
+    }
+    // Attaching children for the select elem
+    else if (key === 'options') {
+      if (props.type === 'select') {
+        if (_.isArray(value)) {
+          _.forEach(value, (option: SelectOption) => {
+            if (option) {
+              const optionElem = document.createElement('option')
+              optionElem.id = option.key
+              optionElem.value = option?.value
+              optionElem.innerText = option.label
+              node.appendChild(optionElem)
+            } else {
+              //log
+            }
+          })
+        } else {
+          // log
+        }
+      }
+    }
+  },
+)
+
+export const attachEventHandlers = createAttacher(
+  (node: HTMLElement, { key, value, props }) => {
+    if (node) {
+      if (noodlEventTypes.includes(key as typeof noodlEventTypes[number])) {
+        if (_.isFunction(value)) {
+          const lowercasedEventType = (key as string).toLowerCase()
+          node.addEventListener(
+            lowercasedEventType.startsWith('on')
+              ? lowercasedEventType.replace('on', '')
+              : lowercasedEventType,
+            (e) => {
+              console.log(e)
+              value(e)
+            },
+          )
+        } else {
+          // log
+        }
+      }
+      if (key === 'data-value') {
+        // const onChange = (e: Event) => {
+        //   const target: typeof e.target & {
+        //     value?: any
+        //   } | null = e.target
+        // }
+        // node.addEventListener('onchange', onChange)
+      }
+    }
+  },
+)
+
+export const attachStyles = createAttacher((node, { key, value }) => {
+  if (key === 'style' && _.isObjectLike(value)) {
+    forEachEntries(value, (k, v) => {
       node.style[k as any] = v
     })
+  } else {
+    // log
+  }
+})
+
+export const attachValues = createAttacher((node, { key, value, props }) => {
+  if (key === 'data-value' && value != undefined) {
+    if (props.type === 'input') {
+      const inputElem = node as HTMLInputElement
+      inputElem.value = value
+    } else if (props.type == 'select') {
+      const selectElem = node as HTMLSelectElement
+      selectElem.value = value
+    }
+  }
+  // Placeholder
+  else if (key === 'placeholder') {
+    node.setAttribute('placeholder', `${value}`)
   }
 })
 
 export function composeAttachers(...fns: any[]) {
-  return <E extends HTMLElement>(node: E, props: NOODLComponentProps) => {
-    _.forEach(fns, (fn) => fn?.(node, props))
+  const attachFns = (
+    node: HTMLElement,
+    args: { key: string | number; value: any; props: NOODLComponentProps },
+  ) => {
+    _.forEach(fns, (fn) => fn?.(node, args))
   }
+  return attachFns
 }
 
 export const attachToDOMNode = composeAttachers(
   attachChildren,
   attachEventHandlers,
   attachStyles,
+  attachValues,
 )
 
 export function createAttacher(fn: ReturnType<typeof composeAttachers>) {
   return (...args: Parameters<ReturnType<typeof composeAttachers>>) => {
-    return fn(...args)
+    if (args[1]) {
+      return fn(...args)
+    }
   }
 }
 
@@ -37,66 +140,36 @@ export function toDOMNode(props: NOODLComponentProps) {
   const node = document.createElement(props.type)
 
   if (node) {
-    attachToDOMNode(node, props)
     forEachEntries(props, (key, value) => {
-      // Traverse the children hierarchy and resolve them as descendants
-      if (key === 'children') {
-        if (_.isObjectLike(value)) {
-          _.forEach(value, (child) => {
-            let childNode
-            if (_.isPlainObject(child)) {
-              childNode = toDOMNode(child)
-              if (childNode) {
-                node?.appendChild(childNode)
+      if (keysHandling.includes(key as any)) {
+        attachToDOMNode(node, { key, value, props })
+
+        if (key === 'children') {
+          if (_.isObjectLike(value)) {
+            _.forEach(value, (child) => {
+              let childNode
+              if (_.isPlainObject(child)) {
+                childNode = toDOMNode(child)
+                if (childNode) {
+                  node?.appendChild(childNode)
+                }
+              } else if (_.isString(child) || _.isFinite(child)) {
+                node.innerHTML += child
               }
-            } else if (_.isString(child) || _.isFinite(child)) {
-              node.innerHTML += child
-            }
-          })
+            })
+          }
         }
-      } else if (key && key !== 'style') {
-        node.setAttribute(key, value)
+      } else {
+        node.setAttribute(key as string, value)
       }
+      // Traverse the children hierarchy and resolve them as descendants
+      // if (key === 'children') {
+
+      // } else if (key && key !== 'style') {
+      //   node.setAttribute(key as string, value)
+      // }
     })
   }
 
   return node
-}
-
-export function attachChildren(node: HTMLElement, props: NOODLComponentProps) {
-  if (props['data-value']) {
-    if (
-      node instanceof HTMLInputElement ||
-      node instanceof HTMLSelectElement ||
-      node instanceof HTMLTextAreaElement
-    ) {
-      node.value = props['data-value']
-    }
-  } else if (props.children) {
-    if (_.isString(props.children) || _.isNumber(props.children)) {
-      node.innerHTML += `${props.children}`
-    }
-  }
-  if (props.placeholder) {
-    if (!isReference(props.placeholder)) {
-      node.setAttribute('placeholder', props.placeholder)
-    }
-  }
-}
-
-export function attachEventHandlers(
-  node: HTMLElement,
-  props: NOODLComponentProps,
-) {
-  if (node) {
-    const numEventTypes = eventTypes.length
-    for (let index = 0; index < numEventTypes; index++) {
-      // Convert camelCase to lowercase
-      const eventType = eventTypes[index]
-
-      if (props[eventType]) {
-        node[eventType.toLowerCase()] = props[eventType]
-      }
-    }
-  }
 }

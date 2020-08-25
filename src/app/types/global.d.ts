@@ -11,5 +11,6 @@ declare global {
     env: string | undefined
     twilio: any
     room: Room | null
+    getDataValues: any
   }
 }

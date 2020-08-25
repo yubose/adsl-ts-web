@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { Account } from '@aitmed/cadl'
+import { getDataValues } from 'noodl-ui'
 import { cadl } from 'app/client'
 import app from 'App'
 import './styles.css'
@@ -7,6 +8,7 @@ import './styles.css'
 window.addEventListener('load', async function hello() {
   window.account = Account
   window.env = process.env.ECOS_ENV
+  window.getDataValues = getDataValues
   window.noodl = cadl
   window.noodlui = app
   // Auto login for the time being

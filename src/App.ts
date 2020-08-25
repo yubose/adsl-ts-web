@@ -15,7 +15,7 @@ import {
   getSizes,
   getTransformedAliases,
   getTransformedStyleAliases,
-  NOODLViewport,
+  Viewport,
 } from 'noodl-ui'
 import { Account } from '@aitmed/cadl'
 import { cadl, noodl } from './app/client'
@@ -39,10 +39,10 @@ export class App {
   // @ts-expect-error
   private _store: Store<RootState>
   public page: Page
-  public viewport: NOODLViewport
+  public viewport: Viewport
 
   constructor(preloadedState?: RootState) {
-    this.viewport = new NOODLViewport()
+    this.viewport = new Viewport()
     this.store = createStore(preloadedState)
     this.page = new Page({
       builtIn: {

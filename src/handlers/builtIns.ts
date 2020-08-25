@@ -2,6 +2,7 @@ import _ from 'lodash'
 import {
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
+  getDataValues,
   NOODLChainActionBuiltInObject,
 } from 'noodl-ui'
 
@@ -47,7 +48,10 @@ builtInActions.checkUsernamePassword = async (
 }
 
 // Called when user enters their verification code in the popup and clicks submit
-builtInActions.enterVerificationCode = async () => {
+builtInActions.enterVerificationCode = async (action, options) => {
+  const logMsg = `%centerVerificationCode`
+  const logStyle = `color:#ec0000;font-weight:bold;`
+  console.log(logMsg, logStyle, { action, options })
   // if (/SignUp/.test(location.pathname)) await signup?.onSubmit()
   // else await signin?.onSubmit()
 }
@@ -72,7 +76,14 @@ builtInActions.logout = async () => {
   //
 }
 
-builtInActions.signIn = async () => {
+builtInActions.signIn = async (action, options) => {
+  const logMsg = `%cSIGNIN BUILTIN ARGS`
+  const logStyle = `color:#ec0000;font-weight:bold;`
+  console.log(logMsg, logStyle, {
+    action,
+    ...options,
+    dataValues: getDataValues(),
+  })
   //
 }
 
