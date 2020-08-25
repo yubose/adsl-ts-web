@@ -2,7 +2,7 @@ import { combineReducers } from '@reduxjs/toolkit'
 import appSlice, { initialState as appState } from 'features/app'
 import authSlice, { initialState as authState } from 'features/auth'
 import meetingSlice, { initialState as meetingState } from 'features/meeting'
-import pageSlice, { initialState as pageState } from 'features/meeting'
+import pageSlice, { initialState as pageState } from 'features/page'
 
 export const rootInitialState = {
   app: appState,

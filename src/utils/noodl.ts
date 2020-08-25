@@ -1,23 +1,21 @@
 import _ from 'lodash'
-import { ProxiedComponent } from 'noodl-ui'
-import { forEachEntries } from 'utils/common'
+import { eventTypes, NOODLComponentProps } from 'noodl-ui'
+import { callAll, forEachEntries } from 'utils/common'
 
 /**
  * Takes a parsed NOODL component and transforms its attributes to create a
  * representable DOM node
- * @param { ProxiedComponent } component - NOODLComponent that is parsed into a ProxiedComponent
+ * @param { NOODLComponentProps } props - Props resulting from a resolved ProxiedComponent
  */
-export function toDOMNode<K extends keyof HTMLElementTagNameMap>(
-  component: ProxiedComponent,
-) {
-  const node = document.createElement(component.type as K)
+export function toDOMNode(props: NOODLComponentProps) {
+  const node = document.createElement(props.type)
 
   if (node) {
-    forEachEntries(component, (key, value) => {
+    forEachEntries(props, (key, value) => {
       // Traverse the children hierarchy and resolve them as descendants
       if (key === 'children') {
         if (_.isString(value) || _.isNumber(value)) {
-          node.innerHTML += value
+          node.innerHTML += `${value}`
         } else {
           _.forEach(value, (child) => {
             let childNode
@@ -44,4 +42,51 @@ export function toDOMNode<K extends keyof HTMLElementTagNameMap>(
   }
 
   return node
+}
+
+const attachToDOMNodes = _.flowRight(attachChildren, attachEventHandlers)
+
+const composeAttachers = <N extends HTMLElement>(...fns: Function[]) => (
+  node: N,
+) => (props: NOODLComponentProps) => toDOMNode()
+
+const accumulate = (acc, props) => attachToDOMNodes(props)
+
+export function attachChildren(node: HTMLElement) {
+  return (props: NOODLComponentProps) => {
+    if (props['data-value']) {
+      if (
+        node instanceof HTMLInputElement ||
+        node instanceof HTMLSelectElement ||
+        node instanceof HTMLTextAreaElement
+      ) {
+        node.value = props['data-value']
+      }
+    } else if (props.children) {
+      if (_.isString(props.children) || _.isNumber(props.children)) {
+        node.innerHTML += `${props.children}`
+      }
+    }
+
+    if (props.placeholder) {
+      //
+    }
+    return props
+  }
+}
+
+export function attachEventHandlers(node: HTMLElement) {
+  return (props: NOODLComponentProps) => {
+    if (node) {
+      const numEventTypes = eventTypes.length
+      for (let index = 0; index < numEventTypes; index++) {
+        // Convert camelCase to lowercase
+        const eventType = eventTypes[index]
+
+        if (props[eventType]) {
+          node.addEventListener(eventType, props[eventType])
+        }
+      }
+    }
+  }
 }

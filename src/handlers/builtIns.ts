@@ -5,11 +5,31 @@ import {
   NOODLChainActionBuiltInObject,
 } from 'noodl-ui'
 
-// ALL BUILT IN FUNCS WERE ATTEMPTED TO BE ARRANGED IN ORDER OF INVOCATION THROUGHOUT THE APP
+export type BuiltInFuncName =
+  | 'checkUsernamePassword'
+  | 'checkVerificationCode'
+  | 'enterVerificationCode'
+  | 'goBack'
+  | 'goto'
+  | 'lockApplication'
+  | 'logOutOfApplication'
+  | 'logout'
+  | 'signIn'
+  | 'signUp'
+  | 'signout'
+  | 'toggleCameraOnOff'
+  | 'toggleMicrophoneOnOff'
+
+// @ts-expect-error
 const builtInActions: Record<
-  string,
+  BuiltInFuncName,
   ActionChainActionCallback<NOODLChainActionBuiltInObject>
 > = {}
+
+// Called on signin + signup
+builtInActions.checkVerificationCode = async (action) => {
+  //
+}
 
 // Called after uaser fills out the form in CreateNewAccount and presses Submit
 builtInActions.checkUsernamePassword = async (
@@ -32,40 +52,89 @@ builtInActions.enterVerificationCode = async () => {
   // else await signin?.onSubmit()
 }
 
-builtInActions.goBack = () => {
+builtInActions.goBack = async () => {
   window.history.back()
 }
 
-builtInActions.lockApplication = () => {
+builtInActions.goto = async () => {
+  console.log(' builtIn goto invoked')
+}
+
+builtInActions.lockApplication = async () => {
   //
 }
 
-builtInActions.logOutOfApplication = () => {
+builtInActions.logOutOfApplication = async () => {
   //
 }
 
-builtInActions.logout = () => {
+builtInActions.logout = async () => {
   //
 }
 
-builtInActions.signIn = () => {
+builtInActions.signIn = async () => {
   //
 }
 
-builtInActions.signUp = () => {
+builtInActions.signUp = async () => {
   //
 }
 
-builtInActions.signout = () => {
+builtInActions.signout = async () => {
   //
 }
 
-builtInActions.toggleCameraOnOff = () => {
+builtInActions.toggleCameraOnOff = async () => {
   //
 }
 
-builtInActions.toggleMicrophoneOnOff = () => {
+builtInActions.toggleMicrophoneOnOff = async () => {
   //
+}
+
+/* -------------------------------------------------------
+  ---- Built in funcs below are for the SDK
+-------------------------------------------------------- */
+
+// This goes on the SDK
+export async function videoChat(
+  action: NOODLChainActionBuiltInObject & {
+    roomId: string
+    accessToken: string
+  },
+) {
+  let builtInRunning = false
+
+  if (!builtInRunning) {
+    builtInRunning = true
+
+    const logMsg = `%c[ACTION][onVideoChat] builtIn`
+    const logStyle = `color:#3498db;font-weight:bold;`
+    console.log(logMsg, logStyle)
+
+    console.log(
+      `%c[PageContext.tsx][onPageChange][ACTION] builtIn`,
+      `color:#3498db;font-weight:bold;`,
+      action,
+    )
+    // Disconnect from the room if for some reason we
+    // are still connected to one
+    // if (room.state === 'connected' || room.state === 'reconnecting') {
+    //   room?.disconnect?.()
+    //   if (connecting) setConnecting(false)
+    // }
+    // const newRoom = await connect(action.accessToken)
+    // if (newRoom) {
+    //   const msg = `Connected to room: ${newRoom.name}`
+    //   toast.success(msg, { toastId: msg })
+    // }
+  } else {
+    console.log(
+      `%c[ACTION][onVideoChat] builtIn: A duplicate call to this action was detected. This call was aborted to prevent the duplicate call`,
+      `color:#3498db;font-weight:bold;`,
+    )
+  }
+  builtInRunning = false
 }
 
 // function useBuiltInActions({}: // signin,

@@ -2,6 +2,7 @@
 
 ## Todos
 
+- isRoomEnvironment at root level
 - Rename NOODLViewport to Viewport
 - `_validateResolver`
 - `_history`

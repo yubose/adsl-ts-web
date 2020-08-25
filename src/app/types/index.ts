@@ -40,3 +40,4 @@ export interface NOODLVersion {
 export type Styles = Record<keyof CSSStyleDeclaration, any>
 
 export * from './storeTypes'
+export * from './Page'

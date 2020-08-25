@@ -1,8 +1,8 @@
 const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+// const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+// const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
 console.log('-------------------------------------------')
 console.log(`   NODE_ENV set to ${process.env.NODE_ENV}`)
@@ -65,10 +65,10 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
         exclude: /\.module\.css$/,
       },
-      {
-        test: /\.(png|jpe?g|gif|svg)$/i,
-        use: [{ loader: 'file-loader' }],
-      },
+      // {
+      //   test: /\.(png|jpe?g|gif|svg)$/i,
+      //   use: [{ loader: 'file-loader' }],
+      // },
     ],
   },
   resolve: {
@@ -80,14 +80,14 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
   },
   plugins: [
-    new ForkTsCheckerWebpackPlugin(),
+    // new ForkTsCheckerWebpackPlugin(),
     new webpack.EnvironmentPlugin({
       ECOS_ENV: process.env.ECOS_ENV,
     }),
-    new MiniCssExtractPlugin({
-      filename: 'styles.css',
-      chunkFilename: '[id].css',
-    }),
+    // new MiniCssExtractPlugin({
+    //   filename: 'styles.css',
+    //   chunkFilename: '[id].css',
+    // }),
     new HtmlWebpackPlugin({
       filename: 'index.html',
       title: 'AiTmed Web',

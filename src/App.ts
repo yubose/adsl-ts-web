@@ -16,18 +16,16 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   NOODLViewport,
-  NOODLComponent,
 } from 'noodl-ui'
 import { Account } from '@aitmed/cadl'
-import { toDOMNode } from 'utils/noodl'
-import { cadl, noodl } from 'app/client'
-import { setAuthStatus, setRetrievingUserState } from 'features/auth'
-import { RootState } from 'app/types'
-import createStore from 'app/store'
-import builtIn from 'handlers/builtIns'
-import * as action from 'handlers/actions'
-import * as lifeCycle from 'handlers/lifeCycles'
+import { cadl, noodl } from './app/client'
+import { setAuthStatus, setRetrievingUserState } from './features/auth'
+import { OnAfterPageChangeArgs, RootState } from './app/types'
+import createStore from './app/store'
 import Page from './Page'
+import builtIn, { videoChat as onVideoChatBuiltIn } from './handlers/builtIns'
+import * as action from './handlers/actions'
+import * as lifeCycle from './handlers/lifeCycles'
 
 /**
  * The root app instance.
@@ -38,223 +36,182 @@ import Page from './Page'
  */
 
 export class App {
-  private _initializeRootNode: () => App
-  private _getRootNode: (() => HTMLElement) | undefined
-  private _rootNodeExists: (() => boolean) | undefined
-  private _initializeStore: () => Store<RootState>
-  public getStore: (() => Store<RootState>) | undefined
-  public getState: (() => RootState) | undefined
+  // @ts-expect-error
+  private _store: Store<RootState>
   public page: Page
   public viewport: NOODLViewport
-  public userState:
-    | 'logged.in'
-    | 'logged.out'
-    | 'new.device'
-    | 'temporary'
-    | null = null
 
-  constructor() {
+  constructor(preloadedState?: RootState) {
     this.viewport = new NOODLViewport()
-    this.page = new Page()
-
-    this._initializeStore = (preloadedState?: any) => {
-      if (_.isFunction(this.getStore)) {
-        return this.getStore()
-      }
-      const store = createStore(preloadedState)
-      // Expose helpers to retrieve the store and its state
-      this.getStore = () => store
-      this.getState = () => store.getState()
-      return store
-    }
-
-    this._initializeRootNode = () => {
-      const root = document.createElement('div')
-      root.id = 'root'
-      root.style.position = 'absolute'
-      root.style.width = '100%'
-      root.style.height = '100%'
-
-      this.page.rootNode = root
-
-      document.body.appendChild(root)
-
-      // Expose helpers to reference/manage the root node
-      this._getRootNode = () => root
-      this._rootNodeExists = () => document.body.contains(root)
-
-      return this
-    }
+    this.store = createStore(preloadedState)
+    this.page = new Page({
+      builtIn: {
+        goto: builtIn.goto,
+        videoChat: onVideoChatBuiltIn,
+      },
+    })
   }
 
   public async initialize() {
     await cadl.init()
 
-    const store = this._initializeStore()
+    const startPage = cadl?.cadlEndpoint?.startPage
+    const store = this.store
     const state = store.getState()
-    const authState = state.auth.status
+    const authState = state.auth?.status
 
-    if (authState === null) {
+    if (!authState) {
       // Initialize the user's state before proceeding to decide on how to direct them
       store.dispatch(setRetrievingUserState(true))
       const storedStatus = await Account.getStatus()
       store.dispatch(setRetrievingUserState(false))
-      store.dispatch(setAuthStatus(storedStatus as any))
 
       if (storedStatus.code === 0) {
         cadl.setFromLocalStorage('user')
-      }
-      // Initialize the route to handle necessary redirections in case of invalid token or auth creds
-
-      if (storedStatus.code === 0) {
-        // TODO
+        store.dispatch(setAuthStatus('logged.in'))
       } else if (storedStatus.code === 1) {
-        // TODO
+        store.dispatch(setAuthStatus('logged.out'))
       } else if (storedStatus.code === 2) {
-        // TODO
+        store.dispatch(setAuthStatus('new.device'))
+      } else if (storedStatus.code === 3) {
+        store.dispatch(setAuthStatus('temporary'))
       }
-    }
 
-    // Callback which is crucial for components/nodes to be in sync
-    if (!this.page.hasListener('onPageChange')) {
-      this.page.registerListener('onPageChange', ({ action, location }) => {
-        const logMsg = `%c[App.tsx][onPageChange] Page changed`
-        const logStyle = `color:#3498db;font-weight:bold;`
-        console.log(logMsg, logStyle, { action, location })
-      })
-    }
+      // Callback which is crucial for components/nodes to be in sync
+      if (!this.page.hasListener('onAfterPageChange')) {
+        this.page.registerListener(
+          'onAfterPageChange',
+          async ({ previousPage, next: nextPage }: OnAfterPageChangeArgs) => {
+            const logMsg = `%c[App.tsx][onAfterPageChange] ${previousPage} --> ${nextPage.name}`
+            const logStyle = `color:#3498db;font-weight:bold;`
+            console.log(logMsg, logStyle, { previousPage, nextPage })
 
-    const currentPage = 'SignIn' // TEMP
-    await this.page.initializePage(currentPage)
+            console.log(
+              `%c[onPageChange] currentUser.vertex`,
+              `color:#3498db};font-weight:bold;`,
+              cadl.root?.Global?.currentUser.vertex,
+            )
 
-    // Initialize the NOODL client / component resolver
-    if (!noodl.initialized) {
-      noodl
-        .init({ viewport: this.viewport })
-        .setRoot(cadl.root)
-        .setAssetsUrl(cadl.assetsUrl || '')
-        .setViewport({
-          width: window.innerWidth,
-          height: window.innerHeight,
-        })
-        .setPage({
-          name: 'SignIn',
-          object: cadl.root.SignIn,
-        })
-        .setResolvers([
-          getElementType,
-          getTransformedAliases,
-          getReferences,
-          getAlignAttrs,
-          getBorderAttrs,
-          getColors,
-          getFontAttrs,
-          getPosition,
-          getSizes,
-          getStylesByElementType,
-          getTransformedStyleAliases,
-          getChildren,
-          getCustomDataAttrs,
-          getEventHandlers,
-        ])
-        .addLifecycleListener({
-          action: {
-            evalObject: action.onEvalObject,
-            goto: action.onGoto,
-            pageJump: action.onPageJump,
-            popUp: action.onPopUp,
-            popUpDismiss: action.onPopUpDismiss,
-            refresh: action.onRefresh,
-            saveObject: action.onSaveObject,
-            updateObject: action.onUpdateObject,
+            if (nextPage.name) {
+              // Parse the components
+              const components = noodl
+                // TODO: Leave this binded to the lib
+                .setRoot(cadl.root)
+                .setPage(nextPage)
+                .resolveComponents()
+              // Render them to the UI
+              this.page.render(components)
+            }
           },
-          builtIn: {
-            checkUsernamePassword: builtIn.checkUsernamePassword,
-            enterVerificationCode: builtIn.checkVerificationCode,
-            goBack: builtIn.goBack,
-            lockApplication: builtIn.lockApplication,
-            logOutOfApplication: builtIn.logOutOfApplication,
-            logout: builtIn.logout,
-            signIn: builtIn.signIn,
-            signUp: builtIn.signUp,
-            signout: builtIn.signout,
-            toggleCameraOnOff: builtIn.toggleCameraOnOff,
-            toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-          },
-          onChainStart: lifeCycle.onChainStart,
-          onChainEnd: lifeCycle.onChainEnd,
-          onChainError: lifeCycle.onChainError,
-          onChainAborted: lifeCycle.onChainAborted,
-          onAfterResolve: lifeCycle.onAfterResolve,
-        } as any)
-    }
+        )
+      }
 
-    // Register the register once, if it isn't already registered
-    if (this.viewport.onResize === undefined) {
-      this.viewport.onResize = (newSizes) => {
-        noodl.setViewport(newSizes)
-        const rootNode = this._getRootNode?.()
+      const logMsg = `%c[App.tsx][initialize] startPage`
+      const logStyle = `color:#3498db;font-weight:bold;`
+      console.log(logMsg, logStyle, startPage)
 
-        if (rootNode) {
-          rootNode.style.width = `${newSizes.width}px`
-          rootNode.style.height = `${newSizes.height}px`
-          const components = noodl.resolveComponents()
-          this.render(components)
-        } else {
-          // TODO
+      // Initialize the NOODL client / component resolver
+      if (!noodl.initialized) {
+        noodl
+          .init({ viewport: this.viewport })
+          .setRoot(cadl.root)
+          .setAssetsUrl(cadl.assetsUrl || '')
+          .setViewport({
+            width: window.innerWidth,
+            height: window.innerHeight,
+          })
+          .setPage({
+            name: startPage,
+            object: cadl.root?.[startPage],
+          })
+          .setResolvers([
+            getElementType,
+            getTransformedAliases,
+            getReferences,
+            getAlignAttrs,
+            getBorderAttrs,
+            getColors,
+            getFontAttrs,
+            getPosition,
+            getSizes,
+            getStylesByElementType,
+            getTransformedStyleAliases,
+            getChildren,
+            getCustomDataAttrs,
+            getEventHandlers,
+          ])
+          .addLifecycleListener({
+            action: {
+              evalObject: action.onEvalObject,
+              goto: action.onGoto,
+              pageJump: action.onPageJump,
+              popUp: action.onPopUp,
+              popUpDismiss: action.onPopUpDismiss,
+              refresh: action.onRefresh,
+              saveObject: action.onSaveObject,
+              updateObject: action.onUpdateObject,
+            },
+            builtIn: {
+              checkUsernamePassword: builtIn.checkUsernamePassword,
+              enterVerificationCode: builtIn.checkVerificationCode,
+              goBack: builtIn.goBack,
+              lockApplication: builtIn.lockApplication,
+              logOutOfApplication: builtIn.logOutOfApplication,
+              logout: builtIn.logout,
+              signIn: builtIn.signIn,
+              signUp: builtIn.signUp,
+              signout: builtIn.signout,
+              toggleCameraOnOff: builtIn.toggleCameraOnOff,
+              toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
+            },
+            onChainStart: lifeCycle.onChainStart,
+            onChainEnd: lifeCycle.onChainEnd,
+            onChainError: lifeCycle.onChainError,
+            onChainAborted: lifeCycle.onChainAborted,
+            onAfterResolve: lifeCycle.onAfterResolve,
+          } as any)
+      }
+
+      // TODO: Find a way to restore a previous cached page to avoid loading startPage every time
+      await this.page.navigate(startPage)
+
+      // Register the register once, if it isn't already registered
+      if (this.viewport.onResize === undefined) {
+        this.viewport.onResize = (newSizes) => {
+          noodl.setViewport(newSizes)
+          if (this.page.rootNode) {
+            this.page.rootNode.style.width = `${newSizes.width}px`
+            this.page.rootNode.style.height = `${newSizes.height}px`
+            this.page.render(noodl.resolveComponents())
+          } else {
+            // TODO
+          }
         }
       }
-    }
 
-    if (!this._rootNodeExists?.()) {
-      this._initializeRootNode()
+      return this
     }
+  }
 
+  public getStore() {
+    return this._store
+  }
+
+  public getState() {
+    return this.store.getState()
+  }
+
+  public dispatch(action: any) {
+    this._store.dispatch(action)
     return this
   }
 
-  /**
-   * Takes a list of raw NOODL components and converts them into DOM nodes and appends
-   * them to the DOM
-   * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
-   */
-  public render(rawComponents: NOODLComponent[]) {
-    window.components = rawComponents
+  private get store() {
+    return this._store
+  }
 
-    if (_.isArray(rawComponents)) {
-      let rootId = '',
-        node
-
-      const rootNode = this.page.rootNode as HTMLElement
-
-      if (this.page.rootNode) {
-        rootId = rootNode.id
-      } else {
-        const logMsg = `%cAttempted to render the page's components but the root node was not initialized. The page will not show anything`
-        const logStyle = `color:#ec0000;font-weight:bold;`
-        console.log(logMsg, logStyle, this.page)
-      }
-
-      // Make sure that the root node we are going to append to is being synced
-      if (rootId !== this.page.name) {
-        // TODO: Apply a history
-        rootNode.id = rootId
-      }
-
-      // Clean up previous nodes
-      rootNode.innerHTML = ''
-
-      _.forEach(rawComponents, (component) => {
-        node = toDOMNode(component)
-        if (node) {
-          rootNode.appendChild(node)
-        }
-      })
-    } else {
-      // TODO
-    }
-
-    return this
+  private set store(store: Store<RootState>) {
+    this._store = store
   }
 }
 
