@@ -11,26 +11,35 @@ export interface VerificationCodeOnCancel<E = any> {
 
 class VerificationCode extends BaseComponent {
   private _hiddenInput: HTMLInputElement
-  public submitForm: HTMLFormElement
-  public cancelButton: HTMLButtonElement
-  public submitButton: HTMLButtonElement
-  public title: HTMLHeadingElement
+  private _timer: number = 0
+  private _timeoutRef: NodeJS.Timeout | undefined
+  private _intervalRef: any
+  public submitFormNode: HTMLFormElement
+  public cancelBtnNode: HTMLButtonElement
+  public submitBtnNode: HTMLButtonElement
+  public titleNode: HTMLHeadingElement
   public verificationCodeInput: HTMLInputElement
   public actionsContainer: HTMLDivElement
 
   constructor({
     onSubmit,
     onCancel,
+    onUnload,
   }: {
     onSubmit?: VerificationCodeOnSubmit
     onCancel?: VerificationCodeOnCancel
+    onUnload?(): void
   } = {}) {
     super({ node: document.createElement('div') })
+
+    this._timeoutRef = undefined
+    this._intervalRef = undefined
+
     this._hiddenInput = document.createElement('input')
-    this.submitForm = document.createElement('form')
-    this.submitButton = document.createElement('button')
-    this.cancelButton = document.createElement('button')
-    this.title = document.createElement('h6')
+    this.submitFormNode = document.createElement('form')
+    this.submitBtnNode = document.createElement('button')
+    this.cancelBtnNode = document.createElement('button')
+    this.titleNode = document.createElement('h6')
     this.verificationCodeInput = document.createElement('input')
     this.actionsContainer = document.createElement('div')
 
@@ -40,9 +49,9 @@ class VerificationCode extends BaseComponent {
     this._hiddenInput.style['visibility'] = 'hidden'
     this._hiddenInput.hidden = true
 
-    this.submitForm.style['margin'] = '10px 0'
+    this.submitFormNode.style['margin'] = '10px 0'
     if (onSubmit) {
-      this.submitForm.onsubmit = onSubmit
+      this.submitFormNode.onsubmit = onSubmit
     }
 
     this.verificationCodeInput.id = 'verificationCodeTextField'
@@ -51,25 +60,44 @@ class VerificationCode extends BaseComponent {
     this.verificationCodeInput.required = true
     this.verificationCodeInput.autofocus = true
 
-    this.submitButton.type = 'submit'
-    this.submitButton.innerText = 'Submit'
+    this.submitBtnNode.type = 'submit'
+    this.submitBtnNode.innerText = 'Submit'
 
-    this.cancelButton.type = 'button'
-    this.cancelButton.innerText = 'Cancel'
+    this.cancelBtnNode.type = 'button'
+    this.cancelBtnNode.innerText = 'Cancel'
     if (onCancel) {
-      this.cancelButton.addEventListener('click', onCancel)
+      this.cancelBtnNode.addEventListener('click', onCancel)
     }
 
     this.actionsContainer.style['justifyContent'] = 'center'
 
-    this.submitForm.appendChild(this.verificationCodeInput)
-    this.submitForm.appendChild(this.actionsContainer)
-    this.actionsContainer.appendChild(this.cancelButton)
-    this.actionsContainer.appendChild(this.submitButton)
+    this.submitFormNode.appendChild(this.verificationCodeInput)
+    this.submitFormNode.appendChild(this.actionsContainer)
+    this.actionsContainer.appendChild(this.cancelBtnNode)
+    this.actionsContainer.appendChild(this.submitBtnNode)
+
+    const onInputChange = (e: any) => {
+      if (e.target?.value) {
+        if (`${e.target.value}`.length > 6) {
+          this.verificationCodeInput.value = `${e.target.value}`.substring(0, 6)
+        }
+      }
+    }
+
+    this.node.addEventListener('unload', () => {
+      const logMsg = `%c[VerificationCode.tsx][constructor - Event: unload] Cleaning up listeners`
+      const logStyle = `color:#3498db;font-weight:bold;`
+      console.log(logMsg, logStyle)
+      this.clearTimer()
+      onUnload?.()
+      this.verificationCodeInput.removeEventListener('change', onInputChange)
+    })
+
+    this.verificationCodeInput.addEventListener('change', onInputChange)
   }
 
   public submit() {
-    this.submitForm.submit()
+    this.submitFormNode.submit()
     return this
   }
 
@@ -84,6 +112,38 @@ class VerificationCode extends BaseComponent {
 
   public set onCancel(onCancel: VerificationCodeOnCancel) {
     this.onCancel = onCancel
+  }
+
+  public startTimer() {
+    if (this._timer > 0) {
+      // Start the interval
+      this._intervalRef = setInterval(() => {
+        this._timer -= 1000
+      }, 1000)
+
+      // Start the timeout
+      this._timeoutRef = setTimeout(() => {
+        clearInterval(this._intervalRef)
+      }, this.getInitialTimer(this._timer))
+    }
+  }
+
+  public clearTimer() {
+    if (this._intervalRef) clearInterval(this._intervalRef)
+    if (this._timeoutRef) clearTimeout(this._timeoutRef)
+  }
+
+  /**
+   * Returns the initial timer in milliseconds
+   * @param { number? } initialTimer - Initial timer in seconds
+   */
+  public getInitialTimer(initialTimer?: number) {
+    if (_.isNumber(initialTimer)) {
+      if (initialTimer > 0) {
+        return initialTimer * 1000
+      }
+    }
+    return 0
   }
 }
 

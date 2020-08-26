@@ -102,11 +102,7 @@ builtInActions.signIn = async (action, options) => {
     switch (state.auth.status) {
       case 'logged.in': {
         cadl?.root?.actions?.['SignIn']?.update()
-        await app.page.goToPage(
-          app.page.getPagePath(
-            app.page.getDashboardLink(cadl.cadlBaseUrl) || '',
-          ),
-        )
+        await app.page.navigate(app.page.getDashboardPath())
         return
       }
       case 'logged.out': {
@@ -118,11 +114,7 @@ builtInActions.signIn = async (action, options) => {
         console.log(logMsg, logStyle, formValues)
         if (errMsg) return window.alert(errMsg)
         await cadl?.root?.builtIn?.loginByPassword?.(password)
-        await app.page.goToPage(
-          app.page.getPagePath(
-            app.page.getDashboardLink(cadl.cadlBaseUrl) || '',
-          ),
-        )
+        await app.page.navigate(app.page.getDashboardPath())
         return
       }
       case 'new.device': {
@@ -158,7 +150,7 @@ builtInActions.signIn = async (action, options) => {
               formattedPhoneNum,
             )
             console.log(`%c${code}`, 'color:#8e44ad;font-weight:bold;')
-            if (typeof formValues.phoneNumber === 'string') {
+            if (_.isString(formValues.phoneNumber)) {
               if (formValues.phoneNumber.startsWith('888')) {
                 params = { pending: true, code }
               } else {
@@ -172,7 +164,14 @@ builtInActions.signIn = async (action, options) => {
             }
           }
           app.dispatch(setVerificationCodePending(params))
-          const verificationElem = new VerificationCode()
+          const verificationElem = new VerificationCode({
+            onUnload: () => {
+              app.dispatch(setVerificationCodePending(false))
+              if (state.auth.isCreating) {
+                app.dispatch(setIsCreatingAccount(false))
+              }
+            },
+          })
           verificationElem.render()
 
           // app.dispatch(
@@ -250,7 +249,7 @@ builtInActions.signIn = async (action, options) => {
           app.dispatch(toggleModal(false))
           // Call the callback which will take care of the steps ahead
           const dashboardPg = app.page.getPagePath(
-            app.page.getDashboardLink(cadl.cadlBaseUrl) || '',
+            app.page.getDashboardPath(cadl.cadlBaseUrl) || '',
           )
           await app.page.goToPage(dashboardPg)
         }

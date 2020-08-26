@@ -25,6 +25,7 @@ export interface PageOptions {
  * action chains that are running.
  */
 class Page {
+  private _currentPage: string = ''
   private _initializeRootNode: () => void
   private _listeners: { [name: string]: Function } = {}
   public builtIn: PageOptions['builtIn']
@@ -48,6 +49,28 @@ class Page {
     }
 
     this.modal = new Modal()
+
+    const store = app.getStore()
+
+    this.currentPage = store.getState().page.currentPage
+
+    const unsubscribe = store.subscribe(() => {
+      const pageState = store.getState().page
+      const previousPage = pageState.previousPage
+      const currentPage = pageState.currentPage
+      if (currentPage !== this._currentPage) {
+        const logMsg = `%c[Page.tsx][constructor - store/subcribe] Updating private _currentPage  because state.page.currentPage has updated`
+        const logStyle = `color:#FF5722;font-weight:bold;`
+        console.log(logMsg, logStyle, {
+          redux: { previousPage, currentPage },
+          upcomingLocalChanges: {
+            previousPage: this._currentPage,
+            nextPage: currentPage,
+          },
+        })
+        this.currentPage = currentPage
+      }
+    })
   }
 
   public async navigate(...args: Parameters<CADL['initPage']>) {
@@ -61,47 +84,64 @@ class Page {
       rootNode: this.rootNode,
     } as OnBeforePageChange)
 
-    // Load the page in the SDK
-    await cadl.initPage(pageName, arr, {
-      ...options,
-      builtIn: {
-        ...this.builtIn,
-        ...options?.builtIn,
-      },
-    })
+    if (!pageName) {
+      const logMsg = `%c[Page.ts][navigate] Cannot navigate because pageName is invalid`
+      const logStyle = `color:#ec0000;font-weight:bold;`
+      console.log(logMsg, logStyle, { pageName, rootNode: this.rootNode })
+      window.alert(`The value of page "${pageName}" is not valid`)
+    } else {
+      // Load the page in the SDK
+      await cadl.initPage(pageName, arr, {
+        ...options,
+        builtIn: {
+          ...this.builtIn,
+          ...options?.builtIn,
+        },
+      })
 
-    app.dispatch(setCurrentPage(pageName))
+      app.dispatch(setCurrentPage(pageName))
 
-    this._callListener('onAfterPageChange', {
-      previousPage: app.getState().page.previousPage,
-      next: {
-        name: pageName,
-        object: cadl?.root?.[pageName],
-      },
-    } as OnAfterPageChangeArgs)
+      this._callListener('onAfterPageChange', {
+        previousPage: app.getState().page.previousPage,
+        next: {
+          name: pageName,
+          object: cadl?.root?.[pageName],
+        },
+      } as OnAfterPageChangeArgs)
+    }
+  }
+
+  set currentPage(currentPage: string) {
+    this._currentPage = currentPage
   }
 
   /**
    * Returns the link to the main dashboard page by using the noodl base url
    * @param { string } baseUrl - Base url retrieved from the noodl config
    */
-  public getDashboardLink(baseUrl: string) {
+  public getDashboardPath(baseUrl: string = cadl.cadlBaseUrl || '') {
     const isMeetingConfig = /meeting/i.test(baseUrl)
     const regex = isMeetingConfig ? /(dashboardmeeting|meeting)/i : /dashboard/i
-    return cadl?.cadlEndpoint.page.find((name: string) => regex.test(name))
+    return this.getPagePath(regex)
   }
 
   /** Handles onClick events for "goTo" handling.
    *    Ex: A NOODL page gives an onClick a value of "goToDashboard"
-   *     The underlying function here will take a path string and find a matching
+   *     The underlying function here will take a path string/regex and find a matching
    *     page path from the config, and will return the path if found.
    *     Otherwise it will return an empty string
    * @param { null | NOODLConfig } config
    * @return { string }
    */
-  public getPagePath(pageName: string) {
+  public getPagePath(pageName: string | RegExp) {
     const pages = cadl?.cadlEndpoint?.page || []
-    const pagePath = pages.find((name: string) => name.includes(pageName))
+    const pagePath = _.find(pages, (name: string) =>
+      _.isString(pageName)
+        ? name.includes(pageName)
+        : pageName instanceof RegExp
+        ? pageName.test(name)
+        : false,
+    )
     return pagePath || ''
   }
 
