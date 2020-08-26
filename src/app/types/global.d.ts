@@ -1,10 +1,12 @@
 import NOODL, { Account } from '@aitmed/cadl'
 import { Room, Participant, LocalParticipant } from 'twilio-video'
+import Modal from 'components/Modal'
 import { App } from '../../app'
 
 declare global {
   interface Window {
     cadl: NOODL
+    modal: Modal
     noodl: NOODL
     noodlui: App
     account: typeof Account

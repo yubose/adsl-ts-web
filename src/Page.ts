@@ -1,11 +1,12 @@
 import CADL from '@aitmed/cadl'
 import _ from 'lodash'
-import { NOODLComponent, Page as NOODLUiPage } from 'noodl-ui'
+import { NOODLComponent } from 'noodl-ui'
+import Modal from './components/Modal'
 import { cadl } from './app/client'
-import { OnAfterPageChangeArgs } from './app/types'
+import { OnBeforePageChange, OnAfterPageChangeArgs } from './app/types'
 import { toDOMNode } from './utils/noodl'
-import { setCurrentPage } from 'features/page'
-import app, { App } from './App'
+import { setCurrentPage } from './features/page'
+import app from './App'
 
 export type PageListenerName = 'onBeforePageChange' | 'onAfterPageChange'
 
@@ -29,6 +30,7 @@ class Page {
   public builtIn: PageOptions['builtIn']
   public rootNode: HTMLElement | null = null
   public nodes: HTMLElement[] | null
+  public modal: Modal
 
   constructor({ rootNode = null, nodes = null, builtIn }: PageOptions = {}) {
     this.builtIn = builtIn
@@ -41,10 +43,11 @@ class Page {
       root.style.position = 'absolute'
       root.style.width = '100%'
       root.style.height = '100%'
-
       this.rootNode = root
       document.body.appendChild(root)
     }
+
+    this.modal = new Modal()
   }
 
   public async navigate(...args: Parameters<CADL['initPage']>) {
@@ -54,7 +57,9 @@ class Page {
       this._initializeRootNode()
     }
 
-    this._callListener('onBeforePageChange')
+    this._callListener('onBeforePageChange', {
+      rootNode: this.rootNode,
+    } as OnBeforePageChange)
 
     // Load the page in the SDK
     await cadl.initPage(pageName, arr, {
@@ -111,6 +116,13 @@ class Page {
     if (pagePath) {
     } else {
       window.alert(`Could not find page ${pageName}`)
+    }
+  }
+
+  public async goBack() {
+    const { previousPage, currentPage } = app.getState().page
+    if (previousPage !== currentPage) {
+      setCurrentPage(previousPage)
     }
   }
 

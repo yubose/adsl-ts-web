@@ -1,12 +1,23 @@
 import _ from 'lodash'
-import { forEachEntries } from 'utils/common'
 import { Styles } from 'app/types'
+import { forEachEntries } from 'utils/common'
 
-export function mergeStyles(node: HTMLElement, styles: Styles) {
-  if (_.isPlainObject(styles)) {
-    forEachEntries(styles, (key, value) => {
-      // @ts-expect-error
-      node.style[key] = value
-    })
+export interface SetStyle<Elem extends HTMLElement> {
+  (node: Elem, key: string | { [key: string]: any }, value?: any): void
+}
+
+export function setStyle(
+  node: HTMLElement,
+  key?: string | Styles,
+  value?: any,
+) {
+  if (node) {
+    if (_.isString(key)) {
+      node.style[key as any] = value
+    } else if (_.isPlainObject(key)) {
+      forEachEntries(key, (k: any, v) => {
+        node.style[k] = v
+      })
+    }
   }
 }

@@ -1,4 +1,5 @@
 import isString from 'lodash/isString'
+import { formatPhoneNumber, isValidPhoneNumber } from 'utils/phone'
 
 export type ValidateName =
   | 'email'
@@ -87,6 +88,44 @@ validate.verificationCode = function (value: any) {
   if (value.length < 6) return 'Your 6-digit verification code is too short'
   if (/[a-zA-Z]/.test(value)) return 'Your code should only consist of numbers'
   return undefined
+}
+
+export async function getFormErrors<FormValues extends {}>(
+  formValues: Partial<FormValues> = {},
+): Promise<string[]> {
+  const errors: string[] = []
+  try {
+    const keys = Object.keys(formValues)
+    let errMsg: string | undefined = ''
+    for (let index = 0; index < keys.length; index++) {
+      const field = keys[index]
+      const value = formValues[field as keyof FormValues]
+      const validator = validate[field as string]
+      if (field === 'phoneNumber' && value) {
+        const options: any = {}
+        // @ts-expect-error
+        if (formValues['countryCode']) {
+          // @ts-expect-error
+          options.countryCode = formValues.countryCode
+        }
+        // @ts-expect-error
+        if (formValues['phoneNumber']) {
+          // @ts-expect-error
+          options.phoneNumber = formValues.phoneNumber
+        }
+        const isValid = await isValidPhoneNumber(options)
+        if (!isValid) errors.push('The phone number is invalid')
+      }
+      if (_.isFunction(validator)) {
+        // @ts-expect-error
+        errMsg = validator(value)
+        if (errMsg) errors.push(errMsg)
+      }
+    }
+  } catch (error) {
+    errors.push(error.message)
+  }
+  return errors
 }
 
 export default validate

@@ -37,7 +37,7 @@ export interface NOODLVersion {
   test: number
 }
 
-export type Styles = Record<keyof CSSStyleDeclaration, any>
+export type Styles = Omit<Partial<CSSStyleDeclaration>, 'length' | 'parentRule'>
 
 export * from './storeTypes'
 export * from './Page'
