@@ -10,10 +10,44 @@ export function getDocumentScrollTop() {
   )
 }
 
+export function getOffset(el: HTMLElement) {
+  const html = el.ownerDocument.documentElement
+  let box = { top: 0, left: 0 }
+  // If we don't have gBCR, just use 0,0 rather than error
+  // BlackBerry 5, iOS 3 (original iPhone)
+  if (typeof el.getBoundingClientRect !== 'undefined') {
+    box = el.getBoundingClientRect()
+  }
+  return {
+    top: box.top + window.pageYOffset - html.clientTop,
+    left: box.left + window.pageXOffset - html.clientLeft,
+  }
+}
+
+export function getPosition(el: HTMLElement) {
+  if (!el) {
+    return {
+      left: 0,
+      top: 0,
+    }
+  }
+  return {
+    left: el.offsetLeft,
+    top: el.offsetTop,
+  }
+}
+
 export interface SetStyle<Elem extends HTMLElement> {
   (node: Elem, key: string | { [key: string]: any }, value?: any): void
 }
 
+/**
+ * Sets the style for an HTML DOM element. If key is an empty string it
+ * will erase all styles
+ * @param { HTMLElement } node
+ * @param { string | Styles | undefined } key
+ * @param { any | undefined } value
+ */
 export function setStyle(
   node: HTMLElement,
   key?: string | Styles,
@@ -21,6 +55,11 @@ export function setStyle(
 ) {
   if (node) {
     if (_.isString(key)) {
+      // Normalize unsetting
+      if (key === '') {
+        key = 'cssText'
+        value = ''
+      }
       node.style[key as any] = value
     } else if (_.isPlainObject(key)) {
       forEachEntries(key, (k: any, v) => {
