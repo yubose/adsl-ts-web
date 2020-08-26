@@ -19,4 +19,57 @@ window.addEventListener('load', async function hello() {
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   await app.initialize()
+
+  window.modal = app.page.modal
+
+  window.modal.render()
+
+  const store = app.getStore()
+
+  store.subscribe((...args) => {
+    console.log(...args)
+    console.log(...args)
+    console.log(...args)
+    console.log(...args)
+    console.log(...args)
+  })
+
+  const testNode = document.createElement('div')
+  app.page.modal.setStyle(testNode, { width: '100%', height: '100%' })
+  testNode.innerHTML += `
+    <div style="width:100%;height:100%;border:1px solid red;">
+      <h4>Title</h4>
+      <small>Subtitle</small>
+      <div>
+        constructor that can be used to create a second "immer" instance (exposing all APIs listed in this instance), that doesn't share its settings with global instance.
+      </div>
+    </div>
+  `
+  window.modal.appendChild(testNode)
+  // Callback which is crucial for components/nodes to be in sync
+  // app.page.registerListener(
+  //   'onAfterPageChange',
+  //   async ({ previousPage, next: nextPage }: OnAfterPageChangeArgs) => {
+  //     const logMsg = `%c[App.tsx][onAfterPageChange] ${previousPage} --> ${nextPage.name}`
+  //     const logStyle = `color:#3498db;font-weight:bold;`
+  //     console.log(logMsg, logStyle, { previousPage, nextPage })
+
+  //     console.log(
+  //       `%c[onPageChange] currentUser.vertex`,
+  //       `color:#3498db};font-weight:bold;`,
+  //       cadl.root?.Global?.currentUser.vertex,
+  //     )
+
+  //     if (nextPage.name) {
+  //       // Parse the components
+  //       const components = noodl
+  //         // TODO: Leave this binded to the lib
+  //         .setRoot(cadl.root)
+  //         .setPage(nextPage)
+  //         .resolveComponents()
+  //       // Render them to the UI
+  //       this.page.render(components)
+  //     }
+  //   },
+  // )
 })

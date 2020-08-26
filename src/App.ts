@@ -56,54 +56,24 @@ export class App {
     await cadl.init()
 
     const startPage = cadl?.cadlEndpoint?.startPage
-    const store = this.store
-    const state = store.getState()
+    const state = this.store.getState()
     const authState = state.auth?.status
 
     if (!authState) {
       // Initialize the user's state before proceeding to decide on how to direct them
-      store.dispatch(setRetrievingUserState(true))
+      this.store.dispatch(setRetrievingUserState(true))
       const storedStatus = await Account.getStatus()
-      store.dispatch(setRetrievingUserState(false))
+      this.store.dispatch(setRetrievingUserState(false))
 
       if (storedStatus.code === 0) {
         cadl.setFromLocalStorage('user')
-        store.dispatch(setAuthStatus('logged.in'))
+        this.store.dispatch(setAuthStatus('logged.in'))
       } else if (storedStatus.code === 1) {
-        store.dispatch(setAuthStatus('logged.out'))
+        this.store.dispatch(setAuthStatus('logged.out'))
       } else if (storedStatus.code === 2) {
-        store.dispatch(setAuthStatus('new.device'))
+        this.store.dispatch(setAuthStatus('new.device'))
       } else if (storedStatus.code === 3) {
-        store.dispatch(setAuthStatus('temporary'))
-      }
-
-      // Callback which is crucial for components/nodes to be in sync
-      if (!this.page.hasListener('onAfterPageChange')) {
-        this.page.registerListener(
-          'onAfterPageChange',
-          async ({ previousPage, next: nextPage }: OnAfterPageChangeArgs) => {
-            const logMsg = `%c[App.tsx][onAfterPageChange] ${previousPage} --> ${nextPage.name}`
-            const logStyle = `color:#3498db;font-weight:bold;`
-            console.log(logMsg, logStyle, { previousPage, nextPage })
-
-            console.log(
-              `%c[onPageChange] currentUser.vertex`,
-              `color:#3498db};font-weight:bold;`,
-              cadl.root?.Global?.currentUser.vertex,
-            )
-
-            if (nextPage.name) {
-              // Parse the components
-              const components = noodl
-                // TODO: Leave this binded to the lib
-                .setRoot(cadl.root)
-                .setPage(nextPage)
-                .resolveComponents()
-              // Render them to the UI
-              this.page.render(components)
-            }
-          },
-        )
+        this.store.dispatch(setAuthStatus('temporary'))
       }
 
       const logMsg = `%c[App.tsx][initialize] startPage`

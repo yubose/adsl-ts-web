@@ -13,7 +13,6 @@ const keysHandling = [
   'data-value',
   'onClick',
   'options',
-  'placeholder',
   'style',
 ] as const
 
@@ -92,17 +91,13 @@ export const attachStyles = createAttacher((node, { key, value }) => {
 
 export const attachValues = createAttacher((node, { key, value, props }) => {
   if (key === 'data-value' && value != undefined) {
-    if (props.type === 'input') {
-      const inputElem = node as HTMLInputElement
-      inputElem.value = value
-    } else if (props.type == 'select') {
-      const selectElem = node as HTMLSelectElement
-      selectElem.value = value
+    if (['input', 'select', 'textarea'].includes(props.type)) {
+      const elem = node as
+        | HTMLInputElement
+        | HTMLSelectElement
+        | HTMLTextAreaElement
+      elem.value = value
     }
-  }
-  // Placeholder
-  else if (key === 'placeholder') {
-    node.setAttribute('placeholder', `${value}`)
   }
 })
 
