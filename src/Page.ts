@@ -204,6 +204,11 @@ class Page {
     }
   }
 
+  public setBuiltIn(builtIn: any) {
+    this.builtIn = builtIn
+    return this
+  }
+
   private _callListener(listenerName: PageListenerName, ...args: any[]) {
     const result = this._listeners[listenerName]?.(...args)
     if (result && result instanceof Promise) {

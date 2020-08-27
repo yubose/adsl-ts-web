@@ -1,28 +1,9 @@
 import _ from 'lodash'
-import {
-  getElementType,
-  getAlignAttrs,
-  getBorderAttrs,
-  getCustomDataAttrs,
-  getChildren,
-  getColors,
-  getEventHandlers,
-  getFontAttrs,
-  getPosition,
-  getReferences,
-  getStylesByElementType,
-  getSizes,
-  getTransformedAliases,
-  getTransformedStyleAliases,
-  Viewport,
-} from 'noodl-ui'
+import { Viewport } from 'noodl-ui'
 import { Account } from '@aitmed/cadl'
-import { cadl, noodl } from './app/client'
+import { cadl } from './app/client'
 import { setAuthStatus, setRetrievingUserState } from './features/auth'
 import { AppDispatch, AppStore, RootState } from './app/types'
-import builtIn from './handlers/builtIns'
-import * as action from './handlers/actions'
-import * as lifeCycle from './handlers/lifeCycles'
 
 /**
  * The root app instance.
@@ -51,7 +32,6 @@ export class App {
     const startPage = cadl?.cadlEndpoint?.startPage
     const state = this.getState()
     const authState = state.auth?.status
-    const viewport = this.getViewport()
 
     if (!authState) {
       // Initialize the user's state before proceeding to decide on how to direct them
@@ -74,67 +54,6 @@ export class App {
       const logStyle = `color:#3498db;font-weight:bold;`
       console.log(logMsg, logStyle, startPage)
 
-      // Initialize the NOODL client / component resolver
-      if (!noodl.initialized) {
-        noodl
-          .init({ viewport })
-          .setRoot(cadl.root)
-          .setAssetsUrl(cadl.assetsUrl || '')
-          .setViewport({
-            width: window.innerWidth,
-            height: window.innerHeight,
-          })
-          .setPage({
-            name: startPage,
-            object: cadl.root?.[startPage],
-          })
-          .setResolvers([
-            getElementType,
-            getTransformedAliases,
-            getReferences,
-            getAlignAttrs,
-            getBorderAttrs,
-            getColors,
-            getFontAttrs,
-            getPosition,
-            getSizes,
-            getStylesByElementType,
-            getTransformedStyleAliases,
-            getChildren,
-            getCustomDataAttrs,
-            getEventHandlers,
-          ])
-          .addLifecycleListener({
-            action: {
-              evalObject: action.onEvalObject,
-              goto: action.onGoto,
-              pageJump: action.onPageJump,
-              popUp: action.onPopUp,
-              popUpDismiss: action.onPopUpDismiss,
-              refresh: action.onRefresh,
-              saveObject: action.onSaveObject,
-              updateObject: action.onUpdateObject,
-            },
-            builtIn: {
-              checkUsernamePassword: builtIn.checkUsernamePassword,
-              enterVerificationCode: builtIn.checkVerificationCode,
-              goBack: builtIn.goBack,
-              lockApplication: builtIn.lockApplication,
-              logOutOfApplication: builtIn.logOutOfApplication,
-              logout: builtIn.logout,
-              signIn: builtIn.signIn,
-              signUp: builtIn.signUp,
-              signout: builtIn.signout,
-              toggleCameraOnOff: builtIn.toggleCameraOnOff,
-              toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-            },
-            onChainStart: lifeCycle.onChainStart,
-            onChainEnd: lifeCycle.onChainEnd,
-            onChainError: lifeCycle.onChainError,
-            onChainAborted: lifeCycle.onChainAborted,
-            onAfterResolve: lifeCycle.onAfterResolve,
-          } as any)
-      }
       return this
     }
   }
