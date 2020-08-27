@@ -4,7 +4,7 @@ export interface OnBeforePageChange {
   rootNode: HTMLDivElement
 }
 
-export interface OnAfterPageChangeArgs {
+export interface OnBeforePageRender {
   next: NOODLUiPage
   previousPage: string
 }

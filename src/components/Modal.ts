@@ -1,13 +1,12 @@
 import _ from 'lodash'
-import BaseComponent from 'components/BaseComponent'
+import NOODLElement from 'components/common/NOODLElement'
 import { Styles } from 'app/types'
-import { setStyle } from 'utils/dom'
 
-class Modal extends BaseComponent {
+class Modal extends NOODLElement {
   public id: string = 'noodl-ui-modal'
   public body: HTMLDivElement
 
-  constructor() {
+  constructor({ contentStyle }: { contentStyle?: Styles } = {}) {
     super({ node: document.createElement('div') })
     this.node.id = this.id
     this.body = document.createElement('div')
@@ -25,12 +24,17 @@ class Modal extends BaseComponent {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'none',
+      pointerEvents: 'none',
     })
 
     this.setStyle(this.body, {
       width: '350px',
       height: '300px',
       boxSizing: 'border-box',
+      boxShadow: '0 0 5px 5px rgba(0, 0, 0, 0.3)',
+      background: '#fff',
+      pointerEvents: 'auto',
+      ...contentStyle,
     })
 
     this._refreshViewport()
@@ -45,11 +49,6 @@ class Modal extends BaseComponent {
     return this
   }
 
-  public clearContent() {
-    this.body.innerHTML = ''
-    return this
-  }
-
   public removeChild(child: HTMLElement) {
     if (this.body.contains(child)) {
       this.body.removeChild(child)
@@ -57,47 +56,13 @@ class Modal extends BaseComponent {
     return this
   }
 
-  public render(html?: string) {
-    if (arguments.length) {
-      this.node.innerHTML = `${html}`
-    }
-    document.body.appendChild(this.node)
-    return this
-  }
-
-  public hide() {
-    this.setStyle('visibility', 'hidden')
-    return this
-  }
-
-  public show() {
-    this.setStyle('visibility', 'visible')
-    return this
-  }
-
-  public remove() {
-    document.body.removeChild(this.node)
+  public clearContent() {
+    this.body.innerHTML = ''
     return this
   }
 
   public setContainerStyle(key: string | Styles, value?: any) {
     this.setStyle(this.node, key, value)
-  }
-
-  public setStyle(
-    node: HTMLElement | string | Styles = this.node,
-    key?: string | Styles,
-    value?: any,
-  ) {
-    if (_.isString(node)) {
-      // Set the styles on the node modal if a node was not given
-      setStyle(this.node, key, value)
-    } else if (node instanceof HTMLElement) {
-      setStyle(node, key, value)
-    } else {
-      setStyle(this.node, node, key)
-    }
-    return this
   }
 
   private _refreshViewport(e?: Event) {

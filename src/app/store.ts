@@ -15,8 +15,9 @@ if (process.env.NODE_ENV !== 'production') {
 
 function createStore(preloadedState?: any) {
   const store = configureStore({
-    reducer: reducers,
     middleware: middlewares,
+    preloadedState,
+    reducer: reducers,
   })
 
   return store

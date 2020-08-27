@@ -1,21 +1,23 @@
 import { combineReducers } from '@reduxjs/toolkit'
-import appSlice, { initialState as appState } from 'features/app'
-import authSlice, { initialState as authState } from 'features/auth'
-import meetingSlice, { initialState as meetingState } from 'features/meeting'
-import pageSlice, { initialState as pageState } from 'features/page'
+import app from 'features/app/appSlice'
+import auth from 'features/auth/authSlice'
+import meeting from 'features/meeting/meetingSlice'
+import page from 'features/page/pageSlice'
+// import app, { initialAppState } from 'features/app'
+// import auth, { initialAuthState } from 'features/auth'
+// import meeting, { initialMeetingState } from 'features/meeting'
+// import page, { initialPageState } from 'features/page'
 
-export const rootInitialState = {
-  app: appState,
-  auth: authState,
-  meeting: meetingState,
-  page: pageState,
-}
+// export const rootInitialState = {
+//   app: initialAppState,
+//   auth: initialAuthState,
+//   meeting: initialMeetingState,
+//   page: initialPageState,
+// }
 
-const rootReducer = combineReducers({
-  app: appSlice,
-  auth: authSlice,
-  meeting: meetingSlice,
-  page: pageSlice,
+export default combineReducers({
+  app,
+  meeting,
+  page,
+  auth,
 })
-
-export default rootReducer

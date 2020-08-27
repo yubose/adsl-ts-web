@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import BaseComponent from 'components/BaseComponent'
+import NOODLElement from 'components/common/NOODLElement'
 
 export interface VerificationCodeOnSubmit {
   (e: Event): any
@@ -9,17 +9,19 @@ export interface VerificationCodeOnCancel<E = any> {
   (e?: E): any
 }
 
-class VerificationCode extends BaseComponent {
-  private _hiddenInput: HTMLInputElement
+class VerificationCode extends NOODLElement {
   private _timer: number = 0
   private _timeoutRef: NodeJS.Timeout | undefined
   private _intervalRef: any
-  public submitFormNode: HTMLFormElement
-  public cancelBtnNode: HTMLButtonElement
-  public submitBtnNode: HTMLButtonElement
-  public titleNode: HTMLHeadingElement
-  public verificationCodeInput: HTMLInputElement
-  public actionsContainer: HTMLDivElement
+  public refs: {
+    _hiddenInput: HTMLInputElement
+    form: HTMLFormElement
+    submitButton: HTMLButtonElement
+    cancelButton: HTMLButtonElement
+    title: HTMLHeadingElement
+    verificationCode: HTMLInputElement
+    actionsContainer: HTMLDivElement
+  }
 
   constructor({
     onSubmit,
@@ -35,51 +37,55 @@ class VerificationCode extends BaseComponent {
     this._timeoutRef = undefined
     this._intervalRef = undefined
 
-    this._hiddenInput = document.createElement('input')
-    this.submitFormNode = document.createElement('form')
-    this.submitBtnNode = document.createElement('button')
-    this.cancelBtnNode = document.createElement('button')
-    this.titleNode = document.createElement('h6')
-    this.verificationCodeInput = document.createElement('input')
-    this.actionsContainer = document.createElement('div')
+    this.refs = {
+      _hiddenInput: document.createElement('input'),
+      form: document.createElement('form'),
+      submitButton: document.createElement('button'),
+      cancelButton: document.createElement('button'),
+      title: document.createElement('h6'),
+      verificationCode: document.createElement('input'),
+      actionsContainer: document.createElement('div'),
+    }
 
-    this._hiddenInput['name'] = 'verificationCode'
-    this._hiddenInput.dataset['key'] = 'verificationCode'
-    this._hiddenInput.dataset['name'] = 'verificationCode'
-    this._hiddenInput.style['visibility'] = 'hidden'
-    this._hiddenInput.hidden = true
+    this.refs._hiddenInput['name'] = 'verificationCode'
+    this.refs._hiddenInput.dataset['key'] = 'verificationCode'
+    this.refs._hiddenInput.dataset['name'] = 'verificationCode'
+    this.refs._hiddenInput.style['visibility'] = 'hidden'
+    this.refs._hiddenInput.hidden = true
 
-    this.submitFormNode.style['margin'] = '10px 0'
+    this.refs.form.style['margin'] = '10px 0'
+
+    this.refs.verificationCode.id = 'verificationCodeTextField'
+    this.refs.verificationCode.name = 'verificationCodeTextField'
+    this.refs.verificationCode.style['width'] = '100%'
+    this.refs.verificationCode.required = true
+    this.refs.verificationCode.autofocus = true
+
+    this.refs.submitButton.type = 'submit'
+    this.refs.submitButton.innerText = 'Submit'
+
+    this.refs.cancelButton.type = 'button'
+    this.refs.cancelButton.innerText = 'Cancel'
+
+    this.refs.actionsContainer.style['justifyContent'] = 'center'
+
     if (onSubmit) {
-      this.submitFormNode.onsubmit = onSubmit
+      this.refs.form.addEventListener('submit', onSubmit)
     }
 
-    this.verificationCodeInput.id = 'verificationCodeTextField'
-    this.verificationCodeInput.name = 'verificationCodeTextField'
-    this.verificationCodeInput.style['width'] = '100%'
-    this.verificationCodeInput.required = true
-    this.verificationCodeInput.autofocus = true
-
-    this.submitBtnNode.type = 'submit'
-    this.submitBtnNode.innerText = 'Submit'
-
-    this.cancelBtnNode.type = 'button'
-    this.cancelBtnNode.innerText = 'Cancel'
     if (onCancel) {
-      this.cancelBtnNode.addEventListener('click', onCancel)
+      this.refs.cancelButton.addEventListener('click', onCancel)
     }
 
-    this.actionsContainer.style['justifyContent'] = 'center'
-
-    this.submitFormNode.appendChild(this.verificationCodeInput)
-    this.submitFormNode.appendChild(this.actionsContainer)
-    this.actionsContainer.appendChild(this.cancelBtnNode)
-    this.actionsContainer.appendChild(this.submitBtnNode)
+    this.refs.form.appendChild(this.refs.verificationCode)
+    this.refs.form.appendChild(this.refs.actionsContainer)
+    this.refs.actionsContainer.appendChild(this.refs.cancelButton)
+    this.refs.actionsContainer.appendChild(this.refs.submitButton)
 
     const onInputChange = (e: any) => {
       if (e.target?.value) {
         if (`${e.target.value}`.length > 6) {
-          this.verificationCodeInput.value = `${e.target.value}`.substring(0, 6)
+          this.refs.verificationCode.value = `${e.target.value}`.substring(0, 6)
         }
       }
     }
@@ -90,14 +96,14 @@ class VerificationCode extends BaseComponent {
       console.log(logMsg, logStyle)
       this.clearTimer()
       onUnload?.()
-      this.verificationCodeInput.removeEventListener('change', onInputChange)
+      this.refs.verificationCode.removeEventListener('change', onInputChange)
     })
 
-    this.verificationCodeInput.addEventListener('change', onInputChange)
+    this.refs.verificationCode.addEventListener('change', onInputChange)
   }
 
   public submit() {
-    this.submitFormNode.submit()
+    this.refs.form.submit()
     return this
   }
 

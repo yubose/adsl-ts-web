@@ -1,8 +1,8 @@
 const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CircularDependencyPlugin = require('circular-dependency-plugin')
 // const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-// const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
 console.log('-------------------------------------------')
 console.log(`   NODE_ENV set to ${process.env.NODE_ENV}`)
@@ -19,6 +19,7 @@ module.exports = {
       path.join(__dirname, 'src', 'assets'),
     ],
     host: '127.0.0.1',
+    hot: true,
     port: 3000,
   },
   devtool: 'source-map',
@@ -29,6 +30,7 @@ module.exports = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
+        include: path.resolve(__dirname, 'src'),
         use: [
           {
             loader: 'babel-loader',
@@ -72,17 +74,21 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.ts', '.js', '.json'],
+    extensions: ['.ts', '.js'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   output: {
-    filename: '[name].[hash].js',
+    filename: 'index.js',
+    // filename: '[name].[hash].js',
     path: path.resolve(__dirname, 'build'),
   },
   plugins: [
-    // new ForkTsCheckerWebpackPlugin(),
+    new CircularDependencyPlugin({
+      exclude: /node_modules/,
+      include: /src/,
+    }),
     new webpack.EnvironmentPlugin({
-      ECOS_ENV: process.env.ECOS_ENV,
+      'process.env.ECOS_ENV': process.env.ECOS_ENV,
     }),
     // new MiniCssExtractPlugin({
     //   filename: 'styles.css',

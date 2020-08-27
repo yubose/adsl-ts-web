@@ -1,18 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-export interface AppState {
+export interface PageState {
   previousPage: string
   currentPage: string
 }
 
-export const initialState: AppState = {
+export const initialPageState: PageState = {
   previousPage: '',
   currentPage: '',
 }
 
-const app = createSlice({
-  name: 'app',
-  initialState,
+const page = createSlice({
+  name: 'page',
+  initialState: initialPageState,
   reducers: {
     setCurrentPage(state, { payload }: PayloadAction<string>) {
       if (state.currentPage !== state.previousPage) {
@@ -23,6 +23,6 @@ const app = createSlice({
   },
 })
 
-export const { setCurrentPage } = app.actions
+export const { setCurrentPage } = page.actions
 
-export default app.reducer
+export default page.reducer

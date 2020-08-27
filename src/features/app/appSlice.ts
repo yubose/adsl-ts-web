@@ -6,14 +6,14 @@ export interface AppState {
   isRoomEnvironment: boolean | null
 }
 
-export const initialState: AppState = {
+export const initialAppState: AppState = {
   initialized: false,
   isRoomEnvironment: null,
 }
 
 const app = createSlice({
   name: 'app',
-  initialState,
+  initialState: initialAppState,
   reducers: {
     setInitialized(state, { payload }: PayloadAction<boolean | undefined>) {
       state.initialized = _.isUndefined(payload) ? true : payload

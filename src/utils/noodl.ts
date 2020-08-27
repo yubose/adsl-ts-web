@@ -1,10 +1,5 @@
 import _ from 'lodash'
-import {
-  noodlEventTypes,
-  isReference,
-  NOODLComponentProps,
-  SelectOption,
-} from 'noodl-ui'
+import { noodlEventTypes, NOODLComponentProps, SelectOption } from 'noodl-ui'
 import { forEachEntries } from 'utils/common'
 
 // TODO do a more generic solution

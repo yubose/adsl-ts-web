@@ -1,17 +1,15 @@
-import CADL from '@aitmed/cadl'
 import _ from 'lodash'
-import { NOODLComponent } from 'noodl-ui'
+import CADL from '@aitmed/cadl'
+import { NOODLComponent, Page as NOODLUiPage } from 'noodl-ui'
 import Modal from './components/Modal'
-import { cadl } from './app/client'
-import { OnBeforePageChange, OnAfterPageChangeArgs } from './app/types'
+import { cadl, noodl } from './app/client'
+import { OnBeforePageChange } from './app/types'
 import { toDOMNode } from './utils/noodl'
-import { setCurrentPage } from './features/page'
-import app from './App'
 
-export type PageListenerName = 'onBeforePageChange' | 'onAfterPageChange'
+export type PageListenerName = 'onBeforePageChange' | 'onBeforePageRender'
 
 export interface PageOptions {
-  name?: string
+  currentPage?: string
   rootNode?: HTMLElement | null
   nodes?: HTMLElement[] | null
   builtIn?: {
@@ -25,7 +23,6 @@ export interface PageOptions {
  * action chains that are running.
  */
 class Page {
-  private _currentPage: string = ''
   private _initializeRootNode: () => void
   private _listeners: { [name: string]: Function } = {}
   public builtIn: PageOptions['builtIn']
@@ -33,7 +30,7 @@ class Page {
   public nodes: HTMLElement[] | null
   public modal: Modal
 
-  constructor({ rootNode = null, nodes = null, builtIn }: PageOptions = {}) {
+  constructor({ builtIn, rootNode = null, nodes = null }: PageOptions = {}) {
     this.builtIn = builtIn
     this.rootNode = rootNode
     this.nodes = nodes
@@ -49,28 +46,6 @@ class Page {
     }
 
     this.modal = new Modal()
-
-    const store = app.getStore()
-
-    this.currentPage = store.getState().page.currentPage
-
-    const unsubscribe = store.subscribe(() => {
-      const pageState = store.getState().page
-      const previousPage = pageState.previousPage
-      const currentPage = pageState.currentPage
-      if (currentPage !== this._currentPage) {
-        const logMsg = `%c[Page.tsx][constructor - store/subcribe] Updating private _currentPage  because state.page.currentPage has updated`
-        const logStyle = `color:#FF5722;font-weight:bold;`
-        console.log(logMsg, logStyle, {
-          redux: { previousPage, currentPage },
-          upcomingLocalChanges: {
-            previousPage: this._currentPage,
-            nextPage: currentPage,
-          },
-        })
-        this.currentPage = currentPage
-      }
-    })
   }
 
   public async navigate(...args: Parameters<CADL['initPage']>) {
@@ -99,20 +74,17 @@ class Page {
         },
       })
 
-      app.dispatch(setCurrentPage(pageName))
+      const page: NOODLUiPage = {
+        name: pageName,
+        object: cadl.root?.[pageName],
+      }
 
-      this._callListener('onAfterPageChange', {
-        previousPage: app.getState().page.previousPage,
-        next: {
-          name: pageName,
-          object: cadl?.root?.[pageName],
-        },
-      } as OnAfterPageChangeArgs)
+      noodl.setPage(page)
+
+      this._callListener('onBeforePageRender', page)
+
+      this.render(cadl?.root?.[pageName]?.components)
     }
-  }
-
-  set currentPage(currentPage: string) {
-    this._currentPage = currentPage
   }
 
   /**
@@ -154,15 +126,9 @@ class Page {
     pageName = _.upperFirst(String(pageName))
     const pagePath = this.getPagePath(pageName)
     if (pagePath) {
+      //
     } else {
       window.alert(`Could not find page ${pageName}`)
-    }
-  }
-
-  public async goBack() {
-    const { previousPage, currentPage } = app.getState().page
-    if (previousPage !== currentPage) {
-      setCurrentPage(previousPage)
     }
   }
 
@@ -194,23 +160,20 @@ class Page {
     window.components = rawComponents
 
     if (_.isArray(rawComponents)) {
+      const components = noodl.resolveComponents()
+      // @ts-expect-error
+      window.resolvedComponents = components
+
       let rootId = '',
         node
 
       if (this.rootNode) {
         rootId = this.rootNode.id
 
-        const { currentPage } = app.getState().page
-
-        // Make sure that the root node we are going to append to is being synced
-        if (this.rootNode.id !== currentPage) {
-          this.rootNode.id = currentPage
-        }
-
         // Clean up previous nodes
         this.rootNode.innerHTML = ''
 
-        _.forEach(rawComponents, (component) => {
+        _.forEach(components, (component) => {
           node = toDOMNode(component)
           if (node) {
             this.rootNode?.appendChild(node)
@@ -235,10 +198,7 @@ class Page {
    * Useful for debug logs
    */
   public getSnapshot() {
-    const { previousPage, currentPage } = app.getState().page
     return {
-      previousPage,
-      currentPage,
       rootNode: this.rootNode,
       nodes: this.nodes,
     }

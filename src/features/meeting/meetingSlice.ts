@@ -4,13 +4,13 @@ export interface MeetingState {
   status: null | 'in.progress' | 'completed'
 }
 
-export const initialState: MeetingState = {
+export const initialMeetingState: MeetingState = {
   status: null,
 }
 
-const meetingSlice = createSlice({
+const meeting = createSlice({
   name: 'meeting',
-  initialState,
+  initialState: initialMeetingState,
   reducers: {
     setStatus(state, { payload }: PayloadAction<MeetingState['status']>) {
       state.status = payload
@@ -18,6 +18,6 @@ const meetingSlice = createSlice({
   },
 })
 
-export const { setStatus } = meetingSlice.actions
+export const { setStatus } = meeting.actions
 
-export default meetingSlice.reducer
+export default meeting.reducer

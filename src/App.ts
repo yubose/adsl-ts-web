@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { Store } from '@reduxjs/toolkit'
 import {
   getElementType,
   getAlignAttrs,
@@ -20,10 +19,8 @@ import {
 import { Account } from '@aitmed/cadl'
 import { cadl, noodl } from './app/client'
 import { setAuthStatus, setRetrievingUserState } from './features/auth'
-import { OnAfterPageChangeArgs, RootState } from './app/types'
-import createStore from './app/store'
-import Page from './Page'
-import builtIn, { videoChat as onVideoChatBuiltIn } from './handlers/builtIns'
+import { AppDispatch, AppStore, RootState } from './app/types'
+import builtIn from './handlers/builtIns'
 import * as action from './handlers/actions'
 import * as lifeCycle from './handlers/lifeCycles'
 
@@ -36,44 +33,41 @@ import * as lifeCycle from './handlers/lifeCycles'
  */
 
 export class App {
-  // @ts-expect-error
-  private _store: Store<RootState>
-  public page: Page
-  public viewport: Viewport
+  public getStore: () => AppStore
+  public getState: () => RootState
+  public getViewport: () => Viewport
+  public dispatch: AppDispatch
 
-  constructor(preloadedState?: RootState) {
-    this.viewport = new Viewport()
-    this.store = createStore(preloadedState)
-    this.page = new Page({
-      builtIn: {
-        goto: builtIn.goto,
-        videoChat: onVideoChatBuiltIn,
-      },
-    })
+  constructor({ store, viewport }: { store: AppStore; viewport: Viewport }) {
+    this.getStore = (): AppStore => store
+    this.getState = store.getState
+    this.getViewport = () => viewport
+    this.dispatch = store.dispatch
   }
 
   public async initialize() {
     await cadl.init()
 
     const startPage = cadl?.cadlEndpoint?.startPage
-    const state = this.store.getState()
+    const state = this.getState()
     const authState = state.auth?.status
+    const viewport = this.getViewport()
 
     if (!authState) {
       // Initialize the user's state before proceeding to decide on how to direct them
-      this.store.dispatch(setRetrievingUserState(true))
+      this.dispatch(setRetrievingUserState(true))
       const storedStatus = await Account.getStatus()
-      this.store.dispatch(setRetrievingUserState(false))
+      this.dispatch(setRetrievingUserState(false))
 
       if (storedStatus.code === 0) {
         cadl.setFromLocalStorage('user')
-        this.store.dispatch(setAuthStatus('logged.in'))
+        this.dispatch(setAuthStatus('logged.in'))
       } else if (storedStatus.code === 1) {
-        this.store.dispatch(setAuthStatus('logged.out'))
+        this.dispatch(setAuthStatus('logged.out'))
       } else if (storedStatus.code === 2) {
-        this.store.dispatch(setAuthStatus('new.device'))
+        this.dispatch(setAuthStatus('new.device'))
       } else if (storedStatus.code === 3) {
-        this.store.dispatch(setAuthStatus('temporary'))
+        this.dispatch(setAuthStatus('temporary'))
       }
 
       const logMsg = `%c[App.tsx][initialize] startPage`
@@ -83,7 +77,7 @@ export class App {
       // Initialize the NOODL client / component resolver
       if (!noodl.initialized) {
         noodl
-          .init({ viewport: this.viewport })
+          .init({ viewport })
           .setRoot(cadl.root)
           .setAssetsUrl(cadl.assetsUrl || '')
           .setViewport({
@@ -141,50 +135,9 @@ export class App {
             onAfterResolve: lifeCycle.onAfterResolve,
           } as any)
       }
-
-      // TODO: Find a way to restore a previous cached page to avoid loading startPage every time
-      await this.page.navigate(startPage)
-
-      // Register the register once, if it isn't already registered
-      if (this.viewport.onResize === undefined) {
-        this.viewport.onResize = (newSizes) => {
-          noodl.setViewport(newSizes)
-          if (this.page.rootNode) {
-            this.page.rootNode.style.width = `${newSizes.width}px`
-            this.page.rootNode.style.height = `${newSizes.height}px`
-            this.page.render(noodl.resolveComponents())
-          } else {
-            // TODO
-          }
-        }
-      }
-
       return this
     }
   }
-
-  public getStore() {
-    return this._store
-  }
-
-  public getState() {
-    return this.store.getState()
-  }
-
-  public dispatch(action: any) {
-    this._store.dispatch(action)
-    return this
-  }
-
-  private get store() {
-    return this._store
-  }
-
-  private set store(store: Store<RootState>) {
-    this._store = store
-  }
 }
 
-const app = new App()
-
-export default app
+export default App

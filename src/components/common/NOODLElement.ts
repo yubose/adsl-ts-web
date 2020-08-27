@@ -1,49 +1,38 @@
 import _ from 'lodash'
 import { Styles } from 'app/types'
 import { setStyle } from 'utils/dom'
+import { forEachEntries } from 'utils/common'
 
-// type StoredNodes<Elem = HTMLElement> = { [name: string]: Elem }
-
-class BaseComponent {
+class NOODLElement {
   public container: HTMLElement | undefined
   public id: string
   public node: HTMLElement
+  public refs: { [key: string]: HTMLElement } = {}
 
   constructor({
     container,
     id = '',
     node,
-  }: { container?: HTMLElement; id?: string; node?: HTMLElement } = {}) {
+  }: {
+    container?: HTMLElement
+    id?: string
+    node?: HTMLElement
+  } = {}) {
     this.container = container
     this.id = id
     this.node = node || document.createElement('div')
     this.node.id = this.id
   }
 
-  /**
-   * Sets nodes to locally stored nodes
-   * @param { string | StoredNodes } name - Node name or an object of nodes
-   */
-  // public addMember<Elem = HTMLElement>(
-  //   name: string | StoredNodes<Elem>,
-  //   node?: HTMLElement | StoredNodes<Elem>,
-  // ) {
-  //   if (_.isString(name)) {
-  //     this.nodes[name] = node as HTMLElement
-  //   } else if (_.isPlainObject(name)) {
-  //     _.assign(this.nodes, name)
-  //   }
-  //   return this
-  // }
+  public hide() {
+    this.setStyle('visibility', 'hidden')
+    return this
+  }
 
-  /**
-   * Removes a node from locally stored nodes
-   * @param { string } name - Node name
-   */
-  // public removeMember(name: string) {
-  //   delete this.nodes[name]
-  //   return this
-  // }
+  public show() {
+    this.setStyle('visibility', 'visible')
+    return this
+  }
 
   /**
    * Appends the current node to the DOM if it doesn't already exist
@@ -96,4 +85,4 @@ class BaseComponent {
   }
 }
 
-export default BaseComponent
+export default NOODLElement

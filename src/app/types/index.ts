@@ -1,4 +1,6 @@
 import { Status } from '@aitmed/ecos-lvl2-sdk'
+export * from './storeTypes'
+export * from './Page'
 
 export type AccountStatus = Omit<Status, 'code' | 'config'> & {
   code: null | number
@@ -38,6 +40,3 @@ export interface NOODLVersion {
 }
 
 export type Styles = Omit<Partial<CSSStyleDeclaration>, 'length' | 'parentRule'>
-
-export * from './storeTypes'
-export * from './Page'

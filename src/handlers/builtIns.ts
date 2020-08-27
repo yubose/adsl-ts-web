@@ -89,7 +89,7 @@ builtInActions.logout = async () => {
 
 builtInActions.signIn = async (action, options) => {
   const store = app.getStore()
-  const state = store.getState()
+  const state = app.getState()
 
   const logMsg = `%cSIGNIN BUILTIN ARGS`
   const logStyle = `color:#ec0000;font-weight:bold;`

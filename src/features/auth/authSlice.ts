@@ -18,7 +18,7 @@ export interface AuthState {
   }
 }
 
-export const initialState: AuthState = {
+export const initialAuthState: AuthState = {
   status: null,
   isRetrieving: false,
   isCreating: false,
@@ -31,9 +31,9 @@ export const initialState: AuthState = {
   cache: {}, // Cached signin/signup form values to help with the complexity in the login flow
 }
 
-const authSlice = createSlice({
+const auth = createSlice({
   name: 'auth',
-  initialState,
+  initialState: initialAuthState,
   reducers: {
     /* -------------------------------------------------------
       ---- User state
@@ -95,7 +95,7 @@ const authSlice = createSlice({
       ---- Other
     -------------------------------------------------------- */
     mergeCacheAuthValues(state, { payload }: PayloadAction<any>) {
-      forEachEntries(payload, (key, value) => {
+      forEachEntries(payload, (key: string, value) => {
         state.cache[key] = value
       })
     },
@@ -104,13 +104,13 @@ const authSlice = createSlice({
 
 export const {
   mergeCacheAuthValues,
-  setRetrievingUserState,
-  setIsCreatingAccount,
   setAuthStatus,
+  setIsCreatingAccount,
+  setRetrievingUserState,
   setVerificationCode,
   setVerificationCodePending,
   setVerificationCodeError,
   setVerificationCodeTimedOut,
-} = authSlice.actions
+} = auth.actions
 
-export default authSlice.reducer
+export default auth.reducer
