@@ -1,13 +1,23 @@
+import _ from 'lodash'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { forEachEntries } from 'utils/common'
+import { PageModalState } from './types'
 
 export interface PageState {
   previousPage: string
   currentPage: string
+  modal: PageModalState
 }
 
 export const initialPageState: PageState = {
   previousPage: '',
   currentPage: '',
+  modal: {
+    id: '',
+    opened: false,
+    context: null,
+    props: {},
+  },
 }
 
 const page = createSlice({
@@ -20,9 +30,19 @@ const page = createSlice({
       }
       state['currentPage'] = payload
     },
+    openModal(state, { payload = {} }: PayloadAction<Partial<PageModalState>>) {
+      state.modal.opened = true
+      forEachEntries(payload, (key, value) => {
+        // @ts-expect-error
+        state.modal[key] = value
+      })
+    },
+    closeModal(state) {
+      _.assign(state.modal, initialPageState.modal)
+    },
   },
 })
 
-export const { setCurrentPage } = page.actions
+export const { openModal, closeModal, setCurrentPage } = page.actions
 
 export default page.reducer

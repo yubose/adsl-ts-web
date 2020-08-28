@@ -1,5 +1,5 @@
+import { EnhancedStore, CombinedState } from '@reduxjs/toolkit'
 import _ from 'lodash'
-import { CreateLoggerOptions } from 'app/types'
 
 /**
  * Runs a series of functions from left to right, passing in the argument of the
@@ -29,9 +29,9 @@ export function decodeUnicode(value: string) {
  * @param { object } value
  * @param { function } callback - Callback function to run on each key/value entry
  */
-export function forEachEntries<Obj, K extends keyof Obj>(
+export function forEachEntries<Obj>(
   value: Obj,
-  callback: (key: K, value: Obj[K]) => void,
+  callback: (key: keyof Obj, value: Obj[keyof Obj]) => void,
 ) {
   if (value && _.isObject(value)) {
     _.forEach(_.entries(value), _.spread(callback))
@@ -45,15 +45,15 @@ export function forEachEntries<Obj, K extends keyof Obj>(
  * @param { object } value
  * @param { function } callback - Callback function to run on each key/value entry
  */
-export function forEachDeepEntries<Obj, K extends keyof Obj>(
+export function forEachDeepEntries<Obj>(
   value: Obj,
-  callback: (key: K, value: Obj[K]) => void,
+  callback: (key: keyof Obj, value: Obj[keyof Obj]) => void,
 ) {
   if (value) {
     if (_.isArray(value)) {
       _.forEach(value, (val) => forEachDeepEntries(val, callback))
     } else if (_.isPlainObject(value)) {
-      forEachEntries(value, (innerKey, innerValue: Obj[K]) => {
+      forEachEntries(value, (innerKey, innerValue: Obj[keyof Obj]) => {
         if (_.isPlainObject(innerValue)) {
           forEachDeepEntries(innerValue, callback as any)
         } else {
@@ -87,6 +87,34 @@ export function isStableEnv() {
  */
 export function isUnicode(value: unknown) {
   return _.isString(value) && value.startsWith('\\u')
+}
+
+/**
+ * Utility to register observers to the store that is interested in changes to
+ * some state slice. The returned function is a callback that unsubscribes itself
+ * when called
+ * @param { AppStore } store
+ * @param { function } select - Selector that receives the state whenever it changes
+ * @param { function } onChange - Callback function that will receive the updated state slice
+ */
+export function observeStore<StoreState, StateSlice>(
+  store: EnhancedStore<CombinedState<StoreState>>,
+  select: (state: StoreState) => StateSlice | undefined,
+  onChange: (slice: StateSlice | undefined) => any,
+) {
+  let currentState: StateSlice | undefined
+
+  function handleChange() {
+    let nextState = select(store.getState())
+    if (nextState !== currentState) {
+      currentState = nextState
+      onChange(nextState)
+    }
+  }
+
+  let unsubscribe = store.subscribe(handleChange)
+  handleChange()
+  return unsubscribe
 }
 
 /**

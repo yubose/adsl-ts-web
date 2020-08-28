@@ -106,13 +106,6 @@ export function composeAttachers(...fns: any[]) {
   return attachFns
 }
 
-export const attachToDOMNode = composeAttachers(
-  attachChildren,
-  attachEventHandlers,
-  attachStyles,
-  attachValues,
-)
-
 export function createAttacher(fn: ReturnType<typeof composeAttachers>) {
   return (...args: Parameters<ReturnType<typeof composeAttachers>>) => {
     if (args[1]) {
@@ -120,6 +113,13 @@ export function createAttacher(fn: ReturnType<typeof composeAttachers>) {
     }
   }
 }
+
+export const applyAttachers = composeAttachers(
+  attachChildren,
+  attachEventHandlers,
+  attachStyles,
+  attachValues,
+)
 
 /**
  * Takes a parsed NOODL component and transforms its attributes to create a
@@ -132,7 +132,7 @@ export function toDOMNode(props: NOODLComponentProps) {
   if (node) {
     forEachEntries(props, (key, value) => {
       if (keysHandling.includes(key as any)) {
-        attachToDOMNode(node, { key, value, props })
+        applyAttachers(node, { key, value, props })
 
         if (key === 'children') {
           if (_.isObjectLike(value)) {

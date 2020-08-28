@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import NOODLElement from 'components/common/NOODLElement'
+import NOODLElement from 'components/NOODLElement'
 import { Styles } from 'app/types'
 
 class Modal extends NOODLElement {

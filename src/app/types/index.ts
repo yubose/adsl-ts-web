@@ -9,10 +9,6 @@ export type AccountStatus = Omit<Status, 'code' | 'config'> & {
   userId: string
 }
 
-export interface CreateLoggerOptions {
-  prefixes?: string[]
-}
-
 export interface RootConfig {
   apiHost?: string
   apiPort?: string

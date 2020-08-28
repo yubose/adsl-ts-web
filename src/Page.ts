@@ -1,17 +1,22 @@
 import _ from 'lodash'
-import CADL from '@aitmed/cadl'
-import { NOODLComponent, Page as NOODLUiPage } from 'noodl-ui'
+import {
+  NOODLComponent,
+  NOODLComponentProps,
+  Page as NOODLUiPage,
+} from 'noodl-ui'
 import Modal from './components/Modal'
 import { cadl, noodl } from './app/client'
-import { OnBeforePageChange } from './app/types'
+import { AppStore, OnBeforePageChange, PageSnapshot } from './app/types'
 import { toDOMNode } from './utils/noodl'
 
 export type PageListenerName = 'onBeforePageChange' | 'onBeforePageRender'
 
 export interface PageOptions {
   currentPage?: string
+  loadPage?: string
   rootNode?: HTMLElement | null
   nodes?: HTMLElement[] | null
+  store: AppStore
   builtIn?: {
     [funcName: string]: any
   }
@@ -23,14 +28,22 @@ export interface PageOptions {
  * action chains that are running.
  */
 class Page {
+  private _currentPage = ''
   private _initializeRootNode: () => void
+  private _initializePage: (pageName: string, options?: any) => Promise<any>
   private _listeners: { [name: string]: Function } = {}
   public builtIn: PageOptions['builtIn']
   public rootNode: HTMLElement | null = null
   public nodes: HTMLElement[] | null
   public modal: Modal
 
-  constructor({ builtIn, rootNode = null, nodes = null }: PageOptions = {}) {
+  constructor({
+    builtIn,
+    loadPage,
+    rootNode = null,
+    store,
+    nodes = null,
+  }: PageOptions) {
     this.builtIn = builtIn
     this.rootNode = rootNode
     this.nodes = nodes
@@ -45,19 +58,49 @@ class Page {
       document.body.appendChild(root)
     }
 
+    this._initializePage = async (pageName: string, options = {}) => {
+      await cadl?.initPage(pageName, [], {
+        builtIn: this.builtIn,
+        ...options,
+      })
+    }
+
+    // Synchronizes local state with redux to catch/update from events more accurately
+    // store.subscribe(() => {
+    //   const state = store.getState()
+    //   const { currentPage } = state.page
+    //   if (this._currentPage !== currentPage) {
+    //     this._currentPage = currentPage
+    //     this.navigate(this._currentPage)
+    //   }
+    // })
+
+    if (loadPage) {
+      this._currentPage = loadPage
+      this._initializePage(loadPage)
+      noodl.setPage({ name: loadPage, object: cadl?.root?.[loadPage] })
+    } else {
+      this._currentPage = store.getState().page.currentPage
+    }
+
     this.modal = new Modal()
   }
 
-  public async navigate(...args: Parameters<CADL['initPage']>) {
-    const [pageName, arr = [], options] = args
-
+  public async navigate(
+    pageName: string,
+    options?: any,
+  ): Promise<{ snapshot: PageSnapshot }> {
     if (!this.rootNode) {
       this._initializeRootNode()
     }
 
-    this._callListener('onBeforePageChange', {
+    await this._callListener('onBeforePageChange', {
+      pageName,
       rootNode: this.rootNode,
     } as OnBeforePageChange)
+
+    let pageSnapshot: NOODLUiPage | undefined
+    let components: NOODLComponentProps[] = []
 
     if (!pageName) {
       const logMsg = `%c[Page.ts][navigate] Cannot navigate because pageName is invalid`
@@ -66,7 +109,7 @@ class Page {
       window.alert(`The value of page "${pageName}" is not valid`)
     } else {
       // Load the page in the SDK
-      await cadl.initPage(pageName, arr, {
+      await this._initializePage(pageName, {
         ...options,
         builtIn: {
           ...this.builtIn,
@@ -74,16 +117,22 @@ class Page {
         },
       })
 
-      const page: NOODLUiPage = {
+      pageSnapshot = {
         name: pageName,
         object: cadl.root?.[pageName],
       }
 
-      noodl.setPage(page)
+      await this._callListener('onBeforePageRender', pageSnapshot)
 
-      this._callListener('onBeforePageRender', page)
+      const rendered = this.render(cadl?.root?.[pageName]?.components)
 
-      this.render(cadl?.root?.[pageName]?.components)
+      if (_.isArray(rendered.components)) {
+        components = rendered.components
+      }
+    }
+
+    return {
+      snapshot: _.assign({ components: components }, pageSnapshot),
     }
   }
 
@@ -158,9 +207,10 @@ class Page {
   public render(rawComponents: NOODLComponent[]) {
     // @ts-expect-error
     window.components = rawComponents
+    let components
 
     if (_.isArray(rawComponents)) {
-      const components = noodl.resolveComponents()
+      components = noodl.resolveComponents()
       // @ts-expect-error
       window.resolvedComponents = components
 
@@ -184,20 +234,25 @@ class Page {
           "Attempted to render the page's components but the root " +
           'node was not initialized. The page will not show anything'
         const logStyle = `color:#ec0000;font-weight:bold;`
-        console.log(logMsg, logStyle, this.getSnapshot())
+        console.log(logMsg, logStyle, {
+          rootNode: this.rootNode,
+          nodes: this.nodes,
+        })
       }
     } else {
       // TODO
     }
 
-    return this
+    return {
+      components,
+    }
   }
 
   /**
-   * Takes a "snapshot" of the current page and returns a JSON representation.
-   * Useful for debug logs
+   *  Returns a JS representation of the current rootNode and nodes of the
+   * current page
    */
-  public getSnapshot() {
+  public getNodes() {
     return {
       rootNode: this.rootNode,
       nodes: this.nodes,

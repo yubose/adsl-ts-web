@@ -11,6 +11,7 @@ import Page from 'Page'
 import validate, { getFormErrors } from 'utils/validate'
 import { formatPhoneNumber } from 'utils/phone'
 import VerificationCode from 'components/VerificationCode'
+import { openModal, closeModal } from 'features/page'
 import {
   setAuthStatus,
   setIsCreatingAccount,
@@ -79,8 +80,8 @@ const createBuiltInActions = function ({
     page.goBack()
   }
 
-  builtInActions.goto = async () => {
-    console.log(' builtIn goto invoked')
+  builtInActions.goto = async (...args) => {
+    console.log('builtIn goto invoked', args)
   }
 
   builtInActions.lockApplication = async () => {
@@ -97,14 +98,15 @@ const createBuiltInActions = function ({
 
   builtInActions.signIn = async (action, options) => {
     const state = store.getState()
-
     const logMsg = `%cSIGNIN BUILTIN ARGS`
     const logStyle = `color:#ec0000;font-weight:bold;`
+
     console.log(logMsg, logStyle, {
       action,
       ...options,
       dataValues: getDataValues(),
     })
+
     try {
       switch (state.auth.status) {
         case 'logged.in': {
@@ -196,6 +198,8 @@ const createBuiltInActions = function ({
           * Step 1 - user entered verification code and is submitting it
               This logic is abstracted into its own func because it has special catch conditions
           */
+          const modal = store.getState().page.modal
+
           if (state.auth.verification.pending && modal.opened) {
             /*
           * Step 2 - user entered verification code and is submitting it
@@ -230,7 +234,7 @@ const createBuiltInActions = function ({
                 `color:#3498db;font-weight:bold;`,
                 { formValues, status: newStatus },
               )
-              store.dispatch(toggleModal(false))
+              store.dispatch(closeModal())
               store.dispatch(setIsCreatingAccount(true))
               store.dispatch(setAuthStatus('temporary'))
               await page.goToPage('CreateNewAccount')
@@ -264,9 +268,6 @@ const createBuiltInActions = function ({
         }
         // Temp account -- An existing user that is registered invited this new user
         // using the app
-        case 3: {
-          return
-        }
         default:
           return
       }

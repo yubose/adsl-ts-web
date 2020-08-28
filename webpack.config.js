@@ -1,5 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
+const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 // const MiniCssExtractPlugin = require('mini-css-extract-plugin')
@@ -83,6 +84,9 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
   },
   plugins: [
+    new BundleStatsWebpackPlugin({
+      baseline: true,
+    }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
       include: /src/,

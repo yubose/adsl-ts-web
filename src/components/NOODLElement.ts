@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import { Styles } from 'app/types'
 import { setStyle } from 'utils/dom'
-import { forEachEntries } from 'utils/common'
 
 class NOODLElement {
   public container: HTMLElement | undefined
@@ -82,6 +81,10 @@ class NOODLElement {
       setStyle(this.node, node, key)
     }
     return this
+  }
+
+  public resolveAssets() {
+    const targetKeys = ['']
   }
 }
 
