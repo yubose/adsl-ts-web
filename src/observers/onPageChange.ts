@@ -14,17 +14,21 @@ const onPageChange = function (store: AppStore) {
       previousPage !== _pages.previousPage ||
       currentPage !== _pages.currentPage
     ) {
+      const logArgs = { prevState: _.assign({}, _pages) } as any
+
       _pages = {
         previousPage: state.page.previousPage,
         currentPage: state.page.currentPage,
       }
+
+      logArgs.nextState = _pages
       logMsg = `%c[onPageChange.ts][onPageChange -- observer] Previous/current page changed`
-      console.log(logMsg, logStyle)
+
+      console.log(logMsg, logStyle, logArgs)
     } else {
       logMsg = `%c[onPageChange.ts][onPageChange -- observer] Previous/current page has not changed`
       logStyle = 'color:grey;font-weight:bold'
     }
-    logMsg = `%c[onPageChange.ts][onPageChange -- observer] Previous/current page changed`
 
     return _pages
   }
