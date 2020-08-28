@@ -91,9 +91,10 @@ class VerificationCode extends NOODLElement {
     }
 
     this.node.addEventListener('unload', () => {
-      const logMsg = `%c[VerificationCode.tsx][constructor - Event: unload] Cleaning up listeners`
-      const logStyle = `color:#3498db;font-weight:bold;`
-      console.log(logMsg, logStyle)
+      const logMsg =
+        `%c[VerificationCode.tsx][constructor - Event: unload] ` +
+        'Cleaning up listeners'
+      console.log(logMsg, `color:#3498db;font-weight:bold;`)
       this.clearTimer()
       onUnload?.()
       this.refs.verificationCode.removeEventListener('change', onInputChange)

@@ -1,19 +1,19 @@
 import _ from 'lodash'
+import { createSelector } from '@reduxjs/toolkit'
 import {
   NOODLComponent,
   NOODLComponentProps,
   Page as NOODLUiPage,
 } from 'noodl-ui'
-import Modal from './components/Modal'
+import { observeStore } from './utils/common'
 import { cadl, noodl } from './app/client'
 import { AppStore, OnBeforePageChange, PageSnapshot } from './app/types'
 import { toDOMNode } from './utils/noodl'
+import Modal from './components/NOODLModal'
 
 export type PageListenerName = 'onBeforePageChange' | 'onBeforePageRender'
 
 export interface PageOptions {
-  currentPage?: string
-  loadPage?: string
   rootNode?: HTMLElement | null
   nodes?: HTMLElement[] | null
   store: AppStore
@@ -28,25 +28,19 @@ export interface PageOptions {
  * action chains that are running.
  */
 class Page {
-  private _currentPage = ''
   private _initializeRootNode: () => void
-  private _initializePage: (pageName: string, options?: any) => Promise<any>
+  private _preparePage: (pageName: string, options?: any) => Promise<any>
   private _listeners: { [name: string]: Function } = {}
   public builtIn: PageOptions['builtIn']
   public rootNode: HTMLElement | null = null
   public nodes: HTMLElement[] | null
   public modal: Modal
 
-  constructor({
-    builtIn,
-    loadPage,
-    rootNode = null,
-    store,
-    nodes = null,
-  }: PageOptions) {
+  constructor({ builtIn, rootNode = null, store, nodes = null }: PageOptions) {
     this.builtIn = builtIn
     this.rootNode = rootNode
     this.nodes = nodes
+    this.modal = new Modal()
 
     this._initializeRootNode = () => {
       const root = document.createElement('div')
@@ -58,32 +52,49 @@ class Page {
       document.body.appendChild(root)
     }
 
-    this._initializePage = async (pageName: string, options = {}) => {
+    this._preparePage = async (pageName: string, options = {}) => {
       await cadl?.initPage(pageName, [], {
         builtIn: this.builtIn,
         ...options,
       })
     }
 
-    // Synchronizes local state with redux to catch/update from events more accurately
-    // store.subscribe(() => {
-    //   const state = store.getState()
-    //   const { currentPage } = state.page
-    //   if (this._currentPage !== currentPage) {
-    //     this._currentPage = currentPage
-    //     this.navigate(this._currentPage)
-    //   }
-    // })
+    // Respnsible for keeping the UI in sync with changes to page routes
+    observeStore(
+      store,
+      createSelector(
+        (state) => state.page.previousPage,
+        (state) => state.page.currentPage,
+        (previousPage, currentPage) => ({ previousPage, currentPage }),
+      ),
+      async ({ currentPage }) => {
+        if (currentPage) {
+          await this._preparePage(currentPage)
+          await this.navigate(currentPage)
+        }
+      },
+    )
 
-    if (loadPage) {
-      this._currentPage = loadPage
-      this._initializePage(loadPage)
-      noodl.setPage({ name: loadPage, object: cadl?.root?.[loadPage] })
-    } else {
-      this._currentPage = store.getState().page.currentPage
-    }
-
-    this.modal = new Modal()
+    // Responsible for managing the modal component
+    observeStore(
+      store,
+      createSelector(
+        (state) => state.page.modal.id,
+        (state) => state.page.modal.opened,
+        (id, opened) => ({ id, opened }),
+      ),
+      ({ id, opened }) => {
+        if (opened) {
+          if (this.modal.isHidden()) {
+            this.modal.show(id)
+          }
+        } else {
+          if (this.modal.isVisible()) {
+            this.modal.hide()
+          }
+        }
+      },
+    )
   }
 
   public async navigate(
@@ -109,7 +120,7 @@ class Page {
       window.alert(`The value of page "${pageName}" is not valid`)
     } else {
       // Load the page in the SDK
-      await this._initializePage(pageName, {
+      await this._preparePage(pageName, {
         ...options,
         builtIn: {
           ...this.builtIn,
@@ -214,15 +225,11 @@ class Page {
       // @ts-expect-error
       window.resolvedComponents = components
 
-      let rootId = '',
-        node
+      let node
 
       if (this.rootNode) {
-        rootId = this.rootNode.id
-
         // Clean up previous nodes
         this.rootNode.innerHTML = ''
-
         _.forEach(components, (component) => {
           node = toDOMNode(component)
           if (node) {

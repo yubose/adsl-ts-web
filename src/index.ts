@@ -19,17 +19,13 @@ import {
   Page as NOODLUiPage,
   Viewport,
 } from 'noodl-ui'
-import { OnBeforePageChange } from 'app/types'
-import { setCurrentPage } from './features/page'
 import { cadl, noodl } from './app/client'
 import createStore from './app/store'
 import createBuiltInActions, {
   videoChat as onVideoChatBuiltIn,
 } from './handlers/builtIns'
-import onPageChange from './observers/onPageChange'
 import App from './App'
 import Page from './Page'
-import { observeStore } from './utils/common'
 import * as action from './handlers/actions'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
@@ -50,92 +46,90 @@ window.addEventListener('load', async function hello() {
   const viewport = new Viewport()
   const app = new App({ store, viewport })
   const page = new Page({ store })
-  const builtIn = createBuiltInActions({ store, page })
+  const builtIn = createBuiltInActions({ page, store, viewport })
 
   const { startPage } = await app.initialize()
-
-  const unsubscribeOnPageChange = onPageChange(store)
 
   page.setBuiltIn({
     goto: builtIn.goto,
     videoChat: onVideoChatBuiltIn,
   })
 
-  page.registerListener(
-    'onBeforePageChange',
-    ({ pageName }: OnBeforePageChange) => {
-      store.dispatch(setCurrentPage(pageName))
-
-      if (!noodl.initialized) {
-        noodl
-          .init({ viewport })
-          .setAssetsUrl(cadl.assetsUrl || '')
-          .setViewport({
-            width: window.innerWidth,
-            height: window.innerHeight,
-          })
-          .setResolvers(
-            getElementType,
-            getTransformedAliases,
-            getReferences,
-            getAlignAttrs,
-            getBorderAttrs,
-            getColors,
-            getFontAttrs,
-            getPosition,
-            getSizes,
-            getStylesByElementType,
-            getTransformedStyleAliases,
-            getChildren as any,
-            getCustomDataAttrs,
-            getEventHandlers,
-          )
-          .addLifecycleListener({
-            action: {
-              evalObject: action.onEvalObject,
-              goto: action.onGoto,
-              pageJump: action.onPageJump,
-              popUp: action.onPopUp,
-              popUpDismiss: action.onPopUpDismiss,
-              refresh: action.onRefresh,
-              saveObject: action.onSaveObject,
-              updateObject: action.onUpdateObject,
-            },
-            builtIn: {
-              checkUsernamePassword: builtIn.checkUsernamePassword,
-              enterVerificationCode: builtIn.checkVerificationCode,
-              goBack: builtIn.goBack,
-              lockApplication: builtIn.lockApplication,
-              logOutOfApplication: builtIn.logOutOfApplication,
-              logout: builtIn.logout,
-              signIn: builtIn.signIn,
-              signUp: builtIn.signUp,
-              signout: builtIn.signout,
-              toggleCameraOnOff: builtIn.toggleCameraOnOff,
-              toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-            },
-            onChainStart: lifeCycle.onChainStart,
-            onChainEnd: lifeCycle.onChainEnd,
-            onChainError: lifeCycle.onChainError,
-            onChainAborted: lifeCycle.onChainAborted,
-            onAfterResolve: lifeCycle.onAfterResolve,
-          } as any)
-      }
-    },
-  )
+  page.registerListener('onBeforePageChange', () => {
+    if (!noodl.initialized) {
+      noodl
+        .init({ viewport })
+        .setAssetsUrl(cadl.assetsUrl || '')
+        .setViewport({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        })
+        .setResolvers(
+          getElementType,
+          getTransformedAliases,
+          getReferences,
+          getAlignAttrs,
+          getBorderAttrs,
+          getColors,
+          getFontAttrs,
+          getPosition,
+          getSizes,
+          getStylesByElementType,
+          getTransformedStyleAliases,
+          getChildren as any,
+          getCustomDataAttrs,
+          getEventHandlers,
+        )
+        .addLifecycleListener({
+          action: {
+            evalObject: action.onEvalObject,
+            goto: action.onGoto,
+            pageJump: action.onPageJump,
+            popUp: action.onPopUp,
+            popUpDismiss: action.onPopUpDismiss,
+            refresh: action.onRefresh,
+            saveObject: action.onSaveObject,
+            updateObject: action.onUpdateObject,
+          },
+          builtIn: {
+            checkUsernamePassword: builtIn.checkUsernamePassword,
+            enterVerificationCode: builtIn.checkVerificationCode,
+            goBack: builtIn.goBack,
+            lockApplication: builtIn.lockApplication,
+            logOutOfApplication: builtIn.logOutOfApplication,
+            logout: builtIn.logout,
+            signIn: builtIn.signIn,
+            signUp: builtIn.signUp,
+            signout: builtIn.signout,
+            toggleCameraOnOff: builtIn.toggleCameraOnOff,
+            toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
+          },
+          onChainStart: lifeCycle.onChainStart,
+          onChainEnd: lifeCycle.onChainEnd,
+          onChainError: lifeCycle.onChainError,
+          onChainAborted: lifeCycle.onChainAborted,
+          onAfterResolve: lifeCycle.onAfterResolve,
+        } as any)
+    }
+  })
 
   page.registerListener(
     'onBeforePageRender',
     async (noodlUiPage: NOODLUiPage) => {
       const previousPage = store.getState().page.previousPage
-      const logMsg = `%c[App.tsx][onBeforePageRender] ${previousPage} --> ${noodlUiPage.name}`
-      const logStyle = `color:green;font-weight:bold;`
-      console.log(logMsg, logStyle, { previousPage, nextPage: page })
+      const logMsg =
+        `%c[App.tsx][onBeforePageRender] ` +
+        `${previousPage} --> ${noodlUiPage.name}`
+      console.log(logMsg, `color:green;font-weight:bold;`, {
+        previousPage,
+        nextPage: page,
+      })
       // Refresh the roots
       noodl
         // TODO: Leave root/page auto binded to the lib
         .setRoot(cadl.root)
         .setPage(noodlUiPage)
+      // NOTE: not being used atm
       if (page.rootNode && page.rootNode.id !== noodlUiPage.name) {
         page.rootNode.id = noodlUiPage.name
       }

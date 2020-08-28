@@ -6,8 +6,11 @@ class Modal extends NOODLElement {
   public id: string = 'noodl-ui-modal'
   public body: HTMLDivElement
 
-  constructor({ contentStyle }: { contentStyle?: Styles } = {}) {
-    super({ node: document.createElement('div') })
+  constructor({
+    contentStyle,
+    node = document.createElement('div'),
+  }: { contentStyle?: Styles; node?: HTMLElement } = {}) {
+    super({ node })
     this.node.id = this.id
     this.body = document.createElement('div')
     this.body.id = this.node.id + '-body'
@@ -66,7 +69,7 @@ class Modal extends NOODLElement {
   }
 
   private _refreshViewport(e?: Event) {
-    this.setStyle({
+    super.setStyle({
       width: `${window.innerWidth}px`,
       height: `${window.innerHeight}px`,
     })

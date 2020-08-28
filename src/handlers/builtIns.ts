@@ -4,6 +4,8 @@ import {
   ActionChainActionCallbackOptions,
   getDataValues,
   NOODLChainActionBuiltInObject,
+  NOODLGotoAction,
+  Viewport,
 } from 'noodl-ui'
 import { Account } from '@aitmed/cadl'
 import { cadl } from 'app/client'
@@ -11,12 +13,14 @@ import Page from 'Page'
 import validate, { getFormErrors } from 'utils/validate'
 import { formatPhoneNumber } from 'utils/phone'
 import VerificationCode from 'components/VerificationCode'
-import { openModal, closeModal } from 'features/page'
+import { openOutboundURL } from 'utils/common'
+import { openModal, closeModal, setCurrentPage } from 'features/page'
 import {
   setAuthStatus,
   setIsCreatingAccount,
   setVerificationCodePending,
 } from 'features/auth'
+import { modalId } from '../constants'
 import { AppStore } from 'app/types'
 
 export type BuiltInFuncName =
@@ -34,12 +38,13 @@ export type BuiltInFuncName =
   | 'toggleCameraOnOff'
   | 'toggleMicrophoneOnOff'
 
-const createBuiltInActions = function ({
+const makeBuiltInActions = function ({
   store,
   page,
 }: {
   store: AppStore
   page: Page
+  viewport: Viewport
 }) {
   // @ts-expect-error
   const builtInActions: Record<
@@ -53,12 +58,9 @@ const createBuiltInActions = function ({
   }
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
-  builtInActions.checkUsernamePassword = async (
-    action,
-    { dataValues = {} },
-  ): Promise<'abort'> => {
+  builtInActions.checkUsernamePassword = (action): Promise<'abort'> => {
     // dispatchRedux(mergeCacheAuthValues(dataValues))
-    const { password, confirmPassword } = dataValues
+    const { password, confirmPassword } = getDataValues()
     if (password !== confirmPassword) {
       window.alert('Your passwords do not match')
       return 'abort'
@@ -69,19 +71,49 @@ const createBuiltInActions = function ({
 
   // Called when user enters their verification code in the popup and clicks submit
   builtInActions.enterVerificationCode = async (action, options) => {
-    const logMsg = `%centerVerificationCode`
-    const logStyle = `color:#ec0000;font-weight:bold;`
-    console.log(logMsg, logStyle, { action, options })
+    const logMsg = `%c[builtIns.ts][builtIn -- enterVerificationCode]`
+    console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+      action,
+      ...options,
+    })
     // if (/SignUp/.test(location.pathname)) await signup?.onSubmit()
     // else await signin?.onSubmit()
   }
 
-  builtInActions.goBack = async () => {
-    page.goBack()
+  builtInActions.goBack = () => {
+    const { page } = store.getState()
+    const { previousPage } = page
+    if (previousPage) {
+      store.dispatch(setCurrentPage(previousPage))
+    } else {
+      const logMsg =
+        '%c[builtIns.ts][builtIn -- goBack] ' +
+        'Tried to navigate to a previous page but a previous page could not ' +
+        'be found'
+      console.log(logMsg, `color:#ec0000;font-weight:bold;`, page)
+    }
   }
 
-  builtInActions.goto = async (...args) => {
-    console.log('builtIn goto invoked', args)
+  builtInActions.goto = async (action: NOODLGotoAction, options) => {
+    // URL
+    if (_.isString(action)) {
+      await _goToURI(action)
+    } else if (_.isPlainObject(action)) {
+      // Currently don't know of any known properties the goto syntax has.
+      // We will support a "destination" key since it exists on goto which will
+      // soon be deprecated by this goto action
+      if (action.destination) {
+        await _goToURI(action.destination)
+      } else {
+        const logMsg =
+          '[ACTION][builtIn -- goto] ' +
+          'Tried to go to a page but could not find information on the whereabouts'
+        console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+          action,
+          ...options,
+        })
+      }
+    }
   }
 
   builtInActions.lockApplication = async () => {
@@ -99,9 +131,8 @@ const createBuiltInActions = function ({
   builtInActions.signIn = async (action, options) => {
     const state = store.getState()
     const logMsg = `%cSIGNIN BUILTIN ARGS`
-    const logStyle = `color:#ec0000;font-weight:bold;`
 
-    console.log(logMsg, logStyle, {
+    console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
       action,
       ...options,
       dataValues: getDataValues(),
@@ -111,7 +142,7 @@ const createBuiltInActions = function ({
       switch (state.auth.status) {
         case 'logged.in': {
           cadl?.root?.actions?.['SignIn']?.update()
-          await page.navigate(page.getDashboardPath())
+          store.dispatch(setCurrentPage(page.getDashboardPath()))
           return
         }
         case 'logged.out': {
@@ -119,11 +150,10 @@ const createBuiltInActions = function ({
           const password = formValues?.password || ''
           const errMsg = validate.password(password)
           const logMsg = `%c[builtIn.ts][signIn][logged.out] Form values`
-          const logStyle = `color:#00b406;font-weight:bold;`
-          console.log(logMsg, logStyle, formValues)
+          console.log(logMsg, `color:#00b406;font-weight:bold;`, formValues)
           if (errMsg) return window.alert(errMsg)
           await cadl?.root?.builtIn?.loginByPassword?.(password)
-          await page.navigate(page.getDashboardPath())
+          store.dispatch(page.getDashboardPath())
           return
         }
         case 'new.device': {
@@ -181,17 +211,18 @@ const createBuiltInActions = function ({
                 }
               },
             })
+
             verificationElem.render()
 
-            // store.dispatch(
-            //   toggleModal({
-            //     context: getModalContext('verificationCode'),
-            //     data: formValues,
-            //     options: {
-            //       initialTimer: cadl?.verificationRequest?.timer,
-            //     },
-            //   }),
-            // )
+            store.dispatch(
+              openModal({
+                id: modalId.verificationCode,
+                props: {
+                  formValues,
+                  initialTimer: cadl?.verificationRequest?.timer,
+                },
+              }),
+            )
             return 'abort'
           }
           /*
@@ -257,7 +288,7 @@ const createBuiltInActions = function ({
               store.dispatch(setAuthStatus('new.device'))
             }
             // Prepare UI states
-            store.dispatch(toggleModal(false))
+            store.dispatch(closeModal())
             // Call the callback which will take care of the steps ahead
             const dashboardPg = page.getPagePath(
               page.getDashboardPath(cadl.cadlBaseUrl) || '',
@@ -302,6 +333,18 @@ const createBuiltInActions = function ({
 
   builtInActions.toggleMicrophoneOnOff = async () => {
     //
+  }
+
+  async function _goToURI(url: string) {
+    if (_.isString(url)) {
+      // Outside link
+      if (url.startsWith('http')) {
+        openOutboundURL(url)
+      } else {
+        // Default to redirecting to the (assumed) local page path/endpoint
+        store.dispatch(setCurrentPage(url.replace('/', '')))
+      }
+    }
   }
 
   return builtInActions
@@ -387,4 +430,4 @@ export function onBuiltinMissing(
   window.alert(`The button "${action.funcName}" is not available to use yet`)
 }
 
-export default createBuiltInActions
+export default makeBuiltInActions

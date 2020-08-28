@@ -1,6 +1,6 @@
 import NOODL, { Account } from '@aitmed/cadl'
 import { Room, Participant, LocalParticipant } from 'twilio-video'
-import Modal from 'components/Modal'
+import Modal from 'components/NOODLModal'
 import { App } from '../../app'
 
 declare global {

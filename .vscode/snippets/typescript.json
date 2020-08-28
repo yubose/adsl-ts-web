@@ -67,6 +67,10 @@
     "prefix": "test",
     "body": "import { expect } from 'chai'"
   },
+  "sinon": {
+    "prefix": "sinon",
+    "body": "import sinon from 'sinon'"
+  },
   "toast": {
     "prefix": "toast",
     "body": "import toast from 'utils/toast'"

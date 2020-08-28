@@ -99,16 +99,16 @@ export function isUnicode(value: unknown) {
  */
 export function observeStore<StoreState, StateSlice>(
   store: EnhancedStore<CombinedState<StoreState>>,
-  select: (state: StoreState) => StateSlice | undefined,
-  onChange: (slice: StateSlice | undefined) => any,
+  select: (state: StoreState) => StateSlice,
+  onChange: (slice: StateSlice) => void,
 ) {
-  let currentState: StateSlice | undefined
+  let currentState: StateSlice
 
   function handleChange() {
     let nextState = select(store.getState())
     if (nextState !== currentState) {
       currentState = nextState
-      onChange(nextState)
+      onChange(currentState)
     }
   }
 

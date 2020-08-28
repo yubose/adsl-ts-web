@@ -5,6 +5,7 @@ import { setStyle } from 'utils/dom'
 class NOODLElement {
   public container: HTMLElement | undefined
   public id: string
+  public modalId: string = ''
   public node: HTMLElement
   public refs: { [key: string]: HTMLElement } = {}
 
@@ -28,9 +29,30 @@ class NOODLElement {
     return this
   }
 
-  public show() {
+  public show(id: string = '') {
+    if (id) {
+      this.setModalId(id)
+    }
     this.setStyle('visibility', 'visible')
     return this
+  }
+
+  /**
+   * Returns true if this element is hidden.
+   * Note: This can still return true if the element is rendered/appended
+   * to the DOM but is hidden. For that usage, use this.isRendered instead
+   */
+  public isHidden() {
+    return this.node?.style?.visibility === 'hidden'
+  }
+
+  /**
+   * Returns true if this element is visibile.
+   * Note: This can still return true if the element is NOT rendered/appended
+   * to the DOM. For that usage, use this.isRendered instead
+   */
+  public isVisible() {
+    return !this.isHidden()
   }
 
   /**
@@ -48,6 +70,13 @@ class NOODLElement {
       container.appendChild(this.node)
     }
     return this
+  }
+
+  /**
+   * Returns true if this element is appended to the DOM
+   */
+  public isRendered() {
+    return !!this.node && (this.container || document.body).contains(this.node)
   }
 
   /**
@@ -80,6 +109,11 @@ class NOODLElement {
     } else {
       setStyle(this.node, node, key)
     }
+    return this
+  }
+
+  public setModalId(id: string = '') {
+    this.modalId = id
     return this
   }
 

@@ -4,6 +4,7 @@
   },
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "baseUrl": "src",
     "module": "commonjs"
   },
   "exclude": ["node_modules", "__dev__"],
