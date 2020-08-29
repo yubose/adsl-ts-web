@@ -1,9 +1,14 @@
 import _ from 'lodash'
+import { forEachEntries } from 'utils/common'
 import NOODLElement from 'components/NOODLElement'
-import { Styles } from 'app/types'
+import { ModalState, Styles } from 'app/types'
 
 class Modal extends NOODLElement {
-  public id: string = 'noodl-ui-modal'
+  public _id: string = 'noodl-ui-modal'
+  public context: ModalState['context'] = null
+  public props: ModalState['props'] = {}
+  public opened: ModalState['opened'] = false
+  public id: ModalState['id'] = ''
   public body: HTMLDivElement
 
   constructor({
@@ -11,7 +16,7 @@ class Modal extends NOODLElement {
     node = document.createElement('div'),
   }: { contentStyle?: Styles; node?: HTMLElement } = {}) {
     super({ node })
-    this.node.id = this.id
+    this.node.id = this._id
     this.body = document.createElement('div')
     this.body.id = this.node.id + '-body'
 
@@ -62,6 +67,38 @@ class Modal extends NOODLElement {
   public clearContent() {
     this.body.innerHTML = ''
     return this
+  }
+
+  public open(
+    id: string,
+    children: HTMLElement | NOODLElement | string | number | undefined,
+    options: Omit<ModalState, 'id'>,
+  ) {
+    if (!this.isRendered()) {
+      this.id = id
+      if (_.isPlainObject(options)) {
+        forEachEntries(options, (key, value) => {
+          this[key] = value
+        })
+      }
+      if (children) {
+        if (children instanceof HTMLElement) {
+          this.body.appendChild(children)
+        } else if (children instanceof NOODLElement) {
+          children = new children({ container: this.body })
+        } else {
+          this.body.innerHTML = `${children}`
+        }
+      }
+      this.render()
+    }
+  }
+
+  public close() {
+    if (this.isRendered()) {
+      this.body.innerHTML = ''
+      this.remove()
+    }
   }
 
   public setContainerStyle(key: string | Styles, value?: any) {

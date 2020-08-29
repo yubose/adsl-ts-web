@@ -9,3 +9,45 @@
 - Fix the event handler parsings
 - aspect ratio (viewport manager)
 - scroll manager
+
+## Initializations:
+
+1. `noodl` client (sdk/api)
+2. `store`
+3. `Viewport`
+4. `App` (needs `store` and `Viewport`)
+   - Retrieves + sets auth state
+5. `Page` (needs `store`)
+   - Subscribes to store:
+     1. `state.page.previousPage` + `state.page.currentPage`
+     2. `state.page.modal.id` + `state.page.modal.opened`
+   - Register listeners:
+     1. `onBeforePageChange`
+        - Initializes `noodl-ui` client
+     2. `onBeforePageRender`
+        - Refreshes `noodl-ui` client (`root` + `page` object)
+6. `noodl-ui` client (ui)
+7. Register listener `viewport.onResize`
+8. Run `page.navigate`
+   1. Initializes page on `noodl` sdk
+   2. Refreshes `noodl-ui` client with `root` + `page`
+   3. Renders components
+   4. Returns snapshot of:
+      1. Page name
+      2. Page object
+      3. Page NOODL DOM components
+
+## Navigating pages
+
+- Dispatch `setCurrentPage`
+- `Page` is subscribed to `previousPage` + `currentPage`, so it will call `navigate` and `render` for the upcoming page
+
+---
+
+## Modal
+
+### Toggling on/off
+
+- Dispatch `openModal`
+- Dispatch `closeModal`
+- `Page` is subscribed to `modal.id` + `modal.opened`, so it will respond with `modal.hide` or other modal methods to manage it

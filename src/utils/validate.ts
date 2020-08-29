@@ -1,4 +1,4 @@
-import isString from 'lodash/isString'
+import _ from 'lodash'
 import { formatPhoneNumber, isValidPhoneNumber } from 'utils/phone'
 
 export type ValidateName =
@@ -44,7 +44,7 @@ _createMultiple({
 })
 
 validate.email = function (email: unknown) {
-  if (isString(email)) {
+  if (_.isString(email)) {
     const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     if (!regex.test(email)) {
       return 'The email is invalid'
@@ -55,7 +55,7 @@ validate.email = function (email: unknown) {
 _createMultiple({
   keys: ['username', 'userName'],
   validate: (key, value: any) => {
-    if (isString(value)) {
+    if (_.isString(value)) {
       if (!value) return 'Username is required'
       if (value.length < 5) return 'The userName is too short'
     }

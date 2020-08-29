@@ -5,9 +5,16 @@ import {
   NOODLComponentProps,
   Page as NOODLUiPage,
 } from 'noodl-ui'
+import modalComponents from './components/modalComponents'
+import { modalIds } from './constants'
 import { observeStore } from './utils/common'
 import { cadl, noodl } from './app/client'
-import { AppStore, OnBeforePageChange, PageSnapshot } from './app/types'
+import {
+  AppStore,
+  ModalId,
+  OnBeforePageChange,
+  PageSnapshot,
+} from './app/types'
 import { toDOMNode } from './utils/noodl'
 import Modal from './components/NOODLModal'
 
@@ -79,19 +86,20 @@ class Page {
     observeStore(
       store,
       createSelector(
-        (state) => state.page.modal.id,
-        (state) => state.page.modal.opened,
-        (id, opened) => ({ id, opened }),
+        (state) => state.page.modal,
+        (modalState) => modalState,
       ),
-      ({ id, opened }) => {
+      ({ id, opened, ...rest }) => {
         if (opened) {
-          if (this.modal.isHidden()) {
-            this.modal.show(id)
+          const modalId = modalIds[id as ModalId]
+          const modalComponent = modalComponents[modalId]
+          if (modalComponent) {
+            this.modal.open(id, modalComponent, { opened, ...rest })
+          } else {
+            // log
           }
         } else {
-          if (this.modal.isVisible()) {
-            this.modal.hide()
-          }
+          this.modal.close()
         }
       },
     )

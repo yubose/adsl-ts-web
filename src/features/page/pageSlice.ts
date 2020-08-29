@@ -1,12 +1,12 @@
 import _ from 'lodash'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { forEachEntries } from 'utils/common'
-import { PageModalState } from './types'
+import { ModalState } from 'app/types'
 
 export interface PageState {
   previousPage: string
   currentPage: string
-  modal: PageModalState
+  modal: ModalState
 }
 
 export const initialPageState: PageState = {
@@ -30,7 +30,7 @@ const page = createSlice({
       }
       state['currentPage'] = payload
     },
-    openModal(state, { payload = {} }: PayloadAction<Partial<PageModalState>>) {
+    openModal(state, { payload = {} }: PayloadAction<Partial<ModalState>>) {
       state.modal.opened = true
       forEachEntries(payload, (key, value) => {
         // @ts-expect-error

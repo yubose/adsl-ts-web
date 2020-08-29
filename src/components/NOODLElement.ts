@@ -29,10 +29,7 @@ class NOODLElement {
     return this
   }
 
-  public show(id: string = '') {
-    if (id) {
-      this.setModalId(id)
-    }
+  public show() {
     this.setStyle('visibility', 'visible')
     return this
   }
@@ -65,6 +62,7 @@ class NOODLElement {
     if (_.isString(html)) {
       this.node.innerHTML = `${html}`
     }
+
     const container = this.container || document.body
     if (!container.contains(this.node)) {
       container.appendChild(this.node)
@@ -109,11 +107,6 @@ class NOODLElement {
     } else {
       setStyle(this.node, node, key)
     }
-    return this
-  }
-
-  public setModalId(id: string = '') {
-    this.modalId = id
     return this
   }
 

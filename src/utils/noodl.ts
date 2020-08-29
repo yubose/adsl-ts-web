@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { noodlEventTypes, NOODLComponentProps, SelectOption } from 'noodl-ui'
+import { eventTypes, NOODLComponentProps, SelectOption } from 'noodl-ui'
 import { forEachEntries } from 'utils/common'
 
 // TODO do a more generic solution
@@ -46,17 +46,14 @@ export const attachChildren = createAttacher(
 export const attachEventHandlers = createAttacher(
   (node: HTMLElement, { key, value, props }) => {
     if (node) {
-      if (noodlEventTypes.includes(key as typeof noodlEventTypes[number])) {
+      if (eventTypes.includes(key as typeof eventTypes[number])) {
         if (_.isFunction(value)) {
           const lowercasedEventType = (key as string).toLowerCase()
           node.addEventListener(
             lowercasedEventType.startsWith('on')
               ? lowercasedEventType.replace('on', '')
               : lowercasedEventType,
-            (e) => {
-              console.log(e)
-              value(e)
-            },
+            value,
           )
         } else {
           // log

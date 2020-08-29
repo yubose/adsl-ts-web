@@ -24,15 +24,17 @@ class VerificationCode extends NOODLElement {
   }
 
   constructor({
+    container,
     onSubmit,
     onCancel,
     onUnload,
   }: {
+    container?: HTMLElement
     onSubmit?: VerificationCodeOnSubmit
     onCancel?: VerificationCodeOnCancel
     onUnload?(): void
   } = {}) {
-    super({ node: document.createElement('div') })
+    super({ container, node: document.createElement('div') })
 
     this._timeoutRef = undefined
     this._intervalRef = undefined

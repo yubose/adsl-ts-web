@@ -1,4 +1,5 @@
 import { Status } from '@aitmed/ecos-lvl2-sdk'
+import * as constants from '../../constants'
 export * from './storeTypes'
 export * from './Page'
 
@@ -36,3 +37,5 @@ export interface NOODLVersion {
 }
 
 export type Styles = Omit<Partial<CSSStyleDeclaration>, 'length' | 'parentRule'>
+
+export type ModalId = keyof typeof constants['modalIds']

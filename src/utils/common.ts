@@ -31,7 +31,7 @@ export function decodeUnicode(value: string) {
  */
 export function forEachEntries<Obj>(
   value: Obj,
-  callback: (key: keyof Obj, value: Obj[keyof Obj]) => void,
+  callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
 ) {
   if (value && _.isObject(value)) {
     _.forEach(_.entries(value), _.spread(callback))
@@ -47,7 +47,7 @@ export function forEachEntries<Obj>(
  */
 export function forEachDeepEntries<Obj>(
   value: Obj,
-  callback: (key: keyof Obj, value: Obj[keyof Obj]) => void,
+  callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
 ) {
   if (value) {
     if (_.isArray(value)) {

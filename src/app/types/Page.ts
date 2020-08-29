@@ -13,3 +13,10 @@ export interface OnBeforePageRender {
 export interface PageSnapshot extends NOODLUiPage {
   components: NOODLComponentProps[]
 }
+
+export interface ModalState {
+  id: string
+  opened: boolean
+  context: null | { [key: string]: any }
+  props: { [key: string]: any }
+}

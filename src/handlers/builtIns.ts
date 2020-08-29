@@ -12,7 +12,7 @@ import { cadl } from 'app/client'
 import Page from 'Page'
 import validate, { getFormErrors } from 'utils/validate'
 import { formatPhoneNumber } from 'utils/phone'
-import VerificationCode from 'components/VerificationCode'
+import VerificationCode from 'components/modalComponents/VerificationCode'
 import { openOutboundURL } from 'utils/common'
 import { openModal, closeModal, setCurrentPage } from 'features/page'
 import {
@@ -20,7 +20,7 @@ import {
   setIsCreatingAccount,
   setVerificationCodePending,
 } from 'features/auth'
-import { modalId } from '../constants'
+import { modalIds } from '../constants'
 import { AppStore } from 'app/types'
 
 export type BuiltInFuncName =
@@ -58,15 +58,18 @@ const makeBuiltInActions = function ({
   }
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
-  builtInActions.checkUsernamePassword = (action): Promise<'abort'> => {
+  builtInActions.checkUsernamePassword = (
+    action,
+    { abort },
+  ): Promise<'abort'> => {
     // dispatchRedux(mergeCacheAuthValues(dataValues))
     const { password, confirmPassword } = getDataValues()
     if (password !== confirmPassword) {
       window.alert('Your passwords do not match')
-      return 'abort'
+      abort('Passwords do not match')
     }
     // await signup?.onSubmitCreateAccount(dataValues)
-    return 'abort'
+    abort('Creating account')
   }
 
   // Called when user enters their verification code in the popup and clicks submit
@@ -129,6 +132,7 @@ const makeBuiltInActions = function ({
   }
 
   builtInActions.signIn = async (action, options) => {
+    const { abort } = options
     const state = store.getState()
     const logMsg = `%cSIGNIN BUILTIN ARGS`
 
@@ -157,7 +161,7 @@ const makeBuiltInActions = function ({
           return
         }
         case 'new.device': {
-          const formValues: any = { ...getDataValues() }
+          const formValues: any = { ...getDataValues(), countryCode: 'US' }
           /*
            * Step 1 - user didn't enter their verification code yet
            */
@@ -171,7 +175,9 @@ const makeBuiltInActions = function ({
             const errors = await getFormErrors(formValues)
             if (errors.length) {
               window.alert(errors[0])
-              return 'abort'
+              return {
+                abort: errors,
+              }
             }
             // The phone number needs to be formatted with country code
             const formattedPhoneNum = await formatPhoneNumber({
@@ -216,14 +222,15 @@ const makeBuiltInActions = function ({
 
             store.dispatch(
               openModal({
-                id: modalId.verificationCode,
+                id: modalIds.VERIFICATON_CODE,
                 props: {
                   formValues,
                   initialTimer: cadl?.verificationRequest?.timer,
                 },
               }),
             )
-            return 'abort'
+
+            abort('User is entering verification code')
           }
           /*
           * Step 1 - user entered verification code and is submitting it
@@ -312,8 +319,12 @@ const makeBuiltInActions = function ({
         console.error(error)
         // await signup.onSubmit({ skipToCreate: true, formValues })
       } else {
-        console.error(error)
-        window.alert(error.message)
+        // console.error(error)
+        // window.alert(error.message)
+        console.error(error.stack)
+        console.error(error.stack)
+        console.error(error.stack)
+        console.error(error.stack)
         throw error
       }
     }
