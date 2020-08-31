@@ -1,5 +1,5 @@
 import CADL from '@aitmed/cadl'
-import NOODL from 'noodl-ui'
+import { NOODL } from 'noodl-ui'
 
 export const cadl = new CADL({
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
@@ -7,5 +7,7 @@ export const cadl = new CADL({
     process.env.NODE_ENV === 'development' ? '/meet.yml' : ''
   }`,
 })
+
+console.log(NOODL)
 
 export const noodl = new NOODL()

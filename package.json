@@ -30,7 +30,7 @@
     "@aitmed/ecos-lvl2-sdk": "^1.4.96",
     "@reduxjs/toolkit": "^1.4.0",
     "libphonenumber-js": "^1.7.57",
-    "noodl-ui": "0.0.4",
+    "noodl-ui": "0.0.6",
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.8",
     "redux-logger": "^3.0.6",

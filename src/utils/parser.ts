@@ -1,6 +1,12 @@
 import _ from 'lodash'
-import { eventTypes, NOODLComponentProps, SelectOption } from 'noodl-ui'
+import {
+  eventTypes,
+  isReference,
+  NOODLComponentProps,
+  SelectOption,
+} from 'noodl-ui'
 import { forEachEntries } from 'utils/common'
+import { Options } from 'webpack'
 
 // TODO do a more generic solution
 const keysHandling = [
@@ -11,7 +17,14 @@ const keysHandling = [
   'style',
 ] as const
 
-export const attachChildren = createAttacher(
+/**
+ * Handles innerHTML / select values, and other values for the node to display their content
+ * @param { HTMLElement } node
+ * @param { string } key
+ * @param { any } value
+ * @param { object } props
+ */
+export const parseChildren = createParser(
   (node: HTMLElement, { key, value, props }) => {
     if (key === 'children') {
       if (_.isString(value) || _.isNumber(value)) {
@@ -43,7 +56,7 @@ export const attachChildren = createAttacher(
   },
 )
 
-export const attachEventHandlers = createAttacher(
+export const parseEventHandlers = createParser(
   (node: HTMLElement, { key, value, props }) => {
     if (node) {
       if (eventTypes.includes(key as typeof eventTypes[number])) {
@@ -71,7 +84,7 @@ export const attachEventHandlers = createAttacher(
   },
 )
 
-export const attachStyles = createAttacher((node, { key, value }) => {
+export const parseStyles = createParser((node, { key, value }) => {
   if (key === 'style' && _.isObjectLike(value)) {
     forEachEntries(value, (k, v) => {
       node.style[k as any] = v
@@ -81,7 +94,7 @@ export const attachStyles = createAttacher((node, { key, value }) => {
   }
 })
 
-export const attachValues = createAttacher((node, { key, value, props }) => {
+export const parseDataValues = createParser((node, { key, value, props }) => {
   if (key === 'data-value' && value != undefined) {
     if (['input', 'select', 'textarea'].includes(props.type)) {
       const elem = node as
@@ -93,7 +106,7 @@ export const attachValues = createAttacher((node, { key, value, props }) => {
   }
 })
 
-export function composeAttachers(...fns: any[]) {
+export function composeParsers(...fns: any[]) {
   const attachFns = (
     node: HTMLElement,
     args: { key: string | number; value: any; props: NOODLComponentProps },
@@ -103,19 +116,21 @@ export function composeAttachers(...fns: any[]) {
   return attachFns
 }
 
-export function createAttacher(fn: ReturnType<typeof composeAttachers>) {
-  return (...args: Parameters<ReturnType<typeof composeAttachers>>) => {
+export function _composeParsers(...fns: any[])
+
+export function createParser(fn: ReturnType<typeof composeParsers>) {
+  return (...args: Parameters<ReturnType<typeof composeParsers>>) => {
     if (args[1]) {
       return fn(...args)
     }
   }
 }
 
-export const applyAttachers = composeAttachers(
-  attachChildren,
-  attachEventHandlers,
-  attachStyles,
-  attachValues,
+export const applyAttachers = composeParsers(
+  parseChildren,
+  parseEventHandlers,
+  parseStyles,
+  parseDataValues,
 )
 
 /**
@@ -160,3 +175,43 @@ export function toDOMNode(props: NOODLComponentProps) {
 
   return node
 }
+
+/**
+ * Apply the original raw data key value if it is showing. This is meant to be
+ * used in conjunction with isShowingDataKey and when the env is 'stable'
+ * Else make it invisible in the UI
+ * @param { object } props
+ */
+export function getFallbackDataValue(props: any) {
+  if (!props.noodl) {
+    return ''
+  }
+  const { noodl } = props
+  let value
+  if (typeof props?.text === 'string') {
+    value = noodl.text
+  } else if (typeof noodl?.placeholder === 'string') {
+    value = noodl.placeholder
+  }
+
+  return value || !isReference(value as string) ? value : '' || ''
+}
+
+/**
+ * Returns true if the component is presumed to be displaying raw referenced data keys
+ * ex: .Global.vertex.currentUser
+ * @param { object } props
+ */
+export function isShowingDataKey(props: any) {
+  if (props['data-key']) {
+    return (
+      props['data-key'] === props['data-value'] ||
+      props['data-key'] === props.children ||
+      isReference(props['data-value'] as string) ||
+      isReference(props.children as string)
+    )
+  }
+  return false
+}
+
+export function parseNOODLComponent(props: NOODLComponentProps) {}
