@@ -15,7 +15,7 @@ import {
   OnBeforePageChange,
   PageSnapshot,
 } from './app/types'
-import { toDOMNode } from './utils/noodl'
+import { toDOMNode } from './utils/parser'
 import Modal from './components/NOODLModal'
 
 export type PageListenerName = 'onBeforePageChange' | 'onBeforePageRender'
