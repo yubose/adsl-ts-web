@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { createSelector } from '@reduxjs/toolkit'
 import { Account } from '@aitmed/cadl'
 import {
   getElementType,
@@ -19,12 +20,17 @@ import {
   Page as NOODLUiPage,
   Viewport,
 } from 'noodl-ui'
+import { CachedPage, ModalId } from './app/types'
 import { cadl, noodl } from './app/client'
 import createStore from './app/store'
+import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import App from './App'
 import Page from './Page'
 import Meeting from './Meeting'
+import modalComponents from './components/modalComponents'
+import { modalIds, CACHED_PAGES } from './constants'
+import { observeStore, openOutboundURL } from './utils/common'
 import * as action from './handlers/actions'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
@@ -46,9 +52,10 @@ window.addEventListener('load', async function hello() {
   const page = new Page({ store })
   const meeting = new Meeting({ page, store, viewport })
   const app = new App({ store, viewport })
-  const builtIn = createBuiltInActions({ page, store, viewport })
+  const builtIn = createBuiltInActions({ page, store })
+  const actions = createActions({ page, store })
 
-  const { startPage } = await app.initialize()
+  let { startPage } = await app.initialize()
 
   page.setBuiltIn({
     goto: builtIn.goto,
@@ -81,16 +88,7 @@ window.addEventListener('load', async function hello() {
           getEventHandlers,
         )
         .addLifecycleListener({
-          action: {
-            evalObject: action.onEvalObject,
-            goto: action.onGoto,
-            pageJump: action.onPageJump,
-            popUp: action.onPopUp,
-            popUpDismiss: action.onPopUpDismiss,
-            refresh: action.onRefresh,
-            saveObject: action.onSaveObject,
-            updateObject: action.onUpdateObject,
-          },
+          action: actions,
           builtIn: {
             checkUsernamePassword: builtIn.checkUsernamePassword,
             enterVerificationCode: builtIn.checkVerificationCode,
@@ -116,13 +114,15 @@ window.addEventListener('load', async function hello() {
   page.registerListener(
     'onBeforePageRender',
     async (noodlUiPage: NOODLUiPage) => {
+      // Cache to rehydrate if they disconnect
+      cachePage({ name: noodlUiPage.name })
       const previousPage = store.getState().page.previousPage
       const logMsg =
         `%c[App.tsx][onBeforePageRender] ` +
         `${previousPage} --> ${noodlUiPage.name}`
       console.log(logMsg, `color:green;font-weight:bold;`, {
         previousPage,
-        nextPage: page,
+        nextPage: noodlUiPage,
       })
       // Refresh the roots
       noodl
@@ -136,7 +136,59 @@ window.addEventListener('load', async function hello() {
     },
   )
 
-  // Register the register once, if it isn't already registered
+  /**
+   * Respnsible for keeping the UI in sync with changes to page routes.
+   * Dispatch setCurrentPage to navigate
+   */
+  observeStore(
+    store,
+    createSelector(
+      (state) => state.page.previousPage,
+      (state) => state.page.currentPage,
+      (previousPage, currentPage) => ({ previousPage, currentPage }),
+    ),
+    async ({ previousPage, currentPage }) => {
+      const logMsg =
+        `%c[src/index.ts][observeStore -- previousPage/currentPage] ` +
+        'Received an update to previousPage/currentPage'
+      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
+        previousPage,
+        nextPage: currentPage,
+      })
+      if (currentPage) {
+        await page.navigate(currentPage)
+      }
+    },
+  )
+
+  /** Responsible for managing the modal component */
+  observeStore(
+    store,
+    createSelector(
+      (state) => state.page.modal,
+      (modalState) => modalState,
+    ),
+    (modalState) => {
+      const { id, opened, ...rest } = modalState
+      const logMsg =
+        `%c[src/index.ts][observeStore -- modal] ` +
+        'Received an update to page modal'
+      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, modalState)
+      if (opened) {
+        const modalId = modalIds[id as ModalId]
+        const modalComponent = modalComponents[modalId]
+        if (modalComponent) {
+          page.modal.open(id, modalComponent, { opened, ...rest })
+        } else {
+          // log
+        }
+      } else {
+        page.modal.close()
+      }
+    },
+  )
+
+  // Register the onresize listener once, if it isn't already registered
   if (viewport.onResize === undefined) {
     viewport.onResize = (newSizes) => {
       noodl.setViewport(newSizes)
@@ -150,11 +202,58 @@ window.addEventListener('load', async function hello() {
     }
   }
 
-  const { snapshot } = await page.navigate(startPage)
+  const cachedPages = getCachedPages()
+  if (cachedPages?.length) {
+    const previousPage = cachedPages[0]?.name
+    // Compare the two pages to make an informed decision before setting it
+    if (previousPage) {
+      const logMsg = `%c[src/index.ts] Comparing cached page vs startPage`
+      console.log(logMsg, `color:#FF5722;font-weight:bold;`, {
+        cachedPages,
+        startPage,
+        authState: store.getState().auth,
+        pageState: store.getState().page,
+      })
+    } else {
+      startPage = previousPage
+    }
+  }
 
-  if (snapshot.name === 'VideoChat') {
+  const { snapshot } = (await page.navigate(startPage)) || {}
+
+  if (snapshot?.name === 'VideoChat') {
     // TODO: connect to meeting
   } else {
     //
   }
 })
+
+/** Adds the current page name to the end in the list of cached pages */
+function cachePage(name: CachedPage | CachedPage[]) {
+  const newPages = _.isArray(name) ? name : [name]
+  if (newPages.length) {
+    const prevCache = getCachedPages()
+    const nextCache = newPages.concat(prevCache)
+    if (nextCache.length >= 4) nextCache.shift()
+    setCachedPages(nextCache)
+  }
+}
+
+/** Retrieves a list of cached pages */
+function getCachedPages(): CachedPage[] {
+  let result: CachedPage[] = []
+  const pageHistory = window.localStorage.getItem(CACHED_PAGES)
+  if (pageHistory) {
+    try {
+      result = JSON.parse(pageHistory) || []
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  return result
+}
+
+/** Sets the list of cached pages */
+function setCachedPages(cache: CachedPage[]) {
+  window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+}

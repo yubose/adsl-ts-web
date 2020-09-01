@@ -1,21 +1,12 @@
 import _ from 'lodash'
-import { createSelector } from '@reduxjs/toolkit'
 import {
   NOODLComponent,
   NOODLComponentProps,
   Page as NOODLUiPage,
 } from 'noodl-ui'
-import modalComponents from './components/modalComponents'
-import { modalIds, CACHED_PAGES } from './constants'
-import { observeStore } from './utils/common'
+import { openOutboundURL } from './utils/common'
 import { cadl, noodl } from './app/client'
-import {
-  AppStore,
-  CachedPage,
-  ModalId,
-  OnBeforePageChange,
-  PageSnapshot,
-} from './app/types'
+import { AppStore, OnBeforePageChange, PageSnapshot } from './app/types'
 import { toDOMNode } from './utils/parser'
 import Modal from './components/NOODLModal'
 
@@ -40,7 +31,6 @@ class Page {
   private _preparePage: (pageName: string, options?: any) => Promise<any>
   private _listeners: { [name: string]: Function } = {}
   public builtIn: PageOptions['builtIn']
-  public history: CachedPage[] = []
   public rootNode: HTMLElement | null = null
   public nodes: HTMLElement[] | null
   public modal: Modal
@@ -67,50 +57,19 @@ class Page {
         ...options,
       })
     }
-
-    // Respnsible for keeping the UI in sync with changes to page routes
-    observeStore(
-      store,
-      createSelector(
-        (state) => state.page.previousPage,
-        (state) => state.page.currentPage,
-        (previousPage, currentPage) => ({ previousPage, currentPage }),
-      ),
-      async ({ currentPage }) => {
-        if (currentPage) {
-          await this._preparePage(currentPage)
-          await this.navigate(currentPage)
-        }
-      },
-    )
-
-    // Responsible for managing the modal component
-    observeStore(
-      store,
-      createSelector(
-        (state) => state.page.modal,
-        (modalState) => modalState,
-      ),
-      ({ id, opened, ...rest }) => {
-        if (opened) {
-          const modalId = modalIds[id as ModalId]
-          const modalComponent = modalComponents[modalId]
-          if (modalComponent) {
-            this.modal.open(id, modalComponent, { opened, ...rest })
-          } else {
-            // log
-          }
-        } else {
-          this.modal.close()
-        }
-      },
-    )
   }
 
   public async navigate(
     pageName: string,
     options?: any,
-  ): Promise<{ snapshot: PageSnapshot }> {
+  ): Promise<{ snapshot: PageSnapshot } | void> {
+    // Check if it is an HTTP link instead of a NOODL endpoint
+
+    // Outside link
+    if (_.isString(pageName) && pageName.startsWith('http')) {
+      return openOutboundURL(pageName)
+    }
+
     if (!this.rootNode) {
       this._initializeRootNode()
     }
@@ -274,43 +233,6 @@ class Page {
       rootNode: this.rootNode,
       nodes: this.nodes,
     }
-  }
-
-  /** Adds the current page name to the end in the list of cached pages */
-  public cachePage(name: string) {
-    this.setCache({
-      name,
-    })
-    return this
-  }
-
-  /** Retrieves a list of cached pages */
-  public getCache(): CachedPage[] {
-    const pageHistory = window.localStorage.getItem(CACHED_PAGES)
-    if (pageHistory) {
-      try {
-        this.history = JSON.parse(pageHistory)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    return this.history || []
-  }
-
-  /** Sets the list of cached pages */
-  public setCache(cachedPage: CachedPage | CachedPage[]) {
-    const cachedPages = (_.isString(cachedPage)
-      ? [cachedPage]
-      : _.isArray(cachedPage)
-      ? cachedPage
-      : []) as CachedPage[]
-    if (cachedPages.length) {
-      const prevCache = this.getCache()
-      const nextCache = [...prevCache, ...cachedPages]
-      window.localStorage.setItem(CACHED_PAGES, JSON.stringify(nextCache))
-      this.history = nextCache
-    }
-    return this
   }
 
   public setBuiltIn(builtIn: any) {

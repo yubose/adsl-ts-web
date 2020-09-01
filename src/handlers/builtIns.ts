@@ -5,7 +5,6 @@ import {
   getDataValues,
   NOODLChainActionBuiltInObject,
   NOODLGotoAction,
-  Viewport,
 } from 'noodl-ui'
 import { Account } from '@aitmed/cadl'
 import { cadl } from 'app/client'
@@ -44,7 +43,6 @@ const makeBuiltInActions = function ({
 }: {
   store: AppStore
   page: Page
-  viewport: Viewport
 }) {
   // @ts-expect-error
   const builtInActions: Record<
@@ -100,13 +98,13 @@ const makeBuiltInActions = function ({
   builtInActions.goto = async (action: NOODLGotoAction, options) => {
     // URL
     if (_.isString(action)) {
-      await _goToURI(action)
+      await page.navigate(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        await _goToURI(action.destination)
+        await page.navigate(action.destination)
       } else {
         const logMsg =
           '[ACTION][builtIn -- goto] ' +
