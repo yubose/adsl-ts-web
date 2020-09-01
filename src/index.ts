@@ -153,7 +153,7 @@ window.addEventListener('load', async function hello() {
   const { snapshot } = await page.navigate(startPage)
 
   if (snapshot.name === 'VideoChat') {
-    //
+    // TODO: connect to meeting
   } else {
     //
   }
