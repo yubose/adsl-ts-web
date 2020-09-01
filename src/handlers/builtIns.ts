@@ -366,44 +366,47 @@ const makeBuiltInActions = function ({
 -------------------------------------------------------- */
 
 // This goes on the SDK
-export async function videoChat(
-  action: NOODLChainActionBuiltInObject & {
-    roomId: string
-    accessToken: string
-  },
-) {
-  let builtInRunning = false
+export function onVideoChatBuiltIn(joinRoom: (token: string) => Promise<any>) {
+  return async (
+    action: NOODLChainActionBuiltInObject & {
+      roomId: string
+      accessToken: string
+    },
+  ) => {
+    let builtInRunning = false
 
-  if (!builtInRunning) {
-    builtInRunning = true
+    if (!builtInRunning) {
+      builtInRunning = true
 
-    const logMsg = `%c[ACTION][onVideoChat] builtIn`
-    const logStyle = `color:#3498db;font-weight:bold;`
-    console.log(logMsg, logStyle)
+      const logMsg = `%c[ACTION][onVideoChat] builtIn`
+      const logStyle = `color:#3498db;font-weight:bold;`
+      console.log(logMsg, logStyle)
 
-    console.log(
-      `%c[PageContext.tsx][onPageChange][ACTION] builtIn`,
-      `color:#3498db;font-weight:bold;`,
-      action,
-    )
-    // Disconnect from the room if for some reason we
-    // are still connected to one
-    // if (room.state === 'connected' || room.state === 'reconnecting') {
-    //   room?.disconnect?.()
-    //   if (connecting) setConnecting(false)
-    // }
-    // const newRoom = await connect(action.accessToken)
-    // if (newRoom) {
-    //   const msg = `Connected to room: ${newRoom.name}`
-    //   toast.success(msg, { toastId: msg })
-    // }
-  } else {
-    console.log(
-      `%c[ACTION][onVideoChat] builtIn: A duplicate call to this action was detected. This call was aborted to prevent the duplicate call`,
-      `color:#3498db;font-weight:bold;`,
-    )
+      console.log(
+        `%c[builtIns.ts][onVideoChat] builtIn --> videoChat`,
+        `color:#3498db;font-weight:bold;`,
+        action,
+      )
+      // Disconnect from the room if for some reason we
+      // are still connected to one
+      // if (room.state === 'connected' || room.state === 'reconnecting') {
+      //   room?.disconnect?.()
+      //   if (connecting) setConnecting(false)
+      // }
+      const newRoom = await joinRoom(action.accessToken)
+      if (newRoom) {
+        const msg = `Connected to room: ${newRoom.name}`
+        const logMsg = `%c[builtIns.ts][onVideoChatBuiltIn]` + msg
+        console.log(logMsg, `color:#00b406;font-weight:bold;`)
+      }
+    } else {
+      console.log(
+        `%c[ACTION][onVideoChat] builtIn: A duplicate call to this action was detected. This call was aborted to prevent the duplicate call`,
+        `color:#3498db;font-weight:bold;`,
+      )
+    }
+    builtInRunning = false
   }
-  builtInRunning = false
 }
 
 // function useBuiltInActions({}: // signin,

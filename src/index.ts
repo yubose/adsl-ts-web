@@ -21,11 +21,10 @@ import {
 } from 'noodl-ui'
 import { cadl, noodl } from './app/client'
 import createStore from './app/store'
-import createBuiltInActions, {
-  videoChat as onVideoChatBuiltIn,
-} from './handlers/builtIns'
+import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import App from './App'
 import Page from './Page'
+import Meeting from './Meeting'
 import * as action from './handlers/actions'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
@@ -36,23 +35,24 @@ window.addEventListener('load', async function hello() {
   window.getDataValues = getDataValues
   window.noodl = cadl
   // Auto login for the time being
-  // const vcode = await Account.requestVerificationCode('+1 8882465555')
-  // const profile = await Account.login('+1 8882465555', '142251', vcode || '')
-  // console.log(`%c${vcode}`, 'color:green;font-weight:bold;')
-  // console.log(`%cProfile`, 'color:green;font-weight:bold;', profile)
+  const vcode = await Account.requestVerificationCode('+1 8882465555')
+  const profile = await Account.login('+1 8882465555', '142251', vcode || '')
+  console.log(`%c${vcode}`, 'color:green;font-weight:bold;')
+  console.log(`%cProfile`, 'color:green;font-weight:bold;', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const store = createStore()
   const viewport = new Viewport()
-  const app = new App({ store, viewport })
   const page = new Page({ store })
+  const meeting = new Meeting({ page, store, viewport })
+  const app = new App({ store, viewport })
   const builtIn = createBuiltInActions({ page, store, viewport })
 
   const { startPage } = await app.initialize()
 
   page.setBuiltIn({
     goto: builtIn.goto,
-    videoChat: onVideoChatBuiltIn,
+    videoChat: onVideoChatBuiltIn(meeting.joinRoom),
   })
 
   page.registerListener('onBeforePageChange', () => {

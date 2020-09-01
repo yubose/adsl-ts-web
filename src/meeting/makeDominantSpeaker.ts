@@ -1,30 +1,33 @@
 import _ from 'lodash'
 import { RemoteParticipant, LocalParticipant, Room } from 'twilio-video'
 
-export type DominantSpeaker = ReturnType<typeof makeDominantSpeaker>
+export type AppDominantSpeaker = ReturnType<typeof makeDominantSpeaker>
 
-export type DominantSpeakerType = LocalParticipant | RemoteParticipant | null
+export type DominantSpeaker = LocalParticipant | RemoteParticipant | null
 
 function makeDominantSpeaker({ room }: { room: Room }) {
-  let _dominantSpeaker: DominantSpeakerType = null
+  const _state: { dominantSpeaker: DominantSpeaker } = {
+    dominantSpeaker: null,
+  }
+
   let _consumerOnChange:
     | ((
-        prevDominantSpeaker: DominantSpeakerType,
-        nextDominantSpeaker: DominantSpeakerType,
+        prevDominantSpeaker: DominantSpeaker,
+        nextDominantSpeaker: DominantSpeaker,
       ) => void)
     | undefined
 
-  function _set(dominantSpeaker: DominantSpeakerType) {
-    const prevDominantSpeaker = _dominantSpeaker
-    _dominantSpeaker = dominantSpeaker
-    _consumerOnChange?.(prevDominantSpeaker, _dominantSpeaker)
+  function _set(dominantSpeaker: DominantSpeaker) {
+    const prevDominantSpeaker = _state.dominantSpeaker
+    _state.dominantSpeaker = dominantSpeaker
+    _consumerOnChange?.(prevDominantSpeaker, _state.dominantSpeaker)
   }
 
   /**
    * Sets the new dominant speaker
-   * @param { DominantSpeakerType } dominantSpeaker
+   * @param { DominantSpeaker } dominantSpeaker
    */
-  function _onChange(dominantSpeaker: DominantSpeakerType) {
+  function _onChange(dominantSpeaker: DominantSpeaker) {
     console.log(
       `%c[makeDominantSpeaker.ts][onChange]`,
       `color:#3498db;font-weight:bold;`,
@@ -40,16 +43,16 @@ function makeDominantSpeaker({ room }: { room: Room }) {
     event, so we can set the dominantSpeaker to 'null' when they disconnect.
   */
   function _onParticipantDisconnected(participant: RemoteParticipant) {
-    if (_dominantSpeaker === participant) {
-      _dominantSpeaker = null
+    if (_state.dominantSpeaker === participant) {
+      _state.dominantSpeaker = null
     }
   }
 
   const o = {
     get() {
-      return _dominantSpeaker
+      return _state.dominantSpeaker
     },
-    set(dominantSpeaker: DominantSpeakerType) {
+    set(dominantSpeaker: DominantSpeaker) {
       _set(dominantSpeaker)
       return this
     },

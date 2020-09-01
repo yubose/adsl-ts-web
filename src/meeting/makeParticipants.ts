@@ -4,6 +4,8 @@ import { Draft } from 'immer'
 import { cadl } from 'app/client'
 import makeDominantSpeaker, { DominantSpeaker } from './makeDominantSpeaker'
 
+export type AppParticipants = ReturnType<typeof makeParticipants>
+
 export interface ParticipantsState {
   primary: RemoteParticipant | null
   secondary: RemoteParticipant[]

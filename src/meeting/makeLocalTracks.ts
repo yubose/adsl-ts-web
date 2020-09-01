@@ -10,6 +10,8 @@ import {
   Room,
 } from 'twilio-video'
 
+export type AppLocalTracks = ReturnType<typeof makeLocalTracks>
+
 function makeLocalTracks({
   room,
   viewport,

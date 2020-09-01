@@ -109,9 +109,3 @@ export function scrollTo(to = 0, duration = 16) {
     scrollTo(to, duration - 16)
   })
 }
-
-export const selectNOODLElement = {
-  mainStream(): HTMLDivElement | null {
-    return document.querySelector('[data-ux=mainStream]')
-  },
-}

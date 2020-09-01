@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events'
 import { getByDataUX, ViewportOptions } from 'noodl-ui'
-import Page from 'Page'
 import {
   connect,
   LocalParticipant,
@@ -11,12 +10,19 @@ import {
   RemoteParticipant,
   RemoteTrack,
   RemoteTrackPublication,
+  LocalTrackPublication,
 } from 'twilio-video'
+import Page from 'Page'
+import {
+  RoomParticipant,
+  RoomParticipantTrackPublication,
+  RoomTrack,
+} from 'app/types/meeting'
 import { isMobile } from 'utils/common'
 import makeLocalTracks from './makeLocalTracks'
 import makeParticipants from './makeParticipants'
 
-export type MeetingRoom = ReturnType<typeof makeRoom>
+export type AppRoom = ReturnType<typeof makeRoom>
 
 function makeRoom({
   isRoomEnvironment,
@@ -27,45 +33,25 @@ function makeRoom({
   page: Page
   viewport: ViewportOptions
 }) {
-  let _room = new EventEmitter() as Room
-  let _cachedLocalTracks: LocalTrack[] = []
+  const _state = {
+    room: new EventEmitter() as Room,
+    cachedLocalTracks: []
+  }
 
   const { addParticipant } = makeParticipants({
     handleWaitingOthersMessage,
-    room: _room,
+    room: _state.room,
   })
 
-  const {
-    localTracks,
-    fetchingLocalTracks,
-    getTracks,
-    getLocalVideoTrack,
-    getLocalAudioTrack,
-    removeLocalVideoTrack,
-    toggleVideo,
-    toggleCamera,
-  } = makeLocalTracks({ isRoomEnvironment, room, viewport })
-
   function _set(room: Room) {
-    _room = room
+    _state.room = room
   }
 
   async function _connect(token: string) {
     try {
-      const tracks: LocalTrack[] | undefined = !localTracks?.length
-        ? await getTracks()
-        : []
-
-      // We purposely returned empty tracks so we can let them in the meeting and to handle
-      // this special case
-      if (!tracks?.length) {
-        //
-      }
-
       const room = await connect(token, {
         dominantSpeaker: true,
         logLevel: 'info',
-        tracks,
         bandwidthProfile: {
           video: {
             dominantSpeakerPriority: 'high',
@@ -75,6 +61,10 @@ function makeRoom({
           },
         },
       })
+
+      let localVideoTrack = Array.from(
+        room.localParticipant?.videoTracks?.values?.(),
+      )?.[0].track
 
       _set(room)
 
@@ -129,7 +119,7 @@ function makeRoom({
       window.lparticipant = room.localParticipant
 
       // Publish local participants tracks (self stream / local video preview)
-      _cachedLocalTracks.forEach((track) => {
+      _state.cachedLocalTracks.forEach((track) => {
         // Tracks can be supplied as arguments to the Video.connect() function and they will automatically be published.
         // However, tracks must be published manually in order to set the priority on them.
         // All video tracks are published with 'low' priority. This works because the video
@@ -161,20 +151,36 @@ function makeRoom({
     }
   }
 
-  function _onParticipantConnected(participant: RemoteParticipant) {
+  /**
+   * Handle tracks published as well as tracks that are going to be published
+   * @param { LocalParticipant | RemoteParticipant } participant
+   */
+  function _onParticipantConnected(
+    participant: LocalParticipant | RemoteParticipant,
+  ) {
     // Handle the TrackPublications already published by the Participant.
-    participant.tracks.forEach((publication) => {
-      _onTrackPublished(publication, participant)
-    })
+    participant.tracks.forEach(
+      (publication: RoomParticipantTrackPublication) => {
+        _onTrackPublished(publication, participant)
+      },
+    )
     // Handle the TrackPublications that will be published by the Participant later.
-    participant.on('trackPublished', (publication) => {
-      _onTrackPublished(publication, participant)
-    })
+    participant.on(
+      'trackPublished',
+      (publication: RoomParticipantTrackPublication) => {
+        _onTrackPublished(publication, participant)
+      },
+    )
   }
 
+  /**
+   * Attach the published track once it is subscribed
+   * @param { RoomParticipantTrackPublication } publication - Track publication
+   * @param { RoomParticipant } participant
+   */
   function _onTrackPublished(
-    publication: RemoteTrackPublication,
-    participant: RemoteParticipant,
+    publication: RoomParticipantTrackPublication,
+    participant: RoomParticipant,
   ) {
     // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
     if (publication.track) {
@@ -187,17 +193,17 @@ function makeRoom({
     })
 
     // Once the TrackPublication is unsubscribed from, detach the Track from the DOM.
-    publication.on('unsubscribed', (track) => {
+    publication.on('unsubscribed', (track:) => {
       _detachTrack(track, participant)
     })
   }
 
   /**
-   * Attach a Track to the DOM.
-   * @param track - the Track to attach
-   * @param participant - the Participant which published the Track
+   * Attaches the Track to the DOM.
+   * @param { RoomTrack } track
+   * @param { RoomParticipant } participant
    */
-  function _attachTrack(track: RemoteTrack, participant: RemoteParticipant) {
+  function _attachTrack(track: RoomTrack, participant: RoomParticipant) {
     // Attach the Participant's Track to the thumbnail.
     // TODO: Use track.attach here to the remote participant streams
     // track.attach
@@ -209,11 +215,11 @@ function makeRoom({
   }
 
   /**
-   * Detach a Track from the DOM.
-   * @param track - the Track to be detached
-   * @param participant - the Participant that is publishing the Track
+   * Detach the Track from the DOM.
+   * @param { RoomTrack } track
+   * @param { RoomParticipant } participant
    */
-  function _detachTrack(track: RemoteTrack, participant: RemoteParticipant) {
+  function _detachTrack(track: RoomTrack, participant: RoomParticipant) {
     // Detach the Participant's Track from the thumbnail.
     // TODO: Use track.detach here to the remote participant streams
 
@@ -291,8 +297,8 @@ function makeRoom({
     async connect(...args: Parameters<typeof _connect>) {
       return _connect(...args)
     },
-    get() {
-      return _room
+    get(key: keyof typeof _state | undefined) {
+      return key ? _state[key as keyof typeof _state] : _state
     },
   }
 
