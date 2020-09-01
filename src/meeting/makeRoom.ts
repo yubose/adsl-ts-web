@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { EventEmitter } from 'events'
 import { getByDataUX, ViewportOptions } from 'noodl-ui'
 import {
@@ -35,7 +36,7 @@ function makeRoom({
 }) {
   const _state = {
     room: new EventEmitter() as Room,
-    cachedLocalTracks: []
+    cachedLocalTracks: [],
   }
 
   const { addParticipant } = makeParticipants({
@@ -193,7 +194,7 @@ function makeRoom({
     })
 
     // Once the TrackPublication is unsubscribed from, detach the Track from the DOM.
-    publication.on('unsubscribed', (track:) => {
+    publication.on('unsubscribed', (track) => {
       _detachTrack(track, participant)
     })
   }
@@ -250,8 +251,7 @@ function makeRoom({
   function handleWaitingOthersMessage(
     participants:
       | Map<string, LocalParticipant | RemoteParticipant>
-      | Array<LocalParticipant | RemoteParticipant>
-      | UseParticipantsState,
+      | Array<LocalParticipant | RemoteParticipant>,
     // The delay is used to wait for the components to display so that getByDataUX
     // can detect them when they load
     delay: number = 1000,

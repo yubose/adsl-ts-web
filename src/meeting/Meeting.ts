@@ -2,7 +2,11 @@ import _ from 'lodash'
 import { getByDataUX, Viewport } from 'noodl-ui'
 import { AppStore } from 'app/types'
 import * as T from 'app/types/meeting'
-import { forEachParticipant, forEachParticipantTrack } from 'utils/twilio'
+import {
+  forEachParticipant,
+  forEachParticipantTrack,
+  isMediaTrack,
+} from 'utils/twilio'
 import Page from '../Page'
 import makeDominantSpeaker, {
   AppDominantSpeaker,
@@ -11,7 +15,13 @@ import makeDominantSpeaker, {
 import makeLocalTracks, { AppLocalTracks } from './makeLocalTracks'
 import makeParticipants, { AppParticipants } from './makeParticipants'
 import makeRoom, { AppRoom } from './makeRoom'
-import { LocalParticipant, Room } from 'twilio-video'
+import {
+  LocalAudioTrack,
+  LocalParticipant,
+  LocalTrack,
+  RemoteTrack,
+  Room,
+} from 'twilio-video'
 // import makePublications from './makePublications'
 // import makeTrack from './makeTrack'
 
@@ -37,10 +47,10 @@ class Meeting {
     this.#page = page
     this.#viewport = viewport
     this.#room = makeRoom({ page, viewport })
-    this.#localTracks = makeLocalTracks({ room, viewport })
-    this.#participants = makeParticipants({ room })
-    this.#dominantSpeaker = makeDominantSpeaker({ room })
     this.room = this.#room.get('room') as Room
+    this.#localTracks = makeLocalTracks({ room: this.room, viewport })
+    this.#participants = makeParticipants({ room: this.room })
+    this.#dominantSpeaker = makeDominantSpeaker({ room: this.room })
   }
 
   /**
@@ -74,38 +84,46 @@ class Meeting {
     if (publication.track) {
       this.attachTrack(publication.track, participant)
     }
+    // Local participant is subscribed to this remote track
     publication.on('subscribed', _.partialRight(this.attachTrack, participant))
     publication.on(
       'unsubscribed',
       _.partialRight(this.detachTrack, participant),
     )
   }
-  attachTrack(
-    track: T.RoomParticipantTrackPublication,
-    participant: T.RoomParticipant,
-  ) {
-    const dominantSpeaker = this.#dominantSpeaker.get()
-
+  attachTrack(track: T.RoomTrack, participant: T.RoomParticipant) {
     if (this.isLocalParticipant(participant)) {
       // TODO: attach to selfStream element
-      const selfStreamElem = this.getSelfStreamElement()
+      if (track.kind !== 'data') {
+        const selfStreamElem = this.getSelfStreamElement()
+        if (selfStreamElem) {
+          track.attach(selfStreamElem)
+        } else {
+          const logMsg = `%c[Meeting.ts][attachTrack] Tried to attach a ${track.kind} track to the selfStream but could not find DOM node`
+          console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+            track,
+            participant,
+          })
+        }
+      }
     } else {
-      // TODO: attach to subStream elements
       //
     }
   }
-  detachTrack(
-    track: T.RoomParticipantTrackPublication,
-    participant: T.RoomParticipant,
-  ) {
-    const dominantSpeaker = this.#dominantSpeaker.get()
-
+  detachTrack(track: T.RoomTrack, participant: T.RoomParticipant) {
     if (this.isLocalParticipant(participant)) {
-      // TODO: detach from selfStream element
-      const selfStreamElem = this.getSelfStreamElement()
-    } else {
-      // TODO: detach from subStream elements
-      //
+      if (track.kind !== 'data') {
+        const selfStreamElem = this.getSelfStreamElement()
+        if (selfStreamElem) {
+          track.detach(selfStreamElem)
+        } else {
+          const logMsg = `%c[Meeting.ts][detachTrack] Tried to detach a ${track.kind} track to the selfStream but could not find DOM node`
+          console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+            track,
+            participant,
+          })
+        }
+      }
     }
   }
   isLocalParticipant(

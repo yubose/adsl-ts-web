@@ -1,5 +1,12 @@
 import _ from 'lodash'
-import { RemoteParticipant } from 'twilio-video'
+import {
+  LocalAudioTrack,
+  LocalVideoTrack,
+  RemoteAudioTrack,
+  RemoteParticipant,
+  RemoteTrack,
+  RemoteVideoTrack,
+} from 'twilio-video'
 import {
   RoomParticipant,
   RoomParticipantTrackPublication,
@@ -32,4 +39,8 @@ export function forEachParticipantTrack(
   ) => any,
 ) {
   tracks?.forEach(cb)
+}
+
+export function isMediaTrack(track: RemoteTrack) {
+  return ['audio', 'video'].includes(track?.kind || '')
 }

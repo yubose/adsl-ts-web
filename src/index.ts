@@ -151,4 +151,10 @@ window.addEventListener('load', async function hello() {
   }
 
   const { snapshot } = await page.navigate(startPage)
+
+  if (snapshot.name === 'VideoChat') {
+    //
+  } else {
+    //
+  }
 })
