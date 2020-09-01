@@ -1,25 +1,30 @@
 import { EventEmitter } from 'events'
 import { getByDataUX, ViewportOptions } from 'noodl-ui'
+import Page from 'Page'
 import {
-  connect as connectToRoom,
-  ConnectOptions,
+  connect,
+  LocalParticipant,
   LocalTrack,
   LocalVideoTrackPublication,
   LocalAudioTrackPublication,
-  LocalParticipant,
   Room,
   RemoteParticipant,
-  TrackPublication,
+  RemoteTrack,
+  RemoteTrackPublication,
 } from 'twilio-video'
 import { isMobile } from 'utils/common'
 import makeLocalTracks from './makeLocalTracks'
 import makeParticipants from './makeParticipants'
 
+export type MeetingRoom = ReturnType<typeof makeRoom>
+
 function makeRoom({
   isRoomEnvironment,
+  page,
   viewport,
 }: {
   isRoomEnvironment: boolean
+  page: Page
   viewport: ViewportOptions
 }) {
   let _room = new EventEmitter() as Room
@@ -41,166 +46,196 @@ function makeRoom({
     toggleCamera,
   } = makeLocalTracks({ isRoomEnvironment, room, viewport })
 
-  React.useEffect(() => {
-    // It can take a moment for Video.connect to connect to a room. During this time, the user
-    // may have enabled or disabled their local audio or video tracks. If this happens, we
-    // store the localTracks in this ref, so that they are correctly published once the user
-    // is connected to the room.
-    localTracksRef.current = localTracks
-  }, [localTracks])
+  function _set(room: Room) {
+    _room = room
+  }
 
-  const connect = React.useCallback(
-    async (token: string) => {
-      try {
-        let tracks: LocalTrack[] | undefined = localTracksRef.current
+  async function _connect(token: string) {
+    try {
+      const tracks: LocalTrack[] | undefined = !localTracks?.length
+        ? await getTracks()
+        : []
 
-        if (!localTracksRef.current?.length) {
-          tracks = await getTracks(undefined, token)
-        }
+      // We purposely returned empty tracks so we can let them in the meeting and to handle
+      // this special case
+      if (!tracks?.length) {
+        //
+      }
 
-        // We purposely returned empty tracks so we can let them in the meeting and to handle
-        // this special case
-        if (!tracks.length) {
-          //
-        }
-
-        const roomOptions: ConnectOptions = {
-          dominantSpeaker: true,
-          logLevel: 'info',
-          tracks,
-          // tracks: [],
-          // tracks: localTracksRef.current,
-          bandwidthProfile: {
-            video: {
-              dominantSpeakerPriority: 'high',
-              mode: 'collaboration',
-              // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
-              ...(isMobile() ? { maxSubscriptionBitrate: 2500000 } : undefined),
-            },
+      const room = await connect(token, {
+        dominantSpeaker: true,
+        logLevel: 'info',
+        tracks,
+        bandwidthProfile: {
+          video: {
+            dominantSpeakerPriority: 'high',
+            mode: 'collaboration',
+            // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
+            ...(isMobile() ? { maxSubscriptionBitrate: 2500000 } : undefined),
           },
-        }
+        },
+      })
 
-        setConnecting(true)
-        const newRoom = await connectToRoom(token, roomOptions)
-        setRoom(newRoom)
-        setConnecting(false)
+      _set(room)
 
-        console.log(
-          `%c[MeetingRoomContext.tsx][connect] Connected to room`,
-          `color:${color.room};font-weight:bold;`,
-          newRoom,
-        )
+      console.log(
+        `%c[makeRoom.ts][connect] Connected to room`,
+        `color:green;font-weight:bold;`,
+        room,
+      )
 
-        const addExistingParticipant = (participant: RemoteParticipant) => {
-          console.log(
-            `%c[MeetingRoomContext.tsx][connect#participantConnected]`,
-            `color:${color.room};font-weight:bold;`,
-            { participant, room: newRoom },
-          )
-          addParticipant(participant)
-        }
+      const disconnect = () => room.disconnect()
 
-        const disconnect = () => newRoom.disconnect()
-
-        // Local participant disconnected
-        const disconnected = () => {
-          const unpublishTracks = (
-            trackPublication:
-              | LocalVideoTrackPublication
-              | LocalAudioTrackPublication,
-          ) => {
-            trackPublication?.track?.stop?.()
-            trackPublication?.unpublish?.()
-          }
-          // Unpublish local tracks
-          newRoom.localParticipant.videoTracks.forEach(unpublishTracks)
-          newRoom.localParticipant.audioTracks.forEach(unpublishTracks)
-          window.room = null
-          // Reset the room only after all other `disconnected` listeners have been called.
-          setTimeout(() => setRoom(new EventEmitter() as Room))
-          window.removeEventListener('beforeunload', disconnect)
-          if (isMobile()) {
-            window.removeEventListener('pagehide', disconnect)
-          }
-        }
-
-        // Add currently connected participants to the state
-        newRoom.participants.forEach(addExistingParticipant)
-        newRoom.once('disconnected', disconnected)
-
-        const emitRemoteTracks = (participant: RemoteParticipant) => (
-          trackPublication: TrackPublication,
+      // Local participant disconnected
+      const disconnected = () => {
+        const unpublishTracks = (
+          trackPublication:
+            | LocalVideoTrackPublication
+            | LocalAudioTrackPublication,
         ) => {
-          participant.emit('trackPublished', trackPublication)
-          participant.emit('trackStarted', trackPublication)
-          participant.emit('trackSubscribed', trackPublication)
+          trackPublication?.track?.stop?.()
+          trackPublication?.unpublish?.()
         }
+        // Unpublish local tracks
+        _.forEach(room.localParticipant.videoTracks, unpublishTracks)
+        _.forEach(room.localParticipant.audioTracks, unpublishTracks)
+        window.room = null
+        // Reset the room only after all other `disconnected` listeners have been called.
+        setTimeout(() => _set(new EventEmitter() as Room))
+        window.removeEventListener('beforeunload', disconnect)
+        if (isMobile()) {
+          window.removeEventListener('pagehide', disconnect)
+        }
+      }
 
-        const forEachTracks = (callback: typeof emitRemoteTracks) => (
-          participant: RemoteParticipant,
-        ) => participant?.tracks?.forEach?.(callback(participant))
+      // Add currently connected participants to the state
+      room.participants.forEach((participant: RemoteParticipant) => {
+        console.log(
+          `%c[makeRoom.tsx][connect#participantConnected]`,
+          `color:green;font-weight:bold;`,
+          { participant, room: room },
+        )
+        addParticipant(participant)
+      })
 
-        newRoom.participants?.forEach(forEachTracks(emitRemoteTracks))
+      room.once('disconnected', disconnected)
 
-        window.room = newRoom
-        // @ts-ignore
-        window.lparticipant = newRoom.localParticipant
+      /** Handle publishing/unpublishing their incoming/present tracks */
+      room.participants?.forEach((participant: RemoteParticipant) => {
+        _onParticipantConnected(participant)
+      })
 
-        // console.log(
-        //   `%c[MeetingRoomContext.tsx][React.useEffect] User's media devices`,
-        //   `color:#3498db;font-weight:bold;`,
-        //   userMedia,
-        // )
+      window.room = room
+      window.lparticipant = room.localParticipant
 
-        // Publish local participants tracks (self stream / local video preview)
-        localTracksRef.current.forEach((track) => {
-          // Tracks can be supplied as arguments to the Video.connect() function and they will automatically be published.
-          // However, tracks must be published manually in order to set the priority on them.
-          // All video tracks are published with 'low' priority. This works because the video
-          // track that is displayed in the 'MainParticipant' component will have it's priority
-          // set to 'high' via track.setPriority()
-          // @ts-expect-error
-          newRoom.localParticipant?.publishTrack?.(track as LocalTrack, {
-            priority: track?.kind === 'video' ? 'low' : 'standard',
-          })
+      // Publish local participants tracks (self stream / local video preview)
+      _cachedLocalTracks.forEach((track) => {
+        // Tracks can be supplied as arguments to the Video.connect() function and they will automatically be published.
+        // However, tracks must be published manually in order to set the priority on them.
+        // All video tracks are published with 'low' priority. This works because the video
+        // track that is displayed in the 'MainParticipant' component will have it's priority
+        // set to 'high' via track.setPriority()
+        // @ts-expect-error
+        room.localParticipant?.publishTrack?.(track as LocalTrack, {
+          priority: track?.kind === 'video' ? 'low' : 'standard',
         })
+      })
 
-        // Add a listener to disconnect from the room when a user closes their browser
-        window.addEventListener('beforeunload', disconnect)
-        // Add a listener to disconnect from the room when a mobile user closes their browser
-        if (isMobile()) window.addEventListener('pagehide', disconnect)
+      // Add a listener to disconnect from the room when a user closes their browser
+      window.addEventListener('beforeunload', disconnect)
+      // Add a listener to disconnect from the room when a mobile user closes their browser
+      if (isMobile()) window.addEventListener('pagehide', disconnect)
 
-        handleWaitingOthersMessage(newRoom.participants)
+      handleWaitingOthersMessage(room.participants)
 
-        return newRoom
-      } catch (error) {
-        setConnecting(false)
-        if (error.name === 'NotAllowedError') {
-          toast.error(
-            `We do not have permission to publish one or more of your devices. Please check your browser's settings if this was unintentional`,
-          )
-        } else {
-          toast.error(error.message)
-        }
-        throw error
+      return room
+    } catch (error) {
+      if (error.name === 'NotAllowedError') {
+        window.alert(
+          `We do not have permission to publish one or more of your devices. Please check your browser's settings if this was unintentional`,
+        )
+      } else {
+        window.alert(error.message)
       }
-    },
-    // eslint-disable-next-line
-    [],
-  )
+      throw error
+    }
+  }
 
-  React.useEffect(() => {
-    if (!isRoomEnvironment) {
-      if (room.state !== 'disconnected') {
-        const logMsg = `%c[MeetingRoomContext.tsx][React.useEffect] Disconnecting from the room...`
-        console.log(logMsg, `color:${color.room};font-weight:bold;`)
-        room?.disconnect?.()
-      }
+  function _onParticipantConnected(participant: RemoteParticipant) {
+    // Handle the TrackPublications already published by the Participant.
+    participant.tracks.forEach((publication) => {
+      _onTrackPublished(publication, participant)
+    })
+    // Handle the TrackPublications that will be published by the Participant later.
+    participant.on('trackPublished', (publication) => {
+      _onTrackPublished(publication, participant)
+    })
+  }
+
+  function _onTrackPublished(
+    publication: RemoteTrackPublication,
+    participant: RemoteParticipant,
+  ) {
+    // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
+    if (publication.track) {
+      _attachTrack(publication.track, participant)
     }
-    return () => {
-      room?.disconnect?.()
+
+    // Once the TrackPublication is subscribed to, attach the Track to the DOM.
+    publication.on('subscribed', (track) => {
+      _attachTrack(track, participant)
+    })
+
+    // Once the TrackPublication is unsubscribed from, detach the Track from the DOM.
+    publication.on('unsubscribed', (track) => {
+      _detachTrack(track, participant)
+    })
+  }
+
+  /**
+   * Attach a Track to the DOM.
+   * @param track - the Track to attach
+   * @param participant - the Participant which published the Track
+   */
+  function _attachTrack(track: RemoteTrack, participant: RemoteParticipant) {
+    // Attach the Participant's Track to the thumbnail.
+    // TODO: Use track.attach here to the remote participant streams
+    // track.attach
+    // If the attached Track is a VideoTrack that is published by the active
+    // Participant, then attach it to the main stream
+    if (track.kind === 'video' && participant === activeParticipant) {
+      //
     }
-  }, [isRoomEnvironment, room])
+  }
+
+  /**
+   * Detach a Track from the DOM.
+   * @param track - the Track to be detached
+   * @param participant - the Participant that is publishing the Track
+   */
+  function _detachTrack(track: RemoteTrack, participant: RemoteParticipant) {
+    // Detach the Participant's Track from the thumbnail.
+    // TODO: Use track.detach here to the remote participant streams
+
+    // If the detached Track is a VideoTrack that is published by the active
+    // Participant, then detach it from the main video as well.
+    if (track.kind === 'video' && participant === activeParticipant) {
+      // track.detach
+    }
+  }
+
+  // React.useEffect(() => {
+  //   if (!isRoomEnvironment) {
+  //     if (room.state !== 'disconnected') {
+  //       const logMsg = `%c[makeRoom.tsx][React.useEffect] Disconnecting from the room...`
+  //       console.log(logMsg, `color:${color.room};font-weight:bold;`)
+  //       room?.disconnect?.()
+  //     }
+  //   }
+  //   return () => {
+  //     room?.disconnect?.()
+  //   }
+  // }, [isRoomEnvironment, room])
 
   /**
    * Manages the visible/hidden state for the "Waiting for others to join" message
@@ -252,30 +287,16 @@ function makeRoom({
     }
   }
 
-  return (
-    <Provider
-      value={{
-        connect,
-        connecting,
-        setConnecting,
-        isRoomEnvironment,
-        room,
-        roomState,
-        localTracks,
-        fetchingLocalTracks,
-        getTracks,
-        getLocalVideoTrack,
-        getLocalAudioTrack,
-        removeLocalVideoTrack,
-        toggleVideo,
-        toggleCamera,
-        participants: { primary, secondary },
-      }}
-    >
-      {children}
-      <AttachVisibilityHandler />
-    </Provider>
-  )
+  const o = {
+    async connect(...args: Parameters<typeof _connect>) {
+      return _connect(...args)
+    },
+    get() {
+      return _room
+    },
+  }
+
+  return o
 }
 
-export default useMeetingRoomCtx
+export default makeRoom

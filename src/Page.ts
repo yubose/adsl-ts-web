@@ -6,11 +6,12 @@ import {
   Page as NOODLUiPage,
 } from 'noodl-ui'
 import modalComponents from './components/modalComponents'
-import { modalIds } from './constants'
+import { modalIds, CACHED_PAGES } from './constants'
 import { observeStore } from './utils/common'
 import { cadl, noodl } from './app/client'
 import {
   AppStore,
+  CachedPage,
   ModalId,
   OnBeforePageChange,
   PageSnapshot,
@@ -39,6 +40,7 @@ class Page {
   private _preparePage: (pageName: string, options?: any) => Promise<any>
   private _listeners: { [name: string]: Function } = {}
   public builtIn: PageOptions['builtIn']
+  public history: CachedPage[] = []
   public rootNode: HTMLElement | null = null
   public nodes: HTMLElement[] | null
   public modal: Modal
@@ -272,6 +274,43 @@ class Page {
       rootNode: this.rootNode,
       nodes: this.nodes,
     }
+  }
+
+  /** Adds the current page name to the end in the list of cached pages */
+  public cachePage(name: string) {
+    this.setCache({
+      name,
+    })
+    return this
+  }
+
+  /** Retrieves a list of cached pages */
+  public getCache(): CachedPage[] {
+    const pageHistory = window.localStorage.getItem(CACHED_PAGES)
+    if (pageHistory) {
+      try {
+        this.history = JSON.parse(pageHistory)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    return this.history || []
+  }
+
+  /** Sets the list of cached pages */
+  public setCache(cachedPage: CachedPage | CachedPage[]) {
+    const cachedPages = (_.isString(cachedPage)
+      ? [cachedPage]
+      : _.isArray(cachedPage)
+      ? cachedPage
+      : []) as CachedPage[]
+    if (cachedPages.length) {
+      const prevCache = this.getCache()
+      const nextCache = [...prevCache, ...cachedPages]
+      window.localStorage.setItem(CACHED_PAGES, JSON.stringify(nextCache))
+      this.history = nextCache
+    }
+    return this
   }
 
   public setBuiltIn(builtIn: any) {

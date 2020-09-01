@@ -20,3 +20,7 @@ export interface ModalState {
   context: null | { [key: string]: any }
   props: { [key: string]: any }
 }
+
+export interface CachedPage {
+  name?: string
+}

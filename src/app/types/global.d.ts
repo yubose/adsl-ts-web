@@ -25,6 +25,8 @@ declare global {
     // makeParticipants.ts
     addParticipant: (participant: RemoteParticipant) => void
     removeParticipant: (participant: RemoteParticipant) => void
+    participant: RemoteParticipant
+    lparticipant: LocalParticipant
     participants: {
       primary: null | RemoteParticipant
       secondary: RemoteParticipant[]

@@ -1,18 +1,20 @@
 import _ from 'lodash'
 import { RemoteParticipant, LocalParticipant, Room } from 'twilio-video'
 
-export type DominantSpeaker = LocalParticipant | RemoteParticipant | null
+export type DominantSpeaker = ReturnType<typeof makeDominantSpeaker>
+
+export type DominantSpeakerType = LocalParticipant | RemoteParticipant | null
 
 function makeDominantSpeaker({ room }: { room: Room }) {
-  let _dominantSpeaker: DominantSpeaker = null
+  let _dominantSpeaker: DominantSpeakerType = null
   let _consumerOnChange:
     | ((
-        prevDominantSpeaker: DominantSpeaker,
-        nextDominantSpeaker: DominantSpeaker,
+        prevDominantSpeaker: DominantSpeakerType,
+        nextDominantSpeaker: DominantSpeakerType,
       ) => void)
     | undefined
 
-  function _set(dominantSpeaker: DominantSpeaker) {
+  function _set(dominantSpeaker: DominantSpeakerType) {
     const prevDominantSpeaker = _dominantSpeaker
     _dominantSpeaker = dominantSpeaker
     _consumerOnChange?.(prevDominantSpeaker, _dominantSpeaker)
@@ -20,9 +22,9 @@ function makeDominantSpeaker({ room }: { room: Room }) {
 
   /**
    * Sets the new dominant speaker
-   * @param { DominantSpeaker } dominantSpeaker
+   * @param { DominantSpeakerType } dominantSpeaker
    */
-  function _onChange(dominantSpeaker: DominantSpeaker) {
+  function _onChange(dominantSpeaker: DominantSpeakerType) {
     console.log(
       `%c[makeDominantSpeaker.ts][onChange]`,
       `color:#3498db;font-weight:bold;`,
@@ -47,7 +49,7 @@ function makeDominantSpeaker({ room }: { room: Room }) {
     get() {
       return _dominantSpeaker
     },
-    set(dominantSpeaker: DominantSpeaker) {
+    set(dominantSpeaker: DominantSpeakerType) {
       _set(dominantSpeaker)
       return this
     },
