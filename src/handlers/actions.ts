@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import {
   ActionChainActionCallback,
   NOODLActionChainActionType,
@@ -27,7 +28,17 @@ const makeActions = function ({
   > = {}
 
   _actions.evalObject = async (action: EvalObjectAction, options) => {
-    //
+    if (_.isFunction(action?.object)) {
+      await action.object()
+    } else {
+      const logMsg =
+        `%c[actions.ts][evalObject] ` +
+        `Expected to receive the "object" as a function but it was "${typeof action.object}" instead`
+      console.log(logMsg, `color:#3498db;font-weight:bold;`, {
+        action,
+        ...options,
+      })
+    }
   }
 
   _actions.goto = async (action: GotoAction, options) => {
@@ -43,7 +54,7 @@ const makeActions = function ({
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        if (action.startsWith('http')) {
+        if (action.destination.startsWith('http')) {
           await page.navigate(action.destination)
         } else {
           store.dispatch(setPage(action.destination))
