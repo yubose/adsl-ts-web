@@ -17,6 +17,7 @@ import {
 import { cadl } from 'app/client'
 import { AppStore } from 'app/types/storeTypes'
 import Page from 'Page'
+import { reduceEntries } from 'utils/common'
 import { setPage } from 'features/page'
 
 const makeActions = function ({

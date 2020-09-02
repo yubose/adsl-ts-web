@@ -31,8 +31,7 @@ import {
   PageSnapshot,
 } from './app/types'
 import { cadl, noodl } from './app/client'
-import { serializeError } from './utils/common'
-import { observeStore } from './utils/common'
+import { observeStore, reduceEntries, serializeError } from './utils/common'
 import { setPage, setRequestStatus } from './features/page'
 import { modalIds, CACHED_PAGES } from './constants'
 import createStore from './app/store'
@@ -44,6 +43,22 @@ import Meeting from './Meeting'
 import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
+
+function enhanceActions(actions: ReturnType<typeof createActions>) {
+  return reduceEntries(
+    actions,
+    (acc, { key, value: fn }, index) => {
+      acc[key] = (...args: any[]) => {
+        const logMsg = `%c[actions.ts][reduceEntries]`
+        console.log(logMsg, `color:#95a5a6;font-weight:bold;`, args)
+        // @ts-expect-error
+        return fn(...args)
+      }
+      return acc
+    },
+    {},
+  )
+}
 
 /**
  * A factory func that returns a func that prepares the next page on the SDK
@@ -85,7 +100,7 @@ window.addEventListener('load', async function hello() {
   const meeting = new Meeting({ page, store, viewport })
   const app = new App({ store, viewport })
   const builtIn = createBuiltInActions({ page, store })
-  const actions = createActions({ page, store })
+  const actions = enhanceActions(createActions({ page, store }))
 
   let { startPage } = await app.initialize()
 
@@ -125,6 +140,10 @@ window.addEventListener('load', async function hello() {
         // Initialize the noodl-ui client (parses components) if it
         // isn't already initialized
         if (!noodl.initialized) {
+          const logMsg =
+            `%c[src/index.ts][Page listener -- onBeforePageRender] ` +
+            `Initializing noodl-ui client`
+          console.log(logMsg, `color:#00b406;font-weight:bold;`, noodl)
           noodl
             .init({ viewport })
             .setAssetsUrl(cadl.assetsUrl || '')
@@ -221,31 +240,31 @@ window.addEventListener('load', async function hello() {
    * Respnsible for triggering the page.navigate from state changes
    * Dispatch setPage to navigate
    */
-  // observeStore(
-  //   store,
-  //   createSelector(
-  //     (state) => state.page.previousPage,
-  //     (state) => state.page.currentPage,
-  //     (previousPage, currentPage) => ({ previousPage, currentPage }),
-  //   ),
-  //   async ({ previousPage, currentPage }) => {
-  //     const logMsg =
-  //       `%c[src/index.ts][observeStore -- previousPage/currentPage] ` +
-  //       'Received an update to previousPage/currentPage'
-  //     console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
-  //       previousPage,
-  //       nextPage: currentPage,
-  //     })
-  //     if (currentPage) {
-  //       const { snapshot } = (await page.navigate(currentPage)) || {}
-  //       if (snapshot?.name === 'VideoChat') {
-  //         // TODO: connect to meeting
-  //       } else {
-  //         //
-  //       }
-  //     }
-  //   },
-  // )
+  observeStore(
+    store,
+    createSelector(
+      (state) => state.page.previousPage,
+      (state) => state.page.currentPage,
+      (previousPage, currentPage) => ({ previousPage, currentPage }),
+    ),
+    async ({ previousPage, currentPage }) => {
+      const logMsg =
+        `%c[src/index.ts][observeStore -- previousPage/currentPage] ` +
+        'Received an update to previousPage/currentPage'
+      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
+        previousPage,
+        nextPage: currentPage,
+      })
+      if (currentPage) {
+        const { snapshot } = (await page.navigate(currentPage)) || {}
+        if (snapshot?.name === 'VideoChat') {
+          // TODO: connect to meeting
+        } else {
+          //
+        }
+      }
+    },
+  )
 
   /** Responsible for managing the modal component */
   observeStore(
@@ -277,7 +296,13 @@ window.addEventListener('load', async function hello() {
   // Register the onresize listener once, if it isn't already registered
   if (viewport.onResize === undefined) {
     viewport.onResize = (newSizes) => {
-      noodl.setViewport(newSizes)
+      // TODO: Find out why noodl is undefined here
+      const logMsg = `%c[src/index.ts][viewport.onResize] noodl-ui client`
+      console.log(logMsg, `color:#FF5722;font-weight:bold;`, {
+        noodl,
+        viewport,
+      })
+      noodl?.setViewport?.(newSizes)
       if (page.rootNode) {
         page.rootNode.style.width = `${newSizes.width}px`
         page.rootNode.style.height = `${newSizes.height}px`
