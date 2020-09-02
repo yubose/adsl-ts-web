@@ -87,6 +87,8 @@ window.addEventListener('load', async function hello() {
   const builtIn = createBuiltInActions({ page, store })
   const actions = createActions({ page, store })
 
+  window.meeting = meeting
+
   let { startPage } = await app.initialize()
 
   const preparePage = createPreparePage({
@@ -221,31 +223,31 @@ window.addEventListener('load', async function hello() {
    * Respnsible for triggering the page.navigate from state changes
    * Dispatch setPage to navigate
    */
-  observeStore(
-    store,
-    createSelector(
-      (state) => state.page.previousPage,
-      (state) => state.page.currentPage,
-      (previousPage, currentPage) => ({ previousPage, currentPage }),
-    ),
-    async ({ previousPage, currentPage }) => {
-      const logMsg =
-        `%c[src/index.ts][observeStore -- previousPage/currentPage] ` +
-        'Received an update to previousPage/currentPage'
-      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
-        previousPage,
-        nextPage: currentPage,
-      })
-      if (currentPage) {
-        const { snapshot } = (await page.navigate(currentPage)) || {}
-        if (snapshot?.name === 'VideoChat') {
-          // TODO: connect to meeting
-        } else {
-          //
-        }
-      }
-    },
-  )
+  // observeStore(
+  //   store,
+  //   createSelector(
+  //     (state) => state.page.previousPage,
+  //     (state) => state.page.currentPage,
+  //     (previousPage, currentPage) => ({ previousPage, currentPage }),
+  //   ),
+  //   async ({ previousPage, currentPage }) => {
+  //     const logMsg =
+  //       `%c[src/index.ts][observeStore -- previousPage/currentPage] ` +
+  //       'Received an update to previousPage/currentPage'
+  //     console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
+  //       previousPage,
+  //       nextPage: currentPage,
+  //     })
+  //     if (currentPage) {
+  //       const { snapshot } = (await page.navigate(currentPage)) || {}
+  //       if (snapshot?.name === 'VideoChat') {
+  //         // TODO: connect to meeting
+  //       } else {
+  //         //
+  //       }
+  //     }
+  //   },
+  // )
 
   /** Responsible for managing the modal component */
   observeStore(

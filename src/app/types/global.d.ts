@@ -8,6 +8,7 @@ import {
 } from 'twilio-video'
 import Modal from 'components/NOODLModal'
 import { App } from '../../app'
+import Meeting from '../../Meeting'
 
 declare global {
   interface Window {
@@ -17,6 +18,7 @@ declare global {
     noodl: CADL
     env: string | undefined
     getDataValues: any
+    meeting: Meeting
     modal: Modal
     noodlui: NOODL
     room: Room | null

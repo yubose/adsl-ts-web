@@ -12,6 +12,7 @@
     "moduleResolution": "node",
     "outDir": "build",
     "noEmit": true,
+    "noEmitOnError": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "resolveJsonModule": true,
@@ -19,7 +20,7 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "es5"
+    "target": "esnext"
   },
   "include": ["src"],
   "exclude": ["node_modules", "cypress"]
