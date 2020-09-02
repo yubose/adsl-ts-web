@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-import { Account } from '../../src/app/client'
+import { Account } from '@aitmed/cadl'
 // import SignIn from '../fixtures/SignIn.json'
 // import BaseCSS from '../fixtures/BaseCSS.json'
 // import BasePage from '../fixtures/BasePage.json'
@@ -18,8 +18,7 @@ const selector = {
 
 beforeEach(() => {
   window.localStorage.clear()
-  cy.stub(Account, 'requestVerificationCode').resolves('999999')
-  cy.visit(`/${pathname}`)
+  cy.visit(`/`)
 })
 
 context('Signing in', () => {

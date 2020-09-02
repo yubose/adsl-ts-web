@@ -1,13 +1,20 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "baseUrl": "../src",
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "noEmit": false,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "strict": true,
     "target": "es5",
-    "lib": ["es5", "es6", "dom"],
-    "types": ["cypress"],
-    "resolveJsonModule": true
+    "types": ["cypress"]
   },
-  "include": ["../node_modules/cypress", "**/*.ts", "**/*.d.ts"]
+  "include": ["**/*.ts", "**/*.d.ts", "support/commands.js"]
 }

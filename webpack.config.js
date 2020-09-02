@@ -45,6 +45,7 @@ module.exports = {
             options: {
               silent: true,
               transpileOnly: true,
+              allowTsInNodeModules: true,
             },
           },
         ],

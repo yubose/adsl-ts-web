@@ -1,5 +1,4 @@
 /// <reference types="cypress" />
-// @ts-nocheck
 // ***********************************************************
 // This example plugins/index.js can be used to load plugins
 //
@@ -9,13 +8,18 @@
 // You can read more here:
 // https://on.cypress.io/plugins-guide
 // ***********************************************************
-
+import webpack from '@cypress/webpack-preprocessor'
 // const puppeteer = require('puppeteer')
 // const participants = {}
 
 // This function is called when a project is opened or re-opened (e.g. due to
 // the project's config changing)
-module.exports = (on, config) => {
+module.exports = (on: any, config: any) => {
+  const webpackOptions = {
+    webpackOptions: require('../../webpack.config'),
+    watchOptions: {},
+  }
+  on('file:preprocessor', getWepPackWithFileChange(webpackOptions))
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
   // const participantFunctions = {
@@ -76,4 +80,12 @@ module.exports = (on, config) => {
   //   },
   // }
   // on('task', participantFunctions)
+}
+
+function getWepPackWithFileChange(options: any) {
+  const webPackPreProcessor = webpack(options)
+  return function (file: any) {
+    file.outputPath = file.outputPath.replace('.ts', '.js')
+    return webPackPreProcessor(file)
+  }
 }

@@ -1,3 +1,4 @@
+// TS setup: https://www.codeproject.com/Articles/5256695/How-to-Write-Fully-Type-Safe-E2E-Tests-with-Cypres
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -23,16 +24,16 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
-import { Account } from '../../src/app/client'
+import { Account } from '@aitmed/cadl'
 import '@testing-library/cypress/add-commands'
 
-Cypress.Commands.add('typeInLogin', (phoneNumber: string, password: string) => {
+Cypress.Commands.add('typeInLogin', (phoneNumber, password) => {
   cy.get('[data-key="formData.countryCode"]').select('+1')
   cy.get('[data-key="formData.phoneNumber"]').clear().type(phoneNumber)
   cy.get('[data-key="formData.password"]').clear().type(password)
 })
 
-Cypress.Commands.add('login', (phoneNumber: string, password: string) => {
+Cypress.Commands.add('login', (phoneNumber, password) => {
   return cy.typeInLogin(phoneNumber, password).then(() =>
     cy
       .findByText('Sign In')
