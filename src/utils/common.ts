@@ -65,6 +65,33 @@ export function forEachDeepEntries<Obj>(
 }
 
 /**
+ * Runs reduce on each key/value pair of the value, passing in the key and value as an
+ * object like { key, value } on each iteration as the second argument
+ * @param { object } value
+ * @param { function } callback - Callback to invoke on the key/value object. This function should be in the form of a reducer callback
+ * @param { any? } initialValue - An optional initial value to start the accumulator with
+ */
+export function reduceEntries<Obj>(
+  value: Obj,
+  callback: <K extends keyof Obj>(
+    acc: any,
+    { key, value }: { key: K; value: Obj[K] },
+    index: number,
+  ) => typeof acc,
+  initialValue?: any,
+) {
+  if (value && _.isObject(value)) {
+    return _.reduce(
+      _.entries(value),
+      (acc, [key, value], index) =>
+        callback(acc, { key: key as keyof Obj, value }, index),
+      initialValue,
+    )
+  }
+  return value
+}
+
+/**
  * Returns whether the web app is running on a mobile browser.
  * @return { boolean }
  */
