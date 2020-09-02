@@ -1,4 +1,5 @@
 import CADL, { Account } from '@aitmed/cadl'
+import { NOODL } from 'noodl-ui'
 import {
   Room,
   Participant,
@@ -17,7 +18,7 @@ declare global {
     env: string | undefined
     getDataValues: any
     modal: Modal
-    noodlui: App
+    noodlui: NOODL
     room: Room | null
     // noodl-ui
     // twilio-video

@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { createSelector } from '@reduxjs/toolkit'
 import { Account } from '@aitmed/cadl'
 import {
+  ActionChainActionCallback,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -17,11 +18,10 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   getDataValues,
-  Viewport,
-  ActionChainActionCallback,
   NOODLChainActionBuiltInObject,
   NOODLPageObject,
   NOODLComponentProps,
+  Viewport,
 } from 'noodl-ui'
 import {
   CachedPage,
@@ -31,17 +31,17 @@ import {
   PageSnapshot,
 } from './app/types'
 import { cadl, noodl } from './app/client'
+import { serializeError } from './utils/common'
+import { observeStore } from './utils/common'
+import { setPage, setRequestStatus } from './features/page'
+import { modalIds, CACHED_PAGES } from './constants'
 import createStore from './app/store'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
-import { serializeError } from './utils/common'
-import { setPage, setRequestStatus } from './features/page'
 import App from './App'
 import Page from './Page'
 import Meeting from './Meeting'
 import modalComponents from './components/modalComponents'
-import { modalIds, CACHED_PAGES } from './constants'
-import { observeStore } from './utils/common'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
 
@@ -71,6 +71,7 @@ window.addEventListener('load', async function hello() {
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
   window.noodl = cadl
+  window.noodlui = noodl
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
   const profile = await Account.login('+1 8882465555', '142251', vcode || '')

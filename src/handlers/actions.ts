@@ -1,18 +1,17 @@
 import {
   ActionChainActionCallback,
-  NOODLChainActionEvalObject,
-  NOODLChainActionGotoObject,
-  NOODLChainActionGotoURL,
-  NOODLChainActionPageJumpObject,
-  NOODLChainActionPopupBaseObject,
-  NOODLChainActionPopupDismissObject,
-  NOODLChainActionRefreshObject,
-  NOODLChainActionSaveObjectObject,
-  NOODLChainActionUpdateObject,
   NOODLActionChainActionType,
+  EvalObjectAction,
+  Goto as GotoAction,
+  PageJumpAction,
+  PopUpAction,
+  PopUpDismissAction,
+  RefreshAction,
+  UpdateObjectAction,
 } from 'noodl-ui'
 import { AppStore } from 'app/types/storeTypes'
 import Page from 'Page'
+import { setPage } from 'features/page'
 
 const makeActions = function ({
   store,
@@ -27,20 +26,28 @@ const makeActions = function ({
     ActionChainActionCallback<any>
   > = {}
 
-  _actions.evalObject = async (action, options) => {
+  _actions.evalObject = async (action: EvalObjectAction, options) => {
     //
   }
 
-  _actions.goto = async (action: NOODLGotoAction, options) => {
+  _actions.goto = async (action: GotoAction, options) => {
     // URL
     if (_.isString(action)) {
-      await page.navigate(action)
+      if (action.startsWith('http')) {
+        await page.navigate(action)
+      } else {
+        store.dispatch(setPage(action))
+      }
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        await page.navigate(action.destination)
+        if (action.startsWith('http')) {
+          await page.navigate(action.destination)
+        } else {
+          store.dispatch(setPage(action.destination))
+        }
       } else {
         const logMsg =
           '[ACTION][goto] ' +
@@ -53,29 +60,32 @@ const makeActions = function ({
     }
   }
 
-  _actions.pageJump = async (action, options) => {
-    console.log(action)
-
-    await page.navigate(action.destination)
+  _actions.pageJump = async (action: PageJumpAction, options) => {
+    const logMsg = `%c[actions.ts][pageJump]`
+    console.log(logMsg, `color:#3498db;font-weight:bold;`, {
+      action,
+      ...options,
+    })
+    store.dispatch(setPage(action.destination))
   }
 
-  _actions.popUp = (action, options) => {
+  _actions.popUp = (action: PopUpAction, options) => {
     //
   }
 
-  _actions.popUpDismiss = (action, options) => {
+  _actions.popUpDismiss = (action: PopUpDismissAction, options) => {
     //
   }
 
-  _actions.refresh = (action, options) => {
+  _actions.refresh = (action: RefreshAction, options) => {
     //
   }
 
-  _actions.saveObject = (action, options) => {
+  _actions.saveObject = (action: SaveObjectAction, options) => {
     //
   }
 
-  _actions.updateObject = (action, options) => {
+  _actions.updateObject = (action: UpdateObjectAction, options) => {
     //
   }
 
