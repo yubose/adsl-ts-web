@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import {
   ActionChainActionCallback,
+  ActionChainActionCallbackOptions,
+  getByDataUX,
   isReference,
   NOODLActionChainActionType,
   EvalObjectAction,
@@ -10,7 +12,6 @@ import {
   PopUpDismissAction,
   RefreshAction,
   UpdateObjectAction,
-  getByDataUX,
   SaveObjectAction,
 } from 'noodl-ui'
 import { cadl } from 'app/client'
@@ -215,8 +216,69 @@ const makeActions = function ({
     }
   }
 
-  _actions.updateObject = (action: UpdateObjectAction, options) => {
-    //
+  _actions.updateObject = async (action: UpdateObjectAction, options) => {
+    async function callObject(
+      object: any,
+      options: ActionChainActionCallbackOptions & {
+        action: UpdateObjectAction
+      },
+    ) {
+      if (_.isFunction(object)) {
+        await object()
+      } else if (_.isString(object)) {
+        const logMsg =
+          `%c[action.ts][updateObject] ` +
+          `Received a string as an object property of updateObject. ` +
+          `Possibly parsed incorrectly?`
+        console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+          object,
+          options,
+        })
+      } else if (_.isArray(object)) {
+        for (let index = 0; index < object.length; index++) {
+          const obj = object[index]
+          if (_.isFunction(obj)) {
+            // Handle promises/functions separately because they need to be
+            // awaited in this line for control flow
+            await obj()
+          } else {
+            await callObject(obj, options)
+          }
+        }
+      } else if (_.isObjectLike(object)) {
+        const { dataKey, dataObject } = object
+        if (dataObject) {
+          console.log(dataObject)
+          cadl.updateObject({ dataKey, dataObject })
+        } else {
+          const logMsg =
+            `%c[action.ts][updateObject] ` + `dataObject is null or undefined`
+          console.log(logMsg, `color:#ec0000;font-weight:bold;`)
+        }
+      }
+    }
+
+    try {
+      const callObjectOptions = { action, ...options }
+      const logMsg = `%c[action.ts][updateObject] callObjectOptions`
+      console.log(logMsg, `color:#3498db;font-weight:bold;`, callObjectOptions)
+      // This is the more older version of the updateObject action object where it used
+      // the "object" property
+      if ('object' in action.original) {
+        await callObject(action.original.object, callObjectOptions)
+      }
+      // This is the more newer version that is more descriptive, utilizing the data key
+      // action = { actionType: 'updateObject', dataKey, dataObject }
+      else {
+        if (action.original?.dataKey || action.original?.dataObject) {
+          const object = _.omit(action.original, 'actionType')
+          await callObject(object, callObjectOptions)
+        }
+      }
+    } catch (error) {
+      console.error(error)
+      window.alert(error.message)
+    }
   }
 
   return _actions
