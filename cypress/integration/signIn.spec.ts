@@ -42,7 +42,7 @@ context('Signing in', () => {
     cy.findByText('Phone number is required')
   })
 
-  it('should prevent the submission with an error if the phone number is invalid', () => {
+  it.skip('should prevent the submission with an error if the phone number is invalid', () => {
     cy.get(selector.phoneNumber).clear().type('5555555555')
     cy.get(selector.password).clear().type('1425555')
     cy.get(selector.countryCode).select('+1')
@@ -50,7 +50,7 @@ context('Signing in', () => {
     cy.findByText(/Phone number is invalid/i)
   })
 
-  it('should prevent the submission with an error if the password is empty', () => {
+  it.skip('should prevent the submission with an error if the password is empty', () => {
     cy.get(selector.phoneNumber).clear().type('6262443444')
     cy.get(selector.password).clear()
     cy.get(selector.countryCode).select('+1')
@@ -58,7 +58,7 @@ context('Signing in', () => {
     cy.findByText(/password is required/i)
   })
 
-  it('should prevent the submission with an error if the password is too short', () => {
+  it.skip('should prevent the submission with an error if the password is too short', () => {
     cy.get(selector.phoneNumber).clear().type('6262443444')
     cy.get(selector.password).clear().type('14225')
     cy.get(selector.countryCode).select('+1')
@@ -66,7 +66,7 @@ context('Signing in', () => {
     cy.findByText(/password must be a minimum of/i)
   })
 
-  it('should prevent the submission with an error if the verification code is incorrect', () => {
+  it.skip('should prevent the submission with an error if the verification code is incorrect', () => {
     cy.get(selector.phoneNumber).clear().type('6262443444')
     cy.get(selector.password).clear().type('1422511')
     cy.get(selector.countryCode).select('+1')
@@ -78,7 +78,7 @@ context('Signing in', () => {
     cy.contains(/verification code error/i)
   })
 
-  it("should show the 'password is incorrect' alert if the phone number / password combination is incorrect", () => {
+  it.skip("should show the 'password is incorrect' alert if the phone number / password combination is incorrect", () => {
     cy.typeInLogin('6262443444', '142251')
     cy.contains('Sign In').click()
     cy.contains(/password is invalid/i)
@@ -87,19 +87,19 @@ context('Signing in', () => {
     //   .then(() => cy.contains(/password is invalid/i))
   })
 
-  it('should prevent the submission with an error if the country code isnt selected', () => {
+  it.skip('should prevent the submission with an error if the country code isnt selected', () => {
     cy.typeInLogin('6262443444', '142251')
     cy.findByText('Sign In').click()
     cy.findByText(/country code is required/i)
   })
 
-  it('should be able submit the form when all the fields are correctly filled out', () => {
+  it.skip('should be able submit the form when all the fields are correctly filled out', () => {
     cy.typeInLogin('6262443444', '142251')
     cy.findByText('Sign In').click()
     cy.contains(/Enter the 6-digit verification code/i)
   })
 
-  it('should show the verification code popup after pressing submit with correct field values', () => {
+  it.skip('should show the verification code popup after pressing submit with correct field values', () => {
     cy.typeInLogin('6262443444', '142251')
     cy.findByText('Sign In').click()
     cy.findByText(
@@ -107,7 +107,7 @@ context('Signing in', () => {
     )
   })
 
-  it('should prevent the verification code popup from submitting if the field is empty', () => {
+  it.skip('should prevent the verification code popup from submitting if the field is empty', () => {
     cy.typeInLogin('6262443444', '142251')
     cy.contains('Sign In').click()
     cy.get(selector.verificationCode).clear()
@@ -115,7 +115,7 @@ context('Signing in', () => {
     cy.contains(/please enter your/i)
   })
 
-  it('should prevent the verification code popup from submitting with an error if the # of characters is less than 6', () => {
+  it.skip('should prevent the verification code popup from submitting with an error if the # of characters is less than 6', () => {
     cy.typeInLogin('6262443444', '142251')
     cy.contains('Sign In').click()
     cy.get(selector.verificationCode).type('14555')
@@ -123,7 +123,7 @@ context('Signing in', () => {
     cy.contains(/too short/i)
   })
 
-  it('should close the verification code popup when the cancel button is clicked', () => {
+  it.skip('should close the verification code popup when the cancel button is clicked', () => {
     cy.typeInLogin('6262443444', '142251')
     cy.contains('Sign In').click()
     cy.get(selector.verificationCode).type('145554')
@@ -131,7 +131,7 @@ context('Signing in', () => {
     cy.get(selector.verificationCode).should('not.exist')
   })
 
-  it('should redirect them to create a new account if they provided a phone number that does not exist', () => {
+  it.skip('should redirect them to create a new account if they provided a phone number that does not exist', () => {
     return cy.login('6262463492', '5988882').then(() => {
       return cy.location().should((location) => {
         return expect(/CreateNewAccount/i.test(location.pathname)).to.be.true
@@ -139,7 +139,7 @@ context('Signing in', () => {
     })
   })
 
-  it('should redirect them to the dashboard if they entered in a valid registered phone number, country code and password', () => {
+  it.skip('should redirect them to the dashboard if they entered in a valid registered phone number, country code and password', () => {
     return cy.login('6262443444', '142251').then(() => {
       return cy.location().should((location) => {
         return expect(/MeetingRoomInvited/i.test(location.pathname)).to.be.true
@@ -147,7 +147,7 @@ context('Signing in', () => {
     })
   })
 
-  it('should redirect to the sign up page if the "Sign Up" button is clicked', () => {
+  it.skip('should redirect to the sign up page if the "Sign Up" button is clicked', () => {
     cy.findByText('Sign Up').click()
     return cy
       .location()

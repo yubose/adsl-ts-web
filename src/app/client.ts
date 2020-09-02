@@ -8,6 +8,4 @@ export const cadl = new CADL({
   }`,
 })
 
-console.log(NOODL)
-
 export const noodl = new NOODL()

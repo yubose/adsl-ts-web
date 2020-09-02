@@ -17,23 +17,54 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   getDataValues,
-  Page as NOODLUiPage,
   Viewport,
+  ActionChainActionCallback,
+  NOODLChainActionBuiltInObject,
+  NOODLPageObject,
+  NOODLComponentProps,
 } from 'noodl-ui'
-import { CachedPage, ModalId } from './app/types'
+import {
+  CachedPage,
+  ModalId,
+  OnBeforePageRenderArgs,
+  OnRootNodeInitializedArgs,
+  PageSnapshot,
+} from './app/types'
 import { cadl, noodl } from './app/client'
 import createStore from './app/store'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
+import { serializeError } from './utils/common'
+import { setPage, setRequestStatus } from './features/page'
 import App from './App'
 import Page from './Page'
 import Meeting from './Meeting'
 import modalComponents from './components/modalComponents'
 import { modalIds, CACHED_PAGES } from './constants'
-import { observeStore, openOutboundURL } from './utils/common'
-import * as action from './handlers/actions'
+import { observeStore } from './utils/common'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
+
+/**
+ * A factory func that returns a func that prepares the next page on the SDK
+ * @param { object } options - Options to feed into the SDK's initPage func
+ */
+function createPreparePage(options: {
+  builtIn: {
+    goto: ActionChainActionCallback<NOODLChainActionBuiltInObject>
+    videoChat: (
+      action: NOODLChainActionBuiltInObject & {
+        roomId: string
+        accessToken: string
+      },
+    ) => Promise<void>
+  }
+}) {
+  return async (pageName: string): Promise<NOODLPageObject> => {
+    await cadl.initPage(pageName, [], options)
+    return cadl?.root?.[pageName]
+  }
+}
 
 window.addEventListener('load', async function hello() {
   window.account = Account
@@ -57,88 +88,137 @@ window.addEventListener('load', async function hello() {
 
   let { startPage } = await app.initialize()
 
-  page.setBuiltIn({
-    goto: builtIn.goto,
-    videoChat: onVideoChatBuiltIn(meeting.joinRoom),
+  const preparePage = createPreparePage({
+    builtIn: {
+      goto: builtIn.goto,
+      videoChat: onVideoChatBuiltIn(meeting.joinRoom),
+    },
   })
 
-  page.registerListener('onBeforePageChange', () => {
-    if (!noodl.initialized) {
-      noodl
-        .init({ viewport })
-        .setAssetsUrl(cadl.assetsUrl || '')
-        .setViewport({
-          width: window.innerWidth,
-          height: window.innerHeight,
-        })
-        .setResolvers(
-          getElementType,
-          getTransformedAliases,
-          getReferences,
-          getAlignAttrs,
-          getBorderAttrs,
-          getColors,
-          getFontAttrs,
-          getPosition,
-          getSizes,
-          getStylesByElementType,
-          getTransformedStyleAliases,
-          getChildren as any,
-          getCustomDataAttrs,
-          getEventHandlers,
-        )
-        .addLifecycleListener({
-          action: actions,
-          builtIn: {
-            checkUsernamePassword: builtIn.checkUsernamePassword,
-            enterVerificationCode: builtIn.checkVerificationCode,
-            goBack: builtIn.goBack,
-            lockApplication: builtIn.lockApplication,
-            logOutOfApplication: builtIn.logOutOfApplication,
-            logout: builtIn.logout,
-            signIn: builtIn.signIn,
-            signUp: builtIn.signUp,
-            signout: builtIn.signout,
-            toggleCameraOnOff: builtIn.toggleCameraOnOff,
-            toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-          },
-          onChainStart: lifeCycle.onChainStart,
-          onChainEnd: lifeCycle.onChainEnd,
-          onChainError: lifeCycle.onChainError,
-          onChainAborted: lifeCycle.onChainAborted,
-          onAfterResolve: lifeCycle.onAfterResolve,
-        } as any)
-    }
+  page.registerListener('onStart', (pageName) => {
+    store.dispatch(setRequestStatus({ pageName, pending: true }))
   })
 
   page.registerListener(
-    'onBeforePageRender',
-    async (noodlUiPage: NOODLUiPage) => {
-      // Cache to rehydrate if they disconnect
-      cachePage({ name: noodlUiPage.name })
-      const previousPage = store.getState().page.previousPage
+    'onRootNodeInitialized',
+    (rootNode: OnRootNodeInitializedArgs) => {
       const logMsg =
-        `%c[App.tsx][onBeforePageRender] ` +
-        `${previousPage} --> ${noodlUiPage.name}`
-      console.log(logMsg, `color:green;font-weight:bold;`, {
-        previousPage,
-        nextPage: noodlUiPage,
-      })
-      // Refresh the roots
-      noodl
-        // TODO: Leave root/page auto binded to the lib
-        .setRoot(cadl.root)
-        .setPage(noodlUiPage)
-      // NOTE: not being used atm
-      if (page.rootNode && page.rootNode.id !== noodlUiPage.name) {
-        page.rootNode.id = noodlUiPage.name
+        `%c[src/index.ts][Page listener -- onRootNodeInitialized] ` +
+        `Root node initialized`
+      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, rootNode)
+    },
+  )
+
+  page.registerListener(
+    'onBeforePageRender',
+    async ({ pageName }: OnBeforePageRenderArgs) => {
+      const pageState = store.getState().page
+      if (pageName === pageState.currentPage) {
+        // Load the page in the SDK
+        const pageObject = await preparePage(pageName)
+        // This will be passed into the page renderer
+        const pageSnapshot: PageSnapshot = {
+          name: pageName,
+          object: pageObject,
+        }
+        // Initialize the noodl-ui client (parses components) if it
+        // isn't already initialized
+        if (!noodl.initialized) {
+          noodl
+            .init({ viewport })
+            .setAssetsUrl(cadl.assetsUrl || '')
+            .setViewport({
+              width: window.innerWidth,
+              height: window.innerHeight,
+            })
+            .setResolvers(
+              getElementType,
+              getTransformedAliases,
+              getReferences,
+              getAlignAttrs,
+              getBorderAttrs,
+              getColors,
+              getFontAttrs,
+              getPosition,
+              getSizes,
+              getStylesByElementType,
+              getTransformedStyleAliases,
+              getChildren as any,
+              getCustomDataAttrs,
+              getEventHandlers,
+            )
+            .addLifecycleListener({
+              action: actions,
+              builtIn: {
+                checkUsernamePassword: builtIn.checkUsernamePassword,
+                enterVerificationCode: builtIn.checkVerificationCode,
+                goBack: builtIn.goBack,
+                lockApplication: builtIn.lockApplication,
+                logOutOfApplication: builtIn.logOutOfApplication,
+                logout: builtIn.logout,
+                signIn: builtIn.signIn,
+                signUp: builtIn.signUp,
+                signout: builtIn.signout,
+                toggleCameraOnOff: builtIn.toggleCameraOnOff,
+                toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
+              },
+              onChainStart: lifeCycle.onChainStart,
+              onChainEnd: lifeCycle.onChainEnd,
+              onChainError: lifeCycle.onChainError,
+              onChainAborted: lifeCycle.onChainAborted,
+              onAfterResolve: lifeCycle.onAfterResolve,
+            } as any)
+        }
+        // Cache to rehydrate if they disconnect
+        cachePage({ name: pageName })
+        const previousPage = store.getState().page.previousPage
+        const logMsg =
+          `%c[index.ts][onBeforePageRender] ` +
+          `${previousPage} --> ${pageName}`
+        console.log(logMsg, `color:green;font-weight:bold;`, {
+          previousPage,
+          nextPage: pageSnapshot,
+        })
+        // Refresh the roots
+        noodl
+          // TODO: Leave root/page auto binded to the lib
+          .setRoot(cadl.root)
+          .setPage(pageSnapshot)
+        // NOTE: not being used atm
+        if (page.rootNode && page.rootNode.id !== pageName) {
+          page.rootNode.id = pageName
+        }
+        return pageSnapshot
+      } else {
+        const logMsg =
+          `%c[src/index.ts][onBeforePageRender] ` +
+          `Avoided a duplicate navigate request`
+        console.log(logMsg, `color:#ec0000;font-weight:bold;`)
       }
     },
   )
 
+  page.registerListener(
+    'onPageRendered',
+    ({ pageName }: { pageName: string; components: NOODLComponentProps }) => {
+      store.dispatch(setRequestStatus({ pageName, success: true }))
+    },
+  )
+
+  page.registerListener(
+    'onError',
+    ({ error, pageName }: { error: Error; pageName: string }) => {
+      console.error(error)
+      window.alert(error.message)
+      store.dispatch(
+        setRequestStatus({ pageName, error: serializeError(error) }),
+      )
+    },
+  )
+
   /**
-   * Respnsible for keeping the UI in sync with changes to page routes.
-   * Dispatch setCurrentPage to navigate
+   * Respnsible for triggering the page.navigate from state changes
+   * Dispatch setPage to navigate
    */
   observeStore(
     store,
@@ -156,7 +236,12 @@ window.addEventListener('load', async function hello() {
         nextPage: currentPage,
       })
       if (currentPage) {
-        await page.navigate(currentPage)
+        const { snapshot } = (await page.navigate(currentPage)) || {}
+        if (snapshot?.name === 'VideoChat') {
+          // TODO: connect to meeting
+        } else {
+          //
+        }
       }
     },
   )
@@ -215,17 +300,11 @@ window.addEventListener('load', async function hello() {
         pageState: store.getState().page,
       })
     } else {
-      startPage = previousPage
+      // startPage = previousPage
     }
   }
 
-  const { snapshot } = (await page.navigate(startPage)) || {}
-
-  if (snapshot?.name === 'VideoChat') {
-    // TODO: connect to meeting
-  } else {
-    //
-  }
+  store.dispatch(setPage(startPage))
 })
 
 /** Adds the current page name to the end in the list of cached pages */

@@ -6,11 +6,21 @@ import {
 } from 'noodl-ui'
 import { openOutboundURL } from './utils/common'
 import { cadl, noodl } from './app/client'
-import { AppStore, OnBeforePageChange, PageSnapshot } from './app/types'
+import {
+  AppStore,
+  OnRootNodeInitializedArgs,
+  OnBeforePageRenderArgs,
+  PageSnapshot,
+} from './app/types'
 import { toDOMNode } from './utils/parser'
 import Modal from './components/NOODLModal'
 
-export type PageListenerName = 'onBeforePageChange' | 'onBeforePageRender'
+export type PageListenerName =
+  | 'onStart'
+  | 'onRootNodeInitialized'
+  | 'onBeforePageRender'
+  | 'onPageRendered'
+  | 'onError'
 
 export interface PageOptions {
   rootNode?: HTMLElement | null
@@ -28,7 +38,6 @@ export interface PageOptions {
  */
 class Page {
   private _initializeRootNode: () => void
-  private _preparePage: (pageName: string, options?: any) => Promise<any>
   private _listeners: { [name: string]: Function } = {}
   public builtIn: PageOptions['builtIn']
   public rootNode: HTMLElement | null = null
@@ -50,69 +59,84 @@ class Page {
       this.rootNode = root
       document.body.appendChild(root)
     }
-
-    this._preparePage = async (pageName: string, options = {}) => {
-      await cadl?.initPage(pageName, [], {
-        builtIn: this.builtIn,
-        ...options,
-      })
-    }
   }
 
+  /**
+   * Navigates to the next page using pageName. It first prepares the rootNode
+   * and begins parsing the NOODL components before rendering them to the rootNode.
+   * Returns a snapshot of the page name, object, and its parsed/rendered components
+   * @param { string } pageName
+   */
   public async navigate(
     pageName: string,
-    options?: any,
   ): Promise<{ snapshot: PageSnapshot } | void> {
-    // Check if it is an HTTP link instead of a NOODL endpoint
+    // TODO: onTimedOut
+    try {
+      const logMsg = `%c[Page.ts][navigate] Rendering the DOM for page: "${pageName}"`
+      console.log(logMsg, `color:#95a5a6;font-weight:bold;`)
+      // Check if it is an HTTP link instead of a NOODL endpoint
 
-    // Outside link
-    if (_.isString(pageName) && pageName.startsWith('http')) {
-      return openOutboundURL(pageName)
-    }
-
-    if (!this.rootNode) {
-      this._initializeRootNode()
-    }
-
-    await this._callListener('onBeforePageChange', {
-      pageName,
-      rootNode: this.rootNode,
-    } as OnBeforePageChange)
-
-    let pageSnapshot: NOODLUiPage | undefined
-    let components: NOODLComponentProps[] = []
-
-    if (!pageName) {
-      const logMsg = `%c[Page.ts][navigate] Cannot navigate because pageName is invalid`
-      const logStyle = `color:#ec0000;font-weight:bold;`
-      console.log(logMsg, logStyle, { pageName, rootNode: this.rootNode })
-      window.alert(`The value of page "${pageName}" is not valid`)
-    } else {
-      // Load the page in the SDK
-      await this._preparePage(pageName, {
-        ...options,
-        builtIn: {
-          ...this.builtIn,
-          ...options?.builtIn,
-        },
-      })
-
-      pageSnapshot = {
-        name: pageName,
-        object: cadl.root?.[pageName],
+      // Outside link
+      if (_.isString(pageName) && pageName.startsWith('http')) {
+        return openOutboundURL(pageName)
       }
 
-      await this._callListener('onBeforePageRender', pageSnapshot)
+      await this._callListener('onStart', pageName)
 
-      const rendered = this.render(cadl?.root?.[pageName]?.components)
-
-      if (_.isArray(rendered.components)) {
-        components = rendered.components
+      if (!this.rootNode) {
+        this._initializeRootNode()
+        if (this.rootNode) {
+          await this._callListener(
+            'onRootNodeInitialized',
+            this.rootNode as OnRootNodeInitializedArgs,
+          )
+        }
       }
-    }
 
-    return {
-      snapshot: _.assign({ components: components }, pageSnapshot),
+      let pageSnapshot: NOODLUiPage | undefined
+      let components: NOODLComponentProps[] = []
+
+      if (!pageName) {
+        const logMsg = `%c[Page.ts][navigate] Cannot navigate because pageName is invalid`
+        const logStyle = `color:#ec0000;font-weight:bold;`
+        console.log(logMsg, logStyle, { pageName, rootNode: this.rootNode })
+        window.alert(`The value of page "${pageName}" is not valid`)
+      } else {
+        // The caller is expected to provide their own page object
+        pageSnapshot = await this._callListener('onBeforePageRender', {
+          pageName,
+          rootNode: this.rootNode,
+        } as OnBeforePageRenderArgs)
+
+        const rendered = this.render(
+          pageSnapshot?.object?.components as NOODLComponent[],
+        )
+
+        await this._callListener('onPageRendered', {
+          pageName,
+          components: rendered.components,
+        })
+
+        if (_.isArray(rendered.components)) {
+          components = rendered.components
+        } else {
+          const logMsg = `%c[Page.ts][navigate] The page ${pageName} was not parsed correctly. Expected to receive components as an array`
+          console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+            pageSnapshot,
+            expectedRender: rendered,
+          })
+        }
+      }
+
+      return {
+        snapshot: _.assign({ components: components }, pageSnapshot),
+      }
+    } catch (error) {
+      if (this.hasListener('onError')) {
+        await this._callListener('onError', { error, pageName })
+      } else {
+        throw new Error(error)
+      }
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "video": false,
-  "defaultCommandTimeout": 10000,
+  "defaultCommandTimeout": 5000,
   "baseUrl": "http://127.0.0.1:3000",
   "testFiles": "**/*.spec.ts",
   "pluginsFile": "cypress/plugins/index.ts",

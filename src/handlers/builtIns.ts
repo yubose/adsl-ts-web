@@ -13,7 +13,7 @@ import validate, { getFormErrors } from 'utils/validate'
 import { formatPhoneNumber } from 'utils/phone'
 import VerificationCode from 'components/modalComponents/VerificationCode'
 import { openOutboundURL } from 'utils/common'
-import { openModal, closeModal, setCurrentPage } from 'features/page'
+import { openModal, closeModal, setPage } from 'features/page'
 import {
   setAuthStatus,
   setIsCreatingAccount,
@@ -85,7 +85,7 @@ const makeBuiltInActions = function ({
     const { page } = store.getState()
     const { previousPage } = page
     if (previousPage) {
-      store.dispatch(setCurrentPage(previousPage))
+      store.dispatch(setPage(previousPage))
     } else {
       const logMsg =
         '%c[builtIns.ts][builtIn -- goBack] ' +
@@ -96,15 +96,28 @@ const makeBuiltInActions = function ({
   }
 
   builtInActions.goto = async (action: NOODLGotoAction, options) => {
+    const logMsg = `%c[builtIns.ts][goto]`
+    console.log(logMsg, `color:#3498db;font-weight:bold;`, {
+      action,
+      ...options,
+    })
     // URL
     if (_.isString(action)) {
-      await page.navigate(action)
+      if (action.startsWith('http')) {
+        await page.navigate(action)
+      } else {
+        store.dispatch(setPage(action))
+      }
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        await page.navigate(action.destination)
+        if (action.startsWith('http')) {
+          await page.navigate(action.destination)
+        } else {
+          store.dispatch(setPage(action.destination))
+        }
       } else {
         const logMsg =
           '[ACTION][builtIn -- goto] ' +
@@ -144,7 +157,7 @@ const makeBuiltInActions = function ({
       switch (state.auth.status) {
         case 'logged.in': {
           cadl?.root?.actions?.['SignIn']?.update()
-          store.dispatch(setCurrentPage(page.getDashboardPath()))
+          store.dispatch(setPage(page.getDashboardPath()))
           return
         }
         case 'logged.out': {
@@ -351,7 +364,7 @@ const makeBuiltInActions = function ({
         openOutboundURL(url)
       } else {
         // Default to redirecting to the (assumed) local page path/endpoint
-        store.dispatch(setCurrentPage(url.replace('/', '')))
+        store.dispatch(setPage(url.replace('/', '')))
       }
     }
   }
