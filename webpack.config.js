@@ -37,7 +37,11 @@ module.exports = {
             loader: 'babel-loader',
             options: {
               presets: ['@babel/preset-env'],
-              plugins: ['lodash', '@babel/plugin-transform-runtime'],
+              plugins: [
+                'lodash',
+                '@babel/plugin-transform-runtime',
+                '@babel/plugin-proposal-class-properties',
+              ],
             },
           },
           {

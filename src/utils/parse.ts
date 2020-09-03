@@ -62,6 +62,15 @@ export function parseEventHandlers(node: DOMNode, props: NOODLComponentProps) {
     if (eventTypes.includes(key as typeof eventTypes[number])) {
       const eventName = _.find(eventTypes, (k) => k === key)
       const lowercasedEventName = eventName?.toLowerCase()
+      console.info(node)
+      console.info(node)
+      console.info(node)
+      console.info(node)
+      console.info(node)
+      console.info(node)
+      console.info(node)
+      console.info(node)
+      console.info(node)
       if (lowercasedEventName) {
         node.addEventListener(
           lowercasedEventName.startsWith('on')

@@ -1,0 +1,5 @@
+node_modules
+dist
+public
+s3Deploy.sh
+package-lock.json
