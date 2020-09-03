@@ -12,7 +12,7 @@ import {
   OnBeforePageRenderArgs,
   PageSnapshot,
 } from './app/types'
-import { toDOMNode } from './utils/parser'
+import { toDOMNode } from './utils/parse'
 import Modal from './components/NOODLModal'
 
 export type PageListenerName =

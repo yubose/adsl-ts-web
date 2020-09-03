@@ -1,7 +1,11 @@
 import { Status } from '@aitmed/ecos-lvl2-sdk'
+import createElement from '../../utils/createElement'
+import { Parser } from '../../utils/composeParsers'
 import * as constants from '../../constants'
 export * from './storeTypes'
 export * from './Page'
+
+export type { Parser }
 
 export type AccountStatus = Omit<Status, 'code' | 'config'> & {
   code: null | number
@@ -46,3 +50,10 @@ export interface RequestState<E = Error> {
   error: null | E
   timedOut: boolean
 }
+
+export type DOMNode = ReturnType<typeof createElement>
+
+export type DataValueElement =
+  | HTMLInputElement
+  | HTMLSelectElement
+  | HTMLTextAreaElement
