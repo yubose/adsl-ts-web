@@ -81,7 +81,7 @@ function createPreparePage(options: {
   }
 }
 
-window.addEventListener('load', async function hello() {
+window.addEventListener('load', async () => {
   window.account = Account
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues

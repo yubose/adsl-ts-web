@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Styles } from 'app/types'
-import { forEachEntries } from 'utils/common'
+import { forEachEntries } from './common'
 
 export function getDocumentScrollTop() {
   // IE8 used `document.documentElement`

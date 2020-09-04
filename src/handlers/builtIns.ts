@@ -36,6 +36,7 @@ export type BuiltInFuncName =
   | 'signout'
   | 'toggleCameraOnOff'
   | 'toggleMicrophoneOnOff'
+  | 'UploadPhoto'
 
 const makeBuiltInActions = function ({
   store,
@@ -355,6 +356,46 @@ const makeBuiltInActions = function ({
 
   builtInActions.toggleMicrophoneOnOff = async () => {
     //
+  }
+
+  builtInActions.UploadPhoto = async function (
+    action: NOODLChainActionBuiltInObject,
+    { event },
+  ) {
+    console.log(
+      `%c[useBuiltInActions.tsx][builtIn -- UploadPhoto]`,
+      `color:#95a5a6;font-weight:bold;`,
+      { action, event },
+    )
+    const input = document.createElement('input')
+    input.type = 'file'
+    // TODO: string files
+    // @ts-expect-error
+    input.onchange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log(e?.target?.files)
+      const file = e.target?.files?.[0]
+      if (file) {
+        const dataValues = getDataValues()
+        const title = dataValues?.title
+        const filename = file.name
+        const filesize = file.size
+        const filetype = file.type
+
+        const params = {
+          title: filename,
+          content: file,
+        }
+
+        const doc = await cadl.root?.builtIn?.uploadDocument(params)
+        console.log(
+          `%c[builtIns.ts][builtIn -- UploadDocument] ` +
+            `Uploaded document named "${filename}" of type "${filetype}"`,
+          `color:#00b406;font-weight:bold;`,
+          doc,
+        )
+      }
+    }
+    input.click()
   }
 
   async function _goToURI(url: string) {

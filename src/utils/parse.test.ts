@@ -6,49 +6,47 @@ import {
   NOODLComponentProps,
   SelectOption,
 } from 'noodl-ui'
+import { noodl } from 'app/client'
 import { forEachEntries } from './common'
 import createElement from './createElement'
 import composeParsers from './composeParsers'
-import parse from './parse'
+import parse, { parseChildren } from './parse'
 
-describe('composeParsers', () => {
-  let noodlComponent: NOODLComponent
+describe.skip('composeParsers', () => {
+  let components: NOODLComponentProps[]
+  let component: NOODLComponentProps
 
   beforeEach(() => {
-    noodlComponent = {
-      type: 'image',
-      viewTag: 'microphone',
-      onClick: [
+    components = noodl.resolveComponents({
+      module: 'patient',
+      components: [
         {
-          actionType: 'builtIn',
-          funcName: 'toggleMicrophoneOnOff',
-        },
+          type: 'button',
+          text: 'hello',
+          onClick: [
+            {
+              actionType: 'builtIn',
+              funcName: 'toggleMicrophoneOnOff',
+            },
+          ],
+          style: {
+            left: '0.22',
+            top: '0.0185',
+            width: '0.12',
+            height: '0.07',
+          },
+        } as NOODLComponent,
       ],
-      path: 'disableMicrophone.png',
-      pathSelected: 'aitmedLogo_selected.png',
-      style: {
-        left: '0.22',
-        top: '0.0185',
-        width: '0.12',
-        height: '0.07',
-      },
-    }
+    })
+    console.info(components)
+    component = components[0]
   })
 
   describe('parseChildren', () => {
     it('should append to innerHTML if children is a string', () => {
-      _.assign(noodlComponent, {
-        type: 'button',
-        text: 'hello',
-      })
-      const node = document.createElement('div')
-      // const node = parse(noodlComponent)
-      console.info(node?.innerHTML)
-      console.info(node?.innerHTML)
-      console.info(node?.innerHTML)
-      console.info(node?.innerHTML)
-      console.info(node?.innerHTML)
-      expect(node?.innerHTML)
+      // const _parse = composeParsers(parseChildren)
+      // const node = _parse(component)
+      // expect(node?.innerHTML).to.eq('hello')
     })
   })
 })

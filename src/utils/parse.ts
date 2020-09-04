@@ -31,7 +31,7 @@ export function parseChildren(node: DOMNode, props: NOODLComponentProps) {
     }
   }
   // Attaching children for the select elem
-  else if (props.options) {
+  if (props.options) {
     const { options, type } = props
     if (type === 'select') {
       if (_.isArray(options)) {

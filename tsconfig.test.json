@@ -6,8 +6,8 @@
   "compilerOptions": {
     "baseUrl": "src",
     "module": "commonjs",
-    "target": "es2019"
+    "target": "es2018"
   },
-  "exclude": ["node_modules", "__dev__"],
+  "exclude": ["node_modules/**", "__dev__"],
   "include": ["src/**/*.test.ts"]
 }

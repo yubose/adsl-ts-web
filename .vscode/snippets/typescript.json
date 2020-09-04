@@ -67,6 +67,14 @@
     "prefix": "test",
     "body": "import { expect } from 'chai'"
   },
+  "queryByDataKey": {
+    "prefix": "qdatakey",
+    "body": "import { queryByDataKey } from 'utils/test-utils'"
+  },
+  "queryByDataUx": {
+    "prefix": "qdataux",
+    "body": "import { queryByDataUx } from 'utils/test-utils'"
+  },
   "sinon": {
     "prefix": "sinon",
     "body": "import sinon from 'sinon'"
