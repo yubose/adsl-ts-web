@@ -3,6 +3,7 @@ import {
   eventTypes,
   isReference,
   NOODLComponentProps,
+  NOODLActionTriggerType,
   SelectOption,
 } from 'noodl-ui'
 import { DataValueElement, DOMNode } from 'app/types'
@@ -19,7 +20,8 @@ const keysHandling = [
 ] as const
 
 /**
- * Handles innerHTML / select values, and other values for the node to display their content
+ * Handles innerHTML and other display content that is not managed by some "onchange"
+ * event, or in other words displays static content once they have been parsed
  * @param { DOMNode } node
  * @param { NOODLComponentProps } props
  */
@@ -28,6 +30,73 @@ export function parseChildren(node: DOMNode, props: NOODLComponentProps) {
     const { children } = props
     if (_.isString(children) || _.isNumber(children)) {
       node.innerHTML += `${children}`
+    }
+  }
+}
+
+/**
+ * Attaches event handlers like "onclick" and "onchange"
+ * @param { DOMNode } node
+ * @param { NOODLComponentProps } props
+ */
+export function parseEventHandlers(node: DOMNode, props: NOODLComponentProps) {
+  forEachEntries(props, (key, value) => {
+    if (eventTypes.includes(key as NOODLActionTriggerType)) {
+      const isEqual = (k: NOODLActionTriggerType) => k === key
+      const eventName = _.find(eventTypes, isEqual)
+      const lowercasedEventName = eventName?.toLowerCase?.() || ''
+      if (lowercasedEventName) {
+        // Attach the event handler
+        node.addEventListener(
+          lowercasedEventName.startsWith('on')
+            ? lowercasedEventName.replace('on', '')
+            : lowercasedEventName,
+          value,
+        )
+      }
+    }
+    if (key === 'data-value') {
+      // const onChange = (e: Event) => {
+      //   const target: typeof e.target & {
+      //     value?: any
+      //   } | null = e.target
+      // }
+      // node.addEventListener('onchange', onChange)
+    }
+  })
+}
+
+/**
+ * Applies styles using the "style" object
+ * @param { HTMLElement } node - HTML element
+ * @param { NOODLComponentProps } props
+ */
+export function parseStyles(node: DOMNode, props: NOODLComponentProps) {
+  if (_.isPlainObject(props.style)) {
+    forEachEntries(props.style, (k, v) => {
+      node.style[k as any] = v
+    })
+  } else {
+    console.log(
+      `%c[parse.ts][parseStyles] ` +
+        `Expected a style object but received ${typeof props.style} instead`,
+      `color:#ec0000;font-weight:bold;`,
+      props.style,
+    )
+  }
+}
+
+/**
+ * Applies data values for dom nodes that display data. Most likely elements
+ * that expose an "onchange" event such as an input element
+ * @param { HTMLElement } node - HTML element
+ * @param { NOODLComponentProps } props
+ */
+export function parseDataValues(node: DOMNode, props: NOODLComponentProps) {
+  if (props['data-value'] != undefined) {
+    if (['input', 'select', 'textarea'].includes(props.type)) {
+      const elem = node as DataValueElement
+      elem.value = props['data-value']
     }
   }
   // Attaching children for the select elem
@@ -49,65 +118,6 @@ export function parseChildren(node: DOMNode, props: NOODLComponentProps) {
       } else {
         // log
       }
-    }
-  }
-}
-
-/**
- * @param { DOMNode } node
- * @param { NOODLComponentProps } props
- */
-export function parseEventHandlers(node: DOMNode, props: NOODLComponentProps) {
-  forEachEntries(props, (key, value) => {
-    if (eventTypes.includes(key as typeof eventTypes[number])) {
-      const eventName = _.find(eventTypes, (k) => k === key)
-      const lowercasedEventName = eventName?.toLowerCase()
-      console.info(node)
-      console.info(node)
-      console.info(node)
-      console.info(node)
-      console.info(node)
-      console.info(node)
-      console.info(node)
-      console.info(node)
-      console.info(node)
-      if (lowercasedEventName) {
-        node.addEventListener(
-          lowercasedEventName.startsWith('on')
-            ? lowercasedEventName.replace('on', '')
-            : lowercasedEventName,
-          value,
-        )
-      } else {
-        // log
-      }
-    }
-    if (key === 'data-value') {
-      // const onChange = (e: Event) => {
-      //   const target: typeof e.target & {
-      //     value?: any
-      //   } | null = e.target
-      // }
-      // node.addEventListener('onchange', onChange)
-    }
-  })
-}
-
-export function parseStyles(node: DOMNode, props: NOODLComponentProps) {
-  if (_.isPlainObject(props.style)) {
-    forEachEntries(props.style, (k, v) => {
-      node.style[k as any] = v
-    })
-  } else {
-    // log
-  }
-}
-
-export function parseDataValues(node: DOMNode, props: NOODLComponentProps) {
-  if (props['data-value'] != undefined) {
-    if (['input', 'select', 'textarea'].includes(props.type)) {
-      const elem = node as DataValueElement
-      elem.value = props['data-value']
     }
   }
 }
