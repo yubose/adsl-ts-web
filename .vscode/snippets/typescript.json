@@ -11,6 +11,14 @@
     "prefix": "account",
     "body": "import { Account } from '@aitmed/cadl'"
   },
+  "import { cadl } (unit test)": {
+    "prefix": "tcadl",
+    "body": "import { cadl } from 'setupTests'"
+  },
+  "import { noodl } (unit test)": {
+    "prefix": "tnoodl",
+    "body": "import { noodl } from 'setupTests'"
+  },
   "import { cadl }": {
     "prefix": "cadl",
     "body": "import { cadl } from 'app/client'"
@@ -66,6 +74,14 @@
   "test": {
     "prefix": "test",
     "body": "import { expect } from 'chai'"
+  },
+  "prettyDOM": {
+    "prefix": "pdom",
+    "body": "import { prettyDOM } from '@testing-library/dom'"
+  },
+  "userEvent": {
+    "prefix": "userevent",
+    "body": "import userEvent from '@testing-library/user-event'"
   },
   "queryByDataKey": {
     "prefix": "qdatakey",

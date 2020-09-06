@@ -22,6 +22,7 @@ import {
   NOODLPageObject,
   NOODLComponentProps,
   Viewport,
+  NOODLComponent,
 } from 'noodl-ui'
 import {
   CachedPage,
@@ -39,7 +40,7 @@ import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import App from './App'
 import Page from './Page'
-import Meeting from './meeting'
+import Meeting from './Meeting'
 import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
@@ -142,13 +143,15 @@ window.addEventListener('load', async () => {
         // Initialize the noodl-ui client (parses components) if it
         // isn't already initialized
         if (!noodl.initialized) {
-          const logMsg =
+          let logMsg =
             `%c[src/index.ts][Page listener -- onBeforePageRender] ` +
             `Initializing noodl-ui client`
           console.log(logMsg, `color:#00b406;font-weight:bold;`, noodl)
           noodl
             .init({ viewport })
             .setAssetsUrl(cadl.assetsUrl || '')
+            .setPage(pageSnapshot)
+            .setRoot(cadl.root)
             .setViewport({
               width: window.innerWidth,
               height: window.innerHeight,
@@ -190,6 +193,11 @@ window.addEventListener('load', async () => {
               onChainAborted: lifeCycle.onChainAborted,
               onAfterResolve: lifeCycle.onAfterResolve,
             } as any)
+
+          logMsg =
+            `%c[src/index.ts][Page listener -- onBeforePageRender] ` +
+            `Initialized`
+          console.log(logMsg, `color:#00b406;font-weight:bold;`, noodl)
         }
         // Cache to rehydrate if they disconnect
         cachePage({ name: pageName })
@@ -197,7 +205,7 @@ window.addEventListener('load', async () => {
         const logMsg =
           `%c[index.ts][onBeforePageRender] ` +
           `${previousPage} --> ${pageName}`
-        console.log(logMsg, `color:green;font-weight:bold;`, {
+        console.log(logMsg, `color:#00b406;font-weight:bold;`, {
           previousPage,
           nextPage: pageSnapshot,
         })
@@ -210,6 +218,7 @@ window.addEventListener('load', async () => {
         if (page.rootNode && page.rootNode.id !== pageName) {
           page.rootNode.id = pageName
         }
+        window.components = pageSnapshot.object?.components as NOODLComponent[]
         return pageSnapshot
       } else {
         const logMsg =
@@ -222,8 +231,15 @@ window.addEventListener('load', async () => {
 
   page.registerListener(
     'onPageRendered',
-    ({ pageName }: { pageName: string; components: NOODLComponentProps }) => {
+    ({
+      pageName,
+      components,
+    }: {
+      pageName: string
+      components: NOODLComponentProps[]
+    }) => {
       store.dispatch(setRequestStatus({ pageName, success: true }))
+      window.pcomponents = components
     },
   )
 
@@ -242,31 +258,31 @@ window.addEventListener('load', async () => {
    * Respnsible for triggering the page.navigate from state changes
    * Dispatch setPage to navigate
    */
-  // observeStore(
-  //   store,
-  //   createSelector(
-  //     (state) => state.page.previousPage,
-  //     (state) => state.page.currentPage,
-  //     (previousPage, currentPage) => ({ previousPage, currentPage }),
-  //   ),
-  //   async ({ previousPage, currentPage }) => {
-  //     const logMsg =
-  //       `%c[src/index.ts][observeStore -- previousPage/currentPage] ` +
-  //       'Received an update to previousPage/currentPage'
-  //     console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
-  //       previousPage,
-  //       nextPage: currentPage,
-  //     })
-  //     if (currentPage) {
-  //       const { snapshot } = (await page.navigate(currentPage)) || {}
-  //       if (snapshot?.name === 'VideoChat') {
-  //         // TODO: connect to meeting
-  //       } else {
-  //         //
-  //       }
-  //     }
-  //   },
-  // )
+  observeStore(
+    store,
+    createSelector(
+      (state) => state.page.previousPage,
+      (state) => state.page.currentPage,
+      (previousPage, currentPage) => ({ previousPage, currentPage }),
+    ),
+    async ({ previousPage, currentPage }) => {
+      const logMsg =
+        `%c[src/index.ts][observeStore -- previousPage/currentPage] ` +
+        'Received an update to previousPage/currentPage'
+      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
+        previousPage,
+        nextPage: currentPage,
+      })
+      if (currentPage) {
+        const { snapshot } = (await page.navigate(currentPage)) || {}
+        if (snapshot?.name === 'VideoChat') {
+          // TODO: connect to meeting
+        } else {
+          //
+        }
+      }
+    },
+  )
 
   /** Responsible for managing the modal component */
   observeStore(

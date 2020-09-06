@@ -209,14 +209,10 @@ class Page {
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
    */
   public render(rawComponents: NOODLComponent[]) {
-    // @ts-expect-error
-    window.components = rawComponents
     let components
 
     if (_.isArray(rawComponents)) {
       components = noodl.resolveComponents()
-      // @ts-expect-error
-      window.resolvedComponents = components
 
       let node
 
@@ -225,6 +221,8 @@ class Page {
         this.rootNode.innerHTML = ''
         _.forEach(components, (component) => {
           node = toDOMNode(component)
+          console.log(node)
+
           if (node) {
             this.rootNode?.appendChild(node)
           }

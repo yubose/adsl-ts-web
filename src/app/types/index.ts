@@ -51,7 +51,9 @@ export interface RequestState<E = Error> {
   timedOut: boolean
 }
 
-export type DOMNode = ReturnType<typeof createElement>
+export type DOMNode = ReturnType<typeof createElement> & {
+  isValidAttribute(key: string): boolean
+}
 
 export type DataValueElement =
   | HTMLInputElement

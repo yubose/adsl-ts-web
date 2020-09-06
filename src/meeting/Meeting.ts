@@ -32,25 +32,25 @@ export interface MakeMeetingOptions {
 }
 
 class Meeting {
-  #isRoomEnvironment: boolean = false
-  #store: AppStore
-  #page: Page
-  #viewport: Viewport
-  #room: AppRoom
-  #dominantSpeaker: AppDominantSpeaker
-  #localTracks: AppLocalTracks
-  #participants: AppParticipants
+  private _isRoomEnvironment: boolean = false
+  private _store: AppStore
+  private _page: Page
+  private _viewport: Viewport
+  private _room: AppRoom
+  private _dominantSpeaker: AppDominantSpeaker
+  private _localTracks: AppLocalTracks
+  private _participants: AppParticipants
   room: Room
 
   constructor({ store, page, viewport }: MakeMeetingOptions) {
-    this.#store = store
-    this.#page = page
-    this.#viewport = viewport
-    this.#room = makeRoom({ page, viewport })
-    this.room = this.#room.get('room') as Room
-    this.#localTracks = makeLocalTracks({ room: this.room, viewport })
-    this.#participants = makeParticipants({ room: this.room })
-    this.#dominantSpeaker = makeDominantSpeaker({ room: this.room })
+    this._store = store
+    this._page = page
+    this._viewport = viewport
+    this._room = makeRoom({ page, viewport })
+    this.room = this._room.get('room') as Room
+    this._localTracks = makeLocalTracks({ room: this.room, viewport })
+    this._participants = makeParticipants({ room: this.room })
+    this._dominantSpeaker = makeDominantSpeaker({ room: this.room })
   }
 
   /**
@@ -58,7 +58,7 @@ class Meeting {
    * @param { string } token - Room token
    */
   async joinRoom(token: string) {
-    const room = await this.#room.connect(token)
+    const room = await this._room.connect(token)
     forEachParticipant(room.participants, this.handleTrackPublish)
   }
   /**
@@ -100,7 +100,7 @@ class Meeting {
           track.attach(selfStreamElem)
         } else {
           const logMsg = `%c[Meeting.ts][attachTrack] Tried to attach a ${track.kind} track to the selfStream but could not find DOM node`
-          console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+          console.log(logMsg, `color:_ec0000;font-weight:bold;`, {
             track,
             participant,
           })
@@ -118,7 +118,7 @@ class Meeting {
           track.detach(selfStreamElem)
         } else {
           const logMsg = `%c[Meeting.ts][detachTrack] Tried to detach a ${track.kind} track to the selfStream but could not find DOM node`
-          console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+          console.log(logMsg, `color:_ec0000;font-weight:bold;`, {
             track,
             participant,
           })
