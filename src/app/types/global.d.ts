@@ -1,5 +1,5 @@
 import CADL, { Account } from '@aitmed/cadl'
-import { NOODL } from 'noodl-ui'
+import { NOODL, NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import {
   Room,
   Participant,
@@ -18,6 +18,8 @@ declare global {
     noodl: CADL
     env: string | undefined
     getDataValues: any
+    components: NOODLComponent[]
+    pcomponents: NOODLComponentProps[]
     meeting: Meeting
     modal: Modal
     noodlui: NOODL

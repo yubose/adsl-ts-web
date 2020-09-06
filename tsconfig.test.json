@@ -2,12 +2,12 @@
   "ts-node": {
     "transpileOnly": true
   },
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "baseUrl": "src",
     "module": "commonjs",
     "target": "es2018"
   },
+  "extends": "./tsconfig.json",
   "exclude": ["node_modules/**", "__dev__"],
   "include": ["src/**/*.test.ts"]
 }
