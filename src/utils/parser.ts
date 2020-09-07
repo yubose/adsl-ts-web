@@ -38,7 +38,7 @@ export function parseAssets(node: DOMNode, props: NOODLComponentProps) {
 export function parseChildren(
   node: DOMNode,
   props: NOODLComponentProps,
-  { parse },
+  { parse }: { parse: (props: NOODLComponentProps) => DOMNode },
 ) {
   if (props.children) {
     const { children } = props
@@ -48,12 +48,11 @@ export function parseChildren(
     if (props['data-list-data']) {
       if (_.isArray(children)) {
         // items that we will create
-        const blueprint = { ...props.blueprint }
+        const blueprint = props.blueprint || {}
         const listId = props['data-list-id']
         const listData = props['data-list-data']
-        _.forEach(listData, (listItem) => {
-          blueprint.itemObject = listItem
-          const childNode = parse(blueprint)
+        _.forEach(children, (child) => {
+          const childNode = parse(child)
           if (childNode) {
             node.appendChild(childNode)
           }
@@ -167,6 +166,9 @@ export function parseDataValues(node: DOMNode, props: NOODLComponentProps) {
           console.log(logMsg, `color:#ec0000;font-weight:bold;`, props)
         }
       }
+    } else {
+      // Defaulting to normal display components like labels for now
+      node.innerHTML = props['data-value']
     }
   }
 }

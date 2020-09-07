@@ -59,5 +59,9 @@ export type DataValueElement =
   | HTMLTextAreaElement
 
 export interface Parser {
-  (node: DOMNode, props: NOODLComponentProps): void
+  (
+    node: DOMNode,
+    props: NOODLComponentProps,
+    { parse }: { parse: (props: NOODLComponentProps) => DOMNode | undefined },
+  ): void
 }

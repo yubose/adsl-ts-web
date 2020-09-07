@@ -71,8 +71,15 @@ class NOODLDOMParser {
   parse(props: NOODLComponentProps) {
     let node: DOMNode | undefined
 
-    if (props.type) {
-      node = createElement(props.type)
+    if (props) {
+      if (props.type) {
+        node = createElement(props.type)
+      }
+    } else {
+      const logMsg =
+        `%c[NOODLDOMParser.ts][parse] ` +
+        `Could not create a DOM node because the props given was null or undefined`
+      console.log(logMsg, `color:#ec0000;font-weight:bold;`, props)
     }
 
     if (node) {
@@ -110,7 +117,7 @@ class NOODLDOMParser {
 
   getUtils() {
     return {
-      parse: this.parse,
+      parse: this.parse.bind(this),
     }
   }
 }
