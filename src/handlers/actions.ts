@@ -1,23 +1,16 @@
 import _ from 'lodash'
 import {
+  Action,
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
   getByDataUX,
   isReference,
   NOODLActionChainActionType,
-  EvalObjectAction,
-  Goto as GotoAction,
-  PageJumpAction,
-  PopUpAction,
-  PopUpDismissAction,
-  RefreshAction,
-  UpdateObjectAction,
-  SaveObjectAction,
+  NOODLChainActionEvalObject,
 } from 'noodl-ui'
 import { cadl } from 'app/client'
 import { AppStore } from 'app/types/storeTypes'
 import Page from 'Page'
-import { reduceEntries } from 'utils/common'
 import { setPage } from 'features/page'
 
 const makeActions = function ({
@@ -33,13 +26,16 @@ const makeActions = function ({
     ActionChainActionCallback<any>
   > = {}
 
-  _actions.evalObject = async (action: EvalObjectAction, options) => {
-    if (_.isFunction(action?.object)) {
-      await action.object()
+  _actions.evalObject = async (
+    action: Action<NOODLChainActionEvalObject>,
+    options,
+  ) => {
+    if (_.isFunction(action?.original?.object)) {
+      action.original?.object()
     } else {
       const logMsg =
         `%c[actions.ts][evalObject] ` +
-        `Expected to receive the "object" as a function but it was "${typeof action.object}" instead`
+        `Expected to receive the "object" as a function but it was "${typeof action?.original}" instead`
       console.log(logMsg, `color:#3498db;font-weight:bold;`, {
         action,
         ...options,
@@ -47,7 +43,7 @@ const makeActions = function ({
     }
   }
 
-  _actions.goto = async (action: GotoAction, options) => {
+  _actions.goto = async (action: any, options) => {
     // URL
     if (_.isString(action)) {
       if (action.startsWith('http')) {
@@ -77,7 +73,7 @@ const makeActions = function ({
     }
   }
 
-  _actions.pageJump = async (action: PageJumpAction, options) => {
+  _actions.pageJump = async (action: any, options) => {
     const logMsg = `%c[actions.ts][pageJump]`
     console.log(logMsg, `color:#3498db;font-weight:bold;`, {
       action,
@@ -86,7 +82,7 @@ const makeActions = function ({
     store.dispatch(setPage(action.destination))
   }
 
-  _actions.popUp = (action: PopUpAction, options) => {
+  _actions.popUp = (action: any, options) => {
     const elem = getByDataUX(action.popUpView) as HTMLElement
     if (elem) {
       if (action.actionType === 'popUp') {
@@ -105,11 +101,11 @@ const makeActions = function ({
     }
   }
 
-  _actions.popUpDismiss = async (action: PopUpDismissAction, options) => {
+  _actions.popUpDismiss = async (action: any, options) => {
     return _actions.popUp(action, options)
   }
 
-  _actions.refresh = (action: RefreshAction, options) => {
+  _actions.refresh = (action: any, options) => {
     const logMsg = `%c[action.ts][refresh] ${action.actionType}`
     console.log(logMsg, `color:#3498db;font-weight:bold;`, {
       action,
@@ -118,7 +114,7 @@ const makeActions = function ({
     window.location.reload()
   }
 
-  _actions.saveObject = async (action: SaveObjectAction, options) => {
+  _actions.saveObject = async (action: any, options) => {
     const { context, dataValues, parser } = options
 
     try {
@@ -217,11 +213,11 @@ const makeActions = function ({
     }
   }
 
-  _actions.updateObject = async (action: UpdateObjectAction, options) => {
+  _actions.updateObject = async (action: any, options) => {
     async function callObject(
       object: any,
       options: ActionChainActionCallbackOptions & {
-        action: UpdateObjectAction
+        action: any
       },
     ) {
       if (_.isFunction(object)) {
