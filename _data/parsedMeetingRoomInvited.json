@@ -4,7 +4,7 @@
     "style": {
       "left": "0px",
       "top": "0px",
-      "width": "384px",
+      "width": "456px",
       "height": "844px",
       "position": "absolute",
       "outline": "none"
@@ -15,7 +15,7 @@
         "style": {
           "left": "0px",
           "top": "0px",
-          "width": "384px",
+          "width": "456px",
           "height": "168.8px",
           "backgroundColor": "#388eccff",
           "position": "absolute",
@@ -27,8 +27,8 @@
             "style": {
               "color": "#ffffffff",
               "top": "0px",
-              "left": "30.72px",
-              "width": "268.79999999999995px",
+              "left": "36.480000000000004px",
+              "width": "319.2px",
               "height": "126.6px",
               "fontSize": "21px",
               "fontWeight": 400,
@@ -38,30 +38,30 @@
               "display": "flex",
               "alignItems": "center"
             },
-            "id": "_ycxqxfr30-_aef8lmkfj[0]-_dt4ug7rrg[0]",
+            "id": "_rwnkwj4ha-_s58pqyfuq[0]-_57r9vu8n6[0]",
             "children": "Block Meet Rooms"
           },
           {
             "type": "img",
             "style": {
-              "left": "318.71999999999997px",
+              "left": "378.47999999999996px",
               "top": "50.64px",
               "height": "25.32px",
               "position": "absolute",
               "outline": "none"
             },
-            "id": "_ycxqxfr30-_aef8lmkfj[0]-_l2pjdiqz5[1]",
+            "id": "_rwnkwj4ha-_s58pqyfuq[0]-_9mjf2u152[1]",
             "src": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/sideNav2.png"
           }
         ],
-        "id": "_ycxqxfr30-_aef8lmkfj[0]"
+        "id": "_rwnkwj4ha-_s58pqyfuq[0]"
       },
       {
         "type": "div",
         "style": {
           "left": "0px",
           "top": "126.6px",
-          "width": "384px",
+          "width": "456px",
           "height": "42.2px",
           "position": "absolute",
           "outline": "none"
@@ -75,7 +75,7 @@
               "fontSize": "18px",
               "left": "0px",
               "top": "0px",
-              "width": "126.72px",
+              "width": "150.48000000000002px",
               "height": "42.2px",
               "display": "inline",
               "textAlign": "center",
@@ -85,7 +85,7 @@
               "borderStyle": "none",
               "borderRadius": "0px"
             },
-            "id": "_ycxqxfr30-_hbj4557tg[1]-_uv906r76y[0]",
+            "id": "_rwnkwj4ha-_r92sp1et7[1]-_ubrplyjx2[0]",
             "children": "Invited"
           },
           {
@@ -94,9 +94,9 @@
               "color": "#9bc6e5ff",
               "backgroundColor": "#388eccff",
               "fontSize": "18px",
-              "left": "130.56px",
+              "left": "155.04000000000002px",
               "top": "0px",
-              "width": "126.72px",
+              "width": "150.48000000000002px",
               "height": "42.2px",
               "display": "inline",
               "textAlign": "center",
@@ -106,7 +106,7 @@
               "borderStyle": "none",
               "borderRadius": "0px"
             },
-            "id": "_ycxqxfr30-_hbj4557tg[1]-_z5fqlfhpx[1]",
+            "id": "_rwnkwj4ha-_r92sp1et7[1]-_qoyjcma83[1]",
             "children": "Create"
           },
           {
@@ -115,9 +115,9 @@
               "color": "#9bc6e5ff",
               "backgroundColor": "#388eccff",
               "fontSize": "18px",
-              "left": "257.28000000000003px",
+              "left": "305.52000000000004px",
               "top": "0px",
-              "width": "126.72px",
+              "width": "150.48000000000002px",
               "height": "42.2px",
               "display": "inline",
               "textAlign": "center",
@@ -127,18 +127,18 @@
               "borderStyle": "none",
               "borderRadius": "0px"
             },
-            "id": "_ycxqxfr30-_hbj4557tg[1]-_37mluvq01[2]",
+            "id": "_rwnkwj4ha-_r92sp1et7[1]-_0aoshj7o5[2]",
             "children": "History"
           }
         ],
-        "id": "_ycxqxfr30-_hbj4557tg[1]"
+        "id": "_rwnkwj4ha-_r92sp1et7[1]"
       },
       {
         "type": "ul",
         "style": {
           "left": "0px",
           "top": "160.36px",
-          "width": "384px",
+          "width": "456px",
           "height": "422px",
           "position": "absolute",
           "outline": "none"
@@ -149,7 +149,7 @@
             "style": {
               "left": "0px",
               "top": "0px",
-              "width": "384px",
+              "width": "456px",
               "height": "126.6px",
               "borderWidth": "1px",
               "borderColor": "#00000011",
@@ -165,9 +165,9 @@
               {
                 "type": "label",
                 "style": {
-                  "left": "30.72px",
+                  "left": "36.480000000000004px",
                   "top": "25.32px",
-                  "width": "57.599999999999994px",
+                  "width": "68.39999999999999px",
                   "height": "67.52px",
                   "fontSize": "32px",
                   "color": "#ffffffff",
@@ -179,7 +179,7 @@
                   "alignItems": "center",
                   "fontWeight": "bold"
                 },
-                "id": "_ycxqxfr30-_kl81yrih7[2]-_r2g9xholg[0]-itemObject.name.hostName[0]",
+                "id": "_rwnkwj4ha-_ewn6jc9q3[2]-_ok6o739pk[0]-itemObject.name.hostName[0]",
                 "data-name": "hostName",
                 "data-key": "itemObject.name.hostName",
                 "data-value": "Invited Room 1"
@@ -187,9 +187,9 @@
               {
                 "type": "label",
                 "style": {
-                  "left": "115.19999999999999px",
+                  "left": "136.79999999999998px",
                   "top": "50.64px",
-                  "width": "284.15999999999997px",
+                  "width": "337.44px",
                   "height": "25.32px",
                   "fontWeight": 400,
                   "fontSize": "16px",
@@ -197,7 +197,7 @@
                   "position": "absolute",
                   "outline": "none"
                 },
-                "id": "_ycxqxfr30-_kl81yrih7[2]-_r2g9xholg[0]-itemObject.name.roomName[1]",
+                "id": "_rwnkwj4ha-_ewn6jc9q3[2]-_ok6o739pk[0]-itemObject.name.roomName[1]",
                 "data-name": "roomName",
                 "data-key": "itemObject.name.roomName",
                 "data-value": "Test Room 1"
@@ -205,24 +205,24 @@
               {
                 "type": "img",
                 "style": {
-                  "left": "337.92px",
+                  "left": "401.28000000000003px",
                   "top": "16.88px",
-                  "width": "26.880000000000003px",
+                  "width": "31.92px",
                   "height": "25.32px",
                   "position": "absolute",
                   "outline": "none"
                 },
-                "id": "_ycxqxfr30-_kl81yrih7[2]-_r2g9xholg[0]-_ouubt59cf[2]",
+                "id": "_rwnkwj4ha-_ewn6jc9q3[2]-_ok6o739pk[0]-_0u69fhg3k[2]",
                 "src": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/rightArrow.png"
               }
             ],
-            "id": "_ycxqxfr30-_kl81yrih7[2]-_r2g9xholg[0]",
+            "id": "_rwnkwj4ha-_ewn6jc9q3[2]-_ok6o739pk[0]",
             "blueprint": {
               "type": "li",
               "style": {
                 "left": "0px",
                 "top": "0px",
-                "width": "384px",
+                "width": "456px",
                 "height": "126.6px",
                 "borderWidth": "1px",
                 "borderColor": "#00000011",
@@ -238,9 +238,9 @@
                 {
                   "type": "label",
                   "style": {
-                    "left": "30.72px",
+                    "left": "36.480000000000004px",
                     "top": "25.32px",
-                    "width": "57.599999999999994px",
+                    "width": "68.39999999999999px",
                     "height": "67.52px",
                     "fontSize": "32px",
                     "color": "#ffffffff",
@@ -252,16 +252,16 @@
                     "alignItems": "center",
                     "fontWeight": "bold"
                   },
-                  "id": "_r57ho0s1s-itemObject.name.hostName[0]",
+                  "id": "_32ht8gf0y-itemObject.name.hostName[0]",
                   "data-name": "hostName",
                   "data-key": "itemObject.name.hostName"
                 },
                 {
                   "type": "label",
                   "style": {
-                    "left": "115.19999999999999px",
+                    "left": "136.79999999999998px",
                     "top": "50.64px",
-                    "width": "284.15999999999997px",
+                    "width": "337.44px",
                     "height": "25.32px",
                     "fontWeight": 400,
                     "fontSize": "16px",
@@ -269,21 +269,21 @@
                     "position": "absolute",
                     "outline": "none"
                   },
-                  "id": "_r57ho0s1s-itemObject.name.roomName[1]",
+                  "id": "_32ht8gf0y-itemObject.name.roomName[1]",
                   "data-name": "roomName",
                   "data-key": "itemObject.name.roomName"
                 },
                 {
                   "type": "img",
                   "style": {
-                    "left": "337.92px",
+                    "left": "401.28000000000003px",
                     "top": "16.88px",
-                    "width": "26.880000000000003px",
+                    "width": "31.92px",
                     "height": "25.32px",
                     "position": "absolute",
                     "outline": "none"
                   },
-                  "id": "_r57ho0s1s-_2btz34w0e[2]",
+                  "id": "_32ht8gf0y-_f0x4zr9ka[2]",
                   "src": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/rightArrow.png"
                 }
               ]
@@ -294,7 +294,7 @@
             "style": {
               "left": "0px",
               "top": "0px",
-              "width": "384px",
+              "width": "456px",
               "height": "126.6px",
               "borderWidth": "1px",
               "borderColor": "#00000011",
@@ -310,9 +310,9 @@
               {
                 "type": "label",
                 "style": {
-                  "left": "30.72px",
+                  "left": "36.480000000000004px",
                   "top": "25.32px",
-                  "width": "57.599999999999994px",
+                  "width": "68.39999999999999px",
                   "height": "67.52px",
                   "fontSize": "32px",
                   "color": "#ffffffff",
@@ -324,7 +324,7 @@
                   "alignItems": "center",
                   "fontWeight": "bold"
                 },
-                "id": "_ycxqxfr30-_kl81yrih7[2]-_jp4ypok2o[1]-itemObject.name.hostName[0]",
+                "id": "_rwnkwj4ha-_ewn6jc9q3[2]-_4lxw3rcxs[1]-itemObject.name.hostName[0]",
                 "data-name": "hostName",
                 "data-key": "itemObject.name.hostName",
                 "data-value": "Invited Room 2"
@@ -332,9 +332,9 @@
               {
                 "type": "label",
                 "style": {
-                  "left": "115.19999999999999px",
+                  "left": "136.79999999999998px",
                   "top": "50.64px",
-                  "width": "284.15999999999997px",
+                  "width": "337.44px",
                   "height": "25.32px",
                   "fontWeight": 400,
                   "fontSize": "16px",
@@ -342,7 +342,7 @@
                   "position": "absolute",
                   "outline": "none"
                 },
-                "id": "_ycxqxfr30-_kl81yrih7[2]-_jp4ypok2o[1]-itemObject.name.roomName[1]",
+                "id": "_rwnkwj4ha-_ewn6jc9q3[2]-_4lxw3rcxs[1]-itemObject.name.roomName[1]",
                 "data-name": "roomName",
                 "data-key": "itemObject.name.roomName",
                 "data-value": "Test Room 2"
@@ -350,24 +350,24 @@
               {
                 "type": "img",
                 "style": {
-                  "left": "337.92px",
+                  "left": "401.28000000000003px",
                   "top": "16.88px",
-                  "width": "26.880000000000003px",
+                  "width": "31.92px",
                   "height": "25.32px",
                   "position": "absolute",
                   "outline": "none"
                 },
-                "id": "_ycxqxfr30-_kl81yrih7[2]-_jp4ypok2o[1]-_1ysj50lps[2]",
+                "id": "_rwnkwj4ha-_ewn6jc9q3[2]-_4lxw3rcxs[1]-_azyhdq8sn[2]",
                 "src": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/rightArrow.png"
               }
             ],
-            "id": "_ycxqxfr30-_kl81yrih7[2]-_jp4ypok2o[1]",
+            "id": "_rwnkwj4ha-_ewn6jc9q3[2]-_4lxw3rcxs[1]",
             "blueprint": {
               "type": "li",
               "style": {
                 "left": "0px",
                 "top": "0px",
-                "width": "384px",
+                "width": "456px",
                 "height": "126.6px",
                 "borderWidth": "1px",
                 "borderColor": "#00000011",
@@ -383,9 +383,9 @@
                 {
                   "type": "label",
                   "style": {
-                    "left": "30.72px",
+                    "left": "36.480000000000004px",
                     "top": "25.32px",
-                    "width": "57.599999999999994px",
+                    "width": "68.39999999999999px",
                     "height": "67.52px",
                     "fontSize": "32px",
                     "color": "#ffffffff",
@@ -397,16 +397,16 @@
                     "alignItems": "center",
                     "fontWeight": "bold"
                   },
-                  "id": "_r57ho0s1s-itemObject.name.hostName[0]",
+                  "id": "_32ht8gf0y-itemObject.name.hostName[0]",
                   "data-name": "hostName",
                   "data-key": "itemObject.name.hostName"
                 },
                 {
                   "type": "label",
                   "style": {
-                    "left": "115.19999999999999px",
+                    "left": "136.79999999999998px",
                     "top": "50.64px",
-                    "width": "284.15999999999997px",
+                    "width": "337.44px",
                     "height": "25.32px",
                     "fontWeight": 400,
                     "fontSize": "16px",
@@ -414,28 +414,28 @@
                     "position": "absolute",
                     "outline": "none"
                   },
-                  "id": "_r57ho0s1s-itemObject.name.roomName[1]",
+                  "id": "_32ht8gf0y-itemObject.name.roomName[1]",
                   "data-name": "roomName",
                   "data-key": "itemObject.name.roomName"
                 },
                 {
                   "type": "img",
                   "style": {
-                    "left": "337.92px",
+                    "left": "401.28000000000003px",
                     "top": "16.88px",
-                    "width": "26.880000000000003px",
+                    "width": "31.92px",
                     "height": "25.32px",
                     "position": "absolute",
                     "outline": "none"
                   },
-                  "id": "_r57ho0s1s-_2btz34w0e[2]",
+                  "id": "_32ht8gf0y-_f0x4zr9ka[2]",
                   "src": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/rightArrow.png"
                 }
               ]
             }
           }
         ],
-        "id": "_ycxqxfr30-_kl81yrih7[2]",
+        "id": "_rwnkwj4ha-_ewn6jc9q3[2]",
         "data-list-data": [
           {
             "id": "",
@@ -464,13 +464,13 @@
             "tage": ""
           }
         ],
-        "data-list-id": "_ycxqxfr30-_kl81yrih7[2]",
+        "data-list-id": "_rwnkwj4ha-_ewn6jc9q3[2]",
         "blueprint": {
           "type": "li",
           "style": {
             "left": "0px",
             "top": "0px",
-            "width": "384px",
+            "width": "456px",
             "height": "126.6px",
             "borderWidth": "1px",
             "borderColor": "#00000011",
@@ -486,9 +486,9 @@
             {
               "type": "label",
               "style": {
-                "left": "30.72px",
+                "left": "36.480000000000004px",
                 "top": "25.32px",
-                "width": "57.599999999999994px",
+                "width": "68.39999999999999px",
                 "height": "67.52px",
                 "fontSize": "32px",
                 "color": "#ffffffff",
@@ -500,16 +500,16 @@
                 "alignItems": "center",
                 "fontWeight": "bold"
               },
-              "id": "_r57ho0s1s-itemObject.name.hostName[0]",
+              "id": "_32ht8gf0y-itemObject.name.hostName[0]",
               "data-name": "hostName",
               "data-key": "itemObject.name.hostName"
             },
             {
               "type": "label",
               "style": {
-                "left": "115.19999999999999px",
+                "left": "136.79999999999998px",
                 "top": "50.64px",
-                "width": "284.15999999999997px",
+                "width": "337.44px",
                 "height": "25.32px",
                 "fontWeight": 400,
                 "fontSize": "16px",
@@ -517,21 +517,21 @@
                 "position": "absolute",
                 "outline": "none"
               },
-              "id": "_r57ho0s1s-itemObject.name.roomName[1]",
+              "id": "_32ht8gf0y-itemObject.name.roomName[1]",
               "data-name": "roomName",
               "data-key": "itemObject.name.roomName"
             },
             {
               "type": "img",
               "style": {
-                "left": "337.92px",
+                "left": "401.28000000000003px",
                 "top": "16.88px",
-                "width": "26.880000000000003px",
+                "width": "31.92px",
                 "height": "25.32px",
                 "position": "absolute",
                 "outline": "none"
               },
-              "id": "_r57ho0s1s-_2btz34w0e[2]",
+              "id": "_32ht8gf0y-_f0x4zr9ka[2]",
               "src": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/rightArrow.png"
             }
           ]

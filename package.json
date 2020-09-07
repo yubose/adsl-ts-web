@@ -22,7 +22,7 @@
     "start:stable": "cross-env ECOS_ENV=stable \"npm run start\"",
     "start:test": "cross-env ECOS_ENV=test \"npm run start\"",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files src 'src/**/*.test.ts' --file src/setupTests.ts",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" ts-mocha -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts",
+    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts",
     "type-check": "tsc --noEmit --watch",
     "unlink": "npm unlink noodl-ui"
   },
@@ -31,7 +31,7 @@
     "@aitmed/ecos-lvl2-sdk": "^1.4.97",
     "@reduxjs/toolkit": "^1.4.0",
     "libphonenumber-js": "^1.7.57",
-    "noodl-ui": "0.0.10",
+    "noodl-ui": "0.0.11",
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.8",
     "redux-logger": "^3.0.6",

@@ -144,7 +144,6 @@ const makeBuiltInActions = function ({
   }
 
   builtInActions.signIn = async (action, options) => {
-    const { abort } = options
     const state = store.getState()
     const logMsg = `%cSIGNIN BUILTIN ARGS`
 

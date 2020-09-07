@@ -2,7 +2,9 @@ import _ from 'lodash'
 import { createSelector } from '@reduxjs/toolkit'
 import { Account } from '@aitmed/cadl'
 import {
-  ActionChainActionCallback,
+  Action,
+  ActionChainActionCallbackOptions,
+  ActionChainCallbackOptions,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -48,13 +50,11 @@ import './styles.css'
 function enhanceActions(actions: ReturnType<typeof createActions>) {
   return reduceEntries(
     actions,
-    (acc, { key, value: fn }, index) => {
-      acc[key] = (...args: any[]) => {
-        const logMsg = `%c[actions.ts][reduceEntries]`
-        console.log(logMsg, `color:#95a5a6;font-weight:bold;`, args)
-        // @ts-expect-error
-        return fn(...args)
-      }
+    (acc, { key, value: fn }) => {
+      acc[key] = (
+        action: Action<any>,
+        handlerOptions: ActionChainActionCallbackOptions<any>,
+      ) => fn(action, handlerOptions)
       return acc
     },
     {},
@@ -78,6 +78,10 @@ function createPreparePage(options: {
 }) {
   return async (pageName: string): Promise<NOODLPageObject> => {
     await cadl.initPage(pageName, [], options)
+    const logMsg =
+      `%c[src/index.ts][createPreparePage] ` +
+      `Ran cadl.initPage on page "${pageName}"`
+    console.log(logMsg, `color:#95a5a6;font-weight:bold;`)
     return cadl?.root?.[pageName]
   }
 }
@@ -122,7 +126,7 @@ window.addEventListener('load', async () => {
     'onRootNodeInitialized',
     (rootNode: OnRootNodeInitializedArgs) => {
       const logMsg =
-        `%c[src/index.ts][Page listener -- onRootNodeInitialized] ` +
+        `%c[src/index.ts][Listener -- onRootNodeInitialized] ` +
         `Root node initialized`
       console.log(logMsg, `color:#95a5a6;font-weight:bold;`, rootNode)
     },
@@ -131,6 +135,7 @@ window.addEventListener('load', async () => {
   page.registerListener(
     'onBeforePageRender',
     async ({ pageName }: OnBeforePageRenderArgs) => {
+      let logMsg = ''
       const pageState = store.getState().page
       if (pageName === pageState.currentPage) {
         // Load the page in the SDK
@@ -144,9 +149,9 @@ window.addEventListener('load', async () => {
         // isn't already initialized
         if (!noodl.initialized) {
           let logMsg =
-            `%c[src/index.ts][Page listener -- onBeforePageRender] ` +
+            `%c[src/index.ts][Listener -- onBeforePageRender] ` +
             `Initializing noodl-ui client`
-          console.log(logMsg, `color:#00b406;font-weight:bold;`, noodl)
+          console.log(logMsg, `color:#95a5a6;font-weight:bold;`, noodl)
           noodl
             .init({ viewport })
             .setAssetsUrl(cadl.assetsUrl || '')
@@ -201,11 +206,15 @@ window.addEventListener('load', async () => {
         }
         // Cache to rehydrate if they disconnect
         cachePage({ name: pageName })
+        logMsg =
+          `%c[src/index.ts][Listener -- onBeforePageRender] ` +
+          `Cached page: "${pageName}"`
+        console.log(logMsg, `color:#95a5a6;font-weight:bold;`)
         const previousPage = store.getState().page.previousPage
-        const logMsg =
-          `%c[index.ts][onBeforePageRender] ` +
+        logMsg =
+          `%c[src/index.ts][onBeforePageRender] ` +
           `${previousPage} --> ${pageName}`
-        console.log(logMsg, `color:#00b406;font-weight:bold;`, {
+        console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
           previousPage,
           nextPage: pageSnapshot,
         })
@@ -314,12 +323,6 @@ window.addEventListener('load', async () => {
   // Register the onresize listener once, if it isn't already registered
   if (viewport.onResize === undefined) {
     viewport.onResize = (newSizes) => {
-      // TODO: Find out why noodl is undefined here
-      const logMsg = `%c[src/index.ts][viewport.onResize] noodl-ui client`
-      console.log(logMsg, `color:#FF5722;font-weight:bold;`, {
-        noodl,
-        viewport,
-      })
       noodl?.setViewport?.(newSizes)
       if (page.rootNode) {
         page.rootNode.style.width = `${newSizes.width}px`
@@ -337,7 +340,7 @@ window.addEventListener('load', async () => {
     // Compare the two pages to make an informed decision before setting it
     if (previousPage) {
       const logMsg = `%c[src/index.ts] Comparing cached page vs startPage`
-      console.log(logMsg, `color:#FF5722;font-weight:bold;`, {
+      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
         cachedPages,
         startPage,
         authState: store.getState().auth,

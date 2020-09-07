@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { NOODLComponentProps } from 'noodl-ui'
+import { DOMNode, NOODLDOMTagName, Parser } from 'app/types'
 import createElement from 'utils/createElement'
-import { DOMNode, Parser } from 'app/types'
 
 class NOODLDOMParser {
   #cache: {
@@ -11,8 +11,39 @@ class NOODLDOMParser {
     record: { props: new Map() },
     stub: { elements: {} },
   }
+  #handleChildren: (parentNode: DOMNode, props: NOODLComponentProps) => any
   #parsers: Parser[] = []
   wrapper: ((node: DOMNode) => DOMNode) | undefined
+
+  constructor() {
+    this.#handleChildren = (
+      parentNode: DOMNode,
+      children: string | number | NOODLComponentProps | NOODLComponentProps[],
+    ) => {
+      if (children) {
+        if (_.isArray(children)) {
+          _.forEach(children, (child) => {
+            this.#handleChildren(parentNode, child)
+          })
+        } else if (_.isString(children) || _.isNumber(children)) {
+          parentNode && (parentNode.innerHTML += `${children}`)
+        } else if (_.isPlainObject(children)) {
+          const childNode = this.parse(children)
+          if (childNode) {
+            parentNode.appendChild(childNode)
+          }
+        } else {
+          const logMsg =
+            `%c[NOODLDOMParser.ts][constructor] ` +
+            `Found children that is not an array, string or number type. This will not be visible on the page`
+          console.log(logMsg, `color:#FF5722;font-weight:bold;`, {
+            parentNode,
+            noodluiChildren: children,
+          })
+        }
+      }
+    }
+  }
 
   /**
    * Adds a parser to the list of parsers
@@ -51,33 +82,12 @@ class NOODLDOMParser {
       }
 
       _.forEach(this.#parsers, (parseFn: Parser) => {
-        parseFn(node as DOMNode, props)
-
-        if (props.children) {
-          const { children } = props
-
-          if (_.isArray(children)) {
-            _.forEach(children, (child) => {
-              const childNode = this.parse(child as NOODLComponentProps)
-              if (childNode) {
-                node?.appendChild(childNode)
-              }
-            })
-          } else if (_.isString(children) || _.isNumber(children)) {
-            node && (node.innerHTML += `${children}`)
-          } else if (_.isPlainObject(children)) {
-            this.parse(children)
-          } else {
-            const logMsg =
-              `%c[NOODLDOMParser.ts][parse] ` +
-              `Found children that is not an array, string or number type. This will not be visible on the page`
-            console.log(logMsg, `color:#FF5722;font-weight:bold;`, {
-              node,
-              props,
-            })
-          }
-        }
+        parseFn(node as DOMNode, props, this.getUtils())
       })
+
+      if (props.children) {
+        this.#handleChildren(node as DOMNode, props.children as any)
+      }
     }
 
     return node
@@ -88,16 +98,20 @@ class NOODLDOMParser {
    * @param { string } tagName - HTML tag
    * @param { string } key - Property of a DOM node
    */
-  isValidAttribute(tagName: string, key: string) {
+  isValidAttribute(tagName: NOODLDOMTagName, key: string) {
     if (key && tagName) {
       if (!this.#cache.stub.elements[tagName]) {
-        this.#cache.stub.elements[tagName] = createElement(
-          tagName as keyof HTMLElementTagNameMap,
-        )
+        this.#cache.stub.elements[tagName] = createElement(tagName)
       }
       return key in this.#cache.stub.elements[tagName]
     }
     return false
+  }
+
+  getUtils() {
+    return {
+      parse: this.parse,
+    }
   }
 }
 

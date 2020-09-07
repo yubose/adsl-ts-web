@@ -35,29 +35,32 @@ export function parseAssets(node: DOMNode, props: NOODLComponentProps) {
  * @param { DOMNode } node
  * @param { NOODLComponentProps } props
  */
-export function parseChildren(node: DOMNode, props: NOODLComponentProps) {
-  // if (props.children) {
-  //   const { children } = props
-  //   if (_.isString(children) || _.isNumber(children)) {
-  //     node.innerHTML += `${children}`
-  //   } else if (_.isArray(children)) {
-  //     if (props['data-list-id']) {
-  //       // Since the NOODL data doesn't return us the complete list of "listItem"
-  //       // components, this means we need to handle them customly. The noodl-ui
-  //       // lib hands us a "blueprint" which is intended to be used with the list
-  //       // items that we will create
-  //       const blueprint = props.blueprint
-  //       const listId = props['data-list-id']
-  //       const listData = props['data-list-data']
-  //       const elems = listData?.map((item) => {
-  //         const childNode = document.createElement(blueprint.type) as DOMNode
-  //         return childNode
-  //       })
-  //       if (elems) {
-  //       }
-  //     }
-  //   }
-  // }
+export function parseChildren(
+  node: DOMNode,
+  props: NOODLComponentProps,
+  { parse },
+) {
+  if (props.children) {
+    const { children } = props
+    // Since the NOODL data doesn't return us the complete list of "listItem"
+    // components, this means we need to handle them customly. The noodl-ui
+    // lib hands us a "blueprint" which is intended to be used with the list
+    if (props['data-list-data']) {
+      if (_.isArray(children)) {
+        // items that we will create
+        const blueprint = { ...props.blueprint }
+        const listId = props['data-list-id']
+        const listData = props['data-list-data']
+        _.forEach(listData, (listItem) => {
+          blueprint.itemObject = listItem
+          const childNode = parse(blueprint)
+          if (childNode) {
+            node.appendChild(childNode)
+          }
+        })
+      }
+    }
+  }
   // Attaching children for the select elem
   if (props.options) {
     const { options, type } = props
@@ -125,7 +128,6 @@ export function parseEventHandlers(node: DOMNode, props: NOODLComponentProps) {
 export function parseStyles(node: DOMNode, props: NOODLComponentProps) {
   if (_.isPlainObject(props.style)) {
     forEachEntries(props.style, (k, v) => {
-      console.log({ k, v })
       node.style[k as any] = v
     })
   } else {
@@ -173,7 +175,6 @@ function parseIdentifiers(node: DOMNode, props: NOODLComponentProps) {
   if (props.id) {
     node['id'] = props.id
   }
-  console.log(props)
 
   if (props['data-key']) {
     if ('name' in node) {

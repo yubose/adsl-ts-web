@@ -51,6 +51,8 @@ export interface RequestState<E = Error> {
 
 export type DOMNode = ReturnType<typeof createElement>
 
+export type NOODLDOMTagName = keyof HTMLElementTagNameMap
+
 export type DataValueElement =
   | HTMLInputElement
   | HTMLSelectElement

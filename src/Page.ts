@@ -12,7 +12,7 @@ import {
   OnBeforePageRenderArgs,
   PageSnapshot,
 } from './app/types'
-import toDOMNode from './utils/toDOMNode'
+import parser from './utils/parser'
 import Modal from './components/NOODLModal'
 
 export type PageListenerName =
@@ -220,7 +220,7 @@ class Page {
         // Clean up previous nodes
         this.rootNode.innerHTML = ''
         _.forEach(components, (component) => {
-          node = toDOMNode(component)
+          node = parser.parse(component)
           console.log(node)
 
           if (node) {

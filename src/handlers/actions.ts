@@ -55,15 +55,16 @@ const makeActions = function ({
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
-      if (action.destination) {
-        if (action.destination.startsWith('http')) {
-          await page.navigate(action.destination)
+      if (action.original.destination || _.isString(action.original.goto)) {
+        const url = action.original.destination || action.original.goto
+        if (url.startsWith('http')) {
+          await page.navigate(url)
         } else {
-          store.dispatch(setPage(action.destination))
+          store.dispatch(setPage(url))
         }
       } else {
         const logMsg =
-          '[ACTION][goto] ' +
+          '%c[actions.ts][goto] ' +
           'Tried to go to a page but could not find information on the whereabouts'
         console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
           action,
