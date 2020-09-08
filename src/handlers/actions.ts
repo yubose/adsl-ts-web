@@ -7,6 +7,11 @@ import {
   isReference,
   NOODLActionChainActionType,
   NOODLChainActionEvalObject,
+  NOODLChainActionPopupBaseObject,
+  NOODLChainActionPopupDismissObject,
+  NOODLChainActionRefreshObject,
+  NOODLChainActionSaveObjectObject,
+  NOODLChainActionUpdateObject,
 } from 'noodl-ui'
 import { cadl } from 'app/client'
 import { AppStore } from 'app/types/storeTypes'
@@ -83,18 +88,23 @@ const makeActions = function ({
     store.dispatch(setPage(action.destination))
   }
 
-  _actions.popUp = (action: any, options) => {
-    const elem = getByDataUX(action.popUpView) as HTMLElement
+  _actions.popUp = (
+    action: Action<
+      NOODLChainActionPopupBaseObject | NOODLChainActionPopupDismissObject
+    >,
+    options,
+  ) => {
+    const elem = getByDataUX(action.original.popUpView) as HTMLElement
     if (elem) {
-      if (action.actionType === 'popUp') {
+      if (action.original.actionType === 'popUp') {
         elem.style.visibility = 'visible'
-      } else if (action.actionType === 'popUpDismiss') {
+      } else if (action.original.actionType === 'popUpDismiss') {
         elem.style.visibility = 'hidden'
       }
     } else {
       const logMsg =
         `%c[action.ts][popUp]` +
-        `Tried to make a "${action.actionType}" element visible but the element node was null or undefined`
+        `Tried to make a "${action.original.actionType}" element visible but the element node was null or undefined`
       console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
         action,
         ...options,
@@ -106,8 +116,11 @@ const makeActions = function ({
     return _actions.popUp(action, options)
   }
 
-  _actions.refresh = (action: any, options) => {
-    const logMsg = `%c[action.ts][refresh] ${action.actionType}`
+  _actions.refresh = (
+    action: Action<NOODLChainActionRefreshObject>,
+    options,
+  ) => {
+    const logMsg = `%c[action.ts][refresh] ${action.original.actionType}`
     console.log(logMsg, `color:#3498db;font-weight:bold;`, {
       action,
       ...options,
@@ -115,11 +128,19 @@ const makeActions = function ({
     window.location.reload()
   }
 
-  _actions.saveObject = async (action: any, options) => {
+  _actions.saveObject = async (
+    action: Action<NOODLChainActionSaveObjectObject>,
+    options,
+  ) => {
+    const logMsg = `%csaveObject`
+    console.log(logMsg, `color:#4E25D2;font-weight:bold;`, {
+      action,
+      ...options,
+    })
     const { context, dataValues, parser } = options
 
     try {
-      const { object } = action
+      const { object } = action.original
 
       const logMsg = `%c[action.ts][saveObject]`
       console.log(logMsg, `color:#3498db;font-weight:bold;`, {
@@ -214,7 +235,10 @@ const makeActions = function ({
     }
   }
 
-  _actions.updateObject = async (action: any, options) => {
+  _actions.updateObject = async (
+    action: Action<NOODLChainActionUpdateObject>,
+    options,
+  ) => {
     async function callObject(
       object: any,
       options: ActionChainActionCallbackOptions & {
