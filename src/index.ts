@@ -3,8 +3,8 @@ import { createSelector } from '@reduxjs/toolkit'
 import { Account } from '@aitmed/cadl'
 import {
   Action,
+  ActionChainActionCallback,
   ActionChainActionCallbackOptions,
-  ActionChainCallbackOptions,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -23,8 +23,8 @@ import {
   NOODLChainActionBuiltInObject,
   NOODLPageObject,
   NOODLComponentProps,
-  Viewport,
   NOODLComponent,
+  Viewport,
 } from 'noodl-ui'
 import {
   CachedPage,
@@ -37,15 +37,18 @@ import { cadl, noodl } from './app/client'
 import { observeStore, reduceEntries, serializeError } from './utils/common'
 import { setPage, setRequestStatus } from './features/page'
 import { modalIds, CACHED_PAGES } from './constants'
-import createStore from './app/store'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
+import createLogger from './utils/log'
+import createStore from './app/store'
 import App from './App'
 import Page from './Page'
 import Meeting from './Meeting'
 import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
+
+const log = createLogger('src/index.ts')
 
 function enhanceActions(actions: ReturnType<typeof createActions>) {
   return reduceEntries(
@@ -78,10 +81,9 @@ function createPreparePage(options: {
 }) {
   return async (pageName: string): Promise<NOODLPageObject> => {
     await cadl.initPage(pageName, [], options)
-    const logMsg =
-      `%c[src/index.ts][createPreparePage] ` +
-      `Ran cadl.initPage on page "${pageName}"`
-    console.log(logMsg, `color:#95a5a6;font-weight:bold;`)
+    log
+      .func('createPreparePage')
+      .grey(`Ran cadl.initPage on page "${pageName}"`)
     return cadl?.root?.[pageName]
   }
 }
@@ -95,8 +97,7 @@ window.addEventListener('load', async () => {
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
   const profile = await Account.login('+1 8882465555', '142251', vcode || '')
-  console.log(`%c${vcode}`, 'color:green;font-weight:bold;')
-  console.log(`%cProfile`, 'color:green;font-weight:bold;', profile)
+  log.green(vcode).green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const store = createStore()
@@ -125,17 +126,15 @@ window.addEventListener('load', async () => {
   page.registerListener(
     'onRootNodeInitialized',
     (rootNode: OnRootNodeInitializedArgs) => {
-      const logMsg =
-        `%c[src/index.ts][Listener -- onRootNodeInitialized] ` +
-        `Root node initialized`
-      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, rootNode)
+      log
+        .func('Listener -- onRootNodeInitialized')
+        .green('Root node initialized', rootNode)
     },
   )
 
   page.registerListener(
     'onBeforePageRender',
     async ({ pageName }: OnBeforePageRenderArgs) => {
-      let logMsg = ''
       const pageState = store.getState().page
       if (pageName === pageState.currentPage) {
         // Load the page in the SDK
@@ -148,10 +147,9 @@ window.addEventListener('load', async () => {
         // Initialize the noodl-ui client (parses components) if it
         // isn't already initialized
         if (!noodl.initialized) {
-          let logMsg =
-            `%c[src/index.ts][Listener -- onBeforePageRender] ` +
-            `Initializing noodl-ui client`
-          console.log(logMsg, `color:#95a5a6;font-weight:bold;`, noodl)
+          log
+            .func('Listener -- onBeforePageRender')
+            .grey('Initializing noodl-ui client', noodl)
           noodl
             .init({ viewport })
             .setAssetsUrl(cadl.assetsUrl || '')
@@ -199,25 +197,20 @@ window.addEventListener('load', async () => {
               onAfterResolve: lifeCycle.onAfterResolve,
             } as any)
 
-          logMsg =
-            `%c[src/index.ts][Page listener -- onBeforePageRender] ` +
-            `Initialized`
-          console.log(logMsg, `color:#00b406;font-weight:bold;`, noodl)
+          log.func('Listener - onBeforePageRender').green('Initialized', noodl)
         }
         // Cache to rehydrate if they disconnect
         cachePage({ name: pageName })
-        logMsg =
-          `%c[src/index.ts][Listener -- onBeforePageRender] ` +
-          `Cached page: "${pageName}"`
-        console.log(logMsg, `color:#95a5a6;font-weight:bold;`)
+        log
+          .func('Listener -- onBeforePageRender')
+          .grey(`Cached page: "${pageName}"`)
         const previousPage = store.getState().page.previousPage
-        logMsg =
-          `%c[src/index.ts][onBeforePageRender] ` +
-          `${previousPage} --> ${pageName}`
-        console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
-          previousPage,
-          nextPage: pageSnapshot,
-        })
+        log
+          .func('Listener - onBeforePageRender')
+          .grey(`${previousPage} --> ${pageName}`, {
+            previousPage,
+            nextPage: pageSnapshot,
+          })
         // Refresh the roots
         noodl
           // TODO: Leave root/page auto binded to the lib
@@ -227,13 +220,11 @@ window.addEventListener('load', async () => {
         if (page.rootNode && page.rootNode.id !== pageName) {
           page.rootNode.id = pageName
         }
-        window.components = pageSnapshot.object?.components as NOODLComponent[]
         return pageSnapshot
       } else {
-        const logMsg =
-          `%c[src/index.ts][onBeforePageRender] ` +
-          `Avoided a duplicate navigate request`
-        console.log(logMsg, `color:#ec0000;font-weight:bold;`)
+        log
+          .func('Listener - onBeforePageRender')
+          .green('Avoided a duplicate navigate request')
       }
     },
   )
@@ -275,13 +266,12 @@ window.addEventListener('load', async () => {
       (previousPage, currentPage) => ({ previousPage, currentPage }),
     ),
     async ({ previousPage, currentPage }) => {
-      const logMsg =
-        `%c[src/index.ts][observeStore -- previousPage/currentPage] ` +
-        'Received an update to previousPage/currentPage'
-      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
-        previousPage,
-        nextPage: currentPage,
-      })
+      log
+        .func('observeStore -- previousPage/currentPage')
+        .grey('Received an update to previousPage/currentPage', {
+          previousPage,
+          nextPage: currentPage,
+        })
       if (currentPage) {
         const { snapshot } = (await page.navigate(currentPage)) || {}
         if (snapshot?.name === 'VideoChat') {
@@ -302,10 +292,9 @@ window.addEventListener('load', async () => {
     ),
     (modalState) => {
       const { id, opened, ...rest } = modalState
-      const logMsg =
-        `%c[src/index.ts][observeStore -- modal] ` +
-        'Received an update to page modal'
-      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, modalState)
+      log
+        .func('observeStore -- modal')
+        .grey('Received an update to page modal', modalState)
       if (opened) {
         const modalId = modalIds[id as ModalId]
         const modalComponent = modalComponents[modalId]
@@ -339,8 +328,7 @@ window.addEventListener('load', async () => {
     const previousPage = cachedPages[0]?.name
     // Compare the two pages to make an informed decision before setting it
     if (previousPage) {
-      const logMsg = `%c[src/index.ts] Comparing cached page vs startPage`
-      console.log(logMsg, `color:#95a5a6;font-weight:bold;`, {
+      log.func().grey('Comparing cached page vs startPage', {
         cachedPages,
         startPage,
         authState: store.getState().auth,

@@ -2,6 +2,9 @@ import _ from 'lodash'
 import { NOODLComponentProps } from 'noodl-ui'
 import { DOMNode, NOODLDOMTagName, Parser } from 'app/types'
 import createElement from 'utils/createElement'
+import createLogger from 'utils/log'
+
+const log = createLogger('NOODLDOMParser.ts')
 
 class NOODLDOMParser {
   #cache: {
@@ -33,13 +36,11 @@ class NOODLDOMParser {
             parentNode.appendChild(childNode)
           }
         } else {
-          const logMsg =
-            `%c[NOODLDOMParser.ts][constructor] ` +
-            `Found children that is not an array, string or number type. This will not be visible on the page`
-          console.log(logMsg, `color:#FF5722;font-weight:bold;`, {
-            parentNode,
-            noodluiChildren: children,
-          })
+          log.func('constructor')
+          log.orange(
+            `Found children that is not an array, string or number type. This will not be visible on the page`,
+            { parentNode, noodluiChildren: children },
+          )
         }
       }
     }
@@ -76,10 +77,11 @@ class NOODLDOMParser {
         node = createElement(props.type)
       }
     } else {
-      const logMsg =
-        `%c[NOODLDOMParser.ts][parse] ` +
-        `Could not create a DOM node because the props given was null or undefined`
-      console.log(logMsg, `color:#ec0000;font-weight:bold;`, props)
+      log.func('parse')
+      log.red(
+        `Could not create a DOM node because the props given was null or undefined`,
+        props,
+      )
     }
 
     if (node) {

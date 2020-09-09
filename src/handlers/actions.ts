@@ -17,6 +17,9 @@ import { cadl } from 'app/client'
 import { AppStore } from 'app/types/storeTypes'
 import Page from 'Page'
 import { setPage } from 'features/page'
+import createLogger from 'utils/log'
+
+const log = createLogger('actions.ts')
 
 const makeActions = function ({
   store,
@@ -38,13 +41,11 @@ const makeActions = function ({
     if (_.isFunction(action?.original?.object)) {
       action.original?.object()
     } else {
-      const logMsg =
-        `%c[actions.ts][evalObject] ` +
-        `Expected to receive the "object" as a function but it was "${typeof action?.original}" instead`
-      console.log(logMsg, `color:#3498db;font-weight:bold;`, {
-        action,
-        ...options,
-      })
+      log.func('evalObject')
+      log.grey(
+        `Expected to receive the "object" as a function but it was "${typeof action?.original}" instead`,
+        { action, options },
+      )
     }
   }
 
@@ -68,24 +69,19 @@ const makeActions = function ({
           store.dispatch(setPage(url))
         }
       } else {
-        const logMsg =
-          '%c[actions.ts][goto] ' +
-          'Tried to go to a page but could not find information on the whereabouts'
-        console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-          action,
-          ...options,
-        })
+        log.func('goto')
+        log.red(
+          'Tried to go to a page but could not find information on the whereabouts',
+          { action, options },
+        )
       }
     }
   }
 
   _actions.pageJump = async (action: any, options) => {
-    const logMsg = `%c[actions.ts][pageJump]`
-    console.log(logMsg, `color:#3498db;font-weight:bold;`, {
-      action,
-      ...options,
-    })
-    store.dispatch(setPage(action.destination))
+    log.func('pageJump')
+    log.grey('', { action, options })
+    store.dispatch(setPage(action.original.destination))
   }
 
   _actions.popUp = (
@@ -102,13 +98,11 @@ const makeActions = function ({
         elem.style.visibility = 'hidden'
       }
     } else {
-      const logMsg =
-        `%c[action.ts][popUp]` +
-        `Tried to make a "${action.original.actionType}" element visible but the element node was null or undefined`
-      console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-        action,
-        ...options,
-      })
+      log.func('popUp')
+      log.red(
+        `Tried to make a "${action.original.actionType}" element visible but the element node was null or undefined`,
+        { action, options },
+      )
     }
   }
 
@@ -120,11 +114,8 @@ const makeActions = function ({
     action: Action<NOODLChainActionRefreshObject>,
     options,
   ) => {
-    const logMsg = `%c[action.ts][refresh] ${action.original.actionType}`
-    console.log(logMsg, `color:#3498db;font-weight:bold;`, {
-      action,
-      ...options,
-    })
+    log.func('refresh')
+    log.grey(action.original.actionType, { action, options })
     window.location.reload()
   }
 
@@ -132,27 +123,18 @@ const makeActions = function ({
     action: Action<NOODLChainActionSaveObjectObject>,
     options,
   ) => {
-    const logMsg = `%csaveObject`
-    console.log(logMsg, `color:#4E25D2;font-weight:bold;`, {
-      action,
-      ...options,
-    })
     const { context, dataValues, parser } = options
+
+    log.func('saveObject')
+    log.magenta('', { action, options })
 
     try {
       const { object } = action.original
-
-      const logMsg = `%c[action.ts][saveObject]`
-      console.log(logMsg, `color:#3498db;font-weight:bold;`, {
-        action,
-        ...options,
-      })
+      log.func('saveObject').grey('', { action, options })
 
       if (_.isFunction(object)) {
-        const logMsg =
-          `%c[action.ts][saveObject] ` +
-          `Directly invoking the object function with no parameters`
-        console.log(logMsg, `color:#3498db;font-weight:bold;`, {
+        log.func('saveObject')
+        log.grey(`Directly invoking the object function with no parameters`, {
           action,
           options,
         })
@@ -192,41 +174,36 @@ const makeActions = function ({
                     delete params.verificationCode
                   }
 
-                  const logMsg = `%c[action.ts][saveObject]`
-                  console.log(logMsg, `color:#3498db;font-weight:bold;`, {
+                  log.func('saveObject')
+                  log.grey('', {
                     action,
+                    options,
                     dataValues,
                     params,
                     nameFieldPath,
-                    ...options,
                   })
-
                   await save(params)
                 }
               }
             } else {
-              const logMsg =
-                `%c[action.ts][saveObject] ` +
+              log.func('saveObject')
+              log.red(
                 `Received an array inside a "saveObject" action as an item of an ` +
-                `"object" array. Currently we are using tuples of length 2`
-              console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-                action,
-                ...options,
-              })
+                  `"object" array. Currently we are using tuples of length 2`,
+                { action, options },
+              )
             }
           }
         }
       } else if (_.isPlainObject(object)) {
         //
       } else {
-        const logMsg =
-          `%c[action.ts][saveObject] ` +
+        log.func('saveObject')
+        log.red(
           `saveObject with property "object" was not received as a function, ` +
-          `object or  Possibly a parsing error`
-        console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-          action,
-          ...options,
-        })
+            `object or  Possibly a parsing error`,
+          { action, options },
+        )
       }
     } catch (error) {
       console.error(error)
@@ -248,14 +225,12 @@ const makeActions = function ({
       if (_.isFunction(object)) {
         await object()
       } else if (_.isString(object)) {
-        const logMsg =
-          `%c[action.ts][updateObject] ` +
+        log.func('updateObject')
+        log.red(
           `Received a string as an object property of updateObject. ` +
-          `Possibly parsed incorrectly?`
-        console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-          object,
-          options,
-        })
+            `Possibly parsed incorrectly?`,
+          { action, object, options },
+        )
       } else if (_.isArray(object)) {
         for (let index = 0; index < object.length; index++) {
           const obj = object[index]
@@ -273,17 +248,16 @@ const makeActions = function ({
           console.log(dataObject)
           cadl.updateObject({ dataKey, dataObject })
         } else {
-          const logMsg =
-            `%c[action.ts][updateObject] ` + `dataObject is null or undefined`
-          console.log(logMsg, `color:#ec0000;font-weight:bold;`)
+          log.func('updateObject')
+          log.red(`dataObject is null or undefined`, object)
         }
       }
     }
 
     try {
       const callObjectOptions = { action, ...options }
-      const logMsg = `%c[action.ts][updateObject] callObjectOptions`
-      console.log(logMsg, `color:#3498db;font-weight:bold;`, callObjectOptions)
+      log.func('updateObject')
+      log.info('callObjectOptions', callObjectOptions)
       // This is the more older version of the updateObject action object where it used
       // the "object" property
       if ('object' in action.original) {

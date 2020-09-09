@@ -62,6 +62,10 @@ export interface Parser {
   (
     node: DOMNode,
     props: NOODLComponentProps,
-    { parse }: { parse: (props: NOODLComponentProps) => DOMNode | undefined },
+    parserOptions: ParserOptions,
   ): void
+}
+
+export interface ParserOptions {
+  parse: (props: NOODLComponentProps) => DOMNode | undefined
 }

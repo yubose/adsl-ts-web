@@ -8,7 +8,16 @@ import {
 } from 'noodl-ui'
 import NOODLDOMParser from 'app/NOODLDOMParser'
 import { DataValueElement, DOMNode } from 'app/types'
+import { cadl, noodl } from 'app/client'
 import { forEachEntries } from 'utils/common'
+import createLogger from 'utils/log'
+import * as subparsers from './subparsers'
+
+const log = createLogger('parser.ts')
+
+export interface ParserOptions {
+  parse: (props: NOODLComponentProps) => DOMNode
+}
 
 /**
  * Handles the parsing and displaying of assets/media
@@ -38,26 +47,14 @@ export function parseAssets(node: DOMNode, props: NOODLComponentProps) {
 export function parseChildren(
   node: DOMNode,
   props: NOODLComponentProps,
-  { parse }: { parse: (props: NOODLComponentProps) => DOMNode },
+  options: { parse: (props: NOODLComponentProps) => DOMNode },
 ) {
   if (props.children) {
-    const { children } = props
     // Since the NOODL data doesn't return us the complete list of "listItem"
     // components, this means we need to handle them customly. The noodl-ui
     // lib hands us a "blueprint" which is intended to be used with the list
-    if (props['data-list-data']) {
-      if (_.isArray(children)) {
-        // items that we will create
-        const blueprint = props.blueprint || {}
-        const listId = props['data-list-id']
-        const listData = props['data-list-data']
-        _.forEach(children, (child) => {
-          const childNode = parse(child)
-          if (childNode) {
-            node.appendChild(childNode)
-          }
-        })
-      }
+    if (props.noodlType === 'list') {
+      // subparsers.parseList(node, props, options)
     }
   }
   // Attaching children for the select elem
@@ -87,6 +84,56 @@ export function parseChildren(
   }
 }
 
+/** TEMP -- experimenting */
+function createOnChangeFactory(dataKey: string) {
+  let instanceId = 0
+  return () => {
+    instanceId++
+    if (instanceId > 1) {
+      log
+        .func('createOnChangeFactory')
+        .red(
+          `Instance ID exceeded total of more than 1. Investigate what this means`,
+          { instanceId, dataKey },
+        )
+    }
+    return (e: Event) => {
+      const target:
+        | (typeof e.target & {
+            value?: string
+          })
+        | null = e.target
+
+      const pageName = noodl.getContext().page.name
+      const localRoot = cadl?.root?.[pageName]
+      const value = target?.value || ''
+
+      let updatedValue
+
+      if (_.has(localRoot, dataKey)) {
+        cadl.editDraft((draft: any) => {
+          _.set(draft?.[pageName], dataKey, value)
+        })
+        updatedValue = _.get(cadl.root?.[pageName], dataKey)
+        if (updatedValue !== value) {
+          log.func('createOnChangeFactory -- onChange')
+          log.red(
+            `Applied an update to a value using dataKey "${dataKey}" but the before/after values weren't equivalent`,
+            { previousValue: value, nextValue: updatedValue, dataKey },
+          )
+        }
+      } else {
+        log.func('createOnChangeFactory -- onChange')
+        log.red(
+          `Attempted to attach a data binding "onChange" onto a textField component but the dataKey "${dataKey}" is not a valid path of the noodl root object`,
+          { dataKey, localRoot, pageName, value },
+        )
+      }
+      log.func('createOnChangeFactory').grey(value)
+    }
+  }
+}
+
 /**
  * Attaches event handlers like "onclick" and "onchange"
  * @param { DOMNode } node
@@ -98,23 +145,18 @@ export function parseEventHandlers(node: DOMNode, props: NOODLComponentProps) {
       const isEqual = (k: NOODLActionTriggerType) => k === key
       const eventName = _.find(eventTypes, isEqual)
       const lowercasedEventName = eventName?.toLowerCase?.() || ''
-      if (lowercasedEventName) {
+      const directEventName = lowercasedEventName.startsWith('on')
+        ? lowercasedEventName.replace('on', '')
+        : lowercasedEventName
+      if (directEventName) {
         // Attach the event handler
-        node.addEventListener(
-          lowercasedEventName.startsWith('on')
-            ? lowercasedEventName.replace('on', '')
-            : lowercasedEventName,
-          value,
-        )
+        node.addEventListener(directEventName, value)
       }
     }
     if (key === 'data-value') {
-      // const onChange = (e: Event) => {
-      //   const target: typeof e.target & {
-      //     value?: any
-      //   } | null = e.target
-      // }
-      // node.addEventListener('onchange', onChange)
+      // Temp // Experimenting
+      const onChange = createOnChangeFactory(props['data-key'] as string)()
+      node.addEventListener('change', onChange)
     }
   })
 }
@@ -130,12 +172,16 @@ export function parseStyles(node: DOMNode, props: NOODLComponentProps) {
       node.style[k as any] = v
     })
   } else {
-    console.log(
-      `%c[parse.ts][parseStyles] ` +
-        `Expected a style object but received ${typeof props.style} instead`,
-      `color:#ec0000;font-weight:bold;`,
+    log.func('parseStyles')
+    log.red(
+      `Expected a style object but received ${typeof props.style} instead`,
       props.style,
     )
+  }
+  // Remove the default padding since the NOODL was designed without
+  // expecting a padding default (which defaults to padding-left:"40px")
+  if (props.type === 'ul') {
+    node.style['padding'] = '0px'
   }
 }
 
@@ -159,11 +205,12 @@ export function parseDataValues(node: DOMNode, props: NOODLComponentProps) {
           elem.selectedIndex = 0
         }
         if (!props.options) {
-          const logMsg =
-            `%c[parseDataValues] ` +
+          log.func('parseDataValues')
+          log.red(
             `Attempted to attach a data-value to a select element's value but ` +
-            `"options" was not provided. This may not display its value as expected`
-          console.log(logMsg, `color:#ec0000;font-weight:bold;`, props)
+              `"options" was not provided. This may not display its value as expected`,
+            props,
+          )
         }
       }
     } else {
@@ -177,7 +224,6 @@ function parseIdentifiers(node: DOMNode, props: NOODLComponentProps) {
   if (props.id) {
     node['id'] = props.id
   }
-
   if (props['data-key']) {
     if ('name' in node) {
       node.setAttribute('data-key', props['data-key'])
@@ -186,10 +232,6 @@ function parseIdentifiers(node: DOMNode, props: NOODLComponentProps) {
   }
   if (props['data-list-id']) {
     node.setAttribute('list-id', props['data-list-id'])
-  }
-  // TODO: Rethink if we should attach this to the DOM or manage this in memory instead
-  if (props['data-list-data']) {
-    node.setAttribute('data-list-data', JSON.stringify(props['data-list-data']))
   }
   if (props['data-name']) {
     node.setAttribute('data-name', props['data-name'])
@@ -242,7 +284,7 @@ const parser = new NOODLDOMParser()
 parser
   .add(parseIdentifiers)
   .add(parseAssets)
-  .add(parseChildren)
+  .add(parseChildren as any)
   .add(parseDataValues)
   .add(parseEventHandlers)
   .add(parseStyles)
