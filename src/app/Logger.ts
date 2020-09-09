@@ -1,4 +1,20 @@
+// This custom logger keeps the original stack track + line number
 import _ from 'lodash'
+import { forEachEntries } from 'utils/common'
+
+interface ILogger extends ColorFuncs {
+  log: Console['log']
+  id: string
+  func(name: string): this
+  initialize(): this
+  stringifyArgs({
+    color,
+    data,
+  }: {
+    color?: string
+    data?: any
+  }): Parameters<Console['log']>
+}
 
 const _color = {
   blue: '#0047ff',
@@ -8,7 +24,7 @@ const _color = {
   grey: '#95a5a6',
   hotpink: '#e50087',
   info: '#3498db',
-  magenta: '#4E25D2',
+  magenta: 'magenta',
   orange: '#FF5722',
   red: '#ec0000',
   salmon: 'salmon',
@@ -16,81 +32,69 @@ const _color = {
   yellow: '#CCCD17',
 } as const
 
-type ColorMap = Record<keyof typeof _color, typeof _color[keyof typeof _color]>
-type ColorLogFuncsRecord = Record<keyof ColorMap, ColorMap[keyof ColorMap]>
-interface ColorLogFuncs {
-  [color: string]: ColorMap[keyof ColorMap]
-}
+type ColorKey = keyof typeof _color
+type ColorFuncs = Record<ColorKey, Console['log']>
 
 const logger = (function () {
-  const cache = {}
+  const cache: { [loggerId: string]: ILogger } = {}
   const cons = window.console
 
-  class Logger implements ColorLogFuncsRecord {
-    #cache: {
-      [section: string]: {
-        func?: string
-        msg?: string
-        data?: any
-      }
-    } = {}
-    #id: string = ''
-    #func: string = ''
-    #cons: Console
-    #color: string = ''
-    log: Console['log']
+  function get(id: string) {
+    const _state = { id, func: '' }
 
-    constructor(id: string) {
-      this.id = id
-      this.#cons = cons
-      // this.log = cons.log.bind(cons, `[${id}]`)
-      this.log = cons.log.bind(cons, ...this.stringifyArgs())
-      this.initialize()
-    }
+    const o = {
+      func(name?: string) {
+        if (name) _state.func = name
+        else _state.func = ''
+        _refreshLoggers()
+        return this
+      },
+      get id() {
+        return _state.id
+      },
+      set id(id: string) {
+        _state.id = id
+      },
+      log: cons.log.bind(cons, `[${id}] %s`),
+    } as ILogger
 
-    get id() {
-      return this.#id
-    }
-
-    set id(id: string) {
-      this.#id = id
-    }
-
-    func(name: string) {
-      this.#func = name
-      this.initialize()
-      return this
-    }
-
-    initialize() {
-      _.forEach(_color, (color) => {
-        this[color] = cons.log.bind(cons, ...this.stringifyArgs({ color }))
-      })
-    }
-
-    stringifyArgs({ color, data }: { color?: string; data?: any } = {}) {
-      let str = `[${this.id}]`
-      if (this.#func) str += `[${this.#func}]`
-      str += ' %s'
-      let args = [`%c${str}`, `color:${color || _color.grey};font-weight:bold;`]
+    function _stringifyArgs({
+      color,
+      data,
+    }: { color?: string; data?: any } = {}) {
+      let msg = `[${_state.id}]`
+      if (_state.func) msg += `[${_state.func}]`
+      let args = [
+        `%c${msg} %s`,
+        `color:${color || _color.grey};font-weight:bold;`,
+      ]
       if (data) args.push(data)
       return args
     }
+
+    function _refreshLoggers() {
+      forEachEntries(_color, (colorKey: ColorKey, color) => {
+        o[colorKey] = cons.log.bind(cons, ..._stringifyArgs({ color }))
+      })
+    }
+
+    _refreshLoggers()
+
+    return o
   }
 
   return {
     create(id: string) {
       let cached = cache[id as keyof typeof cache]
-      let logger: Logger
-      let log: Console['log']
+      let logger: ReturnType<typeof get>
 
       if (!cached) {
-        logger = new Logger(id)
+        logger = get(id)
         cache[id] = logger
-        return logger
       } else {
-        return cached
+        logger = cached
       }
+      return logger
     },
   }
 })()

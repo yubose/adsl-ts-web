@@ -23,7 +23,6 @@ import {
   NOODLChainActionBuiltInObject,
   NOODLPageObject,
   NOODLComponentProps,
-  NOODLComponent,
   Viewport,
 } from 'noodl-ui'
 import {
@@ -39,7 +38,6 @@ import { setPage, setRequestStatus } from './features/page'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
-import createLogger from './utils/log'
 import createStore from './app/store'
 import Logger from './app/Logger'
 import App from './App'
@@ -49,10 +47,7 @@ import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
 
-const log = createLogger('src/index.ts')
-const logger = Logger.create('src/index.ts')
-
-window.logger = logger
+const log = Logger.create('src/index.ts')
 
 function enhanceActions(actions: ReturnType<typeof createActions>) {
   return reduceEntries(
@@ -101,9 +96,8 @@ window.addEventListener('load', async () => {
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
   const profile = await Account.login('+1 8882465555', '142251', vcode || '')
-  logger.log(vcode)
-  logger.log('Profile', profile)
-  log.green(vcode).green('Profile', profile)
+  log.green(vcode)
+  log.green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const store = createStore()
@@ -211,12 +205,10 @@ window.addEventListener('load', async () => {
           .func('Listener -- onBeforePageRender')
           .grey(`Cached page: "${pageName}"`)
         const previousPage = store.getState().page.previousPage
-        log
-          .func('Listener - onBeforePageRender')
-          .grey(`${previousPage} --> ${pageName}`, {
-            previousPage,
-            nextPage: pageSnapshot,
-          })
+        log.grey(`${previousPage} --> ${pageName}`, {
+          previousPage,
+          nextPage: pageSnapshot,
+        })
         // Refresh the roots
         noodl
           // TODO: Leave root/page auto binded to the lib

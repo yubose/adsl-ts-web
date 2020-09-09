@@ -17,9 +17,9 @@ import { cadl } from 'app/client'
 import { AppStore } from 'app/types/storeTypes'
 import Page from 'Page'
 import { setPage } from 'features/page'
-import createLogger from 'utils/log'
+import Logger from 'app/Logger'
 
-const log = createLogger('actions.ts')
+const log = Logger.create('actions.ts')
 
 const makeActions = function ({
   store,
@@ -114,8 +114,7 @@ const makeActions = function ({
     action: Action<NOODLChainActionRefreshObject>,
     options,
   ) => {
-    log.func('refresh')
-    log.grey(action.original.actionType, { action, options })
+    log.func('refresh').grey(action.original.actionType, { action, options })
     window.location.reload()
   }
 
@@ -125,15 +124,13 @@ const makeActions = function ({
   ) => {
     const { context, dataValues, parser } = options
 
-    log.func('saveObject')
-    log.magenta('', { action, options })
+    log.func('saveObject').magenta('', { action, options })
 
     try {
       const { object } = action.original
-      log.func('saveObject').grey('', { action, options })
+      log.grey('', { action, options })
 
       if (_.isFunction(object)) {
-        log.func('saveObject')
         log.grey(`Directly invoking the object function with no parameters`, {
           action,
           options,
@@ -174,7 +171,6 @@ const makeActions = function ({
                     delete params.verificationCode
                   }
 
-                  log.func('saveObject')
                   log.grey('', {
                     action,
                     options,
@@ -186,7 +182,6 @@ const makeActions = function ({
                 }
               }
             } else {
-              log.func('saveObject')
               log.red(
                 `Received an array inside a "saveObject" action as an item of an ` +
                   `"object" array. Currently we are using tuples of length 2`,
@@ -198,7 +193,6 @@ const makeActions = function ({
       } else if (_.isPlainObject(object)) {
         //
       } else {
-        log.func('saveObject')
         log.red(
           `saveObject with property "object" was not received as a function, ` +
             `object or  Possibly a parsing error`,
@@ -216,6 +210,7 @@ const makeActions = function ({
     action: Action<NOODLChainActionUpdateObject>,
     options,
   ) => {
+    log.func('updateObject')
     async function callObject(
       object: any,
       options: ActionChainActionCallbackOptions & {
@@ -225,7 +220,6 @@ const makeActions = function ({
       if (_.isFunction(object)) {
         await object()
       } else if (_.isString(object)) {
-        log.func('updateObject')
         log.red(
           `Received a string as an object property of updateObject. ` +
             `Possibly parsed incorrectly?`,
@@ -248,7 +242,6 @@ const makeActions = function ({
           console.log(dataObject)
           cadl.updateObject({ dataKey, dataObject })
         } else {
-          log.func('updateObject')
           log.red(`dataObject is null or undefined`, object)
         }
       }
@@ -256,7 +249,6 @@ const makeActions = function ({
 
     try {
       const callObjectOptions = { action, ...options }
-      log.func('updateObject')
       log.info('callObjectOptions', callObjectOptions)
       // This is the more older version of the updateObject action object where it used
       // the "object" property
