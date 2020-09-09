@@ -41,6 +41,7 @@ import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLogger from './utils/log'
 import createStore from './app/store'
+import Logger from './app/Logger'
 import App from './App'
 import Page from './Page'
 import Meeting from './Meeting'
@@ -49,6 +50,9 @@ import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
 
 const log = createLogger('src/index.ts')
+const logger = Logger.create('src/index.ts')
+
+window.logger = logger
 
 function enhanceActions(actions: ReturnType<typeof createActions>) {
   return reduceEntries(
@@ -97,6 +101,8 @@ window.addEventListener('load', async () => {
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
   const profile = await Account.login('+1 8882465555', '142251', vcode || '')
+  logger.log(vcode)
+  logger.log('Profile', profile)
   log.green(vcode).green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
