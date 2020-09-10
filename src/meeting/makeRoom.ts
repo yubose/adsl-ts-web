@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { EventEmitter } from 'events'
-import { getByDataUX, ViewportOptions } from 'noodl-ui'
+import { getByDataUX, Viewport } from 'noodl-ui'
 import {
   connect,
   LocalParticipant,
@@ -25,15 +25,7 @@ import makeParticipants from './makeParticipants'
 
 export type AppRoom = ReturnType<typeof makeRoom>
 
-function makeRoom({
-  isRoomEnvironment,
-  page,
-  viewport,
-}: {
-  isRoomEnvironment: boolean
-  page: Page
-  viewport: ViewportOptions
-}) {
+function makeRoom({ page, viewport }: { page: Page; viewport: Viewport }) {
   const _state = {
     room: new EventEmitter() as Room,
     cachedLocalTracks: [],
