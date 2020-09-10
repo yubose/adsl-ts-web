@@ -93,6 +93,7 @@ window.addEventListener('load', async () => {
   window.getDataValues = getDataValues
   window.noodl = cadl
   window.noodlui = noodl
+  window.getMeetingNodes = Meeting.getAllNodes
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
   const profile = await Account.login('+1 8882465555', '142251', vcode || '')
@@ -103,19 +104,20 @@ window.addEventListener('load', async () => {
   const store = createStore()
   const viewport = new Viewport()
   const page = new Page({ store })
-  const meeting = new Meeting({ page, store, viewport })
   const app = new App({ store, viewport })
   const builtIn = createBuiltInActions({ page, store })
   const actions = enhanceActions(createActions({ page, store }))
 
-  window.meeting = meeting
+  Meeting.initialize({ page, store, viewport })
+
+  window.meeting = Meeting
 
   let { startPage } = await app.initialize()
 
   const preparePage = createPreparePage({
     builtIn: {
       goto: builtIn.goto,
-      videoChat: onVideoChatBuiltIn(meeting.joinRoom),
+      videoChat: onVideoChatBuiltIn(meeting.join),
     },
   })
 

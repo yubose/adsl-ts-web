@@ -29,7 +29,7 @@ class NOODLDOMParser {
             this.#handleChildren(parentNode, child)
           })
         } else if (_.isString(children) || _.isNumber(children)) {
-          parentNode && (parentNode.innerHTML += `${children}`)
+          parentNode && (parentNode.innerHTML = `${children}`)
         } else if (_.isPlainObject(children)) {
           const childNode = this.parse(children)
           if (childNode) {

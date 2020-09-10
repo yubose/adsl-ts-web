@@ -19,8 +19,11 @@ import {
   setIsCreatingAccount,
   setVerificationCodePending,
 } from 'features/auth'
-import { modalIds } from '../constants'
 import { AppStore } from 'app/types'
+import Logger from 'app/Logger'
+import { modalIds } from '../constants'
+
+const log = Logger.create('builtIns.ts')
 
 export type BuiltInFuncName =
   | 'checkUsernamePassword'
@@ -418,42 +421,51 @@ const makeBuiltInActions = function ({
 
 // This goes on the SDK
 export function onVideoChatBuiltIn(joinRoom: (token: string) => Promise<any>) {
-  return async (
+  return async function onVideoChat(
     action: NOODLChainActionBuiltInObject & {
       roomId: string
       accessToken: string
     },
-  ) => {
+  ) {
+    log.func('onVideoChat')
+
     let builtInRunning = false
 
     if (!builtInRunning) {
       builtInRunning = true
 
-      const logMsg = `%c[ACTION][onVideoChat] builtIn`
-      const logStyle = `color:#3498db;font-weight:bold;`
-      console.log(logMsg, logStyle)
+      if (action) {
+        let msg = ''
+        if (action.accessToken) msg += 'Received access token '
+        if (action.roomId) msg += 'and room id'
+        log.grey(msg, action)
+      } else {
+        log.red(
+          'Expected an action object but the value passed in was null or undefined',
+          action,
+        )
+      }
 
-      console.log(
-        `%c[builtIns.ts][onVideoChat] builtIn --> videoChat`,
-        `color:#3498db;font-weight:bold;`,
-        action,
-      )
       // Disconnect from the room if for some reason we
       // are still connected to one
       // if (room.state === 'connected' || room.state === 'reconnecting') {
       //   room?.disconnect?.()
       //   if (connecting) setConnecting(false)
       // }
+      if (action?.roomId) log.grey(`Connecting to room id: ${action.roomId}`)
       const newRoom = await joinRoom(action.accessToken)
       if (newRoom) {
-        const msg = `Connected to room: ${newRoom.name}`
-        const logMsg = `%c[builtIns.ts][onVideoChatBuiltIn]` + msg
-        console.log(logMsg, `color:#00b406;font-weight:bold;`)
+        log.green(`Connected to room: ${newRoom.name}`, newRoom)
+      } else {
+        log.red(
+          `Expected a room instance to be returned but received null or undefined instead`,
+          newRoom,
+        )
       }
     } else {
-      console.log(
-        `%c[ACTION][onVideoChat] builtIn: A duplicate call to this action was detected. This call was aborted to prevent the duplicate call`,
-        `color:#3498db;font-weight:bold;`,
+      log.red(
+        'A duplicate call to this action was detected. This call was aborted to ' +
+          'prevent the duplicate call',
       )
     }
     builtInRunning = false

@@ -7,8 +7,8 @@ import {
   RemoteParticipant,
 } from 'twilio-video'
 import Modal from 'components/NOODLModal'
-import { App } from '../../app'
 import Meeting from '../../Meeting'
+import { App } from '../../app'
 
 declare global {
   interface Window {
@@ -36,5 +36,6 @@ declare global {
       primary: null | RemoteParticipant
       secondary: RemoteParticipant[]
     }
+    getMeetingNodes: any
   }
 }
