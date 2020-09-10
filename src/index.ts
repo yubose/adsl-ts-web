@@ -153,7 +153,6 @@ window.addEventListener('load', async () => {
           noodl
             .init({ viewport })
             .setAssetsUrl(cadl.assetsUrl || '')
-            .setMyBaseUrl(cadl.myBaseUrl || cadl.cadlBaseUrl || '')
             .setPage(pageSnapshot)
             .setRoot(cadl.root)
             .setViewport({
