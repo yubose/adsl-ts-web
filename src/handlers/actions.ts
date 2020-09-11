@@ -15,19 +15,12 @@ import {
 } from 'noodl-ui'
 import { cadl } from 'app/client'
 import { AppStore } from 'app/types/storeTypes'
-import Page from 'Page'
 import { setPage } from 'features/page'
 import Logger from 'app/Logger'
 
 const log = Logger.create('actions.ts')
 
-const makeActions = function ({
-  store,
-  page,
-}: {
-  store: AppStore
-  page: Page
-}) {
+const makeActions = function ({ store }: { store: AppStore }) {
   // @ts-expect-error
   const _actions: Record<
     NOODLActionChainActionType,
@@ -52,22 +45,14 @@ const makeActions = function ({
   _actions.goto = async (action: any, options) => {
     // URL
     if (_.isString(action)) {
-      if (action.startsWith('http')) {
-        await page.navigate(action)
-      } else {
-        store.dispatch(setPage(action))
-      }
+      store.dispatch(setPage(action))
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.original.destination || _.isString(action.original.goto)) {
         const url = action.original.destination || action.original.goto
-        if (url.startsWith('http')) {
-          await page.navigate(url)
-        } else {
-          store.dispatch(setPage(url))
-        }
+        store.dispatch(setPage(url))
       } else {
         log.func('goto')
         log.red(

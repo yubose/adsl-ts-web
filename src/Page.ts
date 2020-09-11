@@ -7,16 +7,19 @@ import {
 import { openOutboundURL } from './utils/common'
 import { cadl, noodl } from './app/client'
 import {
-  AppStore,
   OnRootNodeInitializedArgs,
   OnBeforePageRenderArgs,
   PageSnapshot,
 } from './app/types'
 import parser from './utils/parser'
 import Modal from './components/NOODLModal'
+import Logger from './app/Logger'
+
+const log = Logger.create('Page.ts')
 
 export type PageListenerName =
   | 'onStart'
+  | 'onRootNodeInitializing'
   | 'onRootNodeInitialized'
   | 'onBeforePageRender'
   | 'onPageRendered'
@@ -25,7 +28,6 @@ export type PageListenerName =
 export interface PageOptions {
   rootNode?: HTMLElement | null
   nodes?: HTMLElement[] | null
-  store: AppStore
   builtIn?: {
     [funcName: string]: any
   }
@@ -44,7 +46,7 @@ class Page {
   public nodes: HTMLElement[] | null
   public modal: Modal
 
-  constructor({ builtIn, rootNode = null, store, nodes = null }: PageOptions) {
+  constructor({ builtIn, rootNode = null, nodes = null }: PageOptions) {
     this.builtIn = builtIn
     this.rootNode = rootNode
     this.nodes = nodes
@@ -72,24 +74,21 @@ class Page {
   ): Promise<{ snapshot: PageSnapshot } | void> {
     // TODO: onTimedOut
     try {
-      const logMsg = `%c[Page.ts][navigate] Rendering the DOM for page: "${pageName}"`
-      console.log(logMsg, `color:#95a5a6;font-weight:bold;`)
-      // Check if it is an HTTP link instead of a NOODL endpoint
-
       // Outside link
       if (_.isString(pageName) && pageName.startsWith('http')) {
         return openOutboundURL(pageName)
       }
 
+      log.func('navigate').grey(`Rendering the DOM for page: "${pageName}"`)
+
       await this._callListener('onStart', pageName)
 
+      /** Handle the root node */
       if (!this.rootNode) {
+        this._callListener('onRootNodeInitializing')
         this._initializeRootNode()
         if (this.rootNode) {
-          await this._callListener(
-            'onRootNodeInitialized',
-            this.rootNode as OnRootNodeInitializedArgs,
-          )
+          this._callListener('onRootNodeInitialized', this.rootNode)
         }
       }
 
@@ -97,9 +96,11 @@ class Page {
       let components: NOODLComponentProps[] = []
 
       if (!pageName) {
-        const logMsg = `%c[Page.ts][navigate] Cannot navigate because pageName is invalid`
-        const logStyle = `color:#ec0000;font-weight:bold;`
-        console.log(logMsg, logStyle, { pageName, rootNode: this.rootNode })
+        log.func('navigate')
+        log.red('Cannot navigate because pageName is invalid', {
+          pageName,
+          rootNode: this.rootNode,
+        })
         window.alert(`The value of page "${pageName}" is not valid`)
       } else {
         // The caller is expected to provide their own page object
@@ -120,11 +121,11 @@ class Page {
         if (_.isArray(rendered.components)) {
           components = rendered.components
         } else {
-          const logMsg = `%c[Page.ts][navigate] The page ${pageName} was not parsed correctly. Expected to receive components as an array`
-          console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-            pageSnapshot,
-            expectedRender: rendered,
-          })
+          log.func('navigate')
+          log.red(
+            `The page ${pageName} was not parsed correctly. Expected to receive components as an array`,
+            { pageSnapshot, expectedRender: rendered },
+          )
         }
       }
 
@@ -192,9 +193,11 @@ class Page {
     if (!_.isFunction(this._listeners[listenerName])) {
       this._listeners[listenerName] = listener
     } else {
-      const logMsg = `%cAn existing listener named ${listenerName} was already registered. It will be removed and replaced with this one`
-      const logStyle = `color:#ec0000;font-weight:bold;`
-      console.log(logMsg, logStyle)
+      log.func('navigate')
+      log.red(
+        `An existing listener named ${listenerName} was already registered. ` +
+          `It will be removed and replaced with this one`,
+      )
     }
     return this
   }
@@ -221,21 +224,17 @@ class Page {
         this.rootNode.innerHTML = ''
         _.forEach(components, (component) => {
           node = parser.parse(component)
-          console.log(node)
-
           if (node) {
             this.rootNode?.appendChild(node)
           }
         })
       } else {
-        const logMsg =
+        log.func('navigate')
+        log.red(
           "Attempted to render the page's components but the root " +
-          'node was not initialized. The page will not show anything'
-        const logStyle = `color:#ec0000;font-weight:bold;`
-        console.log(logMsg, logStyle, {
-          rootNode: this.rootNode,
-          nodes: this.nodes,
-        })
+            'node was not initialized. The page will not show anything',
+          { rootNode: this.rootNode, nodes: this.nodes },
+        )
       }
     } else {
       // TODO

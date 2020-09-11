@@ -93,7 +93,7 @@ window.addEventListener('load', async () => {
   window.getDataValues = getDataValues
   window.noodl = cadl
   window.noodlui = noodl
-  window.getMeetingNodes = Meeting.getAllNodes
+  window.getVideoChatElements = Meeting.getVideoChatElements
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
   const profile = await Account.login('+1 8882465555', '142251', vcode || '')
@@ -117,7 +117,7 @@ window.addEventListener('load', async () => {
   const preparePage = createPreparePage({
     builtIn: {
       goto: builtIn.goto,
-      videoChat: onVideoChatBuiltIn(meeting.join),
+      videoChat: onVideoChatBuiltIn(Meeting.join),
     },
   })
 
@@ -125,12 +125,16 @@ window.addEventListener('load', async () => {
     store.dispatch(setRequestStatus({ pageName, pending: true }))
   })
 
+  page.registerListener('onRootNodeInitializing', () => {
+    log.func('Listener -- onRootNodeInitializing')
+    log.grey('Initializing root node')
+  })
+
   page.registerListener(
     'onRootNodeInitialized',
     (rootNode: OnRootNodeInitializedArgs) => {
-      log
-        .func('Listener -- onRootNodeInitialized')
-        .green('Root node initialized', rootNode)
+      log.func('Listener -- onRootNodeInitialized')
+      log.green('Root node initialized', rootNode)
     },
   )
 
@@ -149,9 +153,8 @@ window.addEventListener('load', async () => {
         // Initialize the noodl-ui client (parses components) if it
         // isn't already initialized
         if (!noodl.initialized) {
-          log
-            .func('Listener -- onBeforePageRender')
-            .grey('Initializing noodl-ui client', noodl)
+          log.func('Listener -- onBeforePageRender')
+          log.grey('Initializing noodl-ui client', noodl)
           noodl
             .init({ viewport })
             .setAssetsUrl(cadl.assetsUrl || '')
@@ -202,29 +205,26 @@ window.addEventListener('load', async () => {
           log.func('Listener - onBeforePageRender').green('Initialized', noodl)
         }
         // Cache to rehydrate if they disconnect
+        // TODO
         cachePage({ name: pageName })
-        log
-          .func('Listener -- onBeforePageRender')
-          .grey(`Cached page: "${pageName}"`)
+        log.func('Listener -- onBeforePageRender')
+        log.grey(`Cached page: "${pageName}"`)
         const previousPage = store.getState().page.previousPage
         log.grey(`${previousPage} --> ${pageName}`, {
           previousPage,
           nextPage: pageSnapshot,
         })
         // Refresh the roots
-        noodl
-          // TODO: Leave root/page auto binded to the lib
-          .setRoot(cadl.root)
-          .setPage(pageSnapshot)
+        // TODO - Leave root/page auto binded to the lib
+        noodl.setRoot(cadl.root).setPage(pageSnapshot)
         // NOTE: not being used atm
         if (page.rootNode && page.rootNode.id !== pageName) {
           page.rootNode.id = pageName
         }
         return pageSnapshot
       } else {
-        log
-          .func('Listener - onBeforePageRender')
-          .green('Avoided a duplicate navigate request')
+        log.func('Listener - onBeforePageRender')
+        log.green('Avoided a duplicate navigate request')
       }
     },
   )
@@ -248,9 +248,7 @@ window.addEventListener('load', async () => {
     ({ error, pageName }: { error: Error; pageName: string }) => {
       console.error(error)
       window.alert(error.message)
-      store.dispatch(
-        setRequestStatus({ pageName, error: serializeError(error) }),
-      )
+      store.dispatch(setRequestStatus({ pageName, error }))
     },
   )
 
@@ -266,16 +264,14 @@ window.addEventListener('load', async () => {
       (previousPage, currentPage) => ({ previousPage, currentPage }),
     ),
     async ({ previousPage, currentPage }) => {
-      log
-        .func('observeStore -- previousPage/currentPage')
-        .grey('Received an update to previousPage/currentPage', {
-          previousPage,
-          nextPage: currentPage,
-        })
+      log.func('observeStore -- state.page[previousPage/currentPage]')
+      log.grey('', { previousPage, nextPage: currentPage })
       if (currentPage) {
         const { snapshot } = (await page.navigate(currentPage)) || {}
         if (snapshot?.name === 'VideoChat') {
-          // TODO: connect to meeting
+          if (Meeting.room?.state === 'connected') {
+            // TODO - handle attaching to video streams
+          }
         } else {
           //
         }
@@ -292,16 +288,17 @@ window.addEventListener('load', async () => {
     ),
     (modalState) => {
       const { id, opened, ...rest } = modalState
-      log
-        .func('observeStore -- modal')
-        .grey('Received an update to page modal', modalState)
       if (opened) {
         const modalId = modalIds[id as ModalId]
         const modalComponent = modalComponents[modalId]
         if (modalComponent) {
           page.modal.open(id, modalComponent, { opened, ...rest })
         } else {
-          // log
+          log.func('observeStore -- state.page.modal')
+          log.red(
+            'Tried to open the modal component but the node was not available',
+            modalState,
+          )
         }
       } else {
         page.modal.close()

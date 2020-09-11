@@ -2,10 +2,10 @@
 
 ## Todos
 
-- isRoomEnvironment at root level
-- Rename NOODLViewport to Viewport
-- `_validateResolver`
-- `_history`
+- history
+- page cache rehydration
+- autobind root/page updates on the `noodl-ui` lib
+- find use cases for `page.rootNode.id`
 - Fix the event handler parsings
 - aspect ratio (viewport manager)
 - scroll manager
@@ -39,7 +39,7 @@
 
 ## Navigating pages
 
-- Dispatch `setCurrentPage`
+- Dispatch `setPage`
 - `Page` is subscribed to `previousPage` + `currentPage`, so it will call `navigate` and `render` for the upcoming page
 
 ---

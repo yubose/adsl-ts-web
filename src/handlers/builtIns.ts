@@ -12,7 +12,6 @@ import Page from 'Page'
 import validate, { getFormErrors } from 'utils/validate'
 import { formatPhoneNumber } from 'utils/phone'
 import VerificationCode from 'components/modalComponents/VerificationCode'
-import { openOutboundURL } from 'utils/common'
 import { openModal, closeModal, setPage } from 'features/page'
 import {
   setAuthStatus,
@@ -60,10 +59,7 @@ const makeBuiltInActions = function ({
   }
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
-  builtInActions.checkUsernamePassword = (
-    action,
-    { abort },
-  ): Promise<'abort'> => {
+  builtInActions.checkUsernamePassword = (action, { abort }) => {
     // dispatchRedux(mergeCacheAuthValues(dataValues))
     const { password, confirmPassword } = getDataValues()
     if (password !== confirmPassword) {
@@ -76,11 +72,7 @@ const makeBuiltInActions = function ({
 
   // Called when user enters their verification code in the popup and clicks submit
   builtInActions.enterVerificationCode = async (action, options) => {
-    const logMsg = `%c[builtIns.ts][builtIn -- enterVerificationCode]`
-    console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-      action,
-      ...options,
-    })
+    log.func('enterVerificationCode').red('', _.assign({ action }, options))
     // if (/SignUp/.test(location.pathname)) await signup?.onSubmit()
     // else await signin?.onSubmit()
   }
@@ -100,36 +92,23 @@ const makeBuiltInActions = function ({
   }
 
   builtInActions.goto = async (action: NOODLGotoAction, options) => {
-    const logMsg = `%c[builtIns.ts][goto]`
-    console.log(logMsg, `color:#3498db;font-weight:bold;`, {
-      action,
-      ...options,
-    })
+    log.func('goto')
+    log.red('', _.assign({ action }, options))
     // URL
     if (_.isString(action)) {
-      if (action.startsWith('http')) {
-        await page.navigate(action)
-      } else {
-        store.dispatch(setPage(action))
-      }
+      store.dispatch(setPage(action))
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        if (action.startsWith('http')) {
-          await page.navigate(action.destination)
-        } else {
-          store.dispatch(setPage(action.destination))
-        }
+        store.dispatch(setPage(action.destination))
       } else {
-        const logMsg =
-          '[ACTION][builtIn -- goto] ' +
-          'Tried to go to a page but could not find information on the whereabouts'
-        console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-          action,
-          ...options,
-        })
+        log.func('goto')
+        log.red(
+          'Tried to go to a page but could not find information on the whereabouts',
+          _.assign({ action }, options),
+        )
       }
     }
   }
@@ -364,11 +343,7 @@ const makeBuiltInActions = function ({
     action: NOODLChainActionBuiltInObject,
     { event },
   ) {
-    console.log(
-      `%c[useBuiltInActions.tsx][builtIn -- UploadPhoto]`,
-      `color:#95a5a6;font-weight:bold;`,
-      { action, event },
-    )
+    log.func('UploadPhoto').grey('', { action, event })
     const input = document.createElement('input')
     input.type = 'file'
     // TODO: string files
@@ -376,40 +351,29 @@ const makeBuiltInActions = function ({
     input.onchange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       console.log(e?.target?.files)
       const file = e.target?.files?.[0]
-      if (file) {
-        const dataValues = getDataValues()
-        const title = dataValues?.title
-        const filename = file.name
-        const filesize = file.size
-        const filetype = file.type
+      const dataValues = getDataValues() as { title?: string }
+      const values = {
+        title: dataValues?.title,
+        content: file,
+      }
+      if (dataValues?.title) {
+        log.func('UploadPhoto').grey('Values', values)
+        const nameFieldPath = ''
+        const currentPage = store.getState().page.currentPage
 
-        const params = {
-          title: filename,
-          content: file,
-        }
+        cadl.editDraft((draft: any) => {
+          _.set(draft?.[currentPage || ''], nameFieldPath, file)
+        })
 
-        const doc = await cadl.root?.builtIn?.uploadDocument(params)
-        console.log(
-          `%c[builtIns.ts][builtIn -- UploadDocument] ` +
-            `Uploaded document named "${filename}" of type "${filetype}"`,
-          `color:#00b406;font-weight:bold;`,
-          doc,
+        log.func('UploadPhoto')
+        log.green(
+          `Attached the Blob/File "${values.title}" of type "${file?.type}" ` +
+            `on root.${currentPage}.${nameFieldPath}`,
+          file,
         )
       }
     }
     input.click()
-  }
-
-  async function _goToURI(url: string) {
-    if (_.isString(url)) {
-      // Outside link
-      if (url.startsWith('http')) {
-        openOutboundURL(url)
-      } else {
-        // Default to redirecting to the (assumed) local page path/endpoint
-        store.dispatch(setPage(url.replace('/', '')))
-      }
-    }
   }
 
   return builtInActions

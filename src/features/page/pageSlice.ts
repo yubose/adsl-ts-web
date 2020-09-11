@@ -4,9 +4,32 @@ import { forEachEntries, SerializedError } from 'utils/common'
 import { ModalState, RequestState } from 'app/types'
 import { getRequestState } from './utils'
 
+export type PageRenderStatus =
+  | 'starting'
+  | 'initializing.root.node'
+  | 'initialized.root.node'
+  | 'initialize.root.node.failed'
+  | 'rendering.components'
+  | 'rendered.components'
+  | 'render.components.failed'
+  | 'received.snapshot'
+
 export interface PageState {
-  request: {
-    [pageName: string]: RequestState<SerializedError>
+  renderState: {
+    status: PageRenderStatus
+    rootNode: {
+      id: string
+      initializing: boolean
+      initialized: boolean
+      initializeError: null | SerializedError
+    }
+    components: {
+      rendering: boolean
+      rendered: boolean
+      renderError: null | SerializedError
+    }
+    cached: boolean
+    snapshot: boolean
   }
   previousPage: string
   currentPage: string
@@ -14,7 +37,6 @@ export interface PageState {
 }
 
 export const initialPageState: PageState = {
-  request: {},
   previousPage: '',
   currentPage: '',
   modal: {

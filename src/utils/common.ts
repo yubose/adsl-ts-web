@@ -1,4 +1,5 @@
 import { EnhancedStore, CombinedState } from '@reduxjs/toolkit'
+import { Draft } from 'immer'
 import _ from 'lodash'
 
 /**
@@ -179,4 +180,32 @@ export function serializeError(
     params.source = error.source
   }
   return params
+}
+
+export type RequestStateChangePositionalKeywords = [
+  K1: boolean,
+  K2: boolean,
+  K3: null | SerializedError,
+  K4: boolean,
+]
+
+export interface S {
+  [key: string]: null | SerializedError | boolean
+}
+
+/**
+ * A helper to reset states back to the initial value when updating changes
+ * to request states. This is used mainly for uses with immer
+ * @param { string[] } keywords - Keywords prepending to the update keywords
+ */
+export function onRequestStateChange(
+  ...keywords: [k1: string, k2: string, k3: string, k4: string]
+) {
+  const [k1, k2, k3, k4] = keywords
+  return (state: any) => {
+    state[k1] = false
+    state[k2] = false
+    state[k3] = null
+    state[k4] = false
+  }
 }

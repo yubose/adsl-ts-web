@@ -36,6 +36,6 @@ declare global {
       primary: null | RemoteParticipant
       secondary: RemoteParticipant[]
     }
-    getMeetingNodes: any
+    getVideoChatElements: any
   }
 }

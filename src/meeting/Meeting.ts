@@ -3,13 +3,21 @@ import { EventEmitter } from 'events'
 import {
   connect,
   ConnectOptions,
-  LocalAudioTrack,
+  LocalAudioTrackPublication,
   LocalParticipant,
-  LocalTrack,
-  RemoteTrack,
+  LocalVideoTrack,
+  LocalVideoTrackPublication,
+  RemoteParticipant,
   Room,
+  TrackPublication,
 } from 'twilio-video'
 import { getByDataUX, Viewport } from 'noodl-ui'
+import {
+  connecting,
+  connected,
+  connectError,
+  connectTimedOut,
+} from 'features/meeting'
 import { AppStore } from 'app/types'
 import { isMobile } from 'utils/common'
 import { forEachParticipant, forEachParticipantTrack } from 'utils/twilio'
@@ -29,23 +37,18 @@ const log = Logger.create('Meeting.ts')
 // import makePublications from './makePublications'
 // import makeTrack from './makeTrack'
 
-export interface InitializeMeetingOptions {
-  store: AppStore
-  page: Page
-  viewport: Viewport
-}
-
 const Meeting = (function () {
   let _page: Page
   let _store: AppStore
   let _viewport: Viewport
   let _room: Room = new EventEmitter() as Room
 
-  const o = {
-    initialize({ store, page, viewport }: InitializeMeetingOptions) {
+  const o: T.IMeeting = {
+    initialize({ store, page, viewport }: T.InitializeMeetingOptions) {
       _store = store
       _page = page
       _viewport = viewport
+      return this
     },
     /**
      * Joins and returns the room using the token
@@ -53,27 +56,39 @@ const Meeting = (function () {
      * @param { ConnectOptions? } options - Options passed to the connect call
      */
     async join(token: string, options?: ConnectOptions) {
-      const room = await connect(token, {
-        dominantSpeaker: true,
-        logLevel: 'info',
-        ...options,
-        bandwidthProfile: {
-          ...options?.bandwidthProfile,
-          video: {
-            dominantSpeakerPriority: 'high',
-            mode: 'collaboration',
-            // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
-            ...(isMobile() ? { maxSubscriptionBitrate: 2500000 } : undefined),
-            ...options?.bandwidthProfile?.video,
+      try {
+        _store.dispatch(connecting())
+        // TODO: timeout
+        const room = await connect(token, {
+          dominantSpeaker: true,
+          logLevel: 'info',
+          ...options,
+          bandwidthProfile: {
+            ...options?.bandwidthProfile,
+            video: {
+              dominantSpeakerPriority: 'high',
+              mode: 'collaboration',
+              // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
+              ...(isMobile() ? { maxSubscriptionBitrate: 2500000 } : undefined),
+              ...options?.bandwidthProfile?.video,
+            },
           },
-        },
-      })
-      // _handleRoomCreated(room)s
-      log.cyan('Meeting nodes', o.getAllNodes())
+        })
+        _store.dispatch(connected())
+        Meeting.onConnected?.(room)
+        _handleRoomCreated(room)
+        return room
+      } catch (error) {
+        _store.dispatch(connectError(error))
+        throw error
+      }
     },
     leave() {
       _room?.disconnect?.()
       return this
+    },
+    get room() {
+      return _room
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {
@@ -107,7 +122,7 @@ const Meeting = (function () {
     getParticipantsListElement(): HTMLUListElement | null {
       return getByDataUX('vidoeSubStream') as HTMLUListElement
     },
-    getAllNodes() {
+    getVideoChatElements() {
       return {
         mainStream: o.getMainStreamElement(),
         selfStream: o.getSelfStreamElement(),
@@ -119,7 +134,7 @@ const Meeting = (function () {
         vidoeSubStream: o.getParticipantsListElement(),
       }
     },
-  }
+  } as T.IMeeting
 
   /**
    * Begins initializing media tracks and listeners immediately after the room
@@ -127,6 +142,79 @@ const Meeting = (function () {
    * @param { Room } room - Room instance
    */
   function _handleRoomCreated(room: Room) {
+    // Disconnect using the room instance
+    function disconnect() {
+      room.disconnect?.()
+    }
+    // Callback runs when the LocalParticipant disconnects
+    function disconnected() {
+      const unpublishTracks = (
+        trackPublication:
+          | LocalVideoTrackPublication
+          | LocalAudioTrackPublication,
+      ) => {
+        trackPublication?.track?.stop?.()
+        trackPublication?.unpublish?.()
+      }
+      // Unpublish local tracks
+      room.localParticipant.videoTracks.forEach(unpublishTracks)
+      room.localParticipant.audioTracks.forEach(unpublishTracks)
+      // Reset the room only after all other `disconnected` listeners have been called.
+      _room = new EventEmitter() as Room
+      window.removeEventListener('beforeunload', disconnect)
+      if (isMobile()) window.removeEventListener('pagehide', disconnect)
+    }
+
+    room.once('disconnected', disconnected)
+
+    // Initialize the selfStream component
+    const selfStreamElem = Meeting.getSelfStreamElement()
+    if (selfStreamElem) {
+      const publications = Array.from(room.localParticipant?.tracks?.values?.())
+      const publication = _.find(publications, (p) => p.kind === 'video')
+      const videoTrack = publication?.track as LocalVideoTrack
+      if (videoTrack) {
+        // TODO: attach to selfStream element
+        videoTrack.attach(selfStreamElem)
+      } else {
+        log.func('_handleRoomCreated')
+        log.red(
+          `Tried to attach a video track to the selfStream but no videoTrack ` +
+            `was available`,
+          room.localParticipant,
+        )
+      }
+    } else {
+      log.func('_handleRoomCreated')
+      log.red(
+        `Attempted to attach your video to the selfStream but could not find the ` +
+          `selfStream node`,
+      )
+    }
+
+    // Experimental
+    const emitRemoteTracks = (participant: RemoteParticipant) => (
+      trackPublication: TrackPublication,
+    ) => {
+      participant.emit('trackPublished', trackPublication)
+      participant.emit('trackStarted', trackPublication)
+      participant.emit('trackSubscribed', trackPublication)
+    }
+
+    // Experimental
+    const forEachTracks = (callback: typeof emitRemoteTracks) => (
+      participant: RemoteParticipant,
+    ) => participant?.tracks?.forEach?.(callback(participant))
+    // Experimental
+    room.participants?.forEach(forEachTracks(emitRemoteTracks))
+
+    window.room = room
+    window.lparticipant = room.localParticipant
+
+    // Add a listener to disconnect from the room when a user closes their browser
+    window.addEventListener('beforeunload', disconnect)
+    // Add a listener to disconnect from the room when a mobile user closes their browser
+    if (isMobile()) window.addEventListener('pagehide', disconnect)
     forEachParticipant(room.participants, _handleTrackPublish)
   }
 
@@ -165,7 +253,6 @@ const Meeting = (function () {
    * @param { RoomParticipant } participant - Participant from the room instance
    */
   function _attachTrack(track: T.RoomTrack, participant: T.RoomParticipant) {
-    log.func('_attachTrack')
     if (_isLocalParticipant(participant)) {
       // TODO: attach to selfStream element
       if (track.kind !== 'data') {
@@ -173,11 +260,13 @@ const Meeting = (function () {
         if (selfStreamElem) {
           track.attach(selfStreamElem)
         } else {
-          log.red(
-            `Tried to attach a ${track.kind} track to the selfStream but could ` +
-              `not find DOM node`,
-            participant,
-          )
+          log
+            .func('_attachTrack')
+            .log.red(
+              `Tried to attach a ${track.kind} track to the selfStream but could ` +
+                `not find DOM node`,
+              participant,
+            )
         }
       }
     } else {
@@ -191,18 +280,19 @@ const Meeting = (function () {
    * @param { RoomParticipant } participant - Participant from the room instance
    */
   function _detachTrack(track: T.RoomTrack, participant: T.RoomParticipant) {
-    log.func('_detachTrack')
     if (_isLocalParticipant(participant)) {
       if (track.kind !== 'data') {
         const selfStreamElem = o.getSelfStreamElement()
         if (selfStreamElem) {
           track.detach(selfStreamElem)
         } else {
-          log.red(
-            `Tried to detach a ${track.kind} track to the selfStream but could ` +
-              `not find DOM node`,
-            { participant, track },
-          )
+          log
+            .func('_detachTrack')
+            .red(
+              `Tried to detach a ${track.kind} track to the selfStream but could ` +
+                `not find DOM node`,
+              { participant, track },
+            )
         }
       }
     }
