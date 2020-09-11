@@ -1,16 +1,9 @@
 import _ from 'lodash'
-import {
-  LocalAudioTrack,
-  LocalVideoTrack,
-  RemoteAudioTrack,
-  RemoteParticipant,
-  RemoteTrack,
-  RemoteVideoTrack,
-} from 'twilio-video'
+import { RemoteParticipant, RemoteTrack } from 'twilio-video'
 import {
   RoomParticipant,
   RoomParticipantTrackPublication,
-} from 'app/types/meeting'
+} from 'app/types/meetingTypes'
 // Giving color codes according to the feature that represents a certain stream
 // Ex: rooms = #e50087
 // This is to have an easier time debugging with console messages

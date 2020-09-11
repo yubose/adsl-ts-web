@@ -10,10 +10,10 @@ import NOODLDOMParser from 'app/NOODLDOMParser'
 import { DataValueElement, DOMNode } from 'app/types'
 import { cadl, noodl } from 'app/client'
 import { forEachEntries } from 'utils/common'
-import createLogger from 'utils/log'
+import Logger from 'app/Logger'
 import * as subparsers from './subparsers'
 
-const log = createLogger('parser.ts')
+const log = Logger.create('parser.ts')
 
 export interface ParserOptions {
   parse: (props: NOODLComponentProps) => DOMNode
@@ -90,12 +90,11 @@ function createOnChangeFactory(dataKey: string) {
   return () => {
     instanceId++
     if (instanceId > 1) {
-      log
-        .func('createOnChangeFactory')
-        .red(
-          `Instance ID exceeded total of more than 1. Investigate what this means`,
-          { instanceId, dataKey },
-        )
+      log.func('createOnChangeFactory')
+      log.red(
+        `Instance ID exceeded total of more than 1. Investigate what this means`,
+        { instanceId, dataKey },
+      )
     }
     return (e: Event) => {
       const target:
@@ -129,7 +128,6 @@ function createOnChangeFactory(dataKey: string) {
           { dataKey, localRoot, pageName, value },
         )
       }
-      log.func('createOnChangeFactory').grey(value)
     }
   }
 }

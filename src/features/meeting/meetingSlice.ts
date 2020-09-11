@@ -20,7 +20,7 @@ export const initialMeetingState: MeetingState = {
   connected: false,
   connectError: null,
   connectTimedOut: false,
-  nodeState
+  // nodeState
 }
 
 const meeting = createSlice({

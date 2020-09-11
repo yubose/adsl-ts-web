@@ -18,7 +18,7 @@ import {
   RoomParticipant,
   RoomParticipantTrackPublication,
   RoomTrack,
-} from 'app/types/meeting'
+} from 'app/types/meetingTypes'
 import { isMobile } from 'utils/common'
 import makeLocalTracks from './makeLocalTracks'
 import makeParticipants from './makeParticipants'

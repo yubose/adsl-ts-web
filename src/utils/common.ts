@@ -1,6 +1,6 @@
 import { EnhancedStore, CombinedState } from '@reduxjs/toolkit'
-import { Draft } from 'immer'
 import _ from 'lodash'
+import { SerializedError } from 'app/types'
 
 /**
  * Runs a series of functions from left to right, passing in the argument of the
@@ -157,13 +157,6 @@ export function openOutboundURL(url: string) {
     a.setAttribute('rel', 'noopener noreferrer')
     a.click()
   }
-}
-
-export interface SerializedError {
-  name: string
-  message: string
-  code?: number
-  source?: string
 }
 
 export function serializeError(

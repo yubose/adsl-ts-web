@@ -23,7 +23,7 @@ module.exports = {
     hot: true,
     port: 3000,
   },
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
   externals: [],
   mode: 'development',
   module: {
@@ -40,7 +40,8 @@ module.exports = {
               plugins: [
                 'lodash',
                 '@babel/plugin-transform-runtime',
-                '@babel/plugin-proposal-class-properties',
+                ['@babel/plugin-proposal-class-properties', { loose: true }],
+                ['@babel/plugin-proposal-private-methods', { loose: true }],
               ],
             },
           },
@@ -49,7 +50,7 @@ module.exports = {
             options: {
               silent: true,
               transpileOnly: true,
-              allowTsInNodeModules: true,
+              allowTsInNodeModules: false,
             },
           },
         ],

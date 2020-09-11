@@ -25,16 +25,21 @@ import {
   NOODLComponentProps,
   Viewport,
 } from 'noodl-ui'
-import {
-  CachedPage,
-  ModalId,
-  OnBeforePageRenderArgs,
-  OnRootNodeInitializedArgs,
-  PageSnapshot,
-} from './app/types'
+import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { cadl, noodl } from './app/client'
-import { observeStore, reduceEntries, serializeError } from './utils/common'
-import { setPage, setRequestStatus } from './features/page'
+import { observeStore, reduceEntries } from './utils/common'
+import {
+  setPage,
+  setInitiatingPage,
+  setInitializingRootNode,
+  setInitializedRootNode,
+  setInitializeRootNodeFailed,
+  setRenderingComponents,
+  setRenderedComponents,
+  setRenderComponentsFailed,
+  setPageCached,
+  setReceivedSnapshot,
+} from './features/page'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
@@ -102,6 +107,7 @@ window.addEventListener('load', async () => {
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const store = createStore()
+  const dispatch = store.dispatch
   const viewport = new Viewport()
   const page = new Page({ store })
   const app = new App({ store, viewport })
@@ -122,25 +128,27 @@ window.addEventListener('load', async () => {
   })
 
   page.registerListener('onStart', (pageName) => {
-    store.dispatch(setRequestStatus({ pageName, pending: true }))
+    dispatch(setInitiatingPage())
   })
 
   page.registerListener('onRootNodeInitializing', () => {
+    dispatch(setInitializingRootNode())
     log.func('Listener -- onRootNodeInitializing')
     log.grey('Initializing root node')
   })
 
-  page.registerListener(
-    'onRootNodeInitialized',
-    (rootNode: OnRootNodeInitializedArgs) => {
-      log.func('Listener -- onRootNodeInitialized')
-      log.green('Root node initialized', rootNode)
-    },
-  )
+  // TODO - onRootNodeInitializeError
+
+  page.registerListener('onRootNodeInitialized', (rootNode: HTMLDivElement) => {
+    dispatch(setInitializedRootNode())
+    log.func('Listener -- onRootNodeInitialized')
+    log.green('Root node initialized', rootNode)
+  })
 
   page.registerListener(
     'onBeforePageRender',
-    async ({ pageName }: OnBeforePageRenderArgs) => {
+    async ({ pageName }: { pageName: string; rootNode: HTMLDivElement }) => {
+      dispatch(setRenderingComponents())
       const pageState = store.getState().page
       if (pageName === pageState.currentPage) {
         // Load the page in the SDK
@@ -202,13 +210,11 @@ window.addEventListener('load', async () => {
               onAfterResolve: lifeCycle.onAfterResolve,
             } as any)
 
-          log.func('Listener - onBeforePageRender').green('Initialized', noodl)
+          log.func('Listener - onBeforePageRender')
+          log.green('Initialized noodl-ui client', noodl)
         }
-        // Cache to rehydrate if they disconnect
-        // TODO
-        cachePage({ name: pageName })
+
         log.func('Listener -- onBeforePageRender')
-        log.grey(`Cached page: "${pageName}"`)
         const previousPage = store.getState().page.previousPage
         log.grey(`${previousPage} --> ${pageName}`, {
           previousPage,
@@ -238,8 +244,15 @@ window.addEventListener('load', async () => {
       pageName: string
       components: NOODLComponentProps[]
     }) => {
-      store.dispatch(setRequestStatus({ pageName, success: true }))
+      dispatch(setRenderedComponents())
+      log.func('onPageRendered')
+      log.green(`Done rendering DOM nodes for ${pageName}`)
       window.pcomponents = components
+      // Cache to rehydrate if they disconnect
+      // TODO
+      cachePage(pageName)
+      dispatch(setPageCached())
+      log.grey(`Cached page: "${pageName}"`)
     },
   )
 
@@ -248,7 +261,8 @@ window.addEventListener('load', async () => {
     ({ error, pageName }: { error: Error; pageName: string }) => {
       console.error(error)
       window.alert(error.message)
-      store.dispatch(setRequestStatus({ pageName, error }))
+      // TODO - narrow the reasons down more
+      dispatch(setRenderComponentsFailed(error))
     },
   )
 
@@ -268,12 +282,33 @@ window.addEventListener('load', async () => {
       log.grey('', { previousPage, nextPage: currentPage })
       if (currentPage) {
         const { snapshot } = (await page.navigate(currentPage)) || {}
+        dispatch(setReceivedSnapshot())
         if (snapshot?.name === 'VideoChat') {
           if (Meeting.room?.state === 'connected') {
             // TODO - handle attaching to video streams
           }
         } else {
           //
+        }
+      }
+    },
+  )
+
+  /** Starts the video chat streams as soon as the page is ready */
+  observeStore(
+    store,
+    createSelector(
+      (state) => state.page.currentPage,
+      (state) => state.page.renderState.snapshot,
+      (currentPage, snapshotStatus) => ({ currentPage, snapshotStatus }),
+    ),
+    ({ currentPage, snapshotStatus }) => {
+      if (snapshotStatus === 'received') {
+        if (currentPage === 'VideoChat') {
+          if (Meeting.room.state === 'connected') {
+            log.func('observeStore -- currentPage/renderState.status')
+            log.grey('Initializing media tracks')
+          }
         }
       }
     },
@@ -289,7 +324,7 @@ window.addEventListener('load', async () => {
     (modalState) => {
       const { id, opened, ...rest } = modalState
       if (opened) {
-        const modalId = modalIds[id as ModalId]
+        const modalId = modalIds[id as PageModalId]
         const modalComponent = modalComponents[modalId]
         if (modalComponent) {
           page.modal.open(id, modalComponent, { opened, ...rest })
@@ -320,19 +355,19 @@ window.addEventListener('load', async () => {
     }
   }
 
+  // Override the start page if they were on a previous page
   const cachedPages = getCachedPages()
   if (cachedPages?.length) {
-    const previousPage = cachedPages[0]?.name
+    const cachedPage = cachedPages[0]?.name
     // Compare the two pages to make an informed decision before setting it
-    if (previousPage) {
+    if (cachedPage) {
       log.func().grey('Comparing cached page vs startPage', {
-        cachedPages,
         startPage,
-        authState: store.getState().auth,
-        pageState: store.getState().page,
+        cachedPage,
       })
-    } else {
-      // startPage = previousPage
+      if (cachedPage !== startPage) {
+        startPage = cachedPage
+      }
     }
   }
 
@@ -340,19 +375,18 @@ window.addEventListener('load', async () => {
 })
 
 /** Adds the current page name to the end in the list of cached pages */
-function cachePage(name: CachedPage | CachedPage[]) {
-  const newPages = _.isArray(name) ? name : [name]
-  if (newPages.length) {
-    const prevCache = getCachedPages()
-    const nextCache = newPages.concat(prevCache)
-    if (nextCache.length >= 4) nextCache.shift()
-    setCachedPages(nextCache)
-  }
+function cachePage(name: string) {
+  const cacheObj = { name } as CachedPageObject
+  const prevCache = getCachedPages()
+  const cache = [cacheObj, ...prevCache]
+  if (cache.length >= 4) cache.pop()
+  cacheObj.timestamp = Date.now()
+  setCachedPages(cache)
 }
 
 /** Retrieves a list of cached pages */
-function getCachedPages(): CachedPage[] {
-  let result: CachedPage[] = []
+function getCachedPages(): CachedPageObject[] {
+  let result: CachedPageObject[] = []
   const pageHistory = window.localStorage.getItem(CACHED_PAGES)
   if (pageHistory) {
     try {
@@ -365,6 +399,6 @@ function getCachedPages(): CachedPage[] {
 }
 
 /** Sets the list of cached pages */
-function setCachedPages(cache: CachedPage[]) {
+function setCachedPages(cache: CachedPageObject[]) {
   window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
 }

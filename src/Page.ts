@@ -145,10 +145,8 @@ class Page {
    * Returns the link to the main dashboard page by using the noodl base url
    * @param { string } baseUrl - Base url retrieved from the noodl config
    */
-  public getDashboardPath(baseUrl: string = cadl.cadlBaseUrl || '') {
-    const isMeetingConfig = /meeting/i.test(baseUrl)
-    const regex = isMeetingConfig ? /(dashboardmeeting|meeting)/i : /dashboard/i
-    return this.getPagePath(regex)
+  public getDashboardPath() {
+    return this.getPagePath(/meeting/)
   }
 
   /** Handles onClick events for "goTo" handling.

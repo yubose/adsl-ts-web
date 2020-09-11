@@ -1,8 +1,8 @@
 import VerificationCode from './VerificationCode'
-import { ModalId } from 'app/types'
+import { PageModalId } from 'app/types'
 import { modalIds } from '../../constants'
 
-const componentMap: Record<ModalId, any> = {
+const componentMap: Record<PageModalId, any> = {
   [modalIds.VERIFICATON_CODE]: VerificationCode,
 }
 

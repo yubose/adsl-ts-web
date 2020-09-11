@@ -1,23 +1,25 @@
+import { Viewport } from 'noodl-ui'
 import {
-  connect,
+  ConnectOptions,
   LocalParticipant,
   LocalTrack,
   LocalTrackPublication,
-  LocalVideoTrackPublication,
-  LocalAudioTrackPublication,
   Room,
   RemoteParticipant,
   RemoteTrack,
-  RemoteTrackPublication,, ConnectOptions 
+  RemoteTrackPublication,
 } from 'twilio-video'
+import { AppStore, IPage } from '.'
 
 export type RoomParticipant = LocalParticipant | RemoteParticipant
-export type RoomParticipantTrackPublication = LocalTrackPublication | RemoteTrackPublication
+export type RoomParticipantTrackPublication =
+  | LocalTrackPublication
+  | RemoteTrackPublication
 export type RoomTrack = LocalTrack | RemoteTrack
 
 export interface InitializeMeetingOptions {
   store: AppStore
-  page: Page
+  page: IPage
   viewport: Viewport
 }
 
@@ -43,6 +45,6 @@ export interface IMeeting {
     inviteOthers: ReturnType<IMeeting['getInviteOthersElement']>
     vidoeSubStream: ReturnType<IMeeting['getParticipantsListElement']>
   }
-  onConnected?(room: Room):any
+  onConnected?(room: Room): any
   room: Room
 }

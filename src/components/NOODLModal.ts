@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import { forEachEntries } from 'utils/common'
 import NOODLElement from 'components/NOODLElement'
-import { ModalState, Styles } from 'app/types'
+import { PageModalState, Styles } from 'app/types'
 
 class Modal extends NOODLElement {
   public _id: string = 'noodl-ui-modal'
-  public context: ModalState['context'] = null
-  public props: ModalState['props'] = {}
-  public opened: ModalState['opened'] = false
-  public id: ModalState['id'] = ''
+  public context: PageModalState['context'] = null
+  public props: PageModalState['props'] = {}
+  public opened: PageModalState['opened'] = false
+  public id: PageModalState['id'] = ''
   public body: HTMLDivElement
 
   constructor({
@@ -72,7 +72,7 @@ class Modal extends NOODLElement {
   public open(
     id: string,
     children: HTMLElement | NOODLElement | string | number | undefined,
-    options: Omit<ModalState, 'id'>,
+    options: Omit<PageModalState, 'id'>,
   ) {
     if (!this.isRendered()) {
       this.id = id

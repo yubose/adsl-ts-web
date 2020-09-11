@@ -5,7 +5,7 @@ import { forEachEntries } from 'utils/common'
 interface ILogger extends ColorFuncs {
   log: Console['log']
   id: string
-  func(name: string): this
+  func(name?: string): this
   initialize(): this
   stringifyArgs({
     color,
@@ -21,7 +21,7 @@ const _color = {
   cyan: '#00D8C2',
   gold: '#c4a901',
   green: '#00b406',
-  grey: '#95a5a6',
+  grey: '#484b64',
   hotpink: '#e50087',
   info: '#3498db',
   magenta: 'magenta',
@@ -38,11 +38,12 @@ type ColorFuncs = Record<ColorKey, Console['log']>
 const logger = (function () {
   const cache: { [loggerId: string]: ILogger } = {}
   const cons = window.console
+  const _bold = 'font-weight:bold;'
 
   function get(id: string) {
     const _state = { id, func: '' }
 
-    const o = {
+    const o: ILogger = {
       func(name?: string) {
         if (name) _state.func = name
         else _state.func = ''
@@ -64,10 +65,11 @@ const logger = (function () {
     }: { color?: string; data?: any } = {}) {
       let msg = `[${_state.id}]`
       if (_state.func) msg += `[${_state.func}]`
-      let args = [
-        `%c${msg} %s`,
-        `color:${color || _color.grey};font-weight:bold;`,
-      ]
+      let args = [`%c${msg} %s`, `color:${color || _color.grey};${_bold}`]
+      if (args[1].includes(_color.grey)) {
+        // Remove the unnecessary bold effect to make it easier on the eyes
+        args[1] = args[1].replace(_bold, 'font-weight:100;')
+      }
       if (data) args.push(data)
       return args
     }

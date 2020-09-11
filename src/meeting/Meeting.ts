@@ -21,7 +21,7 @@ import {
 import { AppStore } from 'app/types'
 import { isMobile } from 'utils/common'
 import { forEachParticipant, forEachParticipantTrack } from 'utils/twilio'
-import * as T from 'app/types/meeting'
+import * as T from 'app/types/meetingTypes'
 import Page from '../Page'
 import makeDominantSpeaker, {
   AppDominantSpeaker,
@@ -42,6 +42,7 @@ const Meeting = (function () {
   let _store: AppStore
   let _viewport: Viewport
   let _room: Room = new EventEmitter() as Room
+  let _token = ''
 
   const o: T.IMeeting = {
     initialize({ store, page, viewport }: T.InitializeMeetingOptions) {
@@ -57,6 +58,7 @@ const Meeting = (function () {
      */
     async join(token: string, options?: ConnectOptions) {
       try {
+        _token = token
         _store.dispatch(connecting())
         // TODO: timeout
         const room = await connect(token, {
@@ -74,9 +76,10 @@ const Meeting = (function () {
             },
           },
         })
+        _room = room
         _store.dispatch(connected())
         Meeting.onConnected?.(room)
-        _handleRoomCreated(room)
+        o.initializeMedia = _handleRoomCreated
         return room
       } catch (error) {
         _store.dispatch(connectError(error))
@@ -89,6 +92,12 @@ const Meeting = (function () {
     },
     get room() {
       return _room
+    },
+    get token() {
+      return _token
+    },
+    set token(token: string) {
+      _token = token
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {
@@ -173,9 +182,14 @@ const Meeting = (function () {
       const publications = Array.from(room.localParticipant?.tracks?.values?.())
       const publication = _.find(publications, (p) => p.kind === 'video')
       const videoTrack = publication?.track as LocalVideoTrack
+      console.log(videoTrack)
+      console.log(videoTrack)
       if (videoTrack) {
         // TODO: attach to selfStream element
-        videoTrack.attach(selfStreamElem)
+        const videoElem = videoTrack.attach()
+        if (!selfStreamElem.contains(videoElem)) {
+          selfStreamElem.appendChild(videoElem)
+        }
       } else {
         log.func('_handleRoomCreated')
         log.red(
