@@ -25,6 +25,9 @@ export interface InitializeMeetingOptions {
 
 export interface IMeeting {
   initialize(options: InitializeMeetingOptions): this
+  isLocalParticipant(
+    participant: RoomParticipant,
+  ): participant is LocalParticipant
   join(token: string, options?: ConnectOptions): Promise<Room>
   leave(): this
   getMainStreamElement(): HTMLDivElement | null
@@ -46,5 +49,6 @@ export interface IMeeting {
     vidoeSubStream: ReturnType<IMeeting['getParticipantsListElement']>
   }
   onConnected?(room: Room): any
+  resetRoom(): this
   room: Room
 }

@@ -21,7 +21,7 @@ const _color = {
   cyan: '#00D8C2',
   gold: '#c4a901',
   green: '#00b406',
-  grey: '#484b64',
+  grey: '#828282',
   hotpink: '#e50087',
   info: '#3498db',
   magenta: 'magenta',

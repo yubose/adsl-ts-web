@@ -25,9 +25,21 @@ import {
   NOODLComponentProps,
   Viewport,
 } from 'noodl-ui'
-import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
+import {
+  CachedPageObject,
+  PageModalId,
+  PageSnapshot,
+  RoomParticipant,
+  RoomParticipantTrackPublication,
+  RoomTrack,
+} from './app/types'
 import { cadl, noodl } from './app/client'
-import { observeStore, reduceEntries } from './utils/common'
+import { createStoreObserver, isMobile, reduceEntries } from './utils/common'
+import {
+  attachVideoTrack,
+  forEachParticipant,
+  forEachParticipantTrack,
+} from './utils/twilio'
 import {
   setPage,
   setInitiatingPage,
@@ -51,6 +63,11 @@ import Meeting from './Meeting'
 import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
+import {
+  LocalAudioTrackPublication,
+  LocalVideoTrack,
+  LocalVideoTrackPublication,
+} from 'twilio-video'
 
 const log = Logger.create('src/index.ts')
 
@@ -107,9 +124,10 @@ window.addEventListener('load', async () => {
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const store = createStore()
+  const observeStore = createStoreObserver(store)
   const dispatch = store.dispatch
   const viewport = new Viewport()
-  const page = new Page({ store })
+  const page = new Page()
   const app = new App({ store, viewport })
   const builtIn = createBuiltInActions({ page, store })
   const actions = enhanceActions(createActions({ page, store }))
@@ -203,6 +221,7 @@ window.addEventListener('load', async () => {
                 toggleCameraOnOff: builtIn.toggleCameraOnOff,
                 toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
               },
+              onBeforeResolve: lifeCycle.onBeforeResolve,
               onChainStart: lifeCycle.onChainStart,
               onChainEnd: lifeCycle.onChainEnd,
               onChainError: lifeCycle.onChainError,
@@ -214,8 +233,8 @@ window.addEventListener('load', async () => {
           log.green('Initialized noodl-ui client', noodl)
         }
 
-        log.func('Listener -- onBeforePageRender')
         const previousPage = store.getState().page.previousPage
+        log.func('Listener -- onBeforePageRender')
         log.grey(`${previousPage} --> ${pageName}`, {
           previousPage,
           nextPage: pageSnapshot,
@@ -267,11 +286,10 @@ window.addEventListener('load', async () => {
   )
 
   /**
-   * Respnsible for triggering the page.navigate from state changes
-   * Dispatch setPage to navigate
+   * Triggers the page.navigate from state changes.
+   * Dispatch setPage to trigger this observer
    */
   observeStore(
-    store,
     createSelector(
       (state) => state.page.previousPage,
       (state) => state.page.currentPage,
@@ -296,7 +314,6 @@ window.addEventListener('load', async () => {
 
   /** Starts the video chat streams as soon as the page is ready */
   observeStore(
-    store,
     createSelector(
       (state) => state.page.currentPage,
       (state) => state.page.renderState.snapshot,
@@ -314,9 +331,11 @@ window.addEventListener('load', async () => {
     },
   )
 
-  /** Responsible for managing the modal component */
+  /**
+   * Triggers opening/closing the modal if a matching modal id is set
+   * Dispatch openModal/closeModal to open/close this modal
+   */
   observeStore(
-    store,
     createSelector(
       (state) => state.page.modal,
       (modalState) => modalState,
@@ -340,6 +359,136 @@ window.addEventListener('load', async () => {
       }
     },
   )
+
+  /**
+   * Callback invoked when Meeting.joinRoom receives the room instance.
+   * Initiates participant tracks as well as register listeners for state changes on
+   * the room instance.
+   * @param { Room } room - Room instance
+   */
+  Meeting.onConnected = function (room) {
+    /* -------------------------------------------------------
+      ---- REGISTERING THE LISTENERS
+    -------------------------------------------------------- */
+    // Disconnect using the room instance
+    function disconnect() {
+      room.disconnect?.()
+    }
+    // Callback runs when the LocalParticipant disconnects
+    function disconnected() {
+      const unpublishTracks = (
+        trackPublication:
+          | LocalVideoTrackPublication
+          | LocalAudioTrackPublication,
+      ) => {
+        trackPublication?.track?.stop?.()
+        trackPublication?.unpublish?.()
+      }
+      // Unpublish local tracks
+      room.localParticipant.videoTracks.forEach(unpublishTracks)
+      room.localParticipant.audioTracks.forEach(unpublishTracks)
+      // Reset the room only after all other `disconnected` listeners have been called.
+      Meeting.resetRoom()
+      window.removeEventListener('beforeunload', disconnect)
+      if (isMobile()) window.removeEventListener('pagehide', disconnect)
+    }
+
+    room.once('disconnected', disconnected)
+    // Add a listener to disconnect from the room when a desktop user closes their browser
+    window.addEventListener('beforeunload', disconnect)
+    // Add a listener to disconnect from the room when a mobile user closes their browser
+    if (isMobile()) window.addEventListener('pagehide', disconnect)
+
+    /* -------------------------------------------------------
+      ---- INITIATING MEDIA TRACKS / STREAMS 
+    -------------------------------------------------------- */
+    // selfStream
+    let selfStreamElem = Meeting.getSelfStreamElement()
+    if (selfStreamElem) {
+      const publications = Array.from(room.localParticipant?.tracks?.values?.())
+      const publication = _.find(publications, (p) => p.kind === 'video')
+      const videoTrack = publication?.track as LocalVideoTrack
+      if (videoTrack) {
+        attachVideoTrack(selfStreamElem, videoTrack)
+      } else {
+        log.func('Meeting.onConnected')
+        log.red(
+          `Tried to attach a video track to the selfStream but no videoTrack ` +
+            `was available`,
+          room.localParticipant,
+        )
+      }
+    } else {
+      log.func('Meeting.onConnected')
+      log.red(
+        `Attempted to attach your video to the selfStream but could not find the ` +
+          `selfStream node`,
+        Meeting.getVideoChatElements(),
+      )
+    }
+
+    // subStreams (remote participants)
+    forEachParticipant(room.participants, handleTrackPublish)
+
+    /**
+     * Handle tracks published as well as tracks that are going to be published
+     * by the participant later
+     * @param { LocalParticipant | RemoteParticipant } participant
+     */
+    function handleTrackPublish(participant: RoomParticipant) {
+      const onTrackPublished = _.partialRight(handleTrackAttach, participant)
+      forEachParticipantTrack(participant.tracks, onTrackPublished)
+      participant.on('trackPublished', onTrackPublished)
+    }
+
+    /**
+     * Attach the published track to the DOM once it is subscribed
+     * @param { RoomParticipantTrackPublication } publication - Track publication
+     * @param { RoomParticipant } participant
+     */
+    function handleTrackAttach(
+      publication: RoomParticipantTrackPublication,
+      participant: RoomParticipant,
+    ) {
+      // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
+      if (publication.track) {
+        attachTrack(publication.track, participant)
+      }
+      // Local participant is subscribed to this remote track
+      publication.on('subscribed', _.partialRight(attachTrack, participant))
+      publication.on('unsubscribed', _.partialRight(detachTrack, participant))
+    }
+
+    /**
+     * Attaches a track to the DOM
+     * @param { RoomTrack } track - Track from the room instance
+     * @param { RoomParticipant } participant - Participant from the room instance
+     */
+    function attachTrack(track: RoomTrack, participant: RoomParticipant) {
+      if (!Meeting.isLocalParticipant(participant)) {
+        if (track.kind === 'audio') {
+          //
+        } else if (track.kind === 'video') {
+          //
+        }
+      }
+    }
+
+    /**
+     * Removes a track from the DOM
+     * @param { RoomTrack } track - Track from the room instance
+     * @param { RoomParticipant } participant - Participant from the room instance
+     */
+    function detachTrack(track: RoomTrack, participant: RoomParticipant) {
+      if (!Meeting.isLocalParticipant(participant)) {
+        if (track.kind === 'audio') {
+          //
+        } else if (track.kind === 'video') {
+          //
+        }
+      }
+    }
+  }
 
   // Register the onresize listener once, if it isn't already registered
   if (viewport.onResize === undefined) {

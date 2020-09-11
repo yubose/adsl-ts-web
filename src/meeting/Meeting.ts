@@ -3,10 +3,8 @@ import { EventEmitter } from 'events'
 import {
   connect,
   ConnectOptions,
-  LocalAudioTrackPublication,
   LocalParticipant,
   LocalVideoTrack,
-  LocalVideoTrackPublication,
   RemoteParticipant,
   Room,
   TrackPublication,
@@ -20,35 +18,37 @@ import {
 } from 'features/meeting'
 import { AppStore } from 'app/types'
 import { isMobile } from 'utils/common'
-import { forEachParticipant, forEachParticipantTrack } from 'utils/twilio'
 import * as T from 'app/types/meetingTypes'
 import Page from '../Page'
-import makeDominantSpeaker, {
-  AppDominantSpeaker,
-  DominantSpeaker,
-} from './makeDominantSpeaker'
-import makeLocalTracks, { AppLocalTracks } from './makeLocalTracks'
-import makeParticipants, { AppParticipants } from './makeParticipants'
-import makeRoom, { AppRoom } from './makeRoom'
 import Logger from '../app/Logger'
 
 const log = Logger.create('Meeting.ts')
+
+interface Internal {
+  _page: Page | undefined
+  _store: AppStore | undefined
+  _viewport: Viewport | undefined
+  _room: Room
+  _token: string
+}
 
 // import makePublications from './makePublications'
 // import makeTrack from './makeTrack'
 
 const Meeting = (function () {
-  let _page: Page
-  let _store: AppStore
-  let _viewport: Viewport
-  let _room: Room = new EventEmitter() as Room
-  let _token = ''
+  const _internal: Internal = {
+    _page: undefined,
+    _store: undefined,
+    _viewport: undefined,
+    _room: new EventEmitter() as Room,
+    _token: '',
+  } as Internal
 
   const o: T.IMeeting = {
     initialize({ store, page, viewport }: T.InitializeMeetingOptions) {
-      _store = store
-      _page = page
-      _viewport = viewport
+      _internal['_store'] = store
+      _internal['_page'] = page
+      _internal['_viewport'] = viewport
       return this
     },
     /**
@@ -58,9 +58,9 @@ const Meeting = (function () {
      */
     async join(token: string, options?: ConnectOptions) {
       try {
-        _token = token
-        _store.dispatch(connecting())
-        // TODO: timeout
+        _internal['_token'] = token
+        _internal._store?.dispatch(connecting())
+        // TODO - timeout
         const room = await connect(token, {
           dominantSpeaker: true,
           logLevel: 'info',
@@ -76,28 +76,40 @@ const Meeting = (function () {
             },
           },
         })
-        _room = room
-        _store.dispatch(connected())
-        Meeting.onConnected?.(room)
-        o.initializeMedia = _handleRoomCreated
-        return room
+        _internal['_room'] = room
+        _internal._store?.dispatch(connected())
+        // TEMPORARY
+        setTimeout(() => {
+          Meeting.onConnected?.(room)
+        }, 2000)
+        // _handleRoomCreated
+        return _internal._room
       } catch (error) {
-        _store.dispatch(connectError(error))
+        _internal._store?.dispatch(connectError(error))
         throw error
       }
     },
     leave() {
-      _room?.disconnect?.()
+      _internal._room?.disconnect?.()
       return this
     },
+    isLocalParticipant(
+      participant: T.RoomParticipant,
+    ): participant is LocalParticipant {
+      return participant === _internal._room?.localParticipant
+    },
     get room() {
-      return _room
+      return _internal._room
+    },
+    resetRoom() {
+      _internal._room = new EventEmitter() as Room
+      return this
     },
     get token() {
-      return _token
+      return _internal._token
     },
     set token(token: string) {
-      _token = token
+      _internal._token = token
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {
@@ -151,31 +163,6 @@ const Meeting = (function () {
    * @param { Room } room - Room instance
    */
   function _handleRoomCreated(room: Room) {
-    // Disconnect using the room instance
-    function disconnect() {
-      room.disconnect?.()
-    }
-    // Callback runs when the LocalParticipant disconnects
-    function disconnected() {
-      const unpublishTracks = (
-        trackPublication:
-          | LocalVideoTrackPublication
-          | LocalAudioTrackPublication,
-      ) => {
-        trackPublication?.track?.stop?.()
-        trackPublication?.unpublish?.()
-      }
-      // Unpublish local tracks
-      room.localParticipant.videoTracks.forEach(unpublishTracks)
-      room.localParticipant.audioTracks.forEach(unpublishTracks)
-      // Reset the room only after all other `disconnected` listeners have been called.
-      _room = new EventEmitter() as Room
-      window.removeEventListener('beforeunload', disconnect)
-      if (isMobile()) window.removeEventListener('pagehide', disconnect)
-    }
-
-    room.once('disconnected', disconnected)
-
     // Initialize the selfStream component
     const selfStreamElem = Meeting.getSelfStreamElement()
     if (selfStreamElem) {
@@ -224,98 +211,6 @@ const Meeting = (function () {
 
     window.room = room
     window.lparticipant = room.localParticipant
-
-    // Add a listener to disconnect from the room when a user closes their browser
-    window.addEventListener('beforeunload', disconnect)
-    // Add a listener to disconnect from the room when a mobile user closes their browser
-    if (isMobile()) window.addEventListener('pagehide', disconnect)
-    forEachParticipant(room.participants, _handleTrackPublish)
-  }
-
-  /**
-   * Handle tracks published as well as tracks that are going to be published
-   * by the participant later
-   * @param { LocalParticipant | RemoteParticipant } participant
-   */
-  function _handleTrackPublish(participant: T.RoomParticipant) {
-    const onTrackPublished = _.partialRight(_handleTrackAttach, participant)
-    forEachParticipantTrack(participant.tracks, onTrackPublished)
-    participant.on('trackPublished', onTrackPublished)
-  }
-
-  /**
-   * Attach the published track to the DOM once it is subscribed
-   * @param { RoomParticipantTrackPublication } publication - Track publication
-   * @param { RoomParticipant } participant
-   */
-  function _handleTrackAttach(
-    publication: T.RoomParticipantTrackPublication,
-    participant: T.RoomParticipant,
-  ) {
-    // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
-    if (publication.track) {
-      _attachTrack(publication.track, participant)
-    }
-    // Local participant is subscribed to this remote track
-    publication.on('subscribed', _.partialRight(_attachTrack, participant))
-    publication.on('unsubscribed', _.partialRight(_detachTrack, participant))
-  }
-
-  /**
-   * Attaches a track to the DOM
-   * @param { RoomTrack } track - Track from the room instance
-   * @param { RoomParticipant } participant - Participant from the room instance
-   */
-  function _attachTrack(track: T.RoomTrack, participant: T.RoomParticipant) {
-    if (_isLocalParticipant(participant)) {
-      // TODO: attach to selfStream element
-      if (track.kind !== 'data') {
-        const selfStreamElem = o.getSelfStreamElement()
-        if (selfStreamElem) {
-          track.attach(selfStreamElem)
-        } else {
-          log
-            .func('_attachTrack')
-            .log.red(
-              `Tried to attach a ${track.kind} track to the selfStream but could ` +
-                `not find DOM node`,
-              participant,
-            )
-        }
-      }
-    } else {
-      //
-    }
-  }
-
-  /**
-   * Removes a track from the DOM
-   * @param { RoomTrack } track - Track from the room instance
-   * @param { RoomParticipant } participant - Participant from the room instance
-   */
-  function _detachTrack(track: T.RoomTrack, participant: T.RoomParticipant) {
-    if (_isLocalParticipant(participant)) {
-      if (track.kind !== 'data') {
-        const selfStreamElem = o.getSelfStreamElement()
-        if (selfStreamElem) {
-          track.detach(selfStreamElem)
-        } else {
-          log
-            .func('_detachTrack')
-            .red(
-              `Tried to detach a ${track.kind} track to the selfStream but could ` +
-                `not find DOM node`,
-              { participant, track },
-            )
-        }
-      }
-    }
-  }
-
-  function _isLocalParticipant(
-    participant: T.RoomParticipant,
-  ): participant is LocalParticipant {
-    return participant === _room?.localParticipant
   }
 
   return o

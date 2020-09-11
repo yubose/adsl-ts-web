@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { getByText, getByTestId, prettyDOM } from '@testing-library/dom'
+import { getByText } from '@testing-library/dom'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import { noodl } from 'setupTests'
 import { mapUserEvent } from 'utils/test-utils'

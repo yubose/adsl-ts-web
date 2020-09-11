@@ -1,6 +1,6 @@
 import { EnhancedStore, CombinedState } from '@reduxjs/toolkit'
 import _ from 'lodash'
-import { SerializedError } from 'app/types'
+import { AppStore, SerializedError } from 'app/types'
 
 /**
  * Runs a series of functions from left to right, passing in the argument of the
@@ -118,31 +118,36 @@ export function isUnicode(value: unknown) {
 }
 
 /**
- * Utility to register observers to the store that is interested in changes to
- * some state slice. The returned function is a callback that unsubscribes itself
- * when called
+ * Utility to create a factory that creates an observer to the store
+ * that is interested in changes to some state slice. The returned
+ * function is a callback that unsubscribes itself when called
  * @param { AppStore } store
- * @param { function } select - Selector that receives the state whenever it changes
- * @param { function } onChange - Callback function that will receive the updated state slice
  */
-export function observeStore<StoreState, StateSlice>(
+export function createStoreObserver<StoreState>(
   store: EnhancedStore<CombinedState<StoreState>>,
-  select: (state: StoreState) => StateSlice,
-  onChange: (slice: StateSlice) => void,
 ) {
-  let currentState: StateSlice
+  /**
+   * @param { function } select - Selector that receives the state whenever it changes
+   * @param { function } onChange - Callback function that will receive the updated state slice
+   */
+  return function observeStore<StateSlice>(
+    select: (state: StoreState) => StateSlice,
+    onChange: (slice: StateSlice) => void,
+  ) {
+    let currentState: StateSlice
 
-  function handleChange() {
-    let nextState = select(store.getState())
-    if (nextState !== currentState) {
-      currentState = nextState
-      onChange(currentState)
+    function handleChange() {
+      let nextState = select(store.getState())
+      if (nextState !== currentState) {
+        currentState = nextState
+        onChange(currentState)
+      }
     }
-  }
 
-  let unsubscribe = store.subscribe(handleChange)
-  handleChange()
-  return unsubscribe
+    let unsubscribe = store.subscribe(handleChange)
+    handleChange()
+    return unsubscribe
+  }
 }
 
 /**

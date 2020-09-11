@@ -6,11 +6,7 @@ import {
 } from 'noodl-ui'
 import { openOutboundURL } from './utils/common'
 import { cadl, noodl } from './app/client'
-import {
-  OnRootNodeInitializedArgs,
-  OnBeforePageRenderArgs,
-  PageSnapshot,
-} from './app/types'
+import { PageSnapshot } from './app/types'
 import parser from './utils/parser'
 import Modal from './components/NOODLModal'
 import Logger from './app/Logger'
@@ -46,7 +42,7 @@ class Page {
   public nodes: HTMLElement[] | null
   public modal: Modal
 
-  constructor({ builtIn, rootNode = null, nodes = null }: PageOptions) {
+  constructor({ builtIn, rootNode = null, nodes = null }: PageOptions = {}) {
     this.builtIn = builtIn
     this.rootNode = rootNode
     this.nodes = nodes
@@ -107,7 +103,7 @@ class Page {
         pageSnapshot = await this._callListener('onBeforePageRender', {
           pageName,
           rootNode: this.rootNode,
-        } as OnBeforePageRenderArgs)
+        })
 
         const rendered = this.render(
           pageSnapshot?.object?.components as NOODLComponent[],

@@ -6,6 +6,15 @@ import {
   ResolverConsumerOptions,
 } from 'noodl-ui'
 
+export function onBeforeResolve(
+  actions: NOODLChainActionObject[],
+  options: ActionChainActionCallbackOptions,
+) {
+  const logMsg = `%c[onBeforeResolve]`
+  const logStyle = `color:#e50087;font-weight:bold;`
+  console.log(logMsg, logStyle, { actions, options })
+}
+
 export function onChainStart(
   actions: NOODLChainActionObject[],
   options: ActionChainActionCallbackOptions,
