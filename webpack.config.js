@@ -12,7 +12,13 @@ console.log('-------------------------------------------')
 console.log('')
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: './src/Meeting/NOODLStreams.ts',
+  output: {
+    filename: 'index.js',
+    // filename: '[name].[hash].js',
+    path: path.resolve(__dirname, 'build'),
+  },
+  // entry: './src/index.ts',
   devServer: {
     compress: false,
     contentBase: [
@@ -39,7 +45,7 @@ module.exports = {
               presets: ['@babel/preset-env'],
               plugins: [
                 'lodash',
-                '@babel/plugin-transform-runtime',
+                // '@babel/plugin-transform-runtime',
                 ['@babel/plugin-proposal-class-properties', { loose: true }],
                 ['@babel/plugin-proposal-private-methods', { loose: true }],
               ],
@@ -63,11 +69,11 @@ module.exports = {
             loader: 'css-loader',
             options: {
               importLoaders: 1,
-              modules: true,
+              modules: false,
             },
           },
         ],
-        include: /\.module\.css$/,
+        // include: /\.module\.css$/,
       },
       {
         test: /\.css$/,
@@ -84,19 +90,14 @@ module.exports = {
     extensions: ['.ts', '.js'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
-  output: {
-    filename: 'index.js',
-    // filename: '[name].[hash].js',
-    path: path.resolve(__dirname, 'build'),
-  },
   plugins: [
-    new BundleStatsWebpackPlugin({
-      baseline: true,
-    }),
-    new CircularDependencyPlugin({
-      exclude: /node_modules/,
-      include: /src/,
-    }),
+    // new BundleStatsWebpackPlugin({
+    //   baseline: true,
+    // }),
+    // new CircularDependencyPlugin({
+    //   exclude: /node_modules/,
+    //   include: /src/,
+    // }),
     new webpack.EnvironmentPlugin({
       'process.env.ECOS_ENV': process.env.ECOS_ENV,
     }),
@@ -107,6 +108,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       filename: 'index.html',
       title: 'AiTmed Web',
+      cache: true,
     }),
   ],
 }

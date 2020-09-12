@@ -36,10 +36,6 @@ export function forEachParticipantTrack(
   tracks?.forEach(cb)
 }
 
-export function isMediaTrack(track: RemoteTrack) {
-  return ['audio', 'video'].includes(track?.kind || '')
-}
-
 /**
  * Helper to attach the video track to the node. Setting these style properties
  * are required for the video to align with the parentNode's dimensions

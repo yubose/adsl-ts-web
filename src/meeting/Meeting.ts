@@ -44,6 +44,27 @@ const Meeting = (function () {
     _token: '',
   } as Internal
 
+  const _streams = {
+    mainStream: null, // Dominant speaker --> Local participant / Remote participant
+    selfStream: null, // Local participant
+    subStream: [], // Remote participants
+  }
+
+  function _getStreamElem(uxTag: string) {
+    const node = getByDataUX(uxTag)
+    if (node) {
+      switch (uxTag) {
+        case 'mainStream':
+        case 'selfStream':
+        case 'subStream':
+        case 'vidoeSubStream':
+        default:
+          break
+      }
+    }
+    return node
+  }
+
   const o: T.IMeeting = {
     initialize({ store, page, viewport }: T.InitializeMeetingOptions) {
       _internal['_store'] = store
@@ -163,36 +184,6 @@ const Meeting = (function () {
    * @param { Room } room - Room instance
    */
   function _handleRoomCreated(room: Room) {
-    // Initialize the selfStream component
-    const selfStreamElem = Meeting.getSelfStreamElement()
-    if (selfStreamElem) {
-      const publications = Array.from(room.localParticipant?.tracks?.values?.())
-      const publication = _.find(publications, (p) => p.kind === 'video')
-      const videoTrack = publication?.track as LocalVideoTrack
-      console.log(videoTrack)
-      console.log(videoTrack)
-      if (videoTrack) {
-        // TODO: attach to selfStream element
-        const videoElem = videoTrack.attach()
-        if (!selfStreamElem.contains(videoElem)) {
-          selfStreamElem.appendChild(videoElem)
-        }
-      } else {
-        log.func('_handleRoomCreated')
-        log.red(
-          `Tried to attach a video track to the selfStream but no videoTrack ` +
-            `was available`,
-          room.localParticipant,
-        )
-      }
-    } else {
-      log.func('_handleRoomCreated')
-      log.red(
-        `Attempted to attach your video to the selfStream but could not find the ` +
-          `selfStream node`,
-      )
-    }
-
     // Experimental
     const emitRemoteTracks = (participant: RemoteParticipant) => (
       trackPublication: TrackPublication,

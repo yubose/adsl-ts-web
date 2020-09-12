@@ -2,9 +2,9 @@ import _ from 'lodash'
 import { NOODLComponentProps } from 'noodl-ui'
 import { DOMNode, NOODLDOMTagName, Parser } from 'app/types'
 import createElement from 'utils/createElement'
-import createLogger from 'utils/log'
+import Logger from './Logger'
 
-const log = createLogger('NOODLDOMParser.ts')
+const log = Logger.create('NOODLDOMParser.ts')
 
 class NOODLDOMParser {
   #cache: {

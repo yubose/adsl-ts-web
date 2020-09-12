@@ -370,6 +370,7 @@ window.addEventListener('load', async () => {
     /* -------------------------------------------------------
       ---- REGISTERING THE LISTENERS
     -------------------------------------------------------- */
+
     // Disconnect using the room instance
     function disconnect() {
       room.disconnect?.()
@@ -490,6 +491,10 @@ window.addEventListener('load', async () => {
     }
   }
 
+  /* -------------------------------------------------------
+    ---- VIEWPORT / WINDOW SIZING
+  -------------------------------------------------------- */
+
   // Register the onresize listener once, if it isn't already registered
   if (viewport.onResize === undefined) {
     viewport.onResize = (newSizes) => {
@@ -503,6 +508,10 @@ window.addEventListener('load', async () => {
       }
     }
   }
+
+  /* -------------------------------------------------------
+    ---- LOCAL STORAGE
+  -------------------------------------------------------- */
 
   // Override the start page if they were on a previous page
   const cachedPages = getCachedPages()
@@ -523,6 +532,9 @@ window.addEventListener('load', async () => {
   store.dispatch(setPage(startPage))
 })
 
+/* -------------------------------------------------------
+  ---- LOCAL STORAGE HELPERS FOR CACHED PAGES
+-------------------------------------------------------- */
 /** Adds the current page name to the end in the list of cached pages */
 function cachePage(name: string) {
   const cacheObj = { name } as CachedPageObject

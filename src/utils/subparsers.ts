@@ -2,9 +2,9 @@ import _ from 'lodash'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import { DOMNode, ParserOptions } from 'app/types'
 import { noodl } from 'app/client'
-import createLogger from './log'
+import Logger from 'app/Logger'
 
-const log = createLogger('subparsers.ts')
+const log = Logger.create('subparsers.ts')
 
 export interface SubparserArgs {
   listData?: any[]
