@@ -50,6 +50,11 @@ const Meeting = (function () {
     subStream: [], // Remote participants
   }
 
+  /**
+   * Retrieves a stream element using the data-ux tag.
+   * This also handles updates to adding/removing streams as observers
+   * @param { string } uxTag - data-ux tag
+   */
   function _getStreamElem(uxTag: string) {
     const node = getByDataUX(uxTag)
     if (node) {
