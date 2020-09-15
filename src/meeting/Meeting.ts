@@ -1,4 +1,4 @@
-import _, { partialRight } from 'lodash'
+import _ from 'lodash'
 import { EventEmitter } from 'events'
 import {
   connect,
@@ -11,7 +11,7 @@ import {
   RemoteVideoTrack,
   Room,
 } from 'twilio-video'
-import { getByDataUX, Viewport } from 'noodl-ui'
+import { getByDataUX, identify, NOODLComponentProps, Viewport } from 'noodl-ui'
 import {
   connecting,
   connected,
@@ -22,9 +22,9 @@ import { AppStore, DOMNode } from 'app/types'
 import { isMobile } from 'utils/common'
 import * as T from 'app/types/meetingTypes'
 import Streams from 'meeting/Streams'
+import { attachVideoTrack } from 'utils/twilio'
 import Page from '../Page'
 import Logger from '../app/Logger'
-import { attachVideoTrack } from 'utils/twilio'
 
 const log = Logger.create('Meeting.ts')
 
@@ -33,6 +33,7 @@ interface Internal {
   _store: AppStore | undefined
   _viewport: Viewport | undefined
   _room: Room
+  _streams: Streams
   _token: string
 }
 
@@ -45,41 +46,15 @@ const Meeting = (function () {
     _store: undefined,
     _viewport: undefined,
     _room: new EventEmitter() as Room,
+    _streams: new Streams(),
     _token: '',
   } as Internal
-
-  const _streams = new Streams()
-
-  function _addParticipant(participant: RemoteParticipant) {}
-
-  /**
-   * Retrieves a stream element using the data-ux tag.
-   * This also handles updates to adding/removing streams as observers
-   * @param { string } uxTag - data-ux tag
-   */
-  function _getStreamElem(uxTag: string) {
-    const node = getByDataUX(uxTag)
-    if (node) {
-      switch (uxTag) {
-        case 'mainStream':
-          return _streams.mainStream
-        case 'selfStream':
-          return _streams.selfStream
-        case 'subStream':
-        case 'vidoeSubStream':
-        default:
-          break
-      }
-    }
-    return node
-  }
 
   const o: T.IMeeting = {
     initialize({ store, page, viewport }: T.InitializeMeetingOptions) {
       _internal['_store'] = store
       _internal['_page'] = page
       _internal['_viewport'] = viewport
-
       return this
     },
     /**
@@ -124,18 +99,45 @@ const Meeting = (function () {
       _internal._room?.disconnect?.()
       return this
     },
+    addParticipant(participant: T.RoomParticipant) {
+      const streams = _internal._streams
+      if (!streams.mainStream && !streams.subStreams.size) {
+        streams.setMainStream({ participant })
+        log.func('addParticipant')
+        log.grey('Set participant to mainStream')
+      } else {
+        if (!streams.subStreams.has(participant)) {
+          log.func('addParticipant')
+          log.grey('Added participant as a subStream', participant)
+          const node = streams.subStreams.set(participant, {
+            // node:
+            participant,
+          })
+        }
+      }
+      return this
+    },
+    removeParticipant(participant: T.RoomParticipant) {
+      //
+      return this
+    },
     isParticipantLocal(
       participant: T.RoomParticipant,
     ): participant is LocalParticipant {
       return participant === _internal._room?.localParticipant
     },
     isParticipantMainStreaming(participant: T.RoomParticipant) {
-      return !!(participant && _streams.mainStream.participant === participant)
+      return !!(
+        participant && _internal._streams.mainStream.participant === participant
+      )
     },
     isParticipantSelfStreaming(participant: T.RoomParticipant) {
       if (this.room) {
         if (this.room.localParticipant === participant) {
-          return _streams.selfStream?.participant === this.room.localParticipant
+          return (
+            _internal._streams.selfStream?.participant ===
+            this.room.localParticipant
+          )
         } else {
           log.func('isParticipantSelfStreaming')
           log.red(`Expected a LocalParticipant to be passed in`)
@@ -165,7 +167,7 @@ const Meeting = (function () {
       return getByDataUX('selfStream') as HTMLDivElement
     },
     /** Element that renders a remote participant into the participants list */
-    getSubStreamElement(): HTMLDivElement | null {
+    getSubStreamElement(): HTMLDivElement | HTMLDivElement[] | null {
       return getByDataUX('subStream') as HTMLDivElement
     },
     /** Element that toggles the camera on/off */
@@ -200,8 +202,8 @@ const Meeting = (function () {
         vidoeSubStream: o.getParticipantsListElement(),
       }
     },
-    getStreamsController() {
-      return _streams
+    getStreams() {
+      return _internal._streams
     },
     /**
      * Attempts to revive/re-attach both the audio and video tracks of the
@@ -212,11 +214,11 @@ const Meeting = (function () {
       participant,
     }: Partial<T.ParticipantStreamObject> = {}) {
       if (!node) {
-        node = _streams.mainStream.node || this.getMainStreamElement()
+        node = _internal._streams.mainStream.node || this.getMainStreamElement()
       }
 
       if (node) {
-        _streams.setMainStream({
+        _internal._streams.setMainStream({
           node,
           participant,
         } as T.ParticipantStreamObject)
@@ -272,20 +274,18 @@ const Meeting = (function () {
       participant,
     }: Partial<T.ParticipantStreamObject> = {}) {
       if (!node) {
-        node = _streams.selfStream.node || o.getSelfStreamElement()
+        node = _internal._streams.selfStream.node || o.getSelfStreamElement()
       }
 
       if (node) {
-        _streams.setSelfStream({
+        _internal._streams.setSelfStream({
           node,
           participant,
         } as T.ParticipantStreamObject)
       } else {
+        const msg = `Tried to refresh selfStream but could not find the node anywhere`
         log.func('refreshSelfStream')
-        log.red(
-          `Tried to refresh selfStream but could not find the node anywhere`,
-          { node, participant },
-        )
+        log.red(msg, { node, participant })
         return this
       }
 
@@ -293,11 +293,9 @@ const Meeting = (function () {
         if (this.room?.localParticipant) {
           participant = this.room.localParticipant
         } else {
+          const msg = `Tried to refresh selfStream but received an invalid participant`
           log.func('refreshSelfStream')
-          log.red(
-            `Tried to refresh selfStream but received an invalid participant`,
-            { node, participant },
-          )
+          log.red(msg, { node, participant })
           return this
         }
       }
@@ -327,11 +325,43 @@ const Meeting = (function () {
         })
       } else {
         if (!node) {
+          const msg = `Tried to refresh selfStream but it was not found on the Streams instance`
           log.func('refreshSelfStream')
-          log.red(
-            `Tried to refresh selfStream but it was not found on the Streams instance`,
-            { node, participant, selfStreamObject: _streams.selfStream },
-          )
+          log.red(msg, {
+            node,
+            participant,
+            selfStreamObject: _internal._streams.selfStream,
+          })
+        }
+      }
+      return this
+    },
+    /**
+     * Attaches a track to a DOM node
+     * @param { RoomTrack } track - Track from the room instance
+     * @param { RoomParticipant } participant - Participant from the room instance
+     */
+    attachTrack(track: T.RoomTrack, participant: T.RoomParticipant) {
+      if (track.kind === 'audio') {
+        //
+      } else if (track.kind === 'video') {
+        if (!_internal._streams.subStreams.has(participant)) {
+          //
+        }
+      }
+      return this
+    },
+    /**
+     * Removes a track from a DOM node
+     * @param { RoomTrack } track - Track from the room instance
+     * @param { RoomParticipant } participant - Participant from the room instance
+     */
+    detachTrack(track: T.RoomTrack, participant: T.RoomParticipant) {
+      if (!Meeting.isParticipantLocal(participant)) {
+        if (track.kind === 'audio') {
+          //
+        } else if (track.kind === 'video') {
+          //
         }
       }
       return this

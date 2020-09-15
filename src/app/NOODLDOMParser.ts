@@ -145,7 +145,7 @@ class NOODLDOMParser {
    */
   emit(eventName: T.DOMParserEvent, ...args: any[]) {
     if (_.isArray(this.#listeners[eventName])) {
-      _.forEach(this.#listeners[eventName], _.partialRight(_.curry, ...args))
+      _.forEach(this.#listeners[eventName], (fn) => fn(...args))
     }
     return this
   }

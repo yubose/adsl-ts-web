@@ -6,10 +6,11 @@ import {
 } from 'noodl-ui'
 import { openOutboundURL } from './utils/common'
 import { cadl, noodl } from './app/client'
-import { PageSnapshot } from './app/types'
+import { DOMNode, PageSnapshot } from './app/types'
 import parser from './utils/parser'
 import Modal from './components/NOODLModal'
 import Logger from './app/Logger'
+import { noodlDomParserEvents } from './constants'
 
 const log = Logger.create('Page.ts')
 
@@ -18,6 +19,7 @@ export type PageListenerName =
   | 'onRootNodeInitializing'
   | 'onRootNodeInitialized'
   | 'onBeforePageRender'
+  | 'onCreateNode'
   | 'onPageRendered'
   | 'onError'
 
@@ -57,6 +59,15 @@ class Page {
       this.rootNode = root
       document.body.appendChild(root)
     }
+
+    parser.on(
+      noodlDomParserEvents.onCreateNode,
+      (node: DOMNode, props: NOODLComponentProps) => {
+        if (this.hasListener('onCreateNode')) {
+          this._callListener('onCreateNode', node, props)
+        }
+      },
+    )
   }
 
   /**
@@ -209,29 +220,29 @@ class Page {
     let components
 
     if (_.isArray(rawComponents)) {
-      components = noodl.resolveComponents()
-
-      let node
-
-      if (this.rootNode) {
-        // Clean up previous nodes
-        this.rootNode.innerHTML = ''
-        _.forEach(components, (component) => {
-          node = parser.parse(component)
-          if (node) {
-            this.rootNode?.appendChild(node)
-          }
-        })
-      } else {
-        log.func('navigate')
-        log.red(
-          "Attempted to render the page's components but the root " +
-            'node was not initialized. The page will not show anything',
-          { rootNode: this.rootNode, nodes: this.nodes },
-        )
-      }
+      components = noodl.resolveComponents(rawComponents)
     } else {
-      // TODO
+      components = noodl.resolveComponents()
+    }
+
+    let node
+
+    if (this.rootNode) {
+      // Clean up previous nodes
+      this.rootNode.innerHTML = ''
+      _.forEach(components, (component) => {
+        node = parser.parse(component)
+        if (node) {
+          this.rootNode?.appendChild(node)
+        }
+      })
+    } else {
+      log.func('navigate')
+      log.red(
+        "Attempted to render the page's components but the root " +
+          'node was not initialized. The page will not show anything',
+        { rootNode: this.rootNode, nodes: this.nodes },
+      )
     }
 
     return {

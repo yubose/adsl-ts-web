@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { formatPhoneNumber, isValidPhoneNumber } from 'utils/phone'
+import { isValidPhoneNumber } from 'utils/phone'
 
 export type ValidateName =
   | 'email'

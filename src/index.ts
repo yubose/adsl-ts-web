@@ -26,6 +26,7 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   getDataValues,
+  identify,
   NOODLChainActionBuiltInObject,
   NOODLPageObject,
   NOODLComponentProps,
@@ -33,8 +34,10 @@ import {
 } from 'noodl-ui'
 import {
   CachedPageObject,
+  DOMNode,
   PageModalId,
   PageSnapshot,
+  ParticipantStreamObject,
   RoomParticipant,
   RoomParticipantTrackPublication,
   RoomTrack,
@@ -113,7 +116,7 @@ window.addEventListener('load', async () => {
   window.getDataValues = getDataValues
   window.noodl = cadl
   window.noodlui = noodl
-  window.streams = Meeting.getStreamsController()
+  window.streams = Meeting.getStreams()
   window.meeting = Meeting
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
@@ -130,7 +133,7 @@ window.addEventListener('load', async () => {
   const app = new App({ store, viewport })
   const builtIn = createBuiltInActions({ page, store })
   const actions = enhanceActions(createActions({ page, store }))
-  const streams = Meeting.getStreamsController()
+  const streams = Meeting.getStreams()
 
   Meeting.initialize({ page, store, viewport })
 
@@ -248,6 +251,32 @@ window.addEventListener('load', async () => {
       } else {
         log.func('Listener - onBeforePageRender')
         log.green('Avoided a duplicate navigate request')
+      }
+    },
+  )
+
+  page.registerListener(
+    'onCreateNode',
+    (node: DOMNode, props: NOODLComponentProps) => {
+      if (identify.stream.video.isMainStream(props)) {
+        log.func('Listener -- onCreateNode')
+        log.grey('Attached a mainStream node to streams hash', { node, props })
+        streams.setMainStream({ node } as ParticipantStreamObject)
+      } else if (identify.stream.video.isSelfStream(props)) {
+        log.func('Listener -- onCreateNode')
+        log.grey('Attached a selfStream node to streams hash', { node, props })
+        streams.setSelfStream({ node } as ParticipantStreamObject)
+      } else if (identify.stream.video.isSubStream(props)) {
+        const subStreams = Meeting.getSubStreamElement()
+        if (_.isArray(subStreams)) {
+          _.forEach(subStreams, (subStream) => {
+            //
+          })
+        } else if (subStreams) {
+          //
+        } else {
+          //
+        }
       }
     },
   )
@@ -460,10 +489,14 @@ window.addEventListener('load', async () => {
 
     // subStreams (remote participants)
     forEachParticipant(room.participants, (participant) => {
+      // Start a remote participant's stream on the mainStream if there isn't
+      // a mainStream yet
       if (!streams.mainStream.participant) {
-        Meeting.refreshMainStream({
+        streams.setMainStream({
+          node: Meeting.getMainStreamElement(),
           participant,
-        })
+        } as ParticipantStreamObject)
+        Meeting.refreshMainStream({ participant })
       } else {
         if (!streams.subStreams.has(participant)) {
           streams.subStreams.set(participant, {
@@ -499,41 +532,17 @@ window.addEventListener('load', async () => {
     ) {
       // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
       if (publication.track) {
-        attachTrack(publication.track, participant)
+        Meeting.attachTrack(publication.track, participant)
       }
       // Local participant is subscribed to this remote track
-      publication.on('subscribed', _.partialRight(attachTrack, participant))
-      publication.on('unsubscribed', _.partialRight(detachTrack, participant))
-    }
-
-    /**
-     * Attaches a track to the DOM
-     * @param { RoomTrack } track - Track from the room instance
-     * @param { RoomParticipant } participant - Participant from the room instance
-     */
-    function attachTrack(track: RoomTrack, participant: RoomParticipant) {
-      if (track.kind === 'audio') {
-        //
-      } else if (track.kind === 'video') {
-        if (!streams.subStreams.has(participant)) {
-          //
-        }
-      }
-    }
-
-    /**
-     * Removes a track from the DOM
-     * @param { RoomTrack } track - Track from the room instance
-     * @param { RoomParticipant } participant - Participant from the room instance
-     */
-    function detachTrack(track: RoomTrack, participant: RoomParticipant) {
-      if (!Meeting.isParticipantLocal(participant)) {
-        if (track.kind === 'audio') {
-          //
-        } else if (track.kind === 'video') {
-          //
-        }
-      }
+      publication.on(
+        'subscribed',
+        _.partialRight(Meeting.attachTrack, participant),
+      )
+      publication.on(
+        'unsubscribed',
+        _.partialRight(Meeting.detachTrack, participant),
+      )
     }
   }
 

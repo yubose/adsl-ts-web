@@ -10,6 +10,7 @@ import {
   RemoteTrackPublication,
 } from 'twilio-video'
 import { AppStore, IPage } from '.'
+import { DOMNode } from './pageTypes'
 
 export type RoomParticipant = LocalParticipant | RemoteParticipant
 export type RoomParticipantTrackPublication =
@@ -27,9 +28,11 @@ export interface IMeeting {
   initialize(options: InitializeMeetingOptions): this
   join(token: string, options?: ConnectOptions): Promise<Room>
   leave(): this
+  addParticipant(participant: RoomParticipant): this
+  removeParticipant(participant: RoomParticipant): this
   getMainStreamElement(): HTMLDivElement | null
   getSelfStreamElement(): HTMLDivElement | null
-  getSubStreamElement(): HTMLDivElement | null
+  getSubStreamElement(): HTMLDivElement | HTMLDivElement[] | null
   getCameraElement(): HTMLImageElement | null
   getMicrophoneElement(): HTMLImageElement | null
   getHangUpElement(): HTMLImageElement | null
@@ -45,7 +48,7 @@ export interface IMeeting {
     inviteOthers: ReturnType<IMeeting['getInviteOthersElement']>
     vidoeSubStream: ReturnType<IMeeting['getParticipantsListElement']>
   }
-  getStreamsController(): IStreams
+  getStreams(): IStreams
   isParticipantLocal(
     participant: RoomParticipant,
   ): participant is LocalParticipant
@@ -55,6 +58,8 @@ export interface IMeeting {
   resetRoom(): this
   refreshMainStream(options: Partial<ParticipantStreamObject>): this
   refreshSelfStream(options: Partial<ParticipantStreamObject>): this
+  attachTrack(track: RoomTrack, participant: RoomParticipant): this
+  detachTrack(track: RoomTrack, participant: RoomParticipant): this
   room: Room
 }
 
@@ -72,4 +77,6 @@ export interface IStreams {
   subStreams: ParticipantStreamMap
   setMainStream(obj: ParticipantStreamObject): this
   setSelfStream(obj: ParticipantStreamObject): this
+  setSubStreamsContainer(node: DOMNode): this
+  getSubStreams(): ParticipantStreamMap
 }

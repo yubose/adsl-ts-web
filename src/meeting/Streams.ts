@@ -7,13 +7,15 @@ import {
   ParticipantStreamMap,
 } from 'app/types/meetingTypes'
 import Logger from 'app/Logger'
+import { DOMNode } from 'app/types'
 
 const log = Logger.create('Streams.ts')
 
-class NOODLStreams implements IStreams {
+class MeetingStreams implements IStreams {
   #mainStream: ParticipantStreamObject = { node: null, participant: null }
   #selfStream: ParticipantStreamObject = { node: null, participant: null }
   #subStreams: ParticipantStreamMap = new Map()
+  #subStreamsContainer: DOMNode | null = null
 
   get mainStream() {
     return this.#mainStream
@@ -39,9 +41,14 @@ class NOODLStreams implements IStreams {
     return this
   }
 
-  get subStreams() {
+  setSubStreamsContainer(node: DOMNode | null) {
+    this.#subStreamsContainer = node
+    return this
+  }
+
+  getSubStreams() {
     return this.#subStreams
   }
 }
 
-export default NOODLStreams
+export default MeetingStreams
