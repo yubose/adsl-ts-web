@@ -1,13 +1,15 @@
-import _ from 'lodash'
+import _, { partialRight } from 'lodash'
 import { EventEmitter } from 'events'
 import {
   connect,
   ConnectOptions,
+  LocalAudioTrack,
   LocalParticipant,
+  LocalTrackPublication,
   LocalVideoTrack,
   RemoteParticipant,
+  RemoteVideoTrack,
   Room,
-  TrackPublication,
 } from 'twilio-video'
 import { getByDataUX, Viewport } from 'noodl-ui'
 import {
@@ -16,11 +18,13 @@ import {
   connectError,
   connectTimedOut,
 } from 'features/meeting'
-import { AppStore } from 'app/types'
+import { AppStore, DOMNode } from 'app/types'
 import { isMobile } from 'utils/common'
 import * as T from 'app/types/meetingTypes'
+import Streams from 'meeting/Streams'
 import Page from '../Page'
 import Logger from '../app/Logger'
+import { attachVideoTrack } from 'utils/twilio'
 
 const log = Logger.create('Meeting.ts')
 
@@ -44,11 +48,9 @@ const Meeting = (function () {
     _token: '',
   } as Internal
 
-  const _streams = {
-    mainStream: null, // Dominant speaker --> Local participant / Remote participant
-    selfStream: null, // Local participant
-    subStream: [], // Remote participants
-  }
+  const _streams = new Streams()
+
+  function _addParticipant(participant: RemoteParticipant) {}
 
   /**
    * Retrieves a stream element using the data-ux tag.
@@ -60,7 +62,9 @@ const Meeting = (function () {
     if (node) {
       switch (uxTag) {
         case 'mainStream':
+          return _streams.mainStream
         case 'selfStream':
+          return _streams.selfStream
         case 'subStream':
         case 'vidoeSubStream':
         default:
@@ -75,6 +79,7 @@ const Meeting = (function () {
       _internal['_store'] = store
       _internal['_page'] = page
       _internal['_viewport'] = viewport
+
       return this
     },
     /**
@@ -119,10 +124,24 @@ const Meeting = (function () {
       _internal._room?.disconnect?.()
       return this
     },
-    isLocalParticipant(
+    isParticipantLocal(
       participant: T.RoomParticipant,
     ): participant is LocalParticipant {
       return participant === _internal._room?.localParticipant
+    },
+    isParticipantMainStreaming(participant: T.RoomParticipant) {
+      return !!(participant && _streams.mainStream.participant === participant)
+    },
+    isParticipantSelfStreaming(participant: T.RoomParticipant) {
+      if (this.room) {
+        if (this.room.localParticipant === participant) {
+          return _streams.selfStream?.participant === this.room.localParticipant
+        } else {
+          log.func('isParticipantSelfStreaming')
+          log.red(`Expected a LocalParticipant to be passed in`)
+        }
+      }
+      return false
     },
     get room() {
       return _internal._room
@@ -181,33 +200,143 @@ const Meeting = (function () {
         vidoeSubStream: o.getParticipantsListElement(),
       }
     },
+    getStreamsController() {
+      return _streams
+    },
+    /**
+     * Attempts to revive/re-attach both the audio and video tracks of the
+     * LocalParticipant on the selfStream
+     */
+    refreshMainStream({
+      node,
+      participant,
+    }: Partial<T.ParticipantStreamObject> = {}) {
+      if (!node) {
+        node = _streams.mainStream.node || this.getMainStreamElement()
+      }
+
+      if (node) {
+        _streams.setMainStream({
+          node,
+          participant,
+        } as T.ParticipantStreamObject)
+      } else {
+        log.func('refreshMainStream')
+        log.red(
+          `Tried to refresh mainStream but could not find the node anywhere`,
+          { node, participant },
+        )
+        return this
+      }
+
+      if (!participant) {
+        log.func('refreshMainStream')
+        log.red(
+          `Tried to refresh mainStream but received an invalid participant`,
+          { node, participant },
+        )
+        return this
+      }
+
+      ;(participant as RemoteParticipant).tracks?.forEach((publication) => {
+        if (publication.kind === 'audio') {
+          //
+        } else if (publication.kind === 'video') {
+          const track = publication.track
+          if (track) {
+            attachVideoTrack(
+              node as HTMLDivElement,
+              publication.track as RemoteVideoTrack,
+            )
+            log.func('refreshMainStream')
+            log.grey('Attached video track to mainStream', track)
+          } else {
+            log.func('refreshMainStream')
+            log.red(
+              `Tried to attach a video track to the mainStream but no videoTrack ` +
+                `was available`,
+              participant,
+            )
+          }
+        }
+      })
+
+      return this
+    },
+    /**
+     * Attempts to revive/re-attach both the audio and video tracks of the
+     * LocalParticipant on the selfStream
+     */
+    refreshSelfStream({
+      node,
+      participant,
+    }: Partial<T.ParticipantStreamObject> = {}) {
+      if (!node) {
+        node = _streams.selfStream.node || o.getSelfStreamElement()
+      }
+
+      if (node) {
+        _streams.setSelfStream({
+          node,
+          participant,
+        } as T.ParticipantStreamObject)
+      } else {
+        log.func('refreshSelfStream')
+        log.red(
+          `Tried to refresh selfStream but could not find the node anywhere`,
+          { node, participant },
+        )
+        return this
+      }
+
+      if (!participant) {
+        if (this.room?.localParticipant) {
+          participant = this.room.localParticipant
+        } else {
+          log.func('refreshSelfStream')
+          log.red(
+            `Tried to refresh selfStream but received an invalid participant`,
+            { node, participant },
+          )
+          return this
+        }
+      }
+
+      if (node && participant) {
+        ;(participant as LocalParticipant).tracks?.forEach((publication) => {
+          if (publication.kind === 'audio') {
+            //
+          } else if (publication.kind === 'video') {
+            const track = publication.track
+            if (track) {
+              attachVideoTrack(
+                node as HTMLDivElement,
+                publication.track as LocalVideoTrack,
+              )
+              log.func('refreshSelfStream')
+              log.grey('Attached a video track to selfStream', track)
+            } else {
+              log.func('Meeting.refreshSelfStream')
+              log.red(
+                `Tried to attach a video track to the selfStream but no videoTrack ` +
+                  `was available`,
+                { node, participant },
+              )
+            }
+          }
+        })
+      } else {
+        if (!node) {
+          log.func('refreshSelfStream')
+          log.red(
+            `Tried to refresh selfStream but it was not found on the Streams instance`,
+            { node, participant, selfStreamObject: _streams.selfStream },
+          )
+        }
+      }
+      return this
+    },
   } as T.IMeeting
-
-  /**
-   * Begins initializing media tracks and listeners immediately after the room
-   * is created.
-   * @param { Room } room - Room instance
-   */
-  function _handleRoomCreated(room: Room) {
-    // Experimental
-    const emitRemoteTracks = (participant: RemoteParticipant) => (
-      trackPublication: TrackPublication,
-    ) => {
-      participant.emit('trackPublished', trackPublication)
-      participant.emit('trackStarted', trackPublication)
-      participant.emit('trackSubscribed', trackPublication)
-    }
-
-    // Experimental
-    const forEachTracks = (callback: typeof emitRemoteTracks) => (
-      participant: RemoteParticipant,
-    ) => participant?.tracks?.forEach?.(callback(participant))
-    // Experimental
-    room.participants?.forEach(forEachTracks(emitRemoteTracks))
-
-    window.room = room
-    window.lparticipant = room.localParticipant
-  }
 
   return o
 })()

@@ -5,6 +5,7 @@ import {
   NOODLComponent,
   ResolverConsumerOptions,
 } from 'noodl-ui'
+import { openFileSelect } from '../utils/dom'
 
 export function onBeforeResolve(
   actions: NOODLChainActionObject[],
@@ -15,13 +16,18 @@ export function onBeforeResolve(
   console.log(logMsg, logStyle, { actions, options })
 }
 
-export function onChainStart(
+export async function onChainStart(
   actions: NOODLChainActionObject[],
   options: ActionChainActionCallbackOptions,
 ) {
   const logMsg = `%c[onChainStart]`
   const logStyle = `color:#e50087;font-weight:bold;`
   console.log(logMsg, logStyle, { actions, options })
+  const { component } = options
+  if (component.get('contentType') === 'file') {
+    const file = await openFileSelect()
+    if (file) return { file }
+  }
 }
 
 export function onChainEnd(

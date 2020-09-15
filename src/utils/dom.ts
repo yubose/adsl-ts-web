@@ -9,6 +9,21 @@ export function getDocumentScrollTop() {
     document.body.scrollTop
   )
 }
+/** Opens the file select window. The selected file is the resolved value */
+export function openFileSelect(): Promise<File> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.onchange = (e: any) => {
+      let file = e.target?.files?.[0]
+      document.body.removeChild(input)
+      resolve(file)
+    }
+    input.style.display = 'none'
+    document.body.appendChild(input)
+    input.click()
+  })
+}
 
 export function getOffset(el: HTMLElement) {
   const html = el.ownerDocument.documentElement

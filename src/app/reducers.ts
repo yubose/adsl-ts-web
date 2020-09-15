@@ -1,5 +1,5 @@
 import { combineReducers } from '@reduxjs/toolkit'
-import app from 'features/app/appSlice'
+// import app from 'features/app/appSlice'
 import auth from 'features/auth/authSlice'
 import meeting from 'features/meeting/meetingSlice'
 import page from 'features/page/pageSlice'
@@ -16,7 +16,7 @@ import page from 'features/page/pageSlice'
 // }
 
 export default combineReducers({
-  app,
+  // app,
   meeting,
   page,
   auth,

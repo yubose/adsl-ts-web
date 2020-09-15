@@ -1,8 +1,10 @@
 import _ from 'lodash'
 import { NOODLComponentProps } from 'noodl-ui'
-import { DOMNode, NOODLDOMTagName, Parser } from 'app/types'
+import { DOMNode, NOODLDOMTagName } from 'app/types'
+import * as T from 'app/types/domParserTypes'
 import createElement from 'utils/createElement'
 import Logger from './Logger'
+import { noodlDomParserEvents } from '../constants'
 
 const log = Logger.create('NOODLDOMParser.ts')
 
@@ -15,7 +17,8 @@ class NOODLDOMParser {
     stub: { elements: {} },
   }
   #handleChildren: (parentNode: DOMNode, props: NOODLComponentProps) => any
-  #parsers: Parser[] = []
+  #listeners: Partial<Record<T.DOMParserEvent, Function[]>> = {}
+  #parsers: T.Parser[] = []
   wrapper: ((node: DOMNode) => DOMNode) | undefined
 
   constructor() {
@@ -50,7 +53,7 @@ class NOODLDOMParser {
    * Adds a parser to the list of parsers
    * @param { Parser } parser
    */
-  add(parser: Parser) {
+  add(parser: T.Parser) {
     this.#parsers.push(parser)
     return this
   }
@@ -59,7 +62,7 @@ class NOODLDOMParser {
    * Removes a parser from the list of parsers (uses strict === to find the reference)
    * @param { Parser } parser
    */
-  remove(parser: Parser) {
+  remove(parser: T.Parser) {
     this.#parsers = _.filter(this.#parsers, (p) => p !== parser)
     return this
   }
@@ -90,16 +93,65 @@ class NOODLDOMParser {
         node = this.wrapper(node as DOMNode)
       }
 
-      _.forEach(this.#parsers, (parseFn: Parser) => {
+      _.forEach(this.#parsers, (parseFn: T.Parser) => {
         parseFn(node as DOMNode, props, this.getUtils())
       })
 
       if (props.children) {
         this.#handleChildren(node as DOMNode, props.children as any)
       }
+
+      this.emit(noodlDomParserEvents.onCreateNode, node, props)
     }
 
     return node
+  }
+
+  /**
+   * Registers a listener to the listeners list
+   * @param { string } eventName - Name of the listener event
+   * @param { function } callback - Callback to invoke when the event is emitted
+   */
+  on(eventName: T.DOMParserEvent, callback: Function) {
+    if (!_.isArray(this.#listeners[eventName])) {
+      this.#listeners[eventName] = []
+    }
+    ;(this.#listeners[eventName] as Function[]).push(callback)
+    log.func('on').grey(`Registered listener: ${eventName}`, callback)
+    return this
+  }
+
+  /**
+   * Removes a listener's callback from the listeners list
+   * @param { string } eventName - Name of the listener event
+   * @param { function } callback
+   */
+  off(eventName: T.DOMParserEvent, callback: Function) {
+    if (_.isArray(this.#listeners[eventName])) {
+      if ((this.#listeners[eventName] as Function[]).includes(callback)) {
+        this.#listeners[eventName] = _.filter(
+          this.#listeners[eventName],
+          (cb) => cb !== callback,
+        )
+      }
+    }
+    return this
+  }
+
+  /**
+   * Emits an event name and calls all the callbacks registered to that event
+   * @param { string } eventName - Name of the listener event
+   * @param { ...any[] } args
+   */
+  emit(eventName: T.DOMParserEvent, ...args: any[]) {
+    if (_.isArray(this.#listeners[eventName])) {
+      _.forEach(this.#listeners[eventName], _.partialRight(_.curry, ...args))
+    }
+    return this
+  }
+
+  getEventListeners(eventName: T.DOMParserEvent) {
+    return this.#listeners[eventName]
   }
 
   /**

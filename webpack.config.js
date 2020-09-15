@@ -12,7 +12,7 @@ console.log('-------------------------------------------')
 console.log('')
 
 module.exports = {
-  entry: './src/Meeting/NOODLStreams.ts',
+  entry: './src/index.ts',
   output: {
     filename: 'index.js',
     // filename: '[name].[hash].js',
@@ -73,7 +73,7 @@ module.exports = {
             },
           },
         ],
-        // include: /\.module\.css$/,
+        include: /\.module\.css$/,
       },
       {
         test: /\.css$/,

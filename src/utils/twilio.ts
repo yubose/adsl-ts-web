@@ -23,17 +23,7 @@ export function forEachParticipant(
   participants: Map<string, RemoteParticipant>,
   cb: (participant: RemoteParticipant) => any,
 ) {
-  participants?.forEach(cb)
-}
-
-export function forEachParticipantTrack(
-  tracks: Map<string, RoomParticipantTrackPublication>,
-  cb: (
-    publication: RoomParticipantTrackPublication,
-    participant: RoomParticipant,
-  ) => any,
-) {
-  tracks?.forEach(cb)
+  _.forEach(Array.from(participants.values()), cb)
 }
 
 /**

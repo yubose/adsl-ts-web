@@ -1,5 +1,8 @@
 import { NOODLComponentProps } from 'noodl-ui'
+import { noodlDomParserEvents } from '../../constants'
 import { DOMNode } from './pageTypes'
+
+export type DOMParserEvent = typeof noodlDomParserEvents[keyof typeof noodlDomParserEvents]
 
 export interface Parser {
   (

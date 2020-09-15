@@ -9,6 +9,7 @@ import {
 import Modal from 'components/NOODLModal'
 import Meeting from '../../Meeting'
 import { App } from '../../app'
+import { IStreams } from './meetingTypes'
 
 declare module 'redux-logger'
 
@@ -26,18 +27,9 @@ declare global {
     modal: Modal
     noodlui: NOODL
     room: Room | null
+    streams: IStreams
     // noodl-ui
     // twilio-video
     twilio: any
-    // makeParticipants.ts
-    addParticipant: (participant: RemoteParticipant) => void
-    removeParticipant: (participant: RemoteParticipant) => void
-    participant: RemoteParticipant
-    lparticipant: LocalParticipant
-    participants: {
-      primary: null | RemoteParticipant
-      secondary: RemoteParticipant[]
-    }
-    getVideoChatElements: any
   }
 }

@@ -25,9 +25,6 @@ export interface InitializeMeetingOptions {
 
 export interface IMeeting {
   initialize(options: InitializeMeetingOptions): this
-  isLocalParticipant(
-    participant: RoomParticipant,
-  ): participant is LocalParticipant
   join(token: string, options?: ConnectOptions): Promise<Room>
   leave(): this
   getMainStreamElement(): HTMLDivElement | null
@@ -48,7 +45,31 @@ export interface IMeeting {
     inviteOthers: ReturnType<IMeeting['getInviteOthersElement']>
     vidoeSubStream: ReturnType<IMeeting['getParticipantsListElement']>
   }
+  getStreamsController(): IStreams
+  isParticipantLocal(
+    participant: RoomParticipant,
+  ): participant is LocalParticipant
+  isParticipantMainStreaming(participant: RoomParticipant): boolean
+  isParticipantSelfStreaming(participant: RoomParticipant): boolean
   onConnected?(room: Room): any
   resetRoom(): this
+  refreshMainStream(options: Partial<ParticipantStreamObject>): this
+  refreshSelfStream(options: Partial<ParticipantStreamObject>): this
   room: Room
+}
+
+export type StreamNode = HTMLDivElement | null
+export type StreamParticipant = RoomParticipant | null
+export type ParticipantStreamMap = Map<RoomParticipant, ParticipantStreamObject>
+export type ParticipantStreamObject = {
+  node: StreamNode
+  participant: StreamParticipant
+}
+
+export interface IStreams {
+  mainStream: ParticipantStreamObject
+  selfStream: ParticipantStreamObject
+  subStreams: ParticipantStreamMap
+  setMainStream(obj: ParticipantStreamObject): this
+  setSelfStream(obj: ParticipantStreamObject): this
 }

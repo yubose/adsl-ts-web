@@ -11,7 +11,6 @@ import { DataValueElement, DOMNode } from 'app/types'
 import { cadl, noodl } from 'app/client'
 import { forEachEntries } from 'utils/common'
 import Logger from 'app/Logger'
-import * as subparsers from './subparsers'
 
 const log = Logger.create('parser.ts')
 

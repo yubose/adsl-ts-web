@@ -18,3 +18,8 @@ export const renderStatus = {
   receivedSnapshot: 'received.snapshot',
   rendered: 'rendered',
 } as const
+
+/** NOODL DOM Parser event names */
+export const noodlDomParserEvents = {
+  onCreateNode: 'on.create.node',
+} as const

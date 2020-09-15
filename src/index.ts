@@ -1,5 +1,11 @@
 import _ from 'lodash'
 import { createSelector } from '@reduxjs/toolkit'
+import {
+  LocalAudioTrackPublication,
+  LocalVideoTrack,
+  LocalVideoTrackPublication,
+  RemoteParticipant,
+} from 'twilio-video'
 import { Account } from '@aitmed/cadl'
 import {
   Action,
@@ -35,11 +41,7 @@ import {
 } from './app/types'
 import { cadl, noodl } from './app/client'
 import { createStoreObserver, isMobile, reduceEntries } from './utils/common'
-import {
-  attachVideoTrack,
-  forEachParticipant,
-  forEachParticipantTrack,
-} from './utils/twilio'
+import { attachVideoTrack, forEachParticipant } from './utils/twilio'
 import {
   setPage,
   setInitiatingPage,
@@ -59,15 +61,11 @@ import createStore from './app/store'
 import Logger from './app/Logger'
 import App from './App'
 import Page from './Page'
-import Meeting from './Meeting'
+import Meeting from './meeting'
+import { noodlDomParserEvents } from './constants'
 import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
-import {
-  LocalAudioTrackPublication,
-  LocalVideoTrack,
-  LocalVideoTrackPublication,
-} from 'twilio-video'
 
 const log = Logger.create('src/index.ts')
 
@@ -115,7 +113,8 @@ window.addEventListener('load', async () => {
   window.getDataValues = getDataValues
   window.noodl = cadl
   window.noodlui = noodl
-  window.getVideoChatElements = Meeting.getVideoChatElements
+  window.streams = Meeting.getStreamsController()
+  window.meeting = Meeting
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
   const profile = await Account.login('+1 8882465555', '142251', vcode || '')
@@ -131,10 +130,9 @@ window.addEventListener('load', async () => {
   const app = new App({ store, viewport })
   const builtIn = createBuiltInActions({ page, store })
   const actions = enhanceActions(createActions({ page, store }))
+  const streams = Meeting.getStreamsController()
 
   Meeting.initialize({ page, store, viewport })
-
-  window.meeting = Meeting
 
   let { startPage } = await app.initialize()
 
@@ -312,6 +310,12 @@ window.addEventListener('load', async () => {
     },
   )
 
+  /** EXPERIMENTAL -- Custom routing */
+  window.addEventListener('popstate', function onPopState(e) {
+    log.func('addEventListener -- popstate')
+    log.grey({ state: e.state, timestamp: e.timeStamp, type: e.type })
+  })
+
   /** Starts the video chat streams as soon as the page is ready */
   observeStore(
     createSelector(
@@ -400,36 +404,78 @@ window.addEventListener('load', async () => {
     // Add a listener to disconnect from the room when a mobile user closes their browser
     if (isMobile()) window.addEventListener('pagehide', disconnect)
 
+    // room.on('participantConnected', (participant: RemoteParticipant) => {
+    //   function onCreateNode(node: DOMNode, props: NOODLComponentProps) {
+    //     if (node) {
+    //       // Dominant/main participant/speaker
+    //       if (identify.stream.video.isMainStream(props)) {
+    //         const mainStream = node as HTMLDivElement
+    //         if (mainStream !== _streams.mainStream) {
+    //           _streams['mainStream'] = mainStream
+    //         }
+    //         if (_streams.inSubStream(mainStream)) {
+    //           _streams.removeFromSubStream(mainStream)
+    //         }
+    //       }
+    //       // Local participant
+    //       else if (identify.stream.video.isSelfStream(props)) {
+    //         const selfStream = node as HTMLDivElement
+    //         if (selfStream !== _streams.selfStream) {
+    //           _streams['selfStream'] = selfStream
+    //         }
+    //         if (_streams.inSubStream(selfStream)) {
+    //           _streams.removeFromSubStream(selfStream)
+    //         }
+    //       }
+    //       // Remote participants container
+    //       else if (identify.stream.video.subStreamsContainer(props)) {
+    //         //
+    //       }
+    //       // Remote participant video element container
+    //       else if (identify.stream.video.subStream(props)) {
+    //         const subStream = node as HTMLDivElement
+    //         if (!_streams.inSubStream(subStream)) {
+    //           _streams.addToSubStream(subStream)
+    //         }
+    //       }
+    //     }
+    //   }
+
+    //   if (
+    //     !parser
+    //       .getEventListeners(noodlDomParserEvents.onCreateNode)
+    //       ?.includes(onCreateNode)
+    //   ) {
+    //     parser.on(noodlDomParserEvents.onCreateNode, onCreateNode)
+    //   }
+    // })
+
     /* -------------------------------------------------------
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
     // selfStream
-    let selfStreamElem = Meeting.getSelfStreamElement()
-    if (selfStreamElem) {
-      const publications = Array.from(room.localParticipant?.tracks?.values?.())
-      const publication = _.find(publications, (p) => p.kind === 'video')
-      const videoTrack = publication?.track as LocalVideoTrack
-      if (videoTrack) {
-        attachVideoTrack(selfStreamElem, videoTrack)
-      } else {
-        log.func('Meeting.onConnected')
-        log.red(
-          `Tried to attach a video track to the selfStream but no videoTrack ` +
-            `was available`,
-          room.localParticipant,
-        )
-      }
-    } else {
-      log.func('Meeting.onConnected')
-      log.red(
-        `Attempted to attach your video to the selfStream but could not find the ` +
-          `selfStream node`,
-        Meeting.getVideoChatElements(),
-      )
-    }
+    Meeting.refreshSelfStream({
+      participant: room.localParticipant,
+    })
 
     // subStreams (remote participants)
-    forEachParticipant(room.participants, handleTrackPublish)
+    forEachParticipant(room.participants, (participant) => {
+      if (!streams.mainStream.participant) {
+        Meeting.refreshMainStream({
+          participant,
+        })
+      } else {
+        if (!streams.subStreams.has(participant)) {
+          streams.subStreams.set(participant, {
+            node: null,
+            participant,
+          })
+          log.func('Meeting.onConnected -- forEachParticipant')
+          log.grey(`Adding subStream participant`, participant)
+        }
+      }
+      handleTrackPublish(participant)
+    })
 
     /**
      * Handle tracks published as well as tracks that are going to be published
@@ -438,7 +484,7 @@ window.addEventListener('load', async () => {
      */
     function handleTrackPublish(participant: RoomParticipant) {
       const onTrackPublished = _.partialRight(handleTrackAttach, participant)
-      forEachParticipantTrack(participant.tracks, onTrackPublished)
+      participant.tracks.forEach(onTrackPublished)
       participant.on('trackPublished', onTrackPublished)
     }
 
@@ -466,10 +512,10 @@ window.addEventListener('load', async () => {
      * @param { RoomParticipant } participant - Participant from the room instance
      */
     function attachTrack(track: RoomTrack, participant: RoomParticipant) {
-      if (!Meeting.isLocalParticipant(participant)) {
-        if (track.kind === 'audio') {
-          //
-        } else if (track.kind === 'video') {
+      if (track.kind === 'audio') {
+        //
+      } else if (track.kind === 'video') {
+        if (!streams.subStreams.has(participant)) {
           //
         }
       }
@@ -481,7 +527,7 @@ window.addEventListener('load', async () => {
      * @param { RoomParticipant } participant - Participant from the room instance
      */
     function detachTrack(track: RoomTrack, participant: RoomParticipant) {
-      if (!Meeting.isLocalParticipant(participant)) {
+      if (!Meeting.isParticipantLocal(participant)) {
         if (track.kind === 'audio') {
           //
         } else if (track.kind === 'video') {

@@ -27,7 +27,7 @@
     "unlink": "npm unlink noodl-ui"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.83",
+    "@aitmed/cadl": "^1.0.87",
     "@aitmed/ecos-lvl2-sdk": "^1.4.97",
     "@reduxjs/toolkit": "^1.4.0",
     "libphonenumber-js": "^1.7.57",
@@ -70,6 +70,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-chai-friendly": "^0.6.0",
     "eslint-plugin-cypress": "^2.11.1",
+    "eslint-plugin-prettier": "^3.1.4",
     "html-webpack-plugin": "^4.3.0",
     "jsdom": "^16.4.0",
     "jsdom-global": "^3.0.2",
@@ -103,8 +104,7 @@
     ],
     "plugins": [
       "@typescript-eslint",
-      "prettier",
-      "prettier/@typescript-eslint"
+      "prettier"
     ],
     "env": {
       "browser": true,
