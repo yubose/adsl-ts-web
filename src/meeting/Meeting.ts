@@ -8,6 +8,7 @@ import {
   LocalTrackPublication,
   LocalVideoTrack,
   RemoteParticipant,
+  RemoteTrackPublication,
   RemoteVideoTrack,
   Room,
 } from 'twilio-video'
@@ -21,7 +22,7 @@ import {
 import { AppStore, DOMNode } from 'app/types'
 import { isMobile } from 'utils/common'
 import * as T from 'app/types/meetingTypes'
-import Streams from 'meeting/Streams'
+import Streams from 'Meeting/Streams'
 import { attachVideoTrack } from 'utils/twilio'
 import Page from '../Page'
 import Logger from '../app/Logger'
@@ -50,7 +51,7 @@ const Meeting = (function () {
     _token: '',
   } as Internal
 
-  const o: T.IMeeting = {
+  const o = {
     initialize({ store, page, viewport }: T.InitializeMeetingOptions) {
       _internal['_store'] = store
       _internal['_page'] = page
@@ -240,28 +241,25 @@ const Meeting = (function () {
         return this
       }
 
-      ;(participant as RemoteParticipant).tracks?.forEach((publication) => {
-        if (publication.kind === 'audio') {
-          //
-        } else if (publication.kind === 'video') {
-          const track = publication.track
-          if (track) {
-            attachVideoTrack(
-              node as HTMLDivElement,
-              publication.track as RemoteVideoTrack,
-            )
+      participant?.tracks?.forEach?.(
+        ({ track }: T.RoomParticipantTrackPublication) => {
+          if (track?.kind === 'audio') {
+            node?.appendChild(track?.attach())
             log.func('refreshMainStream')
-            log.grey('Attached video track to mainStream', track)
-          } else {
-            log.func('refreshMainStream')
-            log.red(
-              `Tried to attach a video track to the mainStream but no videoTrack ` +
-                `was available`,
+            log.green(`Attached participant's audio track to mainStream`, {
               participant,
-            )
+              track,
+            })
+          } else if (track?.kind === 'video') {
+            attachVideoTrack(node as HTMLDivElement, track)
+            log.func('refreshMainStream')
+            log.grey(`Attached participant's video track to mainStream`, {
+              participant,
+              track,
+            })
           }
-        }
-      })
+        },
+      )
 
       return this
     },
@@ -366,9 +364,11 @@ const Meeting = (function () {
       }
       return this
     },
-  } as T.IMeeting
+  }
 
-  return o
+  return o as typeof o & {
+    onConnected(room: Room): any
+  }
 })()
 
 export default Meeting

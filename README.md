@@ -1,5 +1,9 @@
 # AiTmed NOODL Web
 
+## References
+
+- [TypeScript DOM types](https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts)
+
 ## Todos
 
 - history

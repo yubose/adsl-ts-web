@@ -10,7 +10,81 @@ export interface CachedPageObject {
   timestamp: number
 }
 
-export type DOMNode = ReturnType<typeof createElement>
+export type NOODLElements = Pick<
+  HTMLElementTagNameMap,
+  | 'a'
+  | 'article'
+  | 'audio'
+  | 'b'
+  | 'blockquote'
+  | 'body'
+  | 'br'
+  | 'button'
+  | 'canvas'
+  | 'caption'
+  | 'code'
+  | 'col'
+  | 'div'
+  | 'em'
+  | 'embed'
+  | 'fieldset'
+  | 'figure'
+  | 'footer'
+  | 'form'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'header'
+  | 'hr'
+  | 'html'
+  | 'i'
+  | 'img'
+  | 'input'
+  | 'iframe'
+  | 'label'
+  | 'li'
+  | 'link'
+  | 'main'
+  | 'meta'
+  | 'nav'
+  | 'noscript'
+  | 'ol'
+  | 'option'
+  | 'p'
+  | 'pre'
+  | 'script'
+  | 'select'
+  | 'section'
+  | 'small'
+  | 'source'
+  | 'span'
+  | 'strong'
+  | 'style'
+  | 'table'
+  | 'tbody'
+  | 'td'
+  | 'textarea'
+  | 'tfoot'
+  | 'th'
+  | 'thead'
+  | 'title'
+  | 'tr'
+  | 'track'
+  | 'ul'
+  | 'video'
+>
+
+export type NOODLElementTypes = keyof NOODLElements
+
+export type NOODLElement<
+  K extends NOODLElementTypes = NOODLElementTypes
+> = NOODLElements[K]
+
+// TODO: Soon to be deprecated in favor of NOODLElement
+export type DOMNode = NOODLElement
 
 export type DataValueElement =
   | HTMLInputElement

@@ -24,45 +24,6 @@ export interface InitializeMeetingOptions {
   viewport: Viewport
 }
 
-export interface IMeeting {
-  initialize(options: InitializeMeetingOptions): this
-  join(token: string, options?: ConnectOptions): Promise<Room>
-  leave(): this
-  addParticipant(participant: RoomParticipant): this
-  removeParticipant(participant: RoomParticipant): this
-  getMainStreamElement(): HTMLDivElement | null
-  getSelfStreamElement(): HTMLDivElement | null
-  getSubStreamElement(): HTMLDivElement | HTMLDivElement[] | null
-  getCameraElement(): HTMLImageElement | null
-  getMicrophoneElement(): HTMLImageElement | null
-  getHangUpElement(): HTMLImageElement | null
-  getInviteOthersElement(): HTMLImageElement | null
-  getParticipantsListElement(): HTMLUListElement | null
-  getVideoChatElements(): {
-    mainStream: ReturnType<IMeeting['getMainStreamElement']>
-    selfStream: ReturnType<IMeeting['getSelfStreamElement']>
-    subStream: ReturnType<IMeeting['getSubStreamElement']>
-    camera: ReturnType<IMeeting['getCameraElement']>
-    microphone: ReturnType<IMeeting['getMicrophoneElement']>
-    hangUp: ReturnType<IMeeting['getHangUpElement']>
-    inviteOthers: ReturnType<IMeeting['getInviteOthersElement']>
-    vidoeSubStream: ReturnType<IMeeting['getParticipantsListElement']>
-  }
-  getStreams(): IStreams
-  isParticipantLocal(
-    participant: RoomParticipant,
-  ): participant is LocalParticipant
-  isParticipantMainStreaming(participant: RoomParticipant): boolean
-  isParticipantSelfStreaming(participant: RoomParticipant): boolean
-  onConnected?(room: Room): any
-  resetRoom(): this
-  refreshMainStream(options: Partial<ParticipantStreamObject>): this
-  refreshSelfStream(options: Partial<ParticipantStreamObject>): this
-  attachTrack(track: RoomTrack, participant: RoomParticipant): this
-  detachTrack(track: RoomTrack, participant: RoomParticipant): this
-  room: Room
-}
-
 export type StreamNode = HTMLDivElement | null
 export type StreamParticipant = RoomParticipant | null
 export type ParticipantStreamMap = Map<RoomParticipant, ParticipantStreamObject>
@@ -70,6 +31,8 @@ export type ParticipantStreamObject = {
   node: StreamNode
   participant: StreamParticipant
 }
+
+export type StreamType = 'mainStream' | 'selfStream' | 'subStream'
 
 export interface IStreams {
   mainStream: ParticipantStreamObject
