@@ -6,7 +6,7 @@ import {
   NOODLActionTriggerType,
   SelectOption,
 } from 'noodl-ui'
-import NOODLDOMParser from 'app/NOODLDOMParser'
+import NOODLDOMParser from 'app/noodl-ui-dom'
 import { DataValueElement, DOMNode } from 'app/types'
 import { cadl, noodl } from 'app/client'
 import { forEachEntries } from 'utils/common'

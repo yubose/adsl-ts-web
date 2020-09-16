@@ -13,7 +13,7 @@ export function onBeforeResolve(
 ) {
   const logMsg = `%c[onBeforeResolve]`
   const logStyle = `color:#e50087;font-weight:bold;`
-  console.log(logMsg, logStyle, { actions, options })
+  // console.log(logMsg, logStyle, { actions, options })
 }
 
 export async function onChainStart(

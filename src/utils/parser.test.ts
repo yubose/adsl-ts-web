@@ -5,7 +5,7 @@ import { getByText } from '@testing-library/dom'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import { noodl } from 'setupTests'
 import { mapUserEvent } from 'utils/test-utils'
-import NOODLDOMParser from '../app/NOODLDOMParser'
+import NOODLDOMParser from '../app/noodl-ui-dom'
 import {
   parseChildren,
   parseDataValues,

@@ -6,9 +6,9 @@ import createElement from 'utils/createElement'
 import Logger from './Logger'
 import { noodlDomParserEvents } from '../constants'
 
-const log = Logger.create('NOODLDOMParser.ts')
+const log = Logger.create('NOODLDom.ts')
 
-class NOODLDOMParser {
+class NOODLDom {
   #cache: {
     record: { props: Map<any, any> }
     stub: { elements: { [key: string]: DOMNode } }
@@ -176,4 +176,4 @@ class NOODLDOMParser {
   }
 }
 
-export default NOODLDOMParser
+export default NOODLDom

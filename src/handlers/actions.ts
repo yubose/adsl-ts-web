@@ -76,6 +76,11 @@ const makeActions = function ({ store }: { store: AppStore }) {
     options,
   ) => {
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
+    console.log(elem)
+    console.log(elem)
+    console.log(elem)
+    console.log(elem)
+
     if (elem) {
       if (action.original.actionType === 'popUp') {
         elem.style.visibility = 'visible'
