@@ -43,17 +43,22 @@ class MeetingSubstreams {
   /**
    * Adds a participant to the subStreams collection on a stream that has an
    * available participant "slot"
+   *
    * NOTE: This function assumes that a participant does NOT already exist in
-   *    the subStreams collection. Therefore be sure to call
-   *    this.participantExists() to check before calling
+   * the subStreams collection. Therefore be sure to call
+   * .participantExists() to check before calling
    * @param { RoomParticipant } participant
    */
   addParticipant(participant: RoomParticipant) {
     if (participant) {
       let stream: Stream | undefined = undefined
+      // Check if a stream does not have any participant bound to it
       if (this.hasAvailableParticipantSlot()) {
+        // Retrieve the index of the stream that doesn't have a
+        // participant bound to it
         const index = this.getEmptyParticipantSlot()
         if (index !== -1) {
+          // Bind the participant to it and load their tracks to the DOM
           stream = this.#subStreams[index]
           stream.setParticipant(participant)
         } else {
@@ -65,7 +70,7 @@ class MeetingSubstreams {
           )
         }
         if (!stream) {
-          stream = new Stream('selfStream')
+          stream = new Stream('subStream')
           stream.setParticipant(participant)
         }
         this.#subStreams.push(stream)
@@ -76,9 +81,10 @@ class MeetingSubstreams {
         })
         this.#recentlyAddedParticipantStream = stream
       } else {
-        // Start a new stream in the subStreams collection and attach this
-        // participant to it (it does not have an element associated with it yet)
-        stream = new Stream('selfStream')
+        // Else start a new stream in the subStreams collection and attach this
+        // participant to it (it does not have an element associated with it
+        // yet unless stream.setElement is called with an element)
+        stream = new Stream('subStream')
         stream.setParticipant(participant)
         this.#recentlyAddedParticipantStream = stream
         this.#subStreams.push(stream)
@@ -90,7 +96,8 @@ class MeetingSubstreams {
   }
 
   /**
-   * Returns true if the element is already in the list of subStreams
+   * Returns true if the element is already bound to a subStream in the
+   * collection
    * @param { NOODLElement } node
    */
   elementExists(node: NOODLElement) {
@@ -100,7 +107,8 @@ class MeetingSubstreams {
   }
 
   /**
-   * Returns true if the participant is already in the list of subStreams
+   * Returns true if the participant is already bound to a subStream in
+   * the collection
    * @param { RoomParticipant } participant
    */
   participantExists(participant: RoomParticipant) {
@@ -109,30 +117,45 @@ class MeetingSubstreams {
     })
   }
 
+  /**
+   * Returns true if a subStream in the collection doesn't have any
+   * participant bound to it
+   */
   hasAvailableParticipantSlot() {
     return _.some(this.#subStreams, (subStream) => {
-      return !subStream.getParticipant()
+      return !subStream.hasParticipant()
     })
   }
 
+  /**
+   * Returns the index of a subStream in the collection that doesn't have a
+   * participant bound to it
+   */
   getEmptyParticipantSlot() {
-    return _.findIndex(
-      this.#subStreams,
-      (subStream) => !subStream.getParticipant(),
-    )
+    const fn = (subStream: Stream) => !subStream.hasParticipant()
+    return _.findIndex(this.#subStreams, fn)
   }
 
-  /** Returns the most recent stream that added a participant */
+  /** Returns the stream that a participant was most recently bound to  */
   getLastAddedParticipantStream() {
     return this.#recentlyAddedParticipantStream
   }
 
+  /**
+   * Returns the stream from the subStreams collection, null otherwise
+   * @param { RoomParticipant } participant
+   */
   getSubStream(participant: RoomParticipant) {
-    return _.find(this.#subStreams, (subStream) =>
-      subStream.isSameParticipant(participant),
-    )
+    const fn = (subStream: Stream) => subStream.isSameParticipant(participant)
+    return _.find(this.#subStreams, fn)
   }
 
+  /**
+   * Removes the given stream from the subStreams collection
+   * If stream was passed as an index then it is used as the index to remove
+   * the stream that is found at that position in the collection
+   * @param { Stream | number } stream - Stream or index to remove
+   */
   removeSubStream(stream: Stream): this
   removeSubStream(index: number): this
   removeSubStream(stream: Stream | number) {
@@ -148,6 +171,7 @@ class MeetingSubstreams {
     return this
   }
 
+  /** Returns the first subStream in the collection */
   first() {
     return this.#subStreams[0]
   }

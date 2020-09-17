@@ -40,7 +40,7 @@ class MeetingStreams {
 
   createSubStreamsContainer(container: NOODLElement) {
     this.#subStreams = new Substreams(container)
-    return this.getSubStreamsContainer()
+    return this.#subStreams
   }
 
   getSubStreamsContainer() {

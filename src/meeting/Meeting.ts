@@ -19,8 +19,8 @@ import { cadl } from 'app/client'
 import { AppStore } from 'app/types'
 import { isMobile } from 'utils/common'
 import * as T from 'app/types/meetingTypes'
-import Stream from 'meeting/Stream'
-import Streams from 'meeting/Streams'
+import Stream from 'Meeting/Stream'
+import Streams from 'Meeting/Streams'
 import Page from '../Page'
 import Logger from '../app/Logger'
 import MeetingSubstreams from './Substreams'
@@ -165,17 +165,33 @@ const Meeting = (function () {
       if (_internal._room?.state === 'connected') {
         if (!o.isParticipantLocal(participant)) {
           const mainStream = _internal._streams?.getMainStream()
+          // If the mainStream doesn't have any participant bound to it
           if (!mainStream.hasParticipant()) {
             _addRemoteParticipantToStream(mainStream, participant)
           }
-          if (!mainStream.isSameParticipant(participant)) {
-            const subStreams = _internal._streams?.getSubStreamsContainer()
+          // Otherwise if the participant is not currently the main speaker,
+          // proceed with adding them to the subStreams collection
+          else if (!mainStream.isSameParticipant(participant)) {
+            let subStreams = _internal._streams?.getSubStreamsContainer()
+            // Do one more check and attempt to grab a subStream that has
+            // the participant bound to it if there is one
             const subStream = subStreams?.getSubStream(participant)
             if (!subStream) {
+              // Proceed to add this participant to the collection. This will
+              // create a brand new stream instance by default if it doesn't
+              // find a participant bound to any streams
               if (subStreams) {
                 subStreams.addParticipant(participant)
               } else {
-                // TODO
+                // NOTE: This block might never run
+                log.func('addRemoteParticipant')
+                log.grey(
+                  `No subStreams container was found for this participant. ` +
+                    `This participant will not be shown on the page`,
+                  { participant, streams: _internal._streams },
+                )
+                // NOTE: We can't create a custom container here because the only way
+                // the container is created is through onCreateNode
               }
             }
           }

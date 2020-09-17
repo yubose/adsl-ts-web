@@ -60,7 +60,7 @@ import createStore from './app/store'
 import Logger from './app/Logger'
 import App from './App'
 import Page from './Page'
-import Meeting from './meeting'
+import Meeting from './Meeting'
 import { noodlDomParserEvents } from './constants'
 import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
@@ -411,7 +411,7 @@ window.addEventListener('load', async () => {
       if (identify.stream.video.isMainStream(props)) {
         const mainStream = streams.getMainStream()
         if (!mainStream.isSameElement(node)) {
-          mainStream.setElement(node)
+          mainStream.setElement(node, { uxTag: 'mainStream' })
           log.func('onCreateNode')
           log.green('Bound an element to mainStream', { mainStream, node })
         }
@@ -420,33 +420,32 @@ window.addEventListener('load', async () => {
       else if (identify.stream.video.isSelfStream(props)) {
         const selfStream = streams.getSelfStream()
         if (!selfStream.isSameElement(node)) {
-          selfStream.setElement(node)
+          selfStream.setElement(node, { uxTag: 'selfStream' })
           log.func('onCreateNode')
           log.green('Bound an element to selfStream', { selfStream, node })
         }
       }
       // Remote participants container
       else if (identify.stream.video.isSubStreamsContainer(props)) {
-        if (streams.getSubStreamsContainer()?.container !== node) {
-          streams.createSubStreamsContainer(node)
+        let subStreams = streams.getSubStreamsContainer()
+        if (!subStreams) {
+          subStreams = streams.createSubStreamsContainer(node)
           log.func('onCreateNode')
-          log.green(
-            'Created subStream container',
-            streams.getSubStreamsContainer(),
-          )
+          log.green('Created subStreams container', subStreams)
         }
       }
-      // Remote participant video element container (not the subStreams container)
+      // Individual remote participant video element container
       else if (identify.stream.video.isSubStream(props)) {
-        const subStreamsContainer = streams.getSubStreamsContainer()
-        if (subStreamsContainer) {
-          const container = subStreamsContainer
+        const container = streams.getSubStreamsContainer()
+        if (container) {
           if (!container.elementExists(node)) {
             container.addElement(node)
+            log.func('onCreateNode')
+            log.green('Added an element to a subStream', node)
           } else {
             log.func('onCreateNode')
             log.red(
-              `Attempted to add an element as a sub stream but it ` +
+              `Attempted to add an element to a subStream but it ` +
                 `already exists in the container`,
               { container, node, props },
             )
