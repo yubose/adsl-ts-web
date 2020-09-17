@@ -207,7 +207,7 @@ const Meeting = (function () {
       return _internal._streams
     },
     /**
-     * Attempts to revive/re-attach both the audio and video tracks of the
+     * Attempts to initialize/revive/re-attach both the audio and video tracks of the
      * LocalParticipant on the selfStream
      */
     refreshMainStream({
@@ -215,8 +215,10 @@ const Meeting = (function () {
       participant,
     }: Partial<T.ParticipantStreamObject> = {}) {
       if (!node) {
-        node = _internal._streams.mainStream.node || this.getMainStreamElement()
+        node =  this.getMainStreamElement()
       }
+
+      const streams = _internal._streams
 
       if (node) {
         _internal._streams.setMainStream({
@@ -264,7 +266,7 @@ const Meeting = (function () {
       return this
     },
     /**
-     * Attempts to revive/re-attach both the audio and video tracks of the
+     * Attempts to initialize/revive/re-attach both the audio and video tracks of the
      * LocalParticipant on the selfStream
      */
     refreshSelfStream({
@@ -272,14 +274,21 @@ const Meeting = (function () {
       participant,
     }: Partial<T.ParticipantStreamObject> = {}) {
       if (!node) {
-        node = _internal._streams.selfStream.node || o.getSelfStreamElement()
+        node = o.getSelfStreamElement()
       }
 
+      const selfStream = _internal._streams.getSelfStream()
+
       if (node) {
-        _internal._streams.setSelfStream({
-          node,
-          participant,
-        } as T.ParticipantStreamObject)
+        if (!selfStream.isSameElement(node)) {
+          selfStream.setElement(node)
+        }
+
+        if (participant) {
+          if (!selfStream.isSameParticipant(participant)) {
+            selfStream.setParticipant(participant)
+          }
+        }
       } else {
         const msg = `Tried to refresh selfStream but could not find the node anywhere`
         log.func('refreshSelfStream')

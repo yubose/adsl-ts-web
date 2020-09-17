@@ -1,11 +1,8 @@
 import _ from 'lodash'
 import { NOODLElement } from 'app/types/pageTypes'
 import { RoomParticipant } from 'app/types'
-import Logger from 'app/Logger'
 import Stream from './Stream'
 import Substreams from './Substreams'
-
-const log = Logger.create('Streams.ts')
 
 class MeetingStreams {
   #mainStream: Stream

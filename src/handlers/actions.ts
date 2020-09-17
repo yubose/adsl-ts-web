@@ -76,11 +76,6 @@ const makeActions = function ({ store }: { store: AppStore }) {
     options,
   ) => {
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
-    console.log(elem)
-    console.log(elem)
-    console.log(elem)
-    console.log(elem)
-
     if (elem) {
       if (action.original.actionType === 'popUp') {
         elem.style.visibility = 'visible'
@@ -90,7 +85,7 @@ const makeActions = function ({ store }: { store: AppStore }) {
     } else {
       log.func('popUp')
       log.red(
-        `Tried to make a "${action.original.actionType}" element visible but the element node was null or undefined`,
+        `Tried to render a ${action.original.actionType} element but the element was null or undefined`,
         { action, options },
       )
     }

@@ -1,11 +1,6 @@
 import _ from 'lodash'
-import { RemoteParticipant, RemoteTrack, VideoTrack } from 'twilio-video'
-import {
-  RoomParticipant,
-  RoomParticipantTrackPublication,
-  RoomTrack,
-} from 'app/types/meetingTypes'
-import { DOMNode } from 'app/types'
+import { RemoteParticipant, VideoTrack } from 'twilio-video'
+
 // Giving color codes according to the feature that represents a certain stream
 // Ex: rooms = #e50087
 // This is to have an easier time debugging with console messages
@@ -40,8 +35,6 @@ export function attachVideoTrack<T extends HTMLElement>(
   videoElem.style.width = '100%'
   videoElem.style.height = '100%'
   videoElem.style.objectFit = 'cover'
-  if (!node.contains(videoElem)) {
-    node.appendChild(videoElem)
-  }
+  node.appendChild(videoElem)
   return node
 }

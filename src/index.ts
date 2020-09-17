@@ -11,6 +11,7 @@ import {
   Action,
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
+  getByDataUX,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -45,6 +46,7 @@ import {
 import { cadl, noodl } from './app/client'
 import { createStoreObserver, isMobile, reduceEntries } from './utils/common'
 import { attachVideoTrack, forEachParticipant } from './utils/twilio'
+import parser from './utils/parser'
 import {
   setPage,
   setInitiatingPage,
@@ -64,11 +66,12 @@ import createStore from './app/store'
 import Logger from './app/Logger'
 import App from './App'
 import Page from './Page'
-import Meeting from './meeting'
+import Meeting from './Meeting'
 import { noodlDomParserEvents } from './constants'
 import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
+import NOODLElement from 'components/NOODLElement'
 
 const log = Logger.create('src/index.ts')
 
@@ -114,6 +117,7 @@ window.addEventListener('load', async () => {
   window.account = Account
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
+  window.getByDataUX = getByDataUX
   window.noodl = cadl
   window.noodlui = noodl
   window.streams = Meeting.getStreams()
@@ -255,31 +259,32 @@ window.addEventListener('load', async () => {
     },
   )
 
-  page.registerListener(
-    'onCreateNode',
-    (node: DOMNode, props: NOODLComponentProps) => {
-      if (identify.stream.video.isMainStream(props)) {
-        log.func('Listener -- onCreateNode')
-        log.grey('Attached a mainStream node to streams hash', { node, props })
-        streams.setMainStream({ node } as ParticipantStreamObject)
-      } else if (identify.stream.video.isSelfStream(props)) {
-        log.func('Listener -- onCreateNode')
-        log.grey('Attached a selfStream node to streams hash', { node, props })
-        streams.setSelfStream({ node } as ParticipantStreamObject)
-      } else if (identify.stream.video.isSubStream(props)) {
-        const subStreams = Meeting.getSubStreamElement()
-        if (_.isArray(subStreams)) {
-          _.forEach(subStreams, (subStream) => {
-            //
-          })
-        } else if (subStreams) {
-          //
-        } else {
-          //
-        }
-      }
-    },
-  )
+  // page.registerListener(
+  //   'onCreateNode',
+  //   (node: DOMNode, props: NOODLComponentProps) => {
+  //     if (identify.stream.video.isMainStream(props)) {
+  //       log.func('Listener -- onCreateNode')
+  //       log.grey('Attached a mainStream node to streams hash', { node, props })
+  //       const mainStream = streams.getMainStream()
+  //       streams.({ node } as ParticipantStreamObject)
+  //     } else if (identify.stream.video.isSelfStream(props)) {
+  //       log.func('Listener -- onCreateNode')
+  //       log.grey('Attached a selfStream node to streams hash', { node, props })
+  //       streams.setSelfStream({ node } as ParticipantStreamObject)
+  //     } else if (identify.stream.video.isSubStream(props)) {
+  //       const subStreams = Meeting.getSubStreamElement()
+  //       if (_.isArray(subStreams)) {
+  //         _.forEach(subStreams, (subStream) => {
+  //           //
+  //         })
+  //       } else if (subStreams) {
+  //         //
+  //       } else {
+  //         //
+  //       }
+  //     }
+  //   },
+  // )
 
   page.registerListener(
     'onPageRendered',
@@ -306,7 +311,7 @@ window.addEventListener('load', async () => {
     'onError',
     ({ error, pageName }: { error: Error; pageName: string }) => {
       console.error(error)
-      window.alert(error.message)
+      // window.alert(error.message)
       // TODO - narrow the reasons down more
       dispatch(setRenderComponentsFailed(error))
     },
@@ -346,23 +351,23 @@ window.addEventListener('load', async () => {
   })
 
   /** Starts the video chat streams as soon as the page is ready */
-  observeStore(
-    createSelector(
-      (state) => state.page.currentPage,
-      (state) => state.page.renderState.snapshot,
-      (currentPage, snapshotStatus) => ({ currentPage, snapshotStatus }),
-    ),
-    ({ currentPage, snapshotStatus }) => {
-      if (snapshotStatus === 'received') {
-        if (currentPage === 'VideoChat') {
-          if (Meeting.room.state === 'connected') {
-            log.func('observeStore -- currentPage/renderState.status')
-            log.grey('Initializing media tracks')
-          }
-        }
-      }
-    },
-  )
+  // observeStore(
+  //   createSelector(
+  //     (state) => state.page.currentPage,
+  //     (state) => state.page.renderState.snapshot,
+  //     (currentPage, snapshotStatus) => ({ currentPage, snapshotStatus }),
+  //   ),
+  //   ({ currentPage, snapshotStatus }) => {
+  //     if (snapshotStatus === 'received') {
+  //       if (currentPage === 'VideoChat') {
+  //         if (Meeting.room.state === 'connected') {
+  //           log.func('observeStore -- currentPage/renderState.status')
+  //           log.grey('Initializing media tracks')
+  //         }
+  //       }
+  //     }
+  //   },
+  // )
 
   /**
    * Triggers opening/closing the modal if a matching modal id is set
@@ -433,81 +438,60 @@ window.addEventListener('load', async () => {
     // Add a listener to disconnect from the room when a mobile user closes their browser
     if (isMobile()) window.addEventListener('pagehide', disconnect)
 
-    // room.on('participantConnected', (participant: RemoteParticipant) => {
-    //   function onCreateNode(node: DOMNode, props: NOODLComponentProps) {
-    //     if (node) {
-    //       // Dominant/main participant/speaker
-    //       if (identify.stream.video.isMainStream(props)) {
-    //         const mainStream = node as HTMLDivElement
-    //         if (mainStream !== _streams.mainStream) {
-    //           _streams['mainStream'] = mainStream
-    //         }
-    //         if (_streams.inSubStream(mainStream)) {
-    //           _streams.removeFromSubStream(mainStream)
-    //         }
-    //       }
-    //       // Local participant
-    //       else if (identify.stream.video.isSelfStream(props)) {
-    //         const selfStream = node as HTMLDivElement
-    //         if (selfStream !== _streams.selfStream) {
-    //           _streams['selfStream'] = selfStream
-    //         }
-    //         if (_streams.inSubStream(selfStream)) {
-    //           _streams.removeFromSubStream(selfStream)
-    //         }
-    //       }
-    //       // Remote participants container
-    //       else if (identify.stream.video.subStreamsContainer(props)) {
-    //         //
-    //       }
-    //       // Remote participant video element container
-    //       else if (identify.stream.video.subStream(props)) {
-    //         const subStream = node as HTMLDivElement
-    //         if (!_streams.inSubStream(subStream)) {
-    //           _streams.addToSubStream(subStream)
-    //         }
-    //       }
-    //     }
-    //   }
-
-    //   if (
-    //     !parser
-    //       .getEventListeners(noodlDomParserEvents.onCreateNode)
-    //       ?.includes(onCreateNode)
-    //   ) {
-    //     parser.on(noodlDomParserEvents.onCreateNode, onCreateNode)
-    //   }
-    // })
-
     /* -------------------------------------------------------
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
+
+    const localParticipant = room.localParticipant
+    const selfStream = streams.getSelfStream()
+    const mainStream = streams.getMainStream()
+    const subStreams = streams.getSubStreamsContainer()
+
+    if (!selfStream.isSameParticipant(localParticipant)) {
+      selfStream.setParticipant(localParticipant)
+      if (selfStream.isSameParticipant(localParticipant)) {
+        log.func('')
+        log.green(`Bound local participant to selfStream`, selfStream)
+      }
+    }
+
     // selfStream
-    Meeting.refreshSelfStream({
-      participant: room.localParticipant,
-    })
+    // Meeting.refreshSelfStream({
+    //   participant: room.localParticipant,
+    // })
 
     // subStreams (remote participants)
     forEachParticipant(room.participants, (participant) => {
-      // Start a remote participant's stream on the mainStream if there isn't
-      // a mainStream yet
-      if (!streams.mainStream.participant) {
-        streams.setMainStream({
-          node: Meeting.getMainStreamElement(),
-          participant,
-        } as ParticipantStreamObject)
-        Meeting.refreshMainStream({ participant })
+      // @ts-expect-error
+      if (room.localParticipant === participant) {
+        log.func('forEachParticipant')
+        log.red(`FOUND A LOCAL PARTICIPANT IN HERE`)
+      }
+
+      if (!mainStream.hasParticipant()) {
+        mainStream.setParticipant(participant)
       } else {
-        if (!streams.subStreams.has(participant)) {
-          streams.subStreams.set(participant, {
-            node: null,
-            participant,
-          })
-          log.func('Meeting.onConnected -- forEachParticipant')
-          log.grey(`Adding subStream participant`, participant)
+        if (subStreams) {
+          if (!subStreams.participantExists(participant)) {
+            const subStream = subStreams
+              .addParticipant(participant)
+              .getLastAddedParticipantStream()
+            log.func('Meeting.onConnected -- forEachParticipant')
+            log.grey(`Bound participant to subStream`, {
+              participant,
+              subStream,
+            })
+          }
+        } else {
+          log.func('forEachParticipant')
+          log.red(
+            `Attempted to bind a participant on a subStream but the container ` +
+              `was not available`,
+            { streams, participant },
+          )
         }
       }
-      handleTrackPublish(participant)
+      // handleTrackPublish(participant)
     })
 
     /**
@@ -544,6 +528,79 @@ window.addEventListener('load', async () => {
         _.partialRight(Meeting.detachTrack, participant),
       )
     }
+  }
+
+  /* -------------------------------------------------------
+    ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
+  -------------------------------------------------------- */
+  function onCreateNode(node: DOMNode, props: NOODLComponentProps) {
+    if (node) {
+      // Dominant/main participant/speaker
+      if (identify.stream.video.isMainStream(props)) {
+        const mainStream = streams.getMainStream()
+        if (!mainStream.isSameElement(node)) {
+          mainStream.setElement(node)
+          log.func('onCreateNode')
+          log.green('Bound an element to mainStream', { mainStream, node })
+        }
+      }
+      // Local participant
+      else if (identify.stream.video.isSelfStream(props)) {
+        const selfStream = streams.getSelfStream()
+        if (!selfStream.isSameElement(node)) {
+          selfStream.setElement(node)
+          log.func('onCreateNode')
+          log.green('Bound an element to selfStream', { selfStream, node })
+        }
+      }
+      // Remote participants container
+      else if (identify.stream.video.isSubStreamsContainer(props)) {
+        if (streams.getSubStreamsContainer()?.container !== node) {
+          streams.createSubStreamsContainer(node)
+          log.func('onCreateNode')
+          log.green(
+            'Created subStream container',
+            streams.getSubStreamsContainer(),
+          )
+        }
+      }
+      // Remote participant video element container (not the subStreams container)
+      else if (identify.stream.video.isSubStream(props)) {
+        const subStreamsContainer = streams.getSubStreamsContainer()
+        if (subStreamsContainer) {
+          const container = subStreamsContainer
+          if (!container.elementExists(node)) {
+            container.addElement(node)
+          } else {
+            log.func('onCreateNode')
+            log.red(
+              `Attempted to add an element as a sub stream but it ` +
+                `already exists in the container`,
+              { container, node, props },
+            )
+          }
+        } else {
+          log.func('onCreateNode')
+          log.red(
+            `Attempted to create a subStream but a container was not available`,
+            {
+              node,
+              props,
+              mainStream: streams.getMainStream(),
+              selfStream: streams.getSelfStream(),
+            },
+          )
+        }
+      }
+    }
+  }
+
+  if (
+    !parser
+      .getEventListeners(noodlDomParserEvents.onCreateNode)
+      ?.includes(onCreateNode)
+  ) {
+    parser.on(noodlDomParserEvents.onCreateNode, onCreateNode)
   }
 
   /* -------------------------------------------------------

@@ -1,14 +1,20 @@
 import _ from 'lodash'
 import { NOODLElement } from 'app/types/pageTypes'
 import Logger from 'app/Logger'
-import { RoomParticipant, StreamType } from 'app/types'
+import {
+  RoomParticipant,
+  RoomParticipantTrackPublication,
+  RoomTrack,
+  StreamType,
+} from 'app/types'
+import { attachVideoTrack } from 'utils/twilio'
 
 const log = Logger.create('Streams.ts')
 
 class MeetingStream {
   #node: NOODLElement | null = null
+  #participant: RoomParticipant | null = null
   previous: { sid?: string; identity?: string } = {}
-  participant: RoomParticipant | null = null
   type: StreamType | null = null
 
   constructor(type: StreamType, node?: NOODLElement) {
@@ -16,6 +22,7 @@ class MeetingStream {
     this.type = type
   }
 
+  /* fsa */
   getElement() {
     return this.#node
   }
@@ -37,8 +44,20 @@ class MeetingStream {
     return this.#node === node
   }
 
+  hasParticipant() {
+    return !!this.#participant
+  }
+
+  getParticipant() {
+    return this.#participant
+  }
+
+  /**
+   * Returns true if the node is already set on this instance
+   * @param { NOODLElement } node
+   */
   isSameParticipant(participant: RoomParticipant) {
-    return this.participant === participant
+    return !!participant && this.#participant === participant
   }
 
   /**
@@ -48,12 +67,21 @@ class MeetingStream {
    */
   setParticipant(participant: RoomParticipant) {
     if (participant) {
-      this.participant = participant
-      if (this.#node) {
-        this.#node.dataset['sid'] = participant.sid
+      const node = this.getElement()
+      this.previous.sid = this.#participant?.sid || ''
+      this.previous.identity = this.#participant?.identity || ''
+      this.#participant = participant
+      if (node) {
+        node.dataset['sid'] = participant.sid
+        this.#handlePublishTracks()
+      } else {
+        log.func('setParticipant')
+        log.orange(
+          `A participant was set on a stream but the node was not currently ` +
+            `available. The publishing of the participant's tracks was skipped`,
+          this,
+        )
       }
-      this.previous.sid = participant.sid
-      this.previous.identity = participant.identity
     } else {
       log.func(`[${this.type}] setParticipant`)
       log.red(
@@ -64,19 +92,147 @@ class MeetingStream {
     return this
   }
 
-  /** Re-queries for the currrent participant's tracks and assigns them to this
-   * node if they aren't set */
+  /**
+   * Handle tracks published as well as tracks that are going to be published
+   * by the participant later
+   * @param { LocalParticipant | RemoteParticipant } participant
+   */
+  #handlePublishTracks = () => {
+    const onTrackPublished = _.partialRight(
+      this.#handleAttachTracks,
+      this.#participant,
+    )
+    this.#participant?.tracks?.forEach?.(onTrackPublished)
+    this.#participant?.on('trackPublished', onTrackPublished)
+  }
+
+  /**
+   * Attach the published track to the DOM once it is subscribed
+   * @param { RoomParticipantTrackPublication } publication - Track publication
+   * @param { RoomParticipant } participant
+   */
+  #handleAttachTracks = (
+    publication: RoomParticipantTrackPublication,
+    participant: RoomParticipant,
+  ) => {
+    // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
+    if (publication.track) {
+      this.#attachTrack(publication.track, participant)
+    }
+    // Local participant is subscribed to this remote track
+    publication.on('subscribed', _.partialRight(this.#attachTrack, participant))
+    publication.on(
+      'unsubscribed',
+      _.partialRight(this.#detachTrack, participant),
+    )
+  }
+
+  /**
+   * Attaches a track to a DOM node
+   * @param { RoomTrack } track - Track from the room instance
+   * @param { RoomParticipant } participant - Participant from the room instance
+   */
+  #attachTrack = (track: RoomTrack, participant: RoomParticipant) => {
+    const node = this.getElement()
+    if (node) {
+      if (track.kind === 'audio') {
+        //
+      } else if (track.kind === 'video') {
+        attachVideoTrack(node, track)
+        log.func('attachTrack')
+        log.green(`Loaded the participant's video track`, {
+          node,
+          track,
+        })
+      }
+    }
+    return this
+  }
+
+  /**
+   * Removes a track from a DOM node
+   * @param { RoomTrack } track - Track from the room instance
+   * @param { RoomParticipant } participant - Participant from the room instance
+   */
+  #detachTrack = (track: RoomTrack, participant: RoomParticipant) => {
+    if (track.kind === 'audio') {
+      //
+    } else if (track.kind === 'video') {
+      //
+    }
+    return this
+  }
+
+  /**
+   * Re-queries for the currrent participant's tracks and assigns them to the
+   * currently set node if they aren't set
+   */
+  // NOTE -- hold off on this
   reloadTracks() {
     if (!this.#node) {
+      log.func('reloadTracks')
+      log.red(
+        `Tried to reload tracks but the node set on this instance is ` +
+          `not available`,
+        this.snapshot(),
+      )
       return
     }
 
-    if (!this.participant) {
+    if (!this.#participant) {
+      log.func('reloadTracks')
+      log.red(
+        `Tried to reload tracks but the participant set on this instance is ` +
+          `not available`,
+        this.snapshot(),
+      )
       return
     }
 
-    if (this.#node.dataset.sid !== this.participant.sid) {
-      this.#node.dataset['sid'] = this.participant.sid
+    if (this.#node.dataset.sid !== this.#participant.sid) {
+      this.#node.dataset['sid'] = this.#participant.sid
+    }
+
+    this.#participant.tracks?.forEach?.(
+      (publication: RoomParticipantTrackPublication) => {
+        const track = publication?.track
+        if (track?.kind === 'audio') {
+          const audioElem = this.#node?.querySelector('audio')
+          if (audioElem) {
+            log.func('reloadTracks')
+            log.grey('Removing previous audio element', audioElem)
+            audioElem.remove()
+          }
+
+          this.#node?.appendChild(track.attach())
+          log.func('reloadTracks')
+          log.green(`Loaded participant's audio track`, {
+            node: this.#node,
+            participant: this.#participant,
+            track,
+          })
+        } else if (track?.kind === 'video') {
+          if (this.#node) {
+            attachVideoTrack(this.#node, track)
+            log.func('reloadTracks')
+            log.green(`Loaded participant's video track`, {
+              node: this.#node,
+              participant: this.#participant,
+              track,
+            })
+          }
+        }
+      },
+    )
+  }
+
+  /** Returns a JS representation of the current state of this stream */
+  snapshot() {
+    return {
+      node: this.#node,
+      participant: this.#participant,
+      previous: this.previous,
+      streamType: this.type,
     }
   }
 }
