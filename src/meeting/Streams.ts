@@ -22,12 +22,16 @@ class MeetingStreams {
     return this.#selfStream
   }
 
-  isMainStreaming(node: NOODLElement | null) {
-    return this.#mainStream.isSame(node)
+  isMainStreaming(participant: RoomParticipant) {
+    return this.#mainStream.isSameParticipant(participant)
   }
 
-  isSelfStreaming(node: NOODLElement | null) {
-    return this.#selfStream.isSame(node)
+  isSelfStreaming(participant: RoomParticipant) {
+    return this.#selfStream.isSameParticipant(participant)
+  }
+
+  isSubStreaming(participant: RoomParticipant) {
+    return this.#subStreams?.participantExists(participant)
   }
 
   subStreamsContainerExists() {
@@ -41,43 +45,6 @@ class MeetingStreams {
 
   getSubStreamsContainer() {
     return this.#subStreams
-  }
-
-  addSubStream(node: NOODLElement) {
-    if (this.#subStreams) {
-      if (!this.#subStreams.has(node)) {
-        this.#subStreams.add(node)
-      } else {
-        //
-      }
-    } else {
-      //
-    }
-    return this
-  }
-
-  isElementSubstreaming(node: NOODLElement) {
-    return !!this.#subStreams?.elementExists(node)
-  }
-
-  isParticipantSubstreaming(participant: RoomParticipant) {
-    return !!this.#subStreams?.participantExists(node)
-  }
-
-  getSubStream(participant: RoomParticipant): Stream | null
-  getSubStream(participantSid: string): Stream | null
-  getSubStream(node: NOODLElement): Stream | null
-  getSubStream(node: string | NOODLElement | RoomParticipant) {
-    if (_.isString(node)) {
-      const sid = node
-    } else if (node instanceof Element) {
-      //
-    } else if (node) {
-      const participant = node
-    } else {
-      //
-    }
-    return null
   }
 }
 

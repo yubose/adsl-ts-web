@@ -52,6 +52,13 @@ class MeetingStream {
     return this.#participant
   }
 
+  replaceParticipant(participant: RoomParticipant) {
+    this.previous.sid = participant.sid
+    this.previous.identity = participant.identity
+    this.#participant = participant
+    return this
+  }
+
   /**
    * Returns true if the node is already set on this instance
    * @param { NOODLElement } node
@@ -68,9 +75,7 @@ class MeetingStream {
   setParticipant(participant: RoomParticipant) {
     if (participant) {
       const node = this.getElement()
-      this.previous.sid = this.#participant?.sid || ''
-      this.previous.identity = this.#participant?.identity || ''
-      this.#participant = participant
+      this.replaceParticipant(participant)
       if (node) {
         node.dataset['sid'] = participant.sid
         this.#handlePublishTracks()
@@ -98,12 +103,8 @@ class MeetingStream {
    * @param { LocalParticipant | RemoteParticipant } participant
    */
   #handlePublishTracks = () => {
-    const onTrackPublished = _.partialRight(
-      this.#handleAttachTracks,
-      this.#participant,
-    )
-    this.#participant?.tracks?.forEach?.(onTrackPublished)
-    this.#participant?.on('trackPublished', onTrackPublished)
+    this.#participant?.tracks?.forEach?.(this.#handleAttachTracks)
+    this.#participant?.on('trackPublished', this.#handleAttachTracks)
   }
 
   /**
@@ -111,32 +112,34 @@ class MeetingStream {
    * @param { RoomParticipantTrackPublication } publication - Track publication
    * @param { RoomParticipant } participant
    */
-  #handleAttachTracks = (
-    publication: RoomParticipantTrackPublication,
-    participant: RoomParticipant,
-  ) => {
+  #handleAttachTracks = (publication: RoomParticipantTrackPublication) => {
     // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
     if (publication.track) {
-      this.#attachTrack(publication.track, participant)
+      this.#attachTrack(publication.track)
     }
-    // Local participant is subscribed to this remote track
-    publication.on('subscribed', _.partialRight(this.#attachTrack, participant))
-    publication.on(
-      'unsubscribed',
-      _.partialRight(this.#detachTrack, participant),
-    )
+    const onSubscribe = (track: RoomTrack) => {
+      log.func('event -- subscribed')
+      log.green('"subscribed" handler is executing')
+      this.#attachTrack(track)
+    }
+    const onUnsubscribe = (track: RoomTrack) => {
+      log.func('event -- unsubscribed')
+      log.green('"unsubscribed" handler is executing')
+      this.#detachTrack(track)
+    }
+    publication.on('subscribed', onSubscribe)
+    publication.on('unsubscribed', onUnsubscribe)
   }
 
   /**
    * Attaches a track to a DOM node
    * @param { RoomTrack } track - Track from the room instance
-   * @param { RoomParticipant } participant - Participant from the room instance
    */
-  #attachTrack = (track: RoomTrack, participant: RoomParticipant) => {
+  #attachTrack = (track: RoomTrack) => {
     const node = this.getElement()
     if (node) {
       if (track.kind === 'audio') {
-        //
+        this.#node?.appendChild(track.attach())
       } else if (track.kind === 'video') {
         attachVideoTrack(node, track)
         log.func('attachTrack')
@@ -150,17 +153,24 @@ class MeetingStream {
   }
 
   /**
-   * Removes a track from a DOM node
+   * Removes track elements from the DOM
    * @param { RoomTrack } track - Track from the room instance
-   * @param { RoomParticipant } participant - Participant from the room instance
    */
-  #detachTrack = (track: RoomTrack, participant: RoomParticipant) => {
+  #detachTrack = (track: RoomTrack) => {
     if (track.kind === 'audio') {
-      //
+      track?.detach?.()?.forEach((elem) => elem?.remove?.())
     } else if (track.kind === 'video') {
-      //
+      track.detach?.()?.forEach((elem) => elem?.remove?.())
     }
     return this
+  }
+
+  /** Removes the video/audio elements from the DOM */
+  unpublish(participant: RoomParticipant | null = this.#participant) {
+    participant?.tracks?.forEach(
+      ({ track }: RoomParticipantTrackPublication) =>
+        track && this.#detachTrack(track),
+    )
   }
 
   /**

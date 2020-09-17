@@ -20,6 +20,7 @@ declare global {
     account: typeof Account
     noodl: CADL
     env: string | undefined
+    getByDataUX: any
     getDataValues: any
     components: NOODLComponent[]
     pcomponents: NOODLComponentProps[]
@@ -27,7 +28,7 @@ declare global {
     modal: Modal
     noodlui: NOODL
     room: Room | null
-    streams: IStreams
+    streams: any
     // noodl-ui
     // twilio-video
     twilio: any

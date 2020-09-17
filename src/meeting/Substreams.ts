@@ -16,6 +16,10 @@ class MeetingSubstreams {
     this.container = container
   }
 
+  get length() {
+    return this.#subStreams.length
+  }
+
   /**
    * Adds an element to the subStreams collection
    * If index is passed, it will insert the stream at the specified index
@@ -121,6 +125,31 @@ class MeetingSubstreams {
   /** Returns the most recent stream that added a participant */
   getLastAddedParticipantStream() {
     return this.#recentlyAddedParticipantStream
+  }
+
+  getSubStream(participant: RoomParticipant) {
+    return _.find(this.#subStreams, (subStream) =>
+      subStream.isSameParticipant(participant),
+    )
+  }
+
+  removeSubStream(stream: Stream): this
+  removeSubStream(index: number): this
+  removeSubStream(stream: Stream | number) {
+    if (stream instanceof Stream) {
+      const fn = (s: Stream) => s !== stream
+      this.#subStreams = _.filter(this.#subStreams, fn)
+    } else if (_.isNumber(stream)) {
+      const index = stream
+      if (_.inRange(index, 0, this.#subStreams.length)) {
+        this.#subStreams.splice(index, 1)
+      }
+    }
+    return this
+  }
+
+  first() {
+    return this.#subStreams[0]
   }
 }
 
