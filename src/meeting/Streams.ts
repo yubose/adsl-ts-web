@@ -3,6 +3,7 @@ import { NOODLElement } from 'app/types/pageTypes'
 import { RoomParticipant } from 'app/types'
 import Stream from './Stream'
 import Substreams from './Substreams'
+import { NOODLComponentProps } from 'noodl-ui'
 
 class MeetingStreams {
   #mainStream: Stream
@@ -38,8 +39,11 @@ class MeetingStreams {
     return this.#subStreams instanceof Substreams
   }
 
-  createSubStreamsContainer(container: NOODLElement) {
-    this.#subStreams = new Substreams(container)
+  createSubStreamsContainer(
+    container: NOODLElement,
+    props: NOODLComponentProps,
+  ) {
+    this.#subStreams = new Substreams(container, props)
     return this.#subStreams
   }
 

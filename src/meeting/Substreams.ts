@@ -3,7 +3,7 @@ import { NOODLElement } from 'app/types/pageTypes'
 import { RoomParticipant } from 'app/types'
 import Logger from 'app/Logger'
 import Stream from './Stream'
-import { NOODLComponent } from 'noodl-ui'
+import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 
 const log = Logger.create('Substreams.ts')
 
@@ -14,8 +14,10 @@ class MeetingSubstreams {
   blueprint: Partial<NOODLComponent> = {} // Experimental
   container: NOODLElement
 
-  constructor(container: NOODLElement) {
+  constructor(container: NOODLElement, props: NOODLComponentProps) {
     this.container = container
+    log.func('constructor')
+    log.green('Props', props)
   }
 
   get length() {

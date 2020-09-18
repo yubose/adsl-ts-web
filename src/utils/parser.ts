@@ -223,18 +223,18 @@ function parseIdentifiers(node: DOMNode, props: NOODLComponentProps) {
   }
   if (props['data-key']) {
     if ('name' in node) {
-      node.setAttribute('data-key', props['data-key'])
-      node.setAttribute('name', props['data-key'])
+      node.dataset['key'] = props['data-key']
+      node.dataset['name'] = props['data-key']
     }
   }
-  if (props['data-list-id']) {
-    node.setAttribute('list-id', props['data-list-id'])
+  if (props['data-listid']) {
+    node.dataset['listid'] = props['data-listid']
   }
   if (props['data-name']) {
-    node.setAttribute('data-name', props['data-name'])
+    node.dataset['name'] = props['data-name']
   }
   if (props['data-ux']) {
-    node.setAttribute('data-ux', props['data-ux'])
+    node.dataset['ux'] = props['data-ux']
   }
 }
 

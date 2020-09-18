@@ -1,0 +1,58 @@
+{
+  "_handled": ["type", "inputType", "data-ux", "children"],
+  "_touched": [
+    "style",
+    "type",
+    "contentType",
+    "listObject",
+    "iteratorVar",
+    "children",
+    "parentId",
+    "id"
+  ],
+  "_touchedStyles": [],
+  "_unhandled": [
+    "contentType",
+    "listObject",
+    "iteratorVar",
+    "style",
+    "parentId",
+    "id"
+  ],
+  "_untouched": [],
+  "_untouchedStyles": [],
+  "children": [null],
+  "contentType": "vidoeSubStream",
+  "data-list-data": [
+    {
+      "bvid": "",
+      "ctime": "",
+      "evid": "",
+      "id": "",
+      "name": "",
+      "subtype": "",
+      "tage": "",
+      "type": "0"
+    }
+  ],
+  "data-list-id": "_5624iwcsb-_b0d31aqbf[6]",
+  "data-ux": "vidoeSubStream",
+  "id": "_5624iwcsb-_b0d31aqbf[6]",
+  "inputType": "vidoeSubStream",
+  "iteratorVar": "itemObject",
+  "listObject": "",
+  "noodlType": "list",
+  "parentId": "_5624iwcsb",
+  "style": {
+    "axis": "horizontal",
+    "display": "flex",
+    "flexWrap": "nowrap",
+    "height": "113.55px",
+    "left": "16.8px",
+    "outline": "none",
+    "position": "absolute",
+    "top": "469.34px",
+    "width": "386.40000000000003px"
+  },
+  "type": "ul"
+}

@@ -429,7 +429,7 @@ window.addEventListener('load', async () => {
       else if (identify.stream.video.isSubStreamsContainer(props)) {
         let subStreams = streams.getSubStreamsContainer()
         if (!subStreams) {
-          subStreams = streams.createSubStreamsContainer(node)
+          subStreams = streams.createSubStreamsContainer(node, props)
           log.func('onCreateNode')
           log.green('Created subStreams container', subStreams)
         }
