@@ -18,7 +18,7 @@ export function parseList(
 ) {
   const { parse } = parserOptions
   const blueprint: NOODLComponent = props.blueprint
-  const listData = props['data-list-data']
+  const listData = props['data-listdata']
   const listId = props['data-listid']
 
   _.forEach(listData, (listItem) => {

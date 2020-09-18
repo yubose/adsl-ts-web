@@ -1,58 +1,70 @@
 {
-  "_handled": ["type", "inputType", "data-ux", "children"],
-  "_touched": [
-    "style",
-    "type",
-    "contentType",
-    "listObject",
-    "iteratorVar",
-    "children",
-    "parentId",
-    "id"
-  ],
-  "_touchedStyles": [],
-  "_unhandled": [
-    "contentType",
-    "listObject",
-    "iteratorVar",
-    "style",
-    "parentId",
-    "id"
-  ],
-  "_untouched": [],
-  "_untouchedStyles": [],
-  "children": [null],
+  "type": "ul",
   "contentType": "vidoeSubStream",
-  "data-list-data": [
-    {
-      "bvid": "",
-      "ctime": "",
-      "evid": "",
-      "id": "",
-      "name": "",
-      "subtype": "",
-      "tage": "",
-      "type": "0"
-    }
-  ],
-  "data-list-id": "_5624iwcsb-_b0d31aqbf[6]",
-  "data-ux": "vidoeSubStream",
-  "id": "_5624iwcsb-_b0d31aqbf[6]",
-  "inputType": "vidoeSubStream",
-  "iteratorVar": "itemObject",
   "listObject": "",
-  "noodlType": "list",
-  "parentId": "_5624iwcsb",
+  "iteratorVar": "itemObject",
   "style": {
     "axis": "horizontal",
-    "display": "flex",
-    "flexWrap": "nowrap",
-    "height": "113.55px",
-    "left": "16.8px",
-    "outline": "none",
+    "left": "18.04px",
+    "top": "493.52px",
+    "width": "414.92px",
+    "height": "119.39999999999999px",
     "position": "absolute",
-    "top": "469.34px",
-    "width": "386.40000000000003px"
+    "outline": "none",
+    "display": "flex",
+    "flexWrap": "nowrap"
   },
-  "type": "ul"
+  "children": [],
+  "parentId": "_5sxgmcu0e",
+  "id": "_5sxgmcu0e-_m3ezl3cu3[6]",
+  "inputType": "vidoeSubStream",
+  "data-ux": "vidoeSubStream",
+  "data-listdata": [
+    {
+      "id": "",
+      "name": "",
+      "type": "0",
+      "ctime": "",
+      "subtype": "",
+      "bvid": "",
+      "evid": "",
+      "tage": ""
+    }
+  ],
+  "data-listid": "_5sxgmcu0e-_m3ezl3cu3[6]",
+  "blueprint": {
+    "type": "li",
+    "itemObject": "",
+    "style": {
+      "left": "0px",
+      "top": "0px",
+      "width": "81.17999999999999px",
+      "height": "119.39999999999999px",
+      "position": "relative",
+      "outline": "none",
+      "borderStyle": "none",
+      "borderRadius": "0px",
+      "listStyle": "none",
+      "padding": 0
+    },
+    "children": [
+      {
+        "type": "div",
+        "viewTag": "subStream",
+        "style": {
+          "left": "6.765px",
+          "top": "0px",
+          "width": "67.64999999999999px",
+          "height": "119.39999999999999px",
+          "borderRadius": "5px",
+          "position": "absolute",
+          "outline": "none",
+          "borderStyle": "none"
+        },
+        "parentId": "_vxgdfl3qv",
+        "id": "_vxgdfl3qv-_9wob084p0[0]",
+        "data-ux": "subStream"
+      }
+    ]
+  }
 }
