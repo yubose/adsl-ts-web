@@ -229,7 +229,9 @@ class Page {
 
     if (this.rootNode) {
       // Clean up previous nodes
-      this.rootNode.innerHTML = ''
+      // NOTE: textContent is used over innerHTML so that the contents can stay
+      // plain text to reduce breaches into injection attacks
+      this.rootNode.textContent = ''
       _.forEach(components, (component) => {
         node = parser.parse(component)
         if (node) {
