@@ -8,7 +8,7 @@ import {
   RemoteParticipant,
   Room,
 } from 'twilio-video'
-import { getByDataUX, Viewport } from 'noodl-ui'
+import { getByDataUX, NOODLComponentProps, Viewport } from 'noodl-ui'
 import {
   connecting,
   connected,
@@ -18,9 +18,11 @@ import {
 import { cadl } from 'app/client'
 import { AppStore } from 'app/types'
 import { isMobile } from 'utils/common'
+import createElement from 'utils/createElement'
+import parser from 'utils/parser'
 import * as T from 'app/types/meetingTypes'
-import Stream from 'Meeting/Stream'
-import Streams from 'Meeting/Streams'
+import Stream from 'meeting/Stream'
+import Streams from 'meeting/Streams'
 import Page from '../Page'
 import Logger from '../app/Logger'
 import MeetingSubstreams from './Substreams'
@@ -55,21 +57,27 @@ const Meeting = (function () {
   ) {
     const pageName = _internal._store?.getState?.()?.page?.currentPage
     if (pageName) {
-      cadl.editDraft((draft: Draft<typeof cadl.root>) => {
-        const listData = draft.root?.[pageName]?.listData
-        if (_.isArray(listData?.participants)) {
-          listData.participants.push(participant)
-          log.func('_addRemoteParticipantToStream')
-          log.green('Added remote participant to SDK internal state')
-        } else {
-          log.func('_addRemoteParticipantToStream')
-          log.red(
-            'Tried to update the internal state on the SDK but the list data ' +
-              'could not be found',
-            { localRoot: cadl.root?.[pageName], participant, stream },
-          )
-        }
-      })
+      const isInSdk = _.some(
+        cadl.root?.[pageName]?.listData?.participants || [],
+        (p) => p.sid === participant.sid,
+      )
+      if (!isInSdk) {
+        cadl.editDraft((draft: Draft<typeof cadl.root>) => {
+          const listData = draft.root?.[pageName]?.listData
+          if (_.isArray(listData?.participants)) {
+            listData.participants.push(participant)
+            log.func('_addRemoteParticipantToStream')
+            log.green('Added remote participant to SDK internal state')
+          } else {
+            log.func('_addRemoteParticipantToStream')
+            log.red(
+              'Tried to update the internal state on the SDK but the list data ' +
+                'could not be found',
+              { localRoot: cadl.root?.[pageName], participant, stream },
+            )
+          }
+        })
+      }
       stream.setParticipant(participant)
       log.func('_addRemoteParticipantToStream')
       log.green(`Bound remote participant to ${stream.type}`, {
@@ -88,18 +96,20 @@ const Meeting = (function () {
     const mainStream = _internal._streams?.getMainStream()
     const subStreams = _internal._streams?.getSubStreamsContainer()
     if (!mainStream.hasParticipant()) {
+      // Assign them to mainStream
+      mainStream.setParticipant(participant)
     } else {
-      //
       if (subStreams) {
         if (!subStreams.participantExists(participant)) {
-          const subStream = subStreams
-            .addParticipant(participant)
-            .getLastAddedParticipantStream()
+          // Create a new DOM node
+          const props = subStreams.blueprint
+          const node = parser.parse(props as NOODLComponentProps)
+          const subStream = subStreams.add({ node, participant }).last()
           log.func('addParticipant')
-          log.green(`Bound remote participant to subStream`, {
-            participant,
-            subStream,
-          })
+          log.green(
+            `Created a new subStream and bound the newly connected participant to it`,
+            { participant, subStream },
+          )
         }
       } else {
         log.func('addParticipant')
@@ -211,8 +221,18 @@ const Meeting = (function () {
 
           // RemoteParticipant
           if (_internal._streams?.isMainStreaming?.(participant)) {
+            log.func('removeRemoteParticipant')
+            log.orange('This participant was mainstreaming')
             mainStream = _internal._streams.getMainStream()
             mainStream.unpublish()
+            const subStream = subStreams?.first()
+            let nextMainParticipant: T.RoomParticipant | null
+            if (subStream) {
+              nextMainParticipant = subStream.getParticipant()
+              if (nextMainParticipant) {
+              } else {
+              }
+            }
             // The next participant in the subStreams collection will move to be
             // the new dominant speaker if the participant we are removing is the
             // current dominant speaker
@@ -239,6 +259,8 @@ const Meeting = (function () {
           }
           // RemoteParticipant
           else if (_internal._streams?.isSubStreaming(participant)) {
+            log.func('removeRemoteParticipant')
+            log.orange('This remote participant was substreaming')
             subStream = subStreams?.getSubStream(participant)
             if (subStream) subStreams?.removeSubStream(subStream)
           }

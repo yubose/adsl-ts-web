@@ -26,6 +26,7 @@ import {
 // import createBuiltInActions from 'handlers/builtIns'
 
 let logSpy: sinon.SinonStub
+
 export let noodl: NOODL
 
 before(async () => {

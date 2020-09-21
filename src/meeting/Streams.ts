@@ -47,8 +47,12 @@ class MeetingStreams {
     return this.#subStreams
   }
 
-  getSubStreamsContainer() {
-    return this.#subStreams
+  /**
+   * Moves the next immediate participant from the subStreams colelction
+   * to the main stream
+   */
+  next() {
+    //
   }
 }
 

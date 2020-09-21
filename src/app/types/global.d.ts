@@ -7,7 +7,7 @@ import {
   RemoteParticipant,
 } from 'twilio-video'
 import Modal from 'components/NOODLModal'
-import Meeting from '../../Meeting'
+import Meeting from '../../meeting'
 import { App } from '../../app'
 import { IStreams } from './meetingTypes'
 

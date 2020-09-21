@@ -67,7 +67,7 @@ class MeetingStream {
    * Updates the previous sid/identity properties and binds the new
    * participant to this stream
    */
-  replaceParticipant(participant: RoomParticipant) {
+  #replaceParticipant = (participant: RoomParticipant) => {
     this.previous.sid = participant.sid
     this.previous.identity = participant.identity
     this.#participant = participant
@@ -92,7 +92,7 @@ class MeetingStream {
     if (participant) {
       const node = this.getElement()
       // Bind this participant to this instance's properties
-      this.replaceParticipant(participant)
+      this.#replaceParticipant(participant)
       if (node) {
         // Attaches the data-sid attribute
         node.dataset['sid'] = participant.sid

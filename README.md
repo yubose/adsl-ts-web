@@ -10,9 +10,11 @@
 - page cache rehydration
 - autobind root/page updates on the `noodl-ui` lib
 - find use cases for `page.rootNode.id`
-- Fix the event handler parsings
 - aspect ratio (viewport manager)
 - scroll manager
+- bugs
+  - footer 4.0 --> 4.1 top value placement
+  - input focus issue on androids
 
 ## Initializations:
 

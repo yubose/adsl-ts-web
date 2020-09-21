@@ -29,6 +29,7 @@ export interface PageOptions {
   builtIn?: {
     [funcName: string]: any
   }
+  renderer?(page: Page): { components: NOODLComponentProps[] }
 }
 
 /**

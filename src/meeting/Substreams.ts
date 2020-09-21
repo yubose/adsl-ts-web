@@ -1,9 +1,11 @@
 import _ from 'lodash'
-import { NOODLElement } from 'app/types/pageTypes'
-import { RoomParticipant } from 'app/types'
-import Logger from 'app/Logger'
-import Stream from './Stream'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
+import { RemoteParticipant } from 'twilio-video'
+import { NOODLElement } from 'app/types/pageTypes'
+import { RoomParticipant, StreamType } from 'app/types'
+import Logger from 'app/Logger'
+import parser from 'utils/parser'
+import Stream from './Stream'
 
 const log = Logger.create('Substreams.ts')
 
@@ -16,12 +18,28 @@ class MeetingSubstreams {
 
   constructor(container: NOODLElement, props: NOODLComponentProps) {
     this.container = container
-    log.func('constructor')
-    log.green('Props', props)
+    this.blueprint = props.blueprint
   }
 
   get length() {
     return this.#subStreams.length
+  }
+
+  /**
+   * Adds a new stream instance to the subStreams collection
+   * @param { NOODLElement? } node
+   * @param { RemoteParticipant? } participant
+   */
+  add({
+    node,
+    participant,
+  }: { node?: NOODLElement; participant?: RemoteParticipant } = {}) {
+    const stream = new Stream('subStream', { node })
+    // Apply the blueprint onto the new node to align with the current items
+    if (participant) {
+      stream.setParticipant(participant)
+    }
+    return this
   }
 
   /**
@@ -32,7 +50,12 @@ class MeetingSubstreams {
    */
   addElement(node: NOODLElement, index?: number) {
     if (node) {
-      const stream = new Stream('subStream', node)
+      const stream = new Stream('subStream', { node })
+      // log.func('addElement')
+      // forEachEntries(this.blueprint.style || {}, (key, value) => {
+      //   node.style[key as keyof Styles] = value
+      //   log.grey(`Applying style value of style.${key}`, this.blueprint.style)
+      // })
       if (_.isNumber(index)) {
         this.#subStreams.splice(index, 0, stream)
       } else {
@@ -140,6 +163,7 @@ class MeetingSubstreams {
     return _.findIndex(this.#subStreams, fn)
   }
 
+  // TODO - Deprecate in favor of this.last
   /** Returns the stream that a participant was most recently bound to  */
   getLastAddedParticipantStream() {
     return this.#recentlyAddedParticipantStream
@@ -178,6 +202,11 @@ class MeetingSubstreams {
   /** Returns the first subStream in the collection */
   first() {
     return this.#subStreams[0]
+  }
+
+  /** Returns the last subStream in the collection */
+  last() {
+    return _.last(this.#subStreams)
   }
 }
 

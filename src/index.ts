@@ -60,7 +60,7 @@ import createStore from './app/store'
 import Logger from './app/Logger'
 import App from './App'
 import Page from './Page'
-import Meeting from './Meeting'
+import Meeting from './meeting'
 import { noodlDomParserEvents } from './constants'
 import modalComponents from './components/modalComponents'
 import * as lifeCycle from './handlers/lifeCycles'
@@ -436,6 +436,15 @@ window.addEventListener('load', async () => {
       }
       // Individual remote participant video element container
       else if (identify.stream.video.isSubStream(props)) {
+        log.func('adsf')
+        log.green('IS SUBSTREAM')
+        log.green('IS SUBSTREAM')
+        log.green('IS SUBSTREAM')
+        log.green('IS SUBSTREAM')
+        log.green('IS SUBSTREAM')
+        log.green('IS SUBSTREAM')
+        log.green('IS SUBSTREAM')
+        log.green('IS SUBSTREAM')
         const container = streams.getSubStreamsContainer()
         if (container) {
           if (!container.elementExists(node)) {

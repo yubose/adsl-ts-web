@@ -8,6 +8,6 @@
     "target": "es2018"
   },
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules/**", "__dev__"],
+  "exclude": ["node_modules/**/**", "__dev__"],
   "include": ["src/**/*.test.ts"]
 }
