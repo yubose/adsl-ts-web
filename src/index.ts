@@ -33,7 +33,7 @@ import {
 } from 'noodl-ui'
 import {
   CachedPageObject,
-  DOMNode,
+  NOODLElement,
   PageModalId,
   PageSnapshot,
 } from './app/types'
@@ -54,16 +54,16 @@ import {
   setReceivedSnapshot,
 } from './features/page'
 import { modalIds, CACHED_PAGES } from './constants'
+import createStore from './app/store'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
-import createStore from './app/store'
+import createLifeCycles from './handlers/lifeCycles'
 import Logger from './app/Logger'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import { noodlDomParserEvents } from './constants'
 import modalComponents from './components/modalComponents'
-import * as lifeCycle from './handlers/lifeCycles'
 import './styles.css'
 
 const log = Logger.create('src/index.ts')
@@ -130,6 +130,7 @@ window.addEventListener('load', async () => {
   const app = new App({ store, viewport })
   const builtIn = createBuiltInActions({ page, store })
   const actions = enhanceActions(createActions({ store }))
+  const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
 
   Meeting.initialize({ page, store, viewport })
@@ -143,145 +144,125 @@ window.addEventListener('load', async () => {
     },
   })
 
-  page.registerListener('onStart', (pageName) => {
+  page.onStart = async () => {
     dispatch(setInitiatingPage())
-  })
+  }
 
-  page.registerListener('onRootNodeInitializing', () => {
+  page.onRootNodeInitializing = async () => {
     dispatch(setInitializingRootNode())
     log.func('Listener -- onRootNodeInitializing')
     log.grey('Initializing root node')
-  })
+  }
 
-  // TODO - onRootNodeInitializeError
-
-  page.registerListener('onRootNodeInitialized', (rootNode: HTMLDivElement) => {
+  page.onRootNodeInitialized = async (rootNode) => {
     dispatch(setInitializedRootNode())
     log.func('Listener -- onRootNodeInitialized')
     log.green('Root node initialized', rootNode)
-  })
+  }
 
-  page.registerListener(
-    'onBeforePageRender',
-    async ({ pageName }: { pageName: string; rootNode: HTMLDivElement }) => {
-      dispatch(setRenderingComponents())
-      const pageState = store.getState().page
-      if (pageName === pageState.currentPage) {
-        // Load the page in the SDK
-        const pageObject = await preparePage(pageName)
-        // This will be passed into the page renderer
-        const pageSnapshot: PageSnapshot = {
-          name: pageName,
-          object: pageObject,
-        }
-        // Initialize the noodl-ui client (parses components) if it
-        // isn't already initialized
-        if (!noodl.initialized) {
-          log.func('Listener -- onBeforePageRender')
-          log.grey('Initializing noodl-ui client', noodl)
-          noodl
-            .init({ viewport })
-            .setAssetsUrl(cadl.assetsUrl || '')
-            .setPage(pageSnapshot)
-            .setRoot(cadl.root)
-            .setViewport({
-              width: window.innerWidth,
-              height: window.innerHeight,
-            })
-            .setResolvers(
-              getElementType,
-              getTransformedAliases,
-              getReferences,
-              getAlignAttrs,
-              getBorderAttrs,
-              getColors,
-              getFontAttrs,
-              getPosition,
-              getSizes,
-              getStylesByElementType,
-              getTransformedStyleAliases,
-              getChildren as any,
-              getCustomDataAttrs,
-              getEventHandlers,
-            )
-            .addLifecycleListener({
-              action: actions,
-              builtIn: {
-                checkUsernamePassword: builtIn.checkUsernamePassword,
-                enterVerificationCode: builtIn.checkVerificationCode,
-                goBack: builtIn.goBack,
-                lockApplication: builtIn.lockApplication,
-                logOutOfApplication: builtIn.logOutOfApplication,
-                logout: builtIn.logout,
-                signIn: builtIn.signIn,
-                signUp: builtIn.signUp,
-                signout: builtIn.signout,
-                toggleCameraOnOff: builtIn.toggleCameraOnOff,
-                toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-              },
-              onBeforeResolve: lifeCycle.onBeforeResolve,
-              onChainStart: lifeCycle.onChainStart,
-              onChainEnd: lifeCycle.onChainEnd,
-              onChainError: lifeCycle.onChainError,
-              onChainAborted: lifeCycle.onChainAborted,
-              onAfterResolve: lifeCycle.onAfterResolve,
-            } as any)
+  // TODO - onRootNodeInitializeError
 
-          log.func('Listener - onBeforePageRender')
-          log.green('Initialized noodl-ui client', noodl)
-        }
-
-        const previousPage = store.getState().page.previousPage
-        log.func('Listener -- onBeforePageRender')
-        log.grey(`${previousPage} --> ${pageName}`, {
-          previousPage,
-          nextPage: pageSnapshot,
-        })
-        // Refresh the roots
-        // TODO - Leave root/page auto binded to the lib
-        noodl.setRoot(cadl.root).setPage(pageSnapshot)
-        // NOTE: not being used atm
-        if (page.rootNode && page.rootNode.id !== pageName) {
-          page.rootNode.id = pageName
-        }
-        return pageSnapshot
-      } else {
-        log.func('Listener - onBeforePageRender')
-        log.green('Avoided a duplicate navigate request')
+  page.onBeforePageRender = async ({ pageName }) => {
+    dispatch(setRenderingComponents())
+    const pageState = store.getState().page
+    if (pageName === pageState.currentPage) {
+      // Load the page in the SDK
+      const pageObject = await preparePage(pageName)
+      // This will be passed into the page renderer
+      const pageSnapshot: PageSnapshot = {
+        name: pageName,
+        object: pageObject,
       }
-    },
-  )
+      // Initialize the noodl-ui client (parses components) if it
+      // isn't already initialized
+      if (!noodl.initialized) {
+        log.func('Listener -- onBeforePageRender')
+        log.grey('Initializing noodl-ui client', noodl)
+        noodl
+          .init({ viewport })
+          .setAssetsUrl(cadl.assetsUrl || '')
+          .setPage(pageSnapshot)
+          .setRoot(cadl.root)
+          .setViewport({
+            width: window.innerWidth,
+            height: window.innerHeight,
+          })
+          .setResolvers(
+            getElementType,
+            getTransformedAliases,
+            getReferences,
+            getAlignAttrs,
+            getBorderAttrs,
+            getColors,
+            getFontAttrs,
+            getPosition,
+            getSizes,
+            getStylesByElementType,
+            getTransformedStyleAliases,
+            getChildren as any,
+            getCustomDataAttrs,
+            getEventHandlers,
+          )
+          .addLifecycleListener({
+            action: actions,
+            builtIn: {
+              checkUsernamePassword: builtIn.checkUsernamePassword,
+              enterVerificationCode: builtIn.checkVerificationCode,
+              goBack: builtIn.goBack,
+              lockApplication: builtIn.lockApplication,
+              logOutOfApplication: builtIn.logOutOfApplication,
+              logout: builtIn.logout,
+              signIn: builtIn.signIn,
+              signUp: builtIn.signUp,
+              signout: builtIn.signout,
+              toggleCameraOnOff: builtIn.toggleCameraOnOff,
+              toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
+            },
+            ...lifeCycles,
+          } as any)
 
-  page.registerListener(
-    'onPageRendered',
-    ({
-      pageName,
-      components,
-    }: {
-      pageName: string
-      components: NOODLComponentProps[]
-    }) => {
-      dispatch(setRenderedComponents())
-      log.func('onPageRendered')
-      log.green(`Done rendering DOM nodes for ${pageName}`)
-      window.pcomponents = components
-      // Cache to rehydrate if they disconnect
-      // TODO
-      cachePage(pageName)
-      dispatch(setPageCached())
-      log.grey(`Cached page: "${pageName}"`)
-    },
-  )
+        log.func('Listener - onBeforePageRender')
+        log.green('Initialized noodl-ui client', noodl)
+      }
 
-  page.registerListener(
-    'onError',
-    ({ error, pageName }: { error: Error; pageName: string }) => {
-      console.error(error)
-      // window.alert(error.message)
-      // TODO - narrow the reasons down more
-      dispatch(setRenderComponentsFailed(error))
-    },
-  )
+      const previousPage = store.getState().page.previousPage
+      log.func('Listener -- onBeforePageRender')
+      log.grey(`${previousPage} --> ${pageName}`, {
+        previousPage,
+        nextPage: pageSnapshot,
+      })
+      // Refresh the roots
+      // TODO - Leave root/page auto binded to the lib
+      noodl.setRoot(cadl.root).setPage(pageSnapshot)
+      // NOTE: not being used atm
+      if (page.rootNode && page.rootNode.id !== pageName) {
+        page.rootNode.id = pageName
+      }
+      return pageSnapshot
+    } else {
+      log.func('Listener - onBeforePageRender')
+      log.green('Avoided a duplicate navigate request')
+    }
+  }
+
+  page.onPageRendered = async ({ pageName, components }) => {
+    dispatch(setRenderedComponents())
+    log.func('onPageRendered')
+    log.green(`Done rendering DOM nodes for ${pageName}`)
+    window.pcomponents = components
+    // Cache to rehydrate if they disconnect
+    // TODO
+    cachePage(pageName)
+    dispatch(setPageCached())
+    log.grey(`Cached page: "${pageName}"`)
+  }
+
+  page.onError = async ({ error }) => {
+    console.error(error)
+    // window.alert(error.message)
+    // TODO - narrow the reasons down more
+    dispatch(setRenderComponentsFailed(error))
+  }
 
   /**
    * Triggers the page.navigate from state changes.
@@ -405,7 +386,7 @@ window.addEventListener('load', async () => {
   /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
-  function onCreateNode(node: DOMNode, props: NOODLComponentProps) {
+  function onCreateNode(node: NOODLElement, props: NOODLComponentProps) {
     if (node) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(props)) {

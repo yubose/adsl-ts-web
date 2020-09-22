@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
-import { DOMNode, ParserOptions } from 'app/types'
+import { NOODLElement, ParserOptions } from 'app/types'
 import { noodl } from 'app/client'
 import Logger from 'app/Logger'
 
@@ -12,7 +12,7 @@ export interface SubparserArgs {
 
 // Being used inside parseChildren
 export function parseList(
-  node: DOMNode,
+  node: NOODLElement,
   props: NOODLComponentProps,
   parserOptions: ParserOptions,
 ) {

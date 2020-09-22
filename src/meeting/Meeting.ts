@@ -44,51 +44,47 @@ const Meeting = (function () {
     _token: '',
   } as Internal
 
-  function _addRemoteParticipantToStream(
+  /**
+   * Updates the participants list in the sdk. This will also force the value
+   * to be an array if it's not already an array
+   * @param { RemoteParticipant } participant
+   */
+  function _addParticipantToSdk(participant: RemoteParticipant) {
+    log.func('_addParticipantToSdk')
+    cadl.editDraft((draft: Draft<typeof cadl.root>) => {
+      const listData = draft.root?.VideoChat?.listData || {}
+      const participants = _.isArray(listData?.participants)
+        ? listData?.participants
+        : []
+      participants.push(participant)
+      log.green('Added remote participant to SDK state')
+    })
+  }
+
+  /**
+   * Adds a participant to a stream. This will also update the state in the sdk
+   * @param { Stream } stream
+   * @param { RemoteParticipant } participant
+   */
+  function _addParticipantToStream(
     stream: Stream,
     participant: RemoteParticipant,
   ) {
-    const pageName = _internal._store?.getState?.()?.page?.currentPage
-    if (pageName) {
-      const isInSdk = _.some(
-        cadl.root?.[pageName]?.listData?.participants || [],
-        (p) => p.sid === participant.sid,
-      )
-      if (!isInSdk) {
-        cadl.editDraft((draft: Draft<typeof cadl.root>) => {
-          const listData = draft.root?.[pageName]?.listData
-          if (_.isArray(listData?.participants)) {
-            listData.participants.push(participant)
-            log.func('_addRemoteParticipantToStream')
-            log.green('Added remote participant to SDK internal state')
-          } else {
-            log.func('_addRemoteParticipantToStream')
-            log.red(
-              'Tried to update the internal state on the SDK but the list data ' +
-                'could not be found',
-              { localRoot: cadl.root?.[pageName], participant, stream },
-            )
-          }
-        })
-      }
-      stream.setParticipant(participant)
-      log.func('_addRemoteParticipantToStream')
-      log.green(`Bound remote participant to ${stream.type}`, {
-        participant,
-        stream,
-      })
-    } else {
-      log.func('_addRemoteParticipantToStream')
-      log.red(
-        'Attempted to add a remote participant but could not find the page ' +
-          'name for it',
-        participant,
-      )
-    }
+    const isInSdk = _.some(
+      cadl.root?.VideoChat?.listData?.participants || [],
+      (p) => p.sid === participant.sid,
+    )
+    if (!isInSdk) _addParticipantToSdk(participant)
+    stream.setParticipant(participant)
+    log.func('_addParticipantToStream')
+    log.green(`Bound remote participant to ${stream.type}`, {
+      participant,
+      stream,
+    })
 
     const mainStream = _internal._streams?.getMainStream()
     const subStreams = _internal._streams?.getSubStreamsContainer()
-    if (!mainStream.hasParticipant()) {
+    if (!mainStream.isAnyParticipantSet()) {
       // Assign them to mainStream
       mainStream.setParticipant(participant)
     } else {
@@ -98,16 +94,16 @@ const Meeting = (function () {
           const props = subStreams.blueprint
           const node = parser.parse(props as NOODLComponentProps)
           const subStream = subStreams.add({ node, participant }).last()
-          log.func('addParticipant')
+          log.func('_addParticipantToStream')
           log.green(
             `Created a new subStream and bound the newly connected participant to it`,
             { participant, subStream },
           )
         }
       } else {
-        log.func('addParticipant')
+        log.func('_addParticipantToStream')
         log.red(
-          `Attempted to bind a remote participant on a subStream but the container ` +
+          `Attempted to bind a participant on a subStream but the container ` +
             `was not available`,
           { streams: _internal._streams, participant },
         )
@@ -157,17 +153,22 @@ const Meeting = (function () {
         throw error
       }
     },
+    /** Disconnects from the room */
     leave() {
       _internal._room?.disconnect?.()
       return this
     },
+    /**
+     * Adds a remote participant to the sdk and the internal state
+     * @param { RemoteParticipant } participant
+     */
     addRemoteParticipant(participant: T.RoomParticipant) {
       if (_internal._room?.state === 'connected') {
         if (!o.isParticipantLocal(participant)) {
           const mainStream = _internal._streams?.getMainStream()
           // If the mainStream doesn't have any participant bound to it
-          if (!mainStream.hasParticipant()) {
-            _addRemoteParticipantToStream(mainStream, participant)
+          if (!mainStream.isAnyParticipantSet()) {
+            _addParticipantToStream(mainStream, participant)
           }
           // Otherwise if the participant is not currently the main speaker,
           // proceed with adding them to the subStreams collection
@@ -281,12 +282,12 @@ const Meeting = (function () {
     ): participant is LocalParticipant {
       return participant === _internal._room?.localParticipant
     },
-    get room() {
-      return _internal._room
-    },
     resetRoom() {
       _internal._room = new EventEmitter() as Room
       return this
+    },
+    get room() {
+      return _internal._room
     },
     get token() {
       return _internal._token

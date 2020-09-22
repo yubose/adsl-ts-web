@@ -54,7 +54,7 @@ class MeetingStream {
    * Returns true if at least one participant has previously been bound
    * on this stream
    */
-  hasParticipant() {
+  isAnyParticipantSet() {
     return !!this.#participant
   }
 

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { NOODLComponentProps } from 'noodl-ui'
-import { DOMNode, NOODLDOMTagName } from 'app/types'
+import { NOODLElement, NOODLDOMTagName } from 'app/types'
 import * as T from 'app/types/domParserTypes'
 import createElement from 'utils/createElement'
 import Logger from './Logger'
@@ -11,19 +11,19 @@ const log = Logger.create('NOODLUIDOM.ts')
 class NOODLUIDOM {
   #cache: {
     record: { props: Map<any, any> }
-    stub: { elements: { [key: string]: DOMNode } }
+    stub: { elements: { [key: string]: NOODLElement } }
   } = {
     record: { props: new Map() },
     stub: { elements: {} },
   }
-  #handleChildren: (parentNode: DOMNode, props: NOODLComponentProps) => any
+  #handleChildren: (parentNode: NOODLElement, props: NOODLComponentProps) => any
   #listeners: Partial<Record<T.DOMParserEvent, Function[]>> = {}
   #parsers: T.Parser[] = []
-  wrapper: ((node: DOMNode) => DOMNode) | undefined
+  wrapper: ((node: NOODLElement) => NOODLElement) | undefined
 
   constructor() {
     this.#handleChildren = (
-      parentNode: DOMNode,
+      parentNode: NOODLElement,
       children: string | number | NOODLComponentProps | NOODLComponentProps[],
     ) => {
       if (children) {
@@ -73,7 +73,7 @@ class NOODLUIDOM {
    * @param { NOODLComponentProps } props
    */
   parse(props: NOODLComponentProps) {
-    let node: DOMNode | undefined
+    let node: NOODLElement | undefined
 
     if (props) {
       if (props.type) {
@@ -90,15 +90,15 @@ class NOODLUIDOM {
     if (node) {
       // Apply the custom wrapper if provided
       if (_.isFunction(this.wrapper)) {
-        node = this.wrapper(node as DOMNode)
+        node = this.wrapper(node as NOODLElement)
       }
 
       _.forEach(this.#parsers, (parseFn: T.Parser) => {
-        parseFn(node as DOMNode, props, this.getUtils())
+        parseFn(node as NOODLElement, props, this.getUtils())
       })
 
       if (props.children) {
-        this.#handleChildren(node as DOMNode, props.children as any)
+        this.#handleChildren(node as NOODLElement, props.children as any)
       }
 
       this.emit(noodlDomParserEvents.onCreateNode, node, props)

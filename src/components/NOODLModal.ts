@@ -1,15 +1,15 @@
 import _ from 'lodash'
+import { PageModalState, Styles } from 'app/types'
 import { forEachEntries } from 'utils/common'
 import NOODLElement from 'components/NOODLElement'
-import { PageModalState, Styles } from 'app/types'
 
 class Modal extends NOODLElement {
   public _id: string = 'noodl-ui-modal'
-  public context: PageModalState['context'] = null
-  public props: PageModalState['props'] = {}
-  public opened: PageModalState['opened'] = false
   public id: PageModalState['id'] = ''
   public body: HTMLDivElement
+  public context: PageModalState['context'] = null
+  public opened: PageModalState['opened'] = false
+  public props: PageModalState['props'] = {}
 
   constructor({
     contentStyle,

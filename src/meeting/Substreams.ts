@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import { RemoteParticipant } from 'twilio-video'
 import { NOODLElement } from 'app/types/pageTypes'
-import { RoomParticipant, StreamType } from 'app/types'
+import { RoomParticipant } from 'app/types'
 import Logger from 'app/Logger'
 import Stream from './Stream'
 
@@ -79,43 +79,30 @@ class MeetingSubstreams {
   addParticipant(participant: RoomParticipant) {
     if (participant) {
       let stream: Stream | undefined = undefined
+      const indexEmptyParticipantSlot = this.getEmptyParticipantSlot()
+      log.func('addParticipant')
       // Check if a stream does not have any participant bound to it
-      if (this.hasAvailableParticipantSlot()) {
+      if (indexEmptyParticipantSlot !== -1) {
         // Retrieve the index of the stream that doesn't have a
-        // participant bound to it
-        const index = this.getEmptyParticipantSlot()
-        if (index !== -1) {
-          // Bind the participant to it and load their tracks to the DOM
-          stream = this.#subStreams[index]
-          stream.setParticipant(participant)
-        } else {
-          log.func('addParticipant')
-          log.red(
-            `A stream was available to bind this participant to but received ` +
-              `an invalid index. A new Stream will be created instead`,
-            participant,
-          )
-        }
-        if (!stream) {
-          stream = new Stream('subStream')
-          stream.setParticipant(participant)
-        }
+        // participant bound to it. Bind and load this participant's
+        // tracks to the DOM
+        stream = this.#subStreams[indexEmptyParticipantSlot]
+        if (!stream) stream = new Stream('subStream')
+        stream.setParticipant(participant)
         this.#subStreams.push(stream)
-        log.func('addParticipant')
-        log.green(`Bound a participant to a subStream`, {
-          participant,
-          stream,
-        })
+        log.green(`Bound a participant to a subStream`, { participant, stream })
       } else {
+        log.red(
+          `A stream was available to bind this participant to but received ` +
+            `an invalid index. A new Stream will be created instead`,
+          participant,
+        )
         // Else start a new stream in the subStreams collection and attach this
         // participant to it (it does not have an element associated with it
         // yet unless stream.setElement is called with an element)
-        stream = new Stream('subStream')
-        stream.setParticipant(participant)
+        stream = new Stream('subStream').setParticipant(participant)
         this.#subStreams.push(stream)
       }
-    } else {
-      // TODO
     }
     return this
   }
@@ -143,21 +130,11 @@ class MeetingSubstreams {
   }
 
   /**
-   * Returns true if a subStream in the collection doesn't have any
-   * participant bound to it
-   */
-  hasAvailableParticipantSlot() {
-    return _.some(this.#subStreams, (subStream) => {
-      return !subStream.hasParticipant()
-    })
-  }
-
-  /**
    * Returns the index of a subStream in the collection that doesn't have a
    * participant bound to it
    */
   getEmptyParticipantSlot() {
-    const fn = (subStream: Stream) => !subStream.hasParticipant()
+    const fn = (subStream: Stream) => !subStream.isAnyParticipantSet()
     return _.findIndex(this.#subStreams, fn)
   }
 

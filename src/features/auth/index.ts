@@ -1,3 +1,9 @@
 export { default } from './authSlice'
 export * from './authSlice'
-export * from './types'
+
+export type AuthStatus =
+  | 'logged.in'
+  | 'logged.out'
+  | 'new.device'
+  | 'temporary'
+  | null

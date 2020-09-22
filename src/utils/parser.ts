@@ -7,7 +7,7 @@ import {
   SelectOption,
 } from 'noodl-ui'
 import NOODLDOMParser from 'app/noodl-ui-dom'
-import { DataValueElement, DOMNode } from 'app/types'
+import { DataValueElement, NOODLElement } from 'app/types'
 import { cadl, noodl } from 'app/client'
 import { forEachEntries } from 'utils/common'
 import Logger from 'app/Logger'
@@ -15,15 +15,15 @@ import Logger from 'app/Logger'
 const log = Logger.create('parser.ts')
 
 export interface ParserOptions {
-  parse: (props: NOODLComponentProps) => DOMNode
+  parse: (props: NOODLComponentProps) => NOODLElement
 }
 
 /**
  * Handles the parsing and displaying of assets/media
- * @param { DOMNode } node
+ * @param { NOODLElement } node
  * @param { NOODLComponentProps } props
  */
-export function parseAssets(node: DOMNode, props: NOODLComponentProps) {
+export function parseAssets(node: NOODLElement, props: NOODLComponentProps) {
   if (props.src) {
     node.setAttribute('src', props.src)
   }
@@ -40,13 +40,13 @@ export function parseAssets(node: DOMNode, props: NOODLComponentProps) {
 /**
  * Handles innerHTML and other display content that is not managed by some "onchange"
  * event, or in other words displays static content once they have been parsed
- * @param { DOMNode } node
+ * @param { NOODLElement } node
  * @param { NOODLComponentProps } props
  */
 export function parseChildren(
-  node: DOMNode,
+  node: NOODLElement,
   props: NOODLComponentProps,
-  options: { parse: (props: NOODLComponentProps) => DOMNode },
+  options: { parse: (props: NOODLComponentProps) => NOODLElement },
 ) {
   if (props.children) {
     // Since the NOODL data doesn't return us the complete list of "listItem"
@@ -133,10 +133,13 @@ function createOnChangeFactory(dataKey: string) {
 
 /**
  * Attaches event handlers like "onclick" and "onchange"
- * @param { DOMNode } node
+ * @param { NOODLElement } node
  * @param { NOODLComponentProps } props
  */
-export function parseEventHandlers(node: DOMNode, props: NOODLComponentProps) {
+export function parseEventHandlers(
+  node: NOODLElement,
+  props: NOODLComponentProps,
+) {
   forEachEntries(props, (key, value) => {
     if (eventTypes.includes(key as NOODLActionTriggerType)) {
       const isEqual = (k: NOODLActionTriggerType) => k === key
@@ -163,7 +166,7 @@ export function parseEventHandlers(node: DOMNode, props: NOODLComponentProps) {
  * @param { HTMLElement } node - HTML element
  * @param { NOODLComponentProps } props
  */
-export function parseStyles(node: DOMNode, props: NOODLComponentProps) {
+export function parseStyles(node: NOODLElement, props: NOODLComponentProps) {
   if (_.isPlainObject(props.style)) {
     forEachEntries(props.style, (k, v) => {
       node.style[k as any] = v
@@ -190,7 +193,10 @@ export function parseStyles(node: DOMNode, props: NOODLComponentProps) {
  * @param { HTMLElement } node - HTML element
  * @param { NOODLComponentProps } props
  */
-export function parseDataValues(node: DOMNode, props: NOODLComponentProps) {
+export function parseDataValues(
+  node: NOODLElement,
+  props: NOODLComponentProps,
+) {
   if (props['data-value'] != undefined) {
     if (['input', 'select', 'textarea'].includes(props.type)) {
       let elem = node as DataValueElement
@@ -217,7 +223,7 @@ export function parseDataValues(node: DOMNode, props: NOODLComponentProps) {
   }
 }
 
-function parseIdentifiers(node: DOMNode, props: NOODLComponentProps) {
+function parseIdentifiers(node: NOODLElement, props: NOODLComponentProps) {
   if (props.id) {
     node['id'] = props.id
   }

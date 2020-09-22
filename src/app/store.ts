@@ -4,6 +4,7 @@ import {
   getDefaultMiddleware,
   Middleware,
 } from '@reduxjs/toolkit'
+// @ts-expect-error
 import { createLogger } from 'redux-logger'
 import { serializeError } from 'utils/common'
 import reducers from './reducers'

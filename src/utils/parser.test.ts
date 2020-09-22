@@ -1,10 +1,10 @@
+// @ts-nocheck
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { getByText } from '@testing-library/dom'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
-import { noodl } from 'setupTests'
-import { mapUserEvent } from 'utils/test-utils'
+import { mapUserEvent, noodl } from '../utils/test-utils'
 import NOODLDOMParser from '../app/noodl-ui-dom'
 import {
   parseChildren,
@@ -12,7 +12,7 @@ import {
   parseEventHandlers,
   parseStyles,
 } from './parser'
-import { DataValueElement } from 'app/types'
+import { DataValueElement } from '../app/types'
 
 let container: HTMLDivElement
 let parser: NOODLDOMParser

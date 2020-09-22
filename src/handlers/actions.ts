@@ -20,7 +20,7 @@ import Logger from 'app/Logger'
 
 const log = Logger.create('actions.ts')
 
-const makeActions = function ({ store }: { store: AppStore }) {
+const createActions = function ({ store }: { store: AppStore }) {
   // @ts-expect-error
   const _actions: Record<
     NOODLActionChainActionType,
@@ -257,4 +257,4 @@ const makeActions = function ({ store }: { store: AppStore }) {
   return _actions
 }
 
-export default makeActions
+export default createActions

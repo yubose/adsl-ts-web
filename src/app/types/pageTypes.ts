@@ -1,5 +1,4 @@
 import { NOODLComponentProps, Page as NOODLUiPage } from 'noodl-ui'
-import createElement from 'utils/createElement'
 import { SerializedError } from './commonTypes'
 import * as constants from '../../constants'
 
@@ -82,9 +81,6 @@ export type NOODLElementTypes = keyof NOODLElements
 export type NOODLElement<
   K extends NOODLElementTypes = NOODLElementTypes
 > = NOODLElements[K]
-
-// TODO: Soon to be deprecated in favor of NOODLElement
-export type DOMNode = NOODLElement
 
 export type DataValueElement =
   | HTMLInputElement

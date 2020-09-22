@@ -141,7 +141,6 @@ export const {
   setRenderComponentsFailed,
   setPageCached,
   setReceivedSnapshot,
-  setRendered,
 } = page.actions
 
 export default page.reducer

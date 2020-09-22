@@ -1,34 +1,35 @@
 import _ from 'lodash'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { forEachEntries, SerializedError } from 'utils/common'
-import * as T from './types'
+import { forEachEntries } from 'utils/common'
+import { SerializedError } from 'app/types'
+import { AuthStatus } from '.'
 
 export interface AuthState {
-  status: T.AuthStatus
-  isRetrieving: boolean
+  cache: {
+    [key: string]: any
+  }
   isCreating: boolean
+  isRetrieving: boolean
+  status: AuthStatus
   verification: {
     code: null | number
     error: Error | null
     pending: boolean
     timedOut: boolean
   }
-  cache: {
-    [key: string]: any
-  }
 }
 
 export const initialAuthState: AuthState = {
-  status: null,
-  isRetrieving: false,
+  cache: {}, // Cached signin/signup form values to help with the complexity in the login flow
   isCreating: false,
+  isRetrieving: false,
+  status: null,
   verification: {
     code: null,
     pending: false,
     error: null,
     timedOut: false,
   },
-  cache: {}, // Cached signin/signup form values to help with the complexity in the login flow
 }
 
 const auth = createSlice({
@@ -95,8 +96,8 @@ const auth = createSlice({
       ---- Other
     -------------------------------------------------------- */
     mergeCacheAuthValues(state, { payload }: PayloadAction<any>) {
-      forEachEntries(payload, (key: string, value) => {
-        state.cache[key] = value
+      forEachEntries(payload, (key, value) => {
+        state.cache[key as keyof AuthState['cache']] = value
       })
     },
   },

@@ -91,13 +91,13 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   plugins: [
-    // new BundleStatsWebpackPlugin({
-    //   baseline: true,
-    // }),
-    // new CircularDependencyPlugin({
-    //   exclude: /node_modules/,
-    //   include: /src/,
-    // }),
+    new BundleStatsWebpackPlugin({
+      baseline: true,
+    }),
+    new CircularDependencyPlugin({
+      exclude: /node_modules/,
+      include: /src/,
+    }),
     new webpack.EnvironmentPlugin({
       'process.env.ECOS_ENV': process.env.ECOS_ENV,
     }),

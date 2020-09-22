@@ -46,7 +46,7 @@ export type BuiltInFuncName =
   | 'toggleMicrophoneOnOff'
   | 'UploadPhoto'
 
-const makeBuiltInActions = function ({
+const createBuiltInActions = function ({
   store,
   page,
 }: {
@@ -490,4 +490,4 @@ export function onBuiltinMissing(
   window.alert(`The button "${action.funcName}" is not available to use yet`)
 }
 
-export default makeBuiltInActions
+export default createBuiltInActions

@@ -6,7 +6,7 @@ import {
 } from 'noodl-ui'
 import { openOutboundURL } from './utils/common'
 import { cadl, noodl } from './app/client'
-import { DOMNode, PageSnapshot } from './app/types'
+import { NOODLElement, PageSnapshot } from './app/types'
 import parser from './utils/parser'
 import Modal from './components/NOODLModal'
 import Logger from './app/Logger'
@@ -16,6 +16,7 @@ const log = Logger.create('Page.ts')
 
 export type PageListenerName =
   | 'onStart'
+  | 'onCreateNode'
   | 'onRootNodeInitializing'
   | 'onRootNodeInitialized'
   | 'onBeforePageRender'
@@ -38,8 +39,30 @@ export interface PageOptions {
  * action chains that are running.
  */
 class Page {
+  #onStart: ((pageName: string) => Promise<any>) | undefined
+  #onCreateNode:
+    | ((node: NOODLElement, props: NOODLComponentProps) => Promise<any>)
+    | undefined
+  #onRootNodeInitializing: (() => Promise<any>) | undefined
+  #onRootNodeInitialized:
+    | ((rootNode: NOODLElement | null) => Promise<any>)
+    | undefined
+  #onBeforePageRender:
+    | ((options: {
+        pageName: string
+        rootNode: NOODLElement | null
+      }) => Promise<any>)
+    | undefined
+  #onPageRendered:
+    | ((options: {
+        pageName: string
+        components: NOODLComponentProps[]
+      }) => Promise<any>)
+    | undefined
+  #onError:
+    | ((options: { error: Error; pageName: string }) => Promise<any>)
+    | undefined
   private _initializeRootNode: () => void
-  private _listeners: { [name: string]: Function } = {}
   public builtIn: PageOptions['builtIn']
   public rootNode: HTMLElement | null = null
   public nodes: HTMLElement[] | null
@@ -63,9 +86,9 @@ class Page {
 
     parser.on(
       noodlDomParserEvents.onCreateNode,
-      (node: DOMNode, props: NOODLComponentProps) => {
-        if (this.hasListener('onCreateNode')) {
-          this._callListener('onCreateNode', node, props)
+      (node: NOODLElement, props: NOODLComponentProps) => {
+        if (_.isFunction(this.#onCreateNode)) {
+          this.#onCreateNode(node, props)
         }
       },
     )
@@ -89,14 +112,14 @@ class Page {
 
       log.func('navigate').grey(`Rendering the DOM for page: "${pageName}"`)
 
-      await this._callListener('onStart', pageName)
+      await this.#onStart?.(pageName)
 
       /** Handle the root node */
       if (!this.rootNode) {
-        this._callListener('onRootNodeInitializing')
+        this.#onRootNodeInitializing?.()
         this._initializeRootNode()
         if (this.rootNode) {
-          this._callListener('onRootNodeInitialized', this.rootNode)
+          this.#onRootNodeInitialized?.(this.rootNode)
         }
       }
 
@@ -112,7 +135,7 @@ class Page {
         window.alert(`The value of page "${pageName}" is not valid`)
       } else {
         // The caller is expected to provide their own page object
-        pageSnapshot = await this._callListener('onBeforePageRender', {
+        pageSnapshot = await this.#onBeforePageRender?.({
           pageName,
           rootNode: this.rootNode,
         })
@@ -121,7 +144,7 @@ class Page {
           pageSnapshot?.object?.components as NOODLComponent[],
         )
 
-        await this._callListener('onPageRendered', {
+        this.#onPageRendered?.({
           pageName,
           components: rendered.components,
         })
@@ -141,12 +164,56 @@ class Page {
         snapshot: _.assign({ components: components }, pageSnapshot),
       }
     } catch (error) {
-      if (this.hasListener('onError')) {
-        await this._callListener('onError', { error, pageName })
+      if (_.isFunction(this.#onError)) {
+        this.#onError?.({ error, pageName })
       } else {
         throw new Error(error)
       }
     }
+  }
+
+  set onStart(fn: (pageName: string) => Promise<any>) {
+    this.#onStart = fn
+  }
+
+  set onCreateNode(
+    fn: (node: NOODLElement, props: NOODLComponentProps) => any,
+  ) {
+    this.#onCreateNode = fn
+  }
+
+  set onRootNodeInitializing(fn: () => Promise<any>) {
+    this.#onRootNodeInitializing = fn
+  }
+
+  set onRootNodeInitialized(
+    fn: (rootNode: NOODLElement | null) => Promise<any>,
+  ) {
+    this.#onRootNodeInitialized = fn
+  }
+
+  set onBeforePageRender(
+    fn: (options: {
+      pageName: string
+      rootNode: NOODLElement | null
+    }) => Promise<NOODLUiPage | undefined>,
+  ) {
+    this.#onBeforePageRender = fn
+  }
+
+  set onPageRendered(
+    fn: (options: {
+      pageName: string
+      components: NOODLComponentProps[]
+    }) => Promise<any>,
+  ) {
+    this.#onPageRendered = fn
+  }
+
+  set onError(
+    fn: (options: { error: Error; pageName: string }) => Promise<any>,
+  ) {
+    this.#onError = fn
   }
 
   /**
@@ -190,26 +257,6 @@ class Page {
     } else {
       window.alert(`Could not find page ${pageName}`)
     }
-  }
-
-  public registerListener(
-    listenerName: PageListenerName,
-    listener: (...args: any[]) => any,
-  ) {
-    if (!_.isFunction(this._listeners[listenerName])) {
-      this._listeners[listenerName] = listener
-    } else {
-      log.func('navigate')
-      log.red(
-        `An existing listener named ${listenerName} was already registered. ` +
-          `It will be removed and replaced with this one`,
-      )
-    }
-    return this
-  }
-
-  public hasListener(listenerName: string) {
-    return _.isFunction(this._listeners[listenerName])
   }
 
   /**
@@ -267,14 +314,6 @@ class Page {
   public setBuiltIn(builtIn: any) {
     this.builtIn = builtIn
     return this
-  }
-
-  private _callListener(listenerName: PageListenerName, ...args: any[]) {
-    const result = this._listeners[listenerName]?.(...args)
-    if (result && result instanceof Promise) {
-      return Promise.resolve(result)
-    }
-    return result
   }
 }
 

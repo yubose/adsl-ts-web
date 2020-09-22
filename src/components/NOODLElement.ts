@@ -109,10 +109,6 @@ class NOODLElement {
     }
     return this
   }
-
-  public resolveAssets() {
-    const targetKeys = ['']
-  }
 }
 
 export default NOODLElement

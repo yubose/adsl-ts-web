@@ -180,17 +180,6 @@ export function serializeError(
   return params
 }
 
-export type RequestStateChangePositionalKeywords = [
-  K1: boolean,
-  K2: boolean,
-  K3: null | SerializedError,
-  K4: boolean,
-]
-
-export interface S {
-  [key: string]: null | SerializedError | boolean
-}
-
 /**
  * A helper to reset states back to the initial value when updating changes
  * to request states. This is used mainly for uses with immer

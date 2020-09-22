@@ -9,7 +9,6 @@ import {
 import Modal from 'components/NOODLModal'
 import Meeting from '../../meeting'
 import { App } from '../../app'
-import { IStreams } from './meetingTypes'
 
 declare module 'redux-logger'
 
