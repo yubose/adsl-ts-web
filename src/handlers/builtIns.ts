@@ -12,6 +12,12 @@ import Page from 'Page'
 import validate, { getFormErrors } from 'utils/validate'
 import { formatPhoneNumber } from 'utils/phone'
 import VerificationCode from 'components/modalComponents/VerificationCode'
+import {
+  connecting,
+  connected,
+  connectError,
+  connectTimedOut,
+} from 'features/meeting'
 import { openModal, closeModal, setPage } from 'features/page'
 import {
   setAuthStatus,
@@ -384,55 +390,68 @@ const makeBuiltInActions = function ({
 -------------------------------------------------------- */
 
 // This goes on the SDK
-export function onVideoChatBuiltIn(joinRoom: (token: string) => Promise<any>) {
+export function onVideoChatBuiltIn({
+  joinRoom,
+  store,
+}: {
+  joinRoom: (token: string) => Promise<any>
+  store: AppStore
+}) {
   return async function onVideoChat(
     action: NOODLChainActionBuiltInObject & {
       roomId: string
       accessToken: string
     },
   ) {
-    log.func('onVideoChat')
+    try {
+      log.func('onVideoChat')
 
-    let builtInRunning = false
+      let builtInRunning = false
 
-    if (!builtInRunning) {
-      builtInRunning = true
+      if (!builtInRunning) {
+        builtInRunning = true
 
-      if (action) {
-        let msg = ''
-        if (action.accessToken) msg += 'Received access token '
-        if (action.roomId) msg += 'and room id'
-        log.grey(msg, action)
+        if (action) {
+          let msg = ''
+          if (action.accessToken) msg += 'Received access token '
+          if (action.roomId) msg += 'and room id'
+          log.grey(msg, action)
+        } else {
+          log.red(
+            'Expected an action object but the value passed in was null or undefined',
+            action,
+          )
+        }
+
+        // Disconnect from the room if for some reason we
+        // are still connected to one
+        // if (room.state === 'connected' || room.state === 'reconnecting') {
+        //   room?.disconnect?.()
+        //   if (connecting) setConnecting(false)
+        // }
+        if (action?.roomId) log.grey(`Connecting to room id: ${action.roomId}`)
+        store.dispatch(connecting())
+        const newRoom = await joinRoom(action.accessToken)
+        store.dispatch(connected())
+        if (newRoom) {
+          log.green(`Connected to room: ${newRoom.name}`, newRoom)
+        } else {
+          log.red(
+            `Expected a room instance to be returned but received null or undefined instead`,
+            newRoom,
+          )
+        }
       } else {
         log.red(
-          'Expected an action object but the value passed in was null or undefined',
-          action,
+          'A duplicate call to this action was detected. This call was aborted to ' +
+            'prevent the duplicate call',
         )
       }
-
-      // Disconnect from the room if for some reason we
-      // are still connected to one
-      // if (room.state === 'connected' || room.state === 'reconnecting') {
-      //   room?.disconnect?.()
-      //   if (connecting) setConnecting(false)
-      // }
-      if (action?.roomId) log.grey(`Connecting to room id: ${action.roomId}`)
-      const newRoom = await joinRoom(action.accessToken)
-      if (newRoom) {
-        log.green(`Connected to room: ${newRoom.name}`, newRoom)
-      } else {
-        log.red(
-          `Expected a room instance to be returned but received null or undefined instead`,
-          newRoom,
-        )
-      }
-    } else {
-      log.red(
-        'A duplicate call to this action was detected. This call was aborted to ' +
-          'prevent the duplicate call',
-      )
+      builtInRunning = false
+    } catch (error) {
+      console.error(error)
+      store.dispatch(connectError(error))
     }
-    builtInRunning = false
   }
 }
 

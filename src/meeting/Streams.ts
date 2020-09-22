@@ -1,9 +1,9 @@
 import _ from 'lodash'
+import { NOODLComponentProps } from 'noodl-ui'
 import { NOODLElement } from 'app/types/pageTypes'
 import { RoomParticipant } from 'app/types'
 import Stream from './Stream'
 import Substreams from './Substreams'
-import { NOODLComponentProps } from 'noodl-ui'
 
 class MeetingStreams {
   #mainStream: Stream
@@ -31,8 +31,8 @@ class MeetingStreams {
     return this.#selfStream.isSameParticipant(participant)
   }
 
-  isSubStreaming(participant: RoomParticipant) {
-    return this.#subStreams?.participantExists(participant)
+  getSubStreamsContainer() {
+    return this.#subStreams
   }
 
   subStreamsContainerExists() {
@@ -47,12 +47,8 @@ class MeetingStreams {
     return this.#subStreams
   }
 
-  /**
-   * Moves the next immediate participant from the subStreams colelction
-   * to the main stream
-   */
-  next() {
-    //
+  isSubStreaming(participant: RoomParticipant) {
+    return this.#subStreams?.participantExists(participant)
   }
 }
 

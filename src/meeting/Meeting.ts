@@ -9,16 +9,9 @@ import {
   Room,
 } from 'twilio-video'
 import { getByDataUX, NOODLComponentProps, Viewport } from 'noodl-ui'
-import {
-  connecting,
-  connected,
-  connectError,
-  connectTimedOut,
-} from 'features/meeting'
 import { cadl } from 'app/client'
 import { AppStore } from 'app/types'
 import { isMobile } from 'utils/common'
-import createElement from 'utils/createElement'
 import parser from 'utils/parser'
 import * as T from 'app/types/meetingTypes'
 import Stream from 'meeting/Stream'
@@ -137,7 +130,6 @@ const Meeting = (function () {
     async join(token: string, options?: ConnectOptions) {
       try {
         _internal['_token'] = token
-        _internal._store?.dispatch(connecting())
         // TODO - timeout
         const room = await connect(token, {
           dominantSpeaker: true,
@@ -155,7 +147,6 @@ const Meeting = (function () {
           },
         })
         _internal['_room'] = room
-        _internal._store?.dispatch(connected())
         // TEMPORARY
         setTimeout(() => {
           Meeting.onConnected?.(room)
@@ -163,7 +154,6 @@ const Meeting = (function () {
         // _handleRoomCreated
         return _internal._room
       } catch (error) {
-        _internal._store?.dispatch(connectError(error))
         throw error
       }
     },
@@ -182,26 +172,32 @@ const Meeting = (function () {
           // Otherwise if the participant is not currently the main speaker,
           // proceed with adding them to the subStreams collection
           else if (!mainStream.isSameParticipant(participant)) {
-            let subStreams = _internal._streams?.getSubStreamsContainer()
-            // Do one more check and attempt to grab a subStream that has
-            // the participant bound to it if there is one
-            const subStream = subStreams?.getSubStream(participant)
-            if (!subStream) {
-              // Proceed to add this participant to the collection. This will
-              // create a brand new stream instance by default if it doesn't
-              // find a participant bound to any streams
-              if (subStreams) {
+            const subStreams = _internal._streams?.getSubStreamsContainer()
+            if (!subStreams) {
+              // NOTE: We cannot create a container here because the container is
+              // only created while rendering/parsing the NOODL components. It should
+              // stay that way to reduce complexity
+              log.func('addRemoteParticipant')
+              log.red(
+                `Cannot add participant without the subStreams container, ` +
+                  `which doesn't exist. This participant will not be shown on ` +
+                  `the page`,
+                { participant, streams: _internal._streams },
+              )
+            } else {
+              // Check and attempt to grab a subStream that has
+              // the participant bound to it if there is one
+              const subStream = subStreams?.getSubStream(participant)
+              if (!subStream) {
+                // Proceed to add this participant to the collection. This will
+                // create a brand new stream instance and bind the participant to it
                 subStreams.addParticipant(participant)
               } else {
-                // NOTE: This block might never run
                 log.func('addRemoteParticipant')
-                log.grey(
-                  `No subStreams container was found for this participant. ` +
-                    `This participant will not be shown on the page`,
-                  { participant, streams: _internal._streams },
+                log.orange(
+                  `Did not proceed to add this remote participant to a ` +
+                    `subStream because they are already in one`,
                 )
-                // NOTE: We can't create a custom container here because the only way
-                // the container is created is through onCreateNode
               }
             }
           }
@@ -213,64 +209,73 @@ const Meeting = (function () {
       return this
     },
     removeRemoteParticipant(participant: T.RoomParticipant) {
-      if (_internal._room?.state === 'connected') {
-        if (!o.isParticipantLocal(participant)) {
-          let mainStream: Stream | null = _internal._streams.getMainStream()
-          let subStreams: MeetingSubstreams | null = _internal._streams?.getSubStreamsContainer()
-          let subStream: Stream | null | undefined = null
+      if (participant && !o.isParticipantLocal(participant)) {
+        let mainStream: Stream | null = _internal._streams.getMainStream()
+        let subStreams: MeetingSubstreams | null = _internal._streams?.getSubStreamsContainer()
+        let subStream: Stream | null | undefined = null
 
-          // RemoteParticipant
-          if (_internal._streams?.isMainStreaming?.(participant)) {
-            log.func('removeRemoteParticipant')
-            log.orange('This participant was mainstreaming')
-            mainStream = _internal._streams.getMainStream()
-            mainStream.unpublish()
-            const subStream = subStreams?.first()
-            let nextMainParticipant: T.RoomParticipant | null
-            if (subStream) {
-              nextMainParticipant = subStream.getParticipant()
-              if (nextMainParticipant) {
-              } else {
-              }
-            }
+        if (_internal._streams?.isMainStreaming?.(participant)) {
+          log.func('removeRemoteParticipant')
+          log.orange(
+            'This participant was mainstreaming. Removing it from mainStream now',
+          )
+          mainStream = _internal._streams.getMainStream()
+          mainStream.unpublish()
+          subStream = subStreams?.first()
+
+          let nextMainParticipant: T.RoomParticipant | null
+
+          if (subStreams) {
             // The next participant in the subStreams collection will move to be
             // the new dominant speaker if the participant we are removing is the
             // current dominant speaker
-            if (subStreams) {
-              if (subStreams.length) {
-                const nextSubStream = subStreams.first()
-                const nextParticipant = nextSubStream.getParticipant()
-                if (nextParticipant) {
-                  mainStream.setParticipant(nextParticipant)
-                } else {
-                  // TODO - loop until a participant is available
-                }
-                const subStream = subStreams.getSubStream(participant)
-                if (subStream) {
-                  subStreams.removeSubStream(subStream)
-                  log.func('removeRemoteParticipant')
-                  log.green(
-                    `Removed participant's stream from the subStreams collection`,
-                    participant,
-                  )
-                }
+            if (subStream) {
+              // Remove the incoming mainStreamer from subStreams and bind them
+              // to the mainStream
+              nextMainParticipant = subStream.getParticipant()
+              if (nextMainParticipant) {
+                // TODO - Loop over the rest of the subStreams and see if theres
+                // an out-of-ordered stream where a participant is bound to if
+                // nextMainParticipant is undefined/null the first time
+                mainStream.setParticipant(nextMainParticipant)
+                log.func('removeRemoteParticipant')
+                log.green(`Bound the next immediate participant to mainStream`)
+                subStreams?.removeSubStream(subStream)
+                log.green(
+                  `Removed inactive subStream from the subStreams collection`,
+                )
+              } else {
+                log.func('removeRemoteParticipant')
+                log.grey(
+                  `No other participant was found in any of the subStreams collection`,
+                )
               }
+            } else {
+              log.func('removeRemoteParticipant')
+              log.grey(
+                `No participant is subStreaming right now and the mainStream ` +
+                  `will remain empty`,
+              )
             }
-          }
-          // RemoteParticipant
-          else if (_internal._streams?.isSubStreaming(participant)) {
+          } else {
             log.func('removeRemoteParticipant')
-            log.orange('This remote participant was substreaming')
-            subStream = subStreams?.getSubStream(participant)
-            if (subStream) subStreams?.removeSubStream(subStream)
+            log.red(
+              `The subStreams container was not initiated. Nothing else will happen`,
+            )
           }
-        } else {
+        } else if (_internal._streams?.isSubStreaming(participant)) {
           log.func('removeRemoteParticipant')
-          log.red('This call is intended for remote participants')
+          log.orange('This remote participant was substreaming')
+          subStream = subStreams?.getSubStream(participant)
+          if (subStream) subStreams?.removeSubStream(subStream)
         }
       }
       return this
     },
+    /**
+     * Returns true if the participant is the LocalParticipant
+     * @param { RoomParticipant } participant
+     */
     isParticipantLocal(
       participant: T.RoomParticipant,
     ): participant is LocalParticipant {

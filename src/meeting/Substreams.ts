@@ -4,14 +4,12 @@ import { RemoteParticipant } from 'twilio-video'
 import { NOODLElement } from 'app/types/pageTypes'
 import { RoomParticipant, StreamType } from 'app/types'
 import Logger from 'app/Logger'
-import parser from 'utils/parser'
 import Stream from './Stream'
 
 const log = Logger.create('Substreams.ts')
 
 /** The container for subStreams */
 class MeetingSubstreams {
-  #recentlyAddedParticipantStream: Stream | null = null
   #subStreams: Stream[] = []
   blueprint: Partial<NOODLComponent> = {} // Experimental
   container: NOODLElement
@@ -26,7 +24,8 @@ class MeetingSubstreams {
   }
 
   /**
-   * Adds a new stream instance to the subStreams collection
+   * Adds a new stream instance to the subStreams collection. If a participant
+   * was passed in, that participant's media tracks will automatically start
    * @param { NOODLElement? } node
    * @param { RemoteParticipant? } participant
    */
@@ -44,7 +43,7 @@ class MeetingSubstreams {
 
   /**
    * Adds an element to the subStreams collection
-   * If index is passed, it will insert the stream at the specified index
+   * If index is passed, it will insert the stream at the given index
    * @param { NOODLElement } node
    * @param { number? } index
    */
@@ -62,7 +61,8 @@ class MeetingSubstreams {
         this.#subStreams.push(stream)
       }
     } else {
-      //
+      log.func('addElement')
+      log.red(`Cannot add an element if the node was null/undefined`)
     }
     return this
   }
@@ -106,14 +106,12 @@ class MeetingSubstreams {
           participant,
           stream,
         })
-        this.#recentlyAddedParticipantStream = stream
       } else {
         // Else start a new stream in the subStreams collection and attach this
         // participant to it (it does not have an element associated with it
         // yet unless stream.setElement is called with an element)
         stream = new Stream('subStream')
         stream.setParticipant(participant)
-        this.#recentlyAddedParticipantStream = stream
         this.#subStreams.push(stream)
       }
     } else {
@@ -161,12 +159,6 @@ class MeetingSubstreams {
   getEmptyParticipantSlot() {
     const fn = (subStream: Stream) => !subStream.hasParticipant()
     return _.findIndex(this.#subStreams, fn)
-  }
-
-  // TODO - Deprecate in favor of this.last
-  /** Returns the stream that a participant was most recently bound to  */
-  getLastAddedParticipantStream() {
-    return this.#recentlyAddedParticipantStream
   }
 
   /**

@@ -139,7 +139,7 @@ window.addEventListener('load', async () => {
   const preparePage = createPreparePage({
     builtIn: {
       goto: builtIn.goto,
-      videoChat: onVideoChatBuiltIn(Meeting.join),
+      videoChat: onVideoChatBuiltIn({ joinRoom: Meeting.join, store }),
     },
   })
 
@@ -436,15 +436,6 @@ window.addEventListener('load', async () => {
       }
       // Individual remote participant video element container
       else if (identify.stream.video.isSubStream(props)) {
-        log.func('adsf')
-        log.green('IS SUBSTREAM')
-        log.green('IS SUBSTREAM')
-        log.green('IS SUBSTREAM')
-        log.green('IS SUBSTREAM')
-        log.green('IS SUBSTREAM')
-        log.green('IS SUBSTREAM')
-        log.green('IS SUBSTREAM')
-        log.green('IS SUBSTREAM')
         const container = streams.getSubStreamsContainer()
         if (container) {
           if (!container.elementExists(node)) {
