@@ -21,11 +21,10 @@ import Logger from 'app/Logger'
 const log = Logger.create('actions.ts')
 
 const createActions = function ({ store }: { store: AppStore }) {
-  // @ts-expect-error
-  const _actions: Record<
+  const _actions = {} as Record<
     NOODLActionChainActionType,
     ActionChainActionCallback<any>
-  > = {}
+  >
 
   _actions.evalObject = async (
     action: Action<NOODLChainActionEvalObject>,
