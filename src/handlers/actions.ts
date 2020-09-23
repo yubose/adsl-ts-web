@@ -37,7 +37,7 @@ const createActions = function ({ store }: { store: AppStore }) {
       log.func('evalObject')
       log.grey(
         `Expected to receive the "object" as a function but it was "${typeof action?.original}" instead`,
-        { action, options },
+        { action, ...options },
       )
     }
   }
@@ -57,7 +57,7 @@ const createActions = function ({ store }: { store: AppStore }) {
         log.func('goto')
         log.red(
           'Tried to go to a page but could not find information on the whereabouts',
-          { action, options },
+          { action, ...options },
         )
       }
     }
@@ -65,7 +65,7 @@ const createActions = function ({ store }: { store: AppStore }) {
 
   _actions.pageJump = async (action: any, options) => {
     log.func('pageJump')
-    log.grey('', { action, options })
+    log.grey('', { action, ...options })
     store.dispatch(setPage(action.original.destination))
   }
 
@@ -86,7 +86,7 @@ const createActions = function ({ store }: { store: AppStore }) {
       log.func('popUp')
       log.red(
         `Tried to render a ${action.original.actionType} element but the element was null or undefined`,
-        { action, options },
+        { action, ...options },
       )
     }
   }
@@ -99,7 +99,7 @@ const createActions = function ({ store }: { store: AppStore }) {
     action: Action<NOODLChainActionRefreshObject>,
     options,
   ) => {
-    log.func('refresh').grey(action.original.actionType, { action, options })
+    log.func('refresh').grey(action.original.actionType, { action, ...options })
     window.location.reload()
   }
 
@@ -107,24 +107,22 @@ const createActions = function ({ store }: { store: AppStore }) {
     action: Action<NOODLChainActionSaveObjectObject>,
     options,
   ) => {
-    const { context, dataValues, parser } = options
-
-    log.func('saveObject').magenta('', { action, options })
+    const { context, abort, parser } = options
 
     try {
       const { object } = action.original
-      log.grey('', { action, options })
 
       if (_.isFunction(object)) {
+        log.func('saveObject')
         log.grey(`Directly invoking the object function with no parameters`, {
           action,
-          options,
+          ...options,
         })
         await object()
       } else if (_.isArray(object)) {
-        for (let index = 0; index < object.length; index++) {
+        const numObjects = object.length
+        for (let index = 0; index < numObjects; index++) {
           const obj = object[index]
-
           if (_.isArray(obj)) {
             // Assuming this a tuple where the first item is the path to the "name" field
             // and the second item is the actual function that takes in values from using
@@ -132,62 +130,44 @@ const createActions = function ({ store }: { store: AppStore }) {
             if (obj.length === 2) {
               const [nameFieldPath, save] = obj
 
-              if (_.isString(nameFieldPath)) {
-                if (_.isFunction(save)) {
-                  parser.setLocalKey(context?.page?.name)
+              if (_.isString(nameFieldPath) && _.isFunction(save)) {
+                parser.setLocalKey(context?.page?.name)
 
-                  let nameField
+                let nameField
 
-                  if (isReference(nameFieldPath)) {
-                    nameField = parser.get(nameFieldPath)
-                  } else {
-                    nameField =
-                      _.get(cadl?.root, nameFieldPath, null) ||
-                      _.get(
-                        cadl?.root?.[context?.page?.name],
-                        nameFieldPath,
-                        {},
-                      )
-                  }
-
-                  const params = { ...nameField }
-
-                  if ('verificationCode' in params) {
-                    delete params.verificationCode
-                  }
-
-                  log.grey('', {
-                    action,
-                    options,
-                    dataValues,
-                    params,
-                    nameFieldPath,
-                  })
-                  await save(params)
+                if (isReference(nameFieldPath)) {
+                  nameField = parser.get(nameFieldPath)
+                } else {
+                  nameField =
+                    _.get(cadl?.root, nameFieldPath, null) ||
+                    _.get(cadl?.root?.[context?.page?.name], nameFieldPath, {})
                 }
+
+                const params = { ...nameField }
+
+                if ('verificationCode' in params) {
+                  delete params.verificationCode
+                }
+
+                await save(params)
+                log.func('saveObject')
+                log.green(`Invoked saveObject with these parameters`, params)
               }
-            } else {
-              log.red(
-                `Received an array inside a "saveObject" action as an item of an ` +
-                  `"object" array. Currently we are using tuples of length 2`,
-                { action, options },
-              )
             }
           }
         }
-      } else if (_.isPlainObject(object)) {
-        //
-      } else {
+      } else if (_.isString(object)) {
+        log.func('saveObject')
         log.red(
-          `saveObject with property "object" was not received as a function, ` +
-            `object or  Possibly a parsing error`,
-          { action, options },
+          `The "object" property in the saveObject action is a string which ` +
+            `is in the incorrect format. Possibly a parsing error?`,
+          { action, ...options },
         )
       }
     } catch (error) {
       console.error(error)
       window.alert(error.message)
-      return 'abort'
+      return abort()
     }
   }
 

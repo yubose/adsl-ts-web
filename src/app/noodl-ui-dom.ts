@@ -117,7 +117,12 @@ class NOODLUIDOM {
       this.#listeners[eventName] = []
     }
     ;(this.#listeners[eventName] as Function[]).push(callback)
-    log.func('on').grey(`Registered listener: ${eventName}`, callback)
+    console.groupCollapsed(
+      `%c[noodl-ui-dom.ts] on -- Registered listener: ${eventName}`,
+      'color:#828282',
+    )
+    console.trace()
+    console.groupEnd()
     return this
   }
 

@@ -275,8 +275,13 @@ window.addEventListener('load', async () => {
       (previousPage, currentPage) => ({ previousPage, currentPage }),
     ),
     async ({ previousPage, currentPage }) => {
-      log.func('observeStore -- state.page[previousPage/currentPage]')
-      log.grey('', { previousPage, nextPage: currentPage })
+      console.groupCollapsed(
+        `%cobserveStore -- state.page[previousPage/currentPage]`,
+        'color:#828282',
+        { previousPage, nextPage: currentPage },
+      )
+      console.trace()
+      console.groupEnd()
       if (currentPage) {
         const { snapshot } = (await page.navigate(currentPage)) || {}
         dispatch(setReceivedSnapshot())
