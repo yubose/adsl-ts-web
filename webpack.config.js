@@ -1,8 +1,8 @@
 const path = require('path')
 const webpack = require('webpack')
-const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CircularDependencyPlugin = require('circular-dependency-plugin')
+// const CircularDependencyPlugin = require('circular-dependency-plugin')
+// const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 // const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 console.log('-------------------------------------------')
@@ -11,14 +11,39 @@ console.log(`   ECOS_ENV set to ${process.env.ECOS_ENV}`)
 console.log('-------------------------------------------')
 console.log('')
 
+const plugins = [
+  // new BundleStatsWebpackPlugin({
+  //   baseline: true,
+  // }),
+  // new CircularDependencyPlugin({
+  //   exclude: /node_modules/,
+  //   include: /src/,
+  // }),
+  new webpack.DefinePlugin({
+    'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
+  }),
+  // new MiniCssExtractPlugin({
+  //   filename: 'styles.css',
+  //   chunkFilename: '[id].css',
+  // }),
+  new HtmlWebpackPlugin({
+    filename: 'index.html',
+    title: 'AiTmed Web',
+    cache: true,
+  }),
+]
+
+if (process.env.NODE_ENV !== 'production') {
+  //
+}
+
 module.exports = {
   entry: './src/index.ts',
   output: {
-    filename: 'index.js',
-    // filename: '[name].[hash].js',
+    // filename: 'index.js',
+    filename: '[name].[hash].js',
     path: path.resolve(__dirname, 'build'),
   },
-  // entry: './src/index.ts',
   devServer: {
     compress: false,
     contentBase: [
@@ -90,25 +115,5 @@ module.exports = {
     extensions: ['.ts', '.js'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
-  plugins: [
-    new BundleStatsWebpackPlugin({
-      baseline: true,
-    }),
-    new CircularDependencyPlugin({
-      exclude: /node_modules/,
-      include: /src/,
-    }),
-    new webpack.DefinePlugin({
-      'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
-    }),
-    // new MiniCssExtractPlugin({
-    //   filename: 'styles.css',
-    //   chunkFilename: '[id].css',
-    // }),
-    new HtmlWebpackPlugin({
-      filename: 'index.html',
-      title: 'AiTmed Web',
-      cache: true,
-    }),
-  ],
+  plugins,
 }
