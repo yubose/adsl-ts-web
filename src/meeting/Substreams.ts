@@ -72,46 +72,6 @@ class MeetingSubstreams {
   }
 
   /**
-   * Adds a participant to the subStreams collection on a stream that has an
-   * available participant "slot"
-   *
-   * NOTE: This function assumes that a participant does NOT already exist in
-   * the subStreams collection. Therefore be sure to call
-   * .participantExists() to check before calling
-   * @param { RoomParticipant } participant
-   */
-  addParticipant(participant: RoomParticipant) {
-    if (participant) {
-      let stream: Stream | undefined = undefined
-      const indexEmptyParticipantSlot = this.getEmptyParticipantSlot()
-      log.func('addParticipant')
-      // Check if a stream does not have any participant bound to it
-      if (indexEmptyParticipantSlot !== -1) {
-        // Retrieve the index of the stream that doesn't have a
-        // participant bound to it. Bind and load this participant's
-        // tracks to the DOM
-        stream = this.#subStreams[indexEmptyParticipantSlot]
-        if (!stream) stream = new Stream('subStream')
-        stream.setParticipant(participant)
-        this.insertStream(stream)
-        log.green(`Bound a participant to a subStream`, { participant, stream })
-      } else {
-        log.orange(
-          `A stream was available to bind this participant to but received ` +
-            `an invalid index. A new Stream will be created instead`,
-          participant,
-        )
-        // Else start a new stream in the subStreams collection and attach this
-        // participant to it (it does not have an element associated with it
-        // yet unless stream.setElement is called with an element)
-        stream = new Stream('subStream').setParticipant(participant)
-        this.insertStream(stream)
-      }
-    }
-    return this
-  }
-
-  /**
    * Returns true if the element is already bound to a subStream in the
    * collection
    * @param { NOODLElement } node

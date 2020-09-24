@@ -117,8 +117,14 @@ describe('Meeting', () => {
           const mainStreamParticipant = new MockParticipant()
           const otherParticipant = new MockParticipant()
           mainStream.setParticipant(mainStreamParticipant)
-          subStreams.addParticipant(otherParticipant)
-          subStreams.addParticipant(participant)
+          subStreams.add({
+            node: document.createElement('div'),
+            participant: otherParticipant as any,
+          })
+          subStreams.add({
+            node: document.createElement('div'),
+            participant: participant as any,
+          })
           expect(subStreams.participantExists(participant)).to.be.true
           expect(subStreams).to.have.lengthOf(2)
           Meeting.addRemoteParticipant(participant)
@@ -130,8 +136,10 @@ describe('Meeting', () => {
 
     describe('when the participant is already mainStreaming', () => {
       it('should try to find the same participant in the subStreams and remove it if found', () => {
+        const subStreamsContainer = document.createElement('div')
         mainStream.setParticipant(participant)
-        subStreams.addParticipant(participant)
+        // @ts-expect-error
+        subStreams.add({ node: subStreamsContainer, participant })
         expect(subStreams.participantExists(participant)).to.be.true
         expect(mainStream.isSameParticipant(participant)).to.be.true
         Meeting.addRemoteParticipant(participant)

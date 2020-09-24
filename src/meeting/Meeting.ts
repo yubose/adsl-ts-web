@@ -98,14 +98,9 @@ const Meeting = (function () {
         if (!o.isParticipantLocal(participant)) {
           const mainStream = _internal._streams?.getMainStream()
           const subStreams = _internal._streams?.getSubStreamsContainer()
-          if (
-            !mainStream.isAnyParticipantSet() &&
-            !mainStream.isSameParticipant(participant)
-          ) {
-            // Assign them to mainStream
-            mainStream.setParticipant(participant)
-            Meeting.onAddRemoteParticipant?.(participant, mainStream)
-            // Delete them from the subStream if they were subStreaming
+          if (mainStream.isSameParticipant(participant)) {
+            // Safe checking -- remove the participant from a subStream if they
+            // are in an existing one for some reason
             if (subStreams?.participantExists(participant)) {
               let subStream = subStreams.getStream(participant)
               if (subStream) {
@@ -114,38 +109,45 @@ const Meeting = (function () {
                 subStreams.removeSubStream(subStream)
               }
             }
-          } else {
-            if (subStreams) {
-              if (!subStreams.participantExists(participant)) {
-                log.func('_addParticipant')
-                // Create a new DOM node
-                const props = subStreams.blueprint
-                const node = parser.parse(props as NOODLComponentProps)
-                const subStream = subStreams.add({ node, participant }).last()
-                Meeting.onAddRemoteParticipant?.(participant, mainStream)
-                log.green(
-                  `Created a new subStream and bound the newly connected participant to it`,
-                  { blueprint: props, node, participant, subStream },
-                )
-              } else {
-                log.func('addRemoteParticipant')
-                log.orange(
-                  `Did not proceed to add this remote participant to a ` +
-                    `subStream because they are already in one`,
-                )
-              }
-            } else {
-              // NOTE: We cannot create a container here because the container is
-              // only created while rendering/parsing the NOODL components. It should
-              // stay that way to reduce complexity
+            return this
+          }
+          // Just set the participant as the mainStream  since it's open
+          if (!mainStream.isAnyParticipantSet()) {
+            mainStream.setParticipant(participant)
+            Meeting.onAddRemoteParticipant?.(participant, mainStream)
+            return this
+          }
+
+          if (subStreams) {
+            if (!subStreams.participantExists(participant)) {
               log.func('addRemoteParticipant')
-              log.red(
-                `Cannot add participant without the subStreams container, ` +
-                  `which doesn't exist. This participant will not be shown on ` +
-                  `the page`,
-                { participant, streams: _internal._streams },
+              // Create a new DOM node
+              const props = subStreams.blueprint
+              const node = parser.parse(props as NOODLComponentProps)
+              const subStream = subStreams.add({ node, participant }).last()
+              Meeting.onAddRemoteParticipant?.(participant, mainStream)
+              log.green(
+                `Created a new subStream and bound the newly connected participant to it`,
+                { blueprint: props, node, participant, subStream },
+              )
+            } else {
+              log.func('addRemoteParticipant')
+              log.orange(
+                `Did not proceed to add this remotes participant to a ` +
+                  `subStream because they are already in one`,
               )
             }
+          } else {
+            // NOTE: We cannot create a container here because the container is
+            // only created while rendering/parsing the NOODL components. It should
+            // stay that way to reduce complexity
+            log.func('addRemoteParticipant')
+            log.red(
+              `Cannot add participant without the subStreams container, ` +
+                `which doesn't exist. This participant will not be shown on ` +
+                `the page`,
+              { participant, streams: _internal._streams },
+            )
           }
         } else {
           log.func('addRemoteParticipant')
@@ -173,7 +175,7 @@ const Meeting = (function () {
           let nextMainParticipant: T.RoomParticipant | null
 
           if (subStreams) {
-            // The next participant in the subStreams collection will move to be
+            // The next participant in the subStreams collection wilal move to be
             // the new dominant speaker if the participant we are removing is the
             // current dominant speaker
             if (subStream) {
