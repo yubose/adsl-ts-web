@@ -50,7 +50,7 @@ class MeetingStream {
     return this.#node === node
   }
 
-  /** Removes the DOM node from the DOM */
+  /** Removes the DOM node for this stream from the DOM */
   removeElement() {
     if (this.#node && this.#node instanceof HTMLElement) {
       try {
