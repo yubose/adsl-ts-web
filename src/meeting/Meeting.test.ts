@@ -24,11 +24,11 @@ let streams: Streams
 let subStreams: Substreams
 let selfStream: Stream
 let mainStream: Stream
-let participant: MockParticipant
+let participant: any
 let rootEl: HTMLDivElement
 
 beforeEach(() => {
-  Meeting.setInternal({ _room: { state: 'connected' } } as any)
+  Meeting.setInternal?.({ _room: { state: 'connected' } } as any)
   streams = Meeting.getStreams()
   subStreams = streams.createSubStreamsContainer(
     document.createElement('div'),
@@ -75,7 +75,7 @@ describe('Meeting', () => {
 
     describe('when mainStream has a participant but is a different participant than the one being added', () => {
       beforeEach(() => {
-        const otherParticipant = new MockParticipant()
+        const otherParticipant = new MockParticipant() as any
         mainStream.setParticipant(otherParticipant)
       })
 
@@ -92,13 +92,13 @@ describe('Meeting', () => {
           expect(stream).to.be.undefined
           Meeting.addRemoteParticipant(participant)
           stream = subStreams.getStream(participant)
-          expect(stream.getElement()).to.be.instanceOf(HTMLElement)
+          expect(stream?.getElement()).to.be.instanceOf(HTMLElement)
         })
 
         it('should have attached the participant to the new stream ', () => {
           Meeting.addRemoteParticipant(participant)
           const stream = subStreams.getStream(participant)
-          expect(stream.isSameParticipant(participant)).to.be.true
+          expect(stream?.isSameParticipant(participant)).to.be.true
         })
 
         it("the new stream's DOM node should be showing on the DOM", () => {
@@ -114,8 +114,8 @@ describe('Meeting', () => {
 
       describe('when subStreams already has this participant in a subStream', () => {
         it('should not proceed to add a duplicate participant', () => {
-          const mainStreamParticipant = new MockParticipant()
-          const otherParticipant = new MockParticipant()
+          const mainStreamParticipant = new MockParticipant() as any
+          const otherParticipant = new MockParticipant() as any
           mainStream.setParticipant(mainStreamParticipant)
           subStreams.add({
             node: document.createElement('div'),
@@ -138,7 +138,6 @@ describe('Meeting', () => {
       it('should try to find the same participant in the subStreams and remove it if found', () => {
         const subStreamsContainer = document.createElement('div')
         mainStream.setParticipant(participant)
-        // @ts-expect-error
         subStreams.add({ node: subStreamsContainer, participant })
         expect(subStreams.participantExists(participant)).to.be.true
         expect(mainStream.isSameParticipant(participant)).to.be.true
