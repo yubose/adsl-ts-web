@@ -116,10 +116,10 @@ window.addEventListener('load', async () => {
   window.streams = Meeting.getStreams()
   window.meeting = Meeting
   // Auto login for the time being
-  const vcode = await Account.requestVerificationCode('+1 8882465555')
-  const profile = await Account.login('+1 8882465555', '142251', vcode || '')
-  log.green(vcode)
-  log.green('Profile', profile)
+  // const vcode = await Account.requestVerificationCode('+1 8882465555')
+  // const profile = await Account.login('+1 8882465555', '142251', vcode || '')
+  // log.green(vcode)
+  // log.green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const store = createStore()
