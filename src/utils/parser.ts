@@ -149,8 +149,14 @@ export function parseEventHandlers(
         ? lowercasedEventName.replace('on', '')
         : lowercasedEventName
       if (directEventName) {
+        // TODO: Test this
+        const eventFn = async (...args: any[]) => {
+          await value(...args)
+          node.removeEventListener(directEventName, eventFn)
+          node.addEventListener(directEventName, eventFn)
+        }
         // Attach the event handler
-        node.addEventListener(directEventName, value)
+        node.addEventListener(directEventName, eventFn)
       }
     }
     if (key === 'data-value') {
