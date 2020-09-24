@@ -98,8 +98,8 @@ module.exports = {
       exclude: /node_modules/,
       include: /src/,
     }),
-    new webpack.EnvironmentPlugin({
-      'process.env.ECOS_ENV': process.env.ECOS_ENV,
+    new webpack.DefinePlugin({
+      'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
     }),
     // new MiniCssExtractPlugin({
     //   filename: 'styles.css',

@@ -2,6 +2,7 @@ import _ from 'lodash'
 import {
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
+  getByDataUX,
   getDataValues,
   NOODLChainActionBuiltInObject,
   NOODLGotoAction,
@@ -9,9 +10,6 @@ import {
 import { Account } from '@aitmed/cadl'
 import { cadl } from 'app/client'
 import Page from 'Page'
-import validate, { getFormErrors } from 'utils/validate'
-import { formatPhoneNumber } from 'utils/phone'
-import VerificationCode from 'components/modalComponents/VerificationCode'
 import {
   connecting,
   connected,
@@ -19,13 +17,9 @@ import {
   connectTimedOut,
 } from 'features/meeting'
 import { openModal, closeModal, setPage } from 'features/page'
-import {
-  setAuthStatus,
-  setIsCreatingAccount,
-  setVerificationCodePending,
-} from 'features/auth'
 import { AppStore } from 'app/types'
 import Logger from 'app/Logger'
+import validate from 'utils/validate'
 import { modalIds } from '../constants'
 
 const log = Logger.create('builtIns.ts')
@@ -119,214 +113,238 @@ const createBuiltInActions = function ({
     }
   }
 
-  builtInActions.lockApplication = async () => {
-    //
+  /** Shared common logic for both lock/logout logic */
+  const onLockLogout = async () => {
+    const dataValues = getDataValues() as { password: string }
+    const hiddenPwLabel = getByDataUX('passwordHidden') as HTMLDivElement
+    let password = dataValues.password || ''
+    // Reset the visible status since this is a new attempt
+    if (hiddenPwLabel) {
+      const isVisible = hiddenPwLabel.style.visibility === 'visible'
+      if (isVisible) hiddenPwLabel.style.visibility = 'hidden'
+    }
+    // Validate the syntax of their password first
+    const errMsg = validate.password(password)
+    if (errMsg) {
+      window.alert(errMsg)
+      return 'abort'
+    }
+    // Validate if their password is correct or not
+    const isValid = Account.verifyUserPassword(password)
+    if (!isValid) {
+      console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
+      if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
+      else window.alert('Password is incorrect')
+      return 'abort'
+    } else {
+      if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
+    }
   }
 
-  builtInActions.logOutOfApplication = async () => {
-    //
+  builtInActions.lockApplication = async (action, options) => {
+    const result = await onLockLogout()
+    if (result === 'abort') return 'abort'
+    await Account.logout(false)
+    window.location.reload()
+  }
+
+  builtInActions.logOutOfApplication = async (action, options) => {
+    const result = await onLockLogout()
+    if (result === 'abort') return 'abort'
+    await Account.logout(true)
+    window.location.reload()
   }
 
   builtInActions.logout = async () => {
-    //
+    await Account.logout(true)
+    window.location.reload()
   }
 
   builtInActions.signIn = async (action, options) => {
-    const state = store.getState()
-    const logMsg = `%cSIGNIN BUILTIN ARGS`
-
-    console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-      action,
-      ...options,
-      dataValues: getDataValues(),
-    })
-
-    try {
-      switch (state.auth.status) {
-        case 'logged.in': {
-          cadl?.root?.actions?.['SignIn']?.update()
-          store.dispatch(setPage(page.getDashboardPath()))
-          return
-        }
-        case 'logged.out': {
-          let formValues = { ...getDataValues(), countryCode: 'US' } as any
-          const password = formValues?.password || ''
-          const errMsg = validate.password(password)
-          const logMsg = `%c[builtIn.ts][signIn][logged.out] Form values`
-          console.log(logMsg, `color:#00b406;font-weight:bold;`, formValues)
-          if (errMsg) return window.alert(errMsg)
-          await cadl?.root?.builtIn?.loginByPassword?.(password)
-          store.dispatch(page.getDashboardPath())
-          return
-        }
-        case 'new.device': {
-          const formValues: any = { ...getDataValues(), countryCode: 'US' }
-          /*
-           * Step 1 - user didn't enter their verification code yet
-           */
-          if (!state.auth.verification.pending) {
-            console.log(
-              `%cformValues`,
-              'color:#20B2AA;font-weight:bold;',
-              formValues,
-            )
-            // Validate the form
-            const errors = await getFormErrors(formValues)
-            if (errors.length) {
-              window.alert(errors[0])
-              return {
-                abort: errors,
-              }
-            }
-            // The phone number needs to be formatted with country code
-            const formattedPhoneNum = await formatPhoneNumber({
-              phoneNumber: formValues.phoneNumber,
-              countryCode: formValues.countryCode,
-            })
-            const verificationCodeTimer = cadl?.verificationRequest?.timer
-            let params: any
-            // Users need to wait 60 sec before they request a new one. If the timer
-            // is still running, avoid the request and continue waiting for that verification code
-            // Otherwise run this block and send a new request
-            if (!verificationCodeTimer) {
-              // Starts the login flow by asking for the verification code before proceeding
-              const code = await Account.requestVerificationCode(
-                formattedPhoneNum,
-              )
-              console.log(`%c${code}`, 'color:#8e44ad;font-weight:bold;')
-              if (_.isString(formValues.phoneNumber)) {
-                if (formValues.phoneNumber.startsWith('888')) {
-                  params = { pending: true, code }
-                } else {
-                  params = true
-                }
-              }
-            } else {
-              params = { pending: true }
-              if (state.auth.verification.code) {
-                params['code'] = state.auth.verification.code
-              }
-            }
-            store.dispatch(setVerificationCodePending(params))
-            const verificationElem = new VerificationCode({
-              onUnload: () => {
-                store.dispatch(setVerificationCodePending(false))
-                if (state.auth.isCreating) {
-                  store.dispatch(setIsCreatingAccount(false))
-                }
-              },
-            })
-
-            verificationElem.render()
-
-            store.dispatch(
-              openModal({
-                id: modalIds.VERIFICATON_CODE,
-                props: {
-                  formValues,
-                  initialTimer: cadl?.verificationRequest?.timer,
-                },
-              }),
-            )
-
-            abort('User is entering verification code')
-          }
-          /*
-          * Step 1 - user entered verification code and is submitting it
-              This logic is abstracted into its own func because it has special catch conditions
-          */
-          const modal = store.getState().page.modal
-
-          if (state.auth.verification.pending && modal.opened) {
-            /*
-          * Step 2 - user entered verification code and is submitting it
-              false  --> state.account.auth.verification.pending
-              false --> state.store.modal.opened
-          */
-            // formValues is coming from VerificationCode at this point
-            const { countryCode, phoneNumber = '' } = formValues
-            // We don't need to validate the fields at this point since we already did
-            //    when they came here
-            const params = {
-              phoneNumber: await formatPhoneNumber({
-                phoneNumber,
-                countryCode,
-              }),
-              password: formValues.password,
-              verificationCode: formValues.verificationCode,
-            }
-
-            console.log(
-              `%c[useSignin.tsx][onSubmitLogin] Sign in params`,
-              `color:#00b406;font-weight:bold;`,
-              params,
-            )
-
-            const newStatus = await cadl?.root?.builtIn?.signIn?.(params)
-
-            // User was invited by an existing member. This account is marked as temporary
-            if (newStatus?.code === 3) {
-              console.log(
-                `%c[builtIn.ts] This account is marked temporary because an existing user sent an invite to it. Redirecting to the create account page...`,
-                `color:#3498db;font-weight:bold;`,
-                { formValues, status: newStatus },
-              )
-              store.dispatch(closeModal())
-              store.dispatch(setIsCreatingAccount(true))
-              store.dispatch(setAuthStatus('temporary'))
-              await page.goToPage('CreateNewAccount')
-              return
-            }
-
-            // noodl?.root?.SignIn?.update()
-            cadl?.root?.actions?.['SignIn']?.update()
-            console.log(
-              `%cLogin profile/UserVertex`,
-              'color:#2ecc3b;font-weight:bold;',
-              cadl?.root?.Global?.currentUser?.vertex,
-            )
-
-            if (newStatus.code === 0) {
-              store.dispatch(setAuthStatus('logged.in'))
-            } else if (newStatus.code === 1) {
-              store.dispatch(setAuthStatus('logged.out'))
-            } else if (newStatus.code === 2) {
-              store.dispatch(setAuthStatus('new.device'))
-            }
-            // Prepare UI states
-            store.dispatch(closeModal())
-            // Call the callback which will take care of the steps ahead
-            const dashboardPg = page.getPagePath(
-              page.getDashboardPath(cadl.cadlBaseUrl) || '',
-            )
-            await page.goToPage(dashboardPg)
-          }
-          return
-        }
-        // Temp account -- An existing user that is registered invited this new user
-        // using the app
-        default:
-          return
-      }
-    } catch (error) {
-      if (/(CANNOT_FIND_UID)/i.test(error.name)) {
-        // We are purposely not setting pending.verification to false because we're going to delegate
-        //    the control to the signup hook which will handle that instead
-        store.dispatch(setIsCreatingAccount(true))
-        // If it reached this line then the user is coming from VerificationCode
-        //    The values here are guaranteed since its passed from the arguments
-        console.error(error)
-        // await signup.onSubmit({ skipToCreate: true, formValues })
-      } else {
-        // console.error(error)
-        // window.alert(error.message)
-        console.error(error.stack)
-        console.error(error.stack)
-        console.error(error.stack)
-        console.error(error.stack)
-        throw error
-      }
-    }
+    // const state = store.getState()
+    // const logMsg = `%cSIGNIN BUILTIN ARGS`
+    // console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+    //   action,
+    //   ...options,
+    //   dataValues: getDataValues(),
+    // })
+    // try {
+    //   switch (state.auth.status) {
+    //     case 'logged.in': {
+    //       cadl?.root?.actions?.['SignIn']?.update()
+    //       store.dispatch(setPage(page.getDashboardPath()))
+    //       return
+    //     }
+    //     case 'logged.out': {
+    //       let formValues = { ...getDataValues(), countryCode: 'US' } as any
+    //       const password = formValues?.password || ''
+    //       const errMsg = validate.password(password)
+    //       const logMsg = `%c[builtIn.ts][signIn][logged.out] Form values`
+    //       console.log(logMsg, `color:#00b406;font-weight:bold;`, formValues)
+    //       if (errMsg) return window.alert(errMsg)
+    //       await cadl?.root?.builtIn?.loginByPassword?.(password)
+    //       store.dispatch(page.getDashboardPath())
+    //       return
+    //     }
+    //     case 'new.device': {
+    //       const formValues: any = { ...getDataValues(), countryCode: 'US' }
+    //       /*
+    //        * Step 1 - user didn't enter their verification code yet
+    //        */
+    //       if (!state.auth.verification.pending) {
+    //         console.log(
+    //           `%cformValues`,
+    //           'color:#20B2AA;font-weight:bold;',
+    //           formValues,
+    //         )
+    //         // Validate the form
+    //         const errors = await getFormErrors(formValues)
+    //         if (errors.length) {
+    //           window.alert(errors[0])
+    //           return {
+    //             abort: errors,
+    //           }
+    //         }
+    //         // The phone number needs to be formatted with country code
+    //         const formattedPhoneNum = await formatPhoneNumber({
+    //           phoneNumber: formValues.phoneNumber,
+    //           countryCode: formValues.countryCode,
+    //         })
+    //         const verificationCodeTimer = cadl?.verificationRequest?.timer
+    //         let params: any
+    //         // Users need to wait 60 sec before they request a new one. If the timer
+    //         // is still running, avoid the request and continue waiting for that verification code
+    //         // Otherwise run this block and send a new request
+    //         if (!verificationCodeTimer) {
+    //           // Starts the login flow by asking for the verification code before proceeding
+    //           const code = await Account.requestVerificationCode(
+    //             formattedPhoneNum,
+    //           )
+    //           console.log(`%c${code}`, 'color:#8e44ad;font-weight:bold;')
+    //           if (_.isString(formValues.phoneNumber)) {
+    //             if (formValues.phoneNumber.startsWith('888')) {
+    //               params = { pending: true, code }
+    //             } else {
+    //               params = true
+    //             }
+    //           }
+    //         } else {
+    //           params = { pending: true }
+    //           if (state.auth.verification.code) {
+    //             params['code'] = state.auth.verification.code
+    //           }
+    //         }
+    //         store.dispatch(setVerificationCodePending(params))
+    //         const verificationElem = new VerificationCode({
+    //           onUnload: () => {
+    //             store.dispatch(setVerificationCodePending(false))
+    //             if (state.auth.isCreating) {
+    //               store.dispatch(setIsCreatingAccount(false))
+    //             }
+    //           },
+    //         })
+    //         verificationElem.render()
+    //         store.dispatch(
+    //           openModal({
+    //             id: modalIds.VERIFICATON_CODE,
+    //             props: {
+    //               formValues,
+    //               initialTimer: cadl?.verificationRequest?.timer,
+    //             },
+    //           }),
+    //         )
+    //         abort('User is entering verification code')
+    //       }
+    //       /*
+    //       * Step 1 - user entered verification code and is submitting it
+    //           This logic is abstracted into its own func because it has special catch conditions
+    //       */
+    //       const modal = store.getState().page.modal
+    //       if (state.auth.verification.pending && modal.opened) {
+    //         /*
+    //       * Step 2 - user entered verification code and is submitting it
+    //           false  --> state.account.auth.verification.pending
+    //           false --> state.store.modal.opened
+    //       */
+    //         // formValues is coming from VerificationCode at this point
+    //         const { countryCode, phoneNumber = '' } = formValues
+    //         // We don't need to validate the fields at this point since we already did
+    //         //    when they came here
+    //         const params = {
+    //           phoneNumber: await formatPhoneNumber({
+    //             phoneNumber,
+    //             countryCode,
+    //           }),
+    //           password: formValues.password,
+    //           verificationCode: formValues.verificationCode,
+    //         }
+    //         console.log(
+    //           `%c[useSignin.tsx][onSubmitLogin] Sign in params`,
+    //           `color:#00b406;font-weight:bold;`,
+    //           params,
+    //         )
+    //         const newStatus = await cadl?.root?.builtIn?.signIn?.(params)
+    //         // User was invited by an existing member. This account is marked as temporary
+    //         if (newStatus?.code === 3) {
+    //           console.log(
+    //             `%c[builtIn.ts] This account is marked temporary because an existing user sent an invite to it. Redirecting to the create account page...`,
+    //             `color:#3498db;font-weight:bold;`,
+    //             { formValues, status: newStatus },
+    //           )
+    //           store.dispatch(closeModal())
+    //           store.dispatch(setIsCreatingAccount(true))
+    //           store.dispatch(setAuthStatus('temporary'))
+    //           await page.goToPage('CreateNewAccount')
+    //           return
+    //         }
+    //         // noodl?.root?.SignIn?.update()
+    //         cadl?.root?.actions?.['SignIn']?.update()
+    //         console.log(
+    //           `%cLogin profile/UserVertex`,
+    //           'color:#2ecc3b;font-weight:bold;',
+    //           cadl?.root?.Global?.currentUser?.vertex,
+    //         )
+    //         if (newStatus.code === 0) {
+    //           store.dispatch(setAuthStatus('logged.in'))
+    //         } else if (newStatus.code === 1) {
+    //           store.dispatch(setAuthStatus('logged.out'))
+    //         } else if (newStatus.code === 2) {
+    //           store.dispatch(setAuthStatus('new.device'))
+    //         }
+    //         // Prepare UI states
+    //         store.dispatch(closeModal())
+    //         // Call the callback which will take care of the steps ahead
+    //         const dashboardPg = page.getPagePath(
+    //           page.getDashboardPath(cadl.cadlBaseUrl) || '',
+    //         )
+    //         await page.goToPage(dashboardPg)
+    //       }
+    //       return
+    //     }
+    //     // Temp account -- An existing user that is registered invited this new user
+    //     // using the app
+    //     default:
+    //       return
+    //   }
+    // } catch (error) {
+    // if (/(CANNOT_FIND_UID)/i.test(error.name)) {
+    //   // We are purposely not setting pending.verification to false because we're going to delegate
+    //   //    the control to the signup hook which will handle that instead
+    //   store.dispatch(setIsCreatingAccount(true))
+    //   // If it reached this line then the user is coming from VerificationCode
+    //   //    The values here are guaranteed since its passed from the arguments
+    //   console.error(error)
+    //   // await signup.onSubmit({ skipToCreate: true, formValues })
+    // } else {
+    //   // console.error(error)
+    //   // window.alert(error.message)
+    //   console.error(error.stack)
+    //   console.error(error.stack)
+    //   console.error(error.stack)
+    //   console.error(error.stack)
+    //   throw error
+    // }
+    // }
   }
 
   builtInActions.signUp = async () => {
