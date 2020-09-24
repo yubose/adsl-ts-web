@@ -4,7 +4,7 @@ import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
 } from 'twilio-video'
-import { Draft } from 'immer'
+import { Draft, current } from 'immer'
 import { Account } from '@aitmed/cadl'
 import {
   Action,
@@ -413,16 +413,16 @@ window.addEventListener('load', async () => {
        * @param { RemoteParticipant } participant
        */
       cadl.editDraft((draft: Draft<typeof cadl.root>) => {
-        const listData = draft.root?.VideoChat?.listData || {}
-        const participants = _.isArray(listData?.participants)
-          ? listData?.participants
-          : []
-        participants.push(participant)
-        log.func('Meeting.onAddRemoteParticipant')
-        log.green('Updated SDK with new participant', {
-          addedParticipant: participant,
-          newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
-        })
+        const participants = Meeting.removeFalseyParticipants(
+          draft?.VideoChat?.listData?.participants || [],
+        ).concat(participant)
+        _.set(draft, 'VideoChat.listData.participants', participants)
+      })
+
+      log.func('Meeting.onAddRemoteParticipant')
+      log.green('Updated SDK with new participant', {
+        addedParticipant: participant,
+        newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
       })
     }
   }
@@ -435,16 +435,17 @@ window.addEventListener('load', async () => {
      * @param { RemoteParticipant } participant
      */
     cadl.editDraft((draft: Draft<typeof cadl.root>) => {
-      const listData = draft.root?.VideoChat?.listData || {}
-      let participants = _.isArray(listData?.participants)
-        ? listData?.participants
-        : []
-      participants = _.filter(participants, (p) => p !== participant)
-      log.func('Meeting.onRemoveRemoteParticipant')
-      log.green('Updated SDK with removal of participant', {
-        newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
-        removedParticipant: participant,
-      })
+      const listData = draft?.VideoChat?.listData || {}
+      const participants = _.filter(
+        _.isArray(listData?.participants) ? listData?.participants : [],
+        (p) => p !== participant,
+      )
+      _.set(draft.VideoChat.listData, 'participants', participants)
+    })
+    log.func('Meeting.onRemoveRemoteParticipant')
+    log.green('Updated SDK with removal of participant', {
+      newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
+      removedParticipant: participant,
     })
   }
 
@@ -485,7 +486,7 @@ window.addEventListener('load', async () => {
         const container = streams.getSubStreamsContainer()
         if (container) {
           if (!container.elementExists(node)) {
-            container.addElement(node)
+            container.add({ node })
             log.func('onCreateNode')
             log.green('Added an element to a subStream', node)
           } else {

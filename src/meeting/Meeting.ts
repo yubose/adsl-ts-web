@@ -102,7 +102,9 @@ const Meeting = (function () {
             // Safe checking -- remove the participant from a subStream if they
             // are in an existing one for some reason
             if (subStreams?.participantExists(participant)) {
-              let subStream = subStreams.getStream(participant)
+              let subStream = subStreams.findBy((s) =>
+                s.isSameParticipant(participant),
+              )
               if (subStream) {
                 subStream.unpublish()
                 subStream.removeElement()
@@ -168,14 +170,16 @@ const Meeting = (function () {
             'This participant was mainstreaming. Removing it from mainStream now',
           )
           mainStream = _internal._streams.getMainStream()
-          mainStream.unpublish()
+          mainStream.unpublish().detachParticipant()
           Meeting.onRemoveRemoteParticipant?.(participant, mainStream)
-          subStream = subStreams?.first()
 
           let nextMainParticipant: T.RoomParticipant | null
 
           if (subStreams) {
-            // The next participant in the subStreams collection wilal move to be
+            subStream = subStreams.findBy((stream) =>
+              stream.isAnyParticipantSet(),
+            )
+            // The next participant in the subStreams collection will move to be
             // the new dominant speaker if the participant we are removing is the
             // current dominant speaker
             if (subStream) {
@@ -183,6 +187,7 @@ const Meeting = (function () {
               // to the mainStream
               nextMainParticipant = subStream.getParticipant()
               if (nextMainParticipant) {
+                subStream.unpublish().detachParticipant()
                 // TODO - Loop over the rest of the subStreams and see if theres
                 // an out-of-ordered stream where a participant is bound to if
                 // nextMainParticipant is undefined/null the first time
@@ -215,8 +220,12 @@ const Meeting = (function () {
         } else if (_internal._streams?.isSubStreaming(participant)) {
           log.func('removeRemoteParticipant')
           log.orange('This remote participant was substreaming')
-          subStream = subStreams?.getSubStream(participant)
+          subStream = subStreams?.findBy((stream) =>
+            stream.isSameParticipant(participant),
+          )
           if (subStream) {
+            console.info(subStream)
+            subStream.unpublish().detachParticipant().removeElement()
             subStreams?.removeSubStream(subStream)
             Meeting.onRemoveRemoteParticipant?.(participant, subStream)
           }
@@ -307,6 +316,9 @@ const Meeting = (function () {
         _token: '',
       })
       return this
+    },
+    removeFalseyParticipants(participants: any[]) {
+      return _.filter(participants, (p) => !!p?.sid)
     },
   }
 

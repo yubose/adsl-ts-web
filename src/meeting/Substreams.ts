@@ -135,17 +135,12 @@ class MeetingSubstreams {
   }
 
   /**
-   * Returns the remote participant if found (if argument is a participant instance)
-   * Or returns the DOM node if found (if argument is a DOM node)
-   * @param { RemoteParticipant | NOODLElement } v - Remote participant or a DOM node
-   * @return { RemoteParticipant | NOODLElement | undefined }
+   * Loops over the subStreams collection and returns the first stream where
+   * the predicate function returns truthy
+   * @param { Stream } stream
    */
-  getStream(v: RemoteParticipant | NOODLElement) {
-    if (v instanceof HTMLElement) {
-      return this.#subStreams.find((stream) => stream.isSameElement(v))
-    } else {
-      return this.#subStreams.find((stream) => stream.isSameParticipant(v))
-    }
+  findBy(cb: (stream: Stream) => boolean) {
+    return _.find(this.#subStreams, cb)
   }
 
   /**

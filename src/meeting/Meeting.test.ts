@@ -88,16 +88,20 @@ describe('Meeting', () => {
         })
 
         it('should have created a node using the blueprint and attached it to the stream', () => {
-          let stream = subStreams.getStream(participant)
+          let stream = subStreams.findBy((s) =>
+            s.isSameParticipant(participant),
+          )
           expect(stream).to.be.undefined
           Meeting.addRemoteParticipant(participant)
-          stream = subStreams.getStream(participant)
+          stream = subStreams.findBy((s) => s.isSameParticipant(participant))
           expect(stream.getElement()).to.be.instanceOf(HTMLElement)
         })
 
         it('should have attached the participant to the new stream ', () => {
           Meeting.addRemoteParticipant(participant)
-          const stream = subStreams.getStream(participant)
+          const stream = subStreams.findBy((s) =>
+            s.isSameParticipant(participant),
+          )
           expect(stream.isSameParticipant(participant)).to.be.true
         })
 
@@ -150,26 +154,74 @@ describe('Meeting', () => {
   })
 
   describe('removing remote participants', () => {
+    let mainParticipant: MockParticipant
+    let otherParticipant1: MockParticipant
+    let otherParticipant2: MockParticipant
+
+    beforeEach(() => {
+      mainParticipant = new MockParticipant()
+      otherParticipant1 = new MockParticipant()
+      otherParticipant2 = new MockParticipant()
+      mainStream.setParticipant(mainParticipant)
+      selfStream.setParticipant(participant)
+      subStreams.add({
+        node: document.createElement('div'),
+        participant: otherParticipant1 as any,
+      })
+      subStreams.add({
+        node: document.createElement('div'),
+        participant: otherParticipant2 as any,
+      })
+    })
+
     describe('when the participant was mainstreaming', () => {
-      it.skip("should unpublish the participant's tracks", () => {
+      it("should unpublish the participant's tracks", () => {
+        const spy = sinon.spy(mainParticipant.tracks, 'forEach')
         // NOTE: dont forget to check that the video/audio nodes were removed
+        expect(spy.called).to.be.false
+        expect(mainStream.getParticipant()).to.equal(mainParticipant)
+        mainStream.unpublish().detachParticipant()
+        expect(spy.called).to.be.true
+        spy.restore()
       })
 
       describe('when there is at least one participant subStreaming', () => {
-        it.skip('should get the first participant from the subStreams list and assign it to be the new mainStream participant', () => {
-          //
+        it('should get the first participant from the subStreams list and assign it to be the new mainStream participant', () => {
+          Meeting.removeRemoteParticipant(mainParticipant)
+          expect(mainStream.getParticipant()).to.equal(otherParticipant1)
+          expect(subStreams).to.have.lengthOf(1)
+          expect(subStreams.participantExists(otherParticipant1)).to.be.false
         })
 
-        it.skip("should unpublish the participant's tracks that is being swapped", () => {
-          //
+        it("should unpublish the participant's tracks that is being swapped", () => {
+          const otherParticipant1SubStream = subStreams.findBy((s) =>
+            s.isSameParticipant(otherParticipant1),
+          )
+          // const spy = sinon.spy(otherParticipant1.tracks, 'forEach')
+          const spy = sinon.spy(otherParticipant1SubStream, 'unpublish')
+          Meeting.removeRemoteParticipant(mainParticipant)
+          expect(spy.called).to.be.true
         })
 
-        it.skip('should detach the participant that is being swapped to mainStream from their subStream', () => {
-          //
+        it('should detach the participant that is being swapped to mainStream from their subStream', () => {
+          const otherParticipant1Stream = subStreams.findBy((s) =>
+            s.isSameParticipant(otherParticipant1),
+          )
+          expect(mainStream.isSameParticipant(mainParticipant)).to.be.true
+          expect(otherParticipant1Stream.isSameParticipant(otherParticipant1))
+            .to.be.true
+          Meeting.removeRemoteParticipant(mainParticipant)
+          expect(otherParticipant1Stream.isSameParticipant(otherParticipant1))
+            .to.be.false
+          expect(subStreams).to.have.lengthOf(1)
         })
 
-        it.skip("should try to publish the new main stream participant's tracks", () => {
-          //
+        xit("should try to publish the new main stream participant's tracks", () => {
+          const otherParticipant1Stream = subStreams.findBy((s) =>
+            s.isSameParticipant(otherParticipant1),
+          )
+          // const spy = sinon.spy(otherParticipant1Stream,)
+          Meeting.removeRemoteParticipant(mainParticipant)
         })
       })
 
@@ -181,16 +233,42 @@ describe('Meeting', () => {
     })
 
     describe('when the participant was subStreaming', () => {
-      it.skip("should unpublish the participant's tracks", () => {
-        //
+      it("should try to unpublish the participant's tracks", () => {
+        const stream = subStreams.findBy((v) =>
+          v.isSameParticipant(otherParticipant1),
+        )
+        const spy = sinon.spy(stream, 'unpublish')
+        Meeting.removeRemoteParticipant(otherParticipant1)
+        expect(spy.called).to.be.true
       })
 
-      it.skip('should remove the DOM node from the stream', () => {
-        //
+      it('should remove the DOM node from the stream', () => {
+        const stream = subStreams.findBy((stream) =>
+          stream.isSameParticipant(otherParticipant2),
+        )
+        const node = stream.getElement()
+        expect(document.body.contains(node)).to.be.true
+        Meeting.removeRemoteParticipant(otherParticipant2)
+        expect(document.body.contains(node)).to.be.false
       })
 
-      it.skip('should delete the stream from the subStreams collection', () => {
-        //
+      it('should remove the DOM node from the DOM', () => {
+        const stream = subStreams.findBy((stream) =>
+          stream.isSameParticipant(otherParticipant2),
+        )
+        const node = stream.getElement()
+        expect(document.body.contains(node)).to.be.true
+        Meeting.removeRemoteParticipant(otherParticipant2)
+        expect(document.body.contains(node)).to.be.false
+      })
+
+      it('should delete the stream from the subStreams collection', () => {
+        const stream = subStreams.findBy((v) =>
+          v.isSameParticipant(otherParticipant1),
+        )
+        expect(subStreams.getSubStream(otherParticipant1)).to.equal(stream)
+        Meeting.removeRemoteParticipant(otherParticipant2)
+        expect(subStreams.getSubStream(stream)).to.be.undefined
       })
     })
   })
