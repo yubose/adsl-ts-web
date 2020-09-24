@@ -33,8 +33,16 @@ class MeetingSubstreams {
     node,
     participant,
   }: { node?: NOODLElement; participant?: RemoteParticipant } = {}) {
+    log.func('add').gold('', node)
     const stream = new Stream('subStream', { node })
+    if (node) {
+      stream.setElement(node)
+      if (!this.container.contains(node)) {
+        this.container.appendChild(node)
+      }
+    }
     // Apply the blueprint onto the new node to align with the current items
+    this.insertStream(stream)
     if (participant) {
       stream.setParticipant(participant)
     }
@@ -55,11 +63,7 @@ class MeetingSubstreams {
       //   node.style[key as keyof Styles] = value
       //   log.grey(`Applying style value of style.${key}`, this.blueprint.style)
       // })
-      if (_.isNumber(index)) {
-        this.#subStreams.splice(index, 0, stream)
-      } else {
-        this.#subStreams.push(stream)
-      }
+      this.insertStream(stream)
     } else {
       log.func('addElement')
       log.red(`Cannot add an element if the node was null/undefined`)
@@ -89,10 +93,10 @@ class MeetingSubstreams {
         stream = this.#subStreams[indexEmptyParticipantSlot]
         if (!stream) stream = new Stream('subStream')
         stream.setParticipant(participant)
-        this.#subStreams.push(stream)
+        this.insertStream(stream)
         log.green(`Bound a participant to a subStream`, { participant, stream })
       } else {
-        log.red(
+        log.orange(
           `A stream was available to bind this participant to but received ` +
             `an invalid index. A new Stream will be created instead`,
           participant,
@@ -101,7 +105,7 @@ class MeetingSubstreams {
         // participant to it (it does not have an element associated with it
         // yet unless stream.setElement is called with an element)
         stream = new Stream('subStream').setParticipant(participant)
-        this.#subStreams.push(stream)
+        this.insertStream(stream)
       }
     }
     return this
@@ -113,7 +117,7 @@ class MeetingSubstreams {
    * @param { NOODLElement } node
    */
   elementExists(node: NOODLElement) {
-    return _.filter(this.#subStreams, (subStream: Stream) => {
+    return _.some(this.#subStreams, (subStream: Stream) => {
       return subStream.isSameElement(node)
     })
   }
@@ -145,6 +149,29 @@ class MeetingSubstreams {
   getSubStream(participant: RoomParticipant) {
     const fn = (subStream: Stream) => subStream.isSameParticipant(participant)
     return _.find(this.#subStreams, fn)
+  }
+
+  /**
+   * Inserts/pushes a stream into the subStreams collection
+   * If an index is passed in, it will insert the stream at the index position
+   * @param { Stream } stream
+   * @param { number | undefined } index
+   */
+  insertStream(stream: Stream, index?: number) {
+    if (!this.#subStreams.includes(stream)) {
+      if (_.isNumber(index)) {
+        this.#subStreams.splice(index, 0, stream)
+      } else {
+        this.#subStreams.push(stream)
+      }
+    } else {
+      log.func('insertStream')
+      log.orange('The stream is already in the subStreams collection', {
+        stream,
+        subStreams: this.#subStreams,
+      })
+    }
+    return this
   }
 
   /**

@@ -84,20 +84,23 @@ const Meeting = (function () {
 
     const mainStream = _internal._streams?.getMainStream()
     const subStreams = _internal._streams?.getSubStreamsContainer()
-    if (!mainStream.isAnyParticipantSet()) {
+    if (
+      !mainStream.isAnyParticipantSet() &&
+      !mainStream.isSameParticipant(participant)
+    ) {
       // Assign them to mainStream
       mainStream.setParticipant(participant)
     } else {
       if (subStreams) {
         if (!subStreams.participantExists(participant)) {
+          log.func('_addParticipantToStream')
           // Create a new DOM node
           const props = subStreams.blueprint
           const node = parser.parse(props as NOODLComponentProps)
           const subStream = subStreams.add({ node, participant }).last()
-          log.func('_addParticipantToStream')
           log.green(
             `Created a new subStream and bound the newly connected participant to it`,
-            { participant, subStream },
+            { blueprint: props, node, participant, subStream },
           )
         }
       } else {
@@ -193,6 +196,7 @@ const Meeting = (function () {
                 // Proceed to add this participant to the collection. This will
                 // create a brand new stream instance and bind the participant to it
                 subStreams.addParticipant(participant)
+                // Hardcode for now
               } else {
                 log.func('addRemoteParticipant')
                 log.orange(
