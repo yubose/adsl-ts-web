@@ -1,6 +1,6 @@
 import { EnhancedStore, CombinedState } from '@reduxjs/toolkit'
 import _ from 'lodash'
-import { AppStore, SerializedError } from 'app/types'
+import { SerializedError } from 'app/types'
 
 /**
  * Runs a series of functions from left to right, passing in the argument of the

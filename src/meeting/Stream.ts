@@ -50,6 +50,18 @@ class MeetingStream {
     return this.#node === node
   }
 
+  /** Removes the DOM node from the DOM */
+  removeElement() {
+    if (this.#node && this.#node instanceof HTMLElement) {
+      try {
+        this.#node.remove()
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    return this
+  }
+
   /**
    * Returns true if at least one participant has previously been bound
    * on this stream

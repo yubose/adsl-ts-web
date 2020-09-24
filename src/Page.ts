@@ -5,8 +5,9 @@ import {
   Page as NOODLUiPage,
 } from 'noodl-ui'
 import { openOutboundURL } from './utils/common'
-import { cadl, noodl } from './app/client'
+import { noodl } from './app/client'
 import { NOODLElement, PageSnapshot } from './app/types'
+import { getPagePath } from './utils/sdkHelpers'
 import parser from './utils/parser'
 import Modal from './components/NOODLModal'
 import Logger from './app/Logger'
@@ -221,42 +222,7 @@ class Page {
    * @param { string } baseUrl - Base url retrieved from the noodl config
    */
   public getDashboardPath() {
-    return this.getPagePath(/meeting/)
-  }
-
-  /** Handles onClick events for "goTo" handling.
-   *    Ex: A NOODL page gives an onClick a value of "goToDashboard"
-   *     The underlying function here will take a path string/regex and find a matching
-   *     page path from the config, and will return the path if found.
-   *     Otherwise it will return an empty string
-   * @param { null | NOODLConfig } config
-   * @return { string }
-   */
-  public getPagePath(pageName: string | RegExp) {
-    const pages = cadl?.cadlEndpoint?.page || []
-    const pagePath = _.find(pages, (name: string) =>
-      _.isString(pageName)
-        ? name.includes(pageName)
-        : pageName instanceof RegExp
-        ? pageName.test(name)
-        : false,
-    )
-    return pagePath || ''
-  }
-
-  /** Navigates to a page using a portion of a page path uri
-   * @param { string } pageName - Name of the page
-   */
-  // TODO: This func will will be deprecated in favor of this.navigate
-  public async goToPage(pageName: string) {
-    // Ensure the first letter is uppercased
-    pageName = _.upperFirst(String(pageName))
-    const pagePath = this.getPagePath(pageName)
-    if (pagePath) {
-      //
-    } else {
-      window.alert(`Could not find page ${pageName}`)
-    }
+    return getPagePath(/meeting/)
   }
 
   /**

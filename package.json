@@ -23,7 +23,7 @@
     "start:stable": "cross-env ECOS_ENV=stable NODE_ENV=development webpack-dev-server",
     "start:test": "cross-env ECOS_ENV=test npm run start",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files src 'src/**/*.test.ts' --file src/setupTests.ts",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts",
+    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts",
     "type-check": "tsc --noEmit --watch",
     "unlink": "npm unlink noodl-ui"
   },

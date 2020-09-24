@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import { Viewport } from 'noodl-ui'
-import { Account } from '@aitmed/cadl'
 import { cadl } from './app/client'
 import { setAuthStatus, setRetrievingUserState } from './features/auth'
 import { AppDispatch, AppStore, RootState } from './app/types'
@@ -8,13 +7,23 @@ import { AppDispatch, AppStore, RootState } from './app/types'
 export class App {
   public getStore: () => AppStore
   public getState: () => RootState
+  public getStatus: () => Promise<{ code: number }>
   public getViewport: () => Viewport
   public dispatch: AppDispatch
 
-  constructor({ store, viewport }: { store: AppStore; viewport: Viewport }) {
+  constructor({
+    getStatus,
+    store,
+    viewport,
+  }: {
+    getStatus: () => Promise<any>
+    store: AppStore
+    viewport: Viewport
+  }) {
     this.getStore = (): AppStore => store
     this.getState = store.getState
     this.getViewport = () => viewport
+    this.getStatus = () => Promise.resolve(getStatus())
     this.dispatch = store.dispatch
   }
 
@@ -28,7 +37,7 @@ export class App {
     if (!authState) {
       // Initialize the user's state before proceeding to decide on how to direct them
       this.dispatch(setRetrievingUserState(true))
-      const storedStatus = await Account.getStatus()
+      const storedStatus = await this.getStatus()
       this.dispatch(setRetrievingUserState(false))
 
       if (storedStatus.code === 0) {

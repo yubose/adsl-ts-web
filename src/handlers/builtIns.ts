@@ -7,8 +7,6 @@ import {
   NOODLChainActionBuiltInObject,
   NOODLGotoAction,
 } from 'noodl-ui'
-import { Account } from '@aitmed/cadl'
-import { cadl } from 'app/client'
 import Page from 'Page'
 import {
   connecting,
@@ -16,11 +14,10 @@ import {
   connectError,
   connectTimedOut,
 } from 'features/meeting'
-import { openModal, closeModal, setPage } from 'features/page'
+import { setPage } from 'features/page'
 import { AppStore } from 'app/types'
 import Logger from 'app/Logger'
 import validate from 'utils/validate'
-import { modalIds } from '../constants'
 
 const log = Logger.create('builtIns.ts')
 
@@ -43,9 +40,11 @@ export type BuiltInFuncName =
 const createBuiltInActions = function ({
   store,
   page,
+  Account,
 }: {
   store: AppStore
   page: Page
+  Account: any
 }) {
   // @ts-expect-error
   const builtInActions: Record<
@@ -361,43 +360,6 @@ const createBuiltInActions = function ({
 
   builtInActions.toggleMicrophoneOnOff = async () => {
     //
-  }
-
-  builtInActions.UploadPhoto = async function (
-    action: NOODLChainActionBuiltInObject,
-    { event },
-  ) {
-    log.func('UploadPhoto').grey('', { action, event })
-    const input = document.createElement('input')
-    input.type = 'file'
-    // TODO: string files
-    // @ts-expect-error
-    input.onchange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      console.log(e?.target?.files)
-      const file = e.target?.files?.[0]
-      const dataValues = getDataValues() as { title?: string }
-      const values = {
-        title: dataValues?.title,
-        content: file,
-      }
-      if (dataValues?.title) {
-        log.func('UploadPhoto').grey('Values', values)
-        const nameFieldPath = ''
-        const currentPage = store.getState().page.currentPage
-
-        cadl.editDraft((draft: any) => {
-          _.set(draft?.[currentPage || ''], nameFieldPath, file)
-        })
-
-        log.func('UploadPhoto')
-        log.green(
-          `Attached the Blob/File "${values.title}" of type "${file?.type}" ` +
-            `on root.${currentPage}.${nameFieldPath}`,
-          file,
-        )
-      }
-    }
-    input.click()
   }
 
   return builtInActions

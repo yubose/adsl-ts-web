@@ -179,6 +179,11 @@ class NOODLUIDOM {
       parse: this.parse.bind(this),
     }
   }
+
+  /** THIS IS A TEMP / EXPERIMENTAL METHOD AND WILL BE REMOVED.  */
+  set createOnChangeFactory(fn: (...args: any[]) => any) {
+    this.createOnChangeFactory = fn
+  }
 }
 
 export default NOODLUIDOM

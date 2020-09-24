@@ -4,6 +4,7 @@ import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
 } from 'twilio-video'
+import { Draft } from 'immer'
 import { Account } from '@aitmed/cadl'
 import {
   Action,
@@ -41,6 +42,7 @@ import { cadl, noodl } from './app/client'
 import { createStoreObserver, isMobile, reduceEntries } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
 import parser from './utils/parser'
+import { createOnChangeFactory } from './utils/sdkHelpers'
 import {
   setPage,
   setInitiatingPage,
@@ -127,8 +129,8 @@ window.addEventListener('load', async () => {
   const dispatch = store.dispatch
   const viewport = new Viewport()
   const page = new Page()
-  const app = new App({ store, viewport })
-  const builtIn = createBuiltInActions({ page, store })
+  const app = new App({ getStatus: Account.getStatus, store, viewport })
+  const builtIn = createBuiltInActions({ page, store, Account })
   const actions = enhanceActions(createActions({ store }))
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
@@ -388,6 +390,64 @@ window.addEventListener('load', async () => {
     forEachParticipant(room.participants, Meeting.addRemoteParticipant)
   }
 
+  /**
+   * Callback invoked when a new participant was added either as a mainStream
+   * or into the subStreams collection
+   * @param { RemoteParticipant } participant
+   * @param { Stream } stream - mainStream or a subStream
+   */
+  Meeting.onAddRemoteParticipant = function (participant, stream) {
+    log.func('Meeting.onAddRemoteParticipant')
+    log.green(`Bound remote participant to ${stream.type}`, {
+      participant,
+      stream,
+    })
+    const isInSdk = _.some(
+      cadl.root?.VideoChat?.listData?.participants || [],
+      (p) => p.sid === participant.sid,
+    )
+    if (!isInSdk) {
+      /**
+       * Updates the participants list in the sdk. This will also force the value
+       * to be an array if it's not already an array
+       * @param { RemoteParticipant } participant
+       */
+      cadl.editDraft((draft: Draft<typeof cadl.root>) => {
+        const listData = draft.root?.VideoChat?.listData || {}
+        const participants = _.isArray(listData?.participants)
+          ? listData?.participants
+          : []
+        participants.push(participant)
+        log.func('Meeting.onAddRemoteParticipant')
+        log.green('Updated SDK with new participant', {
+          addedParticipant: participant,
+          newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
+        })
+      })
+    }
+  }
+
+  Meeting.onRemoveRemoteParticipant = function (participant, stream) {
+    log.func('Meeting.onRemoveRemoteParticipant')
+    /**
+     * Updates the participants list in the sdk. This will also force the value
+     * to be an array if it's not already an array
+     * @param { RemoteParticipant } participant
+     */
+    cadl.editDraft((draft: Draft<typeof cadl.root>) => {
+      const listData = draft.root?.VideoChat?.listData || {}
+      let participants = _.isArray(listData?.participants)
+        ? listData?.participants
+        : []
+      participants = _.filter(participants, (p) => p !== participant)
+      log.func('Meeting.onRemoveRemoteParticipant')
+      log.green('Updated SDK with removal of participant', {
+        newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
+        removedParticipant: participant,
+      })
+    })
+  }
+
   /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
@@ -451,6 +511,9 @@ window.addEventListener('load', async () => {
       }
     }
   }
+
+  // THIS IS EXPERIMENTAL AND WILL BE REMOVED
+  parser.createOnChangeFactory = createOnChangeFactory
 
   if (
     !parser

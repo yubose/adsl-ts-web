@@ -1,5 +1,4 @@
 /// <reference types="cypress" />
-import { Account } from '@aitmed/cadl'
 // import SignIn from '../fixtures/SignIn.json'
 // import BaseCSS from '../fixtures/BaseCSS.json'
 // import BasePage from '../fixtures/BasePage.json'

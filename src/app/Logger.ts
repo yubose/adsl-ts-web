@@ -16,7 +16,7 @@ interface ILogger extends ColorFuncs {
   }): Parameters<Console['log']>
 }
 
-const _color = {
+export const _color = {
   blue: '#0047ff',
   cyan: '#00D8C2',
   gold: '#c4a901',

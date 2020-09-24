@@ -83,54 +83,6 @@ export function parseChildren(
   }
 }
 
-/** TEMP -- experimenting */
-function createOnChangeFactory(dataKey: string) {
-  let instanceId = 0
-  return () => {
-    instanceId++
-    if (instanceId > 1) {
-      log.func('createOnChangeFactory')
-      log.red(
-        `Instance ID exceeded total of more than 1. Investigate what this means`,
-        { instanceId, dataKey },
-      )
-    }
-    return (e: Event) => {
-      const target:
-        | (typeof e.target & {
-            value?: string
-          })
-        | null = e.target
-
-      const pageName = noodl.getContext().page.name
-      const localRoot = cadl?.root?.[pageName]
-      const value = target?.value || ''
-
-      let updatedValue
-
-      if (_.has(localRoot, dataKey)) {
-        cadl.editDraft((draft: any) => {
-          _.set(draft?.[pageName], dataKey, value)
-        })
-        updatedValue = _.get(cadl.root?.[pageName], dataKey)
-        if (updatedValue !== value) {
-          log.func('createOnChangeFactory -- onChange')
-          log.red(
-            `Applied an update to a value using dataKey "${dataKey}" but the before/after values weren't equivalent`,
-            { previousValue: value, nextValue: updatedValue, dataKey },
-          )
-        }
-      } else {
-        log.func('createOnChangeFactory -- onChange')
-        log.red(
-          `Attempted to attach a data binding "onChange" onto a textField component but the dataKey "${dataKey}" is not a valid path of the noodl root object`,
-          { dataKey, localRoot, pageName, value },
-        )
-      }
-    }
-  }
-}
-
 /**
  * Attaches event handlers like "onclick" and "onchange"
  * @param { NOODLElement } node
@@ -160,8 +112,16 @@ export function parseEventHandlers(
       }
     }
     if (key === 'data-value') {
-      // Temp // Experimenting
-      const onChange = createOnChangeFactory(props['data-key'] as string)()
+      /**
+       * EXPERIMENTAL AND WILL BE MOVED TO A BETTER LOCATION IF IT IS
+       * AN ACCEPTED SOLUTION
+       */
+      const onChange = parser.createOnChangeFactory?.(
+        props['data-key'] as string,
+      )()
+      if (!_.isFunction(onChange)) {
+        log.func('parseEventHandlers').red('onChange is not a function')
+      }
       node.addEventListener('change', onChange)
     }
   })

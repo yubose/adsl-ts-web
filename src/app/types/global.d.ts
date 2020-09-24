@@ -1,4 +1,3 @@
-import CADL, { Account } from '@aitmed/cadl'
 import { NOODL, NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import {
   Room,
@@ -16,8 +15,8 @@ declare global {
   interface Window {
     // client.ts
     // index.ts
-    account: typeof Account
-    noodl: CADL
+    account: any
+    noodl: any
     env: string | undefined
     getByDataUX: any
     getDataValues: any
