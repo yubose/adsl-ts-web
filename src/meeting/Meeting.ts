@@ -105,6 +105,15 @@ const Meeting = (function () {
             // Assign them to mainStream
             mainStream.setParticipant(participant)
             Meeting.onAddRemoteParticipant?.(participant, mainStream)
+            // Delete them from the subStream if they were subStreaming
+            if (subStreams?.participantExists(participant)) {
+              let subStream = subStreams.getStream(participant)
+              if (subStream) {
+                subStream.unpublish()
+                subStream.removeElement()
+                subStreams.removeSubStream(subStream)
+              }
+            }
           } else {
             if (subStreams) {
               if (!subStreams.participantExists(participant)) {
