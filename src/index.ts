@@ -49,6 +49,7 @@ import parser from './utils/parser'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
+import MeetingSubstreams from 'meeting/Substreams'
 import { noodlDomParserEvents } from './constants'
 import modalComponents from './components/modalComponents'
 import './styles.css'
@@ -456,10 +457,10 @@ window.addEventListener('load', async () => {
       }
       // Individual remote participant video element container
       else if (identify.stream.video.isSubStream(props)) {
-        const container = streams.getSubStreamsContainer()
+        const container = streams.getSubStreamsContainer() as MeetingSubstreams
         if (container) {
           if (!container.elementExists(node)) {
-            container.add({ node })
+            container.addToCollection({ node } as any)
             log.func('onCreateNode')
             log.green('Added an element to a subStream', node)
           } else {

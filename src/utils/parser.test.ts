@@ -69,7 +69,7 @@ describe('parse', () => {
 
   describe('parseChildren', () => {
     beforeEach(() => {
-      parser.add(parseChildren)
+      parser.add(parseChildren as any)
     })
 
     it('should append to innerHTML if children is a string', () => {
@@ -79,6 +79,7 @@ describe('parse', () => {
     })
 
     it('should attach children DOM nodes', () => {
+      // @ts-expect-error
       component.children = [
         {
           type: 'label',
@@ -103,6 +104,7 @@ describe('parse', () => {
           ],
         },
       ] as NOODLComponent[]
+      // @ts-expect-error
       const resolvedComponents = noodl.resolveComponents({
         module: 'patient',
         components: component.children,
@@ -113,6 +115,7 @@ describe('parse', () => {
       expect(parser.parse(label)?.textContent).to.eq('i am child #1')
       expect(parser.parse(button)?.textContent).to.eq('i am child #2')
       expect(parser.parse(view)?.children.length).to.eq(1)
+      // @ts-expect-error
       const node = parser.parse({
         type: 'div',
         children: resolvedComponents,
@@ -165,6 +168,7 @@ describe('parse', () => {
 
   describe('parseDataValues', () => {
     beforeEach(() => {
+      // @ts-expect-error
       parser.add(parseChildren)
       parser.add(parseDataValues)
     })

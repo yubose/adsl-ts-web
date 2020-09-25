@@ -78,6 +78,7 @@ class Modal extends NOODLElement {
       this.id = id
       if (_.isPlainObject(options)) {
         forEachEntries(options, (key, value) => {
+          // @ts-expect-error
           this[key] = value
         })
       }
@@ -85,6 +86,7 @@ class Modal extends NOODLElement {
         if (children instanceof HTMLElement) {
           this.body.appendChild(children)
         } else if (children instanceof NOODLElement) {
+          // @ts-expect-error
           children = new children({ container: this.body })
         } else {
           this.body.innerHTML = `${children}`

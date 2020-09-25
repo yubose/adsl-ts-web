@@ -10,22 +10,18 @@
     "build": "webpack --mode=production",
     "build:stable": "cross-env ECOS_ENV=stable NODE_ENV=production npm run build",
     "build:test": "cross-env ECOS_ENV=test NODE_ENV=production npm run build",
-    "build:test:debug": "cross-env NODE_DEBUG=child_process ECOS_ENV=test NODE_ENV=production npm run build",
     "build:deploy:stable": "cross-env ECOS_ENV=stable npm run build npm run deploy:stable",
     "build:deploy:test": "cross-env ECOS_ENV=test npm run build && npm run deploy:test",
     "cypress:ci": "start-server-and-test start:test http://127.0.0.1:3000 './node_modules/.bin/cypress run'",
     "cypress:open": "./node_modules/.bin/cypress open",
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
-    "link": "npm link noodl-ui",
-    "lint": "eslint . --ext .ts",
     "start": "cross-env ECOS_ENV=test NODE_ENV=development webpack-dev-server",
     "start:stable": "cross-env ECOS_ENV=stable NODE_ENV=development webpack-dev-server",
     "start:test": "cross-env ECOS_ENV=test npm run start",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files src 'src/**/*.test.ts' --file src/setupTests.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts",
-    "type-check": "tsc --noEmit --watch",
-    "unlink": "npm unlink noodl-ui"
+    "tsc": "tsc --noEmit --watch"
   },
   "dependencies": {
     "@aitmed/cadl": "^1.0.90",
