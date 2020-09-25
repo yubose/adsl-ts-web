@@ -1,60 +1,72 @@
 import _ from 'lodash'
 import { Viewport } from 'noodl-ui'
 import { cadl } from './app/client'
-import { setAuthStatus, setRetrievingUserState } from './features/auth'
-import { AppDispatch, AppStore, RootState } from './app/types'
+import { AuthStatus } from 'app/types/commonTypes'
 
-export class App {
-  public getStore: () => AppStore
-  public getState: () => RootState
-  public getStatus: () => Promise<{ code: number }>
-  public getViewport: () => Viewport
-  public dispatch: AppDispatch
+class App {
+  #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
+  #isRetrievingUserState: (isRetrieving: boolean) => void = () => {}
+  authStatus: AuthStatus | '' = ''
+  getStatus: () => Promise<{ code: number }>
+  getViewport: () => Viewport
 
   constructor({
     getStatus,
-    store,
     viewport,
   }: {
     getStatus: () => Promise<any>
-    store: AppStore
     viewport: Viewport
   }) {
-    this.getStore = (): AppStore => store
-    this.getState = store.getState
     this.getViewport = () => viewport
     this.getStatus = () => Promise.resolve(getStatus())
-    this.dispatch = store.dispatch
   }
 
   public async initialize() {
     await cadl.init()
 
-    const state = this.getState()
-    const authState = state.auth?.status
     const startPage = cadl?.cadlEndpoint?.startPage
 
-    if (!authState) {
+    if (!this.authStatus) {
       // Initialize the user's state before proceeding to decide on how to direct them
-      this.dispatch(setRetrievingUserState(true))
+      this.isRetrievingUserState?.(true)
       const storedStatus = await this.getStatus()
-      this.dispatch(setRetrievingUserState(false))
+      this.isRetrievingUserState?.(false)
 
       if (storedStatus.code === 0) {
         cadl.setFromLocalStorage('user')
-        this.dispatch(setAuthStatus('logged.in'))
+        this.authStatus = 'logged.in'
+        this.onAuthStatus?.('logged.in')
       } else if (storedStatus.code === 1) {
-        this.dispatch(setAuthStatus('logged.out'))
+        this.authStatus = 'logged.out'
+        this.onAuthStatus?.('logged.out')
       } else if (storedStatus.code === 2) {
-        this.dispatch(setAuthStatus('new.device'))
+        this.authStatus = 'new.device'
+        this.onAuthStatus?.('new.device')
       } else if (storedStatus.code === 3) {
-        this.dispatch(setAuthStatus('temporary'))
+        this.authStatus = 'temporary'
+        this.onAuthStatus?.('temporary')
       }
     }
 
     return {
       startPage,
     }
+  }
+
+  get onAuthStatus() {
+    return this.#onAuthStatus
+  }
+
+  set onAuthStatus(fn) {
+    this.#onAuthStatus = fn
+  }
+
+  get isRetrievingUserState() {
+    return this.#isRetrievingUserState
+  }
+
+  set isRetrievingUserState(fn) {
+    this.#isRetrievingUserState = fn
   }
 }
 

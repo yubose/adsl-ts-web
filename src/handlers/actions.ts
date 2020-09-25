@@ -14,13 +14,12 @@ import {
   NOODLChainActionUpdateObject,
 } from 'noodl-ui'
 import { cadl } from 'app/client'
-import { AppStore } from 'app/types/storeTypes'
-import { setPage } from 'features/page'
 import Logger from 'app/Logger'
+import { IPage } from 'app/types'
 
 const log = Logger.create('actions.ts')
 
-const createActions = function ({ store }: { store: AppStore }) {
+const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<
     NOODLActionChainActionType,
     ActionChainActionCallback<any>
@@ -44,14 +43,14 @@ const createActions = function ({ store }: { store: AppStore }) {
   _actions.goto = async (action: any, options) => {
     // URL
     if (_.isString(action)) {
-      store.dispatch(setPage(action))
+      page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.original.destination || _.isString(action.original.goto)) {
         const url = action.original.destination || action.original.goto
-        store.dispatch(setPage(url))
+        page.requestPageChange(url)
       } else {
         log.func('goto')
         log.red(
@@ -65,7 +64,7 @@ const createActions = function ({ store }: { store: AppStore }) {
   _actions.pageJump = async (action: any, options) => {
     log.func('pageJump')
     log.grey('', { action, ...options })
-    store.dispatch(setPage(action.original.destination))
+    page.requestPageChange(action.original.destination)
   }
 
   _actions.popUp = (
@@ -106,7 +105,7 @@ const createActions = function ({ store }: { store: AppStore }) {
     action: Action<NOODLChainActionSaveObjectObject>,
     options,
   ) => {
-    const { context, abort, parser } = options
+    const { context, abort, parser } = options as any
 
     try {
       const { object } = action.original

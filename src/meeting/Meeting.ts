@@ -8,7 +8,6 @@ import {
   Room,
 } from 'twilio-video'
 import { getByDataUX, NOODLComponentProps, Viewport } from 'noodl-ui'
-import { AppStore } from 'app/types'
 import { isMobile } from 'utils/common'
 import parser from 'utils/parser'
 import * as T from 'app/types/meetingTypes'
@@ -22,7 +21,6 @@ const log = Logger.create('Meeting.ts')
 
 interface Internal {
   _page: Page | undefined
-  _store: AppStore | undefined
   _viewport: Viewport | undefined
   _room: Room
   _streams: Streams
@@ -35,7 +33,6 @@ interface Internal {
 const Meeting = (function () {
   const _internal: Internal = {
     _page: undefined,
-    _store: undefined,
     _viewport: undefined,
     _room: new EventEmitter() as Room,
     _streams: new Streams(),
@@ -43,8 +40,7 @@ const Meeting = (function () {
   } as Internal
 
   const o = {
-    initialize({ store, page, viewport }: T.InitializeMeetingOptions) {
-      _internal['_store'] = store
+    initialize({ page, viewport }: T.InitializeMeetingOptions) {
       _internal['_page'] = page
       _internal['_viewport'] = viewport
       return this
@@ -102,7 +98,9 @@ const Meeting = (function () {
             // Safe checking -- remove the participant from a subStream if they
             // are in an existing one for some reason
             if (subStreams?.participantExists(participant)) {
-              let subStream = subStreams.getStream(participant)
+              let subStream = subStreams.findBy((s: Stream) =>
+                s.isSameParticipant(participant),
+              )
               if (subStream) {
                 subStream.unpublish()
                 subStream.removeElement()
@@ -124,7 +122,7 @@ const Meeting = (function () {
               // Create a new DOM node
               const props = subStreams.blueprint
               const node = parser.parse(props as NOODLComponentProps)
-              const subStream = subStreams.add({ node, participant }).last()
+              const subStream = subStreams.create({ node, participant }).last()
               Meeting.onAddRemoteParticipant?.(participant, mainStream)
               log.green(
                 `Created a new subStream and bound the newly connected participant to it`,
@@ -168,14 +166,16 @@ const Meeting = (function () {
             'This participant was mainstreaming. Removing it from mainStream now',
           )
           mainStream = _internal._streams.getMainStream()
-          mainStream.unpublish()
+          mainStream.unpublish().detachParticipant()
           Meeting.onRemoveRemoteParticipant?.(participant, mainStream)
-          subStream = subStreams?.first()
 
           let nextMainParticipant: T.RoomParticipant | null
 
           if (subStreams) {
-            // The next participant in the subStreams collection wilal move to be
+            subStream = subStreams.findBy((stream: Stream) =>
+              stream.isAnyParticipantSet(),
+            )
+            // The next participant in the subStreams collection will move to be
             // the new dominant speaker if the participant we are removing is the
             // current dominant speaker
             if (subStream) {
@@ -183,12 +183,13 @@ const Meeting = (function () {
               // to the mainStream
               nextMainParticipant = subStream.getParticipant()
               if (nextMainParticipant) {
-                // TODO - Loop over the rest of the subStreams and see if theres
-                // an out-of-ordered stream where a participant is bound to if
-                // nextMainParticipant is undefined/null the first time
+                subStream.unpublish().detachParticipant()
                 mainStream.setParticipant(nextMainParticipant)
                 log.func('removeRemoteParticipant')
-                log.green(`Bound the next immediate participant to mainStream`)
+                log.green(
+                  `Bound the next immediate participant to mainStream`,
+                  { mainStream, participant: nextMainParticipant },
+                )
                 subStreams?.removeSubStream(subStream)
                 log.green(
                   `Removed inactive subStream from the subStreams collection`,
@@ -203,7 +204,7 @@ const Meeting = (function () {
               log.func('removeRemoteParticipant')
               log.grey(
                 `No participant is subStreaming right now and the mainStream ` +
-                  `will remain empty`,
+                  `will remain blank`,
               )
             }
           } else {
@@ -215,8 +216,12 @@ const Meeting = (function () {
         } else if (_internal._streams?.isSubStreaming(participant)) {
           log.func('removeRemoteParticipant')
           log.orange('This remote participant was substreaming')
-          subStream = subStreams?.getSubStream(participant)
+          subStream = subStreams?.findBy((stream: Stream) =>
+            stream.isSameParticipant(participant),
+          )
           if (subStream) {
+            console.info(subStream)
+            subStream.unpublish().detachParticipant().removeElement()
             subStreams?.removeSubStream(subStream)
             Meeting.onRemoveRemoteParticipant?.(participant, subStream)
           }
@@ -294,19 +299,20 @@ const Meeting = (function () {
       return _internal._streams
     },
     /**
-     * Wipes the entire internal state including the store. This is mainly just
-     * used for testing
+     * Wipes the entire internal state. This is mainly just used for testing
      */
     reset() {
       _.assign(_internal, {
         _page: undefined,
-        _store: undefined,
         _viewport: undefined,
         _room: new EventEmitter() as Room,
         _streams: new Streams(),
         _token: '',
       })
       return this
+    },
+    removeFalseyParticipants(participants: any[]) {
+      return _.filter(participants, (p) => !!p?.sid)
     },
   }
 

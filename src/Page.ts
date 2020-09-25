@@ -6,12 +6,12 @@ import {
 } from 'noodl-ui'
 import { openOutboundURL } from './utils/common'
 import { noodl } from './app/client'
-import { NOODLElement, PageSnapshot } from './app/types'
+import { NOODLElement, PageModalState, PageSnapshot } from './app/types'
 import { getPagePath } from './utils/sdkHelpers'
+import { noodlDomParserEvents } from './constants'
 import parser from './utils/parser'
 import Modal from './components/NOODLModal'
 import Logger from './app/Logger'
-import { noodlDomParserEvents } from './constants'
 
 const log = Logger.create('Page.ts')
 
@@ -40,6 +40,8 @@ export interface PageOptions {
  * action chains that are running.
  */
 class Page {
+  previousPage: string = ''
+  currentPage: string = ''
   #onStart: ((pageName: string) => Promise<any>) | undefined
   #onCreateNode:
     | ((node: NOODLElement, props: NOODLComponentProps) => Promise<any>)
@@ -59,6 +61,16 @@ class Page {
         pageName: string
         components: NOODLComponentProps[]
       }) => Promise<any>)
+    | undefined
+  #onPageRequest:
+    | ((params: {
+        previous: string
+        current: string
+        requested: string
+      }) => boolean)
+    | undefined
+  #onModalStateChange:
+    | ((prevState: PageModalState, nextState: PageModalState) => void)
     | undefined
   #onError:
     | ((options: { error: Error; pageName: string }) => Promise<any>)
@@ -110,8 +122,6 @@ class Page {
       if (_.isString(pageName) && pageName.startsWith('http')) {
         return openOutboundURL(pageName)
       }
-
-      log.func('navigate').grey(`Rendering the DOM for page: "${pageName}"`)
 
       await this.#onStart?.(pageName)
 
@@ -173,6 +183,50 @@ class Page {
     }
   }
 
+  /**
+   * Requests to change the page to another page. The caller needs to register the
+   * handler by setting page.onPageRequest = ({previous,current,requested}) => {...}
+   * If the call returns true, the page will begin navigating to the next page
+   * else it will do nothing
+   * @param { string } requestedPage - Page name to request
+   */
+  requestPageChange(newPage: string) {
+    if (newPage !== this.currentPage) {
+      const shouldNavigate = this.#onPageRequest?.({
+        previous: this.previousPage,
+        current: this.currentPage,
+        requested: newPage,
+      })
+      if (shouldNavigate === true) {
+        return this.navigate(newPage)
+      }
+    } else {
+      log.func('changePage')
+      log.orange(
+        'Skipped the request to change page because we are already on the page',
+        {
+          previousPage: this.previousPage,
+          currentPage: this.currentPage,
+          requestedPage: newPage,
+        },
+      )
+    }
+  }
+
+  openModal(
+    { id = '', ...options }: Partial<PageModalState>,
+    content: HTMLElement | NOODLElement | string | number | undefined,
+  ) {
+    const prevState = this.modal.getState()
+    this.modal.open(id, content, options as PageModalState)
+    const nextState = this.modal.getState()
+    this?.onModalStateChange?.(prevState, nextState)
+  }
+
+  closeModal() {
+    //
+  }
+
   set onStart(fn: (pageName: string) => Promise<any>) {
     this.#onStart = fn
   }
@@ -209,6 +263,22 @@ class Page {
     }) => Promise<any>,
   ) {
     this.#onPageRendered = fn
+  }
+
+  get onPageRequest() {
+    return this.#onPageRequest
+  }
+
+  set onPageRequest(fn) {
+    this.#onPageRequest = fn
+  }
+
+  get onModalStateChange() {
+    return this.#onModalStateChange
+  }
+
+  set onModalStateChange(fn) {
+    this.#onModalStateChange = fn
   }
 
   set onError(
@@ -280,6 +350,16 @@ class Page {
   public setBuiltIn(builtIn: any) {
     this.builtIn = builtIn
     return this
+  }
+
+  /** Returns a JS representation of the current state of this page instance */
+  snapshot() {
+    return {
+      modalState: this.modal.getState(),
+      previousPage: this.previousPage,
+      currentPage: this.currentPage,
+      ...this.getNodes(),
+    }
   }
 }
 

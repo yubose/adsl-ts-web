@@ -9,6 +9,8 @@ import { noodlDomParserEvents } from '../constants'
 const log = Logger.create('NOODLUIDOM.ts')
 
 class NOODLUIDOM {
+  // CREATEONCHANGEFACTORY IS EXPERIMENTAL AND WILL MOST LIKELY BE REMOVED
+  #createOnChangeFactory: ((...args: any[]) => any) | undefined
   #cache: {
     record: { props: Map<any, any> }
     stub: { elements: { [key: string]: NOODLElement } }
@@ -180,9 +182,13 @@ class NOODLUIDOM {
     }
   }
 
+  get createOnChangeFactory() {
+    return this.#createOnChangeFactory
+  }
+
   /** THIS IS A TEMP / EXPERIMENTAL METHOD AND WILL BE REMOVED.  */
-  set createOnChangeFactory(fn: (...args: any[]) => any) {
-    this.createOnChangeFactory = fn
+  set createOnChangeFactory(fn: ((...args: any[]) => any) | undefined) {
+    this.#createOnChangeFactory = fn
   }
 }
 

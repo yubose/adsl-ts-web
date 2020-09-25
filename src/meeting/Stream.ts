@@ -134,6 +134,7 @@ class MeetingStream {
       ({ track }: RoomParticipantTrackPublication) =>
         track && this.#detachTrack(track),
     )
+    return this
   }
 
   /**
@@ -197,6 +198,12 @@ class MeetingStream {
         }
       },
     )
+  }
+
+  /** Removes the participant from the instance */
+  detachParticipant() {
+    this.#participant = null
+    return this
   }
 
   /** Returns a JS representation of the current state of this stream */

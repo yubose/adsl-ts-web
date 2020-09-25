@@ -22,6 +22,6 @@
     "strictNullChecks": true,
     "target": "esnext"
   },
-  "include": ["src", "webpack.config.js"],
-  "exclude": ["node_modules", "cypress"]
+  "include": ["src", "webpack.config.js", "package.json"],
+  "exclude": ["_data", "node_modules", "cypress", "legacy"]
 }

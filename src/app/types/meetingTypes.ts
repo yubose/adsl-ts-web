@@ -7,7 +7,7 @@ import {
   RemoteTrack,
   RemoteTrackPublication,
 } from 'twilio-video'
-import { AppStore, IPage } from '.'
+import { IPage } from '.'
 
 export type RoomParticipant = LocalParticipant | RemoteParticipant
 export type RoomParticipantTrackPublication =
@@ -16,7 +16,6 @@ export type RoomParticipantTrackPublication =
 export type RoomTrack = LocalTrack | RemoteTrack
 
 export interface InitializeMeetingOptions {
-  store: AppStore
   page: IPage
   viewport: Viewport
 }

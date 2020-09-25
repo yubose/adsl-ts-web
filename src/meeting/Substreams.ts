@@ -24,16 +24,16 @@ class MeetingSubstreams {
   }
 
   /**
-   * Adds a new stream instance to the subStreams collection. If a participant
-   * was passed in, that participant's media tracks will automatically start
-   * @param { NOODLElement? } node
-   * @param { RemoteParticipant? } participant
+   * Adds a new stream instance to the subStreams collection. If a node was passed in
+   * it will be inserted into the DOM. If a participant was passed in their media
+   * tracks will attempt to automatically start
+   * @param { NOODLElement | undefined } node
+   * @param { RemoteParticipant | undefined } participant
    */
-  add({
+  create({
     node,
     participant,
   }: { node?: NOODLElement; participant?: RemoteParticipant } = {}) {
-    log.func('add').gold('', node)
     const stream = new Stream('subStream', { node })
     if (node) {
       stream.setElement(node)
@@ -42,7 +42,7 @@ class MeetingSubstreams {
       }
     }
     // Apply the blueprint onto the new node to align with the current items
-    this.insertStream(stream)
+    this.addToCollection(stream)
     if (participant) {
       stream.setParticipant(participant)
     }
@@ -50,23 +50,24 @@ class MeetingSubstreams {
   }
 
   /**
-   * Adds an element to the subStreams collection
-   * If index is passed, it will insert the stream at the given index
-   * @param { NOODLElement } node
-   * @param { number? } index
+   * Inserts/pushes a stream into the subStreams collection
+   * If an index is passed in, it will insert the stream at the index position
+   * @param { Stream } stream
+   * @param { number | undefined } index
    */
-  addElement(node: NOODLElement, index?: number) {
-    if (node) {
-      const stream = new Stream('subStream', { node })
-      // log.func('addElement')
-      // forEachEntries(this.blueprint.style || {}, (key, value) => {
-      //   node.style[key as keyof Styles] = value
-      //   log.grey(`Applying style value of style.${key}`, this.blueprint.style)
-      // })
-      this.insertStream(stream)
+  addToCollection(stream: Stream, index?: number) {
+    if (!this.#subStreams.includes(stream)) {
+      if (_.isNumber(index)) {
+        this.#subStreams.splice(index, 0, stream)
+      } else {
+        this.#subStreams.push(stream)
+      }
     } else {
-      log.func('addElement')
-      log.red(`Cannot add an element if the node was null/undefined`)
+      log.func('addToCollection')
+      log.orange('The stream is already in the subStreams collection', {
+        stream,
+        subStreams: this.#subStreams,
+      })
     }
     return this
   }
@@ -94,58 +95,21 @@ class MeetingSubstreams {
   }
 
   /**
-   * Returns the index of a subStream in the collection that doesn't have a
-   * participant bound to it
-   */
-  getEmptyParticipantSlot() {
-    const fn = (subStream: Stream) => !subStream.isAnyParticipantSet()
-    return _.findIndex(this.#subStreams, fn)
-  }
-
-  /**
    * Returns the stream from the subStreams collection, null otherwise
    * @param { RoomParticipant } participant
    */
   getSubStream(participant: RoomParticipant) {
     const fn = (subStream: Stream) => subStream.isSameParticipant(participant)
-    return _.find(this.#subStreams, fn)
+    return this.findBy(fn)
   }
 
   /**
-   * Inserts/pushes a stream into the subStreams collection
-   * If an index is passed in, it will insert the stream at the index position
+   * Loops over the subStreams collection and returns the first stream where
+   * the predicate function returns truthy
    * @param { Stream } stream
-   * @param { number | undefined } index
    */
-  insertStream(stream: Stream, index?: number) {
-    if (!this.#subStreams.includes(stream)) {
-      if (_.isNumber(index)) {
-        this.#subStreams.splice(index, 0, stream)
-      } else {
-        this.#subStreams.push(stream)
-      }
-    } else {
-      log.func('insertStream')
-      log.orange('The stream is already in the subStreams collection', {
-        stream,
-        subStreams: this.#subStreams,
-      })
-    }
-    return this
-  }
-
-  /**
-   * Returns the remote participant if found (if argument is a participant instance)
-   * Or returns the DOM node if found (if argument is a DOM node)
-   * @param { RemoteParticipant | NOODLElement } v - Remote participant or a DOM node
-   * @return { RemoteParticipant | NOODLElement | undefined }
-   */
-  getStream(v: RemoteParticipant | NOODLElement) {
-    if (v instanceof HTMLElement) {
-      return this.#subStreams.find((stream) => stream.isSameElement(v))
-    } else {
-      return this.#subStreams.find((stream) => stream.isSameParticipant(v))
-    }
+  findBy(cb: (stream: Stream) => boolean) {
+    return _.find(this.#subStreams, cb)
   }
 
   /**

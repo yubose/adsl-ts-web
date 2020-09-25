@@ -105,6 +105,15 @@ class Modal extends NOODLElement {
     this.setStyle(this.node, key, value)
   }
 
+  getState() {
+    return {
+      context: this.context,
+      id: this.id,
+      opened: this.opened,
+      props: { ...this.props },
+    }
+  }
+
   private _refreshViewport(e?: Event) {
     super.setStyle({
       width: `${window.innerWidth}px`,

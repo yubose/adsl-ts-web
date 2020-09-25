@@ -1,10 +1,8 @@
 import _ from 'lodash'
-import { createSelector } from '@reduxjs/toolkit'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
 } from 'twilio-video'
-import { Draft } from 'immer'
 import { Account } from '@aitmed/cadl'
 import {
   Action,
@@ -39,28 +37,15 @@ import {
   PageSnapshot,
 } from './app/types'
 import { cadl, noodl } from './app/client'
-import { createStoreObserver, isMobile, reduceEntries } from './utils/common'
+import { isMobile, reduceEntries } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
-import parser from './utils/parser'
 import { createOnChangeFactory } from './utils/sdkHelpers'
-import {
-  setPage,
-  setInitiatingPage,
-  setInitializingRootNode,
-  setInitializedRootNode,
-  setInitializeRootNodeFailed,
-  setRenderingComponents,
-  setRenderedComponents,
-  setRenderComponentsFailed,
-  setPageCached,
-  setReceivedSnapshot,
-} from './features/page'
 import { modalIds, CACHED_PAGES } from './constants'
-import createStore from './app/store'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
 import Logger from './app/Logger'
+import parser from './utils/parser'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
@@ -124,50 +109,49 @@ window.addEventListener('load', async () => {
   // log.green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
-  const store = createStore()
-  const observeStore = createStoreObserver(store)
-  const dispatch = store.dispatch
   const viewport = new Viewport()
   const page = new Page()
-  const app = new App({ getStatus: Account.getStatus, store, viewport })
-  const builtIn = createBuiltInActions({ page, store, Account })
-  const actions = enhanceActions(createActions({ store }))
+  const app = new App({ getStatus: Account.getStatus, viewport })
+  const builtIn = createBuiltInActions({ page, Account })
+  const actions = enhanceActions(createActions({ page }))
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
 
-  Meeting.initialize({ page, store, viewport })
+  Meeting.initialize({ page, viewport })
+
+  app.onAuthStatus = (status) => {
+    log.func('app.onAuthStatus')
+    log.grey(`Auth status changed: ${status}`)
+  }
 
   let { startPage } = await app.initialize()
 
   const preparePage = createPreparePage({
     builtIn: {
       goto: builtIn.goto,
-      videoChat: onVideoChatBuiltIn({ joinRoom: Meeting.join, store }),
+      videoChat: onVideoChatBuiltIn({ joinRoom: Meeting.join }),
     },
   })
 
-  page.onStart = async () => {
-    dispatch(setInitiatingPage())
+  page.onStart = async (pageName) => {
+    log.func('page.onStart').grey(`Rendering the DOM for page: "${pageName}"`)
   }
 
   page.onRootNodeInitializing = async () => {
-    dispatch(setInitializingRootNode())
-    log.func('Listener -- onRootNodeInitializing')
-    log.grey('Initializing root node')
+    log.func('page.onRootNodeInitializing').grey('Initializing root node')
   }
 
   page.onRootNodeInitialized = async (rootNode) => {
-    dispatch(setInitializedRootNode())
-    log.func('Listener -- onRootNodeInitialized')
+    log.func('page.onRootNodeInitialized')
     log.green('Root node initialized', rootNode)
   }
 
   // TODO - onRootNodeInitializeError
 
   page.onBeforePageRender = async ({ pageName }) => {
-    dispatch(setRenderingComponents())
-    const pageState = store.getState().page
-    if (pageName === pageState.currentPage) {
+    log.func('page.onBeforePageRender')
+    log.grey('Rendering components')
+    if (pageName === page.currentPage) {
       // Load the page in the SDK
       const pageObject = await preparePage(pageName)
       // This will be passed into the page renderer
@@ -178,7 +162,7 @@ window.addEventListener('load', async () => {
       // Initialize the noodl-ui client (parses components) if it
       // isn't already initialized
       if (!noodl.initialized) {
-        log.func('Listener -- onBeforePageRender')
+        log.func('page.onBeforePageRender')
         log.grey('Initializing noodl-ui client', noodl)
         noodl
           .init({ viewport })
@@ -223,12 +207,12 @@ window.addEventListener('load', async () => {
             ...lifeCycles,
           } as any)
 
-        log.func('Listener - onBeforePageRender')
+        log.func('page.onBeforePageRender')
         log.green('Initialized noodl-ui client', noodl)
       }
 
-      const previousPage = store.getState().page.previousPage
-      log.func('Listener -- onBeforePageRender')
+      const previousPage = page.previousPage
+      log.func('page.onBeforePageRender')
       log.grey(`${previousPage} --> ${pageName}`, {
         previousPage,
         nextPage: pageSnapshot,
@@ -242,61 +226,51 @@ window.addEventListener('load', async () => {
       }
       return pageSnapshot
     } else {
-      log.func('Listener - onBeforePageRender')
+      log.func('page.onBeforePageRender')
       log.green('Avoided a duplicate navigate request')
     }
   }
 
   page.onPageRendered = async ({ pageName, components }) => {
-    dispatch(setRenderedComponents())
-    log.func('onPageRendered')
+    log.func('page.onPageRendered')
     log.green(`Done rendering DOM nodes for ${pageName}`)
     window.pcomponents = components
     // Cache to rehydrate if they disconnect
     // TODO
     cachePage(pageName)
-    dispatch(setPageCached())
     log.grey(`Cached page: "${pageName}"`)
   }
 
   page.onError = async ({ error }) => {
     console.error(error)
+    log.func('page.onError').red(error.message, error)
     // window.alert(error.message)
     // TODO - narrow the reasons down more
-    dispatch(setRenderComponentsFailed(error))
   }
 
   /**
    * Triggers the page.navigate from state changes.
-   * Dispatch setPage to trigger this observer
+   * Call page.requestPageChange to trigger this observer
    */
-  observeStore(
-    createSelector(
-      (state) => state.page.previousPage,
-      (state) => state.page.currentPage,
-      (previousPage, currentPage) => ({ previousPage, currentPage }),
-    ),
-    async ({ previousPage, currentPage }) => {
-      console.groupCollapsed(
-        `%cobserveStore -- state.page[previousPage/currentPage]`,
-        'color:#828282',
-        { previousPage, nextPage: currentPage },
-      )
-      console.trace()
-      console.groupEnd()
-      if (currentPage) {
-        const { snapshot } = (await page.navigate(currentPage)) || {}
-        dispatch(setReceivedSnapshot())
-        if (snapshot?.name === 'VideoChat') {
-          if (Meeting.room?.state === 'connected') {
-            // TODO - handle attaching to video streams
-          }
-        } else {
-          //
+  page.onPageRequest = ({ previous, current, requested: requestedPage }) => {
+    console.groupCollapsed(
+      `%c[page.onPageRequest] Requesting page change`,
+      'color:#828282',
+      { previous, current, requestedPage },
+    )
+    console.trace()
+    console.groupEnd()
+    if (requestedPage) {
+      if (requestedPage === 'VideoChat') {
+        if (Meeting.room?.state === 'connected') {
+          // TODO - handle attaching to video streams
         }
+      } else {
+        //
       }
-    },
-  )
+    }
+    return true
+  }
 
   /** EXPERIMENTAL -- Custom routing */
   // TODO
@@ -309,30 +283,26 @@ window.addEventListener('load', async () => {
    * Triggers opening/closing the modal if a matching modal id is set
    * Dispatch openModal/closeModal to open/close this modal
    */
-  observeStore(
-    createSelector(
-      (state) => state.page.modal,
-      (modalState) => modalState,
-    ),
-    (modalState) => {
-      const { id, opened, ...rest } = modalState
-      if (opened) {
-        const modalId = modalIds[id as PageModalId]
-        const modalComponent = modalComponents[modalId]
-        if (modalComponent) {
-          page.modal.open(id, modalComponent, { opened, ...rest })
-        } else {
-          log.func('observeStore -- state.page.modal')
-          log.red(
-            'Tried to open the modal component but the node was not available',
-            modalState,
-          )
-        }
+  page.onModalStateChange = (prevState, nextState) => {
+    const { id, opened, ...rest } = nextState
+    log.func('page.onModalStateChange')
+    if (opened) {
+      const modalId = modalIds[id as PageModalId]
+      const modalComponent = modalComponents[modalId]
+      if (modalComponent) {
+        page.modal.open(id, modalComponent, { opened, ...rest })
+        log.green('Modal opened', { prevState, nextState })
       } else {
-        page.modal.close()
+        log.red(
+          'Tried to open the modal component but the node was not available',
+          { prevState, nextState, node: page.modal.node },
+        )
       }
-    },
-  )
+    } else {
+      page.modal.close()
+      log.green('Closed modal', { prevState, nextState })
+    }
+  }
 
   /**
    * Callback invoked when Meeting.joinRoom receives the room instance.
@@ -412,39 +382,43 @@ window.addEventListener('load', async () => {
        * to be an array if it's not already an array
        * @param { RemoteParticipant } participant
        */
-      cadl.editDraft((draft: Draft<typeof cadl.root>) => {
-        const listData = draft.root?.VideoChat?.listData || {}
-        const participants = _.isArray(listData?.participants)
-          ? listData?.participants
-          : []
-        participants.push(participant)
-        log.func('Meeting.onAddRemoteParticipant')
-        log.green('Updated SDK with new participant', {
-          addedParticipant: participant,
-          newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
-        })
+      cadl.editDraft((draft: typeof cadl.root) => {
+        const participants = Meeting.removeFalseyParticipants(
+          draft?.VideoChat?.listData?.participants || [],
+        ).concat(participant)
+        _.set(draft, 'VideoChat.listData.participants', participants)
+      })
+
+      log.func('Meeting.onAddRemoteParticipant')
+      log.green('Updated SDK with new participant', {
+        addedParticipant: participant,
+        newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
       })
     }
   }
 
   Meeting.onRemoveRemoteParticipant = function (participant, stream) {
-    log.func('Meeting.onRemoveRemoteParticipant')
     /**
      * Updates the participants list in the sdk. This will also force the value
      * to be an array if it's not already an array
      * @param { RemoteParticipant } participant
      */
-    cadl.editDraft((draft: Draft<typeof cadl.root>) => {
-      const listData = draft.root?.VideoChat?.listData || {}
-      let participants = _.isArray(listData?.participants)
-        ? listData?.participants
-        : []
-      participants = _.filter(participants, (p) => p !== participant)
-      log.func('Meeting.onRemoveRemoteParticipant')
-      log.green('Updated SDK with removal of participant', {
-        newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
-        removedParticipant: participant,
-      })
+    cadl.editDraft((draft: typeof cadl.root) => {
+      _.set(
+        draft.VideoChat.listData,
+        'participants',
+        Meeting.removeFalseyParticipants(
+          _.filter(
+            draft?.VideoChat?.listData?.participants || [],
+            (p) => p !== participant,
+          ),
+        ),
+      )
+    })
+    log.func('Meeting.onRemoveRemoteParticipant')
+    log.green('Updated SDK with removal of participant', {
+      newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
+      removedParticipant: participant,
     })
   }
 
@@ -485,7 +459,7 @@ window.addEventListener('load', async () => {
         const container = streams.getSubStreamsContainer()
         if (container) {
           if (!container.elementExists(node)) {
-            container.addElement(node)
+            container.add({ node })
             log.func('onCreateNode')
             log.green('Added an element to a subStream', node)
           } else {
@@ -533,7 +507,7 @@ window.addEventListener('load', async () => {
       if (page.rootNode) {
         page.rootNode.style.width = `${newSizes.width}px`
         page.rootNode.style.height = `${newSizes.height}px`
-        page.render(cadl?.root?.[store.getState().page.currentPage]?.components)
+        page.render(cadl?.root?.[page.currentPage]?.components)
       } else {
         // TODO
       }
@@ -559,7 +533,7 @@ window.addEventListener('load', async () => {
     }
   }
 
-  store.dispatch(setPage(startPage))
+  page.requestPageChange(startPage)
 })
 
 /* -------------------------------------------------------

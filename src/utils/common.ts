@@ -1,4 +1,3 @@
-import { EnhancedStore, CombinedState } from '@reduxjs/toolkit'
 import _ from 'lodash'
 import { SerializedError } from 'app/types'
 
@@ -97,17 +96,9 @@ export function reduceEntries<Obj>(
  * @return { boolean }
  */
 export function isMobile() {
-  if (typeof navigator?.userAgent !== 'string') {
-    return false
-  }
-  return /Mobile/.test(navigator.userAgent)
-}
-
-/**
- * Returns true if process.env.REACT_APP_ECOS_ENV === 'stable', otherswise false
- */
-export function isStableEnv() {
-  return process.env.REACT_APP_ECOS_ENV === 'stable'
+  return _.isString(navigator?.userAgent)
+    ? /Mobile/.test(navigator.userAgent)
+    : false
 }
 
 /** Returns true if the string is potentially a unicode string
@@ -115,39 +106,6 @@ export function isStableEnv() {
  */
 export function isUnicode(value: unknown) {
   return _.isString(value) && value.startsWith('\\u')
-}
-
-/**
- * Utility to create a factory that creates an observer to the store
- * that is interested in changes to some state slice. The returned
- * function is a callback that unsubscribes itself when called
- * @param { AppStore } store
- */
-export function createStoreObserver<StoreState>(
-  store: EnhancedStore<CombinedState<StoreState>>,
-) {
-  /**
-   * @param { function } select - Selector that receives the state whenever it changes
-   * @param { function } onChange - Callback function that will receive the updated state slice
-   */
-  return function observeStore<StateSlice>(
-    select: (state: StoreState) => StateSlice,
-    onChange: (slice: StateSlice) => void,
-  ) {
-    let currentState: StateSlice
-
-    function handleChange() {
-      let nextState = select(store.getState())
-      if (nextState !== currentState) {
-        currentState = nextState
-        onChange(currentState)
-      }
-    }
-
-    let unsubscribe = store.subscribe(handleChange)
-    handleChange()
-    return unsubscribe
-  }
 }
 
 /**

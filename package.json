@@ -30,12 +30,7 @@
   "dependencies": {
     "@aitmed/cadl": "^1.0.90",
     "@aitmed/ecos-lvl2-sdk": "^1.4.102",
-    "@reduxjs/toolkit": "^1.4.0",
-    "immer": "^7.0.9",
     "noodl-ui": "0.0.24",
-    "redux": "^4.0.5",
-    "redux-devtools-extension": "^2.13.8",
-    "redux-logger": "^3.0.6",
     "twilio-video": "^2.7.2"
   },
   "devDependencies": {

@@ -9,8 +9,6 @@ import Modal from 'components/NOODLModal'
 import Meeting from '../../meeting'
 import { App } from '../../app'
 
-declare module 'redux-logger'
-
 declare global {
   interface Window {
     // client.ts

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import _ from 'lodash'
 import { RemoteParticipant, LocalParticipant, Room } from 'twilio-video'
 import { Draft } from 'immer'
