@@ -209,6 +209,6 @@ module.exports = {
   ],
   ...productionOptions,
   optimization: {
-    ...productionOptions.optimization,
+    ...(productionOptions && productionOptions.optimization),
   },
 }

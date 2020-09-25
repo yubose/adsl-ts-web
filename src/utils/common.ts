@@ -12,6 +12,11 @@ export function callAll(...fns: any[]) {
     fns.forEach((fn) => typeof fn === 'function' && fn(...args))
 }
 
+export function composeTruthCalls(...fns: Function[]) {
+  return (cb: Function) => (...args: any[]) =>
+    _.forEach(fns, (fn) => fn && fn(...args) && cb(...args))
+}
+
 /**
  * Takes a string that is a unicode, decodes it and returns the result
  *    (Useful for rendering raw unicode because react sanitizes input)

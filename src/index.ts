@@ -39,6 +39,7 @@ import { noodlDomParserEvents } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
+import createOnCreateNodeInjections from './handlers/domInjections'
 import Logger from './app/Logger'
 import parser from './utils/parser'
 import App from './App'
@@ -49,6 +50,7 @@ import './styles.css'
 
 const log = Logger.create('src/index.ts')
 
+/** TODO: Find out why I did this */
 function enhanceActions(actions: ReturnType<typeof createActions>) {
   return reduceEntries(
     actions,
@@ -89,6 +91,8 @@ function createPreparePage(options: {
 }
 
 window.addEventListener('load', async () => {
+  // Experimenting dynamic import (code splitting)
+  const { Account } = await import('@aitmed/cadl')
   const { cadl, noodl } = await import('app/client')
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
@@ -487,7 +491,10 @@ window.addEventListener('load', async () => {
       .getEventListeners(noodlDomParserEvents.onCreateNode)
       ?.includes(onCreateNode)
   ) {
-    parser.on(noodlDomParserEvents.onCreateNode, onCreateNode)
+    parser.on(
+      noodlDomParserEvents.onCreateNode,
+      createOnCreateNodeInjections(onCreateNode),
+    )
   }
 
   /* -------------------------------------------------------
