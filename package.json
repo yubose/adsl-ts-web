@@ -7,7 +7,7 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "build": "webpack --mode=production",
+    "build": "rm -rf build && webpack --mode=production",
     "build:stable": "cross-env ECOS_ENV=stable NODE_ENV=production npm run build",
     "build:test": "cross-env ECOS_ENV=test NODE_ENV=production npm run build",
     "build:deploy:stable": "cross-env ECOS_ENV=stable npm run build npm run deploy:stable",

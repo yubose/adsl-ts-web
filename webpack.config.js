@@ -8,6 +8,12 @@ const pkg = require('./package.json')
 // const CircularDependencyPlugin = require('circular-dependency-plugin')
 // const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 
+const htmlPluginOptions = {
+  filename: 'index.html',
+  title: 'AiTmed Web',
+  cache: true,
+}
+
 const plugins = [
   // new BundleStatsWebpackPlugin({
   //   baseline: true,
@@ -19,11 +25,7 @@ const plugins = [
   new webpack.DefinePlugin({
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
   }),
-  new HtmlWebpackPlugin({
-    filename: 'index.html',
-    title: 'AiTmed Web',
-    cache: true,
-  }),
+  new HtmlWebpackPlugin(htmlPluginOptions),
 ]
 
 let productionOptions
@@ -40,6 +42,27 @@ if (process.env.NODE_ENV !== 'production') {
           sourceMap: true,
         }),
       ],
+      splitChunks: {
+        chunks: 'async',
+        minSize: 20000,
+        maxSize: 0,
+        minChunks: 1,
+        maxAsyncRequests: 30,
+        maxInitialRequests: 30,
+        automaticNameDelimiter: '~',
+        enforceSizeThreshold: 50000,
+        cacheGroups: {
+          defaultVendors: {
+            test: /[\\/]node_modules[\\/]/,
+            priority: -10,
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+        },
+      },
     },
   }
 }
@@ -164,6 +187,21 @@ module.exports = {
             pkg.dependencies['noodl-ui'],
           )}`,
         )
+        if (process.env.NODE_ENV === 'production') {
+          console.log('')
+          console.log(
+            `An ${chalk.magenta(
+              htmlPluginOptions.filename,
+            )} file will be generated inside your ${chalk.magenta(
+              'build',
+            )} directory.`,
+          )
+          console.log(
+            `The title of the page was set to "${chalk.yellow(
+              htmlPluginOptions.title,
+            )}"`,
+          )
+        }
         console.log('-------------------------------------------------------')
       },
     }),
