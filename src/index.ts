@@ -146,7 +146,7 @@ window.addEventListener('load', async () => {
   page.onBeforePageRender = async ({ pageName }) => {
     log.func('page.onBeforePageRender')
     log.grey('Rendering components')
-    if (pageName === page.currentPage) {
+    if (pageName !== page.currentPage) {
       // Load the page in the SDK
       const pageObject = await preparePage(pageName)
       // This will be passed into the page renderer
@@ -526,7 +526,7 @@ window.addEventListener('load', async () => {
     }
   }
 
-  page.requestPageChange(startPage)
+  await page.requestPageChange(startPage)
 })
 
 /* -------------------------------------------------------

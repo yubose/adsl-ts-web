@@ -4,6 +4,7 @@ import {
   NOODLComponentProps,
   Page as NOODLUiPage,
 } from 'noodl-ui'
+import { noodl } from 'app/client'
 import { openOutboundURL } from './utils/common'
 import { NOODLElement, PageModalState, PageSnapshot } from './app/types'
 import { noodlDomParserEvents } from './constants'
@@ -149,7 +150,7 @@ class Page {
           rootNode: this.rootNode,
         })
 
-        const rendered = await this.render(
+        const rendered = this.render(
           pageSnapshot?.object?.components as NOODLComponent[],
         )
 
@@ -299,9 +300,7 @@ class Page {
    * them to the DOM
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
    */
-  public async render(rawComponents: NOODLComponent[]) {
-    const { noodl } = await import('app/client')
-
+  public render(rawComponents: NOODLComponent[]) {
     let components
 
     if (_.isArray(rawComponents)) {
