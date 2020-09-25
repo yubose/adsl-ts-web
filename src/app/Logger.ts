@@ -6,14 +6,6 @@ interface ILogger extends ColorFuncs {
   log: Console['log']
   id: string
   func(name?: string): this
-  initialize(): this
-  stringifyArgs({
-    color,
-    data,
-  }: {
-    color?: string
-    data?: any
-  }): Parameters<Console['log']>
 }
 
 export const _color = {
@@ -89,7 +81,6 @@ const logger = (function () {
     create(id: string) {
       let cached = cache[id as keyof typeof cache]
       let logger: ReturnType<typeof get>
-
       if (!cached) {
         logger = get(id)
         cache[id] = logger

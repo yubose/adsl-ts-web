@@ -1,15 +1,12 @@
 const path = require('path')
+const chalk = require('chalk')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
+const pkg = require('./package.json')
+
 // const CircularDependencyPlugin = require('circular-dependency-plugin')
 // const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
-
-console.log('-------------------------------------------')
-console.log(`   NODE_ENV set to ${process.env.NODE_ENV}`)
-console.log(`   ECOS_ENV set to ${process.env.ECOS_ENV}`)
-console.log('-------------------------------------------')
-console.log('')
 
 const plugins = [
   // new BundleStatsWebpackPlugin({
@@ -48,10 +45,10 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 if (productionOptions) {
-  console.log(
-    `Your options for production are being applied: `,
-    JSON.stringify(productionOptions, null, 2),
-  )
+  // console.log(
+  //   `Your options for production are being applied: `,
+  //   JSON.stringify(productionOptions, null, 2),
+  // )
 }
 
 module.exports = {
@@ -87,7 +84,7 @@ module.exports = {
               presets: ['@babel/preset-env'],
               plugins: [
                 'lodash',
-                // '@babel/plugin-transform-runtime',
+                '@babel/plugin-transform-runtime',
                 ['@babel/plugin-proposal-class-properties', { loose: true }],
                 ['@babel/plugin-proposal-private-methods', { loose: true }],
               ],
@@ -132,6 +129,48 @@ module.exports = {
     extensions: ['.ts', '.js'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
-  plugins,
+  plugins: [
+    ...plugins,
+    new webpack.ProgressPlugin({
+      handler(percentage, msg, ...args) {
+        console.clear()
+        console.log('')
+        console.log('')
+        console.log('-------------------------------------------------------')
+        console.log(
+          `Your app is being built for ${chalk.yellow('eCOS')} ${chalk.magenta(
+            process.env.ECOS_ENV.toUpperCase(),
+          )} environment in ${chalk.yellow(
+            process.env.NODE_ENV.toUpperCase(),
+          )} mode`,
+        )
+        console.log(`Status:   ${chalk.blueBright(msg.toUpperCase())}`)
+        console.log(`Progress: ${chalk.magenta(percentage.toFixed(4) * 100)}%`)
+        console.log(`Modules:  ${chalk.magenta(args[0])}`)
+        console.log('')
+        console.log(`${chalk('eCOS packages')}:`)
+        console.log(
+          `${chalk.yellow(`@aitmed/cadl`)}:            ${chalk.magenta(
+            pkg.dependencies['@aitmed/cadl'],
+          )}`,
+        )
+        console.log(
+          `${chalk.yellow(`@aitmed/ecos-lvl2-sdk`)}:   ${chalk.magenta(
+            pkg.dependencies['@aitmed/ecos-lvl2-sdk'],
+          )}`,
+        )
+        console.log(
+          `${chalk.yellow(`noodl-ui`)}:                ${chalk.magenta(
+            pkg.dependencies['noodl-ui'],
+          )}`,
+        )
+        console.log('-------------------------------------------------------')
+      },
+    }),
+    // new webpack.SplitChunksPlugin(),
+  ],
   ...productionOptions,
+  optimization: {
+    ...productionOptions.optimization,
+  },
 }
