@@ -13,7 +13,6 @@ import {
   NOODLChainActionSaveObjectObject,
   NOODLChainActionUpdateObject,
 } from 'noodl-ui'
-import { cadl } from 'app/client'
 import Logger from 'app/Logger'
 import { IPage } from 'app/types'
 
@@ -105,6 +104,7 @@ const createActions = function ({ page }: { page: IPage }) {
     action: Action<NOODLChainActionSaveObjectObject>,
     options,
   ) => {
+    const { cadl } = await import('app/client')
     const { context, abort, parser } = options as any
 
     try {
@@ -173,6 +173,8 @@ const createActions = function ({ page }: { page: IPage }) {
     action: Action<NOODLChainActionUpdateObject>,
     options,
   ) => {
+    const { cadl } = await import('app/client')
+
     log.func('updateObject')
     async function callObject(
       object: any,

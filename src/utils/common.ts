@@ -64,6 +64,17 @@ export function forEachDeepEntries<Obj>(
   }
 }
 
+// TODO: Work on this to make it better
+export async function formatPhoneNumber({
+  phoneNumber,
+  countryCode,
+}: {
+  phoneNumber: string
+  countryCode: string
+}): Promise<string> {
+  return `${countryCode} ${phoneNumber}`
+}
+
 /**
  * Runs reduce on each key/value pair of the value, passing in the key and value as an
  * object like { key, value } on each iteration as the second argument

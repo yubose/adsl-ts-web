@@ -5,9 +5,7 @@ import {
   Page as NOODLUiPage,
 } from 'noodl-ui'
 import { openOutboundURL } from './utils/common'
-import { noodl } from './app/client'
 import { NOODLElement, PageModalState, PageSnapshot } from './app/types'
-import { getPagePath } from './utils/sdkHelpers'
 import { noodlDomParserEvents } from './constants'
 import parser from './utils/parser'
 import Modal from './components/NOODLModal'
@@ -151,7 +149,7 @@ class Page {
           rootNode: this.rootNode,
         })
 
-        const rendered = this.render(
+        const rendered = await this.render(
           pageSnapshot?.object?.components as NOODLComponent[],
         )
 
@@ -291,7 +289,8 @@ class Page {
    * Returns the link to the main dashboard page by using the noodl base url
    * @param { string } baseUrl - Base url retrieved from the noodl config
    */
-  public getDashboardPath() {
+  public async getDashboardPath() {
+    const { getPagePath } = await import('./utils/sdkHelpers')
     return getPagePath(/meeting/)
   }
 
@@ -300,7 +299,9 @@ class Page {
    * them to the DOM
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
    */
-  public render(rawComponents: NOODLComponent[]) {
+  public async render(rawComponents: NOODLComponent[]) {
+    const { noodl } = await import('app/client')
+
     let components
 
     if (_.isArray(rawComponents)) {

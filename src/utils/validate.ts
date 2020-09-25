@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { isValidPhoneNumber } from 'utils/phone'
 
 export type ValidateName =
   | 'email'
@@ -113,8 +112,8 @@ export async function getFormErrors<FormValues extends {}>(
           // @ts-expect-error
           options.phoneNumber = formValues.phoneNumber
         }
-        const isValid = await isValidPhoneNumber(options)
-        if (!isValid) errors.push('The phone number is invalid')
+        // const isValid = await isValidPhoneNumber(options)
+        // if (!isValid) errors.push('The phone number is invalid')
       }
       if (_.isFunction(validator)) {
         // @ts-expect-error

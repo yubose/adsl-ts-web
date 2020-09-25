@@ -1,9 +1,9 @@
 const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 // const CircularDependencyPlugin = require('circular-dependency-plugin')
 // const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
-// const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 console.log('-------------------------------------------')
 console.log(`   NODE_ENV set to ${process.env.NODE_ENV}`)
@@ -22,10 +22,6 @@ const plugins = [
   new webpack.DefinePlugin({
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
   }),
-  // new MiniCssExtractPlugin({
-  //   filename: 'styles.css',
-  //   chunkFilename: '[id].css',
-  // }),
   new HtmlWebpackPlugin({
     filename: 'index.html',
     title: 'AiTmed Web',
@@ -33,8 +29,29 @@ const plugins = [
   }),
 ]
 
+let productionOptions
+
 if (process.env.NODE_ENV !== 'production') {
   //
+} else {
+  productionOptions = {
+    optimization: {
+      minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          parallel: 4,
+          sourceMap: true,
+        }),
+      ],
+    },
+  }
+}
+
+if (productionOptions) {
+  console.log(
+    `Your options for production are being applied: `,
+    JSON.stringify(productionOptions, null, 2),
+  )
 }
 
 module.exports = {
@@ -116,4 +133,5 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   plugins,
+  ...productionOptions,
 }

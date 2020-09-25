@@ -2,8 +2,8 @@ import _ from 'lodash'
 import { NOODLComponentProps } from 'noodl-ui'
 import { NOODLElement } from 'app/types/pageTypes'
 import { RoomParticipant } from 'app/types'
-import Stream from './Stream'
-import Substreams from './Substreams'
+import Stream from 'meeting/Stream'
+import Substreams from 'meeting/Substreams'
 
 class MeetingStreams {
   #mainStream: Stream

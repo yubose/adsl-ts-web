@@ -15,7 +15,7 @@ import Stream from 'meeting/Stream'
 import Streams from 'meeting/Streams'
 import Logger from 'app/Logger'
 import Page from 'Page'
-import MeetingSubstreams from './Substreams'
+import MeetingSubstreams from 'meeting/Substreams'
 
 const log = Logger.create('Meeting.ts')
 

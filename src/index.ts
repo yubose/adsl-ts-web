@@ -1,10 +1,5 @@
 import _ from 'lodash'
 import {
-  LocalAudioTrackPublication,
-  LocalVideoTrackPublication,
-} from 'twilio-video'
-import { Account } from '@aitmed/cadl'
-import {
   Action,
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
@@ -36,11 +31,11 @@ import {
   PageModalId,
   PageSnapshot,
 } from './app/types'
-import { cadl, noodl } from './app/client'
-import { isMobile, reduceEntries } from './utils/common'
-import { forEachParticipant } from './utils/twilio'
 import { createOnChangeFactory } from './utils/sdkHelpers'
+import { forEachParticipant } from './utils/twilio'
+import { isMobile, reduceEntries } from './utils/common'
 import { modalIds, CACHED_PAGES } from './constants'
+import { noodlDomParserEvents } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
@@ -49,9 +44,7 @@ import parser from './utils/parser'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
-import MeetingSubstreams from 'meeting/Substreams'
-import { noodlDomParserEvents } from './constants'
-import modalComponents from './components/modalComponents'
+import MeetingSubstreams from './meeting/Substreams'
 import './styles.css'
 
 const log = Logger.create('src/index.ts')
@@ -86,6 +79,7 @@ function createPreparePage(options: {
   }
 }) {
   return async (pageName: string): Promise<NOODLPageObject> => {
+    const { cadl } = await import('app/client')
     await cadl.initPage(pageName, [], options)
     log
       .func('createPreparePage')
@@ -95,7 +89,7 @@ function createPreparePage(options: {
 }
 
 window.addEventListener('load', async () => {
-  window.account = Account
+  const { cadl, noodl } = await import('app/client')
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
   window.getByDataUX = getByDataUX
@@ -112,8 +106,8 @@ window.addEventListener('load', async () => {
   // redirections before proceeding
   const viewport = new Viewport()
   const page = new Page()
-  const app = new App({ getStatus: Account.getStatus, viewport })
-  const builtIn = createBuiltInActions({ page, Account })
+  const app = new App({ viewport })
+  const builtIn = createBuiltInActions({ page })
   const actions = enhanceActions(createActions({ page }))
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
@@ -284,12 +278,14 @@ window.addEventListener('load', async () => {
    * Triggers opening/closing the modal if a matching modal id is set
    * Dispatch openModal/closeModal to open/close this modal
    */
+  // NOTE - This is not being used atm
   page.onModalStateChange = (prevState, nextState) => {
     const { id, opened, ...rest } = nextState
     log.func('page.onModalStateChange')
     if (opened) {
       const modalId = modalIds[id as PageModalId]
-      const modalComponent = modalComponents[modalId]
+      // const modalComponent = modalComponents[modalId]
+      const modalComponent = undefined
       if (modalComponent) {
         page.modal.open(id, modalComponent, { opened, ...rest })
         log.green('Modal opened', { prevState, nextState })
@@ -320,12 +316,8 @@ window.addEventListener('load', async () => {
       room.disconnect?.()
     }
     // Callback runs when the LocalParticipant disconnects
-    function disconnected() {
-      const unpublishTracks = (
-        trackPublication:
-          | LocalVideoTrackPublication
-          | LocalAudioTrackPublication,
-      ) => {
+    async function disconnected() {
+      const unpublishTracks = (trackPublication: any) => {
         trackPublication?.track?.stop?.()
         trackPublication?.unpublish?.()
       }

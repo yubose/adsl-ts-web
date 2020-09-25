@@ -6,10 +6,9 @@ import {
   NOODLActionTriggerType,
   SelectOption,
 } from 'noodl-ui'
-import NOODLDOMParser from 'app/noodl-ui-dom'
 import { DataValueElement, NOODLElement } from 'app/types'
-import { cadl, noodl } from 'app/client'
 import { forEachEntries } from 'utils/common'
+import NOODLDOMParser from 'app/noodl-ui-dom'
 import Logger from 'app/Logger'
 
 const log = Logger.create('parser.ts')

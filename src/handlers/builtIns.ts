@@ -29,13 +29,7 @@ export type BuiltInFuncName =
   | 'toggleMicrophoneOnOff'
   | 'UploadPhoto'
 
-const createBuiltInActions = function ({
-  page,
-  Account,
-}: {
-  page: Page
-  Account: any
-}) {
+const createBuiltInActions = function ({ page }: { page: Page }) {
   // @ts-expect-error
   const builtInActions: Record<
     BuiltInFuncName,
@@ -116,6 +110,7 @@ const createBuiltInActions = function ({
       return 'abort'
     }
     // Validate if their password is correct or not
+    const { Account } = await import('@aitmed/cadl')
     const isValid = Account.verifyUserPassword(password)
     if (!isValid) {
       console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
@@ -130,6 +125,7 @@ const createBuiltInActions = function ({
   builtInActions.lockApplication = async (action, options) => {
     const result = await _onLockLogout()
     if (result === 'abort') return 'abort'
+    const { Account } = await import('@aitmed/cadl')
     await Account.logout(false)
     window.location.reload()
   }
@@ -137,11 +133,13 @@ const createBuiltInActions = function ({
   builtInActions.logOutOfApplication = async (action, options) => {
     const result = await _onLockLogout()
     if (result === 'abort') return 'abort'
+    const { Account } = await import('@aitmed/cadl')
     await Account.logout(true)
     window.location.reload()
   }
 
   builtInActions.logout = async () => {
+    const { Account } = await import('@aitmed/cadl')
     await Account.logout(true)
     window.location.reload()
   }

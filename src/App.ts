@@ -1,27 +1,20 @@
 import _ from 'lodash'
 import { Viewport } from 'noodl-ui'
-import { cadl } from './app/client'
 import { AuthStatus } from 'app/types/commonTypes'
 
 class App {
-  #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
   #isRetrievingUserState: (isRetrieving: boolean) => void = () => {}
+  #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
   authStatus: AuthStatus | '' = ''
-  getStatus: () => Promise<{ code: number }>
   getViewport: () => Viewport
 
-  constructor({
-    getStatus,
-    viewport,
-  }: {
-    getStatus: () => Promise<any>
-    viewport: Viewport
-  }) {
+  constructor({ viewport }: { viewport: Viewport }) {
     this.getViewport = () => viewport
-    this.getStatus = () => Promise.resolve(getStatus())
   }
 
   public async initialize() {
+    const { cadl } = await import('app/client')
+
     await cadl.init()
 
     const startPage = cadl?.cadlEndpoint?.startPage
@@ -29,7 +22,8 @@ class App {
     if (!this.authStatus) {
       // Initialize the user's state before proceeding to decide on how to direct them
       this.isRetrievingUserState?.(true)
-      const storedStatus = await this.getStatus()
+      const { Account } = await import('@aitmed/cadl')
+      const storedStatus = await Account.getStatus()
       this.isRetrievingUserState?.(false)
 
       if (storedStatus.code === 0) {
