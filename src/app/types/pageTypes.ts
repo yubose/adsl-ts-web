@@ -78,9 +78,10 @@ export type NOODLElements = Pick<
 
 export type NOODLElementTypes = keyof NOODLElements
 
-export type NOODLElement<
-  K extends NOODLElementTypes = NOODLElementTypes
-> = NOODLElements[K]
+export type NOODLElement = Extract<
+  NOODLElements[NOODLElementTypes],
+  HTMLElement
+>
 
 export type DataValueElement =
   | HTMLInputElement

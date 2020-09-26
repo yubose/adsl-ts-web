@@ -8,9 +8,11 @@ export interface Parser {
   (
     node: NOODLElement,
     props: NOODLComponentProps,
-    parserOptions: ParserOptions,
-  ): void
+    parserOptions?: ParserOptions,
+  ): any
 }
+
+export type ParserArgs = Parameters<Parser>
 
 export interface ParserOptions {
   parse: (props: NOODLComponentProps) => NOODLElement | undefined

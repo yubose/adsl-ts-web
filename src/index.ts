@@ -39,7 +39,6 @@ import { noodlDomParserEvents } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
-import createOnCreateNodeInjections from './handlers/domInjections'
 import Logger from './app/Logger'
 import parser from './utils/parser'
 import App from './App'
@@ -485,17 +484,7 @@ window.addEventListener('load', async () => {
 
   // THIS IS EXPERIMENTAL AND WILL BE REMOVED
   parser.createOnChangeFactory = createOnChangeFactory
-
-  if (
-    !parser
-      .getEventListeners(noodlDomParserEvents.onCreateNode)
-      ?.includes(onCreateNode)
-  ) {
-    parser.on(
-      noodlDomParserEvents.onCreateNode,
-      createOnCreateNodeInjections(onCreateNode),
-    )
-  }
+  parser.onCreateNode('all', onCreateNode)
 
   /* -------------------------------------------------------
     ---- VIEWPORT / WINDOW SIZING
@@ -523,13 +512,10 @@ window.addEventListener('load', async () => {
     const cachedPage = cachedPages[0]?.name
     // Compare the two pages to make an informed decision before setting it
     if (cachedPage) {
-      log.func().grey('Comparing cached page vs startPage', {
-        startPage,
-        cachedPage,
-      })
-      if (cachedPage !== startPage) {
-        startPage = cachedPage
-      }
+      log
+        .func()
+        .grey('Comparing cached page vs startPage', { startPage, cachedPage })
+      if (cachedPage !== startPage) startPage = cachedPage
     }
   }
 

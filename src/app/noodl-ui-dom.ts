@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { NOODLComponentProps } from 'noodl-ui'
+import { NOODLComponentProps, NOODLComponentType } from 'noodl-ui'
 import { NOODLElement, NOODLDOMTagName } from 'app/types'
 import * as T from 'app/types/domParserTypes'
 import createElement from 'utils/createElement'
@@ -9,6 +9,25 @@ import { noodlDomParserEvents } from '../constants'
 const log = Logger.create('NOODLUIDOM.ts')
 
 class NOODLUIDOM {
+  #onCreateNode: {
+    all: T.Parser[]
+    component: Record<NOODLComponentType, T.Parser[]>
+  } = {
+    all: [],
+    component: {
+      button: [],
+      divider: [],
+      header: [],
+      image: [],
+      label: [],
+      list: [],
+      listItem: [],
+      popUp: [],
+      select: [],
+      textField: [],
+      view: [],
+    },
+  }
   // CREATEONCHANGEFACTORY IS EXPERIMENTAL AND WILL MOST LIKELY BE REMOVED
   #createOnChangeFactory: ((...args: any[]) => any) | undefined
   #cache: {
@@ -103,7 +122,20 @@ class NOODLUIDOM {
         this.#handleChildren(node as NOODLElement, props.children as any)
       }
 
+      // ! NOTE: This will be deprecated in favor of this.onCreateNode
       this.emit(noodlDomParserEvents.onCreateNode, node, props)
+
+      // TODO: Isolate this into its own method
+      if (node) {
+        _.forEach(
+          this.#onCreateNode.all,
+          (fn) => fn && fn(node as NOODLElement, props),
+        )
+        _.forEach(
+          this.#onCreateNode.component[props.noodlType],
+          (fn) => fn && fn(node as NOODLElement, props),
+        )
+      }
     }
 
     return node
@@ -180,6 +212,43 @@ class NOODLUIDOM {
     return {
       parse: this.parse.bind(this),
     }
+  }
+
+  /**
+   * Registers observers to hook into create node events. The "type" for components
+   * refers to NOODL component types like "view"
+   * @param { string } type - Type of reason (either 'all' or a NOODL component type
+   * @param { function } cb - Callback to invoke
+   */
+  onCreateNode(type: 'all' | NOODLComponentType, cb: T.Parser) {
+    let cbType: 'all' | NOODLComponentType | undefined
+    let callback: T.Parser | undefined
+
+    if (_.isString(type)) {
+      cbType = type
+      callback = cb
+    } else if (_.isFunction(type)) {
+      cbType = 'all'
+      callback = type
+    } else {
+      // TODO
+    }
+
+    if (callback && cbType) {
+      if (cbType == 'all') {
+        this.#onCreateNode.all.push(callback)
+      } else {
+        if (this.#onCreateNode.component[cbType]) {
+          this.#onCreateNode.component[cbType].push(callback)
+        } else {
+          // TODO
+        }
+      }
+    } else {
+      // TODO
+    }
+
+    return this
   }
 
   get createOnChangeFactory() {

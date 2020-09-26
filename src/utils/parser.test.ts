@@ -5,12 +5,6 @@ import { getByText } from '@testing-library/dom'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import { mapUserEvent, noodl } from '../utils/test-utils'
 import NOODLDOMParser from '../app/noodl-ui-dom'
-import {
-  parseChildren,
-  parseDataValues,
-  parseEventHandlers,
-  parseStyles,
-} from './parser'
 import { DataValueElement } from '../app/types'
 
 let container: HTMLDivElement
@@ -25,7 +19,31 @@ afterEach(() => {
   // console.info(prettyDOM(container))
 })
 
-describe('parse', () => {
+const pendingParsers = []
+const filterers = []
+const funcs = {}
+
+// @ts-expect-error
+function predicateStepper(acc, [node, props]) {
+  return acc([node, props])
+}
+
+describe.skip('composing parsers', () => {
+  it('', () => {
+    function composeParsers(...parsers: Function[]) {
+      return (step: Function) => {
+        return (acc: Function, [node, props]: any) => {
+          return _.reduce(parsers, (parser) => {
+            const res = parser(node, props)
+            return step(acc)
+          })
+        }
+      }
+    }
+  })
+})
+
+describe.skip('parse', () => {
   let components: NOODLComponentProps[]
   let component: NOODLComponentProps
 
@@ -58,7 +76,7 @@ describe('parse', () => {
     component = components[0]
   })
 
-  describe('record keeper (wrapper)', () => {
+  describe.skip('record keeper (wrapper)', () => {
     describe('hasAttribute', () => {
       it('should return false', () => {
         const div = document.createElement('div')
@@ -67,9 +85,9 @@ describe('parse', () => {
     })
   })
 
-  describe('parseChildren', () => {
+  describe.skip('parseChildren', () => {
     beforeEach(() => {
-      parser.add(parseChildren as any)
+      // parser.add(parseChildren as any)
     })
 
     it('should append to innerHTML if children is a string', () => {
@@ -128,9 +146,9 @@ describe('parse', () => {
     })
   })
 
-  describe('parseEventHandlers', () => {
+  describe.skip('parseEventHandlers', () => {
     beforeEach(() => {
-      parser.add(parseEventHandlers)
+      // parser.add(parseEventHandlers)
     })
 
     _.forEach(
@@ -152,9 +170,9 @@ describe('parse', () => {
     })
   })
 
-  describe('parseStyles', () => {
+  describe.skip('parseStyles', () => {
     beforeEach(() => {
-      parser.add(parseStyles)
+      // parser.add(parseStyles)
     })
 
     it('should attach style attributes', () => {
@@ -166,12 +184,8 @@ describe('parse', () => {
     })
   })
 
-  describe('parseDataValues', () => {
-    beforeEach(() => {
-      // @ts-expect-error
-      parser.add(parseChildren)
-      parser.add(parseDataValues)
-    })
+  describe.skip('parseDataValues', () => {
+    beforeEach(() => {})
 
     _.forEach(['input', 'select', 'textarea'] as const, (tag) => {
       it(`should attach the value of data-value as the value for ${tag} elements`, () => {
