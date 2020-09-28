@@ -4,33 +4,38 @@
     "style": {
       "left": "0px",
       "top": "0px",
-      "width": "946px",
-      "height": "844px",
+      "width": "351px",
+      "height": "757px",
       "position": "absolute",
       "outline": "none"
     },
     "children": [
       {
         "type": "img",
+        "path": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/meetdev/mLogo.png",
         "style": {
-          "left": "94.60000000000001px",
-          "top": "84.4px",
-          "width": "302.72px",
-          "height": "143.48000000000002px",
+          "left": "35.1px",
+          "top": "75.7px",
+          "width": "224.64000000000001px",
+          "height": "128.69px",
+          "backgroundColor": "red",
           "position": "absolute",
           "outline": "none"
         },
-        "id": "_khgmxjan0-_ljzwz1fbz[0]",
-        "src": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/aitmedLogo.png"
+        "parentId": "SignIn",
+        "id": "SignIn-_6db9er1a7[0]",
+        "noodlType": "image",
+        "src": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/meetdev/mLogo.png"
       },
       {
         "type": "label",
+        "text": "Welcome back",
         "style": {
           "color": "#000000ff",
-          "left": "139.06199999999998px",
-          "top": "236.32000000000002px",
-          "width": "681.12px",
-          "height": "34.604px",
+          "left": "51.596999999999994px",
+          "top": "211.96px",
+          "width": "252.72px",
+          "height": "31.037000000000003px",
           "fontSize": "24px",
           "display": "inline",
           "textAlign": "left",
@@ -39,17 +44,20 @@
           "alignItems": "center",
           "fontWeight": "bold"
         },
-        "id": "_khgmxjan0-_x5ki1v826[1]",
+        "parentId": "SignIn",
+        "id": "SignIn-_3lw5pgkxg[1]",
+        "noodlType": "label",
         "children": "Welcome back"
       },
       {
         "type": "label",
+        "text": "sign in to continue",
         "style": {
           "color": "#00000058",
-          "left": "139.06199999999998px",
-          "top": "278.52000000000004px",
-          "width": "681.12px",
-          "height": "34.604px",
+          "left": "51.596999999999994px",
+          "top": "249.81px",
+          "width": "252.72px",
+          "height": "31.037000000000003px",
           "fontSize": "16px",
           "display": "inline",
           "textAlign": "left",
@@ -58,28 +66,31 @@
           "alignItems": "center",
           "fontWeight": "bold"
         },
-        "id": "_khgmxjan0-_3hlmh6bc6[2]",
+        "parentId": "SignIn",
+        "id": "SignIn-_t344d0pxs[2]",
+        "noodlType": "label",
         "children": "sign in to continue"
       },
       {
         "type": "div",
         "style": {
-          "left": "114.466px",
-          "top": "354.47999999999996px",
-          "width": "189.20000000000002px",
-          "height": "75.96px",
+          "left": "42.471px",
+          "top": "317.94px",
+          "width": "70.2px",
+          "height": "68.13px",
           "position": "absolute",
           "outline": "none"
         },
         "children": [
           {
             "type": "label",
+            "text": "Country",
             "style": {
               "color": "#00000058",
               "left": "0px",
               "top": "0px",
-              "width": "189.20000000000002px",
-              "height": "34.604px",
+              "width": "70.2px",
+              "height": "31.037000000000003px",
               "fontSize": "12px",
               "textAlign": "left",
               "position": "absolute",
@@ -87,26 +98,48 @@
               "display": "flex",
               "alignItems": "center"
             },
-            "id": "_khgmxjan0-_fnssueo7n[3]-_y6ektkm1j[0]",
+            "parentId": "SignIn-_dzrdwhyxx[3]",
+            "id": "SignIn-_dzrdwhyxx[3]-_unsycshvj[0]",
+            "noodlType": "label",
             "children": "Country"
           },
           {
             "type": "select",
+            "contentType": "countryCode",
             "placeholder": "+1",
+            "dataKey": "formData.countryCode",
             "options": [
               {
                 "index": 0,
-                "key": "US+1",
-                "value": "US+1",
-                "label": "US+1"
+                "key": "+1",
+                "value": "+1",
+                "label": "+1"
+              },
+              {
+                "index": 1,
+                "key": "+52",
+                "value": "+52",
+                "label": "+52"
+              },
+              {
+                "index": 2,
+                "key": "+86",
+                "value": "+86",
+                "label": "+86"
+              },
+              {
+                "index": 3,
+                "key": "+965",
+                "value": "+965",
+                "label": "+965"
               }
             ],
             "required": true,
             "style": {
               "left": "0px",
-              "top": "37.98px",
-              "width": "189.20000000000002px",
-              "height": "34.604px",
+              "top": "34.065px",
+              "width": "70.2px",
+              "height": "31.037000000000003px",
               "fontSize": "14px",
               "borderWidth": "1px",
               "position": "absolute",
@@ -117,33 +150,38 @@
               "borderBottomStyle": "solid",
               "color": "#00000058"
             },
-            "id": "_khgmxjan0-_fnssueo7n[3]-formData.countryCode[1]",
+            "parentId": "SignIn-_dzrdwhyxx[3]",
+            "id": "SignIn-_dzrdwhyxx[3]-_ck5ii10rn[1]",
+            "noodlType": "select",
+            "inputType": "select",
             "data-name": "countryCode",
-            "data-key": "formData.countryCode",
-            "data-value": "+1"
+            "data-key": "formData.countryCode"
           }
         ],
-        "id": "_khgmxjan0-_fnssueo7n[3]"
+        "parentId": "SignIn",
+        "id": "SignIn-_dzrdwhyxx[3]",
+        "noodlType": "view"
       },
       {
         "type": "div",
         "style": {
-          "left": "315.3018px",
-          "top": "354.47999999999996px",
-          "width": "580.21018px",
-          "height": "75.96px",
+          "left": "116.9883px",
+          "top": "317.94px",
+          "width": "215.27883000000003px",
+          "height": "68.13px",
           "position": "absolute",
           "outline": "none"
         },
         "children": [
           {
             "type": "label",
+            "text": "Phone",
             "style": {
               "color": "#00000058",
               "left": "0px",
               "top": "0px",
-              "width": "456.918px",
-              "height": "34.604px",
+              "width": "169.533px",
+              "height": "31.037000000000003px",
               "fontSize": "12px",
               "textAlign": "left",
               "position": "absolute",
@@ -151,19 +189,23 @@
               "display": "flex",
               "alignItems": "center"
             },
-            "id": "_khgmxjan0-_tlobe0zw3[4]-_h6emevwbc[0]",
+            "parentId": "SignIn-_mgcfejaxb[4]",
+            "id": "SignIn-_mgcfejaxb[4]-_jg471g1yb[0]",
+            "noodlType": "label",
             "children": "Phone"
           },
           {
             "type": "input",
-            "placeholder": "8883309436",
+            "contentType": "phoneNumber",
+            "placeholder": "000-000-0002",
+            "dataKey": "formData.phoneNumber",
             "style": {
               "textAlign": "left",
               "fontSize": "14px",
               "left": "0px",
-              "top": "37.98px",
-              "width": "517.14982px",
-              "height": "34.604px",
+              "top": "34.065px",
+              "width": "191.88117px",
+              "height": "31.037000000000003px",
               "borderWidth": "1px",
               "position": "absolute",
               "outline": "none",
@@ -171,26 +213,32 @@
               "borderStyle": "none",
               "borderBottomStyle": "solid"
             },
-            "id": "_khgmxjan0-_tlobe0zw3[4]-formData.phoneNumber[1]",
+            "parentId": "SignIn-_mgcfejaxb[4]",
+            "id": "SignIn-_mgcfejaxb[4]-_mejugtlrm[1]",
+            "noodlType": "textField",
+            "inputType": "phoneNumber",
             "required": true,
             "data-name": "phoneNumber",
-            "data-key": "formData.phoneNumber",
-            "data-value": "8883309436"
+            "data-key": "formData.phoneNumber"
           }
         ],
-        "id": "_khgmxjan0-_tlobe0zw3[4]"
+        "parentId": "SignIn",
+        "id": "SignIn-_mgcfejaxb[4]",
+        "noodlType": "view"
       },
       {
         "type": "input",
-        "placeholder": "123456",
+        "contentType": "password",
+        "placeholder": "password",
+        "dataKey": "formData.password",
         "required": true,
         "style": {
           "textAlign": "left",
           "fontSize": "14px",
-          "left": "126.76400000000001px",
-          "top": "467.576px",
-          "width": "706.662px",
-          "height": "34.604px",
+          "left": "47.034000000000006px",
+          "top": "419.37800000000004px",
+          "width": "262.197px",
+          "height": "31.037000000000003px",
           "borderWidth": "1px",
           "position": "absolute",
           "outline": "none",
@@ -198,25 +246,22 @@
           "borderStyle": "none",
           "borderBottomStyle": "solid"
         },
-        "id": "_khgmxjan0-formData.password[5]",
+        "parentId": "SignIn",
+        "id": "SignIn-_aplib3qc4[5]",
+        "noodlType": "textField",
+        "inputType": "password",
         "data-name": "password",
-        "data-key": "formData.password",
-        "data-value": "123456",
-        "noodl": {
-          "iconPaths": {
-            "passwordHidden": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/makePasswordInvisible.png",
-            "passwordVisible": "https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/makePasswordVisiable.png"
-          }
-        }
+        "data-key": "formData.password"
       },
       {
         "type": "label",
+        "text": "Forgot Password?",
         "style": {
           "color": "#00000058",
-          "left": "126.76400000000001px",
-          "top": "523.28px",
-          "width": "706.662px",
-          "height": "34.604px",
+          "left": "47.034000000000006px",
+          "top": "454.2px",
+          "width": "262.197px",
+          "height": "31.037000000000003px",
           "fontSize": "14px",
           "display": "inline",
           "textAlign": "right",
@@ -225,18 +270,21 @@
           "alignItems": "center",
           "fontWeight": "bold"
         },
-        "id": "_khgmxjan0-_umjo4146q[6]",
+        "parentId": "SignIn",
+        "id": "SignIn-_7q7wgl1a3[6]",
+        "noodlType": "label",
         "children": "Forgot Password?"
       },
       {
         "type": "button",
+        "text": "Sign In",
         "style": {
           "color": "#ffffffff",
           "fontSize": "16px",
-          "left": "126.76400000000001px",
-          "top": "590.8px",
-          "width": "706.662px",
-          "height": "50.64px",
+          "left": "47.034000000000006px",
+          "top": "529.9px",
+          "width": "262.197px",
+          "height": "45.42px",
           "backgroundColor": "#388eccff",
           "display": "inline",
           "textAlign": "center",
@@ -247,47 +295,55 @@
           "borderRadius": "0px",
           "fontWeight": "bold"
         },
-        "id": "_khgmxjan0-_3hw4yti1k[7]",
+        "parentId": "SignIn",
+        "id": "SignIn-_q0vs0rau6[7]",
+        "noodlType": "button",
         "children": "Sign In"
       },
       {
         "type": "div",
         "style": {
-          "left": "126.76400000000001px",
-          "top": "751.16px",
-          "width": "711.392px",
-          "height": "45.576px",
+          "left": "47.034000000000006px",
+          "top": "673.73px",
+          "width": "263.952px",
+          "height": "40.878px",
           "position": "absolute",
           "outline": "none"
         },
         "children": [
           {
             "type": "label",
+            "text": "New user?",
             "style": {
-              "color": "#b1b1b1",
-              "fontSize": "15px",
-              "left": "189.20000000000002px",
               "top": "0px",
-              "width": "378.40000000000003px",
-              "height": "45.576px",
-              "textAlign": "center",
+              "left": "0px",
+              "width": "140.4px",
+              "height": "40.878px",
+              "fontSize": "14px",
+              "textAlign": "right",
+              "color": "#00000088",
+              "borderWidth": "0px",
+              "display": "inline",
               "position": "absolute",
               "outline": "none",
-              "display": "flex",
-              "alignItems": "center"
+              "alignItems": "center",
+              "boxShadow": "5px 5px 10px 3px rgba(0, 0, 0, 0.015)"
             },
-            "id": "_khgmxjan0-_m887572wr[8]-_gpx29e6vp[0]",
+            "parentId": "SignIn-_t9jnr3m6p[8]",
+            "id": "SignIn-_t9jnr3m6p[8]-_576jkfp36[0]",
+            "noodlType": "label",
             "children": "New user?"
           },
           {
             "type": "button",
+            "text": "Sign Up",
             "style": {
               "color": "#3185c7ff",
-              "fontSize": "15px",
-              "left": "387.85999999999996px",
+              "fontSize": "14px",
+              "left": "143.91px",
               "top": "0px",
-              "width": "236.5px",
-              "height": "45.576px",
+              "width": "87.75px",
+              "height": "40.878px",
               "backgroundColor": "#ffffffff",
               "position": "absolute",
               "outline": "none",
@@ -295,12 +351,18 @@
               "borderRadius": "0px",
               "fontWeight": "bold"
             },
-            "id": "_khgmxjan0-_m887572wr[8]-_pr8u97v4d[1]",
+            "parentId": "SignIn-_t9jnr3m6p[8]",
+            "id": "SignIn-_t9jnr3m6p[8]-_xc84f9qc8[1]",
+            "noodlType": "button",
             "children": "Sign Up"
           }
         ],
-        "id": "_khgmxjan0-_m887572wr[8]"
+        "parentId": "SignIn",
+        "id": "SignIn-_t9jnr3m6p[8]",
+        "noodlType": "view"
       }
-    ]
+    ],
+    "id": "SignIn",
+    "noodlType": "view"
   }
 ]

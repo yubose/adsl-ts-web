@@ -1,5 +1,10 @@
 import _ from 'lodash'
-import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
+import {
+  eventTypes,
+  isReference,
+  NOODLActionTriggerType,
+  SelectOption,
+} from 'noodl-ui'
 import { DataValueElement } from 'app/types'
 import { forEachEntries } from 'utils/common'
 import createElement from './createElement'
@@ -26,13 +31,17 @@ const parser = new NOODLDOMParser()
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 parser.onCreateNode('all', function onCreateNode(node, props) {
-  const { id, options, poster, src, style, type, videoFormat } = props
+  const {
+    id,
+    options,
+    placeholder,
+    poster,
+    src,
+    style,
+    type,
+    videoFormat,
+  } = props
 
-  const dataKey = props['data-key']
-  const dataName = props['data-name']
-  const dataListId = props['data-listid']
-  const dataUx = props['data-ux']
-  const dataValue = props['data-value']
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = props['data-listdata']
 
@@ -40,23 +49,20 @@ parser.onCreateNode('all', function onCreateNode(node, props) {
   if (src) node.setAttribute('src', src)
   if (type === 'video') node.setAttribute('poster', poster || '')
   if (videoFormat) node.setAttribute('type', videoFormat)
+  if (placeholder) node.setAttribute('placeholder', placeholder)
 
   /** Dataset identifiers */
-  if (dataKey) {
-    if ('name' in node) {
-      node.dataset['key'] = dataKey
-      node.dataset['name'] = dataKey
-    }
-  }
-  if (dataListId) node.dataset['listid'] = dataListId
-  if (dataName) node.dataset['name'] = dataName
-  if (dataUx) node.dataset['ux'] = dataUx
+  if ('data-listid' in props) node.dataset['listid'] = props['data-listid']
+  if ('data-name' in props) node.dataset['name'] = props['data-name']
+  if ('data-key' in props) node.dataset['key'] = props['data-key']
+  if ('data-ux' in props) node.dataset['ux'] = props['data-ux']
+  if ('data-value' in props) node.dataset['value'] = props['data-value']
 
   /** Data values */
-  if (dataValue != undefined) {
+  if ('data-value' in props) {
     if (['input', 'select', 'textarea'].includes(type)) {
       let elem = node as DataValueElement
-      elem['value'] = dataValue
+      elem['value'] = props['data-value'] || ''
       if (type === 'select') {
         elem = node as HTMLSelectElement
         if (elem.length) {
@@ -71,10 +77,13 @@ parser.onCreateNode('all', function onCreateNode(node, props) {
             props,
           )
         }
+      } else {
+        elem.dataset['value'] = props['data-value'] || ''
+        elem['value'] = elem.dataset['value'] || ''
       }
     } else {
-      // Defaulting to normal display components like labels for now
-      node.innerHTML = dataValue
+      node.innerHTML =
+        props['data-value'] || props.text || props.placeholder || ''
     }
   }
 
@@ -103,7 +112,7 @@ parser.onCreateNode('all', function onCreateNode(node, props) {
        * EXPERIMENTAL AND WILL BE MOVED TO A BETTER LOCATION IF IT IS
        * AN ACCEPTED SOLUTION
        */
-      const onChange = parser.createOnChangeFactory?.(dataKey)()
+      const onChange = parser.createOnChangeFactory?.(props['data-key'])()
       if (!_.isFunction(onChange)) {
         log.func('onCreateNode -- all').red('onChange is not a function')
       }
@@ -233,7 +242,6 @@ parser.onCreateNode('textField', function onCreateTextField(node, props) {
         newParent.style['display'] = 'flex'
         newParent.style['alignItems'] = 'center'
         newParent.style['backgroundColor'] = '#fff'
-        newParent.style['height'] = `${props.style?.height}`
 
         node.style['width'] = '100%'
         node.style['height'] = '100%'
@@ -283,7 +291,7 @@ parser.onCreateNode('textField', function onCreateTextField(node, props) {
         log.func('onCreateNode: Password input')
         log.orange(
           `[Experimenting] (NOTE: If you see this ` +
-            `more than once this might be a memory leak!)`,
+            `more than once in the same page this might be a memory leak!)`,
           { node, parent, toggledSrc, untoggledSrc },
         )
 

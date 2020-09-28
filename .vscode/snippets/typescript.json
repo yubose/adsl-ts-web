@@ -1,4 +1,12 @@
 {
+  "document.body.appendChild": {
+    "prefix": "dbadd",
+    "body": "document.body.appendChild($1)"
+  },
+  "document.body.removeChild": {
+    "prefix": "dbremove",
+    "body": "document.body.removeChild($1)"
+  },
   "import app": {
     "prefix": "app",
     "body": "import app from 'App'"

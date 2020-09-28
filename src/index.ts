@@ -34,6 +34,7 @@ import {
 import { createOnChangeFactory } from './utils/sdkHelpers'
 import { forEachParticipant } from './utils/twilio'
 import { isMobile, reduceEntries } from './utils/common'
+import { copyToClipboard } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
@@ -90,6 +91,7 @@ function createPreparePage(options: {
 
 window.addEventListener('load', async () => {
   // Experimenting dynamic import (code splitting)
+  const { Account } = await import('@aitmed/cadl')
   const { cadl, noodl } = await import('app/client')
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
@@ -99,11 +101,12 @@ window.addEventListener('load', async () => {
   window.noodluidom = parser
   window.streams = Meeting.getStreams()
   window.meeting = Meeting
+  window.cp = copyToClipboard
   // Auto login for the time being
-  // const vcode = await Account.requestVerificationCode('+1 8882465555')
-  // const profile = await Account.login('+1 8882465555', '142251', vcode || '')
-  // log.green(vcode)
-  // log.green('Profile', profile)
+  const vcode = await Account.requestVerificationCode('+1 8882465555')
+  const profile = await Account.login('+1 8882465555', '142251', vcode || '')
+  log.green(vcode)
+  log.green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const viewport = new Viewport()

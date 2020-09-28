@@ -1,0 +1,899 @@
+[
+  {
+    "type": "div",
+    "style": {
+      "left": "0px",
+      "top": "0px",
+      "width": "351px",
+      "height": "757px",
+      "position": "absolute",
+      "outline": "none"
+    },
+    "children": [
+      {
+        "type": "div",
+        "style": {
+          "left": "0px",
+          "top": "0px",
+          "width": "351px",
+          "height": "151.4px",
+          "backgroundColor": "#388eccff",
+          "position": "absolute",
+          "outline": "none"
+        },
+        "children": [
+          {
+            "type": "label",
+            "text": "TeleMeeting Room",
+            "style": {
+              "color": "#ffffffff",
+              "left": "35.1px",
+              "top": "60.56px",
+              "width": "245.7px",
+              "height": "30.28px",
+              "fontSize": "20px",
+              "position": "absolute",
+              "outline": "none",
+              "fontWeight": "bold"
+            },
+            "parentId": "MeetingRoomCreate-_e9r37d348[0]",
+            "id": "MeetingRoomCreate-_e9r37d348[0]-_iozuoa4ca[0]",
+            "noodlType": "label",
+            "children": "TeleMeeting Room"
+          },
+          {
+            "type": "img",
+            "path": "meetingRoomMore.png",
+            "style": {
+              "left": "291.33px",
+              "top": "52.99px",
+              "width": "28.080000000000002px",
+              "height": "45.42px",
+              "position": "absolute",
+              "outline": "none"
+            },
+            "parentId": "MeetingRoomCreate-_e9r37d348[0]",
+            "id": "MeetingRoomCreate-_e9r37d348[0]-_isxlrrcka[1]",
+            "noodlType": "image",
+            "src": "https://public.aitmed.com/noodl/aitcom_0.1/assets/meetingRoomMore.png"
+          },
+          {
+            "type": "div",
+            "style": {
+              "left": "0px",
+              "top": "113.55px",
+              "width": "351px",
+              "height": "37.85px",
+              "position": "absolute",
+              "outline": "none"
+            },
+            "children": [
+              {
+                "type": "button",
+                "text": "Invited",
+                "style": {
+                  "color": "#9bc6e5ff",
+                  "backgroundColor": "#388eccff",
+                  "fontSize": "18px",
+                  "left": "0px",
+                  "top": "0px",
+                  "width": "115.83000000000001px",
+                  "height": "37.85px",
+                  "display": "inline",
+                  "textAlign": "center",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "borderStyle": "none",
+                  "borderRadius": "0px"
+                },
+                "parentId": "MeetingRoomCreate-_e9r37d348[0]-_0wciw425v[2]",
+                "id": "MeetingRoomCreate-_e9r37d348[0]-_0wciw425v[2]-_n2bm72oq3[0]",
+                "noodlType": "button",
+                "children": "Invited"
+              },
+              {
+                "type": "button",
+                "text": "Create",
+                "style": {
+                  "color": "#ffffffff",
+                  "backgroundColor": "#388eccff",
+                  "fontSize": "18px",
+                  "left": "119.34px",
+                  "top": "0px",
+                  "width": "115.83000000000001px",
+                  "height": "37.85px",
+                  "display": "inline",
+                  "textAlign": "center",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "borderStyle": "none",
+                  "borderRadius": "0px"
+                },
+                "parentId": "MeetingRoomCreate-_e9r37d348[0]-_0wciw425v[2]",
+                "id": "MeetingRoomCreate-_e9r37d348[0]-_0wciw425v[2]-_pjv83ndqq[1]",
+                "noodlType": "button",
+                "children": "Create"
+              },
+              {
+                "type": "button",
+                "text": "History",
+                "style": {
+                  "color": "#9bc6e5ff",
+                  "backgroundColor": "#388eccff",
+                  "fontSize": "18px",
+                  "left": "235.17000000000002px",
+                  "top": "0px",
+                  "width": "115.83000000000001px",
+                  "height": "37.85px",
+                  "display": "inline",
+                  "textAlign": "center",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "borderStyle": "none",
+                  "borderRadius": "0px"
+                },
+                "parentId": "MeetingRoomCreate-_e9r37d348[0]-_0wciw425v[2]",
+                "id": "MeetingRoomCreate-_e9r37d348[0]-_0wciw425v[2]-_918pgxjt6[2]",
+                "noodlType": "button",
+                "children": "History"
+              }
+            ],
+            "parentId": "MeetingRoomCreate-_e9r37d348[0]",
+            "id": "MeetingRoomCreate-_e9r37d348[0]-_0wciw425v[2]",
+            "noodlType": "view"
+          }
+        ],
+        "parentId": "MeetingRoomCreate",
+        "id": "MeetingRoomCreate-_e9r37d348[0]",
+        "noodlType": "view"
+      },
+      {
+        "type": "ul",
+        "contentType": "listObject",
+        "listObject": [
+          {
+            "id": "",
+            "name": {
+              "roomName": "Test Room 1",
+              "videoProvider": "twilio"
+            },
+            "type": "0",
+            "ctime": "",
+            "subtype": "",
+            "bvid": "",
+            "evid": "",
+            "tage": "",
+            "deat": {
+              "roomId": "roomId 1",
+              "accessToken": "token1"
+            }
+          },
+          {
+            "id": "",
+            "name": {
+              "roomName": "Test Room 2",
+              "videoProvider": "twilio"
+            },
+            "type": "0",
+            "ctime": "",
+            "subtype": "",
+            "bvid": "",
+            "evid": "",
+            "tage": "",
+            "deat": {
+              "roomId": "roomId 2",
+              "accessToken": "token2"
+            }
+          }
+        ],
+        "iteratorVar": "itemObject",
+        "style": {
+          "left": "0px",
+          "top": "151.4px",
+          "width": "351px",
+          "height": "605.6px",
+          "position": "absolute",
+          "outline": "none"
+        },
+        "children": [
+          {
+            "iteratorVar": "itemObject",
+            "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+            "type": "li",
+            "itemObject": {
+              "id": "",
+              "name": {
+                "roomName": "Test Room 1",
+                "videoProvider": "twilio"
+              },
+              "type": "0",
+              "ctime": "",
+              "subtype": "",
+              "bvid": "",
+              "evid": "",
+              "tage": "",
+              "deat": {
+                "roomId": "roomId 1",
+                "accessToken": "token1"
+              }
+            },
+            "style": {
+              "left": "0px",
+              "top": "0px",
+              "width": "351px",
+              "height": "113.55px",
+              "borderWidth": "1px",
+              "borderColor": "#00000011",
+              "position": "relative",
+              "outline": "none",
+              "borderRadius": "0px",
+              "borderStyle": "none",
+              "borderBottomStyle": "solid",
+              "listStyle": "none",
+              "padding": 0
+            },
+            "children": [
+              {
+                "type": "label",
+                "dataKey": "itemObject.name.roomName",
+                "style": {
+                  "left": "28.080000000000002px",
+                  "top": "22.71px",
+                  "width": "280.8px",
+                  "height": "30.28px",
+                  "fontSize": "18px",
+                  "color": "#00000088",
+                  "display": "inline",
+                  "textAlign": "left",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "fontWeight": "bold"
+                },
+                "parentId": "MeetingRoomCreate-_rcy8lcf8t[1]-_krhc7lwwa[0]",
+                "id": "MeetingRoomCreate-_rcy8lcf8t[1]-_krhc7lwwa[0]-_kexixidjd[0]",
+                "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+                "listItemIndex": 0,
+                "text": "Test Room 1",
+                "noodlType": "label",
+                "data-name": "roomName",
+                "data-key": "itemObject.name.roomName",
+                "data-value": "Test Room 1",
+                "children": "Test Room 1"
+              },
+              {
+                "type": "label",
+                "text": "participants name",
+                "style": {
+                  "left": "28.080000000000002px",
+                  "top": "60.56px",
+                  "width": "315.90000000000003px",
+                  "height": "22.71px",
+                  "fontSize": "18px",
+                  "color": "#00000058",
+                  "position": "absolute",
+                  "outline": "none"
+                },
+                "parentId": "MeetingRoomCreate-_rcy8lcf8t[1]-_krhc7lwwa[0]",
+                "id": "MeetingRoomCreate-_rcy8lcf8t[1]-_krhc7lwwa[0]-_e10cmdrti[1]",
+                "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+                "listItemIndex": 0,
+                "noodlType": "label",
+                "children": "participants name"
+              },
+              {
+                "type": "img",
+                "path": "rightArrow.png",
+                "style": {
+                  "left": "308.88px",
+                  "top": "15.14px",
+                  "width": "28.080000000000002px",
+                  "height": "30.28px",
+                  "position": "absolute",
+                  "outline": "none"
+                },
+                "parentId": "MeetingRoomCreate-_rcy8lcf8t[1]-_krhc7lwwa[0]",
+                "id": "MeetingRoomCreate-_rcy8lcf8t[1]-_krhc7lwwa[0]-_544fwmbss[2]",
+                "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+                "listItemIndex": 0,
+                "noodlType": "image",
+                "src": "https://public.aitmed.com/noodl/aitcom_0.1/assets/rightArrow.png"
+              }
+            ],
+            "parentId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+            "id": "MeetingRoomCreate-_rcy8lcf8t[1]-_krhc7lwwa[0]",
+            "blueprint": {
+              "iteratorVar": "itemObject",
+              "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+              "type": "li",
+              "itemObject": "",
+              "style": {
+                "left": "0px",
+                "top": "0px",
+                "width": "351px",
+                "height": "113.55px",
+                "borderWidth": "1px",
+                "borderColor": "#00000011",
+                "position": "relative",
+                "outline": "none",
+                "borderRadius": "0px",
+                "borderStyle": "none",
+                "borderBottomStyle": "solid",
+                "listStyle": "none",
+                "padding": 0
+              },
+              "children": [
+                {
+                  "type": "label",
+                  "dataKey": "itemObject.name.roomName",
+                  "style": {
+                    "left": "28.080000000000002px",
+                    "top": "22.71px",
+                    "width": "280.8px",
+                    "height": "30.28px",
+                    "fontSize": "18px",
+                    "color": "#00000088",
+                    "display": "inline",
+                    "textAlign": "left",
+                    "position": "absolute",
+                    "outline": "none",
+                    "alignItems": "center",
+                    "fontWeight": "bold"
+                  },
+                  "parentId": "_tmcc9ys91",
+                  "id": "_tmcc9ys91-_wss4jcyg2[0]",
+                  "noodlType": "label",
+                  "data-name": "roomName",
+                  "data-key": "itemObject.name.roomName"
+                },
+                {
+                  "type": "label",
+                  "text": "participants name",
+                  "style": {
+                    "left": "28.080000000000002px",
+                    "top": "60.56px",
+                    "width": "315.90000000000003px",
+                    "height": "22.71px",
+                    "fontSize": "18px",
+                    "color": "#00000058",
+                    "position": "absolute",
+                    "outline": "none"
+                  },
+                  "parentId": "_tmcc9ys91",
+                  "id": "_tmcc9ys91-_bihq7ogcb[1]",
+                  "noodlType": "label",
+                  "children": "participants name"
+                },
+                {
+                  "type": "img",
+                  "path": "rightArrow.png",
+                  "style": {
+                    "left": "308.88px",
+                    "top": "15.14px",
+                    "width": "28.080000000000002px",
+                    "height": "30.28px",
+                    "position": "absolute",
+                    "outline": "none"
+                  },
+                  "parentId": "_tmcc9ys91",
+                  "id": "_tmcc9ys91-_82iqrhosz[2]",
+                  "noodlType": "image",
+                  "src": "https://public.aitmed.com/noodl/aitcom_0.1/assets/rightArrow.png"
+                }
+              ],
+              "noodlType": "listItem"
+            },
+            "listItemIndex": 0,
+            "noodlType": "listItem"
+          },
+          {
+            "iteratorVar": "itemObject",
+            "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+            "type": "li",
+            "itemObject": {
+              "id": "",
+              "name": {
+                "roomName": "Test Room 2",
+                "videoProvider": "twilio"
+              },
+              "type": "0",
+              "ctime": "",
+              "subtype": "",
+              "bvid": "",
+              "evid": "",
+              "tage": "",
+              "deat": {
+                "roomId": "roomId 2",
+                "accessToken": "token2"
+              }
+            },
+            "style": {
+              "left": "0px",
+              "top": "0px",
+              "width": "351px",
+              "height": "113.55px",
+              "borderWidth": "1px",
+              "borderColor": "#00000011",
+              "position": "relative",
+              "outline": "none",
+              "borderRadius": "0px",
+              "borderStyle": "none",
+              "borderBottomStyle": "solid",
+              "listStyle": "none",
+              "padding": 0
+            },
+            "children": [
+              {
+                "type": "label",
+                "dataKey": "itemObject.name.roomName",
+                "style": {
+                  "left": "28.080000000000002px",
+                  "top": "22.71px",
+                  "width": "280.8px",
+                  "height": "30.28px",
+                  "fontSize": "18px",
+                  "color": "#00000088",
+                  "display": "inline",
+                  "textAlign": "left",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "fontWeight": "bold"
+                },
+                "parentId": "MeetingRoomCreate-_rcy8lcf8t[1]-_cu6ztpad2[1]",
+                "id": "MeetingRoomCreate-_rcy8lcf8t[1]-_cu6ztpad2[1]-_8ckqdkicw[0]",
+                "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+                "listItemIndex": 1,
+                "text": "Test Room 2",
+                "noodlType": "label",
+                "data-name": "roomName",
+                "data-key": "itemObject.name.roomName",
+                "data-value": "Test Room 2",
+                "children": "Test Room 2"
+              },
+              {
+                "type": "label",
+                "text": "participants name",
+                "style": {
+                  "left": "28.080000000000002px",
+                  "top": "60.56px",
+                  "width": "315.90000000000003px",
+                  "height": "22.71px",
+                  "fontSize": "18px",
+                  "color": "#00000058",
+                  "position": "absolute",
+                  "outline": "none"
+                },
+                "parentId": "MeetingRoomCreate-_rcy8lcf8t[1]-_cu6ztpad2[1]",
+                "id": "MeetingRoomCreate-_rcy8lcf8t[1]-_cu6ztpad2[1]-_zelv3ncuo[1]",
+                "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+                "listItemIndex": 1,
+                "noodlType": "label",
+                "children": "participants name"
+              },
+              {
+                "type": "img",
+                "path": "rightArrow.png",
+                "style": {
+                  "left": "308.88px",
+                  "top": "15.14px",
+                  "width": "28.080000000000002px",
+                  "height": "30.28px",
+                  "position": "absolute",
+                  "outline": "none"
+                },
+                "parentId": "MeetingRoomCreate-_rcy8lcf8t[1]-_cu6ztpad2[1]",
+                "id": "MeetingRoomCreate-_rcy8lcf8t[1]-_cu6ztpad2[1]-_p7urxec83[2]",
+                "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+                "listItemIndex": 1,
+                "noodlType": "image",
+                "src": "https://public.aitmed.com/noodl/aitcom_0.1/assets/rightArrow.png"
+              }
+            ],
+            "parentId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+            "id": "MeetingRoomCreate-_rcy8lcf8t[1]-_cu6ztpad2[1]",
+            "blueprint": {
+              "iteratorVar": "itemObject",
+              "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+              "type": "li",
+              "itemObject": "",
+              "style": {
+                "left": "0px",
+                "top": "0px",
+                "width": "351px",
+                "height": "113.55px",
+                "borderWidth": "1px",
+                "borderColor": "#00000011",
+                "position": "relative",
+                "outline": "none",
+                "borderRadius": "0px",
+                "borderStyle": "none",
+                "borderBottomStyle": "solid",
+                "listStyle": "none",
+                "padding": 0
+              },
+              "children": [
+                {
+                  "type": "label",
+                  "dataKey": "itemObject.name.roomName",
+                  "style": {
+                    "left": "28.080000000000002px",
+                    "top": "22.71px",
+                    "width": "280.8px",
+                    "height": "30.28px",
+                    "fontSize": "18px",
+                    "color": "#00000088",
+                    "display": "inline",
+                    "textAlign": "left",
+                    "position": "absolute",
+                    "outline": "none",
+                    "alignItems": "center",
+                    "fontWeight": "bold"
+                  },
+                  "parentId": "_tmcc9ys91",
+                  "id": "_tmcc9ys91-_wss4jcyg2[0]",
+                  "noodlType": "label",
+                  "data-name": "roomName",
+                  "data-key": "itemObject.name.roomName"
+                },
+                {
+                  "type": "label",
+                  "text": "participants name",
+                  "style": {
+                    "left": "28.080000000000002px",
+                    "top": "60.56px",
+                    "width": "315.90000000000003px",
+                    "height": "22.71px",
+                    "fontSize": "18px",
+                    "color": "#00000058",
+                    "position": "absolute",
+                    "outline": "none"
+                  },
+                  "parentId": "_tmcc9ys91",
+                  "id": "_tmcc9ys91-_bihq7ogcb[1]",
+                  "noodlType": "label",
+                  "children": "participants name"
+                },
+                {
+                  "type": "img",
+                  "path": "rightArrow.png",
+                  "style": {
+                    "left": "308.88px",
+                    "top": "15.14px",
+                    "width": "28.080000000000002px",
+                    "height": "30.28px",
+                    "position": "absolute",
+                    "outline": "none"
+                  },
+                  "parentId": "_tmcc9ys91",
+                  "id": "_tmcc9ys91-_82iqrhosz[2]",
+                  "noodlType": "image",
+                  "src": "https://public.aitmed.com/noodl/aitcom_0.1/assets/rightArrow.png"
+                }
+              ],
+              "noodlType": "listItem"
+            },
+            "listItemIndex": 1,
+            "noodlType": "listItem"
+          }
+        ],
+        "parentId": "MeetingRoomCreate",
+        "id": "MeetingRoomCreate-_rcy8lcf8t[1]",
+        "noodlType": "list",
+        "inputType": "listObject",
+        "data-listdata": [
+          {
+            "id": "",
+            "name": {
+              "roomName": "Test Room 1",
+              "videoProvider": "twilio"
+            },
+            "type": "0",
+            "ctime": "",
+            "subtype": "",
+            "bvid": "",
+            "evid": "",
+            "tage": "",
+            "deat": {
+              "roomId": "roomId 1",
+              "accessToken": "token1"
+            }
+          },
+          {
+            "id": "",
+            "name": {
+              "roomName": "Test Room 2",
+              "videoProvider": "twilio"
+            },
+            "type": "0",
+            "ctime": "",
+            "subtype": "",
+            "bvid": "",
+            "evid": "",
+            "tage": "",
+            "deat": {
+              "roomId": "roomId 2",
+              "accessToken": "token2"
+            }
+          }
+        ],
+        "data-listid": "MeetingRoomCreate-_rcy8lcf8t[1]",
+        "blueprint": {
+          "iteratorVar": "itemObject",
+          "listId": "MeetingRoomCreate-_rcy8lcf8t[1]",
+          "type": "li",
+          "itemObject": "",
+          "style": {
+            "left": "0px",
+            "top": "0px",
+            "width": "351px",
+            "height": "113.55px",
+            "borderWidth": "1px",
+            "borderColor": "#00000011",
+            "position": "relative",
+            "outline": "none",
+            "borderRadius": "0px",
+            "borderStyle": "none",
+            "borderBottomStyle": "solid",
+            "listStyle": "none",
+            "padding": 0
+          },
+          "children": [
+            {
+              "type": "label",
+              "dataKey": "itemObject.name.roomName",
+              "style": {
+                "left": "28.080000000000002px",
+                "top": "22.71px",
+                "width": "280.8px",
+                "height": "30.28px",
+                "fontSize": "18px",
+                "color": "#00000088",
+                "display": "inline",
+                "textAlign": "left",
+                "position": "absolute",
+                "outline": "none",
+                "alignItems": "center",
+                "fontWeight": "bold"
+              },
+              "parentId": "_tmcc9ys91",
+              "id": "_tmcc9ys91-_wss4jcyg2[0]",
+              "noodlType": "label",
+              "data-name": "roomName",
+              "data-key": "itemObject.name.roomName"
+            },
+            {
+              "type": "label",
+              "text": "participants name",
+              "style": {
+                "left": "28.080000000000002px",
+                "top": "60.56px",
+                "width": "315.90000000000003px",
+                "height": "22.71px",
+                "fontSize": "18px",
+                "color": "#00000058",
+                "position": "absolute",
+                "outline": "none"
+              },
+              "parentId": "_tmcc9ys91",
+              "id": "_tmcc9ys91-_bihq7ogcb[1]",
+              "noodlType": "label",
+              "children": "participants name"
+            },
+            {
+              "type": "img",
+              "path": "rightArrow.png",
+              "style": {
+                "left": "308.88px",
+                "top": "15.14px",
+                "width": "28.080000000000002px",
+                "height": "30.28px",
+                "position": "absolute",
+                "outline": "none"
+              },
+              "parentId": "_tmcc9ys91",
+              "id": "_tmcc9ys91-_82iqrhosz[2]",
+              "noodlType": "image",
+              "src": "https://public.aitmed.com/noodl/aitcom_0.1/assets/rightArrow.png"
+            }
+          ],
+          "noodlType": "listItem"
+        }
+      },
+      {
+        "type": "img",
+        "path": "addMeeting.png",
+        "style": {
+          "left": "245.7px",
+          "top": "567.75px",
+          "width": "49.14000000000001px",
+          "height": "60.56px",
+          "backgroundColor": "#388eccff",
+          "borderRadius": "100px",
+          "position": "absolute",
+          "outline": "none",
+          "borderStyle": "none"
+        },
+        "parentId": "MeetingRoomCreate",
+        "id": "MeetingRoomCreate-_cg7j67vzs[2]",
+        "noodlType": "image",
+        "src": "https://public.aitmed.com/noodl/aitcom_0.1/assets/addMeeting.png"
+      },
+      {
+        "type": "div",
+        "viewTag": "confirmView",
+        "style": {
+          "left": "0px",
+          "top": "0px",
+          "width": "351px",
+          "height": "757px",
+          "backgroundColor": "#00000066",
+          "position": "absolute",
+          "outline": "none",
+          "visibility": "hidden"
+        },
+        "children": [
+          {
+            "type": "div",
+            "style": {
+              "left": "17.55px",
+              "top": "113.55px",
+              "width": "313.55883px",
+              "height": "264.95px",
+              "backgroundColor": "#eeeeeeff",
+              "borderRadius": "15px",
+              "position": "absolute",
+              "outline": "none",
+              "borderStyle": "none"
+            },
+            "children": [
+              {
+                "type": "label",
+                "text": "Create Room Name",
+                "style": {
+                  "top": "30.28px",
+                  "left": "0px",
+                  "width": "313.55883px",
+                  "height": "37.85px",
+                  "fontSize": "20px",
+                  "textAlign": "center",
+                  "color": "#00000088",
+                  "borderWidth": "0px",
+                  "display": "inline",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "fontWeight": "bold",
+                  "boxShadow": "5px 5px 10px 3px rgba(0, 0, 0, 0.015)"
+                },
+                "parentId": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]",
+                "id": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]-_4tf9xz5h4[0]",
+                "noodlType": "label",
+                "children": "Create Room Name"
+              },
+              {
+                "type": "input",
+                "contentType": "text",
+                "placeholder": "Please type the title here",
+                "dataKey": "newRoomInfo.edge.name.roomName",
+                "style": {
+                  "top": "98.41px",
+                  "left": "0px",
+                  "width": "313.55883px",
+                  "height": "37.85px",
+                  "fontSize": "20px",
+                  "textAlign": "center",
+                  "color": "#00000088",
+                  "borderWidth": "0px",
+                  "display": "inline",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "boxShadow": "5px 5px 10px 3px rgba(0, 0, 0, 0.015)"
+                },
+                "parentId": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]",
+                "id": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]-_g1wsur3ar[1]",
+                "noodlType": "textField",
+                "inputType": "text",
+                "data-name": "roomName",
+                "data-key": "newRoomInfo.edge.name.roomName"
+              },
+              {
+                "type": "hr",
+                "style": {
+                  "width": "313.55883px",
+                  "height": "0.757px",
+                  "backgroundColor": "#00000088",
+                  "left": "0px",
+                  "top": "192.55051999999998px",
+                  "position": "absolute",
+                  "outline": "none"
+                },
+                "parentId": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]",
+                "id": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]-_kqt5l3qsq[2]",
+                "noodlType": "divider"
+              },
+              {
+                "type": "button",
+                "text": "Cancel",
+                "style": {
+                  "top": "208.175px",
+                  "left": "0px",
+                  "width": "147.42px",
+                  "height": "51.56684px",
+                  "fontSize": "17px",
+                  "textAlign": "center",
+                  "color": "#007affff",
+                  "borderWidth": "0px",
+                  "display": "inline",
+                  "borderRadius": "15px",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "borderStyle": "none",
+                  "boxShadow": "5px 5px 10px 3px rgba(0, 0, 0, 0.015)"
+                },
+                "parentId": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]",
+                "id": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]-_wnandcg2k[3]",
+                "noodlType": "button",
+                "children": "Cancel"
+              },
+              {
+                "type": "button",
+                "text": "Confirm",
+                "style": {
+                  "top": "208.175px",
+                  "left": "157.95000000000002px",
+                  "width": "147.42px",
+                  "height": "51.56684px",
+                  "fontSize": "17px",
+                  "textAlign": "center",
+                  "color": "#007affff",
+                  "borderWidth": "0px",
+                  "display": "inline",
+                  "borderRadius": "15px",
+                  "position": "absolute",
+                  "outline": "none",
+                  "alignItems": "center",
+                  "borderStyle": "none",
+                  "boxShadow": "5px 5px 10px 3px rgba(0, 0, 0, 0.015)"
+                },
+                "parentId": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]",
+                "id": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]-_klg5idyzn[4]",
+                "noodlType": "button",
+                "children": "Confirm"
+              },
+              {
+                "type": "hr",
+                "style": {
+                  "width": "0.35100000000000003px",
+                  "height": "52.99px",
+                  "backgroundColor": "#00000088",
+                  "left": "157.95000000000002px",
+                  "top": "196.82px",
+                  "position": "absolute",
+                  "outline": "none"
+                },
+                "parentId": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]",
+                "id": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]-_ws6y747mt[5]",
+                "noodlType": "divider"
+              }
+            ],
+            "parentId": "MeetingRoomCreate-_sqji8c94e[3]",
+            "id": "MeetingRoomCreate-_sqji8c94e[3]-_u7via1zvl[0]",
+            "noodlType": "view"
+          }
+        ],
+        "parentId": "MeetingRoomCreate",
+        "id": "MeetingRoomCreate-_sqji8c94e[3]",
+        "noodlType": "popUp",
+        "data-ux": "confirmView"
+      }
+    ],
+    "id": "MeetingRoomCreate",
+    "noodlType": "view"
+  }
+]

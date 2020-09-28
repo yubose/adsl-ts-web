@@ -24,3 +24,7 @@ before(async () => {
 after(() => {
   logSpy.restore()
 })
+
+afterEach(() => {
+  document.body.textContent = ''
+})

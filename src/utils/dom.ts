@@ -2,6 +2,16 @@ import _ from 'lodash'
 import { Styles } from 'app/types'
 import { forEachEntries } from './common'
 
+export function copyToClipboard(value: string) {
+  const textarea = document.createElement('textarea')
+  textarea.value = _.isString(value) ? value : JSON.stringify(value, null, 2)
+  document.body.appendChild(textarea)
+  textarea.select()
+  textarea.setSelectionRange(0, 9999999)
+  document.execCommand('copy')
+  textarea.remove()
+}
+
 export function getDocumentScrollTop() {
   // IE8 used `document.documentElement`
   return (
@@ -9,6 +19,7 @@ export function getDocumentScrollTop() {
     document.body.scrollTop
   )
 }
+
 /** Opens the file select window. The selected file is the resolved value */
 export function openFileSelect(): Promise<File> {
   return new Promise((resolve) => {

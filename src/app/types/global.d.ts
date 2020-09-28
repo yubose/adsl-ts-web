@@ -26,6 +26,7 @@ declare global {
     noodluidom: any
     room: Room | null
     streams: any
+    cp: Function
     // noodl-ui
     // twilio-video
     twilio: any
