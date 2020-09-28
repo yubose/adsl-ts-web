@@ -122,9 +122,6 @@ class NOODLUIDOM {
         this.#handleChildren(node as NOODLElement, props.children as any)
       }
 
-      // ! NOTE: This will be deprecated in favor of this.onCreateNode
-      this.emit(noodlDomParserEvents.onCreateNode, node, props)
-
       // TODO: Isolate this into its own method
       if (node) {
         _.forEach(

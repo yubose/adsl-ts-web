@@ -35,7 +35,6 @@ import { createOnChangeFactory } from './utils/sdkHelpers'
 import { forEachParticipant } from './utils/twilio'
 import { isMobile, reduceEntries } from './utils/common'
 import { modalIds, CACHED_PAGES } from './constants'
-import { noodlDomParserEvents } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
@@ -91,13 +90,13 @@ function createPreparePage(options: {
 
 window.addEventListener('load', async () => {
   // Experimenting dynamic import (code splitting)
-  const { Account } = await import('@aitmed/cadl')
   const { cadl, noodl } = await import('app/client')
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
   window.getByDataUX = getByDataUX
   window.noodl = cadl
   window.noodlui = noodl
+  window.noodluidom = parser
   window.streams = Meeting.getStreams()
   window.meeting = Meeting
   // Auto login for the time being
@@ -482,7 +481,7 @@ window.addEventListener('load', async () => {
     }
   }
 
-  // THIS IS EXPERIMENTAL AND WILL BE REMOVED
+  // createOnChangeFactory IS EXPERIMENTAL AND WILL BE REFACTORED
   parser.createOnChangeFactory = createOnChangeFactory
   parser.onCreateNode('all', onCreateNode)
 

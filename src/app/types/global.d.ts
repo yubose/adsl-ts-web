@@ -23,6 +23,7 @@ declare global {
     meeting: Meeting
     modal: Modal
     noodlui: NOODL
+    noodluidom: any
     room: Room | null
     streams: any
     // noodl-ui

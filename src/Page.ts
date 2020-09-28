@@ -7,7 +7,6 @@ import {
 import { noodl } from 'app/client'
 import { openOutboundURL } from './utils/common'
 import { NOODLElement, PageModalState, PageSnapshot } from './app/types'
-import { noodlDomParserEvents } from './constants'
 import parser from './utils/parser'
 import Modal from './components/NOODLModal'
 import Logger from './app/Logger'
@@ -16,11 +15,9 @@ const log = Logger.create('Page.ts')
 
 export type PageListenerName =
   | 'onStart'
-  | 'onCreateNode'
   | 'onRootNodeInitializing'
   | 'onRootNodeInitialized'
   | 'onBeforePageRender'
-  | 'onCreateNode'
   | 'onPageRendered'
   | 'onError'
 
@@ -42,9 +39,6 @@ class Page {
   previousPage: string = ''
   currentPage: string = ''
   #onStart: ((pageName: string) => Promise<any>) | undefined
-  #onCreateNode:
-    | ((node: NOODLElement, props: NOODLComponentProps) => Promise<any>)
-    | undefined
   #onRootNodeInitializing: (() => Promise<any>) | undefined
   #onRootNodeInitialized:
     | ((rootNode: NOODLElement | null) => Promise<any>)
@@ -95,15 +89,6 @@ class Page {
       this.rootNode = root
       document.body.appendChild(root)
     }
-
-    parser.on(
-      noodlDomParserEvents.onCreateNode,
-      (node: NOODLElement, props: NOODLComponentProps) => {
-        if (_.isFunction(this.#onCreateNode)) {
-          this.#onCreateNode(node, props)
-        }
-      },
-    )
   }
 
   /**
@@ -228,12 +213,6 @@ class Page {
 
   set onStart(fn: (pageName: string) => Promise<any>) {
     this.#onStart = fn
-  }
-
-  set onCreateNode(
-    fn: (node: NOODLElement, props: NOODLComponentProps) => any,
-  ) {
-    this.#onCreateNode = fn
   }
 
   set onRootNodeInitializing(fn: () => Promise<any>) {

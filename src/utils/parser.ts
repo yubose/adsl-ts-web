@@ -25,7 +25,7 @@ export const isView = matchNoodlType('view')
 const parser = new NOODLDOMParser()
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-parser.onCreateNode('all', (node, props) => {
+parser.onCreateNode('all', function onCreateNode(node, props) {
   const { id, options, poster, src, style, type, videoFormat } = props
 
   const dataKey = props['data-key']
@@ -151,7 +151,7 @@ parser.onCreateNode('all', (node, props) => {
   }
 })
 
-parser.onCreateNode('button', (node, props) => {
+parser.onCreateNode('button', function onCreateButton(node, props) {
   const { onClick: onClickProp, src } = props
   /**
    * Buttons that have a "src" property
@@ -169,7 +169,7 @@ parser.onCreateNode('button', (node, props) => {
   node.style['cursor'] = _.isFunction(onClickProp) ? 'pointer' : 'auto'
 })
 
-parser.onCreateNode('image', (node, props) => {
+parser.onCreateNode('image', function onCreateImage(node, props) {
   const { children, onClick } = props
 
   if (_.isFunction(onClick)) {
@@ -190,12 +190,12 @@ parser.onCreateNode('image', (node, props) => {
   }
 })
 
-parser.onCreateNode('label', (node, props) => {
+parser.onCreateNode('label', function onCreateLabel(node, props) {
   const { onClick } = props
   node.style['cursor'] = _.isFunction(onClick) ? 'pointer' : 'auto'
 })
 
-parser.onCreateNode('textField', (node, props) => {
+parser.onCreateNode('textField', function onCreateTextField(node, props) {
   const { contentType } = props
 
   // Password inputs
@@ -205,7 +205,7 @@ parser.onCreateNode('textField', (node, props) => {
         const assetsUrl = noodl.getContext().assetsUrl
         const toggledSrc = assetsUrl + 'makePasswordInvisible.png'
         const untoggledSrc = assetsUrl + 'makePasswordVisiable.png'
-        const grandParent = node?.parentNode as HTMLDivElement
+        const originalParent = node?.parentNode as HTMLDivElement
         const newParent = document.createElement('div')
         const eyeContainer = document.createElement('button')
         const eyeIcon = document.createElement('img')
@@ -223,22 +223,20 @@ parser.onCreateNode('textField', (node, props) => {
           'height',
         ] as const
 
-        // Transfer styles to the grand parent to position our custom elements
+        // Transfer styles to the new parent to position our custom elements
         _.forEach(dividedStyleKeys, (styleKey) => {
-          grandParent.style[styleKey] = props.style?.[styleKey]
+          newParent.style[styleKey] = props.style?.[styleKey]
           // Remove the transfered styles from the original input element
-          delete node.style[styleKey]
+          node.style[styleKey] = ''
         })
 
         newParent.style['display'] = 'flex'
         newParent.style['alignItems'] = 'center'
         newParent.style['backgroundColor'] = '#fff'
-        newParent.style['height'] = '100%'
+        newParent.style['height'] = `${props.style?.height}`
 
         node.style['width'] = '100%'
         node.style['height'] = '100%'
-        node.style['padding'] = '0px'
-        node.style['position'] = 'relative'
 
         eyeContainer.style['top'] = '0px'
         eyeContainer.style['bottom'] = '0px'
@@ -257,11 +255,11 @@ parser.onCreateNode('textField', (node, props) => {
         // Restructing the node structure to match our custom effects with the
         // toggling of the eye icons
 
-        if (grandParent?.contains(node)) grandParent.removeChild(node)
+        if (originalParent.contains(node)) originalParent.removeChild(node)
         eyeContainer.appendChild(eyeIcon)
         newParent.appendChild(node)
         newParent.appendChild(eyeContainer)
-        grandParent?.appendChild(newParent)
+        originalParent.appendChild(newParent)
 
         let selected = false
 
