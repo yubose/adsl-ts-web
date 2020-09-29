@@ -1,6 +1,6 @@
 {
   "name": "noodl-ui-dom",
-  "version": "0.0.3-alpha.0",
+  "version": "0.0.3",
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -42,7 +42,7 @@
     "lodash": "^4.17.20",
     "mocha": "^8.0.1",
     "nodemon": "^2.0.4",
-    "noodl-ui": "0.0.24",
+    "noodl-ui": "^0.0.25-alpha.0",
     "rollup": "^2.27.1",
     "rollup-plugin-filesize": "^9.0.2",
     "rollup-plugin-peer-deps-external": "^2.2.2",

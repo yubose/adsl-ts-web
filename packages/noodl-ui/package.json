@@ -1,6 +1,6 @@
 {
   "name": "noodl-ui",
-  "version": "0.0.24",
+  "version": "0.0.25-alpha.0",
   "description": "NOODL JavaScript library",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "license": "MIT",
@@ -31,8 +31,6 @@
     "test:scripts": "ts-mocha -p tsconfig.test.json -r ts-node/register --extensions ts --watch --watch-files _dev_ _dev_/**/*.test.ts",
     "tsc": "tsc --watch"
   },
-  "peerDependencies": {},
-  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.11.6",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
