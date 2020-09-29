@@ -1,9 +1,20 @@
-import { NOODLComponentProps, Page as NOODLUiPage } from 'noodl-ui'
-import { noodlDomParserEvents, renderStatus } from './constants'
+import { NOODLComponentProps, NOODLComponentType } from 'noodl-ui'
+import { noodlDOMEvents } from './constants'
 
-export type SerializedError = any
+export interface INOODLUIDOM {
+  on(eventName: NOODLDOMCreateNodeEvent, cb: Function): this
+  off(eventName: NOODLDOMCreateNodeEvent, cb: Function): this
+  emit(eventName: NOODLDOMCreateNodeEvent, ...args: any[]): this
+  getEventListeners(eventName: NOODLDOMCreateNodeEvent): Function[]
+  getUtils(): { parse: Parser }
+  isValidAttribute(tagName: NOODLDOMTagName, key: string): boolean
+  onCreateNode(type: 'all' | NOODLComponentType, cb: Parser): this
+  parse(props: NOODLComponentProps): NOODLElement | null
+}
 
-export type DOMParserEvent = typeof noodlDomParserEvents[keyof typeof noodlDomParserEvents]
+export type NOODLDOMComponentType = keyof typeof noodlDOMEvents
+
+export type NOODLDOMCreateNodeEvent = typeof noodlDOMEvents[keyof typeof noodlDOMEvents]
 
 export interface Parser {
   (
@@ -16,14 +27,7 @@ export interface Parser {
 export type ParserArgs = Parameters<Parser>
 
 export interface ParserOptions {
-  parse: (props: NOODLComponentProps) => NOODLElement | undefined
-}
-
-export type IPage = any
-
-export interface CachedPageObject {
-  name: string
-  timestamp: number
+  parse: Parser
 }
 
 export type NOODLElements = Pick<
@@ -100,46 +104,46 @@ export type NOODLElement = Extract<
   HTMLElement
 >
 
+export type NOODLDOMTagName = keyof HTMLElementTagNameMap
+
 export type DataValueElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement
 
-export type PageListenerName =
-  | 'onStart'
-  | 'onRootNodeInitializing'
-  | 'onRootNodeInitialized'
-  | 'onBeforePageRender'
-  | 'onPageRendered'
-  | 'onPageRequest'
-  | 'onModalStateChange'
-  | 'onError'
+// export type PageListenerName =
+//   | 'onStart'
+//   | 'onRootNodeInitializing'
+//   | 'onRootNodeInitialized'
+//   | 'onBeforePageRender'
+//   | 'onPageRendered'
+//   | 'onPageRequest'
+//   | 'onModalStateChange'
+//   | 'onError'
 
-export interface PageModalState {
-  id: string
-  opened: boolean
-  context: null | { [key: string]: any }
-  props: { [key: string]: any }
-}
+// export interface PageModalState {
+//   id: string
+//   opened: boolean
+//   context: null | { [key: string]: any }
+//   props: { [key: string]: any }
+// }
 
-export interface PageSnapshot extends NOODLUiPage {
-  components?: NOODLComponentProps[]
-}
+// export interface PageSnapshot extends NOODLUiPage {
+//   components?: NOODLComponentProps[]
+// }
 
-// export type PageRenderStatus = typeof constants.pageRenderStatuses[number]
-export type PageRenderStatus = typeof renderStatus[keyof typeof renderStatus]
+// // export type PageRenderStatus = typeof constants.pageRenderStatuses[number]
+// export type PageRenderStatus = typeof renderStatus[keyof typeof renderStatus]
 
-export interface PageRootNodeState {
-  id: string
-  initializing: boolean
-  initialized: boolean
-  initializeError: null | SerializedError
-}
+// export interface PageRootNodeState {
+//   id: string
+//   initializing: boolean
+//   initialized: boolean
+//   initializeError: null | SerializedError
+// }
 
-export interface PageComponentsRenderState {
-  rendering: boolean
-  rendered: boolean
-  renderError: null | SerializedError
-}
-
-export type NOODLDOMTagName = keyof HTMLElementTagNameMap
+// export interface PageComponentsRenderState {
+//   rendering: boolean
+//   rendered: boolean
+//   renderError: null | SerializedError
+// }

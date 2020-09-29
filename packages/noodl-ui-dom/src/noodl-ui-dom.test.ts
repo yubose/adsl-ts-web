@@ -1,5 +1,7 @@
+import sinon from 'sinon'
 import { expect } from 'chai'
-import { getByPlaceholderText, screen } from '@testing-library/dom'
+import { screen } from '@testing-library/dom'
+import { noodl } from './test-utils'
 import NOODLUIDOM from './noodl-ui-dom'
 
 let noodluidom: NOODLUIDOM
@@ -9,60 +11,75 @@ beforeEach(() => {
 })
 
 describe('noodl-ui-dom', () => {
-  it('should have attached the placeholder', () => {
-    const newRoomInfo = { edge: { name: { roomName: 'hello all' } } }
-    const placeholder = 'Please type the title here'
-    const pageObject = {
-      module: 'patient',
-      newRoomInfo,
-      components: [
-        {
-          type: 'view',
-          children: [
-            {
-              type: 'textField',
-              placeholder,
-              dataKey: 'newRoomInfo.edge.name.roomName',
-              style: { top: '0.13' },
-            },
-          ],
-        },
-      ],
-    } as any
-    noodl
-      .setRoot({ MeetingRoomCreate: pageObject })
-      .setPage({ name: 'MeetingRoomCreate', object: pageObject })
-    const props = noodl.resolveComponents()[0]
-    const node = parser.parse(props) as HTMLElement
-    document.body.appendChild(node)
-    expect(getByPlaceholderText(document.body, placeholder))
+  it.skip('should wrap nodes with the wrapper if provided', () => {
+    //
   })
 
-  it('should have attached the data value', () => {
-    const newRoomInfo = { edge: { name: { roomName: 'hello all' } } }
-    const pageObject = {
-      module: 'patient',
-      newRoomInfo,
-      components: [
-        {
-          type: 'view',
-          children: [
-            {
-              type: 'textField',
-              dataKey: 'newRoomInfo.edge.name.roomName',
-              style: { top: '0.13' },
-            },
-          ],
+  it.skip('should call the appropriate event', () => {
+    const fn1 = sinon.spy()
+    const fn2 = sinon.spy()
+    const fn3 = sinon.spy()
+    noodluidom.on('create.button', fn1)
+    noodluidom.on('create.image', fn2)
+    noodluidom.on('create.button', fn3)
+    noodluidom.parse({
+      id: 'myid123',
+      type: 'button',
+      noodlType: 'button',
+      style: {},
+      text: 'hello',
+    })
+    expect(fn1.called).to.be.true
+    expect(fn2.called).to.be.false
+    expect(fn3.called).to.be.true
+  })
+
+  it.skip('shoulld add the event callback', () => {
+    //
+  })
+
+  it.skip('should remove the event callback', () => {
+    //
+  })
+
+  it.skip('should emit events', () => {
+    //
+  })
+
+  it.skip('should return the registered listeners for the event', () => {
+    //
+  })
+
+  describe('isValidAttribute', () => {
+    xit('', () => {
+      //
+    })
+  })
+
+  describe.skip('onCreateNode', () => {
+    //
+  })
+
+  describe('parse', () => {
+    it('should return the expected node', () => {
+      const label = noodl.resolveComponents({
+        type: 'label',
+        text: 'Title',
+        style: {
+          color: '0xffffffff',
+          width: '0.6',
+          height: '0.04',
+          fontSize: '18',
+          fontStyle: 'bold',
         },
-      ],
-    } as any
-    noodl
-      .setRoot({ MeetingRoomCreate: pageObject })
-      .setPage({ name: 'MeetingRoomCreate', object: pageObject })
-    const props = noodl.resolveComponents()[0]
-    console.info(props)
-    const node = parser.parse(props) as HTMLElement
-    document.body.appendChild(node)
-    expect(screen.getByDisplayValue('hello all'))
+      })[0]
+      noodluidom.on('create.label', (node, props) => {
+        node.innerHTML = props.children
+      })
+      const node = noodluidom.parse(label)
+      document.body.appendChild(node)
+      expect(node).to.be.instanceOf(HTMLLabelElement)
+      expect(screen.getByText('Title'))
+    })
   })
 })

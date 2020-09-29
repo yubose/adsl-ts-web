@@ -1,5 +1,4 @@
 // This custom logger keeps the original stack track + line number
-import _ from 'lodash'
 
 /**
  * Runs forEach on each key/value pair of the value, passing in the key as the first
@@ -11,8 +10,8 @@ export function forEachEntries<Obj>(
   value: Obj,
   callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
 ) {
-  if (value && _.isObject(value)) {
-    _.forEach(_.entries(value), _.spread(callback))
+  if (value && typeof value === 'object') {
+    Object.entries(value).forEach(([k, v]) => callback(k as keyof Obj, v))
   }
 }
 

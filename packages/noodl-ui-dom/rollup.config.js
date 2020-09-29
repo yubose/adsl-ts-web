@@ -6,15 +6,15 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
-import terser from 'rollup-plugin-terser'
+import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 
 const config = {
-  input: './src/index.ts',
+  input: 'src/index.ts',
   output: [
     {
-      dir: './dist',
+      dir: 'dist',
       exports: 'named',
       format: 'umd',
       name: 'noodluidom',
@@ -30,7 +30,7 @@ const config = {
     resolve({
       extensions,
       customResolveOptions: {
-        moduleDirectory: ['./node_modules'],
+        moduleDirectory: ['node_modules'],
       },
     }),
     typescript({
@@ -41,8 +41,8 @@ const config = {
     }),
     babel({
       babelHelpers: 'runtime',
-      include: ['./src/**/*'],
-      exclude: ['./node_modules'],
+      include: ['src/**/*'],
+      exclude: ['node_modules'],
       extensions,
     }),
     terser(),

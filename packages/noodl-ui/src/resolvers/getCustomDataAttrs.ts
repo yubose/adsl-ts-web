@@ -277,6 +277,7 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
               data,
               dataKey,
               drafted: getDraftedNodes(),
+              context,
               localRoot: context.page.object,
               localRootKeySetTo: parser.getLocalKey(),
               showDataKey,

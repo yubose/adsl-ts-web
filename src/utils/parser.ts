@@ -1,12 +1,6 @@
 import _ from 'lodash'
-import {
-  eventTypes,
-  isReference,
-  NOODLActionTriggerType,
-  SelectOption,
-} from 'noodl-ui'
-import NOODLDOMParser from 'noodl-ui-dom'
-import { DataValueElement } from 'app/types'
+import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
+import NOODLDOMParser, { DataValueElement } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
 import createElement from './createElement'
 import Logger from 'app/Logger'

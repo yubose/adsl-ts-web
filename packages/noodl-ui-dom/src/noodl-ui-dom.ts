@@ -1,19 +1,20 @@
-import _ from 'lodash'
 import { NOODLComponentProps, NOODLComponentType } from 'noodl-ui'
+import { noodlDOMEvents } from './constants'
 import * as T from './types'
 import Logger from './Logger'
 
 const log = Logger.create('NOODLUIDOM.ts')
 
-class NOODLUIDOM {
+class NOODLUIDOM implements T.INOODLUIDOM {
   #onCreateNode: {
     all: T.Parser[]
-    component: Record<NOODLComponentType, T.Parser[]>
+    component: Record<T.NOODLDOMComponentType, T.Parser[]>
   } = {
     all: [],
     component: {
       button: [],
       divider: [],
+      footer: [],
       header: [],
       image: [],
       label: [],
@@ -22,6 +23,7 @@ class NOODLUIDOM {
       popUp: [],
       select: [],
       textField: [],
+      video: [],
       view: [],
     },
   }
@@ -38,7 +40,7 @@ class NOODLUIDOM {
     parentNode: T.NOODLElement,
     props: NOODLComponentProps,
   ) => any
-  #listeners: Partial<Record<T.DOMParserEvent, Function[]>> = {}
+  #listeners: Partial<Record<T.NOODLDOMCreateNodeEvent, Function[]>> = {}
   #parsers: T.Parser[] = []
   wrapper: ((node: T.NOODLElement) => T.NOODLElement) | undefined
 
@@ -48,13 +50,16 @@ class NOODLUIDOM {
       children: string | number | NOODLComponentProps | NOODLComponentProps[],
     ) => {
       if (children) {
-        if (_.isArray(children)) {
-          _.forEach(children, (child) => {
+        if (Array.isArray(children)) {
+          children.forEach((child) => {
             this.#handleChildren(parentNode, child)
           })
-        } else if (_.isString(children) || _.isNumber(children)) {
+        } else if (
+          typeof children === 'string' ||
+          typeof children === 'number'
+        ) {
           parentNode && (parentNode.innerHTML = `${children}`)
-        } else if (_.isPlainObject(children)) {
+        } else if (children && typeof children === 'object') {
           const childNode = this.parse(children)
           if (childNode) {
             parentNode.appendChild(childNode)
@@ -71,29 +76,11 @@ class NOODLUIDOM {
   }
 
   /**
-   * Adds a parser to the list of parsers
-   * @param { Parser } parser
-   */
-  add(parser: T.Parser) {
-    this.#parsers.push(parser)
-    return this
-  }
-
-  /**
-   * Removes a parser from the list of parsers (uses strict === to find the reference)
-   * @param { Parser } parser
-   */
-  remove(parser: T.Parser) {
-    this.#parsers = _.filter(this.#parsers, (p) => p !== parser)
-    return this
-  }
-
-  /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
    * @param { NOODLComponentProps } props
    */
-  parse(props: NOODLComponentProps) {
+  parse<Props extends NOODLComponentProps>(props: Props) {
     let node: T.NOODLElement | undefined
 
     if (props) {
@@ -110,23 +97,28 @@ class NOODLUIDOM {
 
     if (node) {
       // Apply the custom wrapper if provided
-      if (_.isFunction(this.wrapper)) {
+      if (typeof this.wrapper === 'function') {
         node = this.wrapper(node as T.NOODLElement)
       }
 
-      _.forEach(this.#parsers, (parseFn: T.Parser) => {
+      this.#parsers.forEach((parseFn: T.Parser) => {
         parseFn(node as T.NOODLElement, props, this.getUtils())
+        // Call event listeners if any were registered
+        if (
+          props.noodlType &&
+          noodlDOMEvents[props.noodlType as T.NOODLDOMComponentType]
+        ) {
+          this.emit(noodlDOMEvents[props.noodlType], node, props)
+        }
       })
 
       // TODO: Isolate this into its own method
       if (node) {
-        _.forEach(
-          this.#onCreateNode.all,
+        this.#onCreateNode.all.forEach(
           (fn) => fn && fn(node as T.NOODLElement, props),
         )
-        _.forEach(
-          this.#onCreateNode.component[props.noodlType],
-          (fn) => fn && fn(node as T.NOODLElement, props),
+        this.#onCreateNode.component[props.noodlType].forEach(
+          (fn: any) => fn && fn(node as T.NOODLElement, props),
         )
       }
 
@@ -135,7 +127,7 @@ class NOODLUIDOM {
       }
     }
 
-    return node
+    return node || null
   }
 
   /**
@@ -143,17 +135,11 @@ class NOODLUIDOM {
    * @param { string } eventName - Name of the listener event
    * @param { function } callback - Callback to invoke when the event is emitted
    */
-  on(eventName: T.DOMParserEvent, callback: Function) {
-    if (!_.isArray(this.#listeners[eventName])) {
+  on(eventName: T.NOODLDOMCreateNodeEvent, callback: Function) {
+    if (!Array.isArray(this.#listeners[eventName])) {
       this.#listeners[eventName] = []
     }
     ;(this.#listeners[eventName] as Function[]).push(callback)
-    console.groupCollapsed(
-      `%c[noodl-ui-dom.ts] on -- Registered listener: ${eventName}`,
-      'color:#828282',
-    )
-    console.trace()
-    console.groupEnd()
     return this
   }
 
@@ -162,11 +148,10 @@ class NOODLUIDOM {
    * @param { string } eventName - Name of the listener event
    * @param { function } callback
    */
-  off(eventName: T.DOMParserEvent, callback: Function) {
-    if (_.isArray(this.#listeners[eventName])) {
+  off(eventName: T.NOODLDOMCreateNodeEvent, callback: Function) {
+    if (Array.isArray(this.#listeners[eventName])) {
       if ((this.#listeners[eventName] as Function[]).includes(callback)) {
-        this.#listeners[eventName] = _.filter(
-          this.#listeners[eventName],
+        this.#listeners[eventName] = this.#listeners[eventName]?.filter(
           (cb) => cb !== callback,
         )
       }
@@ -179,15 +164,15 @@ class NOODLUIDOM {
    * @param { string } eventName - Name of the listener event
    * @param { ...any[] } args
    */
-  emit(eventName: T.DOMParserEvent, ...args: any[]) {
-    if (_.isArray(this.#listeners[eventName])) {
-      _.forEach(this.#listeners[eventName], (fn) => fn(...args))
+  emit(eventName: T.NOODLDOMCreateNodeEvent, ...args: any[]) {
+    if (Array.isArray(this.#listeners[eventName])) {
+      this.#listeners[eventName]?.forEach((fn) => fn(...args))
     }
     return this
   }
 
-  getEventListeners(eventName: T.DOMParserEvent) {
-    return this.#listeners[eventName]
+  getEventListeners(eventName: T.NOODLDOMCreateNodeEvent) {
+    return this.#listeners[eventName] || []
   }
 
   /**
@@ -221,10 +206,10 @@ class NOODLUIDOM {
     let cbType: 'all' | NOODLComponentType | undefined
     let callback: T.Parser | undefined
 
-    if (_.isString(type)) {
+    if (typeof type === 'string') {
       cbType = type
       callback = cb
-    } else if (_.isFunction(type)) {
+    } else if (typeof type === 'function') {
       cbType = 'all'
       callback = type
     } else {

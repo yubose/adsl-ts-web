@@ -540,7 +540,7 @@ function makeComponentResolver({
       }
       if (newRoot) {
         roots = newRoot
-        parser = makeRootsParser(roots)
+        parser.setRoot(roots)
         optionsBuilder.setRoots(roots)
       }
       return this

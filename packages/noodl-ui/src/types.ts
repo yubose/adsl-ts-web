@@ -670,6 +670,7 @@ export interface RootsParser<Root extends {} = any> {
   parse(value: any): any
   parseDataKey(dataKey: string): string | undefined
   setLocalKey(key: string): this
+  setRoot(root: any): this
 }
 
 export interface ViewportListener {
