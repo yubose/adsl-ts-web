@@ -1,0 +1,532 @@
+{
+  "MeetingLobbyStart": {
+    "module": "meetingroom",
+    "pageNumber": "70 130",
+    "title": "Meeting Lobby",
+    "nextPage": "MeetingRoomCreate",
+    "rightButtonText": "Save",
+    "rootRoom": {
+      "edge": "",
+      "edgeAPI": {
+        ".EdgeAPI": "",
+        "store": {
+          "api": "ce",
+          "dataKey": "rootRoom.edge"
+        }
+      }
+    },
+    "listData": {
+      "invitees": [
+        {
+          ".Edge": {
+            "name": {
+              "firstName": "test",
+              "lastName": "1"
+            }
+          }
+        },
+        {
+          ".Edge": {
+            "name": {
+              "firstName": "test",
+              "lastName": "2"
+            }
+          }
+        }
+      ],
+      "get": {
+        ".EdgeAPI.get": "",
+        "dataKey": "listData.invitees",
+        "id": "..rootRoom.edge.id",
+        "type": "1053",
+        "xfname": "refid",
+        "maxcount": "20",
+        "sCondition": "tage=0 AND ctime>UNIX_TIMESTAMP()-7200"
+      }
+    },
+    "inviteesInfo": {
+      "edge": {
+        ".Edge": ""
+      },
+      "edgeAPI": {
+        ".EdgeAPI": "",
+        "store": {
+          "api": "ce",
+          "dataKey": "inviteesInfo.edge"
+        }
+      }
+    },
+    "init": [
+      {
+        "if": [
+          ".builtIn.SignInOk",
+          "continue",
+          {
+            "goto": "SignIn"
+          }
+        ]
+      },
+      {
+        "actionType": "updateObject",
+        "dataKey": "MeetingLobbyStart.rootRoom.edge",
+        "dataObject": ".Global.rootRoomInfo.edge"
+      },
+      "..listData.get"
+    ],
+    "save": ["..rootRoom.edgeAPI.store"],
+    "update": ["..inviteesInfo.edgeAPI.store", "..listData.get"],
+    "components": [
+      {
+        "type": "view",
+        "style": {
+          "left": "0",
+          "top": "0",
+          "width": "1",
+          "height": "0.06",
+          "backgroundColor": "0x388eccff"
+        },
+        "children": [
+          {
+            "type": "view",
+            "style": {
+              "left": "0.0582",
+              "top": "0.01",
+              "width": "0.18667",
+              "height": "0.05"
+            },
+            "onClick": [
+              {
+                "actionType": "pageJump",
+                "destination": "MeetingRoomCreate"
+              }
+            ],
+            "children": [
+              {
+                "type": "image",
+                "path": "backWhiteArrow.png",
+                "style": {
+                  "left": "0",
+                  "top": "0.01",
+                  "width": "0.053333",
+                  "height": "0.03",
+                  "color": "0xffffffff",
+                  "backgroundColor": "0x388eccff"
+                }
+              },
+              {
+                "type": "label",
+                "text": "Back",
+                "style": {
+                  "left": "0.0667",
+                  "top": "0.0",
+                  "width": "0.12",
+                  "height": "0.05",
+                  "fontSize": "18",
+                  "color": "0xffffffff",
+                  "backgroundColor": "0x388eccff"
+                }
+              }
+            ]
+          },
+          {
+            "type": "label",
+            "text": "Meeting Lobby",
+            "style": {
+              "left": "0.25",
+              "top": "0.02",
+              "width": "0.5",
+              "height": "0.03405",
+              "fontSize": "18",
+              "display": "inline",
+              "color": "0xffffffff",
+              "backgroundColor": "0x388eccff",
+              "textAlign": {
+                "x": "center",
+                "y": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "view",
+        "style": {
+          "left": "0",
+          "top": "0.06",
+          "width": "1",
+          "height": "0.94"
+        },
+        "children": [
+          {
+            "type": "view",
+            "style": {
+              "left": "0",
+              "top": "0",
+              "width": "1",
+              "height": "0.2",
+              "backgroundColor": "0x388eccff"
+            },
+            "children": [
+              {
+                "type": "label",
+                "text": "Title",
+                "style": {
+                  "color": "0xffffffff",
+                  "left": "0.05",
+                  "top": "0.08",
+                  "width": "0.6",
+                  "height": "0.04",
+                  "fontSize": "18",
+                  "fontStyle": "bold"
+                }
+              },
+              {
+                "type": "textField",
+                "contentType": "text",
+                "dataKey": "rootRoom.edge.name.roomName",
+                "style": {
+                  "left": "0.05",
+                  "top": "0.14",
+                  "width": "0.9",
+                  "height": "0.041",
+                  "color": "0xffffffff",
+                  "backgroundColor": "0x00000000",
+                  "textAlign": {
+                    "x": "left"
+                  },
+                  "fontSize": "14",
+                  "required": "true",
+                  "borderWidth": "1",
+                  "borderColor": "0xffffffff",
+                  "border": {
+                    "style": "2"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "contentType": "listObject",
+            "listObject": "..listData.invitees",
+            "iteratorVar": "itemObject",
+            "style": {
+              "left": "0",
+              "top": "0.2",
+              "width": "1",
+              "height": "0.48"
+            },
+            "children": [
+              {
+                "type": "listItem",
+                "itemObject": "",
+                "style": {
+                  "left": "0",
+                  "top": "0",
+                  "width": "1",
+                  "height": "0.12",
+                  "border": {
+                    "style": "1"
+                  }
+                },
+                "children": [
+                  {
+                    "type": "label",
+                    "text": "J",
+                    "dataKey": "itemObject.name.firstName",
+                    "style": {
+                      "left": "0.08",
+                      "top": "0.018",
+                      "width": "0.15",
+                      "height": "0.08",
+                      "fontSize": "32",
+                      "fontStyle": "bold",
+                      "color": "0xffffffff",
+                      "backgroundColor": "0xff8f90ff",
+                      "display": "inline",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      }
+                    }
+                  },
+                  {
+                    "type": "label",
+                    "dataKey": "itemObject.name.firstName",
+                    "text": "John",
+                    "style": {
+                      "left": "0.25",
+                      "top": "0.02",
+                      "width": "0.5",
+                      "height": "0.03",
+                      "fontSize": "16",
+                      "color": "0x000000ff"
+                    }
+                  },
+                  {
+                    "type": "label",
+                    "dataKey": "itemObject.name.lastName",
+                    "text": "Smith",
+                    "style": {
+                      "left": "0.25",
+                      "top": "0.06",
+                      "width": "0.5",
+                      "height": "0.03",
+                      "fontSize": "16",
+                      "color": "0x000000ff"
+                    }
+                  },
+                  {
+                    "type": "button",
+                    "onClick": [
+                      {
+                        "actionType": "updateObject",
+                        "dataKey": "MeetingLobbyStart.inviteesInfo.edge",
+                        "dataObject": "itemObject"
+                      },
+                      {
+                        "actionType": "evalObject",
+                        "object": {
+                          "..inviteesInfo.edge.tage@": -1
+                        }
+                      },
+                      {
+                        "actionType": "saveObject",
+                        "object": "..update"
+                      },
+                      {
+                        "actionType": "refresh"
+                      }
+                    ],
+                    "text": "Delete",
+                    "style": {
+                      "left": "0.75",
+                      "top": "0.04",
+                      "width": "0.2",
+                      "height": "0.04",
+                      "fontSize": "16",
+                      "color": "0xffffffff",
+                      "backgroundColor": "0x388eccff",
+                      "textAlign": {
+                        "x": "center"
+                      },
+                      "border": {
+                        "style": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "image",
+            "path": "addMeeting.png",
+            "onClick": [
+              {
+                "actionType": "pageJump",
+                "destination": "InviteeInfo01"
+              }
+            ],
+            "style": {
+              "left": "0.8",
+              "top": "0.65",
+              "width": "0.14",
+              "height": "0.08",
+              "backgroundColor": "0x388eccff",
+              "border": {
+                "style": "5"
+              },
+              "borderRadius": "100"
+            }
+          },
+          {
+            "type": "button",
+            "onClick": [
+              {
+                "actionType": "updateObject",
+                "dataKey": "Global.rootRoomInfo.edge.name.roomName",
+                "dataObject": "..rootRoom.edge.name.roomName"
+              },
+              {
+                "actionType": "saveObject",
+                "object": "..save"
+              },
+              {
+                "actionType": "evalObject",
+                "object": {
+                  ".Global.VideoChatObjStore.reference.edge@": "=..rootRoom.edge"
+                }
+              },
+              {
+                "actionType": "pageJump",
+                "destination": "VideoChat"
+              }
+            ],
+            "text": "Start Meeting Room",
+            "style": {
+              "left": "0.1",
+              "top": "0.75",
+              "width": "0.8",
+              "height": "0.06",
+              "fontSize": "18",
+              "fontStyle": "bold",
+              "color": "0xffffffff",
+              "backgroundColor": "0x388eccff",
+              "textAlign": {
+                "x": "center"
+              },
+              "border": {
+                "style": "1"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "text": "Close Meeting Room",
+            "style": {
+              "left": "0.1",
+              "top": "0.83",
+              "width": "0.8",
+              "height": "0.06",
+              "fontSize": "18",
+              "fontStyle": "bold",
+              "color": "0xffffffff",
+              "backgroundColor": "0xd53d42ff",
+              "textAlign": {
+                "x": "center"
+              },
+              "border": {
+                "style": "1"
+              }
+            },
+            "onClick": [
+              {
+                "actionType": "evalObject",
+                "object": {
+                  "..rootRoom.edge.tage@": -1
+                }
+              },
+              {
+                "actionType": "saveObject",
+                "object": "..save"
+              },
+              {
+                "actionType": "pageJump",
+                "destination": "MeetingRoomHistory"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "popUp",
+        "viewTag": "warningView",
+        "style": {
+          "left": "0",
+          "top": "0",
+          "width": "1",
+          "height": "1",
+          "backgroundColor": "0x00000066"
+        },
+        "children": [
+          {
+            "type": "view",
+            "style": {
+              "left": "0.05",
+              "top": "0.2",
+              "width": "0.89333",
+              "height": "0.3",
+              "backgroundColor": "0xeeeeeeff",
+              "border": {
+                "style": "5"
+              },
+              "borderRadius": "15"
+            },
+            "children": [
+              {
+                "type": "label",
+                "text": "OOPS",
+                "style": {
+                  ".LabelStyle": {
+                    "left": "0",
+                    "top": "0.04",
+                    "width": "0.89333",
+                    "height": "0.027247",
+                    "color": "0x00000088",
+                    "fontSize": "20",
+                    "fontStyle": "bold",
+                    "display": "inline",
+                    "textAlign": {
+                      "x": "center",
+                      "y": "center"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "label",
+                "text": "There is no title of meeting",
+                "style": {
+                  ".LabelStyle": {
+                    "left": "0",
+                    "top": "0.12",
+                    "width": "0.89333",
+                    "height": "0.04",
+                    "color": "0x00000088",
+                    "fontSize": "14",
+                    "display": "inline",
+                    "textAlign": {
+                      "x": "center",
+                      "y": "center"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "divider",
+                "style": {
+                  ".DividerStyle": {
+                    "left": "0",
+                    "top": "0.20436",
+                    "width": "0.89333",
+                    "backgroundColor": "0x00000088"
+                  }
+                }
+              },
+              {
+                "type": "button",
+                "onClick": [
+                  {
+                    "actionType": "popUpDismiss",
+                    "popUpView": "warningView"
+                  }
+                ],
+                "text": "OK",
+                "style": {
+                  ".LabelStyle": {
+                    "left": "0",
+                    "top": "0.225",
+                    "width": "0.89333",
+                    "height": "0.06812",
+                    "color": "0x007affff",
+                    "fontSize": "17",
+                    "display": "inline",
+                    "textAlign": {
+                      "x": "center",
+                      "y": "center"
+                    },
+                    "border": {
+                      "style": "5"
+                    },
+                    "borderRadius": "15"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
