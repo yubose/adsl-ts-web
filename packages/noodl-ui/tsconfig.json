@@ -1,0 +1,30 @@
+{
+  "ts-node": {
+    "transpileOnly": true
+  },
+  "compilerOptions": {
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "src",
+    "declaration": true,
+    "declarationDir": "dist",
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "outDir": "dist",
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "esnext"
+  },
+  "exclude": [
+    "node_modules/**/*",
+    "dist",
+    "src/setupTests.ts",
+    "src/**/*.test.ts",
+    "src/**/__tests__",
+    "src/**/test-utils.ts"
+  ],
+  "include": ["src/**/*", "rollup.config.js"]
+}

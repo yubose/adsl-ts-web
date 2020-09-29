@@ -1,0 +1,13 @@
+{
+  "ts-node": {
+    "transpileOnly": true
+  },
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "src",
+    "module": "commonjs",
+    "target": "es6"
+  },
+  "exclude": ["node_modules/**", "__dev__"],
+  "include": ["src/**/*.test.ts"]
+}

@@ -1,0 +1,13 @@
+_dev
+.github
+.vscode
+node_modules
+src
+.babelrc
+.editorconfig
+.gitignore
+README.md
+rollup.config.js
+tsconfig-scripts.json
+tsconfig-test.json
+webpack.scripts.js
