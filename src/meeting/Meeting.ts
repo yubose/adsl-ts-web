@@ -264,11 +264,8 @@ const Meeting = (function () {
     get room() {
       return _internal._room
     },
-    get token() {
-      return _internal._token
-    },
-    set token(token: string) {
-      _internal._token = token
+    get localParticipant() {
+      return _internal._room?.localParticipant
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {

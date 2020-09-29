@@ -7,7 +7,10 @@ import {
   NOODLChainActionBuiltInObject,
   NOODLGotoAction,
 } from 'noodl-ui'
+import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
+import { INOODLUIDOM } from 'noodl-ui-dom'
 import Page from 'Page'
+import Meeting from '../meeting'
 import Logger from 'app/Logger'
 import validate from 'utils/validate'
 
@@ -29,7 +32,13 @@ export type BuiltInFuncName =
   | 'toggleMicrophoneOnOff'
   | 'UploadPhoto'
 
-const createBuiltInActions = function ({ page }: { page: Page }) {
+const createBuiltInActions = function ({
+  noodluidom,
+  page,
+}: {
+  noodluidom: INOODLUIDOM
+  page: Page
+}) {
   // @ts-expect-error
   const builtInActions: Record<
     BuiltInFuncName,
@@ -147,8 +156,57 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.signIn = async (action, options) => {}
   builtInActions.signUp = async () => {}
   builtInActions.signout = async () => {}
-  builtInActions.toggleCameraOnOff = async () => {}
-  builtInActions.toggleMicrophoneOnOff = async () => {}
+
+  builtInActions.toggleCameraOnOff = async () => {
+    log.func('toggleCameraOnOff')
+
+    let localParticipant = Meeting.localParticipant
+    let videoTrack: LocalVideoTrack | undefined
+
+    if (localParticipant) {
+      videoTrack = Array.from(localParticipant.tracks.values()).find(
+        (trackPublication) => trackPublication.kind === 'video',
+      )?.track as LocalVideoTrack
+
+      if (videoTrack) {
+        if (videoTrack.isEnabled) {
+          videoTrack.disable()
+          log.grey(`Toggled video OFF for LocalParticipant`, localParticipant)
+        } else {
+          videoTrack.enable()
+          log.grey(`Toggled video ON for LocalParticipant`, localParticipant)
+        }
+      } else {
+        log.red(
+          `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
+          { localParticipant, room: Meeting.room },
+        )
+      }
+    }
+  }
+
+  builtInActions.toggleMicrophoneOnOff = async () => {
+    log.func('toggleMicrophoneOnOff')
+
+    let localParticipant = Meeting.localParticipant
+    let audioTrack: LocalAudioTrack | undefined
+
+    if (localParticipant) {
+      audioTrack = Array.from(localParticipant.tracks.values()).find(
+        (trackPublication) => trackPublication.kind === 'audio',
+      )?.track as LocalAudioTrack
+
+      if (audioTrack) {
+        if (audioTrack.isEnabled) {
+          audioTrack.disable()
+          log.grey(`Toggled audio OFF for LocalParticipant`, localParticipant)
+        } else {
+          log.grey(`Toggled audio ON for LocalParticipant`, localParticipant)
+          audioTrack.enable()
+        }
+      }
+    }
+  }
 
   return builtInActions
 }
@@ -206,34 +264,6 @@ export function onVideoChatBuiltIn({
     }
   }
 }
-
-// function useBuiltInActions({}: // signin,
-// // signup,
-// // lockLogout,
-// BuiltInActionsOptions) {
-//   const history = useHistory()
-//   const location = useLocation()
-//   const { toggleCamera } = useMeetingRoomCtx()
-//   const { toggleLocalAudio } = useLocalAudioToggle()
-
-//   return {
-//     goBack: history.goBack as any,
-//     lockApplication: lockLogout?.onSubmit('lock'),
-//     logOutOfApplication: lockLogout?.onSubmit('logout'),
-//     logout: () => lockLogout?.logout(true),
-//     signIn: (
-//       action: NOODLChainActionBuiltInObject,
-//       { dataValues }: ActionChainActionCallbackOptions,
-//     ) => signin?.onSubmit({ formValues: dataValues }),
-//     signUp: (
-//       action: NOODLChainActionBuiltInObject,
-//       { dataValues }: ActionChainActionCallbackOptions,
-//     ) => signup?.onSubmit({ formValues: dataValues } as any),
-//     signout: () => lockLogout?.logout(true),
-//     toggleCameraOnOff: toggleCamera,
-//     toggleMicrophoneOnOff: toggleLocalAudio,
-//   }
-// }
 
 export function onBuiltinMissing(
   action: NOODLChainActionBuiltInObject,

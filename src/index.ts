@@ -26,6 +26,10 @@ import {
   Viewport,
 } from 'noodl-ui'
 import {
+  LocalAudioTrackPublication,
+  LocalVideoTrackPublication,
+} from 'twilio-video'
+import {
   CachedPageObject,
   NOODLElement,
   PageModalId,
@@ -40,16 +44,12 @@ import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
 import Logger from './app/Logger'
-import parser from './utils/parser'
+import noodluidom from './utils/parser'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
 import './styles.css'
-import {
-  LocalAudioTrackPublication,
-  LocalVideoTrackPublication,
-} from 'twilio-video'
 
 const log = Logger.create('src/index.ts')
 
@@ -102,23 +102,21 @@ window.addEventListener('load', async () => {
   window.getByDataUX = getByDataUX
   window.noodl = cadl
   window.noodlui = noodl
-  window.noodluidom = parser
+  window.noodluidom = noodluidom
   window.streams = Meeting.getStreams()
   window.meeting = Meeting
-  window.ms = Meeting.getStreams().getSelfStream()
-  window.ss = Meeting.getStreams().getMainStream()
   window.cp = copyToClipboard
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
   const profile = await Account.login('+1 8882465555', '142251', vcode || '')
-  log.green(vcode)
+  log.magenta(vcode)
   log.green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const viewport = new Viewport()
   const page = new Page()
   const app = new App({ viewport })
-  const builtIn = createBuiltInActions({ page })
+  const builtIn = createBuiltInActions({ Meeting, page, noodluidom })
   const actions = enhanceActions(createActions({ page }))
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
@@ -494,8 +492,8 @@ window.addEventListener('load', async () => {
   }
 
   // createOnChangeFactory IS EXPERIMENTAL AND WILL BE REFACTORED
-  parser.createOnChangeFactory = createOnChangeFactory
-  parser.onCreateNode('all', onCreateNode)
+  noodluidom.createOnChangeFactory = createOnChangeFactory
+  noodluidom.onCreateNode('all', onCreateNode)
 
   /* -------------------------------------------------------
     ---- VIEWPORT / WINDOW SIZING

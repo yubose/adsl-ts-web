@@ -176,12 +176,14 @@ module.exports = {
         console.log(`${chalk('eCOS packages')}:`)
         console.log(
           `${chalk.yellow(`@aitmed/cadl`)}:            ${chalk.magenta(
-            pkg.dependencies['@aitmed/cadl'],
+            pkg.dependencies['@aitmed/cadl'] ||
+              pkg.devDependencies['@aitmed/cadl'],
           )}`,
         )
         console.log(
           `${chalk.yellow(`@aitmed/ecos-lvl2-sdk`)}:   ${chalk.magenta(
-            pkg.dependencies['@aitmed/ecos-lvl2-sdk'],
+            pkg.dependencies['@aitmed/ecos-lvl2-sdk'] ||
+              pkg.devDependencies['@aitmed/ecos-lvl2-sdk'],
           )}`,
         )
         console.log(
