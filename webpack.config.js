@@ -24,6 +24,7 @@ const plugins = [
   // }),
   new webpack.DefinePlugin({
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
   }),
   new HtmlWebpackPlugin(htmlPluginOptions),
 ]
@@ -154,6 +155,7 @@ module.exports = {
   },
   plugins: [
     ...plugins,
+    new webpack.EvalSourceMapDevToolPlugin(),
     new webpack.ProgressPlugin({
       handler(percentage, msg, ...args) {
         console.clear()
@@ -185,6 +187,11 @@ module.exports = {
         console.log(
           `${chalk.yellow(`noodl-ui`)}:                ${chalk.magenta(
             pkg.dependencies['noodl-ui'],
+          )}`,
+        )
+        console.log(
+          `${chalk.yellow(`noodl-ui-dom`)}:            ${chalk.magenta(
+            pkg.dependencies['noodl-ui-dom'],
           )}`,
         )
         if (process.env.NODE_ENV === 'production') {

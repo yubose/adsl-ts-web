@@ -18,7 +18,6 @@ const config = {
       exports: 'named',
       format: 'umd',
       name: 'noodlui',
-      sourcemap: 'inline-source-map',
       globals: {},
     },
   ],
@@ -45,7 +44,8 @@ const config = {
       exclude: ['node_modules'],
       extensions,
     }),
-    terser(),
+    // Env var set by root lerna repo
+    ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),
   ],
 }
 
