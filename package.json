@@ -24,11 +24,8 @@
     "lib:start": "cross-env NODE_ENV=development lerna run --parallel start"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.91",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.103",
     "noodl-ui": "file:packages\\noodl-ui",
-    "noodl-ui-dom": "file:packages\\noodl-ui-dom",
-    "twilio-video": "^2.7.2"
+    "noodl-ui-dom": "file:packages\\noodl-ui-dom"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
@@ -78,7 +75,7 @@
     "lodash": "^4.17.20",
     "mocha": "^8.0.1",
     "nodemon": "^2.0.4",
-    "noodl-ui": "^0.0.26-alpha.0",
+    "noodl-ui": "^0.0.6",
     "prettier": "^2.1.2",
     "rollup": "^2.27.1",
     "rollup-plugin-filesize": "^9.0.2",
