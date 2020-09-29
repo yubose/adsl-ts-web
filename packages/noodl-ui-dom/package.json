@@ -1,8 +1,11 @@
 {
   "name": "noodl-ui-dom",
-  "version": "0.0.2-alpha.0",
+  "version": "0.0.2-alpha.1",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "jsnext:main": "dist/index.es.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "build": "rm -rf './dist' && rollup -c --environment BUILD:production",
