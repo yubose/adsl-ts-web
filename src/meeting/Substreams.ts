@@ -36,16 +36,15 @@ class MeetingSubstreams {
   }: { node?: NOODLElement; participant?: RemoteParticipant } = {}) {
     const stream = new Stream('subStream', { node })
     if (node) {
-      stream.setElement(node)
       if (!this.container.contains(node)) {
         this.container.appendChild(node)
       }
     }
     // Apply the blueprint onto the new node to align with the current items
-    this.addToCollection(stream)
     if (participant) {
       stream.setParticipant(participant)
     }
+    this.addToCollection(stream)
     return this
   }
 
@@ -56,11 +55,22 @@ class MeetingSubstreams {
    * @param { number | undefined } index
    */
   addToCollection(stream: Stream, index?: number) {
+    log.func('addToCollection')
     if (!this.#subStreams.includes(stream)) {
       if (_.isNumber(index)) {
         this.#subStreams.splice(index, 0, stream)
+        log.grey(
+          `Inserted subStream to subStreams collection at index: ${index}`,
+        )
       } else {
         this.#subStreams.push(stream)
+        if (!(stream instanceof Stream)) {
+          console.trace()
+        }
+        log.grey('Added new subStream to subStreams collection', {
+          stream,
+          subStreamsCollection: this.getSubstreamsCollection(),
+        })
       }
     } else {
       log.func('addToCollection')
@@ -70,6 +80,10 @@ class MeetingSubstreams {
       })
     }
     return this
+  }
+
+  getSubstreamsCollection() {
+    return this.#subStreams
   }
 
   /**
@@ -90,7 +104,8 @@ class MeetingSubstreams {
    */
   participantExists(participant: RoomParticipant) {
     return _.some(this.#subStreams, (subStream: Stream) => {
-      return subStream.isSameParticipant(participant)
+      console.log(subStream)
+      return subStream && subStream.isSameParticipant(participant)
     })
   }
 
@@ -140,7 +155,7 @@ class MeetingSubstreams {
 
   /** Returns the last subStream in the collection */
   last() {
-    return _.last(this.#subStreams)
+    return _.last([...this.#subStreams])
   }
 }
 

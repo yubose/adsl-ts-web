@@ -9,6 +9,7 @@ import {
   StreamType,
 } from 'app/types'
 import { attachVideoTrack } from 'utils/twilio'
+import { loadPlugin } from 'immer/dist/internal'
 
 const log = Logger.create('Streams.ts')
 
@@ -38,6 +39,10 @@ class MeetingStream {
    */
   setElement(node: NOODLElement | null, { uxTag }: { uxTag?: string } = {}) {
     this.#node = node
+    log.func('setElement')
+    log.grey('New element has been set on this stream', {
+      snapshot: this.snapshot(),
+    })
     if (uxTag) this.#uxTag = uxTag
     return this
   }
@@ -52,9 +57,18 @@ class MeetingStream {
 
   /** Removes the DOM node for this stream from the DOM */
   removeElement() {
+    log.func('removeElement')
     if (this.#node && this.#node instanceof HTMLElement) {
       try {
-        this.#node.remove()
+        if (this.#node) {
+          if (this.#node.parentNode) {
+            this.#node.parentNode.removeChild(this.#node)
+            log.grey('Removed node from this stream by removeChild()')
+          } else {
+            this.#node.remove()
+            log.grey('Removed node from this instance by remove()')
+          }
+        }
       } catch (error) {
         console.error(error)
       }
@@ -207,12 +221,14 @@ class MeetingStream {
   }
 
   /** Returns a JS representation of the current state of this stream */
-  snapshot() {
+  snapshot(otherArgs?: any) {
     return {
       node: this.#node,
       participant: this.#participant,
       previous: this.previous,
       streamType: this.type,
+      tracks: this.getParticipant()?.tracks,
+      ...otherArgs,
     }
   }
 

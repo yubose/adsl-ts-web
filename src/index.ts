@@ -46,6 +46,10 @@ import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
 import './styles.css'
+import {
+  LocalAudioTrackPublication,
+  LocalVideoTrackPublication,
+} from 'twilio-video'
 
 const log = Logger.create('src/index.ts')
 
@@ -101,6 +105,8 @@ window.addEventListener('load', async () => {
   window.noodluidom = parser
   window.streams = Meeting.getStreams()
   window.meeting = Meeting
+  window.ms = Meeting.getStreams().getSelfStream()
+  window.ss = Meeting.getStreams().getMainStream()
   window.cp = copyToClipboard
   // Auto login for the time being
   const vcode = await Account.requestVerificationCode('+1 8882465555')
@@ -151,6 +157,7 @@ window.addEventListener('load', async () => {
   page.onBeforePageRender = async ({ pageName }) => {
     log.func('page.onBeforePageRender')
     log.grey('Rendering components')
+    if (Meeting.room?.state === 'connected') Meeting.leave()
     if (pageName !== page.currentPage) {
       // Load the page in the SDK
       const pageObject = await preparePage(pageName)
@@ -322,7 +329,11 @@ window.addEventListener('load', async () => {
     }
     // Callback runs when the LocalParticipant disconnects
     async function disconnected() {
-      const unpublishTracks = (trackPublication: any) => {
+      const unpublishTracks = (
+        trackPublication:
+          | LocalVideoTrackPublication
+          | LocalAudioTrackPublication,
+      ) => {
         trackPublication?.track?.stop?.()
         trackPublication?.unpublish?.()
       }
@@ -454,18 +465,16 @@ window.addEventListener('load', async () => {
       }
       // Individual remote participant video element container
       else if (identify.stream.video.isSubStream(props)) {
-        const container = streams.getSubStreamsContainer() as MeetingSubstreams
-        if (container) {
-          if (!container.elementExists(node)) {
-            container.addToCollection({ node } as any)
-            log.func('onCreateNode')
-            log.green('Added an element to a subStream', node)
+        const subStreams = streams.getSubStreamsContainer() as MeetingSubstreams
+        if (subStreams) {
+          if (!subStreams.elementExists(node)) {
+            subStreams.create({ node } as any)
           } else {
             log.func('onCreateNode')
             log.red(
               `Attempted to add an element to a subStream but it ` +
-                `already exists in the container`,
-              { container, node, props },
+                `already exists in the subStreams container`,
+              { subStreams, node, props },
             )
           }
         } else {

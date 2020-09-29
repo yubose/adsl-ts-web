@@ -3,7 +3,9 @@ import { EventEmitter } from 'events'
 import {
   connect,
   ConnectOptions,
+  LocalAudioTrackPublication,
   LocalParticipant,
+  LocalVideoTrackPublication,
   RemoteParticipant,
   Room,
 } from 'twilio-video'
@@ -82,7 +84,20 @@ const Meeting = (function () {
     },
     /** Disconnects from the room */
     leave() {
-      _internal._room?.disconnect?.()
+      if (_internal._room?.state === 'connected') {
+        const unpublishTracks = (
+          trackPublication:
+            | LocalVideoTrackPublication
+            | LocalAudioTrackPublication,
+        ) => {
+          trackPublication?.track?.stop?.()
+          trackPublication?.unpublish?.()
+        }
+        // Unpublish local tracks
+        _internal._room?.localParticipant.audioTracks.forEach(unpublishTracks)
+        _internal._room?.localParticipant.videoTracks.forEach(unpublishTracks)
+        _internal._room?.disconnect?.()
+      }
       return this
     },
     /**
@@ -166,6 +181,10 @@ const Meeting = (function () {
             'This participant was mainstreaming. Removing it from mainStream now',
           )
           mainStream = _internal._streams.getMainStream()
+          // NOTE: Be careful not to call mainStream.removeElement() here.
+          // In the NOODL the mainStream is part of the page. For subStreams,
+          // since we create them customly and are not included in the NOODL, we
+          // would call subStream.removeElement() for those
           mainStream.unpublish().detachParticipant()
           Meeting.onRemoveRemoteParticipant?.(participant, mainStream)
 
@@ -183,7 +202,7 @@ const Meeting = (function () {
               // to the mainStream
               nextMainParticipant = subStream.getParticipant()
               if (nextMainParticipant) {
-                subStream.unpublish().detachParticipant()
+                subStream.unpublish().detachParticipant().removeElement()
                 mainStream.setParticipant(nextMainParticipant)
                 log.func('removeRemoteParticipant')
                 log.green(

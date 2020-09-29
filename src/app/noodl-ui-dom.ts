@@ -4,7 +4,6 @@ import { NOODLElement, NOODLDOMTagName } from 'app/types'
 import * as T from 'app/types/domParserTypes'
 import createElement from 'utils/createElement'
 import Logger from './Logger'
-import { noodlDomParserEvents } from '../constants'
 
 const log = Logger.create('NOODLUIDOM.ts')
 
