@@ -374,7 +374,7 @@ export interface ActionChainActionCallbackOptions<T = any>
   event?: Event
   error?: Error
   parser: ResolverConsumerOptions['parser']
-  snapshot: ActionChainSnapshot<Action<any>[]>
+  snapshot: ActionChainSnapshot<any[]>
   trigger?: NOODLActionTriggerType
 }
 

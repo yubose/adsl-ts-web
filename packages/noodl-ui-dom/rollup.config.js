@@ -6,6 +6,7 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
+import terser from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 
@@ -44,7 +45,7 @@ const config = {
       exclude: ['./node_modules'],
       extensions,
     }),
-    // terser(),
+    terser(),
   ],
 }
 

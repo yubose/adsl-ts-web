@@ -9,7 +9,7 @@
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
-    "lib": ["es6", "dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,
@@ -20,12 +20,11 @@
     "target": "esnext"
   },
   "exclude": [
-    "node_modules/**/*",
     "dist",
+    "node_modules",
     "src/setupTests.ts",
     "src/**/*.test.ts",
-    "src/**/__tests__",
     "src/**/test-utils.ts"
   ],
-  "include": ["src/**/*", "rollup.config.js"]
+  "include": ["src", "rollup.config.js"]
 }
