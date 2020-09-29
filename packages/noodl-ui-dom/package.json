@@ -1,6 +1,6 @@
 {
   "name": "noodl-ui-dom",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -18,7 +18,7 @@
     "noodl-ui": "^0.0.24"
   },
   "devDependencies": {
-    "noodl-ui": "^0.0.2"
+    "noodl-ui": "^0.0.5"
   },
   "engines": {
     "node": ">=12",
