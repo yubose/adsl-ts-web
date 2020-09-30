@@ -1,11 +1,11 @@
 const path = require('path')
 const webpack = require('webpack')
 
-const baseDir = path.resolve(__dirname, '_dev_')
-const compiledDir = path.resolve(baseDir, 'compiled')
+const baseDir = path.join(__dirname, 'scripts')
+const compiledDir = path.join(baseDir, 'compiled')
 
 module.exports = {
-  entry: path.resolve(baseDir, 'scripts/scripts.ts'),
+  entry: path.join(baseDir, 'index.ts'),
   target: 'node',
   devtool: 'inline-source-map',
   mode: 'development',
@@ -40,7 +40,7 @@ module.exports = {
   },
   resolve: {
     extensions: ['.ts', '.js'],
-    modules: [path.resolve(__dirname, '_dev_'), 'node_modules'],
+    modules: [path.resolve(__dirname, 'scripts'), 'node_modules'],
   },
   output: {
     filename: 'index.js',

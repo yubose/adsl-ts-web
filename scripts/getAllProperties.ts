@@ -8,8 +8,8 @@ import Pages from './modules/Pages'
 import Saver, { DataOptions } from './modules/Saver'
 import { sortObjByProperties } from './utils/common'
 import { getDirFilesAsJson } from './utils/filesystem'
-import { forEachDeepEntries } from '../../src/utils/common'
-import { paths } from '../config'
+import { forEachDeepEntries } from '../src/utils/common'
+import { paths } from './config'
 import * as log from './utils/log'
 
 export interface GetAllPropertiesOutput {

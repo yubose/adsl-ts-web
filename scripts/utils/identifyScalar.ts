@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { Scalar } from 'yaml/types'
 import {
   NOODLComponentType,
   NOODLContentType,
@@ -7,7 +8,6 @@ import {
 import { availableComponentTypes } from '../../../src/resolvers/getElementType'
 import { availableContentTypes } from '../../../src/resolvers/getTransformedAliases'
 import { availableActionTypes } from '../../../src/makeActionChain'
-import { Scalar } from 'yaml/types'
 
 export type NOODLScalarIdentifiers =
   | NOODLComponentType

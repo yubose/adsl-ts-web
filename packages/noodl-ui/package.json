@@ -15,20 +15,10 @@
   },
   "scripts": {
     "build": "rm -rf dist && rollup -c --environment BUILD:production",
-    "build:scripts": "webpack --mode production --config webpack.scripts.js",
     "start": "rm -rf dist && rollup -c -w",
-    "start:scripts": "rm -rf _dev_/compiled && webpack --mode development --config webpack.scripts.js --watch",
-    "script": "node _dev_/compiled/index.js",
-    "script:fetchjson": "npm run script fetch json",
-    "script:fetchyml": "npm run script fetch yml",
-    "script:eval": "npm run script --mode eval",
-    "script:keys": "npm run script keys",
-    "script:properties": "npm run script properties",
-    "script:file": "nodemon _dev_/compiled/index.js testfile",
     "test": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose --file ./src/setupTests.ts",
     "test:file": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts",
     "test:filea": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts",
-    "test:scripts": "ts-mocha -p tsconfig.test.json -r ts-node/register --extensions ts --watch --watch-files _dev_ _dev_/**/*.test.ts",
     "tsc": "tsc --watch"
   },
   "files": [

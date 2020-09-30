@@ -1,25 +1,25 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "./_dev_",
+    "baseUrl": "scripts",
     "declaration": false,
     "esModuleInterop": true,
-    "lib": ["es5", "es6", "es7", "esnext"],
-    "module": "es6",
+    "module": "esnext",
     "moduleResolution": "node",
     "preserveConstEnums": true,
     "removeComments": false,
     "skipLibCheck": true,
     "sourceMap": true,
-    "target": "es6"
+    "target": "esnext"
   },
   "exclude": [
     "dist",
     "node_modules",
+    "packages",
     ".vscode",
     ".github",
-    "_dev_/compiled/**/*",
+    "scripts/compiled/**/*",
     "src"
   ],
-  "include": ["_dev_/scripts"]
+  "include": ["scripts"]
 }

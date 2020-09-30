@@ -1,12 +1,11 @@
+// @ts-nocheck
 import fs from 'fs-extra'
 import chalk from 'chalk'
 import path from 'path'
 import yaml, { Document, scalarOptions, CST } from 'yaml'
 import isString from 'lodash/isString'
 import { Node, Pair, YAMLMap, YAMLSeq, Scalar } from 'yaml/types'
-import { dirYmls, dirPageYmls } from './scripts'
 import * as log from './utils/log'
-import getFileAsDocNode from './utils/getFileAsDocNode'
 import identifyScalar from './utils/identifyScalar'
 import identifyPair from './utils/identifyPair'
 import identifyMap from './utils/identifyMap'

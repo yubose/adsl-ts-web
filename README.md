@@ -1,5 +1,13 @@
 # AiTmed NOODL Web
 
+## All noodl-ui related packages are now merged into this repo and managed by [lerna](https://github.com/lerna/lerna)
+
+- `logsnap`
+- `noodl-ui`
+- `noodl-ui-dom`
+
+This allows for faster compilation, faster load times and quicker development flow by symlinking the dependencies
+
 ## References
 
 - [TypeScript DOM types](https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts)

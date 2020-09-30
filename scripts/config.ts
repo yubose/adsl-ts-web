@@ -15,11 +15,11 @@ export const endpoint = (function () {
 })()
 
 export const paths = (function () {
-  const _dev_path = path.resolve('_dev_')
+  const scriptsPath = path.resolve('scripts')
   return {
-    _dev_: _dev_path,
-    compiled: `${_dev_path}/compiled`,
-    json: `${_dev_path}/objects`,
-    yml: `${_dev_path}/yml`,
+    scripts: scriptsPath,
+    compiled: `${scriptsPath}/compiled`,
+    json: `${scriptsPath}/objects`,
+    yml: `${scriptsPath}/yml`,
   } as const
 })()

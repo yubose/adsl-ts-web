@@ -1,5 +1,10 @@
 node_modules
+_data
 dist
+build
+scripts/compiled
 public
 s3Deploy.sh
 package-lock.json
+scripts/objects/**
+scripts/ymls/**

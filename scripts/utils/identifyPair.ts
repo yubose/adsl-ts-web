@@ -2,7 +2,6 @@ import { Pair, Scalar } from 'yaml/types'
 import identifyMap from './identifyMap'
 import identifySeq from './identifySeq'
 import identifyScalar from './identifyScalar'
-import { log, logBlue, logYellow } from './log'
 
 export const commonKeywords = [
   // Globals

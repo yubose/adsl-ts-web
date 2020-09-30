@@ -1,13 +1,13 @@
 import _ from 'lodash'
 import chalk from 'chalk'
 import { DescriptiveItem } from './utils/filesystem'
-import { paths } from '../config'
+import { paths } from './config'
 import { createObjWithKeys, createRegexpByKeywords } from './utils/common'
 import * as log from './utils/log'
 import Bases from './modules/Bases'
 import Pages from './modules/Pages'
 import Saver from './modules/Saver'
-import { forEachDeepEntries } from '../../src/utils/common'
+import { forEachDeepEntries } from '../src/utils/common'
 
 export interface GenerateStatsForKeywordsOptions {
   endpoint: string

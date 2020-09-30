@@ -5,7 +5,7 @@ import path from 'path'
 import * as log from './utils/log'
 import Aggregator from './modules/Aggregator'
 import Saver, { DataOptions } from './modules/Saver'
-import { paths } from '../config'
+import { paths } from './config'
 
 // TODO: fix saving yml
 

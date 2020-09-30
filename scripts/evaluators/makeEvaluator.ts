@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { getRandomKey } from '../../../src/utils/common'
 
 export type ExpectedType =
   | 'array'
@@ -20,7 +19,7 @@ const makeEvaluator = function (
   evaluate: Evaluator,
   options?: EvaluatorOptions,
 ) {
-  let _id = getRandomKey()
+  let _id = _.uniqueId()
   let _results: { reason: string; value: any }[] = []
   let _context: { [key: string]: any } = {}
 
