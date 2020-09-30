@@ -14,7 +14,9 @@ export interface INOODLUIDOM {
 
 export type NOODLDOMComponentType = keyof typeof noodlDOMEvents
 
-export type NOODLDOMCreateNodeEvent = typeof noodlDOMEvents[keyof typeof noodlDOMEvents]
+export type NOODLDOMCreateNodeEvent =
+  | typeof noodlDOMEvents[keyof typeof noodlDOMEvents]
+  | 'all'
 
 export interface Parser {
   (
@@ -110,40 +112,3 @@ export type DataValueElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement
-
-// export type PageListenerName =
-//   | 'onStart'
-//   | 'onRootNodeInitializing'
-//   | 'onRootNodeInitialized'
-//   | 'onBeforePageRender'
-//   | 'onPageRendered'
-//   | 'onPageRequest'
-//   | 'onModalStateChange'
-//   | 'onError'
-
-// export interface PageModalState {
-//   id: string
-//   opened: boolean
-//   context: null | { [key: string]: any }
-//   props: { [key: string]: any }
-// }
-
-// export interface PageSnapshot extends NOODLUiPage {
-//   components?: NOODLComponentProps[]
-// }
-
-// // export type PageRenderStatus = typeof constants.pageRenderStatuses[number]
-// export type PageRenderStatus = typeof renderStatus[keyof typeof renderStatus]
-
-// export interface PageRootNodeState {
-//   id: string
-//   initializing: boolean
-//   initialized: boolean
-//   initializeError: null | SerializedError
-// }
-
-// export interface PageComponentsRenderState {
-//   rendering: boolean
-//   rendered: boolean
-//   renderError: null | SerializedError
-// }

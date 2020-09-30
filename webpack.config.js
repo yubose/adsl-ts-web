@@ -31,9 +31,7 @@ const plugins = [
 
 let productionOptions
 
-if (process.env.NODE_ENV !== 'production') {
-  //
-} else {
+if (process.env.NODE_ENV === 'production') {
   productionOptions = {
     optimization: {
       minimize: true,
@@ -68,17 +66,9 @@ if (process.env.NODE_ENV !== 'production') {
   }
 }
 
-if (productionOptions) {
-  // console.log(
-  //   `Your options for production are being applied: `,
-  //   JSON.stringify(productionOptions, null, 2),
-  // )
-}
-
 module.exports = {
   entry: './src/index.ts',
   output: {
-    // filename: 'index.js',
     filename: '[name].[hash].js',
     path: path.resolve(__dirname, 'build'),
   },
@@ -143,10 +133,6 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
         exclude: /\.module\.css$/,
       },
-      // {
-      //   test: /\.(png|jpe?g|gif|svg)$/i,
-      //   use: [{ loader: 'file-loader' }],
-      // },
     ],
   },
   resolve: {
@@ -155,7 +141,6 @@ module.exports = {
   },
   plugins: [
     ...plugins,
-    new webpack.EvalSourceMapDevToolPlugin(),
     new webpack.ProgressPlugin({
       handler(percentage, msg, ...args) {
         console.clear()
@@ -214,7 +199,6 @@ module.exports = {
         console.log('-------------------------------------------------------')
       },
     }),
-    // new webpack.SplitChunksPlugin(),
   ],
   ...productionOptions,
   optimization: {

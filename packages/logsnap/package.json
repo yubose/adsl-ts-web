@@ -1,0 +1,43 @@
+{
+  "name": "logsnap",
+  "version": "0.0.1",
+  "description": "Colorful, easy to use logging for the browser",
+  "keywords": [
+    "console",
+    "log"
+  ],
+  "author": "pfftdammitchris <pfftdammitchris@gmail.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "directories": {
+    "dist": "dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
+  },
+  "scripts": {
+    "build": "rm -rf dist && rollup -c --environment BUILD:production",
+    "start": "rm -rf dist && rollup -c -w",
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "prettier": {
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "printWidth": 80,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all"
+  },
+  "eslintConfig": {
+    "rules": {
+      "no-unused-vars": "warn"
+    }
+  }
+}

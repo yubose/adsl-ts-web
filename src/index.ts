@@ -1,5 +1,9 @@
 import _ from 'lodash'
 import {
+  LocalAudioTrackPublication,
+  LocalVideoTrackPublication,
+} from 'twilio-video'
+import {
   Action,
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
@@ -25,16 +29,8 @@ import {
   NOODLComponentProps,
   Viewport,
 } from 'noodl-ui'
-import {
-  LocalAudioTrackPublication,
-  LocalVideoTrackPublication,
-} from 'twilio-video'
-import {
-  CachedPageObject,
-  NOODLElement,
-  PageModalId,
-  PageSnapshot,
-} from './app/types'
+import { NOODLElement } from 'noodl-ui-dom'
+import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { createOnChangeFactory } from './utils/sdkHelpers'
 import { forEachParticipant } from './utils/twilio'
 import { isMobile, reduceEntries } from './utils/common'
@@ -43,8 +39,8 @@ import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
+import noodluidom from './app/noodl-ui-dom'
 import Logger from './app/Logger'
-import noodluidom from './utils/parser'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
@@ -84,24 +80,24 @@ function createPreparePage(options: {
   }
 }) {
   return async (pageName: string): Promise<NOODLPageObject> => {
-    const { cadl } = await import('app/client')
-    await cadl.initPage(pageName, [], options)
-    log
-      .func('createPreparePage')
-      .grey(`Ran cadl.initPage on page "${pageName}"`)
-    return cadl?.root?.[pageName]
+    const { default: noodl } = await import('app/noodl')
+    await noodl.initPage(pageName, [], options)
+    log.func('createPreparePage')
+    log.grey(`Ran noodl.initPage on page "${pageName}"`)
+    return noodl?.root?.[pageName]
   }
 }
 
 window.addEventListener('load', async () => {
   // Experimenting dynamic import (code splitting)
   const { Account } = await import('@aitmed/cadl')
-  const { cadl, noodl } = await import('app/client')
+  const { default: noodl } = await import('app/noodl')
+  const { default: noodlui } = await import('app/noodl-ui')
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
   window.getByDataUX = getByDataUX
-  window.noodl = cadl
-  window.noodlui = noodl
+  window.noodl = noodl
+  window.noodlui = noodlui
   window.noodluidom = noodluidom
   window.streams = Meeting.getStreams()
   window.meeting = Meeting
@@ -116,7 +112,7 @@ window.addEventListener('load', async () => {
   const viewport = new Viewport()
   const page = new Page()
   const app = new App({ viewport })
-  const builtIn = createBuiltInActions({ Meeting, page, noodluidom })
+  const builtIn = createBuiltInActions({ page, noodluidom })
   const actions = enhanceActions(createActions({ page }))
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
@@ -166,14 +162,14 @@ window.addEventListener('load', async () => {
       }
       // Initialize the noodl-ui client (parses components) if it
       // isn't already initialized
-      if (!noodl.initialized) {
+      if (!noodlui.initialized) {
         log.func('page.onBeforePageRender')
         log.grey('Initializing noodl-ui client', noodl)
-        noodl
+        noodlui
           .init({ viewport })
-          .setAssetsUrl(cadl.assetsUrl || '')
+          .setAssetsUrl(noodl.assetsUrl || '')
           .setPage(pageSnapshot)
-          .setRoot(cadl.root)
+          .setRoot(noodl.root)
           .setViewport({
             width: window.innerWidth,
             height: window.innerHeight,
@@ -224,7 +220,7 @@ window.addEventListener('load', async () => {
       })
       // Refresh the roots
       // TODO - Leave root/page auto binded to the lib
-      noodl.setRoot(cadl.root).setPage(pageSnapshot)
+      noodlui.setRoot(noodl.root).setPage(pageSnapshot)
       // NOTE: not being used atm
       if (page.rootNode && page.rootNode.id !== pageName) {
         page.rootNode.id = pageName
@@ -380,7 +376,7 @@ window.addEventListener('load', async () => {
       stream,
     })
     const isInSdk = _.some(
-      cadl.root?.VideoChat?.listData?.participants || [],
+      noodl.root?.VideoChat?.listData?.participants || [],
       (p) => p.sid === participant.sid,
     )
     if (!isInSdk) {
@@ -389,7 +385,7 @@ window.addEventListener('load', async () => {
        * to be an array if it's not already an array
        * @param { RemoteParticipant } participant
        */
-      cadl.editDraft((draft: typeof cadl.root) => {
+      noodl.editDraft((draft: typeof noodl.root) => {
         const participants = Meeting.removeFalseyParticipants(
           draft?.VideoChat?.listData?.participants || [],
         ).concat(participant)
@@ -399,7 +395,7 @@ window.addEventListener('load', async () => {
       log.func('Meeting.onAddRemoteParticipant')
       log.green('Updated SDK with new participant', {
         addedParticipant: participant,
-        newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
+        newParticipantsList: noodl.root?.VideoChat?.listData?.participants,
       })
     }
   }
@@ -410,7 +406,7 @@ window.addEventListener('load', async () => {
      * to be an array if it's not already an array
      * @param { RemoteParticipant } participant
      */
-    cadl.editDraft((draft: typeof cadl.root) => {
+    noodl.editDraft((draft: typeof noodl.root) => {
       _.set(
         draft.VideoChat.listData,
         'participants',
@@ -424,7 +420,7 @@ window.addEventListener('load', async () => {
     })
     log.func('Meeting.onRemoveRemoteParticipant')
     log.green('Updated SDK with removal of participant', {
-      newParticipantsList: cadl.root?.VideoChat?.listData?.participants,
+      newParticipantsList: noodl.root?.VideoChat?.listData?.participants,
       removedParticipant: participant,
     })
   }
@@ -501,11 +497,11 @@ window.addEventListener('load', async () => {
   // Register the onresize listener once, if it isn't already registered
   if (viewport.onResize === undefined) {
     viewport.onResize = (newSizes) => {
-      noodl?.setViewport?.(newSizes)
+      noodlui?.setViewport?.(newSizes)
       if (page.rootNode) {
         page.rootNode.style.width = `${newSizes.width}px`
         page.rootNode.style.height = `${newSizes.height}px`
-        page.render(cadl?.root?.[page.currentPage]?.components)
+        page.render(noodl?.root?.[page.currentPage]?.components)
       } else {
         // TODO
       }

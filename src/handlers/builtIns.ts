@@ -10,9 +10,9 @@ import {
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
 import { INOODLUIDOM } from 'noodl-ui-dom'
 import Page from 'Page'
-import Meeting from '../meeting'
 import Logger from 'app/Logger'
 import validate from 'utils/validate'
+import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
 

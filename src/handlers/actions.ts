@@ -104,7 +104,7 @@ const createActions = function ({ page }: { page: IPage }) {
     action: Action<NOODLChainActionSaveObjectObject>,
     options,
   ) => {
-    const { cadl } = await import('app/client')
+    const { default: noodl } = await import('app/noodl')
     const { context, abort, parser } = options as any
 
     try {
@@ -137,8 +137,8 @@ const createActions = function ({ page }: { page: IPage }) {
                   nameField = parser.get(nameFieldPath)
                 } else {
                   nameField =
-                    _.get(cadl?.root, nameFieldPath, null) ||
-                    _.get(cadl?.root?.[context?.page?.name], nameFieldPath, {})
+                    _.get(noodl?.root, nameFieldPath, null) ||
+                    _.get(noodl?.root?.[context?.page?.name], nameFieldPath, {})
                 }
 
                 const params = { ...nameField }
@@ -173,7 +173,7 @@ const createActions = function ({ page }: { page: IPage }) {
     action: Action<NOODLChainActionUpdateObject>,
     options,
   ) => {
-    const { cadl } = await import('app/client')
+    const { default: noodl } = await import('app/noodl')
 
     log.func('updateObject')
     async function callObject(
@@ -205,7 +205,7 @@ const createActions = function ({ page }: { page: IPage }) {
         const { dataKey, dataObject } = object
         if (dataObject) {
           console.log(dataObject)
-          cadl.updateObject({ dataKey, dataObject })
+          noodl.updateObject({ dataKey, dataObject })
         } else {
           log.red(`dataObject is null or undefined`, object)
         }

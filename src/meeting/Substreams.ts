@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
-import { NOODLElement } from 'app/types/pageTypes'
+import { NOODLElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
 import { RoomParticipant } from 'app/types'
 import Logger from 'app/Logger'

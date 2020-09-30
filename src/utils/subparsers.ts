@@ -16,14 +16,14 @@ export async function parseList(
   props: NOODLComponentProps,
   parserOptions: ParserOptions,
 ) {
-  const { noodl } = await import('app/client')
+  const { default: noodlui } = await import('app/noodl-ui')
   const { parse } = parserOptions
   const blueprint: NOODLComponent = props.blueprint
   const listData = props['data-listdata']
   const listId = props['data-listid']
 
   _.forEach(listData, (listItem) => {
-    const component = noodl.resolveComponents(blueprint)[0]
+    const component = noodlui.resolveComponents(blueprint)[0]
     const liNode = parse(component)
     if (liNode) {
       liNode.dataset['list-id'] = listId
@@ -38,7 +38,7 @@ export async function parseList(
 
     if (liNode && _.isArray(blueprint?.children)) {
       _.forEach(blueprint.children, (blueprintChild: NOODLComponent) => {
-        const resolvedBlueprintChild = noodl.resolveComponents(
+        const resolvedBlueprintChild = noodlui.resolveComponents(
           blueprintChild,
         )[0]
         if (

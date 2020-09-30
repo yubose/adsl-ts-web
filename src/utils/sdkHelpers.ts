@@ -4,8 +4,9 @@
  * isolate the imports into this file and replace them with stubs in testing
  */
 import _ from 'lodash'
-import { cadl, noodl } from 'app/client'
 import Logger from 'app/Logger'
+import noodl from 'app/noodl'
+import noodlui from 'app/noodl-ui'
 
 const log = Logger.create('sdkHelpers.ts')
 
@@ -28,17 +29,17 @@ export function createOnChangeFactory(dataKey: string) {
           })
         | null = e.target
 
-      const pageName = noodl.getContext().page.name
-      const localRoot = cadl?.root?.[pageName]
+      const pageName = noodlui.getContext().page.name
+      const localRoot = noodl?.root?.[pageName]
       const value = target?.value || ''
 
       let updatedValue
 
       if (_.has(localRoot, dataKey)) {
-        cadl.editDraft((draft: any) => {
+        noodl.editDraft((draft: any) => {
           _.set(draft?.[pageName], dataKey, value)
         })
-        updatedValue = _.get(cadl.root?.[pageName], dataKey)
+        updatedValue = _.get(noodl.root?.[pageName], dataKey)
         if (updatedValue !== value) {
           log.func('createOnChangeFactory -- onChange')
           log.red(
@@ -66,7 +67,7 @@ export function createOnChangeFactory(dataKey: string) {
  */
 export function getPagePath(pageName: string | RegExp) {
   // @ts-expect-error
-  const pages = cadl?.cadlEndpoint?.page || cadl?.noodlEndpoint?.page || []
+  const pages = noodl?.cadlEndpoint?.page || noodl?.noodlEndpoint?.page || []
   const pagePath = _.find(pages, (name: string) =>
     _.isString(pageName)
       ? name.includes(pageName)

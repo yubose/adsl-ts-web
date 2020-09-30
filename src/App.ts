@@ -13,11 +13,11 @@ class App {
   }
 
   public async initialize() {
-    const { cadl } = await import('app/client')
+    const { default: noodl } = await import('app/noodl')
 
-    await cadl.init()
+    await noodl.init()
 
-    const startPage = cadl?.cadlEndpoint?.startPage
+    const startPage = noodl?.cadlEndpoint?.startPage
 
     if (!this.authStatus) {
       // Initialize the user's state before proceeding to decide on how to direct them
@@ -27,7 +27,7 @@ class App {
       this.isRetrievingUserState?.(false)
 
       if (storedStatus.code === 0) {
-        cadl.setFromLocalStorage('user')
+        noodl.setFromLocalStorage('user')
         this.authStatus = 'logged.in'
         this.onAuthStatus?.('logged.in')
       } else if (storedStatus.code === 1) {

@@ -23,5 +23,5 @@
     "target": "esnext"
   },
   "include": ["src", "webpack.config.js", "package.json"],
-  "exclude": ["_data", "node_modules", "cypress", "legacy"]
+  "exclude": ["_data", "node_modules", "legacy"]
 }

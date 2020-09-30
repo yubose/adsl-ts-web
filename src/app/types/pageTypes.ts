@@ -9,85 +9,6 @@ export interface CachedPageObject {
   timestamp: number
 }
 
-export type NOODLElements = Pick<
-  HTMLElementTagNameMap,
-  | 'a'
-  | 'article'
-  | 'audio'
-  | 'b'
-  | 'blockquote'
-  | 'body'
-  | 'br'
-  | 'button'
-  | 'canvas'
-  | 'caption'
-  | 'code'
-  | 'col'
-  | 'div'
-  | 'em'
-  | 'embed'
-  | 'fieldset'
-  | 'figure'
-  | 'footer'
-  | 'form'
-  | 'h1'
-  | 'h2'
-  | 'h3'
-  | 'h4'
-  | 'h5'
-  | 'h6'
-  | 'header'
-  | 'hr'
-  | 'html'
-  | 'i'
-  | 'img'
-  | 'input'
-  | 'iframe'
-  | 'label'
-  | 'li'
-  | 'link'
-  | 'main'
-  | 'meta'
-  | 'nav'
-  | 'noscript'
-  | 'ol'
-  | 'option'
-  | 'p'
-  | 'pre'
-  | 'script'
-  | 'select'
-  | 'section'
-  | 'small'
-  | 'source'
-  | 'span'
-  | 'strong'
-  | 'style'
-  | 'table'
-  | 'tbody'
-  | 'td'
-  | 'textarea'
-  | 'tfoot'
-  | 'th'
-  | 'thead'
-  | 'title'
-  | 'tr'
-  | 'track'
-  | 'ul'
-  | 'video'
->
-
-export type NOODLElementTypes = keyof NOODLElements
-
-export type NOODLElement = Extract<
-  NOODLElements[NOODLElementTypes],
-  HTMLElement
->
-
-export type DataValueElement =
-  | HTMLInputElement
-  | HTMLSelectElement
-  | HTMLTextAreaElement
-
 export interface PageModalState {
   id: string
   opened: boolean
@@ -116,5 +37,3 @@ export interface PageComponentsRenderState {
   rendered: boolean
   renderError: null | SerializedError
 }
-
-export type NOODLDOMTagName = keyof HTMLElementTagNameMap

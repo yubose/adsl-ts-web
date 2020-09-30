@@ -11,8 +11,8 @@ import {
 } from 'twilio-video'
 import { getByDataUX, NOODLComponentProps, Viewport } from 'noodl-ui'
 import { isMobile } from 'utils/common'
-import parser from 'utils/parser'
 import * as T from 'app/types/meetingTypes'
+import noodluidom from 'app/noodl-ui-dom'
 import Stream from 'meeting/Stream'
 import Streams from 'meeting/Streams'
 import Logger from 'app/Logger'
@@ -136,7 +136,7 @@ const Meeting = (function () {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = subStreams.blueprint
-              const node = parser.parse(props as NOODLComponentProps) as any
+              const node = noodluidom.parse(props as NOODLComponentProps) as any
               const subStream = subStreams.create({ node, participant }).last()
               Meeting.onAddRemoteParticipant?.(participant, mainStream)
               log.green(

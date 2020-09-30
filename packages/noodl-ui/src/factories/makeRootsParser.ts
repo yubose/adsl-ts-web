@@ -218,14 +218,7 @@ function makeRootsParser<RootObjects = any>(
       const path = dataKey.startsWith('.')
         ? dataKey.replace(/(..|.)/, '')
         : dataKey
-      const logMsg = `%cgetByDataKey [localKey]`
-      console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-        roots,
-        dataKey,
-        path,
-        fallbackValue,
-        localKey,
-      })
+
       return (
         _.get(roots?.[localKey], path, fallbackValue) ||
         _.get(roots, path, fallbackValue)

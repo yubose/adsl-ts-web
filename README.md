@@ -16,7 +16,7 @@
   - footer 4.0 --> 4.1 top value placement
   - input focus issue on androids
 
-## Initializations:
+## Initialization (somewhat outdated)
 
 1. `noodl` client (sdk/api)
 2. `store`

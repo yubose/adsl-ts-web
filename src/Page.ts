@@ -4,10 +4,11 @@ import {
   NOODLComponentProps,
   Page as NOODLUiPage,
 } from 'noodl-ui'
-import { noodl } from 'app/client'
+import { NOODLElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'
-import { NOODLElement, PageModalState, PageSnapshot } from './app/types'
-import parser from './utils/parser'
+import { PageModalState, PageSnapshot } from './app/types'
+import noodlui from './app/noodl-ui'
+import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
 import Logger from './app/Logger'
 
@@ -283,9 +284,9 @@ class Page {
     let components
 
     if (_.isArray(rawComponents)) {
-      components = noodl.resolveComponents(rawComponents)
+      components = noodlui.resolveComponents(rawComponents)
     } else {
-      components = noodl.resolveComponents()
+      components = noodlui.resolveComponents()
     }
 
     let node
@@ -296,7 +297,7 @@ class Page {
       // plain text to reduce breaches into injection attacks
       this.rootNode.textContent = ''
       _.forEach(components, (component) => {
-        node = parser.parse(component)
+        node = noodluidom.parse(component)
         if (node) {
           this.rootNode?.appendChild(node)
         }

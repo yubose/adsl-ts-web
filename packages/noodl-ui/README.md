@@ -1,6 +1,6 @@
 # noodl-ui
 
-> React library for working with NOODL pages
+> React library for NOODL on the client side
 
 [![NPM](https://img.shields.io/npm/v/noodl-ui.svg)](https://www.npmjs.com/package/noodl-ui) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -9,22 +9,6 @@
 ```bash
 npm install --save noodl-ui
 ```
-
-### Todos
-
-- type: `listFooter`
-- type: `scrollView`
-- type: `searchBar`
-- Format phone # in inputs
-- make type: `scrollView` in sync with innerHeight height
-- `border: { color: "0x00000" }`
-- new component:
-- new concept: `lastTop`
-  - most likely used for `scrollView` components
-  - for `listItem` under `scrollView` (or `list`)
-- `color` stays at 0x0000000
-- `borderWidth` missing px unit
-- `fontSize` missing px unit
 
 #### Action triggers
 
@@ -52,8 +36,3 @@ npm install --save noodl-ui
 #### Custom integrations
 
 - Some components are attached with the prop `data-ux` for UX interactions between the library and web apps
-
-#### Keep tabs for
-
-https://github.com/epoberezkin/fast-deep-equal/
-https://github.com/FormidableLabs/react-fast-compare
