@@ -58,7 +58,7 @@ class NOODLUIDOM implements T.INOODLUIDOM {
       composeForEachFns(
         this.#runParsers,
         this.#runCallbacks,
-        this.#recurseChildren,
+        // this.#recurseChildren,
       )(node, props)
     }
 
@@ -140,10 +140,8 @@ class NOODLUIDOM implements T.INOODLUIDOM {
    * @param { NOODLElement } node
    */
   #runParsers = (node: T.NOODLElement, props: NOODLComponentProps) => {
-    this.#parsers.forEach((parseFn) => {
-      parseFn(node, props)
-      this.emit(noodlDOMEvents[props.noodlType], node, props)
-    })
+    this.#parsers.forEach((parseFn) => parseFn(node, props))
+    this.emit(noodlDOMEvents[props.noodlType], node, props)
     return this
   }
 
@@ -155,15 +153,13 @@ class NOODLUIDOM implements T.INOODLUIDOM {
     const callbacks = this.#callbacks
     const callFn = (cb: T.OnCreateNode) => cb && cb(node, props)
     callbacks.all.forEach(callFn)
-    callbacks.component[props.noodlType] || [].forEach(callFn)
+    callbacks.component[props.noodlType] || [].forEach((fn) => callFn(fn))
     return this
   }
 
-  #recurseChildren = (
-    node: T.NOODLElement,
-    children: string | number | NOODLComponentProps | NOODLComponentProps[],
-  ) => {
-    if (children) {
+  #recurseChildren = (node: T.NOODLElement, props: NOODLComponentProps) => {
+    if (props.children) {
+      const { children } = props
       if (Array.isArray(children)) {
         children.forEach((child) => {
           this.#recurseChildren(node, child)
@@ -177,7 +173,7 @@ class NOODLUIDOM implements T.INOODLUIDOM {
         log.func('#recurseChildren')
         log.orange(
           `Found children that is not an array, string or number type. This ` +
-            `will not be visible on the page`,
+            `most likely means that it was inteded to be excluded which somehow ended up here.`,
           { node, children },
         )
       }

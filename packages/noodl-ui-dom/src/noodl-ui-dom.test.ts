@@ -11,25 +11,6 @@ beforeEach(() => {
 })
 
 describe('noodl-ui-dom', () => {
-  it('should call the appropriate event', () => {
-    const fn1 = sinon.spy()
-    const fn2 = sinon.spy()
-    const fn3 = sinon.spy()
-    noodluidom.on('create.button', fn1)
-    noodluidom.on('create.image', fn2)
-    noodluidom.on('create.button', fn3)
-    noodluidom.parse({
-      id: 'myid123',
-      type: 'button',
-      noodlType: 'button',
-      style: {},
-      text: 'hello',
-    })
-    expect(fn1.called).to.be.true
-    expect(fn2.called).to.be.false
-    expect(fn3.called).to.be.true
-  })
-
   it('should add the func to the callbacks list', () => {
     const spy = sinon.spy()
     noodluidom.on('create.button', spy)
@@ -53,8 +34,47 @@ describe('noodl-ui-dom', () => {
     const spy = sinon.spy()
     noodluidom.on('create.label', spy)
     expect(spy.called).to.be.false
+    // @ts-expect-error
     noodluidom.emit('create.label')
     expect(spy.called).to.be.true
+  })
+
+  describe('calling the appropriate event', () => {
+    let fn1: sinon.SinonSpy
+    let fn2: sinon.SinonSpy
+    let fn3: sinon.SinonSpy
+
+    beforeEach(() => {
+      fn1 = sinon.spy()
+      fn2 = sinon.spy()
+      fn3 = sinon.spy()
+      noodluidom.on('create.button', fn1)
+      noodluidom.on('create.image', fn2)
+      noodluidom.on('create.button', fn3)
+    })
+
+    it('should call callbacks that were subscribed', () => {
+      noodluidom.parse({
+        id: 'myid123',
+        type: 'button',
+        noodlType: 'button',
+        text: 'hello',
+      })
+      expect(fn1.called).to.be.true
+      expect(fn3.called).to.be.true
+    })
+
+    it('should not call callbacks that were not subscribed', () => {
+      noodluidom.parse({
+        id: 'myid123',
+        type: 'label',
+        noodlType: 'label',
+        text: 'hello',
+      })
+      expect(fn1.called).to.be.false
+      expect(fn2.called).to.be.false
+      expect(fn3.called).to.be.false
+    })
   })
 
   describe('isValidAttribute', () => {
@@ -101,7 +121,7 @@ describe('noodl-ui-dom', () => {
         },
       })[0]
       noodluidom.on('create.label', (node, props) => {
-        node.innerHTML = props.children
+        node.innerHTML = `${props.children}`
       })
       const node = noodluidom.parse(label)
       document.body.appendChild(node)
