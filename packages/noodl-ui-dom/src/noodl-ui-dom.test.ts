@@ -11,11 +11,7 @@ beforeEach(() => {
 })
 
 describe('noodl-ui-dom', () => {
-  it.skip('should wrap nodes with the wrapper if provided', () => {
-    //
-  })
-
-  it.skip('should call the appropriate event', () => {
+  it('should call the appropriate event', () => {
     const fn1 = sinon.spy()
     const fn2 = sinon.spy()
     const fn3 = sinon.spy()
@@ -34,30 +30,61 @@ describe('noodl-ui-dom', () => {
     expect(fn3.called).to.be.true
   })
 
-  it.skip('shoulld add the event callback', () => {
-    //
+  it('should add the func to the callbacks list', () => {
+    const spy = sinon.spy()
+    noodluidom.on('create.button', spy)
+    const callbacksList = noodluidom.getListeners('create.button')
+    expect(callbacksList).to.be.an('array')
+    expect(callbacksList).to.have.members([spy])
   })
 
-  it.skip('should remove the event callback', () => {
-    //
+  it('should remove the func from the callbacks list', () => {
+    const spy = sinon.spy()
+    noodluidom.on('create.button', spy)
+    let callbacksList = noodluidom.getListeners('create.button')
+    expect(callbacksList).to.have.members([spy])
+    noodluidom.off('create.button', spy)
+    callbacksList = noodluidom.getListeners('create.button')
+    expect(callbacksList).to.be.an('array')
+    expect(callbacksList).not.to.include.members([spy])
   })
 
-  it.skip('should emit events', () => {
-    //
-  })
-
-  it.skip('should return the registered listeners for the event', () => {
-    //
+  it('should emit events', () => {
+    const spy = sinon.spy()
+    noodluidom.on('create.label', spy)
+    expect(spy.called).to.be.false
+    noodluidom.emit('create.label')
+    expect(spy.called).to.be.true
   })
 
   describe('isValidAttribute', () => {
-    xit('', () => {
-      //
+    it('should return true for possible assigned attributes on the dom node', () => {
+      expect(noodluidom.isValidAttr('div', 'style')).to.be.true
+      expect(noodluidom.isValidAttr('div', 'setAttribute')).to.be.true
+      expect(noodluidom.isValidAttr('div', 'id')).to.be.true
+      expect(noodluidom.isValidAttr('div', 'dataset')).to.be.true
     })
-  })
 
-  describe.skip('onCreateNode', () => {
-    //
+    it('should return false for all of these', () => {
+      expect(noodluidom.isValidAttr('div', 'abc')).to.be.false
+      expect(noodluidom.isValidAttr('div', 'value')).to.be.false
+      expect(noodluidom.isValidAttr('div', 'options')).to.be.false
+    })
+
+    it('should return true for all of these', () => {
+      expect(noodluidom.isValidAttr('textarea', 'value')).to.be.true
+      expect(noodluidom.isValidAttr('input', 'value')).to.be.true
+      expect(noodluidom.isValidAttr('select', 'value')).to.be.true
+      expect(noodluidom.isValidAttr('input', 'placeholder')).to.be.true
+      expect(noodluidom.isValidAttr('input', 'required')).to.be.true
+    })
+
+    it('should return false for all of these', () => {
+      expect(noodluidom.isValidAttr('select', 'abc')).to.be.false
+      expect(noodluidom.isValidAttr('select', 'rows')).to.be.false
+      expect(noodluidom.isValidAttr('input', 'rows')).to.be.false
+      expect(noodluidom.isValidAttr('textarea', 'options')).to.be.false
+    })
   })
 
   describe('parse', () => {

@@ -1,14 +1,18 @@
 import { NOODLComponentProps, NOODLComponentType } from 'noodl-ui'
 import { noodlDOMEvents } from './constants'
 
+export interface OnCreateNode {
+  (node: NOODLElement, props: NOODLComponentProps): void
+}
+
+export type OnCreateNodeArgs = Parameters<OnCreateNode>
+
 export interface INOODLUIDOM {
-  on(eventName: NOODLDOMCreateNodeEvent, cb: Function): this
-  off(eventName: NOODLDOMCreateNodeEvent, cb: Function): this
+  on(eventName: NOODLDOMCreateNodeEvent, cb: OnCreateNode): this
+  off(eventName: NOODLDOMCreateNodeEvent, cb: OnCreateNode): this
   emit(eventName: NOODLDOMCreateNodeEvent, ...args: any[]): this
-  getEventListeners(eventName: NOODLDOMCreateNodeEvent): Function[]
-  getUtils(): { parse: Parser }
-  isValidAttribute(tagName: NOODLDOMTagName, key: string): boolean
-  onCreateNode(type: 'all' | NOODLComponentType, cb: Parser): this
+  getListeners(eventName: NOODLDOMCreateNodeEvent): OnCreateNode[]
+  isValidAttr(tagName: NOODLDOMTagName, key: string): boolean
   parse(props: NOODLComponentProps): NOODLElement | null
 }
 
@@ -17,20 +21,6 @@ export type NOODLDOMComponentType = keyof typeof noodlDOMEvents
 export type NOODLDOMCreateNodeEvent =
   | typeof noodlDOMEvents[keyof typeof noodlDOMEvents]
   | 'all'
-
-export interface Parser {
-  (
-    node: NOODLElement,
-    props: NOODLComponentProps,
-    parserOptions?: ParserOptions,
-  ): any
-}
-
-export type ParserArgs = Parameters<Parser>
-
-export interface ParserOptions {
-  parse: Parser
-}
 
 export type NOODLElements = Pick<
   HTMLElementTagNameMap,
