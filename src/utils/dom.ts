@@ -135,3 +135,21 @@ export function scrollTo(to = 0, duration = 16) {
     scrollTo(to, duration - 16)
   })
 }
+
+/* -------------------------------------------------------
+  ---- NOODL-UI-DOM UTILITIES
+-------------------------------------------------------- */
+
+const matchNoodlType = (type: any) => ({ noodlType }: any) => noodlType === type
+
+export const isButton = matchNoodlType('button')
+export const isDivider = matchNoodlType('divider')
+export const isHeader = matchNoodlType('header')
+export const isImage = matchNoodlType('image')
+export const isLabel = matchNoodlType('label')
+export const isList = matchNoodlType('list')
+export const isListItem = matchNoodlType('listItem')
+export const isPopUp = matchNoodlType('popUp')
+export const isSelect = matchNoodlType('select')
+export const isTextField = matchNoodlType('textField')
+export const isView = matchNoodlType('view')
