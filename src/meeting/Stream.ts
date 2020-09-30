@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { getByDataUX } from 'noodl-ui'
-import { NOODLElement } from 'app/types/pageTypes'
+import { NOODLElement } from 'noodl-ui-dom'
 import Logger from 'app/Logger'
 import {
   RoomParticipant,
@@ -9,7 +9,6 @@ import {
   StreamType,
 } from 'app/types'
 import { attachVideoTrack } from 'utils/twilio'
-import { loadPlugin } from 'immer/dist/internal'
 
 const log = Logger.create('Streams.ts')
 

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { NOODLComponentProps } from 'noodl-ui'
-import { NOODLElement } from 'app/types/pageTypes'
+import { NOODLElement } from 'noodl-ui-dom'
 import { RoomParticipant } from 'app/types'
 import Stream from 'meeting/Stream'
 import Substreams from 'meeting/Substreams'
