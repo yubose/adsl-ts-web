@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Logger from '../../../Logger'
+import Logger from 'logsnap'
 import {
   IComponent,
   NOODLComponent,
@@ -34,17 +34,6 @@ const getListItemChildren: Resolver = (
   const listItem = consume(component)
 
   let childComponent: ProxiedComponent
-
-  const logMsg = `%ccomponent`
-  console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-    component,
-    children,
-    iteratorVar,
-    listId,
-    listItem,
-    listItemIndex,
-    parent,
-  })
 
   if (!listItem) {
     log.red(

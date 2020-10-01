@@ -1,7 +1,7 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { noodlContentTypes } from '../constants'
 import { Resolver } from '../types'
-import Logger from '../Logger'
 
 const log = Logger.create('getTransformedAliases')
 
@@ -47,7 +47,6 @@ const getTransformedAliases: Resolver = (component, { context, createSrc }) => {
 
   if (!_.isUndefined(path) || !_.isUndefined(resource)) {
     let src = path || resource || ''
-    console.log(src)
 
     if (src && _.isString(src)) {
       component.set('src', createSrc(src))

@@ -11,7 +11,7 @@ export function forEachParticipant(
 /**
  * Helper to attach the video track to the node. Setting these style properties
  * are required for the video to align with the parentNode's dimensions
- * @param { NOODLElement } node - HTML DOM node to attach the VideoTrack to
+ * @param { NOODLDOMElement } node - HTML DOM node to attach the VideoTrack to
  * @param { VideoTrack } track - Video track from a participant
  */
 export function attachVideoTrack<T extends HTMLElement>(

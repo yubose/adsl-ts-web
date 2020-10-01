@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Logger from '../../../Logger'
+import Logger from 'logsnap'
 import {
   IComponent,
   Resolver,
@@ -119,7 +119,6 @@ const getListChildren: Resolver = (
             resolverOptions,
           ) as IComponent
 
-          log.green('', { listItemComponent, result })
           // Direct children (listItem components) will consume this list data
           // during the resolving process
           acc.push(result)

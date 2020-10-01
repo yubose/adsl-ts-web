@@ -1,129 +1,73 @@
-import { NOODLComponentProps, NOODLComponentType } from 'noodl-ui'
-import { noodlDOMEvents } from './constants'
+import Logger from 'logsnap'
+import { NOODLComponentProps } from 'noodl-ui'
+import {
+  componentEventMap,
+  componentEventIds,
+  componentEventTypes,
+} from './constants'
 import * as T from './types'
-import Logger from './Logger'
 
 const log = Logger.create('NOODLUIDOM.ts')
 
 class NOODLUIDOM implements T.INOODLUIDOM {
-  #onCreateNode: {
-    all: T.Parser[]
-    component: Record<T.NOODLDOMComponentType, T.Parser[]>
+  #callbacks: {
+    all: T.NodePropsFunc[]
+    component: Record<T.NOODLDOMComponentType, T.NodePropsFunc[]>
   } = {
     all: [],
-    component: {
-      button: [],
-      divider: [],
-      footer: [],
-      header: [],
-      image: [],
-      label: [],
-      list: [],
-      listItem: [],
-      popUp: [],
-      select: [],
-      textField: [],
-      video: [],
-      view: [],
-    },
+    component: componentEventTypes.reduce(
+      (acc, evt: T.NOODLDOMComponentType) => Object.assign(acc, { [evt]: [] }),
+      {} as Record<T.NOODLDOMComponentType, T.NodePropsFunc[]>,
+    ),
   }
   // CREATEONCHANGEFACTORY IS EXPERIMENTAL AND WILL MOST LIKELY BE REMOVED
   #createOnChangeFactory: ((...args: any[]) => any) | undefined
-  #cache: {
-    record: { props: Map<any, any> }
-    stub: { elements: { [key: string]: T.NOODLElement } }
-  } = {
-    record: { props: new Map() },
-    stub: { elements: {} },
-  }
-  #handleChildren: (
-    parentNode: T.NOODLElement,
-    props: NOODLComponentProps,
-  ) => any
-  #listeners: Partial<Record<T.NOODLDOMCreateNodeEvent, Function[]>> = {}
-  #parsers: T.Parser[] = []
-  wrapper: ((node: T.NOODLElement) => T.NOODLElement) | undefined
-
-  constructor() {
-    this.#handleChildren = (
-      parentNode: T.NOODLElement,
-      children: string | number | NOODLComponentProps | NOODLComponentProps[],
-    ) => {
-      if (children) {
-        if (Array.isArray(children)) {
-          children.forEach((child) => {
-            this.#handleChildren(parentNode, child)
-          })
-        } else if (
-          typeof children === 'string' ||
-          typeof children === 'number'
-        ) {
-          parentNode && (parentNode.innerHTML = `${children}`)
-        } else if (children && typeof children === 'object') {
-          const childNode = this.parse(children)
-          if (childNode) {
-            parentNode.appendChild(childNode)
-          }
-        } else {
-          log.func('constructor')
-          log.orange(
-            `Found children that is not an array, string or number type. This will not be visible on the page`,
-            { parentNode, noodluiChildren: children },
-          )
-        }
-      }
-    }
-  }
+  #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
 
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
    * @param { NOODLComponentProps } props
    */
-  parse<Props extends NOODLComponentProps>(props: Props) {
-    let node: T.NOODLElement | undefined
+  parse<Props extends NOODLComponentProps>(
+    props: Props | null,
+    container?: any,
+  ) {
+    let node: T.NOODLDOMElement | undefined
 
     if (props) {
-      if (props.type) {
-        node = document.createElement(props.type)
-      }
-    } else {
-      log.func('parse')
-      log.red(
-        `Could not create a DOM node because the props given was null or undefined`,
-        props,
-      )
-    }
+      let { type = '', noodlType = '' } = props
 
-    if (node) {
-      // Apply the custom wrapper if provided
-      if (typeof this.wrapper === 'function') {
-        node = this.wrapper(node as T.NOODLElement)
+      if (props) {
+        if (type) node = document.createElement(type)
+      } else {
+        log.func('parse')
+        log.red(
+          `Could not create a DOM node because the props given was null or undefined`,
+          props,
+        )
+        return null
       }
 
-      this.#parsers.forEach((parseFn: T.Parser) => {
-        parseFn(node as T.NOODLElement, props, this.getUtils())
-        // Call event listeners if any were registered
-        if (
-          props.noodlType &&
-          noodlDOMEvents[props.noodlType as T.NOODLDOMComponentType]
-        ) {
-          this.emit(noodlDOMEvents[props.noodlType], node, props)
-        }
-      })
-
-      // TODO: Isolate this into its own method
       if (node) {
-        this.#onCreateNode.all.forEach(
-          (fn) => fn && fn(node as T.NOODLElement, props),
-        )
-        this.#onCreateNode.component[props.noodlType].forEach(
-          (fn: any) => fn && fn(node as T.NOODLElement, props),
-        )
-      }
-
-      if (props.children) {
-        this.#handleChildren(node as T.NOODLElement, props.children as any)
+        this.emit('all', node, props)
+        if (componentEventMap[noodlType]) {
+          this.emit(componentEventMap[noodlType], node, props)
+        }
+        const parent = container || document.body
+        if (!parent.contains(node)) parent.appendChild(node)
+        if (Array.isArray(props.children)) {
+          const fn = (child: NOODLComponentProps) => this.parse(child, node)
+          props.children.forEach(fn)
+        } else if (
+          typeof props.children === 'string' ||
+          typeof props.children === 'number'
+        ) {
+          node.innerHTML = `${props.children}`
+        } else if (props.children && typeof props.children === 'object') {
+          const childNode = this.parse(props.children)
+          if (childNode) node.appendChild(childNode)
+        }
       }
     }
 
@@ -135,11 +79,9 @@ class NOODLUIDOM implements T.INOODLUIDOM {
    * @param { string } eventName - Name of the listener event
    * @param { function } callback - Callback to invoke when the event is emitted
    */
-  on(eventName: T.NOODLDOMCreateNodeEvent, callback: Function) {
-    if (!Array.isArray(this.#listeners[eventName])) {
-      this.#listeners[eventName] = []
-    }
-    ;(this.#listeners[eventName] as Function[]).push(callback)
+  on(eventName: T.NOODLDOMEvent, callback: T.NodePropsFunc) {
+    const callbacks = this.getCallbacks(eventName)
+    if (Array.isArray(callbacks)) callbacks.push(callback)
     return this
   }
 
@@ -148,13 +90,11 @@ class NOODLUIDOM implements T.INOODLUIDOM {
    * @param { string } eventName - Name of the listener event
    * @param { function } callback
    */
-  off(eventName: T.NOODLDOMCreateNodeEvent, callback: Function) {
-    if (Array.isArray(this.#listeners[eventName])) {
-      if ((this.#listeners[eventName] as Function[]).includes(callback)) {
-        this.#listeners[eventName] = this.#listeners[eventName]?.filter(
-          (cb) => cb !== callback,
-        )
-      }
+  off(eventName: T.NOODLDOMEvent, callback: T.NodePropsFunc) {
+    const callbacks = this.getCallbacks(eventName)
+    if (Array.isArray(callbacks)) {
+      const index = callbacks.indexOf(callback)
+      if (index !== -1) callbacks.splice(index, 1)
     }
     return this
   }
@@ -164,15 +104,28 @@ class NOODLUIDOM implements T.INOODLUIDOM {
    * @param { string } eventName - Name of the listener event
    * @param { ...any[] } args
    */
-  emit(eventName: T.NOODLDOMCreateNodeEvent, ...args: any[]) {
-    if (Array.isArray(this.#listeners[eventName])) {
-      this.#listeners[eventName]?.forEach((fn) => fn(...args))
+  emit(eventName: T.NOODLDOMEvent, ...args: T.NodePropsFuncArgs) {
+    const callbacks = this.getCallbacks(eventName)
+    if (Array.isArray(callbacks)) {
+      callbacks.forEach((fn: T.NodePropsFunc) => fn && fn(...args))
     }
     return this
   }
 
-  getEventListeners(eventName: T.NOODLDOMCreateNodeEvent) {
-    return this.#listeners[eventName] || []
+  /**
+   * Takes either a component type or any other name of an event and returns the
+   * callbacks associated with it
+   * @param { string } value - Component type or name of the event
+   */
+  getCallbacks(eventName: T.NOODLDOMEvent): T.NodePropsFunc[] | null {
+    if (typeof eventName === 'string') {
+      const callbacksMap = this.#callbacks
+      if (eventName === 'all') return callbacksMap.all
+      if (componentEventIds.includes(eventName)) {
+        return callbacksMap.component[this.#getEventKey(eventName)]
+      }
+    }
+    return null
   }
 
   /**
@@ -180,57 +133,14 @@ class NOODLUIDOM implements T.INOODLUIDOM {
    * @param { string } tagName - HTML tag
    * @param { string } key - Property of a DOM node
    */
-  isValidAttribute(tagName: T.NOODLDOMTagName, key: string) {
+  isValidAttr(tagName: T.NOODLDOMElementTypes, key: string) {
     if (key && tagName) {
-      if (!this.#cache.stub.elements[tagName]) {
-        this.#cache.stub.elements[tagName] = document.createElement(tagName)
+      if (!this.#stub.elements[tagName]) {
+        this.#stub.elements[tagName] = document.createElement(tagName)
       }
-      return key in this.#cache.stub.elements[tagName]
+      return key in this.#stub.elements[tagName]
     }
     return false
-  }
-
-  getUtils() {
-    return {
-      parse: this.parse.bind(this),
-    }
-  }
-
-  /**
-   * Registers observers to hook into create node events. The "type" for components
-   * refers to NOODL component types like "view"
-   * @param { string } type - Type of reason (either 'all' or a NOODL component type
-   * @param { function } cb - Callback to invoke
-   */
-  onCreateNode(type: 'all' | NOODLComponentType, cb: T.Parser) {
-    let cbType: 'all' | NOODLComponentType | undefined
-    let callback: T.Parser | undefined
-
-    if (typeof type === 'string') {
-      cbType = type
-      callback = cb
-    } else if (typeof type === 'function') {
-      cbType = 'all'
-      callback = type
-    } else {
-      // TODO
-    }
-
-    if (callback && cbType) {
-      if (cbType == 'all') {
-        this.#onCreateNode.all.push(callback)
-      } else {
-        if (this.#onCreateNode.component[cbType]) {
-          this.#onCreateNode.component[cbType].push(callback)
-        } else {
-          // TODO
-        }
-      }
-    } else {
-      // TODO
-    }
-
-    return this
   }
 
   get createOnChangeFactory() {
@@ -240,6 +150,19 @@ class NOODLUIDOM implements T.INOODLUIDOM {
   /** THIS IS A TEMP / EXPERIMENTAL METHOD AND WILL BE REMOVED.  */
   set createOnChangeFactory(fn: ((...args: any[]) => any) | undefined) {
     this.#createOnChangeFactory = fn
+  }
+
+  /**
+   * Takes an event name like "on.create" and returns the direct parent key
+   * @param { string } eventName - Name of an event
+   */
+  #getEventKey = (eventName: T.NOODLDOMEvent) => {
+    // TODO - Add more cases
+    let eventKey: string | undefined
+    if (eventName === 'all') return 'all'
+    const fn = (type: string) => componentEventMap[type] === eventName
+    eventKey = componentEventTypes.find(fn)
+    return eventKey || ''
   }
 }
 

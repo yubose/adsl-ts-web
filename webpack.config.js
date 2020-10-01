@@ -149,9 +149,13 @@ module.exports = {
         console.log('-------------------------------------------------------')
         console.log(
           `Your app is being built for ${chalk.yellow('eCOS')} ${chalk.magenta(
-            process.env.ECOS_ENV.toUpperCase(),
+            process.env.ECOS_ENV
+              ? process.env.ECOS_ENV.toUpperCase()
+              : '<Variable not set>',
           )} environment in ${chalk.yellow(
-            process.env.NODE_ENV.toUpperCase(),
+            process.env.NODE_ENV
+              ? process.env.NODE_ENV.toUpperCase()
+              : '<Variable not set>',
           )} mode`,
         )
         console.log(`Status:   ${chalk.blueBright(msg.toUpperCase())}`)

@@ -4,6 +4,7 @@
     "baseUrl": "scripts",
     "declaration": false,
     "esModuleInterop": true,
+    "lib": ["dom", "dom.iterable"],
     "module": "esnext",
     "moduleResolution": "node",
     "preserveConstEnums": true,

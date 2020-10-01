@@ -1,47 +1,21 @@
-// @ts-nocheck
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { getByText } from '@testing-library/dom'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
+import NOODLUIDOM, { DataValueElement } from 'noodl-ui-dom'
 import { mapUserEvent, noodl } from '../utils/test-utils'
-import NOODLDOMParser from '../app/noodl-ui-dom'
-import { DataValueElement } from '../app/types'
 
 let container: HTMLDivElement
-let parser: NOODLDOMParser
+let parser: NOODLUIDOM
 
 beforeEach(() => {
   container = document.createElement('div')
-  parser = new NOODLDOMParser()
+  parser = new NOODLUIDOM()
 })
 
 afterEach(() => {
   // console.info(prettyDOM(container))
-})
-
-const pendingParsers = []
-const filterers = []
-const funcs = {}
-
-// @ts-expect-error
-function predicateStepper(acc, [node, props]) {
-  return acc([node, props])
-}
-
-describe.skip('composing parsers', () => {
-  it('', () => {
-    function composeParsers(...parsers: Function[]) {
-      return (step: Function) => {
-        return (acc: Function, [node, props]: any) => {
-          return _.reduce(parsers, (parser) => {
-            const res = parser(node, props)
-            return step(acc)
-          })
-        }
-      }
-    }
-  })
 })
 
 describe.skip('parse', () => {

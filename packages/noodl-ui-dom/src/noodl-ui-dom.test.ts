@@ -1,6 +1,7 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { screen } from '@testing-library/dom'
+import { NOODLComponentProps } from 'noodl-ui'
 import { noodl } from './test-utils'
 import NOODLUIDOM from './noodl-ui-dom'
 
@@ -11,53 +12,100 @@ beforeEach(() => {
 })
 
 describe('noodl-ui-dom', () => {
-  it.skip('should wrap nodes with the wrapper if provided', () => {
-    //
+  it('should add the func to the callbacks list', () => {
+    const spy = sinon.spy()
+    noodluidom.on('create.button', spy)
+    const callbacksList = noodluidom.getCallbacks('create.button')
+    expect(callbacksList).to.be.an('array')
+    expect(callbacksList).to.have.members([spy])
   })
 
-  it.skip('should call the appropriate event', () => {
-    const fn1 = sinon.spy()
-    const fn2 = sinon.spy()
-    const fn3 = sinon.spy()
-    noodluidom.on('create.button', fn1)
-    noodluidom.on('create.image', fn2)
-    noodluidom.on('create.button', fn3)
-    noodluidom.parse({
-      id: 'myid123',
-      type: 'button',
-      noodlType: 'button',
-      style: {},
-      text: 'hello',
+  it('should remove the func from the callbacks list', () => {
+    const spy = sinon.spy()
+    noodluidom.on('create.button', spy)
+    let callbacksList = noodluidom.getCallbacks('create.button')
+    expect(callbacksList).to.have.members([spy])
+    noodluidom.off('create.button', spy)
+    callbacksList = noodluidom.getCallbacks('create.button')
+    expect(callbacksList).to.be.an('array')
+    expect(callbacksList).not.to.include.members([spy])
+  })
+
+  it('should emit events', () => {
+    const spy = sinon.spy()
+    noodluidom.on('create.label', spy)
+    expect(spy.called).to.be.false
+    // @ts-expect-error
+    noodluidom.emit('create.label')
+    expect(spy.called).to.be.true
+  })
+
+  describe('calling the appropriate event', () => {
+    let fn1: sinon.SinonSpy
+    let fn2: sinon.SinonSpy
+    let fn3: sinon.SinonSpy
+
+    beforeEach(() => {
+      fn1 = sinon.spy()
+      fn2 = sinon.spy()
+      fn3 = sinon.spy()
+      noodluidom.on('create.button', fn1)
+      noodluidom.on('create.image', fn2)
+      noodluidom.on('create.button', fn3)
     })
-    expect(fn1.called).to.be.true
-    expect(fn2.called).to.be.false
-    expect(fn3.called).to.be.true
-  })
 
-  it.skip('shoulld add the event callback', () => {
-    //
-  })
+    it('should call callbacks that were subscribed', () => {
+      noodluidom.parse({
+        id: 'myid123',
+        type: 'button',
+        noodlType: 'button',
+        text: 'hello',
+      })
+      expect(fn1.called).to.be.true
+      expect(fn3.called).to.be.true
+    })
 
-  it.skip('should remove the event callback', () => {
-    //
-  })
-
-  it.skip('should emit events', () => {
-    //
-  })
-
-  it.skip('should return the registered listeners for the event', () => {
-    //
+    it('should not call callbacks that were not subscribed', () => {
+      noodluidom.parse({
+        id: 'myid123',
+        type: 'label',
+        noodlType: 'label',
+        text: 'hello',
+      })
+      expect(fn1.called).to.be.false
+      expect(fn2.called).to.be.false
+      expect(fn3.called).to.be.false
+    })
   })
 
   describe('isValidAttribute', () => {
-    xit('', () => {
-      //
+    it('should return true for possible assigned attributes on the dom node', () => {
+      expect(noodluidom.isValidAttr('div', 'style')).to.be.true
+      expect(noodluidom.isValidAttr('div', 'setAttribute')).to.be.true
+      expect(noodluidom.isValidAttr('div', 'id')).to.be.true
+      expect(noodluidom.isValidAttr('div', 'dataset')).to.be.true
     })
-  })
 
-  describe.skip('onCreateNode', () => {
-    //
+    it('should return false for all of these', () => {
+      expect(noodluidom.isValidAttr('div', 'abc')).to.be.false
+      expect(noodluidom.isValidAttr('div', 'value')).to.be.false
+      expect(noodluidom.isValidAttr('div', 'options')).to.be.false
+    })
+
+    it('should return true for all of these', () => {
+      expect(noodluidom.isValidAttr('textarea', 'value')).to.be.true
+      expect(noodluidom.isValidAttr('input', 'value')).to.be.true
+      expect(noodluidom.isValidAttr('select', 'value')).to.be.true
+      expect(noodluidom.isValidAttr('input', 'placeholder')).to.be.true
+      expect(noodluidom.isValidAttr('input', 'required')).to.be.true
+    })
+
+    it('should return false for all of these', () => {
+      expect(noodluidom.isValidAttr('select', 'abc')).to.be.false
+      expect(noodluidom.isValidAttr('select', 'rows')).to.be.false
+      expect(noodluidom.isValidAttr('input', 'rows')).to.be.false
+      expect(noodluidom.isValidAttr('textarea', 'options')).to.be.false
+    })
   })
 
   describe('parse', () => {
@@ -74,12 +122,67 @@ describe('noodl-ui-dom', () => {
         },
       })[0]
       noodluidom.on('create.label', (node, props) => {
-        node.innerHTML = props.children
+        node.innerHTML = `${props.children}`
       })
       const node = noodluidom.parse(label)
-      document.body.appendChild(node)
+      if (node) document.body.appendChild(node)
       expect(node).to.be.instanceOf(HTMLLabelElement)
       expect(screen.getByText('Title'))
+    })
+
+    describe('recursing children', () => {
+      const labelText = 'the #1 label'
+      let component: NOODLComponentProps
+
+      beforeEach(() => {
+        component = {
+          type: 'div',
+          noodlType: 'view',
+          id: 'abc',
+          style: {
+            left: '0',
+          },
+          children: [
+            {
+              type: 'div',
+              noodlType: 'view',
+              text: 'Back',
+              style: {},
+              id: 'label123',
+              children: [
+                {
+                  type: 'ul',
+                  noodlType: 'list',
+                  id: 'list123',
+                  contentType: 'listObject',
+                  listObject: [],
+                  iteratorVar: 'itemObject',
+                  style: {},
+                  children: [
+                    {
+                      type: 'label',
+                      noodlType: 'label',
+                      style: {},
+                      id: 'label1223',
+                      children: labelText,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        } as NOODLComponentProps
+      })
+
+      it('should append nested children as far down as possible', () => {
+        noodluidom.on('create.label', (node, props) => {
+          if (props.children) {
+            node.innerHTML = `${props.children}`
+          }
+        })
+        noodluidom.parse(component, document.body)
+        expect(screen.getByText(labelText))
+      })
     })
   })
 })

@@ -1,16 +1,16 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import {
   NOODLComponent,
   NOODLComponentProps,
   Page as NOODLUiPage,
 } from 'noodl-ui'
-import { NOODLElement } from 'noodl-ui-dom'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'
 import { PageModalState, PageSnapshot } from './app/types'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
-import Logger from './app/Logger'
 
 const log = Logger.create('Page.ts')
 
@@ -42,12 +42,12 @@ class Page {
   #onStart: ((pageName: string) => Promise<any>) | undefined
   #onRootNodeInitializing: (() => Promise<any>) | undefined
   #onRootNodeInitialized:
-    | ((rootNode: NOODLElement | null) => Promise<any>)
+    | ((rootNode: NOODLDOMElement | null) => Promise<any>)
     | undefined
   #onBeforePageRender:
     | ((options: {
         pageName: string
-        rootNode: NOODLElement | null
+        rootNode: NOODLDOMElement | null
       }) => Promise<any>)
     | undefined
   #onPageRendered:
@@ -200,7 +200,7 @@ class Page {
 
   openModal(
     { id = '', ...options }: Partial<PageModalState>,
-    content: HTMLElement | NOODLElement | string | number | undefined,
+    content: HTMLElement | NOODLDOMElement | string | number | undefined,
   ) {
     const prevState = this.modal.getState()
     this.modal.open(id, content, options as PageModalState)
@@ -221,7 +221,7 @@ class Page {
   }
 
   set onRootNodeInitialized(
-    fn: (rootNode: NOODLElement | null) => Promise<any>,
+    fn: (rootNode: NOODLDOMElement | null) => Promise<any>,
   ) {
     this.#onRootNodeInitialized = fn
   }
@@ -229,7 +229,7 @@ class Page {
   set onBeforePageRender(
     fn: (options: {
       pageName: string
-      rootNode: NOODLElement | null
+      rootNode: NOODLDOMElement | null
     }) => Promise<NOODLUiPage | undefined>,
   ) {
     this.#onBeforePageRender = fn
@@ -289,18 +289,13 @@ class Page {
       components = noodlui.resolveComponents()
     }
 
-    let node
-
     if (this.rootNode) {
       // Clean up previous nodes
       // NOTE: textContent is used over innerHTML so that the contents can stay
       // plain text to reduce breaches into injection attacks
       this.rootNode.textContent = ''
       _.forEach(components, (component) => {
-        node = noodluidom.parse(component)
-        if (node) {
-          this.rootNode?.appendChild(node)
-        }
+        noodluidom.parse(component, this.rootNode)
       })
     } else {
       log.func('navigate')

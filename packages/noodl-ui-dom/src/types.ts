@@ -1,38 +1,34 @@
-import { NOODLComponentProps, NOODLComponentType } from 'noodl-ui'
-import { noodlDOMEvents } from './constants'
+import { NOODLComponentProps } from 'noodl-ui'
+import { componentEventMap, componentEventIds } from './constants'
+
+export type DataValueElement =
+  | HTMLInputElement
+  | HTMLSelectElement
+  | HTMLTextAreaElement
 
 export interface INOODLUIDOM {
-  on(eventName: NOODLDOMCreateNodeEvent, cb: Function): this
-  off(eventName: NOODLDOMCreateNodeEvent, cb: Function): this
-  emit(eventName: NOODLDOMCreateNodeEvent, ...args: any[]): this
-  getEventListeners(eventName: NOODLDOMCreateNodeEvent): Function[]
-  getUtils(): { parse: Parser }
-  isValidAttribute(tagName: NOODLDOMTagName, key: string): boolean
-  onCreateNode(type: 'all' | NOODLComponentType, cb: Parser): this
-  parse(props: NOODLComponentProps): NOODLElement | null
+  on(eventName: NOODLDOMEvent, cb: NodePropsFunc): this
+  off(eventName: NOODLDOMEvent, cb: NodePropsFunc): this
+  emit(eventName: NOODLDOMEvent, ...args: any[]): this
+  getCallbacks(eventName: NOODLDOMEvent): NodePropsFunc[] | null
+  isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
+  parse(props: NOODLComponentProps): NOODLDOMElement | null
 }
 
-export type NOODLDOMComponentType = keyof typeof noodlDOMEvents
+export type NOODLDOMComponentType = keyof typeof componentEventMap
 
-export type NOODLDOMCreateNodeEvent =
-  | typeof noodlDOMEvents[keyof typeof noodlDOMEvents]
-  | 'all'
+export type NOODLDOMComponentEvent = typeof componentEventIds[number]
 
-export interface Parser {
-  (
-    node: NOODLElement,
-    props: NOODLComponentProps,
-    parserOptions?: ParserOptions,
-  ): any
-}
+export type NOODLDOMEvent = NOODLDOMComponentEvent | 'all'
 
-export type ParserArgs = Parameters<Parser>
+export type NOODLDOMElementTypes = keyof NOODLDOMElements
 
-export interface ParserOptions {
-  parse: Parser
-}
+export type NOODLDOMElement = Extract<
+  NOODLDOMElements[NOODLDOMElementTypes],
+  HTMLElement
+>
 
-export type NOODLElements = Pick<
+export type NOODLDOMElements = Pick<
   HTMLElementTagNameMap,
   | 'a'
   | 'article'
@@ -99,16 +95,8 @@ export type NOODLElements = Pick<
   | 'video'
 >
 
-export type NOODLElementTypes = keyof NOODLElements
+export interface NodePropsFunc {
+  (node: NOODLDOMElement, props: NOODLComponentProps): void
+}
 
-export type NOODLElement = Extract<
-  NOODLElements[NOODLElementTypes],
-  HTMLElement
->
-
-export type NOODLDOMTagName = keyof HTMLElementTagNameMap
-
-export type DataValueElement =
-  | HTMLInputElement
-  | HTMLSelectElement
-  | HTMLTextAreaElement
+export type NodePropsFuncArgs = Parameters<NodePropsFunc>

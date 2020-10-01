@@ -1,6 +1,6 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { ComponentResolverStateGetters, IComponent } from '../../../types'
-import Logger from '../../../Logger'
 import { createNOODLComponent } from '../../../utils/noodl'
 
 const log = Logger.create('getListItemBlueprint')

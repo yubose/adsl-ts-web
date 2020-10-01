@@ -1,9 +1,9 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { IComponent, ProxiedComponent, Resolver } from '../../../types'
 import { createNOODLComponent, identify } from '../../../utils/noodl'
 import { formatColor } from '../../../utils/common'
 import getChildProps from '../getChildProps'
-import Logger from '../../../Logger'
 
 const log = Logger.create('getTextBoardChildren')
 

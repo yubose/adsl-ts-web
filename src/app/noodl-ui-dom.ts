@@ -1,5 +1,5 @@
-import NOODLDOMParser from 'noodl-ui-dom'
+import NOODLUIDOM from 'noodl-ui-dom'
 
-const noodluidom = new NOODLDOMParser()
+const noodluidom = new NOODLUIDOM()
 
 export default noodluidom

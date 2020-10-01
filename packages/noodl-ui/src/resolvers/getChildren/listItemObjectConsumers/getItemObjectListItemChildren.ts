@@ -1,12 +1,12 @@
 // Currently this is being used to render any children who have a dataKey that
 // begins with "itemObject" which are known to be inside list components
 import _ from 'lodash'
+import Logger from 'logsnap'
 import {
   IComponent,
   ResolverOptions,
   ResolverConsumerOptions,
 } from '../../../types'
-import Logger from '../../../Logger'
 
 const log = Logger.create('getListItemItemObjectConsumers')
 

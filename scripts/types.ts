@@ -1,2 +1,2 @@
-export type FetchAs = 'json' | 'yml'
-export type ParseAs = 'json' | 'doc'
+export type ParseMode = 'json' | 'yml'
+export type ParseModeModifier = 'default' | 'ui'

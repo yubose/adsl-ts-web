@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import { PageModalState, Styles } from 'app/types'
 import { forEachEntries } from 'utils/common'
-import NOODLElement from 'components/NOODLElement'
+import NOODLDOMElement from 'components/NOODLElement'
 
-class Modal extends NOODLElement {
+class Modal extends NOODLDOMElement {
   public _id: string = 'noodl-ui-modal'
   public id: PageModalState['id'] = ''
   public body: HTMLDivElement
@@ -71,7 +71,7 @@ class Modal extends NOODLElement {
 
   public open(
     id: string,
-    children: HTMLElement | NOODLElement | string | number | undefined,
+    children: HTMLElement | NOODLDOMElement | string | number | undefined,
     options: Omit<PageModalState, 'id'>,
   ) {
     if (!this.isRendered()) {
@@ -85,7 +85,7 @@ class Modal extends NOODLElement {
       if (children) {
         if (children instanceof HTMLElement) {
           this.body.appendChild(children)
-        } else if (children instanceof NOODLElement) {
+        } else if (children instanceof NOODLDOMElement) {
           // @ts-expect-error
           children = new children({ container: this.body })
         } else {

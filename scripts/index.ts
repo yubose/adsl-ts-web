@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import { Command } from 'commander'
 import { endpoint, paths } from './config'
 import { forEachDeepEntries } from '../src/utils/common'
+import { ParseMode, ParseModeModifier } from './types'
 import * as log from './utils/log'
 
 const program = new Command('NOODL Scripts')
@@ -16,27 +17,30 @@ program.command('eval').action(() => {
 })
 
 program
-  .command('fetch <as> <config> [version]')
+  .command('fetch <parseMode> <config> [parseModifier]')
   .action(
     async (
-      as: 'json' | 'yml' = 'json',
+      parseMode: ParseMode = 'json',
       config: keyof typeof endpoint['config'],
+      parseModifier: ParseModeModifier = 'default',
     ) => {
       try {
-        if (!['json', 'yml'].includes(as)) {
+        if (!['json', 'yml'].includes(parseMode)) {
           throw new Error(
             `Please choose between fetching as "json" or "yml". Example: ` +
               `${chalk.magenta('fetch json')}`,
           )
         }
-        log.attention(`Fetching NOODL ${as}s using the "${config}" config`)
-        const dir = paths[as]
-        const parseAs = as
+        log.attention(
+          `Fetching NOODL ${parseMode}s using the "${config}" config`,
+        )
+
         const { default: getAllObjects } = await import('./getAllObjects')
         await getAllObjects({
           endpoint: endpoint.config[config],
-          dir,
-          parseAs,
+          dir: paths[parseMode],
+          parseMode,
+          parseModifier,
         })
       } catch (error) {
         throw new Error(error)

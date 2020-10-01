@@ -3,7 +3,7 @@ import * as T from './types'
 import Action from './Action'
 import { forEachEntries } from './utils/common'
 import { AbortExecuteError } from './errors'
-import Logger from './Logger'
+import Logger from 'logsnap'
 
 const log = Logger.create('ActionChain')
 

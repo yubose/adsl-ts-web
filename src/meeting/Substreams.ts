@@ -1,9 +1,9 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
-import { NOODLElement } from 'noodl-ui-dom'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
 import { RoomParticipant } from 'app/types'
-import Logger from 'app/Logger'
 import Stream from './Stream'
 
 const log = Logger.create('Substreams.ts')
@@ -12,9 +12,9 @@ const log = Logger.create('Substreams.ts')
 class MeetingSubstreams {
   #subStreams: Stream[] = []
   blueprint: Partial<NOODLComponent> = {} // Experimental
-  container: NOODLElement
+  container: NOODLDOMElement
 
-  constructor(container: NOODLElement, props: NOODLComponentProps) {
+  constructor(container: NOODLDOMElement, props: NOODLComponentProps) {
     this.container = container
     this.blueprint = props.blueprint
   }
@@ -27,13 +27,13 @@ class MeetingSubstreams {
    * Adds a new stream instance to the subStreams collection. If a node was passed in
    * it will be inserted into the DOM. If a participant was passed in their media
    * tracks will attempt to automatically start
-   * @param { NOODLElement | undefined } node
+   * @param { NOODLDOMElement | undefined } node
    * @param { RemoteParticipant | undefined } participant
    */
   create({
     node,
     participant,
-  }: { node?: NOODLElement; participant?: RemoteParticipant } = {}) {
+  }: { node?: NOODLDOMElement; participant?: RemoteParticipant } = {}) {
     const stream = new Stream('subStream', { node })
     if (node) {
       if (!this.container.contains(node)) {
@@ -89,9 +89,9 @@ class MeetingSubstreams {
   /**
    * Returns true if the element is already bound to a subStream in the
    * collection
-   * @param { NOODLElement } node
+   * @param { NOODLDOMElement } node
    */
-  elementExists(node: NOODLElement) {
+  elementExists(node: NOODLDOMElement) {
     return _.some(this.#subStreams, (subStream: Stream) => {
       return subStream.isSameElement(node)
     })

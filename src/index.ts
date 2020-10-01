@@ -3,6 +3,7 @@ import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
 } from 'twilio-video'
+import Logger from 'logsnap'
 import {
   Action,
   ActionChainActionCallback,
@@ -29,7 +30,7 @@ import {
   NOODLComponentProps,
   Viewport,
 } from 'noodl-ui'
-import { NOODLElement } from 'noodl-ui-dom'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { createOnChangeFactory } from './utils/sdkHelpers'
 import { forEachParticipant } from './utils/twilio'
@@ -40,11 +41,11 @@ import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
 import noodluidom from './app/noodl-ui-dom'
-import Logger from './app/Logger'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
+import './handlers/dom'
 import './styles.css'
 
 const log = Logger.create('src/index.ts')
@@ -93,6 +94,7 @@ window.addEventListener('load', async () => {
   const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
+
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
   window.getByDataUX = getByDataUX
@@ -428,7 +430,13 @@ window.addEventListener('load', async () => {
   /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
-  function onCreateNode(node: NOODLElement, props: NOODLComponentProps) {
+
+  // createOnChangeFactory IS EXPERIMENTAL AND WILL BE REFACTORED
+  noodluidom.createOnChangeFactory = createOnChangeFactory
+  noodluidom.on('all', function onCreateNode(
+    node: NOODLDOMElement,
+    props: NOODLComponentProps,
+  ) {
     if (node) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(props)) {
@@ -485,11 +493,7 @@ window.addEventListener('load', async () => {
         }
       }
     }
-  }
-
-  // createOnChangeFactory IS EXPERIMENTAL AND WILL BE REFACTORED
-  noodluidom.createOnChangeFactory = createOnChangeFactory
-  noodluidom.onCreateNode('all', onCreateNode)
+  })
 
   /* -------------------------------------------------------
     ---- VIEWPORT / WINDOW SIZING

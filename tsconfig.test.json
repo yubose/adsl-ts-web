@@ -4,10 +4,11 @@
   },
   "compilerOptions": {
     "baseUrl": "src",
+    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "commonjs",
     "target": "es2018"
   },
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules/**/**", "__dev__"],
+  "exclude": ["node_modules/**/**", "scripts"],
   "include": ["src/**/*.test.ts"]
 }

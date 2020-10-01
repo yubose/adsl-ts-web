@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { getByDataUX } from 'noodl-ui'
-import { NOODLElement } from 'noodl-ui-dom'
-import Logger from 'app/Logger'
+import { NOODLDOMElement } from 'noodl-ui-dom'
+import Logger from 'logsnap'
 import {
   RoomParticipant,
   RoomParticipantTrackPublication,
@@ -13,7 +13,7 @@ import { attachVideoTrack } from 'utils/twilio'
 const log = Logger.create('Streams.ts')
 
 class MeetingStream {
-  #node: NOODLElement | null = null
+  #node: NOODLDOMElement | null = null
   #participant: RoomParticipant | null = null
   #uxTag: string = ''
   previous: { sid?: string; identity?: string } = {}
@@ -21,7 +21,7 @@ class MeetingStream {
 
   constructor(
     type: StreamType,
-    { node, uxTag }: { node?: NOODLElement; uxTag?: string } = {},
+    { node, uxTag }: { node?: NOODLDOMElement; uxTag?: string } = {},
   ) {
     if (node) this.#node = node
     if (uxTag) this.#uxTag = uxTag
@@ -29,14 +29,14 @@ class MeetingStream {
   }
 
   getElement() {
-    return (this.#node || getByDataUX(this.#uxTag)) as NOODLElement | null
+    return (this.#node || getByDataUX(this.#uxTag)) as NOODLDOMElement | null
   }
 
   /**
    * Sets the node to this instance
-   * @param { NOODLElement | null } node
+   * @param { NOODLDOMElement | null } node
    */
-  setElement(node: NOODLElement | null, { uxTag }: { uxTag?: string } = {}) {
+  setElement(node: NOODLDOMElement | null, { uxTag }: { uxTag?: string } = {}) {
     this.#node = node
     log.func('setElement')
     log.grey('New element has been set on this stream', {
@@ -48,9 +48,9 @@ class MeetingStream {
 
   /**
    * Returns true if the node is already set on this instance
-   * @param { NOODLElement } node
+   * @param { NOODLDOMElement } node
    */
-  isSameElement(node: NOODLElement) {
+  isSameElement(node: NOODLDOMElement) {
     return this.#node === node
   }
 
@@ -101,7 +101,7 @@ class MeetingStream {
 
   /**
    * Returns true if the node is already set on this instance
-   * @param { NOODLElement } node
+   * @param { NOODLDOMElement } node
    */
   isSameParticipant(participant: RoomParticipant) {
     return !!participant && this.#participant === participant
