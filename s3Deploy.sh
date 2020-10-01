@@ -19,4 +19,7 @@ fi
 
 aws s3 rm s3://${DBucket} --recursive
 aws s3 cp ${DDIR}/ s3://${DBucket} --recursive
+if [ -z "$2" ]
+then
 aws cloudfront create-invalidation --distribution-id ${CloudFrontID} --paths "/*"
+fi
