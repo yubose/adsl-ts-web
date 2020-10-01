@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
-import { NOODLElement, ParserOptions } from 'app/types'
-import Logger from 'app/Logger'
+import { NOODLElement } from 'noodl-ui-dom'
+import Logger from 'logsnap'
 
 const log = Logger.create('subparsers.ts')
 
@@ -14,10 +14,10 @@ export interface SubparserArgs {
 export async function parseList(
   node: NOODLElement,
   props: NOODLComponentProps,
-  parserOptions: ParserOptions,
 ) {
   const { default: noodlui } = await import('app/noodl-ui')
-  const { parse } = parserOptions
+  // const { parse } = parserOptions
+  const parse = _.noop as any
   const blueprint: NOODLComponent = props.blueprint
   const listData = props['data-listdata']
   const listId = props['data-listid']

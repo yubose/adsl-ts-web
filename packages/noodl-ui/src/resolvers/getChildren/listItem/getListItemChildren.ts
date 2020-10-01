@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Logger from '../../../Logger'
+import Logger from 'logsnap'
 import {
   IComponent,
   NOODLComponent,

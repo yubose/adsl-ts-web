@@ -39,5 +39,8 @@
     "rules": {
       "no-unused-vars": "warn"
     }
+  },
+  "dependencies": {
+    "noodl-ui-dom": "^0.0.9"
   }
 }

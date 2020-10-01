@@ -3,6 +3,7 @@ import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
 } from 'twilio-video'
+import Logger from 'logsnap'
 import {
   Action,
   ActionChainActionCallback,
@@ -40,7 +41,6 @@ import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
 import noodluidom from './app/noodl-ui-dom'
-import Logger from './app/Logger'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'

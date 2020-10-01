@@ -1,7 +1,7 @@
+import Logger from 'logsnap'
 import { NOODLComponentProps } from 'noodl-ui'
 import { noodlDOMEvents } from './constants'
 import { composeForEachFns } from './utils'
-import Logger from './Logger'
 import * as T from './types'
 
 const log = Logger.create('NOODLUIDOM.ts')

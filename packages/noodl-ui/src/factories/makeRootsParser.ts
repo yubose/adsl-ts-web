@@ -1,7 +1,7 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import isReference from '../utils/isReference'
 import { RootsParser } from '../types'
-import Logger from '../Logger'
 
 const log = Logger.create('makeRootsParser')
 

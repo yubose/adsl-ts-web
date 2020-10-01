@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import {
   NOODLComponent,
   NOODLComponentProps,
@@ -10,7 +11,6 @@ import { PageModalState, PageSnapshot } from './app/types'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
-import Logger from './app/Logger'
 
 const log = Logger.create('Page.ts')
 

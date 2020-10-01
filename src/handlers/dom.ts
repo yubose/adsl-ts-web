@@ -1,10 +1,10 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
 import { DataValueElement } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
-import Logger from 'app/Logger'
 
 const log = Logger.create('dom.ts')
 

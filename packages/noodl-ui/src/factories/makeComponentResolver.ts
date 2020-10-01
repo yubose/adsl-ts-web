@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { isDraft, current } from 'immer'
 import * as T from '../types'
 import ActionChain from '../ActionChain'
@@ -15,7 +16,6 @@ import {
 } from '../utils/common'
 import isReference from '../utils/isReference'
 import Viewport from '../Viewport'
-import Logger from '../Logger'
 
 const log = Logger.create('makeComponentResolver')
 

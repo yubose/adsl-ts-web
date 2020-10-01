@@ -1,7 +1,7 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { noodlContentTypes } from '../constants'
 import { Resolver } from '../types'
-import Logger from '../Logger'
 
 const log = Logger.create('getTransformedAliases')
 

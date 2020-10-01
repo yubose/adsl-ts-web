@@ -6,9 +6,8 @@
     "declaration": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
     "lib": ["dom", "dom.iterable", "esnext"],
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "build",
     "noEmit": true,
@@ -20,8 +19,8 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "esnext"
+    "target": "es2018"
   },
-  "include": ["src", "webpack.config.js", "package.json"],
+  "include": ["src", "webpack.config.js", "package.json", "setupTests.ts"],
   "exclude": ["_data", "node_modules", "legacy"]
 }

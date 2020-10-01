@@ -7,7 +7,7 @@ import {
 } from './types'
 import { getRandomKey } from './utils/common'
 import { AbortExecuteError } from './errors'
-import Logger from './Logger'
+import Logger from 'logsnap'
 
 const log = Logger.create('Action')
 //

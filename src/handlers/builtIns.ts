@@ -10,7 +10,7 @@ import {
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
 import { INOODLUIDOM } from 'noodl-ui-dom'
 import Page from 'Page'
-import Logger from 'app/Logger'
+import Logger from 'logsnap'
 import validate from 'utils/validate'
 import Meeting from '../meeting'
 

@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { identify } from '../utils/noodl'
 import isReference from '../utils/isReference'
 import { IComponent, Resolver } from '../types'
-import Logger from '../Logger'
+import Logger from 'logsnap'
 
 const log = Logger.create('getCustomDataAttrs')
 

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { getByDataUX } from 'noodl-ui'
 import { NOODLElement } from 'noodl-ui-dom'
-import Logger from 'app/Logger'
+import Logger from 'logsnap'
 import {
   RoomParticipant,
   RoomParticipantTrackPublication,

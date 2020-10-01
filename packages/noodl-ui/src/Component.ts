@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { WritableDraft } from 'immer/dist/internal'
 import { createDraft, isDraft, finishDraft, original, current } from 'immer'
+import Logger from 'logsnap'
 import { eventTypes } from './constants'
 import {
   IComponent,
@@ -10,7 +11,6 @@ import {
   NOODLStyle,
   ProxiedComponent,
 } from './types'
-import Logger from './Logger'
 import { forEachEntries } from './utils/common'
 
 const log = Logger.create('Component')

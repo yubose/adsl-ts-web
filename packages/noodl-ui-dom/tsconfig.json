@@ -1,7 +1,4 @@
 {
-  "ts-node": {
-    "transpileOnly": true
-  },
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
@@ -19,12 +16,6 @@
     "suppressImplicitAnyIndexErrors": true,
     "target": "esnext"
   },
-  "exclude": [
-    "dist",
-    "node_modules",
-    "src/setupTests.ts",
-    "src/**/*.test.ts",
-    "src/**/test-utils.ts"
-  ],
+  "exclude": ["dist", "node_modules"],
   "include": ["src", "rollup.config.js"]
 }

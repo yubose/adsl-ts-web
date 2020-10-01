@@ -13,7 +13,7 @@ import {
   NOODLChainActionSaveObjectObject,
   NOODLChainActionUpdateObject,
 } from 'noodl-ui'
-import Logger from 'app/Logger'
+import Logger from 'logsnap'
 import { IPage } from 'app/types'
 
 const log = Logger.create('actions.ts')

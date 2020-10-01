@@ -9,13 +9,13 @@ import {
   RemoteParticipant,
   Room,
 } from 'twilio-video'
+import Logger from 'logsnap'
 import { getByDataUX, NOODLComponentProps, Viewport } from 'noodl-ui'
 import { isMobile } from 'utils/common'
 import * as T from 'app/types/meetingTypes'
 import noodluidom from 'app/noodl-ui-dom'
 import Stream from 'meeting/Stream'
 import Streams from 'meeting/Streams'
-import Logger from 'app/Logger'
 import Page from 'Page'
 import MeetingSubstreams from 'meeting/Substreams'
 

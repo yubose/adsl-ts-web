@@ -1,9 +1,9 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import { NOODLElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
 import { RoomParticipant } from 'app/types'
-import Logger from 'app/Logger'
 import Stream from './Stream'
 
 const log = Logger.create('Substreams.ts')

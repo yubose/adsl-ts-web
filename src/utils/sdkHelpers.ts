@@ -4,7 +4,7 @@
  * isolate the imports into this file and replace them with stubs in testing
  */
 import _ from 'lodash'
-import Logger from 'app/Logger'
+import Logger from 'logsnap'
 import noodl from 'app/noodl'
 import noodlui from 'app/noodl-ui'
 
