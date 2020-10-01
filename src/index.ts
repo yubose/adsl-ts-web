@@ -45,6 +45,7 @@ import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
+import './handlers/dom'
 import './styles.css'
 
 const log = Logger.create('src/index.ts')
@@ -428,7 +429,13 @@ window.addEventListener('load', async () => {
   /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
-  function onCreateNode(node: NOODLElement, props: NOODLComponentProps) {
+
+  // createOnChangeFactory IS EXPERIMENTAL AND WILL BE REFACTORED
+  noodluidom.createOnChangeFactory = createOnChangeFactory
+  noodluidom.on('all', function onCreateNode(
+    node: NOODLElement,
+    props: NOODLComponentProps,
+  ) {
     if (node) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(props)) {
@@ -485,11 +492,7 @@ window.addEventListener('load', async () => {
         }
       }
     }
-  }
-
-  // createOnChangeFactory IS EXPERIMENTAL AND WILL BE REFACTORED
-  noodluidom.createOnChangeFactory = createOnChangeFactory
-  noodluidom.onCreateNode('all', onCreateNode)
+  })
 
   /* -------------------------------------------------------
     ---- VIEWPORT / WINDOW SIZING
