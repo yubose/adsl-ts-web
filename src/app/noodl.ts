@@ -1,16 +1,19 @@
 import NOODL from '@aitmed/cadl'
 
 const PORTAL_CONFIG = getConfigEndpoint('portal')
+const PORTAL_CONFIG_NATIVE_JS = getConfigEndpoint('cadltest')
 const PORTAL_CONFIG_PHASE_2 = getConfigEndpoint('portal.phase.2')
 const LANDING_PAGE_CONFIG = getConfigEndpoint('landing.page')
 
 const noodl = new NOODL({
   aspectRatio: 3,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: PORTAL_CONFIG,
+  configUrl: PORTAL_CONFIG_NATIVE_JS,
 })
 
-function getConfigEndpoint(type: 'landing.page' | 'portal' | 'portal.phase.2') {
+function getConfigEndpoint(
+  type: 'cadltest' | 'landing.page' | 'portal' | 'portal.phase.2',
+) {
   let path = ''
   const base = 'https://public.aitmed.com/config'
   const isLocal = process.env.NODE_ENV === 'development'

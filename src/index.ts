@@ -91,7 +91,7 @@ function createPreparePage(options: {
 
 window.addEventListener('load', async () => {
   // Experimenting dynamic import (code splitting)
-  const { Account } = await import('@aitmed/cadl')
+  // const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
 
@@ -105,10 +105,10 @@ window.addEventListener('load', async () => {
   window.meeting = Meeting
   window.cp = copyToClipboard
   // Auto login for the time being
-  const vcode = await Account.requestVerificationCode('+1 8882465555')
-  const profile = await Account.login('+1 8882465555', '142251', vcode || '')
-  log.magenta(vcode)
-  log.green('Profile', profile)
+  // const vcode = await Account.requestVerificationCode('+1 8882465555')
+  // const profile = await Account.login('+1 8882465555', '142251', vcode || '')
+  // log.magenta(vcode)
+  // log.green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const viewport = new Viewport()
