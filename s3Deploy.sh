@@ -14,7 +14,12 @@ CloudFrontID="E23VGVK9SI3AEE"
 else
 # for devtest.aitmed.com
 DBucket=$2
+if [ "$DBucket" = "devtest.aitmed.com" ]
+then
 CloudFrontID="E2KLJ4USOZTTNE"
+else
+# for cadltest.aitmed.com
+CloudFrontID="E1O68VOULBOMAT"
 fi
 
 aws s3 rm s3://${DBucket} --recursive

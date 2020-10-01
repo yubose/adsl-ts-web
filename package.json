@@ -13,7 +13,7 @@
     "build:deploy:stable": "cross-env ECOS_ENV=stable NODE_ENV=production npm run build npm run deploy:stable",
     "build:deploy:test": "cross-env ECOS_ENV=test NODE_ENV=production npm run build && npm run deploy:test",
     "deploy:stable": "bash s3Deploy.sh build",
-    "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
+    "deploy:test": "bash s3Deploy.sh build cadltest.aitmed.com",
     "start": "cross-env ECOS_ENV=test NODE_ENV=development webpack-dev-server",
     "start:stable": "cross-env ECOS_ENV=stable NODE_ENV=development webpack-dev-server",
     "start:test": "cross-env ECOS_ENV=test npm run start",
