@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { Styles } from 'app/types'
 import { setStyle } from 'utils/dom'
 
-class NOODLElement {
+class NOODLDOMElement {
   public container: HTMLElement | undefined
   public id: string
   public modalId: string = ''
@@ -111,4 +111,4 @@ class NOODLElement {
   }
 }
 
-export default NOODLElement
+export default NOODLDOMElement

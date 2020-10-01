@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { NOODLComponentProps } from 'noodl-ui'
-import { NOODLElement } from 'noodl-ui-dom'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RoomParticipant } from 'app/types'
 import Stream from 'meeting/Stream'
 import Substreams from 'meeting/Substreams'
@@ -40,7 +40,7 @@ class MeetingStreams {
   }
 
   createSubStreamsContainer(
-    container: NOODLElement,
+    container: NOODLDOMElement,
     props: NOODLComponentProps,
   ) {
     this.#subStreams = new Substreams(container, props)

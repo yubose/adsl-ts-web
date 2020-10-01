@@ -47,7 +47,6 @@ const getTransformedAliases: Resolver = (component, { context, createSrc }) => {
 
   if (!_.isUndefined(path) || !_.isUndefined(resource)) {
     let src = path || resource || ''
-    console.log(src)
 
     if (src && _.isString(src)) {
       component.set('src', createSrc(src))

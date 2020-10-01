@@ -35,17 +35,6 @@ const getListItemChildren: Resolver = (
 
   let childComponent: ProxiedComponent
 
-  const logMsg = `%ccomponent`
-  console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
-    component,
-    children,
-    iteratorVar,
-    listId,
-    listItem,
-    listItemIndex,
-    parent,
-  })
-
   if (!listItem) {
     log.red(
       `A list component passed in an iteratorVar that a listItem component ` +

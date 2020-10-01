@@ -1,6 +1,7 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { screen } from '@testing-library/dom'
+import { NOODLComponentProps } from 'noodl-ui'
 import { noodl } from './test-utils'
 import NOODLUIDOM from './noodl-ui-dom'
 
@@ -127,6 +128,61 @@ describe('noodl-ui-dom', () => {
       if (node) document.body.appendChild(node)
       expect(node).to.be.instanceOf(HTMLLabelElement)
       expect(screen.getByText('Title'))
+    })
+
+    describe('recursing children', () => {
+      const labelText = 'the #1 label'
+      let component: NOODLComponentProps
+
+      beforeEach(() => {
+        component = {
+          type: 'div',
+          noodlType: 'view',
+          id: 'abc',
+          style: {
+            left: '0',
+          },
+          children: [
+            {
+              type: 'div',
+              noodlType: 'view',
+              text: 'Back',
+              style: {},
+              id: 'label123',
+              children: [
+                {
+                  type: 'ul',
+                  noodlType: 'list',
+                  id: 'list123',
+                  contentType: 'listObject',
+                  listObject: [],
+                  iteratorVar: 'itemObject',
+                  style: {},
+                  children: [
+                    {
+                      type: 'label',
+                      noodlType: 'label',
+                      style: {},
+                      id: 'label1223',
+                      children: labelText,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        } as NOODLComponentProps
+      })
+
+      it('should append nested children as far down as possible', () => {
+        noodluidom.on('create.label', (node, props) => {
+          if (props.children) {
+            node.innerHTML = `${props.children}`
+          }
+        })
+        noodluidom.parse(component, document.body)
+        expect(screen.getByText(labelText))
+      })
     })
   })
 })

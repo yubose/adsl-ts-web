@@ -30,7 +30,7 @@ import {
   NOODLComponentProps,
   Viewport,
 } from 'noodl-ui'
-import { NOODLElement } from 'noodl-ui-dom'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { createOnChangeFactory } from './utils/sdkHelpers'
 import { forEachParticipant } from './utils/twilio'
@@ -94,6 +94,7 @@ window.addEventListener('load', async () => {
   const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
+
   window.env = process.env.ECOS_ENV
   window.getDataValues = getDataValues
   window.getByDataUX = getByDataUX
@@ -433,7 +434,7 @@ window.addEventListener('load', async () => {
   // createOnChangeFactory IS EXPERIMENTAL AND WILL BE REFACTORED
   noodluidom.createOnChangeFactory = createOnChangeFactory
   noodluidom.on('all', function onCreateNode(
-    node: NOODLElement,
+    node: NOODLDOMElement,
     props: NOODLComponentProps,
   ) {
     if (node) {

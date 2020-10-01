@@ -119,7 +119,6 @@ const getListChildren: Resolver = (
             resolverOptions,
           ) as IComponent
 
-          log.green('', { listItemComponent, result })
           // Direct children (listItem components) will consume this list data
           // during the resolving process
           acc.push(result)
