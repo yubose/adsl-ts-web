@@ -14,7 +14,7 @@ describe('noodl-ui-dom', () => {
   it('should add the func to the callbacks list', () => {
     const spy = sinon.spy()
     noodluidom.on('create.button', spy)
-    const callbacksList = noodluidom.getListeners('create.button')
+    const callbacksList = noodluidom.getCallbacks('create.button')
     expect(callbacksList).to.be.an('array')
     expect(callbacksList).to.have.members([spy])
   })
@@ -22,10 +22,10 @@ describe('noodl-ui-dom', () => {
   it('should remove the func from the callbacks list', () => {
     const spy = sinon.spy()
     noodluidom.on('create.button', spy)
-    let callbacksList = noodluidom.getListeners('create.button')
+    let callbacksList = noodluidom.getCallbacks('create.button')
     expect(callbacksList).to.have.members([spy])
     noodluidom.off('create.button', spy)
-    callbacksList = noodluidom.getListeners('create.button')
+    callbacksList = noodluidom.getCallbacks('create.button')
     expect(callbacksList).to.be.an('array')
     expect(callbacksList).not.to.include.members([spy])
   })
@@ -124,7 +124,7 @@ describe('noodl-ui-dom', () => {
         node.innerHTML = `${props.children}`
       })
       const node = noodluidom.parse(label)
-      document.body.appendChild(node)
+      if (node) document.body.appendChild(node)
       expect(node).to.be.instanceOf(HTMLLabelElement)
       expect(screen.getByText('Title'))
     })

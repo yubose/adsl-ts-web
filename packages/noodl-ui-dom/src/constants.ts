@@ -17,7 +17,7 @@
 // const createVideoEvent = 'create.video' as const
 // const createViewEvent = 'create.view' as const
 
-export const noodlDOMEvents = {
+export const componentEventMap = {
   button: 'create.button',
   divider: 'create.divider',
   footer: 'create.footer',
@@ -33,7 +33,13 @@ export const noodlDOMEvents = {
   view: 'create.view',
 } as const
 
-export const noodlDOMEventKeys = Object.keys(noodlDOMEvents)
+export const componentEventTypes = Object.keys(
+  componentEventMap,
+) as (keyof typeof componentEventMap)[]
+
+export const componentEventIds = Object.values(
+  componentEventMap,
+) as typeof componentEventMap[typeof componentEventTypes[number]][]
 
 /** Page render statuses */
 // export const renderStatus = {
