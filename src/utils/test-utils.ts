@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import { queryHelpers } from '@testing-library/dom'
-import userEvent from '@testing-library/user-event'
 import {
   getElementType,
   getAlignAttrs,
@@ -17,9 +16,9 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   NOODL,
-  NOODLActionTriggerType,
   Viewport,
 } from 'noodl-ui'
+import NOODLUIDOM from 'noodl-ui-dom'
 
 export const queryByDataKey = queryHelpers.queryByAttribute.bind(
   null,
@@ -27,21 +26,6 @@ export const queryByDataKey = queryHelpers.queryByAttribute.bind(
 )
 
 export const queryByDataUx = queryHelpers.queryByAttribute.bind(null, 'data-ux')
-
-export function mapUserEvent(noodlEventType: NOODLActionTriggerType) {
-  switch (noodlEventType) {
-    case 'onClick':
-      return userEvent.click
-    case 'onHover':
-    case 'onMouseEnter':
-      return userEvent.hover
-    case 'onMouseLeave':
-    case 'onMouseOut':
-      return userEvent.unhover
-    default:
-      break
-  }
-}
 
 export const noodl = new NOODL()
   .init({ viewport: new Viewport() })
@@ -63,3 +47,18 @@ export const noodl = new NOODL()
     getCustomDataAttrs,
     getEventHandlers,
   )
+
+export const noodluidom = (function () {
+  let _inst: NOODLUIDOM = new NOODLUIDOM()
+
+  Object.defineProperty(_inst, 'reset', {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: function () {
+      _inst = new NOODLUIDOM()
+    },
+  })
+
+  return _inst as NOODLUIDOM & { reset: () => any }
+})()

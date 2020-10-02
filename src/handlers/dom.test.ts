@@ -4,7 +4,7 @@ import { expect } from 'chai'
 import { getByText } from '@testing-library/dom'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import NOODLUIDOM, { DataValueElement } from 'noodl-ui-dom'
-import { mapUserEvent, noodl } from '../utils/test-utils'
+import { noodl, noodluidom } from '../utils/test-utils'
 
 let container: HTMLDivElement
 let parser: NOODLUIDOM
@@ -18,106 +18,68 @@ afterEach(() => {
   // console.info(prettyDOM(container))
 })
 
-describe.skip('parse', () => {
-  let components: NOODLComponentProps[]
+describe('parse', () => {
   let component: NOODLComponentProps
 
-  beforeEach(() => {
-    components = noodl.resolveComponents({
-      module: 'patient',
-      components: [
-        {
-          type: 'button',
-          text: 'hello',
-          onClick: [
-            {
-              actionType: 'builtIn',
-              funcName: 'toggleMicrophoneOnOff',
-            },
-          ],
-          style: {
-            left: '0.22',
-            top: '0.0185',
-            width: '0.12',
-            height: '0.07',
-            border: {
-              style: '2',
-            },
-          },
-        } as NOODLComponent,
-      ],
-    })
-    // console.info(components)
-    component = components[0]
+  xit('should attach the id', () => {
+    //
   })
 
-  describe.skip('record keeper (wrapper)', () => {
-    describe('hasAttribute', () => {
-      it('should return false', () => {
-        const div = document.createElement('div')
-        // const parse =
+  xit('should attach the src attr', () => {
+    //
+  })
+
+  xit('should attach the "poster" attr on videos', () => {
+    //
+  })
+
+  xit('should attach the "type" attr if theres a "props.videoFormat"', () => {
+    //
+  })
+
+  xit('should attach placeholders', () => {
+    //
+  })
+
+  xit('should attach data-listid', () => {
+    //
+  })
+
+  xit('should attach data-name', () => {
+    //
+  })
+
+  xit('should attach data-key', () => {
+    //
+  })
+
+  xit('should attach data-ux', () => {
+    //
+  })
+
+  xit('should attach data-value', () => {
+    //
+  })
+
+  describe('input/select/textarea (data value elements)', () => {
+    xit('should show placeholder if there is no data-value available', () => {
+      // TODO - props.placeholder
+    })
+
+    describe('select elements', () => {
+      xit('should show the data-value if it was received with one', () => {
+        //
+      })
+
+      xit('should show the first item in the options list by default if a data-value isnt available', () => {
+        //
       })
     })
   })
 
-  describe.skip('parseChildren', () => {
-    beforeEach(() => {
-      // parser.add(parseChildren as any)
-    })
-
-    it('should append to innerHTML if children is a string', () => {
-      const node = parser.parse(component)
-      node && container.appendChild(node)
-      expect(node?.innerHTML).to.eq('hello')
-    })
-
-    it('should attach children DOM nodes', () => {
-      // @ts-expect-error
-      component.children = [
-        {
-          type: 'label',
-          text: 'i am child #1',
-          style: { width: '0.2', height: '0.5' },
-        },
-        {
-          type: 'button',
-          text: 'i am child #2',
-          style: { width: '0.2', height: '0.5' },
-        },
-        {
-          type: 'view',
-          id: 'abc',
-          style: { width: '0.2', height: '0.5' },
-          children: [
-            {
-              type: 'label',
-              text: 'I am a nested child of view',
-              style: { width: '0.2', height: '0.5' },
-            },
-          ],
-        },
-      ] as NOODLComponent[]
-      // @ts-expect-error
-      const resolvedComponents = noodl.resolveComponents({
-        module: 'patient',
-        components: component.children,
-      })
-      const label = resolvedComponents[0]
-      const button = resolvedComponents[1]
-      const view = resolvedComponents[2]
-      expect(parser.parse(label)?.textContent).to.eq('i am child #1')
-      expect(parser.parse(button)?.textContent).to.eq('i am child #2')
-      expect(parser.parse(view)?.children.length).to.eq(1)
-      // @ts-expect-error
-      const node = parser.parse({
-        type: 'div',
-        children: resolvedComponents,
-      }) as HTMLElement
-      const labelNode = getByText(node, 'I am a nested child of view')
-      const viewNode = node.children[2]
-      expect(viewNode).to.exist
-      expect(labelNode).to.exist
-      expect(labelNode.parentNode).to.eq(viewNode)
+  describe('view elements (opposite of input/select/textarea elements, like div or span', () => {
+    xit('should show text/placeholder if there is no data-value available', () => {
+      //  TODO - props.text || props.placeholder
     })
   })
 
@@ -126,19 +88,19 @@ describe.skip('parse', () => {
       // parser.add(parseEventHandlers)
     })
 
-    _.forEach(
-      ['onClick', 'onMouseEnter', 'onMouseLeave'] as const,
-      (eventType) => {
-        it(`should attach the "${eventType}" event handler`, () => {
-          const handler = sinon.spy()
-          component[eventType] = handler as any
-          const node = parser.parse(component)
-          node && container.appendChild(node)
-          node && mapUserEvent(eventType)?.(node)
-          expect(handler.called).to.be.true
-        })
-      },
-    )
+    // _.forEach(
+    //   ['onClick', 'onMouseEnter', 'onMouseLeave'] as const,
+    //   (eventType) => {
+    //     it(`should attach the "${eventType}" event handler`, () => {
+    //       const handler = sinon.spy()
+    //       component[eventType] = handler as any
+    //       const node = parser.parse(component)
+    //       node && container.appendChild(node)
+    //       node && mapUserEvent(eventType)?.(node)
+    //       expect(handler.called).to.be.true
+    //     })
+    //   },
+    // )
 
     it.skip('should increment the listener count if a listener is added via addEventListener', () => {
       //

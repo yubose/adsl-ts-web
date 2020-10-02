@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import Logger, { _color } from 'logsnap'
+import { noodluidom } from './utils/test-utils'
 
 let logSpy: sinon.SinonStub
 
@@ -27,4 +28,5 @@ after(() => {
 
 afterEach(() => {
   document.body.textContent = ''
+  noodluidom.reset()
 })

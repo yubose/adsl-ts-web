@@ -49,7 +49,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
           elem['selectedIndex'] = 0
         }
         if (!options) {
-          log.func('onCreateNode: all')
+          log.func('noodluidom.on -- all')
           log.red(
             `Attempted to attach a data-value to a select element's value but ` +
               `"options" was not provided. This may not display its value as expected`,
@@ -61,8 +61,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
         elem['value'] = elem.dataset['value'] || ''
       }
     } else {
-      node.innerHTML =
-        props['data-value'] || props.text || props.placeholder || ''
+      node.innerHTML = props['data-value'] || props.placeholder || ''
     }
   }
 
