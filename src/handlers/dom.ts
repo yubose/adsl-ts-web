@@ -1,12 +1,53 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
-import { DataValueElement } from 'noodl-ui-dom'
+import {
+  eventTypes,
+  NOODLActionTriggerType,
+  NOODLComponentProps,
+  SelectOption,
+} from 'noodl-ui'
+import { DataValueElement, NodePropsFunc } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
+import NOODLDOMElement from 'components/NOODLElement'
 
 const log = Logger.create('dom.ts')
+
+const parsers: {
+  [key: string]: (cb: NodePropsFunc) => NodePropsFunc
+} = {}
+
+const setMirrorAttr = (attr: string) => (node, props) =>
+  (node[attr] = props[attr])
+const setMirrorAttrFn = (attr) => (node, props) =>
+  node.setAttribute(attr, props[attr])
+
+const onIf = (pred) => (fn) => (node, props) =>
+  pred(node, props) && fn(node, props)
+
+const pHasId = (node, props) => 'id' in props
+const pHasSrc = (node, props) => 'src' in props
+const pHasType = (props) => 'type' in props
+const pHasVideoFormat = (props) => 'videoFormat' in props
+const pHasPlaceholder = (props) => 'placeholder' in props
+
+// const onType = onIf(pHasType)
+// const onVideoFormat = onIf(pHasVideoFormat)
+// const onPlaceholder = onIf(pHasPlaceholder)
+
+const onId = onIf((n, p) => 'id' in p)(setMirrorAttr('id'))
+const onSrc = onIf((n, p) => 'src' in p)(setMirrorAttr('src'))
+
+parsers.setId = onId(setMirrorAttr('id'))
+parsers.setSrc = onSrc(setMirrorAttrFn('src'))
+
+// export const setPoster = onType(setMirrorAttr('poster'))
+// export const setType = onVideoFormat(setMirrorAttr('type'))
+// export const setPlaceholder = onPlaceholder(setMirrorAttr('placeholder'))
+export const composeIfs = (...ifs) => (node, props) => {
+  ifs.forEach((fn) => fn(node, props))
+}
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 noodluidom.on('all', function onCreateNode(node, props) {

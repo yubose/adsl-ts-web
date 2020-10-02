@@ -1,10 +1,11 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { getByText } from '@testing-library/dom'
+import { getByText, logDOM, prettyDOM } from '@testing-library/dom'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import NOODLUIDOM, { DataValueElement } from 'noodl-ui-dom'
 import { noodl, noodluidom } from '../utils/test-utils'
+import { setId, setSrc, step, composeIfs } from './dom'
 
 let container: HTMLDivElement
 let parser: NOODLUIDOM
@@ -21,8 +22,14 @@ afterEach(() => {
 describe('parse', () => {
   let component: NOODLComponentProps
 
-  xit('should attach the id', () => {
-    //
+  it('should attach the id if props has an id', () => {
+    const ifFns = composeIfs(setId, setSrc)
+    let node = document.createElement('div')
+    const props = { id: 'abc', src: 'https://www.google.com/ffff.jpg' }
+    ifFns(node, props)
+
+    document.body.appendChild(node)
+    console.info(prettyDOM())
   })
 
   xit('should attach the src attr', () => {
