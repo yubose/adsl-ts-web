@@ -239,7 +239,7 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
         eyeIcon.setAttribute('src', toggledSrc)
 
         // Restructing the node structure to match our custom effects with the
-        // toggling of the eye icons
+        // toggling of the eye iconsf
 
         if (originalParent.contains(node)) originalParent.removeChild(node)
         eyeContainer.appendChild(eyeIcon)

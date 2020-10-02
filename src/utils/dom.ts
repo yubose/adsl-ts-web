@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { Styles } from 'app/types'
 import { forEachEntries } from './common'
+import NOODLDOMElement from 'components/NOODLElement'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -153,3 +154,24 @@ export const isPopUp = matchNoodlType('popUp')
 export const isSelect = matchNoodlType('select')
 export const isTextField = matchNoodlType('textField')
 export const isView = matchNoodlType('view')
+
+/* -------------------------------------------------------
+  ---- DOM MANIPULATION
+-------------------------------------------------------- */
+
+export const setAttr = (attr: string) => (v: keyof NOODLDOMElement) => (
+  n: NOODLDOMElement,
+) => (n[attr] = v)
+export const setDataAttr = (attr: string) => (v: keyof NOODLDOMElement) => (
+  n: NOODLDOMElement,
+) => (n['dataset'][attr] = v)
+
+export const setDataListId = setDataAttr('data-listid')
+export const setDataName = setDataAttr('data-name')
+export const setDataKey = setDataAttr('data-key')
+export const setDataUx = setDataAttr('data-ux')
+export const setDataValue = setDataAttr('data-value')
+export const setId = setAttr('id')
+export const setPlaceholder = setAttr('placeholder')
+export const setSrc = setAttr('src')
+export const setVideoFormat = setAttr('type')
