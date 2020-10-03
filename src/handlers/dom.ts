@@ -6,48 +6,13 @@ import {
   NOODLComponentProps,
   SelectOption,
 } from 'noodl-ui'
-import { DataValueElement, NodePropsFunc } from 'noodl-ui-dom'
+import { DataValueElement, NodePropsFunc, NOODLDOMElement } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
+import { setAttr } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
-import NOODLDOMElement from 'components/NOODLElement'
 
 const log = Logger.create('dom.ts')
-
-const parsers: {
-  [key: string]: (cb: NodePropsFunc) => NodePropsFunc
-} = {}
-
-const setMirrorAttr = (attr: string) => (node, props) =>
-  (node[attr] = props[attr])
-const setMirrorAttrFn = (attr) => (node, props) =>
-  node.setAttribute(attr, props[attr])
-
-const onIf = (pred) => (fn) => (node, props) =>
-  pred(node, props) && fn(node, props)
-
-const pHasId = (node, props) => 'id' in props
-const pHasSrc = (node, props) => 'src' in props
-const pHasType = (props) => 'type' in props
-const pHasVideoFormat = (props) => 'videoFormat' in props
-const pHasPlaceholder = (props) => 'placeholder' in props
-
-// const onType = onIf(pHasType)
-// const onVideoFormat = onIf(pHasVideoFormat)
-// const onPlaceholder = onIf(pHasPlaceholder)
-
-const onId = onIf((n, p) => 'id' in p)(setMirrorAttr('id'))
-const onSrc = onIf((n, p) => 'src' in p)(setMirrorAttr('src'))
-
-parsers.setId = onId(setMirrorAttr('id'))
-parsers.setSrc = onSrc(setMirrorAttrFn('src'))
-
-// export const setPoster = onType(setMirrorAttr('poster'))
-// export const setType = onVideoFormat(setMirrorAttr('type'))
-// export const setPlaceholder = onPlaceholder(setMirrorAttr('placeholder'))
-export const composeIfs = (...ifs) => (node, props) => {
-  ifs.forEach((fn) => fn(node, props))
-}
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 noodluidom.on('all', function onCreateNode(node, props) {
@@ -280,7 +245,7 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
         eyeIcon.setAttribute('src', toggledSrc)
 
         // Restructing the node structure to match our custom effects with the
-        // toggling of the eye icons
+        // toggling of the eye iconsf
 
         if (originalParent.contains(node)) originalParent.removeChild(node)
         eyeContainer.appendChild(eyeIcon)
@@ -357,3 +322,54 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
 //   }
 //   return false
 // }
+
+export function setAttrBy(attr: string, cb: NodePropsFunc): NodePropsFunc {
+  return (n, p) => (n[attr] = cb(n, p))
+}
+
+export function setAttrByProp(attr: string, prop: string): NodePropsFunc {
+  return (n, p) => prop && p && prop in p && (n[attr] = p[prop])
+}
+
+export function setDatasetAttrBy(
+  attr: string,
+  cb: NodePropsFunc,
+): NodePropsFunc {
+  return (n, p) =>
+    p && attr in p && (n.dataset[attr.replace('data-', '')] = cb(n, p))
+}
+
+export function setDatasetAttrByProp(prop: string): NodePropsFunc {
+  return setDatasetAttrBy(
+    prop,
+    (n, p) => (n.dataset[prop.replace('data-', '')] = p[prop]),
+  )
+}
+
+export const setDataListId = setDatasetAttrByProp('data-listid')
+export const setDataName = setDatasetAttrByProp('data-name')
+export const setDataKey = setDatasetAttrByProp('data-key')
+export const setDataUx = setDatasetAttrByProp('data-ux')
+export const setDataValue = setDatasetAttrByProp('data-value')
+export const setId = setAttrByProp('id', 'id')
+export const setSrc = setAttrByProp('src', 'src')
+export const setPlaceholder = setAttrByProp('placeholder', 'placeholder')
+export const setVideoFormat = setAttrByProp('type', 'videoFormat')
+
+export function compose(...fns: NodePropsFunc[]): NodePropsFunc {
+  return (n, p) => {
+    fns.forEach((fn) => fn && fn(n, p))
+  }
+}
+
+export const cbs = compose(
+  setId,
+  setSrc,
+  setPlaceholder,
+  setVideoFormat,
+  setDataListId,
+  setDataName,
+  setDataKey,
+  setDataUx,
+  setDataValue,
+)
