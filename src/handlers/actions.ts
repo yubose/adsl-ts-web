@@ -29,7 +29,7 @@ const createActions = function ({ page }: { page: IPage }) {
     options,
   ) => {
     if (_.isFunction(action?.original?.object)) {
-      action.original?.object()
+      await action.original?.object()
     } else {
       log.func('evalObject')
       log.grey(
@@ -42,14 +42,14 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.goto = async (action: any, options) => {
     // URL
     if (_.isString(action)) {
-      page.requestPageChange(action)
+      await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.original.destination || _.isString(action.original.goto)) {
         const url = action.original.destination || action.original.goto
-        page.requestPageChange(url)
+        await page.requestPageChange(url)
       } else {
         log.func('goto')
         log.red(
@@ -205,7 +205,7 @@ const createActions = function ({ page }: { page: IPage }) {
         const { dataKey, dataObject } = object
         if (dataObject) {
           console.log(dataObject)
-          noodl.updateObject({ dataKey, dataObject })
+          await noodl.updateObject({ dataKey, dataObject })
         } else {
           log.red(`dataObject is null or undefined`, object)
         }
