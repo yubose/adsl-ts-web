@@ -80,7 +80,7 @@ describe('ActionChain', () => {
     const actionChain = new ActionChain([pageJumpAction])
     const btn = document.createElement('button')
     btn.addEventListener('click', async (args) => {
-      const fn = actionChain.build({ parser })
+      const fn = actionChain.build({ parser } as any)
       await fn(args)
       return expect(actionChain.status).to.eq('done')
     })
