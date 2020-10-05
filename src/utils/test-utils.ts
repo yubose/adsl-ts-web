@@ -16,13 +16,29 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   NOODL,
+  NOODLComponentProps,
   Viewport,
 } from 'noodl-ui'
-import NOODLUIDOM from 'noodl-ui-dom'
+import NOODLUIDOM, { NOODLDOMElement } from 'noodl-ui-dom'
 
 export const queryByDataKey = queryHelpers.queryByAttribute.bind(
   null,
   'data-key',
+)
+
+export const queryByDataListId = queryHelpers.queryByAttribute.bind(
+  null,
+  'data-listid',
+)
+
+export const queryByDataName = queryHelpers.queryByAttribute.bind(
+  null,
+  'data-name',
+)
+
+export const queryByDataValue = queryHelpers.queryByAttribute.bind(
+  null,
+  'data-value',
 )
 
 export const queryByDataUx = queryHelpers.queryByAttribute.bind(null, 'data-ux')
@@ -62,3 +78,9 @@ export const noodluidom = (function () {
 
   return _inst as NOODLUIDOM & { reset: () => any }
 })()
+
+export function toDOM(props: NOODLComponentProps): NOODLDOMElement | null {
+  const node = noodluidom.parse(props)
+  document.body.appendChild(node as NOODLDOMElement)
+  return node
+}

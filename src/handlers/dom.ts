@@ -1,8 +1,14 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
-import { DataValueElement } from 'noodl-ui-dom'
+import {
+  eventTypes,
+  NOODLActionTriggerType,
+  NOODLComponentProps,
+  SelectOption,
+} from 'noodl-ui'
+import { DataValueElement, NodePropsFunc, NOODLDOMElement } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
+import { setAttr } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
 
@@ -316,3 +322,54 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
 //   }
 //   return false
 // }
+
+export function setAttrBy(attr: string, cb: NodePropsFunc): NodePropsFunc {
+  return (n, p) => (n[attr] = cb(n, p))
+}
+
+export function setAttrByProp(attr: string, prop: string): NodePropsFunc {
+  return (n, p) => prop && p && prop in p && (n[attr] = p[prop])
+}
+
+export function setDatasetAttrBy(
+  attr: string,
+  cb: NodePropsFunc,
+): NodePropsFunc {
+  return (n, p) =>
+    p && attr in p && (n.dataset[attr.replace('data-', '')] = cb(n, p))
+}
+
+export function setDatasetAttrByProp(prop: string): NodePropsFunc {
+  return setDatasetAttrBy(
+    prop,
+    (n, p) => (n.dataset[prop.replace('data-', '')] = p[prop]),
+  )
+}
+
+export const setDataListId = setDatasetAttrByProp('data-listid')
+export const setDataName = setDatasetAttrByProp('data-name')
+export const setDataKey = setDatasetAttrByProp('data-key')
+export const setDataUx = setDatasetAttrByProp('data-ux')
+export const setDataValue = setDatasetAttrByProp('data-value')
+export const setId = setAttrByProp('id', 'id')
+export const setSrc = setAttrByProp('src', 'src')
+export const setPlaceholder = setAttrByProp('placeholder', 'placeholder')
+export const setVideoFormat = setAttrByProp('type', 'videoFormat')
+
+export function compose(...fns: NodePropsFunc[]): NodePropsFunc {
+  return (n, p) => {
+    fns.forEach((fn) => fn && fn(n, p))
+  }
+}
+
+export const cbs = compose(
+  setId,
+  setSrc,
+  setPlaceholder,
+  setVideoFormat,
+  setDataListId,
+  setDataName,
+  setDataKey,
+  setDataUx,
+  setDataValue,
+)

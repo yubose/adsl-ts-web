@@ -34,8 +34,8 @@ class ActionChain {
   #queue: Action<any>[] = []
   #gen: AsyncGenerator<any, any> | null = null
   #getConstructorOptions: () => ActionChainOptions | undefined
-  #next: (args?: any) => Promise<any>
   actions: Action<any>[] | null = null
+  intermediary: Action<any>[] = []
   blob: File | Blob | null = null
   current: {
     action: Action<any> | undefined
@@ -132,29 +132,33 @@ class ActionChain {
         // @ts-expect-error
         actionObject = { ...actionObject, actionType: 'goto' }
       }
-      const action = new Action(actionObject, {
-        timeoutDelay: 8000,
-      })
-      if (actionObject.actionType === 'builtIn') {
-        const builtInFn = this.builtIn?.[actionObject.funcName]
-        if (_.isFunction(builtInFn)) {
-          action.callback = builtInFn
-        }
-      } else {
-        action.callback = this[actionObject.actionType]
-      }
+      //  logic "if" condition in action chains
+      const action = this.createAction(actionObject)
       if (action) {
         if (!_.isArray(this.actions)) this.actions = []
         this.actions.push(action)
         this.#queue.push(action)
       }
     })
+  }
 
-    this.#next = async (args?: any) => {
-      const result = await this.#gen?.next(args)
-      this.#current = result?.value?.action
-      return result
+  /**
+   * Creates and returns a new Action instance
+   * @param { object } obj - Action object
+   */
+  createAction(obj: T.NOODLChainActionObject) {
+    const action = new Action(obj, {
+      timeoutDelay: 8000,
+    })
+    if (obj.actionType === 'builtIn') {
+      const builtInFn = this.builtIn?.[obj.funcName]
+      if (_.isFunction(builtInFn)) {
+        action.callback = builtInFn
+      }
+    } else {
+      action.callback = this[obj.actionType]
     }
+    return action
   }
 
   // NOTE: This is an async generator function!
@@ -170,7 +174,21 @@ class ActionChain {
       args = { ...args, action: nextAction as Action<any> }
       if (callerResult) args['result'] = callerResult
       callerResult = await (yield args)
-
+      // TODO - callerResult could be an intermediary action object now
+      if (_.isPlainObject(callerResult)) {
+        // TODO - Do a better way to identify the action
+        const { actionType = '' } = callerResult
+        if (actionType) {
+          // We may get an action object returned back like from
+          // evalObject. If this is the case we need to immediately
+          // run this action before continuing
+          // Start up a new Action with this object and inject it
+          // as the first item in the queued actions
+          const intermediaryAction = this.createAction(callerResult)
+          this.intermediary.push(intermediaryAction)
+          this.#queue = [intermediaryAction, ...this.#queue]
+        }
+      }
       results.push({ action: nextAction, result: callerResult })
     }
 
@@ -244,7 +262,7 @@ class ActionChain {
                   if (result) {
                     if (action.type) log.func(action.type)
                     log.green(
-                      'Received a returned value from an executor',
+                      `Received a returned value from a(n) "${action.type}" executor`,
                       result,
                     )
                   }
@@ -256,6 +274,8 @@ class ActionChain {
                       action?.type
                     }". ${JSON.stringify(action)}`,
                   )
+                } else if (_.isPlainObject(result)) {
+                  iterator = await this.#next(result)
                 } else if (_.isString(result)) {
                   // TODO
                 } else if (_.isPlainObject(result)) {
@@ -385,6 +405,12 @@ class ActionChain {
     }
     this.#refresh()
     return abortResult
+  }
+
+  #next = async (args?: any) => {
+    const result = await this.#gen?.next(args)
+    this.#current = result?.value?.action
+    return result
   }
 
   #setStatus = (status: T.ActionChainStatus) => {
