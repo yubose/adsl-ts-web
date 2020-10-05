@@ -22,9 +22,9 @@ export { default as NOODL } from './noodl-ui'
 export { default as Viewport } from './Viewport'
 export {
   eventTypes,
-  noodlActionTypes,
-  noodlComponentTypes,
-  noodlContentTypes,
+  actionTypes,
+  componentTypes,
+  contentTypes,
 } from './constants'
 export * from './types'
 

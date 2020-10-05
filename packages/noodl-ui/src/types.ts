@@ -1,8 +1,8 @@
 import { Draft } from 'immer'
 import {
-  noodlActionTypes,
-  noodlComponentTypes,
-  noodlContentTypes,
+  actionTypes,
+  componentTypes,
+  contentTypes,
   eventTypes,
 } from './constants'
 
@@ -21,10 +21,10 @@ export interface NOODLPageObject {
   [key: string]: any
 }
 
-export type NOODLActionChainActionType = typeof noodlActionTypes[number]
+export type NOODLActionType = typeof actionTypes[number]
 export type NOODLActionTriggerType = typeof eventTypes[number]
-export type NOODLComponentType = typeof noodlComponentTypes[number] | 'br'
-export type NOODLContentType = typeof noodlContentTypes[number]
+export type NOODLComponentType = typeof componentTypes[number] | 'br'
+export type NOODLContentType = typeof contentTypes[number]
 
 export interface NOODLComponent {
   type?: NOODLComponentType
@@ -74,7 +74,7 @@ export interface NOODLChainActionGotoObject {
 }
 
 export interface NOODLChainActionObjectBase {
-  actionType: NOODLActionChainActionType
+  actionType: NOODLActionType
 }
 
 export type NOODLChainActionObject =

@@ -2,6 +2,7 @@ import _ from 'lodash'
 import * as T from './types'
 import Action from './Action'
 import { forEachEntries } from './utils/common'
+import { isAction } from './utils/noodl'
 import { AbortExecuteError } from './errors'
 import Logger from 'logsnap'
 
@@ -169,6 +170,7 @@ class ActionChain {
       args = { ...args, action: nextAction as Action<any> }
       if (callerResult) args['result'] = callerResult
       callerResult = await (yield args)
+
       results.push({ action: nextAction, result: callerResult })
     }
 
@@ -256,9 +258,21 @@ class ActionChain {
                   )
                 } else if (_.isString(result)) {
                   // TODO
+                } else if (_.isPlainObject(result)) {
+                  // Check if the result is an action noodl object
+                  if (isAction(result)) {
+                    result = new Action(result)
+                    // Its possible to receive back some noodl action object.
+                    // This most likely came from some "if" condition and wants
+                    // us to handle it immediately. So inject it immediately to
+                    // the first position in the queue for the generator
+                    this.#queue = [result, ...this.getQueue()]
+                    iterator = await this.#next()
+                  } else {
+                    // TODO
+                  }
                 } else if (_.isFunction(result)) {
                   // TODO
-                  iterator = await this.#next(result)
                 } else {
                   // TODO
                   iterator = await this.#next(result)
@@ -317,6 +331,11 @@ class ActionChain {
       >
     }
     return callbackOptions
+  }
+
+  /** Returns the current queue */
+  getQueue() {
+    return [...this.#queue]
   }
 
   /** Returns a snapshot of the current state in the action chain process */

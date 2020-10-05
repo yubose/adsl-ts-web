@@ -103,28 +103,48 @@ describe('ActionChain', () => {
     expect(actionChain.status).to.have.property('aborted')
   })
 
-  it.skip('should set the status to an object with property "aborted" with a nested "reason" property as an array of strings', () => {
+  xit('calling abort should reset the queue', () => {
+    const actionChain = new ActionChain(
+      [pageJumpAction, popUpDismissAction, updateObjectAction],
+      {
+        pageJump: (action) => null,
+        //
+      },
+    )
+  })
+
+  xit('should skip actions that didnt have a callback attached from the consumer', () => {
     //
   })
 
-  it.skip('should set the status to an object with property "aborted" with a nested "reason" property as a value of true', () => {
+  xit('skipped actions should have the status "aborted" with some "unregistered callback" reason', () => {
     //
   })
 
-  describe.skip("calling an action's 'execute' method", () => {
-    it('if the caller returned a string', () => {
+  describe("calling an action's 'execute' method", () => {
+    describe('if the caller returned a string', () => {
       //
     })
 
-    it('if the caller returned a function', () => {
+    describe('if the caller returned a function', () => {
       //
     })
 
-    it('if the caller returned an object', () => {
+    describe('if the caller returned an object', () => {
+      xit('should inject the result to the beginning of the queue if the result is an action noodl object', () => {
+        //
+      })
+
+      xit('should add the object to the "intermediary" list if the returned result was an action noodl object', () => {
+        //
+      })
+    })
+
+    describe('if the caller called the "abort" callback', () => {
       //
     })
 
-    it('if the caller called the "abort" callback', () => {
+    xit('should add the result of execute to its history', () => {
       //
     })
   })

@@ -2,10 +2,11 @@ import _ from 'lodash'
 import { current } from 'immer'
 import {
   IComponent,
+  NOODLChainActionObject,
   NOODLComponentType,
+  NOODLComponentProps,
   NOODLTextBoardTextObject,
   NOODLTextBoardBreakLine,
-  NOODLComponentProps,
   ProxiedComponent,
 } from '../types'
 import { isBrowser } from './common'
@@ -14,72 +15,86 @@ import Component from '../Component'
 const testPropKeysByRegex = (obj: any, key: string) =>
   _.isString(key) && new RegExp(key, 'i').test(obj[key])
 
+/** Returns true if the value is an object. Like those with an actionType prop */
+export function isAction(value: unknown): value is NOODLChainActionObject {
+  if (value && _.isObject(value)) {
+    if ('actionType' in value) return true
+    if ('goto' in value) return true
+  }
+  return false
+}
+
 // function createRegexKeysOnProps(keys: string | string[]) {
 //   const regex = new RegExp(_.isArray(keys) ? )
 // }
+export const identify = (function () {
+  const o = {
+    component: {
+      /** Returns true if value is a date component, false otherwise */
+      isDate: (value: any): boolean =>
+        checkForNoodlProp(value, 'text=func', _.negate(_.isUndefined)),
+      isPasswordInput: ({ contentType, noodlType }: NOODLComponentProps) =>
+        noodlType === 'textField' && contentType === 'password',
+    },
+    list: {
+      /** Components that hold a dataKey starting with "itemObject." */
+      itemObjectConsumer: (iteratorVar: string, obj: any) => {
+        return (
+          !!iteratorVar &&
+          _.isString(obj?.dataKey) &&
+          obj.dataKey.startsWith(iteratorVar)
+        )
+      },
+    },
+    textBoard: {
+      item: {
+        isTextObject: (value: any): value is NOODLTextBoardTextObject =>
+          _.isObjectLike(value) && _.isString(value.text),
+        isBreakLine: (value: unknown): value is NOODLTextBoardBreakLine =>
+          value === 'br',
+      },
+    },
+    stream: {
+      video: {
+        /** Returns true if value has a viewTag of "mainStream" */
+        isMainStream: (value: any) => {
+          const fn = (val: string) => _.isString(val) && /mainStream/i.test(val)
+          return (
+            checkForNoodlProp(value, 'viewTag', fn) ||
+            checkForNoodlProp(value, 'data-ux', fn)
+          )
+        },
+        /** Returns true if value has a viewTag of "selfStream" */
+        isSelfStream: (value: any) => {
+          const fn = (val: string) => _.isString(val) && /selfStream/i.test(val)
+          return (
+            checkForNoodlProp(value, 'viewTag', fn) ||
+            checkForNoodlProp(value, 'data-ux', fn)
+          )
+        },
+        /**
+         * Returns true if value has a contentType of "videoSubStream",
+         * false otherwise
+         */
+        isSubStreamsContainer(value: any) {
+          return checkForNoodlProp(value, 'contentType', (val: string) => {
+            return (
+              _.isString(val) && /(vidoeSubStream|videoSubStream)/i.test(val)
+            )
+          })
+        },
+        /** Returns true if value has a viewTag of "subStream", */
+        isSubStream(value: any) {
+          return checkForNoodlProp(value, 'viewTag', (val: string) => {
+            return _.isString(val) && /(subStream)/i.test(val)
+          })
+        },
+      },
+    },
+  }
 
-export const identify = {
-  component: {
-    /** Returns true if value is a date component, false otherwise */
-    isDate: (value: any): boolean =>
-      checkForNoodlProp(value, 'text=func', _.negate(_.isUndefined)),
-    isPasswordInput: ({ contentType, noodlType }: NOODLComponentProps) =>
-      noodlType === 'textField' && contentType === 'password',
-  },
-  list: {
-    /** Components that hold a dataKey starting with "itemObject." */
-    itemObjectConsumer: (iteratorVar: string, obj: any) => {
-      return (
-        !!iteratorVar &&
-        _.isString(obj?.dataKey) &&
-        obj.dataKey.startsWith(iteratorVar)
-      )
-    },
-  },
-  textBoard: {
-    item: {
-      isTextObject: (value: any): value is NOODLTextBoardTextObject =>
-        _.isObjectLike(value) && _.isString(value.text),
-      isBreakLine: (value: unknown): value is NOODLTextBoardBreakLine =>
-        value === 'br',
-    },
-  },
-  stream: {
-    video: {
-      /** Returns true if value has a viewTag of "mainStream" */
-      isMainStream: (value: any) => {
-        const fn = (val: string) => _.isString(val) && /mainStream/i.test(val)
-        return (
-          checkForNoodlProp(value, 'viewTag', fn) ||
-          checkForNoodlProp(value, 'data-ux', fn)
-        )
-      },
-      /** Returns true if value has a viewTag of "selfStream" */
-      isSelfStream: (value: any) => {
-        const fn = (val: string) => _.isString(val) && /selfStream/i.test(val)
-        return (
-          checkForNoodlProp(value, 'viewTag', fn) ||
-          checkForNoodlProp(value, 'data-ux', fn)
-        )
-      },
-      /**
-       * Returns true if value has a contentType of "videoSubStream",
-       * false otherwise
-       */
-      isSubStreamsContainer(value: any) {
-        return checkForNoodlProp(value, 'contentType', (val: string) => {
-          return _.isString(val) && /(vidoeSubStream|videoSubStream)/i.test(val)
-        })
-      },
-      /** Returns true if value has a viewTag of "subStream", */
-      isSubStream(value: any) {
-        return checkForNoodlProp(value, 'viewTag', (val: string) => {
-          return _.isString(val) && /(subStream)/i.test(val)
-        })
-      },
-    },
-  },
-}
+  return o
+})()
 
 /**
  * Checks for a prop in the component object in the top level as well as the "noodl" property level

@@ -1,4 +1,4 @@
-export const noodlActionTypes = [
+export const actionTypes = [
   'builtIn',
   'evalObject',
   'goto',
@@ -10,7 +10,7 @@ export const noodlActionTypes = [
   'updateObject',
 ] as const
 
-export const noodlComponentTypes = [
+export const componentTypes = [
   'button',
   'cell', // deprecated
   'date',
@@ -32,7 +32,7 @@ export const noodlComponentTypes = [
   'view',
 ] as const
 
-export const noodlContentTypes = [
+export const contentTypes = [
   'countryCode',
   'email',
   'formattedDate',
@@ -82,7 +82,7 @@ export const presets = {
 }
 
 /** { textAlign: '' } */
-export const noodlTextAlignStrings = [
+export const textAlignStrings = [
   'left',
   'center',
   'right',
@@ -91,4 +91,4 @@ export const noodlTextAlignStrings = [
 ]
 
 /** { textAlign: { x, y } } */
-export const noodlTextAlignXYStrings = ['left', 'center', 'right']
+export const textAlignXYStrings = ['left', 'center', 'right']

@@ -5,7 +5,7 @@ import {
   ActionChainActionCallbackOptions,
   getByDataUX,
   isReference,
-  NOODLActionChainActionType,
+  NOODLActionType,
   NOODLChainActionEvalObject,
   NOODLChainActionPopupBaseObject,
   NOODLChainActionPopupDismissObject,
@@ -19,10 +19,7 @@ import { IPage } from 'app/types'
 const log = Logger.create('actions.ts')
 
 const createActions = function ({ page }: { page: IPage }) {
-  const _actions = {} as Record<
-    NOODLActionChainActionType,
-    ActionChainActionCallback<any>
-  >
+  const _actions = {} as Record<NOODLActionType, ActionChainActionCallback<any>>
 
   _actions.evalObject = async (
     action: Action<NOODLChainActionEvalObject>,

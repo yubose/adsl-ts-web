@@ -10,7 +10,6 @@ import { AbortExecuteError } from './errors'
 import Logger from 'logsnap'
 
 const log = Logger.create('Action')
-//
 
 export interface ActionCallback {
   (snapshot: ActionSnapshot, handlerOptions?: any): any
@@ -103,7 +102,6 @@ class Action<OriginalAction extends NOODLChainActionObject> {
       )
 
       this.result = await this.callback?.(this.getSnapshot(), args)
-
       this.status = 'resolved'
 
       return this.result

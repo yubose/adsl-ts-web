@@ -3,7 +3,7 @@ import { Scalar } from 'yaml/types'
 import {
   NOODLComponentType,
   NOODLContentType,
-  NOODLActionChainActionType,
+  NOODLActionType,
 } from '../../../src/types'
 import { availableComponentTypes } from '../../../src/resolvers/getElementType'
 import { availableContentTypes } from '../../../src/resolvers/getTransformedAliases'
@@ -12,7 +12,7 @@ import { availableActionTypes } from '../../../src/makeActionChain'
 export type NOODLScalarIdentifiers =
   | NOODLComponentType
   | NOODLContentType
-  | NOODLActionChainActionType
+  | NOODLActionType
   | 'dataKey'
   | 'divider'
   | 'evaluate'

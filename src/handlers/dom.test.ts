@@ -146,23 +146,3 @@ afterEach(() => {
 //     })
 //   })
 // })
-
-it('fsaf', () => {
-  const onAttr = (attr) => (cb) => (node, props) =>
-    attr in props && cb && cb(node, props)
-
-  const setAttr = (attr) => (v) => (n) => (n[attr] = v)
-  const setDataAttr = (attr) => (v) => (n) => (n['dataset'][attr] = v)
-
-  const setDataListId = setDataAttr('data-listid')
-  const setDataName = setDataAttr('data-name')
-  const setDataKey = setDataAttr('data-key')
-  const setDataUx = setDataAttr('data-ux')
-  const setDataValue = setDataAttr('data-value')
-  const setId = setAttr('id')
-  const setPlaceholder = setAttr('placeholder')
-  const setSrc = setAttr('src')
-  const setVideoFormat = setAttr('type')
-
-  console.log(onAttr('fs'))
-})

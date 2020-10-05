@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { noodlContentTypes } from '../constants'
+import { contentTypes } from '../constants'
 import { Resolver } from '../types'
 
 const log = Logger.create('getTransformedAliases')
@@ -24,7 +24,7 @@ const getTransformedAliases: Resolver = (component, { context, createSrc }) => {
 
   // Input (textfield) components
   if (contentType) {
-    if (noodlContentTypes.includes(contentType)) {
+    if (contentTypes.includes(contentType)) {
       // Label components currently also have a contentType property.
       //    We don't want to cause any confusions when resolving text/select fields
       if (type !== 'label') {
