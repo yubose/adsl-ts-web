@@ -201,21 +201,44 @@ noodluidom.on('create.plugin', async function (noop, props) {
        */
       let template = `
         <template id="${props.id}_template">
-
+          ${data}
         </template>
       `
-      const scriptNode = document.createElement('script')
-      scriptNode.setAttribute('src', src)
-      // document.body.appendChild(node)
-      document.body.appendChild(scriptNode)
+      // const node = document.createElement('div')
+      // node.innerHTML += data
+      // const scriptNode = node.firstChild
+      // const content = scriptNode.innerHTML.trim()
+      // scriptNode.innerHTML = ``
+      // console.log(scriptNode)
       document.body.innerHTML += data
+      const html = new XMLSerializer().serializeToString(document)
+      log.salmon('Re-writing the document')
+      document.write(html)
+      // const scriptNode = document.createElement('script')
+      // scriptNode.setAttribute('crossorigin', 'anonymous')
+      // scriptNode.setAttribute('crossOrigin', 'anonymous')
+      // scriptNode.setAttribute('src', src)
+      // document.body.appendChild(scriptNode)
 
       // const template = document.createElement('span')
       // template.id = `${props.id}_template`
       // template.style.position = 'absolute'
       // template.innerHTML += data
 
-      // node.innerHTML = `${data}`
+      // const node = document.createElement('div')
+      // node
+      // node.innerHTML += eval(data)
+      // const script = node.firstChild
+      // script.charset = 'utf-8'
+      // script.setAttribute('crossorigin', 'anonymous')
+      // script.setAttribute('crossOrigin', 'anonymous')
+      // script.crossorigin = 'anonymous'
+      // script.crossOrigin = 'anonymous'
+      // node.removeChild(script)
+      // console.log(script)
+      // document.head.appendChild(script)
+      // document.body.insertAdjacentHTML('beforeend', data)
+      // document.write(data)
       // For now we will just directly insert the HTML string to the document
       // console.log(document.getElementById(`${props.id}_template`))
     } else {
