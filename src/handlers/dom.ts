@@ -186,7 +186,7 @@ noodluidom.on('create.label', function onCreateLabel(node, props) {
 })
 
 /** NOTE: node is null in this handler */
-noodluidom.on('create.plugin', async function (node, props) {
+noodluidom.on('create.plugin', async function (noop, props) {
   log.func('create.plugin')
   const { src = '' } = props
   if (_.isString(src)) {
@@ -199,10 +199,25 @@ noodluidom.on('create.plugin', async function (node, props) {
        * Create a script element, set innerHTML
        * node.appendChild(scriptElem)
        */
-      console.info(data)
+      let template = `
+        <template id="${props.id}_template">
+
+        </template>
+      `
+      const scriptNode = document.createElement('script')
+      scriptNode.setAttribute('src', src)
+      // document.body.appendChild(node)
+      document.body.appendChild(scriptNode)
+      document.body.innerHTML += data
+
+      // const template = document.createElement('span')
+      // template.id = `${props.id}_template`
+      // template.style.position = 'absolute'
+      // template.innerHTML += data
+
       // node.innerHTML = `${data}`
       // For now we will just directly insert the HTML string to the document
-      document.body.innerHTML += `${data}`
+      // console.log(document.getElementById(`${props.id}_template`))
     } else {
       log.red(
         `Received a src from a "plugin" component that did not start with an http(s) protocol`,

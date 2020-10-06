@@ -3,25 +3,35 @@ import NOODL from '@aitmed/cadl'
 const PORTAL_CONFIG = getConfigEndpoint('portal')
 const PORTAL_CONFIG_PHASE_2 = getConfigEndpoint('portal.phase.2')
 const LANDING_PAGE_CONFIG = getConfigEndpoint('landing.page')
+const AITCOM11_CONFIG = getConfigEndpoint('cadltest')
 
 const noodl = new NOODL({
   aspectRatio: 3,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: PORTAL_CONFIG,
+  configUrl: AITCOM11_CONFIG,
 })
 
-function getConfigEndpoint(type: 'landing.page' | 'portal' | 'portal.phase.2') {
+function getConfigEndpoint(
+  type: 'cadltest' | 'landing.page' | 'portal' | 'portal.phase.2',
+) {
   let path = ''
   const base = 'https://public.aitmed.com/config'
   const isLocal = process.env.NODE_ENV === 'development'
   if (isLocal) {
-    path +=
-      type === 'landing.page'
-        ? '/www2'
-        : type === 'portal.phase.2'
-        ? '/meet2'
-        : '/meetdev'
-    path += '.yml'
+    const getFilename = (t: typeof type) => {
+      switch (type) {
+        case 'cadltest':
+          return '/cadltest'
+        case 'landing.page':
+          return '/www2'
+        case 'portal.phase.2':
+          return '/meet2'
+        case 'portal':
+        default:
+          return 'meetdev'
+      }
+    }
+    path = getFilename(type) + '.yml'
   }
   return base + path
 }
