@@ -7,6 +7,7 @@ export const componentEventMap = {
   label: 'create.label',
   list: 'create.list',
   listItem: 'create.list.item',
+  plugin: 'create.plugin',
   popUp: 'create.popup',
   select: 'create.select',
   textField: 'create.textfield',

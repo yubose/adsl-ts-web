@@ -10,7 +10,6 @@ import { AbortExecuteError } from './errors'
 import Logger from 'logsnap'
 
 const log = Logger.create('Action')
-//
 
 export interface ActionCallback {
   (snapshot: ActionSnapshot, handlerOptions?: any): any

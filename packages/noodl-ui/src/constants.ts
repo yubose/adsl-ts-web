@@ -22,6 +22,7 @@ export const noodlComponentTypes = [
   'label',
   'list',
   'listItem',
+  'plugin',
   'popUp',
   'searchBar',
   'select',

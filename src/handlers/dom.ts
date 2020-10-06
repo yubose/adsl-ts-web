@@ -183,6 +183,25 @@ noodluidom.on('create.label', function onCreateLabel(node, props) {
   node.style['cursor'] = _.isFunction(onClick) ? 'pointer' : 'auto'
 })
 
+noodluidom.on('create.plugin', async function (node: HTMLDivElement, props) {
+  log.func('create.plugin')
+  const { src = '' } = props
+  if (_.isString(src)) {
+    if (src.startsWith('http')) {
+      const { default: axios } = await import('axios')
+      const { data } = await axios.get(src)
+      /**
+       * Fetch the data
+       * Check if its an HTML element string
+       * Create a script element, set innerHTML
+       * node.appendChild(scriptElem)
+       */
+      console.info(data)
+      // node.innerHTML = `${data}`
+    }
+  }
+})
+
 noodluidom.on('create.textfield', function onCreateTextField(node, props) {
   const { contentType } = props
 

@@ -14,6 +14,7 @@ This allows for faster compilation, faster load times and quicker development fl
 
 ## Todos
 
+- evalObject
 - history
 - page cache rehydration
 - autobind root/page updates on the `noodl-ui` lib

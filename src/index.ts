@@ -3,6 +3,7 @@ import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
 } from 'twilio-video'
+import { Draft, current, original } from 'immer'
 import Logger from 'logsnap'
 import {
   Action,
@@ -40,11 +41,11 @@ import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
-import noodluidom from './app/noodl-ui-dom'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
+import noodluidom from './app/noodl-ui-dom'
 import './handlers/dom'
 import './styles.css'
 
@@ -85,7 +86,14 @@ function createPreparePage(options: {
     await noodl.initPage(pageName, [], options)
     log.func('createPreparePage')
     log.grey(`Ran noodl.initPage on page "${pageName}"`)
-    return noodl?.root?.[pageName]
+    const mockPluginComponent = {
+      type: 'plugin',
+      path: 'https://dev.to/dashboard',
+    }
+    return {
+      ...noodl.root[pageName],
+      components: [...noodl.root[pageName].components, mockPluginComponent],
+    }
   }
 }
 

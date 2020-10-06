@@ -49,12 +49,7 @@ const logger = (function () {
     const _state = { id, func: '' }
 
     const o: ILogger = {
-      func(name?: string) {
-        if (name) _state.func = name
-        else _state.func = ''
-        _refreshLoggers()
-        return this
-      },
+      func: _func,
       get id() {
         return _state.id
       },
@@ -79,10 +74,19 @@ const logger = (function () {
       return args
     }
 
+    function _func(name?: string) {
+      if (name) _state.func = name
+      else _state.func = ''
+      _refreshLoggers()
+      return this
+    }
+
     function _refreshLoggers() {
       forEachEntries(_color, (colorKey: ColorKey, color) => {
         o[colorKey] = cons.log.bind(cons, ..._stringifyArgs({ color }))
       })
+      o['func'] = _func.bind(this)
+      o['log'] = cons.log.bind(cons, `[${id}] %s`)
     }
 
     _refreshLoggers()
