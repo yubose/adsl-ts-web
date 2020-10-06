@@ -86,14 +86,7 @@ function createPreparePage(options: {
     await noodl.initPage(pageName, [], options)
     log.func('createPreparePage')
     log.grey(`Ran noodl.initPage on page "${pageName}"`)
-    const mockPluginComponent = {
-      type: 'plugin',
-      path: 'https://dev.to/dashboard',
-    }
-    return {
-      ...noodl.root[pageName],
-      components: [...noodl.root[pageName].components, mockPluginComponent],
-    }
+    return noodl.root[pageName]
   }
 }
 

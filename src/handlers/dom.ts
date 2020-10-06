@@ -10,6 +10,8 @@ const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 noodluidom.on('all', function onCreateNode(node, props) {
+  if (!node) return
+
   const {
     id,
     options,
@@ -183,7 +185,8 @@ noodluidom.on('create.label', function onCreateLabel(node, props) {
   node.style['cursor'] = _.isFunction(onClick) ? 'pointer' : 'auto'
 })
 
-noodluidom.on('create.plugin', async function (node: HTMLDivElement, props) {
+/** NOTE: node is null in this handler */
+noodluidom.on('create.plugin', async function (node, props) {
   log.func('create.plugin')
   const { src = '' } = props
   if (_.isString(src)) {
@@ -198,6 +201,13 @@ noodluidom.on('create.plugin', async function (node: HTMLDivElement, props) {
        */
       console.info(data)
       // node.innerHTML = `${data}`
+      // For now we will just directly insert the HTML string to the document
+      document.body.innerHTML += `${data}`
+    } else {
+      log.red(
+        `Received a src from a "plugin" component that did not start with an http(s) protocol`,
+        { props, src },
+      )
     }
   }
 })

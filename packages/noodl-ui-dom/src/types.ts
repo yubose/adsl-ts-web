@@ -9,7 +9,13 @@ export type DataValueElement =
 export interface INOODLUIDOM {
   on(eventName: NOODLDOMEvent, cb: NodePropsFunc): this
   off(eventName: NOODLDOMEvent, cb: NodePropsFunc): this
-  emit(eventName: NOODLDOMEvent, ...args: any[]): this
+  emit(
+    eventName: 'all',
+    node: NOODLDOMElement | null,
+    props: NOODLComponentProps,
+  ): this
+  emit(eventName: 'create.plugin', node: null, props: NOODLComponentProps): this
+  emit(eventName: NOODLDOMEvent, ...args: NodePropsFuncArgs): this
   getCallbacks(eventName: NOODLDOMEvent): NodePropsFunc[] | null
   isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
   parse(props: NOODLComponentProps): NOODLDOMElement | null
@@ -96,7 +102,7 @@ export type NOODLDOMElements = Pick<
 >
 
 export interface NodePropsFunc {
-  (node: NOODLDOMElement, props: NOODLComponentProps): void
+  (node: NOODLDOMElement | null, props: NOODLComponentProps): void
 }
 
 export type NodePropsFuncArgs = Parameters<NodePropsFunc>

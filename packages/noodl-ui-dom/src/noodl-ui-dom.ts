@@ -39,7 +39,17 @@ class NOODLUIDOM implements T.INOODLUIDOM {
       let { type = '', noodlType = '' } = props
 
       if (props) {
-        if (type) node = document.createElement(type)
+        if (type) {
+          if (noodlType === 'plugin') {
+            // Don't create a node. Except just emit the events accordingly
+            // This is to allow the caller to determine whether they want to create
+            // a separate DOM node or not
+            this.emit('all', null, props)
+            this.emit('create.plugin', null, props)
+          } else {
+            node = document.createElement(type)
+          }
+        }
       } else {
         log.func('parse')
         log.red(
@@ -54,8 +64,10 @@ class NOODLUIDOM implements T.INOODLUIDOM {
         if (componentEventMap[noodlType]) {
           this.emit(componentEventMap[noodlType], node, props)
         }
+
         const parent = container || document.body
         if (!parent.contains(node)) parent.appendChild(node)
+
         if (Array.isArray(props.children)) {
           const fn = (child: NOODLComponentProps) => this.parse(child, node)
           props.children.forEach(fn)
@@ -104,10 +116,16 @@ class NOODLUIDOM implements T.INOODLUIDOM {
    * @param { string } eventName - Name of the listener event
    * @param { ...any[] } args
    */
-  emit(eventName: T.NOODLDOMEvent, ...args: T.NodePropsFuncArgs) {
+  emit(
+    eventName: T.NOODLDOMEvent,
+    node: T.NOODLDOMElement | null,
+    props: NOODLComponentProps,
+  ) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) {
-      callbacks.forEach((fn: T.NodePropsFunc) => fn && fn(...args))
+      callbacks.forEach(
+        (fn: T.NodePropsFunc) => fn && fn(node as T.NOODLDOMElement, props),
+      )
     }
     return this
   }

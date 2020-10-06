@@ -85,8 +85,6 @@ const logger = (function () {
       forEachEntries(_color, (colorKey: ColorKey, color) => {
         o[colorKey] = cons.log.bind(cons, ..._stringifyArgs({ color }))
       })
-      o['func'] = _func.bind(this)
-      o['log'] = cons.log.bind(cons, `[${id}] %s`)
     }
 
     _refreshLoggers()

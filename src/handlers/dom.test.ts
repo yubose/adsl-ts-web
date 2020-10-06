@@ -1,9 +1,14 @@
 import _ from 'lodash'
 import sinon from 'sinon'
+import nock from 'nock'
 import NOODLUIDOM, { DataValueElement } from 'noodl-ui-dom'
 import { expect } from 'chai'
 import { getByText, prettyDOM } from '@testing-library/dom'
-import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
+import {
+  NOODLComponent,
+  NOODLPluginComponent,
+  NOODLComponentProps,
+} from 'noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
 import { mapUserEvent, noodl } from '../utils/test-utils'
 import './dom'
@@ -21,11 +26,15 @@ afterEach(() => {
 })
 
 describe('dom', () => {
-  it('should create a script node and attach the src and append it as a child', () => {
+  it('should create a script node and attach the src and append it to the DOM', () => {
+    const url = 'https://www.somescript.com'
+    nock(url).get('/asd.js').reply(200, {
+      data: '<script type="text/javascript">var $zoho="asfsafsa";</script>',
+    })
     const component = {
       type: 'plugin',
-      path: 'https://www.somescript.com/asd.js',
-    } as NOODLComponent
+      path: url,
+    } as NOODLPluginComponent
     const resolvedComponent = noodl.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     console.info(resolvedComponent)
@@ -122,7 +131,6 @@ describe('dom', () => {
         expect(parser.parse(label)?.textContent).to.eq('i am child #1')
         expect(parser.parse(button)?.textContent).to.eq('i am child #2')
         expect(parser.parse(view)?.children.length).to.eq(1)
-        // @ts-expect-error
         const node = parser.parse({
           type: 'div',
           children: resolvedComponents,
