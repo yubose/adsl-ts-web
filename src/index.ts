@@ -502,8 +502,8 @@ window.addEventListener('load', async () => {
   // Register the onresize listener once, if it isn't already registered
   if (viewport.onResize === undefined) {
     /**
-     * This is a global independent func that manages viewport aspect ratios for the SDK
-     * whenever it changes. This affects the endpoints that the SDK uses to load pages
+     * This manages viewport aspect ratios for the SDK whenever it changes.
+     * This affects the endpoints that the SDK uses to load pages
      */
     /**
      * The binary Great Common Divisor calculator (fastest performance)
@@ -534,14 +534,14 @@ window.addEventListener('load', async () => {
         const [newWidth, newHeight] = getSizes(width, height)
         const aspectRatio = newWidth / newHeight
         noodl.aspectRatio = aspectRatio
-      }
-      noodlui?.setViewport?.({ width, height })
-      if (page.rootNode) {
-        page.rootNode.style.width = `${width}px`
-        page.rootNode.style.height = `${height}px`
-        page.render(noodl?.root?.[page.currentPage]?.components)
-      } else {
-        // TODO
+        noodlui?.setViewport?.({ width, height })
+        if (page.rootNode) {
+          page.rootNode.style.width = `${width}px`
+          page.rootNode.style.height = `${height}px`
+          page.render(noodl?.root?.[page.currentPage]?.components)
+        } else {
+          // TODO
+        }
       }
     }
   }

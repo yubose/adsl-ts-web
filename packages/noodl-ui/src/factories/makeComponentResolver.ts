@@ -71,7 +71,21 @@ function makeComponentResolver({
     // NOTE: The base styles are not being picked up from the resolvers and
     // they only know of the styles coming from proxiedComponent. This
     // means we have to handle them somewhere at the end as we did above
-    component.assignStyles(_getInitialStyles(component.get('style')))
+    let initialStyles: T.NOODLStyle | undefined
+    if (component.type === 'image') {
+      if (!('height' in component)) {
+        // Remove the height to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        initialStyles = _.omit(
+          _getInitialStyles(component.get('style')),
+          'height',
+        )
+      }
+    }
+    if (!initialStyles) {
+      initialStyles = _getInitialStyles(component.get('style'))
+    }
+    component.assignStyles(initialStyles as T.NOODLStyle)
     _setDraftNode(component)
     return component
   }
