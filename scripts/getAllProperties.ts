@@ -3,8 +3,6 @@
 import fs from 'fs-extra'
 import _ from 'lodash'
 import chalk from 'chalk'
-import Bases from './modules/Bases'
-import Pages from './modules/Pages'
 import Saver, { DataOptions } from './modules/Saver'
 import { sortObjByProperties } from './utils/common'
 import { getDirFilesAsJson } from './utils/filesystem'
@@ -35,6 +33,7 @@ async function getAllNOODLProperties({
   filename,
 }: GetAllPropertiesOptions) {
   try {
+    return
     const exts = { json: true }
     const saver = new Saver({ dir, exts })
     const bases = new Bases({ endpoint, exts })

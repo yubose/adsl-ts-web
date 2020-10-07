@@ -14,7 +14,7 @@ class SetupHelper {
       json: { [key: string]: any }
       yml?: string
     }
-  }
+  } = {}
 
   constructor(opts: Partial<JsonYmlBoolean>) {
     this.format['json'] = !!opts.json
@@ -32,7 +32,8 @@ class SetupHelper {
   ) {
     try {
       const { data: yml } = await axios.get(opts.url)
-      return this.formatResponse(yml, opts)
+      this.items[opts.name] = this.formatResponse(yml, opts)
+      return this.items
     } catch (error) {
       throw error
     }

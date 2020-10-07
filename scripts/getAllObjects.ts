@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from 'fs-extra'
 import chalk from 'chalk'
 import _ from 'lodash'
@@ -21,57 +20,33 @@ async function getAllObjects({
   parseMode: ParseMode
   parseModifier: ParseModeModifier
 }) {
-  const { noodl, noodlui } = await import('./utils/noodl')
   const exts = { [parseMode]: true }
-  const saver = new Saver({ dir, exts })
-  const aggregator = new Aggregator({ endpoint, exts })
-  const bases = aggregator.getBasesMod()
-  const pages = aggregator.getPagesMod()
+  const saver = new Saver({ dir, exts: { ...exts, yml: false } })
+  const aggregator = new Aggregator({ endpoint, ...exts, yml: false })
+  const { base } = aggregator
 
-  bases.onRootConfig = () => {
+  base.onRootConfig = () => {
     log.yellow(`Retrieved root config using ${chalk.magentaBright(endpoint)}`)
   }
 
-  bases.onNoodlConfig = () => {
+  base.onNoodlConfig = () => {
     log.yellow(`Retrieved noodl config`)
-    log.white(`Config version set to ${chalk.yellowBright(bases.version)}`)
+    log.white(`Config version set to ${chalk.yellowBright(base.version)}`)
     log.blank()
   }
 
-  bases.onBaseItems = async () => {
-    const names = _.keys(bases.baseItems)
-    const savingPromises = []
+  base.onBaseItems = async () => {
+    const names = _.keys(base.items)
     let consoleSaveMsg = `Saved rootConfig, noodlConfig`
-
-    const toOptions = ({
-      name,
-      type,
-    }: Pick<DataOptions, 'type'> & { name: string }) => [
-      { data: bases.baseItems[name][type], filename: `${name}.${type}`, name },
-      { data: bases.rootConfig[type], filename: `rootConfig.${type}`, name },
-      { data: bases.noodlConfig[type], filename: `noodlConfig.${type}`, name },
-    ]
 
     _.forEach(names, (name, index, coll) => {
       name && log.green(`Retrieved ${name}`)
-      savingPromises.push(...toOptions({ name, type: parseMode }))
       if (index + 1 < coll.length) {
         consoleSaveMsg += `, ${name}`
       } else {
         consoleSaveMsg += `, and ${name} `
       }
     })
-
-    await Promise.all(
-      savingPromises.map(async ({ data, filename }) => {
-        await saver.save({
-          dir: paths[parseMode],
-          filename,
-          data,
-          type: parseMode,
-        })
-      }),
-    )
 
     consoleSaveMsg += `to: \n${chalk.magenta(path.normalize(dir))}`
 
@@ -102,80 +77,26 @@ async function getAllObjects({
   log.blue(`Recreated the ${parseMode}s directory`)
   log.blank()
 
-  const root = _.assign(
-    {},
-    _.reduce(
-      _.entries(bases.baseItems),
-      (acc, [k, v]) => _.assign(acc, { [k]: v.json }),
-      {},
-    ),
-    _.reduce(
-      _.entries(pages.hash),
-      (acc, [k, v]) => _.assign(acc, { [k]: v }),
-      {},
-    ),
-  )
-
-  let noodlSdk
-
-  await aggregator.initializeMods({ includeBasePages: true })
+  const items = await aggregator.load({
+    includeBasePages: true,
+    includePages: true,
+  })
   await Promise.all(
-    pages.pages.map(async (resolvedPage) => {
+    _.map(_.entries(items), async ([name, { json: resolvedPage }]) => {
       const opts = {}
-
-      if (parseModifier === 'ui') {
-        if (typeof window !== 'undefined') {
-          if (!noodlSdk) {
-            const { initializeSdk } = await import('./utils/noodl')
-            noodlSdk = await initializeSdk()
-          }
-          const pagename = resolvedPage.name
-          if (pagename) {
-            if (!root[pagename]) {
-              await noodlSdk.initPage(pagename)
-              noodlui.setRoot(noodlSdk.root)
-            }
-            if (noodlui.getContext().page.name !== pagename) {
-              noodlui.setPage({ name: pagename, object: resolvedPage.data })
-            }
-            await fs.writeJson(
-              path.join(paths.json, 'objects/pages/ui'),
-              noodlui.resolveComponents(),
-              { spaces: 2 },
-            )
-          }
-        } else {
-          console.log(
-            chalk.redBright(
-              `NOTE: typeof window !== 'undefined' returned true, so the ` +
-                `output of noodl-ui will not be generated`,
-            ),
-          )
-        }
-      }
       await saver.save({
-        data: resolvedPage.data,
-        dir: path.join(paths[parseMode], 'pages'),
-        filename: resolvedPage.name + saver.getExt(),
+        data: resolvedPage,
+        dir: path.join(
+          paths[parseMode],
+          /(base|config)/i.test(name) ? '' : 'pages',
+        ),
+        filename: name + saver.getExt(),
         type: parseMode,
         ...opts,
       })
-      log.green(`Retrieved and saved page ${parseMode}: ${resolvedPage.name}`)
+      log.green(`Retrieved and saved page ${parseMode}: ${name}`)
     }),
   )
 }
 
 export default getAllObjects
-
-// import('./config')
-//   .then(({ endpoint }) =>
-//     getAllObjects({
-//       endpoint: endpoint.config['meet'],
-//       dir: paths['json'],
-//       parseMode: 'json',
-//       parseModifier: 'ui',
-//     }),
-//   )
-//   .catch((err) => {
-//     throw err
-//   })

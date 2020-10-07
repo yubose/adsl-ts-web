@@ -10,6 +10,8 @@ export interface PagesOptions {
 }
 
 class AppSetup {
+  #baseUrl: string
+  #endpoint: string
   #helper: SetupHelper
   baseUrl: PagesOptions['baseUrl']
   endpoint: PagesOptions['endpoint']
@@ -25,7 +27,7 @@ class AppSetup {
     const loadPage = async (pageName: string) => {
       await this.#helper.loadNoodlObject({
         name: pageName,
-        url: this.baseUrl + pageName,
+        url: this.baseUrl + pageName + '_en.yml',
       })
     }
 
@@ -39,8 +41,27 @@ class AppSetup {
     await chunk2
     await chunk3
     await chunk4
-
     return this.#helper.items
+  }
+
+  get items() {
+    return this.#helper.items
+  }
+
+  get baseUrl() {
+    return this.#baseUrl
+  }
+
+  set baseUrl(baseUrl: string) {
+    this.#baseUrl = baseUrl
+  }
+
+  get endpoint() {
+    return this.#endpoint
+  }
+
+  set endpoint(endpoint: string) {
+    this.#endpoint = endpoint
   }
 }
 

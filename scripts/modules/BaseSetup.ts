@@ -29,20 +29,21 @@ class BaseSetup {
       name: 'rootConfig',
       url: this.endpoint,
     })
+    const items = this.#helper.items
     // Set version, root baseUrl
     this['version'] = this.getLatestVersion()
     this['baseUrl'] = (
-      this.rootConfig.json.cadlBaseUrl || this.rootConfig.json.noodlBaseUrl
+      items.rootConfig.json.cadlBaseUrl || items.rootConfig.json.noodlBaseUrl
     )?.replace?.('${cadlVersion}', this.version)
     this.onRootConfig?.()
     // Set noodl config, endpoint, baseUrl
-    this['noodlEndpoint'] = `${this.baseUrl}${this.rootConfig.json.cadlMain}`
+    this['noodlEndpoint'] = `${this.baseUrl}${items.rootConfig.json.cadlMain}`
     await this.#helper.loadNoodlObject({
       url: this.noodlEndpoint,
       name: 'noodlConfig',
     })
     const noodlConfig = this.#helper.get('noodlConfig')
-    this['noodlBaseUrl'] = noodlConfig.json.baseUrl.replace(
+    this['noodlBaseUrl'] = items.noodlConfig.json.baseUrl.replace(
       '${cadlBaseUrl}',
       this.baseUrl,
     )
@@ -69,6 +70,10 @@ class BaseSetup {
 
   get noodlConfig() {
     return this.#helper.items.noodlConfig
+  }
+
+  get items() {
+    return this.#helper.items
   }
 
   getLatestVersion() {

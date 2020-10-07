@@ -50,7 +50,7 @@ program
 
 program
   .command('keys <keyword> <filename> [config]')
-  .action(async (keys: string, filename: string, config: string = 'meet') => {
+  .action(async (keys: string, filename: string, config: ConfigId) => {
     const keywords = keys.split(',').map((s) => s.trim())
 
     log.attention(
@@ -62,7 +62,8 @@ program
       './getAllKeywordOccurrences'
     )
     await getAllKeywordOccurrences({
-      endpoint: endpoint.config[config],
+      dir: paths.compiled,
+      endpoint: endpoint.get(config),
       keywords,
       saveAsFilename: filename,
     })

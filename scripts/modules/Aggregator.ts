@@ -1,8 +1,6 @@
 import _ from 'lodash'
-import SetupHelper from './SetupHelper'
 import BaseSetup from './BaseSetup'
 import AppSetup from './AppSetup'
-import { loadPlugin } from 'immer/dist/internal'
 
 export interface AggregatorOptions {
   endpoint?: string
@@ -11,53 +9,42 @@ export interface AggregatorOptions {
 }
 
 class Aggregator {
-  this.#helper: SetupHelper
+  #baseSetup: BaseSetup
+  #appSetup: AppSetup
+  items: { [name: string]: any } = {}
   endpoint: AggregatorOptions['endpoint']
 
-  constructor({endpoint = '', json, yml }: AggregatorOptions) {
-    this.#baseSetup = new BaseSetup({ json, yml })
-    this.#appSetup = new AppSetup({ json, yml })
+  constructor({ endpoint, ...options }: AggregatorOptions) {
+    this.#baseSetup = new BaseSetup({ endpoint, ...options })
+    this.#appSetup = new AppSetup(options)
     this.endpoint = endpoint
   }
 
-  async load({ includeBases, includePages }) {
-    //
+  async load({ includeBasePages, includePages }) {
+    console.log(includeBasePages)
+    const {
+      rootConfig: { json: rootConfig },
+      noodlConfig: { json: noodlConfig },
+    } = await this.#baseSetup.load({ includeBasePages })
+    if (includePages) {
+      this.#appSetup.baseUrl = rootConfig.cadlBaseUrl
+      this.#appSetup.endpoint = rootConfig.cadlBaseUrl + rootConfig.cadlMain
+      await this.#appSetup.load(noodlConfig.page)
+    }
+    _.assign(this.items, this.#baseSetup.items, this.#appSetup.items)
+    return this.items
   }
 
-  async initializeMods({
-    includeBasePages,
-  }: { includeBasePages?: boolean } = {}) {
-    await this.#mod.bases.load({ includeBasePages })
-    const noodlConfig = this.#mod.bases.getNoodlConfig()
-    _.assign(this.#mod.pages, {
-      baseUrl: this.#mod.bases.noodlBaseUrl,
-      endpoint: this.endpoint,
-      exts: this.exts,
-      pageNames: noodlConfig.page || [],
-    })
-    await this.#mod.pages.load()
+  get base() {
+    return this.#baseSetup
   }
 
-  getAllObjects() {
-    const objs = _.reduce(
-      _.entries(this.#mod.bases.baseItems),
-      (acc, [name, { json }]) =>
-        acc.concat({
-          name,
-          data: json,
-          url: '',
-        }),
-      this.#mod.pages.pages,
-    )
-    return objs
+  get app() {
+    return this.#appSetup
   }
 
-  getBasesMod() {
-    return this.#mod.bases
-  }
-
-  getPagesMod() {
-    return this.#mod.pages
+  get length() {
+    return _.keys(this.items).length
   }
 }
 
