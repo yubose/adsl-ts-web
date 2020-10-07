@@ -194,53 +194,36 @@ noodluidom.on('create.plugin', async function (noop, props) {
       const { default: axios } = await import('axios')
       const { data } = await axios.get(src)
       /**
-       * Fetch the data
-       * Check if its an HTML element string
-       * Create a script element, set innerHTML
-       * node.appendChild(scriptElem)
+       * TODO - Check the ext of the filename
+       * TODO - If its js, run eval on it
        */
-      let template = `
-        <template id="${props.id}_template">
-          ${data}
-        </template>
-      `
-      // const node = document.createElement('div')
-      // node.innerHTML += data
-      // const scriptNode = node.firstChild
-      // const content = scriptNode.innerHTML.trim()
-      // scriptNode.innerHTML = ``
-      // console.log(scriptNode)
-      document.body.innerHTML += data
-      const html = new XMLSerializer().serializeToString(document)
-      log.salmon('Re-writing the document')
-      document.write(html)
+      console.log(data)
+      try {
+        eval(data)
+      } catch (error) {
+        console.error(error)
+      }
+      // let $zoho = {}
+      // window.$zoho = $zoho
+      // window.$zoho.salesiq = {
+      //   widgetcode:
+      //     '4c9e90066bfba6f4a9172a982fdac05973f769ebf01c0ad101d9b24be9888569',
+      //   values: {},
+      //   ready: function () {},
+      // }
+      // const script = document.createElement('script')
+      // script.type = 'text/javascript'
+      // script.id = 'zsiqscript'
+      // script.defer = true
+      // script.src = 'https://salesiq.zoho.com/widget'
+      // const t = document.getElementsByTagName('script')[0]
+      // t.parentNode?.insertBefore(script, t)
+
       // const scriptNode = document.createElement('script')
       // scriptNode.setAttribute('crossorigin', 'anonymous')
       // scriptNode.setAttribute('crossOrigin', 'anonymous')
       // scriptNode.setAttribute('src', src)
       // document.body.appendChild(scriptNode)
-
-      // const template = document.createElement('span')
-      // template.id = `${props.id}_template`
-      // template.style.position = 'absolute'
-      // template.innerHTML += data
-
-      // const node = document.createElement('div')
-      // node
-      // node.innerHTML += eval(data)
-      // const script = node.firstChild
-      // script.charset = 'utf-8'
-      // script.setAttribute('crossorigin', 'anonymous')
-      // script.setAttribute('crossOrigin', 'anonymous')
-      // script.crossorigin = 'anonymous'
-      // script.crossOrigin = 'anonymous'
-      // node.removeChild(script)
-      // console.log(script)
-      // document.head.appendChild(script)
-      // document.body.insertAdjacentHTML('beforeend', data)
-      // document.write(data)
-      // For now we will just directly insert the HTML string to the document
-      // console.log(document.getElementById(`${props.id}_template`))
     } else {
       log.red(
         `Received a src from a "plugin" component that did not start with an http(s) protocol`,
