@@ -63,9 +63,6 @@ export interface NOODLPluginComponent extends NOODLComponent {
   path: string
 }
 
-
-
-
 /* -------------------------------------------------------
     ---- ACTIONS
   -------------------------------------------------------- */
@@ -684,7 +681,12 @@ export interface RootsParser<Root extends {} = any> {
 }
 
 export interface ViewportListener {
-  (viewport: ViewportOptions): Promise<any> | any
+  (
+    viewport: ViewportOptions & {
+      previousWidth: number | undefined
+      previousHeight: number | undefined
+    },
+  ): Promise<any> | any
 }
 
 export interface IViewport {
