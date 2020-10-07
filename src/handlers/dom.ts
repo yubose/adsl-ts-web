@@ -187,6 +187,7 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
       node.style['height'] = '100%'
     }
   }
+  node.style['objectFit'] = 'contain'
 })
 
 noodluidom.on('create.label', function onCreateLabel(node, props) {
@@ -326,19 +327,10 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
               : 'Click here to reveal your password'
           }
 
-          eyeIcon.dataset.mods = ''
-          eyeIcon.dataset.mods += '[password.eye.toggle]'
-
-          log.func('onCreateNode: Password input')
-          log.orange(
-            `[Experimenting] (NOTE: If you see this ` +
-              `more than once in the same page this might be a memory leak!)`,
-            { node, parent, toggledSrc, untoggledSrc },
-          )
-
-          eyeContainer.addEventListener('click', onClick)
-        })
-      }
+        eyeIcon.dataset.mods = ''
+        eyeIcon.dataset.mods += '[password.eye.toggle]'
+        eyeContainer.addEventListener('click', onClick)
+      })
     }
   }
 })

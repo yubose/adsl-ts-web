@@ -14,7 +14,13 @@ This allows for faster compilation, faster load times and quicker development fl
 
 ## Todos
 
-- evalObject
+- Support `path` objects
+  - if
+    - 1st item --> data to use
+    - use this if true
+    - use this if false
+- viewport manager
+- scroll manager
 - history
 - page cache rehydration
 - autobind root/page updates on the `noodl-ui` lib
