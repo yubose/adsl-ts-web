@@ -3,26 +3,30 @@ import sinon from 'sinon'
 import Logger, { _color } from 'logsnap'
 
 let logSpy: sinon.SinonStub
+let logsnapSpy: sinon.SinonStub
 
 before(async () => {
   console.clear()
   // Silence all the logging from our custom logger
-  Logger.create = sinon.stub().callsFake(() =>
-    _.reduce(
-      _.keys(_color),
-      (acc: any, color) => {
-        acc[color] = _.noop
-        return acc
-      },
-      {},
-    ),
-  )
-
-  logSpy = sinon.stub(global.console, 'log')
+  // Logger.create = sinon.stub().callsFake(() =>
+  //   _.reduce(
+  //     _.keys(_color),
+  //     (acc: any, color) => {
+  //       acc[color] = _.noop
+  //       return acc
+  //     },
+  //     {},
+  //   ),
+  // )
+  try {
+    logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+    logsnapSpy = sinon.stub(Logger, 'create').callsFake(() => _.noop)
+  } catch (error) {}
 })
 
 after(() => {
-  logSpy.restore()
+  logSpy?.restore?.()
+  logsnapSpy?.restore?.()
 })
 
 afterEach(() => {

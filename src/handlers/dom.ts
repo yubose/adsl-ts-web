@@ -197,7 +197,7 @@ noodluidom.on('create.plugin', async function (noop, props) {
        * TODO - Check the ext of the filename
        * TODO - If its js, run eval on it
        */
-      console.log(data)
+      // console.log(data)
       try {
         eval(data)
       } catch (error) {

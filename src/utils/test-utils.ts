@@ -43,9 +43,11 @@ export function mapUserEvent(noodlEventType: NOODLActionTriggerType) {
   }
 }
 
+export const assetsUrl = 'https://aitmed.com/assets/'
+
 export const noodl = new NOODL()
   .init({ viewport: new Viewport() })
-  .setAssetsUrl('https://aitmed.com/assets/')
+  .setAssetsUrl(assetsUrl)
   .setViewport({ width: 375, height: 667 })
   .setResolvers(
     getElementType,

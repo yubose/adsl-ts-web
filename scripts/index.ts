@@ -2,7 +2,7 @@ console.clear()
 import path from 'path'
 import chalk from 'chalk'
 import { Command } from 'commander'
-import { endpoint, paths } from './config'
+import { ConfigId, endpoint, paths } from './config'
 import { forEachDeepEntries } from '../src/utils/common'
 import { ParseMode, ParseModeModifier } from './types'
 import * as log from './utils/log'
@@ -21,7 +21,7 @@ program
   .action(
     async (
       parseMode: ParseMode = 'json',
-      config: keyof typeof endpoint['config'],
+      config: ConfigId,
       parseModifier: ParseModeModifier = 'default',
     ) => {
       try {
@@ -37,13 +37,13 @@ program
 
         const { default: getAllObjects } = await import('./getAllObjects')
         await getAllObjects({
-          endpoint: endpoint.config[config],
+          endpoint: endpoint.get(config),
           dir: paths[parseMode],
           parseMode,
           parseModifier,
         })
       } catch (error) {
-        throw new Error(error)
+        throw error
       }
     },
   )

@@ -40,7 +40,7 @@ class Saver {
     const batches = _.isArray(opts) ? opts : [opts]
     const numBatches = batches.length
 
-    if (this.dir) await fs.ensureDir(this.dir)
+    if (this.dir) fs.ensureDirSync(this.dir)
 
     for (let index = 0; index < numBatches; index++) {
       const { data, dir = this.dir, filename, type } = batches[index]
