@@ -13,14 +13,25 @@ const log = Logger.create('getTransformedAliases')
  * @return { void }
  */
 const getTransformedAliases: Resolver = (component, { context, createSrc }) => {
-  const type = component.get('type')
-  const contentType = component.get('contentType')
-  const options = component.get('options')
-  const path = component.get('path')
-  const resource = component.get('resource')
-  const required = component.get('required')
-  const poster = component.get('poster')
-  const controls = component.get('controls')
+  const {
+    type,
+    contentType,
+    options,
+    path,
+    resource,
+    required,
+    poster,
+    controls,
+  } = component.get([
+    'type',
+    'contentType',
+    'options',
+    'path',
+    'resource',
+    'required',
+    'poster',
+    'controls',
+  ])
 
   // Input (textfield) components
   if (contentType) {

@@ -42,7 +42,7 @@ export interface NOODLComponent {
   onClick?: NOODLChainActionObject[]
   onHover?: NOODLChainActionObject[]
   options?: string[]
-  path?: string
+  path?: string | { if: [any, any, any] }
   pathSelected?: string
   poster?: string
   placeholder?: string
@@ -61,6 +61,10 @@ export interface NOODLComponent {
 export interface NOODLPluginComponent extends NOODLComponent {
   type: 'plugin'
   path: string
+}
+
+export interface NOODLIfPath {
+  if: [any, any, any]
 }
 
 /* -------------------------------------------------------

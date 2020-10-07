@@ -1,34 +1,27 @@
-// @ts-nocheck
 import _ from 'lodash'
-import Bases from './Bases'
-import Pages from './Pages'
+import SetupHelper from './SetupHelper'
+import BaseSetup from './BaseSetup'
+import AppSetup from './AppSetup'
+import { loadPlugin } from 'immer/dist/internal'
 
 export interface AggregatorOptions {
-  modules?: { bases?: Bases; pages?: Pages }
   endpoint?: string
-  exts?: { json?: boolean; yml?: boolean }
+  json?: boolean
+  yml?: boolean
 }
 
 class Aggregator {
-  #mod: AggregatorOptions['modules'] = {}
+  this.#helper: SetupHelper
   endpoint: AggregatorOptions['endpoint']
-  exts: AggregatorOptions['exts']
 
-  constructor({ modules, endpoint = '', exts }: AggregatorOptions = {}) {
-    let bases: Bases
-    let pages: Pages
-    if (_.isPlainObject(modules)) {
-      bases = modules.bases
-      pages = modules.pages
-    }
-    if (!bases) bases = new Bases()
-    if (!pages) pages = new Pages()
-    this.#mod.bases = bases
-    this.#mod.pages = pages
+  constructor({endpoint = '', json, yml }: AggregatorOptions) {
+    this.#baseSetup = new BaseSetup({ json, yml })
+    this.#appSetup = new AppSetup({ json, yml })
     this.endpoint = endpoint
-    this.exts = exts || { json: true, yml: false }
-    bases.endpoint = this.endpoint
-    bases.exts = this.exts
+  }
+
+  async load({ includeBases, includePages }) {
+    //
   }
 
   async initializeMods({

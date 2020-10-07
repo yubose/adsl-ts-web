@@ -46,4 +46,18 @@ describe('getTransformedAliases', () => {
     ]
     expect(result.options).to.have.deep.members(computedOptions)
   })
+
+  describe('path ("if" object)', () => {
+    xit('should return ', () => {
+      //
+    })
+
+    xit('should use the 2nd item if the evaluation is truthy', () => {
+      //
+    })
+
+    xit('should use the 3rd item if the evaluation is falsy', () => {
+      //
+    })
+  })
 })
