@@ -10,7 +10,7 @@ export interface BasesOptions {
   exts?: { json?: boolean; yml?: boolean }
 }
 
-class Bases {
+class BaseSetup {
   #onRootConfig: () => any
   #onNoodlConfig: () => any
   #onBaseItems: () => any
@@ -130,4 +130,4 @@ class Bases {
   }
 }
 
-export default Bases
+export default BaseSetup

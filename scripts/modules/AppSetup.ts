@@ -10,7 +10,7 @@ export interface PagesOptions {
   pages?: string[]
 }
 
-class Pages {
+class AppSetup {
   baseUrl: PagesOptions['baseUrl']
   endpoint: PagesOptions['endpoint']
   exts: PagesOptions['exts']
@@ -61,4 +61,4 @@ class Pages {
   }
 }
 
-export default Pages
+export default AppSetup
