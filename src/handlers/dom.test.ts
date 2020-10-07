@@ -1,17 +1,19 @@
 import _ from 'lodash'
 import sinon from 'sinon'
-import axios from 'axios'
+import nock from 'nock'
 import MockAxios from 'axios-mock-adapter'
 import NOODLUIDOM, { DataValueElement } from 'noodl-ui-dom'
 import { expect } from 'chai'
+import userEvent from '@testing-library/user-event'
 import { getByText, prettyDOM } from '@testing-library/dom'
 import {
   NOODLComponent,
   NOODLPluginComponent,
   NOODLComponentProps,
 } from 'noodl-ui'
+import axios from '../app/axios'
 import noodluidom from '../app/noodl-ui-dom'
-import { assetsUrl, mapUserEvent, noodl } from '../utils/test-utils'
+import { assetsUrl, noodl } from '../utils/test-utils'
 import './dom'
 
 const mockAxios = new MockAxios(axios)
@@ -30,48 +32,52 @@ afterEach(() => {
 
 describe('dom', () => {
   describe('component type: "plugin"', () => {
-    xit('should not have created a node', () => {
-      const fn = sinon.spy() as sinon.SinonSpy
-      const fn2 = sinon.spy() as sinon.SinonSpy
-      const component = {
-        type: 'plugin',
-        path: 'https://ab.com/c.jpg',
-      } as NOODLPluginComponent
-      noodluidom.on('create.plugin', fn)
-      noodluidom.on('all', fn2)
-      const resolvedComponent = noodl.resolveComponents(component)[0]
-      noodluidom.parse(resolvedComponent)
-      console.info(fn.getCalls()[0])
-      expect(fn.getCalls()[0].args[0]).to.be.null
-      expect(fn2.getCalls()[0].args[0]).to.be.null
-    })
-
     xit('should have ran the js script retrieved from the XHR request', () => {
-      const pathname = 'img123.jpg'
+      const spy = sinon.spy()
+      const testNode = document.createElement('div')
+      testNode.id = 'testing'
+      testNode.onclick = spy
+      testNode.addEventListener('click', spy)
+      document.body.appendChild(testNode)
+      const pathname = '/somejsfile.js'
       const url = `${assetsUrl}${pathname}`
       const content = `var s = 54;
-      s = Number(55 + s)`
-      mockAxios.onGet(url).reply(200, {
-        data: `
-            <script type="text/javascript">
-              ${content}
-            </script>
-          `,
-      })
-
+      const abc = document.getElementById('testing');
+      abc.click();
+      console.info(abc)`
+      mockAxios.onGet(url).reply(200, content)
       const component = {
         type: 'plugin',
-        path: pathname,
+        path: '/somejsfile.js',
       } as NOODLPluginComponent
       const resolvedComponent = noodl.resolveComponents(component)[0]
-      const node = document.querySelector('script')
-      const nodeContent = node?.innerHTML.trim()
       noodluidom.parse(resolvedComponent)
-      console.info(mockAxios.history)
+      console.info(spy.getCalls())
       console.info(prettyDOM())
-      // document.body.appendChild(node)
-      expect(nodeContent).to.equal(content)
+      testNode.removeEventListener('click', spy)
+      expect(spy.called).to.be.true
     })
+  })
+
+  it('should attach the id', () => {
+    const resolvedComponent = noodl.resolveComponents({
+      type: 'button',
+      style: {},
+    })[0]
+    console.info(resolvedComponent)
+    const node = noodluidom.parse({ ...resolvedComponent, id: 'abc123' })
+    expect(node?.id).to.equal('abc123')
+  })
+
+  it('should attach the src attribute', () => {
+    const resolvedComponent = noodl.resolveComponents({
+      type: 'image',
+      path: 'img123.jpg',
+      style: {},
+    })[0]
+    console.info(resolvedComponent)
+    const node = noodluidom.parse(resolvedComponent)
+    expect(node?.getAttribute('src')).to.equal(assetsUrl + 'img123.jpg')
   })
 
   describe.skip('parse', () => {
@@ -105,15 +111,6 @@ describe('dom', () => {
       })
       // console.info(components)
       component = components[0]
-    })
-
-    describe.skip('record keeper (wrapper)', () => {
-      describe('hasAttribute', () => {
-        it('should return false', () => {
-          const div = document.createElement('div')
-          // const parse =
-        })
-      })
     })
 
     describe.skip('parseChildren', () => {
