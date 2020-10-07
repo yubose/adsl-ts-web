@@ -21,6 +21,12 @@
     "strictNullChecks": true,
     "target": "es2015"
   },
-  "include": ["src", "webpack.config.js", "package.json", "setupTests.ts"],
+  "include": [
+    "src",
+    "webpack.config.js",
+    "package.json",
+    "setupTests.ts",
+    "legacy"
+  ],
   "exclude": ["_data", "node_modules", "legacy"]
 }
