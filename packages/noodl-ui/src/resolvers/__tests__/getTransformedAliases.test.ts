@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { makeResolverTest } from '../../utils/test-utils'
+import { assetsUrl, makeResolverTest } from '../../utils/test-utils'
 
 let resolve: any
 
@@ -48,16 +48,24 @@ describe('getTransformedAliases', () => {
   })
 
   describe('path ("if" object)', () => {
-    xit('should return ', () => {
-      //
+    it('should use the 2nd item if the evaluation is truthy', () => {
+      const first = 'selectedHand.png'
+      const second = 'unselectedHand.png'
+      const result = resolve({
+        type: 'image',
+        path: { if: ['abc', first, second] },
+      })
+      expect(result.src).to.equal(`${assetsUrl}${first}`)
     })
 
-    xit('should use the 2nd item if the evaluation is truthy', () => {
-      //
-    })
-
-    xit('should use the 3rd item if the evaluation is falsy', () => {
-      //
+    it('should use the 3rd item if the evaluation is falsy', () => {
+      const first = 'selectedHand.png'
+      const second = 'unselectedHand.png'
+      const result = resolve({
+        type: 'image',
+        path: { if: [undefined, first, second] },
+      })
+      expect(result.src).to.equal(`${assetsUrl}${second}`)
     })
   })
 })
