@@ -167,15 +167,15 @@ async function getAllObjects({
 
 export default getAllObjects
 
-import('./config')
-  .then(({ endpoint }) =>
-    getAllObjects({
-      endpoint: endpoint.config['meet'],
-      dir: paths['json'],
-      parseMode: 'json',
-      parseModifier: 'ui',
-    }),
-  )
-  .catch((err) => {
-    throw err
-  })
+// import('./config')
+//   .then(({ endpoint }) =>
+//     getAllObjects({
+//       endpoint: endpoint.config['meet'],
+//       dir: paths['json'],
+//       parseMode: 'json',
+//       parseModifier: 'ui',
+//     }),
+//   )
+//   .catch((err) => {
+//     throw err
+//   })

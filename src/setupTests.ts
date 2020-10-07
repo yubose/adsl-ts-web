@@ -8,18 +8,30 @@ import { noodluidom } from './utils/test-utils'
 chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
-let logger: sinon.SinonStub
+let logsnapSpy: sinon.SinonStub
 
 before(async () => {
   console.clear()
   // Silence all the logging from our custom logger
-  logSpy = sinon.stub(global.console, 'log')
-  logger = sinon.stub(Logger, 'create')
+  // Logger.create = sinon.stub().callsFake(() =>
+  //   _.reduce(
+  //     _.keys(_color),
+  //     (acc: any, color) => {
+  //       acc[color] = _.noop
+  //       return acc
+  //     },
+  //     {},
+  //   ),
+  // )
+  try {
+    logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+    logsnapSpy = sinon.stub(Logger, 'create').callsFake(() => _.noop)
+  } catch (error) {}
 })
 
 after(() => {
-  logSpy.restore()
-  logger.restore()
+  logSpy?.restore?.()
+  logsnapSpy?.restore?.()
 })
 
 afterEach(() => {

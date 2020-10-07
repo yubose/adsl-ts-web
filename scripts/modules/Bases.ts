@@ -88,9 +88,13 @@ class Bases {
 
   getLatestVersion() {
     return (
-      this.rootConfig.json?.web?.cadlVersion ||
-      this.rootConfig.json?.web?.noodlVersion
-    ).test
+      (
+        this.rootConfig.json?.web?.cadlVersion ||
+        this.rootConfig.json?.web?.noodlVersion
+      )?.test ||
+      this.rootConfig.json?.versionNumber ||
+      this.rootConfig.json?.versionNumber
+    )
   }
 
   getRootConfig() {

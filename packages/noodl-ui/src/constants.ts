@@ -22,6 +22,7 @@ export const componentTypes = [
   'label',
   'list',
   'listItem',
+  'plugin',
   'popUp',
   'searchBar',
   'select',

@@ -1,16 +1,31 @@
 import path from 'path'
 
+export type ConfigId = typeof configIds[number]
+export const configIds = [
+  'cadltest',
+  'root',
+  'landing',
+  'meet',
+  'meetdev',
+] as const
+
 export const endpoint = (function () {
   const base = 'https://public.aitmed.com'
   const baseConfig = 'https://public.aitmed.com/config'
+
+  const get = (key: ConfigId) => {
+    if (['root', 'landing'].includes(key)) {
+      const filename =
+        key === 'root' ? 'aitmed' : key === 'landing' ? 'ww2' : 'aitmed'
+      return `${baseConfig}/${filename}.yml`
+    } else {
+      return `${baseConfig}/${key}.yml`
+    }
+  }
+
   return {
     base,
-    config: {
-      root: `${baseConfig}/aitmed.yml`,
-      meet: `${baseConfig}/meet.yml`,
-      meet2: `${baseConfig}/meet2.yml`,
-      landing: `${baseConfig}/www2.yml`,
-    },
+    get,
   } as const
 })()
 

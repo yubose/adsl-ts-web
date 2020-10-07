@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
+    "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "baseUrl": "scripts",
     "declaration": false,
     "esModuleInterop": true,
-    "lib": ["dom", "dom.iterable"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
-    "preserveConstEnums": true,
-    "removeComments": false,
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "esnext"

@@ -39,9 +39,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
   let itemObject
 
   if (_.isObjectLike(component)) {
-    /*
-      Components that are expected to be visible/hidden on data change
-    */
+    /* -------------------------------------------------------
+     ---- UI VISIBILITY RELATED
+   -------------------------------------------------------- */
     if (contentType === 'passwordHidden') {
       component.set('data-ux', contentType)
     }
@@ -130,7 +130,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
       }
     }
 
-    /* Popup modals */
+    /* -------------------------------------------------------
+      ---- POPUPS
+    -------------------------------------------------------- */
     if (type === 'popUp') {
       component.set('data-ux', component.get('viewTag'))
     }
@@ -157,9 +159,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
       })
     }
 
-    /*
-      Lists and its children
-    */
+    /* -------------------------------------------------------
+      ---- LISTS
+    -------------------------------------------------------- */
     if (type === 'list') {
       const listObject = component.get('listObject')
       if (listObject !== undefined) {
@@ -200,7 +202,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
       }
     }
 
-    // Components that will display their static content from some reference
+    /* -------------------------------------------------------
+      ---- REFERENCES
+    -------------------------------------------------------- */
     if (_.isString(dataKey)) {
       // Component is retrieving data from a list
       if (dataKey.startsWith('itemObject')) {
@@ -288,6 +292,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
       }
     }
 
+    /* -------------------------------------------------------
+      ---- OTHER
+    -------------------------------------------------------- */
     // Hardcoding / custom injecting these for now
     if (viewTag) {
       if (viewTag === 'mainStream') {

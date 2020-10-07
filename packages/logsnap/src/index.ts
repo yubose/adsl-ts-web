@@ -49,12 +49,7 @@ const logger = (function () {
     const _state = { id, func: '' }
 
     const o: ILogger = {
-      func(name?: string) {
-        if (name) _state.func = name
-        else _state.func = ''
-        _refreshLoggers()
-        return this
-      },
+      func: _func,
       get id() {
         return _state.id
       },
@@ -77,6 +72,13 @@ const logger = (function () {
       }
       if (data) args.push(data)
       return args
+    }
+
+    function _func(name?: string) {
+      if (name) _state.func = name
+      else _state.func = ''
+      _refreshLoggers()
+      return this
     }
 
     function _refreshLoggers() {

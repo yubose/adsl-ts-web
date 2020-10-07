@@ -58,6 +58,14 @@ export interface NOODLComponent {
   videoFormat?: string
 }
 
+export interface NOODLPluginComponent extends NOODLComponent {
+  type: 'plugin'
+  path: string
+}
+
+
+
+
 /* -------------------------------------------------------
     ---- ACTIONS
   -------------------------------------------------------- */
@@ -272,8 +280,10 @@ export interface IComponent<T extends ProxiedComponent = any> {
   touchStyle(styleKey: string): this
 }
 
-export interface NOODLComponentProps
-  extends Omit<NOODLComponent, 'children' | 'options' | 'type'> {
+export type NOODLComponentProps = Omit<
+  NOODLComponent,
+  'children' | 'options' | 'type'
+> & {
   'data-key'?: string
   'data-listdata'?: any[]
   'data-listid'?: any

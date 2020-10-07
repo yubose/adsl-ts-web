@@ -34,6 +34,8 @@ function getType(noodlComponentType: string): string {
       return 'ul'
     case 'listItem':
       return 'li'
+    case 'plugin':
+      return 'div'
     case 'select':
       return 'select'
     case 'scrollView':

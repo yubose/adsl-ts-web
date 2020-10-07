@@ -16,6 +16,8 @@ const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 noodluidom.on('all', function onCreateNode(node, props) {
+  if (!node) return
+
   const {
     id,
     options,
@@ -186,6 +188,54 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
 noodluidom.on('create.label', function onCreateLabel(node, props) {
   const { onClick } = props
   node.style['cursor'] = _.isFunction(onClick) ? 'pointer' : 'auto'
+})
+
+/** NOTE: node is null in this handler */
+noodluidom.on('create.plugin', async function (noop, props) {
+  log.func('create.plugin')
+  const { src = '' } = props
+  if (_.isString(src)) {
+    if (src.startsWith('http')) {
+      const { default: axios } = await import('axios')
+      const { data } = await axios.get(src)
+      /**
+       * TODO - Check the ext of the filename
+       * TODO - If its js, run eval on it
+       */
+      // console.log(data)
+      try {
+        eval(data)
+      } catch (error) {
+        console.error(error)
+      }
+      // let $zoho = {}
+      // window.$zoho = $zoho
+      // window.$zoho.salesiq = {
+      //   widgetcode:
+      //     '4c9e90066bfba6f4a9172a982fdac05973f769ebf01c0ad101d9b24be9888569',
+      //   values: {},
+      //   ready: function () {},
+      // }
+      // const script = document.createElement('script')
+      // script.type = 'text/javascript'
+      // script.id = 'zsiqscript'
+      // script.defer = true
+      // script.src = 'https://salesiq.zoho.com/widget'
+      // const t = document.getElementsByTagName('script')[0]
+      // t.parentNode?.insertBefore(script, t)
+
+      // const scriptNode = document.createElement('script')
+      // scriptNode.setAttribute('crossorigin', 'anonymous')
+      // scriptNode.setAttribute('crossOrigin', 'anonymous')
+      // scriptNode.setAttribute('src', src)
+      // document.body.appendChild(scriptNode)
+    } else {
+      log.red(
+        `Received a src from a "plugin" component that did not start with an http(s) protocol`,
+        { props, src },
+      )
+    }
+  }
 })
 
 noodluidom.on('create.textfield', function onCreateTextField(node, props) {

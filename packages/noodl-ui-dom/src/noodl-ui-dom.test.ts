@@ -185,4 +185,20 @@ describe('noodl-ui-dom', () => {
       })
     })
   })
+
+  describe('noodlType: plugin', () => {
+    it('should receive null as the "DOM node" in the callback', () => {
+      const spy = sinon.spy()
+      const component = {
+        id: '123',
+        type: 'plugin',
+        noodlType: 'plugin',
+        path: 'https://what.com/what.jpg',
+      } as NOODLComponentProps
+      noodluidom.on('create.plugin', spy)
+      noodluidom.parse(component, document.body)
+      console.info(spy.getCalls())
+      expect(spy.firstCall.args[0]).to.be.null
+    })
+  })
 })
