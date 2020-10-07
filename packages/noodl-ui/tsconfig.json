@@ -9,7 +9,7 @@
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
-    "lib": ["es6", "dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,

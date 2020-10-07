@@ -186,8 +186,8 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
       node.style['width'] = '100%'
       node.style['height'] = '100%'
     }
+    node.style['objectFit'] = 'contain'
   }
-  node.style['objectFit'] = 'contain'
 })
 
 noodluidom.on('create.label', function onCreateLabel(node, props) {
@@ -327,10 +327,11 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
               : 'Click here to reveal your password'
           }
 
-        eyeIcon.dataset.mods = ''
-        eyeIcon.dataset.mods += '[password.eye.toggle]'
-        eyeContainer.addEventListener('click', onClick)
-      })
+          eyeIcon.dataset.mods = ''
+          eyeIcon.dataset.mods += '[password.eye.toggle]'
+          eyeContainer.addEventListener('click', onClick)
+        })
+      }
     }
   }
 })
