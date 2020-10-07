@@ -80,6 +80,17 @@ describe('dom', () => {
     expect(node?.getAttribute('src')).to.equal(assetsUrl + 'img123.jpg')
   })
 
+  it('should attach the videoFormat to poster', () => {
+    const resolvedComponent = noodl.resolveComponents({
+      type: 'video',
+      videoFormat: 'video/mp4',
+      style: {},
+    })[0]
+    console.info(resolvedComponent)
+    const node = noodluidom.parse(resolvedComponent)
+    expect(node?.getAttribute).to.equal('abc123')
+  })
+
   describe.skip('parse', () => {
     let components: NOODLComponentProps[]
     let component: NOODLComponentProps
