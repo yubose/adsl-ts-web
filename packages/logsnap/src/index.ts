@@ -110,9 +110,12 @@ const logger = (function () {
     },
     enable() {
       _disabled = false
+      return this
     },
     disable() {
       _disabled = true
+      console.log('Logging is disabled')
+      return this
     },
   }
 })()
