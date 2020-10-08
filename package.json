@@ -7,7 +7,6 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "prebuild": "rm -rf build",
     "build": "npm run lib:build && webpack --mode=production",
     "build:stable": "cross-env ECOS_ENV=stable NODE_ENV=production npm run build",
     "build:test": "cross-env ECOS_ENV=test NODE_ENV=production npm run build",
@@ -17,6 +16,9 @@
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:cadltest": "bash s3Deploy.sh build cadltest.aitmed.com",
+    "postinstall": "lerna run --parallel build ",
+    "prebuild": "rm -rf build",
+    "prestart": "rm -rf build",
     "start": "cross-env ECOS_ENV=test NODE_ENV=development webpack-dev-server",
     "start:stable": "cross-env ECOS_ENV=stable NODE_ENV=development webpack-dev-server",
     "start:test": "cross-env ECOS_ENV=test npm run start",
