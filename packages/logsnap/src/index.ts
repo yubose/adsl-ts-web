@@ -42,7 +42,8 @@ type ColorFuncs = Record<ColorKey, Console['log']>
 
 const logger = (function () {
   const noop = () => () => {}
-  const cache: { [loggerId: string]: ILogger } = {}
+  let cache: { [loggerId: string]: ILogger } = {}
+  let cacheBackup: typeof cache = {}
   const _bold = 'font-weight:bold;'
   let _disabled = false
   const cons = (_disabled ? noop : window.console) as typeof window.console
@@ -110,11 +111,13 @@ const logger = (function () {
     },
     enable() {
       _disabled = false
+      cache = { ...cacheBackup }
+      cacheBackup = {}
       return this
     },
     disable() {
       _disabled = true
-      console.log('Logging is disabled')
+      cacheBackup = { ...cache }
       Object.values(cache).forEach((value) => {
         Object.keys(value).forEach((k) => {
           value[k] = noop
