@@ -22,6 +22,10 @@ class NOODLUIDOM implements T.INOODLUIDOM {
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
 
+  constructor({ log }: { log?: { enabled?: boolean } } = {}) {
+    Logger[log?.enabled ? 'enable' : 'disable']?.()
+  }
+
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left

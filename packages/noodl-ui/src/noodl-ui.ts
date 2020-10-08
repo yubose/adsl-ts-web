@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import makeComponentResolver from './factories/makeComponentResolver'
 import * as T from './types'
 import NOODLViewport from './Viewport'
@@ -8,9 +9,13 @@ class NOODL {
   initialized: boolean = false
   page: T.Page = { name: '', object: null }
 
-  init({ viewport }: { viewport?: NOODLViewport } = {}) {
+  init({
+    log,
+    viewport,
+  }: { log?: { enabled?: boolean }; viewport?: NOODLViewport } = {}) {
     this.#componentResolver = makeComponentResolver({ roots: {}, viewport })
     this.initialized = true
+    Logger[log?.enabled ? 'enable' : 'disable']?.()
     return this
   }
 
