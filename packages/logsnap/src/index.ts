@@ -41,9 +41,11 @@ type ColorKey = keyof typeof _color
 type ColorFuncs = Record<ColorKey, Console['log']>
 
 const logger = (function () {
+  const noop = () => () => {}
   const cache: { [loggerId: string]: ILogger } = {}
   const cons = window.console
   const _bold = 'font-weight:bold;'
+  let _disabled = false
 
   function get(id: string) {
     const _state = { id, func: '' }
@@ -77,13 +79,15 @@ const logger = (function () {
     function _func(name?: string) {
       if (name) _state.func = name
       else _state.func = ''
-      _refreshLoggers()
+      !_disabled && _refreshLoggers()
       return this
     }
 
     function _refreshLoggers() {
       forEachEntries(_color, (colorKey: ColorKey, color) => {
-        o[colorKey] = cons.log.bind(cons, ..._stringifyArgs({ color }))
+        o[colorKey] = _disabled
+          ? noop
+          : cons.log.bind(cons, ..._stringifyArgs({ color }))
       })
     }
 
@@ -103,6 +107,12 @@ const logger = (function () {
         logger = cached
       }
       return logger
+    },
+    enable() {
+      _disabled = false
+    },
+    disable() {
+      _disabled = true
     },
   }
 })()
