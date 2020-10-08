@@ -20,8 +20,6 @@ class NOODLUIDOM implements T.INOODLUIDOM {
       {} as Record<T.NOODLDOMComponentType, T.NodePropsFunc[]>,
     ),
   }
-  // CREATEONCHANGEFACTORY IS EXPERIMENTAL AND WILL MOST LIKELY BE REMOVED
-  #createOnChangeFactory: ((...args: any[]) => any) | undefined
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
 
   /**
@@ -159,15 +157,6 @@ class NOODLUIDOM implements T.INOODLUIDOM {
       return key in this.#stub.elements[tagName]
     }
     return false
-  }
-
-  get createOnChangeFactory() {
-    return this.#createOnChangeFactory
-  }
-
-  /** THIS IS A TEMP / EXPERIMENTAL METHOD AND WILL BE REMOVED.  */
-  set createOnChangeFactory(fn: ((...args: any[]) => any) | undefined) {
-    this.#createOnChangeFactory = fn
   }
 
   /**

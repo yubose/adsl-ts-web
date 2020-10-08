@@ -4,6 +4,7 @@
  * isolate the imports into this file and replace them with stubs in testing
  */
 import _ from 'lodash'
+import { Draft } from 'immer'
 import Logger from 'logsnap'
 import noodl from 'app/noodl'
 import noodlui from 'app/noodl-ui'
@@ -11,49 +12,38 @@ import noodlui from 'app/noodl-ui'
 const log = Logger.create('sdkHelpers.ts')
 
 /** THIS IS EXPERIMENTAL AND WILL MOVE TO ANOTHER LOCATION */
-export function createOnChangeFactory(dataKey: string) {
-  let instanceId = 0
-  return () => {
-    instanceId++
-    if (instanceId > 1) {
-      log.func('createOnChangeFactory')
-      log.red(
-        `Instance ID exceeded total of more than 1. Investigate what this means`,
-        { instanceId, dataKey },
-      )
-    }
-    return (e: Event) => {
-      const target:
-        | (typeof e.target & {
-            value?: string
-          })
-        | null = e.target
-
-      const pageName = noodlui.getContext().page.name
-      const localRoot = noodl?.root?.[pageName]
-      const value = target?.value || ''
-
-      let updatedValue
-
-      if (_.has(localRoot, dataKey)) {
-        noodl.editDraft((draft: any) => {
-          _.set(draft?.[pageName], dataKey, value)
+export function createOnDataValueChangeFn(dataKey: string = '') {
+  return (e: Event) => {
+    const target:
+      | (typeof e.target & {
+          value?: string
         })
-        updatedValue = _.get(noodl.root?.[pageName], dataKey)
-        if (updatedValue !== value) {
-          log.func('createOnChangeFactory -- onChange')
-          log.red(
-            `Applied an update to a value using dataKey "${dataKey}" but the before/after values weren't equivalent`,
-            { previousValue: value, nextValue: updatedValue, dataKey },
-          )
-        }
-      } else {
-        log.func('createOnChangeFactory -- onChange')
+      | null = e.target
+
+    const pageName = noodlui.getContext().page.name
+    const localRoot = noodl?.root?.[pageName]
+    const value = target?.value || ''
+
+    let updatedValue
+
+    if (_.has(localRoot, dataKey)) {
+      noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
+        _.set(draft?.[pageName], dataKey, value)
+      })
+      updatedValue = _.get(noodl.root?.[pageName], dataKey)
+      if (updatedValue !== value) {
+        log.func('createOnDataValueChangeFn')
         log.red(
-          `Attempted to attach a data binding "onChange" onto a textField component but the dataKey "${dataKey}" is not a valid path of the noodl root object`,
-          { dataKey, localRoot, pageName, value },
+          `Applied an update to a value using dataKey "${dataKey}" but the before/after values weren't equivalent`,
+          { previousValue: value, nextValue: updatedValue, dataKey },
         )
       }
+    } else {
+      log.func('createOnDataValueChangeFn')
+      log.red(
+        `Attempted to attach a data binding "onChange" onto a textField component but the dataKey "${dataKey}" is not a valid path of the noodl root object`,
+        { dataKey, localRoot, pageName, value },
+      )
     }
   }
 }

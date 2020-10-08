@@ -1,19 +1,21 @@
 import _ from 'lodash'
 import sinon from 'sinon'
-import nock from 'nock'
 import MockAxios from 'axios-mock-adapter'
-import NOODLUIDOM, { DataValueElement } from 'noodl-ui-dom'
+import NOODLUIDOM from 'noodl-ui-dom'
 import { expect } from 'chai'
-import userEvent from '@testing-library/user-event'
-import { getByText, prettyDOM } from '@testing-library/dom'
-import {
-  NOODLComponent,
-  NOODLPluginComponent,
-  NOODLComponentProps,
-} from 'noodl-ui'
+import { screen } from '@testing-library/dom'
+import { NOODLComponent, NOODLPluginComponent } from 'noodl-ui'
 import axios from '../app/axios'
 import noodluidom from '../app/noodl-ui-dom'
-import { assetsUrl, noodl } from '../utils/test-utils'
+import {
+  assetsUrl,
+  noodl,
+  queryByDataKey,
+  queryByDataListId,
+  queryByDataName,
+  queryByDataUx,
+  queryByDataValue,
+} from '../utils/test-utils'
 import './dom'
 
 const mockAxios = new MockAxios(axios)
@@ -52,8 +54,6 @@ describe('dom', () => {
       } as NOODLPluginComponent
       const resolvedComponent = noodl.resolveComponents(component)[0]
       noodluidom.parse(resolvedComponent)
-      console.info(spy.getCalls())
-      console.info(prettyDOM())
       testNode.removeEventListener('click', spy)
       expect(spy.called).to.be.true
     })
@@ -64,9 +64,8 @@ describe('dom', () => {
       type: 'button',
       style: {},
     })[0]
-    console.info(resolvedComponent)
-    const node = noodluidom.parse({ ...resolvedComponent, id: 'abc123' })
-    expect(node?.id).to.equal('abc123')
+    noodluidom.parse({ ...resolvedComponent, id: 'abc123' })
+    expect(document.getElementById('abc123')).to.exist
   })
 
   it('should attach the src attribute', () => {
@@ -75,261 +74,170 @@ describe('dom', () => {
       path: 'img123.jpg',
       style: {},
     })[0]
-    console.info(resolvedComponent)
-    const node = noodluidom.parse(resolvedComponent)
-    expect(node?.getAttribute('src')).to.equal(assetsUrl + 'img123.jpg')
+    noodluidom.parse(resolvedComponent)
+    expect(document.querySelector(`img[src="${assetsUrl}img123.jpg"]`)).to.exist
   })
 
-  it('should attach the videoFormat to poster', () => {
+  it('should attach the video format', () => {
     const resolvedComponent = noodl.resolveComponents({
       type: 'video',
       videoFormat: 'video/mp4',
       style: {},
     })[0]
-    console.info(resolvedComponent)
-    const node = noodluidom.parse(resolvedComponent)
-    expect(node?.getAttribute).to.equal('abc123')
+    noodluidom.parse(resolvedComponent)
+    expect(document.querySelector(`video[type="video/mp4"]`)).to.exist
   })
 
-  describe.skip('parse', () => {
-    let components: NOODLComponentProps[]
-    let component: NOODLComponentProps
+  it('should attach the "poster" value', () => {
+    const poster = 'https://www.abc.com/myposter.jpg'
+    const resolvedComponent = noodl.resolveComponents({
+      type: 'video',
+      videoFormat: 'video/mp4',
+      poster,
+      style: {},
+    })[0]
+    noodluidom.parse(resolvedComponent)
+    expect(document.querySelector(`video[poster="${poster}"]`)).to.exist
+  })
 
-    beforeEach(() => {
-      components = noodl.resolveComponents({
-        module: 'patient',
-        components: [
-          {
-            type: 'button',
-            text: 'hello',
-            onClick: [
-              {
-                actionType: 'builtIn',
-                funcName: 'toggleMicrophoneOnOff',
-              },
-            ],
-            style: {
-              left: '0.22',
-              top: '0.0185',
-              width: '0.12',
-              height: '0.07',
-              border: {
-                style: '2',
-              },
-            },
-          } as NOODLComponent,
-        ],
-      })
-      // console.info(components)
-      component = components[0]
-    })
+  it('should attach placeholders', () => {
+    const placeholder = 'my placeholder'
+    const resolvedComponent = noodl.resolveComponents({
+      type: 'textField',
+      style: {},
+      placeholder,
+    })[0]
+    noodluidom.parse(resolvedComponent)
+    expect(screen.getByPlaceholderText(placeholder)).to.exist
+  })
 
-    describe.skip('parseChildren', () => {
-      beforeEach(() => {
-        // parser.add(parseChildren as any)
-      })
-
-      it('should append to innerHTML if children is a string', () => {
-        const node = parser.parse(component)
-        node && container.appendChild(node)
-        expect(node?.innerHTML).to.eq('hello')
-      })
-
-      it('should attach children DOM nodes', () => {
-        // @ts-expect-error
-        component.children = [
-          {
-            type: 'label',
-            text: 'i am child #1',
-            style: { width: '0.2', height: '0.5' },
-          },
-          {
-            type: 'button',
-            text: 'i am child #2',
-            style: { width: '0.2', height: '0.5' },
-          },
-          {
-            type: 'view',
-            id: 'abc',
-            style: { width: '0.2', height: '0.5' },
-            children: [
-              {
-                type: 'label',
-                text: 'I am a nested child of view',
-                style: { width: '0.2', height: '0.5' },
-              },
-            ],
-          },
-        ] as NOODLComponent[]
-        // @ts-expect-error
-        const resolvedComponents = noodl.resolveComponents({
-          module: 'patient',
-          components: component.children,
+  _.forEach(
+    [
+      ['data-listid', queryByDataListId],
+      ['data-name', queryByDataName],
+      ['data-key', queryByDataKey],
+      ['data-ux', queryByDataUx],
+      ['data-value', queryByDataValue],
+    ],
+    ([key, queryFn]) => {
+      it(`should attach ${key}`, () => {
+        noodluidom.parse({
+          type: 'li',
+          noodlType: 'listItem',
+          id: 'id123',
+          [key as string]: 'abc123',
         })
-        const label = resolvedComponents[0]
-        const button = resolvedComponents[1]
-        const view = resolvedComponents[2]
-        expect(parser.parse(label)?.textContent).to.eq('i am child #1')
-        expect(parser.parse(button)?.textContent).to.eq('i am child #2')
-        expect(parser.parse(view)?.children.length).to.eq(1)
-        const node = parser.parse({
-          type: 'div',
-          children: resolvedComponents,
-        }) as HTMLElement
-        const labelNode = getByText(node, 'I am a nested child of view')
-        const viewNode = node.children[2]
-        expect(viewNode).to.exist
-        expect(labelNode).to.exist
-        expect(labelNode.parentNode).to.eq(viewNode)
+        expect((queryFn as Function)(document.body, 'abc123')).to.exist
       })
-    })
+    },
+  )
 
-    describe.skip('parseEventHandlers', () => {
-      beforeEach(() => {
-        // parser.add(parseEventHandlers)
-      })
+  it('should show a default value for select elements', () => {
+    const component = {
+      type: 'select',
+      'data-name': 'country',
+      options: ['abc', '+52', '+86', '+965'],
+    } as NOODLComponent
+    const resolvedComponent = noodl.resolveComponents(component)[0]
+    noodluidom.parse(resolvedComponent)
+    const select = queryByDataName(document.body, 'country')
+    expect(select.value).to.equal('abc')
+  })
 
-      _.forEach(
-        ['onClick', 'onMouseEnter', 'onMouseLeave'] as const,
-        (eventType) => {
-          it(`should attach the "${eventType}" event handler`, () => {
-            const handler = sinon.spy()
-            component[eventType] = handler as any
-            const node = parser.parse(component)
-            node && container.appendChild(node)
-            node && mapUserEvent(eventType)?.(node)
-            expect(handler.called).to.be.true
-          })
-        },
-      )
+  it("should use the data-value as a data value element's value", () => {
+    const dataKey = 'formData.greeting'
+    const component = {
+      type: 'textField',
+      placeholder: 'hello, all',
+      id: 'id123',
+      'data-key': 'formData.greeting',
+      'data-value': 'my value',
+    } as NOODLComponent
+    const resolvedComponent = noodl.resolveComponents(component)[0]
+    noodluidom.parse(resolvedComponent)
+    const input = queryByDataKey(document.body, dataKey)
+    expect(input.value).to.equal('my value')
+  })
 
-      it.skip('should increment the listener count if a listener is added via addEventListener', () => {
-        //
-      })
-    })
+  it('should use data-value as text content if present for other elements (non data value elements)', () => {
+    const dataKey = 'formData.greeting'
+    const component = {
+      type: 'label',
+      placeholder: 'hello, all',
+      id: 'id123',
+      'data-key': 'formData.greeting',
+      'data-value': 'my value',
+    } as NOODLComponent
+    const resolvedComponent = noodl.resolveComponents(component)[0]
+    noodluidom.parse(resolvedComponent)
+    const label = queryByDataKey(document.body, dataKey)
+    expect(label.value).to.be.undefined
+    expect(label?.innerHTML).to.equal('my value')
+  })
 
-    describe.skip('parseStyles', () => {
-      beforeEach(() => {
-        // parser.add(parseStyles)
-      })
+  it('should use placeholder as text content if present (and also there is no data-value available) for other elements (non data value elements)', () => {
+    const dataKey = 'formData.greeting'
+    const component = {
+      type: 'label',
+      id: 'id123',
+      'data-key': 'formData.greeting',
+      placeholder: 'my placeholder',
+    } as NOODLComponent
+    const resolvedComponent = noodl.resolveComponents(component)[0]
+    noodluidom.parse(resolvedComponent)
+    const label = queryByDataKey(document.body, dataKey)
+    expect(label.value).to.be.undefined
+    expect(label?.innerHTML).to.equal('my placeholder')
+  })
 
-      it('should attach style attributes', () => {
-        const node = parser.parse(component)
-        node && container.appendChild(node)
-        expect(node?.style.borderRadius).to.eq('0px')
-        expect(node?.style.borderStyle).to.eq('none')
-        expect(node?.style.borderBottomStyle).to.eq('solid')
-      })
-    })
-
-    describe.skip('parseDataValues', () => {
-      beforeEach(() => {})
-
-      _.forEach(['input', 'select', 'textarea'] as const, (tag) => {
-        it(`should attach the value of data-value as the value for ${tag} elements`, () => {
-          let node: DataValueElement | undefined
-          const dataValue = 'fruits'
-          component['data-value'] = dataValue
-          component['type'] = tag
-          if (tag === 'select') {
-            component['data-value'] = 'banana'
-            component['options'] = [
-              { value: 'apple', key: 'apple', label: 'Apple' },
-              { value: 'banana', key: 'banana', label: 'Banana' },
-            ]
-            node = parser.parse(component) as DataValueElement
-            expect(node?.value).to.eq('apple')
-          } else {
-            node = parser.parse(component) as DataValueElement
-            expect(node?.value).to.eq(dataValue)
-          }
-        })
-      })
+  it('should create the select option children when rendering', () => {
+    const component = {
+      type: 'select',
+      options: ['abc', '123', 5, 1995],
+      id: 'myid123',
+    } as NOODLComponent
+    const resolvedComponent = noodl.resolveComponents(component)[0]
+    noodluidom.parse(resolvedComponent)
+    _.forEach(resolvedComponent.options, (option, index) => {
+      expect(
+        document.querySelector(`option[value="${component.options[index]}"]`),
+      ).to.exist
     })
   })
 
-  // describe('input/select/textarea (data value elements)', () => {
-  //   xit('should show placeholder if there is no data-value available', () => {
-  //     // TODO - props.placeholder
-  //   })
+  it('should create a "source" element and attach the src attribute for video components', () => {
+    const component = {
+      type: 'video',
+      path: 'pathology.mp4',
+      videoFormat: 'mp4',
+      id: 'id123',
+    } as NOODLComponent
+    const resolvedComponent = noodl.resolveComponents(component)[0]
+    noodluidom.parse(resolvedComponent)
+    const sourceElem = document.body?.querySelector('source')
+    expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + component.path)
+  })
 
-  //   describe('select elements', () => {
-  //     xit('should show the data-value if it was received with one', () => {
-  //       //
-  //     })
+  it('should show the password invisible icon to toggle off next', () => {
+    const pwVisible = 'makePasswordVisiable.png'
+    const pwInvisible = 'makePasswordInvisible.png'
+    const component = {
+      type: 'textField',
+      contentType: 'password',
+      style: {},
+      placeholder: 'Type your password',
+      'data-key': 'formData.password',
+    } as NOODLComponent
+    const resolvedComponent = noodl.resolveComponents(component)[0]
+    noodluidom.parse(resolvedComponent)
+    screen.debug()
+    expect(document.querySelector(`input[type="text"]`)).to.exist
+    expect(document.querySelector(`img[src="${assetsUrl}${pwInvisible}"]`))
+  })
 
-  //     xit('should show the first item in the options list by default if a data-value isnt available', () => {
-  //       //
-  //     })
-  //   })
-  // })
+  xit('should show the password hidden icon', () => {
+    //
+  })
 
-  // describe('view elements (opposite of input/select/textarea elements, like div or span', () => {
-  //   xit('should show text/placeholder if there is no data-value available', () => {
-  //     //  TODO - props.text || props.placeholder
-  //   })
-  // })
-
-  // describe.skip('parseEventHandlers', () => {
-  //   beforeEach(() => {
-  //     // parser.add(parseEventHandlers)
-  //   })
-
-  //   // _.forEach(
-  //   //   ['onClick', 'onMouseEnter', 'onMouseLeave'] as const,
-  //   //   (eventType) => {
-  //   //     it(`should attach the "${eventType}" event handler`, () => {
-  //   //       const handler = sinon.spy()
-  //   //       component[eventType] = handler as any
-  //   //       const node = parser.parse(component)
-  //   //       node && container.appendChild(node)
-  //   //       node && mapUserEvent(eventType)?.(node)
-  //   //       expect(handler.called).to.be.true
-  //   //     })
-  //   //   },
-  //   // )
-
-  //   it.skip('should increment the listener count if a listener is added via addEventListener', () => {
-  //     //
-  //   })
-  // })
-
-  // describe.skip('parseStyles', () => {
-  //   beforeEach(() => {
-  //     // parser.add(parseStyles)
-  //   })
-
-  //   it('should attach style attributes', () => {
-  //     const node = parser.parse(component)
-  //     node && container.appendChild(node)
-  //     expect(node?.style.borderRadius).to.eq('0px')
-  //     expect(node?.style.borderStyle).to.eq('none')
-  //     expect(node?.style.borderBottomStyle).to.eq('solid')
-  //   })
-  // })
-
-  // describe.skip('parseDataValues', () => {
-  //   beforeEach(() => {})
-
-  //   _.forEach(['input', 'select', 'textarea'] as const, (tag) => {
-  //     it(`should attach the value of data-value as the value for ${tag} elements`, () => {
-  //       let node: DataValueElement | undefined
-  //       const dataValue = 'fruits'
-  //       component['data-value'] = dataValue
-  //       component['type'] = tag
-  //       if (tag === 'select') {
-  //         component['data-value'] = 'banana'
-  //         component['options'] = [
-  //           { value: 'apple', key: 'apple', label: 'Apple' },
-  //           { value: 'banana', key: 'banana', label: 'Banana' },
-  //         ]
-  //         node = parser.parse(component) as DataValueElement
-  //         expect(node?.value).to.eq('apple')
-  //       } else {
-  //         node = parser.parse(component) as DataValueElement
-  //         expect(node?.value).to.eq(dataValue)
-  //       }
-  //     })
-  //   })
-  // })
+  describe('data-value elements (input/select/textarea/etc)', () => {})
 })

@@ -162,7 +162,7 @@ const getTransformedAliases: Resolver = (
   // Select components
   if (_.isArray(options)) {
     const toOption = (option: any, index: number) =>
-      _.isString(option)
+      _.isString(option) || _.isNumber(option)
         ? {
             index,
             key: option,

@@ -12,7 +12,8 @@ const getStylesByElementType: Resolver = (component, options) => {
   switch (component?.type) {
     case 'header':
       return void component.setStyle('zIndex', 100)
-
+    case 'image':
+      return void component.setStyle('objectFit', 'contain')
     // Flipping the position to relative to make the list items stack on top of eachother.
     //    Since the container is a type: list and already has their entire height defined in absolute values,
     //    this shouldn't have any UI issues because they'll stay contained within

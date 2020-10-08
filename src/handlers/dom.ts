@@ -8,7 +8,6 @@ import {
 } from 'noodl-ui'
 import { DataValueElement, NodePropsFunc, NOODLDOMElement } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
-import { setAttr } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
 
@@ -33,11 +32,10 @@ noodluidom.on('all', function onCreateNode(node, props) {
   // const dataListData = props['data-listdata']
 
   if (id) node['id'] = props.id
-  if (src) node.setAttribute('src', src)
-  if (type === 'video') node.setAttribute('poster', poster || '')
-  if (videoFormat) node.setAttribute('type', videoFormat)
   if (placeholder) node.setAttribute('placeholder', placeholder)
-
+  if (type === 'video' && poster) node.setAttribute('poster', poster)
+  if (src && type !== 'video') node.setAttribute('src', src)
+  if (videoFormat) node.setAttribute('type', videoFormat)
   /** Dataset identifiers */
   if ('data-listid' in props) node.dataset['listid'] = props['data-listid']
   if ('data-name' in props) node.dataset['name'] = props['data-name']
@@ -73,44 +71,52 @@ noodluidom.on('all', function onCreateNode(node, props) {
     }
   }
 
+  // For non data-value elements like labels or divs that just display content
+  // If there's no data-value (which takes precedence here), use the placeholder
+  // to display as a fallback
+  if (!props['data-value'] && props.placeholder) {
+    node.innerHTML = props.placeholder
+  }
+
   /** Event handlers */
   forEachEntries(props, (key, value) => {
+    let eventName: string
+
     if (eventTypes.includes(key as NOODLActionTriggerType)) {
       const isEqual = (k: NOODLActionTriggerType) => k === key
-      const eventName = _.find(eventTypes, isEqual)
-      const lowercasedEventName = eventName?.toLowerCase?.() || ''
-      const directEventName = lowercasedEventName.startsWith('on')
-        ? lowercasedEventName.replace('on', '')
-        : lowercasedEventName
-      if (directEventName) {
+      eventName = _.find(eventTypes, isEqual)?.toLocaleLowerCase() || ''
+      eventName = eventName.startsWith('on')
+        ? eventName.replace('on', '')
+        : eventName
+
+      if (eventName) {
         // TODO: Test this
         const eventFn = async (...args: any[]) => {
           await value(...args)
-          node.removeEventListener(directEventName, eventFn)
-          node.addEventListener(directEventName, eventFn)
+          node.removeEventListener(eventName, eventFn)
+          node.addEventListener(eventName, eventFn)
         }
         // Attach the event handler
-        node.addEventListener(directEventName, eventFn)
+        node.addEventListener(eventName, eventFn)
       }
-    }
-    if (key === 'data-value') {
-      /**
-       * EXPERIMENTAL AND WILL BE MOVED TO A BETTER LOCATION IF IT IS
-       * AN ACCEPTED SOLUTION
-       */
-      const onChange = noodluidom.createOnChangeFactory?.(props['data-key'])()
-      if (!_.isFunction(onChange)) {
-        log.func('onCreateNode -- all').red('onChange is not a function')
-      }
-      node.addEventListener('change', onChange)
     }
   })
+  // Attach an additional listener for data-value elements that are expected
+  // to change values on the fly by some "on change" logic (ex: input/select elements)
+  if ('data-value' in props) {
+    import('utils/sdkHelpers')
+      .then(({ createOnDataValueChangeFn }) => {
+        const onChange = createOnDataValueChangeFn(props['data-key'])
+        node.addEventListener('change', onChange)
+      })
+      .catch((err) => log.func('noodluidom.on: all').red(err.message))
+  }
 
   /** Styles */
   if (_.isPlainObject(style)) {
     forEachEntries(style, (k, v) => (node.style[k as any] = v))
   } else {
-    log.func('onCreateNode: all')
+    log.func('noodluidom.on: all')
     log.red(
       `Expected a style object but received ${typeof style} instead`,
       style,
@@ -142,7 +148,8 @@ noodluidom.on('all', function onCreateNode(node, props) {
   }
   if (type === 'video') {
     const sourceEl = createElement('source')
-    sourceEl['src'] = src || ''
+    if (src) sourceEl.setAttribute('src', src)
+    node.appendChild(sourceEl)
   }
 })
 
@@ -177,7 +184,7 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
     // If an image has children, we will assume it is some icon button overlapping
     //    Ex: profile photos and showing pencil icon on top to change it
     if (children) {
-      log.func('onCreateNode: Image')
+      log.func('create.image: Image')
       log.orange(
         `An image component has children. This is a weird practice. Consider ` +
           `discussion about this`,
@@ -186,7 +193,6 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
       node.style['width'] = '100%'
       node.style['height'] = '100%'
     }
-    node.style['objectFit'] = 'contain'
   }
 })
 
@@ -209,33 +215,11 @@ noodluidom.on('create.plugin', async function (noop, props) {
        * TODO - Check the ext of the filename
        * TODO - If its js, run eval on it
        */
-      // console.log(data)
       try {
         eval(data)
       } catch (error) {
         console.error(error)
       }
-      // let $zoho = {}
-      // window.$zoho = $zoho
-      // window.$zoho.salesiq = {
-      //   widgetcode:
-      //     '4c9e90066bfba6f4a9172a982fdac05973f769ebf01c0ad101d9b24be9888569',
-      //   values: {},
-      //   ready: function () {},
-      // }
-      // const script = document.createElement('script')
-      // script.type = 'text/javascript'
-      // script.id = 'zsiqscript'
-      // script.defer = true
-      // script.src = 'https://salesiq.zoho.com/widget'
-      // const t = document.getElementsByTagName('script')[0]
-      // t.parentNode?.insertBefore(script, t)
-
-      // const scriptNode = document.createElement('script')
-      // scriptNode.setAttribute('crossorigin', 'anonymous')
-      // scriptNode.setAttribute('crossOrigin', 'anonymous')
-      // scriptNode.setAttribute('src', src)
-      // document.body.appendChild(scriptNode)
     } else {
       log.red(
         `Received a src from a "plugin" component that did not start with an http(s) protocol`,

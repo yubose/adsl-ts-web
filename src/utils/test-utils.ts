@@ -49,6 +49,7 @@ export const noodl = new NOODL()
   .init({ viewport: new Viewport() })
   .setAssetsUrl(assetsUrl)
   .setViewport({ width: 375, height: 667 })
+  .setPage({ name: '', object: null })
   .setResolvers(
     getElementType,
     getTransformedAliases,
@@ -67,18 +68,24 @@ export const noodl = new NOODL()
   )
 
 export const noodluidom = (function () {
-  let _inst: NOODLUIDOM = new NOODLUIDOM()
+  let _inst: NOODLUIDOM
 
-  Object.defineProperty(_inst, 'reset', {
-    configurable: true,
-    enumerable: false,
-    writable: true,
-    value: function () {
-      _inst = new NOODLUIDOM()
-    },
-  })
+  const _resetInstance = () => {
+    _inst = new NOODLUIDOM()
+    Object.defineProperty(_inst, 'reset', {
+      configurable: true,
+      enumerable: false,
+      writable: true,
+      value: function () {
+        _resetInstance()
+      },
+    })
+  }
 
-  return _inst as NOODLUIDOM & { reset: () => any }
+  _resetInstance()
+
+  // @ts-expect-error
+  return _inst as NOODLUIDOM & { reset: typeof _resetInstance }
 })()
 
 export function toDOM(props: NOODLComponentProps): NOODLDOMElement | null {

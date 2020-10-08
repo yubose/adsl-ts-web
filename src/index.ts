@@ -33,7 +33,6 @@ import {
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
-import { createOnChangeFactory } from './utils/sdkHelpers'
 import { forEachParticipant } from './utils/twilio'
 import { isMobile, reduceEntries } from './utils/common'
 import { copyToClipboard } from './utils/dom'
@@ -432,8 +431,6 @@ window.addEventListener('load', async () => {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-  // createOnChangeFactory IS EXPERIMENTAL AND WILL BE REFACTORED
-  noodluidom.createOnChangeFactory = createOnChangeFactory
   noodluidom.on('all', function onCreateNode(
     node: NOODLDOMElement,
     props: NOODLComponentProps,
