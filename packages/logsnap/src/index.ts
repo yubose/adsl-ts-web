@@ -115,6 +115,11 @@ const logger = (function () {
     disable() {
       _disabled = true
       console.log('Logging is disabled')
+      Object.values(cache).forEach((value) => {
+        Object.keys(value).forEach((k) => {
+          value[k] = noop
+        })
+      })
       return this
     },
   }
