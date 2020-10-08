@@ -31,7 +31,7 @@ class NOODL {
   }
 
   getContext() {
-    return this.#componentResolver.getResolverContext()
+    return this.#componentResolver?.getResolverContext()
   }
 
   resolveComponents(

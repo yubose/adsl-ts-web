@@ -169,7 +169,7 @@ window.addEventListener('load', async () => {
         log.grey('Initializing noodl-ui client', noodl)
         noodlui
           .init({ viewport })
-          .setAssetsUrl(noodl.assetsUrl || '')
+          .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageSnapshot)
           .setRoot(noodl.root)
           .setViewport({

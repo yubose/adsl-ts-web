@@ -60,7 +60,7 @@ if (typeof window !== 'undefined') {
 
         noodlui
           .init({ viewport })
-          .setAssetsUrl(noodl.assetsUrl || '')
+          .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage({ name: '', object: null })
           .setRoot(noodl.root)
           .setViewport({

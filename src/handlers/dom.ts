@@ -1,12 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import {
-  eventTypes,
-  NOODLActionTriggerType,
-  NOODLComponentProps,
-  SelectOption,
-} from 'noodl-ui'
-import { DataValueElement, NodePropsFunc, NOODLDOMElement } from 'noodl-ui-dom'
+import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
+import { DataValueElement, NodePropsFunc } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
@@ -236,10 +231,10 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
     // Password inputs
     if (contentType === 'password') {
       if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-        import('app/noodl-ui').then(({ default: noodlui }) => {
-          const assetsUrl = noodlui.getContext().assetsUrl
-          const toggledSrc = assetsUrl + 'makePasswordInvisible.png'
-          const untoggledSrc = assetsUrl + 'makePasswordVisiable.png'
+        return import('app/noodl-ui').then(({ default: noodlui }) => {
+          const assetsUrl = noodlui.getContext()?.assetsUrl || ''
+          const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
+          const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
           const originalParent = node?.parentNode as HTMLDivElement
           const newParent = document.createElement('div')
           const eyeContainer = document.createElement('button')
@@ -284,7 +279,13 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
           eyeIcon.style['height'] = '100%'
           eyeIcon.style['userSelect'] = 'none'
 
-          eyeIcon.setAttribute('src', toggledSrc)
+          eyeIcon.setAttribute('src', eyeClosed)
+          eyeContainer.setAttribute(
+            'title',
+            'Click here to reveal your password',
+          )
+          node.setAttribute('type', 'password')
+          node.setAttribute('data-testid', 'password')
 
           // Restructing the node structure to match our custom effects with the
           // toggling of the eye iconsf
@@ -299,10 +300,10 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
 
           function onClick(e: Event) {
             if (selected) {
-              eyeIcon.setAttribute('src', untoggledSrc)
+              eyeIcon.setAttribute('src', eyeOpened)
               node?.setAttribute('type', 'text')
             } else {
-              eyeIcon.setAttribute('src', toggledSrc)
+              eyeIcon.setAttribute('src', eyeClosed)
               node?.setAttribute('type', 'password')
             }
             selected = !selected
@@ -310,7 +311,6 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
               ? 'Click here to hide your password'
               : 'Click here to reveal your password'
           }
-
           eyeIcon.dataset.mods = ''
           eyeIcon.dataset.mods += '[password.eye.toggle]'
           eyeContainer.addEventListener('click', onClick)
@@ -319,44 +319,6 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
     }
   }
 })
-
-/**
- * Apply the original raw data key value if it is showing. This is meant to be
- * used in conjunction with isShowingDataKey and when the env is 'stable'
- * Else make it invisible in the UI
- * @param { object } props
- */
-// export function getFallbackDataValue(props: any) {
-//   if (!props.noodl) {
-//     return ''
-//   }
-//   const { noodl } = props
-//   let value
-//   if (typeof props?.text === 'string') {
-//     value = noodl.text
-//   } else if (typeof noodl?.placeholder === 'string') {
-//     value = noodl.placeholder
-//   }
-
-//   return value || !isReference(value as string) ? value : '' || ''
-// }
-
-/**
- * Returns true if the component is presumed to be displaying raw referenced data keys
- * ex: .Global.vertex.currentUser
- * @param { object } props
- */
-// export function isShowingDataKey(props: any) {
-//   if (props['data-key']) {
-//     return (
-//       props['data-key'] === props['data-value'] ||
-//       props['data-key'] === props.children ||
-//       isReference(props['data-value'] as string) ||
-//       isReference(props.children as string)
-//     )
-//   }
-//   return false
-// }
 
 export function setAttrBy(attr: string, cb: NodePropsFunc): NodePropsFunc {
   return (n, p) => (n[attr] = cb(n, p))

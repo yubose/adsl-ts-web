@@ -1,11 +1,18 @@
 {
   "test": {
     "prefix": "test",
-    "body": "import { expect } from 'chai'"
+    "body": [
+      "import { expect } from 'chai'",
+      "import { screen } from '@testing-library/dom'"
+    ]
   },
   "sinon": {
     "prefix": "sinon",
     "body": "import sinon from 'sinon'"
+  },
+  "nock": {
+    "prefix": "nock",
+    "body": "import nock from 'nock'"
   },
   "log snapshot ": {
     "prefix": "cdraft",
@@ -42,13 +49,5 @@
   "chalk.white": {
     "prefix": "chwhite",
     "body": "chalk.whiteBright('$1')"
-  },
-  "import lodash": {
-    "prefix": "lodash",
-    "body": "import _ from 'lodash'"
-  },
-  "app noop": {
-    "prefix": "appnoop",
-    "body": "import noop from 'utils/common'"
   }
 }

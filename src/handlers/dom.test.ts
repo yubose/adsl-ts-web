@@ -1,10 +1,13 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import MockAxios from 'axios-mock-adapter'
-import NOODLUIDOM from 'noodl-ui-dom'
 import { expect } from 'chai'
-import { screen } from '@testing-library/dom'
-import { NOODLComponent, NOODLPluginComponent } from 'noodl-ui'
+import { screen, waitForElement } from '@testing-library/dom'
+import {
+  NOODLComponent,
+  NOODLComponentProps,
+  NOODLPluginComponent,
+} from 'noodl-ui'
 import axios from '../app/axios'
 import noodluidom from '../app/noodl-ui-dom'
 import {
@@ -19,18 +22,6 @@ import {
 import './dom'
 
 const mockAxios = new MockAxios(axios)
-
-let container: HTMLDivElement
-let parser: NOODLUIDOM
-
-beforeEach(() => {
-  container = document.createElement('div')
-  parser = new NOODLUIDOM()
-})
-
-afterEach(() => {
-  // console.info(prettyDOM(container))
-})
 
 describe('dom', () => {
   describe('component type: "plugin"', () => {
@@ -218,21 +209,46 @@ describe('dom', () => {
     expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + component.path)
   })
 
-  it('should show the password invisible icon to toggle off next', () => {
-    const pwVisible = 'makePasswordVisiable.png'
-    const pwInvisible = 'makePasswordInvisible.png'
-    const component = {
-      type: 'textField',
-      contentType: 'password',
-      style: {},
-      placeholder: 'Type your password',
-      'data-key': 'formData.password',
-    } as NOODLComponent
-    const resolvedComponent = noodl.resolveComponents(component)[0]
-    noodluidom.parse(resolvedComponent)
-    screen.debug()
-    expect(document.querySelector(`input[type="text"]`)).to.exist
-    expect(document.querySelector(`img[src="${assetsUrl}${pwInvisible}"]`))
+  describe('type: "textField" with contentType: "password"', () => {
+    let resolvedComponent: NOODLComponentProps
+    let eyeOpened = 'makePasswordVisiable.png'
+    let eyeClosed = 'makePasswordInvisible.png'
+    let regexTitlePwVisible = /click here to hide your password/i
+    let regexTitlePwInvisible = /click here to reveal your password/i
+
+    beforeEach(() => {
+      resolvedComponent = noodl.resolveComponents({
+        type: 'textField',
+        contentType: 'password',
+        placeholder: 'your password',
+      } as NOODLComponent)[0]
+    })
+
+    it('should start off with hidden password mode for password inputs', async () => {
+      noodluidom.parse(resolvedComponent)
+      const input = (await screen.findByTestId('password')) as HTMLInputElement
+      expect(input).to.exist
+      expect(input.type).to.equal('password')
+    })
+
+    it('should start off showing the eye closed icon', async () => {
+      noodluidom.parse(resolvedComponent)
+      const eyeIcon = await waitForElement(() => document.querySelector(`img`))
+      expect(eyeIcon).to.exist
+      expect(eyeIcon?.getAttribute('src')?.includes(eyeClosed)).to.be.true
+    })
+
+    it('should flip the eye icon to open when clicked', async () => {
+      noodluidom.parse(resolvedComponent)
+      const eyeContainer = await screen.findByTitle(regexTitlePwInvisible)
+      const eyeIcon = await waitForElement(() => document.querySelector(`img`))
+      expect(eyeContainer).to.exist
+      expect(eyeIcon?.src.includes(eyeClosed)).to.be.true
+      eyeContainer.click()
+      eyeIcon?.click()
+      expect(eyeIcon?.src).to.equal(eyeOpened)
+      expect(regexTitlePwVisible.test(eyeContainer.title)).to.be.true
+    })
   })
 
   xit('should show the password hidden icon', () => {
