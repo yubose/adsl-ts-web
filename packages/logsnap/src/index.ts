@@ -43,9 +43,9 @@ type ColorFuncs = Record<ColorKey, Console['log']>
 const logger = (function () {
   const noop = () => () => {}
   const cache: { [loggerId: string]: ILogger } = {}
-  const cons = window.console
   const _bold = 'font-weight:bold;'
   let _disabled = false
+  const cons = (_disabled ? noop : window.console) as typeof window.console
 
   function get(id: string) {
     const _state = { id, func: '' }
