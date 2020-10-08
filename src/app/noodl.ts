@@ -1,6 +1,7 @@
 import NOODL from '@aitmed/cadl'
 
 const PORTAL_CONFIG = getConfigEndpoint('portal')
+const PORTAL_CONFIG_NATIVE_JS = getConfigEndpoint('cadltest')
 const PORTAL_CONFIG_PHASE_2 = getConfigEndpoint('portal.phase.2')
 const LANDING_PAGE_CONFIG = getConfigEndpoint('landing.page')
 const AITCOM11_CONFIG = getConfigEndpoint('cadltest')

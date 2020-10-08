@@ -1,47 +1,46 @@
 import _ from 'lodash'
 import chalk from 'chalk'
-import { DescriptiveItem } from './utils/filesystem'
-import { paths } from './config'
 import { createObjWithKeys, createRegexpByKeywords } from './utils/common'
 import * as log from './utils/log'
-import Bases from './modules/Bases'
-import Pages from './modules/Pages'
+import Aggregator from './modules/Aggregator'
 import Saver from './modules/Saver'
 import { forEachDeepEntries } from '../src/utils/common'
 
 export interface GenerateStatsForKeywordsOptions {
+  dir: string
   endpoint: string
   keywords: string[]
   saveAsFilename: string
 }
 
 async function getAllKeywordOccurrences({
+  dir,
   endpoint,
   keywords,
   saveAsFilename,
 }: GenerateStatsForKeywordsOptions) {
   try {
+    const aggregator = new Aggregator({ endpoint, json: true })
+    const saver = new Saver({ dir, exts: { json: true } })
     const accumulate = createAccumulator(keywords)
-    const bases = new Bases({ exts: { json: true }, endpoint })
-    const saver = new Saver({ exts: { json: true } })
-    let pages: Pages
+    const { base, app } = aggregator
 
-    bases.onRootConfig = () => {
+    base.onRootConfig = () => {
       log.yellow(`Retrieved rootConfig using ${chalk.magentaBright(endpoint)}`)
     }
 
-    bases.onNoodlConfig = () => {
+    base.onNoodlConfig = () => {
       log.yellow(
         `Retrieved noodl config from ${chalk.magentaBright(
-          bases.noodlEndpoint,
+          base.noodlEndpoint,
         )}`,
       )
-      log.white(`Config version set to ${chalk.yellowBright(bases.version)}`)
+      log.white(`Config version set to ${chalk.yellowBright(base.version)}`)
       log.blank()
     }
 
-    bases.onBaseItems = () => {
-      _.forEach(_.keys(bases.baseItems), (name) => {
+    base.onBaseItems = () => {
+      _.forEach(_.keys(base.items), (name) => {
         name && log.green(`Retrieved ${name}`)
       })
     }
@@ -49,63 +48,35 @@ async function getAllKeywordOccurrences({
     log.blue(`Endpoint set to ${chalk.magentaBright(endpoint)}`)
     log.blank()
 
-    await bases.load({ includeBasePages: true })
-
-    const noodlConfig = bases.getNoodlConfig()
-
-    pages = new Pages({
-      endpoint: bases.noodlBaseUrl,
-      exts: { json: true },
-      pages: noodlConfig.page || [],
-      baseUrl: bases.noodlBaseUrl,
+    const items = await aggregator.load({
+      includeBasePages: true,
+      includePages: true,
     })
 
-    const resolvedPages = await pages.load()
-    const totalObjects = _.add(
-      _.keys(bases.baseItems).length,
-      resolvedPages.length,
-    )
-
-    log.blank()
-    log.blue(
-      `Retrieved ${chalk.magentaBright(
-        resolvedPages.length,
-      )} noodl page objects --- ${chalk.magentaBright(
-        totalObjects,
-      )} noodl objects in total`,
-    )
-    log.blank()
-
-    const allObjects = _.map(_.entries(bases.baseItems), ([key, value]) => ({
+    const allObjects = _.map(_.entries(items), ([key, value]) => ({
       data: value,
       filename: key,
       filepath: '',
-    })).concat(
-      _.map(resolvedPages, (obj) => ({
-        data: obj.data,
-        filename: obj.name,
-        filepath: obj.url,
-      })),
-    )
+    }))
 
     let output = {}
     let result: any
-    let pageName: string
+    let totalObjects = aggregator.length
 
     for (let index = 0; index < totalObjects; index++) {
-      const obj: DescriptiveItem = allObjects[index]
-      pageName = obj.filename.replace(/\.(json|yml)/i, '')
-      result = accumulate(pageName, obj, { returnItemOnly: true })
+      const obj: any = allObjects[index]
+      result = accumulate(obj.filename, obj, { returnItemOnly: true })
       if (result) {
-        output[pageName] = result
-        log.green(`Processed page ${chalk.magentaBright(pageName)} `)
+        output[obj.filename] = result
+        log.green(`Processed page ${chalk.magentaBright(obj.filename)} `)
       }
     }
 
     await saver.save({
       data: output,
-      dir: paths.compiled,
+      dir,
       filename: saveAsFilename,
+      type: 'json',
     })
 
     return output

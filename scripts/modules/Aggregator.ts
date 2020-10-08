@@ -1,70 +1,50 @@
-// @ts-nocheck
 import _ from 'lodash'
-import Bases from './Bases'
-import Pages from './Pages'
+import BaseSetup from './BaseSetup'
+import AppSetup from './AppSetup'
 
 export interface AggregatorOptions {
-  modules?: { bases?: Bases; pages?: Pages }
   endpoint?: string
-  exts?: { json?: boolean; yml?: boolean }
+  json?: boolean
+  yml?: boolean
 }
 
 class Aggregator {
-  #mod: AggregatorOptions['modules'] = {}
+  #baseSetup: BaseSetup
+  #appSetup: AppSetup
+  items: { [name: string]: any } = {}
   endpoint: AggregatorOptions['endpoint']
-  exts: AggregatorOptions['exts']
 
-  constructor({ modules, endpoint = '', exts }: AggregatorOptions = {}) {
-    let bases: Bases
-    let pages: Pages
-    if (_.isPlainObject(modules)) {
-      bases = modules.bases
-      pages = modules.pages
-    }
-    if (!bases) bases = new Bases()
-    if (!pages) pages = new Pages()
-    this.#mod.bases = bases
-    this.#mod.pages = pages
+  constructor({ endpoint, ...options }: AggregatorOptions) {
+    this.#baseSetup = new BaseSetup({ endpoint, ...options })
+    this.#appSetup = new AppSetup(options)
     this.endpoint = endpoint
-    this.exts = exts || { json: true, yml: false }
-    bases.endpoint = this.endpoint
-    bases.exts = this.exts
   }
 
-  async initializeMods({
-    includeBasePages,
-  }: { includeBasePages?: boolean } = {}) {
-    await this.#mod.bases.load({ includeBasePages })
-    const noodlConfig = this.#mod.bases.getNoodlConfig()
-    _.assign(this.#mod.pages, {
-      baseUrl: this.#mod.bases.noodlBaseUrl,
-      endpoint: this.endpoint,
-      exts: this.exts,
-      pageNames: noodlConfig.page || [],
-    })
-    await this.#mod.pages.load()
+  async load({ includeBasePages, includePages }) {
+    console.log(includeBasePages)
+    const {
+      rootConfig: { json: rootConfig },
+      noodlConfig: { json: noodlConfig },
+    } = await this.#baseSetup.load({ includeBasePages })
+    if (includePages) {
+      this.#appSetup.baseUrl = rootConfig.cadlBaseUrl
+      this.#appSetup.endpoint = rootConfig.cadlBaseUrl + rootConfig.cadlMain
+      await this.#appSetup.load(noodlConfig.page)
+    }
+    _.assign(this.items, this.#baseSetup.items, this.#appSetup.items)
+    return this.items
   }
 
-  getAllObjects() {
-    const objs = _.reduce(
-      _.entries(this.#mod.bases.baseItems),
-      (acc, [name, { json }]) =>
-        acc.concat({
-          name,
-          data: json,
-          url: '',
-        }),
-      this.#mod.pages.pages,
-    )
-    return objs
+  get base() {
+    return this.#baseSetup
   }
 
-  getBasesMod() {
-    return this.#mod.bases
+  get app() {
+    return this.#appSetup
   }
 
-  getPagesMod() {
-    return this.#mod.pages
+  get length() {
+    return _.keys(this.items).length
   }
 }
 

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Resolver } from '../types'
-import { noodlTextAlignStrings } from '../constants'
+import { textAlignStrings } from '../constants'
 
 /**
  * Takes an object and resolves its align properties by returning a new object generated with
@@ -100,7 +100,7 @@ const getAlignAttrs: Resolver = (component) => {
  * @param { string } textAlign - NOODL textAlign value
  */
 function getTextAlign(textAlign: string): undefined | object {
-  if (!noodlTextAlignStrings.includes(textAlign)) {
+  if (!textAlignStrings.includes(textAlign)) {
     return
   }
 

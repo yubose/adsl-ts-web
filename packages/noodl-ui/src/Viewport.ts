@@ -35,12 +35,16 @@ class Viewport implements IViewport {
       window.removeEventListener('resize', this.#onResize)
 
       this.#onResize = () => {
+        const previousWidth = this.#width
+        const previousHeight = this.#height
         this.#width = window.innerWidth
         this.#height = window.innerHeight
 
         callback({
           width: this.#width,
           height: this.#height,
+          previousWidth,
+          previousHeight,
         })
       }
 

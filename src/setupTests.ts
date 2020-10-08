@@ -1,6 +1,11 @@
 import _ from 'lodash'
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
 import Logger, { _color } from 'logsnap'
+import { noodluidom } from './utils/test-utils'
+
+chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
 let logsnapSpy: sinon.SinonStub
@@ -31,4 +36,5 @@ after(() => {
 
 afterEach(() => {
   document.body.textContent = ''
+  noodluidom.reset()
 })

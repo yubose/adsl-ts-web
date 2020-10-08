@@ -47,9 +47,9 @@ class Saver {
 
       filepath = path.join(dir, filename)
 
-      if (type === 'json') {
+      if (type !== 'yml') {
         await fs.writeJson(filepath, data, { spaces: 2 })
-      } else if (type === 'yml') {
+      } else {
         await fs.writeFile(filepath, yaml.stringify(data), { encoding: 'utf8' })
       }
     }

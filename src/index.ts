@@ -92,7 +92,7 @@ function createPreparePage(options: {
 
 window.addEventListener('load', async () => {
   // Experimenting dynamic import (code splitting)
-  const { Account } = await import('@aitmed/cadl')
+  // const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
 
@@ -106,10 +106,10 @@ window.addEventListener('load', async () => {
   window.meeting = Meeting
   window.cp = copyToClipboard
   // Auto login for the time being
-  const vcode = await Account.requestVerificationCode('+1 8882465555')
-  const profile = await Account.login('+1 8882465555', '142251', vcode || '')
-  log.magenta(vcode)
-  log.green('Profile', profile)
+  // const vcode = await Account.requestVerificationCode('+1 8882465555')
+  // const profile = await Account.login('+1 8882465555', '142251', vcode || '')
+  // log.magenta(vcode)
+  // log.green('Profile', profile)
   // Initialize user/auth state, store, and handle initial route
   // redirections before proceeding
   const viewport = new Viewport()
@@ -501,14 +501,47 @@ window.addEventListener('load', async () => {
   -------------------------------------------------------- */
   // Register the onresize listener once, if it isn't already registered
   if (viewport.onResize === undefined) {
-    viewport.onResize = (newSizes) => {
-      noodlui?.setViewport?.(newSizes)
-      if (page.rootNode) {
-        page.rootNode.style.width = `${newSizes.width}px`
-        page.rootNode.style.height = `${newSizes.height}px`
-        page.render(noodl?.root?.[page.currentPage]?.components)
-      } else {
-        // TODO
+    /**
+     * This manages viewport aspect ratios for the SDK whenever it changes.
+     * This affects the endpoints that the SDK uses to load pages
+     */
+    /**
+     * The binary Great Common Divisor calculator (fastest performance)
+     * https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
+     * @param { number } u - Upper
+     * @param { number } v - Lower
+     */
+    function getGCD(u: number, v: number): any {
+      if (u === v) return u
+      if (u === 0) return v
+      if (v === 0) return u
+      if (~u & 1)
+        if (v & 1) return getGCD(u >> 1, v)
+        else return getGCD(u >> 1, v >> 1) << 1
+      if (~v & 1) return getGCD(u, v >> 1)
+      if (u > v) return getGCD((u - v) >> 1, v)
+      return getGCD((v - u) >> 1, u)
+    }
+
+    function getSizes(w: number, h: number) {
+      var d = getGCD(w, h)
+      return [w / d, h / d]
+    }
+
+    viewport.onResize = ({ width, height, previousWidth, previousHeight }) => {
+      if (width !== previousWidth || height !== previousHeight) {
+        log.grey('Updating aspectRatio because viewport changed')
+        const [newWidth, newHeight] = getSizes(width, height)
+        const aspectRatio = newWidth / newHeight
+        noodl.aspectRatio = aspectRatio
+        noodlui?.setViewport?.({ width, height })
+        if (page.rootNode) {
+          page.rootNode.style.width = `${width}px`
+          page.rootNode.style.height = `${height}px`
+          page.render(noodl?.root?.[page.currentPage]?.components)
+        } else {
+          // TODO
+        }
       }
     }
   }

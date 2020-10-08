@@ -28,6 +28,8 @@ export interface GetComponentResolver {
 
 export type ResolverTest = ReturnType<typeof makeResolverTest>
 
+export const assetsUrl = 'https://something.com/assets/'
+
 export const makeResolverTest = (function () {
   let componentResolver = makeComponentResolver({ roots: {} })
 
@@ -35,7 +37,7 @@ export const makeResolverTest = (function () {
   function resolve(getComponentResolver: GetComponentResolver): any
   function resolve(component: ProxiedComponent | GetComponentResolver) {
     componentResolver
-      .setAssetsUrl('https://something.com/assets/')
+      .setAssetsUrl(assetsUrl)
       .setPage({ name: '', object: null } as Page)
       .setRoot({})
       .setViewport({ width: 375, height: 667 })

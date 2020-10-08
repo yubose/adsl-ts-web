@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import { queryHelpers } from '@testing-library/dom'
-import userEvent from '@testing-library/user-event'
 import {
   getElementType,
   getAlignAttrs,
@@ -17,31 +16,32 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   NOODL,
-  NOODLActionTriggerType,
+  NOODLComponentProps,
   Viewport,
 } from 'noodl-ui'
+import NOODLUIDOM, { NOODLDOMElement } from 'noodl-ui-dom'
 
 export const queryByDataKey = queryHelpers.queryByAttribute.bind(
   null,
   'data-key',
 )
 
-export const queryByDataUx = queryHelpers.queryByAttribute.bind(null, 'data-ux')
+export const queryByDataListId = queryHelpers.queryByAttribute.bind(
+  null,
+  'data-listid',
+)
 
-export function mapUserEvent(noodlEventType: NOODLActionTriggerType) {
-  switch (noodlEventType) {
-    case 'onClick':
-      return userEvent.click
-    case 'onHover':
-    case 'onMouseEnter':
-      return userEvent.hover
-    case 'onMouseLeave':
-    case 'onMouseOut':
-      return userEvent.unhover
-    default:
-      break
-  }
-}
+export const queryByDataName = queryHelpers.queryByAttribute.bind(
+  null,
+  'data-name',
+)
+
+export const queryByDataValue = queryHelpers.queryByAttribute.bind(
+  null,
+  'data-value',
+)
+
+export const queryByDataUx = queryHelpers.queryByAttribute.bind(null, 'data-ux')
 
 export const assetsUrl = 'https://aitmed.com/assets/'
 
@@ -65,3 +65,24 @@ export const noodl = new NOODL()
     getCustomDataAttrs,
     getEventHandlers,
   )
+
+export const noodluidom = (function () {
+  let _inst: NOODLUIDOM = new NOODLUIDOM()
+
+  Object.defineProperty(_inst, 'reset', {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: function () {
+      _inst = new NOODLUIDOM()
+    },
+  })
+
+  return _inst as NOODLUIDOM & { reset: () => any }
+})()
+
+export function toDOM(props: NOODLComponentProps): NOODLDOMElement | null {
+  const node = noodluidom.parse(props)
+  document.body.appendChild(node as NOODLDOMElement)
+  return node
+}

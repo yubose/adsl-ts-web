@@ -101,8 +101,8 @@ class Action<OriginalAction extends NOODLChainActionObject> {
         { snapshot: this.getSnapshot(), args },
       )
 
+      // TODO - Logic for return values as objects (new if/ condition in action chains)
       this.result = await this.callback?.(this.getSnapshot(), args)
-
       this.status = 'resolved'
 
       return this.result

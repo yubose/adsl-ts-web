@@ -160,7 +160,7 @@ module.exports = {
         )
         console.log(`Status:   ${chalk.blueBright(msg.toUpperCase())}`)
         console.log(`Progress: ${chalk.magenta(percentage.toFixed(4) * 100)}%`)
-        console.log(`Modules:  ${chalk.magenta(args[0])}`)
+        console.log(`File:  ${chalk.magenta(args[0])}`)
         console.log('')
         console.log(`${chalk('eCOS packages')}:`)
         console.log(
