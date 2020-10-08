@@ -16,7 +16,7 @@ else
     DBucket=$2
     if [ "$DBucket" = "devtest.aitmed.com" ]
     then
-        CloudFrontID="E2KLJ4USOZTTNE"
+        CloudFrontID="E3V53AV2M0GF5H"
     else
         # for cadltest.aitmed.com
         CloudFrontID="E1O68VOULBOMAT"
