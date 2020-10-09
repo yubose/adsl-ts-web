@@ -20,6 +20,7 @@ const getEventHandlers: Resolver = (component, options) => {
           createActionChain(action, {
             // needsBlob: component.get('contentType') === 'file',
             trigger: eventType,
+            component,
           }),
         )
       }

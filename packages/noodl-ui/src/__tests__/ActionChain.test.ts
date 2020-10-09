@@ -148,4 +148,14 @@ describe('ActionChain', () => {
       //
     })
   })
+
+  describe('"if" conditions', () => {
+    xit('should return item 2 if truthy', () => {
+      actionChain = new ActionChain([pageJumpAction])
+    })
+
+    xit('should return item 3 if falsey', () => {
+      //
+    })
+  })
 })

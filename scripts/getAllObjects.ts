@@ -37,7 +37,7 @@ async function getAllObjects({
 
   base.onBaseItems = async () => {
     const names = _.keys(base.items)
-    let consoleSaveMsg = `Saved rootConfig, noodlConfig`
+    let consoleSaveMsg = `Saving rootConfig, noodlConfig`
 
     _.forEach(names, (name, index, coll) => {
       name && log.green(`Retrieved ${name}`)
@@ -77,26 +77,34 @@ async function getAllObjects({
   log.blue(`Recreated the ${parseMode}s directory`)
   log.blank()
 
-  const items = await aggregator.load({
-    includeBasePages: true,
-    includePages: true,
-  })
-  await Promise.all(
-    _.map(_.entries(items), async ([name, { json: resolvedPage }]) => {
-      const opts = {}
-      await saver.save({
-        data: resolvedPage,
-        dir: path.join(
-          paths[parseMode],
-          /(base|config)/i.test(name) ? '' : 'pages',
-        ),
-        filename: name + saver.getExt(),
-        type: parseMode,
-        ...opts,
-      })
-      log.green(`Retrieved and saved page ${parseMode}: ${name}`)
-    }),
-  )
+  try {
+    const items = await aggregator.load({
+      includeBasePages: true,
+      includePages: true,
+    })
+    await Promise.all(
+      _.map(_.entries(items), async ([name, { json: resolvedPage }]) => {
+        const opts = {}
+        await saver.save({
+          data: resolvedPage,
+          dir: path.join(
+            paths[parseMode],
+            /(base|config)/i.test(name) ? '' : 'pages',
+          ),
+          filename: name + saver.getExt(),
+          type: parseMode,
+          ...opts,
+        })
+        log.green(`Retrieved and saved page ${parseMode}: ${name}`)
+      }),
+    )
+  } catch (error) {
+    if (error.response?.data) {
+      console.log(chalk.redBright(error.response.data))
+    } else {
+      console.log(chalk.redBright(`[${error.name}]: ${error.message}`))
+    }
+  }
 }
 
 export default getAllObjects

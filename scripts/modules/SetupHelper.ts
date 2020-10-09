@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import yaml from 'yaml'
+import chalk from 'chalk'
 import axios from 'axios'
 
 export interface JsonYmlBoolean {
@@ -35,7 +36,12 @@ class SetupHelper {
       this.items[opts.name] = this.formatResponse(yml, opts)
       return this.items
     } catch (error) {
-      throw error
+      if (error.response?.data) {
+        console.log(chalk.redBright(error.response.data))
+      } else {
+        console.log(chalk.redBright(`[${error.name}]: ${error.message}`))
+      }
+      return this.items
     }
   }
 

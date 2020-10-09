@@ -21,16 +21,16 @@ class Aggregator {
   }
 
   async load({ includeBasePages, includePages }) {
-    console.log(includeBasePages)
     const {
       rootConfig: { json: rootConfig },
       noodlConfig: { json: noodlConfig },
     } = await this.#baseSetup.load({ includeBasePages })
     if (includePages) {
-      this.#appSetup.baseUrl = rootConfig.cadlBaseUrl
-      this.#appSetup.endpoint = rootConfig.cadlBaseUrl + rootConfig.cadlMain
+      this.#appSetup.baseUrl = this.#baseSetup.baseUrl
+      this.#appSetup.endpoint = this.#baseSetup.baseUrl + rootConfig.cadlMain
       await this.#appSetup.load(noodlConfig.page)
     }
+    console.log(this.items)
     _.assign(this.items, this.#baseSetup.items, this.#appSetup.items)
     return this.items
   }

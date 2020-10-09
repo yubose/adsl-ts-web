@@ -77,14 +77,8 @@ class BaseSetup {
   }
 
   getLatestVersion() {
-    return (
-      (
-        this.rootConfig.json?.web?.cadlVersion ||
-        this.rootConfig.json?.web?.noodlVersion
-      )?.test ||
-      this.rootConfig.json?.versionNumber ||
-      this.rootConfig.json?.versionNumber
-    )
+    const rootConfig = this.rootConfig.json
+    return rootConfig?.web?.cadlVersion?.test || rootConfig?.versionNumber
   }
 
   getRootConfig() {

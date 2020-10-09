@@ -25,6 +25,7 @@ export type BuiltInFuncName =
   | 'lockApplication'
   | 'logOutOfApplication'
   | 'logout'
+  | 'redraw'
   | 'signIn'
   | 'signUp'
   | 'signout'
@@ -151,6 +152,11 @@ const createBuiltInActions = function ({
     const { Account } = await import('@aitmed/cadl')
     await Account.logout(true)
     window.location.reload()
+  }
+
+  builtInActions.redraw = async (action, { component }) => {
+    const { viewTag } = action
+    // Re-render the current list item somehow
   }
 
   builtInActions.signIn = async (action, options) => {}

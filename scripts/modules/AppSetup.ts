@@ -25,9 +25,10 @@ class AppSetup {
 
   async load(pageNames: string[]) {
     const loadPage = async (pageName: string) => {
+      const url = this.baseUrl + pageName + '_en.yml'
       await this.#helper.loadNoodlObject({
+        url,
         name: pageName,
-        url: this.baseUrl + pageName + '_en.yml',
       })
     }
 
@@ -36,7 +37,7 @@ class AppSetup {
     let chunk1: any = Promise.all(chunks[0].map(loadPage))
     let chunk2: any = Promise.all(chunks[1].map(loadPage))
     let chunk3: any = Promise.all(chunks[2].map(loadPage))
-    let chunk4: any = Promise.all(chunks[3].map(loadPage))
+    let chunk4: any = Promise.all(chunks[3].map(loadPage).filter(Boolean))
     await chunk1
     await chunk2
     await chunk3

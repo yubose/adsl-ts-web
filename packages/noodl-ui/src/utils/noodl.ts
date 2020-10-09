@@ -5,12 +5,16 @@ import {
   NOODLChainActionObject,
   NOODLComponentType,
   NOODLComponentProps,
+  NOODLIfObject,
   NOODLTextBoardTextObject,
   NOODLTextBoardBreakLine,
   ProxiedComponent,
 } from '../types'
+import Logger from 'logsnap'
 import { isBrowser } from './common'
 import Component from '../Component'
+
+const log = Logger.create('noodl-ui/src/utils/noodl.ts')
 
 const testPropKeysByRegex = (obj: any, key: string) =>
   _.isString(key) && new RegExp(key, 'i').test(obj[key])
@@ -95,6 +99,36 @@ export const identify = (function () {
 
   return o
 })()
+
+/**
+ * Takes a callback and an "if" object. The callback will receive the three
+ * values that the "if" object contains. The first item will be the value that
+ * should be evaluated, and the additional (item 2 and 3) arguments will be the values
+ * deciding to be returned. If the callback returns true, item 2 is returned. If
+ * false, item 3 is returned
+ * @param { function } fn - Callback that receives the value being evaluated
+ * @param { NOODLIfObject } ifObj - The object that contains the "if"
+ */
+export function evalIf(
+  fn: (
+    val: NOODLIfObject['if'][0],
+    onTrue: NOODLIfObject['if'][1],
+    onFalse: NOODLIfObject['if'][2],
+  ) => NOODLIfObject['if'][1] | NOODLIfObject['if'][2],
+  ifObj: NOODLIfObject,
+): NOODLIfObject['if'][1] | NOODLIfObject['if'][2] {
+  if (_.isArray(ifObj)) {
+    const [val, onTrue, onFalse] = ifObj
+    return fn(val, onTrue, onFalse) ? onTrue : onFalse
+  } else {
+    log.func('evalIf')
+    log.red(
+      `An "if" object was encountered but it was not an array. ` +
+        `The evaluation operation was skipped`,
+    )
+  }
+  return false
+}
 
 /**
  * Returns true if the value possibly leads to some data, which is possible

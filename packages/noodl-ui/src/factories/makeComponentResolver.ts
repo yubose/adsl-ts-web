@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { isDraft, current } from 'immer'
-import * as T from '../types'
 import ActionChain from '../ActionChain'
 import Component from '../Component'
 import getChildrenResolver from '../resolvers/getChildren'
@@ -16,6 +15,7 @@ import {
 } from '../utils/common'
 import isReference from '../utils/isReference'
 import Viewport from '../Viewport'
+import * as T from '../types'
 
 const log = Logger.create('makeComponentResolver')
 
@@ -155,11 +155,11 @@ function makeComponentResolver({
   }
 
   const o: T.ComponentResolver = {
-    init(...args: Parameters<typeof _init>) {
+    init(...args) {
       _init(...args)
       return this
     },
-    finalize(...args: Parameters<typeof _finalize>) {
+    finalize(...args) {
       _finalize(...args)
       return this
     },
@@ -178,11 +178,7 @@ function makeComponentResolver({
     getList(listId) {
       return _.isString(listId) ? _state.lists[listId] : undefined
     },
-    getListItem(
-      listId: string | undefined,
-      index: number | undefined,
-      defaultValue?: any,
-    ) {
+    getListItem(listId, index, defaultValue) {
       if (!listId || _.isUndefined(index)) {
         return defaultValue
       }
@@ -193,7 +189,7 @@ function makeComponentResolver({
      * or the component reference itself
      * @param { string | Component } component
      */
-    consume(component: T.IComponent<any>) {
+    consume(component) {
       const componentId = component.id || ''
       log.func('consume')
       if (!componentId) {
@@ -223,7 +219,7 @@ function makeComponentResolver({
       }
       return value
     },
-    setConsumerData(component: string | T.IComponent, data: any) {
+    setConsumerData(component: T.IComponent | string, data: any) {
       if (component instanceof Component) {
         _state.pending[component.id as string] = data
       } else if (_.isString(component)) {
@@ -246,29 +242,26 @@ function makeComponentResolver({
       }
       return this
     },
-    setDraftNode(component: T.IComponent) {
+    setDraftNode(component) {
       _setDraftNode(component)
       return this
     },
-    setList(listId: string, data: any[]) {
+    setList(listId, data) {
       _state.lists[listId] = data
       return this
     },
-    addLifecycleListener(
-      name: string | Function | { [key: string]: any },
-      fn?: Function | { [key: string]: any },
-    ) {
+    addLifecycleListener(name, fn) {
       _appendLifeCycleListener(lifeCycleListeners, name, fn)
       return this
     },
-    removeLifeCycleListener(name: string) {
+    removeLifeCycleListener(name) {
       if (lifeCycleListeners.has(name)) {
         lifeCycleListeners.delete(name)
       }
       return this
     },
     // Handle only top + second level for now
-    hasLifeCycle(name: string | Function) {
+    hasLifeCycle(name) {
       if (lifeCycleListeners.has(name)) {
         return true
       }
@@ -295,16 +288,13 @@ function makeComponentResolver({
 
       return false
     },
-    getLifeCycle<K extends keyof T.LifeCycleListeners>(name: K) {
+    getLifeCycle(name) {
       return lifeCycleListeners.get(name)
     },
-    createActionChain(
-      actions: T.NOODLChainActionObject[],
-      { trigger }: { trigger?: T.NOODLActionTriggerType },
-    ) {
+    createActionChain(actions, { trigger, ...otherOptions }) {
       const actionListeners = lifeCycleListeners.get('action')
       const builtInListeners = lifeCycleListeners.get('builtIn')
-      const options = { builtIn: builtInListeners, trigger }
+      const options = { builtIn: builtInListeners, trigger, ...otherOptions }
 
       if (actionListeners instanceof Map) {
         actionListeners.forEach((value, key) => {
@@ -318,18 +308,15 @@ function makeComponentResolver({
       return actionChain.build({ context: o?.getResolverContext(), parser })
       // return makeActionChain(lifeCycleListeners).createHandler(...args)
     },
-    addResolvers(...args: Parameters<OptionsBuilder['addResolvers']>) {
+    addResolvers(...args) {
       optionsBuilder.addResolvers(...args)
       return this
     },
-    removeResolver(...args: Parameters<OptionsBuilder['removeResolver']>) {
+    removeResolver(...args) {
       optionsBuilder.removeResolver(...args)
       return this
     },
-    callResolvers(
-      component: T.IComponent,
-      resolverConsumerOptions: T.ResolverConsumerOptions,
-    ) {
+    callResolvers(component, resolverConsumerOptions) {
       const fns = [...optionsBuilder.resolvers]
       const index = _.findIndex(fns, (f) => !!f?.getChildren)
 
@@ -358,7 +345,7 @@ function makeComponentResolver({
         )
       }
     },
-    createSrc(path: string) {
+    createSrc(path) {
       let src = ''
       if (path && _.isString(path)) {
         if (path && _.isString(path)) {
@@ -391,9 +378,7 @@ function makeComponentResolver({
         },
       }) as T.ResolverOptions
     },
-    getResolverConsumerOptions<T extends {}>(
-      opts: { component: T.IComponent } & T,
-    ) {
+    getResolverConsumerOptions(opts) {
       return optionsBuilder.build({
         type: 'consumer',
         include: {
@@ -436,7 +421,7 @@ function makeComponentResolver({
      * showDataKey === true, else return an empty string (invisible in the UI)
      * @param { object } args
      */
-    getFallbackDataValue(component: T.IComponent, defaultValue = '') {
+    getFallbackDataValue(component, defaultValue = '') {
       const { text, dataKey, listId, listItemIndex = 0 } = component.get([
         'text',
         'dataKey',
@@ -464,9 +449,7 @@ function makeComponentResolver({
       }
       return value || defaultValue
     },
-    resolve(
-      proxiedComponent: T.ProxiedComponent | T.IComponent,
-    ): T.NOODLComponentProps {
+    resolve(proxiedComponent) {
       const component = _init(proxiedComponent)
       const page = optionsBuilder.page
       const resolverConsumerOptions = o.getResolverConsumerOptions({
@@ -529,11 +512,11 @@ function makeComponentResolver({
 
       return _finalize(component)
     },
-    setAssetsUrl(assetsUrl: string) {
+    setAssetsUrl(assetsUrl) {
       optionsBuilder.setAssetsUrl(assetsUrl)
       return this
     },
-    setPage(...args: Parameters<OptionsBuilder['setPage']>) {
+    setPage(...args) {
       const [page] = args
       if (page) {
         if (page.name !== parser.getLocalKey()) parser.setLocalKey(page.name)
@@ -541,11 +524,11 @@ function makeComponentResolver({
       optionsBuilder.setPage(...args)
       return this
     },
-    setResolvers(...args: Parameters<OptionsBuilder['setResolvers']>) {
+    setResolvers(...args) {
       optionsBuilder.setResolvers(...args)
       return this
     },
-    setRoot(key: string | { [key: string]: any }, value?: any) {
+    setRoot(key, value) {
       let newRoot
       if (_.isString(key)) {
         newRoot = { [key]: value }
@@ -565,7 +548,7 @@ function makeComponentResolver({
     getViewport() {
       return viewport
     },
-    setViewport({ width, height }: { width?: number; height?: number }) {
+    setViewport({ width, height }) {
       if (viewport) {
         if (_.isFinite(width)) {
           viewport.width = width
@@ -580,7 +563,7 @@ function makeComponentResolver({
      * Safely retrieves the current state of the draft
      * @param { ProxiedDraftComponent } draft - Draft NOODL component
      */
-    snapshot(draft: T.ProxiedDraftComponent) {
+    snapshot(draft) {
       return isDraft(draft) ? current(draft) : draft
     },
   }

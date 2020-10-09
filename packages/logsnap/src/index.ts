@@ -80,7 +80,7 @@ const logger = (function () {
     function _func(name?: string) {
       if (name) _state.func = name
       else _state.func = ''
-      !_disabled && _refreshLoggers()
+      if (!_disabled) _refreshLoggers()
       return this
     }
 
@@ -111,8 +111,8 @@ const logger = (function () {
     },
     enable() {
       _disabled = false
-      cache = { ...cacheBackup }
-      cacheBackup = {}
+      // cache = { ...cacheBackup }
+      // cacheBackup = {}
       return this
     },
     disable() {

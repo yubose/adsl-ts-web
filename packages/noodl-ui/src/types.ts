@@ -16,7 +16,7 @@ export interface NOODLPageObject {
   listData?: { [key: string]: any }
   final?: string // ex: "..save"
   init?: string | string[] // ex: ["..formData.edge.get", "..formData.w9.get"]
-  module: string
+  module?: string
   pageNumber?: string
   [key: string]: any
 }
@@ -63,7 +63,7 @@ export interface NOODLPluginComponent extends NOODLComponent {
   path: string
 }
 
-export interface NOODLIfPath {
+export interface NOODLIfObject {
   if: [any, any, any]
 }
 
@@ -84,6 +84,7 @@ export interface NOODLChainActionGotoObject {
 
 export interface NOODLChainActionObjectBase {
   actionType: NOODLActionType
+  [key: string]: any
 }
 
 export type NOODLChainActionObject =
@@ -374,7 +375,7 @@ export interface ActionChainActionCallback<ActionObject = any> {
   ): ActionChainActionCallbackReturnType
 }
 
-export interface ActionChainActionCallbackOptions<T = any>
+export interface ActionChainActionCallbackOptions<T extends IComponent = any>
   extends ComponentResolverStateGetters {
   abort?(
     reason?: string | string[],
@@ -464,7 +465,7 @@ export interface ComponentResolver {
   ): (Function & { finally?: LifeCycleListener }) | undefined
   createActionChain(
     actions: NOODLChainActionObject[],
-    { trigger }: { trigger?: NOODLActionTriggerType },
+    { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
   addResolvers(...resolvers: Resolver[]): this
   removeResolver(resolver: Resolver): this
@@ -635,8 +636,8 @@ export interface ResolveComponent<T = any> {
   (component: ProxiedComponent, options: ResolverOptions): T
 }
 
-export type Resolver<T = any> = ((
-  component: T,
+export type Resolver = ((
+  component: IComponent,
   resolverConsumerOptions: ResolverConsumerOptions,
 ) => void) & {
   getChildren?: Function
@@ -651,10 +652,9 @@ export interface ResolverOptions
   resolveComponent: ResolveComponent
 }
 
-export interface ResolverConsumerOptions<T = any>
-  extends ComponentResolverStateHelpers {
+export interface ResolverConsumerOptions extends ComponentResolverStateHelpers {
   context: ResolverContext
-  component: T
+  component: IComponent
   createActionChain: ComponentResolver['createActionChain']
   createSrc: ComponentResolver['createSrc']
   getFallbackDataValue: ComponentResolver['getFallbackDataValue']
