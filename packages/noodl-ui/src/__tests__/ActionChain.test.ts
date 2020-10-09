@@ -4,35 +4,31 @@ import makeRootsParser from '../factories/makeRootsParser'
 import ActionChain from '../ActionChain'
 import Action from '../Action'
 import {
-  NOODLChainActionUpdateObject,
-  NOODLChainActionPageJumpObject,
-  NOODLChainActionPopupDismissObject,
+  NOODLUpdateObject,
+  NOODLPageJumpObject,
+  NOODLPopupDismissObject,
 } from '../types'
 
 const parser = makeRootsParser({ roots: {} })
 
-const pageJumpAction: NOODLChainActionPageJumpObject = {
+const pageJumpAction: NOODLPageJumpObject = {
   actionType: 'pageJump',
   destination: 'MeetingRoomCreate',
 }
 
-const popUpDismissAction: NOODLChainActionPopupDismissObject = {
+const popUpDismissAction: NOODLPopupDismissObject = {
   actionType: 'popUpDismiss',
   popUpView: 'warningView',
 }
 
-const updateObjectAction: NOODLChainActionUpdateObject = {
+const updateObjectAction: NOODLUpdateObject = {
   actionType: 'updateObject',
   object: {
     '.Global.meetroom.edge.refid@': '___.itemObject.id',
   },
 }
 
-let actions: [
-  NOODLChainActionPopupDismissObject,
-  NOODLChainActionUpdateObject,
-  NOODLChainActionPageJumpObject,
-]
+let actions: [NOODLPopupDismissObject, NOODLUpdateObject, NOODLPageJumpObject]
 
 let actionChain: ActionChain
 

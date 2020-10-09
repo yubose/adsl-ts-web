@@ -39,10 +39,10 @@ export interface NOODLComponent {
   iteratorVar?: string
   listObject?: '' | any[]
   maxPresent?: string // ex: "6" (Currently used in components with type: list)
-  onClick?: NOODLChainActionObject[]
-  onHover?: NOODLChainActionObject[]
+  onClick?: NOODLActionObject[]
+  onHover?: NOODLActionObject[]
   options?: string[]
-  path?: string | { if: [any, any, any] }
+  path?: string | NOODLIfObject
   pathSelected?: string
   poster?: string
   placeholder?: string
@@ -71,62 +71,56 @@ export interface NOODLIfObject {
     ---- ACTIONS
   -------------------------------------------------------- */
 
-export type NOODLGotoAction =
-  | NOODLChainActionGotoURL
-  | NOODLChainActionGotoObject
+export type NOODLGotoAction = NOODLGotoURL | NOODLGotoObject
 
-export type NOODLChainActionGotoURL = string
+export type NOODLGotoURL = string
 
-export interface NOODLChainActionGotoObject {
+export interface NOODLGotoObject {
   destination?: string
   [key: string]: any
 }
 
-export interface NOODLChainActionObjectBase {
+export type NOODLActionObject =
+  | NOODLBuiltInObject
+  | NOODLEvalObject
+  | NOODLPageJumpObject
+  | NOODLPopupBaseObject
+  | NOODLPopupDismissObject
+  | NOODLRefreshObject
+  | NOODLSaveObject
+  | NOODLUpdateObject
+
+export interface NOODLActionObjectBase {
   actionType: NOODLActionType
   [key: string]: any
 }
 
-export type NOODLChainActionObject =
-  | NOODLChainActionBuiltInObject
-  | NOODLChainActionEvalObject
-  | NOODLChainActionPageJumpObject
-  | NOODLChainActionPopupBaseObject
-  | NOODLChainActionPopupDismissObject
-  | NOODLChainActionRefreshObject
-  | NOODLChainActionSaveObjectObject
-  | NOODLChainActionUpdateObject
-
-export interface NOODLChainActionBuiltInObject
-  extends NOODLChainActionObjectBase {
+export interface NOODLBuiltInObject extends NOODLActionObjectBase {
   actionType: 'builtIn'
   funcName: string
 }
 
-export interface NOODLChainActionEvalObject extends NOODLChainActionObjectBase {
+export interface NOODLEvalObject extends NOODLActionObjectBase {
   actionType: 'evalObject'
   object?: any
   [key: string]: any
 }
 
-export interface NOODLChainActionPageJumpObject
-  extends NOODLChainActionObjectBase {
+export interface NOODLPageJumpObject extends NOODLActionObjectBase {
   actionType: 'pageJump'
   destination: string
 }
 
-export interface NOODLChainActionRefreshObject
-  extends NOODLChainActionObjectBase {
+export interface NOODLRefreshObject extends NOODLActionObjectBase {
   actionType: 'refresh'
 }
 
-export interface NOODLChainActionSaveObjectObject
-  extends NOODLChainActionObjectBase {
+export interface NOODLSaveObject extends NOODLActionObjectBase {
   actionType: 'saveObject'
   object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
 }
 
-export type NOODLChainActionUpdateObject<T = any> =
+export type NOODLUpdateObject<T = any> =
   | {
       actionType: 'updateObject'
       object: T
@@ -137,14 +131,12 @@ export type NOODLChainActionUpdateObject<T = any> =
       dataObject: string
     }
 
-export interface NOODLChainActionPopupBaseObject
-  extends NOODLChainActionObjectBase {
+export interface NOODLPopupBaseObject extends NOODLActionObjectBase {
   actionType: 'popUp'
   popUpView: string
 }
 
-export interface NOODLChainActionPopupDismissObject
-  extends NOODLChainActionObjectBase {
+export interface NOODLPopupDismissObject extends NOODLActionObjectBase {
   actionType: 'popUpDismiss'
   popUpView: string
 }
@@ -327,7 +319,7 @@ export type ActionChainStatus =
 
 export interface ActionChainSnapshot<Actions extends any[]> {
   currentAction: Actions[number]
-  original: NOODLChainActionObject[]
+  original: NOODLActionObject[]
   queue: Actions
   status: ActionChainStatus
 }
@@ -360,7 +352,7 @@ export type ActionStatus =
   | 'error'
   | 'timed-out'
 
-export type ParsedChainActionUpdateObject = NOODLChainActionUpdateObject<
+export type ParsedChainActionUpdateObject = NOODLUpdateObject<
   ((...args: any[]) => Promise<any>)[] | ((...args: any[]) => Promise<any>)
 >
 
@@ -464,7 +456,7 @@ export interface ComponentResolver {
     name: K,
   ): (Function & { finally?: LifeCycleListener }) | undefined
   createActionChain(
-    actions: NOODLChainActionObject[],
+    actions: NOODLActionObject[],
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
   addResolvers(...resolvers: Resolver[]): this
@@ -514,32 +506,25 @@ export type ComponentResolverStateSetters = Pick<
   'setConsumerData' | 'setDraftNode' | 'setList'
 >
 
-export type OnEvalObject = ActionChainActionCallback<NOODLChainActionEvalObject>
+export type OnEvalObject = ActionChainActionCallback<NOODLEvalObject>
 
-export type OnGoto = ActionChainActionCallback<
-  NOODLChainActionGotoURL | NOODLChainActionGotoObject
->
+export type OnGoto = ActionChainActionCallback<NOODLGotoURL | NOODLGotoObject>
 
-export type OnPageJump = ActionChainActionCallback<
-  NOODLChainActionPageJumpObject
->
+export type OnPageJump = ActionChainActionCallback<NOODLPageJumpObject>
 
-export type OnPopup = ActionChainActionCallback<NOODLChainActionPopupBaseObject>
+export type OnPopup = ActionChainActionCallback<NOODLPopupBaseObject>
 
-export type OnPopupDismiss = ActionChainActionCallback<
-  NOODLChainActionPopupDismissObject
->
+export type OnPopupDismiss = ActionChainActionCallback<NOODLPopupDismissObject>
 
 export interface OnSaveObject {
-  (
-    action: NOODLChainActionSaveObjectObject,
-    options: ActionChainActionCallbackOptions,
-  ): Promise<any>
+  (action: NOODLSaveObject, options: ActionChainActionCallbackOptions): Promise<
+    any
+  >
 }
 
 export interface OnRefresh {
   (
-    action: NOODLChainActionRefreshObject,
+    action: NOODLRefreshObject,
     options: ActionChainActionCallbackOptions,
   ): Promise<any>
 }
@@ -555,23 +540,19 @@ export interface OnUpdateObject {
 export interface LifeCycleListeners {
   onAction?: {
     builtIn?: {
-      [funcName: string]: ActionChainActionCallback<
-        NOODLChainActionBuiltInObject
-      >
+      [funcName: string]: ActionChainActionCallback<NOODLBuiltInObject>
     }
-    evalObject?: ActionChainActionCallback<NOODLChainActionEvalObject>
-    goto?: ActionChainActionCallback<
-      NOODLChainActionGotoURL | NOODLChainActionGotoObject
-    >
-    pageJump?: ActionChainActionCallback<NOODLChainActionPageJumpObject>
-    popUp?: ActionChainActionCallback<NOODLChainActionPopupBaseObject>
-    popUpDismiss?: ActionChainActionCallback<NOODLChainActionPopupDismissObject>
+    evalObject?: ActionChainActionCallback<NOODLEvalObject>
+    goto?: ActionChainActionCallback<NOODLGotoURL | NOODLGotoObject>
+    pageJump?: ActionChainActionCallback<NOODLPageJumpObject>
+    popUp?: ActionChainActionCallback<NOODLPopupBaseObject>
+    popUpDismiss?: ActionChainActionCallback<NOODLPopupDismissObject>
     saveObject?: (
-      action: NOODLChainActionSaveObjectObject,
+      action: NOODLSaveObject,
       options: ActionChainActionCallbackOptions,
     ) => Promise<any>
     refresh?(
-      action: NOODLChainActionRefreshObject,
+      action: NOODLRefreshObject,
       options: ActionChainActionCallbackOptions,
     ): Promise<any>
     updateObject?: (

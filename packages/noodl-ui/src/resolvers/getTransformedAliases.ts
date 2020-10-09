@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import { isPossiblyDataKey } from '../utils/noodl'
 import { contentTypes } from '../constants'
-import { Resolver } from '../types'
+import { NOODLIfObject, Resolver } from '../types'
 
 const log = Logger.create('getTransformedAliases')
 
@@ -15,7 +15,7 @@ const log = Logger.create('getTransformedAliases')
  */
 const getTransformedAliases: Resolver = (
   component,
-  { createSrc, context, getListItem },
+  { context, getListItem, createSrc },
 ) => {
   const {
     type,
@@ -65,9 +65,8 @@ const getTransformedAliases: Resolver = (
 
     if (src && _.isString(src)) {
       component.set('src', createSrc(src))
-    } else if (_.isPlainObject(path)) {
-      const conditions = path.if
-      const [valEvaluating, valOnTrue, valOnFalse] = conditions
+    } else if (!_.isString(path) && _.isPlainObject(path)) {
+      const [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
       if (_.isString(valEvaluating)) {
         if (valEvaluating.startsWith('itemObject')) {
           const { page, roots } = context

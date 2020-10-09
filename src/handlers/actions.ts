@@ -6,12 +6,12 @@ import {
   getByDataUX,
   isReference,
   NOODLActionType,
-  NOODLChainActionEvalObject,
-  NOODLChainActionPopupBaseObject,
-  NOODLChainActionPopupDismissObject,
-  NOODLChainActionRefreshObject,
-  NOODLChainActionSaveObjectObject,
-  NOODLChainActionUpdateObject,
+  NOODLEvalObject,
+  NOODLPopupBaseObject,
+  NOODLPopupDismissObject,
+  NOODLRefreshObject,
+  NOODLSaveObject,
+  NOODLUpdateObject,
 } from 'noodl-ui'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
@@ -21,10 +21,7 @@ const log = Logger.create('actions.ts')
 const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<NOODLActionType, ActionChainActionCallback<any>>
 
-  _actions.evalObject = async (
-    action: Action<NOODLChainActionEvalObject>,
-    options,
-  ) => {
+  _actions.evalObject = async (action: Action<NOODLEvalObject>, options) => {
     if (_.isFunction(action?.original?.object)) {
       await action.original?.object()
     } else {
@@ -64,9 +61,7 @@ const createActions = function ({ page }: { page: IPage }) {
   }
 
   _actions.popUp = (
-    action: Action<
-      NOODLChainActionPopupBaseObject | NOODLChainActionPopupDismissObject
-    >,
+    action: Action<NOODLPopupBaseObject | NOODLPopupDismissObject>,
     options,
   ) => {
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
@@ -89,18 +84,12 @@ const createActions = function ({ page }: { page: IPage }) {
     return _actions.popUp(action, options)
   }
 
-  _actions.refresh = (
-    action: Action<NOODLChainActionRefreshObject>,
-    options,
-  ) => {
+  _actions.refresh = (action: Action<NOODLRefreshObject>, options) => {
     log.func('refresh').grey(action.original.actionType, { action, ...options })
     window.location.reload()
   }
 
-  _actions.saveObject = async (
-    action: Action<NOODLChainActionSaveObjectObject>,
-    options,
-  ) => {
+  _actions.saveObject = async (action: Action<NOODLSaveObject>, options) => {
     const { default: noodl } = await import('app/noodl')
     const { context, abort, parser } = options as any
 
@@ -167,7 +156,7 @@ const createActions = function ({ page }: { page: IPage }) {
   }
 
   _actions.updateObject = async (
-    action: Action<NOODLChainActionUpdateObject>,
+    action: Action<NOODLUpdateObject>,
     options,
   ) => {
     const { default: noodl } = await import('app/noodl')
