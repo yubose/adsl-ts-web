@@ -14,6 +14,7 @@ This allows for faster compilation, faster load times and quicker development fl
 
 ## Todos
 
+- PatientChartGeneralInfo --> redraw reference
 - Support `path` objects
   - if
     - 1st item --> data to use
