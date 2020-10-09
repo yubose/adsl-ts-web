@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { current } from 'immer'
 import {
   IComponent,
-  NOODLChainActionObject,
+  NOODLActionObject,
   NOODLComponentType,
   NOODLComponentProps,
   NOODLTextBoardTextObject,
@@ -16,7 +16,7 @@ const testPropKeysByRegex = (obj: any, key: string) =>
   _.isString(key) && new RegExp(key, 'i').test(obj[key])
 
 /** Returns true if the value is an object. Like those with an actionType prop */
-export function isAction(value: unknown): value is NOODLChainActionObject {
+export function isAction(value: unknown): value is NOODLActionObject {
   if (value && _.isObject(value)) {
     if ('actionType' in value) return true
     if ('goto' in value) return true

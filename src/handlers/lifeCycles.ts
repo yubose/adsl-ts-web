@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import {
   ActionChainActionCallbackOptions,
-  NOODLChainActionObject,
+  NOODLActionObject,
   NOODLComponent,
   ResolverConsumerOptions,
 } from 'noodl-ui'
@@ -10,7 +10,7 @@ import { openFileSelect } from '../utils/dom'
 function createLifeCycles() {
   const o = {
     onBeforeResolve(
-      actions: NOODLChainActionObject[],
+      actions: NOODLActionObject[],
       options: ActionChainActionCallbackOptions,
     ) {
       const logMsg = `%c[onBeforeResolve]`
@@ -18,7 +18,7 @@ function createLifeCycles() {
       // console.log(logMsg, logStyle, { actions, options })
     },
     async onChainStart(
-      actions: NOODLChainActionObject[],
+      actions: NOODLActionObject[],
       options: ActionChainActionCallbackOptions,
     ) {
       const logMsg = `%c[onChainStart]`
@@ -31,7 +31,7 @@ function createLifeCycles() {
       }
     },
     onChainEnd(
-      actions: NOODLChainActionObject[],
+      actions: NOODLActionObject[],
       options: ActionChainActionCallbackOptions,
     ) {
       const logMsg = `%c[onChainEnd]`
@@ -40,7 +40,7 @@ function createLifeCycles() {
     },
     onChainError(
       error: Error,
-      action: NOODLChainActionObject,
+      action: NOODLActionObject,
       options: ActionChainActionCallbackOptions,
     ) {
       const logMsg = `%c[onChainError]`
@@ -48,7 +48,7 @@ function createLifeCycles() {
       console.log(logMsg, logStyle, { action, error, ...options })
     },
     onChainAborted(
-      action: NOODLChainActionObject,
+      action: NOODLActionObject,
       options: ActionChainActionCallbackOptions,
     ) {
       const logMsg = `%c[onChainAborted]`

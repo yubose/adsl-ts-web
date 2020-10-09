@@ -299,7 +299,7 @@ function makeComponentResolver({
       return lifeCycleListeners.get(name)
     },
     createActionChain(
-      actions: T.NOODLChainActionObject[],
+      actions: T.NOODLActionObject[],
       { trigger }: { trigger?: T.NOODLActionTriggerType },
     ) {
       const actionListeners = lifeCycleListeners.get('action')

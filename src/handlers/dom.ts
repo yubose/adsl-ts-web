@@ -1,14 +1,8 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import {
-  eventTypes,
-  NOODLActionTriggerType,
-  NOODLComponentProps,
-  SelectOption,
-} from 'noodl-ui'
-import { DataValueElement, NodePropsFunc, NOODLDOMElement } from 'noodl-ui-dom'
+import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
+import { DataValueElement, NodePropsFunc } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
-import { setAttr } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
 

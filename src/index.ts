@@ -26,7 +26,7 @@ import {
   getTransformedStyleAliases,
   getDataValues,
   identify,
-  NOODLChainActionBuiltInObject,
+  NOODLBuiltInObject,
   NOODLPageObject,
   NOODLComponentProps,
   Viewport,
@@ -72,9 +72,9 @@ function enhanceActions(actions: ReturnType<typeof createActions>) {
  */
 function createPreparePage(options: {
   builtIn: {
-    goto: ActionChainActionCallback<NOODLChainActionBuiltInObject>
+    goto: ActionChainActionCallback<NOODLBuiltInObject>
     videoChat: (
-      action: NOODLChainActionBuiltInObject & {
+      action: NOODLBuiltInObject & {
         roomId: string
         accessToken: string
       },

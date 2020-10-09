@@ -4,7 +4,7 @@ import {
   ActionChainActionCallbackOptions,
   getByDataUX,
   getDataValues,
-  NOODLChainActionBuiltInObject,
+  NOODLBuiltInObject,
   NOODLGotoAction,
 } from 'noodl-ui'
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
@@ -42,7 +42,7 @@ const createBuiltInActions = function ({
   // @ts-expect-error
   const builtInActions: Record<
     BuiltInFuncName,
-    ActionChainActionCallback<NOODLChainActionBuiltInObject>
+    ActionChainActionCallback<NOODLBuiltInObject>
   > = {}
 
   // Called on signin + signup
@@ -222,7 +222,7 @@ export function onVideoChatBuiltIn({
   joinRoom: (token: string) => Promise<any>
 }) {
   return async function onVideoChat(
-    action: NOODLChainActionBuiltInObject & {
+    action: NOODLBuiltInObject & {
       roomId: string
       accessToken: string
     },
@@ -266,7 +266,7 @@ export function onVideoChatBuiltIn({
 }
 
 export function onBuiltinMissing(
-  action: NOODLChainActionBuiltInObject,
+  action: NOODLBuiltInObject,
   options: ActionChainActionCallbackOptions,
 ) {
   window.alert(`The button "${action.funcName}" is not available to use yet`)

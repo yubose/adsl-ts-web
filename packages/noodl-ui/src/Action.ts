@@ -2,8 +2,8 @@ import _ from 'lodash'
 import {
   ActionSnapshot,
   ActionStatus,
-  NOODLChainActionBuiltInObject,
-  NOODLChainActionObject,
+  NOODLBuiltInObject,
+  NOODLActionObject,
 } from './types'
 import { getRandomKey } from './utils/common'
 import { AbortExecuteError } from './errors'
@@ -15,9 +15,7 @@ export interface ActionCallback {
   (snapshot: ActionSnapshot, handlerOptions?: any): any
 }
 
-export interface ActionOptions<
-  OriginalAction extends NOODLChainActionObject = any
-> {
+export interface ActionOptions<OriginalAction extends NOODLActionObject = any> {
   callback?: ActionCallback
   id?: string
   onPending?: (snapshot: ActionSnapshot<OriginalAction>) => any
@@ -30,7 +28,7 @@ export interface ActionOptions<
 
 export const DEFAULT_TIMEOUT_DELAY = 10000
 
-class Action<OriginalAction extends NOODLChainActionObject> {
+class Action<OriginalAction extends NOODLActionObject> {
   #id: string | undefined = undefined
   #callback: ActionCallback | undefined
   #onPending: (snapshot: ActionSnapshot) => any
@@ -93,9 +91,7 @@ class Action<OriginalAction extends NOODLChainActionObject> {
       log.hotpink(
         `${
           this.type === 'builtIn'
-            ? `funcName: ${
-                (this.original as NOODLChainActionBuiltInObject).funcName
-              }`
+            ? `funcName: ${(this.original as NOODLBuiltInObject).funcName}`
             : ''
         }Executing`,
         { snapshot: this.getSnapshot(), args },
@@ -135,9 +131,7 @@ class Action<OriginalAction extends NOODLChainActionObject> {
         .func(
           `${this.type}${
             this.type === 'builtIn'
-              ? ` ---> ${
-                  (this.original as NOODLChainActionBuiltInObject).funcName
-                }`
+              ? ` ---> ${(this.original as NOODLBuiltInObject).funcName}`
               : ''
           }`,
         )

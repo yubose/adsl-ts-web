@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { contentTypes } from '../constants'
-import { Resolver } from '../types'
+import { NOODLIfPath, Resolver } from '../types'
 
 const log = Logger.create('getTransformedAliases')
 
@@ -12,7 +12,7 @@ const log = Logger.create('getTransformedAliases')
  * @param { ResolverConsumerOptions } options
  * @return { void }
  */
-const getTransformedAliases: Resolver = (component, { context, createSrc }) => {
+const getTransformedAliases: Resolver = (component, { createSrc }) => {
   const {
     type,
     contentType,
@@ -61,6 +61,17 @@ const getTransformedAliases: Resolver = (component, { context, createSrc }) => {
 
     if (src && _.isString(src)) {
       component.set('src', createSrc(src))
+    } else if (_.isPlainObject(path)) {
+      // Paths can have "if" conditions in which we receive path as an object
+      if (path.if) {
+        /**
+         * 1st index = Value that is being evaluated
+         * 2nd index = The result if it was true
+         * 3rd index = The result if it was false
+         */
+        const [value, valOnTrue, valOnFalse] = path.if
+        if (_.isString())
+      }
     } else {
       log.red(
         'Encountered a component with an invalid "path" or "resource". It ' +

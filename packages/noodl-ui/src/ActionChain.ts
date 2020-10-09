@@ -26,11 +26,11 @@ export interface ActionChainOptions {
 
 class ActionChain {
   #current: Action<any> | null | undefined
-  #executeAction: <OriginalAction extends T.NOODLChainActionObject>(
+  #executeAction: <OriginalAction extends T.NOODLActionObject>(
     action: Action<OriginalAction>,
     args: T.ActionChainCallbackOptions<Action<any>[]>,
   ) => any
-  #original: T.NOODLChainActionObject[]
+  #original: T.NOODLActionObject[]
   #queue: Action<any>[] = []
   #gen: AsyncGenerator<any, any> | null = null
   #getConstructorOptions: () => ActionChainOptions | undefined
@@ -56,19 +56,14 @@ class ActionChain {
   onChainAborted?: T.LifeCycleListeners['onChainAborted']
   onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
 
-  constructor(
-    actions?: T.NOODLChainActionObject[],
-    options?: ActionChainOptions,
-  ) {
+  constructor(actions?: T.NOODLActionObject[], options?: ActionChainOptions) {
     if (actions) {
       this.init(actions, options)
     }
 
     let timeoutRef: NodeJS.Timeout
 
-    this.#executeAction = async <
-      OriginalAction extends T.NOODLChainActionObject
-    >(
+    this.#executeAction = async <OriginalAction extends T.NOODLActionObject>(
       action: Action<OriginalAction>,
       handlerOptions: T.ActionChainCallbackOptions<Action<any>[]>,
     ) => {
@@ -94,7 +89,7 @@ class ActionChain {
     this.#getConstructorOptions = () => options
   }
 
-  init(actions: T.NOODLChainActionObject[], options?: ActionChainOptions) {
+  init(actions: T.NOODLActionObject[], options?: ActionChainOptions) {
     // Append the listeners to this instance
     if (options) {
       const { parser, needsBlob, ...opts } = options
@@ -146,7 +141,7 @@ class ActionChain {
    * Creates and returns a new Action instance
    * @param { object } obj - Action object
    */
-  createAction(obj: T.NOODLChainActionObject) {
+  createAction(obj: T.NOODLActionObject) {
     const action = new Action(obj, {
       timeoutDelay: 8000,
     })

@@ -2,7 +2,6 @@ import _ from 'lodash'
 import SetupHelper from './SetupHelper'
 import BaseSetup from './BaseSetup'
 import AppSetup from './AppSetup'
-import { loadPlugin } from 'immer/dist/internal'
 
 export interface AggregatorOptions {
   endpoint?: string
