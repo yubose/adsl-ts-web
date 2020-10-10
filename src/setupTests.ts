@@ -25,7 +25,7 @@ before(async () => {
   // )
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
-    logsnapSpy = sinon.stub(Logger, 'create').callsFake(() => _.noop)
+    logsnapSpy = sinon.stub(Logger, 'create').callsFake(_.noop as any)
   } catch (error) {}
 })
 

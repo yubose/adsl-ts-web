@@ -305,7 +305,11 @@ function makeComponentResolver({
       const actionChain = new ActionChain(actions, options)
       // @ts-expect-error\
       window.ac = actionChain
-      return actionChain.build({ context: o?.getResolverContext(), parser })
+      return actionChain.build({
+        context: o?.getResolverContext(),
+        parser,
+        ...otherOptions,
+      })
       // return makeActionChain(lifeCycleListeners).createHandler(...args)
     },
     addResolvers(...args) {

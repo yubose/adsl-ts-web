@@ -127,15 +127,14 @@ class Action<OriginalAction extends NOODLActionObject> {
 
       if (this.result) logArgs['result'] = this.result
 
-      log
-        .func(
-          `${this.type}${
-            this.type === 'builtIn'
-              ? ` ---> ${(this.original as NOODLBuiltInObject).funcName}`
-              : ''
-          }`,
-        )
-        .hotpink('Executed', logArgs)
+      log.func(
+        `${this.type}${
+          this.type === 'builtIn'
+            ? ` ---> ${(this.original as NOODLBuiltInObject).funcName}`
+            : ''
+        }`,
+      )
+      log.hotpink('Executed', logArgs)
     }
   }
 

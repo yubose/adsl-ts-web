@@ -16,7 +16,7 @@ import getChildren from '../resolvers/getChildren'
 import getCustomDataAttrs from '../resolvers/getCustomDataAttrs'
 import getEventHandlers from '../resolvers/getEventHandlers'
 import Viewport from '../Viewport'
-import { NOODLComponent } from '../types'
+import { NOODLComponent, NOODLComponentProps } from '../types'
 
 let noodl: NOODL
 let viewport: Viewport
@@ -27,14 +27,13 @@ let components = getMockComponents()
 beforeEach(() => {
   rootNode = document.createElement('div')
   rootNode.id = 'root'
-  noodl = new NOODL()
   viewport = new Viewport()
   page = {
     name: 'InviteSuccess01',
     object: { module: 'patient' },
     components: [{ type: 'button', text: 'hello!' }],
   }
-  noodl
+  noodl = new NOODL()
     .init({ viewport })
     .setRoot({ InviteSuccess01: { module: 'patient' }, components })
     .setAssetsUrl('https://something.com/assets/')
@@ -59,10 +58,8 @@ beforeEach(() => {
 })
 
 describe('NOODL', () => {
-  describe('hasLifeCycle', () => {
-    it('', () => {
-      //
-    })
+  describe.skip('hasLifeCycle', () => {
+    //
   })
   describe('addLifecycleListener', () => {
     it('should add listeners using key and value', () => {
@@ -95,23 +92,135 @@ describe('NOODL', () => {
       expect(noodl.hasLifeCycle(spy)).to.be.true
     })
 
-    it('should return true if the key exists in the second level for nested objects', () => {
-      const spy = sinon.spy()
-      expect(noodl.hasLifeCycle('evalObject')).to.be.false
-      noodl.addLifecycleListener({
-        action: {
-          evalObject: spy,
+    it(
+      'should return true if the key exists in the second level for nested ' +
+        'objects',
+      () => {
+        const spy = sinon.spy()
+        expect(noodl.hasLifeCycle('evalObject')).to.be.false
+        noodl.addLifecycleListener({
+          action: {
+            evalObject: spy,
+          },
+        })
+        expect(noodl.hasLifeCycle('evalObject')).to.be.true
+      },
+    )
+  })
+
+  it(
+    'should receive all of the resolver consumer options in options for ' +
+      'builtIn action callbacks',
+    async () => {
+      const myBuiltIn = sinon.spy()
+      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
+      const components = [
+        { type: 'label', text: 'hello', style: {} },
+        {
+          type: 'button',
+          text: 'my button',
+          style: {},
+          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
         },
-      })
-      expect(noodl.hasLifeCycle('evalObject')).to.be.true
+      ] as NOODLComponent[]
+      const resolvedComponents = noodl.resolveComponents(components)
+      await resolvedComponents[1].onClick()
+      expect(myBuiltIn.called).to.be.true
+    },
+  )
+
+  describe('builtIn action callbacks', () => {
+    it('should receive the abort func in the options arg', async () => {
+      const myBuiltIn = sinon.spy()
+      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
+      const components = [
+        {
+          type: 'button',
+          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
+        },
+      ] as NOODLComponent[]
+      const resolvedComponents = noodl.resolveComponents(components)
+      await resolvedComponents[0].onClick()
+      const args = myBuiltIn.firstCall.args[1]
+      console.info(args)
+    })
+
+    xit('should receive the snapshot of the action instance in the options arg', async () => {
+      const myBuiltIn = sinon.spy()
+      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
+      const components = [
+        {
+          type: 'button',
+          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
+        },
+      ] as NOODLComponent[]
+      const resolvedComponents = noodl.resolveComponents(components)
+      await resolvedComponents[0].onClick()
+    })
+
+    xit('should receive the context of the action instance in the options arg', async () => {
+      const myBuiltIn = sinon.spy()
+      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
+      const components = [
+        {
+          type: 'button',
+          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
+        },
+      ] as NOODLComponent[]
+      const resolvedComponents = noodl.resolveComponents(components)
+      await resolvedComponents[0].onClick()
+    })
+
+    xit('should receive the parser of the action instance in the options arg', async () => {
+      const myBuiltIn = sinon.spy()
+      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
+      const components = [
+        {
+          type: 'button',
+          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
+        },
+      ] as NOODLComponent[]
+      const resolvedComponents = noodl.resolveComponents(components)
+      await resolvedComponents[0].onClick()
+    })
+
+    xit('should receive the component of the action instance in the options arg', async () => {
+      const myBuiltIn = sinon.spy()
+      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
+      const components = [
+        {
+          type: 'button',
+          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
+        },
+      ] as NOODLComponent[]
+      const resolvedComponents = noodl.resolveComponents(components)
+      await resolvedComponents[0].onClick()
     })
   })
 
-  it('should update the "nodes" property that keeps a cache of proxied nodes of the current page\'s resolved components after resolveComponents is called', () => {
-    expect(noodl.nodes).to.be.undefined
-    noodl.resolveComponents()
-    expect(noodl.nodes).to.be.an('object')
-  })
+  xit(
+    'should receive the component as a Component instance in builtIn action ' +
+      'callbacks',
+    () => {
+      //
+    },
+  )
+
+  xit(
+    'should receive the component as a Component instance in non-builtIn ' +
+      'action callbacks',
+    () => {
+      //
+    },
+  )
+
+  xit(
+    'should store callback options in one place in action chains to be ' +
+      'picked up instead of passing through args when calling "build"',
+    () => {
+      //
+    },
+  )
 })
 
 // noodl.addLifecycleListener({

@@ -209,7 +209,7 @@ export interface NOODLTextBoardTextObject {
 -------------------------------------------------------- */
 
 export interface IComponent<T extends ProxiedComponent = any> {
-  action: any
+  action: NOODLActionObject
   id: string | undefined
   keys: string[]
   length: number

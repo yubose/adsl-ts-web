@@ -5,6 +5,7 @@ import Logger from 'logsnap'
 import { eventTypes } from './constants'
 import {
   IComponent,
+  NOODLActionObject,
   NOODLComponent,
   NOODLComponentProps,
   NOODLComponentType,
@@ -25,7 +26,7 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
-  action: any = {}
+  action: NOODLActionObject = {} as NOODLActionObject
   raw: T
   resolved: boolean = false
   keys: string[]

@@ -41,23 +41,25 @@ type ColorKey = keyof typeof _color
 type ColorFuncs = Record<ColorKey, Console['log']>
 
 const logger = (function () {
-  const noop = () => () => {}
-  let cache: { [loggerId: string]: ILogger } = {}
-  let cacheBackup: typeof cache = {}
-  const _bold = 'font-weight:bold;'
-  let _disabled = false
-  const cons = (_disabled ? noop : window.console) as typeof window.console
+  const state = {
+    disabled: false,
+    cache: {} as { [loggerId: string]: ILogger },
+    cacheBackup: {} as { [loggerId: string]: ILogger },
+  }
+  let _bold = 'font-weight:bold;'
+  let _noop = () => () => {}
+  let cons = (state.disabled ? _noop : window.console) as typeof window.console
 
   function get(id: string) {
-    const _state = { id, func: '' }
+    const _innerState = { id, func: '' }
 
     const o: ILogger = {
       func: _func,
       get id() {
-        return _state.id
+        return _innerState.id
       },
       set id(id: string) {
-        _state.id = id
+        _innerState['id'] = id
       },
       log: cons.log.bind(cons, `[${id}] %s`),
     } as ILogger
@@ -66,8 +68,8 @@ const logger = (function () {
       color,
       data,
     }: { color?: string; data?: any } = {}) {
-      let msg = `[${_state.id}]`
-      if (_state.func) msg += `[${_state.func}]`
+      let msg = `[${_innerState.id}]`
+      if (_innerState.func) msg += `[${_innerState.func}]`
       let args = [`%c${msg} %s`, `color:${color || _color.grey};${_bold}`]
       if (args[1].includes(_color.grey)) {
         // Remove the unnecessary bold effect to make it easier on the eyes
@@ -78,16 +80,16 @@ const logger = (function () {
     }
 
     function _func(name?: string) {
-      if (name) _state.func = name
-      else _state.func = ''
-      if (!_disabled) _refreshLoggers()
+      if (name) _innerState['func'] = name
+      else _innerState['func'] = ''
+      if (!state.disabled) _refreshLoggers()
       return this
     }
 
     function _refreshLoggers() {
       forEachEntries(_color, (colorKey: ColorKey, color) => {
-        o[colorKey] = _disabled
-          ? noop
+        o[colorKey] = state.disabled
+          ? _noop
           : cons.log.bind(cons, ..._stringifyArgs({ color }))
       })
     }
@@ -99,28 +101,28 @@ const logger = (function () {
 
   return {
     create(id: string) {
-      let cached = cache[id as keyof typeof cache]
+      let cached = state.cache[id as keyof typeof state.cache]
       let logger: ReturnType<typeof get>
       if (!cached) {
         logger = get(id)
-        cache[id] = logger
+        state.cache[id] = logger
       } else {
         logger = cached
       }
       return logger
     },
     enable() {
-      _disabled = false
+      state.disabled = false
       // cache = { ...cacheBackup }
       // cacheBackup = {}
       return this
     },
     disable() {
-      _disabled = true
-      cacheBackup = { ...cache }
-      Object.values(cache).forEach((value) => {
+      state['disabled'] = true
+      state['cacheBackup'] = { ...state.cache }
+      Object.values(state.cache).forEach((value) => {
         Object.keys(value).forEach((k) => {
-          value[k] = noop
+          value[k] = _noop
         })
       })
       return this

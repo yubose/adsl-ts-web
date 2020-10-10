@@ -132,7 +132,8 @@ describe('dom', () => {
     const resolvedComponent = noodl.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const select = queryByDataName(document.body, 'country')
-    expect(select.value).to.equal('abc')
+    // @ts-expect-error
+    expect(select?.value).to.equal('abc')
   })
 
   it("should use the data-value as a data value element's value", () => {
@@ -147,6 +148,7 @@ describe('dom', () => {
     const resolvedComponent = noodl.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const input = queryByDataKey(document.body, dataKey)
+    // @ts-expect-error
     expect(input.value).to.equal('my value')
   })
 
@@ -162,6 +164,7 @@ describe('dom', () => {
     const resolvedComponent = noodl.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const label = queryByDataKey(document.body, dataKey)
+    // @ts-expect-error
     expect(label.value).to.be.undefined
     expect(label?.innerHTML).to.equal('my value')
   })
@@ -177,6 +180,7 @@ describe('dom', () => {
     const resolvedComponent = noodl.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const label = queryByDataKey(document.body, dataKey)
+    // @ts-expect-error
     expect(label.value).to.be.undefined
     expect(label?.innerHTML).to.equal('my placeholder')
   })

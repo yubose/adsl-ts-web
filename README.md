@@ -14,6 +14,8 @@ This allows for faster compilation, faster load times and quicker development fl
 
 ## Todos
 
+- if obj expressions
+  - ex: `itemObject.value == "Female"` (string) --> grab itemObject, compare `.value` prop with `==`
 - PatientChartGeneralInfo --> redraw reference
 - Support `path` objects
   - if

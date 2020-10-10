@@ -31,7 +31,10 @@ class NOODLUIDOM implements T.INOODLUIDOM {
    * resolves its children hieararchy until there are none left
    * @param { NOODLComponentProps } props
    */
-  parse(props: NOODLComponentProps | null, container?: any) {
+  parse<Props extends NOODLComponentProps = NOODLComponentProps>(
+    props: Props,
+    container?: any,
+  ) {
     let node: T.NOODLDOMElement | undefined
 
     if (props) {
