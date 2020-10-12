@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { identify } from '../../utils/noodl'
+import { isIteratorVarConsumer } from '../../utils/noodl'
 import {
   IComponent,
   ProxiedComponent,
@@ -35,7 +35,7 @@ function getChildren(
 
   // Immediately transfer the call here since components that are dependent
   // on itemObject data need special handling
-  if (identify.list.itemObjectConsumer(iteratorVar as string, component)) {
+  if (isIteratorVarConsumer(iteratorVar as string, component)) {
     getListItemItemObjectConsumer(component, options)
   }
   // Text is a string, which is a valid ReactNode. Currently if there is text in the
@@ -57,9 +57,7 @@ function getChildren(
       getListChildren(component, options)
     } else if (type === 'listItem') {
       getListItemChildren(component, options)
-    } else if (
-      identify.list.itemObjectConsumer(iteratorVar as string, component)
-    ) {
+    } else if (isIteratorVarConsumer(iteratorVar as string, component)) {
       getListItemItemObjectConsumer(component, options)
     } else {
       getChildrenDefault(component, options)

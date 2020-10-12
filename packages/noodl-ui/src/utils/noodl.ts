@@ -40,16 +40,6 @@ export const identify = (function () {
       isPasswordInput: ({ contentType, noodlType }: NOODLComponentProps) =>
         noodlType === 'textField' && contentType === 'password',
     },
-    list: {
-      /** Components that hold a dataKey starting with "itemObject." */
-      itemObjectConsumer: (iteratorVar: string, obj: any) => {
-        return (
-          !!iteratorVar &&
-          _.isString(obj?.dataKey) &&
-          obj.dataKey.startsWith(iteratorVar)
-        )
-      },
-    },
     textBoard: {
       item: {
         isTextObject: (value: any): value is NOODLTextBoardTextObject =>
@@ -128,6 +118,20 @@ export function evalIf(
     )
   }
   return false
+}
+
+/**
+ * Returns true if obj is represents something expecting to receive incoming data by
+ * their dataKey reference.
+ * @param { string } iteratorVar
+ * @param { object } obj - NOODL component
+ */
+export function isIteratorVarConsumer(iteratorVar: string, obj: any) {
+  return (
+    !!iteratorVar &&
+    _.isString(obj?.dataKey) &&
+    obj.dataKey.startsWith(iteratorVar)
+  )
 }
 
 /**

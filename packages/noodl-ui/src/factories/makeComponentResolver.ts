@@ -28,15 +28,21 @@ function makeComponentResolver({
   roots: { [key: string]: any }
   viewport?: Viewport
 }): T.ComponentResolver {
-  const _state: T.ComponentResolverState = {
-    drafted: {},
-    lists: {},
-    pending: {}, // Pending data used by a data consumer (ex: for list item children)
+  const _state: T.ComponentResolverState = createState()
+  const _internalHelpers = {}
+
+  function createState(): T.ComponentResolverState {
+    return {
+      drafted: {},
+      lists: {},
+      pending: {}, // Pending data used by a data consumer (ex: for list item children)
+    }
   }
 
   if (!viewport) viewport = new Viewport()
 
   let parser = makeRootsParser(roots)
+
   const lifeCycleListeners: Map<any, any> = new Map()
   const optionsBuilder = new OptionsBuilder({
     showDataKey,
@@ -68,8 +74,6 @@ function makeComponentResolver({
     }
     // NOTE: component.id is also applied in the getChildren resolver. Give that higher
     // priority first because it is establishing communication to its children with it
-    if (!component.id) component.setId(_createId(proxiedComponent))
-    component.set('noodlType', proxiedComponent.type)
     // NOTE: The base styles are not being picked up from the resolvers and
     // they only know of the styles coming from proxiedComponent. This
     // means we have to handle them somewhere at the end as we did above

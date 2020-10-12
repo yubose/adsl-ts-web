@@ -2,10 +2,21 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import makeComponentResolver from './factories/makeComponentResolver'
 import * as T from './types'
+import Viewport from './Viewport'
 import NOODLViewport from './Viewport'
 
 class NOODL {
-  #componentResolver: T.ComponentResolver
+  #cb: {
+    action: { [key: string]: any }
+    builtIn: { [key: string]: any }
+    chaining: { [key: string]: any }
+  } = {
+    action: {},
+    builtIn: {},
+    chaining: {},
+  }
+  #componentResolvers: T.ComponentResolver[] = []
+  #resolvers: T.Resolver[] = []
   initialized: boolean = false
   page: T.Page = { name: '', object: null }
 
@@ -110,6 +121,23 @@ class NOODL {
   setViewport(...args: Parameters<T.ComponentResolver['setViewport']>) {
     this.#componentResolver.setViewport(...args)
     return this
+  }
+
+  use(mod: any) {
+    if (mod instanceof Viewport) {
+      this.#viewport = mod
+    }
+    return this
+  }
+
+  unuse(mod: any) {}
+
+  reset() {
+    this['#callbacks'] = {}
+    this['#componentResolvers'] = []
+    this['#resolvers'] = []
+    this['initialized'] = false
+    this['page'] = { name: '', object: null }
   }
 }
 

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { expect } from 'chai'
-import Component from '../Component'
 import { NOODLComponent } from '../types'
+import Component from '../Component'
 
 let noodlComponent: NOODLComponent
 let component: Component
@@ -30,7 +30,7 @@ afterEach(() => {
   component.done()
 })
 
-describe('next', () => {
+describe.skip('next', () => {
   beforeEach(() => {
     component.createChild({
       type: 'view',
@@ -58,14 +58,6 @@ describe('next', () => {
         },
       ],
     })
-  })
-
-  it('should apply resolvers to itself and its children hierarchy as resolvers are being added', () => {
-    const r1 = (c: any) => (c.style['fontStyle'] = 'bold')
-    const r2 = (c: any) => (c['path'] = 'https://abc.com/james.jpg')
-    component.use(r1).use(r2)
-    const result = component.resolve({ type: 'label', text: 'hello' })
-    console.info(result)
   })
 })
 
@@ -98,17 +90,6 @@ it('should add to touched style', () => {
   component.touchStyle('fontStyle')
   expect(component.stylesUntouched.includes('fontStyle')).to.be.false
   expect(component.stylesTouched.includes('fontStyle')).to.be.true
-})
-
-it('should add to the list of handled props when it was used by "set"', () => {
-  expect(component.handled.includes('type')).to.be.false
-  expect(component.handled).to.have.lengthOf(0)
-  expect(component.unhandled).to.have.lengthOf(4)
-  component.set('type', 'button')
-  expect(component.handled.includes('type')).to.be.true
-  expect(component.unhandled.includes('type')).to.be.false
-  expect(component.handled).to.have.lengthOf(1)
-  expect(component.unhandled).to.have.lengthOf(3)
 })
 
 it('should switch between "drafting" and "idle" when calling draft() and done()', () => {
@@ -239,7 +220,7 @@ describe('working with children', () => {
     expect(component.child()).to.equal(secondChild)
   })
 
-  it('should convert all of its children to Component instance during the constructor', () => {
+  xit('should convert all of its children to Component instance during the constructor', () => {
     const child = new Component({
       type: 'view',
       children: [
@@ -259,7 +240,7 @@ describe('working with children', () => {
     expect(child.child().child().child()).to.be.instanceOf(Component)
   })
 
-  it('should convert all of its children to Component instance when creating children with createChild', () => {
+  xit('should convert all of its children to Component instance when creating children with createChild', () => {
     const child = new Component({ type: 'view' })
     child.createChild({
       type: 'view',

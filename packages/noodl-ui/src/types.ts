@@ -56,6 +56,7 @@ export interface NOODLComponent {
   'text=func'?: any
   viewTag?: string
   videoFormat?: string
+  [key: string]: any
 }
 
 export interface NOODLPluginComponent extends NOODLComponent {

@@ -30,6 +30,16 @@ export type ResolverTest = ReturnType<typeof makeResolverTest>
 
 export const assetsUrl = 'https://something.com/assets/'
 
+export const resolve = (function () {
+  const componentResolver = makeComponentResolver({ roots: {} })
+
+  const o = {
+    //
+  }
+
+  return o
+})()
+
 export const makeResolverTest = (function () {
   let componentResolver = makeComponentResolver({ roots: {} })
 

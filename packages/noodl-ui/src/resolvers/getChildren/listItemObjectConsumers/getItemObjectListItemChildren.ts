@@ -9,22 +9,23 @@ import {
   ResolverConsumerOptions,
 } from '../../../types'
 
-const log = Logger.create('getListItemItemObjectConsumers')
+const log = Logger.create('getIteratorVarListItemChildren')
 
 /**
  * Renders children who hold a dataKey that is in direct reference to some itemObject
  * example: { dataKey: 'itemObject.name.roomName' }
  */
-function getListItemItemObjectConsumers(
+function getIteratorVarListItemChildren(
   component: IComponent,
   options: ResolverConsumerOptions & { resolverOptions: ResolverOptions },
 ) {
   const { getList, getListItem, showDataKey } = options
-  const { dataKey, listId = '', listItemIndex = 0 } = component.get([
-    'listId',
-    'listItemIndex',
-    'dataKey',
-  ])
+  const {
+    dataKey,
+    iteratorVar = '',
+    listId = '',
+    listItemIndex = 0,
+  } = component.get(['iteratorVar', 'listId', 'listItemIndex', 'dataKey'])
 
   const parent = component.parent()
   const listItem = getListItem(listId as string, listItemIndex as number)
@@ -37,6 +38,7 @@ function getListItemItemObjectConsumers(
         : '',
       {
         component: component.snapshot(),
+        iteratorVar,
         listData: getList(listId as string),
         listId,
         listItem,
@@ -62,4 +64,4 @@ function getListItemItemObjectConsumers(
   }
 }
 
-export default getListItemItemObjectConsumers
+export default getIteratorVarListItemChildren

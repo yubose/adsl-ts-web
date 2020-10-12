@@ -13,7 +13,7 @@ import {
   ProxiedComponent,
   Resolver,
 } from './types'
-import { forEachEntries } from './utils/common'
+import { forEachEntries, getRandomKey } from './utils/common'
 import { createNOODLComponent } from './utils/noodl'
 
 const log = Logger.create('Component')
@@ -42,16 +42,16 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
   type: NOODLComponentType | undefined
 
   constructor(
-    component: T | IComponent,
+    component: T | IComponent | NOODLComponent | NOODLComponentProps,
     { parent }: { parent?: Component } = {},
   ) {
     this['raw'] = component instanceof Component ? component.raw : component
-    this['type'] = component.type
+    this['type'] = component.type as NOODLComponentType
     this['keys'] = _.keys(component)
     this['untouched'] = [...this.keys]
     this['unhandled'] = [...this.keys]
 
-    if (parent) this.#parent = parent
+    if (parent) this['#parent'] = parent
 
     this.#component = (isDraft(component)
       ? component
@@ -59,9 +59,8 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
       ProxiedComponent & NOODLComponentProps
     >
 
-    if (component.id) {
-      this.setId(component.id)
-    }
+    this.setId(component?.id || getRandomKey())
+    this.set('noodlType', component.type)
 
     if (_.isPlainObject(component.style)) {
       this.#stylesUnhandled = _.keys(component.style)
@@ -72,7 +71,7 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
     }
 
     if (_.isPlainObject(this.#component.style)) {
-      this.stylesUntouched = _.keys(this.#component.style)
+      this['stylesUntouched'] = _.keys(this.#component.style)
     }
 
     // Immer proxies these actions objects. Since we need this to be
@@ -99,16 +98,16 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
           )
         }
       }
-      if (_.isArray(component.children)) {
-        _.forEach(component.children, (child) => {
-          if (child instanceof Component) childAsInst = child
-          else childAsInst = toComponent(child)
-          if (childAsInst) this.createChild(childAsInst)
-        })
-      } else {
-        childAsInst = toComponent(component.children)
-        if (childAsInst) this.createChild(childAsInst)
-      }
+      // if (_.isArray(component.children)) {
+      //   _.forEach(component.children, (child) => {
+      //     if (child instanceof Component) childAsInst = child
+      //     else childAsInst = toComponent(child)
+      //     if (childAsInst) this.createChild(childAsInst)
+      //   })
+      // } else {
+      //   childAsInst = toComponent(component.children)
+      //   if (childAsInst) this.createChild(childAsInst)
+      // }
     }
   }
 
@@ -270,43 +269,6 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
   }
 
   /**
-   * Returns the value of the component property using key, or
-   * Returns the value of the property of the component's style object
-   * using styleKey if key === 'style'
-   * @param { string } key - Component property or "style" if using styleKey for style lookups
-   */
-  get<K extends keyof ProxiedComponent>(
-    key: K,
-    styleKey?: keyof NOODLStyle,
-  ): ProxiedComponent[K]
-  get<K extends keyof ProxiedComponent>(
-    key: K[],
-    styleKey?: keyof NOODLStyle,
-  ): Record<K, ProxiedComponent[K]>
-  get<K extends keyof ProxiedComponent>(
-    key: K | K[],
-    styleKey?: keyof NOODLStyle,
-  ): ProxiedComponent[K] | Record<K, ProxiedComponent[K]> {
-    let value: any
-
-    if (_.isString(key)) {
-      value = this.#retrieve(key, styleKey)
-    } else if (_.isArray(key)) {
-      value = {}
-      _.forEach(key, (k) => {
-        value[k] = this.#retrieve(k)
-      })
-    }
-
-    // Return the original raw type
-    if (key === 'type') {
-      return this.raw.type
-    }
-
-    return isDraft(value) ? original(value) : value
-  }
-
-  /**
    * Returns true if the key exists on the component, false otherwise.
    * Returns true if the styleKey exists on the component's style object if key === 'style', false otherwise.
    * @param { string } key - Component property or "style" if using styleKey for style lookups
@@ -358,6 +320,42 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
     return this
   }
 
+  /**
+   * Returns the value of the component property using key, or
+   * Returns the value of the property of the component's style object
+   * using styleKey if key === 'style'
+   * @param { string } key - Component property or "style" if using styleKey for style lookups
+   */
+  get<K extends keyof ProxiedComponent>(
+    key: K,
+    styleKey?: keyof NOODLStyle,
+  ): ProxiedComponent[K]
+  get<K extends keyof ProxiedComponent>(
+    key: K[],
+    styleKey?: keyof NOODLStyle,
+  ): Record<K, ProxiedComponent[K]>
+  get<K extends keyof ProxiedComponent>(
+    key: K | K[],
+    styleKey?: keyof NOODLStyle,
+  ): ProxiedComponent[K] | Record<K, ProxiedComponent[K]> {
+    let value: any
+
+    if (_.isString(key)) {
+      value = this.#retrieve(key, styleKey)
+    } else if (_.isArray(key)) {
+      value = {}
+      _.forEach(key, (k) => {
+        value[k] = this.#retrieve(k)
+      })
+    }
+
+    // Return the original raw type
+    if (key === 'type') {
+      return this.raw.type
+    }
+
+    return isDraft(value) ? original(value) : value
+  }
   /**
    * Sets a property's value on the component, or sets a property's value on the style
    * object if the key is "style", value is the styleKey and styleChanges is the value to update
