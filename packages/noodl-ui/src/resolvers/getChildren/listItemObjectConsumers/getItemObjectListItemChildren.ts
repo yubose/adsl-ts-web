@@ -2,6 +2,7 @@
 // begins with "itemObject" which are known to be inside list components
 import _ from 'lodash'
 import Logger from 'logsnap'
+import { createNOODLComponent } from '../../../utils/noodl'
 import {
   IComponent,
   ResolverOptions,
@@ -43,19 +44,19 @@ function getListItemItemObjectConsumers(
       },
     )
     // Apply the raw data key to the UI for debugging purposes
-    component.set('children', dataKey)
+    component.createChild(createNOODLComponent('label', { text: dataKey }))
   } else {
     if (_.isPlainObject(listItem)) {
       if (_.isString(dataKey)) {
         // TODO: Use iteratorVar
         if (dataKey.startsWith('itemObject')) {
           // TODO: Investigate this next line
-          component.set('children', parent.get('itemObject'))
+          component.createChild(parent?.get('itemObject'))
         }
       }
     } else {
       if (listItem) {
-        component.set('children', listItem)
+        component.createChild(listItem)
       }
     }
   }

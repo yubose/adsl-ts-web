@@ -162,10 +162,10 @@ export function checkForNoodlProp(
  * @param { string } type - NOODL component type
  * @param { NOODLComponent } props
  */
-export function createNOODLComponent<T extends Partial<ProxiedComponent>>(
+export function createNOODLComponent<T extends ProxiedComponent = any>(
   type: NOODLComponentType,
   props?: T,
-) {
+): IComponent {
   return new Component({
     ...props,
     style: { ...props?.style },

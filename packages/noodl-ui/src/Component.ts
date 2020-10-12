@@ -11,8 +11,10 @@ import {
   NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
+  Resolver,
 } from './types'
 import { forEachEntries } from './utils/common'
+import { createNOODLComponent } from './utils/noodl'
 
 const log = Logger.create('Component')
 
@@ -23,6 +25,7 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
   #children?: IComponent[]
   #id: string | undefined
   #parent: IComponent | null = null
+  #resolvers: { resolver: Resolver }[] = []
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
@@ -81,6 +84,32 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
           : component[eventType]
       }
     })
+
+    // Instantiate children to the Component instance as well
+    if (component.children) {
+      let childAsInst: IComponent | undefined
+
+      const toComponent = (child: any): IComponent | undefined => {
+        if (_.isString(child) || _.isNumber(child)) {
+          return createNOODLComponent('label', { text: child })
+        } else if (!_.isFunction(child) && child.type) {
+          return createNOODLComponent(
+            child.type as NOODLComponentType,
+            child as NOODLComponent,
+          )
+        }
+      }
+      if (_.isArray(component.children)) {
+        _.forEach(component.children, (child) => {
+          if (child instanceof Component) childAsInst = child
+          else childAsInst = toComponent(child)
+          if (childAsInst) this.createChild(childAsInst)
+        })
+      } else {
+        childAsInst = toComponent(component.children)
+        if (childAsInst) this.createChild(childAsInst)
+      }
+    }
   }
 
   /**
@@ -161,13 +190,6 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
         return this.raw.type
       } else {
         if (key === 'data-value') {
-          console.log(current(this.#component))
-          console.log(current(this.#component))
-          console.log(current(this.#component))
-          console.log(current(this.#component))
-          console.log(current(this.#component))
-          console.log(current(this.#component))
-          console.log(current(this.#component))
           console.log(current(this.#component))
         }
         value =
@@ -489,18 +511,25 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
    * Creates and appends the new child instance to the childrens list
    * @param { NOODLComponent } props
    */
-  createChild(props: Partial<NOODLComponent | ProxiedComponent>) {
+  createChild(
+    props: IComponent | NOODLComponent | NOODLComponentProps | ProxiedComponent,
+  ) {
+    let child: IComponent
+    let id: string
     if (!this.#children) {
       this.#children = []
     } else if (!_.isArray(this.#children)) {
       this.#children = [this.#children]
     }
-    props = {
-      ...props,
-      custom: true,
-      id: `${this.id}[${this.length - 1 === 0 ? 0 : this.length}]`,
-    } as ProxiedComponent
-    const child = new Component(props) as IComponent
+    id = `${this.id}`
+    if (this.length >= 1) id += `[${this.length - 1}]`
+    if (props instanceof Component) {
+      child = props
+    } else {
+      child = new Component({ ...props, custom: true, id })
+    }
+    // Resync the child's id to match the parent's id
+    if (id !== child.id) child.setId(id)
     child.setParent(this)
     this.#children.push(child)
     return child
@@ -539,6 +568,35 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
 
   get length() {
     return this.#children?.length || 0
+  }
+
+  resolve(component: any) {
+    const result = {}
+    _.forEach(this.#resolvers, (r) => {
+      const res = r.resolver(component)
+      if (res) _.assign(result, res)
+    })
+    return result
+  }
+
+  /**
+   * Adds resolvers to the list of resolvers. These will be called when
+   * parsing your noodl component objects
+   * @param { Resolver | Resolver[] } resolver - Resolver function
+   */
+  use(resolver: Resolver | Resolver[]) {
+    if (_.isArray(resolver)) {
+      this.#resolvers.push(...resolver.map(this.toResolverObj))
+    } else {
+      this.#resolvers.push(this.toResolverObj(resolver))
+    }
+    return this
+  }
+
+  toResolverObj(resolver: Resolver) {
+    return {
+      resolver,
+    }
   }
 }
 

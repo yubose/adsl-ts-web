@@ -43,7 +43,7 @@ function makeComponentResolver({
     viewport,
   })
 
-  function _createId(proxiedComponent: T.ProxiedComponent | T.IComponent) {
+  function _createId(proxiedComponent: any) {
     return proxiedComponent?.id || getRandomKey()
   }
 
@@ -56,13 +56,15 @@ function makeComponentResolver({
     }
   }
 
-  function _init(proxiedComponent: T.ProxiedComponent | T.IComponent) {
+  function _init(
+    proxiedComponent: Parameters<T.ComponentResolver['resolve']>[0],
+  ) {
     let component: T.IComponent | T.ProxiedComponent
 
     if (proxiedComponent instanceof Component) {
       component = proxiedComponent
     } else {
-      component = new Component(proxiedComponent)
+      component = new Component<any>(proxiedComponent)
     }
     // NOTE: component.id is also applied in the getChildren resolver. Give that higher
     // priority first because it is establishing communication to its children with it

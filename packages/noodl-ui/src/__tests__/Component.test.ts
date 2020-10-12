@@ -30,6 +30,45 @@ afterEach(() => {
   component.done()
 })
 
+describe('next', () => {
+  beforeEach(() => {
+    component.createChild({
+      type: 'view',
+      children: [
+        {
+          type: 'view',
+          children: [
+            {
+              type: 'list',
+              children: [
+                {
+                  type: 'listItem',
+                  itemObject: '',
+                  children: [
+                    {
+                      type: 'label',
+                      text: 'my label',
+                      style: { width: '0.5' },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+  })
+
+  it('should apply resolvers to itself and its children hierarchy as resolvers are being added', () => {
+    const r1 = (c: any) => (c.style['fontStyle'] = 'bold')
+    const r2 = (c: any) => (c['path'] = 'https://abc.com/james.jpg')
+    component.use(r1).use(r2)
+    const result = component.resolve({ type: 'label', text: 'hello' })
+    console.info(result)
+  })
+})
+
 it('should start with "drafting" status when constructed', () => {
   expect(component.status).to.eq('drafting')
 })
@@ -198,5 +237,112 @@ describe('working with children', () => {
     const secondChild = component.child(1)
     component.removeChild(firstChild)
     expect(component.child()).to.equal(secondChild)
+  })
+
+  it('should convert all of its children to Component instance during the constructor', () => {
+    const child = new Component({
+      type: 'view',
+      children: [
+        {
+          type: 'view',
+          children: [
+            {
+              type: 'label',
+              children: [{ type: 'button', text: 'hello', style: {} }],
+            },
+          ],
+        },
+      ],
+    })
+    expect(child.child()).to.be.instanceOf(Component)
+    expect(child.child().child()).to.be.instanceOf(Component)
+    expect(child.child().child().child()).to.be.instanceOf(Component)
+  })
+
+  it('should convert all of its children to Component instance when creating children with createChild', () => {
+    const child = new Component({ type: 'view' })
+    child.createChild({
+      type: 'view',
+      children: [
+        {
+          type: 'label',
+          children: [{ type: 'button', text: 'hello', style: {} }],
+        },
+      ],
+    })
+    expect(child.child()).to.be.instanceOf(Component)
+    expect(child.child().child()).to.be.instanceOf(Component)
+    expect(child.child().child().child()).to.be.instanceOf(Component)
+  })
+
+  it('should be able to get the listItem instance from any of its children down its tree', () => {
+    const targetChild = new Component({
+      type: 'label',
+      style: { color: '0x000000ff' },
+      dataKey: 'abcccccccc',
+    })
+    const child1 = component.createChild({
+      type: 'list',
+      contentType: 'listObject',
+      iteratorVar: 'itemObject',
+      listObject: [
+        {
+          title: 'hello this is my title',
+          fruits: ['apple', 'orange'],
+          vegetables: ['carrot', 'tomatoes'],
+        },
+        {
+          title: 'hello this is my title#2',
+          fruits: ['apple', 'plum'],
+          vegetables: ['cilantro', 'spinach'],
+        },
+      ],
+    })
+    const child1child = child1.createChild({
+      type: 'listItem',
+      dataKey: 'loppoo',
+      itemObject: '',
+      onClick: [
+        {
+          actionType: 'updateObject',
+          dataKey: 'Global.VideoChatObjStore.reference.edge',
+          dataObject: 'itemObject',
+        },
+        {
+          actionType: 'pageJump',
+          destination: 'VideoChat',
+        },
+      ],
+      style: {
+        borderWidth: '1',
+        borderColor: '0x00000011',
+      },
+    })
+    child1child.createChild({
+      type: 'label',
+      dataKey: 'itemObject.name.hostName',
+    })
+    child1child.createChild({
+      type: 'label',
+      dataKey: 'itemObject.name.roomName',
+      style: { color: '0x000000ff' },
+    })
+    const parentOfTargetChild = child1child.createChild({
+      type: 'view',
+      dataKey: 'itemObject.name.roomName',
+      style: { color: '0x000000ff' },
+    })
+    child1child.createChild({
+      type: 'image',
+      path: 'rightArrow.png',
+      style: { left: '0.88' },
+    })
+    const expectedChild = parentOfTargetChild.createChild({
+      type: 'view',
+      style: {},
+    })
+    expectedChild.createChild(targetChild)
+    const expectedResult = targetChild.parent().parent().parent()
+    expect(expectedResult).to.equal(child1child)
   })
 })

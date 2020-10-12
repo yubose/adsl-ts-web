@@ -28,6 +28,7 @@ function getChildrenDefault(
       children as IComponent<any>,
       mergingArgs,
     )
+    component.child()
     component.set('children', resolveComponent(child, resolverOptions))
   } else {
     component.set('children', String(children))

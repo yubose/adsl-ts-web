@@ -64,27 +64,25 @@ const getListItemChildren: Resolver = (
     // For regular lists (contentType: listObject)
     else {
       if (_.isArray(children)) {
-        component.set(
-          'children',
-          _.map(children, (child: NOODLComponent, index) => {
-            let otherProps: { text?: string } | undefined
-            if (_.isString(child?.dataKey)) {
-              if (child.dataKey.startsWith(iteratorVar)) {
-                if (_.isObjectLike(listItem) && !child.text) {
-                  otherProps = {
-                    text: _.get(listItem, child.dataKey.split('.').slice(1)),
-                  }
+        _.forEach(children, (child: NOODLComponent, index) => {
+          let otherProps: { text?: string } | undefined
+          if (_.isString(child?.dataKey)) {
+            if (child.dataKey.startsWith(iteratorVar)) {
+              if (_.isObjectLike(listItem) && !child.text) {
+                otherProps = {
+                  text: _.get(listItem, child.dataKey.split('.').slice(1)),
                 }
               }
             }
-            childComponent = getChildProps(component, child, index, {
-              listId,
-              listItemIndex,
-              ...otherProps,
-            })
-            return resolveComponent?.(childComponent, resolverOptions)
-          }),
-        )
+          }
+          childComponent = getChildProps(component, child, index, {
+            listId,
+            listItemIndex,
+            ...otherProps,
+          })
+          childComponent = resolveComponent?.(childComponent, resolverOptions)
+          component.createChild(childComponent)
+        })
       } else {
         if (_.isPlainObject(children)) {
           childComponent = getChildProps(component, children, {
@@ -92,8 +90,7 @@ const getListItemChildren: Resolver = (
             listItemIndex,
             parent,
           })
-          component.set(
-            'children',
+          component.createChild(
             resolveComponent(childComponent, resolverOptions),
           )
         }

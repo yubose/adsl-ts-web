@@ -50,7 +50,7 @@ export interface NOODLComponent {
   required?: 'true' | 'false' | boolean
   selected?: string
   src?: string // our custom key
-  text?: string
+  text?: string | number
   textSelectd?: string
   textBoard?: NOODLTextBoard
   'text=func'?: any
@@ -229,8 +229,10 @@ export interface IComponent<T extends ProxiedComponent = any> {
   ): this
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): IComponent | null
-  children(): IComponent[] | undefined
-  createChild(props: Partial<NOODLComponent | ProxiedComponent>): IComponent
+  children(): IComponent | IComponent[] | undefined
+  createChild(
+    props: IComponent | NOODLComponent | NOODLComponentProps | ProxiedComponent,
+  ): IComponent
   done(options?: { mergeUntouched?: boolean }): NOODLComponentProps
   draft(): this
   get<K extends keyof ProxiedComponent>(
@@ -477,7 +479,13 @@ export interface ComponentResolver {
   getStateGetters(): ComponentResolverStateGetters
   getStateSetters(): ComponentResolverStateSetters
   getFallbackDataValue(component: IComponent, defaultValue?: string): any
-  resolve(proxiedComponent: ProxiedComponent): NOODLComponentProps
+  resolve(
+    component:
+      | IComponent
+      | NOODLComponent
+      | NOODLComponentProps
+      | ProxiedComponent,
+  ): NOODLComponentProps
   setAssetsUrl(assetsUrl: string): this
   setPage(page?: Page): this
   setResolvers(...resolvers: Resolver[]): this

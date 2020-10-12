@@ -40,11 +40,11 @@ function getChildren(
   }
   // Text is a string, which is a valid ReactNode. Currently if there is text in the
   // NOODL then theres most likely no children since text is the children itself
-  else if (text) {
-    // TODO: Finish converting to createChild implementation
-    // component.createChild()
-    component.set('children', text)
-  }
+  // else if (text) {
+  //   // TODO: Finish converting to createChild implementation
+  //   // component.createChild()
+  //   component.set('children', text)
+  // }
   // Text board components render their children in a way that allows texts
   // within a text to be styled
   else if (textBoard) {
@@ -73,7 +73,7 @@ function getChildren(
         component,
         children as any,
       ) as ProxiedComponent
-      component.set('children', resolveComponent(child, resolverOptions))
+      component.createChild(resolveComponent(child, resolverOptions))
     }
   }
 }

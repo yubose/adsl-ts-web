@@ -369,4 +369,68 @@ describe('makeComponentResolver', () => {
       expect(children[0].style).to.have.property('color', 'blue')
     })
   })
+
+  describe.skip('resolving children', () => {
+    component.createChild({
+      type: 'list',
+      contentType: 'listObject',
+      iteratorVar: 'itemObject',
+      listObject: [
+        {
+          title: 'hello this is my title',
+          fruits: ['apple', 'orange'],
+          vegetables: ['carrot', 'tomatoes'],
+        },
+        {
+          title: 'hello this is my title#2',
+          fruits: ['apple', 'plum'],
+          vegetables: ['cilantro', 'spinach'],
+        },
+      ],
+      children: [
+        {
+          type: 'listItem',
+          dataKey: 'loppoo',
+          itemObject: '',
+          onClick: [
+            {
+              actionType: 'updateObject',
+              dataKey: 'Global.VideoChatObjStore.reference.edge',
+              dataObject: 'itemObject',
+            },
+            {
+              actionType: 'pageJump',
+              destination: 'VideoChat',
+            },
+          ],
+          style: {
+            borderWidth: '1',
+            borderColor: '0x00000011',
+          },
+          children: [
+            {
+              type: 'label',
+              dataKey: 'itemObject.name.hostName',
+            },
+            {
+              type: 'label',
+              dataKey: 'itemObject.name.roomName',
+              style: { color: '0x000000ff' },
+            },
+            {
+              type: 'view',
+              dataKey: 'itemObject.name.roomName',
+              style: { color: '0x000000ff' },
+              children: [{ type: 'view', style: {}, children: [childInst] }],
+            },
+            {
+              type: 'image',
+              path: 'rightArrow.png',
+              style: { left: '0.88' },
+            },
+          ],
+        },
+      ],
+    })
+  })
 })

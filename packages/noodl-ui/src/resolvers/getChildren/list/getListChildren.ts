@@ -76,70 +76,62 @@ const getListChildren: Resolver = (
 
   component.set('blueprint', parsedBlueprint)
 
-  component.set(
-    'children',
-    _.reduce(
-      listObjects,
-      (acc, listItem, listItemIndex) => {
-        if (listItem) {
-          const mergingProps = {
-            blueprint: parsedBlueprint,
-            iteratorVar: iteratorProp,
+  _.forEach(listObjects, (listItem, listItemIndex) => {
+    if (listItem) {
+      const mergingProps = {
+        blueprint: parsedBlueprint,
+        iteratorVar: iteratorProp,
+        listId,
+        listItemIndex,
+      }
+
+      if (iteratorProp) {
+        mergingProps[String(iteratorProp)] = listItem
+      } else {
+        log.red(
+          `The "iteratorVar" prop is invalid. Children of this component ` +
+            `will not be able to retrieve this data as a result`,
+          {
+            snapshot: component.snapshot(),
             listId,
+            listItems: getList(listId),
+            listItem: getListItem(listId, listItemIndex),
             listItemIndex,
-          }
+          },
+        )
+      }
 
-          if (iteratorProp) {
-            mergingProps[String(iteratorProp)] = listItem
-          } else {
-            log.red(
-              `The "iteratorVar" prop is invalid. Children of this component ` +
-                `will not be able to retrieve this data as a result`,
-              {
-                snapshot: component.snapshot(),
-                listId,
-                listItems: getList(listId),
-                listItem: getListItem(listId, listItemIndex),
-                listItemIndex,
-              },
-            )
-          }
+      const listItemComponent = getChildProps(
+        component,
+        rawBlueprint,
+        listItemIndex,
+        mergingProps,
+      )
 
-          const listItemComponent = getChildProps(
-            component,
-            rawBlueprint,
-            listItemIndex,
-            mergingProps,
-          )
+      setConsumerData(listItemComponent?.id || '', listItem)
 
-          setConsumerData(listItemComponent.id, listItem)
+      const result = resolveComponent?.(
+        listItemComponent,
+        resolverOptions,
+      ) as IComponent
 
-          const result = resolveComponent?.(
-            listItemComponent,
-            resolverOptions,
-          ) as IComponent
-
-          // Direct children (listItem components) will consume this list data
-          // during the resolving process
-          acc.push(result)
-        } else {
-          log.red(
-            `Tried to create a child for a list component but received an ` +
-              `invalid "listObject"`,
-            {
-              snapshot: component.snapshot(),
-              listId,
-              listData: getList(listId),
-              listItem: getListItem(listId, listItemIndex),
-              listItemIndex,
-            },
-          )
-        }
-        return acc
-      },
-      [] as IComponent[],
-    ),
-  )
+      // Direct children (listItem components) will consume this list data
+      // during the resolving process
+      component.createChild(result)
+    } else {
+      log.red(
+        `Tried to create a child for a list component but received an ` +
+          `invalid "listObject"`,
+        {
+          snapshot: component.snapshot(),
+          listId,
+          listData: getList(listId),
+          listItem: getListItem(listId, listItemIndex),
+          listItemIndex,
+        },
+      )
+    }
+  })
 }
 
 export default getListChildren
