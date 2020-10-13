@@ -20,7 +20,6 @@ export interface ActionChainOptions {
   onChainError?: T.LifeCycleListeners['onChainError']
   onChainAborted?: T.LifeCycleListeners['onChainAborted']
   onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
-  needsBlob?: boolean
   parser?: T.ResolverOptions['parser']
 }
 
@@ -36,7 +35,6 @@ class ActionChain {
   #getConstructorOptions: () => ActionChainOptions | undefined
   actions: Action<any>[] | null = null
   intermediary: Action<any>[] = []
-  blob: File | Blob | null = null
   current: {
     action: Action<any> | undefined
     index: number
@@ -92,11 +90,7 @@ class ActionChain {
   init(actions: T.NOODLActionObject[], options?: ActionChainOptions) {
     // Append the listeners to this instance
     if (options) {
-      const { parser, needsBlob, ...opts } = options
-
-      if (needsBlob) {
-        // const blob =
-      }
+      const { parser, ...opts } = options
 
       forEachEntries(opts, (key, value) => {
         if (key === 'builtIn') {
@@ -238,7 +232,7 @@ class ActionChain {
 
           return init.next
             .call(this.#gen)
-            .then(async (iteratorResult) => {
+            .then(async (iteratorResult: any) => {
               iterator = iteratorResult
 
               while (!iterator?.done) {

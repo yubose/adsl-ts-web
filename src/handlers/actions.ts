@@ -159,7 +159,7 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.updateObject = async (
     action: Action<NOODLUpdateObject>,
     options,
-    { file },
+    { file }: { file?: File } = {},
   ) => {
     const { default: noodl } = await import('app/noodl')
     log.func('updateObject')
@@ -241,7 +241,8 @@ const createActions = function ({ page }: { page: IPage }) {
           return onSelectFile()
             .then((file: File) => fn(action, options, { file }))
             .catch((err) => {
-              throw err
+              console.error(err)
+              return fn(action, options)
             })
         }
         return fn(action, options)

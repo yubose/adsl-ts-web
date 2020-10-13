@@ -31,12 +31,21 @@ export function onSelectFile(): Promise<File> {
     input.type = 'file'
     input.onchange = (e: any) => {
       let file = e.target?.files?.[0]
-      document.body.removeChild(input)
+      try {
+        input.remove()
+      } catch (error) {
+        console.error(error)
+      }
       resolve(file)
     }
     input.onerror = reject
+    input.onabort = (e) => console.log(`onabort`, e)
+    input.oncancel = (e) => console.log(`oncancel`, e)
+    input.onclose = (e) => console.log(`onclose`, e)
+    input.onblur = (e) => console.log(`onblur`, e)
+    input.onended = (e) => console.log(`onended`, e)
+    input.onsuspend = (e) => console.log('onsuspend', e)
     input.style.display = 'none'
-    document.body.appendChild(input)
     input.click()
   })
 }
