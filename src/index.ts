@@ -547,16 +547,27 @@ window.addEventListener('load', async () => {
     ---- LOCAL STORAGE
   -------------------------------------------------------- */
   // Override the start page if they were on a previous page
-  const cachedPages = getCachedPages()
+  let cachedPages = getCachedPages()
+  let cachedPage = cachedPages[0]
   if (cachedPages?.length) {
-    const cachedPage = cachedPages[0]?.name
-    // Compare the two pages to make an informed decision before setting it
-    if (cachedPage) {
-      log
-        .func()
-        .grey('Comparing cached page vs startPage', { startPage, cachedPage })
-      if (cachedPage !== startPage) startPage = cachedPage
+    if (cachedPage?.name && cachedPage.name !== startPage) {
+      startPage = cachedPage.name
     }
+    // // Populate the previous/currentPage in page state as well
+    // cachedPages = cachedPages.slice(1)
+    // try {
+    //   let pg: string
+    //   while (cachedPages.length) {
+    //     pg = cachedPages.shift()?.name || ''
+    //     if (pg && pg !== page.currentPage && pg !== page.previousPage) {
+    //       page.previousPage =
+    //       log.green(`Updated previous page: ${page.previousPage}`)
+    //       break
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error(error)
+    // }
   }
 
   await page.requestPageChange(startPage)
@@ -569,6 +580,7 @@ window.addEventListener('load', async () => {
 function cachePage(name: string) {
   const cacheObj = { name } as CachedPageObject
   const prevCache = getCachedPages()
+  if (prevCache[0]?.name === name) return
   const cache = [cacheObj, ...prevCache]
   if (cache.length >= 4) cache.pop()
   cacheObj.timestamp = Date.now()

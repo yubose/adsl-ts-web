@@ -12,8 +12,19 @@ This allows for faster compilation, faster load times and quicker development fl
 
 - [TypeScript DOM types](https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts)
 
+## Configs
+
+- `meet.yml` --> test.aitmed.com (React)
+- `meet11.yml` / `cadltest.yml` --> devtest.aitmed.com
+  - aitcom_11
+- `meet2d.yml` --> cadltest.aitmed.io
+
 ## Todos
 
+- "required" logic
+  - supports array
+  - SignIn page
+  - `meet11.yml`
 - if obj expressions
   - ex: `itemObject.value == "Female"` (string) --> grab itemObject, compare `.value` prop with `==`
 - PatientChartGeneralInfo --> redraw reference

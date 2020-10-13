@@ -7,16 +7,20 @@ const LANDING_PAGE_CONFIG = getConfigEndpoint('landing.page')
 const AITCOM11_CONFIG = getConfigEndpoint('cadltest')
 const PATIENT_CONFIG = getConfigEndpoint('patient')
 const PATIENT_D_CONFIG = getConfigEndpoint('patientd')
+const MEET2D_CONFIG = getConfigEndpoint('meet2d')
+const MEET11_CONFIG = getConfigEndpoint('meet11')
 
 const noodl = new NOODL({
   aspectRatio: 3,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: AITCOM11_CONFIG,
+  configUrl: MEET2D_CONFIG,
 })
 
 function getConfigEndpoint(
   type:
     | 'cadltest'
+    | 'meet2d' // native js (upload document, etc)
+    | 'meet11' // testing for jiahao + new features/syntax testing
     | 'landing.page'
     | 'patient'
     | 'patientd'
@@ -33,11 +37,15 @@ function getConfigEndpoint(
           return '/cadltest'
         case 'landing.page':
           return '/www2'
+        case 'meet11':
+          return '/meet11'
+        case 'meet2d':
+          return '/meet2d'
         case 'portal.phase.2':
           return '/meet2'
         case 'portal':
         default:
-          return 'meetdev'
+          return '/meetdev'
       }
     }
     path = getFilename(type) + '.yml'

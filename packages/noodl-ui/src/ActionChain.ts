@@ -1,8 +1,8 @@
 import _ from 'lodash'
+import { isAction } from 'noodl-utils'
 import * as T from './types'
 import Action from './Action'
 import { forEachEntries } from './utils/common'
-import { isAction } from './utils/noodl'
 import { AbortExecuteError } from './errors'
 import Logger from 'logsnap'
 
@@ -227,20 +227,17 @@ class ActionChain {
           // Merge in additional args if any of the actions expect some extra
           // context/data (ex: having file/blobs ready before running the chain)
           if (onChainStartArgs && onChainStartArgs instanceof Promise) {
+            console.log(onChainStartArgs)
             // TODO: Find out why I did this "init" part
             init = {
-              next: async () => {
-                const args = await onChainStartArgs
-                const iteratorResult = await this.#gen?.next(args)
-                return iteratorResult
-              },
+              next: async () => this.#gen?.next(await onChainStartArgs),
             }
           } else {
             init = { next: this.#gen.next }
           }
 
-          return this.#gen
-            .next()
+          return init.next
+            .call(this.#gen)
             .then(async (iteratorResult) => {
               iterator = iteratorResult
 

@@ -21,9 +21,12 @@ export function getDocumentScrollTop() {
   )
 }
 
-/** Opens the file select window. The selected file is the resolved value */
-export function openFileSelect(): Promise<File> {
-  return new Promise((resolve) => {
+/**
+ * Opens the file select window. The promise resolves when a file was
+ * selected, which becomes the resolved value
+ */
+export function onSelectFile(): Promise<File> {
+  return new Promise((resolve, reject) => {
     const input = document.createElement('input')
     input.type = 'file'
     input.onchange = (e: any) => {
@@ -31,6 +34,7 @@ export function openFileSelect(): Promise<File> {
       document.body.removeChild(input)
       resolve(file)
     }
+    input.onerror = reject
     input.style.display = 'none'
     document.body.appendChild(input)
     input.click()
