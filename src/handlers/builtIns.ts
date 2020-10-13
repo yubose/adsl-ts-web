@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { Draft } from 'immer'
 import {
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
@@ -31,6 +32,8 @@ export type BuiltInFuncName =
   | 'signout'
   | 'toggleCameraOnOff'
   | 'toggleMicrophoneOnOff'
+  | 'UploadDocuments'
+  | 'UploadFile'
   | 'UploadPhoto'
 
 const createBuiltInActions = function ({
@@ -68,8 +71,30 @@ const createBuiltInActions = function ({
   }
 
   builtInActions.goBack = () => {
-    const { previousPage } = page
-    if (page.previousPage) {
+    let { previousPage } = page
+    if (!previousPage) {
+      // Hard code this for now until routing is implemented
+      let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
+      if (cachedPages) {
+        try {
+          cachedPages = JSON.parse(cachedPages)
+          if (Array.isArray(cachedPages)) {
+            let pg: string
+            while (cachedPages.length) {
+              pg = cachedPages.shift()?.name || ''
+              if (pg && pg !== page.currentPage && pg !== page.previousPage) {
+                log.green(`Updated previous page: ${page.previousPage}`)
+                previousPage = pg
+                break
+              }
+            }
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+    if (previousPage) {
       page.requestPageChange(previousPage)
     } else {
       log.func('goBack')
@@ -213,6 +238,59 @@ const createBuiltInActions = function ({
       }
     }
   }
+
+  builtInActions.UploadFile = (action, options) => {
+    log.func('UploadFile')
+    log.grey('', { action, ...options })
+
+    const input = document.createElement('input')
+    input.type = 'file'
+    // TODO: string files
+    input.onchange = async (e: any) => {
+      let file = e.target?.files?.[0]
+      let title = file?.name || ''
+      let dataValues = getDataValues<{ title: string }, 'title'>()
+
+      const params: {
+        title: string
+        content: File | Blob
+      } = { content: file, title: dataValues.title } as {
+        title: string
+        content: File | Blob
+      }
+
+      if (dataValues.title) {
+        log.func('UploadFile')
+        log.grey('Values', params)
+        console.log(
+          `%c[useBuiltInActions.tsx][builtIn -- UploadPhoto] Values`,
+          `color:#FF5722;font-weight:bold;`,
+          params,
+        )
+
+        const nameFieldPath = ''
+
+        const { default: noodl } = await import('app/noodl')
+
+        const pageName = options.context?.page?.name || ''
+
+        noodl.editDraft((draft: Draft<any>) => {
+          _.set(draft?.[pageName], nameFieldPath, file)
+        })
+
+        log.func('UploadFile')
+        log.green(
+          `Attached the Blob/File "${title}" of type "${file?.type}" on ` +
+            `root.${pageName}.${nameFieldPath}`,
+          file,
+        )
+      }
+    }
+    input.click()
+  }
+
+  builtInActions.UploadPhoto = builtInActions.UploadFile
+  builtInActions.UploadDocuments = builtInActions.UploadFile
 
   return builtInActions
 }

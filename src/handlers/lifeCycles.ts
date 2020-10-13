@@ -5,7 +5,9 @@ import {
   NOODLComponent,
   ResolverConsumerOptions,
 } from 'noodl-ui'
-import { openFileSelect } from '../utils/dom'
+import Logger from 'logsnap'
+
+const log = Logger.create('lifeCycles.ts')
 
 function createLifeCycles() {
   const o = {
@@ -21,14 +23,12 @@ function createLifeCycles() {
       actions: NOODLActionObject[],
       options: ActionChainActionCallbackOptions,
     ) {
-      const logMsg = `%c[onChainStart]`
-      const logStyle = `color:#e50087;font-weight:bold;`
-      console.log(logMsg, logStyle, { actions, options })
-      const { component } = options
-      if (component.get('contentType') === 'file') {
-        const file = await openFileSelect()
-        if (file) return { file }
-      }
+      log.func('onChainStart')
+      log.grey('', { actions, ...options })
+      // if (component.get('contentType') === 'file') {
+      //   const file = await onSelectFile()
+      //   if (file) return { file }
+      // }
     },
     onChainEnd(
       actions: NOODLActionObject[],

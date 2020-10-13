@@ -1,0 +1,45 @@
+{
+  "name": "noodl-utils",
+  "version": "0.0.2",
+  "description": "Utility/helpers for working with NOODL values",
+  "author": "Christopher Tran <pfftdammitchris@gmail.com>",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "jsnext:main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=12",
+    "npm": ">=6"
+  },
+  "scripts": {
+    "build": "rm -rf dist && rollup -c --environment BUILD:production",
+    "start": "rm -rf dist && rollup -c -w",
+    "start:utils": "cross-env ABC=development rm -rf dist && rollup -c -w",
+    "test:noodl-utils": "ts-mocha -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose"
+  },
+  "keywords": [
+    "noodl"
+  ],
+  "homepage": "",
+  "license": "ISC",
+  "directories": {
+    "dist": "dist",
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "prettier": {
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "printWidth": 80,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
+  }
+}

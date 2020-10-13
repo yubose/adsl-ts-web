@@ -1,8 +1,8 @@
 import _ from 'lodash'
+import { isAction } from 'noodl-utils'
 import * as T from './types'
 import Action from './Action'
 import { forEachEntries } from './utils/common'
-import { isAction } from './utils/noodl'
 import { AbortExecuteError } from './errors'
 import Logger from 'logsnap'
 
@@ -20,7 +20,6 @@ export interface ActionChainOptions {
   onChainError?: T.LifeCycleListeners['onChainError']
   onChainAborted?: T.LifeCycleListeners['onChainAborted']
   onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
-  needsBlob?: boolean
   parser?: T.ResolverOptions['parser']
 }
 
@@ -36,7 +35,6 @@ class ActionChain {
   #getConstructorOptions: () => ActionChainOptions | undefined
   actions: Action<any>[] | null = null
   intermediary: Action<any>[] = []
-  blob: File | Blob | null = null
   current: {
     action: Action<any> | undefined
     index: number
@@ -92,11 +90,7 @@ class ActionChain {
   init(actions: T.NOODLActionObject[], options?: ActionChainOptions) {
     // Append the listeners to this instance
     if (options) {
-      const { parser, needsBlob, ...opts } = options
-
-      if (needsBlob) {
-        // const blob =
-      }
+      const { parser, ...opts } = options
 
       forEachEntries(opts, (key, value) => {
         if (key === 'builtIn') {
@@ -227,21 +221,18 @@ class ActionChain {
           // Merge in additional args if any of the actions expect some extra
           // context/data (ex: having file/blobs ready before running the chain)
           if (onChainStartArgs && onChainStartArgs instanceof Promise) {
+            console.log(onChainStartArgs)
             // TODO: Find out why I did this "init" part
             init = {
-              next: async () => {
-                const args = await onChainStartArgs
-                const iteratorResult = await this.#gen?.next(args)
-                return iteratorResult
-              },
+              next: async () => this.#gen?.next(await onChainStartArgs),
             }
           } else {
             init = { next: this.#gen.next }
           }
 
-          return this.#gen
-            .next()
-            .then(async (iteratorResult) => {
+          return init.next
+            .call(this.#gen)
+            .then(async (iteratorResult: any) => {
               iterator = iteratorResult
 
               while (!iterator?.done) {

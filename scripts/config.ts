@@ -6,6 +6,7 @@ export const configIds = [
   'root',
   'landing',
   'meet',
+  'meet2d',
   'meetdev',
 ] as const
 

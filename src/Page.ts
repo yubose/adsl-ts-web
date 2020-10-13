@@ -183,7 +183,10 @@ class Page {
         requested: newPage,
       })
       if (shouldNavigate === true) {
-        return this.navigate(newPage)
+        return this.navigate(newPage).then(() => {
+          this.previousPage = this.currentPage
+          this.currentPage = newPage
+        })
       }
     } else {
       log.func('changePage')

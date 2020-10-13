@@ -367,6 +367,7 @@ export interface ActionChainActionCallback<ActionObject = any> {
   (
     action: ActionObject,
     options: ActionChainActionCallbackOptions,
+    args?: { file?: File; [key: string]: any },
   ): ActionChainActionCallbackReturnType
 }
 

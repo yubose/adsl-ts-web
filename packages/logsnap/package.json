@@ -1,6 +1,6 @@
 {
   "name": "logsnap",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Colorful, easy to use logging for the browser",
   "keywords": [
     "console",
@@ -24,6 +24,7 @@
   "scripts": {
     "build": "rm -rf dist && rollup -c --environment BUILD:production",
     "start": "rm -rf dist && rollup -c -w",
+    "start:logsnap": "rm -rf dist && rollup -c -w",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "prettier": {

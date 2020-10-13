@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { isBooleanTrue } from 'noodl-utils'
 import { Resolver } from '../types'
 
 /**
@@ -18,7 +19,7 @@ const getTransformedStyleAliases: Resolver = (component) => {
     component.setStyle('visibility', 'hidden')
   }
 
-  if (shadow) {
+  if (isBooleanTrue(shadow)) {
     component.setStyle('boxShadow', '5px 5px 10px 3px rgba(0, 0, 0, 0.015)')
   }
 

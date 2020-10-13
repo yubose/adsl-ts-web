@@ -2,7 +2,6 @@ import _ from 'lodash'
 import { current } from 'immer'
 import {
   IComponent,
-  NOODLActionObject,
   NOODLComponentType,
   NOODLComponentProps,
   NOODLIfObject,
@@ -18,15 +17,6 @@ const log = Logger.create('noodl-ui/src/utils/noodl.ts')
 
 const testPropKeysByRegex = (obj: any, key: string) =>
   _.isString(key) && new RegExp(key, 'i').test(obj[key])
-
-/** Returns true if the value is an object. Like those with an actionType prop */
-export function isAction(value: unknown): value is NOODLActionObject {
-  if (value && _.isObject(value)) {
-    if ('actionType' in value) return true
-    if ('goto' in value) return true
-  }
-  return false
-}
 
 // function createRegexKeysOnProps(keys: string | string[]) {
 //   const regex = new RegExp(_.isArray(keys) ? )

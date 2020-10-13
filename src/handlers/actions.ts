@@ -15,6 +15,7 @@ import {
 } from 'noodl-ui'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
+import { onSelectFile } from 'utils/dom'
 
 const log = Logger.create('actions.ts')
 
@@ -158,14 +159,16 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.updateObject = async (
     action: Action<NOODLUpdateObject>,
     options,
+    { file }: { file?: File } = {},
   ) => {
     const { default: noodl } = await import('app/noodl')
-
     log.func('updateObject')
+
     async function callObject(
       object: any,
       options: ActionChainActionCallbackOptions & {
         action: any
+        file?: File
       },
     ) {
       if (_.isFunction(object)) {
@@ -188,10 +191,15 @@ const createActions = function ({ page }: { page: IPage }) {
           }
         }
       } else if (_.isObjectLike(object)) {
-        const { dataKey, dataObject } = object
+        let { dataKey, dataObject } = object
+        if (/(file|blob)/i.test(dataObject)) {
+          dataObject = file || dataObject
+        }
         if (dataObject) {
-          console.log(dataObject)
-          await noodl.updateObject({ dataKey, dataObject })
+          const params = { dataKey, dataObject }
+          log.func('updateObject')
+          log.green(`Parameters`, params)
+          await noodl.updateObject(params)
         } else {
           log.red(`dataObject is null or undefined`, object)
         }
@@ -199,7 +207,7 @@ const createActions = function ({ page }: { page: IPage }) {
     }
 
     try {
-      const callObjectOptions = { action, ...options }
+      const callObjectOptions = { action, file, ...options }
       log.info('callObjectOptions', callObjectOptions)
       // This is the more older version of the updateObject action object where it used
       // the "object" property
@@ -220,7 +228,29 @@ const createActions = function ({ page }: { page: IPage }) {
     }
   }
 
-  return _actions
+  return _.reduce(
+    _.entries(_actions),
+    (acc: typeof _actions, [key, fn]) => {
+      acc[key as keyof typeof acc] = (action, options) => {
+        const { component } = options
+        if (component.get('contentType') === 'file') {
+          // Components with contentType: "file" need a blob/file object
+          // so we inject logic for the file input window to open for the user
+          // to select a file from their file system before proceeding
+          // the action chain
+          return onSelectFile()
+            .then((file: File) => fn(action, options, { file }))
+            .catch((err) => {
+              console.error(err)
+              return fn(action, options)
+            })
+        }
+        return fn(action, options)
+      }
+      return acc
+    },
+    {} as typeof _actions,
+  )
 }
 
 export default createActions
