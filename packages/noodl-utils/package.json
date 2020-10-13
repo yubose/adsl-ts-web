@@ -1,6 +1,6 @@
 {
   "name": "noodl-utils",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Utility/helpers for working with NOODL values",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "main": "dist/index.js",
@@ -17,9 +17,6 @@
     "start:utils": "cross-env ABC=development rm -rf dist && rollup -c -w",
     "test:noodl-utils": "ts-mocha -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose"
   },
-  "dependencies": {},
-  "devDependencies": {},
-  "peerDependencies": {},
   "keywords": [
     "noodl"
   ],
