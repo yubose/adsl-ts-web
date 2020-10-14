@@ -10,10 +10,12 @@ const log = Logger.create('ActionChain')
 
 export interface ActionChainOptions {
   builtIn?: { [funcName: string]: (snapshot: T.ActionSnapshot) => any }
-  evalObject?: T.OnEvalObject
-  pageJump?: T.OnPageJump
-  saveObject?: T.OnSaveObject
-  updateObject?: T.OnUpdateObject
+  evalObject?: T.OnEvalObject[]
+  pageJump?: T.OnPageJump[]
+  popUp?: T.OnPopup[]
+  popUpDismiss?: T.OnPopupDismiss[]
+  saveObject?: T.OnSaveObject[]
+  updateObject?: T.OnUpdateObject[]
   onBuiltinMissing?: T.LifeCycleListeners['onBuiltinMissing']
   onChainStart?: T.LifeCycleListeners['onChainStart']
   onChainEnd?: T.LifeCycleListeners['onChainEnd']
@@ -41,12 +43,12 @@ class ActionChain {
   }
   status: null | T.ActionChainStatus = null
   builtIn?: Record<string, ActionChainOptions['builtIn']>
-  evalObject?: T.OnEvalObject
-  pageJump?: T.OnPageJump
-  popUp?: T.OnPopup
-  popUpDismiss?: T.OnPopupDismiss
-  saveObject?: T.OnSaveObject
-  updateObject?: T.OnUpdateObject
+  evalObject?: T.OnEvalObject[]
+  pageJump?: T.OnPageJump[]
+  popUp?: T.OnPopup[]
+  popUpDismiss?: T.OnPopupDismiss[]
+  saveObject?: T.OnSaveObject[]
+  updateObject?: T.OnUpdateObject[]
   onBuiltinMissing?: T.LifeCycleListeners['onBuiltinMissing']
   onChainStart?: T.LifeCycleListeners['onChainStart']
   onChainEnd?: T.LifeCycleListeners['onChainEnd']
@@ -139,13 +141,18 @@ class ActionChain {
     const action = new Action(obj, {
       timeoutDelay: 8000,
     })
-    if (obj.actionType === 'builtIn') {
-      const builtInFn = this.builtIn?.[obj.funcName]
-      if (_.isFunction(builtInFn)) {
-        action.callback = builtInFn
+    const fns =
+      obj.actionType === 'builtIn'
+        ? this.builtIn?.[obj.funcName]
+        : this[obj.actionType]
+
+    if (_.isArray(fns)) {
+      action['callback'] = (...args: any[]) => {
+        const promises = fns.map((fn) => Promise.resolve(fn(...args)))
+        return Promise.resolve(Promise.allSettled(promises))
       }
-    } else {
-      action.callback = this[obj.actionType]
+    } else if (_.isFunction(fns)) {
+      action['callback'] = fns
     }
     return action
   }
@@ -245,6 +252,38 @@ class ActionChain {
                 // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
                 else {
                   result = await this.#executeAction(action, handlerOptions)
+
+                  // TODO: This will be deprecated in favor of passing this.abort
+                  if (result === 'abort') {
+                    iterator = await this.abort(
+                      `"abort" was called from an action with actionType: "${
+                        action?.type
+                      }". ${JSON.stringify(action)}`,
+                    )
+                  } else if (_.isPlainObject(result)) {
+                    iterator = await this.#next(result)
+                  } else if (_.isString(result)) {
+                    // TODO
+                  } else if (_.isPlainObject(result)) {
+                    // Check if the result is an action noodl object
+                    if (isAction(result)) {
+                      result = new Action(result)
+                      // Its possible to receive back some noodl action object.
+                      // This most likely came from some "if" condition and wants
+                      // us to handle it immediately. So inject it immediately to
+                      // the first position in the queue for the generator
+                      this.#queue = [result, ...this.getQueue()]
+                      iterator = await this.#next()
+                    } else {
+                      // TODO
+                    }
+                  } else if (_.isFunction(result)) {
+                    // TODO
+                  } else {
+                    // TODO
+                    iterator = await this.#next(result)
+                  }
+
                   if (result) {
                     if (action.type) log.func(action.type)
                     log.green(
@@ -252,36 +291,6 @@ class ActionChain {
                       result,
                     )
                   }
-                }
-                // TODO: This will be deprecated in favor of passing this.abort
-                if (result === 'abort') {
-                  iterator = await this.abort(
-                    `"abort" was called from an action with actionType: "${
-                      action?.type
-                    }". ${JSON.stringify(action)}`,
-                  )
-                } else if (_.isPlainObject(result)) {
-                  iterator = await this.#next(result)
-                } else if (_.isString(result)) {
-                  // TODO
-                } else if (_.isPlainObject(result)) {
-                  // Check if the result is an action noodl object
-                  if (isAction(result)) {
-                    result = new Action(result)
-                    // Its possible to receive back some noodl action object.
-                    // This most likely came from some "if" condition and wants
-                    // us to handle it immediately. So inject it immediately to
-                    // the first position in the queue for the generator
-                    this.#queue = [result, ...this.getQueue()]
-                    iterator = await this.#next()
-                  } else {
-                    // TODO
-                  }
-                } else if (_.isFunction(result)) {
-                  // TODO
-                } else {
-                  // TODO
-                  iterator = await this.#next(result)
                 }
               }
 

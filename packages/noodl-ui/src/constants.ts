@@ -105,6 +105,9 @@ export const event = {
     ON_CHAIN_ERROR: 'chainError',
     ON_AFTER_RESOLVE: 'afterResolve',
   },
+  IComponent: {
+    RESOLVED: 'resolved',
+  },
 } as const
 
 /** { textAlign: '' } */

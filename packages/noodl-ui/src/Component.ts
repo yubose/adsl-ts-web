@@ -6,13 +6,13 @@ import { eventTypes } from './constants'
 import {
   ComponentType,
   IComponent,
+  IComponentEventId,
   NOODLActionObject,
   NOODLComponent,
   NOODLComponentProps,
   NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
-  Resolver,
 } from './types'
 import { forEachEntries } from './utils/common'
 import { createNOODLComponent } from './utils/noodl'
@@ -20,7 +20,7 @@ import { createNOODLComponent } from './utils/noodl'
 const log = Logger.create('Component')
 
 class Component implements IComponent {
-  #cb: { [eventName: string]: Function } = {}
+  #cb: { [eventName: string]: Function[] } = {}
   #component:
     | WritableDraft<ProxiedComponent & NOODLComponentProps>
     | (ProxiedComponent & NOODLComponentProps)
@@ -31,7 +31,7 @@ class Component implements IComponent {
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
   action: NOODLActionObject = {} as NOODLActionObject
-  original: T
+  original: NOODLComponent | ProxiedComponent | NOODLComponentProps
   resolved: boolean = false
   keys: string[]
   handled: string[] = []
@@ -52,8 +52,9 @@ class Component implements IComponent {
     this['unhandled'] = [...this.keys]
 
     if (parent) {
-      this.#parent =
-        parent instanceof Component ? parent : new Component(parent)
+      this.#parent = (parent instanceof Component
+        ? parent
+        : new Component(parent)) as IComponent
     }
 
     this.#component = (isDraft(component)
@@ -62,19 +63,16 @@ class Component implements IComponent {
       ProxiedComponent & NOODLComponentProps
     >
 
-    this.setId(component?.id || _.uniqueId())
+    this.id = component?.id || _.uniqueId()
     this.set('noodlType', component.type)
-
-    if (_.isPlainObject(component.style)) {
-      this.#stylesUnhandled = _.keys(component.style)
-    }
 
     if (!this.#component.style) {
       this.#component['style'] = {}
     }
 
-    if (_.isPlainObject(this.#component.style)) {
-      this['stylesUntouched'] = _.keys(this.#component.style)
+    if (_.isPlainObject(component.style)) {
+      this.#stylesUnhandled = _.keys(component.style)
+      this['stylesUntouched'] = _.keys(component.style)
     }
 
     // Immer proxies these actions objects. Since we need this to be
@@ -131,33 +129,33 @@ class Component implements IComponent {
    * When the status is "idle", this component should not perform any mutation
    * operations unless this.draft() is called
    */
-  done({ mergeUntouched = false }: { mergeUntouched?: boolean } = {}) {
-    if (this.status !== 'drafting') {
-      return this.#component as NOODLComponentProps
+  done({ mergeUntouched = false } = {}) {
+    if (this.status === 'drafting') {
+      if (mergeUntouched) {
+        _.forEach(this.untouched, (untouchedKey) => {
+          this.set(untouchedKey, this.#component[untouchedKey])
+        })
+      }
+      // Prevent style keys that are not in valid DOM shapes from leaking to the DOM
+      _.forEach(
+        ['border', 'isHidden', 'required', 'shadow', 'textColor'] as const,
+        (styleKey) => {
+          this.removeStyle(styleKey)
+        },
+      )
+      this.#component = isDraft(this.#component)
+        ? finishDraft(this.#component)
+        : this.#component
+      this.#status = 'idle'
+      if (_.isArray(this.#cb.resolved)) {
+        _.forEach(this.#cb.resolved, (fn) => fn(this.#component))
+      }
     }
-
-    if (mergeUntouched) {
-      _.forEach(this.untouched, (untouchedKey) => {
-        this.set(untouchedKey, this.#component[untouchedKey])
-      })
-    }
-    // Prevent style keys that are not in valid DOM shapes from leaking to the DOM
-    _.forEach(
-      ['border', 'isHidden', 'required', 'shadow', 'textColor'] as const,
-      (styleKey) => {
-        this.removeStyle(styleKey)
-      },
-    )
-    this['#component'] = isDraft(this.#component)
-      ? finishDraft(this.#component)
-      : this.#component
-    this['#status'] = 'idle'
-    this.#cb?.resolved(this.#component)
-    return this.#component as NOODLComponentProps
+    return this
   }
 
   get id() {
-    return this.#id
+    return this.#id || ''
   }
 
   set id(value: string) {
@@ -168,8 +166,13 @@ class Component implements IComponent {
     return this.original.type
   }
 
+  /** Returns the most recent styles at the time of this call */
   get style() {
-    return this.#component.style as NOODLStyle
+    return (
+      (isDraft(this.#component.style)
+        ? current(this.#component.style)
+        : this.#component.style) || {}
+    )
   }
 
   get status() {
@@ -197,7 +200,7 @@ class Component implements IComponent {
         value = this.original.style?.[styleKey]
       }
     } else {
-      this.touch(key)
+      this.touch(key as string)
       // Return the original type only for this case
       if (key === 'type') {
         value = this.original.type
@@ -387,8 +390,10 @@ class Component implements IComponent {
         this.#setHandledStyleKey(value)
       }
     } else {
-      this.#component[key] = value
-      this.#setHandledKey(key)
+      if (value) {
+        this.#component[key] = value
+        this.#setHandledKey(key)
+      }
     }
     return this
   }
@@ -420,13 +425,6 @@ class Component implements IComponent {
    */
   assignStyles(styles: Partial<NOODLStyle>) {
     return this.assign('style', styles)
-  }
-
-  /** Returns the most recent styles at the time of this call */
-  getCurrentStyles() {
-    return isDraft(this.#component.style)
-      ? current(this.#component.style)
-      : this.#component.style
   }
 
   /**
@@ -509,7 +507,7 @@ class Component implements IComponent {
   }
 
   children() {
-    return this.#children
+    return this.#children || []
   }
 
   /**
@@ -529,9 +527,7 @@ class Component implements IComponent {
    * Creates and appends the new child instance to the childrens list
    * @param { NOODLComponent } props
    */
-  createChild(
-    props: IComponent | NOODLComponent | NOODLComponentProps | ProxiedComponent,
-  ) {
+  createChild(props: ComponentType) {
     let child: IComponent
     let id: string
     if (!this.#children) {
@@ -540,16 +536,17 @@ class Component implements IComponent {
       this.#children = [this.#children]
     }
     id = `${this.id}`
-    if (this.length >= 1) id += `[${this.length - 1}]`
+    if (this.length >= 1) id += `[${this.length}]`
+    else id += '[0]'
     if (props instanceof Component) {
-      child = props
+      child = props as IComponent
     } else {
-      child = new Component({ ...props, custom: true, id })
+      child = new Component({ ...props, custom: true, id }) as IComponent
     }
     // Resync the child's id to match the parent's id
-    if (id !== child.id) child.setId(id)
-    child.setParent(this)
-    this.#children.push(child)
+    if (id !== child.id) child['id'] = id
+    child.setParent(this as IComponent)
+    if (!this.#children.includes(child)) this.#children.push(child)
     return child
   }
 
@@ -588,8 +585,21 @@ class Component implements IComponent {
     return this.#children?.length || 0
   }
 
-  on(eventName: 'resolved', cb: Function) {
-    this.#cb[eventName] = cb
+  on(eventName: IComponentEventId, cb: Function) {
+    if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
+    this.#cb[eventName].push(cb)
+    return this
+  }
+
+  off(eventName: IComponentEventId, cb: Function) {
+    if (_.isArray(this.#cb[eventName])) {
+      if (this.#cb[eventName].includes(cb)) {
+        this.#cb[eventName] = _.filter(
+          this.#cb[eventName],
+          (callback) => callback !== cb,
+        )
+      }
+    }
     return this
   }
 }

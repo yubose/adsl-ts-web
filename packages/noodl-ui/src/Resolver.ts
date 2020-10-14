@@ -1,11 +1,12 @@
 import _ from 'lodash'
 import {
   IComponent,
-  Resolver as ResolverFn,
+  IResolver,
+  ResolverFn,
   ResolverConsumerOptions,
-} from 'types'
+} from './types'
 
-class Resolver {
+class Resolver implements IResolver {
   #resolver: ResolverFn | null = null
 
   setResolver(resolver: ResolverFn) {

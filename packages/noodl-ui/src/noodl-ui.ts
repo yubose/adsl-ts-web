@@ -1,41 +1,152 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import makeComponentResolver from './factories/makeComponentResolver'
-import * as T from './types'
-import * as C from './constants'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import Component from './Component'
+import makeRootsParser from './factories/makeRootsParser'
+import {
+  forEachDeepEntries,
+  forEachEntries,
+  formatColor,
+  hasLetter,
+} from './utils/common'
+import * as T from './types'
+import ActionChain from './ActionChain'
+
+const log = Logger.create('noodl-ui')
+
+function _createState(
+  state?: Partial<T.ComponentResolverState>,
+): T.ComponentResolverState {
+  return {
+    drafted: {},
+    lists: {},
+    pending: {}, // Pending data used by a data consumer (ex: for list item children)
+    ...state,
+  } as T.ComponentResolverState
+}
 
 class NOODL implements T.INOODLUi {
+  #assetsUrl: string = ''
   #cb: {
-    action: Partial<Record<T.EventId, Function[]>>
-    builtIn: { [key: string]: Function[] }
-    chaining: { [key: string]: any }
+    action: Partial<Record<T.ActionEventId, Function[]>>
+    builtIn: Partial<Record<string, Function[]>>
+    chaining: Partial<Record<T.ActionChainEventId, Function[]>>
   } = {
     action: {},
     builtIn: {},
     chaining: {},
   }
-  #resolver: T.ComponentResolver
+  #parser: T.RootsParser
   #resolvers: Resolver[] = []
-  #viewport: Viewport
+  #root: { [key: string]: any }
+  #state: T.ComponentResolverState
+  #viewport: T.IViewport
   initialized: boolean = false
   page: T.Page = { name: '', object: null }
 
-  constructor({ viewport }: { viewport?: Viewport } = {}) {
-    this.#resolver = makeComponentResolver({ roots: {}, viewport })
+  constructor({
+    showDataKey,
+    viewport,
+  }: { showDataKey?: boolean; viewport?: T.IViewport } = {}) {
+    this.#parser = makeRootsParser({ roots: {} })
+    this.#state = _createState({ showDataKey })
+    this.#viewport = viewport || new Viewport()
   }
 
-  init({ log, viewport } = {}) {
-    if (viewport) this.#resolver.setViewport(viewport)
+  get assetsUrl() {
+    return this.#assetsUrl
+  }
+
+  get parser() {
+    return this.#parser
+  }
+
+  get viewport() {
+    return this.#viewport
+  }
+
+  /**
+   * Consumes data from the "pending" object using the component id as the key
+   * or the component reference itself
+   * @param { string | Component } component
+   */
+  consume(component: T.IComponent) {
+    const componentId = component.id || ''
+    log.func('consume')
+    if (!componentId) {
+      log.red('Invalid componentId used to consume list data', {
+        component: component.snapshot(),
+        pending: this.#state.pending,
+      })
+    }
+    const value = this.#state.pending[componentId]
+    if (value) {
+      delete this.#state.pending[componentId]
+    } else {
+      console.groupCollapsed(
+        `%c[consume] Expected data to be consumed by a component with id ` +
+          `"${componentId}" but received null or undefined when attempting ` +
+          `to retrieve it`,
+        'color:#ec0000',
+        {
+          targetObject: this.#state.pending,
+          expectingKey: componentId,
+          consumedResult: value,
+          component: component.snapshot(),
+        },
+      )
+      console.trace()
+      console.groupEnd()
+    }
+    return value
+  }
+
+  createActionChain(
+    actions: Parameters<T.INOODLUi['createActionChain']>[0],
+    {
+      trigger,
+      ...otherOptions
+    }: Parameters<T.INOODLUi['createActionChain']>[1],
+  ) {
+    const options = { builtIn: this.#cb.builtIn, trigger, ...otherOptions }
+
+    forEachEntries(this.#cb.action, (key, fn) => {
+      options[key] = fn
+    })
+
+    const actionChain = new ActionChain(actions, {
+      ...options,
+      ..._.reduce(
+        _.entries(this.#cb.action),
+        (acc, [actionType, cbs]) => {
+          if (_.isArray(cbs)) {
+            acc[actionType] = cbs
+          }
+          return acc
+        },
+        {} as any,
+      ),
+    })
+
+    // @ts-expect-error
+    window.ac = actionChain
+    return actionChain.build({
+      context: this.getContext() as T.ResolverContext,
+      parser: this.parser,
+      ...otherOptions,
+    })
+  }
+
+  init({ log, viewport }: Partial<Parameters<T.INOODLUi['init']>[0]> = {}) {
+    if (viewport) this.setViewport(viewport)
     this.initialized = true
-    Logger[log?.enabled ? 'enable' : 'disable']?.()
+    Logger[log ? 'enable' : 'disable']?.()
     return this
   }
 
-  on(eventName: T.EventId, cb: Function) {
-    if (_.isString(eventName)) this.#addCb(eventName, cb)
+  on(eventName: T.EventId, cb, cb2) {
+    if (_.isString(eventName)) this.#addCb(eventName, cb, cb2)
     return this
   }
 
@@ -44,50 +155,180 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  #getCbPath = (key: T.EventId) => {
+  emit(eventName: T.EventId, ...args: any[]) {
+    if (_.isString(eventName)) {
+      const path = this.#getCbPath(eventName)
+      if (path) {
+        let cbs = _.get(this.#cb, path) as Function[]
+        if (!_.isArray(cbs)) cbs = cbs ? [cbs] : []
+        _.forEach(cbs, (cb) => cb(...args))
+      }
+    }
+    return this
+  }
+
+  #getCbPath = (key: T.EventId | 'action' | 'chaining') => {
     let path = ''
-    if (key in C.event.action) {
-      path = 'action'
-    } else if (key === C.event.action.BUILTIN) {
-      path = 'action' + '.' + C.event.action.BUILTIN
-    } else if (key in C.event.actionChain) {
-      path = 'chaining'
+    if (key in this.#cb) {
+      path = key
+    } else if (key in this.#cb.action) {
+      path = `action.${key}`
+    } else if (key in this.#cb.builtIn) {
+      path = `builtIn.${key}`
+    } else if (key in this.#cb.chaining) {
+      path = `chaining.${key}`
     }
     return path
   }
 
-  #addCb = (key: T.EventId, cb: Function) => {
-    const path = this.#getCbPath(key)
-    if (path) {
-      if (!_.isArray(this.#cb[path])) this.#cb[path] = []
-      this.#cb[path].push(cb)
+  #addCb = (
+    key: T.EventId,
+    cb: Function | string | { [key: string]: Function },
+    cb2: Function,
+  ) => {
+    if (key === 'builtIn') {
+      if (_.isString(cb)) {
+        const funcName = cb
+        const fn = cb2 as Function
+        if (!_.isArray(this.#cb.builtIn[funcName])) {
+          this.#cb.builtIn[funcName] = []
+        }
+        this.#cb.builtIn[funcName]?.push(fn)
+      } else if (_.isPlainObject(cb)) {
+        forEachEntries(cb as { [key: string]: Function }, (key, value) => {
+          const funcName = key
+          const fn = value
+          if (!_.isArray(this.#cb.builtIn[funcName])) {
+            this.#cb.builtIn[funcName] = []
+          }
+          if (!this.#cb.builtIn[funcName]?.includes(fn)) {
+            this.#cb.builtIn[funcName]?.push(fn)
+          }
+        })
+      }
+    } else {
+      const path = this.#getCbPath(key)
+      if (path) {
+        if (!_.isArray(this.#cb[path])) this.#cb[path] = []
+        this.#cb[path].push(cb as Function)
+      }
     }
     return this
   }
 
   #removeCb = (key: T.EventId, cb: Function) => {
-    let path = ''
-    if (key in C.event.action) {
-      path = 'action'
-    } else if (key === C.event.action.BUILTIN) {
-      path = `action.${C.event.action.BUILTIN}`
-    } else if (key in C.event.actionChain) {
-      path = 'chaining'
-    }
+    const path = this.#getCbPath(key)
     if (path) {
-      if (_.isArray(this.#cb[path])) {
-        if (this.#cb[path].includes(cb)) {
-          this.#cb[path] = _.filter(this.#cb[path], (_cb) => _cb !== cb)
+      const cbs = _.get(this.#cb, path)
+      if (_.isArray(cbs)) {
+        if (cbs.includes(cb)) {
+          _.set(
+            this.#cb,
+            path,
+            _.filter(cbs, (fn) => fn !== cb),
+          )
         }
       }
     }
     return this
   }
 
-  getContext() {
-    return this.#resolver?.getResolverContext()
+  getBaseStyles(styles?: T.NOODLStyle) {
+    return {
+      ...this.#root.Style,
+      position: 'absolute',
+      outline: 'none',
+      ...styles,
+    }
   }
 
+  getContext() {
+    return {
+      assetsUrl: this.assetsUrl,
+      page: this.page,
+      roots: this.#root,
+      viewport: this.#viewport,
+    } as T.ResolverContext
+  }
+
+  getResolverOptions(include?: { [key: string]: any }) {
+    return {
+      context: this.getContext(),
+      parser: this.parser,
+      resolveComponent: this.resolveComponents,
+      ...this.getStateGetters(),
+      ...this.getStateSetters(),
+      ...include,
+    } as T.ResolverOptions
+  }
+
+  getConsumerOptions(include?: { [key: string]: any }) {
+    return {
+      context: this.getContext(),
+      createActionChain: this.createActionChain,
+      createSrc: this.#createSrc,
+      resolveComponent: this.resolveComponents,
+      parser: this.parser,
+      showDataKey: this.#state.showDataKey,
+      ...this.getStateGetters(),
+      ...this.getStateSetters(),
+      ...include,
+    } as T.ResolverConsumerOptions
+  }
+
+  getDraftedNodes() {
+    return this.#state.drafted
+  }
+
+  getDraftedNode<K extends keyof T.ComponentResolverState['drafted']>(
+    component: T.IComponent,
+  ): T.ComponentResolverState['drafted'][K]
+  getDraftedNode<K extends keyof T.ComponentResolverState['drafted']>(
+    componentId: K,
+  ): T.ComponentResolverState['drafted'][K]
+  getDraftedNode<K extends keyof T.ComponentResolverState['drafted']>(
+    component: T.IComponent | K,
+  ) {
+    if (component instanceof Component) {
+      return this.#state.drafted[component.id as K]
+    }
+    return this.#state.drafted[component as K]
+  }
+
+  getList(listId: string) {
+    return this.#state.lists[listId]
+  }
+
+  getListItem(listId: string, index: number, defaultValue?: any) {
+    if (!listId || _.isUndefined(index)) return defaultValue
+    return this.#state.lists[listId]?.[index] || defaultValue
+  }
+
+  getState() {
+    return this.#state
+  }
+
+  getStateGetters() {
+    return {
+      consume: this.consume,
+      getList: this.getList,
+      getListItem: this.getListItem,
+      getState: this.getState,
+      getDraftedNodes: this.getDraftedNodes,
+      getDraftedNode: this.getDraftedNode,
+    }
+  }
+
+  getStateSetters() {
+    return {
+      setConsumerData: this.setConsumerData,
+      setDraftNode: this.setDraftNode,
+      setList: this.setList,
+    }
+  }
+
+  resolveComponents(component: T.ComponentType): T.IComponent
+  resolveComponents(components: T.ComponentType[]): T.IComponent[]
   resolveComponents(
     components: T.ComponentType | T.ComponentType[] | T.Page['object'],
   ) {
@@ -96,48 +337,85 @@ class NOODL implements T.INOODLUi {
         return this.#resolve(components)
       } else if (_.isObject(components)) {
         if ('components' in components) {
-          return _.map(components.components, (c) => this.#resolve(c))
+          return _.map(components.components, (c: T.ComponentType) =>
+            this.#resolve(c),
+          )
         } else {
           return this.#resolve(components)
         }
       } else if (_.isArray(components)) {
-        return _.map(components, (c) => this.#resolve(c))
+        return _.map(components as T.ComponentType[], (c) => this.#resolve(c))
       }
     }
-    return []
+    return null
   }
 
-  setAssetsUrl(...args: Parameters<T.ComponentResolver['setAssetsUrl']>) {
-    this.#resolver.setAssetsUrl(...args)
+  setAssetsUrl(assetsUrl: string) {
+    this.#assetsUrl = assetsUrl
     return this
   }
 
   setPage(page: T.Page) {
     this.page = page || { name: '', object: null }
-    this.#resolver.setPage(this.page)
     return this
   }
 
-  setResolvers(...args: Parameters<T.ComponentResolver['setResolvers']>) {
-    this.#resolver.setResolvers(...args)
+  setRoot(root: string | { [key: string]: any }, value?: any) {
+    if (_.isString(root)) this.#root[root] = value
+    else this.#root = root
     return this
   }
 
-  setRoot(...args: Parameters<T.ComponentResolver['setRoot']>) {
-    this.#resolver.setRoot(...args)
+  setViewport(viewport: T.IViewport) {
+    this.#viewport = viewport
     return this
   }
 
-  getViewport() {
-    return this.#resolver.getViewport()
-  }
-
-  setViewport(...args: Parameters<T.ComponentResolver['setViewport']>) {
-    this.#resolver.setViewport(...args)
+  setConsumerData(component: T.IComponent | string, data: any) {
+    if (component instanceof Component) {
+      this.#state.pending[component.id as string] = data
+    } else if (_.isString(component)) {
+      const id = component
+      if (!id) {
+        log.func('setConsumerData')
+        log.red(
+          `Could not set data for a list data consumer because the child component's ` +
+            `id was invalid`,
+          { id, data },
+        )
+      } else {
+        log.func('setConsumerData')
+        log.grey(
+          `Attached consumer data for child component id: ${id}`,
+          this.#state.pending,
+        )
+        this.#state.pending[id] = data
+      }
+    }
     return this
   }
 
-  use(mod: any) {
+  setDraftNode(component: T.IComponent) {
+    if (!component.id) {
+      console.groupCollapsed(
+        `%c[setDraftNode] Cannot set this node to drafted state because the id is invalid`,
+        'color:#ec0000',
+        component.snapshot(),
+      )
+      console.trace()
+      console.groupEnd()
+    } else {
+      this.#state.drafted[component.id as string] = component
+    }
+    return this
+  }
+
+  setList(listId: string, data: any) {
+    this.#state.lists[listId] = data
+    return this
+  }
+
+  use(mod: T.IResolver | T.IViewport) {
     if (mod instanceof Viewport) {
       this.#viewport = mod
     } else if (mod instanceof Resolver) {
@@ -146,36 +424,95 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  unuse(mod: any) {
+  unuse(mod: T.IResolver) {
+    if (mod instanceof Resolver) {
+      this.#resolvers.push(mod)
+    }
     return this
   }
 
   reset() {
-    this['#resolvers'] = []
+    this.#cb = { action: {}, builtIn: {}, chaining: {} }
+    this.#parser = makeRootsParser({ roots: {} })
+    this.#resolvers = []
+    this.#state = _createState()
+    this.#root = {}
+    this.#viewport = new Viewport()
     this['initialized'] = false
     this['page'] = { name: '', object: null }
     return this
   }
 
-  #resolve = (
-    c: T.ComponentType,
-    {
-      id,
-      resolverOptions,
-    }: { id?: string; resolverOptions?: T.ResolverOptions } = {},
-  ) => {
+  #resolve = (c: T.ComponentType, { id }: { id?: string } = {}) => {
     let component: T.IComponent
+
     if (c instanceof Component) {
       component = c
     } else {
       component = new Component(c)
     }
+
     component['id'] = id || _.uniqueId()
-    const page = this.#resolver.getResolverContext().page
-    const consumerOptions = this.#resolver.getResolverConsumerOptions({
+
+    const type = component.get('type')
+    const page = this.getContext().page
+    const consumerOptions = this.getConsumerOptions({
       component,
     })
-    return this.#resolver.resolve(component)
+
+    if (!type) {
+      log.func('#resolve')
+      log.red(
+        'Encountered a NOODL component without a "type"',
+        component.snapshot(),
+      )
+    }
+
+    if (page.name && this.parser.getLocalKey() !== page.name) {
+      this.parser.setLocalKey(page.name)
+    }
+
+    this.emit('beforeResolve', component, consumerOptions)
+
+    _.forEach(this.#resolvers, (resolver) =>
+      resolver.resolve(component, consumerOptions),
+    )
+
+    this.emit('afterResolve', component, consumerOptions)
+
+    // Finalize
+    const { style } = component
+    if (_.isObjectLike(style)) {
+      forEachDeepEntries(style, (key, value) => {
+        if (_.isString(value)) {
+          if (value.startsWith('0x')) {
+            component.set('style', key, formatColor(value))
+          } else if (/(fontsize|borderwidth|borderradius)/i.test(key)) {
+            if (!hasLetter(value)) {
+              component.set('style', key, `${value}px`)
+            }
+          }
+        }
+      })
+    }
+
+    return component
+  }
+
+  #createSrc = (path: string) => {
+    let src = ''
+    if (path && _.isString(path)) {
+      if (path && _.isString(path)) {
+        if (path.startsWith('http')) {
+          src = path
+        } else if (path.startsWith('~/')) {
+          // Should be handled by an SDK
+        } else {
+          src = this.assetsUrl + path
+        }
+      }
+    }
+    return src
   }
 }
 

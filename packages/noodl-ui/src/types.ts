@@ -18,19 +18,32 @@ export interface INOODLUi {
   initialized: boolean
   page: Page
   init(opts: { log?: boolean; viewport?: Viewport }): this
-  on(eventName: string, cb: (...args: any[]) => any): this
+  createActionChain(
+    actions: NOODLActionObject[],
+    { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
+  ): (event: Event) => Promise<any>
+  on(eventName: string, cb: (...args: any[]) => any, cb2?: any): this
   off(eventName: string, cb: (...args: any[]) => any): this
   getContext(): ResolverContext
-  getViewport(): IViewport | undefined
-  resolveComponents(component: ComponentType): IComponent
-  resolveComponents(components: ComponentType[]): IComponent[]
-  resolveComponents(page: Page['object']): IComponent[]
+  getConsumerOptions(include?: { [key: string]: any }): ResolverConsumerOptions
+  getDraftedNode(
+    component: IComponent | string,
+  ): ComponentResolverState['drafted'][keyof ComponentResolverState['drafted']]
+  getDraftedNodes(): ComponentResolverState['drafted']
+  getResolverOptions(include?: { [key: string]: any }): ResolverOptions
+  getState(): ComponentResolverState
+  getStateGetters(): ComponentResolverStateGetters
+  getStateSetters(): ComponentResolverStateSetters
+  resolveComponents(
+    components: ComponentType | ComponentType[] | Page['object'],
+  ): IComponent | IComponent[] | null
   setAssetsUrl(...args: Parameters<ComponentResolver['setAssetsUrl']>): this
+  setDraftNode: ComponentResolverStateSetters['setDraftNode']
+  setList: ComponentResolverStateSetters['setList']
   setPage(page: Page): this
-  setResolvers(...args: Parameters<ComponentResolver['setResolvers']>): this
   setRoot(...args: Parameters<ComponentResolver['setRoot']>): this
   setViewport(...args: Parameters<ComponentResolver['setViewport']>): this
-  use(mod: IViewport): this
+  use(mod: IResolver | IViewport): this
   unuse(mod: any): this
   reset(): this
 }
@@ -238,27 +251,27 @@ export interface NOODLTextBoardTextObject {
 ---- LIB TYPES
 -------------------------------------------------------- */
 
-export interface IComponent<T extends ProxiedComponent = any> {
+export interface IComponent {
   action: NOODLActionObject
-  id: string | undefined
+  id: string
   length: number
-  original: T
-  status: 'drafting' | 'idle' | 'idle[resolved]'
+  original: NOODLComponent | NOODLComponentProps | ProxiedComponent
+  status: 'drafting' | 'idle' | 'idle/resolved'
   stylesTouched: string[]
   stylesUntouched: string[]
   style: NOODLStyle
   touched: string[]
   untouched: string[]
-  type: NOODLComponentType | undefined
+  type: NOODLComponentType
   assign(
     key: string | { [key: string]: any },
     value?: { [key: string]: any },
   ): this
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): IComponent | null
-  children(): IComponent | IComponent[] | undefined
+  children(): IComponent[]
   createChild(props: ComponentType): IComponent
-  done(options?: { mergeUntouched?: boolean }): NOODLComponentProps
+  done(options?: { mergeUntouched?: boolean }): this
   draft(): this
   get<K extends keyof ProxiedComponent>(
     key: K,
@@ -268,7 +281,6 @@ export interface IComponent<T extends ProxiedComponent = any> {
     key: K[],
     styleKey?: keyof NOODLStyle,
   ): Record<K, ProxiedComponent[K]>
-  getCurrentStyles(): NOODLStyle | undefined
   getStyle<K extends keyof NOODLStyle>(styleKey: K): NOODLStyle[K]
   has(key: string, styleKey?: keyof NOODLStyle): boolean
   hasParent(): boolean
@@ -278,12 +290,13 @@ export interface IComponent<T extends ProxiedComponent = any> {
   isStyleTouched(styleKey: string): boolean
   isStyleHandled(key: string): boolean
   merge(key: string | { [key: string]: any }, value?: any): this
+  on(eventName: IComponentEventId, cb: Function): this
+  off(eventName: IComponentEventId, cb: Function): this
   parent(): IComponent | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
   removeChild(child?: IComponent | number): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
   set(key: string, value?: any, styleChanges?: any): this
-  setId(id: string): this
   setParent(parent: IComponent | null): this
   setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
   snapshot(): (ProxiedComponent | NOODLComponentProps) & {
@@ -299,6 +312,11 @@ export interface IComponent<T extends ProxiedComponent = any> {
   toString(): string
   touch(key: string): this
   touchStyle(styleKey: string): this
+}
+
+export interface IResolver {
+  setResolver(resolver: ResolverFn): this
+  resolve(component: IComponent, options: ResolverConsumerOptions): this
 }
 
 export type NOODLComponentProps = Omit<
@@ -340,7 +358,9 @@ export type ActionEventAlias = keyof typeof event.action
 export type ActionEventId = typeof event.action[ActionEventAlias]
 export type ActionChainEventAlias = keyof typeof event.actionChain
 export type ActionChainEventId = typeof event.actionChain[ActionChainEventAlias]
-export type EventId = ActionEventId | ActionChainEventId
+export type IComponentEventAlias = keyof typeof event.IComponent
+export type IComponentEventId = typeof event.IComponent[IComponentEventAlias]
+export type EventId = ActionEventId | ActionChainEventId | IComponentEventId
 
 /* -------------------------------------------------------
   ---- LIB ACTIONS / ACTION CHAIN
@@ -458,6 +478,7 @@ export interface ComponentResolverState {
   pending: {
     [childComponentId: string]: any
   }
+  showDataKey: boolean
 }
 
 export interface ComponentResolver {
@@ -477,7 +498,7 @@ export interface ComponentResolver {
     defaultValue?: any,
   ): ComponentResolverState['lists'][K][number]
   consume<K extends keyof ComponentResolverState['pending']>(
-    component: IComponent<any>,
+    component: IComponent,
   ): ComponentResolverState['pending'][K] | undefined
   setConsumerData(child: IComponent, data: any): this
   setConsumerData(childId: string, data: any): this
@@ -497,8 +518,8 @@ export interface ComponentResolver {
     actions: NOODLActionObject[],
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
-  addResolvers(...resolvers: Resolver[]): this
-  removeResolver(resolver: Resolver): this
+  addResolvers(...resolvers: ResolverFn[]): this
+  removeResolver(resolver: ResolverFn): this
   callResolvers(
     component: IComponent,
     resolverConsumerOptions: ResolverConsumerOptions,
@@ -524,7 +545,7 @@ export interface ComponentResolver {
   ): NOODLComponentProps
   setAssetsUrl(assetsUrl: string): this
   setPage(page?: Page): this
-  setResolvers(...resolvers: Resolver[]): this
+  setResolvers(...resolvers: ResolverFn[]): this
   setRoot(key: string | { [key: string]: any }, value?: any): this
   hasViewport(): boolean
   getViewport(): IViewport | undefined
@@ -545,10 +566,13 @@ export type ComponentResolverStateGetters = Pick<
   | 'getDraftedNode'
 >
 
-export type ComponentResolverStateSetters = Pick<
-  ComponentResolver,
-  'setConsumerData' | 'setDraftNode' | 'setList'
->
+export interface ComponentResolverStateSetters {
+  setConsumerData(child: IComponent, data: any): this
+  setConsumerData(childId: string, data: any): this
+  setConsumerData(child: string | IComponent, data: any): this
+  setDraftNode(component: IComponent): this
+  setList(listId: string, data: any): this
+}
 
 export type OnEvalObject = ActionChainActionCallback<NOODLEvalObject>
 
@@ -661,7 +685,7 @@ export interface ResolveComponent<T = any> {
   (component: ProxiedComponent, options: ResolverOptions): T
 }
 
-export type Resolver = ((
+export type ResolverFn = ((
   component: IComponent,
   resolverConsumerOptions: ResolverConsumerOptions,
 ) => void) & {
@@ -673,16 +697,26 @@ export interface ResolverOptions
     ComponentResolverStateHelpers {
   context: ResolverContext
   parser: RootsParser
-  resolvers: Resolver[]
   resolveComponent: ResolveComponent
 }
 
-export interface ResolverConsumerOptions extends ComponentResolverStateHelpers {
+export interface ResolverConsumerOptions
+  extends ComponentResolverStateHelpers,
+    Pick<
+      ComponentResolver,
+      | 'consume'
+      | 'createActionChain'
+      | 'createSrc'
+      | 'getDraftedNode'
+      | 'getDraftedNodes'
+      | 'getList'
+      | 'getListItem'
+      | 'getState'
+      | 'setConsumerData'
+      | 'setDraftNode'
+      | 'setList'
+    > {
   context: ResolverContext
-  component: IComponent
-  createActionChain: ComponentResolver['createActionChain']
-  createSrc: ComponentResolver['createSrc']
-  getFallbackDataValue: ComponentResolver['getFallbackDataValue']
   parser: ResolverOptions['parser']
   resolveComponent: ResolveComponent
   showDataKey: boolean

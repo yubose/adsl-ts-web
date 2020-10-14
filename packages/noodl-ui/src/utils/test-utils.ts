@@ -14,11 +14,13 @@ import getStylesByElementType from '../resolvers/getStylesByElementType'
 import getTransformedAliases from '../resolvers/getTransformedAliases'
 import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
 import makeComponentResolver from '../factories/makeComponentResolver'
-import { ComponentResolver, Page, ProxiedComponent, Resolver } from '../types'
+import Resolver from '../Resolver'
+import { ComponentResolver, Page, ProxiedComponent, ResolverFn } from '../types'
+import NOODLUi from '../noodl-ui'
 
 export interface MakeResolverTestOptions {
   roots?: { [key: string]: any }
-  resolvers?: Resolver | Resolver[]
+  resolvers?: ResolverFn | ResolverFn[]
   page?: { name: string; object: null | { [key: string]: any } }
 }
 
@@ -73,6 +75,32 @@ export const makeResolverTest = (function () {
   }
 })()
 
+export const noodlui = (function () {
+  let _noodlui = new NOODLUi()
+
+  function _setResolvers() {
+    _.reduce(
+      getAllResolvers(),
+      (acc, r) => acc.concat(new Resolver().setResolver(r)),
+      [] as Resolver[],
+    ).forEach((r) => _noodlui.use(r))
+  }
+
+  Object.defineProperty(_noodlui, 'cleanup', {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value: function () {
+      _noodlui.reset()
+      _setResolvers()
+    },
+  })
+
+  _setResolvers()
+
+  return _noodlui as NOODLUi & { cleanup: () => void }
+})()
+
 export function getAllResolvers() {
   return [
     getAlignAttrs,
@@ -89,5 +117,5 @@ export function getAllResolvers() {
     getStylesByElementType,
     getTransformedAliases,
     getTransformedStyleAliases,
-  ] as Resolver[]
+  ] as ResolverFn[]
 }
