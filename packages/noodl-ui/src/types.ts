@@ -1,10 +1,39 @@
 import { Draft } from 'immer'
+import Viewport from 'Viewport'
 import {
   actionTypes,
   componentTypes,
   contentTypes,
+  event,
   eventTypes,
 } from './constants'
+
+export type ComponentType =
+  | IComponent
+  | NOODLComponent
+  | NOODLComponentProps
+  | ProxiedComponent
+
+export interface INOODLUi {
+  initialized: boolean
+  page: Page
+  init(opts: { log?: boolean; viewport?: Viewport }): this
+  on(eventName: string, cb: (...args: any[]) => any): this
+  off(eventName: string, cb: (...args: any[]) => any): this
+  getContext(): ResolverContext
+  getViewport(): IViewport | undefined
+  resolveComponents(component: ComponentType): IComponent
+  resolveComponents(components: ComponentType[]): IComponent[]
+  resolveComponents(page: Page['object']): IComponent[]
+  setAssetsUrl(...args: Parameters<ComponentResolver['setAssetsUrl']>): this
+  setPage(page: Page): this
+  setResolvers(...args: Parameters<ComponentResolver['setResolvers']>): this
+  setRoot(...args: Parameters<ComponentResolver['setRoot']>): this
+  setViewport(...args: Parameters<ComponentResolver['setViewport']>): this
+  use(mod: IViewport): this
+  unuse(mod: any): this
+  reset(): this
+}
 
 export interface NOODLPage {
   [pageName: string]: NOODLPageObject
@@ -212,18 +241,15 @@ export interface NOODLTextBoardTextObject {
 export interface IComponent<T extends ProxiedComponent = any> {
   action: NOODLActionObject
   id: string | undefined
-  keys: string[]
   length: number
-  parentId?: string
-  raw: T
-  resolved: boolean
-  status: 'drafting' | 'idle'
+  original: T
+  status: 'drafting' | 'idle' | 'idle[resolved]'
   stylesTouched: string[]
   stylesUntouched: string[]
   style: NOODLStyle
   touched: string[]
-  type: NOODLComponentType | undefined
   untouched: string[]
+  type: NOODLComponentType | undefined
   assign(
     key: string | { [key: string]: any },
     value?: { [key: string]: any },
@@ -231,9 +257,7 @@ export interface IComponent<T extends ProxiedComponent = any> {
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): IComponent | null
   children(): IComponent | IComponent[] | undefined
-  createChild(
-    props: IComponent | NOODLComponent | NOODLComponentProps | ProxiedComponent,
-  ): IComponent
+  createChild(props: ComponentType): IComponent
   done(options?: { mergeUntouched?: boolean }): NOODLComponentProps
   draft(): this
   get<K extends keyof ProxiedComponent>(
@@ -307,6 +331,16 @@ export interface SelectOption {
   label: string
   value: string
 }
+
+/* -------------------------------------------------------
+  ---- CONSTANTS
+-------------------------------------------------------- */
+
+export type ActionEventAlias = keyof typeof event.action
+export type ActionEventId = typeof event.action[ActionEventAlias]
+export type ActionChainEventAlias = keyof typeof event.actionChain
+export type ActionChainEventId = typeof event.actionChain[ActionChainEventAlias]
+export type EventId = ActionEventId | ActionChainEventId
 
 /* -------------------------------------------------------
   ---- LIB ACTIONS / ACTION CHAIN

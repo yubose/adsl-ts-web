@@ -2,142 +2,180 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import makeComponentResolver from './factories/makeComponentResolver'
 import * as T from './types'
+import * as C from './constants'
+import Resolver from './Resolver'
 import Viewport from './Viewport'
-import NOODLViewport from './Viewport'
+import Component from './Component'
 
-class NOODL {
+class NOODL implements T.INOODLUi {
   #cb: {
-    action: { [key: string]: any }
-    builtIn: { [key: string]: any }
+    action: Partial<Record<T.EventId, Function[]>>
+    builtIn: { [key: string]: Function[] }
     chaining: { [key: string]: any }
   } = {
     action: {},
     builtIn: {},
     chaining: {},
   }
-  #componentResolvers: T.ComponentResolver[] = []
-  #resolvers: T.Resolver[] = []
+  #resolver: T.ComponentResolver
+  #resolvers: Resolver[] = []
+  #viewport: Viewport
   initialized: boolean = false
   page: T.Page = { name: '', object: null }
 
-  init({
-    log,
-    viewport,
-  }: { log?: { enabled?: boolean }; viewport?: NOODLViewport } = {}) {
-    this.#componentResolver = makeComponentResolver({ roots: {}, viewport })
+  constructor({ viewport }: { viewport?: Viewport } = {}) {
+    this.#resolver = makeComponentResolver({ roots: {}, viewport })
+  }
+
+  init({ log, viewport } = {}) {
+    if (viewport) this.#resolver.setViewport(viewport)
     this.initialized = true
     Logger[log?.enabled ? 'enable' : 'disable']?.()
     return this
   }
 
-  addLifecycleListener(
-    ...args: Parameters<T.ComponentResolver['addLifecycleListener']>
-  ) {
-    this.#componentResolver.addLifecycleListener(...args)
+  on(eventName: T.EventId, cb: Function) {
+    if (_.isString(eventName)) this.#addCb(eventName, cb)
     return this
   }
 
-  hasLifeCycle(name: string | Function) {
-    if (_.isString(name)) {
-      return this.#componentResolver.hasLifeCycle(name)
-    } else if (_.isFunction(name)) {
-      return this.#componentResolver.hasLifeCycle(name)
+  off(eventName: T.EventId, cb: Function) {
+    if (_.isString(eventName)) this.#removeCb(eventName, cb)
+    return this
+  }
+
+  #getCbPath = (key: T.EventId) => {
+    let path = ''
+    if (key in C.event.action) {
+      path = 'action'
+    } else if (key === C.event.action.BUILTIN) {
+      path = 'action' + '.' + C.event.action.BUILTIN
+    } else if (key in C.event.actionChain) {
+      path = 'chaining'
     }
-    return false
+    return path
+  }
+
+  #addCb = (key: T.EventId, cb: Function) => {
+    const path = this.#getCbPath(key)
+    if (path) {
+      if (!_.isArray(this.#cb[path])) this.#cb[path] = []
+      this.#cb[path].push(cb)
+    }
+    return this
+  }
+
+  #removeCb = (key: T.EventId, cb: Function) => {
+    let path = ''
+    if (key in C.event.action) {
+      path = 'action'
+    } else if (key === C.event.action.BUILTIN) {
+      path = `action.${C.event.action.BUILTIN}`
+    } else if (key in C.event.actionChain) {
+      path = 'chaining'
+    }
+    if (path) {
+      if (_.isArray(this.#cb[path])) {
+        if (this.#cb[path].includes(cb)) {
+          this.#cb[path] = _.filter(this.#cb[path], (_cb) => _cb !== cb)
+        }
+      }
+    }
+    return this
   }
 
   getContext() {
-    return this.#componentResolver?.getResolverContext()
+    return this.#resolver?.getResolverContext()
   }
 
   resolveComponents(
-    components: T.NOODLComponent | T.NOODLComponent[],
-  ): T.NOODLComponentProps[]
-  resolveComponents(pageObject?: T.Page['object']): T.NOODLComponentProps[]
-  resolveComponents(
-    componentsProp?: T.NOODLComponent | T.NOODLComponent[] | T.Page['object'],
-  ): T.NOODLComponentProps[] {
-    let resolvedComponents: T.NOODLComponentProps[] = []
-
-    if (_.isArray(componentsProp)) {
-      resolvedComponents = componentsProp.map(
-        (c) =>
-          this.#componentResolver.resolve({
-            ...c,
-            id: this.page.name,
-          }) as T.NOODLComponentProps,
-      )
-    } else if (
-      componentsProp &&
-      !(componentsProp as T.NOODLPageObject).components
-    ) {
-      resolvedComponents.push(
-        this.#componentResolver.resolve({
-          ...(componentsProp as T.NOODLComponent),
-          id: this.page.name,
-        }) as T.NOODLComponentProps,
-      )
-    } else {
-      if (!componentsProp) {
-        componentsProp = this.getContext().page?.object
+    components: T.ComponentType | T.ComponentType[] | T.Page['object'],
+  ) {
+    if (components) {
+      if (components instanceof Component) {
+        return this.#resolve(components)
+      } else if (_.isObject(components)) {
+        if ('components' in components) {
+          return _.map(components.components, (c) => this.#resolve(c))
+        } else {
+          return this.#resolve(components)
+        }
+      } else if (_.isArray(components)) {
+        return _.map(components, (c) => this.#resolve(c))
       }
-      const components = (componentsProp as T.NOODLPageObject)?.components || []
-      resolvedComponents = _.map(components, (c: T.NOODLComponent) => {
-        return this.#componentResolver.resolve({
-          ...c,
-          id: this.page.name,
-        }) as T.NOODLComponentProps
-      })
     }
-
-    return resolvedComponents
+    return []
   }
 
   setAssetsUrl(...args: Parameters<T.ComponentResolver['setAssetsUrl']>) {
-    this.#componentResolver.setAssetsUrl(...args)
+    this.#resolver.setAssetsUrl(...args)
     return this
   }
 
   setPage(page: T.Page) {
     this.page = page || { name: '', object: null }
-    this.#componentResolver.setPage(this.page)
+    this.#resolver.setPage(this.page)
     return this
   }
 
   setResolvers(...args: Parameters<T.ComponentResolver['setResolvers']>) {
-    this.#componentResolver.setResolvers(...args)
+    this.#resolver.setResolvers(...args)
     return this
   }
 
   setRoot(...args: Parameters<T.ComponentResolver['setRoot']>) {
-    this.#componentResolver.setRoot(...args)
+    this.#resolver.setRoot(...args)
     return this
   }
 
   getViewport() {
-    return this.#componentResolver.getViewport()
+    return this.#resolver.getViewport()
   }
 
   setViewport(...args: Parameters<T.ComponentResolver['setViewport']>) {
-    this.#componentResolver.setViewport(...args)
+    this.#resolver.setViewport(...args)
     return this
   }
 
   use(mod: any) {
     if (mod instanceof Viewport) {
       this.#viewport = mod
+    } else if (mod instanceof Resolver) {
+      this.#resolvers.push(mod)
     }
     return this
   }
 
-  unuse(mod: any) {}
+  unuse(mod: any) {
+    return this
+  }
 
   reset() {
-    this['#callbacks'] = {}
-    this['#componentResolvers'] = []
     this['#resolvers'] = []
     this['initialized'] = false
     this['page'] = { name: '', object: null }
+    return this
+  }
+
+  #resolve = (
+    c: T.ComponentType,
+    {
+      id,
+      resolverOptions,
+    }: { id?: string; resolverOptions?: T.ResolverOptions } = {},
+  ) => {
+    let component: T.IComponent
+    if (c instanceof Component) {
+      component = c
+    } else {
+      component = new Component(c)
+    }
+    component['id'] = id || _.uniqueId()
+    const page = this.#resolver.getResolverContext().page
+    const consumerOptions = this.#resolver.getResolverConsumerOptions({
+      component,
+    })
+    return this.#resolver.resolve(component)
   }
 }
 

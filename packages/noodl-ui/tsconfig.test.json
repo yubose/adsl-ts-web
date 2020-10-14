@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": "src",
     "module": "commonjs",
-    "target": "es6"
+    "target": "es2017"
   },
   "exclude": ["node_modules/**", "__dev__"],
   "include": ["src/**/*.test.ts"]

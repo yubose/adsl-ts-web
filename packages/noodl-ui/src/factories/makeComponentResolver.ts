@@ -49,10 +49,6 @@ function makeComponentResolver({
     viewport,
   })
 
-  function _createId(proxiedComponent: any) {
-    return proxiedComponent?.id || getRandomKey()
-  }
-
   function _getInitialStyles(styles?: T.NOODLStyle) {
     return {
       ...roots?.Style,
@@ -62,16 +58,7 @@ function makeComponentResolver({
     }
   }
 
-  function _init(
-    proxiedComponent: Parameters<T.ComponentResolver['resolve']>[0],
-  ) {
-    let component: T.IComponent | T.ProxiedComponent
-
-    if (proxiedComponent instanceof Component) {
-      component = proxiedComponent
-    } else {
-      component = new Component<any>(proxiedComponent)
-    }
+  function _init(component: T.IComponent) {
     // NOTE: component.id is also applied in the getChildren resolver. Give that higher
     // priority first because it is establishing communication to its children with it
     // NOTE: The base styles are not being picked up from the resolvers and
@@ -125,7 +112,7 @@ function makeComponentResolver({
         }
       })
     }
-    return component.done()
+    return component
   }
 
   // Set default parser by default

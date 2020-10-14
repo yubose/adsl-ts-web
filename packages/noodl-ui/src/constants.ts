@@ -82,6 +82,31 @@ export const presets = {
   },
 }
 
+export const event = {
+  action: {
+    PAGEJUMP: 'pageJump',
+    BUILTIN: 'builtIn',
+    EVALOBJECT: 'evalObject',
+    GOTO: 'goto',
+    UPDATEOBJECT: 'updateObject',
+    REFRESH: 'refresh',
+    SAVEOBJECT: 'saveObject',
+    POPUP: 'popUp',
+    POPUPDISMISS: 'popUpDismiss',
+  },
+  actionChain: {
+    ON_BEFORE_RESOLVE: 'beforeResolve',
+    ON_BEFORE_RESOLVE_STYLES: 'beforeResolveStyles',
+    ON_CHAIN_START: 'chainStart',
+    ON_CHAIN_ABORTED: 'chainAborted',
+    ON_OVERRIDE_DATA_VALUE: 'overrideDataValue',
+    ON_BUILTIN_MISSING: 'builtinMissing',
+    ON_CHAIN_END: 'chainEnd',
+    ON_CHAIN_ERROR: 'chainError',
+    ON_AFTER_RESOLVE: 'afterResolve',
+  },
+} as const
+
 /** { textAlign: '' } */
 export const textAlignStrings = [
   'left',

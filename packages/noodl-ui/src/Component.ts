@@ -4,6 +4,7 @@ import { createDraft, isDraft, finishDraft, original, current } from 'immer'
 import Logger from 'logsnap'
 import { eventTypes } from './constants'
 import {
+  ComponentType,
   IComponent,
   NOODLActionObject,
   NOODLComponent,
@@ -13,24 +14,24 @@ import {
   ProxiedComponent,
   Resolver,
 } from './types'
-import { forEachEntries, getRandomKey } from './utils/common'
+import { forEachEntries } from './utils/common'
 import { createNOODLComponent } from './utils/noodl'
 
 const log = Logger.create('Component')
 
-class Component<T extends ProxiedComponent = any> implements IComponent {
+class Component implements IComponent {
+  #cb: { [eventName: string]: Function } = {}
   #component:
     | WritableDraft<ProxiedComponent & NOODLComponentProps>
     | (ProxiedComponent & NOODLComponentProps)
   #children?: IComponent[]
   #id: string | undefined
   #parent: IComponent | null = null
-  #resolvers: { resolver: Resolver }[] = []
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
   action: NOODLActionObject = {} as NOODLActionObject
-  raw: T
+  original: T
   resolved: boolean = false
   keys: string[]
   handled: string[] = []
@@ -39,19 +40,21 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
   untouched: string[] = []
   stylesTouched: string[] = []
   stylesUntouched: string[] = []
-  type: NOODLComponentType | undefined
 
   constructor(
-    component: T | IComponent | NOODLComponent | NOODLComponentProps,
-    { parent }: { parent?: Component } = {},
+    component: ComponentType,
+    { parent }: { parent?: ComponentType } = {},
   ) {
-    this['raw'] = component instanceof Component ? component.raw : component
-    this['type'] = component.type as NOODLComponentType
+    this['original'] =
+      component instanceof Component ? component.original : component
     this['keys'] = _.keys(component)
     this['untouched'] = [...this.keys]
     this['unhandled'] = [...this.keys]
 
-    if (parent) this['#parent'] = parent
+    if (parent) {
+      this.#parent =
+        parent instanceof Component ? parent : new Component(parent)
+    }
 
     this.#component = (isDraft(component)
       ? component
@@ -59,7 +62,7 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
       ProxiedComponent & NOODLComponentProps
     >
 
-    this.setId(component?.id || getRandomKey())
+    this.setId(component?.id || _.uniqueId())
     this.set('noodlType', component.type)
 
     if (_.isPlainObject(component.style)) {
@@ -129,8 +132,10 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
    * operations unless this.draft() is called
    */
   done({ mergeUntouched = false }: { mergeUntouched?: boolean } = {}) {
-    if (this.status !== 'drafting')
+    if (this.status !== 'drafting') {
       return this.#component as NOODLComponentProps
+    }
+
     if (mergeUntouched) {
       _.forEach(this.untouched, (untouchedKey) => {
         this.set(untouchedKey, this.#component[untouchedKey])
@@ -143,23 +148,32 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
         this.removeStyle(styleKey)
       },
     )
-    this.#component = isDraft(this.#component)
+    this['#component'] = isDraft(this.#component)
       ? finishDraft(this.#component)
       : this.#component
-    this.#status = 'idle'
+    this['#status'] = 'idle'
+    this.#cb?.resolved(this.#component)
     return this.#component as NOODLComponentProps
-  }
-
-  get status() {
-    return isDraft(this.#status) ? current(this.#status) : this.#status
   }
 
   get id() {
     return this.#id
   }
 
+  set id(value: string) {
+    this.#id = value
+  }
+
+  get type() {
+    return this.original.type
+  }
+
   get style() {
     return this.#component.style as NOODLStyle
+  }
+
+  get status() {
+    return isDraft(this.#status) ? current(this.#status) : this.#status
   }
 
   /** Used by this.get */
@@ -173,27 +187,27 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
       // Retrieve the entire style object
       if (styleKey === undefined) {
         this.touch('style')
-        value = isDraft(this.raw.style)
-          ? original(this.raw.style)
-          : this.raw.style
+        value = isDraft(this.original.style)
+          ? original(this.original.style)
+          : this.original.style
       }
       // Retrieve a property of the style object
       else if (_.isString(styleKey)) {
         this.touchStyle(styleKey)
-        value = this.raw.style?.[styleKey]
+        value = this.original.style?.[styleKey]
       }
     } else {
       this.touch(key)
       // Return the original type only for this case
       if (key === 'type') {
-        return this.raw.type
+        value = this.original.type
       } else {
         if (key === 'data-value') {
           console.log(current(this.#component))
         }
         value =
-          this.raw[key as keyof ProxiedComponent] ||
-          this.#component[key as keyof ProxiedComponent]
+          this.#component[key as keyof ProxiedComponent] ||
+          this.original[key as keyof ProxiedComponent]
       }
     }
 
@@ -349,13 +363,14 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
       })
     }
 
-    // Return the original raw type
+    // Return the original original type
     if (key === 'type') {
-      return this.raw.type
+      return this.original.type
     }
 
     return isDraft(value) ? original(value) : value
   }
+
   /**
    * Sets a property's value on the component, or sets a property's value on the style
    * object if the key is "style", value is the styleKey and styleChanges is the value to update
@@ -462,18 +477,23 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
   }
 
   /**
-   * Returns the most recent component object at the time of this call.
+   * Returns the most recent
+   * component object at the time of this call.
    * If it is still a draft it is converted into plain JS
    */
   snapshot() {
-    return _.assign({ id: this.#id, noodlType: this.raw.type }, this.toJS(), {
-      _touched: this.touched,
-      _untouched: this.untouched,
-      _touchedStyles: this.stylesTouched,
-      _untouchedStyles: this.stylesUntouched,
-      _handled: this.handled,
-      _unhandled: this.unhandled,
-    })
+    return _.assign(
+      { id: this.#id, noodlType: this.original.type },
+      this.toJS(),
+      {
+        _touched: this.touched,
+        _untouched: this.untouched,
+        _touchedStyles: this.stylesTouched,
+        _untouchedStyles: this.stylesUntouched,
+        _handled: this.handled,
+        _unhandled: this.unhandled,
+      },
+    )
   }
 
   /** Returns the JS representation of the currently resolved component */
@@ -568,33 +588,9 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
     return this.#children?.length || 0
   }
 
-  resolve(component: any) {
-    const result = {}
-    _.forEach(this.#resolvers, (r) => {
-      const res = r.resolver(component)
-      if (res) _.assign(result, res)
-    })
-    return result
-  }
-
-  /**
-   * Adds resolvers to the list of resolvers. These will be called when
-   * parsing your noodl component objects
-   * @param { Resolver | Resolver[] } resolver - Resolver function
-   */
-  use(resolver: Resolver | Resolver[]) {
-    if (_.isArray(resolver)) {
-      this.#resolvers.push(...resolver.map(this.toResolverObj))
-    } else {
-      this.#resolvers.push(this.toResolverObj(resolver))
-    }
+  on(eventName: 'resolved', cb: Function) {
+    this.#cb[eventName] = cb
     return this
-  }
-
-  toResolverObj(resolver: Resolver) {
-    return {
-      resolver,
-    }
   }
 }
 

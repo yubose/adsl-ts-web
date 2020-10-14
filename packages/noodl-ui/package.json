@@ -21,7 +21,8 @@
     "start": "rm -rf dist && rollup -c -w",
     "start:ui": "rm -rf dist && rollup -c -w",
     "test": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose --file ./src/setupTests.ts",
-    "test:file": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts"
+    "test:file": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts",
+    "test:next": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files src src/__tests__/noodl-ui-next.test.ts"
   },
   "files": [
     "dist"
