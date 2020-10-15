@@ -1,13 +1,12 @@
 import _ from 'lodash'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 import isReference from '../utils/isReference'
 
-/** Initializes the querying for retrieving references from a NOODL component object
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
+/**
+ * Initializes the querying for retrieving references from a NOODL
+ * component object
  */
-const getReferences: Resolver = (component, { context, parser }) => {
+const getReferences: ResolverFn = (component, { context, parser }) => {
   const { page, roots } = context
 
   if (roots) {

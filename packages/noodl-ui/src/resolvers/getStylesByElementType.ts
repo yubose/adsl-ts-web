@@ -1,13 +1,8 @@
 import _ from 'lodash'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 
-/**
- * Returns styles using the className if found from the baseCss object
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
- */
-const getStylesByElementType: Resolver = (component, options) => {
+/** Returns styles using the className if found from the baseCss object */
+const getStylesByElementType: ResolverFn = (component, options) => {
   // TODO internal state implementation
   switch (component?.type) {
     case 'header':
@@ -42,9 +37,10 @@ const getStylesByElementType: Resolver = (component, options) => {
         //   )
         // }
       }
-      component.setStyle('listStyle', 'none')
-      component.setStyle('padding', 0)
-      return void component.setStyle('position', 'relative')
+      return void component
+        .setStyle('listStyle', 'none')
+        .setStyle('padding', 0)
+        .setStyle('position', 'relative')
     }
     // Defaults to being hidden
     case 'popUp':

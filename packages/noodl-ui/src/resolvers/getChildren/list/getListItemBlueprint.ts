@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { ComponentResolverStateGetters, IComponent } from '../../../types'
-import { createNOODLComponent } from '../../../utils/noodl'
+import Component from '../../../Component'
 
 const log = Logger.create('getListItemBlueprint')
 
@@ -16,16 +16,15 @@ export function getListItemBlueprint({
   listId: string
 }) {
   let blueprint: any
-  let children = component.get('children')
-
+  let noodlChildren = component.get('children')
   // Get the blueprint for each list item
-  if (_.isArray(children)) {
+  if (_.isArray(noodlChildren)) {
     // Since listItem components (rows) are not explicity written in the NOODL and
     // gives the responsibility for populating its data to the platforms, this means
     // we need a blueprint to render the items. We can use the first child of the
-    // children as its blueprint to render the rest since it is provided at all times
-    if (_.isPlainObject(children[0])) {
-      blueprint = children[0]
+    // noodlChildren as its blueprint to render the rest since it is provided at all times
+    if (_.isPlainObject(noodlChildren[0])) {
+      blueprint = noodlChildren[0]
     } else {
       log.red(
         'Attempted to use the first child as the blueprint for rendering list items but it was not an object',
@@ -33,10 +32,10 @@ export function getListItemBlueprint({
       )
     }
   } else {
-    if (_.isObjectLike(children)) {
-      // Since there is only one child we can directly use component.children
+    if (_.isObjectLike(noodlChildren)) {
+      // Since there is only one child we can directly use component.noodlChildren
       // as the props for the child
-      blueprint = children
+      blueprint = noodlChildren
     } else {
       log.red(
         'Attempted to use the single listItem component as the blueprint for rendering list items but it was not an object',
@@ -67,7 +66,7 @@ const _getListItemBlueprint = function (
   const o = {
     create() {
       // TODO - calc height
-      return createNOODLComponent('listItem', {})
+      return new Component({ type: 'listItem' })
     },
   }
 

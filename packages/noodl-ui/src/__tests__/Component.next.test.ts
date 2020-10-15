@@ -94,7 +94,6 @@ describe('Component', () => {
   })
 
   it('should merge in untouched props if set to true', () => {
-    console.info(component.done)
     component.set('path', 'https://www.google.com')
     component.done({ mergeUntouched: true })
   })

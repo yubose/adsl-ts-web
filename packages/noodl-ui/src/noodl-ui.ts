@@ -11,8 +11,8 @@ import {
   hasLetter,
 } from './utils/common'
 import ActionChain from './ActionChain'
+import isReference from './utils/isReference'
 import * as T from './types'
-import isReference from 'utils/isReference'
 
 const log = Logger.create('noodl-ui')
 
@@ -38,13 +38,13 @@ class NOODL implements T.INOODLUi {
     builtIn: {},
     chaining: {},
   }
+  #page: T.Page = { name: '', object: null }
   #parser: T.RootsParser
   #resolvers: Resolver[] = []
-  #root: { [key: string]: any }
+  #root: { [key: string]: any } = {}
   #state: T.ComponentResolverState
   #viewport: T.IViewport
   initialized: boolean = false
-  page: T.Page = { name: '', object: null }
 
   constructor({
     showDataKey,
@@ -59,8 +59,16 @@ class NOODL implements T.INOODLUi {
     return this.#assetsUrl
   }
 
+  get page() {
+    return this.#page
+  }
+
   get parser() {
     return this.#parser
+  }
+
+  get root() {
+    return this.#root
   }
 
   get viewport() {
@@ -73,8 +81,8 @@ class NOODL implements T.INOODLUi {
    * @param { string | Component } component
    */
   consume(component: T.IComponent) {
-    const componentId = component.id || ''
     log.func('consume')
+    const componentId = component.id || ''
     if (!componentId) {
       log.red('Invalid componentId used to consume list data', {
         component: component.snapshot(),
@@ -120,18 +128,15 @@ class NOODL implements T.INOODLUi {
       ...options,
       ..._.reduce(
         _.entries(this.#cb.action),
-        (acc, [actionType, cbs]) => {
-          if (_.isArray(cbs)) {
-            acc[actionType] = cbs
-          }
-          return acc
-        },
+        (acc, [actionType, cbs]) =>
+          _.isArray(cbs) ? _.assign(acc, { [actionType]: cbs }) : acc,
         {} as any,
       ),
     })
 
     // @ts-expect-error
     window.ac = actionChain
+
     return actionChain.build({
       context: this.getContext() as T.ResolverContext,
       parser: this.parser,
@@ -146,7 +151,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  on(eventName: T.EventId, cb, cb2) {
+  on(eventName: T.EventId, cb: any, cb2?: any) {
     if (_.isString(eventName)) this.#addCb(eventName, cb, cb2)
     return this
   }
@@ -246,7 +251,7 @@ class NOODL implements T.INOODLUi {
   getContext() {
     return {
       assetsUrl: this.assetsUrl,
-      page: this.page,
+      page: this.#root[this.#page.name],
       roots: this.#root,
       viewport: this.#viewport,
     } as T.ResolverContext
@@ -256,7 +261,7 @@ class NOODL implements T.INOODLUi {
     return {
       context: this.getContext(),
       parser: this.parser,
-      resolveComponent: this.resolveComponents,
+      resolveComponent: this.resolveComponents.bind(this),
       ...this.getStateGetters(),
       ...this.getStateSetters(),
       ...include,
@@ -266,9 +271,9 @@ class NOODL implements T.INOODLUi {
   getConsumerOptions(include?: { [key: string]: any }) {
     return {
       context: this.getContext(),
-      createActionChain: this.createActionChain,
-      createSrc: this.#createSrc,
-      resolveComponent: this.resolveComponents,
+      createActionChain: this.createActionChain.bind(this),
+      createSrc: this.#createSrc.bind(this),
+      resolveComponent: this.resolveComponents.bind(this),
       parser: this.parser,
       showDataKey: this.#state.showDataKey,
       ...this.getStateGetters(),
@@ -368,8 +373,9 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  setPage(page: T.Page) {
-    this.page = page || { name: '', object: null }
+  setPage(pageName: string) {
+    this.#page.name = pageName
+    this.#page.object = this.#root[pageName]
     return this
   }
 
@@ -428,12 +434,12 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  use(mod: T.IResolver | T.IViewport, ...rest: any[]) {
-    const mods = [mod, ...rest]
+  use(mod: T.IResolver | T.IResolver[] | T.IViewport, ...rest: any[]) {
+    const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)
 
     const handleMod = (m: typeof mods[number]) => {
       if (m instanceof Viewport) {
-        this.#viewport = m
+        this.setViewport(m)
       } else if (m instanceof Resolver) {
         this.#resolvers.push(m)
       }
@@ -461,8 +467,7 @@ class NOODL implements T.INOODLUi {
     this.#state = _createState()
     this.#root = {}
     this.#viewport = new Viewport()
-    this['initialized'] = false
-    this['page'] = { name: '', object: null }
+    this.initialized = false
     return this
   }
 
@@ -478,7 +483,6 @@ class NOODL implements T.INOODLUi {
     component['id'] = id || _.uniqueId()
 
     const type = component.get('type')
-    const page = this.getContext().page
     const consumerOptions = this.getConsumerOptions({
       component,
     })
@@ -491,8 +495,8 @@ class NOODL implements T.INOODLUi {
       )
     }
 
-    if (page.name && this.parser.getLocalKey() !== page.name) {
-      this.parser.setLocalKey(page.name)
+    if (this.page && this.parser.getLocalKey() !== this.page.name) {
+      this.parser.setLocalKey(this.page.name)
     }
 
     this.emit('beforeResolve', component, consumerOptions)

@@ -1,21 +1,18 @@
 import _ from 'lodash'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 import { hasLetter } from '../utils/common'
 import { presets } from '../constants'
 
 /**
  * Returns border attributes according to the "border" property defined in the NOODL as well
- *    as some native border attributes like "borderRadius"
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
- * 1) no border / no borderRadius/
- * 2) borderBottom / solid / no borderRadius/
- * 3) borderAll / solid / has borderRadius
- * 4) borderAll / dashed / no borderRadius
- * 5) no border / has borderRadius
+ * as some native border attributes like "borderRadius"
+ *    1) no border / no borderRadius/
+ *    2) borderBottom / solid / no borderRadius/
+ *    3) borderAll / solid / has borderRadius
+ *    4) borderAll / dashed / no borderRadius
+ *    5) no border / has borderRadius
  */
-const getBorderAttrs: Resolver = (component) => {
+const getBorderAttrs: ResolverFn = (component) => {
   const style = component.get('style')
 
   if (style) {

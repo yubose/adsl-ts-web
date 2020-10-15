@@ -2,16 +2,13 @@ import _ from 'lodash'
 import { current } from 'immer'
 import {
   IComponent,
-  NOODLComponentType,
   NOODLComponentProps,
   NOODLIfObject,
   NOODLTextBoardTextObject,
   NOODLTextBoardBreakLine,
-  ProxiedComponent,
 } from '../types'
 import Logger from 'logsnap'
 import { isBrowser } from './common'
-import Component from '../Component'
 
 const log = Logger.create('noodl-ui/src/utils/noodl.ts')
 
@@ -32,8 +29,8 @@ export const identify = (function () {
     },
     textBoard: {
       item: {
-        isTextObject: (value: any): value is NOODLTextBoardTextObject =>
-          _.isObjectLike(value) && _.isString(value.text),
+        isTextObject: (component: IComponent): boolean =>
+          _.isString(component.get('text')),
         isBreakLine: (value: unknown): value is NOODLTextBoardBreakLine =>
           value === 'br',
       },
@@ -149,22 +146,6 @@ export function checkForNoodlProp(
     if (predicate(component.noodl?.[prop])) return true
   }
   return false
-}
-
-/**
- * Helper to create the minimally required props expected to safely run through all resolvers
- * @param { string } type - NOODL component type
- * @param { NOODLComponent } props
- */
-export function createNOODLComponent<T extends ProxiedComponent = any>(
-  type: NOODLComponentType,
-  props?: T,
-): IComponent {
-  return new Component({
-    ...props,
-    style: { ...props?.style },
-    type,
-  }) as IComponent
 }
 
 /**

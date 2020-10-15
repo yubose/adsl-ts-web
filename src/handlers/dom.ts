@@ -9,40 +9,42 @@ import noodluidom from 'app/noodl-ui-dom'
 const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-noodluidom.on('all', function onCreateNode(node, props) {
+noodluidom.on('all', function onCreateNode(node, component) {
   if (!node) return
 
+  const js = component.toJS()
+
   const {
-    id,
+    id = '',
     options,
-    placeholder,
-    poster,
-    src,
+    placeholder = '',
+    poster = '',
+    src = '',
     style,
-    type,
-    videoFormat,
-  } = props
+    type = '',
+    videoFormat = '',
+  } = js
 
   // TODO reminder: Remove this listdata in the noodl-ui client
-  // const dataListData = props['data-listdata']
+  // const dataListData = component['data-listdata']
 
-  if (id) node['id'] = props.id
+  if (id) node['id'] = id
   if (placeholder) node.setAttribute('placeholder', placeholder)
   if (type === 'video' && poster) node.setAttribute('poster', poster)
   if (src && type !== 'video') node.setAttribute('src', src)
   if (videoFormat) node.setAttribute('type', videoFormat)
   /** Dataset identifiers */
-  if ('data-listid' in props) node.dataset['listid'] = props['data-listid']
-  if ('data-name' in props) node.dataset['name'] = props['data-name']
-  if ('data-key' in props) node.dataset['key'] = props['data-key']
-  if ('data-ux' in props) node.dataset['ux'] = props['data-ux']
-  if ('data-value' in props) node.dataset['value'] = props['data-value']
+  if ('data-listid' in js) node.dataset['listid'] = js['data-listid']
+  if ('data-name' in js) node.dataset['name'] = js['data-name']
+  if ('data-key' in js) node.dataset['key'] = js['data-key']
+  if ('data-ux' in js) node.dataset['ux'] = js['data-ux']
+  if ('data-value' in js) node.dataset['value'] = js['data-value']
 
   /** Data values */
-  if ('data-value' in props) {
+  if ('data-value' in js) {
     if (['input', 'select', 'textarea'].includes(type)) {
       let elem = node as DataValueElement
-      elem['value'] = props['data-value'] || ''
+      elem['value'] = js['data-value'] || ''
       if (type === 'select') {
         elem = node as HTMLSelectElement
         if (elem.length) {
@@ -54,27 +56,27 @@ noodluidom.on('all', function onCreateNode(node, props) {
           log.red(
             `Attempted to attach a data-value to a select element's value but ` +
               `"options" was not provided. This may not display its value as expected`,
-            props,
+            js,
           )
         }
       } else {
-        elem.dataset['value'] = props['data-value'] || ''
+        elem.dataset['value'] = js['data-value'] || ''
         elem['value'] = elem.dataset['value'] || ''
       }
     } else {
-      node.innerHTML = props['data-value'] || props.placeholder || ''
+      node.innerHTML = js['data-value'] || js.placeholder || ''
     }
   }
 
   // For non data-value elements like labels or divs that just display content
   // If there's no data-value (which takes precedence here), use the placeholder
   // to display as a fallback
-  if (!props['data-value'] && props.placeholder) {
-    node.innerHTML = props.placeholder
+  if (!js['data-value'] && js.placeholder) {
+    node.innerHTML = js.placeholder
   }
 
   /** Event handlers */
-  forEachEntries(props, (key, value) => {
+  forEachEntries(js, (key, value) => {
     let eventName: string
 
     if (eventTypes.includes(key as NOODLActionTriggerType)) {
@@ -98,10 +100,10 @@ noodluidom.on('all', function onCreateNode(node, props) {
   })
   // Attach an additional listener for data-value elements that are expected
   // to change values on the fly by some "on change" logic (ex: input/select elements)
-  if ('data-value' in props) {
+  if ('data-value' in js) {
     import('utils/sdkHelpers')
       .then(({ createOnDataValueChangeFn }) => {
-        const onChange = createOnDataValueChangeFn(props['data-key'])
+        const onChange = createOnDataValueChangeFn(js['data-key'])
         node.addEventListener('change', onChange)
       })
       .catch((err) => log.func('noodluidom.on: all').red(err.message))
@@ -148,9 +150,10 @@ noodluidom.on('all', function onCreateNode(node, props) {
   }
 })
 
-noodluidom.on('create.button', function onCreateButton(node, props) {
+noodluidom.on('create.button', function onCreateButton(node, component) {
   if (node) {
-    const { onClick: onClickProp, src } = props
+    const js = component.toJS()
+    const { onClick: onClickProp, src } = js
     /**
      * Buttons that have a "src" property
      * ? NOTE: Seems like these components are deprecated. Leave this here for now
@@ -168,9 +171,9 @@ noodluidom.on('create.button', function onCreateButton(node, props) {
   }
 })
 
-noodluidom.on('create.image', function onCreateImage(node, props) {
+noodluidom.on('create.image', function onCreateImage(node, component) {
   if (node) {
-    const { children, onClick } = props
+    const { children, onClick } = component.toJS()
 
     if (_.isFunction(onClick)) {
       node.style['cursor'] = 'pointer'
@@ -183,7 +186,7 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
       log.orange(
         `An image component has children. This is a weird practice. Consider ` +
           `discussion about this`,
-        props,
+        component.toJS(),
       )
       node.style['width'] = '100%'
       node.style['height'] = '100%'
@@ -191,17 +194,18 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
   }
 })
 
-noodluidom.on('create.label', function onCreateLabel(node, props) {
+noodluidom.on('create.label', function onCreateLabel(node, component) {
   if (node) {
-    const { onClick } = props
+    const { onClick } = component.toJS()
     node.style['cursor'] = _.isFunction(onClick) ? 'pointer' : 'auto'
   }
 })
 
 /** NOTE: node is null in this handler */
-noodluidom.on('create.plugin', async function (noop, props) {
+noodluidom.on('create.plugin', async function (noop, component) {
   log.func('create.plugin')
-  const { src = '' } = props
+  const js = component.toJS()
+  const { src = '' } = js
   if (_.isString(src)) {
     if (src.startsWith('http')) {
       const { default: axios } = await import('app/axios')
@@ -218,15 +222,15 @@ noodluidom.on('create.plugin', async function (noop, props) {
     } else {
       log.red(
         `Received a src from a "plugin" component that did not start with an http(s) protocol`,
-        { props, src },
+        { component: js, src },
       )
     }
   }
 })
 
-noodluidom.on('create.textfield', function onCreateTextField(node, props) {
+noodluidom.on('create.textfield', function onCreateTextField(node, component) {
   if (node) {
-    const { contentType } = props
+    const { contentType } = component.toJS()
 
     // Password inputs
     if (contentType === 'password') {
@@ -240,7 +244,7 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
           const eyeContainer = document.createElement('button')
           const eyeIcon = document.createElement('img')
 
-          // const restDividedStyleKeys = _.omit(props.style, dividedStyleKeys)
+          // const restDividedStyleKeys = _.omit(component.style, dividedStyleKeys)
 
           // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
           const dividedStyleKeys = [
@@ -255,7 +259,7 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
 
           // Transfer styles to the new parent to position our custom elements
           _.forEach(dividedStyleKeys, (styleKey) => {
-            newParent.style[styleKey] = props.style?.[styleKey]
+            newParent.style[styleKey] = component.style?.[styleKey]
             // Remove the transfered styles from the original input element
             node.style[styleKey] = ''
           })

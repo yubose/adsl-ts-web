@@ -76,29 +76,31 @@ export const makeResolverTest = (function () {
 })()
 
 export const noodlui = (function () {
-  let _noodlui = new NOODLUi()
+  const state = {
+    client: new NOODLUi(),
+  }
 
   function _setResolvers() {
     _.reduce(
       getAllResolvers(),
       (acc, r) => acc.concat(new Resolver().setResolver(r)),
       [] as Resolver[],
-    ).forEach((r) => _noodlui.use(r))
+    ).forEach((r) => state.client.use(r))
   }
 
-  Object.defineProperty(_noodlui, 'cleanup', {
+  Object.defineProperty(state.client, 'cleanup', {
     configurable: true,
     enumerable: true,
     writable: true,
     value: function () {
-      _noodlui = new NOODLUi()
+      state.client.reset()
       _setResolvers()
     },
   })
 
   _setResolvers()
 
-  return _noodlui as NOODLUi & { cleanup: () => void }
+  return state.client as NOODLUi & { cleanup: () => void }
 })()
 
 export function getAllResolvers() {

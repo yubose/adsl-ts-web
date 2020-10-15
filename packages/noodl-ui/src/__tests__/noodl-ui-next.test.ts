@@ -1,10 +1,10 @@
 import _ from 'lodash'
-import sinon from 'sinon'
 import { expect } from 'chai'
 import { NOODLComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
 import Component from '../Component'
 import Resolver from '../Resolver'
+import Viewport from '../Viewport'
 
 let noodlComponent: NOODLComponent
 let component: Component
@@ -60,20 +60,40 @@ afterEach(() => {
 })
 
 describe('noodl-ui', () => {
-  xit('should flip initialized to true when running init', () => {
-    //
+  it('should flip initialized to true when running init', () => {
+    noodlui.init()
+    expect(noodlui.initialized).to.be.true
   })
 
-  xit('should set the assets url', () => {
-    //
+  it('should set the assets url', () => {
+    const prevAssetsUrl = noodlui.assetsUrl
+    noodlui.setAssetsUrl('https://google.com')
+    expect(noodlui.assetsUrl).to.not.equal(prevAssetsUrl)
   })
 
-  xit('should set the root', () => {
-    //
+  it('should set the page', () => {
+    const pageName = 'Loopa'
+    const pageObject = { module: 'paper', components: [] }
+    noodlui.setRoot(pageName, pageObject)
+    expect(noodlui.page.name).to.equal('')
+    noodlui.setPage(pageName)
+    expect(noodlui.page.name).to.equal(pageName)
+    expect(noodlui.page.object).to.equal(pageObject)
   })
 
-  xit('should set the viewport', () => {
-    //
+  it('should set the root', () => {
+    const pageName = 'Loopa'
+    const pageObject = { module: 'paper', components: [] }
+    expect(noodlui.root).to.deep.equal({})
+    noodlui.setRoot(pageName, pageObject)
+    expect(noodlui.root).to.have.property(pageName, pageObject)
+  })
+
+  it('should set the viewport', () => {
+    const viewport = new Viewport()
+    expect(noodlui.viewport).to.not.equal(viewport)
+    noodlui.setViewport(viewport)
+    expect(noodlui.viewport).to.equal(viewport)
   })
 
   xit('should set the consumer data', () => {
@@ -90,7 +110,8 @@ describe('noodl-ui', () => {
 
   describe('get', () => {
     xit('should parse the data key and return the value', () => {
-      //
+      const dataKey = 'formData.password'
+      // noodlui.
     })
 
     xit('should parse the reference key and return the evaluated result', () => {
@@ -266,13 +287,38 @@ describe('noodl-ui', () => {
   describe('state api', () => {
     describe('consume', () => {
       it('should return the item', () => {
-        //
+        const listComponent = {
+          type: 'list',
+          iteratorVar: 'apple',
+          listObject: [
+            { firstName: 'chris', email: 'ppl@gmail.com' },
+            { firstName: 'joe', email: 'pfpl@gmail.com' },
+            { firstName: 'kelly', email: 'kelly@gmail.com' },
+          ],
+          children: [
+            {
+              type: 'listItem',
+              children: [
+                {
+                  type: 'label',
+                  dataKey: 'apple.email',
+                },
+                {
+                  type: 'view',
+                  children: [{ type: 'label', dataKey: 'apple.firstName' }],
+                },
+              ],
+            },
+          ],
+        }
+        const resolvedComponent = noodlui.resolveComponents(listComponent)
+        console.info(resolvedComponent.toJS())
       })
     })
 
     describe('getDraftedNodes', () => {
-      xit('should return an object of component nodes where key is component id and value is the instance', () => {
-        //
+      it('should return an object of component nodes where key is component id and value is the instance', () => {
+        // console.info(noodlui.getDraftedNodes())
       })
     })
 
@@ -292,6 +338,25 @@ describe('noodl-ui', () => {
       xit('should return the list item', () => {
         //
       })
+    })
+  })
+
+  describe('resolved component outcomes', () => {
+    it('should attach a noodlType property with the original component type', () => {
+      noodlComponent = { type: 'button', text: 'hello' }
+      const resolvedComponent = noodlui.resolveComponents(noodlComponent)
+      expect(resolvedComponent.toJS()).to.have.property('noodlType', 'button')
+    })
+
+    it('should convert the onClick to an action chain', () => {
+      const onClick = [{ actionType: 'pageJump' }]
+      const resolvedComponent = noodlui.resolveComponents({
+        type: 'button',
+        text: 'hello',
+        onClick,
+      })
+      const snapshot = resolvedComponent.toJS()
+      expect(snapshot.onClick).to.be.a('function')
     })
   })
 })

@@ -1,22 +1,18 @@
 import _ from 'lodash'
-import { identify } from '../utils/noodl'
-import isReference from '../utils/isReference'
-import { IComponent, Resolver } from '../types'
 import Logger from 'logsnap'
+import { identify } from '../utils/noodl'
+import { IComponent, ResolverFn } from '../types'
+import isReference from '../utils/isReference'
 
 const log = Logger.create('getCustomDataAttrs')
 
 /**
  * Attaches any custom data- attributes not handled in other resolvers
  *    (ex: "data-ux" for UX interactions between the library and the web app)
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
  */
-const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
+const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
   const {
     context,
-    getFallbackDataValue,
     showDataKey,
     getDraftedNode,
     getDraftedNodes,
@@ -51,7 +47,7 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
     }
 
     // Date components
-    if (identify.component.isDate(component.snapshot())) {
+    if (identify.component.isDate(component.toJS())) {
       if (dataKey) {
         // These date components receive their values from a list
         if (dataKey.startsWith('itemObject')) {
@@ -72,7 +68,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
             // Default to showing the dataKey even when its a raw reference
             component.set(
               'data-value',
-              showDataKey ? dataKey : getFallbackDataValue(component),
+              showDataKey
+                ? dataKey
+                : component.get('text') || component.get('placeholder'),
             )
           } else {
             const textFunc = component.get('text=func')
@@ -97,7 +95,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
                 // showDataKey is true
                 component.set(
                   'data-value',
-                  showDataKey ? dataKey : getFallbackDataValue(component),
+                  showDataKey
+                    ? dataKey
+                    : component.get('text') || component.get('placeholder'),
                 )
               } else {
                 component.set('data-value', ecosDate)
@@ -141,7 +141,7 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
     if (dataKey) {
       let fieldParts = dataKey.split('.')
       let field = fieldParts.shift() || ''
-      let fieldValue = page.object?.[field]
+      let fieldValue = page?.[field]
 
       if (fieldParts.length) {
         while (fieldParts.length) {
@@ -169,7 +169,7 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
         // Hard code some of this stuff for the videoSubStream list component for
         // now until we figure out a better solution
         if (/(vidoeSubStream|videoSubStream)/i.test(contentType || '')) {
-          listObjects = (page?.object?.listData?.participants || []) as any[]
+          listObjects = (page?.listData?.participants || []) as any[]
         } else {
           listObjects = _.isArray(listObject) ? listObject : [listObject]
         }
@@ -231,7 +231,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
         if (isReference(data)) {
           component.set(
             'data-value',
-            showDataKey ? data : getFallbackDataValue(component),
+            showDataKey
+              ? data
+              : component.get('text') || component.get('placeholder'),
           )
         } else {
           component.set('data-value', data)
@@ -268,7 +270,9 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
           if (isReference(data) || data.startsWith('itemObject')) {
             component.set(
               'data-value',
-              showDataKey ? data : getFallbackDataValue(component),
+              showDataKey
+                ? data
+                : component.get('text') || component.get('placeholder'),
             )
           }
         }
@@ -282,7 +286,7 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
               dataKey,
               nodes: getDraftedNodes(),
               context,
-              localRoot: context.page.object,
+              localRoot: context.page,
               localRootKeySetTo: parser.getLocalKey(),
               showDataKey,
             },

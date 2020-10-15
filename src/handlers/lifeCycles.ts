@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import {
   ActionChainActionCallbackOptions,
+  ActionChainEventId,
   NOODLActionObject,
   NOODLComponent,
   ResolverConsumerOptions,
@@ -10,16 +11,13 @@ import Logger from 'logsnap'
 const log = Logger.create('lifeCycles.ts')
 
 function createLifeCycles() {
-  const o = {
-    onBeforeResolve(
-      actions: NOODLActionObject[],
-      options: ActionChainActionCallbackOptions,
-    ) {
+  const o: Record<ActionChainEventId, ActionChainActionCallbackOptions> = {
+    beforeResolve(actions, options) {
       const logMsg = `%c[onBeforeResolve]`
       const logStyle = `color:#e50087;font-weight:bold;`
       // console.log(logMsg, logStyle, { actions, options })
     },
-    async onChainStart(
+    async chainStart(
       actions: NOODLActionObject[],
       options: ActionChainActionCallbackOptions,
     ) {
@@ -30,7 +28,7 @@ function createLifeCycles() {
       //   if (file) return { file }
       // }
     },
-    onChainEnd(
+    chainEnd(
       actions: NOODLActionObject[],
       options: ActionChainActionCallbackOptions,
     ) {
@@ -38,7 +36,7 @@ function createLifeCycles() {
       const logStyle = `color:#e50087;font-weight:bold;`
       console.log(logMsg, logStyle, { actions, ...options })
     },
-    onChainError(
+    chainError(
       error: Error,
       action: NOODLActionObject,
       options: ActionChainActionCallbackOptions,
@@ -47,7 +45,7 @@ function createLifeCycles() {
       const logStyle = `color:#e50087;font-weight:bold;`
       console.log(logMsg, logStyle, { action, error, ...options })
     },
-    onChainAborted(
+    chainAborted(
       action: NOODLActionObject,
       options: ActionChainActionCallbackOptions,
     ) {
@@ -59,10 +57,7 @@ function createLifeCycles() {
      * Custom component resolver to injecting additional props only to
      * certain components
      */
-    onAfterResolve(
-      component: NOODLComponent,
-      options: ResolverConsumerOptions,
-    ) {
+    afterResolve(component: NOODLComponent, options: ResolverConsumerOptions) {
       if (component.contentType === 'password') {
         return {
           noodl: {
@@ -78,9 +73,9 @@ function createLifeCycles() {
         }
       }
     },
-  }
+  } as Record<ActionChainEventId, ActionChainActionCallbackOptions>
 
-  return o
+  return o as Record<ActionChainEventId, ActionChainActionCallbackOptions>
 }
 
 export default createLifeCycles

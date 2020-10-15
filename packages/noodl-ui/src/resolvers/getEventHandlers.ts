@@ -1,27 +1,17 @@
 import _ from 'lodash'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 import { eventTypes } from '../constants'
 
-/**
- * Transforms the event property (ex: onClick, onHover, etc)
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
- */
-const getEventHandlers: Resolver = (component, options) => {
+/** Transforms the event property (ex: onClick, onHover, etc) */
+const getEventHandlers: ResolverFn = (component, options) => {
   if (component) {
     const { createActionChain } = options
-
     _.forEach(eventTypes, (eventType) => {
       const action = component.get(eventType)
       if (action) {
         component.set(
           eventType,
-          createActionChain(action, {
-            // needsBlob: component.get('contentType') === 'file',
-            trigger: eventType,
-            component,
-          }),
+          createActionChain(action, { trigger: eventType, component }),
         )
       }
     })

@@ -1,19 +1,15 @@
 import _ from 'lodash'
 import { forEachEntries, formatColor } from '../utils/common'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 
 /**
  * Returns a new object with some keywords changed to align more with html/css/etc
  * Also converts color values like 0x00000000 to #00000000
  * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
  */
-const getColors: Resolver = (component) => {
-  const style = component.get('style')
-
-  if (style) {
-    forEachEntries(style, (key, value) => {
+const getColors: ResolverFn = (component) => {
+  if (component.style) {
+    forEachEntries(component.style, (key, value) => {
       if (_.isString(value)) {
         if (value.startsWith('0x')) {
           // Rename textColor to color

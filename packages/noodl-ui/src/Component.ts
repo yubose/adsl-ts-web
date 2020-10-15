@@ -15,7 +15,6 @@ import {
   ProxiedComponent,
 } from './types'
 import { forEachEntries } from './utils/common'
-import { createNOODLComponent } from './utils/noodl'
 
 const log = Logger.create('Component')
 
@@ -25,7 +24,7 @@ class Component implements IComponent {
     | WritableDraft<ProxiedComponent & NOODLComponentProps>
     | (ProxiedComponent & NOODLComponentProps)
   #children?: IComponent[]
-  #id: string | undefined
+  #id: string = ''
   #parent: IComponent | null = null
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
@@ -89,16 +88,16 @@ class Component implements IComponent {
     if (component.children) {
       let childAsInst: IComponent | undefined
 
-      const toComponent = (child: any): IComponent | undefined => {
-        if (_.isString(child) || _.isNumber(child)) {
-          return createNOODLComponent('label', { text: child })
-        } else if (!_.isFunction(child) && child.type) {
-          return createNOODLComponent(
-            child.type as NOODLComponentType,
-            child as NOODLComponent,
-          )
-        }
-      }
+      // const toComponent = (child: any): IComponent | undefined => {
+      //   if (_.isString(child) || _.isNumber(child)) {
+      //     return createNOODLComponent('label', { text: child })
+      //   } else if (!_.isFunction(child) && child.type) {
+      //     return createNOODLComponent(
+      //       child.type as NOODLComponentType,
+      //       child as NOODLComponent,
+      //     )
+      //   }
+      // }
       // if (_.isArray(component.children)) {
       //   _.forEach(component.children, (child) => {
       //     if (child instanceof Component) childAsInst = child
@@ -110,6 +109,127 @@ class Component implements IComponent {
       //   if (childAsInst) this.createChild(childAsInst)
       // }
     }
+  }
+
+  /**
+   * Returns the value of the component property using key, or
+   * Returns the value of the property of the component's style object
+   * using styleKey if key === 'style'
+   * @param { string } key - Component property or "style" if using styleKey for style lookups
+   */
+  get<K extends keyof ProxiedComponent>(
+    key: K,
+    styleKey?: keyof NOODLStyle,
+  ): ProxiedComponent[K]
+  get<K extends keyof ProxiedComponent>(
+    key: K[],
+    styleKey?: keyof NOODLStyle,
+  ): Record<K, ProxiedComponent[K]>
+  get<K extends keyof ProxiedComponent>(
+    key: K | K[],
+    styleKey?: keyof NOODLStyle,
+  ): ProxiedComponent[K] | Record<K, ProxiedComponent[K]> {
+    let value: any
+
+    if (_.isString(key)) {
+      value = this.#retrieve(key, styleKey)
+    } else if (_.isArray(key)) {
+      value = {}
+      _.forEach(key, (k) => {
+        value[k] = this.#retrieve(k)
+      })
+    }
+
+    // Return the original original type
+    if (key === 'type') {
+      return this.original.type
+    }
+
+    return isDraft(value) ? original(value) : value
+  }
+
+  /** Used by this.get */
+  #retrieve = <K extends keyof ProxiedComponent>(
+    key: K,
+    styleKey?: keyof NOODLStyle,
+  ) => {
+    let value
+
+    if (key === 'style') {
+      // Retrieve the entire style object
+      if (styleKey === undefined) {
+        this.touch('style')
+        value = isDraft(this.original.style)
+          ? original(this.original.style)
+          : this.original.style
+      }
+      // Retrieve a property of the style object
+      else if (_.isString(styleKey)) {
+        this.touchStyle(styleKey)
+        value = this.original.style?.[styleKey]
+      }
+    } else {
+      this.touch(key as string)
+      // Return the original type only for this case
+      if (key === 'type') {
+        value = this.original.type
+      } else {
+        value =
+          this.#component[key as keyof ProxiedComponent] ||
+          this.original[key as keyof ProxiedComponent]
+      }
+    }
+
+    return value
+  }
+
+  /**
+   * Sets a property's value on the component, or sets a property's value on the style
+   * object if the key is "style", value is the styleKey and styleChanges is the value to update
+   * on the style object's styleKey
+   * @param { string } key - Key of component or "style" to update the style object using value
+   * @param { any? } value - Value to update key, or styleKey to update the style object if key === 'style'
+   * @param { any? } styleChanges - Value to set on a style object if key === 'style'
+   */
+  set(key: string, value?: any, styleChanges?: any) {
+    if (key === 'style') {
+      if (this.#component.style) {
+        this.#component.style[value] = styleChanges
+        if (!this.isHandled('style')) this.#setHandledKey('style')
+        this.#setHandledStyleKey(value)
+      }
+    } else {
+      if (value) {
+        this.#component[key] = value
+        this.#setHandledKey(key)
+      }
+    }
+    return this
+  }
+
+  get id() {
+    return this.#id || ''
+  }
+
+  set id(value: string) {
+    this.#id = value
+  }
+
+  get type() {
+    return this.original.type
+  }
+
+  /** Returns the most recent styles at the time of this call */
+  get style() {
+    return (
+      (isDraft(this.#component.style)
+        ? current(this.#component.style)
+        : this.#component.style) || {}
+    )
+  }
+
+  get status() {
+    return isDraft(this.#status) ? current(this.#status) : this.#status
   }
 
   /**
@@ -152,69 +272,6 @@ class Component implements IComponent {
       }
     }
     return this
-  }
-
-  get id() {
-    return this.#id || ''
-  }
-
-  set id(value: string) {
-    this.#id = value
-  }
-
-  get type() {
-    return this.original.type
-  }
-
-  /** Returns the most recent styles at the time of this call */
-  get style() {
-    return (
-      (isDraft(this.#component.style)
-        ? current(this.#component.style)
-        : this.#component.style) || {}
-    )
-  }
-
-  get status() {
-    return isDraft(this.#status) ? current(this.#status) : this.#status
-  }
-
-  /** Used by this.get */
-  #retrieve = <K extends keyof ProxiedComponent>(
-    key: K,
-    styleKey?: keyof NOODLStyle,
-  ) => {
-    let value
-
-    if (key === 'style') {
-      // Retrieve the entire style object
-      if (styleKey === undefined) {
-        this.touch('style')
-        value = isDraft(this.original.style)
-          ? original(this.original.style)
-          : this.original.style
-      }
-      // Retrieve a property of the style object
-      else if (_.isString(styleKey)) {
-        this.touchStyle(styleKey)
-        value = this.original.style?.[styleKey]
-      }
-    } else {
-      this.touch(key as string)
-      // Return the original type only for this case
-      if (key === 'type') {
-        value = this.original.type
-      } else {
-        if (key === 'data-value') {
-          console.log(current(this.#component))
-        }
-        value =
-          this.#component[key as keyof ProxiedComponent] ||
-          this.original[key as keyof ProxiedComponent]
-      }
-    }
-
-    return value
   }
 
   touch(key: string) {
@@ -333,67 +390,6 @@ class Component implements IComponent {
       }
     } else {
       delete this.#component[key]
-    }
-    return this
-  }
-
-  /**
-   * Returns the value of the component property using key, or
-   * Returns the value of the property of the component's style object
-   * using styleKey if key === 'style'
-   * @param { string } key - Component property or "style" if using styleKey for style lookups
-   */
-  get<K extends keyof ProxiedComponent>(
-    key: K,
-    styleKey?: keyof NOODLStyle,
-  ): ProxiedComponent[K]
-  get<K extends keyof ProxiedComponent>(
-    key: K[],
-    styleKey?: keyof NOODLStyle,
-  ): Record<K, ProxiedComponent[K]>
-  get<K extends keyof ProxiedComponent>(
-    key: K | K[],
-    styleKey?: keyof NOODLStyle,
-  ): ProxiedComponent[K] | Record<K, ProxiedComponent[K]> {
-    let value: any
-
-    if (_.isString(key)) {
-      value = this.#retrieve(key, styleKey)
-    } else if (_.isArray(key)) {
-      value = {}
-      _.forEach(key, (k) => {
-        value[k] = this.#retrieve(k)
-      })
-    }
-
-    // Return the original original type
-    if (key === 'type') {
-      return this.original.type
-    }
-
-    return isDraft(value) ? original(value) : value
-  }
-
-  /**
-   * Sets a property's value on the component, or sets a property's value on the style
-   * object if the key is "style", value is the styleKey and styleChanges is the value to update
-   * on the style object's styleKey
-   * @param { string } key - Key of component or "style" to update the style object using value
-   * @param { any? } value - Value to update key, or styleKey to update the style object if key === 'style'
-   * @param { any? } styleChanges - Value to set on a style object if key === 'style'
-   */
-  set(key: string, value?: any, styleChanges?: any) {
-    if (key === 'style') {
-      if (this.#component.style) {
-        this.#component.style[value] = styleChanges
-        if (!this.isHandled('style')) this.#setHandledKey('style')
-        this.#setHandledStyleKey(value)
-      }
-    } else {
-      if (value) {
-        this.#component[key] = value
-        this.#setHandledKey(key)
-      }
     }
     return this
   }

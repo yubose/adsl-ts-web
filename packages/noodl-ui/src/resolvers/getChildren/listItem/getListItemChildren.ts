@@ -4,7 +4,7 @@ import {
   IComponent,
   NOODLComponent,
   ProxiedComponent,
-  Resolver,
+  ResolverFn,
   ResolverConsumerOptions,
   ResolverOptions,
 } from '../../../types'
@@ -17,7 +17,7 @@ const log = Logger.create('getListItemChildren')
  * List item components can expect some internal state/listItem from their parent list component
  * ex: We customly injected the "itemObject" prop to this component from the parent
  */
-const getListItemChildren: Resolver = (
+const getListItemChildren: ResolverFn = (
   component: IComponent,
   options: ResolverConsumerOptions & { resolverOptions: ResolverOptions },
 ) => {
@@ -33,7 +33,7 @@ const getListItemChildren: Resolver = (
   const parent = component.parent()
   const listItem = consume(component)
 
-  let childComponent: ProxiedComponent
+  let noodlChildComponent: ProxiedComponent
 
   if (!listItem) {
     log.red(
@@ -75,23 +75,24 @@ const getListItemChildren: Resolver = (
               }
             }
           }
-          childComponent = getChildProps(component, child, index, {
+          noodlChildComponent = getChildProps(component, child, index, {
             listId,
             listItemIndex,
             ...otherProps,
           })
-          childComponent = resolveComponent?.(childComponent, resolverOptions)
-          component.createChild(childComponent)
+          component.createChild(
+            resolveComponent?.(noodlChildComponent, resolverOptions),
+          )
         })
       } else {
         if (_.isPlainObject(children)) {
-          childComponent = getChildProps(component, children, {
+          noodlChildComponent = getChildProps(component, children, {
             listId,
             listItemIndex,
             parent,
           })
           component.createChild(
-            resolveComponent(childComponent, resolverOptions),
+            resolveComponent(noodlChildComponent, resolverOptions),
           )
         }
       }

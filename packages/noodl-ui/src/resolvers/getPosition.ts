@@ -1,32 +1,23 @@
 import _ from 'lodash'
 import { hasDecimal, hasLetter } from '../utils/common'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 
 /**
  * Returns attributes according to NOODL position properties like 'top', 'left'
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
  */
-const getPosition: Resolver = (component, { context }) => {
-  if (!context.viewport) {
-    return
-  }
-
+const getPosition: ResolverFn = (component, { context }) => {
+  if (!context.viewport) return
   const { viewport } = context
-
-  const style = component.get('style')
+  const { style } = component
 
   if (style) {
     let styles
-
     if (!_.isUndefined(style.top)) {
       styles = handlePosition(style, 'top', viewport.height as number)
       if (styles) {
         component.assignStyles(styles)
       }
     }
-
     if (!_.isUndefined(style.left)) {
       styles = handlePosition(style, 'left', viewport.width as number)
       if (styles) {

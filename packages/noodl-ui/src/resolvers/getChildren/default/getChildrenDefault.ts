@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import getChildProps from '../getChildProps'
 import {
+  ComponentType,
   IComponent,
-  NOODLComponent,
   ResolverConsumerOptions,
   ResolverOptions,
 } from '../../../types'
@@ -14,24 +14,21 @@ function getChildrenDefault(
   mergingArgs?: Record<string, any>,
 ) {
   const { resolveComponent, resolverOptions } = options
-  const children = component.get('children')
+  const noodlChildren = component.get('children')
+  const children = component.children()
 
-  if (_.isArray(children)) {
-    const fn = (child: IComponent, index: number) => {
-      const proxiedChild = getChildProps(component, child, index, mergingArgs)
-      return resolveComponent?.(proxiedChild, resolverOptions)
-    }
-    component.set('children', _.map(children as NOODLComponent[], fn))
-  } else if (_.isPlainObject(children)) {
-    const child = getChildProps(
-      component,
-      children as IComponent<any>,
-      mergingArgs,
+  if (_.isArray(noodlChildren)) {
+    _.forEach(noodlChildren, (noodlChild: ComponentType, index: number) =>
+      component.createChild(
+        resolveComponent(
+          getChildProps(component, noodlChild, index, mergingArgs),
+          resolverOptions,
+        ),
+      ),
     )
-    component.child()
-    component.set('children', resolveComponent(child, resolverOptions))
-  } else {
-    component.set('children', String(children))
+  } else if (_.isPlainObject(children)) {
+    const noodlChild = getChildProps(component, children, mergingArgs)
+    component.createChild(resolveComponent(noodlChild, resolverOptions))
   }
 }
 

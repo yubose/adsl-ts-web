@@ -3,7 +3,6 @@ import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
 } from 'twilio-video'
-import { Draft, current, original } from 'immer'
 import Logger from 'logsnap'
 import {
   Action,
@@ -26,15 +25,18 @@ import {
   getTransformedStyleAliases,
   getDataValues,
   identify,
+  IResolver,
   NOODLBuiltInObject,
   NOODLPageObject,
   NOODLComponentProps,
+  Resolver,
+  ResolverFn,
   Viewport,
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { forEachParticipant } from './utils/twilio'
-import { isMobile, reduceEntries } from './utils/common'
+import { forEachEntries, isMobile, reduceEntries } from './utils/common'
 import { copyToClipboard } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
@@ -51,7 +53,9 @@ import './styles.css'
 const log = Logger.create('src/index.ts')
 
 /** TODO: Find out why I did this */
-function enhanceActions(actions: ReturnType<typeof createActions>) {
+function enhanceActions(
+  actions: ReturnType<typeof createActions>,
+): ReturnType<typeof createActions> {
   return reduceEntries(
     actions,
     (acc, { key, value: fn }) => {
@@ -167,48 +171,52 @@ window.addEventListener('load', async () => {
       if (!noodlui.initialized) {
         log.func('page.onBeforePageRender')
         log.grey('Initializing noodl-ui client', noodl)
+        viewport.width = window.innerWidth
+        viewport.height = window.innerHeight
         noodlui
           .init({ viewport })
           .setAssetsUrl(noodl?.assetsUrl || '')
-          .setPage(pageSnapshot)
+          .setPage(pageName)
           .setRoot(noodl.root)
-          .setViewport({
-            width: window.innerWidth,
-            height: window.innerHeight,
-          })
-          .setResolvers(
-            getElementType,
-            getTransformedAliases,
-            getReferences,
-            getAlignAttrs,
-            getBorderAttrs,
-            getColors,
-            getFontAttrs,
-            getPosition,
-            getSizes,
-            getStylesByElementType,
-            getTransformedStyleAliases,
-            getChildren as any,
-            getCustomDataAttrs,
-            getEventHandlers,
+          .use(viewport)
+          .use(
+            _.reduce(
+              [
+                getElementType,
+                getTransformedAliases,
+                getReferences,
+                getAlignAttrs,
+                getBorderAttrs,
+                getColors,
+                getFontAttrs,
+                getPosition,
+                getSizes,
+                getStylesByElementType,
+                getTransformedStyleAliases,
+                getChildren as any,
+                getCustomDataAttrs,
+                getEventHandlers,
+              ],
+              (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
+              [] as IResolver[],
+            ),
           )
-          .addLifecycleListener({
-            action: actions,
-            builtIn: {
-              checkUsernamePassword: builtIn.checkUsernamePassword,
-              enterVerificationCode: builtIn.checkVerificationCode,
-              goBack: builtIn.goBack,
-              lockApplication: builtIn.lockApplication,
-              logOutOfApplication: builtIn.logOutOfApplication,
-              logout: builtIn.logout,
-              signIn: builtIn.signIn,
-              signUp: builtIn.signUp,
-              signout: builtIn.signout,
-              toggleCameraOnOff: builtIn.toggleCameraOnOff,
-              toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-            },
-            ...lifeCycles,
-          } as any)
+          .on('builtIn', {
+            checkUsernamePassword: builtIn.checkUsernamePassword,
+            enterVerificationCode: builtIn.checkVerificationCode,
+            goBack: builtIn.goBack,
+            lockApplication: builtIn.lockApplication,
+            logOutOfApplication: builtIn.logOutOfApplication,
+            logout: builtIn.logout,
+            signIn: builtIn.signIn,
+            signUp: builtIn.signUp,
+            signout: builtIn.signout,
+            toggleCameraOnOff: builtIn.toggleCameraOnOff,
+            toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
+          })
+
+        forEachEntries(actions, (key, value) => noodlui.on(key, value))
+        forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
 
         log.func('page.onBeforePageRender')
         log.green('Initialized noodl-ui client', noodl)
@@ -222,7 +230,7 @@ window.addEventListener('load', async () => {
       })
       // Refresh the roots
       // TODO - Leave root/page auto binded to the lib
-      noodlui.setRoot(noodl.root).setPage(pageSnapshot)
+      noodlui.setRoot(noodl.root).setPage(pageName)
       // NOTE: not being used atm
       if (page.rootNode && page.rootNode.id !== pageName) {
         page.rootNode.id = pageName
@@ -432,12 +440,12 @@ window.addEventListener('load', async () => {
   -------------------------------------------------------- */
 
   noodluidom.on('all', function onCreateNode(
-    node: NOODLDOMElement,
-    props: NOODLComponentProps,
+    node: NOODLDOMElement | null,
+    props,
   ) {
     if (node) {
       // Dominant/main participant/speaker
-      if (identify.stream.video.isMainStream(props)) {
+      if (identify.stream.video.isMainStream(props.toJS())) {
         const mainStream = streams.getMainStream()
         if (!mainStream.isSameElement(node)) {
           mainStream.setElement(node, { uxTag: 'mainStream' })
@@ -446,7 +454,7 @@ window.addEventListener('load', async () => {
         }
       }
       // Local participant
-      else if (identify.stream.video.isSelfStream(props)) {
+      else if (identify.stream.video.isSelfStream(props.toJS())) {
         const selfStream = streams.getSelfStream()
         if (!selfStream.isSameElement(node)) {
           selfStream.setElement(node, { uxTag: 'selfStream' })
@@ -455,16 +463,16 @@ window.addEventListener('load', async () => {
         }
       }
       // Remote participants container
-      else if (identify.stream.video.isSubStreamsContainer(props)) {
+      else if (identify.stream.video.isSubStreamsContainer(props.toJS())) {
         let subStreams = streams.getSubStreamsContainer()
         if (!subStreams) {
-          subStreams = streams.createSubStreamsContainer(node, props)
+          subStreams = streams.createSubStreamsContainer(node, props.toJS())
           log.func('onCreateNode')
           log.green('Created subStreams container', subStreams)
         }
       }
       // Individual remote participant video element container
-      else if (identify.stream.video.isSubStream(props)) {
+      else if (identify.stream.video.isSubStream(props.toJS())) {
         const subStreams = streams.getSubStreamsContainer() as MeetingSubstreams
         if (subStreams) {
           if (!subStreams.elementExists(node)) {
@@ -531,7 +539,8 @@ window.addEventListener('load', async () => {
         const [newWidth, newHeight] = getSizes(width, height)
         const aspectRatio = newWidth / newHeight
         noodl.aspectRatio = aspectRatio
-        noodlui?.setViewport?.({ width, height })
+        viewport.width = width
+        viewport.height = height
         if (page.rootNode) {
           page.rootNode.style.width = `${width}px`
           page.rootNode.style.height = `${height}px`

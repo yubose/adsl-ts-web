@@ -1,5 +1,5 @@
 import Logger from 'logsnap'
-import { NOODLComponentProps } from 'noodl-ui'
+import { IComponent } from 'noodl-ui'
 import {
   componentEventMap,
   componentEventIds,
@@ -7,9 +7,7 @@ import {
 } from './constants'
 import * as T from './types'
 
-const log = Logger.create('NOODLUIDOM.ts')
-
-class NOODLUIDOM implements T.INOODLUIDOM {
+class NOODLUIDOM implements T.INOODLUiDOM {
   #callbacks: {
     all: T.NodePropsFunc[]
     component: Record<T.NOODLDOMComponentType, T.NodePropsFunc[]>
@@ -29,59 +27,40 @@ class NOODLUIDOM implements T.INOODLUIDOM {
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
-   * @param { NOODLComponentProps } props
+   * @param { IComponent } props
    */
-  parse<Props extends NOODLComponentProps = NOODLComponentProps>(
-    props: Props,
-    container?: any,
-  ) {
+  parse(component: IComponent, container?: HTMLElement) {
     let node: T.NOODLDOMElement | undefined
 
-    if (props) {
-      let { type = '', noodlType = '' } = props
+    if (component) {
+      const snapshot = component.toJS()
 
-      if (props) {
-        if (type) {
-          if (noodlType === 'plugin') {
-            // Don't create a node. Except just emit the events accordingly
-            // This is to allow the caller to determine whether they want to create
-            // a separate DOM node or not
-            this.emit('all', null, props)
-            this.emit('create.plugin', null, props)
-          } else {
-            node = document.createElement(type)
-          }
+      let { type = '', noodlType = '' } = snapshot
+
+      if (type) {
+        if (noodlType === 'plugin') {
+          // Don't create a node. Except just emit the events accordingly
+          // This is to allow the caller to determine whether they want to create
+          // a separate DOM node or not
+          this.emit('all', null, component)
+          this.emit('create.plugin', null, component)
+        } else {
+          node = document.createElement(type)
         }
-      } else {
-        log.func('parse')
-        log.red(
-          `Could not create a DOM node because the props given was null or undefined`,
-          props,
-        )
-        return null
       }
 
       if (node) {
-        this.emit('all', node, props)
+        this.emit('all', node, component)
         if (componentEventMap[noodlType]) {
-          this.emit(componentEventMap[noodlType], node, props)
+          this.emit(componentEventMap[noodlType], node, component)
         }
-
         const parent = container || document.body
         if (!parent.contains(node)) parent.appendChild(node)
 
-        if (Array.isArray(props.children)) {
-          const fn = (child: NOODLComponentProps) => this.parse(child, node)
-          props.children.forEach(fn)
-        } else if (
-          typeof props.children === 'string' ||
-          typeof props.children === 'number'
-        ) {
-          node.innerHTML = `${props.children}`
-        } else if (props.children && typeof props.children === 'object') {
-          const childNode = this.parse(props.children)
-          if (childNode) node.appendChild(childNode)
-        }
+        component.children()?.forEach((child: IComponent) => {
+          const childNode = this.parse(child, node)
+          if (childNode) node?.appendChild(childNode)
+        })
       }
     }
 
@@ -121,12 +100,12 @@ class NOODLUIDOM implements T.INOODLUIDOM {
   emit(
     eventName: T.NOODLDOMEvent,
     node: T.NOODLDOMElement | null,
-    props: NOODLComponentProps,
+    component: IComponent,
   ) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) {
       callbacks.forEach(
-        (fn: T.NodePropsFunc) => fn && fn(node as T.NOODLDOMElement, props),
+        (fn: T.NodePropsFunc) => fn && fn(node as T.NOODLDOMElement, component),
       )
     }
     return this

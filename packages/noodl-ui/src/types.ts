@@ -1,5 +1,5 @@
 import { Draft } from 'immer'
-import Viewport from 'Viewport'
+import Viewport from './Viewport'
 import {
   actionTypes,
   componentTypes,
@@ -8,15 +8,13 @@ import {
   eventTypes,
 } from './constants'
 
-export type ComponentType =
-  | IComponent
-  | NOODLComponent
-  | NOODLComponentProps
-  | ProxiedComponent
-
 export interface INOODLUi {
+  assetsUrl: string
   initialized: boolean
   page: Page
+  parser: RootsParser
+  root: { [key: string]: any }
+  consume(component: IComponent): any
   init(opts: { log?: boolean; viewport?: Viewport }): this
   createActionChain(
     actions: NOODLActionObject[],
@@ -40,13 +38,87 @@ export interface INOODLUi {
   setAssetsUrl(...args: Parameters<ComponentResolver['setAssetsUrl']>): this
   setDraftNode: ComponentResolverStateSetters['setDraftNode']
   setList: ComponentResolverStateSetters['setList']
-  setPage(page: Page): this
+  setPage(page: string): this
   setRoot(...args: Parameters<ComponentResolver['setRoot']>): this
   setViewport(...args: Parameters<ComponentResolver['setViewport']>): this
-  use(mod: IResolver | IViewport): this
+  use(mod: IResolver | IResolver[] | IViewport): this
   unuse(mod: any): this
   reset(): this
 }
+
+export interface IComponent {
+  action: NOODLActionObject
+  id: string
+  length: number
+  original: NOODLComponent | NOODLComponentProps | ProxiedComponent
+  status: 'drafting' | 'idle' | 'idle/resolved'
+  stylesTouched: string[]
+  stylesUntouched: string[]
+  style: NOODLStyle
+  touched: string[]
+  untouched: string[]
+  type: NOODLComponentType
+  assign(
+    key: string | { [key: string]: any },
+    value?: { [key: string]: any },
+  ): this
+  assignStyles(styles: Partial<NOODLStyle>): this
+  child(index?: number): IComponent | null
+  children(): IComponent[]
+  createChild(props: ComponentType): IComponent
+  done(options?: { mergeUntouched?: boolean }): this
+  draft(): this
+  get<K extends keyof ProxiedComponent>(
+    key: K,
+    styleKey?: keyof NOODLStyle,
+  ): ProxiedComponent[K]
+  get<K extends keyof ProxiedComponent>(
+    key: K[],
+    styleKey?: keyof NOODLStyle,
+  ): Record<K, ProxiedComponent[K]>
+  getStyle<K extends keyof NOODLStyle>(styleKey: K): NOODLStyle[K]
+  has(key: string, styleKey?: keyof NOODLStyle): boolean
+  hasParent(): boolean
+  hasStyle<K extends keyof NOODLStyle>(styleKey: K): boolean
+  isHandled(key: string): boolean
+  isTouched(key: string): boolean
+  isStyleTouched(styleKey: string): boolean
+  isStyleHandled(key: string): boolean
+  merge(key: string | { [key: string]: any }, value?: any): this
+  on(eventName: IComponentEventId, cb: Function): this
+  off(eventName: IComponentEventId, cb: Function): this
+  parent(): IComponent | null
+  remove(key: string, styleKey?: keyof NOODLStyle): this
+  removeChild(child?: IComponent | number): this
+  removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
+  set(key: string, value?: any, styleChanges?: any): this
+  setParent(parent: IComponent | null): this
+  setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
+  snapshot(): (ProxiedComponent | NOODLComponentProps) & {
+    _touched: string[]
+    _untouched: string[]
+    _touchedStyles: string[]
+    _untouchedStyles: string[]
+    _handled: string[]
+    _unhandled: string[]
+    noodlType: NOODLComponentType | undefined
+  }
+  toJS(): ProxiedComponent
+  toString(): string
+  touch(key: string): this
+  touchStyle(styleKey: string): this
+}
+
+export interface IResolver {
+  setResolver(resolver: ResolverFn): this
+  resolve(component: IComponent, options: ResolverConsumerOptions): this
+}
+
+export type ComponentType =
+  | IComponent
+  | NOODLComponent
+  | NOODLComponentProps
+  | ProxiedComponent
 
 export interface NOODLPage {
   [pageName: string]: NOODLPageObject
@@ -250,74 +322,6 @@ export interface NOODLTextBoardTextObject {
 /* -------------------------------------------------------
 ---- LIB TYPES
 -------------------------------------------------------- */
-
-export interface IComponent {
-  action: NOODLActionObject
-  id: string
-  length: number
-  original: NOODLComponent | NOODLComponentProps | ProxiedComponent
-  status: 'drafting' | 'idle' | 'idle/resolved'
-  stylesTouched: string[]
-  stylesUntouched: string[]
-  style: NOODLStyle
-  touched: string[]
-  untouched: string[]
-  type: NOODLComponentType
-  assign(
-    key: string | { [key: string]: any },
-    value?: { [key: string]: any },
-  ): this
-  assignStyles(styles: Partial<NOODLStyle>): this
-  child(index?: number): IComponent | null
-  children(): IComponent[]
-  createChild(props: ComponentType): IComponent
-  done(options?: { mergeUntouched?: boolean }): this
-  draft(): this
-  get<K extends keyof ProxiedComponent>(
-    key: K,
-    styleKey?: keyof NOODLStyle,
-  ): ProxiedComponent[K]
-  get<K extends keyof ProxiedComponent>(
-    key: K[],
-    styleKey?: keyof NOODLStyle,
-  ): Record<K, ProxiedComponent[K]>
-  getStyle<K extends keyof NOODLStyle>(styleKey: K): NOODLStyle[K]
-  has(key: string, styleKey?: keyof NOODLStyle): boolean
-  hasParent(): boolean
-  hasStyle<K extends keyof NOODLStyle>(styleKey: K): boolean
-  isHandled(key: string): boolean
-  isTouched(key: string): boolean
-  isStyleTouched(styleKey: string): boolean
-  isStyleHandled(key: string): boolean
-  merge(key: string | { [key: string]: any }, value?: any): this
-  on(eventName: IComponentEventId, cb: Function): this
-  off(eventName: IComponentEventId, cb: Function): this
-  parent(): IComponent | null
-  remove(key: string, styleKey?: keyof NOODLStyle): this
-  removeChild(child?: IComponent | number): this
-  removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
-  set(key: string, value?: any, styleChanges?: any): this
-  setParent(parent: IComponent | null): this
-  setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
-  snapshot(): (ProxiedComponent | NOODLComponentProps) & {
-    _touched: string[]
-    _untouched: string[]
-    _touchedStyles: string[]
-    _untouchedStyles: string[]
-    _handled: string[]
-    _unhandled: string[]
-    noodlType: NOODLComponentType | undefined
-  }
-  toJS(): ProxiedComponent
-  toString(): string
-  touch(key: string): this
-  touchStyle(styleKey: string): this
-}
-
-export interface IResolver {
-  setResolver(resolver: ResolverFn): this
-  resolve(component: IComponent, options: ResolverConsumerOptions): this
-}
 
 export type NOODLComponentProps = Omit<
   NOODLComponent,
@@ -724,7 +728,7 @@ export interface ResolverConsumerOptions
 
 export interface ResolverContext {
   assetsUrl: string
-  page: { name: string; object: null | NOODLPageObject }
+  page: undefined | NOODLPageObject
   roots: Record<string, any>
   viewport: IViewport | undefined
 }

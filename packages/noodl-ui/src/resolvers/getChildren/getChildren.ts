@@ -16,9 +16,6 @@ import getTextBoardChildren from './textBoard'
 /**
  * Computes the children and returns an object like { children }
  *  Added index so that react doesn't complain about duplicate keys
- * @param { IComponent } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
  */
 function getChildren(
   component: IComponent,

@@ -9,7 +9,7 @@ import {
   NOODLGotoAction,
 } from 'noodl-ui'
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
-import { INOODLUIDOM } from 'noodl-ui-dom'
+import { INOODLUiDOM } from 'noodl-ui-dom'
 import Page from 'Page'
 import Logger from 'logsnap'
 import validate from 'utils/validate'
@@ -40,7 +40,7 @@ const createBuiltInActions = function ({
   noodluidom,
   page,
 }: {
-  noodluidom: INOODLUIDOM
+  noodluidom: INOODLUiDOM
   page: Page
 }) {
   // @ts-expect-error

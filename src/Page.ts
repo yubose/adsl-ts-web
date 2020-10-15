@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import {
+  ComponentType,
+  IComponent,
   NOODLComponent,
   NOODLComponentProps,
   Page as NOODLUiPage,
@@ -283,14 +285,10 @@ class Page {
    * them to the DOM
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
    */
-  public render(rawComponents: NOODLComponent[]) {
-    let components
-
-    if (_.isArray(rawComponents)) {
-      components = noodlui.resolveComponents(rawComponents)
-    } else {
-      components = noodlui.resolveComponents()
-    }
+  public render(rawComponents: ComponentType | ComponentType[]) {
+    let components: IComponent[]
+    let resolved = noodlui.resolveComponents(rawComponents)
+    components = _.isArray(resolved) ? resolved : [resolved]
 
     if (this.rootNode) {
       // Clean up previous nodes

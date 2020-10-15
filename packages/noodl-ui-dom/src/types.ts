@@ -1,4 +1,4 @@
-import { NOODLComponentProps } from 'noodl-ui'
+import { IComponent } from 'noodl-ui'
 import { componentEventMap, componentEventIds } from './constants'
 
 export type DataValueElement =
@@ -6,19 +6,22 @@ export type DataValueElement =
   | HTMLSelectElement
   | HTMLTextAreaElement
 
-export interface INOODLUIDOM {
+export interface INOODLUiDOM {
   on(eventName: NOODLDOMEvent, cb: NodePropsFunc): this
   off(eventName: NOODLDOMEvent, cb: NodePropsFunc): this
   emit(
     eventName: 'all',
     node: NOODLDOMElement | null,
-    props: NOODLComponentProps,
+    component: IComponent,
   ): this
-  emit(eventName: 'create.plugin', node: null, props: NOODLComponentProps): this
+  emit(eventName: 'create.plugin', node: null, component: IComponent): this
   emit(eventName: NOODLDOMEvent, ...args: NodePropsFuncArgs): this
   getCallbacks(eventName: NOODLDOMEvent): NodePropsFunc[] | null
   isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
-  parse(props: NOODLComponentProps): NOODLDOMElement | null
+  parse(
+    component: IComponent,
+    container?: NOODLDOMElement,
+  ): NOODLDOMElement | null
 }
 
 export type NOODLDOMComponentType = keyof typeof componentEventMap
@@ -102,7 +105,7 @@ export type NOODLDOMElements = Pick<
 >
 
 export interface NodePropsFunc {
-  (node: NOODLDOMElement | null, props: NOODLComponentProps): void
+  (node: NOODLDOMElement | null, component: IComponent): void
 }
 
 export type NodePropsFuncArgs = Parameters<NodePropsFunc>

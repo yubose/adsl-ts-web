@@ -239,7 +239,6 @@ const Meeting = (function () {
             stream.isSameParticipant(participant),
           )
           if (subStream) {
-            console.info(subStream)
             subStream.unpublish().detachParticipant().removeElement()
             subStreams?.removeSubStream(subStream)
             Meeting.onRemoveRemoteParticipant?.(participant, subStream)

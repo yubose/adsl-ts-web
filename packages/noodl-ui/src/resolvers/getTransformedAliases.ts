@@ -2,18 +2,15 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import { isPossiblyDataKey } from '../utils/noodl'
 import { contentTypes } from '../constants'
-import { NOODLIfObject, Resolver } from '../types'
+import { ResolverFn } from '../types'
 
 const log = Logger.create('getTransformedAliases')
 
 /**
  * Renames some keywords to align more with html/css/etc
- * ex: resource --> src (for images)
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
+ *  ex: resource --> src (for images)
  */
-const getTransformedAliases: Resolver = (
+const getTransformedAliases: ResolverFn = (
   component,
   { context, getListItem, createSrc },
 ) => {
@@ -79,8 +76,7 @@ const getTransformedAliases: Resolver = (
           // If the value possibly leads somewhere, continue with walking the
           // root/localroot/list objects that are available, if any
           if (isPossiblyDataKey(valEvaluating)) {
-            value =
-              _.get(roots, valEvaluating) || _.get(page.object, valEvaluating)
+            value = _.get(roots, valEvaluating) || _.get(page, valEvaluating)
           }
           if (!value) {
             // Proceed to check the list data
@@ -89,7 +85,10 @@ const getTransformedAliases: Resolver = (
               'listItemIndex',
             ])
             if (listId) {
-              const listItem = getListItem(listId, listItemIndex)
+              const listItem = getListItem(
+                listId as string,
+                listItemIndex as number,
+              )
               if (listItem) {
                 value = _.get(listItem, valEvaluating)
                 if (value) {

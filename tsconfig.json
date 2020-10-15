@@ -23,6 +23,9 @@
   },
   "include": [
     "src",
+    "packages/dist/noodl-ui",
+    "packages/dist/noodl-ui-dom",
+    "packages/dist/logsnap",
     "webpack.config.js",
     "package.json",
     "setupTests.ts",

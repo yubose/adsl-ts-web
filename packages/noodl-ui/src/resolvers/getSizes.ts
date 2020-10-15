@@ -1,14 +1,12 @@
 import _ from 'lodash'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 import { hasDecimal, hasLetter } from '../utils/common'
 
 /**
- * Takes an object and returns a new object representing the NOODL attributes
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
+ * Takes an object and returns a new object representing the NOODL
+ *  attributes
  */
-const getSizes: Resolver = (component, options) => {
+const getSizes: ResolverFn = (component, options) => {
   const {
     context: { viewport },
   } = options

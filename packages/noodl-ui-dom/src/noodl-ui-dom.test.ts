@@ -197,7 +197,6 @@ describe('noodl-ui-dom', () => {
       } as NOODLComponentProps
       noodluidom.on('create.plugin', spy)
       noodluidom.parse(component, document.body)
-      console.info(spy.getCalls())
       expect(spy.firstCall.args[0]).to.be.null
     })
   })

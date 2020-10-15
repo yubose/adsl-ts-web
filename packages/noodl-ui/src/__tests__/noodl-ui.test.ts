@@ -142,7 +142,6 @@ describe('NOODL', () => {
       const resolvedComponents = noodl.resolveComponents(components)
       await resolvedComponents[0].onClick()
       const args = myBuiltIn.firstCall.args[1]
-      console.info(args)
     })
 
     xit('should receive the snapshot of the action instance in the options arg', async () => {

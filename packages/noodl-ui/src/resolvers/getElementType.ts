@@ -1,20 +1,19 @@
 import _ from 'lodash'
-import { NOODLComponentType, Resolver } from '../types'
+import { componentTypes } from '../constants'
+import { IComponent, NOODLComponentType, ResolverFn } from '../types'
 
 /**
  * Resolves a component's html tag name by evaluating the NOODL "type" property
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
  */
-const getElementType: Resolver = (component) => {
+const getElementType: ResolverFn = (component) => {
   // NOTE: component.get('type') is specially modified to return the
   // noodl component type and not our parsed one
-  component.set('type', getType(component.get('type') as NOODLComponentType))
+  component.set('type', getType(component))
 }
 
-function getType(noodlComponentType: string): string {
-  switch (noodlComponentType) {
+function getType(component: IComponent): string {
+  const noodlType = component.get('noodlType')
+  switch (noodlType) {
     case 'br':
       return 'br'
     case 'button':
@@ -49,12 +48,12 @@ function getType(noodlComponentType: string): string {
       return 'div'
     case 'video':
       return 'video'
-
     default:
       console.log(
-        `%cNone of the node types matched with "${noodlComponentType}". Perhaps it needs to be ' +
+        `%cNone of the node types matched with "${noodlType}". Perhaps it needs to be ' +
         'supported? (Defaulting to "div" instead)`,
         'color:#e74c3c;font-weight:bold;',
+        { component: component.toJS(), noodlType },
       )
       return 'div'
   }

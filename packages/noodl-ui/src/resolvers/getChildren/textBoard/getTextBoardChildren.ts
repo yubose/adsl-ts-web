@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { IComponent, ProxiedComponent, Resolver } from '../../../types'
-import { createNOODLComponent, identify } from '../../../utils/noodl'
+import { IComponent, ResolverFn } from '../../../types'
+import { identify } from '../../../utils/noodl'
 import { formatColor } from '../../../utils/common'
 import getChildProps from '../getChildProps'
 
@@ -12,7 +12,7 @@ const log = Logger.create('getTextBoardChildren')
   A textBoard represents a component that is expected to render text that can be 
   styled within eachother separately such as different coloring
 */
-const getTextBoardChildren: Resolver = (component: IComponent) => {
+const getTextBoardChildren: ResolverFn = (component) => {
   const { textBoard, text } = component.get(['textBoard', 'text'])
 
   if (_.isArray(textBoard)) {
@@ -44,19 +44,24 @@ const getTextBoardChildren: Resolver = (component: IComponent) => {
                * TODO: Instead of a resolverComponent, we should make a resolveStyles
                * to get around this issue. For now we'll hard code known props like "color"
                */
-              childComponent = createNOODLComponent<ProxiedComponent>('label', {
-                style: { display: 'inline-block' },
-                text: item.text,
-              })
-              if (_.isString(item.color)) {
-                childComponent.set('style', 'color', formatColor(item.color))
-              }
-              return getChildProps(component, childComponent)
+              component.createChild(
+                getChildProps(component, {
+                  type: 'label',
+                  style: {
+                    display: 'inline-block',
+                    ...(item.color
+                      ? { color: formatColor(item.color) }
+                      : undefined),
+                  },
+                  text: item.text,
+                }),
+              )
             }
             return null
-          } else if (identify.textBoard.item.isBreakLine(item)) {
-            childComponent = createNOODLComponent<ProxiedComponent>('br')
-            return getChildProps(component, childComponent)
+          } else if (item === 'br') {
+            component.createChild({
+              type: 'br',
+            })
           } else {
             log.red(
               `Expected an item of textBoard to be object-like or string but ` +

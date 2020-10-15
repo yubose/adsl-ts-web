@@ -1,31 +1,21 @@
 import _ from 'lodash'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 import { textAlignStrings } from '../constants'
 
 /**
  * Takes an object and resolves its align properties by returning a new object generated with
  *    corresponding html attributes
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
  */
-const getAlignAttrs: Resolver = (component) => {
+const getAlignAttrs: ResolverFn = (component) => {
   let value
 
-  const style = component.get('style')
-
-  if (style) {
+  if (component.style) {
+    const { style } = component
     if (style.axis) {
       if (style.axis === 'horizontal') {
-        component.assignStyles({
-          display: 'flex',
-          flexWrap: 'nowrap',
-        })
+        component.assignStyles({ display: 'flex', flexWrap: 'nowrap' })
       } else if (style.axis === 'vertical') {
-        component.assignStyles({
-          display: 'flex',
-          flexDirection: 'column',
-        })
+        component.assignStyles({ display: 'flex', flexDirection: 'column' })
       }
     }
 
@@ -34,8 +24,7 @@ const getAlignAttrs: Resolver = (component) => {
       if (_.isString(style.textAlign)) {
         value = getTextAlign(style.textAlign)
         if (value) {
-          component.removeStyle('textAlign')
-          component.assignStyles(value)
+          component.removeStyle('textAlign').assignStyles(value)
         }
       }
       // { x, y }
@@ -56,13 +45,9 @@ const getAlignAttrs: Resolver = (component) => {
             // The y value needs to be handled manually here since getTextAlign will
             //    return { textAlign } which is meant for x
             if (y === 'center') {
-              component.assignStyles({
-                display: 'flex',
-                alignItems: 'center',
-              })
+              component.assignStyles({ display: 'flex', alignItems: 'center' })
             } else {
-              component.assignStyles(value)
-              component.removeStyle('textAlign')
+              component.assignStyles(value).removeStyle('textAlign')
             }
           }
         }
@@ -72,15 +57,9 @@ const getAlignAttrs: Resolver = (component) => {
 
     if (style.align) {
       if (style.align === 'centerX') {
-        component.assignStyles({
-          display: 'flex',
-          justifyContent: 'center',
-        })
+        component.assignStyles({ display: 'flex', justifyContent: 'center' })
       } else if (style.align === 'centerY') {
-        component.assignStyles({
-          display: 'flex',
-          alignItems: 'center',
-        })
+        component.assignStyles({ display: 'flex', alignItems: 'center' })
       }
     }
 
@@ -100,10 +79,7 @@ const getAlignAttrs: Resolver = (component) => {
  * @param { string } textAlign - NOODL textAlign value
  */
 function getTextAlign(textAlign: string): undefined | object {
-  if (!textAlignStrings.includes(textAlign)) {
-    return
-  }
-
+  if (!textAlignStrings.includes(textAlign)) return
   if (textAlign === 'centerX') {
     return { textAlign: 'center' }
   } else if (textAlign === 'centerY') {

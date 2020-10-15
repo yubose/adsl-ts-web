@@ -1,14 +1,9 @@
 import _ from 'lodash'
-import { Resolver } from '../types'
+import { ResolverFn } from '../types'
 import { hasLetter } from '../utils/common'
 
-/**
- * Returns an object representing the font attributes given from the NOODL
- * @param { Component } component
- * @param { ResolverConsumerOptions } options
- * @return { void }
- */
-const getFontAttrs: Resolver = (component) => {
+/** Returns an object representing the font attributes given from the NOODL */
+const getFontAttrs: ResolverFn = (component) => {
   const fontSize = component.getStyle('fontSize')
   const fontStyle = component.getStyle('fontStyle')
   const fontFamily = component.getStyle('fontFamily')
@@ -26,8 +21,7 @@ const getFontAttrs: Resolver = (component) => {
   }
   // { fontStyle } --> { fontWeight }
   if (fontStyle === 'bold') {
-    component.setStyle('fontWeight', 'bold')
-    component.removeStyle('fontStyle')
+    component.setStyle('fontWeight', 'bold').removeStyle('fontStyle')
   }
 }
 

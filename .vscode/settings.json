@@ -1,4 +1,4 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "color-highlight.matchWords": true
+  "color-highlight.matchWords": true,
+  "typescript.tsdk": "./node_modules/typescript/lib"
 }

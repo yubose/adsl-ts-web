@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import {
   IComponent,
-  Resolver,
+  ResolverFn,
   ResolverConsumerOptions,
   ResolverOptions,
 } from '../../../types'
@@ -17,7 +17,7 @@ const log = Logger.create('getListChildren')
  * So we must provide a custom implementation that mimics regular rendering behavior
  * for each item in the list the NOODL data only gives us the blueprint to render its children
  */
-const getListChildren: Resolver = (
+const getListChildren: ResolverFn = (
   component: IComponent,
   options: ResolverConsumerOptions & { resolverOptions: ResolverOptions },
 ) => {
@@ -39,17 +39,17 @@ const getListChildren: Resolver = (
   // component id as "listId"
   let listId: string = component.id || ''
   // component.iteratorVar is used to attach it as the data item for list item components
-  let iteratorProp = component.get('iteratorVar') || ''
+  let iteratorVar = component.get('iteratorVar') || ''
   let rawBlueprint: any
   let parsedBlueprint: any
 
   // Hard code some of this stuff for now until we figure out a better solution
-  if (identify.stream.video.isSubStream(component)) {
+  if (identify.stream.video.isSubStream(component.toJS())) {
     const filterer = (f: any) => !!f?.sid
-    if (!page.object?.listData) {
+    if (!page?.listData) {
       log.red(`listData was undefined. No participants can be queried`, page)
     }
-    listObjects = _.filter(page.object?.listData?.participants || [], filterer)
+    listObjects = _.filter(page?.listData?.participants || [], filterer)
   }
 
   setList(listId, listObjects)
@@ -74,19 +74,21 @@ const getListChildren: Resolver = (
     })
   }
 
-  component.set('blueprint', parsedBlueprint)
+  const jsBlueprint = parsedBlueprint.toJS()
+
+  component.set('blueprint', jsBlueprint)
 
   _.forEach(listObjects, (listItem, listItemIndex) => {
     if (listItem) {
       const mergingProps = {
-        blueprint: parsedBlueprint,
-        iteratorVar: iteratorProp,
+        blueprint: jsBlueprint,
+        iteratorVar: iteratorVar,
         listId,
         listItemIndex,
       }
 
-      if (iteratorProp) {
-        mergingProps[String(iteratorProp)] = listItem
+      if (iteratorVar) {
+        mergingProps[String(iteratorVar)] = listItem
       } else {
         log.red(
           `The "iteratorVar" prop is invalid. Children of this component ` +
