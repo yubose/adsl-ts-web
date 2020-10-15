@@ -159,8 +159,9 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.updateObject = async (
     action: Action<NOODLUpdateObject>,
     options,
-    { file }: { file?: File } = {},
+    context: { file?: File } = {},
   ) => {
+    const { file } = context
     const { default: noodl } = await import('app/noodl')
     log.func('updateObject')
 
@@ -194,6 +195,11 @@ const createActions = function ({ page }: { page: IPage }) {
         let { dataKey, dataObject } = object
         if (/(file|blob)/i.test(dataObject)) {
           dataObject = file || dataObject
+        }
+        // TODO - Replace this hardcoded "itemObject" string with iteratorVar
+        if (dataObject === 'itemObject') {
+          // TODO - Replace this "file" with iteratorVar
+          dataObject = context['file']
         }
         if (dataObject) {
           const params = { dataKey, dataObject }
