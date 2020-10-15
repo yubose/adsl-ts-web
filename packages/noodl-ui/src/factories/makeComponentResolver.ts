@@ -294,7 +294,11 @@ function makeComponentResolver({
     createActionChain(actions, { trigger, ...otherOptions }) {
       const actionListeners = lifeCycleListeners.get('action')
       const builtInListeners = lifeCycleListeners.get('builtIn')
-      const options = { builtIn: builtInListeners, trigger, ...otherOptions }
+      const options = {
+        builtIn: builtInListeners,
+        trigger,
+        ...otherOptions,
+      }
 
       if (actionListeners instanceof Map) {
         actionListeners.forEach((value, key) => {
@@ -309,6 +313,7 @@ function makeComponentResolver({
         context: o?.getResolverContext(),
         parser,
         ...otherOptions,
+        stateHelpers: o.getStateGetters(),
       })
       // return makeActionChain(lifeCycleListeners).createHandler(...args)
     },
