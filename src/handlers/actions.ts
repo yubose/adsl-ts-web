@@ -202,6 +202,7 @@ const createActions = function ({ page }: { page: IPage }) {
           dataObject =
             context['file'] ||
             options.component?.get?.('itemObject') ||
+            options.component?.get?.('data-listitem') ||
             options.getListItem?.(
               options.component?.get?.('listId') ||
                 options.component?.get?.('data-listid'),
