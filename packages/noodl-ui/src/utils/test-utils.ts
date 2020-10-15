@@ -91,7 +91,7 @@ export const noodlui = (function () {
     enumerable: true,
     writable: true,
     value: function () {
-      _noodlui.reset()
+      _noodlui = new NOODLUi()
       _setResolvers()
     },
   })

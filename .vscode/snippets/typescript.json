@@ -81,7 +81,16 @@
   },
   "test": {
     "prefix": "test",
-    "body": "import { expect } from 'chai'"
+    "body": [
+      "import { expect } from 'chai'",
+      "",
+      "describe('$1', () => {",
+      "  xit('$2', () => {",
+      "    $3",
+      "  })",
+      "})",
+      ""
+    ]
   },
   "prettyDOM": {
     "prefix": "pdom",
@@ -98,13 +107,5 @@
   "queryByDataUx": {
     "prefix": "qdataux",
     "body": "import { queryByDataUx } from 'utils/test-utils'"
-  },
-  "sinon": {
-    "prefix": "sinon",
-    "body": "import sinon from 'sinon'"
-  },
-  "toast": {
-    "prefix": "toast",
-    "body": "import toast from 'utils/toast'"
   }
 }

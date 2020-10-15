@@ -28,8 +28,8 @@ export interface INOODLUi {
   getConsumerOptions(include?: { [key: string]: any }): ResolverConsumerOptions
   getDraftedNode(
     component: IComponent | string,
-  ): ComponentResolverState['drafted'][keyof ComponentResolverState['drafted']]
-  getDraftedNodes(): ComponentResolverState['drafted']
+  ): ComponentResolverState['nodes'][keyof ComponentResolverState['nodes']]
+  getDraftedNodes(): ComponentResolverState['nodes']
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
   getState(): ComponentResolverState
   getStateGetters(): ComponentResolverStateGetters
@@ -469,7 +469,7 @@ export type ActionChainActionCallbackReturnType =
   | void
 
 export interface ComponentResolverState {
-  drafted: {
+  nodes: {
     [componentId: string]: IComponent
   }
   lists: {
@@ -485,10 +485,10 @@ export interface ComponentResolver {
   init(proxiedComponent: ProxiedComponent): this
   finalize(component: IComponent): this
   getState(): ComponentResolverState
-  getDraftedNodes(): ComponentResolverState['drafted']
-  getDraftedNode<K extends keyof ComponentResolverState['drafted']>(
+  getDraftedNodes(): ComponentResolverState['nodes']
+  getDraftedNode<K extends keyof ComponentResolverState['nodes']>(
     component: string | IComponent,
-  ): ComponentResolverState['drafted'][K]
+  ): ComponentResolverState['nodes'][K]
   getList<K extends keyof ComponentResolverState['lists']>(
     listId: string,
   ): ComponentResolverState['lists'][K] | undefined

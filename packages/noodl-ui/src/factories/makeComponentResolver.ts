@@ -33,7 +33,7 @@ function makeComponentResolver({
 
   function createState(): T.ComponentResolverState {
     return {
-      drafted: {},
+      nodes: {},
       lists: {},
       pending: {}, // Pending data used by a data consumer (ex: for list item children)
     }
@@ -86,14 +86,14 @@ function makeComponentResolver({
   function _setDraftNode(component: T.IComponent) {
     if (!component.id) {
       console.groupCollapsed(
-        `%c[_setDraftNode] Cannot set this node to drafted state because the id is invalid`,
+        `%c[_setDraftNode] Cannot set this node to nodes state because the id is invalid`,
         'color:#ec0000',
         component.snapshot(),
       )
       console.trace()
       console.groupEnd()
     } else {
-      _state.drafted[component.id as string] = component
+      _state.nodes[component.id as string] = component
     }
   }
 
@@ -160,13 +160,13 @@ function makeComponentResolver({
       return _state
     },
     getDraftedNodes() {
-      return _state.drafted
+      return _state.nodes
     },
     getDraftedNode(component) {
       if (component instanceof Component) {
-        return _state.drafted[component.id as string]
+        return _state.nodes[component.id as string]
       }
-      return _state.drafted[component as string]
+      return _state.nodes[component as string]
     },
     getList(listId) {
       return _.isString(listId) ? _state.lists[listId] : undefined

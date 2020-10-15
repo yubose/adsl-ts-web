@@ -287,7 +287,7 @@ describe.skip('makeComponentResolver', () => {
         }
       })
 
-      it('should insert the drafted node into the "drafted" internal store', () => {
+      it('should insert the nodes node into the "nodes" internal store', () => {
         const resolvedComponent = componentResolver.resolve(component)
         const draftedNodes = componentResolver.getDrafted()
         expect(draftedNodes[resolvedComponent.id].id).to.equal(
@@ -295,7 +295,7 @@ describe.skip('makeComponentResolver', () => {
         )
       })
 
-      it('should omit the "noodl" and "children" property in the inserted drafted node', () => {
+      it('should omit the "noodl" and "children" property in the inserted nodes node', () => {
         const resolvedComponent = componentResolver.resolve(component)
         const draftedNodes = componentResolver.getDrafted()
         const draftedNode = draftedNodes[resolvedComponent.id]

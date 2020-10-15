@@ -10,8 +10,9 @@ import {
   formatColor,
   hasLetter,
 } from './utils/common'
-import * as T from './types'
 import ActionChain from './ActionChain'
+import * as T from './types'
+import isReference from 'utils/isReference'
 
 const log = Logger.create('noodl-ui')
 
@@ -19,7 +20,7 @@ function _createState(
   state?: Partial<T.ComponentResolverState>,
 ): T.ComponentResolverState {
   return {
-    drafted: {},
+    nodes: {},
     lists: {},
     pending: {}, // Pending data used by a data consumer (ex: for list item children)
     ...state,
@@ -277,22 +278,22 @@ class NOODL implements T.INOODLUi {
   }
 
   getDraftedNodes() {
-    return this.#state.drafted
+    return this.#state.nodes
   }
 
-  getDraftedNode<K extends keyof T.ComponentResolverState['drafted']>(
+  getDraftedNode<K extends keyof T.ComponentResolverState['nodes']>(
     component: T.IComponent,
-  ): T.ComponentResolverState['drafted'][K]
-  getDraftedNode<K extends keyof T.ComponentResolverState['drafted']>(
+  ): T.ComponentResolverState['nodes'][K]
+  getDraftedNode<K extends keyof T.ComponentResolverState['nodes']>(
     componentId: K,
-  ): T.ComponentResolverState['drafted'][K]
-  getDraftedNode<K extends keyof T.ComponentResolverState['drafted']>(
+  ): T.ComponentResolverState['nodes'][K]
+  getDraftedNode<K extends keyof T.ComponentResolverState['nodes']>(
     component: T.IComponent | K,
   ) {
     if (component instanceof Component) {
-      return this.#state.drafted[component.id as K]
+      return this.#state.nodes[component.id as K]
     }
-    return this.#state.drafted[component as K]
+    return this.#state.nodes[component as K]
   }
 
   getList(listId: string) {
@@ -310,20 +311,32 @@ class NOODL implements T.INOODLUi {
 
   getStateGetters() {
     return {
-      consume: this.consume,
-      getList: this.getList,
-      getListItem: this.getListItem,
-      getState: this.getState,
-      getDraftedNodes: this.getDraftedNodes,
-      getDraftedNode: this.getDraftedNode,
+      consume: this.consume.bind(this),
+      getList: this.getList.bind(this),
+      getListItem: this.getListItem.bind(this),
+      getState: this.getState.bind(this),
+      getDraftedNodes: this.getDraftedNodes.bind(this),
+      getDraftedNode: this.getDraftedNode.bind(this),
     }
   }
 
   getStateSetters() {
     return {
-      setConsumerData: this.setConsumerData,
-      setDraftNode: this.setDraftNode,
-      setList: this.setList,
+      setConsumerData: this.setConsumerData.bind(this),
+      setDraftNode: this.setDraftNode.bind(this),
+      setList: this.setList.bind(this),
+    }
+  }
+
+  parse(key: string | T.IComponent): T.NOODLComponentProps | any {
+    if (_.isString(key)) {
+      if (isReference(key)) {
+        //
+      } else {
+        // itemObject.name.firstName
+      }
+    } else if (key instanceof Component) {
+      return this.getDraftedNode(key)?.toJS()
     }
   }
 
@@ -335,7 +348,7 @@ class NOODL implements T.INOODLUi {
     if (components) {
       if (components instanceof Component) {
         return this.#resolve(components)
-      } else if (_.isObject(components)) {
+      } else if (!_.isArray(components) && _.isObject(components)) {
         if ('components' in components) {
           return _.map(components.components, (c: T.ComponentType) =>
             this.#resolve(c),
@@ -398,14 +411,14 @@ class NOODL implements T.INOODLUi {
   setDraftNode(component: T.IComponent) {
     if (!component.id) {
       console.groupCollapsed(
-        `%c[setDraftNode] Cannot set this node to drafted state because the id is invalid`,
+        `%c[setDraftNode] Cannot set this node to nodes state because the id is invalid`,
         'color:#ec0000',
         component.snapshot(),
       )
       console.trace()
       console.groupEnd()
     } else {
-      this.#state.drafted[component.id as string] = component
+      this.#state.nodes[component.id as string] = component
     }
     return this
   }
@@ -415,12 +428,22 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  use(mod: T.IResolver | T.IViewport) {
-    if (mod instanceof Viewport) {
-      this.#viewport = mod
-    } else if (mod instanceof Resolver) {
-      this.#resolvers.push(mod)
+  use(mod: T.IResolver | T.IViewport, ...rest: any[]) {
+    const mods = [mod, ...rest]
+
+    const handleMod = (m: typeof mods[number]) => {
+      if (m instanceof Viewport) {
+        this.#viewport = m
+      } else if (m instanceof Resolver) {
+        this.#resolvers.push(m)
+      }
     }
+
+    _.forEach(mods, (m) => {
+      if (_.isArray(m)) _.forEach([...m, ...rest], (_m) => handleMod(_m))
+      else handleMod(m)
+    })
+
     return this
   }
 

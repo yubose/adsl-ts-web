@@ -50,7 +50,7 @@ export const noodl = new NOODL()
   .setAssetsUrl(assetsUrl)
   .setViewport({ width: 375, height: 667 })
   .setPage({ name: '', object: null })
-  .setResolvers(
+  .use(
     getElementType,
     getTransformedAliases,
     getReferences,

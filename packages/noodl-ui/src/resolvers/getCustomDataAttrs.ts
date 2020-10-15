@@ -190,14 +190,14 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
     itemObject = component.get('itemObject')
 
     if (itemObject) {
-      const drafted = getDraftedNodes()
+      const nodes = getDraftedNodes()
       // Parent --> { component, itemObject, iteratorVar } = data
       // "parentId" was customly injected by our lib from the "list" component (refer to getChildren)
-      parent = drafted[component.get('parentId') || '']
+      parent = nodes[component.get('parentId') || '']
       if (!parent) {
         log.red(
           'No parent was attached to this "itemObject" component. props[\'data-value\'] will be undefined',
-          { component: component.snapshot(), drafted, parent },
+          { component: component.snapshot(), nodes, parent },
         )
       }
     }
@@ -217,8 +217,8 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
           itemObject = getListItem(listId, listItemIndex)
         } else {
           // This is the old (now deprecated) way. Leave this here for now until it's safe to remove
-          const drafted = getDraftedNodes()
-          parent = drafted[parentId || '']
+          const nodes = getDraftedNodes()
+          parent = nodes[parentId || '']
           itemObject = _.get(parent, dataKey)
         }
         if (_.isObjectLike(itemObject)) {
@@ -243,7 +243,7 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
             {
               component: component.snapshot(),
               dataValue: data,
-              drafted: getDraftedNodes(),
+              nodes: getDraftedNodes(),
               listData: getList(listId || ''),
               listItem: itemObject,
               listItemIndex,
@@ -280,7 +280,7 @@ const getCustomDataAttrs: Resolver = (component: IComponent, options) => {
               component: component.snapshot(),
               data,
               dataKey,
-              drafted: getDraftedNodes(),
+              nodes: getDraftedNodes(),
               context,
               localRoot: context.page.object,
               localRootKeySetTo: parser.getLocalKey(),

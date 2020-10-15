@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import sinon from 'sinon'
 import { expect } from 'chai'
 import { NOODLComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
@@ -59,8 +60,70 @@ afterEach(() => {
 })
 
 describe('noodl-ui', () => {
+  xit('should flip initialized to true when running init', () => {
+    //
+  })
+
+  xit('should set the assets url', () => {
+    //
+  })
+
+  xit('should set the root', () => {
+    //
+  })
+
+  xit('should set the viewport', () => {
+    //
+  })
+
+  xit('should set the consumer data', () => {
+    //
+  })
+
+  xit('should set the component node', () => {
+    //
+  })
+
+  xit('should set the list data', () => {
+    //
+  })
+
+  describe('get', () => {
+    xit('should parse the data key and return the value', () => {
+      //
+    })
+
+    xit('should parse the reference key and return the evaluated result', () => {
+      //
+    })
+
+    xit('should return the component node', () => {
+      //
+    })
+  })
+
+  describe('use', () => {
+    xit('should set the viewport', () => {
+      //
+    })
+
+    xit('should add the resolver', () => {
+      //
+    })
+  })
+
+  describe('emitting', () => {
+    xit('should emit the event and call the callbacks associated with the event', () => {
+      //
+    })
+
+    xit('should pass in the args to each callback', () => {
+      //
+    })
+  })
+
   describe('Resolver', () => {
-    it('should change the component attrs accordingly', () => {
+    xit('should change the component attrs accordingly', () => {
       const r = new Resolver()
       r.setResolver((c, options) => {
         c.set('src', 'HELLO')
@@ -77,14 +140,15 @@ describe('noodl-ui', () => {
     })
   })
 
-  it('should return the resolved components', () => {
-    const r = new Resolver()
-    r.setResolver((c, options) => {
-      c.set('src', 'HELLO')
-    })
-    noodlui.use(r)
+  it('should not return as an array if arg passed was not an array', () => {
     const resolvedComponent = noodlui.resolveComponents(component)
     expect(resolvedComponent).to.be.instanceOf(Component)
+  })
+
+  it('should return as array if arg passed was an array', () => {
+    const resolvedComponent = noodlui.resolveComponents([component])
+    expect(resolvedComponent).to.be.an('array')
+    expect(resolvedComponent[0]).to.be.instanceOf(Component)
   })
 
   it('should return the resolver context', () => {
@@ -96,7 +160,24 @@ describe('noodl-ui', () => {
     ])
   })
 
-  it('should return resolver consumer options', () => {
+  it('should return all resolve options', () => {
+    expect(noodlui.getResolverOptions()).to.have.keys([
+      'consume',
+      'context',
+      'getDraftedNode',
+      'getDraftedNodes',
+      'getList',
+      'getListItem',
+      'getState',
+      'parser',
+      'resolveComponent',
+      'setConsumerData',
+      'setDraftNode',
+      'setList',
+    ])
+  })
+
+  it('should return all consumer options', () => {
     expect(noodlui.getConsumerOptions()).to.have.keys([
       'consume',
       'context',
@@ -116,20 +197,101 @@ describe('noodl-ui', () => {
     ])
   })
 
-  it('should return resolver options', () => {
-    expect(noodlui.getResolverOptions()).to.have.keys([
-      'consume',
-      'context',
-      'getDraftedNode',
-      'getDraftedNodes',
-      'getList',
-      'getListItem',
-      'getState',
-      'parser',
-      'resolveComponent',
-      'setConsumerData',
-      'setDraftNode',
-      'setList',
-    ])
+  describe('actions/action chains', () => {
+    xit('should pass in action callbacks as an object where values are array of functions', () => {
+      //
+    })
+
+    xit('should pass in builtIn callbacks where funcNames are keys and array of funcs are its values', () => {
+      //
+    })
+
+    xit('should pass in the trigger type', () => {
+      //
+    })
+
+    xit('should pass in consumer options', () => {
+      //
+    })
+
+    xit('should invoke action callbacks correctly', () => {
+      //
+    })
+
+    xit('should invoke builtIn callbacks correctly', () => {
+      //
+    })
+
+    xit('should invoke chaining callbacks correctly', () => {
+      //
+    })
+
+    xit('should pass in the right args for action callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for builtIn callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for beforeResolve callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainStart callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainEnd callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainAbort callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainError callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainTimeout callback', () => {
+      //
+    })
+
+    xit('should pass in the right args for afterResolve callbacks', () => {
+      //
+    })
+  })
+
+  describe('state api', () => {
+    describe('consume', () => {
+      it('should return the item', () => {
+        //
+      })
+    })
+
+    describe('getDraftedNodes', () => {
+      xit('should return an object of component nodes where key is component id and value is the instance', () => {
+        //
+      })
+    })
+
+    describe('getDraftedNode', () => {
+      xit('should return the component instance', () => {
+        //
+      })
+    })
+
+    describe('getList', () => {
+      xit('should return an object where key is list id and their value is the list (listObject in NOODL terms)', () => {
+        //
+      })
+    })
+
+    describe('getListItem', () => {
+      xit('should return the list item', () => {
+        //
+      })
+    })
   })
 })
