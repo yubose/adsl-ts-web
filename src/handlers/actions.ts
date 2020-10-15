@@ -199,7 +199,15 @@ const createActions = function ({ page }: { page: IPage }) {
         // TODO - Replace this hardcoded "itemObject" string with iteratorVar
         if (dataObject === 'itemObject') {
           // TODO - Replace this "file" with iteratorVar
-          dataObject = context['file']
+          dataObject =
+            context['file'] ||
+            options.component?.get?.('itemObject') ||
+            options.getListItem?.(
+              options.component?.get?.('listId') ||
+                options.component?.get?.('data-listid'),
+              options.component?.get?.('listItemIndex') ||
+                options.component?.get?.('data-listindex'),
+            )
         }
         if (dataObject) {
           const params = { dataKey, dataObject }
