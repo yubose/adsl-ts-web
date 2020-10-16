@@ -36,7 +36,7 @@ class NOODLUIDOM implements T.INOODLUIDOM {
     container?: any,
   ) {
     let node: T.NOODLDOMElement | undefined
-
+    //
     if (props) {
       let { type = '', noodlType = '' } = props
 
