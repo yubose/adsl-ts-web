@@ -13,7 +13,7 @@ const MEET11_CONFIG = getConfigEndpoint('meet11')
 const noodl = new NOODL({
   aspectRatio: 3,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: MEET2D_CONFIG,
+  configUrl: MEET11_CONFIG,
 })
 
 function getConfigEndpoint(
