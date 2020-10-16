@@ -1,41 +1,15 @@
-export const component = (function () {
-  const raw = {
-    list: {
-      type: 'list',
-      contentType: 'listObject',
-      listObject: '..listData.invitees',
-      iteratorVar: 'itemObject',
-      style: { width: '0.2' },
-      children: [this.listItem],
-    },
-    listItem: {
-      type: 'listItem',
-      itemObject: '',
-      style: { left: '0', border: { style: '1' } },
-      children: [
-        {
-          type: 'label',
-          text: 'J',
-          dataKey: 'itemObject.name.firstName',
-          style: {
-            height: '0.08',
-            display: 'inline',
-            textAlign: { x: 'center', y: 'center' },
-          },
-        },
-        {
-          type: 'label',
-          dataKey: 'itemObject.name.firstName',
-          text: 'John',
-          style: { left: '0.25' },
-        },
-        {
-          type: 'label',
-          dataKey: 'itemObject.name.lastName',
-          text: 'Smith',
-          style: { color: '0x000000ff' },
-        },
-        {
+import { NOODLComponent, ProxiedComponent } from '../types'
+
+export const mock = (function () {
+  const listObject: any[] = [
+    { fruits: ['apple'], name: 'michael' },
+    { fruits: ['banana'], name: 'harry' },
+  ]
+
+  const raw = (function () {
+    const o = {
+      getNOODLButton() {
+        return {
           type: 'button',
           onClick: [
             {
@@ -57,15 +31,75 @@ export const component = (function () {
             textAlign: { x: 'center' },
             border: { style: '1' },
           },
-        },
-      ],
-    },
-  }
+        }
+      },
+      getNOODLLabel1() {
+        return {
+          type: 'label',
+          text: 'J',
+          dataKey: 'itemObject.name.firstName',
+          style: {
+            height: '0.08',
+            display: 'inline',
+            textAlign: { x: 'center', y: 'center' },
+          },
+        }
+      },
+      getNOODLLabel2() {
+        return {
+          type: 'label',
+          dataKey: 'itemObject.name.firstName',
+          text: 'John',
+          style: { left: '0.25' },
+        }
+      },
+      getNOODLLabel3() {
+        return {
+          type: 'label',
+          dataKey: 'itemObject.name.lastName',
+          text: 'Smith',
+          style: { color: '0x000000ff' },
+        }
+      },
+      getNOODLList() {
+        return {
+          type: 'list',
+          contentType: 'listObject',
+          listObject,
+          iteratorVar: 'itemObject',
+          style: { width: '0.2' },
+          children: [o.getNOODLListItem()],
+        }
+      },
+      getNOODLListItem() {
+        return {
+          type: 'listItem',
+          itemObject: '',
+          style: { left: '0', border: { style: '1' } },
+          children: [
+            o.getNOODLLabel1(),
+            o.getNOODLLabel2(),
+            o.getNOODLLabel3(),
+            o.getNOODLButton(),
+          ],
+        } as NOODLComponent
+      },
+      getNOODLView() {
+        return {
+          type: 'view',
+          viewTag: 'subStream',
+          required: false,
+          style: { fontStyle: 'bold', height: '0.15', borderRadius: '5' },
+        }
+      },
+    }
+    return o as Record<string, () => NOODLComponent>
+  })()
 
   const lvl2parsed = {}
 
   const proxied = {
-    list: { type: 'ul', style: { left: '0px' } },
+    list: { type: 'ul', style: { left: '0px' } } as ProxiedComponent,
     children: [
       {
         type: 'li',
@@ -111,7 +145,7 @@ export const component = (function () {
               'https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/aitmedmeeting2_0.1/assets/rightArrow.png',
           },
         ],
-      },
+      } as ProxiedComponent,
     ],
   }
 
@@ -119,5 +153,6 @@ export const component = (function () {
     raw,
     lvl2parsed,
     proxied,
+    listObject,
   }
 })()

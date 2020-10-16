@@ -5,31 +5,15 @@ import { noodlui } from '../utils/test-utils'
 import Component from '../Component'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
+import { mock } from './mockData'
 
 let noodlComponent: NOODLComponent
 let component: Component
-let listObject: any[] = [
-  { fruits: ['apple'], name: 'michael' },
-  { fruits: ['banana'], name: 'harry' },
-]
+let listObject: any[]
 
 beforeEach(() => {
-  noodlComponent = {
-    type: 'view',
-    viewTag: 'subStream',
-    required: false,
-    style: {
-      fontStyle: 'bold',
-      left: '0.015',
-      top: '0',
-      width: '0.15',
-      height: '0.15',
-      border: {
-        style: '5',
-      },
-      borderRadius: '5',
-    },
-  } as NOODLComponent
+  listObject = [...mock.listObject]
+  noodlComponent = { ...mock.raw.getNOODLView() }
   component = new Component(noodlComponent)
   // component.createChild({
   //   type: 'view',
