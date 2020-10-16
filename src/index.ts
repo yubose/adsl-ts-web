@@ -152,11 +152,23 @@ window.addEventListener('load', async () => {
 
   page.onBeforePageRender = async ({ pageName }) => {
     log.func('page.onBeforePageRender')
-    log.grey('Rendering components')
+    log.grey('Rendering components', {
+      previousPage: page.previousPage,
+      currentPage: page.currentPage,
+      requestedPage: pageName,
+    })
     if (Meeting.room?.state === 'connected') Meeting.leave()
     if (pageName !== page.currentPage) {
       // Load the page in the SDK
+
       const pageObject = await preparePage(pageName)
+      log.orange(`Received pageObject`, {
+        previousPage: page.previousPage,
+        currentPage: page.currentPage,
+        requestedPage: pageName,
+        pageName,
+        pageObject,
+      })
       // This will be passed into the page renderer
       const pageSnapshot: PageSnapshot = {
         name: pageName,
@@ -223,6 +235,13 @@ window.addEventListener('load', async () => {
       // Refresh the roots
       // TODO - Leave root/page auto binded to the lib
       noodlui.setRoot(noodl.root).setPage(pageSnapshot)
+      log.grey(`Set root + page obj after receiving page object`, {
+        previousPage: page.previousPage,
+        currentPage: page.currentPage,
+        requestedPage: pageName,
+        pageName,
+        pageObject,
+      })
       // NOTE: not being used atm
       if (page.rootNode && page.rootNode.id !== pageName) {
         page.rootNode.id = pageName

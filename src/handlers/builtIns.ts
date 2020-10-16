@@ -52,6 +52,12 @@ const createBuiltInActions = function ({
     abort('Creating account')
   }
 
+  builtInActions.cleanLocalStorage = () => {
+    log.func('cleanLocalStorage')
+    window.localStorage.clear()
+    log.green(`Cleared local storage`)
+  }
+
   // Called when user enters their verification code in the popup and clicks submit
   builtInActions.enterVerificationCode = async (action, options) => {
     log.func('enterVerificationCode').red('', _.assign({ action }, options))
