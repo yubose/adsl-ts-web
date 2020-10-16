@@ -8,6 +8,10 @@ import Viewport from '../Viewport'
 
 let noodlComponent: NOODLComponent
 let component: Component
+let listObject: any[] = [
+  { fruits: ['apple'], name: 'michael' },
+  { fruits: ['banana'], name: 'harry' },
+]
 
 beforeEach(() => {
   noodlComponent = {
@@ -35,6 +39,7 @@ beforeEach(() => {
         children: [
           {
             type: 'list',
+            listObject,
             children: [
               {
                 type: 'listItem',
@@ -96,16 +101,41 @@ describe('noodl-ui', () => {
     expect(noodlui.viewport).to.equal(viewport)
   })
 
-  xit('should set the consumer data', () => {
-    //
+  it('should set the consumer data', () => {
+    const resolvedComponent = noodlui.resolveComponents({
+      type: 'list',
+      listObject,
+      children: [{ type: 'listItem', itemObject: '' }],
+    })
+    console.info(noodlui.getState().lists)
+    console.info(resolvedComponent.id)
+    console.info(resolvedComponent.get('data-listid'))
+    console.info(resolvedComponent.get('listId'))
+    const listItem = noodlui.getListItem(resolvedComponent.get('listId'))
+    console.info(listItem)
+    // expect()
   })
 
   xit('should set the component node', () => {
     //
   })
 
-  xit('should set the list data', () => {
-    //
+  describe('working with list data', () => {
+    xit('should retrieve the list item if passing in the list item component instance', () => {
+      //
+    })
+
+    xit('should retrieve the list item if passing in any nested child instance under the list item component instance', () => {
+      //
+    })
+
+    xit('should retrieve the list item if passing in a component id that links to a component instance anywhere in the list item tree', () => {
+      //
+    })
+
+    xit('should set the component instance as the key', () => {
+      //
+    })
   })
 
   describe('get', () => {
@@ -185,15 +215,15 @@ describe('noodl-ui', () => {
     expect(noodlui.getResolverOptions()).to.have.keys([
       'consume',
       'context',
-      'getDraftedNode',
-      'getDraftedNodes',
+      'getNode',
+      'getNodes',
       'getList',
       'getListItem',
       'getState',
       'parser',
       'resolveComponent',
       'setConsumerData',
-      'setDraftNode',
+      'setNode',
       'setList',
     ])
   })
@@ -204,15 +234,15 @@ describe('noodl-ui', () => {
       'context',
       'createActionChain',
       'createSrc',
-      'getDraftedNode',
-      'getDraftedNodes',
+      'getNode',
+      'getNodes',
       'getList',
       'getListItem',
       'getState',
       'parser',
       'resolveComponent',
       'setConsumerData',
-      'setDraftNode',
+      'setNode',
       'setList',
       'showDataKey',
     ])
@@ -316,13 +346,13 @@ describe('noodl-ui', () => {
       })
     })
 
-    describe('getDraftedNodes', () => {
+    describe('getNodes', () => {
       it('should return an object of component nodes where key is component id and value is the instance', () => {
-        // console.info(noodlui.getDraftedNodes())
+        // console.info(noodlui.getNodes())
       })
     })
 
-    describe('getDraftedNode', () => {
+    describe('getNode', () => {
       xit('should return the component instance', () => {
         //
       })

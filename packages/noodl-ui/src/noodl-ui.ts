@@ -13,18 +13,16 @@ import {
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import * as T from './types'
+import { componentTypes } from './constants'
 
 const log = Logger.create('noodl-ui')
 
-function _createState(
-  state?: Partial<T.ComponentResolverState>,
-): T.ComponentResolverState {
+function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
   return {
-    nodes: {},
-    lists: {},
-    pending: {}, // Pending data used by a data consumer (ex: for list item children)
+    nodes: new Map(),
+    lists: new Map(),
     ...state,
-  } as T.ComponentResolverState
+  } as T.INOODLUiState
 }
 
 class NOODL implements T.INOODLUi {
@@ -42,7 +40,7 @@ class NOODL implements T.INOODLUi {
   #parser: T.RootsParser
   #resolvers: Resolver[] = []
   #root: { [key: string]: any } = {}
-  #state: T.ComponentResolverState
+  #state: T.INOODLUiState
   #viewport: T.IViewport
   initialized: boolean = false
 
@@ -73,42 +71,6 @@ class NOODL implements T.INOODLUi {
 
   get viewport() {
     return this.#viewport
-  }
-
-  /**
-   * Consumes data from the "pending" object using the component id as the key
-   * or the component reference itself
-   * @param { string | Component } component
-   */
-  consume(component: T.IComponent) {
-    log.func('consume')
-    const componentId = component.id || ''
-    if (!componentId) {
-      log.red('Invalid componentId used to consume list data', {
-        component: component.snapshot(),
-        pending: this.#state.pending,
-      })
-    }
-    const value = this.#state.pending[componentId]
-    if (value) {
-      delete this.#state.pending[componentId]
-    } else {
-      console.groupCollapsed(
-        `%c[consume] Expected data to be consumed by a component with id ` +
-          `"${componentId}" but received null or undefined when attempting ` +
-          `to retrieve it`,
-        'color:#ec0000',
-        {
-          targetObject: this.#state.pending,
-          expectingKey: componentId,
-          consumedResult: value,
-          component: component.snapshot(),
-        },
-      )
-      console.trace()
-      console.groupEnd()
-    }
-    return value
   }
 
   createActionChain(
@@ -282,30 +244,48 @@ class NOODL implements T.INOODLUi {
     } as T.ResolverConsumerOptions
   }
 
-  getDraftedNodes() {
-    return this.#state.nodes
+  getNodes() {
+    return Array.from(this.#state.nodes.values())
   }
 
-  getDraftedNode<K extends keyof T.ComponentResolverState['nodes']>(
-    component: T.IComponent,
-  ): T.ComponentResolverState['nodes'][K]
-  getDraftedNode<K extends keyof T.ComponentResolverState['nodes']>(
-    componentId: K,
-  ): T.ComponentResolverState['nodes'][K]
-  getDraftedNode<K extends keyof T.ComponentResolverState['nodes']>(
-    component: T.IComponent | K,
-  ) {
+  getNode(component: T.IComponent | string) {
+    let result: T.IComponent | undefined
     if (component instanceof Component) {
-      return this.#state.nodes[component.id as K]
+      result = this.#state.nodes.get(component)
+    } else if (_.isString(component)) {
+      const nodes = Array.from(this.#state.nodes.values())
+      const numNodes = nodes.length
+      for (let index = 0; index < numNodes; index++) {
+        const node = nodes[index]
+        if (node.id === component) {
+          result = node
+          break
+        }
+      }
     }
-    return this.#state.nodes[component as K]
+    return result || null
   }
 
-  getList(listId: string) {
-    return this.#state.lists[listId]
+  getList(listId: T.IComponent | string) {
+    let result: any[] | undefined
+    if (listId instanceof Component) {
+      //
+    } else if (_.isString(listId)) {
+      //
+    }
+    return result || null
   }
 
-  getListItem(listId: string, index: number, defaultValue?: any) {
+  getListItem(
+    listId: string | T.IComponent,
+    index: number,
+    defaultValue?: any,
+  ) {
+    if (listId) {
+      if (listId instanceof Component) {
+      } else if (_.isString(listId)) {
+      }
+    }
     if (!listId || _.isUndefined(index)) return defaultValue
     return this.#state.lists[listId]?.[index] || defaultValue
   }
@@ -320,15 +300,15 @@ class NOODL implements T.INOODLUi {
       getList: this.getList.bind(this),
       getListItem: this.getListItem.bind(this),
       getState: this.getState.bind(this),
-      getDraftedNodes: this.getDraftedNodes.bind(this),
-      getDraftedNode: this.getDraftedNode.bind(this),
+      getNodes: this.getNodes.bind(this),
+      getNode: this.getNode.bind(this),
     }
   }
 
   getStateSetters() {
     return {
       setConsumerData: this.setConsumerData.bind(this),
-      setDraftNode: this.setDraftNode.bind(this),
+      setNode: this.setNode.bind(this),
       setList: this.setList.bind(this),
     }
   }
@@ -341,7 +321,7 @@ class NOODL implements T.INOODLUi {
         // itemObject.name.firstName
       }
     } else if (key instanceof Component) {
-      return this.getDraftedNode(key)?.toJS()
+      return this.getNode(key)?.toJS()
     }
   }
 
@@ -368,6 +348,65 @@ class NOODL implements T.INOODLUi {
     return null
   }
 
+  #resolve = (c: T.ComponentType, { id }: { id?: string } = {}) => {
+    let component: T.IComponent
+
+    if (c instanceof Component) {
+      component = c
+    } else {
+      component = new Component(c)
+    }
+
+    component['id'] = id || _.uniqueId()
+
+    const type = component.get('type')
+    const consumerOptions = this.getConsumerOptions({
+      component,
+    })
+
+    if (!type) {
+      log.func('#resolve')
+      log.red(
+        'Encountered a NOODL component without a "type"',
+        component.snapshot(),
+      )
+    }
+
+    if (this.page && this.parser.getLocalKey() !== this.page.name) {
+      this.parser.setLocalKey(this.page.name)
+    }
+
+    this.emit('beforeResolve', component, consumerOptions)
+
+    _.forEach(this.#resolvers, (resolver) =>
+      resolver.resolve(component, consumerOptions),
+    )
+
+    this.emit('afterResolve', component, consumerOptions)
+
+    // Finalizing
+    const { style } = component
+    if (_.isObjectLike(style)) {
+      forEachDeepEntries(style, (key, value) => {
+        if (_.isString(value)) {
+          if (value.startsWith('0x')) {
+            component.set('style', key, formatColor(value))
+          } else if (/(fontsize|borderwidth|borderradius)/i.test(key)) {
+            if (!hasLetter(value)) {
+              component.set('style', key, `${value}px`)
+            }
+          }
+        }
+      })
+    }
+
+    if (!this.#state.nodes.has(component)) {
+      this.#state.nodes.set(component, component)
+    }
+
+    return component
+  }
+
   setAssetsUrl(assetsUrl: string) {
     this.#assetsUrl = assetsUrl
     return this
@@ -390,34 +429,10 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  setConsumerData(component: T.IComponent | string, data: any) {
-    if (component instanceof Component) {
-      this.#state.pending[component.id as string] = data
-    } else if (_.isString(component)) {
-      const id = component
-      if (!id) {
-        log.func('setConsumerData')
-        log.red(
-          `Could not set data for a list data consumer because the child component's ` +
-            `id was invalid`,
-          { id, data },
-        )
-      } else {
-        log.func('setConsumerData')
-        log.grey(
-          `Attached consumer data for child component id: ${id}`,
-          this.#state.pending,
-        )
-        this.#state.pending[id] = data
-      }
-    }
-    return this
-  }
-
-  setDraftNode(component: T.IComponent) {
+  setNode(component: T.IComponent) {
     if (!component.id) {
       console.groupCollapsed(
-        `%c[setDraftNode] Cannot set this node to nodes state because the id is invalid`,
+        `%c[setNode] Cannot set this node to nodes state because the id is invalid`,
         'color:#ec0000',
         component.snapshot(),
       )
@@ -429,7 +444,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  setList(listId: string, data: any) {
+  setList(listId, data) {
     this.#state.lists[listId] = data
     return this
   }
@@ -469,61 +484,6 @@ class NOODL implements T.INOODLUi {
     this.#viewport = new Viewport()
     this.initialized = false
     return this
-  }
-
-  #resolve = (c: T.ComponentType, { id }: { id?: string } = {}) => {
-    let component: T.IComponent
-
-    if (c instanceof Component) {
-      component = c
-    } else {
-      component = new Component(c)
-    }
-
-    component['id'] = id || _.uniqueId()
-
-    const type = component.get('type')
-    const consumerOptions = this.getConsumerOptions({
-      component,
-    })
-
-    if (!type) {
-      log.func('#resolve')
-      log.red(
-        'Encountered a NOODL component without a "type"',
-        component.snapshot(),
-      )
-    }
-
-    if (this.page && this.parser.getLocalKey() !== this.page.name) {
-      this.parser.setLocalKey(this.page.name)
-    }
-
-    this.emit('beforeResolve', component, consumerOptions)
-
-    _.forEach(this.#resolvers, (resolver) =>
-      resolver.resolve(component, consumerOptions),
-    )
-
-    this.emit('afterResolve', component, consumerOptions)
-
-    // Finalize
-    const { style } = component
-    if (_.isObjectLike(style)) {
-      forEachDeepEntries(style, (key, value) => {
-        if (_.isString(value)) {
-          if (value.startsWith('0x')) {
-            component.set('style', key, formatColor(value))
-          } else if (/(fontsize|borderwidth|borderradius)/i.test(key)) {
-            if (!hasLetter(value)) {
-              component.set('style', key, `${value}px`)
-            }
-          }
-        }
-      })
-    }
-
-    return component
   }
 
   #createSrc = (path: string) => {

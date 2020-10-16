@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { ComponentResolverStateGetters, IComponent } from '../../../types'
+import { INOODLUiStateGetters, IComponent } from '../../../types'
 import Component from '../../../Component'
 
 const log = Logger.create('getListItemBlueprint')
@@ -12,7 +12,7 @@ export function getListItemBlueprint({
   listId,
 }: {
   component: IComponent
-  getList: ComponentResolverStateGetters['getList']
+  getList: INOODLUiStateGetters['getList']
   listId: string
 }) {
   let blueprint: any

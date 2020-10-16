@@ -159,14 +159,16 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.updateObject = async (
     action: Action<NOODLUpdateObject>,
     options,
-    { file }: { file?: File } = {},
+    ctx: { file?: File } = {},
   ) => {
+    const { component, stateHelpers } = options
+    const { file } = ctx
     const { default: noodl } = await import('app/noodl')
     log.func('updateObject')
 
     async function callObject(
       object: any,
-      options: ActionChainActionCallbackOptions & {
+      opts: ActionChainActionCallbackOptions & {
         action: any
         file?: File
       },
@@ -177,7 +179,7 @@ const createActions = function ({ page }: { page: IPage }) {
         log.red(
           `Received a string as an object property of updateObject. ` +
             `Possibly parsed incorrectly?`,
-          { action, object, options },
+          { action, object, ...options, ...opts },
         )
       } else if (_.isArray(object)) {
         for (let index = 0; index < object.length; index++) {
@@ -195,13 +197,41 @@ const createActions = function ({ page }: { page: IPage }) {
         if (/(file|blob)/i.test(dataObject)) {
           dataObject = file || dataObject
         }
+        // TODO - Replace this hardcoded "itemObject" string with iteratorVar
+        if (dataObject === 'itemObject') {
+          if (stateHelpers) {
+            const { getList } = stateHelpers
+            const listId = component.get('listId')
+            const listItemIndex = component.get('listItemIndex')
+            const list = getList(listId) || []
+            const listItem = list[listItemIndex]
+            if (listItem) dataObject = listItem
+            log.salmon('', {
+              listId,
+              listItemIndex,
+              list,
+              listItem,
+            })
+          }
+          if (!dataObject) dataObject = file
+        }
         if (dataObject) {
           const params = { dataKey, dataObject }
           log.func('updateObject')
           log.green(`Parameters`, params)
+          log.orange('', {
+            action,
+            state: stateHelpers?.getState?.(),
+            ...options,
+            ...ctx,
+          })
           await noodl.updateObject(params)
         } else {
-          log.red(`dataObject is null or undefined`, object)
+          log.red(`dataObject is null or undefined`, {
+            action,
+            ...options,
+            ...ctx,
+          })
         }
       }
     }

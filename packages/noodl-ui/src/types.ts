@@ -14,7 +14,7 @@ export interface INOODLUi {
   page: Page
   parser: RootsParser
   root: { [key: string]: any }
-  consume(component: IComponent): any
+  addListItem<ListItem = any>(component: IComponent, listItem: ListItem): this
   init(opts: { log?: boolean; viewport?: Viewport }): this
   createActionChain(
     actions: NOODLActionObject[],
@@ -24,27 +24,44 @@ export interface INOODLUi {
   off(eventName: string, cb: (...args: any[]) => any): this
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ResolverConsumerOptions
-  getDraftedNode(
-    component: IComponent | string,
-  ): ComponentResolverState['nodes'][keyof ComponentResolverState['nodes']]
-  getDraftedNodes(): ComponentResolverState['nodes']
+  getLists(): INOODLUiState['lists']
+  getList(component: string | IComponent): any[] | null
+  getListItem(component: IComponent): any
+  getNode(component: IComponent | string): IComponent | null
+  getNodes(): IComponent[]
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
-  getState(): ComponentResolverState
-  getStateGetters(): ComponentResolverStateGetters
-  getStateSetters(): ComponentResolverStateSetters
+  getState(): INOODLUiState
+  getStateHelpers(): INOODLUiStateHelpers
+  getStateGetters(): INOODLUiStateGetters
+  getStateSetters(): INOODLUiStateSetters
+  reset(): this
   resolveComponents(
     components: ComponentType | ComponentType[] | Page['object'],
   ): IComponent | IComponent[] | null
-  setAssetsUrl(...args: Parameters<ComponentResolver['setAssetsUrl']>): this
-  setDraftNode: ComponentResolverStateSetters['setDraftNode']
-  setList: ComponentResolverStateSetters['setList']
+  setAssetsUrl(assetsUrl: string): this
+  setList(component: IComponent): this
+  setNode(component: IComponent): this
   setPage(page: string): this
-  setRoot(...args: Parameters<ComponentResolver['setRoot']>): this
-  setViewport(...args: Parameters<ComponentResolver['setViewport']>): this
+  setRoot(key: string | { [key: string]: any }, value?: any): this
+  setViewport(viewport: IViewport | null): this
   use(mod: IResolver | IResolver[] | IViewport): this
   unuse(mod: any): this
-  reset(): this
 }
+
+export interface INOODLUiState {
+  nodes: Map<IComponent, IComponent>
+  lists: Map<IComponent, any[]>
+  showDataKey: boolean
+}
+
+export type INOODLUiStateHelpers = INOODLUiStateGetters & INOODLUiStateSetters
+
+export type INOODLUiStateGetters = Pick<
+  INOODLUi,
+  'getLists' | 'getList' | 'getListItem' | 'getState' | 'getNodes' | 'getNode'
+>
+
+export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode' | 'setList'>
 
 export interface IComponent {
   action: NOODLActionObject
@@ -430,7 +447,7 @@ export interface ActionChainActionCallback<ActionObject = any> {
 }
 
 export interface ActionChainActionCallbackOptions<T extends IComponent = any>
-  extends ComponentResolverStateGetters {
+  extends INOODLUiStateGetters {
   abort?(
     reason?: string | string[],
   ): Promise<IteratorYieldResult<any> | IteratorReturnResult<any> | undefined>
@@ -471,112 +488,6 @@ export type ActionChainActionCallbackReturnType =
   | 'abort'
   | undefined
   | void
-
-export interface ComponentResolverState {
-  nodes: {
-    [componentId: string]: IComponent
-  }
-  lists: {
-    [listId: string]: any[]
-  }
-  pending: {
-    [childComponentId: string]: any
-  }
-  showDataKey: boolean
-}
-
-export interface ComponentResolver {
-  init(proxiedComponent: ProxiedComponent): this
-  finalize(component: IComponent): this
-  getState(): ComponentResolverState
-  getDraftedNodes(): ComponentResolverState['nodes']
-  getDraftedNode<K extends keyof ComponentResolverState['nodes']>(
-    component: string | IComponent,
-  ): ComponentResolverState['nodes'][K]
-  getList<K extends keyof ComponentResolverState['lists']>(
-    listId: string,
-  ): ComponentResolverState['lists'][K] | undefined
-  getListItem<K extends keyof ComponentResolverState['lists']>(
-    listId: string | undefined,
-    index: number | undefined,
-    defaultValue?: any,
-  ): ComponentResolverState['lists'][K][number]
-  consume<K extends keyof ComponentResolverState['pending']>(
-    component: IComponent,
-  ): ComponentResolverState['pending'][K] | undefined
-  setConsumerData(child: IComponent, data: any): this
-  setConsumerData(childId: string, data: any): this
-  setConsumerData(child: string | IComponent, data: any): this
-  setDraftNode(component: IComponent): this
-  setList(listId: string, data: any[]): this
-  addLifecycleListener(
-    name: string | Function | { [key: string]: any },
-    fn?: Function | { [key: string]: any },
-  ): this
-  removeLifeCycleListener(name: string): this
-  hasLifeCycle(name: string | Function): boolean
-  getLifeCycle<K extends keyof LifeCycleListeners>(
-    name: K,
-  ): (Function & { finally?: LifeCycleListener }) | undefined
-  createActionChain(
-    actions: NOODLActionObject[],
-    { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
-  ): (event: Event) => Promise<any>
-  addResolvers(...resolvers: ResolverFn[]): this
-  removeResolver(resolver: ResolverFn): this
-  callResolvers(
-    component: IComponent,
-    resolverConsumerOptions: ResolverConsumerOptions,
-  ): void
-  createSrc(path: string): string
-  getAssetsUrl(): string
-  getParser(): RootsParser
-  getResolverOptions(additionalOptions?: any): ResolverOptions
-  getResolverConsumerOptions<T extends {}>(
-    opts: { component: IComponent } & T,
-  ): ResolverConsumerOptions
-  getResolverContext(): ResolverContext
-  getRoots(): { [key: string]: any } | null
-  getStateGetters(): ComponentResolverStateGetters
-  getStateSetters(): ComponentResolverStateSetters
-  getFallbackDataValue(component: IComponent, defaultValue?: string): any
-  resolve(
-    component:
-      | IComponent
-      | NOODLComponent
-      | NOODLComponentProps
-      | ProxiedComponent,
-  ): NOODLComponentProps
-  setAssetsUrl(assetsUrl: string): this
-  setPage(page?: Page): this
-  setResolvers(...resolvers: ResolverFn[]): this
-  setRoot(key: string | { [key: string]: any }, value?: any): this
-  hasViewport(): boolean
-  getViewport(): IViewport | undefined
-  setViewport({ width, height }: { width?: number; height?: number }): this
-  snapshot(draft: ProxiedDraftComponent): ProxiedComponent
-}
-
-export type ComponentResolverStateHelpers = ComponentResolverStateGetters &
-  ComponentResolverStateSetters
-
-export type ComponentResolverStateGetters = Pick<
-  ComponentResolver,
-  | 'consume'
-  | 'getList'
-  | 'getListItem'
-  | 'getState'
-  | 'getDraftedNodes'
-  | 'getDraftedNode'
->
-
-export interface ComponentResolverStateSetters {
-  setConsumerData(child: IComponent, data: any): this
-  setConsumerData(childId: string, data: any): this
-  setConsumerData(child: string | IComponent, data: any): this
-  setDraftNode(component: IComponent): this
-  setList(listId: string, data: any): this
-}
 
 export type OnEvalObject = ActionChainActionCallback<NOODLEvalObject>
 
@@ -698,26 +609,26 @@ export type ResolverFn = ((
 
 export interface ResolverOptions
   extends LifeCycleListeners,
-    ComponentResolverStateHelpers {
+    INOODLUiStateHelpers {
   context: ResolverContext
   parser: RootsParser
   resolveComponent: ResolveComponent
 }
 
 export interface ResolverConsumerOptions
-  extends ComponentResolverStateHelpers,
+  extends INOODLUiStateHelpers,
     Pick<
       ComponentResolver,
       | 'consume'
       | 'createActionChain'
       | 'createSrc'
-      | 'getDraftedNode'
-      | 'getDraftedNodes'
+      | 'getNode'
+      | 'getNodes'
       | 'getList'
       | 'getListItem'
       | 'getState'
       | 'setConsumerData'
-      | 'setDraftNode'
+      | 'setNode'
       | 'setList'
     > {
   context: ResolverContext

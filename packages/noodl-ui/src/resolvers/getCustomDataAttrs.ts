@@ -14,8 +14,8 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
   const {
     context,
     showDataKey,
-    getDraftedNode,
-    getDraftedNodes,
+    getNode,
+    getNodes,
     getList,
     getListItem,
     parser,
@@ -190,7 +190,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
     itemObject = component.get('itemObject')
 
     if (itemObject) {
-      const nodes = getDraftedNodes()
+      const nodes = getNodes()
       // Parent --> { component, itemObject, iteratorVar } = data
       // "parentId" was customly injected by our lib from the "list" component (refer to getChildren)
       parent = nodes[component.get('parentId') || '']
@@ -217,7 +217,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
           itemObject = getListItem(listId, listItemIndex)
         } else {
           // This is the old (now deprecated) way. Leave this here for now until it's safe to remove
-          const nodes = getDraftedNodes()
+          const nodes = getNodes()
           parent = nodes[parentId || '']
           itemObject = _.get(parent, dataKey)
         }
@@ -245,11 +245,11 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
             {
               component: component.snapshot(),
               dataValue: data,
-              nodes: getDraftedNodes(),
+              nodes: getNodes(),
               listData: getList(listId || ''),
               listItem: itemObject,
               listItemIndex,
-              parent: getDraftedNode(parentId || ''),
+              parent: getNode(parentId || ''),
             },
           )
         }
@@ -284,7 +284,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
               component: component.snapshot(),
               data,
               dataKey,
-              nodes: getDraftedNodes(),
+              nodes: getNodes(),
               context,
               localRoot: context.page,
               localRootKeySetTo: parser.getLocalKey(),

@@ -10,7 +10,6 @@ import {
   NOODLActionObject,
   NOODLComponent,
   NOODLComponentProps,
-  NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
 } from './types'

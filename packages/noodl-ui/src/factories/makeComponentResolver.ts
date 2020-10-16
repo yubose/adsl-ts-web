@@ -28,10 +28,10 @@ function makeComponentResolver({
   roots: { [key: string]: any }
   viewport?: Viewport
 }): T.ComponentResolver {
-  const _state: T.ComponentResolverState = createState()
+  const _state: T.INOODLUiState = createState()
   const _internalHelpers = {}
 
-  function createState(): T.ComponentResolverState {
+  function createState(): T.INOODLUiState {
     return {
       nodes: {},
       lists: {},
@@ -159,10 +159,10 @@ function makeComponentResolver({
     getState() {
       return _state
     },
-    getDraftedNodes() {
+    getNodes() {
       return _state.nodes
     },
-    getDraftedNode(component) {
+    getNode(component) {
       if (component instanceof Component) {
         return _state.nodes[component.id as string]
       }
@@ -235,7 +235,7 @@ function makeComponentResolver({
       }
       return this
     },
-    setDraftNode(component) {
+    setNode(component) {
       _setDraftNode(component)
       return this
     },
@@ -287,7 +287,11 @@ function makeComponentResolver({
     createActionChain(actions, { trigger, ...otherOptions }) {
       const actionListeners = lifeCycleListeners.get('action')
       const builtInListeners = lifeCycleListeners.get('builtIn')
-      const options = { builtIn: builtInListeners, trigger, ...otherOptions }
+      const options = {
+        builtIn: builtInListeners,
+        trigger,
+        ...otherOptions,
+      }
 
       if (actionListeners instanceof Map) {
         actionListeners.forEach((value, key) => {
@@ -302,6 +306,7 @@ function makeComponentResolver({
         context: o?.getResolverContext(),
         parser,
         ...otherOptions,
+        stateHelpers: o.getStateGetters(),
       })
       // return makeActionChain(lifeCycleListeners).createHandler(...args)
     },
@@ -402,14 +407,14 @@ function makeComponentResolver({
         getList: this.getList,
         getListItem: this.getListItem,
         getState: this.getState,
-        getDraftedNodes: this.getDraftedNodes,
-        getDraftedNode: this.getDraftedNode,
+        getNodes: this.getNodes,
+        getNode: this.getNode,
       }
     },
     getStateSetters() {
       return {
         setConsumerData: this.setConsumerData,
-        setDraftNode: this.setDraftNode,
+        setNode: this.setNode,
         setList: this.setList,
       }
     },
