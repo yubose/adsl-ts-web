@@ -3,7 +3,7 @@ import Logger from 'logsnap'
 import {
   IComponent,
   ResolverFn,
-  ResolverConsumerOptions,
+  ConsumerOptions,
   ResolverOptions,
 } from '../../../types'
 import { identify } from '../../../utils/noodl'
@@ -19,7 +19,7 @@ const log = Logger.create('getListChildren')
  */
 const getListChildren: ResolverFn = (
   component: IComponent,
-  options: ResolverConsumerOptions & { resolverOptions: ResolverOptions },
+  options: ConsumerOptions & { resolverOptions: ResolverOptions },
 ) => {
   const {
     context: { page },

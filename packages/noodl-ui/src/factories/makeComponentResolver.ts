@@ -393,7 +393,7 @@ function makeComponentResolver({
           ...this.getStateSetters(),
           ...opts,
         },
-      }) as T.ResolverConsumerOptions
+      }) as T.ConsumerOptions
     },
     getResolverContext() {
       return optionsBuilder.build({ type: 'context' }) as T.ResolverContext

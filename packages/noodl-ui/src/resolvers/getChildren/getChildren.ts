@@ -4,7 +4,7 @@ import {
   IComponent,
   ProxiedComponent,
   ResolverOptions,
-  ResolverConsumerOptions,
+  ConsumerOptions,
 } from '../../types'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
@@ -19,7 +19,7 @@ import getTextBoardChildren from './textBoard'
  */
 function getChildren(
   component: IComponent,
-  options: ResolverConsumerOptions & { resolverOptions: ResolverOptions },
+  options: ConsumerOptions & { resolverOptions: ResolverOptions },
 ): void {
   const { resolveComponent, resolverOptions } = options
   const { text, textBoard, type, children, iteratorVar = '' } = component.get([

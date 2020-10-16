@@ -5,7 +5,7 @@ import {
   NOODLComponent,
   ProxiedComponent,
   ResolverFn,
-  ResolverConsumerOptions,
+  ConsumerOptions,
   ResolverOptions,
 } from '../../../types'
 import getChildrenDefault from '../default'
@@ -19,7 +19,7 @@ const log = Logger.create('getListItemChildren')
  */
 const getListItemChildren: ResolverFn = (
   component: IComponent,
-  options: ResolverConsumerOptions & { resolverOptions: ResolverOptions },
+  options: ConsumerOptions & { resolverOptions: ResolverOptions },
 ) => {
   const { consume, resolveComponent, resolverOptions } = options
   const { children, iteratorVar, listId, listItemIndex = 0 } = component.get([

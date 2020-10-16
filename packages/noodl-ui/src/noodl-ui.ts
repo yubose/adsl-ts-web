@@ -13,7 +13,6 @@ import {
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import * as T from './types'
-import { componentTypes } from './constants'
 
 const log = Logger.create('noodl-ui')
 
@@ -241,7 +240,7 @@ class NOODL implements T.INOODLUi {
       ...this.getStateGetters(),
       ...this.getStateSetters(),
       ...include,
-    } as T.ResolverConsumerOptions
+    } as T.ConsumerOptions
   }
 
   getNodes() {

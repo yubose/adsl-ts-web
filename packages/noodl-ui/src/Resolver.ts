@@ -1,10 +1,5 @@
 import _ from 'lodash'
-import {
-  IComponent,
-  IResolver,
-  ResolverFn,
-  ResolverConsumerOptions,
-} from './types'
+import { IComponent, IResolver, ResolverFn, ConsumerOptions } from './types'
 
 class Resolver implements IResolver {
   #resolver: ResolverFn | null = null
@@ -14,7 +9,7 @@ class Resolver implements IResolver {
     return this
   }
 
-  resolve(component: IComponent, options: ResolverConsumerOptions) {
+  resolve(component: IComponent, options: ConsumerOptions) {
     this.#resolver?.(component, options)
     return this
   }

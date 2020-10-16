@@ -3,14 +3,14 @@ import getChildProps from '../getChildProps'
 import {
   ComponentType,
   IComponent,
-  ResolverConsumerOptions,
+  ConsumerOptions,
   ResolverOptions,
 } from '../../../types'
 
 /** Default renderer for children */
 function getChildrenDefault(
   component: IComponent,
-  options: ResolverConsumerOptions & { resolverOptions: ResolverOptions },
+  options: ConsumerOptions & { resolverOptions: ResolverOptions },
   mergingArgs?: Record<string, any>,
 ) {
   const { resolveComponent, resolverOptions } = options

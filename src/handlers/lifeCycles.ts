@@ -4,7 +4,7 @@ import {
   ActionChainEventId,
   NOODLActionObject,
   NOODLComponent,
-  ResolverConsumerOptions,
+  ConsumerOptions,
 } from 'noodl-ui'
 import Logger from 'logsnap'
 
@@ -57,7 +57,7 @@ function createLifeCycles() {
      * Custom component resolver to injecting additional props only to
      * certain components
      */
-    afterResolve(component: NOODLComponent, options: ResolverConsumerOptions) {
+    afterResolve(component: NOODLComponent, options: ConsumerOptions) {
       if (component.contentType === 'password') {
         return {
           noodl: {

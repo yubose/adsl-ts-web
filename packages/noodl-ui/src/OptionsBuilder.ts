@@ -2,7 +2,7 @@ import _ from 'lodash'
 import {
   Page,
   Resolver,
-  ResolverConsumerOptions,
+  ConsumerOptions,
   ResolverContext,
   ResolverOptions,
 } from './types'
@@ -33,7 +33,7 @@ class ResolverOptionsBuilder {
     include,
   }: { type?: 'default' | 'consumer' | 'context'; include?: T } = {}):
     | ResolverOptions
-    | Pick<ResolverConsumerOptions, 'context' | 'parser' | 'showDataKey'>
+    | Pick<ConsumerOptions, 'context' | 'parser' | 'showDataKey'>
     | ResolverContext {
     const common = {
       assetsUrl: this.assetsUrl || '',

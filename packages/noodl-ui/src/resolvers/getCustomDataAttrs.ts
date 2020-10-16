@@ -38,7 +38,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
     /* -------------------------------------------------------
      ---- UI VISIBILITY RELATED
    -------------------------------------------------------- */
-    if (contentType === 'passwordHidden') {
+    if (contentType === 'passwordHidden' || contentType === 'messageHidden') {
       component.set('data-ux', contentType)
     }
     //

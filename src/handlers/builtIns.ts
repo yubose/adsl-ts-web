@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import { Draft } from 'immer'
 import {
-  ActionChainActionCallback,
   ActionChainActionCallbackOptions,
   getByDataUX,
   getDataValues,
@@ -13,28 +12,12 @@ import { INOODLUiDOM } from 'noodl-ui-dom'
 import Page from 'Page'
 import Logger from 'logsnap'
 import validate from 'utils/validate'
+import { toggleVisibility } from 'utils/dom'
+import { BuiltInActions } from 'app/types'
+import { NOODLBuiltInCheckFieldObject } from 'app/types/libExtensionTypes'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
-
-export type BuiltInFuncName =
-  | 'checkUsernamePassword'
-  | 'checkVerificationCode'
-  | 'enterVerificationCode'
-  | 'goBack'
-  | 'goto'
-  | 'lockApplication'
-  | 'logOutOfApplication'
-  | 'logout'
-  | 'redraw'
-  | 'signIn'
-  | 'signUp'
-  | 'signout'
-  | 'toggleCameraOnOff'
-  | 'toggleMicrophoneOnOff'
-  | 'UploadDocuments'
-  | 'UploadFile'
-  | 'UploadPhoto'
 
 const createBuiltInActions = function ({
   noodluidom,
@@ -43,11 +26,17 @@ const createBuiltInActions = function ({
   noodluidom: INOODLUiDOM
   page: Page
 }) {
-  // @ts-expect-error
-  const builtInActions: Record<
-    BuiltInFuncName,
-    ActionChainActionCallback<NOODLBuiltInObject>
-  > = {}
+  const builtInActions: BuiltInActions = {}
+
+  builtInActions.checkField = (action) => {
+    const { contentType } = action as NOODLBuiltInCheckFieldObject
+    const node = getByDataUX(contentType)
+    if (node) {
+      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) =>
+        isHidden ? 'visible' : 'hidden',
+      )
+    }
+  }
 
   // Called on signin + signup
   builtInActions.checkVerificationCode = async (action) => {}

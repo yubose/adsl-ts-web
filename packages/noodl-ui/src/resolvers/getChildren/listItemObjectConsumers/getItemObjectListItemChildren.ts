@@ -3,11 +3,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import Component from '../../../Component'
-import {
-  IComponent,
-  ResolverOptions,
-  ResolverConsumerOptions,
-} from '../../../types'
+import { IComponent, ResolverOptions, ConsumerOptions } from '../../../types'
 
 const log = Logger.create('getIteratorVarListItemChildren')
 
@@ -17,7 +13,7 @@ const log = Logger.create('getIteratorVarListItemChildren')
  */
 function getIteratorVarListItemChildren(
   component: IComponent,
-  options: ResolverConsumerOptions & { resolverOptions: ResolverOptions },
+  options: ConsumerOptions & { resolverOptions: ResolverOptions },
 ) {
   const { getList, getListItem, showDataKey } = options
   const {

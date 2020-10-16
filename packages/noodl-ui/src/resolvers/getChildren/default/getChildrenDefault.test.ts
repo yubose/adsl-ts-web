@@ -2,16 +2,12 @@ import { expect } from 'chai'
 import _ from 'lodash'
 import getChildrenDefault from './getChildrenDefault'
 import Component from '../../../Component'
-import {
-  IComponent,
-  ResolverOptions,
-  ResolverConsumerOptions,
-} from '../../../types'
+import { IComponent, ResolverOptions, ConsumerOptions } from '../../../types'
 import { ResolverTest, makeResolverTest } from '../../../utils/test-utils'
 
 describe('getChildrenDefault', () => {
   let component: IComponent
-  let resolverOptions: ResolverConsumerOptions & {
+  let resolverOptions: ConsumerOptions & {
     resolverOptions: ResolverOptions
   }
   let resolve: ResolverTest

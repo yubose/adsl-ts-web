@@ -23,7 +23,7 @@ export interface INOODLUi {
   on(eventName: string, cb: (...args: any[]) => any, cb2?: any): this
   off(eventName: string, cb: (...args: any[]) => any): this
   getContext(): ResolverContext
-  getConsumerOptions(include?: { [key: string]: any }): ResolverConsumerOptions
+  getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
   getLists(): INOODLUiState['lists']
   getList(component: string | IComponent): any[] | null
   getListItem(component: IComponent): any
@@ -128,7 +128,7 @@ export interface IComponent {
 
 export interface IResolver {
   setResolver(resolver: ResolverFn): this
-  resolve(component: IComponent, options: ResolverConsumerOptions): this
+  resolve(component: IComponent, options: ConsumerOptions): this
 }
 
 export type ComponentType =
@@ -452,11 +452,11 @@ export interface ActionChainActionCallbackOptions<T extends IComponent = any>
     reason?: string | string[],
   ): Promise<IteratorYieldResult<any> | IteratorReturnResult<any> | undefined>
   component: T
-  context: ResolverConsumerOptions['context']
+  context: ConsumerOptions['context']
   dataValues?: Record<string, any>
   event?: Event
   error?: Error
-  parser: ResolverConsumerOptions['parser']
+  parser: ConsumerOptions['parser']
   snapshot: ActionChainSnapshot<any[]>
   trigger?: NOODLActionTriggerType
 }
@@ -469,7 +469,7 @@ export interface BuiltInActions {
 }
 
 export interface LifeCycleListener<T = any> {
-  (component: T, options: ResolverConsumerOptions):
+  (component: T, options: ConsumerOptions):
     | Promise<'abort' | undefined | void>
     | 'abort'
     | undefined
@@ -602,7 +602,7 @@ export interface ResolveComponent<T = any> {
 
 export type ResolverFn = ((
   component: IComponent,
-  resolverConsumerOptions: ResolverConsumerOptions,
+  resolverConsumerOptions: ConsumerOptions,
 ) => void) & {
   getChildren?: Function
 }
@@ -615,11 +615,10 @@ export interface ResolverOptions
   resolveComponent: ResolveComponent
 }
 
-export interface ResolverConsumerOptions
+export interface ConsumerOptions
   extends INOODLUiStateHelpers,
     Pick<
-      ComponentResolver,
-      | 'consume'
+      INOODLUi,
       | 'createActionChain'
       | 'createSrc'
       | 'getNode'

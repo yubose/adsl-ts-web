@@ -1,7 +1,7 @@
 import _ from 'lodash'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import { Styles } from 'app/types'
 import { forEachEntries } from './common'
-import NOODLDOMElement from 'components/NOODLElement'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -188,3 +188,25 @@ export const setId = setAttr('id')
 export const setPlaceholder = setAttr('placeholder')
 export const setSrc = setAttr('src')
 export const setVideoFormat = setAttr('type')
+
+/**
+ * Toggles the visibility state of a DOM node. If a condition func is passed,
+ * it will be called and passed an object with a "isHidden" prop that reveals its
+ * current visibility state. The callback must return 'visible' or 'hidden' that
+ * will be used as the new visibility state. The return
+ * @param { HTMLElement } node - DOM node
+ * @param { function? } cond - Function returning 'visible' or 'hidden'
+ */
+export function toggleVisibility(
+  node: NOODLDOMElement,
+  cond?: (arg: { isHidden: boolean }) => 'visible' | 'hidden',
+) {
+  if (node?.style) {
+    const isHidden = node.style.visibility === 'hidden'
+    if (_.isFunction(cond)) {
+      node.style['visibility'] = cond({ isHidden })
+    } else {
+      node.style['visibility'] = isHidden ? 'visible' : 'hidden'
+    }
+  }
+}
