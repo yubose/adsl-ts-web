@@ -298,6 +298,7 @@ class Page {
       // plain text to reduce breaches into injection attacks
       this.rootNode.textContent = ''
       _.forEach(components, (component) => {
+        console.log(component)
         noodluidom.parse(component, this.rootNode)
       })
     } else {
