@@ -13,6 +13,7 @@ import {
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import * as T from './types'
+//
 
 const log = Logger.create('noodl-ui')
 
@@ -489,7 +490,7 @@ class NOODL implements T.INOODLUi {
     let src = ''
     if (path && _.isString(path)) {
       if (path && _.isString(path)) {
-        if (path.startsWith('http')) {
+        if (/^(http|blob)/i.test(path)) {
           src = path
         } else if (path.startsWith('~/')) {
           // Should be handled by an SDK

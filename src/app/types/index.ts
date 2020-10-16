@@ -9,6 +9,7 @@ export type BuiltInFuncName =
   | 'checkField'
   | 'checkUsernamePassword'
   | 'checkVerificationCode'
+  | 'cleanLocalStorage'
   | 'enterVerificationCode'
   | 'goBack'
   | 'goto'

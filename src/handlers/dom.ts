@@ -89,6 +89,12 @@ noodluidom.on('all', function onCreateNode(node, component) {
       if (eventName) {
         // TODO: Test this
         const eventFn = async (...args: any[]) => {
+          log.func('on all --> eventFn')
+          log.grey(`User action invoked handler`, {
+            props,
+            eventName,
+            [key]: value,
+          })
           await value(...args)
           node.removeEventListener(eventName, eventFn)
           node.addEventListener(eventName, eventFn)
