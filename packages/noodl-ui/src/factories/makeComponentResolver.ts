@@ -357,14 +357,12 @@ function makeComponentResolver({
     createSrc(path) {
       let src = ''
       if (path && _.isString(path)) {
-        if (path && _.isString(path)) {
-          if (path.startsWith('http')) {
-            src = path
-          } else if (path.startsWith('~/')) {
-            // Should be handled by an SDK
-          } else {
-            src = o.getAssetsUrl() + path
-          }
+        if (/^(http|blob)/i.test(path)) {
+          src = path
+        } else if (path.startsWith('~/')) {
+          // Should be handled by an SDK
+        } else {
+          src = o.getAssetsUrl() + path
         }
       }
       return src
