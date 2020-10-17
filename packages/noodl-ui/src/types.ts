@@ -14,7 +14,7 @@ export interface INOODLUi {
   page: Page
   parser: RootsParser
   root: { [key: string]: any }
-  addListItem<ListItem = any>(component: IComponent, listItem: ListItem): this
+  addListItem(parent: IComponent, component: IComponent): this
   init(opts: { log?: boolean; viewport?: Viewport }): this
   createActionChain(
     actions: NOODLActionObject[],
@@ -24,8 +24,8 @@ export interface INOODLUi {
   off(eventName: string, cb: (...args: any[]) => any): this
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
-  getLists(): INOODLUiState['lists']
-  getList(component: string | IComponent): any[] | null
+  getLists(): any[]
+  getList(component: string | IComponent): Map<IComponent, IComponent>
   getListItem(component: IComponent): any
   getNode(component: IComponent | string): IComponent | null
   getNodes(): IComponent[]
@@ -39,7 +39,7 @@ export interface INOODLUi {
     components: ComponentType | ComponentType[] | Page['object'],
   ): IComponent | IComponent[] | null
   setAssetsUrl(assetsUrl: string): this
-  setList(component: IComponent): this
+  setList(component: IComponent, list: any): this
   setNode(component: IComponent): this
   setPage(page: string): this
   setRoot(key: string | { [key: string]: any }, value?: any): this
@@ -50,7 +50,7 @@ export interface INOODLUi {
 
 export interface INOODLUiState {
   nodes: Map<IComponent, IComponent>
-  lists: Map<IComponent, any[]>
+  lists: Map<IComponent, Map<IComponent, any>>
   showDataKey: boolean
 }
 

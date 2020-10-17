@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { expect } from 'chai'
-import { NOODLComponent } from '../types'
+import { IComponent, NOODLComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
 import Component from '../Component'
 import Resolver from '../Resolver'
@@ -8,12 +8,10 @@ import Viewport from '../Viewport'
 import { mock } from './mockData'
 
 let noodlComponent: NOODLComponent
-let component: Component
-let listObject: any[]
+let component: IComponent
 
 beforeEach(() => {
-  listObject = [...mock.listObject]
-  noodlComponent = { ...mock.raw.getNOODLView() }
+  noodlComponent = mock.raw.getNOODLView() as NOODLComponent
   component = new Component(noodlComponent)
   // component.createChild({
   //   type: 'view',
@@ -85,28 +83,21 @@ describe('noodl-ui', () => {
     expect(noodlui.viewport).to.equal(viewport)
   })
 
-  xit('should set the consumer data', () => {
-    const resolvedComponent = noodlui.resolveComponents({
-      type: 'list',
-      listObject,
-      children: [{ type: 'listItem', itemObject: '' }],
-    })
-    console.info(noodlui.getState().lists)
-    console.info(resolvedComponent.id)
-    console.info(resolvedComponent.get('data-listid'))
-    console.info(resolvedComponent.get('listId'))
-    const listItem = noodlui.getListItem(resolvedComponent.get('listId'))
-    console.info(listItem)
-    // expect()
-  })
-
   xit('should set the component node', () => {
     //
   })
 
   describe('working with list data', () => {
     it('should retrieve the list item if passing in the list item component instance', () => {
-      console.info(component.children())
+      const component = new Component({
+        type: 'list',
+        listObject: mock.other.getNOODLListObject(),
+        children: [mock.raw.getNOODLListItem()],
+      })
+      noodlui.resolveComponents(component)
+      const listItemComponent = component.child()
+      const list = noodlui.getListItem(listItemComponent)
+      console.info(list)
     })
 
     xit('should retrieve the list item if passing in any nested child instance under the list item component instance', () => {

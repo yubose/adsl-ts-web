@@ -1,10 +1,12 @@
 import { NOODLComponent, ProxiedComponent } from '../types'
 
 export const mock = (function () {
-  const listObject: any[] = [
-    { fruits: ['apple'], name: 'michael' },
-    { fruits: ['banana'], name: 'harry' },
-  ]
+  function _getNOODLListObject() {
+    return [
+      { fruits: ['apple'], name: 'michael' },
+      { fruits: ['banana'], name: 'harry' },
+    ] as any[]
+  }
 
   const raw = (function () {
     const o = {
@@ -61,20 +63,33 @@ export const mock = (function () {
           style: { color: '0x000000ff' },
         }
       },
-      getNOODLList() {
+      getNOODLList({
+        listObject = _getNOODLListObject(),
+        iteratorVar = 'itemObject',
+        ...rest
+      }: {
+        listObject?: any
+        iteratorVar?: string
+        [key: string]: any
+      } = {}) {
         return {
           type: 'list',
           contentType: 'listObject',
           listObject,
-          iteratorVar: 'itemObject',
+          iteratorVar,
           style: { width: '0.2' },
           children: [o.getNOODLListItem()],
+          ...rest,
         }
       },
-      getNOODLListItem() {
+      getNOODLListItem({
+        iteratorVar = 'itemObject',
+        data = '',
+        ...rest
+      }: { data?: any; iteratorVar?: string } = {}) {
         return {
           type: 'listItem',
-          itemObject: '',
+          [iteratorVar]: data,
           style: { left: '0', border: { style: '1' } },
           children: [
             o.getNOODLLabel1(),
@@ -82,6 +97,7 @@ export const mock = (function () {
             o.getNOODLLabel3(),
             o.getNOODLButton(),
           ],
+          ...rest,
         } as NOODLComponent
       },
       getNOODLView() {
@@ -93,7 +109,7 @@ export const mock = (function () {
         }
       },
     }
-    return o as Record<string, () => NOODLComponent>
+    return o
   })()
 
   const lvl2parsed = {}
@@ -153,6 +169,8 @@ export const mock = (function () {
     raw,
     lvl2parsed,
     proxied,
-    listObject,
+    other: {
+      getNOODLListObject: _getNOODLListObject,
+    },
   }
 })()

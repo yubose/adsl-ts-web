@@ -244,29 +244,16 @@ class NOODL implements T.INOODLUi {
     } as T.ConsumerOptions
   }
 
-  getNodes() {
-    return Array.from(this.#state.nodes.values())
-  }
-
-  getNode(component: T.IComponent | string) {
-    let result: T.IComponent | undefined
-    if (component instanceof Component) {
-      result = this.#state.nodes.get(component)
-    } else if (_.isString(component)) {
-      const nodes = Array.from(this.#state.nodes.values())
-      const numNodes = nodes.length
-      for (let index = 0; index < numNodes; index++) {
-        const node = nodes[index]
-        if (node.id === component) {
-          result = node
-          break
-        }
-      }
+  getLists({ asData }: { asData?: boolean } = {}) {
+    if (asData) {
+      //
     }
-    return result || null
+    const results = [] as any[]
+    this.#state.lists.forEach((list) => results.push(list))
+    return results
   }
 
-  getList(listId: T.IComponent | string) {
+  getList(listId: T.IComponent | string): Map<T.IComponent, T.IComponent> {
     let result: any[] | undefined
     if (listId instanceof Component) {
       //
@@ -276,18 +263,41 @@ class NOODL implements T.INOODLUi {
     return result || null
   }
 
-  getListItem(
-    listId: string | T.IComponent,
-    index: number,
-    defaultValue?: any,
-  ) {
-    if (listId) {
-      if (listId instanceof Component) {
-      } else if (_.isString(listId)) {
+  /**
+   * Retrieves the list item from state. If a component id is passed in it will
+   * attempt to retrieve the list item by comparing it to an existing component instance's id
+   * that was set previously in the state.
+   * @param { IComponent | string } component - Component or component id
+   */
+  getListItem(component: string | T.IComponent) {
+    const list = this.#state.lists.get(
+      _.isString(component) ? this.getNode(component) : component,
+    )
+    if (list) {
+    }
+  }
+
+  getNodes() {
+    return Array.from(this.#state.nodes.values())
+  }
+
+  getNode(component: T.IComponent | string) {
+    let result: T.IComponent | undefined
+    if (component instanceof Component) {
+      result = this.#state.nodes.get(component)
+    } else if (_.isString(component)) {
+      const componentId = component
+      const nodes = Array.from(this.#state.nodes.values())
+      const numNodes = nodes.length
+      for (let index = 0; index < numNodes; index++) {
+        const node = nodes[index]
+        if (node.id === componentId) {
+          result = node
+          break
+        }
       }
     }
-    if (!listId || _.isUndefined(index)) return defaultValue
-    return this.#state.lists[listId]?.[index] || defaultValue
+    return result || null
   }
 
   getState() {
@@ -296,7 +306,7 @@ class NOODL implements T.INOODLUi {
 
   getStateGetters() {
     return {
-      consume: this.consume.bind(this),
+      getLists: this.getLists.bind(this),
       getList: this.getList.bind(this),
       getListItem: this.getListItem.bind(this),
       getState: this.getState.bind(this),
@@ -307,7 +317,6 @@ class NOODL implements T.INOODLUi {
 
   getStateSetters() {
     return {
-      setConsumerData: this.setConsumerData.bind(this),
       setNode: this.setNode.bind(this),
       setList: this.setList.bind(this),
     }
@@ -359,10 +368,8 @@ class NOODL implements T.INOODLUi {
 
     component['id'] = id || _.uniqueId()
 
-    const type = component.get('type')
-    const consumerOptions = this.getConsumerOptions({
-      component,
-    })
+    const { type } = component
+    const consumerOptions = this.getConsumerOptions({ component })
 
     if (!type) {
       log.func('#resolve')
@@ -444,8 +451,20 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  setList(listId, data) {
-    this.#state.lists[listId] = data
+  setList(component: T.IComponent, list: any[]) {
+    this.#state.lists.set(component, list)
+    return this
+  }
+
+  addListItem(parent: T.IComponent, component: T.IComponent) {
+    const list = this.getList(parent)
+    list.set(component, component.get('listItem'))
+    return this
+  }
+
+  deleteListItem(parent: T.IComponent, component: T.IComponent) {
+    const list = this.getList(parent)
+    list.delete(component)
     return this
   }
 

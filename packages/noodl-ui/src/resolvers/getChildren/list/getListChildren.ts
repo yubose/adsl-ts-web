@@ -26,20 +26,20 @@ const getListChildren: ResolverFn = (
     resolveComponent,
     getList,
     getListItem,
-    setConsumerData,
     setList,
     resolverOptions,
   } = options
 
-  const listObject = component.get('listObject')
-
+  const { listObject, iteratorVar = '' } = component.get([
+    'listObject',
+    'iteratorVar',
+  ])
   // Ensure it is iterable
   let listObjects: any[] = _.isArray(listObject) ? listObject : [listObject]
   // (Children will be able to retrieve data by referring to this list data using the
   // component id as "listId"
   let listId: string = component.id || ''
   // component.iteratorVar is used to attach it as the data item for list item components
-  let iteratorVar = component.get('iteratorVar') || ''
   let rawBlueprint: any
   let parsedBlueprint: any
 
@@ -52,7 +52,7 @@ const getListChildren: ResolverFn = (
     listObjects = _.filter(page?.listData?.participants || [], filterer)
   }
 
-  setList(listId, listObjects)
+  setList(component, listObjects)
 
   rawBlueprint = getListItemBlueprint({
     component,
@@ -97,7 +97,7 @@ const getListChildren: ResolverFn = (
             snapshot: component.snapshot(),
             listId,
             listItems: getList(listId),
-            listItem: getListItem(listId, listItemIndex),
+            listItem: getListItem(component),
             listItemIndex,
           },
         )
@@ -109,8 +109,6 @@ const getListChildren: ResolverFn = (
         listItemIndex,
         mergingProps,
       )
-
-      setConsumerData(listItemComponent?.id || '', listItem)
 
       const result = resolveComponent?.(
         listItemComponent,
@@ -128,7 +126,7 @@ const getListChildren: ResolverFn = (
           snapshot: component.snapshot(),
           listId,
           listData: getList(listId),
-          listItem: getListItem(listId, listItemIndex),
+          listItem: getListItem(component),
           listItemIndex,
         },
       )

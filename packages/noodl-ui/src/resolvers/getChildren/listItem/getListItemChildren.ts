@@ -21,7 +21,7 @@ const getListItemChildren: ResolverFn = (
   component: IComponent,
   options: ConsumerOptions & { resolverOptions: ResolverOptions },
 ) => {
-  const { consume, resolveComponent, resolverOptions } = options
+  const { getListItem, resolveComponent, resolverOptions } = options
   const { children, iteratorVar, listId, listItemIndex = 0 } = component.get([
     'children',
     'parentId',
@@ -31,7 +31,7 @@ const getListItemChildren: ResolverFn = (
     'listItemIndex',
   ])
   const parent = component.parent()
-  const listItem = consume(component)
+  const listItem = getListItem(component)
 
   let noodlChildComponent: ProxiedComponent
 
