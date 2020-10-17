@@ -24,6 +24,10 @@ class ListComponent extends Component {
 
     return this
   }
+
+  getList() {
+    return this.get('list')
+  }
 }
 
 export default ListComponent
