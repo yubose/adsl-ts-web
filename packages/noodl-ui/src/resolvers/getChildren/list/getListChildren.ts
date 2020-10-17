@@ -36,9 +36,6 @@ const getListChildren: ResolverFn = (
   ])
   // Ensure it is iterable
   let listObjects: any[] = _.isArray(listObject) ? listObject : [listObject]
-  // (Children will be able to retrieve data by referring to this list data using the
-  // component id as "listId"
-  let listId: string = component.id || ''
   // component.iteratorVar is used to attach it as the data item for list item components
   let rawBlueprint: any
   let parsedBlueprint: any
