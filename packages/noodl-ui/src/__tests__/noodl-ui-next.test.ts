@@ -47,9 +47,31 @@ afterEach(() => {
 })
 
 describe('noodl-ui', () => {
-  it('should flip initialized to true when running init', () => {
-    noodlui.init()
-    expect(noodlui.initialized).to.be.true
+  describe('implementation details', () => {
+    it('should flip initialized to true when running init', () => {
+      noodlui.init()
+      expect(noodlui.initialized).to.be.true
+    })
+
+    describe('lists', () => {
+      it('should add the list using the component instance as the key', () => {
+        const list = mock.other.getNOODLListObject()
+        noodlui.setList(component, list)
+        expect(noodlui.getState().lists.has(component)).to.be.true
+      })
+
+      it('should receive the list data using the component instance', () => {
+        const list = mock.other.getNOODLListObject()
+        noodlui.setList(component, list)
+        expect(noodlui.getList(component)).to.equal(list)
+      })
+
+      it('should receive the list data using the component id', () => {
+        const list = mock.other.getNOODLListObject()
+        noodlui.setList(component, list)
+        expect(noodlui.getList(component)).to.equal(list)
+      })
+    })
   })
 
   it('should set the assets url', () => {
@@ -87,7 +109,7 @@ describe('noodl-ui', () => {
     //
   })
 
-  describe('working with list data', () => {
+  xdescribe('working with list data', () => {
     it('should retrieve the list item if passing in the list item component instance', () => {
       const component = new Component({
         type: 'list',

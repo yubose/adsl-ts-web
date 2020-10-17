@@ -63,6 +63,8 @@ export type INOODLUiStateGetters = Pick<
 
 export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode' | 'setList'>
 
+export type IComponentConstructor = new (component: ComponentType) => IComponent
+
 export interface IComponent {
   action: NOODLActionObject
   id: string

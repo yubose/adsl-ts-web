@@ -253,11 +253,12 @@ class NOODL implements T.INOODLUi {
     return results
   }
 
-  getList(listId: T.IComponent | string): Map<T.IComponent, T.IComponent> {
+  getList(component: T.IComponent | string): any[] | null {
     let result: any[] | undefined
-    if (listId instanceof Component) {
-      //
-    } else if (_.isString(listId)) {
+    if (component instanceof Component) {
+      const node = this.getNode(component)
+      if (node) return node.get('data-listdata')
+    } else if (_.isString(component)) {
       //
     }
     return result || null

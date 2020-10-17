@@ -78,7 +78,7 @@ export const mock = (function () {
           listObject,
           iteratorVar,
           style: { width: '0.2' },
-          children: [o.getNOODLListItem()],
+          children: [o.getNOODLListItem({ iteratorVar })],
           ...rest,
         }
       },
