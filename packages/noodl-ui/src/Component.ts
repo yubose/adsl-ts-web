@@ -44,7 +44,8 @@ class Component<T extends ProxiedComponent = any> implements IComponent {
   ) {
     this['raw'] = component instanceof Component ? component.raw : component
     this['type'] = component.type
-    this['keys'] = _.keys(component)
+    this['keys'] =
+      component instanceof Component ? component.keys : _.keys(component)
     this['untouched'] = [...this.keys]
     this['unhandled'] = [...this.keys]
 
