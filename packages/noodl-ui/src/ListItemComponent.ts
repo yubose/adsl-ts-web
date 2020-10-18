@@ -7,7 +7,7 @@ import {
   NOODLComponentType,
 } from './types'
 
-class ListComponent extends Component {
+class ListItemComponent extends Component {
   #list: any[]
 
   constructor(...args: ConstructorParameters<IComponentConstructor>) {
@@ -17,11 +17,12 @@ class ListComponent extends Component {
 
   addChild(child: ComponentType | NOODLComponentType) {
     let childComponent: IComponent
+    let listItem: any
     if (_.isString(child)) {
+      childComponent = super.addChild(child)
       if (child === 'listItem') {
         //
       }
-      childComponent = super.addChild(child)
     } else {
       if (child instanceof Component) {
         //
@@ -41,10 +42,10 @@ class ListComponent extends Component {
   }
 
   set(...args: Parameters<Component['set']>) {
-    if (args[0] === 'listObject') this.#list = args[1]
+    if (args[0] === 'listObject') this.#setData(args[1])
     super.set(...args)
     return this
   }
 }
 
-export default ListComponent
+export default ListItemComponent

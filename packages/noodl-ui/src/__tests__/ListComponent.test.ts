@@ -1,15 +1,33 @@
 import _ from 'lodash'
+import { expect } from 'chai'
 import { mock } from './mockData'
 import ListComponent from '../ListComponent'
-import Component from '../Component'
 
 describe('ListComponent', () => {
-  it('should return the data object', () => {
-    const listComponent = new ListComponent(
-      mock.raw.getNOODLList({
-        iteratorVar: 'colorful',
-      }),
-    )
-    // console.info(listComponent)
+  it('should return the list data', () => {
+    const noodlListComponent = mock.raw.getNOODLList({
+      iteratorVar: 'colorful',
+    })
+    const listComponent = new ListComponent(noodlListComponent)
+    expect(listComponent.data()).to.equal(noodlListComponent.listObject)
+  })
+
+  it('should return the iteratorVar', () => {
+    const noodlListComponent = mock.raw.getNOODLList({
+      iteratorVar: 'colorful',
+    })
+    const listComponent = new ListComponent(noodlListComponent)
+    expect(listComponent.iteratorVar()).to.equal(noodlListComponent.iteratorVar)
+  })
+
+  it('should update the list data in the state when set is setting a new listObject', () => {
+    const newListData = [{ movies: ['rush hour 3', 'space jam'] }]
+    const noodlListComponent = mock.raw.getNOODLList({
+      iteratorVar: 'colorful',
+    })
+    const listComponent = new ListComponent(noodlListComponent)
+    expect(listComponent.data()).not.to.equal(newListData)
+    listComponent.set('listObject', newListData)
+    expect(listComponent.data()).to.equal(newListData)
   })
 })

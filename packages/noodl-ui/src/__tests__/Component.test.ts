@@ -166,12 +166,25 @@ describe('Component', () => {
       expect(component.child()).to.equal(child)
     })
 
-    xit('should avoid adding a duplicate child if the instance is already an existing child', () => {
-      //
+    it('should remove the child by instance', () => {
+      const component = new Component({ type: 'label' })
+      const child = component.addChild('list')
+      component.addChild(child)
+      expect(component.child()).to.equal(child)
+      component.removeChild(child)
+      expect(component.child()).to.not.equal(child)
     })
 
-    xit('should remove the child', () => {
-      //
+    it('should remove the child by index', () => {
+      const component = new Component({ type: 'label' })
+      const child = component.addChild('view')
+      const child2 = component.addChild('view')
+      component.addChild('button')
+      const children = component.children()
+      const index = 1
+      expect(children[index]).to.equal(child2)
+      component.removeChild(index)
+      expect(component.children().includes(child2)).to.be.false
     })
 
     xit('should swap the positioning of the two children', () => {

@@ -69,7 +69,7 @@ export interface IComponent {
   action: NOODLActionObject
   id: string
   length: number
-  original: NOODLComponent | NOODLComponentProps | ProxiedComponent
+  original: NOODLComponent | NOODLComponentProps | ProxiedComponent | String
   status: 'drafting' | 'idle' | 'idle/resolved'
   stylesTouched: string[]
   stylesUntouched: string[]
@@ -77,6 +77,9 @@ export interface IComponent {
   touched: string[]
   untouched: string[]
   type: NOODLComponentType
+  addChild(noodlType: NOODLComponentType): IComponent
+  addChild(child: ComponentType): IComponent
+  addChild(child: NOODLComponentType | ComponentType): IComponent
   assign(
     key: string | { [key: string]: any },
     value?: { [key: string]: any },

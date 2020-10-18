@@ -23,7 +23,7 @@ class Component implements IComponent {
   #component:
     | WritableDraft<ProxiedComponent & NOODLComponentProps>
     | (ProxiedComponent & NOODLComponentProps)
-  #children?: IComponent[]
+  #children: IComponent[] = []
   #id: string = ''
   #noodlType: NOODLComponentType
   #parent: IComponent | null = null
@@ -31,7 +31,7 @@ class Component implements IComponent {
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
   action: NOODLActionObject = {} as NOODLActionObject
-  original: NOODLComponent | ProxiedComponent | NOODLComponentProps
+  original: NOODLComponent | ProxiedComponent | NOODLComponentProps | string
   resolved: boolean = false
   keys: string[]
   handled: string[] = []
@@ -486,6 +486,19 @@ class Component implements IComponent {
     return JSON.stringify(this.toJS())
   }
 
+  parent() {
+    return this.#parent
+  }
+
+  hasParent() {
+    return !!this.#parent && this.#parent instanceof Component
+  }
+
+  setParent(parent: IComponent | null) {
+    this.#parent = parent
+    return this
+  }
+
   /**
    * Returns a child at the index. Returns null if nothing was found.
    * If an index is not passed in it will default to returning the
@@ -501,10 +514,37 @@ class Component implements IComponent {
 
   addChild(noodlType: NOODLComponentType): IComponent
   addChild(child: ComponentType): IComponent
-  addChild(child: NOODLComponentType | ComponentType): IComponent
+  addChild(child: NOODLComponentType | ComponentType): IComponent {
+    let childComponent: IComponent
+    if (child instanceof Component) {
+      childComponent = child
+    } else if (_.isString(child)) {
+      childComponent = new Component({ type: child })
+    } else {
+      childComponent = new Component(child)
+    }
+    childComponent.setParent(this)
+    this.#children?.push(childComponent)
+    return childComponent
+  }
 
-  children() {
-    return this.#children || []
+  /**
+   * Removes a child from its children. You can pass in either the instance
+   * directly, the index leading to the child, or leave the args empty to
+   * remove the first child by default
+   * @param { Component | number | undefined } child - Child or index
+   */
+  removeChild(child?: IComponent | number) {
+    if (child === undefined) {
+      this.#children.shift()
+    } else if (_.isNumber(child)) {
+      this.#children.splice(child, 1)
+    } else {
+      if (this.#children.includes(child)) {
+        this.#children = _.filter(this.#children, (c) => c !== child)
+      }
+    }
+    return this
   }
 
   /**
@@ -536,35 +576,8 @@ class Component implements IComponent {
     return child
   }
 
-  /**
-   * Removes a child from its children. You can pass in either the instance
-   * directly, the index leading to the child, or leave the args empty to
-   * remove the first child by default
-   * @param { Component | number | undefined } child - Child or index
-   */
-  removeChild(child?: IComponent | number) {
-    if (child === undefined) {
-      this.#children?.shift()
-    } else if (_.isNumber(child)) {
-      this.#children?.splice(child, 1)
-    } else {
-      const index = _.findIndex(this.#children, (c) => c === child)
-      if (index !== -1) this.#children?.splice(index, 1)
-    }
-    return this
-  }
-
-  parent() {
-    return this.#parent
-  }
-
-  hasParent() {
-    return !!this.#parent && this.#parent instanceof Component
-  }
-
-  setParent(parent: IComponent | null) {
-    this.#parent = parent
-    return this
+  children() {
+    return this.#children || []
   }
 
   get length() {
