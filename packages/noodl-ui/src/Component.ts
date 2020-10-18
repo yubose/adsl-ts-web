@@ -10,6 +10,7 @@ import {
   NOODLActionObject,
   NOODLComponent,
   NOODLComponentProps,
+  NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
 } from './types'
@@ -24,6 +25,7 @@ class Component implements IComponent {
     | (ProxiedComponent & NOODLComponentProps)
   #children?: IComponent[]
   #id: string = ''
+  #noodlType: NOODLComponentType
   #parent: IComponent | null = null
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
@@ -43,11 +45,13 @@ class Component implements IComponent {
     component: ComponentType,
     { parent }: { parent?: ComponentType } = {},
   ) {
+    const keys =
+      component instanceof Component ? component.keys : _.keys(component)
     this['original'] =
       component instanceof Component ? component.original : component
-    this['keys'] = _.keys(component)
-    this['untouched'] = [...this.keys]
-    this['unhandled'] = [...this.keys]
+    this['keys'] = keys
+    this['untouched'] = keys.slice()
+    this['unhandled'] = keys.slice()
 
     if (parent) {
       this.#parent = (parent instanceof Component
@@ -61,16 +65,15 @@ class Component implements IComponent {
       ProxiedComponent & NOODLComponentProps
     >
 
-    this.id = component?.id || _.uniqueId()
-    this.set('noodlType', component.type)
+    this['id'] = component.id || _.uniqueId()
+    this['noodlType'] = component.type
 
-    if (!this.#component.style) {
-      this.#component['style'] = {}
-    }
+    if (!this.#component.style) this.#component['style'] = {}
 
     if (_.isPlainObject(component.style)) {
-      this.#stylesUnhandled = _.keys(component.style)
-      this['stylesUntouched'] = _.keys(component.style)
+      const styleKeys = _.keys(component.style)
+      this.#stylesUnhandled = styleKeys
+      this['stylesUntouched'] = styleKeys.slice()
     }
 
     // Immer proxies these actions objects. Since we need this to be
@@ -82,32 +85,6 @@ class Component implements IComponent {
           : component[eventType]
       }
     })
-
-    // Instantiate children to the Component instance as well
-    if (component.children) {
-      let childAsInst: IComponent | undefined
-
-      // const toComponent = (child: any): IComponent | undefined => {
-      //   if (_.isString(child) || _.isNumber(child)) {
-      //     return createNOODLComponent('label', { text: child })
-      //   } else if (!_.isFunction(child) && child.type) {
-      //     return createNOODLComponent(
-      //       child.type as NOODLComponentType,
-      //       child as NOODLComponent,
-      //     )
-      //   }
-      // }
-      // if (_.isArray(component.children)) {
-      //   _.forEach(component.children, (child) => {
-      //     if (child instanceof Component) childAsInst = child
-      //     else childAsInst = toComponent(child)
-      //     if (childAsInst) this.createChild(childAsInst)
-      //   })
-      // } else {
-      //   childAsInst = toComponent(component.children)
-      //   if (childAsInst) this.createChild(childAsInst)
-      // }
-    }
   }
 
   /**
@@ -216,6 +193,14 @@ class Component implements IComponent {
 
   get type() {
     return this.original.type
+  }
+
+  get noodlType() {
+    return this.#noodlType
+  }
+
+  set noodlType(value: NOODLComponentType) {
+    this.#noodlType = value
   }
 
   /** Returns the most recent styles at the time of this call */
@@ -501,10 +486,6 @@ class Component implements IComponent {
     return JSON.stringify(this.toJS())
   }
 
-  children() {
-    return this.#children || []
-  }
-
   /**
    * Returns a child at the index. Returns null if nothing was found.
    * If an index is not passed in it will default to returning the
@@ -515,7 +496,15 @@ class Component implements IComponent {
     let child: IComponent | undefined
     if (_.isNumber(index)) child = this.#children?.[index]
     else child = this.#children?.[0]
-    return child || null
+    return child || undefined
+  }
+
+  addChild(noodlType: NOODLComponentType): IComponent
+  addChild(child: ComponentType): IComponent
+  addChild(child: NOODLComponentType | ComponentType): IComponent
+
+  children() {
+    return this.#children || []
   }
 
   /**
@@ -536,9 +525,11 @@ class Component implements IComponent {
     if (props instanceof Component) {
       child = props as IComponent
     } else {
-      child = new Component({ ...props, custom: true, id }) as IComponent
+      child = new Component({ ...props, id }) as IComponent
     }
-    // Resync the child's id to match the parent's id
+    // Resync the child's id to match the parent's id. This can possibly be the
+    // case when we're re-rendering and choose to pass in existing component
+    // instances to shortcut into parsing
     if (id !== child.id) child['id'] = id
     child.setParent(this as IComponent)
     if (!this.#children.includes(child)) this.#children.push(child)

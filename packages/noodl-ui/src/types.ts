@@ -82,7 +82,7 @@ export interface IComponent {
     value?: { [key: string]: any },
   ): this
   assignStyles(styles: Partial<NOODLStyle>): this
-  child(index?: number): IComponent | null
+  child(index?: number): IComponent | undefined
   children(): IComponent[]
   createChild(props: ComponentType): IComponent
   done(options?: { mergeUntouched?: boolean }): this
@@ -104,6 +104,7 @@ export interface IComponent {
   isStyleTouched(styleKey: string): boolean
   isStyleHandled(key: string): boolean
   merge(key: string | { [key: string]: any }, value?: any): this
+  noodlType: NOODLComponentType
   on(eventName: IComponentEventId, cb: Function): this
   off(eventName: IComponentEventId, cb: Function): this
   parent(): IComponent | null

@@ -65,20 +65,24 @@ function makeComponentResolver({
     // they only know of the styles coming from proxiedComponent. This
     // means we have to handle them somewhere at the end as we did above
     let initialStyles: T.NOODLStyle | undefined
-    if (component.type === 'image') {
-      if (!('height' in component)) {
-        // Remove the height to maintain the aspect ratio since images are
-        // assumed to have an object-fit of 'contain'
-        initialStyles = _.omit(
-          _getInitialStyles(component.get('style')),
-          'height',
-        )
-      }
-    }
+
     if (!initialStyles) {
       initialStyles = _getInitialStyles(component.get('style'))
     }
     component.assignStyles(initialStyles as T.NOODLStyle)
+    if (component.type === 'image') {
+      if (!('height' in (component.raw.style || {}))) {
+        // Remove the height to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        component.removeStyle('height')
+      }
+
+      if (!('width' in (component.raw.style || {}))) {
+        // Remove the width to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        component.removeStyle('width')
+      }
+    }
     _setDraftNode(component)
     return component
   }

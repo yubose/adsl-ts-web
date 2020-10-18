@@ -1,363 +1,389 @@
+import _ from 'lodash'
 import { expect } from 'chai'
-import sinon from 'sinon'
-import NOODL from '../noodl-ui'
-import getElementType from '../resolvers/getElementType'
-import getTransformedAliases from '../resolvers/getTransformedAliases'
-import getReferences from '../resolvers/getReferences'
-import getAlignAttrs from '../resolvers/getAlignAttrs'
-import getBorderAttrs from '../resolvers/getBorderAttrs'
-import getColors from '../resolvers/getColors'
-import getFontAttrs from '../resolvers/getFontAttrs'
-import getPosition from '../resolvers/getPosition'
-import getSizes from '../resolvers/getSizes'
-import getStylesByElementType from '../resolvers/getStylesByElementType'
-import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
-import getChildren from '../resolvers/getChildren'
-import getCustomDataAttrs from '../resolvers/getCustomDataAttrs'
-import getEventHandlers from '../resolvers/getEventHandlers'
+import { IComponent, NOODLComponent } from '../types'
+import { noodlui } from '../utils/test-utils'
+import Component from '../Component'
+import Resolver from '../Resolver'
 import Viewport from '../Viewport'
-import { NOODLComponent, NOODLComponentProps } from '../types'
+import { mock } from './mockData'
 
-let noodl: NOODL
-let viewport: Viewport
-let page: any
-let rootNode: HTMLElement
-let components = getMockComponents()
+let noodlComponent: NOODLComponent
+let component: IComponent
 
 beforeEach(() => {
-  rootNode = document.createElement('div')
-  rootNode.id = 'root'
-  viewport = new Viewport()
-  page = {
-    name: 'InviteSuccess01',
-    object: { module: 'patient' },
-    components: [{ type: 'button', text: 'hello!' }],
-  }
-  noodl = new NOODL()
-    .init({ viewport })
-    .setRoot({ InviteSuccess01: { module: 'patient' }, components })
-    .setAssetsUrl('https://something.com/assets/')
-    .setViewport({ width: 375, height: 667 })
-    .setPage(page)
-    .setResolvers(
-      getElementType,
-      getTransformedAliases,
-      getReferences,
-      getAlignAttrs,
-      getBorderAttrs,
-      getColors,
-      getFontAttrs,
-      getPosition,
-      getSizes,
-      getStylesByElementType,
-      getTransformedStyleAliases,
-      getChildren as any,
-      getCustomDataAttrs,
-      getEventHandlers,
-    )
+  noodlComponent = mock.raw.getNOODLView() as NOODLComponent
+  component = new Component(noodlComponent)
+  // component.createChild({
+  //   type: 'view',
+  //   children: [
+  //     {
+  //       type: 'view',
+  //       children: [
+  //         {
+  //           type: 'list',
+  //           listObject,
+  //           children: [
+  //             {
+  //               type: 'listItem',
+  //               itemObject: '',
+  //               children: [
+  //                 {
+  //                   type: 'label',
+  //                   text: 'my label',
+  //                   style: { width: '0.5' },
+  //                 },
+  //               ],
+  //             },
+  //           ],
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // })
 })
 
-describe('NOODL', () => {
-  describe.skip('hasLifeCycle', () => {
+afterEach(() => {
+  noodlui.cleanup()
+})
+
+describe('noodl-ui', () => {
+  describe('implementation details', () => {
+    it('should flip initialized to true when running init', () => {
+      noodlui.init()
+      expect(noodlui.initialized).to.be.true
+    })
+
+    describe('lists', () => {
+      it('should add the list using the component instance as the key', () => {
+        const list = mock.other.getNOODLListObject()
+        noodlui.setList(component, list)
+        expect(noodlui.getState().lists.has(component)).to.be.true
+      })
+
+      it('should receive the list data using the component instance', () => {
+        const list = mock.other.getNOODLListObject()
+        noodlui.setList(component, list)
+        expect(noodlui.getList(component)).to.equal(list)
+      })
+
+      it('should receive the list data using the component id', () => {
+        const list = mock.other.getNOODLListObject()
+        noodlui.setList(component, list)
+        expect(noodlui.getList(component)).to.equal(list)
+      })
+    })
+  })
+
+  it('should set the assets url', () => {
+    const prevAssetsUrl = noodlui.assetsUrl
+    noodlui.setAssetsUrl('https://google.com')
+    expect(noodlui.assetsUrl).to.not.equal(prevAssetsUrl)
+  })
+
+  it('should set the page', () => {
+    const pageName = 'Loopa'
+    const pageObject = { module: 'paper', components: [] }
+    noodlui.setRoot(pageName, pageObject)
+    expect(noodlui.page.name).to.equal('')
+    noodlui.setPage(pageName)
+    expect(noodlui.page.name).to.equal(pageName)
+    expect(noodlui.page.object).to.equal(pageObject)
+  })
+
+  it('should set the root', () => {
+    const pageName = 'Loopa'
+    const pageObject = { module: 'paper', components: [] }
+    expect(noodlui.root).to.deep.equal({})
+    noodlui.setRoot(pageName, pageObject)
+    expect(noodlui.root).to.have.property(pageName, pageObject)
+  })
+
+  it('should set the viewport', () => {
+    const viewport = new Viewport()
+    expect(noodlui.viewport).to.not.equal(viewport)
+    noodlui.setViewport(viewport)
+    expect(noodlui.viewport).to.equal(viewport)
+  })
+
+  xit('should set the component node', () => {
     //
   })
-  describe('addLifecycleListener', () => {
-    it('should add listeners using key and value', () => {
-      const spy = sinon.spy()
-      expect(noodl.hasLifeCycle('evalObject')).to.be.false
-      noodl.addLifecycleListener('evalObject', spy)
-      expect(noodl.hasLifeCycle('evalObject')).to.be.true
+
+  xdescribe('working with list data', () => {
+    it('should retrieve the list item if passing in the list item component instance', () => {
+      const component = new Component({
+        type: 'list',
+        listObject: mock.other.getNOODLListObject(),
+        children: [mock.raw.getNOODLListItem()],
+      })
+      noodlui.resolveComponents(component)
+      const listItemComponent = component.child()
+      const list = noodlui.getListItem(listItemComponent)
+      console.info(list)
     })
 
-    it('should add listeners using an object', () => {
-      const spy = sinon.spy()
-      expect(noodl.hasLifeCycle('evalObject')).to.be.false
-      noodl.addLifecycleListener({ evalObject: spy })
-      expect(noodl.hasLifeCycle('evalObject')).to.be.true
+    xit('should retrieve the list item if passing in any nested child instance under the list item component instance', () => {
+      //
     })
 
-    it('should add listeners using a function', () => {
-      const spy = sinon.spy()
-      expect(noodl.hasLifeCycle(spy)).to.be.false
-      noodl.addLifecycleListener(spy)
-      expect(noodl.hasLifeCycle(spy)).to.be.true
+    xit('should retrieve the list item if passing in a component id that links to a component instance anywhere in the list item tree', () => {
+      //
+    })
+
+    xit('should set the component instance as the key', () => {
+      //
     })
   })
 
-  describe('hasLifecycleListener', () => {
-    it('should return true if the key exists in the top level', () => {
-      const spy = sinon.spy()
-      expect(noodl.hasLifeCycle(spy)).to.be.false
-      noodl.addLifecycleListener(spy)
-      expect(noodl.hasLifeCycle(spy)).to.be.true
+  describe('get', () => {
+    xit('should parse the data key and return the value', () => {
+      const dataKey = 'formData.password'
+      // noodlui.
     })
 
-    it(
-      'should return true if the key exists in the second level for nested ' +
-        'objects',
-      () => {
-        const spy = sinon.spy()
-        expect(noodl.hasLifeCycle('evalObject')).to.be.false
-        noodl.addLifecycleListener({
-          action: {
-            evalObject: spy,
-          },
-        })
-        expect(noodl.hasLifeCycle('evalObject')).to.be.true
-      },
-    )
-  })
-
-  it(
-    'should receive all of the resolver consumer options in options for ' +
-      'builtIn action callbacks',
-    async () => {
-      const myBuiltIn = sinon.spy()
-      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
-      const components = [
-        { type: 'label', text: 'hello', style: {} },
-        {
-          type: 'button',
-          text: 'my button',
-          style: {},
-          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
-        },
-      ] as NOODLComponent[]
-      const resolvedComponents = noodl.resolveComponents(components)
-      await resolvedComponents[1].onClick()
-      expect(myBuiltIn.called).to.be.true
-    },
-  )
-
-  describe('builtIn action callbacks', () => {
-    it('should receive the abort func in the options arg', async () => {
-      const myBuiltIn = sinon.spy()
-      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
-      const components = [
-        {
-          type: 'button',
-          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
-        },
-      ] as NOODLComponent[]
-      const resolvedComponents = noodl.resolveComponents(components)
-      await resolvedComponents[0].onClick()
-      const args = myBuiltIn.firstCall.args[1]
+    xit('should parse the reference key and return the evaluated result', () => {
+      //
     })
 
-    xit('should receive the snapshot of the action instance in the options arg', async () => {
-      const myBuiltIn = sinon.spy()
-      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
-      const components = [
-        {
-          type: 'button',
-          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
-        },
-      ] as NOODLComponent[]
-      const resolvedComponents = noodl.resolveComponents(components)
-      await resolvedComponents[0].onClick()
-    })
-
-    xit('should receive the context of the action instance in the options arg', async () => {
-      const myBuiltIn = sinon.spy()
-      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
-      const components = [
-        {
-          type: 'button',
-          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
-        },
-      ] as NOODLComponent[]
-      const resolvedComponents = noodl.resolveComponents(components)
-      await resolvedComponents[0].onClick()
-    })
-
-    xit('should receive the parser of the action instance in the options arg', async () => {
-      const myBuiltIn = sinon.spy()
-      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
-      const components = [
-        {
-          type: 'button',
-          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
-        },
-      ] as NOODLComponent[]
-      const resolvedComponents = noodl.resolveComponents(components)
-      await resolvedComponents[0].onClick()
-    })
-
-    xit('should receive the component of the action instance in the options arg', async () => {
-      const myBuiltIn = sinon.spy()
-      noodl.addLifecycleListener({ builtIn: { customCallback: myBuiltIn } })
-      const components = [
-        {
-          type: 'button',
-          onClick: [{ actionType: 'builtIn', funcName: 'customCallback' }],
-        },
-      ] as NOODLComponent[]
-      const resolvedComponents = noodl.resolveComponents(components)
-      await resolvedComponents[0].onClick()
+    xit('should return the component node', () => {
+      //
     })
   })
 
-  xit(
-    'should receive the component as a Component instance in builtIn action ' +
-      'callbacks',
-    () => {
+  describe('use', () => {
+    xit('should set the viewport', () => {
       //
-    },
-  )
+    })
 
-  xit(
-    'should receive the component as a Component instance in non-builtIn ' +
-      'action callbacks',
-    () => {
+    xit('should add the resolver', () => {
       //
-    },
-  )
+    })
+  })
 
-  xit(
-    'should store callback options in one place in action chains to be ' +
-      'picked up instead of passing through args when calling "build"',
-    () => {
+  describe('emitting', () => {
+    xit('should emit the event and call the callbacks associated with the event', () => {
       //
-    },
-  )
-})
+    })
 
-// noodl.addLifecycleListener({
-//   action: {
-//     evalObject: action.onEvalObject,
-//     goto: action.onGoto,
-//     pageJump: action.onPageJump,
-//     popUp: action.onPopUp,
-//     popUpDismiss: action.onPopUpDismiss,
-//     refresh: action.onRefresh,
-//     saveObject: action.onSaveObject,
-//     updateObject: action.onUpdateObject,
-//   },
-// builtIn: {
-//   checkUsernamePassword: builtIn.checkUsernamePassword,
-//   enterVerificationCode: builtIn.checkVerificationCode,
-//   goBack: builtIn.goBack,
-//   lockApplication: builtIn.lockApplication,
-//   logOutOfApplication: builtIn.logOutOfApplication,
-//   logout: builtIn.logout,
-//   signIn: builtIn.signIn,
-//   signUp: builtIn.signUp,
-//   signout: builtIn.signout,
-//   toggleCameraOnOff: builtIn.toggleCameraOnOff,
-//   toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-// },
-// onChainStart: lifeCycle.onChainStart,
-// onChainEnd: lifeCycle.onChainEnd,
-// onChainError: lifeCycle.onChainError,
-// onChainAborted: lifeCycle.onChainAborted,
-// onAfterResolve: lifeCycle.onAfterResolve,
-// } as any)
+    xit('should pass in the args to each callback', () => {
+      //
+    })
+  })
 
-function getMockComponents(): NOODLComponent[] {
-  return [
-    {
-      type: 'view',
-      style: {
-        left: '0',
-        top: '0',
-        width: '1',
-        height: '1',
-      },
-      children: [
-        {
-          type: 'view',
-          style: {
-            left: '0',
-            top: '0',
-            width: '1',
-            height: '0.15',
-            backgroundColor: '0x388eccff',
-          },
-          children: [
-            {
-              type: 'label',
-              text: 'Invite',
-              style: {
-                color: '0xffffffff',
-                left: '0',
-                top: '0.06',
-                width: '1',
-                height: '0.04',
-                fontSize: '18',
-                display: 'inline',
-                textAlign: {
-                  x: 'center',
-                  y: 'center',
-                },
-              },
-            },
+  describe('Resolver', () => {
+    xit('should change the component attrs accordingly', () => {
+      const r = new Resolver()
+      r.setResolver((c, options) => {
+        c.set('src', 'HELLO')
+      })
+      noodlui.use(r)
+      const component = new Component({
+        type: 'label',
+        style: {},
+        id: 'avc123',
+      })
+      const resolvedComponent = noodlui.resolveComponents(component)
+      expect(component.get('src')).to.equal('HELLO')
+      expect(resolvedComponent.toJS().src).to.equal('HELLO')
+    })
+  })
+
+  xit('should not return as an array if arg passed was not an array', () => {
+    const resolvedComponent = noodlui.resolveComponents(component)
+    expect(resolvedComponent).to.be.instanceOf(Component)
+  })
+
+  xit('should return as array if arg passed was an array', () => {
+    const resolvedComponent = noodlui.resolveComponents([component])
+    expect(resolvedComponent).to.be.an('array')
+    expect(resolvedComponent[0]).to.be.instanceOf(Component)
+  })
+
+  it('should return the resolver context', () => {
+    expect(noodlui.getContext()).to.have.keys([
+      'assetsUrl',
+      'page',
+      'roots',
+      'viewport',
+    ])
+  })
+
+  xit('should return all resolve options', () => {
+    expect(noodlui.getResolverOptions()).to.have.keys([
+      'consume',
+      'context',
+      'getNode',
+      'getNodes',
+      'getList',
+      'getListItem',
+      'getState',
+      'parser',
+      'resolveComponent',
+      'setConsumerData',
+      'setNode',
+      'setList',
+    ])
+  })
+
+  xit('should return all consumer options', () => {
+    expect(noodlui.getConsumerOptions()).to.have.keys([
+      'consume',
+      'context',
+      'createActionChain',
+      'createSrc',
+      'getNode',
+      'getNodes',
+      'getList',
+      'getListItem',
+      'getState',
+      'parser',
+      'resolveComponent',
+      'setConsumerData',
+      'setNode',
+      'setList',
+      'showDataKey',
+    ])
+  })
+
+  describe('actions/action chains', () => {
+    xit('should pass in action callbacks as an object where values are array of functions', () => {
+      //
+    })
+
+    xit('should pass in builtIn callbacks where funcNames are keys and array of funcs are its values', () => {
+      //
+    })
+
+    xit('should pass in the trigger type', () => {
+      //
+    })
+
+    xit('should pass in consumer options', () => {
+      //
+    })
+
+    xit('should invoke action callbacks correctly', () => {
+      //
+    })
+
+    xit('should invoke builtIn callbacks correctly', () => {
+      //
+    })
+
+    xit('should invoke chaining callbacks correctly', () => {
+      //
+    })
+
+    xit('should pass in the right args for action callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for builtIn callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for beforeResolve callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainStart callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainEnd callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainAbort callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainError callbacks', () => {
+      //
+    })
+
+    xit('should pass in the right args for chainTimeout callback', () => {
+      //
+    })
+
+    xit('should pass in the right args for afterResolve callbacks', () => {
+      //
+    })
+  })
+
+  xdescribe('state api', () => {
+    describe('consume', () => {
+      it('should return the item', () => {
+        const listComponent = {
+          type: 'list',
+          iteratorVar: 'apple',
+          listObject: [
+            { firstName: 'chris', email: 'ppl@gmail.com' },
+            { firstName: 'joe', email: 'pfpl@gmail.com' },
+            { firstName: 'kelly', email: 'kelly@gmail.com' },
           ],
-        },
-        {
-          type: 'view',
-          style: {
-            left: '0',
-            top: '0.15',
-            width: '1',
-            height: '0.85',
-          },
           children: [
             {
-              type: 'image',
-              path: 'successMark.png',
-              style: {
-                left: '0.3',
-                top: '0.1',
-                width: '0.4',
-                height: '0.2',
-              },
-            },
-            {
-              type: 'label',
-              text: 'Success!',
-              style: {
-                left: '0.1',
-                top: '0.35',
-                width: '0.8',
-                height: '0.03',
-                fontSize: '20',
-                fontStyle: 'bold',
-                color: '0x000000bb',
-                display: 'inline',
-                textAlign: {
-                  x: 'center',
-                  y: 'center',
-                },
-              },
-            },
-            {
-              type: 'button',
-              onClick: [
+              type: 'listItem',
+              children: [
                 {
-                  actionType: 'pageJump',
-                  destination: 'MeetingLobbyStart',
+                  type: 'label',
+                  dataKey: 'apple.email',
+                },
+                {
+                  type: 'view',
+                  children: [{ type: 'label', dataKey: 'apple.firstName' }],
                 },
               ],
-              text: 'Okay',
-              style: {
-                left: '0.1',
-                top: '0.65',
-                width: '0.8',
-                height: '0.06',
-                fontSize: '18',
-                color: '0xffffffff',
-                backgroundColor: '0x388eccff',
-                textAlign: {
-                  x: 'center',
-                },
-                border: {
-                  style: '1',
-                },
-              },
             },
           ],
-        },
-      ],
-    },
-  ]
-}
+        }
+        const resolvedComponent = noodlui.resolveComponents(listComponent)
+        console.info(resolvedComponent.toJS())
+      })
+    })
+
+    describe('getNodes', () => {
+      it('should return an object of component nodes where key is component id and value is the instance', () => {
+        // console.info(noodlui.getNodes())
+      })
+    })
+
+    describe('getNode', () => {
+      xit('should return the component instance', () => {
+        //
+      })
+    })
+
+    describe('getList', () => {
+      xit('should return an object where key is list id and their value is the list (listObject in NOODL terms)', () => {
+        //
+      })
+    })
+
+    describe('getListItem', () => {
+      xit('should return the list item', () => {
+        //
+      })
+    })
+  })
+
+  xdescribe('resolved component outcomes', () => {
+    it('should attach a noodlType property with the original component type', () => {
+      noodlComponent = { type: 'button', text: 'hello' }
+      const resolvedComponent = noodlui.resolveComponents(noodlComponent)
+      expect(resolvedComponent.toJS()).to.have.property('noodlType', 'button')
+    })
+
+    it('should convert the onClick to an action chain', () => {
+      const onClick = [{ actionType: 'pageJump' }]
+      const resolvedComponent = noodlui.resolveComponents({
+        type: 'button',
+        text: 'hello',
+        onClick,
+      })
+      const snapshot = resolvedComponent.toJS()
+      expect(snapshot.onClick).to.be.a('function')
+    })
+  })
+})

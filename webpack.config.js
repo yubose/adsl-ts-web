@@ -94,15 +94,15 @@ module.exports = {
         use: [
           {
             loader: 'babel-loader',
-            options: {
-              presets: ['@babel/preset-env'],
-              plugins: [
-                'lodash',
-                '@babel/plugin-transform-runtime',
-                ['@babel/plugin-proposal-class-properties', { loose: true }],
-                ['@babel/plugin-proposal-private-methods', { loose: true }],
-              ],
-            },
+            // options: {
+            //   presets: ['@babel/preset-env'],
+            //   plugins: [
+            //     'lodash',
+            //     '@babel/plugin-transform-runtime',
+            //     ['@babel/plugin-proposal-class-properties', { loose: true }],
+            //     ['@babel/plugin-proposal-private-methods', { loose: true }],
+            //   ],
+            // },
           },
           {
             loader: 'ts-loader',
