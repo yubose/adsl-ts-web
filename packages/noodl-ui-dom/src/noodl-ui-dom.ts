@@ -74,11 +74,6 @@ class NOODLUIDOM implements T.INOODLUIDOM {
         if (Array.isArray(props.children)) {
           const fn = (child: NOODLComponentProps) => this.parse(child, node)
           props.children.forEach(fn)
-        } else if (
-          typeof props.children === 'string' ||
-          typeof props.children === 'number'
-        ) {
-          node.innerHTML = `${props.children}`
         } else if (props.children && typeof props.children === 'object') {
           const childNode = this.parse(props.children)
           if (childNode) node.appendChild(childNode)
