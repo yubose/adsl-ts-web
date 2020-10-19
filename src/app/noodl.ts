@@ -7,6 +7,7 @@ const LANDING_PAGE_CONFIG = getConfigEndpoint('landing.page')
 const AITCOM11_CONFIG = getConfigEndpoint('cadltest')
 const PATIENT_CONFIG = getConfigEndpoint('patient')
 const PATIENT_D_CONFIG = getConfigEndpoint('patientd')
+const MEET2_CONFIG = getConfigEndpoint('meet2')
 const MEET2D_CONFIG = getConfigEndpoint('meet2d')
 const MEET11_CONFIG = getConfigEndpoint('meet11')
 
@@ -19,6 +20,7 @@ const noodl = new NOODL({
 function getConfigEndpoint(
   type:
     | 'cadltest'
+    | 'meet2' // native js (upload document, etc)
     | 'meet2d' // native js (upload document, etc)
     | 'meet11' // testing for jiahao + new features/syntax testing
     | 'landing.page'
@@ -39,6 +41,8 @@ function getConfigEndpoint(
           return '/www2'
         case 'meet11':
           return '/meet11'
+        case 'meet2':
+          return '/meet2'
         case 'meet2d':
           return '/meet2d'
         case 'portal.phase.2':
