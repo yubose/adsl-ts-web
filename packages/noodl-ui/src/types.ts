@@ -77,9 +77,6 @@ export interface IComponent {
   touched: string[]
   untouched: string[]
   type: NOODLComponentType
-  addChild(noodlType: NOODLComponentType): IComponent
-  addChild(child: ComponentType): IComponent
-  addChild(child: NOODLComponentType | ComponentType): IComponent
   assign(
     key: string | { [key: string]: any },
     value?: { [key: string]: any },
@@ -87,7 +84,9 @@ export interface IComponent {
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): IComponent | undefined
   children(): IComponent[]
-  createChild(props: ComponentType): IComponent
+  createChild(child: NOODLComponentType): IComponent
+  createChild(child: ComponentType): IComponent
+  removeChild(child?: IComponent | number): IComponent | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
   get<K extends keyof ProxiedComponent>(
@@ -112,7 +111,6 @@ export interface IComponent {
   off(eventName: IComponentEventId, cb: Function): this
   parent(): IComponent | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
-  removeChild(child?: IComponent | number): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
   set(key: string, value?: any, styleChanges?: any): this
   setParent(parent: IComponent | null): this
