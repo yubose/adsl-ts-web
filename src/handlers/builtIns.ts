@@ -64,10 +64,24 @@ const createBuiltInActions = function ({
       }
       _.set(dataObject, parts, nextDataValue)
     } else {
-      dataValue =
-        _.get(noodl.root, dataKey) ||
-        _.get(noodl.root[context?.page?.name || ''], dataKey)
-      nextDataValue = !dataValue
+      dataObject = noodl.root
+      if (_.has(noodl.root, dataKey)) {
+        dataObject = noodl.root
+      } else if (_.has(noodl.root[context.page.name], dataKey)) {
+        dataObject = noodl.root[context.page.name]
+      } else {
+        log.red(`${dataKey} is not a path of the data object`, {
+          dataObject,
+          dataKey,
+        })
+      }
+      dataValue = _.get(dataObject, dataKey)
+      if (isNOODLBoolean(dataValue)) {
+        nextDataValue = !isBooleanTrue(dataValue)
+      } else {
+        nextDataValue = !dataValue
+      }
+      _.set(dataObject, dataKey, nextDataValue)
     }
 
     // Propagate the changes to to UI if there is a path "if" object that
@@ -81,11 +95,24 @@ const createBuiltInActions = function ({
       } else {
         valEvaluating =
           _.get(noodl.root, valEvaluating) ||
-          _.get(noodl.root[context?.page?.name || ''], valEvaluating, false)
+          _.get(noodl.root[context?.page?.name || ''], valEvaluating)
       }
       newSrc = createSrc(valEvaluating ? path.if?.[1] : path.if?.[2])
       node.setAttribute('src', newSrc)
     }
+
+    console.log({
+      component: component.toJS(),
+      componentInst: component,
+      context,
+      dataKey,
+      dataValue,
+      dataObject,
+      nextDataValue,
+      newSrc,
+      node,
+      path,
+    })
   }
 
   builtInActions.checkField = (action) => {
