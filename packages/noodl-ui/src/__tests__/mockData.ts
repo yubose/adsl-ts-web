@@ -5,7 +5,9 @@ export const mock = (function () {
     return [
       { fruits: ['apple'], name: 'michael' },
       { fruits: ['banana'], name: 'harry' },
-    ] as any[]
+      { vegetables: null },
+      { name: { firstName: 'michael', lastName: 'le', favoriteColor: 'blue' } },
+    ] as const
   }
 
   const raw = (function () {

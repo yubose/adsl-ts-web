@@ -17,8 +17,14 @@ class ListComponent extends Component {
   #blueprint: NOODLComponent
   #children: Map<IComponent, IComponent> = new Map()
 
-  constructor(...args: ConstructorParameters<IComponentConstructor>) {
-    super(...args)
+  constructor(...args: ConstructorParameters<IComponentConstructor>)
+  constructor()
+  constructor(...args: any | ConstructorParameters<IComponentConstructor>) {
+    super(
+      ...((args.length ? args : [{ type: 'list' }]) as ConstructorParameters<
+        IComponentConstructor
+      >),
+    )
     this.#data = this.get('listObject') || []
     // TODO - set blueprint
     const listObject = this.get('listObject')

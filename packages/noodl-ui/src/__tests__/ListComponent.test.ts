@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { expect } from 'chai'
 import { mock } from './mockData'
 import ListComponent from '../ListComponent'
+import ListItemComponent from '../ListItemComponent'
 
 describe('ListComponent', () => {
   it('should return the list data', () => {
@@ -26,26 +27,36 @@ describe('ListComponent', () => {
       iteratorVar: 'colorful',
     })
     const listComponent = new ListComponent(noodlListComponent)
-    expect(listComponent.listObject).not.to.equal(newListData)
+    expect(listComponent.data()).not.to.equal(newListData)
     listComponent.set('listObject', newListData)
-    expect(listComponent.listObject).to.equal(newListData)
+    expect(listComponent.data()).to.equal(newListData)
+  })
+
+  it('should automatically add type: list if no args', () => {
+    const component = new ListComponent()
+    expect(component.type).to.equal('list')
+    expect(component.noodlType).to.equal('list')
+  })
+
+  it('should be able to reference parent list component instances from children', () => {
+    const component = new ListComponent()
+    const child1 = component.createChild(new ListItemComponent())
+    const child2 = component.createChild(new ListItemComponent())
+    expect(child1.parent()).to.equal(component)
+    expect(child2.parent()).to.equal(component)
+  })
+
+  it('should return all the list data', () => {
+    const listData = mock.other.getNOODLListObject()
+    const component = new ListComponent()
+    component.set('iteratorVar', 'apple')
+    listData.forEach((dataObject) => {
+      const child = component.createChild(new ListItemComponent())
+      child.set(component.iteratorVar, dataObject)
+    })
   })
 
   describe('addListItem', () => {
-    describe('passing in list item data', () => {
-      it('should add the list item data to the data list', () => {
-        const newListItemData = { id: 'hello' }
-        const noodlListComponent = mock.raw.getNOODLList({
-          iteratorVar: 'colorful',
-        })
-        const listComponent = new ListComponent(noodlListComponent)
-      })
-
-      xit('should add a new child to its children', () => {
-        //
-      })
-    })
-
     describe('passing the child instance to get the list item data from it instead', () => {
       xit('should add the list item data to the data list', () => {
         //

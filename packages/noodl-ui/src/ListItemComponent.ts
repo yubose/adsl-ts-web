@@ -8,7 +8,6 @@ import {
 } from './types'
 
 class ListItemComponent extends Component {
-  #list: any[]
   #dataObject: any
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
