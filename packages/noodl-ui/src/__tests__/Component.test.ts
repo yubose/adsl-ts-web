@@ -24,96 +24,106 @@ beforeEach(() => {
 })
 
 describe('Component', () => {
+  describe('touch/untouch', () => {
+    it('should populate touched/untouched keys in the beginning', () => {
+      const component = new Component({
+        type: 'view',
+        viewTag: 'subStream',
+        required: 'false',
+        style: { fontStyle: 'bold', left: '0.015' },
+      })
+      expect(component.untouched).to.include.members([
+        'type',
+        'viewTag',
+        'style',
+      ])
+    })
+
+    it('should add to touched', () => {
+      const component = new Component({ type: 'view' })
+      expect(component.touched).not.to.have.members(['type'])
+      component.touch('type')
+      expect(component.touched).to.have.members(['type'])
+    })
+
+    it('should add to untouched when touching a key', () => {
+      const component = new Component({ type: 'view' })
+      expect(component.untouched.includes('type')).to.be.true
+      component.touch('type')
+      expect(component.untouched.includes('type')).to.be.false
+    })
+
+    it('should add to touched style', () => {
+      const component = new Component({
+        type: 'view',
+        style: { fontStyle: 'bold' },
+      })
+      expect(component.stylesUntouched.includes('fontStyle')).to.be.true
+      component.touchStyle('fontStyle')
+      expect(component.stylesUntouched.includes('fontStyle')).to.be.false
+      expect(component.stylesTouched.includes('fontStyle')).to.be.true
+    })
+  })
+
+  describe('style', () => {
+    it('should be able to retrieve styles', () => {
+      const component = new Component({ type: 'view' })
+      component.setStyle('fontSize', '25px')
+      expect(component.getStyle('fontSize')).to.equal('25px')
+    })
+
+    it('should be able to check if some style exists', () => {
+      const component = new Component({ type: 'view' })
+      component.setStyle('border', { style: '5' })
+      expect(component.getStyle('border')).to.deep.eq({ style: '5' })
+    })
+
+    it('should be able to remove styles', () => {
+      const component = new Component({
+        type: 'view',
+        style: { border: { style: '2' } },
+      })
+      component.removeStyle('border')
+      expect(component.hasStyle('border')).to.be.false
+    })
+
+    it('should be able to assign styles into the style obj', () => {
+      const component = new Component({ type: 'view' })
+      const incomingStyles = { borderWidth: '12px', textColor: '#ffffff' }
+      expect(component.getStyle('borderWidth')).to.be.undefined
+      expect(component.getStyle('textColor')).to.be.undefined
+      component.assign('style', incomingStyles)
+      expect(component.getStyle('borderWidth')).to.equal('12px')
+      expect(component.getStyle('textColor')).to.equal('#ffffff')
+      component.removeStyle('borderWidth')
+      component.removeStyle('textColor')
+      expect(component.getStyle('borderWidth')).to.be.undefined
+      expect(component.getStyle('textColor')).to.be.undefined
+      component.assignStyles(incomingStyles)
+      expect(component.getStyle('borderWidth')).to.equal('12px')
+      expect(component.getStyle('textColor')).to.equal('#ffffff')
+    })
+  })
+
+  describe('status', () => {
+    it('should start with "drafting" when constructed', () => {
+      const component = new Component({ type: 'view' })
+      expect(component.status).to.eq('drafting')
+    })
+
+    it('should switch between "drafting" and "idle" when calling draft() and done()', () => {
+      const component = new Component({ type: 'view' })
+      component.done()
+      expect(component.status).to.eq('idle')
+      component.draft()
+      expect(component.status).to.eq('drafting')
+      component.done()
+    })
+  })
+
   it('should start with an ID', () => {
     const component = new Component({ type: 'view' })
     expect(!!component.id).to.be.true
-  })
-
-  it('should start with "drafting" status when constructed', () => {
-    const component = new Component({ type: 'view' })
-    expect(component.status).to.eq('drafting')
-  })
-
-  it('should populate touched/untouched keys in the beginning', () => {
-    const component = new Component({
-      type: 'view',
-      viewTag: 'subStream',
-      required: 'false',
-      style: { fontStyle: 'bold', left: '0.015' },
-    })
-    expect(component.untouched).to.include.members(['type', 'viewTag', 'style'])
-  })
-
-  it('should add to touched', () => {
-    const component = new Component({ type: 'view' })
-    expect(component.touched).not.to.have.members(['type'])
-    component.touch('type')
-    expect(component.touched).to.have.members(['type'])
-  })
-
-  it('should add to untouched when touching a key', () => {
-    const component = new Component({ type: 'view' })
-    expect(component.untouched.includes('type')).to.be.true
-    component.touch('type')
-    expect(component.untouched.includes('type')).to.be.false
-  })
-
-  it('should add to touched style', () => {
-    const component = new Component({
-      type: 'view',
-      style: { fontStyle: 'bold' },
-    })
-    expect(component.stylesUntouched.includes('fontStyle')).to.be.true
-    component.touchStyle('fontStyle')
-    expect(component.stylesUntouched.includes('fontStyle')).to.be.false
-    expect(component.stylesTouched.includes('fontStyle')).to.be.true
-  })
-
-  it('should switch between "drafting" and "idle" when calling draft() and done()', () => {
-    const component = new Component({ type: 'view' })
-    component.done()
-    expect(component.status).to.eq('idle')
-    component.draft()
-    expect(component.status).to.eq('drafting')
-    component.done()
-  })
-
-  it('should be able to retrieve styles', () => {
-    const component = new Component({ type: 'view' })
-    component.setStyle('fontSize', '25px')
-    expect(component.getStyle('fontSize')).to.equal('25px')
-  })
-
-  it('should be able to check if some style exists', () => {
-    const component = new Component({ type: 'view' })
-    component.setStyle('border', { style: '5' })
-    expect(component.getStyle('border')).to.deep.eq({ style: '5' })
-  })
-
-  it('should be able to remove styles', () => {
-    const component = new Component({
-      type: 'view',
-      style: { border: { style: '2' } },
-    })
-    component.removeStyle('border')
-    expect(component.hasStyle('border')).to.be.false
-  })
-
-  it('should be able to assign styles into the style obj', () => {
-    const component = new Component({ type: 'view' })
-    const incomingStyles = { borderWidth: '12px', textColor: '#ffffff' }
-    expect(component.getStyle('borderWidth')).to.be.undefined
-    expect(component.getStyle('textColor')).to.be.undefined
-    component.assign('style', incomingStyles)
-    expect(component.getStyle('borderWidth')).to.equal('12px')
-    expect(component.getStyle('textColor')).to.equal('#ffffff')
-    component.removeStyle('borderWidth')
-    component.removeStyle('textColor')
-    expect(component.getStyle('borderWidth')).to.be.undefined
-    expect(component.getStyle('textColor')).to.be.undefined
-    component.assignStyles(incomingStyles)
-    expect(component.getStyle('borderWidth')).to.equal('12px')
-    expect(component.getStyle('textColor')).to.equal('#ffffff')
   })
 
   describe('working with children', () => {
@@ -143,33 +153,33 @@ describe('Component', () => {
       const component = new Component({ type: 'list' })
       expect(component.child()).to.be.undefined
       const child = new Component({ type: 'view' })
-      component.addChild(child)
+      component.createChild(child)
       expect(component.children()).to.have.lengthOf(1)
       expect(component.child()).to.equal(child)
     })
 
     it('should add the child with an object', () => {
-      const component = new Component({ type: 'list' })
+      const component = new Component({ type: 'list', id: 'abc' })
       expect(component.child()).to.be.undefined
-      const child = { type: 'view', id: 'abc' }
-      component.addChild(child)
+      const child = { type: 'view' }
+      component.createChild(child)
       expect(component.children()).to.have.lengthOf(1)
-      expect(component.child().id).to.equal('abc')
+      expect(component.child().id).to.equal('abc[0]')
     })
 
     it('should add the child just by using a noodl component type', () => {
       const component = new Component({ type: 'label' })
       expect(component.child()).to.be.undefined
       const noodlType = 'label'
-      const child = component.addChild(noodlType)
+      const child = component.createChild(noodlType)
       expect(component.children()).to.have.lengthOf(1)
       expect(component.child()).to.equal(child)
     })
 
     it('should remove the child by instance', () => {
       const component = new Component({ type: 'label' })
-      const child = component.addChild('list')
-      component.addChild(child)
+      const child = component.createChild('list')
+      component.createChild(child)
       expect(component.child()).to.equal(child)
       component.removeChild(child)
       expect(component.child()).to.not.equal(child)
@@ -177,9 +187,8 @@ describe('Component', () => {
 
     it('should remove the child by index', () => {
       const component = new Component({ type: 'label' })
-      const child = component.addChild('view')
-      const child2 = component.addChild('view')
-      component.addChild('button')
+      component.createChild('button')
+      const child2 = component.createChild('view')
       const children = component.children()
       const index = 1
       expect(children[index]).to.equal(child2)

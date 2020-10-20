@@ -183,6 +183,10 @@ class Component implements IComponent {
     return this
   }
 
+  get contentType() {
+    return this.#component.contentType
+  }
+
   get id() {
     return this.#id || ''
   }
@@ -512,19 +516,30 @@ class Component implements IComponent {
     return child || undefined
   }
 
-  addChild(noodlType: NOODLComponentType): IComponent
-  addChild(child: ComponentType): IComponent
-  addChild(child: NOODLComponentType | ComponentType): IComponent {
+  /**
+   * Creates and appends the new child instance to the childrens list
+   * @param { NOODLComponent } props
+   */
+  createChild(child: ComponentType | NOODLComponentType): IComponent {
     let childComponent: IComponent
-    if (child instanceof Component) {
-      childComponent = child
-    } else if (_.isString(child)) {
+    let id: string = `${this.id}`
+    if (this.length >= 1) id += `[${this.length}]`
+    else id += '[0]'
+    if (_.isString(child)) {
       childComponent = new Component({ type: child })
+    } else if (child instanceof Component) {
+      childComponent = child as IComponent
     } else {
-      childComponent = new Component(child)
+      childComponent = new Component({ ...child, id }) as IComponent
     }
-    childComponent.setParent(this)
-    this.#children?.push(childComponent)
+    // Resync the child's id to match the parent's id. This can possibly be the
+    // case when we're re-rendering and choose to pass in existing component
+    // instances to shortcut into parsing
+    if (id !== childComponent.id) childComponent['id'] = id
+    childComponent.setParent(this as IComponent)
+    if (!this.#children.includes(childComponent)) {
+      this.#children.push(childComponent)
+    }
     return childComponent
   }
 
@@ -535,45 +550,23 @@ class Component implements IComponent {
    * @param { Component | number | undefined } child - Child or index
    */
   removeChild(child?: IComponent | number) {
+    let removedChild: IComponent | undefined
     if (child === undefined) {
-      this.#children.shift()
+      removedChild = this.#children.shift()
     } else if (_.isNumber(child)) {
-      this.#children.splice(child, 1)
+      removedChild = this.#children.splice(child, 1)[0]
     } else {
       if (this.#children.includes(child)) {
-        this.#children = _.filter(this.#children, (c) => c !== child)
+        this.#children = _.filter(this.#children, (c) => {
+          if (c === child) {
+            removedChild = child
+            return false
+          }
+          return true
+        })
       }
     }
-    return this
-  }
-
-  /**
-   * Creates and appends the new child instance to the childrens list
-   * @param { NOODLComponent } props
-   */
-  createChild(props: ComponentType) {
-    let child: IComponent
-    let id: string
-    if (!this.#children) {
-      this.#children = []
-    } else if (!_.isArray(this.#children)) {
-      this.#children = [this.#children]
-    }
-    id = `${this.id}`
-    if (this.length >= 1) id += `[${this.length}]`
-    else id += '[0]'
-    if (props instanceof Component) {
-      child = props as IComponent
-    } else {
-      child = new Component({ ...props, id }) as IComponent
-    }
-    // Resync the child's id to match the parent's id. This can possibly be the
-    // case when we're re-rendering and choose to pass in existing component
-    // instances to shortcut into parsing
-    if (id !== child.id) child['id'] = id
-    child.setParent(this as IComponent)
-    if (!this.#children.includes(child)) this.#children.push(child)
-    return child
+    return removedChild
   }
 
   children() {

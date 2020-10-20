@@ -1,8 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { identify } from '../utils/noodl'
-import { IComponent, ResolverFn } from '../types'
 import isReference from '../utils/isReference'
+import { IComponent, ResolverFn } from '../types'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -157,7 +156,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
               let path
               const listId = component.get('listId')
               const listItemIndex = component.get('listItemIndex')
-              itemObject = getListItem(listId, listItemIndex)
+              itemObject = getListItem(listId)
 
               if (!itemObject) {
                 log.red(
@@ -171,7 +170,9 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
                 // Default to showing the dataKey even when its a raw reference
                 component.set(
                   'data-value',
-                  showDataKey ? dataKey : getFallbackDataValue(component),
+                  showDataKey
+                    ? dataKey
+                    : component.get('text') || component.get('placeholder'),
                 )
               } else {
                 const textFunc = component.get('text=func')
@@ -185,7 +186,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
                       {
                         component: component.snapshot(),
                         listData: getList(listId || ''),
-                        listItem: getListItem(listId, listItemIndex),
+                        listItem: getListItem(listId),
                         listItemIndex,
                         path,
                       },
@@ -207,7 +208,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
                     {
                       component: component.snapshot(),
                       listData: getList(listId || ''),
-                      listItem: getListItem(listId, listItemIndex),
+                      listItem: getListItem(listId),
                       listItemIndex,
                       path,
                     },
