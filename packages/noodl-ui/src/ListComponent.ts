@@ -15,7 +15,7 @@ const log = Logger.create('ListComponent')
 class ListComponent extends Component {
   #data: any[]
   #blueprint: NOODLComponent
-  #children: Map<IComponent, IComponent> = new Map()
+  #children: IComponent[] = []
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -49,20 +49,48 @@ class ListComponent extends Component {
     return this.get('iteratorVar')
   }
 
-  blueprint() {
+  getBlueprint() {
     return this.#blueprint
   }
 
-  data() {
+  getData() {
     return this.#data
+  }
+
+  getDataObject(index: number): any
+  getDataObject(childId: string | number): any
+  getDataObject(child: IComponent): any
+  getDataObject(child: number | string | IComponent) {
+    let _inst: IComponent | undefined
+    // Child component id
+    if (_.isString(child)) {
+      _inst = _.find(this.#children, (c) => c.id == child)
+    } else if (_.isNumber(child)) {
+      // Child index
+      _inst = this.#children[child]
+    } else if (child instanceof Component) {
+      _inst = child
+    }
+    return _inst && _inst.get(this.iteratorVar)
+  }
+
+  add(child: IComponent) {
+    if (child instanceof Component) this.#children.push(child)
+    return this
+  }
+
+  remove() {}
+
+  update() {}
+
+  has(child: IComponent) {
+    return this.#children.includes(child)
   }
 
   createChild(child: ComponentType | NOODLComponentType) {
     let childComponent: IComponent = super.createChild(child)
     if (childComponent.noodlType === 'listItem') {
-      if (!this.#children.has(childComponent)) {
-        this.#children.set(childComponent, childComponent)
-      }
+      if (!this.has(childComponent)) this.add(childComponent)
     }
     return childComponent
   }
