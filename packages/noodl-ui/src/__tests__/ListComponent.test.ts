@@ -89,6 +89,7 @@ describe('ListComponent', () => {
   })
 
   describe('setting listObject', () => {
+<<<<<<< Updated upstream
     it('should have a data object assign to every child ', () => {
       const listData = mock.other.getNOODLListObject()
       const component = new ListComponent()
@@ -104,6 +105,9 @@ describe('ListComponent', () => {
     })
 
     xit('should have removed list item components to match the length of the new listObject', () => {
+=======
+    xit('should update listItem children to align with the indexes', () => {
+>>>>>>> Stashed changes
       //
     })
 
