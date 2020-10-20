@@ -139,7 +139,7 @@ class ActionChain {
     const action = new Action(obj, {
       timeoutDelay: 8000,
     })
-    if (obj.actionType === 'builtIn') {
+    if (obj.actionType === 'builtIn' || obj.actionType === 'builtTn') {
       const builtInFn = this.builtIn?.[obj.funcName]
       if (_.isFunction(builtInFn)) {
         action.callback = builtInFn
