@@ -85,6 +85,7 @@ const getListChildren: Resolver = (
           const mergingProps = {
             blueprint: parsedBlueprint,
             iteratorVar: iteratorProp,
+            listItem,
             listId,
             listItemIndex,
           }

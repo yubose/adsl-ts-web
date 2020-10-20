@@ -317,6 +317,7 @@ function makeComponentResolver({
       return actionChain.build({
         context: o?.getResolverContext(),
         parser,
+        createSrc: o.createSrc,
         ...otherOptions,
         stateHelpers: o.getStateGetters(),
       })

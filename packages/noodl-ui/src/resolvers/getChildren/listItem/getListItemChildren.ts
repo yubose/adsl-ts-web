@@ -78,6 +78,7 @@ const getListItemChildren: Resolver = (
               }
             }
             childComponent = getChildProps(component, child, index, {
+              listItem,
               listId,
               listItemIndex,
               ...otherProps,

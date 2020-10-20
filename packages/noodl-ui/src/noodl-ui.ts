@@ -3,7 +3,6 @@ import Logger from 'logsnap'
 import makeComponentResolver from './factories/makeComponentResolver'
 import * as T from './types'
 import NOODLViewport from './Viewport'
-//
 
 class NOODL {
   #componentResolver: T.ComponentResolver
