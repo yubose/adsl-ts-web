@@ -68,11 +68,37 @@ const getBorderAttrs: Resolver = (component) => {
       if (!hasLetter(style.borderRadius)) {
         component.setStyle('borderRadius', `${style.borderRadius}px`)
       }
+    } else if (_.isNumber(style.borderRadius)) {
+      component.setStyle('borderRadius', `${style.borderRadius}px`)
     }
 
-    if (style['borderWidth'] && _.isString(style['borderWidth'])) {
-      if (!hasLetter(style['borderWidth'])) {
+    if (style.borderWidth) {
+      if (_.isString(style.borderWidth)) {
+        if (!hasLetter(style.borderWidth)) {
+          component.setStyle('borderWidth', `${style.borderWidth}px`)
+        }
+      } else if (_.isNumber(style.borderWidth)) {
         component.setStyle('borderWidth', `${style.borderWidth}px`)
+      }
+    }
+
+    // If a borderRadius effect is to be expected and there is no border
+    // (since no border negates borderRadius), we need to add an invisible
+    // border to simulate the effect
+    if (style.borderRadius) {
+      const regex = /[a-zA-Z]+$/
+      const radius = Number(`${style.borderRadius}`.replace(regex, ''))
+      if (!_.isNaN(radius)) {
+        component.setStyle('borderRadius', `${radius}px`)
+        if (
+          !style.borderWidth ||
+          style.borderWidth === 'none' ||
+          style.borderWidth === '0px'
+        ) {
+          // Make the border invisible
+          component.setStyle('borderWidth', '1px')
+          component.setStyle('borderColor', 'rgba(0, 0, 0, 0)')
+        }
       }
     }
   }
