@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { expect } from 'chai'
 import { mock } from './mockData'
+import Component from '../Component'
 import ListItemComponent from '../ListItemComponent'
 
 describe('ListItemComponent', () => {
@@ -18,5 +19,8 @@ describe('ListItemComponent', () => {
 
   it('should return the parent list component', () => {
     const component = new ListItemComponent()
+    const child = new Component({ type: 'view' })
+    component.createChild(child)
+    expect(child.parent()).to.equal(component)
   })
 })

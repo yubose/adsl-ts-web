@@ -1,19 +1,45 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { current } from 'immer'
 import {
+  ComponentType,
   IComponent,
+  IComponentConstructor,
   NOODLComponentProps,
   NOODLIfObject,
-  NOODLTextBoardTextObject,
   NOODLTextBoardBreakLine,
+  NOODLComponentType,
 } from '../types'
-import Logger from 'logsnap'
+import Component from '../Component'
 import { isBrowser } from './common'
 
 const log = Logger.create('noodl-ui/src/utils/noodl.ts')
 
-const testPropKeysByRegex = (obj: any, key: string) =>
-  _.isString(key) && new RegExp(key, 'i').test(obj[key])
+/**
+ * A helper/utility to create Component instances corresponding to their NOODL
+ * component type
+ * @param { string | object | Component } props - NOODL component type, a component object, or a Component instance
+ */
+export function createNOODLComponent(
+  noodlType: NOODLComponentType,
+  options?: ConstructorParameters<IComponentConstructor>,
+): IComponent
+export function createNOODLComponent(
+  props: ComponentType,
+  options?: ConstructorParameters<IComponentConstructor>,
+): IComponent
+export function createNOODLComponent(
+  props: ComponentType | NOODLComponentType,
+  options?: ConstructorParameters<IComponentConstructor>,
+) {
+  if (typeof props === 'string') {
+    return new Component({ type: props, ...options })
+  } else if (props instanceof Component) {
+    return props
+  } else {
+    return new Component({ ...props, ...options })
+  }
+}
 
 // function createRegexKeysOnProps(keys: string | string[]) {
 //   const regex = new RegExp(_.isArray(keys) ? )

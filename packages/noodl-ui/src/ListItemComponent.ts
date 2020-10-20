@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { createNOODLComponent } from './utils/noodl'
 import Component from './Component'
 import {
   ComponentType,
@@ -27,13 +28,9 @@ class ListItemComponent extends Component {
   }
 
   createChild(child: ComponentType | NOODLComponentType) {
-    let childComponent: IComponent
+    let childComponent: IComponent = super.createChild(child)
     let listItem: any
-    if (_.isString(child)) {
-      childComponent = super.addChild(child)
-      if (child === 'listItem') {
-        //
-      }
+    if (child === 'listItem') {
     } else {
       if (child instanceof Component) {
         //

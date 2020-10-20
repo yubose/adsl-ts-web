@@ -47,7 +47,7 @@ afterEach(() => {
 })
 
 describe('noodl-ui', () => {
-  describe('implementation details', () => {
+  xdescribe('implementation details', () => {
     it('should flip initialized to true when running init', () => {
       noodlui.init()
       expect(noodlui.initialized).to.be.true
