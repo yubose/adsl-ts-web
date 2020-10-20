@@ -6,9 +6,8 @@ import ListItemComponent from '../ListItemComponent'
 
 describe('ListComponent', () => {
   it('should return the list data', () => {
-    const noodlListComponent = mock.raw.getNOODLList({
-      iteratorVar: 'colorful',
-    })
+    const args = { iteratorVar: 'colorful' }
+    const noodlListComponent = mock.raw.getNOODLList(args)
     const listComponent = new ListComponent(noodlListComponent)
     expect(listComponent.data()).to.equal(noodlListComponent.listObject)
   })
@@ -53,18 +52,6 @@ describe('ListComponent', () => {
     listData.forEach((dataObject) => {
       const child = component.createChild(new ListItemComponent())
       child.set(component.iteratorVar, dataObject)
-    })
-  })
-
-  describe('addListItem', () => {
-    describe('passing the child instance to get the list item data from it instead', () => {
-      xit('should add the list item data to the data list', () => {
-        //
-      })
-
-      xit("should add the new child into its children if it doesn't already exist", () => {
-        //
-      })
     })
   })
 

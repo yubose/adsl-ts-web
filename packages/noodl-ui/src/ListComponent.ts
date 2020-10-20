@@ -39,7 +39,7 @@ class ListComponent extends Component {
         })
       } else {
         const child = new ListItemComponent({ iteratorVar })
-        child.setData(iteratorVar, listObject)
+        child.setData(listObject)
         this.createChild(child)
       }
     }
@@ -55,19 +55,6 @@ class ListComponent extends Component {
 
   data() {
     return this.#data
-  }
-
-  addListItem(component: IComponent): IComponent
-  addListItem(item: any): IComponent
-  addListItem(item: any) {
-    let data: any
-    if (item instanceof Component) {
-      data = item.get(this.iteratorVar)
-    } else {
-      data = item
-    }
-    this.#data.push(data)
-    return this.createChild(this.blueprint).set(this.iteratorVar, data)
   }
 
   createChild(child: ComponentType | NOODLComponentType) {
