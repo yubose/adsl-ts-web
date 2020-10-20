@@ -15,4 +15,8 @@ describe('ListItemComponent', () => {
     component.setData(dataObject)
     expect(component.data()).to.equal(dataObject)
   })
+
+  it('should return the parent list component', () => {
+    const component = new ListItemComponent()
+  })
 })
