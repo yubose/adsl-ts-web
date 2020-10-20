@@ -1,14 +1,8 @@
 import path from 'path'
 
+export type ConfigKey = 'aitmed' | 'meet11' | 'meet2' | 'meet2d'
+
 export type ConfigId = typeof configIds[number]
-export const configIds = [
-  'cadltest',
-  'root',
-  'landing',
-  'meet',
-  'meet2d',
-  'meetdev',
-] as const
 
 export const endpoint = (function () {
   const base = 'https://public.aitmed.com'

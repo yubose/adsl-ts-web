@@ -183,6 +183,10 @@ class Component implements IComponent {
     return this
   }
 
+  get contentType() {
+    return this.#component.contentType
+  }
+
   get id() {
     return this.#id || ''
   }

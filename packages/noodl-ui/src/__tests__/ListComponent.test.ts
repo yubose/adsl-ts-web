@@ -32,22 +32,26 @@ describe('ListComponent', () => {
   })
 
   describe('addListItem', () => {
-    describe('passing an list item data', () => {
-      xit('should add the list item data to the data list and add a new child into its children', () => {
-        //
+    describe('passing in list item data', () => {
+      it('should add the list item data to the data list', () => {
+        const newListItemData = { id: 'hello' }
+        const noodlListComponent = mock.raw.getNOODLList({
+          iteratorVar: 'colorful',
+        })
+        const listComponent = new ListComponent(noodlListComponent)
       })
 
-      xit('should add a new child into its children', () => {
+      xit('should add a new child to its children', () => {
         //
       })
     })
 
-    describe('passing the child instance to get the list item data', () => {
-      xit('should add the list item data to the data list and add a new child into its children', () => {
+    describe('passing the child instance to get the list item data from it instead', () => {
+      xit('should add the list item data to the data list', () => {
         //
       })
 
-      xit('should add a new child into its children', () => {
+      xit("should add the new child into its children if it doesn't already exist", () => {
         //
       })
     })

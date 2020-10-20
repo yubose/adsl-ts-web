@@ -16,7 +16,7 @@ class ListComponent extends Component {
   #blueprint: NOODLComponent
   #children: Map<IComponent, IComponent> = new Map()
 
-  constructor(...args: ConstructorParameters<IComponentConstructor>) {
+  constructor([component]: ConstructorParameters<IComponentConstructor>) {
     super(...args)
     this.#data = this.get('listObject') || []
     // TODO - set blueprint
@@ -30,7 +30,7 @@ class ListComponent extends Component {
     return this.#data
   }
 
-  getBlueprint() {
+  get blueprint() {
     return this.#blueprint
   }
 
@@ -44,9 +44,7 @@ class ListComponent extends Component {
       data = item
     }
     this.#data.push(data)
-    const child = this.createChild(this.getBlueprint())
-    child.set(this.iteratorVar, data)
-    return child
+    return this.createChild(this.blueprint).set(this.iteratorVar, data)
   }
 
   createChild(child: ComponentType | NOODLComponentType) {
@@ -69,11 +67,12 @@ class ListComponent extends Component {
   }
 
   set(...args: Parameters<Component['set']>) {
-    if (args[0] === 'listObject') {
+    const [key, value] = args
+
+    if (key === 'listObject') {
       // Refresh holdings of the list item data / children
       this.#data = args[1]
       const queue = [...this.#data]
-
       this.#children.forEach((child) => {
         if (queue.length) {
           child.set(this.iteratorVar, queue.shift())
@@ -87,6 +86,8 @@ class ListComponent extends Component {
           )
         }
       })
+    } else if (key === 'blueprint') {
+      this.#blueprint = value
     }
     super.set(...args)
     return this
