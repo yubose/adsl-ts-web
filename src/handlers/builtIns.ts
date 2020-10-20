@@ -8,7 +8,7 @@ import {
   NOODLGotoAction,
 } from 'noodl-ui'
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
-import { INOODLUiDOM } from 'noodl-ui-dom'
+import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
 import validate from 'utils/validate'
@@ -27,6 +27,66 @@ const createBuiltInActions = function ({
   page: Page
 }) {
   const builtInActions: BuiltInActions = {}
+
+  builtInActions.toggleFlag = async (action, options) => {
+    const { default: noodl } = await import('app/noodl')
+    log.func('toggleFlag')
+
+    const {
+      component,
+      context,
+      createSrc,
+      stateHelpers: { getListItem },
+    } = options
+
+    const { dataKey = '' } = action.original
+    const path = component.get('path')
+    const node = document.getElementById(component.id)
+
+    let dataValue: any
+    let dataObject: any
+    let nextDataValue: boolean | undefined = undefined
+    let newSrc = ''
+
+    if (dataKey.startsWith('itemObject')) {
+      let parts = dataKey.split('.').slice(1)
+      dataObject = getListItem(
+        component.get('listId'),
+        component.get('listItemIndex'),
+      )
+      dataValue = _.get(dataObject, parts)
+      if (isNOODLBoolean(dataValue)) {
+        // true -> false / false -> true
+        nextDataValue = !isBooleanTrue(dataValue)
+      } else {
+        // Set to true if am item exists
+        nextDataValue = !dataValue
+      }
+      _.set(dataObject, parts, nextDataValue)
+    } else {
+      dataValue =
+        _.get(noodl.root, dataKey) ||
+        _.get(noodl.root[context?.page?.name || ''], dataKey)
+      nextDataValue = !dataValue
+    }
+
+    // Propagate the changes to to UI if there is a path "if" object that
+    // references the value as well
+    if (node && _.isObjectLike(path)) {
+      let valEvaluating = path.if?.[0]
+      // If the dataKey is the same as the the value we are evaluating we can
+      // just re-use the nextDataValue
+      if (valEvaluating === dataKey) {
+        valEvaluating = nextDataValue
+      } else {
+        valEvaluating =
+          _.get(noodl.root, valEvaluating) ||
+          _.get(noodl.root[context?.page?.name || ''], valEvaluating, false)
+      }
+      newSrc = createSrc(valEvaluating ? path.if?.[1] : path.if?.[2])
+      node.setAttribute('src', newSrc)
+    }
+  }
 
   builtInActions.checkField = (action) => {
     const { contentType } = action as NOODLBuiltInCheckFieldObject

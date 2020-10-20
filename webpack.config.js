@@ -4,7 +4,6 @@ const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const pkg = require('./package.json')
-
 // const CircularDependencyPlugin = require('circular-dependency-plugin')
 // const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 

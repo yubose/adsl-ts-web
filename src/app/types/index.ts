@@ -21,6 +21,7 @@ export type BuiltInFuncName =
   | 'signUp'
   | 'signout'
   | 'toggleCameraOnOff'
+  | 'toggleFlag'
   | 'toggleMicrophoneOnOff'
   | 'UploadDocuments'
   | 'UploadFile'

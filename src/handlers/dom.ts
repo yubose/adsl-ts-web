@@ -63,6 +63,8 @@ noodluidom.on('all', function onCreateNode(node, component) {
         elem.dataset['value'] = js['data-value'] || ''
         elem['value'] = elem.dataset['value'] || ''
       }
+    } else if ('text=func' in props && props['data-value']) {
+      node.innerHTML = props['data-value']
     } else {
       node.innerHTML = js['data-value'] || js.placeholder || ''
     }
@@ -153,6 +155,11 @@ noodluidom.on('all', function onCreateNode(node, component) {
     const sourceEl = createElement('source')
     if (src) sourceEl.setAttribute('src', src)
     node.appendChild(sourceEl)
+  }
+  if (_.isString(props.children) || _.isNumber(props.children)) {
+    if (!node.innerHTML.trim()) {
+      node.innerHTML = `${props.children}`
+    }
   }
 })
 

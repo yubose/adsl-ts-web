@@ -76,6 +76,7 @@ const getListItemChildren: ResolverFn = (
             }
           }
           noodlChildComponent = getChildProps(component, child, index, {
+            listItem,
             listId,
             listItemIndex,
             ...otherProps,

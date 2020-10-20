@@ -13,7 +13,6 @@ import {
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import * as T from './types'
-//
 
 const log = Logger.create('noodl-ui')
 

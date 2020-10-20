@@ -29,5 +29,5 @@ export {
 } from './constants'
 export * from './types'
 
-export { getByDataUX, getDataValues, identify } from './utils/noodl'
+export { evalIf, getByDataUX, getDataValues, identify } from './utils/noodl'
 //

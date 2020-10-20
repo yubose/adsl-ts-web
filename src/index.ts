@@ -100,6 +100,7 @@ window.addEventListener('load', async () => {
   const { default: noodlui } = await import('app/noodl-ui')
 
   window.env = process.env.ECOS_ENV
+  window.env = process.env.NODE_ENV
   window.getDataValues = getDataValues
   window.getByDataUX = getByDataUX
   window.noodl = noodl
@@ -224,6 +225,7 @@ window.addEventListener('load', async () => {
             signUp: builtIn.signUp,
             signout: builtIn.signout,
             toggleCameraOnOff: builtIn.toggleCameraOnOff,
+            toggleFlag: builtIn.toggleFlag,
             toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
           })
 

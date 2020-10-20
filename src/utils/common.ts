@@ -50,22 +50,54 @@ export function forEachEntries<Obj>(
  * @param { object } value
  * @param { function } callback - Callback function to run on each key/value entry
  */
-export function forEachDeepEntries<Obj>(
+export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
+  value: Obj | undefined,
+  callback: (key: string, value: Obj[K], obj: Obj) => void,
+) {
+  if (_.isArray(value)) {
+    _.forEach(value, (val) => forEachDeepEntries(val, callback))
+  } else if (_.isPlainObject(value)) {
+    forEachEntries(value as Obj, (k, v: Obj[K]) => {
+      callback(k, v, value as Obj)
+      forEachDeepEntries(v, callback as any)
+    })
+  }
+}
+
+/**
+ * Runs forEach on each key/value pair of the value, passing in the key as the first
+ * argument and the value as the second argument on each iteration
+ * @param { object } value
+ * @param { function } callback - Callback function to run on each key/value entry
+ */
+export function forEachEntriesOnObj<Obj>(
   value: Obj,
   callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
 ) {
-  if (value) {
-    if (_.isArray(value)) {
-      _.forEach(value, (val) => forEachDeepEntries(val, callback))
-    } else if (_.isPlainObject(value)) {
-      forEachEntries(value, (innerKey, innerValue: Obj[keyof Obj]) => {
-        if (_.isPlainObject(innerValue)) {
-          forEachDeepEntries(innerValue, callback as any)
-        } else {
-          callback(innerKey, innerValue)
-        }
-      })
-    }
+  if (value && _.isObject(value)) {
+    _.forEach(_.entries(value), _.spread(callback))
+    callback('', value)
+  }
+}
+
+/**
+ * Runs forEach on each key/value pair of the value, passing in the key as the first
+ * argument and the value as the second argument on each iteration.
+ * This is a recursion version of forEachEntries
+ * @param { object } value
+ * @param { function } callback - Callback function to run on each key/value entry
+ */
+export function forEachDeepEntriesOnObj<Obj extends {}, K extends keyof Obj>(
+  value: Obj | undefined,
+  callback: (key: string, value: Obj[K], obj: Obj) => void,
+) {
+  if (_.isArray(value)) {
+    _.forEach(value, (val) => forEachDeepEntries(val, callback))
+  } else if (_.isPlainObject(value)) {
+    forEachEntries(value as Obj, (k, v: Obj[K]) => {
+      callback(k, v, value as Obj)
+      forEachDeepEntries(v, callback as any)
+    })
   }
 }
 

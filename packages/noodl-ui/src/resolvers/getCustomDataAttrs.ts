@@ -34,100 +34,14 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
 
   let itemObject
 
-  if (_.isObjectLike(component)) {
+  if (component) {
     /* -------------------------------------------------------
      ---- UI VISIBILITY RELATED
    -------------------------------------------------------- */
     if (contentType === 'passwordHidden' || contentType === 'messageHidden') {
       component.set('data-ux', contentType)
-    }
-    //
-    else if (/(vidoeSubStream|videoSubStream)/i.test(contentType)) {
+    } else if (/(vidoeSubStream|videoSubStream)/i.test(contentType)) {
       component.set('data-ux', contentType)
-    }
-
-    // Date components
-    if (identify.component.isDate(component.toJS())) {
-      if (dataKey) {
-        // These date components receive their values from a list
-        if (dataKey.startsWith('itemObject')) {
-          let path
-          const listId = component.get('listId')
-          const listItemIndex = component.get('listItemIndex')
-          itemObject = getListItem(listId, listItemIndex)
-
-          if (!itemObject) {
-            log.red(
-              'Expected an itemObject for a date component but received an invalid value instead',
-              {
-                component: component.snapshot(),
-                itemObject,
-                listData: getList(listId || ''),
-              },
-            )
-            // Default to showing the dataKey even when its a raw reference
-            component.set(
-              'data-value',
-              showDataKey
-                ? dataKey
-                : component.get('text') || component.get('placeholder'),
-            )
-          } else {
-            const textFunc = component.get('text=func')
-            if (_.isFunction(textFunc)) {
-              path = dataKey.split('.').slice(1)
-              const ecosDate = _.get(itemObject, path)
-              if (ecosDate == undefined) {
-                log.red(
-                  `Tried to retrieve the date value from an itemObject using ` +
-                    `the path "${dataKey}" but received null or undefined instead`,
-                  {
-                    component: component.snapshot(),
-                    listData: getList(listId || ''),
-                    listItem: getListItem(listId, listItemIndex),
-                    listItemIndex,
-                    path,
-                  },
-                )
-              }
-              if (ecosDate === dataKey) {
-                // Allow the raw dataKey (unparsed) to show in pages if
-                // showDataKey is true
-                component.set(
-                  'data-value',
-                  showDataKey
-                    ? dataKey
-                    : component.get('text') || component.get('placeholder'),
-                )
-              } else {
-                component.set('data-value', ecosDate)
-              }
-            } else {
-              log.red(
-                `Expected text=func to be a function but it was a type "${typeof textFunc}"`,
-                {
-                  component: component.snapshot(),
-                  listData: getList(listId || ''),
-                  listItem: getListItem(listId, listItemIndex),
-                  listItemIndex,
-                  path,
-                },
-              )
-            }
-          }
-        }
-      } else {
-        const listId = component.get('listId') || ''
-        log.red(
-          'Encountered a date component but it either did not have a dataKey ' +
-            'or the dataKey is invalid',
-          {
-            component: component.snapshot(),
-            listData: getList(listId),
-            listItem: getListItem(listId, component.get('listItemIndex')),
-          },
-        )
-      }
     }
 
     /* -------------------------------------------------------
@@ -203,7 +117,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
     }
 
     /* -------------------------------------------------------
-      ---- REFERENCES
+      ---- REFERENCES / DATAKEY 
     -------------------------------------------------------- */
     if (_.isString(dataKey)) {
       // Component is retrieving data from a list
@@ -236,7 +150,74 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
               : component.get('text') || component.get('placeholder'),
           )
         } else {
-          component.set('data-value', data)
+          // Date components
+          if (component.get('text=func')) {
+            // These date components receive their values from a list
+            if (dataKey.startsWith('itemObject')) {
+              let path
+              const listId = component.get('listId')
+              const listItemIndex = component.get('listItemIndex')
+              itemObject = getListItem(listId, listItemIndex)
+
+              if (!itemObject) {
+                log.red(
+                  'Expected an itemObject for a date component but received an invalid value instead',
+                  {
+                    component: component.snapshot(),
+                    itemObject,
+                    listData: getList(listId || ''),
+                  },
+                )
+                // Default to showing the dataKey even when its a raw reference
+                component.set(
+                  'data-value',
+                  showDataKey ? dataKey : getFallbackDataValue(component),
+                )
+              } else {
+                const textFunc = component.get('text=func')
+                if (_.isFunction(textFunc)) {
+                  path = dataKey.split('.').slice(1)
+                  const ecosDate = _.get(itemObject, path)
+                  if (ecosDate == undefined) {
+                    log.red(
+                      `Tried to retrieve the date value from an itemObject using ` +
+                        `the path "${dataKey}" but received null or undefined instead`,
+                      {
+                        component: component.snapshot(),
+                        listData: getList(listId || ''),
+                        listItem: getListItem(listId, listItemIndex),
+                        listItemIndex,
+                        path,
+                      },
+                    )
+                  }
+                  if (ecosDate === dataKey) {
+                    // Allow the raw dataKey (unparsed) to show in pages if
+                    // showDataKey is true
+                    component.set(
+                      'data-value',
+                      showDataKey ? dataKey : getFallbackDataValue(component),
+                    )
+                  } else {
+                    component.set('data-value', textFunc(ecosDate))
+                  }
+                } else {
+                  log.red(
+                    `Expected text=func to be a function but it was a type "${typeof textFunc}"`,
+                    {
+                      component: component.snapshot(),
+                      listData: getList(listId || ''),
+                      listItem: getListItem(listId, listItemIndex),
+                      listItemIndex,
+                      path,
+                    },
+                  )
+                }
+              }
+            }
+          } else {
+            component.set('data-value', data)
+          }
         }
 
         if (!itemObject) {

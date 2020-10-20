@@ -25,29 +25,33 @@ export function getDocumentScrollTop() {
  * Opens the file select window. The promise resolves when a file was
  * selected, which becomes the resolved value
  */
-export function onSelectFile(): Promise<File> {
-  return new Promise((resolve, reject) => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.onchange = (e: any) => {
-      let file = e.target?.files?.[0]
-      try {
-        input.remove()
-      } catch (error) {
-        console.error(error)
-      }
-      resolve(file)
+export function onSelectFile(
+  onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
+) {
+  const input = document.createElement('input')
+  input.style['visibility'] = 'hidden'
+  input['type'] = 'file'
+  input['onerror'] = (msg, source, lineNum, columnNum, err) =>
+    onSelect(err as Error)
+  input['onabort'] = (e) => console.log(`onabort`, e)
+  input['oncancel'] = (e) => console.log(`oncancel`, e)
+  input['onclose'] = (e) => console.log(`onclose`, e)
+  input['onblur'] = (e) => console.log(`onblur`, e)
+  input['onended'] = (e) => console.log(`onended`, e)
+  input['onsuspend'] = (e) => console.log('onsuspend', e)
+  input['onchange'] = (e: any) => {
+    e.preventDefault?.()
+    e.stopPropagation?.()
+    try {
+      document.body.removeChild(input)
+    } catch (error) {
+      window.alert(error.message)
+      console.error(error)
     }
-    input.onerror = reject
-    input.onabort = (e) => console.log(`onabort`, e)
-    input.oncancel = (e) => console.log(`oncancel`, e)
-    input.onclose = (e) => console.log(`onclose`, e)
-    input.onblur = (e) => console.log(`onblur`, e)
-    input.onended = (e) => console.log(`onended`, e)
-    input.onsuspend = (e) => console.log('onsuspend', e)
-    input.style.display = 'none'
-    input.click()
-  })
+    onSelect(null, { e, files: e.target?.files })
+  }
+  document.body.appendChild(input)
+  input.click()
 }
 
 export function getOffset(el: HTMLElement) {

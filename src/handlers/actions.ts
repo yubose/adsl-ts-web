@@ -179,7 +179,7 @@ const createActions = function ({ page }: { page: IPage }) {
         log.red(
           `Received a string as an object property of updateObject. ` +
             `Possibly parsed incorrectly?`,
-          { action, object, ...options, ...opts },
+          { object, ...options, ...opts, action },
         )
       } else if (_.isArray(object)) {
         for (let index = 0; index < object.length; index++) {
@@ -238,7 +238,6 @@ const createActions = function ({ page }: { page: IPage }) {
 
     try {
       const callObjectOptions = { action, file, ...options }
-      log.info('callObjectOptions', callObjectOptions)
       // This is the more older version of the updateObject action object where it used
       // the "object" property
       if ('object' in action.original) {
@@ -268,14 +267,19 @@ const createActions = function ({ page }: { page: IPage }) {
           // so we inject logic for the file input window to open for the user
           // to select a file from their file system before proceeding
           // the action chain
-          return onSelectFile()
-            .then((file: File) => fn(action, options, { file }))
-            .catch((err) => {
-              console.error(err)
-              return fn(action, options)
+          try {
+            return onSelectFile((err, { files } = {}) => {
+              const file = files?.[0]
+              if (file) fn(action, options, { file })
             })
+          } catch (err) {
+            window.alert(err.message)
+            console.error(err)
+            return fn(action, options)
+          }
+        } else {
+          return fn(action, options)
         }
-        return fn(action, options)
       }
       return acc
     },

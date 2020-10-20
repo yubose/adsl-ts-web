@@ -80,6 +80,7 @@ const getListChildren: ResolverFn = (
       const mergingProps = {
         blueprint: jsBlueprint,
         iteratorVar: iteratorVar,
+        listItem,
         listId,
         listItemIndex,
       }
