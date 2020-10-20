@@ -9,7 +9,7 @@ describe('ListComponent', () => {
       iteratorVar: 'colorful',
     })
     const listComponent = new ListComponent(noodlListComponent)
-    expect(listComponent.listObject).to.equal(noodlListComponent.listObject)
+    expect(listComponent.data()).to.equal(noodlListComponent.listObject)
   })
 
   it('should return the iteratorVar', () => {

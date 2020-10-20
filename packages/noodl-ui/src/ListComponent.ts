@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Component from './Component'
+import Logger from 'logsnap'
 import {
   ComponentType,
   IComponent,
@@ -7,7 +7,8 @@ import {
   NOODLComponent,
   NOODLComponentType,
 } from './types'
-import Logger from 'logsnap'
+import Component from './Component'
+import ListItemComponent from './ListItemComponent'
 
 const log = Logger.create('ListComponent')
 
@@ -16,22 +17,38 @@ class ListComponent extends Component {
   #blueprint: NOODLComponent
   #children: Map<IComponent, IComponent> = new Map()
 
-  constructor([component]: ConstructorParameters<IComponentConstructor>) {
+  constructor(...args: ConstructorParameters<IComponentConstructor>) {
     super(...args)
     this.#data = this.get('listObject') || []
     // TODO - set blueprint
+    const listObject = this.get('listObject')
+    const iteratorVar = this.get('iteratorVar')
+
+    if (listObject) {
+      if (_.isArray(listObject)) {
+        _.forEach(listObject, (dataObject) => {
+          const child = new ListItemComponent({ iteratorVar })
+          child.set(iteratorVar, dataObject)
+          this.createChild(child)
+        })
+      } else {
+        const child = new ListItemComponent({ iteratorVar })
+        child.setData(iteratorVar, listObject)
+        this.createChild(child)
+      }
+    }
   }
 
   get iteratorVar() {
     return this.get('iteratorVar')
   }
 
-  get listObject() {
-    return this.#data
+  blueprint() {
+    return this.#blueprint
   }
 
-  get blueprint() {
-    return this.#blueprint
+  data() {
+    return this.#data
   }
 
   addListItem(component: IComponent): IComponent

@@ -9,13 +9,25 @@ import {
 
 class ListItemComponent extends Component {
   #list: any[]
+  #dataObject: any
 
-  constructor(...args: ConstructorParameters<IComponentConstructor>) {
-    super(...args)
-    this.#list = this.get('listObject') || []
+  constructor(...args: ConstructorParameters<IComponentConstructor>)
+  constructor()
+  constructor(...args: any | ConstructorParameters<IComponentConstructor>) {
+    super(
+      ...((args.length
+        ? args
+        : [{ type: 'listItem' }]) as ConstructorParameters<
+        IComponentConstructor
+      >),
+    )
   }
 
-  addChild(child: ComponentType | NOODLComponentType) {
+  get iteratorVar() {
+    return this.get('iteratorVar')
+  }
+
+  createChild(child: ComponentType | NOODLComponentType) {
     let childComponent: IComponent
     let listItem: any
     if (_.isString(child)) {
@@ -34,15 +46,15 @@ class ListItemComponent extends Component {
   }
 
   data() {
-    return this.#list
+    return this.#dataObject
   }
 
-  iteratorVar() {
-    return this.get('iteratorVar')
+  setData(data: any) {
+    this.#dataObject = data
   }
 
   set(...args: Parameters<Component['set']>) {
-    if (args[0] === 'listObject') this.#setData(args[1])
+    if (args[0] === this.iteratorVar) this.setData(args[1])
     super.set(...args)
     return this
   }
