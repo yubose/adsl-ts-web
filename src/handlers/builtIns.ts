@@ -29,6 +29,7 @@ const createBuiltInActions = function ({
   const builtInActions: BuiltInActions = {}
 
   builtInActions.toggleFlag = async (action, options) => {
+    console.log({ action, ...options })
     const { default: noodl } = await import('app/noodl')
     log.func('toggleFlag')
 
