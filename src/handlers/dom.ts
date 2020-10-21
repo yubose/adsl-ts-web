@@ -68,7 +68,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
     } else {
       let text = ''
       text = props['data-value'] || ''
-      if (!text && children) text = children
+      if (!text && children) text = `${children}` || ''
       if (!text && placeholder) text = placeholder
       if (!text) text = ''
       if (text) node.innerHTML = `${text}`
@@ -88,7 +88,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
 
       if (eventName) {
         // TODO: Test this
-        const eventFn = async (...args: any[]) => {
+        const eventFn = (...args: any[]) => {
           log.func('on all --> eventFn')
           log.grey(`User action invoked handler`, {
             props,
@@ -155,7 +155,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
   }
   if (!node.innerHTML.trim()) {
     if (isDisplayable(props['data-value'])) {
-      node.innerHTML = `${props['data-value']}}`
+      node.innerHTML = `${props['data-value']}`
     } else if (isDisplayable(children)) {
       node.innerHTML = `${children}`
     } else if (isDisplayable(props.text)) {
