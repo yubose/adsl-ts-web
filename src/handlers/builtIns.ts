@@ -129,7 +129,7 @@ const createBuiltInActions = function ({
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => {}
+  builtInActions.checkVerificationCode = async (action) => { }
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -157,6 +157,7 @@ const createBuiltInActions = function ({
 
   builtInActions.goBack = () => {
     let { previousPage } = page
+    console.log('Good Thursday to you all', page.pageStack)
     if (!previousPage) {
       // Hard code this for now until routing is implemented
       let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
@@ -170,6 +171,7 @@ const createBuiltInActions = function ({
               if (pg && pg !== page.currentPage && pg !== page.previousPage) {
                 log.green(`Updated previous page: ${page.previousPage}`)
                 previousPage = pg
+                page.requestPageChange(previousPage)
                 break
               }
             }
@@ -180,12 +182,14 @@ const createBuiltInActions = function ({
       }
     }
     if (previousPage) {
-      page.requestPageChange(previousPage)
+      page.pageStack.pop()
+      let prevPage = page.pageStack.pop()
+      page.requestPageChange(prevPage)
     } else {
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
-          'be found',
+        'be found',
         { previousPage: page.previousPage, currentPage: page.currentPage },
       )
     }
@@ -269,9 +273,9 @@ const createBuiltInActions = function ({
     // Re-render the current list item somehow
   }
 
-  builtInActions.signIn = async (action, options) => {}
-  builtInActions.signUp = async () => {}
-  builtInActions.signout = async () => {}
+  builtInActions.signIn = async (action, options) => { }
+  builtInActions.signUp = async () => { }
+  builtInActions.signout = async () => { }
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -366,7 +370,7 @@ const createBuiltInActions = function ({
         log.func('UploadFile')
         log.green(
           `Attached the Blob/File "${title}" of type "${file?.type}" on ` +
-            `root.${pageName}.${nameFieldPath}`,
+          `root.${pageName}.${nameFieldPath}`,
           file,
         )
       }
