@@ -4,6 +4,7 @@ import {
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
   getByDataUX,
+  getDataValues,
   isReference,
   NOODLActionType,
   NOODLEvalObject,
@@ -65,6 +66,8 @@ const createActions = function ({ page }: { page: IPage }) {
     action: Action<NOODLPopupBaseObject | NOODLPopupDismissObject>,
     options,
   ) => {
+    log.func('popUp')
+    log.grey('', { action, ...options })
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
     if (elem) {
       if (action.original.actionType === 'popUp') {
@@ -82,6 +85,8 @@ const createActions = function ({ page }: { page: IPage }) {
   }
 
   _actions.popUpDismiss = async (action: any, options) => {
+    log.func('popUpDismiss')
+    log.grey('', { action, ...options })
     return _actions.popUp(action, options)
   }
 
@@ -270,16 +275,23 @@ const createActions = function ({ page }: { page: IPage }) {
           try {
             return onSelectFile((err, { files } = {}) => {
               const file = files?.[0]
-              if (file) fn(action, options, { file })
+              if (file) return fn(action, options, { file })
             })
           } catch (err) {
             window.alert(err.message)
             console.error(err)
             return fn(action, options)
           }
-        } else {
-          return fn(action, options)
         }
+        /**
+         * TEMP workaround until we write an official solution
+         * Currently popUp components can have stale data values. Here's an injection to
+         * re-query the data values
+         */
+        if (['popUp', 'popUpDismiss'].includes(action.actionType)) {
+          const dataValues = getDataValues()
+        }
+        return fn(action, options)
       }
       return acc
     },

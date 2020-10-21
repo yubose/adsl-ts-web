@@ -13,6 +13,62 @@ export function copyToClipboard(value: string) {
   textarea.remove()
 }
 
+export function forEachChildNode(
+  node: NOODLDOMElement | ChildNode,
+  cb: (node: ChildNode, index: number, parent: NodeListOf<ChildNode>) => void,
+) {
+  node?.childNodes?.forEach?.((childNode, index, parent) => {
+    cb(childNode, index, parent)
+    childNode.childNodes?.forEach?.((childOfChildNode) =>
+      forEachChildNode(childOfChildNode, cb),
+    )
+  })
+}
+
+export function forEachDeepChildNode(
+  node: Parameters<typeof forEachChildNode>[0],
+  cb: Parameters<typeof forEachChildNode>[1],
+  {
+    on,
+  }: {
+    on?: {
+      attribute: boolean
+      comment?: boolean
+      element?: boolean
+      text?: boolean
+    }
+  } = {},
+) {
+  if (node?.childNodes.length) {
+    const callOnNodeTypes = [] as number[]
+    const callCb = (...args: Parameters<typeof cb>) => {
+      if (callOnNodeTypes.length) {
+        if (callOnNodeTypes.includes(args[0].nodeType)) cb(...args)
+      } else {
+        // Default to calling the cb on all child nodes
+        cb(...args)
+      }
+    }
+    if (on) {
+      forEachEntries(
+        on,
+        (
+          key: 'attribute' | 'comment' | 'element' | 'text',
+          value: boolean | undefined,
+        ) => {
+          if (value) {
+            if (key === 'attribute') callOnNodeTypes.push(1)
+            else if (key === 'comment') callOnNodeTypes.push(1)
+            else if (key === 'element') callOnNodeTypes.push(1)
+            else if (key === 'text') callOnNodeTypes.push(1)
+          }
+        },
+      )
+    }
+    forEachChildNode(node, callCb)
+  }
+}
+
 export function getDocumentScrollTop() {
   // IE8 used `document.documentElement`
   return (

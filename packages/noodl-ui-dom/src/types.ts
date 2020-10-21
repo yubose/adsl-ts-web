@@ -29,10 +29,9 @@ export type NOODLDOMEvent = NOODLDOMComponentEvent | 'all'
 
 export type NOODLDOMElementTypes = keyof NOODLDOMElements
 
-export type NOODLDOMElement = Extract<
-  NOODLDOMElements[NOODLDOMElementTypes],
-  HTMLElement
->
+export type NOODLDOMElement =
+  | ChildNode
+  | Extract<NOODLDOMElements[NOODLDOMElementTypes], HTMLElement>
 
 export type NOODLDOMElements = Pick<
   HTMLElementTagNameMap,

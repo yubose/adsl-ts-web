@@ -13,10 +13,11 @@ noodluidom.on('all', function onCreateNode(node, props) {
   if (!node) return
 
   const {
-    id,
+    children,
+    id = '',
     options,
-    placeholder,
-    poster,
+    placeholder = '',
+    poster = '',
     src,
     style,
     type,
@@ -26,7 +27,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = props['data-listdata']
 
-  if (id) node['id'] = props.id
+  if (id) node['id'] = id
   if (placeholder) node.setAttribute('placeholder', placeholder)
   if (type === 'video' && poster) node.setAttribute('poster', poster)
   if (src && type !== 'video') node.setAttribute('src', src)
@@ -64,15 +65,19 @@ noodluidom.on('all', function onCreateNode(node, props) {
     } else if ('text=func' in props && props['data-value']) {
       node.innerHTML = props['data-value']
     } else {
-      node.innerHTML = props['data-value'] || props.placeholder || ''
+      let text = ''
+      text = props['data-value']
+      if (!text) text = `${children}`
+      if (!text) text = placeholder
+      if (!text) text = ''
     }
   }
 
   // For non data-value elements like labels or divs that just display content
   // If there's no data-value (which takes precedence here), use the placeholder
   // to display as a fallback
-  if (!props['data-value'] && props.placeholder) {
-    node.innerHTML = props.placeholder
+  if (!props['data-value'] && placeholder) {
+    node.innerHTML = placeholder
   }
 
   /** Event handlers */
@@ -155,9 +160,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
     node.appendChild(sourceEl)
   }
   if (_.isString(props.children) || _.isNumber(props.children)) {
-    if (!node.innerHTML.trim()) {
-      node.innerHTML = `${props.children}`
-    }
+    node.innerHTML = `${props.children}`
   }
 })
 
