@@ -157,7 +157,6 @@ const createBuiltInActions = function ({
 
   builtInActions.goBack = () => {
     let { previousPage } = page
-    console.log('Good Thursday to you all', page.pageStack)
     if (!previousPage) {
       // Hard code this for now until routing is implemented
       let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
