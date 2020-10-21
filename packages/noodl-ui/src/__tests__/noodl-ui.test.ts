@@ -2,10 +2,11 @@ import _ from 'lodash'
 import { expect } from 'chai'
 import { IComponent, NOODLComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
+import { mock } from './mockData'
+import ActionChain from '../ActionChain'
 import Component from '../Component'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
-import { mock } from './mockData'
 
 let noodlComponent: NOODLComponent
 let component: IComponent
@@ -368,11 +369,11 @@ describe('noodl-ui', () => {
     })
   })
 
-  xdescribe('resolved component outcomes', () => {
+  describe('resolved component outcomes', () => {
     it('should attach a noodlType property with the original component type', () => {
-      noodlComponent = { type: 'button', text: 'hello' }
+      noodlComponent = { type: 'view', text: 'hello' }
       const resolvedComponent = noodlui.resolveComponents(noodlComponent)
-      expect(resolvedComponent.toJS()).to.have.property('noodlType', 'button')
+      expect(resolvedComponent.toJS()).to.have.property('noodlType', 'view')
     })
 
     it('should convert the onClick to an action chain', () => {
@@ -382,8 +383,7 @@ describe('noodl-ui', () => {
         text: 'hello',
         onClick,
       })
-      const snapshot = resolvedComponent.toJS()
-      expect(snapshot.onClick).to.be.a('function')
+      expect(resolvedComponent.get('onClick')).to.be.instanceOf(ActionChain)
     })
   })
 })
