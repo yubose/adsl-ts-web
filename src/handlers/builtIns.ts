@@ -180,9 +180,15 @@ const createBuiltInActions = function ({
       }
     }
     if (previousPage) {
-      page.pageStack.pop()
-      let prevPage = page.pageStack.pop()
-      page.requestPageChange(prevPage)
+      if (page.pageStack.length > 1) {
+        page.pageStack.pop()
+        let prevPage = page.pageStack.pop()
+        page.requestPageChange(prevPage)
+      }
+      else {
+        page.pageStack.pop();
+        page.requestPageChange("SideMenuBar")
+      }
     } else {
       log.func('goBack')
       log.red(
