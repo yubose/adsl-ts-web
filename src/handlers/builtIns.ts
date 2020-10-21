@@ -13,12 +13,10 @@ import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
 import validate from 'utils/validate'
-import { forEachDeepEntries } from 'utils/common'
 import { toggleVisibility } from 'utils/dom'
 import { BuiltInActions } from 'app/types'
 import { NOODLBuiltInCheckFieldObject } from 'app/types/libExtensionTypes'
 import Meeting from '../meeting'
-import { evalIf } from '../../packages/noodl-ui/dist'
 
 const log = Logger.create('builtIns.ts')
 
@@ -129,7 +127,7 @@ const createBuiltInActions = function ({
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => { }
+  builtInActions.checkVerificationCode = async (action) => {}
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -189,7 +187,7 @@ const createBuiltInActions = function ({
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
-        'be found',
+          'be found',
         { previousPage: page.previousPage, currentPage: page.currentPage },
       )
     }
@@ -273,9 +271,9 @@ const createBuiltInActions = function ({
     // Re-render the current list item somehow
   }
 
-  builtInActions.signIn = async (action, options) => { }
-  builtInActions.signUp = async () => { }
-  builtInActions.signout = async () => { }
+  builtInActions.signIn = async (action, options) => {}
+  builtInActions.signUp = async () => {}
+  builtInActions.signout = async () => {}
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -328,54 +326,36 @@ const createBuiltInActions = function ({
     }
   }
 
-  builtInActions.UploadFile = (action, options) => {
+  builtInActions.UploadFile = async (action, options, { file }) => {
     log.func('UploadFile')
-    log.grey('', { action, ...options })
 
-    const input = document.createElement('input')
-    input.type = 'file'
-    // TODO: string files
-    input.onchange = async (e: any) => {
-      let file = e.target?.files?.[0]
-      let title = file?.name || ''
-      let dataValues = getDataValues<{ title: string }, 'title'>()
+    let dataValues = getDataValues<{ title: string }, 'title'>()
 
-      const params: {
-        title: string
-        content: File | Blob
-      } = { content: file, title: dataValues.title } as {
-        title: string
-        content: File | Blob
-      }
-
-      if (dataValues.title) {
-        log.func('UploadFile')
-        log.grey('Values', params)
-        console.log(
-          `%c[useBuiltInActions.tsx][builtIn -- UploadPhoto] Values`,
-          `color:#FF5722;font-weight:bold;`,
-          params,
-        )
-
-        const nameFieldPath = ''
-
-        const { default: noodl } = await import('app/noodl')
-
-        const pageName = options.context?.page?.name || ''
-
-        noodl.editDraft((draft: Draft<any>) => {
-          _.set(draft?.[pageName], nameFieldPath, file)
-        })
-
-        log.func('UploadFile')
-        log.green(
-          `Attached the Blob/File "${title}" of type "${file?.type}" on ` +
-          `root.${pageName}.${nameFieldPath}`,
-          file,
-        )
-      }
+    const params: {
+      title: string
+      content: File | Blob
+    } = { content: file, title: dataValues.title } as {
+      title: string
+      content: File | Blob
     }
-    input.click()
+
+    log.grey('', { file, params, action, ...options })
+
+    const nameFieldPath = ''
+
+    const { default: noodl } = await import('app/noodl')
+
+    const pageName = options.context?.page?.name || ''
+
+    noodl.editDraft((draft: Draft<any>) => {
+      _.set(draft?.[pageName], nameFieldPath, file)
+    })
+
+    log.green(
+      `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
+        `root.${pageName}.${nameFieldPath}`,
+      file,
+    )
   }
 
   builtInActions.UploadPhoto = builtInActions.UploadFile

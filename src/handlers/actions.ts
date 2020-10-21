@@ -75,6 +75,31 @@ const createActions = function ({ page }: { page: IPage }) {
       } else if (action.original.actionType === 'popUpDismiss') {
         elem.style.visibility = 'hidden'
       }
+      // const vcodeInput = document.querySelector(
+      //   `input[data-key="formData.code"]`,
+      // ) as HTMLInputElement
+      // if (vcodeInput) {
+      //   const dataValues = getDataValues<
+      //     { phoneNumber?: string },
+      //     'phoneNumber'
+      //   >()
+      //   if (String(dataValues?.phoneNumber).startsWith('888')) {
+      //     import('app/noodl').then(({ default: noodl }) => {
+      //       const pathToTage = 'verificationCode.response.edge.tage'
+      //       const vcode = _.get(noodl.root?.SignIn, pathToTage, '')
+      //       if (vcode) {
+      //         vcodeInput.value = vcode
+      //         console.log({
+      //           dataValues,
+      //           pathToTage,
+      //           SignIn: noodl.root.SignIn,
+      //           vcode,
+      //           vcodeInput,
+      //         })
+      //       }
+      //     })
+      //   }
+      // }
     } else {
       log.func('popUp')
       log.red(

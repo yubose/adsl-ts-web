@@ -3,6 +3,7 @@ import Logger from 'logsnap'
 import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
 import { DataValueElement, NodePropsFunc } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
+import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
 
@@ -66,18 +67,12 @@ noodluidom.on('all', function onCreateNode(node, props) {
       node.innerHTML = props['data-value']
     } else {
       let text = ''
-      text = props['data-value']
+      text = props['data-value'] || ''
       if (!text) text = `${children}`
       if (!text) text = placeholder
       if (!text) text = ''
+      if (text) node.innerHTML = text
     }
-  }
-
-  // For non data-value elements like labels or divs that just display content
-  // If there's no data-value (which takes precedence here), use the placeholder
-  // to display as a fallback
-  if (!props['data-value'] && placeholder) {
-    node.innerHTML = placeholder
   }
 
   /** Event handlers */
@@ -100,9 +95,8 @@ noodluidom.on('all', function onCreateNode(node, props) {
             eventName,
             [key]: value,
           })
-          await value(...args)
-          node.removeEventListener(eventName, eventFn)
-          node.addEventListener(eventName, eventFn)
+          // node.removeEventListener(eventName, eventFn)
+          return value(...args)
         }
         // Attach the event handler
         node.addEventListener(eventName, eventFn)
@@ -159,8 +153,14 @@ noodluidom.on('all', function onCreateNode(node, props) {
     if (src) sourceEl.setAttribute('src', src)
     node.appendChild(sourceEl)
   }
-  if (_.isString(props.children) || _.isNumber(props.children)) {
-    node.innerHTML = `${props.children}`
+  if (!node.innerHTML.trim()) {
+    if (isDisplayable(props['data-value'])) {
+      node.innerHTML = `${props['data-value']}}`
+    } else if (isDisplayable(children)) {
+      node.innerHTML = `${children}`
+    } else if (isDisplayable(props.text)) {
+      node.innerHTML = `${props.text}`
+    }
   }
 })
 

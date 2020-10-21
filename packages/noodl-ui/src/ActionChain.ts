@@ -224,7 +224,14 @@ class ActionChain {
             console.log(onChainStartArgs)
             // TODO: Find out why I did this "init" part
             init = {
-              next: async () => this.#gen?.next(await onChainStartArgs),
+              next: async () => {
+                log.red(`REMINDER: LOOK INTO THIS IF U SEE THIS!!!!!!`, {
+                  onChainStartArgs,
+                  actionChain: this,
+                  buildOptions,
+                })
+                return this.#gen?.next(await onChainStartArgs)
+              },
             }
           } else {
             init = { next: this.#gen.next }

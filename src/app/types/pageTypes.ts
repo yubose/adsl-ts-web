@@ -1,5 +1,4 @@
 import { NOODLComponentProps, Page as NOODLUiPage } from 'noodl-ui'
-import { SerializedError } from './commonTypes'
 import * as constants from '../../constants'
 
 export type IPage = any
@@ -29,11 +28,11 @@ export interface PageRootNodeState {
   id: string
   initializing: boolean
   initialized: boolean
-  initializeError: null | SerializedError
+  initializeError: null | any
 }
 
 export interface PageComponentsRenderState {
   rendering: boolean
   rendered: boolean
-  renderError: null | SerializedError
+  renderError: null | any
 }

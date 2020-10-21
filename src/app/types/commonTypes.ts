@@ -6,10 +6,3 @@ export type AuthStatus =
   | 'new.device'
   | 'temporary'
   | null
-
-export interface SerializedError {
-  name: string
-  message: string
-  code?: number
-  source?: string
-}

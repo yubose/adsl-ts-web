@@ -78,6 +78,15 @@ export function getDocumentScrollTop() {
 }
 
 /**
+ * Returns true if the value can be displayed in the UI as normal.
+ * A displayable value is any value that is a string or number
+ * @param { any } value
+ */
+export function isDisplayable(value: unknown): value is string | number {
+  return value == 0 || typeof value === 'string' || typeof value === 'number'
+}
+
+/**
  * Opens the file select window. The promise resolves when a file was
  * selected, which becomes the resolved value
  */
@@ -85,6 +94,7 @@ export function onSelectFile(
   onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
 ) {
   const input = document.createElement('input')
+  input.id = ''
   input.style['visibility'] = 'hidden'
   input['type'] = 'file'
   input['onerror'] = (msg, source, lineNum, columnNum, err) =>
@@ -96,6 +106,8 @@ export function onSelectFile(
   input['onended'] = (e) => console.log(`onended`, e)
   input['onsuspend'] = (e) => console.log('onsuspend', e)
   input['onchange'] = (e: any) => {
+    console.log(e)
+    console.log({ name: e.target?.name })
     e.preventDefault?.()
     e.stopPropagation?.()
     try {
