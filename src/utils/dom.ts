@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { Styles } from 'app/types'
 import { forEachEntries } from './common'
+import { RoomStatusCallbackInvalidError } from 'twilio-video'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -119,6 +120,7 @@ export function onSelectFile(
     onSelect(null, { e, files: e.target?.files })
   }
   document.body.appendChild(input)
+  console.trace()
   input.click()
 }
 

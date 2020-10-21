@@ -34,7 +34,7 @@ import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { forEachParticipant } from './utils/twilio'
 import { isMobile, reduceEntries } from './utils/common'
-import { copyToClipboard } from './utils/dom'
+import { copyToClipboard, onSelectFile } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
@@ -57,7 +57,40 @@ function enhanceActions(actions: ReturnType<typeof createActions>) {
       acc[key] = (
         action: Action<any>,
         handlerOptions: ActionChainActionCallbackOptions<any>,
-      ) => fn(action, handlerOptions)
+      ) => {
+        const { component } = handlerOptions
+        if (component.get('contentType') === 'file') {
+          // Components with contentType: "file" need a blob/file object
+          // so we inject logic for the file input window to open for the user
+          // to select a file from their file system before proceeding
+          // the action chain
+          try {
+            return onSelectFile((err, { files } = {}) => {
+              const file = files?.[0]
+              console.log(file)
+              console.log(file)
+              console.log(file)
+              console.log(file)
+              console.log(file)
+              // if (file) fn(action, handlerOptions, { file })
+            })
+          } catch (err) {
+            window.alert(err.message)
+            console.error(err)
+            return fn(action, handlerOptions)
+          }
+        } else {
+          /**
+           * TEMP workaround until we write an official solution
+           * Currently popUp components can have stale data values. Here's an injection to
+           * re-query the data values
+           */
+          if (['popUp', 'popUpDismiss'].includes(action.original.actionType)) {
+            const dataValues = getDataValues()
+          }
+          return fn(action, handlerOptions)
+        }
+      }
       return acc
     },
     {},
@@ -494,7 +527,7 @@ window.addEventListener('load', async () => {
             log.func('onCreateNode')
             log.red(
               `Attempted to add an element to a subStream but it ` +
-              `already exists in the subStreams container`,
+                `already exists in the subStreams container`,
               { subStreams, node, props },
             )
           }

@@ -116,7 +116,8 @@ const createBuiltInActions = function ({
     })
   }
 
-  builtInActions.checkField = (action) => {
+  builtInActions.checkField = (action, options) => {
+    log.func('checkField')
     const { contentType } = action as NOODLBuiltInCheckFieldObject
     const node = getByDataUX(contentType)
     if (node) {
@@ -124,6 +125,7 @@ const createBuiltInActions = function ({
         isHidden ? 'visible' : 'hidden',
       )
     }
+    log.grey('', { action, options, node })
   }
 
   // Called on signin + signup
@@ -183,10 +185,9 @@ const createBuiltInActions = function ({
         page.pageStack.pop()
         let prevPage = page.pageStack.pop()
         page.requestPageChange(prevPage)
-      }
-      else {
-        page.pageStack.pop();
-        page.requestPageChange("SideMenuBar")
+      } else {
+        page.pageStack.pop()
+        page.requestPageChange('SideMenuBar')
       }
     } else {
       log.func('goBack')

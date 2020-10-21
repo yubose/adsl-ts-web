@@ -4,7 +4,6 @@ import {
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
   getByDataUX,
-  getDataValues,
   isReference,
   NOODLActionType,
   NOODLEvalObject,
@@ -16,7 +15,6 @@ import {
 } from 'noodl-ui'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
-import { onSelectFile } from 'utils/dom'
 
 const log = Logger.create('actions.ts')
 
@@ -69,6 +67,7 @@ const createActions = function ({ page }: { page: IPage }) {
     log.func('popUp')
     log.grey('', { action, ...options })
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
+    log.gold('popUp action', { action, ...options, elem })
     if (elem) {
       if (action.original.actionType === 'popUp') {
         elem.style.visibility = 'visible'
@@ -287,41 +286,7 @@ const createActions = function ({ page }: { page: IPage }) {
     }
   }
 
-  return _.reduce(
-    _.entries(_actions),
-    (acc: typeof _actions, [key, fn]) => {
-      acc[key as keyof typeof acc] = (action, options) => {
-        const { component } = options
-        if (component.get('contentType') === 'file') {
-          // Components with contentType: "file" need a blob/file object
-          // so we inject logic for the file input window to open for the user
-          // to select a file from their file system before proceeding
-          // the action chain
-          try {
-            return onSelectFile((err, { files } = {}) => {
-              const file = files?.[0]
-              if (file) return fn(action, options, { file })
-            })
-          } catch (err) {
-            window.alert(err.message)
-            console.error(err)
-            return fn(action, options)
-          }
-        }
-        /**
-         * TEMP workaround until we write an official solution
-         * Currently popUp components can have stale data values. Here's an injection to
-         * re-query the data values
-         */
-        if (['popUp', 'popUpDismiss'].includes(action.actionType)) {
-          const dataValues = getDataValues()
-        }
-        return fn(action, options)
-      }
-      return acc
-    },
-    {} as typeof _actions,
-  )
+  return _actions
 }
 
 export default createActions

@@ -8,9 +8,9 @@ const pkg = require('./package.json')
 // const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 
 const htmlPluginOptions = {
+  favicon: 'public/favicon.ico',
   filename: 'index.html',
   title: 'AiTmed Web',
-  cache: true,
 }
 
 const plugins = [

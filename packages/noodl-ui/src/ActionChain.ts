@@ -218,10 +218,16 @@ class ActionChain {
             handlerOptions,
           )
 
+          log.gold('onChainStartArgs', {
+            onChainStartArgs,
+            handlerOptions,
+            event,
+            action,
+          })
+
           // Merge in additional args if any of the actions expect some extra
           // context/data (ex: having file/blobs ready before running the chain)
           if (onChainStartArgs && onChainStartArgs instanceof Promise) {
-            console.log(onChainStartArgs)
             // TODO: Find out why I did this "init" part
             init = {
               next: async () => {
@@ -230,7 +236,8 @@ class ActionChain {
                   actionChain: this,
                   buildOptions,
                 })
-                return this.#gen?.next(await onChainStartArgs)
+                const argsResult = await onChainStartArgs
+                await this.#gen?.next(argsResult)
               },
             }
           } else {
@@ -242,8 +249,21 @@ class ActionChain {
             .then(async (iteratorResult: any) => {
               iterator = iteratorResult
 
+              log.gold('init.next [before]', {
+                iteratorResult,
+                action,
+                handlerOptions,
+                result,
+              })
+
               while (!iterator?.done) {
                 action = iterator?.value?.action
+                log.gold('init.next [during]', {
+                  iteratorResult,
+                  action,
+                  handlerOptions,
+                  result,
+                })
 
                 // Skip to the next loop
                 if (!action) {
@@ -291,6 +311,13 @@ class ActionChain {
                   iterator = await this.#next(result)
                 }
               }
+
+              log.gold('init.next [after]', {
+                iteratorResult,
+                action,
+                handlerOptions,
+                result,
+              })
 
               this.onChainEnd?.(this.actions as Action<any>[], handlerOptions)
               this.#setStatus('done')
