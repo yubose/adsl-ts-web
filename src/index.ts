@@ -136,6 +136,7 @@ window.addEventListener('load', async () => {
   })
 
   page.onStart = async (pageName) => {
+    page.pageStack.push(pageName)
     log.func('page.onStart').grey(`Rendering the DOM for page: "${pageName}"`)
   }
 
@@ -493,7 +494,7 @@ window.addEventListener('load', async () => {
             log.func('onCreateNode')
             log.red(
               `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+              `already exists in the subStreams container`,
               { subStreams, node, props },
             )
           }
