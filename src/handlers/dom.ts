@@ -68,10 +68,10 @@ noodluidom.on('all', function onCreateNode(node, props) {
     } else {
       let text = ''
       text = props['data-value'] || ''
-      if (!text) text = `${children}`
-      if (!text) text = placeholder
+      if (!text && children) text = children
+      if (!text && placeholder) text = placeholder
       if (!text) text = ''
-      if (text) node.innerHTML = text
+      if (text) node.innerHTML = `${text}`
     }
   }
 
