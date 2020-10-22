@@ -101,7 +101,9 @@ noodluidom.on('all', function onCreateNode(node, component) {
             eventName,
             [key]: value,
           })
-          // node.removeEventListener(eventName, eventFn)
+          console.groupCollapsed('', { eventName, node, props })
+          console.trace()
+          console.groupEnd()
           return value(...args)
         }
         // Attach the event handler

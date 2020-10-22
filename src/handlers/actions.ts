@@ -15,6 +15,8 @@ import {
 } from 'noodl-ui'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
+import { onSelectFile } from 'utils/dom'
+import { getDataValues } from '../../packages/noodl-ui/dist'
 
 const log = Logger.create('actions.ts')
 
@@ -66,6 +68,7 @@ const createActions = function ({ page }: { page: IPage }) {
   ) => {
     log.func('popUp')
     log.grey('', { action, ...options })
+    const { context } = options
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
     log.gold('popUp action', { action, ...options, elem })
     if (elem) {
@@ -74,31 +77,38 @@ const createActions = function ({ page }: { page: IPage }) {
       } else if (action.original.actionType === 'popUpDismiss') {
         elem.style.visibility = 'hidden'
       }
-      // const vcodeInput = document.querySelector(
-      //   `input[data-key="formData.code"]`,
-      // ) as HTMLInputElement
-      // if (vcodeInput) {
-      //   const dataValues = getDataValues<
-      //     { phoneNumber?: string },
-      //     'phoneNumber'
-      //   >()
-      //   if (String(dataValues?.phoneNumber).startsWith('888')) {
-      //     import('app/noodl').then(({ default: noodl }) => {
-      //       const pathToTage = 'verificationCode.response.edge.tage'
-      //       const vcode = _.get(noodl.root?.SignIn, pathToTage, '')
-      //       if (vcode) {
-      //         vcodeInput.value = vcode
-      //         console.log({
-      //           dataValues,
-      //           pathToTage,
-      //           SignIn: noodl.root.SignIn,
-      //           vcode,
-      //           vcodeInput,
-      //         })
-      //       }
-      //     })
-      //   }
-      // }
+      // Auto prefills the verification code when ECOS_ENV === 'test'
+      // and when the entered phone number starts with 888
+      if (process.env.ECOS_ENV === 'test') {
+        const vcodeInput = document.querySelector(
+          `input[data-key="formData.code"]`,
+        ) as HTMLInputElement
+        if (vcodeInput) {
+          const dataValues = getDataValues<
+            { phoneNumber?: string },
+            'phoneNumber'
+          >()
+          if (String(dataValues?.phoneNumber).startsWith('888')) {
+            import('app/noodl').then(({ default: noodl }) => {
+              const pageName = context?.page?.name || ''
+              const pathToTage = 'verificationCode.response.edge.tage'
+              let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
+              if (vcode) {
+                vcode = String(vcode)
+                vcodeInput.value = vcode
+                _.set(vcodeInput.dataset, 'value', vcode)
+                noodl.editDraft((draft: any) => {
+                  _.set(
+                    draft[pageName],
+                    (vcodeInput.dataset.key as string) || 'formData.code',
+                    vcode,
+                  )
+                })
+              }
+            })
+          }
+        }
+      }
     } else {
       log.func('popUp')
       log.red(
@@ -189,10 +199,8 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.updateObject = async (
     action: Action<NOODLUpdateObject>,
     options,
-    ctx: { file?: File } = {},
   ) => {
     const { component, stateHelpers } = options
-    const { file } = ctx
     const { default: noodl } = await import('app/noodl')
     log.func('updateObject')
 
@@ -219,13 +227,13 @@ const createActions = function ({ page }: { page: IPage }) {
             // awaited in this line for control flow
             await obj()
           } else {
-            await callObject(obj, options)
+            await callObject(obj, opts)
           }
         }
       } else if (_.isObjectLike(object)) {
         let { dataKey, dataObject } = object
         if (/(file|blob)/i.test(dataObject)) {
-          dataObject = file || dataObject
+          dataObject = opts.file || dataObject
         }
         // TODO - Replace this hardcoded "itemObject" string with iteratorVar
         if (dataObject === 'itemObject') {
@@ -243,7 +251,7 @@ const createActions = function ({ page }: { page: IPage }) {
               listItem,
             })
           }
-          if (!dataObject) dataObject = file
+          if (!dataObject) dataObject = options?.file
         }
         if (dataObject) {
           const params = { dataKey, dataObject }
@@ -253,21 +261,29 @@ const createActions = function ({ page }: { page: IPage }) {
             action,
             state: stateHelpers?.getState?.(),
             ...options,
-            ...ctx,
           })
           await noodl.updateObject(params)
         } else {
           log.red(`dataObject is null or undefined`, {
             action,
             ...options,
-            ...ctx,
           })
         }
       }
     }
 
     try {
-      const callObjectOptions = { action, file, ...options }
+      let file: File | undefined
+      if (action.original?.dataObject === 'BLOB') {
+        const result = await onSelectFile()
+        if (result === 'closed') {
+          // TODO - abort the action chain
+        } else {
+          if (result.files) file = result.files[0]
+        }
+      }
+      const callObjectOptions = { action, ...options } as any
+      if (file) callObjectOptions['file'] = file
       // This is the more older version of the updateObject action object where it used
       // the "object" property
       if ('object' in action.original) {
