@@ -190,7 +190,7 @@ class ActionChain {
     }
 
     // Reset the action chain once its done
-    this.#refresh()
+    // this.#refresh()
 
     return results
   }

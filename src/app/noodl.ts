@@ -32,7 +32,8 @@ function getConfigEndpoint(
   let path = ''
   const base = 'https://public.aitmed.com/config'
   const isLocal = process.env.NODE_ENV === 'development'
-  if (isLocal) {
+  const isLocalExplicit = process.env.USE_DEV_PATHS
+  if (isLocal || isLocalExplicit) {
     const getFilename = (t: typeof type) => {
       switch (type) {
         case 'cadltest':
