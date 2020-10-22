@@ -88,15 +88,19 @@ noodluidom.on('all', function onCreateNode(node, props) {
 
       if (eventName) {
         // TODO: Test this
-        const eventFn = (...args: any[]) => {
+        const eventFn = async (...args: any[]) => {
           log.func('on all --> eventFn')
           log.grey(`User action invoked handler`, {
             props,
             eventName,
             [key]: value,
           })
-          // node.removeEventListener(eventName, eventFn)
-          return value(...args)
+          node.removeEventListener(eventName, eventFn)
+          await value(...args)
+          console.groupCollapsed({ eventName, node, props })
+          console.trace()
+          console.groupEnd()
+          node.addEventListener(eventName, eventFn)
         }
         // Attach the event handler
         node.addEventListener(eventName, eventFn)

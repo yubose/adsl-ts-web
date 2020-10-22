@@ -49,11 +49,8 @@ const createBuiltInActions = function ({
 
     let dataValue: any
     let dataObject: any
-    let previousDataValueInSdk: boolean | undefined = undefined
     let previousDataValue: boolean | undefined = undefined
     let nextDataValue: boolean | undefined = undefined
-    let nextDataValueInSdk: boolean | undefined = undefined
-    let pathToLocalRootListDataInSdk: any
     let newSrc = ''
 
     if (dataKey.startsWith('itemObject')) {
@@ -103,6 +100,7 @@ const createBuiltInActions = function ({
       // just re-use the nextDataValue
       if (valEvaluating === dataKey) {
         valEvaluating = nextDataValue
+        log.magenta(valEvaluating)
       } else {
         valEvaluating =
           _.get(noodl.root, valEvaluating) ||

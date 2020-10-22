@@ -122,7 +122,7 @@ window.addEventListener('load', async () => {
 
   window.ecos_env = process.env.ECOS_ENV
   window.env = process.env.NODE_ENV
-  window.use_dev_paths = process.env.USE_DEV_PATHS
+  window.ecos_dev_paths = process.env.USE_DEV_PATHS
   window.getDataValues = getDataValues
   window.getByDataUX = getByDataUX
   window.noodl = noodl
