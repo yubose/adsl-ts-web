@@ -84,11 +84,14 @@ export interface IComponent {
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): IComponent | undefined
   children(): IComponent[]
-  createChild(child: NOODLComponentType): IComponent
-  createChild(child: ComponentType): IComponent
+  createChild(child: NOODLComponentType): IComponent | undefined
+  createChild(child: ComponentType): IComponent | undefined
+  hasChild(childId: string): boolean
+  hasChild(child: IComponent): boolean
   removeChild(index: number): IComponent | undefined
   removeChild(id: string): IComponent | undefined
-  removeChild(child?: IComponent): IComponent | undefined
+  removeChild(child: IComponent): IComponent | undefined
+  removeChild(): IComponent | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
   get<K extends keyof ProxiedComponent>(
@@ -132,6 +135,16 @@ export interface IComponent {
   touchStyle(styleKey: string): this
 }
 
+export interface IListComponent extends IComponent {
+  getBlueprint(): any
+  getData(): any
+  getDataObject(index: number): any
+  getDataObject(childId: string): any
+  getDataObject(child: IComponent): any
+  iteratorVar: string
+  length: number
+}
+
 export interface IResolver {
   setResolver(resolver: ResolverFn): this
   resolve(component: IComponent, options: ConsumerOptions): this
@@ -140,6 +153,7 @@ export interface IResolver {
 export type ComponentType =
   | IComponent
   | NOODLComponent
+  | NOODLComponentType
   | NOODLComponentProps
   | ProxiedComponent
 
@@ -345,6 +359,8 @@ export interface NOODLTextBoardTextObject {
 /* -------------------------------------------------------
 ---- LIB TYPES
 -------------------------------------------------------- */
+
+export type NOODLComponentCreationType = string | number | ComponentType
 
 export type NOODLComponentProps = Omit<
   NOODLComponent,

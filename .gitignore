@@ -5,3 +5,4 @@ compiled
 _data
 scripts/objects/**
 scripts/ymls/**
+coverage/
