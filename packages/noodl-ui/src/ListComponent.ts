@@ -49,6 +49,10 @@ class ListComponent extends Component {
     return this.get('iteratorVar')
   }
 
+  get length() {
+    return this.#children.length
+  }
+
   getBlueprint() {
     return this.#blueprint
   }
@@ -74,17 +78,21 @@ class ListComponent extends Component {
     return _inst && _inst.get(this.iteratorVar)
   }
 
-  add(child: IComponent) {
+  addChild(child: IComponent) {
     if (child instanceof Component) this.#children.push(child)
     return this
   }
 
-  remove() {}
+  removeChild(...args: Parameters<IComponent['removeChild']>) {
+    const removedChild = super.removeChild(...args)
+    if (this.hasChild(removedChild)) {
+      this.#children = this.#children.filter((c) => c !== removedChild)
+    }
+    return removedChild
+  }
 
-  update() {}
-
-  has(child: IComponent) {
-    return this.#children.includes(child)
+  hasChild(child: IComponent) {
+    return !!child && this.#children.includes(child)
   }
 
   createChild(child: ComponentType | NOODLComponentType) {
@@ -93,15 +101,6 @@ class ListComponent extends Component {
       if (!this.has(childComponent)) this.add(childComponent)
     }
     return childComponent
-  }
-
-  removeChild(child: IComponent) {
-    const removedChild = super.removeChild(child)
-    if (this.#children.has(child)) {
-      this.#children.delete(child)
-      return child
-    }
-    return removedChild
   }
 
   set(...args: Parameters<Component['set']>) {

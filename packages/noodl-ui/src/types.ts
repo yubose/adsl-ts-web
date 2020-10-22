@@ -86,7 +86,9 @@ export interface IComponent {
   children(): IComponent[]
   createChild(child: NOODLComponentType): IComponent
   createChild(child: ComponentType): IComponent
-  removeChild(child?: IComponent | number): IComponent | undefined
+  removeChild(index: number): IComponent | undefined
+  removeChild(id: string): IComponent | undefined
+  removeChild(child?: IComponent): IComponent | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
   get<K extends keyof ProxiedComponent>(

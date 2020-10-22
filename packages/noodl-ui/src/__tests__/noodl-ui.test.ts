@@ -369,7 +369,7 @@ describe('noodl-ui', () => {
     })
   })
 
-  describe('resolved component outcomes', () => {
+  xdescribe('resolved component outcomes', () => {
     it('should attach a noodlType property with the original component type', () => {
       noodlComponent = { type: 'view', text: 'hello' }
       const resolvedComponent = noodlui.resolveComponents(noodlComponent)

@@ -545,17 +545,21 @@ class Component implements IComponent {
 
   /**
    * Removes a child from its children. You can pass in either the instance
-   * directly, the index leading to the child, or leave the args empty to
+   * directly, the index leading to the child, the component's id, or leave the args empty to
    * remove the first child by default
    * @param { Component | number | undefined } child - Child or index
    */
-  removeChild(child?: IComponent | number) {
+  removeChild(child?: IComponent | number | string) {
     let removedChild: IComponent | undefined
-    if (child === undefined) {
+    if (!arguments.length) {
       removedChild = this.#children.shift()
     } else if (_.isNumber(child)) {
       removedChild = this.#children.splice(child, 1)[0]
-    } else {
+    } else if (_.isString(child)) {
+      removedChild = child
+        ? _.find(this.#children, (c) => c.id === child)
+        : undefined
+    } else if (child) {
       if (this.#children.includes(child)) {
         this.#children = _.filter(this.#children, (c) => {
           if (c === child) {

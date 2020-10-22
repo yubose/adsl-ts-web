@@ -109,8 +109,6 @@ export function onSelectFile(): Promise<{ e: any; files: FileList }> {
     input['onchange'] = (e: any) => {
       e.preventDefault()
       e.stopPropagation()
-      console.log(e)
-      console.log(e)
       try {
         document.body.removeChild(input)
       } catch (error) {
