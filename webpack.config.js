@@ -25,6 +25,7 @@ const plugins = [
   new webpack.DefinePlugin({
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+    'process.env.USE_DEV_PATHS': JSON.stringify(process.env.USE_DEV_PATHS),
   }),
   new HtmlWebpackPlugin(htmlPluginOptions),
 ]
