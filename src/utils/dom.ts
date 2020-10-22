@@ -1,8 +1,10 @@
 import _ from 'lodash'
 import { NOODLDOMElement } from 'noodl-ui-dom'
+import Logger from 'logsnap'
 import { Styles } from 'app/types'
 import { forEachEntries } from './common'
-import { RoomStatusCallbackInvalidError } from 'twilio-video'
+
+const log = Logger.create('src/utils/dom.ts')
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -91,21 +93,16 @@ export function isDisplayable(value: unknown): value is string | number {
  * Opens the file select window. The promise resolves when a file was
  * selected, which becomes the resolved value
  */
-export function onSelectFile(): Promise<{ e: any; files: FileList }> {
+export function onSelectFile(): Promise<
+  { e: any; files: FileList } | 'closed'
+> {
   // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
   return new Promise((resolve, reject) => {
     const input = document.createElement('input')
-    input.id = ''
     input.style['visibility'] = 'hidden'
     input['type'] = 'file'
     input['onerror'] = (msg, source, lineNum, columnNum, err) =>
       reject(err as Error)
-    input['onabort'] = (e) => console.log(`onabort`, e)
-    input['oncancel'] = (e) => console.log(`oncancel`, e)
-    input['onclose'] = (e) => console.log(`onclose`, e)
-    input.onblur = (e) => console.log(`onblur`, e)
-    input['onended'] = (e) => console.log(`onended`, e)
-    input['onsuspend'] = (e) => console.log('onsuspend', e)
     input['onchange'] = (e: any) => {
       e.preventDefault()
       e.stopPropagation()
@@ -119,6 +116,13 @@ export function onSelectFile(): Promise<{ e: any; files: FileList }> {
       resolve({ e, files: e.target?.files })
     }
     document.body.appendChild(input)
+    const onClose = (e: FocusEvent) => {
+      log.func('onSelectFile --> onClose')
+      log.grey(`User has closed the file window`)
+      document.body.removeEventListener('focus', onClose)
+      resolve('closed')
+    }
+    document.body.addEventListener('focus', onClose)
     input.click()
   })
 }

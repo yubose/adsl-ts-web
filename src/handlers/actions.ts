@@ -275,8 +275,12 @@ const createActions = function ({ page }: { page: IPage }) {
     try {
       let file: File | undefined
       if (action.original?.dataObject === 'BLOB') {
-        const { e, files } = await onSelectFile()
-        if (files) file = files[0]
+        const result = await onSelectFile()
+        if (result === 'closed') {
+          // TODO - abort the action chain
+        } else {
+          if (result.files) file = result.files[0]
+        }
       }
       const callObjectOptions = { action, ...options } as any
       if (file) callObjectOptions['file'] = file
