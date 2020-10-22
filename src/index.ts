@@ -36,7 +36,12 @@ import {
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { forEachParticipant } from './utils/twilio'
-import { callAll, isMobile, reduceEntries } from './utils/common'
+import {
+  callAll,
+  forEachEntries,
+  isMobile,
+  reduceEntries,
+} from './utils/common'
 import { copyToClipboard, onSelectFile } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
@@ -245,8 +250,8 @@ window.addEventListener('load', async () => {
               [] as IResolver[],
             ),
           )
-<<<<<<< HEAD
           .on('builtIn', {
+            checkField: builtIn.checkField,
             checkUsernamePassword: builtIn.checkUsernamePassword,
             enterVerificationCode: builtIn.checkVerificationCode,
             goBack: builtIn.goBack,
@@ -263,27 +268,6 @@ window.addEventListener('load', async () => {
 
         forEachEntries(actions, (key, value) => noodlui.on(key, value))
         forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
-=======
-          .addLifecycleListener({
-            action: actions,
-            builtIn: {
-              checkUsernamePassword: builtIn.checkUsernamePassword,
-              checkField: builtIn.checkField,
-              enterVerificationCode: builtIn.checkVerificationCode,
-              goBack: builtIn.goBack,
-              lockApplication: builtIn.lockApplication,
-              logOutOfApplication: builtIn.logOutOfApplication,
-              logout: builtIn.logout,
-              signIn: builtIn.signIn,
-              signUp: builtIn.signUp,
-              signout: builtIn.signout,
-              toggleCameraOnOff: builtIn.toggleCameraOnOff,
-              toggleFlag: builtIn.toggleFlag,
-              toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-            },
-            ...lifeCycles,
-          } as any)
->>>>>>> dev
 
         log.func('page.onBeforePageRender')
         log.green('Initialized noodl-ui client', noodl)
