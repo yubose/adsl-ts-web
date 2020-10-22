@@ -15,6 +15,7 @@ import {
   ProxiedComponent,
 } from './types'
 import { forEachEntries } from './utils/common'
+import { createNOODLComponent } from './utils/noodl'
 
 const log = Logger.create('Component')
 
@@ -518,9 +519,11 @@ class Component implements IComponent {
 
   /**
    * Creates and appends the new child instance to the childrens list
-   * @param { NOODLComponent } props
+   * @param { ComponentType | NOODLComponentType } props
    */
-  createChild(child: ComponentType | NOODLComponentType): IComponent {
+  createChild(
+    child: ComponentType | NOODLComponentType,
+  ): IComponent | undefined {
     let childComponent: IComponent
     let id: string = `${this.id}`
     if (this.length >= 1) id += `[${this.length}]`
@@ -530,6 +533,7 @@ class Component implements IComponent {
     } else if (child instanceof Component) {
       childComponent = child as IComponent
     } else {
+      if (!child?.type) return
       childComponent = new Component({ ...child, id }) as IComponent
     }
     // Resync the child's id to match the parent's id. This can possibly be the
@@ -537,10 +541,21 @@ class Component implements IComponent {
     // instances to shortcut into parsing
     if (id !== childComponent.id) childComponent['id'] = id
     childComponent.setParent(this as IComponent)
-    if (!this.#children.includes(childComponent)) {
-      this.#children.push(childComponent)
-    }
+    this.#children.push(childComponent)
     return childComponent
+  }
+
+  /**
+   * Returns true if the child exists in the tree
+   * @param { Component | string } child - Child component or id
+   */
+  hasChild(child: IComponent | string): boolean {
+    if (_.isString(child)) {
+      return !!_.find(this.#children, (c) => c?.id === child)
+    } else if (child instanceof Component) {
+      return this.#children.includes(child)
+    }
+    return false
   }
 
   /**

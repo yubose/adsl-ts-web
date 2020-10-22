@@ -3,16 +3,18 @@ import Logger from 'logsnap'
 import {
   ComponentType,
   IComponent,
+  IListComponent,
   IComponentConstructor,
   NOODLComponent,
   NOODLComponentType,
 } from './types'
+import { createNOODLComponent } from './utils/noodl'
 import Component from './Component'
 import ListItemComponent from './ListItemComponent'
 
 const log = Logger.create('ListComponent')
 
-class ListComponent extends Component {
+class ListComponent extends Component implements IListComponent {
   #data: any[]
   #blueprint: NOODLComponent
   #children: IComponent[] = []
@@ -46,7 +48,7 @@ class ListComponent extends Component {
   }
 
   get iteratorVar() {
-    return this.get('iteratorVar')
+    return this.get('iteratorVar') || ''
   }
 
   get length() {
@@ -78,29 +80,20 @@ class ListComponent extends Component {
     return _inst && _inst.get(this.iteratorVar)
   }
 
-  addChild(child: IComponent) {
-    if (child instanceof Component) this.#children.push(child)
-    return this
+  createChild(...args: Parameters<IComponent['createChild']>) {
+    const child = super.createChild(...args)
+    if (child?.noodlType === 'listItem') {
+      this.#children.push(child)
+    }
+    return child
   }
 
   removeChild(...args: Parameters<IComponent['removeChild']>) {
     const removedChild = super.removeChild(...args)
-    if (this.hasChild(removedChild)) {
+    if (removedChild && this.hasChild(removedChild)) {
       this.#children = this.#children.filter((c) => c !== removedChild)
     }
     return removedChild
-  }
-
-  hasChild(child: IComponent) {
-    return !!child && this.#children.includes(child)
-  }
-
-  createChild(child: ComponentType | NOODLComponentType) {
-    let childComponent: IComponent = super.createChild(child)
-    if (childComponent.noodlType === 'listItem') {
-      if (!this.has(childComponent)) this.add(childComponent)
-    }
-    return childComponent
   }
 
   set(...args: Parameters<Component['set']>) {
