@@ -33,7 +33,7 @@ import {
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { forEachParticipant } from './utils/twilio'
-import { isMobile, reduceEntries } from './utils/common'
+import { callAll, isMobile, reduceEntries } from './utils/common'
 import { copyToClipboard, onSelectFile } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
@@ -54,36 +54,39 @@ function enhanceActions(actions: ReturnType<typeof createActions>) {
   return reduceEntries(
     actions,
     (acc, { key, value: fn }) => {
-      acc[key] = (
-        action: Action<any>,
-        handlerOptions: ActionChainActionCallbackOptions<any>,
-      ) => {
-        if (action.original.dataObject === 'BLOB') {
-          // Components with contentType: "file" need a blob/file object
-          // so we inject logic for the file input window to open for the user
-          // to select a file from their file system before proceeding
-          // the action chain
-          try {
-            return Promise.resolve(onSelectFile()).then(({ e, files }) =>
-              fn(action, handlerOptions, { e, file: files?.[0] }),
-            )
-          } catch (err) {
-            window.alert(err.message)
-            console.error(err)
-            return fn(action, handlerOptions)
+      acc[key] = callAll(
+        (
+          action: Action<any>,
+          handlerOptions: ActionChainActionCallbackOptions<any>,
+        ) => {
+          if (action.original.dataObject === 'BLOB') {
+            // Components with contentType: "file" need a blob/file object
+            // so we inject logic for the file input window to open for the user
+            // to select a file from their file system before proceeding
+            // the action chain
+            try {
+              Promise.resolve(onSelectFile()).then(({ e, files }) =>
+                fn(action, handlerOptions, { e, file: files?.[0] }),
+              )
+            } catch (err) {
+              window.alert(err.message)
+              console.error(err)
+            }
+          } else {
+            /**
+             * TEMP workaround until we write an official solution
+             * Currently popUp components can have stale data values. Here's an injection to
+             * re-query the data values
+             */
+            if (
+              ['popUp', 'popUpDismiss'].includes(action.original.actionType)
+            ) {
+              const dataValues = getDataValues()
+            }
           }
-        } else {
-          /**
-           * TEMP workaround until we write an official solution
-           * Currently popUp components can have stale data values. Here's an injection to
-           * re-query the data values
-           */
-          if (['popUp', 'popUpDismiss'].includes(action.original.actionType)) {
-            const dataValues = getDataValues()
-          }
-          return fn(action, handlerOptions)
-        }
-      }
+        },
+        fn,
+      )
       return acc
     },
     {},
@@ -142,7 +145,7 @@ window.addEventListener('load', async () => {
   const page = new Page()
   const app = new App({ viewport })
   const builtIn = createBuiltInActions({ page, noodluidom })
-  const actions = enhanceActions(createActions({ page }))
+  const actions = createActions({ page })
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
 

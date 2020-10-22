@@ -15,6 +15,7 @@ import {
 } from 'noodl-ui'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
+import { onSelectFile } from 'utils/dom'
 
 const log = Logger.create('actions.ts')
 
@@ -189,10 +190,8 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.updateObject = async (
     action: Action<NOODLUpdateObject>,
     options,
-    ctx: { file?: File } = {},
   ) => {
     const { component, stateHelpers } = options
-    const { file } = ctx
     const { default: noodl } = await import('app/noodl')
     log.func('updateObject')
 
@@ -219,13 +218,13 @@ const createActions = function ({ page }: { page: IPage }) {
             // awaited in this line for control flow
             await obj()
           } else {
-            await callObject(obj, options)
+            await callObject(obj, opts)
           }
         }
       } else if (_.isObjectLike(object)) {
         let { dataKey, dataObject } = object
         if (/(file|blob)/i.test(dataObject)) {
-          dataObject = file || dataObject
+          dataObject = opts.file || dataObject
         }
         // TODO - Replace this hardcoded "itemObject" string with iteratorVar
         if (dataObject === 'itemObject') {
@@ -243,7 +242,7 @@ const createActions = function ({ page }: { page: IPage }) {
               listItem,
             })
           }
-          if (!dataObject) dataObject = file
+          if (!dataObject) dataObject = options?.file
         }
         if (dataObject) {
           const params = { dataKey, dataObject }
@@ -253,21 +252,25 @@ const createActions = function ({ page }: { page: IPage }) {
             action,
             state: stateHelpers?.getState?.(),
             ...options,
-            ...ctx,
           })
           await noodl.updateObject(params)
         } else {
           log.red(`dataObject is null or undefined`, {
             action,
             ...options,
-            ...ctx,
           })
         }
       }
     }
 
     try {
-      const callObjectOptions = { action, file, ...options }
+      let file: File | undefined
+      if (action.original?.dataObject === 'BLOB') {
+        const { e, files } = await onSelectFile()
+        if (files) file = files[0]
+      }
+      const callObjectOptions = { action, ...options } as any
+      if (file) callObjectOptions['file'] = file
       // This is the more older version of the updateObject action object where it used
       // the "object" property
       if ('object' in action.original) {
