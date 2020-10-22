@@ -91,37 +91,37 @@ export function isDisplayable(value: unknown): value is string | number {
  * Opens the file select window. The promise resolves when a file was
  * selected, which becomes the resolved value
  */
-export function onSelectFile(
-  onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
-) {
-  const input = document.createElement('input')
-  input.id = ''
-  input.style['visibility'] = 'hidden'
-  input['type'] = 'file'
-  input['onerror'] = (msg, source, lineNum, columnNum, err) =>
-    onSelect(err as Error)
-  input['onabort'] = (e) => console.log(`onabort`, e)
-  input['oncancel'] = (e) => console.log(`oncancel`, e)
-  input['onclose'] = (e) => console.log(`onclose`, e)
-  input['onblur'] = (e) => console.log(`onblur`, e)
-  input['onended'] = (e) => console.log(`onended`, e)
-  input['onsuspend'] = (e) => console.log('onsuspend', e)
-  input['onchange'] = (e: any) => {
-    console.log(e)
-    console.log({ name: e.target?.name })
-    e.preventDefault?.()
-    e.stopPropagation?.()
-    try {
-      document.body.removeChild(input)
-    } catch (error) {
-      window.alert(error.message)
-      console.error(error)
+export function onSelectFile(): Promise<{ e: any; files: FileList }> {
+  // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input')
+    input.id = ''
+    input.style['visibility'] = 'hidden'
+    input['type'] = 'file'
+    input['onerror'] = (msg, source, lineNum, columnNum, err) =>
+      reject(err as Error)
+    input['onabort'] = (e) => console.log(`onabort`, e)
+    input['oncancel'] = (e) => console.log(`oncancel`, e)
+    input['onclose'] = (e) => console.log(`onclose`, e)
+    input.onblur = (e) => console.log(`onblur`, e)
+    input['onended'] = (e) => console.log(`onended`, e)
+    input['onsuspend'] = (e) => console.log('onsuspend', e)
+    input['onchange'] = (e: any) => {
+      e.preventDefault()
+      e.stopPropagation()
+      console.log(e)
+      console.log(e)
+      try {
+        document.body.removeChild(input)
+      } catch (error) {
+        window.alert(error.message)
+        console.error(error)
+      }
+      resolve({ e, files: e.target?.files })
     }
-    onSelect(null, { e, files: e.target?.files })
-  }
-  document.body.appendChild(input)
-  console.trace()
-  input.click()
+    document.body.appendChild(input)
+    input.click()
+  })
 }
 
 export function getOffset(el: HTMLElement) {

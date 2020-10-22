@@ -31,6 +31,9 @@ const createBuiltInActions = function ({
 
   builtInActions.toggleFlag = async (action, options) => {
     const { default: noodl } = await import('app/noodl')
+    // const { getLocalRootListData, getLocalRootListPath } = await import(
+    //   'noodl-utils'
+    // )
     log.func('toggleFlag')
 
     const {
@@ -46,7 +49,11 @@ const createBuiltInActions = function ({
 
     let dataValue: any
     let dataObject: any
+    let previousDataValueInSdk: boolean | undefined = undefined
+    let previousDataValue: boolean | undefined = undefined
     let nextDataValue: boolean | undefined = undefined
+    let nextDataValueInSdk: boolean | undefined = undefined
+    let pathToLocalRootListDataInSdk: any
     let newSrc = ''
 
     if (dataKey.startsWith('itemObject')) {
@@ -55,7 +62,9 @@ const createBuiltInActions = function ({
         component.get('listId'),
         component.get('listItemIndex'),
       )
-      dataValue = _.get(dataObject, parts)
+      previousDataValue = _.get(dataObject, parts)
+      // previousDataValueInSdk = _.get(noodl.root[context.page.name])
+      dataValue = previousDataValue
       if (isNOODLBoolean(dataValue)) {
         // true -> false / false -> true
         nextDataValue = !isBooleanTrue(dataValue)
@@ -76,7 +85,8 @@ const createBuiltInActions = function ({
           dataKey,
         })
       }
-      dataValue = _.get(dataObject, dataKey)
+      previousDataValue = _.get(dataObject, dataKey)
+      dataValue = previousDataValue
       if (isNOODLBoolean(dataValue)) {
         nextDataValue = !isBooleanTrue(dataValue)
       } else {
@@ -102,15 +112,16 @@ const createBuiltInActions = function ({
       node.setAttribute('src', newSrc)
     }
 
-    console.log({
+    log.grey('', {
       component: component.toJS(),
       componentInst: component,
       context,
       dataKey,
       dataValue,
       dataObject,
+      previousDataValue,
       nextDataValue,
-      newSrc,
+      previousDataValueInSdk: newSrc,
       node,
       path,
     })
@@ -118,14 +129,23 @@ const createBuiltInActions = function ({
 
   builtInActions.checkField = (action, options) => {
     log.func('checkField')
-    const { contentType } = action as NOODLBuiltInCheckFieldObject
+    const { contentType } = action.original as NOODLBuiltInCheckFieldObject
     const node = getByDataUX(contentType)
+    console.groupCollapsed({ action, options, node })
+    console.trace()
+    console.groupEnd()
     if (node) {
-      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) =>
-        isHidden ? 'visible' : 'hidden',
-      )
+      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) => {
+        const result = isHidden ? 'visible' : 'hidden'
+        log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
+          action,
+          ...options,
+          node,
+          result,
+        })
+        return result
+      })
     }
-    log.grey('', { action, options, node })
   }
 
   // Called on signin + signup

@@ -60,7 +60,7 @@ const createActions = function ({ page }: { page: IPage }) {
     page.requestPageChange(action.original.destination)
   }
 
-  _actions.popUp = (
+  _actions.popUp = async (
     action: Action<NOODLPopupBaseObject | NOODLPopupDismissObject>,
     options,
   ) => {
@@ -111,7 +111,8 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.popUpDismiss = async (action: any, options) => {
     log.func('popUpDismiss')
     log.grey('', { action, ...options })
-    return _actions.popUp(action, options)
+    await _actions.popUp(action, options)
+    return
   }
 
   _actions.refresh = (action: Action<NOODLRefreshObject>, options) => {

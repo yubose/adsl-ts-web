@@ -58,22 +58,15 @@ function enhanceActions(actions: ReturnType<typeof createActions>) {
         action: Action<any>,
         handlerOptions: ActionChainActionCallbackOptions<any>,
       ) => {
-        const { component } = handlerOptions
-        if (component.get('contentType') === 'file') {
+        if (action.original.dataObject === 'BLOB') {
           // Components with contentType: "file" need a blob/file object
           // so we inject logic for the file input window to open for the user
           // to select a file from their file system before proceeding
           // the action chain
           try {
-            return onSelectFile((err, { files } = {}) => {
-              const file = files?.[0]
-              console.log(file)
-              console.log(file)
-              console.log(file)
-              console.log(file)
-              console.log(file)
-              // if (file) fn(action, handlerOptions, { file })
-            })
+            return Promise.resolve(onSelectFile()).then(({ e, files }) =>
+              fn(action, handlerOptions, { e, file: files?.[0] }),
+            )
           } catch (err) {
             window.alert(err.message)
             console.error(err)
@@ -242,6 +235,7 @@ window.addEventListener('load', async () => {
             action: actions,
             builtIn: {
               checkUsernamePassword: builtIn.checkUsernamePassword,
+              checkField: builtIn.checkField,
               enterVerificationCode: builtIn.checkVerificationCode,
               goBack: builtIn.goBack,
               lockApplication: builtIn.lockApplication,

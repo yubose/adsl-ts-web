@@ -71,8 +71,9 @@ class ActionChain {
         timeoutRef = setTimeout(() => {
           const msg = `Action of type "${action.type}" timed out`
           action.abort(msg)
+          this.abort(msg)
           throw new AbortExecuteError(msg)
-        }, 7000)
+        }, 10000)
 
         const result = await action.execute(handlerOptions)
 
@@ -139,7 +140,7 @@ class ActionChain {
     const action = new Action(obj, {
       timeoutDelay: 8000,
     })
-    if (obj.actionType === 'builtIn' || obj.actionType === 'builtTn') {
+    if (obj.actionType === 'builtIn') {
       const builtInFn = this.builtIn?.[obj.funcName]
       if (_.isFunction(builtInFn)) {
         action.callback = builtInFn
@@ -321,6 +322,7 @@ class ActionChain {
 
               this.onChainEnd?.(this.actions as Action<any>[], handlerOptions)
               this.#setStatus('done')
+              this.#refresh()
               resolve(iterator)
             })
             .catch((err: Error) => {
@@ -439,6 +441,11 @@ class ActionChain {
   }
 
   #refresh = () => {
+    log.func('#refresh')
+    log.grey(`Refreshed action chain`, {
+      instance: this,
+      snapshot: this.getSnapshot(),
+    })
     this.actions = []
     this.init(this.#original, this.#getConstructorOptions())
     return this
