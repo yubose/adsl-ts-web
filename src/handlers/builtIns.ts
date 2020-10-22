@@ -31,6 +31,9 @@ const createBuiltInActions = function ({
   builtInActions.toggleFlag = async (action, options) => {
     console.log({ action, ...options })
     const { default: noodl } = await import('app/noodl')
+    // const { getLocalRootListData, getLocalRootListPath } = await import(
+    //   'noodl-utils'
+    // )
     log.func('toggleFlag')
 
     const {
@@ -46,7 +49,11 @@ const createBuiltInActions = function ({
 
     let dataValue: any
     let dataObject: any
+    let previousDataValueInSdk: boolean | undefined = undefined
+    let previousDataValue: boolean | undefined = undefined
     let nextDataValue: boolean | undefined = undefined
+    let nextDataValueInSdk: boolean | undefined = undefined
+    let pathToLocalRootListDataInSdk: any
     let newSrc = ''
 
     if (dataKey.startsWith('itemObject')) {
@@ -55,7 +62,9 @@ const createBuiltInActions = function ({
         component.get('listId'),
         component.get('listItemIndex'),
       )
-      dataValue = _.get(dataObject, parts)
+      previousDataValue = _.get(dataObject, parts)
+      // previousDataValueInSdk = _.get(noodl.root[context.page.name])
+      dataValue = previousDataValue
       if (isNOODLBoolean(dataValue)) {
         // true -> false / false -> true
         nextDataValue = !isBooleanTrue(dataValue)
@@ -76,7 +85,8 @@ const createBuiltInActions = function ({
           dataKey,
         })
       }
-      dataValue = _.get(dataObject, dataKey)
+      previousDataValue = _.get(dataObject, dataKey)
+      dataValue = previousDataValue
       if (isNOODLBoolean(dataValue)) {
         nextDataValue = !isBooleanTrue(dataValue)
       } else {
@@ -102,27 +112,39 @@ const createBuiltInActions = function ({
       node.setAttribute('src', newSrc)
     }
 
-    console.log({
+    log.grey('', {
       component: component.toJS(),
       componentInst: component,
       context,
       dataKey,
       dataValue,
       dataObject,
+      previousDataValue,
       nextDataValue,
-      newSrc,
+      previousDataValueInSdk: newSrc,
       node,
       path,
     })
   }
 
-  builtInActions.checkField = (action) => {
-    const { contentType } = action as NOODLBuiltInCheckFieldObject
+  builtInActions.checkField = (action, options) => {
+    log.func('checkField')
+    const { contentType } = action.original as NOODLBuiltInCheckFieldObject
     const node = getByDataUX(contentType)
+    console.groupCollapsed({ action, options, node })
+    console.trace()
+    console.groupEnd()
     if (node) {
-      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) =>
-        isHidden ? 'visible' : 'hidden',
-      )
+      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) => {
+        const result = isHidden ? 'visible' : 'hidden'
+        log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
+          action,
+          ...options,
+          node,
+          result,
+        })
+        return result
+      })
     }
   }
 
@@ -168,6 +190,7 @@ const createBuiltInActions = function ({
               if (pg && pg !== page.currentPage && pg !== page.previousPage) {
                 log.green(`Updated previous page: ${page.previousPage}`)
                 previousPage = pg
+                page.requestPageChange(previousPage)
                 break
               }
             }
@@ -178,7 +201,14 @@ const createBuiltInActions = function ({
       }
     }
     if (previousPage) {
-      page.requestPageChange(previousPage)
+      if (page.pageStack.length > 1) {
+        page.pageStack.pop()
+        let prevPage = page.pageStack.pop()
+        page.requestPageChange(prevPage)
+      } else {
+        page.pageStack.pop()
+        page.requestPageChange('SideMenuBar')
+      }
     } else {
       log.func('goBack')
       log.red(
@@ -322,54 +352,36 @@ const createBuiltInActions = function ({
     }
   }
 
-  builtInActions.UploadFile = (action, options) => {
+  builtInActions.UploadFile = async (action, options, { file }) => {
     log.func('UploadFile')
-    log.grey('', { action, ...options })
 
-    const input = document.createElement('input')
-    input.type = 'file'
-    // TODO: string files
-    input.onchange = async (e: any) => {
-      let file = e.target?.files?.[0]
-      let title = file?.name || ''
-      let dataValues = getDataValues<{ title: string }, 'title'>()
+    let dataValues = getDataValues<{ title: string }, 'title'>()
 
-      const params: {
-        title: string
-        content: File | Blob
-      } = { content: file, title: dataValues.title } as {
-        title: string
-        content: File | Blob
-      }
-
-      if (dataValues.title) {
-        log.func('UploadFile')
-        log.grey('Values', params)
-        console.log(
-          `%c[useBuiltInActions.tsx][builtIn -- UploadPhoto] Values`,
-          `color:#FF5722;font-weight:bold;`,
-          params,
-        )
-
-        const nameFieldPath = ''
-
-        const { default: noodl } = await import('app/noodl')
-
-        const pageName = options.context?.page?.name || ''
-
-        noodl.editDraft((draft: Draft<any>) => {
-          _.set(draft?.[pageName], nameFieldPath, file)
-        })
-
-        log.func('UploadFile')
-        log.green(
-          `Attached the Blob/File "${title}" of type "${file?.type}" on ` +
-            `root.${pageName}.${nameFieldPath}`,
-          file,
-        )
-      }
+    const params: {
+      title: string
+      content: File | Blob
+    } = { content: file, title: dataValues.title } as {
+      title: string
+      content: File | Blob
     }
-    input.click()
+
+    log.grey('', { file, params, action, ...options })
+
+    const nameFieldPath = ''
+
+    const { default: noodl } = await import('app/noodl')
+
+    const pageName = options.context?.page?.name || ''
+
+    noodl.editDraft((draft: Draft<any>) => {
+      _.set(draft?.[pageName], nameFieldPath, file)
+    })
+
+    log.green(
+      `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
+        `root.${pageName}.${nameFieldPath}`,
+      file,
+    )
   }
 
   builtInActions.UploadPhoto = builtInActions.UploadFile

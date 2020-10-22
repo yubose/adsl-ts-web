@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { Styles } from 'app/types'
 import { forEachEntries } from './common'
+import { RoomStatusCallbackInvalidError } from 'twilio-video'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -13,6 +14,62 @@ export function copyToClipboard(value: string) {
   textarea.remove()
 }
 
+export function forEachChildNode(
+  node: NOODLDOMElement | ChildNode,
+  cb: (node: ChildNode, index: number, parent: NodeListOf<ChildNode>) => void,
+) {
+  node?.childNodes?.forEach?.((childNode, index, parent) => {
+    cb(childNode, index, parent)
+    childNode.childNodes?.forEach?.((childOfChildNode) =>
+      forEachChildNode(childOfChildNode, cb),
+    )
+  })
+}
+
+export function forEachDeepChildNode(
+  node: Parameters<typeof forEachChildNode>[0],
+  cb: Parameters<typeof forEachChildNode>[1],
+  {
+    on,
+  }: {
+    on?: {
+      attribute: boolean
+      comment?: boolean
+      element?: boolean
+      text?: boolean
+    }
+  } = {},
+) {
+  if (node?.childNodes.length) {
+    const callOnNodeTypes = [] as number[]
+    const callCb = (...args: Parameters<typeof cb>) => {
+      if (callOnNodeTypes.length) {
+        if (callOnNodeTypes.includes(args[0].nodeType)) cb(...args)
+      } else {
+        // Default to calling the cb on all child nodes
+        cb(...args)
+      }
+    }
+    if (on) {
+      forEachEntries(
+        on,
+        (
+          key: 'attribute' | 'comment' | 'element' | 'text',
+          value: boolean | undefined,
+        ) => {
+          if (value) {
+            if (key === 'attribute') callOnNodeTypes.push(1)
+            else if (key === 'comment') callOnNodeTypes.push(1)
+            else if (key === 'element') callOnNodeTypes.push(1)
+            else if (key === 'text') callOnNodeTypes.push(1)
+          }
+        },
+      )
+    }
+    forEachChildNode(node, callCb)
+  }
+}
+
 export function getDocumentScrollTop() {
   // IE8 used `document.documentElement`
   return (
@@ -22,36 +79,49 @@ export function getDocumentScrollTop() {
 }
 
 /**
+ * Returns true if the value can be displayed in the UI as normal.
+ * A displayable value is any value that is a string or number
+ * @param { any } value
+ */
+export function isDisplayable(value: unknown): value is string | number {
+  return value == 0 || typeof value === 'string' || typeof value === 'number'
+}
+
+/**
  * Opens the file select window. The promise resolves when a file was
  * selected, which becomes the resolved value
  */
-export function onSelectFile(
-  onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
-) {
-  const input = document.createElement('input')
-  input.style['visibility'] = 'hidden'
-  input['type'] = 'file'
-  input['onerror'] = (msg, source, lineNum, columnNum, err) =>
-    onSelect(err as Error)
-  input['onabort'] = (e) => console.log(`onabort`, e)
-  input['oncancel'] = (e) => console.log(`oncancel`, e)
-  input['onclose'] = (e) => console.log(`onclose`, e)
-  input['onblur'] = (e) => console.log(`onblur`, e)
-  input['onended'] = (e) => console.log(`onended`, e)
-  input['onsuspend'] = (e) => console.log('onsuspend', e)
-  input['onchange'] = (e: any) => {
-    e.preventDefault?.()
-    e.stopPropagation?.()
-    try {
-      document.body.removeChild(input)
-    } catch (error) {
-      window.alert(error.message)
-      console.error(error)
+export function onSelectFile(): Promise<{ e: any; files: FileList }> {
+  // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input')
+    input.id = ''
+    input.style['visibility'] = 'hidden'
+    input['type'] = 'file'
+    input['onerror'] = (msg, source, lineNum, columnNum, err) =>
+      reject(err as Error)
+    input['onabort'] = (e) => console.log(`onabort`, e)
+    input['oncancel'] = (e) => console.log(`oncancel`, e)
+    input['onclose'] = (e) => console.log(`onclose`, e)
+    input.onblur = (e) => console.log(`onblur`, e)
+    input['onended'] = (e) => console.log(`onended`, e)
+    input['onsuspend'] = (e) => console.log('onsuspend', e)
+    input['onchange'] = (e: any) => {
+      e.preventDefault()
+      e.stopPropagation()
+      console.log(e)
+      console.log(e)
+      try {
+        document.body.removeChild(input)
+      } catch (error) {
+        window.alert(error.message)
+        console.error(error)
+      }
+      resolve({ e, files: e.target?.files })
     }
-    onSelect(null, { e, files: e.target?.files })
-  }
-  document.body.appendChild(input)
-  input.click()
+    document.body.appendChild(input)
+    input.click()
+  })
 }
 
 export function getOffset(el: HTMLElement) {

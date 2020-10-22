@@ -3,6 +3,7 @@ import Logger from 'logsnap'
 import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
 import { DataValueElement, NodePropsFunc } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
+import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
 
@@ -15,11 +16,12 @@ noodluidom.on('all', function onCreateNode(node, component) {
   const js = component.toJS()
 
   const {
+    children,
     id = '',
     options,
     placeholder = '',
     poster = '',
-    src = '',
+    src,
     style,
     type = '',
     videoFormat = '',
@@ -63,18 +65,20 @@ noodluidom.on('all', function onCreateNode(node, component) {
         elem.dataset['value'] = js['data-value'] || ''
         elem['value'] = elem.dataset['value'] || ''
       }
-    } else if ('text=func' in props && props['data-value']) {
-      node.innerHTML = props['data-value']
+    } else if ('text=func' in js && js['data-value']) {
+      node.innerHTML = js['data-value']
     } else {
+      // For non data-value elements like labels or divs that just display content
+      // If there's no data-value (which takes precedence here), use the placeholder
+      // to display as a fallback
+      let text = ''
+      text = js['data-value'] || ''
+      if (!text && children) text = `${children}` || ''
+      if (!text && placeholder) text = placeholder
+      if (!text) text = ''
+      if (text) node.innerHTML = `${text}`
       node.innerHTML = js['data-value'] || js.placeholder || ''
     }
-  }
-
-  // For non data-value elements like labels or divs that just display content
-  // If there's no data-value (which takes precedence here), use the placeholder
-  // to display as a fallback
-  if (!js['data-value'] && js.placeholder) {
-    node.innerHTML = js.placeholder
   }
 
   /** Event handlers */
@@ -90,16 +94,15 @@ noodluidom.on('all', function onCreateNode(node, component) {
 
       if (eventName) {
         // TODO: Test this
-        const eventFn = async (...args: any[]) => {
+        const eventFn = (...args: any[]) => {
           log.func('on all --> eventFn')
           log.grey(`User action invoked handler`, {
             props,
             eventName,
             [key]: value,
           })
-          await value(...args)
-          node.removeEventListener(eventName, eventFn)
-          node.addEventListener(eventName, eventFn)
+          // node.removeEventListener(eventName, eventFn)
+          return value(...args)
         }
         // Attach the event handler
         node.addEventListener(eventName, eventFn)
@@ -156,9 +159,13 @@ noodluidom.on('all', function onCreateNode(node, component) {
     if (src) sourceEl.setAttribute('src', src)
     node.appendChild(sourceEl)
   }
-  if (_.isString(props.children) || _.isNumber(props.children)) {
-    if (!node.innerHTML.trim()) {
-      node.innerHTML = `${props.children}`
+  if (!node.innerHTML.trim()) {
+    if (isDisplayable(props['data-value'])) {
+      node.innerHTML = `${props['data-value']}`
+    } else if (isDisplayable(children)) {
+      node.innerHTML = `${children}`
+    } else if (isDisplayable(props.text)) {
+      node.innerHTML = `${props.text}`
     }
   }
 })

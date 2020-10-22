@@ -9,7 +9,8 @@ const pkg = require('./package.json')
 
 const htmlPluginOptions = {
   filename: 'index.html',
-  title: 'AiTmed Web',
+  title: 'AiTmed Noodl Web',
+  favicon: 'favicon.ico',
   cache: true,
 }
 

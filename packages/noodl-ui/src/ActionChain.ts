@@ -73,8 +73,9 @@ class ActionChain {
         timeoutRef = setTimeout(() => {
           const msg = `Action of type "${action.type}" timed out`
           action.abort(msg)
+          this.abort(msg)
           throw new AbortExecuteError(msg)
-        }, 7000)
+        }, 10000)
 
         const result = await action.execute(handlerOptions)
 
@@ -225,13 +226,27 @@ class ActionChain {
             handlerOptions,
           )
 
+          log.gold('onChainStartArgs', {
+            onChainStartArgs,
+            handlerOptions,
+            event,
+            action,
+          })
+
           // Merge in additional args if any of the actions expect some extra
           // context/data (ex: having file/blobs ready before running the chain)
           if (onChainStartArgs && onChainStartArgs instanceof Promise) {
-            console.log(onChainStartArgs)
             // TODO: Find out why I did this "init" part
             init = {
-              next: async () => this.#gen?.next(await onChainStartArgs),
+              next: async () => {
+                log.red(`REMINDER: LOOK INTO THIS IF U SEE THIS!!!!!!`, {
+                  onChainStartArgs,
+                  actionChain: this,
+                  buildOptions,
+                })
+                const argsResult = await onChainStartArgs
+                await this.#gen?.next(argsResult)
+              },
             }
           } else {
             init = { next: this.#gen.next }
@@ -242,8 +257,21 @@ class ActionChain {
             .then(async (iteratorResult: any) => {
               iterator = iteratorResult
 
+              log.gold('init.next [before]', {
+                iteratorResult,
+                action,
+                handlerOptions,
+                result,
+              })
+
               while (!iterator?.done) {
                 action = iterator?.value?.action
+                log.gold('init.next [during]', {
+                  iteratorResult,
+                  action,
+                  handlerOptions,
+                  result,
+                })
 
                 // Skip to the next loop
                 if (!action) {
@@ -294,8 +322,16 @@ class ActionChain {
                 }
               }
 
+              log.gold('init.next [after]', {
+                iteratorResult,
+                action,
+                handlerOptions,
+                result,
+              })
+
               this.onChainEnd?.(this.actions as Action<any>[], handlerOptions)
               this.#setStatus('done')
+              this.#refresh()
               resolve(iterator)
             })
             .catch((err: Error) => {
@@ -414,6 +450,11 @@ class ActionChain {
   }
 
   #refresh = () => {
+    log.func('#refresh')
+    log.grey(`Refreshed action chain`, {
+      instance: this,
+      snapshot: this.getSnapshot(),
+    })
     this.actions = []
     this.init(this.#original, this.#getConstructorOptions())
     return this

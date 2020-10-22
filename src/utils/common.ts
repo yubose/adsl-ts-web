@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { SerializedError } from 'app/types'
 
 /**
  * Runs a series of functions from left to right, passing in the argument of the
@@ -10,11 +9,6 @@ import { SerializedError } from 'app/types'
 export function callAll(...fns: any[]) {
   return (...args: any[]) =>
     fns.forEach((fn) => typeof fn === 'function' && fn(...args))
-}
-
-export function composeTruthCalls(...fns: Function[]) {
-  return (cb: Function) => (...args: any[]) =>
-    _.forEach(fns, (fn) => fn && fn(...args) && cb(...args))
 }
 
 /**
@@ -101,17 +95,6 @@ export function forEachDeepEntriesOnObj<Obj extends {}, K extends keyof Obj>(
   }
 }
 
-// TODO: Work on this to make it better
-export async function formatPhoneNumber({
-  phoneNumber,
-  countryCode,
-}: {
-  phoneNumber: string
-  countryCode: string
-}): Promise<string> {
-  return `${countryCode} ${phoneNumber}`
-}
-
 /**
  * Runs reduce on each key/value pair of the value, passing in the key and value as an
  * object like { key, value } on each iteration as the second argument
@@ -167,38 +150,5 @@ export function openOutboundURL(url: string) {
     a.setAttribute('target', '_blank')
     a.setAttribute('rel', 'noopener noreferrer')
     a.click()
-  }
-}
-
-export function serializeError(
-  error: Error & { code?: number; source?: string },
-): SerializedError {
-  if (!error) {
-    return { name: '', message: '' }
-  }
-  const params: any = { name: error.name, message: error.message }
-  if (typeof error.code !== 'undefined') {
-    params.code = error.code
-  }
-  if (typeof error.source !== 'undefined') {
-    params.source = error.source
-  }
-  return params
-}
-
-/**
- * A helper to reset states back to the initial value when updating changes
- * to request states. This is used mainly for uses with immer
- * @param { string[] } keywords - Keywords prepending to the update keywords
- */
-export function onRequestStateChange(
-  ...keywords: [k1: string, k2: string, k3: string, k4: string]
-) {
-  const [k1, k2, k3, k4] = keywords
-  return (state: any) => {
-    state[k1] = false
-    state[k2] = false
-    state[k3] = null
-    state[k4] = false
   }
 }

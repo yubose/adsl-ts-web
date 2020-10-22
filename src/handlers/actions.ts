@@ -15,7 +15,6 @@ import {
 } from 'noodl-ui'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
-import { onSelectFile } from 'utils/dom'
 
 const log = Logger.create('actions.ts')
 
@@ -61,17 +60,45 @@ const createActions = function ({ page }: { page: IPage }) {
     page.requestPageChange(action.original.destination)
   }
 
-  _actions.popUp = (
+  _actions.popUp = async (
     action: Action<NOODLPopupBaseObject | NOODLPopupDismissObject>,
     options,
   ) => {
+    log.func('popUp')
+    log.grey('', { action, ...options })
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
+    log.gold('popUp action', { action, ...options, elem })
     if (elem) {
       if (action.original.actionType === 'popUp') {
         elem.style.visibility = 'visible'
       } else if (action.original.actionType === 'popUpDismiss') {
         elem.style.visibility = 'hidden'
       }
+      // const vcodeInput = document.querySelector(
+      //   `input[data-key="formData.code"]`,
+      // ) as HTMLInputElement
+      // if (vcodeInput) {
+      //   const dataValues = getDataValues<
+      //     { phoneNumber?: string },
+      //     'phoneNumber'
+      //   >()
+      //   if (String(dataValues?.phoneNumber).startsWith('888')) {
+      //     import('app/noodl').then(({ default: noodl }) => {
+      //       const pathToTage = 'verificationCode.response.edge.tage'
+      //       const vcode = _.get(noodl.root?.SignIn, pathToTage, '')
+      //       if (vcode) {
+      //         vcodeInput.value = vcode
+      //         console.log({
+      //           dataValues,
+      //           pathToTage,
+      //           SignIn: noodl.root.SignIn,
+      //           vcode,
+      //           vcodeInput,
+      //         })
+      //       }
+      //     })
+      //   }
+      // }
     } else {
       log.func('popUp')
       log.red(
@@ -82,7 +109,10 @@ const createActions = function ({ page }: { page: IPage }) {
   }
 
   _actions.popUpDismiss = async (action: any, options) => {
-    return _actions.popUp(action, options)
+    log.func('popUpDismiss')
+    log.grey('', { action, ...options })
+    await _actions.popUp(action, options)
+    return
   }
 
   _actions.refresh = (action: Action<NOODLRefreshObject>, options) => {
@@ -257,34 +287,7 @@ const createActions = function ({ page }: { page: IPage }) {
     }
   }
 
-  return _.reduce(
-    _.entries(_actions),
-    (acc: typeof _actions, [key, fn]) => {
-      acc[key as keyof typeof acc] = (action, options) => {
-        const { component } = options
-        if (component.get('contentType') === 'file') {
-          // Components with contentType: "file" need a blob/file object
-          // so we inject logic for the file input window to open for the user
-          // to select a file from their file system before proceeding
-          // the action chain
-          try {
-            return onSelectFile((err, { files } = {}) => {
-              const file = files?.[0]
-              if (file) fn(action, options, { file })
-            })
-          } catch (err) {
-            window.alert(err.message)
-            console.error(err)
-            return fn(action, options)
-          }
-        } else {
-          return fn(action, options)
-        }
-      }
-      return acc
-    },
-    {} as typeof _actions,
-  )
+  return _actions
 }
 
 export default createActions

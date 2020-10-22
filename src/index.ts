@@ -36,8 +36,8 @@ import {
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { forEachParticipant } from './utils/twilio'
-import { forEachEntries, isMobile, reduceEntries } from './utils/common'
-import { copyToClipboard } from './utils/dom'
+import { isMobile, reduceEntries } from './utils/common'
+import { copyToClipboard, onSelectFile } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
@@ -62,7 +62,33 @@ function enhanceActions(
       acc[key] = (
         action: Action<any>,
         handlerOptions: ActionChainActionCallbackOptions<any>,
-      ) => fn(action, handlerOptions)
+      ) => {
+        if (action.original.dataObject === 'BLOB') {
+          // Components with contentType: "file" need a blob/file object
+          // so we inject logic for the file input window to open for the user
+          // to select a file from their file system before proceeding
+          // the action chain
+          try {
+            return Promise.resolve(onSelectFile()).then(({ e, files }) =>
+              fn(action, handlerOptions, { e, file: files?.[0] }),
+            )
+          } catch (err) {
+            window.alert(err.message)
+            console.error(err)
+            return fn(action, handlerOptions)
+          }
+        } else {
+          /**
+           * TEMP workaround until we write an official solution
+           * Currently popUp components can have stale data values. Here's an injection to
+           * re-query the data values
+           */
+          if (['popUp', 'popUpDismiss'].includes(action.original.actionType)) {
+            const dataValues = getDataValues()
+          }
+          return fn(action, handlerOptions)
+        }
+      }
       return acc
     },
     {},
@@ -141,6 +167,7 @@ window.addEventListener('load', async () => {
   })
 
   page.onStart = async (pageName) => {
+    page.pageStack.push(pageName)
     log.func('page.onStart').grey(`Rendering the DOM for page: "${pageName}"`)
   }
 
@@ -214,6 +241,7 @@ window.addEventListener('load', async () => {
               [] as IResolver[],
             ),
           )
+<<<<<<< HEAD
           .on('builtIn', {
             checkUsernamePassword: builtIn.checkUsernamePassword,
             enterVerificationCode: builtIn.checkVerificationCode,
@@ -231,6 +259,27 @@ window.addEventListener('load', async () => {
 
         forEachEntries(actions, (key, value) => noodlui.on(key, value))
         forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
+=======
+          .addLifecycleListener({
+            action: actions,
+            builtIn: {
+              checkUsernamePassword: builtIn.checkUsernamePassword,
+              checkField: builtIn.checkField,
+              enterVerificationCode: builtIn.checkVerificationCode,
+              goBack: builtIn.goBack,
+              lockApplication: builtIn.lockApplication,
+              logOutOfApplication: builtIn.logOutOfApplication,
+              logout: builtIn.logout,
+              signIn: builtIn.signIn,
+              signUp: builtIn.signUp,
+              signout: builtIn.signout,
+              toggleCameraOnOff: builtIn.toggleCameraOnOff,
+              toggleFlag: builtIn.toggleFlag,
+              toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
+            },
+            ...lifeCycles,
+          } as any)
+>>>>>>> dev
 
         log.func('page.onBeforePageRender')
         log.green('Initialized noodl-ui client', noodl)
