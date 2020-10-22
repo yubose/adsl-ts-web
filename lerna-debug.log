@@ -1,0 +1,7 @@
+42 error Error: Command failed: git tag noodl-ui@0.1.19 -m noodl-ui@0.1.19
+42 error fatal: tag 'noodl-ui@0.1.19' already exists
+42 error
+42 error     at makeError (/Users/christ/aitmed-noodl-web/node_modules/execa/index.js:174:9)
+42 error     at /Users/christ/aitmed-noodl-web/node_modules/execa/index.js:278:16
+42 error     at processTicksAndRejections (internal/process/task_queues.js:93:5)
+42 error     at async Promise.all (index 0)
