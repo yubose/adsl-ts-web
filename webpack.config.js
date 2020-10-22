@@ -30,7 +30,9 @@ const plugins = [
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.USE_DEV_PATHS': JSON.stringify(process.env.USE_DEV_PATHS),
-    'process.env.build': JSON.stringify({
+    'process.env.BUILD': JSON.stringify({
+      ecosEnv: process.env.ECOS_ENV,
+      nodeEnv: process.env.NODE_ENV,
       packages: {
         '@aitmed/cadl': pkg.devDependencies['@aitmed/cadl'],
         '@aitmed/ecos-lvl2-sdk': pkg.devDependencies['@aitmed/ecos-lvl2-sdk'],
@@ -39,6 +41,7 @@ const plugins = [
         'noodl-ui-dom': noodluidomPkg.version,
         logsnap: logsnapPkg.version,
         typescript: pkg.devDependencies.typescript,
+        'twilio-video': pkg.devDependencies['twilio-video'],
       },
       timestamp: new Date().toLocaleString(),
     }),
