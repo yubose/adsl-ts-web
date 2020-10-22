@@ -4,6 +4,10 @@ const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const pkg = require('./package.json')
+const logsnapPkg = require('./packages/logsnap/package.json')
+const noodluiPkg = require('./packages/noodl-ui/package.json')
+const noodlutilsPkg = require('./packages/noodl-utils/package.json')
+const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
 // const CircularDependencyPlugin = require('circular-dependency-plugin')
 // const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 
@@ -26,6 +30,21 @@ const plugins = [
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.USE_DEV_PATHS': JSON.stringify(process.env.USE_DEV_PATHS),
+    'process.env.BUILD': JSON.stringify({
+      ecosEnv: process.env.ECOS_ENV,
+      nodeEnv: process.env.NODE_ENV,
+      packages: {
+        '@aitmed/cadl': pkg.devDependencies['@aitmed/cadl'],
+        '@aitmed/ecos-lvl2-sdk': pkg.devDependencies['@aitmed/ecos-lvl2-sdk'],
+        'noodl-ui': noodluiPkg.version,
+        'noodl-utils': noodlutilsPkg.version,
+        'noodl-ui-dom': noodluidomPkg.version,
+        logsnap: logsnapPkg.version,
+        typescript: pkg.devDependencies.typescript,
+        'twilio-video': pkg.devDependencies['twilio-video'],
+      },
+      timestamp: new Date().toLocaleString(),
+    }),
   }),
   new HtmlWebpackPlugin(htmlPluginOptions),
 ]
