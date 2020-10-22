@@ -568,14 +568,14 @@ class Component implements IComponent {
     let removedChild: IComponent | undefined
     if (!arguments.length) {
       removedChild = this.#children.shift()
-    } else if (_.isNumber(child)) {
+    } else if (_.isNumber(child) && this.#children[child]) {
       removedChild = this.#children.splice(child, 1)[0]
     } else if (_.isString(child)) {
       removedChild = child
         ? _.find(this.#children, (c) => c.id === child)
         : undefined
-    } else if (child) {
-      if (this.#children.includes(child)) {
+    } else if (this.hasChild(child as IComponent)) {
+      if (this.#children.includes(child as IComponent)) {
         this.#children = _.filter(this.#children, (c) => {
           if (c === child) {
             removedChild = child

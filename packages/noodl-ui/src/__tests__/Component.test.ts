@@ -149,7 +149,13 @@ describe('Component', () => {
       })
     })
 
-    it('should add the child with an instance', () => {
+    describe('creating', () => {
+      it('', () => {
+        //
+      })
+    })
+
+    it('should create a child using an instance', () => {
       const component = new Component({ type: 'list' })
       expect(component.child()).to.be.undefined
       const child = new Component({ type: 'view' })
@@ -158,46 +164,42 @@ describe('Component', () => {
       expect(component.child()).to.equal(child)
     })
 
-    it('should add the child with an object', () => {
+    it('should create a child using an object', () => {
       const component = new Component({ type: 'list', id: 'abc' })
       expect(component.child()).to.be.undefined
       const child = { type: 'view' }
       component.createChild(child)
-      expect(component.children()).to.have.lengthOf(1)
       expect(component.child().id).to.equal('abc[0]')
     })
 
-    it('should add the child just by using a noodl component type', () => {
+    it('should create a child using a noodl component type', () => {
       const component = new Component({ type: 'label' })
       expect(component.child()).to.be.undefined
       const noodlType = 'label'
       const child = component.createChild(noodlType)
-      expect(component.children()).to.have.lengthOf(1)
       expect(component.child()).to.equal(child)
     })
 
-    it('should remove the child by instance', () => {
-      const component = new Component({ type: 'label' })
-      const child = component.createChild('list')
-      component.createChild(child)
-      expect(component.child()).to.equal(child)
-      component.removeChild(child)
-      expect(component.child()).to.not.equal(child)
-    })
+    describe('removing', () => {
+      it('should remove the child by instance', () => {
+        const component = new Component({ type: 'label' })
+        const child = component.createChild('list')
+        component.createChild(child)
+        expect(component.child()).to.equal(child)
+        component.removeChild(child)
+        expect(component.child()).to.not.equal(child)
+      })
 
-    it('should remove the child by index', () => {
-      const component = new Component({ type: 'label' })
-      component.createChild('button')
-      const child2 = component.createChild('view')
-      const children = component.children()
-      const index = 1
-      expect(children[index]).to.equal(child2)
-      component.removeChild(index)
-      expect(component.children().includes(child2)).to.be.false
-    })
-
-    xit('should swap the positioning of the two children', () => {
-      //
+      it('should remove the child by index', () => {
+        const component = new Component({ type: 'label' })
+        component.createChild('button')
+        const child2 = component.createChild('view')
+        const children = component.children()
+        const index = 1
+        expect(children[index]).to.equal(child2)
+        component.removeChild(index)
+        expect(component.children().includes(child2)).to.be.false
+      })
     })
 
     it('should assign a suffix to children with index accessor format in zero indexed ascending order', () => {

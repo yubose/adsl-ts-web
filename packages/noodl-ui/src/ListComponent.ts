@@ -1,14 +1,11 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import {
-  ComponentType,
   IComponent,
   IListComponent,
   IComponentConstructor,
   NOODLComponent,
-  NOODLComponentType,
 } from './types'
-import { createNOODLComponent } from './utils/noodl'
 import Component from './Component'
 import ListItemComponent from './ListItemComponent'
 
@@ -90,7 +87,7 @@ class ListComponent extends Component implements IListComponent {
 
   removeChild(...args: Parameters<IComponent['removeChild']>) {
     const removedChild = super.removeChild(...args)
-    if (removedChild && this.hasChild(removedChild)) {
+    if (removedChild && this.#children.includes(removedChild)) {
       this.#children = this.#children.filter((c) => c !== removedChild)
     }
     return removedChild
