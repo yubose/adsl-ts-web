@@ -208,23 +208,12 @@ const createActions = function ({ page }: { page: IPage }) {
 
     try {
       if (action.original?.dataObject === 'BLOB') {
-        const { files, status, event, input, target } = await onSelectFile()
-        log.hotpink('files', {
-          event,
-          input,
-          event_target_value: event.target?.value,
-          event_target_files: event.target?.files,
-          files,
-          inputFiles: input.files,
-          target,
-          targetValue: target.value,
-          targetValueLength: target.value?.length,
-          targetFiles: target.files,
-        })
+        const { files, status } = await onSelectFile()
         if (status === 'selected' && files?.[0]) {
+          log.green(`File selected`, files[0])
           callObjectOptions['file'] = files[0]
         } else if (status === 'canceled') {
-          log.red('Aborted')
+          log.red('File was not selected and the operation was aborted')
           await abort?.('File input window was closed')
         }
       }
@@ -298,11 +287,6 @@ const createActions = function ({ page }: { page: IPage }) {
             const params = { dataKey, dataObject }
             log.func('updateObject')
             log.green(`Parameters`, params)
-            log.orange('', {
-              action,
-              state: stateHelpers?.getState?.(),
-              ...options,
-            })
             await noodl.updateObject(params)
           } else {
             log.red(`dataObject is null or undefined`, {

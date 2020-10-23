@@ -5,9 +5,7 @@ import {
 } from 'twilio-video'
 import Logger from 'logsnap'
 import {
-  Action,
   ActionChainActionCallback,
-  ActionChainActionCallbackOptions,
   getByDataUX,
   getElementType,
   getAlignAttrs,
@@ -64,11 +62,18 @@ function createPreparePage(options: {
     ) => Promise<void>
   }
 }) {
-  return async (pageName: string): Promise<NOODLPageObject> => {
+  return async (
+    pageName: string,
+    pageModifiers: { evolve?: boolean } = {},
+  ): Promise<NOODLPageObject> => {
     const { default: noodl } = await import('app/noodl')
-    await noodl.initPage(pageName, [], options)
+    await noodl.initPage(pageName, [], { ...options, ...pageModifiers })
     log.func('createPreparePage')
-    log.grey(`Ran noodl.initPage on page "${pageName}"`)
+    log.grey(`Ran noodl.initPage on page "${pageName}"`, {
+      pageName,
+      pageModifiers,
+      ...options,
+    })
     return noodl.root[pageName]
   }
 }
@@ -153,24 +158,27 @@ window.addEventListener('load', async () => {
 
   // TODO - onRootNodeInitializeError
 
-  page.onBeforePageRender = async ({ pageName }) => {
+  page.onBeforePageRender = async (options) => {
+    const { pageName, pageModifiers } = options
     log.func('page.onBeforePageRender')
     log.grey('Rendering components', {
       previousPage: page.previousPage,
       currentPage: page.currentPage,
       requestedPage: pageName,
+      pageModifiers,
     })
     if (Meeting.room?.state === 'connected') Meeting.leave()
     if (pageName !== page.currentPage) {
       // Load the page in the SDK
 
-      const pageObject = await preparePage(pageName)
-      log.orange(`Received pageObject`, {
+      const pageObject = await preparePage(pageName, pageModifiers)
+      log.grey(`Received pageObject`, {
         previousPage: page.previousPage,
         currentPage: page.currentPage,
         requestedPage: pageName,
         pageName,
         pageObject,
+        pageModifiers,
       })
       // This will be passed into the page renderer
       const pageSnapshot: PageSnapshot = {
@@ -183,7 +191,7 @@ window.addEventListener('load', async () => {
         log.func('page.onBeforePageRender')
         log.grey('Initializing noodl-ui client', noodl)
         noodlui
-          .init({ viewport })
+          .init({ log: { enabled: true }, viewport })
           .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageSnapshot)
           .setRoot(noodl.root)
@@ -279,7 +287,12 @@ window.addEventListener('load', async () => {
    * Triggers the page.navigate from state changes.
    * Call page.requestPageChange to trigger this observer
    */
-  page.onPageRequest = ({ previous, current, requested: requestedPage }) => {
+  page.onPageRequest = ({
+    previous,
+    current,
+    requested: requestedPage,
+    modifiers,
+  }) => {
     console.groupCollapsed(
       `%c[page.onPageRequest] Requesting page change`,
       'color:#828282',

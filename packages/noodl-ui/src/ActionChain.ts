@@ -1,10 +1,10 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { isAction } from 'noodl-utils'
 import * as T from './types'
 import Action from './Action'
 import { forEachEntries } from './utils/common'
 import { AbortExecuteError } from './errors'
-import Logger from 'logsnap'
 
 const log = Logger.create('ActionChain')
 
@@ -404,9 +404,12 @@ class ActionChain {
     log.func('abort')
     log.orange('Aborting...', { status: this.status })
 
+    if (this.#current) this.#queue.unshift(this.#current)
+
     // Exhaust the remaining actions in the queue and abort them
     while (this.#queue.length) {
       const action = this.#queue.shift()
+      log.grey(`Aborting action ${action?.type}`, action?.getSnapshot())
       if (action?.status !== 'aborted') {
         try {
           action?.abort(reason || '')

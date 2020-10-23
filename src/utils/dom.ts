@@ -126,10 +126,6 @@ export function onSelectFile(
 export function onSelectFile(
   inputNode?: HTMLInputElement,
 ): Promise<OnSelectFileErrorResult>
-export function onSelectFile(options: {
-  inputNode?: HTMLInputElement
-  onClose?(): void
-}): Promise<OnSelectFileErrorResult>
 export function onSelectFile(
   inputNode?: HTMLInputElement,
 ): Promise<
@@ -144,33 +140,17 @@ export function onSelectFile(
     input['type'] = 'file'
 
     input['onclick'] = function (event) {
-      document.body.onfocus = function onClose() {
-        log.func('onclick > onfocus')
-        document.body.onfocus = null
-        resolve({
-          event,
-          target: event.target || event.srcElement,
-          input,
-          files: input.files,
-          status: 'canceled',
-        } as OnSelectFileCanceledResult)
+      document.body['onfocus'] = () => {
+        document.body['onfocus'] = null
+        setTimeout(() => {
+          document.body.removeChild(input)
+          resolve({
+            event,
+            files: input.files?.length ? input.files : null,
+            status: input.files?.length ? 'selected' : 'canceled',
+          } as OnSelectFileCanceledResult)
+        }, 350)
       }
-    }
-
-    input['onchange'] = function onFileInputChange(event) {
-      event.preventDefault?.()
-      event.stopPropagation?.()
-      document.body.removeChild(input)
-      // resolve({
-      //   event,
-      //   eventTargetFiles: event.target?.files,
-      //   eventTargetValue: event.target?.value,
-      //   input,
-      //   inputFiles: input.files,
-      //   inputValue: input.value,
-      //   files: (event as FileInputEvent).target.files,
-      //   status: 'selected',
-      // } as OnSelectFileSelectedResult)
     }
 
     input['onerror'] = function onFileInputError(
@@ -180,7 +160,7 @@ export function onSelectFile(
       columnNumber,
       error,
     ) {
-      document.body.removeChild(input)
+      document.body.onfocus = null
       reject({
         message,
         source,

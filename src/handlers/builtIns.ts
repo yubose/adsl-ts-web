@@ -100,7 +100,6 @@ const createBuiltInActions = function ({
       // just re-use the nextDataValue
       if (valEvaluating === dataKey) {
         valEvaluating = nextDataValue
-        log.magenta(valEvaluating)
       } else {
         valEvaluating =
           _.get(noodl.root, valEvaluating) ||
@@ -110,19 +109,19 @@ const createBuiltInActions = function ({
       node.setAttribute('src', newSrc)
     }
 
-    log.grey('', {
-      component: component.toJS(),
-      componentInst: component,
-      context,
-      dataKey,
-      dataValue,
-      dataObject,
-      previousDataValue,
-      nextDataValue,
-      previousDataValueInSdk: newSrc,
-      node,
-      path,
-    })
+    // log.grey('', {
+    //   component: component.toJS(),
+    //   componentInst: component,
+    //   context,
+    //   dataKey,
+    //   dataValue,
+    //   dataObject,
+    //   previousDataValue,
+    //   nextDataValue,
+    //   previousDataValueInSdk: newSrc,
+    //   node,
+    //   path,
+    // })
   }
 
   builtInActions.checkField = (action, options) => {
@@ -173,7 +172,13 @@ const createBuiltInActions = function ({
     // else await signin?.onSubmit()
   }
 
-  builtInActions.goBack = () => {
+  builtInActions.goBack = async (action, options) => {
+    log.func('goBack')
+    log.grey('', { action, ...options })
+
+    const requestPage = (pageName: string) =>
+      page.requestPageChange(pageName, { evolve: false })
+
     let { previousPage } = page
     if (!previousPage) {
       // Hard code this for now until routing is implemented
@@ -188,7 +193,7 @@ const createBuiltInActions = function ({
               if (pg && pg !== page.currentPage && pg !== page.previousPage) {
                 log.green(`Updated previous page: ${page.previousPage}`)
                 previousPage = pg
-                page.requestPageChange(previousPage)
+                await requestPage(previousPage)
                 break
               }
             }
@@ -202,10 +207,10 @@ const createBuiltInActions = function ({
       if (page.pageStack.length > 1) {
         page.pageStack.pop()
         let prevPage = page.pageStack.pop()
-        page.requestPageChange(prevPage)
+        await requestPage(prevPage || '')
       } else {
         page.pageStack.pop()
-        page.requestPageChange('SideMenuBar')
+        await requestPage('SideMenuBar')
       }
     } else {
       log.func('goBack')
