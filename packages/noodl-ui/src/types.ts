@@ -136,6 +136,10 @@ export interface IComponent {
 }
 
 export interface IListComponent extends IComponent {
+  exists(childId: string): boolean
+  exists(child: IListItemComponent): boolean
+  find(childId: string): IListItemComponent | undefined
+  find(child: IListItemComponent): IListItemComponent | undefined
   getBlueprint(): any
   getData(): any
   getDataObject(index: number): any
@@ -143,6 +147,10 @@ export interface IListComponent extends IComponent {
   getDataObject(child: IComponent): any
   iteratorVar: string
   length: number
+}
+
+export interface IListItemComponent extends IComponent {
+  //
 }
 
 export interface IResolver {

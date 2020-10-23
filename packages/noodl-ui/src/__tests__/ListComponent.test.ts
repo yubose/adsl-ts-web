@@ -43,7 +43,7 @@ describe('ListComponent', () => {
       const dataObject = { fruit: 'banana' }
       child1.set(component.iteratorVar, dataObject)
       expect(component.getDataObject(child1)).to.equal(dataObject)
-    })f
+    })
 
     it('should be able to retrieve a data object for a list item using the child id', () => {
       const component = new ListComponent({ iteratorVar: 'apple' })
@@ -64,7 +64,7 @@ describe('ListComponent', () => {
       expect(component.getDataObject(2)).to.equal(dataObject)
     })
 
-    it('should return all the dataObjects from each list item', () => {
+    it('should return dataObjects from list item children', () => {
       const list = new ListComponent({ iteratorVar: 'apple' })
       const listItem1 = list.createChild(new ListItemComponent())
       const listItem2 = list.createChild(new ListItemComponent())
@@ -74,17 +74,22 @@ describe('ListComponent', () => {
         '2': { fruits: ['apple'] },
         '3': { water: 'dasani' },
       }
-      list.children().forEach((child, index) => child.set('iteratorVar', dataObject))
+      list
+        .getListItems()
+        .forEach((child, index) =>
+          child.set('iteratorVar', _.get(dataObjects, `${index}`)),
+        )
+      const data = list.getData()
+      console.info(data)
     })
-    
   })
 
   it('should add the child to list state only if its a listItem child', () => {
     const component = new ListComponent()
     const child1 = component.createChild(new ListItemComponent())
     const child2 = component.createChild(new Component({ type: 'view' }))
-    expect(component.hasChild(child1)).to.be.true
-    expect(component.hasChild(child2)).to.be.false
+    expect(component.exists(child1)).to.be.true
+    expect(component.exists(child2)).to.be.false
   })
 
   it('should still add the child to the base state if its not a listItem child', () => {

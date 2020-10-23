@@ -3,6 +3,7 @@ import Logger from 'logsnap'
 import {
   IComponent,
   IListComponent,
+  IListItemComponent,
   IComponentConstructor,
   NOODLComponent,
 } from './types'
@@ -14,7 +15,7 @@ const log = Logger.create('ListComponent')
 class ListComponent extends Component implements IListComponent {
   #data: any[]
   #blueprint: NOODLComponent
-  #children: IComponent[] = []
+  #children: IListItemComponent[] = []
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -52,6 +53,19 @@ class ListComponent extends Component implements IListComponent {
     return this.#children.length
   }
 
+  exists(child: string | IListItemComponent) {
+    return !!child && child instanceof ListItemComponent
+      ? this.#children.includes(child)
+      : !!this.find(child)
+  }
+
+  find(child: string | IListItemComponent) {
+    return _.find(
+      this.#children,
+      (c) => c.id === (_.isString(child) ? child : child.id),
+    )
+  }
+
   getBlueprint() {
     return this.#blueprint
   }
@@ -75,6 +89,10 @@ class ListComponent extends Component implements IListComponent {
       _inst = child
     }
     return _inst && _inst.get(this.iteratorVar)
+  }
+
+  getListItems({ asNodes = true }: { asNodes?: boolean } = {}) {
+    return this.#children.map((c) => (asNodes ? c : c.get(this.iteratorVar)))
   }
 
   createChild(...args: Parameters<IComponent['createChild']>) {
