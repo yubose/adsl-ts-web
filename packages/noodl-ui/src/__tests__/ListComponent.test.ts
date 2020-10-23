@@ -75,7 +75,7 @@ describe('ListComponent', () => {
         '3': { water: 'dasani' },
       }
       list
-        .getListItems()
+        .getListItemChildren()
         .forEach((child, index) =>
           child.set('iteratorVar', _.get(dataObjects, `${index}`)),
         )

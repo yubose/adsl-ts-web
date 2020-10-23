@@ -13,7 +13,6 @@ import ListItemComponent from './ListItemComponent'
 const log = Logger.create('ListComponent')
 
 class ListComponent extends Component implements IListComponent {
-  #data: any[]
   #blueprint: NOODLComponent
   #children: IListItemComponent[] = []
 
@@ -25,7 +24,6 @@ class ListComponent extends Component implements IListComponent {
         IComponentConstructor
       >),
     )
-    this.#data = this.get('listObject') || []
     // TODO - set blueprint
     const listObject = this.get('listObject')
     const iteratorVar = this.get('iteratorVar')
@@ -71,7 +69,7 @@ class ListComponent extends Component implements IListComponent {
   }
 
   getData() {
-    return this.#data
+    return this.#children.map((c) => c.get(this.iteratorVar))
   }
 
   getDataObject(index: number): any
@@ -91,8 +89,8 @@ class ListComponent extends Component implements IListComponent {
     return _inst && _inst.get(this.iteratorVar)
   }
 
-  getListItems({ asNodes = true }: { asNodes?: boolean } = {}) {
-    return this.#children.map((c) => (asNodes ? c : c.get(this.iteratorVar)))
+  getListItemChildren() {
+    return this.#children
   }
 
   createChild(...args: Parameters<IComponent['createChild']>) {
@@ -116,8 +114,13 @@ class ListComponent extends Component implements IListComponent {
 
     if (key === 'listObject') {
       // Refresh holdings of the list item data / children
-      this.#data = args[1]
-      const queue = [...this.#data]
+      const data = args[1]
+      const queue = [...data]
+
+      while (queue.length) {
+        const dataObject = queue.shift()
+      }
+
       this.#children.forEach((child) => {
         if (queue.length) {
           child.set(this.iteratorVar, queue.shift())
