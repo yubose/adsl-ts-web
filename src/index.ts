@@ -49,50 +49,6 @@ import './styles.css'
 
 const log = Logger.create('src/index.ts')
 
-/** TODO: Find out why I did this */
-function enhanceActions(actions: ReturnType<typeof createActions>) {
-  return reduceEntries(
-    actions,
-    (acc, { key, value: fn }) => {
-      acc[key] = callAll(
-        (
-          action: Action<any>,
-          handlerOptions: ActionChainActionCallbackOptions<any>,
-        ) => {
-          if (action.original.dataObject === 'BLOB') {
-            // Components with contentType: "file" need a blob/file object
-            // so we inject logic for the file input window to open for the user
-            // to select a file from their file system before proceeding
-            // the action chain
-            try {
-              Promise.resolve(onSelectFile()).then(({ e, files }) =>
-                fn(action, handlerOptions, { e, file: files?.[0] }),
-              )
-            } catch (err) {
-              window.alert(err.message)
-              console.error(err)
-            }
-          } else {
-            /**
-             * TEMP workaround until we write an official solution
-             * Currently popUp components can have stale data values. Here's an injection to
-             * re-query the data values
-             */
-            if (
-              ['popUp', 'popUpDismiss'].includes(action.original.actionType)
-            ) {
-              const dataValues = getDataValues()
-            }
-          }
-        },
-        fn,
-      )
-      return acc
-    },
-    {},
-  )
-}
-
 /**
  * A factory func that returns a func that prepares the next page on the SDK
  * @param { object } options - Options to feed into the SDK's initPage func
@@ -123,18 +79,6 @@ window.addEventListener('load', async () => {
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
 
-  window.ecos_env = process.env.ECOS_ENV
-  window.env = process.env.NODE_ENV
-  window.ecos_dev_paths = process.env.USE_DEV_PATHS
-  window.build = process.env.BUILD
-  window.getDataValues = getDataValues
-  window.getByDataUX = getByDataUX
-  window.noodl = noodl
-  window.noodlui = noodlui
-  window.noodluidom = noodluidom
-  window.streams = Meeting.getStreams()
-  window.meeting = Meeting
-  window.cp = copyToClipboard
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
   // const profile = await Account.login('+1 8882465555', '142251', vcode || '')
@@ -149,6 +93,33 @@ window.addEventListener('load', async () => {
   const actions = createActions({ page })
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
+
+  window.build = process.env.BUILD
+  window.app = {
+    build: process.env.BUILD,
+    client: {
+      app,
+      page,
+      viewport,
+      Meeting,
+      Logger,
+    },
+    otherNoodl: {
+      actions,
+      lifeCycles,
+      streams,
+      noodl,
+      noodlui,
+      noodluidom,
+    },
+    util: {
+      cp: copyToClipboard,
+      getDataValues,
+      getByDataUX,
+    },
+  }
+  window.noodl = noodl
+  window.cp = copyToClipboard
 
   Meeting.initialize({ page, viewport })
 

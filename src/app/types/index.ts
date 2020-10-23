@@ -1,6 +1,7 @@
 import { ActionChainActionCallback, NOODLBuiltInObject } from 'noodl-ui'
 
 export * from './commonTypes'
+export * from './domExtendedTypes'
 export * from './libExtensionTypes'
 export * from './meetingTypes'
 export * from './pageTypes'

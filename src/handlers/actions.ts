@@ -200,90 +200,37 @@ const createActions = function ({ page }: { page: IPage }) {
     action: Action<NOODLUpdateObject>,
     options,
   ) => {
-    const { component, stateHelpers } = options
+    const { abort, component, stateHelpers } = options
     const { default: noodl } = await import('app/noodl')
     log.func('updateObject')
 
-    async function callObject(
-      object: any,
-      opts: ActionChainActionCallbackOptions & {
-        action: any
-        file?: File
-      },
-    ) {
-      if (_.isFunction(object)) {
-        await object()
-      } else if (_.isString(object)) {
-        log.red(
-          `Received a string as an object property of updateObject. ` +
-            `Possibly parsed incorrectly?`,
-          { object, ...options, ...opts, action },
-        )
-      } else if (_.isArray(object)) {
-        for (let index = 0; index < object.length; index++) {
-          const obj = object[index]
-          if (_.isFunction(obj)) {
-            // Handle promises/functions separately because they need to be
-            // awaited in this line for control flow
-            await obj()
-          } else {
-            await callObject(obj, opts)
-          }
-        }
-      } else if (_.isObjectLike(object)) {
-        let { dataKey, dataObject } = object
-        if (/(file|blob)/i.test(dataObject)) {
-          dataObject = opts.file || dataObject
-        }
-        // TODO - Replace this hardcoded "itemObject" string with iteratorVar
-        if (dataObject === 'itemObject') {
-          if (stateHelpers) {
-            const { getList } = stateHelpers
-            const listId = component.get('listId')
-            const listItemIndex = component.get('listItemIndex')
-            const list = getList(listId) || []
-            const listItem = list[listItemIndex]
-            if (listItem) dataObject = listItem
-            log.salmon('', {
-              listId,
-              listItemIndex,
-              list,
-              listItem,
-            })
-          }
-          if (!dataObject) dataObject = options?.file
-        }
-        if (dataObject) {
-          const params = { dataKey, dataObject }
-          log.func('updateObject')
-          log.green(`Parameters`, params)
-          log.orange('', {
-            action,
-            state: stateHelpers?.getState?.(),
-            ...options,
-          })
-          await noodl.updateObject(params)
-        } else {
-          log.red(`dataObject is null or undefined`, {
-            action,
-            ...options,
-          })
-        }
-      }
-    }
+    const callObjectOptions = { action, ...options } as any
 
     try {
-      let file: File | undefined
       if (action.original?.dataObject === 'BLOB') {
-        const result = await onSelectFile()
-        if (result === 'closed') {
-          // TODO - abort the action chain
-        } else {
-          if (result.files) file = result.files[0]
+        const { files, status, event, input, target } = await onSelectFile()
+        log.hotpink('files', {
+          event,
+          input,
+          event_target_value: event.target?.value,
+          event_target_files: event.target?.files,
+          files,
+          inputFiles: input.files,
+          target,
+          targetValue: target.value,
+          targetValueLength: target.value?.length,
+          targetFiles: target.files,
+        })
+        if (status === 'selected' && files?.[0]) {
+          callObjectOptions['file'] = files[0]
+        } else if (status === 'canceled') {
+          log.red('Aborted')
+          await abort?.('File input window was closed')
         }
       }
-      const callObjectOptions = { action, ...options } as any
-      if (file) callObjectOptions['file'] = file
+
+      log.grey(`uploadObject callback options`, callObjectOptions)
+
       // This is the more older version of the updateObject action object where it used
       // the "object" property
       if ('object' in action.original) {
@@ -297,9 +244,78 @@ const createActions = function ({ page }: { page: IPage }) {
           await callObject(object, callObjectOptions)
         }
       }
+
+      async function callObject(
+        object: any,
+        opts: ActionChainActionCallbackOptions & {
+          action: any
+          file?: File
+        },
+      ) {
+        if (_.isFunction(object)) {
+          await object()
+        } else if (_.isString(object)) {
+          log.red(
+            `Received a string as an object property of updateObject. ` +
+              `Possibly parsed incorrectly?`,
+            { object, ...options, ...opts, action },
+          )
+        } else if (_.isArray(object)) {
+          for (let index = 0; index < object.length; index++) {
+            const obj = object[index]
+            if (_.isFunction(obj)) {
+              // Handle promises/functions separately because they need to be
+              // awaited in this line for control flow
+              await obj()
+            } else {
+              await callObject(obj, opts)
+            }
+          }
+        } else if (_.isObjectLike(object)) {
+          let { dataKey, dataObject } = object
+          if (/(file|blob)/i.test(dataObject)) {
+            dataObject = opts.file || dataObject
+          }
+          // TODO - Replace this hardcoded "itemObject" string with iteratorVar
+          if (dataObject === 'itemObject') {
+            if (stateHelpers) {
+              const { getList } = stateHelpers
+              const listId = component.get('listId')
+              const listItemIndex = component.get('listItemIndex')
+              const list = getList(listId) || []
+              const listItem = list[listItemIndex]
+              if (listItem) dataObject = listItem
+              log.salmon('', {
+                listId,
+                listItemIndex,
+                list,
+                listItem,
+              })
+            }
+            if (!dataObject) dataObject = options?.file
+          }
+          if (dataObject) {
+            const params = { dataKey, dataObject }
+            log.func('updateObject')
+            log.green(`Parameters`, params)
+            log.orange('', {
+              action,
+              state: stateHelpers?.getState?.(),
+              ...options,
+            })
+            await noodl.updateObject(params)
+          } else {
+            log.red(`dataObject is null or undefined`, {
+              action,
+              ...options,
+            })
+          }
+        }
+      }
     } catch (error) {
       console.error(error)
       window.alert(error.message)
+      await abort?.(error.message)
     }
   }
 

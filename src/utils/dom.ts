@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import { NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
-import { Styles } from 'app/types'
+import { NOODLDOMElement } from 'noodl-ui-dom'
+import { FileInputEvent, Styles } from 'app/types'
 import { forEachEntries } from './common'
 
 const log = Logger.create('src/utils/dom.ts')
@@ -89,40 +89,109 @@ export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
 }
 
+interface OnSelectFileBaseResult {
+  event: FileInputEvent | FocusEvent
+  files: FileList | null
+}
+
+interface OnSelectFileSelectedResult extends OnSelectFileBaseResult {
+  status: 'selected'
+}
+
+interface OnSelectFileCanceledResult extends OnSelectFileBaseResult {
+  event: FocusEvent
+  files: null
+  status: 'canceled'
+}
+
+interface OnSelectFileErrorResult extends OnSelectFileBaseResult {
+  event: FileInputEvent
+  lineNumber: number | undefined
+  columnNumber: number | undefined
+  message: string | Error
+  source: number | undefined
+}
+
 /**
  * Opens the file select window. The promise resolves when a file was
- * selected, which becomes the resolved value
+ * selected, which becomes the resolved value.
+ * @param { HTMLInputElement? } inputNode - Optional existing input node to use
  */
-export function onSelectFile(): Promise<
-  { e: any; files: FileList } | 'closed'
+export function onSelectFile(
+  inputNode?: HTMLInputElement,
+): Promise<OnSelectFileSelectedResult>
+export function onSelectFile(
+  inputNode?: HTMLInputElement,
+): Promise<OnSelectFileCanceledResult>
+export function onSelectFile(
+  inputNode?: HTMLInputElement,
+): Promise<OnSelectFileErrorResult>
+export function onSelectFile(options: {
+  inputNode?: HTMLInputElement
+  onClose?(): void
+}): Promise<OnSelectFileErrorResult>
+export function onSelectFile(
+  inputNode?: HTMLInputElement,
+): Promise<
+  | OnSelectFileSelectedResult
+  | OnSelectFileCanceledResult
+  | OnSelectFileErrorResult
 > {
   // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
   return new Promise((resolve, reject) => {
-    const input = document.createElement('input')
+    const input = inputNode || document.createElement('input')
     input.style['visibility'] = 'hidden'
     input['type'] = 'file'
-    input['onerror'] = (msg, source, lineNum, columnNum, err) =>
-      reject(err as Error)
-    input['onchange'] = (e: any) => {
-      e.preventDefault()
-      e.stopPropagation()
-      console.log(e)
-      try {
-        document.body.removeChild(input)
-      } catch (error) {
-        window.alert(error.message)
-        console.error(error)
+
+    input['onclick'] = function (event) {
+      document.body.onfocus = function onClose() {
+        log.func('onclick > onfocus')
+        document.body.onfocus = null
+        resolve({
+          event,
+          target: event.target || event.srcElement,
+          input,
+          files: input.files,
+          status: 'canceled',
+        } as OnSelectFileCanceledResult)
       }
-      resolve({ e, files: e.target?.files })
     }
+
+    input['onchange'] = function onFileInputChange(event) {
+      event.preventDefault?.()
+      event.stopPropagation?.()
+      document.body.removeChild(input)
+      // resolve({
+      //   event,
+      //   eventTargetFiles: event.target?.files,
+      //   eventTargetValue: event.target?.value,
+      //   input,
+      //   inputFiles: input.files,
+      //   inputValue: input.value,
+      //   files: (event as FileInputEvent).target.files,
+      //   status: 'selected',
+      // } as OnSelectFileSelectedResult)
+    }
+
+    input['onerror'] = function onFileInputError(
+      message,
+      source,
+      lineNumber,
+      columnNumber,
+      error,
+    ) {
+      document.body.removeChild(input)
+      reject({
+        message,
+        source,
+        lineNumber,
+        columnNumber,
+        error,
+      })
+    }
+
     document.body.appendChild(input)
-    const onClose = (e: FocusEvent) => {
-      log.func('onSelectFile --> onClose')
-      log.grey(`User has closed the file window`)
-      document.body.removeEventListener('focus', onClose)
-      resolve('closed')
-    }
-    document.body.addEventListener('focus', onClose)
+
     input.click()
   })
 }
