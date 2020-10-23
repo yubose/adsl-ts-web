@@ -114,6 +114,10 @@ class ActionChain {
       this.#original = actions
     }
 
+    // TODO - Reminder to look into this and do a more calculated flow
+    // since the queue should always be empty when the code gets here
+    if (this.#queue.length) this.#queue = []
+
     _.forEach(actions, (actionObject) => {
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
@@ -220,10 +224,8 @@ class ActionChain {
           )
 
           log.gold('onChainStartArgs', {
-            onChainStartArgs,
+            queue: this.#queue,
             handlerOptions,
-            event,
-            action,
           })
 
           // Merge in additional args if any of the actions expect some extra
@@ -421,15 +423,20 @@ class ActionChain {
       }
     }
     // This will return an object like { value, done: true }
-    const abortResult = await this.#gen?.return(reasons.join(', '))
+    const { value: abortResult = '' } =
+      (await this.#gen?.return(reasons.join(', '))) || {}
     if (this.onChainAborted) {
       await this.onChainAborted?.(
         this.#current,
-        this.getCallbackOptions({ omit: 'abort', include: { abortResult } }),
+        this.getCallbackOptions({
+          omit: 'abort',
+          include: { abortResult },
+        }),
       )
     }
     this.#refresh()
-    return abortResult
+    throw new Error(abortResult)
+    // return abortResult
   }
 
   #next = async (args?: any) => {

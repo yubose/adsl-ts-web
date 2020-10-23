@@ -298,8 +298,8 @@ const createActions = function ({ page }: { page: IPage }) {
       }
     } catch (error) {
       console.error(error)
-      window.alert(error.message)
-      await abort?.(error.message)
+      // window.alert(error.message)
+      // await abort?.(error.message)
     }
   }
 
