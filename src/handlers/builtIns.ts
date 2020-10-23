@@ -8,7 +8,7 @@ import {
   NOODLGotoAction,
 } from 'noodl-ui'
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
-import { INOODLUIDOM } from 'noodl-ui-dom'
+import { INOODLUiDOM } from 'noodl-ui-dom'
 import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
@@ -24,10 +24,21 @@ const createBuiltInActions = function ({
   noodluidom,
   page,
 }: {
-  noodluidom: INOODLUIDOM
+  noodluidom: INOODLUiDOM
   page: Page
 }) {
   const builtInActions: BuiltInActions = {}
+
+  builtInActions.stringCompare = async (action, options) => {
+    log.func('stringCompare')
+    log.grey('', { action, ...options })
+    const password = action.original?.object?.[0] || ''
+    const confirmPassword = action.original?.object?.[1] || ''
+    if (password !== confirmPassword) {
+      const abort = options.abort
+      await abort?.('Passwords do not match')
+    }
+  }
 
   builtInActions.toggleFlag = async (action, options) => {
     const { default: noodl } = await import('app/noodl')

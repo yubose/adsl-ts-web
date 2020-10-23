@@ -21,6 +21,7 @@ export type BuiltInFuncName =
   | 'signIn'
   | 'signUp'
   | 'signout'
+  | 'stringCompare'
   | 'toggleCameraOnOff'
   | 'toggleFlag'
   | 'toggleMicrophoneOnOff'
