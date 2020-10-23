@@ -145,10 +145,15 @@ export interface IListComponent extends IComponent {
   getDataObject(index: number): any
   getDataObject(childId: string): any
   getDataObject(child: IComponent): any
+  setDataObject(index: number, data: any): this
+  setDataObject(childId: string, data: any): this
+  setDataObject(child: IListItemComponent, data: any): this
   iteratorVar: string
   length: number
+  set(key: 'listObject', value: any[]): this
+  set(key: 'blueprint', value: any): this
+  set(...args: Parameters<IComponent['set']>): this
 }
-
 export interface IListItemComponent extends IComponent {
   //
 }

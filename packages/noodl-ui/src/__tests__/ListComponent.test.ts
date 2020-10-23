@@ -9,8 +9,10 @@ describe('ListComponent', () => {
   it('should return the list data', () => {
     const args = { iteratorVar: 'colorful' }
     const noodlListComponent = mock.raw.getNOODLList(args)
+    const listObject = noodlListComponent.listObject
     const listComponent = new ListComponent(noodlListComponent)
-    expect(listComponent.getData()).to.equal(noodlListComponent.listObject)
+    listComponent.set('listObject', listObject)
+    expect(listComponent.getData()).to.equal(listObject)
   })
 
   it('should return the iteratorVar', () => {

@@ -13,6 +13,7 @@ import ListItemComponent from './ListItemComponent'
 const log = Logger.create('ListComponent')
 
 class ListComponent extends Component implements IListComponent {
+  #data: any[] | null = null
   #blueprint: NOODLComponent
   #children: IListItemComponent[] = []
 
@@ -47,6 +48,10 @@ class ListComponent extends Component implements IListComponent {
     return this.get('iteratorVar') || ''
   }
 
+  get listObject() {
+    return this.#data
+  }
+
   get length() {
     return this.#children.length
   }
@@ -58,10 +63,10 @@ class ListComponent extends Component implements IListComponent {
   }
 
   find(child: string | IListItemComponent) {
-    return _.find(
-      this.#children,
-      (c) => c.id === (_.isString(child) ? child : child.id),
-    )
+    const fn = _.isString(child)
+      ? (c: IListItemComponent) => !!c.id && c.id === child
+      : (c: IListItemComponent) => c === child
+    return _.find(this.#children, fn)
   }
 
   getBlueprint() {
@@ -89,6 +94,17 @@ class ListComponent extends Component implements IListComponent {
     return _inst && _inst.get(this.iteratorVar)
   }
 
+  setDataObject(c: number | string | IListItemComponent, data: any) {
+    const child = this.#getListItem(c)
+    child?.set(this.iteratorVar, data)
+    return this
+  }
+
+  #getListItem = (child: string | number | IListItemComponent) => {
+    if (_.isNumber(child)) return this.#children[child]
+    return this.find(child)
+  }
+
   getListItemChildren() {
     return this.#children
   }
@@ -109,33 +125,17 @@ class ListComponent extends Component implements IListComponent {
     return removedChild
   }
 
-  set(...args: Parameters<Component['set']>) {
+  set(key: 'listObject', value: any[]): this
+  set(key: 'blueprint', value: any): this
+  set(...args: Parameters<IComponent['set']>) {
     const [key, value] = args
 
     if (key === 'listObject') {
       // Refresh holdings of the list item data / children
-      const data = args[1]
-      const queue = [...data]
-
-      while (queue.length) {
-        const dataObject = queue.shift()
-      }
-
-      this.#children.forEach((child) => {
-        if (queue.length) {
-          child.set(this.iteratorVar, queue.shift())
-        } else {
-          this.#children.delete(child)
-          log.func('set')
-          log.red(
-            `Removed a listItem from the list because there was no data object ` +
-              `available to be assigned`,
-            { child, children: this.#children, data: this.#data },
-          )
-        }
-      })
+      this.#data = args[1]
     } else if (key === 'blueprint') {
       this.#blueprint = value
+      return this
     }
     super.set(...args)
     return this
