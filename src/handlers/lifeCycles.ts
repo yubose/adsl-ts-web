@@ -22,7 +22,7 @@ function createLifeCycles() {
       options: ActionChainActionCallbackOptions,
     ) {
       log.func('onChainStart')
-      log.grey('', { actions, ...options })
+      log.grey('onChainStart args', { actions, ...options })
       // if (component.get('contentType') === 'file') {
       //   const file = await onSelectFile()
       //   if (file) return { file }

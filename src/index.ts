@@ -5,9 +5,7 @@ import {
 } from 'twilio-video'
 import Logger from 'logsnap'
 import {
-  Action,
   ActionChainActionCallback,
-  ActionChainActionCallbackOptions,
   getByDataUX,
   getElementType,
   getAlignAttrs,
@@ -28,7 +26,6 @@ import {
   IResolver,
   NOODLBuiltInObject,
   NOODLPageObject,
-  NOODLComponentProps,
   Resolver,
   ResolverFn,
   Viewport,
@@ -57,52 +54,6 @@ import './styles.css'
 
 const log = Logger.create('src/index.ts')
 
-/** TODO: Find out why I did this */
-function enhanceActions(
-  actions: ReturnType<typeof createActions>,
-): ReturnType<typeof createActions> {
-  return reduceEntries(
-    actions,
-    (acc, { key, value: fn }) => {
-      acc[key] = callAll(
-        (
-          action: Action<any>,
-          handlerOptions: ActionChainActionCallbackOptions<any>,
-        ) => {
-          if (action.original.dataObject === 'BLOB') {
-            // Components with contentType: "file" need a blob/file object
-            // so we inject logic for the file input window to open for the user
-            // to select a file from their file system before proceeding
-            // the action chain
-            try {
-              Promise.resolve(onSelectFile()).then(({ e, files }) =>
-                fn(action, handlerOptions, { e, file: files?.[0] }),
-              )
-            } catch (err) {
-              window.alert(err.message)
-              console.error(err)
-            }
-          } else {
-            /**
-             * TEMP workaround until we write an official solution
-             * Currently popUp components can have stale data values. Here's an injection to
-             * re-query the data values
-             */
-            if (
-              ['popUp', 'popUpDismiss'].includes(action.original.actionType)
-            ) {
-              const dataValues = getDataValues()
-            }
-          }
-        },
-        fn,
-      )
-      return acc
-    },
-    {},
-  )
-}
-
 /**
  * A factory func that returns a func that prepares the next page on the SDK
  * @param { object } options - Options to feed into the SDK's initPage func
@@ -118,11 +69,18 @@ function createPreparePage(options: {
     ) => Promise<void>
   }
 }) {
-  return async (pageName: string): Promise<NOODLPageObject> => {
+  return async (
+    pageName: string,
+    pageModifiers: { evolve?: boolean } = {},
+  ): Promise<NOODLPageObject> => {
     const { default: noodl } = await import('app/noodl')
-    await noodl.initPage(pageName, [], options)
+    await noodl.initPage(pageName, [], { ...options, ...pageModifiers })
     log.func('createPreparePage')
-    log.grey(`Ran noodl.initPage on page "${pageName}"`)
+    log.grey(`Ran noodl.initPage on page "${pageName}"`, {
+      pageName,
+      pageModifiers,
+      ...options,
+    })
     return noodl.root[pageName]
   }
 }
@@ -133,18 +91,6 @@ window.addEventListener('load', async () => {
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
 
-  window.ecos_env = process.env.ECOS_ENV
-  window.env = process.env.NODE_ENV
-  window.ecos_dev_paths = process.env.USE_DEV_PATHS
-  window.build = process.env.BUILD
-  window.getDataValues = getDataValues
-  window.getByDataUX = getByDataUX
-  window.noodl = noodl
-  window.noodlui = noodlui
-  window.noodluidom = noodluidom
-  window.streams = Meeting.getStreams()
-  window.meeting = Meeting
-  window.cp = copyToClipboard
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
   // const profile = await Account.login('+1 8882465555', '142251', vcode || '')
@@ -159,6 +105,33 @@ window.addEventListener('load', async () => {
   const actions = createActions({ page })
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
+
+  window.build = process.env.BUILD
+  window.app = {
+    build: process.env.BUILD,
+    client: {
+      app,
+      page,
+      viewport,
+      Meeting,
+      Logger,
+    },
+    otherNoodl: {
+      actions,
+      lifeCycles,
+      streams,
+      noodl,
+      noodlui,
+      noodluidom,
+    },
+    util: {
+      cp: copyToClipboard,
+      getDataValues,
+      getByDataUX,
+    },
+  }
+  window.noodl = noodl
+  window.cp = copyToClipboard
 
   Meeting.initialize({ page, viewport })
 
@@ -192,24 +165,27 @@ window.addEventListener('load', async () => {
 
   // TODO - onRootNodeInitializeError
 
-  page.onBeforePageRender = async ({ pageName }) => {
+  page.onBeforePageRender = async (options) => {
+    const { pageName, pageModifiers } = options
     log.func('page.onBeforePageRender')
     log.grey('Rendering components', {
       previousPage: page.previousPage,
       currentPage: page.currentPage,
       requestedPage: pageName,
+      pageModifiers,
     })
     if (Meeting.room?.state === 'connected') Meeting.leave()
     if (pageName !== page.currentPage) {
       // Load the page in the SDK
 
-      const pageObject = await preparePage(pageName)
-      log.orange(`Received pageObject`, {
+      const pageObject = await preparePage(pageName, pageModifiers)
+      log.grey(`Received pageObject`, {
         previousPage: page.previousPage,
         currentPage: page.currentPage,
         requestedPage: pageName,
         pageName,
         pageObject,
+        pageModifiers,
       })
       // This will be passed into the page renderer
       const pageSnapshot: PageSnapshot = {
@@ -224,7 +200,7 @@ window.addEventListener('load', async () => {
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
         noodlui
-          .init({ viewport })
+          .init({ log: { enabled: true }, viewport })
           .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageName)
           .setRoot(noodl.root)
@@ -322,7 +298,12 @@ window.addEventListener('load', async () => {
    * Triggers the page.navigate from state changes.
    * Call page.requestPageChange to trigger this observer
    */
-  page.onPageRequest = ({ previous, current, requested: requestedPage }) => {
+  page.onPageRequest = ({
+    previous,
+    current,
+    requested: requestedPage,
+    modifiers,
+  }) => {
     console.groupCollapsed(
       `%c[page.onPageRequest] Requesting page change`,
       'color:#828282',

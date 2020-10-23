@@ -1,10 +1,10 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { isAction } from 'noodl-utils'
 import * as T from './types'
 import Action from './Action'
 import { forEachEntries } from './utils/common'
 import { AbortExecuteError } from './errors'
-import Logger from 'logsnap'
 
 const log = Logger.create('ActionChain')
 
@@ -115,6 +115,10 @@ class ActionChain {
     if (actions && this.#original === undefined) {
       this.#original = actions
     }
+
+    // TODO - Reminder to look into this and do a more calculated flow
+    // since the queue should always be empty when the code gets here
+    if (this.#queue.length) this.#queue = []
 
     _.forEach(actions, (actionObject) => {
       // Temporarily hardcode the actionType to blend in with the other actions
@@ -227,10 +231,8 @@ class ActionChain {
           )
 
           log.gold('onChainStartArgs', {
-            onChainStartArgs,
+            queue: this.#queue,
             handlerOptions,
-            event,
-            action,
           })
 
           // Merge in additional args if any of the actions expect some extra
@@ -413,9 +415,12 @@ class ActionChain {
     log.func('abort')
     log.orange('Aborting...', { status: this.status })
 
+    if (this.#current) this.#queue.unshift(this.#current)
+
     // Exhaust the remaining actions in the queue and abort them
     while (this.#queue.length) {
       const action = this.#queue.shift()
+      log.grey(`Aborting action ${action?.type}`, action?.getSnapshot())
       if (action?.status !== 'aborted') {
         try {
           action?.abort(reason || '')
@@ -427,15 +432,20 @@ class ActionChain {
       }
     }
     // This will return an object like { value, done: true }
-    const abortResult = await this.#gen?.return(reasons.join(', '))
+    const { value: abortResult = '' } =
+      (await this.#gen?.return(reasons.join(', '))) || {}
     if (this.onChainAborted) {
       await this.onChainAborted?.(
         this.#current,
-        this.getCallbackOptions({ omit: 'abort', include: { abortResult } }),
+        this.getCallbackOptions({
+          omit: 'abort',
+          include: { abortResult },
+        }),
       )
     }
     this.#refresh()
-    return abortResult
+    throw new Error(abortResult)
+    // return abortResult
   }
 
   #next = async (args?: any) => {

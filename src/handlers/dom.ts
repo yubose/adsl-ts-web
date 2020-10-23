@@ -288,7 +288,7 @@ noodluidom.on('create.textfield', function onCreateTextField(node, component) {
 
           newParent.style['display'] = 'flex'
           newParent.style['alignItems'] = 'center'
-          newParent.style['backgroundColor'] = '#fff'
+          newParent.style['background'] = 'none'
 
           node.style['width'] = '100%'
           node.style['height'] = '100%'
