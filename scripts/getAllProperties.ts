@@ -3,6 +3,7 @@
 import fs from 'fs-extra'
 import _ from 'lodash'
 import chalk from 'chalk'
+import Aggregator from './modules/Aggregator'
 import Saver, { DataOptions } from './modules/Saver'
 import { sortObjByProperties } from './utils/common'
 import { getDirFilesAsJson } from './utils/filesystem'
@@ -33,12 +34,9 @@ async function getAllNOODLProperties({
   filename,
 }: GetAllPropertiesOptions) {
   try {
-    return
     const exts = { json: true }
-    const saver = new Saver({ dir, exts })
-    const bases = new Bases({ endpoint, exts })
-    let pages: Pages
-    // let allObjects:
+    const saver = new Saver({ dir, exts: { ...exts, yml: false } })
+    const aggregator = new Aggregator({ endpoint, ...exts, yml: false })
 
     const output: GetAllPropertiesOutput = {
       overall: {},
@@ -46,28 +44,40 @@ async function getAllNOODLProperties({
     } as GetAllPropertiesOutput
 
     let name: string
+    let pageCount = 0
 
-    _.forEach(objects, (obj) => {
-      name = obj.filename.replace('.json', '')
+    await aggregator.load()
+
+    const objects = aggregator.objects({
+      basePages: false,
+    })
+
+    _.forEach(_.entries(objects), ([pageName, obj]) => {
+      name = pageName
+
       forEachDeepEntries(obj, (key) => {
-        if (_.isUndefined(output.results[name])) {
-          output.results[name] = { [key]: 0 }
+        if (/^[a-zA-Z]/i.test(key)) {
+          if (_.isUndefined(output.results[name])) {
+            output.results[name] = { [key]: 0 }
+          }
+
+          if (_.isUndefined(output.results[name][key])) {
+            output.results[name][key] = 0
+          }
+
+          output.results[name][key]++
+
+          if (_.isUndefined(output.overall[key])) {
+            output.overall[key] = 0
+          }
+
+          output.overall[key]++
         }
-
-        if (_.isUndefined(output.results[name][key])) {
-          output.results[name][key] = 0
-        }
-
-        output.results[name][key]++
-
-        if (_.isUndefined(output.overall[key])) {
-          output.overall[key] = 0
-        }
-
-        output.overall[key]++
       })
 
-      if (obj) {
+      pageCount++
+
+      if (objects) {
         log.green(`Processed ${chalk.magentaBright(name)}`)
       }
     })
@@ -92,9 +102,14 @@ async function getAllNOODLProperties({
       }
     })
 
-    await fs.writeJson(saveTo, output, { spaces: 2 })
+    await saver.save({
+      data: output,
+      dir,
+      filename,
+      type: 'json',
+    })
 
-    return { pageCount: objects.length }
+    return { pageCount }
   } catch (error) {
     console.error(error)
     throw error

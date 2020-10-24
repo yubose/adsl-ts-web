@@ -73,7 +73,7 @@ program
     )
   })
 
-program.command('properties [config]').action(async (config = 'meet') => {
+program.command('properties [config]').action(async (config: ConfigId) => {
   try {
     log.attention(`Retrieving all properties`)
     const filename = 'properties.json'
@@ -81,7 +81,7 @@ program.command('properties [config]').action(async (config = 'meet') => {
     const { default: getAllProperties } = await import('./getAllProperties')
     const { pageCount } = await getAllProperties({
       dir: paths.compiled,
-      endpoint: endpoint.config[config],
+      endpoint: endpoint.get(config),
       filename,
     })
     log.attention(

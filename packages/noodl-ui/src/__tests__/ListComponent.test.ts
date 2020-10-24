@@ -6,13 +6,28 @@ import ListComponent from '../ListComponent'
 import ListItemComponent from '../ListItemComponent'
 
 describe('ListComponent', () => {
-  it('should return the list data', () => {
+  it('should return the list data (not from nodes)', () => {
     const args = { iteratorVar: 'colorful' }
     const noodlListComponent = mock.raw.getNOODLList(args)
     const listObject = noodlListComponent.listObject
     const listComponent = new ListComponent(noodlListComponent)
     listComponent.set('listObject', listObject)
     expect(listComponent.getData()).to.equal(listObject)
+  })
+
+  it('should return the list data (from nodes)', () => {
+    const args = { iteratorVar: 'colorful' }
+    const noodlListComponent = mock.raw.getNOODLList(args)
+    const listObject = noodlListComponent.listObject
+    const listComponent = new ListComponent(noodlListComponent)
+    listObject.forEach((item: any) =>
+      listComponent
+        .createChild('listItem')
+        ?.set(listComponent.iteratorVar, item),
+    )
+    const data = listComponent.getData({ fromNodes: true })
+    console.info(data)
+    expect(data).to.deep.equal(listObject)
   })
 
   it('should return the iteratorVar', () => {
@@ -36,6 +51,17 @@ describe('ListComponent', () => {
     const component = new ListComponent()
     expect(component.type).to.equal('list')
     expect(component.noodlType).to.equal('list')
+  })
+
+  describe('blueprint', () => {
+    xit('should allow us to set the next blueprint and update the list item nodes', () => {
+      const component = new ListComponent({
+        iteratorVar: 'apple',
+        listObject: [{ age: 18 }, { age: 28 }, { age: 8 }],
+      })
+      const listItem1 = component.createChild('listItem')
+      const listItem2 = component.createChild('listItem')
+    })
   })
 
   describe('retrieving dataObjects from list item children', () => {

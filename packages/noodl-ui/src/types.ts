@@ -117,7 +117,11 @@ export interface IComponent {
   parent(): IComponent | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
-  set(key: string, value?: any, styleChanges?: any): this
+  set<K extends keyof ProxiedComponent = string>(
+    key: K,
+    value?: any,
+    styleChanges?: any,
+  ): this
   setParent(parent: IComponent | null): this
   setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
   snapshot(): (ProxiedComponent | NOODLComponentProps) & {
@@ -141,7 +145,7 @@ export interface IListComponent extends IComponent {
   find(childId: string): IListItemComponent | undefined
   find(child: IListItemComponent): IListItemComponent | undefined
   getBlueprint(): any
-  getData(): any
+  getData(): any[] | null
   getDataObject(index: number): any
   getDataObject(childId: string): any
   getDataObject(child: IComponent): any
@@ -149,11 +153,38 @@ export interface IListComponent extends IComponent {
   setDataObject(childId: string, data: any): this
   setDataObject(child: IListItemComponent, data: any): this
   iteratorVar: string
+  listObject: NOODLComponent['listObject']
   length: number
   set(key: 'listObject', value: any[]): this
   set(key: 'blueprint', value: any): this
   set(...args: Parameters<IComponent['set']>): this
+  onBlueprint?(
+    listObject: IListComponentListObject,
+    opts: IListComponentHandleBlueprintProps,
+  ): Partial<ProxiedComponent> | void | undefined | null
+  onUpdate?(args: IListComponentUpdateProps): void
 }
+
+export type IListComponentListObject = ReturnType<IListComponent['getData']>
+
+export type IListComponentBlueprint = Partial<ProxiedComponent>
+
+export interface IListComponentHandleBlueprintProps {
+  blueprint: IListComponentBlueprint
+  iteratorVar: string
+  nodes: IListItemComponent[]
+  raw: ProxiedComponent
+}
+
+export interface IListComponentUpdateProps<
+  DataObject = IListComponentListObject
+> {
+  blueprint: IListComponentBlueprint
+  iteratorVar: string
+  listObject: DataObject[] | null
+  nodes: IListItemComponent[]
+}
+
 export interface IListItemComponent extends IComponent {
   //
 }

@@ -2,10 +2,13 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import {
   IComponent,
-  IListComponent,
-  IListItemComponent,
   IComponentConstructor,
-  NOODLComponent,
+  IListComponent,
+  IListComponentListObject,
+  IListComponentHandleBlueprintProps,
+  IListComponentUpdateProps,
+  IListItemComponent,
+  ProxiedComponent,
 } from './types'
 import Component from './Component'
 import ListItemComponent from './ListItemComponent'
@@ -14,8 +17,10 @@ const log = Logger.create('ListComponent')
 
 class ListComponent extends Component implements IListComponent {
   #data: any[] | null = null
-  #blueprint: NOODLComponent
+  #blueprint: ProxiedComponent = { type: 'listItem' }
   #children: IListItemComponent[] = []
+  #onBlueprint?: IListComponent['onBlueprint']
+  #onUpdate?: IListComponent['onUpdate']
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -49,7 +54,7 @@ class ListComponent extends Component implements IListComponent {
   }
 
   get listObject() {
-    return this.#data
+    return this.get('listObject')
   }
 
   get length() {
@@ -69,12 +74,16 @@ class ListComponent extends Component implements IListComponent {
     return _.find(this.#children, fn)
   }
 
-  getBlueprint() {
+  getDefaultBlueprint() {
     return this.#blueprint
   }
 
-  getData() {
-    return this.#children.map((c) => c.get(this.iteratorVar))
+  getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {
+    return (
+      (fromNodes
+        ? this.#children.map((c) => c.get(this.iteratorVar))
+        : this.#data) || null
+    )
   }
 
   getDataObject(index: number): any
@@ -132,14 +141,73 @@ class ListComponent extends Component implements IListComponent {
 
     if (key === 'listObject') {
       // Refresh holdings of the list item data / children
-      this.#data = args[1]
-    } else if (key === 'blueprint') {
-      this.#blueprint = value
-      return this
+      const listObject = args[1]
+      this.#data = listObject
+      this.onUpdate?.(
+        this.#getUpdateProps(listObject, this.#handleBlueprint?.(listObject)),
+      )
     }
+
     super.set(...args)
     return this
   }
+
+  get onUpdate() {
+    return this.#onUpdate
+  }
+
+  set onUpdate(fn) {
+    this.#onUpdate = fn
+  }
+
+  get onBlueprint() {
+    return this.#onBlueprint
+  }
+
+  set onBlueprint(fn) {
+    this.#onBlueprint = fn
+  }
+
+  #handleBlueprint = (listObject: IListComponentListObject) => {
+    const handleBlueprintProps = this.#getHandleBlueprintProps(listObject)
+    const consumerBlueprint = this?.onBlueprint?.(
+      listObject,
+      handleBlueprintProps,
+    )
+    // Reset the blueprint
+    if (!consumerBlueprint) this.#blueprint = handleBlueprintProps.blueprint
+    // Use the consumer's blueprint
+    else this.#blueprint = consumerBlueprint
+    return this.#blueprint
+  }
+
+  #getHandleBlueprintProps = (listObject: IListComponentListObject) =>
+    ({
+      blueprint: this.#getDefaultBlueprint(listObject),
+      iteratorVar: this.iteratorVar,
+      nodes: this.#children,
+      raw: super.child()?.original || this.#getDefaultBlueprint(listObject),
+    } as IListComponentHandleBlueprintProps)
+
+  #getDefaultBlueprint = (
+    listObject: IListComponentListObject,
+  ): Partial<ProxiedComponent> => {
+    if (!listObject) return { type: 'listItem' }
+    const dataObject = listObject?.[0] || {}
+    dataObject['iteratorVar'] = this.iteratorVar
+    return dataObject
+  }
+
+  #getUpdateProps = (
+    listObject: IListComponentListObject,
+    blueprint: Partial<ProxiedComponent>,
+  ) =>
+    ({
+      blueprint,
+      iteratorVar: this.iteratorVar,
+      listObject,
+      nodes: this.#children,
+    } as IListComponentUpdateProps)
 }
 
 export default ListComponent

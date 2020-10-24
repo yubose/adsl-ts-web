@@ -20,7 +20,10 @@ class Aggregator {
     this.endpoint = endpoint
   }
 
-  async load({ includeBasePages, includePages }) {
+  async load({
+    includeBasePages = true,
+    includePages = true,
+  }: { includeBasePages?: boolean; includePages?: boolean } = {}) {
     const {
       rootConfig: { json: rootConfig },
       noodlConfig: { json: noodlConfig },
@@ -30,7 +33,6 @@ class Aggregator {
       this.#appSetup.endpoint = this.#baseSetup.baseUrl + rootConfig.cadlMain
       await this.#appSetup.load(noodlConfig.page)
     }
-    console.log(this.items)
     _.assign(this.items, this.#baseSetup.items, this.#appSetup.items)
     return this.items
   }
@@ -45,6 +47,26 @@ class Aggregator {
 
   get length() {
     return _.keys(this.items).length
+  }
+
+  objects({
+    basePages = true,
+    pages = true,
+  }: { basePages?: boolean; pages?: boolean } = {}) {
+    const destruct = (obj) =>
+      _.reduce(
+        _.entries(obj),
+        (acc, [key, value]) => {
+          acc[key] = value?.json
+          return acc
+        },
+        {} as any,
+      )
+    return _.assign(
+      {},
+      basePages ? destruct(this.#baseSetup.items) : undefined,
+      pages ? destruct(this.#appSetup.items) : undefined,
+    )
   }
 }
 
