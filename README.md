@@ -1,5 +1,13 @@
 # AiTmed NOODL Web
 
+#update to use latest aitmed/cadl sdk
+# added by Austin Yu 10/23/2020
+npm install @aitmed/cadl@latest
+git add .
+git commit -a -m "update aitmed sdk"
+git push
+
+
 ## All noodl-ui related packages are now merged into this repo and managed by [lerna](https://github.com/lerna/lerna)
 
 - `logsnap`
