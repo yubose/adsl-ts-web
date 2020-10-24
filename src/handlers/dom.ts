@@ -95,7 +95,9 @@ noodluidom.on('all', function onCreateNode(node, props) {
             eventName,
             [key]: value,
           })
-          // node.removeEventListener(eventName, eventFn)
+          console.groupCollapsed('', { eventName, node, props })
+          console.trace()
+          console.groupEnd()
           return value(...args)
         }
         // Attach the event handler
@@ -278,7 +280,7 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
 
           newParent.style['display'] = 'flex'
           newParent.style['alignItems'] = 'center'
-          newParent.style['backgroundColor'] = '#fff'
+          newParent.style['background'] = 'none'
 
           node.style['width'] = '100%'
           node.style['height'] = '100%'

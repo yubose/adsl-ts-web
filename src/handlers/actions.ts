@@ -4,7 +4,6 @@ import {
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
   getByDataUX,
-  getDataValues,
   isReference,
   NOODLActionType,
   NOODLEvalObject,
@@ -17,6 +16,7 @@ import {
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
 import { onSelectFile } from 'utils/dom'
+import { getDataValues } from '../../packages/noodl-ui/dist'
 
 const log = Logger.create('actions.ts')
 
@@ -62,44 +62,53 @@ const createActions = function ({ page }: { page: IPage }) {
     page.requestPageChange(action.original.destination)
   }
 
-  _actions.popUp = (
+  _actions.popUp = async (
     action: Action<NOODLPopupBaseObject | NOODLPopupDismissObject>,
     options,
   ) => {
     log.func('popUp')
     log.grey('', { action, ...options })
+    const { context } = options
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
+    log.gold('popUp action', { action, ...options, elem })
     if (elem) {
       if (action.original.actionType === 'popUp') {
         elem.style.visibility = 'visible'
       } else if (action.original.actionType === 'popUpDismiss') {
         elem.style.visibility = 'hidden'
       }
-      // const vcodeInput = document.querySelector(
-      //   `input[data-key="formData.code"]`,
-      // ) as HTMLInputElement
-      // if (vcodeInput) {
-      //   const dataValues = getDataValues<
-      //     { phoneNumber?: string },
-      //     'phoneNumber'
-      //   >()
-      //   if (String(dataValues?.phoneNumber).startsWith('888')) {
-      //     import('app/noodl').then(({ default: noodl }) => {
-      //       const pathToTage = 'verificationCode.response.edge.tage'
-      //       const vcode = _.get(noodl.root?.SignIn, pathToTage, '')
-      //       if (vcode) {
-      //         vcodeInput.value = vcode
-      //         console.log({
-      //           dataValues,
-      //           pathToTage,
-      //           SignIn: noodl.root.SignIn,
-      //           vcode,
-      //           vcodeInput,
-      //         })
-      //       }
-      //     })
-      //   }
-      // }
+      // Auto prefills the verification code when ECOS_ENV === 'test'
+      // and when the entered phone number starts with 888
+      if (process.env.ECOS_ENV === 'test') {
+        const vcodeInput = document.querySelector(
+          `input[data-key="formData.code"]`,
+        ) as HTMLInputElement
+        if (vcodeInput) {
+          const dataValues = getDataValues<
+            { phoneNumber?: string },
+            'phoneNumber'
+          >()
+          if (String(dataValues?.phoneNumber).startsWith('888')) {
+            import('app/noodl').then(({ default: noodl }) => {
+              const pageName = context?.page?.name || ''
+              const pathToTage = 'verificationCode.response.edge.tage'
+              let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
+              if (vcode) {
+                vcode = String(vcode)
+                vcodeInput.value = vcode
+                _.set(vcodeInput.dataset, 'value', vcode)
+                noodl.editDraft((draft: any) => {
+                  _.set(
+                    draft[pageName],
+                    (vcodeInput.dataset.key as string) || 'formData.code',
+                    vcode,
+                  )
+                })
+              }
+            })
+          }
+        }
+      }
     } else {
       log.func('popUp')
       log.red(
@@ -112,7 +121,8 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.popUpDismiss = async (action: any, options) => {
     log.func('popUpDismiss')
     log.grey('', { action, ...options })
-    return _actions.popUp(action, options)
+    await _actions.popUp(action, options)
+    return
   }
 
   _actions.refresh = (action: Action<NOODLRefreshObject>, options) => {
@@ -189,85 +199,27 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.updateObject = async (
     action: Action<NOODLUpdateObject>,
     options,
-    ctx: { file?: File } = {},
   ) => {
-    const { component, stateHelpers } = options
-    const { file } = ctx
+    const { abort, component, stateHelpers } = options
     const { default: noodl } = await import('app/noodl')
     log.func('updateObject')
 
-    async function callObject(
-      object: any,
-      opts: ActionChainActionCallbackOptions & {
-        action: any
-        file?: File
-      },
-    ) {
-      if (_.isFunction(object)) {
-        await object()
-      } else if (_.isString(object)) {
-        log.red(
-          `Received a string as an object property of updateObject. ` +
-            `Possibly parsed incorrectly?`,
-          { object, ...options, ...opts, action },
-        )
-      } else if (_.isArray(object)) {
-        for (let index = 0; index < object.length; index++) {
-          const obj = object[index]
-          if (_.isFunction(obj)) {
-            // Handle promises/functions separately because they need to be
-            // awaited in this line for control flow
-            await obj()
-          } else {
-            await callObject(obj, options)
-          }
-        }
-      } else if (_.isObjectLike(object)) {
-        let { dataKey, dataObject } = object
-        if (/(file|blob)/i.test(dataObject)) {
-          dataObject = file || dataObject
-        }
-        // TODO - Replace this hardcoded "itemObject" string with iteratorVar
-        if (dataObject === 'itemObject') {
-          if (stateHelpers) {
-            const { getList } = stateHelpers
-            const listId = component.get('listId')
-            const listItemIndex = component.get('listItemIndex')
-            const list = getList(listId) || []
-            const listItem = list[listItemIndex]
-            if (listItem) dataObject = listItem
-            log.salmon('', {
-              listId,
-              listItemIndex,
-              list,
-              listItem,
-            })
-          }
-          if (!dataObject) dataObject = file
-        }
-        if (dataObject) {
-          const params = { dataKey, dataObject }
-          log.func('updateObject')
-          log.green(`Parameters`, params)
-          log.orange('', {
-            action,
-            state: stateHelpers?.getState?.(),
-            ...options,
-            ...ctx,
-          })
-          await noodl.updateObject(params)
-        } else {
-          log.red(`dataObject is null or undefined`, {
-            action,
-            ...options,
-            ...ctx,
-          })
-        }
-      }
-    }
+    const callObjectOptions = { action, ...options } as any
 
     try {
-      const callObjectOptions = { action, file, ...options }
+      if (action.original?.dataObject === 'BLOB') {
+        const { files, status } = await onSelectFile()
+        if (status === 'selected' && files?.[0]) {
+          log.green(`File selected`, files[0])
+          callObjectOptions['file'] = files[0]
+        } else if (status === 'canceled') {
+          log.red('File was not selected and the operation was aborted')
+          await abort?.('File input window was closed')
+        }
+      }
+
+      log.grey(`uploadObject callback options`, callObjectOptions)
+
       // This is the more older version of the updateObject action object where it used
       // the "object" property
       if ('object' in action.original) {
@@ -281,47 +233,77 @@ const createActions = function ({ page }: { page: IPage }) {
           await callObject(object, callObjectOptions)
         }
       }
+
+      async function callObject(
+        object: any,
+        opts: ActionChainActionCallbackOptions & {
+          action: any
+          file?: File
+        },
+      ) {
+        if (_.isFunction(object)) {
+          await object()
+        } else if (_.isString(object)) {
+          log.red(
+            `Received a string as an object property of updateObject. ` +
+              `Possibly parsed incorrectly?`,
+            { object, ...options, ...opts, action },
+          )
+        } else if (_.isArray(object)) {
+          for (let index = 0; index < object.length; index++) {
+            const obj = object[index]
+            if (_.isFunction(obj)) {
+              // Handle promises/functions separately because they need to be
+              // awaited in this line for control flow
+              await obj()
+            } else {
+              await callObject(obj, opts)
+            }
+          }
+        } else if (_.isObjectLike(object)) {
+          let { dataKey, dataObject } = object
+          if (/(file|blob)/i.test(dataObject)) {
+            dataObject = opts.file || dataObject
+          }
+          // TODO - Replace this hardcoded "itemObject" string with iteratorVar
+          if (dataObject === 'itemObject') {
+            if (stateHelpers) {
+              const { getList } = stateHelpers
+              const listId = component.get('listId')
+              const listItemIndex = component.get('listItemIndex')
+              const list = getList(listId) || []
+              const listItem = list[listItemIndex]
+              if (listItem) dataObject = listItem
+              log.salmon('', {
+                listId,
+                listItemIndex,
+                list,
+                listItem,
+              })
+            }
+            if (!dataObject) dataObject = options?.file
+          }
+          if (dataObject) {
+            const params = { dataKey, dataObject }
+            log.func('updateObject')
+            log.green(`Parameters`, params)
+            await noodl.updateObject(params)
+          } else {
+            log.red(`dataObject is null or undefined`, {
+              action,
+              ...options,
+            })
+          }
+        }
+      }
     } catch (error) {
       console.error(error)
-      window.alert(error.message)
+      // window.alert(error.message)
+      // await abort?.(error.message)
     }
   }
 
-  return _.reduce(
-    _.entries(_actions),
-    (acc: typeof _actions, [key, fn]) => {
-      acc[key as keyof typeof acc] = (action, options) => {
-        const { component } = options
-        if (component.get('contentType') === 'file') {
-          // Components with contentType: "file" need a blob/file object
-          // so we inject logic for the file input window to open for the user
-          // to select a file from their file system before proceeding
-          // the action chain
-          try {
-            return onSelectFile((err, { files } = {}) => {
-              const file = files?.[0]
-              if (file) return fn(action, options, { file })
-            })
-          } catch (err) {
-            window.alert(err.message)
-            console.error(err)
-            return fn(action, options)
-          }
-        }
-        /**
-         * TEMP workaround until we write an official solution
-         * Currently popUp components can have stale data values. Here's an injection to
-         * re-query the data values
-         */
-        if (['popUp', 'popUpDismiss'].includes(action.actionType)) {
-          const dataValues = getDataValues()
-        }
-        return fn(action, options)
-      }
-      return acc
-    },
-    {} as typeof _actions,
-  )
+  return _actions
 }
 
 export default createActions

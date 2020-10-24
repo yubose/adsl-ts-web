@@ -8,7 +8,7 @@
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
-    "lib": ["esnext"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,

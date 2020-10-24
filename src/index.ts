@@ -5,9 +5,7 @@ import {
 } from 'twilio-video'
 import Logger from 'logsnap'
 import {
-  Action,
   ActionChainActionCallback,
-  ActionChainActionCallbackOptions,
   getByDataUX,
   getElementType,
   getAlignAttrs,
@@ -33,8 +31,8 @@ import {
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { forEachParticipant } from './utils/twilio'
-import { isMobile, reduceEntries } from './utils/common'
-import { copyToClipboard } from './utils/dom'
+import { callAll, isMobile, reduceEntries } from './utils/common'
+import { copyToClipboard, onSelectFile } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
@@ -48,21 +46,6 @@ import './handlers/dom'
 import './styles.css'
 
 const log = Logger.create('src/index.ts')
-
-/** TODO: Find out why I did this */
-function enhanceActions(actions: ReturnType<typeof createActions>) {
-  return reduceEntries(
-    actions,
-    (acc, { key, value: fn }) => {
-      acc[key] = (
-        action: Action<any>,
-        handlerOptions: ActionChainActionCallbackOptions<any>,
-      ) => fn(action, handlerOptions)
-      return acc
-    },
-    {},
-  )
-}
 
 /**
  * A factory func that returns a func that prepares the next page on the SDK
@@ -79,11 +62,18 @@ function createPreparePage(options: {
     ) => Promise<void>
   }
 }) {
-  return async (pageName: string): Promise<NOODLPageObject> => {
+  return async (
+    pageName: string,
+    pageModifiers: { evolve?: boolean } = {},
+  ): Promise<NOODLPageObject> => {
     const { default: noodl } = await import('app/noodl')
-    await noodl.initPage(pageName, [], options)
+    await noodl.initPage(pageName, [], { ...options, ...pageModifiers })
     log.func('createPreparePage')
-    log.grey(`Ran noodl.initPage on page "${pageName}"`)
+    log.grey(`Ran noodl.initPage on page "${pageName}"`, {
+      pageName,
+      pageModifiers,
+      ...options,
+    })
     return noodl.root[pageName]
   }
 }
@@ -94,16 +84,6 @@ window.addEventListener('load', async () => {
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
 
-  window.env = process.env.ECOS_ENV
-  window.env = process.env.NODE_ENV
-  window.getDataValues = getDataValues
-  window.getByDataUX = getByDataUX
-  window.noodl = noodl
-  window.noodlui = noodlui
-  window.noodluidom = noodluidom
-  window.streams = Meeting.getStreams()
-  window.meeting = Meeting
-  window.cp = copyToClipboard
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
   // const profile = await Account.login('+1 8882465555', '142251', vcode || '')
@@ -115,9 +95,36 @@ window.addEventListener('load', async () => {
   const page = new Page()
   const app = new App({ viewport })
   const builtIn = createBuiltInActions({ page, noodluidom })
-  const actions = enhanceActions(createActions({ page }))
+  const actions = createActions({ page })
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
+
+  window.build = process.env.BUILD
+  window.app = {
+    build: process.env.BUILD,
+    client: {
+      app,
+      page,
+      viewport,
+      Meeting,
+      Logger,
+    },
+    otherNoodl: {
+      actions,
+      lifeCycles,
+      streams,
+      noodl,
+      noodlui,
+      noodluidom,
+    },
+    util: {
+      cp: copyToClipboard,
+      getDataValues,
+      getByDataUX,
+    },
+  }
+  window.noodl = noodl
+  window.cp = copyToClipboard
 
   Meeting.initialize({ page, viewport })
 
@@ -151,24 +158,27 @@ window.addEventListener('load', async () => {
 
   // TODO - onRootNodeInitializeError
 
-  page.onBeforePageRender = async ({ pageName }) => {
+  page.onBeforePageRender = async (options) => {
+    const { pageName, pageModifiers } = options
     log.func('page.onBeforePageRender')
     log.grey('Rendering components', {
       previousPage: page.previousPage,
       currentPage: page.currentPage,
       requestedPage: pageName,
+      pageModifiers,
     })
     if (Meeting.room?.state === 'connected') Meeting.leave()
     if (pageName !== page.currentPage) {
       // Load the page in the SDK
 
-      const pageObject = await preparePage(pageName)
-      log.orange(`Received pageObject`, {
+      const pageObject = await preparePage(pageName, pageModifiers)
+      log.grey(`Received pageObject`, {
         previousPage: page.previousPage,
         currentPage: page.currentPage,
         requestedPage: pageName,
         pageName,
         pageObject,
+        pageModifiers,
       })
       // This will be passed into the page renderer
       const pageSnapshot: PageSnapshot = {
@@ -181,7 +191,7 @@ window.addEventListener('load', async () => {
         log.func('page.onBeforePageRender')
         log.grey('Initializing noodl-ui client', noodl)
         noodlui
-          .init({ viewport })
+          .init({ log: { enabled: true }, viewport })
           .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageSnapshot)
           .setRoot(noodl.root)
@@ -209,6 +219,7 @@ window.addEventListener('load', async () => {
             action: actions,
             builtIn: {
               checkUsernamePassword: builtIn.checkUsernamePassword,
+              checkField: builtIn.checkField,
               enterVerificationCode: builtIn.checkVerificationCode,
               goBack: builtIn.goBack,
               lockApplication: builtIn.lockApplication,
@@ -276,7 +287,12 @@ window.addEventListener('load', async () => {
    * Triggers the page.navigate from state changes.
    * Call page.requestPageChange to trigger this observer
    */
-  page.onPageRequest = ({ previous, current, requested: requestedPage }) => {
+  page.onPageRequest = ({
+    previous,
+    current,
+    requested: requestedPage,
+    modifiers,
+  }) => {
     console.groupCollapsed(
       `%c[page.onPageRequest] Requesting page change`,
       'color:#828282',
@@ -494,7 +510,7 @@ window.addEventListener('load', async () => {
             log.func('onCreateNode')
             log.red(
               `Attempted to add an element to a subStream but it ` +
-              `already exists in the subStreams container`,
+                `already exists in the subStreams container`,
               { subStreams, node, props },
             )
           }

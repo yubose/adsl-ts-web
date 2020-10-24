@@ -1,10 +1,10 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { isAction } from 'noodl-utils'
 import * as T from './types'
 import Action from './Action'
 import { forEachEntries } from './utils/common'
 import { AbortExecuteError } from './errors'
-import Logger from 'logsnap'
 
 const log = Logger.create('ActionChain')
 
@@ -71,8 +71,9 @@ class ActionChain {
         timeoutRef = setTimeout(() => {
           const msg = `Action of type "${action.type}" timed out`
           action.abort(msg)
+          this.abort(msg)
           throw new AbortExecuteError(msg)
-        }, 7000)
+        }, 10000)
 
         const result = await action.execute(handlerOptions)
 
@@ -113,6 +114,10 @@ class ActionChain {
       this.#original = actions
     }
 
+    // TODO - Reminder to look into this and do a more calculated flow
+    // since the queue should always be empty when the code gets here
+    if (this.#queue.length) this.#queue = []
+
     _.forEach(actions, (actionObject) => {
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
@@ -139,7 +144,7 @@ class ActionChain {
     const action = new Action(obj, {
       timeoutDelay: 8000,
     })
-    if (obj.actionType === 'builtIn' || obj.actionType === 'builtTn') {
+    if (obj.actionType === 'builtIn') {
       const builtInFn = this.builtIn?.[obj.funcName]
       if (_.isFunction(builtInFn)) {
         action.callback = builtInFn
@@ -182,7 +187,7 @@ class ActionChain {
     }
 
     // Reset the action chain once its done
-    this.#refresh()
+    // this.#refresh()
 
     return results
   }
@@ -218,10 +223,14 @@ class ActionChain {
             handlerOptions,
           )
 
+          log.gold('onChainStartArgs', {
+            queue: this.#queue,
+            handlerOptions,
+          })
+
           // Merge in additional args if any of the actions expect some extra
           // context/data (ex: having file/blobs ready before running the chain)
           if (onChainStartArgs && onChainStartArgs instanceof Promise) {
-            console.log(onChainStartArgs)
             // TODO: Find out why I did this "init" part
             init = {
               next: async () => {
@@ -230,7 +239,8 @@ class ActionChain {
                   actionChain: this,
                   buildOptions,
                 })
-                return this.#gen?.next(await onChainStartArgs)
+                const argsResult = await onChainStartArgs
+                await this.#gen?.next(argsResult)
               },
             }
           } else {
@@ -242,8 +252,21 @@ class ActionChain {
             .then(async (iteratorResult: any) => {
               iterator = iteratorResult
 
+              log.gold('init.next [before]', {
+                iteratorResult,
+                action,
+                handlerOptions,
+                result,
+              })
+
               while (!iterator?.done) {
                 action = iterator?.value?.action
+                log.gold('init.next [during]', {
+                  iteratorResult,
+                  action,
+                  handlerOptions,
+                  result,
+                })
 
                 // Skip to the next loop
                 if (!action) {
@@ -292,8 +315,16 @@ class ActionChain {
                 }
               }
 
+              log.gold('init.next [after]', {
+                iteratorResult,
+                action,
+                handlerOptions,
+                result,
+              })
+
               this.onChainEnd?.(this.actions as Action<any>[], handlerOptions)
               this.#setStatus('done')
+              this.#refresh()
               resolve(iterator)
             })
             .catch((err: Error) => {
@@ -375,9 +406,12 @@ class ActionChain {
     log.func('abort')
     log.orange('Aborting...', { status: this.status })
 
+    if (this.#current) this.#queue.unshift(this.#current)
+
     // Exhaust the remaining actions in the queue and abort them
     while (this.#queue.length) {
       const action = this.#queue.shift()
+      log.grey(`Aborting action ${action?.type}`, action?.getSnapshot())
       if (action?.status !== 'aborted') {
         try {
           action?.abort(reason || '')
@@ -389,15 +423,20 @@ class ActionChain {
       }
     }
     // This will return an object like { value, done: true }
-    const abortResult = await this.#gen?.return(reasons.join(', '))
+    const { value: abortResult = '' } =
+      (await this.#gen?.return(reasons.join(', '))) || {}
     if (this.onChainAborted) {
       await this.onChainAborted?.(
         this.#current,
-        this.getCallbackOptions({ omit: 'abort', include: { abortResult } }),
+        this.getCallbackOptions({
+          omit: 'abort',
+          include: { abortResult },
+        }),
       )
     }
     this.#refresh()
-    return abortResult
+    throw new Error(abortResult)
+    // return abortResult
   }
 
   #next = async (args?: any) => {
@@ -412,6 +451,11 @@ class ActionChain {
   }
 
   #refresh = () => {
+    log.func('#refresh')
+    log.grey(`Refreshed action chain`, {
+      instance: this,
+      snapshot: this.getSnapshot(),
+    })
     this.actions = []
     this.init(this.#original, this.#getConstructorOptions())
     return this

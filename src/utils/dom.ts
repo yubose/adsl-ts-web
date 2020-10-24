@@ -1,7 +1,10 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { NOODLDOMElement } from 'noodl-ui-dom'
-import { Styles } from 'app/types'
+import { FileInputEvent, Styles } from 'app/types'
 import { forEachEntries } from './common'
+
+const log = Logger.create('src/utils/dom.ts')
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -86,40 +89,91 @@ export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
 }
 
+interface OnSelectFileBaseResult {
+  event: FileInputEvent | FocusEvent
+  files: FileList | null
+}
+
+interface OnSelectFileSelectedResult extends OnSelectFileBaseResult {
+  status: 'selected'
+}
+
+interface OnSelectFileCanceledResult extends OnSelectFileBaseResult {
+  event: FocusEvent
+  files: null
+  status: 'canceled'
+}
+
+interface OnSelectFileErrorResult extends OnSelectFileBaseResult {
+  event: FileInputEvent
+  lineNumber: number | undefined
+  columnNumber: number | undefined
+  message: string | Error
+  source: number | undefined
+}
+
 /**
  * Opens the file select window. The promise resolves when a file was
- * selected, which becomes the resolved value
+ * selected, which becomes the resolved value.
+ * @param { HTMLInputElement? } inputNode - Optional existing input node to use
  */
 export function onSelectFile(
-  onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
-) {
-  const input = document.createElement('input')
-  input.id = ''
-  input.style['visibility'] = 'hidden'
-  input['type'] = 'file'
-  input['onerror'] = (msg, source, lineNum, columnNum, err) =>
-    onSelect(err as Error)
-  input['onabort'] = (e) => console.log(`onabort`, e)
-  input['oncancel'] = (e) => console.log(`oncancel`, e)
-  input['onclose'] = (e) => console.log(`onclose`, e)
-  input['onblur'] = (e) => console.log(`onblur`, e)
-  input['onended'] = (e) => console.log(`onended`, e)
-  input['onsuspend'] = (e) => console.log('onsuspend', e)
-  input['onchange'] = (e: any) => {
-    console.log(e)
-    console.log({ name: e.target?.name })
-    e.preventDefault?.()
-    e.stopPropagation?.()
-    try {
-      document.body.removeChild(input)
-    } catch (error) {
-      window.alert(error.message)
-      console.error(error)
+  inputNode?: HTMLInputElement,
+): Promise<OnSelectFileSelectedResult>
+export function onSelectFile(
+  inputNode?: HTMLInputElement,
+): Promise<OnSelectFileCanceledResult>
+export function onSelectFile(
+  inputNode?: HTMLInputElement,
+): Promise<OnSelectFileErrorResult>
+export function onSelectFile(
+  inputNode?: HTMLInputElement,
+): Promise<
+  | OnSelectFileSelectedResult
+  | OnSelectFileCanceledResult
+  | OnSelectFileErrorResult
+> {
+  // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
+  return new Promise((resolve, reject) => {
+    const input = inputNode || document.createElement('input')
+    input.style['visibility'] = 'hidden'
+    input['type'] = 'file'
+
+    input['onclick'] = function (event) {
+      document.body['onfocus'] = () => {
+        document.body['onfocus'] = null
+        setTimeout(() => {
+          document.body.removeChild(input)
+          resolve({
+            event,
+            files: input.files?.length ? input.files : null,
+            status: input.files?.length ? 'selected' : 'canceled',
+          } as OnSelectFileCanceledResult)
+        }, 350)
+      }
     }
-    onSelect(null, { e, files: e.target?.files })
-  }
-  document.body.appendChild(input)
-  input.click()
+
+    input['onerror'] = function onFileInputError(
+      message,
+      source,
+      lineNumber,
+      columnNumber,
+      error,
+    ) {
+      document.body.onfocus = null
+      reject({
+        message,
+        source,
+        lineNumber,
+        columnNumber,
+        error,
+      })
+    }
+
+    document.body.appendChild(input)
+
+    input.click()
+  })
 }
 
 export function getOffset(el: HTMLElement) {

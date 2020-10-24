@@ -8,7 +8,7 @@ import {
   NOODLGotoAction,
 } from 'noodl-ui'
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
-import { INOODLUIDOM } from 'noodl-ui-dom'
+import { INOODLUiDOM } from 'noodl-ui-dom'
 import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
@@ -24,13 +24,27 @@ const createBuiltInActions = function ({
   noodluidom,
   page,
 }: {
-  noodluidom: INOODLUIDOM
+  noodluidom: INOODLUiDOM
   page: Page
 }) {
   const builtInActions: BuiltInActions = {}
 
+  builtInActions.stringCompare = async (action, options) => {
+    log.func('stringCompare')
+    log.grey('', { action, ...options })
+    const password = action.original?.object?.[0] || ''
+    const confirmPassword = action.original?.object?.[1] || ''
+    if (password !== confirmPassword) {
+      const abort = options.abort
+      await abort?.('Passwords do not match')
+    }
+  }
+
   builtInActions.toggleFlag = async (action, options) => {
     const { default: noodl } = await import('app/noodl')
+    // const { getLocalRootListData, getLocalRootListPath } = await import(
+    //   'noodl-utils'
+    // )
     log.func('toggleFlag')
 
     const {
@@ -46,6 +60,7 @@ const createBuiltInActions = function ({
 
     let dataValue: any
     let dataObject: any
+    let previousDataValue: boolean | undefined = undefined
     let nextDataValue: boolean | undefined = undefined
     let newSrc = ''
 
@@ -55,7 +70,9 @@ const createBuiltInActions = function ({
         component.get('listId'),
         component.get('listItemIndex'),
       )
-      dataValue = _.get(dataObject, parts)
+      previousDataValue = _.get(dataObject, parts)
+      // previousDataValueInSdk = _.get(noodl.root[context.page.name])
+      dataValue = previousDataValue
       if (isNOODLBoolean(dataValue)) {
         // true -> false / false -> true
         nextDataValue = !isBooleanTrue(dataValue)
@@ -76,7 +93,8 @@ const createBuiltInActions = function ({
           dataKey,
         })
       }
-      dataValue = _.get(dataObject, dataKey)
+      previousDataValue = _.get(dataObject, dataKey)
+      dataValue = previousDataValue
       if (isNOODLBoolean(dataValue)) {
         nextDataValue = !isBooleanTrue(dataValue)
       } else {
@@ -102,27 +120,39 @@ const createBuiltInActions = function ({
       node.setAttribute('src', newSrc)
     }
 
-    console.log({
-      component: component.toJS(),
-      componentInst: component,
-      context,
-      dataKey,
-      dataValue,
-      dataObject,
-      nextDataValue,
-      newSrc,
-      node,
-      path,
-    })
+    // log.grey('', {
+    //   component: component.toJS(),
+    //   componentInst: component,
+    //   context,
+    //   dataKey,
+    //   dataValue,
+    //   dataObject,
+    //   previousDataValue,
+    //   nextDataValue,
+    //   previousDataValueInSdk: newSrc,
+    //   node,
+    //   path,
+    // })
   }
 
-  builtInActions.checkField = (action) => {
-    const { contentType } = action as NOODLBuiltInCheckFieldObject
+  builtInActions.checkField = (action, options) => {
+    log.func('checkField')
+    const { contentType } = action.original as NOODLBuiltInCheckFieldObject
     const node = getByDataUX(contentType)
+    console.groupCollapsed({ action, options, node })
+    console.trace()
+    console.groupEnd()
     if (node) {
-      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) =>
-        isHidden ? 'visible' : 'hidden',
-      )
+      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) => {
+        const result = isHidden ? 'visible' : 'hidden'
+        log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
+          action,
+          ...options,
+          node,
+          result,
+        })
+        return result
+      })
     }
   }
 
@@ -153,7 +183,13 @@ const createBuiltInActions = function ({
     // else await signin?.onSubmit()
   }
 
-  builtInActions.goBack = () => {
+  builtInActions.goBack = async (action, options) => {
+    log.func('goBack')
+    log.grey('', { action, ...options })
+
+    const requestPage = (pageName: string) =>
+      page.requestPageChange(pageName, { evolve: false })
+
     let { previousPage } = page
     if (!previousPage) {
       // Hard code this for now until routing is implemented
@@ -168,7 +204,7 @@ const createBuiltInActions = function ({
               if (pg && pg !== page.currentPage && pg !== page.previousPage) {
                 log.green(`Updated previous page: ${page.previousPage}`)
                 previousPage = pg
-                page.requestPageChange(previousPage)
+                await requestPage(previousPage)
                 break
               }
             }
@@ -182,11 +218,10 @@ const createBuiltInActions = function ({
       if (page.pageStack.length > 1) {
         page.pageStack.pop()
         let prevPage = page.pageStack.pop()
-        page.requestPageChange(prevPage)
-      }
-      else {
-        page.pageStack.pop();
-        page.requestPageChange("SideMenuBar")
+        await requestPage(prevPage || '')
+      } else {
+        page.pageStack.pop()
+        await requestPage('SideMenuBar')
       }
     } else {
       log.func('goBack')
