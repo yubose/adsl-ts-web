@@ -86,12 +86,9 @@ export function forEachDeepEntriesOnObj<Obj extends {}, K extends keyof Obj>(
   callback: (key: string, value: Obj[K], obj: Obj) => void,
 ) {
   if (_.isArray(value)) {
-    _.forEach(value, (val) => forEachDeepEntries(val, callback))
+    _.forEach(value, (val) => forEachDeepEntriesOnObj(val, callback))
   } else if (_.isPlainObject(value)) {
-    forEachEntries(value as Obj, (k, v: Obj[K]) => {
-      callback(k, v, value as Obj)
-      forEachDeepEntries(v, callback as any)
-    })
+    forEachDeepEntries(value as Obj, callback)
   }
 }
 
@@ -114,8 +111,8 @@ export function reduceEntries<Obj>(
   if (value && _.isObject(value)) {
     return _.reduce(
       _.entries(value),
-      (acc, [key, value], index) =>
-        callback(acc, { key: key as keyof Obj, value }, index),
+      (acc, [k, v], index) =>
+        callback(acc, { key: k as keyof Obj, value: v }, index),
       initialValue,
     )
   }

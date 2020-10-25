@@ -2,13 +2,12 @@
 import _ from 'lodash'
 
 function sortObjByProperties(obj: any) {
-  if (_.isObjectLike(obj)) {
-    return _.reduce(
-      _.sortBy(_.keys(obj)),
-      (acc, key) => _.assign(acc, { [key]: obj[key] }),
-      {},
-    )
+  if (_.isObject(obj)) {
+    const sortedKeys = _.orderBy(_.keys(obj), 'asc')
+    const fn = (acc: any, key: string) => _.assign(acc, { [key]: obj[key] }, {})
+    return _.reduce(sortedKeys, fn, {})
   }
+  return obj
 }
 
 export default sortObjByProperties

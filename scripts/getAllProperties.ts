@@ -7,7 +7,10 @@ import Aggregator from './modules/Aggregator'
 import Saver, { DataOptions } from './modules/Saver'
 import { sortObjByProperties } from './utils/common'
 import { getDirFilesAsJson } from './utils/filesystem'
-import { forEachDeepEntries } from '../src/utils/common'
+import {
+  forEachDeepEntries,
+  forEachDeepEntriesOnObj,
+} from '../src/utils/common'
 import { paths } from './config'
 import * as log from './utils/log'
 
@@ -52,11 +55,11 @@ async function getAllNOODLProperties({
       basePages: false,
     })
 
-    _.forEach(_.entries(objects), ([pageName, obj]) => {
+    _.forEach(_.entries(objects), ([pageName, page]) => {
+      pageCount++
       name = pageName
-
-      forEachDeepEntries(obj, (key) => {
-        if (/^[a-zA-Z]/i.test(key)) {
+      forEachDeepEntries(page[pageName], (key: string) => {
+        if (/^[a-zA-Z]+$/i.test(key)) {
           if (_.isUndefined(output.results[name])) {
             output.results[name] = { [key]: 0 }
           }
@@ -74,10 +77,7 @@ async function getAllNOODLProperties({
           output.overall[key]++
         }
       })
-
-      pageCount++
-
-      if (objects) {
+      if (pageName) {
         log.green(`Processed ${chalk.magentaBright(name)}`)
       }
     })
@@ -103,7 +103,7 @@ async function getAllNOODLProperties({
     })
 
     await saver.save({
-      data: output,
+      data: sortObjByProperties(output),
       dir,
       filename,
       type: 'json',
