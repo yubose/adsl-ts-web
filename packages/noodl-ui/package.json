@@ -16,7 +16,7 @@
   "scripts": {
     "build": "rm -rf dist && rollup -c --environment BUILD:production",
     "start": "rm -rf dist && rollup -c -w",
-    "start:ui": "rm -rf dist && rollup -c -w",
+    "start:ui": "rm -rf dist && erollup -c -w",
     "test": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose --file ./src/setupTests.ts",
     "test:file": "ts-mocha -p ./tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files src --file ./src/setupTests.ts"
   },
@@ -38,7 +38,7 @@
     }
   },
   "gitHead": "57753b8cd427d177c623188a536c58a70f9a8cbd",
-  "dependencies": {
-    "noodl-utils": "^0.0.9"
+  "devDependencies": {
+    "noodl-utils": "latest"
   }
 }

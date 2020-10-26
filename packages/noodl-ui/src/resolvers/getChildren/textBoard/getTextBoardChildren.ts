@@ -30,16 +30,10 @@ const getTextBoardChildren: Resolver = (component: IComponent) => {
       textBoard.map((item) => {
         let childComponent: IComponent
 
-        // console.info(isBreakLineTextBoardItem(item))
-        // console.info(isBreakLineTextBoardItem(item))
-        // console.info(isBreakLineTextBoardItem(item))
-
         if (isBreakLineTextBoardItem(item)) {
-          console.info(isBreakLineTextBoardItem.toString())
           childComponent = createNOODLComponent<ProxiedComponent>('br')
           const childProps = getChildProps(component, childComponent)
-          console.info('childProps', childProps)
-          return childProps?.toJS?.() || childProps
+          return childProps
         } else {
           // Create a label component to isolate away from others
           /**
@@ -51,7 +45,6 @@ const getTextBoardChildren: Resolver = (component: IComponent) => {
            * to get around this issue. For now we'll hard code known props like "color"
            */
           childComponent = createNOODLComponent<ProxiedComponent>('label')
-          console.info(item)
           childComponent
             .set('children', item.text)
             .set('style', 'display', 'inline-block')
