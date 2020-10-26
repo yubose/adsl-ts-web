@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
+import { isBreakLineTextBoardItem } from 'noodl-utils'
 import { IComponent, ProxiedComponent, Resolver } from '../../../types'
 import { createNOODLComponent, identify } from '../../../utils/noodl'
 import { formatColor } from '../../../utils/common'
@@ -23,6 +24,10 @@ const getTextBoardChildren: Resolver = (component: IComponent) => {
         component.snapshot(),
       )
     }
+    console.info(isBreakLineTextBoardItem)
+    console.info(isBreakLineTextBoardItem)
+    console.info(isBreakLineTextBoardItem)
+    console.info(isBreakLineTextBoardItem)
 
     component.set(
       'children',
@@ -52,7 +57,7 @@ const getTextBoardChildren: Resolver = (component: IComponent) => {
             return getChildProps(component, childComponent)
           }
           return null
-        } else if (identify.textBoard.item.isBreakLine(item)) {
+        } else if (isBreakLineTextBoardItem(item)) {
           childComponent = createNOODLComponent<ProxiedComponent>('br')
           return getChildProps(component, childComponent)
         } else {

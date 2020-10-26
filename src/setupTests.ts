@@ -4,6 +4,7 @@ import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
 import Logger, { _color } from 'logsnap'
 import { noodluidom } from './utils/test-utils'
+import './handlers/dom'
 
 chai.use(chaiAsPromised)
 
@@ -36,5 +37,4 @@ after(() => {
 
 afterEach(() => {
   document.body.textContent = ''
-  noodluidom.reset()
 })
