@@ -1,6 +1,6 @@
 {
   "name": "noodl-ui",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "NOODL JavaScript library",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "license": "MIT",
@@ -39,6 +39,6 @@
   },
   "gitHead": "57753b8cd427d177c623188a536c58a70f9a8cbd",
   "dependencies": {
-    "noodl-utils": "^0.0.8"
+    "noodl-utils": "^0.0.9"
   }
 }
