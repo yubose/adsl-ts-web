@@ -39,6 +39,7 @@ const getListChildren: ResolverFn = (
   // component.iteratorVar is used to attach it as the data item for list item components
   let rawBlueprint: any
   let parsedBlueprint: any
+  let listId = ''
 
   // Hard code some of this stuff for now until we figure out a better solution
   if (identify.stream.video.isSubStream(component.toJS())) {

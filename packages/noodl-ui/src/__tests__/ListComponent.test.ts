@@ -26,7 +26,6 @@ describe('ListComponent', () => {
         ?.set(listComponent.iteratorVar, item),
     )
     const data = listComponent.getData({ fromNodes: true })
-    console.info(data)
     expect(data).to.deep.equal(listObject)
   })
 

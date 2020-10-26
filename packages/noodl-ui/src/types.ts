@@ -25,8 +25,12 @@ export interface INOODLUi {
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
   getLists(): any[]
-  getList(component: string | IComponent): Map<IComponent, IComponent>
-  getListItem(component: IComponent): any
+  getList(
+    component: string | IComponent | IListComponent | IListItemComponent,
+  ): any[]
+  getListItem(
+    component: string | IComponent | IListComponent | IListItemComponent,
+  ): any
   getNode(component: IComponent | string): IComponent | null
   getNodes(): IComponent[]
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
@@ -50,7 +54,7 @@ export interface INOODLUi {
 
 export interface INOODLUiState {
   nodes: Map<IComponent, IComponent>
-  lists: Map<IComponent, Map<IComponent, any>>
+  lists: IListComponent[]
   showDataKey: boolean
 }
 
@@ -144,8 +148,8 @@ export interface IListComponent extends IComponent {
   exists(child: IListItemComponent): boolean
   find(childId: string): IListItemComponent | undefined
   find(child: IListItemComponent): IListItemComponent | undefined
-  getBlueprint(): any
-  getData(): any[] | null
+  getDefaultBlueprint(): IListComponentBlueprint
+  getData(opts?: { fromNodes?: boolean }): any[] | null
   getDataObject(index: number): any
   getDataObject(childId: string): any
   getDataObject(child: IComponent): any

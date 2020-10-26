@@ -4,6 +4,7 @@ import {
   IComponent,
   IComponentConstructor,
   IListComponent,
+  IListComponentBlueprint,
   IListComponentListObject,
   IListComponentHandleBlueprintProps,
   IListComponentUpdateProps,
@@ -17,7 +18,7 @@ const log = Logger.create('ListComponent')
 
 class ListComponent extends Component implements IListComponent {
   #data: any[] | null = null
-  #blueprint: ProxiedComponent = { type: 'listItem' }
+  #blueprint: IListComponentBlueprint = { type: 'listItem' }
   #children: IListItemComponent[] = []
   #onBlueprint?: IListComponent['onBlueprint']
   #onUpdate?: IListComponent['onUpdate']
@@ -61,13 +62,26 @@ class ListComponent extends Component implements IListComponent {
     return this.#children.length
   }
 
+  /**
+   * Returns true if the child exists in the list of list items
+   * @param { string | ListItemComponent } child
+   */
   exists(child: string | IListItemComponent) {
-    return !!child && child instanceof ListItemComponent
-      ? this.#children.includes(child)
-      : !!this.find(child)
+    return (
+      !!child &&
+      !!(child instanceof ListItemComponent
+        ? this.#children.includes(child as IListItemComponent)
+        : this.find(child))
+    )
   }
 
-  find(child: string | IListItemComponent) {
+  /**
+   * Uses a child's id or the instance itself and returns the list item
+   * instance if found, otherwise it returns undefined
+   * @param { string | ListItemComponent } child
+   */
+  find(child: string | number | IListItemComponent) {
+    if (typeof child === 'number') return this.#children[child]
     const fn = _.isString(child)
       ? (c: IListItemComponent) => !!c.id && c.id === child
       : (c: IListItemComponent) => c === child
@@ -104,14 +118,9 @@ class ListComponent extends Component implements IListComponent {
   }
 
   setDataObject(c: number | string | IListItemComponent, data: any) {
-    const child = this.#getListItem(c)
+    const child = this.find(c)
     child?.set(this.iteratorVar, data)
     return this
-  }
-
-  #getListItem = (child: string | number | IListItemComponent) => {
-    if (_.isNumber(child)) return this.#children[child]
-    return this.find(child)
   }
 
   getListItemChildren() {

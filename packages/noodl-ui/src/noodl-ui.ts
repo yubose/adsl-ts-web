@@ -13,6 +13,8 @@ import {
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import * as T from './types'
+import ListComponent from './ListComponent'
+import ListItemComponent from './ListItemComponent'
 
 const log = Logger.create('noodl-ui')
 
@@ -218,6 +220,13 @@ class NOODL implements T.INOODLUi {
     } as T.ResolverContext
   }
 
+  getStateHelpers() {
+    return {
+      ...this.getStateGetters(),
+      ...this.getStateSetters(),
+    }
+  }
+
   getResolverOptions(include?: { [key: string]: any }) {
     return {
       context: this.getContext(),
@@ -243,23 +252,50 @@ class NOODL implements T.INOODLUi {
     } as T.ConsumerOptions
   }
 
-  getLists({ asData }: { asData?: boolean } = {}) {
-    if (asData) {
-      //
-    }
-    const results = [] as any[]
-    this.#state.lists.forEach((list) => results.push(list))
-    return results
+  getLists() {
+    return _.reduce(
+      this.#state.lists,
+      (acc, list) => {
+        const data = list.getData?.()
+        if (data) return acc.concat(data)
+        return acc
+      },
+      [] as any[],
+    )
   }
 
-  getList(component: T.IComponent | string): any[] | null {
+  getList(c: string | T.IComponent | T.IListComponent | T.IListItemComponent) {
     let result: any[] | undefined
+    let component = this.getNode(c) || null
+    let listComponent: T.IListComponent | undefined
+    let listCount = this.#state.lists.length
+
+    if (component) {
+      if (component instanceof ListComponent) {
+        return component.getData()
+      } else if (component instanceof ListItemComponent) {
+        const parent = component.parent()
+        if (parent) {
+          if (!(parent instanceof ListComponent)) {
+            // while
+          } else {
+            return parent.getData()
+          }
+        }
+      } else if (component instanceof Component) {
+      }
+    }
+
     if (component instanceof Component) {
-      const node = this.getNode(component)
-      if (node) return node.get('data-listdata')
-    } else if (_.isString(component)) {
+      if (listCount >= 1) {
+        while (listCount) {}
+      }
+    }
+
+    if (component) {
       //
     }
+
     return result || null
   }
 

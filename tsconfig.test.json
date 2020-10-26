@@ -9,6 +9,12 @@
     "target": "es2019"
   },
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules/**/**", "scripts"],
-  "include": ["src/**/*.test.ts"]
+  "exclude": ["node_modules", "scripts"],
+  "include": [
+    "src/**/*.test.ts",
+    "packages/logsnap/src/**/*",
+    "packages/noodl-ui/src/**/*",
+    "packages/noodl-ui-dom/src/**/*",
+    "packages/noodl-utils/src/**/*"
+  ]
 }

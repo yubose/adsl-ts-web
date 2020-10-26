@@ -1,6 +1,6 @@
 {
   "name": "logsnap",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Colorful, easy to use logging for the browser",
   "keywords": [
     "console",
@@ -42,5 +42,8 @@
     "rules": {
       "no-unused-vars": "warn"
     }
+  },
+  "dependencies": {
+    "noodl-utils": "^0.0.9"
   }
 }

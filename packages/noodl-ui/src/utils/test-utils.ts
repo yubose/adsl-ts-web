@@ -15,7 +15,7 @@ import getTransformedAliases from '../resolvers/getTransformedAliases'
 import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
 import makeComponentResolver from '../factories/makeComponentResolver'
 import Resolver from '../Resolver'
-import { ComponentResolver, Page, ProxiedComponent, ResolverFn } from '../types'
+import { ResolveComponent, Page, ProxiedComponent, ResolverFn } from '../types'
 import NOODLUi from '../noodl-ui'
 
 export interface MakeResolverTestOptions {
@@ -25,7 +25,7 @@ export interface MakeResolverTestOptions {
 }
 
 export interface GetComponentResolver {
-  (componentResolver: ComponentResolver): any
+  (componentResolver: ResolveComponent): any
 }
 
 export type ResolverTest = ReturnType<typeof makeResolverTest>

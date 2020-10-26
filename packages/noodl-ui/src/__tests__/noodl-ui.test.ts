@@ -13,7 +13,7 @@ let component: IComponent
 
 beforeEach(() => {
   noodlComponent = mock.raw.getNOODLView() as NOODLComponent
-  component = new Component(noodlComponent)
+  component = new Component(noodlComponent) as IComponent
   // component.createChild({
   //   type: 'view',
   //   children: [
@@ -312,38 +312,7 @@ describe('noodl-ui', () => {
     })
   })
 
-  xdescribe('state api', () => {
-    describe('consume', () => {
-      it('should return the item', () => {
-        const listComponent = {
-          type: 'list',
-          iteratorVar: 'apple',
-          listObject: [
-            { firstName: 'chris', email: 'ppl@gmail.com' },
-            { firstName: 'joe', email: 'pfpl@gmail.com' },
-            { firstName: 'kelly', email: 'kelly@gmail.com' },
-          ],
-          children: [
-            {
-              type: 'listItem',
-              children: [
-                {
-                  type: 'label',
-                  dataKey: 'apple.email',
-                },
-                {
-                  type: 'view',
-                  children: [{ type: 'label', dataKey: 'apple.firstName' }],
-                },
-              ],
-            },
-          ],
-        }
-        const resolvedComponent = noodlui.resolveComponents(listComponent)
-        console.info(resolvedComponent.toJS())
-      })
-    })
-
+  describe('state api', () => {
     describe('getNodes', () => {
       it('should return an object of component nodes where key is component id and value is the instance', () => {
         // console.info(noodlui.getNodes())
@@ -366,6 +335,75 @@ describe('noodl-ui', () => {
       xit('should return the list item', () => {
         //
       })
+    })
+
+    describe('lists', () => {
+      it(
+        "should be able to retrieve list data using the list component's " +
+          'component id',
+        () => {
+          const noodlComponent = mock.raw.getNOODLList()
+          const component = noodlui.resolveComponents(noodlComponent)
+          const listObject = noodlui.getList(component.id)
+          console.info(noodlui.getState().lists)
+          console.info(listObject)
+          console.info(listObject)
+        },
+      )
+      xit(
+        'should be able to retrieve list data by directing using the ' +
+          "list component's instance",
+        () => {
+          const nooft = noodlui.getList()
+        },
+      )
+
+      xit(
+        "should be able to retrieve a list item component's data object " +
+          'using their component id',
+        () => {
+          //
+        },
+      )
+
+      xit(
+        "should be able to retrieve a list item component's data object " +
+          'using their component instance',
+        () => {
+          //
+        },
+      )
+
+      xit(
+        "should be able to retrieve a list item component's data object " +
+          'by using their component id',
+        () => {
+          //
+        },
+      )
+
+      xit(
+        "should be able to retrieve a list item component's data object " +
+          'by directly using their component instance',
+        () => {
+          //
+        },
+      )
+
+      xit(
+        "should be able to retrieve a list item component's data object " +
+          "using their parent's instance",
+        () => {
+          //
+        },
+      )
+      xit(
+        "should be able to retrieve a list item component's data object " +
+          "using their parent's component id",
+        () => {
+          //
+        },
+      )
     })
   })
 
