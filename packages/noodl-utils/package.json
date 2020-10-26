@@ -1,6 +1,6 @@
 {
   "name": "noodl-utils",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "description": "Utility/helpers for working with NOODL values",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "main": "dist/index.js",
