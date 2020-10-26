@@ -1,36 +1,48 @@
 import { expect } from 'chai'
-import * as utils from '.'
+import * as n from '.'
 
 describe('isAction', () => {
   it('should return true', () => {
-    expect(utils.isAction({ actionType: 'hello' })).to.be.true
+    expect(n.isAction({ actionType: 'hello' })).to.be.true
   })
   it('should return false', () => {
-    expect(utils.isAction({ actiondasType: 'hello' })).to.be.false
+    expect(n.isAction({ actiondasType: 'hello' })).to.be.false
   })
   it('should return true', () => {
-    expect(utils.isAction({ goto: 'abc' })).to.be.true
+    expect(n.isAction({ goto: 'abc' })).to.be.true
   })
   it('should return false', () => {
-    expect(utils.isAction('goto')).to.be.false
+    expect(n.isAction('goto')).to.be.false
   })
 })
 
 describe('isBoolean', () => {
   it('should return true', () => {
-    expect(utils.isBoolean(true)).to.be.true
+    expect(n.isBoolean(true)).to.be.true
   })
   it('should return true', () => {
-    expect(utils.isBoolean('true')).to.be.true
+    expect(n.isBoolean('true')).to.be.true
   })
   it('should return true', () => {
-    expect(utils.isBoolean(false)).to.be.true
+    expect(n.isBoolean(false)).to.be.true
   })
   it('should return true', () => {
-    expect(utils.isBoolean('false')).to.be.true
+    expect(n.isBoolean('false')).to.be.true
   })
   it('should return false', () => {
-    expect(utils.isBoolean('balse')).to.be.false
+    expect(n.isBoolean('balse')).to.be.false
+  })
+})
+
+describe('isBreakLineTextBoardItem', () => {
+  it('should return false', () => {
+    expect(n.isBreakLineTextBoardItem({ text: 'hello' })).to.be.false
+  })
+  xit('should return true', () => {
+    expect(n.isBreakLineTextBoardItem({ br: undefined })).to.be.true
+  })
+  xit('should return true', () => {
+    expect(n.isBreakLineTextBoardItem('br')).to.be.true
   })
 })
 

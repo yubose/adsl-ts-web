@@ -1,7 +1,7 @@
 import { expect } from 'chai'
+import { NOODLComponent } from 'noodl-ui'
 import { getByText, prettyDOM, screen } from '@testing-library/dom'
 import { noodl, noodluidom } from '../utils/test-utils'
-import { NOODLComponent } from 'noodl-ui'
 
 describe('DOM', () => {
   describe('textBoard', () => {
@@ -18,6 +18,7 @@ describe('DOM', () => {
       const node = noodluidom.parse(component as any)
       document.body.appendChild(node as HTMLElement)
       const children = node?.children as HTMLCollection
+      console.info(prettyDOM())
       expect(children[0].tagName).to.equal('LABEL')
       expect(children[1].tagName).to.equal('BR')
       expect(children[2].tagName).to.equal('LABEL')

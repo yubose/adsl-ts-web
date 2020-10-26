@@ -24,48 +24,42 @@ const getTextBoardChildren: Resolver = (component: IComponent) => {
         component.snapshot(),
       )
     }
-    console.info(isBreakLineTextBoardItem)
-    console.info(isBreakLineTextBoardItem)
-    console.info(isBreakLineTextBoardItem)
-    console.info(isBreakLineTextBoardItem)
 
     component.set(
       'children',
-      _.map(textBoard, (item) => {
+      textBoard.map((item) => {
         let childComponent: IComponent
 
-        if (_.isObjectLike(item)) {
-          // Create a label component to isolate away from others
-          if (identify.textBoard.item.isTextObject(item)) {
-            /**
-             * NOTE: Normally in the return type we would return the child
-             * component wrapped with a resolveComponent call but it is conflicting
-             * with our custom implementation because its being assigned unwanted style
-             * attributes like "position: absolute" which disrupts the text display.
-             * TODO: Instead of a resolverComponent, we should make a resolveStyles
-             * to get around this issue. For now we'll hard code known props like "color"
-             */
-            childComponent = createNOODLComponent<ProxiedComponent>('label')
+        // console.info(isBreakLineTextBoardItem(item))
+        // console.info(isBreakLineTextBoardItem(item))
+        // console.info(isBreakLineTextBoardItem(item))
 
-            childComponent
-              .set('children', item.text)
-              .set('style', 'display', 'inline-block')
-
-            if (_.isString(item.color)) {
-              childComponent.set('style', 'color', formatColor(item.color))
-            }
-            return getChildProps(component, childComponent)
-          }
-          return null
-        } else if (isBreakLineTextBoardItem(item)) {
+        if (isBreakLineTextBoardItem(item)) {
+          console.info(isBreakLineTextBoardItem.toString())
           childComponent = createNOODLComponent<ProxiedComponent>('br')
-          return getChildProps(component, childComponent)
+          const childProps = getChildProps(component, childComponent)
+          console.info('childProps', childProps)
+          return childProps?.toJS?.() || childProps
         } else {
-          log.red(
-            `Expected an item of textBoard to be object-like or string but ` +
-              `received the type "${typeof item}" instead. This part of the ` +
-              `component will not be included in the output`,
-          )
+          // Create a label component to isolate away from others
+          /**
+           * NOTE: Normally in the return type we would return the child
+           * component wrapped with a resolveComponent call but it is conflicting
+           * with our custom implementation because its being assigned unwanted style
+           * attributes like "position: absolute" which disrupts the text display.
+           * TODO: Instead of a resolverComponent, we should make a resolveStyles
+           * to get around this issue. For now we'll hard code known props like "color"
+           */
+          childComponent = createNOODLComponent<ProxiedComponent>('label')
+          console.info(item)
+          childComponent
+            .set('children', item.text)
+            .set('style', 'display', 'inline-block')
+
+          if (_.isString(item.color)) {
+            childComponent.set('style', 'color', formatColor(item.color))
+          }
+          return getChildProps(component, childComponent)
         }
       }),
     )
