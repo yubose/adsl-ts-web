@@ -28,26 +28,12 @@ noodluidom.on('all', function onCreateNode(node, props) {
 
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = props['data-listdata']
-  console.log('#################################################', props)
   if (id) node['id'] = id
   if (placeholder) node.setAttribute('placeholder', placeholder)
   if (type === 'video' && poster) node.setAttribute('poster', poster)
   if (src && type !== 'video') node.setAttribute('src', src)
   if (videoFormat) node.setAttribute('type', videoFormat)
-  // if (src === noodlui?.page?.object?.docDetail?.document?.name?.data && noodlui?.page?.object?.docDetail?.document?.name?.type == 'application/pdf') {
-  //   console.log("############################################")
-  //   // node.setAttribute("src", "https://i.pinimg.com/originals/b1/94/0e/b1940eb27d12eadbcdaa86dca0f1037d.jpg")
-  //   var node_new_child = document.createElement("iframe");
-  //   node_new_child.setAttribute("src", noodlui?.page?.object?.docDetail?.document?.name?.data)
-  //   if (id) node_new_child['id'] = id
-  //   node_new_child.style['width'] = '500px'
-  //   node_new_child.style['height'] = '800px'
-  //   // node = new_img
-  //   // console.log(new_img)
-  //   // console.log(node.childNodes)
-  //   node.appendChild(node_new_child)
-  //   console.log(node.childNodes)
-  // }
+
   /** Dataset identifiers */
   if ('data-listid' in props) node.dataset['listid'] = props['data-listid']
   if ('data-name' in props) node.dataset['name'] = props['data-name']
@@ -70,7 +56,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
           log.func('noodluidom.on -- all')
           log.red(
             `Attempted to attach a data-value to a select element's value but ` +
-              `"options" was not provided. This may not display its value as expected`,
+            `"options" was not provided. This may not display its value as expected`,
             props,
           )
         }
@@ -215,11 +201,39 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
       log.func('create.image: Image')
       log.orange(
         `An image component has children. This is a weird practice. Consider ` +
-          `discussion about this`,
+        `discussion about this`,
         props,
       )
       node.style['width'] = '100%'
       node.style['height'] = '100%'
+    }
+
+    if (node.src === noodlui?.page?.object?.docDetail?.document?.name?.data && noodlui?.page?.object?.docDetail?.document?.name?.type == 'application/pdf') {
+      node.style.visibility = 'hidden'
+      const parent = document.getElementById(props.parentId)
+      var new_obj = document.createElement('iframe');
+
+      // async function getUrl(url) {
+      //   const file = await fetch(url).then(r => r.blob()).then(blobFile => new Blob([blobFile], { type: "application/pdf" }))
+      //   // window.open(file)
+      //   const url = URL.createObjectURL(file)
+      //   return url
+      // }
+      // console.log('#################################################', node.src)
+      // const pdf_url = getUrl(node.src)
+      // const testing_url = "http://www.pdf995.com/samples/pdf.pdf"
+
+      new_obj.setAttribute("src", node.src)
+      if (_.isPlainObject(props.style)) {
+        forEachEntries(props.style, (k, v) => (new_obj.style[k as any] = v))
+      } else {
+        log.func('noodluidom.on: all')
+        log.red(
+          `Expected a style object but received ${typeof style} instead`,
+          props.style,
+        )
+      }
+      parent?.appendChild(new_obj)
     }
   }
 })
