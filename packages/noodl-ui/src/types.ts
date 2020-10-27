@@ -50,7 +50,7 @@ export interface INOODLUi {
 
 export interface INOODLUiState {
   nodes: Map<IComponent, IComponent>
-  lists: IListComponent[]
+  lists: Map<IListComponent, IListComponent>
   showDataKey: boolean
 }
 

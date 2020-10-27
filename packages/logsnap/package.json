@@ -42,5 +42,8 @@
     "rules": {
       "no-unused-vars": "warn"
     }
+  },
+  "dependencies": {
+    "noodl-utils": "file:../noodl-utils"
   }
 }

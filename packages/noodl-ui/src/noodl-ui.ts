@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-// import {  } from 'noodl-utils'
+import { findChild, findParent, findList } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import Component from './Component'
@@ -254,6 +254,7 @@ class NOODL implements T.INOODLUi {
   }
 
   getLists() {
+    return []
     return _.reduce(
       this.#state.lists,
       (acc, list) => {
@@ -265,39 +266,8 @@ class NOODL implements T.INOODLUi {
     )
   }
 
-  getList(c: string | T.UIComponent) {
-    let result: any[] | undefined
-    let component = this.getNode(c) || null
-    let listComponent: T.IListComponent | undefined
-    let listCount = this.#state.lists.length
-
-    if (component) {
-      if (component instanceof ListComponent) {
-        return component.getData()
-      } else if (component instanceof ListItemComponent) {
-        const parent = component.parent()
-        if (parent) {
-          if (!(parent instanceof ListComponent)) {
-            // while
-          } else {
-            return parent.getData()
-          }
-        }
-      } else if (component instanceof Component) {
-      }
-    }
-
-    if (component instanceof Component) {
-      if (listCount >= 1) {
-        while (listCount) {}
-      }
-    }
-
-    if (component) {
-      //
-    }
-
-    return result || null
+  getList(component: string | T.UIComponent) {
+    return findList(this.#state.lists, component)
   }
 
   /**

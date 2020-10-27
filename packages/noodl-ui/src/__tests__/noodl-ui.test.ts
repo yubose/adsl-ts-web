@@ -342,12 +342,15 @@ describe('noodl-ui', () => {
         "should be able to retrieve list data using the list component's " +
           'component id',
         () => {
+          const data = ['fruits']
           const noodlComponent = mock.raw.getNOODLList()
           const component = noodlui.resolveComponents(noodlComponent)
-          const listObject = noodlui.getList(component.id)
-          console.info(noodlui.getState().lists)
-          console.info(listObject)
-          console.info(listObject)
+          component.set('iteratorVar', data)
+          const listItem1 = component.createChild('listItem')
+          const child = listItem1.createChild('view')
+          const childOfChild = child.createChild('label')
+          // const listObject = noodlui.getList(`${component.id}` || '')
+          console.info(childOfChild.toJS())
         },
       )
       xit(

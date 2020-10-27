@@ -43,7 +43,7 @@ export function findChild(
   fn: (child: IComponent | null) => boolean,
 ): IComponent | null {
   if (component) {
-    let children = component.children().reverse()
+    let children = component.children?.().reverse?.()
     let child: IComponent | undefined = children.pop()
     if (child) {
       if (fn(child)) return child
