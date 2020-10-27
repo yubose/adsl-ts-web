@@ -47,22 +47,24 @@ class Page {
     | undefined
   #onBeforePageRender:
     | ((options: {
-      pageName: string
-      rootNode: NOODLDOMElement | null
-    }) => Promise<any>)
+        pageName: string
+        rootNode: NOODLDOMElement | null
+        pageModifiers: { evolve?: boolean } | undefined
+      }) => Promise<any>)
     | undefined
   #onPageRendered:
     | ((options: {
-      pageName: string
-      components: NOODLComponentProps[]
-    }) => Promise<any>)
+        pageName: string
+        components: NOODLComponentProps[]
+      }) => Promise<any>)
     | undefined
   #onPageRequest:
     | ((params: {
-      previous: string
-      current: string
-      requested: string
-    }) => boolean)
+        previous: string
+        current: string
+        requested: string
+        modifiers: { evolve?: boolean }
+      }) => boolean)
     | undefined
   #onModalStateChange:
     | ((prevState: PageModalState, nextState: PageModalState) => void)
@@ -98,9 +100,11 @@ class Page {
    * and begins parsing the NOODL components before rendering them to the rootNode.
    * Returns a snapshot of the page name, object, and its parsed/rendered components
    * @param { string } pageName
+   * @param { boolean | undefined } pageModifiers.evolve - Set to false to disable the page's
    */
   public async navigate(
     pageName: string,
+    pageModifiers: { evolve?: boolean } = {},
   ): Promise<{ snapshot: PageSnapshot } | void> {
     // TODO: onTimedOut
     try {
@@ -135,6 +139,7 @@ class Page {
         pageSnapshot = await this.#onBeforePageRender?.({
           pageName,
           rootNode: this.rootNode,
+          pageModifiers,
         })
 
         const rendered = this.render(
@@ -175,16 +180,18 @@ class Page {
    * If the call returns true, the page will begin navigating to the next page
    * else it will do nothing
    * @param { string } requestedPage - Page name to request
+   * @param { boolean? } modifiers.evolve - Set to false to disable the sdk's "evolve" for this route change. It internally set to true by default
    */
-  requestPageChange(newPage: string) {
+  requestPageChange(newPage: string, modifiers: { evolve?: boolean } = {}) {
     if (newPage !== this.currentPage) {
       const shouldNavigate = this.#onPageRequest?.({
         previous: this.previousPage,
         current: this.currentPage,
         requested: newPage,
+        modifiers,
       })
       if (shouldNavigate === true) {
-        return this.navigate(newPage).then(() => {
+        return this.navigate(newPage, modifiers).then(() => {
           this.previousPage = this.currentPage
           this.currentPage = newPage
         })
@@ -234,6 +241,7 @@ class Page {
     fn: (options: {
       pageName: string
       rootNode: NOODLDOMElement | null
+      pageModifiers: { evolve?: boolean }
     }) => Promise<NOODLUiPage | undefined>,
   ) {
     this.#onBeforePageRender = fn
@@ -305,7 +313,7 @@ class Page {
       log.func('navigate')
       log.red(
         "Attempted to render the page's components but the root " +
-        'node was not initialized. The page will not show anything',
+          'node was not initialized. The page will not show anything',
         { rootNode: this.rootNode, nodes: this.nodes },
       )
     }

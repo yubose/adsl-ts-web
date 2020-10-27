@@ -16,7 +16,7 @@ const config = {
       dir: 'dist',
       exports: 'named',
       format: 'umd',
-      name: 'noodlui',
+      name: 'noodlutils',
       globals: {},
     },
   ],

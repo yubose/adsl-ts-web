@@ -2,6 +2,34 @@ import { NOODLActionObject } from 'noodl-ui'
 import { isArr, isBool, isNum, isObj, isStr, isUnd } from './_internal'
 import * as T from './types'
 
+export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(
+  dataKey?: string,
+) {
+  return Array.from(
+    document.querySelectorAll(`[data-key${dataKey ? `="${dataKey}"` : ''}]`),
+  ) as Elem[]
+}
+
+export function getAllByDataListId<Elem extends HTMLElement = HTMLElement>() {
+  return Array.from(document.querySelectorAll('[data-listid]')) as Elem[]
+}
+
+export function getAllByDataName<Elem extends HTMLElement = HTMLElement>() {
+  return Array.from(document.querySelectorAll('[data-name]')) as Elem[]
+}
+
+export function getByDataKey(value: string) {
+  return document.querySelector(`[data-key="${value}"]`)
+}
+
+export function getByDataListId(value: string) {
+  return document.querySelector(`[data-listid="${value}"]`)
+}
+
+export function getByDataName(value: string) {
+  return document.querySelector(`[data-name="${value}"]`)
+}
+
 /** Returns true if the value is an object. Like those with an actionType prop */
 export function isAction(value: unknown): value is NOODLActionObject {
   if (isObj(value)) {
@@ -35,6 +63,23 @@ export function isBooleanTrue(value: unknown): value is true | 'true' {
  */
 export function isBooleanFalse(value: unknown): value is false | 'false' {
   return value === false || value === 'false'
+}
+
+export function isBreakLine(value: unknown): value is 'br' {
+  return value === 'br'
+}
+
+export function isBreakLineObject<T extends { br: any } = { br: string }>(
+  value: unknown,
+): value is T {
+  if (value && typeof value === 'object' && 'br' in value) return true
+  return false
+}
+
+export function isBreakLineTextBoardItem<
+  T extends { br: any } = { br: string }
+>(value: unknown): value is 'br' | T {
+  return isBreakLine(value) || isBreakLineObject(value)
 }
 
 export function isPasswordInput(value: unknown) {

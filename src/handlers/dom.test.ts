@@ -19,7 +19,6 @@ import {
   queryByDataUx,
   queryByDataValue,
 } from '../utils/test-utils'
-import './dom'
 
 const mockAxios = new MockAxios(axios)
 
