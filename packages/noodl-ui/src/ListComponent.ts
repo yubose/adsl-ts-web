@@ -11,6 +11,7 @@ import {
   IListItemComponent,
   ProxiedComponent,
 } from './types'
+import { getRandomKey } from './utils/common'
 import Component from './Component'
 import ListItemComponent from './ListItemComponent'
 
@@ -22,6 +23,7 @@ class ListComponent extends Component implements IListComponent {
   #children: IListItemComponent[] = []
   #onBlueprint?: IListComponent['onBlueprint']
   #onUpdate?: IListComponent['onUpdate']
+  #listId: string
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -34,6 +36,8 @@ class ListComponent extends Component implements IListComponent {
     // TODO - set blueprint
     const listObject = this.get('listObject')
     const iteratorVar = this.get('iteratorVar')
+
+    this.set('listId', getRandomKey())
 
     if (listObject) {
       if (_.isArray(listObject)) {
@@ -52,6 +56,10 @@ class ListComponent extends Component implements IListComponent {
 
   get iteratorVar() {
     return this.get('iteratorVar') || ''
+  }
+
+  get listId() {
+    return this.#listId
   }
 
   get listObject() {
@@ -130,19 +138,24 @@ class ListComponent extends Component implements IListComponent {
   createChild(...args: Parameters<IComponent['createChild']>) {
     const child = super.createChild(...args)
     if (child?.noodlType === 'listItem') {
-      this.#children.push(child)
+      child.set('listId', this.listId)
+      this.#children.push(child as IListItemComponent)
     }
     return child
   }
 
   removeChild(...args: Parameters<IComponent['removeChild']>) {
     const removedChild = super.removeChild(...args)
-    if (removedChild && this.#children.includes(removedChild)) {
+    if (
+      removedChild &&
+      this.#children.includes(removedChild as IListItemComponent)
+    ) {
       this.#children = this.#children.filter((c) => c !== removedChild)
     }
     return removedChild
   }
 
+  set(key: 'listId', value: string): this
   set(key: 'listObject', value: any[]): this
   set(key: 'blueprint', value: any): this
   set(...args: Parameters<IComponent['set']>) {
@@ -155,6 +168,8 @@ class ListComponent extends Component implements IListComponent {
       this.onUpdate?.(
         this.#getUpdateProps(listObject, this.#handleBlueprint?.(listObject)),
       )
+    } else if (key === 'listId') {
+      this.#listId = value
     }
 
     super.set(...args)

@@ -42,8 +42,5 @@
     "rules": {
       "no-unused-vars": "warn"
     }
-  },
-  "dependencies": {
-    "noodl-utils": "^0.0.9"
   }
 }

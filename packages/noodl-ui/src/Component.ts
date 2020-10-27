@@ -15,7 +15,6 @@ import {
   ProxiedComponent,
 } from './types'
 import { forEachEntries } from './utils/common'
-import { createNOODLComponent } from './utils/noodl'
 
 const log = Logger.create('Component')
 
@@ -32,6 +31,7 @@ class Component implements IComponent {
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
   action: NOODLActionObject = {} as NOODLActionObject
+  context: { [key: string]: any } = {}
   original: NOODLComponent | ProxiedComponent | NOODLComponentProps | string
   resolved: boolean = false
   keys: string[]

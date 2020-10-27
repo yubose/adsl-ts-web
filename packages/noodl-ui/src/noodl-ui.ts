@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
+// import {  } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import Component from './Component'
@@ -12,9 +13,9 @@ import {
 } from './utils/common'
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
-import * as T from './types'
 import ListComponent from './ListComponent'
 import ListItemComponent from './ListItemComponent'
+import * as T from './types'
 
 const log = Logger.create('noodl-ui')
 
@@ -264,7 +265,7 @@ class NOODL implements T.INOODLUi {
     )
   }
 
-  getList(c: string | T.IComponent | T.IListComponent | T.IListItemComponent) {
+  getList(c: string | T.UIComponent) {
     let result: any[] | undefined
     let component = this.getNode(c) || null
     let listComponent: T.IListComponent | undefined

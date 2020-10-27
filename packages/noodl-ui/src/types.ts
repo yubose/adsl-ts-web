@@ -25,12 +25,8 @@ export interface INOODLUi {
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
   getLists(): any[]
-  getList(
-    component: string | IComponent | IListComponent | IListItemComponent,
-  ): any[]
-  getListItem(
-    component: string | IComponent | IListComponent | IListItemComponent,
-  ): any
+  getList(component: string | UIComponent): any[]
+  getListItem(component: string | UIComponent): any
   getNode(component: IComponent | string): IComponent | null
   getNodes(): IComponent[]
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
@@ -66,6 +62,9 @@ export type INOODLUiStateGetters = Pick<
 >
 
 export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode' | 'setList'>
+
+// UI stands for "Union Interface", not "user interface"
+export type UIComponent = IComponent | IListComponent | IListItemComponent
 
 export type IComponentConstructor = new (component: ComponentType) => IComponent
 
@@ -157,8 +156,10 @@ export interface IListComponent extends IComponent {
   setDataObject(childId: string, data: any): this
   setDataObject(child: IListItemComponent, data: any): this
   iteratorVar: string
+  listId: string
   listObject: NOODLComponent['listObject']
   length: number
+  set(key: 'listId', value: string): this
   set(key: 'listObject', value: any[]): this
   set(key: 'blueprint', value: any): this
   set(...args: Parameters<IComponent['set']>): this
@@ -190,7 +191,7 @@ export interface IListComponentUpdateProps<
 }
 
 export interface IListItemComponent extends IComponent {
-  //
+  listId: string
 }
 
 export interface IResolver {
