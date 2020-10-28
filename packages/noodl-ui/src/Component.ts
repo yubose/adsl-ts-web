@@ -456,7 +456,8 @@ class Component implements IComponent {
    * @param { string } styleKey
    */
   removeStyle<K extends keyof NOODLStyle>(styleKey: K) {
-    return this.remove('style', styleKey)
+    this.remove('style', styleKey)
+    return this
   }
 
   /**
@@ -613,6 +614,8 @@ class Component implements IComponent {
     }
     return this
   }
+
+  set onChange
 }
 
 export default Component

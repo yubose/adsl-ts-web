@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
+import { findList } from '../utils/noodl'
 import { isPossiblyDataKey } from '../utils/noodl'
 import { contentTypes } from '../constants'
 import { ResolverFn } from '../types'
@@ -12,7 +13,7 @@ const log = Logger.create('getTransformedAliases')
  */
 const getTransformedAliases: ResolverFn = (
   component,
-  { context, getListItem, createSrc },
+  { context, getLists, createSrc },
 ) => {
   const {
     type,
@@ -33,6 +34,8 @@ const getTransformedAliases: ResolverFn = (
     'poster',
     'controls',
   ])
+
+  const lists = getLists()
 
   // Input (textfield) components
   if (contentType) {
@@ -85,10 +88,9 @@ const getTransformedAliases: ResolverFn = (
               'listItemIndex',
             ])
             if (listId) {
-              const listItem = getListItem(
-                listId as string,
-                listItemIndex as number,
-              )
+              const listItem = findList(lists, component)?.[
+                listItemIndex as number
+              ]
               if (listItem) {
                 value = _.get(listItem, valEvaluating)
                 if (value) {

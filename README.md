@@ -45,6 +45,11 @@ This allows for faster compilation, faster load times and quicker development fl
   - footer 4.0 --> 4.1 top value placement
   - input focus issue on androids
 
+## Notes
+
+- `noodlui.getList` retrieves its source node from `noodlui.#state.lists`
+- `noodlui.getListItem` retrieves its source node with `noodlui.getNode`
+
 ## Initialization (somewhat outdated)
 
 1. `noodl` client (sdk/api)

@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import { componentTypes } from '../constants'
-import { IComponent, NOODLComponentType, ResolverFn } from '../types'
+import { IComponent, ResolverFn } from '../types'
 
 /**
  * Resolves a component's html tag name by evaluating the NOODL "type" property

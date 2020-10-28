@@ -1,55 +1,13 @@
-import {
-  NOODLActionObject,
-  Component,
-  ListComponent,
-  ListItemComponent,
-  IComponent,
-  IListComponent,
-  IListItemComponent,
-} from 'noodl-ui'
-import { isArr, isBool, isNum, isObj, isStr, isUnd } from './_internal'
+import { isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
 import * as T from './types'
 
-// export function injectToTree(
-//   component: IComponent,
-//   injectProps: Partial<ProxiedComponent> & { [key: string]: any },
-// ) {
-//   const _entries = Object.entries(injectProps)
-
-//   function _inject(child: IComponent | undefined) {
-//     if (child && _entries.length) {
-//       _entries.forEach(([propName, propValue]) => {
-//         child.set?.(propName, propValue)
-//       })
-//     }
-//     return child
-//   }
-
-//   function _createChild(c: IComponent) {
-//     return function (...args: Parameters<IComponent['createChild']>) {
-//       const child = _inject(c.createChild(...args))
-//       if (child) child['createChild'] = _createChild(child)
-//       return child
-//     }
-//   }
-
-//   component['createChild'] = _createChild(component)
-
-//   return component
-// }
-
-export function findChild(
-  component: IComponent,
-  fn: (child: IComponent | null) => boolean,
-): IComponent | null {
+export function findChild(component: any, fn: (child: any) => boolean): any {
   if (component) {
     let children = component.children?.().reverse?.()
-    let child: IComponent | undefined = children.pop()
+    let child = children.pop()
     if (child) {
       if (fn(child)) return child
-      if (child.length) {
-        return findChild(child, fn)
-      }
+      if (child.length) return findChild(child, fn)
     }
   }
   return null
@@ -59,12 +17,9 @@ export function findChild(
  * Compares the predicate function to the component's parent. If the function
  * returns true it will return that parent, otherwise it will find the next parent
  * in the chain and so on
- * @param { IComponent } component
+ * @param { any } component
  */
-export function findParent(
-  component: IComponent,
-  fn: (parent: IComponent | null) => boolean,
-) {
+export function findParent(component: any, fn: (parent: any) => boolean) {
   let parent = component.parent()
   if (fn(parent)) return parent
   if (parent) {
@@ -74,69 +29,6 @@ export function findParent(
     }
   }
   return parent
-}
-
-/**
- * Uses the value given to find a list corresponding to its relation
- * @param { Map } lists - List of lists
- * @param { any } value
- */
-export function findList(
-  lists: Map<IListComponent, IListComponent>,
-  component: string | IComponent | IListComponent | IListItemComponent,
-) {
-  let result: any[] | null = null
-
-  if (component) {
-    let listComponent: IListComponent
-    let listComponents = Array.from(lists.values())
-    let listSize = lists.size
-
-    // Assuming it is a component's id, we will use this and traverse the whole list,
-    // comparing the id to each of the list's tree
-    if (typeof component === 'string') {
-      let child: any
-      const componentId = component
-      const fn = (c: IComponent) => !!c.id && c.id === componentId
-      for (let index = 0; index < listSize; index++) {
-        listComponent = listComponents[index]
-        if (listComponent.id === component) {
-          result = listComponent.getData()
-          break
-        }
-        child = findChild(listComponent, fn)
-        if (child) {
-          result = listComponent.getData?.()
-          break
-        }
-      }
-    }
-    // Directly return the data
-    else if (component instanceof ListComponent) {
-      return component.getData()
-    }
-    // List item components should always be direct children of ListComponents
-    else if (component instanceof ListItemComponent) {
-      result = (component.parent() as IListComponent)?.getData?.()
-    }
-    // Regular components should not hold the list data or data objects, so we
-    // will assume here that it is some nested child. We can get the list by
-    // traversing parents
-    else if (component instanceof Component) {
-      let parent: any
-      const fn = (c: IComponent) => c === listComponent
-      for (let index = 0; index < listSize; index++) {
-        listComponent = listComponents[index]
-        parent = findParent(component, fn)
-        if (parent) {
-          result = parent.getData?.()
-          break
-        }
-      }
-    }
-  }
-
-  return result || null
 }
 
 export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(
@@ -168,7 +60,7 @@ export function getByDataName(value: string) {
 }
 
 /** Returns true if the value is an object. Like those with an actionType prop */
-export function isAction(value: unknown): value is NOODLActionObject {
+export function isAction(value: unknown): any {
   if (isObj(value)) {
     if ('actionType' in value) return true
     if ('goto' in value) return true
@@ -219,15 +111,19 @@ export function isBreakLineTextBoardItem<
   return isBreakLine(value) || isBreakLineObject(value)
 }
 
-export function isParent<Parent extends IComponent = IComponent>(
-  parent: Parent | string,
-  child: IComponent | null,
-) {
-  if (child && parent && child instanceof Component) {
+export function isParent(parent: any, child: any | null) {
+  if (
+    child &&
+    parent &&
+    !isArr(child) &&
+    !isArr(parent) &&
+    !isFnc(child) &&
+    !isFnc(child)
+  ) {
     let parentId: string = ''
-    let parentInst: IComponent | null = null
+    let parentInst: any | null = null
     if (isStr(parent)) parentId = parent
-    else if (parent instanceof Component) parentInst = parent
+    else if (parent) parentInst = parent
     else return false
     return parentInst
       ? child.parent() === parentInst

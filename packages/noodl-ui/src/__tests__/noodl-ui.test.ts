@@ -5,6 +5,8 @@ import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
 import ActionChain from '../ActionChain'
 import Component from '../Component'
+import ListComponent from '../ListComponent'
+import ListItemComponent from '../ListItemComponent'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 
@@ -14,33 +16,6 @@ let component: IComponent
 beforeEach(() => {
   noodlComponent = mock.raw.getNOODLView() as NOODLComponent
   component = new Component(noodlComponent) as IComponent
-  // component.createChild({
-  //   type: 'view',
-  //   children: [
-  //     {
-  //       type: 'view',
-  //       children: [
-  //         {
-  //           type: 'list',
-  //           listObject,
-  //           children: [
-  //             {
-  //               type: 'listItem',
-  //               itemObject: '',
-  //               children: [
-  //                 {
-  //                   type: 'label',
-  //                   text: 'my label',
-  //                   style: { width: '0.5' },
-  //                 },
-  //               ],
-  //             },
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //   ],
-  // })
 })
 
 afterEach(() => {
@@ -48,6 +23,11 @@ afterEach(() => {
 })
 
 describe('noodl-ui', () => {
+  describe('creating action chains', () => {
+    xit('should return pass the context to callbacks', () => {
+      //
+    })
+  })
   xdescribe('implementation details', () => {
     it('should flip initialized to true when running init', () => {
       noodlui.init()
@@ -111,24 +91,48 @@ describe('noodl-ui', () => {
   })
 
   xdescribe('working with list data', () => {
-    it('should retrieve the list item if passing in the list item component instance', () => {
-      const component = new Component({
-        type: 'list',
-        listObject: mock.other.getNOODLListObject(),
-        children: [mock.raw.getNOODLListItem()],
-      })
-      noodlui.resolveComponents(component)
-      const listItemComponent = component.child()
-      const list = noodlui.getListItem(listItemComponent)
-      console.info(list)
+    xit('should retrieve the list data if passing in a list component instance', () => {
+      const dataObject1 = { fruits: ['apple'] }
+      const dataObject2 = { vegetables: ['tomatoes'] }
+      const data = [dataObject1, dataObject2]
+      const component = new ListComponent()
+      component.set('listObject', data)
+      noodlui.setList(component, data)
+      // const listItemChild1 = component.createChild(new ListItemComponent())
+      // listItemChild1.setDataObject(dataObject1)
+      // const listItemChild2 = component.createChild(new ListItemComponent())
+      // listItemChild2.setDataObject(dataObject2)
+      // const listItem1InnerChild = listItemChild1.createChild('view')
+      // const listItem1InnerChildChild = listItem1InnerChild.createChild('label')
+      // const resolvedComponents = noodlui.resolveComponents(component)
+      expect(noodlui.getList(component)).to.equal(data)
     })
 
-    xit('should retrieve the list item if passing in any nested child instance under the list item component instance', () => {
-      //
+    xit('should retrieve the list data if passing in any nested descendant component instance', () => {
+      const dataObject1 = { fruits: ['apple'] }
+      const dataObject2 = { vegetables: ['tomatoes'] }
+      const data = [dataObject1, dataObject2]
+      const component = new ListComponent()
+      const nestedChild = component
+        .createChild('listItem')
+        .createChild('view')
+        .createChild('label')
+      component.set('listObject', data)
+      noodlui.setList(component, data)
+      expect(noodlui.getList(nestedChild)).to.equal(data)
     })
 
     xit('should retrieve the list item if passing in a component id that links to a component instance anywhere in the list item tree', () => {
-      //
+      const dataObject1 = { fruits: ['apple'] }
+      const dataObject2 = { vegetables: ['tomatoes'] }
+      const data = [dataObject1, dataObject2]
+      const component = new ListComponent()
+      const listItemChild = component.createChild(new ListItemComponent())
+      listItemChild.setDataObject(dataObject2)
+      const nestedLabel = listItemChild.createChild('view').createChild('label')
+      component.set('listObject', data)
+      noodlui.setList(component, data)
+      expect(noodlui.getListItem(nestedLabel)).to.equal(dataObject2)
     })
 
     xit('should set the component instance as the key', () => {
@@ -337,7 +341,7 @@ describe('noodl-ui', () => {
       })
     })
 
-    describe('lists', () => {
+    xdescribe('lists', () => {
       it(
         "should be able to retrieve list data using the list component's " +
           'component id',

@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { findChild, findParent, findList } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import Component from './Component'
@@ -14,7 +13,6 @@ import {
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import ListComponent from './ListComponent'
-import ListItemComponent from './ListItemComponent'
 import * as T from './types'
 
 const log = Logger.create('noodl-ui')
@@ -254,35 +252,39 @@ class NOODL implements T.INOODLUi {
   }
 
   getLists() {
-    return []
-    return _.reduce(
-      this.#state.lists,
-      (acc, list) => {
-        const data = list.getData?.()
-        if (data) return acc.concat(data)
-        return acc
-      },
-      [] as any[],
-    )
+    return this.#state.lists
   }
 
-  getList(component: string | T.UIComponent) {
-    return findList(this.#state.lists, component)
-  }
+  // getList(component: string | T.UIComponent) {
+  //   if (component instanceof ListComponent) return component.getData()
+  //   return findList(this.#state.lists, component)
+  // }
 
   /**
    * Retrieves the list item from state. If a component id is passed in it will
    * attempt to retrieve the list item by comparing it to an existing component instance's id
-   * that was set previously in the state.
+   * that was set previously in the state. Vice versa for using instances.
+   * Note: This method will always assume that the arg is a descendant of the list item
    * @param { IComponent | string } component - Component or component id
    */
-  getListItem(component: string | T.IComponent) {
-    const list = this.#state.lists.get(
-      _.isString(component) ? this.getNode(component) : component,
-    )
-    if (list) {
-    }
-  }
+  // getListItem(c: string | T.UIComponent) {
+  //   let component: T.UIComponent | null = null
+  //   let dataObject: any
+
+  //   if (_.isString(c)) component = this.getNode(c)
+
+  //   if (component) {
+  //     if (component instanceof Component) {
+  //       const listItemComponent = findParent(
+  //         component,
+  //         (parent) => parent?.noodlType === 'listItem',
+  //       )
+  //       if (listItemComponent) dataObject = listItemComponent.getDataObject()
+  //     }
+  //   }
+
+  //   return dataObject
+  // }
 
   getNodes() {
     return Array.from(this.#state.nodes.values())
@@ -314,8 +316,8 @@ class NOODL implements T.INOODLUi {
   getStateGetters() {
     return {
       getLists: this.getLists.bind(this),
-      getList: this.getList.bind(this),
-      getListItem: this.getListItem.bind(this),
+      // getList: this.getList.bind(this),
+      // getListItem: this.getListItem.bind(this),
       getState: this.getState.bind(this),
       getNodes: this.getNodes.bind(this),
       getNode: this.getNode.bind(this),
@@ -365,12 +367,12 @@ class NOODL implements T.INOODLUi {
   }
 
   #resolve = (c: T.ComponentType, { id }: { id?: string } = {}) => {
-    let component: T.IComponent
+    let component: T.UIComponent
 
     if (c instanceof Component) {
-      component = c
+      component = c as T.UIComponent
     } else {
-      component = new Component(c)
+      component = new Component(c as T.ComponentType)
     }
 
     component['id'] = id || _.uniqueId()
@@ -458,20 +460,10 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  setList(component: T.IComponent, list: any[]) {
-    this.#state.lists.set(component, list)
-    return this
-  }
-
-  addListItem(parent: T.IComponent, component: T.IComponent) {
-    const list = this.getList(parent)
-    list.set(component, component.get('listItem'))
-    return this
-  }
-
-  deleteListItem(parent: T.IComponent, component: T.IComponent) {
-    const list = this.getList(parent)
-    list.delete(component)
+  setList(component: T.IListComponent, data?: any) {
+    if (!component || !(component instanceof ListComponent)) return this
+    if (data !== undefined) component.set('listObject', data)
+    this.#state.lists.set(component, component)
     return this
   }
 

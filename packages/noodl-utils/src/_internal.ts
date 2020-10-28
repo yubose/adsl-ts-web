@@ -4,3 +4,5 @@ export const isObj = (v: any): v is object => !!v && typeof v === 'object'
 export const isNum = (v: any): v is number => typeof v === 'number'
 export const isStr = (v: any): v is string => typeof v === 'string'
 export const isUnd = (v: any): v is undefined => typeof v === 'undefined'
+export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
+  typeof v === 'function'
