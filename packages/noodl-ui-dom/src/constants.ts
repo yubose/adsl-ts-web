@@ -1,5 +1,6 @@
 export const componentEventMap = {
   button: 'create.button',
+  br: 'create.breakline',
   divider: 'create.divider',
   footer: 'create.footer',
   header: 'create.header',

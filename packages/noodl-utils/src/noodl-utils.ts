@@ -65,6 +65,23 @@ export function isBooleanFalse(value: unknown): value is false | 'false' {
   return value === false || value === 'false'
 }
 
+export function isBreakLine(value: unknown): value is 'br' {
+  return value === 'br'
+}
+
+export function isBreakLineObject<T extends { br: any } = { br: string }>(
+  value: unknown,
+): value is T {
+  if (value && typeof value === 'object' && 'br' in value) return true
+  return false
+}
+
+export function isBreakLineTextBoardItem<
+  T extends { br: any } = { br: string }
+>(value: unknown): value is 'br' | T {
+  return isBreakLine(value) || isBreakLineObject(value)
+}
+
 export function isPasswordInput(value: unknown) {
   return (
     isObj(value) &&

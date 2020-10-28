@@ -19,7 +19,8 @@ import {
   NOODLComponentProps,
   Viewport,
 } from 'noodl-ui'
-import NOODLUIDOM, { NOODLDOMElement } from 'noodl-ui-dom'
+import { NOODLDOMElement } from 'noodl-ui-dom'
+import noodluidom from '../app/noodl-ui-dom'
 
 export const queryByDataKey = queryHelpers.queryByAttribute.bind(
   null,
@@ -67,26 +68,7 @@ export const noodl = new NOODL()
     getEventHandlers,
   )
 
-export const noodluidom = (function () {
-  let _inst: NOODLUIDOM
-
-  const _resetInstance = () => {
-    _inst = new NOODLUIDOM()
-    Object.defineProperty(_inst, 'reset', {
-      configurable: true,
-      enumerable: false,
-      writable: true,
-      value: function () {
-        _resetInstance()
-      },
-    })
-  }
-
-  _resetInstance()
-
-  // @ts-expect-error
-  return _inst as NOODLUIDOM & { reset: typeof _resetInstance }
-})()
+export { noodluidom }
 
 export function toDOM(props: NOODLComponentProps): NOODLDOMElement | null {
   const node = noodluidom.parse(props)

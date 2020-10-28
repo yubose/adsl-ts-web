@@ -23,14 +23,11 @@
   },
   "include": [
     "src",
+    "packages",
     "webpack.config.js",
     "package.json",
     "setupTests.ts",
-    "legacy",
-    "packages/logsnap/src/**/*",
-    "packages/noodl-ui/src/**/*",
-    "packages/noodl-ui-dom/src/**/*",
-    "packages/noodl-utils/src/**/*"
+    "legacy"
   ],
   "exclude": ["_data", "node_modules", "legacy"]
 }

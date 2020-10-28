@@ -1,6 +1,6 @@
 {
   "name": "noodl-ui-dom",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -15,9 +15,6 @@
   "keywords": [],
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "license": "ISC",
-  "peerDependencies": {
-    "noodl-ui": "^0.0.24"
-  },
   "files": [
     "dist"
   ],
@@ -39,5 +36,8 @@
       "no-unused-vars": "warn"
     }
   },
-  "gitHead": "57753b8cd427d177c623188a536c58a70f9a8cbd"
+  "gitHead": "57753b8cd427d177c623188a536c58a70f9a8cbd",
+  "devDependencies": {
+    "noodl-utils": "latest"
+  }
 }
