@@ -19,7 +19,7 @@ const mockSubstreamsProps = noodl.resolveComponents(
   getMockSubstreamsContainer(),
 )[0]
 
-const blueprint = mockSubstreamsProps.blueprint as NOODLComponentProps
+const blueprint = mockSubstreamsProps?.blueprint as NOODLComponentProps
 
 let streams: Streams
 let subStreams: Substreams

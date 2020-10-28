@@ -18,13 +18,6 @@
     "suppressImplicitAnyIndexErrors": true,
     "target": "esnext"
   },
-  "exclude": [
-    "node_modules/**/*",
-    "dist",
-    "src/setupTests.ts",
-    "src/**/*.test.ts",
-    "src/**/__tests__",
-    "src/**/test-utils.ts"
-  ],
+  "exclude": ["node_modules", "dist"],
   "include": ["src/**/*", "rollup.config.js"]
 }

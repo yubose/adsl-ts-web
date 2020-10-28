@@ -1,11 +1,14 @@
 import _ from 'lodash'
-import { isIteratorVarConsumer } from '../../utils/noodl'
+import { createNOODLComponent, isIteratorVarConsumer } from '../../utils/noodl'
 import {
   IComponent,
   ProxiedComponent,
   ResolverOptions,
   ConsumerOptions,
+  NOODLComponent,
+  UIComponent,
 } from '../../types'
+import Component from '../../Component'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
 import getListChildren from './list'
@@ -22,6 +25,38 @@ function getChildren(
   options: ConsumerOptions & { resolverOptions: ResolverOptions },
 ): void {
   const { resolveComponent, resolverOptions } = options
+  const fn = (c: UIComponent) => {
+    const noodlObj = c?.original
+    console.log(noodlObj)
+    if (noodlObj?.children) {
+      if (_.isArray(noodlObj.children)) {
+        _.forEach(noodlObj.children, (_c) => {
+          const child = createNOODLComponent(_c)
+          const resolvedChild = resolveComponent(child)
+          if (resolvedChild) {
+            component.createChild(resolvedChild)
+            if (child.length) fn(child)
+          }
+        })
+      } else {
+        const child = createNOODLComponent(c)
+        const resolvedChild = resolveComponent(child)
+        if (resolvedChild) {
+          component.createChild(resolvedChild)
+          if (child.length) fn(child)
+        }
+      }
+    }
+  }
+  if (component.original.children?.length)
+    _.forEach(component.original.children, (c) => {
+      if (c) {
+        const child = createNOODLComponent(c)
+        const resolvedComponent = resolveComponent(child)
+        if (resolvedComponent) fn(resolvedComponent)
+      }
+    })
+  return
   const { text, textBoard, type, children, iteratorVar = '' } = component.get([
     'text',
     'textBoard',

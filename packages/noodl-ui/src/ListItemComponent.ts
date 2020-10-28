@@ -28,7 +28,7 @@ class ListItemComponent extends Component {
   }
 
   createChild(child: ComponentType | NOODLComponentType) {
-    let childComponent: IComponent = super.createChild(child)
+    let childComponent = super.createChild(child)
     let listItem: any
     if (child === 'listItem') {
     } else {
@@ -41,16 +41,16 @@ class ListItemComponent extends Component {
     return this
   }
 
-  data() {
+  getDataObject() {
     return this.#dataObject
   }
 
-  setData(data: any) {
+  setDataObject(data: any) {
     this.#dataObject = data
   }
 
   set(...args: Parameters<Component['set']>) {
-    if (args[0] === this.iteratorVar) this.setData(args[1])
+    if (args[0] === this.iteratorVar) this.setDataObject(args[1])
     super.set(...args)
     return this
   }

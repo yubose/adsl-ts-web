@@ -18,6 +18,7 @@ const config = {
       exports: 'named',
       format: 'umd',
       name: 'noodlui',
+      sourcemap: 'inline-source-map',
       globals: {},
     },
   ],

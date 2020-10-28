@@ -19,12 +19,14 @@ export interface INOODLUi {
     actions: NOODLActionObject[],
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
+  createSrc(path: string, component?: UIComponent): string
   on(eventName: string, cb: (...args: any[]) => any, cb2?: any): this
   off(eventName: string, cb: (...args: any[]) => any): this
+  emit(eventName: EventId, ...args: any[]): this
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
   getNode(component: IComponent | string): IComponent | null
-  getNodes(): IComponent[]
+  getNodes(): Map<UIComponent, UIComponent>
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
   getState(): INOODLUiState
   getStateHelpers(): INOODLUiStateHelpers
@@ -33,7 +35,7 @@ export interface INOODLUi {
   reset(): this
   resolveComponents(
     components: ComponentType | ComponentType[] | Page['object'],
-  ): IComponent | IComponent[] | null
+  ): UIComponent | UIComponent[] | null
   setAssetsUrl(assetsUrl: string): this
   setNode(component: IComponent): this
   setPage(page: string): this
@@ -44,7 +46,7 @@ export interface INOODLUi {
 }
 
 export interface INOODLUiState {
-  nodes: Map<IComponent, IComponent>
+  nodes: Map<UIComponent, UIComponent>
   lists: Map<IListComponent, IListComponent>
   showDataKey: boolean
 }
@@ -58,10 +60,15 @@ export type INOODLUiStateGetters = Pick<
 
 export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode'>
 
-// UI stands for "Union Interface", not "user interface"
+/**
+ * UI stands for "Union Interface", not "user interface"
+ * This type is a union of all possible noodl-ui component instance types
+ */
 export type UIComponent = IComponent | IListComponent | IListItemComponent
 
-export type IComponentConstructor = new (component: ComponentType) => IComponent
+export type IComponentConstructor = new (
+  component: ComponentType,
+) => UIComponent
 
 export interface IComponent {
   action: NOODLActionObject
@@ -81,15 +88,15 @@ export interface IComponent {
   ): this
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): UIComponent | undefined
-  children(): IComponent[]
-  createChild(child: NOODLComponentType): IComponent | undefined
-  createChild(child: ComponentType): IComponent | undefined
+  children(): UIComponent[]
+  createChild(child: NOODLComponentType): UIComponent | undefined
+  createChild(child: ComponentType): UIComponent | undefined
   hasChild(childId: string): boolean
   hasChild(child: UIComponent): boolean
-  removeChild(index: number): IComponent | undefined
-  removeChild(id: string): IComponent | undefined
-  removeChild(child: IComponent): IComponent | undefined
-  removeChild(): IComponent | undefined
+  removeChild(index: number): UIComponent | undefined
+  removeChild(id: string): UIComponent | undefined
+  removeChild(child: UIComponent): IComponent | undefined
+  removeChild(): UIComponent | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
   get<K extends keyof ProxiedComponent>(
@@ -108,11 +115,12 @@ export interface IComponent {
   isTouched(key: string): boolean
   isStyleTouched(styleKey: string): boolean
   isStyleHandled(key: string): boolean
+  keys: string[]
   merge(key: string | { [key: string]: any }, value?: any): this
   noodlType: NOODLComponentType
   on(eventName: IComponentEventId, cb: Function): this
   off(eventName: IComponentEventId, cb: Function): this
-  parent(): IComponent | null
+  parent(): UIComponent | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
   set<K extends keyof ProxiedComponent = string>(
@@ -120,7 +128,7 @@ export interface IComponent {
     value?: any,
     styleChanges?: any,
   ): this
-  setParent(parent: IComponent | null): this
+  setParent(parent: UIComponent | null): this
   setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
   snapshot(): (ProxiedComponent | NOODLComponentProps) & {
     _touched: string[]
@@ -135,6 +143,15 @@ export interface IComponent {
   toString(): string
   touch(key: string): this
   touchStyle(styleKey: string): this
+  onId?: () => void
+  onChild?: () => void
+  onParent?: () => void
+  onDataValue?: () => void
+  onStatus?: () => void
+  onStyle?: () => void
+  onHandled?: () => void
+  onTouch?: () => void
+  onStyleTouch?: () => void
 }
 
 export interface IListComponent extends IComponent {
@@ -163,6 +180,7 @@ export interface IListComponent extends IComponent {
     opts: IListComponentHandleBlueprintProps,
   ): Partial<ProxiedComponent> | void | undefined | null
   onUpdate?(args: IListComponentUpdateProps): void
+  onData?(): this
 }
 
 export type IListComponentListObject = ReturnType<IListComponent['getData']>
@@ -186,16 +204,17 @@ export interface IListComponentUpdateProps<
 }
 
 export interface IListItemComponent extends IComponent {
-  listId: string
+  listId?: string
+  onDataObject?(): this
 }
 
 export interface IResolver {
   setResolver(resolver: ResolverFn): this
-  resolve(component: IComponent, options: ConsumerOptions): this
+  resolve: ResolverFn
 }
 
 export type ComponentType =
-  | IComponent
+  | UIComponent
   | NOODLComponent
   | NOODLComponentType
   | NOODLComponentProps
@@ -468,12 +487,13 @@ export interface ActionChainSnapshot<Actions extends any[]> {
   status: ActionChainStatus
 }
 
-export interface ActionChainCallbackOptions<Actions extends any[]> {
+export interface ActionChainCallbackOptions<Actions extends any[] = any[]> {
   abort(reason?: string | string[]): Promise<any>
   error?: Error
   event: EventTarget | undefined
   parser?: ResolverOptions['parser']
   snapshot: ActionChainSnapshot<Actions>
+  trigger: NOODLActionTriggerType
 }
 
 export interface ActionSnapshot<OriginalAction = any> {
@@ -496,14 +516,6 @@ export type ActionStatus =
   | 'error'
   | 'timed-out'
 
-export type ParsedChainActionUpdateObject = NOODLUpdateObject<
-  ((...args: any[]) => Promise<any>)[] | ((...args: any[]) => Promise<any>)
->
-
-/* -------------------------------------------------------
-  ---- LIB | LISTENERS
--------------------------------------------------------- */
-
 export interface ActionChainActionCallback<ActionObject = any> {
   (
     action: ActionObject,
@@ -512,20 +524,41 @@ export interface ActionChainActionCallback<ActionObject = any> {
   ): ActionChainActionCallbackReturnType
 }
 
-export interface ActionChainActionCallbackOptions<T extends IComponent = any>
+export interface ActionChainActionCallbackOptions<T extends UIComponent = any>
   extends INOODLUiStateGetters {
   abort?(
     reason?: string | string[],
   ): Promise<IteratorYieldResult<any> | IteratorReturnResult<any> | undefined>
+  builtIn: Partial<Record<string, ActionChainCallbackOptions[]>>
   component: T
-  context: ConsumerOptions['context']
-  dataValues?: Record<string, any>
+  context: ResolverContext
   event?: Event
   error?: Error
-  parser: ConsumerOptions['parser']
+  parser: RootsParser
   snapshot: ActionChainSnapshot<any[]>
-  trigger?: NOODLActionTriggerType
+  trigger: NOODLActionTriggerType
 }
+
+export type ActionChainLifeCycleComponentListeners = Record<
+  NOODLComponentType,
+  LifeCycleListener
+> & {
+  finally?: LifeCycleListener
+}
+
+export type ActionChainActionCallbackReturnType =
+  | Promise<'abort' | undefined | void>
+  | 'abort'
+  | undefined
+  | void
+
+export type ParsedChainActionUpdateObject = NOODLUpdateObject<
+  ((...args: any[]) => Promise<any>)[] | ((...args: any[]) => Promise<any>)
+>
+
+/* -------------------------------------------------------
+  ---- LIB | LISTENERS
+-------------------------------------------------------- */
 
 export interface BuiltInActions {
   [funcName: string]: <A extends {}>(
@@ -541,19 +574,6 @@ export interface LifeCycleListener<T = any> {
     | undefined
     | void
 }
-
-export type ActionChainLifeCycleComponentListeners = Record<
-  NOODLComponentType,
-  LifeCycleListener
-> & {
-  finally?: LifeCycleListener
-}
-
-export type ActionChainActionCallbackReturnType =
-  | Promise<'abort' | undefined | void>
-  | 'abort'
-  | undefined
-  | void
 
 export type OnEvalObject = ActionChainActionCallback<NOODLEvalObject>
 
@@ -667,7 +687,7 @@ export interface ResolveComponent<T = any> {
 }
 
 export type ResolverFn = ((
-  component: IComponent,
+  component: UIComponent,
   resolverConsumerOptions: ConsumerOptions,
 ) => void) & {
   getChildren?: Function
@@ -683,22 +703,12 @@ export interface ResolverOptions
 
 export interface ConsumerOptions
   extends INOODLUiStateHelpers,
-    Pick<
-      INOODLUi,
-      | 'createActionChain'
-      | 'createSrc'
-      | 'getNode'
-      | 'getNodes'
-      | 'getList'
-      | 'getListItem'
-      | 'getState'
-      | 'setConsumerData'
-      | 'setNode'
-      | 'setList'
-    > {
+    Pick<INOODLUi, 'getNode' | 'getNodes' | 'getState' | 'setNode'> {
   context: ResolverContext
+  createActionChain: INOODLUi['createActionChain']
+  createSrc: INOODLUi['createSrc']
   parser: ResolverOptions['parser']
-  resolveComponent: ResolveComponent
+  resolveComponent: INOODLUi['resolveComponents']
   showDataKey: boolean
 }
 

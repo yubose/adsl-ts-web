@@ -7,7 +7,6 @@
     "module": "commonjs",
     "target": "es2019"
   },
-  "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "scripts"],
-  "include": ["src/**/*.test.ts", "packages/**/*.test.ts"]
+  "exclude": ["node_modules"],
+  "include": ["src/**/*.test.ts"]
 }

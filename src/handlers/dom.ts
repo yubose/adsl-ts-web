@@ -11,6 +11,7 @@ const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 noodluidom.on('all', function onCreateNode(node, component) {
+  console.log(component.toJS())
   if (!node) return
 
   const js = component.toJS()
@@ -97,11 +98,11 @@ noodluidom.on('all', function onCreateNode(node, component) {
         const eventFn = (...args: any[]) => {
           log.func('on all --> eventFn')
           log.grey(`User action invoked handler`, {
-            props,
+            props: js,
             eventName,
             [key]: value,
           })
-          console.groupCollapsed('', { eventName, node, props })
+          console.groupCollapsed('', { eventName, node, props: js })
           console.trace()
           console.groupEnd()
           return value(...args)
@@ -171,12 +172,12 @@ noodluidom.on('all', function onCreateNode(node, component) {
     node.appendChild(sourceEl)
   }
   if (!node.innerHTML.trim()) {
-    if (isDisplayable(props['data-value'])) {
-      node.innerHTML = `${props['data-value']}`
+    if (isDisplayable(js['data-value'])) {
+      node.innerHTML = `${js['data-value']}`
     } else if (isDisplayable(children)) {
       node.innerHTML = `${children}`
-    } else if (isDisplayable(props.text)) {
-      node.innerHTML = `${props.text}`
+    } else if (isDisplayable(js.text)) {
+      node.innerHTML = `${js.text}`
     }
   }
 })
@@ -230,6 +231,14 @@ noodluidom.on('create.label', function onCreateLabel(node, component) {
     const { onClick } = component.toJS()
     node.style['cursor'] = _.isFunction(onClick) ? 'pointer' : 'auto'
   }
+})
+
+noodluidom.on('create.list', (node, component) => {
+  log.func('create.list')
+  log.hotpink(`LIST CREATED`, { node, component })
+  log.hotpink(`LIST CREATED`, { node, component })
+  log.hotpink(`LIST CREATED`, { node, component })
+  log.hotpink(`LIST CREATED`, { node, component })
 })
 
 /** NOTE: node is null in this handler */

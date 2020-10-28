@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
+import { findList } from '../utils/noodl'
 import { IComponent, ResolverFn } from '../types'
 
 const log = Logger.create('getCustomDataAttrs')
@@ -10,15 +11,7 @@ const log = Logger.create('getCustomDataAttrs')
  *    (ex: "data-ux" for UX interactions between the library and the web app)
  */
 const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
-  const {
-    context,
-    showDataKey,
-    getNode,
-    getNodes,
-    getList,
-    getListItem,
-    parser,
-  } = options
+  const { context, showDataKey, getNode, getNodes, getLists, parser } = options
   const { page } = context
 
   let parent: any
@@ -127,7 +120,9 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
         let path = dataKey.split('.').slice(1).join('.')
         // The data is coming from a list
         if (listId && _.isNumber(listItemIndex)) {
-          itemObject = getListItem(listId, listItemIndex)
+          itemObject = findList(getLists(), component)?.[
+            listItemIndex as number
+          ]
         } else {
           // This is the old (now deprecated) way. Leave this here for now until it's safe to remove
           const nodes = getNodes()
@@ -156,15 +151,19 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
               let path
               const listId = component.get('listId')
               const listItemIndex = component.get('listItemIndex')
-              itemObject = getListItem(listId)
+              const lists = getLists()
+              const listData = findList(lists, component)
+              const dataObject = listData?.[listItemIndex as number]
+              itemObject = dataObject
 
-              if (!itemObject) {
+              if (!dataObject) {
                 log.red(
-                  'Expected an itemObject for a date component but received an invalid value instead',
+                  'Expected a dataObject for a date component but received an invalid value instead',
                   {
                     component: component.snapshot(),
-                    itemObject,
-                    listData: getList(listId || ''),
+                    dataObject,
+                    lists,
+                    listData,
                   },
                 )
                 // Default to showing the dataKey even when its a raw reference
@@ -180,13 +179,15 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
                   path = dataKey.split('.').slice(1)
                   const ecosDate = _.get(itemObject, path)
                   if (ecosDate == undefined) {
+                    const listItem = listData?.[listItemIndex as number]
                     log.red(
                       `Tried to retrieve the date value from an itemObject using ` +
                         `the path "${dataKey}" but received null or undefined instead`,
                       {
                         component: component.snapshot(),
-                        listData: getList(listId || ''),
-                        listItem: getListItem(listId),
+                        lists,
+                        listData,
+                        listItem,
                         listItemIndex,
                         path,
                       },
@@ -197,19 +198,22 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
                     // showDataKey is true
                     component.set(
                       'data-value',
-                      showDataKey ? dataKey : getFallbackDataValue(component),
+                      showDataKey
+                        ? dataKey
+                        : component.get('text') || component.get('placeholder'),
                     )
                   } else {
                     component.set('data-value', textFunc(ecosDate))
                   }
                 } else {
                   log.red(
-                    `Expected text=func to be a function but it was a type "${typeof textFunc}"`,
+                    `Expected text=func to be a function but it was of type "${typeof textFunc}"`,
                     {
                       component: component.snapshot(),
-                      listData: getList(listId || ''),
-                      listItem: getListItem(listId),
+                      lists,
+                      listData,
                       listItemIndex,
+                      dataObject,
                       path,
                     },
                   )
@@ -228,7 +232,6 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
               component: component.snapshot(),
               dataValue: data,
               nodes: getNodes(),
-              listData: getList(listId || ''),
               listItem: itemObject,
               listItemIndex,
               parent: getNode(parentId || ''),

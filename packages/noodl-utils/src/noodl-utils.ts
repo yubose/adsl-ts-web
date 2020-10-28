@@ -1,71 +1,93 @@
-import {
-  NOODLActionObject,
-  Component,
-  ListComponent,
-  ListItemComponent,
-  IComponent,
-  IListComponent,
-  IListItemComponent,
-} from 'noodl-ui'
-import { isArr, isBool, isNum, isObj, isStr, isUnd } from './_internal'
+import Logger from 'logsnap'
+import { isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
 import * as T from './types'
 
-// export function injectToTree(
-//   component: IComponent,
-//   injectProps: Partial<ProxiedComponent> & { [key: string]: any },
-// ) {
-//   const _entries = Object.entries(injectProps)
+const log = Logger.create('noodl-utils')
 
-//   function _inject(child: IComponent | undefined) {
-//     if (child && _entries.length) {
-//       _entries.forEach(([propName, propValue]) => {
-//         child.set?.(propName, propValue)
-//       })
-//     }
-//     return child
-//   }
+/**
+ * Takes a callback and an "if" object. The callback will receive the three
+ * values that the "if" object contains. The first item will be the value that
+ * should be evaluated, and the additional (item 2 and 3) arguments will be the values
+ * deciding to be returned. If the callback returns true, item 2 is returned. If
+ * false, item 3 is returned
+ * @param { function } fn - Callback that receives the value being evaluated
+ * @param { NOODLIfObject } ifObj - The object that contains the "if"
+ */
+export function evalIf<IfObj extends { if: [any, any, any] }>(
+  fn: (
+    val: IfObj['if'][0],
+    onTrue: IfObj['if'][1],
+    onFalse: IfObj['if'][2],
+  ) => boolean,
+  ifObj: IfObj,
+): IfObj['if'][1] | IfObj['if'][2] {
+  if (Array.isArray(ifObj.if)) {
+    const [val, onTrue, onFalse] = ifObj.if
+    return fn(val, onTrue, onFalse) ? onTrue : onFalse
+  } else {
+    log.func('evalIf')
+    log.red(
+      `An "if" object was encountered but it was not an array. ` +
+        `The evaluation operation was skipped`,
+    )
+  }
+  return false
+}
 
-//   function _createChild(c: IComponent) {
-//     return function (...args: Parameters<IComponent['createChild']>) {
-//       const child = _inject(c.createChild(...args))
-//       if (child) child['createChild'] = _createChild(child)
-//       return child
-//     }
-//   }
-
-//   component['createChild'] = _createChild(component)
-
-//   return component
-// }
-
-export function findChild(
-  component: IComponent,
-  fn: (child: IComponent | null) => boolean,
-): IComponent | null {
+/**
+ * Traverses the children hierarchy, running the comparator function in each
+ * iteration. If a callback returns true, the node in that iteration will become
+ * the returned child
+ * @param { UIComponent } component
+ * @param { function } fn - Comparator function
+ */
+export function findChild<Component extends { children?: Function } = any>(
+  component: Component,
+  fn: (child: Component) => boolean,
+): Component | null {
   if (component) {
     let children = component.children?.().reverse?.()
-    let child: IComponent | undefined = children.pop()
+    let child = children.pop()
     if (child) {
       if (fn(child)) return child
-      if (child.length) {
-        return findChild(child, fn)
-      }
+      if (child.length) return findChild(child, fn)
     }
   }
   return null
 }
 
 /**
- * Compares the predicate function to the component's parent. If the function
- * returns true it will return that parent, otherwise it will find the next parent
- * in the chain and so on
- * @param { IComponent } component
+ * Loops through a Map of UIComponents, running the comparator function in each
+ * iteration. If the function returns true, that node will become the returned result
+ * @param { Map<UIComponent, UIComponent> } nodes - Nodes map
+ * @param { function } fn - Comparator func
  */
-export function findParent(
-  component: IComponent,
-  fn: (parent: IComponent | null) => boolean,
+export function findNodeInMap<Component extends {} = any>(
+  nodes: Map<Component, Component>,
+  fn: (component: Component | null) => boolean | void,
 ) {
-  let parent = component.parent()
+  const nodesList = Array.from(nodes.values())
+  const nodesListSize = nodesList.length
+
+  for (let index = 0; index < nodesListSize; index++) {
+    const node = nodesList[index]
+    if (fn(node)) return node
+  }
+  return null
+}
+
+/**
+ * Traverses the parent hierarchy, running the comparator function in each
+ * iteration. If a callback returns true, the node in that iteration will become
+ * the returned parent
+ * @param { UIComponent } component
+ * @param { function } fn
+ */
+export function findParent<Component extends { parent?: Function } = any>(
+  component: Component,
+  fn: (parent: Component) => boolean,
+) {
+  let parent = component.parent?.()
   if (fn(parent)) return parent
   if (parent) {
     while (parent) {
@@ -73,70 +95,7 @@ export function findParent(
       parent = parent.parent()
     }
   }
-  return parent
-}
-
-/**
- * Uses the value given to find a list corresponding to its relation
- * @param { Map } lists - List of lists
- * @param { any } value
- */
-export function findList(
-  lists: Map<IListComponent, IListComponent>,
-  component: string | IComponent | IListComponent | IListItemComponent,
-) {
-  let result: any[] | null = null
-
-  if (component) {
-    let listComponent: IListComponent
-    let listComponents = Array.from(lists.values())
-    let listSize = lists.size
-
-    // Assuming it is a component's id, we will use this and traverse the whole list,
-    // comparing the id to each of the list's tree
-    if (typeof component === 'string') {
-      let child: any
-      const componentId = component
-      const fn = (c: IComponent) => !!c.id && c.id === componentId
-      for (let index = 0; index < listSize; index++) {
-        listComponent = listComponents[index]
-        if (listComponent.id === component) {
-          result = listComponent.getData()
-          break
-        }
-        child = findChild(listComponent, fn)
-        if (child) {
-          result = listComponent.getData?.()
-          break
-        }
-      }
-    }
-    // Directly return the data
-    else if (component instanceof ListComponent) {
-      return component.getData()
-    }
-    // List item components should always be direct children of ListComponents
-    else if (component instanceof ListItemComponent) {
-      result = (component.parent() as IListComponent)?.getData?.()
-    }
-    // Regular components should not hold the list data or data objects, so we
-    // will assume here that it is some nested child. We can get the list by
-    // traversing parents
-    else if (component instanceof Component) {
-      let parent: any
-      const fn = (c: IComponent) => c === listComponent
-      for (let index = 0; index < listSize; index++) {
-        listComponent = listComponents[index]
-        parent = findParent(component, fn)
-        if (parent) {
-          result = parent.getData?.()
-          break
-        }
-      }
-    }
-  }
-
-  return result || null
+  return parent || null
 }
 
 export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(
@@ -168,7 +127,7 @@ export function getByDataName(value: string) {
 }
 
 /** Returns true if the value is an object. Like those with an actionType prop */
-export function isAction(value: unknown): value is NOODLActionObject {
+export function isAction(value: unknown): any {
   if (isObj(value)) {
     if ('actionType' in value) return true
     if ('goto' in value) return true
@@ -219,15 +178,19 @@ export function isBreakLineTextBoardItem<
   return isBreakLine(value) || isBreakLineObject(value)
 }
 
-export function isParent<Parent extends IComponent = IComponent>(
-  parent: Parent | string,
-  child: IComponent | null,
-) {
-  if (child && parent && child instanceof Component) {
+export function isParent(parent: any, child: any | null) {
+  if (
+    child &&
+    parent &&
+    !isArr(child) &&
+    !isArr(parent) &&
+    !isFnc(child) &&
+    !isFnc(child)
+  ) {
     let parentId: string = ''
-    let parentInst: IComponent | null = null
+    let parentInst: any | null = null
     if (isStr(parent)) parentId = parent
-    else if (parent instanceof Component) parentInst = parent
+    else if (parent) parentInst = parent
     else return false
     return parentInst
       ? child.parent() === parentInst

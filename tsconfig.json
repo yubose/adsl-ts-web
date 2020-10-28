@@ -23,8 +23,7 @@
   },
   "include": [
     "src",
-    "packages/dist/**/*",
-    "packages/src/**/*",
+    "packages",
     "webpack.config.js",
     "package.json",
     "setupTests.ts",

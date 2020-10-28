@@ -33,5 +33,4 @@ export {
 } from './constants'
 export * from './types'
 
-export { evalIf, getByDataUX, getDataValues, identify } from './utils/noodl'
-//
+export { getByDataUX, getDataValues, identify } from './utils/noodl'

@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { isBooleanTrue } from 'noodl-utils'
+import { isBooleanFalse, isBooleanTrue } from 'noodl-utils'
 import { ResolverFn } from '../types'
 
 /**
@@ -19,13 +19,8 @@ const getTransformedStyleAliases: ResolverFn = (component) => {
     component.setStyle('boxShadow', '5px 5px 10px 3px rgba(0, 0, 0, 0.015)')
   }
 
-  if (_.isString(required)) {
-    if (required === 'true') {
-      component.set('required', true)
-    } else if (required === 'false') {
-      component.set('required', false)
-    }
-  }
+  if (isBooleanTrue(required)) component.set('required', true)
+  else if (isBooleanFalse(required)) component.set('required', false)
 }
 
 export default getTransformedStyleAliases

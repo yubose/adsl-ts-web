@@ -16,7 +16,7 @@ class MeetingSubstreams {
 
   constructor(container: NOODLDOMElement, props: NOODLComponentProps) {
     this.container = container
-    this.blueprint = props.blueprint
+    this.blueprint = props?.blueprint
   }
 
   get length() {

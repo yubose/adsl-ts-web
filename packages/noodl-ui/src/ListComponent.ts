@@ -48,7 +48,7 @@ class ListComponent extends Component implements IListComponent {
         })
       } else {
         const child = new ListItemComponent({ iteratorVar })
-        child.setData(listObject)
+        child.setDataObject(listObject)
         this.createChild(child)
       }
     }
@@ -163,7 +163,7 @@ class ListComponent extends Component implements IListComponent {
 
     if (key === 'listObject') {
       // Refresh holdings of the list item data / children
-      const listObject = args[1]
+      const listObject = value
       this.#data = listObject
       this.onUpdate?.(
         this.#getUpdateProps(listObject, this.#handleBlueprint?.(listObject)),
@@ -172,7 +172,7 @@ class ListComponent extends Component implements IListComponent {
       this.#listId = value
     }
 
-    super.set(...args)
+    super.set(key as string, value)
     return this
   }
 

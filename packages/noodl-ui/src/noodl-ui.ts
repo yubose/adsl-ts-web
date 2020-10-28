@@ -1,8 +1,16 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
+import {
+  evalIf,
+  findParent,
+  findNodeInMap,
+  isBoolean,
+  isBooleanTrue,
+} from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import Component from './Component'
+import ListItemComponent from './ListItemComponent'
 import makeRootsParser from './factories/makeRootsParser'
 import {
   forEachDeepEntries,
@@ -28,7 +36,7 @@ class NOODL implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
     action: Partial<Record<T.ActionEventId, Function[]>>
-    builtIn: Partial<Record<string, Function[]>>
+    builtIn: T.ActionChainActionCallbackOptions['builtIn']
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
   } = {
     action: {},
@@ -74,18 +82,10 @@ class NOODL implements T.INOODLUi {
 
   createActionChain(
     actions: Parameters<T.INOODLUi['createActionChain']>[0],
-    {
-      trigger,
-      ...otherOptions
-    }: Parameters<T.INOODLUi['createActionChain']>[1],
+    options: Parameters<T.INOODLUi['createActionChain']>[1],
   ) {
-    const options = { builtIn: this.#cb.builtIn, trigger, ...otherOptions }
-
-    forEachEntries(this.#cb.action, (key, fn) => {
-      options[key] = fn
-    })
-
     const actionChain = new ActionChain(actions, {
+      builtIn: this.#cb.builtIn,
       ...options,
       ..._.reduce(
         _.entries(this.#cb.action),
@@ -93,7 +93,7 @@ class NOODL implements T.INOODLUi {
           _.isArray(cbs) ? _.assign(acc, { [actionType]: cbs }) : acc,
         {} as any,
       ),
-    })
+    } as T.ActionChainCallbackOptions)
 
     // @ts-expect-error
     window.ac = actionChain
@@ -101,7 +101,7 @@ class NOODL implements T.INOODLUi {
     return actionChain.build({
       context: this.getContext() as T.ResolverContext,
       parser: this.parser,
-      ...otherOptions,
+      ...options,
     })
   }
 
@@ -240,7 +240,7 @@ class NOODL implements T.INOODLUi {
     return {
       context: this.getContext(),
       createActionChain: this.createActionChain.bind(this),
-      createSrc: this.#createSrc.bind(this),
+      createSrc: this.createSrc.bind(this),
       resolveComponent: this.resolveComponents.bind(this),
       parser: this.parser,
       showDataKey: this.#state.showDataKey,
@@ -250,25 +250,70 @@ class NOODL implements T.INOODLUi {
     } as T.ConsumerOptions
   }
 
+  // getLists() {
+  //   return this.#state.lists
+  // }
+
+  // getList(component: string | T.UIComponent) {
+  //   if (component instanceof ListComponent) return component.getData()
+  //   return findList(this.#state.lists, component)
+  // }
+
+  /**
+   * Retrieves the list item from state. If a component id is passed in it will
+   * attempt to retrieve the list item by comparing it to an existing component instance's id
+   * that was set previously in the state. Vice versa for using instances.
+   * Note: This method will always assume that the arg is a descendant of the list item
+   * @param { IComponent | string } component - Component or component id
+   */
+  // getListItem(c: string | T.UIComponent) {
+  //   let component: T.UIComponent | null = null
+  //   let dataObject: any
+
+  //   if (_.isString(c)) component = this.getNode(c)
+
+  //   if (component) {
+  //     if (component instanceof Component) {
+  //       const listItemComponent = findParent(
+  //         component,
+  //         (parent) => parent?.noodlType === 'listItem',
+  //       )
+  //       if (listItemComponent) dataObject = listItemComponent.getDataObject()
+  //     }
+  //   }
+
+  //   return dataObject
+  // }
+
   getNodes() {
-    return Array.from(this.#state.nodes.values())
+    return this.#state.nodes
   }
 
-  getNode(component: T.UIComponent | string) {
-    let result: T.UIComponent | undefined
-    if (component instanceof Component) {
-      result = this.#state.nodes.get(component)
-    } else if (_.isString(component)) {
-      const componentId = component
-      const nodes = Array.from(this.#state.nodes.values())
-      const numNodes = nodes.length
-      for (let index = 0; index < numNodes; index++) {
-        const node = nodes[index]
-        if (node.id === componentId) {
-          result = node
-          break
-        }
+  /**
+   * Retrieves a node stored internally when resolving the components.
+   * If a string is passed, the id will be used to grab a component with that id.
+   * If a component instance is used, it will be directly used to grab a component
+   * by strict equality.
+   * If a comparator function is passed, it will instead use the comparator to run
+   * through the map of nodes. If a comparator returns true, the node in that iteration
+   * will become the returned result
+   * @param { UIComponent | string } component -
+   */
+  getNode(
+    component: T.UIComponent | string,
+    fn?: (component: T.UIComponent | null) => boolean,
+  ) {
+    let result: T.UIComponent | null | undefined
+    if (fn === undefined) {
+      if (component instanceof Component) {
+        result = this.#state.nodes.get(component as T.UIComponent)
+      } else if (_.isString(component)) {
+        const componentId = component
+        const comparator = (node: T.UIComponent) => node?.id === componentId
+        result = findNodeInMap(this.#state.nodes, comparator)
       }
+    } else {
+      result = findNodeInMap(this.#state.nodes, fn)
     }
     return result || null
   }
@@ -279,9 +324,6 @@ class NOODL implements T.INOODLUi {
 
   getStateGetters() {
     return {
-      getLists: this.getLists.bind(this),
-      getList: this.getList.bind(this),
-      getListItem: this.getListItem.bind(this),
       getState: this.getState.bind(this),
       getNodes: this.getNodes.bind(this),
       getNode: this.getNode.bind(this),
@@ -291,7 +333,6 @@ class NOODL implements T.INOODLUi {
   getStateSetters() {
     return {
       setNode: this.setNode.bind(this),
-      setList: this.setList.bind(this),
     }
   }
 
@@ -330,20 +371,16 @@ class NOODL implements T.INOODLUi {
     return null
   }
 
-  #resolve = (c: T.ComponentType, { id }: { id?: string } = {}) => {
+  #resolve = (c: T.ComponentType) => {
     let component: T.UIComponent
 
-    if (c instanceof Component) {
-      component = c
-    } else {
-      component = new Component(c)
-    }
+    if (c instanceof Component) component = c as T.UIComponent
+    else component = new Component(c) as T.UIComponent
 
-    component['id'] = id || _.uniqueId()
-
-    const { type } = component
+    const { id, type } = component
     const consumerOptions = this.getConsumerOptions({ component })
 
+    if (!id) component['id'] = _.uniqueId()
     if (!type) {
       log.func('#resolve')
       log.red(
@@ -358,15 +395,21 @@ class NOODL implements T.INOODLUi {
 
     this.emit('beforeResolve', component, consumerOptions)
 
-    _.forEach(this.#resolvers, (resolver) =>
-      resolver.resolve(component, consumerOptions),
-    )
+    const fn = (c: T.UIComponent) => (r: T.IResolver) =>
+      r.resolve(c, consumerOptions)
+
+    const resolve = (c: T.UIComponent) => {
+      _.forEach(this.#resolvers, fn(c))
+      // if (c.length) _.forEach(c.children(), resolve)
+    }
+
+    resolve(component)
 
     this.emit('afterResolve', component, consumerOptions)
 
     // Finalizing
     const { style } = component
-    if (_.isObjectLike(style)) {
+    if (_.isObject(style)) {
       forEachDeepEntries(style, (key, value) => {
         if (_.isString(value)) {
           if (value.startsWith('0x')) {
@@ -410,19 +453,16 @@ class NOODL implements T.INOODLUi {
   }
 
   setNode(component: T.UIComponent) {
-    if (!component.id) {
-      console.groupCollapsed(
-        `%c[setNode] Cannot set this node to nodes state because the id is invalid`,
-        'color:#ec0000',
-        component.snapshot(),
-      )
-      console.trace()
-      console.groupEnd()
-    } else {
-      this.#state.nodes[component.id as string] = component
-    }
+    this.#state.nodes.set(component, component)
     return this
   }
+
+  // setList(component: T.IListComponent, data?: any) {
+  //   if (!component || !(component instanceof ListComponent)) return this
+  //   if (data !== undefined) component.set('listObject', data)
+  //   this.#state.lists.set(component, component)
+  //   return this
+  // }
 
   use(mod: T.IResolver | T.IResolver[] | T.IViewport, ...rest: any[]) {
     const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)
@@ -461,10 +501,51 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  #createSrc = (path: string) => {
+  createSrc(path: string | T.NOODLIfObject, component?: T.UIComponent) {
     let src = ''
-    if (path && _.isString(path)) {
-      if (path && _.isString(path)) {
+    if (path) {
+      if (!_.isString(path) && _.isPlainObject(path)) {
+        const [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
+        if (_.isString(valEvaluating)) {
+          const { page, roots } = this.getContext() || {}
+          /**
+           * Attempt #1 --> Find on root
+           * Attempt #2 --> Find on local root
+           * Attempt #3 --> Find on list data
+           */
+          path = evalIf((valEvaluating) => {
+            let val
+            if (_.has(roots, valEvaluating)) {
+              val = _.get(roots, valEvaluating)
+            } else if (_.has(page?.object, valEvaluating)) {
+              val = _.get(page?.object, valEvaluating)
+            } else if (component) {
+              // TODO - Check on iteratorVar
+              // Assuming this is for list items if the code gets here
+              // At this moment we are working with the value of
+              // a dataObject that is set on list item components
+              const parent = findParent(
+                component,
+                (p) => p.noodlType === 'listItem',
+              ) as ListItemComponent
+              const dataObject = parent?.getDataObject?.()
+              if (dataObject) {
+                val = _.get(
+                  dataObject,
+                  _.get(
+                    dataObject,
+                    valEvaluating.startsWith(parent.iteratorVar)
+                      ? valEvaluating.split('.').slice(1)
+                      : valEvaluating,
+                  ),
+                )
+              }
+            }
+            return isBoolean(val) ? isBooleanTrue(val) : !!val
+          }, path)
+        }
+      }
+      if (_.isString(path)) {
         if (/^(http|blob)/i.test(path)) {
           src = path
         } else if (path.startsWith('~/')) {
@@ -472,6 +553,8 @@ class NOODL implements T.INOODLUi {
         } else {
           src = this.assetsUrl + path
         }
+      } else {
+        // log
       }
     }
     return src

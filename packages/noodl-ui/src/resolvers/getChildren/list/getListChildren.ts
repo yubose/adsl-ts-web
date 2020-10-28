@@ -24,9 +24,6 @@ const getListChildren: ResolverFn = (
   const {
     context: { page },
     resolveComponent,
-    getList,
-    getListItem,
-    setList,
     resolverOptions,
   } = options
 

@@ -17,7 +17,7 @@ const getReferences: ResolverFn = (component, { context, parser }) => {
       value = component.get(key)
 
       if (isReference(key)) {
-        if (page.name && parser.getLocalKey() !== page.name) {
+        if (page?.name && parser.getLocalKey() !== page.name) {
           parser.setLocalKey(page.name)
         }
         component.assign(parser.get(key))
@@ -25,8 +25,8 @@ const getReferences: ResolverFn = (component, { context, parser }) => {
 
       // Also check the value if they are a string and are a reference
       if (isReference(value)) {
-        if (page.name && parser.getLocalKey() !== page.name) {
-          parser.setLocalKey(page.name)
+        if (page?.name && parser.getLocalKey() !== page.name) {
+          parser.setLocalKey(page?.name)
         }
         if (key === 'style') {
           component.assignStyles(parser.get(value))

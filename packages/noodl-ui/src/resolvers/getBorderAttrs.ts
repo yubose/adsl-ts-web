@@ -13,7 +13,7 @@ import { presets } from '../constants'
  *    5) no border / has borderRadius
  */
 const getBorderAttrs: ResolverFn = (component) => {
-  const style = component.get('style')
+  const { style } = component
 
   if (style) {
     if (!_.isUndefined(style.border)) {

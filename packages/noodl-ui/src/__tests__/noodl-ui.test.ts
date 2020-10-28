@@ -1,10 +1,12 @@
 import _ from 'lodash'
 import { expect } from 'chai'
-import { IComponent, NOODLComponent } from '../types'
+import { IComponent, NOODLComponent, UIComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
 import ActionChain from '../ActionChain'
 import Component from '../Component'
+import ListComponent from '../ListComponent'
+import ListItemComponent from '../ListItemComponent'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 
@@ -14,33 +16,6 @@ let component: IComponent
 beforeEach(() => {
   noodlComponent = mock.raw.getNOODLView() as NOODLComponent
   component = new Component(noodlComponent) as IComponent
-  // component.createChild({
-  //   type: 'view',
-  //   children: [
-  //     {
-  //       type: 'view',
-  //       children: [
-  //         {
-  //           type: 'list',
-  //           listObject,
-  //           children: [
-  //             {
-  //               type: 'listItem',
-  //               itemObject: '',
-  //               children: [
-  //                 {
-  //                   type: 'label',
-  //                   text: 'my label',
-  //                   style: { width: '0.5' },
-  //                 },
-  //               ],
-  //             },
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //   ],
-  // })
 })
 
 afterEach(() => {
@@ -48,31 +23,9 @@ afterEach(() => {
 })
 
 describe('noodl-ui', () => {
-  xdescribe('implementation details', () => {
-    it('should flip initialized to true when running init', () => {
-      noodlui.init()
-      expect(noodlui.initialized).to.be.true
-    })
-
-    describe('lists', () => {
-      it('should add the list using the component instance as the key', () => {
-        const list = mock.other.getNOODLListObject()
-        noodlui.setList(component, list)
-        expect(noodlui.getState().lists.has(component)).to.be.true
-      })
-
-      it('should receive the list data using the component instance', () => {
-        const list = mock.other.getNOODLListObject()
-        noodlui.setList(component, list)
-        expect(noodlui.getList(component)).to.equal(list)
-      })
-
-      it('should receive the list data using the component id', () => {
-        const list = mock.other.getNOODLListObject()
-        noodlui.setList(component, list)
-        expect(noodlui.getList(component)).to.equal(list)
-      })
-    })
+  it('should flip initialized to true when running init', () => {
+    noodlui.init()
+    expect(noodlui.initialized).to.be.true
   })
 
   it('should set the assets url', () => {
@@ -106,34 +59,11 @@ describe('noodl-ui', () => {
     expect(noodlui.viewport).to.equal(viewport)
   })
 
-  xit('should set the component node', () => {
-    //
-  })
-
-  xdescribe('working with list data', () => {
-    it('should retrieve the list item if passing in the list item component instance', () => {
-      const component = new Component({
-        type: 'list',
-        listObject: mock.other.getNOODLListObject(),
-        children: [mock.raw.getNOODLListItem()],
-      })
-      noodlui.resolveComponents(component)
-      const listItemComponent = component.child()
-      const list = noodlui.getListItem(listItemComponent)
-      console.info(list)
-    })
-
-    xit('should retrieve the list item if passing in any nested child instance under the list item component instance', () => {
-      //
-    })
-
-    xit('should retrieve the list item if passing in a component id that links to a component instance anywhere in the list item tree', () => {
-      //
-    })
-
-    xit('should set the component instance as the key', () => {
-      //
-    })
+  it('should set the component node', () => {
+    const component = new Component({ type: 'list' }) as UIComponent
+    expect(noodlui.getNode(component)).to.be.null
+    noodlui.setNode(component)
+    expect(noodlui.getNode(component)).to.equal(component)
   })
 
   describe('get', () => {
@@ -151,16 +81,6 @@ describe('noodl-ui', () => {
     })
   })
 
-  describe('use', () => {
-    xit('should set the viewport', () => {
-      //
-    })
-
-    xit('should add the resolver', () => {
-      //
-    })
-  })
-
   describe('emitting', () => {
     xit('should emit the event and call the callbacks associated with the event', () => {
       //
@@ -171,30 +91,12 @@ describe('noodl-ui', () => {
     })
   })
 
-  describe('Resolver', () => {
-    xit('should change the component attrs accordingly', () => {
-      const r = new Resolver()
-      r.setResolver((c, options) => {
-        c.set('src', 'HELLO')
-      })
-      noodlui.use(r)
-      const component = new Component({
-        type: 'label',
-        style: {},
-        id: 'avc123',
-      })
-      const resolvedComponent = noodlui.resolveComponents(component)
-      expect(component.get('src')).to.equal('HELLO')
-      expect(resolvedComponent.toJS().src).to.equal('HELLO')
-    })
-  })
-
-  xit('should not return as an array if arg passed was not an array', () => {
+  it('should not return as an array if arg passed was not an array', () => {
     const resolvedComponent = noodlui.resolveComponents(component)
     expect(resolvedComponent).to.be.instanceOf(Component)
   })
 
-  xit('should return as array if arg passed was an array', () => {
+  it('should return as array if arg passed was an array', () => {
     const resolvedComponent = noodlui.resolveComponents([component])
     expect(resolvedComponent).to.be.an('array')
     expect(resolvedComponent[0]).to.be.instanceOf(Component)
@@ -337,7 +239,7 @@ describe('noodl-ui', () => {
       })
     })
 
-    describe('lists', () => {
+    xdescribe('lists', () => {
       it(
         "should be able to retrieve list data using the list component's " +
           'component id',

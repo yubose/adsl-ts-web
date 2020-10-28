@@ -1,5 +1,5 @@
 import Logger from 'logsnap'
-import { IComponent } from 'noodl-ui'
+import { UIComponent } from 'noodl-ui'
 import {
   componentEventMap,
   componentEventIds,
@@ -27,9 +27,9 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
-   * @param { IComponent } props
+   * @param { UIComponent } props
    */
-  parse(component: IComponent, container?: HTMLElement) {
+  parse(component: UIComponent, container?: HTMLElement) {
     let node: T.NOODLDOMElement | undefined
 
     if (component) {
@@ -57,7 +57,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         const parent = container || document.body
         if (!parent.contains(node)) parent.appendChild(node)
 
-        component.children()?.forEach((child: IComponent) => {
+        component.children()?.forEach((child: UIComponent) => {
           const childNode = this.parse(child, node)
           if (childNode) node?.appendChild(childNode)
         })
@@ -100,7 +100,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   emit(
     eventName: T.NOODLDOMEvent,
     node: T.NOODLDOMElement | null,
-    component: IComponent,
+    component: UIComponent,
   ) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) {

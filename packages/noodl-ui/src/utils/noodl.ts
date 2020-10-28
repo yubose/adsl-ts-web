@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { current } from 'immer'
+import { findChild, findParent } from 'noodl-utils'
 import {
   ComponentType,
   IComponent,
@@ -9,9 +10,14 @@ import {
   NOODLIfObject,
   NOODLTextBoardBreakLine,
   NOODLComponentType,
+  IListComponent,
+  UIComponent,
+  ProxiedComponent,
 } from '../types'
-import Component from '../Component'
 import { isBrowser } from './common'
+import ListComponent from '../ListComponent'
+import ListItemComponent from '../ListItemComponent'
+import Component from '../Component'
 
 const log = Logger.create('noodl-ui/src/utils/noodl.ts')
 
@@ -32,12 +38,24 @@ export function createNOODLComponent(
   props: ComponentType | NOODLComponentType,
   options?: ConstructorParameters<IComponentConstructor>,
 ) {
+  let noodlType: NOODLComponentType
+  let args: Partial<ProxiedComponent | NOODLComponentProps>
   if (typeof props === 'string') {
-    return new Component({ type: props, ...options })
+    noodlType = props
+    args = { ...options }
   } else if (props instanceof Component) {
     return props
   } else {
-    return new Component({ ...props, ...options })
+    noodlType = props.noodlType || props.type
+    args = { ...props, ...options }
+  }
+  switch (noodlType) {
+    case 'list':
+      return new ListComponent(args)
+    case 'listItem':
+      return new ListItemComponent(args)
+    default:
+      return new Component({ ...args, type: noodlType })
   }
 }
 
@@ -104,36 +122,6 @@ export const identify = (function () {
 })()
 
 /**
- * Takes a callback and an "if" object. The callback will receive the three
- * values that the "if" object contains. The first item will be the value that
- * should be evaluated, and the additional (item 2 and 3) arguments will be the values
- * deciding to be returned. If the callback returns true, item 2 is returned. If
- * false, item 3 is returned
- * @param { function } fn - Callback that receives the value being evaluated
- * @param { NOODLIfObject } ifObj - The object that contains the "if"
- */
-export function evalIf(
-  fn: (
-    val: NOODLIfObject['if'][0],
-    onTrue: NOODLIfObject['if'][1],
-    onFalse: NOODLIfObject['if'][2],
-  ) => NOODLIfObject['if'][1] | NOODLIfObject['if'][2],
-  ifObj: NOODLIfObject,
-): NOODLIfObject['if'][1] | NOODLIfObject['if'][2] {
-  if (_.isArray(ifObj)) {
-    const [val, onTrue, onFalse] = ifObj
-    return fn(val, onTrue, onFalse) ? onTrue : onFalse
-  } else {
-    log.func('evalIf')
-    log.red(
-      `An "if" object was encountered but it was not an array. ` +
-        `The evaluation operation was skipped`,
-    )
-  }
-  return false
-}
-
-/**
  * Returns true if obj is represents something expecting to receive incoming data by
  * their dataKey reference.
  * @param { string } iteratorVar
@@ -172,6 +160,73 @@ export function checkForNoodlProp(
     if (predicate(component.noodl?.[prop])) return true
   }
   return false
+}
+
+/**
+ * Uses the value given to find a list corresponding to its relation.
+ * Supports component id / instance
+ * @param { Map } lists - Map of lists
+ * @param { string | UIComponent } component - Component id or instance
+ */
+export function findList(
+  lists: Map<IListComponent, IListComponent>,
+  component: string | UIComponent,
+): any[] | null {
+  let result: any[] | null = null
+
+  if (component) {
+    let listComponent: IListComponent
+    let listComponents: IListComponent[]
+    let listSize = lists.size
+
+    // Assuming it is a component's id, we will use this and traverse the whole list,
+    // comparing the id to each of the list's tree
+    if (_.isString(component)) {
+      let child: any
+      const componentId = component
+      listComponents = Array.from(lists.values())
+      const fn = (c: IComponent) => !!c.id && c.id === componentId
+      for (let index = 0; index < listSize; index++) {
+        listComponent = listComponents[index]
+        if (listComponent.id === component) {
+          result = listComponent.getData()
+          break
+        }
+        child = findChild(listComponent, fn)
+        if (child) {
+          result = listComponent.getData?.()
+          break
+        }
+      }
+    }
+    // TODO - Unit tests were failing on this if condition below. Come back to this later
+    // Directly return the data
+    else if (component instanceof ListComponent) {
+      result = component.getData()
+    }
+    // List item components should always be direct children of ListComponents
+    else if (component instanceof ListItemComponent) {
+      result = (component.parent() as IListComponent)?.getData?.()
+    }
+    // Regular components should not hold the list data or data objects, so we
+    // will assume here that it is some nested child. We can get the list by
+    // traversing parents
+    else if (component instanceof Component) {
+      let parent: any
+      listComponents = Array.from(lists.values())
+      const fn = (c: IComponent) => c === listComponent
+      for (let index = 0; index < listSize; index++) {
+        listComponent = listComponents[index]
+        parent = findParent(component, fn)
+        if (parent) {
+          result = parent.getData?.()
+          break
+        }
+      }
+    }
+  }
+
+  return result
 }
 
 /**
