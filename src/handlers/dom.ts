@@ -134,17 +134,26 @@ noodluidom.on('all', function onCreateNode(node, props) {
   if (options) {
     if (type === 'select') {
       if (_.isArray(options)) {
-        _.forEach(options, (option: SelectOption) => {
+        _.forEach(options, (option: SelectOption, index) => {
           if (option) {
             const optionElem = document.createElement('option')
             optionElem['id'] = option.key
             optionElem['value'] = option?.value
             optionElem['innerText'] = option.label
             node.appendChild(optionElem)
+            if (option?.value === props['data-value']) {
+              // Default to the selected index if the user already has a state set before
+              console.log({ node, props })
+              ;(node as HTMLSelectElement)['selectedIndex'] = index
+            }
           } else {
             // TODO: log
           }
         })
+        // Default to the first item if the user did not previously set their state
+        if ((node as HTMLSelectElement).selectedIndex == -1) {
+          ;(node as HTMLSelectElement)['selectedIndex'] = 0
+        }
       } else {
         // TODO: log
       }

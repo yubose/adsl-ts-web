@@ -120,19 +120,19 @@ const createBuiltInActions = function ({
       node.setAttribute('src', newSrc)
     }
 
-    // log.grey('', {
-    //   component: component.toJS(),
-    //   componentInst: component,
-    //   context,
-    //   dataKey,
-    //   dataValue,
-    //   dataObject,
-    //   previousDataValue,
-    //   nextDataValue,
-    //   previousDataValueInSdk: newSrc,
-    //   node,
-    //   path,
-    // })
+    log.grey('', {
+      component: component.toJS(),
+      componentInst: component,
+      context,
+      dataKey,
+      dataValue,
+      dataObject,
+      previousDataValue,
+      nextDataValue,
+      previousDataValueInSdk: newSrc,
+      node,
+      path,
+    })
   }
 
   builtInActions.checkField = (action, options) => {
