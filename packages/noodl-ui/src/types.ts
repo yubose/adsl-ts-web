@@ -14,7 +14,6 @@ export interface INOODLUi {
   page: Page
   parser: RootsParser
   root: { [key: string]: any }
-  addListItem(parent: IComponent, component: IComponent): this
   init(opts: { log?: boolean; viewport?: Viewport }): this
   createActionChain(
     actions: NOODLActionObject[],
@@ -24,9 +23,6 @@ export interface INOODLUi {
   off(eventName: string, cb: (...args: any[]) => any): this
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
-  getLists(): any[]
-  getList(component: string | UIComponent): any[]
-  getListItem(component: string | UIComponent): any
   getNode(component: IComponent | string): IComponent | null
   getNodes(): IComponent[]
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
@@ -39,7 +35,6 @@ export interface INOODLUi {
     components: ComponentType | ComponentType[] | Page['object'],
   ): IComponent | IComponent[] | null
   setAssetsUrl(assetsUrl: string): this
-  setList(component: IComponent, list: any): this
   setNode(component: IComponent): this
   setPage(page: string): this
   setRoot(key: string | { [key: string]: any }, value?: any): this
@@ -58,10 +53,10 @@ export type INOODLUiStateHelpers = INOODLUiStateGetters & INOODLUiStateSetters
 
 export type INOODLUiStateGetters = Pick<
   INOODLUi,
-  'getLists' | 'getList' | 'getListItem' | 'getState' | 'getNodes' | 'getNode'
+  'getState' | 'getNodes' | 'getNode'
 >
 
-export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode' | 'setList'>
+export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode'>
 
 // UI stands for "Union Interface", not "user interface"
 export type UIComponent = IComponent | IListComponent | IListItemComponent
@@ -85,12 +80,12 @@ export interface IComponent {
     value?: { [key: string]: any },
   ): this
   assignStyles(styles: Partial<NOODLStyle>): this
-  child(index?: number): IComponent | undefined
+  child(index?: number): UIComponent | undefined
   children(): IComponent[]
   createChild(child: NOODLComponentType): IComponent | undefined
   createChild(child: ComponentType): IComponent | undefined
   hasChild(childId: string): boolean
-  hasChild(child: IComponent): boolean
+  hasChild(child: UIComponent): boolean
   removeChild(index: number): IComponent | undefined
   removeChild(id: string): IComponent | undefined
   removeChild(child: IComponent): IComponent | undefined

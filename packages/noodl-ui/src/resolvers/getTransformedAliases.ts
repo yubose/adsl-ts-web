@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
+import { isBoolean, isBooleanFalse, isBooleanTrue } from 'noodl-utils'
 import { isPossiblyDataKey } from '../utils/noodl'
 import { contentTypes } from '../constants'
 import { ResolverFn } from '../types'
@@ -12,7 +13,7 @@ const log = Logger.create('getTransformedAliases')
  */
 const getTransformedAliases: ResolverFn = (
   component,
-  { context, getListItem, createSrc },
+  { context, getLists, getListItem, createSrc },
 ) => {
   const {
     type,
@@ -60,59 +61,55 @@ const getTransformedAliases: ResolverFn = (
   if (!_.isUndefined(path) || !_.isUndefined(resource)) {
     let src = path || resource || ''
 
-    if (src && _.isString(src)) {
+    if (_.isString(src)) {
       component.set('src', createSrc(src))
-    } else if (!_.isString(path) && _.isPlainObject(path)) {
+    } else if (!_.isArray(path) && _.isPlainObject(path)) {
+      log.yellow('', {
+        if: path.if,
+        component: component.snapshot(),
+        componentJS: component.toJS(),
+      })
       const [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
       if (_.isString(valEvaluating)) {
-        if (valEvaluating.startsWith('itemObject')) {
-          const { page, roots } = context
-          /**
-           * Attempt #1 --> Find on root
-           * Attempt #2 --> Find on local root
-           * Attempt #3 --> Find on list data
-           */
-          let value: any
+        /**
+         * Attempt #1 --> Find on root
+         * Attempt #2 --> Find on local root
+         * Attempt #3 --> Find on list data
+         */
+        const { page, roots } = context
+        let value: any
+        if (_.has(roots, valEvaluating)) {
+          value = _.get(roots, valEvaluating)
+        } else if (_.has(page?.object, valEvaluating)) {
+          value = _.get(page?.object, valEvaluating)
+        } else {
+          // TODO - Check on iteratorVar
+          // Assuming this is for list items if the code gets here
           // If the value possibly leads somewhere, continue with walking the
           // root/localroot/list objects that are available, if any
-          if (isPossiblyDataKey(valEvaluating)) {
-            value = _.get(roots, valEvaluating) || _.get(page, valEvaluating)
+          // Proceed to check the list data
+          const { listId, listItemIndex } = component.get([
+            'listId',
+            'listItemIndex',
+          ])
+          if (listId) {
+            const lists = getLists()
+            const listItem = lists[listItemIndex as number]
+            value = _.get(
+              listItem,
+              valEvaluating.startsWith('itemObject')
+                ? valEvaluating.split('.').slice(1)
+                : valEvaluating,
+            )
           }
-          if (!value) {
-            // Proceed to check the list data
-            const { listId, listItemIndex } = component.get([
-              'listId',
-              'listItemIndex',
-            ])
-            if (listId) {
-              const listItem = getListItem(
-                listId as string,
-                listItemIndex as number,
-              )
-              if (listItem) {
-                value = _.get(listItem, valEvaluating)
-                if (value) {
-                  component.set('src', createSrc(valOnTrue))
-                } else {
-                  component.set('src', createSrc(valOnFalse))
-                }
-              } else {
-                component.set('src', createSrc(valOnFalse))
-              }
-            } else {
-              component.set('src', createSrc(valOnFalse))
-              // log.red(`Attempted to evaluate a "path" using a possible data key but no listId or listItemIndex was available`, {
-              //   component: component.snapshot(),
-              //   path,
-              //   lists: getState().lists,
-              //   listId,
-              //   listItemIndex,
-              //   ...context,
-              // })
-            }
-          }
-        } else if (valEvaluating) {
-          component.set('src', createSrc(valOnTrue))
+        }
+        if (isBoolean(value)) {
+          component.set(
+            'src',
+            createSrc(isBooleanTrue(value) ? valOnTrue : valOnFalse),
+          )
+        } else {
+          component.set('src', createSrc(value ? valOnTrue : valOnFalse))
         }
       } else if (valEvaluating) {
         // What can we get here?

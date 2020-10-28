@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { findChild, findParent, findList } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import Component from './Component'
@@ -13,8 +12,6 @@ import {
 } from './utils/common'
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
-import ListComponent from './ListComponent'
-import ListItemComponent from './ListItemComponent'
 import * as T from './types'
 
 const log = Logger.create('noodl-ui')
@@ -253,43 +250,12 @@ class NOODL implements T.INOODLUi {
     } as T.ConsumerOptions
   }
 
-  getLists() {
-    return []
-    return _.reduce(
-      this.#state.lists,
-      (acc, list) => {
-        const data = list.getData?.()
-        if (data) return acc.concat(data)
-        return acc
-      },
-      [] as any[],
-    )
-  }
-
-  getList(component: string | T.UIComponent) {
-    return findList(this.#state.lists, component)
-  }
-
-  /**
-   * Retrieves the list item from state. If a component id is passed in it will
-   * attempt to retrieve the list item by comparing it to an existing component instance's id
-   * that was set previously in the state.
-   * @param { IComponent | string } component - Component or component id
-   */
-  getListItem(component: string | T.IComponent) {
-    const list = this.#state.lists.get(
-      _.isString(component) ? this.getNode(component) : component,
-    )
-    if (list) {
-    }
-  }
-
   getNodes() {
     return Array.from(this.#state.nodes.values())
   }
 
-  getNode(component: T.IComponent | string) {
-    let result: T.IComponent | undefined
+  getNode(component: T.UIComponent | string) {
+    let result: T.UIComponent | undefined
     if (component instanceof Component) {
       result = this.#state.nodes.get(component)
     } else if (_.isString(component)) {
@@ -329,7 +295,7 @@ class NOODL implements T.INOODLUi {
     }
   }
 
-  parse(key: string | T.IComponent): T.NOODLComponentProps | any {
+  parse(key: string | T.UIComponent): T.NOODLComponentProps | any {
     if (_.isString(key)) {
       if (isReference(key)) {
         //
@@ -341,8 +307,8 @@ class NOODL implements T.INOODLUi {
     }
   }
 
-  resolveComponents(component: T.ComponentType): T.IComponent
-  resolveComponents(components: T.ComponentType[]): T.IComponent[]
+  resolveComponents(component: T.ComponentType): T.UIComponent
+  resolveComponents(components: T.ComponentType[]): T.UIComponent[]
   resolveComponents(
     components: T.ComponentType | T.ComponentType[] | T.Page['object'],
   ) {
@@ -365,7 +331,7 @@ class NOODL implements T.INOODLUi {
   }
 
   #resolve = (c: T.ComponentType, { id }: { id?: string } = {}) => {
-    let component: T.IComponent
+    let component: T.UIComponent
 
     if (c instanceof Component) {
       component = c
@@ -443,7 +409,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  setNode(component: T.IComponent) {
+  setNode(component: T.UIComponent) {
     if (!component.id) {
       console.groupCollapsed(
         `%c[setNode] Cannot set this node to nodes state because the id is invalid`,
@@ -455,23 +421,6 @@ class NOODL implements T.INOODLUi {
     } else {
       this.#state.nodes[component.id as string] = component
     }
-    return this
-  }
-
-  setList(component: T.IComponent, list: any[]) {
-    this.#state.lists.set(component, list)
-    return this
-  }
-
-  addListItem(parent: T.IComponent, component: T.IComponent) {
-    const list = this.getList(parent)
-    list.set(component, component.get('listItem'))
-    return this
-  }
-
-  deleteListItem(parent: T.IComponent, component: T.IComponent) {
-    const list = this.getList(parent)
-    list.delete(component)
     return this
   }
 

@@ -258,7 +258,7 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
             )
           }
         }
-        if (!data) {
+        if (data === undefined) {
           log.red(
             `Attempted to use the dataKey "${dataKey}" to retrieve its ` +
               `data-value but received undefined instead`,

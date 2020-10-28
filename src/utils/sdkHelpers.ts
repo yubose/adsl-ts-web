@@ -40,7 +40,13 @@ export function createOnDataValueChangeFn(dataKey: string = '') {
           const linkedNodes = getAllByDataKey(dataKey)
           if (linkedNodes.length) {
             _.forEach(linkedNodes, (node) => {
-              node.innerHTML = `${value || ''}`
+              // Since select elements have options as children, we should not
+              // edit by innerHTML or we would have to unnecessarily re-render the nodes
+              if (node.tagName === 'SELECT') {
+                console.log(node)
+              } else {
+                node.innerHTML = `${value || ''}`
+              }
             })
           }
         }
