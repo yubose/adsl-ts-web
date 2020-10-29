@@ -22,6 +22,9 @@ export { default as getTransformedAliases } from './resolvers/getTransformedAlia
 export { default as getTransformedStyleAliases } from './resolvers/getTransformedStyleAliases'
 export { default as Resolver } from './Resolver'
 // Other
+export { default as createComponent } from './utils/createComponent'
+export { default as createComponentDraftSafely } from './utils/createComponentDraftSafely'
+export { default as findList } from './utils/findList'
 export { default as isReference } from './utils/isReference'
 export { default as NOODL } from './noodl-ui'
 export { default as Viewport } from './Viewport'

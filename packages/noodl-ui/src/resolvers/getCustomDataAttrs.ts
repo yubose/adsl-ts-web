@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
-import { findList } from '../utils/noodl'
+import findList from '../utils/findList'
 import { IComponent, ResolverFn } from '../types'
 
 const log = Logger.create('getCustomDataAttrs')

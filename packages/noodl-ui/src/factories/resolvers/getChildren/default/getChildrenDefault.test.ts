@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import _ from 'lodash'
 import getChildrenDefault from './getChildrenDefault'
-import { createNOODLComponent } from '../../../utils/noodl'
+import createComponent from '../../../utils/noodl/createComponent'
 import {
   IComponent,
   ResolverOptions,
@@ -17,7 +17,7 @@ describe('getChildrenDefault', () => {
   let resolve: ResolverTest
 
   beforeEach(() => {
-    component = createNOODLComponent('button', {
+    component = createComponent('button', {
       id: 'someId',
       style: { border: { style: '3' } },
     })

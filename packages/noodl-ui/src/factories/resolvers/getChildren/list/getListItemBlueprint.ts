@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { ComponentResolverStateGetters, IComponent } from '../../../types'
-import { createNOODLComponent } from '../../../utils/noodl'
+import createComponent from '../../../utils/noodl/createComponent'
 
 const log = Logger.create('getListItemBlueprint')
 
@@ -67,7 +67,7 @@ const _getListItemBlueprint = function (
   const o = {
     create() {
       // TODO - calc height
-      return createNOODLComponent('listItem', {})
+      return createComponent('listItem', {})
     },
   }
 

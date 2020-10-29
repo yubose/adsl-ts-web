@@ -1,20 +1,19 @@
 import _ from 'lodash'
-import { createNOODLComponent, isIteratorVarConsumer } from '../../utils/noodl'
+import { isIteratorVarConsumer } from '../../utils/noodl'
 import {
   IComponent,
   ProxiedComponent,
   ResolverOptions,
   ConsumerOptions,
-  NOODLComponent,
   UIComponent,
 } from '../../types'
-import Component from '../../Component'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
 import getListChildren from './list'
 import getListItemChildren from './listItem'
 import getListItemItemObjectConsumer from './listItemObjectConsumers'
 import getTextBoardChildren from './textBoard'
+import createComponent from '../../utils/createComponent'
 
 /**
  * Computes the children and returns an object like { children }
@@ -27,11 +26,10 @@ function getChildren(
   const { resolveComponent, resolverOptions } = options
   const fn = (c: UIComponent) => {
     const noodlObj = c?.original
-    console.log(noodlObj)
     if (noodlObj?.children) {
       if (_.isArray(noodlObj.children)) {
         _.forEach(noodlObj.children, (_c) => {
-          const child = createNOODLComponent(_c)
+          const child = createComponent(_c)
           const resolvedChild = resolveComponent(child)
           if (resolvedChild) {
             component.createChild(resolvedChild)
@@ -39,7 +37,7 @@ function getChildren(
           }
         })
       } else {
-        const child = createNOODLComponent(c)
+        const child = createComponent(c)
         const resolvedChild = resolveComponent(child)
         if (resolvedChild) {
           component.createChild(resolvedChild)
@@ -51,7 +49,7 @@ function getChildren(
   if (component.original.children?.length)
     _.forEach(component.original.children, (c) => {
       if (c) {
-        const child = createNOODLComponent(c)
+        const child = createComponent(c)
         const resolvedComponent = resolveComponent(child)
         if (resolvedComponent) fn(resolvedComponent)
       }
@@ -114,11 +112,14 @@ function getChildren(
 // @ts-ignore
 getChildren.getChildren = true
 
-function handleChildren(component: UIComponent, options: ConsumerOptions) {
-  switch (
-    component.noodlType
-    //
-  ) {
+function handleChildren(
+  parent: UIComponent,
+  resolvedChild: UIComponent,
+  options: ConsumerOptions,
+) {
+  switch (resolvedChild.noodlType) {
+    case 'listItem': {
+    }
   }
 }
 

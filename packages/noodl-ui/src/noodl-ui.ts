@@ -18,6 +18,7 @@ import {
   formatColor,
   hasLetter,
 } from './utils/common'
+import _internalResolvers from './resolvers/_internal'
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import * as T from './types'
@@ -45,7 +46,7 @@ class NOODL implements T.INOODLUi {
   }
   #page: T.Page = { name: '', object: null }
   #parser: T.RootsParser
-  #resolvers: Resolver[] = []
+  #resolvers: Resolver[] = [_internalResolvers]
   #root: { [key: string]: any } = {}
   #state: T.INOODLUiState
   #viewport: T.IViewport
@@ -485,7 +486,12 @@ class NOODL implements T.INOODLUi {
 
   unuse(mod: T.IResolver) {
     if (mod instanceof Resolver) {
-      this.#resolvers.push(mod)
+      if (mod.internal) {
+        throw new Error('Internal resolvers cannot be removed')
+      }
+      if (this.#resolvers.includes(mod)) {
+        this.#resolvers = _.filter(this.#resolvers, (r) => r !== mod)
+      }
     }
     return this
   }

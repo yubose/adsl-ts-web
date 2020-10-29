@@ -7,6 +7,10 @@
     "prefix": "dbremove",
     "body": "document.body.removeChild($1)"
   },
+  "document.querySelector": {
+    "prefix": "qs",
+    "body": "document.querySelector(`$1`)"
+  },
   "import app": {
     "prefix": "app",
     "body": "import app from 'App'"

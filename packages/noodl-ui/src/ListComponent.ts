@@ -21,9 +21,12 @@ class ListComponent extends Component implements IListComponent {
   #data: any[] | null = null
   #blueprint: IListComponentBlueprint = { type: 'listItem' }
   #children: IListItemComponent[] = []
-  #onBlueprint?: IListComponent['onBlueprint']
-  #onUpdate?: IListComponent['onUpdate']
   #listId: string
+  #cb: {
+    blueprint: Function[]
+    data: Function[]
+    update: Function[]
+  } = { blueprint: [], data: [], update: [] }
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -36,8 +39,6 @@ class ListComponent extends Component implements IListComponent {
     // TODO - set blueprint
     const listObject = this.get('listObject')
     const iteratorVar = this.get('iteratorVar')
-
-    this.set('listId', getRandomKey())
 
     if (listObject) {
       if (_.isArray(listObject)) {
@@ -52,6 +53,8 @@ class ListComponent extends Component implements IListComponent {
         this.createChild(child)
       }
     }
+
+    this.set('listId', getRandomKey())
   }
 
   get iteratorVar() {
@@ -94,10 +97,6 @@ class ListComponent extends Component implements IListComponent {
       ? (c: IListItemComponent) => !!c.id && c.id === child
       : (c: IListItemComponent) => c === child
     return _.find(this.#children, fn)
-  }
-
-  getDefaultBlueprint() {
-    return this.#blueprint
   }
 
   getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {
@@ -165,9 +164,9 @@ class ListComponent extends Component implements IListComponent {
       // Refresh holdings of the list item data / children
       const listObject = value
       this.#data = listObject
-      this.onUpdate?.(
-        this.#getUpdateProps(listObject, this.#handleBlueprint?.(listObject)),
-      )
+      // TODO - this.emit('data')
+      this.emit('blueprint', this.#getBlueprintHandlerArgs(listObject))
+      this.emit('update', this.#getUpdateHandlerArgs(listObject))
     } else if (key === 'listId') {
       this.#listId = value
     }
@@ -176,41 +175,58 @@ class ListComponent extends Component implements IListComponent {
     return this
   }
 
-  get onUpdate() {
-    return this.#onUpdate
+  on<E extends 'blueprint' | 'data' | 'update'>(
+    eventName: E | string,
+    cb: Function,
+  ) {
+    if (eventName in this.#cb) {
+      this.#cb[eventName as E].push(cb)
+    } else {
+      super.on(eventName as Parameters<IComponent['on']>[0], cb)
+    }
+    return this
   }
 
-  set onUpdate(fn) {
-    this.#onUpdate = fn
+  // TODO - finish this
+  off<E extends 'blueprint' | 'data' | 'update'>(
+    eventName: E | string,
+    cb: Function,
+  ) {
+    if (eventName in this.#cb) {
+      if (this.#cb[eventName as E].includes(cb)) {
+        //
+      } else {
+        //
+      }
+    } else {
+      super.on(eventName as Parameters<IComponent['on']>[0], cb)
+    }
+    return this
   }
 
-  get onBlueprint() {
-    return this.#onBlueprint
+  // TODO - finish this
+  emit<E extends 'blueprint' | 'data' | 'update'>(
+    eventName: E | string,
+    ...args: any[]
+  ) {
+    if (eventName in this.#cb) {
+      _.forEach(this.#cb[eventName as E], (cb) => cb(...args))
+    } else {
+      // TODO emit in Component
+    }
+    return this
   }
 
-  set onBlueprint(fn) {
-    this.#onBlueprint = fn
-  }
-
-  #handleBlueprint = (listObject: IListComponentListObject) => {
-    const handleBlueprintProps = this.#getHandleBlueprintProps(listObject)
-    const consumerBlueprint = this?.onBlueprint?.(
-      listObject,
-      handleBlueprintProps,
-    )
-    // Reset the blueprint
-    if (!consumerBlueprint) this.#blueprint = handleBlueprintProps.blueprint
-    // Use the consumer's blueprint
-    else this.#blueprint = consumerBlueprint
-    return this.#blueprint
-  }
-
-  #getHandleBlueprintProps = (listObject: IListComponentListObject) =>
+  #getBlueprintHandlerArgs = (listObject: IListComponentListObject) =>
     ({
-      blueprint: this.#getDefaultBlueprint(listObject),
+      baseBlueprint: this.#getDefaultBlueprint(listObject),
+      currentBlueprint: this.#blueprint,
       iteratorVar: this.iteratorVar,
+      listObject,
       nodes: this.#children,
       raw: super.child()?.original || this.#getDefaultBlueprint(listObject),
+      update: (blueprint: IListComponentBlueprint) =>
+        (this.#blueprint = blueprint),
     } as IListComponentHandleBlueprintProps)
 
   #getDefaultBlueprint = (
@@ -222,12 +238,9 @@ class ListComponent extends Component implements IListComponent {
     return dataObject
   }
 
-  #getUpdateProps = (
-    listObject: IListComponentListObject,
-    blueprint: Partial<ProxiedComponent>,
-  ) =>
+  #getUpdateHandlerArgs = (listObject: IListComponentListObject) =>
     ({
-      blueprint,
+      blueprint: this.#blueprint,
       iteratorVar: this.iteratorVar,
       listObject,
       nodes: this.#children,

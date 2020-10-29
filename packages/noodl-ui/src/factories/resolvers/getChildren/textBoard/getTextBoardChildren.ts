@@ -1,7 +1,8 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { IComponent, ProxiedComponent, Resolver } from '../../../types'
-import { createNOODLComponent, identify } from '../../../utils/noodl'
+import { identify } from '../../../utils/noodl'
+import createComponent from '../../../utils/noodl/createComponent'
 import { formatColor } from '../../../utils/common'
 import getChildProps from '../getChildProps'
 
@@ -40,7 +41,7 @@ const getTextBoardChildren: Resolver = (component: IComponent) => {
              * TODO: Instead of a resolverComponent, we should make a resolveStyles
              * to get around this issue. For now we'll hard code known props like "color"
              */
-            childComponent = createNOODLComponent<ProxiedComponent>('label')
+            childComponent = createComponent<ProxiedComponent>('label')
 
             childComponent
               .set('children', item.text)
@@ -53,7 +54,7 @@ const getTextBoardChildren: Resolver = (component: IComponent) => {
           }
           return null
         } else if (identify.textBoard.item.isBreakLine(item)) {
-          childComponent = createNOODLComponent<ProxiedComponent>('br')
+          childComponent = createComponent<ProxiedComponent>('br')
           return getChildProps(component, childComponent)
         } else {
           log.red(

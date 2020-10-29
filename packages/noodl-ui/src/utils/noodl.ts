@@ -1,109 +1,11 @@
 import _ from 'lodash'
-import Logger from 'logsnap'
-import { current, createDraft, Draft, isDraft } from 'immer'
-import { findChild, findParent } from 'noodl-utils'
+import { current } from 'immer'
 import {
-  ComponentType,
   IComponent,
-  IComponentConstructor,
   NOODLComponentProps,
-  NOODLIfObject,
   NOODLTextBoardBreakLine,
-  NOODLComponentType,
-  IListComponent,
-  UIComponent,
-  ProxiedComponent,
-  ProxiedDraftComponent,
 } from '../types'
 import { isBrowser } from './common'
-import ListComponent from '../ListComponent'
-import ListItemComponent from '../ListItemComponent'
-import Component from '../Component'
-import { WritableDraft } from 'immer/dist/internal'
-
-const log = Logger.create('noodl-ui/src/utils/noodl.ts')
-
-/**
- * A helper/utility to create Component instances corresponding to their NOODL
- * component type
- * @param { string | object | Component } props - NOODL component type, a component object, or a Component instance
- */
-export function createNOODLComponent(
-  noodlType: NOODLComponentType,
-  options?: ConstructorParameters<IComponentConstructor>,
-): IComponent
-export function createNOODLComponent(
-  props: ComponentType,
-  options?: ConstructorParameters<IComponentConstructor>,
-): IComponent
-export function createNOODLComponent(
-  props: ComponentType | NOODLComponentType,
-  options?: ConstructorParameters<IComponentConstructor>,
-) {
-  let noodlType: NOODLComponentType
-  let args: Partial<ProxiedComponent | NOODLComponentProps>
-  if (typeof props === 'string') {
-    noodlType = props
-    args = { ...options }
-  } else if (props instanceof Component) {
-    return props
-  } else {
-    noodlType = props.noodlType || props.type
-    args = { ...props, ...options }
-  }
-  switch (noodlType) {
-    case 'list':
-      return new ListComponent(args)
-    case 'listItem':
-      return new ListItemComponent(args)
-    default:
-      return new Component({ ...args, type: noodlType })
-  }
-}
-
-/**
- * A helper utility to safely create a draft component
- * @param { ComponentType } component - Component type, component instance, or a plain component JS object
- */
-export function createComponentDraftSafely(
-  component: ComponentType,
-): WritableDraft<ProxiedComponent> {
-  let value: WritableDraft<ProxiedComponent> | undefined
-  let noodlType: NOODLComponentType | undefined
-  // Already a drafted component
-  if (isDraft(component)) {
-    value = component as WritableDraft<ProxiedComponent>
-    value['noodlType'] = noodlType
-    noodlType = value.noodlType as NOODLComponentType
-  }
-  // Component type
-  else if (_.isString(component)) {
-    noodlType = component
-    const proxiedComponent = { type: noodlType, noodlType } as ProxiedComponent
-    value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
-  }
-  // Component instance
-  else if (component instanceof Component) {
-    const proxiedComponent = component.toJS() as ProxiedComponent
-    value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
-    noodlType = proxiedComponent.noodlType as NOODLComponentType
-  }
-  // Proxied component
-  else if (_.isPlainObject(component)) {
-    noodlType = component.noodlType || (component.type as NOODLComponentType)
-    value = createDraft({
-      ...component,
-      noodlType,
-    } as ProxiedComponent) as WritableDraft<ProxiedComponent>
-  }
-  // Create an empty draft
-  else {
-    value = createDraft({} as any) as WritableDraft<ProxiedComponent>
-  }
-  if (!value.noodlType && noodlType) value['noodlType'] = noodlType
-
-  return value as WritableDraft<ProxiedComponent>
-}
 
 // function createRegexKeysOnProps(keys: string | string[]) {
 //   const regex = new RegExp(_.isArray(keys) ? )
@@ -206,73 +108,6 @@ export function checkForNoodlProp(
     if (predicate(component.noodl?.[prop])) return true
   }
   return false
-}
-
-/**
- * Uses the value given to find a list corresponding to its relation.
- * Supports component id / instance
- * @param { Map } lists - Map of lists
- * @param { string | UIComponent } component - Component id or instance
- */
-export function findList(
-  lists: Map<IListComponent, IListComponent>,
-  component: string | UIComponent,
-): any[] | null {
-  let result: any[] | null = null
-
-  if (component) {
-    let listComponent: IListComponent
-    let listComponents: IListComponent[]
-    let listSize = lists.size
-
-    // Assuming it is a component's id, we will use this and traverse the whole list,
-    // comparing the id to each of the list's tree
-    if (_.isString(component)) {
-      let child: any
-      const componentId = component
-      listComponents = Array.from(lists.values())
-      const fn = (c: IComponent) => !!c.id && c.id === componentId
-      for (let index = 0; index < listSize; index++) {
-        listComponent = listComponents[index]
-        if (listComponent.id === component) {
-          result = listComponent.getData()
-          break
-        }
-        child = findChild(listComponent, fn)
-        if (child) {
-          result = listComponent.getData?.()
-          break
-        }
-      }
-    }
-    // TODO - Unit tests were failing on this if condition below. Come back to this later
-    // Directly return the data
-    else if (component instanceof ListComponent) {
-      result = component.getData()
-    }
-    // List item components should always be direct children of ListComponents
-    else if (component instanceof ListItemComponent) {
-      result = (component.parent() as IListComponent)?.getData?.()
-    }
-    // Regular components should not hold the list data or data objects, so we
-    // will assume here that it is some nested child. We can get the list by
-    // traversing parents
-    else if (component instanceof Component) {
-      let parent: any
-      listComponents = Array.from(lists.values())
-      const fn = (c: IComponent) => c === listComponent
-      for (let index = 0; index < listSize; index++) {
-        listComponent = listComponents[index]
-        parent = findParent(component, fn)
-        if (parent) {
-          result = parent.getData?.()
-          break
-        }
-      }
-    }
-  }
-
-  return result
 }
 
 /**

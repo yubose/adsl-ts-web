@@ -9,7 +9,7 @@ import './handlers/dom'
 chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
-let logsnapSpy: sinon.SinonStub
+// let logsnapSpy: sinon.SinonStub
 
 before(async () => {
   console.clear()
@@ -27,7 +27,7 @@ before(async () => {
   // )
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
-    // logsnapSpy = sinon.stub(Logger, 'create').callsFake(_.noop as any)
+    // logsnapSpy = sinon.stub(Logger, 'create').callsFake(() => _.noop as any)
   } catch (error) {}
 })
 

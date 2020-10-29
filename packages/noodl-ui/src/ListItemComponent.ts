@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { createNOODLComponent } from './utils/noodl'
 import Component from './Component'
 import {
   ComponentType,

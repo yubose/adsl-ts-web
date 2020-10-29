@@ -20,16 +20,17 @@ describe('DOM', () => {
       const c = { type: 'image', path, dataKey: 'formData.avatar' }
       const component = noodlui.resolveComponents(c)
       toDOM(component)
-      expect(getByDataKey('formData.code')).to.exist
+      const img = document.getElementsByTagName('img')[0]
+      expect(img).to.exist
+      expect(img.dataset.key).to.equal('formData.avatar')
     })
 
-    it('should be an image', () => {
+    it('should have the src', () => {
       const path = 'abc.jpg'
       const src = noodlui.createSrc(path)
       const c = { type: 'image', path, dataKey: 'formData.phoneNumber' }
       toDOM(noodlui.resolveComponents(c))
-      const node = getByDataKey('formData.phoneNumber')
-      expect(node?.tagName).to.equal('IMAGE')
+      expect(document.querySelector(`img`)?.getAttribute('src')).to.equal(src)
     })
   })
 
@@ -38,20 +39,20 @@ describe('DOM', () => {
       const listObject = [] as any
       const c = { type: 'list', listObject, iteratorVar: 'apple' }
       const node = toDOM(noodlui.resolveComponents(c))
-      console.info(prettyDOM())
-
       expect(document.querySelector('ul')).to.exist
     })
   })
 
   describe('listItem', () => {
-    xit('should be in the dom', () => {
-      //
+    it('should be in the dom', () => {
+      const c = { type: 'listItem', iteratorVar: 'apple' }
+      toDOM(noodlui.resolveComponents(c))
+      expect(document.querySelector('li')).to.exist
     })
   })
 
   describe('textBoard', () => {
-    xit('should render correctly', () => {
+    it('should be in the correct form in the DOM', () => {
       const noodlComponent = {
         type: 'label',
         textBoard: [
@@ -60,9 +61,7 @@ describe('DOM', () => {
           { text: 'Upload an image or document' },
         ],
       } as NOODLComponent
-      const component = noodl.resolveComponents(noodlComponent)
-      const node = noodluidom.parse(component as any)
-      document.body.appendChild(node as HTMLElement)
+      const node = toDOM(noodlui.resolveComponents(noodlComponent))
       console.info(prettyDOM())
       const children = node?.children as HTMLCollection
       expect(children[0].tagName).to.equal('LABEL')

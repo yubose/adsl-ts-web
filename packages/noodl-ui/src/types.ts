@@ -159,7 +159,6 @@ export interface IListComponent extends IComponent {
   exists(child: IListItemComponent): boolean
   find(childId: string): IListItemComponent | undefined
   find(child: IListItemComponent): IListItemComponent | undefined
-  getDefaultBlueprint(): IListComponentBlueprint
   getData(opts?: { fromNodes?: boolean }): any[] | null
   getDataObject(index: number): any
   getDataObject(childId: string): any
@@ -175,10 +174,12 @@ export interface IListComponent extends IComponent {
   set(key: 'listObject', value: any[]): this
   set(key: 'blueprint', value: any): this
   set(...args: Parameters<IComponent['set']>): this
-  onBlueprint?(
-    listObject: IListComponentListObject,
-    opts: IListComponentHandleBlueprintProps,
-  ): Partial<ProxiedComponent> | void | undefined | null
+  on(event: 'blueprint', cb: Function): this
+  on(event: 'data', cb: Function): this
+  on(event: 'update', cb: Function): this
+  emit(event: 'blueprint', args: IListComponentHandleBlueprintProps): this
+  emit(event: 'data', args): this
+  emit(event: 'update', args): this
   onUpdate?(args: IListComponentUpdateProps): void
   onData?(): this
 }
@@ -188,10 +189,12 @@ export type IListComponentListObject = ReturnType<IListComponent['getData']>
 export type IListComponentBlueprint = Partial<ProxiedComponent>
 
 export interface IListComponentHandleBlueprintProps {
-  blueprint: IListComponentBlueprint
+  baseBlueprint: IListComponentBlueprint
   iteratorVar: string
+  listObject: any[] | null
   nodes: IListItemComponent[]
   raw: ProxiedComponent
+  update(blueprint: IListComponentHandleBlueprintProps): void
 }
 
 export interface IListComponentUpdateProps<
@@ -209,6 +212,7 @@ export interface IListItemComponent extends IComponent {
 }
 
 export interface IResolver {
+  internal: boolean
   setResolver(resolver: ResolverFn): this
   resolve: ResolverFn
 }

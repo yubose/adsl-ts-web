@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import { isBreakLineTextBoardItem } from 'noodl-utils'
 import { IComponent, ProxiedComponent, ResolverFn } from '../../../types'
-import { createNOODLComponent, identify } from '../../../utils/noodl'
+import { identify } from '../../../utils/noodl'
 import { formatColor } from '../../../utils/common'
 import getChildProps from '../getChildProps'
 

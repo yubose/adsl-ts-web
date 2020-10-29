@@ -14,7 +14,7 @@ import {
   NOODLStyle,
   ProxiedComponent,
 } from './types'
-import { createComponentDraftSafely } from './utils/noodl'
+import createComponentDraftSafely from './utils/createComponentDraftSafely'
 import { forEachEntries } from './utils/common'
 
 const log = Logger.create('Component')
