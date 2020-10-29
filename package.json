@@ -18,7 +18,7 @@
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:cadltest": "bash s3Deploy.sh build cadltest.aitmed.com",
     "postinstall": "lerna run --parallel build ",
-    "start": "cross-env ECOS_ENV=test NODE_ENV=development webpack-dev-server",
+    "start": "cross-env ECOS_ENV=test NODE_ENV=production webpack-dev-server",
     "start:stable": "cross-env ECOS_ENV=stable NODE_ENV=development webpack-dev-server",
     "start:test": "cross-env ECOS_ENV=test USE_DEV_PATHS=true npm run start",
     "script": "node scripts/compiled/index.js",
@@ -35,7 +35,7 @@
     "test:noodlutils:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file ./src/setupTests.ts --watch --watch-files packages/noodl-utils/src",
     "test:noodlutils": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files packages/noodl-utils/src packages/noodl-utils/src/**/*.test.ts",
     "lib:build": "cross-env NODE_ENV=production lerna run --parallel build",
-    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --parallel start",
+    "lib:start": "cross-env NODE_ENV=production USE_DEV_PATHS=true lerna run --parallel start",
     "lib:utils": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --parallel --ignore noodl-ui --ignore noodl-ui-dom start -- --watch",
     "lib:start:noodlutils": "cross-env NODE_ENV=development lerna run start --ignore=noodl-ui --ignore=noodl-ui-dom --ignore=logsnap"
   },
@@ -46,7 +46,7 @@
     "noodl-utils": "file:packages/noodl-utils"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.110",
+    "@aitmed/cadl": "^1.0.111",
     "@aitmed/ecos-lvl2-sdk": "^1.4.114",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",
