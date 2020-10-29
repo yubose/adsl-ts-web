@@ -107,8 +107,8 @@ export function evalIf(
   ) => NOODLIfObject['if'][1] | NOODLIfObject['if'][2],
   ifObj: NOODLIfObject,
 ): NOODLIfObject['if'][1] | NOODLIfObject['if'][2] {
-  if (_.isArray(ifObj)) {
-    const [val, onTrue, onFalse] = ifObj
+  if (_.isArray(ifObj.if)) {
+    const [val, onTrue, onFalse] = ifObj.if
     return fn(val, onTrue, onFalse) ? onTrue : onFalse
   } else {
     log.func('evalIf')

@@ -3,8 +3,10 @@ import {
   Action,
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
+  evalIf,
   getByDataUX,
   isReference,
+  isPossiblyDataKey,
   NOODLActionType,
   NOODLEvalObject,
   NOODLPopupBaseObject,
@@ -15,6 +17,7 @@ import {
 } from 'noodl-ui'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
+import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import { onSelectFile } from 'utils/dom'
 import { getDataValues } from '../../packages/noodl-ui/dist'
 
@@ -24,10 +27,52 @@ const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<NOODLActionType, ActionChainActionCallback<any>>
 
   _actions.evalObject = async (action: Action<NOODLEvalObject>, options) => {
+    log.func('evalObject')
     if (_.isFunction(action?.original?.object)) {
       await action.original?.object()
+    } else if ('if' in action.original.object || {}) {
+      const ifObj = action.original.object.if
+      if (_.isArray(ifObj)) {
+        const { default: noodl } = await import('app/noodl')
+        const context = options.context
+        const pageName = context?.page?.name || ''
+        const pageObject = noodl.root[pageName]
+        const object = evalIf((valEvaluating) => {
+          let value
+          if (isNOODLBoolean(valEvaluating)) {
+            return isBooleanTrue(valEvaluating)
+          } else {
+            if (_.isString(valEvaluating)) {
+              if (isPossiblyDataKey(valEvaluating)) {
+                if (_.has(noodl.root, valEvaluating)) {
+                  value = _.get(noodl.root[pageName], valEvaluating)
+                } else if (_.has(pageObject, valEvaluating)) {
+                  value = _.get(pageObject, valEvaluating)
+                }
+              }
+              if (isNOODLBoolean(value)) return isBooleanTrue(value)
+              return !!value
+            } else {
+              return !!value
+            }
+          }
+        }, ifObj)
+        if (_.isFunction(object)) {
+          await object()
+        } else {
+          log.red(
+            `Evaluated an "object" from an "if" object but it did not return a ` +
+              `function`,
+            { action, ...options },
+          )
+        }
+      } else {
+        log.grey(
+          `Received an "if" object but it was not in the form --> if [value, value, value]`,
+          { action, ...options },
+        )
+      }
     } else {
-      log.func('evalObject')
       log.grey(
         `Expected to receive the "object" as a function but it was "${typeof action?.original}" instead`,
         { action, ...options },

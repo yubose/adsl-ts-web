@@ -102,7 +102,7 @@ export interface NOODLBuiltInObject extends NOODLActionObjectBase {
 
 export interface NOODLEvalObject extends NOODLActionObjectBase {
   actionType: 'evalObject'
-  object?: any
+  object?: Function | NOODLIfObject
   [key: string]: any
 }
 
