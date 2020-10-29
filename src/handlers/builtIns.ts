@@ -187,8 +187,10 @@ const createBuiltInActions = function ({
     log.func('goBack')
     log.grey('', { action, ...options })
 
+    const { evolve } = action.original as NOODLBuiltInObject
+
     const requestPage = (pageName: string) =>
-      page.requestPageChange(pageName, { evolve: false })
+      page.requestPageChange(pageName, { evolve: isBooleanTrue(evolve) })
 
     let { previousPage } = page
     if (!previousPage) {
