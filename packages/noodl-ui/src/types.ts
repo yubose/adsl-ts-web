@@ -1,3 +1,4 @@
+import { AbortExecuteError } from 'errors'
 import { Draft } from 'immer'
 import {
   actionTypes,
@@ -342,6 +343,8 @@ export interface ActionSnapshot<OriginalAction = any> {
     running: boolean
     remaining: number | null
   }
+  result?: any
+  error?: null | Error | AbortExecuteError
 }
 
 export type ActionStatus =

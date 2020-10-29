@@ -29,7 +29,12 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.evalObject = async (action: Action<NOODLEvalObject>, options) => {
     log.func('evalObject')
     if (_.isFunction(action?.original?.object)) {
-      await action.original?.object()
+      const result = await action.original?.object()
+      if (result) {
+        const logArgs = { result, action, ...options }
+        log.grey(`Received a ${typeof result} from an evalObject`, logArgs)
+        return result
+      }
     } else if ('if' in action.original.object || {}) {
       const ifObj = action.original.object.if
       if (_.isArray(ifObj)) {
@@ -58,13 +63,22 @@ const createActions = function ({ page }: { page: IPage }) {
           }
         }, ifObj)
         if (_.isFunction(object)) {
-          await object()
+          const result = await object()
+          if (result) {
+            log.hotpink(
+              `Received a value from evalObject's "if" evaluation. ` +
+                `Returning it back to the action chain now`,
+              { action, ...options, result },
+            )
+            return result
+          }
         } else {
           log.red(
             `Evaluated an "object" from an "if" object but it did not return a ` +
               `function`,
-            { action, ...options },
+            { action, ...options, result: object },
           )
+          return object
         }
       } else {
         log.grey(
