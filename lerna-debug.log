@@ -1,8 +1,8 @@
-48 warn complete Waiting for 1 child process to exit. CTRL-C to exit immediately.
-49 error Error: Command failed: git tag noodl-utils@0.0.4 -m noodl-utils@0.0.4
-49 error fatal: tag 'noodl-utils@0.0.4' already exists
-49 error
-49 error     at makeError (/Users/christ/aitmed-noodl-web/node_modules/execa/index.js:174:9)
-49 error     at /Users/christ/aitmed-noodl-web/node_modules/execa/index.js:278:16
-49 error     at processTicksAndRejections (internal/process/task_queues.js:93:5)
-49 error     at async Promise.all (index 1)
+54 warn complete Waiting for 2 child processes to exit. CTRL-C to exit immediately.
+55 error Error: Command failed: git tag logsnap@0.0.12 -m logsnap@0.0.12
+55 error fatal: tag 'logsnap@0.0.12' already exists
+55 error
+55 error     at makeError (C:\Users\Chris\aitmed-noodl-web-copy\node_modules\execa\index.js:174:9)
+55 error     at C:\Users\Chris\aitmed-noodl-web-copy\node_modules\execa\index.js:278:16
+55 error     at processTicksAndRejections (internal/process/task_queues.js:97:5)
+55 error     at async Promise.all (index 0)
