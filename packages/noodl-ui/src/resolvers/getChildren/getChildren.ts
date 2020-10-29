@@ -114,4 +114,12 @@ function getChildren(
 // @ts-ignore
 getChildren.getChildren = true
 
+function handleChildren(component: UIComponent, options: ConsumerOptions) {
+  switch (
+    component.noodlType
+    //
+  ) {
+  }
+}
+
 export default getChildren

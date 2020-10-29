@@ -40,8 +40,5 @@
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
-  },
-  "dependencies": {
-    "noodl-ui-dom": "file:../noodl-ui-dom"
   }
 }

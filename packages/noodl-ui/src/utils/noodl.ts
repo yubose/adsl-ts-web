@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { current } from 'immer'
+import { current, createDraft, Draft, isDraft } from 'immer'
 import { findChild, findParent } from 'noodl-utils'
 import {
   ComponentType,
@@ -13,11 +13,13 @@ import {
   IListComponent,
   UIComponent,
   ProxiedComponent,
+  ProxiedDraftComponent,
 } from '../types'
 import { isBrowser } from './common'
 import ListComponent from '../ListComponent'
 import ListItemComponent from '../ListItemComponent'
 import Component from '../Component'
+import { WritableDraft } from 'immer/dist/internal'
 
 const log = Logger.create('noodl-ui/src/utils/noodl.ts')
 
@@ -57,6 +59,50 @@ export function createNOODLComponent(
     default:
       return new Component({ ...args, type: noodlType })
   }
+}
+
+/**
+ * A helper utility to safely create a draft component
+ * @param { ComponentType } component - Component type, component instance, or a plain component JS object
+ */
+export function createComponentDraftSafely(
+  component: ComponentType,
+): WritableDraft<ProxiedComponent> {
+  let value: WritableDraft<ProxiedComponent> | undefined
+  let noodlType: NOODLComponentType | undefined
+  // Already a drafted component
+  if (isDraft(component)) {
+    value = component as WritableDraft<ProxiedComponent>
+    value['noodlType'] = noodlType
+    noodlType = value.noodlType as NOODLComponentType
+  }
+  // Component type
+  else if (_.isString(component)) {
+    noodlType = component
+    const proxiedComponent = { type: noodlType, noodlType } as ProxiedComponent
+    value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
+  }
+  // Component instance
+  else if (component instanceof Component) {
+    const proxiedComponent = component.toJS() as ProxiedComponent
+    value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
+    noodlType = proxiedComponent.noodlType as NOODLComponentType
+  }
+  // Proxied component
+  else if (_.isPlainObject(component)) {
+    noodlType = component.noodlType || (component.type as NOODLComponentType)
+    value = createDraft({
+      ...component,
+      noodlType,
+    } as ProxiedComponent) as WritableDraft<ProxiedComponent>
+  }
+  // Create an empty draft
+  else {
+    value = createDraft({} as any) as WritableDraft<ProxiedComponent>
+  }
+  if (!value.noodlType && noodlType) value['noodlType'] = noodlType
+
+  return value as WritableDraft<ProxiedComponent>
 }
 
 // function createRegexKeysOnProps(keys: string | string[]) {

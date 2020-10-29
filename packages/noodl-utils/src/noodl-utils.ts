@@ -1,8 +1,5 @@
-import Logger from 'logsnap'
 import { isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
 import * as T from './types'
-
-const log = Logger.create('noodl-utils')
 
 /**
  * Takes a callback and an "if" object. The callback will receive the three

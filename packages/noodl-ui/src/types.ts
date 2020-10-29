@@ -82,6 +82,7 @@ export interface IComponent {
   touched: string[]
   untouched: string[]
   type: NOODLComponentType
+  noodlType: NOODLComponentType
   assign(
     key: string | { [key: string]: any },
     value?: { [key: string]: any },
@@ -117,7 +118,6 @@ export interface IComponent {
   isStyleHandled(key: string): boolean
   keys: string[]
   merge(key: string | { [key: string]: any }, value?: any): this
-  noodlType: NOODLComponentType
   on(eventName: IComponentEventId, cb: Function): this
   off(eventName: IComponentEventId, cb: Function): this
   parent(): UIComponent | null

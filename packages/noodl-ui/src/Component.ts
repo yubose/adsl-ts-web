@@ -14,6 +14,7 @@ import {
   NOODLStyle,
   ProxiedComponent,
 } from './types'
+import { createComponentDraftSafely } from './utils/noodl'
 import { forEachEntries } from './utils/common'
 
 const log = Logger.create('Component')
@@ -60,14 +61,12 @@ class Component implements IComponent {
         : new Component(parent)) as IComponent
     }
 
-    this.#component = (isDraft(component)
-      ? component
-      : createDraft(component)) as WritableDraft<
+    this.#component = createComponentDraftSafely(component) as WritableDraft<
       ProxiedComponent & NOODLComponentProps
     >
 
-    this['id'] = component.id || _.uniqueId()
-    this['noodlType'] = component.type
+    this['id'] = this.#component.id || _.uniqueId()
+    this['noodlType'] = this.#component.noodlType
 
     if (!this.#component.style) this.#component['style'] = {}
 

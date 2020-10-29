@@ -8,6 +8,7 @@ const getElementType: ResolverFn = (component) => {
   // NOTE: component.get('type') is specially modified to return the
   // noodl component type and not our parsed one
   component.set('type', getType(component))
+  component.set('noodlType', component.type)
 }
 
 function getType(component: IComponent): string {

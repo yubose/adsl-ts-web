@@ -93,8 +93,12 @@
     ]
   },
   "prettyDOM": {
-    "prefix": "pdom",
+    "prefix": "importpdom",
     "body": "import { prettyDOM } from '@testing-library/dom'"
+  },
+  "prettyDOM() log": {
+    "prefix": "pdom",
+    "body": "console.info(prettyDOM())"
   },
   "userEvent": {
     "prefix": "userevent",

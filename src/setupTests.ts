@@ -3,12 +3,13 @@ import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
 import Logger, { _color } from 'logsnap'
+import { noodlui } from './utils/test-utils'
 import './handlers/dom'
 
 chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
-// let logsnapSpy: sinon.SinonStub
+let logsnapSpy: sinon.SinonStub
 
 before(async () => {
   console.clear()
@@ -33,6 +34,10 @@ before(async () => {
 after(() => {
   logSpy?.restore?.()
   // logsnapSpy?.restore?.()
+})
+
+beforeEach(() => {
+  noodlui.cleanup()
 })
 
 afterEach(() => {

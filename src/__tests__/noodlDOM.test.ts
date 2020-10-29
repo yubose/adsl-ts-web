@@ -1,9 +1,55 @@
 import { expect } from 'chai'
 import { NOODLComponent } from 'noodl-ui'
+import { getByDataKey } from 'noodl-utils'
 import { screen, prettyDOM } from '@testing-library/dom'
-import { noodl, noodluidom } from '../utils/test-utils'
+import { noodlui, noodluidom, toDOM } from '../utils/test-utils'
 
 describe('DOM', () => {
+  describe('button', () => {
+    it('should be in the DOM', () => {
+      const c = { type: 'button', text: 'hello' }
+      const component = noodlui.resolveComponents(c)
+      toDOM(component)
+      expect(screen.getByText('hello')).to.exist
+    })
+  })
+
+  describe('image', () => {
+    it('should be in the dom', () => {
+      const path = 'abc.jpg'
+      const c = { type: 'image', path, dataKey: 'formData.avatar' }
+      const component = noodlui.resolveComponents(c)
+      toDOM(component)
+      expect(getByDataKey('formData.code')).to.exist
+    })
+
+    it('should be an image', () => {
+      const path = 'abc.jpg'
+      const src = noodlui.createSrc(path)
+      const c = { type: 'image', path, dataKey: 'formData.phoneNumber' }
+      toDOM(noodlui.resolveComponents(c))
+      const node = getByDataKey('formData.phoneNumber')
+      expect(node?.tagName).to.equal('IMAGE')
+    })
+  })
+
+  describe('list', () => {
+    it('should be in the dom', () => {
+      const listObject = [] as any
+      const c = { type: 'list', listObject, iteratorVar: 'apple' }
+      const node = toDOM(noodlui.resolveComponents(c))
+      console.info(prettyDOM())
+
+      expect(document.querySelector('ul')).to.exist
+    })
+  })
+
+  describe('listItem', () => {
+    xit('should be in the dom', () => {
+      //
+    })
+  })
+
   describe('textBoard', () => {
     xit('should render correctly', () => {
       const noodlComponent = {

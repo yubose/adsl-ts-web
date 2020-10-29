@@ -491,12 +491,9 @@ class NOODL implements T.INOODLUi {
   }
 
   reset() {
-    this.#cb = { action: {}, builtIn: {}, chaining: {} }
-    this.#parser = makeRootsParser({ roots: {} })
-    this.#resolvers = []
-    this.#state = _createState()
     this.#root = {}
-    this.#viewport = new Viewport()
+    this.#parser = makeRootsParser({ roots: this.#root })
+    this.#state = _createState()
     this.initialized = false
     return this
   }

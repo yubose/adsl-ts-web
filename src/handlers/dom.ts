@@ -120,7 +120,7 @@ noodluidom.on('all', function onCreateNode(node, component) {
         const onChange = createOnDataValueChangeFn(js['data-key'])
         node.addEventListener('change', onChange)
       })
-      .catch((err) => log.func('noodluidom.on: all').red(err.message))
+      .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
   }
 
   /** Styles */
@@ -241,7 +241,7 @@ noodluidom.on('create.list', (node, component) => {
   log.hotpink(`LIST CREATED`, { node, component })
 })
 
-/** NOTE: node is null in this handler */
+// /** NOTE: node is null in this handler */
 noodluidom.on('create.plugin', async function (noop, component) {
   log.func('create.plugin')
   const js = component.toJS()
@@ -364,53 +364,53 @@ noodluidom.on('create.textfield', function onCreateTextField(node, component) {
   }
 })
 
-export function setAttrBy(attr: string, cb: NodePropsFunc): NodePropsFunc {
-  return (n, p) => (n[attr] = cb(n, p))
-}
+// export function setAttrBy(attr: string, cb: NodePropsFunc): NodePropsFunc {
+//   return (n, p) => (n[attr] = cb(n, p))
+// }
 
-export function setAttrByProp(attr: string, prop: string): NodePropsFunc {
-  return (n, p) => prop && p && prop in p && (n[attr] = p[prop])
-}
+// export function setAttrByProp(attr: string, prop: string): NodePropsFunc {
+//   return (n, p) => prop && p && prop in p && (n[attr] = p[prop])
+// }
 
-export function setDatasetAttrBy(
-  attr: string,
-  cb: NodePropsFunc,
-): NodePropsFunc {
-  return (n, p) =>
-    p && attr in p && (n.dataset[attr.replace('data-', '')] = cb(n, p))
-}
+// export function setDatasetAttrBy(
+//   attr: string,
+//   cb: NodePropsFunc,
+// ): NodePropsFunc {
+//   return (n, p) =>
+//     p && attr in p && (n.dataset[attr.replace('data-', '')] = cb(n, p))
+// }
 
-export function setDatasetAttrByProp(prop: string): NodePropsFunc {
-  return setDatasetAttrBy(
-    prop,
-    (n, p) => (n.dataset[prop.replace('data-', '')] = p[prop]),
-  )
-}
+// export function setDatasetAttrByProp(prop: string): NodePropsFunc {
+//   return setDatasetAttrBy(
+//     prop,
+//     (n, p) => (n.dataset[prop.replace('data-', '')] = p[prop]),
+//   )
+// }
 
-export const setDataListId = setDatasetAttrByProp('data-listid')
-export const setDataName = setDatasetAttrByProp('data-name')
-export const setDataKey = setDatasetAttrByProp('data-key')
-export const setDataUx = setDatasetAttrByProp('data-ux')
-export const setDataValue = setDatasetAttrByProp('data-value')
-export const setId = setAttrByProp('id', 'id')
-export const setSrc = setAttrByProp('src', 'src')
-export const setPlaceholder = setAttrByProp('placeholder', 'placeholder')
-export const setVideoFormat = setAttrByProp('type', 'videoFormat')
+// export const setDataListId = setDatasetAttrByProp('data-listid')
+// export const setDataName = setDatasetAttrByProp('data-name')
+// export const setDataKey = setDatasetAttrByProp('data-key')
+// export const setDataUx = setDatasetAttrByProp('data-ux')
+// export const setDataValue = setDatasetAttrByProp('data-value')
+// export const setId = setAttrByProp('id', 'id')
+// export const setSrc = setAttrByProp('src', 'src')
+// export const setPlaceholder = setAttrByProp('placeholder', 'placeholder')
+// export const setVideoFormat = setAttrByProp('type', 'videoFormat')
 
-export function compose(...fns: NodePropsFunc[]): NodePropsFunc {
-  return (n, p) => {
-    fns.forEach((fn) => fn && fn(n, p))
-  }
-}
+// export function compose(...fns: NodePropsFunc[]): NodePropsFunc {
+//   return (n, p) => {
+//     fns.forEach((fn) => fn && fn(n, p))
+//   }
+// }
 
-export const cbs = compose(
-  setId,
-  setSrc,
-  setPlaceholder,
-  setVideoFormat,
-  setDataListId,
-  setDataName,
-  setDataKey,
-  setDataUx,
-  setDataValue,
-)
+// export const cbs = compose(
+//   setId,
+//   setSrc,
+//   setPlaceholder,
+//   setVideoFormat,
+//   setDataListId,
+//   setDataName,
+//   setDataKey,
+//   setDataUx,
+//   setDataValue,
+// )

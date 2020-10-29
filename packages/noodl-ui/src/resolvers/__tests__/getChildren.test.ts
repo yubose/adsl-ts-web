@@ -1,5 +1,7 @@
 import _ from 'lodash'
 import { expect } from 'chai'
+import chalk from 'chalk'
+import { prettyDOM } from '@testing-library/dom'
 import { makeResolverTest, ResolverTest } from '../../utils/test-utils'
 import {
   NOODLComponent,
@@ -7,6 +9,10 @@ import {
   ProxiedComponent,
 } from '../../types'
 import { forEachDeepEntries } from '../../utils/common'
+import { noodlui, toDOM } from '../../../../../src/utils/test-utils'
+import Component from '../../Component'
+import ListComponent from '../../ListComponent'
+import ListItemComponent from '../../ListItemComponent'
 
 let resolve: ResolverTest
 
@@ -14,7 +20,25 @@ beforeEach(() => {
   resolve = makeResolverTest()
 })
 
-describe('getChildren', () => {
+describe(`getChildren`, () => {
+  it('should create deeply nesting children', () => {
+    const component = new Component({
+      type: 'view',
+      children: [
+        {
+          type: 'list',
+          children: [
+            { type: 'listItem', children: [{ type: 'label', text: 'hello' }] },
+          ],
+        },
+      ],
+    })
+    toDOM(noodlui.resolveComponents(component))
+    console.info(prettyDOM())
+  })
+})
+
+xdescribe(`[${chalk.red('deprecated')}] getChildren`, () => {
   describe('listChildren', () => {
     let component: NOODLComponent
 
