@@ -60,7 +60,7 @@ describe('DOM', () => {
           { text: 'Upload an image or document' },
         ],
       } as NOODLComponent
-      const component = noodl.resolveComponents(noodlComponent)
+      const component = noodlui.resolveComponents(noodlComponent)
       const node = noodluidom.parse(component as any)
       document.body.appendChild(node as HTMLElement)
       console.info(prettyDOM())
