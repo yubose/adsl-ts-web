@@ -1,6 +1,6 @@
 {
   "name": "noodl-ui",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "NOODL JavaScript library",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "license": "MIT",
@@ -15,8 +15,11 @@
   },
   "scripts": {
     "build": "rm -rf dist && rollup -c --environment BUILD:production",
-    "start": "cross-env NODE_ENV=development rm -rf dist && rollup -c -w --environment BUILD:development",
+    "start": "rm -rf dist && rollup -c -w --environment BUILD:development",
     "test": "ts-mocha -p tsconfig.test.json -r jsdom-global/register -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose"
+  },
+  "directories": {
+    "dist": "dist"
   },
   "files": [
     "dist"

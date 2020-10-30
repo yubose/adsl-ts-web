@@ -176,6 +176,17 @@ export interface IListComponent extends IComponent {
   listId: string
   listObject: any[] | null
   length: number
+  mergeBlueprint<
+    T extends IListComponentBlueprint = Partial<IListComponentBlueprint>
+  >(
+    blueprint: T,
+  ): IListComponentBlueprint
+  replaceBlueprint<
+    T extends IListComponentBlueprint = Partial<IListComponentBlueprint>
+  >(
+    blueprint: T,
+  ): IListComponentBlueprint
+  resetBlueprint(): IListComponentBlueprint
   set(key: 'listId', value: string): this
   set(key: 'listObject', value: any[]): this
   set(...args: Parameters<IComponent['set']>): this
@@ -196,7 +207,9 @@ export interface IListComponentHandleBlueprintProps {
   listObject: any[] | null
   nodes: IListItemComponent[]
   raw: ProxiedComponent
-  update(blueprint: IListComponentHandleBlueprintProps): void
+  merge: IListComponent['mergeBlueprint']
+  replace: IListComponent['replaceBlueprint']
+  reset: IListComponent['resetBlueprint']
 }
 
 export interface IListComponentUpdateProps<
@@ -208,13 +221,14 @@ export interface IListComponentUpdateProps<
   nodes: IListItemComponent[]
 }
 
-export interface IListItemComponent extends IComponent {
-  noodlType: 'listItem'
-  // createChild
-  listId?: string
+export interface IListItemComponent<T extends NOODLComponentType = 'listItem'>
+  extends IComponent {
+  noodlType: T
+  listId: string
+  listIndex: null | number
   iteratorVar: string
   getDataObject(): any
-  setDataObject(data: any): this
+  setDataObject<T>(data: T): this
 }
 
 export interface IListItemChildComponent extends IComponent {

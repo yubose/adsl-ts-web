@@ -8,6 +8,7 @@ const getStylesByElementType: ResolverFn = (component, options) => {
     case 'header':
       return void component.setStyle('zIndex', 100)
     case 'image':
+    case 'video':
       return void component.setStyle('objectFit', 'contain')
     case 'list':
       component.setStyle('overflowX', 'hidden')

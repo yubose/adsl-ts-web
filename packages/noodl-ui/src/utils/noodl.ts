@@ -84,15 +84,6 @@ export function isIteratorVarConsumer(iteratorVar: string, obj: any) {
 }
 
 /**
- * Returns true if the value possibly leads to some data, which is possible
- * for strings that have at least a dot in them which can be some dataKey
- * @param { string } value
- */
-export function isPossiblyDataKey(value: unknown) {
-  return _.isString(value) ? !!value.match(/\./g)?.length : false
-}
-
-/**
  * Checks for a prop in the component object in the top level as well as the "noodl" property level
  * @param { object } component - NOODL component
  * @param { string } prop - Prop key

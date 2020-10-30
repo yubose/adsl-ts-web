@@ -17,7 +17,7 @@ describe('ListItemComponent', () => {
     expect(component.getDataObject()).to.equal(dataObject)
   })
 
-  it('should return the parent list component', () => {
+  xit('should create all children as instances of ListItemComponent', () => {
     const component = new ListItemComponent()
     const child = new Component({ type: 'view' })
     component.createChild(child)
