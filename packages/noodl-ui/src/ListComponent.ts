@@ -18,10 +18,10 @@ import ListItemComponent from './ListItemComponent'
 const log = Logger.create('ListComponent')
 
 class ListComponent extends Component implements IListComponent {
-  #data: any[] | null = null
   #blueprint: IListComponentBlueprint = { type: 'listItem' }
   #children: IListItemComponent[] = []
   #listId: string
+  #listObject: any[] | null = null
   #cb: {
     blueprint: Function[]
     data: Function[]
@@ -36,7 +36,10 @@ class ListComponent extends Component implements IListComponent {
         IComponentConstructor
       >),
     )
+    // These initial values will be set once in the prototype. When we use .set,
+    // we will intercept the call and set them on this instance instead
     const listObject = this.get('listObject')
+    const listId = this.get('listId')
     const iteratorVar = this.get('iteratorVar')
 
     // Set the blueprint
@@ -67,7 +70,7 @@ class ListComponent extends Component implements IListComponent {
       }
     }
 
-    this.set('listId', getRandomKey())
+    this.#listId = getRandomKey()
   }
 
   get iteratorVar() {
@@ -79,7 +82,7 @@ class ListComponent extends Component implements IListComponent {
   }
 
   get listObject() {
-    return this.get('listObject')
+    return this.#listObject
   }
 
   get length() {
@@ -116,38 +119,41 @@ class ListComponent extends Component implements IListComponent {
     return (
       (fromNodes
         ? this.#children.map((c) => c.get(this.iteratorVar))
-        : this.#data) || null
+        : this.#listObject) || null
     )
   }
 
-  getDataObject(index: number): any
-  getDataObject(childId: string | number): any
-  getDataObject(child: IComponent): any
-  getDataObject(child: number | string | IComponent) {
-    let _inst: IComponent | undefined
-    // Child component id
-    if (_.isString(child)) {
-      _inst = _.find(this.#children, (c) => c.id == child)
-    } else if (_.isNumber(child)) {
-      // Child index
-      _inst = this.#children[child]
-    } else if (child instanceof Component) {
-      _inst = child
-    }
-    return _inst && _inst.get(this.iteratorVar)
-  }
+  // getDataObject(index: number): any
+  // getDataObject(childId: string | number): any
+  // getDataObject(child: IComponent): any
+  // getDataObject(child: number | string | IComponent) {
+  //   let _inst: IComponent | undefined
+  //   // Child component id
+  //   if (_.isString(child)) {
+  //     _inst = _.find(this.#children, (c) => c.id == child)
+  //   } else if (_.isNumber(child)) {
+  //     // Child index
+  //     _inst = this.#children[child]
+  //   } else if (child instanceof Component) {
+  //     _inst = child
+  //   }
+  //   return _inst && _inst.get(this.iteratorVar)
+  // }
 
-  setDataObject(c: number | string | IListItemComponent, data: any) {
-    const child = this.find(c)
-    child?.set(this.iteratorVar, data)
-    return this
-  }
+  // setDataObject(c: number | string | IListItemComponent, data: any) {
+  //   const child = this.find(c)
+  //   child?.set(this.iteratorVar, data)
+  //   return this
+  // }
 
   createChild(...args: Parameters<IComponent['createChild']>) {
     const child = super.createChild(...args)
     if (child?.noodlType === 'listItem') {
-      child.set('listId', this.listId)
       this.#children.push(child as IListItemComponent)
+      this.emit('create.list.item', child, {
+        data: this.getData(),
+        nodes: this.#children,
+      })
     }
     return child
   }
@@ -159,25 +165,35 @@ class ListComponent extends Component implements IListComponent {
       this.#children.includes(removedChild as IListItemComponent)
     ) {
       this.#children = this.#children.filter((c) => c !== removedChild)
+      this.emit('remove.list.item', {
+        data: this.getData(),
+        currentNodes: this.#children,
+        removedNode: removedChild,
+      })
     }
     return removedChild
   }
 
   set(key: 'listId', value: string): this
   set(key: 'listObject', value: any[]): this
-  set(key: 'blueprint', value: any): this
   set(...args: Parameters<IComponent['set']>) {
     const [key, value] = args
 
     if (key === 'listObject') {
       // Refresh holdings of the list item data / children
       const listObject = value
-      this.#data = listObject
+      this.#listObject = listObject
       // TODO - this.emit('data')
+      this.emit('data', this.getData(), {
+        blueprint: this.#blueprint,
+        nodes: this.#children,
+      })
       this.emit('blueprint', this.#getBlueprintHandlerArgs(listObject))
       this.emit('update', this.#getUpdateHandlerArgs(listObject))
+      return this
     } else if (key === 'listId') {
       this.#listId = value
+      return this
     }
 
     super.set(key as string, value)

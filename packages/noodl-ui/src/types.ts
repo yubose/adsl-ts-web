@@ -210,13 +210,14 @@ export interface IListComponentUpdateProps<
   nodes: IListItemComponent[]
 }
 
-export interface IListItemComponent extends IComponent {
-  noodlType: 'listItem'
-  // createChild
-  listId?: string
+export interface IListItemComponent<T extends NOODLComponentType = 'listItem'>
+  extends IComponent {
+  noodlType: T
+  listId: string
+  listIndex: null | number
   iteratorVar: string
   getDataObject(): any
-  setDataObject(data: any): this
+  setDataObject<T>(data: T): this
 }
 
 export interface IListItemChildComponent extends IComponent {

@@ -5,6 +5,7 @@ import {
   ActionChainActionCallbackOptions,
   evalIf,
   getByDataUX,
+  getDataValues,
   isReference,
   isPossiblyDataKey,
   NOODLActionType,
@@ -19,7 +20,6 @@ import Logger from 'logsnap'
 import { IPage } from 'app/types'
 import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import { onSelectFile } from 'utils/dom'
-import { getDataValues } from '../../packages/noodl-ui/dist'
 
 const log = Logger.create('actions.ts')
 

@@ -1,4 +1,14 @@
 {
   "color-highlight.matchWords": true,
-  "typescript.tsdk": "./node_modules/typescript/lib"
+  "mocha.env": {
+    "NODE_ENV": "test"
+  },
+  "mocha.files.glob": "src/**/*.ts",
+  "mocha.files.ignore": "**/node_modules/**/*",
+  "mocha.logVerbose": true,
+  "mocha.options": {
+    "checkLeaks": true
+  },
+  "mocha.requires": ["ts-node/register"],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

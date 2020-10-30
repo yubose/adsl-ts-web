@@ -6,6 +6,7 @@ import { IComponent, IComponentConstructor, IListItemComponent } from './types'
 class ListItemComponent extends Component implements IListItemComponent {
   #dataObject: any
   #listId: string = ''
+  #listIndex: null | number = null
   #iteratorVar: string = ''
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
@@ -18,8 +19,6 @@ class ListItemComponent extends Component implements IListItemComponent {
         IComponentConstructor
       >),
     )
-    this['listId'] = super.get('listId') || ''
-    this['iteratorVar'] = super.get('iteratorVar') || ''
     this['noodlType'] = 'listItem'
   }
 
@@ -31,12 +30,29 @@ class ListItemComponent extends Component implements IListItemComponent {
     this.#listId = listId
   }
 
+  get listIndex() {
+    return this.#listIndex
+  }
+
+  set listIndex(listIndex) {
+    this.#listIndex = listIndex
+  }
+
   get iteratorVar() {
     return this.#iteratorVar
   }
 
   set iteratorVar(iteratorVar: string) {
     this.#iteratorVar = iteratorVar
+  }
+
+  set(...args: Parameters<IComponent['set']>) {
+    const [key, value] = args
+    if (key === 'iteratorVar') this.iteratorVar = value
+    if (key === 'listId') this.listId = value
+    if (key === 'listIndex') this.listIndex = value
+    super.set(...args)
+    return this
   }
 
   createChild(...args: Parameters<IComponent['createChild']>) {
@@ -52,6 +68,7 @@ class ListItemComponent extends Component implements IListItemComponent {
 
   setDataObject<T>(data: T) {
     this.#dataObject = data
+    return this
   }
 }
 

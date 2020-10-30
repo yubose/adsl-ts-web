@@ -25,9 +25,20 @@ const handleList: ResolverFn = (component, options) => {
     // update(newBlueprint)
   })
 
-  listComponent.on('data', (args) => {
+  listComponent.on('create.list.item', (node, args) => {
+    const { data, nodes } = args
+    component.set('iteratorVar', listComponent.iteratorVar)
+    component.set('listId', listComponent.listId)
+    component.set(
+      'listIndex',
+      listComponent.length ? listComponent.length - 1 : 0,
+    )
+  })
+
+  listComponent.on('data', (data, args) => {
     log.func('handleList --> on("data")')
-    log.grey(`Data received an update`, { args })
+    log.grey(`Data received an update`, { data, ...args })
+    const { blueprint, nodes } = args
   })
 
   const data = listComponent.getData()

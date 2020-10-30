@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { NOODLComponent } from 'noodl-ui'
+// import {} from 'noodl-ui'
 import { screen, prettyDOM } from '@testing-library/dom'
 import { noodlui, noodluidom, toDOM } from '../utils/test-utils'
 
