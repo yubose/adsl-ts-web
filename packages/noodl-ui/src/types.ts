@@ -64,7 +64,11 @@ export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode'>
  * UI stands for "Union Interface", not "user interface"
  * This type is a union of all possible noodl-ui component instance types
  */
-export type UIComponent = IComponent | IListComponent | IListItemComponent
+export type UIComponent =
+  | IComponent
+  | IListComponent
+  | IListItemComponent
+  | IListItemChildComponent
 
 export type IComponentConstructor = new (
   component: ComponentType,
@@ -90,8 +94,8 @@ export interface IComponent {
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): UIComponent | undefined
   children(): UIComponent[]
-  createChild(child: NOODLComponentType): UIComponent | undefined
-  createChild(child: ComponentType): UIComponent | undefined
+  createChild<C extends UIComponent>(child: NOODLComponentType): C | undefined
+  createChild<C extends UIComponent>(child: ComponentType): C | undefined
   hasChild(childId: string): boolean
   hasChild(child: UIComponent): boolean
   removeChild(index: number): UIComponent | undefined
@@ -155,6 +159,7 @@ export interface IComponent {
 }
 
 export interface IListComponent extends IComponent {
+  noodlType: 'list'
   exists(childId: string): boolean
   exists(child: IListItemComponent): boolean
   find(childId: string): IListItemComponent | undefined
@@ -180,8 +185,6 @@ export interface IListComponent extends IComponent {
   emit(event: 'blueprint', args: IListComponentHandleBlueprintProps): this
   emit(event: 'data', args): this
   emit(event: 'update', args): this
-  onUpdate?(args: IListComponentUpdateProps): void
-  onData?(): this
 }
 
 export type IListComponentListObject = ReturnType<IListComponent['getData']>
@@ -207,8 +210,21 @@ export interface IListComponentUpdateProps<
 }
 
 export interface IListItemComponent extends IComponent {
+  noodlType: 'listItem'
+  // createChild
   listId?: string
-  onDataObject?(): this
+  iteratorVar: string
+  getDataObject(): any
+  setDataObject(data: any): this
+}
+
+export interface IListItemChildComponent extends IComponent {
+  iteratorVar: string
+  listId: string
+  isListConsumer: boolean
+  createChild(
+    ...args: Parameters<IComponent['createChild']>
+  ): IListItemChildComponent | undefined
 }
 
 export interface IResolver {

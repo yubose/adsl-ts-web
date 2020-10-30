@@ -36,9 +36,22 @@ class ListComponent extends Component implements IListComponent {
         IComponentConstructor
       >),
     )
-    // TODO - set blueprint
     const listObject = this.get('listObject')
     const iteratorVar = this.get('iteratorVar')
+
+    // Set the blueprint
+    // TODO - a more official way
+    if (_.isArray(super.original?.children)) {
+      const rawChildren = super.original.children
+      if (rawChildren.length) {
+        const blueprint = rawChildren[0]
+        if (_.isObject(blueprint)) {
+          this.#blueprint = blueprint
+          if (!('type' in this.#blueprint)) this.#blueprint['type'] = 'listItem'
+          this.emit('blueprint', this.#getBlueprintHandlerArgs(listObject))
+        }
+      }
+    }
 
     if (listObject) {
       if (_.isArray(listObject)) {
@@ -130,10 +143,6 @@ class ListComponent extends Component implements IListComponent {
     return this
   }
 
-  getListItemChildren() {
-    return this.#children
-  }
-
   createChild(...args: Parameters<IComponent['createChild']>) {
     const child = super.createChild(...args)
     if (child?.noodlType === 'listItem') {
@@ -180,7 +189,14 @@ class ListComponent extends Component implements IListComponent {
     cb: Function,
   ) {
     if (eventName in this.#cb) {
-      this.#cb[eventName as E].push(cb)
+      if (this.#cb[eventName as E].includes(cb)) {
+        log.func('on("blueprint")')
+        log.red(
+          'Attempted to add a duplicate callback. The duplicate was not added',
+        )
+      } else {
+        this.#cb[eventName as E].push(cb)
+      }
     } else {
       super.on(eventName as Parameters<IComponent['on']>[0], cb)
     }

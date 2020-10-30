@@ -18,6 +18,7 @@ import {
   formatColor,
   hasLetter,
 } from './utils/common'
+import createComponent from './utils/createComponent'
 import _internalResolvers from './resolvers/_internal'
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
@@ -376,7 +377,7 @@ class NOODL implements T.INOODLUi {
     let component: T.UIComponent
 
     if (c instanceof Component) component = c as T.UIComponent
-    else component = new Component(c) as T.UIComponent
+    else component = createComponent(c)
 
     const { id, type } = component
     const consumerOptions = this.getConsumerOptions({ component })

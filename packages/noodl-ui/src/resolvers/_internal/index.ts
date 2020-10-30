@@ -1,7 +1,9 @@
 import _ from 'lodash'
-import { NOODLComponentType } from '../../types'
+import { NOODLComponentType, UIComponent } from '../../types'
+import { isTextBoardComponent } from 'noodl-utils'
 import Resolver from '../../Resolver'
 import handleList from './handleList'
+import handleTextBoard from './handleTextBoard'
 
 /**
  * Certain components have unique logic to them like list/listItems/textBoard, etc.
@@ -12,18 +14,24 @@ import handleList from './handleList'
 const _internalResolvers = new Resolver()
 
 _internalResolvers.setResolver((component, options) => {
-  const handle = _getHandler(component.noodlType)
+  const handle = _getHandler(component)
   if (_.isFunction(handle)) handle(component, options)
 })
 
 _internalResolvers.internal = true
 
-function _getHandler(noodlType: NOODLComponentType) {
-  switch (noodlType) {
+// TODO - composed approach with transducers / multiple wrappers
+function _getHandler(component: UIComponent) {
+  switch (component.noodlType) {
     case 'list':
       return handleList
     default:
-      return
+      break
+  }
+
+  // TODO - proxied component --> component instance
+  if (isTextBoardComponent(component)) {
+    return handleTextBoard
   }
 }
 

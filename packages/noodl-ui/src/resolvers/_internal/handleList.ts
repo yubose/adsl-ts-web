@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { IListComponent, ResolverFn } from '../../types'
+import { IListComponent, IListItemComponent, ResolverFn } from '../../types'
 import Logger from 'logsnap'
 
 const log = Logger.create('handleList')
@@ -20,9 +20,9 @@ const handleList: ResolverFn = (component, options) => {
     } = args
 
     const newBlueprint = { eh: 'eh?', ...baseBlueprint, ...currentBlueprint }
-    log.func('handleList --> on("blueprint")')
-    log.grey(`Updating blueprint`, { args, newBlueprint })
-    update(newBlueprint)
+    log.func('handleList --> on("blueprint")', args)
+    // log.grey(`Updating blueprint`, { args, newBlueprint })
+    // update(newBlueprint)
   })
 
   listComponent.on('data', (args) => {
@@ -34,7 +34,10 @@ const handleList: ResolverFn = (component, options) => {
 
   if (_.isArray(data)) {
     _.forEach(data, (dataObject) => {
-      const child = resolveComponent(listComponent.createChild('listItem'))
+      const child = resolveComponent(
+        listComponent.createChild('listItem'),
+      ) as IListItemComponent
+      child.set(listComponent.iteratorVar, dataObject)
     })
   }
 }

@@ -1,14 +1,12 @@
 import _ from 'lodash'
 import Component from './Component'
-import {
-  ComponentType,
-  IComponent,
-  IComponentConstructor,
-  NOODLComponentType,
-} from './types'
+import ListItemChildComponent from './ListItemChildComponent'
+import { IComponent, IComponentConstructor, IListItemComponent } from './types'
 
-class ListItemComponent extends Component {
+class ListItemComponent extends Component implements IListItemComponent {
   #dataObject: any
+  #listId: string = ''
+  #iteratorVar: string = ''
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -20,38 +18,40 @@ class ListItemComponent extends Component {
         IComponentConstructor
       >),
     )
+    this['listId'] = super.get('listId') || ''
+    this['iteratorVar'] = super.get('iteratorVar') || ''
+    this['noodlType'] = 'listItem'
+  }
+
+  get listId() {
+    return this.#listId
+  }
+
+  set listId(listId) {
+    this.#listId = listId
   }
 
   get iteratorVar() {
-    return this.get('iteratorVar')
+    return this.#iteratorVar
   }
 
-  createChild(child: ComponentType | NOODLComponentType) {
-    let childComponent = super.createChild(child)
-    let listItem: any
-    if (child === 'listItem') {
-    } else {
-      if (child instanceof Component) {
-        //
-      } else {
-        //
-      }
-    }
-    return this
+  set iteratorVar(iteratorVar: string) {
+    this.#iteratorVar = iteratorVar
+  }
+
+  createChild(...args: Parameters<IComponent['createChild']>) {
+    return super
+      .createChild(new ListItemChildComponent(...args))
+      ?.set('listId', this.listId)
+      .set('iteratorVar', this.iteratorVar)
   }
 
   getDataObject() {
     return this.#dataObject
   }
 
-  setDataObject(data: any) {
+  setDataObject<T>(data: T) {
     this.#dataObject = data
-  }
-
-  set(...args: Parameters<Component['set']>) {
-    if (args[0] === this.iteratorVar) this.setDataObject(args[1])
-    super.set(...args)
-    return this
   }
 }
 

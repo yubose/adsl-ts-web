@@ -29,7 +29,7 @@
     "scripts:build": "webpack --mode production --config webpack.scripts.js",
     "scripts:start": "rm -rf scripts/compiled && webpack --mode development --config webpack.scripts.js --watch",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src",
+    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src --watch-files packages/noodl-ui/dist",
     "test:noodlui": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files packages/noodl-ui/src --file ./src/setupTests.ts",
     "test:noodlui:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file ./src/setupTests.ts --watch --watch-files packages/noodl-ui/src",
     "test:components": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file ./src/setupTests.ts --watch --watch-files packages/noodl-ui/src \"packages/noodl-ui/src/__tests__/*(*Component|noodl-ui).test.ts\"",

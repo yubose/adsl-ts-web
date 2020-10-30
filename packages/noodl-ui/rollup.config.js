@@ -6,7 +6,7 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
-import { terser } from 'rollup-plugin-terser'
+// import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 
@@ -18,7 +18,7 @@ const config = {
       exports: 'named',
       format: 'umd',
       name: 'noodlui',
-      sourcemap: 'inline-source-map',
+      sourcemap: true,
       globals: {},
     },
   ],
@@ -44,9 +44,10 @@ const config = {
       include: ['src/**/*'],
       exclude: ['node_modules'],
       extensions,
+      sourceMaps: 'inline',
     }),
     // Env var set by root lerna repo
-    ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),
+    // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),
   ],
 }
 

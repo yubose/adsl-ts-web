@@ -214,6 +214,8 @@ export function isDateComponent(value: unknown): value is T.DateLike {
   return isObj(value) && 'text=func' in value
 }
 
-export function isTextBoardComponent(value: unknown): value is T.TextLike {
+export function isTextBoardComponent<Component extends T.TextLike>(
+  value: Component,
+): value is Component {
   return isObj(value) && isStr(value['text'])
 }
