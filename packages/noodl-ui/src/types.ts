@@ -174,18 +174,16 @@ export interface IListComponent extends IComponent {
   setDataObject(child: IListItemComponent, data: any): this
   iteratorVar: string
   listId: string
-  listObject: NOODLComponent['listObject']
+  listObject: any[] | null
   length: number
   set(key: 'listId', value: string): this
   set(key: 'listObject', value: any[]): this
-  set(key: 'blueprint', value: any): this
   set(...args: Parameters<IComponent['set']>): this
   on(event: 'blueprint', cb: Function): this
-  on(event: 'data', cb: Function): this
-  on(event: 'update', cb: Function): this
+  on(event: 'listId', cb: Function): this
+  on(event: 'listObject', cb: Function): this
   emit(event: 'blueprint', args: IListComponentHandleBlueprintProps): this
-  emit(event: 'data', args): this
-  emit(event: 'update', args): this
+  emit(event: 'data', args: any): this
 }
 
 export type IListComponentListObject = ReturnType<IListComponent['getData']>
