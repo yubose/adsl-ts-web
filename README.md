@@ -11,6 +11,7 @@ This allows for faster compilation, faster load times and quicker development fl
 ## References
 
 - [TypeScript DOM types](https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts)
+- [Merge requests](https://gitlab.aitmed.com/help/user/project/merge_requests/index.md#checkout-merge-requests-locally)
 
 ## Configs
 
