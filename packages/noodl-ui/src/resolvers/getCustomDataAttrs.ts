@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
 import findList from '../utils/findList'
-import { IComponent, ResolverFn } from '../types'
+import { ResolverFn, UIComponent, } from '../types'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -10,11 +10,11 @@ const log = Logger.create('getCustomDataAttrs')
  * Attaches any custom data- attributes not handled in other resolvers
  *    (ex: "data-ux" for UX interactions between the library and the web app)
  */
-const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
-  const { context, showDataKey, getNode, getNodes, getLists, parser } = options
+const getCustomDataAttrs: ResolverFn = (component, options) => {
+  const { context, showDataKey, getNode, getNodes, parser } = options
   const { page } = context
 
-  let parent: any
+  let parent: UIComponent
 
   const { type, contentType = '', dataKey, parentId, viewTag } = component.get([
     'type',
@@ -24,7 +24,6 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
     'viewTag',
   ])
 
-  let itemObject
 
   if (component) {
     /* -------------------------------------------------------
@@ -91,27 +90,13 @@ const getCustomDataAttrs: ResolverFn = (component: IComponent, options) => {
       }
     }
 
-    // The parent who's rendering this component has a reference to this itemObject from listObjects
-    // and injects an item in the listObject array to here
-    itemObject = component.get('itemObject')
 
-    if (itemObject) {
-      const nodes = getNodes()
-      // Parent --> { component, itemObject, iteratorVar } = data
-      // "parentId" was customly injected by our lib from the "list" component (refer to getChildren)
-      parent = nodes[component.get('parentId') || '']
-      if (!parent) {
-        log.red(
-          'No parent was attached to this "itemObject" component. props[\'data-value\'] will be undefined',
-          { component: component.snapshot(), nodes, parent },
-        )
-      }
-    }
 
     /* -------------------------------------------------------
       ---- REFERENCES / DATAKEY 
     -------------------------------------------------------- */
     if (_.isString(dataKey)) {
+      const isListDescendant = !!component.get('iteratorVar')
       // Component is retrieving data from a list
       if (dataKey.startsWith('itemObject')) {
         const listId = component.get('listId')

@@ -4,6 +4,7 @@ import {
   IComponent,
   IComponentConstructor,
   IListItemChildComponent,
+  IListItemComponent,
   UIComponent,
 } from './types'
 
@@ -49,7 +50,7 @@ class ListItemChildComponent
 
     while (parent) {
       if (parent?.noodlType === 'listItem') {
-        return parent.getDataObject()
+        return (parent as IListItemComponent).getDataObject()
       }
     }
   }
