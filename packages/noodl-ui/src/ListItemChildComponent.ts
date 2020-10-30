@@ -56,7 +56,7 @@ class ListItemChildComponent
   }
 
   setDataObject<T>(data: T) {
-    this.#dataObject = data
+    // this.#dataObject = data
   }
 }
 

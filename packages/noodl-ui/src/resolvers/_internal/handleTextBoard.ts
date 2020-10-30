@@ -4,7 +4,7 @@ import { isBreakLineTextBoardItem } from 'noodl-utils'
 import { IComponent, ResolverFn } from '../../types'
 import { identify } from '../../utils/noodl'
 import { formatColor } from '../../utils/common'
-import getChildProps from '../getChildProps'
+import getChildProps from '../getChildren/getChildProps'
 
 const log = Logger.create('handleTextBoard')
 
