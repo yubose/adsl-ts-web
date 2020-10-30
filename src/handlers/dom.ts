@@ -26,7 +26,6 @@ noodluidom.on('all', function onCreateNode(node, props) {
 
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = props['data-listdata']
-
   if (id) node['id'] = id
   if (placeholder) node.setAttribute('placeholder', placeholder)
   if (src && type !== 'video') node.setAttribute('src', src)
@@ -209,6 +208,31 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
       node.style['width'] = '100%'
       node.style['height'] = '100%'
     }
+
+    import('app/noodl-ui').then(({ default: noodlui }) => {
+      const context = noodlui.getContext()
+      const pageObject = context?.page?.object || {}
+      if (
+        node?.src === pageObject?.docDetail?.document?.name?.data &&
+        pageObject?.docDetail?.document?.name?.type == 'application/pdf'
+      ) {
+        node.style.visibility = 'hidden'
+        const parent = document.getElementById(props.parentId)
+        const iframeEl = document.createElement('iframe')
+        iframeEl.setAttribute('src', node.src)
+
+        if (_.isPlainObject(props.style)) {
+          forEachEntries(props.style, (k, v) => (iframeEl.style[k as any] = v))
+        } else {
+          log.func('noodluidom.on: all')
+          log.red(
+            `Expected a style object but received "${typeof props.style}" instead`,
+            props.style,
+          )
+        }
+        parent?.appendChild(iframeEl)
+      }
+    })
   }
 })
 
