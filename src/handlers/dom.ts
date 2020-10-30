@@ -356,7 +356,7 @@ noodluidom.on('create.video', (node, props) => {
       sourceEl.setAttribute('src', src)
       notSupportedEl.style['textAlign'] = 'center'
       // This text will not appear unless the browser isn't able to play the video
-      notSupportedEl.innerText =
+      notSupportedEl.innerHTML =
         "Sorry, your browser doesn's support embedded videos."
       videoEl.appendChild(sourceEl)
       videoEl.appendChild(notSupportedEl)
