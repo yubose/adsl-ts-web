@@ -22,6 +22,7 @@ class ListComponent extends Component implements IListComponent {
   #children: IListItemComponent[] = []
   #listId: string
   #listObject: any[] | null = null
+  #iteratorVar: string
   #cb: {
     blueprint: Function[]
     data: Function[]
@@ -36,11 +37,12 @@ class ListComponent extends Component implements IListComponent {
         IComponentConstructor
       >),
     )
-    // These initial values will be set once in the prototype. When we use .set,
-    // we will intercept the call and set them on this instance instead
-    const listObject = this.get('listObject')
-    const listId = this.get('listId')
-    const iteratorVar = this.get('iteratorVar')
+    // These initial values will be set once in the prototype.
+    // When we use .set, we will intercept the call and set them
+    // on this instance instead
+    this.#listObject = super.get('listObject') as any
+    this.#listId = super.get('listId') as string
+    this.#iteratorVar = super.get('iteratorVar') as string
 
     // Set the blueprint
     // TODO - a more official way
@@ -56,16 +58,18 @@ class ListComponent extends Component implements IListComponent {
       }
     }
 
-    if (listObject) {
-      if (_.isArray(listObject)) {
-        _.forEach(listObject, (dataObject) => {
-          const child = new ListItemComponent({ iteratorVar })
-          child.set(iteratorVar, dataObject)
+    if (this.#listObject) {
+      if (_.isArray(this.#listObject)) {
+        _.forEach(this.#listObject, (dataObject) => {
+          const child = new ListItemComponent({
+            iteratorVar: this.#iteratorVar,
+          })
+          child.set(this.#iteratorVar, dataObject)
           this.createChild(child)
         })
       } else {
-        const child = new ListItemComponent({ iteratorVar })
-        child.setDataObject(listObject)
+        const child = new ListItemComponent({ iteratorVar: this.#iteratorVar })
+        child.setDataObject(this.#listObject)
         this.createChild(child)
       }
     }
@@ -74,7 +78,7 @@ class ListComponent extends Component implements IListComponent {
   }
 
   get iteratorVar() {
-    return this.get('iteratorVar') || ''
+    return super.get('iteratorVar') || ''
   }
 
   get listId() {
@@ -249,6 +253,24 @@ class ListComponent extends Component implements IListComponent {
     return this
   }
 
+  mergeBlueprint(blueprint: Partial<IListComponentBlueprint>) {
+    this.#blueprint = {
+      ...this.#blueprint,
+      ...blueprint,
+    }
+    return this.#blueprint
+  }
+
+  replaceBlueprint(blueprint: Partial<IListComponentBlueprint>) {
+    this.#blueprint = blueprint
+    return this.#blueprint
+  }
+
+  resetBlueprint() {
+    this.#blueprint = this.#getDefaultBlueprint(this.#listObject)
+    return this.#blueprint
+  }
+
   #getBlueprintHandlerArgs = (listObject: IListComponentListObject) =>
     ({
       baseBlueprint: this.#getDefaultBlueprint(listObject),
@@ -257,8 +279,8 @@ class ListComponent extends Component implements IListComponent {
       listObject,
       nodes: this.#children,
       raw: super.child()?.original || this.#getDefaultBlueprint(listObject),
-      update: (blueprint: IListComponentBlueprint) =>
-        (this.#blueprint = blueprint),
+      merge: this.mergeBlueprint,
+      replace: this.replaceBlueprint,
     } as IListComponentHandleBlueprintProps)
 
   #getDefaultBlueprint = (
