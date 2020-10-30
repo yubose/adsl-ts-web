@@ -30,6 +30,11 @@ const createActions = function ({ page }: { page: IPage }) {
     log.func('evalObject')
     if (_.isFunction(action?.original?.object)) {
       const result = await action.original?.object()
+      log.orange(`Result from evalObject [action.object()]`, {
+        result,
+        action,
+        options,
+      })
       if (result) {
         const logArgs = { result, action, ...options }
         log.grey(`Received a ${typeof result} from an evalObject`, logArgs)
@@ -37,6 +42,11 @@ const createActions = function ({ page }: { page: IPage }) {
       }
     } else if ('if' in action.original.object || {}) {
       const ifObj = action.original.object.if
+      console.log(ifObj)
+      console.log(ifObj)
+      console.log(ifObj)
+      console.log(ifObj)
+      console.log(ifObj)
       if (_.isArray(ifObj)) {
         const { default: noodl } = await import('app/noodl')
         const context = options.context
@@ -62,6 +72,11 @@ const createActions = function ({ page }: { page: IPage }) {
             }
           }
         }, ifObj)
+        log.orange(`Result from evalObject [action.object.if[]]`, {
+          result: object,
+          action,
+          options,
+        })
         if (_.isFunction(object)) {
           const result = await object()
           if (result) {

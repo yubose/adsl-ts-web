@@ -9,15 +9,16 @@ import {
   NOODLPluginComponent,
 } from 'noodl-ui'
 import axios from '../app/axios'
-import noodluidom from '../app/noodl-ui-dom'
 import {
   assetsUrl,
-  noodl,
+  noodlui,
+  noodluidom,
   queryByDataKey,
   queryByDataListId,
   queryByDataName,
   queryByDataUx,
   queryByDataValue,
+  toDOM,
 } from '../utils/test-utils'
 
 const mockAxios = new MockAxios(axios)
@@ -42,15 +43,76 @@ describe('dom', () => {
         type: 'plugin',
         path: '/somejsfile.js',
       } as NOODLPluginComponent
-      const resolvedComponent = noodl.resolveComponents(component)[0]
+      const resolvedComponent = noodlui.resolveComponents(component)[0]
       noodluidom.parse(resolvedComponent)
       testNode.removeEventListener('click', spy)
       expect(spy.called).to.be.true
     })
   })
 
+  describe('component type: "video"', () => {
+    it('should attach poster if present', () => {
+      const component = {
+        type: 'video',
+        poster: 'my-poster.jpeg',
+      } as NOODLComponent
+      expect(
+        toDOM(noodlui.resolveComponents(component)[0])?.getAttribute('poster'),
+      ).to.equal(component.poster)
+    })
+
+    it('should have object-fit set to "contain"', () => {
+      const component = {
+        type: 'video',
+      } as NOODLComponent
+      expect(
+        toDOM(noodlui.resolveComponents(component)[0])?.style.objectFit,
+      ).to.equal('contain')
+    })
+
+    it('should create the source element as a child if the src is present', () => {
+      const component = {
+        type: 'video',
+        path: 'asdloldlas.mp4',
+      } as NOODLComponent
+      expect(
+        toDOM(noodlui.resolveComponents(component)[0])?.querySelector('source'),
+      ).to.exist
+    })
+
+    it('should have src set on the child source element instead of the video element itself', () => {
+      const component = {
+        type: 'video',
+        path: 'asdloldlas.mp4',
+      } as NOODLComponent
+      const node = toDOM(noodlui.resolveComponents(component)[0])
+      const sourceEl = node?.querySelector('source')
+      expect(node?.getAttribute('src')).not.to.equal(assetsUrl + component.path)
+      expect(sourceEl?.getAttribute('src')).to.equal(assetsUrl + component.path)
+    })
+
+    it('should have the video type on the child source element instead of the video element itself', () => {
+      const component = {
+        type: 'video',
+        videoFormat: 'mp4',
+      } as NOODLComponent
+      const node = toDOM(noodlui.resolveComponents(component)[0])
+      const sourceEl = node?.querySelector('source')
+      expect(node?.getAttribute('type')).not.to.equal(component.videoFormat)
+      expect(sourceEl?.getAttribute('type')).to.equal(component.videoFormat)
+    })
+
+    it('should include the "browser not supported" message', () => {
+      const component = {
+        type: 'video',
+      } as NOODLComponent
+      toDOM(noodluidom.parse(noodlui.resolveComponents(component)[0]) as any)
+      expect(screen.getByText(/sorry, your browser/i)).to.exist
+    })
+  })
+
   it('should attach the id', () => {
-    const resolvedComponent = noodl.resolveComponents({
+    const resolvedComponent = noodlui.resolveComponents({
       type: 'button',
       style: {},
     })[0]
@@ -59,7 +121,7 @@ describe('dom', () => {
   })
 
   it('should attach the src attribute', () => {
-    const resolvedComponent = noodl.resolveComponents({
+    const resolvedComponent = noodlui.resolveComponents({
       type: 'image',
       path: 'img123.jpg',
       style: {},
@@ -68,19 +130,9 @@ describe('dom', () => {
     expect(document.querySelector(`img[src="${assetsUrl}img123.jpg"]`)).to.exist
   })
 
-  it('should attach the video format', () => {
-    const resolvedComponent = noodl.resolveComponents({
-      type: 'video',
-      videoFormat: 'video/mp4',
-      style: {},
-    })[0]
-    noodluidom.parse(resolvedComponent)
-    expect(document.querySelector(`video[type="video/mp4"]`)).to.exist
-  })
-
   it('should attach the "poster" value', () => {
     const poster = 'https://www.abc.com/myposter.jpg'
-    const resolvedComponent = noodl.resolveComponents({
+    const resolvedComponent = noodlui.resolveComponents({
       type: 'video',
       videoFormat: 'video/mp4',
       poster,
@@ -92,7 +144,7 @@ describe('dom', () => {
 
   it('should attach placeholders', () => {
     const placeholder = 'my placeholder'
-    const resolvedComponent = noodl.resolveComponents({
+    const resolvedComponent = noodlui.resolveComponents({
       type: 'textField',
       style: {},
       placeholder,
@@ -128,7 +180,7 @@ describe('dom', () => {
       'data-name': 'country',
       options: ['abc', '+52', '+86', '+965'],
     } as NOODLComponent
-    const resolvedComponent = noodl.resolveComponents(component)[0]
+    const resolvedComponent = noodlui.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const select = queryByDataName(document.body, 'country')
     // @ts-expect-error
@@ -144,7 +196,7 @@ describe('dom', () => {
       'data-key': 'formData.greeting',
       'data-value': 'my value',
     } as NOODLComponent
-    const resolvedComponent = noodl.resolveComponents(component)[0]
+    const resolvedComponent = noodlui.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const input = queryByDataKey(document.body, dataKey)
     // @ts-expect-error
@@ -160,7 +212,7 @@ describe('dom', () => {
       'data-key': 'formData.greeting',
       'data-value': 'my value',
     } as NOODLComponent
-    const resolvedComponent = noodl.resolveComponents(component)[0]
+    const resolvedComponent = noodlui.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const label = queryByDataKey(document.body, dataKey)
     // @ts-expect-error
@@ -176,7 +228,7 @@ describe('dom', () => {
       'data-key': 'formData.greeting',
       placeholder: 'my placeholder',
     } as NOODLComponent
-    const resolvedComponent = noodl.resolveComponents(component)[0]
+    const resolvedComponent = noodlui.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const label = queryByDataKey(document.body, dataKey)
     // @ts-expect-error
@@ -190,7 +242,7 @@ describe('dom', () => {
       options: ['abc', '123', 5, 1995],
       id: 'myid123',
     } as NOODLComponent
-    const resolvedComponent = noodl.resolveComponents(component)[0]
+    const resolvedComponent = noodlui.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     _.forEach(resolvedComponent.options, (option, index) => {
       expect(
@@ -206,7 +258,7 @@ describe('dom', () => {
       videoFormat: 'mp4',
       id: 'id123',
     } as NOODLComponent
-    const resolvedComponent = noodl.resolveComponents(component)[0]
+    const resolvedComponent = noodlui.resolveComponents(component)[0]
     noodluidom.parse(resolvedComponent)
     const sourceElem = document.body?.querySelector('source')
     expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + component.path)
@@ -220,7 +272,7 @@ describe('dom', () => {
     let regexTitlePwInvisible = /click here to reveal your password/i
 
     beforeEach(() => {
-      resolvedComponent = noodl.resolveComponents({
+      resolvedComponent = noodlui.resolveComponents({
         type: 'textField',
         contentType: 'password',
         placeholder: 'your password',

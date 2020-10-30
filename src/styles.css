@@ -27,3 +27,7 @@ input,
 select {
   flex-grow: 1;
 }
+
+video::-webkit-media-controls-fullscreen-button {
+  display: none;
+}

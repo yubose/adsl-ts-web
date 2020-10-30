@@ -129,26 +129,26 @@ const getTransformedAliases: Resolver = (
         { component: component.snapshot(), computedSrc: src, path, resource },
       )
     }
+  }
 
-    if (component.type === 'video') {
-      const videoFormat = component.get('videoFormat')
-      if (videoFormat) {
-        component.set('videoType', `video/${videoFormat}`)
-      } else {
-        log.red(
-          'Encountered a video component with an invalid "videoFormat" attribute',
-          { component: component.snapshot(), videoFormat },
-        )
-      }
+  if (component.type === 'video') {
+    const videoFormat = component.get('videoFormat')
+    if (videoFormat) {
+      component.set('videoType', `video/${videoFormat}`)
+    } else {
+      log.red(
+        'Encountered a video component with an invalid "videoFormat" attribute',
+        { component: component.snapshot(), videoFormat },
+      )
     }
   }
 
   if (poster) {
-    component.set('poster', createSrc(poster))
+    component.set('poster', createSrc(poster as string))
   }
 
-  if (_.isBoolean(controls)) {
-    component.set('controls', controls)
+  if (isBooleanTrue(controls)) {
+    component.set('controls', true)
   }
 
   if (_.isString(required)) {
