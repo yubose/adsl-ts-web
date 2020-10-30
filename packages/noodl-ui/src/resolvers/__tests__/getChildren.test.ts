@@ -2,17 +2,19 @@ import _ from 'lodash'
 import { expect } from 'chai'
 import chalk from 'chalk'
 import { prettyDOM } from '@testing-library/dom'
-import { makeResolverTest, ResolverTest } from '../../utils/test-utils'
+import { makeResolverTest, noodlui, ResolverTest } from '../../utils/test-utils'
 import {
   NOODLComponent,
   NOODLComponentProps,
   ProxiedComponent,
 } from '../../types'
 import { forEachDeepEntries } from '../../utils/common'
-import { noodlui, toDOM } from '../../../../../src/utils/test-utils'
+// import { noodlui, toDOM } from '../../../../../src/utils/test-utils'
 import Component from '../../Component'
 import ListComponent from '../../ListComponent'
 import ListItemComponent from '../../ListItemComponent'
+
+const toDOM = _.noop
 
 let resolve: ResolverTest
 

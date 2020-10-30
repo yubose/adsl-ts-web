@@ -4,7 +4,7 @@ import { mock } from './mockData'
 import Component from '../Component'
 import ListComponent from '../ListComponent'
 import ListItemComponent from '../ListItemComponent'
-import { ComponentType, IListComponent, NOODLComponent } from 'types'
+import { ComponentType, IListComponent, NOODLComponent } from '../types'
 
 function generateListComponent(noodlComponent: ComponentType) {
   return new ListComponent(noodlComponent) as IListComponent
