@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { isBoolean, isBooleanFalse, isBooleanTrue } from 'noodl-utils'
-import { isPossiblyDataKey } from '../utils/noodl'
 import { contentTypes } from '../constants'
 import { Resolver } from '../types'
 

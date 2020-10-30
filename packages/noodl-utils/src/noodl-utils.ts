@@ -90,6 +90,15 @@ export function isPasswordInput(value: unknown) {
   )
 }
 
+/**
+ * Returns true if the value possibly leads to some data, which is possible
+ * for strings that have at least a dot in them which can be some dataKey
+ * @param { string } value
+ */
+export function isPossiblyDataKey(value: unknown) {
+  return typeof value === 'string' ? !!value.match(/\./g)?.length : false
+}
+
 /** Returns true if value has a viewTag of "selfStream", false otherwise */
 export function isSelfStreamComponent(value: unknown) {
   return isStr(value) && /selfStream/i.test(value)

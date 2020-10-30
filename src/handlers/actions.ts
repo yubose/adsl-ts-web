@@ -6,7 +6,6 @@ import {
   evalIf,
   getByDataUX,
   isReference,
-  isPossiblyDataKey,
   NOODLActionType,
   NOODLEvalObject,
   NOODLPopupBaseObject,
@@ -17,7 +16,11 @@ import {
 } from 'noodl-ui'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
-import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
+import {
+  isBoolean as isNOODLBoolean,
+  isBooleanTrue,
+  isPossiblyDataKey,
+} from 'noodl-utils'
 import { onSelectFile } from 'utils/dom'
 import { getDataValues } from '../../packages/noodl-ui/dist'
 
