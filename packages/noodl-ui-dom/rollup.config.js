@@ -44,6 +44,7 @@ const config = {
       include: ['src/**/*'],
       exclude: ['node_modules'],
       extensions,
+      sourceMaps: true,
     }),
     // Env var set by root lerna repo
     ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),

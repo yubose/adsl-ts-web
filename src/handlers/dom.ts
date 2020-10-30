@@ -148,9 +148,9 @@ noodluidom.on('all', function onCreateNode(node, component) {
             optionElem['value'] = option?.value
             optionElem['innerText'] = option.label
             node.appendChild(optionElem)
-            if (option?.value === props['data-value']) {
+            if (option?.value === js['data-value']) {
               // Default to the selected index if the user already has a state set before
-              console.log({ node, props })
+              console.log({ node, props: js })
               ;(node as HTMLSelectElement)['selectedIndex'] = index
             }
           } else {

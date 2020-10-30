@@ -3,5 +3,6 @@
   "plugins": [
     "@babel/proposal-object-rest-spread",
     "@babel/plugin-transform-runtime"
-  ]
+  ],
+  "sourceMaps": true
 }
