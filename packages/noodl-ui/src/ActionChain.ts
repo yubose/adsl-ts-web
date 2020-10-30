@@ -230,11 +230,6 @@ class ActionChain {
             handlerOptions,
           )
 
-          log.gold('onChainStartArgs', {
-            queue: this.#queue,
-            handlerOptions,
-          })
-
           // Merge in additional args if any of the actions expect some extra
           // context/data (ex: having file/blobs ready before running the chain)
           if (onChainStartArgs && onChainStartArgs instanceof Promise) {
@@ -259,22 +254,8 @@ class ActionChain {
             .then(async (iteratorResult: any) => {
               iterator = iteratorResult
 
-              log.gold('init.next [before]', {
-                iteratorResult,
-                action,
-                handlerOptions,
-                result,
-              })
-
               while (!iterator?.done) {
                 action = iterator?.value?.action
-                log.gold('init.next [during]', {
-                  iteratorResult,
-                  action,
-                  handlerOptions,
-                  result,
-                })
-
                 // Skip to the next loop
                 if (!action) {
                   iterator = await this.#next()

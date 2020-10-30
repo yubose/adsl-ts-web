@@ -235,7 +235,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           })
         }
       } else {
-        const data = parser.getByDataKey(dataKey)
+        const data = parser.getByDataKey(dataKey, '')
         if (_.isString(data)) {
           if (isReference(data) || data.startsWith('itemObject')) {
             component.set(
@@ -245,22 +245,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
                 : component.get('text') || component.get('placeholder'),
             )
           }
-        }
-        if (data === undefined) {
-          log.red(
-            `Attempted to use the dataKey "${dataKey}" to retrieve its ` +
-              `data-value but received undefined instead`,
-            {
-              component: component.snapshot(),
-              data,
-              dataKey,
-              nodes: getNodes(),
-              context,
-              localRoot: context.page,
-              localRootKeySetTo: parser.getLocalKey(),
-              showDataKey,
-            },
-          )
         }
         component.set('data-value', data)
       }

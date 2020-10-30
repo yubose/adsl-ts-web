@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 0 silly argv {
 0 silly argv   _: [ 'add' ],
 0 silly argv   dev: true,
@@ -24,3 +25,13 @@
 4 error     at /Users/christ/aitmed-noodl-web/node_modules/@lerna/add/index.js:152:14
 4 error     at Array.filter (<anonymous>)
 4 error     at AddCommand.collectPackagesToChange (/Users/christ/aitmed-noodl-web/node_modules/@lerna/add/index.js:144:21)
+=======
+54 warn complete Waiting for 2 child processes to exit. CTRL-C to exit immediately.
+55 error Error: Command failed: git tag logsnap@0.0.12 -m logsnap@0.0.12
+55 error fatal: tag 'logsnap@0.0.12' already exists
+55 error
+55 error     at makeError (C:\Users\Chris\aitmed-noodl-web-copy\node_modules\execa\index.js:174:9)
+55 error     at C:\Users\Chris\aitmed-noodl-web-copy\node_modules\execa\index.js:278:16
+55 error     at processTicksAndRejections (internal/process/task_queues.js:97:5)
+55 error     at async Promise.all (index 0)
+>>>>>>> dev

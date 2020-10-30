@@ -1,3 +1,4 @@
+import { AbortExecuteError } from 'errors'
 import { Draft } from 'immer'
 import Viewport from './Viewport'
 import {
@@ -337,7 +338,7 @@ export interface NOODLBuiltInObject extends NOODLActionObjectBase {
 
 export interface NOODLEvalObject extends NOODLActionObjectBase {
   actionType: 'evalObject'
-  object?: any
+  object?: Function | NOODLIfObject
   [key: string]: any
 }
 
@@ -526,6 +527,8 @@ export interface ActionSnapshot<OriginalAction = any> {
     running: boolean
     remaining: number | null
   }
+  result?: any
+  error?: null | Error | AbortExecuteError
 }
 
 export type ActionStatus =
