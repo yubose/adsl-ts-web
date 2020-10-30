@@ -6,6 +6,7 @@ import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
+import { isBooleanTrue } from 'noodl-utils'
 
 const log = Logger.create('dom.ts')
 
@@ -21,7 +22,6 @@ noodluidom.on('all', function onCreateNode(node, component) {
     id = '',
     options,
     placeholder = '',
-    poster = '',
     src,
     style,
     type = '',
@@ -33,9 +33,8 @@ noodluidom.on('all', function onCreateNode(node, component) {
 
   if (id) node['id'] = id
   if (placeholder) node.setAttribute('placeholder', placeholder)
-  if (type === 'video' && poster) node.setAttribute('poster', poster)
   if (src && type !== 'video') node.setAttribute('src', src)
-  if (videoFormat) node.setAttribute('type', videoFormat)
+
   /** Dataset identifiers */
   if ('data-listid' in js) node.dataset['listid'] = js['data-listid']
   if ('data-name' in js) node.dataset['name'] = js['data-name']
@@ -166,11 +165,7 @@ noodluidom.on('all', function onCreateNode(node, component) {
       }
     }
   }
-  if (type === 'video') {
-    const sourceEl = createElement('source')
-    if (src) sourceEl.setAttribute('src', src)
-    node.appendChild(sourceEl)
-  }
+
   if (!node.innerHTML.trim()) {
     if (isDisplayable(js['data-value'])) {
       node.innerHTML = `${js['data-value']}`
@@ -223,6 +218,31 @@ noodluidom.on('create.image', function onCreateImage(node, component) {
       node.style['width'] = '100%'
       node.style['height'] = '100%'
     }
+
+    import('app/noodl-ui').then(({ default: noodlui }) => {
+      const context = noodlui.getContext()
+      const pageObject = context?.page?.object || {}
+      if (
+        node?.src === pageObject?.docDetail?.document?.name?.data &&
+        pageObject?.docDetail?.document?.name?.type == 'application/pdf'
+      ) {
+        node.style.visibility = 'hidden'
+        const parent = document.getElementById(props.parentId)
+        const iframeEl = document.createElement('iframe')
+        iframeEl.setAttribute('src', node.src)
+
+        if (_.isPlainObject(props.style)) {
+          forEachEntries(props.style, (k, v) => (iframeEl.style[k as any] = v))
+        } else {
+          log.func('noodluidom.on: all')
+          log.red(
+            `Expected a style object but received "${typeof props.style}" instead`,
+            props.style,
+          )
+        }
+        parent?.appendChild(iframeEl)
+      }
+    })
   }
 })
 
@@ -364,53 +384,76 @@ noodluidom.on('create.textfield', function onCreateTextField(node, component) {
   }
 })
 
-// export function setAttrBy(attr: string, cb: NodePropsFunc): NodePropsFunc {
-//   return (n, p) => (n[attr] = cb(n, p))
-// }
+noodluidom.on('create.video', (node, props) => {
+  const { controls, poster, src, videoType } = props
+  if (node) {
+    const videoEl = node as HTMLVideoElement
+    let sourceEl: HTMLSourceElement
+    let notSupportedEl: HTMLParagraphElement
+    videoEl['controls'] = isBooleanTrue(controls) ? true : false
+    if (poster) videoEl.setAttribute('poster', poster)
+    if (src) {
+      sourceEl = createElement('source')
+      notSupportedEl = createElement('p')
+      if (videoType) sourceEl.setAttribute('type', videoType)
+      sourceEl.setAttribute('src', src)
+      notSupportedEl.style['textAlign'] = 'center'
+      // This text will not appear unless the browser isn't able to play the video
+      notSupportedEl.innerHTML =
+        "Sorry, your browser doesn's support embedded videos."
+      videoEl.appendChild(sourceEl)
+      videoEl.appendChild(notSupportedEl)
+    }
+  }
+})
 
-// export function setAttrByProp(attr: string, prop: string): NodePropsFunc {
-//   return (n, p) => prop && p && prop in p && (n[attr] = p[prop])
-// }
+export function setAttrBy(attr: string, cb: NodePropsFunc): NodePropsFunc {
+  return (n, p) => (n[attr] = cb(n, p))
+}
 
-// export function setDatasetAttrBy(
-//   attr: string,
-//   cb: NodePropsFunc,
-// ): NodePropsFunc {
-//   return (n, p) =>
-//     p && attr in p && (n.dataset[attr.replace('data-', '')] = cb(n, p))
-// }
+export function setAttrByProp(attr: string, prop: string): NodePropsFunc {
+  return (n, p) => prop && p && prop in p && (n[attr] = p[prop])
+}
 
-// export function setDatasetAttrByProp(prop: string): NodePropsFunc {
-//   return setDatasetAttrBy(
-//     prop,
-//     (n, p) => (n.dataset[prop.replace('data-', '')] = p[prop]),
-//   )
-// }
+export function setDatasetAttrBy(
+  attr: string,
+  cb: NodePropsFunc,
+): NodePropsFunc {
+  return (n, p) =>
+    p && attr in p && (n.dataset[attr.replace('data-', '')] = cb(n, p))
+}
 
-// export const setDataListId = setDatasetAttrByProp('data-listid')
-// export const setDataName = setDatasetAttrByProp('data-name')
-// export const setDataKey = setDatasetAttrByProp('data-key')
-// export const setDataUx = setDatasetAttrByProp('data-ux')
-// export const setDataValue = setDatasetAttrByProp('data-value')
-// export const setId = setAttrByProp('id', 'id')
-// export const setSrc = setAttrByProp('src', 'src')
-// export const setPlaceholder = setAttrByProp('placeholder', 'placeholder')
-// export const setVideoFormat = setAttrByProp('type', 'videoFormat')
+export function setDatasetAttrByProp(prop: string): NodePropsFunc {
+  return setDatasetAttrBy(
+    prop,
+    (n, p) => (n.dataset[prop.replace('data-', '')] = p[prop]),
+  )
+}
 
-// export function compose(...fns: NodePropsFunc[]): NodePropsFunc {
-//   return (n, p) => {
-//     fns.forEach((fn) => fn && fn(n, p))
-//   }
-// }
+export const setDataListId = setDatasetAttrByProp('data-listid')
+export const setDataName = setDatasetAttrByProp('data-name')
+export const setDataKey = setDatasetAttrByProp('data-key')
+export const setDataUx = setDatasetAttrByProp('data-ux')
+export const setDataValue = setDatasetAttrByProp('data-value')
+export const setId = setAttrByProp('id', 'id')
+export const setSrc = setAttrByProp('src', 'src')
+export const setPlaceholder = setAttrByProp('placeholder', 'placeholder')
+export const setVideoFormat = setAttrByProp('type', 'videoFormat')
 
-// export const cbs = compose(
-//   setId,
-//   setSrc,
-//   setPlaceholder,
-//   setVideoFormat,
-//   setDataListId,
-//   setDataName,
-//   setDataKey,
-//   setDataUx,
-//   setDataValue,
-// )
+export function compose(...fns: NodePropsFunc[]): NodePropsFunc {
+  return (n, p) => {
+    fns.forEach((fn) => fn && fn(n, p))
+  }
+}
+
+export const cbs = compose(
+  setId,
+  setSrc,
+  setPlaceholder,
+  setVideoFormat,
+  setDataListId,
+  setDataName,
+  setDataKey,
+  setDataUx,
+  setDataValue,
+)
