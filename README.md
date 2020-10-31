@@ -19,10 +19,12 @@ This allows for faster compilation, faster load times and quicker development fl
 - `meet11.yml` / `cadltest.yml` --> devtest.aitmed.com
   - aitcom_11
 - `meet2d.yml` --> cadltest.aitmed.io
+- `testpage.yml`
 
 ## Todos
 
-- video in landing pg does not play
+- config `testpage` --> `PatientChartGeneralInfo` = the emit/redraw syntax
+
 - viewport top in yml not implemented
 - if obj expressions
   - ex: `itemObject.value == "Female"` (string) --> grab itemObject, compare `.value` prop with `==`

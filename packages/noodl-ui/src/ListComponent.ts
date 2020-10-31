@@ -281,6 +281,7 @@ class ListComponent extends Component implements IListComponent {
       raw: super.child()?.original || this.#getDefaultBlueprint(listObject),
       merge: this.mergeBlueprint,
       replace: this.replaceBlueprint,
+      reset: this.resetBlueprint,
     } as IListComponentHandleBlueprintProps)
 
   #getDefaultBlueprint = (

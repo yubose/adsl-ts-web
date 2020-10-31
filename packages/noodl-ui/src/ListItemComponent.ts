@@ -48,9 +48,9 @@ class ListItemComponent extends Component implements IListItemComponent {
 
   set(...args: Parameters<IComponent['set']>) {
     const [key, value] = args
-    if (key === 'iteratorVar') this.iteratorVar = value
-    if (key === 'listId') this.listId = value
-    if (key === 'listIndex') this.listIndex = value
+    if (key === 'iteratorVar') this['iteratorVar'] = value
+    if (key === 'listId') this['listId'] = value
+    if (key === 'listIndex') this['listIndex'] = value
     super.set(...args)
     return this
   }

@@ -16,7 +16,9 @@ const handleList: ResolverFn = (component, options) => {
       listObject,
       nodes,
       raw,
-      update,
+      merge,
+      replace,
+      reset,
     } = args
 
     const newBlueprint = { eh: 'eh?', ...baseBlueprint, ...currentBlueprint }

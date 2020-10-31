@@ -28,15 +28,15 @@ describe('ListComponent', () => {
 
   describe('behavior', () => {
     xit('should update the blueprint when setting new list data', () => {
-      const mergingArgs = { style: { border: '1px solid red'} }
-      const newListObject = [{ fruits: ['apples'],vegetables:['tomatoes']}]
+      const mergingArgs = { style: { border: '1px solid red' } }
+      const newListObject = [{ fruits: ['apples'], vegetables: ['tomatoes'] }]
       const noodlComponent = mock.raw.getNOODLList({ iteratorVar: 'colorful' })
       const component = generateListComponent(noodlComponent)
       component.on('blueprint', ({ merge }) => {
         merge(mergingArgs)
       })
       component.set('listObject', newListObject)
-      expect(component.)
+      // expect(component.)
     })
 
     xit('', () => {
