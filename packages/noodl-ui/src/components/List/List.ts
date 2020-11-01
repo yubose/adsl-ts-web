@@ -272,12 +272,13 @@ class List extends Component implements IList {
    * Since listItem components (rows) are not explicity written in the NOODL and
    * gives the responsibility for populating its data to the platforms, this means
    * we need a blueprint to render the items. This function takes care of resolving
-   * the final blueprint
+   * the blueprint
    */
   getBlueprint() {
     let blueprint: Partial<IListBlueprint>
     if (this.length) {
-      return this.toJS()
+      blueprint = this.toJS()
+    } else if (this.children().length) {
     }
   }
 
