@@ -46,31 +46,21 @@ class List extends Component implements IList {
 
     // Set the blueprint
     // TODO - a more official way
-    if (_.isArray(super.original?.children)) {
-      const rawChildren = super.original.children
-      if (rawChildren.length) {
-        const blueprint = rawChildren[0]
-        if (_.isObject(blueprint)) {
-          this.#blueprint = blueprint
-          if (!('type' in this.#blueprint)) this.#blueprint['type'] = 'listItem'
-          this.emit('blueprint', this.#getBlueprintHandlerArgs(listObject))
-        }
-      }
-    }
+    this.#blueprint = this.getBlueprint()
 
     if (this.#listObject) {
       if (_.isArray(this.#listObject)) {
-        _.forEach(this.#listObject, (dataObject) => {
-          const child = new ListItemComponent({
-            iteratorVar: this.#iteratorVar,
-          })
-          child.set(this.#iteratorVar, dataObject)
-          this.createChild(child)
-        })
+        // _.forEach(this.#listObject, (dataObject) => {
+        //   const child = new ListItemComponent({
+        //     iteratorVar: this.#iteratorVar,
+        //   })
+        //   child.set(this.#iteratorVar, dataObject)
+        //   this.createChild(child)
+        // })
       } else {
-        const child = new ListItemComponent({ iteratorVar: this.#iteratorVar })
-        child.setDataObject(this.#listObject)
-        this.createChild(child)
+        // const child = new ListItemComponent({ iteratorVar: this.#iteratorVar })
+        // child.setDataObject(this.#listObject)
+        // this.createChild(child)
       }
     }
 
@@ -153,6 +143,9 @@ class List extends Component implements IList {
   createChild(...args: Parameters<IComponent['createChild']>) {
     const child = super.createChild(...args)
     if (child?.noodlType === 'listItem') {
+      _.forEach(Object.entries(this.getBlueprint()), ([key, value]) => {
+        child.set(key, value)
+      })
       this.#children.push(child as IListItem)
       this.emit('create.list.item', child, {
         data: this.getData(),
@@ -271,15 +264,28 @@ class List extends Component implements IList {
   /**
    * Since listItem components (rows) are not explicity written in the NOODL and
    * gives the responsibility for populating its data to the platforms, this means
-   * we need a blueprint to render the items. This function takes care of resolving
-   * the blueprint
+   * we need a blueprint to render how the list items will be structured.
+   * This function returns that structure
    */
   getBlueprint() {
-    let blueprint: Partial<IListBlueprint>
+    let blueprint: Partial<IListBlueprint> | undefined
     if (this.length) {
-      blueprint = this.toJS()
-    } else if (this.children().length) {
+      const child = this.child()
+      blueprint = _.assign(child.toJS(), { children: child.children() })
+    } else if (_.isObject(this.original)) {
+      const noodlChildren = this.original.children
+      if (_.isArray(noodlChildren)) {
+        blueprint = noodlChildren[0]
+      } else if (_.isObject(noodlChildren)) {
+        blueprint = noodlChildren
+      }
     }
+    blueprint = {
+      ...blueprint,
+      listId: this.listId,
+      iteratorVar: this.#iteratorVar,
+    }
+    return blueprint
   }
 
   #getBlueprintHandlerArgs = (listObject: IListListObject) =>

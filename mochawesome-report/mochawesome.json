@@ -1,16 +1,16 @@
 {
   "stats": {
     "suites": 8,
-    "tests": 22,
+    "tests": 23,
     "passes": 3,
     "pending": 19,
-    "failures": 0,
-    "start": "2020-10-31T00:10:34.827Z",
-    "end": "2020-10-31T00:10:34.864Z",
-    "duration": 37,
-    "testsRegistered": 22,
-    "passPercent": 100,
-    "pendingPercent": 86.36363636363636,
+    "failures": 1,
+    "start": "2020-11-01T13:59:21.587Z",
+    "end": "2020-11-01T13:59:21.700Z",
+    "duration": 113,
+    "testsRegistered": 23,
+    "passPercent": 75,
+    "pendingPercent": 82.6086956521739,
     "other": 0,
     "hasOther": false,
     "skipped": 0,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "7ced02a6-26a7-4f83-b10e-df2ac5ef6d61",
+      "uuid": "f39939ac-37cf-4e40-8ab5-41856264d635",
       "title": "",
       "fullFile": "",
       "file": "",
@@ -27,7 +27,7 @@
           "title": "\"before all\" hook in \"{root}\"",
           "fullTitle": "\"before all\" hook in \"{root}\"",
           "timedOut": false,
-          "duration": 2,
+          "duration": 3,
           "state": null,
           "speed": null,
           "pass": false,
@@ -36,8 +36,8 @@
           "context": null,
           "code": "console.clear();\nlogsnap_1.default.disable();\n// Silence all the logging from our custom logger\n// Logger.create = sinon.stub().callsFake(() =>\n//   _.reduce(\n//     _.keys(_color),\n//     (acc: any, color) => {\n//       acc[color] = _.noop\n//       return acc\n//     },\n//     {},\n//   ),\n// )\ntry {\n    logSpy = sinon_1.default.stub(global.console, 'log').callsFake(() => lodash_1.default.noop);\n    // logsnapSpy = sinon.stub(Logger, 'create').callsFake(() => _.noop as any)\n}\ncatch (error) { }",
           "err": {},
-          "uuid": "90838ab3-4b15-4ff8-972a-5b20fc51393a",
-          "parentUUID": "7ced02a6-26a7-4f83-b10e-df2ac5ef6d61",
+          "uuid": "6c8de6ba-0d06-4f5f-b016-d2a6fdb6ea58",
+          "parentUUID": "f39939ac-37cf-4e40-8ab5-41856264d635",
           "isHook": true,
           "skipped": false
         },
@@ -54,8 +54,8 @@
           "context": null,
           "code": "test_utils_1.noodlui.cleanup();",
           "err": {},
-          "uuid": "697a2e4a-b963-4a94-bd96-1b15794765b3",
-          "parentUUID": "7ced02a6-26a7-4f83-b10e-df2ac5ef6d61",
+          "uuid": "f3df66bc-ed8f-4f6f-a918-d767ac3a1ef1",
+          "parentUUID": "f39939ac-37cf-4e40-8ab5-41856264d635",
           "isHook": true,
           "skipped": false
         }
@@ -74,8 +74,8 @@
           "context": null,
           "code": "var _a;\n(_a = logSpy === null || logSpy === void 0 ? void 0 : logSpy.restore) === null || _a === void 0 ? void 0 : _a.call(logSpy);\n// logsnapSpy?.restore?.()",
           "err": {},
-          "uuid": "2b7dd3d5-0ebb-42a6-b4ca-ff21a0115a0f",
-          "parentUUID": "7ced02a6-26a7-4f83-b10e-df2ac5ef6d61",
+          "uuid": "c7483eed-01b2-4f4d-a0c4-3fb2d798247e",
+          "parentUUID": "f39939ac-37cf-4e40-8ab5-41856264d635",
           "isHook": true,
           "skipped": false
         },
@@ -83,7 +83,7 @@
           "title": "\"after each\" hook in \"{root}\"",
           "fullTitle": "\"after each\" hook in \"{root}\"",
           "timedOut": false,
-          "duration": 1,
+          "duration": 0,
           "state": null,
           "speed": null,
           "pass": false,
@@ -92,8 +92,8 @@
           "context": null,
           "code": "document.body.textContent = '';",
           "err": {},
-          "uuid": "ba022aa8-8c49-4f9b-a748-a2197d51da7e",
-          "parentUUID": "7ced02a6-26a7-4f83-b10e-df2ac5ef6d61",
+          "uuid": "852aa4a4-9cea-44d8-8872-c708cc4d2e3a",
+          "parentUUID": "f39939ac-37cf-4e40-8ab5-41856264d635",
           "isHook": true,
           "skipped": false
         }
@@ -101,7 +101,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "85b9744f-1a0c-4503-8e80-85b8fc9df984",
+          "uuid": "78b669fc-7655-47e8-8219-284c478964a7",
           "title": "hello",
           "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\resolvers\\__tests__\\_internal\\handleList.test.ts",
           "file": "\\packages\\noodl-ui\\src\\resolvers\\__tests__\\_internal\\handleList.test.ts",
@@ -112,7 +112,7 @@
               "title": "",
               "fullTitle": "hello ",
               "timedOut": false,
-              "duration": 0,
+              "duration": 1,
               "state": "passed",
               "speed": "fast",
               "pass": true,
@@ -121,29 +121,29 @@
               "context": null,
               "code": "// throw new Error('fsa')",
               "err": {},
-              "uuid": "b72ce850-0a91-4cb1-b546-0bb230f0b7b2",
-              "parentUUID": "85b9744f-1a0c-4503-8e80-85b8fc9df984",
+              "uuid": "589158f3-3f49-4794-a9a0-c3a5c442f04a",
+              "parentUUID": "78b669fc-7655-47e8-8219-284c478964a7",
               "isHook": false,
               "skipped": false
             }
           ],
           "suites": [],
           "passes": [
-            "b72ce850-0a91-4cb1-b546-0bb230f0b7b2"
+            "589158f3-3f49-4794-a9a0-c3a5c442f04a"
           ],
           "failures": [],
           "pending": [],
           "skipped": [],
-          "duration": 0,
+          "duration": 1,
           "root": false,
           "rootEmpty": false,
           "_timeout": 2000
         },
         {
-          "uuid": "d56ce9be-9da4-45a3-a79f-8ed81db0a691",
+          "uuid": "1e0ca956-38b6-4b89-86ec-7ff96766c5d9",
           "title": "ListComponent",
-          "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
-          "file": "\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
+          "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
+          "file": "\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
           "beforeHooks": [],
           "afterHooks": [],
           "tests": [
@@ -160,8 +160,8 @@
               "context": null,
               "code": "",
               "err": {},
-              "uuid": "29621101-7c21-4e36-9f45-e7f45271d03c",
-              "parentUUID": "d56ce9be-9da4-45a3-a79f-8ed81db0a691",
+              "uuid": "eb2d6760-3dde-4048-af31-164607476b93",
+              "parentUUID": "1e0ca956-38b6-4b89-86ec-7ff96766c5d9",
               "isHook": false,
               "skipped": false
             },
@@ -178,8 +178,8 @@
               "context": null,
               "code": "",
               "err": {},
-              "uuid": "f887f422-a364-43af-9f86-6eb144cf2088",
-              "parentUUID": "d56ce9be-9da4-45a3-a79f-8ed81db0a691",
+              "uuid": "ef042703-8c76-40d2-906d-7706a0398793",
+              "parentUUID": "1e0ca956-38b6-4b89-86ec-7ff96766c5d9",
               "isHook": false,
               "skipped": false
             },
@@ -196,8 +196,8 @@
               "context": null,
               "code": "",
               "err": {},
-              "uuid": "e7d9b040-1c17-45b2-abe7-bdcf294e1244",
-              "parentUUID": "d56ce9be-9da4-45a3-a79f-8ed81db0a691",
+              "uuid": "ac640874-8748-4bf2-82de-dfec63a14677",
+              "parentUUID": "1e0ca956-38b6-4b89-86ec-7ff96766c5d9",
               "isHook": false,
               "skipped": false
             },
@@ -214,8 +214,8 @@
               "context": null,
               "code": "",
               "err": {},
-              "uuid": "71f477b0-0013-46c6-91d7-30c74f725a73",
-              "parentUUID": "d56ce9be-9da4-45a3-a79f-8ed81db0a691",
+              "uuid": "3f1e9c78-445e-4d38-89a0-ea23d0bb4b38",
+              "parentUUID": "1e0ca956-38b6-4b89-86ec-7ff96766c5d9",
               "isHook": false,
               "skipped": false
             },
@@ -232,8 +232,8 @@
               "context": null,
               "code": "",
               "err": {},
-              "uuid": "3e960aa8-8259-4b65-b9bc-8ad45becbba1",
-              "parentUUID": "d56ce9be-9da4-45a3-a79f-8ed81db0a691",
+              "uuid": "e59f873a-7987-4659-b296-6bf51f47a649",
+              "parentUUID": "1e0ca956-38b6-4b89-86ec-7ff96766c5d9",
               "isHook": false,
               "skipped": false
             },
@@ -250,18 +250,18 @@
               "context": null,
               "code": "",
               "err": {},
-              "uuid": "493f8363-daba-4637-8498-c00bc17455e0",
-              "parentUUID": "d56ce9be-9da4-45a3-a79f-8ed81db0a691",
+              "uuid": "9f554ed9-6d91-44a2-8b99-adff12527d66",
+              "parentUUID": "1e0ca956-38b6-4b89-86ec-7ff96766c5d9",
               "isHook": false,
               "skipped": false
             }
           ],
           "suites": [
             {
-              "uuid": "f34f0ae1-4ad4-463c-9159-95d067304b80",
+              "uuid": "829d4fc0-da2d-4166-86ea-e4249f33808b",
               "title": "initiation",
-              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
-              "file": "\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
+              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
+              "file": "\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
               "beforeHooks": [],
               "afterHooks": [],
               "tests": [
@@ -269,7 +269,7 @@
                   "title": "should set the list object data",
                   "fullTitle": "ListComponent initiation should set the list object data",
                   "timedOut": false,
-                  "duration": 2,
+                  "duration": 3,
                   "state": "passed",
                   "speed": "fast",
                   "pass": true,
@@ -278,8 +278,8 @@
                   "context": null,
                   "code": "const args = { iteratorVar: 'colorful', listObject: ['fruits'] };\nconst noodlComponent = mockData_1.mock.raw.getNOODLList(args);\nconst component = generateListComponent(noodlComponent);\nchai_1.expect(component.getData()).to.equal(args.listObject);",
                   "err": {},
-                  "uuid": "85ae9424-ab01-4b1e-8763-07028e82faec",
-                  "parentUUID": "f34f0ae1-4ad4-463c-9159-95d067304b80",
+                  "uuid": "612401ad-aa2a-4b39-b2eb-df5254c8959b",
+                  "parentUUID": "829d4fc0-da2d-4166-86ea-e4249f33808b",
                   "isHook": false,
                   "skipped": false
                 },
@@ -296,30 +296,30 @@
                   "context": null,
                   "code": "const noodlComponent = mockData_1.mock.raw.getNOODLList({ iteratorVar: 'colorful' });\nconst component = generateListComponent(noodlComponent);\nchai_1.expect(component.iteratorVar).to.equal(noodlComponent.iteratorVar);",
                   "err": {},
-                  "uuid": "7c9cc1fd-b103-4668-a9b7-0447694d1595",
-                  "parentUUID": "f34f0ae1-4ad4-463c-9159-95d067304b80",
+                  "uuid": "10a3c5e1-3e6d-4752-89ed-899a8bc62bec",
+                  "parentUUID": "829d4fc0-da2d-4166-86ea-e4249f33808b",
                   "isHook": false,
                   "skipped": false
                 }
               ],
               "suites": [],
               "passes": [
-                "85ae9424-ab01-4b1e-8763-07028e82faec",
-                "7c9cc1fd-b103-4668-a9b7-0447694d1595"
+                "612401ad-aa2a-4b39-b2eb-df5254c8959b",
+                "10a3c5e1-3e6d-4752-89ed-899a8bc62bec"
               ],
               "failures": [],
               "pending": [],
               "skipped": [],
-              "duration": 3,
+              "duration": 4,
               "root": false,
               "rootEmpty": false,
               "_timeout": 2000
             },
             {
-              "uuid": "2b173547-ec54-4f45-8686-43d9ac8db1f7",
+              "uuid": "3657ce39-b360-4a17-8eef-cf28f239450b",
               "title": "behavior",
-              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
-              "file": "\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
+              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
+              "file": "\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
               "beforeHooks": [],
               "afterHooks": [],
               "tests": [
@@ -336,8 +336,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "a60520f1-7acc-4bdc-ac14-f25d92d6a044",
-                  "parentUUID": "2b173547-ec54-4f45-8686-43d9ac8db1f7",
+                  "uuid": "b8c80b70-3c2b-40ef-b18d-ed28f8aadbbe",
+                  "parentUUID": "3657ce39-b360-4a17-8eef-cf28f239450b",
                   "isHook": false,
                   "skipped": false
                 },
@@ -354,8 +354,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "9bb3db39-b4b0-4a10-aed5-b38136b7043f",
-                  "parentUUID": "2b173547-ec54-4f45-8686-43d9ac8db1f7",
+                  "uuid": "fcea3ad4-2d38-4f07-b6c3-ffe1a33af5a5",
+                  "parentUUID": "3657ce39-b360-4a17-8eef-cf28f239450b",
                   "isHook": false,
                   "skipped": false
                 },
@@ -372,8 +372,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "07b4f62e-a893-428e-a185-445e1318f0a2",
-                  "parentUUID": "2b173547-ec54-4f45-8686-43d9ac8db1f7",
+                  "uuid": "217b474d-6645-4eea-9e5d-cb2abb847964",
+                  "parentUUID": "3657ce39-b360-4a17-8eef-cf28f239450b",
                   "isHook": false,
                   "skipped": false
                 }
@@ -382,9 +382,9 @@
               "passes": [],
               "failures": [],
               "pending": [
-                "a60520f1-7acc-4bdc-ac14-f25d92d6a044",
-                "9bb3db39-b4b0-4a10-aed5-b38136b7043f",
-                "07b4f62e-a893-428e-a185-445e1318f0a2"
+                "b8c80b70-3c2b-40ef-b18d-ed28f8aadbbe",
+                "fcea3ad4-2d38-4f07-b6c3-ffe1a33af5a5",
+                "217b474d-6645-4eea-9e5d-cb2abb847964"
               ],
               "skipped": [],
               "duration": 0,
@@ -393,16 +393,38 @@
               "_timeout": 2000
             },
             {
-              "uuid": "931206ec-d0f8-4a43-9dae-3037b2d193fa",
+              "uuid": "9450742b-ecb8-4c39-9652-25a4f45d620b",
               "title": "blueprint",
-              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
-              "file": "\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
+              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
+              "file": "\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
               "beforeHooks": [],
               "afterHooks": [],
               "tests": [
                 {
-                  "title": "should allow us to set the next blueprint and update the list item nodes",
-                  "fullTitle": "ListComponent blueprint should allow us to set the next blueprint and update the list item nodes",
+                  "title": "should return the blueprint from the list item if a list item exists",
+                  "fullTitle": "ListComponent blueprint should return the blueprint from the list item if a list item exists",
+                  "timedOut": false,
+                  "duration": 34,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "var _a, _b;\nconst component = new List_1.default({\n    iteratorVar: 'apple',\n    listObject: [{ age: 18 }, { age: 28 }, { age: 8 }],\n});\nconst listId = component.listId;\nconst listItem1 = component.createChild('listItem');\nlistItem1 === null || listItem1 === void 0 ? void 0 : listItem1.setStyle('borderWidth', '5px').setStyle('fontSize', '14px');\n(_a = listItem1 === null || listItem1 === void 0 ? void 0 : listItem1.createChild('label')) === null || _a === void 0 ? void 0 : _a.set('text', 'hello all');\n(_b = listItem1 === null || listItem1 === void 0 ? void 0 : listItem1.createChild('label')) === null || _b === void 0 ? void 0 : _b.set('text', 'today is sunday');\nconst blueprint = component.getBlueprint();\nconsole.info('BLUEPRINT');\nconsole.info(blueprint);\nconsole.info('BLUEPRINT');\nchai_1.expect(blueprint.style).to.have.property('borderWidth', '5px');\nchai_1.expect(blueprint.style).to.have.property('fontSize', '14px');\nchai_1.expect(blueprint.children).to.be.an('array');\nchai_1.expect(blueprint.children[0].get('text')).to.equal('hello all');\nchai_1.expect(blueprint.children[1].get('text')).to.equal('today is sunday');\nchai_1.expect(blueprint.children[0].get('listId')).equal(listId);\nchai_1.expect(blueprint.children[1].get('listId')).to.equal('today is sunday');",
+                  "err": {
+                    "message": "AssertionError: expected undefined to equal '_bnahyqps3'",
+                    "estack": "AssertionError: expected undefined to equal '_bnahyqps3'\n    at Context.<anonymous> (packages\\noodl-ui\\src\\__tests__\\List.test.ts:107:13)\n    at processImmediate (internal/timers.js:456:21)",
+                    "diff": null
+                  },
+                  "uuid": "e65ce32f-c14c-4476-a540-ed1cc53a6b35",
+                  "parentUUID": "9450742b-ecb8-4c39-9652-25a4f45d620b",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should return the blueprint from the raw noodl children child",
+                  "fullTitle": "ListComponent blueprint should return the blueprint from the raw noodl children child",
                   "timedOut": false,
                   "duration": 0,
                   "state": "pending",
@@ -413,29 +435,31 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "204536d8-13a2-4df3-b2a1-ee36290abbab",
-                  "parentUUID": "931206ec-d0f8-4a43-9dae-3037b2d193fa",
+                  "uuid": "88f8028b-bee6-4b56-8cad-8b96a1ffa664",
+                  "parentUUID": "9450742b-ecb8-4c39-9652-25a4f45d620b",
                   "isHook": false,
                   "skipped": false
                 }
               ],
               "suites": [],
               "passes": [],
-              "failures": [],
+              "failures": [
+                "e65ce32f-c14c-4476-a540-ed1cc53a6b35"
+              ],
               "pending": [
-                "204536d8-13a2-4df3-b2a1-ee36290abbab"
+                "88f8028b-bee6-4b56-8cad-8b96a1ffa664"
               ],
               "skipped": [],
-              "duration": 0,
+              "duration": 34,
               "root": false,
               "rootEmpty": false,
               "_timeout": 2000
             },
             {
-              "uuid": "170d3b1d-2edf-4e11-8176-9fd98d487328",
+              "uuid": "c3bce36d-8126-43ba-8f87-64f9a52d145f",
               "title": "retrieving dataObjects from list item children",
-              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
-              "file": "\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
+              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
+              "file": "\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
               "beforeHooks": [],
               "afterHooks": [],
               "tests": [
@@ -452,8 +476,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "6a63e2e5-a6bb-4c4a-b8a8-540d2af0e831",
-                  "parentUUID": "170d3b1d-2edf-4e11-8176-9fd98d487328",
+                  "uuid": "c46e1523-3d54-4543-9539-019082c16122",
+                  "parentUUID": "c3bce36d-8126-43ba-8f87-64f9a52d145f",
                   "isHook": false,
                   "skipped": false
                 },
@@ -470,8 +494,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "25c6ef44-214c-4f4e-afc6-054d3ae2e2d3",
-                  "parentUUID": "170d3b1d-2edf-4e11-8176-9fd98d487328",
+                  "uuid": "f140b892-ed83-4967-bec9-e21193868792",
+                  "parentUUID": "c3bce36d-8126-43ba-8f87-64f9a52d145f",
                   "isHook": false,
                   "skipped": false
                 },
@@ -488,8 +512,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "bfc6cc30-bc69-46af-88cc-af8f674e8291",
-                  "parentUUID": "170d3b1d-2edf-4e11-8176-9fd98d487328",
+                  "uuid": "df65bd17-6103-4cc6-be20-7b7864266d23",
+                  "parentUUID": "c3bce36d-8126-43ba-8f87-64f9a52d145f",
                   "isHook": false,
                   "skipped": false
                 },
@@ -506,8 +530,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "680ec136-32a2-47e4-bb74-a04d8ffa25c8",
-                  "parentUUID": "170d3b1d-2edf-4e11-8176-9fd98d487328",
+                  "uuid": "03426e04-ddaf-4d34-a1ec-063d0991e8a2",
+                  "parentUUID": "c3bce36d-8126-43ba-8f87-64f9a52d145f",
                   "isHook": false,
                   "skipped": false
                 }
@@ -516,10 +540,10 @@
               "passes": [],
               "failures": [],
               "pending": [
-                "6a63e2e5-a6bb-4c4a-b8a8-540d2af0e831",
-                "25c6ef44-214c-4f4e-afc6-054d3ae2e2d3",
-                "bfc6cc30-bc69-46af-88cc-af8f674e8291",
-                "680ec136-32a2-47e4-bb74-a04d8ffa25c8"
+                "c46e1523-3d54-4543-9539-019082c16122",
+                "f140b892-ed83-4967-bec9-e21193868792",
+                "df65bd17-6103-4cc6-be20-7b7864266d23",
+                "03426e04-ddaf-4d34-a1ec-063d0991e8a2"
               ],
               "skipped": [],
               "duration": 0,
@@ -528,10 +552,10 @@
               "_timeout": 2000
             },
             {
-              "uuid": "c121044f-9beb-494a-b038-2ab7c62f5ac9",
+              "uuid": "33bfa470-bd70-4a11-b65d-b61979b4571b",
               "title": "family tree",
-              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
-              "file": "\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
+              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
+              "file": "\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
               "beforeHooks": [],
               "afterHooks": [],
               "tests": [
@@ -548,8 +572,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "0b398745-1208-41df-8a0b-25f593471ce5",
-                  "parentUUID": "c121044f-9beb-494a-b038-2ab7c62f5ac9",
+                  "uuid": "c8e0d7bc-6c5a-442b-8b0d-81f140eabe5e",
+                  "parentUUID": "33bfa470-bd70-4a11-b65d-b61979b4571b",
                   "isHook": false,
                   "skipped": false
                 }
@@ -558,7 +582,7 @@
               "passes": [],
               "failures": [],
               "pending": [
-                "0b398745-1208-41df-8a0b-25f593471ce5"
+                "c8e0d7bc-6c5a-442b-8b0d-81f140eabe5e"
               ],
               "skipped": [],
               "duration": 0,
@@ -567,10 +591,10 @@
               "_timeout": 2000
             },
             {
-              "uuid": "3dce7feb-f65e-47e2-84d6-597ccc211714",
+              "uuid": "0edfcef7-b99f-40b3-b2bd-c83d457146d3",
               "title": "setting listObject",
-              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
-              "file": "\\packages\\noodl-ui\\src\\__tests__\\ListComponent.test.ts",
+              "fullFile": "C:\\Users\\Chris\\aitmed-noodl-web\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
+              "file": "\\packages\\noodl-ui\\src\\__tests__\\List.test.ts",
               "beforeHooks": [],
               "afterHooks": [],
               "tests": [
@@ -587,8 +611,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "85d7610f-23f7-4fc9-9cf5-dc070bf438c9",
-                  "parentUUID": "3dce7feb-f65e-47e2-84d6-597ccc211714",
+                  "uuid": "3f3b5125-b400-41d4-977b-c6ddbba601e5",
+                  "parentUUID": "0edfcef7-b99f-40b3-b2bd-c83d457146d3",
                   "isHook": false,
                   "skipped": false
                 },
@@ -605,8 +629,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "5380ecff-447f-4aff-ad80-54b9022942c8",
-                  "parentUUID": "3dce7feb-f65e-47e2-84d6-597ccc211714",
+                  "uuid": "59bb97fe-3883-4224-bb62-0988b453650c",
+                  "parentUUID": "0edfcef7-b99f-40b3-b2bd-c83d457146d3",
                   "isHook": false,
                   "skipped": false
                 },
@@ -623,8 +647,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "15dc6d6d-9b11-4dcc-8a18-006967a8a12b",
-                  "parentUUID": "3dce7feb-f65e-47e2-84d6-597ccc211714",
+                  "uuid": "fa514a6d-da6b-41e5-a09d-c3225d671a5b",
+                  "parentUUID": "0edfcef7-b99f-40b3-b2bd-c83d457146d3",
                   "isHook": false,
                   "skipped": false
                 },
@@ -641,8 +665,8 @@
                   "context": null,
                   "code": "",
                   "err": {},
-                  "uuid": "fade7ed6-d016-43b5-85cb-8619d3970f3b",
-                  "parentUUID": "3dce7feb-f65e-47e2-84d6-597ccc211714",
+                  "uuid": "bfff3822-ec39-4038-ba0a-f2de1201f585",
+                  "parentUUID": "0edfcef7-b99f-40b3-b2bd-c83d457146d3",
                   "isHook": false,
                   "skipped": false
                 }
@@ -651,10 +675,10 @@
               "passes": [],
               "failures": [],
               "pending": [
-                "85d7610f-23f7-4fc9-9cf5-dc070bf438c9",
-                "5380ecff-447f-4aff-ad80-54b9022942c8",
-                "15dc6d6d-9b11-4dcc-8a18-006967a8a12b",
-                "fade7ed6-d016-43b5-85cb-8619d3970f3b"
+                "3f3b5125-b400-41d4-977b-c6ddbba601e5",
+                "59bb97fe-3883-4224-bb62-0988b453650c",
+                "fa514a6d-da6b-41e5-a09d-c3225d671a5b",
+                "bfff3822-ec39-4038-ba0a-f2de1201f585"
               ],
               "skipped": [],
               "duration": 0,
@@ -666,12 +690,12 @@
           "passes": [],
           "failures": [],
           "pending": [
-            "29621101-7c21-4e36-9f45-e7f45271d03c",
-            "f887f422-a364-43af-9f86-6eb144cf2088",
-            "e7d9b040-1c17-45b2-abe7-bdcf294e1244",
-            "71f477b0-0013-46c6-91d7-30c74f725a73",
-            "3e960aa8-8259-4b65-b9bc-8ad45becbba1",
-            "493f8363-daba-4637-8498-c00bc17455e0"
+            "eb2d6760-3dde-4048-af31-164607476b93",
+            "ef042703-8c76-40d2-906d-7706a0398793",
+            "ac640874-8748-4bf2-82de-dfec63a14677",
+            "3f1e9c78-445e-4d38-89a0-ea23d0bb4b38",
+            "e59f873a-7987-4659-b296-6bf51f47a649",
+            "9f554ed9-6d91-44a2-8b99-adff12527d66"
           ],
           "skipped": [],
           "duration": 0,

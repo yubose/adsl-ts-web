@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Component from '../Base/Base'
-import ListItemChildComponent from '../../ListItemChildComponent'
+import ListItemChildComponent from './ListItemChild'
 import { IComponent, IComponentConstructor, IListItem } from '../../types'
 
 class ListItem extends Component implements IListItem {
@@ -56,10 +56,9 @@ class ListItem extends Component implements IListItem {
   }
 
   createChild(...args: Parameters<IComponent['createChild']>) {
-    return super
-      .createChild(new ListItemChildComponent(...args))
-      ?.set('listId', this.listId)
-      .set('iteratorVar', this.iteratorVar)
+    const child = super.createChild(new ListItemChildComponent(...args))
+    child?.set('listId', this.listId).set('iteratorVar', this.iteratorVar)
+    return child
   }
 
   getDataObject() {

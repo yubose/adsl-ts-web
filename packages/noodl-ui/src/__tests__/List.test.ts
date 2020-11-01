@@ -93,15 +93,31 @@ describe('ListComponent', () => {
     expect(component.noodlType).to.equal('list')
   })
 
-  xdescribe('blueprint', () => {
-    xit('should allow us to set the next blueprint and update the list item nodes', () => {
+  describe('blueprint', () => {
+    it('should return the blueprint from the list item if a list item exists', () => {
       const component = new ListComponent({
         iteratorVar: 'apple',
         listObject: [{ age: 18 }, { age: 28 }, { age: 8 }],
       })
+      const listId = component.listId
       const listItem1 = component.createChild('listItem')
-      const listItem2 = component.createChild('listItem')
+      listItem1?.setStyle('borderWidth', '5px').setStyle('fontSize', '14px')
+      listItem1?.createChild('label')?.set('text', 'hello all')
+      listItem1?.createChild('label')?.set('text', 'today is sunday')
+      const blueprint = component.getBlueprint()
+      console.info('BLUEPRINT')
+      console.info(blueprint)
+      console.info('BLUEPRINT')
+      expect(blueprint.style).to.have.property('borderWidth', '5px')
+      expect(blueprint.style).to.have.property('fontSize', '14px')
+      expect(blueprint.children).to.be.an('array')
+      expect(blueprint.children[0].get('text')).to.equal('hello all')
+      expect(blueprint.children[1].get('text')).to.equal('today is sunday')
+      expect(blueprint.children[0].get('listId')).equal(listId)
+      expect(blueprint.children[1].get('listId')).to.equal('today is sunday')
     })
+
+    xit('should return the blueprint from the raw noodl children child', () => {})
   })
 
   xdescribe('retrieving dataObjects from list item children', () => {

@@ -1,12 +1,12 @@
 import _ from 'lodash'
-import Component from '../components/Base'
+import Component from '../Base'
 import {
   IComponent,
   IComponentConstructor,
   IListItemChildComponent,
   IListItem,
   UIComponent,
-} from '../types'
+} from '../../types'
 
 class ListItemChildComponent
   extends Component
