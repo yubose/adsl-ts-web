@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Component from '../../Component'
+import Component from '../../components/Base/Base'
 import { getRandomKey } from '../../utils/common'
 import { IComponent, ProxiedComponent } from '../../types'
 

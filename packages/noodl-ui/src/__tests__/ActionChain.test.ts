@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import makeRootsParser from '../factories/makeRootsParser'
-import ActionChain from '../ActionChain'
+import ActionChain from '../ActionChain/ActionChain'
 import Action from '../Action'
 import {
   NOODLUpdateObject,

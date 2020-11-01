@@ -2,7 +2,7 @@
 // begins with "itemObject" which are known to be inside list components
 import _ from 'lodash'
 import Logger from 'logsnap'
-import Component from '../../../Component'
+import Component from '../../../components/Base/Base'
 import { IComponent, ResolverOptions, ConsumerOptions } from '../../../types'
 
 const log = Logger.create('getIteratorVarListItemChildren')

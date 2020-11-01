@@ -10,9 +10,9 @@ import {
 } from '../../types'
 import { forEachDeepEntries } from '../../utils/common'
 // import { noodlui, toDOM } from '../../../../../src/utils/test-utils'
-import Component from '../../Component'
-import ListComponent from '../../ListComponent'
-import ListItemComponent from '../../ListItemComponent'
+import Component from '../../components/Base/Base'
+import ListComponent from '../../components/List/List'
+import ListItemComponent from '../../components/ListItem/ListItem'
 
 const toDOM = _.noop
 

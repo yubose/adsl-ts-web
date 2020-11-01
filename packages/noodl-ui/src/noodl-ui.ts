@@ -9,8 +9,8 @@ import {
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
-import Component from './Component'
-import ListItemComponent from './ListItemComponent'
+import Component from './components/Base/Base'
+import ListItemComponent from './components/ListItem'
 import makeRootsParser from './factories/makeRootsParser'
 import {
   forEachDeepEntries,
@@ -20,7 +20,7 @@ import {
 } from './utils/common'
 import createComponent from './utils/createComponent'
 import _internalResolvers from './resolvers/_internal'
-import ActionChain from './ActionChain'
+import ActionChain from './ActionChain/ActionChain'
 import isReference from './utils/isReference'
 import * as T from './types'
 
@@ -459,7 +459,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  // setList(component: T.IListComponent, data?: any) {
+  // setList(component: T.IList, data?: any) {
   //   if (!component || !(component instanceof ListComponent)) return this
   //   if (data !== undefined) component.set('listObject', data)
   //   this.#state.lists.set(component, component)

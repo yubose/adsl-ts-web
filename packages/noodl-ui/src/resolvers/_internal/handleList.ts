@@ -1,12 +1,12 @@
 import _ from 'lodash'
-import { IListComponent, IListItemComponent, ResolverFn } from '../../types'
+import { IList, IListItem, ResolverFn } from '../../types'
 import Logger from 'logsnap'
 
 const log = Logger.create('handleList')
 
 const handleList: ResolverFn = (component, options) => {
   const { resolveComponent } = options
-  const listComponent = component as IListComponent
+  const listComponent = component as IList
 
   listComponent.on('blueprint', (args) => {
     const {
@@ -49,7 +49,7 @@ const handleList: ResolverFn = (component, options) => {
     _.forEach(data, (dataObject) => {
       const child = resolveComponent(
         listComponent.createChild('listItem'),
-      ) as IListItemComponent
+      ) as IListItem
       child.set(listComponent.iteratorVar, dataObject)
     })
   }

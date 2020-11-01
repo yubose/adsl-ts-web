@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import { findChild, findParent } from 'noodl-utils'
-import { IComponent, IListComponent, UIComponent } from '../types'
-import ListComponent from '../ListComponent'
-import ListItemComponent from '../ListItemComponent'
-import Component from '../Component'
+import { IComponent, IList, UIComponent } from '../types'
+import ListComponent from '../components/List/List'
+import ListItemComponent from '../components/ListItem/ListItem'
+import Component from '../components/Base/Base'
 
 /**
  * Uses the value given to find a list corresponding to its relation.
@@ -12,14 +12,14 @@ import Component from '../Component'
  * @param { string | UIComponent } component - Component id or instance
  */
 function findList(
-  lists: Map<IListComponent, IListComponent>,
+  lists: Map<IList, IList>,
   component: string | UIComponent,
 ): any[] | null {
   let result: any[] | null = null
 
   if (component) {
-    let listComponent: IListComponent
-    let listComponents: IListComponent[]
+    let listComponent: IList
+    let listComponents: IList[]
     let listSize = lists.size
 
     // Assuming it is a component's id, we will use this and traverse the whole list,
@@ -49,7 +49,7 @@ function findList(
     }
     // List item components should always be direct children of ListComponents
     else if (component instanceof ListItemComponent) {
-      result = (component.parent() as IListComponent)?.getData?.()
+      result = (component.parent() as IList)?.getData?.()
     }
     // Regular components should not hold the list data or data objects, so we
     // will assume here that it is some nested child. We can get the list by

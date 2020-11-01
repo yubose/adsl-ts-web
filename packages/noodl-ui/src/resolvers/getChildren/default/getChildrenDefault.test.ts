@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import _ from 'lodash'
 import getChildrenDefault from './getChildrenDefault'
-import Component from '../../../Component'
+import Component from '../../../components/Base/Base'
 import { IComponent, ResolverOptions, ConsumerOptions } from '../../../types'
 import { ResolverTest, makeResolverTest } from '../../../utils/test-utils'
 

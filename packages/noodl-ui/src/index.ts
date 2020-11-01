@@ -1,10 +1,10 @@
 // Components
-export { default as Component } from './Component'
-export { default as ListComponent } from './ListComponent'
-export { default as ListItemComponent } from './ListItemComponent'
+export { default as Component } from './components/Base/Base'
+export { default as ListComponent } from './components/List/List'
+export { default as ListItemComponent } from './components/ListItem/ListItem'
 // Action chain
 export { default as Action } from './Action'
-export { default as ActionChain } from './ActionChain'
+export { default as ActionChain } from './ActionChain/ActionChain'
 // Resolvers
 export { default as getAlignAttrs } from './resolvers/getAlignAttrs'
 export { default as getBorderAttrs } from './resolvers/getBorderAttrs'

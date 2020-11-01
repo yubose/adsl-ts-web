@@ -7,9 +7,9 @@ import {
   NOODLComponentType,
   ProxiedComponent,
 } from '../types'
-import ListComponent from '../ListComponent'
-import ListItemComponent from '../ListItemComponent'
-import Component from '../Component'
+import ListComponent from '../components/List/List'
+import ListItemComponent from '../components/ListItem/ListItem'
+import Component from '../components/Base/Base'
 
 /**
  * A helper/utility to create Component instances corresponding to their NOODL

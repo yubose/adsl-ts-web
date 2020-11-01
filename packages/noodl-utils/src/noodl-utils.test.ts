@@ -93,16 +93,16 @@ describe('isBreakLineTextBoardItem', () => {
 // })
 
 // describe('findList', () => {
-//   let component1: IListComponent
-//   let component2: IListComponent
-//   let component3: IListComponent
-//   let component4: IListComponent
+//   let component1: IList
+//   let component2: IList
+//   let component3: IList
+//   let component4: IList
 //   let component2Child: IComponent
 //   let component2ChildChild: IComponent
 //   let component2ChildChildChild: IComponent
 
 //   let data = [{ fruits: ['apple', 'banana'] }, { fruits: ['orange'] }]
-//   let mapOfLists: Map<IListComponent, IListComponent>
+//   let mapOfLists: Map<IList, IList>
 
 //   beforeEach(() => {
 //     component1 = new ListComponent()

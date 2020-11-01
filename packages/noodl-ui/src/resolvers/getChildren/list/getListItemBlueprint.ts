@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { INOODLUiStateGetters, IComponent } from '../../../types'
-import Component from '../../../Component'
+import Component from '../../../components/Base/Base'
 
 const log = Logger.create('getListItemBlueprint')
 

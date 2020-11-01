@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import { expect } from 'chai'
 import { mock } from './mockData'
-import Component from '../Component'
-import ListItemComponent from '../ListItemComponent'
+import Component from '../components/Base/Base'
+import ListItemComponent from '../components/ListItem/ListItem'
 
 describe('ListItemComponent', () => {
   it('should automatically set the noodlType to "listItem"', () => {

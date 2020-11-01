@@ -48,7 +48,7 @@ export interface INOODLUi {
 
 export interface INOODLUiState {
   nodes: Map<UIComponent, UIComponent>
-  lists: Map<IListComponent, IListComponent>
+  lists: Map<IList, IList>
   showDataKey: boolean
 }
 
@@ -67,8 +67,8 @@ export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode'>
  */
 export type UIComponent =
   | IComponent
-  | IListComponent
-  | IListItemComponent
+  | IList
+  | IListItem
   | IListItemChildComponent
 
 export type IComponentConstructor = new (
@@ -159,69 +159,64 @@ export interface IComponent {
   onStyleTouch?: () => void
 }
 
-export interface IListComponent extends IComponent {
+export interface IList extends IComponent {
   noodlType: 'list'
   exists(childId: string): boolean
-  exists(child: IListItemComponent): boolean
-  find(childId: string): IListItemComponent | undefined
-  find(child: IListItemComponent): IListItemComponent | undefined
+  exists(child: IListItem): boolean
+  find(childId: string): IListItem | undefined
+  find(child: IListItem): IListItem | undefined
+  getBlueprint(): IListBlueprint
   getData(opts?: { fromNodes?: boolean }): any[] | null
   getDataObject(index: number): any
   getDataObject(childId: string): any
   getDataObject(child: IComponent): any
   setDataObject(index: number, data: any): this
   setDataObject(childId: string, data: any): this
-  setDataObject(child: IListItemComponent, data: any): this
+  setDataObject(child: IListItem, data: any): this
   iteratorVar: string
   listId: string
   listObject: any[] | null
   length: number
-  mergeBlueprint<
-    T extends IListComponentBlueprint = Partial<IListComponentBlueprint>
-  >(
+  mergeBlueprint<T extends IListBlueprint = Partial<IListBlueprint>>(
     blueprint: T,
-  ): IListComponentBlueprint
-  replaceBlueprint<
-    T extends IListComponentBlueprint = Partial<IListComponentBlueprint>
-  >(
+  ): IListBlueprint
+  replaceBlueprint<T extends IListBlueprint = Partial<IListBlueprint>>(
     blueprint: T,
-  ): IListComponentBlueprint
-  resetBlueprint(): IListComponentBlueprint
+  ): IListBlueprint
+  resetBlueprint(): IListBlueprint
   set(key: 'listId', value: string): this
   set(key: 'listObject', value: any[]): this
   set(...args: Parameters<IComponent['set']>): this
   on(event: 'blueprint', cb: Function): this
   on(event: 'listId', cb: Function): this
   on(event: 'listObject', cb: Function): this
-  emit(event: 'blueprint', args: IListComponentHandleBlueprintProps): this
+  emit(event: 'blueprint', args: IListHandleBlueprintProps): this
   emit(event: 'data', args: any): this
 }
 
-export type IListComponentListObject = ReturnType<IListComponent['getData']>
+export type IListListObject = ReturnType<IList['getData']>
 
-export type IListComponentBlueprint = Partial<ProxiedComponent>
+export type IListBlueprint = Partial<ProxiedComponent>
 
-export interface IListComponentHandleBlueprintProps {
-  baseBlueprint: IListComponentBlueprint
+export interface IListHandleBlueprintProps {
+  baseBlueprint: IListBlueprint
   iteratorVar: string
   listObject: any[] | null
-  nodes: IListItemComponent[]
+  nodes: IListItem[]
   raw: ProxiedComponent
-  merge: IListComponent['mergeBlueprint']
-  replace: IListComponent['replaceBlueprint']
-  reset: IListComponent['resetBlueprint']
+  merge: IList['mergeBlueprint']
+  replace: IList['replaceBlueprint']
+  reset: IList['resetBlueprint']
 }
 
-export interface IListComponentUpdateProps<
-  DataObject = IListComponentListObject
-> {
-  blueprint: IListComponentBlueprint
+export interface IListUpdateProps<DataObject = IListListObject> {
+  blueprint: IListBlueprint
   iteratorVar: string
   listObject: DataObject[] | null
-  nodes: IListItemComponent[]
+  nodes: IListItem[]
 }
 
-export interface IListItemComponent<T extends NOODLComponentType = 'listItem'>
+export interface IListItem<T extends NOODLComponentType = 'listItem'>
   extends IComponent {
   noodlType: T
   listId: string

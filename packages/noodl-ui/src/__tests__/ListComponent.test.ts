@@ -1,13 +1,13 @@
 import _ from 'lodash'
 import { expect } from 'chai'
 import { mock } from './mockData'
-import Component from '../Component'
-import ListComponent from '../ListComponent'
-import ListItemComponent from '../ListItemComponent'
-import { ComponentType, IListComponent, NOODLComponent } from '../types'
+import Component from '../components/Base/Base'
+import ListComponent from '../components/List/List'
+import ListItemComponent from '../components/ListItem/ListItem'
+import { ComponentType, IList, NOODLComponent } from '../types'
 
 function generateListComponent(noodlComponent: ComponentType) {
-  return new ListComponent(noodlComponent) as IListComponent
+  return new ListComponent(noodlComponent) as IList
 }
 
 describe('ListComponent', () => {
