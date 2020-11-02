@@ -5,8 +5,9 @@ import {
   IComponentConstructor,
   IList,
   IListBlueprint,
+  IListEventId,
+  IListEventObject,
   IListListObject,
-  IListHandleBlueprintProps,
   IListItem,
   ProxiedComponent,
 } from '../../types'
@@ -14,6 +15,7 @@ import { forEachEntries, getRandomKey } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
 import Component from '../Base/Base'
 import ListItemComponent from '../ListItem'
+import { event } from '../../constants'
 
 const log = Logger.create('List')
 
@@ -24,8 +26,16 @@ class List extends Component implements IList {
   #listObject: any[] | null = null
   #iteratorVar: string
   #cb: {
-    created: Function[]
-  } = { created: [] }
+    [event.component.list.ADD_DATA_OBJECT]: Function[]
+    [event.component.list.DELETE_DATA_OBJECT]: Function[]
+    [event.component.list.RETRIEVE_DATA_OBJECT]: Function[]
+    [event.component.list.UPDATE_DATA_OBJECT]: Function[]
+  } = {
+    [event.component.list.ADD_DATA_OBJECT]: [],
+    [event.component.list.DELETE_DATA_OBJECT]: [],
+    [event.component.list.RETRIEVE_DATA_OBJECT]: [],
+    [event.component.list.UPDATE_DATA_OBJECT]: [],
+  }
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -105,25 +115,47 @@ class List extends Component implements IList {
     return _.find(this.#children, fn)
   }
 
-  addDataObject<DataObject = any>(dataObject: DataObject) {
+  addDataObject<DataObject>(dataObject: DataObject) {
     if (!_.isArray(this.#listObject)) this.#listObject = []
     this.#listObject.push(dataObject)
-    return {
+    const result = {
       index: this.#listObject.length - 1,
       dataObject,
     }
+    this.emit(event.component.list.ADD_DATA_OBJECT, result)
+    return result
   }
 
   getDataObject<DataObject>(
-    query: <D extends DataObject>(dataObject: D) => DataObject | undefined,
+    query: <D extends DataObject>(dataObject: D) => boolean,
   ): DataObject | undefined
   getDataObject<DataObject>(index: number): DataObject | undefined
-  getDataObject<DataObject>(index: number) {
-    if (_.isNumber(index)) {
-      return _.isArray(this.#listObject) ? this.#listObject[index] : null
+  getDataObject<DataObject>(
+    index: number | ((dataObject: DataObject) => boolean),
+  ) {
+    // By index
+    if (typeof index === 'number') {
+      const dataObject = _.isArray(this.#listObject)
+        ? this.#listObject[index]
+        : null
+      const result = { index, dataObject }
+      this.emit(event.component.list.RETRIEVE_DATA_OBJECT, result)
+      return result
     }
-    const dataObject = index as DataObject
-    return _.find(this.#listObject, (obj) => obj === dataObject)
+    // By query
+    if (typeof index === 'function') {
+      const query = index
+      if (_.isArray(this.#listObject)) {
+        for (let index = 0; index < this.#listObject.length; index++) {
+          const dataObject = this.#listObject[index]
+          if (query(dataObject)) {
+            const result = { index, dataObject }
+            this.emit(event.component.list.RETRIEVE_DATA_OBJECT, result)
+            return result
+          }
+        }
+      }
+    }
   }
 
   insertDataObject<DataObject = any>(
@@ -269,7 +301,7 @@ class List extends Component implements IList {
   }
 
   on<E extends string = 'create.list.item'>(
-    event: E,
+    eventName: E,
     cb: (opts: { hello: [] }) => void,
   ): this
   on(eventName: string, cb: Function) {
@@ -306,9 +338,19 @@ class List extends Component implements IList {
   }
 
   // TODO - finish this
-  emit<E extends 'listObject'>(eventName: E | string, ...args: any[]) {
+  emit<DataObject>(
+    eventName: IListEventObject['ADD_DATA_OBJECT'],
+    result: { index: number; dataObject: DataObject },
+  ): this
+  emit(eventName: IListEventObject['DELETE_DATA_OBJECT']): this
+  emit<DataObject>(
+    eventName: IListEventObject['RETRIEVE_DATA_OBJECT'],
+    dataObject: DataObject,
+  ): DataObject
+  emit(eventName: IListEventObject['UPDATE_DATA_OBJECT']): this
+  emit<Args extends any[]>(eventName: IListEventId, ...args: Args) {
     if (eventName in this.#cb) {
-      _.forEach(this.#cb[eventName as E], (cb) => cb(...args))
+      _.forEach(this.#cb[eventName], (cb) => cb(...args))
     } else {
       // TODO emit in Component
     }

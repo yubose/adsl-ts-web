@@ -108,6 +108,14 @@ export const event = {
   IComponent: {
     RESOLVED: 'resolved',
   },
+  component: {
+    list: {
+      ADD_DATA_OBJECT: 'add.data.object',
+      DELETE_DATA_OBJECT: 'delete.data.object',
+      RETRIEVE_DATA_OBJECT: 'retrieve.data.object',
+      UPDATE_DATA_OBJECT: 'update.data.object',
+    },
+  },
 } as const
 
 /** { textAlign: '' } */

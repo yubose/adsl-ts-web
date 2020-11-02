@@ -8,7 +8,6 @@ import {
   event,
   eventTypes,
 } from './constants'
-import Component from 'components/Base'
 
 export interface INOODLUi {
   assetsUrl: string
@@ -212,8 +211,10 @@ export interface IList extends IComponent {
   listObject: any[] | null
   length: number
   getBlueprint(): IListBlueprint
-  emit(event: 'blueprint', args: IListHandleBlueprintProps): this
-  emit(event: 'data', args: any): this
+  emit<E extends IListEventId[number], Args extends any[]>(
+    event: E,
+    ...args: Args
+  ): this
 }
 
 export type IListListObject = ReturnType<IList['getData']>
@@ -506,6 +507,9 @@ export type ActionChainEventAlias = keyof typeof event.actionChain
 export type ActionChainEventId = typeof event.actionChain[ActionChainEventAlias]
 export type IComponentEventAlias = keyof typeof event.IComponent
 export type IComponentEventId = typeof event.IComponent[IComponentEventAlias]
+export type IListEventObject = typeof event.component.list
+export type IListEventAlias = keyof IListEventObject
+export type IListEventId = IListEventObject[IListEventAlias]
 export type EventId = ActionEventId | ActionChainEventId | IComponentEventId
 
 /* -------------------------------------------------------
