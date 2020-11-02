@@ -1,16 +1,11 @@
 import _ from 'lodash'
-import chalk from 'chalk'
 import { expect } from 'chai'
 import { forEachDeepChildren } from '../utils/noodl'
 import { mock } from './mockData'
 import Component from '../components/Base/Base'
 import ListItemComponent from '../components/ListItem/ListItem'
 import List from '../components/List/List'
-import { IComponentType, IList, NOODLComponent } from '../types'
-
-function generateListComponent(noodlComponent: IComponentType) {
-  return new List(noodlComponent) as IList
-}
+import { IComponent } from 'types'
 
 describe('List', () => {
   describe('initiation', () => {
@@ -106,7 +101,7 @@ describe('List', () => {
     })
   })
 
-  xit('should add the child to list state only if its a listItem child', () => {
+  it('should add the child to list state only if its a listItem child', () => {
     const component = new List()
     const child1 = component.createChild(new ListItemComponent())
     const child2 = component.createChild(new Component({ type: 'view' }))
@@ -114,10 +109,10 @@ describe('List', () => {
     expect(component.exists(child2)).to.be.false
   })
 
-  xit('should still add the child to the base state if its not a listItem child', () => {
+  it('should still add the child to the base state if its not a listItem child', () => {
     const component = new List()
     const child = component.createChild(new Component({ type: 'view' }))
-    expect(component.has(child)).to.be.false
+    expect(component.has(child as IComponent)).to.be.false
     expect(component.child()).to.equal(child)
   })
 
@@ -128,7 +123,7 @@ describe('List', () => {
       component.set('iteratorVar', 'apple')
       listData.forEach((dataObject) => {
         const child = component.createChild(new ListItemComponent())
-        child.set(component.iteratorVar, dataObject)
+        child?.set(component.iteratorVar, dataObject)
       })
     })
 

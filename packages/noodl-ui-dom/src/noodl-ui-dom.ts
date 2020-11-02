@@ -1,10 +1,11 @@
 import Logger from 'logsnap'
-import { IComponentTypeInstance } from 'noodl-ui'
+import { IComponentTypeInstance, NOODLComponentType } from 'noodl-ui'
 import {
   componentEventMap,
   componentEventIds,
   componentEventTypes,
 } from './constants'
+import handleList from './componentHandlers/list'
 import * as T from './types'
 
 class NOODLUIDOM implements T.INOODLUiDOM {
@@ -33,9 +34,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     let node: T.NOODLDOMElement | undefined
 
     if (component) {
-      const snapshot = component.toJS()
-
-      let { type = '', noodlType = '' } = snapshot
+      const { type = '', noodlType = '' } = component.get(['type', 'noodlType'])
 
       if (type) {
         if (noodlType === 'plugin') {
@@ -46,6 +45,32 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           this.emit('create.plugin', null, component)
         } else {
           node = document.createElement(type)
+
+          switch (noodlType as NOODLComponentType) {
+            case 'br':
+            case 'button':
+            case 'date':
+            case 'dateSelect':
+            case 'divider':
+            case 'footer':
+            case 'header':
+            case 'image':
+            case 'label':
+            case 'list':
+              return handleList(node, component, { container })
+            case 'listItem':
+            case 'plugin':
+            case 'popUp':
+            case 'searchBar':
+            case 'select':
+            case 'scrollView':
+            case 'textField':
+            case 'textView':
+            case 'video':
+            case 'view':
+            default:
+              break
+          }
         }
       }
 

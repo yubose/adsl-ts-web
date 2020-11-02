@@ -3,14 +3,12 @@ import Component from '../Base'
 import {
   IComponent,
   IComponentConstructor,
-  IListItemChildComponent,
+  IListItemChild,
   IListItem,
   IComponentTypeInstance,
 } from '../../types'
 
-class ListItemChildComponent
-  extends Component
-  implements IListItemChildComponent {
+class ListItemChildComponent extends Component implements IListItemChild {
   #listId: string = ''
   #iteratorVar: string = ''
 

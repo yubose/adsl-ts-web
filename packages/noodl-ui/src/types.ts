@@ -67,18 +67,18 @@ export type IComponentConstructor = new (
 ) => IComponentTypeInstance
 
 export interface IComponent {
-  action: NOODLActionObject
   id: string
+  type: NOODLComponentType
+  noodlType: NOODLComponentType
+  style: NOODLStyle
+  action: NOODLActionObject
   length: number
   original: NOODLComponent | NOODLComponentProps | ProxiedComponent
   status: 'drafting' | 'idle' | 'idle/resolved'
   stylesTouched: string[]
   stylesUntouched: string[]
-  style: NOODLStyle
   touched: string[]
   untouched: string[]
-  type: NOODLComponentType
-  noodlType: NOODLComponentType
   assign(
     key: string | { [key: string]: any },
     value?: { [key: string]: any },
@@ -100,14 +100,10 @@ export interface IComponent {
   removeChild(): IComponentTypeInstance | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
-  get<K extends keyof ProxiedComponent>(
-    key: K,
+  get<K extends keyof (ProxiedComponent | NOODLComponentProps)>(
+    key: K | K[],
     styleKey?: keyof NOODLStyle,
-  ): ProxiedComponent[K]
-  get<K extends keyof ProxiedComponent>(
-    key: K[],
-    styleKey?: keyof NOODLStyle,
-  ): Record<K, ProxiedComponent[K]>
+  ): ProxiedComponent[K] | Record<K, ProxiedComponent[K]>
   getStyle<K extends keyof NOODLStyle>(styleKey: K): NOODLStyle[K]
   has(key: string, styleKey?: keyof NOODLStyle): boolean
   hasParent(): boolean
@@ -123,7 +119,7 @@ export interface IComponent {
   parent(): IComponentTypeInstance | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
-  set<K extends keyof ProxiedComponent = keyof ProxiedComponent>(
+  set<K extends keyof (ProxiedComponent | NOODLComponentProps) = string>(
     key: K,
     value?: any,
     styleChanges?: any,
@@ -163,7 +159,7 @@ export type IComponentTypeInstance =
   | IComponent
   | IList
   | IListItem
-  | IListItemChildComponent
+  | IListItemChild
 
 export type IComponentTypeObject =
   | NOODLComponent
@@ -174,10 +170,37 @@ export interface IList extends IComponent {
   noodlType: 'list'
   exists(childId: string): boolean
   exists(child: IListItem): boolean
-  find(childId: string): IListItem | undefined
-  find(child: IListItem): IListItem | undefined
+  find(child: string | number | IListItem): IListItem | undefined
   getBlueprint(): IListBlueprint
   getData(opts?: { fromNodes?: boolean }): any[] | null
+  addDataObject<DataObject = any>(
+    dataObject: DataObject,
+  ): {
+    index: number
+    dataObject: DataObject
+  }
+  getDataObject<DataObject = any>(
+    index: number | Function,
+  ): {
+    index: number | null
+    dataObject: DataObject | undefined
+  }
+  insertDataObject<DataObject = any>(
+    dataObject: DataObject | null,
+    index: number,
+  ): { index: number | null; dataObject: DataObject }
+  removeDataObject<DataObject = any>(
+    dataObject: number | DataObject | Function,
+  ): {
+    index: number | null
+    dataObject: DataObject | null
+  }
+  setDataObject<DataObject = any>(
+    index: number | DataObject | Function,
+  ): {
+    index: number
+    dataObject: DataObject
+  }
   // getDataObject(index: number): any
   // getDataObject(childId: string): any
   // getDataObject(child: IComponent): any
@@ -222,13 +245,13 @@ export interface IListItem<T extends NOODLComponentType = 'listItem'>
   setDataObject<T>(data: T): this
 }
 
-export interface IListItemChildComponent extends IComponent {
+export interface IListItemChild extends IComponent {
   iteratorVar: string
   listId: string
   isListConsumer: boolean
   createChild(
     ...args: Parameters<IComponent['createChild']>
-  ): IListItemChildComponent | undefined
+  ): IListItemChild | undefined
 }
 
 export interface IResolver {

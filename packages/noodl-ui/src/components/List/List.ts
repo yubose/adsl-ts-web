@@ -79,13 +79,14 @@ class List extends Component implements IList {
    * Returns true if the child exists in the list of list items
    * @param { string | ListItemComponent } child
    */
+  exists(id: string): boolean
+  exists(child: IListItem): boolean
   exists(child: string | IListItem) {
-    return (
-      !!child &&
-      !!(child instanceof ListItemComponent
-        ? this.#children.includes(child as IListItem)
-        : this.find(child))
-    )
+    if (child) {
+      if (_.isString(child)) return this.find(child)
+      else return this.#children.includes(child)
+    }
+    return false
   }
 
   /**
@@ -93,6 +94,9 @@ class List extends Component implements IList {
    * instance if found, otherwise it returns undefined
    * @param { string | ListItemComponent } child
    */
+  find(id: string): IListItem | undefined
+  find(index: number): IListItem | undefined
+  find(inst: IListItem): IListItem | undefined
   find(child: string | number | IListItem) {
     if (typeof child === 'number') return this.#children[child]
     const fn = _.isString(child)
@@ -101,12 +105,91 @@ class List extends Component implements IList {
     return _.find(this.#children, fn)
   }
 
+  addDataObject<DataObject = any>(dataObject: DataObject) {
+    if (!_.isArray(this.#listObject)) this.#listObject = []
+    this.#listObject.push(dataObject)
+    return {
+      index: this.#listObject.length - 1,
+      dataObject,
+    }
+  }
+
+  getDataObject<DataObject>(
+    query: <D extends DataObject>(dataObject: D) => DataObject | undefined,
+  ): DataObject | undefined
+  getDataObject<DataObject>(index: number): DataObject | undefined
+  getDataObject<DataObject>(index: number) {
+    if (_.isNumber(index)) {
+      return _.isArray(this.#listObject) ? this.#listObject[index] : null
+    }
+    const dataObject = index as DataObject
+    return _.find(this.#listObject, (obj) => obj === dataObject)
+  }
+
+  insertDataObject<DataObject = any>(
+    dataObject: DataObject | null,
+    index: number,
+  ) {}
+
+  removeDataObject<DataObject = any>() {
+    return this
+  }
+
+  setDataObject<DataObject = any>() {
+    return this
+  }
+
   getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {
     return (
       (fromNodes
         ? this.#children.map((c) => c.get(this.iteratorVar))
         : this.#listObject) || null
     )
+  }
+
+  /**
+   * Since listItem components (rows) are not explicity written in the NOODL and
+   * gives the responsibility for populating its data to the platforms, this means
+   * we need a blueprint to render how the list items will be structured.
+   * This function returns that structure
+   */
+  getBlueprint(): IListBlueprint {
+    let blueprint: IListBlueprint | undefined
+    let originalChildren: ProxiedComponent | undefined
+
+    const commonProps = {
+      listId: this.listId,
+      iteratorVar: this.iteratorVar,
+    }
+
+    if (_.isObject(this.original)) {
+      if (_.isArray(this.original.children)) {
+        const targetChild = this.original.children[0]
+        originalChildren = _.isObject(targetChild)
+          ? targetChild
+          : _.isString(targetChild)
+          ? { type: targetChild }
+          : { type: 'listItem' }
+      } else if (_.isObject(this.original.children)) {
+        originalChildren = this.original.children
+      }
+    } else if (_.isString(this.original)) {
+      originalChildren = { type: this.original }
+    }
+
+    blueprint = {
+      ...originalChildren,
+      ...commonProps,
+      style: { ...originalChildren?.style },
+    }
+
+    if (blueprint.children) {
+      forEachDeepChildren(blueprint, _.partialRight(_.assign, commonProps))
+    }
+
+    if ('id' in blueprint) delete blueprint.id
+
+    return blueprint
   }
 
   // getDataObject(index: number): any
@@ -174,7 +257,6 @@ class List extends Component implements IList {
         blueprint: this.#blueprint,
         nodes: this.#children,
       })
-      this.emit('blueprint', this.#getBlueprintHandlerArgs(listObject))
       this.emit('update', this.#getUpdateHandlerArgs(listObject))
       return this
     } else if (key === 'listId') {
@@ -224,10 +306,7 @@ class List extends Component implements IList {
   }
 
   // TODO - finish this
-  emit<E extends 'blueprint' | 'data' | 'update'>(
-    eventName: E | string,
-    ...args: any[]
-  ) {
+  emit<E extends 'listObject'>(eventName: E | string, ...args: any[]) {
     if (eventName in this.#cb) {
       _.forEach(this.#cb[eventName as E], (cb) => cb(...args))
     } else {
@@ -236,80 +315,13 @@ class List extends Component implements IList {
     return this
   }
 
-  /**
-   * Since listItem components (rows) are not explicity written in the NOODL and
-   * gives the responsibility for populating its data to the platforms, this means
-   * we need a blueprint to render how the list items will be structured.
-   * This function returns that structure
-   */
-  getBlueprint(): IListBlueprint {
-    let blueprint: IListBlueprint | undefined
-    let originalChildren: ProxiedComponent | undefined
-
-    const commonProps = {
-      listId: this.listId,
-      iteratorVar: this.iteratorVar,
-    }
-
-    if (_.isObject(this.original)) {
-      if (_.isArray(this.original.children)) {
-        const targetChild = this.original.children[0]
-        originalChildren = _.isObject(targetChild)
-          ? targetChild
-          : _.isString(targetChild)
-          ? { type: targetChild }
-          : { type: 'listItem' }
-      } else if (_.isObject(this.original.children)) {
-        originalChildren = this.original.children
-      }
-    } else if (_.isString(this.original)) {
-      originalChildren = { type: this.original }
-    }
-
-    blueprint = {
-      ...originalChildren,
-      ...commonProps,
-      style: { ...originalChildren?.style },
-    }
-
-    if (blueprint.children) {
-      forEachDeepChildren(blueprint, _.partialRight(_.assign, commonProps))
-    }
-
-    if ('id' in blueprint) delete blueprint.id
-
-    return blueprint
-  }
-
-  #getBlueprintHandlerArgs = (listObject: IListListObject) =>
-    ({
-      baseBlueprint: this.#getDefaultBlueprint(listObject),
-      currentBlueprint: this.#blueprint,
-      iteratorVar: this.iteratorVar,
-      listObject,
-      nodes: this.#children,
-      raw: super.child()?.original || this.#getDefaultBlueprint(listObject),
-      merge: this.mergeBlueprint,
-      replace: this.replaceBlueprint,
-      reset: this.resetBlueprint,
-    } as IListHandleBlueprintProps)
-
-  #getDefaultBlueprint = (
-    listObject: IListListObject,
-  ): Partial<ProxiedComponent> => {
-    if (!listObject) return { type: 'listItem' }
-    const dataObject = listObject?.[0] || {}
-    dataObject['iteratorVar'] = this.iteratorVar
-    return dataObject
-  }
-
   #getUpdateHandlerArgs = (listObject: IListListObject) =>
     ({
       blueprint: this.#blueprint,
       iteratorVar: this.iteratorVar,
       listObject,
       nodes: this.#children,
-    } as IListUpdateProps)
+    } as any)
 }
 
 export default List

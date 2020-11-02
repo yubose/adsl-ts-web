@@ -1,8 +1,10 @@
+// !NOTE - Internal resolvers are on halt for now
+// @ts-nocheck
+
 import _ from 'lodash'
-import { NOODLComponentType, IComponentTypeInstance } from '../../types'
+import { IComponentTypeInstance } from '../../types'
 import { isTextBoardComponent } from 'noodl-utils'
 import Resolver from '../../Resolver'
-import handleList from './handleList'
 import handleTextBoard from './handleTextBoard'
 
 /**
@@ -23,8 +25,6 @@ _internalResolvers.internal = true
 // TODO - composed approach with transducers / multiple wrappers
 function _getHandler(component: IComponentTypeInstance) {
   switch (component.noodlType) {
-    case 'list':
-      return handleList
     default:
       break
   }

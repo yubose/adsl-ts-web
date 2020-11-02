@@ -50,7 +50,11 @@ class Component implements IComponent {
     const keys =
       component instanceof Component ? component.keys : _.keys(component)
     this['original'] =
-      component instanceof Component ? component.original : component
+      component instanceof Component
+        ? component.original
+        : _.isString(component)
+        ? { noodlType: component }
+        : component
     this['keys'] = keys
     this['untouched'] = keys.slice()
     this['unhandled'] = keys.slice()
@@ -70,16 +74,18 @@ class Component implements IComponent {
 
     if (!this.#component.style) this.#component['style'] = {}
 
-    if (_.isPlainObject(component.style)) {
-      const styleKeys = _.keys(component.style)
+    if (_.isPlainObject(this.original.style)) {
+      const { style } = this.original
+      const styleKeys = _.keys(style)
       this.#stylesUnhandled = styleKeys
       this['stylesUntouched'] = styleKeys.slice()
     }
 
     // Immer proxies these actions objects. Since we need this to be
-    // in its original form, we will current these back to the original
+    // in its original form, we will convert these back to the original form
     _.forEach(eventTypes, (eventType) => {
       if (component[eventType]) {
+        // TODO - Find out more about how our code is using this around the app
         this.action[eventType] = isDraft(component[eventType])
           ? original(component[eventType])
           : component[eventType]
@@ -93,39 +99,37 @@ class Component implements IComponent {
    * using styleKey if key === 'style'
    * @param { string } key - Component property or "style" if using styleKey for style lookups
    */
-  get<K extends keyof ProxiedComponent>(
+  get<K extends keyof (ProxiedComponent | NOODLComponentProps)>(
     key: K,
     styleKey?: keyof NOODLStyle,
   ): ProxiedComponent[K]
-  get<K extends keyof ProxiedComponent>(
+  get<K extends keyof (ProxiedComponent | NOODLComponentProps)>(
     key: K[],
     styleKey?: keyof NOODLStyle,
   ): Record<K, ProxiedComponent[K]>
-  get<K extends keyof ProxiedComponent>(
+  get<K extends keyof (ProxiedComponent | NOODLComponentProps)>(
     key: K | K[],
     styleKey?: keyof NOODLStyle,
   ): ProxiedComponent[K] | Record<K, ProxiedComponent[K]> {
-    let value: any
-
+    // component.get('someKey')
     if (_.isString(key)) {
-      value = this.#retrieve(key, styleKey)
-    } else if (_.isArray(key)) {
-      value = {}
-      _.forEach(key, (k) => {
-        value[k] = this.#retrieve(k)
-      })
+      // Returns the original type
+      // TODO - Change this to return the current type, since component.get('noodlType')
+      // now returns the original noodl component type
+      if (key === 'type') return this.original.type
+      const value = this.#retrieve(key, styleKey)
+      return (isDraft(value) ? original(value) : value) as ProxiedComponent[K]
     }
-
-    // Return the original original type
-    if (key === 'type') {
-      return this.original.type
+    // component.get(['someKey', 'someOtherKey'])
+    else if (_.isArray(key)) {
+      const value = {} as Record<K, ProxiedComponent[K]>
+      _.forEach(key, (k) => (value[k] = this.#retrieve(k)))
+      return value
     }
-
-    return isDraft(value) ? original(value) : value
   }
 
   /** Used by this.get */
-  #retrieve = <K extends keyof ProxiedComponent>(
+  #retrieve = <K extends keyof (ProxiedComponent | NOODLComponentProps)>(
     key: K,
     styleKey?: keyof NOODLStyle,
   ) => {
@@ -134,18 +138,18 @@ class Component implements IComponent {
     if (key === 'style') {
       // Retrieve the entire style object
       if (styleKey === undefined) {
-        this.touch('style')
+        if (this.status !== 'drafting') this.touch('style')
         value = isDraft(this.original.style)
           ? original(this.original.style)
           : this.original.style
       }
       // Retrieve a property of the style object
       else if (_.isString(styleKey)) {
-        this.touchStyle(styleKey)
+        if (this.status !== 'drafting') this.touchStyle(styleKey)
         value = this.original.style?.[styleKey]
       }
     } else {
-      this.touch(key as string)
+      if (this.status !== 'drafting') this.touch(key as string)
       // Return the original type only for this case
       if (key === 'type') {
         value = this.original.type
@@ -167,17 +171,23 @@ class Component implements IComponent {
    * @param { any? } value - Value to update key, or styleKey to update the style object if key === 'style'
    * @param { any? } styleChanges - Value to set on a style object if key === 'style'
    */
-  set(key: string, value?: any, styleChanges?: any) {
+  set(
+    key: keyof (ProxiedComponent | NOODLComponentProps),
+    value?: any,
+    styleChanges?: any,
+  ) {
     if (key === 'style') {
       if (this.#component.style) {
         this.#component.style[value] = styleChanges
-        if (!this.isHandled('style')) this.#setHandledKey('style')
+        if (this.status !== 'drafting' && !this.isHandled('style')) {
+          this.#setHandledKey('style')
+        }
         this.#setHandledStyleKey(value)
       }
     } else {
       if (value) {
         this.#component[key] = value
-        this.#setHandledKey(key)
+        if (this.status !== 'drafting') this.#setHandledKey(key as string)
       }
     }
     return this
@@ -596,8 +606,7 @@ class Component implements IComponent {
     return this.#children?.length || 0
   }
 
-  on(eventName: IComponentEventId, cb: Function): this
-  on(eventName: string, cb: Function) {
+  on<K extends string = IComponentEventId>(eventName: K, cb: Function) {
     if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
     this.#cb[eventName].push(cb)
     return this

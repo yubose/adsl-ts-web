@@ -19,7 +19,6 @@ import {
   hasLetter,
 } from './utils/common'
 import createComponent from './utils/createComponent'
-import _internalResolvers from './resolvers/_internal'
 import ActionChain from './ActionChain/ActionChain'
 import isReference from './utils/isReference'
 import * as T from './types'
@@ -47,7 +46,7 @@ class NOODL implements T.INOODLUi {
   }
   #page: T.Page = { name: '', object: null }
   #parser: T.RootsParser
-  #resolvers: Resolver[] = [_internalResolvers]
+  #resolvers: Resolver[] = []
   #root: { [key: string]: any } = {}
   #state: T.INOODLUiState
   #viewport: T.IViewport
