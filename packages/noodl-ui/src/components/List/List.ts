@@ -7,11 +7,11 @@ import {
   IListBlueprint,
   IListListObject,
   IListHandleBlueprintProps,
-  IListUpdateProps,
   IListItem,
   ProxiedComponent,
 } from '../../types'
-import { getRandomKey } from '../../utils/common'
+import { forEachEntries, getRandomKey } from '../../utils/common'
+import { forEachDeepChildren } from '../../utils/noodl'
 import Component from '../Base/Base'
 import ListItemComponent from '../ListItem'
 
@@ -24,10 +24,8 @@ class List extends Component implements IList {
   #listObject: any[] | null = null
   #iteratorVar: string
   #cb: {
-    blueprint: Function[]
-    data: Function[]
-    update: Function[]
-  } = { blueprint: [], data: [], update: [] }
+    created: Function[]
+  } = { created: [] }
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -40,9 +38,9 @@ class List extends Component implements IList {
     // These initial values will be set once in the prototype.
     // When we use .set, we will intercept the call and set them
     // on this instance instead
-    this.#listObject = super.get('listObject') as any
-    this.#listId = super.get('listId') as string
-    this.#iteratorVar = super.get('iteratorVar') as string
+    this.#listObject = this.get('listObject') as any
+    this.#listId = getRandomKey()
+    this.#iteratorVar = this.get('iteratorVar') as string
 
     // Set the blueprint
     // TODO - a more official way
@@ -63,20 +61,14 @@ class List extends Component implements IList {
         // this.createChild(child)
       }
     }
-
-    this.#listId = getRandomKey()
   }
 
   get iteratorVar() {
-    return super.get('iteratorVar') || ''
+    return this.#iteratorVar || ''
   }
 
   get listId() {
-    return this.#listId
-  }
-
-  get listObject() {
-    return this.#listObject
+    return this.#listId || ''
   }
 
   get length() {
@@ -143,7 +135,7 @@ class List extends Component implements IList {
   createChild(...args: Parameters<IComponent['createChild']>) {
     const child = super.createChild(...args)
     if (child?.noodlType === 'listItem') {
-      _.forEach(Object.entries(this.getBlueprint()), ([key, value]) => {
+      forEachEntries(this.getBlueprint(), (key, value) => {
         child.set(key, value)
       })
       this.#children.push(child as IListItem)
@@ -194,18 +186,19 @@ class List extends Component implements IList {
     return this
   }
 
-  on<E extends 'blueprint' | 'data' | 'update'>(
-    eventName: E | string,
-    cb: Function,
-  ) {
+  on<E extends string = 'create.list.item'>(
+    event: E,
+    cb: (opts: { hello: [] }) => void,
+  ): this
+  on(eventName: string, cb: Function) {
     if (eventName in this.#cb) {
-      if (this.#cb[eventName as E].includes(cb)) {
+      if (this.#cb[eventName].includes(cb)) {
         log.func('on("blueprint")')
         log.red(
           'Attempted to add a duplicate callback. The duplicate was not added',
         )
       } else {
-        this.#cb[eventName as E].push(cb)
+        this.#cb[eventName].push(cb)
       }
     } else {
       super.on(eventName as Parameters<IComponent['on']>[0], cb)
@@ -243,48 +236,48 @@ class List extends Component implements IList {
     return this
   }
 
-  mergeBlueprint(blueprint: Partial<IListBlueprint>) {
-    this.#blueprint = {
-      ...this.#blueprint,
-      ...blueprint,
-    }
-    return this.#blueprint
-  }
-
-  replaceBlueprint(blueprint: Partial<IListBlueprint>) {
-    this.#blueprint = blueprint
-    return this.#blueprint
-  }
-
-  resetBlueprint() {
-    this.#blueprint = this.#getDefaultBlueprint(this.#listObject)
-    return this.#blueprint
-  }
-
   /**
    * Since listItem components (rows) are not explicity written in the NOODL and
    * gives the responsibility for populating its data to the platforms, this means
    * we need a blueprint to render how the list items will be structured.
    * This function returns that structure
    */
-  getBlueprint() {
-    let blueprint: Partial<IListBlueprint> | undefined
-    if (this.length) {
-      const child = this.child()
-      blueprint = _.assign(child.toJS(), { children: child.children() })
-    } else if (_.isObject(this.original)) {
-      const noodlChildren = this.original.children
-      if (_.isArray(noodlChildren)) {
-        blueprint = noodlChildren[0]
-      } else if (_.isObject(noodlChildren)) {
-        blueprint = noodlChildren
-      }
-    }
-    blueprint = {
-      ...blueprint,
+  getBlueprint(): IListBlueprint {
+    let blueprint: IListBlueprint | undefined
+    let originalChildren: ProxiedComponent | undefined
+
+    const commonProps = {
       listId: this.listId,
-      iteratorVar: this.#iteratorVar,
+      iteratorVar: this.iteratorVar,
     }
+
+    if (_.isObject(this.original)) {
+      if (_.isArray(this.original.children)) {
+        const targetChild = this.original.children[0]
+        originalChildren = _.isObject(targetChild)
+          ? targetChild
+          : _.isString(targetChild)
+          ? { type: targetChild }
+          : { type: 'listItem' }
+      } else if (_.isObject(this.original.children)) {
+        originalChildren = this.original.children
+      }
+    } else if (_.isString(this.original)) {
+      originalChildren = { type: this.original }
+    }
+
+    blueprint = {
+      ...originalChildren,
+      ...commonProps,
+      style: { ...originalChildren?.style },
+    }
+
+    if (blueprint.children) {
+      forEachDeepChildren(blueprint, _.partialRight(_.assign, commonProps))
+    }
+
+    if ('id' in blueprint) delete blueprint.id
+
     return blueprint
   }
 

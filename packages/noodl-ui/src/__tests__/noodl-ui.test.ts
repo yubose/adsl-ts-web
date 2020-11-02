@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { expect } from 'chai'
-import { IComponent, NOODLComponent, UIComponent } from '../types'
+import { IComponent, NOODLComponent, IComponentTypeInstance } from '../types'
 import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
 import ActionChain from '../ActionChain/ActionChain'
@@ -60,7 +60,7 @@ describe('noodl-ui', () => {
   })
 
   it('should set the component node', () => {
-    const component = new Component({ type: 'list' }) as UIComponent
+    const component = new Component({ type: 'list' }) as IComponentTypeInstance
     expect(noodlui.getNode(component)).to.be.null
     noodlui.setNode(component)
     expect(noodlui.getNode(component)).to.equal(component)

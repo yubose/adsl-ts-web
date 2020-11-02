@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import {
-  ComponentType,
+  IComponentType,
   IComponent,
   IComponentConstructor,
   NOODLComponentProps,
@@ -21,11 +21,11 @@ function createComponent(
   options?: ConstructorParameters<IComponentConstructor>,
 ): IComponent
 function createComponent(
-  props: ComponentType,
+  props: IComponentType,
   options?: ConstructorParameters<IComponentConstructor>,
 ): IComponent
 function createComponent(
-  props: ComponentType | NOODLComponentType,
+  props: IComponentType | NOODLComponentType,
   options?: ConstructorParameters<IComponentConstructor>,
 ) {
   let noodlType: NOODLComponentType

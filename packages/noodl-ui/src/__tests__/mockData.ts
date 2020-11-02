@@ -12,7 +12,7 @@ export const mock = (function () {
 
   const raw = (function () {
     const o = {
-      getNOODLButton() {
+      getNOODLButton(props?: any) {
         return {
           type: 'button',
           onClick: [
@@ -35,9 +35,10 @@ export const mock = (function () {
             textAlign: { x: 'center' },
             border: { style: '1' },
           },
+          ...props,
         }
       },
-      getNOODLLabel1() {
+      getNOODLLabel1(props?: any) {
         return {
           type: 'label',
           text: 'J',
@@ -47,22 +48,25 @@ export const mock = (function () {
             display: 'inline',
             textAlign: { x: 'center', y: 'center' },
           },
+          ...props,
         }
       },
-      getNOODLLabel2() {
+      getNOODLLabel2(props?: any) {
         return {
           type: 'label',
           dataKey: 'itemObject.name.firstName',
           text: 'John',
           style: { left: '0.25' },
+          ...props,
         }
       },
-      getNOODLLabel3() {
+      getNOODLLabel3(props?: any) {
         return {
           type: 'label',
           dataKey: 'itemObject.name.lastName',
           text: 'Smith',
           style: { color: '0x000000ff' },
+          ...props,
         }
       },
       getNOODLList({
@@ -97,17 +101,26 @@ export const mock = (function () {
             o.getNOODLLabel1(),
             o.getNOODLLabel2(),
             o.getNOODLLabel3(),
+            o.getNOODLView({
+              children: [
+                o.getNOODLView({
+                  children: [o.getNOODLView({ children: [o.getNOODLView()] })],
+                }),
+              ],
+            }),
             o.getNOODLButton(),
           ],
           ...rest,
         } as NOODLComponent
       },
-      getNOODLView() {
+      getNOODLView(props?: any) {
         return {
           type: 'view',
           viewTag: 'subStream',
           required: false,
           style: { fontStyle: 'bold', height: '0.15', borderRadius: '5' },
+          children: [o.getNOODLLabel1()],
+          ...props,
         }
       },
     }

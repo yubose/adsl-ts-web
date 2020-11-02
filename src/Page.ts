@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import {
-  ComponentType,
+  IComponentType,
   IComponent,
   NOODLComponent,
   NOODLComponentProps,
@@ -294,7 +294,7 @@ class Page {
    * them to the DOM
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
    */
-  public render(rawComponents: ComponentType | ComponentType[]) {
+  public render(rawComponents: IComponentType | IComponentType[]) {
     let components: IComponent[]
     let resolved = noodlui.resolveComponents(rawComponents)
     components = _.isArray(resolved) ? resolved : [resolved]

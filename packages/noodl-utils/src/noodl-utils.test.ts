@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+import sinon from 'sinon'
 import * as n from '.'
 
 describe('isAction', () => {

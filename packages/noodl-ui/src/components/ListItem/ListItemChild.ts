@@ -5,7 +5,7 @@ import {
   IComponentConstructor,
   IListItemChildComponent,
   IListItem,
-  UIComponent,
+  IComponentTypeInstance,
 } from '../../types'
 
 class ListItemChildComponent
@@ -46,7 +46,7 @@ class ListItemChildComponent
   }
 
   getDataObject() {
-    let parent: UIComponent | null = super.parent()
+    let parent: IComponentTypeInstance | null = super.parent()
 
     while (parent) {
       if (parent?.noodlType === 'listItem') {

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import getChildProps from '../getChildProps'
 import {
-  ComponentType,
+  IComponentType,
   IComponent,
   ConsumerOptions,
   ResolverOptions,
@@ -18,7 +18,7 @@ function getChildrenDefault(
   const children = component.children()
 
   if (_.isArray(noodlChildren)) {
-    _.forEach(noodlChildren, (noodlChild: ComponentType, index: number) =>
+    _.forEach(noodlChildren, (noodlChild: IComponentType, index: number) =>
       component.createChild(
         resolveComponent(
           getChildProps(component, noodlChild, index, mergingArgs),

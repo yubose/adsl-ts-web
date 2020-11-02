@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { findChild, findParent } from 'noodl-utils'
-import { IComponent, IList, UIComponent } from '../types'
+import { IComponent, IList, IComponentTypeInstance } from '../types'
 import ListComponent from '../components/List/List'
 import ListItemComponent from '../components/ListItem/ListItem'
 import Component from '../components/Base/Base'
@@ -9,11 +9,11 @@ import Component from '../components/Base/Base'
  * Uses the value given to find a list corresponding to its relation.
  * Supports component id / instance
  * @param { Map } lists - Map of lists
- * @param { string | UIComponent } component - Component id or instance
+ * @param { string | IComponentTypeInstance } component - Component id or instance
  */
 function findList(
   lists: Map<IList, IList>,
-  component: string | UIComponent,
+  component: string | IComponentTypeInstance,
 ): any[] | null {
   let result: any[] | null = null
 

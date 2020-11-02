@@ -4,11 +4,11 @@ import { createDraft, isDraft, finishDraft, original, current } from 'immer'
 import Logger from 'logsnap'
 import { eventTypes } from '../../constants'
 import {
-  ComponentType,
   IComponent,
+  IComponentType,
+  IComponentTypeObject,
   IComponentEventId,
   NOODLActionObject,
-  NOODLComponent,
   NOODLComponentProps,
   NOODLComponentType,
   NOODLStyle,
@@ -33,7 +33,7 @@ class Component implements IComponent {
   #stylesUnhandled: string[] = []
   action: NOODLActionObject = {} as NOODLActionObject
   context: { [key: string]: any } = {}
-  original: NOODLComponent | ProxiedComponent | NOODLComponentProps | string
+  original: IComponentTypeObject
   resolved: boolean = false
   keys: string[]
   handled: string[] = []
@@ -44,8 +44,8 @@ class Component implements IComponent {
   stylesUntouched: string[] = []
 
   constructor(
-    component: ComponentType,
-    { parent }: { parent?: ComponentType } = {},
+    component: IComponentType,
+    { parent }: { parent?: IComponentType } = {},
   ) {
     const keys =
       component instanceof Component ? component.keys : _.keys(component)
@@ -519,10 +519,10 @@ class Component implements IComponent {
 
   /**
    * Creates and appends the new child instance to the childrens list
-   * @param { ComponentType | NOODLComponentType } props
+   * @param { IComponentType | NOODLComponentType } props
    */
   createChild(
-    child: ComponentType | NOODLComponentType,
+    child: IComponentType | NOODLComponentType,
   ): IComponent | undefined {
     let childComponent: IComponent
     let id: string = `${this.id}`
@@ -596,7 +596,8 @@ class Component implements IComponent {
     return this.#children?.length || 0
   }
 
-  on(eventName: IComponentEventId, cb: Function) {
+  on(eventName: IComponentEventId, cb: Function): this
+  on(eventName: string, cb: Function) {
     if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
     this.#cb[eventName].push(cb)
     return this

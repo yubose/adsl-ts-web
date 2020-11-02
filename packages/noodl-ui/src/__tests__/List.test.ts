@@ -1,128 +1,66 @@
 import _ from 'lodash'
+import chalk from 'chalk'
 import { expect } from 'chai'
+import { forEachDeepChildren } from '../utils/noodl'
 import { mock } from './mockData'
 import Component from '../components/Base/Base'
-import ListComponent from '../components/List/List'
 import ListItemComponent from '../components/ListItem/ListItem'
-import { ComponentType, IList, NOODLComponent } from '../types'
+import List from '../components/List/List'
+import { IComponentType, IList, NOODLComponent } from '../types'
 
-function generateListComponent(noodlComponent: ComponentType) {
-  return new ListComponent(noodlComponent) as IList
+function generateListComponent(noodlComponent: IComponentType) {
+  return new List(noodlComponent) as IList
 }
 
-describe('ListComponent', () => {
+describe('List', () => {
   describe('initiation', () => {
-    it('should set the list object data', () => {
+    it('should have initiated the listId, listObject and iteratorVar', () => {
       const args = { iteratorVar: 'colorful', listObject: ['fruits'] }
       const noodlComponent = mock.raw.getNOODLList(args)
-      const component = generateListComponent(noodlComponent)
+      const component = new List(noodlComponent)
+      expect(component.listId).to.exist
+      expect(component.iteratorVar).to.equal(args.iteratorVar)
       expect(component.getData()).to.equal(args.listObject)
     })
 
-    it('should set the iteratorVar', () => {
-      const noodlComponent = mock.raw.getNOODLList({ iteratorVar: 'colorful' })
-      const component = generateListComponent(noodlComponent)
-      expect(component.iteratorVar).to.equal(noodlComponent.iteratorVar)
+    it('should have initiated the blueprint using the raw noodl list item component', () => {
+      const noodlComponent = mock.raw.getNOODLList()
+      const { iteratorVar } = noodlComponent
+      const component = new List(noodlComponent)
+      const blueprint = component.getBlueprint()
+      expect(blueprint).to.have.property('listId', component.listId)
+      expect(blueprint).to.have.property('iteratorVar', iteratorVar)
     })
   })
 
-  describe('behavior', () => {
-    xit('should update the blueprint when setting new list data', () => {
-      const mergingArgs = { style: { border: '1px solid red' } }
-      const newListObject = [{ fruits: ['apples'], vegetables: ['tomatoes'] }]
-      const noodlComponent = mock.raw.getNOODLList({ iteratorVar: 'colorful' })
-      const component = generateListComponent(noodlComponent)
-      component.on('blueprint', ({ merge }) => {
-        merge(mergingArgs)
+  describe('blueprint', () => {
+    it('should attach listId and iteratorVar deeply to all children in its family tree', () => {
+      const noodlComponent = mock.raw.getNOODLList()
+      const component = new List(noodlComponent)
+      const blueprint = component.getBlueprint()
+      let count = 0
+      const encounters = [] as any[]
+      forEachDeepChildren(blueprint, (child) => {
+        expect(child.listId).to.equal(component.listId)
+        count++
+        encounters.push(child)
       })
-      component.set('listObject', newListObject)
-      // expect(component.)
-    })
-
-    xit('', () => {
-      const noodlComponent = mock.raw.getNOODLList({ iteratorVar: 'colorful' })
-      const component = generateListComponent(noodlComponent)
-      component.on('data', (args) => {
-        //
-      })
-    })
-
-    xit('', () => {
-      const noodlComponent = mock.raw.getNOODLList({ iteratorVar: 'colorful' })
-      const component = generateListComponent(noodlComponent)
-      component.on('update', (args) => {
-        //
+      expect(encounters.length).to.equal(count)
+      _.forEach(encounters as any, (enc) => {
+        expect(enc.listId).to.equal(blueprint.listId)
       })
     })
   })
 
-  xit('should return the list data (from nodes)', () => {
-    const args = { iteratorVar: 'colorful' }
-    const noodlComponent = mock.raw.getNOODLList(args)
-    const listObject = noodlComponent.listObject
-    const listComponent = new ListComponent(noodlComponent)
-    listObject.forEach((item: any) =>
-      listComponent
-        .createChild('listItem')
-        ?.set(listComponent.iteratorVar, item),
-    )
-    const data = listComponent.getData({ fromNodes: true })
-    expect(data).to.deep.equal(listObject)
-  })
-
-  xit('should return the iteratorVar', () => {
-    const args = { iteratorVar: 'colorful' }
-    const noodlComponent = mock.raw.getNOODLList(args)
-    const listComponent = new ListComponent(noodlComponent)
-    expect(listComponent.iteratorVar).to.equal(noodlComponent.iteratorVar)
-  })
-
-  xit('should update the list data in the state when set is setting a new listObject', () => {
-    const newListData = [{ movies: ['rush hour 3', 'space jam'] }]
-    const args = { iteratorVar: 'colorful' }
-    const noodlComponent = mock.raw.getNOODLList(args)
-    const listComponent = new ListComponent(noodlComponent)
-    expect(listComponent.getData()).not.to.equal(newListData)
-    listComponent.set('listObject', newListData)
-    expect(listComponent.getData()).to.equal(newListData)
-  })
-
-  xit('should automatically add type: list if no args', () => {
-    const component = new ListComponent()
+  it('should automatically add type: list if no args', () => {
+    const component = new List()
     expect(component.type).to.equal('list')
     expect(component.noodlType).to.equal('list')
   })
 
-  describe('blueprint', () => {
-    it('should return the blueprint from the list item if a list item exists', () => {
-      const component = new ListComponent({
-        iteratorVar: 'apple',
-        listObject: [{ age: 18 }, { age: 28 }, { age: 8 }],
-      })
-      const listId = component.listId
-      const listItem1 = component.createChild('listItem')
-      listItem1?.setStyle('borderWidth', '5px').setStyle('fontSize', '14px')
-      listItem1?.createChild('label')?.set('text', 'hello all')
-      listItem1?.createChild('label')?.set('text', 'today is sunday')
-      const blueprint = component.getBlueprint()
-      console.info('BLUEPRINT')
-      console.info(blueprint)
-      console.info('BLUEPRINT')
-      expect(blueprint.style).to.have.property('borderWidth', '5px')
-      expect(blueprint.style).to.have.property('fontSize', '14px')
-      expect(blueprint.children).to.be.an('array')
-      expect(blueprint.children[0].get('text')).to.equal('hello all')
-      expect(blueprint.children[1].get('text')).to.equal('today is sunday')
-      expect(blueprint.children[0].get('listId')).equal(listId)
-      expect(blueprint.children[1].get('listId')).to.equal('today is sunday')
-    })
-
-    xit('should return the blueprint from the raw noodl children child', () => {})
-  })
-
   xdescribe('retrieving dataObjects from list item children', () => {
     it('should be able to retrieve a data object for a list item using the child instance', () => {
-      const component = new ListComponent({ iteratorVar: 'apple' })
+      const component = new List({ iteratorVar: 'apple' })
       const child1 = component.createChild(new ListItemComponent())
       const dataObject = { fruit: 'banana' }
       child1.set(component.iteratorVar, dataObject)
@@ -130,7 +68,7 @@ describe('ListComponent', () => {
     })
 
     it('should be able to retrieve a data object for a list item using the child id', () => {
-      const component = new ListComponent({ iteratorVar: 'apple' })
+      const component = new List({ iteratorVar: 'apple' })
       const child1 = component.createChild(new ListItemComponent())
       const dataObject = { fruit: 'banana' }
       child1.set(component.iteratorVar, dataObject)
@@ -138,7 +76,7 @@ describe('ListComponent', () => {
     })
 
     it('should be able to retrieve a data object for a list item using the index position', () => {
-      const component = new ListComponent({ iteratorVar: 'apple' })
+      const component = new List({ iteratorVar: 'apple' })
       component.createChild(new ListItemComponent())
       const child2 = component.createChild(new ListItemComponent())
       const child3 = component.createChild(new ListItemComponent())
@@ -149,7 +87,7 @@ describe('ListComponent', () => {
     })
 
     it('should return dataObjects from list item children', () => {
-      const list = new ListComponent({ iteratorVar: 'apple' })
+      const list = new List({ iteratorVar: 'apple' })
       const listItem1 = list.createChild(new ListItemComponent())
       const listItem2 = list.createChild(new ListItemComponent())
       const listItem3 = list.createChild(new ListItemComponent())
@@ -169,7 +107,7 @@ describe('ListComponent', () => {
   })
 
   xit('should add the child to list state only if its a listItem child', () => {
-    const component = new ListComponent()
+    const component = new List()
     const child1 = component.createChild(new ListItemComponent())
     const child2 = component.createChild(new Component({ type: 'view' }))
     expect(component.exists(child1)).to.be.true
@@ -177,26 +115,16 @@ describe('ListComponent', () => {
   })
 
   xit('should still add the child to the base state if its not a listItem child', () => {
-    const component = new ListComponent()
+    const component = new List()
     const child = component.createChild(new Component({ type: 'view' }))
     expect(component.has(child)).to.be.false
     expect(component.child()).to.equal(child)
   })
 
-  xdescribe('family tree', () => {
-    it('should be able to reference parent list component instances from children', () => {
-      const component = new ListComponent()
-      const child1 = component.createChild(new ListItemComponent())
-      const child2 = component.createChild(new ListItemComponent())
-      expect(child1.parent()).to.equal(component)
-      expect(child2.parent()).to.equal(component)
-    })
-  })
-
   xdescribe('setting listObject', () => {
     it('should have a data object assign to every child ', () => {
       const listData = mock.other.getNOODLListObject()
-      const component = new ListComponent()
+      const component = new List()
       component.set('iteratorVar', 'apple')
       listData.forEach((dataObject) => {
         const child = component.createChild(new ListItemComponent())

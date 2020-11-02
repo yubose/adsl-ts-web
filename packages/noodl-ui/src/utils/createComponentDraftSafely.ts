@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import { createDraft, isDraft } from 'immer'
 import { WritableDraft } from 'immer/dist/internal'
-import { ComponentType, NOODLComponentType, ProxiedComponent } from '../types'
+import { IComponentType, NOODLComponentType, ProxiedComponent } from '../types'
 
 /**
  * A helper utility to safely create a draft component
- * @param { ComponentType } component - Component type, component instance, or a plain component JS object
+ * @param { IComponentType } component - Component type, component instance, or a plain component JS object
  */
 function createComponentDraftSafely(
-  component: ComponentType,
+  component: IComponentType,
 ): WritableDraft<ProxiedComponent> {
   let value: WritableDraft<ProxiedComponent> | undefined
   let noodlType: NOODLComponentType | undefined

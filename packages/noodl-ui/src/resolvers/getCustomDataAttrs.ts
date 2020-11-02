@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
 import findList from '../utils/findList'
-import { ResolverFn, UIComponent, } from '../types'
+import { ResolverFn, IComponentTypeInstance } from '../types'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -14,7 +14,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
   const { context, showDataKey, getNode, getNodes, parser } = options
   const { page } = context
 
-  let parent: UIComponent
+  let parent: IComponentTypeInstance
 
   const { type, contentType = '', dataKey, parentId, viewTag } = component.get([
     'type',
@@ -23,7 +23,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     'parentId',
     'viewTag',
   ])
-
 
   if (component) {
     /* -------------------------------------------------------
@@ -89,8 +88,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         )
       }
     }
-
-
 
     /* -------------------------------------------------------
       ---- REFERENCES / DATAKEY 

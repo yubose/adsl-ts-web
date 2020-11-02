@@ -2,10 +2,50 @@ import _ from 'lodash'
 import { current } from 'immer'
 import {
   IComponent,
+  IComponentTypeObject,
+  IComponentTypeInstance,
   NOODLComponentProps,
   NOODLTextBoardBreakLine,
 } from '../types'
 import { isBrowser } from './common'
+
+/**
+ * Deeply traverses all children down the component's family tree
+ * @param { IComponentTypeInstance | NOODLComponent | NOODLComponentProps | ProxiedComponent } component
+ */
+// @ts-expect-error
+export function forEachDeepChildren<C extends IComponentTypeInstance>(
+  component: C,
+  cb: (child: IComponentTypeInstance) => void,
+): void
+export function forEachDeepChildren<C extends IComponentTypeObject>(
+  component: C,
+  cb: (child: IComponentTypeObject) => void,
+): void
+export function forEachDeepChildren<
+  C extends IComponentTypeInstance | IComponentTypeObject
+>(
+  component: C,
+  cb: <Child extends IComponentTypeInstance | IComponentTypeObject>(
+    child: Child,
+  ) => void,
+): void {
+  if (component) {
+    if (_.isArray(component.children)) {
+      _.forEach(component.children, (child) => {
+        cb(child)
+        forEachDeepChildren(child, cb)
+      })
+    } else if (_.isFunction(component.children)) {
+      _.forEach(component.children(), (child) => {
+        cb(child)
+        forEachDeepChildren(child, cb)
+      })
+    } else if (component.children) {
+      cb(component.children as IComponentTypeInstance | IComponentTypeObject)
+    }
+  }
+}
 
 // function createRegexKeysOnProps(keys: string | string[]) {
 //   const regex = new RegExp(_.isArray(keys) ? )

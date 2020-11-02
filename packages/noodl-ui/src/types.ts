@@ -8,6 +8,7 @@ import {
   event,
   eventTypes,
 } from './constants'
+import Component from 'components/Base'
 
 export interface INOODLUi {
   assetsUrl: string
@@ -20,14 +21,14 @@ export interface INOODLUi {
     actions: NOODLActionObject[],
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
-  createSrc(path: string, component?: UIComponent): string
+  createSrc(path: string, component?: IComponentTypeInstance): string
   on(eventName: string, cb: (...args: any[]) => any, cb2?: any): this
   off(eventName: string, cb: (...args: any[]) => any): this
   emit(eventName: EventId, ...args: any[]): this
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
   getNode(component: IComponent | string): IComponent | null
-  getNodes(): Map<UIComponent, UIComponent>
+  getNodes(): Map<IComponentTypeInstance, IComponentTypeInstance>
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
   getState(): INOODLUiState
   getStateHelpers(): INOODLUiStateHelpers
@@ -35,8 +36,8 @@ export interface INOODLUi {
   getStateSetters(): INOODLUiStateSetters
   reset(): this
   resolveComponents(
-    components: ComponentType | ComponentType[] | Page['object'],
-  ): UIComponent | UIComponent[] | null
+    components: IComponentType | IComponentType[] | Page['object'],
+  ): IComponentTypeInstance | IComponentTypeInstance[] | null
   setAssetsUrl(assetsUrl: string): this
   setNode(component: IComponent): this
   setPage(page: string): this
@@ -47,7 +48,7 @@ export interface INOODLUi {
 }
 
 export interface INOODLUiState {
-  nodes: Map<UIComponent, UIComponent>
+  nodes: Map<IComponentTypeInstance, IComponentTypeInstance>
   lists: Map<IList, IList>
   showDataKey: boolean
 }
@@ -61,25 +62,15 @@ export type INOODLUiStateGetters = Pick<
 
 export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode'>
 
-/**
- * UI stands for "Union Interface", not "user interface"
- * This type is a union of all possible noodl-ui component instance types
- */
-export type UIComponent =
-  | IComponent
-  | IList
-  | IListItem
-  | IListItemChildComponent
-
 export type IComponentConstructor = new (
-  component: ComponentType,
-) => UIComponent
+  component: IComponentType,
+) => IComponentTypeInstance
 
 export interface IComponent {
   action: NOODLActionObject
   id: string
   length: number
-  original: NOODLComponent | NOODLComponentProps | ProxiedComponent | String
+  original: NOODLComponent | NOODLComponentProps | ProxiedComponent
   status: 'drafting' | 'idle' | 'idle/resolved'
   stylesTouched: string[]
   stylesUntouched: string[]
@@ -93,16 +84,20 @@ export interface IComponent {
     value?: { [key: string]: any },
   ): this
   assignStyles(styles: Partial<NOODLStyle>): this
-  child(index?: number): UIComponent | undefined
-  children(): UIComponent[]
-  createChild<C extends UIComponent>(child: NOODLComponentType): C | undefined
-  createChild<C extends UIComponent>(child: ComponentType): C | undefined
+  child(index?: number): IComponentTypeInstance | undefined
+  children(): IComponentTypeInstance[]
+  createChild<C extends IComponentTypeInstance>(
+    child: NOODLComponentType,
+  ): C | undefined
+  createChild<C extends IComponentTypeInstance>(
+    child: IComponentType,
+  ): C | undefined
   hasChild(childId: string): boolean
-  hasChild(child: UIComponent): boolean
-  removeChild(index: number): UIComponent | undefined
-  removeChild(id: string): UIComponent | undefined
-  removeChild(child: UIComponent): IComponent | undefined
-  removeChild(): UIComponent | undefined
+  hasChild(child: IComponentTypeInstance): boolean
+  removeChild(index: number): IComponentTypeInstance | undefined
+  removeChild(id: string): IComponentTypeInstance | undefined
+  removeChild(child: IComponentTypeInstance): IComponent | undefined
+  removeChild(): IComponentTypeInstance | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
   get<K extends keyof ProxiedComponent>(
@@ -125,15 +120,15 @@ export interface IComponent {
   merge(key: string | { [key: string]: any }, value?: any): this
   on(eventName: IComponentEventId, cb: Function): this
   off(eventName: IComponentEventId, cb: Function): this
-  parent(): UIComponent | null
+  parent(): IComponentTypeInstance | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
-  set<K extends keyof ProxiedComponent = string>(
+  set<K extends keyof ProxiedComponent = keyof ProxiedComponent>(
     key: K,
     value?: any,
     styleChanges?: any,
   ): this
-  setParent(parent: UIComponent | null): this
+  setParent(parent: IComponentTypeInstance | null): this
   setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
   snapshot(): (ProxiedComponent | NOODLComponentProps) & {
     _touched: string[]
@@ -159,6 +154,22 @@ export interface IComponent {
   onStyleTouch?: () => void
 }
 
+export type IComponentType =
+  | IComponentTypeInstance
+  | IComponentTypeObject
+  | NOODLComponentType
+
+export type IComponentTypeInstance =
+  | IComponent
+  | IList
+  | IListItem
+  | IListItemChildComponent
+
+export type IComponentTypeObject =
+  | NOODLComponent
+  | NOODLComponentProps
+  | ProxiedComponent
+
 export interface IList extends IComponent {
   noodlType: 'list'
   exists(childId: string): boolean
@@ -167,53 +178,38 @@ export interface IList extends IComponent {
   find(child: IListItem): IListItem | undefined
   getBlueprint(): IListBlueprint
   getData(opts?: { fromNodes?: boolean }): any[] | null
-  getDataObject(index: number): any
-  getDataObject(childId: string): any
-  getDataObject(child: IComponent): any
-  setDataObject(index: number, data: any): this
-  setDataObject(childId: string, data: any): this
-  setDataObject(child: IListItem, data: any): this
+  // getDataObject(index: number): any
+  // getDataObject(childId: string): any
+  // getDataObject(child: IComponent): any
+  // setDataObject(index: number, data: any): this
+  // setDataObject(childId: string, data: any): this
+  // setDataObject(child: IListItem, data: any): this
   iteratorVar: string
   listId: string
   listObject: any[] | null
   length: number
-  mergeBlueprint<T extends IListBlueprint = Partial<IListBlueprint>>(
-    blueprint: T,
-  ): IListBlueprint
-  replaceBlueprint<T extends IListBlueprint = Partial<IListBlueprint>>(
-    blueprint: T,
-  ): IListBlueprint
-  resetBlueprint(): IListBlueprint
-  set(key: 'listId', value: string): this
-  set(key: 'listObject', value: any[]): this
-  set(...args: Parameters<IComponent['set']>): this
-  on(event: 'blueprint', cb: Function): this
-  on(event: 'listId', cb: Function): this
-  on(event: 'listObject', cb: Function): this
+  getBlueprint(): IListBlueprint
   emit(event: 'blueprint', args: IListHandleBlueprintProps): this
   emit(event: 'data', args: any): this
 }
 
 export type IListListObject = ReturnType<IList['getData']>
 
-export type IListBlueprint = Partial<ProxiedComponent>
-
-export interface IListHandleBlueprintProps {
-  baseBlueprint: IListBlueprint
+export type IListBlueprint = Partial<ProxiedComponent> & {
+  listId: string
   iteratorVar: string
+}
+
+export type IListBlueprintCommonProps = Pick<
+  IListBlueprint,
+  'listId' | 'iteratorVar'
+>
+
+export interface IListHandleBlueprintProps extends IListBlueprintCommonProps {
+  baseBlueprint: IListBlueprint
   listObject: any[] | null
   nodes: IListItem[]
   raw: ProxiedComponent
-  merge: IList['mergeBlueprint']
-  replace: IList['replaceBlueprint']
-  reset: IList['resetBlueprint']
-}
-
-export interface IListUpdateProps<DataObject = IListListObject> {
-  blueprint: IListBlueprint
-  iteratorVar: string
-  listObject: DataObject[] | null
-  nodes: IListItem[]
 }
 
 export interface IListItem<T extends NOODLComponentType = 'listItem'>
@@ -240,13 +236,6 @@ export interface IResolver {
   setResolver(resolver: ResolverFn): this
   resolve: ResolverFn
 }
-
-export type ComponentType =
-  | UIComponent
-  | NOODLComponent
-  | NOODLComponentType
-  | NOODLComponentProps
-  | ProxiedComponent
 
 export interface NOODLPage {
   [pageName: string]: NOODLPageObject
@@ -451,7 +440,7 @@ export interface NOODLTextBoardTextObject {
 ---- LIB TYPES
 -------------------------------------------------------- */
 
-export type NOODLComponentCreationType = string | number | ComponentType
+export type NOODLComponentCreationType = string | number | IComponentType
 
 export type NOODLComponentProps = Omit<
   NOODLComponent,
@@ -554,8 +543,9 @@ export interface ActionChainActionCallback<ActionObject = any> {
   ): ActionChainActionCallbackReturnType
 }
 
-export interface ActionChainActionCallbackOptions<T extends UIComponent = any>
-  extends INOODLUiStateGetters {
+export interface ActionChainActionCallbackOptions<
+  T extends IComponentTypeInstance = any
+> extends INOODLUiStateGetters {
   abort?(
     reason?: string | string[],
   ): Promise<IteratorYieldResult<any> | IteratorReturnResult<any> | undefined>
@@ -707,9 +697,9 @@ export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {
     | string
     | number
     | NOODLComponent
-    | NOODLComponent[]
     | NOODLComponentProps
-    | NOODLComponentProps[]
+    | ProxiedComponent
+    | (NOODLComponent | NOODLComponentProps | ProxiedComponent)[]
 }
 
 export interface ResolveComponent<T = any> {
@@ -717,7 +707,7 @@ export interface ResolveComponent<T = any> {
 }
 
 export type ResolverFn = ((
-  component: UIComponent,
+  component: IComponentTypeInstance,
   resolverConsumerOptions: ConsumerOptions,
 ) => void) & {
   getChildren?: Function

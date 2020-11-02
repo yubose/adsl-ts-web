@@ -5,7 +5,7 @@ import {
   ProxiedComponent,
   ResolverOptions,
   ConsumerOptions,
-  UIComponent,
+  IComponentTypeInstance,
 } from '../../types'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
@@ -24,7 +24,7 @@ function getChildren(
   options: ConsumerOptions & { resolverOptions: ResolverOptions },
 ): void {
   const { resolveComponent, resolverOptions } = options
-  const fn = (c: UIComponent) => {
+  const fn = (c: IComponentTypeInstance) => {
     const noodlObj = c?.original
     if (noodlObj?.children) {
       if (_.isArray(noodlObj.children)) {
@@ -113,8 +113,8 @@ function getChildren(
 getChildren.getChildren = true
 
 function handleChildren(
-  parent: UIComponent,
-  resolvedChild: UIComponent,
+  parent: IComponentTypeInstance,
+  resolvedChild: IComponentTypeInstance,
   options: ConsumerOptions,
 ) {
   switch (resolvedChild.noodlType) {

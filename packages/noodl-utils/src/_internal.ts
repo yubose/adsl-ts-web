@@ -1,3 +1,5 @@
+export const callAll = (...fns: Function[]) => (...args: any[]) =>
+  fns.forEach((fn) => fn && fn(...args))
 export const isArr = (v: any): v is any[] => Array.isArray(v)
 export const isBool = (v: any): v is boolean => typeof v === 'boolean'
 export const isObj = (v: any): v is object => !!v && typeof v === 'object'

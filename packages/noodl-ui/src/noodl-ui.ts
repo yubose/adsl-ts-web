@@ -256,7 +256,7 @@ class NOODL implements T.INOODLUi {
   //   return this.#state.lists
   // }
 
-  // getList(component: string | T.UIComponent) {
+  // getList(component: string | T.IComponentTypeInstance) {
   //   if (component instanceof ListComponent) return component.getData()
   //   return findList(this.#state.lists, component)
   // }
@@ -268,8 +268,8 @@ class NOODL implements T.INOODLUi {
    * Note: This method will always assume that the arg is a descendant of the list item
    * @param { IComponent | string } component - Component or component id
    */
-  // getListItem(c: string | T.UIComponent) {
-  //   let component: T.UIComponent | null = null
+  // getListItem(c: string | T.IComponentTypeInstance) {
+  //   let component: T.IComponentTypeInstance | null = null
   //   let dataObject: any
 
   //   if (_.isString(c)) component = this.getNode(c)
@@ -299,19 +299,20 @@ class NOODL implements T.INOODLUi {
    * If a comparator function is passed, it will instead use the comparator to run
    * through the map of nodes. If a comparator returns true, the node in that iteration
    * will become the returned result
-   * @param { UIComponent | string } component -
+   * @param { IComponentTypeInstance | string } component -
    */
   getNode(
-    component: T.UIComponent | string,
-    fn?: (component: T.UIComponent | null) => boolean,
+    component: T.IComponentTypeInstance | string,
+    fn?: (component: T.IComponentTypeInstance | null) => boolean,
   ) {
-    let result: T.UIComponent | null | undefined
+    let result: T.IComponentTypeInstance | null | undefined
     if (fn === undefined) {
       if (component instanceof Component) {
-        result = this.#state.nodes.get(component as T.UIComponent)
+        result = this.#state.nodes.get(component as T.IComponentTypeInstance)
       } else if (_.isString(component)) {
         const componentId = component
-        const comparator = (node: T.UIComponent) => node?.id === componentId
+        const comparator = (node: T.IComponentTypeInstance) =>
+          node?.id === componentId
         result = findNodeInMap(this.#state.nodes, comparator)
       }
     } else {
@@ -338,7 +339,7 @@ class NOODL implements T.INOODLUi {
     }
   }
 
-  parse(key: string | T.UIComponent): T.NOODLComponentProps | any {
+  parse(key: string | T.IComponentTypeInstance): T.NOODLComponentProps | any {
     if (_.isString(key)) {
       if (isReference(key)) {
         //
@@ -350,33 +351,33 @@ class NOODL implements T.INOODLUi {
     }
   }
 
-  resolveComponents(component: T.ComponentType): T.UIComponent
-  resolveComponents(components: T.ComponentType[]): T.UIComponent[]
+  resolveComponents(component: T.IComponentType): T.IComponentTypeInstance
+  resolveComponents(components: T.IComponentType[]): T.IComponentTypeInstance[]
   resolveComponents(
-    components: T.ComponentType | T.ComponentType[] | T.Page['object'],
+    components: T.IComponentType | T.IComponentType[] | T.Page['object'],
   ) {
     if (components) {
       if (components instanceof Component) {
         return this.#resolve(components)
       } else if (!_.isArray(components) && _.isObject(components)) {
         if ('components' in components) {
-          return _.map(components.components, (c: T.ComponentType) =>
+          return _.map(components.components, (c: T.IComponentType) =>
             this.#resolve(c),
           )
         } else {
           return this.#resolve(components)
         }
       } else if (_.isArray(components)) {
-        return _.map(components as T.ComponentType[], (c) => this.#resolve(c))
+        return _.map(components as T.IComponentType[], (c) => this.#resolve(c))
       }
     }
     return null
   }
 
-  #resolve = (c: T.ComponentType) => {
-    let component: T.UIComponent
+  #resolve = (c: T.IComponentType) => {
+    let component: T.IComponentTypeInstance
 
-    if (c instanceof Component) component = c as T.UIComponent
+    if (c instanceof Component) component = c as T.IComponentTypeInstance
     else component = createComponent(c)
 
     const { id, type } = component
@@ -397,10 +398,10 @@ class NOODL implements T.INOODLUi {
 
     this.emit('beforeResolve', component, consumerOptions)
 
-    const fn = (c: T.UIComponent) => (r: T.IResolver) =>
+    const fn = (c: T.IComponentTypeInstance) => (r: T.IResolver) =>
       r.resolve(c, consumerOptions)
 
-    const resolve = (c: T.UIComponent) => {
+    const resolve = (c: T.IComponentTypeInstance) => {
       _.forEach(this.#resolvers, fn(c))
       // if (c.length) _.forEach(c.children(), resolve)
     }
@@ -454,7 +455,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  setNode(component: T.UIComponent) {
+  setNode(component: T.IComponentTypeInstance) {
     this.#state.nodes.set(component, component)
     return this
   }
@@ -505,7 +506,10 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  createSrc(path: string | T.NOODLIfObject, component?: T.UIComponent) {
+  createSrc(
+    path: string | T.NOODLIfObject,
+    component?: T.IComponentTypeInstance,
+  ) {
     let src = ''
     if (path) {
       if (!_.isString(path) && _.isPlainObject(path)) {

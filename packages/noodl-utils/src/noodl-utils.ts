@@ -35,7 +35,7 @@ export function evalIf<IfObj extends { if: [any, any, any] }>(
  * Traverses the children hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned child
- * @param { UIComponent } component
+ * @param { IComponentTypeInstance } component
  * @param { function } fn - Comparator function
  */
 export function findChild<Component extends { children?: Function } = any>(
@@ -43,7 +43,7 @@ export function findChild<Component extends { children?: Function } = any>(
   fn: (child: Component) => boolean,
 ): Component | null {
   if (component) {
-    let children = component.children?.().reverse?.()
+    let children = child?.().reverse?.()
     let child = children.pop()
     if (child) {
       if (fn(child)) return child
@@ -56,7 +56,7 @@ export function findChild<Component extends { children?: Function } = any>(
 /**
  * Loops through a Map of UIComponents, running the comparator function in each
  * iteration. If the function returns true, that node will become the returned result
- * @param { Map<UIComponent, UIComponent> } nodes - Nodes map
+ * @param { Map<IComponentTypeInstance, IComponentTypeInstance> } nodes - Nodes map
  * @param { function } fn - Comparator func
  */
 export function findNodeInMap<Component extends {} = any>(
@@ -77,7 +77,7 @@ export function findNodeInMap<Component extends {} = any>(
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
- * @param { UIComponent } component
+ * @param { IComponentTypeInstance } component
  * @param { function } fn
  */
 export function findParent<Component extends { parent?: Function } = any>(
