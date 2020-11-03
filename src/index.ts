@@ -479,13 +479,11 @@ window.addEventListener('load', async () => {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-  noodluidom.on('all', function onCreateNode(
-    node: NOODLDOMElement | null,
-    props,
-  ) {
+  noodluidom.on('all', function onCreateNode(node, noodluidomComponent) {
+    const { component } = noodluidomComponent
     if (node) {
       // Dominant/main participant/speaker
-      if (identify.stream.video.isMainStream(props.toJS())) {
+      if (identify.stream.video.isMainStream(component.toJS())) {
         const mainStream = streams.getMainStream()
         if (!mainStream.isSameElement(node)) {
           mainStream.setElement(node, { uxTag: 'mainStream' })
@@ -494,7 +492,7 @@ window.addEventListener('load', async () => {
         }
       }
       // Local participant
-      else if (identify.stream.video.isSelfStream(props.toJS())) {
+      else if (identify.stream.video.isSelfStream(component.toJS())) {
         const selfStream = streams.getSelfStream()
         if (!selfStream.isSameElement(node)) {
           selfStream.setElement(node, { uxTag: 'selfStream' })
@@ -503,16 +501,16 @@ window.addEventListener('load', async () => {
         }
       }
       // Remote participants container
-      else if (identify.stream.video.isSubStreamsContainer(props.toJS())) {
+      else if (identify.stream.video.isSubStreamsContainer(component.toJS())) {
         let subStreams = streams.getSubStreamsContainer()
         if (!subStreams) {
-          subStreams = streams.createSubStreamsContainer(node, props.toJS())
+          subStreams = streams.createSubStreamsContainer(node, component.toJS())
           log.func('onCreateNode')
           log.green('Created subStreams container', subStreams)
         }
       }
       // Individual remote participant video element container
-      else if (identify.stream.video.isSubStream(props.toJS())) {
+      else if (identify.stream.video.isSubStream(component.toJS())) {
         const subStreams = streams.getSubStreamsContainer() as MeetingSubstreams
         if (subStreams) {
           if (!subStreams.elementExists(node)) {
@@ -522,7 +520,7 @@ window.addEventListener('load', async () => {
             log.red(
               `Attempted to add an element to a subStream but it ` +
                 `already exists in the subStreams container`,
-              { subStreams, node, props },
+              { subStreams, node, component },
             )
           }
         } else {
@@ -531,7 +529,7 @@ window.addEventListener('load', async () => {
             `Attempted to create a subStream but a container was not available`,
             {
               node,
-              props,
+              component,
               mainStream: streams.getMainStream(),
               selfStream: streams.getSelfStream(),
             },

@@ -29,6 +29,7 @@ export { default as isReference } from './utils/isReference'
 export { default as NOODL } from './noodl-ui'
 export { default as Viewport } from './Viewport'
 export {
+  event,
   eventTypes,
   actionTypes,
   componentTypes,

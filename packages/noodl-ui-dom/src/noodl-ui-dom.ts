@@ -1,22 +1,23 @@
 import Logger from 'logsnap'
-import { IComponentTypeInstance, NOODLComponentType } from 'noodl-ui'
+import { IComponentTypeInstance, IList, NOODLComponentType } from 'noodl-ui'
 import {
   componentEventMap,
   componentEventIds,
   componentEventTypes,
 } from './constants'
-import handleList from './componentHandlers/list'
+import NOODLDOMList from './components/list'
 import * as T from './types'
+import NOODLDOMBaseComponent from 'noodl-ui-dom/src/components/base'
 
 class NOODLUIDOM implements T.INOODLUiDOM {
   #callbacks: {
-    all: T.NodePropsFunc[]
-    component: Record<T.NOODLDOMComponentType, T.NodePropsFunc[]>
+    all: T.NOODLDOMNodeCreationCallback[]
+    component: Record<T.NOODLDOMComponentType, T.NOODLDOMNodeCreationCallback[]>
   } = {
     all: [],
     component: componentEventTypes.reduce(
       (acc, evt: T.NOODLDOMComponentType) => Object.assign(acc, { [evt]: [] }),
-      {} as Record<T.NOODLDOMComponentType, T.NodePropsFunc[]>,
+      {} as Record<T.NOODLDOMComponentType, T.NOODLDOMNodeCreationCallback[]>,
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
@@ -30,20 +31,26 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * resolves its children hieararchy until there are none left
    * @param { IComponentTypeInstance } props
    */
-  parse(component: IComponentTypeInstance, container?: HTMLElement) {
-    let node: T.NOODLDOMElement | undefined
+  parse<C extends IComponentTypeInstance>(
+    component: C,
+    container?: HTMLElement | null,
+  ) {
+    let node: T.NOODLDOMElement | null = null
+    let noodluidomInst: any
 
     if (component) {
       const { type = '', noodlType = '' } = component.get(['type', 'noodlType'])
 
       if (type) {
         if (noodlType === 'plugin') {
+          noodluidomInst = new NOODLDOMBaseComponent(null, component)
           // Don't create a node. Except just emit the events accordingly
           // This is to allow the caller to determine whether they want to create
           // a separate DOM node or not
-          this.emit('all', null, component)
-          this.emit('create.plugin', null, component)
+          this.emit('all', null, noodluidomInst)
+          this.emit('create.plugin', null, noodluidomInst)
         } else {
+          console.info(type)
           node = document.createElement(type)
 
           switch (noodlType as NOODLComponentType) {
@@ -56,8 +63,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             case 'header':
             case 'image':
             case 'label':
+              noodluidomInst = new NOODLDOMBaseComponent(node, component)
+              break
             case 'list':
-              return handleList(node, component, { container })
+              noodluidomInst = new NOODLDOMList(
+                node as T.NOODLDOMElement,
+                component as IList,
+              )
+              break
             case 'listItem':
             case 'plugin':
             case 'popUp':
@@ -69,22 +82,35 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             case 'video':
             case 'view':
             default:
+              noodluidomInst = new NOODLDOMBaseComponent(node, component)
               break
           }
         }
       }
 
       if (node) {
-        this.emit('all', node, component)
-        if (componentEventMap[noodlType]) {
-          this.emit(componentEventMap[noodlType], node, component)
+        this.emit('all', noodluidomInst.node, noodluidomInst)
+        if (componentEventMap[noodlType as NOODLComponentType]) {
+          this.emit(
+            componentEventMap[noodlType],
+            noodluidomInst.node,
+            noodluidomInst,
+          )
         }
         const parent = container || document.body
-        if (!parent.contains(node)) parent.appendChild(node)
+        if (!parent.contains(noodluidomInst.node))
+          parent.appendChild(noodluidomInst.node)
 
         component.children()?.forEach((child: IComponentTypeInstance) => {
-          const childNode = this.parse(child, node)
-          if (childNode) node?.appendChild(childNode)
+          const childNode = this.parse(child, noodluidomInst.node)
+          console.log(childNode)
+          if (childNode) noodluidomInst.node?.appendChild(childNode)
+          if (child.length) {
+            child.children().forEach((innerChild) => {
+              const innerChildNode = this.parse(innerChild, childNode)
+              console.log(innerChildNode)
+            })
+          }
         })
       }
     }
@@ -97,7 +123,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * @param { string } eventName - Name of the listener event
    * @param { function } callback - Callback to invoke when the event is emitted
    */
-  on(eventName: T.NOODLDOMEvent, callback: T.NodePropsFunc) {
+  on<E extends T.NOODLDOMEvent = 'create.list'>(
+    eventName: E,
+    callback: T.NOODLDOMNodeCreationCallback<T.NOODLDOMElement, IList>,
+  ): this
+  on<E extends T.NOODLDOMEvent>(
+    eventName: E,
+    callback: T.NOODLDOMNodeCreationCallback,
+  ) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) callbacks.push(callback)
     return this
@@ -108,7 +141,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * @param { string } eventName - Name of the listener event
    * @param { function } callback
    */
-  off(eventName: T.NOODLDOMEvent, callback: T.NodePropsFunc) {
+  off(eventName: T.NOODLDOMEvent, callback: T.NOODLDOMNodeCreationCallback) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) {
       const index = callbacks.indexOf(callback)
@@ -123,6 +156,11 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * @param { ...any[] } args
    */
   emit(
+    eventName: 'create.plugin',
+    node: null,
+    component: T.INOODLDOMComponent<any>,
+  ): this
+  emit(
     eventName: T.NOODLDOMEvent,
     node: T.NOODLDOMElement | null,
     component: IComponentTypeInstance,
@@ -130,7 +168,8 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) {
       callbacks.forEach(
-        (fn: T.NodePropsFunc) => fn && fn(node as T.NOODLDOMElement, component),
+        (fn: T.NOODLDOMNodeCreationCallback<IComponentTypeInstance>) =>
+          fn && fn(node as T.NOODLDOMElement, component),
       )
     }
     return this
@@ -141,7 +180,9 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * callbacks associated with it
    * @param { string } value - Component type or name of the event
    */
-  getCallbacks(eventName: T.NOODLDOMEvent): T.NodePropsFunc[] | null {
+  getCallbacks(
+    eventName: T.NOODLDOMEvent,
+  ): T.NOODLDOMNodeCreationCallback[] | null {
     if (typeof eventName === 'string') {
       const callbacksMap = this.#callbacks
       if (eventName === 'all') return callbacksMap.all

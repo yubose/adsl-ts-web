@@ -1,7 +1,8 @@
 import sinon from 'sinon'
+import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
 import { screen } from '@testing-library/dom'
-import { NOODLComponentProps } from 'noodl-ui'
+import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import { noodl } from './test-utils'
 import NOODLUIDOM from './noodl-ui-dom'
 
@@ -54,24 +55,28 @@ describe('noodl-ui-dom', () => {
       noodluidom.on('create.button', fn3)
     })
 
-    it('should call callbacks that were subscribed', () => {
-      noodluidom.parse({
-        id: 'myid123',
-        type: 'button',
-        noodlType: 'button',
-        text: 'hello',
-      })
+    xit('should call callbacks that were subscribed', () => {
+      noodluidom.parse(
+        noodl.resolveComponents({
+          id: 'myid123',
+          type: 'button',
+          noodlType: 'button',
+          text: 'hello',
+        } as NOODLComponent),
+      )
       expect(fn1.called).to.be.true
       expect(fn3.called).to.be.true
     })
 
     it('should not call callbacks that were not subscribed', () => {
-      noodluidom.parse({
-        id: 'myid123',
-        type: 'label',
-        noodlType: 'label',
-        text: 'hello',
-      })
+      noodluidom.parse(
+        noodl.resolveComponents({
+          id: 'myid123',
+          type: 'label',
+          noodlType: 'label',
+          text: 'hello',
+        } as NOODLComponent),
+      )
       expect(fn1.called).to.be.false
       expect(fn2.called).to.be.false
       expect(fn3.called).to.be.false
@@ -120,9 +125,9 @@ describe('noodl-ui-dom', () => {
           fontSize: '18',
           fontStyle: 'bold',
         },
-      })[0]
+      })
       noodluidom.on('create.label', (node, props) => {
-        node.innerHTML = `${props.children}`
+        if (node) node.innerHTML = `${props.children}`
       })
       const node = noodluidom.parse(label)
       if (node) document.body.appendChild(node)
@@ -165,6 +170,7 @@ describe('noodl-ui-dom', () => {
                       style: {},
                       id: 'label1223',
                       children: labelText,
+                      text: labelText,
                     },
                   ],
                 },
@@ -175,12 +181,11 @@ describe('noodl-ui-dom', () => {
       })
 
       it('should append nested children as far down as possible', () => {
-        noodluidom.on('create.label', (node, props) => {
-          if (props.children) {
-            node.innerHTML = `${props.children}`
-          }
+        noodluidom.on('create.label', (node, inst) => {
+          if (node) node.innerHTML = inst.get('text')
         })
-        noodluidom.parse(component, document.body)
+        noodluidom.parse(noodl.resolveComponents(component))
+        console.info(prettyDOM())
         expect(screen.getByText(labelText))
       })
     })
@@ -194,9 +199,9 @@ describe('noodl-ui-dom', () => {
         type: 'plugin',
         noodlType: 'plugin',
         path: 'https://what.com/what.jpg',
-      } as NOODLComponentProps
+      } as NOODLComponent
       noodluidom.on('create.plugin', spy)
-      noodluidom.parse(component, document.body)
+      noodluidom.parse(noodl.resolveComponents(component), document.body)
       expect(spy.firstCall.args[0]).to.be.null
     })
   })

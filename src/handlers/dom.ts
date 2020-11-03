@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
-import { DataValueElement, NodePropsFunc } from 'noodl-ui-dom'
+import { DataValueElement, NOODLDOMNodeCreationCallback } from 'noodl-ui-dom'
 import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
@@ -11,8 +11,9 @@ import { isBooleanTrue } from 'noodl-utils'
 const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-noodluidom.on('all', function onCreateNode(node, component) {
-  console.log(component.toJS())
+noodluidom.on('all', function onCreateNode(node, noodluidomComponent) {
+  const { component } = noodluidomComponent
+  // console.log(component.toJS())
   if (!node) return
 
   const js = component.toJS()
@@ -177,7 +178,11 @@ noodluidom.on('all', function onCreateNode(node, component) {
   }
 })
 
-noodluidom.on('create.button', function onCreateButton(node, component) {
+noodluidom.on('create.button', function onCreateButton(
+  node,
+  noodluidomComponent,
+) {
+  const { component } = noodluidomComponent
   if (node) {
     const js = component.toJS()
     const { onClick: onClickProp, src } = js
@@ -198,7 +203,11 @@ noodluidom.on('create.button', function onCreateButton(node, component) {
   }
 })
 
-noodluidom.on('create.image', function onCreateImage(node, component) {
+noodluidom.on('create.image', function onCreateImage(
+  node,
+  noodluidomComponent,
+) {
+  const { component } = noodluidomComponent
   if (node) {
     const { children, onClick } = component.toJS()
 
@@ -227,17 +236,20 @@ noodluidom.on('create.image', function onCreateImage(node, component) {
         pageObject?.docDetail?.document?.name?.type == 'application/pdf'
       ) {
         node.style.visibility = 'hidden'
-        const parent = document.getElementById(props.parentId)
+        const parent = document.getElementById(component.parent()?.id)
         const iframeEl = document.createElement('iframe')
         iframeEl.setAttribute('src', node.src)
 
-        if (_.isPlainObject(props.style)) {
-          forEachEntries(props.style, (k, v) => (iframeEl.style[k as any] = v))
+        if (_.isPlainObject(component.style)) {
+          forEachEntries(
+            component.style,
+            (k, v) => (iframeEl.style[k as any] = v),
+          )
         } else {
           log.func('noodluidom.on: all')
           log.red(
-            `Expected a style object but received "${typeof props.style}" instead`,
-            props.style,
+            `Expected a style object but received "${typeof component.style}" instead`,
+            component.style,
           )
         }
         parent?.appendChild(iframeEl)
@@ -246,23 +258,26 @@ noodluidom.on('create.image', function onCreateImage(node, component) {
   }
 })
 
-noodluidom.on('create.label', function onCreateLabel(node, component) {
+noodluidom.on('create.label', function onCreateLabel(
+  node,
+  noodluidomComponent,
+) {
+  const { component } = noodluidomComponent
   if (node) {
     const { onClick } = component.toJS()
     node.style['cursor'] = _.isFunction(onClick) ? 'pointer' : 'auto'
   }
 })
 
-noodluidom.on('create.list', (node, component) => {
+noodluidom.on('create.list', (node, noodluidomList) => {
+  const { component } = noodluidomList
   log.func('create.list')
-  log.hotpink(`LIST CREATED`, { node, component })
-  log.hotpink(`LIST CREATED`, { node, component })
-  log.hotpink(`LIST CREATED`, { node, component })
-  log.hotpink(`LIST CREATED`, { node, component })
+  log.hotpink(`LIST CREATED`, { node, noodluidomList })
 })
 
 // /** NOTE: node is null in this handler */
-noodluidom.on('create.plugin', async function (noop, component) {
+noodluidom.on('create.plugin', async function (noop, noodluidomComponent) {
+  const { component } = noodluidomComponent
   log.func('create.plugin')
   const js = component.toJS()
   const { src = '' } = js
@@ -288,7 +303,11 @@ noodluidom.on('create.plugin', async function (noop, component) {
   }
 })
 
-noodluidom.on('create.textfield', function onCreateTextField(node, component) {
+noodluidom.on('create.textfield', function onCreateTextField(
+  node,
+  noodluidomComponent,
+) {
+  const { component } = noodluidomComponent
   if (node) {
     const { contentType } = component.toJS()
 
@@ -384,8 +403,14 @@ noodluidom.on('create.textfield', function onCreateTextField(node, component) {
   }
 })
 
-noodluidom.on('create.video', (node, props) => {
-  const { controls, poster, src, videoType } = props
+noodluidom.on('create.video', (node, noodluidomComponent) => {
+  const { component } = noodluidomComponent
+  const { controls, poster, src, videoType } = component.get([
+    'controls',
+    'poster',
+    'src',
+    'videoType',
+  ])
   if (node) {
     const videoEl = node as HTMLVideoElement
     let sourceEl: HTMLSourceElement
@@ -407,23 +432,31 @@ noodluidom.on('create.video', (node, props) => {
   }
 })
 
-export function setAttrBy(attr: string, cb: NodePropsFunc): NodePropsFunc {
+export function setAttrBy(
+  attr: string,
+  cb: NOODLDOMNodeCreationCallback,
+): NOODLDOMNodeCreationCallback {
   return (n, p) => (n[attr] = cb(n, p))
 }
 
-export function setAttrByProp(attr: string, prop: string): NodePropsFunc {
+export function setAttrByProp(
+  attr: string,
+  prop: string,
+): NOODLDOMNodeCreationCallback {
   return (n, p) => prop && p && prop in p && (n[attr] = p[prop])
 }
 
 export function setDatasetAttrBy(
   attr: string,
-  cb: NodePropsFunc,
-): NodePropsFunc {
+  cb: NOODLDOMNodeCreationCallback,
+): NOODLDOMNodeCreationCallback {
   return (n, p) =>
     p && attr in p && (n.dataset[attr.replace('data-', '')] = cb(n, p))
 }
 
-export function setDatasetAttrByProp(prop: string): NodePropsFunc {
+export function setDatasetAttrByProp(
+  prop: string,
+): NOODLDOMNodeCreationCallback {
   return setDatasetAttrBy(
     prop,
     (n, p) => (n.dataset[prop.replace('data-', '')] = p[prop]),
@@ -440,7 +473,9 @@ export const setSrc = setAttrByProp('src', 'src')
 export const setPlaceholder = setAttrByProp('placeholder', 'placeholder')
 export const setVideoFormat = setAttrByProp('type', 'videoFormat')
 
-export function compose(...fns: NodePropsFunc[]): NodePropsFunc {
+export function compose(
+  ...fns: NOODLDOMNodeCreationCallback[]
+): NOODLDOMNodeCreationCallback {
   return (n, p) => {
     fns.forEach((fn) => fn && fn(n, p))
   }

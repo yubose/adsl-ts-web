@@ -6,6 +6,7 @@ import {
   NOODLComponent,
   NOODLComponentProps,
   Page as NOODLUiPage,
+  IComponentTypeInstance,
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'
@@ -127,7 +128,7 @@ class Page {
       }
 
       let pageSnapshot: NOODLUiPage | undefined
-      let components: NOODLComponentProps[] = []
+      let components: IComponentTypeInstance[] = []
 
       if (!pageName) {
         log.func('navigate')
@@ -165,7 +166,7 @@ class Page {
       }
 
       return {
-        snapshot: _.assign({ components: components }, pageSnapshot),
+        snapshot: _.assign({ components }, pageSnapshot),
       }
     } catch (error) {
       if (_.isFunction(this.#onError)) {
@@ -295,9 +296,8 @@ class Page {
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
    */
   public render(rawComponents: IComponentType | IComponentType[]) {
-    let components: IComponent[]
     let resolved = noodlui.resolveComponents(rawComponents)
-    components = _.isArray(resolved) ? resolved : [resolved]
+    const components = _.isArray(resolved) ? resolved : [resolved]
 
     if (this.rootNode) {
       // Clean up previous nodes

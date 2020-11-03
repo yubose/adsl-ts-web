@@ -85,12 +85,8 @@ export interface IComponent {
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): IComponentTypeInstance | undefined
   children(): IComponentTypeInstance[]
-  createChild<C extends IComponentTypeInstance>(
-    child: NOODLComponentType,
-  ): C | undefined
-  createChild<C extends IComponentTypeInstance>(
-    child: IComponentType,
-  ): C | undefined
+  createChild<C extends IComponentTypeInstance>(child: NOODLComponentType): C
+  createChild<C extends IComponentTypeInstance>(child: IComponentType): C
   hasChild(childId: string): boolean
   hasChild(child: IComponentTypeInstance): boolean
   removeChild(index: number): IComponentTypeInstance | undefined
@@ -172,34 +168,26 @@ export interface IList extends IComponent {
   find(child: string | number | IListItem): IListItem | undefined
   getBlueprint(): IListBlueprint
   getData(opts?: { fromNodes?: boolean }): any[] | null
-  addDataObject<DataObject = any>(
+  addDataObject<DataObject>(
     dataObject: DataObject,
-  ): {
-    index: number
-    dataObject: DataObject
-  }
-  getDataObject<DataObject = any>(
+  ): IListDataObjectOperationResult<DataObject>
+  getDataObject<DataObject>(
     index: number | Function,
-  ): {
-    index: number | null
-    dataObject: DataObject | undefined
-  }
-  insertDataObject<DataObject = any>(
+  ): IListDataObjectOperationResult<DataObject>
+  insertDataObject<DataObject>(
     dataObject: DataObject | null,
     index: number,
-  ): { index: number | null; dataObject: DataObject }
-  removeDataObject<DataObject = any>(
-    dataObject: number | DataObject | Function,
-  ): {
-    index: number | null
-    dataObject: DataObject | null
-  }
+  ): IListDataObjectOperationResult<DataObject>
+  removeDataObject<DataObject>(
+    dataObject:
+      | number
+      | DataObject
+      | ((dataObject: DataObject | null) => boolean),
+  ): IListDataObjectOperationResult<DataObject>
   setDataObject<DataObject = any>(
-    index: number | DataObject | Function,
-  ): {
-    index: number
-    dataObject: DataObject
-  }
+    index: number | Function,
+    dataObject: DataObject | null,
+  ): IListDataObjectOperationResult<DataObject>
   // getDataObject(index: number): any
   // getDataObject(childId: string): any
   // getDataObject(child: IComponent): any
@@ -211,9 +199,32 @@ export interface IList extends IComponent {
   listObject: any[] | null
   length: number
   getBlueprint(): IListBlueprint
-  emit<E extends IListEventId[number], Args extends any[]>(
-    event: E,
-    ...args: Args
+  // emit<DataObject>(
+  //   eventName: IListEventObject['ADD_DATA_OBJECT'],
+  //   result: IListDataObjectOperationResult,
+  //   args: IListDataObjectEventHandlerOptions,
+  // ): this
+  // emit<DataObject>(
+  //   eventName: IListEventObject['DELETE_DATA_OBJECT'],
+  //   result: IListDataObjectOperationResult,
+  //   args: IListDataObjectEventHandlerOptions,
+  // ): this
+  // emit<DataObject>(
+  //   eventName: IListEventObject['RETRIEVE_DATA_OBJECT'],
+  //   result: IListDataObjectOperationResult,
+  //   args: IListDataObjectEventHandlerOptions,
+  // ): DataObject
+  emit<E extends IListEventId>(
+    eventName: E,
+    result: IListDataObjectOperationResult,
+    args: IListDataObjectEventHandlerOptions,
+  ): this
+  on<E extends IListEventId>(
+    eventName: E,
+    cb: (
+      result: IListDataObjectOperationResult,
+      args: IListDataObjectEventHandlerOptions,
+    ) => void,
   ): this
 }
 
@@ -234,6 +245,20 @@ export interface IListHandleBlueprintProps extends IListBlueprintCommonProps {
   listObject: any[] | null
   nodes: IListItem[]
   raw: ProxiedComponent
+}
+
+export interface IListDataObjectOperationResult<DataObject = any> {
+  index: null | number
+  dataObject: DataObject | null
+  succeeded: boolean
+}
+
+export interface IListDataObjectEventHandlerOptions {
+  blueprint: IListBlueprint
+  listId: string
+  listObject: any[] | null
+  iteratorVar: string
+  nodes: IListItem[]
 }
 
 export interface IListItem<T extends NOODLComponentType = 'listItem'>

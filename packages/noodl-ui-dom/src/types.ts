@@ -1,28 +1,53 @@
-import { IComponent } from 'noodl-ui'
+import { IComponentTypeInstance, IList, IListItem } from 'noodl-ui'
 import { componentEventMap, componentEventIds } from './constants'
+
+export interface INOODLUiDOM {
+  on(eventName: NOODLDOMEvent, cb: NOODLDOMNodeCreationCallback): this
+  off(eventName: NOODLDOMEvent, cb: NOODLDOMNodeCreationCallback): this
+  emit(
+    eventName: 'create.plugin',
+    node: null,
+    noodluidomComponent: INOODLDOMComponent<any>,
+  ): this
+  emit(
+    eventName: NOODLDOMEvent,
+    ...args: Parameters<NOODLDOMNodeCreationCallback>
+  ): this
+  getCallbacks(eventName: NOODLDOMEvent): NOODLDOMNodeCreationCallback[] | null
+  isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
+  parse(
+    component: IComponentTypeInstance,
+    container?: NOODLDOMElement,
+  ): NOODLDOMElement | null
+}
+
+export type NOODLDOMConstructorArgs<
+  C extends IComponentTypeInstance,
+  N extends NOODLDOMElement = NOODLDOMElement
+> = ConstructorParameters<
+  new (node: N, component: C) => INOODLDOMComponent<C, N>
+>
+
+export interface INOODLDOMComponent<
+  C extends IComponentTypeInstance,
+  N extends NOODLDOMElement = NOODLDOMElement
+> {
+  component: C
+  node: N | null
+}
+
+export interface INOODLDOMList extends INOODLDOMComponent<IList> {
+  addListItem(listItem: IListItem): this
+  getListItem(index: number): IListItem | null
+  removeListItem(index: number | IListItem): this
+  setListItem(index: number, listItem: IListItem): this
+  updateListItem(index: number | IListItem, listItem?: IListItem): this
+}
 
 export type DataValueElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement
-
-export interface INOODLUiDOM {
-  on(eventName: NOODLDOMEvent, cb: NodePropsFunc): this
-  off(eventName: NOODLDOMEvent, cb: NodePropsFunc): this
-  emit(
-    eventName: 'all',
-    node: NOODLDOMElement | null,
-    component: IComponent,
-  ): this
-  emit(eventName: 'create.plugin', node: null, component: IComponent): this
-  emit(eventName: NOODLDOMEvent, ...args: NodePropsFuncArgs): this
-  getCallbacks(eventName: NOODLDOMEvent): NodePropsFunc[] | null
-  isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
-  parse(
-    component: IComponent,
-    container?: NOODLDOMElement,
-  ): NOODLDOMElement | null
-}
 
 export type NOODLDOMComponentType = keyof typeof componentEventMap
 
@@ -104,8 +129,9 @@ export type NOODLDOMElements = Pick<
   | 'video'
 >
 
-export interface NodePropsFunc {
-  (node: NOODLDOMElement | null, component: IComponent): void
+export interface NOODLDOMNodeCreationCallback<
+  N extends NOODLDOMElement = NOODLDOMElement,
+  C extends IComponentTypeInstance = IComponentTypeInstance
+> {
+  (node: N | null, component: INOODLDOMComponent<C, N>): void
 }
-
-export type NodePropsFuncArgs = Parameters<NodePropsFunc>
