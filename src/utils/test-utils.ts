@@ -46,7 +46,7 @@ export const queryByDataUx = queryHelpers.queryByAttribute.bind(null, 'data-ux')
 
 export const assetsUrl = 'https://aitmed.com/assets/'
 
-export const noodl = new NOODL()
+export const noodlui = new NOODL()
   .init({ viewport: new Viewport() })
   .setAssetsUrl(assetsUrl)
   .setViewport({ width: 375, height: 667 })
