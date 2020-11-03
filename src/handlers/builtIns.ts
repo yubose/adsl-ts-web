@@ -8,7 +8,6 @@ import {
   NOODLGotoAction,
 } from 'noodl-ui'
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
-import { INOODLUiDOM } from 'noodl-ui-dom'
 import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
@@ -20,13 +19,7 @@ import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
 
-const createBuiltInActions = function ({
-  noodluidom,
-  page,
-}: {
-  noodluidom: INOODLUiDOM
-  page: Page
-}) {
+const createBuiltInActions = function ({ page }: { page: Page }) {
   const builtInActions: BuiltInActions = {}
 
   builtInActions.stringCompare = async (action, options) => {
@@ -88,10 +81,13 @@ const createBuiltInActions = function ({
       } else if (_.has(noodl.root[context.page.name], dataKey)) {
         dataObject = noodl.root[context.page.name]
       } else {
-        log.red(`${dataKey} is not a path of the data object`, {
-          dataObject,
-          dataKey,
-        })
+        log.red(
+          `${dataKey} is not a path of the data object. ` +
+            `Defaulting to attaching ${dataKey} as a path to the root object`,
+          { context, dataObject, dataKey },
+        )
+        dataObject = noodl.root
+        _.set(dataObject, dataKey, false)
       }
       previousDataValue = _.get(dataObject, dataKey)
       dataValue = previousDataValue
@@ -242,13 +238,13 @@ const createBuiltInActions = function ({
     log.red('', _.assign({ action }, options))
     // URL
     if (_.isString(action)) {
-      page.requestPageChange(action)
+      await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        page.requestPageChange(action.destination)
+        await page.requestPageChange(action.destination)
       } else {
         log.func('goto')
         log.red(
