@@ -1,4 +1,4 @@
-import { AbortExecuteError } from 'errors'
+import { AbortExecuteError } from './errors'
 import { Draft } from 'immer'
 import Viewport from './Viewport'
 import {
@@ -23,9 +23,12 @@ export interface INOODLUi {
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
   createSrc(path: string, component?: IComponentTypeInstance): string
-  on(eventName: string, cb: (...args: any[]) => any, cb2?: any): this
-  off(eventName: string, cb: (...args: any[]) => any): this
-  emit(eventName: EventId, ...args: any[]): this
+  on(eventName: EventId, cb: NOODLComponentResolveEventCallback): this
+  off(eventName: EventId, cb: NOODLComponentResolveEventCallback): this
+  emit(
+    eventName: EventId,
+    ...args: Parameters<NOODLComponentResolveEventCallback>
+  ): this
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
   getNode(component: IComponent | string): IComponent | null
@@ -494,10 +497,10 @@ export interface NOODLTextBoardTextObject {
 -------------------------------------------------------- */
 
 export interface NOODLComponentResolveEventCallback<
-  NC extends IComponentTypeObject = IComponentTypeObject,
+  N = any,
   C extends IComponentTypeInstance = IComponentTypeInstance
 > {
-  (noodlComponent: NC, component: C): void
+  (noodlComponent: N | undefined, component: C): void
 }
 
 export type NOODLComponentCreationType = string | number | IComponentType

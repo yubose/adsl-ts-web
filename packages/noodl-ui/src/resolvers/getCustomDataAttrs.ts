@@ -1,8 +1,8 @@
 import _ from 'lodash'
+import { findParent } from 'noodl-utils'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
 import { ResolverFn, IComponentTypeInstance, IListItem } from '../types'
-import { findParent } from 'noodl-utils'
 
 const log = Logger.create('getCustomDataAttrs')
 

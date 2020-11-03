@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Component from '../Base/Base'
+import Component from '../Base'
 import ListItemChildComponent from './ListItemChild'
 import { IComponent, IComponentConstructor, IListItem } from '../../types'
 

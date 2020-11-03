@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { expect } from 'chai'
 import _ from 'lodash'
-import Component from '../../../components/Base/Base'
+import Component from '../../../components/Base'
 import getTextBoardChildren from './getTextBoardChildren'
 import { ComponentResolver } from '../../../types'
 import makeComponentResolver from '../../../factories/makeComponentResolver'

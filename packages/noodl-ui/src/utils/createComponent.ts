@@ -1,13 +1,12 @@
 import _ from 'lodash'
 import {
-  IComponentType,
   IComponent,
   IComponentConstructor,
-  NOODLComponentProps,
-  NOODLComponentType,
-  ProxiedComponent,
   IComponentTypeInstance,
   IComponentTypeObject,
+  IList,
+  IListItem,
+  NOODLComponentType,
 } from '../types'
 import ListComponent from '../components/List/List'
 import ListItemComponent from '../components/ListItem/ListItem'
@@ -47,11 +46,11 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   }
   switch (noodlType) {
     case 'list':
-      return new ListComponent(args)
+      return new ListComponent(args) as IList<'list'>
     case 'listItem':
-      return new ListItemComponent(args)
+      return new ListItemComponent(args) as IListItem<'listItem'>
     default:
-      return new Component({ ...args, type: noodlType })
+      return new Component<K>({ ...args, type: noodlType }) as IComponent<K>
   }
 }
 

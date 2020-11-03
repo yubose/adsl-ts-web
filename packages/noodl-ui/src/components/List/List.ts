@@ -15,7 +15,7 @@ import {
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
 import { event } from '../../constants'
-import { IComponentEventId } from '../../../dist'
+import { IComponentEventId } from '../../types'
 import Component from '../Base'
 
 const log = Logger.create('List')

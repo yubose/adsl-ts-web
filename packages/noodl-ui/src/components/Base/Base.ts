@@ -19,13 +19,14 @@ import { forEachEntries } from '../../utils/common'
 
 const log = Logger.create('Component')
 
-class Component implements IComponent {
+class Component<N = any> implements IComponent {
   #cb: { [eventName: string]: Function[] } = {}
   #component:
     | WritableDraft<ProxiedComponent & NOODLComponentProps>
     | (ProxiedComponent & NOODLComponentProps)
   #children: IComponent[] = []
   #id: string = ''
+  #node: N | null | undefined
   #noodlType: NOODLComponentType
   #parent: IComponent | null = null
   #status: 'drafting' | 'idle' = 'drafting'
@@ -45,7 +46,7 @@ class Component implements IComponent {
 
   constructor(
     component: IComponentType,
-    { parent }: { parent?: IComponentType } = {},
+    { node, parent }: { node?: N | null; parent?: IComponentType } = {},
   ) {
     const keys =
       component instanceof Component ? component.keys : _.keys(component)
@@ -58,6 +59,7 @@ class Component implements IComponent {
     this['keys'] = keys
     this['untouched'] = keys.slice()
     this['unhandled'] = keys.slice()
+    this.#node = node
 
     if (parent) {
       this.#parent = (parent instanceof Component
@@ -215,6 +217,10 @@ class Component implements IComponent {
 
   set noodlType(value: NOODLComponentType) {
     this.#noodlType = value
+  }
+
+  get node() {
+    return this.#node
   }
 
   /** Returns the most recent styles at the time of this call */

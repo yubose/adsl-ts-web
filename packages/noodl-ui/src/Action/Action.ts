@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import {
   ActionSnapshot,
   ActionStatus,
@@ -7,7 +8,6 @@ import {
 } from '../types'
 import { getRandomKey } from '../utils/common'
 import { AbortExecuteError } from '../errors'
-import Logger from 'logsnap'
 
 const log = Logger.create('Action')
 

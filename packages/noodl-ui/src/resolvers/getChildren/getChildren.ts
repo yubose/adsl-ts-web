@@ -14,7 +14,6 @@ import getListChildren from './list'
 import getListItemChildren from './listItem'
 import getListItemItemObjectConsumer from './listItemObjectConsumers'
 import getTextBoardChildren from './textBoard'
-import createComponent from '../../utils/createComponent'
 import Component from '../../components/Base'
 
 const log = Logger.create('getChildren')

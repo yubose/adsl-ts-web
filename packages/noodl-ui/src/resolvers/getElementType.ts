@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { IComponent, ResolverFn } from '../types'
+import { IComponentTypeInstance, ResolverFn } from '../types'
 
 /**
  * Resolves a component's html tag name by evaluating the NOODL "type" property
@@ -7,12 +7,12 @@ import { IComponent, ResolverFn } from '../types'
 const getElementType: ResolverFn = (component) => {
   // NOTE: component.get('type') is specially modified to return the
   // noodl component type and not our parsed one
-  component.set('type', component.type)
+  component.set('type', getType(component))
   component.set('noodlType', component.original.type)
 }
 
-function getType(component: IComponent): string {
-  switch (component.noodlType) {
+function getType(component: IComponentTypeInstance): string {
+  switch (component.noodlType || component.type) {
     case 'br':
       return 'br'
     case 'button':

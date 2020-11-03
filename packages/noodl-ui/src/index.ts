@@ -1,7 +1,7 @@
 // Components
-export { default as Component } from './components/Base/Base'
-export { default as ListComponent } from './components/List/List'
-export { default as ListItemComponent } from './components/ListItem/ListItem'
+export { default as Component } from './components/Base'
+export { default as ListComponent } from './components/List'
+export { default as ListItemComponent } from './components/ListItem'
 // Action chain
 export { default as Action } from './Action'
 export { default as ActionChain } from './ActionChain/ActionChain'

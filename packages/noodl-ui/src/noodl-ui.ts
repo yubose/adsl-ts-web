@@ -21,7 +21,7 @@ import {
 import createComponent from './utils/createComponent'
 import ActionChain from './ActionChain/ActionChain'
 import isReference from './utils/isReference'
-import { componentEventIds, componentEventMap } from './constants'
+import { componentEventMap, componentEventTypes } from './constants'
 import * as T from './types'
 
 const log = Logger.create('noodl-ui')
@@ -34,26 +34,26 @@ function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
   } as T.INOODLUiState
 }
 
-class NOODL implements T.INOODLUi {
+class NOODL<N = any> implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
     action: Partial<Record<T.ActionEventId, Function[]>>
     builtIn: T.ActionChainActionCallbackOptions['builtIn']
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     component: Record<
-      T.NOODLComponentEventId,
-      T.NOODLComponentResolveEventCallback[]
+      T.NOODLComponentType | 'all',
+      T.NOODLComponentResolveEventCallback<N>[]
     >
   } = {
     action: {},
     builtIn: {},
     chaining: {},
     component: _.reduce(
-      componentEventIds,
+      componentEventTypes,
       (acc, id) => _.assign(acc, { [id]: [] }),
       {} as Record<
-        T.NOODLComponentEventId,
-        T.NOODLComponentResolveEventCallback[]
+        T.NOODLComponentType | 'all',
+        T.NOODLComponentResolveEventCallback<N>[]
       >,
     ),
   }
@@ -64,7 +64,7 @@ class NOODL implements T.INOODLUi {
   #state: T.INOODLUiState
   #viewport: T.IViewport
   createNode:
-    | (<N>(
+    | ((
         noodlComponent: T.IComponentTypeObject,
         component: T.IComponentTypeInstance,
       ) => N)
@@ -106,6 +106,200 @@ class NOODL implements T.INOODLUi {
     return this.#viewport
   }
 
+  resolveComponents(component: T.IComponentType): T.IComponentTypeInstance
+  resolveComponents(components: T.IComponentType[]): T.IComponentTypeInstance[]
+  resolveComponents(
+    components: T.IComponentType | T.IComponentType[] | T.Page['object'],
+  ) {
+    if (components) {
+      if (components instanceof Component) {
+        return this.#resolve(components)
+      } else if (!_.isArray(components) && _.isObject(components)) {
+        if ('components' in components) {
+          return _.map(components.components, (c: T.IComponentType) =>
+            this.#resolve(c),
+          )
+        } else {
+          return this.#resolve(components)
+        }
+      } else if (_.isArray(components)) {
+        return _.map(components as T.IComponentType[], (c) => this.#resolve(c))
+      }
+    }
+    return null
+  }
+
+  // Temporarily here for debugging purposes
+  getCbs() {
+    return this.#cb
+  }
+
+  #resolve = (c: T.IComponentType) => {
+    let component: T.IComponentTypeInstance
+    let node: N | undefined
+
+    if (c instanceof Component) component = c as T.IComponentTypeInstance
+    else component = createComponent(c)
+
+    node = this.createNode?.(component.original, component)
+
+    this.emit(componentEventMap[component.noodlType], node, component)
+
+    const { id, type } = component
+    const consumerOptions = this.getConsumerOptions({ component })
+
+    if (!id) component['id'] = _.uniqueId()
+    if (!type) {
+      log.func('#resolve')
+      log.red(
+        'Encountered a NOODL component without a "type"',
+        component.snapshot(),
+      )
+    }
+
+    if (this.page && this.parser.getLocalKey() !== this.page.name) {
+      this.parser.setLocalKey(this.page.name)
+    }
+
+    this.emit('beforeResolve', component, consumerOptions)
+
+    const fn = (c: T.IComponentTypeInstance) => (r: T.IResolver) =>
+      r.resolve(c, consumerOptions)
+
+    const resolve = (c: T.IComponentTypeInstance) => {
+      _.forEach(this.#resolvers, fn(c))
+      // if (c.length) _.forEach(c.children(), resolve)
+    }
+
+    resolve(component)
+
+    this.emit('afterResolve', component, consumerOptions)
+
+    // Finalizing
+    const { style } = component
+    if (_.isObject(style)) {
+      forEachDeepEntries(style, (key, value) => {
+        if (_.isString(value)) {
+          if (value.startsWith('0x')) {
+            component.set('style', key, formatColor(value))
+          } else if (/(fontsize|borderwidth|borderradius)/i.test(key)) {
+            if (!hasLetter(value)) {
+              component.set('style', key, `${value}px`)
+            }
+          }
+        }
+      })
+    }
+
+    if (!this.#state.nodes.has(component)) {
+      this.#state.nodes.set(component, component)
+    }
+
+    return component
+  }
+
+  on(eventName: T.EventId, cb: T.NOODLComponentResolveEventCallback<N>) {
+    if (_.isString(eventName)) this.#addCb(eventName, cb)
+    return this
+  }
+
+  off(eventName: T.EventId, cb: T.NOODLComponentResolveEventCallback<N>) {
+    if (_.isString(eventName)) this.#removeCb(eventName, cb)
+    return this
+  }
+
+  emit(
+    eventName: T.EventId,
+    ...args: Parameters<T.NOODLComponentResolveEventCallback<N>>
+  ) {
+    if (_.isString(eventName)) {
+      const path = this.#getCbPath(eventName)
+      if (path) {
+        let cbs = _.get(this.#cb, path) as Function[]
+        console.info(cbs)
+        if (!_.isArray(cbs)) cbs = cbs ? [cbs] : []
+        _.forEach(cbs, (cb) => cb(...args))
+      }
+    }
+    return this
+  }
+
+  #getCbPath = (key: T.EventId | 'action' | 'chaining') => {
+    let path = ''
+    if (key in this.#cb) {
+      path = key
+    } else if (key in this.#cb.action) {
+      path = `action.${key}`
+    } else if (key in this.#cb.builtIn) {
+      path = `builtIn.${key}`
+    } else if (key in this.#cb.chaining) {
+      path = `chaining.${key}`
+    } else if (componentEventMap[key]) {
+      path = `component.${key}`
+    }
+    return path
+  }
+
+  #addCb = (
+    key: T.EventId,
+    cb:
+      | T.NOODLComponentResolveEventCallback<N>
+      | string
+      | { [key: string]: T.NOODLComponentResolveEventCallback<N> },
+    cb2?: T.NOODLComponentResolveEventCallback<N>,
+  ) => {
+    if (key === 'builtIn') {
+      if (_.isString(cb)) {
+        const funcName = cb
+        const fn = cb2 as T.NOODLComponentResolveEventCallback<N>
+        if (!_.isArray(this.#cb.builtIn[funcName])) {
+          this.#cb.builtIn[funcName] = []
+        }
+        this.#cb.builtIn[funcName]?.push(fn)
+      } else if (_.isPlainObject(cb)) {
+        forEachEntries(
+          cb as { [key: string]: T.NOODLComponentResolveEventCallback<N> },
+          (key, value) => {
+            const funcName = key
+            const fn = value
+            if (!_.isArray(this.#cb.builtIn[funcName])) {
+              this.#cb.builtIn[funcName] = []
+            }
+            if (!this.#cb.builtIn[funcName]?.includes(fn)) {
+              this.#cb.builtIn[funcName]?.push(fn)
+            }
+          },
+        )
+      }
+    } else {
+      const path = this.#getCbPath(key)
+      console.info({ path, key })
+      if (path) {
+        if (!_.isArray(this.#cb[path])) this.#cb[path] = []
+        console.info(this.#cb)
+        this.#cb[path].push(cb as T.NOODLComponentResolveEventCallback<N>)
+      }
+    }
+    return this
+  }
+
+  #removeCb = (key: T.EventId, cb: Function) => {
+    const path = this.#getCbPath(key)
+    if (path) {
+      const cbs = _.get(this.#cb, path)
+      if (_.isArray(cbs)) {
+        if (cbs.includes(cb)) {
+          _.set(
+            this.#cb,
+            path,
+            _.filter(cbs, (fn) => fn !== cb),
+          )
+        }
+      }
+    }
+    return this
+  }
+
   createActionChain(
     actions: Parameters<T.INOODLUi['createActionChain']>[0],
     options: Parameters<T.INOODLUi['createActionChain']>[1],
@@ -135,100 +329,6 @@ class NOODL implements T.INOODLUi {
     if (viewport) this.setViewport(viewport)
     this.initialized = true
     Logger[log ? 'enable' : 'disable']?.()
-    return this
-  }
-
-  on(eventName: T.EventId, cb: any, cb2?: any) {
-    if (_.isString(eventName)) this.#addCb(eventName, cb, cb2)
-    return this
-  }
-
-  off(eventName: T.EventId, cb: Function) {
-    if (_.isString(eventName)) this.#removeCb(eventName, cb)
-    return this
-  }
-
-  emit(eventName: T.EventId, ...args: any[]) {
-    if (_.isString(eventName)) {
-      const path = this.#getCbPath(eventName)
-      if (path) {
-        let cbs = _.get(this.#cb, path) as Function[]
-        if (!_.isArray(cbs)) cbs = cbs ? [cbs] : []
-        _.forEach(cbs, (cb) => cb(...args))
-      }
-    }
-    return this
-  }
-
-  #getCbPath = (key: T.EventId | 'action' | 'chaining') => {
-    let path = ''
-    if (key in this.#cb) {
-      path = key
-    } else if (key in this.#cb.action) {
-      path = `action.${key}`
-    } else if (key in this.#cb.builtIn) {
-      path = `builtIn.${key}`
-    } else if (key in this.#cb.chaining) {
-      path = `chaining.${key}`
-    } else {
-      log.func('#getCbPath')
-      log.red(
-        `Could not find a callback path for path "${path}" using key "${key}"`,
-        { key, path, state: this.getState() },
-      )
-    }
-    return path
-  }
-
-  #addCb = (
-    key: T.EventId,
-    cb: Function | string | { [key: string]: Function },
-    cb2: Function,
-  ) => {
-    if (key === 'builtIn') {
-      if (_.isString(cb)) {
-        const funcName = cb
-        const fn = cb2 as Function
-        if (!_.isArray(this.#cb.builtIn[funcName])) {
-          this.#cb.builtIn[funcName] = []
-        }
-        this.#cb.builtIn[funcName]?.push(fn)
-      } else if (_.isPlainObject(cb)) {
-        forEachEntries(cb as { [key: string]: Function }, (key, value) => {
-          const funcName = key
-          const fn = value
-          if (!_.isArray(this.#cb.builtIn[funcName])) {
-            this.#cb.builtIn[funcName] = []
-          }
-          if (!this.#cb.builtIn[funcName]?.includes(fn)) {
-            this.#cb.builtIn[funcName]?.push(fn)
-          }
-        })
-      }
-    } else {
-      const path = this.#getCbPath(key)
-      if (path) {
-        if (!_.isArray(this.#cb[path])) this.#cb[path] = []
-        this.#cb[path].push(cb as Function)
-      }
-    }
-    return this
-  }
-
-  #removeCb = (key: T.EventId, cb: Function) => {
-    const path = this.#getCbPath(key)
-    if (path) {
-      const cbs = _.get(this.#cb, path)
-      if (_.isArray(cbs)) {
-        if (cbs.includes(cb)) {
-          _.set(
-            this.#cb,
-            path,
-            _.filter(cbs, (fn) => fn !== cb),
-          )
-        }
-      }
-    }
     return this
   }
 
@@ -281,41 +381,6 @@ class NOODL implements T.INOODLUi {
       ...include,
     } as T.ConsumerOptions
   }
-
-  // getLists() {
-  //   return this.#state.lists
-  // }
-
-  // getList(component: string | T.IComponentTypeInstance) {
-  //   if (component instanceof ListComponent) return component.getData()
-  //   return findList(this.#state.lists, component)
-  // }
-
-  /**
-   * Retrieves the list item from state. If a component id is passed in it will
-   * attempt to retrieve the list item by comparing it to an existing component instance's id
-   * that was set previously in the state. Vice versa for using instances.
-   * Note: This method will always assume that the arg is a descendant of the list item
-   * @param { IComponent | string } component - Component or component id
-   */
-  // getListItem(c: string | T.IComponentTypeInstance) {
-  //   let component: T.IComponentTypeInstance | null = null
-  //   let dataObject: any
-
-  //   if (_.isString(c)) component = this.getNode(c)
-
-  //   if (component) {
-  //     if (component instanceof Component) {
-  //       const listItemComponent = findParent(
-  //         component,
-  //         (parent) => parent?.noodlType === 'listItem',
-  //       )
-  //       if (listItemComponent) dataObject = listItemComponent.getDataObject()
-  //     }
-  //   }
-
-  //   return dataObject
-  // }
 
   getNodes() {
     return this.#state.nodes
@@ -381,94 +446,6 @@ class NOODL implements T.INOODLUi {
     }
   }
 
-  resolveComponents(component: T.IComponentType): T.IComponentTypeInstance
-  resolveComponents(components: T.IComponentType[]): T.IComponentTypeInstance[]
-  resolveComponents(
-    components: T.IComponentType | T.IComponentType[] | T.Page['object'],
-  ) {
-    if (components) {
-      if (components instanceof Component) {
-        return this.#resolve(components)
-      } else if (!_.isArray(components) && _.isObject(components)) {
-        if ('components' in components) {
-          return _.map(components.components, (c: T.IComponentType) =>
-            this.#resolve(c),
-          )
-        } else {
-          return this.#resolve(components)
-        }
-      } else if (_.isArray(components)) {
-        return _.map(components as T.IComponentType[], (c) => this.#resolve(c))
-      }
-    }
-    return null
-  }
-
-  #resolve = (c: T.IComponentType) => {
-    let component: T.IComponentTypeInstance
-
-    if (c instanceof Component) component = c as T.IComponentTypeInstance
-    else component = createComponent(c)
-
-    this.emit(
-      componentEventMap[component.noodlType],
-      this.createNode?.(component.original, component),
-      component,
-    )
-
-    const { id, type } = component
-    const consumerOptions = this.getConsumerOptions({ component })
-
-    if (!id) component['id'] = _.uniqueId()
-    if (!type) {
-      log.func('#resolve')
-      log.red(
-        'Encountered a NOODL component without a "type"',
-        component.snapshot(),
-      )
-    }
-
-    if (this.page && this.parser.getLocalKey() !== this.page.name) {
-      this.parser.setLocalKey(this.page.name)
-    }
-
-    this.emit('beforeResolve', component, consumerOptions)
-
-    const fn = (c: T.IComponentTypeInstance) => (r: T.IResolver) =>
-      r.resolve(c, consumerOptions)
-
-    const resolve = (c: T.IComponentTypeInstance) => {
-      _.forEach(this.#resolvers, fn(c))
-      // if (c.length) _.forEach(c.children(), resolve)
-    }
-
-    resolve(component)
-
-    this.emit('afterResolve', component, consumerOptions)
-
-    // Finalizing
-    const { style } = component
-    if (_.isObject(style)) {
-      forEachDeepEntries(style, (key, value) => {
-        if (_.isString(value)) {
-          if (value.startsWith('0x')) {
-            component.set('style', key, formatColor(value))
-          } else if (/(fontsize|borderwidth|borderradius)/i.test(key)) {
-            if (!hasLetter(value)) {
-              component.set('style', key, `${value}px`)
-            }
-          }
-        }
-      })
-    }
-
-    if (!this.#state.nodes.has(component)) {
-      this.#state.nodes.set(component, component)
-    }
-
-    return component
-  }
-
   setAssetsUrl(assetsUrl: string) {
     this.#assetsUrl = assetsUrl
     return this
@@ -495,13 +472,6 @@ class NOODL implements T.INOODLUi {
     this.#state.nodes.set(component, component)
     return this
   }
-
-  // setList(component: T.IList, data?: any) {
-  //   if (!component || !(component instanceof ListComponent)) return this
-  //   if (data !== undefined) component.set('listObject', data)
-  //   this.#state.lists.set(component, component)
-  //   return this
-  // }
 
   use(mod: T.IResolver | T.IResolver[] | T.IViewport, ...rest: any[]) {
     const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)

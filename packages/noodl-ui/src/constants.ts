@@ -1,3 +1,6 @@
+import _ from 'lodash'
+import { NOODLComponentType } from 'types'
+
 export const actionTypes = [
   'builtIn',
   'evalObject',
@@ -34,6 +37,7 @@ export const componentTypes = [
 ] as const
 
 export const componentEventMap = {
+  all: 'create.component',
   button: 'create.button',
   br: 'create.breakline',
   divider: 'create.divider',
@@ -51,13 +55,12 @@ export const componentEventMap = {
   view: 'create.view',
 } as const
 
-export const componentEventTypes = Object.keys(
-  componentEventMap,
-) as (keyof typeof componentEventMap)[]
+export const componentEventTypes = Object.keys(componentEventMap) as (
+  | NOODLComponentType
+  | 'all'
+)[]
 
-export const componentEventIds = Object.values(
-  componentEventMap,
-) as typeof componentEventMap[typeof componentEventTypes[number]][]
+export const componentEventIds = Object.values(componentEventMap)
 
 export const contentTypes = [
   'countryCode',

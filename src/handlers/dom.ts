@@ -7,13 +7,11 @@ import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodlui from 'app/noodl-ui'
-import noodluidom from 'app/noodl-ui-dom'
 
 const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-noodlui.on('all', (noodlComponent, component) => {
-  const { component } = noodluidomComponent
+noodlui.on('all', (node, component) => {
   if (!node) return
 
   const {
@@ -185,8 +183,7 @@ noodlui.on('all', (noodlComponent, component) => {
   }
 })
 
-noodlui.on('create.button', (noodlComponent, component) => {
-  const { component } = noodluidomComponent
+noodlui.on('create.button', (node, component) => {
   if (node) {
     const { onClick: onClickProp, src } = component.get(['onClick', 'src'])
     /**
@@ -206,8 +203,7 @@ noodlui.on('create.button', (noodlComponent, component) => {
   }
 })
 
-noodlui.on('create.image', function onCreateImage(node, noodluidomComponent) {
-  const { component } = noodluidomComponent
+noodlui.on('create.image', function onCreateImage(node, component) {
   if (node) {
     const { onClick } = component.get(['children', 'onClick'])
 
@@ -260,8 +256,7 @@ noodlui.on('create.image', function onCreateImage(node, noodluidomComponent) {
   }
 })
 
-noodlui.on('create.label', (noodlComponent, component) => {
-  const { component } = noodluidomComponent
+noodlui.on('create.label', (node, component) => {
   if (node) {
     if (_.isFunction(component.get('onClick'))) {
       node.style['cursor'] = 'pointer'
@@ -269,15 +264,13 @@ noodlui.on('create.label', (noodlComponent, component) => {
   }
 })
 
-noodlui.on('create.list', (node, noodluidomList) => {
-  const { component } = noodluidomList
+noodlui.on('create.list', (node, component) => {
   log.func('create.list')
-  log.hotpink(`LIST CREATED`, { node, noodluidomList })
+  log.hotpink(`LIST CREATED`, { node, component })
 })
 
 // /** NOTE: node is null in this handler */
-noodlui.on('create.plugin', async function (noop, noodluidomComponent) {
-  const { component } = noodluidomComponent
+noodlui.on('create.plugin', async function (noop, component) {
   log.func('create.plugin')
   const { src = '' } = component.get('src')
   if (_.isString(src)) {
@@ -302,13 +295,9 @@ noodlui.on('create.plugin', async function (noop, noodluidomComponent) {
   }
 })
 
-noodlui.on('create.textfield', function onCreateTextField(
-  node,
-  noodluidomComponent,
-) {
-  const { component } = noodluidomComponent
+noodlui.on('create.textfield', (node, component) => {
   if (node) {
-    const { contentType } = component.get('contentType')
+    const contentType = component.get('contentType')
 
     // Password inputs
     if (contentType === 'password') {
@@ -402,8 +391,7 @@ noodlui.on('create.textfield', function onCreateTextField(
   }
 })
 
-noodlui.on('create.video', (noodlComponent, component) => {
-  const { component } = noodluidomComponent
+noodlui.on('create.video', (node, component) => {
   const { controls, poster, src, videoType } = component.get([
     'controls',
     'poster',

@@ -3,11 +3,8 @@ import { expect } from 'chai'
 import { IComponent, NOODLComponent, IComponentTypeInstance } from '../types'
 import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
-import ActionChain from '../ActionChain/ActionChain'
-import Component from '../components/Base/Base'
-import ListComponent from '../components/List/List'
-import ListItemComponent from '../components/ListItem/ListItem'
-import Resolver from '../Resolver'
+import ActionChain from '../ActionChain'
+import Component from '../components/Base'
 import Viewport from '../Viewport'
 
 let noodlComponent: NOODLComponent

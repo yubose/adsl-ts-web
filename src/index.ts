@@ -30,11 +30,10 @@ import {
   ResolverFn,
   Viewport,
 } from 'noodl-ui'
-import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { forEachParticipant } from './utils/twilio'
 import { forEachEntries, isMobile } from './utils/common'
-import { copyToClipboard, onSelectFile } from './utils/dom'
+import { copyToClipboard } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
@@ -43,7 +42,6 @@ import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
-import noodluidom from './app/noodl-ui-dom'
 import './handlers/dom'
 import './styles.css'
 
@@ -117,7 +115,6 @@ window.addEventListener('load', async () => {
       streams,
       noodl,
       noodlui,
-      noodluidom,
     },
     util: {
       cp: copyToClipboard,
@@ -524,8 +521,7 @@ window.addEventListener('load', async () => {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-  noodluidom.on('all', function onCreateNode(node, noodluidomComponent) {
-    const { component } = noodluidomComponent
+  noodlui.on('all', function onCreateNode(node, component) {
     if (node) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(component.toJS())) {

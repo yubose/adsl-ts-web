@@ -11,7 +11,6 @@ import { NOODLDOMElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'
 import { PageModalState, PageSnapshot } from './app/types'
 import noodlui from './app/noodl-ui'
-import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
 
 const log = Logger.create('Page.ts')
@@ -302,7 +301,7 @@ class Page {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
       _.forEach(components, (component) => {
-        noodluidom.parse(component, this.rootNode)
+        // noodluidom.parse(component, this.rootNode)
       })
     } else {
       log.func('navigate')
