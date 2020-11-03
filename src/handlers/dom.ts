@@ -6,7 +6,7 @@ import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
-import noodlui from 'app/noodl-ui'
+import { isBooleanTrue } from 'noodl-utils'
 
 const log = Logger.create('dom.ts')
 
@@ -19,20 +19,16 @@ noodluidom.on('all', function onCreateNode(node, props) {
     id = '',
     options,
     placeholder = '',
-    poster = '',
     src,
     style,
     type,
-    videoFormat,
   } = props
 
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = props['data-listdata']
   if (id) node['id'] = id
   if (placeholder) node.setAttribute('placeholder', placeholder)
-  if (type === 'video' && poster) node.setAttribute('poster', poster)
   if (src && type !== 'video') node.setAttribute('src', src)
-  if (videoFormat) node.setAttribute('type', videoFormat)
 
   /** Dataset identifiers */
   if ('data-listid' in props) node.dataset['listid'] = props['data-listid']
@@ -56,7 +52,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
           log.func('noodluidom.on -- all')
           log.red(
             `Attempted to attach a data-value to a select element's value but ` +
-            `"options" was not provided. This may not display its value as expected`,
+              `"options" was not provided. This may not display its value as expected`,
             props,
           )
         }
@@ -160,11 +156,7 @@ noodluidom.on('all', function onCreateNode(node, props) {
       }
     }
   }
-  if (type === 'video') {
-    const sourceEl = createElement('source')
-    if (src) sourceEl.setAttribute('src', src)
-    node.appendChild(sourceEl)
-  }
+
   if (!node.innerHTML.trim()) {
     if (isDisplayable(props['data-value'])) {
       node.innerHTML = `${props['data-value']}`
@@ -210,40 +202,37 @@ noodluidom.on('create.image', function onCreateImage(node, props) {
       log.func('create.image: Image')
       log.orange(
         `An image component has children. This is a weird practice. Consider ` +
-        `discussion about this`,
+          `discussion about this`,
         props,
       )
       node.style['width'] = '100%'
       node.style['height'] = '100%'
     }
 
-    if (node.src === noodlui?.page?.object?.docDetail?.document?.name?.data && noodlui?.page?.object?.docDetail?.document?.name?.type == 'application/pdf') {
-      node.style.visibility = 'hidden'
-      const parent = document.getElementById(props.parentId)
-      var new_obj = document.createElement('iframe');
+    import('app/noodl-ui').then(({ default: noodlui }) => {
+      const context = noodlui.getContext()
+      const pageObject = context?.page?.object || {}
+      if (
+        node?.src === pageObject?.docDetail?.document?.name?.data &&
+        pageObject?.docDetail?.document?.name?.type == 'application/pdf'
+      ) {
+        node.style.visibility = 'hidden'
+        const parent = document.getElementById(props.parentId)
+        const iframeEl = document.createElement('iframe')
+        iframeEl.setAttribute('src', node.src)
 
-      // async function getUrl(url) {
-      //   const file = await fetch(url).then(r => r.blob()).then(blobFile => new Blob([blobFile], { type: "application/pdf" }))
-      //   // window.open(file)
-      //   const url = URL.createObjectURL(file)
-      //   return url
-      // }
-      // console.log('#################################################', node.src)
-      // const pdf_url = getUrl(node.src)
-      // const testing_url = "http://www.pdf995.com/samples/pdf.pdf"
-
-      new_obj.setAttribute("src", node.src)
-      if (_.isPlainObject(props.style)) {
-        forEachEntries(props.style, (k, v) => (new_obj.style[k as any] = v))
-      } else {
-        log.func('noodluidom.on: all')
-        log.red(
-          `Expected a style object but received ${typeof style} instead`,
-          props.style,
-        )
+        if (_.isPlainObject(props.style)) {
+          forEachEntries(props.style, (k, v) => (iframeEl.style[k as any] = v))
+        } else {
+          log.func('noodluidom.on: all')
+          log.red(
+            `Expected a style object but received "${typeof props.style}" instead`,
+            props.style,
+          )
+        }
+        parent?.appendChild(iframeEl)
       }
-      parent?.appendChild(new_obj)
-    }
+    })
   }
 })
 
@@ -372,6 +361,29 @@ noodluidom.on('create.textfield', function onCreateTextField(node, props) {
           eyeContainer.addEventListener('click', onClick)
         })
       }
+    }
+  }
+})
+
+noodluidom.on('create.video', (node, props) => {
+  const { controls, poster, src, videoType } = props
+  if (node) {
+    const videoEl = node as HTMLVideoElement
+    let sourceEl: HTMLSourceElement
+    let notSupportedEl: HTMLParagraphElement
+    videoEl['controls'] = isBooleanTrue(controls) ? true : false
+    if (poster) videoEl.setAttribute('poster', poster)
+    if (src) {
+      sourceEl = createElement('source')
+      notSupportedEl = createElement('p')
+      if (videoType) sourceEl.setAttribute('type', videoType)
+      sourceEl.setAttribute('src', src)
+      notSupportedEl.style['textAlign'] = 'center'
+      // This text will not appear unless the browser isn't able to play the video
+      notSupportedEl.innerHTML =
+        "Sorry, your browser doesn's support embedded videos."
+      videoEl.appendChild(sourceEl)
+      videoEl.appendChild(notSupportedEl)
     }
   }
 })

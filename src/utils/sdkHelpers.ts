@@ -62,7 +62,9 @@ export function createOnDataValueChangeFn(dataKey: string = '') {
     } else {
       log.func('createOnDataValueChangeFn')
       log.red(
-        `Attempted to attach a data binding "onChange" onto a textField component but the dataKey "${dataKey}" is not a valid path of the noodl root object`,
+        `Attempted to update a data value from an onChange onto a data value ` +
+          `component but the dataKey "${dataKey}" is not a valid path of the ` +
+          `root object`,
         { dataKey, localRoot, pageName, value },
       )
     }

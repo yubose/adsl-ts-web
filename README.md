@@ -11,6 +11,7 @@ This allows for faster compilation, faster load times and quicker development fl
 ## References
 
 - [TypeScript DOM types](https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts)
+- [Merge requests](https://gitlab.aitmed.com/help/user/project/merge_requests/index.md#checkout-merge-requests-locally)
 
 ## Configs
 
@@ -21,10 +22,8 @@ This allows for faster compilation, faster load times and quicker development fl
 
 ## Todos
 
-- "required" logic
-  - supports array
-  - SignIn page
-  - `meet11.yml`
+- video in landing pg does not play
+- viewport top in yml not implemented
 - if obj expressions
   - ex: `itemObject.value == "Female"` (string) --> grab itemObject, compare `.value` prop with `==`
 - PatientChartGeneralInfo --> redraw reference
@@ -33,17 +32,17 @@ This allows for faster compilation, faster load times and quicker development fl
     - 1st item --> data to use
     - use this if true
     - use this if false
-- viewport manager
-- scroll manager
 - history
-- page cache rehydration
 - autobind root/page updates on the `noodl-ui` lib
 - find use cases for `page.rootNode.id`
-- aspect ratio (viewport manager)
-- scroll manager
 - bugs
   - footer 4.0 --> 4.1 top value placement
   - input focus issue on androids
+
+## Lib Todos
+
+- have the same path/resource resolve logic for "poster" prop
+- make output from resolved components as plain objs instead with some getInstance getter
 
 ## Initialization (somewhat outdated)
 

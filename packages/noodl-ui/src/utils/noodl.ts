@@ -107,8 +107,8 @@ export function evalIf(
   ) => NOODLIfObject['if'][1] | NOODLIfObject['if'][2],
   ifObj: NOODLIfObject,
 ): NOODLIfObject['if'][1] | NOODLIfObject['if'][2] {
-  if (_.isArray(ifObj)) {
-    const [val, onTrue, onFalse] = ifObj
+  if (_.isArray(ifObj.if)) {
+    const [val, onTrue, onFalse] = ifObj.if
     return fn(val, onTrue, onFalse) ? onTrue : onFalse
   } else {
     log.func('evalIf')
@@ -118,15 +118,6 @@ export function evalIf(
     )
   }
   return false
-}
-
-/**
- * Returns true if the value possibly leads to some data, which is possible
- * for strings that have at least a dot in them which can be some dataKey
- * @param { string } value
- */
-export function isPossiblyDataKey(value: unknown) {
-  return _.isString(value) ? !!value.match(/\./g)?.length : false
 }
 
 /**

@@ -36,6 +36,7 @@ class Action<OriginalAction extends NOODLActionObject> {
   #onError: (snapshot: ActionSnapshot) => any
   #onAbort: (snapshot: ActionSnapshot) => any
   #onTimeout: any
+  resultReturned: boolean = false
   #status: ActionStatus = null
   #timeout: NodeJS.Timeout | null = null
   #timeoutRemaining: number | null = null
@@ -99,6 +100,7 @@ class Action<OriginalAction extends NOODLActionObject> {
 
       // TODO - Logic for return values as objects (new if/ condition in action chains)
       this.result = await this.callback?.(this.getSnapshot(), args)
+      if (this.result !== undefined) this['resultReturned'] = true
       this.status = 'resolved'
 
       return this.result
@@ -154,7 +156,7 @@ class Action<OriginalAction extends NOODLActionObject> {
   // This is needed to log to the console the current state instead of logging
   // this instance directly where values will not be as expected
   getSnapshot(): ActionSnapshot<OriginalAction> {
-    return {
+    const snapshot = {
       actionType: this.type as string,
       hasExecutor: _.isFunction(this.#callback),
       id: this.id as string,
@@ -165,6 +167,9 @@ class Action<OriginalAction extends NOODLActionObject> {
         remaining: this.#timeoutRemaining,
       },
     }
+    if (this.status === 'resolved') snapshot['result'] = this.result
+    else if (this.status === 'error') snapshot['result'] = this.error
+    return snapshot
   }
 
   get status() {
