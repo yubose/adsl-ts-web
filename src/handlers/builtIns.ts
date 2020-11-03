@@ -81,10 +81,13 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       } else if (_.has(noodl.root[context.page.name], dataKey)) {
         dataObject = noodl.root[context.page.name]
       } else {
-        log.red(`${dataKey} is not a path of the data object`, {
-          dataObject,
-          dataKey,
-        })
+        log.red(
+          `${dataKey} is not a path of the data object. ` +
+            `Defaulting to attaching ${dataKey} as a path to the root object`,
+          { context, dataObject, dataKey },
+        )
+        dataObject = noodl.root
+        _.set(dataObject, dataKey, false)
       }
       previousDataValue = _.get(dataObject, dataKey)
       dataValue = previousDataValue

@@ -183,13 +183,12 @@ window.addEventListener('load', async () => {
         streams,
       )
 
-      if (Meeting.room.state === 'connected') {
-        Meeting.leave()
-        log.grey(`Disconnected from room`, Meeting.room)
-      }
+      Meeting.leave()
+      log.grey(`Disconnected from room`, Meeting.room)
 
       const mainStream = streams.getMainStream()
       const selfStream = streams.getSelfStream()
+      selfStream.unpublish()
       const subStreamsContainer = streams.getSubStreamsContainer()
       const subStreams = subStreamsContainer?.getSubstreamsCollection()
 
@@ -201,10 +200,18 @@ window.addEventListener('load', async () => {
         log.grey('Wiping selfStream state', selfStream.reset())
       }
 
+      if (subStreamsContainer?.length) {
+        log.grey(
+          `Wiping subStreams container's state`,
+          subStreamsContainer.reset(),
+        )
+      }
+
       if (_.isArray(subStreams)) {
         subStreams.forEach((subStream) => {
           if (subStream.getElement()) {
             log.grey("Wiping a subStream's state", subStream.reset())
+            subStreamsContainer?.removeSubStream(subStream)
           }
         })
       }
@@ -412,6 +419,7 @@ window.addEventListener('load', async () => {
         trackPublication?.track?.stop?.()
         trackPublication?.unpublish?.()
       }
+      console.log(room.localParticipant)
       // Unpublish local tracks
       room.localParticipant.videoTracks.forEach(unpublishTracks)
       room.localParticipant.audioTracks.forEach(unpublishTracks)
@@ -540,6 +548,11 @@ window.addEventListener('load', async () => {
           subStreams = streams.createSubStreamsContainer(node, props)
           log.func('onCreateNode')
           log.green('Created subStreams container', subStreams)
+        } else {
+          // If an existing subStreams container is already existent in memory, re-initiate
+          // the DOM node and blueprint since it was reset from a previous cleanup
+          subStreams.container = node
+          subStreams.blueprint = props.blueprint
         }
       }
       // Individual remote participant video element container

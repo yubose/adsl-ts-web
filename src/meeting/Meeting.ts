@@ -84,7 +84,7 @@ const Meeting = (function () {
     },
     /** Disconnects from the room */
     leave() {
-      if (_internal._room?.state === 'connected') {
+      if (_internal._room?.state) {
         const unpublishTracks = (
           trackPublication:
             | LocalVideoTrackPublication
