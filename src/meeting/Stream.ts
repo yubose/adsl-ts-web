@@ -232,6 +232,18 @@ class MeetingStream {
   }
 
   /**
+   * Wipes out the state entirely.
+   * Useful for cleanup operations and avoids memory leaks
+   */
+  reset() {
+    this.#node = null
+    this.#participant = null
+    this.previous = {}
+    this.type = null
+    return this
+  }
+
+  /**
    * Handle tracks published as well as tracks that are going to be published
    * by the participant later
    * @param { LocalParticipant | RemoteParticipant } participant

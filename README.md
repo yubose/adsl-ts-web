@@ -39,6 +39,12 @@ This allows for faster compilation, faster load times and quicker development fl
   - footer 4.0 --> 4.1 top value placement
   - input focus issue on androids
 
+## Notes
+
+- redraw
+  - remove --> give a key --> removes the object
+- `${itemObject.key}`
+
 ## Lib Todos
 
 - have the same path/resource resolve logic for "poster" prop
@@ -85,3 +91,15 @@ This allows for faster compilation, faster load times and quicker development fl
 - Dispatch `openModal`
 - Dispatch `closeModal`
 - `Page` is subscribed to `modal.id` + `modal.opened`, so it will respond with `modal.hide` or other modal methods to manage it
+
+## Debugging Meeting (unable to see remote participant)
+
+1. window .on event: `load`
+2. action: `evalObject`
+3. action: `goto`
+4. requesting page change
+   - current: `VideoChat`
+   - previous: `ManageMeeting`
+   - requesting: `MeetingDocumentsShared`
+5. (onStart) rendering DOM for `MeetingDocumentsShared`
+6. (onBeforePageRender) rendering components

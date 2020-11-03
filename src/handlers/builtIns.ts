@@ -8,7 +8,6 @@ import {
   NOODLGotoAction,
 } from 'noodl-ui'
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
-import { INOODLUiDOM } from 'noodl-ui-dom'
 import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
@@ -20,13 +19,7 @@ import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
 
-const createBuiltInActions = function ({
-  noodluidom,
-  page,
-}: {
-  noodluidom: INOODLUiDOM
-  page: Page
-}) {
+const createBuiltInActions = function ({ page }: { page: Page }) {
   const builtInActions: BuiltInActions = {}
 
   builtInActions.stringCompare = async (action, options) => {
@@ -242,13 +235,13 @@ const createBuiltInActions = function ({
     log.red('', _.assign({ action }, options))
     // URL
     if (_.isString(action)) {
-      page.requestPageChange(action)
+      await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        page.requestPageChange(action.destination)
+        await page.requestPageChange(action.destination)
       } else {
         log.func('goto')
         log.red(

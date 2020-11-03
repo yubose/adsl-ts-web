@@ -31,8 +31,8 @@ import {
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
 import { forEachParticipant } from './utils/twilio'
-import { callAll, isMobile, reduceEntries } from './utils/common'
-import { copyToClipboard, onSelectFile } from './utils/dom'
+import { isMobile } from './utils/common'
+import { copyToClipboard } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
@@ -94,7 +94,7 @@ window.addEventListener('load', async () => {
   const viewport = new Viewport()
   const page = new Page()
   const app = new App({ viewport })
-  const builtIn = createBuiltInActions({ page, noodluidom })
+  const builtIn = createBuiltInActions({ page })
   const actions = createActions({ page })
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
@@ -158,19 +158,60 @@ window.addEventListener('load', async () => {
 
   // TODO - onRootNodeInitializeError
 
+  /**
+   * Called right before rendering the components to the DOM. Put clean up
+   * logic in here
+   */
   page.onBeforePageRender = async (options) => {
     const { pageName, pageModifiers } = options
     log.func('page.onBeforePageRender')
-    log.grey('Rendering components', {
-      previousPage: page.previousPage,
-      currentPage: page.currentPage,
-      requestedPage: pageName,
-      pageModifiers,
-    })
-    if (Meeting.room?.state === 'connected') Meeting.leave()
+
+    log.grey(
+      `Rendering components for page "${pageName}". Running cleanup operations now...`,
+      {
+        previous: page.previousPage,
+        current: page.currentPage,
+        requested: pageName,
+        pageModifiers,
+      },
+    )
+
+    if (/videochat/i.test(page.currentPage) && !/videochat/i.test(pageName)) {
+      log.grey(
+        'You are navigating away from the video chat page. ' +
+          'Running cleanup operations now...',
+        streams,
+      )
+
+      if (Meeting.room.state === 'connected') {
+        Meeting.leave()
+        log.grey(`Disconnected from room`, Meeting.room)
+      }
+
+      const mainStream = streams.getMainStream()
+      const selfStream = streams.getSelfStream()
+      const subStreamsContainer = streams.getSubStreamsContainer()
+      const subStreams = subStreamsContainer?.getSubstreamsCollection()
+
+      if (mainStream.getElement()) {
+        log.grey('Wiping mainStream state', mainStream.reset())
+      }
+
+      if (selfStream.getElement()) {
+        log.grey('Wiping selfStream state', selfStream.reset())
+      }
+
+      if (_.isArray(subStreams)) {
+        subStreams.forEach((subStream) => {
+          if (subStream.getElement()) {
+            log.grey("Wiping a subStream's state", subStream.reset())
+          }
+        })
+      }
+    }
+
     if (pageName !== page.currentPage) {
       // Load the page in the SDK
-
       const pageObject = await preparePage(pageName, pageModifiers)
       log.grey(`Received pageObject`, {
         previousPage: page.previousPage,
@@ -309,6 +350,7 @@ window.addEventListener('load', async () => {
         //
       }
     }
+    // Always return true for now
     return true
   }
 
