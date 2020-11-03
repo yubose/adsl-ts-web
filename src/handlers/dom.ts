@@ -6,12 +6,13 @@ import { isBooleanTrue } from 'noodl-utils'
 import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
+import noodlui from 'app/noodl-ui'
 import noodluidom from 'app/noodl-ui-dom'
 
 const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-noodluidom.on('all', (node, noodluidomComponent) => {
+noodlui.on('all', (noodlComponent, component) => {
   const { component } = noodluidomComponent
   if (!node) return
 
@@ -127,14 +128,14 @@ noodluidom.on('all', (node, noodluidomComponent) => {
         const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
         node.addEventListener('change', onChange)
       })
-      .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
+      .catch((err) => (log.func('noodlui.on: all'), log.red(err.message)))
   }
 
   /** Styles */
   if (_.isPlainObject(style)) {
     forEachEntries(style, (k, v) => (node.style[k as any] = v))
   } else {
-    log.func('noodluidom.on: all')
+    log.func('noodlui.on: all')
     log.red(
       `Expected a style object but received ${typeof style} instead`,
       style,
@@ -184,7 +185,7 @@ noodluidom.on('all', (node, noodluidomComponent) => {
   }
 })
 
-noodluidom.on('create.button', (node, noodluidomComponent) => {
+noodlui.on('create.button', (noodlComponent, component) => {
   const { component } = noodluidomComponent
   if (node) {
     const { onClick: onClickProp, src } = component.get(['onClick', 'src'])
@@ -205,10 +206,7 @@ noodluidom.on('create.button', (node, noodluidomComponent) => {
   }
 })
 
-noodluidom.on('create.image', function onCreateImage(
-  node,
-  noodluidomComponent,
-) {
+noodlui.on('create.image', function onCreateImage(node, noodluidomComponent) {
   const { component } = noodluidomComponent
   if (node) {
     const { onClick } = component.get(['children', 'onClick'])
@@ -250,7 +248,7 @@ noodluidom.on('create.image', function onCreateImage(
             (k, v) => (iframeEl.style[k as any] = v),
           )
         } else {
-          log.func('noodluidom.on: all')
+          log.func('noodlui.on: all')
           log.red(
             `Expected a style object but received "${typeof component.style}" instead`,
             component.style,
@@ -262,7 +260,7 @@ noodluidom.on('create.image', function onCreateImage(
   }
 })
 
-noodluidom.on('create.label', (node, noodluidomComponent) => {
+noodlui.on('create.label', (noodlComponent, component) => {
   const { component } = noodluidomComponent
   if (node) {
     if (_.isFunction(component.get('onClick'))) {
@@ -271,14 +269,14 @@ noodluidom.on('create.label', (node, noodluidomComponent) => {
   }
 })
 
-noodluidom.on('create.list', (node, noodluidomList) => {
+noodlui.on('create.list', (node, noodluidomList) => {
   const { component } = noodluidomList
   log.func('create.list')
   log.hotpink(`LIST CREATED`, { node, noodluidomList })
 })
 
 // /** NOTE: node is null in this handler */
-noodluidom.on('create.plugin', async function (noop, noodluidomComponent) {
+noodlui.on('create.plugin', async function (noop, noodluidomComponent) {
   const { component } = noodluidomComponent
   log.func('create.plugin')
   const { src = '' } = component.get('src')
@@ -304,7 +302,7 @@ noodluidom.on('create.plugin', async function (noop, noodluidomComponent) {
   }
 })
 
-noodluidom.on('create.textfield', function onCreateTextField(
+noodlui.on('create.textfield', function onCreateTextField(
   node,
   noodluidomComponent,
 ) {
@@ -404,7 +402,7 @@ noodluidom.on('create.textfield', function onCreateTextField(
   }
 })
 
-noodluidom.on('create.video', (node, noodluidomComponent) => {
+noodlui.on('create.video', (noodlComponent, component) => {
   const { component } = noodluidomComponent
   const { controls, poster, src, videoType } = component.get([
     'controls',

@@ -3,6 +3,8 @@ import { Draft } from 'immer'
 import Viewport from './Viewport'
 import {
   actionTypes,
+  componentEventMap,
+  componentEventIds,
   componentTypes,
   contentTypes,
   event,
@@ -65,9 +67,9 @@ export type IComponentConstructor = new (
   component: IComponentType,
 ) => IComponentTypeInstance
 
-export interface IComponent {
+export interface IComponent<K extends string = NOODLComponentType> {
   id: string
-  type: NOODLComponentType
+  type: K
   noodlType: NOODLComponentType
   style: NOODLStyle
   action: NOODLActionObject
@@ -150,19 +152,20 @@ export type IComponentType =
   | IComponentTypeObject
   | NOODLComponentType
 
-export type IComponentTypeInstance =
-  | IComponent
-  | IList
-  | IListItem
-  | IListItemChild
+export type IComponentTypeInstance<K extends string = NOODLComponentType> =
+  | IComponent<K>
+  | IList<'list'>
+  | IListItem<'listItem'>
+  | IListItemChild<K>
 
 export type IComponentTypeObject =
   | NOODLComponent
   | NOODLComponentProps
   | ProxiedComponent
 
-export interface IList extends IComponent {
-  noodlType: 'list' | string
+export interface IList<K extends NOODLComponentType = 'list'>
+  extends IComponent {
+  noodlType: K
   exists(childId: string): boolean
   exists(child: IListItem): boolean
   find(child: string | number | IListItem): IListItem | undefined
@@ -225,6 +228,7 @@ export interface IList extends IComponent {
       args: IListDataObjectEventHandlerOptions,
     ) => void,
   ): this
+}
 
 export type IListListObject = ReturnType<IList['getData']>
 
@@ -269,13 +273,15 @@ export interface IListItem<T extends NOODLComponentType = 'listItem'>
   setDataObject<T>(data: T): this
 }
 
-export interface IListItemChild extends IComponent {
+export interface IListItemChild<K extends NOODLComponentType>
+  extends IComponent {
+  type: K
   iteratorVar: string
   listId: string
   isListConsumer: boolean
   createChild(
     ...args: Parameters<IComponent['createChild']>
-  ): IListItemChild | undefined
+  ): IListItemChild<K> | undefined
 }
 
 export interface IResolver {
@@ -487,6 +493,13 @@ export interface NOODLTextBoardTextObject {
 ---- LIB TYPES
 -------------------------------------------------------- */
 
+export interface NOODLComponentResolveEventCallback<
+  NC extends IComponentTypeObject = IComponentTypeObject,
+  C extends IComponentTypeInstance = IComponentTypeInstance
+> {
+  (noodlComponent: NC, component: C): void
+}
+
 export type NOODLComponentCreationType = string | number | IComponentType
 
 export type NOODLComponentProps = Omit<
@@ -533,7 +546,14 @@ export type IComponentEventId = typeof event.IComponent[IComponentEventAlias]
 export type IListEventObject = typeof event.component.list
 export type IListEventAlias = keyof IListEventObject
 export type IListEventId = IListEventObject[IListEventAlias]
-export type EventId = ActionEventId | ActionChainEventId | IComponentEventId
+export type NOODLComponentEventId = typeof componentEventIds[number]
+export type NOODLComponentEventMap = keyof typeof componentEventMap
+export type NOODLComponentEvent = NOODLComponentEventId | 'all'
+export type EventId =
+  | ActionEventId
+  | ActionChainEventId
+  | IComponentEventId
+  | NOODLComponentEvent
 
 /* -------------------------------------------------------
   ---- LIB ACTIONS / ACTION CHAIN

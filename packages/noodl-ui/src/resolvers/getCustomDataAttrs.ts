@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
-import findList from '../utils/findList'
-import { ResolverFn, IComponentTypeInstance } from '../types'
+import { ResolverFn, IComponentTypeInstance, IListItem } from '../types'
+import { findParent } from 'noodl-utils'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -93,50 +93,87 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       ---- REFERENCES / DATAKEY 
     -------------------------------------------------------- */
     if (_.isString(dataKey)) {
-      const isListDescendant = !!component.get('iteratorVar')
+      const { listId = '', listIndex, iteratorVar = '' } = component.get([
+        'listId',
+        'listIndex',
+        'iteratorVar',
+      ])
+      const isListDescendant = !!iteratorVar
+      console.log(`iteratorVar: ${iteratorVar}`)
       // Component is retrieving data from a list
-      if (dataKey.startsWith('itemObject')) {
-        const listId = component.get('listId')
-        const listItemIndex = component.get('listItemIndex')
-        let data
-        let path = dataKey.split('.').slice(1).join('.')
-        // The data is coming from a list
-        if (listId && _.isNumber(listItemIndex)) {
-          itemObject = findList(getLists(), component)?.[
-            listItemIndex as number
-          ]
-        } else {
-          // This is the old (now deprecated) way. Leave this here for now until it's safe to remove
-          const nodes = getNodes()
-          parent = nodes[parentId || '']
-          itemObject = _.get(parent, dataKey)
-        }
-        if (_.isObjectLike(itemObject)) {
-          data = _.get(itemObject, path)
-        } else {
-          if (_.isString(itemObject)) {
-            data = itemObject
+      if (dataKey.startsWith(iteratorVar)) {
+        if (isListDescendant) {
+          let dataObject
+          let dataValue
+          const path = dataKey.split('.').slice(1)
+          // If this is a descendant of a list component and it has an iteratorVar that is
+          // being used as a prefix for data keys, then it's most likely expecting a data object
+          // from the list data
+          const listItem = findParent(
+            component,
+            (child) => child.noodlType === 'listItem',
+          ) as IListItem
+          if (listItem) {
+            dataObject = listItem.getDataObject()
+            if (_.isObjectLike(dataObject)) {
+              dataValue = _.get(dataObject, path)
+            } else if (_.isString(dataObject)) {
+              log.red(
+                `Expected an object-like value as a dataObject but received a string instead`,
+                {
+                  component: component.toJS(),
+                  context,
+                  dataKey,
+                  listItem,
+                },
+              )
+            } else {
+              log.red(
+                `Found a listItem for a component expecting data with dataKey "${dataKey}" but none was found`,
+                {
+                  component: component.toJS(),
+                  context,
+                  dataKey,
+                  iteratorVar,
+                },
+              )
+            }
+          } else {
+            log.red(
+              `Tried to query for a listItem parent for dataKey "${dataKey}" ` +
+                `but none could be found`,
+              {
+                component: component.toJS(),
+                context,
+                dataKey,
+                iteratorVar,
+              },
+            )
           }
         }
-        if (isReference(data)) {
+        if (isReference(dataKey)) {
           component.set(
             'data-value',
             showDataKey
-              ? data
+              ? dataKey
               : component.get('text') || component.get('placeholder'),
           )
         } else {
           // Date components
           if (component.get('text=func')) {
+            const iteratorVar = component.get('iteratorVar') || ''
             // These date components receive their values from a list
-            if (dataKey.startsWith('itemObject')) {
+            if (iteratorVar && dataKey.startsWith(iteratorVar)) {
               let path
-              const listId = component.get('listId')
-              const listItemIndex = component.get('listItemIndex')
-              const lists = getLists()
-              const listData = findList(lists, component)
-              const dataObject = listData?.[listItemIndex as number]
-              itemObject = dataObject
+              const { listId, listIndex } = component.get([
+                'listId',
+                'listIndex',
+              ])
+              const listItem = findParent(
+                component,
+                (child) => child.noodlType === 'listItem',
+              ) as IListItem
+              const dataObject = listItem?.getDataObject?.()
 
               if (!dataObject) {
                 log.red(
@@ -144,8 +181,8 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
                   {
                     component: component.snapshot(),
                     dataObject,
-                    lists,
-                    listData,
+                    listItem,
+                    listIndex,
                   },
                 )
                 // Default to showing the dataKey even when its a raw reference
@@ -159,18 +196,16 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
                 const textFunc = component.get('text=func')
                 if (_.isFunction(textFunc)) {
                   path = dataKey.split('.').slice(1)
-                  const ecosDate = _.get(itemObject, path)
+                  const ecosDate = _.get(dataObject, path)
                   if (ecosDate == undefined) {
-                    const listItem = listData?.[listItemIndex as number]
                     log.red(
-                      `Tried to retrieve the date value from an itemObject using ` +
+                      `Tried to retrieve the date value from a dataObject with iteratorVar "${iteratorVar}" using ` +
                         `the path "${dataKey}" but received null or undefined instead`,
                       {
                         component: component.snapshot(),
-                        lists,
-                        listData,
                         listItem,
-                        listItemIndex,
+                        listIndex,
+                        iteratorVar,
                         path,
                       },
                     )
@@ -192,9 +227,8 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
                     `Expected text=func to be a function but it was of type "${typeof textFunc}"`,
                     {
                       component: component.snapshot(),
-                      lists,
-                      listData,
-                      listItemIndex,
+                      listId,
+                      listIndex,
                       dataObject,
                       path,
                     },
@@ -203,33 +237,11 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
               }
             }
           } else {
-            component.set('data-value', data)
+            log.red(
+              `TODO/REMINDER: This code block was reached. Look into this`,
+            )
+            // component.set('data-value', component.get('data-value'))
           }
-        }
-
-        if (!itemObject) {
-          log.red(
-            'Could not retrieve the itemObject data from this component',
-            {
-              component: component.snapshot(),
-              dataValue: data,
-              nodes: getNodes(),
-              listItem: itemObject,
-              listItemIndex,
-              parent: getNode(parentId || ''),
-            },
-          )
-        }
-
-        if (data == undefined) {
-          log.red(`Received undefined from itemObject`, {
-            component,
-            data,
-            itemObject,
-            listId,
-            listItemIndex,
-            path,
-          })
         }
       } else {
         const data = parser.getByDataKey(dataKey, '')

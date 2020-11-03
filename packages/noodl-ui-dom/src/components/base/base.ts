@@ -1,5 +1,5 @@
 import { IComponentTypeInstance } from 'noodl-ui'
-import { NOODLDOMElement } from 'noodl-ui-dom/src/types'
+import { NOODLDOMElement } from '../../types'
 
 class NOODLDOMBaseComponent {
   #component: IComponentTypeInstance

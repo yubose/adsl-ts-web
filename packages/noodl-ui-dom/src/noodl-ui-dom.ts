@@ -100,7 +100,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
         component.children()?.forEach((child: IComponentTypeInstance) => {
           const childNode = this.parse(child, noodluidomComponent.node)
-          console.log(childNode)
           if (childNode) noodluidomComponent.node?.appendChild(childNode)
           if (child.length) {
             child.children().forEach((innerChild) => {
@@ -155,7 +154,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   emit<E extends string = 'create.plugin'>(
     eventName: E,
     node: null,
-    noodluidomComponent: INOODLDOMComponent<any>,
+    noodluidomComponent: T.INOODLDOMComponent<any>,
   ): this
   emit<E extends string = T.NOODLDOMEvent>(
     eventName: E,

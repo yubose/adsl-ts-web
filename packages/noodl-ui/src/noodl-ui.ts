@@ -21,6 +21,7 @@ import {
 import createComponent from './utils/createComponent'
 import ActionChain from './ActionChain/ActionChain'
 import isReference from './utils/isReference'
+import { componentEventIds, componentEventMap } from './constants'
 import * as T from './types'
 
 const log = Logger.create('noodl-ui')
@@ -39,10 +40,22 @@ class NOODL implements T.INOODLUi {
     action: Partial<Record<T.ActionEventId, Function[]>>
     builtIn: T.ActionChainActionCallbackOptions['builtIn']
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
+    component: Record<
+      T.NOODLComponentEventId,
+      T.NOODLComponentResolveEventCallback[]
+    >
   } = {
     action: {},
     builtIn: {},
     chaining: {},
+    component: _.reduce(
+      componentEventIds,
+      (acc, id) => _.assign(acc, { [id]: [] }),
+      {} as Record<
+        T.NOODLComponentEventId,
+        T.NOODLComponentResolveEventCallback[]
+      >,
+    ),
   }
   #page: T.Page = { name: '', object: null }
   #parser: T.RootsParser
@@ -50,12 +63,24 @@ class NOODL implements T.INOODLUi {
   #root: { [key: string]: any } = {}
   #state: T.INOODLUiState
   #viewport: T.IViewport
+  createNode:
+    | (<N>(
+        noodlComponent: T.IComponentTypeObject,
+        component: T.IComponentTypeInstance,
+      ) => N)
+    | undefined
   initialized: boolean = false
 
   constructor({
+    createNode,
     showDataKey,
     viewport,
-  }: { showDataKey?: boolean; viewport?: T.IViewport } = {}) {
+  }: {
+    createNode?: NOODL['createNode']
+    showDataKey?: boolean
+    viewport?: T.IViewport
+  } = {}) {
+    this['createNode'] = createNode
     this.#parser = makeRootsParser({ roots: {} })
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
@@ -145,6 +170,12 @@ class NOODL implements T.INOODLUi {
       path = `builtIn.${key}`
     } else if (key in this.#cb.chaining) {
       path = `chaining.${key}`
+    } else {
+      log.func('#getCbPath')
+      log.red(
+        `Could not find a callback path for path "${path}" using key "${key}"`,
+        { key, path, state: this.getState() },
+      )
     }
     return path
   }
@@ -378,6 +409,12 @@ class NOODL implements T.INOODLUi {
 
     if (c instanceof Component) component = c as T.IComponentTypeInstance
     else component = createComponent(c)
+
+    this.emit(
+      componentEventMap[component.noodlType],
+      this.createNode?.(component.original, component),
+      component,
+    )
 
     const { id, type } = component
     const consumerOptions = this.getConsumerOptions({ component })

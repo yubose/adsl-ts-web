@@ -1,7 +1,6 @@
 import sinon from 'sinon'
-import { prettyDOM } from '@testing-library/dom'
+import { prettyDOM, screen } from '@testing-library/dom'
 import { expect } from 'chai'
-import { screen } from '@testing-library/dom'
 import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
 import { noodl } from './test-utils'
 import NOODLUIDOM from './noodl-ui-dom'
