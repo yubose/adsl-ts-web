@@ -3,7 +3,6 @@ import {
   Action,
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
-  evalIf,
   getByDataUX,
   getDataValues,
   isReference,
@@ -18,6 +17,7 @@ import {
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
 import {
+  evalIf,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isPossiblyDataKey,
@@ -43,13 +43,8 @@ const createActions = function ({ page }: { page: IPage }) {
         log.grey(`Received a ${typeof result} from an evalObject`, logArgs)
         return result
       }
-    } else if ('if' in action.original.object || {}) {
-      const ifObj = action.original.object.if
-      console.log(ifObj)
-      console.log(ifObj)
-      console.log(ifObj)
-      console.log(ifObj)
-      console.log(ifObj)
+    } else if ('if' in (action.original.object || {})) {
+      const ifObj = action.original.object?.if
       if (_.isArray(ifObj)) {
         const { default: noodl } = await import('app/noodl')
         const context = options.context
@@ -136,7 +131,7 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.pageJump = async (action: any, options) => {
     log.func('pageJump')
     log.grey('', { action, ...options })
-    page.requestPageChange(action.original.destination)
+    await page.requestPageChange(action.original.destination)
   }
 
   _actions.popUp = async (
@@ -203,7 +198,8 @@ const createActions = function ({ page }: { page: IPage }) {
   }
 
   _actions.refresh = (action: Action<NOODLRefreshObject>, options) => {
-    log.func('refresh').grey(action.original.actionType, { action, ...options })
+    log.func('refresh')
+    log.grey(action.original.actionType, { action, ...options })
     window.location.reload()
   }
 

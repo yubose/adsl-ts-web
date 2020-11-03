@@ -1,15 +1,21 @@
 import _ from 'lodash'
 import { Draft } from 'immer'
+import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
 import {
   ActionChainActionCallbackOptions,
   getByDataUX,
   getDataValues,
+  IComponentTypeInstance,
+  IListItem,
   NOODLBuiltInObject,
   NOODLGotoAction,
 } from 'noodl-ui'
-import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
 import { INOODLUiDOM } from 'noodl-ui-dom'
-import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
+import {
+  findParent,
+  isBoolean as isNOODLBoolean,
+  isBooleanTrue,
+} from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
 import validate from 'utils/validate'
@@ -41,23 +47,16 @@ const createBuiltInActions = function ({
   }
 
   builtInActions.toggleFlag = async (action, options) => {
+    log.func('toggleFlag')
     console.log({ action, ...options })
     const { default: noodl } = await import('app/noodl')
-    // const { getLocalRootListData, getLocalRootListPath } = await import(
-    //   'noodl-utils'
-    // )
-    log.func('toggleFlag')
 
-    const {
-      component,
-      context,
-      createSrc,
-      stateHelpers: { getListItem },
-    } = options
+    const { component, context, createSrc } = options
 
     const { dataKey = '' } = action.original
-    const path = component.get('path')
+    const { iteratorVar, path } = component.get(['iteratorVar', 'path'])
     const node = document.getElementById(component.id)
+    const pageName = context.page?.name || ''
 
     let dataValue: any
     let dataObject: any
@@ -65,12 +64,15 @@ const createBuiltInActions = function ({
     let nextDataValue: boolean | undefined = undefined
     let newSrc = ''
 
-    if (dataKey.startsWith('itemObject')) {
+    log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
+
+    if (dataKey.startsWith(iteratorVar)) {
       let parts = dataKey.split('.').slice(1)
-      dataObject = getListItem(
-        component.get('listId'),
-        component.get('listItemIndex'),
-      )
+      const listItem = findParent(
+        component as IComponentTypeInstance,
+        (parent) => parent.noodlType === 'listItem',
+      ) as IListItem | undefined
+      dataObject = listItem?.getDataObject?.()
       previousDataValue = _.get(dataObject, parts)
       // previousDataValueInSdk = _.get(noodl.root[context.page.name])
       dataValue = previousDataValue
@@ -86,8 +88,8 @@ const createBuiltInActions = function ({
       dataObject = noodl.root
       if (_.has(noodl.root, dataKey)) {
         dataObject = noodl.root
-      } else if (_.has(noodl.root[context.page.name], dataKey)) {
-        dataObject = noodl.root[context.page.name]
+      } else if (_.has(noodl.root[pageName], dataKey)) {
+        dataObject = noodl.root[pageName]
       } else {
         log.red(`${dataKey} is not a path of the data object`, {
           dataObject,
@@ -243,13 +245,13 @@ const createBuiltInActions = function ({
     log.red('', _.assign({ action }, options))
     // URL
     if (_.isString(action)) {
-      page.requestPageChange(action)
+      await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        page.requestPageChange(action.destination)
+        await page.requestPageChange(action.destination)
       } else {
         log.func('goto')
         log.red(
@@ -371,7 +373,7 @@ const createBuiltInActions = function ({
     }
   }
 
-  builtInActions.UploadFile = async (action, options, { file }) => {
+  builtInActions.UploadFile = async (action, options, { file }: any) => {
     log.func('UploadFile')
 
     let dataValues = getDataValues<{ title: string }, 'title'>()

@@ -1,22 +1,19 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { eventTypes, NOODLActionTriggerType, SelectOption } from 'noodl-ui'
-import { DataValueElement, NOODLDOMNodeCreationCallback } from 'noodl-ui-dom'
+import { eventTypes, SelectOption } from 'noodl-ui'
+import { DataValueElement } from 'noodl-ui-dom'
+import { isBooleanTrue } from 'noodl-utils'
 import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
 import noodluidom from 'app/noodl-ui-dom'
-import { isBooleanTrue } from 'noodl-utils'
 
 const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-noodluidom.on('all', function onCreateNode(node, noodluidomComponent) {
+noodluidom.on('all', (node, noodluidomComponent) => {
   const { component } = noodluidomComponent
-  // console.log(component.toJS())
   if (!node) return
-
-  const js = component.toJS()
 
   const {
     children,
@@ -25,9 +22,20 @@ noodluidom.on('all', function onCreateNode(node, noodluidomComponent) {
     placeholder = '',
     src,
     style,
+    text = '',
     type = '',
     videoFormat = '',
-  } = js
+  } = component.get([
+    'children',
+    'id',
+    'options',
+    'placeholder',
+    'src',
+    'style',
+    'text',
+    'type',
+    'videoFormat',
+  ])
 
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = component['data-listdata']
@@ -36,88 +44,87 @@ noodluidom.on('all', function onCreateNode(node, noodluidomComponent) {
   if (placeholder) node.setAttribute('placeholder', placeholder)
   if (src && type !== 'video') node.setAttribute('src', src)
 
+  const datasetAttribs = component.get([
+    'data-listid',
+    'data-name',
+    'data-key',
+    'data-ux',
+    'data-value',
+  ])
+
   /** Dataset identifiers */
-  if ('data-listid' in js) node.dataset['listid'] = js['data-listid']
-  if ('data-name' in js) node.dataset['name'] = js['data-name']
-  if ('data-key' in js) node.dataset['key'] = js['data-key']
-  if ('data-ux' in js) node.dataset['ux'] = js['data-ux']
-  if ('data-value' in js) node.dataset['value'] = js['data-value']
+  if ('data-listid' in datasetAttribs)
+    node.dataset['listid'] = datasetAttribs['data-listid']
+  if ('data-name' in datasetAttribs)
+    node.dataset['name'] = datasetAttribs['data-name']
+  if ('data-key' in datasetAttribs)
+    node.dataset['key'] = datasetAttribs['data-key']
+  if ('data-ux' in datasetAttribs)
+    node.dataset['ux'] = datasetAttribs['data-ux']
+  if ('data-value' in datasetAttribs)
+    node.dataset['value'] = datasetAttribs['data-value']
 
   /** Data values */
-  if ('data-value' in js) {
+  if ('data-value' in datasetAttribs) {
     if (['input', 'select', 'textarea'].includes(type)) {
       let elem = node as DataValueElement
-      elem['value'] = js['data-value'] || ''
+      elem['value'] = datasetAttribs['data-value'] || ''
       if (type === 'select') {
         elem = node as HTMLSelectElement
         if (elem.length) {
           // Put the default value to the first option in the list
           elem['selectedIndex'] = 0
         }
-        if (!options) {
-          log.func('noodluidom.on -- all')
-          log.red(
-            `Attempted to attach a data-value to a select element's value but ` +
-              `"options" was not provided. This may not display its value as expected`,
-            js,
-          )
-        }
       } else {
-        elem.dataset['value'] = js['data-value'] || ''
+        elem.dataset['value'] = datasetAttribs['data-value'] || ''
         elem['value'] = elem.dataset['value'] || ''
       }
-    } else if ('text=func' in js && js['data-value']) {
-      node.innerHTML = js['data-value']
+    } else if (component.get('text=func') && datasetAttribs['data-value']) {
+      node.innerHTML = datasetAttribs['data-value']
     } else {
       // For non data-value elements like labels or divs that just display content
       // If there's no data-value (which takes precedence here), use the placeholder
       // to display as a fallback
       let text = ''
-      text = js['data-value'] || ''
+      text = datasetAttribs['data-value'] || ''
       if (!text && children) text = `${children}` || ''
       if (!text && placeholder) text = placeholder
       if (!text) text = ''
       if (text) node.innerHTML = `${text}`
-      node.innerHTML = js['data-value'] || js.placeholder || ''
+      node.innerHTML =
+        datasetAttribs['data-value'] || component.get('placeholder') || ''
     }
   }
 
   /** Event handlers */
-  forEachEntries(js, (key, value) => {
-    let eventName: string
+  _.forEach(eventTypes, (eventType) => {
+    const handler = component.get(eventType)
+    if (handler) {
+      const event = (eventType.startsWith('on')
+        ? eventType.replace('on', '')
+        : eventType
+      ).toLocaleLowerCase()
 
-    if (eventTypes.includes(key as NOODLActionTriggerType)) {
-      const isEqual = (k: NOODLActionTriggerType) => k === key
-      eventName = _.find(eventTypes, isEqual)?.toLocaleLowerCase() || ''
-      eventName = eventName.startsWith('on')
-        ? eventName.replace('on', '')
-        : eventName
-
-      if (eventName) {
-        // TODO: Test this
-        const eventFn = (...args: any[]) => {
-          log.func('on all --> eventFn')
-          log.grey(`User action invoked handler`, {
-            props: js,
-            eventName,
-            [key]: value,
-          })
-          console.groupCollapsed('', { eventName, node, props: js })
-          console.trace()
-          console.groupEnd()
-          return value(...args)
-        }
-        // Attach the event handler
-        node.addEventListener(eventName, eventFn)
-      }
+      // TODO: Test this
+      // Attach the event handler
+      node.addEventListener(event, (...args: any[]) => {
+        const props = component.toJS()
+        log.func(`on all --> addEventListener: ${event}`)
+        log.grey(`User action invoked handler`, { props, [event]: handler })
+        console.groupCollapsed('', { event, node, props })
+        console.trace()
+        console.groupEnd()
+        return handler(...args)
+      })
     }
   })
+
   // Attach an additional listener for data-value elements that are expected
   // to change values on the fly by some "on change" logic (ex: input/select elements)
-  if ('data-value' in js) {
+  if ('data-value' in datasetAttribs) {
     import('utils/sdkHelpers')
       .then(({ createOnDataValueChangeFn }) => {
-        const onChange = createOnDataValueChangeFn(js['data-key'])
+        const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
         node.addEventListener('change', onChange)
       })
       .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
@@ -148,9 +155,8 @@ noodluidom.on('all', function onCreateNode(node, noodluidomComponent) {
             optionElem['value'] = option?.value
             optionElem['innerText'] = option.label
             node.appendChild(optionElem)
-            if (option?.value === js['data-value']) {
+            if (option?.value === datasetAttribs['data-value']) {
               // Default to the selected index if the user already has a state set before
-              console.log({ node, props: js })
               ;(node as HTMLSelectElement)['selectedIndex'] = index
             }
           } else {
@@ -168,24 +174,20 @@ noodluidom.on('all', function onCreateNode(node, noodluidomComponent) {
   }
 
   if (!node.innerHTML.trim()) {
-    if (isDisplayable(js['data-value'])) {
-      node.innerHTML = `${js['data-value']}`
+    if (isDisplayable(datasetAttribs['data-value'])) {
+      node.innerHTML = `${datasetAttribs['data-value']}`
     } else if (isDisplayable(children)) {
       node.innerHTML = `${children}`
-    } else if (isDisplayable(js.text)) {
-      node.innerHTML = `${js.text}`
+    } else if (isDisplayable(text)) {
+      node.innerHTML = `${text}`
     }
   }
 })
 
-noodluidom.on('create.button', function onCreateButton(
-  node,
-  noodluidomComponent,
-) {
+noodluidom.on('create.button', (node, noodluidomComponent) => {
   const { component } = noodluidomComponent
   if (node) {
-    const js = component.toJS()
-    const { onClick: onClickProp, src } = js
+    const { onClick: onClickProp, src } = component.get(['onClick', 'src'])
     /**
      * Buttons that have a "src" property
      * ? NOTE: Seems like these components are deprecated. Leave this here for now
@@ -209,7 +211,7 @@ noodluidom.on('create.image', function onCreateImage(
 ) {
   const { component } = noodluidomComponent
   if (node) {
-    const { children, onClick } = component.toJS()
+    const { onClick } = component.get(['children', 'onClick'])
 
     if (_.isFunction(onClick)) {
       node.style['cursor'] = 'pointer'
@@ -217,7 +219,7 @@ noodluidom.on('create.image', function onCreateImage(
 
     // If an image has children, we will assume it is some icon button overlapping
     //    Ex: profile photos and showing pencil icon on top to change it
-    if (children) {
+    if (component.original?.children) {
       log.func('create.image: Image')
       log.orange(
         `An image component has children. This is a weird practice. Consider ` +
@@ -232,12 +234,14 @@ noodluidom.on('create.image', function onCreateImage(
       const context = noodlui.getContext()
       const pageObject = context?.page?.object || {}
       if (
+        // @ts-expect-error
         node?.src === pageObject?.docDetail?.document?.name?.data &&
         pageObject?.docDetail?.document?.name?.type == 'application/pdf'
       ) {
         node.style.visibility = 'hidden'
-        const parent = document.getElementById(component.parent()?.id)
+        const parent = document.getElementById(component.parent()?.id || '')
         const iframeEl = document.createElement('iframe')
+        // @ts-expect-error
         iframeEl.setAttribute('src', node.src)
 
         if (_.isPlainObject(component.style)) {
@@ -258,14 +262,12 @@ noodluidom.on('create.image', function onCreateImage(
   }
 })
 
-noodluidom.on('create.label', function onCreateLabel(
-  node,
-  noodluidomComponent,
-) {
+noodluidom.on('create.label', (node, noodluidomComponent) => {
   const { component } = noodluidomComponent
   if (node) {
-    const { onClick } = component.toJS()
-    node.style['cursor'] = _.isFunction(onClick) ? 'pointer' : 'auto'
+    if (_.isFunction(component.get('onClick'))) {
+      node.style['cursor'] = 'pointer'
+    }
   }
 })
 
@@ -279,8 +281,7 @@ noodluidom.on('create.list', (node, noodluidomList) => {
 noodluidom.on('create.plugin', async function (noop, noodluidomComponent) {
   const { component } = noodluidomComponent
   log.func('create.plugin')
-  const js = component.toJS()
-  const { src = '' } = js
+  const { src = '' } = component.get('src')
   if (_.isString(src)) {
     if (src.startsWith('http')) {
       const { default: axios } = await import('app/axios')
@@ -297,7 +298,7 @@ noodluidom.on('create.plugin', async function (noop, noodluidomComponent) {
     } else {
       log.red(
         `Received a src from a "plugin" component that did not start with an http(s) protocol`,
-        { component: js, src },
+        { component: component.toJS(), src },
       )
     }
   }
@@ -309,7 +310,7 @@ noodluidom.on('create.textfield', function onCreateTextField(
 ) {
   const { component } = noodluidomComponent
   if (node) {
-    const { contentType } = component.toJS()
+    const { contentType } = component.get('contentType')
 
     // Password inputs
     if (contentType === 'password') {
@@ -431,64 +432,3 @@ noodluidom.on('create.video', (node, noodluidomComponent) => {
     }
   }
 })
-
-export function setAttrBy(
-  attr: string,
-  cb: NOODLDOMNodeCreationCallback,
-): NOODLDOMNodeCreationCallback {
-  return (n, p) => (n[attr] = cb(n, p))
-}
-
-export function setAttrByProp(
-  attr: string,
-  prop: string,
-): NOODLDOMNodeCreationCallback {
-  return (n, p) => prop && p && prop in p && (n[attr] = p[prop])
-}
-
-export function setDatasetAttrBy(
-  attr: string,
-  cb: NOODLDOMNodeCreationCallback,
-): NOODLDOMNodeCreationCallback {
-  return (n, p) =>
-    p && attr in p && (n.dataset[attr.replace('data-', '')] = cb(n, p))
-}
-
-export function setDatasetAttrByProp(
-  prop: string,
-): NOODLDOMNodeCreationCallback {
-  return setDatasetAttrBy(
-    prop,
-    (n, p) => (n.dataset[prop.replace('data-', '')] = p[prop]),
-  )
-}
-
-export const setDataListId = setDatasetAttrByProp('data-listid')
-export const setDataName = setDatasetAttrByProp('data-name')
-export const setDataKey = setDatasetAttrByProp('data-key')
-export const setDataUx = setDatasetAttrByProp('data-ux')
-export const setDataValue = setDatasetAttrByProp('data-value')
-export const setId = setAttrByProp('id', 'id')
-export const setSrc = setAttrByProp('src', 'src')
-export const setPlaceholder = setAttrByProp('placeholder', 'placeholder')
-export const setVideoFormat = setAttrByProp('type', 'videoFormat')
-
-export function compose(
-  ...fns: NOODLDOMNodeCreationCallback[]
-): NOODLDOMNodeCreationCallback {
-  return (n, p) => {
-    fns.forEach((fn) => fn && fn(n, p))
-  }
-}
-
-export const cbs = compose(
-  setId,
-  setSrc,
-  setPlaceholder,
-  setVideoFormat,
-  setDataListId,
-  setDataName,
-  setDataKey,
-  setDataUx,
-  setDataValue,
-)

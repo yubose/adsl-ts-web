@@ -136,7 +136,7 @@ const Meeting = (function () {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = subStreams.blueprint
-              const node = noodluidom.parse(props as NOODLComponentProps) as any
+              const node = noodluidom.parse(props as any) as any
               const subStream = subStreams.create({ node, participant }).last()
               Meeting.onAddRemoteParticipant?.(participant, mainStream)
               log.green(

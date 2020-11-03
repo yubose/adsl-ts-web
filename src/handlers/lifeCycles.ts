@@ -1,5 +1,7 @@
 import _ from 'lodash'
 import {
+  ActionChainCallbackOptions,
+  ActionChainActionCallback,
   ActionChainActionCallbackOptions,
   ActionChainEventId,
   NOODLActionObject,
@@ -11,7 +13,7 @@ import Logger from 'logsnap'
 const log = Logger.create('lifeCycles.ts')
 
 function createLifeCycles() {
-  const o: Record<ActionChainEventId, ActionChainActionCallbackOptions> = {
+  const o: Record<ActionChainEventId, any> = {
     beforeResolve(actions, options) {
       const logMsg = `%c[onBeforeResolve]`
       const logStyle = `color:#e50087;font-weight:bold;`
@@ -73,9 +75,9 @@ function createLifeCycles() {
         }
       }
     },
-  } as Record<ActionChainEventId, ActionChainActionCallbackOptions>
+  }
 
-  return o as Record<ActionChainEventId, ActionChainActionCallbackOptions>
+  return o
 }
 
 export default createLifeCycles

@@ -2,11 +2,10 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import {
   IComponentType,
-  IComponent,
+  IComponentTypeInstance,
   NOODLComponent,
   NOODLComponentProps,
   Page as NOODLUiPage,
-  IComponentTypeInstance,
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'

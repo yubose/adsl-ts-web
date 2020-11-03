@@ -36,19 +36,19 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     container?: HTMLElement | null,
   ) {
     let node: T.NOODLDOMElement | null = null
-    let noodluidomInst: any
+    let noodluidomComponent: any
 
     if (component) {
       const { type = '', noodlType = '' } = component.get(['type', 'noodlType'])
 
       if (type) {
         if (noodlType === 'plugin') {
-          noodluidomInst = new NOODLDOMBaseComponent(null, component)
+          noodluidomComponent = new NOODLDOMBaseComponent(null, component)
           // Don't create a node. Except just emit the events accordingly
           // This is to allow the caller to determine whether they want to create
           // a separate DOM node or not
-          this.emit('all', null, noodluidomInst)
-          this.emit('create.plugin', null, noodluidomInst)
+          this.emit('all', null, noodluidomComponent)
+          this.emit('create.plugin', null, noodluidomComponent)
         } else {
           console.info(type)
           node = document.createElement(type)
@@ -63,10 +63,10 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             case 'header':
             case 'image':
             case 'label':
-              noodluidomInst = new NOODLDOMBaseComponent(node, component)
+              noodluidomComponent = new NOODLDOMBaseComponent(node, component)
               break
             case 'list':
-              noodluidomInst = new NOODLDOMList(node, component as IList)
+              noodluidomComponent = new NOODLDOMList(node, component as IList)
               break
             case 'listItem':
             case 'plugin':
@@ -79,29 +79,29 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             case 'video':
             case 'view':
             default:
-              noodluidomInst = new NOODLDOMBaseComponent(node, component)
+              noodluidomComponent = new NOODLDOMBaseComponent(node, component)
               break
           }
         }
       }
 
       if (node) {
-        this.emit('all', noodluidomInst.node, noodluidomInst)
+        this.emit('all', noodluidomComponent.node, noodluidomComponent)
         if (componentEventMap[noodlType as NOODLComponentType]) {
           this.emit(
             componentEventMap[noodlType],
-            noodluidomInst.node,
-            noodluidomInst,
+            noodluidomComponent.node,
+            noodluidomComponent,
           )
         }
         const parent = container || document.body
-        if (!parent.contains(noodluidomInst.node))
-          parent.appendChild(noodluidomInst.node)
+        if (!parent.contains(noodluidomComponent.node))
+          parent.appendChild(noodluidomComponent.node)
 
         component.children()?.forEach((child: IComponentTypeInstance) => {
-          const childNode = this.parse(child, noodluidomInst.node)
+          const childNode = this.parse(child, noodluidomComponent.node)
           console.log(childNode)
-          if (childNode) noodluidomInst.node?.appendChild(childNode)
+          if (childNode) noodluidomComponent.node?.appendChild(childNode)
           if (child.length) {
             child.children().forEach((innerChild) => {
               const innerChildNode = this.parse(innerChild, childNode)
