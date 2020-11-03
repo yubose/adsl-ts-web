@@ -21,7 +21,11 @@ import {
 import createComponent from './utils/createComponent'
 import ActionChain from './ActionChain/ActionChain'
 import isReference from './utils/isReference'
-import { componentEventMap, componentEventTypes } from './constants'
+import {
+  componentEventIds,
+  componentEventMap,
+  componentEventTypes,
+} from './constants'
 import * as T from './types'
 
 const log = Logger.create('noodl-ui')
@@ -234,7 +238,7 @@ class NOODL<N = any> implements T.INOODLUi {
       path = `builtIn.${key}`
     } else if (key in this.#cb.chaining) {
       path = `chaining.${key}`
-    } else if (componentEventMap[key]) {
+    } else if (componentEventIds.includes(key as T.EventId)) {
       path = `component.${key}`
     }
     return path
