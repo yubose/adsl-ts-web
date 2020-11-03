@@ -8,9 +8,9 @@ import {
   IListEventId,
   IListEventObject,
   IListItem,
-  ProxiedComponent,
   IListDataObjectEventHandlerOptions,
   IListDataObjectOperationResult,
+  ProxiedComponent,
 } from '../../types'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
@@ -158,10 +158,10 @@ class List extends Component implements IList {
     return { index: null, dataObject: null, succeeded: false }
   }
 
-  insertDataObject<DataObject = any>(
-    dataObject: DataObject | null,
-    index: number,
-  ) {}
+  // insertDataObject<DataObject = any>(
+  //   dataObject: DataObject | null,
+  //   index: number,
+  // ) {}
 
   removeDataObject<DataObject>(
     pred: (dataObject: DataObject | null) => boolean,
@@ -400,27 +400,21 @@ class List extends Component implements IList {
     return this
   }
 
-  on<DataObject>(
-    eventName: 'add.data.object',
-    cb: (args: IListDataObjectEventHandlerOptions) => void,
+  on<E extends IListEventId>(
+    eventName: E | string,
+    cb: (
+      result: IListDataObjectOperationResult,
+      args: IListDataObjectEventHandlerOptions,
+    ) => void,
   ): this
-  on<DataObject>(
-    eventName: 'delete.data.object',
-    cb: (args: IListDataObjectEventHandlerOptions) => void,
-  ): this
-  on<DataObject>(
-    eventName: 'retrieve.data.object',
-    cb: (args: IListDataObjectEventHandlerOptions) => void,
-  ): this
-  on<DataObject>(
-    eventName: 'update.data.object',
-    cb: (args: IListDataObjectEventHandlerOptions) => void,
-  ): this
-  on<DataObject>(
-    eventName: IListEventId | IComponentEventId,
-    cb: (args: IListDataObjectEventHandlerOptions) => void,
+  on<E extends IListEventId>(
+    eventName: E | IComponentEventId,
+    cb: (
+      result: IListDataObjectOperationResult,
+      args: IListDataObjectEventHandlerOptions,
+    ) => void,
   ) {
-    if (eventName in this.#cb) {
+    if (eventName !== 'resolved' && eventName in this.#cb) {
       if (this.#cb[eventName].includes(cb)) {
         log.func('on("blueprint")')
         log.red(
@@ -430,18 +424,16 @@ class List extends Component implements IList {
         this.#cb[eventName].push(cb)
       }
     } else {
-      super.on(eventName as IComponentEventId, cb)
+      super.on(eventName, cb)
     }
+
     return this
   }
 
   // TODO - finish this
-  off<E extends 'blueprint' | 'data' | 'update'>(
-    eventName: E | string,
-    cb: Function,
-  ) {
+  off(eventName: any, cb: Function) {
     if (eventName in this.#cb) {
-      if (this.#cb[eventName as E].includes(cb)) {
+      if (this.#cb[eventName].includes(cb)) {
         //
       } else {
         //

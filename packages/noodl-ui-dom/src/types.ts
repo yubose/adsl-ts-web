@@ -5,19 +5,18 @@ export interface INOODLUiDOM {
   on(eventName: NOODLDOMEvent, cb: NOODLDOMNodeCreationCallback): this
   off(eventName: NOODLDOMEvent, cb: NOODLDOMNodeCreationCallback): this
   emit(
-    eventName: 'create.plugin',
-    node: null,
-    noodluidomComponent: INOODLDOMComponent<any>,
-  ): this
-  emit(
     eventName: NOODLDOMEvent,
-    ...args: Parameters<NOODLDOMNodeCreationCallback>
+    node: NOODLDOMEvent | null,
+    noodluidomList: INOODLDOMComponent,
   ): this
   getCallbacks(eventName: NOODLDOMEvent): NOODLDOMNodeCreationCallback[] | null
   isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
-  parse(
-    component: IComponentTypeInstance,
-    container?: NOODLDOMElement,
+  parse<
+    C extends IComponentTypeInstance = IComponentTypeInstance,
+    N extends NOODLDOMEvent = NOODLDOMEvent
+  >(
+    component: C,
+    container?: N,
   ): NOODLDOMElement | null
 }
 
@@ -25,11 +24,11 @@ export type NOODLDOMConstructorArgs<
   C extends IComponentTypeInstance,
   N extends NOODLDOMElement = NOODLDOMElement
 > = ConstructorParameters<
-  new (node: N, component: C) => INOODLDOMComponent<C, N>
+  new (node: N | null, component: C) => INOODLDOMComponent<C, N>
 >
 
 export interface INOODLDOMComponent<
-  C extends IComponentTypeInstance,
+  C extends IComponentTypeInstance = IComponentTypeInstance,
   N extends NOODLDOMElement = NOODLDOMElement
 > {
   component: C

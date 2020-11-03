@@ -5,9 +5,9 @@ import {
   componentEventIds,
   componentEventTypes,
 } from './constants'
+import NOODLDOMBaseComponent from './components/base'
 import NOODLDOMList from './components/list'
 import * as T from './types'
-import NOODLDOMBaseComponent from 'noodl-ui-dom/src/components/base'
 
 class NOODLUIDOM implements T.INOODLUiDOM {
   #callbacks: {
@@ -66,10 +66,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
               noodluidomInst = new NOODLDOMBaseComponent(node, component)
               break
             case 'list':
-              noodluidomInst = new NOODLDOMList(
-                node as T.NOODLDOMElement,
-                component as IList,
-              )
+              noodluidomInst = new NOODLDOMList(node, component as IList)
               break
             case 'listItem':
             case 'plugin':
@@ -155,22 +152,19 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * @param { string } eventName - Name of the listener event
    * @param { ...any[] } args
    */
-  emit(
-    eventName: 'create.plugin',
+  emit<E extends string = 'create.plugin'>(
+    eventName: E,
     node: null,
-    component: T.INOODLDOMComponent<any>,
+    noodluidomComponent: INOODLDOMComponent<any>,
   ): this
-  emit(
-    eventName: T.NOODLDOMEvent,
+  emit<E extends string = T.NOODLDOMEvent>(
+    eventName: E,
     node: T.NOODLDOMElement | null,
-    component: IComponentTypeInstance,
+    component: T.INOODLDOMComponent<any>,
   ) {
-    const callbacks = this.getCallbacks(eventName)
+    const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
     if (Array.isArray(callbacks)) {
-      callbacks.forEach(
-        (fn: T.NOODLDOMNodeCreationCallback<IComponentTypeInstance>) =>
-          fn && fn(node as T.NOODLDOMElement, component),
-      )
+      callbacks.forEach((fn) => fn && fn(node as T.NOODLDOMElement, component))
     }
     return this
   }

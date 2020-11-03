@@ -109,8 +109,8 @@ export interface IComponent {
   isStyleHandled(key: string): boolean
   keys: string[]
   merge(key: string | { [key: string]: any }, value?: any): this
-  on(eventName: IComponentEventId, cb: Function): this
-  off(eventName: IComponentEventId, cb: Function): this
+  on<E extends IComponentEventId>(eventName: E, cb: Function): this
+  off<E extends IComponentEventId>(eventName: E, cb: Function): this
   parent(): IComponentTypeInstance | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
@@ -162,7 +162,7 @@ export type IComponentTypeObject =
   | ProxiedComponent
 
 export interface IList extends IComponent {
-  noodlType: 'list'
+  noodlType: 'list' | string
   exists(childId: string): boolean
   exists(child: IListItem): boolean
   find(child: string | number | IListItem): IListItem | undefined
@@ -174,10 +174,10 @@ export interface IList extends IComponent {
   getDataObject<DataObject>(
     index: number | Function,
   ): IListDataObjectOperationResult<DataObject>
-  insertDataObject<DataObject>(
-    dataObject: DataObject | null,
-    index: number,
-  ): IListDataObjectOperationResult<DataObject>
+  // insertDataObject<DataObject>(
+  //   dataObject: DataObject | null,
+  //   index: number,
+  // ): IListDataObjectOperationResult<DataObject>
   removeDataObject<DataObject>(
     dataObject:
       | number
@@ -196,7 +196,6 @@ export interface IList extends IComponent {
   // setDataObject(child: IListItem, data: any): this
   iteratorVar: string
   listId: string
-  listObject: any[] | null
   length: number
   getBlueprint(): IListBlueprint
   // emit<DataObject>(
@@ -226,7 +225,6 @@ export interface IList extends IComponent {
       args: IListDataObjectEventHandlerOptions,
     ) => void,
   ): this
-}
 
 export type IListListObject = ReturnType<IList['getData']>
 
