@@ -300,9 +300,7 @@ class Page {
 
     if (this.rootNode) {
       // Clean up previous nodes
-      // NOTE: textContent is used over innerHTML so that the contents can stay
-      // plain text to reduce breaches into injection attacks
-      this.rootNode.textContent = ''
+      this.rootNode.innerHTML = ''
       _.forEach(components, (component) => {
         noodluidom.parse(component, this.rootNode)
       })

@@ -62,10 +62,16 @@ class MeetingStream {
         if (this.#node) {
           if (this.#node.parentNode) {
             this.#node.parentNode.removeChild(this.#node)
-            log.grey('Removed node from this stream by removeChild()')
+            log.grey(
+              'Removed node from this stream by removeChild()',
+              this.snapshot(),
+            )
           } else {
             this.#node.remove()
-            log.grey('Removed node from this instance by remove()')
+            log.grey(
+              'Removed node from this instance by remove()',
+              this.snapshot(),
+            )
           }
         }
       } catch (error) {
@@ -128,7 +134,7 @@ class MeetingStream {
         log.orange(
           `A participant was set on a stream but the node was not currently ` +
             `available. The publishing of the participant's tracks was skipped`,
-          this,
+          this.snapshot(),
         )
       }
     } else {
@@ -203,8 +209,7 @@ class MeetingStream {
             attachVideoTrack(this.#node, track)
             log.func('reloadTracks')
             log.green(`Loaded participant's video track`, {
-              node: this.#node,
-              participant: this.#participant,
+              ...this.snapshot(),
               track,
             })
           }
@@ -232,6 +237,18 @@ class MeetingStream {
   }
 
   /**
+   * Wipes out the state entirely.
+   * Useful for cleanup operations and avoids memory leaks
+   */
+  reset() {
+    this.#node = null
+    this.#participant = null
+    this.previous = {}
+    this.type = null
+    return this
+  }
+
+  /**
    * Handle tracks published as well as tracks that are going to be published
    * by the participant later
    * @param { LocalParticipant | RemoteParticipant } participant
@@ -253,12 +270,12 @@ class MeetingStream {
     }
     const onSubscribe = (track: RoomTrack) => {
       log.func('event -- subscribed')
-      log.green('"subscribed" handler is executing')
+      log.green('"subscribed" handler is executing', this.snapshot())
       this.#attachTrack(track)
     }
     const onUnsubscribe = (track: RoomTrack) => {
       log.func('event -- unsubscribed')
-      log.green('"unsubscribed" handler is executing')
+      log.green('"unsubscribed" handler is executing', this.snapshot())
       this.#detachTrack(track)
     }
     publication.on('subscribed', onSubscribe)
@@ -278,7 +295,7 @@ class MeetingStream {
         attachVideoTrack(node, track)
         log.func('attachTrack')
         log.green(`Loaded the participant's video track`, {
-          node,
+          ...this.snapshot(),
           track,
         })
       }

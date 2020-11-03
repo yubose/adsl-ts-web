@@ -14,7 +14,7 @@ const MEET11_CONFIG = getConfigEndpoint('meet11')
 const noodl = new NOODL({
   aspectRatio: 3,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: MEET2D_CONFIG,
+  configUrl: getConfigEndpoint('meet'),
 })
 
 function getConfigEndpoint(
@@ -50,7 +50,7 @@ function getConfigEndpoint(
           return '/meet2'
         case 'portal':
         default:
-          return '/meetdev'
+          return '/meet'
       }
     }
     path = getFilename(type) + '.yml'

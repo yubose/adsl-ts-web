@@ -1,7 +1,7 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { getByDataUX, NOODLComponent, NOODLComponentProps } from 'noodl-ui'
-import { noodl } from '../utils/test-utils'
+import { noodlui } from '../utils/test-utils'
 import Meeting from './Meeting'
 import Streams from './Streams'
 import Substreams from './Substreams'
@@ -15,7 +15,7 @@ class MockParticipant {
   off() {}
 }
 
-const mockSubstreamsProps = noodl.resolveComponents(
+const mockSubstreamsProps = noodlui.resolveComponents(
   getMockSubstreamsContainer(),
 )[0]
 
@@ -27,6 +27,8 @@ let selfStream: Stream
 let mainStream: Stream
 let participant: any
 let rootEl: HTMLDivElement
+
+before(() => {})
 
 beforeEach(() => {
   Meeting.setInternal?.({ _room: { state: 'connected' } } as any)
@@ -50,6 +52,27 @@ afterEach(() => {
 })
 
 describe('Meeting', () => {
+  describe('disconnecting from the meeting', () => {
+    it('should disconnect from the room', () => {
+      //
+    })
+
+    xit('should unpublish tracks', () => {
+      //
+    })
+
+    xit('should clean up selfStream', () => {
+      //
+    })
+
+    xit('should clean up mainStream', () => {
+      //
+    })
+
+    xit('should clean up all subStreams including the subStream container', () => {
+      //
+    })
+  })
   describe('adding remote participants', () => {
     describe('when mainStream doesnt have any participants', () => {
       it('should assign the participant immediately to the mainStream', () => {

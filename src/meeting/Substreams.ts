@@ -157,6 +157,13 @@ class MeetingSubstreams {
   last() {
     return _.last([...this.#subStreams])
   }
+
+  reset() {
+    this.#subStreams = []
+    this['blueprint'] = {}
+    this['container'] = null
+    return this
+  }
 }
 
 export default MeetingSubstreams
