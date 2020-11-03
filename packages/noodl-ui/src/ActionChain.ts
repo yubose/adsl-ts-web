@@ -275,19 +275,6 @@ class ActionChain {
                   iterator = await this.#next(result)
                 } else if (_.isString(result)) {
                   // TODO
-                } else if (_.isPlainObject(result)) {
-                  // Check if the result is an action noodl object
-                  if (isAction(result)) {
-                    result = new Action(result)
-                    // Its possible to receive back some noodl action object.
-                    // This most likely came from some "if" condition and wants
-                    // us to handle it immediately. So inject it immediately to
-                    // the first position in the queue for the generator
-                    this.#queue = [result, ...this.getQueue()]
-                    iterator = await this.#next()
-                  } else {
-                    // TODO
-                  }
                 } else if (_.isFunction(result)) {
                   // TODO
                 } else {
