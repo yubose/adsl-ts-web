@@ -8,7 +8,6 @@ import {
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'
 import { PageModalState, PageSnapshot } from './app/types'
-import noodl from './app/noodl'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
