@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
+import createComponent from '../../utils/createComponent'
 import { isIteratorVarConsumer } from '../../utils/noodl'
 import {
   IComponent,
@@ -33,6 +34,10 @@ function getChildren(
       _.forEach(component.original.children, (noodlChild) => {
         const child = resolveComponent(component.createChild(noodlChild))
       })
+    } else if (component.original.children) {
+      component.createChild(
+        resolveComponent(createComponent(component.original.children)),
+      )
     }
   } else if (_.isPlainObject(component)) {
     log.gold(`component is PLAIN OBJECT`)

@@ -38,3 +38,4 @@ export {
 export * from './types'
 
 export { getByDataUX, getDataValues, identify } from './utils/noodl'
+export { getType } from './resolvers/getElementType'

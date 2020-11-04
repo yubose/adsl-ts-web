@@ -12,6 +12,7 @@ const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 noodlui.on('all', (node, component) => {
+  console.log(component.toJS())
   if (!node) return
 
   const {
@@ -179,6 +180,39 @@ noodlui.on('all', (node, component) => {
       node.innerHTML = `${children}`
     } else if (isDisplayable(text)) {
       node.innerHTML = `${text}`
+    }
+  }
+
+  if (!node.parentNode) {
+    const parent = component.parent()
+    if (parent) {
+      const parentNode = document.getElementById(parent.id)
+      if (parentNode) {
+        parentNode.appendChild(node)
+        console.log(`APPENDED TO PARENT ${parent.id}`, {
+          node,
+          parentNode,
+          component: component.toJS(),
+          parent: parent?.toJS(),
+          parentId: parent?.id,
+        })
+      } else {
+        document.body.appendChild(node)
+        console.log(`APPENDED TO DOCUMENT.BODY (NO PARENTNODE)`, {
+          node,
+          component: component.toJS(),
+          parent: parent?.toJS(),
+          parentId: parent?.id,
+        })
+      }
+    } else {
+      document.body.appendChild(node)
+      console.log(`APPENDED TO DOCUMENT.BODY (NO COMPONENT PARENT)`, {
+        node,
+        component: component.toJS(),
+        parent: parent?.toJS(),
+        parentId: parent?.id,
+      })
     }
   }
 })

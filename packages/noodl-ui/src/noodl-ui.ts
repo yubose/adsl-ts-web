@@ -22,6 +22,7 @@ import createComponent from './utils/createComponent'
 import ActionChain from './ActionChain/ActionChain'
 import isReference from './utils/isReference'
 import {
+  event,
   componentEventIds,
   componentEventMap,
   componentEventTypes,
@@ -49,9 +50,17 @@ class NOODL<N = any> implements T.INOODLUi {
       T.NOODLComponentResolveEventCallback<N>[]
     >
   } = {
-    action: {},
+    action: _.reduce(
+      _.values(event.action),
+      (acc, key) => _.assign(acc, { [key]: [] }),
+      {},
+    ),
     builtIn: {},
-    chaining: {},
+    chaining: _.reduce(
+      _.values(event.actionChain),
+      (acc, key) => _.assign(acc, { [key]: [] }),
+      {},
+    ),
     component: _.reduce(
       componentEventTypes,
       (acc, id) => _.assign(acc, { [id]: [] }),
@@ -147,8 +156,6 @@ class NOODL<N = any> implements T.INOODLUi {
 
     node = this.createNode?.(component.original, component)
 
-    this.emit(componentEventMap[component.noodlType], node, component)
-
     const { id, type } = component
     const consumerOptions = this.getConsumerOptions({ component })
 
@@ -176,6 +183,9 @@ class NOODL<N = any> implements T.INOODLUi {
     }
 
     resolve(component)
+
+    this.emit('all', node, component)
+    this.emit(componentEventMap[component.noodlType], node, component)
 
     this.emit('afterResolve', component, consumerOptions)
 
@@ -220,7 +230,6 @@ class NOODL<N = any> implements T.INOODLUi {
       const path = this.#getCbPath(eventName)
       if (path) {
         let cbs = _.get(this.#cb, path) as Function[]
-        console.info(cbs)
         if (!_.isArray(cbs)) cbs = cbs ? [cbs] : []
         _.forEach(cbs, (cb) => cb(...args))
       }
@@ -230,7 +239,9 @@ class NOODL<N = any> implements T.INOODLUi {
 
   #getCbPath = (key: T.EventId | 'action' | 'chaining') => {
     let path = ''
-    if (key in this.#cb) {
+    if (key === 'all') {
+      path = 'component.all'
+    } else if (key in this.#cb) {
       path = key
     } else if (key in this.#cb.action) {
       path = `action.${key}`
@@ -277,10 +288,8 @@ class NOODL<N = any> implements T.INOODLUi {
       }
     } else {
       const path = this.#getCbPath(key)
-      console.info({ path, key })
       if (path) {
         if (!_.isArray(this.#cb[path])) this.#cb[path] = []
-        console.info(this.#cb)
         this.#cb[path].push(cb as T.NOODLComponentResolveEventCallback<N>)
       }
     }
