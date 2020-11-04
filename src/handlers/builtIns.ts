@@ -16,6 +16,8 @@ import { toggleVisibility } from 'utils/dom'
 import { BuiltInActions } from 'app/types'
 import { NOODLBuiltInCheckFieldObject } from 'app/types/libExtensionTypes'
 import noodl from '../app/noodl'
+import { CachedPageObject } from '../app/types'
+import { CACHED_PAGES } from '../constants'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
@@ -188,33 +190,22 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     const requestPage = (pageName: string) =>
       page.requestPageChange(pageName, {
-        evolve: isNOODLBoolean(evolve) ? isBooleanTrue(evolve) : !!evolve,
+        // evolve: isNOODLBoolean(evolve) ? isBooleanTrue(evolve) : !!evolve,
+        evolve: true
       })
 
-    let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
+    let cachedPages: CachedPageObject[] = getCachedPages()
     if (cachedPages) {
-      try {
-        cachedPages = JSON.parse(cachedPages)
-        if (Array.isArray(cachedPages)) {
-          if (cachedPages.length > 0) {
-            let pg: string
-            while (cachedPages.length) {
-              pg = cachedPages.shift()?.name || ''
-              if (pg && pg !== page.currentPage && pg !== page.previousPage) {
-                log.green(`Updated previous page: ${page.previousPage}`)
-                previousPage = pg
-                await requestPage(previousPage)
-                break
-              }
-            }
-          } else {
-            await requestPage(noodl.cadlEndpoint.startPage)
-          }
-
-        }
-      } catch (error) {
-        console.error(error)
+      cachedPages.shift()
+      while (cachedPages[0].name.endsWith("MenuBar") && cachedPages.length) {
+        cachedPages.shift()
       }
+      let pg: string
+      pg = cachedPages.shift()?.name || ''
+      setCachedPages(cachedPages)
+      console.log('What to expect?', pg, 'Cached stuff are', window.localStorage.getItem(CACHED_PAGES))
+      debugger
+      await requestPage(pg || '')
     }
     else {
       log.func('goBack')
@@ -504,3 +495,22 @@ export function onBuiltinMissing(
 }
 
 export default createBuiltInActions
+
+/** Retrieves a list of cached pages */
+function getCachedPages(): CachedPageObject[] {
+  let result: CachedPageObject[] = []
+  const pageHistory = window.localStorage.getItem(CACHED_PAGES)
+  if (pageHistory) {
+    try {
+      result = JSON.parse(pageHistory) || []
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  return result
+}
+
+/** Sets the list of cached pages */
+function setCachedPages(cache: CachedPageObject[]) {
+  window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+}

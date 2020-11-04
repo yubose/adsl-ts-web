@@ -673,7 +673,7 @@ function cachePage(name: string) {
   const prevCache = getCachedPages()
   if (prevCache[0]?.name === name) return
   const cache = [cacheObj, ...prevCache]
-  if (cache.length >= 11) cache.pop()
+  if (cache.length >= 12) cache.pop()
   cacheObj.timestamp = Date.now()
   setCachedPages(cache)
 }
