@@ -116,8 +116,8 @@ const createActions = function ({ page }: { page: IPage }) {
     // URL
     if (_.isString(action)) {
       if (!action.endsWith("MenuBar")) page.pageStack.push(action)
-      console.log("Reaching actions.goto", action, page.pageStack)
-      debugger
+      // console.log("Reaching actions.goto", action, page.pageStack)
+      // debugger
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
@@ -126,8 +126,8 @@ const createActions = function ({ page }: { page: IPage }) {
       if (action.original.destination || _.isString(action.original.goto)) {
         const url = action.original.destination || action.original.goto
         if (!url.endsWith("MenuBar")) page.pageStack.push(url)
-        console.log("Reaching actions.goto", url, page.pageStack)
-        debugger
+        // console.log("Reaching actions.goto", url, page.pageStack)
+        // debugger
         await page.requestPageChange(url)
       } else {
         log.func('goto')
@@ -166,7 +166,7 @@ const createActions = function ({ page }: { page: IPage }) {
       // it is not triggered by some DataValueElement. So we need to do a check here
       const dataValues = getDataValues()
       if (component.original?.dataKey) {
-        
+
       }
       // Auto prefills the verification code when ECOS_ENV === 'test'
       // and when the entered phone number starts with 888

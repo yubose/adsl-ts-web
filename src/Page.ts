@@ -8,9 +8,11 @@ import {
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'
 import { PageModalState, PageSnapshot } from './app/types'
+import noodl from './app/noodl'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
+import { debug } from 'webpack'
 
 const log = Logger.create('Page.ts')
 
@@ -47,24 +49,24 @@ class Page {
     | undefined
   #onBeforePageRender:
     | ((options: {
-        pageName: string
-        rootNode: NOODLDOMElement | null
-        pageModifiers: { evolve?: boolean } | undefined
-      }) => Promise<any>)
+      pageName: string
+      rootNode: NOODLDOMElement | null
+      pageModifiers: { evolve?: boolean } | undefined
+    }) => Promise<any>)
     | undefined
   #onPageRendered:
     | ((options: {
-        pageName: string
-        components: NOODLComponentProps[]
-      }) => Promise<any>)
+      pageName: string
+      components: NOODLComponentProps[]
+    }) => Promise<any>)
     | undefined
   #onPageRequest:
     | ((params: {
-        previous: string
-        current: string
-        requested: string
-        modifiers: { evolve?: boolean }
-      }) => boolean)
+      previous: string
+      current: string
+      requested: string
+      modifiers: { evolve?: boolean }
+    }) => boolean)
     | undefined
   #onModalStateChange:
     | ((prevState: PageModalState, nextState: PageModalState) => void)
@@ -183,6 +185,11 @@ class Page {
    * @param { boolean? } modifiers.evolve - Set to false to disable the sdk's "evolve" for this route change. It internally set to true by default
    */
   requestPageChange(newPage: string, modifiers: { evolve?: boolean } = {}) {
+    if (newPage === noodl.cadlEndpoint.startPage) {
+      console.log('Reaching page.requestPageChange')
+      debugger
+      modifiers.evolve = true
+    }
     if (newPage !== this.currentPage) {
       const shouldNavigate = this.#onPageRequest?.({
         previous: this.previousPage,
@@ -190,8 +197,12 @@ class Page {
         requested: newPage,
         modifiers,
       })
+      console.log('Should I be navigating?', shouldNavigate)
+      debugger
       if (shouldNavigate === true) {
         return this.navigate(newPage, modifiers).then(() => {
+          console.log('Ok, so', newPage, modifiers)
+          debugger
           this.previousPage = this.currentPage
           this.currentPage = newPage
         })
@@ -311,7 +322,7 @@ class Page {
       log.func('navigate')
       log.red(
         "Attempted to render the page's components but the root " +
-          'node was not initialized. The page will not show anything',
+        'node was not initialized. The page will not show anything',
         { rootNode: this.rootNode, nodes: this.nodes },
       )
     }

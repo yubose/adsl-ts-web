@@ -15,6 +15,7 @@ import validate from 'utils/validate'
 import { toggleVisibility } from 'utils/dom'
 import { BuiltInActions } from 'app/types'
 import { NOODLBuiltInCheckFieldObject } from 'app/types/libExtensionTypes'
+import noodl from '../app/noodl'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
@@ -194,9 +195,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     if (!previousPage) {
       // Hard code this for now until routing is implemented
       let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
-      console.log('For some reason, no previousPage?', cachedPages)
-      debugger
       if (cachedPages) {
+        console.log('On goBack, there are cached pages', cachedPages)
+        debugger
         try {
           cachedPages = JSON.parse(cachedPages)
           if (Array.isArray(cachedPages)) {
@@ -206,7 +207,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
               if (pg && pg !== page.currentPage && pg !== page.previousPage) {
                 log.green(`Updated previous page: ${page.previousPage}`)
                 previousPage = pg
-                await requestPage(previousPage)
+                await requestPage(noodl.cadlEndpoint.startPage)
                 break
               }
             }
@@ -218,20 +219,25 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     }
     if (previousPage) {
       if (page.pageStack.length > 1) {
+        console.log('More than one thing left in pageStack', page.pageStack)
+        debugger
         page.pageStack.pop()
         let prevPage = page.pageStack[page.pageStack.length - 1]
         await requestPage(prevPage || '')
       }
       else if (page.pageStack.length == 1) {
-        console.log('Wait...')
+        console.log('One thing left in pageStack', page.pageStack)
         debugger
         page.pageStack.pop()
         await requestPage(page.previousPage)
       }
       else {
-        console.log('No good', page)
+        let { previousPage } = page
+        console.log('Nothing left in pageStack', page)
+        console.log('previous Page is', previousPage)
+        console.log('Now, check noodl.cadlEndpoint.baseUrl', noodl.cadlEndpoint.startPage)
         debugger
-        await requestPage("MeetingRoomInvited")
+        await requestPage(noodl.cadlEndpoint.startPage)
       }
     } else {
       log.func('goBack')
@@ -249,8 +255,8 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // URL
     if (_.isString(action)) {
       if (!action.endsWith("MenuBar")) page.pageStack.push(action)
-      console.log('builtInActions.goto', page.pageStack)
-      debugger
+      // console.log('builtInActions.goto', page.pageStack)
+      // debugger
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
@@ -258,8 +264,8 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       // soon be deprecated by this goto action
       if (action.destination) {
         if (!action.destination.endsWith("MenuBar")) page.pageStack.push(action.destination)
-        console.log('builtInActions.goto', action.destination)
-        debugger
+        // console.log('builtInActions.goto', action.destination)
+        // debugger
         await page.requestPageChange(action.destination)
       } else {
         log.func('goto')
