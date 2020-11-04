@@ -198,6 +198,8 @@ const createBuiltInActions = function ({
     if (!previousPage) {
       // Hard code this for now until routing is implemented
       let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
+      console.log('For some reason, no previousPage?', cachedPages)
+      debugger
       if (cachedPages) {
         try {
           cachedPages = JSON.parse(cachedPages)
@@ -221,11 +223,19 @@ const createBuiltInActions = function ({
     if (previousPage) {
       if (page.pageStack.length > 1) {
         page.pageStack.pop()
-        let prevPage = page.pageStack.pop()
+        let prevPage = page.pageStack[page.pageStack.length-1]
         await requestPage(prevPage || '')
-      } else {
+      } 
+      else if (page.pageStack.length == 1) {
+        console.log('Wait...')
+        debugger
         page.pageStack.pop()
-        await requestPage('SideMenuBar')
+        await requestPage(page.previousPage)
+      }
+      else {
+        console.log('No good', page)
+        debugger
+        await requestPage("MeetingRoomInvited")
       }
     } else {
       log.func('goBack')
@@ -242,12 +252,18 @@ const createBuiltInActions = function ({
     log.red('', _.assign({ action }, options))
     // URL
     if (_.isString(action)) {
+      if(!action.endsWith("MenuBar")) page.pageStack.push(action)
+      console.log('builtInActions.goto', page.pageStack)
+      debugger
       page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
+        if(!action.destination.endsWith("MenuBar")) page.pageStack.push(action.destination)
+        console.log('builtInActions.goto', action.destination)
+        debugger
         page.requestPageChange(action.destination)
       } else {
         log.func('goto')

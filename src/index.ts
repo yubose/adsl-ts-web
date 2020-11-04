@@ -143,7 +143,6 @@ window.addEventListener('load', async () => {
   })
 
   page.onStart = async (pageName) => {
-    page.pageStack.push(pageName)
     log.func('page.onStart').grey(`Rendering the DOM for page: "${pageName}"`)
   }
 
