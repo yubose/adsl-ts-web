@@ -196,8 +196,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       // Hard code this for now until routing is implemented
       let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
       if (cachedPages) {
-        console.log('On goBack, there are cached pages', cachedPages)
-        debugger
         try {
           cachedPages = JSON.parse(cachedPages)
           if (Array.isArray(cachedPages)) {
@@ -207,7 +205,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
               if (pg && pg !== page.currentPage && pg !== page.previousPage) {
                 log.green(`Updated previous page: ${page.previousPage}`)
                 previousPage = pg
-                await requestPage(noodl.cadlEndpoint.startPage)
+                await requestPage(previousPage)
                 break
               }
             }
@@ -217,29 +215,30 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         }
       }
     }
-    if (previousPage) {
-      if (page.pageStack.length > 1) {
-        console.log('More than one thing left in pageStack', page.pageStack)
-        debugger
-        page.pageStack.pop()
-        let prevPage = page.pageStack[page.pageStack.length - 1]
-        await requestPage(prevPage || '')
-      }
-      else if (page.pageStack.length == 1) {
-        console.log('One thing left in pageStack', page.pageStack)
-        debugger
-        page.pageStack.pop()
-        await requestPage(page.previousPage)
-      }
-      else {
-        let { previousPage } = page
-        console.log('Nothing left in pageStack', page)
-        console.log('previous Page is', previousPage)
-        console.log('Now, check noodl.cadlEndpoint.baseUrl', noodl.cadlEndpoint.startPage)
-        debugger
-        await requestPage(noodl.cadlEndpoint.startPage)
-      }
-    } else {
+    // if (previousPage) {
+    //   if (page.pageStack.length > 1) {
+    //     console.log('More than one thing left in pageStack', page.pageStack)
+    //     debugger
+    //     page.pageStack.pop()
+    //     let prevPage = page.pageStack[page.pageStack.length - 1]
+    //     await requestPage(prevPage || '')
+    //   }
+    //   else if (page.pageStack.length == 1) {
+    //     console.log('One thing left in pageStack', page.pageStack)
+    //     debugger
+    //     page.pageStack.pop()
+    //     await requestPage(page.previousPage)
+    //   }
+    //   else {
+    //     let { previousPage } = page
+    //     console.log('Nothing left in pageStack', page)
+    //     console.log('previous Page is', previousPage)
+    //     console.log('Now, check noodl.cadlEndpoint.baseUrl', noodl.cadlEndpoint.startPage)
+    //     debugger
+    //     await requestPage(noodl.cadlEndpoint.startPage)
+    //   }
+    // } 
+    else {
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
