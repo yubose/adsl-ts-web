@@ -154,7 +154,11 @@ class NOODL<N = any> implements T.INOODLUi {
     if (c instanceof Component) component = c as T.IComponentTypeInstance
     else component = createComponent(c)
 
+    forEachEntries(this.getBaseStyles(), (k, v) => component.setStyle(k, v))
+
     node = this.createNode?.(component.original, component)
+
+    component.set('_node', node)
 
     const { id, type } = component
     const consumerOptions = this.getConsumerOptions({ component })
@@ -186,7 +190,6 @@ class NOODL<N = any> implements T.INOODLUi {
 
     this.emit('all', node, component)
     this.emit(componentEventMap[component.noodlType], node, component)
-
     this.emit('afterResolve', component, consumerOptions)
 
     // Finalizing

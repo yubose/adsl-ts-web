@@ -296,10 +296,20 @@ class Page {
   public render(rawComponents: IComponentType | IComponentType[]) {
     let resolved = noodlui.resolveComponents(rawComponents)
     const components = _.isArray(resolved) ? resolved : [resolved]
-
     if (this.rootNode) {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
+      const fn = (component: IComponentTypeInstance) => {
+        if (!component.parent()) {
+          document.body.appendChild(component.node)
+        } else {
+          const parentNode = document.getElementById(component.parent().id)
+          parentNode?.appendChild(component.node)
+        }
+        if (component.length) {
+          _.forEach(component.children(), fn)
+        }
+      }
       _.forEach(components, (component) => {
         // noodluidom.parse(component, this.rootNode)
       })

@@ -1,13 +1,12 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import createComponent from '../../utils/createComponent'
 import { isIteratorVarConsumer } from '../../utils/noodl'
 import {
+  ConsumerOptions,
   IComponent,
+  IComponentTypeInstance,
   ProxiedComponent,
   ResolverOptions,
-  ConsumerOptions,
-  IComponentTypeInstance,
 } from '../../types'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
@@ -15,7 +14,6 @@ import getListChildren from './list'
 import getListItemChildren from './listItem'
 import getListItemItemObjectConsumer from './listItemObjectConsumers'
 import getTextBoardChildren from './textBoard'
-import Component from '../../components/Base'
 
 const log = Logger.create('getChildren')
 
@@ -29,32 +27,24 @@ function getChildren(
 ): void {
   const { resolveComponent, resolverOptions } = options
 
-  if (component instanceof Component) {
-    if (_.isArray(component.original.children)) {
-      _.forEach(component.original.children, (noodlChild) => {
-        const child = resolveComponent(component.createChild(noodlChild))
-      })
-    } else if (component.original.children) {
-      component.createChild(
-        resolveComponent(createComponent(component.original.children)),
-      )
-    }
-  } else if (_.isPlainObject(component)) {
-    log.gold(`component is PLAIN OBJECT`)
-  } else if (_.isString(component)) {
-    log.gold(`component is STRING`)
+  const originalChildren = component.original?.children
+
+  if (originalChildren) {
+    _.forEach(
+      _.isArray(originalChildren) ? originalChildren : [originalChildren],
+      (noodlChild) => {
+        if (noodlChild) {
+          let child = resolveComponent(noodlChild)
+          if (child) {
+            child = component.createChild(child)
+          }
+        }
+      },
+    )
   }
 
-  // if (component.original.children?.length)
-  //   _.forEach(component.original.children, (c) => {
-  //     if (c) {
-  //       const child = createComponent(c)
-  //       const resolvedComponent = resolveComponent(child)
-  //       if (resolvedComponent) fn(resolvedComponent)
-  //     }
-  //   })
   return
-  const { text, textBoard, type, children, iteratorVar = '' } = component.get([
+  const { text, textBoard, type, iteratorVar = '' } = component.get([
     'text',
     'textBoard',
     'type',

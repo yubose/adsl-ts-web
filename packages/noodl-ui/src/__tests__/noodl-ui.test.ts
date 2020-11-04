@@ -15,10 +15,6 @@ beforeEach(() => {
   component = new Component(noodlComponent) as IComponent
 })
 
-afterEach(() => {
-  noodlui.cleanup()
-})
-
 describe('noodl-ui', () => {
   it('should flip initialized to true when running init', () => {
     noodlui.init()

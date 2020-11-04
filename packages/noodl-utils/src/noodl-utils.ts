@@ -43,7 +43,7 @@ export function findChild<Component extends { children?: Function } = any>(
   fn: (child: Component) => boolean,
 ): Component | null {
   if (component) {
-    let children = child?.().reverse?.()
+    let children = component.children?.().reverse?.()
     let child = children.pop()
     if (child) {
       if (fn(child)) return child

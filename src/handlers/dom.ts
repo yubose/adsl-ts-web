@@ -21,7 +21,6 @@ noodlui.on('all', (node, component) => {
     options,
     placeholder = '',
     src,
-    style,
     text = '',
     type = '',
     videoFormat = '',
@@ -31,11 +30,12 @@ noodlui.on('all', (node, component) => {
     'options',
     'placeholder',
     'src',
-    'style',
     'text',
     'type',
     'videoFormat',
   ])
+
+  const { style } = component
 
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = component['data-listdata']
@@ -183,38 +183,12 @@ noodlui.on('all', (node, component) => {
     }
   }
 
-  if (!node.parentNode) {
-    const parent = component.parent()
-    if (parent) {
-      const parentNode = document.getElementById(parent.id)
-      if (parentNode) {
-        parentNode.appendChild(node)
-        console.log(`APPENDED TO PARENT ${parent.id}`, {
-          node,
-          parentNode,
-          component: component.toJS(),
-          parent: parent?.toJS(),
-          parentId: parent?.id,
-        })
-      } else {
-        document.body.appendChild(node)
-        console.log(`APPENDED TO DOCUMENT.BODY (NO PARENTNODE)`, {
-          node,
-          component: component.toJS(),
-          parent: parent?.toJS(),
-          parentId: parent?.id,
-        })
-      }
-    } else {
-      document.body.appendChild(node)
-      console.log(`APPENDED TO DOCUMENT.BODY (NO COMPONENT PARENT)`, {
-        node,
-        component: component.toJS(),
-        parent: parent?.toJS(),
-        parentId: parent?.id,
-      })
+  _.forEach(component.children(), (child) => {
+    if (child) {
+      child.node['id'] = child.id
+      node.appendChild(child.node)
     }
-  }
+  })
 })
 
 noodlui.on('create.button', (node, component) => {

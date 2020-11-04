@@ -13,6 +13,7 @@ import {
   NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
+  IComponentTypeInstance,
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
 import { forEachEntries } from '../../utils/common'
@@ -178,7 +179,9 @@ class Component<N = any> implements IComponent {
     value?: any,
     styleChanges?: any,
   ) {
-    if (key === 'style') {
+    if (key === '_node') {
+      this.#node = value
+    } else if (key === 'style') {
       if (this.#component.style) {
         this.#component.style[value] = styleChanges
         if (this.status !== 'drafting' && !this.isHandled('style')) {
@@ -556,7 +559,7 @@ class Component<N = any> implements IComponent {
     // case when we're re-rendering and choose to pass in existing component
     // instances to shortcut into parsing
     if (id !== childComponent.id) childComponent['id'] = id
-    childComponent.setParent(this as IComponent)
+    childComponent.setParent(this as IComponentTypeInstance)
     this.#children.push(childComponent)
     return childComponent
   }
