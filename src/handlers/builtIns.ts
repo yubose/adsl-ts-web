@@ -15,6 +15,9 @@ import validate from 'utils/validate'
 import { toggleVisibility } from 'utils/dom'
 import { BuiltInActions } from 'app/types'
 import { NOODLBuiltInCheckFieldObject } from 'app/types/libExtensionTypes'
+import noodl from '../app/noodl'
+import { CachedPageObject } from '../app/types'
+import { CACHED_PAGES } from '../constants'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
@@ -83,7 +86,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
-            `Defaulting to attaching ${dataKey} as a path to the root object`,
+          `Defaulting to attaching ${dataKey} as a path to the root object`,
           { context, dataObject, dataKey },
         )
         dataObject = noodl.root
@@ -153,7 +156,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => {}
+  builtInActions.checkVerificationCode = async (action) => { }
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -187,47 +190,26 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     const requestPage = (pageName: string) =>
       page.requestPageChange(pageName, {
-        evolve: isNOODLBoolean(evolve) ? isBooleanTrue(evolve) : !!evolve,
+        evolve: isNOODLBoolean(evolve) ? true : true,
+        // evolve: true
       })
 
-    let { previousPage } = page
-    if (!previousPage) {
-      // Hard code this for now until routing is implemented
-      let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
-      if (cachedPages) {
-        try {
-          cachedPages = JSON.parse(cachedPages)
-          if (Array.isArray(cachedPages)) {
-            let pg: string
-            while (cachedPages.length) {
-              pg = cachedPages.shift()?.name || ''
-              if (pg && pg !== page.currentPage && pg !== page.previousPage) {
-                log.green(`Updated previous page: ${page.previousPage}`)
-                previousPage = pg
-                await requestPage(previousPage)
-                break
-              }
-            }
-          }
-        } catch (error) {
-          console.error(error)
-        }
+    let cachedPages: CachedPageObject[] = getCachedPages()
+    if (cachedPages) {
+      cachedPages.shift()
+      while (cachedPages[0].name.endsWith("MenuBar") && cachedPages.length) {
+        cachedPages.shift()
       }
+      let pg: string
+      pg = cachedPages.shift()?.name || ''
+      setCachedPages(cachedPages)
+      await requestPage(pg || '')
     }
-    if (previousPage) {
-      if (page.pageStack.length > 1) {
-        page.pageStack.pop()
-        let prevPage = page.pageStack.pop()
-        await requestPage(prevPage || '')
-      } else {
-        page.pageStack.pop()
-        await requestPage('SideMenuBar')
-      }
-    } else {
+    else {
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
-          'be found',
+        'be found',
         { previousPage: page.previousPage, currentPage: page.currentPage },
       )
     }
@@ -240,9 +222,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     if (_.isString(action)) {
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
-      // Currently don't know of any known properties the goto syntax has.
-      // We will support a "destination" key since it exists on goto which will
-      // soon be deprecated by this goto action
       if (action.destination) {
         await page.requestPageChange(action.destination)
       } else {
@@ -311,9 +290,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // Re-render the current list item somehow
   }
 
-  builtInActions.signIn = async (action, options) => {}
-  builtInActions.signUp = async () => {}
-  builtInActions.signout = async () => {}
+  builtInActions.signIn = async (action, options) => { }
+  builtInActions.signUp = async () => { }
+  builtInActions.signout = async () => { }
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -393,7 +372,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     log.green(
       `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-        `root.${pageName}.${nameFieldPath}`,
+      `root.${pageName}.${nameFieldPath}`,
       file,
     )
   }
@@ -466,3 +445,22 @@ export function onBuiltinMissing(
 }
 
 export default createBuiltInActions
+
+/** Retrieves a list of cached pages */
+function getCachedPages(): CachedPageObject[] {
+  let result: CachedPageObject[] = []
+  const pageHistory = window.localStorage.getItem(CACHED_PAGES)
+  if (pageHistory) {
+    try {
+      result = JSON.parse(pageHistory) || []
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  return result
+}
+
+/** Sets the list of cached pages */
+function setCachedPages(cache: CachedPageObject[]) {
+  window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+}
