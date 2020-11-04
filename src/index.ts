@@ -521,8 +521,8 @@ window.addEventListener('load', async () => {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-  noodlui.on('all', function onCreateNode(node, component) {
-    if (node) {
+  noodlui.on('all', (node, { component }) => {
+    if (node && component) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(component.toJS())) {
         const mainStream = streams.getMainStream()

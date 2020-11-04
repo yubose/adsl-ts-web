@@ -15,6 +15,7 @@ import {
   ProxiedComponent,
   IComponentTypeInstance,
 } from '../../types'
+import createComponent from '../../utils/createComponent'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
 import { forEachEntries } from '../../utils/common'
 
@@ -543,12 +544,12 @@ class Component<N = any> implements IComponent {
   createChild(
     child: IComponentType | NOODLComponentType,
   ): IComponent | undefined {
-    let childComponent: IComponent
+    let childComponent: IComponentTypeInstance
     let id: string = `${this.id}`
     if (this.length >= 1) id += `[${this.length}]`
     else id += '[0]'
     if (_.isString(child)) {
-      childComponent = new Component({ type: child })
+      childComponent = new Component({ type: child }) as IComponent
     } else if (child instanceof Component) {
       childComponent = child as IComponent
     } else {

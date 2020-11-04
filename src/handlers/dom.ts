@@ -11,7 +11,7 @@ import noodlui from 'app/noodl-ui'
 const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-noodlui.on('all', (node, component) => {
+noodlui.on('all', (node, { component, parent }) => {
   console.log(component.toJS())
   if (!node) return
 
@@ -183,15 +183,15 @@ noodlui.on('all', (node, component) => {
     }
   }
 
-  _.forEach(component.children(), (child) => {
-    if (child) {
-      child.node['id'] = child.id
-      node.appendChild(child.node)
-    }
-  })
+  // if (component.node) {
+  //   const parentNode = parent?.node
+  //   if (parentNode) {
+  //     parentNode.appendChild(component.node)
+  //   }
+  // }
 })
 
-noodlui.on('create.button', (node, component) => {
+noodlui.on('create.button', (node, { component, parent }) => {
   if (node) {
     const { onClick: onClickProp, src } = component.get(['onClick', 'src'])
     /**
@@ -211,7 +211,7 @@ noodlui.on('create.button', (node, component) => {
   }
 })
 
-noodlui.on('create.image', function onCreateImage(node, component) {
+noodlui.on('create.image', function onCreateImage(node, { component, parent }) {
   if (node) {
     const { onClick } = component.get(['children', 'onClick'])
 
@@ -241,7 +241,7 @@ noodlui.on('create.image', function onCreateImage(node, component) {
         pageObject?.docDetail?.document?.name?.type == 'application/pdf'
       ) {
         node.style.visibility = 'hidden'
-        const parent = document.getElementById(component.parent()?.id || '')
+        const parentNode = document.getElementById(parent?.id || '')
         const iframeEl = document.createElement('iframe')
         // @ts-expect-error
         iframeEl.setAttribute('src', node.src)
@@ -258,13 +258,13 @@ noodlui.on('create.image', function onCreateImage(node, component) {
             component.style,
           )
         }
-        parent?.appendChild(iframeEl)
+        parentNode?.appendChild(iframeEl)
       }
     })
   }
 })
 
-noodlui.on('create.label', (node, component) => {
+noodlui.on('create.label', (node, { component, parent }) => {
   if (node) {
     if (_.isFunction(component.get('onClick'))) {
       node.style['cursor'] = 'pointer'
@@ -272,7 +272,7 @@ noodlui.on('create.label', (node, component) => {
   }
 })
 
-noodlui.on('create.list', (node, component) => {
+noodlui.on('create.list', (node, { component, parent }) => {
   log.func('create.list')
   log.hotpink(`LIST CREATED`, { node, component })
 })
@@ -303,7 +303,7 @@ noodlui.on('create.plugin', async function (noop, component) {
   }
 })
 
-noodlui.on('create.textfield', (node, component) => {
+noodlui.on('create.textfield', (node, { component, parent }) => {
   if (node) {
     const contentType = component.get('contentType')
 
@@ -315,6 +315,7 @@ noodlui.on('create.textfield', (node, component) => {
           const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
           const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
           const originalParent = node?.parentNode as HTMLDivElement
+          // const originalParent = node?.parentNode as HTMLDivElement
           const newParent = document.createElement('div')
           const eyeContainer = document.createElement('button')
           const eyeIcon = document.createElement('img')
@@ -369,11 +370,13 @@ noodlui.on('create.textfield', (node, component) => {
           // Restructing the node structure to match our custom effects with the
           // toggling of the eye iconsf
 
-          if (originalParent.contains(node)) originalParent.removeChild(node)
+          if (originalParent) {
+            if (originalParent.contains(node)) originalParent.removeChild(node)
+            originalParent.appendChild(newParent)
+          }
           eyeContainer.appendChild(eyeIcon)
           newParent.appendChild(node)
           newParent.appendChild(eyeContainer)
-          originalParent.appendChild(newParent)
 
           let selected = false
 
@@ -399,7 +402,7 @@ noodlui.on('create.textfield', (node, component) => {
   }
 })
 
-noodlui.on('create.video', (node, component) => {
+noodlui.on('create.video', (node, { component, parent }) => {
   const { controls, poster, src, videoType } = component.get([
     'controls',
     'poster',

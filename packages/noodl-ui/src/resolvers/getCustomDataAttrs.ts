@@ -36,11 +36,9 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
   /* -------------------------------------------------------
       ---- POPUPS
     -------------------------------------------------------- */
-  if (type === 'popUp') {
+  if (noodlType === 'popUp') {
     component.set('data-ux', viewTag)
   }
-
-  console.log(component.get('dataKey'))
 
   /** formData specific */
   if (dataKey) {
@@ -67,7 +65,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
   /* -------------------------------------------------------
       ---- LISTS
     -------------------------------------------------------- */
-  if (component.noodlType === 'list') {
+  if (noodlType === 'list') {
     const listObject = component.get('listObject')
     if (listObject !== undefined) {
       let listObjects: typeof listObject

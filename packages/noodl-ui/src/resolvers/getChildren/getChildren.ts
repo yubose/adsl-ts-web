@@ -8,6 +8,7 @@ import {
   ProxiedComponent,
   ResolverOptions,
 } from '../../types'
+import createComponent from '../../utils/createComponent'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
 import getListChildren from './list'
@@ -29,19 +30,17 @@ function getChildren(
 
   const originalChildren = component.original?.children
 
-  if (originalChildren) {
-    _.forEach(
-      _.isArray(originalChildren) ? originalChildren : [originalChildren],
-      (noodlChild) => {
-        if (noodlChild) {
-          let child = resolveComponent(noodlChild)
-          if (child) {
-            child = component.createChild(child)
-          }
-        }
-      },
-    )
-  }
+  // if (originalChildren) {
+  //   _.forEach(
+  //     _.isArray(originalChildren) ? originalChildren : [originalChildren],
+  //     (noodlChild) => {
+  //       if (noodlChild) {
+  //         console.info(noodlChild)
+  //         resolveComponent(component.createChild(noodlChild))
+  //       }
+  //     },
+  //   )
+  // }
 
   return
   const { text, textBoard, type, iteratorVar = '' } = component.get([

@@ -299,19 +299,20 @@ class Page {
     if (this.rootNode) {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
-      const fn = (component: IComponentTypeInstance) => {
-        if (!component.parent()) {
-          document.body.appendChild(component.node)
-        } else {
-          const parentNode = document.getElementById(component.parent().id)
-          parentNode?.appendChild(component.node)
-        }
-        if (component.length) {
-          _.forEach(component.children(), fn)
-        }
+      const toDOM = (component: IComponentTypeInstance, parentNode) => {
+        parentNode.appendChild(component.node)
+        _.forEach(component.children(), (child) => {
+          if (child) {
+            if (child.node) {
+              component.node?.appendChild?.(child.node)
+            }
+            toDOM(child, component.node)
+          }
+        })
       }
+
       _.forEach(components, (component) => {
-        // noodluidom.parse(component, this.rootNode)
+        toDOM(component, this.rootNode)
       })
     } else {
       log.func('navigate')

@@ -142,26 +142,19 @@ class NOODL<N = any> implements T.INOODLUi {
     return null
   }
 
-  // Temporarily here for debugging purposes
-  getCbs() {
-    return this.#cb
-  }
-
   #resolve = (c: T.IComponentType) => {
     let component: T.IComponentTypeInstance
     let node: N | undefined
+    let parent: T.IComponentTypeInstance | null = null
 
     if (c instanceof Component) component = c as T.IComponentTypeInstance
     else component = createComponent(c)
 
-    forEachEntries(this.getBaseStyles(), (k, v) => component.setStyle(k, v))
-
-    node = this.createNode?.(component.original, component)
-
-    component.set('_node', node)
-
-    const { id, type } = component
     const consumerOptions = this.getConsumerOptions({ component })
+    const { id, type } = component
+    parent = component.parent()
+    node = this.createNode?.(component.original, { component, parent })
+    component.set('_node', node)
 
     if (!id) component['id'] = _.uniqueId()
     if (!type) {
@@ -176,20 +169,32 @@ class NOODL<N = any> implements T.INOODLUi {
       this.parser.setLocalKey(this.page.name)
     }
 
-    this.emit('beforeResolve', component, consumerOptions)
+    const fn = (_c: T.IComponentTypeInstance) => (r: T.IResolver) =>
+      r.resolve(_c, consumerOptions)
 
-    const fn = (c: T.IComponentTypeInstance) => (r: T.IResolver) =>
-      r.resolve(c, consumerOptions)
+    forEachEntries(this.getBaseStyles(), (k, v) => component.setStyle(k, v))
 
-    const resolve = (c: T.IComponentTypeInstance) => {
-      _.forEach(this.#resolvers, fn(c))
-      // if (c.length) _.forEach(c.children(), resolve)
+    const originalChildren = component.original?.children
+
+    _.forEach(this.#resolvers, fn(component))
+
+    if (_.isArray(originalChildren)) {
+      _.forEach(originalChildren, (noodlChild) => {
+        if (noodlChild) {
+          component.createChild(this.resolveComponents(noodlChild))
+        }
+      })
+    } else {
+      if (originalChildren) {
+        component.createChild(this.resolveComponents(originalChildren))
+      }
     }
 
-    resolve(component)
-
-    this.emit('all', node, component)
-    this.emit(componentEventMap[component.noodlType], node, component)
+    this.emit('all', node, { component, parent })
+    this.emit(componentEventMap[component.noodlType], node, {
+      component,
+      parent,
+    })
     this.emit('afterResolve', component, consumerOptions)
 
     // Finalizing

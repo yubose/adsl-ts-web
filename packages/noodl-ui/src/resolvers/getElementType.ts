@@ -12,7 +12,7 @@ const getElementType: ResolverFn = (component) => {
 }
 
 export function getType(component: IComponentTypeInstance): string {
-  switch (component.noodlType || component.type) {
+  switch (component?.noodlType || component?.type) {
     case 'br':
       return 'br'
     case 'button':
@@ -49,10 +49,10 @@ export function getType(component: IComponentTypeInstance): string {
       return 'video'
     default:
       console.log(
-        `%cNone of the node types matched with "${component.noodlType}". Perhaps it needs to be ' +
+        `%cNone of the node types matched with "${component?.noodlType}". Perhaps it needs to be ' +
         'supported? (Defaulting to "div" instead)`,
         'color:#e74c3c;font-weight:bold;',
-        { component: component.toJS(), noodlType: component.noodlType },
+        { component: component?.toJS?.(), noodlType: component?.noodlType },
       )
       return 'div'
   }
