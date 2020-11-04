@@ -186,12 +186,12 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
 
-    // const { evolve } = action.original as NOODLBuiltInObject
+    const { evolve } = action.original as NOODLBuiltInObject
 
     const requestPage = (pageName: string) =>
       page.requestPageChange(pageName, {
-        // evolve: isNOODLBoolean(evolve) ? isBooleanTrue(evolve) : !!evolve,
-        evolve: true
+        evolve: isNOODLBoolean(evolve) ? true : true,
+        // evolve: true
       })
 
     let cachedPages: CachedPageObject[] = getCachedPages()
