@@ -326,7 +326,8 @@ window.addEventListener('load', async () => {
 
   page.onError = async ({ error }) => {
     console.error(error)
-    log.func('page.onError').red(error.message, error)
+    log.func('page.onError')
+    log.red(error.message, error)
     // window.alert(error.message)
     // TODO - narrow the reasons down more
   }
@@ -661,7 +662,6 @@ window.addEventListener('load', async () => {
     //   console.error(error)
     // }
   }
-
   await page.requestPageChange(startPage)
 })
 

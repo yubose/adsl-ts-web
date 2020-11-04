@@ -77,6 +77,7 @@ class Page {
   public rootNode: HTMLElement | null = null
   public nodes: HTMLElement[] | null
   public modal: Modal
+  public requestingPage: string | undefined
 
   constructor({ builtIn, rootNode = null, nodes = null }: PageOptions = {}) {
     this.builtIn = builtIn
@@ -113,6 +114,8 @@ class Page {
         return openOutboundURL(pageName)
       }
 
+      this['requestingPage'] = pageName
+
       await this.#onStart?.(pageName)
 
       /** Handle the root node */
@@ -141,6 +144,18 @@ class Page {
           rootNode: this.rootNode,
           pageModifiers,
         })
+
+        // Sometimes a navigate request coming from another location like a
+        // "goto" action can invoke a request in the middle of this operation.
+        // Give the latest call the priority
+        if (this.requestingPage && this.requestingPage !== pageName) {
+          log.grey(
+            `Aborting this navigate request for ${pageName} because a more ` +
+              `recent request to "${this.requestingPage}" was called`,
+            { pageAborting: pageName, pageRequesting: this.requestingPage },
+          )
+          return
+        }
 
         const rendered = this.render(
           pageSnapshot?.object?.components as NOODLComponent[],
