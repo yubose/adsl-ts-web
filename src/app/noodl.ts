@@ -24,7 +24,6 @@ function getConfigEndpoint(
     | 'cadltest'
     | 'meet2' // native js (upload document, etc)
     | 'meet2d' // native js (upload document, etc)
-    | 'meet3d'
     | 'meet11' // testing for jiahao + new features/syntax testing
     | 'landing.page'
     | 'patient'
@@ -49,8 +48,6 @@ function getConfigEndpoint(
           return '/meet2'
         case 'meet2d':
           return '/meet2d'
-        case 'meet3d':
-          return '/meet3d'
         case 'portal.phase.2':
           return '/meet2'
         case 'portal':
