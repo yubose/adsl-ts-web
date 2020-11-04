@@ -8,7 +8,6 @@ import {
   NOODLGotoAction,
 } from 'noodl-ui'
 import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
-import { INOODLUiDOM } from 'noodl-ui-dom'
 import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
@@ -20,13 +19,7 @@ import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
 
-const createBuiltInActions = function ({
-  noodluidom,
-  page,
-}: {
-  noodluidom: INOODLUiDOM
-  page: Page
-}) {
+const createBuiltInActions = function ({ page }: { page: Page }) {
   const builtInActions: BuiltInActions = {}
 
   builtInActions.stringCompare = async (action, options) => {
@@ -88,10 +81,13 @@ const createBuiltInActions = function ({
       } else if (_.has(noodl.root[context.page.name], dataKey)) {
         dataObject = noodl.root[context.page.name]
       } else {
-        log.red(`${dataKey} is not a path of the data object`, {
-          dataObject,
-          dataKey,
-        })
+        log.red(
+          `${dataKey} is not a path of the data object. ` +
+          `Defaulting to attaching ${dataKey} as a path to the root object`,
+          { context, dataObject, dataKey },
+        )
+        dataObject = noodl.root
+        _.set(dataObject, dataKey, false)
       }
       previousDataValue = _.get(dataObject, dataKey)
       dataValue = previousDataValue
@@ -157,7 +153,7 @@ const createBuiltInActions = function ({
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => {}
+  builtInActions.checkVerificationCode = async (action) => { }
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -223,9 +219,9 @@ const createBuiltInActions = function ({
     if (previousPage) {
       if (page.pageStack.length > 1) {
         page.pageStack.pop()
-        let prevPage = page.pageStack[page.pageStack.length-1]
+        let prevPage = page.pageStack[page.pageStack.length - 1]
         await requestPage(prevPage || '')
-      } 
+      }
       else if (page.pageStack.length == 1) {
         console.log('Wait...')
         debugger
@@ -241,7 +237,7 @@ const createBuiltInActions = function ({
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
-          'be found',
+        'be found',
         { previousPage: page.previousPage, currentPage: page.currentPage },
       )
     }
@@ -252,19 +248,19 @@ const createBuiltInActions = function ({
     log.red('', _.assign({ action }, options))
     // URL
     if (_.isString(action)) {
-      if(!action.endsWith("MenuBar")) page.pageStack.push(action)
+      if (!action.endsWith("MenuBar")) page.pageStack.push(action)
       console.log('builtInActions.goto', page.pageStack)
       debugger
-      page.requestPageChange(action)
+      await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
       // We will support a "destination" key since it exists on goto which will
       // soon be deprecated by this goto action
       if (action.destination) {
-        if(!action.destination.endsWith("MenuBar")) page.pageStack.push(action.destination)
+        if (!action.destination.endsWith("MenuBar")) page.pageStack.push(action.destination)
         console.log('builtInActions.goto', action.destination)
         debugger
-        page.requestPageChange(action.destination)
+        await page.requestPageChange(action.destination)
       } else {
         log.func('goto')
         log.red(
@@ -331,9 +327,9 @@ const createBuiltInActions = function ({
     // Re-render the current list item somehow
   }
 
-  builtInActions.signIn = async (action, options) => {}
-  builtInActions.signUp = async () => {}
-  builtInActions.signout = async () => {}
+  builtInActions.signIn = async (action, options) => { }
+  builtInActions.signUp = async () => { }
+  builtInActions.signout = async () => { }
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -413,7 +409,7 @@ const createBuiltInActions = function ({
 
     log.green(
       `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-        `root.${pageName}.${nameFieldPath}`,
+      `root.${pageName}.${nameFieldPath}`,
       file,
     )
   }

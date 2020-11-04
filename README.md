@@ -1,5 +1,13 @@
 # AiTmed NOODL Web
 
+#update to use latest aitmed/cadl sdk
+# added by Austin Yu 10/23/2020
+npm install @aitmed/cadl@latest
+git add .
+git commit -a -m "update aitmed sdk"
+git push
+
+
 ## All noodl-ui related packages are now merged into this repo and managed by [lerna](https://github.com/lerna/lerna)
 
 - `logsnap`
@@ -38,6 +46,12 @@ This allows for faster compilation, faster load times and quicker development fl
 - bugs
   - footer 4.0 --> 4.1 top value placement
   - input focus issue on androids
+
+## Notes
+
+- redraw
+  - remove --> give a key --> removes the object
+- `${itemObject.key}`
 
 ## Lib Todos
 
@@ -85,3 +99,15 @@ This allows for faster compilation, faster load times and quicker development fl
 - Dispatch `openModal`
 - Dispatch `closeModal`
 - `Page` is subscribed to `modal.id` + `modal.opened`, so it will respond with `modal.hide` or other modal methods to manage it
+
+## Debugging Meeting (unable to see remote participant)
+
+1. window .on event: `load`
+2. action: `evalObject`
+3. action: `goto`
+4. requesting page change
+   - current: `VideoChat`
+   - previous: `ManageMeeting`
+   - requesting: `MeetingDocumentsShared`
+5. (onStart) rendering DOM for `MeetingDocumentsShared`
+6. (onBeforePageRender) rendering components

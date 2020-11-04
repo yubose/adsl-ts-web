@@ -12,12 +12,12 @@ import {
 import Logger from 'logsnap'
 import { getByDataUX, NOODLComponentProps, Viewport } from 'noodl-ui'
 import { isMobile } from 'utils/common'
-import * as T from 'app/types/meetingTypes'
 import noodluidom from 'app/noodl-ui-dom'
 import Stream from 'meeting/Stream'
 import Streams from 'meeting/Streams'
 import Page from 'Page'
 import MeetingSubstreams from 'meeting/Substreams'
+import * as T from 'app/types/meetingTypes'
 
 const log = Logger.create('Meeting.ts')
 
@@ -84,7 +84,7 @@ const Meeting = (function () {
     },
     /** Disconnects from the room */
     leave() {
-      if (_internal._room?.state === 'connected') {
+      if (_internal._room?.state) {
         const unpublishTracks = (
           trackPublication:
             | LocalVideoTrackPublication
