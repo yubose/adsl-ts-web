@@ -140,7 +140,7 @@ const createActions = function ({ page }: { page: IPage }) {
   ) => {
     log.func('popUp')
     log.grey('', { action, ...options })
-    const { context } = options
+    const { abort, component, context } = options
     const elem = getByDataUX(action.original.popUpView) as HTMLElement
     log.gold('popUp action', { action, ...options, elem })
     if (elem) {
@@ -148,6 +148,25 @@ const createActions = function ({ page }: { page: IPage }) {
         elem.style.visibility = 'visible'
       } else if (action.original.actionType === 'popUpDismiss') {
         elem.style.visibility = 'hidden'
+      }
+      // Some popup components render values using the dataKey. There is a bug
+      // where an action returns a popUp action from an evalObject action. At
+      // this moment the popup is not aware that it needs to read the dataKey if
+      // it is not triggered by some DataValueElement. So we need to do a check here
+
+      // If popUp has wait: true, the action chain should pause until a response
+      // is received from something (ex: waiting on user confirming their password)
+      if (action.original.wait) {
+        if (isNOODLBoolean(action.original.wait)) {
+          if (isBooleanTrue(action.original.wait)) {
+            log.grey(
+              `Popup action for popUpView "${action.original.popUpView}" is ` +
+                `waiting on a response. Aborting now...`,
+              { action, ...options },
+            )
+            abort?.()
+          }
+        }
       }
       // Auto prefills the verification code when ECOS_ENV === 'test'
       // and when the entered phone number starts with 888
