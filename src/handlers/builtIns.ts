@@ -191,14 +191,12 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         evolve: isNOODLBoolean(evolve) ? isBooleanTrue(evolve) : !!evolve,
       })
 
-    let { previousPage } = page
-    if (!previousPage) {
-      // Hard code this for now until routing is implemented
-      let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
-      if (cachedPages) {
-        try {
-          cachedPages = JSON.parse(cachedPages)
-          if (Array.isArray(cachedPages)) {
+    let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
+    if (cachedPages) {
+      try {
+        cachedPages = JSON.parse(cachedPages)
+        if (Array.isArray(cachedPages)) {
+          if (cachedPages.length > 0) {
             let pg: string
             while (cachedPages.length) {
               pg = cachedPages.shift()?.name || ''
@@ -209,35 +207,15 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
                 break
               }
             }
+          } else {
+            await requestPage(noodl.cadlEndpoint.startPage)
           }
-        } catch (error) {
-          console.error(error)
+
         }
+      } catch (error) {
+        console.error(error)
       }
     }
-    // if (previousPage) {
-    //   if (page.pageStack.length > 1) {
-    //     console.log('More than one thing left in pageStack', page.pageStack)
-    //     debugger
-    //     page.pageStack.pop()
-    //     let prevPage = page.pageStack[page.pageStack.length - 1]
-    //     await requestPage(prevPage || '')
-    //   }
-    //   else if (page.pageStack.length == 1) {
-    //     console.log('One thing left in pageStack', page.pageStack)
-    //     debugger
-    //     page.pageStack.pop()
-    //     await requestPage(page.previousPage)
-    //   }
-    //   else {
-    //     let { previousPage } = page
-    //     console.log('Nothing left in pageStack', page)
-    //     console.log('previous Page is', previousPage)
-    //     console.log('Now, check noodl.cadlEndpoint.baseUrl', noodl.cadlEndpoint.startPage)
-    //     debugger
-    //     await requestPage(noodl.cadlEndpoint.startPage)
-    //   }
-    // } 
     else {
       log.func('goBack')
       log.red(
@@ -247,24 +225,63 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       )
     }
   }
+  // if (!previousPage) {
+  //   // Hard code this for now until routing is implemented
+  //   let cachedPages: any = window.localStorage.getItem('CACHED_PAGES')
+  //   if (cachedPages) {
+  //     try {
+  //       cachedPages = JSON.parse(cachedPages)
+  //       if (Array.isArray(cachedPages)) {
+  //         let pg: string
+  //         while (cachedPages.length) {
+  //           pg = cachedPages.shift()?.name || ''
+  //           if (pg && pg !== page.currentPage && pg !== page.previousPage) {
+  //             log.green(`Updated previous page: ${page.previousPage}`)
+  //             previousPage = pg
+  //             await requestPage(previousPage)
+  //             break
+  //           }
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }
+  // }
+  // if (previousPage) {
+  //   await requestPage(previousPage || '')
+  // if (page.pageStack.length > 1) {
+  //   console.log('More than one thing left in pageStack', page.pageStack)
+  //   debugger
+  //   page.pageStack.pop()
+  //   let prevPage = page.pageStack[page.pageStack.length - 1]
+  //   await requestPage(prevPage || '')
+  // }
+  // else if (page.pageStack.length == 1) {
+  //   console.log('One thing left in pageStack', page.pageStack)
+  //   debugger
+  //   page.pageStack.pop()
+  //   await requestPage(page.previousPage)
+  // }
+  // else {
+  //   let { previousPage } = page
+  //   console.log('Nothing left in pageStack', page)
+  //   console.log('previous Page is', previousPage)
+  //   console.log('Now, check noodl.cadlEndpoint.baseUrl', noodl.cadlEndpoint.startPage)
+  //   debugger
+  //   await requestPage(noodl.cadlEndpoint.startPage)
+  // }
+  // }
+
 
   builtInActions.goto = async (action: NOODLGotoAction, options) => {
     log.func('goto')
     log.red('', _.assign({ action }, options))
     // URL
     if (_.isString(action)) {
-      if (!action.endsWith("MenuBar")) page.pageStack.push(action)
-      // console.log('builtInActions.goto', page.pageStack)
-      // debugger
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
-      // Currently don't know of any known properties the goto syntax has.
-      // We will support a "destination" key since it exists on goto which will
-      // soon be deprecated by this goto action
       if (action.destination) {
-        if (!action.destination.endsWith("MenuBar")) page.pageStack.push(action.destination)
-        // console.log('builtInActions.goto', action.destination)
-        // debugger
         await page.requestPageChange(action.destination)
       } else {
         log.func('goto')

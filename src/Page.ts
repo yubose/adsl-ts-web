@@ -41,7 +41,6 @@ export interface PageOptions {
 class Page {
   previousPage: string = ''
   currentPage: string = ''
-  pageStack: Array<string> = []
   #onStart: ((pageName: string) => Promise<any>) | undefined
   #onRootNodeInitializing: (() => Promise<any>) | undefined
   #onRootNodeInitialized:
@@ -186,8 +185,6 @@ class Page {
    */
   requestPageChange(newPage: string, modifiers: { evolve?: boolean } = {}) {
     if (newPage === noodl.cadlEndpoint.startPage) {
-      console.log('Reaching page.requestPageChange')
-      debugger
       modifiers.evolve = true
     }
     if (newPage !== this.currentPage) {
@@ -197,12 +194,8 @@ class Page {
         requested: newPage,
         modifiers,
       })
-      console.log('Should I be navigating?', shouldNavigate)
-      debugger
       if (shouldNavigate === true) {
         return this.navigate(newPage, modifiers).then(() => {
-          console.log('Ok, so', newPage, modifiers)
-          debugger
           this.previousPage = this.currentPage
           this.currentPage = newPage
         })

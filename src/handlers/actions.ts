@@ -115,9 +115,6 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.goto = async (action: any, options) => {
     // URL
     if (_.isString(action)) {
-      // if (!action.endsWith("MenuBar")) page.pageStack.push(action)
-      // console.log("Reaching actions.goto", action, page.pageStack)
-      // debugger
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       // Currently don't know of any known properties the goto syntax has.
@@ -125,9 +122,6 @@ const createActions = function ({ page }: { page: IPage }) {
       // soon be deprecated by this goto action
       if (action.original.destination || _.isString(action.original.goto)) {
         const url = action.original.destination || action.original.goto
-        // if (!url.endsWith("MenuBar")) page.pageStack.push(url)
-        // console.log("Reaching actions.goto", url, page.pageStack)
-        // debugger
         await page.requestPageChange(url)
       } else {
         log.func('goto')

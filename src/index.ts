@@ -178,7 +178,7 @@ window.addEventListener('load', async () => {
     if (/videochat/i.test(page.currentPage) && !/videochat/i.test(pageName)) {
       log.grey(
         'You are navigating away from the video chat page. ' +
-          'Running cleanup operations now...',
+        'Running cleanup operations now...',
         streams,
       )
 
@@ -564,7 +564,7 @@ window.addEventListener('load', async () => {
             log.func('onCreateNode')
             log.red(
               `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+              `already exists in the subStreams container`,
               { subStreams, node, props },
             )
           }
@@ -673,7 +673,7 @@ function cachePage(name: string) {
   const prevCache = getCachedPages()
   if (prevCache[0]?.name === name) return
   const cache = [cacheObj, ...prevCache]
-  if (cache.length >= 4) cache.pop()
+  if (cache.length >= 11) cache.pop()
   cacheObj.timestamp = Date.now()
   setCachedPages(cache)
 }
