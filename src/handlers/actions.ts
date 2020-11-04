@@ -85,7 +85,7 @@ const createActions = function ({ page }: { page: IPage }) {
           if (result) {
             log.hotpink(
               `Received a value from evalObject's "if" evaluation. ` +
-                `Returning it back to the action chain now`,
+              `Returning it back to the action chain now`,
               { action, ...options, result },
             )
             return result
@@ -93,7 +93,7 @@ const createActions = function ({ page }: { page: IPage }) {
         } else {
           log.red(
             `Evaluated an "object" from an "if" object but it did not return a ` +
-              `function`,
+            `function`,
             { action, ...options, result: object },
           )
           return object
@@ -115,7 +115,7 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.goto = async (action: any, options) => {
     // URL
     if (_.isString(action)) {
-      if(!action.endsWith("MenuBar")) page.pageStack.push(action)
+      if (!action.endsWith("MenuBar")) page.pageStack.push(action)
       console.log("Reaching actions.goto", action, page.pageStack)
       debugger
       await page.requestPageChange(action)
@@ -125,7 +125,7 @@ const createActions = function ({ page }: { page: IPage }) {
       // soon be deprecated by this goto action
       if (action.original.destination || _.isString(action.original.goto)) {
         const url = action.original.destination || action.original.goto
-        if(!url.endsWith("MenuBar")) page.pageStack.push(url)
+        if (!url.endsWith("MenuBar")) page.pageStack.push(url)
         console.log("Reaching actions.goto", url, page.pageStack)
         debugger
         await page.requestPageChange(url)
@@ -138,26 +138,6 @@ const createActions = function ({ page }: { page: IPage }) {
       }
     }
   }
-
-  // _actions.goto2 = async (action: any, options) => {
-  //   console.log('_actions.goto2', page.pageStack)
-  //   debugger
-  //   // URL
-  //   if (_.isString(action)) {
-  //     await page.requestPageChange(action)
-  //   } else if (_.isPlainObject(action)) {
-  //     if (action.original.destination || _.isString(action.original.goto2)) {
-  //       const url = action.original.destination || action.original.goto2
-  //       await page.requestPageChange(url)
-  //     } else {
-  //       log.func('goto2')
-  //       log.red(
-  //         'Tried to go to a page but could not find information on the whereabouts',
-  //         { action, ...options },
-  //       )
-  //     }
-  //   }
-  // }
 
   _actions.pageJump = async (action: any, options) => {
     log.func('pageJump')
@@ -288,7 +268,7 @@ const createActions = function ({ page }: { page: IPage }) {
         log.func('saveObject')
         log.red(
           `The "object" property in the saveObject action is a string which ` +
-            `is in the incorrect format. Possibly a parsing error?`,
+          `is in the incorrect format. Possibly a parsing error?`,
           { action, ...options },
         )
       }
@@ -349,7 +329,7 @@ const createActions = function ({ page }: { page: IPage }) {
         } else if (_.isString(object)) {
           log.red(
             `Received a string as an object property of updateObject. ` +
-              `Possibly parsed incorrectly?`,
+            `Possibly parsed incorrectly?`,
             { object, ...options, ...opts, action },
           )
         } else if (_.isArray(object)) {

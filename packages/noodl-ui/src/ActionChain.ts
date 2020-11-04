@@ -122,12 +122,9 @@ class ActionChain {
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
       // @ts-expect-error
-      if (actionObject.goto || actionObject.goto2) {
+      if (actionObject.goto) {
         // @ts-expect-error
         actionObject = { ...actionObject, actionType: 'goto' }
-      }
-      if (actionObject.goto2) {
-        actionObject = { ...actionObject, actionType: 'goto2' }
       }
       //  logic "if" condition in action chains
       const action = this.createAction(actionObject)
@@ -270,8 +267,7 @@ class ActionChain {
                 // TODO: This will be deprecated in favor of passing this.abort
                 if (result === 'abort') {
                   iterator = await this.abort(
-                    `"abort" was called from an action with actionType: "${
-                      action?.type
+                    `"abort" was called from an action with actionType: "${action?.type
                     }". ${JSON.stringify(action)}`,
                   )
                 } else if (_.isPlainObject(result)) {
@@ -403,7 +399,7 @@ class ActionChain {
             `Aborted action of type ${action?.type || '<Missing action type>'}`,
             action,
           )
-        } catch (error) {}
+        } catch (error) { }
       }
     }
     // This will return an object like { value, done: true }
@@ -419,7 +415,6 @@ class ActionChain {
       )
     }
     this.#refresh()
-    debugger
     throw new Error(abortResult)
     // return abortResult
   }
