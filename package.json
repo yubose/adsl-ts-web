@@ -46,7 +46,7 @@
     "noodl-utils": "file:packages/noodl-utils"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.119",
+    "@aitmed/cadl": "^1.0.120",
     "@aitmed/ecos-lvl2-sdk": "^1.4.116",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",
@@ -89,6 +89,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "fs-extra": "^9.0.1",
+    "html-webpack-injector": "^1.1.4",
     "html-webpack-plugin": "^4.3.0",
     "immer": "^7.0.9",
     "jsdom": "^16.4.0",
