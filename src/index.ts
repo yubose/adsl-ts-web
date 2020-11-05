@@ -436,7 +436,6 @@ window.addEventListener('load', async () => {
         trackPublication?.track?.stop?.()
         trackPublication?.unpublish?.()
       }
-      console.log(room.localParticipant)
       // Unpublish local tracks
       room.localParticipant.videoTracks.forEach(unpublishTracks)
       room.localParticipant.audioTracks.forEach(unpublishTracks)
