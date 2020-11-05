@@ -15,7 +15,10 @@ const htmlPluginOptions = {
   filename: 'index.html',
   title: 'AiTmed Noodl Web',
   favicon: 'favicon.ico',
+  template: 'public/index.html',
   cache: true,
+  minify: false,
+  inject: false,
 }
 
 const plugins = [
