@@ -64,10 +64,10 @@ const logger = (function () {
       log: cons.log.bind(cons, `[${id}] %s`),
     } as ILogger
 
-    function _stringifyArgs({
+    const _stringifyArgs = ({
       color,
       data,
-    }: { color?: string; data?: any } = {}) {
+    }: { color?: string; data?: any } = {}) => {
       let msg = `[${_innerState.id}]`
       if (_innerState.func) msg += `[${_innerState.func}]`
       let args = [`%c${msg} %s`, `color:${color || _color.grey};${_bold}`]
@@ -79,19 +79,19 @@ const logger = (function () {
       return args
     }
 
-    function _func(name?: string) {
-      if (name) _innerState['func'] = name
-      else _innerState['func'] = ''
-      if (!state.disabled) _refreshLoggers()
-      return this
-    }
-
-    function _refreshLoggers() {
+    const _refreshLoggers = () => {
       forEachEntries(_color, (colorKey: ColorKey, color) => {
         o[colorKey] = state.disabled
           ? _noop
           : cons.log.bind(cons, ..._stringifyArgs({ color }))
       })
+    }
+
+    function _func(name?: string) {
+      if (name) _innerState['func'] = name
+      else _innerState['func'] = ''
+      if (!state.disabled) _refreshLoggers()
+      return this
     }
 
     _refreshLoggers()

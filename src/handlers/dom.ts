@@ -12,7 +12,6 @@ const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 noodlui.on('all', (node, { component, parent }) => {
-  console.log(component.toJS())
   if (!node) return
 
   const {
@@ -91,7 +90,7 @@ noodlui.on('all', (node, { component, parent }) => {
       if (!text && placeholder) text = placeholder
       if (!text) text = ''
       if (text) node.innerHTML = `${text}`
-      node.innerHTML =
+      node['innerHTML'] =
         datasetAttribs['data-value'] || component.get('placeholder') || ''
     }
   }
@@ -108,10 +107,9 @@ noodlui.on('all', (node, { component, parent }) => {
       // TODO: Test this
       // Attach the event handler
       node.addEventListener(event, (...args: any[]) => {
-        const props = component.toJS()
         log.func(`on all --> addEventListener: ${event}`)
-        log.grey(`User action invoked handler`, { props, [event]: handler })
-        console.groupCollapsed('', { event, node, props })
+        log.grey(`User action invoked handler`, { component, [event]: handler })
+        console.groupCollapsed('', { event, node, component })
         console.trace()
         console.groupEnd()
         return handler(...args)

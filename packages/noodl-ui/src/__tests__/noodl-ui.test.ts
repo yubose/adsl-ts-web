@@ -245,7 +245,6 @@ describe('noodl-ui', () => {
           const child = listItem1.createChild('view')
           const childOfChild = child.createChild('label')
           // const listObject = noodlui.getList(`${component.id}` || '')
-          console.info(childOfChild.toJS())
         },
       )
       xit(

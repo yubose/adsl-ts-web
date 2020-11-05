@@ -50,7 +50,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           this.emit('all', null, noodluidomComponent)
           this.emit('create.plugin', null, noodluidomComponent)
         } else {
-          console.info(type)
           node = document.createElement(type)
 
           switch (noodlType as NOODLComponentType) {

@@ -9,12 +9,14 @@ const PATIENT_CONFIG = getConfigEndpoint('patient')
 const PATIENT_D_CONFIG = getConfigEndpoint('patientd')
 const MEET2_CONFIG = getConfigEndpoint('meet2')
 const MEET2D_CONFIG = getConfigEndpoint('meet2d')
+const MEET3D_CONFIG = getConfigEndpoint('meet3d')
 const MEET11_CONFIG = getConfigEndpoint('meet11')
 
 const noodl = new NOODL({
   aspectRatio: 3,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: getConfigEndpoint('meet'),
+  configUrl: MEET3D_CONFIG,
+  // configUrl: getConfigEndpoint('meet'),
 })
 
 function getConfigEndpoint(

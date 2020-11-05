@@ -199,13 +199,13 @@ const createActions = function ({ page }: { page: IPage }) {
             })
           }
         }
+      } else {
+        log.func('popUp')
+        log.red(
+          `Tried to render a ${action.original.actionType} element but the element was null or undefined`,
+          { action, ...options },
+        )
       }
-    } else {
-      log.func('popUp')
-      log.red(
-        `Tried to render a ${action.original.actionType} element but the element was null or undefined`,
-        { action, ...options },
-      )
     }
   }
 

@@ -61,7 +61,6 @@ describe('DOM', () => {
         ],
       } as NOODLComponent
       const node = toDOM(noodlui.resolveComponents(noodlComponent))
-      console.info(prettyDOM())
       const children = node?.children as HTMLCollection
       expect(children[0].tagName).to.equal('LABEL')
       expect(children[1].tagName).to.equal('BR')

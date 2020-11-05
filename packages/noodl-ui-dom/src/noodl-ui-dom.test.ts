@@ -184,7 +184,6 @@ describe('noodl-ui-dom', () => {
           if (node) node.innerHTML = inst.get('text')
         })
         noodluidom.parse(noodl.resolveComponents(component))
-        console.info(prettyDOM())
         expect(screen.getByText(labelText))
       })
     })

@@ -40,7 +40,6 @@ export interface PageOptions {
 class Page {
   previousPage: string = ''
   currentPage: string = ''
-  pageStack: Array<string> = []
   #onStart: ((pageName: string) => Promise<any>) | undefined
   #onRootNodeInitializing: (() => Promise<any>) | undefined
   #onRootNodeInitialized:
@@ -78,6 +77,7 @@ class Page {
   public rootNode: HTMLElement | null = null
   public nodes: HTMLElement[] | null
   public modal: Modal
+  public requestingPage: string | undefined
 
   constructor({ builtIn, rootNode = null, nodes = null }: PageOptions = {}) {
     this.builtIn = builtIn
@@ -94,6 +94,11 @@ class Page {
       this.rootNode = root
       document.body.appendChild(root)
     }
+  }
+
+  initializeRootNode() {
+    if (this.rootNode) return
+    this._initializeRootNode()
   }
 
   /**
@@ -113,6 +118,8 @@ class Page {
       if (_.isString(pageName) && pageName.startsWith('http')) {
         return openOutboundURL(pageName)
       }
+
+      this['requestingPage'] = pageName
 
       await this.#onStart?.(pageName)
 
@@ -142,6 +149,18 @@ class Page {
           rootNode: this.rootNode,
           pageModifiers,
         })
+
+        // Sometimes a navigate request coming from another location like a
+        // "goto" action can invoke a request in the middle of this operation.
+        // Give the latest call the priority
+        if (this.requestingPage && this.requestingPage !== pageName) {
+          log.grey(
+            `Aborting this navigate request for ${pageName} because a more ` +
+              `recent request to "${this.requestingPage}" was called`,
+            { pageAborting: pageName, pageRequesting: this.requestingPage },
+          )
+          return
+        }
 
         const rendered = this.render(
           pageSnapshot?.object?.components as NOODLComponent[],
@@ -299,21 +318,22 @@ class Page {
     if (this.rootNode) {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
-      const toDOM = (component: IComponentTypeInstance, parentNode) => {
+      const toDOM = (
+        component: IComponentTypeInstance,
+        parentNode: NOODLDOMElement | null,
+      ) => {
         parentNode.appendChild(component.node)
-        _.forEach(component.children(), (child) => {
+        const fn = (child: IComponentTypeInstance) => {
           if (child) {
             if (child.node) {
               component.node?.appendChild?.(child.node)
             }
             toDOM(child, component.node)
           }
-        })
+        }
+        _.forEach(component.children(), fn)
       }
-
-      _.forEach(components, (component) => {
-        toDOM(component, this.rootNode)
-      })
+      _.forEach(components, (component) => toDOM(component, this.rootNode))
     } else {
       log.func('navigate')
       log.red(

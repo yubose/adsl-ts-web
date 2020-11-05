@@ -142,7 +142,6 @@ window.addEventListener('load', async () => {
   })
 
   page.onStart = async (pageName) => {
-    page.pageStack.push(pageName)
     log.func('page.onStart').grey(`Rendering the DOM for page: "${pageName}"`)
   }
 
@@ -329,7 +328,8 @@ window.addEventListener('load', async () => {
 
   page.onError = async ({ error }) => {
     console.error(error)
-    log.func('page.onError').red(error.message, error)
+    log.func('page.onError')
+    log.red(error.message, error)
     // window.alert(error.message)
     // TODO - narrow the reasons down more
   }
@@ -662,7 +662,6 @@ window.addEventListener('load', async () => {
     //   console.error(error)
     // }
   }
-
   await page.requestPageChange(startPage)
 })
 
@@ -675,7 +674,7 @@ function cachePage(name: string) {
   const prevCache = getCachedPages()
   if (prevCache[0]?.name === name) return
   const cache = [cacheObj, ...prevCache]
-  if (cache.length >= 4) cache.pop()
+  if (cache.length >= 12) cache.pop()
   cacheObj.timestamp = Date.now()
   setCachedPages(cache)
 }
