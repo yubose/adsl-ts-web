@@ -1,11 +1,5 @@
-import { getType, NOODL } from 'noodl-ui'
-import createElement from 'utils/createElement'
+import { NOODL } from 'noodl-ui'
 
-const noodlui = new NOODL<ReturnType<typeof createElement>>({
-  createNode: function (noodlComponent, { component }) {
-    const node = createElement(getType(component))
-    return node
-  },
-})
+const noodlui = new NOODL()
 
 export default noodlui

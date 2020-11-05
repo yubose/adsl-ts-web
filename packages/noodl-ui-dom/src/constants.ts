@@ -1,4 +1,5 @@
 export const componentEventMap = {
+  all: 'create.component',
   button: 'create.button',
   br: 'create.breakline',
   divider: 'create.divider',

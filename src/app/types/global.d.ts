@@ -14,6 +14,8 @@ declare global {
     // client.ts
     // index.ts
     account: any
+    app: any
+    build: any
     noodl: any
     env: string | undefined
     getByDataUX: any

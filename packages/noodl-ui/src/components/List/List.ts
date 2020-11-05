@@ -11,6 +11,9 @@ import {
   IListDataObjectEventHandlerOptions,
   IListDataObjectOperationResult,
   ProxiedComponent,
+  NOODLComponentType,
+  IComponentTypeInstance,
+  IComponentType,
 } from '../../types'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
@@ -358,15 +361,15 @@ class List extends Component implements IList {
     return blueprint
   }
 
-  createChild(...args: Parameters<IComponent['createChild']>) {
+  createChild<K extends NOODLComponentType>(
+    ...args: Parameters<IComponent['createChild']>
+  ): IComponentTypeInstance<K> | undefined {
     const child = super.createChild(...args)
     if (child?.noodlType === 'listItem') {
-      forEachEntries(this.getBlueprint(), (key, value) => {
-        child.set(key, value)
-      })
+      forEachEntries(this.getBlueprint(), child.set)
       this.#children.push(child as IListItem)
     }
-    return child
+    return child as IComponentTypeInstance<K>
   }
 
   removeChild(...args: Parameters<IComponent['removeChild']>) {

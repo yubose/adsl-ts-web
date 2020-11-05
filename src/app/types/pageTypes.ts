@@ -1,4 +1,4 @@
-import { NOODLComponentProps, Page as NOODLUiPage } from 'noodl-ui'
+import { IComponentTypeInstance, Page as NOODLUiPage } from 'noodl-ui'
 import * as constants from '../../constants'
 
 export type IPage = any
@@ -16,10 +16,6 @@ export interface PageModalState {
 }
 
 export type PageModalId = keyof typeof constants['modalIds']
-
-export interface PageSnapshot extends NOODLUiPage {
-  components?: NOODLComponentProps[]
-}
 
 // export type PageRenderStatus = typeof constants.pageRenderStatuses[number]
 export type PageRenderStatus = typeof constants['renderStatus'][keyof typeof constants['renderStatus']]

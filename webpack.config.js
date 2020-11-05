@@ -18,7 +18,7 @@ const htmlPluginOptions = {
   template: 'public/index.html',
   cache: true,
   minify: false,
-  inject: false,
+  // inject: false,
 }
 
 const plugins = [

@@ -5,11 +5,12 @@ import * as T from '../types'
 import Action from '../Action'
 import { forEachEntries } from '../utils/common'
 import { AbortExecuteError } from '../errors'
+import BuiltIn from 'BuiltIn'
 
 const log = Logger.create('ActionChain')
 
 export interface ActionChainOptions {
-  builtIn?: { [funcName: string]: (snapshot: T.ActionSnapshot) => any }
+  builtIn?: { [funcName: string]: ((snapshot: T.ActionSnapshot) => any)[] }
   evalObject?: T.OnEvalObject[]
   pageJump?: T.OnPageJump[]
   popUp?: T.OnPopup[]
@@ -100,14 +101,15 @@ class ActionChain {
           // TODO - customize further
           this['builtIn'] = _.reduce(
             _.entries(value),
-            (acc, [funcName, fn]) => {
-              acc[funcName] = fn
+            (acc, [funcName, fns]) => {
+              acc[funcName] = fns
               return acc
             },
             {},
           )
         } else {
-          this[key] = value
+          if (!this[key]) this[key] = []
+          this[key].push(value)
         }
       })
     }
@@ -138,6 +140,28 @@ class ActionChain {
     })
   }
 
+  add(
+    inst:
+      | { actionType: string; fns: Function[] }
+      | T.IBuiltIn
+      | ({ actionType: string; fns: Function[] } | T.IBuiltIn)[],
+  ) {
+    const _inst = _.isArray(inst) ? inst : [inst]
+    _.forEach(_inst, (a) => {
+      if ('actionType' in (a || {})) {
+        if (!_.isArray(this[a.actionType])) this[a.actionType] = []
+        this[a.actionType] = this[a.actionType].concat(a.fn)
+      } else if (a instanceof BuiltIn) {
+        if (!this.builtIn) this.builtIn = {}
+        if (!_.isArray(this.builtIn[a.funcName])) {
+          this.builtIn[a.funcName] = []
+        }
+        this.builtIn[a.funcName] = this.builtIn[a.funcName]?.concat?.(a) || []
+      }
+    })
+    return this
+  }
+
   /**
    * Creates and returns a new Action instance
    * @param { object } obj - Action object
@@ -152,9 +176,9 @@ class ActionChain {
         : this[obj.actionType]
 
     if (_.isArray(fns)) {
-      action['callback'] = (...args: any[]) => {
-        const promises = fns.map((fn) => Promise.resolve(fn(...args)))
-        return Promise.resolve(Promise.allSettled(promises))
+      action['callback'] = async (...args: any[]) => {
+        const result = await Promise.all(fns.map((fn) => fn?.(...args)))
+        return result
       }
     } else if (_.isFunction(fns)) {
       action['callback'] = fns

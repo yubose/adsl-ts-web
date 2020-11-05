@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Logger from 'logsnap'
+// import Logger from 'logsnap'
 import {
   evalIf,
   findParent,
@@ -19,7 +19,8 @@ import {
   hasLetter,
 } from './utils/common'
 import createComponent from './utils/createComponent'
-import ActionChain from './ActionChain/ActionChain'
+import Action from './Action'
+import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import {
   event,
@@ -28,8 +29,9 @@ import {
   componentEventTypes,
 } from './constants'
 import * as T from './types'
+import BuiltIn from 'BuiltIn'
 
-const log = Logger.create('noodl-ui')
+// const log = Logger.create('noodl-ui')
 
 function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
   return {
@@ -39,15 +41,15 @@ function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
   } as T.INOODLUiState
 }
 
-class NOODL<N = any> implements T.INOODLUi {
+class NOODL implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
-    action: Partial<Record<T.ActionEventId, Function[]>>
-    builtIn: T.ActionChainActionCallbackOptions['builtIn']
+    action: Partial<Record<T.ActionEventId, T.IAction[]>>
+    builtIn: { [key: string]: T.IBuiltIn['func'][] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     component: Record<
       T.NOODLComponentType | 'all',
-      T.INOODLUiComponentEventCallback<N>[]
+      T.INOODLUiComponentEventCallback<any>[]
     >
   } = {
     action: _.reduce(
@@ -66,7 +68,7 @@ class NOODL<N = any> implements T.INOODLUi {
       (acc, id) => _.assign(acc, { [id]: [] }),
       {} as Record<
         T.NOODLComponentType | 'all',
-        T.INOODLUiComponentEventCallback<N>[]
+        T.INOODLUiComponentEventCallback<any>[]
       >,
     ),
   }
@@ -79,15 +81,12 @@ class NOODL<N = any> implements T.INOODLUi {
   initialized: boolean = false
 
   constructor({
-    // createNode,
     showDataKey,
     viewport,
   }: {
-    createNode?: NOODL['createNode']
     showDataKey?: boolean
     viewport?: T.IViewport
   } = {}) {
-    // this['createNode'] = createNode
     this.#parser = makeRootsParser({ roots: {} })
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
@@ -140,15 +139,11 @@ class NOODL<N = any> implements T.INOODLUi {
     const component = createComponent(c)
     const consumerOptions = this.getConsumerOptions({ component })
 
-    // let node: N | undefined
     let parent: T.IComponentTypeInstance | null = null
 
-    // forEachEntries(this.getBaseStyles(), (k, v) => component.set('style', k, v))
     component.assignStyles(this.getBaseStyles(component.original.style))
 
     parent = component.parent()
-    // node = this.createNode?.(component.original, { component, parent })
-    // component.set('_node', node)
 
     if (!component.id) component['id'] = _.uniqueId()
 
@@ -182,11 +177,6 @@ class NOODL<N = any> implements T.INOODLUi {
 
     const originalChildren = component.original?.children
 
-    this.emit('all', originalChildren, { component, parent })
-    this.emit(componentEventMap[component.noodlType], originalChildren, {
-      component,
-      parent,
-    })
     this.emit('afterResolve', component, consumerOptions)
 
     if (_.isArray(originalChildren)) {
@@ -220,7 +210,7 @@ class NOODL<N = any> implements T.INOODLUi {
     return this
   }
 
-  off(eventName: T.EventId, cb: T.INOODLUiComponentEventCallback<N>) {
+  off(eventName: T.EventId, cb: T.INOODLUiComponentEventCallback<any>) {
     if (_.isString(eventName)) this.#removeCb(eventName, cb)
     return this
   }
@@ -228,7 +218,7 @@ class NOODL<N = any> implements T.INOODLUi {
   // emit(eventName: T.NOODLComponentEventId, cb: T.INOODLUiComponentEventCallback): void
   emit(
     eventName: T.EventId,
-    ...args: Parameters<T.INOODLUiComponentEventCallback<N>>
+    ...args: Parameters<T.INOODLUiComponentEventCallback<any>>
   ) {
     if (_.isString(eventName)) {
       const path = this.#getCbPath(eventName)
@@ -253,31 +243,36 @@ class NOODL<N = any> implements T.INOODLUi {
       path = `builtIn.${key}`
     } else if (key in this.#cb.chaining) {
       path = `chaining.${key}`
-    } else if (componentEventIds.includes(key as T.EventId)) {
+    } else if (componentEventIds.includes(key)) {
       path = `component.${key}`
     }
     return path
   }
 
   #addCb = (
-    key: T.EventId,
+    key: T.IAction | T.EventId,
     cb:
-      | T.INOODLUiComponentEventCallback<N>
+      | T.INOODLUiComponentEventCallback<any>
       | string
-      | { [key: string]: T.INOODLUiComponentEventCallback<N> },
-    cb2?: T.INOODLUiComponentEventCallback<N>,
+      | { [key: string]: T.INOODLUiComponentEventCallback<any> },
+    cb2?: T.INOODLUiComponentEventCallback<any>,
   ) => {
-    if (key === 'builtIn') {
+    if (key instanceof Action) {
+      if (!_.isArray(this.#cb.action[key.actionType])) {
+        this.#cb.action[key.actionType] = []
+      }
+      this.#cb.action[key.actionType].push(key)
+    } else if (key === 'builtIn') {
       if (_.isString(cb)) {
         const funcName = cb
-        const fn = cb2 as T.INOODLUiComponentEventCallback<N>
+        const fn = cb2 as T.INOODLUiComponentEventCallback<any>
         if (!_.isArray(this.#cb.builtIn[funcName])) {
           this.#cb.builtIn[funcName] = []
         }
         this.#cb.builtIn[funcName]?.push(fn)
       } else if (_.isPlainObject(cb)) {
         forEachEntries(
-          cb as { [key: string]: T.INOODLUiComponentEventCallback<N> },
+          cb as { [key: string]: T.INOODLUiComponentEventCallback<any> },
           (key, value) => {
             const funcName = key
             const fn = value
@@ -294,7 +289,7 @@ class NOODL<N = any> implements T.INOODLUi {
       const path = this.#getCbPath(key)
       if (path) {
         if (!_.isArray(this.#cb[path])) this.#cb[path] = []
-        this.#cb[path].push(cb as T.INOODLUiComponentEventCallback<N>)
+        this.#cb[path].push(cb as T.INOODLUiComponentEventCallback<any>)
       }
     }
     return this
@@ -326,11 +321,21 @@ class NOODL<N = any> implements T.INOODLUi {
       ...options,
       ..._.reduce(
         _.entries(this.#cb.action),
-        (acc, [actionType, cbs]) =>
-          _.isArray(cbs) ? _.assign(acc, { [actionType]: cbs }) : acc,
+        (acc, [actionType, a]) =>
+          a ? _.assign(acc, { [actionType]: !_.isArray(a) ? [a] : a }) : acc,
         {} as any,
       ),
     } as T.ActionChainCallbackOptions)
+
+    _.forEach(
+      _.values(this.#cb.builtIn),
+      (value) => value && actionChain.add(value),
+    )
+
+    forEachEntries(
+      this.#cb.action,
+      (actionType, fns) => fns && actionChain.add({ actionType, fns }),
+    )
 
     // @ts-expect-error
     window.ac = actionChain
@@ -342,10 +347,9 @@ class NOODL<N = any> implements T.INOODLUi {
     })
   }
 
-  init({ log, viewport }: Partial<Parameters<T.INOODLUi['init']>[0]> = {}) {
+  init({ viewport }: Partial<Parameters<T.INOODLUi['init']>[0]> = {}) {
     if (viewport) this.setViewport(viewport)
     this.initialized = true
-    Logger[log ? 'enable' : 'disable']?.()
     return this
   }
 
@@ -490,14 +494,32 @@ class NOODL<N = any> implements T.INOODLUi {
     return this
   }
 
-  use(mod: T.IResolver | T.IResolver[] | T.IViewport, ...rest: any[]) {
+  use(
+    mod:
+      | T.IResolver
+      | T.IBuiltIn
+      | T.IViewport
+      | { actionType: string; fn: Function }[]
+      | (T.IResolver | T.IBuiltIn)[],
+    ...rest: any[]
+  ) {
     const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)
 
     const handleMod = (m: typeof mods[number]) => {
-      if (m instanceof Viewport) {
+      if ('actionType' in m) {
+        if (!_.isArray(this.#cb.action[m.actionType])) {
+          this.#cb.action[m.actionType] = []
+        }
+        this.#cb.action[m.actionType].push(m.fn)
+      } else if (m instanceof Viewport) {
         this.setViewport(m)
       } else if (m instanceof Resolver) {
         this.#resolvers.push(m)
+      } else if (m instanceof BuiltIn) {
+        if (!_.isArray(this.#cb.builtIn[m.funcName])) {
+          this.#cb.builtIn[m.funcName] = []
+        }
+        this.#cb.builtIn[m.funcName]?.push(m.execute)
       }
     }
 

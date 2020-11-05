@@ -1,41 +1,35 @@
-import { IComponentTypeInstance, IList, IListItem } from 'noodl-ui'
+import { IComponentTypeInstance, IListItem } from 'noodl-ui'
 import { componentEventMap, componentEventIds } from './constants'
 
 export interface INOODLUiDOM {
-  on(eventName: NOODLDOMEvent, cb: NOODLDOMNodeCreationCallback): this
-  off(eventName: NOODLDOMEvent, cb: NOODLDOMNodeCreationCallback): this
+  on(
+    eventName: NOODLDOMEvent,
+    cb: (
+      node: NOODLDOMElement | null,
+      component: IComponentTypeInstance,
+    ) => void,
+  ): this
+  off(
+    eventName: NOODLDOMEvent,
+    cb: (
+      node: NOODLDOMElement | null,
+      component: IComponentTypeInstance,
+    ) => void,
+  ): this
   emit(
     eventName: NOODLDOMEvent,
-    node: NOODLDOMEvent | null,
-    noodluidomList: INOODLDOMComponent,
+    node: NOODLDOMElement | null,
+    component: IComponentTypeInstance,
   ): this
-  getCallbacks(eventName: NOODLDOMEvent): NOODLDOMNodeCreationCallback[] | null
+  getCallbacks(eventName: NOODLDOMEvent): Function[] | null
   isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
-  parse<
-    C extends IComponentTypeInstance = IComponentTypeInstance,
-    N extends NOODLDOMEvent = NOODLDOMEvent
-  >(
+  parse<C extends IComponentTypeInstance>(
     component: C,
-    container?: N,
+    container?: NOODLDOMElement | null,
   ): NOODLDOMElement | null
 }
 
-export type NOODLDOMConstructorArgs<
-  C extends IComponentTypeInstance,
-  N extends NOODLDOMElement = NOODLDOMElement
-> = ConstructorParameters<
-  new (node: N | null, component: C) => INOODLDOMComponent<C, N>
->
-
-export interface INOODLDOMComponent<
-  C extends IComponentTypeInstance = IComponentTypeInstance,
-  N extends NOODLDOMElement = NOODLDOMElement
-> {
-  component: C
-  node: N | null
-}
-
-export interface INOODLDOMList extends INOODLDOMComponent<IList> {
+export interface INOODLDOMList {
   addListItem(listItem: IListItem): this
   getListItem(index: number): IListItem | null
   removeListItem(index: number | IListItem): this
@@ -43,18 +37,15 @@ export interface INOODLDOMList extends INOODLDOMComponent<IList> {
   updateListItem(index: number | IListItem, listItem?: IListItem): this
 }
 
-export type DataValueElement =
+export type NOODLDOMComponentType = keyof typeof componentEventMap
+export type NOODLDOMComponentEvent = typeof componentEventIds[number]
+export type NOODLDOMElementTypes = keyof NOODLDOMElements
+export type NOODLDOMEvent = NOODLDOMComponentEvent // Will be extended to include non-component events in the future
+
+export type NOODLDOMDataValueElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement
-
-export type NOODLDOMComponentType = keyof typeof componentEventMap
-
-export type NOODLDOMComponentEvent = typeof componentEventIds[number]
-
-export type NOODLDOMEvent = NOODLDOMComponentEvent | 'all'
-
-export type NOODLDOMElementTypes = keyof NOODLDOMElements
 
 export type NOODLDOMElement = Extract<
   NOODLDOMElements[NOODLDOMElementTypes],
@@ -127,10 +118,3 @@ export type NOODLDOMElements = Pick<
   | 'ul'
   | 'video'
 >
-
-export interface NOODLDOMNodeCreationCallback<
-  N extends NOODLDOMElement = NOODLDOMElement,
-  C extends IComponentTypeInstance = IComponentTypeInstance
-> {
-  (node: N | null, component: INOODLDOMComponent<C, N>): void
-}

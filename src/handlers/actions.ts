@@ -8,6 +8,7 @@ import {
   isReference,
   NOODLActionType,
   NOODLEvalObject,
+  NOODLIfObject,
   NOODLPopupBaseObject,
   NOODLPopupDismissObject,
   NOODLRefreshObject,
@@ -44,7 +45,7 @@ const createActions = function ({ page }: { page: IPage }) {
         return result
       }
     } else if ('if' in (action.original.object || {})) {
-      const ifObj = action.original.object?.if
+      const ifObj = action.original.object as NOODLIfObject
       if (_.isArray(ifObj)) {
         const { default: noodl } = await import('app/noodl')
         const context = options.context
@@ -152,7 +153,7 @@ const createActions = function ({ page }: { page: IPage }) {
       // Some popup components render values using the dataKey. There is a bug
       // where an action returns a popUp action from an evalObject action. At
       // this moment the popup is not aware that it needs to read the dataKey if
-      // it is not triggered by some DataValueElement. So we need to do a check here
+      // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
 
       // If popUp has wait: true, the action chain should pause until a response
       // is received from something (ex: waiting on user confirming their password)

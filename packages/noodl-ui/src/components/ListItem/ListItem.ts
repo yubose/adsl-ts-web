@@ -1,9 +1,17 @@
 import _ from 'lodash'
 import Component from '../Base'
 import ListItemChildComponent from './ListItemChild'
-import { IComponent, IComponentConstructor, IListItem } from '../../types'
+import {
+  IComponent,
+  IComponentConstructor,
+  IComponentTypeInstance,
+  IListItem,
+  NOODLComponentType,
+} from '../../types'
 
-class ListItem extends Component implements IListItem {
+class ListItem<K extends NOODLComponentType = 'listItem'>
+  extends Component
+  implements IListItem<K> {
   #dataObject: any
   #listId: string = ''
   #listIndex: null | number = null
@@ -55,10 +63,12 @@ class ListItem extends Component implements IListItem {
     return this
   }
 
-  createChild(...args: Parameters<IComponent['createChild']>) {
+  createChild<K extends NOODLComponentType>(
+    ...args: Parameters<IComponent['createChild']>
+  ) {
     const child = super.createChild(new ListItemChildComponent(...args))
     child?.set('listId', this.listId).set('iteratorVar', this.iteratorVar)
-    return child
+    return child as IComponentTypeInstance<K> | undefined
   }
 
   getDataObject() {

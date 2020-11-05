@@ -1,11 +1,9 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import {
-  getType,
   IComponentType,
   IComponentTypeInstance,
   NOODLComponent,
-  NOODLComponentProps,
   Page as NOODLUiPage,
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
@@ -14,7 +12,6 @@ import { PageModalState, PageSnapshot } from './app/types'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
-import createElement from 'utils/createElement'
 
 const log = Logger.create('Page.ts')
 
@@ -27,11 +24,10 @@ export type PageListenerName =
 
 export interface PageOptions {
   rootNode?: HTMLElement | null
-  nodes?: HTMLElement[] | null
   builtIn?: {
     [funcName: string]: any
   }
-  renderer?(page: Page): { components: NOODLComponentProps[] }
+  renderer?(page: Page): { components: IComponentTypeInstance[] }
 }
 
 /**
@@ -56,7 +52,7 @@ class Page {
   #onPageRendered:
     | ((options: {
         pageName: string
-        components: NOODLComponentProps[]
+        components: IComponentTypeInstance[]
       }) => Promise<any>)
     | undefined
   #onPageRequest:
@@ -76,14 +72,12 @@ class Page {
   private _initializeRootNode: () => void
   public builtIn: PageOptions['builtIn']
   public rootNode: HTMLElement | null = null
-  public nodes: HTMLElement[] | null
   public modal: Modal
   public requestingPage: string | undefined
 
-  constructor({ builtIn, rootNode = null, nodes = null }: PageOptions = {}) {
+  constructor({ builtIn, rootNode = null }: PageOptions = {}) {
     this.builtIn = builtIn
     this.rootNode = rootNode
-    this.nodes = nodes
     this.modal = new Modal()
 
     this._initializeRootNode = () => {
@@ -256,7 +250,7 @@ class Page {
     fn: (options: {
       pageName: string
       rootNode: NOODLDOMElement | null
-      pageModifiers: { evolve?: boolean }
+      pageModifiers: { evolve?: boolean } | undefined
     }) => Promise<NOODLUiPage | undefined>,
   ) {
     this.#onBeforePageRender = fn
@@ -265,7 +259,7 @@ class Page {
   set onPageRendered(
     fn: (options: {
       pageName: string
-      components: NOODLComponentProps[]
+      components: IComponentTypeInstance[]
     }) => Promise<any>,
   ) {
     this.#onPageRendered = fn
@@ -313,32 +307,15 @@ class Page {
     if (this.rootNode) {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
-      // const toDOM = (
-      //   component: IComponentTypeInstance,
-      //   parentNode: NOODLDOMElement | null,
-      // ) => {
-      //   const node = createElement(getType(component.noodlType))
-      //   parentNode.appendChild(node)
-      //   const fn = (child: IComponentTypeInstance) => {
-      //     if (child) {
-      //       if (child.node) {
-      //         node?.appendChild?.(child.node)
-      //       }
-      //       toDOM(child, component.node)
-      //     }
-      //   }
-      //   _.forEach(component.children(), fn)
-      // }
       _.forEach(components, (component) =>
         noodluidom.parse(component, this.rootNode),
       )
-      // _.forEach(components, (component) => toDOM(component, this.rootNode))
     } else {
       log.func('navigate')
       log.red(
         "Attempted to render the page's components but the root " +
           'node was not initialized. The page will not show anything',
-        { rootNode: this.rootNode, nodes: this.nodes },
+        { rootNode: this.rootNode },
       )
     }
 
@@ -354,7 +331,6 @@ class Page {
   public getNodes() {
     return {
       rootNode: this.rootNode,
-      nodes: this.nodes,
     }
   }
 

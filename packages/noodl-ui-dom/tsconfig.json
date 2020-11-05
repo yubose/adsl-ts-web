@@ -15,6 +15,6 @@
     "suppressImplicitAnyIndexErrors": true,
     "target": "esnext"
   },
-  "exclude": ["dist", "node_modules"],
+  "exclude": ["node_modules"],
   "include": ["src", "rollup.config.js"]
 }

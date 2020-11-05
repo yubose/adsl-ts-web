@@ -21,7 +21,6 @@ import validate from 'utils/validate'
 import { toggleVisibility } from 'utils/dom'
 import { BuiltInActions } from 'app/types'
 import { NOODLBuiltInCheckFieldObject } from 'app/types/libExtensionTypes'
-import noodl from '../app/noodl'
 import { CachedPageObject } from '../app/types'
 import { CACHED_PAGES } from '../constants'
 import Meeting from '../meeting'
@@ -89,7 +88,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
-          `Defaulting to attaching ${dataKey} as a path to the root object`,
+            `Defaulting to attaching ${dataKey} as a path to the root object`,
           { context, dataObject, dataKey },
         )
         dataObject = noodl.root
@@ -159,7 +158,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => { }
+  builtInActions.checkVerificationCode = async (action) => {}
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -200,19 +199,18 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     let cachedPages: CachedPageObject[] = getCachedPages()
     if (cachedPages) {
       cachedPages.shift()
-      while (cachedPages[0].name.endsWith("MenuBar") && cachedPages.length) {
+      while (cachedPages[0].name.endsWith('MenuBar') && cachedPages.length) {
         cachedPages.shift()
       }
       let pg: string
       pg = cachedPages.shift()?.name || ''
       setCachedPages(cachedPages)
       await requestPage(pg || '')
-    }
-    else {
+    } else {
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
-        'be found',
+          'be found',
         { previousPage: page.previousPage, currentPage: page.currentPage },
       )
     }
@@ -293,9 +291,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // Re-render the current list item somehow
   }
 
-  builtInActions.signIn = async (action, options) => { }
-  builtInActions.signUp = async () => { }
-  builtInActions.signout = async () => { }
+  builtInActions.signIn = async (action, options) => {}
+  builtInActions.signUp = async () => {}
+  builtInActions.signout = async () => {}
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -375,7 +373,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     log.green(
       `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-      `root.${pageName}.${nameFieldPath}`,
+        `root.${pageName}.${nameFieldPath}`,
       file,
     )
   }

@@ -17,19 +17,12 @@ export interface INOODLUi {
   page: Page
   parser: RootsParser
   root: { [key: string]: any }
-  init(opts: { log?: boolean; viewport?: Viewport }): this
+  init(opts: { viewport?: Viewport }): this
   createActionChain(
     actions: NOODLActionObject[],
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
   createSrc(path: string, component?: IComponentTypeInstance): string
-  // createNode<N>(
-  //   noodlComponent: IComponentTypeObject,
-  //   args: {
-  //     component: IComponentTypeInstance
-  //     parent: IComponentTypeInstance | null
-  //   },
-  // ): N
   on(eventName: EventId, cb: INOODLUiComponentEventCallback): this
   off(eventName: EventId, cb: INOODLUiComponentEventCallback): this
   emit(
@@ -54,8 +47,8 @@ export interface INOODLUi {
   setPage(page: string): this
   setRoot(key: string | { [key: string]: any }, value?: any): this
   setViewport(viewport: IViewport | null): this
-  use(mod: IResolver | IResolver[] | IViewport): this
-  unuse(mod: any): this
+  use(mod: IResolver | IBuiltIn | IViewport | (IResolver | IBuiltIn)[]): this
+  unuse(...args: Parameters<INOODLUi['use']>): this
 }
 
 export interface INOODLUiState {
@@ -107,8 +100,9 @@ export interface IComponent<K extends string = NOODLComponentType> {
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): IComponentTypeInstance | undefined
   children(): IComponentTypeInstance[]
-  createChild<C extends IComponentTypeInstance>(child: NOODLComponentType): C
-  createChild<C extends IComponentTypeInstance>(child: IComponentType): C
+  createChild<K extends NOODLComponentType>(
+    child: IComponentType,
+  ): IComponentTypeInstance<K> | undefined
   hasChild(childId: string): boolean
   hasChild(child: IComponentTypeInstance): boolean
   removeChild(index: number): IComponentTypeInstance | undefined
@@ -117,10 +111,10 @@ export interface IComponent<K extends string = NOODLComponentType> {
   removeChild(): IComponentTypeInstance | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
-  get<K extends keyof (ProxiedComponent | NOODLComponentProps)>(
+  get<K extends keyof IComponentTypeObject>(
     key: K | K[],
     styleKey?: keyof NOODLStyle,
-  ): ProxiedComponent[K] | Record<K, ProxiedComponent[K]>
+  ): IComponentTypeObject[K] | Record<K, IComponentTypeObject[K]>
   getStyle<K extends keyof NOODLStyle>(styleKey: K): NOODLStyle[K]
   has(key: string, styleKey?: keyof NOODLStyle): boolean
   hasParent(): boolean
@@ -156,15 +150,6 @@ export interface IComponent<K extends string = NOODLComponentType> {
   toString(): string
   touch(key: string): this
   touchStyle(styleKey: string): this
-  onId?: () => void
-  onChild?: () => void
-  onParent?: () => void
-  onDataValue?: () => void
-  onStatus?: () => void
-  onStyle?: () => void
-  onHandled?: () => void
-  onTouch?: () => void
-  onStyleTouch?: () => void
 }
 
 export type IComponentType =
@@ -172,11 +157,9 @@ export type IComponentType =
   | IComponentTypeObject
   | NOODLComponentType
 
-export type IComponentTypeInstance<K extends string = NOODLComponentType> =
-  | IComponent<K>
-  | IList<'list'>
-  | IListItem<'listItem'>
-  | IListItemChild<K>
+export type IComponentTypeInstance<
+  K extends string = NOODLComponentType
+> = IComponent<K> & (IList<'list'> | IListItem<'listItem'> | IListItemChild<K>)
 
 export type IComponentTypeObject =
   | NOODLComponent
@@ -512,6 +495,18 @@ export interface NOODLTextBoardTextObject {
 /* -------------------------------------------------------
 ---- LIB TYPES
 -------------------------------------------------------- */
+
+export interface IAction<K extends string = string> {
+  actionType: K
+}
+
+export interface IBuiltIn<
+  Func extends (...args: any[]) => any = (...args: any[]) => any,
+  FuncName extends string = string
+> {
+  func: Func
+  funcName: FuncName
+}
 
 export type NOODLComponentCreationType = string | number | IComponentType
 

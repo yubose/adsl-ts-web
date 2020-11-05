@@ -14,81 +14,14 @@ import getStylesByElementType from '../resolvers/getStylesByElementType'
 import getTransformedAliases from '../resolvers/getTransformedAliases'
 import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
 import NOODLUi from '../noodl-ui'
-import makeComponentResolver from '../factories/makeComponentResolver'
 import Resolver from '../Resolver'
-import {
-  ResolveComponent,
-  Page,
-  ProxiedComponent,
-  ResolverFn,
-  IComponentTypeObject,
-  NOODLComponentType,
-} from '../types'
-
-export interface MakeResolverTestOptions {
-  roots?: { [key: string]: any }
-  resolvers?: ResolverFn | ResolverFn[]
-  page?: { name: string; object: null | { [key: string]: any } }
-}
-
-export interface GetComponentResolver {
-  (componentResolver: ResolveComponent): any
-}
-
-export type ResolverTest = ReturnType<typeof makeResolverTest>
+import { ResolverFn, IComponentTypeObject } from '../types'
 
 export const assetsUrl = 'https://something.com/assets/'
 
-export const resolve = (function () {
-  const componentResolver = makeComponentResolver({ roots: {} })
-
-  const o = {
-    //
-  }
-
-  return o
-})()
-
-export const makeResolverTest = (function () {
-  let componentResolver = makeComponentResolver({ roots: {} })
-
-  function resolve(component: ProxiedComponent): ProxiedComponent
-  function resolve(getComponentResolver: GetComponentResolver): any
-  function resolve(component: ProxiedComponent | GetComponentResolver) {
-    componentResolver
-      .setAssetsUrl(assetsUrl)
-      .setPage({ name: '', object: null } as Page)
-      .setRoot({})
-      .setViewport({ width: 375, height: 667 })
-
-    if (_.isPlainObject(component)) {
-      return componentResolver.resolve(component as ProxiedComponent)
-    } else if (_.isFunction(component)) {
-      return component(componentResolver)
-    }
-  }
-
-  return function makeResolverTest({
-    roots,
-    resolvers: resolversProp = getAllResolvers(),
-    page,
-  }: MakeResolverTestOptions = {}) {
-    componentResolver.setResolvers(
-      ...(!_.isArray(resolversProp) ? [resolversProp] : resolversProp),
-    )
-    if (page) componentResolver.setPage(page as Page)
-    if (roots) componentResolver.setRoot(roots)
-    return resolve
-  }
-})()
-
 export const noodlui = (function () {
   const state = {
-    client: new NOODLUi({
-      createNode(noodlComponent, component) {
-        return document.createElement(getType(component))
-      },
-    }),
+    client: new NOODLUi(),
   }
 
   Object.defineProperty(state.client, 'cleanup', {
@@ -131,7 +64,7 @@ export function getAllResolvers() {
 
 export function toDOM(noodlComponent: IComponentTypeObject, parentNode?: any) {
   const component = noodlui.resolveComponents(noodlComponent)
-  const node = component.node
+  const node = document.createElement(getType(component))
   parentNode = parentNode || document.body
   parentNode.appendChild(node)
   return { component, node, parentNode }

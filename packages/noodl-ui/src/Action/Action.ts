@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import {
+  IAction,
   ActionSnapshot,
   ActionStatus,
   NOODLBuiltInObject,
@@ -28,7 +29,8 @@ export interface ActionOptions<OriginalAction extends NOODLActionObject = any> {
 
 export const DEFAULT_TIMEOUT_DELAY = 10000
 
-class Action<OriginalAction extends NOODLActionObject> {
+class Action<OriginalAction extends NOODLActionObject>
+  implements IAction<OriginalAction['actionType']> {
   #id: string | undefined = undefined
   #callback: ActionCallback | undefined
   #onPending: (snapshot: ActionSnapshot) => any
@@ -46,6 +48,7 @@ class Action<OriginalAction extends NOODLActionObject> {
   result: any
   timeoutDelay: number = DEFAULT_TIMEOUT_DELAY
   type: string | undefined = undefined
+  actionType: OriginalAction['actionType']
 
   constructor(action: OriginalAction, options?: ActionOptions<OriginalAction>) {
     log.func('constructor')
@@ -60,7 +63,8 @@ class Action<OriginalAction extends NOODLActionObject> {
     this.#callback = options?.callback
     this.original = action
     this.timeoutDelay = options?.timeoutDelay || DEFAULT_TIMEOUT_DELAY
-    this.type = action.actionType
+    this.type = action.actionType // TODO - Deprecate this.type for this.actionType
+    this.actionType = action.actionType
   }
 
   /**

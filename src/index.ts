@@ -6,6 +6,7 @@ import {
 import Logger from 'logsnap'
 import {
   ActionChainActionCallback,
+  BuiltIn,
   getByDataUX,
   getElementType,
   getAlignAttrs,
@@ -26,11 +27,12 @@ import {
   IResolver,
   NOODLBuiltInObject,
   NOODLPageObject,
+  Page as NOODLPage,
   Resolver,
   ResolverFn,
   Viewport,
 } from 'noodl-ui'
-import { CachedPageObject, PageModalId, PageSnapshot } from './app/types'
+import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'
 import { forEachEntries, isMobile } from './utils/common'
 import { copyToClipboard } from './utils/dom'
@@ -45,6 +47,7 @@ import MeetingSubstreams from './meeting/Substreams'
 import noodluidom from 'app/noodl-ui-dom'
 import './handlers/dom'
 import './styles.css'
+import { Action, IAction } from '../packages/noodl-ui/src'
 
 const log = Logger.create('src/index.ts')
 
@@ -224,7 +227,7 @@ window.addEventListener('load', async () => {
         pageModifiers,
       })
       // This will be passed into the page renderer
-      const pageSnapshot: PageSnapshot = {
+      const pageSnapshot: NOODLPage = {
         name: pageName,
         object: pageObject,
       }
@@ -236,7 +239,7 @@ window.addEventListener('load', async () => {
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
         noodlui
-          .init({ log: { enabled: true }, viewport })
+          .init({ viewport })
           .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageName)
           .setRoot(noodl.root)
@@ -263,21 +266,35 @@ window.addEventListener('load', async () => {
               [] as IResolver[],
             ),
           )
-          .on('builtIn', {
-            checkField: builtIn.checkField,
-            checkUsernamePassword: builtIn.checkUsernamePassword,
-            enterVerificationCode: builtIn.checkVerificationCode,
-            goBack: builtIn.goBack,
-            lockApplication: builtIn.lockApplication,
-            logOutOfApplication: builtIn.logOutOfApplication,
-            logout: builtIn.logout,
-            signIn: builtIn.signIn,
-            signUp: builtIn.signUp,
-            signout: builtIn.signout,
-            toggleCameraOnOff: builtIn.toggleCameraOnOff,
-            toggleFlag: builtIn.toggleFlag,
-            toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-          })
+          .use(
+            _.reduce(
+              _.entries(actions),
+              (acc, [actionType, fn]) => acc.concat({ actionType, fn }),
+              [] as any[],
+            ),
+          )
+          .use(
+            _.reduce(
+              _.entries({
+                checkField: builtIn.checkField,
+                checkUsernamePassword: builtIn.checkUsernamePassword,
+                enterVerificationCode: builtIn.checkVerificationCode,
+                goBack: builtIn.goBack,
+                lockApplication: builtIn.lockApplication,
+                logOutOfApplication: builtIn.logOutOfApplication,
+                logout: builtIn.logout,
+                signIn: builtIn.signIn,
+                signUp: builtIn.signUp,
+                signout: builtIn.signout,
+                toggleCameraOnOff: builtIn.toggleCameraOnOff,
+                toggleFlag: builtIn.toggleFlag,
+                toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
+              }),
+              (acc, [funcName, fn]) =>
+                acc.concat(new BuiltIn(fn, { funcName })),
+              [] as BuiltIn<any>[],
+            ),
+          )
 
         forEachEntries(actions, (key, value) => noodlui.on(key, value))
         forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
@@ -548,8 +565,9 @@ window.addEventListener('load', async () => {
         } else {
           // If an existing subStreams container is already existent in memory, re-initiate
           // the DOM node and blueprint since it was reset from a previous cleanup
+          log.red(`BLUEPRINT`, component.blueprint)
           subStreams.container = node
-          subStreams.blueprint = props.blueprint
+          subStreams.blueprint = component.blueprint
         }
       }
       // Individual remote participant video element container

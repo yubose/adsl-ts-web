@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { eventTypes, SelectOption } from 'noodl-ui'
-import { DataValueElement } from 'noodl-ui-dom'
+import { NOODLDOMDataValueElement } from 'noodl-ui-dom'
 import { isBooleanTrue } from 'noodl-utils'
 import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
@@ -11,7 +11,8 @@ import noodluidom from 'app/noodl-ui-dom'
 const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-noodluidom.on('all', (node, component) => {
+// This event is called for all components
+noodluidom.on('create.component', (node, component) => {
   if (!node) return
 
   const {
@@ -66,7 +67,7 @@ noodluidom.on('all', (node, component) => {
   /** Data values */
   if ('data-value' in datasetAttribs) {
     if (['input', 'select', 'textarea'].includes(type)) {
-      let elem = node as DataValueElement
+      let elem = node as NOODLDOMDataValueElement
       elem['value'] = datasetAttribs['data-value'] || ''
       if (type === 'select') {
         elem = node as HTMLSelectElement
