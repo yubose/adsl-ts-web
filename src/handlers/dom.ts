@@ -14,8 +14,6 @@ const log = Logger.create('dom.ts')
 noodluidom.on('all', (node, component) => {
   if (!node) return
 
-  console.log(component)
-
   const {
     children,
     id = '',

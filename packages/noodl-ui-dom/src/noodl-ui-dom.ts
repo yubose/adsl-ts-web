@@ -1,5 +1,10 @@
 import Logger from 'logsnap'
-import { IComponentTypeInstance, IList, NOODLComponentType } from 'noodl-ui'
+import {
+  getType,
+  IComponentTypeInstance,
+  IList,
+  NOODLComponentType,
+} from 'noodl-ui'
 import {
   componentEventMap,
   componentEventIds,
@@ -50,37 +55,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           this.emit('all', null, component)
           this.emit('create.plugin', null, component)
         } else {
-          node = document.createElement(type)
-
-          switch (noodlType as NOODLComponentType) {
-            case 'br':
-            case 'button':
-            case 'date':
-            case 'dateSelect':
-            case 'divider':
-            case 'footer':
-            case 'header':
-            case 'image':
-            case 'label':
-              noodluidomComponent = new NOODLDOMBaseComponent(node, component)
-              break
-            case 'list':
-              noodluidomComponent = new NOODLDOMList(node, component as IList)
-              break
-            case 'listItem':
-            case 'plugin':
-            case 'popUp':
-            case 'searchBar':
-            case 'select':
-            case 'scrollView':
-            case 'textField':
-            case 'textView':
-            case 'video':
-            case 'view':
-            default:
-              noodluidomComponent = new NOODLDOMBaseComponent(node, component)
-              break
-          }
+          node = document.createElement(getType(component))
         }
       }
 

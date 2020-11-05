@@ -7,7 +7,20 @@ const getStylesByElementType: ResolverFn = (component, options) => {
   switch (component?.type) {
     case 'header':
       return void component.setStyle('zIndex', 100)
-    case 'image':
+    case 'image': {
+      if (!('height' in (component.original.style || {}))) {
+        // Remove the height to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        component.removeStyle('height')
+      }
+
+      if (!('width' in (component.original.style || {}))) {
+        // Remove the width to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        component.removeStyle('width')
+      }
+      return void component.setStyle('objectFit', 'contain')
+    }
     case 'video':
       return void component.setStyle('objectFit', 'contain')
     case 'list':
