@@ -143,7 +143,6 @@ window.addEventListener('load', async () => {
   })
 
   page.onStart = async (pageName) => {
-    page.pageStack.push(pageName)
     log.func('page.onStart').grey(`Rendering the DOM for page: "${pageName}"`)
   }
 
@@ -179,7 +178,7 @@ window.addEventListener('load', async () => {
     if (/videochat/i.test(page.currentPage) && !/videochat/i.test(pageName)) {
       log.grey(
         'You are navigating away from the video chat page. ' +
-          'Running cleanup operations now...',
+        'Running cleanup operations now...',
         streams,
       )
 
@@ -326,7 +325,8 @@ window.addEventListener('load', async () => {
 
   page.onError = async ({ error }) => {
     console.error(error)
-    log.func('page.onError').red(error.message, error)
+    log.func('page.onError')
+    log.red(error.message, error)
     // window.alert(error.message)
     // TODO - narrow the reasons down more
   }
@@ -565,7 +565,7 @@ window.addEventListener('load', async () => {
             log.func('onCreateNode')
             log.red(
               `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+              `already exists in the subStreams container`,
               { subStreams, node, props },
             )
           }
@@ -661,7 +661,6 @@ window.addEventListener('load', async () => {
     //   console.error(error)
     // }
   }
-
   await page.requestPageChange(startPage)
 })
 
@@ -674,7 +673,7 @@ function cachePage(name: string) {
   const prevCache = getCachedPages()
   if (prevCache[0]?.name === name) return
   const cache = [cacheObj, ...prevCache]
-  if (cache.length >= 4) cache.pop()
+  if (cache.length >= 12) cache.pop()
   cacheObj.timestamp = Date.now()
   setCachedPages(cache)
 }
