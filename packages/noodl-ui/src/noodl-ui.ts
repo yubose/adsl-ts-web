@@ -186,7 +186,6 @@ class NOODL<N = any> implements T.INOODLUi {
 
     this.emit('all', node, component)
     this.emit(componentEventMap[component.noodlType], node, component)
-
     this.emit('afterResolve', component, consumerOptions)
 
     // Finalizing

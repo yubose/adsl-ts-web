@@ -17,7 +17,6 @@ const log = Logger.create('Page.ts')
 
 export type PageListenerName =
   | 'onStart'
-  | 'onRootNodeInitializing'
   | 'onRootNodeInitialized'
   | 'onBeforePageRender'
   | 'onPageRendered'
@@ -42,7 +41,6 @@ class Page {
   currentPage: string = ''
   pageStack: Array<string> = []
   #onStart: ((pageName: string) => Promise<any>) | undefined
-  #onRootNodeInitializing: (() => Promise<any>) | undefined
   #onRootNodeInitialized:
     | ((rootNode: NOODLDOMElement | null) => Promise<any>)
     | undefined
@@ -116,13 +114,11 @@ class Page {
 
       await this.#onStart?.(pageName)
 
-      /** Handle the root node */
+      // Create the root node where we will be placing DOM nodes inside.
+      // The root node is a direct child of document.body
       if (!this.rootNode) {
-        this.#onRootNodeInitializing?.()
         this._initializeRootNode()
-        if (this.rootNode) {
-          this.#onRootNodeInitialized?.(this.rootNode)
-        }
+        this.#onRootNodeInitialized?.(this.rootNode)
       }
 
       let pageSnapshot: NOODLUiPage | undefined
@@ -226,10 +222,6 @@ class Page {
 
   set onStart(fn: (pageName: string) => Promise<any>) {
     this.#onStart = fn
-  }
-
-  set onRootNodeInitializing(fn: () => Promise<any>) {
-    this.#onRootNodeInitializing = fn
   }
 
   set onRootNodeInitialized(

@@ -146,10 +146,6 @@ window.addEventListener('load', async () => {
     log.func('page.onStart').grey(`Rendering the DOM for page: "${pageName}"`)
   }
 
-  page.onRootNodeInitializing = async () => {
-    log.func('page.onRootNodeInitializing').grey('Initializing root node')
-  }
-
   page.onRootNodeInitialized = async (rootNode) => {
     log.func('page.onRootNodeInitialized')
     log.green('Root node initialized', rootNode)

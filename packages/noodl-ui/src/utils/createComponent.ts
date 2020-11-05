@@ -16,6 +16,7 @@ import Component from '../components/Base'
  * A helper/utility to create Component instances corresponding to their NOODL
  * component type
  * @param { string | object | Component } props - NOODL component type, a component object, or a Component instance
+ * @param { object | undefined } options = Component args passed to the constructor
  */
 function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   noodlType: K,
@@ -35,15 +36,22 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
 ): IComponentTypeInstance<K> {
   let noodlType: NOODLComponentType
   let args: Partial<IComponentTypeObject>
+
+  // NOODLComponentType
   if (typeof props === 'string') {
     noodlType = props
     args = { ...options }
-  } else if (props instanceof Component) {
+  }
+  // IComponentInstanceType
+  else if (props instanceof Component) {
     return props as IComponentTypeInstance<K>
-  } else {
+  }
+  // IComponentObjectType
+  else {
     noodlType = props.noodlType || props.type
     args = { ...props, ...options }
   }
+
   switch (noodlType) {
     case 'list':
       return new ListComponent(args) as IList<'list'>
