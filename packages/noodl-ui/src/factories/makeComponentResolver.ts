@@ -76,6 +76,7 @@ function makeComponentResolver({
     if (!initialStyles) {
       initialStyles = _getInitialStyles(component.get('style'))
     }
+
     component.assignStyles(initialStyles as T.NOODLStyle)
     if (component.type === 'image') {
       if (!('height' in (component.raw.style || {}))) {
