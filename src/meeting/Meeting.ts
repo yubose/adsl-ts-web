@@ -84,7 +84,9 @@ const Meeting = (function () {
     },
     /** Disconnects from the room */
     leave() {
-      if (_internal._room?.state) {
+      log.func('leave')
+      log.red(`LEAVING MEETING ROOM`, new Error('test').stack)
+      if (_internal._room?.state === 'connected') {
         const unpublishTracks = (
           trackPublication:
             | LocalVideoTrackPublication
