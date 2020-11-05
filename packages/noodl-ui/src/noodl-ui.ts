@@ -47,7 +47,7 @@ class NOODL<N = any> implements T.INOODLUi {
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     component: Record<
       T.NOODLComponentType | 'all',
-      T.NOODLComponentResolveEventCallback<N>[]
+      T.INOODLUiComponentEventCallback<N>[]
     >
   } = {
     action: _.reduce(
@@ -66,7 +66,7 @@ class NOODL<N = any> implements T.INOODLUi {
       (acc, id) => _.assign(acc, { [id]: [] }),
       {} as Record<
         T.NOODLComponentType | 'all',
-        T.NOODLComponentResolveEventCallback<N>[]
+        T.INOODLUiComponentEventCallback<N>[]
       >,
     ),
   }
@@ -76,16 +76,10 @@ class NOODL<N = any> implements T.INOODLUi {
   #root: { [key: string]: any } = {}
   #state: T.INOODLUiState
   #viewport: T.IViewport
-  createNode:
-    | ((
-        noodlComponent: T.IComponentTypeObject,
-        component: T.IComponentTypeInstance,
-      ) => N)
-    | undefined
   initialized: boolean = false
 
   constructor({
-    createNode,
+    // createNode,
     showDataKey,
     viewport,
   }: {
@@ -93,7 +87,7 @@ class NOODL<N = any> implements T.INOODLUi {
     showDataKey?: boolean
     viewport?: T.IViewport
   } = {}) {
-    this['createNode'] = createNode
+    // this['createNode'] = createNode
     this.#parser = makeRootsParser({ roots: {} })
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
@@ -142,51 +136,25 @@ class NOODL<N = any> implements T.INOODLUi {
     return null
   }
 
-  // Temporarily here for debugging purposes
-  getCbs() {
-    return this.#cb
-  }
-
   #resolve = (c: T.IComponentType) => {
-    let component: T.IComponentTypeInstance
-    let node: N | undefined
-
-    if (c instanceof Component) component = c as T.IComponentTypeInstance
-    else component = createComponent(c)
-
-    node = this.createNode?.(component.original, component)
-
-    const { id, type } = component
+    const component = createComponent(c)
     const consumerOptions = this.getConsumerOptions({ component })
 
-    if (!id) component['id'] = _.uniqueId()
-    if (!type) {
-      log.func('#resolve')
-      log.red(
-        'Encountered a NOODL component without a "type"',
-        component.snapshot(),
-      )
-    }
+    // let node: N | undefined
+    let parent: T.IComponentTypeInstance | null = null
+
+    // forEachEntries(this.getBaseStyles(), (k, v) => component.set('style', k, v))
+    component.assignStyles(this.getBaseStyles(component.original.style))
+
+    parent = component.parent()
+    // node = this.createNode?.(component.original, { component, parent })
+    // component.set('_node', node)
+
+    if (!component.id) component['id'] = _.uniqueId()
 
     if (this.page && this.parser.getLocalKey() !== this.page.name) {
       this.parser.setLocalKey(this.page.name)
     }
-
-    this.emit('beforeResolve', component, consumerOptions)
-
-    const fn = (c: T.IComponentTypeInstance) => (r: T.IResolver) =>
-      r.resolve(c, consumerOptions)
-
-    const resolve = (c: T.IComponentTypeInstance) => {
-      _.forEach(this.#resolvers, fn(c))
-      // if (c.length) _.forEach(c.children(), resolve)
-    }
-
-    resolve(component)
-
-    this.emit('all', node, component)
-    this.emit(componentEventMap[component.noodlType], node, component)
-    this.emit('afterResolve', component, consumerOptions)
 
     // Finalizing
     const { style } = component
@@ -208,22 +176,59 @@ class NOODL<N = any> implements T.INOODLUi {
       this.#state.nodes.set(component, component)
     }
 
+    _.forEach(this.#resolvers, (r: T.IResolver) => {
+      r.resolve(component, consumerOptions)
+    })
+
+    const originalChildren = component.original?.children
+
+    this.emit('all', originalChildren, { component, parent })
+    this.emit(componentEventMap[component.noodlType], originalChildren, {
+      component,
+      parent,
+    })
+    this.emit('afterResolve', component, consumerOptions)
+
+    if (_.isArray(originalChildren)) {
+      _.forEach(originalChildren, (noodlChild) => {
+        if (noodlChild) {
+          const child = this.resolveComponents(noodlChild)
+          component.createChild(child)
+        }
+      })
+    } else {
+      if (originalChildren) {
+        const child = this.resolveComponents(originalChildren)
+        component.createChild(child)
+      }
+    }
+
     return component
   }
 
-  on(eventName: T.EventId, cb: T.NOODLComponentResolveEventCallback<N>) {
+  on(
+    eventName: T.EventId,
+    cb: (
+      noodlComponent: T.IComponentTypeObject,
+      args: {
+        component: T.IComponentTypeInstance
+        parent: T.IComponentTypeInstance | null
+      },
+    ) => void,
+  ) {
     if (_.isString(eventName)) this.#addCb(eventName, cb)
     return this
   }
 
-  off(eventName: T.EventId, cb: T.NOODLComponentResolveEventCallback<N>) {
+  off(eventName: T.EventId, cb: T.INOODLUiComponentEventCallback<N>) {
     if (_.isString(eventName)) this.#removeCb(eventName, cb)
     return this
   }
 
+  // emit(eventName: T.NOODLComponentEventId, cb: T.INOODLUiComponentEventCallback): void
   emit(
     eventName: T.EventId,
-    ...args: Parameters<T.NOODLComponentResolveEventCallback<N>>
+    ...args: Parameters<T.INOODLUiComponentEventCallback<N>>
   ) {
     if (_.isString(eventName)) {
       const path = this.#getCbPath(eventName)
@@ -257,22 +262,22 @@ class NOODL<N = any> implements T.INOODLUi {
   #addCb = (
     key: T.EventId,
     cb:
-      | T.NOODLComponentResolveEventCallback<N>
+      | T.INOODLUiComponentEventCallback<N>
       | string
-      | { [key: string]: T.NOODLComponentResolveEventCallback<N> },
-    cb2?: T.NOODLComponentResolveEventCallback<N>,
+      | { [key: string]: T.INOODLUiComponentEventCallback<N> },
+    cb2?: T.INOODLUiComponentEventCallback<N>,
   ) => {
     if (key === 'builtIn') {
       if (_.isString(cb)) {
         const funcName = cb
-        const fn = cb2 as T.NOODLComponentResolveEventCallback<N>
+        const fn = cb2 as T.INOODLUiComponentEventCallback<N>
         if (!_.isArray(this.#cb.builtIn[funcName])) {
           this.#cb.builtIn[funcName] = []
         }
         this.#cb.builtIn[funcName]?.push(fn)
       } else if (_.isPlainObject(cb)) {
         forEachEntries(
-          cb as { [key: string]: T.NOODLComponentResolveEventCallback<N> },
+          cb as { [key: string]: T.INOODLUiComponentEventCallback<N> },
           (key, value) => {
             const funcName = key
             const fn = value
@@ -289,7 +294,7 @@ class NOODL<N = any> implements T.INOODLUi {
       const path = this.#getCbPath(key)
       if (path) {
         if (!_.isArray(this.#cb[path])) this.#cb[path] = []
-        this.#cb[path].push(cb as T.NOODLComponentResolveEventCallback<N>)
+        this.#cb[path].push(cb as T.INOODLUiComponentEventCallback<N>)
       }
     }
     return this

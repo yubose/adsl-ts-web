@@ -21,7 +21,7 @@ export function createOnDataValueChangeFn(dataKey: string = '') {
         })
       | null = e.target
 
-    const pageName = noodlui.getContext().page.name
+    const pageName = noodlui.getContext().page?.name || ''
     const localRoot = noodl?.root?.[pageName]
     const value = target?.value || ''
 

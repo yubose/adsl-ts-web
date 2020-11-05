@@ -23,11 +23,18 @@ export interface INOODLUi {
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
   createSrc(path: string, component?: IComponentTypeInstance): string
-  on(eventName: EventId, cb: NOODLComponentResolveEventCallback): this
-  off(eventName: EventId, cb: NOODLComponentResolveEventCallback): this
+  // createNode<N>(
+  //   noodlComponent: IComponentTypeObject,
+  //   args: {
+  //     component: IComponentTypeInstance
+  //     parent: IComponentTypeInstance | null
+  //   },
+  // ): N
+  on(eventName: EventId, cb: INOODLUiComponentEventCallback): this
+  off(eventName: EventId, cb: INOODLUiComponentEventCallback): this
   emit(
     eventName: EventId,
-    ...args: Parameters<NOODLComponentResolveEventCallback>
+    ...args: Parameters<INOODLUiComponentEventCallback>
   ): this
   getContext(): ResolverContext
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
@@ -65,6 +72,16 @@ export type INOODLUiStateGetters = Pick<
 >
 
 export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode'>
+
+export interface INOODLUiComponentEventCallback<
+  NC = any,
+  C extends IComponentTypeInstance = IComponentTypeInstance
+> {
+  (
+    noodlComponent: NC,
+    args: { component: C; parent: IComponentTypeInstance | null },
+  ): void
+}
 
 export type IComponentConstructor = new (
   component: IComponentType,
@@ -495,13 +512,6 @@ export interface NOODLTextBoardTextObject {
 /* -------------------------------------------------------
 ---- LIB TYPES
 -------------------------------------------------------- */
-
-export interface NOODLComponentResolveEventCallback<
-  N = any,
-  C extends IComponentTypeInstance = IComponentTypeInstance
-> {
-  (noodlComponent: N | undefined, component: C): void
-}
 
 export type NOODLComponentCreationType = string | number | IComponentType
 

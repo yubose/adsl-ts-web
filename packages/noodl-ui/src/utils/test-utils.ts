@@ -4,7 +4,7 @@ import getBorderAttrs from '../resolvers/getBorderAttrs'
 import getColors from '../resolvers/getColors'
 import getChildren from '../resolvers/getChildren'
 import getCustomDataAttrs from '../resolvers/getCustomDataAttrs'
-import getElementType from '../resolvers/getElementType'
+import getElementType, { getType } from '../resolvers/getElementType'
 import getEventHandlers from '../resolvers/getEventHandlers'
 import getFontAttrs from '../resolvers/getFontAttrs'
 import getPosition from '../resolvers/getPosition'
@@ -13,10 +13,17 @@ import getSizes from '../resolvers/getSizes'
 import getStylesByElementType from '../resolvers/getStylesByElementType'
 import getTransformedAliases from '../resolvers/getTransformedAliases'
 import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
+import NOODLUi from '../noodl-ui'
 import makeComponentResolver from '../factories/makeComponentResolver'
 import Resolver from '../Resolver'
-import { ResolveComponent, Page, ProxiedComponent, ResolverFn } from '../types'
-import NOODLUi from '../noodl-ui'
+import {
+  ResolveComponent,
+  Page,
+  ProxiedComponent,
+  ResolverFn,
+  IComponentTypeObject,
+  NOODLComponentType,
+} from '../types'
 
 export interface MakeResolverTestOptions {
   roots?: { [key: string]: any }
@@ -77,15 +84,11 @@ export const makeResolverTest = (function () {
 
 export const noodlui = (function () {
   const state = {
-    client: new NOODLUi(),
-  }
-
-  function _setResolvers() {
-    _.reduce(
-      getAllResolvers(),
-      (acc, r) => acc.concat(new Resolver().setResolver(r)),
-      [] as Resolver[],
-    ).forEach((r) => state.client.use(r))
+    client: new NOODLUi({
+      createNode(noodlComponent, component) {
+        return document.createElement(getType(component))
+      },
+    }),
   }
 
   Object.defineProperty(state.client, 'cleanup', {
@@ -94,11 +97,15 @@ export const noodlui = (function () {
     writable: true,
     value: function () {
       state.client.reset()
-      _setResolvers()
+      state.client.initialized = true
     },
   })
 
-  _setResolvers()
+  _.reduce(
+    getAllResolvers(),
+    (acc, r) => acc.concat(new Resolver().setResolver(r)),
+    [] as Resolver[],
+  ).forEach((r) => state.client.use(r))
 
   return state.client as NOODLUi & { cleanup: () => void }
 })()
@@ -120,4 +127,12 @@ export function getAllResolvers() {
     getTransformedAliases,
     getTransformedStyleAliases,
   ] as ResolverFn[]
+}
+
+export function toDOM(noodlComponent: IComponentTypeObject, parentNode?: any) {
+  const component = noodlui.resolveComponents(noodlComponent)
+  const node = component.node
+  parentNode = parentNode || document.body
+  parentNode.appendChild(node)
+  return { component, node, parentNode }
 }

@@ -13,7 +13,9 @@ import {
   NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
+  IComponentTypeInstance,
 } from '../../types'
+import createComponent from '../../utils/createComponent'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
 import { forEachEntries } from '../../utils/common'
 
@@ -178,7 +180,9 @@ class Component<N = any> implements IComponent {
     value?: any,
     styleChanges?: any,
   ) {
-    if (key === 'style') {
+    if (key === '_node') {
+      this.#node = value
+    } else if (key === 'style') {
       if (this.#component.style) {
         this.#component.style[value] = styleChanges
         if (this.status !== 'drafting' && !this.isHandled('style')) {
@@ -540,12 +544,12 @@ class Component<N = any> implements IComponent {
   createChild(
     child: IComponentType | NOODLComponentType,
   ): IComponent | undefined {
-    let childComponent: IComponent
+    let childComponent: IComponentTypeInstance
     let id: string = `${this.id}`
     if (this.length >= 1) id += `[${this.length}]`
     else id += '[0]'
     if (_.isString(child)) {
-      childComponent = new Component({ type: child })
+      childComponent = new Component({ type: child }) as IComponent
     } else if (child instanceof Component) {
       childComponent = child as IComponent
     } else {
@@ -556,7 +560,7 @@ class Component<N = any> implements IComponent {
     // case when we're re-rendering and choose to pass in existing component
     // instances to shortcut into parsing
     if (id !== childComponent.id) childComponent['id'] = id
-    childComponent.setParent(this as IComponent)
+    childComponent.setParent(this as IComponentTypeInstance)
     this.#children.push(childComponent)
     return childComponent
   }

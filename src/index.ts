@@ -42,6 +42,7 @@ import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
+import noodluidom from 'app/noodl-ui-dom'
 import './handlers/dom'
 import './styles.css'
 
@@ -142,7 +143,6 @@ window.addEventListener('load', async () => {
   })
 
   page.onStart = async (pageName) => {
-    page.pageStack.push(pageName)
     log.func('page.onStart').grey(`Rendering the DOM for page: "${pageName}"`)
   }
 
@@ -325,7 +325,8 @@ window.addEventListener('load', async () => {
 
   page.onError = async ({ error }) => {
     console.error(error)
-    log.func('page.onError').red(error.message, error)
+    log.func('page.onError')
+    log.red(error.message, error)
     // window.alert(error.message)
     // TODO - narrow the reasons down more
   }
@@ -517,8 +518,8 @@ window.addEventListener('load', async () => {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-  noodlui.on('all', function onCreateNode(node, component) {
-    if (node) {
+  noodluidom.on('all', (node, component) => {
+    if (node && component) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(component.toJS())) {
         const mainStream = streams.getMainStream()
@@ -658,7 +659,6 @@ window.addEventListener('load', async () => {
     //   console.error(error)
     // }
   }
-
   await page.requestPageChange(startPage)
 })
 
@@ -671,7 +671,7 @@ function cachePage(name: string) {
   const prevCache = getCachedPages()
   if (prevCache[0]?.name === name) return
   const cache = [cacheObj, ...prevCache]
-  if (cache.length >= 4) cache.pop()
+  if (cache.length >= 12) cache.pop()
   cacheObj.timestamp = Date.now()
   setCachedPages(cache)
 }

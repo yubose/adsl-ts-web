@@ -6,14 +6,15 @@ import { isBooleanTrue } from 'noodl-utils'
 import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
-import noodlui from 'app/noodl-ui'
+import noodluidom from 'app/noodl-ui-dom'
 
 const log = Logger.create('dom.ts')
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
-noodlui.on('all', (node, component) => {
-  console.log(component.toJS())
+noodluidom.on('all', (node, component) => {
   if (!node) return
+
+  console.log(component)
 
   const {
     children,
@@ -21,7 +22,6 @@ noodlui.on('all', (node, component) => {
     options,
     placeholder = '',
     src,
-    style,
     text = '',
     type = '',
     videoFormat = '',
@@ -31,11 +31,12 @@ noodlui.on('all', (node, component) => {
     'options',
     'placeholder',
     'src',
-    'style',
     'text',
     'type',
     'videoFormat',
   ])
+
+  const { style } = component
 
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = component['data-listdata']
@@ -91,7 +92,7 @@ noodlui.on('all', (node, component) => {
       if (!text && placeholder) text = placeholder
       if (!text) text = ''
       if (text) node.innerHTML = `${text}`
-      node.innerHTML =
+      node['innerHTML'] =
         datasetAttribs['data-value'] || component.get('placeholder') || ''
     }
   }
@@ -108,10 +109,9 @@ noodlui.on('all', (node, component) => {
       // TODO: Test this
       // Attach the event handler
       node.addEventListener(event, (...args: any[]) => {
-        const props = component.toJS()
         log.func(`on all --> addEventListener: ${event}`)
-        log.grey(`User action invoked handler`, { props, [event]: handler })
-        console.groupCollapsed('', { event, node, props })
+        log.grey(`User action invoked handler`, { component, [event]: handler })
+        console.groupCollapsed('', { event, node, component })
         console.trace()
         console.groupEnd()
         return handler(...args)
@@ -127,14 +127,14 @@ noodlui.on('all', (node, component) => {
         const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
         node.addEventListener('change', onChange)
       })
-      .catch((err) => (log.func('noodlui.on: all'), log.red(err.message)))
+      .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
   }
 
   /** Styles */
   if (_.isPlainObject(style)) {
     forEachEntries(style, (k, v) => (node.style[k as any] = v))
   } else {
-    log.func('noodlui.on: all')
+    log.func('noodluidom.on: all')
     log.red(
       `Expected a style object but received ${typeof style} instead`,
       style,
@@ -183,41 +183,15 @@ noodlui.on('all', (node, component) => {
     }
   }
 
-  if (!node.parentNode) {
-    const parent = component.parent()
-    if (parent) {
-      const parentNode = document.getElementById(parent.id)
-      if (parentNode) {
-        parentNode.appendChild(node)
-        console.log(`APPENDED TO PARENT ${parent.id}`, {
-          node,
-          parentNode,
-          component: component.toJS(),
-          parent: parent?.toJS(),
-          parentId: parent?.id,
-        })
-      } else {
-        document.body.appendChild(node)
-        console.log(`APPENDED TO DOCUMENT.BODY (NO PARENTNODE)`, {
-          node,
-          component: component.toJS(),
-          parent: parent?.toJS(),
-          parentId: parent?.id,
-        })
-      }
-    } else {
-      document.body.appendChild(node)
-      console.log(`APPENDED TO DOCUMENT.BODY (NO COMPONENT PARENT)`, {
-        node,
-        component: component.toJS(),
-        parent: parent?.toJS(),
-        parentId: parent?.id,
-      })
-    }
-  }
+  // if (component.node) {
+  //   const parentNode = parent?.node
+  //   if (parentNode) {
+  //     parentNode.appendChild(component.node)
+  //   }
+  // }
 })
 
-noodlui.on('create.button', (node, component) => {
+noodluidom.on('create.button', (node, component) => {
   if (node) {
     const { onClick: onClickProp, src } = component.get(['onClick', 'src'])
     /**
@@ -237,7 +211,7 @@ noodlui.on('create.button', (node, component) => {
   }
 })
 
-noodlui.on('create.image', function onCreateImage(node, component) {
+noodluidom.on('create.image', function onCreateImage(node, component) {
   if (node) {
     const { onClick } = component.get(['children', 'onClick'])
 
@@ -259,6 +233,7 @@ noodlui.on('create.image', function onCreateImage(node, component) {
     }
 
     import('app/noodl-ui').then(({ default: noodlui }) => {
+      const parent = component.parent()
       const context = noodlui.getContext()
       const pageObject = context?.page?.object || {}
       if (
@@ -267,7 +242,7 @@ noodlui.on('create.image', function onCreateImage(node, component) {
         pageObject?.docDetail?.document?.name?.type == 'application/pdf'
       ) {
         node.style.visibility = 'hidden'
-        const parent = document.getElementById(component.parent()?.id || '')
+        const parentNode = document.getElementById(parent?.id || '')
         const iframeEl = document.createElement('iframe')
         // @ts-expect-error
         iframeEl.setAttribute('src', node.src)
@@ -278,19 +253,19 @@ noodlui.on('create.image', function onCreateImage(node, component) {
             (k, v) => (iframeEl.style[k as any] = v),
           )
         } else {
-          log.func('noodlui.on: all')
+          log.func('noodluidom.on: all')
           log.red(
             `Expected a style object but received "${typeof component.style}" instead`,
             component.style,
           )
         }
-        parent?.appendChild(iframeEl)
+        parentNode?.appendChild(iframeEl)
       }
     })
   }
 })
 
-noodlui.on('create.label', (node, component) => {
+noodluidom.on('create.label', (node, component) => {
   if (node) {
     if (_.isFunction(component.get('onClick'))) {
       node.style['cursor'] = 'pointer'
@@ -298,13 +273,13 @@ noodlui.on('create.label', (node, component) => {
   }
 })
 
-noodlui.on('create.list', (node, component) => {
+noodluidom.on('create.list', (node, component) => {
   log.func('create.list')
   log.hotpink(`LIST CREATED`, { node, component })
 })
 
 // /** NOTE: node is null in this handler */
-noodlui.on('create.plugin', async function (noop, component) {
+noodluidom.on('create.plugin', async function (noop, component) {
   log.func('create.plugin')
   const { src = '' } = component.get('src')
   if (_.isString(src)) {
@@ -329,7 +304,7 @@ noodlui.on('create.plugin', async function (noop, component) {
   }
 })
 
-noodlui.on('create.textfield', (node, component) => {
+noodluidom.on('create.textfield', (node, component) => {
   if (node) {
     const contentType = component.get('contentType')
 
@@ -341,6 +316,7 @@ noodlui.on('create.textfield', (node, component) => {
           const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
           const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
           const originalParent = node?.parentNode as HTMLDivElement
+          // const originalParent = node?.parentNode as HTMLDivElement
           const newParent = document.createElement('div')
           const eyeContainer = document.createElement('button')
           const eyeIcon = document.createElement('img')
@@ -395,11 +371,13 @@ noodlui.on('create.textfield', (node, component) => {
           // Restructing the node structure to match our custom effects with the
           // toggling of the eye iconsf
 
-          if (originalParent.contains(node)) originalParent.removeChild(node)
+          if (originalParent) {
+            if (originalParent.contains(node)) originalParent.removeChild(node)
+            originalParent.appendChild(newParent)
+          }
           eyeContainer.appendChild(eyeIcon)
           newParent.appendChild(node)
           newParent.appendChild(eyeContainer)
-          originalParent.appendChild(newParent)
 
           let selected = false
 
@@ -425,7 +403,7 @@ noodlui.on('create.textfield', (node, component) => {
   }
 })
 
-noodlui.on('create.video', (node, component) => {
+noodluidom.on('create.video', (node, component) => {
   const { controls, poster, src, videoType } = component.get([
     'controls',
     'poster',

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import {
   Page,
-  Resolver,
+  IResolver,
   ConsumerOptions,
   ResolverContext,
   ResolverOptions,
@@ -15,7 +15,7 @@ class ResolverOptionsBuilder {
     object: null,
   }
   parser: ResolverOptions['parser']
-  resolvers: Resolver[] = []
+  resolvers: IResolver[] = []
   roots: { [key: string]: any } | null = null
   showDataKey: boolean // defaults to true
   viewport: Viewport | null = null
@@ -88,7 +88,7 @@ class ResolverOptionsBuilder {
     return this
   }
 
-  setResolvers(...resolvers: Resolver[]) {
+  setResolvers(...resolvers: IResolver[]) {
     if (_.isArray(resolvers[0])) {
       resolvers = resolvers[0]
     }
@@ -120,7 +120,7 @@ class ResolverOptionsBuilder {
     return this
   }
 
-  addResolvers(...resolvers: Resolver[]) {
+  addResolvers(...resolvers: IResolver[]) {
     // Ensure the array is in the right format based on what shape they provided
     if (_.isArray(resolvers[0])) {
       resolvers = resolvers[0]
@@ -133,15 +133,15 @@ class ResolverOptionsBuilder {
     return this
   }
 
-  removeResolver(resolver: Resolver) {
+  removeResolver(resolver: IResolver) {
     if (this.resolvers.includes(resolver)) {
-      const filterer = (r: Resolver) => r !== resolver
+      const filterer = (r: IResolver) => r !== resolver
       this.resolvers = _.filter(this.resolvers, filterer)
     }
     return this
   }
 
-  removeResolvers(resolvers: Resolver | Resolver[]) {
+  removeResolvers(resolvers: IResolver | IResolver[]) {
     if (_.isArray(resolvers)) {
       _.forEach(resolvers, this.removeResolver)
     } else {

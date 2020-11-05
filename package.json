@@ -30,8 +30,8 @@
     "scripts:start": "rm -rf scripts/compiled && webpack --mode development --config webpack.scripts.js --watch",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src --watch-files packages/noodl-ui/dist",
-    "test:noodlui": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files packages/noodl-ui/src --file ./src/setupTests.ts",
-    "test:noodlui:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --reporter mochawesome -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file ./src/setupTests.ts --watch --watch-files packages/noodl-ui/src packages/noodl-ui/src/resolvers/__tests__/_internal/**/*.test.ts",
+    "test:noodlui": "cross-env TS_NODE_PROJECT=\"packages/noodl-ui/tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register --extensions ts --file packages/noodl-ui/src/setupTests.ts --watch --watch-files packages/noodl-ui/src packages/noodl-ui/src/**/*.test.ts",
+    "test:noodlui:file": "cross-env TS_NODE_PROJECT=\"packages/noodl-ui/tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register --extensions ts --file packages/noodl-ui/src/setupTests.ts --watch --watch-files packages/noodl-ui/src",
     "test:noodlui:internal": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --reporter mochawesome -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file ./src/setupTests.ts --watch --watch-files packages/noodl-ui/src",
     "test:noodluidom": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --reporter mochawesome -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file ./src/setupTests.ts --watch --watch-files packages/noodl-ui-dom/src packages/noodl-ui-dom/src/**/*.test.ts",
     "test:components": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file ./src/setupTests.ts --watch --watch-files packages/noodl-ui/src \"packages/noodl-ui/src/__tests__/*(*Component|noodl-ui).test.ts\"",
@@ -50,7 +50,7 @@
     "noodl-utils": "file:packages/noodl-utils"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.117",
+    "@aitmed/cadl": "^1.0.120",
     "@aitmed/ecos-lvl2-sdk": "^1.4.116",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",

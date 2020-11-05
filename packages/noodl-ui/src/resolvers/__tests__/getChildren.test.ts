@@ -1,42 +1,70 @@
 import _ from 'lodash'
-import { expect } from 'chai'
 import chalk from 'chalk'
+import { expect } from 'chai'
 import { prettyDOM } from '@testing-library/dom'
-import { makeResolverTest, noodlui, ResolverTest } from '../../utils/test-utils'
+import { findChild } from 'noodl-utils'
+import { noodlui, ResolverTest, toDOM } from '../../utils/test-utils'
 import {
   NOODLComponent,
   NOODLComponentProps,
   ProxiedComponent,
 } from '../../types'
 import { forEachDeepEntries } from '../../utils/common'
-// import { noodlui, toDOM } from '../../../../../src/utils/test-utils'
 import Component from '../../components/Base/Base'
 import ListComponent from '../../components/List/List'
 import ListItemComponent from '../../components/ListItem/ListItem'
 
-const toDOM = _.noop
-
 let resolve: ResolverTest
-
-beforeEach(() => {
-  resolve = makeResolverTest()
-})
 
 describe(`getChildren`, () => {
   it('should create deeply nesting children', () => {
-    const component = new Component({
+    const component = noodlui.resolveComponents({
       type: 'view',
       children: [
         {
           type: 'list',
           children: [
-            { type: 'listItem', children: [{ type: 'label', text: 'hello' }] },
+            {
+              type: 'listItem',
+              children: [{ type: 'label', text: 'hello' }],
+            },
           ],
         },
       ],
     })
-    toDOM(noodlui.resolveComponents(component))
-    console.info(prettyDOM())
+    expect(findChild(component, (child) => child.get('text') === 'hello')).to
+      .exist
+  })
+
+  it('should be able to render to the DOM as the expected structuring', () => {
+    noodlui.on('all', (node, _component) => {
+      node.id = _component.id
+      _component.children().forEach((child) => {
+        if (child.node) {
+          child.node.id = child.id
+          node.appendChild(child.node)
+        }
+      })
+    })
+    const { component } = toDOM({
+      type: 'view',
+      children: [
+        {
+          type: 'list',
+          children: [
+            {
+              type: 'listItem',
+              children: [{ type: 'label', text: 'hello' }],
+            },
+          ],
+        },
+      ],
+    })
+    const container = document.getElementById(component.id)
+    expect(container).to.exist
+    const child = document.getElementById(component.child().id)
+    expect(container?.contains(child)).to.be.true
+    expect(child?.contains(component.child().node)).to.be.true
   })
 })
 

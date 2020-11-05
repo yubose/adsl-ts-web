@@ -15,10 +15,6 @@ beforeEach(() => {
   component = new Component(noodlComponent) as IComponent
 })
 
-afterEach(() => {
-  noodlui.cleanup()
-})
-
 describe('noodl-ui', () => {
   it('should flip initialized to true when running init', () => {
     noodlui.init()
@@ -249,7 +245,6 @@ describe('noodl-ui', () => {
           const child = listItem1.createChild('view')
           const childOfChild = child.createChild('label')
           // const listObject = noodlui.getList(`${component.id}` || '')
-          console.info(childOfChild.toJS())
         },
       )
       xit(

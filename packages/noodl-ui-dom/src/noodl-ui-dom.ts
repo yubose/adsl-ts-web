@@ -39,7 +39,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     let noodluidomComponent: any
 
     if (component) {
-      const { type = '', noodlType = '' } = component.get(['type', 'noodlType'])
+      const { type, noodlType } = component
 
       if (type) {
         if (noodlType === 'plugin') {
@@ -47,10 +47,9 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           // Don't create a node. Except just emit the events accordingly
           // This is to allow the caller to determine whether they want to create
           // a separate DOM node or not
-          this.emit('all', null, noodluidomComponent)
-          this.emit('create.plugin', null, noodluidomComponent)
+          this.emit('all', null, component)
+          this.emit('create.plugin', null, component)
         } else {
-          console.info(type)
           node = document.createElement(type)
 
           switch (noodlType as NOODLComponentType) {
@@ -86,21 +85,16 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       }
 
       if (node) {
-        this.emit('all', noodluidomComponent.node, noodluidomComponent)
+        this.emit('all', node, component)
         if (componentEventMap[noodlType as NOODLComponentType]) {
-          this.emit(
-            componentEventMap[noodlType],
-            noodluidomComponent.node,
-            noodluidomComponent,
-          )
+          this.emit(componentEventMap[noodlType], node, component)
         }
         const parent = container || document.body
-        if (!parent.contains(noodluidomComponent.node))
-          parent.appendChild(noodluidomComponent.node)
+        if (!parent.contains(node)) parent.appendChild(node)
 
         component.children()?.forEach((child: IComponentTypeInstance) => {
-          const childNode = this.parse(child, noodluidomComponent.node)
-          if (childNode) noodluidomComponent.node?.appendChild(childNode)
+          const childNode = this.parse(child, node)
+          if (childNode) node?.appendChild(childNode)
           if (child.length) {
             child.children().forEach((innerChild) => {
               const innerChildNode = this.parse(innerChild, childNode)
