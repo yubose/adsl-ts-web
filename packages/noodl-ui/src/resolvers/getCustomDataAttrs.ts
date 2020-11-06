@@ -218,9 +218,19 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         )
       } else {
         log.red(
-          `TODO/REMINDER: This code block was reached. None of these ` +
-            `situations matched: 1. Root/local root referenced dataKey ` +
-            `2. List dataObjects. 3. Text=func date components. Look into this`,
+          `TODO/REMINDER: This code block was reached. None of these situations matched: ` +
+            `1. Root/local root referenced dataKey ` +
+            `2. List dataObjects. ` +
+            `3. Text=func date components. Look into this`,
+          {
+            component: component.toJS(),
+            dataKey,
+            dataObject,
+            dataValue,
+            listIndex,
+            iteratorVar,
+            text,
+          },
         )
         // component.set('data-value', component.get('data-value'))
       }

@@ -7,13 +7,15 @@ const getEventHandlers: ResolverFn = (component, options) => {
   if (component) {
     const { createActionChain } = options
     _.forEach(eventTypes, (eventType) => {
-      const action = component.get(eventType)
+      const action = component.original?.eventType
       if (action) {
+        
+        console.log(component.toJS())
         component.set(
           eventType,
           createActionChain(action, { trigger: eventType, component }),
         )
-      }
+      č
     })
   }
 }

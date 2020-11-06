@@ -185,7 +185,7 @@ window.addEventListener('load', async () => {
 
       const mainStream = streams.getMainStream()
       const selfStream = streams.getSelfStream()
-      selfStream.unpublish()
+      // selfStream.unpublish()
       const subStreamsContainer = streams.getSubStreamsContainer()
       const subStreams = subStreamsContainer?.getSubstreamsCollection()
 
@@ -310,7 +310,7 @@ window.addEventListener('load', async () => {
       })
       // Refresh the roots
       // TODO - Leave root/page auto binded to the lib
-      noodlui.setRoot(noodl.root).setPage(pageSnapshot)
+      noodlui.setRoot(noodl.root).setPage(pageSnapshot.name)
       log.grey(`Set root + page obj after receiving page object`, {
         previousPage: page.previousPage,
         currentPage: page.currentPage,
@@ -343,7 +343,6 @@ window.addEventListener('load', async () => {
     console.error(error)
     log.func('page.onError')
     log.red(error.message, error)
-    debugger
     // window.alert(error.message)
     // TODO - narrow the reasons down more
   }
@@ -603,11 +602,11 @@ window.addEventListener('load', async () => {
     ---- VIEWPORT / WINDOW SIZING
   -------------------------------------------------------- */
   // Register the onresize listener once, if it isn't already registered
+  /**
+   * This manages viewport aspect ratios for the SDK whenever it changes.
+   * This affects the endpoints that the SDK uses to load pages
+   */
   if (!viewport.onResize) {
-    /**
-     * This manages viewport aspect ratios for the SDK whenever it changes.
-     * This affects the endpoints that the SDK uses to load pages
-     */
     /**
      * The binary Great Common Divisor calculator (fastest performance)
      * https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio

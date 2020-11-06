@@ -366,7 +366,7 @@ class List extends Component implements IList {
   ): IComponentTypeInstance<K> | undefined {
     const child = super.createChild(...args)
     if (child?.noodlType === 'listItem') {
-      forEachEntries(this.getBlueprint(), child.set)
+      forEachEntries(this.getBlueprint(), (k, v) => child.set(k, v))
       this.#children.push(child as IListItem)
     }
     return child as IComponentTypeInstance<K>

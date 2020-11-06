@@ -71,6 +71,10 @@ const Meeting = (function () {
             },
           },
         })
+        console.log(room)
+        console.log(room)
+        console.log(room)
+        console.log(room)
         _internal['_room'] = room
         // TEMPORARY
         setTimeout(() => {
@@ -86,7 +90,7 @@ const Meeting = (function () {
     leave() {
       log.func('leave')
       log.red(`LEAVING MEETING ROOM`, new Error('test').stack)
-      if (_internal._room?.state === 'connected') {
+      if (_internal._room?.state) {
         const unpublishTracks = (
           trackPublication:
             | LocalVideoTrackPublication

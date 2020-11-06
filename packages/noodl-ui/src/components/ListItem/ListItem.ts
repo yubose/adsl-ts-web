@@ -57,8 +57,8 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
   set(...args: Parameters<IComponent['set']>) {
     const [key, value] = args
     if (key === 'iteratorVar') this['iteratorVar'] = value
-    if (key === 'listId') this['listId'] = value
-    if (key === 'listIndex') this['listIndex'] = value
+    else if (key === 'listId') this['listId'] = value
+    else if (key === 'listIndex') this['listIndex'] = value
     super.set(...args)
     return this
   }

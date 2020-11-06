@@ -175,6 +175,8 @@ class Page {
         }
       }
 
+      this.requestingPage = undefined
+
       return {
         snapshot: _.assign({ components }, pageSnapshot),
       }

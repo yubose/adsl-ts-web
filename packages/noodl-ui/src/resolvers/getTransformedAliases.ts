@@ -82,6 +82,12 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
           value = _.get(roots, valEvaluating)
         } else if (_.has(page.object, valEvaluating)) {
           value = _.get(page.object, valEvaluating)
+        } else if (!component.get('listId')) {
+          // TEMP -- default to setting the value on the root object
+          if (valEvaluating === 'VideoChat.micOn') {
+            // hard code this for now
+            //
+          }
         } else {
           // TODO - Check on iteratorVar
           // Assuming this is for list items if the code gets here

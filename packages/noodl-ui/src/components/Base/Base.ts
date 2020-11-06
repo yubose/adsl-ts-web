@@ -56,9 +56,15 @@ class Component implements IComponent {
 
     if (parent) this.#parent = parent
 
-    this.#component = createComponentDraftSafely(component) as WritableDraft<
-      IComponentTypeObject
-    >
+    this.#component = _.isPlainObject(component)
+      ? { ...component }
+      : _.isString(component)
+      ? { type: component }
+      : component
+
+    // this.#component = createComponentDraftSafely(component) as WritableDraft<
+    //   IComponentTypeObject
+    // >
 
     this['id'] = this.#component.id || _.uniqueId()
     this['noodlType'] = this.#component.noodlType
@@ -256,6 +262,9 @@ class Component implements IComponent {
         _.forEach(this.#cb.resolved, (fn) => fn(this.#component))
       }
     }
+    // this.resolved is meant to be set only once as soon as it has been set
+    // to true the first time
+    if (this.resolved === undefined) this['resolved'] = true
     return this
   }
 
