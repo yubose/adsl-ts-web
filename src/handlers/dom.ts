@@ -1,6 +1,11 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { eventTypes, SelectOption } from 'noodl-ui'
+import {
+  event as noodluiEvent,
+  eventTypes,
+  IList,
+  SelectOption,
+} from 'noodl-ui'
 import { NOODLDOMDataValueElement } from 'noodl-ui-dom'
 import { isBooleanTrue } from 'noodl-utils'
 import { forEachEntries } from 'utils/common'
@@ -53,19 +58,18 @@ noodluidom.on('create.component', (node, component) => {
   ])
 
   /** Dataset identifiers */
-  if ('data-listid' in datasetAttribs)
+  if (datasetAttribs['data-listid'])
     node.dataset['listid'] = datasetAttribs['data-listid']
-  if ('data-name' in datasetAttribs)
+  if (datasetAttribs['data-name'])
     node.dataset['name'] = datasetAttribs['data-name']
-  if ('data-key' in datasetAttribs)
+  if (datasetAttribs['data-key'])
     node.dataset['key'] = datasetAttribs['data-key']
-  if ('data-ux' in datasetAttribs)
-    node.dataset['ux'] = datasetAttribs['data-ux']
-  if ('data-value' in datasetAttribs)
+  if (datasetAttribs['data-ux']) node.dataset['ux'] = datasetAttribs['data-ux']
+  if (datasetAttribs['data-value'])
     node.dataset['value'] = datasetAttribs['data-value']
 
   /** Data values */
-  if ('data-value' in datasetAttribs) {
+  if (datasetAttribs['data-value']) {
     if (['input', 'select', 'textarea'].includes(type)) {
       let elem = node as NOODLDOMDataValueElement
       elem['value'] = datasetAttribs['data-value'] || ''
@@ -120,7 +124,7 @@ noodluidom.on('create.component', (node, component) => {
 
   // Attach an additional listener for data-value elements that are expected
   // to change values on the fly by some "on change" logic (ex: input/select elements)
-  if ('data-value' in datasetAttribs) {
+  if (datasetAttribs['data-value']) {
     import('utils/sdkHelpers')
       .then(({ createOnDataValueChangeFn }) => {
         const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
@@ -272,10 +276,90 @@ noodluidom.on('create.label', (node, component) => {
   }
 })
 
-noodluidom.on('create.list', (node, component) => {
-  log.func('create.list')
-  log.hotpink(`LIST CREATED`, { node, component })
-})
+noodluidom.on<'list'>(
+  'create.list',
+  (node: HTMLUListElement, component: IList) => {
+    log.func('create.list')
+
+    component.on(
+      noodluiEvent.component.list.CREATE_LIST_ITEM,
+      (result, options) => {
+        log.func(`create.list[${noodluiEvent.component.list.CREATE_LIST_ITEM}]`)
+        log.grey('', { ...result, ...options })
+        const { listItem } = result
+        const childNode = noodluidom.parse(listItem)
+        log.gold(
+          `${
+            childNode ? 'Created' : 'Could not create'
+          } childNode for list item`,
+          { node, childNode, component, listItem },
+        )
+      },
+    )
+
+    component.on(
+      noodluiEvent.component.list.REMOVE_LIST_ITEM,
+      (result, options) => {
+        log.func(`create.list[${noodluiEvent.component.list.REMOVE_LIST_ITEM}]`)
+        log.grey('', { ...result, ...options })
+        const { listItem, successs } = result
+        if (success) {
+          const childNode = document.getElementById(listItem.id)
+          if (childNode) {
+            log.gold(
+              'Found childNode for removed listItem. Removing it from the DOM now',
+              {
+                ...result,
+                ...options,
+                childNode,
+              },
+            )
+            node.removeChild(childNode)
+          } else {
+            log.red(
+              `Could not find the child DOM node for a removed listItem`,
+              { ...result, ...options, childNode },
+            )
+          }
+        }
+      },
+    )
+
+    component.on(
+      noodluiEvent.component.list.RETRIEVE_LIST_ITEM,
+      (result, options) => {
+        log.func(
+          `create.list[${noodluiEvent.component.list.RETRIEVE_LIST_ITEM}]`,
+        )
+        log.grey('', { ...result, ...options })
+      },
+    )
+
+    component.on(
+      noodluiEvent.component.list.UPDATE_LIST_ITEM,
+      (result, options) => {
+        log.func(`create.list[${noodluiEvent.component.list.UPDATE_LIST_ITEM}]`)
+        log.grey('', { ...result, ...options })
+        const { listItem, success } = result
+        const childNode = document.getElementById(listItem.id)
+        if (childNode) {
+          log.gold(`Reached the childNode block for an updated listItem`, {
+            ...result,
+            ...options,
+            childNode,
+          })
+        } else {
+          log.red(`Could not find the DOM node for an updated listItem`, {
+            ...result,
+            ...options,
+            listItem,
+            childNode,
+          })
+        }
+      },
+    )
+  },
+)
 
 // /** NOTE: node is null in this handler */
 noodluidom.on('create.plugin', async function (noop, component) {
@@ -306,11 +390,10 @@ noodluidom.on('create.plugin', async function (noop, component) {
 noodluidom.on('create.textfield', (node, component) => {
   if (node) {
     const contentType = component.get('contentType')
-
     // Password inputs
     if (contentType === 'password') {
       if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-        return import('app/noodl-ui').then(({ default: noodlui }) => {
+        import('app/noodl-ui').then(({ default: noodlui }) => {
           const assetsUrl = noodlui.getContext()?.assetsUrl || ''
           const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
           const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
@@ -398,6 +481,9 @@ noodluidom.on('create.textfield', (node, component) => {
           eyeContainer.addEventListener('click', onClick)
         })
       }
+    } else {
+      // Set to "text" by default
+      node.setAttribute('type', 'text')
     }
   }
 })

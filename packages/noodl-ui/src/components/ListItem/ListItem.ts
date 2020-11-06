@@ -28,6 +28,9 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
       >),
     )
     this['noodlType'] = 'listItem'
+    console.log(this.iteratorVar)
+    console.log(this.get(this.iteratorVar))
+    this.setDataObject(this.get(this.iteratorVar))
   }
 
   get listId() {
@@ -68,6 +71,8 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
   ) {
     const child = super.createChild(new ListItemChildComponent(...args))
     child?.set('listId', this.listId).set('iteratorVar', this.iteratorVar)
+    const blueprint = this.parent()?.blueprint
+    console.log('BLUEPRINT', blueprint)
     return child as IComponentTypeInstance<K> | undefined
   }
 

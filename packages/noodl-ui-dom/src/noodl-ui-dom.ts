@@ -73,9 +73,12 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * @param { string } eventName - Name of the listener event
    * @param { function } callback - Callback to invoke when the event is emitted
    */
-  on<E extends T.NOODLDOMEvent>(
-    eventName: E,
-    callback: Parameters<T.INOODLUiDOM['on']>[1],
+  on<CT extends NOODLComponentType>(
+    eventName: T.NOODLDOMEvent,
+    callback: (
+      node: T.NOODLDOMElement | null,
+      component: IComponentTypeInstance<CT>,
+    ) => void,
   ) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) callbacks.push(callback)

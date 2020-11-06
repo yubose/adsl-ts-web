@@ -138,6 +138,10 @@ export const event = {
       DELETE_DATA_OBJECT: 'delete.data.object',
       RETRIEVE_DATA_OBJECT: 'retrieve.data.object',
       UPDATE_DATA_OBJECT: 'update.data.object',
+      CREATE_LIST_ITEM: 'create.list.item',
+      REMOVE_LIST_ITEM: 'remove.list.item',
+      RETRIEVE_LIST_ITEM: 'retrieve.list.item',
+      UPDATE_LIST_ITEM: 'update.list.item',
     },
   },
 } as const

@@ -13,7 +13,6 @@ import {
   ProxiedComponent,
   NOODLComponentType,
   IComponentTypeInstance,
-  IComponentType,
 } from '../../types'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
@@ -34,12 +33,26 @@ class List extends Component implements IList {
     [event.component.list.DELETE_DATA_OBJECT]: Function[]
     [event.component.list.RETRIEVE_DATA_OBJECT]: Function[]
     [event.component.list.UPDATE_DATA_OBJECT]: Function[]
+    [event.component.list.CREATE_LIST_ITEM]: Function[]
+    [event.component.list.REMOVE_LIST_ITEM]: Function[]
+    [event.component.list.RETRIEVE_LIST_ITEM]: Function[]
+    [event.component.list.UPDATE_LIST_ITEM]: Function[]
   } = {
     [event.component.list.ADD_DATA_OBJECT]: [],
     [event.component.list.DELETE_DATA_OBJECT]: [],
     [event.component.list.RETRIEVE_DATA_OBJECT]: [],
     [event.component.list.UPDATE_DATA_OBJECT]: [],
+    [event.component.list.CREATE_LIST_ITEM]: [],
+    [event.component.list.REMOVE_LIST_ITEM]: [],
+    [event.component.list.RETRIEVE_LIST_ITEM]: [],
+    [event.component.list.UPDATE_LIST_ITEM]: [],
   }
+  #items: {
+    [listItemId: string]: {
+      dataObject: any
+      listItem: IListItem | null
+    }
+  } = {}
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -52,13 +65,65 @@ class List extends Component implements IList {
     // These initial values will be set once in the prototype.
     // When we use .set, we will intercept the call and set them
     // on this instance instead
-    this.#listObject = this.get('listObject') as any
+    this.#blueprint = this.getBlueprint()
     this.#listId = getRandomKey()
+    this.#listObject = this.get('listObject') as any
     this.#iteratorVar = this.get('iteratorVar') as string
 
-    // Set the blueprint
-    // TODO - a more official way
-    this.#blueprint = this.getBlueprint()
+    // super.removeChild()
+
+    log.func('constructor')
+    log.gold(`Creating list component`, { args, component: this.toJS() })
+
+    this.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
+      log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
+      const listItem = this.createChild('listItem') as IListItem
+      listItem?.set('listIndex', result.index)
+      listItem?.setDataObject?.(result.dataObject)
+      this.#items[listItem.id] = {
+        dataObject: result.dataObject,
+        listItem,
+      }
+      log.green(`Created a new listItem`, { ...result, ...options, listItem })
+      this.emit(event.component.list.CREATE_LIST_ITEM, { ...result, listItem })
+    })
+
+    this.on(event.component.list.DELETE_DATA_OBJECT, (result, options) => {
+      log.func(`on[${event.component.list.DELETE_DATA_OBJECT}]`)
+      const listItem = this.find(
+        (child) => child?.getDataObject?.() === result.dataObject,
+      )
+      if (listItem) this.removeChild(listItem)
+      log.green(`Deleted a listItem`, { ...result, ...options, listItem })
+      this.emit(event.component.list.REMOVE_LIST_ITEM, { ...result, listItem })
+    })
+
+    this.on(event.component.list.RETRIEVE_DATA_OBJECT, (result, options) => {
+      log.func(`on[${event.component.list.RETRIEVE_DATA_OBJECT}]`)
+      log.gold(`Retrieved a dataObject`, { result, ...options })
+    })
+
+    this.on(event.component.list.UPDATE_DATA_OBJECT, (result, options) => {
+      log.func(`on[${event.component.list.UPDATE_DATA_OBJECT}]`)
+      const listItem: IListItem | undefined = this.#children[result.index]
+      listItem?.setDataObject?.(result.dataObject)
+      log.green(`Updated dataObject`, { result, ...options })
+      this.emit(event.component.list.UPDATE_LIST_ITEM, {
+        ...result,
+        listItem,
+      })
+    })
+
+    if (this.#listObject) {
+      if (_.isArray(this.#listObject)) {
+        _.forEach(this.#listObject, (dataObject) => {
+          this.addDataObject(dataObject)
+          log.green(`Saved dataObject`, dataObject)
+        })
+      } else {
+        log.gold(`listObject was unavailable. No data will be set`)
+      }
+    }
   }
 
   get iteratorVar() {
@@ -88,29 +153,42 @@ class List extends Component implements IList {
   }
 
   /**
-   * Uses a child's id or the instance itself and returns the list item
-   * instance if found, otherwise it returns undefined
-   * @param { string | ListItemComponent } child
+   * Uses a child's id, the instance itself, its index or a predicate function
+   *  and returns the list item instance if found, otherwise it returns undefined
+   * @param { string | number | function | ListItemComponent } child
    */
   find(id: string): IListItem | undefined
   find(index: number): IListItem | undefined
   find(inst: IListItem): IListItem | undefined
-  find(child: string | number | IListItem) {
+  find(
+    pred: (listItem: IListItem, index: number) => boolean,
+  ): IListItem | undefined
+  find(
+    child:
+      | string
+      | number
+      | IListItem
+      | ((listItem: IListItem, index: number) => boolean),
+  ) {
     if (typeof child === 'number') return this.#children[child]
-    const fn = _.isString(child)
-      ? (c: IListItem) => !!c.id && c.id === child
-      : (c: IListItem) => c === child
+    if (typeof child === 'function') return _.find(this.#children, child)
+    const fn =
+      typeof child === 'string'
+        ? (c: IListItem) => !!c.id && c.id === child
+        : (c: IListItem) => c === child
     return _.find(this.#children, fn)
   }
 
-  addDataObject<DataObject>(dataObject: DataObject) {
+  addDataObject<DataObject = any>(
+    dataObject: DataObject,
+  ): IListDataObjectOperationResult<DataObject> {
     if (!_.isArray(this.#listObject)) this.#listObject = []
     this.#listObject.push(dataObject)
     const result = {
       index: this.#listObject.length - 1,
       dataObject,
-      succeeded: true,
-    } as IListDataObjectOperationResult
+      success: true,
+    }
     this.emit(
       event.component.list.ADD_DATA_OBJECT,
       result,
@@ -126,39 +204,64 @@ class List extends Component implements IList {
   getDataObject<DataObject>(
     index: number | ((dataObject: DataObject) => boolean),
   ) {
-    // By index
-    if (typeof index === 'number') {
-      const dataObject = _.isArray(this.#listObject)
-        ? this.#listObject[index]
-        : null
-      const result = { index, dataObject, succeeded: true }
-      this.emit(
-        event.component.list.RETRIEVE_DATA_OBJECT,
-        result,
-        this.#getDataObjectHandlerOptions(),
-      )
-      return result
-    }
-    // By query
-    if (typeof index === 'function') {
-      const query = index
-      if (_.isArray(this.#listObject)) {
-        for (let index = 0; index < this.#listObject.length; index++) {
-          const dataObject = this.#listObject[index]
-          if (query(dataObject)) {
-            const result = { index, dataObject, succeeded: true }
-            this.emit(
-              event.component.list.RETRIEVE_DATA_OBJECT,
-              result,
-              this.#getDataObjectHandlerOptions(),
-            )
-            return result
+    let result = {} as IListDataObjectOperationResult
+
+    if (_.isArray(this.#listObject)) {
+      // By index
+      if (typeof index === 'number') {
+        const dataObject = _.isArray(this.#listObject)
+          ? this.#listObject[index]
+          : null
+
+        result['index'] = index
+        result['dataObject'] = dataObject
+
+        if (dataObject === null) {
+          result['error'] = `Could not retrieve a dataObject at index ${index}`
+        } else {
+          result['success'] = false
+        }
+        this.emit(
+          event.component.list.RETRIEVE_DATA_OBJECT,
+          result,
+          this.#getDataObjectHandlerOptions(),
+        )
+        return result
+      }
+      // By query
+      if (typeof index === 'function') {
+        const query = index
+        if (_.isArray(this.#listObject)) {
+          for (let index = 0; index < this.#listObject.length; index++) {
+            const dataObject = this.#listObject[index]
+            if (query(dataObject)) {
+              this.emit(
+                event.component.list.RETRIEVE_DATA_OBJECT,
+                (result = { index, dataObject, success: true }),
+                this.#getDataObjectHandlerOptions(),
+              )
+              return result
+            }
+          }
+        } else {
+          return {
+            index,
+            dataObject: null,
+            success: false,
+            error: 'listObject is empty',
           }
         }
       }
+    } else {
+      return {
+        index,
+        dataObject: null,
+        success: false,
+        error: 'listObject is empty',
+      }
     }
 
-    return { index: null, dataObject: null, succeeded: false }
+    return { index, dataObject: null, success: false }
   }
 
   // insertDataObject<DataObject = any>(
@@ -168,13 +271,13 @@ class List extends Component implements IList {
 
   removeDataObject<DataObject>(
     pred: (dataObject: DataObject | null) => boolean,
-  ): { index: number | null; dataObject: DataObject | null; succeeded: boolean }
+  ): { index: number | null; dataObject: DataObject | null; success: boolean }
   removeDataObject<DataObject>(
     dataObject: DataObject,
-  ): { index: number | null; dataObject: DataObject | null; succeeded: boolean }
+  ): { index: number | null; dataObject: DataObject | null; success: boolean }
   removeDataObject<DataObject>(
     index: number,
-  ): { index: number; dataObject: DataObject | null; succeeded: boolean }
+  ): { index: number; dataObject: DataObject | null; success: boolean }
   removeDataObject<DataObject = any>(
     dataObject: DataObject | number | ((pred: DataObject | null) => boolean),
   ) {
@@ -182,17 +285,22 @@ class List extends Component implements IList {
       return {
         index: typeof dataObject === 'number' ? dataObject : null,
         dataObject: typeof dataObject === 'object' ? dataObject : null,
-        succeeded: false,
+        success: false,
+        error: 'listObject was empty',
       }
     }
     if (dataObject != null) {
+      let index
+      let removedDataObject
+      // By query func
       if (typeof dataObject === 'function') {
         const fn = dataObject
-        const index = _.findIndex(this.#listObject, fn)
+        index = _.findIndex(this.#listObject, fn)
+        removedDataObject = this.#listObject.splice(index, 1)[0]
         const result = {
           index,
-          dataObject: this.#listObject.splice(index, 1)[0],
-          succeeded: true,
+          dataObject: removedDataObject,
+          success: !!removedDataObject,
         }
         this.emit(
           event.component.list.DELETE_DATA_OBJECT,
@@ -201,29 +309,33 @@ class List extends Component implements IList {
         )
         return result
       }
-
+      // By direct reference
       if (typeof dataObject === 'object') {
-        const index = _.findIndex(this.#listObject, (obj) => obj === dataObject)
-        if (index !== -1) this.#listObject.splice(index, 1)[0]
+        index = _.findIndex(this.#listObject, (obj) => obj === dataObject)
+        if (index !== -1)
+          removedDataObject = this.#listObject.splice(index, 1)[0]
         const result = {
           index: index === -1 ? null : index,
           dataObject,
-          succeeded: true,
+          success: !!removedDataObject,
         }
+        if (!result.success) result['error'] = 'Could not find the dataObject'
         this.emit(
           event.component.list.DELETE_DATA_OBJECT,
           result,
           this.#getDataObjectHandlerOptions(),
         )
       }
-
+      // By index
       if (typeof dataObject === 'number') {
-        const index = dataObject
+        index = dataObject
+        removedDataObject = this.#listObject.splice(index, 1)[0]
         const result = {
           index,
-          dataObject: this.#listObject.splice(index, 1),
-          succeeded: true,
+          dataObject: removedDataObject,
+          success: !!removedDataObject,
         }
+        if (!result.success) result['error'] = 'Could not find the dataObject'
         this.emit(
           event.component.list.DELETE_DATA_OBJECT,
           result,
@@ -235,18 +347,19 @@ class List extends Component implements IList {
     return {
       index: typeof dataObject === 'number' ? dataObject : null,
       dataObject: typeof dataObject === 'object' ? dataObject : null,
-      succeeded: false,
+      success: false,
+      error: 'listObject was empty',
     }
   }
 
   setDataObject<DataObject = any>(
     index: number,
     dataObject: DataObject | null,
-  ): { index: number; dataObject: DataObject | null; succeeded: boolean }
+  ): { index: number; dataObject: DataObject | null; success: boolean }
   setDataObject<DataObject = any>(
     pred: (dataObject: DataObject | null) => boolean,
     dataObject: DataObject | null,
-  ): { index: number | null; dataObject: DataObject | null; succeeded: boolean }
+  ): { index: number | null; dataObject: DataObject | null; success: boolean }
   setDataObject<DataObject = any>(
     index: number | ((dataObject: DataObject | null) => boolean),
     dataObject: DataObject | null,
@@ -257,7 +370,7 @@ class List extends Component implements IList {
         const result = {
           index,
           dataObject: this.#listObject[index] || null,
-          succeeded: true,
+          success: true,
         }
         this.emit(
           event.component.list.UPDATE_DATA_OBJECT,
@@ -266,7 +379,7 @@ class List extends Component implements IList {
         )
         return result
       } else {
-        return { index, dataObject, succeeded: false }
+        return { index, dataObject, success: false }
       }
     }
 
@@ -281,7 +394,7 @@ class List extends Component implements IList {
             const result = {
               index: i,
               dataObject: this.#listObject[i],
-              succeeded: true,
+              success: true,
             }
             this.emit(
               event.component.list.UPDATE_DATA_OBJECT,
@@ -294,7 +407,7 @@ class List extends Component implements IList {
       } else {
         if (pred(null)) {
           this.#listObject = [dataObject]
-          const result = { index: 0, dataObject, succeeded: true }
+          const result = { index: 0, dataObject, success: true }
           this.emit(
             event.component.list.UPDATE_DATA_OBJECT,
             result,
@@ -305,7 +418,7 @@ class List extends Component implements IList {
       }
     }
 
-    return { index: null, dataObject: null, succeeded: false }
+    return { index: null, dataObject: null, success: false }
   }
 
   getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {

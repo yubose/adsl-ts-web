@@ -33,7 +33,7 @@ This allows for faster compilation, faster load times and quicker development fl
 ## Todos
 
 - config `testpage` --> `PatientChartGeneralInfo` = the emit/redraw syntax
-
+- routing for android/ios page jump
 - viewport top in yml not implemented
 - if obj expressions
   - ex: `itemObject.value == "Female"` (string) --> grab itemObject, compare `.value` prop with `==`

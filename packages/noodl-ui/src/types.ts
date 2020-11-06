@@ -174,7 +174,7 @@ export interface IList<K extends NOODLComponentType = 'list'>
   find(child: string | number | IListItem): IListItem | undefined
   getBlueprint(): IListBlueprint
   getData(opts?: { fromNodes?: boolean }): any[] | null
-  addDataObject<DataObject>(
+  addDataObject<DataObject = any>(
     dataObject: DataObject,
   ): IListDataObjectOperationResult<DataObject>
   getDataObject<DataObject>(
@@ -203,6 +203,12 @@ export interface IList<K extends NOODLComponentType = 'list'>
   iteratorVar: string
   listId: string
   length: number
+  find(id: string): IListItem | undefined
+  find(index: number): IListItem | undefined
+  find(inst: IListItem): IListItem | undefined
+  find(
+    pred: (listItem: IListItem, index: number) => boolean,
+  ): IListItem | undefined
   getBlueprint(): IListBlueprint
   // emit<DataObject>(
   //   eventName: IListEventObject['ADD_DATA_OBJECT'],
@@ -255,7 +261,8 @@ export interface IListHandleBlueprintProps extends IListBlueprintCommonProps {
 export interface IListDataObjectOperationResult<DataObject = any> {
   index: null | number
   dataObject: DataObject | null
-  succeeded: boolean
+  success: boolean
+  error?: string
 }
 
 export interface IListDataObjectEventHandlerOptions {
@@ -495,6 +502,53 @@ export interface NOODLTextBoardTextObject {
 /* -------------------------------------------------------
 ---- LIB TYPES
 -------------------------------------------------------- */
+
+export interface IActionChain {
+  actions: IAction[] | null
+  intermediary: IAction[]
+  current: { action: IAction | undefined; index: number }
+  status: ActionChainStatus | null
+  builtIn: { [funcName: string]: IBuiltIn[] }
+  evalObject?: OnEvalObject[]
+  pageJump?: OnPageJump[]
+  popUp?: OnPopup[]
+  popUpDismiss?: OnPopupDismiss[]
+  saveObject?: OnSaveObject[]
+  updateObject?: OnUpdateObject[]
+  add(actionObj: { actionType: string; fns: Function[] }): this
+  add(builtIn: IBuiltIn): this
+  add(builtIn: ({ actionType: string; fns: Function[] } | IBuiltIn)[]): this
+  onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
+  onChainStart?: LifeCycleListeners['onChainStart']
+  onChainEnd?: LifeCycleListeners['onChainEnd']
+  onChainError?: LifeCycleListeners['onChainError']
+  onChainAborted?: LifeCycleListeners['onChainAborted']
+  onAfterResolve?: LifeCycleListeners['onAfterResolve']
+}
+
+export interface IActionChainOptions {
+  builtIn?: { [funcName: string]: IBuiltIn[] }
+  evalObject?: OnEvalObject[]
+  pageJump?: OnPageJump[]
+  popUp?: OnPopup[]
+  popUpDismiss?: OnPopupDismiss[]
+  saveObject?: OnSaveObject[]
+  updateObject?: OnUpdateObject[]
+  onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
+  onChainStart?: LifeCycleListeners['onChainStart']
+  onChainEnd?: LifeCycleListeners['onChainEnd']
+  onChainError?: LifeCycleListeners['onChainError']
+  onChainAborted?: LifeCycleListeners['onChainAborted']
+  onAfterResolve?: LifeCycleListeners['onAfterResolve']
+  parser?: ResolverOptions['parser']
+}
+
+export interface IActionChainAddActionObject<
+  S extends NOODLActionType = NOODLActionType
+> {
+  actionType: S
+  fns: ActionChainActionCallback[]
+}
 
 export interface IAction<K extends string = string> {
   actionType: K
@@ -784,8 +838,8 @@ export interface ResolveComponent<T = any> {
   (component: ProxiedComponent, options: ResolverOptions): T
 }
 
-export type ResolverFn = ((
-  component: IComponentTypeInstance,
+export type ResolverFn<T extends NOODLComponentType = NOODLComponentType> = ((
+  component: IComponentTypeInstance<T>,
   resolverConsumerOptions: ConsumerOptions,
 ) => void) & {
   getChildren?: Function

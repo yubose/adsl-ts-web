@@ -15,6 +15,10 @@ beforeEach(() => {
   component = new Component(noodlComponent) as IComponent
 })
 
+afterEach(() => {
+  noodlui.cleanup()
+})
+
 describe('noodl-ui', () => {
   it('should flip initialized to true when running init', () => {
     noodlui.init()
@@ -40,7 +44,7 @@ describe('noodl-ui', () => {
   it('should set the root', () => {
     const pageName = 'Loopa'
     const pageObject = { module: 'paper', components: [] }
-    expect(noodlui.root).to.deep.equal({})
+    expect(noodlui.root).to.not.have.property(pageName, pageObject)
     noodlui.setRoot(pageName, pageObject)
     expect(noodlui.root).to.have.property(pageName, pageObject)
   })
@@ -57,31 +61,6 @@ describe('noodl-ui', () => {
     expect(noodlui.getNode(component)).to.be.null
     noodlui.setNode(component)
     expect(noodlui.getNode(component)).to.equal(component)
-  })
-
-  describe('get', () => {
-    xit('should parse the data key and return the value', () => {
-      const dataKey = 'formData.password'
-      // noodlui.
-    })
-
-    xit('should parse the reference key and return the evaluated result', () => {
-      //
-    })
-
-    xit('should return the component node', () => {
-      //
-    })
-  })
-
-  describe('emitting', () => {
-    xit('should emit the event and call the callbacks associated with the event', () => {
-      //
-    })
-
-    xit('should pass in the args to each callback', () => {
-      //
-    })
   })
 
   it('should not return as an array if arg passed was not an array', () => {
@@ -220,105 +199,22 @@ describe('noodl-ui', () => {
       })
     })
 
-    describe('getList', () => {
-      xit('should return an object where key is list id and their value is the list (listObject in NOODL terms)', () => {
-        //
+    xdescribe('resolved component outcomes', () => {
+      it('should attach a noodlType property with the original component type', () => {
+        noodlComponent = { type: 'view', text: 'hello' }
+        const resolvedComponent = noodlui.resolveComponents(noodlComponent)
+        expect(resolvedComponent.toJS()).to.have.property('noodlType', 'view')
       })
-    })
 
-    describe('getListItem', () => {
-      xit('should return the list item', () => {
-        //
+      it('should convert the onClick to an action chain', () => {
+        const onClick = [{ actionType: 'pageJump' }]
+        const resolvedComponent = noodlui.resolveComponents({
+          type: 'button',
+          text: 'hello',
+          onClick,
+        })
+        expect(resolvedComponent.get('onClick')).to.be.instanceOf(ActionChain)
       })
-    })
-
-    xdescribe('lists', () => {
-      it(
-        "should be able to retrieve list data using the list component's " +
-          'component id',
-        () => {
-          const data = ['fruits']
-          const noodlComponent = mock.raw.getNOODLList()
-          const component = noodlui.resolveComponents(noodlComponent)
-          component.set('iteratorVar', data)
-          const listItem1 = component.createChild('listItem')
-          const child = listItem1.createChild('view')
-          const childOfChild = child.createChild('label')
-          // const listObject = noodlui.getList(`${component.id}` || '')
-        },
-      )
-      xit(
-        'should be able to retrieve list data by directing using the ' +
-          "list component's instance",
-        () => {
-          const nooft = noodlui.getList()
-        },
-      )
-
-      xit(
-        "should be able to retrieve a list item component's data object " +
-          'using their component id',
-        () => {
-          //
-        },
-      )
-
-      xit(
-        "should be able to retrieve a list item component's data object " +
-          'using their component instance',
-        () => {
-          //
-        },
-      )
-
-      xit(
-        "should be able to retrieve a list item component's data object " +
-          'by using their component id',
-        () => {
-          //
-        },
-      )
-
-      xit(
-        "should be able to retrieve a list item component's data object " +
-          'by directly using their component instance',
-        () => {
-          //
-        },
-      )
-
-      xit(
-        "should be able to retrieve a list item component's data object " +
-          "using their parent's instance",
-        () => {
-          //
-        },
-      )
-      xit(
-        "should be able to retrieve a list item component's data object " +
-          "using their parent's component id",
-        () => {
-          //
-        },
-      )
-    })
-  })
-
-  xdescribe('resolved component outcomes', () => {
-    it('should attach a noodlType property with the original component type', () => {
-      noodlComponent = { type: 'view', text: 'hello' }
-      const resolvedComponent = noodlui.resolveComponents(noodlComponent)
-      expect(resolvedComponent.toJS()).to.have.property('noodlType', 'view')
-    })
-
-    it('should convert the onClick to an action chain', () => {
-      const onClick = [{ actionType: 'pageJump' }]
-      const resolvedComponent = noodlui.resolveComponents({
-        type: 'button',
-        text: 'hello',
-        onClick,
-      })
-      expect(resolvedComponent.get('onClick')).to.be.instanceOf(ActionChain)
     })
   })
 })

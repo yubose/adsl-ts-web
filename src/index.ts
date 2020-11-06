@@ -257,7 +257,7 @@ window.addEventListener('load', async () => {
                 getSizes,
                 getStylesByElementType,
                 getTransformedStyleAliases,
-                getChildren as any,
+                getChildren,
                 getCustomDataAttrs,
                 getEventHandlers,
               ],

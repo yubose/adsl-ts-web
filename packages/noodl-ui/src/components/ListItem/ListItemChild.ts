@@ -14,6 +14,8 @@ class ListItemChildComponent extends Component implements IListItemChild {
 
   constructor(...args: ConstructorParameters<IComponentConstructor>) {
     super(...args)
+    this['listId'] = this.get('listId')
+    this['iteratorVar'] = this.get('iteratorVar')
   }
 
   get listId() {
@@ -37,10 +39,11 @@ class ListItemChildComponent extends Component implements IListItemChild {
   }
 
   createChild(...args: Parameters<IComponent['createChild']>) {
-    return super
-      .createChild(new ListItemChildComponent(...args))
-      ?.set('listId', this.listId)
-      .set('iteratorVar', this.iteratorVar)
+    const child = super.createChild(
+      new ListItemChildComponent(...args),
+    ) as IComponentTypeInstance
+    child?.set('listId', this.listId).set('iteratorVar', this.iteratorVar)
+    return child
   }
 
   getDataObject() {

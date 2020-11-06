@@ -9,7 +9,7 @@ import {
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
-import Component from './components/Base/Base'
+import Component from './components/Base'
 import ListItemComponent from './components/ListItem'
 import makeRootsParser from './factories/makeRootsParser'
 import {
@@ -22,14 +22,9 @@ import createComponent from './utils/createComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
-import {
-  event,
-  componentEventIds,
-  componentEventMap,
-  componentEventTypes,
-} from './constants'
+import { event, componentEventIds, componentEventTypes } from './constants'
 import * as T from './types'
-import BuiltIn from 'BuiltIn'
+import BuiltIn from './BuiltIn'
 
 // const log = Logger.create('noodl-ui')
 
@@ -44,8 +39,8 @@ function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
 class NOODL implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
-    action: Partial<Record<T.ActionEventId, T.IAction[]>>
-    builtIn: { [key: string]: T.IBuiltIn['func'][] }
+    action: Partial<Record<T.ActionEventId, Function[]>>
+    builtIn: { [funcName: string]: T.IBuiltIn[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     component: Record<
       T.NOODLComponentType | 'all',
@@ -249,6 +244,11 @@ class NOODL implements T.INOODLUi {
     return path
   }
 
+  // Temp here for debugging
+  getCbs() {
+    return this.#cb
+  }
+
   #addCb = (
     key: T.IAction | T.EventId,
     cb:
@@ -321,15 +321,15 @@ class NOODL implements T.INOODLUi {
       ...options,
       ..._.reduce(
         _.entries(this.#cb.action),
-        (acc, [actionType, a]) =>
-          a ? _.assign(acc, { [actionType]: !_.isArray(a) ? [a] : a }) : acc,
+        (acc, [actionType, fn]) =>
+          _.assign(acc, { [actionType]: !_.isArray(fn) ? [fn] : fn }),
         {} as any,
       ),
     } as T.ActionChainCallbackOptions)
 
-    _.forEach(
-      _.values(this.#cb.builtIn),
-      (value) => value && actionChain.add(value),
+    forEachEntries(
+      this.#cb.builtIn,
+      (funcName, fns) => fns && actionChain.add(fns),
     )
 
     forEachEntries(
@@ -504,22 +504,23 @@ class NOODL implements T.INOODLUi {
     ...rest: any[]
   ) {
     const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)
-
     const handleMod = (m: typeof mods[number]) => {
-      if ('actionType' in m) {
-        if (!_.isArray(this.#cb.action[m.actionType])) {
-          this.#cb.action[m.actionType] = []
+      if (m) {
+        if (m instanceof BuiltIn) {
+          if (!_.isArray(this.#cb.builtIn[m.funcName])) {
+            this.#cb.builtIn[m.funcName] = []
+          }
+          this.#cb.builtIn[m.funcName]?.push(m)
+        } else if ('actionType' in m) {
+          if (!_.isArray(this.#cb.action[m.actionType])) {
+            this.#cb.action[m.actionType] = []
+          }
+          this.#cb.action[m.actionType].push(m.fn)
+        } else if (m instanceof Viewport) {
+          this.setViewport(m)
+        } else if (m instanceof Resolver) {
+          this.#resolvers.push(m)
         }
-        this.#cb.action[m.actionType].push(m.fn)
-      } else if (m instanceof Viewport) {
-        this.setViewport(m)
-      } else if (m instanceof Resolver) {
-        this.#resolvers.push(m)
-      } else if (m instanceof BuiltIn) {
-        if (!_.isArray(this.#cb.builtIn[m.funcName])) {
-          this.#cb.builtIn[m.funcName] = []
-        }
-        this.#cb.builtIn[m.funcName]?.push(m.execute)
       }
     }
 

@@ -2,10 +2,9 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import { isDraft, current } from 'immer'
 import ActionChain from '../ActionChain'
-import Component from '../Component'
+import Component from '../components/Base'
 import getChildrenResolver from '../resolvers/getChildren'
 import makeRootsParser from './makeRootsParser'
-import OptionsBuilder from '../OptionsBuilder'
 import {
   forEachDeepEntries,
   forEachEntries,
@@ -16,6 +15,8 @@ import {
 import isReference from '../utils/isReference'
 import Viewport from '../Viewport'
 import * as T from '../types'
+
+function OptionsBuilder() {}
 
 const log = Logger.create('makeComponentResolver')
 

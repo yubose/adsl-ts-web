@@ -20,6 +20,7 @@ class Component implements IComponent {
   #cb: { [eventName: string]: Function[] } = {}
   #component: WritableDraft<IComponentTypeObject> | IComponentTypeObject
   #children: IComponentTypeInstance[] = []
+  #enhancers: ((...args: any[]) => ReturnType<IComponent['createChild']>)[] = []
   #id: string = ''
   #noodlType: NOODLComponentType
   #parent: IComponentTypeInstance | null = null
@@ -56,15 +57,9 @@ class Component implements IComponent {
 
     if (parent) this.#parent = parent
 
-    this.#component = _.isPlainObject(component)
-      ? { ...component }
-      : _.isString(component)
-      ? { type: component }
-      : component
-
-    // this.#component = createComponentDraftSafely(component) as WritableDraft<
-    //   IComponentTypeObject
-    // >
+    this.#component = createComponentDraftSafely(component) as WritableDraft<
+      IComponentTypeObject
+    >
 
     this['id'] = this.#component.id || _.uniqueId()
     this['noodlType'] = this.#component.noodlType
@@ -542,7 +537,12 @@ class Component implements IComponent {
     if (id !== childComponent.id) childComponent['id'] = id
     childComponent.setParent(this)
     this.#children.push(childComponent)
-    return childComponent
+
+    return _.reduce(
+      this.#enhancers,
+      (acc, enhance) => (enhance ? enhance(acc) : acc),
+      childComponent,
+    )
   }
 
   /**
@@ -596,6 +596,11 @@ class Component implements IComponent {
 
   children() {
     return this.#children || []
+  }
+
+  createEnhancement<T extends IComponentTypeInstance<any>>(fn: (c: T) => T) {
+    this.#enhancers.push(fn)
+    return this
   }
 
   get length() {

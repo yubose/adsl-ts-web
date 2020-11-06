@@ -8,7 +8,6 @@ import {
   ProxiedComponent,
   ResolverOptions,
 } from '../../types'
-import createComponent from '../../utils/createComponent'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
 import getListChildren from './list'

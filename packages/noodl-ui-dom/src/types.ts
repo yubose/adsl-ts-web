@@ -1,12 +1,12 @@
-import { IComponentTypeInstance, IListItem } from 'noodl-ui'
+import { IComponentTypeInstance, IListItem, NOODLComponentType } from 'noodl-ui'
 import { componentEventMap, componentEventIds } from './constants'
 
 export interface INOODLUiDOM {
-  on(
+  on<CT extends NOODLComponentType>(
     eventName: NOODLDOMEvent,
     cb: (
       node: NOODLDOMElement | null,
-      component: IComponentTypeInstance,
+      component: IComponentTypeInstance<CT>,
     ) => void,
   ): this
   off(

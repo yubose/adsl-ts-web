@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { isBoolean, isBooleanTrue } from 'noodl-utils'
+import { findParent, isBoolean, isBooleanTrue } from 'noodl-utils'
 import { contentTypes } from '../constants'
 import { ResolverFn } from '../types'
 
@@ -10,7 +10,10 @@ const log = Logger.create('getTransformedAliases')
  * Renames some keywords to align more with html/css/etc
  *  ex: resource --> src (for images)
  */
-const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
+const getTransformedAliases: ResolverFn = (
+  component,
+  { context, createSrc },
+) => {
   const {
     type,
     contentType,
@@ -54,7 +57,7 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
     }
   }
 
-  if (isBoolean(required)) component.set('required', isBooleanTrue(required))
+  if (required) component.set('required', isBooleanTrue(required))
   if (_.isBoolean(controls)) component.set('controls', controls)
   if (poster) component.set('poster', createSrc(poster))
 
@@ -80,8 +83,8 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
         let value: any
         if (_.has(roots, valEvaluating)) {
           value = _.get(roots, valEvaluating)
-        } else if (_.has(page.object, valEvaluating)) {
-          value = _.get(page.object, valEvaluating)
+        } else if (_.has(page?.object, valEvaluating)) {
+          value = _.get(page?.object, valEvaluating)
         } else if (!component.get('listId')) {
           // TEMP -- default to setting the value on the root object
           if (valEvaluating === 'VideoChat.micOn') {
@@ -94,18 +97,19 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
           // If the value possibly leads somewhere, continue with walking the
           // root/localroot/list objects that are available, if any
           // Proceed to check the list data
-          const { listId, listItemIndex } = component.get([
+          const { listId, iteratorVar = '' } = component.get([
             'listId',
-            'listItemIndex',
+            'iteratorVar',
           ])
           if (listId) {
-            const listItem = getListItem(
-              listId as string,
-              listItemIndex as number,
+            const listItem = findParent(
+              component,
+              (parent) => parent?.noodlType === 'listItem',
             )
+            const dataObject = listItem?.getDataObject?.()
             value = _.get(
-              listItem,
-              valEvaluating.startsWith('itemObject')
+              dataObject,
+              valEvaluating.startsWith(iteratorVar)
                 ? valEvaluating.split('.').slice(1)
                 : valEvaluating,
             )
