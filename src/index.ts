@@ -187,7 +187,7 @@ window.addEventListener('load', async () => {
 
       const mainStream = streams.getMainStream()
       const selfStream = streams.getSelfStream()
-      selfStream.unpublish()
+      // selfStream.unpublish()
       const subStreamsContainer = streams.getSubStreamsContainer()
       const subStreams = subStreamsContainer?.getSubstreamsCollection()
 

@@ -7,15 +7,24 @@ import {
   NOODLBuiltInObject,
   NOODLGotoAction,
 } from 'noodl-ui'
-import { LocalAudioTrack, LocalVideoTrack } from 'twilio-video'
-import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
+import {
+  LocalAudioTrack,
+  LocalAudioTrackPublication,
+  LocalVideoTrack,
+  LocalVideoTrackPublication,
+  Room,
+} from 'twilio-video'
+import {
+  isBoolean as isNOODLBoolean,
+  isBooleanTrue,
+  isBooleanFalse,
+} from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
 import validate from 'utils/validate'
 import { toggleVisibility } from 'utils/dom'
 import { BuiltInActions } from 'app/types'
 import { NOODLBuiltInCheckFieldObject } from 'app/types/libExtensionTypes'
-import noodl from '../app/noodl'
 import { CachedPageObject } from '../app/types'
 import { CACHED_PAGES } from '../constants'
 import Meeting from '../meeting'
@@ -86,7 +95,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
-          `Defaulting to attaching ${dataKey} as a path to the root object`,
+            `Defaulting to attaching ${dataKey} as a path to the root object`,
           { context, dataObject, dataKey },
         )
         dataObject = noodl.root
@@ -100,6 +109,12 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         nextDataValue = !dataValue
       }
       _.set(dataObject, dataKey, nextDataValue)
+
+      if (dataKey === 'VideoChat.micOn') {
+        builtInActions.toggleMicrophoneOnOff?.(action, options)
+      } else if (dataKey === 'VideoChat.cameraOn') {
+        builtInActions.toggleCameraOnOff?.(action, options)
+      }
     }
 
     // Propagate the changes to to UI if there is a path "if" object that
@@ -156,7 +171,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => { }
+  builtInActions.checkVerificationCode = async (action) => {}
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -197,19 +212,18 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     let cachedPages: CachedPageObject[] = getCachedPages()
     if (cachedPages) {
       cachedPages.shift()
-      while (cachedPages[0].name.endsWith("MenuBar") && cachedPages.length) {
+      while (cachedPages[0].name.endsWith('MenuBar') && cachedPages.length) {
         cachedPages.shift()
       }
       let pg: string
       pg = cachedPages.shift()?.name || ''
       setCachedPages(cachedPages)
       await requestPage(pg || '')
-    }
-    else {
+    } else {
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
-        'be found',
+          'be found',
         { previousPage: page.previousPage, currentPage: page.currentPage },
       )
     }
@@ -290,12 +304,13 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // Re-render the current list item somehow
   }
 
-  builtInActions.signIn = async (action, options) => { }
-  builtInActions.signUp = async () => { }
-  builtInActions.signout = async () => { }
+  builtInActions.signIn = async (action, options) => {}
+  builtInActions.signUp = async () => {}
+  builtInActions.signout = async () => {}
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
+    const path = 'VideoChat.cameraOn'
 
     let localParticipant = Meeting.localParticipant
     let videoTrack: LocalVideoTrack | undefined
@@ -305,25 +320,31 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         (trackPublication) => trackPublication.kind === 'video',
       )?.track as LocalVideoTrack
 
-      if (videoTrack) {
-        if (videoTrack.isEnabled) {
-          videoTrack.disable()
-          log.grey(`Toggled video OFF for LocalParticipant`, localParticipant)
+      const { default: noodl } = await import('app/noodl')
+      noodl.editDraft((draft) => {
+        if (videoTrack) {
+          if (videoTrack.isEnabled) {
+            videoTrack.disable()
+            _.set(draft, path, false)
+            log.grey(`Toggled video OFF for LocalParticipant`, localParticipant)
+          } else {
+            videoTrack.enable()
+            _.set(draft, path, true)
+            log.grey(`Toggled video ON for LocalParticipant`, localParticipant)
+          }
         } else {
-          videoTrack.enable()
-          log.grey(`Toggled video ON for LocalParticipant`, localParticipant)
+          log.red(
+            `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
+            { localParticipant, room: Meeting.room },
+          )
         }
-      } else {
-        log.red(
-          `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
-          { localParticipant, room: Meeting.room },
-        )
-      }
+      })
     }
   }
 
   builtInActions.toggleMicrophoneOnOff = async () => {
     log.func('toggleMicrophoneOnOff')
+    const path = 'VideoChat.micOn'
 
     let localParticipant = Meeting.localParticipant
     let audioTrack: LocalAudioTrack | undefined
@@ -333,15 +354,20 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         (trackPublication) => trackPublication.kind === 'audio',
       )?.track as LocalAudioTrack
 
-      if (audioTrack) {
-        if (audioTrack.isEnabled) {
-          audioTrack.disable()
-          log.grey(`Toggled audio OFF for LocalParticipant`, localParticipant)
-        } else {
-          log.grey(`Toggled audio ON for LocalParticipant`, localParticipant)
-          audioTrack.enable()
+      const { default: noodl } = await import('app/noodl')
+      noodl.editDraft((draft) => {
+        if (audioTrack) {
+          if (audioTrack.isEnabled) {
+            audioTrack.disable()
+            _.set(draft, path, false)
+            log.grey(`Toggled audio OFF for LocalParticipant`, localParticipant)
+          } else {
+            log.grey(`Toggled audio ON for LocalParticipant`, localParticipant)
+            audioTrack.enable()
+            _.set(draft, path, true)
+          }
         }
-      }
+      })
     }
   }
 
@@ -372,7 +398,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     log.green(
       `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-      `root.${pageName}.${nameFieldPath}`,
+        `root.${pageName}.${nameFieldPath}`,
       file,
     )
   }
@@ -420,10 +446,49 @@ export function onVideoChatBuiltIn({
       //   if (connecting) setConnecting(false)
       // }
       if (action?.roomId) log.grey(`Connecting to room id: ${action.roomId}`)
-      const newRoom = await joinRoom(action.accessToken)
+      const newRoom = (await joinRoom(action.accessToken)) as Room
       if (newRoom) {
         log.func('onVideoChat')
         log.green(`Connected to room: ${newRoom.name}`, newRoom)
+        // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
+        // to initiate the default values for audio/video default enabled/disabled state
+        const { default: noodl } = await import('app/noodl')
+        const { cameraOn, micOn } = noodl.root.VideoChat || {}
+        const { localParticipant } = newRoom
+
+        const toggle = (state: 'enable' | 'disable') => (
+          tracks: Map<
+            string,
+            LocalVideoTrackPublication | LocalAudioTrackPublication
+          >,
+        ) => {
+          tracks.forEach((publication) => {
+            publication?.track?.[state]?.()
+          })
+        }
+        const enable = toggle('enable')
+        const disable = toggle('disable')
+
+        if (isNOODLBoolean(cameraOn)) {
+          if (isBooleanTrue(cameraOn)) {
+            enable(localParticipant?.videoTracks)
+          } else if (isBooleanFalse(cameraOn)) {
+            disable(localParticipant?.videoTracks)
+          }
+        } else {
+          // Automatically disable by default
+          disable(localParticipant?.videoTracks)
+        }
+        if (isNOODLBoolean(micOn)) {
+          if (isBooleanTrue(micOn)) {
+            enable(localParticipant?.audioTracks)
+          } else if (isBooleanFalse(micOn)) {
+            disable(localParticipant?.audioTracks)
+          }
+        } else {
+          // Automatically disable by default
+          disable(localParticipant?.audioTracks)
+        }
       } else {
         log.func('onVideoChat')
         log.red(
@@ -433,6 +498,7 @@ export function onVideoChatBuiltIn({
       }
     } catch (error) {
       console.error(error)
+      window.alert(`[${error.name}]: ${error.message}`)
     }
   }
 }
