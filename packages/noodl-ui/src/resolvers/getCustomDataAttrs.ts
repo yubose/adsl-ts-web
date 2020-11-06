@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { findParent } from 'noodl-utils'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
-import { ResolverFn, IComponentTypeInstance, IListItem } from '../types'
+import { ResolverFn, IListItem } from '../types'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -11,12 +11,10 @@ const log = Logger.create('getCustomDataAttrs')
  *    (ex: "data-ux" for UX interactions between the library and the web app)
  */
 const getCustomDataAttrs: ResolverFn = (component, options) => {
-  const { context, showDataKey, getNode, getNodes, parser } = options
+  const { context, showDataKey, parser } = options
   const { page } = context
 
-  let parent: IComponentTypeInstance
-
-  const { type, noodlType } = component
+  const { noodlType } = component
 
   const { contentType = '', dataKey, viewTag } = component.get([
     'contentType',
@@ -89,164 +87,146 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       ---- REFERENCES / DATAKEY 
     -------------------------------------------------------- */
   if (_.isString(dataKey)) {
-    const { listId = '', listIndex, iteratorVar = '' } = component.get([
+    let dataObject, dataValue
+
+    const {
+      listId = '',
+      listIndex,
+      iteratorVar = '',
+      placeholder = '',
+      text = '',
+    } = component.get([
       'listId',
       'listIndex',
       'iteratorVar',
+      'placeholder',
+      'text',
     ])
-    const isListDescendant = !!iteratorVar
-    // Component is retrieving data from a list
-    if (dataKey.startsWith(iteratorVar)) {
-      if (isListDescendant) {
-        let dataObject
-        let dataValue
-        const path = dataKey.split('.').slice(1)
-        // If this is a descendant of a list component and it has an iteratorVar that is
-        // being used as a prefix for data keys, then it's most likely expecting a data object
-        // from the list data
-        const listItem = findParent(
-          component,
-          (child) => child.noodlType === 'listItem',
-        ) as IListItem
-        if (listItem) {
-          dataObject = listItem.getDataObject()
-          if (_.isObjectLike(dataObject)) {
-            dataValue = _.get(dataObject, path)
-          } else if (_.isString(dataObject)) {
-            log.red(
-              `Expected an object-like value as a dataObject but received a string instead`,
-              {
-                component: component.toJS(),
-                context,
-                dataKey,
-                listItem,
-              },
-            )
-          } else {
-            log.red(
-              `Found a listItem for a component expecting data with dataKey "${dataKey}" but none was found`,
-              {
-                component: component.toJS(),
-                context,
-                dataKey,
-                iteratorVar,
-              },
-            )
-          }
-        } else {
+
+    // Handle list related components that expect data objects
+    if (iteratorVar && dataKey.startsWith(iteratorVar)) {
+      const fn = (child: any) => child?.noodlType === 'listItem'
+      const listItem = findParent(component, fn) as IListItem
+      const textFunc = component.get('text=func')
+      // Strip off the iteratorVar to keep the path that starts from the data objefct
+      const path = dataKey.split('.').slice(1)
+      dataObject = listItem?.getDataObject?.()
+      // Last things we can do is attempt to grab a data value through the
+      // root or local root page object
+      // Date components
+      if (textFunc) {
+        if (!dataObject) {
           log.red(
-            `Tried to query for a listItem parent for dataKey "${dataKey}" ` +
-              `but none could be found`,
+            `Expected a dataObject for a date component but received a type ` +
+              `${typeof dataObject} instead`,
             {
               component: component.toJS(),
-              context,
               dataKey,
+              dataObject,
+              listItem,
+              listIndex,
               iteratorVar,
             },
           )
-        }
-      }
-      if (isReference(dataKey)) {
-        component.set(
-          'data-value',
-          showDataKey
-            ? dataKey
-            : component.get('text') || component.get('placeholder'),
-        )
-      } else {
-        // Date components
-        if (component.get('text=func')) {
-          const iteratorVar = component.get('iteratorVar') || ''
-          // These date components receive their values from a list
-          if (iteratorVar && dataKey.startsWith(iteratorVar)) {
-            let path
-            const { listId, listIndex } = component.get(['listId', 'listIndex'])
-            const listItem = findParent(
-              component,
-              (child) => child.noodlType === 'listItem',
-            ) as IListItem
-            const dataObject = listItem?.getDataObject?.()
-
-            if (!dataObject) {
+          // Default to showing the dataKey even when its a raw reference
+          dataValue = showDataKey ? dataKey : text || placeholder || ''
+        } else {
+          if (_.isFunction(textFunc)) {
+            dataValue = _.get(dataObject, path)
+            if (dataValue == undefined) {
               log.red(
-                'Expected a dataObject for a date component but received an invalid value instead',
+                `Tried to retrieve the date value from a dataObject with  ` +
+                  `iteratorVar "${iteratorVar}" using the path "${dataKey}" ` +
+                  `but received null or undefined instead`,
                 {
-                  component: component.snapshot(),
+                  component: component.toJS(),
+                  dataKey,
                   dataObject,
                   listItem,
                   listIndex,
+                  iteratorVar,
+                  path,
+                  'text=func': textFunc,
                 },
               )
-              // Default to showing the dataKey even when its a raw reference
-              component.set(
-                'data-value',
-                showDataKey
-                  ? dataKey
-                  : component.get('text') || component.get('placeholder'),
-              )
+            } else if (dataValue === dataKey) {
+              // Allow the raw dataKey (unparsed) to show in pages if
+              // showDataKey is true
+              dataValue = showDataKey ? dataKey : text || placeholder || ''
             } else {
-              const textFunc = component.get('text=func')
-              if (_.isFunction(textFunc)) {
-                path = dataKey.split('.').slice(1)
-                const ecosDate = _.get(dataObject, path)
-                if (ecosDate == undefined) {
-                  log.red(
-                    `Tried to retrieve the date value from a dataObject with iteratorVar "${iteratorVar}" using ` +
-                      `the path "${dataKey}" but received null or undefined instead`,
-                    {
-                      component: component.snapshot(),
-                      listItem,
-                      listIndex,
-                      iteratorVar,
-                      path,
-                    },
-                  )
-                }
-                if (ecosDate === dataKey) {
-                  // Allow the raw dataKey (unparsed) to show in pages if
-                  // showDataKey is true
-                  component.set(
-                    'data-value',
-                    showDataKey
-                      ? dataKey
-                      : component.get('text') || component.get('placeholder'),
-                  )
-                } else {
-                  component.set('data-value', textFunc(ecosDate))
-                }
-              } else {
-                log.red(
-                  `Expected text=func to be a function but it was of type "${typeof textFunc}"`,
-                  {
-                    component: component.snapshot(),
-                    listId,
-                    listIndex,
-                    dataObject,
-                    path,
-                  },
-                )
-              }
+              dataValue = textFunc(dataValue)
             }
+          } else {
+            log.red(
+              `Expected text=func to be a function but it was of type "${typeof textFunc}"`,
+              {
+                component: component.toJS(),
+                listId,
+                listIndex,
+                dataKey,
+                dataObject,
+                path,
+                'text=func': textFunc,
+              },
+            )
           }
+        }
+      }
+      // The only other case in this situation is resolving a list related component
+      // since they operate on lists of data objects
+      else if (listItem) {
+        if (dataObject) {
+          dataValue = _.get(dataObject, path)
         } else {
-          log.red(`TODO/REMINDER: This code block was reached. Look into this`)
-          // component.set('data-value', component.get('data-value'))
-        }
-      }
-    } else {
-      const data = parser.getByDataKey(dataKey, '')
-      if (_.isString(data)) {
-        if (isReference(data) || data.startsWith('itemObject')) {
-          component.set(
-            'data-value',
-            showDataKey
-              ? data
-              : component.get('text') || component.get('placeholder'),
+          log.red(
+            `Expected a dataObject for a list related component but received a type ` +
+              `${typeof dataObject} instead`,
+            {
+              component: component.toJS(),
+              dataKey,
+              dataObject,
+              listItem,
+              listIndex,
+              iteratorVar,
+              path,
+            },
           )
+          // Default to showing the dataKey even when its a raw reference
+          dataValue = showDataKey ? dataKey : text || placeholder || ''
         }
+      } else {
+        log.red(
+          `Tried to query for a listItem in the parent prototype chain for a ` +
+            `dataObject consumer with dataKey "${dataKey}" but nothing was found`,
+          {
+            component: component.toJS(),
+            dataKey,
+            listItem,
+            iteratorVar,
+            page: context.page,
+            path,
+          },
+        )
       }
-      component.set('data-value', data)
     }
+    // Components that find their data values through a higher level like the root object
+    else {
+      if (isReference(dataKey)) {
+        dataValue = parser.getByDataKey(
+          dataKey,
+          showDataKey ? dataKey : text || placeholder,
+        )
+      } else {
+        log.red(
+          `TODO/REMINDER: This code block was reached. None of these ` +
+            `situations matched: 1. Root/local root referenced dataKey ` +
+            `2. List dataObjects. 3. Text=func date components. Look into this`,
+        )
+        // component.set('data-value', component.get('data-value'))
+      }
+    }
+
+    component.set('data-value', dataValue)
   }
 
   /* -------------------------------------------------------

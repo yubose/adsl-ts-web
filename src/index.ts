@@ -47,7 +47,6 @@ import MeetingSubstreams from './meeting/Substreams'
 import noodluidom from 'app/noodl-ui-dom'
 import './handlers/dom'
 import './styles.css'
-import { Action, IAction } from '../packages/noodl-ui/src'
 
 const log = Logger.create('src/index.ts')
 
@@ -344,6 +343,7 @@ window.addEventListener('load', async () => {
     console.error(error)
     log.func('page.onError')
     log.red(error.message, error)
+    debugger
     // window.alert(error.message)
     // TODO - narrow the reasons down more
   }
@@ -534,7 +534,7 @@ window.addEventListener('load', async () => {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-  noodluidom.on('all', (node, component) => {
+  noodluidom.on('create.component', (node, component) => {
     if (node && component) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(component.toJS())) {
@@ -603,7 +603,7 @@ window.addEventListener('load', async () => {
     ---- VIEWPORT / WINDOW SIZING
   -------------------------------------------------------- */
   // Register the onresize listener once, if it isn't already registered
-  if (viewport.onResize === undefined) {
+  if (!viewport.onResize) {
     /**
      * This manages viewport aspect ratios for the SDK whenever it changes.
      * This affects the endpoints that the SDK uses to load pages

@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { isAction } from 'noodl-utils'
 import * as T from '../types'
 import Action from '../Action'
 import { forEachEntries } from '../utils/common'
