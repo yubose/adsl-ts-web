@@ -11,6 +11,28 @@ import {
   eventTypes,
 } from './constants'
 
+/* -------------------------------------------------------
+  ---- CONSTANTS
+-------------------------------------------------------- */
+
+export type ActionEventAlias = keyof typeof event.action
+export type ActionEventId = typeof event.action[ActionEventAlias]
+export type ActionChainEventAlias = keyof typeof event.actionChain
+export type ActionChainEventId = typeof event.actionChain[ActionChainEventAlias]
+export type IComponentEventAlias = keyof typeof event.IComponent
+export type IComponentEventId = typeof event.IComponent[IComponentEventAlias]
+export type IListEventObject = typeof event.component.list
+export type IListEventAlias = keyof IListEventObject
+export type IListEventId = IListEventObject[IListEventAlias]
+export type NOODLComponentEventId = typeof componentEventIds[number]
+export type NOODLComponentEventMap = keyof typeof componentEventMap
+export type NOODLComponentEvent = NOODLComponentEventId | 'all'
+export type EventId =
+  | ActionEventId
+  | ActionChainEventId
+  | IComponentEventId
+  | NOODLComponentEvent
+
 export interface INOODLUi {
   assetsUrl: string
   initialized: boolean
@@ -75,6 +97,10 @@ export interface INOODLUiComponentEventCallback<
     args: { component: C; parent: IComponentTypeInstance | null },
   ): void
 }
+
+/* -------------------------------------------------------
+  ---- COMPONENTS
+-------------------------------------------------------- */
 
 export type IComponentConstructor = new (
   component: IComponentType,
@@ -300,210 +326,11 @@ export interface IResolver {
   resolve: ResolverFn
 }
 
-export interface NOODLPage {
-  [pageName: string]: NOODLPageObject
-}
-
-export interface NOODLPageObject {
-  components: NOODLComponent[]
-  lastTop?: string
-  listData?: { [key: string]: any }
-  final?: string // ex: "..save"
-  init?: string | string[] // ex: ["..formData.edge.get", "..formData.w9.get"]
-  module?: string
-  pageNumber?: string
-  [key: string]: any
-}
-
-export type NOODLActionType = typeof actionTypes[number]
-export type NOODLActionTriggerType = typeof eventTypes[number]
-export type NOODLComponentType = typeof componentTypes[number] | 'br'
-export type NOODLContentType = typeof contentTypes[number]
-
-export interface NOODLComponent {
-  type?: NOODLComponentType
-  style?: NOODLStyle
-  children?: NOODLComponent[]
-  controls?: boolean
-  dataKey?: string
-  contentType?: NOODLContentType
-  inputType?: string // our custom key
-  itemObject?: any
-  isEditable?: boolean // specific to textView components atm
-  iteratorVar?: string
-  listObject?: '' | any[]
-  maxPresent?: string // ex: "6" (Currently used in components with type: list)
-  onClick?: NOODLActionObject[]
-  onHover?: NOODLActionObject[]
-  options?: string[]
-  path?: string | NOODLIfObject
-  pathSelected?: string
-  poster?: string
-  placeholder?: string
-  resource?: string
-  required?: 'true' | 'false' | boolean
-  selected?: string
-  src?: string // our custom key
-  text?: string | number
-  textSelectd?: string
-  textBoard?: NOODLTextBoard
-  'text=func'?: any
-  viewTag?: string
-  videoFormat?: string
-  [key: string]: any
-}
-
-export interface NOODLPluginComponent extends NOODLComponent {
-  type: 'plugin'
-  path: string
-}
-
-export interface NOODLIfObject {
-  if: [any, any, any]
-}
-
 /* -------------------------------------------------------
-    ---- ACTIONS
-  -------------------------------------------------------- */
-
-export type NOODLGotoAction = NOODLGotoURL | NOODLGotoObject
-
-export type NOODLGotoURL = string
-
-export interface NOODLGotoObject {
-  destination?: string
-  [key: string]: any
-}
-
-export type NOODLActionObject =
-  | NOODLBuiltInObject
-  | NOODLEvalObject
-  | NOODLPageJumpObject
-  | NOODLPopupBaseObject
-  | NOODLPopupDismissObject
-  | NOODLRefreshObject
-  | NOODLSaveObject
-  | NOODLUpdateObject
-
-export interface NOODLActionObjectBase {
-  actionType: NOODLActionType
-  [key: string]: any
-}
-
-export interface NOODLBuiltInObject extends NOODLActionObjectBase {
-  actionType: 'builtIn'
-  funcName: string
-}
-
-export interface NOODLEvalObject extends NOODLActionObjectBase {
-  actionType: 'evalObject'
-  object?: Function | NOODLIfObject
-  [key: string]: any
-}
-
-export interface NOODLPageJumpObject extends NOODLActionObjectBase {
-  actionType: 'pageJump'
-  destination: string
-}
-
-export interface NOODLRefreshObject extends NOODLActionObjectBase {
-  actionType: 'refresh'
-}
-
-export interface NOODLSaveObject extends NOODLActionObjectBase {
-  actionType: 'saveObject'
-  object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
-}
-
-export type NOODLUpdateObject<T = any> =
-  | {
-      actionType: 'updateObject'
-      object: T
-    }
-  | {
-      actionType: 'updateObject'
-      dataKey: string
-      dataObject: string
-    }
-
-export interface NOODLPopupBaseObject extends NOODLActionObjectBase {
-  actionType: 'popUp'
-  popUpView: string
-}
-
-export interface NOODLPopupDismissObject extends NOODLActionObjectBase {
-  actionType: 'popUpDismiss'
-  popUpView: string
-}
-
-/* -------------------------------------------------------
-  ---- STYLING
+  ---- ACTIONS / ACTION CHAIN
 -------------------------------------------------------- */
 
-export interface NOODLStyle {
-  align?: NOODLStyleAlign
-  axis?: 'horizontal' | 'vertical'
-  activeColor?: string // ex: ".colorTheme.highLightColor"
-  border?: NOODLStyleBorderObject
-  color?: string
-  colorDefault?: string
-  colorSelected?: string
-  fontSize?: string
-  fontFamily?: string
-  fontStyle?: 'bold' | string
-  height?: string
-  isHidden?: boolean
-  isHideCondition?: string // ex: "isPatient"
-  left?: string
-  required?: string | boolean
-  outline?: string
-  onHover?: string // ex: "surroundborder"
-  textAlign?: NOODLStyleTextAlign
-  textColor?: string
-  top?: string
-  width?: string
-  shadow?: string // ex: "false"
-  [styleKey: string]: any
-}
-
-export interface NOODLStyleBorderObject {
-  style?: '1' | '2' | '3' | '4' | '5' | '6' | '7' | 1 | 2 | 3 | 4 | 5 | 6 | 7
-  width?: string | number
-  color?: string | number
-  line?: string // ex: "solid"
-}
-
-export type NOODLStyleTextAlign =
-  | 'left'
-  | 'center'
-  | 'right'
-  | NOODLStyleAlign
-  | NOODLStyleTextAlignObject
-
-export interface NOODLStyleTextAlignObject {
-  x?: 'left' | 'center' | 'right'
-  y?: 'left' | 'center' | 'right'
-}
-
-export type NOODLStyleAlign = 'centerX' | 'centerY'
-
-export type NOODLTextBoard = (
-  | NOODLTextBoardTextObject
-  | NOODLTextBoardBreakLine
-)[]
-
-export type NOODLTextBoardBreakLine = 'br'
-
-export interface NOODLTextBoardTextObject {
-  text?: string
-  color?: string
-}
-
-/* -------------------------------------------------------
----- LIB TYPES
--------------------------------------------------------- */
-
-export interface IActionChain {
+export interface IActionChain<ActionType extends string = string> {
   actions: IAction[] | null
   intermediary: IAction[]
   current: { action: IAction | undefined; index: number }
@@ -525,24 +352,23 @@ export interface IActionChain {
   onChainError?: LifeCycleListeners['onChainError']
   onChainAborted?: LifeCycleListeners['onChainAborted']
   onAfterResolve?: LifeCycleListeners['onAfterResolve']
+  use(actions: IActionChainUseObjectBase<ActionType>): this
+  use(actions: IActionChainUseObjectBase<ActionType>[]): this
 }
 
-export interface IActionChainOptions {
-  builtIn?: { [funcName: string]: IBuiltIn[] }
-  evalObject?: OnEvalObject[]
-  pageJump?: OnPageJump[]
-  popUp?: OnPopup[]
-  popUpDismiss?: OnPopupDismiss[]
-  saveObject?: OnSaveObject[]
-  updateObject?: OnUpdateObject[]
-  onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
-  onChainStart?: LifeCycleListeners['onChainStart']
-  onChainEnd?: LifeCycleListeners['onChainEnd']
-  onChainError?: LifeCycleListeners['onChainError']
-  onChainAborted?: LifeCycleListeners['onChainAborted']
-  onAfterResolve?: LifeCycleListeners['onAfterResolve']
-  parser?: ResolverOptions['parser']
+export interface IActionChainUseObjectBase<ActionType extends string = string> {
+  actionType: ActionType
+  fns: ActionChainActionCallback | ActionChainActionCallback[]
 }
+
+export interface IActionChainUseBuiltInObject
+  extends IActionChainUseObjectBase<'builtIn'> {
+  funcName: string
+}
+
+export type IActionChainUseObject<ActionType extends string = string> =
+  | IActionChainUseObjectBase<ActionType>
+  | IActionChainUseBuiltInObject
 
 export interface IActionChainAddActionObject<
   S extends NOODLActionType = NOODLActionType
@@ -647,39 +473,6 @@ export type NOODLComponentProps = Omit<
   type: keyof Omit<HTMLElementTagNameMap, 'object'>
   [key: string]: any
 }
-
-export interface Page {
-  name: string
-  object?: null | NOODLPageObject
-}
-
-export interface SelectOption {
-  key: string
-  label: string
-  value: string
-}
-
-/* -------------------------------------------------------
-  ---- CONSTANTS
--------------------------------------------------------- */
-
-export type ActionEventAlias = keyof typeof event.action
-export type ActionEventId = typeof event.action[ActionEventAlias]
-export type ActionChainEventAlias = keyof typeof event.actionChain
-export type ActionChainEventId = typeof event.actionChain[ActionChainEventAlias]
-export type IComponentEventAlias = keyof typeof event.IComponent
-export type IComponentEventId = typeof event.IComponent[IComponentEventAlias]
-export type IListEventObject = typeof event.component.list
-export type IListEventAlias = keyof IListEventObject
-export type IListEventId = IListEventObject[IListEventAlias]
-export type NOODLComponentEventId = typeof componentEventIds[number]
-export type NOODLComponentEventMap = keyof typeof componentEventMap
-export type NOODLComponentEvent = NOODLComponentEventId | 'all'
-export type EventId =
-  | ActionEventId
-  | ActionChainEventId
-  | IComponentEventId
-  | NOODLComponentEvent
 
 /* -------------------------------------------------------
   ---- LIB ACTIONS / ACTION CHAIN
@@ -913,6 +706,17 @@ export interface ResolverContext {
   viewport: IViewport | undefined
 }
 
+export interface Page {
+  name: string
+  object?: null | NOODLPageObject
+}
+
+export interface SelectOption {
+  key: string
+  label: string
+  value: string
+}
+
 export interface RootsParser<Root extends {} = any> {
   get<K extends keyof Root>(key: string): Root[K] | any
   getLocalKey(): string
@@ -946,4 +750,207 @@ export interface IViewport {
 export interface ViewportOptions {
   width: number
   height: number
+}
+
+/* -------------------------------------------------------
+  ---- RAW/ORIGINAL NOODL TYPE DEFINITIONS
+-------------------------------------------------------- */
+
+export interface NOODLPage {
+  [pageName: string]: NOODLPageObject
+}
+
+export interface NOODLPageObject {
+  components: NOODLComponent[]
+  lastTop?: string
+  listData?: { [key: string]: any }
+  final?: string // ex: "..save"
+  init?: string | string[] // ex: ["..formData.edge.get", "..formData.w9.get"]
+  module?: string
+  pageNumber?: string
+  [key: string]: any
+}
+
+export type NOODLActionType = typeof actionTypes[number]
+export type NOODLActionTriggerType = typeof eventTypes[number]
+export type NOODLComponentType = typeof componentTypes[number] | 'br'
+export type NOODLContentType = typeof contentTypes[number]
+
+export interface NOODLComponent {
+  type?: NOODLComponentType
+  style?: NOODLStyle
+  children?: NOODLComponent[]
+  controls?: boolean
+  dataKey?: string
+  contentType?: NOODLContentType
+  inputType?: string // our custom key
+  itemObject?: any
+  isEditable?: boolean // specific to textView components atm
+  iteratorVar?: string
+  listObject?: '' | any[]
+  maxPresent?: string // ex: "6" (Currently used in components with type: list)
+  onClick?: NOODLActionObject[]
+  onHover?: NOODLActionObject[]
+  options?: string[]
+  path?: string | NOODLIfObject
+  pathSelected?: string
+  poster?: string
+  placeholder?: string
+  resource?: string
+  required?: 'true' | 'false' | boolean
+  selected?: string
+  src?: string // our custom key
+  text?: string | number
+  textSelectd?: string
+  textBoard?: NOODLTextBoard
+  'text=func'?: any
+  viewTag?: string
+  videoFormat?: string
+  [key: string]: any
+}
+
+export interface NOODLPluginComponent extends NOODLComponent {
+  type: 'plugin'
+  path: string
+}
+
+export interface NOODLIfObject {
+  if: [any, any, any]
+}
+
+/* -------------------------------------------------------
+    ---- ACTIONS
+  -------------------------------------------------------- */
+
+export type NOODLGotoAction = NOODLGotoURL | NOODLGotoObject
+
+export type NOODLGotoURL = string
+
+export interface NOODLGotoObject {
+  destination?: string
+  [key: string]: any
+}
+
+export type NOODLActionObject =
+  | NOODLBuiltInObject
+  | NOODLEvalObject
+  | NOODLPageJumpObject
+  | NOODLPopupBaseObject
+  | NOODLPopupDismissObject
+  | NOODLRefreshObject
+  | NOODLSaveObject
+  | NOODLUpdateObject
+
+export interface NOODLActionObjectBase {
+  actionType: NOODLActionType
+  [key: string]: any
+}
+
+export interface NOODLBuiltInObject extends NOODLActionObjectBase {
+  actionType: 'builtIn'
+  funcName: string
+}
+
+export interface NOODLEvalObject extends NOODLActionObjectBase {
+  actionType: 'evalObject'
+  object?: Function | NOODLIfObject
+  [key: string]: any
+}
+
+export interface NOODLPageJumpObject extends NOODLActionObjectBase {
+  actionType: 'pageJump'
+  destination: string
+}
+
+export interface NOODLRefreshObject extends NOODLActionObjectBase {
+  actionType: 'refresh'
+}
+
+export interface NOODLSaveObject extends NOODLActionObjectBase {
+  actionType: 'saveObject'
+  object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
+}
+
+export type NOODLUpdateObject<T = any> =
+  | {
+      actionType: 'updateObject'
+      object: T
+    }
+  | {
+      actionType: 'updateObject'
+      dataKey: string
+      dataObject: string
+    }
+
+export interface NOODLPopupBaseObject extends NOODLActionObjectBase {
+  actionType: 'popUp'
+  popUpView: string
+}
+
+export interface NOODLPopupDismissObject extends NOODLActionObjectBase {
+  actionType: 'popUpDismiss'
+  popUpView: string
+}
+
+/* -------------------------------------------------------
+  ---- STYLING
+-------------------------------------------------------- */
+
+export interface NOODLStyle {
+  align?: NOODLStyleAlign
+  axis?: 'horizontal' | 'vertical'
+  activeColor?: string // ex: ".colorTheme.highLightColor"
+  border?: NOODLStyleBorderObject
+  color?: string
+  colorDefault?: string
+  colorSelected?: string
+  fontSize?: string
+  fontFamily?: string
+  fontStyle?: 'bold' | string
+  height?: string
+  isHidden?: boolean
+  isHideCondition?: string // ex: "isPatient"
+  left?: string
+  required?: string | boolean
+  outline?: string
+  onHover?: string // ex: "surroundborder"
+  textAlign?: NOODLStyleTextAlign
+  textColor?: string
+  top?: string
+  width?: string
+  shadow?: string // ex: "false"
+  [styleKey: string]: any
+}
+
+export interface NOODLStyleBorderObject {
+  style?: '1' | '2' | '3' | '4' | '5' | '6' | '7' | 1 | 2 | 3 | 4 | 5 | 6 | 7
+  width?: string | number
+  color?: string | number
+  line?: string // ex: "solid"
+}
+
+export type NOODLStyleTextAlign =
+  | 'left'
+  | 'center'
+  | 'right'
+  | NOODLStyleAlign
+  | NOODLStyleTextAlignObject
+
+export interface NOODLStyleTextAlignObject {
+  x?: 'left' | 'center' | 'right'
+  y?: 'left' | 'center' | 'right'
+}
+
+export type NOODLStyleAlign = 'centerX' | 'centerY'
+
+export type NOODLTextBoard = (
+  | NOODLTextBoardTextObject
+  | NOODLTextBoardBreakLine
+)[]
+
+export type NOODLTextBoardBreakLine = 'br'
+
+export interface NOODLTextBoardTextObject {
+  text?: string
+  color?: string
 }
