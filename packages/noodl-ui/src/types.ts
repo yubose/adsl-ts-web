@@ -518,6 +518,7 @@ export interface IActionChain {
   add(actionObj: { actionType: string; fns: Function[] }): this
   add(builtIn: IBuiltIn): this
   add(builtIn: ({ actionType: string; fns: Function[] } | IBuiltIn)[]): this
+  
   onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
   onChainStart?: LifeCycleListeners['onChainStart']
   onChainEnd?: LifeCycleListeners['onChainEnd']
