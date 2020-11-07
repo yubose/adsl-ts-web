@@ -111,6 +111,8 @@ class ActionChain implements T.IActionChain {
     return this
   }
 
+  use(action) {}
+
   /**
    * Creates and returns a new Action instance
    * @param { object } obj - Action object

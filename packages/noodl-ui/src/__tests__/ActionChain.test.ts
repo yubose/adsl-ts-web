@@ -39,16 +39,31 @@ beforeEach(() => {
 })
 
 describe('ActionChain', () => {
-  describe('add', () => {
-    it('should set the builtIns', () => {
+  describe('when adding actions', () => {
+    it('should set the builtIns using single object or array of objects', () => {
       const mockBuiltInFn = sinon.spy()
-      const helloBuiltInFn = new BuiltIn(mockBuiltInFn, { funcName: 'hello' })
       actionChain = new ActionChain(actions)
-      actionChain.add(helloBuiltInFn)
+      expect(actionChain.builtIn).not.to.have.property('hello')
+      expect(actionChain.builtIn).not.to.have.property('hi')
+      expect(actionChain.builtIn).not.to.have.property('monster')
+      expect(actionChain.builtIn).not.to.have.property('dopple')
+      const getBuiltIn = (name: string) => ({
+        funcName: name,
+        executor: mockBuiltInFn,
+      })
+      actionChain.use({ builtIn: getBuiltIn('hello') })
       expect(actionChain.builtIn).to.have.property('hello')
+      actionChain.use({ builtIn: [getBuiltIn('hi')] })
+      expect(actionChain.builtIn).to.have.property('hi')
+      actionChain.use([{ builtIn: getBuiltIn('monster') }])
+      expect(actionChain.builtIn).to.have.property('monster')
+      actionChain.use([
+        { builtIn: [getBuiltIn('dopple'), getBuiltIn('laptop')] },
+      ])
+      expect(actionChain.builtIn).to.have.property('laptop')
     })
 
-    it('should set the actions', () => {
+    xit('should set the actions', () => {
       const actionChain = new ActionChain([
         popUpDismissAction,
         updateObjectAction,
@@ -65,7 +80,7 @@ describe('ActionChain', () => {
     })
   })
 
-  it('should invoke all the funcs if their corresponding action is executed', async () => {
+  xit('should invoke all the funcs if their corresponding action is executed', async () => {
     const popup = sinon.spy(() => Promise.resolve())
     const update = sinon.spy(() => Promise.resolve())
     const pagejump = sinon.spy(() => Promise.resolve())
