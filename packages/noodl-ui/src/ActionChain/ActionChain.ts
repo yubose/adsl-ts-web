@@ -7,7 +7,13 @@ import { AbortExecuteError } from '../errors'
 
 const log = Logger.create('ActionChain')
 
-class ActionChain implements T.IActionChain {
+class ActionChain<ActionType extends 'builtIn' | string>
+  implements T.IActionChain {
+  #action: Map<
+    ActionType,
+    | { [funcName: string]: T.ActionChainActionCallback[] }
+    | T.ActionChainActionCallback[]
+  >
   #current: T.IAction | undefined
   #executeAction: (
     action: T.IAction,
@@ -16,9 +22,6 @@ class ActionChain implements T.IActionChain {
   #original: T.NOODLActionObject[]
   #queue: T.IAction[] = []
   #gen: AsyncGenerator<any, any> | null = null
-  #getConstructorArgs: () => T.IActionChainOptions & {
-    actions: T.NOODLActionObject[] | undefined
-  }
   actions: T.IAction[] | null = null
   intermediary: T.IAction[] = []
   current: {
@@ -40,11 +43,9 @@ class ActionChain implements T.IActionChain {
   onChainAborted?: T.LifeCycleListeners['onChainAborted']
   onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
 
-  constructor(
-    actions?: T.NOODLActionObject[],
-    options?: T.IActionChainOptions,
-  ) {
+  constructor(actions?: T.NOODLActionObject[]) {
     this.#original = actions || []
+    this.#action = new Map()
 
     let timeoutRef: NodeJS.Timeout
 
@@ -68,15 +69,6 @@ class ActionChain implements T.IActionChain {
         clearTimeout(timeoutRef)
       }
     }
-
-    this.#getConstructorArgs = () => ({ actions, ...options })
-
-    this.getDebugArgs = () => ({
-      constructorArgs: this.#getConstructorArgs(),
-      queue: this.#queue,
-      actions: this.actions,
-      instance: this,
-    })
   }
 
   get builtIn() {
@@ -111,7 +103,35 @@ class ActionChain implements T.IActionChain {
     return this
   }
 
-  use(action) {}
+  use(action: T.IActionChainUseObject<ActionType>): this
+  use(action: T.IActionChainUseObject<ActionType>[]): this
+  use(
+    action:
+      | T.IActionChainUseObject<ActionType>
+      | T.IActionChainUseObject<ActionType>[],
+  ) {
+    const actions = _.isArray(action) ? action : [action]
+
+    _.forEach(actions, (action) => {
+      if (action.actionType === 'builtIn') {
+        const actionsHash = this.#action.get('builtIn') || {}
+        const builtInActions = actionsHash[action.funcName] || []
+        this.#action.set('builtIn', {
+          ...actionsHash,
+          [action.funcName]: builtInActions.concat(action.fns),
+        })
+      } else {
+        const actionsList = this.#action.get(action.actionType) || []
+        if (!this.#action.has(action.actionType)) {
+          this.#action.set(action.actionType, [])
+        }
+        if (!_.isArray(actionsList)) actionsList = [actionsList]
+        this.#action.set(action.actionType, actionsList.concat(action.fns))
+      }
+    })
+
+    return this
+  }
 
   /**
    * Creates and returns a new Action instance
