@@ -2,8 +2,10 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import {
   IAction,
-  ActionSnapshot,
-  ActionStatus,
+  IActionCallback,
+  IActionOptions,
+  IActionSnapshot,
+  IActionStatus,
   NOODLBuiltInObject,
   NOODLActionObject,
 } from '../types'
@@ -12,45 +14,33 @@ import { AbortExecuteError } from '../errors'
 
 const log = Logger.create('Action')
 
-export interface ActionCallback {
-  (snapshot: ActionSnapshot, handlerOptions?: any): any
-}
-
-export interface ActionOptions<OriginalAction extends NOODLActionObject = any> {
-  callback?: ActionCallback
-  id?: string
-  onPending?: (snapshot: ActionSnapshot<OriginalAction>) => any
-  onResolved?: (snapshot: ActionSnapshot<OriginalAction>) => any
-  onTimeout?: (snapshot: ActionSnapshot<OriginalAction>) => any
-  onError?: (snapshot: ActionSnapshot<OriginalAction>) => any
-  onAbort?: (snapshot: ActionSnapshot<OriginalAction>) => any
-  timeoutDelay?: number
-}
-
 export const DEFAULT_TIMEOUT_DELAY = 10000
 
 class Action<OriginalAction extends NOODLActionObject>
   implements IAction<OriginalAction['actionType']> {
-  #id: string | undefined = undefined
-  #callback: ActionCallback | undefined
-  #onPending: (snapshot: ActionSnapshot) => any
-  #onResolved: (snapshot: ActionSnapshot) => any
-  #onError: (snapshot: ActionSnapshot) => any
-  #onAbort: (snapshot: ActionSnapshot) => any
+  #id: string
+  #callback: IActionCallback | undefined
+  #onPending: (snapshot: IActionSnapshot) => any
+  #onResolved: (snapshot: IActionSnapshot) => any
+  #onError: (snapshot: IActionSnapshot) => any
+  #onAbort: (snapshot: IActionSnapshot) => any
   #onTimeout: any
-  resultReturned: boolean = false
-  #status: ActionStatus = null
+  #status: IActionStatus = null
   #timeout: NodeJS.Timeout | null = null
   #timeoutRemaining: number | null = null
   #timeoutInterval: any | null = null
   error: Error | null = null
   original: OriginalAction
   result: any
+  resultReturned: boolean = false
   timeoutDelay: number = DEFAULT_TIMEOUT_DELAY
   type: string | undefined = undefined
   actionType: OriginalAction['actionType']
 
-  constructor(action: OriginalAction, options?: ActionOptions<OriginalAction>) {
+  constructor(
+    action: OriginalAction,
+    options?: IActionOptions<OriginalAction>,
+  ) {
     log.func('constructor')
     if (!action || !('actionType' in action)) {
       log.red(
@@ -148,7 +138,7 @@ class Action<OriginalAction extends NOODLActionObject>
     return this.#callback
   }
 
-  set callback(callback: ActionCallback | undefined) {
+  set callback(callback: IActionCallback | undefined) {
     this.#callback = callback
   }
 
@@ -159,7 +149,7 @@ class Action<OriginalAction extends NOODLActionObject>
   // Returns an update-to-date JS representation of this instance
   // This is needed to log to the console the current state instead of logging
   // this instance directly where values will not be as expected
-  getSnapshot(): ActionSnapshot<OriginalAction> {
+  getSnapshot(): IActionSnapshot<OriginalAction> {
     const snapshot = {
       actionType: this.type as string,
       hasExecutor: _.isFunction(this.#callback),
@@ -180,7 +170,7 @@ class Action<OriginalAction extends NOODLActionObject>
     return this.#status
   }
 
-  set status(status: ActionStatus) {
+  set status(status: IActionStatus) {
     this.#status = status
     if (status === 'pending') this.onPending?.(this.getSnapshot())
     if (status === 'resolved') this.onResolved?.(this.getSnapshot())
@@ -193,12 +183,12 @@ class Action<OriginalAction extends NOODLActionObject>
     return this.#onPending
   }
 
-  set onPending(onPending: (snapshot: ActionSnapshot<OriginalAction>) => any) {
+  set onPending(onPending: (snapshot: IActionSnapshot<OriginalAction>) => any) {
     this.#onPending = onPending
   }
 
   set onResolved(
-    onResolved: (snapshot: ActionSnapshot<OriginalAction>) => any,
+    onResolved: (snapshot: IActionSnapshot<OriginalAction>) => any,
   ) {
     this.#onResolved = onResolved
   }
@@ -207,7 +197,7 @@ class Action<OriginalAction extends NOODLActionObject>
     return this.#onResolved
   }
 
-  set onError(onError: (snapshot: ActionSnapshot<OriginalAction>) => any) {
+  set onError(onError: (snapshot: IActionSnapshot<OriginalAction>) => any) {
     this.#onError = onError
   }
 
@@ -215,7 +205,7 @@ class Action<OriginalAction extends NOODLActionObject>
     return this.#onError
   }
 
-  set onAbort(onAbort: (snapshot: ActionSnapshot<OriginalAction>) => any) {
+  set onAbort(onAbort: (snapshot: IActionSnapshot<OriginalAction>) => any) {
     this.#onAbort = onAbort
   }
 
@@ -236,7 +226,7 @@ class Action<OriginalAction extends NOODLActionObject>
     throw err
   }
 
-  set onTimeout(onTimeout: (snapshot: ActionSnapshot<OriginalAction>) => any) {
+  set onTimeout(onTimeout: (snapshot: IActionSnapshot<OriginalAction>) => any) {
     this.#onTimeout = onTimeout
   }
 

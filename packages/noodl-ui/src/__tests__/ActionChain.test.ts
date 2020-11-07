@@ -41,24 +41,51 @@ beforeEach(() => {
 describe('ActionChain', () => {
   describe('add', () => {
     it('should set the builtIns', () => {
-      const mockOnChainAborted = sinon.spy()
-      const mockOnSaveObject = sinon.spy()
       const mockBuiltInFn = sinon.spy()
       const helloBuiltInFn = new BuiltIn(mockBuiltInFn, { funcName: 'hello' })
       actionChain = new ActionChain(actions)
       actionChain.add(helloBuiltInFn)
       expect(actionChain.builtIn).to.have.property('hello')
-      // expect(actionChain.onChainAborted).to.eq(mockOnChainAborted)
-      // expect(actionChain.saveObject[0].actionType).to.eq('saveObject')
+    })
+
+    it('should set the actions', () => {
+      const actionChain = new ActionChain([
+        popUpDismissAction,
+        updateObjectAction,
+        pageJumpAction,
+      ])
+      const popup = sinon.spy()
+      const update = sinon.spy()
+      const pagejump = sinon.spy()
+      const popupObj = { actionType: 'popUp', fns: [popup] }
+      const updateObj = { actionType: 'updateObject', fns: [update] }
+      const pagejumpObj = { actionType: 'pageJump', fns: [pagejump] }
+      actionChain.add([popupObj, updateObj, pagejumpObj] as any)
+      expect(actionChain.popUp).to.have.length(1)
     })
   })
 
-  it('should convert each raw action object in the actions list as their corresponding instances and store it in the "actions" property', () => {
-    actions = [popUpDismissAction, updateObjectAction, pageJumpAction]
-    actionChain = new ActionChain(actions)
-    expect(actionChain.actions?.[0]).to.be.instanceOf(Action)
-    expect(actionChain.actions?.[1]).to.be.instanceOf(Action)
-    expect(actionChain.actions?.[2]).to.be.instanceOf(Action)
+  it('should invoke all the funcs if their corresponding action is executed', async () => {
+    const popup = sinon.spy(() => Promise.resolve())
+    const update = sinon.spy(() => Promise.resolve())
+    const pagejump = sinon.spy(() => Promise.resolve())
+
+    const actionChain = new ActionChain([
+      popUpDismissAction,
+      updateObjectAction,
+      pageJumpAction,
+    ])
+
+    actionChain.add([
+      { actionType: 'popUp', fns: [popup] },
+      { actionType: 'updateObject', fns: [update] },
+      { actionType: 'pageJump', fns: [pagejump] },
+    ] as any)
+
+    await actionChain.build({ context: {}, parser: {} } as any)({} as any)
+    expect(popup.called).to.be.true
+    // expect(update.called).to.be.true
+    // expect(pagejump.called).to.be.true
   })
 
   it('should start with a status of null', () => {

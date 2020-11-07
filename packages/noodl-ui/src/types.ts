@@ -550,14 +550,77 @@ export interface IActionChainAddActionObject<
   fns: ActionChainActionCallback[]
 }
 
-export interface IAction<K extends string = string> {
+export interface IAction<
+  K extends string = string,
+  OriginalAction extends NOODLActionObject = NOODLActionObject
+> {
+  abort(reason: string | string[], callback?: IAction['callback']): void
   actionType: K
+  callback: ((...args: any[]) => any) | undefined
+  clearTimeout(): void
+  clearInterval(): void
+  error: null | Error
+  execute<Args = any>(args?: Args): Promise<any>
+  id: string
+  isTimeoutRunning(): boolean
+  getSnapshot(): IActionSnapshot<OriginalAction>
+  original: OriginalAction
+  result: any
+  resultReturned: boolean
+  status: IActionStatus
+  timeoutDelay: number
+  type: string | undefined
+  onPending(snapshot: IActionSnapshot): any
+  onResolved(snapshot: IActionSnapshot): any
+  onError(snapshot: IActionSnapshot): any
+  onAbort(snapshot: IActionSnapshot): any
+  onTimeout: any
 }
+
+export interface IActionCallback {
+  (snapshot: IActionSnapshot, handlerOptions?: any): any
+}
+
+export interface IActionOptions<
+  OriginalAction extends NOODLActionObject = any
+> {
+  callback?: IActionCallback
+  id?: string
+  onPending?: (snapshot: IActionSnapshot<OriginalAction>) => any
+  onResolved?: (snapshot: IActionSnapshot<OriginalAction>) => any
+  onTimeout?: (snapshot: IActionSnapshot<OriginalAction>) => any
+  onError?: (snapshot: IActionSnapshot<OriginalAction>) => any
+  onAbort?: (snapshot: IActionSnapshot<OriginalAction>) => any
+  timeoutDelay?: number
+}
+
+export interface IActionSnapshot<OriginalAction = any> {
+  actionType: string
+  hasExecutor: boolean
+  id: string
+  original: OriginalAction
+  status: IActionStatus
+  timeout: {
+    running: boolean
+    remaining: number | null
+  }
+  result?: any
+  error?: null | Error | AbortExecuteError
+}
+
+export type IActionStatus =
+  | null
+  | 'pending'
+  | 'resolved'
+  | 'aborted'
+  | 'error'
+  | 'timed-out'
 
 export interface IBuiltIn<
   Func extends (...args: any[]) => any = (...args: any[]) => any,
   FuncName extends string = string
 > {
+  execute<Args extends any[]>(...args: Args): Promise<any>
   func: Func
   funcName: FuncName
 }
@@ -644,28 +707,6 @@ export interface ActionChainCallbackOptions<Actions extends any[] = any[]> {
   snapshot: ActionChainSnapshot<Actions>
   trigger: NOODLActionTriggerType
 }
-
-export interface ActionSnapshot<OriginalAction = any> {
-  actionType: string
-  hasExecutor: boolean
-  id: string
-  original: OriginalAction
-  status: ActionStatus
-  timeout: {
-    running: boolean
-    remaining: number | null
-  }
-  result?: any
-  error?: null | Error | AbortExecuteError
-}
-
-export type ActionStatus =
-  | null
-  | 'pending'
-  | 'resolved'
-  | 'aborted'
-  | 'error'
-  | 'timed-out'
 
 export interface ActionChainActionCallback<ActionObject = any> {
   (

@@ -25,7 +25,9 @@ class BuiltIn<FuncName extends string> {
   }
 
   execute(...args: Parameters<ActionChainActionCallback<NOODLBuiltInObject>>) {
-    return this.#func?.(...args) as ActionChainActionCallbackReturnType
+    return Promise.resolve(
+      this.#func?.(...args) as ActionChainActionCallbackReturnType,
+    )
   }
 }
 
