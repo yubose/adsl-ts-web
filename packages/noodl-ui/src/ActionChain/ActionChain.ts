@@ -1,19 +1,12 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import * as T from '../types'
 import Action from '../Action'
-import BuiltIn from '../BuiltIn'
 import { AbortExecuteError } from '../errors'
+import * as T from '../types'
 
 const log = Logger.create('ActionChain')
 
-class ActionChain<ActionType extends 'builtIn' | string>
-  implements T.IActionChain {
-  #action: Map<
-    ActionType,
-    | { [funcName: string]: T.ActionChainActionCallback[] }
-    | T.ActionChainActionCallback[]
-  >
+class ActionChain<ActionType extends string> implements T.IActionChain {
   #current: T.IAction | undefined
   #executeAction: (
     action: T.IAction,
@@ -23,29 +16,22 @@ class ActionChain<ActionType extends 'builtIn' | string>
   #queue: T.IAction[] = []
   #gen: AsyncGenerator<any, any> | null = null
   actions: T.IAction[] | null = null
+  fns: T.IActionChain['fns'] = { action: {}, builtIn: {} }
   intermediary: T.IAction[] = []
   current: {
     action: T.IAction | undefined
     index: number
   }
   status: null | T.ActionChainStatus = null
-  #builtIn: { [funcName: string]: T.IBuiltIn[] } = {}
-  evalObject?: T.OnEvalObject[] = []
-  pageJump?: T.OnPageJump[] = []
-  popUp?: T.OnPopup[] = []
-  popUpDismiss?: T.OnPopupDismiss[] = []
-  saveObject?: T.OnSaveObject[] = []
-  updateObject?: T.OnUpdateObject[] = []
-  onBuiltinMissing?: T.LifeCycleListeners['onBuiltinMissing']
-  onChainStart?: T.LifeCycleListeners['onChainStart']
-  onChainEnd?: T.LifeCycleListeners['onChainEnd']
-  onChainError?: T.LifeCycleListeners['onChainError']
-  onChainAborted?: T.LifeCycleListeners['onChainAborted']
-  onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
+  // onBuiltinMissing?: T.LifeCycleListeners['onBuiltinMissing']
+  // onChainStart?: T.LifeCycleListeners['onChainStart']
+  // onChainEnd?: T.LifeCycleListeners['onChainEnd']
+  // onChainError?: T.LifeCycleListeners['onChainError']
+  // onChainAborted?: T.LifeCycleListeners['onChainAborted']
+  // onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
 
   constructor(actions?: T.NOODLActionObject[]) {
     this.#original = actions || []
-    this.#action = new Map()
 
     let timeoutRef: NodeJS.Timeout
 
@@ -71,63 +57,38 @@ class ActionChain<ActionType extends 'builtIn' | string>
     }
   }
 
-  get builtIn() {
-    return this.#builtIn
-  }
-
-  add(actionObj: T.IActionChainAddActionObject): this
-  add(builtIn: T.IBuiltIn): this
-  add(builtIn: (T.IActionChainAddActionObject | T.IBuiltIn)[]): this
-  add(
-    obj:
-      | T.IActionChainAddActionObject
-      | T.IBuiltIn
-      | (T.IActionChainAddActionObject | T.IBuiltIn)[],
-  ) {
-    _.forEach(_.isArray(obj) ? obj : [obj], (item) => {
-      if (item instanceof BuiltIn) {
-        if (!_.isArray(this.builtIn[item.funcName])) {
-          this.builtIn[item.funcName] = []
-        }
-        this.builtIn[item.funcName].push(item as T.IBuiltIn)
-      } else if ('actionType' in item) {
-        // TODO - Deprecate this since we introduced the BuiltIn class
-        if (item.actionType === 'builtIn') {
-          // console.log(item)
-        } else {
-          if (!_.isArray(this[item.actionType])) this[item.actionType] = []
-          this[item.actionType] = this[item.actionType].concat(item.fns)
-        }
-      }
+  useAction(action: T.IActionChainUseObject<ActionType>): this
+  useAction(action: T.IActionChainUseObject<ActionType>[]): this
+  useAction(action: T.IActionChainUseObject | T.IActionChainUseObject[]) {
+    const actions = _.isArray(action) ? action : [action]
+    // Built in actions are sent to this.useBuiltIn
+    _.forEach(actions, (a) => {
+      if ('funcName' in a) return void this.useBuiltIn(a)
+      const actionsList = this.fns.action[a.actionType] || []
+      this.fns.action[a.actionType] = actionsList.concat(
+        _.isArray(a.fn) ? a.fn : [a.fn],
+      )
     })
     return this
   }
 
-  use(action: T.IActionChainUseObject<ActionType>): this
-  use(action: T.IActionChainUseObject<ActionType>[]): this
-  use(
-    action:
-      | T.IActionChainUseObject<ActionType>
-      | T.IActionChainUseObject<ActionType>[],
+  useBuiltIn(
+    action: T.IActionChainUseBuiltInObject | T.IActionChainUseBuiltInObject[],
   ) {
-    const actions = _.isArray(action) ? action : [action]
+    const actions = (_.isArray(action)
+      ? action
+      : [action]) as T.IActionChainUseBuiltInObject[]
 
-    _.forEach(actions, (action) => {
-      if (action.actionType === 'builtIn') {
-        const actionsHash = this.#action.get('builtIn') || {}
-        const builtInActions = actionsHash[action.funcName] || []
-        this.#action.set('builtIn', {
-          ...actionsHash,
-          [action.funcName]: builtInActions.concat(action.fns),
-        })
-      } else {
-        const actionsList = this.#action.get(action.actionType) || []
-        if (!this.#action.has(action.actionType)) {
-          this.#action.set(action.actionType, [])
-        }
-        if (!_.isArray(actionsList)) actionsList = [actionsList]
-        this.#action.set(action.actionType, actionsList.concat(action.fns))
-      }
+    _.forEach(actions, (a) => {
+      const { funcName } = a
+      const currentFns = this.fns.builtIn[funcName] || []
+      this.fns.builtIn[funcName] = currentFns.concat(
+        _.reduce(
+          actions,
+          (acc, a) => acc.concat(_.isArray(a.fn) ? a.fn : [a.fn]),
+          [] as T.ActionChainActionCallback[],
+        ),
+      )
     })
 
     return this
@@ -143,15 +104,15 @@ class ActionChain<ActionType extends 'builtIn' | string>
     }) as T.IAction
 
     const runFns = async (
-      args: any[],
-      fns: ((...args: any[]) => Promise<any>)[],
+      args: Parameters<T.ActionChainActionCallback>,
+      fns: T.ActionChainActionCallback[],
     ) => {
       const numFuncs = fns.length
       for (let index = 0; index < numFuncs; index++) {
         const fn = fns[index]
         const result = await fn(...args)
         // TODO - Do a better way to identify the action
-        if ((result || {})?.actionType) {
+        if ((result || ({} as T.NOODLActionObject)).actionType) {
           // We may get an action object returned back like from
           // evalObject. If this is the case we need to immediately
           // run this action before continuing
@@ -167,11 +128,16 @@ class ActionChain<ActionType extends 'builtIn' | string>
     let fns: any[]
     let result: any
 
-    action['callback'] = async (...args: any[]) => {
-      if (action.actionType === 'builtIn' || action instanceof BuiltIn) {
-        fns = this.#builtIn[(action as any)?.funcName]
+    action['callback'] = async (
+      ...args: Parameters<T.ActionChainActionCallback>
+    ) => {
+      if (action.actionType === 'builtIn') {
+        fns =
+          this.fns.builtIn[
+            (action?.original as T.IActionChainUseBuiltInObject)?.funcName
+          ] || []
       } else {
-        fns = this[action.actionType]
+        fns = this.fns.action[action.actionType] || []
       }
       if (!fns) return result
       result = await runFns(args, fns)
@@ -206,6 +172,10 @@ class ActionChain<ActionType extends 'builtIn' | string>
      * The only difference is that the actions will be removed from the queue
      * as soon as they are done executing
      */
+    if (this.actions?.length) {
+      log.func('build')
+      log.grey(`Refreshing action chain`, this)
+    }
     this.actions = []
     this.#queue = this.#original.map((actionObj) => {
       // Temporarily hardcode the actionType to blend in with the other actions
@@ -224,48 +194,19 @@ class ActionChain<ActionType extends 'builtIn' | string>
         this.#setStatus('in.progress')
 
         if (this.#queue.length) {
-          // if (this.need)
           this.#gen = this.getExecutor()
 
           let action: T.IAction | undefined
           let result: any
-          let init: { next: (...args: any) => Promise<any> }
           let iterator:
             | IteratorYieldResult<{
                 action: T.IAction
                 results: any[]
               }>
             | undefined
-          let handlerOptions = this.getCallbackOptions(
-            _.assign({}, event, buildOptions),
-          )
 
-          const onChainStartArgs = this.onChainStart?.<T.IAction[]>(
-            this.#queue,
-            handlerOptions,
-          )
-
-          // Merge in additional args if any of the actions expect some extra
-          // context/data (ex: having file/blobs ready before running the chain)
-          if (onChainStartArgs && onChainStartArgs instanceof Promise) {
-            // TODO: Find out why I did this "init" part
-            init = {
-              next: async () => {
-                log.red(`REMINDER: LOOK INTO THIS IF U SEE THIS!!!!!!`, {
-                  onChainStartArgs,
-                  actionChain: this,
-                  buildOptions,
-                })
-                const argsResult = await onChainStartArgs
-                await this.#gen?.next(argsResult)
-              },
-            }
-          } else {
-            init = { next: this.#gen.next }
-          }
-
-          return init.next
-            .call(this.#gen)
+          return this.#gen
+            .next()
             .then(
               async (
                 iteratorResult: IteratorYieldResult<{
@@ -283,7 +224,10 @@ class ActionChain<ActionType extends 'builtIn' | string>
                   }
                   // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
                   else {
-                    result = await this.#executeAction(action, handlerOptions)
+                    result = await this.#executeAction(
+                      action,
+                      this.getCallbackOptions({ event, ...buildOptions }),
+                    )
                     if (_.isPlainObject(result)) {
                       iterator = await this.#next(result)
                     } else if (_.isString(result)) {
@@ -302,57 +246,26 @@ class ActionChain<ActionType extends 'builtIn' | string>
                       )
                     }
                   }
-
-                  // // TODO: This will be deprecated in favor of passing this.abort
-                  // if (result === 'abort') {
-                  //   iterator = await this.abort(
-                  //     `"abort" was called from an action with actionType: "${
-                  //       action?.type
-                  //     }". ${JSON.stringify(action)}`,
-                  //   )
-                  // } else if (_.isPlainObject(result)) {
-                  //   iterator = await this.#next(result)
-                  // } else if (_.isString(result)) {
-                  //   // TODO
-                  // } else if (_.isFunction(result)) {
-                  //   // TODO
-                  // } else {
-                  //   // TODO
-                  //   iterator = await this.#next(result)
-                  // }
                 }
-
-                log.gold('init.next [after]', {
-                  iteratorResult,
-                  action,
-                  handlerOptions,
-                  result,
-                })
-
-                this.onChainEnd?.(this.actions as T.IAction[], handlerOptions)
+                // this.onChainEnd?.(
+                //   this.actions as T.IAction[],
+                //   this.getCallbackOptions({ event, ...buildOptions }),
+                // )
                 this.#setStatus('done')
-                log.func('build')
-                log.grey(`Refreshed action chain`, {
-                  instance: this,
-                  snapshot: this.getSnapshot(),
-                })
                 resolve(iterator)
               },
             )
             .catch((err: Error) => {
-              this.onChainError?.(
-                err,
-                this.#current,
-                this.getCallbackOptions({ event, error: err, ...buildOptions }),
-              )
+              // this.onChainError?.(
+              //   err,
+              //   this.#current,
+              //   this.getCallbackOptions({ event, error: err, ...buildOptions }),
+              // )
               this.#setStatus({ error: err })
               reject(err)
             })
         } else {
-          // TODO
-          const logMsg = `%c[ActionChain] NOTHING HAPPENED`
-          const logStyle = `color:#ec0000;font-weight:bold;`
-          // console.info(logMsg, logStyle)
+          // TODO more handling
           this.abort(
             `The value of "actions" given to this action chain was null or undefined`,
           )
@@ -439,15 +352,15 @@ class ActionChain<ActionType extends 'builtIn' | string>
     // This will return an object like { value, done: true }
     const { value: abortResult = '' } =
       (await this.#gen?.return(reasons.join(', '))) || {}
-    if (this.onChainAborted) {
-      await this.onChainAborted?.(
-        this.#current,
-        this.getCallbackOptions({
-          omit: 'abort',
-          include: { abortResult },
-        }),
-      )
-    }
+    // if (this.onChainAborted) {
+    // await this.onChainAborted?.(
+    //   this.#current,
+    //   this.getCallbackOptions({
+    //     omit: 'abort',
+    //     include: { abortResult },
+    //   }),
+    // )
+    // }
     log.grey(`Refreshed action chain`, {
       instance: this,
       snapshot: this.getSnapshot(),

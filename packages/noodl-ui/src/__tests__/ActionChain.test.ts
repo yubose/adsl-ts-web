@@ -3,7 +3,6 @@ import sinon from 'sinon'
 import makeRootsParser from '../factories/makeRootsParser'
 import ActionChain from '../ActionChain/ActionChain'
 import Action from '../Action'
-import BuiltIn from '../BuiltIn'
 import {
   NOODLUpdateObject,
   NOODLPageJumpObject,
@@ -31,7 +30,7 @@ const updateObjectAction: NOODLUpdateObject = {
 
 let actions: [NOODLPopupDismissObject, NOODLUpdateObject, NOODLPageJumpObject]
 
-let actionChain: ActionChain
+let actionChain: ActionChain<string>
 
 beforeEach(() => {
   actions = [popUpDismissAction, updateObjectAction, pageJumpAction]
@@ -40,44 +39,93 @@ beforeEach(() => {
 
 describe('ActionChain', () => {
   describe('when adding actions', () => {
-    it('should set the builtIns using single object or array of objects', () => {
+    it('should set the builtIns either by using a single object or an array', () => {
       const mockBuiltInFn = sinon.spy()
       actionChain = new ActionChain(actions)
-      expect(actionChain.builtIn).not.to.have.property('hello')
-      expect(actionChain.builtIn).not.to.have.property('hi')
-      expect(actionChain.builtIn).not.to.have.property('monster')
-      expect(actionChain.builtIn).not.to.have.property('dopple')
-      const getBuiltIn = (name: string) => ({
-        funcName: name,
-        executor: mockBuiltInFn,
-      })
-      actionChain.use({ builtIn: getBuiltIn('hello') })
-      expect(actionChain.builtIn).to.have.property('hello')
-      actionChain.use({ builtIn: [getBuiltIn('hi')] })
-      expect(actionChain.builtIn).to.have.property('hi')
-      actionChain.use([{ builtIn: getBuiltIn('monster') }])
-      expect(actionChain.builtIn).to.have.property('monster')
-      actionChain.use([
-        { builtIn: [getBuiltIn('dopple'), getBuiltIn('laptop')] },
+      expect(actionChain.fns.builtIn).not.to.have.property('hello')
+      expect(actionChain.fns.builtIn).not.to.have.property('hi')
+      expect(actionChain.fns.builtIn).not.to.have.property('monster')
+      expect(actionChain.fns.builtIn).not.to.have.property('dopple')
+      actionChain.useBuiltIn({ funcName: 'hello', fn: mockBuiltInFn })
+      expect(actionChain.fns.builtIn)
+        .to.have.property('hello')
+        .that.includes(mockBuiltInFn)
+      actionChain.useBuiltIn({ funcName: 'lion', fn: [mockBuiltInFn] })
+      expect(actionChain.fns.builtIn)
+        .to.have.property('lion')
+        .that.includes(mockBuiltInFn)
+      actionChain.useBuiltIn([{ funcName: 'hi', fn: mockBuiltInFn }])
+      expect(actionChain.fns.builtIn)
+        .to.have.property('hi')
+        .that.includes(mockBuiltInFn)
+      actionChain.useBuiltIn([
+        {
+          funcName: 'monster',
+          fn: [mockBuiltInFn, mockBuiltInFn, mockBuiltInFn],
+        },
       ])
-      expect(actionChain.builtIn).to.have.property('laptop')
+      expect(actionChain.fns.builtIn)
+        .to.have.property('monster')
+        .that.is.an('array')
+        .that.includes(mockBuiltInFn)
+        .with.lengthOf(3)
     })
 
-    xit('should set the actions', () => {
-      const actionChain = new ActionChain([
-        popUpDismissAction,
-        updateObjectAction,
-        pageJumpAction,
-      ])
+    it('should set the actions', () => {
+      const actionChain = new ActionChain(actions)
       const popup = sinon.spy()
       const update = sinon.spy()
-      const pagejump = sinon.spy()
-      const popupObj = { actionType: 'popUp', fns: [popup] }
-      const updateObj = { actionType: 'updateObject', fns: [update] }
-      const pagejumpObj = { actionType: 'pageJump', fns: [pagejump] }
-      actionChain.add([popupObj, updateObj, pagejumpObj] as any)
-      expect(actionChain.popUp).to.have.length(1)
+      const popupObj = { actionType: 'popUp', fn: [popup] }
+      const updateObj = { actionType: 'updateObject', fn: update }
+      actionChain.useAction(popupObj)
+      actionChain.useAction([updateObj])
+      expect(actionChain.fns.action).to.have.property('popUp')
+      expect(actionChain.fns.action.popUp)
+        .to.be.an('array')
+        .that.includes(popup)
+      expect(actionChain.fns.action.updateObject).to.have.lengthOf(1)
+      expect(actionChain.fns.action).to.have.property('updateObject')
+      expect(actionChain.fns.action.updateObject)
+        .to.be.an('array')
+        .that.includes(update)
+      expect(actionChain.fns.action.updateObject).to.have.lengthOf(1)
     })
+  })
+
+  describe('when creating action instances', () => {
+    it('should return an action instance when registering builtIn objects', () => {
+      expect(
+        actionChain.createAction({ actionType: 'builtIn', funcName: 'hello' }),
+      ).to.be.instanceOf(Action)
+    })
+
+    it(
+      'should return an action instance when registering custom objects ' +
+        '(non builtIns)',
+      () => {
+        expect(
+          actionChain.createAction({
+            actionType: 'pageJump',
+            destination: 'hello',
+          }),
+        ).to.be.instanceOf(Action)
+      },
+    )
+  })
+
+  describe('when running actions', () => {
+    it(
+      'should call the funcs that were registered under the funcName when a ' +
+        'builtIn action is run that is referencing its registered funcs',
+      async () => {
+        const actionChain = new ActionChain(actions)
+        const spy = sinon.spy()
+        actionChain.useBuiltIn({ funcName: 'red', fn: spy })
+        const func = actionChain.build({} as any)
+        await func()
+        expect(spy.called).to.be.true
+      },
+    )
   })
 
   xit('should invoke all the funcs if their corresponding action is executed', async () => {

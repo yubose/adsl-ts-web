@@ -334,35 +334,35 @@ export interface IActionChain<ActionType extends string = string> {
   actions: IAction[] | null
   intermediary: IAction[]
   current: { action: IAction | undefined; index: number }
+  fns: {
+    action: Partial<Record<ActionType, ActionChainActionCallback[]>>
+    builtIn: {
+      [funcName: string]: ActionChainActionCallback[]
+    }
+  }
   status: ActionChainStatus | null
-  builtIn: { [funcName: string]: IBuiltIn[] }
-  evalObject?: OnEvalObject[]
-  pageJump?: OnPageJump[]
-  popUp?: OnPopup[]
-  popUpDismiss?: OnPopupDismiss[]
-  saveObject?: OnSaveObject[]
-  updateObject?: OnUpdateObject[]
-  add(actionObj: { actionType: string; fns: Function[] }): this
-  add(builtIn: IBuiltIn): this
-  add(builtIn: ({ actionType: string; fns: Function[] } | IBuiltIn)[]): this
-  onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
-  onChainStart?: LifeCycleListeners['onChainStart']
-  onChainEnd?: LifeCycleListeners['onChainEnd']
-  onChainError?: LifeCycleListeners['onChainError']
-  onChainAborted?: LifeCycleListeners['onChainAborted']
-  onAfterResolve?: LifeCycleListeners['onAfterResolve']
-  use(actions: IActionChainUseObjectBase<ActionType>): this
-  use(actions: IActionChainUseObjectBase<ActionType>[]): this
+  // onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
+  // onChainStart?: LifeCycleListeners['onChainStart']
+  // onChainEnd?: LifeCycleListeners['onChainEnd']
+  // onChainError?: LifeCycleListeners['onChainError']
+  // onChainAborted?: LifeCycleListeners['onChainAborted']
+  // onAfterResolve?: LifeCycleListeners['onAfterResolve']
+  useAction(action: IActionChainUseObject<ActionType>): this
+  useAction(action: IActionChainUseObject<ActionType>[]): this
+  useBuiltIn(
+    action: IActionChainUseBuiltInObject | IActionChainUseBuiltInObject[],
+  ): this
 }
 
-export interface IActionChainUseObjectBase<ActionType extends string = string> {
+export interface IActionChainUseObjectBase<ActionType> {
   actionType: ActionType
-  fns: ActionChainActionCallback | ActionChainActionCallback[]
+  fn: ActionChainActionCallback | ActionChainActionCallback[]
 }
 
-export interface IActionChainUseBuiltInObject
-  extends IActionChainUseObjectBase<'builtIn'> {
+export interface IActionChainUseBuiltInObject {
+  actionType?: 'builtIn'
   funcName: string
+  fn: ActionChainActionCallback | ActionChainActionCallback[]
 }
 
 export type IActionChainUseObject<ActionType extends string = string> =
