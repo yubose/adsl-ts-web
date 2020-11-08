@@ -538,11 +538,7 @@ class Component implements IComponent {
     childComponent.setParent(this)
     this.#children.push(childComponent)
 
-    return _.reduce(
-      this.#enhancers,
-      (acc, enhance) => (enhance ? enhance(acc) : acc),
-      childComponent,
-    )
+    return childComponent
   }
 
   /**
