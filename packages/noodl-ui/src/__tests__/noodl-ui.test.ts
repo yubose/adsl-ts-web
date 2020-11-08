@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import sinon from 'sinon'
 import { expect } from 'chai'
 import { IComponent, NOODLComponent, IComponentTypeInstance } from '../types'
 import { noodlui } from '../utils/test-utils'
@@ -6,6 +7,7 @@ import { mock } from './mockData'
 import ActionChain from '../ActionChain'
 import Component from '../components/Base'
 import Viewport from '../Viewport'
+import List from 'components/List'
 
 let noodlComponent: NOODLComponent
 let component: IComponent
@@ -104,7 +106,7 @@ describe('noodl-ui', () => {
     expect(noodlui.getConsumerOptions()).to.have.keys([
       'consume',
       'context',
-      'createActionChain',
+      'createActionChainHandler',
       'createSrc',
       'getNode',
       'getNodes',
@@ -120,68 +122,65 @@ describe('noodl-ui', () => {
     ])
   })
 
-  describe('actions/action chains', () => {
-    xit('should pass in action callbacks as an object where values are array of functions', () => {
+  describe('when creating action chain handlers', () => {
+    it('should be able to be picked up by the action chain (builtin actions)', async () => {
+      const appleSpy = sinon.spy()
+      const swordSpy = sinon.spy()
+      noodlui.use([
+        { funcName: 'apple', fn: appleSpy },
+        { funcName: 'sword', fn: swordSpy },
+      ])
+      const execute = noodlui.createActionChainHandler([
+        { actionType: 'builtIn', funcName: 'apple' },
+      ])
+      await execute()
+      expect(appleSpy.called).to.be.true
+    })
+
+    it('should be able to be picked up by the action chain (non-builtin actions)', async () => {
+      const appleSpy = sinon.spy()
+      const swordSpy = sinon.spy()
+      noodlui.use([
+        { actionType: 'pageJump', fn: appleSpy },
+        { actionType: 'updateObject', fn: swordSpy },
+      ])
+      let execute = noodlui.createActionChainHandler([
+        { actionType: 'pageJump', destination: '/hello' },
+        { actionType: 'updateObject', object: sinon.spy() },
+      ])
+      await execute()
+      expect(appleSpy.called).to.be.true
+      expect(swordSpy.called).to.be.true
+      const evalFn = sinon.spy()
+      noodlui.use({ actionType: 'evalObject', fn: evalFn })
+      expect(evalFn.called).to.be.false
+      execute = noodlui.createActionChainHandler([
+        { actionType: 'evalObject', object: sinon.spy() },
+      ])
+      await execute()
+      expect(evalFn.called).to.be.true
+    })
+
+    xit('should add in the builtIn funcs', async () => {
+      const appleSpy = sinon.spy()
+      const swordSpy = sinon.spy()
+      noodlui.use([
+        { funcName: 'apple', fn: appleSpy },
+        { funcName: 'sword', fn: swordSpy },
+      ])
+      const execute = noodlui.createActionChainHandler([
+        { actionType: 'builtIn', funcName: 'apple' },
+      ])
+      await execute()
+      expect(appleSpy.called).to.be.true
+      // expect(swordSpy.called).to.be.true
+    })
+
+    xit('should pass the trigger to actionChain.build', () => {
       //
     })
 
-    xit('should pass in builtIn callbacks where funcNames are keys and array of funcs are its values', () => {
-      //
-    })
-
-    xit('should pass in the trigger type', () => {
-      //
-    })
-
-    xit('should pass in consumer options', () => {
-      //
-    })
-
-    xit('should invoke action callbacks correctly', () => {
-      //
-    })
-
-    xit('should invoke builtIn callbacks correctly', () => {
-      //
-    })
-
-    xit('should invoke chaining callbacks correctly', () => {
-      //
-    })
-
-    xit('should pass in the right args for action callbacks', () => {
-      //
-    })
-
-    xit('should pass in the right args for builtIn callbacks', () => {
-      //
-    })
-
-    xit('should pass in the right args for beforeResolve callbacks', () => {
-      //
-    })
-
-    xit('should pass in the right args for chainStart callbacks', () => {
-      //
-    })
-
-    xit('should pass in the right args for chainEnd callbacks', () => {
-      //
-    })
-
-    xit('should pass in the right args for chainAbort callbacks', () => {
-      //
-    })
-
-    xit('should pass in the right args for chainError callbacks', () => {
-      //
-    })
-
-    xit('should pass in the right args for chainTimeout callback', () => {
-      //
-    })
-
-    xit('should pass in the right args for afterResolve callbacks', () => {
+    xit('should pass in the resolver context', () => {
       //
     })
   })
@@ -216,5 +215,24 @@ describe('noodl-ui', () => {
         expect(resolvedComponent.get('onClick')).to.be.instanceOf(ActionChain)
       })
     })
+  })
+
+  describe('when resolving components', () => {
+    xit(
+      'should apply the same resolvers as when calling .resolveComponents ' +
+        'when children are created (including deeply nested children',
+      () => {
+        const noodlList = new List()
+        const noodlListItem = noodlList.createChild('listItem')
+        const component = noodlui.resolveComponents({
+          type: 'view',
+          children: [
+            { type: 'button', text: 'hello', style: { fontSize: '14px' } },
+            { type: 'label', text: 'my label' },
+            { type: 'list', style: { width: '40px', height: '40px' }
+          ],
+        })
+      },
+    )
   })
 })

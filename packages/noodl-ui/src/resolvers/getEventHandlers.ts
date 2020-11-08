@@ -5,13 +5,13 @@ import { eventTypes } from '../constants'
 /** Transforms the event property (ex: onClick, onHover, etc) */
 const getEventHandlers: ResolverFn = (component, options) => {
   if (component) {
-    const { createActionChain } = options
+    const { createActionChainHandler } = options
     _.forEach(eventTypes, (eventType) => {
       const action = component.original?.[eventType]
       if (action) {
         component.set(
           eventType,
-          createActionChain(action, { trigger: eventType, component }),
+          createActionChainHandler(action, { trigger: eventType, component }),
         )
       }
     })

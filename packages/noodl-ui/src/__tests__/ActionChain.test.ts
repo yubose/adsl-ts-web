@@ -38,6 +38,18 @@ beforeEach(() => {
 })
 
 describe('ActionChain', () => {
+  describe('when instantiating', () => {
+    it('should start with a status of null', () => {
+      const actionChain = new ActionChain([pageJumpAction])
+      expect(actionChain.status).to.be.null
+    })
+
+    it('should start with current as undefined', () => {
+      const actionChain = new ActionChain([pageJumpAction])
+      expect(actionChain.current).to.be.undefined
+    })
+  })
+
   describe('when adding actions', () => {
     it('should set the builtIns either by using a single object or an array', () => {
       const mockBuiltInFn = sinon.spy()
@@ -90,6 +102,14 @@ describe('ActionChain', () => {
         .that.includes(update)
       expect(actionChain.fns.action.updateObject).to.have.lengthOf(1)
     })
+
+    xit(
+      'should forward the built ins to useBuiltIn if any builtIn objects ' +
+        'were passed in',
+      () => {
+        //
+      },
+    )
   })
 
   describe('when creating action instances', () => {
@@ -115,10 +135,13 @@ describe('ActionChain', () => {
 
   describe('when running actions', () => {
     it(
-      'should call the funcs that were registered under the funcName when a ' +
-        'builtIn action is run that is referencing its registered funcs',
+      'should call the builtIn funcs that were registered by their funcName ' +
+        'when being run',
       async () => {
-        const actionChain = new ActionChain(actions)
+        const actionChain = new ActionChain([
+          ...actions,
+          { actionType: 'builtIn', funcName: 'red' },
+        ])
         const spy = sinon.spy()
         actionChain.useBuiltIn({ funcName: 'red', fn: spy })
         const func = actionChain.build({} as any)
@@ -126,39 +149,19 @@ describe('ActionChain', () => {
         expect(spy.called).to.be.true
       },
     )
-  })
 
-  xit('should invoke all the funcs if their corresponding action is executed', async () => {
-    const popup = sinon.spy(() => Promise.resolve())
-    const update = sinon.spy(() => Promise.resolve())
-    const pagejump = sinon.spy(() => Promise.resolve())
-
-    const actionChain = new ActionChain([
-      popUpDismissAction,
-      updateObjectAction,
-      pageJumpAction,
-    ])
-
-    actionChain.add([
-      { actionType: 'popUp', fns: [popup] },
-      { actionType: 'updateObject', fns: [update] },
-      { actionType: 'pageJump', fns: [pagejump] },
-    ] as any)
-
-    await actionChain.build({ context: {}, parser: {} } as any)({} as any)
-    expect(popup.called).to.be.true
-    // expect(update.called).to.be.true
-    // expect(pagejump.called).to.be.true
-  })
-
-  it('should start with a status of null', () => {
-    const actionChain = new ActionChain([pageJumpAction])
-    expect(actionChain.status).to.be.null
-  })
-
-  it('should start with current as undefined', () => {
-    const actionChain = new ActionChain([pageJumpAction])
-    expect(actionChain.current).to.be.undefined
+    it(
+      'should call the non-builtIn funcs that were registered by actionType ' +
+        'when being run',
+      async () => {
+        const actionChain = new ActionChain(actions)
+        const spy = sinon.spy()
+        actionChain.useAction({ actionType: 'popUpDismiss', fn: spy })
+        const func = actionChain.build({} as any)
+        await func()
+        expect(spy.called).to.be.true
+      },
+    )
   })
 
   it('should update the "status" property when starting the action chain', () => {
@@ -202,10 +205,6 @@ describe('ActionChain', () => {
         //
       },
     )
-  })
-
-  xit('should skip actions that didnt have a callback attached from the consumer', () => {
-    //
   })
 
   xit('skipped actions should have the status "aborted" with some "unregistered callback" reason', () => {

@@ -8,10 +8,6 @@ const log = Logger.create('ActionChain')
 
 class ActionChain<ActionType extends string> implements T.IActionChain {
   #current: T.IAction | undefined
-  #executeAction: (
-    action: T.IAction,
-    args: T.ActionChainCallbackOptions<T.IAction[]>,
-  ) => any
   #original: T.NOODLActionObject[]
   #queue: T.IAction[] = []
   #gen: AsyncGenerator<any, any> | null = null
@@ -32,29 +28,6 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
 
   constructor(actions?: T.NOODLActionObject[]) {
     this.#original = actions || []
-
-    let timeoutRef: NodeJS.Timeout
-
-    this.#executeAction = async (action, handlerOptions) => {
-      try {
-        if (timeoutRef) clearTimeout(timeoutRef)
-
-        timeoutRef = setTimeout(() => {
-          const msg = `Action of type "${action.type}" timed out`
-          action.abort(msg)
-          this.abort(msg)
-          throw new AbortExecuteError(msg)
-        }, 10000)
-
-        const result = await action.execute(handlerOptions)
-
-        return result
-      } catch (error) {
-        throw error
-      } finally {
-        clearTimeout(timeoutRef)
-      }
-    }
   }
 
   useAction(action: T.IActionChainUseObject<ActionType>): this
@@ -147,19 +120,6 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
     return action as T.IAction
   }
 
-  // NOTE: This is an async generator
-  async *getExecutor() {
-    let action: T.IAction | undefined
-    let results: any[] = []
-
-    while (this.#queue.length) {
-      action = this.#queue.shift()
-      results.push({ action, result: await (yield { action, results }) })
-    }
-
-    return results
-  }
-
   build(
     buildOptions: Pick<
       T.ActionChainActionCallbackOptions,
@@ -189,12 +149,49 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
       return action
     })
 
-    const fn = (event?: Event) => {
-      return new Promise((resolve, reject) => {
+    // NOTE: This is an async generator
+    async function* getExecutor() {
+      let action: T.IAction | undefined
+      let results: any[] = []
+
+      while (this.#queue.length) {
+        action = this.#queue.shift()
+        results.push({ action, result: await (yield { action, results }) })
+      }
+
+      return results
+    }
+
+    let timeoutRef: NodeJS.Timeout
+
+    const execute = async (
+      action: T.IAction,
+      handlerOptions: T.ActionChainActionCallbackOptions,
+    ) => {
+      try {
+        if (timeoutRef) clearTimeout(timeoutRef)
+
+        timeoutRef = setTimeout(() => {
+          const msg = `Action of type "${action.type}" timed out`
+          action.abort(msg)
+          this.abort(msg)
+          throw new AbortExecuteError(msg)
+        }, 10000)
+
+        return action.execute(handlerOptions)
+      } catch (error) {
+        throw error
+      } finally {
+        clearTimeout(timeoutRef)
+      }
+    }
+
+    const executeActions = async (event?: Event) => {
+      try {
         this.#setStatus('in.progress')
 
         if (this.#queue.length) {
-          this.#gen = this.getExecutor()
+          this.#gen = getExecutor.call(this)
 
           let action: T.IAction | undefined
           let result: any
@@ -203,77 +200,67 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
                 action: T.IAction
                 results: any[]
               }>
-            | undefined
+            | IteratorReturnResult<{
+                action: T.IAction
+                results: any[]
+              }>
+            | undefined = await this.#gen?.next()
 
-          return this.#gen
-            .next()
-            .then(
-              async (
-                iteratorResult: IteratorYieldResult<{
-                  action: T.IAction
-                  results: any[]
-                }>,
-              ) => {
-                iterator = iteratorResult
+          while (!iterator?.done) {
+            action = iterator?.value?.action
+            // Skip to the next loop
+            if (!action) {
+              iterator = await this.#next()
+            }
+            // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
+            else {
+              result = await execute(
+                action,
+                this.getCallbackOptions({ event, ...buildOptions }),
+              )
+              if (_.isPlainObject(result)) {
+                iterator = await this.#next(result)
+              } else if (_.isString(result)) {
+                // TODO
+              } else if (_.isFunction(result)) {
+                // TODO
+              } else {
+                iterator = await this.#next(result)
+              }
 
-                while (!iterator?.done) {
-                  action = iterator?.value?.action
-                  // Skip to the next loop
-                  if (!action) {
-                    iterator = await this.#next()
-                  }
-                  // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
-                  else {
-                    result = await this.#executeAction(
-                      action,
-                      this.getCallbackOptions({ event, ...buildOptions }),
-                    )
-                    if (_.isPlainObject(result)) {
-                      iterator = await this.#next(result)
-                    } else if (_.isString(result)) {
-                      // TODO
-                    } else if (_.isFunction(result)) {
-                      // TODO
-                    } else {
-                      iterator = await this.#next(result)
-                    }
-
-                    if (result) {
-                      if (action.type) log.func(action.type)
-                      log.green(
-                        `Received a returned value from a(n) "${action.type}" executor`,
-                        result,
-                      )
-                    }
-                  }
-                }
-                // this.onChainEnd?.(
-                //   this.actions as T.IAction[],
-                //   this.getCallbackOptions({ event, ...buildOptions }),
-                // )
-                this.#setStatus('done')
-                resolve(iterator)
-              },
-            )
-            .catch((err: Error) => {
-              // this.onChainError?.(
-              //   err,
-              //   this.#current,
-              //   this.getCallbackOptions({ event, error: err, ...buildOptions }),
-              // )
-              this.#setStatus({ error: err })
-              reject(err)
-            })
+              if (result) {
+                if (action.type) log.func(action.type)
+                log.green(
+                  `Received a returned value from a(n) "${action.type}" executor`,
+                  result,
+                )
+              }
+            }
+          }
+          // this.onChainEnd?.(
+          //   this.actions as T.IAction[],
+          //   this.getCallbackOptions({ event, ...buildOptions }),
+          // )
+          this.#setStatus('done')
+          return iterator
         } else {
-          // TODO more handling
-          this.abort(
-            `The value of "actions" given to this action chain was null or undefined`,
-          )
+          // log
         }
-      })
+      } catch (error) {
+        // this.onChainError?.(
+        //   err,
+        //   this.#current,
+        //   this.getCallbackOptions({ event, error: err, ...buildOptions }),
+        // )
+        this.#setStatus({ error })
+        // TODO more handling
+        this.abort(
+          `The value of "actions" given to this action chain was null or undefined`,
+        )
+      }
     }
 
-    return fn
+    return executeActions
   }
 
   /**

@@ -24,7 +24,6 @@ import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
 import { event, componentEventIds, componentEventTypes } from './constants'
 import * as T from './types'
-import BuiltIn from './BuiltIn'
 
 // const log = Logger.create('noodl-ui')
 
@@ -39,19 +38,15 @@ function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
 class NOODL implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
-    action: Partial<Record<T.ActionEventId, Function[]>>
-    builtIn: { [funcName: string]: T.IBuiltIn[] }
+    action: { [actionType: string]: T.ActionChainActionCallback[] }
+    builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     component: Record<
       T.NOODLComponentType | 'all',
       T.INOODLUiComponentEventCallback<any>[]
     >
   } = {
-    action: _.reduce(
-      _.values(event.action),
-      (acc, key) => _.assign(acc, { [key]: [] }),
-      {},
-    ),
+    action: {},
     builtIn: {},
     chaining: _.reduce(
       _.values(event.actionChain),
@@ -312,30 +307,27 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  createActionChain(
-    actions: Parameters<T.INOODLUi['createActionChain']>[0],
-    options: Parameters<T.INOODLUi['createActionChain']>[1],
+  createActionChainHandler(
+    actions: Parameters<T.INOODLUi['createActionChainHandler']>[0],
+    options?: Parameters<T.INOODLUi['createActionChainHandler']>[1],
   ) {
-    const actionChain = new ActionChain(actions, {
-      builtIn: this.#cb.builtIn,
-      ...options,
-      ..._.reduce(
-        _.entries(this.#cb.action),
-        (acc, [actionType, fn]) =>
-          _.assign(acc, { [actionType]: !_.isArray(fn) ? [fn] : fn }),
-        {} as any,
-      ),
-    } as T.ActionChainCallbackOptions)
-
-    forEachEntries(
-      this.#cb.builtIn,
-      (funcName, fns) => fns && actionChain.add(fns),
+    const actionChain = new ActionChain(
+      _.isArray(actions) ? actions : [actions],
     )
 
-    forEachEntries(
-      this.#cb.action,
-      (actionType, fns) => fns && actionChain.add({ actionType, fns }),
-    )
+    actionChain
+      .useAction(
+        _.map(_.entries(this.#cb.action), ([actionType, fn]) => ({
+          actionType,
+          fn,
+        })),
+      )
+      .useBuiltIn(
+        _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
+          funcName,
+          fn,
+        })),
+      )
 
     // @ts-expect-error
     window.ac = actionChain
@@ -392,7 +384,7 @@ class NOODL implements T.INOODLUi {
   getConsumerOptions(include?: { [key: string]: any }) {
     return {
       context: this.getContext(),
-      createActionChain: this.createActionChain.bind(this),
+      createActionChainHandler: this.createActionChainHandler.bind(this),
       createSrc: this.createSrc.bind(this),
       resolveComponent: this.resolveComponents.bind(this),
       parser: this.parser,
@@ -494,23 +486,27 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
+  use(resolver: T.IResolver | T.IResolver[]): this
+  use(action: T.IActionChainUseObject | T.IActionChainUseObject[]): this
+  use(viewport: T.IViewport): this
   use(
     mod:
       | T.IResolver
-      | T.IBuiltIn
+      | T.IActionChainUseObject
       | T.IViewport
-      | { actionType: string; fn: Function }[]
-      | (T.IResolver | T.IBuiltIn)[],
+      | (T.IResolver | T.IActionChainUseObject)[],
     ...rest: any[]
   ) {
     const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)
     const handleMod = (m: typeof mods[number]) => {
       if (m) {
-        if (m instanceof BuiltIn) {
+        if ('funcName' in m) {
           if (!_.isArray(this.#cb.builtIn[m.funcName])) {
             this.#cb.builtIn[m.funcName] = []
           }
-          this.#cb.builtIn[m.funcName]?.push(m)
+          this.#cb.builtIn[m.funcName] = this.#cb.builtIn[m.funcName].concat(
+            _.isArray(m.fn) ? m.fn : [m.fn],
+          )
         } else if ('actionType' in m) {
           if (!_.isArray(this.#cb.action[m.actionType])) {
             this.#cb.action[m.actionType] = []

@@ -5,13 +5,13 @@ import { eventTypes } from '../../constants'
 import {
   IComponent,
   IComponentType,
+  IComponentTypeInstance,
   IComponentTypeObject,
   IComponentEventId,
   NOODLActionObject,
   NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
-  IComponentTypeInstance,
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
 import { forEachEntries } from '../../utils/common'

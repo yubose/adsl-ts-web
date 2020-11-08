@@ -40,7 +40,7 @@ export interface INOODLUi {
   parser: RootsParser
   root: { [key: string]: any }
   init(opts: { viewport?: Viewport }): this
-  createActionChain(
+  createActionChainHandler(
     actions: NOODLActionObject[],
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
@@ -69,7 +69,9 @@ export interface INOODLUi {
   setPage(page: string): this
   setRoot(key: string | { [key: string]: any }, value?: any): this
   setViewport(viewport: IViewport | null): this
-  use(mod: IResolver | IBuiltIn | IViewport | (IResolver | IBuiltIn)[]): this
+  use(resolver: IResolver | IResolver[]): this
+  use(action: IActionChainUseObject | IActionChainUseObject[]): this
+  use(viewport: IViewport): this
   unuse(...args: Parameters<INOODLUi['use']>): this
 }
 
@@ -330,7 +332,7 @@ export interface IResolver {
   ---- ACTIONS / ACTION CHAIN
 -------------------------------------------------------- */
 
-export interface IActionChain<ActionType extends string = string> {
+export interface IActionChain<ActionType extends string = NOODLActionType> {
   actions: IAction[] | null
   intermediary: IAction[]
   current: { action: IAction | undefined; index: number }
@@ -365,9 +367,9 @@ export interface IActionChainUseBuiltInObject {
   fn: ActionChainActionCallback | ActionChainActionCallback[]
 }
 
-export type IActionChainUseObject<ActionType extends string = string> =
-  | IActionChainUseObjectBase<ActionType>
-  | IActionChainUseBuiltInObject
+export type IActionChainUseObject<
+  ActionType extends string = NOODLActionType
+> = IActionChainUseObjectBase<ActionType> | IActionChainUseBuiltInObject
 
 export interface IActionChainAddActionObject<
   S extends NOODLActionType = NOODLActionType
@@ -691,7 +693,7 @@ export interface ConsumerOptions
   extends INOODLUiStateHelpers,
     Pick<INOODLUi, 'getNode' | 'getNodes' | 'getState' | 'setNode'> {
   context: ResolverContext
-  createActionChain: INOODLUi['createActionChain']
+  createActionChainHandler: INOODLUi['createActionChainHandler']
   createSrc: INOODLUi['createSrc']
   parser: ResolverOptions['parser']
   resolveComponent: INOODLUi['resolveComponents']
