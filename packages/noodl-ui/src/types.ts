@@ -345,7 +345,7 @@ export interface IActionChain<ActionType extends string = string> {
   add(actionObj: { actionType: string; fns: Function[] }): this
   add(builtIn: IBuiltIn): this
   add(builtIn: ({ actionType: string; fns: Function[] } | IBuiltIn)[]): this
-  
+
   onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
   onChainStart?: LifeCycleListeners['onChainStart']
   onChainEnd?: LifeCycleListeners['onChainEnd']
@@ -846,9 +846,9 @@ export interface NOODLActionObjectBase {
   [key: string]: any
 }
 
-export interface NOODLBuiltInObject extends NOODLActionObjectBase {
+export interface NOODLBuiltInObject<K = string> extends NOODLActionObjectBase {
   actionType: 'builtIn'
-  funcName: string
+  funcName: K
 }
 
 export interface NOODLEvalObject extends NOODLActionObjectBase {
