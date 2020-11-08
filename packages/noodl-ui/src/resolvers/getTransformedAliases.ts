@@ -12,7 +12,7 @@ const log = Logger.create('getTransformedAliases')
  */
 const getTransformedAliases: ResolverFn = (
   component,
-  { context, createSrc },
+  { context, createSrc, getPageObject },
 ) => {
   const {
     type,
@@ -80,11 +80,12 @@ const getTransformedAliases: ResolverFn = (
          * Attempt #3 --> Find on list data
          */
         const { page, roots } = context
+        const pageObject = getPageObject(page)
         let value: any
         if (_.has(roots, valEvaluating)) {
           value = _.get(roots, valEvaluating)
-        } else if (_.has(page?.object, valEvaluating)) {
-          value = _.get(page?.object, valEvaluating)
+        } else if (_.has(pageObject, valEvaluating)) {
+          value = _.get(pageObject, valEvaluating)
         } else if (!component.get('listId')) {
           // TEMP -- default to setting the value on the root object
           if (valEvaluating === 'VideoChat.micOn') {

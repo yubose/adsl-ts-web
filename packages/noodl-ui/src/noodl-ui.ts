@@ -22,16 +22,16 @@ import createComponent from './utils/createComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
 import isReference from './utils/isReference'
+import createChild from './utils/createChild'
 import { event, componentEventIds, componentEventTypes } from './constants'
 import * as T from './types'
-import BuiltIn from './BuiltIn'
 
 // const log = Logger.create('noodl-ui')
 
 function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
   return {
     nodes: new Map(),
-    lists: new Map(),
+    page: '',
     ...state,
   } as T.INOODLUiState
 }
@@ -39,19 +39,15 @@ function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
 class NOODL implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
-    action: Partial<Record<T.ActionEventId, Function[]>>
-    builtIn: { [funcName: string]: T.IBuiltIn[] }
+    action: { [actionType: string]: T.ActionChainActionCallback[] }
+    builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     component: Record<
       T.NOODLComponentType | 'all',
       T.INOODLUiComponentEventCallback<any>[]
     >
   } = {
-    action: _.reduce(
-      _.values(event.action),
-      (acc, key) => _.assign(acc, { [key]: [] }),
-      {},
-    ),
+    action: {},
     builtIn: {},
     chaining: _.reduce(
       _.values(event.actionChain),
@@ -67,7 +63,6 @@ class NOODL implements T.INOODLUi {
       >,
     ),
   }
-  #page: T.Page = { name: '', object: null }
   #parser: T.RootsParser
   #resolvers: Resolver[] = []
   #root: { [key: string]: any } = {}
@@ -92,7 +87,7 @@ class NOODL implements T.INOODLUi {
   }
 
   get page() {
-    return this.#page
+    return this.#state.page
   }
 
   get parser() {
@@ -131,7 +126,7 @@ class NOODL implements T.INOODLUi {
   }
 
   #resolve = (c: T.IComponentType) => {
-    const component = createComponent(c)
+    const component = createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
 
     let parent: T.IComponentTypeInstance | null = null
@@ -142,8 +137,8 @@ class NOODL implements T.INOODLUi {
 
     if (!component.id) component['id'] = _.uniqueId()
 
-    if (this.page && this.parser.getLocalKey() !== this.page.name) {
-      this.parser.setLocalKey(this.page.name)
+    if (this.page && this.parser.getLocalKey() !== this.page) {
+      this.parser.setLocalKey(this.page)
     }
 
     // Finalizing
@@ -178,13 +173,13 @@ class NOODL implements T.INOODLUi {
       _.forEach(originalChildren, (noodlChild) => {
         if (noodlChild) {
           const child = this.resolveComponents(noodlChild)
-          component.createChild(child)
+          component.createChild(createChild.call(this, child))
         }
       })
     } else {
       if (originalChildren) {
         const child = this.resolveComponents(originalChildren)
-        component.createChild(child)
+        component.createChild(createChild.call(this, child))
       }
     }
 
@@ -312,30 +307,27 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  createActionChain(
-    actions: Parameters<T.INOODLUi['createActionChain']>[0],
-    options: Parameters<T.INOODLUi['createActionChain']>[1],
+  createActionChainHandler(
+    actions: Parameters<T.INOODLUi['createActionChainHandler']>[0],
+    options?: Parameters<T.INOODLUi['createActionChainHandler']>[1],
   ) {
-    const actionChain = new ActionChain(actions, {
-      builtIn: this.#cb.builtIn,
-      ...options,
-      ..._.reduce(
-        _.entries(this.#cb.action),
-        (acc, [actionType, fn]) =>
-          _.assign(acc, { [actionType]: !_.isArray(fn) ? [fn] : fn }),
-        {} as any,
-      ),
-    } as T.ActionChainCallbackOptions)
-
-    forEachEntries(
-      this.#cb.builtIn,
-      (funcName, fns) => fns && actionChain.add(fns),
+    const actionChain = new ActionChain(
+      _.isArray(actions) ? actions : [actions],
     )
 
-    forEachEntries(
-      this.#cb.action,
-      (actionType, fns) => fns && actionChain.add({ actionType, fns }),
-    )
+    actionChain
+      .useAction(
+        _.map(_.entries(this.#cb.action), ([actionType, fn]) => ({
+          actionType,
+          fn,
+        })),
+      )
+      .useBuiltIn(
+        _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
+          funcName,
+          fn,
+        })),
+      )
 
     // @ts-expect-error
     window.ac = actionChain
@@ -365,10 +357,14 @@ class NOODL implements T.INOODLUi {
   getContext() {
     return {
       assetsUrl: this.assetsUrl,
-      page: this.#root[this.#page.name],
+      page: this.page,
       roots: this.#root,
       viewport: this.#viewport,
     } as T.ResolverContext
+  }
+
+  getPageObject(page: string) {
+    return this.#root[page]
   }
 
   getStateHelpers() {
@@ -392,7 +388,7 @@ class NOODL implements T.INOODLUi {
   getConsumerOptions(include?: { [key: string]: any }) {
     return {
       context: this.getContext(),
-      createActionChain: this.createActionChain.bind(this),
+      createActionChainHandler: this.createActionChainHandler.bind(this),
       createSrc: this.createSrc.bind(this),
       resolveComponent: this.resolveComponents.bind(this),
       parser: this.parser,
@@ -443,9 +439,10 @@ class NOODL implements T.INOODLUi {
 
   getStateGetters() {
     return {
-      getState: this.getState.bind(this),
       getNodes: this.getNodes.bind(this),
       getNode: this.getNode.bind(this),
+      getPageObject: this.getPageObject.bind(this),
+      getState: this.getState.bind(this),
     }
   }
 
@@ -473,8 +470,7 @@ class NOODL implements T.INOODLUi {
   }
 
   setPage(pageName: string) {
-    this.#page.name = pageName
-    this.#page.object = this.#root[pageName]
+    this.#state['page'] = pageName
     return this
   }
 
@@ -494,23 +490,27 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
+  use(resolver: T.IResolver | T.IResolver[]): this
+  use(action: T.IActionChainUseObject | T.IActionChainUseObject[]): this
+  use(viewport: T.IViewport): this
   use(
     mod:
       | T.IResolver
-      | T.IBuiltIn
+      | T.IActionChainUseObject
       | T.IViewport
-      | { actionType: string; fn: Function }[]
-      | (T.IResolver | T.IBuiltIn)[],
+      | (T.IResolver | T.IActionChainUseObject)[],
     ...rest: any[]
   ) {
     const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)
     const handleMod = (m: typeof mods[number]) => {
       if (m) {
-        if (m instanceof BuiltIn) {
+        if ('funcName' in m) {
           if (!_.isArray(this.#cb.builtIn[m.funcName])) {
             this.#cb.builtIn[m.funcName] = []
           }
-          this.#cb.builtIn[m.funcName]?.push(m)
+          this.#cb.builtIn[m.funcName] = this.#cb.builtIn[m.funcName].concat(
+            _.isArray(m.fn) ? m.fn : [m.fn],
+          )
         } else if ('actionType' in m) {
           if (!_.isArray(this.#cb.action[m.actionType])) {
             this.#cb.action[m.actionType] = []
@@ -562,6 +562,7 @@ class NOODL implements T.INOODLUi {
         const [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
         if (_.isString(valEvaluating)) {
           const { page, roots } = this.getContext() || {}
+          const pageObject = this.getPageObject(page)
           /**
            * Attempt #1 --> Find on root
            * Attempt #2 --> Find on local root
@@ -571,8 +572,8 @@ class NOODL implements T.INOODLUi {
             let val
             if (_.has(roots, valEvaluating)) {
               val = _.get(roots, valEvaluating)
-            } else if (_.has(page?.object, valEvaluating)) {
-              val = _.get(page?.object, valEvaluating)
+            } else if (_.has(pageObject, valEvaluating)) {
+              val = _.get(pageObject, valEvaluating)
             } else if (component) {
               // TODO - Check on iteratorVar
               // Assuming this is for list items if the code gets here

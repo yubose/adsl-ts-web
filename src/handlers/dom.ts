@@ -6,8 +6,7 @@ import {
   IList,
   SelectOption,
 } from 'noodl-ui'
-import { NOODLDOMDataValueElement } from 'noodl-ui-dom'
-import { isBooleanTrue } from 'noodl-utils'
+import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
 import { forEachEntries } from 'utils/common'
 import { isDisplayable } from 'utils/dom'
 import createElement from 'utils/createElement'
@@ -45,10 +44,6 @@ noodluidom.on('create.component', (node, component) => {
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = component['data-listdata']
 
-  if (id) node['id'] = id
-  if (placeholder) node.setAttribute('placeholder', placeholder)
-  if (src && type !== 'video') node.setAttribute('src', src)
-
   const datasetAttribs = component.get([
     'data-listid',
     'data-name',
@@ -56,6 +51,10 @@ noodluidom.on('create.component', (node, component) => {
     'data-ux',
     'data-value',
   ])
+
+  if (id) node['id'] = id
+  if (placeholder) node.setAttribute('placeholder', placeholder)
+  if (src && type !== 'video') node.setAttribute('src', src)
 
   /** Dataset identifiers */
   if (datasetAttribs['data-listid'])
@@ -65,39 +64,45 @@ noodluidom.on('create.component', (node, component) => {
   if (datasetAttribs['data-key'])
     node.dataset['key'] = datasetAttribs['data-key']
   if (datasetAttribs['data-ux']) node.dataset['ux'] = datasetAttribs['data-ux']
-  if (datasetAttribs['data-value'])
+  if (datasetAttribs['data-value']) {
     node.dataset['value'] = datasetAttribs['data-value']
+    if ('value' in node) node.value = datasetAttribs['data-value']
+  }
 
   /** Data values */
-  if (datasetAttribs['data-value']) {
-    if (['input', 'select', 'textarea'].includes(type)) {
-      let elem = node as NOODLDOMDataValueElement
-      elem['value'] = datasetAttribs['data-value'] || ''
-      if (type === 'select') {
-        elem = node as HTMLSelectElement
-        if (elem.length) {
-          // Put the default value to the first option in the list
-          elem['selectedIndex'] = 0
-        }
-      } else {
-        elem.dataset['value'] = datasetAttribs['data-value'] || ''
-        elem['value'] = elem.dataset['value'] || ''
+  if (isTextFieldLike(node)) {
+    node['value'] = datasetAttribs['data-value'] || ''
+    if (node.tagName === 'SELECT') {
+      if ((node as HTMLSelectElement).length) {
+        // Put the default value to the first option in the list
+        ;(node as HTMLSelectElement)['selectedIndex'] = 0
       }
-    } else if (component.get('text=func') && datasetAttribs['data-value']) {
-      node.innerHTML = datasetAttribs['data-value']
     } else {
-      // For non data-value elements like labels or divs that just display content
-      // If there's no data-value (which takes precedence here), use the placeholder
-      // to display as a fallback
-      let text = ''
-      text = datasetAttribs['data-value'] || ''
-      if (!text && children) text = `${children}` || ''
-      if (!text && placeholder) text = placeholder
-      if (!text) text = ''
-      if (text) node.innerHTML = `${text}`
-      node['innerHTML'] =
-        datasetAttribs['data-value'] || component.get('placeholder') || ''
+      node.dataset['value'] = datasetAttribs['data-value'] || ''
+      node['value'] = datasetAttribs['data-value'] || ''
     }
+    // Attach an additional listener for data-value elements that are expected
+    // to change values on the fly by some "on change" logic (ex: input/select elements)
+    import('utils/sdkHelpers')
+      .then(({ createOnDataValueChangeFn }) => {
+        const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
+        node.addEventListener('change', onChange)
+      })
+      .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
+  } else if (component.get('text=func') && datasetAttribs['data-value']) {
+    node.innerHTML = datasetAttribs['data-value']
+  } else {
+    // For non data-value elements like labels or divs that just display content
+    // If there's no data-value (which takes precedence here), use the placeholder
+    // to display as a fallback
+    let text = ''
+    text = datasetAttribs['data-value'] || ''
+    if (!text && children) text = `${children}` || ''
+    if (!text && placeholder) text = placeholder
+    if (!text) text = ''
+    if (text) node.innerHTML = `${text}`
+    node['innerHTML'] =
+      datasetAttribs['data-value'] || component.get('placeholder') || ''
   }
 
   /** Event handlers */
@@ -121,17 +126,6 @@ noodluidom.on('create.component', (node, component) => {
       })
     }
   })
-
-  // Attach an additional listener for data-value elements that are expected
-  // to change values on the fly by some "on change" logic (ex: input/select elements)
-  if (datasetAttribs['data-value']) {
-    import('utils/sdkHelpers')
-      .then(({ createOnDataValueChangeFn }) => {
-        const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
-        node.addEventListener('change', onChange)
-      })
-      .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
-  }
 
   /** Styles */
   if (_.isPlainObject(style)) {
@@ -216,7 +210,7 @@ noodluidom.on('create.button', (node, component) => {
 
 noodluidom.on('create.image', function onCreateImage(node, component) {
   if (node) {
-    const { onClick } = component.get(['children', 'onClick'])
+    const onClick = component.get('onClick')
 
     if (_.isFunction(onClick)) {
       node.style['cursor'] = 'pointer'
@@ -238,7 +232,7 @@ noodluidom.on('create.image', function onCreateImage(node, component) {
     import('app/noodl-ui').then(({ default: noodlui }) => {
       const parent = component.parent()
       const context = noodlui.getContext()
-      const pageObject = context?.page?.object || {}
+      const pageObject = noodlui.root[context?.page || ''] || {}
       if (
         // @ts-expect-error
         node?.src === pageObject?.docDetail?.document?.name?.data &&
@@ -270,6 +264,11 @@ noodluidom.on('create.image', function onCreateImage(node, component) {
 
 noodluidom.on('create.label', (node, component) => {
   if (node) {
+    const dataValue = component.get('data-value')
+    const { placeholder, text } = component.get(['placeholder', 'text'])
+    if (dataValue) node.innerHTML = dataValue
+    else if (text) node.innerHTML = text
+    else if (placeholder) node.innerHTML = placeholder
     if (_.isFunction(component.get('onClick'))) {
       node.style['cursor'] = 'pointer'
     }

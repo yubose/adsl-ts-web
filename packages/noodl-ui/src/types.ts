@@ -36,11 +36,11 @@ export type EventId =
 export interface INOODLUi {
   assetsUrl: string
   initialized: boolean
-  page: Page
+  page: string
   parser: RootsParser
   root: { [key: string]: any }
   init(opts: { viewport?: Viewport }): this
-  createActionChain(
+  createActionChainHandler(
     actions: NOODLActionObject[],
     { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
   ): (event: Event) => Promise<any>
@@ -55,6 +55,7 @@ export interface INOODLUi {
   getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
   getNode(component: IComponent | string): IComponent | null
   getNodes(): Map<IComponentTypeInstance, IComponentTypeInstance>
+  getPageObject<P extends string>(page: P): INOODLUi['root'][P]
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
   getState(): INOODLUiState
   getStateHelpers(): INOODLUiStateHelpers
@@ -69,13 +70,15 @@ export interface INOODLUi {
   setPage(page: string): this
   setRoot(key: string | { [key: string]: any }, value?: any): this
   setViewport(viewport: IViewport | null): this
-  use(mod: IResolver | IBuiltIn | IViewport | (IResolver | IBuiltIn)[]): this
+  use(resolver: IResolver | IResolver[]): this
+  use(action: IActionChainUseObject | IActionChainUseObject[]): this
+  use(viewport: IViewport): this
   unuse(...args: Parameters<INOODLUi['use']>): this
 }
 
 export interface INOODLUiState {
   nodes: Map<IComponentTypeInstance, IComponentTypeInstance>
-  lists: Map<IList, IList>
+  page: string
   showDataKey: boolean
 }
 
@@ -83,7 +86,7 @@ export type INOODLUiStateHelpers = INOODLUiStateGetters & INOODLUiStateSetters
 
 export type INOODLUiStateGetters = Pick<
   INOODLUi,
-  'getState' | 'getNodes' | 'getNode'
+  'getState' | 'getNodes' | 'getNode' | 'getPageObject'
 >
 
 export type INOODLUiStateSetters = Pick<INOODLUi, 'setNode'>
@@ -126,9 +129,7 @@ export interface IComponent<K extends string = NOODLComponentType> {
   assignStyles(styles: Partial<NOODLStyle>): this
   child(index?: number): IComponentTypeInstance | undefined
   children(): IComponentTypeInstance[]
-  createChild<K extends NOODLComponentType>(
-    child: IComponentType,
-  ): IComponentTypeInstance<K> | undefined
+  createChild<C extends IComponentTypeInstance>(child: C): C
   hasChild(childId: string): boolean
   hasChild(child: IComponentTypeInstance): boolean
   removeChild(index: number): IComponentTypeInstance | undefined
@@ -330,45 +331,44 @@ export interface IResolver {
   ---- ACTIONS / ACTION CHAIN
 -------------------------------------------------------- */
 
-export interface IActionChain<ActionType extends string = string> {
+export interface IActionChain<ActionType extends string = NOODLActionType> {
   actions: IAction[] | null
   intermediary: IAction[]
   current: { action: IAction | undefined; index: number }
+  fns: {
+    action: Partial<Record<ActionType, ActionChainActionCallback[]>>
+    builtIn: {
+      [funcName: string]: ActionChainActionCallback[]
+    }
+  }
   status: ActionChainStatus | null
-  builtIn: { [funcName: string]: IBuiltIn[] }
-  evalObject?: OnEvalObject[]
-  pageJump?: OnPageJump[]
-  popUp?: OnPopup[]
-  popUpDismiss?: OnPopupDismiss[]
-  saveObject?: OnSaveObject[]
-  updateObject?: OnUpdateObject[]
-  add(actionObj: { actionType: string; fns: Function[] }): this
-  add(builtIn: IBuiltIn): this
-  add(builtIn: ({ actionType: string; fns: Function[] } | IBuiltIn)[]): this
-
-  onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
-  onChainStart?: LifeCycleListeners['onChainStart']
-  onChainEnd?: LifeCycleListeners['onChainEnd']
-  onChainError?: LifeCycleListeners['onChainError']
-  onChainAborted?: LifeCycleListeners['onChainAborted']
-  onAfterResolve?: LifeCycleListeners['onAfterResolve']
-  use(actions: IActionChainUseObjectBase<ActionType>): this
-  use(actions: IActionChainUseObjectBase<ActionType>[]): this
+  // onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
+  // onChainStart?: LifeCycleListeners['onChainStart']
+  // onChainEnd?: LifeCycleListeners['onChainEnd']
+  // onChainError?: LifeCycleListeners['onChainError']
+  // onChainAborted?: LifeCycleListeners['onChainAborted']
+  // onAfterResolve?: LifeCycleListeners['onAfterResolve']
+  useAction(action: IActionChainUseObject<ActionType>): this
+  useAction(action: IActionChainUseObject<ActionType>[]): this
+  useBuiltIn(
+    action: IActionChainUseBuiltInObject | IActionChainUseBuiltInObject[],
+  ): this
 }
 
-export interface IActionChainUseObjectBase<ActionType extends string = string> {
+export interface IActionChainUseObjectBase<ActionType> {
   actionType: ActionType
-  fns: ActionChainActionCallback | ActionChainActionCallback[]
+  fn: ActionChainActionCallback | ActionChainActionCallback[]
 }
 
-export interface IActionChainUseBuiltInObject
-  extends IActionChainUseObjectBase<'builtIn'> {
+export interface IActionChainUseBuiltInObject {
+  actionType?: 'builtIn'
   funcName: string
+  fn: ActionChainActionCallback | ActionChainActionCallback[]
 }
 
-export type IActionChainUseObject<ActionType extends string = string> =
-  | IActionChainUseObjectBase<ActionType>
-  | IActionChainUseBuiltInObject
+export type IActionChainUseObject<
+  ActionType extends string = NOODLActionType
+> = IActionChainUseObjectBase<ActionType> | IActionChainUseBuiltInObject
 
 export interface IActionChainAddActionObject<
   S extends NOODLActionType = NOODLActionType
@@ -688,20 +688,23 @@ export interface ResolverOptions
   resolveComponent: ResolveComponent
 }
 
-export interface ConsumerOptions
-  extends INOODLUiStateHelpers,
-    Pick<INOODLUi, 'getNode' | 'getNodes' | 'getState' | 'setNode'> {
+export interface ConsumerOptions {
   context: ResolverContext
-  createActionChain: INOODLUi['createActionChain']
+  createActionChainHandler: INOODLUi['createActionChainHandler']
   createSrc: INOODLUi['createSrc']
+  getNode: INOODLUiStateHelpers['getNode']
+  getNodes: INOODLUiStateHelpers['getNodes']
+  getPageObject: INOODLUiStateHelpers['getPageObject']
+  getState: INOODLUiStateHelpers['getState']
   parser: ResolverOptions['parser']
   resolveComponent: INOODLUi['resolveComponents']
+  setNode: INOODLUiStateHelpers['setNode']
   showDataKey: boolean
 }
 
 export interface ResolverContext {
   assetsUrl: string
-  page: undefined | NOODLPageObject
+  page: string
   roots: Record<string, any>
   viewport: IViewport | undefined
 }

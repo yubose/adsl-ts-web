@@ -48,8 +48,8 @@ const createActions = function ({ page }: { page: IPage }) {
       const ifObj = action.original.object as NOODLIfObject
       if (_.isArray(ifObj)) {
         const { default: noodl } = await import('app/noodl')
-        const context = options.context
-        const pageName = context?.page?.name || ''
+        const { context } = options
+        const pageName = context.page || ''
         const pageObject = noodl.root[pageName]
         const object = evalIf((valEvaluating) => {
           let value
@@ -182,7 +182,7 @@ const createActions = function ({ page }: { page: IPage }) {
           >()
           if (String(dataValues?.phoneNumber).startsWith('888')) {
             import('app/noodl').then(({ default: noodl }) => {
-              const pageName = context?.page?.name || ''
+              const pageName = context?.page || ''
               const pathToTage = 'verificationCode.response.edge.tage'
               let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
               if (vcode) {
@@ -249,7 +249,7 @@ const createActions = function ({ page }: { page: IPage }) {
               const [nameFieldPath, save] = obj
 
               if (_.isString(nameFieldPath) && _.isFunction(save)) {
-                parser.setLocalKey(context?.page?.name)
+                parser.setLocalKey(context?.page)
 
                 let nameField
 
@@ -258,7 +258,7 @@ const createActions = function ({ page }: { page: IPage }) {
                 } else {
                   nameField =
                     _.get(noodl?.root, nameFieldPath, null) ||
-                    _.get(noodl?.root?.[context?.page?.name], nameFieldPath, {})
+                    _.get(noodl?.root?.[context?.page], nameFieldPath, {})
                 }
 
                 const params = { ...nameField }

@@ -4,7 +4,7 @@
  * isolate the imports into this file and replace them with stubs in testing
  */
 import _ from 'lodash'
-import { Draft } from 'immer'
+import { current, Draft } from 'immer'
 import Logger from 'logsnap'
 import { getAllByDataKey } from 'noodl-utils'
 import noodl from 'app/noodl'
@@ -21,51 +21,55 @@ export function createOnDataValueChangeFn(dataKey: string = '') {
         })
       | null = e.target
 
-    const pageName = noodlui.getContext().page?.name || ''
-    const localRoot = noodl?.root?.[pageName]
+    const localRoot = noodl?.root?.[noodlui.page]
     const value = target?.value || ''
 
     let updatedValue
 
-    if (_.has(localRoot, dataKey)) {
-      noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
-        if (_.has(draft?.[pageName], dataKey)) {
-          _.set(draft?.[pageName], dataKey, value)
-          /**
-           * EXPERIMENTAL - When a data key from the local root is being updated
-           * by a node, update all other nodes that are referencing it.
-           * Note: This will not work for list items which is fine because they
-           * reference their own data objects
-           */
-          const linkedNodes = getAllByDataKey(dataKey)
-          if (linkedNodes.length) {
-            _.forEach(linkedNodes, (node) => {
-              // Since select elements have options as children, we should not
-              // edit by innerHTML or we would have to unnecessarily re-render the nodes
-              if (node.tagName === 'SELECT') {
-                console.log(node)
-              } else {
-                node.innerHTML = `${value || ''}`
-              }
-            })
-          }
+    noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
+      if (_.has(draft?.[noodlui.page], dataKey)) {
+        _.set(draft?.[noodlui.page], dataKey, value)
+        draft[noodlui.page].formData.phoneNumber = value
+        /**
+         * EXPERIMENTAL - When a data key from the local root is being updated
+         * by a node, update all other nodes that are referencing it.
+         * Note: This will not work for list items which is fine because they
+         * reference their own data objects
+         */
+        const linkedNodes = getAllByDataKey(dataKey)
+        if (linkedNodes.length) {
+          _.forEach(linkedNodes, (node) => {
+            // Since select elements have options as children, we should not
+            // edit by innerHTML or we would have to unnecessarily re-render the nodes
+            if (node.tagName === 'SELECT') {
+              console.log(node)
+            } else {
+              node.innerHTML = `${value || ''}`
+            }
+          })
         }
-      })
-      updatedValue = _.get(noodl.root?.[pageName], dataKey)
-      if (updatedValue !== value) {
+      } else {
         log.func('createOnDataValueChangeFn')
         log.red(
-          `Applied an update to a value using dataKey "${dataKey}" but the before/after values weren't equivalent`,
-          { previousValue: value, nextValue: updatedValue, dataKey },
+          `Attempted to update a data value from an onChange onto a data value ` +
+            `component but the dataKey "${dataKey}" is not a valid path of the ` +
+            `root object`,
+          {
+            dataKey,
+            localRoot,
+            pageName: noodlui.page,
+            pageObject: noodl.root[noodlui.page],
+            value,
+          },
         )
       }
-    } else {
+    })
+    updatedValue = _.get(noodl.root?.[noodlui.page], dataKey)
+    if (updatedValue !== value) {
       log.func('createOnDataValueChangeFn')
       log.red(
-        `Attempted to update a data value from an onChange onto a data value ` +
-          `component but the dataKey "${dataKey}" is not a valid path of the ` +
-          `root object`,
-        { dataKey, localRoot, pageName, value },
+        `Applied an update to a value using dataKey "${dataKey}" but the before/after values weren't equivalent`,
+        { previousValue: value, nextValue: updatedValue, dataKey },
       )
     }
   }

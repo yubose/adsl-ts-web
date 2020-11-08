@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { findParent } from 'noodl-utils'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
-import { ResolverFn, IListItem } from '../types'
+import { ResolverFn, IListItem, IList } from '../types'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -11,16 +11,15 @@ const log = Logger.create('getCustomDataAttrs')
  *    (ex: "data-ux" for UX interactions between the library and the web app)
  */
 const getCustomDataAttrs: ResolverFn = (component, options) => {
-  const { context, showDataKey, parser } = options
+  const { context, getPageObject, showDataKey, parser } = options
   const { page } = context
-
   const { noodlType } = component
-
   const { contentType = '', dataKey, viewTag } = component.get([
     'contentType',
     'dataKey',
     'viewTag',
   ])
+  const pageObject = getPageObject(page)
 
   /* -------------------------------------------------------
      ---- UI VISIBILITY RELATED
@@ -38,11 +37,11 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     component.set('data-ux', viewTag)
   }
 
-  /** formData specific */
+  /** Data values specific */
   if (dataKey) {
     let fieldParts = dataKey.split('.')
     let field = fieldParts.shift() || ''
-    let fieldValue = page?.[field]
+    let fieldValue = pageObject?.[field]
 
     if (fieldParts.length) {
       while (fieldParts.length) {
@@ -53,9 +52,16 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     } else {
       field = fieldParts[0] || ''
     }
-    component.assign({
-      'data-name': field,
+    console.log({
       'data-key': dataKey,
+      'data-name': field,
+      'data-value': fieldValue,
+      page,
+      pageObject,
+    })
+    component.assign({
+      'data-key': dataKey,
+      'data-name': field,
       'data-value': fieldValue,
     })
   }
@@ -64,21 +70,22 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       ---- LISTS
     -------------------------------------------------------- */
   if (noodlType === 'list') {
-    const listObject = component.get('listObject')
+    const listComponent = component as IList
+    const listObject = listComponent.getData()
     if (listObject !== undefined) {
       let listObjects: typeof listObject
       // Hard code some of this stuff for the videoSubStream list component for
       // now until we figure out a better solution
       if (/(vidoeSubStream|videoSubStream)/i.test(contentType || '')) {
-        listObjects = (page?.listData?.participants || []) as any[]
+        listObjects = (pageObject?.listData?.participants || []) as any[]
       } else {
         listObjects = _.isArray(listObject) ? listObject : [listObject]
       }
-      component.set('data-listid', component.id)
+      listComponent.set('data-listid', listComponent.id)
     } else {
       log.red(
         'A list component is missing the "listObject" property',
-        component.snapshot(),
+        listComponent.snapshot(),
       )
     }
   }
@@ -105,9 +112,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
 
     // Handle list related components that expect data objects
     if (iteratorVar && dataKey.startsWith(iteratorVar)) {
-      const fn = (parent: any) => {
-        return parent?.type === 'listItem'
-      }
+      const fn = (parent: any) => parent?.type === 'listItem'
       const listItem = findParent(component, (parent) => {
         console.log('parent', component.parent())
         return fn(parent)
@@ -209,6 +214,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
             listItem,
             iteratorVar,
             page: context.page,
+            pageObject,
             path,
           },
         )
@@ -221,20 +227,25 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           dataKey,
           showDataKey ? dataKey : text || placeholder,
         )
+      } else if (_.has(pageObject, dataKey)) {
+        dataValue = _.get(pageObject, dataKey, '')
       } else {
         log.red(
-          `TODO/REMINDER: This code block was reached. None of these situations matched: ` +
-            `1. Root/local root referenced dataKey ` +
-            `2. List dataObjects. ` +
-            `3. Text=func date components. Look into this`,
+          `Unable to retrieve a data value for a ${component.noodlType} component. None of these conditions matched:\n` +
+            `   1. Root/local root referenced dataKey\n` +
+            `   2. List dataObjects\n` +
+            `   3. Text=func date components\n`,
           {
             component: component.toJS(),
+            context,
             dataKey,
             dataObject,
             dataValue,
             listIndex,
             iteratorVar,
             text,
+            pageName: context.page,
+            pageObject,
           },
         )
         // component.set('data-value', component.get('data-value'))

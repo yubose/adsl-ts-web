@@ -22,7 +22,7 @@ beforeEach(() => {
   }) as IComponent
 })
 
-describe('Component', () => {
+describe('BaseComponent', () => {
   describe('touch/untouch', () => {
     it('should populate touched/untouched keys in the beginning', () => {
       const component = new Component({

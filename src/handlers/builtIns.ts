@@ -76,7 +76,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       ) as IListItem | undefined
       dataObject = listItem?.getDataObject?.()
       previousDataValue = _.get(dataObject, parts)
-      // previousDataValueInSdk = _.get(noodl.root[context.page.name])
+      // previousDataValueInSdk = _.get(noodl.root[context.page])
       dataValue = previousDataValue
       if (isNOODLBoolean(dataValue)) {
         // true -> false / false -> true
@@ -128,7 +128,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       } else {
         valEvaluating =
           _.get(noodl.root, valEvaluating) ||
-          _.get(noodl.root[context?.page?.name || ''], valEvaluating)
+          _.get(noodl.root[context?.page || ''], valEvaluating)
       }
       newSrc = createSrc(valEvaluating ? path.if?.[1] : path.if?.[2])
       node.setAttribute('src', newSrc)
@@ -390,7 +390,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     const { default: noodl } = await import('app/noodl')
 
-    const pageName = options.context?.page?.name || ''
+    const pageName = options.context?.page || ''
 
     noodl.editDraft((draft: Draft<any>) => {
       _.set(draft?.[pageName], nameFieldPath, file)

@@ -16,6 +16,7 @@ let logSpy: sinon.SinonStub
 before(async () => {
   console.clear()
   Logger.disable()
+  page.initializeRootNode()
   // Silence all the logging from our custom logger
   // Logger.create = sinon.stub().callsFake(() =>
   //   _.reduce(
@@ -82,11 +83,11 @@ after(() => {
 })
 
 beforeEach(() => {
-  page.initializeRootNode()
   // @ts-expect-error
   noodlui.cleanup()
 })
 
 afterEach(() => {
   document.body.textContent = ''
+  document.body.appendChild(page.rootNode as HTMLElement)
 })

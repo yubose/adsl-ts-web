@@ -31,6 +31,7 @@ import {
   Resolver,
   ResolverFn,
   Viewport,
+  IActionChainUseBuiltInObject,
 } from 'noodl-ui'
 import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'
@@ -273,7 +274,7 @@ window.addEventListener('load', async () => {
             ),
           )
           .use(
-            _.reduce(
+            _.map(
               _.entries({
                 checkField: builtIn.checkField,
                 checkUsernamePassword: builtIn.checkUsernamePassword,
@@ -289,9 +290,7 @@ window.addEventListener('load', async () => {
                 toggleFlag: builtIn.toggleFlag,
                 toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
               }),
-              (acc, [funcName, fn]) =>
-                acc.concat(new BuiltIn(fn, { funcName })),
-              [] as BuiltIn<any>[],
+              ([funcName, fn]) => ({ funcName, fn }),
             ),
           )
 

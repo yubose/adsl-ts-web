@@ -4,7 +4,8 @@ import _ from 'lodash'
 import Component from '../../../components/Base'
 import getTextBoardChildren from './getTextBoardChildren'
 import { ComponentResolver } from '../../../types'
-import makeComponentResolver from '../../../factories/makeComponentResolver'
+// import makeComponentResolver from '../../../factories/makeComponentResolver'
+const makeComponentResolver = () => _.noop
 
 let component: Component
 let componentResolver: ComponentResolver

@@ -22,7 +22,6 @@ export { default as getTransformedAliases } from './resolvers/getTransformedAlia
 export { default as getTransformedStyleAliases } from './resolvers/getTransformedStyleAliases'
 export { default as Resolver } from './Resolver'
 // Other
-export { default as BuiltIn } from './BuiltIn'
 export { default as createComponent } from './utils/createComponent'
 export { default as createComponentDraftSafely } from './utils/createComponentDraftSafely'
 export { default as findList } from './utils/findList'

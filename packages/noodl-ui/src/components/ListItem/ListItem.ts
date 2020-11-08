@@ -8,10 +8,12 @@ import {
   IListItem,
   NOODLComponentType,
 } from '../../types'
+import createChild from '../../utils/createChild'
 
 class ListItem<K extends NOODLComponentType = 'listItem'>
   extends Component
   implements IListItem<K> {
+  #children: any[] = []
   #dataObject: any
   #listId: string = ''
   #listIndex: null | number = null
@@ -66,14 +68,15 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     return this
   }
 
-  createChild<K extends NOODLComponentType>(
-    ...args: Parameters<IComponent['createChild']>
-  ) {
-    const child = super.createChild(new ListItemChildComponent(...args))
-    child?.set('listId', this.listId).set('iteratorVar', this.iteratorVar)
+  createChild<C extends IComponentTypeInstance>(child: C): C {
+    child
+      ?.setParent(this)
+      .set('listId', this.listId)
+      .set('iteratorVar', this.iteratorVar)
+    this.#children.push(child)
     const blueprint = this.parent()?.blueprint
     console.log('BLUEPRINT', blueprint)
-    return child as IComponentTypeInstance<K> | undefined
+    return child
   }
 
   getDataObject() {

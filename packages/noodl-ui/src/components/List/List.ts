@@ -16,6 +16,7 @@ import {
 } from '../../types'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
+import createChild from '../../utils/createChild'
 import { event } from '../../constants'
 import { IComponentEventId } from '../../types'
 import Component from '../Base'
@@ -474,21 +475,39 @@ class List extends Component implements IList {
     return blueprint
   }
 
-  createChild<K extends NOODLComponentType>(
-    ...args: Parameters<IComponent['createChild']>
-  ): IComponentTypeInstance<K> | undefined {
-    const child = super.createChild(...args)
+  createChild<C extends IComponentTypeInstance>(child: C) {
     if (child?.noodlType === 'listItem') {
       forEachEntries(this.getBlueprint(), (k, v) => child.set(k, v))
+      child.setParent(this)
       this.#children.push(child as IListItem)
     }
-    return child as IComponentTypeInstance<K>
+    return child
   }
 
-  removeChild(...args: Parameters<IComponent['removeChild']>) {
-    const removedChild = super.removeChild(...args)
-    if (removedChild && this.#children.includes(removedChild as IListItem)) {
-      this.#children = this.#children.filter((c) => c !== removedChild)
+  removeChild(index: number): IComponentTypeInstance | undefined
+  removeChild(id: string): IComponentTypeInstance | undefined
+  removeChild(child: IComponentTypeInstance): IComponentTypeInstance | undefined
+  removeChild(): IComponentTypeInstance | undefined
+  removeChild(child?: IComponentTypeInstance | number | string) {
+    let removedChild: IComponentTypeInstance | undefined
+    if (!arguments.length) {
+      removedChild = this.#children.shift()
+    } else if (_.isNumber(child) && this.#children[child]) {
+      removedChild = this.#children.splice(child, 1)[0]
+    } else if (_.isString(child)) {
+      removedChild = child
+        ? _.find(this.#children, (c) => c.id === child)
+        : undefined
+    } else if (this.#children.includes(child)) {
+      if (this.#children.includes(child)) {
+        this.#children = _.filter(this.#children, (c) => {
+          if (c === child) {
+            removedChild = child
+            return false
+          }
+          return true
+        })
+      }
     }
     return removedChild
   }

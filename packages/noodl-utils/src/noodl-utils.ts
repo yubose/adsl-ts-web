@@ -1,5 +1,6 @@
 import { isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
 import * as T from './types'
+import { NOODLDOMElement } from '../../noodl-ui-dom/dist'
 
 /**
  * Takes a callback and an "if" object. The callback will receive the three
@@ -173,6 +174,16 @@ export function isBreakLineTextBoardItem<
   T extends { br: any } = { br: string }
 >(value: unknown): value is 'br' | T {
   return isBreakLine(value) || isBreakLineObject(value)
+}
+
+export function isTextFieldLike(
+  node: NOODLDOMElement | null,
+): node is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
+  return (
+    node?.tagName === 'INPUT' ||
+    node?.tagName === 'SELECT' ||
+    node?.tagName === 'TEXTAREA'
+  )
 }
 
 export function isParent(parent: any, child: any | null) {
