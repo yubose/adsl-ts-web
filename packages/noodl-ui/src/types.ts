@@ -132,9 +132,10 @@ export type NOODLUpdateObject<T = any> =
       dataObject: string
     }
 
-export interface NOODLPopupBaseObject extends NOODLActionObjectBase {
+export interface NOODLPopupBaseObject<K extends string>
+  extends NOODLActionObjectBase {
   actionType: 'popUp'
-  popUpView: string
+  popUpView: K
 }
 
 export interface NOODLPopupDismissObject extends NOODLActionObjectBase {

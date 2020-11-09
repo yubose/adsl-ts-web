@@ -18,7 +18,7 @@
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:cadltest": "bash s3Deploy.sh build cadltest.aitmed.com",
     "postinstall": "lerna run --parallel build ",
-    "start": "cross-env ECOS_ENV=test NODE_ENV=development webpack-dev-server",
+    "start": "cross-env ECOS_ENV=test NODE_ENV=production webpack-dev-server",
     "start:stable": "cross-env ECOS_ENV=stable NODE_ENV=development webpack-dev-server",
     "start:test": "cross-env ECOS_ENV=test USE_DEV_PATHS=true npm run start",
     "script": "node scripts/compiled/index.js",
@@ -46,7 +46,7 @@
     "noodl-utils": "file:packages/noodl-utils"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.120",
+    "@aitmed/cadl": "^1.0.123",
     "@aitmed/ecos-lvl2-sdk": "^1.4.116",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",
