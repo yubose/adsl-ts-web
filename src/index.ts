@@ -31,7 +31,6 @@ import {
   Resolver,
   ResolverFn,
   Viewport,
-  IActionChainUseBuiltInObject,
 } from 'noodl-ui'
 import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'

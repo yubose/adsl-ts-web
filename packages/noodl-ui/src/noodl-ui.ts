@@ -11,6 +11,7 @@ import Resolver from './Resolver'
 import Viewport from './Viewport'
 import Component from './components/Base'
 import ListItemComponent from './components/ListItem'
+import _internalResolver from './resolvers/_internal'
 import makeRootsParser from './factories/makeRootsParser'
 import {
   forEachDeepEntries,
@@ -64,7 +65,7 @@ class NOODL implements T.INOODLUi {
     ),
   }
   #parser: T.RootsParser
-  #resolvers: Resolver[] = []
+  #resolvers: Resolver[] = [_internalResolver]
   #root: { [key: string]: any } = {}
   #state: T.INOODLUiState
   #viewport: T.IViewport

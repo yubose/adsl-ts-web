@@ -28,6 +28,7 @@ const getStylesByElementType: ResolverFn = (component, options) => {
         .setStyle('overflowX', 'hidden')
         .setStyle('listStyle', 'none')
         .setStyle('padding', '0px')
+        .setStyle('display', 'block')
       return void component.setStyle('overflowY', 'auto')
     // Flipping the position to relative to make the list items stack on top of eachother.
     //    Since the container is a type: list and already has their entire height defined in absolute values,

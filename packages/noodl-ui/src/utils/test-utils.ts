@@ -15,13 +15,14 @@ import getTransformedAliases from '../resolvers/getTransformedAliases'
 import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
 import NOODLUi from '../noodl-ui'
 import Resolver from '../Resolver'
+import Viewport from '../Viewport'
 import { ResolverFn, IComponentTypeObject } from '../types'
 
 export const assetsUrl = 'https://something.com/assets/'
 
 export const noodlui = (function () {
   const state = {
-    client: new NOODLUi(),
+    client: new NOODLUi({ viewport: new Viewport() }),
   }
 
   Object.defineProperty(state.client, 'cleanup', {

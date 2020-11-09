@@ -32,7 +32,6 @@ function getChildren(
 
   if (component.noodlType === 'list') {
     const listComponent = component as IList
-    console.log(listComponent.toJS())
     // const listObject = listComponent.getData()
     // if (listObject?.length) {
     // _.forEach(listObject, (dataObject) => {

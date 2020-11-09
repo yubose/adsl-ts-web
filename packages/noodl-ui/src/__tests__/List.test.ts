@@ -1,10 +1,12 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
+import { prettyDOM } from '@testing-library/dom'
 import { event } from '../constants'
 import { forEachDeepChildren } from '../utils/noodl'
 import { mock } from './mockData'
-import { IListItem } from 'types'
+import { IListItem } from '../types'
+import { toDOM } from '../utils/test-utils'
 import List from '../components/List'
 
 describe('List', () => {
@@ -176,6 +178,43 @@ describe('List', () => {
       // expect(child1.listIndex).to.eq(0)
       // expect(child2.listIndex).to.eq(1)
       // expect(child3.listIndex).to.eq(2)
+    })
+  })
+
+  describe('when working with the DOM', () => {
+    it('should start with no children if listObject is empty', () => {
+      const { component, node } = toDOM({
+        type: 'list',
+        listObject: [],
+        iteratorVar: 'hello',
+        children: [{ type: 'listItem' }],
+      })
+      console.info(prettyDOM())
+    })
+
+    xit('should start with some list item childrens if listObject has items', () => {
+      page.render({
+        type: 'list',
+        listObject: [{ fruits: ['apple'] }, { fruits: ['banana'] }],
+        iteratorVar: 'hello',
+        children: [{ type: 'listItem' }],
+      })
+      const listElem = document.querySelector('ul')
+      const listItemElems = document.querySelectorAll('li')
+      console.info(prettyDOM())
+      expect(listItemElems).to.have.lengthOf(2)
+    })
+
+    xit('should append a new list item node if a data object is added', () => {
+      //
+    })
+
+    xit('should remove the corresponding list item node if its dataObject was removed', () => {
+      //
+    })
+
+    xit('should update the corresponding list item node that is referencing the dataObject', () => {
+      //
     })
   })
 })

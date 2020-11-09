@@ -196,6 +196,7 @@ export type IComponentTypeObject =
 export interface IList<K extends NOODLComponentType = 'list'>
   extends IComponent {
   noodlType: K
+  children(): IListItem[]
   exists(childId: string): boolean
   exists(child: IListItem): boolean
   find(child: string | number | IListItem): IListItem | undefined

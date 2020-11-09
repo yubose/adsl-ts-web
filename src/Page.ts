@@ -309,9 +309,10 @@ class Page {
     if (this.rootNode) {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
-      _.forEach(components, (component) =>
-        noodluidom.parse(component, this.rootNode),
-      )
+      _.forEach(components, (component) => {
+        console.info(component.toJS())
+        noodluidom.parse(component, this.rootNode)
+      })
     } else {
       log.func('navigate')
       log.red(

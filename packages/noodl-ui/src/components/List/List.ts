@@ -63,79 +63,17 @@ class List extends Component implements IList {
         IComponentConstructor
       >),
     )
-    // Removes the listItem placeholder that comes in the response
+    // Removes the listItem placeholder that comes in the response.
     this.removeChild()
     // These initial values will be set once in the prototype.
     // When we use .set, we will intercept the call and set them
     // on this instance instead
     this.#listId = getRandomKey()
-    this.#iteratorVar = this.get('iteratorVar') as string
+    this.#iteratorVar = this.get('iteratorVar')
     this.setBlueprint(this.getBlueprint())
 
     log.func('constructor')
     log.gold(`Creating list component`, { args, component: this.toJS() })
-
-    this.on(event.component.list.BLUEPRINT, (blueprint) => {
-      this.#blueprint = blueprint
-    })
-
-    this.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
-      log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
-      const listItem = this.createChild(
-        createChild.call(this, this.getBlueprint()) as IListItem,
-      )
-      if (listItem) {
-        listItem?.set?.('listIndex', result.index)
-        listItem?.setDataObject?.(result.dataObject)
-        this.#items[listItem.id] = { dataObject: result.dataObject, listItem }
-        log.green(`Created a new listItem`, { ...result, ...options, listItem })
-        const args = { ...result, listItem }
-        this.emit(event.component.list.CREATE_LIST_ITEM, args)
-      } else {
-        log.red(
-          `Added a dataObject but there was a problem with creating the list ` +
-            `item component`,
-          { result, ...options },
-        )
-      }
-    })
-
-    this.on(event.component.list.DELETE_DATA_OBJECT, (result, options) => {
-      log.func(`on[${event.component.list.DELETE_DATA_OBJECT}]`)
-      const listItem = this.find(
-        (child) => child?.getDataObject?.() === result.dataObject,
-      )
-      if (listItem) this.removeChild(listItem)
-      log.green(`Deleted a listItem`, { ...result, ...options, listItem })
-      const args = { ...result, listItem }
-      this.emit(event.component.list.REMOVE_LIST_ITEM, args)
-    })
-
-    this.on(event.component.list.RETRIEVE_DATA_OBJECT, (result, options) => {
-      log.func(`on[${event.component.list.RETRIEVE_DATA_OBJECT}]`)
-      log.gold(`Retrieved a dataObject`, { result, ...options })
-    })
-
-    this.on(event.component.list.UPDATE_DATA_OBJECT, (result, options) => {
-      log.func(`on[${event.component.list.UPDATE_DATA_OBJECT}]`)
-      const listItem: IListItem | undefined = this.#children[
-        result.index as number
-      ]
-      listItem?.setDataObject?.(result.dataObject)
-      log.green(`Updated dataObject`, { result, ...options })
-      const args = { ...result, listItem }
-      this.emit(event.component.list.UPDATE_LIST_ITEM, args)
-    })
-
-    if (this.get('listObject')) {
-      const listObject = this.get('listObject')
-      if (_.isArray(listObject)) {
-        _.forEach(listObject, (dataObject) => {
-          this.addDataObject(dataObject)
-          log.green(`Saved dataObject`, dataObject)
-        })
-      }
-    }
   }
 
   get iteratorVar() {
@@ -148,6 +86,10 @@ class List extends Component implements IList {
 
   get length() {
     return this.#children.length
+  }
+
+  children() {
+    return this.#children
   }
 
   /**
