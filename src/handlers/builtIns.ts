@@ -87,11 +87,55 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       }
       _.set(dataObject, parts, nextDataValue)
     } else {
+      const onNextValue = (
+        previousValue: any,
+        { updateDraft }: { updateDraft?: { path: string } } = {},
+      ) => {
+        let nextValue: any
+        if (isNOODLBoolean(previousValue)) {
+          nextValue = isBooleanTrue(previousValue) ? false : true
+        }
+        nextValue = !previousValue
+        if (updateDraft) {
+          noodl.editDraft((draft: any) => {
+            _.set(draft, updateDraft.path, nextValue)
+          })
+        }
+        // Propagate the changes to to UI if there is a path "if" object that
+        // references the value as well
+        if (node && _.isObjectLike(path)) {
+          let valEvaluating = path.if?.[0]
+          // If the dataKey is the same as the the value we are evaluating we can
+          // just re-use the nextDataValue
+          if (valEvaluating === dataKey) {
+            valEvaluating = nextValue
+          } else {
+            valEvaluating =
+              _.get(noodl.root, valEvaluating) ||
+              _.get(noodl.root[context?.page?.name || ''], valEvaluating)
+          }
+          newSrc = createSrc(valEvaluating ? path.if?.[1] : path.if?.[2])
+          node.setAttribute('src', newSrc)
+        }
+        return nextValue
+      }
+
       dataObject = noodl.root
+
       if (_.has(noodl.root, dataKey)) {
         dataObject = noodl.root
+        previousDataValue = _.get(dataObject, dataKey)
+        onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
       } else if (_.has(noodl.root[context.page.name], dataKey)) {
         dataObject = noodl.root[context.page.name]
+        previousDataValue = _.get(dataObject, dataKey)
+        onNextValue(previousDataValue, {
+          updateDraft: {
+            path: `${dataKey}${
+              context.page.name ? `.${context.page.name}` : ''
+            }`,
+          },
+        })
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
@@ -99,39 +143,18 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
           { context, dataObject, dataKey },
         )
         dataObject = noodl.root
-        _.set(dataObject, dataKey, false)
+        previousDataValue = undefined
+        nextDataValue = false
+        onNextValue(previousDataValue, {
+          updateDraft: { path: `${dataKey}.${context.page.name || ''}` },
+        })
       }
-      previousDataValue = _.get(dataObject, dataKey)
-      dataValue = previousDataValue
-      if (isNOODLBoolean(dataValue)) {
-        nextDataValue = !isBooleanTrue(dataValue)
-      } else {
-        nextDataValue = !dataValue
-      }
-      _.set(dataObject, dataKey, nextDataValue)
 
-      if (dataKey === 'VideoChat.micOn') {
+      if (/mic/i.test(dataKey)) {
         builtInActions.toggleMicrophoneOnOff?.(action, options)
-      } else if (dataKey === 'VideoChat.cameraOn') {
+      } else if (/camera/i.test(dataKey)) {
         builtInActions.toggleCameraOnOff?.(action, options)
       }
-    }
-
-    // Propagate the changes to to UI if there is a path "if" object that
-    // references the value as well
-    if (node && _.isObjectLike(path)) {
-      let valEvaluating = path.if?.[0]
-      // If the dataKey is the same as the the value we are evaluating we can
-      // just re-use the nextDataValue
-      if (valEvaluating === dataKey) {
-        valEvaluating = nextDataValue
-      } else {
-        valEvaluating =
-          _.get(noodl.root, valEvaluating) ||
-          _.get(noodl.root[context?.page?.name || ''], valEvaluating)
-      }
-      newSrc = createSrc(valEvaluating ? path.if?.[1] : path.if?.[2])
-      node.setAttribute('src', newSrc)
     }
 
     log.grey('', {
