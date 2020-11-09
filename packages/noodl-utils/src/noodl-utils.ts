@@ -1,6 +1,5 @@
 import { isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
 import * as T from './types'
-import { NOODLDOMElement } from '../../noodl-ui-dom/dist'
 
 /**
  * Takes a callback and an "if" object. The callback will receive the three
@@ -81,9 +80,9 @@ export function findNodeInMap<Component extends {} = any>(
  * @param { IComponentTypeInstance } component
  * @param { function } fn
  */
-export function findParent<Component extends { parent?: Function } = any>(
-  component: Component,
-  fn: (parent: Component) => boolean,
+export function findParent<C extends { parent?: Function } = any>(
+  component: C,
+  fn: (parent: C | null) => boolean,
 ) {
   let parent = component.parent?.()
   if (fn(parent)) return parent
@@ -177,12 +176,16 @@ export function isBreakLineTextBoardItem<
 }
 
 export function isTextFieldLike(
-  node: NOODLDOMElement | null,
+  node: unknown,
 ): node is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
   return (
-    node?.tagName === 'INPUT' ||
-    node?.tagName === 'SELECT' ||
-    node?.tagName === 'TEXTAREA'
+    node &&
+    node instanceof HTMLElement &&
+    !!(
+      node.tagName === 'INPUT' ||
+      node.tagName === 'SELECT' ||
+      node.tagName === 'TEXTAREA'
+    )
   )
 }
 

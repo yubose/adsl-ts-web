@@ -6,8 +6,8 @@ import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
 import ActionChain from '../ActionChain'
 import Component from '../components/Base'
+import List from '../components/List'
 import Viewport from '../Viewport'
-import List from 'components/List'
 
 let noodlComponent: NOODLComponent
 let component: IComponent
@@ -59,7 +59,7 @@ describe('noodl-ui', () => {
   })
 
   it('should set the component node', () => {
-    const component = new Component({ type: 'list' }) as IComponentTypeInstance
+    const component = new Component({ type: 'list' })
     expect(noodlui.getNode(component)).to.be.null
     noodlui.setNode(component)
     expect(noodlui.getNode(component)).to.equal(component)
@@ -229,7 +229,7 @@ describe('noodl-ui', () => {
           children: [
             { type: 'button', text: 'hello', style: { fontSize: '14px' } },
             { type: 'label', text: 'my label' },
-            { type: 'list', style: { width: '40px', height: '40px' }
+            { type: 'list', style: { width: '40px', height: '40px' } },
           ],
         })
       },

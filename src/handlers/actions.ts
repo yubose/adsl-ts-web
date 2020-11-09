@@ -183,6 +183,7 @@ const createActions = function ({ page }: { page: IPage }) {
           if (String(dataValues?.phoneNumber).startsWith('888')) {
             import('app/noodl').then(({ default: noodl }) => {
               const pageName = context?.page || ''
+              console.info(pageName)
               const pathToTage = 'verificationCode.response.edge.tage'
               let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
               if (vcode) {

@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Component from '../Base'
-import ListItemChildComponent from './ListItemChild'
 import {
   IComponent,
   IComponentConstructor,
@@ -8,7 +7,6 @@ import {
   IListItem,
   NOODLComponentType,
 } from '../../types'
-import createChild from '../../utils/createChild'
 
 class ListItem<K extends NOODLComponentType = 'listItem'>
   extends Component
@@ -30,8 +28,6 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
       >),
     )
     this['noodlType'] = 'listItem'
-    console.log(this.iteratorVar)
-    console.log(this.get(this.iteratorVar))
     this.setDataObject(this.get(this.iteratorVar))
   }
 
@@ -64,18 +60,15 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     if (key === 'iteratorVar') this['iteratorVar'] = value
     else if (key === 'listId') this['listId'] = value
     else if (key === 'listIndex') this['listIndex'] = value
-    super.set(...args)
+    else super.set(...args)
     return this
   }
 
   createChild<C extends IComponentTypeInstance>(child: C): C {
-    child
-      ?.setParent(this)
-      .set('listId', this.listId)
-      .set('iteratorVar', this.iteratorVar)
+    child?.setParent?.(this)
+    child['listId'] = this.listId
+    child['listIndex'] = this.listIndex
     this.#children.push(child)
-    const blueprint = this.parent()?.blueprint
-    console.log('BLUEPRINT', blueprint)
     return child
   }
 
@@ -86,6 +79,18 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
   setDataObject<T>(data: T) {
     this.#dataObject = data
     return this
+  }
+
+  toJS() {
+    return {
+      ...super.toJS(),
+      children: _.map(this.#children, (child) => child.toJS()),
+      dataObject: this.getDataObject(),
+      listId: this.listId,
+      listIndex: this.listIndex,
+      iteratorVar: this.iteratorVar,
+      style: this.style,
+    }
   }
 }
 

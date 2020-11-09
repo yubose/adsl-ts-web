@@ -11,7 +11,7 @@ export function forEachEntries<Obj extends {}, K extends keyof Obj>(
   callback: (key: string, value: Obj[K]) => void,
 ) {
   if (_.isPlainObject(value)) {
-    _.forEach(_.entries(value), ([k, v]) => callback(k, v as Obj[K]))
+    _.forEach(_.entries(value), _.spread(callback))
   }
 }
 

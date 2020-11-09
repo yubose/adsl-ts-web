@@ -78,9 +78,10 @@ noodluidom.on('create.component', (node, component) => {
         ;(node as HTMLSelectElement)['selectedIndex'] = 0
       }
     } else {
-      node.dataset['value'] = datasetAttribs['data-value'] || ''
+      node.dataset['value'] = node.value || ''
       node['value'] = datasetAttribs['data-value'] || ''
     }
+
     // Attach an additional listener for data-value elements that are expected
     // to change values on the fly by some "on change" logic (ex: input/select elements)
     import('utils/sdkHelpers')

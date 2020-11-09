@@ -5,9 +5,12 @@ import {
   ConsumerOptions,
   IComponent,
   IComponentTypeInstance,
+  IList,
+  IListItem,
   ProxiedComponent,
   ResolverOptions,
 } from '../../types'
+import createChild from '../../utils/createChild'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
 import getListChildren from './list'
@@ -22,12 +25,23 @@ const log = Logger.create('getChildren')
  *  Added index so that react doesn't complain about duplicate keys
  */
 function getChildren(
-  component: IComponent,
+  component: IComponentTypeInstance,
   options: ConsumerOptions & { resolverOptions: ResolverOptions },
 ): void {
   const { resolveComponent, resolverOptions } = options
 
-  const originalChildren = component.original?.children
+  if (component.noodlType === 'list') {
+    const listComponent = component as IList
+    console.log(listComponent.toJS())
+    // const listObject = listComponent.getData()
+    // if (listObject?.length) {
+    // _.forEach(listObject, (dataObject) => {
+    //   const blueprint = listComponent.getBlueprint() as IListItem
+    //   const listItemComponent = listComponent.createChild(blueprint)
+    //   listItemComponent.setDataObject(dataObject)
+    // })
+    // }
+  }
 
   // if (originalChildren) {
   //   _.forEach(

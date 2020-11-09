@@ -12,16 +12,17 @@ import Component from '../components/Base'
  * @param { IComponentType } props
  */
 function createChild<K extends NOODLComponentType>(
-  child: IComponentType,
+  child: IComponentType | undefined,
 ): IComponentTypeInstance<K> | undefined {
   let childComponent: any
   let id: string = `${this.id}`
-  if (this.length >= 1) id += `[${this.length}]`
+  if (this.length) id += `[${this.length}]`
   else id += '[0]'
   if (_.isString(child)) {
-    childComponent = new Component({ type: child })
+    childComponent = new Component({ type: child, id })
   } else if (child instanceof Component) {
     childComponent = child
+    childComponent['id'] = id
   } else {
     if (!child?.type) return
     childComponent = new Component({ ...child, id })

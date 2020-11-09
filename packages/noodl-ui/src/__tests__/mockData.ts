@@ -54,7 +54,7 @@ export const mock = (function () {
       getNOODLLabel2(props?: any) {
         return {
           type: 'label',
-          dataKey: 'itemObject.name.firstName',
+          dataKey: 'itemObject.name.middleName',
           text: 'John',
           style: { left: '0.25' },
           ...props,

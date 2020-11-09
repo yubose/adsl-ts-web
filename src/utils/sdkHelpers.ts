@@ -4,9 +4,9 @@
  * isolate the imports into this file and replace them with stubs in testing
  */
 import _ from 'lodash'
-import { current, Draft } from 'immer'
+import { Draft } from 'immer'
 import Logger from 'logsnap'
-import { getAllByDataKey } from 'noodl-utils'
+import { getAllByDataKey, isTextFieldLike } from 'noodl-utils'
 import noodl from 'app/noodl'
 import noodlui from 'app/noodl-ui'
 
@@ -29,7 +29,6 @@ export function createOnDataValueChangeFn(dataKey: string = '') {
     noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
       if (_.has(draft?.[noodlui.page], dataKey)) {
         _.set(draft?.[noodlui.page], dataKey, value)
-        draft[noodlui.page].formData.phoneNumber = value
         /**
          * EXPERIMENTAL - When a data key from the local root is being updated
          * by a node, update all other nodes that are referencing it.
@@ -42,7 +41,10 @@ export function createOnDataValueChangeFn(dataKey: string = '') {
             // Since select elements have options as children, we should not
             // edit by innerHTML or we would have to unnecessarily re-render the nodes
             if (node.tagName === 'SELECT') {
-              console.log(node)
+              //
+            } else if (isTextFieldLike(node)) {
+              node.dataset['value'] = value
+              node['value'] = value || ''
             } else {
               node.innerHTML = `${value || ''}`
             }

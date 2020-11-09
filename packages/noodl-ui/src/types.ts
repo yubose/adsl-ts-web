@@ -200,6 +200,7 @@ export interface IList<K extends NOODLComponentType = 'list'>
   exists(child: IListItem): boolean
   find(child: string | number | IListItem): IListItem | undefined
   getBlueprint(): IListBlueprint
+  setBlueprint(blueprint: IListBlueprint): this
   getData(opts?: { fromNodes?: boolean }): any[] | null
   addDataObject<DataObject = any>(
     dataObject: DataObject,
@@ -207,10 +208,6 @@ export interface IList<K extends NOODLComponentType = 'list'>
   getDataObject<DataObject>(
     index: number | Function,
   ): IListDataObjectOperationResult<DataObject>
-  // insertDataObject<DataObject>(
-  //   dataObject: DataObject | null,
-  //   index: number,
-  // ): IListDataObjectOperationResult<DataObject>
   removeDataObject<DataObject>(
     dataObject:
       | number
@@ -221,12 +218,6 @@ export interface IList<K extends NOODLComponentType = 'list'>
     index: number | Function,
     dataObject: DataObject | null,
   ): IListDataObjectOperationResult<DataObject>
-  // getDataObject(index: number): any
-  // getDataObject(childId: string): any
-  // getDataObject(child: IComponent): any
-  // setDataObject(index: number, data: any): this
-  // setDataObject(childId: string, data: any): this
-  // setDataObject(child: IListItem, data: any): this
   iteratorVar: string
   listId: string
   length: number
@@ -236,28 +227,17 @@ export interface IList<K extends NOODLComponentType = 'list'>
   find(
     pred: (listItem: IListItem, index: number) => boolean,
   ): IListItem | undefined
-  getBlueprint(): IListBlueprint
-  // emit<DataObject>(
-  //   eventName: IListEventObject['ADD_DATA_OBJECT'],
-  //   result: IListDataObjectOperationResult,
-  //   args: IListDataObjectEventHandlerOptions,
-  // ): this
-  // emit<DataObject>(
-  //   eventName: IListEventObject['DELETE_DATA_OBJECT'],
-  //   result: IListDataObjectOperationResult,
-  //   args: IListDataObjectEventHandlerOptions,
-  // ): this
-  // emit<DataObject>(
-  //   eventName: IListEventObject['RETRIEVE_DATA_OBJECT'],
-  //   result: IListDataObjectOperationResult,
-  //   args: IListDataObjectEventHandlerOptions,
-  // ): DataObject
-  emit<E extends IListEventId>(
+  emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
+  emit<E extends Exclude<IListEventId, 'blueprint'>>(
     eventName: E,
     result: IListDataObjectOperationResult,
     args: IListDataObjectEventHandlerOptions,
   ): this
-  on<E extends IListEventId>(
+  on<E = 'blueprint'>(
+    eventName: E,
+    cb: (blueprint: IListBlueprint) => void,
+  ): this
+  on<E extends Exclude<IListEventId, 'blueprint'>>(
     eventName: E,
     cb: (
       result: IListDataObjectOperationResult,

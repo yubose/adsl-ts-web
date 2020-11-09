@@ -21,7 +21,44 @@ const mockAxios = new MockAxios(axios)
 
 describe('dom', () => {
   describe('component type: list', () => {
-    xit('', () => {
+    it('should have the data-listid attribute', () => {
+      page.render({ type: 'list', listObject: [], iteratorVar: 'hello' })
+      expect(document.querySelector('ul')).to.exist
+      expect(document.querySelector('ul')?.dataset).to.have.property('listid')
+    })
+
+    it('should start with no children if listObject is empty', () => {
+      page.render({
+        type: 'list',
+        listObject: [],
+        iteratorVar: 'hello',
+        children: [{ type: 'listItem' }],
+      })
+      const listElem = document.querySelector('ul') as HTMLUListElement
+      expect(listElem.children).to.have.lengthOf(0)
+    })
+
+    it('should start with some list item childrens if listObject has items', () => {
+      page.render({
+        type: 'list',
+        listObject: [{ fruits: ['apple'] }, { fruits: ['banana'] }],
+        iteratorVar: 'hello',
+        children: [{ type: 'listItem' }],
+      })
+      const listElem = document.querySelector('ul')
+      console.info(prettyDOM())
+      expect(listElem?.children).to.have.lengthOf(2)
+    })
+
+    xit('should append a new list item node if a data object is added', () => {
+      //
+    })
+
+    xit('should remove the corresponding list item node if its dataObject was removed', () => {
+      //
+    })
+
+    xit('should update the corresponding list item node that is referencing the dataObject', () => {
       //
     })
   })
@@ -265,7 +302,7 @@ describe('dom', () => {
       expect(input.value).to.equal('6262465555')
     })
 
-    it('should update the value of dataset.value', () => {
+    xit('should update the value of dataset.value', async () => {
       const dataKey = 'formData.phoneNumber'
       noodlui.setRoot('SignIn', { formData: { phoneNumber: '' } })
       noodlui.setPage('SignIn')
@@ -277,6 +314,7 @@ describe('dom', () => {
       const input = queryByDataKey(document.body, dataKey) as HTMLInputElement
       expect(input.dataset.value).to.eq('')
       userEvent.type(input, '6262465555')
+      console.info(prettyDOM())
       expect(input.dataset.value).to.equal('6262465555')
     })
   })

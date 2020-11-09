@@ -142,6 +142,7 @@ export const event = {
       REMOVE_LIST_ITEM: 'remove.list.item',
       RETRIEVE_LIST_ITEM: 'retrieve.list.item',
       UPDATE_LIST_ITEM: 'update.list.item',
+      BLUEPRINT: 'blueprint',
     },
   },
 } as const

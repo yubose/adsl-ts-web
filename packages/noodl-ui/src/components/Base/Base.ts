@@ -517,7 +517,7 @@ class Component implements IComponent {
    * @param { IComponentType } props
    */
   createChild<C extends IComponentTypeInstance>(child: C): C {
-    child.setParent(this)
+    child?.setParent(this)
     this.#children.push(child)
     return child
   }

@@ -11,15 +11,14 @@ import {
   IListDataObjectEventHandlerOptions,
   IListDataObjectOperationResult,
   ProxiedComponent,
-  NOODLComponentType,
   IComponentTypeInstance,
 } from '../../types'
+import Component from '../Base'
+import createChild from '../../utils/createChild'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
-import createChild from '../../utils/createChild'
 import { event } from '../../constants'
 import { IComponentEventId } from '../../types'
-import Component from '../Base'
 
 const log = Logger.create('List')
 
@@ -38,6 +37,7 @@ class List extends Component implements IList {
     [event.component.list.REMOVE_LIST_ITEM]: Function[]
     [event.component.list.RETRIEVE_LIST_ITEM]: Function[]
     [event.component.list.UPDATE_LIST_ITEM]: Function[]
+    [event.component.list.BLUEPRINT]: Function[]
   } = {
     [event.component.list.ADD_DATA_OBJECT]: [],
     [event.component.list.DELETE_DATA_OBJECT]: [],
@@ -46,7 +46,7 @@ class List extends Component implements IList {
     [event.component.list.CREATE_LIST_ITEM]: [],
     [event.component.list.REMOVE_LIST_ITEM]: [],
     [event.component.list.RETRIEVE_LIST_ITEM]: [],
-    [event.component.list.UPDATE_LIST_ITEM]: [],
+    [event.component.list.BLUEPRINT]: [],
   }
   #items: {
     [listItemId: string]: {
@@ -63,30 +63,41 @@ class List extends Component implements IList {
         IComponentConstructor
       >),
     )
+    // Removes the listItem placeholder that comes in the response
+    this.removeChild()
     // These initial values will be set once in the prototype.
     // When we use .set, we will intercept the call and set them
     // on this instance instead
-    this.#blueprint = this.getBlueprint()
     this.#listId = getRandomKey()
-    this.#listObject = this.get('listObject') as any
     this.#iteratorVar = this.get('iteratorVar') as string
-
-    // super.removeChild()
+    this.setBlueprint(this.getBlueprint())
 
     log.func('constructor')
     log.gold(`Creating list component`, { args, component: this.toJS() })
 
+    this.on(event.component.list.BLUEPRINT, (blueprint) => {
+      this.#blueprint = blueprint
+    })
+
     this.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
       log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
-      const listItem = this.createChild('listItem') as IListItem
-      listItem?.set('listIndex', result.index)
-      listItem?.setDataObject?.(result.dataObject)
-      this.#items[listItem.id] = {
-        dataObject: result.dataObject,
-        listItem,
+      const listItem = this.createChild(
+        createChild.call(this, this.getBlueprint()) as IListItem,
+      )
+      if (listItem) {
+        listItem?.set?.('listIndex', result.index)
+        listItem?.setDataObject?.(result.dataObject)
+        this.#items[listItem.id] = { dataObject: result.dataObject, listItem }
+        log.green(`Created a new listItem`, { ...result, ...options, listItem })
+        const args = { ...result, listItem }
+        this.emit(event.component.list.CREATE_LIST_ITEM, args)
+      } else {
+        log.red(
+          `Added a dataObject but there was a problem with creating the list ` +
+            `item component`,
+          { result, ...options },
+        )
       }
-      log.green(`Created a new listItem`, { ...result, ...options, listItem })
-      this.emit(event.component.list.CREATE_LIST_ITEM, { ...result, listItem })
     })
 
     this.on(event.component.list.DELETE_DATA_OBJECT, (result, options) => {
@@ -96,7 +107,8 @@ class List extends Component implements IList {
       )
       if (listItem) this.removeChild(listItem)
       log.green(`Deleted a listItem`, { ...result, ...options, listItem })
-      this.emit(event.component.list.REMOVE_LIST_ITEM, { ...result, listItem })
+      const args = { ...result, listItem }
+      this.emit(event.component.list.REMOVE_LIST_ITEM, args)
     })
 
     this.on(event.component.list.RETRIEVE_DATA_OBJECT, (result, options) => {
@@ -106,23 +118,22 @@ class List extends Component implements IList {
 
     this.on(event.component.list.UPDATE_DATA_OBJECT, (result, options) => {
       log.func(`on[${event.component.list.UPDATE_DATA_OBJECT}]`)
-      const listItem: IListItem | undefined = this.#children[result.index]
+      const listItem: IListItem | undefined = this.#children[
+        result.index as number
+      ]
       listItem?.setDataObject?.(result.dataObject)
       log.green(`Updated dataObject`, { result, ...options })
-      this.emit(event.component.list.UPDATE_LIST_ITEM, {
-        ...result,
-        listItem,
-      })
+      const args = { ...result, listItem }
+      this.emit(event.component.list.UPDATE_LIST_ITEM, args)
     })
 
-    if (this.#listObject) {
-      if (_.isArray(this.#listObject)) {
-        _.forEach(this.#listObject, (dataObject) => {
+    if (this.get('listObject')) {
+      const listObject = this.get('listObject')
+      if (_.isArray(listObject)) {
+        _.forEach(listObject, (dataObject) => {
           this.addDataObject(dataObject)
           log.green(`Saved dataObject`, dataObject)
         })
-      } else {
-        log.gold(`listObject was unavailable. No data will be set`)
       }
     }
   }
@@ -264,11 +275,6 @@ class List extends Component implements IList {
 
     return { index, dataObject: null, success: false }
   }
-
-  // insertDataObject<DataObject = any>(
-  //   dataObject: DataObject | null,
-  //   index: number,
-  // ) {}
 
   removeDataObject<DataObject>(
     pred: (dataObject: DataObject | null) => boolean,
@@ -475,11 +481,18 @@ class List extends Component implements IList {
     return blueprint
   }
 
+  setBlueprint(newBlueprint: IListBlueprint) {
+    this.#blueprint = newBlueprint
+    this.emit(event.component.list.BLUEPRINT, newBlueprint)
+    return this
+  }
+
   createChild<C extends IComponentTypeInstance>(child: C) {
     if (child?.noodlType === 'listItem') {
       forEachEntries(this.getBlueprint(), (k, v) => child.set(k, v))
       child.setParent(this)
       this.#children.push(child as IListItem)
+      child['listIndex'] = this.length - 1
     }
     return child
   }
@@ -535,7 +548,11 @@ class List extends Component implements IList {
     return this
   }
 
-  on<E extends IListEventId>(
+  on<E = 'blueprint'>(
+    eventName: E,
+    cb: (blueprint: IListBlueprint) => void,
+  ): this
+  on<E extends Exclude<IListEventId, 'blueprint'>>(
     eventName: E | string,
     cb: (
       result: IListDataObjectOperationResult,
@@ -544,10 +561,12 @@ class List extends Component implements IList {
   ): this
   on<E extends IListEventId>(
     eventName: E | IComponentEventId,
-    cb: (
-      result: IListDataObjectOperationResult,
-      args: IListDataObjectEventHandlerOptions,
-    ) => void,
+    cb:
+      | ((blueprint: IListBlueprint) => void)
+      | ((
+          result: IListDataObjectOperationResult,
+          args: IListDataObjectEventHandlerOptions,
+        ) => void),
   ) {
     if (eventName !== 'resolved' && eventName in this.#cb) {
       if (this.#cb[eventName].includes(cb)) {
@@ -579,26 +598,11 @@ class List extends Component implements IList {
     return this
   }
 
-  // TODO - finish this
-  emit<DataObject>(
-    eventName: IListEventObject['ADD_DATA_OBJECT'],
+  emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
+  emit<E extends Exclude<IListEventId, 'blueprint'>>(
+    eventName: E,
     result: IListDataObjectOperationResult,
-    options: IListDataObjectEventHandlerOptions,
-  ): this
-  emit(
-    eventName: IListEventObject['DELETE_DATA_OBJECT'],
-    result: IListDataObjectOperationResult,
-    options: IListDataObjectEventHandlerOptions,
-  ): this
-  emit<DataObject>(
-    eventName: IListEventObject['RETRIEVE_DATA_OBJECT'],
-    result: IListDataObjectOperationResult,
-    options: IListDataObjectEventHandlerOptions,
-  ): this
-  emit(
-    eventName: IListEventObject['UPDATE_DATA_OBJECT'],
-    result: IListDataObjectOperationResult,
-    options: IListDataObjectEventHandlerOptions,
+    args: IListDataObjectEventHandlerOptions,
   ): this
   emit<Args extends any[]>(eventName: IListEventId, ...args: Args) {
     if (eventName in this.#cb) {
@@ -607,6 +611,19 @@ class List extends Component implements IList {
       // TODO emit in Component
     }
     return this
+  }
+
+  toJS() {
+    return {
+      ...super.toJS(),
+      blueprint: this.getBlueprint(),
+      children: _.map(this.#children, (child) => child.toJS()),
+      listId: this.listId,
+      listItemCount: this.length,
+      listObject: this.#listObject,
+      iteratorVar: this.iteratorVar,
+      style: this.style,
+    }
   }
 
   #getDataObjectHandlerOptions = (): IListDataObjectEventHandlerOptions => ({
