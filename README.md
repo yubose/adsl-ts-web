@@ -1,12 +1,13 @@
 # AiTmed NOODL Web
 
 #update to use latest aitmed/cadl sdk
+
 # added by Austin Yu 10/23/2020
+
 npm install @aitmed/cadl@latest
 git add .
 git commit -a -m "update aitmed sdk"
 git push
-
 
 ## All noodl-ui related packages are now merged into this repo and managed by [lerna](https://github.com/lerna/lerna)
 
@@ -111,3 +112,15 @@ This allows for faster compilation, faster load times and quicker development fl
    - requesting: `MeetingDocumentsShared`
 5. (onStart) rendering DOM for `MeetingDocumentsShared`
 6. (onBeforePageRender) rendering components
+
+## Twilio SID mapping
+
+| sid | name |
+| --- | ---- |
+
+
+PA9211e55522d08dd12bff0cb845cd9d6f | 8882465555 (Laptop - main)
+PA66a90e64872904394caf2891b69880f0 | 8882468491 (Laptop - 2nd)
+PA15c1e191d9ad973fb473c12c471a3882 | 8882468491
+PA0e4bd0e3c2d8bc33b7c372f83320084c | 8882468491
+PAc1893f64325658d1acec25e99a158da7 | 8882462345 (Desktop)

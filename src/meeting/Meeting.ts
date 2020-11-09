@@ -71,6 +71,10 @@ const Meeting = (function () {
             },
           },
         })
+        console.log(room)
+        console.log(room)
+        console.log(room)
+        console.log(room)
         _internal['_room'] = room
         // TEMPORARY
         setTimeout(() => {
@@ -84,6 +88,8 @@ const Meeting = (function () {
     },
     /** Disconnects from the room */
     leave() {
+      log.func('leave')
+      log.red(`LEAVING MEETING ROOM`, new Error('test').stack)
       if (_internal._room?.state) {
         const unpublishTracks = (
           trackPublication:

@@ -267,8 +267,7 @@ class ActionChain {
                 // TODO: This will be deprecated in favor of passing this.abort
                 if (result === 'abort') {
                   iterator = await this.abort(
-                    `"abort" was called from an action with actionType: "${
-                      action?.type
+                    `"abort" was called from an action with actionType: "${action?.type
                     }". ${JSON.stringify(action)}`,
                   )
                 } else if (_.isPlainObject(result)) {
@@ -387,7 +386,7 @@ class ActionChain {
             `Aborted action of type ${action?.type || '<Missing action type>'}`,
             action,
           )
-        } catch (error) {}
+        } catch (error) { }
       }
     }
     // This will return an object like { value, done: true }
