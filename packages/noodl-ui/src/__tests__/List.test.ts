@@ -38,6 +38,12 @@ describe('List', () => {
           expect(child.listIndex).to.equal(index + 122),
         )
     })
+
+    it('should start with no children (removes the listItem placeholder)', () => {
+      const component = new List({ type: 'list', listObject: [] })
+      expect(component).to.have.lengthOf(0)
+      expect(component.children()).to.have.lengthOf(0)
+    })
   })
 
   describe('when putting the blueprint together', () => {
@@ -183,7 +189,7 @@ describe('List', () => {
 
   describe('when working with the DOM', () => {
     it('should start with no children if listObject is empty', () => {
-      const { component, node } = toDOM({
+      toDOM({
         type: 'list',
         listObject: [],
         iteratorVar: 'hello',
@@ -192,18 +198,18 @@ describe('List', () => {
       console.info(prettyDOM())
     })
 
-    xit('should start with some list item childrens if listObject has items', () => {
-      page.render({
-        type: 'list',
-        listObject: [{ fruits: ['apple'] }, { fruits: ['banana'] }],
-        iteratorVar: 'hello',
-        children: [{ type: 'listItem' }],
-      })
-      const listElem = document.querySelector('ul')
-      const listItemElems = document.querySelectorAll('li')
-      console.info(prettyDOM())
-      expect(listItemElems).to.have.lengthOf(2)
-    })
+    // xit('should start with some list item childrens if listObject has items', () => {
+    //   page.render({
+    //     type: 'list',
+    //     listObject: [{ fruits: ['apple'] }, { fruits: ['banana'] }],
+    //     iteratorVar: 'hello',
+    //     children: [{ type: 'listItem' }],
+    //   })
+    //   const listElem = document.querySelector('ul')
+    //   const listItemElems = document.querySelectorAll('li')
+    //   console.info(prettyDOM())
+    //   expect(listItemElems).to.have.lengthOf(2)
+    // })
 
     xit('should append a new list item node if a data object is added', () => {
       //

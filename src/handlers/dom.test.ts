@@ -70,6 +70,7 @@ describe('dom', () => {
         iteratorVar: 'hello',
         children: [{ type: 'listItem' }],
       })
+      console.info(prettyDOM())
       const listElem = document.querySelector('ul') as HTMLUListElement
       expect(listElem.children).to.have.lengthOf(0)
     })

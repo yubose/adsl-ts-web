@@ -519,8 +519,10 @@ class Component implements IComponent {
   createChild<C extends IComponentTypeInstance>(child: C): C {
     child?.setParent(this)
     this.#children.push(child)
+
     return child
   }
+
 
   /**
    * Returns true if the child exists in the tree

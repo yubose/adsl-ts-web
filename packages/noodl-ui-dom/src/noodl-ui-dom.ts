@@ -52,15 +52,21 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           }
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
-          component.children().forEach((child: IComponentTypeInstance) => {
-            const childNode = this.parse(child, node)
-            if (childNode) node?.appendChild(childNode)
-            if (child.length) {
-              child
-                .children()
-                .forEach((innerChild) => this.parse(innerChild, childNode))
-            }
-          })
+
+          if (component.length) {
+            component.children().forEach((child: IComponentTypeInstance) => {
+              const childNode = this.parse(child, node)
+              if (childNode) node?.appendChild(childNode)
+              // if (child.length) {
+              //   child.children().forEach((innerChild) => {
+              //     this.parse(innerChild, childNode)
+              //     if (innerChild.noodlType === 'listItem') {
+              //       console.log('Found listItem', innerChild)
+              //     }
+              //   })
+              // }
+            })
+          }
         }
       }
     }

@@ -88,8 +88,8 @@ export function findParent<C extends { parent?: Function } = any>(
   if (fn(parent)) return parent
   if (parent) {
     while (parent) {
+      parent = parent.parent?.()
       if (fn(parent)) return parent
-      parent = parent.parent()
     }
   }
   return parent || null

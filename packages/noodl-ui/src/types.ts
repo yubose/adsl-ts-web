@@ -193,9 +193,8 @@ export type IComponentTypeObject =
   | NOODLComponentProps
   | ProxiedComponent
 
-export interface IList<K extends NOODLComponentType = 'list'>
-  extends IComponent {
-  noodlType: K
+export interface IList extends IComponent {
+  noodlType: 'list'
   children(): IListItem[]
   exists(childId: string): boolean
   exists(child: IListItem): boolean
@@ -229,6 +228,7 @@ export interface IList<K extends NOODLComponentType = 'list'>
     pred: (listItem: IListItem, index: number) => boolean,
   ): IListItem | undefined
   emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
+  emit<E = 'redraw'>(eventName: E): this
   emit<E extends Exclude<IListEventId, 'blueprint'>>(
     eventName: E,
     result: IListDataObjectOperationResult,
@@ -238,6 +238,7 @@ export interface IList<K extends NOODLComponentType = 'list'>
     eventName: E,
     cb: (blueprint: IListBlueprint) => void,
   ): this
+  on<E = 'redraw'>(): this
   on<E extends Exclude<IListEventId, 'blueprint'>>(
     eventName: E,
     cb: (
@@ -247,23 +248,9 @@ export interface IList<K extends NOODLComponentType = 'list'>
   ): this
 }
 
-export type IListListObject = ReturnType<IList['getData']>
-
 export type IListBlueprint = Partial<ProxiedComponent> & {
   listId: string
   iteratorVar: string
-}
-
-export type IListBlueprintCommonProps = Pick<
-  IListBlueprint,
-  'listId' | 'iteratorVar'
->
-
-export interface IListHandleBlueprintProps extends IListBlueprintCommonProps {
-  baseBlueprint: IListBlueprint
-  listObject: any[] | null
-  nodes: IListItem[]
-  raw: ProxiedComponent
 }
 
 export interface IListDataObjectOperationResult<DataObject = any> {
@@ -281,14 +268,21 @@ export interface IListDataObjectEventHandlerOptions {
   nodes: IListItem[]
 }
 
-export interface IListItem<T extends NOODLComponentType = 'listItem'>
-  extends IComponent {
-  noodlType: T
+export interface IListItem<DataObject> extends IComponent {
+  noodlType: 'listItem'
   listId: string
-  listIndex: null | number
+  listIndex: number | null
   iteratorVar: string
-  getDataObject(): any
-  setDataObject<T>(data: T): this
+  getDataObject(): DataObject | undefined
+  setDataObject(data: DataObject): this
+  redraw(): this
+  toJS(): {
+    children: IComponentTypeInstance[]
+    dataObject: DataObject
+    listId: string
+    listIndex: number
+    iteratorVar: string
+  }
 }
 
 export interface IListItemChild<K extends NOODLComponentType>

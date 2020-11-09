@@ -1,5 +1,6 @@
 import Resolver from '../../Resolver'
 import handleList from './handleList'
+import handleListItem from './handleListItem'
 
 /**
  * These resolvers are used internally by the lib. They handle all the logic
@@ -11,6 +12,8 @@ const _internalResolver = new Resolver()
 _internalResolver.setResolver((component, options) => {
   if (component.noodlType === 'list') {
     handleList(component, options)
+  } else if (component.noodlType === 'listItem') {
+    handleListItem(component, options)
   }
 })
 

@@ -283,12 +283,6 @@ noodluidom.on<'list'>(
       (result, options) => {
         log.func(`create.list[${noodluiEvent.component.list.CREATE_LIST_ITEM}]`)
         log.grey('', { ...result, ...options })
-        console.info('HELLO WE ARE IN CREATE.LIST')
-        console.info('HELLO WE ARE IN CREATE.LIST')
-        console.info('HELLO WE ARE IN CREATE.LIST')
-        console.info('HELLO WE ARE IN CREATE.LIST')
-        console.info('HELLO WE ARE IN CREATE.LIST')
-        console.info('HELLO WE ARE IN CREATE.LIST')
         const { listItem } = result
         const childNode = noodluidom.parse(listItem)
         log.gold(
@@ -366,10 +360,10 @@ noodluidom.on<'list'>(
 
 noodluidom.on('create.list.item', (node, component) => {
   log.func('create.list.item')
-  log.gold('Entered listItem node/component', {
-    node,
-    component: component.toJS(),
-  })
+  // log.gold('Entered listItem node/component', {
+  //   node,
+  //   component: component.toJS(),
+  // })
 })
 
 // /** NOTE: node is null in this handler */

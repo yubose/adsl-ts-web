@@ -14,7 +14,6 @@ import {
   IComponentTypeInstance,
 } from '../../types'
 import Component from '../Base'
-import createChild from '../../utils/createChild'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
 import { event } from '../../constants'
@@ -38,6 +37,7 @@ class List extends Component implements IList {
     [event.component.list.RETRIEVE_LIST_ITEM]: Function[]
     [event.component.list.UPDATE_LIST_ITEM]: Function[]
     [event.component.list.BLUEPRINT]: Function[]
+    [event.component.list.REDRAW]: Function[]
   } = {
     [event.component.list.ADD_DATA_OBJECT]: [],
     [event.component.list.DELETE_DATA_OBJECT]: [],
@@ -47,6 +47,7 @@ class List extends Component implements IList {
     [event.component.list.REMOVE_LIST_ITEM]: [],
     [event.component.list.RETRIEVE_LIST_ITEM]: [],
     [event.component.list.BLUEPRINT]: [],
+    [event.component.list.REDRAW]: [],
   }
   #items: {
     [listItemId: string]: {
@@ -64,11 +65,12 @@ class List extends Component implements IList {
       >),
     )
     // Removes the listItem placeholder that comes in the response.
-    this.removeChild()
+    // this.removeChild()
     // These initial values will be set once in the prototype.
     // When we use .set, we will intercept the call and set them
     // on this instance instead
     this.#listId = getRandomKey()
+    this.#listObject = this.get('listObject')
     this.#iteratorVar = this.get('iteratorVar')
     this.setBlueprint(this.getBlueprint())
 
@@ -373,7 +375,7 @@ class List extends Component implements IList {
   getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {
     return (
       (fromNodes
-        ? this.#children.map((c) => c.get(this.iteratorVar))
+        ? this.#children.map((c) => c.getDataObject?.())
         : this.#listObject) || null
     )
   }
@@ -430,12 +432,10 @@ class List extends Component implements IList {
   }
 
   createChild<C extends IComponentTypeInstance>(child: C) {
-    if (child?.noodlType === 'listItem') {
-      forEachEntries(this.getBlueprint(), (k, v) => child.set(k, v))
-      child.setParent(this)
-      this.#children.push(child as IListItem)
-      child['listIndex'] = this.length - 1
-    }
+    forEachEntries(this.getBlueprint(), (k, v) => child.set(k, v))
+    this.#children.push(child)
+    child['listIndex'] = this.length - 1
+    child.setParent(this)
     return child
   }
 
@@ -475,21 +475,19 @@ class List extends Component implements IList {
 
     if (key === 'listObject') {
       // Refresh holdings of the list item data / children
-      const listObject = value
-      this.#listObject = listObject
-      return this
+      this.#listObject = value
     } else if (key === 'listId') {
       this.#listId = value
-      return this
     } else if (key === 'iteratorVar') {
       this.#iteratorVar = value
-      return this
+    } else {
+      super.set(key as string, value)
     }
 
-    super.set(key as string, value)
     return this
   }
 
+  on<E = 'redraw'>(): this
   on<E = 'blueprint'>(
     eventName: E,
     cb: (blueprint: IListBlueprint) => void,
@@ -541,6 +539,7 @@ class List extends Component implements IList {
   }
 
   emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
+  emit<E = 'redraw'>(eventName: E): this
   emit<E extends Exclude<IListEventId, 'blueprint'>>(
     eventName: E,
     result: IListDataObjectOperationResult,

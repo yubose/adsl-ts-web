@@ -130,11 +130,7 @@ class NOODL implements T.INOODLUi {
     const component = createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
 
-    let parent: T.IComponentTypeInstance | null = null
-
     component.assignStyles(this.getBaseStyles(component.original.style))
-
-    parent = component.parent()
 
     if (!component.id) component['id'] = _.uniqueId()
 
@@ -145,7 +141,7 @@ class NOODL implements T.INOODLUi {
     // Finalizing
     const { style } = component
     if (_.isObject(style)) {
-      forEachDeepEntries(style, (key, value) => {
+      forEachDeepEntries(style, (key, value: string) => {
         if (_.isString(value)) {
           if (value.startsWith('0x')) {
             component.set('style', key, formatColor(value))
@@ -159,7 +155,7 @@ class NOODL implements T.INOODLUi {
     }
 
     if (!this.#state.nodes.has(component)) {
-      this.#state.nodes.set(component, component)
+      // this.#state.nodes.set(component, component)
     }
 
     _.forEach(this.#resolvers, (r: T.IResolver) => {
@@ -170,17 +166,21 @@ class NOODL implements T.INOODLUi {
 
     this.emit('afterResolve', component, consumerOptions)
 
-    if (_.isArray(originalChildren)) {
-      _.forEach(originalChildren, (noodlChild) => {
-        if (noodlChild) {
-          const child = this.resolveComponents(noodlChild)
-          component.createChild(createChild.call(this, child))
+    if (component.noodlType !== 'list') {
+      if (_.isArray(originalChildren)) {
+        _.forEach(originalChildren, (noodlChild) => {
+          if (noodlChild) {
+            component.createChild(
+              this.resolveComponents(createChild.call(this, noodlChild)),
+            )
+          }
+        })
+      } else {
+        if (originalChildren) {
+          component.createChild(
+            this.resolveComponents(createChild.call(this, originalChildren)),
+          )
         }
-      })
-    } else {
-      if (originalChildren) {
-        const child = this.resolveComponents(originalChildren)
-        component.createChild(createChild.call(this, child))
       }
     }
 

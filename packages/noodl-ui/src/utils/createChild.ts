@@ -5,6 +5,7 @@ import {
   NOODLComponentType,
 } from '../types'
 import Component from '../components/Base'
+import createComponent from './createComponent'
 
 /**
  * Creates and appends the new child instance to the childrens list
@@ -19,13 +20,13 @@ function createChild<K extends NOODLComponentType>(
   if (this.length) id += `[${this.length}]`
   else id += '[0]'
   if (_.isString(child)) {
-    childComponent = new Component({ type: child, id })
+    childComponent = createComponent({ type: child, id })
   } else if (child instanceof Component) {
     childComponent = child
     childComponent['id'] = id
   } else {
     if (!child?.type) return
-    childComponent = new Component({ ...child, id })
+    childComponent = createComponent({ ...child, id })
   }
   // Resync the child's id to match the parent's id. This can possibly be the
   // case when we're re-rendering and choose to pass in existing component

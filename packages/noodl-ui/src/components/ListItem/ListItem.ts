@@ -16,6 +16,7 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
   #listId: string = ''
   #listIndex: null | number = null
   #iteratorVar: string = ''
+  #cb = { redraw: [] }
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -27,8 +28,14 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
         IComponentConstructor
       >),
     )
-    this['noodlType'] = 'listItem'
-    this.setDataObject(this.get(this.iteratorVar))
+  }
+
+  children() {
+    return this.#children
+  }
+
+  get length() {
+    return this.#children.length
   }
 
   get listId() {
@@ -91,6 +98,15 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
       iteratorVar: this.iteratorVar,
       style: this.style,
     }
+  }
+
+  on<E = 'redraw'>(eventName: E, cb) {
+    if (eventName === 'redraw') this.#cb.redraw.push(cb)
+    return this
+  }
+
+  emit<E = 'redraw'>(eventName: E, ...args: any[]) {
+    _.forEach(this.#cb[eventName] || [], (fn) => fn(...args))
   }
 }
 

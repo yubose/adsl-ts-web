@@ -8,7 +8,7 @@ const log = Logger.create('internal[handleList]')
 
 const handleListInternalResolver = (function (): ResolverFn {
   let _state = {
-    initiated: false,
+    lists: {},
   }
 
   return (component: IList, options) => {
@@ -26,27 +26,35 @@ const handleListInternalResolver = (function (): ResolverFn {
       log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
       const listItem = component.createChild(
-        resolveComponent(createChild.call(component, component.getBlueprint())),
+        resolveComponent(component.getBlueprint()),
       ) as IListItem
-      listItem.setParent(component)
-      log.gold('ADD_DATA_OBJECT', { listItem, ...result })
 
-      const logArgs = { ...result, listItem }
+      listItem.setParent(component)
+
+      log.gold('ADD_DATA_OBJECT', { listItem, ...result })
 
       if (listItem) {
         listItem.set('listIndex', result.index)
-        listItem.setDataObject?.(result.dataObject)
+        listItem.setDataObject(result.dataObject)
         // TODO - Decide to keep component implementation
         // component.#items[listItem.id] = { dataObject: result.dataObject, listItem }
+        const logArgs = { ...result, listItem }
         log.green(`Created a new listItem`, logArgs)
         component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
       } else {
         log.red(
           `Added a dataObject but there was a problem with creating the list ` +
             `item component`,
-          logArgs,
+          { ...result, listItem },
         )
       }
+
+      listItem.on('redraw', () => {
+        // resolveComponent(listItem)
+        console.log('REDRAWED', listItem)
+      })
+
+      listItem.emit('redraw')
     })
 
     // Removes list items when their data object is removed
@@ -82,14 +90,14 @@ const handleListInternalResolver = (function (): ResolverFn {
     })
 
     // Initiate the component
-    if (!_state.initiated) {
+    if (!_state[component.id]?.initiated) {
       log.grey(`Initiating list internal resolver's listObject`, {
         component: component.toJS(),
         listObject,
         ...options,
       })
 
-      listObject = component.get('listObject') || []
+      listObject = component.getData() || []
 
       if (listObject.length) {
         _.forEach(listObject, (dataObject) => {
@@ -98,7 +106,7 @@ const handleListInternalResolver = (function (): ResolverFn {
         })
       }
 
-      _state['initiated'] = true
+      _state[component.id] = { initiated: true }
     } else {
       console.info(
         `List internal resolver's listObject was already instantiated`,
