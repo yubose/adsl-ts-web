@@ -17,6 +17,7 @@ import {
   forEachDeepEntries,
   forEachEntries,
   formatColor,
+  getRandomKey,
   hasLetter,
 } from './utils/common'
 import createComponent from './utils/createComponent'
@@ -64,7 +65,7 @@ class NOODL implements T.INOODLUi {
     ),
   }
   #parser: T.RootsParser
-  #resolvers: Resolver[] = [_internalResolver]
+  #resolvers: Resolver[] = []
   #root: { [key: string]: any } = {}
   #state: T.INOODLUiState
   #viewport: T.IViewport
@@ -109,49 +110,66 @@ class NOODL implements T.INOODLUi {
   resolveComponents(
     components: T.IComponentType | T.IComponentType[] | T.Page['object'],
   ) {
+    let resolvedComponents: T.IComponentTypeInstance[] = []
+
     if (components) {
       if (components instanceof Component) {
-        return this.#resolve(components)
+        resolvedComponents = resolvedComponents.concat(
+          this.#resolve(components),
+        )
       } else if (!_.isArray(components) && _.isObject(components)) {
         if ('components' in components) {
-          return _.map(components.components, (c: T.IComponentType) =>
-            this.#resolve(c),
+          resolvedComponents = resolvedComponents.concat(
+            _.map(components.components, (c: T.IComponentType) =>
+              this.#resolve(c),
+            ),
           )
         } else {
-          return this.#resolve(components)
+          resolvedComponents = resolvedComponents.concat(
+            this.#resolve(components),
+          )
         }
       } else if (_.isArray(components)) {
-        return _.map(components as T.IComponentType[], (c) => this.#resolve(c))
+        resolvedComponents = resolvedComponents.concat(
+          _.map(components as T.IComponentType[], (c) => this.#resolve(c)),
+        )
       } else if (_.isString(components)) {
-        return this.#resolve(components)
+        resolvedComponents = resolvedComponents.concat(
+          this.#resolve(components),
+        )
       }
     }
-    return null
+
+    // Finish off with the internal resolvers to handle the children
+    _.forEach(resolvedComponents, (c) => {
+      _internalResolver.resolve(c, this.getConsumerOptions({ component: c }))
+    })
+
+    return _.isArray(components) ? resolvedComponents : resolvedComponents[0]
   }
 
-  #resolve = (c: T.IComponentType) => {
-    const component = createComponent(c as any)
+  #resolve = (
+    c: T.NOODLComponentType | T.IComponentTypeInstance | T.IComponentTypeObject,
+  ) => {
+    const component = createComponent(c)
     const consumerOptions = this.getConsumerOptions({ component })
+    const baseStyles = this.getBaseStyles(component.original.style)
 
-    component.assignStyles(this.getBaseStyles(component.original.style))
+    component.assignStyles(baseStyles)
+    component['id'] = component.id || getRandomKey()
 
-    if (!component.id) component['id'] = _.uniqueId()
-
-    if (this.page && this.parser.getLocalKey() !== this.page) {
+    if (this.parser.getLocalKey() !== this.page) {
       this.parser.setLocalKey(this.page)
     }
 
     // Finalizing
-    const { style } = component
-    if (_.isObject(style)) {
-      forEachDeepEntries(style, (key, value: string) => {
+    if (_.isObject(component.style)) {
+      forEachDeepEntries(component.style, (key, value: string) => {
         if (_.isString(value)) {
           if (value.startsWith('0x')) {
             component.set('style', key, formatColor(value))
           } else if (/(fontsize|borderwidth|borderradius)/i.test(key)) {
-            if (!hasLetter(value)) {
-              component.set('style', key, `${value}px`)
-            }
+            if (!hasLetter(value)) component.set('style', key, `${value}px`)
           }
         }
       })
@@ -161,29 +179,11 @@ class NOODL implements T.INOODLUi {
       // this.#state.nodes.set(component, component)
     }
 
-    _.forEach(this.#resolvers, (r: T.IResolver) => {
-      r.resolve(component, consumerOptions)
-    })
-
-    const originalChildren = component.original?.children
+    _.forEach(this.#resolvers, (r: T.IResolver) =>
+      r.resolve(component, consumerOptions),
+    )
 
     this.emit('afterResolve', component, consumerOptions)
-
-    if (_.isArray(originalChildren)) {
-      _.forEach(originalChildren, (noodlChild) => {
-        if (noodlChild) {
-          component.createChild(
-            this.resolveComponents(createChild.call(this, noodlChild)),
-          )
-        }
-      })
-    } else {
-      if (originalChildren) {
-        component.createChild(
-          this.resolveComponents(createChild.call(this, originalChildren)),
-        )
-      }
-    }
 
     return component
   }
@@ -380,7 +380,7 @@ class NOODL implements T.INOODLUi {
     return {
       context: this.getContext(),
       parser: this.parser,
-      resolveComponent: this.resolveComponents.bind(this),
+      resolveComponent: this.#resolve.bind(this),
       ...this.getStateGetters(),
       ...this.getStateSetters(),
       ...include,
@@ -392,7 +392,7 @@ class NOODL implements T.INOODLUi {
       context: this.getContext(),
       createActionChainHandler: this.createActionChainHandler.bind(this),
       createSrc: this.createSrc.bind(this),
-      resolveComponent: this.resolveComponents.bind(this),
+      resolveComponent: this.#resolve.bind(this),
       parser: this.parser,
       showDataKey: this.#state.showDataKey,
       ...this.getStateGetters(),

@@ -32,6 +32,7 @@ This allows for faster compilation, faster load times and quicker development fl
 
 ## Todos
 
+- images with an empty `src` attribute showing the "special" border. disable it or make it invisible in `stable` env
 - config `testpage` --> `PatientChartGeneralInfo` = the emit/redraw syntax
 - routing for android/ios page jump
 - viewport top in yml not implemented

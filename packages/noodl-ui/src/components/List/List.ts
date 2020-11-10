@@ -386,7 +386,7 @@ class List extends Component implements IList {
   createChild<C extends IComponentTypeInstance>(child: C) {
     forEachEntries(this.getBlueprint(), (k, v) => child.set(k, v))
     this.#children.push(child)
-    child['listIndex'] = this.length - 1
+    child['listIndex'] = this.#children.indexOf(child)
     child.setParent(this)
     return child
   }

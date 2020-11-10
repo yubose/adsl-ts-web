@@ -64,6 +64,8 @@ class Component implements IComponent {
     if (_.isPlainObject(this.#component.style)) {
       this.#stylesUnhandled = _.keys(this.#component.style)
       this['stylesUntouched'] = this.#stylesUnhandled.slice()
+    } else if (isDraft(this.#component.style)) {
+      // this.#component.style = current(this.#component.style)
     }
 
     // Immer proxies these actions objects. Since we need this to be
@@ -524,7 +526,7 @@ class Component implements IComponent {
    * @param { IComponentType } props
    */
   createChild<C extends IComponentTypeInstance>(child: C): C {
-    child?.setParent(this)
+    child?.setParent?.(this)
     this.#children.push(child)
     return child
   }
@@ -580,11 +582,6 @@ class Component implements IComponent {
 
   children() {
     return this.#children || []
-  }
-
-  createEnhancement<T extends IComponentTypeInstance<any>>(fn: (c: T) => T) {
-    this.#enhancers.push(fn)
-    return this
   }
 
   get length() {

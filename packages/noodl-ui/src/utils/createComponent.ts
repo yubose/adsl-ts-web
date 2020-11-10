@@ -11,6 +11,7 @@ import {
 import ListComponent from '../components/List/List'
 import ListItemComponent from '../components/ListItem/ListItem'
 import Component from '../components/Base'
+import { forEachEntries } from './common'
 
 /**
  * A helper/utility to create Component instances corresponding to their NOODL
@@ -44,6 +45,9 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   }
   // IComponentInstanceType
   else if (props instanceof Component) {
+    if (options && _.isPlainObject(options)) {
+      forEachEntries(options, (k, v) => props.set(k, v))
+    }
     return props as IComponentTypeInstance<K>
   }
   // IComponentObjectType
@@ -52,7 +56,7 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
     args = { ...props, ...options }
   }
 
-  switch (noodlType) {
+  switch (noodlType || props.type) {
     case 'list':
       return new ListComponent(args) as IList<'list'>
     case 'listItem':

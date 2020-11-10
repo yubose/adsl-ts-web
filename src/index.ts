@@ -6,7 +6,6 @@ import {
 import Logger from 'logsnap'
 import {
   ActionChainActionCallback,
-  BuiltIn,
   getByDataUX,
   getElementType,
   getAlignAttrs,

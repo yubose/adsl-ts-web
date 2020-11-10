@@ -6,6 +6,7 @@ import {
   IComponentTypeInstance,
   NOODLComponentProps,
   NOODLTextBoardBreakLine,
+  IComponentType,
 } from '../types'
 import { isBrowser } from './common'
 
@@ -13,36 +14,36 @@ import { isBrowser } from './common'
  * Deeply traverses all children down the component's family tree
  * @param { IComponentTypeInstance | NOODLComponent | NOODLComponentProps | ProxiedComponent } component
  */
-// @ts-expect-error
 export function forEachDeepChildren<C extends IComponentTypeInstance>(
   component: C,
-  cb: (child: IComponentTypeInstance) => void,
+  cb: (component: C, child: IComponentType) => void,
 ): void
 export function forEachDeepChildren<C extends IComponentTypeObject>(
   component: C,
-  cb: (child: IComponentTypeObject) => void,
+  cb: (component: C, child: IComponentType) => void,
 ): void
 export function forEachDeepChildren<
   C extends IComponentTypeInstance | IComponentTypeObject
 >(
   component: C,
-  cb: <Child extends IComponentTypeInstance | IComponentTypeObject>(
-    child: Child,
+  cb: (
+    parent: IComponentTypeInstance | IComponentTypeObject,
+    child: IComponentType,
   ) => void,
 ): void {
   if (component) {
     if (_.isArray(component.children)) {
       _.forEach(component.children, (child) => {
-        cb(child)
+        cb(component, child)
         forEachDeepChildren(child, cb)
       })
     } else if (_.isFunction(component.children)) {
       _.forEach(component.children(), (child) => {
-        cb(child)
+        cb(component, child)
         forEachDeepChildren(child, cb)
       })
     } else if (component.children) {
-      cb(component.children as IComponentTypeInstance | IComponentTypeObject)
+      cb(component, component.children as IComponentType)
     }
   }
 }

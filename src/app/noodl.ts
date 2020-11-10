@@ -16,7 +16,7 @@ const TESTPAGE = getConfigEndpoint('testpage')
 const noodl = new NOODL({
   aspectRatio: 3,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: TESTPAGE,
+  configUrl: MEET2D_CONFIG,
   // configUrl: getConfigEndpoint('meet'),
 })
 

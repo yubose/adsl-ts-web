@@ -1,3 +1,9 @@
+import {
+  IComponentTypeObject,
+  IComponentTypeInstance,
+  IComponentType,
+  IComponent,
+} from 'noodl-ui'
 import { isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
 import * as T from './types'
 
@@ -173,6 +179,13 @@ export function isBreakLineTextBoardItem<
   T extends { br: any } = { br: string }
 >(value: unknown): value is 'br' | T {
   return isBreakLine(value) || isBreakLineObject(value)
+}
+
+export function isComponentInstance(
+  component: any,
+): component is IComponentTypeInstance {
+  return (typeof component === 'object' &&
+    typeof component?.children === 'function') as boolean
 }
 
 export function isTextFieldLike(

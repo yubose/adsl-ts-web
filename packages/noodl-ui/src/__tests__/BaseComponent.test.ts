@@ -3,6 +3,7 @@ import sinon from 'sinon'
 import { expect } from 'chai'
 import { IComponent } from '../types'
 import Component from '../components/Base/Base'
+import createComponent from '../utils/createComponent'
 
 let component: IComponent
 
@@ -64,7 +65,7 @@ describe('BaseComponent', () => {
     })
   })
 
-  describe('style', () => {
+  describe('when working with styles', () => {
     it('should be able to retrieve styles', () => {
       const component = new Component({ type: 'view' })
       component.setStyle('fontSize', '25px')
@@ -104,7 +105,7 @@ describe('BaseComponent', () => {
     })
   })
 
-  describe('status', () => {
+  describe('status updates', () => {
     it('should start with "drafting" when constructed', () => {
       const component = new Component({ type: 'view' })
       expect(component.status).to.eq('drafting')
@@ -125,14 +126,16 @@ describe('BaseComponent', () => {
     expect(!!component.id).to.be.true
   })
 
-  describe('working with children', () => {
+  describe('when working with children', () => {
     beforeEach(() => {
       component.id = 'abc123'
-      component.createChild({
-        type: 'button',
-        text: 'hello',
-        style: { width: '0.2', height: '0.2' },
-      })
+      component.createChild(
+        createComponent({
+          type: 'button',
+          text: 'hello',
+          style: { width: '0.2', height: '0.2' },
+        }),
+      )
       component.createChild({
         type: 'textField',
         contentType: 'text',
@@ -145,12 +148,6 @@ describe('BaseComponent', () => {
           height: '0.05',
           color: '0x00000088',
         },
-      })
-    })
-
-    describe('creating', () => {
-      it('', () => {
-        //
       })
     })
 

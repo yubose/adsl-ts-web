@@ -110,8 +110,6 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
           this.fns.builtIn[
             (action?.original as T.IActionChainUseBuiltInObject)?.funcName
           ] || []
-      } else if (action.actionType === 'emit') {
-        if (this.emitter) fns = [this.emitter]
       } else {
         fns = this.fns.action[action.actionType] || []
       }
@@ -143,23 +141,27 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
      * The only difference is that the actions will be removed from the queue
      * as soon as they are done executing
      */
-    if (this.actions?.length) {
-      log.func('build')
-      log.grey(`Refreshing action chain`, this)
-    }
-    this.actions = []
-    this.#queue = this.#original.map((actionObj: any) => {
-      // Temporarily hardcode the actionType to blend in with the other actions
-      // for now until we find a better solution
-      if (actionObj.emit) {
-        actionObj = { ...actionObj, actionType: 'emit' } as any
-      } else if (actionObj.goto) {
-        actionObj = { ...actionObj, actionType: 'goto' } as any
+    const load = () => {
+      if (this.actions?.length) {
+        log.func('build')
+        log.grey(`Refreshing action chain`, this)
       }
-      const action = this.createAction(actionObj)
-      this.actions?.push(action)
-      return action
-    })
+      this.actions = []
+      this.#queue = this.#original.map((actionObj: any) => {
+        // Temporarily hardcode the actionType to blend in with the other actions
+        // for now until we find a better solution
+        if (actionObj.emit) {
+          actionObj = { ...actionObj, actionType: 'emit' } as any
+        } else if (actionObj.goto) {
+          actionObj = { ...actionObj, actionType: 'goto' } as any
+        }
+        const action = this.createAction(actionObj)
+        this.actions?.push(action)
+        return action
+      })
+    }
+
+    load()
 
     // NOTE: This is an async generator
     async function* getExecutor() {
@@ -254,6 +256,7 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
           //   this.getCallbackOptions({ event, ...buildOptions }),
           // )
           this.#setStatus('done')
+          load()
           return iterator
         } else {
           // log

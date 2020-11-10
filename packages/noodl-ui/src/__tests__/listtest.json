@@ -1,0 +1,141 @@
+{
+  "blueprint": {
+    "type": "listItem",
+    "children": [
+      {
+        "type": "label",
+        "dataKey": "hello.title",
+        "listId": "_5gcehs3rx",
+        "iteratorVar": "hello"
+      },
+      {
+        "type": "view",
+        "children": [
+          {
+            "type": "label",
+            "dataKey": "hello.color",
+            "listId": "_5gcehs3rx",
+            "iteratorVar": "hello"
+          }
+        ],
+        "listId": "_5gcehs3rx",
+        "iteratorVar": "hello"
+      }
+    ],
+    "listId": "_5gcehs3rx",
+    "iteratorVar": "hello",
+    "style": {}
+  },
+  "children": [
+    {
+      "children": [],
+      "dataObject": {
+        "title": "apple",
+        "color": "red"
+      },
+      "listId": "_5gcehs3rx",
+      "listIndex": 4,
+      "iteratorVar": "hello",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      }
+    },
+    {
+      "children": [],
+      "dataObject": {
+        "title": "banana",
+        "color": "yellow"
+      },
+      "listId": "_5gcehs3rx",
+      "listIndex": 5,
+      "iteratorVar": "hello",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      }
+    },
+    {
+      "children": [],
+      "dataObject": {
+        "title": "grape",
+        "color": "magenta"
+      },
+      "listId": "_5gcehs3rx",
+      "listIndex": 6,
+      "iteratorVar": "hello",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      }
+    },
+    {
+      "children": [],
+      "dataObject": {
+        "title": "pear",
+        "color": "tan"
+      },
+      "listId": "_5gcehs3rx",
+      "listIndex": 7,
+      "iteratorVar": "hello",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      }
+    }
+  ],
+  "listId": "_5gcehs3rx",
+  "listItemCount": 4,
+  "listObject": [
+    {
+      "title": "apple",
+      "color": "red"
+    },
+    {
+      "title": "banana",
+      "color": "yellow"
+    },
+    {
+      "title": "grape",
+      "color": "magenta"
+    },
+    {
+      "title": "pear",
+      "color": "tan"
+    },
+    {
+      "title": "apple",
+      "color": "red"
+    },
+    {
+      "title": "banana",
+      "color": "yellow"
+    },
+    {
+      "title": "grape",
+      "color": "magenta"
+    },
+    {
+      "title": "pear",
+      "color": "tan"
+    }
+  ],
+  "iteratorVar": "hello",
+  "style": {
+    "position": "absolute",
+    "outline": "none",
+    "overflowX": "hidden",
+    "listStyle": "none",
+    "padding": "0px",
+    "display": "block",
+    "overflowY": "auto"
+  }
+}

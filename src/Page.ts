@@ -310,7 +310,6 @@ class Page {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
       _.forEach(components, (component) => {
-        console.info(component.toJS())
         noodluidom.parse(component, this.rootNode)
       })
     } else {

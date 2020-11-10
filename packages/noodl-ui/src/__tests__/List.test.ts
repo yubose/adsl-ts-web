@@ -1,4 +1,6 @@
 import _ from 'lodash'
+import path from 'path'
+import fs from 'fs-extra'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
@@ -43,6 +45,40 @@ describe('List', () => {
       const component = new List({ type: 'list', listObject: [] })
       expect(component).to.have.lengthOf(0)
       expect(component.children()).to.have.lengthOf(0)
+    })
+
+    it('should populate descendant dataKey consumers expectedly', () => {
+      const noodlComponent = {
+        type: 'list',
+        listObject: [
+          { title: 'apple', color: 'red' },
+          { title: 'banana', color: 'yellow' },
+          { title: 'grape', color: 'magenta' },
+          { title: 'pear', color: 'tan' },
+        ],
+        iteratorVar: 'hello',
+        children: [
+          {
+            type: 'listItem',
+            children: [
+              { type: 'label', dataKey: 'hello.title' },
+              {
+                type: 'view',
+                children: [{ type: 'label', dataKey: 'hello.color' }],
+              },
+            ],
+          },
+        ],
+      }
+      const component = new List(noodlComponent)
+      const resolvedComponent = noodlui.resolveComponents(component)
+      // fs.writeJsonSync(
+      //   path.join(__dirname, 'listtest.json'),
+      //   component.toJS(),
+      //   { spaces: 2 },
+      // )
+
+      // console.info(resolvedComponent.children())
     })
   })
 
@@ -264,9 +300,10 @@ describe('List', () => {
         })
 
         _.forEach(component.children(), (c) => {
+          console.info(c.toJS())
           const li = document.createElement('li')
           li.id = c.id
-          li.textContent += c.getDataObject().fruits[0]
+          li.textContent += c.getDataObject()?.fruits[0]
           node.appendChild(li)
         })
 
@@ -278,8 +315,11 @@ describe('List', () => {
 
         const listElems = document.querySelector('ul')
         expect(listElems?.childNodes).to.have.lengthOf(3)
-        component.removeDataObject(2)
-        expect(listElems?.childNodes).to.have.lengthOf(2)
+        fs.writeJsonSync('listtest.json', component.toJS(), {
+          spaces: 2,
+        })
+        // component.removeDataObject(2)
+        // expect(listElems?.childNodes).to.have.lengthOf(2)
       },
     )
 
@@ -311,7 +351,6 @@ describe('List', () => {
       const listElems = document.querySelector('ul')
       expect(listElems?.children[1].innerHTML).to.equal('banana')
       component.updateDataObject(2, { fruits: ['grape'] })
-      console.info(prettyDOM())
       expect(listElems?.children[1].innerHTML).to.equal('grape')
     })
 

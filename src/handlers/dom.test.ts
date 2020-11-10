@@ -2,7 +2,6 @@ import _ from 'lodash'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
 import MockAxios from 'axios-mock-adapter'
-import '@aitmed/cadl'
 import { expect } from 'chai'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import { IList, NOODLComponent } from 'noodl-ui'
@@ -72,7 +71,6 @@ describe('dom', () => {
         iteratorVar: 'hello',
         children: [{ type: 'listItem' }],
       })
-      console.info(prettyDOM())
       const listElem = document.querySelector('ul') as HTMLUListElement
       expect(listElem.children).to.have.lengthOf(0)
     })
@@ -80,14 +78,44 @@ describe('dom', () => {
     it('should start with some list item childrens if listObject has items', () => {
       page.render({
         type: 'list',
-        listObject: [{ fruits: ['apple'] }, { fruits: ['banana'] }],
+        listObject: [
+          { fruits: ['apple'] },
+          { fruits: ['banana'] },
+          { fruits: ['grape'] },
+          { fruits: ['pear'] },
+        ],
         iteratorVar: 'hello',
         children: [{ type: 'listItem' }],
       })
       const listElem = document.querySelector('ul')
       const listItemElems = document.querySelectorAll('li')
-      console.info(prettyDOM())
-      expect(listItemElems).to.have.lengthOf(2)
+      expect(listItemElems).to.have.lengthOf(4)
+    })
+
+    xit('should render children expectedly to the DOM', () => {
+      page.render({
+        type: 'list',
+        listObject: [
+          { title: 'apple', color: 'red' },
+          { title: 'banana', color: 'yellow' },
+          { title: 'grape', color: 'magenta' },
+          { title: 'pear', color: 'tan' },
+        ],
+        iteratorVar: 'hello',
+        children: [
+          {
+            type: 'listItem',
+            children: [
+              { type: 'label', dataKey: 'hello.title' },
+              {
+                type: 'view',
+                children: [{ type: 'label', dataKey: 'hello.color' }],
+              },
+            ],
+          },
+        ],
+      })
+      const listElem = document.querySelector('ul')
     })
 
     xit('should append a new list item node if a data object is added', () => {
@@ -103,7 +131,7 @@ describe('dom', () => {
     })
   })
 
-  xdescribe('component type: image', () => {
+  describe('component type: image', () => {
     it('should attach the src attribute', async () => {
       page.render({ type: 'image', path: 'img123.jpg', style: {} })
       await waitFor(() => {
@@ -135,7 +163,7 @@ describe('dom', () => {
     })
   })
 
-  xdescribe('component type: "select"', () => {
+  describe('component type: "select"', () => {
     it('should show a default value for select elements', () => {
       page.render({
         type: 'select',
@@ -156,7 +184,7 @@ describe('dom', () => {
     })
   })
 
-  xdescribe('component type: "textField"', () => {
+  describe('component type: "textField"', () => {
     it("should use the value computed from the dataKey as the element's value", () => {
       const dataKey = 'formData.greeting'
       const greeting = 'good morning'
@@ -265,16 +293,16 @@ describe('dom', () => {
       const input = queryByDataKey(document.body, dataKey) as HTMLInputElement
       expect(input.dataset.value).to.eq('')
       userEvent.type(input, '6262465555')
-      console.info(prettyDOM())
       expect(input.dataset.value).to.equal('6262465555')
     })
   })
 
-  xdescribe('component type: "video"', () => {
+  describe('component type: "video"', () => {
     it('should attach poster if present', () => {
       page.render({
         type: 'video',
         poster: 'my-poster.jpeg',
+        videoFormat: 'mp4',
       })
       const node = document.querySelector('video')
       expect(node?.getAttribute('poster')).to.equal(
@@ -283,13 +311,13 @@ describe('dom', () => {
     })
 
     it('should have object-fit set to "contain"', () => {
-      page.render({ type: 'video' })
+      page.render({ type: 'video', videoFormat: 'mp4' })
       const node = document.querySelector('video')
       expect(node?.style.objectFit).to.equal('contain')
     })
 
     it('should create the source element as a child if the src is present', () => {
-      page.render({ type: 'video', path: 'asdloldlas.mp4' })
+      page.render({ type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' })
       const node = document.querySelector('video')
       const sourceEl = node?.querySelector('source')
       expect(sourceEl).to.exist
@@ -297,7 +325,7 @@ describe('dom', () => {
 
     it('should have src set on the child source element instead of the video element itself', () => {
       const path = 'asdloldlas.mp4'
-      page.render({ type: 'video', path })
+      page.render({ type: 'video', path, videoFormat: 'mp4' })
       const node = document.querySelector('video')
       const sourceEl = node?.querySelector('source')
       expect(node?.getAttribute('src')).not.to.equal(assetsUrl + path)
