@@ -57,14 +57,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             component.children().forEach((child: IComponentTypeInstance) => {
               const childNode = this.parse(child, node)
               if (childNode) node?.appendChild(childNode)
-              // if (child.length) {
-              //   child.children().forEach((innerChild) => {
-              //     this.parse(innerChild, childNode)
-              //     if (innerChild.noodlType === 'listItem') {
-              //       console.log('Found listItem', innerChild)
-              //     }
-              //   })
-              // }
+              if (child.length) {
+                child.children().forEach((innerChild) => {
+                  this.parse(innerChild, childNode)
+                  if (innerChild.noodlType === 'listItem') {
+                    console.log('Found listItem', innerChild)
+                  }
+                })
+              }
             })
           }
         }

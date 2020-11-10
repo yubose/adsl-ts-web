@@ -6,7 +6,6 @@ import {
   IList,
   IListBlueprint,
   IListEventId,
-  IListEventObject,
   IListItem,
   IListDataObjectEventHandlerOptions,
   IListDataObjectOperationResult,
@@ -25,7 +24,7 @@ class List extends Component implements IList {
   #blueprint: IListBlueprint
   #children: IListItem[] = []
   #listId: string
-  #listObject: any[] | null = null
+  #listObject: any[]
   #iteratorVar: string
   #cb: {
     [event.component.list.ADD_DATA_OBJECT]: Function[]
@@ -49,12 +48,6 @@ class List extends Component implements IList {
     [event.component.list.BLUEPRINT]: [],
     [event.component.list.REDRAW]: [],
   }
-  #items: {
-    [listItemId: string]: {
-      dataObject: any
-      listItem: IListItem | null
-    }
-  } = {}
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -70,8 +63,8 @@ class List extends Component implements IList {
     // When we use .set, we will intercept the call and set them
     // on this instance instead
     this.#listId = getRandomKey()
-    this.#listObject = this.get('listObject')
-    this.#iteratorVar = this.get('iteratorVar')
+    this.#listObject = this.get('listObject') || []
+    this.#iteratorVar = this.get('iteratorVar') || ''
     this.setBlueprint(this.getBlueprint())
 
     log.func('constructor')
@@ -94,45 +87,12 @@ class List extends Component implements IList {
     return this.#children
   }
 
-  /**
-   * Returns true if the child exists in the list of list items
-   * @param { string | ListItemComponent } child
-   */
-  exists(id: string): boolean
-  exists(child: IListItem): boolean
-  exists(child: string | IListItem) {
-    if (child) {
-      if (_.isString(child)) return this.find(child)
-      else return this.#children.includes(child)
-    }
-    return false
-  }
-
-  /**
-   * Uses a child's id, the instance itself, its index or a predicate function
-   *  and returns the list item instance if found, otherwise it returns undefined
-   * @param { string | number | function | ListItemComponent } child
-   */
-  find(id: string): IListItem | undefined
-  find(index: number): IListItem | undefined
-  find(inst: IListItem): IListItem | undefined
-  find(
-    pred: (listItem: IListItem, index: number) => boolean,
-  ): IListItem | undefined
-  find(
-    child:
-      | string
-      | number
-      | IListItem
-      | ((listItem: IListItem, index: number) => boolean),
-  ) {
-    if (typeof child === 'number') return this.#children[child]
-    if (typeof child === 'function') return _.find(this.#children, child)
-    const fn =
-      typeof child === 'string'
-        ? (c: IListItem) => !!c.id && c.id === child
-        : (c: IListItem) => c === child
-    return _.find(this.#children, fn)
+  getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {
+    return (
+      (fromNodes
+        ? this.#children.map((c) => c.getDataObject?.()) || []
+        : this.#listObject) || []
+    )
   }
 
   addDataObject<DataObject = any>(
@@ -242,7 +202,7 @@ class List extends Component implements IList {
     }
     if (dataObject != null) {
       let index
-      let removedDataObject
+      let removedDataObject: any
       // By query func
       if (typeof dataObject === 'function') {
         const fn = dataObject
@@ -280,7 +240,11 @@ class List extends Component implements IList {
       // By index
       if (typeof dataObject === 'number') {
         index = dataObject
-        removedDataObject = this.#listObject.splice(index, 1)[0]
+        removedDataObject = this.#listObject[index]
+        this.#listObject = _.filter(
+          this.#listObject,
+          (o) => o !== removedDataObject,
+        )
         const result = {
           index,
           dataObject: removedDataObject,
@@ -303,26 +267,22 @@ class List extends Component implements IList {
     }
   }
 
-  setDataObject<DataObject = any>(
+  updateDataObject<DataObject = any>(
     index: number,
     dataObject: DataObject | null,
   ): { index: number; dataObject: DataObject | null; success: boolean }
-  setDataObject<DataObject = any>(
+  updateDataObject<DataObject = any>(
     pred: (dataObject: DataObject | null) => boolean,
     dataObject: DataObject | null,
   ): { index: number | null; dataObject: DataObject | null; success: boolean }
-  setDataObject<DataObject = any>(
+  updateDataObject<DataObject = any>(
     index: number | ((dataObject: DataObject | null) => boolean),
     dataObject: DataObject | null,
   ) {
     if (typeof index === 'number') {
       if (_.isArray(this.#listObject)) {
         this.#listObject[index] = dataObject
-        const result = {
-          index,
-          dataObject: this.#listObject[index] || null,
-          success: true,
-        }
+        const result = { index, dataObject, success: true }
         this.emit(
           event.component.list.UPDATE_DATA_OBJECT,
           result,
@@ -370,14 +330,6 @@ class List extends Component implements IList {
     }
 
     return { index: null, dataObject: null, success: false }
-  }
-
-  getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {
-    return (
-      (fromNodes
-        ? this.#children.map((c) => c.getDataObject?.())
-        : this.#listObject) || null
-    )
   }
 
   /**
@@ -487,6 +439,22 @@ class List extends Component implements IList {
     return this
   }
 
+  emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
+  emit<E = 'redraw'>(eventName: E): this
+  emit<E extends Exclude<IListEventId, 'blueprint'>>(
+    eventName: E,
+    result: IListDataObjectOperationResult,
+    args: IListDataObjectEventHandlerOptions,
+  ): this
+  emit<Args extends any[]>(eventName: IListEventId, ...args: Args) {
+    if (eventName in this.#cb) {
+      _.forEach(this.#cb[eventName], (cb) => cb(...args))
+    } else {
+      // TODO emit in Component
+    }
+    return this
+  }
+
   on<E = 'redraw'>(): this
   on<E = 'blueprint'>(
     eventName: E,
@@ -508,15 +476,8 @@ class List extends Component implements IList {
           args: IListDataObjectEventHandlerOptions,
         ) => void),
   ) {
-    if (eventName !== 'resolved' && eventName in this.#cb) {
-      if (this.#cb[eventName].includes(cb)) {
-        log.func('on("blueprint")')
-        log.red(
-          'Attempted to add a duplicate callback. The duplicate was not added',
-        )
-      } else {
-        this.#cb[eventName].push(cb)
-      }
+    if (eventName in this.#cb) {
+      this.#cb[eventName].push(cb)
     } else {
       super.on(eventName, cb)
     }
@@ -538,25 +499,49 @@ class List extends Component implements IList {
     return this
   }
 
-  emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
-  emit<E = 'redraw'>(eventName: E): this
-  emit<E extends Exclude<IListEventId, 'blueprint'>>(
-    eventName: E,
-    result: IListDataObjectOperationResult,
-    args: IListDataObjectEventHandlerOptions,
-  ): this
-  emit<Args extends any[]>(eventName: IListEventId, ...args: Args) {
-    if (eventName in this.#cb) {
-      _.forEach(this.#cb[eventName], (cb) => cb(...args))
-    } else {
-      // TODO emit in Component
+  /**
+   * Returns true if the child exists in the list of list items
+   * @param { string | ListItemComponent } child
+   */
+  exists(id: string): boolean
+  exists(child: IListItem): boolean
+  exists(child: string | IListItem) {
+    if (child) {
+      if (_.isString(child)) return this.find(child)
+      else return this.#children.includes(child)
     }
-    return this
+    return false
+  }
+
+  /**
+   * Uses a child's id, the instance itself, its index or a predicate function
+   *  and returns the list item instance if found, otherwise it returns undefined
+   * @param { string | number | function | ListItemComponent } child
+   */
+  find(id: string): IListItem | undefined
+  find(index: number): IListItem | undefined
+  find(inst: IListItem): IListItem | undefined
+  find(
+    pred: (listItem: IListItem, index: number) => boolean,
+  ): IListItem | undefined
+  find(
+    child:
+      | string
+      | number
+      | IListItem
+      | ((listItem: IListItem, index: number) => boolean),
+  ) {
+    if (typeof child === 'number') return this.#children[child]
+    if (typeof child === 'function') return _.find(this.#children, child)
+    const fn =
+      typeof child === 'string'
+        ? (c: IListItem) => !!c.id && c.id === child
+        : (c: IListItem) => c === child
+    return _.find(this.#children, fn)
   }
 
   toJS() {
     return {
-      ...super.toJS(),
       blueprint: this.getBlueprint(),
       children: _.map(this.#children, (child) => child.toJS()),
       listId: this.listId,
@@ -570,7 +555,6 @@ class List extends Component implements IList {
   #getDataObjectHandlerOptions = (): IListDataObjectEventHandlerOptions => ({
     blueprint: this.getBlueprint(),
     listId: this.listId,
-    listObject: this.getData(),
     iteratorVar: this.iteratorVar,
     nodes: this.#children,
   })

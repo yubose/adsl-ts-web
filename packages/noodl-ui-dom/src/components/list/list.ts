@@ -23,7 +23,7 @@ class NOODLDOMList<DOMNode extends NOODLDOMElement>
           const listItemComponent = component.createChild(
             'listItem',
           ) as IListItem
-          listItemComponent.setDataObject(dataObject)
+          listItemComponent.updateDataObject(dataObject)
           listItemComponent['listIndex'] = index
           this.addListItem(listItemComponent)
         }

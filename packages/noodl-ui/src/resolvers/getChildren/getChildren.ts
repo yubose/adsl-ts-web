@@ -37,7 +37,7 @@ function getChildren(
     // _.forEach(listObject, (dataObject) => {
     //   const blueprint = listComponent.getBlueprint() as IListItem
     //   const listItemComponent = listComponent.createChild(blueprint)
-    //   listItemComponent.setDataObject(dataObject)
+    //   listItemComponent.updateDataObject(dataObject)
     // })
     // }
   }

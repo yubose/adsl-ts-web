@@ -1,12 +1,12 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { prettyDOM } from '@testing-library/dom'
+import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import { event } from '../constants'
 import { forEachDeepChildren } from '../utils/noodl'
 import { mock } from './mockData'
 import { IListItem } from '../types'
-import { toDOM } from '../utils/test-utils'
+import { noodlui, toDOM } from '../utils/test-utils'
 import List from '../components/List'
 
 describe('List', () => {
@@ -163,8 +163,18 @@ describe('List', () => {
       component.addDataObject(dataObject)
       const spy = sinon.spy()
       component.on(event.component.list.UPDATE_DATA_OBJECT, spy)
-      component.setDataObject(0, { ...dataObject, email: 'chris@gmail.com' })
+      component.updateDataObject(0, { ...dataObject, email: 'chris@gmail.com' })
       expect(spy.called).to.be.true
+    })
+
+    it('should update the listItem', () => {
+      const component = noodlui.resolveComponents({
+        type: 'list',
+        iteratorVar: 'f',
+        listObject: [{ fruits: ['apple'] }],
+        children: [{ type: 'listItem' }],
+      })
+      console.info(component.toJS().listObject)
     })
   })
 
@@ -172,6 +182,10 @@ describe('List', () => {
     const component = new List()
     expect(component.type).to.equal('list')
     expect(component.noodlType).to.equal('list')
+  })
+
+  xdescribe('when no children was passed in the noodl component object', () => {
+    //
   })
 
   describe('when creating list item children', () => {
@@ -189,38 +203,157 @@ describe('List', () => {
 
   describe('when working with the DOM', () => {
     it('should start with no children if listObject is empty', () => {
-      toDOM({
+      const { component, node } = toDOM({
         type: 'list',
         listObject: [],
         iteratorVar: 'hello',
         children: [{ type: 'listItem' }],
       })
-      console.info(prettyDOM())
+      expect(component.children).to.have.lengthOf(0)
+      expect(node.children).to.have.lengthOf(0)
     })
 
-    // xit('should start with some list item childrens if listObject has items', () => {
-    //   page.render({
-    //     type: 'list',
-    //     listObject: [{ fruits: ['apple'] }, { fruits: ['banana'] }],
-    //     iteratorVar: 'hello',
-    //     children: [{ type: 'listItem' }],
-    //   })
-    //   const listElem = document.querySelector('ul')
-    //   const listItemElems = document.querySelectorAll('li')
-    //   console.info(prettyDOM())
-    //   expect(listItemElems).to.have.lengthOf(2)
-    // })
+    it('should allow the client side to react with adding data objects', () => {
+      const { component, node } = toDOM({
+        type: 'list',
+        listObject: [
+          { fruits: ['apple'] },
+          { fruits: ['banana'] },
+          { fruits: ['orange'] },
+        ],
+        iteratorVar: 'hello',
+        children: [{ type: 'listItem' }],
+      })
 
-    xit('should append a new list item node if a data object is added', () => {
-      //
+      _.forEach(component.children(), (c) => {
+        const li = document.createElement('li')
+        li.textContent += c.getDataObject().fruits[0]
+        node.appendChild(li)
+      })
+
+      component.on(event.component.list.CREATE_LIST_ITEM, (result) => {
+        const { listItem } = result
+        const li = document.createElement('li')
+        li.innerHTML += listItem.getDataObject().fruits[0]
+        node.appendChild(li)
+      })
+
+      const listElem = document.querySelector('ul')
+      expect(listElem?.childNodes).to.have.lengthOf(3)
+      component.addDataObject({ fruits: ['pear'] })
+      expect(listElem?.childNodes).to.have.lengthOf(4)
+      expect(listElem?.childNodes[0].textContent).to.equal('apple')
+      expect(listElem?.childNodes[1].textContent).to.equal('banana')
+      expect(listElem?.childNodes[2].textContent).to.equal('orange')
+      expect(listElem?.childNodes[3].textContent).to.equal('pear')
     })
 
-    xit('should remove the corresponding list item node if its dataObject was removed', () => {
-      //
-    })
+    it(
+      'should be able to use the api to allow us to remove the corresponding ' +
+        'list item node if its dataObject was removed',
+      () => {
+        const { component, node } = toDOM({
+          type: 'list',
+          listObject: [
+            { fruits: ['apple'] },
+            { fruits: ['banana'] },
+            { fruits: ['orange'] },
+          ],
+          iteratorVar: 'hello',
+          children: [{ type: 'listItem' }],
+        })
+
+        _.forEach(component.children(), (c) => {
+          const li = document.createElement('li')
+          li.id = c.id
+          li.textContent += c.getDataObject().fruits[0]
+          node.appendChild(li)
+        })
+
+        component.on(event.component.list.REMOVE_LIST_ITEM, (result) => {
+          const { listItem } = result
+          const li = document.getElementById(listItem.id) as HTMLLIElement
+          node.removeChild(li)
+        })
+
+        const listElems = document.querySelector('ul')
+        expect(listElems?.childNodes).to.have.lengthOf(3)
+        component.removeDataObject(2)
+        expect(listElems?.childNodes).to.have.lengthOf(2)
+      },
+    )
 
     xit('should update the corresponding list item node that is referencing the dataObject', () => {
-      //
+      const { component, node } = toDOM({
+        type: 'list',
+        listObject: [
+          { fruits: ['apple'] },
+          { fruits: ['banana'] },
+          { fruits: ['orange'] },
+        ],
+        iteratorVar: 'hello',
+        children: [{ type: 'listItem' }],
+      })
+
+      _.forEach(component.children(), (c: IListItem) => {
+        const li = document.createElement('li')
+        li.id = c.id
+        li.textContent += c.getDataObject().fruits[0]
+        node.appendChild(li)
+      })
+
+      component.on(event.component.list.UPDATE_LIST_ITEM, (result) => {
+        const { listItem } = result
+        const li = document.getElementById(listItem.id) as HTMLLIElement
+        li.innerHTML = listItem.getDataObject().fruits[0]()()()
+      })
+
+      const listElems = document.querySelector('ul')
+      expect(listElems?.children[1].innerHTML).to.equal('banana')
+      component.updateDataObject(2, { fruits: ['grape'] })
+      console.info(prettyDOM())
+      expect(listElems?.children[1].innerHTML).to.equal('grape')
+    })
+
+    xdescribe('redraw', () => {
+      it(
+        'should allow us to update all descendants in the DOM from the ' +
+          'changed listItem components',
+        () => {
+          noodlui
+            .setRoot('SignIn', { formData: { greeting: 'hello!' } })
+            .setPage('SignIn')
+          const { component, node } = toDOM({
+            type: 'list',
+            listObject: [
+              { fruits: ['apple'] },
+              { fruits: ['banana'] },
+              { fruits: ['orange'] },
+            ],
+            iteratorVar: 'hello',
+            children: [
+              {
+                type: 'listItem',
+                children: [
+                  {
+                    type: 'view',
+                    children: [{ type: 'label', dataKey: 'formData.greeting' }],
+                  },
+                ],
+              },
+            ],
+          })
+
+          _.forEach(component.children(), (c) => {
+            const li = document.createElement('li')
+            li.id = c.id
+            li.textContent += c.getDataObject().fruits[0]
+            node.appendChild(li)
+          })
+
+          console.info(prettyDOM())
+        },
+      )
     })
   })
 })

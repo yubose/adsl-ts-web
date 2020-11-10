@@ -12,6 +12,7 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
   #queue: T.IAction[] = []
   #gen: AsyncGenerator<any, any> | null = null
   actions: T.IAction[] | null = null
+  emitter: T.IActionChain['emitter']
   fns: T.IActionChain['fns'] = { action: {}, builtIn: {} }
   intermediary: T.IAction[] = []
   current: {
@@ -26,8 +27,12 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
   // onChainAborted?: T.LifeCycleListeners['onChainAborted']
   // onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
 
-  constructor(actions?: T.NOODLActionObject[]) {
+  constructor(
+    actions?: T.NOODLActionObject[],
+    { emitter }: { emitter?: T.IActionChain['emitter'] } = {},
+  ) {
     this.#original = actions || []
+    if (emitter) this['emitter'] = this.createEmitter(emitter) || null
   }
 
   useAction(action: T.IActionChainUseObject<ActionType>): this
@@ -105,6 +110,8 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
           this.fns.builtIn[
             (action?.original as T.IActionChainUseBuiltInObject)?.funcName
           ] || []
+      } else if (action.actionType === 'emit') {
+        if (this.emitter) fns = [this.emitter]
       } else {
         fns = this.fns.action[action.actionType] || []
       }
@@ -114,6 +121,14 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
     }
 
     return action as T.IAction
+  }
+
+  createEmitter<F extends T.ActionEmitter>(fn: F | undefined) {
+    let emitter
+    if (fn) {
+      emitter = ({ emit }: T.NOODLEmitObject) => fn(emit)
+    }
+    return emitter
   }
 
   build(
@@ -133,11 +148,12 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
       log.grey(`Refreshing action chain`, this)
     }
     this.actions = []
-    this.#queue = this.#original.map((actionObj) => {
+    this.#queue = this.#original.map((actionObj: any) => {
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
-      // @ts-expect-error
-      if (actionObj.goto) {
+      if (actionObj.emit) {
+        actionObj = { ...actionObj, actionType: 'emit' } as any
+      } else if (actionObj.goto) {
         actionObj = { ...actionObj, actionType: 'goto' } as any
       }
       const action = this.createAction(actionObj)

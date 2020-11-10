@@ -3,6 +3,7 @@ import { NOODLComponentType } from 'types'
 
 export const actionTypes = [
   'builtIn',
+  'emit',
   'evalObject',
   'goto',
   'pageJump',

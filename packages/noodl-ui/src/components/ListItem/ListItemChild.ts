@@ -58,7 +58,7 @@ class ListItemChildComponent extends Component implements IListItemChild {
     }
   }
 
-  setDataObject<T>(data: T) {
+  updateDataObject<T>(data: T) {
     // this.#dataObject = data
   }
 }

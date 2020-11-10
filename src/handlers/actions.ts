@@ -7,6 +7,7 @@ import {
   getDataValues,
   isReference,
   NOODLActionType,
+  NOODLEmitObject,
   NOODLEvalObject,
   NOODLIfObject,
   NOODLPopupBaseObject,
@@ -15,6 +16,7 @@ import {
   NOODLSaveObject,
   NOODLUpdateObject,
 } from 'noodl-ui'
+import { findParent } from 'noodl-utils'
 import Logger from 'logsnap'
 import { IPage } from 'app/types'
 import {
@@ -29,6 +31,45 @@ const log = Logger.create('actions.ts')
 
 const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<NOODLActionType, ActionChainActionCallback<any>>
+
+  _actions.emit = async (action: Action<NOODLEmitObject>, options) => {
+    log.func('emit')
+    log.grey('', { action, ...options })
+    let { component, context } = options
+    let { emit } = action.original
+    let { actions, dataKey } = emit
+    let originalDataKey = _.isString(dataKey) ? dataKey : { ...dataKey }
+    dataKey = _.isObject(dataKey)
+      ? _.reduce(
+          _.entries(dataKey),
+          (acc, [k, v]) => {
+            const parent = findParent(component, (p) => {
+              log.grey('Parent?', {
+                component: component.toJS(),
+                actions,
+                dataKey,
+                parent: p,
+              })
+              return p?.noodlType === 'listItem'
+            })
+            acc[k as typeof acc] = parent?.getDataObject?.()
+            return acc
+          },
+          {} as typeof emit['dataKey'],
+        )
+      : dataKey
+
+    log.gold(`Emit action results`, {
+      component: component.toJS(),
+      actions,
+      originalDataKey,
+      resolvedDataKey: dataKey,
+    })
+
+    const { default: noodl } = await import('app/noodl')
+
+    noodl.emitCall({ dataKey: dataKey as any, actions, pageName: context.page })
+  }
 
   _actions.evalObject = async (action: Action<NOODLEvalObject>, options) => {
     log.func('evalObject')

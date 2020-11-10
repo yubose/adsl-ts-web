@@ -90,7 +90,6 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
 
   toJS() {
     return {
-      ...super.toJS(),
       children: _.map(this.#children, (child) => child.toJS()),
       dataObject: this.getDataObject(),
       listId: this.listId,

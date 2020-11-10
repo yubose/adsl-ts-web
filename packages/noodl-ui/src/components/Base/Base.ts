@@ -14,7 +14,7 @@ import {
   ProxiedComponent,
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
-import { forEachEntries } from '../../utils/common'
+import { forEachEntries, getRandomKey } from '../../utils/common'
 
 class Component implements IComponent {
   #cb: { [eventName: string]: Function[] } = {}
@@ -39,10 +39,7 @@ class Component implements IComponent {
   stylesTouched: string[] = []
   stylesUntouched: string[] = []
 
-  constructor(
-    component: IComponentType,
-    { parent }: { parent?: IComponentTypeInstance } = {},
-  ) {
+  constructor(component: IComponentType) {
     const keys =
       component instanceof Component ? component.keys : _.keys(component)
     this['original'] =
@@ -55,22 +52,18 @@ class Component implements IComponent {
     this['untouched'] = keys.slice()
     this['unhandled'] = keys.slice()
 
-    if (parent) this.#parent = parent
-
     this.#component = createComponentDraftSafely(component) as WritableDraft<
       IComponentTypeObject
     >
 
-    this['id'] = this.#component.id || _.uniqueId()
+    this['id'] = this.#component.id || getRandomKey()
     this['noodlType'] = this.#component.noodlType
 
     if (!this.#component.style) this.#component['style'] = {}
 
     if (_.isPlainObject(this.#component.style)) {
-      const { style } = this.#component
-      const styleKeys = _.keys(style)
-      this.#stylesUnhandled = styleKeys
-      this['stylesUntouched'] = styleKeys.slice()
+      this.#stylesUnhandled = _.keys(this.#component.style)
+      this['stylesUntouched'] = this.#stylesUnhandled.slice()
     }
 
     // Immer proxies these actions objects. Since we need this to be
@@ -163,7 +156,21 @@ class Component implements IComponent {
    * @param { any? } value - Value to update key, or styleKey to update the style object if key === 'style'
    * @param { any? } styleChanges - Value to set on a style object if key === 'style'
    */
-  set(key: keyof IComponentTypeObject, value?: any, styleChanges?: any) {
+  set<K extends keyof IComponentTypeObject>(
+    key: K,
+    value?: any,
+    styleChanges?: any,
+  ): this
+  set<O extends IComponentTypeObject>(
+    key: O,
+    value?: any,
+    styleChanges?: any,
+  ): this
+  set<K extends keyof IComponentTypeObject>(
+    key: K,
+    value?: any,
+    styleChanges?: any,
+  ) {
     if (key === 'style') {
       if (this.#component.style) {
         this.#component.style[value] = styleChanges
@@ -174,7 +181,7 @@ class Component implements IComponent {
       }
     } else {
       if (value) {
-        this.#component[key] = value
+        this.#component[key as K] = value
         if (this.status !== 'drafting') this.#setHandledKey(key as string)
       }
     }
@@ -277,7 +284,7 @@ class Component implements IComponent {
     return this.touched.includes(key)
   }
 
-  touchStyle = (styleKey: string) => {
+  touchStyle(styleKey: string) {
     if (!this.isStyleTouched(styleKey)) this.stylesTouched.push(styleKey)
     const index = this.stylesUntouched.indexOf(styleKey)
     if (index !== -1) this.stylesUntouched.splice(index, 1)
@@ -519,10 +526,8 @@ class Component implements IComponent {
   createChild<C extends IComponentTypeInstance>(child: C): C {
     child?.setParent(this)
     this.#children.push(child)
-
     return child
   }
-
 
   /**
    * Returns true if the child exists in the tree

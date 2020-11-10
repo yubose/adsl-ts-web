@@ -299,8 +299,13 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     window.location.reload()
   }
 
-  builtInActions.redraw = async (action, { component }) => {
+  builtInActions.redraw = async (action, options) => {
+    log.func('redraw')
+    log.red('', { action, ...options })
+    const { component } = options
     const { viewTag } = action
+    component.redraw?.()
+    console.info(component.toJS())
     // Re-render the current list item somehow
   }
 

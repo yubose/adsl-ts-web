@@ -109,7 +109,7 @@ export type IComponentConstructor = new (
   component: IComponentType,
 ) => IComponentTypeInstance
 
-export interface IComponent<K extends string = NOODLComponentType> {
+export interface IComponent<K = NOODLComponentType> {
   id: string
   type: K
   noodlType: NOODLComponentType
@@ -162,7 +162,9 @@ export interface IComponent<K extends string = NOODLComponentType> {
     value?: any,
     styleChanges?: any,
   ): this
-  setParent(parent: IComponentTypeInstance | null): this
+  setParent<K extends NOODLComponentType>(
+    parent: IComponentTypeInstance<K>,
+  ): this
   setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
   snapshot(): (ProxiedComponent | NOODLComponentProps) & {
     _touched: string[]
@@ -184,16 +186,20 @@ export type IComponentType =
   | IComponentTypeObject
   | NOODLComponentType
 
-export type IComponentTypeInstance<
-  K extends string = NOODLComponentType
-> = IComponent<K> & (IList<'list'> | IListItem<'listItem'> | IListItemChild<K>)
+export type IComponentTypeInstance<K = NOODLComponentType> = IComponent<
+  string
+> &
+  (IList | IListItem | IListItemChild<any>)
 
 export type IComponentTypeObject =
   | NOODLComponent
   | NOODLComponentProps
   | ProxiedComponent
 
-export interface IList extends IComponent {
+export interface IList<
+  ListData extends any[] = any,
+  DataObject extends ListData[number] = ListData[number]
+> extends IComponent {
   noodlType: 'list'
   children(): IListItem[]
   exists(childId: string): boolean
@@ -201,20 +207,20 @@ export interface IList extends IComponent {
   find(child: string | number | IListItem): IListItem | undefined
   getBlueprint(): IListBlueprint
   setBlueprint(blueprint: IListBlueprint): this
-  getData(opts?: { fromNodes?: boolean }): any[] | null
-  addDataObject<DataObject = any>(
+  getData(opts?: { fromNodes?: boolean }): ListData
+  addDataObject(
     dataObject: DataObject,
   ): IListDataObjectOperationResult<DataObject>
-  getDataObject<DataObject>(
+  getDataObject(
     index: number | Function,
   ): IListDataObjectOperationResult<DataObject>
-  removeDataObject<DataObject>(
+  removeDataObject(
     dataObject:
       | number
       | DataObject
       | ((dataObject: DataObject | null) => boolean),
   ): IListDataObjectOperationResult<DataObject>
-  setDataObject<DataObject = any>(
+  updateDataObject<DataObject = any>(
     index: number | Function,
     dataObject: DataObject | null,
   ): IListDataObjectOperationResult<DataObject>
@@ -229,14 +235,14 @@ export interface IList extends IComponent {
   ): IListItem | undefined
   emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
   emit<E = 'redraw'>(eventName: E): this
-  emit<E extends Exclude<IListEventId, 'blueprint'>>(
+  emit<E extends Exclude<IListEventId, 'blueprint' | 'redraw'>>(
     eventName: E,
     result: IListDataObjectOperationResult,
     args: IListDataObjectEventHandlerOptions,
   ): this
   on<E = 'blueprint'>(
     eventName: E,
-    cb: (blueprint: IListBlueprint) => void,
+    cb: (blueprint: IListBlueprint) => this,
   ): this
   on<E = 'redraw'>(): this
   on<E extends Exclude<IListEventId, 'blueprint'>>(
@@ -246,6 +252,15 @@ export interface IList extends IComponent {
       args: IListDataObjectEventHandlerOptions,
     ) => void,
   ): this
+  toJS(): {
+    blueprint: IListBlueprint
+    children: ReturnType<IListItem['toJS']>[]
+    listId: string
+    listItemCount: number
+    listObject: ListData
+    iteratorVar: string
+    style: NOODLStyle | undefined
+  }
 }
 
 export type IListBlueprint = Partial<ProxiedComponent> & {
@@ -263,12 +278,11 @@ export interface IListDataObjectOperationResult<DataObject = any> {
 export interface IListDataObjectEventHandlerOptions {
   blueprint: IListBlueprint
   listId: string
-  listObject: any[] | null
   iteratorVar: string
   nodes: IListItem[]
 }
 
-export interface IListItem<DataObject> extends IComponent {
+export interface IListItem<DataObject = any> extends IComponent {
   noodlType: 'listItem'
   listId: string
   listIndex: number | null
@@ -277,11 +291,12 @@ export interface IListItem<DataObject> extends IComponent {
   setDataObject(data: DataObject): this
   redraw(): this
   toJS(): {
-    children: IComponentTypeInstance[]
+    children: ReturnType<IComponentTypeInstance['toJS']>[]
     dataObject: DataObject
     listId: string
-    listIndex: number
+    listIndex: number | null
     iteratorVar: string
+    style: NOODLStyle | undefined
   }
 }
 
@@ -306,8 +321,13 @@ export interface IResolver {
   ---- ACTIONS / ACTION CHAIN
 -------------------------------------------------------- */
 
+export interface ActionEmitter {
+  (emitteeObj: NOODLEmitObject['emit']): any
+}
+
 export interface IActionChain<ActionType extends string = NOODLActionType> {
   actions: IAction[] | null
+  emitter: ((...args: any[]) => any) | null
   intermediary: IAction[]
   current: { action: IAction | undefined; index: number }
   fns: {
@@ -811,6 +831,7 @@ export interface NOODLGotoObject {
 
 export type NOODLActionObject =
   | NOODLBuiltInObject
+  | NOODLEmitObject
   | NOODLEvalObject
   | NOODLPageJumpObject
   | NOODLPopupBaseObject
@@ -827,6 +848,17 @@ export interface NOODLActionObjectBase {
 export interface NOODLBuiltInObject<K = string> extends NOODLActionObjectBase {
   actionType: 'builtIn'
   funcName: K
+}
+
+export interface NOODLEmitObject {
+  emit: {
+    actions: any[]
+    dataKey:
+      | string
+      | {
+          [key: string]: string
+        }
+  }
 }
 
 export interface NOODLEvalObject extends NOODLActionObjectBase {

@@ -22,7 +22,6 @@ import {
 import createComponent from './utils/createComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
-import isReference from './utils/isReference'
 import createChild from './utils/createChild'
 import { event, componentEventIds, componentEventTypes } from './constants'
 import * as T from './types'
@@ -72,9 +71,11 @@ class NOODL implements T.INOODLUi {
   initialized: boolean = false
 
   constructor({
+    emitter,
     showDataKey,
     viewport,
   }: {
+    emitter?(...args: any[]): any
     showDataKey?: boolean
     viewport?: T.IViewport
   } = {}) {
@@ -121,6 +122,8 @@ class NOODL implements T.INOODLUi {
         }
       } else if (_.isArray(components)) {
         return _.map(components as T.IComponentType[], (c) => this.#resolve(c))
+      } else if (_.isString(components)) {
+        return this.#resolve(components)
       }
     }
     return null
@@ -166,21 +169,19 @@ class NOODL implements T.INOODLUi {
 
     this.emit('afterResolve', component, consumerOptions)
 
-    if (component.noodlType !== 'list') {
-      if (_.isArray(originalChildren)) {
-        _.forEach(originalChildren, (noodlChild) => {
-          if (noodlChild) {
-            component.createChild(
-              this.resolveComponents(createChild.call(this, noodlChild)),
-            )
-          }
-        })
-      } else {
-        if (originalChildren) {
+    if (_.isArray(originalChildren)) {
+      _.forEach(originalChildren, (noodlChild) => {
+        if (noodlChild) {
           component.createChild(
-            this.resolveComponents(createChild.call(this, originalChildren)),
+            this.resolveComponents(createChild.call(this, noodlChild)),
           )
         }
+      })
+    } else {
+      if (originalChildren) {
+        component.createChild(
+          this.resolveComponents(createChild.call(this, originalChildren)),
+        )
       }
     }
 
@@ -453,18 +454,6 @@ class NOODL implements T.INOODLUi {
     }
   }
 
-  parse(key: string | T.IComponentTypeInstance): T.NOODLComponentProps | any {
-    if (_.isString(key)) {
-      if (isReference(key)) {
-        //
-      } else {
-        // itemObject.name.firstName
-      }
-    } else if (key instanceof Component) {
-      return this.getNode(key)?.toJS()
-    }
-  }
-
   setAssetsUrl(assetsUrl: string) {
     this.#assetsUrl = assetsUrl
     return this
@@ -549,7 +538,6 @@ class NOODL implements T.INOODLUi {
     this.#root = {}
     this.#parser = makeRootsParser({ roots: this.#root })
     this.#state = _createState()
-    this.initialized = false
     return this
   }
 

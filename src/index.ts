@@ -282,6 +282,7 @@ window.addEventListener('load', async () => {
                 lockApplication: builtIn.lockApplication,
                 logOutOfApplication: builtIn.logOutOfApplication,
                 logout: builtIn.logout,
+                redraw: builtIn.redraw,
                 signIn: builtIn.signIn,
                 signUp: builtIn.signUp,
                 signout: builtIn.signout,

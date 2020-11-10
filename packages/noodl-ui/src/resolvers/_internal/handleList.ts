@@ -1,7 +1,12 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import createChild from '../../utils/createChild'
-import { IList, IListItem, ResolverFn } from '../../types'
+import {
+  IComponentTypeInstance,
+  IList,
+  IListItem,
+  ResolverFn,
+} from '../../types'
 import { event } from '../../constants'
 
 const log = Logger.create('internal[handleList]')
@@ -14,8 +19,6 @@ const handleListInternalResolver = (function (): ResolverFn {
   return (component: IList, options) => {
     const { resolveComponent } = options
 
-    let listObject = component.getData() || []
-
     // Keeps blueprint updated
     component.on(event.component.list.BLUEPRINT, (blueprint) => {
       // TODO - Update all list items
@@ -26,10 +29,8 @@ const handleListInternalResolver = (function (): ResolverFn {
       log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
       const listItem = component.createChild(
-        resolveComponent(component.getBlueprint()),
+        resolveComponent(component.getBlueprint()) as IComponentTypeInstance,
       ) as IListItem
-
-      listItem.setParent(component)
 
       log.gold('ADD_DATA_OBJECT', { listItem, ...result })
 
@@ -51,10 +52,10 @@ const handleListInternalResolver = (function (): ResolverFn {
 
       listItem.on('redraw', () => {
         // resolveComponent(listItem)
-        console.log('REDRAWED', listItem)
+        console.info('REDRAWED', listItem)
       })
 
-      listItem.emit('redraw')
+      // listItem.emit('redraw')
     })
 
     // Removes list items when their data object is removed
@@ -80,8 +81,10 @@ const handleListInternalResolver = (function (): ResolverFn {
     // Updates list items with new updates to their data object
     component.on(event.component.list.UPDATE_DATA_OBJECT, (result, options) => {
       log.func(`on[${event.component.list.UPDATE_DATA_OBJECT}]`)
-      const listItem: IListItem | undefined = component.child(result.index)
-      listItem?.setDataObject?.(result.dataObject)
+      const listItem: IListItem<'list'> | undefined = component.children()?.[
+        result.index
+      ]
+      listItem?.setDataObject(result.dataObject)
       log.green(`Updated dataObject`, { result, ...options })
       component.emit(event.component.list.UPDATE_LIST_ITEM, {
         ...result,
@@ -91,16 +94,20 @@ const handleListInternalResolver = (function (): ResolverFn {
 
     // Initiate the component
     if (!_state[component.id]?.initiated) {
+      const listObject = component.getData() || []
+
       log.grey(`Initiating list internal resolver's listObject`, {
         component: component.toJS(),
         listObject,
         ...options,
       })
 
-      listObject = component.getData() || []
-
-      if (listObject.length) {
+      if (listObject?.length) {
         _.forEach(listObject, (dataObject) => {
+          // TODO - Do a more official way to remove the placeholder
+          if (component.get('listObject')?.length === 1) {
+            component.removeDataObject(0)
+          }
           component.addDataObject(dataObject)
           log.green(`Saved dataObject`, dataObject)
         })
@@ -110,7 +117,11 @@ const handleListInternalResolver = (function (): ResolverFn {
     } else {
       console.info(
         `List internal resolver's listObject was already instantiated`,
-        { component: component.toJS(), listObject, ...options },
+        {
+          component: component.toJS(),
+          listObject: component.getData(),
+          ...options,
+        },
       )
     }
   }

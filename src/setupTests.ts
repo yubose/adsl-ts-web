@@ -11,6 +11,7 @@ import './handlers/dom'
 chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
+let eventTargetSpy: sinon.SinonStub
 // let logsnapSpy: sinon.SinonStub
 
 before(async () => {
@@ -30,6 +31,7 @@ before(async () => {
   // )
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+    eventTargetSpy = sinon.stub(global, 'EventTarget')
     Logger.create = () =>
       // @ts-expect-error
       Object.assign(
@@ -79,6 +81,7 @@ before(async () => {
 
 after(() => {
   logSpy?.restore?.()
+  eventTargetSpy?.restore?.()
   // logsnapSpy?.reset()
 })
 

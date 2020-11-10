@@ -16,7 +16,12 @@ import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
 import NOODLUi from '../noodl-ui'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
-import { ResolverFn, IComponentTypeObject } from '../types'
+import {
+  ResolverFn,
+  IComponentTypeObject,
+  IComponentTypeInstance,
+  NOODLComponentType,
+} from '../types'
 
 export const assetsUrl = 'https://something.com/assets/'
 
@@ -63,9 +68,19 @@ export function getAllResolvers() {
   ] as ResolverFn[]
 }
 
-export function toDOM(noodlComponent: IComponentTypeObject, parentNode?: any) {
-  const component = noodlui.resolveComponents(noodlComponent)
-  const node = document.createElement(getType(component))
+export function toDOM<
+  C extends IComponentTypeInstance,
+  N extends HTMLElement = HTMLElement
+>(
+  noodlComponent: IComponentTypeObject,
+  parentNode?: any,
+): {
+  component: C
+  node: N
+  parentNode: N | null
+} {
+  const component = noodlui.resolveComponents(noodlComponent) as C
+  const node = document.createElement(getType(component)) as N
   parentNode = parentNode || document.body
   parentNode.appendChild(node)
   return { component, node, parentNode }

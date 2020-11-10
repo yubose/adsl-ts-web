@@ -2,6 +2,7 @@ import _ from 'lodash'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
 import MockAxios from 'axios-mock-adapter'
+import '@aitmed/cadl'
 import { expect } from 'chai'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import { IList, NOODLComponent } from 'noodl-ui'
@@ -56,6 +57,7 @@ describe('dom', () => {
       expect(label?.innerHTML).to.equal(placeholder)
     })
   })
+
   describe('component type: "list"', () => {
     it('should have the data-listid attribute', () => {
       page.render({ type: 'list', listObject: [], iteratorVar: 'hello' })
