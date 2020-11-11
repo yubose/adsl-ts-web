@@ -131,14 +131,15 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         previousDataValue = _.get(dataObject, dataKey)
         onNextValue(previousDataValue, {
           updateDraft: {
-            path: `${dataKey}${context.page.name ? `.${context.page.name}` : ''
-              }`,
+            path: `${dataKey}${
+              context.page.name ? `.${context.page.name}` : ''
+            }`,
           },
         })
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
-          `Defaulting to attaching ${dataKey} as a path to the root object`,
+            `Defaulting to attaching ${dataKey} as a path to the root object`,
           { context, dataObject, dataKey },
         )
         dataObject = noodl.root
@@ -193,7 +194,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => { }
+  builtInActions.checkVerificationCode = async (action) => {}
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -224,16 +225,16 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.grey('', { action, ...options })
 
     const { evolve } = action.original as NOODLBuiltInObject
-
-    const requestPage = (pageName: string) => {
-      var shouldEvolve = false;
+    console.log(action)
+    const requestPage = async (pageName: string) => {
+      var shouldEvolve = false
       if (isNOODLBoolean(evolve)) {
         shouldEvolve = evolve
       }
-      // console.log('Is there evolve?', evolve)
-      // console.log('Should I evolve?', shouldEvolve)
-      page.requestPageChange(pageName, {
-        evolve: shouldEvolve
+      console.log('Is there evolve?', evolve)
+      console.log('Should I evolve?', shouldEvolve)
+      await page.requestPageChange(pageName, {
+        evolve: shouldEvolve,
       })
     }
 
@@ -246,12 +247,13 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       let pg: string
       pg = cachedPages.shift()?.name || ''
       setCachedPages(cachedPages)
+      console.log(cachedPages)
       await requestPage(pg || '')
     } else {
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
-        'be found',
+          'be found',
         { previousPage: page.previousPage, currentPage: page.currentPage },
       )
     }
@@ -332,9 +334,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // Re-render the current list item somehow
   }
 
-  builtInActions.signIn = async (action, options) => { }
-  builtInActions.signUp = async () => { }
-  builtInActions.signout = async () => { }
+  builtInActions.signIn = async (action, options) => {}
+  builtInActions.signUp = async () => {}
+  builtInActions.signout = async () => {}
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -426,7 +428,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     log.green(
       `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-      `root.${pageName}.${nameFieldPath}`,
+        `root.${pageName}.${nameFieldPath}`,
       file,
     )
   }
