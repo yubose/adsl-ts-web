@@ -24,6 +24,9 @@ export type IComponentEventId = typeof event.IComponent[IComponentEventAlias]
 export type IListEventObject = typeof event.component.list
 export type IListEventAlias = keyof IListEventObject
 export type IListEventId = IListEventObject[IListEventAlias]
+export type IListItemEventObject = typeof event.component.listItem
+export type IListItemEventAlias = keyof IListItemEventObject
+export type IListItemEventId = IListItemEventObject[IListItemEventAlias]
 export type NOODLComponentEventId = typeof componentEventIds[number]
 export type NOODLComponentEventMap = keyof typeof componentEventMap
 export type NOODLComponentEvent = NOODLComponentEventId | 'all'
@@ -57,6 +60,7 @@ export interface INOODLUi {
   getNodes(): Map<IComponentTypeInstance, IComponentTypeInstance>
   getPageObject<P extends string>(page: P): INOODLUi['root'][P]
   getResolverOptions(include?: { [key: string]: any }): ResolverOptions
+  getResolvers(): ResolverFn[]
   getState(): INOODLUiState
   getStateHelpers(): INOODLUiStateHelpers
   getStateGetters(): INOODLUiStateGetters
@@ -197,7 +201,7 @@ export type IComponentTypeObject =
   | ProxiedComponent
 
 export interface IList<
-  ListData extends any[] = any,
+  ListData extends any[] = any[],
   DataObject extends ListData[number] = ListData[number]
 > extends IComponent {
   noodlType: 'list'
@@ -298,6 +302,19 @@ export interface IListItem<DataObject = any> extends IComponent {
     iteratorVar: string
     style: NOODLStyle | undefined
   }
+  // on(eventName: 'redraw', (args: IListItemRedrawArgs) => void): this
+  // on(eventName: 'redrawed', (args: IListItemRedrawedArgs) => void): this
+  emit(eventName: 'redraw', args: IListItemRedrawArgs): this
+  emit(eventName: 'redrawed', args: IListItemRedrawedArgs): this
+}
+
+export interface IListItemRedrawArgs {
+  props: Partial<IComponentTypeObject>
+}
+
+export interface IListItemRedrawedArgs {
+  props: IListItemRedrawArgs['props']
+  listItem: IListItem
 }
 
 export interface IListItemChild<K extends NOODLComponentType>
@@ -690,6 +707,7 @@ export interface ConsumerOptions {
   getNode: INOODLUiStateHelpers['getNode']
   getNodes: INOODLUiStateHelpers['getNodes']
   getPageObject: INOODLUiStateHelpers['getPageObject']
+  getResolvers(): INOODLUi['getResolvers']
   getState: INOODLUiStateHelpers['getState']
   parser: ResolverOptions['parser']
   resolveComponent: INOODLUi['resolveComponents']

@@ -1,12 +1,16 @@
 import { expect } from 'chai'
+import sinon from 'sinon'
+import chalk from 'chalk'
 import _ from 'lodash'
 import { findChild } from 'noodl-utils'
 import _internalResolver from '../resolvers/_internal'
 import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
-import { noodlui } from '../utils/test-utils'
-import { IComponentTypeObject, IList } from '../types'
+import { assetsUrl, noodlui } from '../utils/test-utils'
+import { IComponentTypeObject, IList, IListItem } from '../types'
+import { event } from '../constants'
+import { waitFor } from '@testing-library/dom'
 
 describe('_internalResolver', () => {
   describe('list', () => {
@@ -54,82 +58,174 @@ describe('_internalResolver', () => {
               style: { fontWeight: 400, fontSize: '16' },
             },
             {
-              type: 'image',
-              path: 'rightArrow.png',
-              style: {
-                left: '0.88',
-                top: '0.02',
-                width: '0.07',
-                height: '0.03',
-              },
+              type: 'view',
+              viewTag: 'abc',
+              children: [
+                {
+                  type: 'view',
+                  children: [
+                    {
+                      type: 'image',
+                      path: 'rightArrow.png',
+                      style: {
+                        left: '0.88',
+                        top: '0.02',
+                        width: '0.07',
+                        height: '0.03',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
       ],
     } as IComponentTypeObject
 
-    it('should start with no children (removes the listItem placeholder)', () => {
+    xit('should start with no children (removes the listItem placeholder)', () => {
       const component = new List({ type: 'list', listObject: [] })
       expect(component).to.have.lengthOf(0)
       expect(component.children()).to.have.lengthOf(0)
     })
 
     it('should have initiated the blueprint using the raw noodl list item component', () => {
-      const { iteratorVar } = noodlComponent
-      const component = new List(noodlComponent)
+      const noodlParentComponent = {
+        type: 'view',
+        children: [],
+      }
+      const noodlListComponent = {
+        type: 'list',
+        listObject: [],
+        children: [
+          {
+            type: 'listItem',
+            viewTag: 'hello',
+            style: { width: '0.2', height: '0.3' },
+            children: [
+              { type: 'label', dataKey: 'formData.greeting' },
+              { type: 'image', path: 'abc.jpg' },
+              {
+                type: 'view',
+                children: [{ type: 'label', dataKey: 'formData.firstName' }],
+              },
+            ],
+          },
+        ],
+        iteratorVar: 'cat',
+      }
+      noodlParentComponent.children.push(noodlListComponent)
+      const parent = noodlui.resolveComponents(noodlParentComponent)
+      const component = parent.child()
       const blueprint = component.getBlueprint()
+      expect(blueprint).to.have.property('viewTag', 'hello')
+      expect(blueprint.style).to.have.property('width')
+      expect(blueprint.style).to.have.property('height')
+      expect(blueprint.style).not.to.have.property('top')
       expect(blueprint).to.have.property('listId', component.listId)
-      expect(blueprint).to.have.property('iteratorVar', iteratorVar)
+      expect(blueprint).to.have.property('iteratorVar', component.iteratorVar)
+      expect(blueprint.children).to.have.lengthOf(3)
+      expect(blueprint.children?.[0]).to.have.property('type', 'label')
+      expect(blueprint.children?.[1]).to.have.property('type', 'img')
+      expect(blueprint.children?.[1]).to.have.property(
+        'src',
+        `${assetsUrl}abc.jpg`,
+      )
     })
 
-    xit('should start off with 2 children if listObject has 2 items', () => {
-      //
+    it('should start off with 2 children if listObject has 2 items', () => {
+      const noodlParentComponent = {
+        type: 'view',
+        children: [],
+      }
+      noodlParentComponent.children.push(noodlComponent)
+      const parent = noodlui.resolveComponents(noodlParentComponent)
+      const component = parent.child()
+      expect(component).to.have.lengthOf(2)
     })
 
-    xit('should start off with 5 children if listObject has 5 items', () => {
-      //
+    it('should start off with 5 children if listObject has 5 items', () => {
+      const noodlParentComponent = {
+        type: 'view',
+        children: [],
+      }
+      noodlParentComponent.children.push({
+        ...noodlComponent,
+        listObject: [...noodlComponent.listObject, {}, {}, {}],
+      })
+      const parent = noodlui.resolveComponents(noodlParentComponent)
+      const component = parent.child()
+      expect(component).to.have.lengthOf(5)
     })
 
-    xit('should add the data object when calling addDataObject', () => {
-      //
+    it(`should emit ${chalk.yellow(
+      event.component.list.CREATE_LIST_ITEM,
+    )} after adding a data object`, () => {
+      const spy = sinon.spy()
+      const parent = noodlui.resolveComponents({
+        type: 'view',
+        children: [noodlComponent],
+      }) as IList
+      const component = parent.child() as IList
+      component.on(event.component.list.CREATE_LIST_ITEM, spy)
+      component.addDataObject({ hello: 'true' })
+      expect(spy.called).to.be.true
     })
 
-    xit('should emit create.list.item after adding a data object', () => {
-      //
-    })
-
-    xit('should remove the data object when calling removeDataObject', () => {
-      //
-    })
-
-    xit('should emit delete.list.item after removing a data object', () => {
-      //
-    })
-
-    xit('should emit retrieve.list.item after retrieving a data object', () => {
-      //
+    it(`should emit ${chalk.yellow(
+      event.component.list.REMOVE_LIST_ITEM,
+    )} after removing a data object`, () => {
+      const spy = sinon.spy()
+      const parent = noodlui.resolveComponents({
+        type: 'view',
+        children: [noodlComponent],
+      }) as IList
+      const component = parent.child() as IList
+      expect(spy.called).to.be.false
+      component.on(event.component.list.REMOVE_LIST_ITEM, spy)
+      component.removeDataObject(1)
+      expect(spy.called).to.be.true
     })
 
     xit('should update the data object when calling updateDataObject', () => {
-      //
+      const spy = sinon.spy()
+      const parent = noodlui.resolveComponents({
+        type: 'view',
+        children: [noodlComponent],
+      }) as IList
+      const component = parent.child() as IList
+      expect(spy.called).to.be.false
+      component.on(event.component.list.RETRIEVE_LIST_ITEM, spy)
+      component.getDataObject(1)
+      expect(spy.called).to.be.true
     })
 
-    xit('should emit update.list.item after updating a data object', () => {
-      //
+    it(`should emit ${chalk.yellow(
+      event.component.list.UPDATE_LIST_ITEM,
+    )} after updating a data object`, () => {
+      const spy = sinon.spy()
+      const parent = noodlui.resolveComponents({
+        type: 'view',
+        children: [noodlComponent],
+      }) as IList
+      const component = parent.child() as IList
+      component.on(event.component.list.UPDATE_LIST_ITEM, spy)
+      expect(spy.called).to.be.false
+      component.updateDataObject(1, { hello: 'true', fruit: 'apple' })
+      expect(spy.called).to.be.true
     })
 
-    xdescribe('when controlling list item components', () => {
-      xit('should have assigned the listIndex values accurately', () => {
-        const noodlComponent = mock.raw.getNOODLList()
-        const component = new List(noodlComponent)
-        component
-          .children()
-          .forEach((child: IListItem, index) =>
-            expect(child.listIndex).to.equal(index + 122),
-          )
-      })
+    describe('when controlling list item components', () => {
+      _.forEach(
+        new List(noodlComponent).children(),
+        (child: IListItem, index) => {
+          it('should have assigned the listIndex values accurately', () => {
+            expect(child.listIndex).to.equal(index)
+          })
+        },
+      )
 
-      it('should populate descendant dataKey consumers expectedly', () => {
+      xit('should populate descendant dataKey consumers expectedly', () => {
         const noodlComponent = {
           type: 'list',
           listObject: [
@@ -169,7 +265,7 @@ describe('_internalResolver', () => {
     //
   })
 
-  describe('other components', () => {
+  xdescribe('other components', () => {
     it('should be deeply resolving children all the way down', () => {
       const component = new Component({
         type: 'view',

@@ -90,7 +90,7 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
 
   toJS() {
     return {
-      children: _.map(this.#children, (child) => child.toJS()),
+      children: _.map(this.#children, (child) => child.toJS?.()),
       dataObject: this.getDataObject(),
       listId: this.listId,
       listIndex: this.listIndex,
@@ -100,7 +100,11 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
   }
 
   on<E = 'redraw'>(eventName: E, cb) {
-    if (eventName === 'redraw') this.#cb.redraw.push(cb)
+    if (eventName === 'redraw') {
+      // Restricting redraw to one handler only
+      if (this.#cb.redraw.length) return
+      this.#cb.redraw.push(cb)
+    }
     return this
   }
 

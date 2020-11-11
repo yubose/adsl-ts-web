@@ -7,8 +7,8 @@ import {
   NOODLComponentType,
 } from '../types'
 import { forEachEntries } from './common'
-import ListComponent from '../components/List/List'
-import ListItemComponent from '../components/ListItem/ListItem'
+import List from '../components/List'
+import ListItem from '../components/ListItem'
 import Component from '../components/Base'
 
 /**
@@ -19,22 +19,22 @@ import Component from '../components/Base'
  */
 function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   noodlType: K,
-  options?: ConstructorParameters<IComponentConstructor>,
+  options?: Partial<IComponentTypeObject>,
 ): IComponentTypeInstance<K>
 
 function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   props: IComponentTypeObject,
-  options?: ConstructorParameters<IComponentConstructor>,
+  options?: Partial<IComponentTypeObject>,
 ): IComponentTypeInstance<K>
 
 function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   component: IComponentTypeInstance<K>,
-  options?: ConstructorParameters<IComponentConstructor>,
+  options?: Partial<IComponentTypeObject>,
 ): IComponentTypeInstance<K>
 
 function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   props: K | IComponentTypeObject | IComponentTypeInstance<K>,
-  options?: ConstructorParameters<IComponentConstructor>,
+  options?: Partial<IComponentTypeObject>,
 ): IComponentTypeInstance<K> {
   let childComponent: any
   let id: string = ''
@@ -70,9 +70,9 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
 function toInstance(props: IComponentTypeObject) {
   switch (props.noodlType || props.type) {
     case 'list':
-      return new ListComponent(props)
+      return new List(props)
     case 'listItem':
-      return new ListItemComponent(props)
+      return new ListItem(props)
     default:
       return new Component(props) as IComponent
   }

@@ -434,6 +434,10 @@ class NOODL implements T.INOODLUi {
     return result || null
   }
 
+  getResolvers() {
+    return this.#resolvers.map((resolver) => resolver.resolve)
+  }
+
   getState() {
     return this.#state
   }

@@ -4,7 +4,7 @@ import createComponent from '../../utils/createComponent'
 import handleList from './handleList'
 import handleListItem from './handleListItem'
 import Resolver from '../../Resolver'
-import { IComponentTypeInstance } from '../../types'
+import { IComponentTypeInstance, IComponentTypeObject } from '../../types'
 
 const log = Logger.create('_internalResolver')
 
@@ -24,7 +24,10 @@ _internalResolver.setResolver((component, options) => {
    * to control the behavior to comply with the NOODL spec
    * @param { IComponentTypeInstance } c
    */
-  const resolveChildren = (c: IComponentTypeInstance | undefined) => {
+  const resolveChildren = (
+    c: IComponentTypeInstance | undefined,
+    { props }: { props?: Partial<IComponentTypeObject> } = {},
+  ) => {
     if (c?.original?.children) {
       let noodlChildren: any[] | undefined
 
@@ -39,11 +42,13 @@ _internalResolver.setResolver((component, options) => {
       if (noodlChildren) {
         _.forEach(noodlChildren, (noodlChild) => {
           if (noodlChild) {
-            const inst = c.createChild(createComponent(noodlChild))
+            const inst = resolveComponent(
+              c.createChild(createComponent(noodlChild, props)),
+            )
             if (inst) {
               switch (inst.noodlType) {
                 case 'list':
-                  return void handleList(inst, options)
+                  return void handleList(inst, options, { resolveChildren })
                 case 'listItem':
                   return void handleListItem(inst, options)
                 default: {

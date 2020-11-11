@@ -8,7 +8,8 @@ const log = Logger.create('internal[handleListItem')
 const handleListItemResolver: ResolverFn = (component, options) => {
   const { resolveComponent } = options
 
-  const parent = component.parent()
+  const listComponent = component.parent()
+
   if (parent?.noodlType === 'list') {
     // parent.on(event.component.list.UPDATE_LIST_ITEM, (result) => {
     //   component.setDataObject(result.dataObject)
@@ -30,7 +31,7 @@ const handleListItemResolver: ResolverFn = (component, options) => {
       //   component.createChild(createChild.call(component, noodlChild)),
       // )
       // child.setParent(component)
-      resolveComponent(component.createChild(createComponent(noodlChild)))
+      // resolveComponent(component.createChild(createComponent(noodlChild)))
       log.func('createChild')
       // log.gold('Created a child for listItem', child)
     })

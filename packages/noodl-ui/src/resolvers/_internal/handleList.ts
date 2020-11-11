@@ -1,13 +1,27 @@
 import _ from 'lodash'
+import produce from 'immer'
 import Logger from 'logsnap'
 import createComponent from '../../utils/createComponent'
-import { IList, IListItem } from '../../types'
+import { forEachEntries } from '../../utils/common'
+import { forEachDeepChildren } from '../../utils/noodl'
+import {
+  IComponentTypeInstance,
+  IComponentTypeObject,
+  IList,
+  IListBlueprint,
+  IListItem,
+} from '../../types'
 import { event } from '../../constants'
 
 const log = Logger.create('internal[handleList]')
 
-const handleListInternalResolver = (component: IList, options) => {
+const handleListInternalResolver = (component: IList, options, internal) => {
   const { resolveComponent } = options
+
+  const commonProps = {
+    listId: component.listId,
+    iteratorVar: component.iteratorVar,
+  }
 
   // Keeps blueprint updated
   component.on(event.component.list.BLUEPRINT, (blueprint) => {
@@ -31,6 +45,11 @@ const handleListInternalResolver = (component: IList, options) => {
       // component.#items[listItem.id] = { dataObject: result.dataObject, listItem }
       const logArgs = { ...result, listItem }
       log.green(`Created a new listItem`, logArgs)
+
+      internal.resolveChildren(listItem, {
+        props: commonProps,
+      })
+
       component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
     } else {
       log.red(
@@ -40,9 +59,17 @@ const handleListInternalResolver = (component: IList, options) => {
       )
     }
 
-    listItem.on('redraw', () => {
+    listItem.on(event.component.listItem.REDRAW, ({ props }) => {
+      log.func('redraw')
+      log.grey(`Redrawing listItem`, { props, listItem })
+      if (props) {
+        forEachDeepChildren(listItem, (child) => {
+          forEachEntries(props, (k, v) => child.set(k, v))
+        })
+      }
       // resolveComponent(listItem)
       // console.info('REDRAWED', listItem)
+      listItem.emit(event.component.listItem.REDRAWED, { props, listItem })
     })
 
     // listItem.emit('redraw')
@@ -71,45 +98,66 @@ const handleListInternalResolver = (component: IList, options) => {
     const listItem: IListItem<'list'> | undefined = component.children()?.[
       result.index
     ]
-    listItem?.setDataObject(result.dataObject)
+    listItem?.setDataObject?.(result.dataObject)
     log.green(`Updated dataObject`, { result, ...options })
-    component.emit(event.component.list.UPDATE_LIST_ITEM, {
-      ...result,
-      listItem,
-    })
+    const args = { ...result, listItem }
+    component.emit(event.component.list.UPDATE_LIST_ITEM, args)
   })
 
-  // Initiate the component
-  // if (!_state.initiated) {
-  const listObject = component.getData() || []
+  const resolveBlueprint = (noodlComponent: IComponentTypeObject) => {
+    const originalChildren = noodlComponent.original.children
+    const rawBlueprint = ((_.isString(originalChildren)
+      ? { type: originalChildren }
+      : _.isArray(originalChildren)
+      ? originalChildren[0]
+      : _.isPlainObject(originalChildren)
+      ? originalChildren
+      : originalChildren) || {}) as IComponentTypeObject
 
-  log.grey(`Initiating list internal resolver's listObject`, {
-    component: component.toJS(),
-    listObject,
-    ...options,
-  })
+    const resolvedBlueprint = resolveComponent(
+      rawBlueprint,
+    ) as IComponentTypeInstance
 
-  if (listObject?.length) {
-    // TODO - Do a more official way to remove the placeholder
-    if (component.get('listObject')?.length === 1) {
-      component.removeDataObject(0)
-    }
+    resolvedBlueprint.set('listId', component.listId)
+    resolvedBlueprint.set('iteratorVar', component.iteratorVar)
 
-    _.forEach(listObject, (dataObject) => {
-      component.addDataObject(dataObject)
-      log.green(`Saved dataObject`, dataObject)
+    internal.resolveChildren(resolvedBlueprint, {
+      props: commonProps,
     })
+
+    // TODO - find out more keys to filter out
+    const untouchedProps = _.filter(
+      resolvedBlueprint.untouched,
+      (key) => !/(children|listObject)/i.test(key),
+    )
+
+    const finalizedBlueprint = produce(resolvedBlueprint.toJS(), (draft) => {
+      _.forEach(untouchedProps, (key) => (draft[key] = rawBlueprint[key]))
+    })
+
+    return (finalizedBlueprint || {
+      type: 'listItem',
+    }) as IListBlueprint
   }
-  // } else {
-  //   console.log(
-  //     `List internal resolver's listObject was already instantiated`,
-  //     {
-  //       component: component.toJS(),
-  //       listObject: component.getData(),
-  //       ...options,
-  //     },
-  //   )
-  // }
+
+  const resolveListItems = (listObject: any[] = [], init?: boolean) => {
+    if (listObject.length) {
+      // Resetting the list data that was set from the parent prototype so we
+      // can re-add them back in so the consumer can get the emitted events
+      if (init) component.set('listObject', [])
+      const numItems = listObject.length
+      for (let index = 0; index < numItems; index++) {
+        const dataObject = listObject[index]
+        component.addDataObject(dataObject)
+        log.green('Saved dataObject', dataObject)
+      }
+    }
+  }
+
+  // Initiate the blueprint
+  component.setBlueprint(resolveBlueprint(component))
+  // Initiate the listItem children
+  resolveListItems(component.getData(), true)
 }
 
 export default handleListInternalResolver

@@ -3,18 +3,16 @@ import Logger from 'logsnap'
 import {
   IComponent,
   IComponentConstructor,
+  IComponentTypeInstance,
   IList,
   IListBlueprint,
   IListEventId,
   IListItem,
   IListDataObjectEventHandlerOptions,
   IListDataObjectOperationResult,
-  ProxiedComponent,
-  IComponentTypeInstance,
 } from '../../types'
 import Component from '../Base'
 import { forEachEntries, getRandomKey } from '../../utils/common'
-import { forEachDeepChildren } from '../../utils/noodl'
 import { event } from '../../constants'
 import { IComponentEventId } from '../../types'
 
@@ -36,7 +34,6 @@ class List extends Component implements IList {
     [event.component.list.RETRIEVE_LIST_ITEM]: Function[]
     [event.component.list.UPDATE_LIST_ITEM]: Function[]
     [event.component.list.BLUEPRINT]: Function[]
-    [event.component.list.REDRAW]: Function[]
   } = {
     [event.component.list.ADD_DATA_OBJECT]: [],
     [event.component.list.DELETE_DATA_OBJECT]: [],
@@ -45,8 +42,8 @@ class List extends Component implements IList {
     [event.component.list.CREATE_LIST_ITEM]: [],
     [event.component.list.REMOVE_LIST_ITEM]: [],
     [event.component.list.RETRIEVE_LIST_ITEM]: [],
+    [event.component.list.UPDATE_LIST_ITEM]: [],
     [event.component.list.BLUEPRINT]: [],
-    [event.component.list.REDRAW]: [],
   }
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
@@ -57,18 +54,14 @@ class List extends Component implements IList {
         IComponentConstructor
       >),
     )
-    // Removes the listItem placeholder that comes in the response.
-    // this.removeChild()
+    log.func('constructor')
+    log.gold(`Creating list component`, { args, component: this.toJS() })
     // These initial values will be set once in the prototype.
     // When we use .set, we will intercept the call and set them
     // on this instance instead
-    this.#listId = getRandomKey()
-    this.#listObject = this.get('listObject') || []
-    this.#iteratorVar = this.get('iteratorVar') || ''
-    this.setBlueprint(this.getBlueprint())
-
-    log.func('constructor')
-    log.gold(`Creating list component`, { args, component: this.toJS() })
+    this.set('listId', getRandomKey())
+    this.set('listObject', this.get('listObject') || [])
+    this.set('iteratorVar', this.get('iteratorVar') || '')
   }
 
   get iteratorVar() {
@@ -83,6 +76,10 @@ class List extends Component implements IList {
     return this.#children.length
   }
 
+  get type() {
+    return 'list' as const
+  }
+
   children() {
     return this.#children
   }
@@ -90,7 +87,7 @@ class List extends Component implements IList {
   getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {
     return (
       (fromNodes
-        ? this.#children.map((c) => c.getDataObject?.()) || []
+        ? this.#children.map((c) => c.getDataObject?.())
         : this.#listObject) || []
     )
   }
@@ -297,8 +294,8 @@ class List extends Component implements IList {
     if (typeof index === 'function') {
       const pred = index
       if (_.isArray(this.#listObject)) {
-        const numDataObjects = this.#listObject.length
-        for (let i = 0; i < numDataObjects; i++) {
+        const numItems = this.#listObject.length
+        for (let i = 0; i < numItems; i++) {
           const dataObject = this.#listObject[i]
           if (pred(dataObject)) {
             this.#listObject[i] = dataObject
@@ -339,42 +336,7 @@ class List extends Component implements IList {
    * This function returns that structure
    */
   getBlueprint(): IListBlueprint {
-    let blueprint: IListBlueprint | undefined
-    let originalChildren: ProxiedComponent | undefined
-
-    const commonProps = {
-      listId: this.listId,
-      iteratorVar: this.iteratorVar,
-    }
-
-    if (_.isObject(this.original)) {
-      if (_.isArray(this.original.children)) {
-        const targetChild = this.original.children[0]
-        originalChildren = _.isObject(targetChild)
-          ? targetChild
-          : _.isString(targetChild)
-          ? { type: targetChild }
-          : { type: 'listItem' }
-      } else if (_.isObject(this.original.children)) {
-        originalChildren = this.original.children
-      }
-    } else if (_.isString(this.original)) {
-      originalChildren = { type: this.original }
-    }
-
-    blueprint = {
-      ...originalChildren,
-      ...commonProps,
-      style: { ...originalChildren?.style },
-    }
-
-    if (blueprint.children) {
-      forEachDeepChildren(blueprint, _.partialRight(_.assign, commonProps))
-    }
-
-    if ('id' in blueprint) delete blueprint.id
-
-    return blueprint
+    return this.#blueprint
   }
 
   setBlueprint(newBlueprint: IListBlueprint) {
@@ -549,6 +511,7 @@ class List extends Component implements IList {
       listObject: this.#listObject,
       iteratorVar: this.iteratorVar,
       style: this.style,
+      type: this.type,
     }
   }
 

@@ -144,7 +144,10 @@ export const event = {
       RETRIEVE_LIST_ITEM: 'retrieve.list.item',
       UPDATE_LIST_ITEM: 'update.list.item',
       BLUEPRINT: 'blueprint',
+    },
+    listItem: {
       REDRAW: 'redraw',
+      REDRAWED: 'redrawed',
     },
   },
 } as const

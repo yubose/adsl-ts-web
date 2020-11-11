@@ -515,10 +515,8 @@ class Component implements IComponent {
    * @param { number } index
    */
   child(index?: number) {
-    let child: IComponentTypeInstance | undefined
-    if (_.isNumber(index)) child = this.#children?.[index]
-    else child = this.#children?.[0]
-    return child || undefined
+    if (!arguments.length) return this.#children?.[0]
+    return this.#children?.[index as number]
   }
 
   /**

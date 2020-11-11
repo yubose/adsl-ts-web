@@ -22,15 +22,20 @@ import {
   ResolverFn,
   IComponentTypeObject,
   IComponentTypeInstance,
-  NOODLComponentType,
 } from '../types'
 
 export const assetsUrl = 'https://something.com/assets/'
 
 export const noodlui = (function () {
+  const viewport = new Viewport()
+  viewport.width = 365
+  viewport.height = 667
+
   const state = {
-    client: new NOODLUi({ viewport: new Viewport() }),
+    client: new NOODLUi({ viewport }),
   }
+
+  state.client.setAssetsUrl(assetsUrl)
 
   Object.defineProperty(state.client, 'cleanup', {
     configurable: true,
