@@ -200,7 +200,7 @@ class Page {
    * @param { boolean? } modifiers.evolve - Set to false to disable the sdk's "evolve" for this route change. It internally set to true by default
    */
   requestPageChange(newPage: string, modifiers: { evolve?: boolean } = {}) {
-    if (newPage !== this.currentPage) {
+    if (newPage !== this.currentPage || newPage.startsWith('http')) {
       const shouldNavigate = this.#onPageRequest?.({
         previous: this.previousPage,
         current: this.currentPage,
