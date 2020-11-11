@@ -21,65 +21,6 @@ describe('List', () => {
       expect(component.iteratorVar).to.equal(args.iteratorVar)
       expect(component.getData()).to.deep.equal(args.listObject)
     })
-
-    it('should have initiated the blueprint using the raw noodl list item component', () => {
-      const noodlComponent = mock.raw.getNOODLList()
-      const { iteratorVar } = noodlComponent
-      const component = new List(noodlComponent)
-      const blueprint = component.getBlueprint()
-      expect(blueprint).to.have.property('listId', component.listId)
-      expect(blueprint).to.have.property('iteratorVar', iteratorVar)
-    })
-
-    it('should have assigned the listIndex values accurately', () => {
-      const noodlComponent = mock.raw.getNOODLList()
-      const component = new List(noodlComponent)
-      component
-        .children()
-        .forEach((child: IListItem, index) =>
-          expect(child.listIndex).to.equal(index + 122),
-        )
-    })
-
-    it('should start with no children (removes the listItem placeholder)', () => {
-      const component = new List({ type: 'list', listObject: [] })
-      expect(component).to.have.lengthOf(0)
-      expect(component.children()).to.have.lengthOf(0)
-    })
-
-    it('should populate descendant dataKey consumers expectedly', () => {
-      const noodlComponent = {
-        type: 'list',
-        listObject: [
-          { title: 'apple', color: 'red' },
-          { title: 'banana', color: 'yellow' },
-          { title: 'grape', color: 'magenta' },
-          { title: 'pear', color: 'tan' },
-        ],
-        iteratorVar: 'hello',
-        children: [
-          {
-            type: 'listItem',
-            children: [
-              { type: 'label', dataKey: 'hello.title' },
-              {
-                type: 'view',
-                children: [{ type: 'label', dataKey: 'hello.color' }],
-              },
-            ],
-          },
-        ],
-      }
-      const component = new List(noodlComponent)
-      const resolvedComponent = noodlui.resolveComponents(component)
-      // fs.writeJsonSync(
-      //   path.join(__dirname, 'listtest.json'),
-      //   component.toJS(),
-      //   { spaces: 2 },
-      // )
-
-      // console.info(resolvedComponent.children())
-    })
   })
 
   describe('when putting the blueprint together', () => {

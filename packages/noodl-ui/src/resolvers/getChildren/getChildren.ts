@@ -10,7 +10,6 @@ import {
   ProxiedComponent,
   ResolverOptions,
 } from '../../types'
-import createChild from '../../utils/createChild'
 import getChildProps from './getChildProps'
 import getChildrenDefault from './default'
 import getListChildren from './list'

@@ -7,7 +7,7 @@ import {
   IListItem,
   IComponentTypeInstance,
 } from '../../types'
-import createChild from '../../utils/createChild'
+import createComponent from '../../utils/createComponent'
 
 class ListItemChildComponent extends Component implements IListItemChild {
   #listId: string = ''
@@ -40,10 +40,7 @@ class ListItemChildComponent extends Component implements IListItemChild {
   }
 
   createChild(...args: Parameters<IComponent['createChild']>) {
-    const child = createChild.call(
-      this,
-      new ListItemChildComponent(...args),
-    ) as IComponentTypeInstance
+    const child = createComponent(...args) as IListItemChild<any>
     child?.set('listId', this.listId).set('iteratorVar', this.iteratorVar)
     return child
   }

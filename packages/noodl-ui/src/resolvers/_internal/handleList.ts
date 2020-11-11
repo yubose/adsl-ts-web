@@ -1,12 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import createChild from '../../utils/createChild'
-import {
-  IComponentTypeInstance,
-  IList,
-  IListItem,
-  ResolverFn,
-} from '../../types'
+import createComponent from '../../utils/createComponent'
+import { IList, IListItem } from '../../types'
 import { event } from '../../constants'
 
 const log = Logger.create('internal[handleList]')
@@ -24,9 +19,7 @@ const handleListInternalResolver = (component: IList, options) => {
     log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
     const listItem = resolveComponent(
-      component.createChild(
-        createChild.call(component, component.getBlueprint()),
-      ),
+      component.createChild(createComponent(component.getBlueprint())),
     ) as IListItem
 
     log.gold('ADD_DATA_OBJECT', { listItem, ...result })

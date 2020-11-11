@@ -1,8 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import createChild from '../../utils/createChild'
-import { IList, IListItem, ResolverFn } from '../../types'
-import { event } from '../../constants'
+import createComponent from '../../utils/createComponent'
+import { ResolverFn } from '../../types'
 
 const log = Logger.create('internal[handleListItem')
 
@@ -31,9 +30,7 @@ const handleListItemResolver: ResolverFn = (component, options) => {
       //   component.createChild(createChild.call(component, noodlChild)),
       // )
       // child.setParent(component)
-      resolveComponent(
-        component.createChild(createChild.call(component, noodlChild)),
-      )
+      resolveComponent(component.createChild(createComponent(noodlChild)))
       log.func('createChild')
       // log.gold('Created a child for listItem', child)
     })

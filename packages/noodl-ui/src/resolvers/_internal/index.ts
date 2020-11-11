@@ -1,17 +1,12 @@
 import _ from 'lodash'
-import { isComponentInstance } from 'noodl-utils'
-import createChild from '../../utils/createChild'
+import Logger from 'logsnap'
+import createComponent from '../../utils/createComponent'
 import handleList from './handleList'
 import handleListItem from './handleListItem'
 import Resolver from '../../Resolver'
-import { forEachDeepChildren } from '../../utils/noodl'
-import {
-  IComponentType,
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  IList,
-  IListItem,
-} from '../../types'
+import { IComponentTypeInstance } from '../../types'
+
+const log = Logger.create('_internalResolver')
 
 /**
  * These resolvers are used internally by the lib. They handle all the logic
@@ -23,33 +18,48 @@ const _internalResolver = new Resolver()
 _internalResolver.setResolver((component, options) => {
   const { resolveComponent } = options
 
-  function fn(
-    parent: IComponentTypeInstance | IComponentTypeObject,
-    child: IComponentType,
-  ) {
-    if (isComponentInstance(child)) {
-      const c = child as IComponentTypeInstance
-      if (c.noodlType === 'list') {
-        handleList(c as IList, options)
-      } else if (c.noodlType === 'listItem') {
-        handleListItem(c as IListItem, options)
-      } else {
-        const originalChildren = c.original?.children
-        if (_.isArray(originalChildren)) {
-          _.forEach(originalChildren, (oc) => {
-            resolveComponent(parent.createChild(createChild.call(parent, oc)))
-            fn(parent, oc)
-          })
-        } else fn(parent, originalChildren as any)
+  /**
+   * Prepares to call the instance resolver on each children.
+   * After conversion, they're passed to the behavior handler
+   * to control the behavior to comply with the NOODL spec
+   * @param { IComponentTypeInstance } c
+   */
+  const resolveChildren = (c: IComponentTypeInstance | undefined) => {
+    if (c?.original?.children) {
+      let noodlChildren: any[] | undefined
+
+      if (typeof c.original.children === 'string') {
+        noodlChildren = [{ type: c.original.children }]
+      } else if (_.isPlainObject(c.original.children)) {
+        noodlChildren = [c.original.children]
+      } else if (_.isArray(c.original.children)) {
+        noodlChildren = c.original.children
       }
-    } else {
-      if (_.isString(child) || _.isPlainObject(child)) {
-        resolveComponent(parent.createChild(createChild.call(parent, child)))
+
+      if (noodlChildren) {
+        _.forEach(noodlChildren, (noodlChild) => {
+          if (noodlChild) {
+            const inst = c.createChild(createComponent(noodlChild))
+            if (inst) {
+              switch (inst.noodlType) {
+                case 'list':
+                  return void handleList(inst, options)
+                case 'listItem':
+                  return void handleListItem(inst, options)
+                default: {
+                  resolveComponent(inst)
+                  resolveChildren(inst)
+                  break
+                }
+              }
+            }
+          }
+        })
       }
     }
   }
 
-  forEachDeepChildren(component, fn)
+  resolveChildren(component)
 })
 
 _internalResolver.internal = true

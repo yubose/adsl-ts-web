@@ -49,7 +49,7 @@ describe('isBreakLineTextBoardItem', () => {
   })
 })
 
-// describe('findChild', () => {
+// describe('findChild', async () => {
 //   it('should be able to find nested children', () => {
 //     const injectProps = {
 //       iteratorVar: 'hello',

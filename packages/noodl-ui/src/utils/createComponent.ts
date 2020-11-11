@@ -4,14 +4,12 @@ import {
   IComponentConstructor,
   IComponentTypeInstance,
   IComponentTypeObject,
-  IList,
-  IListItem,
   NOODLComponentType,
 } from '../types'
+import { forEachEntries } from './common'
 import ListComponent from '../components/List/List'
 import ListItemComponent from '../components/ListItem/ListItem'
 import Component from '../components/Base'
-import { forEachEntries } from './common'
 
 /**
  * A helper/utility to create Component instances corresponding to their NOODL
@@ -23,46 +21,60 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   noodlType: K,
   options?: ConstructorParameters<IComponentConstructor>,
 ): IComponentTypeInstance<K>
+
 function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   props: IComponentTypeObject,
   options?: ConstructorParameters<IComponentConstructor>,
 ): IComponentTypeInstance<K>
+
 function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   component: IComponentTypeInstance<K>,
   options?: ConstructorParameters<IComponentConstructor>,
 ): IComponentTypeInstance<K>
+
 function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   props: K | IComponentTypeObject | IComponentTypeInstance<K>,
   options?: ConstructorParameters<IComponentConstructor>,
 ): IComponentTypeInstance<K> {
-  let noodlType: NOODLComponentType
-  let args: Partial<IComponentTypeObject>
+  let childComponent: any
+  let id: string = ''
 
   // NOODLComponentType
   if (typeof props === 'string') {
-    noodlType = props
-    args = { ...options }
-  }
-  // IComponentInstanceType
-  else if (props instanceof Component) {
+    childComponent = toInstance({ type: props, ...options })
+  } else if (props instanceof Component) {
+    // IComponentInstanceType
+    childComponent = props
+    id = childComponent.id
     if (options && _.isPlainObject(options)) {
-      forEachEntries(options, (k, v) => props.set(k, v))
+      forEachEntries(options, (k, v) => childComponent.set(k, v))
     }
-    return props as IComponentTypeInstance<K>
-  }
-  // IComponentObjectType
-  else {
-    noodlType = props.noodlType || props.type
-    args = { ...props, ...options }
+  } else {
+    // IComponentObjectType
+    childComponent = toInstance({ ...props, ...options })
   }
 
-  switch (noodlType || props.type) {
+  if (!id) {
+    if (childComponent.length) id += `[${childComponent.length}]`
+    else id += '[0]'
+  }
+
+  // Resync the child's id to match the parent's id. This can possibly be the
+  // case when we're re-rendering and choose to pass in existing component
+  // instances to shortcut into parsing
+  if (id !== childComponent.id) childComponent['id'] = id
+
+  return childComponent
+}
+
+function toInstance(props: IComponentTypeObject) {
+  switch (props.noodlType || props.type) {
     case 'list':
-      return new ListComponent(args) as IList<'list'>
+      return new ListComponent(props)
     case 'listItem':
-      return new ListItemComponent(args) as IListItem<'listItem'>
+      return new ListItemComponent(props)
     default:
-      return new Component<K>({ ...args, type: noodlType }) as IComponent<K>
+      return new Component(props) as IComponent
   }
 }
 

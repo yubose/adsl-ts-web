@@ -23,7 +23,6 @@ import {
 import createComponent from './utils/createComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
-import createChild from './utils/createChild'
 import { event, componentEventIds, componentEventTypes } from './constants'
 import * as T from './types'
 

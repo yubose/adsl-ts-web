@@ -48,12 +48,21 @@ export function findChild<Component extends { children?: Function } = any>(
   component: Component,
   fn: (child: Component) => boolean,
 ): Component | null {
-  if (component) {
-    let children = component.children?.().reverse?.()
-    let child = children.pop()
-    if (child) {
+  let child: Component | null = null
+  let children = component?.children?.()?.slice?.()?.reverse?.()
+
+  if (component && children) {
+    child = children.pop()
+    while (child) {
       if (fn(child)) return child
-      if (child.length) return findChild(child, fn)
+      if (child) {
+        if (child.length) {
+          child.children?.().forEach((c: any) => children.push(c))
+        }
+        child = children.pop()
+      } else {
+        break
+      }
     }
   }
   return null
@@ -184,8 +193,7 @@ export function isBreakLineTextBoardItem<
 export function isComponentInstance(
   component: any,
 ): component is IComponentTypeInstance {
-  return (typeof component === 'object' &&
-    typeof component?.children === 'function') as boolean
+  return !!component && ((typeof component?.children === 'function') as boolean)
 }
 
 export function isTextFieldLike(

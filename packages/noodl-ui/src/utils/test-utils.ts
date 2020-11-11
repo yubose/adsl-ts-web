@@ -1,4 +1,6 @@
 import _ from 'lodash'
+import fs, { WriteOptions } from 'fs-extra'
+import path from 'path'
 import getAlignAttrs from '../resolvers/getAlignAttrs'
 import getBorderAttrs from '../resolvers/getBorderAttrs'
 import getColors from '../resolvers/getColors'
@@ -46,7 +48,21 @@ export const noodlui = (function () {
     [] as Resolver[],
   ).forEach((r) => state.client.use(r))
 
-  return state.client as NOODLUi & { cleanup: () => void }
+  Object.defineProperty(state.client, 'save', {
+    configurable: true,
+    writable: true,
+    value: function (filepath: string, data: any, options: WriteOptions) {
+      fs.writeJsonSync(path.resolve(path.join(process.cwd(), filepath)), data, {
+        spaces: 2,
+        ...options,
+      })
+    },
+  })
+
+  return state.client as NOODLUi & {
+    cleanup: () => void
+    save: (filepath: string, data: any, options?: WriteOptions) => void
+  }
 })()
 
 export function getAllResolvers() {
