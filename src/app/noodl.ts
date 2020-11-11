@@ -15,7 +15,7 @@ const MEET11_CONFIG = getConfigEndpoint('meet11')
 const noodl = new NOODL({
   aspectRatio: 3,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: MEET2D_CONFIG,
+  configUrl: MEET3D_CONFIG,
   // configUrl: getConfigEndpoint('meet'),
 })
 
@@ -24,6 +24,7 @@ function getConfigEndpoint(
     | 'cadltest'
     | 'meet2' // native js (upload document, etc)
     | 'meet2d' // native js (upload document, etc)
+    | 'meed3d'
     | 'meet11' // testing for jiahao + new features/syntax testing
     | 'landing.page'
     | 'patient'
@@ -48,6 +49,8 @@ function getConfigEndpoint(
           return '/meet2'
         case 'meet2d':
           return '/meet2d'
+        case 'meet3d':
+          return '/meet3d'
         case 'portal.phase.2':
           return '/meet2'
         case 'portal':
