@@ -300,24 +300,23 @@ noodluidom.on<'list'>(
         log.func(`create.list[${noodluiEvent.component.list.REMOVE_LIST_ITEM}]`)
         log.grey('', { ...result, ...options })
         const { listItem, successs } = result
-        if (success) {
-          const childNode = document.getElementById(listItem.id)
-          if (childNode) {
-            log.gold(
-              'Found childNode for removed listItem. Removing it from the DOM now',
-              {
-                ...result,
-                ...options,
-                childNode,
-              },
-            )
-            node.removeChild(childNode)
-          } else {
-            log.red(
-              `Could not find the child DOM node for a removed listItem`,
-              { ...result, ...options, childNode },
-            )
-          }
+        const childNode = document.getElementById(listItem.id)
+        if (childNode) {
+          log.gold(
+            'Found childNode for removed listItem. Removing it from the DOM now',
+            {
+              ...result,
+              ...options,
+              childNode,
+            },
+          )
+          node.removeChild(childNode)
+        } else {
+          log.red(`Could not find the child DOM node for a removed listItem`, {
+            ...result,
+            ...options,
+            childNode,
+          })
         }
       },
     )

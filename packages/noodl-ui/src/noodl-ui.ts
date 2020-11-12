@@ -141,7 +141,7 @@ class NOODL implements T.INOODLUi {
 
     // Finish off with the internal resolvers to handle the children
     _.forEach(resolvedComponents, (c) => {
-      _internalResolver.resolve(c, this.getConsumerOptions({ component: c }))
+      _internalResolver.resolve(c, this.getConsumerOptions())
     })
 
     return _.isArray(components) ? resolvedComponents : resolvedComponents[0]
@@ -154,8 +154,9 @@ class NOODL implements T.INOODLUi {
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component.original.style)
 
+    component.id = getRandomKey()
+
     component.assignStyles(baseStyles)
-    component['id'] = component.id || getRandomKey()
 
     if (this.parser.getLocalKey() !== this.page) {
       this.parser.setLocalKey(this.page)

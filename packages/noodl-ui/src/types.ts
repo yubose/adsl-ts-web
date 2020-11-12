@@ -131,6 +131,7 @@ export interface IComponent<K = NOODLComponentType> {
     value?: { [key: string]: any },
   ): this
   assignStyles(styles: Partial<NOODLStyle>): this
+  broadcast(cb: (child: IComponentTypeInstance) => void): this
   child(index?: number): IComponentTypeInstance | undefined
   children(): IComponentTypeInstance[]
   createChild<C extends IComponentTypeInstance>(child: C): C
@@ -710,7 +711,12 @@ export interface ConsumerOptions {
   getResolvers(): INOODLUi['getResolvers']
   getState: INOODLUiStateHelpers['getState']
   parser: ResolverOptions['parser']
-  resolveComponent: INOODLUi['resolveComponents']
+  resolveComponent(
+    c: NOODLComponentType | IComponentTypeInstance | IComponentTypeObject,
+  ): IComponentTypeInstance
+  resolveComponent(
+    c: (NOODLComponentType | IComponentTypeInstance | IComponentTypeObject)[],
+  ): IComponentTypeInstance[]
   setNode: INOODLUiStateHelpers['setNode']
   showDataKey: boolean
 }

@@ -18,7 +18,7 @@
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:cadltest": "bash s3Deploy.sh build cadltest.aitmed.com",
     "postinstall": "lerna run --parallel build ",
-    "start": "cross-env ECOS_ENV=test NODE_ENV=development webpack-dev-server --mode=development",
+    "start": "cross-env ECOS_ENV=test NODE_ENV=production webpack-dev-server --mode=development",
     "start:stable": "cross-env ECOS_ENV=stable NODE_ENV=development webpack-dev-server",
     "start:test": "cross-env ECOS_ENV=test USE_DEV_PATHS=true npm run start",
     "script": "node scripts/compiled/index.js",
@@ -40,7 +40,7 @@
     "test:noodlutils": "cross-env TS_NODE_PROJECT=\"packages/noodl-ui/tsconfig.test.json\" NODE_ENV=test lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "cross-env TS_NODE_PROJECT=\"packages/noodl-ui/tsconfig.test.json\" NODE_ENV=test lerna exec --scope noodl-utils \"npm run test:file\"",
     "lib:build": "cross-env NODE_ENV=development lerna run --parallel build",
-    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --parallel start",
+    "lib:start": "cross-env NODE_ENV=production USE_DEV_PATHS=true lerna run --parallel start",
     "lib:utils": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --parallel --ignore noodl-ui --ignore noodl-ui-dom start -- --watch",
     "lib:start:noodlutils": "cross-env NODE_ENV=development lerna run start --ignore=noodl-ui --ignore=noodl-ui-dom --ignore=logsnap"
   },

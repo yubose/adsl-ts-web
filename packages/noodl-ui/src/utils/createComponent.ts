@@ -5,7 +5,7 @@ import {
   IComponentTypeObject,
   NOODLComponentType,
 } from '../types'
-import { forEachEntries } from './common'
+import { forEachEntries, getRandomKey } from './common'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Component from '../components/Base'
@@ -46,7 +46,7 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
 ): IComponentTypeInstance<K> {
   let childComponent: any
   let id: string = ''
-  const props = toProps(value, options)
+  const props = toProps(value, options?.props)
 
   // NOODLComponentType
   if (typeof value === 'string') {
@@ -64,8 +64,8 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   }
 
   if (!id) {
-    if (childComponent.length) id += `[${childComponent.length}]`
-    else id += '[0]'
+    if (childComponent.length) id += `[${childComponent.length - 1}]`
+    else id += getRandomKey()
   }
 
   // Resync the child's id to match the parent's id. This can possibly be the

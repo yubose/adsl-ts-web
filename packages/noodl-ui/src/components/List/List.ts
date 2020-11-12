@@ -25,6 +25,7 @@ class List extends Component implements IList {
   #listObject: any[]
   #iteratorVar: string
   #cb: {
+    init: Function[]
     [event.component.list.ADD_DATA_OBJECT]: Function[]
     [event.component.list.DELETE_DATA_OBJECT]: Function[]
     [event.component.list.RETRIEVE_DATA_OBJECT]: Function[]
@@ -35,6 +36,7 @@ class List extends Component implements IList {
     [event.component.list.UPDATE_LIST_ITEM]: Function[]
     [event.component.list.BLUEPRINT]: Function[]
   } = {
+    init: [],
     [event.component.list.ADD_DATA_OBJECT]: [],
     [event.component.list.DELETE_DATA_OBJECT]: [],
     [event.component.list.RETRIEVE_DATA_OBJECT]: [],
@@ -242,6 +244,8 @@ class List extends Component implements IList {
       if (typeof dataObject === 'number') {
         index = dataObject
         removedDataObject = this.#listObject[index]
+        console.log({ index, dataObject, data: this.getData() })
+        console.log({ index, dataObject, data: this.getData() })
         this.#listObject = _.filter(
           this.#listObject,
           (o) => o !== removedDataObject,
@@ -252,6 +256,8 @@ class List extends Component implements IList {
           success: !!removedDataObject,
         }
         if (!result.success) result['error'] = 'Could not find the dataObject'
+        console.log({ index, dataObject, data: this.getData() })
+        console.log({ index, dataObject, data: this.getData() })
         this.emit(
           event.component.list.DELETE_DATA_OBJECT,
           result,
@@ -416,6 +422,7 @@ class List extends Component implements IList {
     return this
   }
 
+  emit(eventName: 'init'): this
   emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
   emit<E = 'redraw'>(eventName: E): this
   emit<E extends Exclude<IListEventId, 'blueprint'>>(

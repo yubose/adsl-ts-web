@@ -7,6 +7,7 @@ import {
   IListItem,
   NOODLComponentType,
 } from '../../types'
+import { getDataObjectValue } from '../../utils/noodl'
 
 class ListItem<K extends NOODLComponentType = 'listItem'>
   extends Component
@@ -17,6 +18,7 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
   #listIndex: null | number = null
   #iteratorVar: string = ''
   #cb = { redraw: [] }
+  values: { [dataKey: string]: any }
 
   constructor(...args: ConstructorParameters<IComponentConstructor>)
   constructor()
@@ -106,7 +108,7 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     }
   }
 
-  on<E = 'redraw'>(eventName: E, cb) {
+  on<E extends 'redraw'>(eventName: E, cb: Function) {
     if (eventName === 'redraw') {
       // Restricting redraw to one handler only
       if (this.#cb.redraw.length) return
@@ -117,6 +119,38 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
 
   emit<E = 'redraw'>(eventName: E, ...args: any[]) {
     _.forEach(this.#cb[eventName] || [], (fn) => fn(...args))
+  }
+
+  redraw(
+    patch: { type: 'data-object' | 'key-value'; key?: string; value?: any },
+    cb: (opts: {
+      child: IComponentTypeInstance
+      dataKey: string
+      dataValue: any
+    }) => void,
+  ) {
+    this.broadcast((child) => {
+      if (patch.type === 'data-object') {
+        let dataKey = child.get('dataKey') || ''
+        let dataObject = patch.value || this.getDataObject()
+        let dataValue
+
+        if (child.has('dataKey')) {
+          if (dataKey.startsWith(this.iteratorVar)) {
+            dataValue = getDataObjectValue({
+              dataKey,
+              dataObject,
+              iteratorVar: this.iteratorVar,
+            })
+          } else {
+            dataValue = _.get(dataObject, dataKey)
+          }
+        }
+
+        cb({ child, dataKey, dataObject, dataValue })
+      }
+    })
+    return this
   }
 }
 

@@ -17,18 +17,17 @@ import { _resolveChildren } from './helpers'
 
 const log = Logger.create('internal[handleList]')
 
-const handleListInternalResolver = (component: IList, options) => {
+const handleListInternalResolver = (
+  component: IList,
+  options,
+  _internalResolver,
+) => {
   const { resolveComponent } = options
 
   const commonProps = {
     listId: component.listId,
     iteratorVar: component.iteratorVar,
   }
-
-  // Keeps blueprint updated
-  component.on(event.component.list.BLUEPRINT, (blueprint) => {
-    // TODO - Update all list items
-  })
 
   // Creates list items on new data objects
   component.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
@@ -42,15 +41,40 @@ const handleListInternalResolver = (component: IList, options) => {
 
     if (listItem) {
       listItem.set('listIndex', result.index)
-      listItem.setDataObject(result.dataObject)
+      listItem.setDataObject?.(result.dataObject)
       // TODO - Decide to keep component implementation
       // component.#items[listItem.id] = { dataObject: result.dataObject, listItem }
       const logArgs = { ...result, listItem }
       log.green(`Created a new listItem`, logArgs)
 
       _resolveChildren(listItem, {
+        onResolve: (c) => {
+          _internalResolver.resolve(c, {
+            ...options,
+            resolveComponent,
+          })
+          c.broadcast((cc) => cc.assign(commonProps))
+        },
         props: commonProps,
         resolveComponent,
+      })
+
+      listItem.broadcast((child) => {
+        child.on(event.component.listItem.REDRAWED, () => {
+          console.info(
+            `You have reached the "${event.component.listItem.REDRAWED}" event handler`,
+          )
+        })
+      })
+
+      listItem.on(event.component.listItem.REDRAW, (args) => {
+        listItem.redraw(args, ({ child, dataKey, dataValue }) => {
+          // TODO - resolveComponent ? or continue with below
+          resolveComponent(child)
+          if (child.noodlType === 'image') {
+            //
+          }
+        })
       })
 
       component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
@@ -84,6 +108,12 @@ const handleListInternalResolver = (component: IList, options) => {
     const listItem = component.find(
       (child) => child?.getDataObject?.() === result.dataObject,
     )
+    console.info('FOUND LIST ITEM TO DELETE (START)')
+    console.info(listItem?.id)
+    console.info(listItem?.id)
+    console.info(listItem?.id)
+    console.info(listItem?.id)
+    console.info('FOUND LIST ITEM TO DELETE (END)')
     if (listItem) component.removeChild(listItem)
     log.green(`Deleted a listItem`, { ...result, ...options, listItem })
     const args = { ...result, listItem }
@@ -106,6 +136,10 @@ const handleListInternalResolver = (component: IList, options) => {
     log.green(`Updated dataObject`, { result, ...options })
     const args = { ...result, listItem }
     component.emit(event.component.list.UPDATE_LIST_ITEM, args)
+    listItem.emit(event.component.listItem.REDRAW, {
+      type: 'data-object',
+      value: dataObject,
+    })
   })
 
   const resolveBlueprint = (noodlComponent: IComponentTypeObject) => {
@@ -125,7 +159,22 @@ const handleListInternalResolver = (component: IList, options) => {
     resolvedBlueprint.set('listId', component.listId)
     resolvedBlueprint.set('iteratorVar', component.iteratorVar)
 
+    // _.forEach(resolvedBlueprint.children(), (c) => {
+    //   _internalResolver.resolve(c, {
+    //     ...options,
+    //     resolveComponent,
+    //   })
+    //   c.broadcast((cc) => cc.assign(commonProps))
+    // })
+
     _resolveChildren(resolvedBlueprint, {
+      onResolve: (c) => {
+        _internalResolver.resolve(c, {
+          ...options,
+          resolveComponent,
+        })
+        c.broadcast((cc) => cc.assign(commonProps))
+      },
       props: commonProps,
       resolveComponent,
     })
@@ -145,24 +194,24 @@ const handleListInternalResolver = (component: IList, options) => {
     }) as IListBlueprint
   }
 
-  const resolveListItems = (listObject: any[] = [], init?: boolean) => {
-    if (listObject.length) {
-      // Resetting the list data that was set from the parent prototype so we
-      // can re-add them back in so the consumer can get the emitted events
-      if (init) component.set('listObject', [])
-      const numItems = listObject.length
-      for (let index = 0; index < numItems; index++) {
-        const dataObject = listObject[index]
-        component.addDataObject(dataObject)
-        log.green('Saved dataObject', dataObject)
-      }
-    }
-  }
-
   // Initiate the blueprint
   component.setBlueprint(resolveBlueprint(component))
-  // Initiate the listItem children
-  resolveListItems(component.getData(), true)
+  // // Initiate the listItem children
+  // const listObject = component.getData()
+  // if (listObject.length) {
+  //   console.info(listObject)
+  //   // Resetting the list data that was set from the parent prototype so we
+  //   // can re-add them back in so the consumer can get the emitted events
+  //   // console.info(component.removeDataObject(0))
+  //   // console.info(component.removeDataObject(0))
+  //   component.set('listObject', [])
+  //   const numItems = listObject.length
+  //   for (let index = 0; index < numItems; index++) {
+  //     const dataObject = listObject[index]
+  //     component.addDataObject(dataObject)
+  //     log.green('Saved dataObject', dataObject)
+  //   }
+  // }
 }
 
 export default handleListInternalResolver

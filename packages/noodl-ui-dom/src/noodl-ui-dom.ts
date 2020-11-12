@@ -7,6 +7,8 @@ import {
 } from './constants'
 import * as T from './types'
 
+const log = Logger.create('noodl-ui-dom')
+
 class NOODLUIDOM implements T.INOODLUiDOM {
   #callbacks: {
     all: Function[]
@@ -47,6 +49,23 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         node = document.createElement(getType(component))
         this.emit('create.component', node, component)
         if (node) {
+          if (component.noodlType === 'list') {
+            // Initiate the listItem children
+            const listObject = component.getData()
+            if (listObject.length) {
+              console.info(listObject)
+              // Resetting the list data that was set from the parent prototype so we
+              // can re-add them back in so the consumer can get the emitted events
+              component.set('listObject', [])
+              const numItems = listObject.length
+              for (let index = 0; index < numItems; index++) {
+                const dataObject = listObject[index]
+                component.addDataObject(dataObject)
+                log.green('Saved dataObject', dataObject)
+              }
+            }
+          }
+
           if (componentEventMap[noodlType as NOODLComponentType]) {
             this.emit(componentEventMap[noodlType], node, component)
           }
@@ -55,16 +74,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
           if (component.length) {
             component.children().forEach((child: IComponentTypeInstance) => {
-              const childNode = this.parse(child, node)
-              if (childNode) node?.appendChild(childNode)
-              if (child.length) {
-                child.children().forEach((innerChild) => {
-                  this.parse(innerChild, childNode)
-                  if (innerChild.noodlType === 'listItem') {
-                    console.log('Found listItem', innerChild)
-                  }
-                })
-              }
+              node?.appendChild(this.parse(child, node))
             })
           }
         }

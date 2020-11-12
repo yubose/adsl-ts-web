@@ -4,7 +4,7 @@ import { ResolverFn } from '../types'
 /** Returns styles using the className if found from the baseCss object */
 const getStylesByElementType: ResolverFn = (component, options) => {
   // TODO internal state implementation
-  switch (component?.type) {
+  switch (component?.noodlType) {
     case 'header':
       return void component.setStyle('zIndex', 100)
     case 'image': {

@@ -8,11 +8,14 @@ const getElementType: ResolverFn = (component) => {
   // NOTE: component.get('type') is specially modified to return the
   // noodl component type and not our parsed one
   component.set('type', getType(component))
-  component.set('noodlType', component.original.type)
+  component.set(
+    'noodlType',
+    component.original.noodlType || component.original.type,
+  )
 }
 
 export function getType(component: IComponentTypeInstance): string {
-  switch (component?.noodlType || component?.type) {
+  switch (component?.noodlType) {
     case 'br':
       return 'br'
     case 'button':

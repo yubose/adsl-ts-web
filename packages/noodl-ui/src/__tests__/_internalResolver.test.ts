@@ -15,7 +15,7 @@ import {
   IListItem,
 } from '../types'
 import { event } from '../constants'
-import createComponent from 'utils/createComponent'
+import createComponent from '../utils/createComponent'
 
 describe('_internalResolver', () => {
   describe('list', () => {
@@ -95,11 +95,11 @@ describe('_internalResolver', () => {
     })
 
     it('should have initiated the blueprint using the raw noodl list item component', () => {
-      const noodlParentComponent = {
+      const noodlParent = {
         type: 'view',
         children: [],
       }
-      const noodlListComponent = {
+      const noodlList = {
         type: 'list',
         listObject: [],
         children: [
@@ -119,10 +119,10 @@ describe('_internalResolver', () => {
         ],
         iteratorVar: 'cat',
       }
-      noodlParentComponent.children.push(noodlListComponent)
-      const parent = noodlui.resolveComponents(noodlParentComponent)
-      const component = parent.child()
-      const blueprint = component.getBlueprint()
+      noodlParent.children.push(noodlList)
+      const parent = noodlui.resolveComponents(noodlParent)
+      const component = parent.child() as IList
+      const blueprint = component?.getBlueprint()
       expect(blueprint).to.have.property('viewTag', 'hello')
       expect(blueprint.style).to.have.property('width')
       expect(blueprint.style).to.have.property('height')
@@ -270,10 +270,6 @@ describe('_internalResolver', () => {
       const component = parent.child()
 
       const [listItem1, listItem2, listItem3] = component?.children() || []
-      noodlui.save(
-        'handleList.json',
-        listItem1.child(1)?.child(0)?.toJS() || {},
-      )
 
       expect(listItem1.child()?.get?.('data-value')).to.equal(dataObject1.title)
       expect(listItem1.child(1)?.child(0)?.get('data-value')).to.equal(
@@ -282,17 +278,6 @@ describe('_internalResolver', () => {
       expect(
         listItem1.child(1)?.child(1)?.child(0)?.child(0)?.get('src'),
       ).to.equal(noodlui.assetsUrl + 'abc.png')
-    })
-
-    describe('when controlling list item components', () => {
-      _.forEach(
-        new List(noodlComponent).children(),
-        (child: IListItem, index) => {
-          it('should have assigned the listIndex values accurately', () => {
-            expect(child.listIndex).to.equal(index)
-          })
-        },
-      )
     })
   })
 

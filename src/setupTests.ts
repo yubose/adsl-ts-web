@@ -11,27 +11,12 @@ import './handlers/dom'
 chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
-let eventTargetSpy: sinon.SinonStub
-// let logsnapSpy: sinon.SinonStub
 
 before(async () => {
   console.clear()
   Logger.disable()
-  page.initializeRootNode()
-  // Silence all the logging from our custom logger
-  // Logger.create = sinon.stub().callsFake(() =>
-  //   _.reduce(
-  //     _.keys(_color),
-  //     (acc: any, color) => {
-  //       acc[color] = _.noop
-  //       return acc
-  //     },
-  //     {},
-  //   ),
-  // )
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
-    eventTargetSpy = sinon.stub(global, 'EventTarget')
     Logger.create = () =>
       // @ts-expect-error
       Object.assign(
@@ -75,22 +60,21 @@ before(async () => {
       resolver.setResolver(r)
       noodlui.use(resolver as IResolver)
     })
-    // logsnapSpy = sinon.stub(Logger, 'create').callsFake(() => {})
   } catch (error) {}
 })
 
 after(() => {
   logSpy?.restore?.()
-  eventTargetSpy?.restore?.()
-  // logsnapSpy?.reset()
 })
 
 beforeEach(() => {
-  // @ts-expect-error
-  noodlui.cleanup()
+  page.initializeRootNode()
+  document.body.appendChild(page.rootNode as HTMLElement)
 })
 
 afterEach(() => {
   document.body.textContent = ''
-  document.body.appendChild(page.rootNode as HTMLElement)
+  page.rootNode = null
+  // @ts-expect-error
+  noodlui.cleanup()
 })

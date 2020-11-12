@@ -310,6 +310,34 @@ export function getDataValues<Fields, K extends keyof Fields>(
 }
 
 /**
+ * A helper to extract a value from a dataObject using the dataKey and iteratorVar
+ * @param { object } dataObject
+ * @param { string } dataKey
+ * @param { string } iteratorVar
+ */
+export function getDataObjectValue<T = any>({
+  dataObject,
+  dataKey,
+  iteratorVar,
+}: {
+  dataObject: T
+  dataKey: string
+  iteratorVar: string
+}) {
+  let value
+  let dataPath = dataKey
+
+  if (dataObject && dataKey && iteratorVar) {
+    if (dataPath.startsWith(iteratorVar)) {
+      dataPath = dataPath.split('.').slice(1).join('.')
+    }
+    return _.get(dataObject, dataPath)
+  }
+
+  return value
+}
+
+/**
  * Returns true if value has a viewTag of "selfStream", false otherwise
  * @param { any } value
  */

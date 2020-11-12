@@ -71,6 +71,7 @@ describe('dom', () => {
         iteratorVar: 'hello',
         children: [{ type: 'listItem' }],
       })
+      console.info(prettyDOM())
       const listElem = document.querySelector('ul') as HTMLUListElement
       expect(listElem.children).to.have.lengthOf(0)
     })
@@ -88,8 +89,7 @@ describe('dom', () => {
         children: [{ type: 'listItem' }],
       })
       const listElem = document.querySelector('ul')
-      const listItemElems = document.querySelectorAll('li')
-      expect(listItemElems).to.have.lengthOf(4)
+      expect(listElem.children).to.have.lengthOf(4)
     })
 
     xit('should render children expectedly to the DOM', () => {

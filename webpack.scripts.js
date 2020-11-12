@@ -5,7 +5,7 @@ const baseDir = path.join(__dirname, 'scripts')
 const compiledDir = path.join(baseDir, 'compiled')
 
 module.exports = {
-  entry: path.join(baseDir, 'index.ts'),
+  entry: path.join(baseDir, 'patches.ts'),
   target: 'node',
   devtool: 'inline-source-map',
   mode: 'development',

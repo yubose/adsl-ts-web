@@ -116,11 +116,10 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
 
     // Handle list related components that expect data objects
     if (iteratorVar && dataKey.startsWith(iteratorVar)) {
-      
       const listItem = findParent(component, (parent) => {
         return parent?.noodlType === 'listItem'
       }) as IListItem
-      
+
       if (listItem) log.gold('FOUND PARENT LISTITEM', listItem)
       textFunc = component.get('text=func')
       // Strip off the iteratorVar to keep the path that starts from the data objefct

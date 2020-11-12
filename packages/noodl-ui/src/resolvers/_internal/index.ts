@@ -18,66 +18,18 @@ _internalResolver.setResolver((component, options) => {
   const { resolveComponent } = options
 
   /**
-   * Prepares to call the instance resolver on each children.
-   * After conversion, they're passed to the behavior handler
-   * to control the behavior to comply with the NOODL spec
+   * Deeply parses every child node in the tree
    * @param { IComponentTypeInstance } c
    */
-  // const resolveChildren = (
-  //   c: IComponentTypeInstance | undefined,
-  //   opts: {
-  //     props?: PropsOptionFunc<any> | PropsOptionObj
-  //     onResolve?: (child: typeof c) => void
-  //   } = {},
-  // ) => {
-  //   if (c?.original?.children) {
-  //     let noodlChildren: any[] | undefined
-
-  //     if (typeof c.original.children === 'string') {
-  //       noodlChildren = [{ type: c.original.children }]
-  //     } else if (_.isPlainObject(c.original.children)) {
-  //       noodlChildren = [c.original.children]
-  //     } else if (_.isArray(c.original.children)) {
-  //       noodlChildren = c.original.children
-  //     }
-
-  //     if (noodlChildren) {
-  //       _.forEach(noodlChildren, (noodlChild) => {
-  //         if (noodlChild) {
-  //           const inst = resolveComponent(
-  //             c.createChild(createComponent(noodlChild, { props: opts.props })),
-  //           ) as IComponentTypeInstance
-
-  //           if (inst) {
-  //             switch (inst.noodlType) {
-  //               case 'list':
-  //                 return void handleList(inst, options, { resolveChildren })
-  //               default: {
-  //                 resolveComponent(inst)
-  //                 resolveChildren(inst)
-  //                 break
-  //               }
-  //             }
-  //           }
-
-  //           opts?.onResolve?.(inst)
-  //         }
-  //       })
-  //     }
-  //   }
-  // }
-
   const resolveChildren = (c: IComponentTypeInstance) => {
     _resolveChildren(c, {
       onResolve: (child) => {
         if (child) {
           switch (child.noodlType) {
             case 'list':
-              return void handleList(child as IList, options)
+              return void handleList(child as IList, options, _internalResolver)
             default: {
-              resolveComponent(child)
-              resolveChildren(child)
-              break
+              return void resolveChildren(child)
             }
           }
         }

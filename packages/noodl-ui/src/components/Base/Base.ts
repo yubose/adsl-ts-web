@@ -20,7 +20,6 @@ class Component implements IComponent {
   #cb: { [eventName: string]: Function[] } = {}
   #component: WritableDraft<IComponentTypeObject> | IComponentTypeObject
   #children: IComponentTypeInstance[] = []
-  #enhancers: ((...args: any[]) => ReturnType<IComponent['createChild']>)[] = []
   #id: string = ''
   #noodlType: NOODLComponentType
   #parent: IComponentTypeInstance | null = null
@@ -182,7 +181,8 @@ class Component implements IComponent {
         this.#setHandledStyleKey(value)
       }
     } else {
-      if (value) {
+      if (key === 'type') this.#component['type'] = value
+      else if (value) {
         this.#component[key as K] = value
         if (this.status !== 'drafting') this.#setHandledKey(key as string)
       }
@@ -203,7 +203,7 @@ class Component implements IComponent {
   }
 
   get type() {
-    return this.original.type
+    return this.#component?.type
   }
 
   get noodlType() {
@@ -349,9 +349,7 @@ class Component implements IComponent {
   has(key: string, styleKey?: keyof NOODLStyle) {
     if (key === 'style') {
       if (_.isString(styleKey)) {
-        // TODO - Convert this to: "if (styleKey in this.#component.style)"
-        const styleKeys = _.keys(this.#component.style)
-        return styleKeys.includes(styleKey)
+        return styleKey in (this.#component.style || {})
       }
       return false
     }
@@ -478,7 +476,7 @@ class Component implements IComponent {
       ? current(this.#component as ProxiedComponent)
       : (this.#component as ProxiedComponent)
 
-    if (_.isObject(obj) && obj.children) {
+    if (obj?.children) {
       return {
         ...obj,
         children: _.map(this.children(), (child) => child?.toJS?.()),
@@ -586,6 +584,15 @@ class Component implements IComponent {
     return this.#children?.length || 0
   }
 
+  broadcast(cb: (child: IComponentTypeInstance) => void) {
+    const notify = (child: IComponentTypeInstance) => {
+      cb(child)
+      _.forEach(child.children(), (c) => notify(c))
+    }
+    _.forEach(this.children(), (child) => notify(child))
+    return this
+  }
+
   on<K extends string = IComponentEventId>(eventName: K, cb: Function) {
     if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
     this.#cb[eventName].push(cb)
@@ -600,6 +607,13 @@ class Component implements IComponent {
           (callback) => callback !== cb,
         )
       }
+    }
+    return this
+  }
+
+  emit(eventName: string, ...args: any[]) {
+    if (this.#cb[eventName]) {
+      _.forEach(this.#cb[eventName], (fn) => fn(...args))
     }
     return this
   }

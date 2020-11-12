@@ -7,8 +7,15 @@ import {
 import { forEachEntries } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
 import createComponent, { PropsOptionObj } from '../../utils/createComponent'
-import { copy } from 'fs-extra'
 
+/**
+ * Transforms a child or an array of children into their respective instances
+ * @param { IComponentTypeInstance } c
+ * @param { object | undefined } opts - Optional options
+ * @param { function } opts.onResolve - Callback called on each child that resolves
+ * @param { object } opts.props - An object of component props passed to the resolving component
+ * @param { function } opts.resolveComponent
+ */
 export function _resolveChildren<
   T extends IComponentTypeInstance = IComponentTypeInstance
 >(
@@ -20,7 +27,7 @@ export function _resolveChildren<
   },
 ) {
   if (c?.original?.children) {
-    const { onResolve, props, resolveComponent } = opts
+    const { onResolve, props, resolveComponent } = opts || {}
 
     let noodlChildren: any[] | undefined
 
@@ -36,7 +43,7 @@ export function _resolveChildren<
       _.forEach(noodlChildren, (noodlChild) => {
         if (noodlChild) {
           onResolve?.(
-            resolveComponent(
+            resolveComponent?.(
               c.createChild(createComponent(noodlChild, { props })),
             ) as IComponentTypeInstance,
           )
@@ -70,6 +77,7 @@ export const redraw = (function () {
 
     if (component?.length) {
       forEachDeepChildren(component, (c) => {
+        m
         // TODO - resolve dataKey as objects (found in redraw actions)
         if (_.isString(child.get('dataKey')) && !child.get('data-value')) {
           const dataKey = child.get('dataKey')
