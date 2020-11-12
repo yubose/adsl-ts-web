@@ -70,6 +70,16 @@ export function hasLetter(value: any): boolean {
   return /[a-zA-Z]/i.test(String(value))
 }
 
+export function isAllString(values: unknown): values is string
+export function isAllString(values: unknown[]): values is string[]
+export function isAllString(
+  values: unknown | unknown[],
+): values is string | string[] {
+  return Array.isArray(values)
+    ? !values.some((v) => typeof v !== 'string')
+    : typeof values === 'string'
+}
+
 /**
  * Returns true if we are in the browser environment
  */

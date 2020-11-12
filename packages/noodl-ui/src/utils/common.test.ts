@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { expect } from 'chai'
 import { NOODLComponent } from '../types'
-import { forEachEntries, forEachDeepEntries } from './common'
+import { forEachEntries, forEachDeepEntries, isAllString } from './common'
 
 describe('forEachDeepEntries', () => {
   const listComponent = getMockListComponent()
@@ -40,6 +40,23 @@ describe('forEachDeepEntries', () => {
       results.push(key)
     })
     expect(_.difference(entries, results).length).to.eq(0)
+  })
+})
+
+describe('isAllString', () => {
+  it('should return true', () => {
+    expect(isAllString(['undefined', '55', 'affs', 'vcw', ";';,."])).to.be.true
+    expect(isAllString('f')).to.be.true
+    expect(isAllString('null')).to.be.true
+    expect(isAllString('false')).to.be.true
+    expect(isAllString('5')).to.be.true
+  })
+
+  it('should return false', () => {
+    expect(isAllString(['undefined', undefined, 'fls'])).to.be.false
+    expect(isAllString(['undefined', null, 'fls'])).to.be.false
+    expect(isAllString(['undefined', () => {}, 'fls'])).to.be.false
+    expect(isAllString(['undefined', 5, 'fls'])).to.be.false
   })
 })
 

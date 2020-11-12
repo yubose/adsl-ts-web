@@ -2,15 +2,20 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import chalk from 'chalk'
 import _ from 'lodash'
-import { findChild } from 'noodl-utils'
+import { findChild, findParent } from 'noodl-utils'
 import _internalResolver from '../resolvers/_internal'
 import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import { assetsUrl, noodlui } from '../utils/test-utils'
-import { IComponentTypeObject, IList, IListItem } from '../types'
+import {
+  IComponentTypeInstance,
+  IComponentTypeObject,
+  IList,
+  IListItem,
+} from '../types'
 import { event } from '../constants'
-import { waitFor } from '@testing-library/dom'
+import createComponent from 'utils/createComponent'
 
 describe('_internalResolver', () => {
   describe('list', () => {
@@ -83,7 +88,7 @@ describe('_internalResolver', () => {
       ],
     } as IComponentTypeObject
 
-    xit('should start with no children (removes the listItem placeholder)', () => {
+    it('should start with no children (removes the listItem placeholder)', () => {
       const component = new List({ type: 'list', listObject: [] })
       expect(component).to.have.lengthOf(0)
       expect(component.children()).to.have.lengthOf(0)
@@ -187,17 +192,18 @@ describe('_internalResolver', () => {
       expect(spy.called).to.be.true
     })
 
-    xit('should update the data object when calling updateDataObject', () => {
+    it('should update the data object when calling updateDataObject', () => {
       const spy = sinon.spy()
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
       }) as IList
       const component = parent.child() as IList
-      expect(spy.called).to.be.false
-      component.on(event.component.list.RETRIEVE_LIST_ITEM, spy)
-      component.getDataObject(1)
-      expect(spy.called).to.be.true
+      component.updateDataObject(0, { greeting: 'hello' })
+      expect(component.getDataObject(0).dataObject).to.have.property(
+        'greeting',
+        'hello',
+      )
     })
 
     it(`should emit ${chalk.yellow(
@@ -215,6 +221,69 @@ describe('_internalResolver', () => {
       expect(spy.called).to.be.true
     })
 
+    it('should populate all descendant dataKey consumers expectedly', () => {
+      const dataObject1 = { title: 'This is my title', color: 'red' }
+      const dataObject2 = { title: 'This is 2md title', color: 'brown' }
+      const dataObject3 = { title: 'This is 3rd title', color: 'cyan' }
+      const listObject = [dataObject1, dataObject2, dataObject3]
+      const iteratorVar = 'hello'
+      const noodlComponent = {
+        type: 'list',
+        listObject,
+        iteratorVar,
+        children: [
+          {
+            type: 'listItem',
+            hello: '',
+            children: [
+              { type: 'label', dataKey: 'hello.title' },
+              {
+                type: 'view',
+                children: [
+                  { type: 'label', dataKey: 'hello.color' },
+                  {
+                    type: 'view',
+                    children: [
+                      {
+                        type: 'view',
+                        children: [
+                          {
+                            type: 'image',
+                            path: 'abc.png',
+                            style: { width: '0.2', height: '0.5' },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+      noodlui
+        .setRoot('SignIn', { listData: { someList: listObject } })
+        .setPage('SignIn')
+      const noodlParent = { type: 'view', children: [noodlComponent] }
+      const parent = noodlui.resolveComponents(noodlParent)
+      const component = parent.child()
+
+      const [listItem1, listItem2, listItem3] = component?.children() || []
+      noodlui.save(
+        'handleList.json',
+        listItem1.child(1)?.child(0)?.toJS() || {},
+      )
+
+      expect(listItem1.child()?.get?.('data-value')).to.equal(dataObject1.title)
+      expect(listItem1.child(1)?.child(0)?.get('data-value')).to.equal(
+        dataObject1.color,
+      )
+      expect(
+        listItem1.child(1)?.child(1)?.child(0)?.child(0)?.get('src'),
+      ).to.equal(noodlui.assetsUrl + 'abc.png')
+    })
+
     describe('when controlling list item components', () => {
       _.forEach(
         new List(noodlComponent).children(),
@@ -224,48 +293,10 @@ describe('_internalResolver', () => {
           })
         },
       )
-
-      xit('should populate descendant dataKey consumers expectedly', () => {
-        const noodlComponent = {
-          type: 'list',
-          listObject: [
-            { title: 'apple', color: 'red' },
-            { title: 'banana', color: 'yellow' },
-            { title: 'grape', color: 'magenta' },
-            { title: 'pear', color: 'tan' },
-          ],
-          iteratorVar: 'hello',
-          children: [
-            {
-              type: 'listItem',
-              children: [
-                { type: 'label', dataKey: 'hello.title' },
-                {
-                  type: 'view',
-                  children: [{ type: 'label', dataKey: 'hello.color' }],
-                },
-              ],
-            },
-          ],
-        }
-        const component = new List(noodlComponent)
-        const resolvedComponent = noodlui.resolveComponents(component)
-        // fs.writeJsonSync(
-        //   path.join(__dirname, 'listtest.json'),
-        //   component.toJS(),
-        //   { spaces: 2 },
-        // )
-
-        // console.info(resolvedComponent.children())
-      })
     })
   })
 
-  describe('listItem', () => {
-    //
-  })
-
-  xdescribe('other components', () => {
+  describe('other components', () => {
     it('should be deeply resolving children all the way down', () => {
       const component = new Component({
         type: 'view',
@@ -330,7 +361,6 @@ describe('_internalResolver', () => {
         ],
       })
 
-      // _internalResolver.resolve(component, noodlui.getConsumerOptions())
       _internalResolver.resolve(
         component,
         noodlui.getConsumerOptions({ component }),
@@ -341,22 +371,6 @@ describe('_internalResolver', () => {
       )
 
       expect(textField).to.be.instanceOf(Component)
-    })
-
-    xit('should not be inserting multiple children', () => {
-      const component = new Component({
-        type: 'view',
-        children: [
-          {
-            type: 'list',
-            children: [
-              { type: 'listItem', children: [], style: {}, viewTag: 'abc' },
-            ],
-          },
-        ],
-      })
-      _internalResolver.resolve(component, getOptions())
-      console.info(component.toJS())
     })
   })
 })

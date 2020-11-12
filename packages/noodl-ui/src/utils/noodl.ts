@@ -7,8 +7,9 @@ import {
   NOODLComponentProps,
   NOODLTextBoardBreakLine,
   IComponentType,
+  IListItem,
 } from '../types'
-import { isBrowser } from './common'
+import { isAllString, isBrowser } from './common'
 
 /**
  * Deeply traverses all children down the component's family tree
@@ -110,18 +111,24 @@ export const identify = (function () {
   return o
 })()
 
+export function isListItemComponent(o: any): o is IListItem {
+  return !!(o && o.noodlType === 'listItem' && typeof o.children === 'function')
+}
+
 /**
  * Returns true if obj is represents something expecting to receive incoming data by
  * their dataKey reference.
  * @param { string } iteratorVar
  * @param { object } obj - NOODL component
  */
-export function isIteratorVarConsumer(iteratorVar: string, obj: any) {
-  return (
-    !!iteratorVar &&
-    _.isString(obj?.dataKey) &&
-    obj.dataKey.startsWith(iteratorVar)
-  )
+export function isIteratorVarConsumer(o: IComponentTypeInstance): boolean {
+  if (_.isPlainObject(o?.original)) {
+    return (
+      isAllString([o.original.dataKey, o.original.iteratorVar]) &&
+      o.original.dataKey.startsWith(o.original.iteratorVar)
+    )
+  }
+  return false
 }
 
 /**

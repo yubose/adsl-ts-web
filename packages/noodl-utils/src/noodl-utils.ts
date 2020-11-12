@@ -4,7 +4,7 @@ import {
   IComponentType,
   IComponent,
 } from 'noodl-ui'
-import { isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
+import { get, isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
 import * as T from './types'
 
 /**
@@ -49,10 +49,10 @@ export function findChild<Component extends { children?: Function } = any>(
   fn: (child: Component) => boolean,
 ): Component | null {
   let child: Component | null = null
-  let children = component?.children?.()?.slice?.()?.reverse?.()
+  let children = component?.children?.()?.slice?.() || []
 
-  if (component && children) {
-    child = children.pop()
+  if (component) {
+    child = children.shift()
     while (child) {
       if (fn(child)) return child
       if (child) {
@@ -85,6 +85,7 @@ export function findNodeInMap<Component extends {} = any>(
     const node = nodesList[index]
     if (fn(node)) return node
   }
+
   return null
 }
 
@@ -136,6 +137,26 @@ export function getByDataListId(value: string) {
 
 export function getByDataName(value: string) {
   return document.querySelector(`[data-name="${value}"]`)
+}
+
+export function getDataValue<T = any>(
+  dataObject: T | undefined,
+  dataKey: string | undefined,
+  opts?: { iteratorVar?: string },
+) {
+  if (dataObject && typeof dataKey === 'string') {
+    if (typeof dataObject === 'object') {
+      let dataPath = ''
+
+      if (opts?.iteratorVar && dataKey.startsWith(opts.iteratorVar)) {
+        // Strip off the iteratorVar to make the path directly lead to the value
+        dataPath = dataKey.split('.').slice(1).join('.')
+      } else {
+        dataPath = dataKey
+      }
+      return get(dataObject, dataPath)
+    }
+  }
 }
 
 /** Returns true if the value is an object. Like those with an actionType prop */

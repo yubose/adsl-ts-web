@@ -1,10 +1,9 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import createComponent from '../../utils/createComponent'
 import handleList from './handleList'
-import handleListItem from './handleListItem'
 import Resolver from '../../Resolver'
-import { IComponentTypeInstance, IComponentTypeObject } from '../../types'
+import { _resolveChildren } from './helpers'
+import { IComponentTypeInstance, IList } from '../../types'
 
 const log = Logger.create('_internalResolver')
 
@@ -24,44 +23,67 @@ _internalResolver.setResolver((component, options) => {
    * to control the behavior to comply with the NOODL spec
    * @param { IComponentTypeInstance } c
    */
-  const resolveChildren = (
-    c: IComponentTypeInstance | undefined,
-    { props }: { props?: Partial<IComponentTypeObject> } = {},
-  ) => {
-    if (c?.original?.children) {
-      let noodlChildren: any[] | undefined
+  // const resolveChildren = (
+  //   c: IComponentTypeInstance | undefined,
+  //   opts: {
+  //     props?: PropsOptionFunc<any> | PropsOptionObj
+  //     onResolve?: (child: typeof c) => void
+  //   } = {},
+  // ) => {
+  //   if (c?.original?.children) {
+  //     let noodlChildren: any[] | undefined
 
-      if (typeof c.original.children === 'string') {
-        noodlChildren = [{ type: c.original.children }]
-      } else if (_.isPlainObject(c.original.children)) {
-        noodlChildren = [c.original.children]
-      } else if (_.isArray(c.original.children)) {
-        noodlChildren = c.original.children
-      }
+  //     if (typeof c.original.children === 'string') {
+  //       noodlChildren = [{ type: c.original.children }]
+  //     } else if (_.isPlainObject(c.original.children)) {
+  //       noodlChildren = [c.original.children]
+  //     } else if (_.isArray(c.original.children)) {
+  //       noodlChildren = c.original.children
+  //     }
 
-      if (noodlChildren) {
-        _.forEach(noodlChildren, (noodlChild) => {
-          if (noodlChild) {
-            const inst = resolveComponent(
-              c.createChild(createComponent(noodlChild, props)),
-            )
-            if (inst) {
-              switch (inst.noodlType) {
-                case 'list':
-                  return void handleList(inst, options, { resolveChildren })
-                case 'listItem':
-                  return void handleListItem(inst, options)
-                default: {
-                  resolveComponent(inst)
-                  resolveChildren(inst)
-                  break
-                }
-              }
+  //     if (noodlChildren) {
+  //       _.forEach(noodlChildren, (noodlChild) => {
+  //         if (noodlChild) {
+  //           const inst = resolveComponent(
+  //             c.createChild(createComponent(noodlChild, { props: opts.props })),
+  //           ) as IComponentTypeInstance
+
+  //           if (inst) {
+  //             switch (inst.noodlType) {
+  //               case 'list':
+  //                 return void handleList(inst, options, { resolveChildren })
+  //               default: {
+  //                 resolveComponent(inst)
+  //                 resolveChildren(inst)
+  //                 break
+  //               }
+  //             }
+  //           }
+
+  //           opts?.onResolve?.(inst)
+  //         }
+  //       })
+  //     }
+  //   }
+  // }
+
+  const resolveChildren = (c: IComponentTypeInstance) => {
+    _resolveChildren(c, {
+      onResolve: (child) => {
+        if (child) {
+          switch (child.noodlType) {
+            case 'list':
+              return void handleList(child as IList, options)
+            default: {
+              resolveComponent(child)
+              resolveChildren(child)
+              break
             }
           }
-        })
-      }
-    }
+        }
+      },
+      resolveComponent,
+    })
   }
 
   resolveChildren(component)

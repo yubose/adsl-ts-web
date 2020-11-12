@@ -682,7 +682,7 @@ export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {
 }
 
 export interface ResolveComponent<T = any> {
-  (component: ProxiedComponent, options: ResolverOptions): T
+  (component: IComponentTypeInstance): T
 }
 
 export type ResolverFn<T extends NOODLComponentType = NOODLComponentType> = ((

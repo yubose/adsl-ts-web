@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import produce from 'immer'
 import Logger from 'logsnap'
-import createComponent from '../../utils/createComponent'
+import { findParent, getDataValue } from 'noodl-utils'
 import { forEachEntries } from '../../utils/common'
-import { forEachDeepChildren } from '../../utils/noodl'
+import { forEachDeepChildren, isListItemComponent } from '../../utils/noodl'
 import {
   IComponentTypeInstance,
   IComponentTypeObject,
@@ -12,10 +12,12 @@ import {
   IListItem,
 } from '../../types'
 import { event } from '../../constants'
+import createComponent from '../../utils/createComponent'
+import { _resolveChildren } from './helpers'
 
 const log = Logger.create('internal[handleList]')
 
-const handleListInternalResolver = (component: IList, options, internal) => {
+const handleListInternalResolver = (component: IList, options) => {
   const { resolveComponent } = options
 
   const commonProps = {
@@ -46,8 +48,9 @@ const handleListInternalResolver = (component: IList, options, internal) => {
       const logArgs = { ...result, listItem }
       log.green(`Created a new listItem`, logArgs)
 
-      internal.resolveChildren(listItem, {
+      _resolveChildren(listItem, {
         props: commonProps,
+        resolveComponent,
       })
 
       component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
@@ -95,10 +98,11 @@ const handleListInternalResolver = (component: IList, options, internal) => {
   // Updates list items with new updates to their data object
   component.on(event.component.list.UPDATE_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.UPDATE_DATA_OBJECT}]`)
+    const { index, dataObject } = result
     const listItem: IListItem<'list'> | undefined = component.children()?.[
-      result.index
+      index
     ]
-    listItem?.setDataObject?.(result.dataObject)
+    listItem.setDataObject(dataObject)
     log.green(`Updated dataObject`, { result, ...options })
     const args = { ...result, listItem }
     component.emit(event.component.list.UPDATE_LIST_ITEM, args)
@@ -121,8 +125,9 @@ const handleListInternalResolver = (component: IList, options, internal) => {
     resolvedBlueprint.set('listId', component.listId)
     resolvedBlueprint.set('iteratorVar', component.iteratorVar)
 
-    internal.resolveChildren(resolvedBlueprint, {
+    _resolveChildren(resolvedBlueprint, {
       props: commonProps,
+      resolveComponent,
     })
 
     // TODO - find out more keys to filter out

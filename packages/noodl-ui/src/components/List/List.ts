@@ -84,7 +84,7 @@ class List extends Component implements IList {
     return this.#children
   }
 
-  getData({ fromNodes = false }: { fromNodes?: boolean } = {}) {
+  getData({ fromNodes = false }: { fromNodes?: boolean } = {}): any[] {
     return (
       (fromNodes
         ? this.#children.map((c) => c.getDataObject?.())
@@ -116,7 +116,7 @@ class List extends Component implements IList {
   getDataObject<DataObject>(index: number): DataObject | undefined
   getDataObject<DataObject>(
     index: number | ((dataObject: DataObject) => boolean),
-  ) {
+  ): IListDataObjectOperationResult {
     let result = {} as IListDataObjectOperationResult
 
     if (_.isArray(this.#listObject)) {
@@ -144,6 +144,10 @@ class List extends Component implements IList {
       // By query
       if (typeof index === 'function') {
         const query = index
+        console.info(this.#listObject)
+        console.info(this.#listObject)
+        console.info(this.#listObject)
+        console.info(this.#listObject)
         if (_.isArray(this.#listObject)) {
           for (let index = 0; index < this.#listObject.length; index++) {
             const dataObject = this.#listObject[index]
@@ -276,22 +280,27 @@ class List extends Component implements IList {
     index: number | ((dataObject: DataObject | null) => boolean),
     dataObject: DataObject | null,
   ) {
-    if (typeof index === 'number') {
-      if (_.isArray(this.#listObject)) {
-        this.#listObject[index] = dataObject
-        const result = { index, dataObject, success: true }
-        this.emit(
-          event.component.list.UPDATE_DATA_OBJECT,
-          result,
-          this.#getDataObjectHandlerOptions(),
-        )
-        return result
-      } else {
-        return { index, dataObject, success: false }
+    if (_.isNumber(index)) {
+      const prevDataObject = this.#listObject[index]
+      this.#listObject[index] = _.isPlainObject(prevDataObject)
+        ? { ...prevDataObject, ...dataObject }
+        : _.isArray(prevDataObject)
+        ? prevDataObject.concat(dataObject)
+        : prevDataObject
+      const result = {
+        index,
+        dataObject: this.#listObject[index],
+        success: true,
       }
+      this.emit(
+        event.component.list.UPDATE_DATA_OBJECT,
+        result,
+        this.#getDataObjectHandlerOptions(),
+      )
+      return result
     }
 
-    if (typeof index === 'function') {
+    if (_.isFunction(index)) {
       const pred = index
       if (_.isArray(this.#listObject)) {
         const numItems = this.#listObject.length
@@ -343,6 +352,12 @@ class List extends Component implements IList {
     this.#blueprint = newBlueprint
     this.emit(event.component.list.BLUEPRINT, newBlueprint)
     return this
+  }
+
+  child(index?: number) {
+    if (!arguments.length) return this.#children[0]
+    if (_.isNumber(index)) return this.#children[index]
+    return undefined
   }
 
   createChild<C extends IComponentTypeInstance>(child: C) {
@@ -438,8 +453,10 @@ class List extends Component implements IList {
           args: IListDataObjectEventHandlerOptions,
         ) => void),
   ) {
+    if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
+    this.#cb[eventName].push(cb)
     if (eventName in this.#cb) {
-      this.#cb[eventName].push(cb)
+      // this.#cb[eventName].push(cb)
     } else {
       super.on(eventName, cb)
     }

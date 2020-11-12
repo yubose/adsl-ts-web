@@ -5,10 +5,15 @@ import { ResolverFn } from '../../types'
 
 const log = Logger.create('internal[handleListItem')
 
-const handleListItemResolver: ResolverFn = (component, options) => {
+const handleListItemResolver: ResolverFn = (component, options, internal) => {
   const { resolveComponent } = options
 
+  // const resolvedChildren = internal.resolveChildren(component)
   const listComponent = component.parent()
+
+  // console.info('RED')
+  // console.info(resolvedChildren)
+  // console.info('ORANGE')
 
   if (parent?.noodlType === 'list') {
     // parent.on(event.component.list.UPDATE_LIST_ITEM, (result) => {

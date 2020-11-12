@@ -30,6 +30,11 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     )
   }
 
+  child(index?: number) {
+    if (!arguments.length) return this.#children[0]
+    return _.isNumber(index) ? this.#children[index] : undefined
+  }
+
   children() {
     return this.#children
   }
@@ -95,7 +100,9 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
       listId: this.listId,
       listIndex: this.listIndex,
       iteratorVar: this.iteratorVar,
+      noodlType: this.noodlType,
       style: this.style,
+      type: this.type,
     }
   }
 
