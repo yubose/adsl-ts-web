@@ -87,11 +87,55 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       }
       _.set(dataObject, parts, nextDataValue)
     } else {
+      const onNextValue = (
+        previousValue: any,
+        { updateDraft }: { updateDraft?: { path: string } } = {},
+      ) => {
+        let nextValue: any
+        if (isNOODLBoolean(previousValue)) {
+          nextValue = isBooleanTrue(previousValue) ? false : true
+        }
+        nextValue = !previousValue
+        if (updateDraft) {
+          noodl.editDraft((draft: any) => {
+            _.set(draft, updateDraft.path, nextValue)
+          })
+        }
+        // Propagate the changes to to UI if there is a path "if" object that
+        // references the value as well
+        if (node && _.isObjectLike(path)) {
+          let valEvaluating = path.if?.[0]
+          // If the dataKey is the same as the the value we are evaluating we can
+          // just re-use the nextDataValue
+          if (valEvaluating === dataKey) {
+            valEvaluating = nextValue
+          } else {
+            valEvaluating =
+              _.get(noodl.root, valEvaluating) ||
+              _.get(noodl.root[context?.page?.name || ''], valEvaluating)
+          }
+          newSrc = createSrc(valEvaluating ? path.if?.[1] : path.if?.[2])
+          node.setAttribute('src', newSrc)
+        }
+        return nextValue
+      }
+
       dataObject = noodl.root
+
       if (_.has(noodl.root, dataKey)) {
         dataObject = noodl.root
-      } else if (_.has(noodl.root[pageName], dataKey)) {
-        dataObject = noodl.root[pageName]
+        previousDataValue = _.get(dataObject, dataKey)
+        onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
+      } else if (_.has(noodl.root[context.page], dataKey)) {
+        dataObject = noodl.root[context.page]
+        previousDataValue = _.get(dataObject, dataKey)
+        onNextValue(previousDataValue, {
+          updateDraft: {
+            path: `${dataKey}${
+              context.page ? `.${context.page}` : ''
+            }`,
+          },
+        })
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
@@ -99,39 +143,18 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
           { context, dataObject, dataKey },
         )
         dataObject = noodl.root
-        _.set(dataObject, dataKey, false)
+        previousDataValue = undefined
+        nextDataValue = false
+        onNextValue(previousDataValue, {
+          updateDraft: { path: `${dataKey}.${context.page || ''}` },
+        })
       }
-      previousDataValue = _.get(dataObject, dataKey)
-      dataValue = previousDataValue
-      if (isNOODLBoolean(dataValue)) {
-        nextDataValue = !isBooleanTrue(dataValue)
-      } else {
-        nextDataValue = !dataValue
-      }
-      _.set(dataObject, dataKey, nextDataValue)
 
-      if (dataKey === 'VideoChat.micOn') {
+      if (/mic/i.test(dataKey)) {
         builtInActions.toggleMicrophoneOnOff?.(action, options)
-      } else if (dataKey === 'VideoChat.cameraOn') {
+      } else if (/camera/i.test(dataKey)) {
         builtInActions.toggleCameraOnOff?.(action, options)
       }
-    }
-
-    // Propagate the changes to to UI if there is a path "if" object that
-    // references the value as well
-    if (node && _.isObjectLike(path)) {
-      let valEvaluating = path.if?.[0]
-      // If the dataKey is the same as the the value we are evaluating we can
-      // just re-use the nextDataValue
-      if (valEvaluating === dataKey) {
-        valEvaluating = nextDataValue
-      } else {
-        valEvaluating =
-          _.get(noodl.root, valEvaluating) ||
-          _.get(noodl.root[context?.page || ''], valEvaluating)
-      }
-      newSrc = createSrc(valEvaluating ? path.if?.[1] : path.if?.[2])
-      node.setAttribute('src', newSrc)
     }
 
     log.grey('', {
@@ -202,12 +225,18 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.grey('', { action, ...options })
 
     const { evolve } = action.original as NOODLBuiltInObject
-
-    const requestPage = (pageName: string) =>
-      page.requestPageChange(pageName, {
-        evolve: isNOODLBoolean(evolve) ? true : true,
-        // evolve: true
+    console.log(action)
+    const requestPage = async (pageName: string) => {
+      var shouldEvolve = false
+      if (isNOODLBoolean(evolve)) {
+        shouldEvolve = evolve
+      }
+      console.log('Is there evolve?', evolve)
+      console.log('Should I evolve?', shouldEvolve)
+      await page.requestPageChange(pageName, {
+        evolve: shouldEvolve,
       })
+    }
 
     let cachedPages: CachedPageObject[] = getCachedPages()
     if (cachedPages) {
@@ -218,6 +247,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       let pg: string
       pg = cachedPages.shift()?.name || ''
       setCachedPages(cachedPages)
+      console.log(cachedPages)
       await requestPage(pg || '')
     } else {
       log.func('goBack')

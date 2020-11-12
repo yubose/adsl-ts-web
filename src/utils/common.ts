@@ -142,10 +142,11 @@ export function isUnicode(value: unknown) {
  */
 export function openOutboundURL(url: string) {
   if (typeof window !== 'undefined') {
-    const a = document.createElement('a')
-    a.href = url
-    a.setAttribute('target', '_blank')
-    a.setAttribute('rel', 'noopener noreferrer')
-    a.click()
+    // const a = document.createElement('a')
+    // a.href = url
+    // a.setAttribute('target', '_blank')
+    // a.setAttribute('rel', 'noopener noreferrer')
+    // a.click()
+    window.location.href = url
   }
 }

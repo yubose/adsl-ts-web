@@ -11,6 +11,112 @@ import {
   eventTypes,
 } from './constants'
 
+export interface NOODLPage {
+  [pageName: string]: NOODLPageObject
+}
+
+export interface NOODLPageObject {
+  components: NOODLComponent[]
+  lastTop?: string
+  listData?: { [key: string]: any }
+  final?: string // ex: "..save"
+  init?: string | string[] // ex: ["..formData.edge.get", "..formData.w9.get"]
+  module?: string
+  pageNumber?: string
+  [key: string]: any
+}
+
+export interface NOODLComponent {
+  type?: NOODLComponentType
+  style?: NOODLStyle
+  children?: NOODLComponent[]
+  controls?: boolean
+  dataKey?: string
+  contentType?: NOODLContentType
+  inputType?: string // our custom key
+  itemObject?: any
+  isEditable?: boolean // specific to textView components atm
+  iteratorVar?: string
+  listObject?: '' | any[]
+  maxPresent?: string // ex: "6" (Currently used in components with type: list)
+  onClick?: NOODLActionObject[]
+  onHover?: NOODLActionObject[]
+  options?: string[]
+  path?: string | NOODLIfObject
+  pathSelected?: string
+  poster?: string
+  placeholder?: string
+  resource?: string
+  required?: 'true' | 'false' | boolean
+  selected?: string
+  src?: string // our custom key
+  text?: string
+  textSelectd?: string
+  textBoard?: NOODLTextBoard
+  'text=func'?: any
+  viewTag?: string
+  videoFormat?: string
+}
+
+export interface NOODLPluginComponent extends NOODLComponent {
+  type: 'plugin'
+  path: string
+}
+
+export interface NOODLIfObject {
+  if: [any, any, any]
+}
+
+/* -------------------------------------------------------
+    ---- ACTIONS
+  -------------------------------------------------------- */
+
+export interface NOODLGotoObject {
+  destination?: string
+  [key: string]: any
+}
+
+export interface NOODLActionObjectBase {
+  actionType: NOODLActionType
+  [key: string]: any
+}
+
+export interface NOODLBuiltInObject extends NOODLActionObjectBase {
+  actionType: 'builtIn'
+  funcName: string
+}
+
+export interface NOODLEvalObject extends NOODLActionObjectBase {
+  actionType: 'evalObject'
+  object?: Function | NOODLIfObject
+  [key: string]: any
+}
+
+export interface NOODLPageJumpObject extends NOODLActionObjectBase {
+  actionType: 'pageJump'
+  destination: string
+}
+
+export interface NOODLRefreshObject extends NOODLActionObjectBase {
+  actionType: 'refresh'
+}
+
+export interface NOODLSaveObject extends NOODLActionObjectBase {
+  actionType: 'saveObject'
+  object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
+}
+
+export interface NOODLPopupBaseObject<K extends string>
+  extends NOODLActionObjectBase {
+  actionType: 'popUp'
+  popUpView: K
+}
+
+export interface NOODLPopupDismissObject extends NOODLActionObjectBase {
+  actionType: 'popUpDismiss'
+  popUpView: string
+}
+
 /* -------------------------------------------------------
   ---- CONSTANTS
 -------------------------------------------------------- */
@@ -318,15 +424,14 @@ export interface IListItemRedrawedArgs {
   listItem: IListItem
 }
 
-export interface IListItemChild<K extends NOODLComponentType>
-  extends IComponent {
+export interface IListItemChild extends IComponent {
   type: K
   iteratorVar: string
   listId: string
   isListConsumer: boolean
   createChild(
     ...args: Parameters<IComponent['createChild']>
-  ): IListItemChild<K> | undefined
+  ): IListItemChild | undefined
 }
 
 export interface IResolver {
@@ -581,7 +686,7 @@ export type OnGoto = ActionChainActionCallback<NOODLGotoURL | NOODLGotoObject>
 
 export type OnPageJump = ActionChainActionCallback<NOODLPageJumpObject>
 
-export type OnPopup = ActionChainActionCallback<NOODLPopupBaseObject>
+export type OnPopup = ActionChainActionCallback<NOODLPopupBaseObject<any>>
 
 export type OnPopupDismiss = ActionChainActionCallback<NOODLPopupDismissObject>
 
@@ -614,7 +719,7 @@ export interface LifeCycleListeners {
     evalObject?: ActionChainActionCallback<NOODLEvalObject>
     goto?: ActionChainActionCallback<NOODLGotoURL | NOODLGotoObject>
     pageJump?: ActionChainActionCallback<NOODLPageJumpObject>
-    popUp?: ActionChainActionCallback<NOODLPopupBaseObject>
+    popUp?: ActionChainActionCallback<NOODLPopupBaseObject<any>>
     popUpDismiss?: ActionChainActionCallback<NOODLPopupDismissObject>
     saveObject?: (
       action: NOODLSaveObject,
@@ -858,7 +963,7 @@ export type NOODLActionObject =
   | NOODLEmitObject
   | NOODLEvalObject
   | NOODLPageJumpObject
-  | NOODLPopupBaseObject
+  | NOODLPopupBaseObject<any>
   | NOODLPopupDismissObject
   | NOODLRefreshObject
   | NOODLSaveObject
