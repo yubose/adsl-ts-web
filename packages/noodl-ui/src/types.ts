@@ -106,8 +106,7 @@ export interface NOODLSaveObject extends NOODLActionObjectBase {
   object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
 }
 
-export interface NOODLPopupBaseObject<K extends string>
-  extends NOODLActionObjectBase {
+export interface NOODLPopupBaseObject<K = any> extends NOODLActionObjectBase {
   actionType: 'popUp'
   popUpView: K
 }
@@ -300,7 +299,7 @@ export type IComponentType =
 export type IComponentTypeInstance<K = NOODLComponentType> = IComponent<
   string
 > &
-  (IList | IListItem | IListItemChild<any>)
+  (IList | IListItem | IListItemChild)
 
 export type IComponentTypeObject =
   | NOODLComponent
@@ -425,7 +424,7 @@ export interface IListItemRedrawedArgs {
 }
 
 export interface IListItemChild extends IComponent {
-  type: K
+  type: any
   iteratorVar: string
   listId: string
   isListConsumer: boolean
@@ -959,6 +958,7 @@ export interface NOODLGotoObject {
 }
 
 export type NOODLActionObject =
+  | NOODLAnonymousObject
   | NOODLBuiltInObject
   | NOODLEmitObject
   | NOODLEvalObject
@@ -974,6 +974,11 @@ export interface NOODLActionObjectBase {
   [key: string]: any
 }
 
+export interface NOODLAnonymousObject extends NOODLActionObjectBase {
+  actionType: 'anonymous'
+  func?: Function
+}
+
 export interface NOODLBuiltInObject<K = string> extends NOODLActionObjectBase {
   actionType: 'builtIn'
   funcName: K
@@ -982,11 +987,7 @@ export interface NOODLBuiltInObject<K = string> extends NOODLActionObjectBase {
 export interface NOODLEmitObject {
   emit: {
     actions: any[]
-    dataKey:
-      | string
-      | {
-          [key: string]: string
-        }
+    dataKey: string | { [key: string]: string }
   }
 }
 

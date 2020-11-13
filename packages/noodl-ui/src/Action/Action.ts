@@ -46,7 +46,7 @@ class Action<OriginalAction extends NOODLActionObject>
       log.red(
         `Missing "actionType" property. It is possible that the behavior of ` +
           `this action may not be what is expected`,
-        action,
+        { action, ...options },
       )
     }
     this.#id = this.#id || options?.id || getRandomKey()

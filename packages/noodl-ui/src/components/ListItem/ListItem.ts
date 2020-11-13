@@ -80,8 +80,8 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
 
   createChild<C extends IComponentTypeInstance>(child: C): C {
     child?.setParent?.(this)
-    child['listId'] = this.listId
-    child['listIndex'] = this.listIndex
+    child.set('listId', this.listId)
+    child.set('listIndex', this.listIndex)
     this.#children.push(child)
     return child
   }

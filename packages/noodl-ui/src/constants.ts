@@ -2,10 +2,11 @@ import _ from 'lodash'
 import { NOODLComponentType } from 'types'
 
 export const actionTypes = [
+  'anonymous', // lib
   'builtIn',
-  'emit',
+  'emit', // lib
   'evalObject',
-  'goto',
+  'goto', // lib
   'pageJump',
   'popUp',
   'popUpDismiss',

@@ -40,7 +40,7 @@
     "test:noodlutils": "cross-env TS_NODE_PROJECT=\"packages/noodl-ui/tsconfig.test.json\" NODE_ENV=test lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "cross-env TS_NODE_PROJECT=\"packages/noodl-ui/tsconfig.test.json\" NODE_ENV=test lerna exec --scope noodl-utils \"npm run test:file\"",
     "lib:build": "cross-env NODE_ENV=development lerna run --parallel build",
-    "lib:start": "cross-env NODE_ENV=production USE_DEV_PATHS=true lerna run --parallel start",
+    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --parallel start",
     "lib:utils": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --parallel --ignore noodl-ui --ignore noodl-ui-dom start -- --watch",
     "lib:start:noodlutils": "cross-env NODE_ENV=development lerna run start --ignore=noodl-ui --ignore=noodl-ui-dom --ignore=logsnap"
   },
@@ -51,7 +51,7 @@
     "noodl-utils": "file:packages/noodl-utils"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.125",
+    "@aitmed/cadl": "^1.0.127",
     "@aitmed/ecos-lvl2-sdk": "^1.4.117",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",

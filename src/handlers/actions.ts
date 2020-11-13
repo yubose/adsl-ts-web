@@ -38,26 +38,45 @@ const createActions = function ({ page }: { page: IPage }) {
     let { component, context } = options
     let { emit } = action.original
     let { actions, dataKey } = emit
-    let originalDataKey = _.isString(dataKey) ? dataKey : { ...dataKey }
-    dataKey = _.isObject(dataKey)
-      ? _.reduce(
-          _.entries(dataKey),
-          (acc, [k, v]) => {
-            const parent = findParent(component, (p) => {
-              log.grey('Parent?', {
-                component: component.toJS(),
-                actions,
-                dataKey,
-                parent: p,
+    let originalDataKey
+
+    const emitParams = {
+      actions,
+      dataKey,
+      pageName: context.page,
+    }
+
+    if (_.isString(dataKey)) {
+      originalDataKey = dataKey
+    } else if (_.isPlainObject(dataKey)) {
+      originalDataKey = { ...dataKey }
+      const iteratorVar = component.get('iteratorVar')
+      emitParams['dataKey'] = _.reduce(
+        _.entries(dataKey),
+        (acc, [key, dataPath]) => {
+          if (iteratorVar && _.isString(dataPath)) {
+            if (dataPath.startsWith(iteratorVar)) {
+              dataPath = dataPath.split('.').slice(1).join('.')
+              const listItem = findParent(component, (parent) => {
+                log.grey('Parent?', {
+                  component: component.toJS(),
+                  actions,
+                  dataKey,
+                  parent,
+                })
+                return parent?.noodlType === 'listItem'
               })
-              return p?.noodlType === 'listItem'
-            })
-            acc[k as typeof acc] = parent?.getDataObject?.()
-            return acc
-          },
-          {} as typeof emit['dataKey'],
-        )
-      : dataKey
+              if (listItem) {
+                acc[key] = listItem.getDataObject()
+              }
+            }
+          }
+
+          return acc
+        },
+        {} as typeof emit['dataKey'],
+      )
+    }
 
     log.gold(`Emit action results`, {
       component: component.toJS(),
