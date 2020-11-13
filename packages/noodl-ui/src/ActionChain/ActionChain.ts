@@ -72,12 +72,6 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
    * @param { object } obj - Action object
    */
   createAction(obj: T.NOODLActionObject): T.IAction {
-    log.func('createAction')
-    log.gold('', {
-      actionObj: obj,
-      instance: this,
-      queue: this.#queue,
-    })
     const action = new Action(obj, {
       timeoutDelay: 8000,
     }) as T.IAction
@@ -122,7 +116,8 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
               (action?.original as T.IActionChainUseBuiltInObject)?.funcName
             ] || []
         } else {
-          log.grey(`Non-builtin action encountered`, { action, actionObj: obj })
+          log.func('createAction')
+          log.grey(`Non builtIn action encountered`, { action, actionObj: obj })
           fns = this.fns.action[action.actionType] || []
         }
         if (!fns) return result
@@ -171,7 +166,7 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
           }
           // Temporarily hardcode the actionType to blend in with the other actions
           // for now until we find a better solution
-          if (typeof actionObj !== 'function') {
+          else {
             if ('emit' in actionObj) {
               actionObj = { ...actionObj, actionType: 'emit' } as any
             } else if ('goto' in actionObj) {
@@ -181,50 +176,20 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
           }
           if (action) {
             this.actions?.push(action)
-            log.grey(
-              `Loaded a(n) "${action.actionType}" action into the queue`,
-              action,
-            )
-
+            log.grey(`Loaded a "${action.actionType}" action into the queue`, {
+              action: action.getSnapshot(),
+              instance: action,
+            })
             return acc.concat(action)
           }
           return acc
         },
         [] as T.IAction[],
       )
+      this.#gen = createExecutor(this.#queue)
+
       return this.#queue
     }
-
-    const queue = loadQueue()
-    this.#gen = createExecutor(queue)
-
-    const executeActions = createExecute({
-      executor: this.#gen,
-      getCallbackArgs: (arg: any) =>
-        this.getCallbackOptions({ arg, ...buildOptions }),
-      next: this.#next,
-      queue,
-      onStart: () => {
-        this.#setStatus('in.progress')
-        log.func('onStart')
-        log.grey('Action chain started', {
-          queue,
-          ...this.getCallbackOptions(buildOptions),
-        })
-      },
-      onEnd: () => {
-        this.#setStatus('done')
-        log.func('onEnd')
-        log.grey('Action chain ended')
-        loadQueue()
-      },
-      onError: (error: Error) => {
-        console.error(error.message)
-        this.#setStatus({ error })
-        log.func('onError')
-        log.red(`[ERROR]: An action chain received an error`, { error, queue })
-      },
-    })
 
     let timeoutRef: NodeJS.Timeout
 
@@ -250,7 +215,43 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
       }
     }
 
-    return executeActions(execute)
+    return (args: any) => {
+      const executeActions = (a) => {
+        loadQueue()
+        return createExecute({
+          executor: this.#gen,
+          getCallbackArgs: (arg: any) =>
+            this.getCallbackOptions({ arg, ...buildOptions }),
+          next: this.#next,
+          queue: this.#queue,
+          onStart: () => {
+            this.#setStatus('in.progress')
+            log.func('onStart')
+            log.grey('Action chain started', {
+              queue: this.#queue,
+              ...this.getCallbackOptions(buildOptions),
+            })
+          },
+          onEnd: () => {
+            this.#setStatus('done')
+            log.func('onEnd')
+            log.grey('Action chain ended')
+            loadQueue()
+          },
+          onError: (error: Error) => {
+            console.error(error.message)
+            this.#setStatus({ error })
+            log.func('onError')
+            log.red(`[ERROR]: An action chain received an error`, {
+              error,
+              queue: this.#queue,
+            })
+          },
+        })(a)
+      }
+
+      return executeActions(execute)(args)
+    }
   }
 
   /**

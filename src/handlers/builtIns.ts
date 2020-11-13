@@ -131,9 +131,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         previousDataValue = _.get(dataObject, dataKey)
         onNextValue(previousDataValue, {
           updateDraft: {
-            path: `${dataKey}${
-              context.page ? `.${context.page}` : ''
-            }`,
+            path: `${dataKey}${context.page ? `.${context.page}` : ''}`,
           },
         })
       } else {
@@ -336,7 +334,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     const { viewTag } = action
     component.redraw?.()
     console.info(component.toJS())
-    // Re-render the current list item somehow
   }
 
   builtInActions.signIn = async (action, options) => {}

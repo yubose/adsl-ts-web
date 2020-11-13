@@ -35,7 +35,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     component: C,
     container?: T.NOODLDOMElement | null,
   ) {
-    const { noodlType } = component
+    const { noodlType } = component || {}
     let node: T.NOODLDOMElement | null = null
 
     if (component) {
@@ -49,7 +49,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         node = document.createElement(getType(component))
         this.emit('create.component', node, component)
         if (node) {
-          if (component.noodlType === 'list') {
+          if (component?.noodlType === 'list') {
             // Initiate the listItem children
             const listObject = component.getData()
             if (listObject.length) {

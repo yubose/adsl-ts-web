@@ -7,6 +7,7 @@ import {
   NOODLUpdateObject,
   NOODLPageJumpObject,
   NOODLPopupDismissObject,
+  IAction,
 } from '../types'
 
 const parser = makeRootsParser({ roots: {} })
@@ -236,6 +237,23 @@ describe('ActionChain', () => {
 
     xit('should add the result of execute to its history', () => {
       //
+    })
+  })
+
+  describe('when action chains finish', () => {
+    it('should refresh after done running', async () => {
+      const spy = sinon.spy()
+      const actionChain = new ActionChain([pageJumpAction])
+      const onClick = actionChain
+        .useAction([{ actionType: 'pageJump', fn: spy }])
+        .build({} as any)
+      await onClick()
+      const refreshedAction = actionChain.actions?.[0] as IAction
+      const refreshedQueue = actionChain.getQueue()
+      expect(refreshedAction.status).to.be.null
+      expect(refreshedQueue).to.have.lengthOf(1)
+      expect(refreshedQueue[0].status).to.be.null
+      expect(refreshedQueue[0].).to.
     })
   })
 
