@@ -4,7 +4,14 @@ import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
 import MockAxios from 'axios-mock-adapter'
 import { expect } from 'chai'
-import { getByText, prettyDOM, screen, waitFor } from '@testing-library/dom'
+import {
+  findByText,
+  getByText,
+  prettyDOM,
+  queryByText,
+  screen,
+  waitFor,
+} from '@testing-library/dom'
 import { event as noodlUIEvent, IList, NOODLComponent } from 'noodl-ui'
 import { findChild, findParent } from 'noodl-utils'
 import axios from '../app/axios'
@@ -24,6 +31,7 @@ import {
   getListObject1,
   saveOutput,
 } from '../__tests__/helpers'
+import { IList } from '../../packages/noodl-ui/src'
 
 const mockAxios = new MockAxios(axios)
 
@@ -34,6 +42,7 @@ describe('dom', () => {
       expect(document.getElementById('abc123')).to.exist
     })
   })
+
   describe('component type: "label"', () => {
     it('should use data-value as text content if present for other elements (non data value elements)', () => {
       const dataKey = 'formData.greeting'
@@ -177,31 +186,72 @@ describe('dom', () => {
             },
           ],
         })
-
         const parent = components[0]
         const component = parent.child()
         const container = document.createElement('ul') as HTMLUListElement
         page.rootNode?.appendChild(container)
-
-        component.on(noodlUIEvent.component.list.REMOVE_LIST_ITEM, (result) => {
-          const { listItem } = result
-          console.info(result.listItem.toJS())
-          console.info(`ID: ${result.listItem.id}`)
-          console.info(prettyDOM())
-          const li = document.getElementById(listItem.id) as HTMLLIElement
-          console.info(li)
-          container.removeChild(li)
-        })
-
-        const listItemElems = document.querySelectorAll('li')
-        // saveOutput('dom.json', listItem?.toJS?.(), { encoding: 'utf8' })
+        expect(document.querySelectorAll('li')).to.have.lengthOf(3)
         component?.removeDataObject(1)
-        expect(listItemElems).to.have.lengthOf(3)
+        expect(document.querySelectorAll('li')).to.have.lengthOf(2)
       },
     )
 
-    xit('should update the corresponding list item node that is referencing the dataObject', () => {
-      //
+    describe('when updating data objects and list items', () => {
+      let component: IList
+
+      beforeEach(() => {
+        const iteratorVar = 'hello'
+        const { components } = page.render({
+          type: 'view',
+          children: [
+            {
+              type: 'list',
+              listObject: [
+                { fruits: 'apple' },
+                { fruits: 'banana' },
+                { fruits: 'orange' },
+              ],
+              iteratorVar,
+              children: [
+                {
+                  type: 'listItem',
+                  children: [{ type: 'label', dataKey: 'hello.fruits' }],
+                  viewTag: 'fruitTag',
+                },
+              ],
+            },
+          ],
+        })
+        const parent = components[0]
+        component = parent.child()
+      })
+
+      describe('by index', () => {
+        it('should update the corresponding list item node that is referencing the dataObject', () => {
+          expect(queryByText(document.body, 'pear')).not.to.exist
+          component.updateDataObject(1, { fruits: 'pear' })
+          expect(queryByText(document.body, 'pear')).to.exist
+        })
+
+        xit('should redraw the images', () => {
+          //
+        })
+      })
+
+      xdescribe('by function query', () => {
+        it('should update the corresponding list item node that is referencing the dataObject', () => {
+          expect(queryByText(document.body, 'orange')).to.exist
+          expect(queryByText(document.body, 'grape')).not.to.exist
+          console.info(prettyDOM())
+          component.updateDataObject(2, { fruits: 'grape' })
+          expect(queryByText(document.body, 'orange')).not.to.exist
+          expect(queryByText(document.body, 'grape')).to.exist
+        })
+      })
+
+      describe('by reference', () => {
+        xit('should update the corresponding list item node that is referencing the dataObject', () => {})
+      })
     })
   })
 
@@ -281,6 +331,7 @@ describe('dom', () => {
         ['data-key', queryByDataKey],
         ['data-ux', queryByDataUx],
         ['data-value', queryByDataValue],
+        ['data-viewtag', queryByDataValue],
       ],
       ([key, queryFn]) => {
         it(`should attach ${key}`, () => {
@@ -432,5 +483,60 @@ describe('dom', () => {
       const sourceElem = document.body?.querySelector('source')
       expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + path)
     })
+  })
+
+  describe('when using redraw', () => {
+    let parent
+    let component
+    let iteratorVar: 'hello'
+
+    beforeEach(() => {
+      iteratorVar = 'hello'
+      const { components } = page.render({
+        type: 'view',
+        children: [
+          {
+            type: 'list',
+            listObject: [
+              { fruits: 'apple' },
+              { fruits: 'banana' },
+              { fruits: 'orange' },
+            ],
+            iteratorVar,
+            children: [
+              {
+                type: 'listItem',
+                children: [
+                  { type: 'label', dataKey: 'hello.fruits' },
+                  {
+                    type: 'image',
+                    viewTag: 'maleTag',
+                    onClick: [
+                      {
+                        emit: {
+                          dataKey: { var1: iteratorVar, var2: iteratorVar },
+                          actions: [{ if: [{}, {}, {}] }],
+                        },
+                      },
+                      {
+                        actionType: 'builtIn',
+                        funcName: 'redraw',
+                        viewTag: 'genderTag',
+                      },
+                    ],
+                  },
+                ],
+                viewTag: 'fruitTag',
+              },
+            ],
+          },
+        ],
+      })
+      parent = components[0]
+      component = parent.child()
+      // console.info(prettyDOM())
+    })
+
+    it('should redraw the images', () => {})
   })
 })

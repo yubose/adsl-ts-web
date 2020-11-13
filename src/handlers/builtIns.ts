@@ -24,12 +24,12 @@ import {
 } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
-import validate from 'utils/validate'
-import { toggleVisibility } from 'utils/dom'
-import { BuiltInActions } from 'app/types'
-import { NOODLBuiltInCheckFieldObject } from 'app/types/libExtensionTypes'
+import validate from '../utils/validate'
+import { toggleVisibility } from '../utils/dom'
+import { BuiltInActions } from '../app/types'
 import { CachedPageObject } from '../app/types'
 import { CACHED_PAGES } from '../constants'
+import { NOODLBuiltInCheckFieldObject } from '../app/types/libExtensionTypes'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
@@ -330,9 +330,14 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.redraw = async (action, options) => {
     log.func('redraw')
     log.red('', { action, ...options })
+
+    const { default: noodluidom } = await import('../app/noodl-ui-dom')
+
     const { component } = options
     const { viewTag } = action
-    component.redraw?.()
+
+    // console.info(options.component?.toJS?.())
+    // component.redraw?.()
   }
 
   builtInActions.signIn = async (action, options) => {}

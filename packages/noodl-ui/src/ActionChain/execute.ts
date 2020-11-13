@@ -3,12 +3,14 @@ import Logger from 'logsnap'
 import {
   ActionChainActionCallbackOptions,
   IAction,
+  IActionChain,
+  IActionChainBuildOptions,
   NOODLActionObject,
 } from '../types'
 
 const log = Logger.create('execute [ActionChain]')
 
-export const createExecutor = function (queue: IAction[]) {
+export const createActionChainGenerator = function (queue: IAction[]) {
   return async function* getExecutor() {
     let action: IAction | undefined
     let results: { action: IAction | undefined; result: any }[] = []
@@ -25,23 +27,25 @@ export const createExecutor = function (queue: IAction[]) {
   }
 }
 
-export const createExecute = function (opts: {
-  getCallbackArgs
-  executor: ReturnType<ReturnType<typeof createExecutor>>
-  next(
-    args?: any,
-  ): Promise<
-    | IteratorYieldResult<{
-        action: IAction<string, NOODLActionObject>
-        results: any[]
-      }>
-    | undefined
-  >
-  queue: IAction[]
-  onStart?(): void
-  onEnd?(): void
-  onError?(error: Error): void
-}) {
+export const createExecute = function (
+  opts: IActionChainBuildOptions & {
+    abort: IActionChain['abort']
+    executor: ReturnType<ReturnType<typeof createActionChainGenerator>>
+    next(
+      args?: any,
+    ): Promise<
+      | IteratorYieldResult<{
+          action: IAction<string, NOODLActionObject>
+          results: any[]
+        }>
+      | undefined
+    >
+    queue: IAction[]
+    onStart?(): void
+    onEnd?(): void
+    onError?(error: Error): void
+  },
+) {
   return function executeActions(
     execute: (
       action: IAction,
@@ -49,13 +53,16 @@ export const createExecute = function (opts: {
     ) => Promise<any>,
   ) {
     let {
+      abort,
+      component,
+      context,
       executor,
-      getCallbackArgs,
       next,
       onStart,
       onEnd,
       onError,
       queue,
+      trigger,
     } = opts
 
     async function executeActions(...args: any[]) {
@@ -86,8 +93,14 @@ export const createExecute = function (opts: {
             }
             // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
             else {
-              result = await execute(action, getCallbackArgs(args))
-              log.grey('Current results from action chain', result)
+              result = await execute(action, {
+                args,
+                component,
+                context,
+                queue,
+                trigger,
+              })
+              // log.grey('Current results from action chain', result)
               if (_.isPlainObject(result)) {
                 iterator = await next(executor, result)
               } else if (_.isString(result)) {
@@ -124,7 +137,7 @@ export const createExecute = function (opts: {
         // )
         onError?.({ args, error })
         // TODO more handling
-        getCallbackArgs().abort(
+        abort(
           `The value of "actions" given to this action chain was null or undefined`,
         )
       }

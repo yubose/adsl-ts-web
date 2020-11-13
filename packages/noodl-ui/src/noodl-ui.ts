@@ -310,8 +310,8 @@ class NOODL implements T.INOODLUi {
   }
 
   createActionChainHandler(
-    actions: Parameters<T.INOODLUi['createActionChainHandler']>[0],
-    options?: Parameters<T.INOODLUi['createActionChainHandler']>[1],
+    actions: T.NOODLActionObject[],
+    options: Omit<T.IActionChainBuildOptions, 'context'>,
   ) {
     const actionChain = new ActionChain(
       _.isArray(actions) ? actions : [actions],
@@ -332,13 +332,16 @@ class NOODL implements T.INOODLUi {
       )
 
     // @ts-expect-error
-    window.ac = actionChain
+    if (!window.ac) window['ac'] = {}
+    // @ts-expect-error
+    window.ac[options.component?.id || ''] = actionChain
 
-    return actionChain.build({
-      context: this.getContext() as T.ResolverContext,
-      parser: this.parser,
+    const buildOptions: T.IActionChainBuildOptions = {
+      context: this.getContext(),
       ...options,
-    })
+    }
+
+    return actionChain.build(buildOptions)
   }
 
   init({ viewport }: Partial<Parameters<T.INOODLUi['init']>[0]> = {}) {
@@ -568,7 +571,6 @@ class NOODL implements T.INOODLUi {
             } else if (_.has(pageObject, valEvaluating)) {
               val = _.get(pageObject, valEvaluating)
             } else if (component) {
-              // TODO - Check on iteratorVar
               // Assuming this is for list items if the code gets here
               // At this moment we are working with the value of
               // a dataObject that is set on list item components

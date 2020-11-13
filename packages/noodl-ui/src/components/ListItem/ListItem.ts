@@ -112,7 +112,7 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
   on<E extends 'redraw'>(eventName: E, cb: Function) {
     if (eventName === 'redraw') {
       // Restricting redraw to one handler only
-      if (this.#cb.redraw.length) return
+      // if (this.#cb.redraw.length) return
       this.#cb.redraw.push(cb)
     }
     return this

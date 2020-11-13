@@ -280,6 +280,9 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       component.set('data-ux', 'subStream')
     } else if (viewTag === 'selfStream') {
       component.set('data-ux', 'selfStream')
+    } else {
+      // TODO convert others to use data-view-tag
+      component.set('data-viewtag', viewTag)
     }
   }
 }

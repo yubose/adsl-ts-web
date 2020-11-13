@@ -1,18 +1,19 @@
 import sinon from 'sinon'
+import fs from 'fs-extra'
+import path from 'path'
 import { prettyDOM, screen } from '@testing-library/dom'
+import chalk from 'chalk'
 import { expect } from 'chai'
-import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
-import { noodl } from './test-utils'
-import NOODLUIDOM from './noodl-ui-dom'
-
-let noodluidom: NOODLUIDOM
-
-beforeEach(() => {
-  noodluidom = new NOODLUIDOM()
-})
+import {
+  IComponentTypeInstance,
+  IList,
+  NOODLComponent,
+  NOODLComponentProps,
+} from 'noodl-ui'
+import { listenToDOM, noodlui, noodluidom, toDOM } from './test-utils'
 
 describe('noodl-ui-dom', () => {
-  it('should add the func to the callbacks list', () => {
+  xit('should add the func to the callbacks list', () => {
     const spy = sinon.spy()
     noodluidom.on('create.button', spy)
     const callbacksList = noodluidom.getCallbacks('create.button')
@@ -20,7 +21,7 @@ describe('noodl-ui-dom', () => {
     expect(callbacksList).to.have.members([spy])
   })
 
-  it('should remove the func from the callbacks list', () => {
+  xit('should remove the func from the callbacks list', () => {
     const spy = sinon.spy()
     noodluidom.on('create.button', spy)
     let callbacksList = noodluidom.getCallbacks('create.button')
@@ -56,7 +57,7 @@ describe('noodl-ui-dom', () => {
 
     xit('should call callbacks that were subscribed', () => {
       noodluidom.parse(
-        noodl.resolveComponents({
+        noodlui.resolveComponents({
           id: 'myid123',
           type: 'button',
           noodlType: 'button',
@@ -69,7 +70,7 @@ describe('noodl-ui-dom', () => {
 
     it('should not call callbacks that were not subscribed', () => {
       noodluidom.parse(
-        noodl.resolveComponents({
+        noodlui.resolveComponents({
           id: 'myid123',
           type: 'label',
           noodlType: 'label',
@@ -112,9 +113,9 @@ describe('noodl-ui-dom', () => {
     })
   })
 
-  describe('parse', () => {
+  xdescribe('parse', () => {
     it('should return the expected node', () => {
-      const label = noodl.resolveComponents({
+      const label = noodlui.resolveComponents({
         type: 'label',
         text: 'Title',
         style: {
@@ -183,7 +184,7 @@ describe('noodl-ui-dom', () => {
         noodluidom.on('create.label', (node, inst) => {
           if (node) node.innerHTML = inst.get('text')
         })
-        noodluidom.parse(noodl.resolveComponents(component))
+        noodluidom.parse(noodlui.resolveComponents(component))
         expect(screen.getByText(labelText))
       })
     })
@@ -199,8 +200,211 @@ describe('noodl-ui-dom', () => {
         path: 'https://what.com/what.jpg',
       } as NOODLComponent
       noodluidom.on('create.plugin', spy)
-      noodluidom.parse(noodl.resolveComponents(component), document.body)
+      noodluidom.parse(noodlui.resolveComponents(component), document.body)
       expect(spy.firstCall.args[0]).to.be.null
+    })
+  })
+
+  describe('when using redraw', () => {
+    let parent: IComponentTypeInstance
+    let component: IList
+    let iteratorVar: 'hello'
+    let listObject: any[]
+
+    // const builtInStringEqualMale = sinon.spy((obj) => obj.value === 'Male')
+    const builtInStringEqualMale = (obj: any) => {
+      console.info(obj)
+      console.info(obj)
+      console.info(obj)
+      return obj.value === 'Male'
+    }
+    const builtInStringEqualFemale = sinon.spy((obj) => obj.value === 'Female')
+    const builtInStringEqualOther = sinon.spy((obj) => obj.value === 'Other')
+
+    const mockEmit = (value: any) => (o: any) => value
+    const emitMale = mockEmit('Male')
+    const emitFemale = mockEmit('Female')
+    const emitOther = mockEmit('Other')
+
+    beforeEach(() => {
+      iteratorVar = 'hello'
+      listObject = [
+        { key: 'Gender', value: 'Male' },
+        { key: 'Gender', value: 'Female' },
+        { key: 'Gender', value: 'Other' },
+      ]
+
+      noodlui
+        .setRoot('PatientChartGeneralInfo', {
+          GeneralInfo: {
+            Radio: [{ key: 'Gender', value: '' }],
+          },
+        })
+        .setPage('PatientChartGeneralInfo')
+
+      const mockUpdateGender = (value: any) => () =>
+        noodlui.setRoot('PatientChartGeneralInfo', {
+          GeneralInfo: { Radio: [{ key: 'Gender', value }] },
+        })
+
+      parent = noodlui.resolveComponents({
+        type: 'view',
+        children: [
+          {
+            type: 'list',
+            contentType: 'listObject',
+            listObject: [listObject[0]],
+            iteratorVar,
+            children: [
+              {
+                type: 'listItem',
+                viewTag: 'genderTag',
+                [iteratorVar]: '',
+                children: [
+                  {
+                    type: 'image',
+                    viewTag: 'maleTag',
+                    onClick: [
+                      {
+                        emit: {
+                          dataKey: { var1: iteratorVar, var2: iteratorVar },
+                          actions: [
+                            {
+                              if: [
+                                builtInStringEqualMale,
+                                mockUpdateGender(null),
+                                mockUpdateGender('Male'),
+                              ],
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        actionType: 'builtIn',
+                        funcName: 'redraw',
+                        viewTag: 'genderTag',
+                      },
+                    ],
+                    path: {
+                      if: [
+                        builtInStringEqualMale,
+                        'selectOn.png',
+                        'selectOff.png',
+                      ],
+                    },
+                    style: { height: '0.025', width: '0.042', left: '0.15' },
+                  },
+                  {
+                    type: 'label',
+                    text: 'Male',
+                    style: { fontSize: '13', top: '0', left: '0.25' },
+                  },
+                  {
+                    type: 'image',
+                    viewTag: 'femaleTag',
+                    onClick: [
+                      {
+                        emit: [{ dataKey: { var1: iteratorVar } }],
+                        actions: [
+                          {
+                            if: [
+                              builtInStringEqualFemale,
+                              mockUpdateGender(null),
+                              mockUpdateGender('Female'),
+                            ],
+                          },
+                        ],
+                      },
+                      {
+                        actionType: 'builtIn',
+                        funcName: 'redraw',
+                        viewTag: 'genderTag',
+                      },
+                    ],
+                    path: {
+                      if: [
+                        builtInStringEqualFemale,
+                        'selectOn.png',
+                        'selectOff.png',
+                      ],
+                    },
+                    style: { width: '0.042', top: '0', left: '0.4' },
+                  },
+                  {
+                    type: 'label',
+                    text: 'Female',
+                    style: { fontSize: '13', top: '0', left: '0.5' },
+                  },
+                  {
+                    type: 'image',
+                    viewTag: 'otherTag',
+                    onClick: [
+                      {
+                        if: [
+                          builtInStringEqualOther,
+                          mockUpdateGender(null),
+                          mockUpdateGender('Other'),
+                        ],
+                      },
+                      {
+                        actionType: 'builtIn',
+                        funcName: 'redraw',
+                        viewTag: 'genderTag',
+                      },
+                    ],
+                    path: {
+                      if: [
+                        builtInStringEqualOther,
+                        'selectOn.png',
+                        'selectOff.png',
+                      ],
+                    },
+                    style: { left: '0.7' },
+                  },
+                  {
+                    type: 'label',
+                    text: 'Other',
+                    style: { fontSize: '13', top: '0', left: '0.75' },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      })
+
+      component = parent.child() as IList
+      // listenToDOM()
+      toDOM(parent)
+    })
+
+    it('should redraw the images', () => {
+      const listNode = document.getElementsByTagName('ul')[0]
+      const listItemNodes = Array.from(document.querySelectorAll('li'))
+      const [liNode1, liNode2, liNode3] = listItemNodes
+      const listItem1ImgNode = liNode1.querySelector('img')
+      // liNode1?.click()
+      expect(liNode1.querySelector('img')).to.have.property(
+        'src',
+        noodlui.assetsUrl + 'selectOn.png',
+      )
+      console.info(chalk.magenta('UNCLICKED'))
+      console.info('     ' + chalk.yellow(listItem1ImgNode.src))
+      listItem1ImgNode?.click()
+      console.info('     ' + chalk.yellow(listItem1ImgNode.src))
+      console.info(chalk.magenta('CLICKED'))
+      expect(liNode1.querySelector('img')).to.have.property(
+        'src',
+        noodlui.assetsUrl + 'selectOff.png',
+      )
+      fs.writeJsonSync(
+        path.resolve(path.join(process.cwd(), 'noodl-ui-dom.json')),
+        {
+          imgOnDOM: { src: listItem1ImgNode.src },
+          component: component.toJS(),
+        },
+        { spaces: 2 },
+      )
     })
   })
 })

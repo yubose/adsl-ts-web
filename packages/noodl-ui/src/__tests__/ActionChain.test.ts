@@ -253,7 +253,7 @@ describe('ActionChain', () => {
       expect(refreshedAction.status).to.be.null
       expect(refreshedQueue).to.have.lengthOf(1)
       expect(refreshedQueue[0].status).to.be.null
-      expect(refreshedQueue[0].).to.
+      // expect(refreshedQueue[0].).to.
     })
   })
 

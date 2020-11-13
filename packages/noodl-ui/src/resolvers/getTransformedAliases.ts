@@ -67,11 +67,11 @@ const getTransformedAliases: ResolverFn = (
     if (_.isString(src)) {
       component.set('src', createSrc(src))
     } else if (!_.isArray(path) && _.isObject(path)) {
-      log.yellow('', {
-        if: path.if,
-        component: component.snapshot(),
-        componentJS: component.toJS(),
-      })
+      // log.yellow('', {
+      //   if: path.if,
+      //   component: component.snapshot(),
+      //   componentJS: component.toJS(),
+      // })
       const [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
       if (_.isString(valEvaluating)) {
         /**

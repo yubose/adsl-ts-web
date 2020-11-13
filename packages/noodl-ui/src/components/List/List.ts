@@ -220,7 +220,7 @@ class List extends Component implements IList {
         return result
       }
       // By direct reference
-      if (typeof dataObject === 'object') {
+      else if (typeof dataObject === 'object') {
         index = _.findIndex(this.#listObject, (obj) => obj === dataObject)
         if (index !== -1)
           removedDataObject = this.#listObject.splice(index, 1)[0]
@@ -237,7 +237,7 @@ class List extends Component implements IList {
         )
       }
       // By index
-      if (typeof dataObject === 'number') {
+      else if (typeof dataObject === 'number') {
         index = dataObject
         removedDataObject = this.#listObject[index]
         console.log({ index, dataObject, data: this.getData() })
@@ -282,6 +282,7 @@ class List extends Component implements IList {
     index: number | ((dataObject: DataObject | null) => boolean),
     dataObject: DataObject | null,
   ) {
+    // By index
     if (_.isNumber(index)) {
       const prevDataObject = this.#listObject[index]
       this.#listObject[index] = _.isPlainObject(prevDataObject)
@@ -301,7 +302,7 @@ class List extends Component implements IList {
       )
       return result
     }
-
+    // By function query
     if (_.isFunction(index)) {
       const pred = index
       if (_.isArray(this.#listObject)) {

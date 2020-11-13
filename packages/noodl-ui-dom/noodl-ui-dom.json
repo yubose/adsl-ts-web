@@ -1,0 +1,291 @@
+{
+  "imgOnDOM": {
+    "src": "https://aitmed.com/assets/selectOn.png"
+  },
+  "component": {
+    "blueprint": {
+      "children": [
+        {
+          "type": "img",
+          "viewTag": "maleTag",
+          "path": {
+            "if": [
+              null,
+              "selectOn.png",
+              "selectOff.png"
+            ]
+          },
+          "style": {
+            "height": "16.675px",
+            "width": "15.33px",
+            "left": "54.75px",
+            "position": "absolute",
+            "outline": "none",
+            "objectFit": "contain"
+          },
+          "listId": "_ahwdqse25",
+          "iteratorVar": "hello",
+          "noodlType": "image",
+          "data-viewtag": "maleTag",
+          "src": "https://aitmed.com/assets/selectOn.png"
+        },
+        {
+          "type": "label",
+          "text": "Male",
+          "style": {
+            "fontSize": "13px",
+            "top": "0px",
+            "left": "91.25px",
+            "position": "absolute",
+            "outline": "none"
+          },
+          "listId": "_ahwdqse25",
+          "iteratorVar": "hello",
+          "noodlType": "label"
+        },
+        {
+          "type": "img",
+          "viewTag": "femaleTag",
+          "path": {
+            "if": [
+              null,
+              "selectOn.png",
+              "selectOff.png"
+            ]
+          },
+          "style": {
+            "width": "15.33px",
+            "top": "0px",
+            "left": "146px",
+            "position": "absolute",
+            "outline": "none",
+            "objectFit": "contain"
+          },
+          "listId": "_ahwdqse25",
+          "iteratorVar": "hello",
+          "noodlType": "image",
+          "data-viewtag": "femaleTag",
+          "src": "https://aitmed.com/assets/selectOn.png"
+        },
+        {
+          "type": "label",
+          "text": "Female",
+          "style": {
+            "fontSize": "13px",
+            "top": "0px",
+            "left": "182.5px",
+            "position": "absolute",
+            "outline": "none"
+          },
+          "listId": "_ahwdqse25",
+          "iteratorVar": "hello",
+          "noodlType": "label"
+        },
+        {
+          "type": "img",
+          "viewTag": "otherTag",
+          "path": {
+            "if": [
+              null,
+              "selectOn.png",
+              "selectOff.png"
+            ]
+          },
+          "style": {
+            "left": "255.49999999999997px",
+            "position": "absolute",
+            "outline": "none",
+            "objectFit": "contain"
+          },
+          "listId": "_ahwdqse25",
+          "iteratorVar": "hello",
+          "noodlType": "image",
+          "data-viewtag": "otherTag",
+          "src": "https://aitmed.com/assets/selectOn.png"
+        },
+        {
+          "type": "label",
+          "text": "Other",
+          "style": {
+            "fontSize": "13px",
+            "top": "0px",
+            "left": "273.75px",
+            "position": "absolute",
+            "outline": "none"
+          },
+          "listId": "_ahwdqse25",
+          "iteratorVar": "hello",
+          "noodlType": "label"
+        }
+      ],
+      "listId": "_ahwdqse25",
+      "listIndex": null,
+      "id": "_lpaq7cv5u",
+      "iteratorVar": "hello",
+      "noodlType": "listItem",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "type": "listItem",
+      "viewTag": "genderTag",
+      "hello": ""
+    },
+    "children": [
+      {
+        "children": [
+          {
+            "type": "img",
+            "viewTag": "maleTag",
+            "path": {
+              "if": [
+                null,
+                "selectOn.png",
+                "selectOff.png"
+              ]
+            },
+            "style": {
+              "height": "16.675px",
+              "width": "15.33px",
+              "left": "54.75px",
+              "position": "absolute",
+              "outline": "none",
+              "objectFit": "contain"
+            },
+            "listId": "_ahwdqse25",
+            "iteratorVar": "hello",
+            "noodlType": "image",
+            "data-viewtag": "maleTag",
+            "src": "https://aitmed.com/assets/selectOn.png"
+          },
+          {
+            "type": "label",
+            "text": "Male",
+            "style": {
+              "fontSize": "13px",
+              "top": "0px",
+              "left": "91.25px",
+              "position": "absolute",
+              "outline": "none"
+            },
+            "listId": "_ahwdqse25",
+            "iteratorVar": "hello",
+            "noodlType": "label"
+          },
+          {
+            "type": "img",
+            "viewTag": "femaleTag",
+            "path": {
+              "if": [
+                null,
+                "selectOn.png",
+                "selectOff.png"
+              ]
+            },
+            "style": {
+              "width": "15.33px",
+              "top": "0px",
+              "left": "146px",
+              "position": "absolute",
+              "outline": "none",
+              "objectFit": "contain"
+            },
+            "listId": "_ahwdqse25",
+            "iteratorVar": "hello",
+            "noodlType": "image",
+            "data-viewtag": "femaleTag",
+            "src": "https://aitmed.com/assets/selectOn.png"
+          },
+          {
+            "type": "label",
+            "text": "Female",
+            "style": {
+              "fontSize": "13px",
+              "top": "0px",
+              "left": "182.5px",
+              "position": "absolute",
+              "outline": "none"
+            },
+            "listId": "_ahwdqse25",
+            "iteratorVar": "hello",
+            "noodlType": "label"
+          },
+          {
+            "type": "img",
+            "viewTag": "otherTag",
+            "path": {
+              "if": [
+                null,
+                "selectOn.png",
+                "selectOff.png"
+              ]
+            },
+            "style": {
+              "left": "255.49999999999997px",
+              "position": "absolute",
+              "outline": "none",
+              "objectFit": "contain"
+            },
+            "listId": "_ahwdqse25",
+            "iteratorVar": "hello",
+            "noodlType": "image",
+            "data-viewtag": "otherTag",
+            "src": "https://aitmed.com/assets/selectOn.png"
+          },
+          {
+            "type": "label",
+            "text": "Other",
+            "style": {
+              "fontSize": "13px",
+              "top": "0px",
+              "left": "273.75px",
+              "position": "absolute",
+              "outline": "none"
+            },
+            "listId": "_ahwdqse25",
+            "iteratorVar": "hello",
+            "noodlType": "label"
+          }
+        ],
+        "dataObject": {
+          "key": "Gender",
+          "value": "Male"
+        },
+        "listId": "_ahwdqse25",
+        "listIndex": 0,
+        "id": "_a6lznjf2k",
+        "iteratorVar": "hello",
+        "noodlType": "listItem",
+        "style": {
+          "position": "relative",
+          "outline": "none",
+          "listStyle": "none",
+          "padding": 0
+        },
+        "type": "li"
+      }
+    ],
+    "listId": "_ahwdqse25",
+    "listItemCount": 1,
+    "listObject": [
+      {
+        "key": "Gender",
+        "value": "Male"
+      }
+    ],
+    "id": "_42huwm2hz",
+    "iteratorVar": "hello",
+    "style": {
+      "position": "absolute",
+      "outline": "none",
+      "overflowX": "hidden",
+      "listStyle": "none",
+      "padding": "0px",
+      "display": "block",
+      "overflowY": "auto"
+    },
+    "type": "list"
+  }
+}

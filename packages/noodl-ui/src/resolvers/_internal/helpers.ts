@@ -77,7 +77,6 @@ export const redraw = (function () {
 
     if (component?.length) {
       forEachDeepChildren(component, (c) => {
-        m
         // TODO - resolve dataKey as objects (found in redraw actions)
         if (_.isString(child.get('dataKey')) && !child.get('data-value')) {
           const dataKey = child.get('dataKey')
@@ -85,7 +84,7 @@ export const redraw = (function () {
           if (child.noodlType === 'label') {
             if (listItem) {
               const dataObject = listItem?.getDataObject?.()
-              console.info(dataObject)
+              // console.info(dataObject)
               if (dataObject) {
                 child.set('data-value', getDataValue(dataObject, dataKey))
               }

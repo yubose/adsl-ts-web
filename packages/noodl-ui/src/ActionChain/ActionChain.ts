@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import Action from '../Action'
 import { AbortExecuteError } from '../errors'
-import { createExecute, createExecutor } from './execute'
+import { createExecute, createActionChainGenerator } from './execute'
 import * as T from '../types'
 
 const log = Logger.create('ActionChain')
@@ -116,8 +116,6 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
               (action?.original as T.IActionChainUseBuiltInObject)?.funcName
             ] || []
         } else {
-          log.func('createAction')
-          log.grey(`Non builtIn action encountered`, { action, actionObj: obj })
           fns = this.fns.action[action.actionType] || []
         }
         if (!fns) return result
@@ -129,12 +127,7 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
     return action as T.IAction
   }
 
-  build(
-    buildOptions: Pick<
-      T.ActionChainActionCallbackOptions,
-      'context' | 'parser'
-    >,
-  ) {
+  build(buildOptions: T.IActionChainBuildOptions) {
     /**
      * Load up the queue and the actions list
      * The actions in the queue are identical to the ones in this.actions
@@ -186,7 +179,7 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
         },
         [] as T.IAction[],
       )
-      this.#gen = createExecutor(this.#queue)
+      this.#gen = createActionChainGenerator(this.#queue)
 
       return this.#queue
     }
@@ -219,9 +212,8 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
       const executeActions = (a) => {
         loadQueue()
         return createExecute({
+          abort: this.abort.bind(this),
           executor: this.#gen,
-          getCallbackArgs: (arg: any) =>
-            this.getCallbackOptions({ arg, ...buildOptions }),
           next: this.#next,
           queue: this.#queue,
           onStart: () => {
@@ -247,6 +239,7 @@ class ActionChain<ActionType extends string> implements T.IActionChain {
               queue: this.#queue,
             })
           },
+          ...buildOptions,
         })(a)
       }
 

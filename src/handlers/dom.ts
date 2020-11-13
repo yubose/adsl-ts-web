@@ -21,25 +21,21 @@ noodluidom.on('create.component', (node, component) => {
 
   const {
     children,
-    id = '',
     options,
     placeholder = '',
     src,
     text = '',
-    type = '',
     videoFormat = '',
   } = component.get([
     'children',
-    'id',
     'options',
     'placeholder',
     'src',
     'text',
-    'type',
     'videoFormat',
   ])
 
-  const { style } = component
+  const { id, style, type } = component
 
   // TODO reminder: Remove this listdata in the noodl-ui client
   // const dataListData = component['data-listdata']
@@ -50,9 +46,13 @@ noodluidom.on('create.component', (node, component) => {
     'data-key',
     'data-ux',
     'data-value',
+    'data-viewtag',
   ])
 
-  if (id) node['id'] = id
+  if (id) {
+    node['id'] = id
+    node.setAttribute('id', id)
+  }
   if (placeholder) node.setAttribute('placeholder', placeholder)
   if (src && type !== 'video') node.setAttribute('src', src)
 
@@ -67,6 +67,9 @@ noodluidom.on('create.component', (node, component) => {
   if (datasetAttribs['data-value']) {
     node.dataset['value'] = datasetAttribs['data-value']
     if ('value' in node) node.value = datasetAttribs['data-value']
+  }
+  if (datasetAttribs['data-viewtag']) {
+    node.dataset['viewtag'] = datasetAttribs['data-viewtag']
   }
 
   /** Data values */
@@ -338,6 +341,9 @@ noodluidom.on<'list'>(
         log.grey('', { ...result, ...options })
         const { listItem, success } = result
         const childNode = document.getElementById(listItem.id)
+
+        // noodluidom.emit('create.list.item', childNode, listItem)
+        noodluidom.redraw(childNode, listItem)
         if (childNode) {
           log.gold(`Reached the childNode block for an updated listItem`, {
             ...result,
@@ -362,6 +368,29 @@ noodluidom.on('create.list.item', (node, component) => {
   // log.gold('Entered listItem node/component', {
   //   node,
   //   component: component.toJS(),
+  // })
+  // component.on('redraw', () => {
+  //   component.broadcast((c) => {
+  //     console.info(c.id)
+  //     let dataKey = c.get('dataKey') || ''
+  //     if (dataKey.startsWith(component.iteratorVar)) {
+  //       if (c.type === 'label') {
+  //         const labelNode = document.querySelector(`[data-key="${dataKey}"]`)
+  //         if (labelNode) {
+  //           dataKey = dataKey.split('.').slice(1).join('.')
+  //           let dataValue = _.get(component.getDataObject(), dataKey)
+  //           console.info('dataValue', dataValue)
+  //           if (dataValue) labelNode.textContent = dataValue
+  //         }
+  //         console.info('IM HERE!!!', { dataKey, labelNode })
+  //       } else if (c.type === 'input') {
+  //         log.func('create.list.item [redraw] REMINDER -- implement this')
+  //       }
+  //     } else {
+  //       // const n = document.querySelector(`[data-key="${dataKey}"]`)
+  //       // if (n) n.textContent = _.get(component.getDataObject(), dataKey)
+  //     }
+  //   })
   // })
 })
 

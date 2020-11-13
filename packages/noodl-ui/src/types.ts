@@ -150,7 +150,10 @@ export interface INOODLUi {
   init(opts: { viewport?: Viewport }): this
   createActionChainHandler(
     actions: NOODLActionObject[],
-    { trigger }: { trigger?: NOODLActionTriggerType; [key: string]: any },
+    args: {
+      component: IComponentTypeInstance
+      trigger?: NOODLActionTriggerType
+    },
   ): (event: Event) => Promise<any>
   createSrc(path: string, component?: IComponentTypeInstance): string
   on(eventName: EventId, cb: INOODLUiComponentEventCallback): this
@@ -470,6 +473,12 @@ export interface IActionChain<ActionType extends string = NOODLActionType> {
   useBuiltIn(
     action: IActionChainUseBuiltInObject | IActionChainUseBuiltInObject[],
   ): this
+}
+
+export interface IActionChainBuildOptions {
+  component: IComponentTypeInstance
+  context: ResolverContext
+  trigger: NOODLActionTriggerType
 }
 
 export interface IActionChainUseObjectBase<ActionType> {

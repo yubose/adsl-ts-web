@@ -1,11 +1,19 @@
 import Logger from 'logsnap'
-import { getType, IComponentTypeInstance, NOODLComponentType } from 'noodl-ui'
+import {
+  getType,
+  IComponentTypeInstance,
+  NOODLComponentType,
+  NOODLIfObject,
+} from 'noodl-ui'
+import { noodlui } from 'noodl-ui-dom/src/test-utils'
+import { evalIf, isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import {
   componentEventMap,
   componentEventIds,
   componentEventTypes,
 } from './constants'
 import * as T from './types'
+import { get } from './utils'
 
 const log = Logger.create('noodl-ui-dom')
 
@@ -20,10 +28,15 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       {} as Record<T.NOODLDOMComponentType, Function[]>,
     ),
   }
+  #cache: Map<
+    string,
+    { node: Element | null; component: IComponentTypeInstance }
+  >
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
     Logger[log?.enabled ? 'enable' : 'disable']?.()
+    this.#cache = new Map()
   }
 
   /**
@@ -68,6 +81,12 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           if (componentEventMap[noodlType as NOODLComponentType]) {
             this.emit(componentEventMap[noodlType], node, component)
           }
+
+          this.#cache.set(component.id, {
+            node,
+            component,
+          })
+
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
 
@@ -148,6 +167,75 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       }
     }
     return null
+  }
+
+  redraw(
+    node: Element | null,
+    component: IComponentTypeInstance,
+    actionObj: any,
+  ) {
+    // console.info('TOMATO', { node, component: component.toJS(), actionObj })
+
+    const resolvePath = (node: any, path: NOODLIfObject, c) => {
+      // console.info(path)
+      let src: any
+
+      if (path && typeof path === 'object' && 'if' in path) {
+        src = evalIf((val, valOnTrue, valOnFalse) => {
+          if (isNOODLBoolean(val)) {
+            return isBooleanTrue(val)
+          } else if (typeof val === 'function') {
+            console.info('')
+            console.info('---------------------------------------------')
+            console.info('           dataObject', c?.getDataObject?.())
+            console.info('---------------------------------------------')
+            console.info('')
+            return val(c.getDataObject())
+          } else {
+            return !!val
+          }
+        }, path)
+      } else {
+        src = noodlui.createSrc(path)
+      }
+      node.querySelector('img').src = src
+    }
+
+    if (component.get('path'))
+      resolvePath(node, component.get('path'), component)
+
+    component.broadcast((child) => {
+      const { path } = component.get(['path'])
+      let dataKey = child.get('dataKey') || ''
+
+      if (dataKey.startsWith(child.iteratorVar)) {
+        if (child.type === 'label') {
+          const labelNode = document.querySelector(`[data-key="${dataKey}"]`)
+          if (labelNode) {
+            dataKey = dataKey.split('.').slice(1).join('.')
+            let dataValue = get(child.getDataObject(), dataKey)
+            if (dataValue) labelNode.textContent = dataValue
+          }
+        } else if (child.type === 'input') {
+          log.func('create.list.item [redraw] REMINDER -- implement this')
+        }
+      } else {
+        // const n = document.querySelector(`[data-key="${dataKey}"]`)
+        // if (n) n.textContent = _.get(component.getDataObject(), dataKey)
+      }
+      // if (child.type === 'img') {
+      // noodlui.resolveComponents(child)
+      const childNode = document?.querySelector(
+        `[data-viewtag="${child.get('viewTag')}"]`,
+      )
+      // this.emit('create.component', childNode, child)
+      // this.emit('create.image', childNode, child)
+      if (path) resolvePath(childNode, path, child)
+      // console.info('START TEST')
+      // console.info(childNode)
+      // console.info('END TEST')
+      // }
+    })
   }
 
   /**

@@ -37,5 +37,10 @@ export {
 } from './constants'
 export * from './types'
 
-export { getByDataUX, getDataValues, identify } from './utils/noodl'
+export {
+  getByDataUX,
+  getDataValues,
+  getDataObjectValue,
+  identify,
+} from './utils/noodl'
 export { getType } from './resolvers/getElementType'
