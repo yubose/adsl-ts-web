@@ -101,6 +101,7 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
       dataObject: this.getDataObject(),
       listId: this.listId,
       listIndex: this.listIndex,
+      id: this.id,
       iteratorVar: this.iteratorVar,
       noodlType: this.noodlType,
       style: this.style,

@@ -1,10 +1,12 @@
 import _ from 'lodash'
+import fs from 'fs-extra'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
 import MockAxios from 'axios-mock-adapter'
 import { expect } from 'chai'
-import { prettyDOM, screen, waitFor } from '@testing-library/dom'
-import { IList, NOODLComponent } from 'noodl-ui'
+import { getByText, prettyDOM, screen, waitFor } from '@testing-library/dom'
+import { event as noodlUIEvent, IList, NOODLComponent } from 'noodl-ui'
+import { findChild, findParent } from 'noodl-utils'
 import axios from '../app/axios'
 import {
   assetsUrl,
@@ -14,8 +16,14 @@ import {
   queryByDataName,
   queryByDataUx,
   queryByDataValue,
+  getAllByDataKey,
   page,
 } from '../utils/test-utils'
+import {
+  getListComponent1,
+  getListObject1,
+  saveOutput,
+} from '../__tests__/helpers'
 
 const mockAxios = new MockAxios(axios)
 
@@ -57,74 +65,140 @@ describe('dom', () => {
     })
   })
 
-  describe('component type: "list"', () => {
-    it('should have the data-listid attribute', () => {
-      page.render({ type: 'list', listObject: [], iteratorVar: 'hello' })
-      expect(document.querySelector('ul')).to.exist
-      expect(document.querySelector('ul')?.dataset).to.have.property('listid')
-    })
-
-    it('should start with no children if listObject is empty', () => {
-      page.render({
-        type: 'list',
-        listObject: [],
-        iteratorVar: 'hello',
-        children: [{ type: 'listItem' }],
+  describe.only('component type: "list"', () => {
+    describe('when freshly rendering to the DOM', () => {
+      it('should have the data-listid attribute', () => {
+        page.render({ type: 'list', listObject: [], iteratorVar: 'hello' })
+        expect(document.querySelector('ul')).to.exist
+        expect(document.querySelector('ul')?.dataset).to.have.property('listid')
       })
-      console.info(prettyDOM())
-      const listElem = document.querySelector('ul') as HTMLUListElement
-      expect(listElem.children).to.have.lengthOf(0)
-    })
 
-    it('should start with some list item childrens if listObject has items', () => {
-      page.render({
-        type: 'list',
-        listObject: [
-          { fruits: ['apple'] },
-          { fruits: ['banana'] },
-          { fruits: ['grape'] },
-          { fruits: ['pear'] },
-        ],
-        iteratorVar: 'hello',
-        children: [{ type: 'listItem' }],
+      it('should start with no children if listObject is empty', () => {
+        page.render({
+          type: 'view',
+          children: [
+            {
+              type: 'list',
+              listObject: [],
+              iteratorVar: 'hello',
+              children: [{ type: 'listItem' }],
+            },
+          ],
+        })
+        const listElem = document.querySelector('ul') as HTMLUListElement
+        expect(listElem.children).to.have.lengthOf(0)
       })
-      const listElem = document.querySelector('ul')
-      expect(listElem.children).to.have.lengthOf(4)
-    })
 
-    xit('should render children expectedly to the DOM', () => {
-      page.render({
-        type: 'list',
-        listObject: [
-          { title: 'apple', color: 'red' },
-          { title: 'banana', color: 'yellow' },
-          { title: 'grape', color: 'magenta' },
-          { title: 'pear', color: 'tan' },
-        ],
-        iteratorVar: 'hello',
-        children: [
-          {
-            type: 'listItem',
-            children: [
-              { type: 'label', dataKey: 'hello.title' },
-              {
-                type: 'view',
-                children: [{ type: 'label', dataKey: 'hello.color' }],
-              },
-            ],
-          },
-        ],
+      it('should start with some list item childrens if listObject has items', () => {
+        page.render({
+          type: 'view',
+          children: [
+            {
+              type: 'list',
+              listObject: [
+                { fruits: ['apple'] },
+                { fruits: ['banana'] },
+                { fruits: ['grape'] },
+                { fruits: ['pear'] },
+              ],
+              iteratorVar: 'hello',
+              children: [{ type: 'listItem' }],
+            },
+          ],
+        })
+        const listElem = document.querySelector('ul')
+        expect(listElem.children).to.have.lengthOf(4)
       })
-      const listElem = document.querySelector('ul')
     })
 
-    xit('should append a new list item node if a data object is added', () => {
-      //
+    it(
+      'should show populated data values from deeply nested children ' +
+        'expectedly to the DOM',
+      () => {
+        page.render({
+          type: 'view',
+          children: [
+            getListComponent1({
+              iteratorVar: 'hello',
+              listObject: [
+                { title: 'apple', color: 'red', count: 5 },
+                { title: 'banana', color: 'yellow', count: 1 },
+              ],
+            }),
+          ],
+        })
+        const titleLabels = getAllByDataKey('hello.title', page.rootNode)
+        const colorLabel2 = getAllByDataKey('hello.color', page.rootNode)
+        const textFields = getAllByDataKey('hello.count', page.rootNode)
+        expect(titleLabels[0].dataset.value).to.equal('apple')
+        expect(colorLabel2[0].dataset.value).to.equal('red')
+        expect(textFields[0].dataset.value).to.equal('5')
+        expect(titleLabels[1].dataset.value).to.equal('banana')
+        expect(colorLabel2[1].dataset.value).to.equal('yellow')
+        expect(textFields[1].dataset.value).to.equal('1')
+      },
+    )
+
+    it('should append a new list item node if a data object is added', () => {
+      const noodlList = getListComponent1({ iteratorVar: 'cat' })
+      const { components } = page.render({
+        type: 'view',
+        children: [noodlList],
+      })
+      const listSize = noodlList.listObject.length
+      const li = document.querySelectorAll('li')
+      const component = components[0].child() as IList
+      expect(li).to.have.lengthOf(listSize)
+      component.addDataObject(
+        Object.entries(noodlList.listObject[0]).reduce((acc, [k, v], index) => {
+          acc[k] = index
+          return acc
+        }, {} as any),
+      )
+      expect(document.querySelectorAll('li')).to.have.lengthOf(listSize + 1)
     })
 
-    xit('should remove the corresponding list item node if its dataObject was removed', () => {
-      //
-    })
+    it(
+      'should be able to use the api to allow us to remove the corresponding ' +
+        'list item node if its dataObject was removed',
+      () => {
+        const { components } = page.render({
+          type: 'view',
+          children: [
+            {
+              type: 'list',
+              listObject: [
+                { fruits: ['apple'] },
+                { fruits: ['banana'] },
+                { fruits: ['orange'] },
+              ],
+              iteratorVar: 'hello',
+              children: [{ type: 'listItem' }],
+            },
+          ],
+        })
+
+        const parent = components[0]
+        const component = parent.child()
+        const container = document.createElement('ul') as HTMLUListElement
+        page.rootNode?.appendChild(container)
+
+        component.on(noodlUIEvent.component.list.REMOVE_LIST_ITEM, (result) => {
+          const { listItem } = result
+          console.info(result.listItem.toJS())
+          console.info(`ID: ${result.listItem.id}`)
+          console.info(prettyDOM())
+          const li = document.getElementById(listItem.id) as HTMLLIElement
+          console.info(li)
+          container.removeChild(li)
+        })
+
+        const listItemElems = document.querySelectorAll('li')
+        // saveOutput('dom.json', listItem?.toJS?.(), { encoding: 'utf8' })
+        component?.removeDataObject(1)
+        expect(listItemElems).to.have.lengthOf(3)
+      },
+    )
 
     xit('should update the corresponding list item node that is referencing the dataObject', () => {
       //
@@ -132,14 +206,11 @@ describe('dom', () => {
   })
 
   describe('component type: image', () => {
-    it('should attach the src attribute', async () => {
+    it('should attach the src attribute', () => {
       page.render({ type: 'image', path: 'img123.jpg', style: {} })
-      await waitFor(() => {
-        expect(
-          document.querySelector(`img`),
-          // document.querySelector(`img[src="${noodlui.assetsUrl}img123.jpg"]`),
-        ).to.exist
-      })
+      expect(
+        document.querySelector(`img[src="${noodlui.assetsUrl}img123.jpg"]`),
+      ).to.exist
     })
   })
 
@@ -196,7 +267,10 @@ describe('dom', () => {
 
     it('should attach placeholders', () => {
       const placeholder = 'my placeholder'
-      page.render({ type: 'textField', style: {}, placeholder })
+      const dataKey = 'formData.greeting'
+      const greeting = 'good morning'
+      noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+      page.render({ type: 'textField', dataKey, placeholder })
       expect(screen.getByPlaceholderText(placeholder)).to.exist
     })
 
@@ -222,6 +296,8 @@ describe('dom', () => {
     )
 
     describe('type: "textField" with contentType: "password"', () => {
+      const dataKey = 'formData.greeting'
+      const greeting = 'good morning'
       let eyeOpened = 'makePasswordVisiable.png'
       let eyeClosed = 'makePasswordInvisible.png'
       let regexTitlePwVisible = /click here to hide your password/i
@@ -229,8 +305,13 @@ describe('dom', () => {
       const noodlComponent = {
         type: 'textField',
         contentType: 'password',
+        dataKey,
         placeholder: 'your password',
       } as NOODLComponent
+
+      beforeEach(() => {
+        noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+      })
 
       it('should start off with hidden password mode for password inputs', async () => {
         page.render(noodlComponent)
@@ -268,7 +349,7 @@ describe('dom', () => {
 
     it('should update the value of input', () => {
       const dataKey = 'formData.phoneNumber'
-      noodlui.setRoot('SignIn', { formData: { phoneNumber: '' } })
+      noodlui.setRoot('SignIn', { formData: { phoneNumber: '88814565555' } })
       noodlui.setPage('SignIn')
       page.render({
         type: 'textField',
@@ -283,7 +364,7 @@ describe('dom', () => {
 
     xit('should update the value of dataset.value', async () => {
       const dataKey = 'formData.phoneNumber'
-      noodlui.setRoot('SignIn', { formData: { phoneNumber: '' } })
+      noodlui.setRoot('SignIn', { formData: { phoneNumber: '882465812' } })
       noodlui.setPage('SignIn')
       page.render({
         type: 'textField',

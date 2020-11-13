@@ -146,10 +146,6 @@ class List extends Component implements IList {
       // By query
       if (typeof index === 'function') {
         const query = index
-        console.info(this.#listObject)
-        console.info(this.#listObject)
-        console.info(this.#listObject)
-        console.info(this.#listObject)
         if (_.isArray(this.#listObject)) {
           for (let index = 0; index < this.#listObject.length; index++) {
             const dataObject = this.#listObject[index]
@@ -533,6 +529,7 @@ class List extends Component implements IList {
       listId: this.listId,
       listItemCount: this.length,
       listObject: this.#listObject,
+      id: this.id,
       iteratorVar: this.iteratorVar,
       style: this.style,
       type: this.type,

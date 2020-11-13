@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "baseUrl": "/",
+    "target": "es6",
+    "lib": ["es5", "dom", "dom.iterable", "es6", "esnext"],
+    "module": "es6",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "types": ["cypress"]
+  },
+  "include": ["**/*.ts"]
+}

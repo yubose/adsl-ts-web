@@ -108,12 +108,12 @@ const handleListInternalResolver = (
     const listItem = component.find(
       (child) => child?.getDataObject?.() === result.dataObject,
     )
-    console.info('FOUND LIST ITEM TO DELETE (START)')
-    console.info(listItem?.id)
-    console.info(listItem?.id)
-    console.info(listItem?.id)
-    console.info(listItem?.id)
-    console.info('FOUND LIST ITEM TO DELETE (END)')
+    // console.info('FOUND LIST ITEM TO DELETE (START)')
+    // console.info(listItem?.id)
+    // console.info(listItem?.id)
+    // console.info(listItem?.id)
+    // console.info(listItem?.id)
+    // console.info('FOUND LIST ITEM TO DELETE (END)')
     if (listItem) component.removeChild(listItem)
     log.green(`Deleted a listItem`, { ...result, ...options, listItem })
     const args = { ...result, listItem }

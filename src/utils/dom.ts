@@ -220,7 +220,7 @@ export function setStyle(
   value?: any,
 ) {
   if (node) {
-    if (_.isString(key)) {
+    if (typeof key === 'string') {
       // Normalize unsetting
       if (key === '') {
         key = 'cssText'

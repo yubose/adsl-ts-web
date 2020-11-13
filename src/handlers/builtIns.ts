@@ -51,7 +51,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.toggleFlag = async (action, options) => {
     log.func('toggleFlag')
     console.log({ action, ...options })
-    const { default: noodl } = await import('app/noodl')
+    const { default: noodl } = await import('../app/noodl')
 
     const { component, context, createSrc } = options
 
@@ -333,7 +333,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     const { component } = options
     const { viewTag } = action
     component.redraw?.()
-    console.info(component.toJS())
   }
 
   builtInActions.signIn = async (action, options) => {}
@@ -352,7 +351,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         (trackPublication) => trackPublication.kind === 'video',
       )?.track as LocalVideoTrack
 
-      const { default: noodl } = await import('app/noodl')
+      const { default: noodl } = await import('../app/noodl')
       noodl.editDraft((draft) => {
         if (videoTrack) {
           if (videoTrack.isEnabled) {
@@ -386,7 +385,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         (trackPublication) => trackPublication.kind === 'audio',
       )?.track as LocalAudioTrack
 
-      const { default: noodl } = await import('app/noodl')
+      const { default: noodl } = await import('../app/noodl')
       noodl.editDraft((draft) => {
         if (audioTrack) {
           if (audioTrack.isEnabled) {
@@ -420,7 +419,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     const nameFieldPath = ''
 
-    const { default: noodl } = await import('app/noodl')
+    const { default: noodl } = await import('../app/noodl')
 
     const pageName = options.context?.page || ''
 
@@ -484,7 +483,7 @@ export function onVideoChatBuiltIn({
         log.green(`Connected to room: ${newRoom.name}`, newRoom)
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
         // to initiate the default values for audio/video default enabled/disabled state
-        const { default: noodl } = await import('app/noodl')
+        const { default: noodl } = await import('../app/noodl')
         const { cameraOn, micOn } = noodl.root.VideoChat || {}
         const { localParticipant } = newRoom
 

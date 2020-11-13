@@ -121,7 +121,7 @@ class Page {
       // Create the root node where we will be placing DOM nodes inside.
       // The root node is a direct child of document.body
       if (!this.rootNode) {
-        this._initializeRootNode()
+        this.initializeRootNode()
         this.#onRootNodeInitialized?.(this.rootNode)
       }
 

@@ -6,5 +6,3 @@ scripts/compiled
 public
 s3Deploy.sh
 package-lock.json
-scripts/objects/**
-scripts/ymls/**

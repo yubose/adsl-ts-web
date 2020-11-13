@@ -1,6 +1,6 @@
 import _ from 'lodash'
-import { Styles } from 'app/types'
-import { setStyle } from 'utils/dom'
+import { Styles } from '../app/types'
+import { setStyle } from '../utils/dom'
 
 class NOODLDOMElement {
   public container: HTMLElement | undefined
@@ -59,7 +59,7 @@ class NOODLDOMElement {
    * @param { string? } html
    */
   public render(html?: string) {
-    if (_.isString(html)) {
+    if (typeof html === 'string') {
       this.node.innerHTML = `${html}`
     }
 
@@ -99,7 +99,7 @@ class NOODLDOMElement {
     key?: string | Styles,
     value?: any,
   ) {
-    if (_.isString(node)) {
+    if (typeof node === 'string') {
       // Set the styles on the node modal if a node was not given
       setStyle(this.node, key, value)
     } else if (node instanceof HTMLElement) {

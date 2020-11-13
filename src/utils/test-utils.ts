@@ -22,6 +22,56 @@ import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
 import Page from '../Page'
 
+export function getByDataKey(dataKey: string, container?: Element) {
+  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
+}
+
+export function getByDataName(dataKey: string, container?: Element) {
+  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
+}
+
+export function getByDataListId(dataKey: string, container?: Element) {
+  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
+}
+
+export function getByDataUx(dataKey: string, container?: Element) {
+  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
+}
+
+export function getByDataValue(dataKey: string, container?: Element) {
+  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
+}
+
+export function getAllByDataKey(dataKey: string, container?: Element) {
+  return (container || document.body).querySelectorAll(
+    `[data-key="${dataKey}"]`,
+  )
+}
+
+export function getAllByDataName(dataKey: string, container?: Element) {
+  return (container || document.body).querySelectorAll(
+    `[data-key="${dataKey}"]`,
+  )
+}
+
+export function getAllByDataListId(dataKey: string, container?: Element) {
+  return (container || document.body).querySelectorAll(
+    `[data-key="${dataKey}"]`,
+  )
+}
+
+export function getAllByDataUx(dataKey: string, container?: Element) {
+  return (container || document.body).querySelectorAll(
+    `[data-key="${dataKey}"]`,
+  )
+}
+
+export function getAllByDataValue(dataKey: string, container?: Element) {
+  return (container || document.body).querySelectorAll(
+    `[data-key="${dataKey}"]`,
+  )
+}
+
 export const queryByDataKey = queryHelpers.queryByAttribute.bind(
   null,
   'data-key',

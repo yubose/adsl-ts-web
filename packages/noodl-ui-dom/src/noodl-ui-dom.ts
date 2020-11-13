@@ -53,7 +53,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             // Initiate the listItem children
             const listObject = component.getData()
             if (listObject.length) {
-              console.info(listObject)
               // Resetting the list data that was set from the parent prototype so we
               // can re-add them back in so the consumer can get the emitted events
               component.set('listObject', [])

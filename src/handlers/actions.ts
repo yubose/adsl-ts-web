@@ -85,7 +85,7 @@ const createActions = function ({ page }: { page: IPage }) {
       resolvedDataKey: dataKey,
     })
 
-    const { default: noodl } = await import('app/noodl')
+    const { default: noodl } = await import('../app/noodl')
 
     noodl.emitCall({ dataKey: dataKey as any, actions, pageName: context.page })
   }
@@ -107,7 +107,7 @@ const createActions = function ({ page }: { page: IPage }) {
     } else if ('if' in (action.original.object || {})) {
       const ifObj = action.original.object as NOODLIfObject
       if (_.isArray(ifObj)) {
-        const { default: noodl } = await import('app/noodl')
+        const { default: noodl } = await import('../app/noodl')
         const { context } = options
         const pageName = context.page || ''
         const pageObject = noodl.root[pageName]
@@ -241,7 +241,7 @@ const createActions = function ({ page }: { page: IPage }) {
             'phoneNumber'
           >()
           if (String(dataValues?.phoneNumber).startsWith('888')) {
-            import('app/noodl').then(({ default: noodl }) => {
+            import('../app/noodl').then(({ default: noodl }) => {
               const pageName = context?.page || ''
               const pathToTage = 'verificationCode.response.edge.tage'
               let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
@@ -284,7 +284,7 @@ const createActions = function ({ page }: { page: IPage }) {
   }
 
   _actions.saveObject = async (action: Action<NOODLSaveObject>, options) => {
-    const { default: noodl } = await import('app/noodl')
+    const { default: noodl } = await import('../app/noodl')
     const { context, abort, parser } = options as any
 
     try {
@@ -354,7 +354,7 @@ const createActions = function ({ page }: { page: IPage }) {
     options,
   ) => {
     const { abort, component, stateHelpers } = options
-    const { default: noodl } = await import('app/noodl')
+    const { default: noodl } = await import('../app/noodl')
     log.func('updateObject')
 
     const callObjectOptions = { action, ...options } as any

@@ -7,10 +7,10 @@ import {
   SelectOption,
 } from 'noodl-ui'
 import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
-import { forEachEntries } from 'utils/common'
-import { isDisplayable } from 'utils/dom'
-import createElement from 'utils/createElement'
-import noodluidom from 'app/noodl-ui-dom'
+import { forEachEntries } from '../utils/common'
+import { isDisplayable } from '../utils/dom'
+import createElement from '../utils/createElement'
+import noodluidom from '../app/noodl-ui-dom'
 
 const log = Logger.create('dom.ts')
 
@@ -84,7 +84,7 @@ noodluidom.on('create.component', (node, component) => {
 
     // Attach an additional listener for data-value elements that are expected
     // to change values on the fly by some "on change" logic (ex: input/select elements)
-    import('utils/sdkHelpers')
+    import('../utils/sdkHelpers')
       .then(({ createOnDataValueChangeFn }) => {
         const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
         node.addEventListener('change', onChange)
@@ -227,7 +227,7 @@ noodluidom.on('create.image', function onCreateImage(node, component) {
       node.style['height'] = '100%'
     }
 
-    import('app/noodl-ui').then(({ default: noodlui }) => {
+    import('../app/noodl-ui').then(({ default: noodlui }) => {
       const parent = component.parent()
       const context = noodlui.getContext()
       const pageObject = noodlui.root[context?.page || ''] || {}
@@ -369,9 +369,9 @@ noodluidom.on('create.list.item', (node, component) => {
 noodluidom.on('create.plugin', async function (noop, component) {
   log.func('create.plugin')
   const { src = '' } = component.get('src')
-  if (_.isString(src)) {
+  if (typeof src === 'string') {
     if (src.startsWith('http')) {
-      const { default: axios } = await import('app/axios')
+      const { default: axios } = await import('../app/axios')
       const { data } = await axios.get(src)
       /**
        * TODO - Check the ext of the filename
@@ -397,7 +397,7 @@ noodluidom.on('create.textfield', (node, component) => {
     // Password inputs
     if (contentType === 'password') {
       if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-        import('app/noodl-ui').then(({ default: noodlui }) => {
+        import('../app/noodl-ui').then(({ default: noodlui }) => {
           const assetsUrl = noodlui.getContext()?.assetsUrl || ''
           const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
           const eyeClosed = assetsUrl + 'makePasswordInvisible.png'

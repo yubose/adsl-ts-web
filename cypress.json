@@ -1,0 +1,7 @@
+{
+  "env": {
+    "ECOS_ENV": "test",
+    "NODE_ENV": "test"
+  },
+  "fileServerFolder": "pages"
+}

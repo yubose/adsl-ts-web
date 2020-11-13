@@ -15,7 +15,7 @@ export async function parseList(
   node: NOODLDOMElement,
   props: NOODLComponentProps,
 ) {
-  const { default: noodlui } = await import('app/noodl-ui')
+  const { default: noodlui } = await import('../app/noodl-ui')
   // const { parse } = parserOptions
   const parse = _.noop as any
   const blueprint: NOODLComponent = props.blueprint

@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import { PageModalState, Styles } from 'app/types'
-import { forEachEntries } from 'utils/common'
-import NOODLDOMElement from 'components/NOODLElement'
+import { PageModalState, Styles } from '../app/types'
+import { forEachEntries } from '../utils/common'
+import NOODLDOMElement from '../components/NOODLElement'
 
 class Modal extends NOODLDOMElement {
   public _id: string = 'noodl-ui-modal'

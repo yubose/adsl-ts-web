@@ -479,6 +479,7 @@ class Component implements IComponent {
     if (obj?.children) {
       return {
         ...obj,
+        id: this.id,
         children: _.map(this.children(), (child) => child?.toJS?.()),
       }
     }

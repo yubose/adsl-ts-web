@@ -120,7 +120,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         return parent?.noodlType === 'listItem'
       }) as IListItem
 
-      if (listItem) log.gold('FOUND PARENT LISTITEM', listItem)
+      // if (listItem) log.gold('FOUND PARENT LISTITEM', listItem)
       textFunc = component.get('text=func')
       // Strip off the iteratorVar to keep the path that starts from the data objefct
       path = dataKey.split('.').slice(1)
