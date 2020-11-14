@@ -446,17 +446,23 @@ export interface IResolver {
   ---- ACTIONS / ACTION CHAIN
 -------------------------------------------------------- */
 
-export type IActionChainConstructorArgs<ActionObjects extends IActionObject[]> = [
-  actions: ActionObjects,
-  opts: { component: IComponentTypeInstance },
-]
+export type IActionChainConstructorArgs<
+  ActionObjects extends IActionObject[]
+> = [actions: ActionObjects, opts: { component: IComponentTypeInstance }]
 
-export interface IActionChain<ActionObjects extends IActionObject[] = IActionObject[]> {
-  actions: IAction<ActionObjects[number]>[] 
+export interface IActionChain<
+  ActionObjects extends IActionObject[] = IActionObject[]
+> {
+  actions: IAction<ActionObjects[number]>[]
   intermediary: IAction<ActionObjects[number]>[]
   current: { action: IAction<ActionObjects[number]> | undefined; index: number }
   fns: {
-    action: Partial<Record<NOODLActionType, ActionChainActionCallback<ActionObjects[number]>[]>>
+    action: Partial<
+      Record<
+        NOODLActionType,
+        ActionChainActionCallback<ActionObjects[number]>[]
+      >
+    >
     builtIn: {
       [funcName: string]: ActionChainActionCallback<ActionObjects[number]>[]
     }
@@ -487,12 +493,9 @@ export interface IActionChainBuildOptions {
   trigger: NOODLActionTriggerType
 }
 
-
-
-export type IActionChainUseObject<
-  A
-> = IActionChainUseObjectBase<A> | IActionChainUseBuiltInObject
-
+export type IActionChainUseObject<A> =
+  | IActionChainUseObjectBase<A>
+  | IActionChainUseBuiltInObject
 
 export interface IActionChainUseObjectBase<A extends BaseActionObject> {
   actionType: A['actionType']
@@ -502,9 +505,10 @@ export interface IActionChainUseObjectBase<A extends BaseActionObject> {
 export interface IActionChainUseBuiltInObject {
   actionType?: 'builtIn'
   funcName: string
-  fn: ActionChainActionCallback<BuiltInActionObject> | ActionChainActionCallback<BuiltInActionObject>[]
+  fn:
+    | ActionChainActionCallback<BuiltInActionObject>
+    | ActionChainActionCallback<BuiltInActionObject>[]
 }
-
 
 export interface IActionChainAddActionObject<
   S extends NOODLActionType = NOODLActionType
@@ -513,9 +517,7 @@ export interface IActionChainAddActionObject<
   fns: ActionChainActionCallback[]
 }
 
-export interface IAction<
-A extends BaseActionObject = BaseActionObject,
-> {
+export interface IAction<A extends BaseActionObject = BaseActionObject> {
   abort(reason: string | string[], callback?: IAction<A>['callback']): void
   actionType: A['actionType']
   callback: ((...args: any[]) => any) | undefined
@@ -839,8 +841,9 @@ export interface RootsParser<Root extends {} = any> {
     ---- ACTIONS
   -------------------------------------------------------- */
 
-export type IActionObject = BaseActionObject &
+export type IActionObject =
   | AnonymousActionObject
+  | BaseActionObject
   | BuiltInActionObject
   | EmitActionObject
   | EvalActionObject

@@ -19,7 +19,11 @@ const config = {
       format: 'umd',
       name: 'noodluidom',
       sourcemap: 'inline-source-map',
-      globals: {},
+      globals: {
+        logsnap: 'Logger',
+        'noodl-ui': 'noodlui',
+        'noodl-utils': 'noodlutils',
+      },
     },
   ],
   plugins: [

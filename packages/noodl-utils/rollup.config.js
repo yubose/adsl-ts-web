@@ -18,7 +18,9 @@ const config = {
       format: 'umd',
       name: 'noodlutils',
       sourcemap: true,
-      globals: {},
+      globals: {
+        logsnap: 'Logger',
+      },
     },
   ],
   plugins: [
