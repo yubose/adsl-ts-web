@@ -26,7 +26,6 @@ import {
 } from 'noodl-ui'
 import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
 import { emit } from './__tests__/helpers/actions'
-import { redraw } from './__tests__/helpers/builtins'
 import { NOODLDOMElement } from './types'
 import NOODLUIDOM from './noodl-ui-dom'
 
@@ -40,6 +39,12 @@ viewport.height = 667
 export const noodlui = new NOODL()
   .init({ viewport })
   .setAssetsUrl(assetsUrl)
+  .setRoot('PatientChartGeneralInfo', {
+    GeneralInfo: {
+      Radio: [{ key: 'Gender', value: '' }],
+    },
+  })
+  .setPage('PatientChartGeneralInfo')
   .use(
     getAllResolvers().reduce(
       (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
@@ -48,7 +53,32 @@ export const noodlui = new NOODL()
   )
   .use([
     { actionType: 'emit', fn: emit },
-    { funcName: 'redraw', fn: redraw },
+    {
+      funcName: 'redraw',
+      fn: async (action: any, options: any) => {
+        const { component } = options
+        const { viewTag } = action.original
+
+        // const node = document.getElementById(component.id)
+
+        // noodluidom.emit('redraw', node, component, action.original)
+
+        noodluidom.redraw(
+          document.querySelector(`[data-viewtag="${viewTag}"]`),
+          component,
+          action.original,
+        )
+
+        // console.info('REACHED BUILT INS BLOCK!!!', {
+        //   component: component.toString(),
+        //   viewTag,
+        //   action: action.original,
+        // })
+
+        // noodluidom.emit('redraw', )
+        // component.redraw?.()
+      },
+    },
   ])
 
 export const noodluidom = new NOODLUIDOM()

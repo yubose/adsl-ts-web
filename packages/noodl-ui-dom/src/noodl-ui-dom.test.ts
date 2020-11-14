@@ -213,9 +213,11 @@ describe('noodl-ui-dom', () => {
 
     // const builtInStringEqualMale = sinon.spy((obj) => obj.value === 'Male')
     const builtInStringEqualMale = (obj: any) => {
+      console.info('builtInStringEqualMale call start')
       console.info(obj)
       console.info(obj)
       console.info(obj)
+      console.info('builtInStringEqualMale call end')
       return obj.value === 'Male'
     }
     const builtInStringEqualFemale = sinon.spy((obj) => obj.value === 'Female')
@@ -247,7 +249,7 @@ describe('noodl-ui-dom', () => {
           GeneralInfo: { Radio: [{ key: 'Gender', value }] },
         })
 
-      parent = noodlui.resolveComponents({
+      const components = {
         type: 'view',
         children: [
           {
@@ -264,6 +266,7 @@ describe('noodl-ui-dom', () => {
                   {
                     type: 'image',
                     viewTag: 'maleTag',
+                    // iteratorVar,
                     onClick: [
                       {
                         emit: {
@@ -371,7 +374,9 @@ describe('noodl-ui-dom', () => {
             ],
           },
         ],
-      })
+      }
+
+      parent = noodlui.resolveComponents(components)
 
       component = parent.child() as IList
       // listenToDOM()
@@ -393,6 +398,7 @@ describe('noodl-ui-dom', () => {
       listItem1ImgNode?.click()
       console.info('     ' + chalk.yellow(listItem1ImgNode.src))
       console.info(chalk.magenta('CLICKED'))
+      console.info(prettyDOM())
       expect(liNode1.querySelector('img')).to.have.property(
         'src',
         noodlui.assetsUrl + 'selectOff.png',

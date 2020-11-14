@@ -27,11 +27,11 @@ npm install --save noodl-ui
 
 #### YAML Document Node Interfaces
 
-| Name                     | TS type                                | YAML Node |
-| ------------------------ | -------------------------------------- | --------- |
-| Action chain (key/value) | { [key: string]: NOODLActionObject[] } | YAMLPair  |
-| Action chain             | NOODLActionObject[]                    | YAMLSeq   |
-| Action object            | NOODLActionObject                      | YAMLMap   |
+| Name                     | TS type                            | YAML Node |
+| ------------------------ | ---------------------------------- | --------- |
+| Action chain (key/value) | { [key: string]: IActionObject[] } | YAMLPair  |
+| Action chain             | IActionObject[]                    | YAMLSeq   |
+| Action object            | IActionObject                      | YAMLMap   |
 
 #### Custom integrations
 

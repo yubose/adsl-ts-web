@@ -6,8 +6,7 @@ import {
   IActionOptions,
   IActionSnapshot,
   IActionStatus,
-  NOODLBuiltInObject,
-  NOODLActionObject,
+  BaseActionObject,
 } from '../types'
 import { getRandomKey } from '../utils/common'
 import { AbortExecuteError } from '../errors'
@@ -16,8 +15,8 @@ const log = Logger.create('Action')
 
 export const DEFAULT_TIMEOUT_DELAY = 10000
 
-class Action<OriginalAction extends NOODLActionObject>
-  implements IAction<OriginalAction['actionType']> {
+class Action<OriginalAction extends BaseActionObject = BaseActionObject>
+  implements IAction<OriginalAction> {
   #id: string
   #callback: IActionCallback | undefined
   #onPending: (snapshot: IActionSnapshot) => any
@@ -34,7 +33,7 @@ class Action<OriginalAction extends NOODLActionObject>
   result: any
   resultReturned: boolean = false
   timeoutDelay: number = DEFAULT_TIMEOUT_DELAY
-  type: string | undefined = undefined
+  type: OriginalAction['actionType']
   actionType: OriginalAction['actionType']
 
   constructor(
@@ -85,9 +84,7 @@ class Action<OriginalAction extends NOODLActionObject>
       log.func(`execute --> ${this.type}`)
       log.hotpink(
         `${
-          this.type === 'builtIn'
-            ? `funcName: ${(this.original as NOODLBuiltInObject).funcName}`
-            : ''
+          this.type === 'builtIn' ? `funcName: ${this.original.funcName}` : ''
         }Executing`,
         { snapshot: this.getSnapshot(), args },
       )
@@ -125,9 +122,7 @@ class Action<OriginalAction extends NOODLActionObject>
 
       log.func(
         `${this.type}${
-          this.type === 'builtIn'
-            ? ` ---> ${(this.original as NOODLBuiltInObject).funcName}`
-            : ''
+          this.type === 'builtIn' ? ` ---> ${this.original.funcName}` : ''
         }`,
       )
       log.hotpink('Executed', logArgs)

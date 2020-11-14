@@ -36,7 +36,7 @@ import {
   getDataValues,
   identify,
   IResolver,
-  NOODLBuiltInObject,
+  BuiltInActionObject,
   NOODLPageObject,
   Page as NOODLPage,
   Resolver,

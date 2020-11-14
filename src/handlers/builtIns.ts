@@ -2,12 +2,13 @@ import _ from 'lodash'
 import { Draft } from 'immer'
 import {
   ActionChainActionCallbackOptions,
+  BuiltInActionObject,
   getByDataUX,
   getDataValues,
+  GotoURL,
+  GotoActionObject,
   IComponentTypeInstance,
   IListItem,
-  NOODLBuiltInObject,
-  NOODLGotoAction,
 } from 'noodl-ui'
 import {
   LocalAudioTrack,
@@ -222,7 +223,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
 
-    const { evolve } = action.original as NOODLBuiltInObject
+    const { evolve } = action.original as BuiltInActionObject
     console.log(action)
     const requestPage = async (pageName: string) => {
       var shouldEvolve = false
@@ -257,7 +258,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     }
   }
 
-  builtInActions.goto = async (action: NOODLGotoAction, options) => {
+  builtInActions.goto = async (action: GotoURL | GotoActionObject, options) => {
     log.func('goto')
     log.red('', _.assign({ action }, options))
     // URL
@@ -334,7 +335,22 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
 
     const { component } = options
-    const { viewTag } = action
+    const { viewTag } = action.original
+
+    const parent = findParent(component, (p) => p.noodlType === 'listItem')
+
+    log.grey('Invoking "redraw" with:', {
+      node: document?.querySelector(`[data-viewtag="${viewTag}"]`), // listItem
+      component, // image
+      actionObj: action.original,
+      parent,
+    })
+
+    noodluidom.redraw(
+      document.querySelector(`[data-viewtag="${viewTag}"]`),
+      component,
+      action.original,
+    )
 
     // console.info(options.component?.toJS?.())
     // component.redraw?.()
@@ -456,7 +472,7 @@ export function onVideoChatBuiltIn({
   joinRoom: (token: string) => Promise<any>
 }) {
   return async function onVideoChat(
-    action: NOODLBuiltInObject & {
+    action: BuiltInActionObject & {
       roomId: string
       accessToken: string
     },
@@ -540,7 +556,7 @@ export function onVideoChatBuiltIn({
 }
 
 export function onBuiltinMissing(
-  action: NOODLBuiltInObject,
+  action: BuiltInActionObject,
   options: ActionChainActionCallbackOptions,
 ) {
   window.alert(`The button "${action.funcName}" is not available to use yet`)

@@ -17,7 +17,7 @@ const log = Logger.create('noodl-utils')
  * deciding to be returned. If the callback returns true, item 2 is returned. If
  * false, item 3 is returned
  * @param { function } fn - Callback that receives the value being evaluated
- * @param { NOODLIfObject } ifObj - The object that contains the "if"
+ * @param { IfObject } ifObj - The object that contains the "if"
  */
 export function evalIf<IfObj extends { if: [any, any, any] }>(
   fn: (

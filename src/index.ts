@@ -24,7 +24,7 @@ import {
   getDataValues,
   identify,
   IResolver,
-  NOODLBuiltInObject,
+  BuiltInActionObject,
   NOODLPageObject,
   Page as NOODLPage,
   Resolver,
@@ -55,9 +55,9 @@ const log = Logger.create('src/index.ts')
  */
 function createPreparePage(options: {
   builtIn: {
-    goto: ActionChainActionCallback<NOODLBuiltInObject>
+    goto: ActionChainActionCallback<BuiltInActionObject>
     videoChat: (
-      action: NOODLBuiltInObject & {
+      action: BuiltInActionObject & {
         roomId: string
         accessToken: string
       },
@@ -241,7 +241,7 @@ window.addEventListener('load', async () => {
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
         noodlui
-          .init({ viewport })
+          .init({ viewport, _emit: noodl.emitCall })
           .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageName)
           .setRoot(noodl.root)

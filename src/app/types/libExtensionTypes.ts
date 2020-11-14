@@ -1,6 +1,6 @@
-import { NOODLBuiltInObject } from 'noodl-ui'
+import { BuiltInActionObject } from 'noodl-ui'
 
-export interface NOODLBuiltInCheckFieldObject extends NOODLBuiltInObject {
+export interface NOODLBuiltInCheckFieldObject extends BuiltInActionObject {
   funcName: 'checkField'
   contentType: 'messageHidden' | 'passwordHidden'
 }

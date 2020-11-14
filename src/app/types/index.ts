@@ -1,4 +1,4 @@
-import { ActionChainActionCallback, NOODLBuiltInObject } from 'noodl-ui'
+import { ActionChainActionCallback, BuiltInActionObject } from 'noodl-ui'
 
 export * from './commonTypes'
 export * from './domExtendedTypes'
@@ -30,5 +30,5 @@ export type BuiltInFuncName =
   | 'UploadPhoto'
 
 export type BuiltInActions<
-  Obj extends NOODLBuiltInObject = NOODLBuiltInObject
+  Obj extends BuiltInActionObject = BuiltInActionObject
 > = Partial<Record<BuiltInFuncName, ActionChainActionCallback<Obj>>>

@@ -39,10 +39,10 @@ export interface NOODLComponent {
   iteratorVar?: string
   listObject?: '' | any[]
   maxPresent?: string // ex: "6" (Currently used in components with type: list)
-  onClick?: NOODLActionObject[]
-  onHover?: NOODLActionObject[]
+  onClick?: IActionObject[]
+  onHover?: IActionObject[]
   options?: string[]
-  path?: string | NOODLIfObject
+  path?: string | IfObject
   pathSelected?: string
   poster?: string
   placeholder?: string
@@ -63,7 +63,7 @@ export interface NOODLPluginComponent extends NOODLComponent {
   path: string
 }
 
-export interface NOODLIfObject {
+export interface IfObject {
   if: [any, any, any]
 }
 
@@ -71,47 +71,47 @@ export interface NOODLIfObject {
     ---- ACTIONS
   -------------------------------------------------------- */
 
-export interface NOODLGotoObject {
+export interface GotoActionObject {
   destination?: string
   [key: string]: any
 }
 
-export interface NOODLActionObjectBase {
+export interface BaseActionObject {
   actionType: NOODLActionType
   [key: string]: any
 }
 
-export interface NOODLBuiltInObject extends NOODLActionObjectBase {
+export interface BuiltInActionObject extends BaseActionObject {
   actionType: 'builtIn'
   funcName: string
 }
 
-export interface NOODLEvalObject extends NOODLActionObjectBase {
+export interface EvalActionObject extends BaseActionObject {
   actionType: 'evalObject'
-  object?: Function | NOODLIfObject
+  object?: Function | IfObject
   [key: string]: any
 }
 
-export interface NOODLPageJumpObject extends NOODLActionObjectBase {
+export interface PageJumpActionObject extends BaseActionObject {
   actionType: 'pageJump'
   destination: string
 }
 
-export interface NOODLRefreshObject extends NOODLActionObjectBase {
+export interface RefreshActionObject extends BaseActionObject {
   actionType: 'refresh'
 }
 
-export interface NOODLSaveObject extends NOODLActionObjectBase {
+export interface SaveActionObject extends BaseActionObject {
   actionType: 'saveObject'
   object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
 }
 
-export interface NOODLPopupBaseObject<K = any> extends NOODLActionObjectBase {
+export interface PopupActionObject<K = any> extends BaseActionObject {
   actionType: 'popUp'
   popUpView: K
 }
 
-export interface NOODLPopupDismissObject extends NOODLActionObjectBase {
+export interface PopupDismissActionObject extends BaseActionObject {
   actionType: 'popUpDismiss'
   popUpView: string
 }
@@ -149,7 +149,7 @@ export interface INOODLUi {
   root: { [key: string]: any }
   init(opts: { viewport?: Viewport }): this
   createActionChainHandler(
-    actions: NOODLActionObject[],
+    actions: IActionObject[],
     args: {
       component: IComponentTypeInstance
       trigger?: NOODLActionTriggerType
@@ -226,7 +226,7 @@ export interface IComponent<K = NOODLComponentType> {
   type: K
   noodlType: NOODLComponentType
   style: NOODLStyle
-  action: NOODLActionObject
+  action: IActionObject
   length: number
   original: NOODLComponent | NOODLComponentProps | ProxiedComponent
   status: 'drafting' | 'idle' | 'idle/resolved'
@@ -446,55 +446,65 @@ export interface IResolver {
   ---- ACTIONS / ACTION CHAIN
 -------------------------------------------------------- */
 
-export interface ActionEmitter {
-  (emitteeObj: NOODLEmitObject['emit']): any
-}
+export type IActionChainConstructorArgs<ActionObjects extends IActionObject[]> = [
+  actions: ActionObjects,
+  opts: { component: IComponentTypeInstance },
+]
 
-export interface IActionChain<ActionType extends string = NOODLActionType> {
-  actions: IAction[] | null
-  emitter: ((...args: any[]) => any) | null
-  intermediary: IAction[]
-  current: { action: IAction | undefined; index: number }
+export interface IActionChain<ActionObjects extends IActionObject[] = IActionObject[]> {
+  actions: IAction<ActionObjects[number]>[] 
+  intermediary: IAction<ActionObjects[number]>[]
+  current: { action: IAction<ActionObjects[number]> | undefined; index: number }
   fns: {
-    action: Partial<Record<ActionType, ActionChainActionCallback[]>>
+    action: Partial<Record<NOODLActionType, ActionChainActionCallback<ActionObjects[number]>[]>>
     builtIn: {
-      [funcName: string]: ActionChainActionCallback[]
+      [funcName: string]: ActionChainActionCallback<ActionObjects[number]>[]
     }
   }
-  status: ActionChainStatus | null
+  status:
+    | null
+    | 'in.progress'
+    | 'done'
+    | 'timed-out'
+    | { aborted: boolean | { reasons: string[] } }
+    | { error: Error }
+
   // onBuiltinMissing?: LifeCycleListeners['onBuiltinMissing']
   // onChainStart?: LifeCycleListeners['onChainStart']
   // onChainEnd?: LifeCycleListeners['onChainEnd']
   // onChainError?: LifeCycleListeners['onChainError']
   // onChainAborted?: LifeCycleListeners['onChainAborted']
   // onAfterResolve?: LifeCycleListeners['onAfterResolve']
-  useAction(action: IActionChainUseObject<ActionType>): this
-  useAction(action: IActionChainUseObject<ActionType>[]): this
+  useAction(action: IActionChainUseObject<ActionObjects[number]>): this
+  useAction(action: IActionChainUseObject<ActionObjects[number]>[]): this
   useBuiltIn(
     action: IActionChainUseBuiltInObject | IActionChainUseBuiltInObject[],
   ): this
 }
 
 export interface IActionChainBuildOptions {
-  component: IComponentTypeInstance
   context: ResolverContext
   trigger: NOODLActionTriggerType
 }
 
-export interface IActionChainUseObjectBase<ActionType> {
-  actionType: ActionType
-  fn: ActionChainActionCallback | ActionChainActionCallback[]
+
+
+export type IActionChainUseObject<
+  A
+> = IActionChainUseObjectBase<A> | IActionChainUseBuiltInObject
+
+
+export interface IActionChainUseObjectBase<A extends BaseActionObject> {
+  actionType: A['actionType']
+  fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
 }
 
 export interface IActionChainUseBuiltInObject {
   actionType?: 'builtIn'
   funcName: string
-  fn: ActionChainActionCallback | ActionChainActionCallback[]
+  fn: ActionChainActionCallback<BuiltInActionObject> | ActionChainActionCallback<BuiltInActionObject>[]
 }
 
-export type IActionChainUseObject<
-  ActionType extends string = NOODLActionType
-> = IActionChainUseObjectBase<ActionType> | IActionChainUseBuiltInObject
 
 export interface IActionChainAddActionObject<
   S extends NOODLActionType = NOODLActionType
@@ -504,11 +514,10 @@ export interface IActionChainAddActionObject<
 }
 
 export interface IAction<
-  K extends string = string,
-  OriginalAction extends NOODLActionObject = NOODLActionObject
+A extends BaseActionObject = BaseActionObject,
 > {
-  abort(reason: string | string[], callback?: IAction['callback']): void
-  actionType: K
+  abort(reason: string | string[], callback?: IAction<A>['callback']): void
+  actionType: A['actionType']
   callback: ((...args: any[]) => any) | undefined
   clearTimeout(): void
   clearInterval(): void
@@ -516,13 +525,13 @@ export interface IAction<
   execute<Args = any>(args?: Args): Promise<any>
   id: string
   isTimeoutRunning(): boolean
-  getSnapshot(): IActionSnapshot<OriginalAction>
-  original: OriginalAction
+  getSnapshot(): IActionSnapshot<A>
+  original: A
   result: any
   resultReturned: boolean
   status: IActionStatus
   timeoutDelay: number
-  type: string | undefined
+  type: A['actionType']
   onPending(snapshot: IActionSnapshot): any
   onResolved(snapshot: IActionSnapshot): any
   onError(snapshot: IActionSnapshot): any
@@ -534,9 +543,7 @@ export interface IActionCallback {
   (snapshot: IActionSnapshot, handlerOptions?: any): any
 }
 
-export interface IActionOptions<
-  OriginalAction extends NOODLActionObject = any
-> {
+export interface IActionOptions<OriginalAction extends IActionObject = any> {
   callback?: IActionCallback
   id?: string
   onPending?: (snapshot: IActionSnapshot<OriginalAction>) => any
@@ -601,22 +608,14 @@ export type NOODLComponentProps = Omit<
 }
 
 /* -------------------------------------------------------
-  ---- LIB ACTIONS / ACTION CHAIN
+  ---- ACTION CHAIN
 -------------------------------------------------------- */
-
-export type ActionChainStatus =
-  | null
-  | 'in.progress'
-  | 'done'
-  | 'timed-out'
-  | { aborted: boolean | { reasons: string[] } }
-  | { error: Error }
 
 export interface ActionChainSnapshot<Actions extends any[]> {
   currentAction: Actions[number]
-  original: NOODLActionObject[]
+  original: IActionObject[]
   queue: Actions
-  status: ActionChainStatus
+  status: IActionChain['status']
 }
 
 export interface ActionChainCallbackOptions<Actions extends any[] = any[]> {
@@ -665,12 +664,12 @@ export type ActionChainActionCallbackReturnType =
   | undefined
   | void
 
-export type ParsedChainActionUpdateObject = NOODLUpdateObject<
+export type ParsedChainActionUpdateObject = UpdateActionObject<
   ((...args: any[]) => Promise<any>)[] | ((...args: any[]) => Promise<any>)
 >
 
 /* -------------------------------------------------------
-  ---- LIB | LISTENERS
+  ---- LISTENERS
 -------------------------------------------------------- */
 
 export interface BuiltInActions {
@@ -688,53 +687,23 @@ export interface LifeCycleListener<T = any> {
     | void
 }
 
-export type OnEvalObject = ActionChainActionCallback<NOODLEvalObject>
-
-export type OnGoto = ActionChainActionCallback<NOODLGotoURL | NOODLGotoObject>
-
-export type OnPageJump = ActionChainActionCallback<NOODLPageJumpObject>
-
-export type OnPopup = ActionChainActionCallback<NOODLPopupBaseObject<any>>
-
-export type OnPopupDismiss = ActionChainActionCallback<NOODLPopupDismissObject>
-
-export interface OnSaveObject {
-  (action: NOODLSaveObject, options: ActionChainActionCallbackOptions): Promise<
-    any
-  >
-}
-
-export interface OnRefresh {
-  (
-    action: NOODLRefreshObject,
-    options: ActionChainActionCallbackOptions,
-  ): Promise<any>
-}
-
-export interface OnUpdateObject {
-  (
-    action: ParsedChainActionUpdateObject,
-    options: ActionChainActionCallbackOptions,
-  ): Promise<any>
-}
-
 // Listed in order of invocation
 export interface LifeCycleListeners {
   onAction?: {
     builtIn?: {
-      [funcName: string]: ActionChainActionCallback<NOODLBuiltInObject>
+      [funcName: string]: ActionChainActionCallback<BuiltInActionObject>
     }
-    evalObject?: ActionChainActionCallback<NOODLEvalObject>
-    goto?: ActionChainActionCallback<NOODLGotoURL | NOODLGotoObject>
-    pageJump?: ActionChainActionCallback<NOODLPageJumpObject>
-    popUp?: ActionChainActionCallback<NOODLPopupBaseObject<any>>
-    popUpDismiss?: ActionChainActionCallback<NOODLPopupDismissObject>
+    evalObject?: ActionChainActionCallback<EvalActionObject>
+    goto?: ActionChainActionCallback<GotoURL | GotoActionObject>
+    pageJump?: ActionChainActionCallback<PageJumpActionObject>
+    popUp?: ActionChainActionCallback<PopupActionObject<any>>
+    popUpDismiss?: ActionChainActionCallback<PopupDismissActionObject>
     saveObject?: (
-      action: NOODLSaveObject,
+      action: SaveActionObject,
       options: ActionChainActionCallbackOptions,
     ) => Promise<any>
     refresh?(
-      action: NOODLRefreshObject,
+      action: RefreshActionObject,
       options: ActionChainActionCallbackOptions,
     ): Promise<any>
     updateObject?: (
@@ -866,26 +835,84 @@ export interface RootsParser<Root extends {} = any> {
   setRoot(root: any): this
 }
 
-export interface ViewportListener {
-  (
-    viewport: ViewportOptions & {
-      previousWidth: number | undefined
-      previousHeight: number | undefined
-    },
-  ): Promise<any> | any
+/* -------------------------------------------------------
+    ---- ACTIONS
+  -------------------------------------------------------- */
+
+export type IActionObject = BaseActionObject &
+  | AnonymousActionObject
+  | BuiltInActionObject
+  | EmitActionObject
+  | EvalActionObject
+  | PageJumpActionObject
+  | PopupActionObject<any>
+  | PopupDismissActionObject
+  | RefreshActionObject
+  | SaveActionObject
+  | UpdateActionObject
+
+export interface BaseActionObject {
+  actionType: NOODLActionType
 }
 
-export interface IViewport {
-  width: number | undefined
-  height: number | undefined
-  isValid(): boolean
-  onResize: ViewportListener | undefined
+export interface AnonymousActionObject extends BaseActionObject {
+  actionType: 'anonymous'
+  func?: Function
 }
 
-export interface ViewportOptions {
-  width: number
-  height: number
+export interface BuiltInActionObject extends BaseActionObject {
+  actionType: 'builtIn'
+  funcName: string
 }
+
+export interface EmitActionObject extends BaseActionObject {
+  actions: [any, any, any]
+  dataKey: string | { [key: string]: string }
+}
+
+export interface EvalActionObject extends BaseActionObject {
+  actionType: 'evalObject'
+  object?: Function | IfObject
+}
+
+export interface GotoActionObject extends BaseActionObject {
+  destination?: string
+}
+
+export interface PageJumpActionObject extends BaseActionObject {
+  actionType: 'pageJump'
+  destination: string
+}
+
+export interface PopupActionObject extends BaseActionObject {
+  actionType: 'popUp'
+  popUpView: string
+}
+
+export interface PopupDismissActionObject extends BaseActionObject {
+  actionType: 'popUpDismiss'
+  popUpView: string
+}
+
+export interface RefreshActionObject extends BaseActionObject {
+  actionType: 'refresh'
+}
+
+export interface SaveActionObject extends BaseActionObject {
+  actionType: 'saveObject'
+  object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
+}
+
+export type UpdateActionObject<T = any> =
+  | {
+      actionType: 'updateObject'
+      object: T
+    }
+  | {
+      actionType: 'updateObject'
+      dataKey: string
+      dataObject: string
+    }
 
 /* -------------------------------------------------------
   ---- RAW/ORIGINAL NOODL TYPE DEFINITIONS
@@ -906,11 +933,6 @@ export interface NOODLPageObject {
   [key: string]: any
 }
 
-export type NOODLActionType = typeof actionTypes[number]
-export type NOODLActionTriggerType = typeof eventTypes[number]
-export type NOODLComponentType = typeof componentTypes[number] | 'br'
-export type NOODLContentType = typeof contentTypes[number]
-
 export interface NOODLComponent {
   type?: NOODLComponentType
   style?: NOODLStyle
@@ -924,10 +946,10 @@ export interface NOODLComponent {
   iteratorVar?: string
   listObject?: '' | any[]
   maxPresent?: string // ex: "6" (Currently used in components with type: list)
-  onClick?: NOODLActionObject[]
-  onHover?: NOODLActionObject[]
+  onClick?: IActionObject[]
+  onHover?: IActionObject[]
   options?: string[]
-  path?: string | NOODLIfObject
+  path?: string | IfObject
   pathSelected?: string
   poster?: string
   placeholder?: string
@@ -949,97 +971,10 @@ export interface NOODLPluginComponent extends NOODLComponent {
   path: string
 }
 
-export interface NOODLIfObject {
-  if: [any, any, any]
-}
-
-/* -------------------------------------------------------
-    ---- ACTIONS
-  -------------------------------------------------------- */
-
-export type NOODLGotoAction = NOODLGotoURL | NOODLGotoObject
-
-export type NOODLGotoURL = string
-
-export interface NOODLGotoObject {
-  destination?: string
-  [key: string]: any
-}
-
-export type NOODLActionObject =
-  | NOODLAnonymousObject
-  | NOODLBuiltInObject
-  | NOODLEmitObject
-  | NOODLEvalObject
-  | NOODLPageJumpObject
-  | NOODLPopupBaseObject<any>
-  | NOODLPopupDismissObject
-  | NOODLRefreshObject
-  | NOODLSaveObject
-  | NOODLUpdateObject
-
-export interface NOODLActionObjectBase {
-  actionType: NOODLActionType
-  [key: string]: any
-}
-
-export interface NOODLAnonymousObject extends NOODLActionObjectBase {
-  actionType: 'anonymous'
-  func?: Function
-}
-
-export interface NOODLBuiltInObject<K = string> extends NOODLActionObjectBase {
-  actionType: 'builtIn'
-  funcName: K
-}
-
-export interface NOODLEmitObject {
-  emit: {
-    actions: any[]
-    dataKey: string | { [key: string]: string }
-  }
-}
-
-export interface NOODLEvalObject extends NOODLActionObjectBase {
-  actionType: 'evalObject'
-  object?: Function | NOODLIfObject
-  [key: string]: any
-}
-
-export interface NOODLPageJumpObject extends NOODLActionObjectBase {
-  actionType: 'pageJump'
-  destination: string
-}
-
-export interface NOODLRefreshObject extends NOODLActionObjectBase {
-  actionType: 'refresh'
-}
-
-export interface NOODLSaveObject extends NOODLActionObjectBase {
-  actionType: 'saveObject'
-  object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
-}
-
-export type NOODLUpdateObject<T = any> =
-  | {
-      actionType: 'updateObject'
-      object: T
-    }
-  | {
-      actionType: 'updateObject'
-      dataKey: string
-      dataObject: string
-    }
-
-export interface NOODLPopupBaseObject extends NOODLActionObjectBase {
-  actionType: 'popUp'
-  popUpView: string
-}
-
-export interface NOODLPopupDismissObject extends NOODLActionObjectBase {
-  actionType: 'popUpDismiss'
-  popUpView: string
-}
+export type NOODLActionType = typeof actionTypes[number]
+export type NOODLActionTriggerType = typeof eventTypes[number]
+export type NOODLComponentType = typeof componentTypes[number] | 'br'
+export type NOODLContentType = typeof contentTypes[number]
 
 /* -------------------------------------------------------
   ---- STYLING
@@ -1102,4 +1037,35 @@ export type NOODLTextBoardBreakLine = 'br'
 export interface NOODLTextBoardTextObject {
   text?: string
   color?: string
+}
+
+/* -------------------------------------------------------
+  ---- OTHER
+-------------------------------------------------------- */
+
+export type GotoURL = string
+
+export interface IfObject {
+  if: [any, any, any]
+}
+
+export interface IViewport {
+  width: number | undefined
+  height: number | undefined
+  isValid(): boolean
+  onResize: IViewportListener | undefined
+}
+
+export interface IViewportOptions {
+  width: number
+  height: number
+}
+
+export interface IViewportListener {
+  (
+    viewport: IViewportOptions & {
+      previousWidth: number | undefined
+      previousHeight: number | undefined
+    },
+  ): Promise<any> | any
 }

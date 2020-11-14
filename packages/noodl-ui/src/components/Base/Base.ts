@@ -8,7 +8,7 @@ import {
   IComponentTypeInstance,
   IComponentTypeObject,
   IComponentEventId,
-  NOODLActionObject,
+  IActionObject,
   NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
@@ -26,7 +26,7 @@ class Component implements IComponent {
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
-  action: NOODLActionObject = {} as NOODLActionObject
+  action: IActionObject = {} as IActionObject
   context: { [key: string]: any } = {}
   original: IComponentTypeObject
   resolved: boolean = false

@@ -3,9 +3,8 @@ import {
   getType,
   IComponentTypeInstance,
   NOODLComponentType,
-  NOODLIfObject,
+  IfObject,
 } from 'noodl-ui'
-import { noodlui } from 'noodl-ui-dom/src/test-utils'
 import { evalIf, isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import {
   componentEventMap,
@@ -61,6 +60,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       } else {
         node = document.createElement(getType(component))
         this.emit('create.component', node, component)
+
         if (node) {
           if (component?.noodlType === 'list') {
             // Initiate the listItem children
@@ -70,6 +70,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
               // can re-add them back in so the consumer can get the emitted events
               component.set('listObject', [])
               const numItems = listObject.length
+
               for (let index = 0; index < numItems; index++) {
                 const dataObject = listObject[index]
                 component.addDataObject(dataObject)
@@ -92,7 +93,12 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
           if (component.length) {
             component.children().forEach((child: IComponentTypeInstance) => {
-              node?.appendChild(this.parse(child, node))
+              const childNode = this.parse(child, node)
+              this.#cache.set(child.id, {
+                node: childNode,
+                child,
+              })
+              node?.appendChild(childNode)
             })
           }
         }
@@ -176,9 +182,26 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   ) {
     // console.info('TOMATO', { node, component: component.toJS(), actionObj })
 
-    const resolvePath = (node: any, path: NOODLIfObject, c) => {
+    const resolvePath = (
+      node: any,
+      path: IfObject,
+      c: IComponentTypeInstance,
+    ) => {
       // console.info(path)
       let src: any
+
+      const cache = this.#cache.get(c.id) || this.#cache.get(node.id)
+
+      console.info('resolvePath', {
+        component: c.toJS(),
+        cachedComponent: cache?.component,
+        componentDataObject: c?.getDataObject?.(),
+        cacheDataObject: cache?.component?.getDataObject?.(),
+        node,
+        cachedNode: cache?.node,
+        path,
+        actionObj,
+      })
 
       if (path && typeof path === 'object' && 'if' in path) {
         src = evalIf((val, valOnTrue, valOnFalse) => {
@@ -196,9 +219,9 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           }
         }, path)
       } else {
-        src = noodlui.createSrc(path)
+        src = path
       }
-      node.querySelector('img').src = src
+      if (node) node.querySelector('img').src = src
     }
 
     if (component.get('path'))

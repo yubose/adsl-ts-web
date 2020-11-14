@@ -5,7 +5,7 @@ import {
   IAction,
   IActionChain,
   IActionChainBuildOptions,
-  NOODLActionObject,
+  IActionObject,
 } from '../types'
 
 const log = Logger.create('execute [ActionChain]')
@@ -35,7 +35,7 @@ export const createExecute = function (
       args?: any,
     ): Promise<
       | IteratorYieldResult<{
-          action: IAction<string, NOODLActionObject>
+          action: IAction<string, IActionObject>
           results: any[]
         }>
       | undefined

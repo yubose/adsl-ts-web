@@ -8,14 +8,14 @@ import {
   getDataObjectValue,
   isReference,
   NOODLActionType,
-  NOODLEmitObject,
-  NOODLEvalObject,
-  NOODLIfObject,
-  NOODLPopupBaseObject,
-  NOODLPopupDismissObject,
-  NOODLRefreshObject,
-  NOODLSaveObject,
-  NOODLUpdateObject,
+  EmitActionObject,
+  EvalActionObject,
+  IfObject,
+  PopupActionObject,
+  PopupDismissActionObject,
+  RefreshActionObject,
+  SaveActionObject,
+  UpdateActionObject,
   IListItem,
 } from 'noodl-ui'
 import { findParent } from 'noodl-utils'
@@ -34,7 +34,36 @@ const log = Logger.create('actions.ts')
 const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<NOODLActionType, ActionChainActionCallback<any>>
 
-  _actions.emit = async (action: Action<NOODLEmitObject>, options) => {
+  _actions.anonymous = async (action: Action<any>, options) => {
+    log.func('anonymous')
+    log.grey('', { action, ...options })
+
+    const { default: noodl } = await import('../app/noodl')
+    // const { component } = options
+    const { component, fn } = action.original || {}
+    // Hard code the emit for now
+    if (component) {
+      if (component.noodlType !== 'listItem') {
+        const listItem = findParent(
+          component,
+          (p) => p.noodlType === 'listItem',
+        ) as IListItem
+        if (listItem) {
+          const dataObject = listItem.getDataObject?.()
+          log.func('createAction')
+          log.green(`Received dataObject for emit func`, {
+            component: component,
+            listItem,
+            dataObject,
+          })
+          noodl.emitCall(dataObject)
+          log.grey('Invoked emitCall with dataObject', dataObject)
+        }
+      }
+    }
+  }
+
+  _actions.emit = async (action: Action<EmitActionObject>, options) => {
     const { default: noodl } = await import('../app/noodl')
 
     log.func('emit')
@@ -61,7 +90,6 @@ const createActions = function ({ page }: { page: IPage }) {
       let dataValue
 
       if (_.isString(dataKey)) {
-        originalDataKey = dataKey
         if (dataKey.startsWith(iteratorVar)) {
           dataPath = dataPath.split('.').slice(1).join('.')
           const listItem = findParent(
@@ -105,9 +133,8 @@ const createActions = function ({ page }: { page: IPage }) {
           dataObject =
             _.get(noodl.root, dataPath) ||
             _.get(noodl.root[context.page], dataPath)
-          if (dataObject) {
-            acc[key] = dataObject
-          } else {
+          emitParams.dataKey = dataObject
+          if (!dataObject) {
             log.red(
               'Could not find a data value from a (presumed) dataObject ' +
                 'using a dataKey OBJECT',
@@ -123,22 +150,43 @@ const createActions = function ({ page }: { page: IPage }) {
             )
           }
         }
-      } else if (_.isPlainObject(dataKey)) {
-        originalDataKey = dataKey
-        dataKey = { ...dataKey }
+      }
+      // The dataKey is in the object format { dataKey: { [key1]:..., [key2]: ... }}
+      else if (_.isPlainObject(dataKey)) {
         emitParams['dataKey'] = _.reduce(
           _.entries(dataKey),
           (acc: any, [key, dataPath]) => {
             let dataObject
             let dataValue
 
+            console.info({
+              key,
+              resolvedDataKey: dataPath,
+              iteratorVar,
+              originalDataKey,
+            })
+
             if (_.isString(dataPath)) {
-              if (dataPath.startsWith(iteratorVar)) {
+              if (originalDataKey[key] === iteratorVar) {
+                const [fn, valOnTrue, valOnFalse] = actions[0]?.if || []
+
+                if (_.isFunction(fn)) {
+                  fn({ dataKey, actions, pageName: context.page })
+                }
+
                 dataPath = dataPath.split('.').slice(1).join('.')
+
                 const listItem = findParent(
                   component,
                   (parent) => parent?.noodlType === 'listItem',
                 ) as IListItem | null
+
+                console.info('------------------------------')
+                console.info('listItem', listItem)
+                console.info('dataObject', listItem?.getDataObject())
+                console.info('dataObject', listItem?.getDataObject())
+                console.info('dataObject', listItem?.getDataObject())
+                console.info('------------------------------')
 
                 if (listItem) {
                   dataObject = listItem.getDataObject?.()
@@ -147,14 +195,16 @@ const createActions = function ({ page }: { page: IPage }) {
                     dataKey: dataPath,
                     iteratorVar,
                   })
-                  log.green('Queried dataObject + dataValue', {
+                  acc[key] = dataObject
+                  console.info(listItem.getDataObject())
+
+                  log.green('Queried dataObject --> dataValue', {
                     dataKey,
                     dataObject,
                     dataValue,
                     dataPath,
                     originalDataKey,
                   })
-                  acc[key] = dataObject
                 } else {
                   log.red(
                     `Attempted to query for a dataObject but a listItem parent was not found`,
@@ -174,6 +224,7 @@ const createActions = function ({ page }: { page: IPage }) {
                 dataObject =
                   _.get(noodl.root, dataPath) ||
                   _.get(noodl.root[context.page], dataPath)
+
                 if (dataObject) {
                   acc[key] = dataObject
                 } else {
@@ -225,7 +276,7 @@ const createActions = function ({ page }: { page: IPage }) {
     }
   }
 
-  _actions.evalObject = async (action: Action<NOODLEvalObject>, options) => {
+  _actions.evalObject = async (action: Action<EvalActionObject>, options) => {
     log.func('evalObject')
     if (_.isFunction(action?.original?.object)) {
       const result = await action.original?.object()
@@ -240,7 +291,7 @@ const createActions = function ({ page }: { page: IPage }) {
         return result
       }
     } else if ('if' in (action.original.object || {})) {
-      const ifObj = action.original.object as NOODLIfObject
+      const ifObj = action.original.object as IfObject
       if (_.isArray(ifObj)) {
         const { default: noodl } = await import('../app/noodl')
         const { context } = options
@@ -331,7 +382,7 @@ const createActions = function ({ page }: { page: IPage }) {
   }
 
   _actions.popUp = async (
-    action: Action<NOODLPopupBaseObject | NOODLPopupDismissObject>,
+    action: Action<PopupActionObject | PopupDismissActionObject>,
     options,
   ) => {
     log.func('popUp')
@@ -412,13 +463,13 @@ const createActions = function ({ page }: { page: IPage }) {
     return
   }
 
-  _actions.refresh = (action: Action<NOODLRefreshObject>, options) => {
+  _actions.refresh = (action: Action<RefreshActionObject>, options) => {
     log.func('refresh')
     log.grey(action.original.actionType, { action, ...options })
     window.location.reload()
   }
 
-  _actions.saveObject = async (action: Action<NOODLSaveObject>, options) => {
+  _actions.saveObject = async (action: Action<SaveActionObject>, options) => {
     const { default: noodl } = await import('../app/noodl')
     const { context, abort, parser } = options as any
 
@@ -485,7 +536,7 @@ const createActions = function ({ page }: { page: IPage }) {
   }
 
   _actions.updateObject = async (
-    action: Action<NOODLUpdateObject>,
+    action: Action<UpdateActionObject>,
     options,
   ) => {
     const { abort, component, stateHelpers } = options

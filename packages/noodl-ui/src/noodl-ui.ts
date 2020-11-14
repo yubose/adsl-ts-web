@@ -71,11 +71,9 @@ class NOODL implements T.INOODLUi {
   initialized: boolean = false
 
   constructor({
-    emitter,
     showDataKey,
     viewport,
   }: {
-    emitter?(...args: any[]): any
     showDataKey?: boolean
     viewport?: T.IViewport
   } = {}) {
@@ -310,11 +308,12 @@ class NOODL implements T.INOODLUi {
   }
 
   createActionChainHandler(
-    actions: T.NOODLActionObject[],
+    actions: T.IActionObject[],
     options: Omit<T.IActionChainBuildOptions, 'context'>,
   ) {
     const actionChain = new ActionChain(
       _.isArray(actions) ? actions : [actions],
+      { component: options.component },
     )
 
     actionChain
@@ -338,7 +337,7 @@ class NOODL implements T.INOODLUi {
 
     const buildOptions: T.IActionChainBuildOptions = {
       context: this.getContext(),
-      ...options,
+      trigger: options.trigger,
     }
 
     return actionChain.build(buildOptions)
@@ -548,10 +547,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  createSrc(
-    path: string | T.NOODLIfObject,
-    component?: T.IComponentTypeInstance,
-  ) {
+  createSrc(path: string | T.IfObject, component?: T.IComponentTypeInstance) {
     let src = ''
     if (path) {
       if (!_.isString(path) && _.isPlainObject(path)) {

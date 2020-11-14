@@ -152,8 +152,11 @@ const handleListInternalResolver = (
       ? originalChildren
       : originalChildren) || {}) as IComponentTypeObject
 
+    const blueprintInstance = createComponent(rawBlueprint)
+    blueprintInstance.setParent(component)
+
     const resolvedBlueprint = resolveComponent(
-      rawBlueprint,
+      blueprintInstance,
     ) as IComponentTypeInstance
 
     resolvedBlueprint.set('listId', component.listId)

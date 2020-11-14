@@ -4,7 +4,7 @@ import {
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
   ActionChainEventId,
-  NOODLActionObject,
+  IActionObject,
   NOODLComponent,
   ConsumerOptions,
 } from 'noodl-ui'
@@ -20,7 +20,7 @@ function createLifeCycles() {
       // console.log(logMsg, logStyle, { actions, options })
     },
     async chainStart(
-      actions: NOODLActionObject[],
+      actions: IActionObject[],
       options: ActionChainActionCallbackOptions,
     ) {
       log.func('onChainStart')
@@ -31,7 +31,7 @@ function createLifeCycles() {
       // }
     },
     chainEnd(
-      actions: NOODLActionObject[],
+      actions: IActionObject[],
       options: ActionChainActionCallbackOptions,
     ) {
       const logMsg = `%c[onChainEnd]`
@@ -40,7 +40,7 @@ function createLifeCycles() {
     },
     chainError(
       error: Error,
-      action: NOODLActionObject,
+      action: IActionObject,
       options: ActionChainActionCallbackOptions,
     ) {
       const logMsg = `%c[onChainError]`
@@ -48,7 +48,7 @@ function createLifeCycles() {
       console.log(logMsg, logStyle, { action, error, ...options })
     },
     chainAborted(
-      action: NOODLActionObject,
+      action: IActionObject,
       options: ActionChainActionCallbackOptions,
     ) {
       const logMsg = `%c[onChainAborted]`
