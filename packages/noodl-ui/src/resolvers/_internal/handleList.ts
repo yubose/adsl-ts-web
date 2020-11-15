@@ -53,7 +53,7 @@ const handleListInternalResolver = (
       _resolveChildren(listItem, {
         onResolve: (c) => {
           c.set('listIndex', result.index)
-          if (c.get('iteratorVar') === cofmonProps.iteratorVar) {
+          if (c.get('iteratorVar') === commonProps.iteratorVar) {
             c.set('dataObject', result.dataObject)
           }
           _internalResolver.resolve(c, {
