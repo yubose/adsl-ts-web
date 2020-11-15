@@ -7,6 +7,7 @@ import {
   IList,
   SelectOption,
 } from 'noodl-ui'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
 import { forEachEntries } from '../utils/common'
 import { isDisplayable } from '../utils/dom'
@@ -38,15 +39,18 @@ const setPropsDirectly = (
     attributes?: string[]
   } = {},
 ) => (
-  cb: (node: HTMLElement | null, component: IComponentTypeInstance) => void,
+  cb: (node: NOODLDOMElement | null, component: IComponentTypeInstance) => void,
 ) => {
-  return (node: HTMLElement | null, component: IComponentTypeInstance) => {
+  return (node: NOODLDOMElement | null, component: IComponentTypeInstance) => {
     if (node) {
       /** Handle attributes */
       if (_.isArray(table.attributes)) {
         const attribs = component.get(table.attributes)
-        _.forEach(_.keys(attribs), (key) =>
-          node.setAttribute(key, attribs[key]),
+
+        _.forEach(
+          _.keys(attribs),
+          (key) =>
+            attribs[key] !== undefined && node.setAttribute(key, attribs[key]),
         )
       }
 
@@ -54,14 +58,19 @@ const setPropsDirectly = (
       if (_.isArray(table.dataset)) {
         const dataAttribs = component.get(table.dataset)
         forEachEntries(dataAttribs, (key, value) => {
-          node.dataset[(key as string).replace('data-', '')] = value
+          if (value !== undefined) {
+            node.dataset[(key as string).replace('data-', '')] = value
+          }
         })
       }
 
       // Handle direct assignments
       if (_.isArray(table.values)) {
         const attribs = component.get(table.values)
-        _.forEach(_.keys(attribs), (key) => (node[key] = attribs[key]))
+        _.forEach(
+          _.keys(attribs),
+          (key) => attribs[key] !== undefined && (node[key] = attribs[key]),
+        )
       }
     }
     return cb(node, component)
@@ -81,11 +90,15 @@ const defaultPropTable = {
   attributes: ['placeholder', 'src'],
 }
 
+const withDefaultInjectedProps = (
+  cb: (node: NOODLDOMElement | null, component: IComponentTypeInstance) => void,
+) => setPropsDirectly(defaultPropTable)(cb)
+
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 // This event is called for all components
 noodluidom.on(
   'create.component',
-  setPropsDirectly(defaultPropTable)((node, component) => {
+  withDefaultInjectedProps((node, component) => {
     if (!node) return
 
     const {
@@ -334,6 +347,7 @@ noodluidom.on<'list'>(
         log.grey('', { ...result, ...options })
         const { listItem, successs } = result
         const childNode = document.getElementById(listItem.id)
+
         if (childNode) {
           log.gold(
             'Found childNode for removed listItem. Removing it from the DOM now',
@@ -345,11 +359,15 @@ noodluidom.on<'list'>(
           )
           node.removeChild(childNode)
         } else {
-          log.red(`Could not find the child DOM node for a removed listItem`, {
-            ...result,
-            ...options,
-            childNode,
-          })
+          console.info(
+            `Could not find the child DOM node for a removed listItem`,
+            {
+              ...result,
+              ...options,
+              id: listItem.id,
+              childNode,
+            },
+          )
         }
       },
     )

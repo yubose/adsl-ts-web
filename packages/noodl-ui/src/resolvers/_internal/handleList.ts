@@ -1,9 +1,8 @@
 import _ from 'lodash'
 import produce from 'immer'
 import Logger from 'logsnap'
-import { findParent, getDataValue } from 'noodl-utils'
-import { forEachEntries } from '../../utils/common'
-import { forEachDeepChildren, isListItemComponent } from '../../utils/noodl'
+import { forEachEntries, getRandomKey } from '../../utils/common'
+import { forEachDeepChildren } from '../../utils/noodl'
 import {
   IComponentTypeInstance,
   IComponentTypeObject,
@@ -37,6 +36,8 @@ const handleListInternalResolver = (
       createComponent(component.getBlueprint()),
     ) as IListItem
 
+    listItem['id'] = getRandomKey()
+
     console.info('ADD_DATA_OBJECT', { listItem, ...result })
 
     if (listItem) {
@@ -52,7 +53,7 @@ const handleListInternalResolver = (
       _resolveChildren(listItem, {
         onResolve: (c) => {
           c.set('listIndex', result.index)
-          if (c.get('iteratorVar') === commonProps.iteratorVar) {
+          if (c.get('iteratorVar') === cofmonProps.iteratorVar) {
             c.set('dataObject', result.dataObject)
           }
           _internalResolver.resolve(c, {

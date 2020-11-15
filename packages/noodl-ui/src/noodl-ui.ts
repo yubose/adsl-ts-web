@@ -145,7 +145,7 @@ class NOODL implements T.INOODLUi {
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component.original.style)
 
-    component.id = getRandomKey()
+    if (!component.id) component.id = getRandomKey()
 
     component.assignStyles(baseStyles)
 
@@ -167,7 +167,7 @@ class NOODL implements T.INOODLUi {
     }
 
     if (!this.#state.nodes.has(component)) {
-      // this.#state.nodes.set(component, component)
+      this.#state.nodes.set(component.id, component)
     }
 
     _.forEach(this.#resolvers, (r: T.IResolver) =>
