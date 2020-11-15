@@ -46,14 +46,12 @@ const setPropsDirectly = (
       /** Handle attributes */
       if (_.isArray(table.attributes)) {
         const attribs = component.get(table.attributes)
-
         _.forEach(
           _.keys(attribs),
           (key) =>
             attribs[key] !== undefined && node.setAttribute(key, attribs[key]),
         )
       }
-
       /** Handle dataset assignments */
       if (_.isArray(table.dataset)) {
         const dataAttribs = component.get(table.dataset)
@@ -63,7 +61,6 @@ const setPropsDirectly = (
           }
         })
       }
-
       // Handle direct assignments
       if (_.isArray(table.values)) {
         const attribs = component.get(table.values)
