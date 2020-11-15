@@ -1,0 +1,85 @@
+{
+  "blueprint": {
+    "children": [],
+    "listId": "_9mo7pxcwq",
+    "listIndex": null,
+    "id": "_bcbpidlby",
+    "iteratorVar": "hello",
+    "noodlType": "listItem",
+    "style": {
+      "position": "relative",
+      "outline": "none",
+      "listStyle": "none",
+      "padding": 0
+    },
+    "type": "listItem"
+  },
+  "children": [
+    {
+      "children": [],
+      "dataObject": {
+        "fruits": [
+          "banana"
+        ]
+      },
+      "listId": "_9mo7pxcwq",
+      "listIndex": 1,
+      "id": "_wyd208t0k",
+      "iteratorVar": "hello",
+      "noodlType": "listItem",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "type": "li"
+    },
+    {
+      "children": [],
+      "dataObject": {
+        "fruits": [
+          "orange"
+        ]
+      },
+      "listId": "_9mo7pxcwq",
+      "listIndex": 2,
+      "id": "_0edlzrhxt",
+      "iteratorVar": "hello",
+      "noodlType": "listItem",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "type": "li"
+    }
+  ],
+  "listId": "_9mo7pxcwq",
+  "listItemCount": 2,
+  "listObject": [
+    {
+      "fruits": [
+        "banana"
+      ]
+    },
+    {
+      "fruits": [
+        "orange"
+      ]
+    }
+  ],
+  "id": "_u2e3bd8fg",
+  "iteratorVar": "hello",
+  "style": {
+    "position": "absolute",
+    "outline": "none",
+    "overflowX": "hidden",
+    "listStyle": "none",
+    "padding": "0px",
+    "display": "block",
+    "overflowY": "auto"
+  },
+  "type": "list"
+}

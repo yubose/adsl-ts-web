@@ -191,6 +191,7 @@ describe('dom', () => {
         const container = document.querySelector('ul')
         expect(container?.children).to.have.lengthOf(3)
         component.removeDataObject(0)
+        saveOutput('dom.test.json', component.toJS(), { spaces: 2 })
         console.info(chalk.magenta('List START'))
         console.info(component.toJS())
         console.info(chalk.magenta('List END'))

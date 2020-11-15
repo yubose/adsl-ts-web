@@ -84,7 +84,7 @@ const handleListInternalResolver = (
         })
       })
 
-      component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
+      // component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
     } else {
       log.red(
         `Added a dataObject but there was a problem with creating the list ` +

@@ -167,7 +167,7 @@ class NOODL implements T.INOODLUi {
     }
 
     if (!this.#state.nodes.has(component)) {
-      this.#state.nodes.set(component.id, component)
+      // this.#state.nodes.set(component.id, component)
     }
 
     _.forEach(this.#resolvers, (r: T.IResolver) =>

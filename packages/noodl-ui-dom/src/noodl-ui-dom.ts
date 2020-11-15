@@ -73,11 +73,8 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             if (numDataObjects) {
               listComponent.set('listObject', [])
               for (let index = 0; index < numDataObjects; index++) {
-                const dataObject = listObject[index]
-                if (dataObject) {
-                  // This emits the "create list item" event that we should already have a listener for
-                  listComponent.addDataObject(dataObject)
-                }
+                // This emits the "create list item" event that we should already have a listener for
+                listComponent.addDataObject(listObject[index])
               }
             }
           }
