@@ -105,44 +105,37 @@ class NOODL implements T.INOODLUi {
   resolveComponents(component: T.IComponentType): T.IComponentTypeInstance
   resolveComponents(components: T.IComponentType[]): T.IComponentTypeInstance[]
   resolveComponents(
-    components: T.IComponentType | T.IComponentType[] | T.Page['object'],
+    componentsParams: T.IComponentType | T.IComponentType[] | T.Page['object'],
   ) {
+    let components: any[] = []
     let resolvedComponents: T.IComponentTypeInstance[] = []
 
-    if (components) {
-      if (components instanceof Component) {
-        resolvedComponents = resolvedComponents.concat(
-          this.#resolve(components),
-        )
-      } else if (!_.isArray(components) && _.isObject(components)) {
-        if ('components' in components) {
-          resolvedComponents = resolvedComponents.concat(
-            _.map(components.components, (c: T.IComponentType) =>
-              this.#resolve(c),
-            ),
-          )
+    if (componentsParams) {
+      if (componentsParams instanceof Component) {
+        components = [componentsParams]
+      } else if (!_.isArray(componentsParams) && _.isObject(componentsParams)) {
+        if ('components' in componentsParams) {
+          components = componentsParams.components
         } else {
-          resolvedComponents = resolvedComponents.concat(
-            this.#resolve(components),
-          )
+          components = [componentsParams]
         }
-      } else if (_.isArray(components)) {
-        resolvedComponents = resolvedComponents.concat(
-          _.map(components as T.IComponentType[], (c) => this.#resolve(c)),
-        )
-      } else if (_.isString(components)) {
-        resolvedComponents = resolvedComponents.concat(
-          this.#resolve(components),
-        )
+      } else if (_.isArray(componentsParams)) {
+        components = componentsParams
+      } else if (_.isString(componentsParams)) {
+        components = [componentsParams]
       }
     }
 
     // Finish off with the internal resolvers to handle the children
-    _.forEach(resolvedComponents, (c) => {
-      _internalResolver.resolve(c, this.getConsumerOptions())
+    _.forEach(components, (c) => {
+      const component = this.#resolve(c)
+      _internalResolver.resolve(component, this.getConsumerOptions())
+      resolvedComponents.push(component)
     })
 
-    return _.isArray(components) ? resolvedComponents : resolvedComponents[0]
+    return _.isArray(componentsParams)
+      ? resolvedComponents
+      : resolvedComponents[0]
   }
 
   #resolve = (
@@ -315,7 +308,6 @@ class NOODL implements T.INOODLUi {
       _.isArray(actions) ? actions : [actions],
       { component: options.component },
     )
-
     actionChain
       .useAction(
         _.map(_.entries(this.#cb.action), ([actionType, fn]) => ({

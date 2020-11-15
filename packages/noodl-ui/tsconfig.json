@@ -2,22 +2,20 @@
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "src",
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
-    "noEmit": true,
     "noEmitOnError": false,
     "noImplicitAny": true,
     "outDir": "dist",
-    "sourceMap": true,
     "strictNullChecks": true,
+    "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "esnext"
   },
-  "exclude": ["node_modules/**/*", "dist"],
-  "include": ["src", "rollup.config.js"]
+  "exclude": ["node_modules", "dist"],
+  "include": ["src"]
 }

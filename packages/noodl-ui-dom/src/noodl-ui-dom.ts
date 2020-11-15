@@ -4,6 +4,7 @@ import {
   IComponentTypeInstance,
   NOODLComponentType,
   IfObject,
+  IList,
 } from 'noodl-ui'
 import { evalIf, isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import {
@@ -63,18 +64,20 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
         if (node) {
           if (component?.noodlType === 'list') {
-            // Initiate the listItem children
-            const listObject = component.getData()
-            if (listObject.length) {
-              // Resetting the list data that was set from the parent prototype so we
-              // can re-add them back in so the consumer can get the emitted events
-              component.set('listObject', [])
-              const numItems = listObject.length
+            // noodl-ui delegates the responsibility for us to decide how
+            // to control how list children are first rendered to the DOM
+            const listComponent = component as IList
+            const listObject = listComponent.getData()
+            const numDataObjects = listObject?.length || 0
 
-              for (let index = 0; index < numItems; index++) {
+            if (numDataObjects) {
+              listComponent.set('listObject', [])
+              for (let index = 0; index < numDataObjects; index++) {
                 const dataObject = listObject[index]
-                component.addDataObject(dataObject)
-                log.green('Saved dataObject', dataObject)
+                if (dataObject) {
+                  // This emits the "create list item" event that we should already have a listener for
+                  listComponent.addDataObject(dataObject)
+                }
               }
             }
           }
@@ -83,21 +86,21 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             this.emit(componentEventMap[noodlType], node, component)
           }
 
-          this.#cache.set(component.id, {
-            node,
-            component,
-          })
+          // this.#cache.set(component.id, {
+          //   node,
+          //   component,
+          // })
 
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
 
           if (component.length) {
             component.children().forEach((child: IComponentTypeInstance) => {
-              const childNode = this.parse(child, node)
-              this.#cache.set(child.id, {
-                node: childNode,
-                child,
-              })
+              const childNode = this.parse(child, node) as Element
+              // this.#cache.set(child.id, {
+              //   node: childNode,
+              //   child,
+              // })
               node?.appendChild(childNode)
             })
           }
@@ -259,6 +262,18 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       // console.info('END TEST')
       // }
     })
+  }
+
+  observe(node: Element, component: IComponentTypeInstance) {
+    const observer = new MutationObserver((mutations) => {
+      log.func('observe')
+      log.gold(`Observing changes to a ${component.noodlType}`, {
+        component,
+        node,
+        mutations,
+      })
+    })
+    return observer
   }
 
   /**

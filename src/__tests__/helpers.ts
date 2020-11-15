@@ -70,3 +70,78 @@ export function getListComponent1({
     ...args,
   } as Partial<IComponentTypeObject>
 }
+
+export function getListItemWithEmit({
+  iteratorVar = 'itemObject',
+}: {
+  iteratorVar: string
+}) {
+  return {
+    type: 'listItem',
+    [iteratorVar]: '',
+    style: { top: '0.15', left: '0', width: '1' },
+    viewTag: 'pastMedicalHistoryTag',
+    children: [
+      {
+        type: 'image',
+        path: {
+          if: [
+            {
+              '.builtIn.object.has': [
+                { object: '..pmh' },
+                { key: `${iteratorVar}.key` },
+              ],
+            },
+            'selectOn.png',
+            'selectOff.png',
+          ],
+        },
+        onClick: [
+          {
+            emit: {
+              dataKey: {
+                var1: iteratorVar,
+              },
+              actions: [
+                {
+                  if: [
+                    {
+                      '.builtIn.object.has': [
+                        { object: '..pmh' },
+                        { key: 'var1.key' },
+                      ],
+                    },
+                    {
+                      '.builtIn.object.remove': [
+                        { object: '..pmh' },
+                        { key: 'var1.key' },
+                      ],
+                    },
+                    {
+                      '.builtIn.object.set': [
+                        { object: '..pmh' },
+                        { key: 'var1.key' },
+                        { value: 'var1.value' },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+          {
+            actionType: 'builtIn',
+            funcName: 'redraw',
+            viewTag: 'pastMedicalHistoryTag',
+          },
+        ],
+        style: { left: '0.15' },
+      },
+      {
+        type: 'label',
+        text: 'itemObject.value',
+        style: { top: '0', left: '0.25', fontSize: '13' },
+      },
+    ],
+  }
+}

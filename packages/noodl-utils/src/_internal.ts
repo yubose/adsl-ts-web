@@ -1,5 +1,3 @@
-import { isPlainObject } from 'lodash'
-
 export const callAll = (...fns: Function[]) => (...args: any[]) =>
   fns.forEach((fn) => fn && fn(...args))
 export const isArr = (v: any): v is any[] => Array.isArray(v)

@@ -1,5 +1,5 @@
-import { AbortExecuteError } from './errors'
 import { Draft } from 'immer'
+import { AbortExecuteError } from './errors'
 import Viewport from './Viewport'
 import {
   actionTypes,
@@ -11,8 +11,8 @@ import {
   eventTypes,
 } from './constants'
 
-export interface NOODLPage {
-  [pageName: string]: NOODLPageObject
+export interface NOODLPage<K extends string = string> {
+  [pageName: K]: NOODLPageObject
 }
 
 export interface NOODLPageObject {
@@ -25,6 +25,16 @@ export interface NOODLPageObject {
   pageNumber?: string
   [key: string]: any
 }
+
+
+
+
+
+
+
+
+
+
 
 export interface NOODLComponent {
   type?: NOODLComponentType
@@ -66,6 +76,10 @@ export interface NOODLPluginComponent extends NOODLComponent {
 export interface IfObject {
   if: [any, any, any]
 }
+
+
+
+
 
 /* -------------------------------------------------------
     ---- ACTIONS
@@ -275,8 +289,8 @@ export interface IComponent<K = NOODLComponentType> {
     value?: any,
     styleChanges?: any,
   ): this
-  setParent<K extends NOODLComponentType>(
-    parent: IComponentTypeInstance<K>,
+  setParent(
+    parent: IComponentTypeInstance,
   ): this
   setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
   snapshot(): (ProxiedComponent | NOODLComponentProps) & {
@@ -299,10 +313,8 @@ export type IComponentType =
   | IComponentTypeObject
   | NOODLComponentType
 
-export type IComponentTypeInstance<K = NOODLComponentType> = IComponent<
-  string
-> &
-  (IList | IListItem | IListItemChild)
+export type IComponentTypeInstance = IComponent<string> &
+  (IList | IListItem )
 
 export type IComponentTypeObject =
   | NOODLComponent
@@ -426,16 +438,6 @@ export interface IListItemRedrawedArgs {
   listItem: IListItem
 }
 
-export interface IListItemChild extends IComponent {
-  type: any
-  iteratorVar: string
-  listId: string
-  isListConsumer: boolean
-  createChild(
-    ...args: Parameters<IComponent['createChild']>
-  ): IListItemChild | undefined
-}
-
 export interface IResolver {
   internal: boolean
   setResolver(resolver: ResolverFn): this
@@ -447,13 +449,16 @@ export interface IResolver {
 -------------------------------------------------------- */
 
 export type IActionChainConstructorArgs<
-  ActionObjects extends IActionObject[]
-> = [actions: ActionObjects, opts: { component: IComponentTypeInstance }]
+  ActionObjects extends IActionObject[],
+  C extends IComponentTypeInstance
+> = [actions: ActionObjects, opts: { component: C }]
 
 export interface IActionChain<
-  ActionObjects extends IActionObject[] = IActionObject[]
+  ActionObjects extends IActionObject[] = any[]
+  C extends IComponentTypeInstance = any
 > {
   actions: IAction<ActionObjects[number]>[]
+  component: C
   intermediary: IAction<ActionObjects[number]>[]
   current: { action: IAction<ActionObjects[number]> | undefined; index: number }
   fns: {
@@ -481,8 +486,8 @@ export interface IActionChain<
   // onChainError?: LifeCycleListeners['onChainError']
   // onChainAborted?: LifeCycleListeners['onChainAborted']
   // onAfterResolve?: LifeCycleListeners['onAfterResolve']
-  useAction(action: IActionChainUseObject<ActionObjects[number]>): this
-  useAction(action: IActionChainUseObject<ActionObjects[number]>[]): this
+  useAction(action: IActionChainUseObject): this
+  useAction(action: IActionChainUseObject[]): this
   useBuiltIn(
     action: IActionChainUseBuiltInObject | IActionChainUseBuiltInObject[],
   ): this
@@ -493,8 +498,8 @@ export interface IActionChainBuildOptions {
   trigger: NOODLActionTriggerType
 }
 
-export type IActionChainUseObject<A> =
-  | IActionChainUseObjectBase<A>
+export type IActionChainUseObject =
+  | IActionChainUseObjectBase<any>
   | IActionChainUseBuiltInObject
 
 export interface IActionChainUseObjectBase<A extends BaseActionObject> {
@@ -617,7 +622,7 @@ export interface ActionChainSnapshot<Actions extends any[]> {
   currentAction: Actions[number]
   original: IActionObject[]
   queue: Actions
-  status: IActionChain['status']
+  status: IActionChain<Actions, IComponentTypeInstance>['status']
 }
 
 export interface ActionChainCallbackOptions<Actions extends any[] = any[]> {
@@ -771,7 +776,7 @@ export interface ResolveComponent<T = any> {
 }
 
 export type ResolverFn<T extends NOODLComponentType = NOODLComponentType> = ((
-  component: IComponentTypeInstance<T>,
+  component: IComponentTypeInstance,
   resolverConsumerOptions: ConsumerOptions,
 ) => void) & {
   getChildren?: Function
@@ -860,7 +865,7 @@ export interface BaseActionObject {
 
 export interface AnonymousActionObject extends BaseActionObject {
   actionType: 'anonymous'
-  func?: Function
+  fn?: Function
 }
 
 export interface BuiltInActionObject extends BaseActionObject {
@@ -869,8 +874,10 @@ export interface BuiltInActionObject extends BaseActionObject {
 }
 
 export interface EmitActionObject extends BaseActionObject {
-  actions: [any, any, any]
+  emit: {
+    actions: [any, any, any]
   dataKey: string | { [key: string]: string }
+  }
 }
 
 export interface EvalActionObject extends BaseActionObject {
@@ -1072,3 +1079,7 @@ export interface IViewportListener {
     },
   ): Promise<any> | any
 }
+
+
+
+

@@ -6,6 +6,5 @@
     "@babel/plugin-proposal-private-methods",
     "@babel/proposal-object-rest-spread",
     "@babel/plugin-transform-runtime"
-  ],
-  "sourceMaps": true
+  ]
 }

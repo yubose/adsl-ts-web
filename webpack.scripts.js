@@ -10,6 +10,7 @@ const presets = ['@babel/preset-env']
 const plugins = [
   new webpack.WatchIgnorePlugin([/\.js$/, /\.json$/, /\.d\.ts$/, /compiled/]),
 ]
+let target = 'node'
 
 if (process.env.FILE === 'mockWebpage.ts') {
   devServer = {
@@ -27,17 +28,18 @@ if (process.env.FILE === 'mockWebpage.ts') {
   plugins.push(
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      title: 'Mock/testing',
+      title: 'Mock - testing',
       favicon: 'favicon.ico',
-      cache: true,
+      // cache: true,
       minify: false,
     }),
   )
+  target = 'web'
 }
 
 module.exports = {
   entry: path.join(baseDir, entry),
-  target: 'node',
+  target,
   devServer,
   devtool: 'inline-source-map',
   mode: 'development',
@@ -49,15 +51,15 @@ module.exports = {
         use: [
           {
             loader: 'babel-loader',
-            // options: {
-            //   presets,
-            //   plugins: [
-            //     'lodash',
-            //     '@babel/plugin-transform-runtime',
-            //     ['@babel/plugin-proposal-class-properties', { loose: true }],
-            //     ['@babel/plugin-proposal-private-methods', { loose: true }],
-            //   ],
-            // },
+            options: {
+              presets,
+              plugins: [
+                'lodash',
+                '@babel/plugin-transform-runtime',
+                ['@babel/plugin-proposal-class-properties', { loose: true }],
+                ['@babel/plugin-proposal-private-methods', { loose: true }],
+              ],
+            },
           },
           {
             loader: 'ts-loader',

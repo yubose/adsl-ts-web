@@ -1,9 +1,7 @@
+// @ts-nocheck
 import _ from 'lodash'
-import path from 'path'
-import fs from 'fs-extra'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import { event } from '../constants'
 import { forEachDeepChildren } from '../utils/noodl'
 import { mock } from './mockData'
@@ -43,17 +41,16 @@ describe('List', () => {
 
     it('should definitely copy the type, contentType, style, and listId properties over from the list item placeholder', () => {
       const noodlComponent = mock.raw.getNOODLList()
-      const parent = noodlui.resolveComponents({
+      const { component: parent } = toDOM({
         type: 'view',
         children: [noodlComponent],
       })
-      const listItemComponent = noodlComponent.children[0]
       const component = parent.child() as IList
+      const noodlListItem = noodlComponent.children[0]
       const blueprint = component.getBlueprint()
-      expect(blueprint.type).to.equal(listItemComponent.type)
-      expect(blueprint.contentType).to.equal(listItemComponent.contentType)
-      expect(blueprint.style).to.deep.equal(listItemComponent.style)
-      expect(blueprint.id).to.deep.equal(listItemComponent.id)
+      expect(blueprint.type).to.equal(noodlListItem.type)
+      expect(blueprint.contentType).to.equal(noodlListItem.contentType)
+      expect(blueprint.id).to.exist
     })
 
     it('should include the same amount of children as the listitem placeholder component did', () => {
@@ -190,10 +187,10 @@ describe('List', () => {
   })
 
   describe('when working with the DOM', () => {
-    it('should start with no children if listObject is empty', () => {
+    it('should start with no children', () => {
       const { component, node } = toDOM({
         type: 'list',
-        listObject: [],
+        listObject: [{}, {}, {}],
         iteratorVar: 'hello',
         children: [{ type: 'listItem' }],
       })
@@ -218,15 +215,9 @@ describe('List', () => {
         ],
       })
 
-      const component = parent.child()
+      const component = parent.child() as IList
       const ul = document.createElement('ul')
       node.appendChild(ul)
-
-      _.forEach(component.children(), (c) => {
-        const li = document.createElement('li')
-        li.textContent += c.getDataObject?.()?.fruits[0]
-        ul.appendChild(li)
-      })
 
       component.on(event.component.list.CREATE_LIST_ITEM, (result) => {
         const { listItem } = result
@@ -235,14 +226,24 @@ describe('List', () => {
         ul.appendChild(li)
       })
 
-      const listElem = document.querySelector('ul')
-      expect(listElem?.childNodes).to.have.lengthOf(3)
+      expect(ul.children).to.have.lengthOf(0)
+
+      const data = component.getData()
+
+      // List components delegates us to call the shots on how to render the data
+      component.set('listObject', [])
+
+      _.forEach(data, (dataObject) => {
+        component.addDataObject(dataObject)
+      })
+
+      expect(ul.children).to.have.lengthOf(3)
       component?.addDataObject({ fruits: ['pear'] })
-      expect(listElem?.childNodes).to.have.lengthOf(4)
-      expect(listElem?.childNodes[0].textContent).to.equal('apple')
-      expect(listElem?.childNodes[1].textContent).to.equal('banana')
-      expect(listElem?.childNodes[2].textContent).to.equal('orange')
-      expect(listElem?.childNodes[3].textContent).to.equal('pear')
+      expect(ul.children).to.have.lengthOf(4)
+      expect(ul.children[0]?.textContent).to.equal('apple')
+      expect(ul.children[1]?.textContent).to.equal('banana')
+      expect(ul.children[2]?.textContent).to.equal('orange')
+      expect(ul.children[3]?.textContent).to.equal('pear')
     })
 
     it(
@@ -265,24 +266,33 @@ describe('List', () => {
           ],
         })
 
-        const component = parent.child()
+        const component = parent.child() as IList
+        const ul = document.createElement('ul')
+        node.appendChild(ul)
 
-        _.forEach(component.children(), (c) => {
+        const data = component.getData()
+        component.set('listObject', [])
+
+        component.on(event.component.list.CREATE_LIST_ITEM, (result) => {
           const li = document.createElement('li')
-          li.id = c.id
-          li.textContent += c.getDataObject()?.fruits[0]
-          node.appendChild(li)
+          li.id = result.listItem.id
+          li.textContent += result.listItem.getDataObject()?.fruits[0]
+          ul.appendChild(li)
+        })
+
+        _.forEach(data, (dataObject) => {
+          component.addDataObject(dataObject)
         })
 
         component.on(event.component.list.REMOVE_LIST_ITEM, (result) => {
           const { listItem } = result
-          const li = document.getElementById(listItem.id) as HTMLLIElement
-          node.removeChild(li)
+          const li = document.getElementById(listItem?.id) as HTMLLIElement
+          ul.removeChild(li)
         })
 
-        const listItemElems = document.querySelectorAll('li')
+        expect(ul.children).to.have.lengthOf(3)
         component?.removeDataObject(1)
-        expect(listItemElems).to.have.lengthOf(3)
+        expect(ul.children).to.have.lengthOf(2)
       },
     )
 

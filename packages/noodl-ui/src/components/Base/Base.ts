@@ -182,7 +182,7 @@ class Component implements IComponent {
       }
     } else {
       if (key === 'type') this.#component['type'] = value
-      else if (value) {
+      else {
         this.#component[key as K] = value
         if (this.status !== 'drafting') this.#setHandledKey(key as string)
       }

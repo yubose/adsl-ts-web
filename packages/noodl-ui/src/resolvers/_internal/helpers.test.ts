@@ -4,7 +4,7 @@ import { findChild } from 'noodl-utils'
 import { noodlui } from '../../utils/test-utils'
 import { forEachDeepChildren, getDataObjectValue } from '../../utils/noodl'
 import { _resolveChildren } from './helpers'
-import { IList } from 'types'
+import { IList } from '../../types'
 
 describe('helpers', () => {
   describe('_resolveChildren', () => {

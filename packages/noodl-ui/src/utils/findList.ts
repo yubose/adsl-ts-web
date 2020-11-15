@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import { findChild, findParent } from 'noodl-utils'
 import { IComponent, IList, IComponentTypeInstance } from '../types'
-import ListComponent from '../components/List/List'
-import ListItemComponent from '../components/ListItem/ListItem'
-import Component from '../components/Base/Base'
+import ListComponent from '../components/List'
+import ListItemComponent from '../components/ListItem'
+import Component from '../components/Base'
 
 /**
  * Uses the value given to find a list corresponding to its relation.

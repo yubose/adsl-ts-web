@@ -1,14 +1,22 @@
 import { expect } from 'chai'
+import chalk from 'chalk'
 import sinon from 'sinon'
+import { noodlui } from '../utils/test-utils'
 import makeRootsParser from '../factories/makeRootsParser'
-import ActionChain from '../ActionChain/ActionChain'
+import ActionChain from '../ActionChain'
 import Action from '../Action'
 import {
   UpdateActionObject,
   PageJumpActionObject,
   PopupDismissActionObject,
   IAction,
+  IComponentTypeInstance,
+  ResolverContext,
+  IList,
+  IListItem,
 } from '../types'
+import List from '../components/List'
+import * as helpers from './helpers'
 
 const parser = makeRootsParser({ roots: {} })
 
@@ -35,30 +43,18 @@ let actions: [
   PageJumpActionObject,
 ]
 
-let actionChain: ActionChain<string>
+let actionChain: ActionChain<any[], IComponentTypeInstance>
 
 beforeEach(() => {
   actions = [popUpDismissAction, updateObjectAction, pageJumpAction]
-  actionChain = new ActionChain(actions)
+  actionChain = new ActionChain(actions, {} as any)
 })
 
 describe('ActionChain', () => {
-  describe('when instantiating', () => {
-    it('should start with a status of null', () => {
-      const actionChain = new ActionChain([pageJumpAction])
-      expect(actionChain.status).to.be.null
-    })
-
-    it('should start with current as undefined', () => {
-      const actionChain = new ActionChain([pageJumpAction])
-      expect(actionChain.current).to.be.undefined
-    })
-  })
-
   describe('when adding actions', () => {
     it('should set the builtIns either by using a single object or an array', () => {
       const mockBuiltInFn = sinon.spy()
-      actionChain = new ActionChain(actions)
+      actionChain = new ActionChain(actions, {} as any)
       expect(actionChain.fns.builtIn).not.to.have.property('hello')
       expect(actionChain.fns.builtIn).not.to.have.property('hi')
       expect(actionChain.fns.builtIn).not.to.have.property('monster')
@@ -89,7 +85,7 @@ describe('ActionChain', () => {
     })
 
     it('should set the actions', () => {
-      const actionChain = new ActionChain(actions)
+      const actionChain = new ActionChain(actions, {} as any)
       const popup = sinon.spy()
       const update = sinon.spy()
       const popupObj = { actionType: 'popUp', fn: [popup] }
@@ -117,7 +113,7 @@ describe('ActionChain', () => {
     )
   })
 
-  describe('when creating action instances', () => {
+  describe('when creating actions', () => {
     it('should return an action instance when registering builtIn objects', () => {
       expect(
         actionChain.createAction({ actionType: 'builtIn', funcName: 'hello' }),
@@ -143,10 +139,10 @@ describe('ActionChain', () => {
       'should call the builtIn funcs that were registered by their funcName ' +
         'when being run',
       async () => {
-        const actionChain = new ActionChain([
-          ...actions,
-          { actionType: 'builtIn', funcName: 'red' },
-        ])
+        const actionChain = new ActionChain(
+          [...actions, { actionType: 'builtIn', funcName: 'red' }],
+          {} as any,
+        )
         const spy = sinon.spy()
         actionChain.useBuiltIn({ funcName: 'red', fn: spy })
         const func = actionChain.build({} as any)
@@ -159,7 +155,7 @@ describe('ActionChain', () => {
       'should call the non-builtIn funcs that were registered by actionType ' +
         'when being run',
       async () => {
-        const actionChain = new ActionChain(actions)
+        const actionChain = new ActionChain(actions, {} as any)
         const spy = sinon.spy()
         actionChain.useAction({ actionType: 'popUpDismiss', fn: spy })
         const func = actionChain.build({} as any)
@@ -167,10 +163,42 @@ describe('ActionChain', () => {
         expect(spy.called).to.be.true
       },
     )
+
+    it('should pass in the anonymous func into the anonymous action callback', async () => {
+      const spy = sinon.spy()
+      const component = new List() as IComponentTypeInstance
+      const actionChain = new ActionChain(
+        [pageJumpAction, { actionType: 'anonymous', fn: spy }],
+        { component },
+      )
+      const execute = actionChain.build({ trigger: 'onClick' } as any)
+      await execute()
+      expect(spy.firstCall.args[0].original)
+        .to.have.property('fn')
+        .that.is.a('function')
+    })
+
+    it('should receive the component in callback options', async () => {
+      const spy = sinon.spy()
+      const component = new List() as IComponentTypeInstance
+      const actionChain = new ActionChain(
+        [{ actionType: 'anonymous', fn: spy }],
+        { component },
+      )
+      const execute = actionChain.build({
+        context: {} as ResolverContext,
+        trigger: 'onClick',
+      })
+      await execute({})
+      expect(spy.called).to.be.true
+      expect(spy.firstCall.args[1])
+        .to.have.property('component')
+        .that.is.equal(component)
+    })
   })
 
   it('should update the "status" property when starting the action chain', () => {
-    const actionChain = new ActionChain([pageJumpAction])
+    const actionChain = new ActionChain([pageJumpAction], {} as any)
     const btn = document.createElement('button')
     btn.addEventListener('click', async (args) => {
       const fn = actionChain.build({ parser } as any)
@@ -205,10 +233,7 @@ describe('ActionChain', () => {
   xit('calling abort should reset the queue', () => {
     const actionChain = new ActionChain(
       [pageJumpAction, popUpDismissAction, updateObjectAction],
-      {
-        pageJump: (action) => null,
-        //
-      },
+      {} as any,
     )
   })
 
@@ -216,7 +241,18 @@ describe('ActionChain', () => {
     //
   })
 
-  describe("calling an action's 'execute' method", () => {
+  describe("when calling an action's 'execute' method", () => {
+    it('should pass the component instance to args', async () => {
+      const spy = sinon.spy()
+      noodlui.use({ actionType: 'anonymous', fn: spy })
+      const component = new List()
+      const actionChain = new ActionChain([spy], { component })
+      await actionChain.build({} as any)({} as any)
+      expect(spy.firstCall.args[1])
+        .to.have.property('component')
+        .that.is.eq(component)
+    })
+
     describe('if the caller returned a string', () => {
       //
     })
@@ -239,35 +275,101 @@ describe('ActionChain', () => {
       //
     })
 
-    xit('should add the result of execute to its history', () => {
-      //
+    describe('when executing emit actions', () => {
+      it('should pass iteratorVar, listItem, and dataObject to args', async () => {
+        const spy = sinon.spy()
+        const listObject = [
+          { key: 'Gender', value: '' },
+          { key: 'Gender', value: 'Male' },
+          { key: 'Gender', value: 'Female' },
+        ]
+        const iteratorVar = 'hello'
+        const viewTag = 'pastMedicalHistoryTag'
+        const onClick = [
+          helpers.getEmitObject({ iteratorVar }),
+          helpers.getRedrawBuiltInObject({ viewTag }),
+        ] as any
+
+        noodlui.use([{ actionType: 'emit', fn: spy }])
+
+        const { components } = helpers.createPage((arg) => ({
+          SignIn: {
+            components: [
+              {
+                type: 'view',
+                children: [
+                  {
+                    type: 'list',
+                    listObject,
+                    iteratorVar,
+                    contentType: 'list',
+                    children: [
+                      {
+                        type: 'listItem',
+                        [iteratorVar]: '',
+                        viewTag,
+                        children: [
+                          helpers.createImageComponent({
+                            path: helpers.createIfObject(
+                              {
+                                '.builtIn.object.has': [
+                                  { object: '..formData' },
+                                  { key: `${iteratorVar}.key` },
+                                ],
+                              },
+                              'selectOn.png',
+                              'selectOff.png',
+                            ),
+                            onClick,
+                          }),
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }))
+        const view = components[0]
+        const list = view.child() as IList
+        const listData = list.getData()
+        list.set('listObject', [])
+        listData.forEach((d) => list.addDataObject(d))
+        const listItem = list.child() as IListItem
+        const image = listItem?.child() as IComponentTypeInstance
+        const actionChain = new ActionChain(onClick, { component: image })
+        image.get('onClick')({})
+        const execute = actionChain.build({ trigger: 'onClick' } as any)
+        await execute({})
+        const args = spy.firstCall?.args[1] || {}
+        // console.info('listData', listData)
+        // console.info('dataObject', args.dataObject)
+        // console.info('dataObject from listItem', args.listItem.getDataObject())
+        // console.info('image', image.toJS())
+        expect(args).to.have.property('iteratorVar', iteratorVar)
+        expect(args).to.have.property('listItem')
+        expect(args).to.have.property('dataObject')
+        expect(args).to.have.property('dataObject')
+        expect(listItem.getDataObject()).to.eq(image.get('dataObject'))
+      })
     })
   })
 
   describe('when action chains finish', () => {
     it('should refresh after done running', async () => {
       const spy = sinon.spy()
-      const actionChain = new ActionChain([pageJumpAction])
+      const actionChain = new ActionChain([pageJumpAction], {} as any)
       const onClick = actionChain
         .useAction([{ actionType: 'pageJump', fn: spy }])
         .build({} as any)
-      await onClick()
+      await onClick({})
       const refreshedAction = actionChain.actions?.[0] as IAction
       const refreshedQueue = actionChain.getQueue()
       expect(refreshedAction.status).to.be.null
       expect(refreshedQueue).to.have.lengthOf(1)
       expect(refreshedQueue[0].status).to.be.null
       // expect(refreshedQueue[0].).to.
-    })
-  })
-
-  describe('"if" conditions', () => {
-    xit('should return item 2 if truthy', () => {
-      actionChain = new ActionChain([pageJumpAction])
-    })
-
-    xit('should return item 3 if falsey', () => {
-      //
     })
   })
 })

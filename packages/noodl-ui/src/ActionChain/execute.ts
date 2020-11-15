@@ -5,7 +5,6 @@ import {
   IAction,
   IActionChain,
   IActionChainBuildOptions,
-  IActionObject,
 } from '../types'
 
 const log = Logger.create('execute [ActionChain]')
@@ -29,13 +28,13 @@ export const createActionChainGenerator = function (queue: IAction[]) {
 
 export const createExecute = function (
   opts: IActionChainBuildOptions & {
-    abort: IActionChain['abort']
+    abort: IActionChain<any, any>
     executor: ReturnType<ReturnType<typeof createActionChainGenerator>>
     next(
       args?: any,
     ): Promise<
       | IteratorYieldResult<{
-          action: IAction<string, IActionObject>
+          action: IAction
           results: any[]
         }>
       | undefined
@@ -65,7 +64,7 @@ export const createExecute = function (
       trigger,
     } = opts
 
-    async function executeActions(...args: any[]) {
+    async function executeActions(args: any[]) {
       try {
         onStart?.()
 

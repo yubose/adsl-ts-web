@@ -16,7 +16,7 @@ const htmlPluginOptions = {
   title: 'AiTmed Noodl Web',
   favicon: 'favicon.ico',
   // template: 'public/index.html',
-  cache: true,
+  // cache: true,
   // scriptLoading: 'defer',
   minify: false,
 }

@@ -33,15 +33,17 @@ const handleListInternalResolver = (
   component.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
-    const listItem = resolveComponent(
-      component.createChild(createComponent(component.getBlueprint())),
+    const listItem = component.createChild(
+      createComponent(component.getBlueprint()),
     ) as IListItem
 
-    log.gold('ADD_DATA_OBJECT', { listItem, ...result })
+    console.info('ADD_DATA_OBJECT', { listItem, ...result })
 
     if (listItem) {
-      listItem.set('listIndex', result.index)
       listItem.setDataObject?.(result.dataObject)
+      listItem.set('listIndex', result.index)
+      resolveComponent(listItem)
+
       // TODO - Decide to keep component implementation
       // component.#items[listItem.id] = { dataObject: result.dataObject, listItem }
       const logArgs = { ...result, listItem }
@@ -49,6 +51,10 @@ const handleListInternalResolver = (
 
       _resolveChildren(listItem, {
         onResolve: (c) => {
+          c.set('listIndex', result.index)
+          if (c.get('iteratorVar') === commonProps.iteratorVar) {
+            c.set('dataObject', result.dataObject)
+          }
           _internalResolver.resolve(c, {
             ...options,
             resolveComponent,
@@ -88,7 +94,7 @@ const handleListInternalResolver = (
 
     listItem.on(event.component.listItem.REDRAW, ({ props }) => {
       log.func('redraw')
-      log.grey(`Redrawing listItem`, { props, listItem })
+      console.info(`Redrawing listItem`, { props, listItem })
       if (props) {
         forEachDeepChildren(listItem, (child) => {
           forEachEntries(props, (k, v) => child.set(k, v))

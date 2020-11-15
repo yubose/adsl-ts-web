@@ -64,6 +64,7 @@ class List extends Component implements IList {
     this.set('listId', getRandomKey())
     this.set('listObject', this.get('listObject') || [])
     this.set('iteratorVar', this.get('iteratorVar') || '')
+    this.#children = []
   }
 
   get iteratorVar() {

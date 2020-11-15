@@ -37,14 +37,14 @@ const config = {
       rollupCommonJSResolveHack: true,
       check: false,
       abortOnError: false,
-      clean: true,
+      // clean: true,
     }),
     babel({
       babelHelpers: 'runtime',
-      include: ['src/**/*'],
+      include: ['src'],
       exclude: ['node_modules'],
       extensions,
-      sourceMaps: true,
+      // sourceMaps: true,
     }),
     // Env var set by root lerna repo
     // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),

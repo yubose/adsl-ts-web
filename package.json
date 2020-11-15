@@ -179,24 +179,5 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
-  },
-  "nyc": {
-    "cache": true,
-    "extension": [
-      ".ts"
-    ],
-    "check-coverage": true,
-    "include": [],
-    "reporter": [
-      "lcov",
-      "text"
-    ],
-    "require": [
-      "@babel/register"
-    ],
-    "statements": 90,
-    "branches": 90,
-    "functions": 95,
-    "lines": 90
   }
 }

@@ -4,11 +4,14 @@ import Action from '../Action'
 import { AbortExecuteError } from '../errors'
 import { createExecute, createActionChainGenerator } from './execute'
 import * as T from '../types'
+import { findParent } from 'noodl-utils'
 
 const log = Logger.create('ActionChain')
 
-class ActionChain<ActionObjects extends T.IActionObject[]>
-  implements T.IActionChain {
+class ActionChain<
+  ActionObjects extends T.IActionObject[],
+  C extends T.IComponentTypeInstance
+> implements T.IActionChain<ActionObjects, C> {
   #current: T.IAction | undefined
   #original: T.IActionObject[]
   #gen: AsyncGenerator<{
@@ -17,14 +20,14 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
   }>
   #queue: T.IAction[] = []
   actions: T.IAction[] = []
-  fns: T.IActionChain['fns'] = { action: {}, builtIn: {} }
-  intermediary: T.IAction[] = []
+  component: C
   current: {
     action: T.IAction | undefined
     index: number
   }
+  fns: T.IActionChain['fns'] = { action: {}, builtIn: {} }
+  intermediary: T.IAction[] = []
   status: T.IActionChain['status'] = null
-  _component: T.IComponentTypeInstance
   // onBuiltinMissing?: T.LifeCycleListeners['onBuiltinMissing']
   // onChainStart?: T.LifeCycleListeners['onChainStart']
   // onChainEnd?: T.LifeCycleListeners['onChainEnd']
@@ -33,30 +36,25 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
   // onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
 
   constructor(
-    actions: T.IActionChainConstructorArgs<ActionObjects>[0],
-    { component }: T.IActionChainConstructorArgs<ActionObjects>[1],
+    actions: T.IActionChainConstructorArgs<ActionObjects, C>[0],
+    { component }: T.IActionChainConstructorArgs<ActionObjects, C>[1],
   ) {
     this.#original = actions || []
-    this['_component'] = component
+    this['component'] = component
   }
 
-  useAction(action: T.IActionChainUseObject<ActionObjects[number]>): this
-  useAction(action: T.IActionChainUseObject<ActionObjects[number]>[]): this
-  useAction(
-    action:
-      | T.IActionChainUseObject<ActionObjects[number]>
-      | T.IActionChainUseObject<ActionObjects[number]>[],
-  ) {
-    const actions = _.isArray(action) ? action : [action]
+  useAction(action: T.IActionChainUseObject): this
+  useAction(action: T.IActionChainUseObject[]): this
+  useAction(action: T.IActionChainUseObject | T.IActionChainUseObject[]) {
     // Built in actions are forwarded to this.useBuiltIn
-    _.forEach(actions, (a) => {
+    _.forEach(_.isArray(action) ? action : [action], (a) => {
       if ('funcName' in a) return void this.useBuiltIn(a)
 
       const actionsList = (this.fns.action[a.actionType] ||
         []) as T.ActionChainActionCallback<ActionObjects>[]
 
       this.fns.action[a.actionType] = actionsList.concat(
-        _.isArray(a.fn) ? a.fn : [a.fn],
+        _.isArray(a.fn) ? a.fn : ([a.fn] as any),
       )
     })
     return this
@@ -89,14 +87,19 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
       timeoutDelay: 8000,
     })
 
-    const runFns = async (
-      args: Parameters<T.ActionChainActionCallback<ActionObjects>>,
-      fns: T.ActionChainActionCallback<ActionObjects>[],
-    ) => {
+    const runFns = async ({
+      fns,
+      instance,
+      options,
+    }: {
+      fns: T.ActionChainActionCallback<ActionObjects>[]
+      instance: ActionObjects[number]
+      options: Parameters<T.ActionChainActionCallback<ActionObjects>>
+    }) => {
       const numFuncs = fns.length
       for (let index = 0; index < numFuncs; index++) {
         const fn = fns[index]
-        const result = await fn(...args)
+        const result = await fn(instance, options)
         // TODO - Do a better way to identify the action
         if ((result || ({} as A)).actionType) {
           // We may get an action object returned back like from
@@ -113,27 +116,65 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
       }
     }
 
+    let conditionalCallbackArgs = {} as any
     let fns: any[]
     let result: any
 
+    if (
+      this.component?.iteratorVar ||
+      this.component?.get('iteratorVar') ||
+      obj.actionType === 'emit'
+    ) {
+      // Assuming this is either a listItem or a listItem dataObject consumer
+      // in which they will most likely need some data object. We can provide
+      // them some more convenience by providing additional useful args to assist
+      const listItem = findParent(
+        this.component,
+        (p) => p?.noodlType === 'listItem',
+      ) as T.IListItem
+
+      if (listItem) {
+        conditionalCallbackArgs['dataObject'] = listItem.getDataObject()
+        conditionalCallbackArgs['listItem'] = listItem
+        conditionalCallbackArgs['iteratorVar'] = listItem.iteratorVar
+      } else {
+        conditionalCallbackArgs['iteratorVar'] =
+          this.component.iteratorVar || this.component.get('iteratorVar')
+        log.func('createAction [callback]')
+        log.red(
+          `Could not find a listItem parent for a component expecting a dataObject. ` +
+            `It will most likely not be available when the emit call is run`,
+          {
+            action,
+            actionObject: obj,
+            component: this.component,
+            originalAction: obj,
+          },
+        )
+      }
+    }
+
     action['callback'] = async (
-      ...args: Parameters<T.ActionChainActionCallback<ActionObjects[number]>>
+      instance: Parameters<
+        T.ActionChainActionCallback<ActionObjects[number]>
+      >[0],
+      options: Parameters<
+        T.ActionChainActionCallback<ActionObjects[number]>
+      >[1],
     ) => {
+      const callbackArgs = { ...options, ...conditionalCallbackArgs }
       if (action.actionType === 'anonymous') {
         if ('fn' in action.original) {
-          result = await action.original.fn(...args)
+          result = await action.original.fn(instance, callbackArgs)
         }
       } else {
         if (action.actionType === 'builtIn') {
-          fns =
-            this.fns.builtIn[
-              (action?.original as T.IActionChainUseBuiltInObject)?.funcName
-            ] || []
+          fns = this.fns.builtIn[action?.original?.funcName] || []
         } else {
           fns = this.fns.action[action.actionType] || []
         }
         if (!fns) return result
-        result = await runFns(args, fns)
+        result = await runFns({ fns, instance, options: callbackArgs })
       }
       return result
     }
@@ -163,16 +204,16 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
           let action: T.IAction<ActionObjects[number]> | undefined
 
           if (_.isFunction(actionObj)) {
-            log.red(
-              `Encountered an action object that is not an object type. You will` +
-                `need to register an "anonymous" action as an actionType if you want to ` +
-                `handle anonymous functions`,
-              { received: actionObj, component: this._component },
-            )
-            // TODO - args type
+            if (!this.fns.action.anonymous?.length) {
+              log.red(
+                `Encountered an action object that is not an object type. You will` +
+                  `need to register an "anonymous" action as an actionType if you want to ` +
+                  `handle anonymous functions`,
+                { received: actionObj, component: this.component },
+              )
+            }
             action = this.createAction({
               actionType: 'anonymous',
-              component: this._component,
               fn: actionObj,
             })
           }
@@ -180,9 +221,15 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
           // for now until we find a better solution
           else {
             if ('emit' in actionObj) {
-              actionObj = { ...actionObj, actionType: 'emit' } as any
+              actionObj = {
+                ...actionObj,
+                actionType: 'emit',
+              } as T.EmitActionObject
             } else if ('goto' in actionObj) {
-              actionObj = { ...actionObj, actionType: 'goto' } as any
+              actionObj = {
+                ...actionObj,
+                actionType: 'goto',
+              } as T.GotoActionObject
             }
             action = this.createAction(actionObj)
           }
@@ -191,7 +238,7 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
             log.grey(`Loaded "${action.actionType}" action into the queue`, {
               action: action.getSnapshot(),
               instance: action,
-              component: this._component,
+              component: this.component,
             })
             return acc.concat(action)
           }
@@ -209,7 +256,7 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
 
     const execute = async (
       action: T.IAction,
-      handlerOptions: T.ActionChainActionCallbackOptions<ActionObjects>,
+      handlerOptions: T.ActionChainActionCallbackOptions,
     ) => {
       try {
         if (timeoutRef) clearTimeout(timeoutRef)
@@ -234,6 +281,7 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
         loadQueue()
         return createExecute({
           abort: this.abort.bind(this),
+          component: this.component,
           executor: this.#gen,
           next: this.#next,
           queue: this.#queue,
@@ -283,6 +331,7 @@ class ActionChain<ActionObjects extends T.IActionObject[]>
     const { omit, include, ...rest } = options || {}
     const callbackOptions = {
       abort: this.abort.bind(this),
+      component: this.component,
       snapshot: this.getSnapshot(),
       ...rest,
       ...include,

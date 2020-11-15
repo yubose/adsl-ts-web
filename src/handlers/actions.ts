@@ -17,6 +17,7 @@ import {
   SaveActionObject,
   UpdateActionObject,
   IListItem,
+  AnonymousActionObject,
 } from 'noodl-ui'
 import { findParent } from 'noodl-utils'
 import Logger from 'logsnap'
@@ -34,33 +35,15 @@ const log = Logger.create('actions.ts')
 const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<NOODLActionType, ActionChainActionCallback<any>>
 
-  _actions.anonymous = async (action: Action<any>, options) => {
+  _actions.anonymous = async (
+    action: Action<AnonymousActionObject>,
+    options,
+  ) => {
     log.func('anonymous')
     log.grey('', { action, ...options })
-
-    const { default: noodl } = await import('../app/noodl')
-    // const { component } = options
-    const { component, fn } = action.original || {}
-    // Hard code the emit for now
-    if (component) {
-      if (component.noodlType !== 'listItem') {
-        const listItem = findParent(
-          component,
-          (p) => p.noodlType === 'listItem',
-        ) as IListItem
-        if (listItem) {
-          const dataObject = listItem.getDataObject?.()
-          log.func('createAction')
-          log.green(`Received dataObject for emit func`, {
-            component: component,
-            listItem,
-            dataObject,
-          })
-          noodl.emitCall(dataObject)
-          log.grey('Invoked emitCall with dataObject', dataObject)
-        }
-      }
-    }
+    const { component } = options
+    const { fn } = action.original || {}
+    if (component) fn?.()
   }
 
   _actions.emit = async (action: Action<EmitActionObject>, options) => {
