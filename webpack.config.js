@@ -16,8 +16,8 @@ const htmlPluginOptions = {
   title: 'AiTmed Noodl Web',
   favicon: 'favicon.ico',
   // template: 'public/index.html',
-  // cache: true,
-  // scriptLoading: 'defer',
+  cache: true,
+  scriptLoading: 'defer',
   minify: false,
 }
 
@@ -117,15 +117,15 @@ module.exports = {
         use: [
           {
             loader: 'babel-loader',
-            // options: {
-            //   presets: ['@babel/preset-env'],
-            //   plugins: [
-            //     'lodash',
-            //     '@babel/plugin-transform-runtime',
-            //     ['@babel/plugin-proposal-class-properties', { loose: true }],
-            //     ['@babel/plugin-proposal-private-methods', { loose: true }],
-            //   ],
-            // },
+            options: {
+              presets: ['@babel/preset-env'],
+              plugins: [
+                'lodash',
+                '@babel/plugin-transform-runtime',
+                ['@babel/plugin-proposal-class-properties', { loose: true }],
+                ['@babel/plugin-proposal-private-methods', { loose: true }],
+              ],
+            },
           },
           {
             loader: 'ts-loader',

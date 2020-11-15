@@ -3,6 +3,7 @@ import Logger from 'logsnap'
 import {
   event as noodluiEvent,
   eventTypes,
+  IComponentTypeInstance,
   IList,
   SelectOption,
 } from 'noodl-ui'
@@ -13,6 +14,48 @@ import createElement from '../utils/createElement'
 import noodluidom from '../app/noodl-ui-dom'
 
 const log = Logger.create('dom.ts')
+
+// export const setAttrOnProp = <K extends keyof IComponentTypeObject>(
+//   prop: K | K[],
+// ) => {
+//   const keys = _.isArray(prop) ? prop : [prop]
+//   return (attr: string) => {
+//     return function (node: Element, component: IComponentTypeInstance) {
+//       if (keys.length) {
+//         const props = component.get(keys)
+//         forEachEntries(props, (k, value) => {
+
+//         })
+//       }
+//     }
+//   }
+// }
+
+const setAttrsOnProps = (...keys: string[]) => {
+  const getProps = (component: IComponentTypeInstance) => {
+    const propKeys = _.keys(component.get(keys) || {})
+    const props = {} as { [key: string]: any }
+
+    while (propKeys.length) {
+      const prop = propKeys.pop()
+      if (component.has(prop)) {
+        props[prop] = component.get(prop)
+      }
+    }
+    return props
+  }
+
+  return (node: Element | null, component: IComponentTypeInstance) => {
+    if (node) {
+      const props = getProps(component)
+      Object.entries(props).forEach(
+        _.spread((key, value) => {
+          node.setAttribute(key, value)
+        }),
+      )
+    }
+  }
+}
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 // This event is called for all components
@@ -51,7 +94,6 @@ noodluidom.on('create.component', (node, component) => {
 
   if (id) {
     node['id'] = id
-    node.setAttribute('id', id)
   }
   if (placeholder) node.setAttribute('placeholder', placeholder)
   if (src && type !== 'video') node.setAttribute('src', src)

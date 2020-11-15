@@ -26,16 +26,6 @@ export interface NOODLPageObject {
   [key: string]: any
 }
 
-
-
-
-
-
-
-
-
-
-
 export interface NOODLComponent {
   type?: NOODLComponentType
   style?: NOODLStyle
@@ -76,10 +66,6 @@ export interface NOODLPluginComponent extends NOODLComponent {
 export interface IfObject {
   if: [any, any, any]
 }
-
-
-
-
 
 /* -------------------------------------------------------
     ---- ACTIONS
@@ -289,9 +275,7 @@ export interface IComponent<K = NOODLComponentType> {
     value?: any,
     styleChanges?: any,
   ): this
-  setParent(
-    parent: IComponentTypeInstance,
-  ): this
+  setParent(parent: IComponentTypeInstance): this
   setStyle<K extends keyof NOODLStyle>(styleKey: K, value: any): this
   snapshot(): (ProxiedComponent | NOODLComponentProps) & {
     _touched: string[]
@@ -313,8 +297,7 @@ export type IComponentType =
   | IComponentTypeObject
   | NOODLComponentType
 
-export type IComponentTypeInstance = IComponent<string> &
-  (IList | IListItem )
+export type IComponentTypeInstance = IComponent<string> & (IList | IListItem)
 
 export type IComponentTypeObject =
   | NOODLComponent
@@ -454,7 +437,7 @@ export type IActionChainConstructorArgs<
 > = [actions: ActionObjects, opts: { component: C }]
 
 export interface IActionChain<
-  ActionObjects extends IActionObject[] = any[]
+  ActionObjects extends IActionObject[] = any[],
   C extends IComponentTypeInstance = any
 > {
   actions: IAction<ActionObjects[number]>[]
@@ -876,7 +859,7 @@ export interface BuiltInActionObject extends BaseActionObject {
 export interface EmitActionObject extends BaseActionObject {
   emit: {
     actions: [any, any, any]
-  dataKey: string | { [key: string]: string }
+    dataKey: string | { [key: string]: string }
   }
 }
 
@@ -1079,7 +1062,3 @@ export interface IViewportListener {
     },
   ): Promise<any> | any
 }
-
-
-
-
