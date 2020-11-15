@@ -31,205 +31,193 @@ const log = Logger.create('dom.ts')
 //   }
 // }
 
-const setAttrsOnProps = (...keys: string[]) => {
-  const getProps = (component: IComponentTypeInstance) => {
-    const propKeys = _.keys(component.get(keys) || {})
-    const props = {} as { [key: string]: any }
+const setPropsDirectly = (
+  table: {
+    dataset?: string[]
+    values?: string[]
+    attributes?: string[]
+  } = {},
+) => (
+  cb: (node: HTMLElement | null, component: IComponentTypeInstance) => void,
+) => {
+  return (node: HTMLElement | null, component: IComponentTypeInstance) => {
+    if (node) {
+      /** Handle attributes */
+      if (_.isArray(table.attributes)) {
+        const attribs = component.get(table.attributes)
+        _.forEach(_.keys(attribs), (key) =>
+          node.setAttribute(key, attribs[key]),
+        )
+      }
 
-    while (propKeys.length) {
-      const prop = propKeys.pop()
-      if (component.has(prop)) {
-        props[prop] = component.get(prop)
+      /** Handle dataset assignments */
+      if (_.isArray(table.dataset)) {
+        const dataAttribs = component.get(table.dataset)
+        forEachEntries(dataAttribs, (key, value) => {
+          node.dataset[(key as string).replace('data-', '')] = value
+        })
+      }
+
+      // Handle direct assignments
+      if (_.isArray(table.values)) {
+        const attribs = component.get(table.values)
+        _.forEach(_.keys(attribs), (key) => (node[key] = attribs[key]))
       }
     }
-    return props
-  }
-
-  return (node: Element | null, component: IComponentTypeInstance) => {
-    if (node) {
-      const props = getProps(component)
-      Object.entries(props).forEach(
-        _.spread((key, value) => {
-          node.setAttribute(key, value)
-        }),
-      )
-    }
+    return cb(node, component)
   }
 }
 
-// TODO: Consider extending this to be better. We'll hard code this logic for now
-// This event is called for all components
-noodluidom.on('create.component', (node, component) => {
-  if (!node) return
-
-  const {
-    children,
-    options,
-    placeholder = '',
-    src,
-    text = '',
-    videoFormat = '',
-  } = component.get([
-    'children',
-    'options',
-    'placeholder',
-    'src',
-    'text',
-    'videoFormat',
-  ])
-
-  const { id, style, type } = component
-
-  // TODO reminder: Remove this listdata in the noodl-ui client
-  // const dataListData = component['data-listdata']
-
-  const datasetAttribs = component.get([
+const defaultPropTable = {
+  dataset: [
     'data-listid',
     'data-name',
     'data-key',
     'data-ux',
     'data-value',
     'data-viewtag',
-  ])
+  ],
+  values: ['id'],
+  attributes: ['placeholder', 'src'],
+}
 
-  if (id) {
-    node['id'] = id
-  }
-  if (placeholder) node.setAttribute('placeholder', placeholder)
-  if (src && type !== 'video') node.setAttribute('src', src)
+// TODO: Consider extending this to be better. We'll hard code this logic for now
+// This event is called for all components
+noodluidom.on(
+  'create.component',
+  setPropsDirectly(defaultPropTable)((node, component) => {
+    if (!node) return
 
-  /** Dataset identifiers */
-  if (datasetAttribs['data-listid'])
-    node.dataset['listid'] = datasetAttribs['data-listid']
-  if (datasetAttribs['data-name'])
-    node.dataset['name'] = datasetAttribs['data-name']
-  if (datasetAttribs['data-key'])
-    node.dataset['key'] = datasetAttribs['data-key']
-  if (datasetAttribs['data-ux']) node.dataset['ux'] = datasetAttribs['data-ux']
-  if (datasetAttribs['data-value']) {
-    node.dataset['value'] = datasetAttribs['data-value']
-    if ('value' in node) node.value = datasetAttribs['data-value']
-  }
-  if (datasetAttribs['data-viewtag']) {
-    node.dataset['viewtag'] = datasetAttribs['data-viewtag']
-  }
+    const {
+      children,
+      options,
+      placeholder = '',
+      src,
+      text = '',
+    } = component.get(['children', 'options', 'text', 'videoFormat'])
 
-  /** Data values */
-  if (isTextFieldLike(node)) {
-    node['value'] = datasetAttribs['data-value'] || ''
-    if (node.tagName === 'SELECT') {
-      if ((node as HTMLSelectElement).length) {
-        // Put the default value to the first option in the list
-        ;(node as HTMLSelectElement)['selectedIndex'] = 0
-      }
-    } else {
-      node.dataset['value'] = node.value || ''
+    const { style, type } = component
+
+    // TODO reminder: Remove this listdata in the noodl-ui client
+
+    // The src is placed on its "source" dom node
+    if (src && type === 'video') node.removeAttribute('src')
+
+    const datasetAttribs = component.get(defaultPropTable.dataset)
+
+    /** Data values */
+    if (isTextFieldLike(node)) {
       node['value'] = datasetAttribs['data-value'] || ''
-    }
-
-    // Attach an additional listener for data-value elements that are expected
-    // to change values on the fly by some "on change" logic (ex: input/select elements)
-    import('../utils/sdkHelpers')
-      .then(({ createOnDataValueChangeFn }) => {
-        const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
-        node.addEventListener('change', onChange)
-      })
-      .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
-  } else if (component.get('text=func') && datasetAttribs['data-value']) {
-    node.innerHTML = datasetAttribs['data-value']
-  } else {
-    // For non data-value elements like labels or divs that just display content
-    // If there's no data-value (which takes precedence here), use the placeholder
-    // to display as a fallback
-    let text = ''
-    text = datasetAttribs['data-value'] || ''
-    if (!text && children) text = `${children}` || ''
-    if (!text && placeholder) text = placeholder
-    if (!text) text = ''
-    if (text) node.innerHTML = `${text}`
-    node['innerHTML'] =
-      datasetAttribs['data-value'] || component.get('placeholder') || ''
-  }
-
-  /** Event handlers */
-  _.forEach(eventTypes, (eventType) => {
-    const handler = component.get(eventType)
-    if (handler) {
-      const event = (eventType.startsWith('on')
-        ? eventType.replace('on', '')
-        : eventType
-      ).toLocaleLowerCase()
-
-      // TODO: Test this
-      // Attach the event handler
-      node.addEventListener(event, (...args: any[]) => {
-        log.func(`on all --> addEventListener: ${event}`)
-        log.grey(`User action invoked handler`, { component, [event]: handler })
-        console.groupCollapsed('', { event, node, component })
-        console.trace()
-        console.groupEnd()
-        return handler(...args)
-      })
-    }
-  })
-
-  /** Styles */
-  if (_.isPlainObject(style)) {
-    forEachEntries(style, (k, v) => (node.style[k as any] = v))
-  } else {
-    log.func('noodluidom.on: all')
-    log.red(
-      `Expected a style object but received ${typeof style} instead`,
-      style,
-    )
-  }
-
-  /** Children */
-  if (options) {
-    if (type === 'select') {
-      if (_.isArray(options)) {
-        _.forEach(options, (option: SelectOption, index) => {
-          if (option) {
-            const optionElem = document.createElement('option')
-            optionElem['id'] = option.key
-            optionElem['value'] = option?.value
-            optionElem['innerText'] = option.label
-            node.appendChild(optionElem)
-            if (option?.value === datasetAttribs['data-value']) {
-              // Default to the selected index if the user already has a state set before
-              ;(node as HTMLSelectElement)['selectedIndex'] = index
-            }
-          } else {
-            // TODO: log
-          }
-        })
-        // Default to the first item if the user did not previously set their state
-        if ((node as HTMLSelectElement).selectedIndex == -1) {
+      if (node.tagName === 'SELECT') {
+        if ((node as HTMLSelectElement).length) {
+          // Put the default value to the first option in the list
           ;(node as HTMLSelectElement)['selectedIndex'] = 0
         }
       } else {
-        // TODO: log
+        node.dataset['value'] = node.value || ''
+        node['value'] = datasetAttribs['data-value'] || ''
+      }
+
+      // Attach an additional listener for data-value elements that are expected
+      // to change values on the fly by some "on change" logic (ex: input/select elements)
+      import('../utils/sdkHelpers')
+        .then(({ createOnDataValueChangeFn }) => {
+          const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
+          node.addEventListener('change', onChange)
+        })
+        .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
+    } else if (component.get('text=func')) {
+      node.innerHTML = datasetAttribs['data-value']
+    } else {
+      // For non data-value elements like labels or divs that just display content
+      // If there's no data-value (which takes precedence here), use the placeholder
+      // to display as a fallback
+      let text = ''
+      text = datasetAttribs['data-value'] || ''
+      if (!text && children) text = `${children}` || ''
+      if (!text && placeholder) text = placeholder
+      if (!text) text = ''
+      if (text) node.innerHTML = `${text}`
+      node['innerHTML'] =
+        datasetAttribs['data-value'] || component.get('placeholder') || ''
+    }
+
+    /** Event handlers */
+    _.forEach(eventTypes, (eventType) => {
+      const handler = component.get(eventType)
+      if (handler) {
+        const event = (eventType.startsWith('on')
+          ? eventType.replace('on', '')
+          : eventType
+        ).toLocaleLowerCase()
+
+        // TODO: Test this
+        // Attach the event handler
+        node.addEventListener(event, (...args: any[]) => {
+          log.func(`on all --> addEventListener: ${event}`)
+          log.grey(`User action invoked handler`, {
+            component,
+            [event]: handler,
+          })
+          console.groupCollapsed('', { event, node, component })
+          console.trace()
+          console.groupEnd()
+          return handler(...args)
+        })
+      }
+    })
+
+    /** Styles */
+    if (_.isPlainObject(style)) {
+      forEachEntries(style, (k, v) => (node.style[k as any] = v))
+    } else {
+      log.func('noodluidom.on: all')
+      log.red(
+        `Expected a style object but received ${typeof style} instead`,
+        style,
+      )
+    }
+
+    /** Children */
+    if (options) {
+      if (type === 'select') {
+        if (_.isArray(options)) {
+          _.forEach(options, (option: SelectOption, index) => {
+            if (option) {
+              const optionElem = document.createElement('option')
+              optionElem['id'] = option.key
+              optionElem['value'] = option?.value
+              optionElem['innerText'] = option.label
+              node.appendChild(optionElem)
+              if (option?.value === datasetAttribs['data-value']) {
+                // Default to the selected index if the user already has a state set before
+                ;(node as HTMLSelectElement)['selectedIndex'] = index
+              }
+            } else {
+              // TODO: log
+            }
+          })
+          // Default to the first item if the user did not previously set their state
+          if ((node as HTMLSelectElement).selectedIndex == -1) {
+            ;(node as HTMLSelectElement)['selectedIndex'] = 0
+          }
+        } else {
+          // TODO: log
+        }
       }
     }
-  }
 
-  if (!node.innerHTML.trim()) {
-    if (isDisplayable(datasetAttribs['data-value'])) {
-      node.innerHTML = `${datasetAttribs['data-value']}`
-    } else if (isDisplayable(children)) {
-      node.innerHTML = `${children}`
-    } else if (isDisplayable(text)) {
-      node.innerHTML = `${text}`
+    if (!node.innerHTML.trim()) {
+      if (isDisplayable(datasetAttribs['data-value'])) {
+        node.innerHTML = `${datasetAttribs['data-value']}`
+      } else if (isDisplayable(children)) {
+        node.innerHTML = `${children}`
+      } else if (isDisplayable(text)) {
+        node.innerHTML = `${text}`
+      }
     }
-  }
-
-  // if (component.node) {
-  //   const parentNode = parent?.node
-  //   if (parentNode) {
-  //     parentNode.appendChild(component.node)
-  //   }
-  // }
-})
+  }),
+)
 
 noodluidom.on('create.button', (node, component) => {
   if (node) {
