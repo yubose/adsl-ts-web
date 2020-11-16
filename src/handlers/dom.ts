@@ -99,7 +99,7 @@ noodluidom.on('create.component', (node, component: IComponentTypeInstance) => {
       })
       .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
   } else if (component.get('text=func')) {
-    node.innerHTML = datasetAttribs['data-value']
+    node.innerHTML = datasetAttribs['data-value'] || ''
   } else {
     // For non data-value elements like labels or divs that just display content
     // If there's no data-value (which takes precedence here), use the placeholder

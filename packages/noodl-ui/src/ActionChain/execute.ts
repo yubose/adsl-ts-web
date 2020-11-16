@@ -110,13 +110,13 @@ export const createExecute = function (
                 iterator = await next(executor, result)
               }
 
-              if (result) {
-                if (action.type) log.func(action.type)
-                log.green(
-                  `Received a returned value from a(n) "${action.type}" executor`,
-                  result,
-                )
-              }
+              // if (result?.value?.result) {
+              //   if (action.type) log.func(action.type)
+              //   log.green(
+              //     `Received a returned value from a(n) "${action.type}" executor`,
+              //     result,
+              //   )
+              // }
             }
           }
           // this.onChainEnd?.(

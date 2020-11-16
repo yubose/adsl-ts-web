@@ -479,6 +479,7 @@ export interface IActionChain<
 export interface IActionChainBuildOptions {
   context: ResolverContext
   trigger: NOODLActionTriggerType
+  [key: string]: any
 }
 
 export type IActionChainUseObject =

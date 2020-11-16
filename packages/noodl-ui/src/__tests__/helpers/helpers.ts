@@ -46,50 +46,12 @@ export function createIfObject(cond: any, val1: any, val2: any): IfObject {
   } as IfObject
 }
 
-export function getRedrawBuiltInObject({ viewTag }: NOODLComponentArgs) {
+export function createBuiltInObject(
+  args: Partial<BuiltInActionObject> & { [key: string]: any },
+) {
   return {
+    ...args,
     actionType: 'builtIn',
-    funcName: 'redraw',
-    viewTag,
-  } as BuiltInActionObject
-}
-
-export function getEmitObject({
-  iteratorVar,
-  ...rest
-}: {
-  iteratorVar: string
-  [key: string]: any
-}) {
-  return {
-    ...rest,
-    emit: {
-      dataKey: {
-        var1: iteratorVar,
-      },
-      actions: [
-        {
-          if: [
-            {
-              '.builtIn.object.has': [{ object: '..pmh' }, { key: 'var1.key' }],
-            },
-            {
-              '.builtIn.object.remove': [
-                { object: '..pmh' },
-                { key: 'var1.key' },
-              ],
-            },
-            {
-              '.builtIn.object.set': [
-                { object: '..pmh' },
-                { key: 'var1.key' },
-                { value: 'var1.value' },
-              ],
-            },
-          ],
-        },
-      ],
-    },
   }
 }
 
@@ -116,8 +78,11 @@ export function getListItemWithEmit({
           val2: 'selectOff.png',
         }),
         onClick: [
-          getEmitObject({ iteratorVar }),
-          getRedrawBuiltInObject({ viewTag }),
+          createEmitObject({
+            dataKey: { var1: iteratorVar, var2: iteratorVar },
+            actions: [{}, {}, {}],
+          }),
+          createBuiltInObject({ funcName: 'redraw', viewTag }),
         ],
         style: { left: '0.15' },
       },
@@ -139,13 +104,12 @@ export function initiateListItems(list: IList) {
 }
 
 let util = {
+  createBuiltInObject,
   createEmitObject,
   createIfObject,
   createImage,
   createPath,
-  getEmitObject,
   getListItemWithEmit,
-  getRedrawBuiltInObject,
   initiateListItems,
 }
 
@@ -170,7 +134,47 @@ export const createPage = function <K extends string>(
     [_page.name as K]: {} as NOODLPageObject,
   }
 
-  const consumerPage = cb(Object.assign({}, util))
+  let consumerPage: NOODLPage | any
+  let noodlComponents
+
+  if (typeof cb === 'function') {
+    consumerPage = cb(Object.assign({}, util))
+
+    consumerPage?.components?.forEach((noodlComponent: any) => {
+      let current = noodlComponent
+
+      const onChildren = (children: NOODLComponent) => {
+        if (Array.isArray(children)) {
+          children.forEach((noodlChild) => {
+            current.children.push(noodlChild)
+            if (noodlChild.children) onChildren(noodlChild.children)
+          })
+        } else {
+          if (Array.isArray(current.children)) {
+            current.children.push(children)
+          } else {
+            current.children = children
+          }
+        }
+      }
+      noodlComponents.push(noodlComponent)
+      if (noodlComponent.children(noodlComponent.children)) {
+        onChildren(noodlComponent.children)
+      }
+    })
+  } else if (cb && typeof cb === 'object') {
+    _page['name'] = consumerPage.page?.name || ''
+    state[_page.name] = consumerPage.page?.object || null
+
+    if (consumerPage.actions) {
+      const actionTypes = Object.keys(consumerPage.actions)
+    }
+    if (consumerPage.builtIns) {
+      const funcNames = Object.keys(consumerPage.builtIns)
+    }
+  }
+
+  // Parse the components and their inner funcs to the page object if available
 
   noodlui.setRoot(_page.name, state[_page.name]).setPage(_page.name)
 

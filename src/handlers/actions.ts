@@ -288,7 +288,7 @@ const createActions = function ({ page }: { page: IPage }) {
       })
       if (result) {
         const logArgs = { result, action, ...options }
-        log.grey(`Received a ${typeof result} from an evalObject`, logArgs)
+        log.grey(`Received a(n) ${typeof result} from an evalObject`, logArgs)
         return result
       }
     } else if ('if' in (action.original.object || {})) {
@@ -496,7 +496,7 @@ const createActions = function ({ page }: { page: IPage }) {
               const [nameFieldPath, save] = obj
 
               if (_.isString(nameFieldPath) && _.isFunction(save)) {
-                parser.setLocalKey(context?.page)
+                parser?.setLocalKey(context?.page)
 
                 let nameField
 

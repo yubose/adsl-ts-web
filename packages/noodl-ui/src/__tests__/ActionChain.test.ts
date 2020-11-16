@@ -286,8 +286,35 @@ describe('ActionChain', () => {
         const iteratorVar = 'hello'
         const viewTag = 'pastMedicalHistoryTag'
         const onClick = [
-          helpers.getEmitObject({ iteratorVar }),
-          helpers.getRedrawBuiltInObject({ viewTag }),
+          helpers.createEmitObject({
+            dataKey: { var1: iteratorVar },
+            actions: [
+              {
+                if: [
+                  {
+                    '.builtIn.object.has': [
+                      { object: '..pmh' },
+                      { key: 'var1.key' },
+                    ],
+                  },
+                  {
+                    '.builtIn.object.remove': [
+                      { object: '..pmh' },
+                      { key: 'var1.key' },
+                    ],
+                  },
+                  {
+                    '.builtIn.object.set': [
+                      { object: '..pmh' },
+                      { key: 'var1.key' },
+                      { value: 'var1.value' },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+          helpers.createBuiltInObject({ funcName: 'redraw', viewTag }),
         ] as any
 
         noodlui.use([{ actionType: 'emit', fn: spy }])
@@ -344,7 +371,7 @@ describe('ActionChain', () => {
         await execute({})
         const args = spy.firstCall?.args[1] || {}
         // console.info('listData', listData)
-        // console.info('dataObject', args.dataObject)
+        // console.info('dataObject', args)
         // console.info('dataObject from listItem', args.listItem.getDataObject())
         // console.info('image', image.toJS())
         expect(args).to.have.property('iteratorVar', iteratorVar)
@@ -369,7 +396,6 @@ describe('ActionChain', () => {
       expect(refreshedAction.status).to.be.null
       expect(refreshedQueue).to.have.lengthOf(1)
       expect(refreshedQueue[0].status).to.be.null
-      // expect(refreshedQueue[0].).to.
     })
   })
 })

@@ -38,8 +38,7 @@ const handleListInternalResolver = (
 
     listItem['id'] = getRandomKey()
 
-    console.info('ADD_DATA_OBJECT new listItem', listItem.id)
-    // console.info('ADD_DATA_OBJECT', { listItem, ...result })
+    log.grey('ADD_DATA_OBJECT new listItem', listItem.id)
 
     if (listItem) {
       listItem.setDataObject?.(result.dataObject)
@@ -122,12 +121,6 @@ const handleListInternalResolver = (
     const listItem = component.find(
       (child) => child?.getDataObject?.() === result.dataObject,
     )
-    // console.info('FOUND LIST ITEM TO DELETE (START)')
-    // console.info(listItem?.id)
-    // console.info(listItem?.id)
-    // console.info(listItem?.id)
-    // console.info(listItem?.id)
-    // console.info('FOUND LIST ITEM TO DELETE (END)')
     if (listItem) component.removeChild(listItem)
     log.green(`Deleted a listItem`, { ...result, ...options, listItem })
     const args = { ...result, listItem }
@@ -213,22 +206,6 @@ const handleListInternalResolver = (
 
   // Initiate the blueprint
   component.setBlueprint(resolveBlueprint(component))
-  // // Initiate the listItem children
-  // const listObject = component.getData()
-  // if (listObject.length) {
-  //   console.info(listObject)
-  //   // Resetting the list data that was set from the parent prototype so we
-  //   // can re-add them back in so the consumer can get the emitted events
-  //   // console.info(component.removeDataObject(0))
-  //   // console.info(component.removeDataObject(0))
-  //   component.set('listObject', [])
-  //   const numItems = listObject.length
-  //   for (let index = 0; index < numItems; index++) {
-  //     const dataObject = listObject[index]
-  //     component.addDataObject(dataObject)
-  //     log.green('Saved dataObject', dataObject)
-  //   }
-  // }
 }
 
 export default handleListInternalResolver

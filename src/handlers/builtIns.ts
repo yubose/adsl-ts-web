@@ -350,12 +350,20 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       componentThatCalledRedraw, // ex: image
       redrawTargetingNode, // ex: listItem
       redrawTargetingComponent, // ex: listItem
+      dataObjectQueries: {
+        'options.dataObject': options.dataObject,
+        "component.get('dataObject')": options.component.get?.('dataObject'),
+        'component.getDataObject()': options.component.getDataObject?.(),
+        'listItem.getDataObject': redrawTargetingComponent.getDataObject?.(),
+        "listItem.get('dataObject')": redrawTargetingComponent.get?.(
+          'dataObject',
+        ),
+      },
     })
 
     noodluidom.redraw(
       redrawTargetingNode, // ex: listItem
       redrawTargetingComponent, // ex: listItem
-      actionObjectOnComponentThatCalledRedraw,
     )
   }
 

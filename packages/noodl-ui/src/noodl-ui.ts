@@ -330,6 +330,7 @@ class NOODL implements T.INOODLUi {
 
     const buildOptions: T.IActionChainBuildOptions = {
       context: this.getContext(),
+      parser: this.#parser,
       trigger: options.trigger,
     }
 
