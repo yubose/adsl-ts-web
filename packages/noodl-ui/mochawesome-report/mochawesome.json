@@ -251,9 +251,7 @@
                 "f2bb0553-1ad4-4704-ab2e-00466822e1d7"
               ],
               "failures": [],
-              "pending": [
-                "5e0c8e64-340b-475a-9507-b73a83ec88bd"
-              ],
+              "pending": ["5e0c8e64-340b-475a-9507-b73a83ec88bd"],
               "skipped": [],
               "duration": 2,
               "root": false,
@@ -519,7 +517,7 @@
                       "fail": true,
                       "pending": false,
                       "context": null,
-                      "code": "var _a;\nconst spy = sinon_1.default.spy();\ntest_utils_1.noodlui.use({ actionType: 'emit', fn: spy });\nconst iteratorVar = 'hello';\nconst viewTag = 'pastMedicalHistoryTag';\nconst noodlList = {\n    type: 'list',\n    listObject: [{ key: 'Gender', value: '' }],\n    iteratorVar,\n    contentType: 'list',\n    children: [],\n};\nconst noodlListItem = {\n    type: 'listItem',\n    [iteratorVar]: '',\n    viewTag,\n    children: [\n        helpers.createImageComponent({\n            path: helpers.createIfObject({\n                '.builtIn.object.has': [\n                    { object: '..formData' },\n                    { key: `${iteratorVar}.key` },\n                ],\n            }, 'selectOn.png', 'selectOff.png'),\n            onClick: [\n                helpers.getEmitObject({ iteratorVar }),\n                helpers.getRedrawBuiltInObject({ viewTag }),\n            ],\n        }),\n    ],\n};\nnoodlList.children.push(noodlListItem);\nconst list = test_utils_1.noodlui.resolveComponents(noodlList);\nconst listItem = list.child();\nconst image = listItem === null || listItem === void 0 ? void 0 : listItem.child();\nconst actionChain = new ActionChain_1.default(noodlListItem.children[0].onClick, {\n    component: image,\n});\nconst execute = actionChain.build({ trigger: 'onClick' });\nawait execute({});\nconsole.info(noodlListItem.children[0].onClick);\nconsole.info(spy.called);\nconst args = ((_a = spy.firstCall) === null || _a === void 0 ? void 0 : _a.args[1]) || {};\nchai_1.expect(args).to.have.property('iteratorVar', iteratorVar);\nchai_1.expect(args).to.have.property('listItem', listItem);\nchai_1.expect(args).to.have.property('dataObject', listItem.getDataObject());\nchai_1.expect(args).to.have.property('dataObject', noodlList.listObject[0]);",
+                      "code": "var _a;\nconst spy = sinon_1.default.spy();\ntest_utils_1.noodlui.use({ actionType: 'emit', fn: spy });\nconst iteratorVar = 'hello';\nconst viewTag = 'pastMedicalHistoryTag';\nconst noodlList = {\n    type: 'list',\n    listObject: [{ key: 'Gender', value: '' }],\n    iteratorVar,\n    contentType: 'list',\n    children: [],\n};\nconst noodlListItem = {\n    type: 'listItem',\n    [iteratorVar]: '',\n    viewTag,\n    children: [\n        helpers.createImage({\n            path: helpers.createIfObject({\n                '.builtIn.object.has': [\n                    { object: '..formData' },\n                    { key: `${iteratorVar}.key` },\n                ],\n            }, 'selectOn.png', 'selectOff.png'),\n            onClick: [\n                helpers.getEmitObject({ iteratorVar }),\n                helpers.getRedrawBuiltInObject({ viewTag }),\n            ],\n        }),\n    ],\n};\nnoodlList.children.push(noodlListItem);\nconst list = test_utils_1.noodlui.resolveComponents(noodlList);\nconst listItem = list.child();\nconst image = listItem === null || listItem === void 0 ? void 0 : listItem.child();\nconst actionChain = new ActionChain_1.default(noodlListItem.children[0].onClick, {\n    component: image,\n});\nconst execute = actionChain.build({ trigger: 'onClick' });\nawait execute({});\nconsole.info(noodlListItem.children[0].onClick);\nconsole.info(spy.called);\nconst args = ((_a = spy.firstCall) === null || _a === void 0 ? void 0 : _a.args[1]) || {};\nchai_1.expect(args).to.have.property('iteratorVar', iteratorVar);\nchai_1.expect(args).to.have.property('listItem', listItem);\nchai_1.expect(args).to.have.property('dataObject', listItem.getDataObject());\nchai_1.expect(args).to.have.property('dataObject', noodlList.listObject[0]);",
                       "err": {
                         "message": "AssertionError: expected {} to have property 'iteratorVar'",
                         "estack": "AssertionError: expected {} to have property 'iteratorVar'\n    at Context.<anonymous> (src/__tests__/ActionChain.test.ts:279:45)",
@@ -533,9 +531,7 @@
                   ],
                   "suites": [],
                   "passes": [],
-                  "failures": [
-                    "d6ea7f1d-c6d4-470c-a097-d1dced8bcf85"
-                  ],
+                  "failures": ["d6ea7f1d-c6d4-470c-a097-d1dced8bcf85"],
                   "pending": [],
                   "skipped": [],
                   "duration": 5,
@@ -544,9 +540,7 @@
                   "_timeout": 2000
                 }
               ],
-              "passes": [
-                "6fc68aba-30b2-495b-b2fb-b543bec7db36"
-              ],
+              "passes": ["6fc68aba-30b2-495b-b2fb-b543bec7db36"],
               "failures": [],
               "pending": [],
               "skipped": [],
@@ -583,9 +577,7 @@
                 }
               ],
               "suites": [],
-              "passes": [
-                "1264e6ab-1092-4ae7-8853-d0a7b60d3081"
-              ],
+              "passes": ["1264e6ab-1092-4ae7-8853-d0a7b60d3081"],
               "failures": [],
               "pending": [],
               "skipped": [],
@@ -595,9 +587,7 @@
               "_timeout": 2000
             }
           ],
-          "passes": [
-            "21a712f5-69d7-44ac-adec-355a85fcd339"
-          ],
+          "passes": ["21a712f5-69d7-44ac-adec-355a85fcd339"],
           "failures": [],
           "pending": [
             "450916da-a387-41c5-9955-29c374b76dab",

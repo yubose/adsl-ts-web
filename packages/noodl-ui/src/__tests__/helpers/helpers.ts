@@ -1,3 +1,8 @@
+/**
+ * NOTE: Contents in this file are planned to be moved to a separate JS package
+ * once its core API is established
+ * "noodl-test-utils"
+ */
 import {
   BuiltInActionObject,
   EmitActionObject,
@@ -8,14 +13,14 @@ import {
   NOODLComponent,
   NOODLPage,
   NOODLPageObject,
-} from '../types'
-import { noodlui } from '../utils/test-utils'
+} from '../../types'
+import { noodlui } from '../../utils/test-utils'
 
-const EMPTY_PAGE = '__empty.page__'
+const EMPTY_PAGE = '__emptypage__'
 
 type NOODLComponentArgs = Partial<NOODLComponent>
 
-export function createImageComponent(opts: NOODLComponentArgs) {
+export function createImage(opts: NOODLComponentArgs) {
   return { type: 'image', ...opts } as NOODLComponent
 }
 
@@ -136,7 +141,7 @@ export function initiateListItems(list: IList) {
 let util = {
   createEmitObject,
   createIfObject,
-  createImageComponent,
+  createImage,
   createPath,
   getEmitObject,
   getListItemWithEmit,

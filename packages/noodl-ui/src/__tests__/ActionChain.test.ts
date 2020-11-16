@@ -16,7 +16,7 @@ import {
   IListItem,
 } from '../types'
 import List from '../components/List'
-import * as helpers from './helpers'
+import * as helpers from './helpers/helpers'
 
 const parser = makeRootsParser({ roots: {} })
 
@@ -309,7 +309,7 @@ describe('ActionChain', () => {
                         [iteratorVar]: '',
                         viewTag,
                         children: [
-                          helpers.createImageComponent({
+                          helpers.createImage({
                             path: helpers.createIfObject(
                               {
                                 '.builtIn.object.has': [
