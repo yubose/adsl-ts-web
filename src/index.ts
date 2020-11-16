@@ -632,6 +632,10 @@ window.addEventListener('load', async () => {
       return [w / d, h / d]
     }
 
+    let cache = {
+      landscape: true,
+    }
+
     viewport.onResize = async ({
       width,
       height,
@@ -643,7 +647,10 @@ window.addEventListener('load', async () => {
         const [newWidth, newHeight] = getSizes(width, height)
         const aspectRatio = newWidth / newHeight
         noodl['aspectRatio'] = aspectRatio
-        await page.requestPageChange(page.currentPage, { force: true })
+        if (aspectRatio > 1 !== cache['landscape']) {
+          cache['landscape'] = !cache.landscape
+          await page.requestPageChange(page.currentPage, { force: true })
+        }
         viewport.width = width
         viewport.height = height
         if (page.rootNode) {
