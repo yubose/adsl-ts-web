@@ -1,13 +1,20 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { IComponent, NOODLComponent, IComponentTypeInstance } from '../types'
+import {
+  IComponent,
+  NOODLComponent,
+  IComponentTypeInstance,
+  IList,
+  IListItem,
+} from '../types'
 import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
 import ActionChain from '../ActionChain'
 import Component from '../components/Base'
 import List from '../components/List'
 import Viewport from '../Viewport'
+import ListItem from '../components/ListItem'
 
 let noodlComponent: NOODLComponent
 let component: IComponent
@@ -26,6 +33,63 @@ describe('noodl-ui', () => {
     it('should flip initialized to true when running init', () => {
       noodlui.init()
       expect(noodlui.initialized).to.be.true
+    })
+  })
+
+  describe('when using createSrc', () => {
+    it('should work for passing string paths', () => {
+      const path = 'myimage.png'
+      expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + path)
+    })
+
+    xit('should work for passing emit objects', () => {
+      const iteratorVar = 'hello'
+      const path = {
+        emit: {
+          dataKey: {
+            var1: iteratorVar,
+          },
+          actions: [
+            {
+              if: [() => false, {}, {}],
+            },
+          ],
+        },
+      }
+      noodlui.use({
+        actionType: 'emit',
+        fn: async (action, options) => 'abc123.jpeg',
+      })
+      expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + 'abc123.jpeg')
+    })
+
+    it('should work for passing if objects', () => {
+      const path = {
+        if: [true, 'selected.png', 'unselected.png'],
+      } as any
+      expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + 'selected.png')
+      path.if[0] = false
+      expect(noodlui.createSrc(path)).to.eq(
+        noodlui.assetsUrl + 'unselected.png',
+      )
+      path.if[0] = () => true
+      expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + 'selected.png')
+    })
+
+    it('should try to use a data object to pass to the if func if component is provided', () => {
+      const path = {
+        if: [(o: any) => o.gender === 'Male', 'male.png', 'female.png'],
+      } as any
+      const listItem = new ListItem() as any
+      listItem.setDataObject({ gender: 'Female' })
+      expect(noodlui.createSrc(path, listItem)).to.eq(
+        noodlui.assetsUrl + 'female.png',
+      )
+      const image = new Component({ type: 'image' })
+      listItem.createChild(image)
+      expect(noodlui.createSrc(path, image as any)).to.eq(
+        noodlui.assetsUrl + 'female.png',
+      )
     })
   })
 
@@ -167,10 +231,11 @@ describe('noodl-ui', () => {
         { funcName: 'apple', fn: appleSpy },
         { funcName: 'sword', fn: swordSpy },
       ])
-      const execute = noodlui.createActionChainHandler([
-        { actionType: 'builtIn', funcName: 'apple' },
-      ])
-      await execute()
+      const execute = noodlui.createActionChainHandler(
+        [{ actionType: 'builtIn', funcName: 'apple' }],
+        { component: new Component({ type: 'view' }) } as any,
+      )
+      await execute({})
       expect(appleSpy.called).to.be.true
     })
 
@@ -181,20 +246,24 @@ describe('noodl-ui', () => {
         { actionType: 'pageJump', fn: appleSpy },
         { actionType: 'updateObject', fn: swordSpy },
       ])
-      let execute = noodlui.createActionChainHandler([
-        { actionType: 'pageJump', destination: '/hello' },
-        { actionType: 'updateObject', object: sinon.spy() },
-      ])
-      await execute()
+      let execute = noodlui.createActionChainHandler(
+        [
+          { actionType: 'pageJump', destination: '/hello' },
+          { actionType: 'updateObject', object: sinon.spy() },
+        ],
+        { component: new Component({ type: 'view' }) } as any,
+      )
+      await execute({})
       expect(appleSpy.called).to.be.true
       expect(swordSpy.called).to.be.true
       const evalFn = sinon.spy()
       noodlui.use({ actionType: 'evalObject', fn: evalFn })
       expect(evalFn.called).to.be.false
-      execute = noodlui.createActionChainHandler([
-        { actionType: 'evalObject', object: sinon.spy() },
-      ])
-      await execute()
+      execute = noodlui.createActionChainHandler(
+        [{ actionType: 'evalObject', object: sinon.spy() }],
+        { component: new Component({ type: 'view' }) } as any,
+      )
+      await execute({})
       expect(evalFn.called).to.be.true
     })
 
@@ -205,10 +274,11 @@ describe('noodl-ui', () => {
         { funcName: 'apple', fn: appleSpy },
         { funcName: 'sword', fn: swordSpy },
       ])
-      const execute = noodlui.createActionChainHandler([
-        { actionType: 'builtIn', funcName: 'apple' },
-      ])
-      await execute()
+      const execute = noodlui.createActionChainHandler(
+        [{ actionType: 'builtIn', funcName: 'apple' }],
+        { component: new Component({ type: 'view' }) } as any,
+      )
+      await execute({})
       expect(appleSpy.called).to.be.true
       // expect(swordSpy.called).to.be.true
     })

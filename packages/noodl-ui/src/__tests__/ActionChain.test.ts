@@ -276,51 +276,24 @@ describe('ActionChain', () => {
     })
 
     describe('when executing emit actions', () => {
-      it('should pass iteratorVar, listItem, and dataObject to args', async () => {
-        const spy = sinon.spy()
-        const listObject = [
+      let view: IComponentTypeInstance
+      let list: IList
+      let originalPage: any
+      let listObject: { key: string; value: string }[]
+      const iteratorVar = 'hello'
+      const viewTag = 'pastMedicalHistoryTag'
+      const mockEmitCallback = sinon.spy()
+
+      beforeEach(() => {
+        noodlui.use([{ actionType: 'emit', fn: mockEmitCallback }])
+        listObject = [
           { key: 'Gender', value: '' },
           { key: 'Gender', value: 'Male' },
           { key: 'Gender', value: 'Female' },
         ]
-        const iteratorVar = 'hello'
-        const viewTag = 'pastMedicalHistoryTag'
-        const onClick = [
-          helpers.createEmitObject({
-            dataKey: { var1: iteratorVar },
-            actions: [
-              {
-                if: [
-                  {
-                    '.builtIn.object.has': [
-                      { object: '..pmh' },
-                      { key: 'var1.key' },
-                    ],
-                  },
-                  {
-                    '.builtIn.object.remove': [
-                      { object: '..pmh' },
-                      { key: 'var1.key' },
-                    ],
-                  },
-                  {
-                    '.builtIn.object.set': [
-                      { object: '..pmh' },
-                      { key: 'var1.key' },
-                      { value: 'var1.value' },
-                    ],
-                  },
-                ],
-              },
-            ],
-          }),
-          helpers.createBuiltInObject({ funcName: 'redraw', viewTag }),
-        ] as any
-
-        noodlui.use([{ actionType: 'emit', fn: spy }])
-
-        const { components } = helpers.createPage((arg) => ({
+        const res = helpers.createPage(() => ({
           SignIn: {
+            generalInfo: { radio: listObject },
             components: [
               {
                 type: 'view',
@@ -336,18 +309,46 @@ describe('ActionChain', () => {
                         [iteratorVar]: '',
                         viewTag,
                         children: [
+                          { type: 'label', dataKey: `${iteratorVar}.value` },
                           helpers.createImage({
-                            path: helpers.createIfObject(
-                              {
-                                '.builtIn.object.has': [
-                                  { object: '..formData' },
-                                  { key: `${iteratorVar}.key` },
+                            path: helpers.createEmitObject({
+                              dataKey: { var1: iteratorVar },
+                              actions: [helpers.createIfObject({}, {}, {})],
+                            }),
+                            onClick: [
+                              helpers.createEmitObject({
+                                dataKey: { var1: iteratorVar },
+                                actions: [
+                                  {
+                                    if: [
+                                      {
+                                        '.builtIn.object.has': [
+                                          { object: '..generalInfo.radio' },
+                                          { key: 'var1.key' },
+                                        ],
+                                      },
+                                      {
+                                        '.builtIn.object.remove': [
+                                          { object: '..generalInfo.radio' },
+                                          { key: 'var1.key' },
+                                        ],
+                                      },
+                                      {
+                                        '.builtIn.object.set': [
+                                          { object: '..generalInfo.radio' },
+                                          { key: 'var1.key' },
+                                          { value: 'var1.value' },
+                                        ],
+                                      },
+                                    ],
+                                  },
                                 ],
-                              },
-                              'selectOn.png',
-                              'selectOff.png',
-                            ),
-                            onClick,
+                              }),
+                              helpers.createBuiltInObject({
+                                funcName: 'redraw',
+                                viewTag,
+                              }),
+                            ] as any,
                           }),
                         ],
                       },
@@ -358,14 +359,23 @@ describe('ActionChain', () => {
             ],
           },
         }))
+        originalPage = res.originalPage
+        view = res.components[0]
+        list = view.child() as IList
+      })
+
+      it('should pass iteratorVar, listItem, and dataObject to args', async () => {
         const view = components[0]
         const list = view.child() as IList
         const listData = list.getData()
         list.set('listObject', [])
         listData.forEach((d) => list.addDataObject(d))
         const listItem = list.child() as IListItem
-        const image = listItem?.child() as IComponentTypeInstance
-        const actionChain = new ActionChain(onClick, { component: image })
+        const image = listItem?.child(1) as IComponentTypeInstance
+        const actionChain = new ActionChain(
+          originalPage.SignIn.components[0].children[0].children[0].children[1].onClick,
+          { component: image },
+        )
         image.get('onClick')({})
         const execute = actionChain.build({ trigger: 'onClick' } as any)
         await execute({})
@@ -379,6 +389,18 @@ describe('ActionChain', () => {
         expect(args).to.have.property('dataObject')
         expect(args).to.have.property('dataObject')
         expect(listItem.getDataObject()).to.eq(image.get('dataObject'))
+      })
+
+      xit('the dataObject passed to emit action should be in the args', () => {
+        //
+      })
+
+      xit('should have a trigger value of "path" if triggered by a path emit', () => {
+        //
+      })
+
+      xit('should have a trigger value of "click" if triggered by an onClick', () => {
+        //
       })
     })
   })

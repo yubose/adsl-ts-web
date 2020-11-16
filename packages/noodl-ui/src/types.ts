@@ -489,6 +489,7 @@ export type IActionChainUseObject =
 export interface IActionChainUseObjectBase<A extends BaseActionObject> {
   actionType: A['actionType']
   fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
+  trigger?: 'path' //  Currently used for emit objects in evaluating "path"
 }
 
 export interface IActionChainUseBuiltInObject {

@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import Action from '../Action'
+import EmitAction from '../Action/EmitAction'
 import { AbortExecuteError } from '../errors'
 import { createExecute, createActionChainGenerator } from './execute'
 import * as T from '../types'
@@ -83,9 +84,10 @@ class ActionChain<
    * @param { object } obj - Action object
    */
   createAction<A extends ActionObjects[number]>(obj: A): T.IAction<A> {
-    const action = new Action(obj, {
-      timeoutDelay: 8000,
-    })
+    const action =
+      obj.actionType === 'emit'
+        ? new EmitAction(obj as T.EmitActionObject)
+        : new Action(obj)
 
     const runFns = async ({
       fns,
@@ -132,7 +134,6 @@ class ActionChain<
         this.component,
         (p) => p?.noodlType === 'listItem',
       ) as T.IListItem
-
       if (listItem) {
         conditionalCallbackArgs['dataObject'] = listItem.getDataObject()
         conditionalCallbackArgs['listItem'] = listItem
@@ -151,6 +152,20 @@ class ActionChain<
             originalAction: obj,
           },
         )
+      }
+      if (obj.actionType === 'emit') {
+        const emitAction = action as EmitAction
+        emitAction.set('trigger', 'onClick')
+        if (listItem) {
+          emitAction
+            .setDataObject(listItem.getDataObject())
+            .set('iteratorVar', listItem.iteratorVar)
+        } else {
+          emitAction.set(
+            'iteratorVar',
+            this.component.iteratorVar || this.component.get('iteratorVar'),
+          )
+        }
       }
     }
 

@@ -24,7 +24,13 @@ export function createImage(opts: NOODLComponentArgs) {
   return { type: 'image', ...opts } as NOODLComponent
 }
 
-export function createEmitObject({ dataKey, actions }: any) {
+export function createEmitObject({
+  dataKey,
+  actions,
+}: {
+  dataKey: any
+  actions: any[]
+}) {
   return { emit: { dataKey, actions } } as EmitActionObject
 }
 
@@ -123,6 +129,58 @@ export type CreatePageResult = typeof util & {
   components: IComponentTypeInstance[]
 }
 
+class MockPage {
+  name: string
+  object: NOODLPageObject | null
+
+  constructor(page: NOODLPage, opts: { actions: any[]; builtIns: any[] }) {
+    this['name'] = Object.keys(page)[0]
+    this.object = page[this.name]
+  }
+
+  createImage(opts: NOODLComponentArgs) {
+    return { type: 'image', ...opts } as NOODLComponent
+  }
+
+  createList(opts: NOODLComponentArgs) {
+    return { type: 'list', ...opts }
+  }
+
+  createListItem(opts: NOODLComponentArgs) {
+    return { type: 'listItem', ...opts } as NOODLComponent
+  }
+
+  createView(opts: NOODLComponentArgs) {
+    return { type: 'view', ...opts } as NOODLComponent
+  }
+
+  render(_components: any) {
+    const renderChild = () => {}
+
+    const components = Array.isArray(_components) ? _components : [_components]
+    const resolvedComponents = noodlui.resolveComponents(components)
+
+    const results = components.reduce(
+      (acc, noodlComponent: NOODLComponent) => {
+        if (noodlComponent.children) {
+          if (Array.isArray(noodlComponent.children)) {
+            noodlComponent.children.forEach((noodlChild) => {
+              //
+            })
+          } else if (noodlComponent.children) {
+            //
+          }
+        }
+        acc.components.push(noodlComponent)
+        return acc
+      },
+      { components: [] as IComponentTypeInstance[] },
+    )
+
+    return results
+  }
+}
+
 export const createPage = function <K extends string>(
   cb: (args: typeof util) => NOODLPage,
 ) {
@@ -188,6 +246,7 @@ export const createPage = function <K extends string>(
       _page['name'] = keys[0] as K
       state[_page.name] = {
         ...consumerPage[_page.name],
+        originalPage: consumerPage,
         components: noodlui.resolveComponents(
           consumerPage[_page.name]?.components,
         ),
@@ -196,6 +255,7 @@ export const createPage = function <K extends string>(
       _page['name'] = EMPTY_PAGE as K
       state[EMPTY_PAGE] = {
         ...consumerPage,
+        originalPage: consumerPage,
         components: noodlui.resolveComponents(consumerPage?.components),
       } as any
     }

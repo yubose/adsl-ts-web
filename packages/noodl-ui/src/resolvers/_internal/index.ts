@@ -1,9 +1,13 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
+import { isBreakLineTextBoardItem } from 'noodl-utils'
 import handleList from './handleList'
 import Resolver from '../../Resolver'
 import { _resolveChildren } from './helpers'
 import { IComponentTypeInstance, IList } from '../../types'
+import { formatColor } from '../../utils/common'
+import { identify } from '../../utils/noodl'
+import createComponent from '../../utils/createComponent'
 
 const log = Logger.create('_internalResolver')
 
@@ -25,12 +29,14 @@ _internalResolver.setResolver((component, options) => {
     _resolveChildren(c, {
       onResolve: (child) => {
         if (child) {
-          switch (child.noodlType) {
-            case 'list':
-              return void handleList(child as IList, options, _internalResolver)
-            default: {
-              return void resolveChildren(child)
-            }
+          if (child.noodlType === 'list') {
+            return handleList(child as IList, options, _internalResolver)
+          }
+          return resolveChildren(child)
+          // TODO - Put code below into its own TextBoard component
+          const { textBoard, text } = component.get(['textBoard', 'text'])
+
+          if (textBoard) {
           }
         }
       },

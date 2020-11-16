@@ -14,9 +14,9 @@ const MEET11_CONFIG = getConfigEndpoint('meet11')
 const TESTPAGE = getConfigEndpoint('testpage')
 
 const noodl = new NOODL({
-  aspectRatio: 3,
+  aspectRatio: -0.5,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: TESTPAGE,
+  configUrl: LANDING_PAGE_CONFIG,
   // configUrl: getConfigEndpoint('meet'),
 })
 
@@ -43,7 +43,7 @@ function getConfigEndpoint(
         case 'cadltest':
           return '/cadltest'
         case 'landing.page':
-          return '/www2'
+          return '/www'
         case 'meet11':
           return '/meet11'
         case 'meet2':

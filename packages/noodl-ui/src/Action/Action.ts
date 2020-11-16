@@ -13,7 +13,7 @@ import { AbortExecuteError } from '../errors'
 
 const log = Logger.create('Action')
 
-export const DEFAULT_TIMEOUT_DELAY = 10000
+export const DEFAULT_TIMEOUT_DELAY = 8000
 
 class Action<OriginalAction extends BaseActionObject = BaseActionObject>
   implements IAction<OriginalAction> {

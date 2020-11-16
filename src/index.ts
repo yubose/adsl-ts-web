@@ -217,7 +217,7 @@ window.addEventListener('load', async () => {
       }
     }
 
-    if (pageName !== page.currentPage) {
+    if (pageName !== page.currentPage || pageModifiers?.force) {
       // Load the page in the SDK
       const pageObject = await preparePage(pageName, pageModifiers)
       log.grey(`Received pageObject`, {
@@ -632,12 +632,18 @@ window.addEventListener('load', async () => {
       return [w / d, h / d]
     }
 
-    viewport.onResize = ({ width, height, previousWidth, previousHeight }) => {
+    viewport.onResize = async ({
+      width,
+      height,
+      previousWidth,
+      previousHeight,
+    }) => {
       if (width !== previousWidth || height !== previousHeight) {
         log.grey('Updating aspectRatio because viewport changed')
         const [newWidth, newHeight] = getSizes(width, height)
         const aspectRatio = newWidth / newHeight
-        noodl.aspectRatio = aspectRatio
+        noodl['aspectRatio'] = aspectRatio
+        await page.requestPageChange(page.currentPage, { force: true })
         viewport.width = width
         viewport.height = height
         if (page.rootNode) {

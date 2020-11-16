@@ -105,7 +105,7 @@ class Page {
    */
   public async navigate(
     pageName: string,
-    pageModifiers: { evolve?: boolean } = {},
+    pageModifiers: { evolve?: boolean; force?: boolean } = {},
   ): Promise<{ snapshot: PageSnapshot } | void> {
     // TODO: onTimedOut
     try {
@@ -197,8 +197,15 @@ class Page {
    * @param { string } requestedPage - Page name to request
    * @param { boolean? } modifiers.evolve - Set to false to disable the sdk's "evolve" for this route change. It internally set to true by default
    */
-  requestPageChange(newPage: string, modifiers: { evolve?: boolean } = {}) {
-    if (newPage !== this.currentPage || newPage.startsWith('http')) {
+  requestPageChange(
+    newPage: string,
+    modifiers: { evolve?: boolean; force?: boolean } = {},
+  ) {
+    if (
+      newPage !== this.currentPage ||
+      newPage.startsWith('http') ||
+      modifiers.force
+    ) {
       const shouldNavigate = this.#onPageRequest?.({
         previous: this.previousPage,
         current: this.currentPage,

@@ -5,7 +5,7 @@ import {
   evalIf,
   findParent,
   findNodeInMap,
-  isBoolean,
+  isBoolean as isNOODLBoolean,
   isBooleanTrue,
 } from 'noodl-utils'
 import Resolver from './Resolver'
@@ -23,6 +23,7 @@ import {
 } from './utils/common'
 import createComponent from './utils/createComponent'
 import Action from './Action'
+import EmitAction from './Action/EmitAction'
 import ActionChain from './ActionChain'
 import { event, componentEventIds, componentEventTypes } from './constants'
 import * as T from './types'
@@ -40,7 +41,12 @@ function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
 class NOODL implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
-    action: { [actionType: string]: T.ActionChainActionCallback[] }
+    action: {
+      [actionType: string]: {
+        actionType: T.NOODLActionType
+        fn: T.ActionChainActionCallback
+      }[]
+    }
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     component: Record<
@@ -311,9 +317,10 @@ class NOODL implements T.INOODLUi {
     )
     actionChain
       .useAction(
-        _.map(_.entries(this.#cb.action), ([actionType, fn]) => ({
+        _.map(_.entries(this.#cb.action), ([actionType, obj]) => ({
           actionType,
-          fn,
+          // TODO - fully standardize these to target the left
+          fn: obj[0]?.fn || obj,
         })),
       )
       .useBuiltIn(
@@ -505,7 +512,7 @@ class NOODL implements T.INOODLUi {
           if (!_.isArray(this.#cb.action[m.actionType])) {
             this.#cb.action[m.actionType] = []
           }
-          this.#cb.action[m.actionType].push(m.fn)
+          this.#cb.action[m.actionType].push(m)
         } else if (m instanceof Viewport) {
           this.setViewport(m)
         } else if (m instanceof Resolver) {
@@ -541,141 +548,144 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  createSrc(path: string | T.IfObject, component?: T.IComponentTypeInstance) {
+  createSrc(
+    path: string | T.EmitActionObject | T.IfObject,
+    component?: T.IComponentTypeInstance,
+  ) {
     log.func('createSrc')
-    let src = ''
-    console.info({ path, component: component?.toJS() })
-    if (path) {
-      if (_.isString(path)) {
-        src = path
-      } else if (_.isPlainObject(path)) {
-        let [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
-        if (isDraft(valEvaluating)) valEvaluating = original(valEvaluating)
-        if (_.isString(valEvaluating)) {
-          const { page, roots } = this.getContext() || {}
-          const pageObject = this.getPageObject(page)
-          /**
-           * Attempt #1 --> Find on root
-           * Attempt #2 --> Find on local root
-           * Attempt #3 --> Find on list data
-           */
-          path = evalIf((valEvaluating) => {
-            let val
-            if (_.has(roots, valEvaluating)) {
-              val = _.get(roots, valEvaluating)
-            } else if (_.has(pageObject, valEvaluating)) {
-              val = _.get(pageObject, valEvaluating)
-            } else if (component) {
-              // Assuming this is for list items if the code gets here
-              // At this moment we are working with the value of
-              // a dataObject that is set on list item components
-              const parent = findParent(
-                component,
-                (p) => p.noodlType === 'listItem',
-              ) as ListItemComponent
-              const dataObject = parent?.getDataObject?.()
-              if (dataObject) {
-                val = _.get(
-                  dataObject,
-                  _.get(
-                    dataObject,
-                    valEvaluating.startsWith(parent.iteratorVar)
-                      ? valEvaluating.split('.').slice(1)
-                      : valEvaluating,
-                  ),
-                )
-              }
-            }
-            return isBoolean(val) ? isBooleanTrue(val) : !!val
-          }, path)
+
+    const resolvePath = (pathValue: string) => {
+      let src = ''
+      if (_.isString(pathValue)) {
+        if (/^(http|blob)/i.test(pathValue)) {
+          src = pathValue
+        } else if (pathValue.startsWith('~/')) {
+          // Should be handled by an SDK
+        } else {
+          src = this.assetsUrl + pathValue
         }
-        // Assuming we are passing in a dataObject
-        else if (_.isFunction(valEvaluating)) {
-          if (component) {
-            let dataObject: any
-            // Assuming it is a component retrieving its value from a dataObject
-            if (component.get('iteratorVar')) {
+      } else {
+        // log
+        src = `${this.assetsUrl}${pathValue}`
+      }
+      return src
+    }
+
+    if (path) {
+      // Plain strings
+      if (_.isString(path)) {
+        return resolvePath(path)
+      }
+      // "If" object evaluation
+      else if (path.if) {
+        path = evalIf((val: any) => {
+          if (isNOODLBoolean(val)) return isBooleanTrue(val)
+          if (typeof val === 'function') {
+            if (component) {
               let listItem: T.IListItem
               if (component.noodlType !== 'listItem') {
                 listItem = findParent(
                   component,
-                  (p: any) => p?.noodlType === 'listItem',
+                  (p: T.IComponentTypeInstance) => !!p.getDataObject?.(),
                 )
               } else {
                 listItem = component
               }
-              if (listItem) {
-                dataObject = listItem.getDataObject()
-                console.info('dataObject', {
-                  dataObject,
-                  listItem,
-                  component,
-                  listItemJS: listItem.toJS(),
-                  componentJS: component.toJS(),
-                  componentDataObject: component.get('dataObject'),
-                })
-                console.info('dataObject', dataObject)
-                path = evalIf((fn, val1, val2) => {
-                  const result = fn(dataObject)
-                  if (result) {
-                    console.info(
-                      `Result of path "if" func is truthy. Returning: ${val1}`,
-                      {
-                        component,
-                        dataObject,
-                        if: path.if,
-                        valOnTrue: val1,
-                        valOnFalse: val2,
-                      },
-                    )
-                  } else {
-                    console.info(
-                      `Result of path "if" func is falsey. Returning: ${val2}`,
-                      {
-                        component,
-                        dataObject,
-                        if: path.if,
-                        valOnTrue: val1,
-                        valOnFalse: val2,
-                      },
-                    )
-                  }
-                  return result
-                }, path)
-              } else {
-                log.red(
-                  `No listItem parent was found for a dataObject consumer using iteratorVar "${component.get(
-                    'iteratorVar',
-                  )}`,
-                  { path, component },
-                )
-              }
+              if (listItem) return val(listItem.getDataObject())
             } else {
+              return val()
+            }
+          }
+          return !!val
+        }, path)
+        return resolvePath(path)
+      }
+      // Emit object evaluation
+      else if ('emit' in path) {
+        const emitAction = new EmitAction(path, { trigger: 'path' })
+
+        emitAction['callback'] = async (action, options) => {
+          const obj = this.#cb.action.emit.find((o) => o.trigger === 'path')
+          return obj?.fn?.(action, options) || ''
+        }
+
+        return emitAction
+          .execute({
+            builtIn: this.#cb.builtIn,
+            component,
+            context: this.getContext(),
+            parser: this.#parser,
+            trigger: 'path',
+          })
+          .then((src) => resolvePath(src))
+      }
+      // Assuming we are passing in a dataObject
+      else if (_.isFunction(valEvaluating)) {
+        if (component) {
+          let dataObject: any
+          // Assuming it is a component retrieving its value from a dataObject
+          if (component.get('iteratorVar')) {
+            let listItem: T.IListItem
+            if (component.noodlType !== 'listItem') {
+              listItem = findParent(
+                component,
+                (p: any) => p?.noodlType === 'listItem',
+              )
+            } else {
+              listItem = component
+            }
+            if (listItem) {
+              dataObject = listItem.getDataObject()
+              path = evalIf((fn, val1, val2) => {
+                const result = fn(dataObject)
+                if (result) {
+                  console.info(
+                    `Result of path "if" func is truthy. Returning: ${val1}`,
+                    {
+                      component,
+                      dataObject,
+                      if: path.if,
+                      valOnTrue: val1,
+                      valOnFalse: val2,
+                    },
+                  )
+                } else {
+                  console.info(
+                    `Result of path "if" func is falsey. Returning: ${val2}`,
+                    {
+                      component,
+                      dataObject,
+                      if: path.if,
+                      valOnTrue: val1,
+                      valOnFalse: val2,
+                    },
+                  )
+                }
+                return result
+              }, path)
+            } else {
+              log.red(
+                `No listItem parent was found for a dataObject consumer using iteratorVar "${component.get(
+                  'iteratorVar',
+                )}`,
+                { path, component },
+              )
             }
           } else {
-            log.red(
-              'Attempted to evaluate a path "function" from an if object but ' +
-                'a component is required to query for a dataObject. The "src" ' +
-                'value will default to its raw path',
-              { component, path },
-            )
           }
-        }
-      }
-      if (_.isString(path)) {
-        if (/^(http|blob)/i.test(path)) {
-          src = path
-        } else if (path.startsWith('~/')) {
-          // Should be handled by an SDK
         } else {
-          src = this.assetsUrl + path
+          log.red(
+            'Attempted to evaluate a path "function" from an if object but ' +
+              'a component is required to query for a dataObject. The "src" ' +
+              'value will default to its raw path',
+            { component, path },
+          )
         }
-      } else {
-        // log
-        src = `${this.assetsUrl}${String(path)}`
+        return resolvePath(path)
       }
     }
-    return src
+
+    return ''
   }
 }
 
