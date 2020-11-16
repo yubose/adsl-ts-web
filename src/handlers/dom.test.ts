@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import fs from 'fs-extra'
 import sinon from 'sinon'
+import chalk from 'chalk'
 import userEvent from '@testing-library/user-event'
 import MockAxios from 'axios-mock-adapter'
 import { expect } from 'chai'
@@ -12,7 +13,16 @@ import {
   screen,
   waitFor,
 } from '@testing-library/dom'
-import { event as noodlUIEvent, IList, NOODLComponent } from 'noodl-ui'
+import {
+  ActionChainActionCallbackOptions,
+  EmitActionObject,
+  event as noodlUIEvent,
+  IAction,
+  IComponentTypeInstance,
+  IList,
+  IListItem,
+  NOODLComponent,
+} from 'noodl-ui'
 import { findChild, findParent } from 'noodl-utils'
 import axios from '../app/axios'
 import {
@@ -25,8 +35,8 @@ import {
   queryByDataValue,
   getAllByDataKey,
   page,
+  noodluidom,
 } from '../utils/test-utils'
-import chalk from 'chalk'
 import {
   getListComponent1,
   getListObject1,
@@ -74,7 +84,7 @@ describe('dom', () => {
     })
   })
 
-  describe.only('component type: "list"', () => {
+  describe('component type: "list"', () => {
     describe('when freshly rendering to the DOM', () => {
       it('should have the data-listid attribute', () => {
         page.render({ type: 'list', listObject: [], iteratorVar: 'hello' })
@@ -177,9 +187,9 @@ describe('dom', () => {
             {
               type: 'list',
               listObject: [
-                { fruits: ['apple'] },
-                { fruits: ['banana'] },
-                { fruits: ['orange'] },
+                { fruits: 'apple' },
+                { fruits: 'banana' },
+                { fruits: 'orange' },
               ],
               iteratorVar: 'hello',
               children: [{ type: 'listItem' }],
@@ -188,15 +198,9 @@ describe('dom', () => {
         })
         const parent = components[0]
         const component = parent.child()
-        const container = document.querySelector('ul')
-        expect(container?.children).to.have.lengthOf(3)
+        expect(document.querySelectorAll('li')).to.have.lengthOf(3)
         component.removeDataObject(0)
-        saveOutput('dom.test.json', component.toJS(), { spaces: 2 })
-        console.info(chalk.magenta('List START'))
-        console.info(component.toJS())
-        console.info(chalk.magenta('List END'))
-        console.info(prettyDOM())
-        expect(container?.children).to.have.lengthOf(2)
+        expect(document.querySelectorAll('li')).to.have.lengthOf(2)
       },
     )
 
@@ -488,29 +492,72 @@ describe('dom', () => {
     })
   })
 
-  describe('when using redraw', () => {
-    let parent
-    let component
-    let iteratorVar: 'hello'
+  describe.only('when using redraw', () => {
+    const iteratorVar = 'hello'
+    let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
+    let actionFnSpy = sinon.spy()
+    let pathIfFnSpy = sinon.spy()
+    let parent: IComponentTypeInstance
+    let component: IList
+    let injectedArgs: {
+      dataObject: any
+      listItem: IListItem
+      iteratorVar: string
+    }
 
     beforeEach(() => {
-      iteratorVar = 'hello'
-      const { components } = page.render({
+      listObject = [
+        { key: 'Gender', value: 'Male' },
+        { key: 'Gender', value: 'Female' },
+      ]
+      noodlui
+      noodlui
+        .setAssetsUrl(assetsUrl)
+        .setRoot('Abc', { listData: { Gender: { Radio: listObject } } })
+        .setPage('Abc')
+      noodlui.use({
+        actionType: 'emit',
+        fn: async (
+          action: IAction<EmitActionObject>,
+          options: ActionChainActionCallbackOptions,
+        ) => {
+          actionFnSpy(action, options)
+          const { emit } = action.original
+          const { actions, dataKey } = emit
+          const c = options.component as IComponentTypeInstance
+          // Internal --- START
+          const { dataObject = {} } = options
+          const listIndex = c.get('listIndex')
+          console.info('c', c.toJS())
+          console.info('listIndex', listIndex)
+          console.info('passedInDataObject', dataObject)
+          console.info('stateDataObject', listObject[listIndex])
+          if (dataObject.value === listObject[listIndex].value) {
+            // listObject[listIndex].value =
+          }
+          listObject[listIndex] = dataObject
+          // Internal --- END
+          injectedArgs = {
+            dataObject: options.dataObject,
+            listItem: options.listItem,
+            iteratorVar: options.iteratorVar,
+          }
+        },
+      })
+      parent = page.render({
         type: 'view',
         children: [
           {
             type: 'list',
-            listObject: [
-              { fruits: 'apple' },
-              { fruits: 'banana' },
-              { fruits: 'orange' },
-            ],
+            listObject,
             iteratorVar,
             children: [
               {
                 type: 'listItem',
+                [iteratorVar]: '',
+                viewTag: 'genderTag',
                 children: [
-                  { type: 'label', dataKey: 'hello.fruits' },
+                  { type: 'label', dataKey: `${iteratorVar}.value` },
                   {
                     type: 'image',
                     viewTag: 'maleTag',
@@ -527,19 +574,78 @@ describe('dom', () => {
                         viewTag: 'genderTag',
                       },
                     ],
+                    path: {
+                      if: [
+                        // (obj: typeof listObject[number]) =>
+                        //   obj.value === 'Male',
+                        pathIfFnSpy,
+                        'male.png',
+                        'female.png',
+                      ],
+                    },
                   },
                 ],
-                viewTag: 'fruitTag',
               },
             ],
           },
         ],
-      })
-      parent = components[0]
-      component = parent.child()
-      // console.info(prettyDOM())
+      }).components[0]
+      component = parent.child() as IList
     })
 
-    it('should redraw the images', () => {})
+    after(() => {
+      saveOutput('dom.test.json', parent.toJS(), { spaces: 2 })
+    })
+
+    it('should deeply recompute/redraw its descendants', () => {
+      const ul = document.querySelector('ul')
+      const [li1, li2] = Array.from(ul?.querySelectorAll('li') as any)
+      const img1 = li1.querySelector('img') as HTMLImageElement
+      const img2 = li2.querySelector('img') as HTMLImageElement
+      img1.click()
+      expect(pathIfFnSpy.called).to.be.true
+      expect(pathIfFnSpy.firstCall.args[0]).to.be.a('function')
+    })
+
+    xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", () => {
+      const pageObject = { formData: { greeting: '12345' } }
+      noodlui.setRoot('SignIn', pageObject).setPage('SignIn')
+      const root = page.render({
+        type: 'view',
+        children: [
+          {
+            type: 'view',
+            children: [
+              { type: 'image', path: 'abc.png', style: { shadow: 'true' } },
+              { type: 'label', dataKey: 'formData.greeting' },
+            ],
+          },
+        ],
+      }).components[0]
+
+      const view = root.child()
+      const [image, label] = view.children() as [
+        IComponentTypeInstance,
+        IComponentTypeInstance,
+      ]
+
+      const parentEl = document.getElementById(view.id)
+      const imgEl = document.querySelector('img') as HTMLImageElement
+      const labelEl = document.querySelector('label') as HTMLLabelElement
+
+      expect(imgEl.src).to.equal(noodlui.assetsUrl + 'abc.png')
+      expect(labelEl.textContent).to.equal('12345')
+
+      image.set('src', noodlui.assetsUrl + 'followMe.jpeg')
+      label.set('data-value', 'hehehee')
+
+      expect(imgEl.src).not.to.eq(noodlui.assetsUrl + 'followMe.jpeg')
+      expect(labelEl.textContent).not.to.eq('hehehee')
+
+      noodluidom.redraw(parentEl, view)
+
+      expect(imgEl.src).to.eq(noodlui.assetsUrl + 'followMe.jpeg')
+      expect(labelEl.textContent).to.eq('hehehee')
+    })
   })
 })

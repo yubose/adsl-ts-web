@@ -333,27 +333,30 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.red('', { action, ...options })
 
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
-
-    const { component } = options
     const { viewTag } = action.original
 
-    const parent = findParent(component, (p) => p.noodlType === 'listItem')
+    const actionObjectOnComponentThatCalledRedraw = action.original
+    const componentThatCalledRedraw = options.component
+    const redrawTargetingNode = document.querySelector(
+      `[data-viewtag="${viewTag}"]`,
+    )
+    const redrawTargetingComponent = findParent(
+      componentThatCalledRedraw,
+      (p) => p.noodlType === 'listItem',
+    )
 
-    log.grey('Invoking "redraw" with:', {
-      node: document?.querySelector(`[data-viewtag="${viewTag}"]`), // listItem
-      component, // image
-      actionObj: action.original,
-      parent,
+    console.info('Invoking "redraw"', {
+      actionObjectOnComponentThatCalledRedraw,
+      componentThatCalledRedraw, // ex: image
+      redrawTargetingNode, // ex: listItem
+      redrawTargetingComponent, // ex: listItem
     })
 
     noodluidom.redraw(
-      document.querySelector(`[data-viewtag="${viewTag}"]`),
-      component,
-      action.original,
+      redrawTargetingNode, // ex: listItem
+      redrawTargetingComponent, // ex: listItem
+      actionObjectOnComponentThatCalledRedraw,
     )
-
-    // console.info(options.component?.toJS?.())
-    // component.redraw?.()
   }
 
   builtInActions.signIn = async (action, options) => {}

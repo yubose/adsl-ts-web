@@ -73,12 +73,12 @@ export const emit = async (
         let dataObject
         let dataValue
 
-        console.info({
-          key,
-          dataPath,
-          iteratorVar,
-          originalDataKey,
-        })
+        // console.info({
+        //   key,
+        //   dataPath,
+        //   iteratorVar,
+        //   originalDataKey,
+        // })
 
         if (typeof dataPath === 'string') {
           // If the iteratorVar is referencing the whole dataObject itself,
@@ -96,12 +96,12 @@ export const emit = async (
                 (parent) => parent?.noodlType === 'listItem',
               ) as IListItem | null
               // console.info(findParent(component, (p) => p.noodlType === 'list'))
-              console.info('------------------------------')
-              console.info('listItem', listItem)
-              console.info('dataObject', listItem.getDataObject())
-              console.info('dataObject', listItem.getDataObject())
-              console.info('dataObject', listItem.getDataObject())
-              console.info('------------------------------')
+              // console.info('------------------------------')
+              // console.info('listItem', listItem)
+              // console.info('dataObject', listItem.getDataObject())
+              // console.info('dataObject', listItem.getDataObject())
+              // console.info('dataObject', listItem.getDataObject())
+              // console.info('------------------------------')
               if (listItem) {
                 dataObject = listItem.getDataObject?.()
                 dataValue = getDataObjectValue({
@@ -110,12 +110,12 @@ export const emit = async (
                   iteratorVar,
                 })
                 acc[key] = dataObject
-                console.info(listItem.getDataObject())
+                // console.info(listItem.getDataObject())
               }
             } else {
-              console.info(
-                'Did not receive a function from the if object inside the dataKey object',
-              )
+              // console.info(
+              //   'Did not receive a function from the if object inside the dataKey object',
+              // )
             }
           } else {
             // Assuming the dataObject is somewhere in the root or local root level

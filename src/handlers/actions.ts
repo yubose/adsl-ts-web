@@ -81,7 +81,11 @@ const createActions = function ({ page }: { page: IPage }) {
           ) as IListItem | null
 
           if (listItem) {
-            dataObject = listItem.getDataObject?.()
+            dataObject =
+              listItem.getDataObject?.() ||
+              options.dataObject ||
+              component.get('dataObject') ||
+              {}
             dataValue = getDataObjectValue({
               dataObject,
               dataKey: dataPath,
@@ -109,14 +113,13 @@ const createActions = function ({ page }: { page: IPage }) {
               },
             )
           }
-
           if (dataObject) emitParams['dataKey'] = dataObject
         } else {
           // Assuming the dataObject is somewhere in the root or local root level
           dataObject =
             _.get(noodl.root, dataPath) ||
             _.get(noodl.root[context.page], dataPath)
-          emitParams.dataKey = dataObject
+          emitParams['dataKey'] = dataObject
           if (!dataObject) {
             log.red(
               'Could not find a data value from a (presumed) dataObject ' +
@@ -136,117 +139,132 @@ const createActions = function ({ page }: { page: IPage }) {
       }
       // The dataKey is in the object format { dataKey: { [key1]:..., [key2]: ... }}
       else if (_.isPlainObject(dataKey)) {
-        emitParams['dataKey'] = _.reduce(
-          _.entries(dataKey),
-          (acc: any, [key, dataPath]) => {
-            let dataObject
-            let dataValue
+        const createEmitDataKeyObject = (acc: any, [key, dataPath]: any) => {
+          let dataObject
+          let dataValue
 
-            console.info({
-              key,
-              resolvedDataKey: dataPath,
-              iteratorVar,
-              originalDataKey,
-            })
+          // console.info({
+          //   key,
+          //   resolvedDataKey: dataPath,
+          //   iteratorVar,
+          //   originalDataKey,
+          // })
 
-            if (_.isString(dataPath)) {
-              if (originalDataKey[key] === iteratorVar) {
-                const [fn, valOnTrue, valOnFalse] = actions[0]?.if || []
+          if (_.isString(dataPath)) {
+            if (originalDataKey[key] === iteratorVar) {
+              const [fn, valOnTrue, valOnFalse] = actions[0]?.if || []
 
-                if (_.isFunction(fn)) {
-                  fn({ dataKey, actions, pageName: context.page })
-                }
+              dataPath = dataPath.split('.').slice(1).join('.')
 
-                dataPath = dataPath.split('.').slice(1).join('.')
+              const listItem = findParent(
+                component,
+                (parent) => parent?.noodlType === 'listItem',
+              ) as IListItem | null
 
-                const listItem = findParent(
-                  component,
-                  (parent) => parent?.noodlType === 'listItem',
-                ) as IListItem | null
+              // console.info('------------------------------')
+              // console.info('listItem', listItem)
+              // console.info('dataObject', listItem?.getDataObject())
+              // console.info('dataObject', listItem?.getDataObject())
+              // console.info('dataObject', listItem?.getDataObject())
+              // console.info('------------------------------')
 
-                console.info('------------------------------')
-                console.info('listItem', listItem)
-                console.info('dataObject', listItem?.getDataObject())
-                console.info('dataObject', listItem?.getDataObject())
-                console.info('dataObject', listItem?.getDataObject())
-                console.info('------------------------------')
-
-                if (listItem) {
-                  dataObject = listItem.getDataObject?.()
-                  dataValue = getDataObjectValue({
-                    dataObject,
-                    dataKey: dataPath,
-                    iteratorVar,
-                  })
-                  acc[key] = dataObject
-                  console.info(listItem.getDataObject())
-
-                  log.green('Queried dataObject --> dataValue', {
-                    dataKey,
-                    dataObject,
-                    dataValue,
-                    dataPath,
-                    originalDataKey,
-                  })
-                } else {
-                  log.red(
-                    `Attempted to query for a dataObject but a listItem parent was not found`,
-                    {
-                      action,
-                      actions,
-                      context,
-                      dataPath,
-                      listItem,
-                      iteratorVar,
-                      options,
-                    },
-                  )
-                }
-              } else {
-                // Assuming the dataObject is somewhere in the root or local root level
+              if (listItem) {
                 dataObject =
-                  _.get(noodl.root, dataPath) ||
-                  _.get(noodl.root[context.page], dataPath)
-
-                if (dataObject) {
-                  acc[key] = dataObject
-                } else {
-                  log.red(
-                    'Could not find a data value from a (presumed) dataObject',
-                    {
-                      action,
-                      actions,
-                      context,
-                      dataPath,
-                      dataObject,
-                      iteratorVar,
-                      options,
-                    },
-                  )
-                }
-              }
-            } else {
-              log.red(
-                `Expected a string as a data key path but received a ` +
-                  `"${typeof dataPath}"`,
-                {
-                  action,
-                  actions,
-                  component: component.toJS(),
+                  listItem.getDataObject?.() ||
+                  options.dataObject ||
+                  component.get('dataObject') ||
+                  {}
+                dataValue = getDataObjectValue({
+                  dataObject,
+                  dataKey: dataPath,
+                  iteratorVar,
+                })
+                acc[key] = dataObject
+                log.green('Queried dataObject --> dataValue', {
                   dataKey,
+                  dataObject,
+                  dataValue,
                   dataPath,
                   originalDataKey,
-                },
-              )
-            }
+                })
+              } else {
+                log.red(
+                  `Attempted to query for a dataObject but a listItem parent was not found`,
+                  {
+                    action,
+                    actions,
+                    context,
+                    dataPath,
+                    listItem,
+                    iteratorVar,
+                    options,
+                  },
+                )
+              }
+              if (_.isFunction(fn)) {
+                log.red(
+                  'A FUNCTION WAS ENCOUNTERED ATTEMPTING TO CONSTRUCT THE DATA KEY EMIT OBJECT. REMEMBER TO LOOK INTO THIS',
+                  {
+                    action,
+                    actions,
+                    context,
+                    dataPath,
+                    dataObject,
+                    iteratorVar,
+                    options,
+                  },
+                )
+                fn(dataObject)
+              }
+            } else {
+              // Assuming the dataObject is somewhere in the root or local root level
+              dataObject =
+                _.get(noodl.root, dataPath) ||
+                _.get(noodl.root[context.page], dataPath)
 
-            return acc
-          },
-          {} as typeof emit['dataKey'],
+              if (dataObject) {
+                acc[key] = dataObject
+              } else {
+                log.red(
+                  'Could not find a data value from a (presumed) dataObject',
+                  {
+                    action,
+                    actions,
+                    context,
+                    dataPath,
+                    dataObject,
+                    iteratorVar,
+                    options,
+                  },
+                )
+              }
+            }
+          } else {
+            log.red(
+              `Expected a string as a data key path but received a ` +
+                `"${typeof dataPath}"`,
+              {
+                action,
+                actions,
+                component: component.toJS(),
+                dataKey,
+                dataPath,
+                originalDataKey,
+              },
+            )
+          }
+
+          return acc
+        }
+
+        emitParams['dataKey'] = _.reduce(
+          _.entries(dataKey),
+          createEmitDataKeyObject,
+          {} as any,
         )
       }
 
-      noodl.emitCall(emitParams)
+      await noodl.emitCall(emitParams)
 
       log.gold(`Ran emitCall`, {
         actions,

@@ -1,5 +1,6 @@
 import _ from 'lodash'
-// import Logger from 'logsnap'
+import Logger from 'logsnap'
+import { isDraft, original } from 'immer'
 import {
   evalIf,
   findParent,
@@ -26,7 +27,7 @@ import ActionChain from './ActionChain'
 import { event, componentEventIds, componentEventTypes } from './constants'
 import * as T from './types'
 
-// const log = Logger.create('noodl-ui')
+const log = Logger.create('noodl-ui')
 
 function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
   return {
@@ -540,10 +541,15 @@ class NOODL implements T.INOODLUi {
   }
 
   createSrc(path: string | T.IfObject, component?: T.IComponentTypeInstance) {
+    log.func('createSrc')
     let src = ''
+    console.info({ path, component: component?.toJS() })
     if (path) {
-      if (!_.isString(path) && _.isPlainObject(path)) {
-        const [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
+      if (_.isString(path)) {
+        src = path
+      } else if (_.isPlainObject(path)) {
+        let [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
+        if (isDraft(valEvaluating)) valEvaluating = original(valEvaluating)
         if (_.isString(valEvaluating)) {
           const { page, roots } = this.getContext() || {}
           const pageObject = this.getPageObject(page)
@@ -582,6 +588,78 @@ class NOODL implements T.INOODLUi {
             return isBoolean(val) ? isBooleanTrue(val) : !!val
           }, path)
         }
+        // Assuming we are passing in a dataObject
+        else if (_.isFunction(valEvaluating)) {
+          if (component) {
+            let dataObject: any
+            // Assuming it is a component retrieving its value from a dataObject
+            if (component.get('iteratorVar')) {
+              let listItem: T.IListItem
+              if (component.noodlType !== 'listItem') {
+                listItem = findParent(
+                  component,
+                  (p: any) => p?.noodlType === 'listItem',
+                )
+              } else {
+                listItem = component
+              }
+              if (listItem) {
+                dataObject = listItem.getDataObject()
+                console.info('dataObject', {
+                  dataObject,
+                  listItem,
+                  component,
+                  listItemJS: listItem.toJS(),
+                  componentJS: component.toJS(),
+                  componentDataObject: component.get('dataObject'),
+                })
+                console.info('dataObject', dataObject)
+                path = evalIf((fn, val1, val2) => {
+                  const result = fn(dataObject)
+                  if (result) {
+                    console.info(
+                      `Result of path "if" func is truthy. Returning: ${val1}`,
+                      {
+                        component,
+                        dataObject,
+                        if: path.if,
+                        valOnTrue: val1,
+                        valOnFalse: val2,
+                      },
+                    )
+                  } else {
+                    console.info(
+                      `Result of path "if" func is falsey. Returning: ${val2}`,
+                      {
+                        component,
+                        dataObject,
+                        if: path.if,
+                        valOnTrue: val1,
+                        valOnFalse: val2,
+                      },
+                    )
+                  }
+                  return result
+                }, path)
+              } else {
+                log.red(
+                  `No listItem parent was found for a dataObject consumer using iteratorVar "${component.get(
+                    'iteratorVar',
+                  )}`,
+                  { path, component },
+                )
+              }
+            } else {
+            }
+          } else {
+            log.red(
+              'Attempted to evaluate a path "function" from an if object but ' +
+                'a component is required to query for a dataObject. The "src" ' +
+                'value will default to its raw path',
+              { component, path },
+            )
+          }
+        }
       }
       if (_.isString(path)) {
         if (/^(http|blob)/i.test(path)) {
@@ -593,6 +671,7 @@ class NOODL implements T.INOODLUi {
         }
       } else {
         // log
+        src = `${this.assetsUrl}${String(path)}`
       }
     }
     return src

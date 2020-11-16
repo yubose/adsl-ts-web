@@ -38,7 +38,8 @@ const handleListInternalResolver = (
 
     listItem['id'] = getRandomKey()
 
-    console.info('ADD_DATA_OBJECT', { listItem, ...result })
+    console.info('ADD_DATA_OBJECT new listItem', listItem.id)
+    // console.info('ADD_DATA_OBJECT', { listItem, ...result })
 
     if (listItem) {
       listItem.setDataObject?.(result.dataObject)
@@ -53,14 +54,20 @@ const handleListInternalResolver = (
       _resolveChildren(listItem, {
         onResolve: (c) => {
           c.set('listIndex', result.index)
-          if (c.get('iteratorVar') === commonProps.iteratorVar) {
-            c.set('dataObject', result.dataObject)
-          }
+          // if (c.get('iteratorVar') === commonProps.iteratorVar) {
+          c.set('dataObject', result.dataObject)
+          // c.set('listIndex')
+          // }
           _internalResolver.resolve(c, {
             ...options,
             resolveComponent,
           })
-          c.broadcast((cc) => cc.assign(commonProps))
+          c.broadcast((cc) =>
+            cc.assign({
+              ...commonProps,
+              listIndex: result.index,
+            }),
+          )
         },
         props: commonProps,
         resolveComponent,
@@ -84,7 +91,7 @@ const handleListInternalResolver = (
         })
       })
 
-      // component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
+      component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
     } else {
       log.red(
         `Added a dataObject but there was a problem with creating the list ` +

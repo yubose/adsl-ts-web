@@ -1,3 +1,4 @@
+import { isDraft, original } from 'immer'
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { findParent, isBoolean, isBooleanTrue } from 'noodl-utils'
@@ -59,13 +60,16 @@ const getTransformedAliases: ResolverFn = (
 
   if (required) component.set('required', isBooleanTrue(required))
   if (_.isBoolean(controls)) component.set('controls', controls)
-  if (poster) component.set('poster', createSrc(poster))
+  if (poster) component.set('poster', createSrc(poster, component))
 
   if (!_.isUndefined(path) || !_.isUndefined(resource)) {
     let src = path || resource || ''
 
+    // TODO - Remove most logic below because the logic is now all converged
+    // into the createSrc func
+    if (isDraft(src)) src = original(src)
     if (_.isString(src)) {
-      component.set('src', createSrc(src))
+      component.set('src', createSrc(src, component))
     } else if (!_.isArray(path) && _.isObject(path)) {
       // log.yellow('', {
       //   if: path.if,
@@ -119,16 +123,21 @@ const getTransformedAliases: ResolverFn = (
         if (isBoolean(value)) {
           component.set(
             'src',
-            createSrc(isBooleanTrue(value) ? valOnTrue : valOnFalse),
+            createSrc(isBooleanTrue(value) ? valOnTrue : valOnFalse, component),
           )
         } else {
-          component.set('src', createSrc(value ? valOnTrue : valOnFalse))
+          component.set(
+            'src',
+            createSrc(value ? valOnTrue : valOnFalse, component),
+          )
         }
+      } else if (_.isFunction(valEvaluating)) {
+        component.set('src', createSrc(src, component))
       } else if (valEvaluating) {
-        // What can we get here?
-        component.set('src', createSrc(valOnTrue))
+        // What else can we get here?
+        component.set('src', createSrc(valOnTrue, component))
       } else {
-        component.set('src', createSrc(valOnFalse))
+        component.set('src', createSrc(valOnFalse, component))
       }
     } else {
       log.red(
@@ -152,7 +161,7 @@ const getTransformedAliases: ResolverFn = (
   }
 
   if (poster) {
-    component.set('poster', createSrc(poster as string))
+    component.set('poster', createSrc(poster as string, component))
   }
 
   if (isBooleanTrue(controls)) {

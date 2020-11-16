@@ -16,64 +16,6 @@ import noodluidom from '../app/noodl-ui-dom'
 
 const log = Logger.create('dom.ts')
 
-// export const setAttrOnProp = <K extends keyof IComponentTypeObject>(
-//   prop: K | K[],
-// ) => {
-//   const keys = _.isArray(prop) ? prop : [prop]
-//   return (attr: string) => {
-//     return function (node: Element, component: IComponentTypeInstance) {
-//       if (keys.length) {
-//         const props = component.get(keys)
-//         forEachEntries(props, (k, value) => {
-
-//         })
-//       }
-//     }
-//   }
-// }
-
-const setPropsDirectly = (
-  table: {
-    dataset?: string[]
-    values?: string[]
-    attributes?: string[]
-  } = {},
-) => (
-  cb: (node: NOODLDOMElement | null, component: IComponentTypeInstance) => void,
-) => {
-  return (node: NOODLDOMElement | null, component: IComponentTypeInstance) => {
-    if (node) {
-      /** Handle attributes */
-      if (_.isArray(table.attributes)) {
-        const attribs = component.get(table.attributes)
-        _.forEach(
-          _.keys(attribs),
-          (key) =>
-            attribs[key] !== undefined && node.setAttribute(key, attribs[key]),
-        )
-      }
-      /** Handle dataset assignments */
-      if (_.isArray(table.dataset)) {
-        const dataAttribs = component.get(table.dataset)
-        forEachEntries(dataAttribs, (key, value) => {
-          if (value !== undefined) {
-            node.dataset[(key as string).replace('data-', '')] = value
-          }
-        })
-      }
-      // Handle direct assignments
-      if (_.isArray(table.values)) {
-        const attribs = component.get(table.values)
-        _.forEach(
-          _.keys(attribs),
-          (key) => attribs[key] !== undefined && (node[key] = attribs[key]),
-        )
-      }
-    }
-    return cb(node, component)
-  }
-}
-
 const defaultPropTable = {
   dataset: [
     'data-listid',
@@ -87,13 +29,9 @@ const defaultPropTable = {
   attributes: ['placeholder', 'src'],
 }
 
-const withDefaultInjectedProps = (
-  cb: (node: NOODLDOMElement | null, component: IComponentTypeInstance) => void,
-) => setPropsDirectly(defaultPropTable)(cb)
-
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 // This event is called for all components
-noodluidom.on('create.component', (node, component) => {
+noodluidom.on('create.component', (node, component: IComponentTypeInstance) => {
   if (!node) return
 
   const {
@@ -108,29 +46,30 @@ noodluidom.on('create.component', (node, component) => {
 
   /** Handle attributes */
   if (_.isArray(defaultPropTable.attributes)) {
-    const attribs = component.get(defaultPropTable.attributes)
-    _.forEach(
-      _.keys(attribs),
-      (key) =>
-        attribs[key] !== undefined && node.setAttribute(key, attribs[key]),
-    )
+    _.forEach(defaultPropTable.attributes, (key) => {
+      const val = component.get(key) || component[key]
+      if (val !== undefined) node.setAttribute(key, val)
+    })
   }
   /** Handle dataset assignments */
   if (_.isArray(defaultPropTable.dataset)) {
-    const dataAttribs = component.get(defaultPropTable.dataset)
-    forEachEntries(dataAttribs, (key, value) => {
-      if (value !== undefined) {
-        node.dataset[(key as string).replace('data-', '')] = value
-      }
+    _.forEach(defaultPropTable.dataset, (key) => {
+      const val = component.get(key) || component[key]
+      if (val !== undefined) node.dataset[key.replace('data-', '')] = val
     })
   }
   // Handle direct assignments
   if (_.isArray(defaultPropTable.values)) {
-    const attribs = component.get(defaultPropTable.values)
-    _.forEach(
-      _.keys(attribs),
-      (key) => attribs[key] !== undefined && (node[key] = attribs[key]),
-    )
+    const pending = defaultPropTable.values.slice()
+    let prop = pending.pop()
+    let val
+    while (prop) {
+      if (prop !== undefined) {
+        val = component.get(prop) || component[prop]
+        if (val !== undefined) node[prop] = val
+      }
+      prop = pending.pop()
+    }
   }
 
   // The src is placed on its "source" dom node
@@ -350,7 +289,7 @@ noodluidom.on<'list'>(
         log.grey('', { ...result, ...options })
         const { listItem } = result
         const childNode = noodluidom.parse(listItem)
-        log.gold(
+        console.info(
           `${
             childNode ? 'Created' : 'Could not create'
           } childNode for list item`,
@@ -378,15 +317,15 @@ noodluidom.on<'list'>(
           )
           node.removeChild(childNode)
         } else {
-          console.info(
-            `Could not find the child DOM node for a removed listItem`,
-            {
-              ...result,
-              ...options,
-              id: listItem.id,
-              childNode,
-            },
-          )
+          // console.info(
+          //   `Could not find the child DOM node for a removed listItem`,
+          //   {
+          //     ...result,
+          //     ...options,
+          //     id: listItem.id,
+          //     childNode,
+          //   },
+          // )
         }
       },
     )

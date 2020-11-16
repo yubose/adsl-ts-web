@@ -6,14 +6,12 @@ import {
   IfObject,
   IList,
 } from 'noodl-ui'
-import { evalIf, isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
 import {
   componentEventMap,
   componentEventIds,
   componentEventTypes,
 } from './constants'
 import * as T from './types'
-import { get } from './utils'
 
 const log = Logger.create('noodl-ui-dom')
 
@@ -69,8 +67,10 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             const listComponent = component as IList
             const listObject = listComponent.getData()
             const numDataObjects = listObject?.length || 0
-
             if (numDataObjects) {
+              // console.info('LISTENERS IN NOODL-UI-DOM START')
+              // console.info(this.#callbacks)
+              // console.info('LISTENERS IN NOODL-UI-DOM END')
               listComponent.set('listObject', [])
               for (let index = 0; index < numDataObjects; index++) {
                 // This emits the "create list item" event that we should already have a listener for
@@ -78,16 +78,13 @@ class NOODLUIDOM implements T.INOODLUiDOM {
               }
             }
           }
-
           if (componentEventMap[noodlType as NOODLComponentType]) {
             this.emit(componentEventMap[noodlType], node, component)
           }
-
           // this.#cache.set(component.id, {
           //   node,
           //   component,
           // })
-
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
 
@@ -176,11 +173,29 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   }
 
   redraw(
-    node: Element | null,
-    component: IComponentTypeInstance,
-    actionObj: any,
+    node: HTMLElement | null, // ex: li (dom node)
+    component: IComponentTypeInstance, // ex: listItem component
   ) {
-    // console.info('TOMATO', { node, component: component.toJS(), actionObj })
+    log.func('redraw')
+    this.emit(componentEventMap.all, node, component)
+    this.emit(componentEventMap[component.noodlType], node, component)
+
+    component.broadcast((c) => {
+      const childNode = document.getElementById(c.id)
+      if (childNode) {
+        log.grey('CALLING REDRAW FOR PAIRED CHILD NODE / CHILD COMPONENT', {
+          childNode,
+          childComponent: c.toJS(),
+        })
+        this.emit(componentEventMap.all, childNode, c)
+        this.emit(componentEventMap[c.noodlType], childNode, c)
+      } else {
+        log.grey(
+          'WAS NOT ABLE TO FIND PAIRED CHILD NODE / CHILD COMPONENT FOR A REDRAW',
+          c,
+        )
+      }
+    })
 
     const resolvePath = (
       node: any,
@@ -190,42 +205,42 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       // console.info(path)
       let src: any
 
-      const cache = this.#cache.get(c.id) || this.#cache.get(node.id)
+      // const cache = this.#cache.get(c.id) || this.#cache.get(node.id)
 
-      console.info('resolvePath', {
-        component: c.toJS(),
-        cachedComponent: cache?.component,
-        componentDataObject: c?.getDataObject?.(),
-        cacheDataObject: cache?.component?.getDataObject?.(),
-        node,
-        cachedNode: cache?.node,
-        path,
-        actionObj,
-      })
+      // console.info('resolvePath', {
+      //   component: c.toJS(),
+      //   cachedComponent: cache?.component,
+      //   componentDataObject: c?.getDataObject?.(),
+      //   cacheDataObject: cache?.component?.getDataObject?.(),
+      //   node,
+      //   cachedNode: cache?.node,
+      //   path,
+      //   actionObj,
+      // })
 
       if (path && typeof path === 'object' && 'if' in path) {
-        src = evalIf((val, valOnTrue, valOnFalse) => {
-          if (isNOODLBoolean(val)) {
-            return isBooleanTrue(val)
-          } else if (typeof val === 'function') {
-            console.info('')
-            console.info('---------------------------------------------')
-            console.info('           dataObject', c?.getDataObject?.())
-            console.info('---------------------------------------------')
-            console.info('')
-            return val(c.getDataObject())
-          } else {
-            return !!val
-          }
-        }, path)
+        // src = evalIf((val, valOnTrue, valOnFalse) => {
+        //   if (isNOODLBoolean(val)) {
+        //     return isBooleanTrue(val)
+        //   } else if (typeof val === 'function') {
+        //     // console.info('')
+        //     // console.info('---------------------------------------------')
+        //     // console.info('           dataObject', c?.getDataObject?.())
+        //     // console.info('---------------------------------------------')
+        //     // console.info('')
+        //     return val(c.getDataObject())
+        //   } else {
+        //     return !!val
+        //   }
+        // }, path)
       } else {
         src = path
       }
-      if (node) node.querySelector('img').src = src
+      // if (node) node.querySelector('img').src = src
     }
 
-    if (component.get('path'))
-      resolvePath(node, component.get('path'), component)
+    // if (component.get('path'))
+    //   resolvePath(node, component.get('path'), component)
 
     component.broadcast((child) => {
       const { path } = component.get(['path'])
@@ -233,14 +248,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
       if (dataKey.startsWith(child.iteratorVar)) {
         if (child.type === 'label') {
-          const labelNode = document.querySelector(`[data-key="${dataKey}"]`)
-          if (labelNode) {
-            dataKey = dataKey.split('.').slice(1).join('.')
-            let dataValue = get(child.getDataObject(), dataKey)
-            if (dataValue) labelNode.textContent = dataValue
-          }
+          // const labelNode = document.querySelector(`[data-key="${dataKey}"]`)
+          // if (labelNode) {
+          //   dataKey = dataKey.split('.').slice(1).join('.')
+          //   let dataValue = get(child.getDataObject(), dataKey)
+          //   if (dataValue) labelNode.textContent = dataValue
+          // }
         } else if (child.type === 'input') {
-          log.func('create.list.item [redraw] REMINDER -- implement this')
+          // log.func('create.list.item [redraw] REMINDER -- implement this')
         }
       } else {
         // const n = document.querySelector(`[data-key="${dataKey}"]`)
@@ -253,7 +268,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       )
       // this.emit('create.component', childNode, child)
       // this.emit('create.image', childNode, child)
-      if (path) resolvePath(childNode, path, child)
+      // if (path) resolvePath(childNode, path, child)
       // console.info('START TEST')
       // console.info(childNode)
       // console.info('END TEST')

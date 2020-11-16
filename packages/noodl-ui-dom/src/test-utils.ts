@@ -492,15 +492,6 @@ export function listenToDOM() {
       //       // if (n) n.textContent = _.get(component.getDataObject(), dataKey)
       //     }
       //   })
-      console.info('im here guys')
-      console.info('im here guys')
-      console.info('im here guys')
-      console.info('im here guys')
-      console.info('im here guys')
-      console.info('im here guys')
-      console.info('im here guys')
-      console.info('im here guys')
-      console.info('im here guys')
     })
   })
 
