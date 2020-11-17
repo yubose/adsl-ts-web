@@ -45,7 +45,7 @@ const config = {
     }),
     babel({
       babelHelpers: 'runtime',
-      include: ['src'],
+      include: ['src/**/*'],
       exclude: ['node_modules'],
       extensions,
     }),
