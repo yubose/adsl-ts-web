@@ -1,12 +1,13 @@
 import _ from 'lodash'
-import Logger from 'logsnap'
 import { isDraft, original } from 'immer'
+import Logger from 'logsnap'
 import {
   evalIf,
   findParent,
   findNodeInMap,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
+  isEmitObj,
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
@@ -136,7 +137,10 @@ class NOODL implements T.INOODLUi {
     // Finish off with the internal resolvers to handle the children
     _.forEach(components, (c) => {
       const component = this.#resolve(c)
-      _internalResolver.resolve(component, this.getConsumerOptions())
+      _internalResolver.resolve(
+        component,
+        this.getConsumerOptions({ component }),
+      )
       resolvedComponents.push(component)
     })
 
@@ -390,17 +394,26 @@ class NOODL implements T.INOODLUi {
     } as T.ResolverOptions
   }
 
-  getConsumerOptions(include?: { [key: string]: any }) {
+  getConsumerOptions({
+    component,
+    ...rest
+  }: {
+    component: T.IComponentTypeInstance
+    [key: string]: any
+  }) {
     return {
+      component,
       context: this.getContext(),
-      createActionChainHandler: this.createActionChainHandler.bind(this),
-      createSrc: this.createSrc.bind(this),
+      createActionChainHandler: (
+        ...[action, options]: Parameters<T.INOODLUi['createActionChainHandler']>
+      ) => this.createActionChainHandler(action, { ...options, component }),
+      createSrc: (path: string) => this.createSrc(path, component),
       resolveComponent: this.#resolve.bind(this),
       parser: this.parser,
       showDataKey: this.#state.showDataKey,
       ...this.getStateGetters(),
       ...this.getStateSetters(),
-      ...include,
+      ...rest,
     } as T.ConsumerOptions
   }
 
@@ -601,14 +614,15 @@ class NOODL implements T.INOODLUi {
         return resolvePath(path)
       }
       // Emit object evaluation
-      else if ('emit' in path) {
-        const emitAction = new EmitAction(path, { trigger: 'path' })
-
-        emitAction['callback'] = async (action, options) => {
+      else if (isEmitObj<T.EmitActionObject>(path)) {
+        const emitAction = new EmitAction(
+          (isDraft(path) ? original(path) : path) as NonNullable<any>,
+          { trigger: 'path' },
+        )
+        emitAction['callback'] = (action, options) => {
           const obj = this.#cb.action.emit.find((o) => o.trigger === 'path')
           return obj?.fn?.(action, options) || ''
         }
-
         return emitAction
           .execute({
             builtIn: this.#cb.builtIn,
@@ -618,6 +632,9 @@ class NOODL implements T.INOODLUi {
             trigger: 'path',
           })
           .then((src) => resolvePath(src))
+          .catch((err) => {
+            throw new Error(err.message)
+          })
       }
       // Assuming we are passing in a dataObject
       else if (_.isFunction(valEvaluating)) {

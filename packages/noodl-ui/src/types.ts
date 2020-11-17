@@ -155,7 +155,10 @@ export interface INOODLUi {
       trigger?: NOODLActionTriggerType
     },
   ): (event: Event) => Promise<any>
-  createSrc(path: string, component?: IComponentTypeInstance): string
+  createSrc(
+    path: string | IfObject | EmitActionObject,
+    component?: IComponentTypeInstance,
+  ): string
   on(eventName: EventId, cb: INOODLUiComponentEventCallback): this
   off(eventName: EventId, cb: INOODLUiComponentEventCallback): this
   emit(
@@ -163,7 +166,10 @@ export interface INOODLUi {
     ...args: Parameters<INOODLUiComponentEventCallback>
   ): this
   getContext(): ResolverContext
-  getConsumerOptions(include?: { [key: string]: any }): ConsumerOptions
+  getConsumerOptions(include: {
+    component: IComponentTypeInstance
+    [key: string]: any
+  }): ConsumerOptions
   getNode(component: IComponent | string): IComponent | null
   getNodes(): Map<IComponentTypeInstance, IComponentTypeInstance>
   getPageObject<P extends string>(page: P): INOODLUi['root'][P]
@@ -420,6 +426,8 @@ export interface IListItemRedrawedArgs {
   props: IListItemRedrawArgs['props']
   listItem: IListItem
 }
+
+export interface ITextboard extends IComponent {}
 
 export interface IResolver {
   internal: boolean
@@ -776,9 +784,10 @@ export interface ResolverOptions
 }
 
 export interface ConsumerOptions {
+  component: IComponentTypeInstance
   context: ResolverContext
   createActionChainHandler: INOODLUi['createActionChainHandler']
-  createSrc: INOODLUi['createSrc']
+  createSrc(path: Parameters<INOODLUi['createSrc']>[0]): string
   getNode: INOODLUiStateHelpers['getNode']
   getNodes: INOODLUiStateHelpers['getNodes']
   getPageObject: INOODLUiStateHelpers['getPageObject']

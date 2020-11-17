@@ -92,31 +92,33 @@ export function forEachDeepEntriesOnObj<Obj extends {}, K extends keyof Obj>(
   }
 }
 
-/**
- * Runs reduce on each key/value pair of the value, passing in the key and value as an
- * object like { key, value } on each iteration as the second argument
- * @param { object } value
- * @param { function } callback - Callback to invoke on the key/value object. This function should be in the form of a reducer callback
- * @param { any? } initialValue - An optional initial value to start the accumulator with
- */
-export function reduceEntries<Obj>(
-  value: Obj,
-  callback: <K extends keyof Obj>(
-    acc: any,
-    { key, value }: { key: K; value: Obj[K] },
-    index: number,
-  ) => typeof acc,
-  initialValue?: any,
-) {
-  if (value && _.isObject(value)) {
-    return _.reduce(
-      _.entries(value),
-      (acc, [k, v], index) =>
-        callback(acc, { key: k as keyof Obj, value: v }, index),
-      initialValue,
-    )
+export function getAspectRatio(width: number, height: number) {
+  /**
+   * The binary Great Common Divisor calculator (fastest performance)
+   * https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
+   * @param { number } u - Upper
+   * @param { number } v - Lower
+   */
+  const getGCD = (u: number, v: number): any => {
+    if (u === v) return u
+    if (u === 0) return v
+    if (v === 0) return u
+    if (~u & 1)
+      if (v & 1) return getGCD(u >> 1, v)
+      else return getGCD(u >> 1, v >> 1) << 1
+    if (~v & 1) return getGCD(u, v >> 1)
+    if (u > v) return getGCD((u - v) >> 1, v)
+    return getGCD((v - u) >> 1, u)
   }
-  return value
+
+  const getSizes = (w: number, h: number) => {
+    var d = getGCD(w, h)
+    return [w / d, h / d]
+  }
+
+  const [newWidth, newHeight] = getSizes(width, height)
+  const aspectRatio = newWidth / newHeight
+  return aspectRatio
 }
 
 /**
@@ -149,4 +151,31 @@ export function openOutboundURL(url: string) {
     // a.click()
     window.location.href = url
   }
+}
+
+/**
+ * Runs reduce on each key/value pair of the value, passing in the key and value as an
+ * object like { key, value } on each iteration as the second argument
+ * @param { object } value
+ * @param { function } callback - Callback to invoke on the key/value object. This function should be in the form of a reducer callback
+ * @param { any? } initialValue - An optional initial value to start the accumulator with
+ */
+export function reduceEntries<Obj>(
+  value: Obj,
+  callback: <K extends keyof Obj>(
+    acc: any,
+    { key, value }: { key: K; value: Obj[K] },
+    index: number,
+  ) => typeof acc,
+  initialValue?: any,
+) {
+  if (value && _.isObject(value)) {
+    return _.reduce(
+      _.entries(value),
+      (acc, [k, v], index) =>
+        callback(acc, { key: k as keyof Obj, value: v }, index),
+      initialValue,
+    )
+  }
+  return value
 }

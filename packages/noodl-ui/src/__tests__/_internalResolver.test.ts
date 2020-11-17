@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import chalk from 'chalk'
 import _ from 'lodash'
+import { prettyDOM } from '@testing-library/dom'
 import { findChild, findParent } from 'noodl-utils'
 import _internalResolver from '../resolvers/_internal'
 import Component from '../components/Base'
@@ -145,7 +146,10 @@ describe('_internalResolver', () => {
       }
       noodlParentComponent.children.push(noodlComponent)
       const parent = noodlui.resolveComponents(noodlParentComponent)
-      const component = parent.child()
+      const component = parent.child() as IList
+      const data = component.getData()
+      component.set('listObject', [])
+      data.forEach((d) => component.addDataObject(d))
       expect(component).to.have.lengthOf(2)
     })
 
@@ -159,7 +163,10 @@ describe('_internalResolver', () => {
         listObject: [...noodlComponent.listObject, {}, {}, {}],
       })
       const parent = noodlui.resolveComponents(noodlParentComponent)
-      const component = parent.child()
+      const component = parent.child() as IList
+      const data = component.getData()
+      component.set('listObject', [])
+      data.forEach((d) => component.addDataObject(d))
       expect(component).to.have.lengthOf(5)
     })
 
@@ -199,6 +206,9 @@ describe('_internalResolver', () => {
         children: [noodlComponent],
       }) as IList
       const component = parent.child() as IList
+      const data = component.getData()
+      component.set('listObject', [])
+      data.forEach((d) => component.addDataObject(d))
       component.updateDataObject(0, { greeting: 'hello' })
       expect(component.getDataObject(0).dataObject).to.have.property(
         'greeting',
@@ -215,6 +225,8 @@ describe('_internalResolver', () => {
         children: [noodlComponent],
       }) as IList
       const component = parent.child() as IList
+      const data = component.getData()
+      data.forEach((d) => component.addDataObject(d))
       component.on(event.component.list.UPDATE_LIST_ITEM, spy)
       expect(spy.called).to.be.false
       component.updateDataObject(1, { hello: 'true', fruit: 'apple' })
@@ -267,10 +279,13 @@ describe('_internalResolver', () => {
         .setPage('SignIn')
       const noodlParent = { type: 'view', children: [noodlComponent] }
       const parent = noodlui.resolveComponents(noodlParent)
-      const component = parent.child()
+      const component = parent.child() as IList
 
-      const [listItem1, listItem2, listItem3] = component?.children() || []
+      const data = component.getData()
+      component?.set('listObject', [])
+      data.forEach((d) => component.addDataObject(d))
 
+      const [listItem1] = component?.children() || []
       expect(listItem1.child()?.get?.('data-value')).to.equal(dataObject1.title)
       expect(listItem1.child(1)?.child(0)?.get('data-value')).to.equal(
         dataObject1.color,
@@ -278,6 +293,38 @@ describe('_internalResolver', () => {
       expect(
         listItem1.child(1)?.child(1)?.child(0)?.child(0)?.get('src'),
       ).to.equal(noodlui.assetsUrl + 'abc.png')
+    })
+  })
+
+  describe('textBoard', () => {
+    it('should create label child components for "text" items', () => {
+      const parent = noodlui.resolveComponents({
+        type: 'view',
+        children: [
+          {
+            type: 'label',
+            textBoard: [{ text: 'hello' }, { text: 'bye' }],
+          },
+        ],
+      })
+      const label = parent.child()
+      expect(label?.child()).to.have.property('noodlType', 'label')
+    })
+
+    it('should create br child components for "br" items', () => {
+      const parent = noodlui.resolveComponents({
+        type: 'view',
+        children: [
+          {
+            type: 'label',
+            textBoard: [{ br: null }, { text: 'hello' }, { br: null }],
+          },
+        ],
+      })
+      const label = parent.child()
+      expect(label?.child(0)).to.have.property('noodlType', 'br')
+      expect(label?.child(1)).to.have.property('noodlType', 'label')
+      expect(label?.child(2)).to.have.property('noodlType', 'br')
     })
   })
 

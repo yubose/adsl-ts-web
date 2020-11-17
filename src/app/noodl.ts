@@ -1,4 +1,5 @@
 import NOODL from '@aitmed/cadl'
+import { getAspectRatio } from '../utils/common'
 
 const PORTAL_CONFIG = getConfigEndpoint('portal')
 const PORTAL_CONFIG_NATIVE_JS = getConfigEndpoint('cadltest')
@@ -14,7 +15,10 @@ const MEET11_CONFIG = getConfigEndpoint('meet11')
 const TESTPAGE = getConfigEndpoint('testpage')
 
 const noodl = new NOODL({
-  aspectRatio: -0.5,
+  aspectRatio:
+    typeof window !== 'undefined'
+      ? getAspectRatio(window.innerWidth, window.innerHeight)
+      : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
   configUrl: LANDING_PAGE_CONFIG,
   // configUrl: getConfigEndpoint('meet'),

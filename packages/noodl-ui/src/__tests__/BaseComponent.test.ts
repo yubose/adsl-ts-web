@@ -24,6 +24,27 @@ beforeEach(() => {
 })
 
 describe('BaseComponent', () => {
+  describe('when instantiating', () => {
+    xit('should convert any immer draft objects to their original form', () => {
+      const component = new Component({
+        type: 'view',
+        onClick: [
+          { actionType: 'pageJump', destination: 'hello' },
+          { actionType: 'evalObject', object: () => {} },
+        ],
+        path: {
+          emit: {
+            dataKey: { var1: 'itemObject' },
+            actions: [{ if: [function () {}, {}, {}] }],
+          },
+        },
+        style: {
+          border: { style: '2' },
+        },
+      })
+    })
+  })
+
   describe('touch/untouch', () => {
     it('should populate touched/untouched keys in the beginning', () => {
       const component = new Component({

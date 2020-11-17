@@ -1,11 +1,5 @@
-import {
-  IComponentTypeObject,
-  IComponentTypeInstance,
-  IComponentType,
-  IComponent,
-} from 'noodl-ui'
 import Logger from 'logsnap'
-import { get, isArr, isBool, isFnc, isObj, isStr, isUnd } from './_internal'
+import { get, isArr, isBool, isFnc, isObj, isStr } from './_internal'
 import * as T from './types'
 
 const log = Logger.create('noodl-utils')
@@ -47,11 +41,10 @@ export function evalIf<IfObj extends { if: [any, any, any] }>(
  * @param { IComponentTypeInstance } component
  * @param { function } fn - Comparator function
  */
-export function findChild<Component extends { children?: Function } = any>(
-  component: Component,
-  fn: (child: Component) => boolean,
-): Component | null {
-  let child: Component | null = null
+export function findChild<
+  C extends { children?: Function; length?: number } = any
+>(component: C, fn: (child: C) => boolean): C | null {
+  let child: C | null = null
   let children = component?.children?.()?.slice?.() || []
 
   if (component) {
@@ -214,10 +207,22 @@ export function isBreakLineTextBoardItem<
   return isBreakLine(value) || isBreakLineObject(value)
 }
 
-export function isComponentInstance(
-  component: any,
-): component is IComponentTypeInstance {
-  return !!component && ((typeof component?.children === 'function') as boolean)
+export function isComponentInstance<
+  C extends InstanceType<
+    new (...args: any[]) => { children: (...args: any[]) => any }
+  > = any
+>(component: unknown): component is C {
+  return !!(
+    component &&
+    typeof component === 'function' &&
+    typeof component['children'] === 'function'
+  )
+}
+
+export function isEmitObj<
+  O extends { emit?: { dataKey?: any; actions?: any } } = any
+>(value: unknown): value is O {
+  return value && typeof value === 'object' && 'emit' in value
 }
 
 export function isTextFieldLike(

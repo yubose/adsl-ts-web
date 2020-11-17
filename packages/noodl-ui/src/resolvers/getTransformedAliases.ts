@@ -1,7 +1,6 @@
-import { isDraft, original } from 'immer'
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { findParent, isBoolean, isBooleanTrue } from 'noodl-utils'
+import { isBooleanTrue } from 'noodl-utils'
 import { contentTypes } from '../constants'
 import { ResolverFn } from '../types'
 
@@ -11,10 +10,7 @@ const log = Logger.create('getTransformedAliases')
  * Renames some keywords to align more with html/css/etc
  *  ex: resource --> src (for images)
  */
-const getTransformedAliases: ResolverFn = (
-  component,
-  { context, createSrc, getPageObject },
-) => {
+const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
   const {
     type,
     contentType,
@@ -60,92 +56,10 @@ const getTransformedAliases: ResolverFn = (
 
   if (required) component.set('required', isBooleanTrue(required))
   if (_.isBoolean(controls)) component.set('controls', controls)
-  if (poster) component.set('poster', createSrc(poster, component))
+  if (poster) component.set('poster', createSrc(poster))
 
   if (!_.isUndefined(path) || !_.isUndefined(resource)) {
-    let src = path || resource || ''
-
-    // TODO - Remove most logic below because the logic is now all converged
-    // into the createSrc func
-    if (isDraft(src)) src = original(src)
-    if (_.isString(src)) {
-      component.set('src', createSrc(src, component))
-    } else if (!_.isArray(path) && _.isObject(path)) {
-      // log.yellow('', {
-      //   if: path.if,
-      //   component: component.snapshot(),
-      //   componentJS: component.toJS(),
-      // })
-      const [valEvaluating, valOnTrue, valOnFalse] = path?.if || []
-      if (_.isString(valEvaluating)) {
-        /**
-         * Attempt #1 --> Find on root
-         * Attempt #2 --> Find on local root
-         * Attempt #3 --> Find on list data
-         */
-        const { page, roots } = context
-        const pageObject = getPageObject(page)
-        let value: any
-        if (_.has(roots, valEvaluating)) {
-          value = _.get(roots, valEvaluating)
-        } else if (_.has(pageObject, valEvaluating)) {
-          value = _.get(pageObject, valEvaluating)
-        } else if (!component.get('listId')) {
-          // TEMP -- default to setting the value on the root object
-          if (valEvaluating === 'VideoChat.micOn') {
-            // hard code this for now
-            //
-          }
-        } else {
-          // TODO - Check on iteratorVar
-          // Assuming this is for list items if the code gets here
-          // If the value possibly leads somewhere, continue with walking the
-          // root/localroot/list objects that are available, if any
-          // Proceed to check the list data
-          const { listId, iteratorVar = '' } = component.get([
-            'listId',
-            'iteratorVar',
-          ])
-          if (listId) {
-            const listItem = findParent(
-              component,
-              (parent) => parent?.noodlType === 'listItem',
-            )
-            const dataObject = listItem?.getDataObject?.()
-            value = _.get(
-              dataObject,
-              valEvaluating.startsWith(iteratorVar)
-                ? valEvaluating.split('.').slice(1)
-                : valEvaluating,
-            )
-          }
-        }
-        if (isBoolean(value)) {
-          component.set(
-            'src',
-            createSrc(isBooleanTrue(value) ? valOnTrue : valOnFalse, component),
-          )
-        } else {
-          component.set(
-            'src',
-            createSrc(value ? valOnTrue : valOnFalse, component),
-          )
-        }
-      } else if (_.isFunction(valEvaluating)) {
-        component.set('src', createSrc(src, component))
-      } else if (valEvaluating) {
-        // What else can we get here?
-        component.set('src', createSrc(valOnTrue, component))
-      } else {
-        component.set('src', createSrc(valOnFalse, component))
-      }
-    } else {
-      log.red(
-        'Encountered a component with an invalid "path" or "resource". It ' +
-          'will not display correctly',
-        { component: component.snapshot(), computedSrc: src, path, resource },
-      )
-    }
+    component.set('src', createSrc(path || resource || ''))
   }
 
   if (component.type === 'video') {
@@ -161,7 +75,7 @@ const getTransformedAliases: ResolverFn = (
   }
 
   if (poster) {
-    component.set('poster', createSrc(poster as string, component))
+    component.set('poster', createSrc(poster as string))
   }
 
   if (isBooleanTrue(controls)) {

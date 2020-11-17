@@ -17,6 +17,7 @@ import {
 } from '../types'
 import List from '../components/List'
 import * as helpers from './helpers/helpers'
+import { waitFor } from '@testing-library/dom'
 
 const parser = makeRootsParser({ roots: {} })
 
@@ -282,10 +283,16 @@ describe('ActionChain', () => {
       let listObject: { key: string; value: string }[]
       const iteratorVar = 'hello'
       const viewTag = 'pastMedicalHistoryTag'
-      const mockEmitCallback = sinon.spy()
+      let mockEmitCallback: sinon.SinonSpy
+      let mockPathEmitCallback: sinon.SinonSpy
 
       beforeEach(() => {
-        noodlui.use([{ actionType: 'emit', fn: mockEmitCallback }])
+        mockEmitCallback = sinon.spy()
+        mockPathEmitCallback = sinon.spy()
+        noodlui.use([
+          { actionType: 'emit', fn: mockEmitCallback },
+          { actionType: 'emit', fn: mockPathEmitCallback, trigger: 'path' },
+        ])
         listObject = [
           { key: 'Gender', value: '' },
           { key: 'Gender', value: 'Male' },
@@ -362,14 +369,12 @@ describe('ActionChain', () => {
         originalPage = res.originalPage
         view = res.components[0]
         list = view.child() as IList
-      })
-
-      it('should pass iteratorVar, listItem, and dataObject to args', async () => {
-        const view = components[0]
-        const list = view.child() as IList
         const listData = list.getData()
         list.set('listObject', [])
         listData.forEach((d) => list.addDataObject(d))
+      })
+
+      it('should pass iteratorVar, listItem, and dataObject to args', async () => {
         const listItem = list.child() as IListItem
         const image = listItem?.child(1) as IComponentTypeInstance
         const actionChain = new ActionChain(
@@ -379,24 +384,40 @@ describe('ActionChain', () => {
         image.get('onClick')({})
         const execute = actionChain.build({ trigger: 'onClick' } as any)
         await execute({})
-        const args = spy.firstCall?.args[1] || {}
-        // console.info('listData', listData)
-        // console.info('dataObject', args)
-        // console.info('dataObject from listItem', args.listItem.getDataObject())
-        // console.info('image', image.toJS())
+        const args = mockEmitCallback.firstCall?.args[1] || {}
         expect(args).to.have.property('iteratorVar', iteratorVar)
         expect(args).to.have.property('listItem')
         expect(args).to.have.property('dataObject')
-        expect(args).to.have.property('dataObject')
-        expect(listItem.getDataObject()).to.eq(image.get('dataObject'))
       })
 
-      xit('the dataObject passed to emit action should be in the args', () => {
-        //
+      it('the dataObject passed to emit action should be in the args', () => {
+        const listItem = list.child() as IListItem
+        const image = listItem.child(1)
+        expect(listItem.getDataObject()).to.eq(image?.get('dataObject'))
       })
 
-      xit('should have a trigger value of "path" if triggered by a path emit', () => {
-        //
+      it('should have a trigger value of "path" if triggered by a path emit', async () => {
+        const spy = sinon.spy()
+        noodlui.use({
+          actionType: 'emit',
+          fn: spy,
+          // fn: () => {
+          //   console.info('HELOFMSFMJDN')
+          //   console.info('HELOFMSFMJDN')
+          //   console.info('HELOFMSFMJDN')
+          //   console.info('HELOFMSFMJDN')
+          //   console.info('HELOFMSFMJDN')
+          //   console.info('HELOFMSFMJDN')
+          //   console.info('HELOFMSFMJDN')
+          // },
+          trigger: 'path',
+        })
+        const listItem = list.child() as IListItem
+        const image = listItem.child(1)
+        // console.info(spy.getCalls())
+        await waitFor(() => {
+          expect(spy.called).to.be.true
+        })
       })
 
       xit('should have a trigger value of "click" if triggered by an onClick', () => {

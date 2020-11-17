@@ -77,6 +77,14 @@ class Component implements IComponent {
           : component[eventType]
       }
     })
+
+    // Immer proxifies some funcs / objects but we need them in their original form
+    // in the resolve process, so we need to convert them to their original form
+    _.forEach(keys, (key) => {
+      if (isDraft(this.#component[key])) {
+        this.#component[key] = original(this.#component[key])
+      }
+    })
   }
 
   /**

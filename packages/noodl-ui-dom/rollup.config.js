@@ -22,7 +22,6 @@ const config = {
       globals: {
         logsnap: 'Logger',
         'noodl-ui': 'noodlui',
-        'noodl-utils': 'noodlutils',
       },
     },
   ],
@@ -32,6 +31,7 @@ const config = {
     filesize(),
     progress(),
     resolve({
+      browser: true,
       extensions,
       customResolveOptions: {
         moduleDirectory: ['node_modules'],
@@ -45,10 +45,9 @@ const config = {
     }),
     babel({
       babelHelpers: 'runtime',
-      include: ['src/**/*'],
+      include: ['src'],
       exclude: ['node_modules'],
       extensions,
-      sourceMaps: true,
     }),
     // Env var set by root lerna repo
     ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),

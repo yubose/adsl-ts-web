@@ -18,8 +18,10 @@ const config = {
       exports: 'named',
       format: 'umd',
       name: 'noodlui',
-      // sourcemap: true,
-      globals: {},
+      sourcemap: true,
+      globals: {
+        // noodlutils: ['noodl-utils'],
+      },
     },
   ],
   plugins: [
@@ -30,7 +32,7 @@ const config = {
     resolve({
       extensions,
       customResolveOptions: {
-        moduleDirectory: ['node_modules'],
+        moduleDirectory: ['node_modules', '../noodl-utils'],
       },
     }),
     typescript({

@@ -1,11 +1,11 @@
 import _ from 'lodash'
+import { findParent } from 'noodl-utils'
 import Logger from 'logsnap'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import { AbortExecuteError } from '../errors'
 import { createExecute, createActionChainGenerator } from './execute'
 import * as T from '../types'
-import { findParent } from 'noodl-utils'
 
 const log = Logger.create('ActionChain')
 

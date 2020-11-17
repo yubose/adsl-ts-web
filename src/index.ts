@@ -33,7 +33,7 @@ import {
 } from 'noodl-ui'
 import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'
-import { forEachEntries, isMobile } from './utils/common'
+import { forEachEntries, getAspectRatio, isMobile } from './utils/common'
 import { copyToClipboard } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
@@ -609,29 +609,6 @@ window.addEventListener('load', async () => {
    * This affects the endpoints that the SDK uses to load pages
    */
   if (!viewport.onResize) {
-    /**
-     * The binary Great Common Divisor calculator (fastest performance)
-     * https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
-     * @param { number } u - Upper
-     * @param { number } v - Lower
-     */
-    function getGCD(u: number, v: number): any {
-      if (u === v) return u
-      if (u === 0) return v
-      if (v === 0) return u
-      if (~u & 1)
-        if (v & 1) return getGCD(u >> 1, v)
-        else return getGCD(u >> 1, v >> 1) << 1
-      if (~v & 1) return getGCD(u, v >> 1)
-      if (u > v) return getGCD((u - v) >> 1, v)
-      return getGCD((v - u) >> 1, u)
-    }
-
-    function getSizes(w: number, h: number) {
-      var d = getGCD(w, h)
-      return [w / d, h / d]
-    }
-
     let cache = {
       landscape: true,
     }
@@ -644,8 +621,7 @@ window.addEventListener('load', async () => {
     }) => {
       if (width !== previousWidth || height !== previousHeight) {
         log.grey('Updating aspectRatio because viewport changed')
-        const [newWidth, newHeight] = getSizes(width, height)
-        const aspectRatio = newWidth / newHeight
+        const aspectRatio = getAspectRatio(width, height)
         noodl['aspectRatio'] = aspectRatio
         if (aspectRatio > 1 !== cache['landscape']) {
           cache['landscape'] = !cache.landscape
