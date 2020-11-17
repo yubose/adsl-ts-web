@@ -9,5 +9,5 @@
   },
   "extends": "./tsconfig.json",
   "exclude": ["node_modules", "scripts"],
-  "include": ["src/**/*.test.ts", "packages"]
+  "include": ["src/**/*.test.ts"]
 }

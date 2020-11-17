@@ -106,6 +106,9 @@ module.exports = {
     port: 3000,
   },
   devtool: 'inline-source-map',
+  watchOptions: {
+    ignored: /node_modules/,
+  },
   externals: [],
   mode: 'development',
   module: {
@@ -167,10 +170,10 @@ module.exports = {
     new webpack.ProgressPlugin({
       handler(percentage, msg, ...args) {
         console.clear()
-        console.log('')
-        console.log('')
-        console.log('-------------------------------------------------------')
-        console.log(
+        console.info('')
+        console.info('')
+        console.info('-------------------------------------------------------')
+        console.info(
           `Your app is being built for ${chalk.yellow('eCOS')} ${chalk.magenta(
             process.env.ECOS_ENV
               ? process.env.ECOS_ENV.toUpperCase()
@@ -181,49 +184,49 @@ module.exports = {
               : '<Variable not set>',
           )} mode`,
         )
-        console.log(`Status:   ${chalk.blueBright(msg.toUpperCase())}`)
-        console.log(`Progress: ${chalk.magenta(percentage.toFixed(4) * 100)}%`)
-        console.log(`File:  ${chalk.magenta(args[0])}`)
-        console.log('')
-        console.log(`${chalk('eCOS packages')}:`)
-        console.log(
+        console.info(`Status:   ${chalk.blueBright(msg.toUpperCase())}`)
+        console.info(`Progress: ${chalk.magenta(percentage.toFixed(4) * 100)}%`)
+        console.info(`File:  ${chalk.magenta(args[0])}`)
+        console.info('')
+        console.info(`${chalk('eCOS packages')}:`)
+        console.info(
           `${chalk.yellow(`@aitmed/cadl`)}:            ${chalk.magenta(
             pkg.dependencies['@aitmed/cadl'] ||
               pkg.devDependencies['@aitmed/cadl'],
           )}`,
         )
-        console.log(
+        console.info(
           `${chalk.yellow(`@aitmed/ecos-lvl2-sdk`)}:   ${chalk.magenta(
             pkg.dependencies['@aitmed/ecos-lvl2-sdk'] ||
               pkg.devDependencies['@aitmed/ecos-lvl2-sdk'],
           )}`,
         )
-        console.log(
+        console.info(
           `${chalk.yellow(`noodl-ui`)}:                ${chalk.magenta(
             pkg.dependencies['noodl-ui'],
           )}`,
         )
-        console.log(
+        console.info(
           `${chalk.yellow(`noodl-ui-dom`)}:            ${chalk.magenta(
             pkg.dependencies['noodl-ui-dom'],
           )}`,
         )
         if (process.env.NODE_ENV === 'production') {
-          console.log('')
-          console.log(
+          console.info('')
+          console.info(
             `An ${chalk.magenta(
               htmlPluginOptions.filename,
             )} file will be generated inside your ${chalk.magenta(
               'build',
             )} directory.`,
           )
-          console.log(
+          console.info(
             `The title of the page was set to "${chalk.yellow(
               htmlPluginOptions.title,
             )}"`,
           )
         }
-        console.log('-------------------------------------------------------')
+        console.info('-------------------------------------------------------')
       },
     }),
   ],

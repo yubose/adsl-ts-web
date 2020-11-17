@@ -397,17 +397,26 @@ describe('ActionChain', () => {
       })
 
       it('should have a trigger value of "path" if triggered by a path emit', async () => {
-        const spy = sinon.spy()
-        const listItem = list.child() as IListItem
-        const image = listItem.child(1)
-        // console.info(spy.getCalls())
-        await waitFor(() => {
-          expect(spy.called).to.be.true
-        })
+        expect(mockPathEmitCallback.firstCall.args[1]).to.have.property(
+          'trigger',
+          'path',
+        )
       })
 
-      xit('should have a trigger value of "click" if triggered by an onClick', () => {
-        //
+      it('should have a trigger value of "click" if triggered by an onClick', async () => {
+        const listItem = list.child() as IListItem
+        const image = listItem?.child(1) as IComponentTypeInstance
+        new ActionChain(
+          originalPage.SignIn.components[0].children[0].children[0].children[1].onClick,
+          { component: image },
+        )
+        image.get('onClick')({})
+        const execute = actionChain.build({ trigger: 'onClick' } as any)
+        await execute({})
+        expect(mockEmitCallback.firstCall.args[1]).to.have.property(
+          'trigger',
+          'onClick',
+        )
       })
     })
   })
