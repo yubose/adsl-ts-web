@@ -398,20 +398,6 @@ describe('ActionChain', () => {
 
       it('should have a trigger value of "path" if triggered by a path emit', async () => {
         const spy = sinon.spy()
-        noodlui.use({
-          actionType: 'emit',
-          fn: spy,
-          // fn: () => {
-          //   console.info('HELOFMSFMJDN')
-          //   console.info('HELOFMSFMJDN')
-          //   console.info('HELOFMSFMJDN')
-          //   console.info('HELOFMSFMJDN')
-          //   console.info('HELOFMSFMJDN')
-          //   console.info('HELOFMSFMJDN')
-          //   console.info('HELOFMSFMJDN')
-          // },
-          trigger: 'path',
-        })
         const listItem = list.child() as IListItem
         const image = listItem.child(1)
         // console.info(spy.getCalls())

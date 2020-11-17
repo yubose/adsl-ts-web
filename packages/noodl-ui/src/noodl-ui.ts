@@ -615,29 +615,29 @@ class NOODL implements T.INOODLUi {
       }
       // Emit object evaluation
       else if (isEmitObj<T.EmitActionObject>(path)) {
-        const emitAction = new EmitAction(
-          (isDraft(path) ? original(path) : path) as NonNullable<any>,
-          { trigger: 'path' },
-        )
-        emitAction['callback'] = (action, options) => {
-          const obj = this.#cb.action.emit.find((o) => o.trigger === 'path')
-          return obj?.fn?.(action, options) || ''
-        }
-        return emitAction
-          .execute({
-            builtIn: this.#cb.builtIn,
-            component,
-            context: this.getContext(),
-            parser: this.#parser,
-            trigger: 'path',
-          })
-          .then((src) => resolvePath(src))
-          .catch((err) => {
-            throw new Error(err.message)
-          })
+        // const emitAction = new EmitAction(
+        //   (isDraft(path) ? original(path) : path) as NonNullable<any>,
+        //   { trigger: 'path' },
+        // )
+        // emitAction['callback'] = (action, options) => {
+        //   const obj = this.#cb.action.emit.find((o) => o.trigger === 'path')
+        //   return obj?.fn?.(action, options) || ''
+        // }
+        // return emitAction
+        //   .execute({
+        //     builtIn: this.#cb.builtIn,
+        //     component,
+        //     context: this.getContext(),
+        //     parser: this.#parser,
+        //     trigger: 'path',
+        //   })
+        //   .then((src) => resolvePath(src))
+        //   .catch((err) => {
+        //     throw new Error(err.message)
+        //   })
       }
       // Assuming we are passing in a dataObject
-      else if (_.isFunction(valEvaluating)) {
+      else if (_.isFunction(path)) {
         if (component) {
           let dataObject: any
           // Assuming it is a component retrieving its value from a dataObject
