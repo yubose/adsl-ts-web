@@ -26,6 +26,7 @@ declare global {
     modal: Modal
     noodlui: NOODL
     noodluidom: any
+    redraw: any
     room: Room | null
     streams: any
     cp: Function

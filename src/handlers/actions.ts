@@ -324,15 +324,18 @@ const createActions = function ({ page }: { page: IPage }) {
         dataKey: createEmitDataKey(path.emit.dataKey, dataObject),
         actions: path.emit.actions,
       }
-      log.func('emit [path]')
-      log.grey(`Calling emitCall`, {
+      const logArgs = {
         component,
         dataObject,
         iteratorVar,
         params,
         path,
-      })
-      return noodl.emitCall(params)
+      }
+      log.func('emit [path]')
+      log.grey(`Calling emitCall`, logArgs)
+      const result = noodl.emitCall(params)
+      log.grey('emitCall result', { ...logArgs, result })
+      return result
     },
     trigger: 'path',
   })

@@ -6,6 +6,7 @@ import {
 import Logger from 'logsnap'
 import {
   ActionChainActionCallback,
+  Component,
   getByDataUX,
   getElementType,
   getAlignAttrs,
@@ -23,6 +24,7 @@ import {
   getTransformedStyleAliases,
   getDataValues,
   identify,
+  IComponentTypeInstance,
   IResolver,
   BuiltInActionObject,
   NOODLPageObject,
@@ -43,7 +45,6 @@ import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
-import noodluidom from 'app/noodl-ui-dom'
 import './handlers/dom'
 import './styles.css'
 
@@ -89,6 +90,7 @@ window.addEventListener('load', async () => {
   // const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
+  const { default: noodluidom } = await import('app/noodl-ui-dom')
 
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
@@ -130,6 +132,7 @@ window.addEventListener('load', async () => {
   }
   window.noodl = noodl
   window.cp = copyToClipboard
+  window.redraw = redrawDebugger
 
   Meeting.initialize({ page, viewport })
 
@@ -713,4 +716,36 @@ function getCachedPages(): CachedPageObject[] {
 /** Sets the list of cached pages */
 function setCachedPages(cache: CachedPageObject[]) {
   window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+}
+
+/* -------------------------------------------------------
+  ---- INTERNAL USE FOR DEBUGGING
+-------------------------------------------------------- */
+
+interface RedrawOptions {
+  random?: boolean
+}
+
+function redrawDebugger(opts: RedrawOptions): void
+function redrawDebugger(node: HTMLElement | null, opts: RedrawOptions): void
+function redrawDebugger(
+  node: HTMLElement | null,
+  component: IComponentTypeInstance,
+): void
+function redrawDebugger(
+  node: HTMLElement | RedrawOptions | null,
+  opts: RedrawOptions | IComponentTypeInstance,
+) {
+  if (node) {
+    if (opts instanceof Component) {
+      const component = opts as IComponentTypeInstance
+    } else {
+      const options = opts as RedrawOptions
+      if (options.random) {
+        const walk = (n: HTMLElement) => {
+          // const children
+        }
+      }
+    }
+  }
 }
