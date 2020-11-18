@@ -10,6 +10,14 @@ import {
   Path,
 } from 'noodl-ui'
 
+export interface INOODLPage {
+  init?: string | string[]
+  module?: string
+  name: string
+  pageNumber?: number
+  [key: string]: any
+}
+
 /* -------------------------------------------------------
   ---- LOOSELY TYPED COMPONENTS
 -------------------------------------------------------- */
