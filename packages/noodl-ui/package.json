@@ -16,7 +16,7 @@
   "scripts": {
     "build": "rm -rf dist && rollup -c --environment BUILD:production",
     "start": "rm -rf dist && rollup -c -w --environment BUILD:development",
-    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts",
+    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register -r ts-node/register --file src/setupTests.ts --extensions ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register -r ts-node/register --file src/setupTests.ts --extensions ts --watch --watch-files src"
   },
   "files": [
@@ -36,5 +36,9 @@
       "no-unused-vars": "warn"
     }
   },
-  "gitHead": "57753b8cd427d177c623188a536c58a70f9a8cbd"
+  "gitHead": "57753b8cd427d177c623188a536c58a70f9a8cbd",
+  "devDependencies": {
+    "cross-env": "^7.0.2",
+    "typescript": "^4.0.5"
+  }
 }

@@ -4,7 +4,6 @@ import path from 'path'
 import getAlignAttrs from '../resolvers/getAlignAttrs'
 import getBorderAttrs from '../resolvers/getBorderAttrs'
 import getColors from '../resolvers/getColors'
-import getChildren from '../resolvers/getChildren'
 import getCustomDataAttrs from '../resolvers/getCustomDataAttrs'
 import getElementType, { getType } from '../resolvers/getElementType'
 import getEventHandlers from '../resolvers/getEventHandlers'
@@ -75,7 +74,6 @@ export function getAllResolvers() {
     getAlignAttrs,
     getBorderAttrs,
     getColors,
-    getChildren,
     getCustomDataAttrs,
     getElementType,
     getEventHandlers,

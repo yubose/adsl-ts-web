@@ -39,21 +39,23 @@ export function getListItemWithEmit({
     children: [
       {
         type: 'image',
-        path: createPath({
-          cond: {
+        path: [
+          {
             '.builtIn.object.has': [
               { object: '..formData' },
               { key: `${iteratorVar}.key` },
             ],
           },
-          val1: 'selectOn.png',
-          val2: 'selectOff.png',
-        }),
+          'selectOn.png',
+          'selectOff.png',
+        ],
         onClick: [
-          createEmitObject({
-            dataKey: { var1: iteratorVar, var2: iteratorVar },
-            actions: [{}, {}, {}],
-          }),
+          {
+            emite: {
+              dataKey: { var1: iteratorVar, var2: iteratorVar },
+              actions: [{}, {}, {}],
+            },
+          },
           createBuiltInObject({ funcName: 'redraw', viewTag }),
         ],
         style: { left: '0.15' },
@@ -77,10 +79,10 @@ export function initiateListItems(list: IList) {
 
 let util = {
   createBuiltInObject,
-  createEmitObject,
-  createIfObject,
-  createImage,
-  createPath,
+  // createEmitObject,
+  // createIfObject,
+  // createImage,
+  // createPath,
   getListItemWithEmit,
   initiateListItems,
 }
