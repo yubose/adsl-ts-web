@@ -55,7 +55,8 @@ export function getRandomKey() {
 }
 
 export function isPromise(value: unknown): value is Promise<any> {
-  return value && typeof value === 'function' && 'then' in value
+  window.isPromise = isPromise
+  return value && typeof value === 'object' && 'then' in value
 }
 
 /**

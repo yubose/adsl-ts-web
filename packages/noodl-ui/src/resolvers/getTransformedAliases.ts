@@ -1,6 +1,7 @@
+import { isDraft, original } from 'immer'
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { isBooleanTrue } from 'noodl-utils'
+import { isBooleanTrue, isEmitObj } from 'noodl-utils'
 import { contentTypes } from '../constants'
 import { ResolverFn } from '../types'
 import { isPromise } from '../utils/common'
@@ -60,31 +61,29 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
   if (poster) component.set('poster', createSrc(poster))
 
   if (path || resource) {
-    let src = createSrc(path || resource || '') || ''
-    if (isPromise(src)) {
-      log.gold('GHELOKIAMKS')
-      log.gold('GHELOKIAMKS')
-      log.gold('GHELOKIAMKS')
-      log.gold('GHELOKIAMKS')
-      src
-        .then((result: string) => {
-          log.func('createSrc [emitted promise]')
-          log.grey('createSrc path emit result', { component, result })
-          src = result
-        })
-        .catch((err: Error) => {
-          throw new Error(err)
-        })
-        .finally(() => {
-          component.set(
-            'src',
-            isPromise(src)
-              ? '<Path_emit_failed_in_getTransformedAliases>'
-              : src,
-          )
-        })
+    let src = path || resource || ''
+    if (isDraft(src)) src = original(src)
+    if (isEmitObj(src)) {
+      src = createSrc(src)
+      if (isPromise(src)) {
+        src
+          .then((result: string) => component.set('src', result))
+          .catch((err: Error) => {
+            throw new Error(err.message)
+          })
+          .finally(() => {
+            component.set(
+              'src',
+              isPromise(src)
+                ? '<Path_emit_failed_in_getTransformedAliases>'
+                : createSrc(src),
+            )
+          })
+      } else {
+        component.set('src', src)
+      }
     } else {
-      component.set('src', src)
+      component.set('src', createSrc(src))
     }
   }
 

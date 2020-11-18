@@ -7,7 +7,8 @@ const PATIENT_CONFIG = getConfigEndpoint('patient')
 const PATIENT_D_CONFIG = getConfigEndpoint('patientd')
 const PROVIDER_CONFIG = getConfigEndpoint('provider')
 const MEET2_CONFIG = getConfigEndpoint('meet2')
-const MEET2D_CONFIG = getConfigEndpoint('meet2d')
+const MEET2D_CONFIG = getConfigEndpoint('meet2d') // meet2d.aitmed.io
+const MEET2P_CONFIG = getConfigEndpoint('meet2p') // meet2p.aitmed.io
 const MEET3D_CONFIG = getConfigEndpoint('meet3d')
 const TESTPAGE = getConfigEndpoint('testpage')
 

@@ -634,7 +634,20 @@ class NOODL implements T.INOODLUi {
         // )
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = this.#cb.action.emit.find((o) => o.trigger === 'path')
-        return resolvePath(obj?.fn?.(path, component, obj?.context))
+        const fn = obj?.fn
+        if (fn) {
+          let result = fn?.(path, component, obj?.context)
+
+          if (result instanceof Promise) {
+            return result
+              .then((res) => resolvePath(res))
+              .catch((err) => {
+                throw new Error(err)
+              })
+          } else {
+            return resolvePath(result)
+          }
+        }
       }
       // Assuming we are passing in a dataObject
       else if (_.isFunction(path)) {

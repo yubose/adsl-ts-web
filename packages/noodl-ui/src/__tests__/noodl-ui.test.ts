@@ -57,6 +57,14 @@ describe('noodl-ui', () => {
       expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + 'selected.png')
     })
 
+    it(
+      'should still resolve successfuly to the src even if the callback ' +
+        'is a promise',
+      async () => {
+        //
+      },
+    )
+
     describe('when passing an emit object', () => {
       describe('when providing a component', () => {
         it('should work for passing emit objects', () => {

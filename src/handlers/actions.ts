@@ -75,8 +75,8 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (action: Action<EmitActionObject>, options) => {
       const { default: noodl } = await import('../app/noodl')
 
-      log.func('emit')
-      log.grey('', { action, ...options })
+      log.func('emit [ActionChain]')
+      log.grey('Emitting', { action, ...options })
 
       let { component, context } = options
       let { emit } = action.original
@@ -349,7 +349,15 @@ const createActions = function ({ page }: { page: IPage }) {
       }
       log.func('emit [path]')
       log.grey(`Calling emitCall`, logArgs)
-      const result = noodl.emitCall(params)
+      let result = noodl.emitCall(params)
+      if (result instanceof Promise) {
+        return result.then((result) => {
+          result = Array.isArray(result) ? result[0] : result
+          log.grey('emitCall result', { ...logArgs, result })
+          return result
+        })
+      }
+      result = Array.isArray(result) ? result[0] : result
       log.grey('emitCall result', { ...logArgs, result })
       return result
     },

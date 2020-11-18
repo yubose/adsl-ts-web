@@ -1060,6 +1060,8 @@ export interface IfObject {
   if: [any, any, any]
 }
 
+export type Path = string | EmitActionObject | IfObject
+
 export interface IViewport {
   width: number | undefined
   height: number | undefined

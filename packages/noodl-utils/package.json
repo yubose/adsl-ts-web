@@ -13,10 +13,11 @@
   },
   "scripts": {
     "build": "rm -rf dist && rollup -c --environment BUILD:production",
-    "start": "rm -rf dist && rollup -c -w",
+    "start": "rm -rf dist && rollup -c --environment BUILD:development -w",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register --extensions ts --watch --watch-files src"
   },
+  "peerDependencies": {},
   "keywords": [
     "noodl"
   ],

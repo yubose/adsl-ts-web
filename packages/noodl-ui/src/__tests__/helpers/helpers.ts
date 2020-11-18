@@ -20,38 +20,6 @@ const EMPTY_PAGE = '__emptypage__'
 
 type NOODLComponentArgs = Partial<NOODLComponent>
 
-export function createImage(opts: NOODLComponentArgs) {
-  return { type: 'image', ...opts } as NOODLComponent
-}
-
-export function createEmitObject({
-  dataKey,
-  actions,
-}: {
-  dataKey: any
-  actions: any[]
-}) {
-  return { emit: { dataKey, actions } } as EmitActionObject
-}
-
-export function createPath(val: string): string
-export function createPath(val: { cond: any; val1: any; val2: any }): IfObject
-export function createPath(
-  val: string | { cond: Function; val1: any; val2: any },
-) {
-  if (typeof val === 'string') {
-    return val
-  } else {
-    return createIfObject(val.cond, val.val1, val.val2)
-  }
-}
-
-export function createIfObject(cond: any, val1: any, val2: any): IfObject {
-  return {
-    if: [cond, val1, val2],
-  } as IfObject
-}
-
 export function createBuiltInObject(
   args: Partial<BuiltInActionObject> & { [key: string]: any },
 ) {
