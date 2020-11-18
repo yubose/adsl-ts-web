@@ -6,9 +6,25 @@ import {
   NOODLComponentType,
   NOODLComponent,
   NOODLContentType,
+  NOODLPageObject,
   NOODLStyle,
   Path,
 } from 'noodl-ui'
+
+/* -------------------------------------------------------
+  ---- HIGH LEVEL INTERFACES
+-------------------------------------------------------- */
+
+export interface INOODLBuilder {
+  
+}
+
+export interface IPageObject extends NOODLPageObject {
+  init?: string | string[]
+  module?: string
+  pageNumber?: string
+  components?: NOODLComponent[]
+}
 
 /* -------------------------------------------------------
   ---- LOOSELY TYPED COMPONENTS
