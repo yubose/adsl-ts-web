@@ -60,7 +60,10 @@ const createActions = function ({ page }: { page: IPage }) {
     actionType: 'anonymous',
     fn: async (action: Action<AnonymousActionObject>, options) => {
       log.func('anonymous')
-      log.grey('', { action, ...options })
+      log.grey(
+        'Anonymous action call (LOOK IN THIS IN THE NOODL/YML IF YOU SEE THIS IF THIS IS INTENTIONAL)',
+        { action, ...options },
+      )
       const { component } = options
       const { fn } = action.original || {}
       if (component) fn?.()
@@ -91,6 +94,7 @@ const createActions = function ({ page }: { page: IPage }) {
         //
       } else {
         const iteratorVar = component.get('iteratorVar') || ''
+
         let dataObject
         let dataPath = dataKey as string
         let dataValue
@@ -169,12 +173,12 @@ const createActions = function ({ page }: { page: IPage }) {
             let dataObject
             let dataValue
 
-            // console.info({
-            //   key,
-            //   resolvedDataKey: dataPath,
-            //   iteratorVar,
-            //   originalDataKey,
-            // })
+            console.info({
+              key,
+              resolvedDataKey: dataPath,
+              iteratorVar,
+              originalDataKey,
+            })
 
             if (_.isString(dataPath)) {
               if (originalDataKey[key] === iteratorVar) {
@@ -187,12 +191,12 @@ const createActions = function ({ page }: { page: IPage }) {
                   (parent) => parent?.noodlType === 'listItem',
                 ) as IListItem | null
 
-                // console.info('------------------------------')
-                // console.info('listItem', listItem)
-                // console.info('dataObject', listItem?.getDataObject())
-                // console.info('dataObject', listItem?.getDataObject())
-                // console.info('dataObject', listItem?.getDataObject())
-                // console.info('------------------------------')
+                console.info('------------------------------')
+                console.info('listItem', listItem)
+                console.info('dataObject', listItem?.getDataObject())
+                console.info('dataObject', listItem?.getDataObject())
+                console.info('dataObject', listItem?.getDataObject())
+                console.info('------------------------------')
 
                 if (listItem) {
                   dataObject =
@@ -288,9 +292,18 @@ const createActions = function ({ page }: { page: IPage }) {
             createEmitDataKeyObject,
             {} as any,
           )
+
+          log.grey('Calling emitCall', {
+            actions,
+            component,
+            context,
+            emitParams,
+            originalDataKey,
+            resolvedDataKey: dataKey,
+          })
         }
 
-        await noodl.emitCall(emitParams)
+        const result = await noodl.emitCall(emitParams)
 
         log.gold(`Ran emitCall`, {
           actions,
@@ -299,7 +312,10 @@ const createActions = function ({ page }: { page: IPage }) {
           context,
           originalDataKey,
           resolvedDataKey: dataKey,
+          emitCallResult: result,
         })
+
+        return result
       }
     },
     trigger: 'onClick',

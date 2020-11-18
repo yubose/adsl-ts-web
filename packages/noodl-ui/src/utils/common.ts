@@ -54,6 +54,10 @@ export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
+export function isPromise(value: unknown): value is Promise<any> {
+  return value && typeof value === 'function' && 'then' in value
+}
+
 /**
  * Returns true if there is a decimal in the number.
  * @param { number } value - Value to evaluate

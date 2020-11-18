@@ -3,6 +3,7 @@ import Logger from 'logsnap'
 import { isBooleanTrue } from 'noodl-utils'
 import { contentTypes } from '../constants'
 import { ResolverFn } from '../types'
+import { isPromise } from '../utils/common'
 
 const log = Logger.create('getTransformedAliases')
 
@@ -59,7 +60,32 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
   if (poster) component.set('poster', createSrc(poster))
 
   if (path || resource) {
-    component.set('src', createSrc(path || resource || ''))
+    let src = createSrc(path || resource || '') || ''
+    if (isPromise(src)) {
+      log.gold('GHELOKIAMKS')
+      log.gold('GHELOKIAMKS')
+      log.gold('GHELOKIAMKS')
+      log.gold('GHELOKIAMKS')
+      src
+        .then((result: string) => {
+          log.func('createSrc [emitted promise]')
+          log.grey('createSrc path emit result', { component, result })
+          src = result
+        })
+        .catch((err: Error) => {
+          throw new Error(err)
+        })
+        .finally(() => {
+          component.set(
+            'src',
+            isPromise(src)
+              ? '<Path_emit_failed_in_getTransformedAliases>'
+              : src,
+          )
+        })
+    } else {
+      component.set('src', src)
+    }
   }
 
   if (component.type === 'video') {
