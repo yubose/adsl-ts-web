@@ -1,6 +1,6 @@
 {
   "name": "noodl-utils",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "Utility/helpers for working with NOODL values",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "main": "dist/index.js",
@@ -17,7 +17,6 @@
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register --extensions ts --watch --watch-files src"
   },
-  "peerDependencies": {},
   "keywords": [
     "noodl"
   ],
