@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { findParent } from 'noodl-utils'
+import { findDataObject, findParent } from 'noodl-utils'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
 import { ResolverFn, IListItem, IList } from '../types'
@@ -118,6 +118,29 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       // Strip off the iteratorVar to keep the path that starts from the data objefct
       path = dataKey.split('.').slice(1)
       dataObject = listItem?.getDataObject?.()
+      if (!dataObject) {
+        dataObject = findDataObject({
+          dataKey,
+          pageObject,
+          root: context.roots,
+        })
+        log.red(
+          `The listItem parent did not have a dataObject available. ` +
+            `Performed a higher level query:`,
+          {
+            component,
+            context,
+            dataObject,
+            pageObject,
+            listId,
+            listIndex,
+            iteratorVar,
+            path,
+            text,
+            dataKey,
+          },
+        )
+      }
       // Last things we can do is attempt to grab a data value through the
       // root or local root page object
       // Date components

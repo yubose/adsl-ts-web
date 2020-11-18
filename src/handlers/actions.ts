@@ -26,7 +26,8 @@ import { IPage } from 'app/types'
 import {
   createEmitDataKey,
   evalIf,
-  findDataObject, findParent,
+  findDataObject,
+  findParent,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isPossiblyDataKey,
@@ -92,10 +93,11 @@ const createActions = function ({ page }: { page: IPage }) {
         //
       } else {
         const iteratorVar = component.get('iteratorVar') || ''
+        const isListDescendant = !!iteratorVar
 
-        let dataObject
-        let dataPath = dataKey as string
-        let dataValue
+        let dataObject: any
+        let dataPath: string = ''
+        let dataValue: any
 
         if (_.isString(dataKey)) {
           if (dataKey.startsWith(iteratorVar)) {
@@ -287,7 +289,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
           emitParams['dataKey'] = _.reduce(
             _.entries(dataKey),
-            createEmitDataKeyObject,
+            (...args: any[]) => createEmitDataKeyObject(...args),
             {} as any,
           )
 

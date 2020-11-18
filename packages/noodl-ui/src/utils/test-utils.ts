@@ -65,7 +65,7 @@ export const noodlui = (function () {
 
   return state.client as NOODLUi & {
     cleanup: () => void
-    save: (filepath: string, data: any, options?: WriteOptions) => void
+    save: (filepath: string, data: any, options?: Partial<WriteOptions>) => void
   }
 })()
 

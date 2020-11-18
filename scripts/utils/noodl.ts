@@ -41,7 +41,6 @@ if (typeof window !== 'undefined') {
         getAlignAttrs,
         getBorderAttrs,
         getCustomDataAttrs,
-        getChildren,
         getColors,
         getEventHandlers,
         getFontAttrs,
@@ -79,7 +78,6 @@ if (typeof window !== 'undefined') {
             getSizes,
             getStylesByElementType,
             getTransformedStyleAliases,
-            getChildren as any,
             getCustomDataAttrs,
             getEventHandlers,
           )

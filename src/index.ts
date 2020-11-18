@@ -12,7 +12,6 @@ import {
   getAlignAttrs,
   getBorderAttrs,
   getCustomDataAttrs,
-  getChildren,
   getColors,
   getEventHandlers,
   getFontAttrs,
@@ -276,7 +275,7 @@ window.addEventListener('load', async () => {
               (arr, [actionType, actions]) => {
                 return arr.concat(
                   actions.map((a) => {
-                    const obj = { actionType, ...a, }
+                    const obj = { actionType, ...a }
                     if (actionType === 'emit') {
                       obj['context'] = { noodl }
                     }

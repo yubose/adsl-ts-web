@@ -127,13 +127,24 @@ export function findParent<C extends { parent?: Function } = any>(
   return parent || null
 }
 
+export function findDataObject(opts: {
+  dataKey?: string
+  pageObject?: { [key: string]: any }
+  root?: { [key: string]: any }
+}): any
+export function findDataObject(component: any): any
 export function findDataObject(component: any) {
+  let dataObject: any
   if (component) {
     if (component.noodlType === 'listItem') return component.getDataObject?.()
     const listItem = findParent(component, (p) => p?.noodlType === 'listItem')
-    return listItem?.getDataObject?.() || null
+    dataObject = listItem?.getDataObject?.()
   }
-  return null
+  if (!dataObject && component) {
+    const { dataKey = '', pageObject = {}, root = {} } = component
+    dataObject = get(pageObject, dataKey) || get(root, dataKey)
+  }
+  return dataObject || null
 }
 
 export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(

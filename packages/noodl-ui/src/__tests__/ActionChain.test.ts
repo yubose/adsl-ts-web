@@ -17,6 +17,8 @@ import {
 } from '../types'
 import List from '../components/List'
 import * as helpers from './helpers/helpers'
+import { xit } from 'mocha'
+import { waitFor } from '@testing-library/dom'
 
 const parser = makeRootsParser({ roots: {} })
 
@@ -277,90 +279,86 @@ describe('ActionChain', () => {
       let page: any
       let view: IComponentTypeInstance
       let list: IList
+      let image: IComponentTypeInstance
       let originalPage: any
       let listObject: { key: string; value: string }[]
+      let generalInfoTemp: { gender: { key: string; value: any } }
       let iteratorVar = 'hello'
       let viewTag = 'pastMedicalHistoryTag'
-      let mockEmitCallback: sinon.SinonSpy
+      let mockOnClickEmitCallback: sinon.SinonSpy
       let mockPathEmitCallback: sinon.SinonSpy
 
       beforeEach(() => {
-        mockEmitCallback = sinon.spy(() => 'abc.png')
-        mockPathEmitCallback = sinon.spy()
+        generalInfoTemp = {
+          gender: { key: 'gender', value: '' },
+        }
+        mockOnClickEmitCallback = sinon.spy(() => 'abc.png')
+        mockPathEmitCallback = sinon.spy(() => 'fruit.png')
+        noodlui
+          .setRoot('PatientChartGeneralInfo', { generalInfoTemp })
+          .setPage('PatientChartGeneralInfo')
         noodlui.use([
-          { actionType: 'emit', fn: mockEmitCallback, trigger: 'onClick' },
-          { actionType: 'emit', fn: mockPathEmitCallback, trigger: 'path' },
-        ])
+          {
+            actionType: 'emit',
+            fn: mockOnClickEmitCallback,
+            trigger: 'onClick',
+          },
+          {
+            actionType: 'emit',
+            fn: mockPathEmitCallback,
+            context: {},
+            trigger: 'path',
+          },
+        ] as any)
         listObject = [
-          { key: 'Gender', value: '' },
-          { key: 'Gender', value: 'Male' },
-          { key: 'Gender', value: 'Female' },
+          { key: 'gender', value: '' },
+          { key: 'gender', value: 'Male' },
+          { key: 'gender', value: 'Female' },
         ]
         page = helpers.createPage(() => ({
-          SignIn: {
-            generalInfo: { radio: listObject },
+          PatientChartGeneralInfo: {
+            generalInfoTemp,
             components: [
               {
                 type: 'view',
+                viewTag: 'genderTag',
                 children: [
                   {
-                    type: 'list',
-                    listObject,
-                    iteratorVar,
-                    contentType: 'list',
-                    children: [
-                      {
-                        type: 'listItem',
-                        [iteratorVar]: '',
-                        viewTag,
-                        children: [
-                          { type: 'label', dataKey: `${iteratorVar}.value` },
+                    type: 'image',
+                    path: {
+                      emit: {
+                        dataKey: {
+                          var: 'generalInfoTemp',
+                        },
+                        actions: [
                           {
-                            type: 'image',
-                            path: {
-                              emit: {
-                                dataKey: { var1: iteratorVar },
-                                actions: [{ if: [{}, {}, {}] }],
-                              },
-                            },
-                            onClick: [
+                            if: [
                               {
-                                emit: {
-                                  dataKey: { var1: iteratorVar },
-                                  actions: [
-                                    {
-                                      if: [
-                                        {
-                                          '.builtIn.object.has': [
-                                            { object: '..generalInfo.radio' },
-                                            { key: 'var1.key' },
-                                          ],
-                                        },
-                                        {
-                                          '.builtIn.object.remove': [
-                                            { object: '..generalInfo.radio' },
-                                            { key: 'var1.key' },
-                                          ],
-                                        },
-                                        {
-                                          '.builtIn.object.set': [
-                                            { object: '..generalInfo.radio' },
-                                            { key: 'var1.key' },
-                                            { value: 'var1.value' },
-                                          ],
-                                        },
-                                      ],
-                                    },
-                                  ],
+                                '=.builtIn.object.has': {
+                                  dataIn: {
+                                    object: '..generalInfo.gender',
+                                    key: '$var.key',
+                                  },
                                 },
                               },
-                              helpers.createBuiltInObject({
-                                funcName: 'redraw',
-                                viewTag,
-                              }),
-                            ] as any,
+                              'selectOn.png',
+                              'selectOff.png',
+                            ],
                           },
                         ],
+                      },
+                    } as any,
+                    onClick: [
+                      {
+                        emit: {
+                          dataKey: { var: 'generalInfoTemp' },
+                          actions: [{ if: [{}, {}, {}] }],
+                        },
+                      } as any,
+                      {
+                        actionType: 'builtIn',
+                        funcName: 'redraw',
+                        viewTag: 'genderTag',
                       },
                     ],
                   },
@@ -371,27 +369,28 @@ describe('ActionChain', () => {
         }))
         originalPage = page.originalPage
         view = page.components[0]
-        list = view.child() as IList
-        const listData = list.getData()
-        list.set('listObject', [])
-        listData.forEach((d) => list.addDataObject(d))
+        image = view.child() as any
       })
 
-      it('should pass iteratorVar, listItem, and dataObject to args', async () => {
-        const listItem = list.child() as IListItem
-        const image = listItem?.child(1) as IComponentTypeInstance
-        // const actionChain = new ActionChain(
-        //   originalPage.SignIn.components[0].children[0].children[0].children[1].onClick,
-        //   { component: image },
-        // )
-        // const execute = actionChain.build({ trigger: 'onClick' } as any)
-        // await image.get('onClick')()
-        console.info(list)
-        console.info(mockEmitCallback.getCalls())
-        const args = mockEmitCallback.firstCall?.args[1] || {}
-        expect(args).to.have.property('iteratorVar', iteratorVar)
-        expect(args).to.have.property('listItem')
-        expect(args).to.have.property('dataObject')
+      it('should pass dataObject to args', async () => {
+        await image.get('onClick')()
+        // noodlui.save('ActionChain.test.json', image.toJS(), { spaces: 2 })
+        expect(mockOnClickEmitCallback.called).to.be.true
+        expect(mockOnClickEmitCallback.firstCall?.args[1]).to.have.property(
+          'dataObject',
+        )
+      })
+
+      xit('should be able to receive a dataObject coming from the root', () => {
+        //
+      })
+
+      xit('should be able to receive a dataObject coming from the local root', () => {
+        //
+      })
+
+      xit('should be able to receive the dataObject coming from a list', () => {
+        //
       })
 
       it('the dataObject passed to emit action should be in the args', () => {
@@ -417,7 +416,7 @@ describe('ActionChain', () => {
         image.get('onClick')({})
         const execute = actionChain.build({ trigger: 'onClick' } as any)
         await execute({})
-        expect(mockEmitCallback.firstCall.args[1]).to.have.property(
+        expect(mockOnClickEmitCallback.firstCall.args[1]).to.have.property(
           'trigger',
           'onClick',
         )

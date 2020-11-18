@@ -8,7 +8,6 @@ export { default as ActionChain } from './ActionChain/ActionChain'
 // Resolvers
 export { default as getAlignAttrs } from './resolvers/getAlignAttrs'
 export { default as getBorderAttrs } from './resolvers/getBorderAttrs'
-export { default as getChildren } from './resolvers/getChildren'
 export { default as getColors } from './resolvers/getColors'
 export { default as getCustomDataAttrs } from './resolvers/getCustomDataAttrs'
 export { default as getElementType } from './resolvers/getElementType'

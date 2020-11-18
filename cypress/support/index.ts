@@ -23,7 +23,6 @@ import {
   getAlignAttrs,
   getBorderAttrs,
   getCustomDataAttrs,
-  getChildren,
   getColors,
   getEventHandlers,
   getFontAttrs,
@@ -69,7 +68,6 @@ noodlui
       getSizes,
       getStylesByElementType,
       getTransformedStyleAliases,
-      getChildren,
       getCustomDataAttrs,
       getEventHandlers,
     ].reduce(

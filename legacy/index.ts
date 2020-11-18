@@ -2,7 +2,6 @@ import {
   getAlignAttrs,
   getBorderAttrs,
   getCustomDataAttrs,
-  getChildren,
   getColors,
   getEventHandlers,
   getFontAttrs,

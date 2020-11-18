@@ -339,7 +339,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     )
     const redrawTargetingComponent = findParent(
       componentThatCalledRedraw,
-      (p) => p.noodlType === 'listItem',
+      (p) => p?.noodlType === 'listItem',
     )
 
     console.info('Invoking "redraw"', {
@@ -348,11 +348,11 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       redrawTargetingNode, // ex: listItem
       redrawTargetingComponent, // ex: listItem
       dataObjectQueries: {
-        'options.dataObject': options.dataObject,
-        "component.get('dataObject')": options.component.get?.('dataObject'),
-        'component.getDataObject()': options.component.getDataObject?.(),
-        'listItem.getDataObject': redrawTargetingComponent.getDataObject?.(),
-        "listItem.get('dataObject')": redrawTargetingComponent.get?.(
+        'options.dataObject': options?.dataObject,
+        "component.get('dataObject')": options?.component?.get?.('dataObject'),
+        'component.getDataObject()': options?.component?.getDataObject?.(),
+        'listItem.getDataObject': redrawTargetingComponent?.getDataObject?.(),
+        "listItem.get('dataObject')": redrawTargetingComponent?.get?.(
           'dataObject',
         ),
       },

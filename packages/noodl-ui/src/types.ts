@@ -439,7 +439,10 @@ export interface IResolver {
 export type IActionChainConstructorArgs<
   ActionObjects extends IActionObject[],
   C extends IComponentTypeInstance
-> = [actions: ActionObjects, opts: { component: C }]
+> = [
+  actions: ActionObjects,
+  opts: { component: C; pageName?: string; pageObject?: NOODLPageObject },
+]
 
 export interface IActionChain<
   ActionObjects extends IActionObject[] = any[],

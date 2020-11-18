@@ -18,7 +18,7 @@ export const get = <T = any>(o: T, k: string) => {
 
   while (parts.length) {
     key = parts.pop() as string
-    result = result[key]
+    result = result?.[key]
   }
 
   return result

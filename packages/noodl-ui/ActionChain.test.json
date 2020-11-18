@@ -1,0 +1,33 @@
+{
+  "type": "img",
+  "path": {
+    "emit": {
+      "dataKey": {
+        "var": "generalInfoTemp"
+      },
+      "actions": [
+        {
+          "if": [
+            {
+              "=.builtIn.object.has": {
+                "dataIn": {
+                  "object": "..generalInfo.gender",
+                  "key": "$var.key"
+                }
+              }
+            },
+            "selectOn.png",
+            "selectOff.png"
+          ]
+        }
+      ]
+    }
+  },
+  "noodlType": "image",
+  "style": {
+    "position": "absolute",
+    "outline": "none",
+    "objectFit": "contain"
+  },
+  "src": "https://something.com/assets/fruit.png"
+}

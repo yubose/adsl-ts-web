@@ -306,7 +306,11 @@ class NOODL implements T.INOODLUi {
   ) {
     const actionChain = new ActionChain(
       _.isArray(actions) ? actions : [actions],
-      { component: options.component },
+      {
+        component: options.component,
+        pageName: this.page,
+        pageObject: this.getPageObject(this.page),
+      },
     )
     actionChain
       .useAction(

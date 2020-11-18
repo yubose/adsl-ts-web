@@ -1,5 +1,5 @@
 import { DEFAULT_EXTENSIONS } from '@babel/core'
-// import babel from '@rollup/plugin-babel'
+import babel from '@rollup/plugin-babel'
 import typescript from 'rollup-plugin-typescript2'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
@@ -19,7 +19,9 @@ const config = {
       format: 'umd',
       name: 'noodlBuildingBlocks',
       sourcemap: true,
-      globals: {},
+      globals: {
+        noodlui: 'noodl-ui',
+      },
     },
   ],
   plugins: [
@@ -39,12 +41,12 @@ const config = {
       abortOnError: false,
       clean: true,
     }),
-    // babel({
-    //   babelHelpers: 'runtime',
-    //   include: ['src/**/*'],
-    //   exclude: ['node_modules'],
-    //   extensions,
-    // }),
+    babel({
+      babelHelpers: 'runtime',
+      include: ['src/**/*'],
+      exclude: ['node_modules'],
+      extensions,
+    }),
     // Env var set by root lerna repo
     // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),
   ],
