@@ -1,4 +1,6 @@
 export { default } from './noodl-building-blocks'
+export { default as Page } from './Page'
 export * from './noodl-building-blocks'
+export * from './constants'
 export * from './types'
 export * from './utils'

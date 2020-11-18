@@ -38,7 +38,6 @@ const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<
     NOODLActionType,
     {
-      actionType: NOODLActionType
       fn: ActionChainActionCallback
       trigger?: 'onClick' | 'path'
     }[]
@@ -57,7 +56,6 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions['updateObject'] = []
 
   _actions.anonymous.push({
-    actionType: 'anonymous',
     fn: async (action: Action<AnonymousActionObject>, options) => {
       log.func('anonymous')
       log.grey(
@@ -71,7 +69,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    actionType: 'emit',
     fn: async (action: Action<EmitActionObject>, options) => {
       const { default: noodl } = await import('../app/noodl')
 
@@ -323,7 +320,6 @@ const createActions = function ({ page }: { page: IPage }) {
 
   // Emit for trigger: "path"
   _actions.emit.push({
-    actionType: 'emit',
     fn: (
       path: EmitActionObject,
       component: IComponentTypeInstance,
@@ -365,7 +361,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.evalObject.push({
-    actionType: 'evalObject',
     fn: async (action: Action<EvalActionObject>, options) => {
       log.func('evalObject')
       if (_.isFunction(action?.original?.object)) {
@@ -446,7 +441,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.goto.push({
-    actionType: 'goto',
     fn: async (action: any, options) => {
       // URL
       if (_.isString(action)) {
@@ -470,7 +464,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.pageJump.push({
-    actionType: 'pageJump',
     fn: async (action: any, options) => {
       log.func('pageJump')
       log.grey('', { action, ...options })
@@ -479,7 +472,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.popUp.push({
-    actionType: 'popUp',
     fn: async (
       action: Action<PopupActionObject | PopupDismissActionObject>,
       options,
@@ -557,7 +549,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.popUpDismiss.push({
-    actionType: 'popUpDismiss',
     fn: async (action: any, options) => {
       log.func('popUpDismiss')
       log.grey('', { action, ...options })
@@ -567,7 +558,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.refresh.push({
-    actionType: 'refresh',
     fn: (action: Action<RefreshActionObject>, options) => {
       log.func('refresh')
       log.grey(action.original.actionType, { action, ...options })
@@ -576,7 +566,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.saveObject.push({
-    actionType: 'saveObject',
     fn: async (action: Action<SaveActionObject>, options) => {
       const { default: noodl } = await import('../app/noodl')
       const { context, abort, parser } = options as any
@@ -645,7 +634,6 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.updateObject.push({
-    actionType: 'updateObject',
     fn: async (action: Action<UpdateActionObject>, options) => {
       const { abort, component, stateHelpers } = options
       const { default: noodl } = await import('../app/noodl')

@@ -12,7 +12,6 @@ import {
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import Component from './components/Base'
-import ListItemComponent from './components/ListItem'
 import _internalResolver from './resolvers/_internal'
 import makeRootsParser from './factories/makeRootsParser'
 import {
@@ -24,9 +23,8 @@ import {
 } from './utils/common'
 import createComponent from './utils/createComponent'
 import Action from './Action'
-import EmitAction from './Action/EmitAction'
 import ActionChain from './ActionChain'
-import { event, componentEventIds, componentEventTypes } from './constants'
+import { event } from './constants'
 import * as T from './types'
 
 const log = Logger.create('noodl-ui')
@@ -42,18 +40,18 @@ function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
 class NOODL implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
-    action: {
-      [actionType: string]: {
-        fn: T.ActionChainActionCallback
-        trigger?: 'onClick' | 'path'
-      }[]
-    }
+    action: Partial<
+      Record<
+        T.NOODLActionType,
+        {
+          context?: any
+          fn: T.ActionChainActionCallback
+          trigger?: 'onClick' | 'path'
+        }[]
+      >
+    >
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
-    component: Record<
-      T.NOODLComponentType | 'all',
-      T.INOODLUiComponentEventCallback<any>[]
-    >
   } = {
     action: {},
     builtIn: {},
@@ -61,14 +59,6 @@ class NOODL implements T.INOODLUi {
       _.values(event.actionChain),
       (acc, key) => _.assign(acc, { [key]: [] }),
       {},
-    ),
-    component: _.reduce(
-      componentEventTypes,
-      (acc, id) => _.assign(acc, { [id]: [] }),
-      {} as Record<
-        T.NOODLComponentType | 'all',
-        T.INOODLUiComponentEventCallback<any>[]
-      >,
     ),
   }
   #parser: T.RootsParser
@@ -238,8 +228,6 @@ class NOODL implements T.INOODLUi {
       path = `builtIn.${key}`
     } else if (key in this.#cb.chaining) {
       path = `chaining.${key}`
-    } else if (componentEventIds.includes(key)) {
-      path = `component.${key}`
     }
     return path
   }
@@ -526,14 +514,14 @@ class NOODL implements T.INOODLUi {
           if (!_.isArray(this.#cb.builtIn[m.funcName])) {
             this.#cb.builtIn[m.funcName] = []
           }
-          this.#cb.builtIn[m.funcName] = this.#cb.builtIn[m.funcName].concat(
-            _.isArray(m.fn) ? m.fn : [m.fn],
+          this.#cb.builtIn[m.funcName].push(
+            ...(_.isArray(m.fn) ? m.fn : [m.fn]),
           )
         } else if ('actionType' in m) {
           if (!_.isArray(this.#cb.action[m.actionType])) {
             this.#cb.action[m.actionType] = []
           }
-          const obj = { fn: m.fn }
+          const obj = { fn: m.fn } as any
           if ('context' in m) obj['context'] = m.context
           if ('trigger' in m) obj['trigger'] = m.trigger
           this.#cb.action[m.actionType].push(obj)
@@ -569,7 +557,7 @@ class NOODL implements T.INOODLUi {
     this.#root = {}
     this.#parser = makeRootsParser({ roots: this.#root })
     this.#state = _createState()
-    this.#cb = { action: [], builtIn: [], chaining: [], component: [] }
+    this.#cb = { action: [], builtIn: [], chaining: [] }
     return this
   }
 

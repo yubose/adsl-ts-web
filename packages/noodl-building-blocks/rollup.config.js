@@ -17,11 +17,9 @@ const config = {
       dir: 'dist',
       exports: 'named',
       format: 'umd',
-      name: 'noodlui',
+      name: 'noodlBuildingBlocks',
       sourcemap: true,
-      globals: {
-        // noodlutils: ['noodl-utils'],
-      },
+      globals: {},
     },
   ],
   plugins: [

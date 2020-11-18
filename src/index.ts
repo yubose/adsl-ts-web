@@ -263,7 +263,6 @@ window.addEventListener('load', async () => {
                 getSizes,
                 getStylesByElementType,
                 getTransformedStyleAliases,
-                getChildren,
                 getCustomDataAttrs,
                 getEventHandlers,
               ],
@@ -277,10 +276,7 @@ window.addEventListener('load', async () => {
               (arr, [actionType, actions]) => {
                 return arr.concat(
                   actions.map((a) => {
-                    const obj = {
-                      actionType,
-                      ...a,
-                    }
+                    const obj = { actionType, ...a, }
                     if (actionType === 'emit') {
                       obj['context'] = { noodl }
                     }
@@ -288,7 +284,7 @@ window.addEventListener('load', async () => {
                   }),
                 )
               },
-              [],
+              [] as any[],
             ),
           )
           .use(

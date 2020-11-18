@@ -1,33 +1,16 @@
 import { BuiltInActionObject, EmitActionObject, IfObject } from 'noodl-ui'
 import * as T from './types'
 
-export function createBuiltInObject(
-  args: Partial<BuiltInActionObject> & { [key: string]: any },
-) {
-  return {
-    ...args,
-    actionType: 'builtIn',
-  }
-}
-
-export function createEmitObject({
-  dataKey,
-  actions,
-}: {
-  dataKey: string | Record<string, string>
-  actions: IfObject[]
-}) {
-  return { emit: { dataKey, actions } } as EmitActionObject
-}
+/* -------------------------------------------------------
+  ---- COMPONENTS
+-------------------------------------------------------- */
 
 export function createImage(opts: Partial<T.INOODLImage>) {
   return { type: 'image', ...opts } as T.INOODLImage
 }
 
-export function createIfObject(cond: any, val1: any, val2: any): IfObject {
-  return {
-    if: [cond, val1, val2],
-  } as IfObject
+export function createList(opts: Partial<T.INOODLList>) {
+  return { type: 'list', ...opts } as T.INOODLList
 }
 
 export function createListItem(opts: Partial<T.INOODLListItem>) {
@@ -36,6 +19,31 @@ export function createListItem(opts: Partial<T.INOODLListItem>) {
 
 export function createView(opts: Partial<T.INOODLView>) {
   return { type: 'view', ...opts } as T.INOODLView
+}
+
+/* -------------------------------------------------------
+  ---- ACTIONS
+-------------------------------------------------------- */
+
+export function createBuiltInObject(args: Partial<T.IBuiltInAction>) {
+  return {
+    ...args,
+    actionType: 'builtIn',
+  } as T.IBuiltInAction
+}
+
+export function createEmitObject({ dataKey, actions }: Partial<T.IEmitAction>) {
+  return { emit: { dataKey, actions } } as T.IEmitAction
+}
+
+/* -------------------------------------------------------
+  ---- OTHER
+-------------------------------------------------------- */
+
+export function createIfObject(cond: any, val1: any, val2: any): IfObject {
+  return {
+    if: [cond, val1, val2],
+  } as IfObject
 }
 
 export function createPath(val: string): string
