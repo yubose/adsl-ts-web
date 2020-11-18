@@ -1,27 +1,60 @@
 {
   "name": "noodl-building-blocks",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "version": "0.0.2",
+  "description": "NOODL loose building blocks",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "homepage": "",
   "license": "ISC",
-  "main": "lib/noodl-building-blocks.js",
+  "main": "dist/noodl-building-blocks.js",
+  "module": "dist/noodl-building-blocks.js",
+  "jsnext:main": "dist/noodl-building-blocks.js",
+  "types": "dist/noodl-building-blocks.d.ts",
+  "engines": {
+    "node": ">=12",
+    "npm": ">=6"
+  },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "build": "rm -rf dist && rollup -c --environment BUILD:production",
+    "start": "rm -rf dist && rollup -c -w --environment BUILD:development",
+    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts",
+    "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register -r ts-node/register --file src/setupTests.ts --extensions ts --watch --watch-files src"
   },
   "peerDependencies": {
     "noodl-ui": "^0.1.27",
     "noodl-utils": "^0.0.19"
   },
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
   "files": [
-    "lib"
+    "dist"
   ],
+  "prettier": {
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "printWidth": 80,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all"
+  },
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^15.0.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^8.0.3",
+    "chai": "^4.2.0",
+    "cross-env": "^7.0.2",
+    "mocha": "^8.0.1",
+    "rollup": "^2.33.2",
+    "rollup-plugin-filesize": "^9.0.2",
+    "rollup-plugin-peer-deps-external": "^2.2.2",
+    "rollup-plugin-progress": "^1.1.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.27.1",
+    "ts-mocha": "^8.0.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
   }
 }
