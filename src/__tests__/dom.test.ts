@@ -1,29 +1,18 @@
 import _ from 'lodash'
-import fs from 'fs-extra'
 import sinon from 'sinon'
-import chalk from 'chalk'
 import userEvent from '@testing-library/user-event'
 import MockAxios from 'axios-mock-adapter'
 import { expect } from 'chai'
-import {
-  findByText,
-  getByText,
-  prettyDOM,
-  queryByText,
-  screen,
-  waitFor,
-} from '@testing-library/dom'
+import { queryByText, screen, waitFor } from '@testing-library/dom'
 import {
   ActionChainActionCallbackOptions,
   EmitActionObject,
-  event as noodlUIEvent,
   IAction,
   IComponentTypeInstance,
   IList,
   IListItem,
   NOODLComponent,
 } from 'noodl-ui'
-import { findChild, findParent } from 'noodl-utils'
 import axios from '../app/axios'
 import {
   assetsUrl,
@@ -38,11 +27,7 @@ import {
   page,
   noodluidom,
 } from '../utils/test-utils'
-import {
-  getListComponent1,
-  getListObject1,
-  saveOutput,
-} from '../__tests__/helpers'
+import { getListComponent1, saveOutput } from './helpers'
 
 const mockAxios = new MockAxios(axios)
 

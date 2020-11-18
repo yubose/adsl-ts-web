@@ -3,8 +3,6 @@ import { AbortExecuteError } from './errors'
 import Viewport from './Viewport'
 import {
   actionTypes,
-  componentEventMap,
-  componentEventIds,
   componentTypes,
   contentTypes,
   event,
@@ -132,14 +130,7 @@ export type IListEventId = IListEventObject[IListEventAlias]
 export type IListItemEventObject = typeof event.component.listItem
 export type IListItemEventAlias = keyof IListItemEventObject
 export type IListItemEventId = IListItemEventObject[IListItemEventAlias]
-export type NOODLComponentEventId = typeof componentEventIds[number]
-export type NOODLComponentEventMap = keyof typeof componentEventMap
-export type NOODLComponentEvent = NOODLComponentEventId | 'all'
-export type EventId =
-  | ActionEventId
-  | ActionChainEventId
-  | IComponentEventId
-  | NOODLComponentEvent
+export type EventId = ActionEventId | ActionChainEventId | IComponentEventId
 
 export interface INOODLUi {
   assetsUrl: string
@@ -501,7 +492,7 @@ export type IActionChainUseObject =
   | IActionChainUseBuiltInObject
 
 export interface IActionChainUseObjectBase<A extends BaseActionObject> {
-  actionType: A['actionType']
+  context?: any
   fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
   trigger?: 'onClick' | 'path' //  Currently used for emit objects in evaluating "path"
 }
@@ -914,16 +905,10 @@ export interface SaveActionObject extends BaseActionObject {
   object: [string, (...args: any[]) => any] | ((...args: any[]) => any)
 }
 
-export type UpdateActionObject<T = any> =
-  | {
-      actionType: 'updateObject'
-      object: T
-    }
-  | {
-      actionType: 'updateObject'
-      dataKey: string
-      dataObject: string
-    }
+export type UpdateActionObject<T = any> = {
+  actionType: 'updateObject'
+  object: T
+}
 
 /* -------------------------------------------------------
   ---- RAW/ORIGINAL NOODL TYPE DEFINITIONS

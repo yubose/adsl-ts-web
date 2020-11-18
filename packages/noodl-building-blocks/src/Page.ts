@@ -1,14 +1,37 @@
-import { NOODLComponent } from 'noodl-ui'
+import { Action, NOODL, NOODLComponent, Viewport } from 'noodl-ui'
 import * as T from './types'
 import * as util from './utils'
 
 class PageBuilder {
-  name: string
-  module: string
+  actions: { [actionType: string]: T.IBaseAction<any>[] }
+  builtIns: { [funcName: string]: T.IBuiltInAction[] }
+  assetsUrl: string
   components: NOODLComponent[]
+  module: string
+  name: string
+  noodlui: NOODL
 
-  actions() {
-    const action = util.
+  viewport: Viewport
+
+  constructor() {
+    this.viewport = new Viewport()
+    this.noodlui = new NOODL({ viewport: this.viewport })
+  }
+
+  action<
+    ActionType extends string,
+    ActionObj extends T.IBaseAction<ActionType>
+  >(obj: ActionObj) {
+    const action = this.#createAction(obj)
+  }
+
+  #createAction = <ActionObj>(obj: ActionObj) => {
+    this.actions.push()
+    return obj
+  }
+
+  setAssetsUrl(assetsUrl: string) {
+    this.assetsUrl = assetsUrl
   }
 
   setModule(module: string) {
@@ -27,10 +50,11 @@ class PageBuilder {
   }
 
   build() {
-    //
+    this.noodlui
+      .setAssetsUrl(this.assetsUrl)
+      .setPage(this.name)
+      .setViewport(this.viewport)
   }
-
-  #createAction = (obj: T.)
 }
 
 export default PageBuilder
