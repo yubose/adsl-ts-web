@@ -17,7 +17,6 @@ import {
 } from '../types'
 import List from '../components/List'
 import * as helpers from './helpers/helpers'
-import { waitFor } from '@testing-library/dom'
 
 const parser = makeRootsParser({ roots: {} })
 
@@ -275,20 +274,21 @@ describe('ActionChain', () => {
     })
 
     describe('when executing emit actions', () => {
+      let page: any
       let view: IComponentTypeInstance
       let list: IList
       let originalPage: any
       let listObject: { key: string; value: string }[]
-      const iteratorVar = 'hello'
-      const viewTag = 'pastMedicalHistoryTag'
+      let iteratorVar = 'hello'
+      let viewTag = 'pastMedicalHistoryTag'
       let mockEmitCallback: sinon.SinonSpy
       let mockPathEmitCallback: sinon.SinonSpy
 
       beforeEach(() => {
-        mockEmitCallback = sinon.spy()
+        mockEmitCallback = sinon.spy(() => 'abc.png')
         mockPathEmitCallback = sinon.spy()
         noodlui.use([
-          { actionType: 'emit', fn: mockEmitCallback },
+          { actionType: 'emit', fn: mockEmitCallback, trigger: 'onClick' },
           { actionType: 'emit', fn: mockPathEmitCallback, trigger: 'path' },
         ])
         listObject = [
@@ -296,7 +296,7 @@ describe('ActionChain', () => {
           { key: 'Gender', value: 'Male' },
           { key: 'Gender', value: 'Female' },
         ]
-        const res = helpers.createPage(() => ({
+        page = helpers.createPage(() => ({
           SignIn: {
             generalInfo: { radio: listObject },
             components: [
@@ -315,46 +315,51 @@ describe('ActionChain', () => {
                         viewTag,
                         children: [
                           { type: 'label', dataKey: `${iteratorVar}.value` },
-                          helpers.createImage({
-                            path: helpers.createEmitObject({
-                              dataKey: { var1: iteratorVar },
-                              actions: [helpers.createIfObject({}, {}, {})],
-                            }),
-                            onClick: [
-                              helpers.createEmitObject({
+                          {
+                            type: 'image',
+                            path: {
+                              emit: {
                                 dataKey: { var1: iteratorVar },
-                                actions: [
-                                  {
-                                    if: [
-                                      {
-                                        '.builtIn.object.has': [
-                                          { object: '..generalInfo.radio' },
-                                          { key: 'var1.key' },
-                                        ],
-                                      },
-                                      {
-                                        '.builtIn.object.remove': [
-                                          { object: '..generalInfo.radio' },
-                                          { key: 'var1.key' },
-                                        ],
-                                      },
-                                      {
-                                        '.builtIn.object.set': [
-                                          { object: '..generalInfo.radio' },
-                                          { key: 'var1.key' },
-                                          { value: 'var1.value' },
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                ],
-                              }),
+                                actions: [{ if: [{}, {}, {}] }],
+                              },
+                            },
+                            onClick: [
+                              {
+                                emit: {
+                                  dataKey: { var1: iteratorVar },
+                                  actions: [
+                                    {
+                                      if: [
+                                        {
+                                          '.builtIn.object.has': [
+                                            { object: '..generalInfo.radio' },
+                                            { key: 'var1.key' },
+                                          ],
+                                        },
+                                        {
+                                          '.builtIn.object.remove': [
+                                            { object: '..generalInfo.radio' },
+                                            { key: 'var1.key' },
+                                          ],
+                                        },
+                                        {
+                                          '.builtIn.object.set': [
+                                            { object: '..generalInfo.radio' },
+                                            { key: 'var1.key' },
+                                            { value: 'var1.value' },
+                                          ],
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                },
+                              },
                               helpers.createBuiltInObject({
                                 funcName: 'redraw',
                                 viewTag,
                               }),
                             ] as any,
-                          }),
+                          },
                         ],
                       },
                     ],
@@ -364,8 +369,8 @@ describe('ActionChain', () => {
             ],
           },
         }))
-        originalPage = res.originalPage
-        view = res.components[0]
+        originalPage = page.originalPage
+        view = page.components[0]
         list = view.child() as IList
         const listData = list.getData()
         list.set('listObject', [])
@@ -375,13 +380,14 @@ describe('ActionChain', () => {
       it('should pass iteratorVar, listItem, and dataObject to args', async () => {
         const listItem = list.child() as IListItem
         const image = listItem?.child(1) as IComponentTypeInstance
-        const actionChain = new ActionChain(
-          originalPage.SignIn.components[0].children[0].children[0].children[1].onClick,
-          { component: image },
-        )
-        image.get('onClick')({})
-        const execute = actionChain.build({ trigger: 'onClick' } as any)
-        await execute({})
+        // const actionChain = new ActionChain(
+        //   originalPage.SignIn.components[0].children[0].children[0].children[1].onClick,
+        //   { component: image },
+        // )
+        // const execute = actionChain.build({ trigger: 'onClick' } as any)
+        // await image.get('onClick')()
+        console.info(list)
+        console.info(mockEmitCallback.getCalls())
         const args = mockEmitCallback.firstCall?.args[1] || {}
         expect(args).to.have.property('iteratorVar', iteratorVar)
         expect(args).to.have.property('listItem')
