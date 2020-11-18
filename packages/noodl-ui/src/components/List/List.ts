@@ -25,7 +25,6 @@ class List extends Component implements IList {
   #listObject: any[]
   #iteratorVar: string
   #cb: {
-    init: Function[]
     [event.component.list.ADD_DATA_OBJECT]: Function[]
     [event.component.list.DELETE_DATA_OBJECT]: Function[]
     [event.component.list.RETRIEVE_DATA_OBJECT]: Function[]
@@ -36,7 +35,6 @@ class List extends Component implements IList {
     [event.component.list.UPDATE_LIST_ITEM]: Function[]
     [event.component.list.BLUEPRINT]: Function[]
   } = {
-    init: [],
     [event.component.list.ADD_DATA_OBJECT]: [],
     [event.component.list.DELETE_DATA_OBJECT]: [],
     [event.component.list.RETRIEVE_DATA_OBJECT]: [],
@@ -200,7 +198,7 @@ class List extends Component implements IList {
         error: 'listObject was empty',
       }
     }
-    if (dataObject != null) {
+    if (!_.isNil(dataObject)) {
       let index
       let removedDataObject: any
       // By query func
@@ -240,21 +238,13 @@ class List extends Component implements IList {
       // By index
       else if (typeof dataObject === 'number') {
         index = dataObject
-        removedDataObject = this.#listObject[index]
-        console.log({ index, dataObject, data: this.getData() })
-        console.log({ index, dataObject, data: this.getData() })
-        this.#listObject = _.filter(
-          this.#listObject,
-          (o) => o !== removedDataObject,
-        )
+        removedDataObject = this.#listObject.splice(index, 1)[0]
         const result = {
           index,
           dataObject: removedDataObject,
           success: !!removedDataObject,
         }
         if (!result.success) result['error'] = 'Could not find the dataObject'
-        console.log({ index, dataObject, data: this.getData() })
-        console.log({ index, dataObject, data: this.getData() })
         this.emit(
           event.component.list.DELETE_DATA_OBJECT,
           result,
@@ -437,20 +427,21 @@ class List extends Component implements IList {
     return this
   }
 
-  on<E = 'redraw'>(): this
-  on<E = 'blueprint'>(
-    eventName: E,
-    cb: (blueprint: IListBlueprint) => void,
-  ): this
-  on<E extends Exclude<IListEventId, 'blueprint'>>(
-    eventName: E | string,
+  on(eventName: 'blueprint', cb: (blueprint: IListBlueprint) => void): this
+  on(eventName: 'redraw', cb: () => void): this
+  on(
+    eventName:
+      | 'add.data.object'
+      | 'delete.data.object'
+      | 'remove.data.object'
+      | 'retrieve.data.object',
     cb: (
       result: IListDataObjectOperationResult,
       args: IListDataObjectEventHandlerOptions,
     ) => void,
   ): this
-  on<E extends IListEventId>(
-    eventName: E | IComponentEventId,
+  on(
+    eventName: IListEventId,
     cb:
       | ((blueprint: IListBlueprint) => void)
       | ((
@@ -460,12 +451,6 @@ class List extends Component implements IList {
   ) {
     if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
     this.#cb[eventName].push(cb)
-    if (eventName in this.#cb) {
-      // this.#cb[eventName].push(cb)
-    } else {
-      super.on(eventName, cb)
-    }
-
     return this
   }
 

@@ -199,7 +199,7 @@ describe('noodl-ui-dom', () => {
         noodlType: 'plugin',
         path: 'https://what.com/what.jpg',
       } as NOODLComponent
-      noodluidom.on('create.plugin', spy)
+      noodluidom.on('plugin', spy)
       noodluidom.parse(noodlui.resolveComponents(component), document.body)
       expect(spy.firstCall.args[0]).to.be.null
     })

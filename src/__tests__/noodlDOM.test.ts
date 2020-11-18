@@ -1,7 +1,8 @@
 import { expect } from 'chai'
 // import {} from 'noodl-ui'
 import { screen, prettyDOM } from '@testing-library/dom'
-import { noodlui, noodluidom, toDOM } from '../utils/test-utils'
+import { noodlui, page, toDOM } from '../utils/test-utils'
+import { NOODLComponent } from 'noodl-ui'
 
 describe('DOM', () => {
   describe('button', () => {
@@ -60,7 +61,10 @@ describe('DOM', () => {
           { text: 'Upload an image or document' },
         ],
       } as NOODLComponent
-      const node = toDOM(noodlui.resolveComponents(noodlComponent))
+      const view = page.render({ type: 'view', children: [noodlComponent] })
+        .components[0]
+      const label = view.child()
+      const node = document.getElementById(label.id)
       const children = node?.children as HTMLCollection
       expect(children[0].tagName).to.equal('LABEL')
       expect(children[1].tagName).to.equal('BR')

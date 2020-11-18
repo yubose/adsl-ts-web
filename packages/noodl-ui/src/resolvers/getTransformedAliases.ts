@@ -58,7 +58,7 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
   if (_.isBoolean(controls)) component.set('controls', controls)
   if (poster) component.set('poster', createSrc(poster))
 
-  if (!_.isUndefined(path) || !_.isUndefined(resource)) {
+  if (path || resource) {
     component.set('src', createSrc(path || resource || ''))
   }
 

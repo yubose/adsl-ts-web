@@ -7,7 +7,6 @@ import {
   IList,
   SelectOption,
 } from 'noodl-ui'
-import { NOODLDOMElement } from 'noodl-ui-dom'
 import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
 import { forEachEntries } from '../utils/common'
 import { isDisplayable } from '../utils/dom'
@@ -24,14 +23,26 @@ const defaultPropTable = {
     'data-ux',
     'data-value',
     'data-viewtag',
-  ],
-  values: ['id'],
-  attributes: ['placeholder', 'src'],
+  ] as string[],
+  values: ['id'] as string[],
+  attributes: [
+    'placeholder',
+    {
+      attribute: 'src',
+      cond: (node: any) => node.tagName !== 'VIDEO',
+    },
+  ] as (
+    | string
+    | {
+        attribute: string
+        cond?(node: any, component: IComponentTypeInstance): boolean
+      }
+  )[],
 }
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 // This event is called for all components
-noodluidom.on('create.component', (node, component: IComponentTypeInstance) => {
+noodluidom.on('component', (node, component: IComponentTypeInstance) => {
   if (!node) return
 
   const {
@@ -47,14 +58,31 @@ noodluidom.on('create.component', (node, component: IComponentTypeInstance) => {
   /** Handle attributes */
   if (_.isArray(defaultPropTable.attributes)) {
     _.forEach(defaultPropTable.attributes, (key) => {
-      const val = component.get(key) || component[key]
-      if (val !== undefined) node.setAttribute(key, val)
+      let attr, val: any
+      if (!_.isString(key)) {
+        const { attribute, cond } = key
+        if (_.isFunction(cond)) {
+          if (cond(node, component)) attr = attribute
+        } else {
+          attr = attribute
+        }
+        val =
+          component.get((attr || '') as any) ||
+          component[(attr || '') as keyof IComponentTypeInstance]
+      } else {
+        attr = key
+      }
+      val =
+        component.get((attr || '') as keyof IComponentTypeInstance) ||
+        component[(attr || '') as keyof IComponentTypeInstance]
+      if (val !== undefined) node.setAttribute(attr as keyof typeof node, val)
     })
   }
   /** Handle dataset assignments */
   if (_.isArray(defaultPropTable.dataset)) {
     _.forEach(defaultPropTable.dataset, (key) => {
-      const val = component.get(key) || component[key]
+      const val =
+        component.get(key) || component[key as keyof IComponentTypeInstance]
       if (val !== undefined) node.dataset[key.replace('data-', '')] = val
     })
   }
@@ -65,7 +93,9 @@ noodluidom.on('create.component', (node, component: IComponentTypeInstance) => {
     let val
     while (prop) {
       if (prop !== undefined) {
-        val = component.get(prop) || component[prop]
+        val =
+          component.get(prop) || component[prop as keyof IComponentTypeInstance]
+        // @ts-expect-error
         if (val !== undefined) node[prop] = val
       }
       prop = pending.pop()
@@ -190,7 +220,7 @@ noodluidom.on('create.component', (node, component: IComponentTypeInstance) => {
   }
 })
 
-noodluidom.on('create.button', (node, component) => {
+noodluidom.on('button', (node, component) => {
   if (node) {
     const { onClick: onClickProp, src } = component.get(['onClick', 'src'])
     /**
@@ -210,7 +240,7 @@ noodluidom.on('create.button', (node, component) => {
   }
 })
 
-noodluidom.on('create.image', function onCreateImage(node, component) {
+noodluidom.on('image', function onCreateImage(node, component) {
   if (node) {
     const onClick = component.get('onClick')
 
@@ -221,7 +251,7 @@ noodluidom.on('create.image', function onCreateImage(node, component) {
     // If an image has children, we will assume it is some icon button overlapping
     //    Ex: profile photos and showing pencil icon on top to change it
     if (component.original?.children) {
-      log.func('create.image: Image')
+      log.func('image: Image')
       log.orange(
         `An image component has children. This is a weird practice. Consider ` +
           `discussion about this`,
@@ -264,7 +294,7 @@ noodluidom.on('create.image', function onCreateImage(node, component) {
   }
 })
 
-noodluidom.on('create.label', (node, component) => {
+noodluidom.on('label', (node, component) => {
   if (node) {
     const dataValue = component.get('data-value')
     const { placeholder, text } = component.get(['placeholder', 'text'])
@@ -277,100 +307,93 @@ noodluidom.on('create.label', (node, component) => {
   }
 })
 
-noodluidom.on<'list'>(
-  'create.list',
-  (node: HTMLUListElement, component: IList) => {
-    log.func('create.list')
+noodluidom.on<'list'>('list', (node: HTMLUListElement, component: IList) => {
+  log.func('list')
 
-    component.on(
-      noodluiEvent.component.list.CREATE_LIST_ITEM,
-      (result, options) => {
-        log.func(`create.list[${noodluiEvent.component.list.CREATE_LIST_ITEM}]`)
-        log.grey('', { ...result, ...options })
-        const { listItem } = result
-        const childNode = noodluidom.parse(listItem)
+  component.on(
+    noodluiEvent.component.list.CREATE_LIST_ITEM,
+    (result, options) => {
+      log.func(`list[${noodluiEvent.component.list.CREATE_LIST_ITEM}]`)
+      log.grey('', { ...result, ...options })
+      const { listItem } = result
+      const childNode = noodluidom.parse(listItem)
+      console.info(
+        `${childNode ? 'Created' : 'Could not create'} childNode for list item`,
+        { node, childNode, component, listItem },
+      )
+    },
+  )
+
+  component.on(
+    noodluiEvent.component.list.REMOVE_LIST_ITEM,
+    (result, options) => {
+      log.func(`list[${noodluiEvent.component.list.REMOVE_LIST_ITEM}]`)
+      log.grey('', { ...result, ...options })
+      const { listItem, successs } = result
+      const childNode = document.getElementById(listItem.id)
+
+      if (childNode) {
         console.info(
-          `${
-            childNode ? 'Created' : 'Could not create'
-          } childNode for list item`,
-          { node, childNode, component, listItem },
-        )
-      },
-    )
-
-    component.on(
-      noodluiEvent.component.list.REMOVE_LIST_ITEM,
-      (result, options) => {
-        log.func(`create.list[${noodluiEvent.component.list.REMOVE_LIST_ITEM}]`)
-        log.grey('', { ...result, ...options })
-        const { listItem, successs } = result
-        const childNode = document.getElementById(listItem.id)
-
-        if (childNode) {
-          log.gold(
-            'Found childNode for removed listItem. Removing it from the DOM now',
-            {
-              ...result,
-              ...options,
-              childNode,
-            },
-          )
-          node.removeChild(childNode)
-        } else {
-          // console.info(
-          //   `Could not find the child DOM node for a removed listItem`,
-          //   {
-          //     ...result,
-          //     ...options,
-          //     id: listItem.id,
-          //     childNode,
-          //   },
-          // )
-        }
-      },
-    )
-
-    component.on(
-      noodluiEvent.component.list.RETRIEVE_LIST_ITEM,
-      (result, options) => {
-        log.func(
-          `create.list[${noodluiEvent.component.list.RETRIEVE_LIST_ITEM}]`,
-        )
-        log.grey('', { ...result, ...options })
-      },
-    )
-
-    component.on(
-      noodluiEvent.component.list.UPDATE_LIST_ITEM,
-      (result, options) => {
-        log.func(`create.list[${noodluiEvent.component.list.UPDATE_LIST_ITEM}]`)
-        log.grey('', { ...result, ...options })
-        const { listItem, success } = result
-        const childNode = document.getElementById(listItem.id)
-
-        // noodluidom.emit('create.list.item', childNode, listItem)
-        noodluidom.redraw(childNode, listItem)
-        if (childNode) {
-          log.gold(`Reached the childNode block for an updated listItem`, {
+          'Found childNode for removed listItem. Removing it from the DOM now',
+          {
             ...result,
             ...options,
             childNode,
-          })
-        } else {
-          log.red(`Could not find the DOM node for an updated listItem`, {
+          },
+        )
+        node.removeChild(childNode)
+      } else {
+        console.info(
+          `Could not find the child DOM node for a removed listItem`,
+          {
             ...result,
             ...options,
-            listItem,
+            id: listItem.id,
             childNode,
-          })
-        }
-      },
-    )
-  },
-)
+          },
+        )
+      }
+    },
+  )
 
-noodluidom.on('create.list.item', (node, component) => {
-  log.func('create.list.item')
+  component.on(
+    noodluiEvent.component.list.RETRIEVE_LIST_ITEM,
+    (result, options) => {
+      log.func(`list[${noodluiEvent.component.list.RETRIEVE_LIST_ITEM}]`)
+      log.grey('', { ...result, ...options })
+    },
+  )
+
+  component.on(
+    noodluiEvent.component.list.UPDATE_LIST_ITEM,
+    (result, options) => {
+      log.func(`list[${noodluiEvent.component.list.UPDATE_LIST_ITEM}]`)
+      log.grey('', { ...result, ...options })
+      const { listItem, success } = result
+      const childNode = document.getElementById(listItem.id)
+
+      // noodluidom.emit('list.item', childNode, listItem)
+      noodluidom.redraw(childNode, listItem)
+      if (childNode) {
+        log.gold(`Reached the childNode block for an updated listItem`, {
+          ...result,
+          ...options,
+          childNode,
+        })
+      } else {
+        log.red(`Could not find the DOM node for an updated listItem`, {
+          ...result,
+          ...options,
+          listItem,
+          childNode,
+        })
+      }
+    },
+  )
+})
+
+noodluidom.on('listItem', (node, component) => {
+  log.func('listItem')
   // log.gold('Entered listItem node/component', {
   //   node,
   //   component: component.toJS(),
@@ -390,7 +413,7 @@ noodluidom.on('create.list.item', (node, component) => {
   //         }
   //         console.info('IM HERE!!!', { dataKey, labelNode })
   //       } else if (c.type === 'input') {
-  //         log.func('create.list.item [redraw] REMINDER -- implement this')
+  //         log.func('list.item [redraw] REMINDER -- implement this')
   //       }
   //     } else {
   //       // const n = document.querySelector(`[data-key="${dataKey}"]`)
@@ -401,9 +424,9 @@ noodluidom.on('create.list.item', (node, component) => {
 })
 
 // /** NOTE: node is null in this handler */
-noodluidom.on('create.plugin', async function (noop, component) {
-  log.func('create.plugin')
-  const { src = '' } = component.get('src')
+noodluidom.on('plugin', async function (noop, component) {
+  log.func('plugin')
+  const src = component.get('src')
   if (typeof src === 'string') {
     if (src.startsWith('http')) {
       const { default: axios } = await import('../app/axios')
@@ -426,7 +449,7 @@ noodluidom.on('create.plugin', async function (noop, component) {
   }
 })
 
-noodluidom.on('create.textfield', (node, component) => {
+noodluidom.on('textfield', (node, component) => {
   if (node) {
     const contentType = component.get('contentType')
     // Password inputs
@@ -527,7 +550,7 @@ noodluidom.on('create.textfield', (node, component) => {
   }
 })
 
-noodluidom.on('create.video', (node, component) => {
+noodluidom.on('video', (node, component) => {
   const { controls, poster, src, videoType } = component.get([
     'controls',
     'poster',

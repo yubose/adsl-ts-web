@@ -109,7 +109,7 @@ export function toDOM(props: any): NOODLDOMElement | null {
 }
 
 export function listenToDOM() {
-  noodluidom.on('create.component', (node, component) => {
+  noodluidom.on('component', (node, component) => {
     if (!node) return
 
     const {
@@ -443,7 +443,6 @@ export function listenToDOM() {
           const { listItem, success } = result
           const childNode = document.getElementById(listItem.id)
 
-          // noodluidom.emit('create.list.item', childNode, listItem)
           noodluidom.redraw(childNode, listItem)
           if (childNode) {
             log.gold(`Reached the childNode block for an updated listItem`, {
@@ -464,8 +463,8 @@ export function listenToDOM() {
     },
   )
 
-  noodluidom.on('create.list.item', (node, component) => {
-    log.func('create.list.item')
+  noodluidom.on('create.listItem', (node, component) => {
+    log.func('create.listItem')
     // log.gold('Entered listItem node/component', {
     //   node,
     //   component: component.toJS(),
@@ -485,7 +484,6 @@ export function listenToDOM() {
       //         }
       //         console.info('IM HERE!!!', { dataKey, labelNode })
       //       } else if (c.type === 'input') {
-      //         log.func('create.list.item [redraw] REMINDER -- implement this')
       //       }
       //     } else {
       //       // const n = document.querySelector(`[data-key="${dataKey}"]`)
@@ -496,8 +494,8 @@ export function listenToDOM() {
   })
 
   // /** NOTE: node is null in this handler */
-  // noodluidom.on('create.plugin', async function (noop, component) {
-  //   log.func('create.plugin')
+  // noodluidom.on('plugin', async function (noop, component) {
+  //   log.func('plugin')
   //   const { src = '' } = component.get('src')
   //   if (typeof src === 'string') {
   //     if (src.startsWith('http')) {

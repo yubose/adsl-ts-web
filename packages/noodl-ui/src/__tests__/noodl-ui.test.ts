@@ -15,6 +15,8 @@ import Component from '../components/Base'
 import List from '../components/List'
 import Viewport from '../Viewport'
 import ListItem from '../components/ListItem'
+import createComponent from '../utils/createComponent'
+import { findParent } from 'noodl-utils'
 
 let noodlComponent: NOODLComponent
 let component: IComponent
@@ -42,27 +44,6 @@ describe('noodl-ui', () => {
       expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + path)
     })
 
-    xit('should work for passing emit objects', () => {
-      const iteratorVar = 'hello'
-      const path = {
-        emit: {
-          dataKey: {
-            var1: iteratorVar,
-          },
-          actions: [
-            {
-              if: [() => false, {}, {}],
-            },
-          ],
-        },
-      }
-      noodlui.use({
-        actionType: 'emit',
-        fn: async (action, options) => 'abc123.jpeg',
-      })
-      expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + 'abc123.jpeg')
-    })
-
     it('should work for passing if objects', () => {
       const path = {
         if: [true, 'selected.png', 'unselected.png'],
@@ -74,6 +55,90 @@ describe('noodl-ui', () => {
       )
       path.if[0] = () => true
       expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + 'selected.png')
+    })
+
+    describe('when passing an emit object', () => {
+      describe('when providing a component', () => {
+        it('should work for passing emit objects', () => {
+          const iteratorVar = 'hello'
+          const path = {
+            emit: {
+              dataKey: {
+                var1: iteratorVar,
+              },
+              actions: [
+                {
+                  if: [() => false, {}, {}],
+                },
+              ],
+            },
+          }
+          const view = createComponent('view')
+          const listItem = new ListItem()
+          listItem.setDataObject({ fruit: 'apple', ext: '.png' })
+          const image = createComponent('image')
+          image.set('path', path)
+          view.createChild(listItem)
+          listItem.createChild(image)
+          noodlui.use({
+            actionType: 'emit',
+            fn: (path, component) => {
+              const listItemComponent = findParent(
+                component,
+                (p) => p.noodlType === 'listItem',
+              )
+              const dataObject = listItemComponent.getDataObject()
+              return dataObject.fruit + dataObject.ext
+            },
+            trigger: 'path',
+          })
+          // noodlui.resolveComponents(view)
+          expect(noodlui.createSrc(path, image)).to.eq(
+            noodlui.assetsUrl + 'apple.png',
+          )
+        })
+      })
+
+      describe('when not providing a component', () => {
+        it('should work for passing emit objects', () => {
+          const iteratorVar = 'hello'
+          const path = {
+            emit: {
+              dataKey: {
+                var1: iteratorVar,
+              },
+              actions: [
+                {
+                  if: [() => false, {}, {}],
+                },
+              ],
+            },
+          }
+          const view = createComponent('view')
+          const listItem = new ListItem()
+          listItem.setDataObject({ fruit: 'apple', ext: '.png' })
+          const image = createComponent('image')
+          image.set('path', path)
+          view.createChild(listItem)
+          listItem.createChild(image)
+          noodlui.use({
+            actionType: 'emit',
+            fn: (path, component) => {
+              const listItemComponent = findParent(
+                component,
+                (p) => p.noodlType === 'listItem',
+              )
+              const dataObject = listItemComponent.getDataObject()
+              return dataObject.fruit + dataObject.ext
+            },
+            trigger: 'path',
+          })
+          // noodlui.resolveComponents(view)
+          expect(noodlui.createSrc(path, image)).to.eq(
+            noodlui.assetsUrl + 'apple.png',
+          )
+        })
+      })
     })
 
     it('should try to use a data object to pass to the if func if component is provided', () => {
@@ -104,7 +169,8 @@ describe('noodl-ui', () => {
     })
 
     it('should return all consumer options', () => {
-      expect(noodlui.getConsumerOptions()).to.have.keys([
+      expect(noodlui.getConsumerOptions({} as any)).to.have.keys([
+        'component',
         'context',
         'createActionChainHandler',
         'createSrc',

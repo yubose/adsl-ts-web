@@ -1,11 +1,11 @@
 import _ from 'lodash'
-import { current, isDraft } from 'immer'
 import Logger from 'logsnap'
+import { current, isDraft } from 'immer'
 import { isBreakLineTextBoardItem } from 'noodl-utils'
 import { formatColor } from '../../utils/common'
 import { ConsumerOptions, IComponentTypeInstance } from '../../types'
-import createComponent from '../../utils/createComponent'
 import { _resolveChildren } from './helpers'
+import createComponent from '../../utils/createComponent'
 
 const log = Logger.create('internal[handleList]')
 
@@ -42,13 +42,14 @@ const handleTextboardInternalResolver = (
          */
         const text = createComponent({
           type: 'label',
+          noodlType: 'label',
           style: {
             display: 'inline-block',
             ...(item.color ? { color: formatColor(item.color) } : undefined),
           },
           text: item.text,
         })
-        resolveComponent(component.createChild(text))
+        component.createChild(text)
       }
     })
   } else {

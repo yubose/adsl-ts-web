@@ -1,17 +1,14 @@
 import NOODL from '@aitmed/cadl'
 import { getAspectRatio } from '../utils/common'
 
-const PORTAL_CONFIG = getConfigEndpoint('portal')
-const PORTAL_CONFIG_NATIVE_JS = getConfigEndpoint('cadltest')
-const PORTAL_CONFIG_PHASE_2 = getConfigEndpoint('portal.phase.2')
-const LANDING_PAGE_CONFIG = getConfigEndpoint('landing.page')
-const AITCOM11_CONFIG = getConfigEndpoint('cadltest')
+const WWW_CONFIG = getConfigEndpoint('www')
+const WWW2_CONFIG = getConfigEndpoint('www2')
 const PATIENT_CONFIG = getConfigEndpoint('patient')
 const PATIENT_D_CONFIG = getConfigEndpoint('patientd')
+const PROVIDER_CONFIG = getConfigEndpoint('provider')
 const MEET2_CONFIG = getConfigEndpoint('meet2')
 const MEET2D_CONFIG = getConfigEndpoint('meet2d')
 const MEET3D_CONFIG = getConfigEndpoint('meet3d')
-const MEET11_CONFIG = getConfigEndpoint('meet11')
 const TESTPAGE = getConfigEndpoint('testpage')
 
 const noodl = new NOODL({
@@ -24,47 +21,13 @@ const noodl = new NOODL({
   // configUrl: getConfigEndpoint('meet'),
 })
 
-function getConfigEndpoint(
-  type:
-    | 'cadltest'
-    | 'meet2' // native js (upload document, etc)
-    | 'meet2d' // native js (upload document, etc)
-    | 'meed3d'
-    | 'meet11' // testing for jiahao + new features/syntax testing
-    | 'landing.page'
-    | 'patient'
-    | 'patientd'
-    | 'portal'
-    | 'portal.phase.2',
-) {
+function getConfigEndpoint(name: string) {
   let path = ''
   const base = 'https://public.aitmed.com/config'
   const isLocal = process.env.NODE_ENV === 'development'
   const isLocalExplicit = process.env.USE_DEV_PATHS
   if (isLocal || isLocalExplicit) {
-    const getFilename = (t: typeof type) => {
-      switch (type) {
-        case 'cadltest':
-          return '/cadltest'
-        case 'landing.page':
-          return '/www'
-        case 'meet11':
-          return '/meet11'
-        case 'meet2':
-          return '/meet2'
-        case 'meet2d':
-          return '/meet2d'
-        case 'meet3d':
-          return '/meet3d'
-        case 'portal.phase.2':
-          return '/meet2'
-        case 'testpage':
-          return '/testpage'
-        default:
-          return '/meet'
-      }
-    }
-    path = getFilename(type) + '.yml'
+    path = '/' + name + '.yml'
   }
   return base + path
 }

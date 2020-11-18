@@ -233,6 +233,63 @@ describe('_internalResolver', () => {
       expect(spy.called).to.be.true
     })
 
+    it('should deeply assign iteratorVar and listId to all of its children', () => {
+      const dataObject1 = { title: 'This is my title', color: 'red' }
+      const dataObject2 = { title: 'This is 2md title', color: 'brown' }
+      const dataObject3 = { title: 'This is 3rd title', color: 'cyan' }
+      const listObject = [dataObject1, dataObject2, dataObject3]
+      const iteratorVar = 'hello'
+      const noodlComponent = {
+        type: 'list',
+        listObject,
+        iteratorVar,
+        children: [
+          {
+            type: 'listItem',
+            hello: '',
+            children: [
+              { type: 'label', dataKey: 'hello.title' },
+              {
+                type: 'view',
+                children: [
+                  { type: 'label', dataKey: 'hello.color' },
+                  {
+                    type: 'view',
+                    children: [
+                      {
+                        type: 'view',
+                        children: [
+                          {
+                            type: 'image',
+                            path: 'abc.png',
+                            style: { width: '0.2', height: '0.5' },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+      noodlui
+        .setRoot('SignIn', { listData: { someList: listObject } })
+        .setPage('SignIn')
+      const noodlParent = { type: 'view', children: [noodlComponent] }
+      const parent = noodlui.resolveComponents(noodlParent)
+      const component = parent.child() as IList
+      const data = component.getData()
+      component?.set('listObject', [])
+      data.forEach((d) => component.addDataObject(d))
+      const [listItem1] = component?.children() || []
+      expect(listItem1.child()?.get?.('listId')).to.exist
+      expect(listItem1.child()?.get?.('iteratorVar')).to.exist
+      expect(listItem1.child(1)?.child(0)?.get('listId')).to.exist
+      expect(listItem1.child(1)?.child(0)?.get('iteratorVar')).to.exist
+    })
+
     it('should populate all descendant dataKey consumers expectedly', () => {
       const dataObject1 = { title: 'This is my title', color: 'red' }
       const dataObject2 = { title: 'This is 2md title', color: 'brown' }
@@ -284,8 +341,8 @@ describe('_internalResolver', () => {
       const data = component.getData()
       component?.set('listObject', [])
       data.forEach((d) => component.addDataObject(d))
-
       const [listItem1] = component?.children() || []
+      noodlui.save('handleList.json', component.toJS())
       expect(listItem1.child()?.get?.('data-value')).to.equal(dataObject1.title)
       expect(listItem1.child(1)?.child(0)?.get('data-value')).to.equal(
         dataObject1.color,
@@ -325,6 +382,25 @@ describe('_internalResolver', () => {
       expect(label?.child(0)).to.have.property('noodlType', 'br')
       expect(label?.child(1)).to.have.property('noodlType', 'label')
       expect(label?.child(2)).to.have.property('noodlType', 'br')
+    })
+
+    it('items should not be wrapped by resolveComponent', () => {
+      const parent = noodlui.resolveComponents({
+        type: 'view',
+        children: [
+          {
+            type: 'label',
+            textBoard: [{ br: null }, { text: 'hello' }, { br: null }],
+          },
+        ],
+      })
+      const label = parent.child() as IComponentTypeInstance
+      const br = label.child(0)
+      const text = label.child(1)
+      expect(br?.style).not.to.have.property('position')
+      expect(br?.style).not.to.have.property('outline')
+      expect(text?.style).not.to.have.property('position')
+      expect(text?.style).not.to.have.property('outline')
     })
   })
 

@@ -39,7 +39,7 @@ export const componentTypes = [
 ] as const
 
 export const componentEventMap = {
-  all: 'create.component',
+  all: 'component',
   button: 'create.button',
   br: 'create.breakline',
   divider: 'create.divider',
@@ -49,7 +49,7 @@ export const componentEventMap = {
   label: 'create.label',
   list: 'create.list',
   listItem: 'create.list.item',
-  plugin: 'create.plugin',
+  plugin: 'plugin',
   popUp: 'create.popup',
   select: 'create.select',
   textField: 'create.textfield',

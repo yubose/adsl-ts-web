@@ -1,14 +1,17 @@
 import _ from 'lodash'
 import produce from 'immer'
 import Logger from 'logsnap'
-import { forEachEntries, getRandomKey } from '../../utils/common'
-import { forEachDeepChildren } from '../../utils/noodl'
+import { getRandomKey } from '../../utils/common'
 import {
+  ConsumerOptions,
   IComponentTypeInstance,
   IComponentTypeObject,
   IList,
   IListBlueprint,
   IListItem,
+  IResolver,
+  NOODLComponent,
+  ProxiedComponent,
 } from '../../types'
 import { event } from '../../constants'
 import createComponent from '../../utils/createComponent'
@@ -18,8 +21,8 @@ const log = Logger.create('internal[handleList]')
 
 const handleListInternalResolver = (
   component: IList,
-  options,
-  _internalResolver,
+  options: ConsumerOptions,
+  _internalResolver: IResolver,
 ) => {
   const { resolveComponent } = options
 
@@ -28,89 +31,73 @@ const handleListInternalResolver = (
     iteratorVar: component.iteratorVar,
   }
 
-  // Creates list items on new data objects
+  // Creates list items as new data objects are added
   component.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
     const listItem = component.createChild(
-      createComponent(component.getBlueprint()),
+      createComponent(component?.getBlueprint()),
     ) as IListItem
 
     listItem['id'] = getRandomKey()
+    listItem.setDataObject?.(result.dataObject)
+    listItem.set('listIndex', result.index)
 
-    log.grey('ADD_DATA_OBJECT new listItem', listItem.id)
+    resolveComponent(listItem)
 
-    if (listItem) {
-      listItem.setDataObject?.(result.dataObject)
-      listItem.set('listIndex', result.index)
-      resolveComponent(listItem)
+    // TODO - Decide to keep component implementation
+    const logArgs = { options, ...result, list: component, listItem }
 
-      // TODO - Decide to keep component implementation
-      // component.#items[listItem.id] = { dataObject: result.dataObject, listItem }
-      const logArgs = { ...result, listItem }
-      log.green(`Created a new listItem`, logArgs)
+    log.grey(`Created a new listItem`, logArgs)
 
-      _resolveChildren(listItem, {
-        onResolve: (c) => {
-          c.set('listIndex', result.index)
-          // if (c.get('iteratorVar') === commonProps.iteratorVar) {
+    _resolveChildren(listItem, {
+      onResolve: (c) => {
+        if (c.get('iteratorVar') === commonProps.iteratorVar) {
           c.set('dataObject', result.dataObject)
-          // c.set('listIndex')
-          // }
-          _internalResolver.resolve(c, {
-            ...options,
-            resolveComponent,
-          })
-          c.broadcast((cc) =>
-            cc.assign({
-              ...commonProps,
-              listIndex: result.index,
-            }),
-          )
-        },
-        props: commonProps,
-        resolveComponent,
-      })
-
-      listItem.broadcast((child) => {
-        child.on(event.component.listItem.REDRAWED, () => {
-          console.info(
-            `You have reached the "${event.component.listItem.REDRAWED}" event handler`,
-          )
+          c.set('listIndex', result.index)
+        }
+        _internalResolver.resolve(c, {
+          ...options,
+          component: c,
+          resolveComponent,
         })
-      })
-
-      listItem.on(event.component.listItem.REDRAW, (args) => {
-        listItem.redraw(args, ({ child, dataKey, dataValue }) => {
-          // TODO - resolveComponent ? or continue with below
-          resolveComponent(child)
-          if (child.noodlType === 'image') {
-            //
-          }
-        })
-      })
-
-      component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
-    } else {
-      log.red(
-        `Added a dataObject but there was a problem with creating the list ` +
-          `item component`,
-        { ...result, listItem },
-      )
-    }
-
-    listItem.on(event.component.listItem.REDRAW, ({ props }) => {
-      log.func('redraw')
-      console.info(`Redrawing listItem`, { props, listItem })
-      if (props) {
-        forEachDeepChildren(listItem, (child) => {
-          forEachEntries(props, (k, v) => child.set(k, v))
-        })
-      }
-      // resolveComponent(listItem)
-      // console.info('REDRAWED', listItem)
-      listItem.emit(event.component.listItem.REDRAWED, { props, listItem })
+      },
+      props: { ...commonProps, listIndex: result.index },
+      resolveComponent,
     })
+
+    component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
+
+    // listItem.broadcast((child) => {
+    //   child.on(event.component.listItem.REDRAWED, () => {
+    //     console.info(
+    //       `You have reached the "${event.component.listItem.REDRAWED}" event handler`,
+    //     )
+    //   })
+    // })
+
+    // listItem.on(event.component.listItem.REDRAW, (args) => {
+    //   listItem.redraw(args, ({ child, dataKey, dataValue }) => {
+    //     // TODO - resolveComponent ? or continue with below
+    //     resolveComponent(child)
+    //     if (child.noodlType === 'image') {
+    //       //
+    //     }
+    //   })
+    // })
+
+    // listItem.on(event.component.listItem.REDRAW, ({ props }) => {
+    //   log.func('redraw')
+    //   console.info(`Redrawing listItem`, { props, listItem })
+    //   if (props) {
+    //     forEachDeepChildren(listItem, (child) => {
+    //       forEachEntries(props, (k, v) => child.set(k, v))
+    //     })
+    //   }
+    //   // resolveComponent(listItem)
+    //   // console.info('REDRAWED', listItem)
+    //   listItem.emit(event.component.listItem.REDRAWED, { props, listItem })
+    // })
 
     // listItem.emit('redraw')
   })
@@ -121,8 +108,16 @@ const handleListInternalResolver = (
     const listItem = component.find(
       (child) => child?.getDataObject?.() === result.dataObject,
     )
+    const dataObjectBefore = listItem?.getDataObject?.()
+    listItem?.setDataObject(null)
     if (listItem) component.removeChild(listItem)
-    log.green(`Deleted a listItem`, { ...result, ...options, listItem })
+    log.grey(`Deleted a listItem`, {
+      ...result,
+      ...options,
+      listItem,
+      dataObjectBefore,
+      dataObjectAfter: listItem?.getDataObject?.(),
+    })
     const args = { ...result, listItem }
     component.emit(event.component.list.REMOVE_LIST_ITEM, args)
   })
@@ -169,18 +164,11 @@ const handleListInternalResolver = (
     resolvedBlueprint.set('listId', component.listId)
     resolvedBlueprint.set('iteratorVar', component.iteratorVar)
 
-    // _.forEach(resolvedBlueprint.children(), (c) => {
-    //   _internalResolver.resolve(c, {
-    //     ...options,
-    //     resolveComponent,
-    //   })
-    //   c.broadcast((cc) => cc.assign(commonProps))
-    // })
-
     _resolveChildren(resolvedBlueprint, {
       onResolve: (c) => {
         _internalResolver.resolve(c, {
           ...options,
+          component: c,
           resolveComponent,
         })
         c.broadcast((cc) => cc.assign(commonProps))

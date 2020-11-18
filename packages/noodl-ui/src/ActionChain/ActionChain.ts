@@ -48,14 +48,15 @@ class ActionChain<
   useAction(action: T.IActionChainUseObject[]): this
   useAction(action: T.IActionChainUseObject | T.IActionChainUseObject[]) {
     // Built in actions are forwarded to this.useBuiltIn
-    _.forEach(_.isArray(action) ? action : [action], (a) => {
-      if ('funcName' in a) return void this.useBuiltIn(a)
+    _.forEach(_.isArray(action) ? action : [action], (obj) => {
+      log.func('useAction')
+      if ('funcName' in obj) return void this.useBuiltIn(obj)
 
-      const actionsList = (this.fns.action[a.actionType] ||
+      const actionsList = (this.fns.action[obj.actionType] ||
         []) as T.ActionChainActionCallback<ActionObjects>[]
 
-      this.fns.action[a.actionType] = actionsList.concat(
-        _.isArray(a.fn) ? a.fn : ([a.fn] as any),
+      this.fns.action[obj.actionType] = actionsList.concat(
+        _.isArray(obj) ? obj : ([obj] as any),
       )
     })
     return this
@@ -180,13 +181,17 @@ class ActionChain<
       const callbackArgs = { ...options, ...conditionalCallbackArgs }
       if (action.actionType === 'anonymous') {
         if ('fn' in action.original) {
-          result = await action.original.fn(instance, callbackArgs)
+          result = await action.original.fn?.(instance, callbackArgs)
         }
       } else {
         if (action.actionType === 'builtIn') {
           fns = this.fns.builtIn[action?.original?.funcName] || []
         } else {
-          fns = this.fns.action[action.actionType] || []
+          fns = _.reduce(
+            this.fns.action[action.actionType] || [],
+            (acc, a) => (a.trigger !== 'path' ? acc.concat(a.fn) : acc),
+            [],
+          )
         }
         if (!fns) return result
         result = await runFns({ fns, instance, options: callbackArgs })

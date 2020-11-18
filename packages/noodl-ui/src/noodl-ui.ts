@@ -44,8 +44,8 @@ class NOODL implements T.INOODLUi {
   #cb: {
     action: {
       [actionType: string]: {
-        actionType: T.NOODLActionType
         fn: T.ActionChainActionCallback
+        trigger?: 'onClick' | 'path'
       }[]
     }
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
@@ -76,6 +76,7 @@ class NOODL implements T.INOODLUi {
   #root: { [key: string]: any } = {}
   #state: T.INOODLUiState
   #viewport: T.IViewport
+  actionsContext: any = {}
   initialized: boolean = false
 
   constructor({
@@ -321,11 +322,12 @@ class NOODL implements T.INOODLUi {
     )
     actionChain
       .useAction(
-        _.map(_.entries(this.#cb.action), ([actionType, obj]) => ({
-          actionType,
-          // TODO - fully standardize these to target the left
-          fn: obj[0]?.fn || obj,
-        })),
+        _.reduce(
+          _.entries(this.#cb.action),
+          (arr, [actionType, actionObjs]) =>
+            arr.concat(actionObjs.map((a) => ({ actionType, ...a }))),
+          [] as any[],
+        ),
       )
       .useBuiltIn(
         _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
@@ -348,9 +350,15 @@ class NOODL implements T.INOODLUi {
     return actionChain.build(buildOptions)
   }
 
-  init({ viewport }: Partial<Parameters<T.INOODLUi['init']>[0]> = {}) {
+  init({
+    actionsContext,
+    viewport,
+  }: { actionsContext?: any } & Partial<
+    Parameters<T.INOODLUi['init']>[0]
+  > = {}) {
     if (viewport) this.setViewport(viewport)
     this.initialized = true
+    this['actionsContext'] = actionsContext
     return this
   }
 
@@ -525,7 +533,10 @@ class NOODL implements T.INOODLUi {
           if (!_.isArray(this.#cb.action[m.actionType])) {
             this.#cb.action[m.actionType] = []
           }
-          this.#cb.action[m.actionType].push(m)
+          const obj = { fn: m.fn }
+          if ('context' in m) obj['context'] = m.context
+          if ('trigger' in m) obj['trigger'] = m.trigger
+          this.#cb.action[m.actionType].push(obj)
         } else if (m instanceof Viewport) {
           this.setViewport(m)
         } else if (m instanceof Resolver) {
@@ -567,6 +578,7 @@ class NOODL implements T.INOODLUi {
     component?: T.IComponentTypeInstance,
   ) {
     log.func('createSrc')
+    if (isDraft(path)) path = original(path) as typeof path
 
     const resolvePath = (pathValue: string) => {
       let src = ''
@@ -616,26 +628,13 @@ class NOODL implements T.INOODLUi {
       }
       // Emit object evaluation
       else if (isEmitObj<T.EmitActionObject>(path)) {
-        const emitAction = new EmitAction(
-          (isDraft(path) ? original(path) : path) as NonNullable<any>,
-          { trigger: 'path' },
-        )
-        emitAction['callback'] = (action, options) => {
-          const obj = this.#cb.action.emit.find((o) => o.trigger === 'path')
-          return obj?.fn?.(action, options) || ''
-        }
-        return emitAction
-          .execute({
-            builtIn: this.#cb.builtIn,
-            component,
-            context: this.getContext(),
-            parser: this.#parser,
-            trigger: 'path',
-          })
-          .then((src) => resolvePath(src))
-          .catch((err) => {
-            throw new Error(err.message)
-          })
+        // const emitAction = new EmitAction(
+        //   (isDraft(path) ? original(path) : path) as NonNullable<any>,
+        //   { trigger: 'path' },
+        // )
+        // TODO - narrow this query to avoid only using the first encountered obj
+        const obj = this.#cb.action.emit.find((o) => o.trigger === 'path')
+        return resolvePath(obj?.fn?.(path, component, obj?.context))
       }
       // Assuming we are passing in a dataObject
       else if (_.isFunction(path)) {

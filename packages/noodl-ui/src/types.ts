@@ -276,8 +276,13 @@ export interface IComponent<K = NOODLComponentType> {
   parent(): IComponentTypeInstance | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
-  set<K extends keyof (ProxiedComponent | NOODLComponentProps) = string>(
+  set<K extends keyof IComponentTypeObject>(
     key: K,
+    value?: any,
+    styleChanges?: any,
+  ): this
+  set<O extends IComponentTypeObject>(
+    key: O,
     value?: any,
     styleChanges?: any,
   ): this
@@ -303,7 +308,7 @@ export type IComponentType =
   | IComponentTypeObject
   | NOODLComponentType
 
-export type IComponentTypeInstance = IComponent<string> & (IList | IListItem)
+export type IComponentTypeInstance = IComponent
 
 export type IComponentTypeObject =
   | NOODLComponent
@@ -347,20 +352,21 @@ export interface IList<
   find(
     pred: (listItem: IListItem, index: number) => boolean,
   ): IListItem | undefined
-  emit<E = 'blueprint'>(eventName: E, blueprint: IListBlueprint): this
-  emit<E = 'redraw'>(eventName: E): this
+  emit(eventName: 'blueprint', blueprint: IListBlueprint): this
+  emit(eventName: 'redraw'): this
   emit<E extends Exclude<IListEventId, 'blueprint' | 'redraw'>>(
     eventName: E,
     result: IListDataObjectOperationResult,
     args: IListDataObjectEventHandlerOptions,
   ): this
-  on<E = 'blueprint'>(
-    eventName: E,
-    cb: (blueprint: IListBlueprint) => this,
-  ): this
-  on<E = 'redraw'>(): this
-  on<E extends Exclude<IListEventId, 'blueprint'>>(
-    eventName: E,
+  on(eventName: 'blueprint', cb: (blueprint: IListBlueprint) => void): this
+  on(eventName: 'redraw', cb: () => void): this
+  on(
+    eventName:
+      | 'add.data.object'
+      | 'delete.data.object'
+      | 'remove.data.object'
+      | 'retrieve.data.object',
     cb: (
       result: IListDataObjectOperationResult,
       args: IListDataObjectEventHandlerOptions,
@@ -497,7 +503,7 @@ export type IActionChainUseObject =
 export interface IActionChainUseObjectBase<A extends BaseActionObject> {
   actionType: A['actionType']
   fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
-  trigger?: 'path' //  Currently used for emit objects in evaluating "path"
+  trigger?: 'onClick' | 'path' //  Currently used for emit objects in evaluating "path"
 }
 
 export interface IActionChainUseBuiltInObject {
@@ -644,6 +650,7 @@ export interface ActionChainActionCallbackOptions<
   builtIn: Partial<Record<string, ActionChainCallbackOptions[]>>
   component: T
   context: ResolverContext
+  createSrc: ConsumerOptions['createSrc']
   event?: Event
   error?: Error
   parser: RootsParser

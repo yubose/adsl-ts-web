@@ -52,13 +52,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     } else {
       field = fieldParts[0] || ''
     }
-    console.log({
-      'data-key': dataKey,
-      'data-name': field,
-      'data-value': fieldValue,
-      page,
-      pageObject,
-    })
     component.assign({
       'data-key': dataKey,
       'data-name': field,
@@ -137,6 +130,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
               component: component.toJS(),
               dataKey,
               dataObject,
+              list: listItem?.parent?.(),
               listItem,
               listIndex,
               iteratorVar,
@@ -179,6 +173,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
                 component: component.toJS(),
                 dataKey,
                 dataObject,
+                list: listItem?.parent?.(),
                 listId,
                 listIndex,
                 iteratorVar,
@@ -202,6 +197,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
               component: component.toJS(),
               dataKey,
               dataObject,
+              list: listItem.parent?.(),
               listItem,
               listIndex,
               iteratorVar,

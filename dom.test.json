@@ -3,47 +3,10 @@
   "children": [
     {
       "blueprint": {
-        "children": [
-          {
-            "type": "label",
-            "dataKey": "hello.value",
-            "listId": "_8rziwqfcm",
-            "iteratorVar": "hello",
-            "noodlType": "label",
-            "style": {
-              "position": "absolute",
-              "outline": "none"
-            },
-            "listIndex": null,
-            "data-key": "hello.value",
-            "data-name": "value"
-          },
-          {
-            "type": "img",
-            "viewTag": "maleTag",
-            "path": {
-              "if": [
-                null,
-                "male.png",
-                "female.png"
-              ]
-            },
-            "listId": "_8rziwqfcm",
-            "iteratorVar": "hello",
-            "noodlType": "image",
-            "style": {
-              "position": "absolute",
-              "outline": "none",
-              "objectFit": "contain"
-            },
-            "listIndex": null,
-            "data-viewtag": "maleTag",
-            "src": "https://aitmed.com/assets/female.png"
-          }
-        ],
-        "listId": "_8rziwqfcm",
+        "children": [],
+        "listId": "_6wdjox870",
         "listIndex": null,
-        "id": "_bh5wrhuzw",
+        "id": "_y6l1yqti4",
         "iteratorVar": "hello",
         "noodlType": "listItem",
         "style": {
@@ -52,66 +15,17 @@
           "listStyle": "none",
           "padding": 0
         },
-        "type": "listItem",
-        "hello": "",
-        "viewTag": "genderTag"
+        "type": "listItem"
       },
       "children": [
         {
-          "children": [
-            {
-              "type": "label",
-              "dataKey": "hello.value",
-              "listId": "_8rziwqfcm",
-              "iteratorVar": "hello",
-              "noodlType": "label",
-              "style": {
-                "position": "absolute",
-                "outline": "none"
-              },
-              "listIndex": 0,
-              "data-key": "hello.value",
-              "data-name": "value",
-              "data-value": "Male",
-              "dataObject": {
-                "key": "Gender",
-                "value": "Male"
-              }
-            },
-            {
-              "type": "img",
-              "viewTag": "maleTag",
-              "path": {
-                "if": [
-                  null,
-                  "male.png",
-                  "female.png"
-                ]
-              },
-              "listId": "_8rziwqfcm",
-              "iteratorVar": "hello",
-              "noodlType": "image",
-              "style": {
-                "position": "absolute",
-                "outline": "none",
-                "objectFit": "contain"
-              },
-              "listIndex": 0,
-              "data-viewtag": "maleTag",
-              "src": "https://aitmed.com/assets/female.png",
-              "dataObject": {
-                "key": "Gender",
-                "value": "Male"
-              }
-            }
-          ],
+          "children": [],
           "dataObject": {
-            "key": "Gender",
-            "value": "Male"
+            "fruits": "banana"
           },
-          "listId": "_8rziwqfcm",
-          "listIndex": 0,
-          "id": "_f18c19nk7",
+          "listId": "_6wdjox870",
+          "listIndex": 1,
+          "id": "_lk1iena28",
           "iteratorVar": "hello",
           "noodlType": "listItem",
           "style": {
@@ -123,60 +37,13 @@
           "type": "li"
         },
         {
-          "children": [
-            {
-              "type": "label",
-              "dataKey": "hello.value",
-              "listId": "_8rziwqfcm",
-              "iteratorVar": "hello",
-              "noodlType": "label",
-              "style": {
-                "position": "absolute",
-                "outline": "none"
-              },
-              "listIndex": 1,
-              "data-key": "hello.value",
-              "data-name": "value",
-              "data-value": "Female",
-              "dataObject": {
-                "key": "Gender",
-                "value": "Female"
-              }
-            },
-            {
-              "type": "img",
-              "viewTag": "maleTag",
-              "path": {
-                "if": [
-                  null,
-                  "male.png",
-                  "female.png"
-                ]
-              },
-              "listId": "_8rziwqfcm",
-              "iteratorVar": "hello",
-              "noodlType": "image",
-              "style": {
-                "position": "absolute",
-                "outline": "none",
-                "objectFit": "contain"
-              },
-              "listIndex": 1,
-              "data-viewtag": "maleTag",
-              "src": "https://aitmed.com/assets/female.png",
-              "dataObject": {
-                "key": "Gender",
-                "value": "Female"
-              }
-            }
-          ],
+          "children": [],
           "dataObject": {
-            "key": "Gender",
-            "value": "Female"
+            "fruits": "orange"
           },
-          "listId": "_8rziwqfcm",
-          "listIndex": 1,
-          "id": "_nd1bshxu8",
+          "listId": "_6wdjox870",
+          "listIndex": 2,
+          "id": "_yuyusqwvg",
           "iteratorVar": "hello",
           "noodlType": "listItem",
           "style": {
@@ -188,19 +55,17 @@
           "type": "li"
         }
       ],
-      "listId": "_8rziwqfcm",
+      "listId": "_6wdjox870",
       "listItemCount": 2,
       "listObject": [
         {
-          "key": "Gender",
-          "value": "Male"
+          "fruits": "banana"
         },
         {
-          "key": "Gender",
-          "value": "Female"
+          "fruits": "orange"
         }
       ],
-      "id": "_oryouqiog",
+      "id": "_xqfhmvf70",
       "iteratorVar": "hello",
       "style": {
         "position": "absolute",
@@ -219,5 +84,5 @@
     "position": "absolute",
     "outline": "none"
   },
-  "id": "_l0t8f79mt"
+  "id": "_ksllzq739"
 }

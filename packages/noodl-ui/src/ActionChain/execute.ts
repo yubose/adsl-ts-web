@@ -139,6 +139,7 @@ export const createExecute = function (
         abort(
           `The value of "actions" given to this action chain was null or undefined`,
         )
+        throw new Error(error)
       }
     }
 

@@ -38,6 +38,10 @@ class EmitAction extends Action<EmitActionObject> {
     this.#dataObject = dataObject
     return this
   }
+
+  execute() {
+    //
+  }
 }
 
 export default EmitAction

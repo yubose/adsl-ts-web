@@ -94,6 +94,11 @@ export const queryByDataValue = queryHelpers.queryByAttribute.bind(
 
 export const queryByDataUx = queryHelpers.queryByAttribute.bind(null, 'data-ux')
 
+export const queryByDataViewtag = queryHelpers.queryByAttribute.bind(
+  null,
+  'data-viewtag',
+)
+
 export const assetsUrl = 'https://aitmed.com/assets/'
 
 export function getAllResolvers() {

@@ -32,6 +32,11 @@ This allows for faster compilation, faster load times and quicker development fl
 
 ## Todos
 
+- url routing
+  - `aitmed.com/SignIn-MeetingRoomInvited-Dashboard` etc. etc
+  - back button detection
+  - max 10 entries
+  - final goal: compress/decompress with base64
 - Favorites / Contact list path if image flip
 - images with an empty `src` attribute showing the "special" border. disable it or make it invisible in `stable` env
 - config `testpage` --> `PatientChartGeneralInfo` = the emit/redraw syntax

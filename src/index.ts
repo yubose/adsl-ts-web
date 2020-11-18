@@ -241,7 +241,7 @@ window.addEventListener('load', async () => {
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
         noodlui
-          .init({ viewport, _emit: noodl.emitCall })
+          .init({ actionsContext: { noodl }, viewport })
           .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageName)
           .setRoot(noodl.root)
@@ -271,8 +271,21 @@ window.addEventListener('load', async () => {
           .use(
             _.reduce(
               _.entries(actions),
-              (acc, [actionType, fn]) => acc.concat({ actionType, fn }),
-              [] as any[],
+              (arr, [actionType, actions]) => {
+                return arr.concat(
+                  actions.map((a) => {
+                    const obj = {
+                      actionType,
+                      ...a,
+                    }
+                    if (actionType === 'emit') {
+                      obj['context'] = { noodl }
+                    }
+                    return obj
+                  }),
+                )
+              },
+              [],
             ),
           )
           .use(
@@ -535,7 +548,7 @@ window.addEventListener('load', async () => {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-  noodluidom.on('create.component', (node, component) => {
+  noodluidom.on('component', (node, component) => {
     if (node && component) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(component.toJS())) {

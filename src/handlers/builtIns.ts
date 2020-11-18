@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { Draft } from 'immer'
+import { Draft, isDraft, original } from 'immer'
 import {
   ActionChainActionCallbackOptions,
   BuiltInActionObject,
@@ -22,6 +22,7 @@ import {
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isBooleanFalse,
+  findDataObject,
 } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
@@ -53,13 +54,11 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('toggleFlag')
     console.log({ action, ...options })
     const { default: noodl } = await import('../app/noodl')
-
     const { component, context, createSrc } = options
-
     const { dataKey = '' } = action.original
-    const { iteratorVar, path } = component.get(['iteratorVar', 'path'])
+    let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
     const node = document.getElementById(component.id)
-    const pageName = context.page?.name || ''
+    const pageName = context.page || ''
 
     let dataValue: any
     let dataObject: any
@@ -67,15 +66,13 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     let nextDataValue: boolean | undefined = undefined
     let newSrc = ''
 
+    if (isDraft(path)) path = original(path)
+
     log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
 
     if (dataKey.startsWith(iteratorVar)) {
       let parts = dataKey.split('.').slice(1)
-      const listItem = findParent(
-        component as IComponentTypeInstance,
-        (parent) => parent.noodlType === 'listItem',
-      ) as IListItem | undefined
-      dataObject = listItem?.getDataObject?.()
+      dataObject = findDataObject(component)
       previousDataValue = _.get(dataObject, parts)
       // previousDataValueInSdk = _.get(noodl.root[context.page])
       dataValue = previousDataValue
@@ -168,6 +165,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       previousDataValueInSdk: newSrc,
       node,
       path,
+      options,
     })
   }
 
@@ -246,7 +244,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       let pg: string
       pg = cachedPages.shift()?.name || ''
       setCachedPages(cachedPages)
-      console.log(cachedPages)
       await requestPage(pg || '')
     } else {
       log.func('goBack')

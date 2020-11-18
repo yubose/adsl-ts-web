@@ -90,18 +90,16 @@ describe('ActionChain', () => {
       const popup = sinon.spy()
       const update = sinon.spy()
       const popupObj = { actionType: 'popUp', fn: [popup] }
-      const updateObj = { actionType: 'updateObject', fn: update }
+      const updateObj = { actionType: 'updateObject', fn: [update] }
       actionChain.useAction(popupObj)
       actionChain.useAction([updateObj])
       expect(actionChain.fns.action).to.have.property('popUp')
-      expect(actionChain.fns.action.popUp)
-        .to.be.an('array')
-        .that.includes(popup)
+      expect(actionChain.fns.action.popUp).to.be.an('array')
+      expect(actionChain.fns.action.popUp?.[0].fn?.[0]).to.eq(popup)
       expect(actionChain.fns.action.updateObject).to.have.lengthOf(1)
       expect(actionChain.fns.action).to.have.property('updateObject')
-      expect(actionChain.fns.action.updateObject)
-        .to.be.an('array')
-        .that.includes(update)
+      expect(actionChain.fns.action.updateObject).to.be.an('array')
+      expect(actionChain.fns.action.updateObject?.[0].fn?.[0]).to.eq(update)
       expect(actionChain.fns.action.updateObject).to.have.lengthOf(1)
     })
 

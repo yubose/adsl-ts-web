@@ -33,6 +33,7 @@ import {
   queryByDataName,
   queryByDataUx,
   queryByDataValue,
+  queryByDataViewtag,
   getAllByDataKey,
   page,
   noodluidom,
@@ -177,7 +178,7 @@ describe('dom', () => {
       expect(document.querySelectorAll('li')).to.have.lengthOf(listSize + 1)
     })
 
-    it(
+    xit(
       'should be able to use the api to allow us to remove the corresponding ' +
         'list item node if its dataObject was removed',
       () => {
@@ -196,11 +197,13 @@ describe('dom', () => {
             },
           ],
         })
-        const parent = components[0]
-        const component = parent.child()
-        expect(document.querySelectorAll('li')).to.have.lengthOf(3)
-        component.removeDataObject(0)
-        expect(document.querySelectorAll('li')).to.have.lengthOf(2)
+        const view = components[0]
+        const list = view.child() as IList
+        const ul = document.getElementById(list.id)
+        expect(ul?.children).to.have.lengthOf(3)
+        list.removeDataObject(0)
+        saveOutput('dom.test.json', view.toJS(), { spaces: 2 })
+        expect(ul?.children).to.have.lengthOf(2)
       },
     )
 
@@ -338,7 +341,7 @@ describe('dom', () => {
         ['data-key', queryByDataKey],
         ['data-ux', queryByDataUx],
         ['data-value', queryByDataValue],
-        ['data-viewtag', queryByDataValue],
+        ['data-viewtag', queryByDataViewtag],
       ],
       ([key, queryFn]) => {
         it(`should attach ${key}`, () => {
@@ -371,13 +374,12 @@ describe('dom', () => {
         noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
       })
 
-      it('should start off with hidden password mode for password inputs', async () => {
+      it('should start off with hidden password mode for password inputs', () => {
         page.render(noodlComponent)
-        const input = (await screen.findByTestId(
-          'password',
-        )) as HTMLInputElement
-        expect(input).to.exist
-        expect(input.type).to.equal('password')
+        return screen.findByTestId('password').then((input) => {
+          expect(input).to.exist
+          expect((input as HTMLInputElement).type).to.equal('password')
+        })
       })
 
       it('should start off showing the eye closed icon', async () => {
@@ -415,7 +417,8 @@ describe('dom', () => {
         placeholder: 'Enter your phone number',
       })
       const input = queryByDataKey(document.body, dataKey) as HTMLInputElement
-      expect(input.value).to.eq('')
+      expect(input.value).to.eq('88814565555')
+      userEvent.clear(input)
       userEvent.type(input, '6262465555')
       expect(input.value).to.equal('6262465555')
     })
@@ -492,7 +495,7 @@ describe('dom', () => {
     })
   })
 
-  describe.only('when using redraw', () => {
+  xdescribe('when using redraw', () => {
     const iteratorVar = 'hello'
     let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
     let actionFnSpy = sinon.spy()

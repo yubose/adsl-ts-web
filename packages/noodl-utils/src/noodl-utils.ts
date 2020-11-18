@@ -4,6 +4,26 @@ import * as T from './types'
 
 const log = Logger.create('noodl-utils')
 
+export function createEmitDataKey<O = any>(dataKey: string, dataObject: O): O
+export function createEmitDataKey<O = any>(
+  dataKey: Record<string, string>,
+  dataObject: O,
+): Record<string, O>
+export function createEmitDataKey<O = any>(
+  dataKey: string | Record<string, string>,
+  dataObject: O,
+) {
+  if (isStr(dataKey)) {
+    return dataObject
+  } else if (isObj(dataKey)) {
+    return Object.keys(dataKey).reduce(
+      (acc, key) => Object.assign(acc, { [key]: dataObject }),
+      {},
+    )
+  }
+  return dataObject
+}
+
 /**
  * Takes a callback and an "if" object. The callback will receive the three
  * values that the "if" object contains. The first item will be the value that
@@ -105,6 +125,15 @@ export function findParent<C extends { parent?: Function } = any>(
     }
   }
   return parent || null
+}
+
+export function findDataObject(component: any) {
+  if (component) {
+    if (component.noodlType === 'listItem') return component.getDataObject?.()
+    const listItem = findParent(component, (p) => p?.noodlType === 'listItem')
+    return listItem?.getDataObject?.() || null
+  }
+  return null
 }
 
 export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(
