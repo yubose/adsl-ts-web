@@ -43,7 +43,7 @@ const defaultPropTable = {
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 // This event is called for all components
 noodluidom.on('component', (node, component: IComponentTypeInstance) => {
-  if (!node) return
+  if (!node || !component) return
 
   const {
     children,
@@ -221,7 +221,7 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
 })
 
 noodluidom.on('button', (node, component) => {
-  if (node) {
+  if (node && component) {
     const { onClick: onClickProp, src } = component.get(['onClick', 'src'])
     /**
      * Buttons that have a "src" property
@@ -241,7 +241,7 @@ noodluidom.on('button', (node, component) => {
 })
 
 noodluidom.on('image', function onCreateImage(node, component) {
-  if (node) {
+  if (node && component) {
     const onClick = component.get('onClick')
 
     if (_.isFunction(onClick)) {
@@ -295,7 +295,7 @@ noodluidom.on('image', function onCreateImage(node, component) {
 })
 
 noodluidom.on('label', (node, component) => {
-  if (node) {
+  if (node && component) {
     const dataValue = component.get('data-value')
     const { placeholder, text } = component.get(['placeholder', 'text'])
     if (dataValue) node.innerHTML = dataValue
@@ -309,6 +309,7 @@ noodluidom.on('label', (node, component) => {
 
 noodluidom.on<'list'>('list', (node: HTMLUListElement, component: IList) => {
   log.func('list')
+  if (!component) return
 
   component.on(
     noodluiEvent.component.list.CREATE_LIST_ITEM,
@@ -426,7 +427,7 @@ noodluidom.on('listItem', (node, component) => {
 // /** NOTE: node is null in this handler */
 noodluidom.on('plugin', async function (noop, component) {
   log.func('plugin')
-  const src = component.get('src')
+  const src = component?.get?.('src')
   if (typeof src === 'string') {
     if (src.startsWith('http')) {
       const { default: axios } = await import('../app/axios')
@@ -450,7 +451,7 @@ noodluidom.on('plugin', async function (noop, component) {
 })
 
 noodluidom.on('textfield', (node, component) => {
-  if (node) {
+  if (node && component) {
     const contentType = component.get('contentType')
     // Password inputs
     if (contentType === 'password') {
@@ -551,6 +552,7 @@ noodluidom.on('textfield', (node, component) => {
 })
 
 noodluidom.on('video', (node, component) => {
+  if (!component) return
   const { controls, poster, src, videoType } = component.get([
     'controls',
     'poster',

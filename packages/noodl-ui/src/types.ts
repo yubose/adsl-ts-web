@@ -645,6 +645,7 @@ export interface ActionChainActionCallbackOptions<
   component: T
   context: ResolverContext
   createSrc: ConsumerOptions['createSrc']
+  dataObject?: any
   event?: Event
   error?: Error
   parser: RootsParser

@@ -1,4 +1,5 @@
 import {
+  ActionChainActionCallback,
   EmitActionObject,
   IfObject,
   NOODLActionType,
@@ -9,12 +10,14 @@ import {
   NOODLPageObject,
   NOODLStyle,
   Path,
+  IViewport,
 } from 'noodl-ui'
 
-export interface INOODLPage {
+export interface INOODLPageObject {
+  // name: string // private
+  components?: NOODLComponent[]
   init?: string | string[]
   module?: string
-  name: string
   pageNumber?: number
   [key: string]: any
 }
@@ -24,14 +27,24 @@ export interface INOODLPage {
 -------------------------------------------------------- */
 
 export interface INOODLBuilder {
-  
-}
-
-export interface IPageObject extends NOODLPageObject {
-  init?: string | string[]
-  module?: string
-  pageNumber?: string
-  components?: NOODLComponent[]
+  assetsUrl: string
+  actions: {
+    [actionType: string]: {
+      context?: any
+      fn?: Function
+      trigger?: ActionTriggerType
+    }[]
+  }
+  builtIns: {
+    [funcName: string]: Function
+  }
+  build(): any
+  reset(): this
+  setAssetsUrl(assetsUrl: string): this
+  setPage(name: string): this
+  setRoot(key: string, value: any): this
+  setViewport(viewport: IViewport): this
+  viewport: IViewport | null
 }
 
 /* -------------------------------------------------------
@@ -136,3 +149,9 @@ export interface ISaveAction extends IBaseAction<'saveObject'> {
 export interface IUpdateAction<T = any> extends IBaseAction<'updateObject'> {
   object: T
 }
+
+/* -------------------------------------------------------
+  ---- OTHER
+-------------------------------------------------------- */
+
+export type ActionTriggerType = 'onClick' | ' path'

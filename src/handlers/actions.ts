@@ -75,7 +75,9 @@ const createActions = function ({ page }: { page: IPage }) {
       const { default: noodl } = await import('../app/noodl')
 
       log.func('emit [ActionChain]')
-      log.grey('Emitting', { action, ...options })
+      log.gold('Emitting', { action, ...options })
+      log.gold('Emitting', { action, ...options })
+      log.gold('Emitting', { action, ...options })
 
       let { component, context } = options
       let { emit } = action.original
@@ -85,7 +87,7 @@ const createActions = function ({ page }: { page: IPage }) {
       const emitParams = {
         actions,
         pageName: context.page,
-      }
+      } as any
 
       // If dataKey isn't available to use, directly pass the action to emitCall
       // since it is already handled there
@@ -93,7 +95,6 @@ const createActions = function ({ page }: { page: IPage }) {
         //
       } else {
         const iteratorVar = component.get('iteratorVar') || ''
-        const isListDescendant = !!iteratorVar
 
         let dataObject: any
         let dataPath: string = ''
@@ -147,6 +148,11 @@ const createActions = function ({ page }: { page: IPage }) {
           } else {
             // Assuming the dataObject is somewhere in the root or local root level
             dataObject =
+              findDataObject({
+                dataKey: dataPath,
+                pageObject: noodl.root[context.page],
+                root: noodl.root,
+              }) ||
               _.get(noodl.root, dataPath) ||
               _.get(noodl.root[context.page], dataPath)
             emitParams['dataKey'] = dataObject
@@ -181,6 +187,7 @@ const createActions = function ({ page }: { page: IPage }) {
             })
 
             if (_.isString(dataPath)) {
+              // List item descendant
               if (originalDataKey[key] === iteratorVar) {
                 const [fn, valOnTrue, valOnFalse] = actions[0]?.if || []
 
@@ -200,10 +207,16 @@ const createActions = function ({ page }: { page: IPage }) {
 
                 if (listItem) {
                   dataObject =
+                    findDataObject({
+                      dataKey: dataPath,
+                      pageObject: noodl.root[context.page],
+                      root: noodl.root,
+                    }) ||
                     listItem.getDataObject?.() ||
                     options.dataObject ||
-                    component.get('dataObject') ||
-                    {}
+                    component.get('dataObject')
+                  {
+                  }
                   dataValue = getDataObjectValue({
                     dataObject,
                     dataKey: dataPath,
@@ -246,9 +259,16 @@ const createActions = function ({ page }: { page: IPage }) {
                   )
                   fn(dataObject)
                 }
-              } else {
+              }
+              // Non-list descendant. (dataObject is from a higher level)
+              else {
                 // Assuming the dataObject is somewhere in the root or local root level
                 dataObject =
+                  findDataObject({
+                    dataKey: dataPath,
+                    pageObject: noodl.root[context.page],
+                    root: noodl.root,
+                  }) ||
                   _.get(noodl.root, dataPath) ||
                   _.get(noodl.root[context.page], dataPath)
 
@@ -289,7 +309,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
           emitParams['dataKey'] = _.reduce(
             _.entries(dataKey),
-            (...args: any[]) => createEmitDataKeyObject(...args),
+            createEmitDataKeyObject,
             {} as any,
           )
 
@@ -303,7 +323,7 @@ const createActions = function ({ page }: { page: IPage }) {
           })
         }
 
-        const result = await noodl.emitCall(emitParams)
+        let emitCallResult: any
 
         log.gold(`Ran emitCall`, {
           actions,
@@ -312,10 +332,12 @@ const createActions = function ({ page }: { page: IPage }) {
           context,
           originalDataKey,
           resolvedDataKey: dataKey,
-          emitCallResult: result,
+          emitCallResult: emitCallResult = await noodl.emitCall(
+            emitParams as any,
+          ),
         })
 
-        return result
+        return emitCallResult
       }
     },
     trigger: 'onClick',

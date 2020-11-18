@@ -172,10 +172,10 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
     // Redraw the current node
     this.emit(componentEventMap.all, node, component)
-    this.emit(componentEventMap[component.noodlType], node, component)
+    this.emit(componentEventMap[component?.noodlType], node, component)
 
-    component.broadcast((c) => {
-      const childNode = document.getElementById(c.id)
+    component?.broadcast?.((c) => {
+      const childNode = document.getElementById(c?.id)
       if (childNode) {
         log.grey('CALLING REDRAW FOR PAIRED CHILD NODE / CHILD COMPONENT', {
           baseNode: node,
@@ -185,7 +185,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         })
         // Redraw the child
         this.emit(componentEventMap.all, childNode, c)
-        this.emit(componentEventMap[c.noodlType], childNode, c)
+        this.emit(componentEventMap[c?.noodlType], childNode, c)
       } else {
         log.grey(
           'WAS NOT ABLE TO FIND PAIRED CHILD NODE / CHILD COMPONENT FOR A REDRAW',

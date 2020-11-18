@@ -281,10 +281,7 @@ describe('ActionChain', () => {
       let list: IList
       let image: IComponentTypeInstance
       let originalPage: any
-      let listObject: { key: string; value: string }[]
       let generalInfoTemp: { gender: { key: string; value: any } }
-      let iteratorVar = 'hello'
-      let viewTag = 'pastMedicalHistoryTag'
       let mockOnClickEmitCallback: sinon.SinonSpy
       let mockPathEmitCallback: sinon.SinonSpy
 
@@ -310,11 +307,6 @@ describe('ActionChain', () => {
             trigger: 'path',
           },
         ] as any)
-        listObject = [
-          { key: 'gender', value: '' },
-          { key: 'gender', value: 'Male' },
-          { key: 'gender', value: 'Female' },
-        ]
         page = helpers.createPage(() => ({
           PatientChartGeneralInfo: {
             generalInfoTemp,
@@ -374,7 +366,15 @@ describe('ActionChain', () => {
 
       it('should pass dataObject to args', async () => {
         await image.get('onClick')()
-        // noodlui.save('ActionChain.test.json', image.toJS(), { spaces: 2 })
+        // noodlui.save('ActionChain.test.json', page, { spaces: 2 })
+        setTimeout(() => {
+          console.info(
+            `\nemit [ActionChain] was ${
+              !mockOnClickEmitCallback.called ? chalk.red('NOT') : ''
+            } called\n`,
+            mockOnClickEmitCallback.called,
+          )
+        }, 1000)
         expect(mockOnClickEmitCallback.called).to.be.true
         expect(mockOnClickEmitCallback.firstCall?.args[1]).to.have.property(
           'dataObject',
