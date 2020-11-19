@@ -68,6 +68,8 @@ export const createExecute = function (
       try {
         onStart?.()
 
+        console.info('QUEUE IN EXECUTE ACTIONS', { args, queue })
+
         if (queue.length) {
           executor = executor?.()
 

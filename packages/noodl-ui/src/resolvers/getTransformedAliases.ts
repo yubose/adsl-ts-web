@@ -67,17 +67,27 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
       src = createSrc(src)
       if (isPromise(src)) {
         src
-          .then((result: string) => component.set('src', result))
+          .then((result: string) => {
+            src = result
+            return component.set('src', result)
+          })
           .catch((err: Error) => {
             throw new Error(err.message)
           })
           .finally(() => {
-            component.set(
-              'src',
-              isPromise(src)
-                ? '<Path_emit_failed_in_getTransformedAliases>'
-                : createSrc(src),
-            )
+            if (isPromise(src)) {
+              src.then((r) => {
+                console.log('Received src', r)
+                component.set(
+                  'src',
+                  isPromise(r)
+                    ? '<Path_emit_failed_in_getTransformedAliases>'
+                    : createSrc(r),
+                )
+              })
+            } else {
+              component.set(createSrc(src))
+            }
           })
       } else {
         component.set('src', src)

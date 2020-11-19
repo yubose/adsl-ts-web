@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import produce from 'immer'
+import produce, { isDraft, original } from 'immer'
 import Logger from 'logsnap'
 import { getRandomKey } from '../../utils/common'
 import {
@@ -10,10 +10,8 @@ import {
   IListBlueprint,
   IListItem,
   IResolver,
-  NOODLComponent,
-  ProxiedComponent,
 } from '../../types'
-import { event } from '../../constants'
+import { event, emitTriggers } from '../../constants'
 import createComponent from '../../utils/createComponent'
 import { _resolveChildren } from './helpers'
 
@@ -24,7 +22,8 @@ const handleListInternalResolver = (
   options: ConsumerOptions,
   _internalResolver: IResolver,
 ) => {
-  const { resolveComponent } = options
+  const { createActionChainHandler, resolveComponent } = options
+  const rawBlueprint = { ...component?.original?.children?.[0] }
 
   const commonProps = {
     listId: component.listId,
@@ -43,6 +42,8 @@ const handleListInternalResolver = (
     listItem.setDataObject?.(result.dataObject)
     listItem.set('listIndex', result.index)
 
+    console.log('fasffs', listItem)
+
     resolveComponent(listItem)
 
     // TODO - Decide to keep component implementation
@@ -50,12 +51,40 @@ const handleListInternalResolver = (
 
     log.grey(`Created a new listItem`, logArgs)
 
+    listItem.broadcastRaw(listItem, (componentParent, noodlChild, index) => {
+      // console.info('broadcastRaw')
+      // console.info(ff)
+      // console.info('broadcastRaw')
+      const child = componentParent.child(index)
+
+      if (child?.action) {
+        emitTriggers.forEach((trigger) => {
+          if (child?.original?.[trigger]) {
+            child.action[trigger] = noodlChild[trigger]
+            console.info('SET ORIGINAL ' + trigger, {
+              component: child,
+              noodlChild,
+              trigger: child.action.trigger,
+            })
+            child.set(
+              trigger,
+              createActionChainHandler(noodlChild[trigger], {
+                component: child,
+                trigger,
+              }),
+            )
+          }
+        })
+      }
+    })
+
     _resolveChildren(listItem, {
       onResolve: (c) => {
         if (c.get('iteratorVar') === commonProps.iteratorVar) {
           c.set('dataObject', result.dataObject)
           c.set('listIndex', result.index)
         }
+
         _internalResolver.resolve(c, {
           ...options,
           component: c,
@@ -161,8 +190,53 @@ const handleListInternalResolver = (
       blueprintInstance,
     ) as IComponentTypeInstance
 
+    console.info('blueprintInstance', {
+      blueprint: resolvedBlueprint,
+      children: resolvedBlueprint.children(),
+    })
+
+    setTimeout(() => {
+      _.forEach(emitTriggers, (trigger) => {
+        _.forEach(resolvedBlueprint.children(), (child) => {
+          const handler = child.get(trigger)
+          if (handler) {
+            const originalActions = child?.original?.[trigger]
+
+            child.set(
+              trigger,
+              createActionChainHandler(originalActions, {
+                component: child,
+                trigger,
+              }),
+            )
+            console.log('original child trigger object ' + trigger, {
+              child,
+              trigger,
+              originalActions,
+              loadedActions: child.get(trigger),
+            })
+          }
+        })
+      })
+    }, 200)
+
     resolvedBlueprint.set('listId', component.listId)
     resolvedBlueprint.set('iteratorVar', component.iteratorVar)
+
+    // resolvedBlueprint.broadcastRaw((componentParent, noodlChild, index) => {
+    //   // console.info('broadcastRaw')
+    //   // console.info(ff)
+    //   // console.info('broadcastRaw')
+    //   const child = componentParent.child(index)
+
+    //   if (child?.action) {
+    //     emitTriggers.forEach((trigger) => {
+    //       if (child?.action?.[trigger]) {
+    //         child.action.trigger = noodlChild[trigger]
+    //       }
+    //     })
+    //   }
+    // })
 
     _resolveChildren(resolvedBlueprint, {
       onResolve: (c) => {
@@ -171,7 +245,6 @@ const handleListInternalResolver = (
           component: c,
           resolveComponent,
         })
-        c.broadcast((cc) => cc.assign(commonProps))
       },
       props: commonProps,
       resolveComponent,

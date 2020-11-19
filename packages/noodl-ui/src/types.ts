@@ -8,6 +8,7 @@ import {
   contentTypes,
   event,
   eventTypes,
+  emitTriggers,
   resolveEmitTriggers,
 } from './constants'
 
@@ -443,7 +444,12 @@ export type IActionChainConstructorArgs<
   C extends IComponentTypeInstance
 > = [
   actions: ActionObjects,
-  opts: { component: C; pageName?: string; pageObject?: NOODLPageObject },
+  opts: {
+    component: C
+    pageName?: string
+    pageObject?: NOODLPageObject
+    trigger: IActionChainEmitTrigger
+  },
 ]
 
 export interface IActionChain<
@@ -500,7 +506,7 @@ export interface IActionChainUseObjectBase<A extends BaseActionObject> {
   actionType: NOODLActionType
   context?: any
   fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
-  trigger?: 'onClick' | 'path' //  Currently used for emit objects in evaluating "path"
+  trigger?: IActionChainEmitTrigger //  Currently used for emit objects in evaluating "path"
 }
 
 export interface IActionChainUseBuiltInObject {
@@ -978,6 +984,9 @@ export type NOODLActionType = typeof actionTypes[number]
 export type NOODLActionTriggerType = typeof eventTypes[number]
 export type NOODLComponentType = typeof componentTypes[number] | 'br'
 export type NOODLContentType = typeof contentTypes[number]
+export type NOODLActionChainEmitTrigger = typeof actionChainEmitTriggers[number]
+export type NOODLEmitTrigger = typeof emitTriggers[number]
+export type NOODLResolveEmitTrigger = typeof resolveEmitTriggers[number]
 
 /* -------------------------------------------------------
   ---- STYLING

@@ -14,9 +14,14 @@ export const actionTypes = [
   'updateObject',
 ] as const
 
-export const actionChainEmitTriggers = ['onClick'] as const
+export const actionChainEmitTriggers = ['onClick', 'onChange'] as const
 
 export const resolveEmitTriggers = ['path'] as const
+
+export const emitTriggers = [
+  ...actionChainEmitTriggers,
+  ...resolveEmitTriggers,
+] as const
 
 export const componentTypes = [
   'button',
@@ -58,6 +63,7 @@ export const contentTypes = [
 
 export const eventTypes = [
   'onClick',
+  'onChange',
   'onHover',
   'onMouseEnter',
   'onMouseLeave',

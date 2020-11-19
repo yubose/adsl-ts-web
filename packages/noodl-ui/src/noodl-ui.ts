@@ -296,7 +296,10 @@ class NOODL implements T.INOODLUi {
 
   createActionChainHandler(
     actions: T.IActionObject[],
-    options: Omit<T.IActionChainBuildOptions, 'context'>,
+    options: {
+      component: T.IComponentTypeInstance
+      trigger: T.IActionChainEmitTrigger
+    },
   ) {
     const actionChain = new ActionChain(
       _.isArray(actions) ? actions : [actions],
@@ -304,44 +307,45 @@ class NOODL implements T.INOODLUi {
         component: options.component,
         pageName: this.page,
         pageObject: this.getPageObject(this.page),
+        trigger: options.trigger,
       },
     )
-    actionChain
-      .useAction(
-        _.reduce(
-          _.entries(this.#cb.action),
-          (arr, [actionType, actionObjs]) =>
-            arr.concat(
-              _.reduce(
-                actionObjs || [],
-                (
-                  acc,
-                  actionObj: Omit<
-                    T.IActionChainUseObjectBase<any>,
-                    'actionType'
-                  >,
-                ) => {
-                  if (actionType === 'emit') {
-                    // Only accept the emit action handlers where their
-                    // actions only exist in action chains
-                    if (isActionChainEmitTrigger(actionObj.trigger)) {
-                      return acc.concat({ actionType, ...actionObj })
-                    }
-                  }
-                  return acc.concat({ actionType, ...actionObj } as any)
-                },
-                [] as T.IActionChainUseObjectBase<any>[],
-              ),
-            ),
-          [] as any[],
+    const useActionObjects = _.reduce(
+      _.entries(this.#cb.action),
+      (arr, [actionType, actionObjs]) =>
+        arr.concat(
+          _.reduce(
+            actionObjs || [],
+            (
+              acc,
+              actionObj: Omit<T.IActionChainUseObjectBase<any>, 'actionType'>,
+            ) => {
+              if (actionType === 'emit') {
+                // Only accept the emit action handlers where their
+                // actions only exist in action chains
+                if (isActionChainEmitTrigger(actionObj.trigger)) {
+                  return acc.concat({ actionType, ...actionObj })
+                }
+              }
+              return acc.concat({ actionType, ...actionObj } as any)
+            },
+            [] as T.IActionChainUseObjectBase<any>[],
+          ),
         ),
-      )
-      .useBuiltIn(
-        _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
-          funcName,
-          fn,
-        })),
-      )
+      [] as any[],
+    )
+    console.log('Action objects inserting into useAction', {
+      actions,
+      actionsInsertingIntoUseAction: useActionObjects,
+      component: options.component,
+      trigger: options.trigger,
+    })
+    actionChain.useAction(useActionObjects).useBuiltIn(
+      _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
+        funcName,
+        fn,
+      })),
+    )
 
     // @ts-expect-error
     if (!window.ac) window['ac'] = {}

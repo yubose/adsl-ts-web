@@ -1,6 +1,8 @@
 import { expect } from 'chai'
 import chalk from 'chalk'
 import sinon from 'sinon'
+import userEvent from '@testing-library/user-event'
+import { xit } from 'mocha'
 import { noodlui } from '../utils/test-utils'
 import makeRootsParser from '../factories/makeRootsParser'
 import ActionChain from '../ActionChain'
@@ -14,10 +16,16 @@ import {
   ResolverContext,
   IList,
   IListItem,
+  EmitActionObject,
 } from '../types'
 import List from '../components/List'
 import * as helpers from './helpers/helpers'
-import { xit } from 'mocha'
+import {
+  actionChainEmitTriggers,
+  emitTriggers,
+  resolveEmitTriggers,
+} from '../constants'
+import createComponent from '../utils/createComponent'
 import { waitFor } from '@testing-library/dom'
 
 const parser = makeRootsParser({ roots: {} })
@@ -280,16 +288,73 @@ describe('ActionChain', () => {
       let view: IComponentTypeInstance
       let list: IList
       let image: IComponentTypeInstance
+      let textField: IComponentTypeInstance
       let originalPage: any
       let generalInfoTemp: { gender: { key: string; value: any } }
       let mockOnClickEmitCallback: sinon.SinonSpy
+      let mockOnChangeEmitCallback: sinon.SinonSpy
       let mockPathEmitCallback: sinon.SinonSpy
+      let pathEmit = {
+        emit: {
+          dataKey: {
+            var: 'generalInfoTemp',
+          },
+          actions: [
+            {
+              if: [
+                {
+                  '=.builtIn.object.has': {
+                    dataIn: {
+                      object: '..generalInfoTemp.gender',
+                      key: '$var.key',
+                    },
+                  },
+                },
+                'selectOn.png',
+                'selectOff.png',
+              ],
+            },
+          ],
+        },
+      } as any
+      let onChangeEmit = {
+        emit: {
+          dataKey: {
+            var: 'itemObject',
+          },
+          actions: [
+            {
+              '=.builtIn.object.set': {
+                dataIn: {
+                  object: '..generalInfoTemp',
+                  key: '$var.key',
+                  value: '$var.input',
+                },
+              },
+            },
+          ],
+        },
+      } as any
 
       beforeEach(() => {
         generalInfoTemp = {
-          gender: { key: 'gender', value: '' },
+          gender: [
+            {
+              key: 'male',
+              value: 'Male',
+            },
+            {
+              key: 'female',
+              value: 'Female',
+            },
+            {
+              key: 'other',
+              value: 'Other',
+            },
+          ],
         }
         mockOnClickEmitCallback = sinon.spy(() => 'abc.png')
+        mockOnChangeEmitCallback = sinon.spy()
         mockPathEmitCallback = sinon.spy(() => 'fruit.png')
         noodlui
           .setRoot('PatientChartGeneralInfo', { generalInfoTemp })
@@ -299,6 +364,11 @@ describe('ActionChain', () => {
             actionType: 'emit',
             fn: mockOnClickEmitCallback,
             trigger: 'onClick',
+          },
+          {
+            actionType: 'emit',
+            fn: mockOnChangeEmitCallback,
+            trigger: 'onChange',
           },
           {
             actionType: 'emit',
@@ -317,29 +387,7 @@ describe('ActionChain', () => {
                 children: [
                   {
                     type: 'image',
-                    path: {
-                      emit: {
-                        dataKey: {
-                          var: 'generalInfoTemp',
-                        },
-                        actions: [
-                          {
-                            if: [
-                              {
-                                '=.builtIn.object.has': {
-                                  dataIn: {
-                                    object: '..generalInfoTemp.gender',
-                                    key: '$var.key',
-                                  },
-                                },
-                              },
-                              'selectOn.png',
-                              'selectOff.png',
-                            ],
-                          },
-                        ],
-                      },
-                    } as any,
+                    path: pathEmit,
                     onClick: [
                       {
                         emit: {
@@ -354,6 +402,13 @@ describe('ActionChain', () => {
                       },
                     ],
                   },
+                  {
+                    type: 'textField',
+                    style: { width: '0.4', height: '0.03' },
+                    placeholder: 'Enter',
+                    dataKey: 'itemObject.input',
+                    onChange: onChangeEmit,
+                  },
                 ],
               },
             ],
@@ -362,11 +417,11 @@ describe('ActionChain', () => {
         originalPage = page.originalPage
         view = page.components[0]
         image = view.child() as any
+        textField = view.child(1) as any
       })
 
-      it.only('should pass dataObject to args', async () => {
+      it('should pass dataObject to args', async () => {
         await image.get('onClick')()
-        console.info(JSON.stringify(noodlui.getCbs(), null, 2))
         noodlui.save('ActionChain.test.json', noodlui.getCbs(), {
           spaces: 2,
         })
@@ -384,19 +439,19 @@ describe('ActionChain', () => {
         )
       })
 
-      xit('should be able to receive a dataObject coming from the root', () => {
+      xit('should be able to access a dataObject coming from the root', () => {
         //
       })
 
-      xit('should be able to receive a dataObject coming from the local root', () => {
+      xit('should be able to access a dataObject coming from the local root', () => {
         //
       })
 
-      xit('should be able to receive the dataObject coming from a list', () => {
+      xit('should be able to access the dataObject coming from a list', () => {
         //
       })
 
-      it('the dataObject passed to emit action should be in the args', () => {
+      xit('the dataObject passed to emit action should be in the args', () => {
         const listItem = list.child() as IListItem
         const image = listItem.child(1)
         expect(listItem.getDataObject()).to.eq(image?.get('dataObject'))
@@ -423,6 +478,73 @@ describe('ActionChain', () => {
           'trigger',
           'onClick',
         )
+      })
+
+      actionChainEmitTriggers.forEach((trigger) => {
+        const onChangeEmitObj = {
+          emit: {
+            dataKey: { var: 'itemObject' },
+            actions: [{ '=.builtIn.object.set': { dataIn: {} } }],
+          },
+        } as any
+        const onClickEmitObj = {
+          emit: {
+            dataKey: { var: 'itemObject' },
+            actions: [{}, {}, {}],
+          },
+        }
+        const createTextField = () =>
+          createComponent({
+            type: 'textField',
+            onChange: onChangeEmitObj,
+            onClick: onClickEmitObj,
+            placeholder: 'Enter',
+            dataKey: 'itemObject.input',
+          }) as IComponentTypeInstance
+
+        let mockEmitCallback: sinon.SinonSpy
+        let textField: IComponentTypeInstance
+
+        it('should pass the action and the same options args to all emit actions', async () => {
+          mockEmitCallback = sinon.spy()
+          textField = createTextField()
+
+          const actionChain = new ActionChain(
+            [onChangeEmitObj, pageJumpAction, onClickEmitObj],
+            { component: textField, trigger },
+          )
+          actionChain.useAction([
+            { actionType: 'emit', fn: [mockEmitCallback], trigger },
+          ])
+          textField.set(trigger, actionChain.build({} as any))
+          const fn = textField.get(trigger)
+          await fn()
+          expect(mockEmitCallback.callCount).to.eq(1)
+        })
+      })
+
+      describe('when using onChange emit', () => {
+        it('should have a trigger value of "change" if triggered by an onChange', async () => {
+          // const mockOnChangeEmit = sinon.spy()
+          // const actionChain = new ActionChain([pageJumpAction, onChangeEmit], {
+          //   component: textField,
+          // })
+          // actionChain.useAction({
+          //   actionType: 'emit',
+          //   fn: mockOnChangeEmit,
+          //   trigger: 'onChange',
+          // })
+          // const execute = actionChain.build({} as any)
+          // textField.set('onChange', execute)
+          console.info(page)
+          console.info(textField.toJS())
+          await textField.get('onChange')({})
+          expect(mockOnChangeEmitCallback.called).to.be.true
+          expect(mockOnChangeEmitCallback.firstCall.args[1]).to.have.property(
+            'trigger',
+            'onChange',
+          )
+        })
       })
     })
   })

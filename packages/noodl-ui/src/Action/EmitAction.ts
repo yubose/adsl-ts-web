@@ -19,8 +19,10 @@ class EmitAction extends Action<EmitActionObject> {
       }>,
   ) {
     super(action, options)
-    this['actions'] = action?.emit.actions
-    this['dataKey'] = action?.emit.dataKey
+    // console.info(action)
+    // console.info(options)
+    this['actions'] = action?.emit?.actions
+    this['dataKey'] = action?.emit?.dataKey
     this['trigger'] = options?.trigger
   }
 

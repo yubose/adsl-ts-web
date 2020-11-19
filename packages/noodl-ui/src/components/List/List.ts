@@ -331,6 +331,9 @@ class List extends Component implements IList {
     return { index: null, dataObject: null, success: false }
   }
 
+  get blueprint() {
+    return this.#blueprint
+  }
   /**
    * Since listItem components (rows) are not explicity written in the NOODL and
    * gives the responsibility for populating its data to the platforms, this means
@@ -343,6 +346,7 @@ class List extends Component implements IList {
 
   setBlueprint(newBlueprint: IListBlueprint) {
     this.#blueprint = newBlueprint
+    console.log(newBlueprint)
     this.emit(event.component.list.BLUEPRINT, newBlueprint)
     return this
   }

@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { isDraft, original } from 'immer'
 import { findDataObject, findListDataObject, isListConsumer } from 'noodl-utils'
 import Logger from 'logsnap'
 import Action from '../Action'
@@ -32,6 +33,7 @@ class ActionChain<
   pageObject?: T.NOODLPageObject | null
   intermediary: T.IAction[] = []
   status: T.IActionChain['status'] = null
+  trigger: T.IActionChainEmitTrigger | undefined
   // onBuiltinMissing?: T.LifeCycleListeners['onBuiltinMissing']
   // onChainStart?: T.LifeCycleListeners['onChainStart']
   // onChainEnd?: T.LifeCycleListeners['onChainEnd']
@@ -45,12 +47,25 @@ class ActionChain<
       component,
       pageName,
       pageObject,
+      trigger,
     }: T.IActionChainConstructorArgs<ActionObjects, C>[1],
   ) {
-    this.#original = actions || []
+    this.#original = actions?.map((a) =>
+      isDraft(a) ? original(a) : a,
+    ) as T.IActionObject[]
     this['component'] = component
     this['pageName'] = pageName
     this['pageObject'] = pageObject
+    this['trigger'] = trigger
+
+    log.func('constructor')
+    log.grey('Initiated action objects', {
+      actions,
+      '#original': this.#original,
+      component,
+      trigger,
+      instance: this,
+    })
   }
 
   useAction(action: T.IActionChainUseObject): this
@@ -58,7 +73,6 @@ class ActionChain<
   useAction(action: T.IActionChainUseObject | T.IActionChainUseObject[]) {
     // Built in actions are forwarded to this.useBuiltIn
     _.forEach(_.isArray(action) ? action : [action], (obj) => {
-      log.func('useAction')
       if ('funcName' in obj) return void this.useBuiltIn(obj)
       const currentActions = this.fns.action[obj.actionType] || []
       this.fns.action[obj.actionType] = [
@@ -90,6 +104,7 @@ class ActionChain<
   /**
    * Creates and returns a new Action instance
    * @param { object } obj - Action object
+   * NOTE: obj should have an "actionType" by the time of this call
    */
   createAction<A extends ActionObjects[number]>(obj: A): T.IAction<A> {
     const runActionFuncs = async ({
@@ -121,7 +136,7 @@ class ActionChain<
       }
     }
 
-    const action =
+    let action =
       obj.actionType === 'emit'
         ? new EmitAction(obj as T.EmitActionObject)
         : new Action(obj)
@@ -131,7 +146,7 @@ class ActionChain<
     if (obj.actionType === 'emit') {
       const emitObj = obj as T.EmitActionObject
       const emitAction = action as EmitAction
-      emitAction.set('trigger', 'onClick')
+      emitAction.set('trigger', this.trigger)
 
       if (_.isPlainObject(emitObj.emit?.dataKey)) {
         const entries = _.entries(emitObj.emit.dataKey)
@@ -171,75 +186,6 @@ class ActionChain<
           )
         }
       }
-
-      // For convenience we can provide them the instance to the listItem
-      // that holds the expected dataObject into the callback args.
-      // This will only be the case when the current component holds an
-      // "iteratorVar" property which indicates that they are a descendant
-      // of a listItem
-      // let listItem =
-      //   this.component.get('iteratorVar') &&
-      //   (findParent(
-      //     this.component,
-      //     (p) => p?.noodlType === 'listItem',
-      //   ) as T.IListItem | null)
-
-      // if (listItem) {
-      //   dataObject = listItem.getDataObject()
-      //   conditionalCallbackArgs['iteratorVar'] = listItem.iteratorVar
-      //   conditionalCallbackArgs['listItem'] = listItem
-      //   if (!dataObject) {
-      //     log.red(
-      //       `A dataObject was not available in the listItem parent. ` +
-      //         `Attempting a higher level query for a dataObject`,
-      //       {
-      //         actionInstance: action,
-      //         actionObj: obj,
-      //         component: this.component,
-      //         dataObjectBeforeRetry: dataObject,
-      //         dataObjectAfterRetry: dataObject = findDataObject({
-      //           dataKey: this.component?.get('dataKey'),
-      //           pageObject: this.pageObject,
-      //         }),
-      //         pageName: this.pageName,
-      //         pageObject: this.pageObject,
-      //         ...conditionalCallbackArgs,
-      //       },
-      //     )
-      //   }
-      // } else {
-      //   dataObject = findDataObject({
-      //     dataKey: this.component.get('dataKey'),
-      //     pageObject: this.pageObject,
-      //     root: { [this.pageName || '']: this.pageObject },
-      //   })
-      //   log.func('createAction [callback]')
-      //   if (!dataObject) {
-      //     log.red(
-      //       `A dataObject could not be found for this action chain. ` +
-      //         `None of these scenarios matched: \n1. Root\n2. Local root`,
-      //       {
-      //         actionInstance: action,
-      //         actionObj: obj,
-      //         component: this.component,
-      //         dataObject,
-      //         pageName: this.pageName,
-      //         pageObject: this.pageObject,
-      //       },
-      //     )
-      //   }
-      // }
-
-      // if (dataObject) {
-      //   conditionalCallbackArgs['dataObject'] = dataObject
-      // }
-
-      // if (obj.actionType === 'emit') {
-      //   const emitAction = action as EmitAction
-      //   emitAction.set('trigger', 'onClick')
-      //   emitAction.setDataObject(dataObject)
-      //   if (listItem) emitAction.set('iteratorVar', listItem.iteratorVar)
-      // }
     }
 
     action['callback'] = async (
@@ -251,23 +197,29 @@ class ActionChain<
       >[1],
     ) => {
       const callbackArgs = { ...options, ...conditionalCallbackArgs }
-      if (action.actionType === 'anonymous') {
+      if (obj.actionType === 'anonymous') {
         if ('fn' in action.original) {
           await action.original.fn?.(instance, callbackArgs)
         }
-      } else if (action.actionType === 'builtIn') {
+      } else if (obj.actionType === 'builtIn') {
         callbacks = this.fns.builtIn[action?.original?.funcName] || []
         if (!callbacks) return
         await runActionFuncs({ callbacks, instance, options: callbackArgs })
       } else {
         callbacks = _.reduce(
-          this.fns.action[action.actionType] || [],
+          this.fns.action[obj.actionType] || [],
           (acc, a) =>
-            isActionChainEmitTrigger(a.trigger) ? acc.concat(a.fn) : acc,
+            obj.actionType === 'emit' && !isActionChainEmitTrigger(this.trigger)
+              ? acc
+              : acc.concat(a.fn),
           [],
         )
+        console.info('obj', obj)
+        console.info('fns', this.fns)
+        console.info('callbacks', callbacks)
         await runActionFuncs({ callbacks, instance, options: callbackArgs })
       }
+      console.info(callbackArgs)
     }
 
     return action
@@ -282,9 +234,15 @@ class ActionChain<
      */
     const loadQueue = () => {
       log.func('loadQueue')
+      let isRefreshed
+
       if (this.actions?.length) {
+        isRefreshed = true
         log.func('build')
-        log.grey(`Refreshing action chain`, this)
+        log.grey(`Refreshing action chain`, {
+          instance: this,
+          originalActions: this.#original,
+        })
       }
 
       this.actions = []
@@ -328,8 +286,11 @@ class ActionChain<
             this.actions?.push(action)
             log.grey(`Loaded "${action.actionType}" action into the queue`, {
               action: action.getSnapshot(),
-              instance: action,
+              actionInstance: action,
+              actionChain: this,
               component: this.component,
+              actions: this.actions,
+              actionObj,
             })
             return acc.concat(action)
           }
@@ -337,6 +298,13 @@ class ActionChain<
         },
         [] as T.IAction<ActionObjects[number]>[],
       )
+
+      if (isRefreshed) {
+        log.grey(`Refreshed action chain`, {
+          instance: this,
+          originalActions: this.#original,
+        })
+      }
 
       this.#gen = createActionChainGenerator(this.#queue)
 
@@ -369,18 +337,20 @@ class ActionChain<
 
     return (args: any) => {
       const executeActions = (a) => {
+        console.info('executeActions "a" arg', a)
         loadQueue()
         return createExecute({
+          ...buildOptions,
           abort: this.abort.bind(this),
           component: this.component,
           executor: this.#gen,
           next: this.#next,
-          queue: this.#queue,
+          queue: this.#queue.slice(),
           onStart: () => {
             this.#setStatus('in.progress')
             log.func('onStart')
             log.grey('Action chain started', {
-              queue: this.#queue,
+              queue: this.#queue.slice(),
               ...this.getCallbackOptions(buildOptions),
             })
           },
@@ -396,10 +366,9 @@ class ActionChain<
             log.func('onError')
             log.red(`[ERROR]: An action chain received an error`, {
               error,
-              queue: this.#queue,
+              queue: this.#queue.slice(),
             })
           },
-          ...buildOptions,
         })(a)
       }
 

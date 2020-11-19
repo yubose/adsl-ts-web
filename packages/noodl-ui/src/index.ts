@@ -36,6 +36,7 @@ export {
 } from './constants'
 export * from './types'
 
+export { isPromise } from './utils/common'
 export {
   getByDataUX,
   getDataValues,

@@ -311,7 +311,10 @@ window.addEventListener('load', async () => {
         forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
 
         log.func('page.onBeforePageRender')
-        log.green('Initialized noodl-ui client', noodl)
+        log.green(
+          'Initialized noodl-ui client',
+          noodl.root.PatientChartGeneralInfo,
+        )
       }
 
       const previousPage = page.previousPage

@@ -70,10 +70,16 @@ class Component implements IComponent {
     // in its original form, we will convert these back to the original form
     _.forEach(eventTypes, (eventType) => {
       if (component[eventType]) {
+        if (component?.original) {
+          this.action[eventType] = component?.original?.[eventType]
+          if (this.action[eventType]) {
+            this.#component[eventType] = this.action[eventType]
+          }
+        }
         // TODO - Find out more about how our code is using this around the app
-        this.action[eventType] = isDraft(component[eventType])
-          ? original(component[eventType])
-          : component[eventType]
+        // this.action[eventType] = isDraft(component[eventType])
+        //   ? original(component[eventType])
+        //   : component[eventType]
       }
     })
 
@@ -81,7 +87,11 @@ class Component implements IComponent {
     // in the resolve process, so we need to convert them to their original form
     _.forEach(keys, (key) => {
       if (isDraft(this.#component[key])) {
-        this.#component[key] = original(this.#component[key])
+        const orig = original(this.#component[key])
+        // this.#component[key] = original(this.#component[key])
+        if (_.isObject(this.original)) {
+          // this.original[key] = orig
+        }
       }
     })
   }
@@ -598,6 +608,17 @@ class Component implements IComponent {
       _.forEach(child.children(), (c) => notify(c))
     }
     _.forEach(this.children(), (child) => notify(child))
+    return this
+  }
+
+  broadcastRaw(component, cb) {
+    const notify = (f) => {
+      _.forEach(f.original?.children || [], (noodlChild, index) => {
+        cb(f, noodlChild, index)
+        f.children().forEach((cc) => this.broadcastRaw(cc, cb))
+      })
+    }
+    notify(component)
     return this
   }
 

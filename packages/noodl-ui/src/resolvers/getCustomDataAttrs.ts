@@ -39,18 +39,18 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
 
   /** Data values specific */
   if (dataKey) {
-    let fieldParts = dataKey.split('.')
-    let field = fieldParts.shift() || ''
+    let fieldParts = dataKey?.split?.('.')
+    let field = fieldParts?.shift?.() || ''
     let fieldValue = pageObject?.[field]
 
-    if (fieldParts.length) {
+    if (fieldParts?.length) {
       while (fieldParts.length) {
-        field = (fieldParts.shift() as string) || ''
+        field = (fieldParts?.shift?.() as string) || ''
         field = field[0]?.toLowerCase?.() + field.substring(1)
         fieldValue = fieldValue?.[field]
       }
     } else {
-      field = fieldParts[0] || ''
+      field = fieldParts?.[0] || ''
     }
     component.assign({
       'data-key': dataKey,
@@ -116,7 +116,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       // if (listItem) log.gold('FOUND PARENT LISTITEM', listItem)
       textFunc = component.get('text=func')
       // Strip off the iteratorVar to keep the path that starts from the data objefct
-      path = dataKey.split('.').slice(1)
+      path = dataKey?.split?.('.').slice(1)
       dataObject = listItem?.getDataObject?.()
       if (!dataObject) {
         dataObject = findDataObject({

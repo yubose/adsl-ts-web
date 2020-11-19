@@ -5,6 +5,7 @@ import {
   eventTypes,
   IComponentTypeInstance,
   IList,
+  isPromise,
   SelectOption,
 } from 'noodl-ui'
 import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
@@ -144,28 +145,60 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       datasetAttribs['data-value'] || component.get('placeholder') || ''
   }
 
+  const attachEventHandler = (eventType: any, handler: Function) => {
+    const event = (eventType.startsWith('on')
+      ? eventType.replace('on', '')
+      : eventType
+    ).toLocaleLowerCase()
+
+    // TODO: Test this
+    // Attach the event handler
+    node.addEventListener(event, (...args: any[]) => {
+      log.func(`on all --> addEventListener: ${event}`)
+      log.grey(`User action invoked handler`, {
+        component,
+        [event]: handler,
+      })
+      console.groupCollapsed('', {
+        event,
+        node,
+        component,
+        handler: component.get(eventType),
+      })
+      console.trace()
+      console.groupEnd()
+      return handler?.(...args)
+    })
+  }
+
   /** Event handlers */
   _.forEach(eventTypes, (eventType) => {
-    const handler = component.get(eventType)
+    let handler = component.get(eventType)
     if (handler) {
-      const event = (eventType.startsWith('on')
-        ? eventType.replace('on', '')
-        : eventType
-      ).toLocaleLowerCase()
-
-      // TODO: Test this
-      // Attach the event handler
-      node.addEventListener(event, (...args: any[]) => {
-        log.func(`on all --> addEventListener: ${event}`)
-        log.grey(`User action invoked handler`, {
-          component,
-          [event]: handler,
-        })
-        console.groupCollapsed('', { event, node, component })
-        console.trace()
-        console.groupEnd()
-        return handler(...args)
-      })
+      setTimeout(() => {
+        handler = component.get(eventType)
+        if (_.isArray(handler)) {
+          import('app/noodl-ui').then(({ default: noodlui }) => {
+            component.draft()
+            handler = noodlui.createActionChainHandler(handler, {
+              component,
+              trigger: eventType,
+            })
+            if (isPromise(handler)) {
+              handler.then((result) => {
+                console.log('result', result)
+                attachEventHandler(eventType, result)
+                component.done()
+              })
+            } else {
+              attachEventHandler(eventType, handler)
+              component.done()
+            }
+          })
+        } else {
+          attachEventHandler(eventType, handler)
+        }
+      }, 300)
     }
   })
 
