@@ -7,7 +7,6 @@ import {
   IComponentType,
   IComponentTypeInstance,
   IComponentTypeObject,
-  IComponentEventId,
   IActionObject,
   NOODLComponentType,
   NOODLStyle,
@@ -602,13 +601,13 @@ class Component implements IComponent {
     return this
   }
 
-  on<K extends string = IComponentEventId>(eventName: K, cb: Function) {
+  on<K = any>(eventName: K, cb: Function) {
     if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
     this.#cb[eventName].push(cb)
     return this
   }
 
-  off(eventName: IComponentEventId, cb: Function) {
+  off(eventName: any, cb: Function) {
     if (_.isArray(this.#cb[eventName])) {
       if (this.#cb[eventName].includes(cb)) {
         this.#cb[eventName] = _.filter(

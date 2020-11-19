@@ -10,6 +10,7 @@ import {
   getByDataUX,
   getDataValues,
   getDataObjectValue,
+  IActionChainUseObjectBase,
   IComponentTypeInstance,
   IfObject,
   IListItem,
@@ -39,10 +40,7 @@ const log = Logger.create('actions.ts')
 const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<
     NOODLActionType,
-    {
-      fn: ActionChainActionCallback
-      trigger?: 'onClick' | 'path'
-    }[]
+    Omit<IActionChainUseObjectBase<any>, 'actionType'>[]
   >
 
   _actions['anonymous'] = []

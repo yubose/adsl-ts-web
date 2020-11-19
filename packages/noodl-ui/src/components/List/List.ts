@@ -14,7 +14,6 @@ import {
 import Component from '../Base'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { event } from '../../constants'
-import { IComponentEventId } from '../../types'
 
 const log = Logger.create('List')
 

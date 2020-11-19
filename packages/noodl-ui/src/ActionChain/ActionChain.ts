@@ -1,11 +1,11 @@
 import _ from 'lodash'
-import { findDataObject, findParent } from 'noodl-utils'
+import { findDataObject, findListDataObject, isListConsumer } from 'noodl-utils'
 import Logger from 'logsnap'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import { AbortExecuteError } from '../errors'
 import { createExecute, createActionChainGenerator } from './execute'
-import runFuncs from './runFuncs'
+import { isActionChainEmitTrigger } from '../utils/noodl'
 import * as T from '../types'
 
 const log = Logger.create('ActionChain')
@@ -60,13 +60,11 @@ class ActionChain<
     _.forEach(_.isArray(action) ? action : [action], (obj) => {
       log.func('useAction')
       if ('funcName' in obj) return void this.useBuiltIn(obj)
-
-      const actionsList = (this.fns.action[obj.actionType] ||
-        []) as T.ActionChainActionCallback<ActionObjects>[]
-
-      this.fns.action[obj.actionType] = actionsList.concat(
-        _.isArray(obj) ? obj : ([obj] as any),
-      )
+      const currentActions = this.fns.action[obj.actionType] || []
+      this.fns.action[obj.actionType] = [
+        ...currentActions,
+        ...(_.isArray(obj) ? obj : ([obj] as any)),
+      ]
     })
     return this
   }
@@ -131,80 +129,117 @@ class ActionChain<
     let callbacks: any[]
 
     if (obj.actionType === 'emit') {
-      let dataObject: any = findDataObject({
-        dataKey: this.component?.get('dataKey'),
-        pageObject: this.pageObject,
-        root: { [this.pageName || '']: this.pageObject },
-      })
-      console.info(dataObject)
+      const emitObj = obj as T.EmitActionObject
+      const emitAction = action as EmitAction
+      emitAction.set('trigger', 'onClick')
+
+      if (_.isPlainObject(emitObj.emit?.dataKey)) {
+        const entries = _.entries(emitObj.emit.dataKey)
+        const iteratorVar = this.component.get('iteratorVar') || ''
+        const isListItemDataObject = _.some(
+          _.values(emitObj?.emit?.dataKey),
+          (dataKey) => `${dataKey}`.startsWith(iteratorVar),
+        )
+        if (isListItemDataObject) {
+          emitAction.setDataObject(findListDataObject(this.component))
+        } else {
+          const [property, dataKey] = entries[0]
+          emitAction.setDataObject(
+            findDataObject({
+              dataKey,
+              pageObject: this.pageObject,
+              root: { [this.pageName || '']: this.pageObject },
+            }),
+          )
+        }
+        for (let index = 0; index < entries.length; index++) {
+          const [property] = entries[index] || ''
+          emitAction.setDataKeyValue(property, emitAction.getDataObject())
+        }
+      } else if (_.isString(emitObj.emit?.dataKey)) {
+        if (isListConsumer(this.component)) {
+          emitAction.setDataObject(findListDataObject(this.component))
+        } else {
+          emitAction.setDataObject(
+            findDataObject({
+              dataKey: emitObj.emit.dataKey,
+              pageObject: this.pageObject,
+              root: this.pageName
+                ? { [this.pageName]: this.pageObject }
+                : this.pageObject || {},
+            }),
+          )
+        }
+      }
+
       // For convenience we can provide them the instance to the listItem
       // that holds the expected dataObject into the callback args.
       // This will only be the case when the current component holds an
       // "iteratorVar" property which indicates that they are a descendant
       // of a listItem
-      let listItem =
-        this.component.get('iteratorVar') &&
-        (findParent(
-          this.component,
-          (p) => p?.noodlType === 'listItem',
-        ) as T.IListItem | null)
+      // let listItem =
+      //   this.component.get('iteratorVar') &&
+      //   (findParent(
+      //     this.component,
+      //     (p) => p?.noodlType === 'listItem',
+      //   ) as T.IListItem | null)
 
-      if (listItem) {
-        dataObject = listItem.getDataObject()
-        conditionalCallbackArgs['iteratorVar'] = listItem.iteratorVar
-        conditionalCallbackArgs['listItem'] = listItem
-        if (!dataObject) {
-          log.red(
-            `A dataObject was not available in the listItem parent. ` +
-              `Attempting a higher level query for a dataObject now`,
-            {
-              actionInstance: action,
-              actionObj: obj,
-              component: this.component,
-              dataObjectBeforeRetry: dataObject,
-              dataObjectAfterRetry: dataObject = findDataObject({
-                dataKey: this.component?.get('dataKey'),
-                pageObject: this.pageObject,
-              }),
-              pageName: this.pageName,
-              pageObject: this.pageObject,
-              ...conditionalCallbackArgs,
-            },
-          )
-        }
-      } else {
-        dataObject = findDataObject({
-          dataKey: this.component.get('dataKey'),
-          pageObject: this.pageObject,
-          root: { [this.pageName || '']: this.pageObject },
-        })
-        log.func('createAction [callback]')
-        if (!dataObject) {
-          log.red(
-            `A dataObject could not be found for this action chain. ` +
-              `None of these scenarios matched: \n1. Root\n2. Local root`,
-            {
-              actionInstance: action,
-              actionObj: obj,
-              component: this.component,
-              dataObject,
-              pageName: this.pageName,
-              pageObject: this.pageObject,
-            },
-          )
-        }
-      }
+      // if (listItem) {
+      //   dataObject = listItem.getDataObject()
+      //   conditionalCallbackArgs['iteratorVar'] = listItem.iteratorVar
+      //   conditionalCallbackArgs['listItem'] = listItem
+      //   if (!dataObject) {
+      //     log.red(
+      //       `A dataObject was not available in the listItem parent. ` +
+      //         `Attempting a higher level query for a dataObject`,
+      //       {
+      //         actionInstance: action,
+      //         actionObj: obj,
+      //         component: this.component,
+      //         dataObjectBeforeRetry: dataObject,
+      //         dataObjectAfterRetry: dataObject = findDataObject({
+      //           dataKey: this.component?.get('dataKey'),
+      //           pageObject: this.pageObject,
+      //         }),
+      //         pageName: this.pageName,
+      //         pageObject: this.pageObject,
+      //         ...conditionalCallbackArgs,
+      //       },
+      //     )
+      //   }
+      // } else {
+      //   dataObject = findDataObject({
+      //     dataKey: this.component.get('dataKey'),
+      //     pageObject: this.pageObject,
+      //     root: { [this.pageName || '']: this.pageObject },
+      //   })
+      //   log.func('createAction [callback]')
+      //   if (!dataObject) {
+      //     log.red(
+      //       `A dataObject could not be found for this action chain. ` +
+      //         `None of these scenarios matched: \n1. Root\n2. Local root`,
+      //       {
+      //         actionInstance: action,
+      //         actionObj: obj,
+      //         component: this.component,
+      //         dataObject,
+      //         pageName: this.pageName,
+      //         pageObject: this.pageObject,
+      //       },
+      //     )
+      //   }
+      // }
 
-      if (dataObject) {
-        conditionalCallbackArgs['dataObject'] = dataObject
-      }
+      // if (dataObject) {
+      //   conditionalCallbackArgs['dataObject'] = dataObject
+      // }
 
-      if (obj.actionType === 'emit') {
-        const emitAction = action as EmitAction
-        emitAction.set('trigger', 'onClick')
-        emitAction.setDataObject(dataObject)
-        if (listItem) emitAction.set('iteratorVar', listItem.iteratorVar)
-      }
+      // if (obj.actionType === 'emit') {
+      //   const emitAction = action as EmitAction
+      //   emitAction.set('trigger', 'onClick')
+      //   emitAction.setDataObject(dataObject)
+      //   if (listItem) emitAction.set('iteratorVar', listItem.iteratorVar)
+      // }
     }
 
     action['callback'] = async (
@@ -222,12 +257,13 @@ class ActionChain<
         }
       } else if (action.actionType === 'builtIn') {
         callbacks = this.fns.builtIn[action?.original?.funcName] || []
-        if (!callbacks) return result
+        if (!callbacks) return
         await runActionFuncs({ callbacks, instance, options: callbackArgs })
       } else {
         callbacks = _.reduce(
           this.fns.action[action.actionType] || [],
-          (acc, a) => (a.trigger !== 'path' ? acc.concat(a.fn) : acc),
+          (acc, a) =>
+            isActionChainEmitTrigger(a.trigger) ? acc.concat(a.fn) : acc,
           [],
         )
         await runActionFuncs({ callbacks, instance, options: callbackArgs })

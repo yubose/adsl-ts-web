@@ -1,15 +1,17 @@
 import _ from 'lodash'
 import { current } from 'immer'
 import {
+  IActionChainEmitTrigger,
   IComponent,
   IComponentTypeObject,
   IComponentTypeInstance,
-  NOODLComponentProps,
-  NOODLTextBoardBreakLine,
   IComponentType,
   IListItem,
+  NOODLComponentProps,
+  NOODLTextBoardBreakLine,
 } from '../types'
 import { isAllString, isBrowser } from './common'
+import { actionChainEmitTriggers } from '../constants'
 
 /**
  * Deeply traverses all children down the component's family tree
@@ -47,6 +49,12 @@ export function forEachDeepChildren<
       cb(component, component.children as IComponentType)
     }
   }
+}
+
+export function isActionChainEmitTrigger(
+  trigger: any,
+): trigger is IActionChainEmitTrigger {
+  return actionChainEmitTriggers.includes(trigger)
 }
 
 // function createRegexKeysOnProps(keys: string | string[]) {

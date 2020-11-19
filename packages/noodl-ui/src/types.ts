@@ -2,11 +2,13 @@ import { Draft } from 'immer'
 import { AbortExecuteError } from './errors'
 import Viewport from './Viewport'
 import {
+  actionChainEmitTriggers,
   actionTypes,
   componentTypes,
   contentTypes,
   event,
   eventTypes,
+  resolveEmitTriggers,
 } from './constants'
 
 export interface NOODLPage<K extends string = string> {
@@ -122,15 +124,15 @@ export type ActionEventAlias = keyof typeof event.action
 export type ActionEventId = typeof event.action[ActionEventAlias]
 export type ActionChainEventAlias = keyof typeof event.actionChain
 export type ActionChainEventId = typeof event.actionChain[ActionChainEventAlias]
-export type IComponentEventAlias = keyof typeof event.IComponent
-export type IComponentEventId = typeof event.IComponent[IComponentEventAlias]
+export type IActionChainEmitTrigger = typeof actionChainEmitTriggers[number]
 export type IListEventObject = typeof event.component.list
 export type IListEventAlias = keyof IListEventObject
 export type IListEventId = IListEventObject[IListEventAlias]
 export type IListItemEventObject = typeof event.component.listItem
 export type IListItemEventAlias = keyof IListItemEventObject
 export type IListItemEventId = IListItemEventObject[IListItemEventAlias]
-export type EventId = ActionEventId | ActionChainEventId | IComponentEventId
+export type EventId = ActionEventId | ActionChainEventId
+export type ResolveEmitTrigger = typeof resolveEmitTriggers[number]
 
 export interface INOODLUi {
   assetsUrl: string
@@ -262,8 +264,8 @@ export interface IComponent<K = NOODLComponentType> {
   isStyleHandled(key: string): boolean
   keys: string[]
   merge(key: string | { [key: string]: any }, value?: any): this
-  on<E extends IComponentEventId>(eventName: E, cb: Function): this
-  off<E extends IComponentEventId>(eventName: E, cb: Function): this
+  on(eventName: string, cb: Function): this
+  off(eventName: string, cb: Function): this
   parent(): IComponentTypeInstance | null
   remove(key: string, styleKey?: keyof NOODLStyle): this
   removeStyle<K extends keyof NOODLStyle>(styleKey: K): this
@@ -495,6 +497,7 @@ export type IActionChainUseObject =
   | IActionChainUseBuiltInObject
 
 export interface IActionChainUseObjectBase<A extends BaseActionObject> {
+  actionType: NOODLActionType
   context?: any
   fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
   trigger?: 'onClick' | 'path' //  Currently used for emit objects in evaluating "path"

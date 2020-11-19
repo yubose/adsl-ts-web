@@ -328,7 +328,7 @@ describe('ActionChain', () => {
                               {
                                 '=.builtIn.object.has': {
                                   dataIn: {
-                                    object: '..generalInfo.gender',
+                                    object: '..generalInfoTemp.gender',
                                     key: '$var.key',
                                   },
                                 },
@@ -364,9 +364,12 @@ describe('ActionChain', () => {
         image = view.child() as any
       })
 
-      it('should pass dataObject to args', async () => {
+      it.only('should pass dataObject to args', async () => {
         await image.get('onClick')()
-        // noodlui.save('ActionChain.test.json', page, { spaces: 2 })
+        console.info(JSON.stringify(noodlui.getCbs(), null, 2))
+        noodlui.save('ActionChain.test.json', noodlui.getCbs(), {
+          spaces: 2,
+        })
         setTimeout(() => {
           console.info(
             `\nemit [ActionChain] was ${

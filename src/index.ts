@@ -272,8 +272,8 @@ window.addEventListener('load', async () => {
           .use(
             _.reduce(
               _.entries(actions),
-              (arr, [actionType, actions]) => {
-                return arr.concat(
+              (arr, [actionType, actions]) =>
+                arr.concat(
                   actions.map((a) => {
                     const obj = { actionType, ...a }
                     if (actionType === 'emit') {
@@ -281,8 +281,7 @@ window.addEventListener('load', async () => {
                     }
                     return obj
                   }),
-                )
-              },
+                ),
               [] as any[],
             ),
           )

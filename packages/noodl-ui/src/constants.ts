@@ -14,6 +14,10 @@ export const actionTypes = [
   'updateObject',
 ] as const
 
+export const actionChainEmitTriggers = ['onClick'] as const
+
+export const resolveEmitTriggers = ['path'] as const
+
 export const componentTypes = [
   'button',
   'date',

@@ -1,0 +1,27 @@
+{
+  "action": {
+    "emit": [
+      {
+        "actionType": "emit",
+        "trigger": "onClick"
+      },
+      {
+        "actionType": "emit",
+        "context": {},
+        "trigger": "path"
+      }
+    ]
+  },
+  "builtIn": {},
+  "chaining": {
+    "beforeResolve": [],
+    "beforeResolveStyles": [],
+    "chainStart": [],
+    "chainAborted": [],
+    "overrideDataValue": [],
+    "builtinMissing": [],
+    "chainEnd": [],
+    "chainError": [],
+    "afterResolve": []
+  }
+}

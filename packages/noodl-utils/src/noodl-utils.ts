@@ -128,6 +128,7 @@ export function findParent<C extends { parent?: Function } = any>(
 }
 
 export function findDataObject(opts: {
+  component?: any
   dataKey?: string
   pageObject?: { [key: string]: any }
   root?: { [key: string]: any }
@@ -135,16 +136,33 @@ export function findDataObject(opts: {
 export function findDataObject(component: any): any
 export function findDataObject(component: any) {
   let dataObject: any
+
   if (component) {
-    if (component.noodlType === 'listItem') return component.getDataObject?.()
-    const listItem = findParent(component, (p) => p?.noodlType === 'listItem')
-    dataObject = listItem?.getDataObject?.()
-  }
-  if (!dataObject && component) {
-    const { dataKey = '', pageObject = {}, root = {} } = component
-    dataObject = get(pageObject, dataKey) || get(root, dataKey)
+    // component arg
+    if (typeof component?.children === 'function') {
+      if (isListConsumer(component)) dataObject = findListDataObject(component)
+    } else {
+      // options arg
+      const { dataKey = '', pageObject = {}, root = {} } = component
+      // TODO - handle component.component
+      component = component.component
+      dataObject = get(pageObject, dataKey) || get(root, dataKey)
+    }
   }
   return dataObject || null
+}
+
+export function findListDataObject(component: any) {
+  if (isListConsumer(component)) {
+    if (component?.noodlType === 'listItem') {
+      return component.getDataObject?.()
+    }
+    return findParent(
+      component,
+      (p) => p?.noodlType === 'listItem',
+    )?.getDataObject?.()
+  }
+  return null
 }
 
 export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(
@@ -263,6 +281,15 @@ export function isEmitObj<
   O extends { emit?: { dataKey?: any; actions?: any } } = any
 >(value: unknown): value is O {
   return value && typeof value === 'object' && 'emit' in value
+}
+
+export function isListConsumer(component: any) {
+  return !!(
+    component?.get?.('iteratorVar') ||
+    component?.get?.('listId') ||
+    component?.get?.('listIndex') ||
+    component?.noodlType === 'listItem'
+  )
 }
 
 export function isTextFieldLike(

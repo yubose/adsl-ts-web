@@ -39,6 +39,24 @@ class EmitAction extends Action<EmitActionObject> {
     return this
   }
 
+  setDataKeyValue(property: string | { [key: string]: any }, value: any) {
+    if (typeof property === 'string') {
+      this.dataKey = {
+        ...(_.isString(this.dataKey) ? undefined : this.dataKey),
+        [property]: value,
+      }
+    } else if (property && typeof property === 'object') {
+      const properties = Object.keys(property)
+      properties.forEach((prop) => {
+        this.dataKey = {
+          ...(typeof this.dataKey === 'object' ? this.dataKey : undefined),
+          [prop]: value,
+        }
+      })
+    }
+    return this
+  }
+
   execute() {
     //
   }

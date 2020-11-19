@@ -21,6 +21,7 @@ import {
   getRandomKey,
   hasLetter,
 } from './utils/common'
+import { isActionChainEmitTrigger } from './utils/noodl'
 import createComponent from './utils/createComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
@@ -41,14 +42,7 @@ class NOODL implements T.INOODLUi {
   #assetsUrl: string = ''
   #cb: {
     action: Partial<
-      Record<
-        T.NOODLActionType,
-        {
-          context?: any
-          fn: T.ActionChainActionCallback
-          trigger?: 'onClick' | 'path'
-        }[]
-      >
+      Record<T.NOODLActionType, T.IActionChainUseObjectBase<any>[]>
     >
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
@@ -317,7 +311,28 @@ class NOODL implements T.INOODLUi {
         _.reduce(
           _.entries(this.#cb.action),
           (arr, [actionType, actionObjs]) =>
-            arr.concat(actionObjs.map((a) => ({ actionType, ...a }))),
+            arr.concat(
+              _.reduce(
+                actionObjs || [],
+                (
+                  acc,
+                  actionObj: Omit<
+                    T.IActionChainUseObjectBase<any>,
+                    'actionType'
+                  >,
+                ) => {
+                  if (actionType === 'emit') {
+                    // Only accept the emit action handlers where their
+                    // actions only exist in action chains
+                    if (isActionChainEmitTrigger(actionObj.trigger)) {
+                      return acc.concat({ actionType, ...actionObj })
+                    }
+                  }
+                  return acc.concat({ actionType, ...actionObj } as any)
+                },
+                [] as T.IActionChainUseObjectBase<any>[],
+              ),
+            ),
           [] as any[],
         ),
       )
@@ -525,10 +540,10 @@ class NOODL implements T.INOODLUi {
           if (!_.isArray(this.#cb.action[m.actionType])) {
             this.#cb.action[m.actionType] = []
           }
-          const obj = { fn: m.fn } as any
+          const obj = { actionType: m.actionType, fn: m.fn } as any
           if ('context' in m) obj['context'] = m.context
           if ('trigger' in m) obj['trigger'] = m.trigger
-          this.#cb.action[m.actionType].push(obj)
+          this.#cb.action[m.actionType]?.push(obj)
         } else if (m instanceof Viewport) {
           this.setViewport(m)
         } else if (m instanceof Resolver) {
