@@ -55,6 +55,8 @@ export const contentTypes = [
 export const eventTypes = [
   'onClick',
   'onHover',
+  'onMouseEnter',
+  'onMouseLeave',
   'onMouseOut',
   'onMouseOver',
 ] as const
