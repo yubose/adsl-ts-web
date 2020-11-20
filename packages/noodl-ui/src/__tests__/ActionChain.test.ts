@@ -178,6 +178,10 @@ describe('ActionChain', () => {
       expect(queue[1]).to.be.instanceOf(Action)
     })
 
+    xit('should be an EmitAction subclass instance for emit actions', () => {
+      //
+    })
+
     xit('should pass the correct args to the executor', () => {
       //
     })
