@@ -459,7 +459,7 @@ export interface IActionChain<
   abort(reason?: string | string[]): Promise<void>
   actions: IAction<ActionObjects[number]>[]
   component: C
-  createExecuteGenerator(): () => AsyncGenerator<
+  createGenerator(): AsyncGenerator<
     {
       action: IAction<BaseActionObject> | undefined
       results: {

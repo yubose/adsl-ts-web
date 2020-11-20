@@ -96,7 +96,18 @@ describe('ActionChain', () => {
         .with.lengthOf(3)
     })
 
-    it('should set the actions', () => {
+    it('should populate the action array with the raw action objects', () => {
+      const actionChain = new ActionChain(
+        [pageJumpAction, popUpDismissAction],
+        {} as any,
+      )
+      expect(actionChain.actions).to.include.members([
+        pageJumpAction,
+        popUpDismissAction,
+      ])
+    })
+
+    it('should load up the action fns', () => {
       const actionChain = new ActionChain(actions, {} as any)
       const popup = sinon.spy()
       const update = sinon.spy()
@@ -143,39 +154,24 @@ describe('ActionChain', () => {
   })
 
   describe.only('when building the action chain handler', () => {
-    it('should populate the actions', () => {
-      const view = createComponent('view') as IComponentTypeInstance
-      const actionChain = new ActionChain(
-        [
-          { actionType: 'builtIn', funcName: 'hello', fn: sinon.spy() },
-          {
-            actionType: 'emit',
-            fn: sinon.spy(),
-            context: {},
-            trigger: 'onClick',
-          },
-        ],
-        { component: view, trigger: 'onClick' },
-      )
-      expect(actionChain.actions).to.have.lengthOf(2)
-      expect(actionChain.actions[0]).to.be.instanceOf(Action)
-      expect(actionChain.actions[1]).to.be.instanceOf(Action)
-    })
-
     it('should load up the queue', () => {
       const view = createComponent('view') as IComponentTypeInstance
       const actionChain = new ActionChain(
         [
           { actionType: 'builtIn', funcName: 'hello', fn: sinon.spy() },
-          {
-            actionType: 'emit',
-            fn: sinon.spy(),
-            context: {},
-            trigger: 'onClick',
-          },
+          { emit: { dataKey: { var1: 'itemObject' }, actions: [{}, {}, {}] } },
         ],
         { component: view, trigger: 'onClick' },
       )
+      actionChain.useAction([
+        { actionType: 'builtIn', funcName: 'hello', fn: sinon.spy() },
+        {
+          actionType: 'emit',
+          fn: sinon.spy(() => Promise.resolve()),
+          context: {},
+          trigger: 'onClick',
+        },
+      ])
       const queue = actionChain.getQueue()
       expect(queue).to.have.lengthOf(2)
       expect(queue[0]).to.be.instanceOf(Action)

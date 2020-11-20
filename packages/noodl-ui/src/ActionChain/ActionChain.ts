@@ -7,7 +7,6 @@ import EmitAction from '../Action/EmitAction'
 import { AbortExecuteError } from '../errors'
 import { createExecute } from './execute'
 import { isActionChainEmitTrigger } from '../utils/noodl'
-import createActionChainGenerator from './createActionChainGenerator'
 import * as T from '../types'
 
 const log = Logger.create('ActionChain')
@@ -23,7 +22,7 @@ class ActionChain<
     results: any[]
   }>
   #queue: T.IAction[] = []
-  actions: T.IAction[] = []
+  actions: T.BaseActionObject[] = []
   component: C
   current: {
     action: T.IAction | undefined
@@ -54,6 +53,7 @@ class ActionChain<
     this.#original = actions?.map((a) =>
       isDraft(a) ? original(a) : a,
     ) as T.IActionObject[]
+    this['actions'] = this.#original
     this['component'] = component
     this['pageName'] = pageName
     this['pageObject'] = pageObject
@@ -274,6 +274,18 @@ class ActionChain<
   }
 
   build(buildOptions?: T.IActionChainBuildOptions) {
+    let isRefreshed
+
+    const refresh = () => {
+      this.#queue = []
+      log.func('build')
+      log.grey(`Refreshed action chain`, {
+        actions: this.actions,
+        instance: this,
+        originalActions: this.#original,
+        queue: this.getQueue(),
+      })
+    }
     /**
      * Load up the queue and the actions list
      * The actions in the queue are identical to the ones in this.actions
@@ -281,22 +293,8 @@ class ActionChain<
      * as soon as they are done executing
      */
     const loadQueue = () => {
-      log.func('loadQueue')
-      let isRefreshed
-
-      if (this.actions?.length) {
-        this.actions = []
-        this.#queue = []
-        isRefreshed = true
-        log.func('build')
-        log.grey(`Refreshing action chain`, {
-          instance: this,
-          originalActions: this.#original,
-        })
-      }
-
       _.forEach(
-        this.#original,
+        this.actions,
         (actionObj: T.IActionObject | Function) => {
           let action: T.IAction<ActionObjects[number]> | undefined
 
@@ -353,13 +351,6 @@ class ActionChain<
         },
         // [] as T.IAction<ActionObjects[number]>[],
       )
-
-      if (isRefreshed) {
-        log.grey(`Refreshed action chain`, {
-          instance: this,
-          originalActions: this.#original,
-        })
-      }
 
       this.#gen = createActionChainGenerator(this.#queue)
 
@@ -516,7 +507,11 @@ class ActionChain<
     // return abortResult
   }
 
-  createExecuteGenerator() {
+  /**
+   * Creates an asynchronous generator that generates the next immediate action
+   * when the previous has ended
+   */
+  async *createGenerator() {
     return async function* getExecutor() {
       let action: T.IAction | undefined
       let results: { action: T.IAction | undefined; result: any }[] = []
@@ -533,32 +528,62 @@ class ActionChain<
     }
   }
 
+  createExecutor() {}
+
   async execute(event?: any) {
+    let timeoutRef: NodeJS.Timeout
+
+    const _executeAction = async (
+      action: T.IAction,
+      handlerOptions: T.ActionChainActionCallbackOptions,
+    ) => {
+      try {
+        if (timeoutRef) clearTimeout(timeoutRef)
+
+        timeoutRef = setTimeout(() => {
+          const msg = `Action of type "${action.type}" timed out`
+          action.abort(msg)
+          this.abort(msg)
+            .then(() => {
+              throw new AbortExecuteError(msg)
+            })
+            .catch((err) => {
+              throw err
+            })
+        }, 10000)
+
+        return action.execute(handlerOptions)
+      } catch (error) {
+        throw error
+      } finally {
+        clearTimeout(timeoutRef)
+      }
+    }
+
     try {
       this.#setStatus('in.progress')
+
       log.func('execute')
       log.grey('Action chain started', {
-        queue: this.#queue.slice(),
-        ...this.getCallbackOptions(),
+        event,
+        ...this.getDefaultCallbackArgs(),
       })
-      console.info('QUEUE IN EXECUTE ACTIONS', { event, executor, queue })
 
       if (queue.length) {
-        executor = executor?.(event)
-        log.gold('Retrieved executor', executor)
+        const gen = this.createGenerator()
 
         let action: IAction | undefined
         let result: any
         let iterator:
           | IteratorYieldResult<{
-              action: IAction
+              action: T.IAction
               results: any[]
             }>
           | IteratorReturnResult<{
-              action: IAction
+              action: T.IAction
               results: any[]
             }>
-          | undefined = await executor?.next?.()
+          | undefined = await this.#next(gen)
 
         while (!iterator?.done) {
           action = iterator?.value?.action
@@ -566,36 +591,33 @@ class ActionChain<
 
           // Skip to the next loop
           if (!action) {
-            iterator = await next(executor)
+            iterator = await this.#next(gen)
           }
           // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
           else {
-            result = await execute(action, {
-              args: event,
-              component,
-              context,
-              queue,
-              trigger,
+            result = await _executeAction(action, {
+              event,
+              ...this.getDefaultCallbackArgs(),
             })
             log.gold(`${action.actionType} action return value: `, result)
             // log.grey('Current results from action chain', result)
             if (_.isPlainObject(result)) {
-              iterator = await next(executor, result)
+              iterator = await this.#next(gen, result)
             } else if (_.isString(result)) {
               // TODO
             } else if (_.isFunction(result)) {
               // TODO
             } else {
-              iterator = await next(executor, result)
+              iterator = await this.#next(gen, result)
             }
 
-            // if (result?.value?.result) {
-            //   if (action.type) log.func(action.type)
-            //   log.green(
-            //     `Received a returned value from a(n) "${action.type}" executor`,
-            //     result,
-            //   )
-            // }
+            if (result?.value?.result) {
+              if (action.type) log.func(action.type)
+              log.green(
+                `Received a returned value from a(n) "${action.type}" executor`,
+                result,
+              )
+            }
           }
         }
         // this.onChainEnd?.(
@@ -603,13 +625,11 @@ class ActionChain<
         //   this.getCallbackOptions({ event, ...buildOptions }),
         // )
         log.gold('Action chain reached the end of execution')
-        onEnd?.()
         return iterator
       } else {
         // log
         log.red('Cannot start action chain without actions in the queue', {
-          ...opts,
-          executor,
+          ...this.getDefaultCallbackArgs(),
           event,
         })
       }
@@ -619,16 +639,29 @@ class ActionChain<
       //   this.#current,
       //   this.getCallbackOptions({ event, error: err, ...buildOptions }),
       // )
-      onError?.({ args, error })
       // TODO more handling
-      abort(
+      await this.abort(
         `The value of "actions" given to this action chain was null or undefined`,
       )
       throw new Error(error)
     }
   }
 
-  #next = async (gen, args?: any) => {
+  #next = async (
+    gen:
+      | AsyncGenerator<
+          | IteratorYieldResult<{
+              action: T.IAction
+              results: any[]
+            }>
+          | IteratorReturnResult<{
+              action: T.IAction
+              results: any[]
+            }>
+        >
+      | undefined,
+    args?: any,
+  ) => {
     const result = (await gen?.next(args)) as
       | IteratorYieldResult<{
           action: T.IAction
