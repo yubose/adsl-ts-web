@@ -39,6 +39,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   parse<C extends IComponentTypeInstance>(
     component: C,
     container?: T.NOODLDOMElement | null,
+    opts = {},
   ) {
     const { noodlType } = component || {}
     let node: T.NOODLDOMElement | null = null

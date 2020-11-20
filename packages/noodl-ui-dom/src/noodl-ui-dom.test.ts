@@ -2,46 +2,81 @@ import sinon from 'sinon'
 import fs from 'fs-extra'
 import path from 'path'
 import { prettyDOM, screen } from '@testing-library/dom'
+import userEvent from '@testing-library/user-event'
 import chalk from 'chalk'
 import { expect } from 'chai'
 import {
+  componentTypes,
+  createComponent,
+  eventTypes,
   IComponentTypeInstance,
   IList,
+  IListItem,
   NOODLComponent,
   NOODLComponentProps,
 } from 'noodl-ui'
 import { listenToDOM, noodlui, noodluidom, toDOM } from './test-utils'
 
 describe('noodl-ui-dom', () => {
-  xit('should add the func to the callbacks list', () => {
+  it('should add the func to the callbacks list', () => {
     const spy = sinon.spy()
-    noodluidom.on('create.button', spy)
-    const callbacksList = noodluidom.getCallbacks('create.button')
+    noodluidom.on('button', spy)
+    const callbacksList = noodluidom.getCallbacks('button')
     expect(callbacksList).to.be.an('array')
-    expect(callbacksList).to.have.members([spy])
+    expect(callbacksList?.[0]).to.eq(spy)
   })
 
   xit('should remove the func from the callbacks list', () => {
     const spy = sinon.spy()
-    noodluidom.on('create.button', spy)
-    let callbacksList = noodluidom.getCallbacks('create.button')
-    expect(callbacksList).to.have.members([spy])
-    noodluidom.off('create.button', spy)
-    callbacksList = noodluidom.getCallbacks('create.button')
+    noodluidom.on('button', spy)
+    let callbacksList = noodluidom.getCallbacks('button')
+    expect(callbacksList?.[0]).to.eq(spy)
+    noodluidom.off('button', spy)
+    callbacksList = noodluidom.getCallbacks('button')
     expect(callbacksList).to.be.an('array')
     expect(callbacksList).not.to.include.members([spy])
   })
 
   it('should emit events', () => {
     const spy = sinon.spy()
-    noodluidom.on('create.label', spy)
+    noodluidom.on('label', spy)
     expect(spy.called).to.be.false
     // @ts-expect-error
-    noodluidom.emit('create.label')
+    noodluidom.emit('label')
     expect(spy.called).to.be.true
   })
 
-  describe('calling the appropriate event', () => {
+  describe('when attaching component events', () => {
+    it('should attach the onChange handler', () => {
+      const textField = createComponent('textField') as IComponentTypeInstance
+      const spy = sinon.spy()
+      textField.set('onChange', spy)
+      const node = noodluidom.parse(textField) as HTMLInputElement
+      userEvent.type(node, 'hello all')
+      expect(spy.called).to.be.true
+      expect(node.dataset.value).to.eq('hello all')
+    })
+
+    eventTypes.forEach((eventType) => {
+      xit(`should not re-attach handlers (duplicating)`, () => {
+        const view = createComponent('view') as IComponentTypeInstance
+        const list = createComponent('list') as IList
+        const listItem = createComponent('listItem') as IListItem
+        const textField = createComponent('textField') as IComponentTypeInstance
+        textField.set('data-value', 'my data value')
+        const label = createComponent('label') as IComponentTypeInstance
+        label.set('text', 'heres my text')
+        const nestedView = createComponent('view') as IComponentTypeInstance
+        view.createChild(list)
+        list.createChild(listItem)
+        listItem.createChild(nestedView)
+        nestedView.createChild(label)
+        nestedView.createChild(textField)
+      })
+    })
+  })
+
+  describe('when calling component events', () => {
     let fn1: sinon.SinonSpy
     let fn2: sinon.SinonSpy
     let fn3: sinon.SinonSpy
@@ -50,12 +85,12 @@ describe('noodl-ui-dom', () => {
       fn1 = sinon.spy()
       fn2 = sinon.spy()
       fn3 = sinon.spy()
-      noodluidom.on('create.button', fn1)
-      noodluidom.on('create.image', fn2)
-      noodluidom.on('create.button', fn3)
+      noodluidom.on('button', fn1)
+      noodluidom.on('image', fn2)
+      noodluidom.on('button', fn3)
     })
 
-    xit('should call callbacks that were subscribed', () => {
+    it('should call callbacks that were subscribed', () => {
       noodluidom.parse(
         noodlui.resolveComponents({
           id: 'myid123',
@@ -126,7 +161,7 @@ describe('noodl-ui-dom', () => {
           fontStyle: 'bold',
         },
       })
-      noodluidom.on('create.label', (node, props) => {
+      noodluidom.on('label', (node, props) => {
         if (node) node.innerHTML = `${props.children}`
       })
       const node = noodluidom.parse(label)
@@ -181,7 +216,7 @@ describe('noodl-ui-dom', () => {
       })
 
       it('should append nested children as far down as possible', () => {
-        noodluidom.on('create.label', (node, inst) => {
+        noodluidom.on('label', (node, inst) => {
           if (node) node.innerHTML = inst.get('text')
         })
         noodluidom.parse(noodlui.resolveComponents(component))
@@ -205,7 +240,7 @@ describe('noodl-ui-dom', () => {
     })
   })
 
-  describe('when using redraw', () => {
+  describe.skip('when using redraw', () => {
     let parent: IComponentTypeInstance
     let component: IList
     let iteratorVar: 'hello'

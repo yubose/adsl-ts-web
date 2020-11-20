@@ -1,11 +1,7 @@
 import { expect } from 'chai'
-import { assetsUrl, makeResolverTest } from '../../utils/test-utils'
-
-let resolve: any
-
-beforeEach(() => {
-  resolve = makeResolverTest()
-})
+import sinon from 'sinon'
+import createComponent from '../../utils/createComponent'
+import { assetsUrl, noodlui } from '../../utils/test-utils'
 
 describe('getTransformedAliases', () => {
   it('should return the correct inputType', () => {
@@ -47,25 +43,81 @@ describe('getTransformedAliases', () => {
     expect(result.options).to.have.deep.members(computedOptions)
   })
 
-  describe('path ("if" object)', () => {
-    it('should use the 2nd item if the evaluation is truthy', () => {
+  describe.only('when using the path ("if" object)', () => {
+    it('should handle strings starting with "http"', () => {
       const first = 'selectedHand.png'
       const second = 'unselectedHand.png'
-      const result = resolve({
-        type: 'image',
-        path: { if: ['abc', first, second] },
+      // const result = resolve({
+      //   type: 'image',
+      //   path: { if: ['abc', first, second] },
+      // })
+      // expect(result.src).to.equal(`${assetsUrl}${first}`)
+    })
+
+    xit('should handle strings not starting with "http"', () => {
+      //
+    })
+
+    xit('should handle "if" objects', () => {
+      //
+    })
+
+    describe.only('when handling emit path objects', () => {
+      xit('should not call registered emit handlers that are not the "path" trigger', () => {
+        //
       })
-      expect(result.src).to.equal(`${assetsUrl}${first}`)
+
+      it('should use the return value from emit objects if provided (non-promise)', () => {
+        const emitSpy = sinon.spy(() => 'abc.png')
+        const path = { emit: { dataKey: { var1: 'itemObject' }, actions: [] } }
+        const useEmitObj = { actionType: 'emit', fn: emitSpy, trigger: 'path' }
+        noodlui.use(useEmitObj)
+        const image = createComponent({ type: 'image', path })
+        const result = noodlui.createSrc(image)
+        expect(result).to.eq(noodlui.assetsUrl + 'abc.png')
+      })
+
+      it('should use the return value from emit objects if provided (promise)', async () => {
+        const expectedResult = noodlui.assetsUrl + '123.jpeg'
+        const emitSpy = sinon.spy(async () => Promise.resolve('123.jpeg'))
+        const path = { emit: { dataKey: { var1: 'itemObject' }, actions: [] } }
+        const useEmitObj = { actionType: 'emit', fn: emitSpy, trigger: 'path' }
+        noodlui.use(useEmitObj)
+        const image = createComponent({ type: 'image', path })
+        const result = await noodlui.createSrc(image)
+        expect(result).to.eq(expectedResult)
+      })
+
+      it('should receive the EmitAction instance as the first arg', async () => {
+        const iteratorVar = 'hello'
+        const listId = 'mylistid'
+        const listObject = [{ fruit: 'apple' }]
+        const list = noodlui.resolveComponents({
+          type: 'list',
+          iteratorVar,
+          listId,
+          listObject,
+          children: [{ type: 'listItem' }],
+        })
+        const emitSpy = sinon.spy()
+        const path = { emit: { dataKey: { var1: 'itemObject' }, actions: [] } }
+        const useEmitObj = { actionType: 'emit', fn: emitSpy, trigger: 'path' }
+        noodlui.use(useEmitObj)
+        const image = createComponent({ type: 'image', path })
+        list.child()?.createChild(image)
+        const result = await noodlui.createSrc(image)
+        console.info(emitSpy.args[0][0])
+      })
+
+      xit('should have its dataKey and dataObject populated', () => {
+        //
+      })
     })
 
     it('should use the 3rd item if the evaluation is falsy', () => {
       const first = 'selectedHand.png'
       const second = 'unselectedHand.png'
-      const result = resolve({
-        type: 'image',
-        path: { if: [undefined, first, second] },
-      })
-      expect(result.src).to.equal(`${assetsUrl}${second}`)
+      // expect(result.src).to.equal(`${assetsUrl}${second}`)
     })
   })
 })

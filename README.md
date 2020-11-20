@@ -40,6 +40,7 @@ This allows for faster compilation, faster load times and quicker development fl
   - back button detection
   - max 10 entries
   - final goal: compress/decompress with base64
+- find out / try to remember what austin said about non-found images in the UI
 - Favorites / Contact list path if image flip
 - images with an empty `src` attribute showing the "special" border. disable it or make it invisible in `stable` env
 - config `testpage` --> `PatientChartGeneralInfo` = the emit/redraw syntax

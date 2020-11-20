@@ -55,7 +55,8 @@ class Action<OriginalAction extends BaseActionObject = BaseActionObject>
     this.original = action
     this.timeoutDelay = options?.timeoutDelay || DEFAULT_TIMEOUT_DELAY
     this.type = action.actionType // TODO - Deprecate this.type for this.actionType
-    this.actionType = action.actionType
+    this.actionType =
+      action.actionType || ('emit' in action || {} ? 'emit' : '')
   }
 
   /**

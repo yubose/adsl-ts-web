@@ -323,7 +323,6 @@ const createActions = function ({ page }: { page: IPage }) {
         let emitCallResult: any
 
         log.gold(`Ran emitCall`, {
-          PatientChartGeneralInfo: noodl.root.PatientChartGeneralInfo,
           actions,
           emitParams,
           component,
@@ -345,6 +344,10 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (action: Action<EmitActionObject>, options) => {
       log.func('emit [onChange]')
       log.grey(`Reached onChange emit`, { action, options })
+      log.grey(`Reached onChange emit`, { action, options })
+      log.grey(`Reached onChange emit`, { action, options })
+      log.grey(`Reached onChange emit`, { action, options })
+      log.grey(`Reached onChange emit`, { action, options })
     },
     trigger: 'onChange',
   })
@@ -352,10 +355,11 @@ const createActions = function ({ page }: { page: IPage }) {
   // Emit for trigger: "path"
   _actions.emit.push({
     fn: (
-      path: EmitActionObject,
-      component: IComponentTypeInstance,
-      { noodl }: { noodl: CADL },
+      args: { path: EmitActionObject; component: IComponentTypeInstance },
+      { noodl }: { noodl: CADL } = {},
     ) => {
+      const { path, component } = args
+
       let dataObject
       let iteratorVar = component.get('iteratorVar')
       let params
@@ -374,19 +378,23 @@ const createActions = function ({ page }: { page: IPage }) {
         params,
         path,
       }
-      log.func('emit [path]')
+      log.func('path(emit)')
       log.grey(`Calling emitCall`, logArgs)
       // let result = {}
       let result = noodl.emitCall(params)
       if (result instanceof Promise) {
-        return result.then((result) => {
+        return result.then((result: any) => {
           result = Array.isArray(result) ? result[0] : result
-          log.grey('emitCall [promise] result', { ...logArgs, result })
+          log.grey(
+            `emitCall [promise] result: ${
+              result === '' ? '(empty string)' : ''
+            }`,
+          )
           return result
         })
       }
       result = Array.isArray(result) ? result[0] : result
-      log.grey('emitCall result', { ...logArgs, result })
+      log.grey('emitCall result', result)
       return result
     },
     trigger: 'path',

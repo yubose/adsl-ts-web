@@ -13,22 +13,6 @@ before(async () => {
   noodlui.init()
   console.clear()
   Logger.disable()
-  // Logger.create = () =>
-  //   Object.assign(
-  //     {
-  //       func() {
-  //         return this
-  //       },
-  //       log() {
-  //         return this
-  //       },
-  //     },
-  //     _.reduce(
-  //       _.keys(_color),
-  //       (acc, key) => _.assign(acc, { [key]: _.noop }),
-  //       {},
-  //     ),
-  //   )
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
   } catch (error) {}

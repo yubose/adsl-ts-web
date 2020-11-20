@@ -112,7 +112,10 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
               _.get(noodl.root, valEvaluating) ||
               _.get(noodl.root[context?.page?.name || ''], valEvaluating)
           }
-          newSrc = createSrc(valEvaluating ? path.if?.[1] : path.if?.[2])
+          newSrc = createSrc(
+            valEvaluating ? path.if?.[1] : path.if?.[2],
+            component,
+          )
           node.setAttribute('src', newSrc)
         }
         return nextValue
@@ -325,11 +328,13 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     window.location.reload()
   }
 
-  builtInActions.redraw = async (action, options) => {
+  builtInActions.redraw = async (action, options, f = {}) => {
     log.func('redraw')
     log.red('', { action, ...options })
 
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
+    const { default: noodl } = await import('../app/noodl')
+    const { default: noodlui } = await import('../app/noodl-ui')
     const { viewTag } = action.original
 
     const actionObjectOnComponentThatCalledRedraw = action.original
@@ -358,10 +363,69 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       },
     })
 
-    noodluidom.redraw(
-      redrawTargetingNode, // ex: listItem
-      redrawTargetingComponent, // ex: listItem
+    // if (redrawTargetingNode) {
+    const node = document.getElementById(componentThatCalledRedraw?.id)
+    const parent = componentThatCalledRedraw.parent()
+    const parentNode = node?.parentNode
+    if (!parentNode) {
+      console.error('not a parent node', {
+        componentThatCalledRedraw,
+        parent,
+        parentNode,
+        node,
+      })
+      return
+    }
+    if (!node) {
+      console.error('not a node')
+      return
+    }
+    parentNode.innerHTML = ''
+    node.remove()
+    const resolvedComponent = noodlui.resolveComponents(
+      componentThatCalledRedraw.original,
     )
+    resolvedComponent.setParent(parent)
+    parent.removeChild(componentThatCalledRedraw)
+    noodluidom.parse(resolvedComponent, parentNode)
+    // }
+
+    // noodluidom.redraw(
+    //   redrawTargetingNode, // ex: listItem
+    //   redrawTargetingComponent, // ex: listItem
+    // )
+
+    // await page.navigate(noodlui.page, { force: true })
+    // page.render(noodl.root[noodlui.page]?.components)
+    // page.render(componentThatCalledRedraw.original)
+
+    // console.info('Redrawing: ', {
+    //   component: componentThatCalledRedraw,
+    //   node: document.getElementById(componentThatCalledRedraw.id),
+    // })
+
+    // if (componentThatCalledRedraw.get('path')) {
+    //   componentThatCalledRedraw.set(
+    //     'src',
+    //     noodlui.createSrc(componentThatCalledRedraw.get('path')),
+    //   )
+    // }
+
+    // componentThatCalledRedraw?.broadcast?.((child) => {
+    //   console.info('Redrawing: ', {
+    //     rootComponent: componentThatCalledRedraw,
+    //     child,
+    //   })
+    //   if (child.get('path')) {
+    //     child.set(
+    //       'src',
+    //       noodlui.createSrc(
+    //         componentThatCalledRedraw.get('path'),
+    //         componentThatCalledRedraw,
+    //       ),
+    //     )
+    //   }
+    // })
   }
 
   builtInActions.signIn = async (action, options) => {}

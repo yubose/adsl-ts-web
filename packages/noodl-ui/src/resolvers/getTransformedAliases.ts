@@ -62,14 +62,13 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
 
   if (path || resource) {
     let src = path || resource || ''
-    if (isDraft(src)) src = original(src)
     if (isEmitObj(src)) {
       src = createSrc(src)
       if (isPromise(src)) {
         src
           .then((result: string) => {
             src = result
-            return component.set('src', result)
+            return component.set('src', createSrc(result))
           })
           .catch((err: Error) => {
             throw new Error(err.message)
@@ -86,11 +85,11 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
                 )
               })
             } else {
-              component.set(createSrc(src))
+              component.set('src', createSrc(src))
             }
           })
       } else {
-        component.set('src', src)
+        component.set('src', createSrc(src))
       }
     } else {
       component.set('src', createSrc(src))

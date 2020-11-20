@@ -13,27 +13,12 @@ chai.use(chaiAsPromised)
 let logSpy: sinon.SinonStub
 
 before(async () => {
+  noodlui.init()
   console.clear()
   Logger.disable()
+
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
-    // Logger.create = () =>
-    //   // @ts-expect-error
-    //   Object.assign(
-    //     {
-    //       func() {
-    //         return this
-    //       },
-    //       log() {
-    //         return this
-    //       },
-    //     },
-    //     _.reduce(
-    //       _.keys(_color),
-    //       (acc, key) => _.assign(acc, { [key]: _.noop }),
-    //       {},
-    //     ),
-    //   )
 
     Object.defineProperty(noodlui, 'cleanup', {
       configurable: false,

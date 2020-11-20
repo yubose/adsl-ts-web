@@ -12,7 +12,7 @@ before(() => {
 })
 
 beforeEach(() => {
-  listenToDOM()
+  // listenToDOM()
 })
 
 after(() => {

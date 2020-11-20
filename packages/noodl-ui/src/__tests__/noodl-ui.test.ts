@@ -88,9 +88,10 @@ describe('noodl-ui', () => {
           image.set('path', path)
           view.createChild(listItem)
           listItem.createChild(image)
+          // @ts-expect-error
           noodlui.use({
             actionType: 'emit',
-            fn: (path, component) => {
+            fn: (path: any, component: any) => {
               const listItemComponent = findParent(
                 component,
                 (p) => p.noodlType === 'listItem',
@@ -129,6 +130,7 @@ describe('noodl-ui', () => {
           image.set('path', path)
           view.createChild(listItem)
           listItem.createChild(image)
+          // @ts-expect-error
           noodlui.use({
             actionType: 'emit',
             fn: (path, component) => {

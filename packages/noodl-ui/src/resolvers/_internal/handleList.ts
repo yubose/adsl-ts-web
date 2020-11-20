@@ -65,6 +65,7 @@ const handleListInternalResolver = (
               component: child,
               noodlChild,
               trigger: child.action.trigger,
+              actions: noodlChild[trigger],
             })
             child.set(
               trigger,

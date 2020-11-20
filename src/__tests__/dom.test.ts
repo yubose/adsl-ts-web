@@ -8,6 +8,7 @@ import {
   ActionChainActionCallbackOptions,
   EmitActionObject,
   IAction,
+  IActionChainEmitTrigger,
   IComponentTypeInstance,
   IList,
   IListItem,
@@ -132,9 +133,10 @@ describe('dom', () => {
             }),
           ],
         })
-        const titleLabels = getAllByDataKey('hello.title', page.rootNode)
-        const colorLabel2 = getAllByDataKey('hello.color', page.rootNode)
-        const textFields = getAllByDataKey('hello.count', page.rootNode)
+        const rootNode = page.rootNode as HTMLElement
+        const titleLabels = getAllByDataKey('hello.title', rootNode)
+        const colorLabel2 = getAllByDataKey('hello.color', rootNode)
+        const textFields = getAllByDataKey('hello.count', rootNode)
         expect(titleLabels[0].dataset.value).to.equal('apple')
         expect(colorLabel2[0].dataset.value).to.equal('red')
         expect(textFields[0].dataset.value).to.equal('5')

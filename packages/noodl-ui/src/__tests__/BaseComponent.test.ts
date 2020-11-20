@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { IComponent } from '../types'
+import { IComponent, IComponentTypeInstance, IList, IListItem } from '../types'
 import Component from '../components/Base/Base'
 import createComponent from '../utils/createComponent'
 
@@ -397,6 +397,41 @@ describe('BaseComponent', () => {
       expectedChild.createChild(targetChild)
       const expectedResult = targetChild?.parent()?.parent()?.parent()
       expect(expectedResult).to.equal(child1child)
+    })
+
+    describe('when using broadcast', () => {
+      it('should hit all nested children in its component tree', () => {
+        const view = createComponent('view') as IComponentTypeInstance
+        const list = createComponent('list') as IList
+        const listItem = createComponent('listItem') as IListItem
+        const textField = createComponent('textField') as IComponentTypeInstance
+        textField.set('data-value', 'my data value')
+        const label = createComponent('label') as IComponentTypeInstance
+        label.set('text', 'heres my text')
+        const nestedView = createComponent('view') as IComponentTypeInstance
+        view.createChild(list)
+        list.createChild(listItem)
+        listItem.createChild(nestedView)
+        nestedView.createChild(label)
+        nestedView.createChild(textField)
+        let labelText, textFieldValue
+        view.broadcast((child) => {
+          if (child.noodlType === 'label') {
+            labelText = child.get('text')
+          }
+          if (child.noodlType === 'textField') {
+            textFieldValue = child.get('data-value')
+          }
+        })
+        expect(labelText).to.eq('heres my text')
+        expect(textFieldValue).to.eq('my data value')
+      })
+    })
+  })
+
+  describe('when attaching event handlers', () => {
+    xit('should attach ', () => {
+      //
     })
   })
 })

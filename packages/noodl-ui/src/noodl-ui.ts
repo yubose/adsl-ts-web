@@ -27,6 +27,7 @@ import Action from './Action'
 import ActionChain from './ActionChain'
 import { event } from './constants'
 import * as T from './types'
+import EmitAction from './Action/EmitAction'
 
 const log = Logger.create('noodl-ui')
 
@@ -320,11 +321,11 @@ class NOODL implements T.INOODLUi {
               acc,
               actionObj: Omit<T.IActionChainUseObjectBase<any>, 'actionType'>,
             ) => {
-              if (actionType === 'emit') {
+              if (actionType === 'emit' || 'emit' in (actionObj || {})) {
                 // Only accept the emit action handlers where their
                 // actions only exist in action chains
                 if (isActionChainEmitTrigger(actionObj.trigger)) {
-                  return acc.concat({ actionType, ...actionObj })
+                  return acc.concat({ actionType: 'emit', ...actionObj })
                 }
               }
               return acc.concat({ actionType, ...actionObj } as any)
@@ -638,18 +639,35 @@ class NOODL implements T.INOODLUi {
         //   { trigger: 'path' },
         // )
         // TODO - narrow this query to avoid only using the first encountered obj
-        const obj = this.#cb.action.emit.find((o) => o.trigger === 'path')
+        const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
         const fn = obj?.fn
-        if (fn) {
-          let result = fn?.(path, component, obj?.context)
+        if (typeof fn === 'function') {
+          // const emitAction = new EmitAction(path, { trigger: 'path' })
+          // emitAction.callback = async (...args: any[]) => {
+          //   const result = await Promise.resolve(fn(...args))
+          //   return result
+          // }
+
+          let result = fn(
+            {
+              ...this.getConsumerOptions({ component } as any),
+              path,
+              component,
+            },
+            this.actionsContext,
+          )
 
           if (result instanceof Promise) {
             return result
-              .then((res) => resolvePath(res))
+              .then((res) => {
+                console.info('result: ', resolvePath(res))
+                return resolvePath(res)
+              })
               .catch((err) => {
                 throw new Error(err)
               })
           } else {
+            console.info('result from aaaa: ', emitAction.result)
             return resolvePath(result)
           }
         }
@@ -659,7 +677,7 @@ class NOODL implements T.INOODLUi {
         if (component) {
           let dataObject: any
           // Assuming it is a component retrieving its value from a dataObject
-          if (component.get('iteratorVar')) {
+          if (component.get?.('iteratorVar')) {
             let listItem: T.IListItem
             if (component.noodlType !== 'listItem') {
               listItem = findParent(
