@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { EmitActionObject, IActionOptions } from '../types'
+import { EmitActionObject, IActionOptions, NOODLEmitTrigger } from '../types'
 import Action from './Action'
 
 class EmitAction extends Action<EmitActionObject> {
@@ -8,14 +8,14 @@ class EmitAction extends Action<EmitActionObject> {
   dataKey: string | { [key: string]: any } | undefined
   actions: any[] | undefined
   iteratorVar: string | undefined
-  trigger: 'onClick' | 'path' | undefined
+  #trigger: NOODLEmitTrigger | undefined
 
   constructor(
     action: EmitActionObject,
     options?: IActionOptions<EmitActionObject> &
       Partial<{
         // iteratorVar: string
-        trigger: 'onClick' | 'path'
+        trigger: NOODLEmitTrigger
       }>,
   ) {
     super(action, options)
@@ -26,7 +26,15 @@ class EmitAction extends Action<EmitActionObject> {
     this['trigger'] = options?.trigger
   }
 
-  set(key: 'dataObject' | 'iteratorVar' | 'trigger', value: any) {
+  get trigger() {
+    return this.#trigger
+  }
+
+  set trigger(trigger: NOODLEmitTrigger | undefined) {
+    this.#trigger = trigger
+  }
+
+  set(key: 'dataKey' | 'dataObject' | 'iteratorVar' | 'trigger', value: any) {
     if (key === 'dataObject') return this.setDataObject(value)
     this[key] = value
     return this
@@ -57,10 +65,6 @@ class EmitAction extends Action<EmitActionObject> {
       })
     }
     return this
-  }
-
-  execute() {
-    //
   }
 }
 

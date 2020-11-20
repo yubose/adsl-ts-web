@@ -29,6 +29,8 @@ class Action<OriginalAction extends BaseActionObject = BaseActionObject>
   #timeoutRemaining: number | null = null
   #timeoutInterval: any | null = null
   error: Error | null = null
+  executed: boolean = false
+  hasExecutor: boolean = false
   original: OriginalAction
   result: any
   resultReturned: boolean = false
@@ -69,6 +71,7 @@ class Action<OriginalAction extends BaseActionObject = BaseActionObject>
 
       this.result = undefined
       this.error = null
+      this.executed = false
       this.#timeoutRemaining = this.timeoutDelay
       this.status = 'pending'
 
@@ -90,7 +93,7 @@ class Action<OriginalAction extends BaseActionObject = BaseActionObject>
       )
 
       // TODO - Logic for return values as objects (new if/ condition in action chains)
-      this.result = await this.callback?.(this.getSnapshot(), args)
+      this.result = await this.callback?.(this, args)
       if (this.result !== undefined) this['resultReturned'] = true
       this.status = 'resolved'
 
@@ -112,6 +115,7 @@ class Action<OriginalAction extends BaseActionObject = BaseActionObject>
     } finally {
       this.clearTimeout()
       this.clearInterval()
+      this.executed = true
 
       const logArgs = {
         snapshot: this.getSnapshot(),
@@ -135,6 +139,7 @@ class Action<OriginalAction extends BaseActionObject = BaseActionObject>
 
   set callback(callback: IActionCallback | undefined) {
     this.#callback = callback
+    this['hasExecutor'] = _.isFunction(this.#callback)
   }
 
   get id() {
@@ -147,7 +152,7 @@ class Action<OriginalAction extends BaseActionObject = BaseActionObject>
   getSnapshot(): IActionSnapshot<OriginalAction> {
     const snapshot = {
       actionType: this.type as string,
-      hasExecutor: _.isFunction(this.#callback),
+      hasExecutor: this.hasExecutor,
       id: this.id as string,
       original: this.original,
       status: this.status,

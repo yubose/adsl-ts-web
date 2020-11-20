@@ -71,10 +71,9 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.emit.push({
     fn: async (action: Action<EmitActionObject>, options) => {
       const { default: noodl } = await import('../app/noodl')
+      const { default: noodlui } = await import('../app/noodl-ui')
 
       log.func('emit [ActionChain]')
-      log.gold('Emitting', { action, ...options })
-      log.gold('Emitting', { action, ...options })
       log.gold('Emitting', { action, ...options })
 
       let { component, context } = options
@@ -84,7 +83,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
       const emitParams = {
         actions,
-        pageName: context.page,
+        pageName: noodlui.page,
       } as any
 
       // If dataKey isn't available to use, directly pass the action to emitCall
@@ -207,7 +206,7 @@ const createActions = function ({ page }: { page: IPage }) {
                   dataObject =
                     findDataObject({
                       dataKey: dataPath,
-                      pageObject: noodl.root[context.page],
+                      pageObject: noodl.root[noodlui.page],
                       root: noodl.root,
                     }) ||
                     listItem.getDataObject?.() ||
@@ -264,11 +263,11 @@ const createActions = function ({ page }: { page: IPage }) {
                 dataObject =
                   findDataObject({
                     dataKey: dataPath,
-                    pageObject: noodl.root[context.page],
+                    pageObject: noodl.root[noodlui.page],
                     root: noodl.root,
                   }) ||
                   _.get(noodl.root, dataPath) ||
-                  _.get(noodl.root[context.page], dataPath)
+                  _.get(noodl.root[noodlui.page], dataPath)
 
                 if (dataObject) {
                   acc[key] = dataObject

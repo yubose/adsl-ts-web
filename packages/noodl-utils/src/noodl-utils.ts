@@ -288,7 +288,8 @@ export function isListConsumer(component: any) {
     component?.get?.('iteratorVar') ||
     component?.get?.('listId') ||
     component?.get?.('listIndex') ||
-    component?.noodlType === 'listItem'
+    component?.noodlType === 'listItem' ||
+    (component && findParent(component, (p) => p?.noodlType === 'listItem'))
   )
 }
 

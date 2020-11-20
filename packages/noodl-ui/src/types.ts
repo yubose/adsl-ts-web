@@ -457,19 +457,9 @@ export interface IActionChain<
   C extends IComponentTypeInstance = any
 > {
   abort(reason?: string | string[]): Promise<void>
-  actions: IAction<ActionObjects[number]>[]
+  actions: BaseActionObject[]
   component: C
-  createGenerator(): AsyncGenerator<
-    {
-      action: IAction<BaseActionObject> | undefined
-      results: {
-        action: IAction | undefined
-        result: any
-      }[]
-    },
-    { action: IAction | undefined; result: any }[],
-    any
-  >
+  createGenerator(): IActionChain['gen']
   current: { action: IAction<ActionObjects[number]> | undefined; index: number }
   execute(event?: any): Promise<any>
   intermediary: IAction<ActionObjects[number]>[]
@@ -495,8 +485,21 @@ export interface IActionChain<
     snapshot: ActionChainSnapshot<ActionObjects>
     status: IActionChain['status']
   }
+  gen: AsyncGenerator<
+    {
+      action: IAction<BaseActionObject> | undefined
+      results: {
+        action: IAction | undefined
+        result: any
+      }[]
+    },
+    { action: IAction | undefined; result: any }[],
+    any
+  >
   getQueue(): IAction[]
   getSnapshot(): ActionChainSnapshot<ActionObjects>
+  loadQueue(): this
+  loadGen(): this
   status:
     | null
     | 'in.progress'

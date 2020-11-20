@@ -239,7 +239,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
             dataKey,
             listItem,
             iteratorVar,
-            page: context.page,
+            page: context?.page,
             pageObject,
             path,
           },
