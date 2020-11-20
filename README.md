@@ -32,6 +32,9 @@ This allows for faster compilation, faster load times and quicker development fl
 
 ## Todos
 
+- select options is now an array of objs
+  - optionKey
+  - dataKey gets set the object
 - url routing
   - `aitmed.com/SignIn-MeetingRoomInvited-Dashboard` etc. etc
   - back button detection

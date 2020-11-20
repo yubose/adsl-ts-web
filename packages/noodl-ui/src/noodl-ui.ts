@@ -334,12 +334,6 @@ class NOODL implements T.INOODLUi {
         ),
       [] as any[],
     )
-    console.log('Action objects inserting into useAction', {
-      actions,
-      actionsInsertingIntoUseAction: useActionObjects,
-      component: options.component,
-      trigger: options.trigger,
-    })
     actionChain.useAction(useActionObjects).useBuiltIn(
       _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
         funcName,

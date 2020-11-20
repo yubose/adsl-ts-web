@@ -55,15 +55,15 @@ class ActionChain<
     this['pageObject'] = pageObject
     this['trigger'] = trigger
 
-    log.func('constructor')
-    log.grey('Initiated action objects', {
-      actions,
-      '#original': this.#original,
-      component,
-      trigger,
-      instance: this,
-      fns: this.fns,
-    })
+    // log.func('constructor')
+    // log.grey('Initiated action objects', {
+    //   actions,
+    //   '#original': this.#original,
+    //   component,
+    //   trigger,
+    //   instance: this,
+    //   fns: this.fns,
+    // })
   }
 
   useAction(action: T.IActionChainUseObject): this
@@ -133,8 +133,6 @@ class ActionChain<
         }
       }
     }
-
-    log.gold(obj.actionType, obj)
 
     let action =
       obj.actionType === 'emit'
@@ -346,7 +344,6 @@ class ActionChain<
                 event,
                 ...this.getDefaultCallbackArgs(),
               })
-              log.gold(`${action.actionType} action return value: `, result)
               // log.grey('Current results from action chain', result)
               if (_.isPlainObject(result)) {
                 iterator = await this.gen.next(result)
@@ -360,7 +357,7 @@ class ActionChain<
 
               if (result) {
                 if (action.type) log.func(action.type)
-                log.green(
+                log.grey(
                   `Received a returned value from a(n) "${action.type}" executor`,
                   result,
                 )
@@ -371,7 +368,7 @@ class ActionChain<
           //   this.actions as IAction[],
           //   this.getCallbackOptions({ event, ...buildOptions }),
           // )
-          log.gold('Action chain reached the end of execution')
+          log.grey('Action chain reached the end of execution')
           return iterator?.value
         } else {
           // log
@@ -457,8 +454,6 @@ class ActionChain<
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
       else {
-        log.func('loadQueue')
-        log.gold('actionObj', actionObj)
         if ('emit' in actionObj) {
           actionObj = {
             ...actionObj,
@@ -474,6 +469,7 @@ class ActionChain<
       }
 
       if (action) {
+        log.func('loadQueue')
         this.#queue.push(action)
         log.grey(`Loaded "${action.actionType}" action into the queue`, {
           action,

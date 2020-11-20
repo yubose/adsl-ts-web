@@ -368,7 +368,6 @@ const createActions = function ({ page }: { page: IPage }) {
         actions: path.emit.actions,
       }
       const logArgs = {
-        PatientChartGeneralInfo: noodl.root.PatientChartGeneralInfo,
         component,
         dataObject,
         iteratorVar,
@@ -382,7 +381,7 @@ const createActions = function ({ page }: { page: IPage }) {
       if (result instanceof Promise) {
         return result.then((result) => {
           result = Array.isArray(result) ? result[0] : result
-          log.grey('emitCall result', { ...logArgs, result })
+          log.grey('emitCall [promise] result', { ...logArgs, result })
           return result
         })
       }

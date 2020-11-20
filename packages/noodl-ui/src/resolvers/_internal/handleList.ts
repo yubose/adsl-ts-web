@@ -209,12 +209,12 @@ const handleListInternalResolver = (
                 trigger,
               }),
             )
-            console.log('original child trigger object ' + trigger, {
-              child,
-              trigger,
-              originalActions,
-              loadedActions: child.get(trigger),
-            })
+            // console.log('original child trigger object ' + trigger, {
+            //   child,
+            //   trigger,
+            //   originalActions,
+            //   loadedActions: child.get(trigger),
+            // })
           }
         })
       })

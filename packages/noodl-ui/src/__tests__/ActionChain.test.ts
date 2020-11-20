@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import chalk from 'chalk'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
-import { xit } from 'mocha'
 import * as builder from 'noodl-building-blocks'
 import { noodlui } from '../utils/test-utils'
 import makeRootsParser from '../factories/makeRootsParser'
@@ -262,8 +261,25 @@ describe('ActionChain', () => {
       expect(mockEmitFn.called).to.be.false
     })
 
-    xit('should not handle onChange emit handlers if triggered by onClick', () => {
-      //
+    it('should not handle onChange emit handlers if triggered by onClick', async () => {
+      const mockEmitFn = sinon.spy()
+      const mockEmitObj = {
+        emit: { dataKey: { var1: 'itemObject' }, actions: [{}, {}, {}] },
+      }
+      const actionChain = new ActionChain(
+        [mockEmitObj] as any,
+        { component: createComponent('view'), trigger: 'onClick' } as any,
+      ).useAction([
+        {
+          actionType: 'emit',
+          context: { noodl: {} },
+          fn: mockEmitFn,
+          trigger: 'onChange',
+        },
+      ])
+      const execute = actionChain.build()
+      await execute()
+      expect(mockEmitFn.called).to.be.false
     })
 
     it('should pass the correct base essental args to the executor', async () => {
@@ -401,8 +417,10 @@ describe('ActionChain', () => {
     expect(actionChain.status).to.equal('in.progress')
   })
 
-  xit('the status should be an object with an "aborted" property after explicitly calling "abort"', async () => {
-    try {
+  xit(
+    'the status should be an object with an "aborted" property after ' +
+      'explicitly calling "abort"',
+    async () => {
       const spy = sinon.spy()
       const actionChain = new ActionChain([pageJumpAction], {
         pageJump: spy,
@@ -418,14 +436,17 @@ describe('ActionChain', () => {
       btn.click()
       btn.removeEventListener('click', handler)
       expect(actionChain.status).to.have.property('aborted')
-    } catch (error) {}
-  })
+    },
+  )
 
-  xit('calling abort should reset the queue', () => {
+  xit('calling abort should clear the queue', async () => {
+    const component = createComponent('view')
     const actionChain = new ActionChain(
       [pageJumpAction, popUpDismissAction, updateObjectAction],
-      {} as any,
+      { component, trigger: 'onClick' },
     )
+    const handler = actionChain.build()
+    const queue = actionChain.getQueue()
   })
 
   xit('skipped actions should have the status "aborted" with some "unregistered callback" reason', () => {
@@ -442,6 +463,10 @@ describe('ActionChain', () => {
       expect(spy.firstCall.args[1])
         .to.have.property('component')
         .that.is.eq(component)
+    })
+
+    xit('should pass actions context to emit actions', () => {
+      //
     })
 
     describe('if the caller returned a string', () => {
@@ -783,7 +808,6 @@ describe('ActionChain', () => {
           })
           const handler = actionChain.build()
           await handler()
-          console.info(actionChain.getQueue())
           expect(emitSpy.called).to.be.true
           expect(emitSpy.firstCall.args[0]).to.have.property(
             'trigger',
@@ -813,7 +837,6 @@ describe('ActionChain', () => {
       ])
       const onClick = actionChain.build()
       const queue = actionChain.getQueue().slice()
-      console.info(queue)
       queue.forEach((action) => {
         expect(action.executed).to.be.false
       })
