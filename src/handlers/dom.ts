@@ -151,13 +151,12 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       : eventType
     ).toLocaleLowerCase()
 
-    // TODO: Test this
-    // Attach the event handler
-    node.addEventListener(event, (...args: any[]) => {
+    const fn = (...args: any[]) => {
       log.func(`on all --> addEventListener: ${event}`)
       log.grey(`User action invoked handler`, {
         component,
-        [event]: handler,
+        handlerInArgs: handler,
+        handlerInComponent: component.get(eventType),
       })
       console.groupCollapsed('', {
         event,
@@ -167,40 +166,58 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       })
       console.trace()
       console.groupEnd()
+      node.removeEventListener(eventType, attachEventHandler)
+      handleEventHandlers()
       return handler?.(...args)
-    })
+    }
+
+    // TODO: Test this
+    // Attach the event handler
+    node.addEventListener(event, fn)
   }
 
   /** Event handlers */
-  _.forEach(eventTypes, (eventType) => {
-    let handler = component.get(eventType)
-    if (handler) {
-      setTimeout(() => {
-        handler = component.get(eventType)
-        if (_.isArray(handler)) {
-          import('app/noodl-ui').then(({ default: noodlui }) => {
-            component.draft()
-            handler = noodlui.createActionChainHandler(handler, {
-              component,
-              trigger: eventType,
-            })
-            if (isPromise(handler)) {
-              handler.then((result) => {
-                console.log('result', result)
-                attachEventHandler(eventType, result)
-                component.done()
+  function handleEventHandlers() {
+    _.forEach(eventTypes, (eventType) => {
+      let handler = component.get(eventType)
+      if (handler) {
+        setTimeout(() => {
+          handler = component.get(eventType)
+          if (_.isArray(handler)) {
+            import('app/noodl-ui').then(({ default: noodlui }) => {
+              // component.draft()
+
+              handler = noodlui.createActionChainHandler(handler, {
+                component,
+                trigger: eventType,
               })
-            } else {
-              attachEventHandler(eventType, handler)
-              component.done()
-            }
-          })
-        } else {
-          attachEventHandler(eventType, handler)
-        }
-      }, 300)
-    }
-  })
+
+              component.set(eventType, handler)
+
+              if (isPromise(handler)) {
+                handler.then((result) => {
+                  console.log('result', result)
+                  console.log('result', result)
+                  console.log('result', result)
+                  console.log('result', result)
+                  console.log('result', result)
+                  attachEventHandler(eventType, result)
+                  component.done()
+                })
+              } else {
+                attachEventHandler(eventType, handler)
+                // component.done()
+              }
+            })
+          } else {
+            attachEventHandler(eventType, handler)
+          }
+        }, 300)
+      }
+    })
+  }
+
+  handleEventHandlers()
 
   /** Styles */
   if (_.isPlainObject(style)) {

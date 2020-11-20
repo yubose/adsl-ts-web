@@ -7,21 +7,37 @@ import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
 // import { terser } from 'rollup-plugin-terser'
+import pkg from './package.json'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
+const name = 'noodlBuilder'
 
 const config = {
-  input: 'src/noodl-building-blocks.ts',
+  input: `src/index.ts`,
   output: [
+    // {
+    //   dir: 'dist',
+    //   exports: 'named',
+    //   format: 'umd',
+    //   name: 'noodlBuildingBlocks',
+    //   sourcemap: true,
+    //   globals: {
+    //     noodlui: 'noodl-ui',
+    //   },
+    // },
     {
-      dir: 'dist',
+      file: pkg.main,
       exports: 'named',
-      format: 'umd',
-      name: 'noodlBuildingBlocks',
+      format: 'cjs',
+      name,
       sourcemap: true,
-      globals: {
-        noodlui: 'noodl-ui',
-      },
+    },
+    {
+      file: pkg.module,
+      exports: 'named',
+      format: 'es',
+      name,
+      sourcemap: true,
     },
   ],
   plugins: [
@@ -44,7 +60,7 @@ const config = {
     babel({
       babelHelpers: 'runtime',
       include: ['src/**/*'],
-      exclude: ['node_modules'],
+      exclude: ['node_modules/**/*'],
       extensions,
     }),
     // Env var set by root lerna repo

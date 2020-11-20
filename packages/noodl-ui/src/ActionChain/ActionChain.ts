@@ -5,8 +5,9 @@ import Logger from 'logsnap'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import { AbortExecuteError } from '../errors'
-import { createExecute, createActionChainGenerator } from './execute'
+import { createExecute } from './execute'
 import { isActionChainEmitTrigger } from '../utils/noodl'
+import createActionChainGenerator from './createActionChainGenerator'
 import * as T from '../types'
 
 const log = Logger.create('ActionChain')
@@ -65,6 +66,7 @@ class ActionChain<
       component,
       trigger,
       instance: this,
+      fns: this.fns,
     })
   }
 
@@ -106,7 +108,7 @@ class ActionChain<
    * @param { object } obj - Action object
    * NOTE: obj should have an "actionType" by the time of this call
    */
-  createAction<A extends ActionObjects[number]>(obj: A): T.IAction<A> {
+  createAction<A = any>(obj: A) {
     const runActionFuncs = async ({
       callbacks,
       instance,
@@ -136,12 +138,89 @@ class ActionChain<
       }
     }
 
+    log.gold(obj.actionType, obj)
+
     let action =
       obj.actionType === 'emit'
         ? new EmitAction(obj as T.EmitActionObject)
         : new Action(obj)
     let conditionalCallbackArgs = {} as any
     let callbacks: any[]
+
+    const attachFn = (_action) => {
+      _action['callback'] = async (
+        instance: Parameters<
+          T.ActionChainActionCallback<ActionObjects[number]>
+        >[0],
+        options: Parameters<
+          T.ActionChainActionCallback<ActionObjects[number]>
+        >[1],
+      ) => {
+        log.func('attachFn')
+        log.green('You reached the start of action[callback]', {
+          _action,
+          callbacks: this.fns.action[obj.actionType] || [],
+          actionObj: obj,
+          actions: this.actions,
+          queue: this.getQueue(),
+        })
+        const callbackArgs = { ...options, ...conditionalCallbackArgs }
+        const logArgs = {
+          action: _action,
+          callbackArgs,
+          originalActionObj: obj,
+          instance: this,
+          actions: this.actions,
+          queue: this.#queue,
+        }
+        if (action.actionType === 'anonymous') {
+          log.grey('Loading anonymous action', logArgs)
+          if ('fn' in _action.original) {
+            await action.original.fn?.(instance, callbackArgs)
+          }
+        } else if (action.actionType === 'builtIn') {
+          log.grey('Loading builtIn action', logArgs)
+          callbacks = this.fns.builtIn[_action?.original?.funcName] || []
+          if (!callbacks) return
+          await runActionFuncs({ callbacks, instance, options: callbackArgs })
+        } else {
+          log.gold(`*** Loading ${action.actionType} action`, logArgs)
+          callbacks = _.reduce(
+            this.fns.action[action.actionType] || [],
+            (acc, a) => {
+              const isUnrelatedTrigger =
+                action.actionType === 'emit' &&
+                !isActionChainEmitTrigger(this.trigger)
+              if (isUnrelatedTrigger) {
+                log.grey(
+                  `Discarding unrelated action "${action.actionType}" from the action callback`,
+                  {
+                    callbacks,
+                    ...logArgs,
+                  },
+                )
+                return acc
+              }
+              log.grey(`Accepting action chain trigger handler`, {
+                callbacks,
+                ...logArgs,
+              })
+              return acc.concat(a.fn)
+            },
+            [],
+          )
+          log.green('You reached the end of action[callback]', {
+            _action,
+            callbacks: this.fns.action[obj.actionType] || [],
+          })
+          console.info('obj', obj)
+          console.info('fns', this.fns)
+          console.info('callbacks', callbacks)
+          await runActionFuncs({ callbacks, instance, options: callbackArgs })
+        }
+      }
+      console.info(obj)
+    }
 
     if (obj.actionType === 'emit') {
       const emitObj = obj as T.EmitActionObject
@@ -186,46 +265,15 @@ class ActionChain<
           )
         }
       }
+      attachFn(emitAction)
+    } else {
+      attachFn(action)
     }
 
-    action['callback'] = async (
-      instance: Parameters<
-        T.ActionChainActionCallback<ActionObjects[number]>
-      >[0],
-      options: Parameters<
-        T.ActionChainActionCallback<ActionObjects[number]>
-      >[1],
-    ) => {
-      const callbackArgs = { ...options, ...conditionalCallbackArgs }
-      if (obj.actionType === 'anonymous') {
-        if ('fn' in action.original) {
-          await action.original.fn?.(instance, callbackArgs)
-        }
-      } else if (obj.actionType === 'builtIn') {
-        callbacks = this.fns.builtIn[action?.original?.funcName] || []
-        if (!callbacks) return
-        await runActionFuncs({ callbacks, instance, options: callbackArgs })
-      } else {
-        callbacks = _.reduce(
-          this.fns.action[obj.actionType] || [],
-          (acc, a) =>
-            obj.actionType === 'emit' && !isActionChainEmitTrigger(this.trigger)
-              ? acc
-              : acc.concat(a.fn),
-          [],
-        )
-        console.info('obj', obj)
-        console.info('fns', this.fns)
-        console.info('callbacks', callbacks)
-        await runActionFuncs({ callbacks, instance, options: callbackArgs })
-      }
-      console.info(callbackArgs)
-    }
-
-    return action
+    return action as T.IAction<A>
   }
 
-  build(buildOptions: T.IActionChainBuildOptions) {
+  build(buildOptions?: T.IActionChainBuildOptions) {
     /**
      * Load up the queue and the actions list
      * The actions in the queue are identical to the ones in this.actions
@@ -237,6 +285,8 @@ class ActionChain<
       let isRefreshed
 
       if (this.actions?.length) {
+        this.actions = []
+        this.#queue = []
         isRefreshed = true
         log.func('build')
         log.grey(`Refreshing action chain`, {
@@ -245,11 +295,9 @@ class ActionChain<
         })
       }
 
-      this.actions = []
-
-      this.#queue = _.reduce(
+      _.forEach(
         this.#original,
-        (acc, actionObj: T.IActionObject | Function) => {
+        (actionObj: T.IActionObject | Function) => {
           let action: T.IAction<ActionObjects[number]> | undefined
 
           if (_.isFunction(actionObj)) {
@@ -269,11 +317,17 @@ class ActionChain<
           // Temporarily hardcode the actionType to blend in with the other actions
           // for now until we find a better solution
           else {
+            log.gold('actionObj', actionObj)
             if ('emit' in actionObj) {
               actionObj = {
                 ...actionObj,
                 actionType: 'emit',
               } as T.EmitActionObject
+              log.gold('registered emit callbacks: ', {
+                actionObj,
+                fns: this.fns,
+                emitCallbacks: this.fns.action[actionObj.actionType],
+              })
             } else if ('goto' in actionObj) {
               actionObj = {
                 ...actionObj,
@@ -284,19 +338,20 @@ class ActionChain<
           }
           if (action) {
             this.actions?.push(action)
+            this.#queue.push(action)
             log.grey(`Loaded "${action.actionType}" action into the queue`, {
               action: action.getSnapshot(),
               actionInstance: action,
               actionChain: this,
-              component: this.component,
               actions: this.actions,
-              actionObj,
+              component: this.component,
+              originalActionObj: actionObj,
             })
-            return acc.concat(action)
+            // return acc.concat(action)
           }
-          return acc
+          // return acc
         },
-        [] as T.IAction<ActionObjects[number]>[],
+        // [] as T.IAction<ActionObjects[number]>[],
       )
 
       if (isRefreshed) {
@@ -335,9 +390,8 @@ class ActionChain<
       }
     }
 
-    return (args: any) => {
-      const executeActions = (a) => {
-        console.info('executeActions "a" arg', a)
+    return (args?: any) => {
+      return (executeFn) => {
         loadQueue()
         return createExecute({
           ...buildOptions,
@@ -369,10 +423,8 @@ class ActionChain<
               queue: this.#queue.slice(),
             })
           },
-        })(a)
+        })(execute)
       }
-
-      return executeActions(execute)(args)
     }
   }
 
@@ -381,28 +433,22 @@ class ActionChain<
    * The current snapshot is also included in the result
    * @param { object } args
    */
-  getCallbackOptions(options?: {
-    error?: Error
-    event?: Event
-    parser?: T.RootsParser
-    omit?: string | string[]
-    include?: { [key: string]: any }
-  }): T.ActionChainCallbackOptions<ActionObjects> {
-    const { omit, include, ...rest } = options || {}
-    const callbackOptions = {
-      abort: this.abort.bind(this),
+  // @ts-expect-error
+  getDefaultCallbackArgs(): ReturnType<
+    T.IActionChain['getDefaultCallbackArgs']
+  > {
+    // @ts-expect-error
+    return {
+      actions: this.actions,
       component: this.component,
+      currentAction: this.#current,
+      originalActions: this.#original,
+      pageName: this.pageName,
+      pageObject: this.pageObject,
+      queue: this.getQueue(),
       snapshot: this.getSnapshot(),
-      ...rest,
-      ...include,
-    } as T.ActionChainCallbackOptions<T.IAction[]>
-
-    if (omit) {
-      return _.omit(callbackOptions, omit) as T.ActionChainCallbackOptions<
-        ActionObjects
-      >
-    }
-    return callbackOptions
+      status: this.status,
+    } as ReturnType<T.IActionChain['getDefaultCallbackArgs']>
   }
 
   /** Returns the current queue */
@@ -411,10 +457,10 @@ class ActionChain<
   }
 
   /** Returns a snapshot of the current state in the action chain process */
-  getSnapshot(): T.ActionChainSnapshot<ActionObjects[number]> {
+  getSnapshot(): T.ActionChainSnapshot<ActionObjects> {
     return {
       currentAction: (this.#current as T.IAction) || null,
-      original: this.#original,
+      originalActions: this.#original,
       queue: [...this.#queue],
       status: this.status,
     }
@@ -468,6 +514,118 @@ class ActionChain<
     })
     // throw new Error(abortResult)
     // return abortResult
+  }
+
+  createExecuteGenerator() {
+    return async function* getExecutor() {
+      let action: T.IAction | undefined
+      let results: { action: T.IAction | undefined; result: any }[] = []
+
+      while (this.#queue.length) {
+        action = this.#queue.shift()
+        results.push({
+          action: action,
+          result: await (yield { action, results }),
+        })
+      }
+
+      return results
+    }
+  }
+
+  async execute(event?: any) {
+    try {
+      this.#setStatus('in.progress')
+      log.func('execute')
+      log.grey('Action chain started', {
+        queue: this.#queue.slice(),
+        ...this.getCallbackOptions(),
+      })
+      console.info('QUEUE IN EXECUTE ACTIONS', { event, executor, queue })
+
+      if (queue.length) {
+        executor = executor?.(event)
+        log.gold('Retrieved executor', executor)
+
+        let action: IAction | undefined
+        let result: any
+        let iterator:
+          | IteratorYieldResult<{
+              action: IAction
+              results: any[]
+            }>
+          | IteratorReturnResult<{
+              action: IAction
+              results: any[]
+            }>
+          | undefined = await executor?.next?.()
+
+        while (!iterator?.done) {
+          action = iterator?.value?.action
+          log.gold('Next action', action)
+
+          // Skip to the next loop
+          if (!action) {
+            iterator = await next(executor)
+          }
+          // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
+          else {
+            result = await execute(action, {
+              args: event,
+              component,
+              context,
+              queue,
+              trigger,
+            })
+            log.gold(`${action.actionType} action return value: `, result)
+            // log.grey('Current results from action chain', result)
+            if (_.isPlainObject(result)) {
+              iterator = await next(executor, result)
+            } else if (_.isString(result)) {
+              // TODO
+            } else if (_.isFunction(result)) {
+              // TODO
+            } else {
+              iterator = await next(executor, result)
+            }
+
+            // if (result?.value?.result) {
+            //   if (action.type) log.func(action.type)
+            //   log.green(
+            //     `Received a returned value from a(n) "${action.type}" executor`,
+            //     result,
+            //   )
+            // }
+          }
+        }
+        // this.onChainEnd?.(
+        //   this.actions as IAction[],
+        //   this.getCallbackOptions({ event, ...buildOptions }),
+        // )
+        log.gold('Action chain reached the end of execution')
+        onEnd?.()
+        return iterator
+      } else {
+        // log
+        log.red('Cannot start action chain without actions in the queue', {
+          ...opts,
+          executor,
+          event,
+        })
+      }
+    } catch (error) {
+      // this.onChainError?.(
+      //   err,
+      //   this.#current,
+      //   this.getCallbackOptions({ event, error: err, ...buildOptions }),
+      // )
+      onError?.({ args, error })
+      // TODO more handling
+      abort(
+        `The value of "actions" given to this action chain was null or undefined`,
+      )
+      throw new Error(error)
+    }
   }
 
   #next = async (gen, args?: any) => {

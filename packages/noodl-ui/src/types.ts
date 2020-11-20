@@ -456,10 +456,23 @@ export interface IActionChain<
   ActionObjects extends IActionObject[] = any[],
   C extends IComponentTypeInstance = any
 > {
+  abort(reason?: string | string[]): Promise<void>
   actions: IAction<ActionObjects[number]>[]
   component: C
-  intermediary: IAction<ActionObjects[number]>[]
+  createExecuteGenerator(): () => AsyncGenerator<
+    {
+      action: IAction<BaseActionObject> | undefined
+      results: {
+        action: IAction | undefined
+        result: any
+      }[]
+    },
+    { action: IAction | undefined; result: any }[],
+    any
+  >
   current: { action: IAction<ActionObjects[number]> | undefined; index: number }
+  execute(event?: any): Promise<any>
+  intermediary: IAction<ActionObjects[number]>[]
   fns: {
     action: Partial<
       Record<
@@ -471,6 +484,19 @@ export interface IActionChain<
       [funcName: string]: ActionChainActionCallback<ActionObjects[number]>[]
     }
   }
+  getDefaultCallbackArgs(): {
+    actions: IAction[]
+    component: IComponentTypeInstance
+    currentAction: IAction
+    originalActions: IAction[]
+    pageName: string
+    pageObject: NOODLPageObject | null
+    queue: IAction[]
+    snapshot: ActionChainSnapshot<ActionObjects>
+    status: IActionChain['status']
+  }
+  getQueue(): IAction[]
+  getSnapshot(): ActionChainSnapshot<ActionObjects>
   status:
     | null
     | 'in.progress'
@@ -493,8 +519,7 @@ export interface IActionChain<
 }
 
 export interface IActionChainBuildOptions {
-  context: ResolverContext
-  trigger: NOODLActionTriggerType
+  trigger?: NOODLActionTriggerType
   [key: string]: any
 }
 

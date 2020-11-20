@@ -312,7 +312,6 @@ const createActions = function ({ page }: { page: IPage }) {
           )
 
           log.grey('Calling emitCall', {
-            PatientChartGeneralInfo: noodl.root.PatientChartGeneralInfo,
             actions,
             component,
             context,
@@ -332,9 +331,9 @@ const createActions = function ({ page }: { page: IPage }) {
           context,
           originalDataKey,
           resolvedDataKey: dataKey,
-          // emitCallResult: emitCallResult = await noodl.emitCall(
-          //   emitParams as any,
-          // ),
+          emitCallResult: emitCallResult = await noodl.emitCall(
+            emitParams as any,
+          ),
         })
 
         return emitCallResult
@@ -379,8 +378,8 @@ const createActions = function ({ page }: { page: IPage }) {
       }
       log.func('emit [path]')
       log.grey(`Calling emitCall`, logArgs)
-      let result = {}
-      // let result = noodl.emitCall(params)
+      // let result = {}
+      let result = noodl.emitCall(params)
       if (result instanceof Promise) {
         return result.then((result) => {
           result = Array.isArray(result) ? result[0] : result

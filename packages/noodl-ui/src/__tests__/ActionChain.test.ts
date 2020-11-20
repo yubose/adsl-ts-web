@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
 import { xit } from 'mocha'
+import * as builder from 'noodl-building-blocks'
 import { noodlui } from '../utils/test-utils'
 import makeRootsParser from '../factories/makeRootsParser'
 import ActionChain from '../ActionChain'
@@ -22,6 +23,7 @@ import List from '../components/List'
 import * as helpers from './helpers/helpers'
 import {
   actionChainEmitTriggers,
+  actionTypes,
   emitTriggers,
   resolveEmitTriggers,
 } from '../constants'
@@ -112,7 +114,7 @@ describe('ActionChain', () => {
       expect(actionChain.fns.action.updateObject).to.have.lengthOf(1)
     })
 
-    xit(
+    it(
       'should forward the built ins to useBuiltIn if any builtIn objects ' +
         'were passed in',
       () => {
@@ -122,27 +124,104 @@ describe('ActionChain', () => {
   })
 
   describe('when creating actions', () => {
-    it('should return an action instance when registering builtIn objects', () => {
-      expect(
-        actionChain.createAction({ actionType: 'builtIn', funcName: 'hello' }),
-      ).to.be.instanceOf(Action)
+    actionTypes.forEach((actionType) => {
+      it(
+        `should return an action instance when registering the ` +
+          `${chalk.yellow(actionType)} action`,
+        () => {
+          expect(
+            actionChain.createAction({
+              actionType,
+              fn: sinon.spy(),
+              trigger: 'onClick',
+              context: { noodl: 'hello' },
+            }),
+          ).to.be.instanceOf(Action)
+        },
+      )
+    })
+  })
+
+  describe.only('when building the action chain handler', () => {
+    it('should populate the actions', () => {
+      const view = createComponent('view') as IComponentTypeInstance
+      const actionChain = new ActionChain(
+        [
+          { actionType: 'builtIn', funcName: 'hello', fn: sinon.spy() },
+          {
+            actionType: 'emit',
+            fn: sinon.spy(),
+            context: {},
+            trigger: 'onClick',
+          },
+        ],
+        { component: view, trigger: 'onClick' },
+      )
+      expect(actionChain.actions).to.have.lengthOf(2)
+      expect(actionChain.actions[0]).to.be.instanceOf(Action)
+      expect(actionChain.actions[1]).to.be.instanceOf(Action)
     })
 
-    it(
-      'should return an action instance when registering custom objects ' +
-        '(non builtIns)',
-      () => {
-        expect(
-          actionChain.createAction({
-            actionType: 'pageJump',
-            destination: 'hello',
-          }),
-        ).to.be.instanceOf(Action)
-      },
-    )
+    it('should load up the queue', () => {
+      const view = createComponent('view') as IComponentTypeInstance
+      const actionChain = new ActionChain(
+        [
+          { actionType: 'builtIn', funcName: 'hello', fn: sinon.spy() },
+          {
+            actionType: 'emit',
+            fn: sinon.spy(),
+            context: {},
+            trigger: 'onClick',
+          },
+        ],
+        { component: view, trigger: 'onClick' },
+      )
+      const queue = actionChain.getQueue()
+      expect(queue).to.have.lengthOf(2)
+      expect(queue[0]).to.be.instanceOf(Action)
+      expect(queue[1]).to.be.instanceOf(Action)
+    })
+
+    xit('should pass the correct args to the executor', () => {
+      //
+    })
+
+    it(`should return a promise`, () => {
+      const actionChain = new ActionChain(
+        [builder.createBuiltInObject({ funcName: 'hello', fn: sinon.spy() })],
+        { component: {} } as any,
+      )
+      expect(actionChain.build()).to.be.instanceOf(Promise)
+    })
   })
 
   describe('when running actions', () => {
+    xit('should run the actions when calling the builded function', async () => {
+      const mockBuiltInFn = sinon.spy()
+      const mockEmitFn = sinon.spy()
+      const mockEmitObj = {
+        emit: { dataKey: { var1: 'itemObject' }, actions: [{}, {}, {}] },
+      }
+      const mockBuiltInObj = { actionType: 'builtIn', funcName: 'hello' }
+      const actionChain = new ActionChain(
+        [mockEmitObj, mockBuiltInObj] as any,
+        { component: {} } as any,
+      )
+      actionChain.useAction([
+        {
+          actionType: 'emit',
+          context: { noodl: {} },
+          fn: mockEmitFn,
+          trigger: 'onClick',
+        },
+        { actionType: 'builtIn', funcName: 'hello', fn: mockBuiltInFn },
+      ])
+      const execute = actionChain.build()
+      await execute()
+      expect(mockBuiltInFn.called).to.be.true
+      expect(mockEmitFn.called).to.be.true
+    })
+
     it(
       'should call the builtIn funcs that were registered by their funcName ' +
         'when being run',

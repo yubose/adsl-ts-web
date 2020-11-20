@@ -22,13 +22,18 @@ export function createView(opts: Partial<T.INOODLView>) {
 }
 
 /* -------------------------------------------------------
+  ---- ACTION CHAIN
+-------------------------------------------------------- */
+
+/* -------------------------------------------------------
   ---- ACTIONS
 -------------------------------------------------------- */
 
 export function createBuiltInObject(args: Partial<T.IBuiltInAction>) {
   return {
-    ...args,
+    funcName: '',
     actionType: 'builtIn',
+    ...args,
   } as T.IBuiltInAction
 }
 

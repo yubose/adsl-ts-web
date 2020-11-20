@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "logsnap": "file:packages/logsnap",
+    "noodl-building-blocks": "file:packages/noodl-building-blocks",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-utils": "file:packages/noodl-utils"
@@ -111,7 +112,7 @@
     "nodemon": "^2.0.4",
     "nyc": "^15.1.0",
     "prettier": "^2.1.2",
-    "rollup": "^2.27.1",
+    "rollup": "^2.33.2",
     "rollup-plugin-filesize": "^9.0.2",
     "rollup-plugin-peer-deps-external": "^2.2.2",
     "rollup-plugin-progress": "^1.1.2",
@@ -122,7 +123,7 @@
     "style-loader": "^1.2.1",
     "terser-webpack-plugin": "^4.2.2",
     "ts-loader": "^8.0.3",
-    "ts-mocha": "^7.0.0",
+    "ts-mocha": "^8.0.0",
     "ts-node": "^9.0.0",
     "ts-node-dev": "^1.0.0",
     "tsconfig-paths": "^3.9.0",

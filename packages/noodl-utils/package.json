@@ -41,5 +41,8 @@
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
+  },
+  "dependencies": {
+    "noodl-building-blocks": "file:../noodl-building-blocks"
   }
 }

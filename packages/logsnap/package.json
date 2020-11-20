@@ -41,5 +41,8 @@
     "rules": {
       "no-unused-vars": "warn"
     }
+  },
+  "dependencies": {
+    "noodl-building-blocks": "file:../noodl-building-blocks"
   }
 }

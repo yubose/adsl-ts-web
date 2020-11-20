@@ -5,10 +5,10 @@
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "homepage": "",
   "license": "ISC",
-  "main": "dist/noodl-building-blocks.js",
-  "module": "dist/noodl-building-blocks.js",
-  "jsnext:main": "dist/noodl-building-blocks.js",
-  "types": "dist/noodl-building-blocks.d.ts",
+  "main": "dist/noodl-building-blocks.cjs.js",
+  "module": "dist/noodl-building-blocks.es.js",
+  "jsnext:main": "dist/noodl-building-blocks.es.js",
+  "types": "dist/index.d.ts",
   "engines": {
     "node": ">=12",
     "npm": ">=6"
@@ -38,23 +38,5 @@
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
-  },
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "^15.0.0",
-    "@rollup/plugin-node-resolve": "^9.0.0",
-    "@types/chai": "^4.2.11",
-    "@types/mocha": "^8.0.3",
-    "chai": "^4.2.0",
-    "cross-env": "^7.0.2",
-    "mocha": "^8.0.1",
-    "rollup": "^2.33.2",
-    "rollup-plugin-filesize": "^9.0.2",
-    "rollup-plugin-peer-deps-external": "^2.2.2",
-    "rollup-plugin-progress": "^1.1.2",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-typescript2": "^0.27.1",
-    "ts-mocha": "^8.0.0",
-    "ts-node": "^9.0.0",
-    "typescript": "^4.0.5"
   }
 }
