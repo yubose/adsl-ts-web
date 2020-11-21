@@ -18,7 +18,7 @@ const noodl = new NOODL({
       ? getAspectRatio(window.innerWidth, window.innerHeight)
       : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: WWW_CONFIG,
+  configUrl: TESTPAGE,
   // configUrl: getConfigEndpoint('meet'),
 })
 

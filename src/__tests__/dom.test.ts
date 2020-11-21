@@ -3,6 +3,7 @@ import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
 import MockAxios from 'axios-mock-adapter'
 import { expect } from 'chai'
+import { prettyDOM } from '@testing-library/dom'
 import { queryByText, screen, waitFor } from '@testing-library/dom'
 import {
   ActionChainActionCallbackOptions,
@@ -117,22 +118,42 @@ describe('dom', () => {
       })
     })
 
-    it(
+    it.only(
       'should show populated data values from deeply nested children ' +
         'expectedly to the DOM',
       () => {
-        page.render({
+        const component = page.render({
           type: 'view',
           children: [
-            getListComponent1({
+            {
+              type: 'list',
               iteratorVar: 'hello',
               listObject: [
                 { title: 'apple', color: 'red', count: 5 },
                 { title: 'banana', color: 'yellow', count: 1 },
               ],
-            }),
+              children: [
+                {
+                  type: 'listItem',
+                  children: [
+                    { type: 'label', dataKey: 'hello.title' },
+                    {
+                      type: 'view',
+                      children: [
+                        { type: 'label', dataKey: 'hello.color' },
+                        {
+                          type: 'view',
+                          children: [{ type: 'label', dataKey: 'hello.count' }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
           ],
-        })
+        }).components[0]
+        console.info(component.toJS())
         const rootNode = page.rootNode as HTMLElement
         const titleLabels = getAllByDataKey('hello.title', rootNode)
         const colorLabel2 = getAllByDataKey('hello.color', rootNode)

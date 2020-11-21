@@ -651,6 +651,7 @@ class NOODL implements T.INOODLUi {
           let result = fn(
             {
               ...this.getConsumerOptions({ component } as any),
+              pageName: this.page,
               path,
               component,
             },

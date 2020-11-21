@@ -346,8 +346,6 @@ const createActions = function ({ page }: { page: IPage }) {
       log.grey(`Reached onChange emit`, { action, options })
       log.grey(`Reached onChange emit`, { action, options })
       log.grey(`Reached onChange emit`, { action, options })
-      log.grey(`Reached onChange emit`, { action, options })
-      log.grey(`Reached onChange emit`, { action, options })
     },
     trigger: 'onChange',
   })
@@ -358,7 +356,7 @@ const createActions = function ({ page }: { page: IPage }) {
       args: { path: EmitActionObject; component: IComponentTypeInstance },
       { noodl }: { noodl: CADL } = {},
     ) => {
-      const { path, component } = args
+      const { pageName, path, component } = args
 
       let dataObject
       let iteratorVar = component.get('iteratorVar')
@@ -370,6 +368,7 @@ const createActions = function ({ page }: { page: IPage }) {
       params = {
         dataKey: createEmitDataKey(path.emit.dataKey, dataObject),
         actions: path.emit.actions,
+        pageName,
       }
       const logArgs = {
         component,

@@ -380,7 +380,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       console.error('not a node')
       return
     }
-    parentNode.innerHTML = ''
+    // node.innerHTML = ''
     node.remove()
     const resolvedComponent = noodlui.resolveComponents(
       componentThatCalledRedraw.original,

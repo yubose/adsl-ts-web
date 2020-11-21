@@ -191,10 +191,10 @@ const handleListInternalResolver = (
       blueprintInstance,
     ) as IComponentTypeInstance
 
-    console.info('blueprintInstance', {
-      blueprint: resolvedBlueprint,
-      children: resolvedBlueprint.children(),
-    })
+    // console.info('blueprintInstance', {
+    //   blueprint: resolvedBlueprint,
+    //   children: resolvedBlueprint.children(),
+    // })
 
     setTimeout(() => {
       _.forEach(emitTriggers, (trigger) => {
