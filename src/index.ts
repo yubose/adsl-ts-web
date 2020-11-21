@@ -239,7 +239,7 @@ window.addEventListener('load', async () => {
       // isn't already initialized
       if (!noodlui.initialized) {
         log.func('page.onBeforePageRender')
-        log.grey('Initializing noodl-ui client', noodl)
+        log.grey('Initializing noodl-ui client', { noodl, actions })
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
         noodlui

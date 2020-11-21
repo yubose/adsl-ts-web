@@ -166,8 +166,8 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       })
       console.trace()
       console.groupEnd()
-      node.removeEventListener(eventType, attachEventHandler)
-      handleEventHandlers()
+      // node.removeEventListener(eventType, attachEventHandler)
+      // handleEventHandlers()
       return handler?.(...args)
     }
 
@@ -187,12 +187,12 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
             import('app/noodl-ui').then(({ default: noodlui }) => {
               // component.draft()
 
-              handler = noodlui.createActionChainHandler(handler, {
-                component,
-                trigger: eventType,
-              })
+              // handler = noodlui.createActionChainHandler(handler, {
+              //   component,
+              //   trigger: eventType,
+              // })
 
-              component.set(eventType, handler)
+              // component.set(eventType, handler)
 
               if (isPromise(handler)) {
                 handler.then((result) => {
@@ -202,7 +202,7 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
                   console.log('result', result)
                   console.log('result', result)
                   attachEventHandler(eventType, result)
-                  component.done()
+                  // component.done()
                 })
               } else {
                 attachEventHandler(eventType, handler)

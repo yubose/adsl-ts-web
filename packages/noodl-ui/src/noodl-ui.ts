@@ -335,7 +335,12 @@ class NOODL implements T.INOODLUi {
         ),
       [] as any[],
     )
-    actionChain.useAction(useActionObjects).useBuiltIn(
+    console.info(useActionObjects)
+    useActionObjects.forEach((f) => {
+      console.log(f)
+      actionChain.useAction(f)
+    })
+    actionChain.useBuiltIn(
       _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
         funcName,
         fn,
@@ -668,7 +673,7 @@ class NOODL implements T.INOODLUi {
                 throw new Error(err)
               })
           } else {
-            console.info('result from aaaa: ', emitAction.result)
+            // console.info('result from aaaa: ', emitAction.result)
             return resolvePath(result)
           }
         }

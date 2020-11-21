@@ -114,6 +114,17 @@ class ActionChain<
       instance: ActionObjects[number]
       options: Parameters<T.ActionChainActionCallback<ActionObjects>>
     }) => {
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
+      console.log('fdsmkfmdsjkfm')
       const numFuncs = callbacks.length
       for (let index = 0; index < numFuncs; index++) {
         const fn = callbacks[index]
@@ -159,6 +170,8 @@ class ActionChain<
           actions: this.actions,
           queue: this.#queue,
         }
+        log.func('attachFn')
+        log.red('attachFn', { ...callbackArgs, ...logArgs })
         if (action.actionType === 'anonymous') {
           log.grey('Loading anonymous action', logArgs)
           if ('fn' in _action.original) {
@@ -170,6 +183,11 @@ class ActionChain<
           if (!callbacks) return
           await runActionFuncs({ callbacks, instance, options: callbackArgs })
         } else {
+          console.info({
+            ...logArgs,
+            action,
+            fns: this.fns.action,
+          })
           callbacks = _.reduce(
             this.fns.action[action.actionType] ||
               ([] as T.IActionChainUseObjectBase<ActionObjects[number]>[]),
@@ -199,14 +217,15 @@ class ActionChain<
           )
           log.green('You reached the end of action[callback]', {
             _action,
-            callbacks: this.fns.action[obj.actionType] || [],
+            callbacks,
           })
+
           await runActionFuncs({ callbacks, instance, options: callbackArgs })
         }
       }
     }
 
-    if (obj.actionType === 'emit') {
+    if (action.actionType === 'emit') {
       const emitObj = obj as T.EmitActionObject
       const emitAction = action as EmitAction
       emitAction.set('trigger', this.trigger)
@@ -272,8 +291,7 @@ class ActionChain<
       if (_state._execute) _state['_execute'] = executeFn
       this.#queue = []
       // this['gen'] = undefined
-      this.loadQueue()
-      this.loadGen()
+      this.loadQueue().loadGen()
       log.func('build')
       log.grey(`Refreshed action chain`, {
         actions: this.actions,
@@ -332,6 +350,11 @@ class ActionChain<
           // }
 
           while (iterator && !iterator?.done) {
+            log.red('iterator && !iterator', iterator)
+            log.red('iterator && !iterator', iterator)
+            log.red('iterator && !iterator', iterator)
+            log.red('iterator && !iterator', iterator)
+            log.red('iterator && !iterator', iterator)
             action = iterator.value?.action
 
             // Skip to the next loop
@@ -423,7 +446,7 @@ class ActionChain<
 
   /** Returns the current queue */
   getQueue() {
-    return this.#queue
+    return this.#queue.slice()
   }
 
   /**

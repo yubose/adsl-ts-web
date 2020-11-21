@@ -10,18 +10,9 @@ const getEventHandlers: ResolverFn = (component, options) => {
   if (component) {
     const { createActionChainHandler } = options
     _.forEach(eventTypes, (eventType) => {
-      const action = component.action?.[eventType]
+      const action = component.get(eventType)
 
       if (action) {
-        if (_.isFunction(action)) {
-          log.red('createActionChainHandler', {
-            action,
-            component,
-            options,
-            eventType,
-            eventTypes,
-          })
-        }
         component.set(
           eventType,
           createActionChainHandler(action, { trigger: eventType, component }),

@@ -358,16 +358,36 @@ describe('ActionChain', () => {
       },
     )
 
-    it(
+    it.only(
       'should call the non-builtIn funcs that were registered by actionType ' +
         'when being run',
       async () => {
         const actionChain = new ActionChain(actions, {} as any)
-        const spy = sinon.spy()
-        actionChain.useAction({ actionType: 'popUpDismiss', fn: spy })
+        const popupSpy = sinon.spy()
+        const gotoSpy = sinon.spy()
+        const emitSpy = sinon.spy()
+        const updateObjectSpy = sinon.spy()
+        const saveObjectSpy = sinon.spy()
+        const evalObjectSpy = sinon.spy()
+        actionChain.useAction({ actionType: 'popUpDismiss', fn: popupSpy })
+        actionChain.useAction({ actionType: 'goto', fn: gotoSpy })
+        actionChain.useAction({
+          actionType: 'updateObject',
+          fn: updateObjectSpy,
+        })
+        actionChain.useAction([
+          { actionType: 'emit', fn: emitSpy },
+          { actionType: 'saveObject', fn: saveObjectSpy },
+          { actionType: 'evalObject', fn: evalObjectSpy },
+        ])
         const func = actionChain.build({} as any)
         await func()
-        expect(spy.called).to.be.true
+        expect(popupSpy.called).to.be.true
+        expect(gotoSpy.called).to.be.true
+        expect(emitSpy.called).to.be.true
+        expect(updateObjectSpy.called).to.be.true
+        expect(saveObjectSpy.called).to.be.true
+        expect(evalObjectSpy.called).to.be.true
       },
     )
 

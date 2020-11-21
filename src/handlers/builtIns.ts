@@ -261,6 +261,12 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.goto = async (action: GotoURL | GotoActionObject, options) => {
     log.func('goto')
     log.red('', _.assign({ action }, options))
+    log.red('HELLO')
+    log.red('HELLO')
+    log.red('HELLO')
+    log.red('HELLO')
+    log.red('HELLO')
+    log.red('HELLO')
     // URL
     if (_.isString(action)) {
       await page.requestPageChange(action)
