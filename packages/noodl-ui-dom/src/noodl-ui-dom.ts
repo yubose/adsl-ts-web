@@ -39,7 +39,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   parse<C extends IComponentTypeInstance>(
     component: C,
     container?: T.NOODLDOMElement | null,
-    opts = {},
   ) {
     const { noodlType } = component || {}
     let node: T.NOODLDOMElement | null = null
@@ -53,6 +52,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         this.emit('plugin', null, component)
       } else {
         node = document.createElement(getType(component))
+        component.set('node', node)
 
         if (node) {
           if (component?.noodlType === 'list') {
@@ -83,6 +83,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           if (component.length) {
             component.children().forEach((child: IComponentTypeInstance) => {
               const childNode = this.parse(child, node) as Element
+              child?.set('node', childNode)
               node?.appendChild(childNode)
             })
           }

@@ -20,6 +20,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     'viewTag',
   ])
   const pageObject = getPageObject(page)
+  console.log({ component, options, page, pageObject })
 
   /* -------------------------------------------------------
      ---- UI VISIBILITY RELATED

@@ -57,7 +57,7 @@ let productionOptions
 if (process.env.NODE_ENV === 'production') {
   productionOptions = {
     optimization: {
-      minimize: true,
+      // minimize: true,
       minimizer: [
         new TerserPlugin({
           parallel: 4,

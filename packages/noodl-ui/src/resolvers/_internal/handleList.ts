@@ -42,8 +42,6 @@ const handleListInternalResolver = (
     listItem.setDataObject?.(result.dataObject)
     listItem.set('listIndex', result.index)
 
-    console.log('fasffs', listItem)
-
     resolveComponent(listItem)
 
     // TODO - Decide to keep component implementation
@@ -57,7 +55,7 @@ const handleListInternalResolver = (
       // console.info('broadcastRaw')
       const child = componentParent.child(index)
 
-      if (child?.action) {
+      if (child) {
         emitTriggers.forEach((trigger) => {
           if (child?.original?.[trigger]) {
             child.action[trigger] = noodlChild[trigger]
@@ -196,48 +194,46 @@ const handleListInternalResolver = (
     //   children: resolvedBlueprint.children(),
     // })
 
-    setTimeout(() => {
-      _.forEach(emitTriggers, (trigger) => {
-        _.forEach(resolvedBlueprint.children(), (child) => {
-          const handler = child.get(trigger)
-          if (handler) {
-            const originalActions = child?.original?.[trigger]
+    _.forEach(emitTriggers, (trigger) => {
+      _.forEach(resolvedBlueprint.children(), (child) => {
+        const handler = child.get(trigger)
+        if (handler) {
+          const originalActions = child?.original?.[trigger]
 
-            child.set(
+          child.set(
+            trigger,
+            createActionChainHandler(originalActions, {
+              component: child,
               trigger,
-              createActionChainHandler(originalActions, {
-                component: child,
-                trigger,
-              }),
-            )
-            // console.log('original child trigger object ' + trigger, {
-            //   child,
-            //   trigger,
-            //   originalActions,
-            //   loadedActions: child.get(trigger),
-            // })
-          }
-        })
+            }),
+          )
+          // console.log('original child trigger object ' + trigger, {
+          //   child,
+          //   trigger,
+          //   originalActions,
+          //   loadedActions: child.get(trigger),
+          // })
+        }
       })
-    }, 200)
+    })
 
     resolvedBlueprint.set('listId', component.listId)
     resolvedBlueprint.set('iteratorVar', component.iteratorVar)
 
-    // resolvedBlueprint.broadcastRaw((componentParent, noodlChild, index) => {
-    //   // console.info('broadcastRaw')
-    //   // console.info(ff)
-    //   // console.info('broadcastRaw')
-    //   const child = componentParent.child(index)
+    resolvedBlueprint.broadcastRaw((componentParent, noodlChild, index) => {
+      // console.info('broadcastRaw')
+      // console.info(ff)
+      // console.info('broadcastRaw')
+      const child = componentParent.child(index)
 
-    //   if (child?.action) {
-    //     emitTriggers.forEach((trigger) => {
-    //       if (child?.action?.[trigger]) {
-    //         child.action.trigger = noodlChild[trigger]
-    //       }
-    //     })
-    //   }
-    // })
+      if (child?.action) {
+        emitTriggers.forEach((trigger) => {
+          if (child?.action?.[trigger]) {
+            child.action.trigger = noodlChild[trigger]
+          }
+        })
+      }
+    })
 
     _resolveChildren(resolvedBlueprint, {
       onResolve: (c) => {

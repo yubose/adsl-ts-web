@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _, { sortedLastIndex } from 'lodash'
 import Logger from 'logsnap'
 import {
   event as noodluiEvent,
@@ -168,7 +168,7 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       console.groupEnd()
       // node.removeEventListener(eventType, attachEventHandler)
       // handleEventHandlers()
-      return handler?.(...args)
+      return handler(...args)
     }
 
     // TODO: Test this
@@ -181,38 +181,41 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
     _.forEach(eventTypes, (eventType) => {
       let handler = component.get(eventType)
       if (handler) {
-        setTimeout(() => {
-          handler = component.get(eventType)
-          if (_.isArray(handler)) {
-            import('app/noodl-ui').then(({ default: noodlui }) => {
-              // component.draft()
+        console.log({ component, handler, eventType, node })
+      }
+      if (handler) {
+        // setTimeout(() => {
+        handler = component.get(eventType)
+        if (_.isArray(handler)) {
+          import('app/noodl-ui').then(({ default: noodlui }) => {
+            // component.draft()
 
-              // handler = noodlui.createActionChainHandler(handler, {
-              //   component,
-              //   trigger: eventType,
-              // })
+            // handler = noodlui.createActionChainHandler(handler, {
+            //   component,
+            //   trigger: eventType,
+            // })
 
-              // component.set(eventType, handler)
+            // component.set(eventType, handler)
 
-              if (isPromise(handler)) {
-                handler.then((result) => {
-                  console.log('result', result)
-                  console.log('result', result)
-                  console.log('result', result)
-                  console.log('result', result)
-                  console.log('result', result)
-                  attachEventHandler(eventType, result)
-                  // component.done()
-                })
-              } else {
-                attachEventHandler(eventType, handler)
+            if (isPromise(handler)) {
+              handler.then((result) => {
+                console.log('result', result)
+                console.log('result', result)
+                console.log('result', result)
+                console.log('result', result)
+                console.log('result', result)
+                attachEventHandler(eventType, result)
                 // component.done()
-              }
-            })
-          } else {
-            attachEventHandler(eventType, handler)
-          }
-        }, 300)
+              })
+            } else {
+              attachEventHandler(eventType, handler)
+              // component.done()
+            }
+          })
+        } else {
+          attachEventHandler(eventType, handler)
+        }
+        // }, 300)
       }
     })
   }
@@ -368,10 +371,13 @@ noodluidom.on<'list'>('list', (node: HTMLUListElement, component: IList) => {
       log.grey('', { ...result, ...options })
       const { listItem } = result
       const childNode = noodluidom.parse(listItem)
-      // console.info(
-      //   `${childNode ? 'Created' : 'Could not create'} childNode for list item`,
-      //   { node, childNode, component, listItem },
-      // )
+      if (childNode) {
+      }
+
+      console.info(
+        `${childNode ? 'Created' : 'Could not create'} childNode for list item`,
+        { node, childNode, component, listItem },
+      )
     },
   )
 

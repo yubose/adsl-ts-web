@@ -335,9 +335,7 @@ class NOODL implements T.INOODLUi {
         ),
       [] as any[],
     )
-    console.info(useActionObjects)
     useActionObjects.forEach((f) => {
-      console.log(f)
       actionChain.useAction(f)
     })
     actionChain.useBuiltIn(
@@ -576,11 +574,13 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  reset() {
+  reset(opts?: { keepCallbacks?: boolean } = {}) {
     this.#root = {}
     this.#parser = makeRootsParser({ roots: this.#root })
     this.#state = _createState()
-    this.#cb = { action: [], builtIn: [], chaining: [] }
+    if (!opts.keepCallbacks) {
+      this.#cb = { action: [], builtIn: [], chaining: [] }
+    }
     return this
   }
 

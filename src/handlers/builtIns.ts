@@ -22,7 +22,9 @@ import {
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isBooleanFalse,
+  isEmitObj,
   findDataObject,
+  createEmitDataKey,
 } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
@@ -369,6 +371,18 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       },
     })
 
+    const currentPage = noodlui.page
+    noodlui.reset({ keepCallbacks: true })
+    noodlui.setRoot(noodl.root).setPage(currentPage)
+    // await page.onBeforePageRender({ pageName: noodlui.page })
+    // noodlui
+    // await page.navigate(noodlui.page, { force: true })
+    // page.render(noodl.root[noodlui.page]?.components)
+    // await page.requestPageChange(noodlui.page, { force: true })
+
+    /**
+     * fdfdsfdsklfmkdsmfksmdkfmskfmkdsmfkdsfds */
+
     // if (redrawTargetingNode) {
     const node = document.getElementById(componentThatCalledRedraw?.id)
     const parent = componentThatCalledRedraw.parent()
@@ -376,6 +390,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     if (!parentNode) {
       console.error('not a parent node', {
         componentThatCalledRedraw,
+        componentThatCalledRedrawNodeSet: componentThatCalledRedraw.get('node'),
         parent,
         parentNode,
         node,
@@ -383,17 +398,148 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       return
     }
     if (!node) {
-      console.error('not a node')
+      console.error('not a node', {
+        componentThatCalledRedraw,
+        componentThatCalledRedrawNodeSet: componentThatCalledRedraw.get('node'),
+        parent,
+        parentNode,
+        node,
+      })
       return
     }
     // node.innerHTML = ''
-    node.remove()
+    // node.remove()
     const resolvedComponent = noodlui.resolveComponents(
       componentThatCalledRedraw.original,
     )
     resolvedComponent.setParent(parent)
-    parent.removeChild(componentThatCalledRedraw)
+    componentThatCalledRedraw && parent.removeChild?.(componentThatCalledRedraw)
     noodluidom.parse(resolvedComponent, parentNode)
+    /**
+     * fdfdsfdsklfmkdsmfksmdkfmskfmkdsmfkdsfds */
+
+    /**
+     * TEMP
+     */
+    if (componentThatCalledRedraw.get('listId')) {
+      const component = componentThatCalledRedraw
+      console.log('componentThatCalledRedraw is a list item consumer')
+      const listItem = findParent(
+        component,
+        (p) => p?.noodlType === 'listItem',
+      ) as IListItem
+      if (listItem) {
+        let dataObject = listItem.getDataObject()
+        if (!dataObject) {
+          log.grey(
+            'dataObject was not found on the listItem parent. Looking through List...',
+          )
+          const list = listItem.parent()
+          if (list) {
+            log.grey(
+              'Found list parent. Refreshing dataObject and listIndex for all',
+              { list, listItem, component },
+            )
+            const listData = list?.getData?.() || []
+            if (listData.length) {
+              log.grey('There are dataObjects in the listObject')
+              _.forEach(list.children(), (c, index) => {
+                dataObject = listData[index]
+                c?.setDataObject?.(dataObject)
+                c.set('listIndex', index)
+                c.broadcast(async (cc) => {
+                  if (isEmitObj(cc.get('path'))) {
+                    const ccPath = cc.get('path')
+                    const emitParams = {
+                      actions: ccPath?.emit?.actions,
+                      dataKey: createEmitDataKey(
+                        ccPath?.emit?.dataKey,
+                        dataObject,
+                      ),
+                      pageName: noodlui.page,
+                    }
+                    log.gold(`Running emitCall`, {
+                      component,
+                      currentChild: c,
+                      currentBroadcastedChild: cc,
+                      emitParams,
+                      dataObject,
+                      path: ccPath,
+                      listNode: document.getElementById(list.id),
+                      listItemNode: document.getElementById(listItem.id),
+                      componentNode: document.getElementById(component.id),
+                      ccNode: document.getElementById(cc.id),
+                      cNode: document.getElementById(c.id),
+                      list,
+                      listItem,
+                      listData,
+                    })
+                    let result = await noodl.emitCall(emitParams)
+                    log.gold(`emitCall result`, result)
+                    if (result) {
+                      result = Array.isArray(result) ? result[0] : result
+                    }
+                    cc.set('src', noodlui.createSrc(result, cc))
+                    return
+                  }
+                  log.grey(
+                    `(Broadcasting) Set listIndex to ${index} for listItem child ${cc?.noodlType}`,
+                    {
+                      list,
+                      listItem,
+                      currentListItemChild: c,
+                      component,
+                      broadcastedListItemChildOfChild: cc,
+                    },
+                  )
+                })
+                log.grey('set the dataObject for listItem', dataObject)
+              })
+            } else {
+              log.grey('No dataObjects are present in the listObject')
+            }
+          }
+        }
+      }
+    }
+    /**
+     * TEMP
+     */
+
+    return
+
+    // if (redrawTargetingNode) {
+    // const node = document.getElementById(componentThatCalledRedraw?.id)
+    // const parent = componentThatCalledRedraw.parent()
+    // const parentNode = node?.parentNode
+    // if (!parentNode) {
+    //   console.error('not a parent node', {
+    //     componentThatCalledRedraw,
+    //     componentThatCalledRedrawNodeSet: componentThatCalledRedraw.get('node'),
+    //     parent,
+    //     parentNode,
+    //     node,
+    //   })
+    //   return
+    // }
+    // if (!node) {
+    //   console.error('not a node', {
+    //     componentThatCalledRedraw,
+    //     componentThatCalledRedrawNodeSet: componentThatCalledRedraw.get('node'),
+    //     parent,
+    //     parentNode,
+    //     node,
+    //   })
+    //   return
+    // }
+    // // node.innerHTML = ''
+    // // node.remove()
+    // const resolvedComponent = noodlui.resolveComponents(
+    //   componentThatCalledRedraw.original,
+    // )
+    // resolvedComponent.setParent(parent)
+    // componentThatCalledRedraw && parent.removeChild?.(componentThatCalledRedraw)
+    // noodluidom.parse(resolvedComponent, parentNode)
     // }
 
     // noodluidom.redraw(

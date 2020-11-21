@@ -157,6 +157,7 @@ export function findListDataObject(component: any) {
     if (component?.noodlType === 'listItem') {
       return component.getDataObject?.()
     }
+    console.log(component.toJS())
     return findParent(
       component,
       (p) => p?.noodlType === 'listItem',

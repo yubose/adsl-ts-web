@@ -114,17 +114,6 @@ class ActionChain<
       instance: ActionObjects[number]
       options: Parameters<T.ActionChainActionCallback<ActionObjects>>
     }) => {
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
-      console.log('fdsmkfmdsjkfm')
       const numFuncs = callbacks.length
       for (let index = 0; index < numFuncs; index++) {
         const fn = callbacks[index]
@@ -146,7 +135,7 @@ class ActionChain<
     }
 
     let action =
-      obj.actionType === 'emit'
+      obj.actionType === 'emit' || 'emit' in obj
         ? new EmitAction(obj as T.EmitActionObject)
         : new Action(obj)
     let conditionalCallbackArgs = {} as any
@@ -161,7 +150,11 @@ class ActionChain<
           T.ActionChainActionCallback<ActionObjects[number]>
         >[1],
       ) => {
-        const callbackArgs = { ...options, ...conditionalCallbackArgs }
+        const callbackArgs = {
+          ...options,
+          ...conditionalCallbackArgs,
+          ref: this,
+        }
         const logArgs = {
           action: _action,
           callbackArgs,
@@ -183,11 +176,6 @@ class ActionChain<
           if (!callbacks) return
           await runActionFuncs({ callbacks, instance, options: callbackArgs })
         } else {
-          console.info({
-            ...logArgs,
-            action,
-            fns: this.fns.action,
-          })
           callbacks = _.reduce(
             this.fns.action[action.actionType] ||
               ([] as T.IActionChainUseObjectBase<ActionObjects[number]>[]),
@@ -210,6 +198,7 @@ class ActionChain<
               log.grey(`Accepting action chain trigger handler`, {
                 callbacks,
                 ...logArgs,
+                component: this.component,
               })
               return acc.concat(a.fn)
             },

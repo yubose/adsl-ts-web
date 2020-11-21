@@ -31,9 +31,11 @@ import {
   findParent,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
+  isEmitObj,
   isPossiblyDataKey,
 } from 'noodl-utils'
 import { onSelectFile } from 'utils/dom'
+import { IListItem } from '../../packages/noodl-ui/src'
 
 const log = Logger.create('actions.ts')
 
@@ -76,7 +78,7 @@ const createActions = function ({ page }: { page: IPage }) {
       log.func('emit [ActionChain]')
       log.gold('Emitting', { action, ...options })
 
-      let { component, context } = options
+      let { component, context, ref } = options
       let { emit } = action.original
       let { actions, dataKey } = emit
       let originalDataKey = dataKey
@@ -85,6 +87,100 @@ const createActions = function ({ page }: { page: IPage }) {
         actions,
         pageName: noodlui.page,
       } as any
+
+      if (component.get('listIndex') == null) {
+        console.log('listIndex is null. Finding listItem...')
+        const listItem = findParent(
+          component,
+          (p) => p?.noodlType === 'listItem',
+        ) as IListItem
+        if (listItem) {
+          let dataObject = listItem.getDataObject()
+          if (!dataObject) {
+            log.grey(
+              'dataObject was not found on the listItem parent. Looking through List...',
+            )
+            const list = listItem.parent()
+            if (list) {
+              log.grey(
+                'Found list parent. Refreshing dataObject and listIndex for all',
+                { list, listItem, component },
+              )
+              const listData = list.getData() || []
+              if (listData.length) {
+                log.grey('There are dataObjects in the listObject')
+                _.forEach(list.children(), (c, index) => {
+                  dataObject = listData[index]
+                  c?.setDataObject?.(dataObject)
+                  c.set('listIndex', index)
+                  c.broadcast(async (cc) => {
+                    cc.set('listIndex', index)
+                    if (cc.get())
+                      log.grey(
+                        `(Broadcasting) Set listIndex to ${index} for listItem child ${cc?.noodlType}`,
+                        {
+                          list,
+                          listItem,
+                          currentListItemChild: c,
+                          component,
+                          broadcastedListItemChildOfChild: cc,
+                        },
+                      )
+                  })
+                  log.grey('set the dataObject for listItem', dataObject)
+                })
+
+                if (dataObject) {
+                  const emitObj = action.original
+
+                  if (_.isPlainObject(emitObj.emit?.dataKey)) {
+                    const entries = _.entries(emitObj.emit.dataKey)
+                    const iteratorVar = listItem.iteratorVar
+                    action
+                      .set('iteratorVar', iteratorVar)
+                      .setDataObject(dataObject)
+                    for (let index = 0; index < entries.length; index++) {
+                      const [property] = entries[index] || ''
+                      action.setDataKeyValue(property, action.getDataObject())
+                    }
+                  } else if (_.isString(emitObj.emit?.dataKey)) {
+                    action.set('dataKey', emitObj.emit.dataKey)
+                    action.set('iteratorVar', listItem.iteratorVar)
+                  }
+                  log.grey('Modified emit action', action)
+                  emitParams.dataKey = action.dataKey
+
+                  let emitCallResult: any
+
+                  log.gold(`Ran emitCall`, {
+                    actions,
+                    emitParams,
+                    component,
+                    context,
+                    originalDataKey,
+                    resolvedDataKey: dataKey,
+                    emitCallResult: emitCallResult = await noodl.emitCall(
+                      emitParams as any,
+                    ),
+                  })
+
+                  if (ref) {
+                    ref['pageObject'] = noodl.root[noodlui.page]
+                    log.grey(
+                      'Resetted the pageObject',
+                      noodl.root[noodlui.page],
+                    )
+                  }
+
+                  return emitCallResult
+                }
+              } else {
+                log.grey('No dataObjects are present in the listObject')
+              }
+            }
+          }
+        }
+      }
 
       // If dataKey isn't available to use, directly pass the action to emitCall
       // since it is already handled there
@@ -221,11 +317,14 @@ const createActions = function ({ page }: { page: IPage }) {
                   })
                   acc[key] = dataObject
                   log.green('Queried dataObject --> dataValue', {
+                    component,
                     dataKey,
                     dataObject,
                     dataValue,
                     dataPath,
                     originalDataKey,
+                    pageName: noodlui.page,
+                    pageObject: noodlui.root[noodlui.page],
                   })
                 } else {
                   log.red(
@@ -481,15 +580,19 @@ const createActions = function ({ page }: { page: IPage }) {
 
   _actions.goto.push({
     fn: async (action: any, options) => {
+      log.func('_actions.goto')
+      log.red('goto action', { action, options })
       // URL
-      if (_.isString(action)) {
-        await page.requestPageChange(action)
-      } else if (_.isPlainObject(action)) {
+      if (_.isString(action?.original?.goto)) {
+        log.gold('Requesting string destination', { action, options })
+        await page.requestPageChange(action.original.goto)
+      } else if (_.isPlainObject(action?.original?.goto)) {
         // Currently don't know of any known properties the goto syntax has.
         // We will support a "destination" key since it exists on goto which will
         // soon be deprecated by this goto action
         if (action.original.destination || _.isString(action.original.goto)) {
           const url = action.original.destination || action.original.goto
+          log.gold('Requesting object destination', { action, options })
           await page.requestPageChange(url)
         } else {
           log.func('goto')
