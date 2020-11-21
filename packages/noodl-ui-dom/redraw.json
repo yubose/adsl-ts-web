@@ -1,0 +1,88 @@
+{
+  "type": "image",
+  "viewTag": "genderTag",
+  "style": {
+    "height": "0.05",
+    "width": "0.05",
+    "top": "0.02",
+    "left": "0",
+    "position": "absolute",
+    "outline": "none"
+  },
+  "path": {
+    "emit": {
+      "dataKey": {
+        "var": "itemObject"
+      },
+      "actions": [
+        {
+          "if": [
+            {
+              "=.builtIn.string.equal": {
+                "dataIn": {
+                  "string1": "=..generalInfo.gender",
+                  "string2": "$var.value"
+                }
+              }
+            },
+            "selectOn.png",
+            "selectOff.png"
+          ]
+        }
+      ]
+    }
+  },
+  "onClick": [
+    {
+      "emit": {
+        "dataKey": {
+          "var": "itemObject"
+        },
+        "actions": [
+          {
+            "if": [
+              {
+                "=.builtIn.string.equal": {
+                  "dataIn": {
+                    "string1": "=..generalInfo.gender",
+                    "string2": "$var.value"
+                  }
+                }
+              },
+              {
+                "=.builtIn.object.clear": {
+                  "dataIn": {
+                    "object": "=..generalInfo",
+                    "key": "$var.key"
+                  }
+                }
+              },
+              {
+                "=.builtIn.object.set": {
+                  "dataIn": {
+                    "object": "=..generalInfo",
+                    "key": "$var.key",
+                    "value": "$var.value"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "actionType": "builtIn",
+      "funcName": "redraw",
+      "viewTag": "genderTag"
+    }
+  ],
+  "listId": "_bkizgsb5e",
+  "iteratorVar": "itemObject",
+  "noodlType": "image",
+  "listIndex": 0,
+  "dataObject": {
+    "key": "gender",
+    "value": "Male"
+  }
+}

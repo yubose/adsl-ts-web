@@ -1,6 +1,8 @@
 import Logger from 'logsnap'
 import { get, isArr, isBool, isFnc, isObj, isStr } from './_internal'
 import * as T from './types'
+import { useFakeServer } from 'sinon'
+import { Component, IComponentTypeInstance } from '../../noodl-ui/dist'
 
 const log = Logger.create('noodl-utils')
 
@@ -360,4 +362,21 @@ export function isTextBoardComponent<Component extends T.TextLike>(
   value: Component,
 ): value is Component {
   return isObj(value) && isStr(value['text'])
+}
+
+/**
+ * Recursively invokes the provided callback on each child
+ * @param { IComponentTypeInstance } component
+ * @param { function } cb
+ */
+export function publish(
+  component: IComponentTypeInstance,
+  cb: (child: IComponentTypeInstance) => void,
+) {
+  if (component && component instanceof Component) {
+    component.children().forEach((child) => {
+      cb(child)
+      publish(child, cb)
+    })
+  }
 }

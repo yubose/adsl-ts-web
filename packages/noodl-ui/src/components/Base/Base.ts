@@ -11,6 +11,7 @@ import {
   NOODLComponentType,
   NOODLStyle,
   ProxiedComponent,
+  NOODLComponent,
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
 import { forEachEntries, getRandomKey } from '../../utils/common'
@@ -602,23 +603,32 @@ class Component implements IComponent {
     return this.#children?.length || 0
   }
 
+  /**
+   * Recursively invokes the provided callback on each child
+   * @param { IComponentTypeInstance }  - child
+   */
   broadcast(cb: (child: IComponentTypeInstance) => void) {
     const notify = (child: IComponentTypeInstance) => {
       cb(child)
-      _.forEach(child.children(), (c) => notify(c))
+      if (child) _.forEach(child.children(), (c) => notify(c))
     }
     _.forEach(this.children(), (child) => notify(child))
     return this
   }
 
-  broadcastRaw(component, cb) {
+  /**
+   *
+   * Recursively invokes the provided callback on each raw noodl child
+   * @param { IComponentTypeInstance } child
+   */
+  broadcastRaw(cb: (noodlChild: NOODLComponent) => void) {
     const notify = (f) => {
       _.forEach(f.original?.children || [], (noodlChild, index) => {
         cb(f, noodlChild, index)
         f.children().forEach((cc) => this.broadcastRaw(cc, cb))
       })
     }
-    notify(component)
+    notify(this)
     return this
   }
 
@@ -644,6 +654,23 @@ class Component implements IComponent {
     if (this.#cb[eventName]) {
       _.forEach(this.#cb[eventName], (fn) => fn(...args))
     }
+    return this
+  }
+
+  getCbs() {
+    return this.#cb
+  }
+
+  hasCb(eventName: string, cb: Function) {
+    return !!this.#cb[eventName]?.includes?.(cb)
+  }
+
+  clearCbs() {
+    Object.keys(this.#cb).forEach((eventName) => {
+      if (Array.isArray(this.#cb[eventName])) {
+        this.#cb[eventName].length = 0
+      }
+    })
     return this
   }
 }

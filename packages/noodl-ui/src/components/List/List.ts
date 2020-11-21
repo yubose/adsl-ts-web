@@ -365,6 +365,10 @@ class List extends Component implements IList {
     return child
   }
 
+  hasChild<C extends IComponentTypeInstance>(child: C) {
+    return this.#children.includes(child)
+  }
+
   removeChild(index: number): IComponentTypeInstance | undefined
   removeChild(id: string): IComponentTypeInstance | undefined
   removeChild(child: IComponentTypeInstance): IComponentTypeInstance | undefined
@@ -457,17 +461,24 @@ class List extends Component implements IList {
     return this
   }
 
-  // TODO - finish this
   off(eventName: any, cb: Function) {
-    if (eventName in this.#cb) {
-      if (this.#cb[eventName].includes(cb)) {
-        //
-      } else {
-        //
-      }
+    if (this.#cb[eventName]) {
+      const index = this.#cb[eventName]?.indexOf(cb)
+      if (index > -1) this.#cb[eventName].splice(index, 1)
     } else {
       super.on(eventName as Parameters<IComponent['on']>[0], cb)
     }
+    return this
+  }
+
+  hasCb(eventName: IListEventId, fn: Function) {
+    return !!this.#cb[eventName]?.includes(fn)
+  }
+
+  clearCbs() {
+    _.forEach(_.entries(this.#cb), ([k, v]) => {
+      this.#cb[k].length = 0
+    })
     return this
   }
 

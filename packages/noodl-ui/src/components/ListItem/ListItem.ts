@@ -86,6 +86,17 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     return child
   }
 
+  hasChild<C extends IComponentTypeInstance>(child: C) {
+    return this.#children.includes(child)
+  }
+
+  removeChild<C extends IComponentTypeInstance>(child: C) {
+    if (child) {
+      const index = this.#children.indexOf(child)
+      if (index > -1) return this.#children.splice(index, 1)[0]
+    }
+  }
+
   getDataObject() {
     return this.#dataObject
   }
@@ -113,8 +124,22 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     if (eventName === 'redraw') {
       // Restricting redraw to one handler only
       // if (this.#cb.redraw.length) return
+      if (!this.#cb.redraw) this.#cb.redraw = []
       this.#cb.redraw.push(cb)
+    } else if (eventName) {
+      this.#cb[eventName] = Array.isArray(this.#cb[eventName])
+        ? [...this.#cb[eventName], cb]
+        : [cb]
     }
+    return this
+  }
+
+  clearCbs() {
+    Object.keys(this.#cb).forEach((name) => {
+      if (Array.isArray(this.#cb[name])) {
+        this.#cb[name].length = 0
+      }
+    })
     return this
   }
 

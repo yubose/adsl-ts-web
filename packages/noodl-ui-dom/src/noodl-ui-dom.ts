@@ -26,6 +26,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
+  #state: {
+    pairs: {
+      [componentId: string]: {
+        component: IComponentTypeInstance
+        node: HTMLElement | null
+      }
+    }
+  } = { pairs: {} }
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
     Logger[log?.enabled ? 'enable' : 'disable']?.()
@@ -42,7 +50,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   ) {
     const { noodlType } = component || {}
     let node: T.NOODLDOMElement | null = null
-
     if (component) {
       if (noodlType === 'plugin') {
         // Don't create a node. Except just emit the events accordingly
@@ -50,9 +57,10 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         // a separate DOM node or not
         this.emit('component', null, component)
         this.emit('plugin', null, component)
+        this.#state.pairs[component.id] = { component, node: null }
       } else {
         node = document.createElement(getType(component))
-        component.set('node', node)
+        this.#state.pairs[component.id] = { component, node }
 
         if (node) {
           if (component?.noodlType === 'list') {
@@ -82,8 +90,11 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
             component.children().forEach((child: IComponentTypeInstance) => {
-              const childNode = this.parse(child, node) as Element
-              child?.set('node', childNode)
+              const childNode = this.parse(child, node) as HTMLElement
+              this.#state.pairs[child.id] = {
+                component: child,
+                node: childNode,
+              }
               node?.appendChild(childNode)
             })
           }
@@ -156,9 +167,84 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       if (eventName === 'component') return callbacksMap.all
       if (componentEventIds.includes(eventName)) {
         return callbacksMap.component[this.#getEventKey(eventName)]
+      } else if (eventName) {
+        if (!callbacksMap[eventName]) callbacksMap[eventName] = []
+        return callbacksMap[eventName]
       }
     }
     return null
+  }
+
+  getPair(componentId: string) {
+    return this.#state.pairs[componentId]
+  }
+
+  getState() {
+    return this.#state
+  }
+
+  redraw(
+    node: HTMLElement | null, // ex: li (dom node)
+    component: IComponentTypeInstance, // ex: listItem (component instance)
+  ) {
+    log.func('redraw')
+
+    if (component) {
+      // Clean up noodl-ui listeners
+      component.clearCbs?.()
+      // Remove the child reference from the parent
+      component.parent()?.removeChild?.(component)
+      // Remove the parent reference
+      component.setParent?.(null)
+      // Deeply walk down the tree hierarchy
+      component.broadcast?.((c) => {
+        if (c) {
+          const parent = c.parent?.()
+          // Remove listeners
+          c.clearCbs()
+          // Remove child component references
+          parent?.removeChild?.(c)
+          // Remove the child's parent reference
+          c.setParent?.(null)
+        }
+      })
+    }
+
+    if (node) {
+      // Delete the node tree
+      node.innerHTML = ''
+      // Remove the node from the parentNode
+      if (node.parentNode) node.parentNode.removeChild(node)
+    }
+
+    // // Redraw the current node
+    // this.emit(componentEventMap.all, node, component)
+    // this.emit(componentEventMap[component?.noodlType], node, component)
+
+    // component?.broadcast?.((c) => {
+    //   const childNode = document.getElementById(c?.id)
+    //   if (childNode) {
+    //     log.grey('CALLING REDRAW FOR PAIRED CHILD NODE / CHILD COMPONENT', {
+    //       baseNode: node,
+    //       baseComponent: component,
+    //       currentNode: childNode,
+    //       currentComponent: c,
+    //     })
+    //     // Redraw the child
+    //     this.emit(componentEventMap.all, childNode, c)
+    //     this.emit(componentEventMap[c?.noodlType], childNode, c)
+    //   } else {
+    //     log.grey(
+    //       'WAS NOT ABLE TO FIND PAIRED CHILD NODE / CHILD COMPONENT FOR A REDRAW',
+    //       {
+    //         baseNode: node,
+    //         baseComponent: component,
+    //         currentNode: childNode,
+    //         currentComponent: c,
+    //       },
+    //     )
+    //   }
+    // })
   }
 
   /**
@@ -166,7 +252,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * @param { HTMLElement | null } node - DOM node
    * @param { IComponentTypeInstance } component - noodl-ui component instance
    */
-  redraw(
+  redraw_backup(
     node: HTMLElement | null, // ex: li (dom node)
     component: IComponentTypeInstance, // ex: listItem (component instance)
   ) {

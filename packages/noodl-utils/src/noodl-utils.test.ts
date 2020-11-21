@@ -1,6 +1,30 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
+import {
+  createComponent,
+  IComponentTypeInstance,
+  IList,
+  IListItem,
+} from 'noodl-ui'
 import * as n from '.'
+
+let listObject: any[],
+  list: IList,
+  listItem: IListItem,
+  view: IComponentTypeInstance
+
+beforeEach(() => {
+  listObject = [
+    { key: 'gender', value: 'Male' },
+    { key: 'gender', value: 'Female' },
+    { key: 'gender', value: 'Other' },
+  ]
+  view = createComponent('view')
+  view.createChild(list)
+  list = createComponent({ type: 'list', iteratorVar: 'hello', listObject })
+  listItem = createComponent('listId')
+  listObject.forEach((d) => list.addDataObject(d))
+})
 
 describe('isAction', () => {
   it('should return true', () => {
@@ -46,6 +70,27 @@ describe('isBreakLineTextBoardItem', () => {
 
   xit('should return true', () => {
     expect(n.isBreakLineTextBoardItem('br')).to.be.true
+  })
+})
+
+describe('publish', () => {
+  it.only('should recursively call the callback', () => {
+    const spy = sinon.spy()
+    const view = createComponent('view')
+    let someChild = createComponent('view')
+    view.createChild(someChild)
+    someChild.createChild(createComponent('view'))
+    someChild.createChild(createComponent('view'))
+    someChild.createChild(createComponent('view'))
+    n.publish(view, spy)
+    console.info(view.toJS())
+    expect(spy.callCount).to.eq(4)
+  })
+})
+
+describe('createEmitDataKey', () => {
+  xit('should return the parsed dataKey', () => {
+    //
   })
 })
 

@@ -28,7 +28,12 @@ import {
 import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
 import { emit } from './__tests__/helpers/actions'
 import { NOODLDOMElement } from './types'
+import { noodlui } from '../../../src/utils/test-utils'
 import NOODLUIDOM from './noodl-ui-dom'
+
+export { noodlui }
+
+export const noodluidom = new NOODLUIDOM()
 
 const log = Logger.create('noodl-ui-dom/test-utils.ts')
 
@@ -37,7 +42,7 @@ export const viewport = new Viewport()
 viewport.width = 365
 viewport.height = 667
 
-export const noodlui = new NOODL()
+export const noodlui_ = new NOODL()
   .init({ viewport })
   .setAssetsUrl(assetsUrl)
   .setRoot('PatientChartGeneralInfo', {
@@ -80,8 +85,6 @@ export const noodlui = new NOODL()
       },
     },
   ])
-
-export const noodluidom = new NOODLUIDOM()
 
 export function getAllResolvers() {
   return [

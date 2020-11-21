@@ -321,6 +321,7 @@ export interface IList<
   getBlueprint(): IListBlueprint
   setBlueprint(blueprint: IListBlueprint): this
   getData(opts?: { fromNodes?: boolean }): ListData
+  hasCb(eventName: IListEventId, fn: Function): boolean
   addDataObject(
     dataObject: DataObject,
   ): IListDataObjectOperationResult<DataObject>

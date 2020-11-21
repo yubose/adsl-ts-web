@@ -21,6 +21,8 @@ import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
 import Page from '../Page'
 
+export { noodlui, noodluidom }
+
 export function getByDataKey(dataKey: string, container?: Element) {
   return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
 }
@@ -117,8 +119,6 @@ export function getAllResolvers() {
     getTransformedStyleAliases,
   ] as ResolverFn[]
 }
-
-export { noodlui, noodluidom }
 
 export const page = new Page()
 

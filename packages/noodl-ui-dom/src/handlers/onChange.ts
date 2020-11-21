@@ -16,7 +16,7 @@ function onChange<N extends HTMLElement>(
       const fn = component.get('onChange')
       if (typeof fn === 'function') {
         node.addEventListener('change', wrapper(node, component, cb))
-        ;(node.dataset.handling as string[])?.push(ID)
+        ;(node.dataset.handling as string)?.push(ID)
       }
     } else {
       console.log(

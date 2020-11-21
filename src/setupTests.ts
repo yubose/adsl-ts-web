@@ -4,8 +4,7 @@ import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
 import { IResolver, Resolver, Viewport } from 'noodl-ui'
 import Logger, { _color } from 'logsnap'
-import noodlui from './app/noodl-ui'
-import { assetsUrl, getAllResolvers, page } from './utils/test-utils'
+import { assetsUrl, getAllResolvers, noodlui, page } from './utils/test-utils'
 import './handlers/dom'
 
 chai.use(chaiAsPromised)
@@ -13,7 +12,7 @@ chai.use(chaiAsPromised)
 let logSpy: sinon.SinonStub
 
 before(async () => {
-  noodlui.init()
+  // noodlui.init()
   console.clear()
   Logger.disable()
 

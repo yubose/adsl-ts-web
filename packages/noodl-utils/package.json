@@ -14,8 +14,11 @@
   "scripts": {
     "build": "rm -rf dist && rollup -c --environment BUILD:production",
     "start": "rm -rf dist && rollup -c --environment BUILD:development -w",
-    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register --extensions ts --watch --watch-files src"
+    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
+    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src"
+  },
+  "peerDependencies": {
+    "noodl-ui": "^0.1.28"
   },
   "keywords": [
     "noodl"
@@ -41,8 +44,5 @@
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
-  },
-  "dependencies": {
-    "noodl-building-blocks": "file:../noodl-building-blocks"
   }
 }
