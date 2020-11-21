@@ -15,6 +15,7 @@ import {
   getSizes,
   getTransformedAliases,
   getTransformedStyleAliases,
+  IComponentTypeInstance,
   IList,
   IResolver,
   NOODL,
@@ -22,6 +23,7 @@ import {
   ResolverFn,
   SelectOption,
   Viewport,
+  isPromise,
 } from 'noodl-ui'
 import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
 import { emit } from './__tests__/helpers/actions'
@@ -65,7 +67,6 @@ export const noodlui = new NOODL()
         noodluidom.redraw(
           document.querySelector(`[data-viewtag="${viewTag}"]`),
           component,
-          action.original,
         )
 
         // console.info('REACHED BUILT INS BLOCK!!!', {
@@ -106,6 +107,31 @@ export function toDOM(props: any): NOODLDOMElement | null {
   return node
 }
 
+const defaultPropTable = {
+  dataset: [
+    'data-listid',
+    'data-name',
+    'data-key',
+    'data-ux',
+    'data-value',
+    'data-viewtag',
+  ] as string[],
+  values: ['id'] as string[],
+  attributes: [
+    'placeholder',
+    {
+      attribute: 'src',
+      cond: (node: any) => node.tagName !== 'VIDEO',
+    },
+  ] as (
+    | string
+    | {
+        attribute: string
+        cond?(node: any, component: IComponentTypeInstance): boolean
+      }
+  )[],
+}
+
 export function listenToDOM() {
   noodluidom.on('component', (node, component) => {
     if (!node) return
@@ -116,53 +142,61 @@ export function listenToDOM() {
       placeholder = '',
       src,
       text = '',
-      videoFormat = '',
-    } = component.get([
-      'children',
-      'options',
-      'placeholder',
-      'src',
-      'text',
-      'videoFormat',
-    ])
+    } = component.get(['children', 'options', 'text', 'videoFormat'])
 
-    const { id, style, type } = component
+    const { style, type } = component
 
-    // TODO reminder: Remove this listdata in the noodl-ui client
-    // const dataListData = component['data-listdata']
-
-    const datasetAttribs = component.get([
-      'data-listid',
-      'data-name',
-      'data-key',
-      'data-ux',
-      'data-value',
-      'data-viewtag',
-    ])
-
-    if (id) {
-      node['id'] = id
-      node.setAttribute('id', id)
+    /** Handle attributes */
+    if (Array.isArray(defaultPropTable.attributes)) {
+      defaultPropTable.attributes.forEach((key) => {
+        let attr, val: any
+        if (typeof key !== 'string') {
+          const { attribute, cond } = key
+          if (typeof cond === 'function') {
+            if (cond(node, component)) attr = attribute
+          } else {
+            attr = attribute
+          }
+          val =
+            component.get((attr || '') as any) ||
+            component[(attr || '') as keyof IComponentTypeInstance]
+        } else {
+          attr = key
+        }
+        val =
+          component.get((attr || '') as keyof IComponentTypeInstance) ||
+          component[(attr || '') as keyof IComponentTypeInstance]
+        if (val !== undefined) node.setAttribute(attr as keyof typeof node, val)
+      })
     }
-    if (placeholder) node.setAttribute('placeholder', placeholder)
-    if (src && type !== 'video') node.setAttribute('src', src)
+    /** Handle dataset assignments */
+    if (Array.isArray(defaultPropTable.dataset)) {
+      defaultPropTable.dataset.forEach((key) => {
+        const val =
+          component.get(key) || component[key as keyof IComponentTypeInstance]
+        if (val !== undefined) node.dataset[key.replace('data-', '')] = val
+      })
+    }
+    // Handle direct assignments
+    if (Array.isArray(defaultPropTable.values)) {
+      const pending = defaultPropTable.values.slice()
+      let prop = pending.pop()
+      let val
+      while (prop) {
+        if (prop !== undefined) {
+          val =
+            component.get(prop) ||
+            component[prop as keyof IComponentTypeInstance]
+          if (val !== undefined) node[prop] = val
+        }
+        prop = pending.pop()
+      }
+    }
 
-    /** Dataset identifiers */
-    if (datasetAttribs['data-listid'])
-      node.dataset['listid'] = datasetAttribs['data-listid']
-    if (datasetAttribs['data-name'])
-      node.dataset['name'] = datasetAttribs['data-name']
-    if (datasetAttribs['data-key'])
-      node.dataset['key'] = datasetAttribs['data-key']
-    if (datasetAttribs['data-ux'])
-      node.dataset['ux'] = datasetAttribs['data-ux']
-    if (datasetAttribs['data-value']) {
-      node.dataset['value'] = datasetAttribs['data-value']
-      if ('value' in node) node.value = datasetAttribs['data-value']
-    }
-    if (datasetAttribs['data-viewtag']) {
-      node.dataset['viewtag'] = datasetAttribs['data-viewtag']
-    }
+    // The src is placed on its "source" dom node
+    if (src && type === 'video') node.removeAttribute('src')
+
+    const datasetAttribs = component.get(defaultPropTable.dataset)
 
     /** Data values */
     if (isTextFieldLike(node)) {
@@ -176,8 +210,17 @@ export function listenToDOM() {
         node.dataset['value'] = node.value || ''
         node['value'] = datasetAttribs['data-value'] || ''
       }
-    } else if (component.get('text=func') && datasetAttribs['data-value']) {
-      node.innerHTML = datasetAttribs['data-value']
+
+      // Attach an additional listener for data-value elements that are expected
+      // to change values on the fly by some "on change" logic (ex: input/select elements)
+      // import('../utils/sdkHelpers')
+      //   .then(({ createOnDataValueChangeFn }) => {
+      //     const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
+      //     node.addEventListener('change', onChange)
+      //   })
+      //   .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
+    } else if (component.get('text=func')) {
+      node.innerHTML = datasetAttribs['data-value'] || ''
     } else {
       // For non data-value elements like labels or divs that just display content
       // If there's no data-value (which takes precedence here), use the placeholder
@@ -192,34 +235,86 @@ export function listenToDOM() {
         datasetAttribs['data-value'] || component.get('placeholder') || ''
     }
 
-    /** Event handlers */
-    eventTypes.forEach((eventType) => {
-      const handler = component.get(eventType)
-      if (handler) {
-        const event = (eventType.startsWith('on')
-          ? eventType.replace('on', '')
-          : eventType
-        ).toLocaleLowerCase()
+    const attachEventHandler = (eventType: any, handler: Function) => {
+      const event = (eventType.startsWith('on')
+        ? eventType.replace('on', '')
+        : eventType
+      ).toLocaleLowerCase()
 
-        // TODO: Test this
-        // Attach the event handler
-        node.addEventListener(event, (...args: any[]) => {
-          log.func(`on all --> addEventListener: ${event}`)
-          log.grey(`User action invoked handler`, {
-            component,
-            [event]: handler,
-          })
-          // console.groupCollapsed('', { event, node, component })
-          // console.trace()
-          // console.groupEnd()
-          return handler(...args)
+      const fn = (...args: any[]) => {
+        log.func(`on all --> addEventListener: ${event}`)
+        log.grey(`User action invoked handler`, {
+          component,
+          handlerInArgs: handler,
+          handlerInComponent: component.get(eventType),
         })
+        console.groupCollapsed('', {
+          event,
+          node,
+          component,
+          handler: component.get(eventType),
+        })
+        console.trace()
+        console.groupEnd()
+        // node.removeEventListener(eventType, attachEventHandler)
+        // handleEventHandlers()
+        return handler(...args)
       }
-    })
+
+      // TODO: Test this
+      // Attach the event handler
+      node.addEventListener(event, fn)
+    }
+
+    /** Event handlers */
+    function handleEventHandlers() {
+      forEach(eventTypes, (eventType) => {
+        let handler = component.get(eventType)
+        if (handler) {
+          console.log({ component, handler, eventType, node })
+        }
+        if (handler) {
+          // setTimeout(() => {
+          handler = component.get(eventType)
+          if (isArray(handler)) {
+            // component.draft()
+
+            // handler = noodlui.createActionChainHandler(handler, {
+            //   component,
+            //   trigger: eventType,
+            // })
+
+            // component.set(eventType, handler)
+
+            if (isPromise(handler)) {
+              handler.then((result) => {
+                console.log('result', result)
+                console.log('result', result)
+                console.log('result', result)
+                console.log('result', result)
+                console.log('result', result)
+                attachEventHandler(eventType, result)
+                // component.done()
+              })
+            } else {
+              attachEventHandler(eventType, handler)
+              // component.done()
+            }
+          } else {
+            attachEventHandler(eventType, handler)
+          }
+          // }, 300)
+        }
+      })
+    }
+
+    handleEventHandlers()
 
     /** Styles */
-    if (style && typeof style === 'string') {
-      Object.entries(style).forEach(([k, v]) => (node.style[k as any] = v))
+    if (isPlainObject(style)) {
+      Object.entries(style).forEach(([k, v]) => {
+        node.style[k as any] = v
+      })
     } else {
       log.func('noodluidom.on: all')
       log.red(
@@ -257,12 +352,6 @@ export function listenToDOM() {
       }
     }
 
-    function isDisplayable(value: unknown): value is string | number {
-      return (
-        value == 0 || typeof value === 'string' || typeof value === 'number'
-      )
-    }
-
     if (!node.innerHTML.trim()) {
       if (isDisplayable(datasetAttribs['data-value'])) {
         node.innerHTML = `${datasetAttribs['data-value']}`
@@ -272,13 +361,6 @@ export function listenToDOM() {
         node.innerHTML = `${text}`
       }
     }
-
-    // if (component.node) {
-    //   const parentNode = parent?.node
-    //   if (parentNode) {
-    //     parentNode.appendChild(component.node)
-    //   }
-    // }
   })
 
   noodluidom.on('create.button', (node, component) => {
@@ -476,7 +558,7 @@ export function listenToDOM() {
       //         const labelNode = document.querySelector(`[data-key="${dataKey}"]`)
       //         if (labelNode) {
       //           dataKey = dataKey.split('.').slice(1).join('.')
-      //           let dataValue = _.get(component.getDataObject(), dataKey)
+      //           let dataValue = get(component.getDataObject(), dataKey)
       //           console.info('dataValue', dataValue)
       //           if (dataValue) labelNode.textContent = dataValue
       //         }
@@ -485,7 +567,7 @@ export function listenToDOM() {
       //       }
       //     } else {
       //       // const n = document.querySelector(`[data-key="${dataKey}"]`)
-      //       // if (n) n.textContent = _.get(component.getDataObject(), dataKey)
+      //       // if (n) n.textContent = get(component.getDataObject(), dataKey)
       //     }
       //   })
     })
@@ -532,7 +614,7 @@ export function listenToDOM() {
           const eyeContainer = document.createElement('button')
           const eyeIcon = document.createElement('img')
 
-          // const restDividedStyleKeys = _.omit(component.style, dividedStyleKeys)
+          // const restDividedStyleKeys = omit(component.style, dividedStyleKeys)
 
           // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
           const dividedStyleKeys = [

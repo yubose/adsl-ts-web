@@ -36,6 +36,7 @@
     "test:noodlui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
     "test:noodlui:internal": "lerna exec --scope noodl-ui \"npm run test:file src/**/*_internalResolver.test.ts\"",
     "test:noodluidom": "lerna exec --scope noodl-ui-dom \"npm run test\"",
+    "test:noodluidom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:actionchain": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/ActionChain.test.ts --verbose\"",
     "test:components": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/*Component*.test.ts\"",
     "test:coverage:components": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test nyc ts-mocha -r jsdom-global/register -r ts-node/register/transpile-only -r tsconfig-paths/register --require source-map-support/register --extensions ts --file ./src/setupTests.ts \"packages/noodl-ui/src/__tests__/*(*Component|noodl-ui).test.ts\"",
