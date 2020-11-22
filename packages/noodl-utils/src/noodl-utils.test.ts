@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+import fs from 'fs-extra'
 import sinon from 'sinon'
 import {
   createComponent,
@@ -76,15 +77,19 @@ describe('isBreakLineTextBoardItem', () => {
 describe('publish', () => {
   it.only('should recursively call the callback', () => {
     const spy = sinon.spy()
-    const view = createComponent('view')
-    let someChild = createComponent('view')
-    view.createChild(someChild)
-    someChild.createChild(createComponent('view'))
-    someChild.createChild(createComponent('view'))
-    someChild.createChild(createComponent('view'))
+    const view = n.createDeepChildren('view', {
+      depth: 6,
+      injectProps: {
+        last: {
+          viewTag: 'genderTag',
+          style: { border: { style: '2' } },
+        },
+      },
+    })
     n.publish(view, spy)
-    console.info(view.toJS())
-    expect(spy.callCount).to.eq(4)
+    expect(spy.callCount).to.eq(6)
+    expect(spy.lastCall.args[0].get('viewTag')).to.eq('genderTag')
+    expect(spy.lastCall.args[0].style).to.exist
   })
 })
 

@@ -8,6 +8,7 @@ import { expect } from 'chai'
 import {
   componentTypes,
   createComponent,
+  EmitActionObject,
   eventTypes,
   IComponentTypeInstance,
   IList,
@@ -16,8 +17,9 @@ import {
   NOODLComponentProps,
 } from 'noodl-ui'
 import { listenToDOM, noodlui, noodluidom, toDOM } from './test-utils'
+import { getShape, getShapeKeys } from './utils'
 
-describe.skip('noodl-ui-dom', () => {
+describe('noodl-ui-dom', () => {
   it('should add the func to the callbacks list', () => {
     const spy = sinon.spy()
     noodluidom.on('button', spy)
@@ -44,36 +46,6 @@ describe.skip('noodl-ui-dom', () => {
     // @ts-expect-error
     noodluidom.emit('label')
     expect(spy.called).to.be.true
-  })
-
-  describe('when attaching component events', () => {
-    it('should attach the onChange handler', () => {
-      const textField = createComponent('textField') as IComponentTypeInstance
-      const spy = sinon.spy()
-      textField.set('onChange', spy)
-      const node = noodluidom.parse(textField) as HTMLInputElement
-      userEvent.type(node, 'hello all')
-      expect(spy.called).to.be.true
-      expect(node.dataset.value).to.eq('hello all')
-    })
-
-    eventTypes.forEach((eventType) => {
-      xit(`should not re-attach handlers (duplicating)`, () => {
-        const view = createComponent('view') as IComponentTypeInstance
-        const list = createComponent('list') as IList
-        const listItem = createComponent('listItem') as IListItem
-        const textField = createComponent('textField') as IComponentTypeInstance
-        textField.set('data-value', 'my data value')
-        const label = createComponent('label') as IComponentTypeInstance
-        label.set('text', 'heres my text')
-        const nestedView = createComponent('view') as IComponentTypeInstance
-        view.createChild(list)
-        list.createChild(listItem)
-        listItem.createChild(nestedView)
-        nestedView.createChild(label)
-        nestedView.createChild(textField)
-      })
-    })
   })
 
   describe('when calling component events', () => {
@@ -239,4 +211,109 @@ describe.skip('noodl-ui-dom', () => {
       expect(spy.firstCall.args[0]).to.be.null
     })
   })
+
+  describe('getShape', () => {
+    let dataKey: string
+    let iteratorVar: string
+    let listObject: any[]
+    let listId: string
+    let path: Omit<EmitActionObject, 'actionType'>
+    let noodlComponent: NOODLComponent
+
+    beforeEach(() => {
+      dataKey = 'formData.password'
+      iteratorVar = 'hello'
+      listObject = [
+        { fruit: 'apple' },
+        { fruit: 'banana' },
+        { fruit: 'orange' },
+      ]
+      listId = 'mylistid123'
+      path = { emit: { dataKey: { var1: 'hello' }, actions: [{}, {}, {}] } }
+      noodlComponent = {
+        type: 'label',
+        contentType: 'number',
+        'data-key': dataKey,
+        'data-value': 'mypassword',
+        'data-listid': listId,
+        'data-ux': 'genderTag',
+        'data-name': 'password',
+        dataKey,
+        listObject,
+        iteratorVar,
+        placeholder: 'You do not have a password yet',
+        required: 'true',
+        style: {
+          fontSize: '14',
+          top: '0',
+          left: '0.1',
+          color: '0x000000',
+        },
+        text: 'mytext',
+        viewTag: 'genderTag',
+        children: [
+          { type: 'label', text: 'hi', style: {} },
+          { type: 'button', path: 'abc.png' },
+        ],
+      }
+    })
+
+    it('should return an object with properties only in the shapeKeys list', () => {
+      const component = createComponent(noodlComponent)
+      const shape = getShape(component)
+      const shapeKeys = getShapeKeys()
+      const shapeKeysResults = Object.keys(shape)
+      shapeKeysResults.forEach((keyResult) => {
+        expect(shapeKeys.includes(keyResult)).to.be.true
+      })
+    })
+
+    it(
+      'should return the expected base shape that is intended for any ' +
+        'components that have them (NOODLComponent properties)',
+      () => {
+        const component = createComponent(noodlComponent)
+        const shape = getShape(component)
+        const shapeKeys = getShapeKeys()
+        Object.keys(noodlComponent).forEach((key) =>
+          !shapeKeys.includes(key) ? delete noodlComponent[key] : undefined,
+        )
+        Object.keys(noodlComponent).forEach((k) => {
+          expect(noodlComponent[k]).to.eq(shape[k])
+          delete shape[k]
+        })
+        expect(Object.keys(shape)).to.have.lengthOf(0)
+      },
+    )
+  })
 })
+
+// describe('(inactive for now) when attaching component events', () => {
+//   xit('should attach the onChange handler', () => {
+//     const textField = createComponent('textField') as IComponentTypeInstance
+//     const spy = sinon.spy()
+//     textField.set('onChange', spy)
+//     const node = noodluidom.parse(textField) as HTMLInputElement
+//     userEvent.type(node, 'hello all')
+//     expect(spy.called).to.be.true
+//     expect(node.dataset.value).to.eq('hello all')
+//   })
+
+//   eventTypes.forEach((eventType) => {
+//     xit(`should not re-attach handlers (duplicating)`, () => {
+//       const view = createComponent('view') as IComponentTypeInstance
+//       const list = createComponent('list') as IList
+//       const listItem = createComponent('listItem') as IListItem
+//       const textField = createComponent('textField') as IComponentTypeInstance
+//       textField.set('data-value', 'my data value')
+//       const label = createComponent('label') as IComponentTypeInstance
+//       label.set('text', 'heres my text')
+//       const nestedView = createComponent('view') as IComponentTypeInstance
+//       view.createChild(list)
+//       list.createChild(listItem)
+//       listItem.createChild(nestedView)
+//       nestedView.createChild(label)
+//       nestedView.createChild(textField)
+//     })
+//   })
+// })

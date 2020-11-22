@@ -4,6 +4,14 @@
 //     let prev: any
 //     let obj: any = value
 
+import {
+  Component,
+  IComponentTypeInstance,
+  IComponentTypeObject,
+  NOODLComponent,
+} from 'noodl-ui'
+import { shapeKeys } from './constants'
+
 //     while (parts.length) {
 //       const part = parts.shift()
 //       if (part) {
@@ -38,6 +46,62 @@ export const get = <T = any>(o: T, k: string) => {
   }
 
   return result
+}
+
+export function getShape(
+  component: IComponentTypeInstance,
+): IComponentTypeObject {
+  let shape = {}
+  const shapeKeys = getShapeKeys()
+  // TODO - Use the "iteratorVar"
+
+  if (component instanceof Component) {
+    if (component.get('iteratorVar')) {
+      // The noodl yml may also place the value of iteratorVar as a property
+      // as an empty string. So we include the value as a property to keep as well
+      shapeKeys.push(component.get('iteratorVar'))
+    }
+    shapeKeys.forEach((key) => {
+      if (component.original?.[key]) {
+        shape[key] = component.original[key]
+      }
+    })
+  }
+
+  return shape
+}
+
+export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
+  return [
+    'type',
+    'style',
+    'children',
+    'controls',
+    'dataKey',
+    'contentType',
+    'inputType',
+    'isEditable',
+    'iteratorVar',
+    'listObject',
+    'maxPresent',
+    'onClick',
+    'onHover',
+    'options',
+    'path',
+    'pathSelected',
+    'poster',
+    'placeholder',
+    'resource',
+    'required',
+    'selected',
+    'text',
+    'textSelectd',
+    'textBoard',
+    'text=func',
+    'viewTag',
+    'videoFormat',
+    ...keys,
+  ] as string[]
 }
 
 export function isHandlingEvent<N extends HTMLElement>(

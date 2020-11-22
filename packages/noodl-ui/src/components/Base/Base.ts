@@ -37,6 +37,7 @@ class Component implements IComponent {
   untouched: string[] = []
   stylesTouched: string[] = []
   stylesUntouched: string[] = []
+  shape: Partial<NOODLComponent>
 
   constructor(component: IComponentType) {
     const keys =
@@ -47,6 +48,7 @@ class Component implements IComponent {
         : _.isString(component)
         ? { noodlType: component }
         : component
+    this['shape'] = this.original
     this['keys'] = keys
     this['untouched'] = keys.slice()
     this['unhandled'] = keys.slice()
@@ -621,11 +623,13 @@ class Component implements IComponent {
    * Recursively invokes the provided callback on each raw noodl child
    * @param { IComponentTypeInstance } child
    */
-  broadcastRaw(cb: (noodlChild: NOODLComponent) => void) {
-    const notify = (f) => {
-      _.forEach(f.original?.children || [], (noodlChild, index) => {
-        cb(f, noodlChild, index)
-        f.children().forEach((cc) => this.broadcastRaw(cc, cb))
+  broadcastRaw(
+    cb: (c: IComponentTypeInstance, nc: NOODLComponent, index: number) => void,
+  ) {
+    const notify = (c: IComponentTypeInstance) => {
+      _.forEach(c.original?.children || [], (noodlChild, index) => {
+        cb?.(c, noodlChild, index)
+        c.children().forEach((cc) => notify(cc))
       })
     }
     notify(this)

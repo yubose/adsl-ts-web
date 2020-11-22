@@ -25,6 +25,7 @@ import {
   isEmitObj,
   findDataObject,
   createEmitDataKey,
+  publish,
 } from 'noodl-utils'
 import Page from 'Page'
 import Logger from 'logsnap'
@@ -447,7 +448,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
                 dataObject = listData[index]
                 c?.setDataObject?.(dataObject)
                 c.set('listIndex', index)
-                c.broadcast(async (cc) => {
+                publish(c, async (cc) => {
                   if (isEmitObj(cc.get('path'))) {
                     const ccPath = cc.get('path')
                     const emitParams = {

@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import chalk from 'chalk'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
-import * as builder from 'noodl-building-blocks'
 import { noodlui } from '../utils/test-utils'
 import makeRootsParser from '../factories/makeRootsParser'
 import ActionChain from '../ActionChain'
@@ -308,7 +307,7 @@ describe('ActionChain', () => {
 
     it(`should return a function`, () => {
       const actionChain = new ActionChain(
-        [builder.createBuiltInObject({ funcName: 'hello', fn: sinon.spy() })],
+        [{ funcName: 'hello', fn: sinon.spy() }],
         { component: {} } as any,
       )
       expect(actionChain.build()).to.be.a('function')

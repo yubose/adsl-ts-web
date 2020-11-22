@@ -33,6 +33,7 @@ import {
   isBooleanTrue,
   isEmitObj,
   isPossiblyDataKey,
+  publish
 } from 'noodl-utils'
 import { onSelectFile } from 'utils/dom'
 import { IListItem } from '../../packages/noodl-ui/src'
@@ -113,7 +114,7 @@ const createActions = function ({ page }: { page: IPage }) {
                   dataObject = listData[index]
                   c?.setDataObject?.(dataObject)
                   c.set('listIndex', index)
-                  c.broadcast(async (cc) => {
+                  publish(c, async (cc) => {
                     cc.set('listIndex', index)
                     if (cc.get())
                       log.grey(

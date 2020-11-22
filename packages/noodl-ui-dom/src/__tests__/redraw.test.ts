@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import fs from 'fs-extra'
-import { findChild } from 'noodl-utils'
+import { createDeepChildren, findChild, publish } from 'noodl-utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import {
   createComponent,
@@ -156,14 +156,6 @@ describe('redraw', () => {
     noodluidom.off('component', onComponentAttachId)
   })
 
-  xit('should deeply resolve the entire noodl-ui component tree down', () => {
-    //
-  })
-
-  xit('should deeply resolve the entire dom node tree down', () => {
-    //
-  })
-
   it('should attach to the original parentNode as the new childNode', () => {
     noodluidom.on('component', onComponentAttachId)
     noodluidom.parse(view)
@@ -171,10 +163,35 @@ describe('redraw', () => {
     const liNode = document.getElementById(listItem?.id || '')
     const ulNode = liNode?.parentNode
     expect(ulNode.contains(liNode)).to.be.true
-    noodluidom.redraw(liNode, listItem)
+    const [newNode] = noodluidom.redraw(liNode, listItem)
     expect(ulNode.contains(liNode)).to.be.false
+    expect(ulNode.children).to.have.length.greaterThan(0)
+    expect(newNode.parentNode).to.eq(ulNode)
     noodluidom.off('component', onComponentAttachId)
-    throw new Error('last left off')
+  })
+
+  describe('when deeply resolving components', () => {
+    describe('should use every component\'s "shape" as their redraw blueprint', () => {
+      it('', () => {
+        //
+      })
+    })
+
+    describe('action chains should still retain their original actions in the actions list', () => {
+      it('', () => {
+        //
+      })
+    })
+
+    xit('should deeply resolve the entire noodl-ui component tree down', () => {
+      const [newNode, newComponent] = noodluidom.redraw(null, view)
+    })
+  })
+
+  describe('when deeply resolving dom nodes', () => {
+    xit('should deeply resolve the entire dom node tree down', () => {
+      //
+    })
   })
 })
 

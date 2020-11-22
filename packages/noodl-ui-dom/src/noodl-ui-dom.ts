@@ -1,10 +1,15 @@
 import Logger from 'logsnap'
 import {
+  Component,
   getType,
   IComponentTypeInstance,
+  IComponentTypeObject,
   IListItem,
   NOODLComponentType,
+  Resolver,
+  ResolverFn,
 } from 'noodl-ui'
+import { publish } from 'noodl-utils'
 import {
   componentEventMap,
   componentEventIds,
@@ -31,6 +36,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       [componentId: string]: {
         component: IComponentTypeInstance
         node: HTMLElement | null
+        shape: Partial<IComponentTypeObject>
       }
     }
   } = { pairs: {} }
@@ -186,8 +192,12 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   redraw(
     node: HTMLElement | null, // ex: li (dom node)
     component: IComponentTypeInstance, // ex: listItem (component instance)
+    opts?: { resolvers?: ResolverFn[] },
   ) {
     log.func('redraw')
+
+    let newNode: HTMLElement | null = null
+    let newComponent: IComponentTypeInstance
 
     if (component) {
       // Clean up noodl-ui listeners
@@ -197,7 +207,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       // Remove the parent reference
       component.setParent?.(null)
       // Deeply walk down the tree hierarchy
-      component.broadcast?.((c) => {
+      publish(component, (c) => {
         if (c) {
           const parent = c.parent?.()
           // Remove listeners
@@ -211,11 +221,22 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     }
 
     if (node) {
+      let parentNode: any
       // Delete the node tree
       node.innerHTML = ''
       // Remove the node from the parentNode
-      if (node.parentNode) node.parentNode.removeChild(node)
+      if (node.parentNode) {
+        parentNode = node.parentNode
+        node.parentNode.removeChild(node)
+      }
+      // Create and attach the new node as the child of the original parentNode
+      newNode = document.createElement(getType(component))
+      if (newNode && parentNode) {
+        parentNode.appendChild(newNode)
+      }
     }
+
+    return [newNode, newComponent]
 
     // // Redraw the current node
     // this.emit(componentEventMap.all, node, component)
@@ -262,7 +283,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     this.emit(componentEventMap.all, node, component)
     this.emit(componentEventMap[component?.noodlType], node, component)
 
-    component?.broadcast?.((c) => {
+    publish(component, (c) => {
       const childNode = document.getElementById(c?.id)
       if (childNode) {
         log.grey('CALLING REDRAW FOR PAIRED CHILD NODE / CHILD COMPONENT', {

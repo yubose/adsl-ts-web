@@ -49,7 +49,7 @@ const handleListInternalResolver = (
 
     log.grey(`Created a new listItem`, logArgs)
 
-    listItem.broadcastRaw(listItem, (componentParent, noodlChild, index) => {
+    listItem.broadcastRaw((componentParent, noodlChild, index) => {
       // console.info('broadcastRaw')
       // console.info(ff)
       // console.info('broadcastRaw')

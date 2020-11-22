@@ -1,88 +1,38 @@
 {
-  "type": "image",
-  "viewTag": "genderTag",
-  "style": {
-    "height": "0.05",
-    "width": "0.05",
-    "top": "0.02",
-    "left": "0",
-    "position": "absolute",
-    "outline": "none"
-  },
-  "path": {
-    "emit": {
-      "dataKey": {
-        "var": "itemObject"
-      },
-      "actions": [
-        {
-          "if": [
-            {
-              "=.builtIn.string.equal": {
-                "dataIn": {
-                  "string1": "=..generalInfo.gender",
-                  "string2": "$var.value"
-                }
-              }
-            },
-            "selectOn.png",
-            "selectOff.png"
-          ]
-        }
-      ]
-    }
-  },
-  "onClick": [
+  "type": "label",
+  "contentType": "number",
+  "dataKey": "formData.password",
+  "listObject": [
     {
-      "emit": {
-        "dataKey": {
-          "var": "itemObject"
-        },
-        "actions": [
-          {
-            "if": [
-              {
-                "=.builtIn.string.equal": {
-                  "dataIn": {
-                    "string1": "=..generalInfo.gender",
-                    "string2": "$var.value"
-                  }
-                }
-              },
-              {
-                "=.builtIn.object.clear": {
-                  "dataIn": {
-                    "object": "=..generalInfo",
-                    "key": "$var.key"
-                  }
-                }
-              },
-              {
-                "=.builtIn.object.set": {
-                  "dataIn": {
-                    "object": "=..generalInfo",
-                    "key": "$var.key",
-                    "value": "$var.value"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
+      "fruit": "apple"
     },
     {
-      "actionType": "builtIn",
-      "funcName": "redraw",
-      "viewTag": "genderTag"
+      "fruit": "banana"
+    },
+    {
+      "fruit": "orange"
     }
   ],
-  "listId": "_bkizgsb5e",
-  "iteratorVar": "itemObject",
-  "noodlType": "image",
-  "listIndex": 0,
-  "dataObject": {
-    "key": "gender",
-    "value": "Male"
-  }
+  "iteratorVar": "hello",
+  "placeholder": "You do not have a password yet",
+  "required": "true",
+  "style": {
+    "fontSize": "14",
+    "top": "0",
+    "left": "0.1",
+    "color": "0x000000"
+  },
+  "text": "mytext",
+  "viewTag": "genderTag",
+  "children": [
+    {
+      "type": "label",
+      "text": "hi",
+      "style": {}
+    },
+    {
+      "type": "button",
+      "path": "abc.png"
+    }
+  ]
 }

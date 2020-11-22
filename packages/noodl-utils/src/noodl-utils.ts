@@ -1,10 +1,64 @@
 import Logger from 'logsnap'
+import {
+  Component,
+  createComponent,
+  IComponentTypeInstance,
+  NOODLComponent,
+  NOODLComponentType,
+} from 'noodl-ui'
 import { get, isArr, isBool, isFnc, isObj, isStr } from './_internal'
 import * as T from './types'
-import { useFakeServer } from 'sinon'
-import { Component, IComponentTypeInstance } from '../../noodl-ui/dist'
 
 const log = Logger.create('noodl-utils')
+
+// TODO - move to noodl-building-blocks
+/**
+ * Deeply creates children until the depth is reached
+ * @param { NOODLComponentType | IComponentTypeInstance } c - Component instance
+ * @param { object } opts
+ * @param { number | undefined } opts.depth - The maximum depth to deeply recurse to. Defaults to 1
+ * @param { object | undefined } opts.injectProps - Props to inject to desired components during the recursion
+ * @param { object | undefined } opts.injectProps.last - Props to inject into the last created child
+ */
+export function createDeepChildren(
+  c: NOODLComponentType | IComponentTypeInstance,
+  opts?: {
+    depth?: number
+    injectProps?: { last?: { [key: string]: any } }
+    onCreate?(
+      child: IComponentTypeInstance,
+      depth: number,
+    ): Partial<NOODLComponent>
+  },
+): IComponentTypeInstance {
+  if (opts?.depth) {
+    let count = 0
+    let curr =
+      typeof c === 'string'
+        ? (c = createComponent({ type: c, children: [] }))
+        : c
+    while (count < opts.depth) {
+      const child = curr.createChild(
+        createComponent({ type: 'view', children: [] }),
+      )
+      let injectingProps = opts?.onCreate?.(child, count)
+      if (typeof injectingProps === 'object') {
+        Object.entries(injectingProps).forEach(([k, v]) => child.set(k, v))
+      }
+      curr = child
+      count++
+      if (count === opts.depth) {
+        if (opts.injectProps?.last) {
+          Object.entries(opts.injectProps?.last).forEach(([k, v]) => {
+            if (k === 'style') curr.set('style', k, v)
+            else curr.set(k, v)
+          })
+        }
+      }
+    }
+  }
+  return c as IComponentTypeInstance
+}
 
 export function createEmitDataKey<O = any>(dataKey: string, dataObject: O): O
 export function createEmitDataKey<O = any>(
@@ -369,6 +423,7 @@ export function isTextBoardComponent<Component extends T.TextLike>(
  * @param { IComponentTypeInstance } component
  * @param { function } cb
  */
+// TODO - Depth option
 export function publish(
   component: IComponentTypeInstance,
   cb: (child: IComponentTypeInstance) => void,

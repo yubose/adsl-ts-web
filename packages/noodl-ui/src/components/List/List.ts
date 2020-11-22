@@ -10,6 +10,7 @@ import {
   IListItem,
   IListDataObjectEventHandlerOptions,
   IListDataObjectOperationResult,
+  NOODLComponent,
 } from '../../types'
 import Component from '../Base'
 import { forEachEntries, getRandomKey } from '../../utils/common'
