@@ -269,7 +269,7 @@ describe('noodl-ui-dom', () => {
     })
 
     it(
-      'should return the expected base shape that is intended for any ' +
+      'should return the default expected base shape for components ' +
         'components that have them (NOODLComponent properties)',
       () => {
         const component = createComponent(noodlComponent)

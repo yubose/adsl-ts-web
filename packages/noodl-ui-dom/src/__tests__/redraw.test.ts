@@ -171,10 +171,13 @@ describe('redraw', () => {
   })
 
   describe('when deeply resolving components', () => {
-    describe('should use every component\'s "shape" as their redraw blueprint', () => {
-      it('', () => {
-        //
-      })
+    it('should use every component\'s "shape" as their redraw blueprint', () => {
+      const node = noodluidom.parse(listDemographics)
+      const [newNode, newComponent] = noodluidom.redraw(node, listDemographics)
+      console.info(newComponent.toJS())
+      console.info(newComponent.toJS())
+      console.info(newComponent.toJS())
+      console.info(newComponent.toJS())
     })
 
     describe('action chains should still retain their original actions in the actions list', () => {
