@@ -1,6 +1,7 @@
 import Logger from 'logsnap'
 import {
   Component,
+  createComponent,
   getType,
   IComponentTypeInstance,
   IComponentTypeObject,
@@ -9,6 +10,7 @@ import {
   Resolver,
   ResolverFn,
 } from 'noodl-ui'
+import { getShape } from 'noodl-ui-dom/src/utils'
 import { publish } from 'noodl-utils'
 import {
   componentEventMap,
@@ -198,9 +200,11 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     log.func('redraw')
 
     let newNode: HTMLElement | null = null
-    let newComponent: IComponentTypeInstance
+    let newComponent: IComponentTypeInstance | undefined
 
     if (component) {
+      const shape = getShape(component)
+      const parent = component.parent()
       // Clean up noodl-ui listeners
       component.clearCbs?.()
       // Remove the child reference from the parent
@@ -219,6 +223,16 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           c.setParent?.(null)
         }
       })
+      // Create the new component
+      newComponent = createComponent(shape)
+      if (parent && newComponent) {
+        // Set the original parent on the new component
+        newComponent.setParent(parent)
+        // Set the new component as a child on the parent
+        parent.createChild(newComponent)
+      } else {
+        // log --> !parent || !newComponent
+      }
     }
 
     if (node) {
@@ -237,7 +251,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       }
     }
 
-    return [newNode, newComponent]
+    return [newNode, newComponent] as [typeof node, typeof component]
 
     // // Redraw the current node
     // this.emit(componentEventMap.all, node, component)

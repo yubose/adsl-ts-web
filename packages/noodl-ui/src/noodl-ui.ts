@@ -27,7 +27,6 @@ import Action from './Action'
 import ActionChain from './ActionChain'
 import { event } from './constants'
 import * as T from './types'
-import EmitAction from './Action/EmitAction'
 
 const log = Logger.create('noodl-ui')
 
@@ -360,11 +359,13 @@ class NOODL implements T.INOODLUi {
   }
 
   init({
+    _log = true,
     actionsContext,
     viewport,
-  }: { actionsContext?: any } & Partial<
+  }: { _log?: boolean; actionsContext?: any } & Partial<
     Parameters<T.INOODLUi['init']>[0]
   > = {}) {
+    if (!_log) Logger.disable()
     if (viewport) this.setViewport(viewport)
     this.initialized = true
     this['actionsContext'] = actionsContext

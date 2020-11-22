@@ -12,7 +12,7 @@ import {
   List,
   NOODLComponent,
 } from 'noodl-ui'
-import { noodlui, noodluidom } from '../test-utils'
+import { getAllResolvers, noodlui, noodluidom } from '../test-utils'
 import EmitRedraw from './helpers/EmitRedraw.json'
 
 const save = (data: any) => {
@@ -156,6 +156,31 @@ describe('redraw', () => {
     noodluidom.off('component', onComponentAttachId)
   })
 
+  it('should set the original parent as the parent of the new redrawee component', () => {
+    noodluidom.parse(view)
+    const listItem = listGender.child() as IListItem
+    const liNode = document.getElementById(listItem?.id || '')
+    const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
+    expect(newListItem.parent()).to.eq(listGender)
+  })
+
+  it('should set the new component as a child on the original parent', () => {
+    noodluidom.parse(view)
+    const listItem = listGender.child() as IListItem
+    const [empty, newListItem] = noodluidom.redraw(null, listItem)
+    expect(listGender.hasChild(newListItem)).to.be.true
+  })
+
+  // it('the redrawing component + node should hold the same ID', () => {
+  //   noodluidom.on('component', onComponentAttachId)
+  //   noodluidom.parse(view)
+  //   const listItem = listGender.child() as IListItem
+  //   const liNode = document.getElementById(listItem?.id || '')
+  //   const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
+  //   expect(newLiNode).to.have.property('id').that.is.eq(newListItem.id)
+  //   noodluidom.off('component', onComponentAttachId)
+  // })
+
   it('should attach to the original parentNode as the new childNode', () => {
     noodluidom.on('component', onComponentAttachId)
     noodluidom.parse(view)
@@ -174,10 +199,9 @@ describe('redraw', () => {
     it('should use every component\'s "shape" as their redraw blueprint', () => {
       const node = noodluidom.parse(listDemographics)
       const [newNode, newComponent] = noodluidom.redraw(node, listDemographics)
-      console.info(newComponent.toJS())
-      console.info(newComponent.toJS())
-      console.info(newComponent.toJS())
-      console.info(newComponent.toJS())
+      const component = noodlui.resolveComponents(newComponent)
+      save(component.toJS())
+      console.info(noodlui.getResolvers())
     })
 
     describe('action chains should still retain their original actions in the actions list', () => {

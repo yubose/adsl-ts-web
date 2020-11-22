@@ -1,60 +1,56 @@
 import _ from 'lodash'
-import sinon from 'sinon'
-import Logger from 'logsnap'
 import { IResolver, Resolver, Viewport } from 'noodl-ui'
-import { assetsUrl, noodlui, noodluidom, getAllResolvers } from './test-utils'
-// import noodluidom from '../../../src/app/noodl-ui-dom'
-// import { noodlui } from '../../../src/utils/test-utils'
+import {
+  assetsUrl,
+  noodlui,
+  noodluidom,
+  getAllResolvers,
+  viewport,
+} from './test-utils'
 
-let logSpy: sinon.SinonStub
+// let logSpy: sinon.SinonStub
 
 before(() => {
-  noodlui.init()
   console.clear()
-
-  Logger.disable()
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+  const page = 'GeneralInfo'
+  const root = {
+    GeneralInfo: {
+      Radio: [{ key: 'Gender', value: '' }],
+    },
+  }
+  noodlui
+    .init({ _log: false, viewport })
+    .setAssetsUrl(assetsUrl)
+    .setRoot(page, root)
+    .setPage(page)
+  // logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
 
   try {
-    logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
-
     Object.defineProperty(noodlui, 'cleanup', {
-      configurable: false,
-      enumerable: false,
-      writable: false,
+      configurable: true,
+      enumerable: true,
+      writable: true,
       value: function _cleanup() {
         noodlui
-          .reset()
+          .reset({ keepCallbacks: true })
           .setAssetsUrl(assetsUrl)
-          .setPage('GeneralInfo')
-          .setViewport(new Viewport())
-          .setRoot({
-            GeneralInfo: {
-              Radio: [{ key: 'Gender', value: '' }],
-            },
-          })
+          .setRoot(page, root)
+          .setPage(page)
       },
     })
-
-    _.forEach(getAllResolvers(), (r) => {
-      const resolver = new Resolver()
-      resolver.setResolver(r)
-      noodlui.use(resolver as IResolver)
-    })
-  } catch (error) {}
-})
-
-beforeEach(() => {
-  // listenToDOM()
-})
-
-after(() => {
-  logSpy?.restore?.()
-  console.info('ELLOE??')
+  } catch (error) {
+    throw new Error(error)
+  }
+  _.forEach(getAllResolvers(), (r) => {
+    const resolver = new Resolver()
+    resolver.setResolver(r)
+    noodlui.use(resolver as IResolver)
+  })
 })
 
 afterEach(() => {
   document.body.textContent = ''
-  noodlui.reset()
+  // @ts-expect-error
+  noodlui.cleanup()
   noodluidom.removeAllCbs()
 })

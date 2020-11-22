@@ -1,38 +1,147 @@
 {
-  "type": "label",
-  "contentType": "number",
-  "dataKey": "formData.password",
-  "listObject": [
-    {
-      "fruit": "apple"
-    },
-    {
-      "fruit": "banana"
-    },
-    {
-      "fruit": "orange"
-    }
-  ],
-  "iteratorVar": "hello",
-  "placeholder": "You do not have a password yet",
-  "required": "true",
-  "style": {
-    "fontSize": "14",
-    "top": "0",
-    "left": "0.1",
-    "color": "0x000000"
-  },
-  "text": "mytext",
-  "viewTag": "genderTag",
   "children": [
     {
-      "type": "label",
-      "text": "hi",
-      "style": {}
+      "children": [
+        {
+          "type": "label",
+          "dataKey": "itemObject.value",
+          "style": {
+            "fontSize": "14px",
+            "top": "0px",
+            "left": "36.5px",
+            "color": "#636363",
+            "position": "absolute",
+            "outline": "none"
+          },
+          "children": [],
+          "noodlType": "label",
+          "listId": "",
+          "listIndex": 0,
+          "data-key": "itemObject.value",
+          "data-name": "value",
+          "id": "_4n3h5jn03"
+        },
+        {
+          "type": "input",
+          "require": "true",
+          "style": {
+            "width": "146px",
+            "height": "20.009999999999998px",
+            "fontSize": "14px",
+            "border": {
+              "style": "6",
+              "color": "#7e7e7e",
+              "width": "3"
+            },
+            "borderWidth": "3",
+            "left": "182.5px",
+            "top": "0px",
+            "borderRadius": "3px",
+            "position": "absolute",
+            "outline": "none",
+            "borderColor": "#7e7e7e",
+            "borderStyle": "solid"
+          },
+          "placeholder": "Enter",
+          "dataKey": {
+            "emit": {
+              "dataKey": {
+                "var": "itemObject"
+              },
+              "actions": [
+                {
+                  "=.builtIn.object.get": {
+                    "dataIn": {
+                      "object": "=..generalInfo",
+                      "key": "$var.key"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "children": [],
+          "noodlType": "textField",
+          "listId": "",
+          "listIndex": 0,
+          "data-key": {
+            "emit": {
+              "dataKey": {
+                "var": "itemObject"
+              },
+              "actions": [
+                {
+                  "=.builtIn.object.get": {
+                    "dataIn": {
+                      "object": "=..generalInfo",
+                      "key": "$var.key"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "data-name": "",
+          "id": "_2fq0aj8px"
+        }
+      ],
+      "listId": "",
+      "listIndex": 0,
+      "id": "_lhlba9ept",
+      "iteratorVar": "",
+      "noodlType": "listItem",
+      "style": {
+        "left": "0px",
+        "top": "0px",
+        "width": "365px",
+        "height": "46.690000000000005px",
+        "backgroundColor": "#ffffffff",
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "type": "li"
+    }
+  ],
+  "listId": "_q34q3lkbb",
+  "listItemCount": 1,
+  "listObject": [
+    {
+      "key": "firstNname",
+      "value": "First Name"
     },
     {
-      "type": "button",
-      "path": "abc.png"
+      "key": "middleNameAndInitial",
+      "value": "Middle Name and Initial"
+    },
+    {
+      "key": "lastName",
+      "value": "Last Name"
+    },
+    {
+      "key": "dob",
+      "value": "Date of Birth"
+    },
+    {
+      "key": "preferredName",
+      "value": "Preferred name"
     }
-  ]
+  ],
+  "id": "_whhp11aq0",
+  "iteratorVar": "itemObject",
+  "style": {
+    "top": "66.7px",
+    "width": "365px",
+    "height": "400.2px",
+    "left": "0px",
+    "position": "absolute",
+    "outline": "none",
+    "overflowX": "hidden",
+    "listStyle": "none",
+    "padding": "0px",
+    "display": "block",
+    "overflowY": "auto"
+  },
+  "type": "list"
 }
