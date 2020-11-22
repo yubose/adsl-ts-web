@@ -28,7 +28,7 @@ describe('noodl-ui-dom', () => {
     expect(callbacksList?.[0]).to.eq(spy)
   })
 
-  xit('should remove the func from the callbacks list', () => {
+  it('should remove the func from the callbacks list', () => {
     const spy = sinon.spy()
     noodluidom.on('button', spy)
     let callbacksList = noodluidom.getCallbacks('button')

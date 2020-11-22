@@ -2,7 +2,8 @@ import _ from 'lodash'
 import sinon from 'sinon'
 import Logger from 'logsnap'
 import { IResolver, Resolver, Viewport } from 'noodl-ui'
-import { assetsUrl, noodlui, getAllResolvers } from './test-utils'
+import { assetsUrl, noodlui, noodluidom, getAllResolvers } from './test-utils'
+// import noodluidom from '../../../src/app/noodl-ui-dom'
 // import { noodlui } from '../../../src/utils/test-utils'
 
 let logSpy: sinon.SinonStub
@@ -55,4 +56,5 @@ after(() => {
 afterEach(() => {
   document.body.textContent = ''
   noodlui.reset()
+  noodluidom.removeAllCbs()
 })

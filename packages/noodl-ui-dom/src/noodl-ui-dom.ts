@@ -167,7 +167,8 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * callbacks associated with it
    * @param { string } value - Component type or name of the event
    */
-  getCallbacks(eventName: T.NOODLDOMEvent): Function[] | null {
+  getCallbacks(eventName?: T.NOODLDOMEvent) {
+    if (!arguments.length) return this.#callbacks
     if (typeof eventName === 'string') {
       const callbacksMap = this.#callbacks
       if (eventName === 'component') return callbacksMap.all
@@ -335,6 +336,13 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     const fn = (type: string) => componentEventMap[type] === eventName
     eventKey = componentEventTypes.find(fn)
     return eventKey || ''
+  }
+
+  removeAllCbs() {
+    this.#callbacks.all.length = 0
+    Object.keys(this.#callbacks.component).forEach((key) => {
+      this.#callbacks.component[key].length = 0
+    })
   }
 }
 
