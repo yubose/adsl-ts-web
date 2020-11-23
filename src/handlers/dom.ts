@@ -511,16 +511,13 @@ noodluidom.on('textField', (node, component) => {
     if (contentType === 'password') {
       if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
         import('../app/noodl-ui').then(({ default: noodlui }) => {
-          const assetsUrl = noodlui.getContext()?.assetsUrl || ''
+          const assetsUrl = noodlui.assetsUrl || ''
           const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
           const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
           const originalParent = node?.parentNode as HTMLDivElement
-          // const originalParent = node?.parentNode as HTMLDivElement
           const newParent = document.createElement('div')
           const eyeContainer = document.createElement('button')
           const eyeIcon = document.createElement('img')
-
-          // const restDividedStyleKeys = _.omit(component.style, dividedStyleKeys)
 
           // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
           const dividedStyleKeys = [
@@ -580,7 +577,9 @@ noodluidom.on('textField', (node, component) => {
 
           let selected = false
 
-          function onClick(e: Event) {
+          eyeIcon.dataset.mods = ''
+          eyeIcon.dataset.mods += '[password.eye.toggle]'
+          eyeContainer.onclick = () => {
             if (selected) {
               eyeIcon.setAttribute('src', eyeOpened)
               node?.setAttribute('type', 'text')
@@ -593,9 +592,6 @@ noodluidom.on('textField', (node, component) => {
               ? 'Click here to hide your password'
               : 'Click here to reveal your password'
           }
-          eyeIcon.dataset.mods = ''
-          eyeIcon.dataset.mods += '[password.eye.toggle]'
-          eyeContainer.addEventListener('click', onClick)
         })
       }
     } else {

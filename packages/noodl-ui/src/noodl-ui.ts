@@ -32,6 +32,7 @@ import ActionChain from './ActionChain'
 import { event } from './constants'
 import * as T from './types'
 import { noodlui } from './utils/test-utils'
+import { EmitAction } from '../dist'
 
 const log = Logger.create('noodl-ui')
 
@@ -658,15 +659,16 @@ class NOODL implements T.INOODLUi {
       }
       // Emit object evaluation
       else if (isEmitObj(path)) {
+        const emitAction = new EmitAction(path, { trigger: 'path' })
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
-        const fn = obj?.fn
+        emitAction['callback'] = obj?.fn
 
-        if (typeof fn === 'function') {
+        if (typeof obj?.fn === 'function') {
           // Result returned should be a string type
-          let result = fn(
+          let result = obj.fn(
             {
-              ...this.getConsumerOptions({ component } as any),
+              ...this.getConsumerOptions({ component }),
               pageName: this.page,
               path,
             },

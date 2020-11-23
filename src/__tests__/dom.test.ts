@@ -157,13 +157,12 @@ describe('dom', () => {
         const titleLabels = getAllByDataKey('hello.title', rootNode)
         const colorLabel2 = getAllByDataKey('hello.color', rootNode)
         const textFields = getAllByDataKey('hello.count', rootNode)
-        console.info(prettyDOM())
         expect(titleLabels[0].dataset.value).to.equal('apple')
-        // expect(colorLabel2[0].dataset.value).to.equal('red')
-        // expect(textFields[0].dataset.value).to.equal('5')
-        // expect(titleLabels[1].dataset.value).to.equal('banana')
-        // expect(colorLabel2[1].dataset.value).to.equal('yellow')
-        // expect(textFields[1].dataset.value).to.equal('1')
+        expect(colorLabel2[0].dataset.value).to.equal('red')
+        expect(textFields[0].dataset.value).to.equal('5')
+        expect(titleLabels[1].dataset.value).to.equal('banana')
+        expect(colorLabel2[1].dataset.value).to.equal('yellow')
+        expect(textFields[1].dataset.value).to.equal('1')
       },
     )
 
@@ -382,12 +381,14 @@ describe('dom', () => {
         noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
       })
 
-      it('should start off with hidden password mode for password inputs', () => {
-        page.render(noodlComponent)
-        return screen.findByTestId('password').then((input) => {
-          expect(input).to.exist
-          expect((input as HTMLInputElement).type).to.equal('password')
+      it('should start off with hidden password mode for password inputs', async () => {
+        page.render({
+          type: 'view',
+          children: [{ type: 'textField', contentType: 'password' }],
         })
+        const input = await screen.findByTestId('password')
+        expect(input).to.exist
+        expect((input as HTMLInputElement).type).to.equal('password')
       })
 
       it('should start off showing the eye closed icon', async () => {
@@ -395,7 +396,6 @@ describe('dom', () => {
         page.render(noodlComponent)
         await waitFor(() => {
           const img = document.getElementsByTagName('img')[0]
-          expect(img).to.exist
           expect(img.getAttribute('src')).to.eq(assetsUrl + eyeClosed)
         })
       })

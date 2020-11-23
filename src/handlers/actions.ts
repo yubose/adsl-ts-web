@@ -5,6 +5,7 @@ import {
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
   AnonymousActionObject,
+  EmitAction,
   EmitActionObject,
   EvalActionObject,
   getByDataUX,
@@ -13,7 +14,6 @@ import {
   IActionChainUseObjectBase,
   IComponentTypeInstance,
   IfObject,
-  IListItem,
   isReference,
   NOODLActionType,
   PopupActionObject,
@@ -36,8 +36,6 @@ import {
   publish,
 } from 'noodl-utils'
 import { onSelectFile } from 'utils/dom'
-import { IListItem } from '../../packages/noodl-ui/src'
-import EmitAction from 'noodl-ui/src/Action/EmitAction'
 
 const log = Logger.create('actions.ts')
 
@@ -73,36 +71,25 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options) => {
-      const { default: noodl } = await import('../app/noodl')
-      const { default: noodlui } = await import('../app/noodl-ui')
-
+    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, ...options })
 
-      let { component, context } = options
-      let { actions, dataKey } = action
-      let originalDataKey = dataKey
-
       const emitParams = {
-        actions,
+        actions: action.actions,
+        dataKey: action.dataKey,
         pageName: noodlui.page,
       } as any
-
-      const dataObject = findDataObject(component)
-
-      emitParams['dataKey'] = createEmitDataKey(dataKey, dataObject)
 
       const emitResult = await noodl.emitCall(emitParams)
 
       log.grey(`Called emitCall`, {
         action,
-        component,
+        component: options.component,
         emitParams,
         emitResult,
-        dataObject,
         options,
-        originalDataKey,
+        originalDataKey: action.original?.emit?.dataKey,
       })
 
       return emitResult
@@ -111,376 +98,45 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options) => {
-      const { default: noodl } = await import('../app/noodl')
-      const { default: noodlui } = await import('../app/noodl-ui')
-
-      log.func('emit [onChange]')
+    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+      log.func('emit [onClick]')
       log.gold('Emitting', { action, ...options })
 
-      let { component, context, ref } = options
-      let { actions, dataKey } = action
-      let originalDataKey = dataKey
-
       const emitParams = {
-        actions,
+        actions: action.actions,
         dataKey: action.dataKey,
         pageName: noodlui.page,
       } as any
 
-      if (component.get('listIndex') == null) {
-        console.log('listIndex is null. Finding listItem...')
-        const listItem = findParent(
-          component,
-          (p) => p?.noodlType === 'listItem',
-        ) as IListItem
-        if (listItem) {
-          let dataObject = listItem.getDataObject()
-          if (!dataObject) {
-            log.grey(
-              'dataObject was not found on the listItem parent. Looking through List...',
-            )
-            const list = listItem.parent()
-            if (list) {
-              log.grey(
-                'Found list parent. Refreshing dataObject and listIndex for all',
-                { list, listItem, component },
-              )
-              const listData = list.getData() || []
-              if (listData.length) {
-                log.grey('There are dataObjects in the listObject')
-                _.forEach(list.children(), (c, index) => {
-                  dataObject = listData[index]
-                  c?.setDataObject?.(dataObject)
-                  c.set('listIndex', index)
-                  publish(c, async (cc) => {
-                    cc.set('listIndex', index)
-                    if (cc.get())
-                      log.grey(
-                        `(Broadcasting) Set listIndex to ${index} for listItem child ${cc?.noodlType}`,
-                        {
-                          list,
-                          listItem,
-                          currentListItemChild: c,
-                          component,
-                          broadcastedListItemChildOfChild: cc,
-                        },
-                      )
-                  })
-                  log.grey('set the dataObject for listItem', dataObject)
-                })
+      const emitResult = await noodl.emitCall(emitParams)
 
-                if (dataObject) {
-                  const emitObj = action.original
-
-                  if (_.isPlainObject(emitObj.emit?.dataKey)) {
-                    const entries = _.entries(emitObj.emit.dataKey)
-                    const iteratorVar = listItem.iteratorVar
-                    action
-                      .set('iteratorVar', iteratorVar)
-                      .setDataObject(dataObject)
-                    for (let index = 0; index < entries.length; index++) {
-                      const [property] = entries[index] || ''
-                      action.setDataKeyValue(property, action.getDataObject())
-                    }
-                  } else if (_.isString(emitObj.emit?.dataKey)) {
-                    action.set('dataKey', emitObj.emit.dataKey)
-                    action.set('iteratorVar', listItem.iteratorVar)
-                  }
-                  log.grey('Modified emit action', action)
-                  emitParams.dataKey = action.dataKey
-
-                  let emitCallResult: any
-
-                  log.gold(`Ran emitCall`, {
-                    actions,
-                    emitParams,
-                    component,
-                    context,
-                    originalDataKey,
-                    resolvedDataKey: dataKey,
-                    emitCallResult: emitCallResult = await noodl.emitCall(
-                      emitParams as any,
-                    ),
-                  })
-
-                  if (ref) {
-                    ref['pageObject'] = noodl.root[noodlui.page]
-                    log.grey(
-                      'Resetted the pageObject',
-                      noodl.root[noodlui.page],
-                    )
-                  }
-
-                  return emitCallResult
-                }
-              } else {
-                log.grey('No dataObjects are present in the listObject')
-              }
-            }
-          }
-        }
-      }
-
-      // If dataKey isn't available to use, directly pass the action to emitCall
-      // since it is already handled there
-      if (!dataKey) {
-        //
-      } else {
-        const iteratorVar = component.get('iteratorVar') || ''
-
-        let dataObject: any
-        let dataPath: string = ''
-        let dataValue: any
-
-        if (_.isString(dataKey)) {
-          if (dataKey.startsWith(iteratorVar)) {
-            dataPath = dataPath.split('.').slice(1).join('.')
-            const listItem = findParent(
-              component,
-              (parent) => parent?.noodlType === 'listItem',
-            ) as IListItem | null
-
-            if (listItem) {
-              dataObject =
-                listItem.getDataObject?.() ||
-                options.dataObject ||
-                component.get('dataObject') ||
-                {}
-              dataValue = getDataObjectValue({
-                dataObject,
-                dataKey: dataPath,
-                iteratorVar,
-              })
-              log.green(
-                'Queried dataObject + dataValue from a dataKey STRING',
-                {
-                  dataKey,
-                  dataObject,
-                  dataValue,
-                  dataPath,
-                  originalDataKey,
-                },
-              )
-            } else {
-              log.red(
-                `Attempted to query for a dataObject from a dataKey STRING ` +
-                  `but a listItem parent was not found`,
-                {
-                  action,
-                  actions,
-                  context,
-                  dataPath,
-                  listItem,
-                  iteratorVar,
-                  options,
-                },
-              )
-            }
-            if (dataObject) emitParams['dataKey'] = dataObject
-          } else {
-            // Assuming the dataObject is somewhere in the root or local root level
-            dataObject =
-              findDataObject({
-                dataKey: dataPath,
-                pageObject: noodl.root[context.page],
-                root: noodl.root,
-              }) ||
-              _.get(noodl.root, dataPath) ||
-              _.get(noodl.root[context.page], dataPath)
-            emitParams['dataKey'] = dataObject
-            if (!dataObject) {
-              log.red(
-                'Could not find a data value from a (presumed) dataObject ' +
-                  'using a dataKey OBJECT',
-                {
-                  action,
-                  actions,
-                  context,
-                  dataPath,
-                  dataObject,
-                  iteratorVar,
-                  options,
-                },
-              )
-            }
-          }
-        }
-        // The dataKey is in the object format { dataKey: { [key1]:..., [key2]: ... }}
-        else if (_.isPlainObject(dataKey)) {
-          const createEmitDataKeyObject = (acc: any, [key, dataPath]: any) => {
-            let dataObject
-            let dataValue
-
-            if (_.isString(dataPath)) {
-              // List item descendant
-              if (originalDataKey[key] === iteratorVar) {
-                const [fn, valOnTrue, valOnFalse] = actions[0]?.if || []
-
-                dataPath = dataPath.split('.').slice(1).join('.')
-
-                const listItem = findParent(
-                  component,
-                  (parent) => parent?.noodlType === 'listItem',
-                ) as IListItem | null
-
-                if (listItem) {
-                  dataObject =
-                    findDataObject({
-                      dataKey: dataPath,
-                      pageObject: noodl.root[noodlui.page],
-                      root: noodl.root,
-                    }) ||
-                    listItem.getDataObject?.() ||
-                    options.dataObject ||
-                    component.get('dataObject')
-                  {
-                  }
-                  dataValue = getDataObjectValue({
-                    dataObject,
-                    dataKey: dataPath,
-                    iteratorVar,
-                  })
-                  acc[key] = dataObject
-                  log.green('Queried dataObject --> dataValue', {
-                    component,
-                    dataKey,
-                    dataObject,
-                    dataValue,
-                    dataPath,
-                    originalDataKey,
-                    pageName: noodlui.page,
-                    pageObject: noodlui.root[noodlui.page],
-                  })
-                } else {
-                  log.red(
-                    `Attempted to query for a dataObject but a listItem parent was not found`,
-                    {
-                      action,
-                      actions,
-                      context,
-                      dataPath,
-                      listItem,
-                      iteratorVar,
-                      options,
-                    },
-                  )
-                }
-                if (_.isFunction(fn)) {
-                  log.red(
-                    'A FUNCTION WAS ENCOUNTERED ATTEMPTING TO CONSTRUCT THE DATA KEY EMIT OBJECT. REMEMBER TO LOOK INTO THIS',
-                    {
-                      action,
-                      actions,
-                      context,
-                      dataPath,
-                      dataObject,
-                      iteratorVar,
-                      options,
-                    },
-                  )
-                  fn(dataObject)
-                }
-              }
-              // Non-list descendant. (dataObject is from a higher level)
-              else {
-                // Assuming the dataObject is somewhere in the root or local root level
-                dataObject =
-                  findDataObject({
-                    dataKey: dataPath,
-                    pageObject: noodl.root[noodlui.page],
-                    root: noodl.root,
-                  }) ||
-                  _.get(noodl.root, dataPath) ||
-                  _.get(noodl.root[noodlui.page], dataPath)
-
-                if (dataObject) {
-                  acc[key] = dataObject
-                } else {
-                  log.red(
-                    'Could not find a data value from a (presumed) dataObject',
-                    {
-                      action,
-                      actions,
-                      context,
-                      dataPath,
-                      dataObject,
-                      iteratorVar,
-                      options,
-                    },
-                  )
-                }
-              }
-            } else {
-              log.red(
-                `Expected a string as a data key path but received a ` +
-                  `"${typeof dataPath}"`,
-                {
-                  action,
-                  actions,
-                  component: component.toJS(),
-                  dataKey,
-                  dataPath,
-                  originalDataKey,
-                },
-              )
-            }
-
-            return acc
-          }
-
-          // emitParams['dataKey'] = _.reduce(
-          //   _.entries(dataKey),
-          //   ac,
-          //   {} as any,
-          // )
-
-          log.grey('Calling emitCall', {
-            actions,
-            component,
-            context,
-            emitParams,
-            originalDataKey,
-            resolvedDataKey: dataKey,
-          })
-        }
-
-        let emitCallResult: any
-
-        log.gold(`Ran emitCall`, {
-          actions,
-          emitParams,
-          component,
-          context,
-          originalDataKey,
-          resolvedDataKey: dataKey,
-          emitCallResult: emitCallResult = await noodl.emitCall(
-            emitParams as any,
-          ),
-        })
-
-        return emitCallResult
-      }
+      log.gold(`Ran emitCall`, {
+        actions: action.actions,
+        component: options.component,
+        emitParams,
+        emitResult,
+        options,
+        originalDataKey: action.original?.emit?.dataKey,
+      })
     },
     trigger: 'onClick',
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl }) => {
+    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
       log.func('emit [onChange]')
-      const { ref } = options
 
       const emitParams = {
         actions: action.actions,
         dataKey: action.dataKey,
-        pageName: ref.pageName,
+        pageName: noodlui.page,
       }
 
       const emitResult = await noodl.emitCall(emitParams)
 
       log.grey('Called emitCall', {
         action,
-        actionChain: ref,
+        actionChain: options.ref,
         emitParams,
         emitResult,
         options,
@@ -502,10 +158,7 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - if src === assetsUrl
   // TODO - else if src endsWith
   _actions.emit.push({
-    fn: (
-      args: { path: EmitActionObject; component: IComponentTypeInstance },
-      { noodl }: { noodl: CADL } = {},
-    ) => {
+    fn: (args: { path: EmitActionObject; component }, { noodl }) => {
       const { pageName, path, component } = args
 
       let dataObject

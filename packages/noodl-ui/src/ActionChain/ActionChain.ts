@@ -131,7 +131,7 @@ class ActionChain<
       }
     }
 
-    let action
+    let action: any
     let conditionalCallbackArgs = {} as any
     let callbacks: any[]
 
@@ -498,7 +498,7 @@ class ActionChain<
         if (action) {
           log.func('loadQueue')
           this.#queue.push(action)
-          console.info(`Loaded "${action.actionType}" action into the queue`, {
+          log.grey(`Loaded "${action.actionType}" action into the queue`, {
             action,
             actionChain: this,
             actions: this.actions,

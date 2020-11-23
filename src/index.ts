@@ -277,7 +277,7 @@ window.addEventListener('load', async () => {
                   actions.map((a) => {
                     const obj = { actionType, ...a }
                     if (actionType === 'emit') {
-                      obj['context'] = { noodl }
+                      obj['context'] = { noodl, noodlui }
                     }
                     return obj
                   }),
