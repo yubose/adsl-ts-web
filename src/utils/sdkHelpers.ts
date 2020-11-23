@@ -6,7 +6,8 @@
 import _ from 'lodash'
 import { Draft } from 'immer'
 import Logger from 'logsnap'
-import { getAllByDataKey, isTextFieldLike } from 'noodl-utils'
+import { getAllByDataKey } from 'noodl-utils'
+import { isTextFieldLike } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'
 

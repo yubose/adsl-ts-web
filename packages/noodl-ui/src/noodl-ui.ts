@@ -10,6 +10,7 @@ import {
   isEmitObj,
   isListConsumer,
   findDataObject,
+  findListDataObject,
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
@@ -22,6 +23,7 @@ import {
   formatColor,
   getRandomKey,
   hasLetter,
+  isPromise,
 } from './utils/common'
 import { isActionChainEmitTrigger, resolveAssetUrl } from './utils/noodl'
 import createComponent from './utils/createComponent'
@@ -29,12 +31,13 @@ import Action from './Action'
 import ActionChain from './ActionChain'
 import { event } from './constants'
 import * as T from './types'
+import { noodlui } from './utils/test-utils'
 
 const log = Logger.create('noodl-ui')
 
 function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
   return {
-    nodes: new Map(),
+    // nodes: new Map(), // Unused atm
     page: '',
     ...state,
   } as T.INOODLUiState
@@ -172,7 +175,7 @@ class NOODL implements T.INOODLUi {
       r.resolve(component, consumerOptions),
     )
 
-    this.emit('afterResolve', component, consumerOptions)
+    // this.emit('afterResolve', component, consumerOptions)
 
     return component
   }
@@ -212,7 +215,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  #getCbPath = (key: T.EventId | 'action' | 'chaining') => {
+  #getCbPath = (key: T.EventId | 'action' | 'chaining' | 'all') => {
     let path = ''
     if (key === 'all') {
       path = 'component.all'
@@ -270,7 +273,7 @@ class NOODL implements T.INOODLUi {
         )
       }
     } else {
-      const path = this.#getCbPath(key)
+      const path = this.#getCbPath(key as any)
       if (path) {
         if (!_.isArray(this.#cb[path])) this.#cb[path] = []
         this.#cb[path].push(cb as T.INOODLUiComponentEventCallback<any>)
@@ -588,13 +591,22 @@ class NOODL implements T.INOODLUi {
   }
 
   createSrc(
+    path: T.EmitActionObject,
+    component?: T.IComponentTypeInstance,
+  ): string | Promise<string>
+  createSrc(
+    path: T.IfObject,
+    component?: T.IComponentTypeInstance,
+  ): string | Promise<string>
+  createSrc(
+    path: string,
+    component?: T.IComponentTypeInstance,
+  ): string | Promise<string>
+  createSrc(
     path: string | T.EmitActionObject | T.IfObject,
     component?: T.IComponentTypeInstance,
   ) {
     log.func('createSrc')
-
-    console.info(path)
-    console.info(component?.toJS())
 
     if (path) {
       // Plain strings
@@ -615,69 +627,46 @@ class NOODL implements T.INOODLUi {
                   pageObject: this.getPageObject(this.page),
                   page: this.page,
                 })
-              } else {
+              } else if (isListConsumer(component)) {
+                dataObject = findListDataObject(component)
               }
-              if (isListConsumer()) let listItem: T.IListItem
-              if (component.noodlType !== 'listItem') {
-                listItem = findParent(
-                  component,
-                  (p: T.IComponentTypeInstance) => !!p.getDataObject?.(),
-                )
-              } else {
-                listItem = component
-              }
-              if (listItem) return val(listItem.getDataObject())
+              return val(dataObject)
             } else {
               return val()
             }
           }
           return !!val
-        }, path)
-        return resolveAssetUrl(path)
+        }, path as T.IfObject)
+        return resolveAssetUrl(path as string, this.assetsUrl)
       }
       // Emit object evaluation
-      else if (isEmitObj<T.EmitActionObject>(path)) {
-        // const emitAction = new EmitAction(
-        //   (isDraft(path) ? original(path) : path) as NonNullable<any>,
-        //   { trigger: 'path' },
-        // )
+      else if (isEmitObj(path)) {
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
         const fn = obj?.fn
-        if (typeof fn === 'function') {
-          // const emitAction = new EmitAction(path, { trigger: 'path' })
-          // emitAction.callback = async (...args: any[]) => {
-          //   const result = await Promise.resolve(fn(...args))
-          //   return result
-          // }
 
+        if (typeof fn === 'function') {
+          // Result returned should be a string type
           let result = fn(
             {
               ...this.getConsumerOptions({ component } as any),
               pageName: this.page,
               path,
-              component,
             },
             this.actionsContext,
           )
 
-          if (result instanceof Promise) {
+          if (isPromise(result)) {
             return result
-              .then((res) => {
-                console.info('result: ', resolveAssetUrl(res))
-                return resolveAssetUrl(res)
-              })
-              .catch((err) => {
-                throw new Error(err)
-              })
-          } else {
-            // console.info('result from aaaa: ', emitAction.result)
-            return resolveAssetUrl(result)
+              .then((res) => resolveAssetUrl(res as string, this.assetsUrl))
+              .catch((err) => Promise.reject(err))
+          } else if (result) {
+            return resolveAssetUrl(result, this.assetsUrl)
           }
         }
       }
       // Assuming we are passing in a dataObject
-      else if (_.isFunction(path)) {
+      else if (typeof path === 'function') {
         if (component) {
           let dataObject: any
           // Assuming it is a component retrieving its value from a dataObject

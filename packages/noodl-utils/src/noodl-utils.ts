@@ -2,8 +2,12 @@ import Logger from 'logsnap'
 import {
   Component,
   createComponent,
+  EmitActionObject,
+  IComponent,
   IComponentTypeInstance,
   IComponentTypeObject,
+  IfObject,
+  IListItem,
   NOODLComponent,
   NOODLComponentType,
 } from 'noodl-ui'
@@ -75,7 +79,7 @@ export function createEmitDataKey<O = any>(
   } else if (isObj(dataKey)) {
     return Object.keys(dataKey).reduce(
       (acc, key) => Object.assign(acc, { [key]: dataObject }),
-      {},
+      {} as { [varProp: string]: O },
     )
   }
   return dataObject
@@ -118,20 +122,21 @@ export function evalIf<IfObj extends { if: [any, any, any] }>(
  * @param { IComponentTypeInstance } component
  * @param { function } fn - Comparator function
  */
-export function findChild<
-  C extends { children?: Function; length?: number } = any
->(component: C, fn: (child: C) => boolean): C | null {
-  let child: C | null = null
+export function findChild<C extends IComponentTypeInstance>(
+  component: C,
+  fn: (child: IComponentTypeInstance) => boolean,
+): IComponentTypeInstance | null {
+  let child: IComponentTypeInstance | null | undefined
   let children = component?.children?.()?.slice?.() || []
 
   if (component) {
-    child = children.shift()
+    child = children.shift() || null
     while (child) {
       if (fn(child)) return child
-      if (child) {
-        if (child.length) {
-          child.children?.().forEach((c: any) => children.push(c))
-        }
+      if (child?.length) {
+        child
+          .children?.()
+          .forEach((c: IComponentTypeInstance) => children.push(c))
         child = children.pop()
       } else {
         break
@@ -142,36 +147,15 @@ export function findChild<
 }
 
 /**
- * Loops through a Map of UIComponents, running the comparator function in each
- * iteration. If the function returns true, that node will become the returned result
- * @param { Map<IComponentTypeInstance, IComponentTypeInstance> } nodes - Nodes map
- * @param { function } fn - Comparator func
- */
-export function findNodeInMap<Component extends {} = any>(
-  nodes: Map<Component, Component>,
-  fn: (component: Component | null) => boolean | void,
-) {
-  const nodesList = Array.from(nodes.values())
-  const nodesListSize = nodesList.length
-
-  for (let index = 0; index < nodesListSize; index++) {
-    const node = nodesList[index]
-    if (fn(node)) return node
-  }
-
-  return null
-}
-
-/**
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
  * @param { IComponentTypeInstance } component
  * @param { function } fn
  */
-export function findParent<C extends { parent?: Function } = any>(
+export function findParent<C extends IComponentTypeInstance>(
   component: C,
-  fn: (parent: C | null) => boolean,
+  fn: (parent: IComponentTypeInstance | null) => boolean,
 ) {
   let parent = component.parent?.()
   if (fn(parent)) return parent
@@ -184,7 +168,7 @@ export function findParent<C extends { parent?: Function } = any>(
   return parent || null
 }
 
-interface FindDataObjectOptions {
+interface ee {
   component?: any
   dataKey?: string
   pageObject?: { [key: string]: any }
@@ -218,15 +202,15 @@ export function findRootsDataObject(opts: {
   return get(pageObject, dataKey) || get(root, dataKey)
 }
 
-export function findListDataObject(component: any) {
+export function findListDataObject(component: IComponentTypeInstance) {
   if (isListConsumer(component)) {
     if (component?.noodlType === 'listItem') {
-      return component.getDataObject?.()
+      return (component as IListItem).getDataObject?.()
     }
-    return findParent(
+    return (findParent(
       component,
       (p) => p?.noodlType === 'listItem',
-    )?.getDataObject?.()
+    ) as IListItem)?.getDataObject?.()
   }
   return null
 }
@@ -255,10 +239,6 @@ export function getByDataListId(value: string) {
   return document.querySelector(`[data-listid="${value}"]`)
 }
 
-export function getByDataName(value: string) {
-  return document.querySelector(`[data-name="${value}"]`)
-}
-
 export function getDataValue<T = any>(
   dataObject: T | undefined,
   dataKey: string | undefined,
@@ -267,9 +247,8 @@ export function getDataValue<T = any>(
   if (dataObject && typeof dataKey === 'string') {
     if (typeof dataObject === 'object') {
       let dataPath = ''
-
       if (opts?.iteratorVar && dataKey.startsWith(opts.iteratorVar)) {
-        // Strip off the iteratorVar to make the path directly lead to the value
+        // Strip off the iteratorVar to make the path correctly point to the value
         dataPath = dataKey.split('.').slice(1).join('.')
       } else {
         dataPath = dataKey
@@ -277,15 +256,6 @@ export function getDataValue<T = any>(
       return get(dataObject, dataPath)
     }
   }
-}
-
-/** Returns true if the value is an object. Like those with an actionType prop */
-export function isAction(value: unknown): any {
-  if (isObj(value)) {
-    if ('actionType' in value) return true
-    if ('goto' in value) return true
-  }
-  return false
 }
 
 /**
@@ -331,22 +301,18 @@ export function isBreakLineTextBoardItem<
   return isBreakLine(value) || isBreakLineObject(value)
 }
 
-export function isComponentInstance<
-  C extends InstanceType<
-    new (...args: any[]) => { children: (...args: any[]) => any }
-  > = any
->(component: unknown): component is C {
-  return !!(
-    component &&
-    typeof component === 'function' &&
-    typeof component['children'] === 'function'
-  )
+export function isComponentInstance<C extends IComponent = any>(
+  component: unknown,
+): component is C {
+  return !!(component && component instanceof Component)
 }
 
-export function isEmitObj<
-  O extends { emit?: { dataKey?: any; actions?: any } } = any
->(value: unknown): value is O {
+export function isEmitObj(value: unknown): value is EmitActionObject {
   return value && typeof value === 'object' && 'emit' in value
+}
+
+export function isIfObj(value: unknown): value is IfObject {
+  return value && typeof value === 'object' && 'if' in value
 }
 
 export function isListConsumer(component: any) {
@@ -357,41 +323,6 @@ export function isListConsumer(component: any) {
     component?.noodlType === 'listItem' ||
     (component && findParent(component, (p) => p?.noodlType === 'listItem'))
   )
-}
-
-export function isTextFieldLike(
-  node: unknown,
-): node is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
-  return (
-    node &&
-    node instanceof HTMLElement &&
-    !!(
-      node.tagName === 'INPUT' ||
-      node.tagName === 'SELECT' ||
-      node.tagName === 'TEXTAREA'
-    )
-  )
-}
-
-export function isParent(parent: any, child: any | null) {
-  if (
-    child &&
-    parent &&
-    !isArr(child) &&
-    !isArr(parent) &&
-    !isFnc(child) &&
-    !isFnc(child)
-  ) {
-    let parentId: string = ''
-    let parentInst: any | null = null
-    if (isStr(parent)) parentId = parent
-    else if (parent) parentInst = parent
-    else return false
-    return parentInst
-      ? child.parent() === parentInst
-      : !!parentId && child.parent()?.id === parentId
-  }
-  return false
 }
 
 export function isPasswordInput(value: unknown) {

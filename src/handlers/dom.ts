@@ -8,7 +8,8 @@ import {
   isPromise,
   SelectOption,
 } from 'noodl-ui'
-import { isBooleanTrue, isTextFieldLike } from 'noodl-utils'
+import { isBooleanTrue } from 'noodl-utils'
+import { isTextFieldLike } from 'noodl-ui-dom'
 import { forEachEntries } from '../utils/common'
 import { isDisplayable } from '../utils/dom'
 import createElement from '../utils/createElement'

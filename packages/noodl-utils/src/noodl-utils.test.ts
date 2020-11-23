@@ -27,21 +27,6 @@ beforeEach(() => {
   listObject.forEach((d) => list.addDataObject(d))
 })
 
-describe('isAction', () => {
-  it('should return true', () => {
-    expect(n.isAction({ actionType: 'hello' })).to.be.true
-  })
-  it('should return false', () => {
-    expect(n.isAction({ actiondasType: 'hello' })).to.be.false
-  })
-  it('should return true', () => {
-    expect(n.isAction({ goto: 'abc' })).to.be.true
-  })
-  it('should return false', () => {
-    expect(n.isAction('goto')).to.be.false
-  })
-})
-
 describe('isBoolean', () => {
   it('should return true', () => {
     expect(n.isBoolean(true)).to.be.true

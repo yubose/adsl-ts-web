@@ -535,7 +535,7 @@ export interface IActionChainUseObjectBase<A extends BaseActionObject> {
   actionType: NOODLActionType
   context?: any
   fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
-  trigger?: IActionChainEmitTrigger //  Currently used for emit objects in evaluating "path"
+  trigger?: IActionChainEmitTrigger | ResolveEmitTrigger
 }
 
 export interface IActionChainUseBuiltInObject {

@@ -27,10 +27,6 @@ export function getByDataKey(dataKey: string, container?: Element) {
   return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
 }
 
-export function getByDataName(dataKey: string, container?: Element) {
-  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
-}
-
 export function getByDataListId(dataKey: string, container?: Element) {
   return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
 }
