@@ -81,7 +81,7 @@ const createActions = function ({ page }: { page: IPage }) {
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, ...options })
 
-      let { component, context } = options
+      let { component } = options
       let { actions, dataKey } = action
       let originalDataKey = dataKey
 
@@ -119,7 +119,7 @@ const createActions = function ({ page }: { page: IPage }) {
       log.func('emit [onChange]')
       log.gold('Emitting', { action, ...options })
 
-      let { component, context, ref } = options
+      let { component, ref } = options
       let { actions, dataKey } = action
       let originalDataKey = dataKey
 
@@ -197,7 +197,7 @@ const createActions = function ({ page }: { page: IPage }) {
                     actions,
                     emitParams,
                     component,
-                    context,
+                    page: noodlui.page,
                     originalDataKey,
                     resolvedDataKey: dataKey,
                     emitCallResult: emitCallResult = await noodl.emitCall(
@@ -270,7 +270,7 @@ const createActions = function ({ page }: { page: IPage }) {
                 {
                   action,
                   actions,
-                  context,
+                  page: noodlui.page,
                   dataPath,
                   listItem,
                   iteratorVar,
@@ -284,11 +284,11 @@ const createActions = function ({ page }: { page: IPage }) {
             dataObject =
               findDataObject({
                 dataKey: dataPath,
-                pageObject: noodl.root[context.page],
+                pageObject: noodl.root[noodlui.page],
                 root: noodl.root,
               }) ||
               _.get(noodl.root, dataPath) ||
-              _.get(noodl.root[context.page], dataPath)
+              _.get(noodl.root[noodlui.page], dataPath)
             emitParams['dataKey'] = dataObject
             if (!dataObject) {
               log.red(
@@ -297,11 +297,11 @@ const createActions = function ({ page }: { page: IPage }) {
                 {
                   action,
                   actions,
-                  context,
                   dataPath,
                   dataObject,
                   iteratorVar,
                   options,
+                  page: noodlui.page,
                 },
               )
             }
@@ -359,7 +359,7 @@ const createActions = function ({ page }: { page: IPage }) {
                     {
                       action,
                       actions,
-                      context,
+                      page: noodlui.page,
                       dataPath,
                       listItem,
                       iteratorVar,
@@ -373,7 +373,7 @@ const createActions = function ({ page }: { page: IPage }) {
                     {
                       action,
                       actions,
-                      context,
+                      page: noodlui.page,
                       dataPath,
                       dataObject,
                       iteratorVar,
@@ -403,7 +403,7 @@ const createActions = function ({ page }: { page: IPage }) {
                     {
                       action,
                       actions,
-                      context,
+                      page: noodlui.page,
                       dataPath,
                       dataObject,
                       iteratorVar,
@@ -439,7 +439,6 @@ const createActions = function ({ page }: { page: IPage }) {
           log.grey('Calling emitCall', {
             actions,
             component,
-            context,
             emitParams,
             originalDataKey,
             resolvedDataKey: dataKey,
@@ -452,7 +451,6 @@ const createActions = function ({ page }: { page: IPage }) {
           actions,
           emitParams,
           component,
-          context,
           originalDataKey,
           resolvedDataKey: dataKey,
           emitCallResult: emitCallResult = await noodl.emitCall(
@@ -569,9 +567,9 @@ const createActions = function ({ page }: { page: IPage }) {
         const ifObj = action.original.object as IfObject
         if (_.isArray(ifObj)) {
           const { default: noodl } = await import('../app/noodl')
-          const { context } = options
-          const pageName = context.page || ''
-          const pageObject = noodl.root[pageName]
+          const { default: noodlui } = await import('../app/noodl-ui')
+          const pageName = noodlui.page || ''
+          const pageObject = noodl.root[noodlui.page]
           const object = evalIf((valEvaluating) => {
             let value
             if (isNOODLBoolean(valEvaluating)) {
@@ -670,9 +668,10 @@ const createActions = function ({ page }: { page: IPage }) {
       action: Action<PopupActionObject | PopupDismissActionObject>,
       options,
     ) => {
+      const { default: noodlui } = await import('app/noodl-ui')
       log.func('popUp')
       log.grey('', { action, ...options })
-      const { abort, component, context } = options
+      const { abort, component } = options
       const elem = getByDataUX(action.original.popUpView) as HTMLElement
       log.gold('popUp action', { action, ...options, elem })
       if (elem) {
@@ -713,13 +712,13 @@ const createActions = function ({ page }: { page: IPage }) {
             >()
             if (String(dataValues?.phoneNumber).startsWith('888')) {
               import('../app/noodl').then(({ default: noodl }) => {
-                const pageName = context?.page || ''
+                const pageName = noodlui?.page || ''
                 const pathToTage = 'verificationCode.response.edge.tage'
                 let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
                 if (vcode) {
                   vcode = String(vcode)
                   vcodeInput.value = vcode
-                  _.set(vcodeInput.dataset, 'value', vcode)
+                  vcodeInput.dataset.value = vcode
                   noodl.editDraft((draft: any) => {
                     _.set(
                       draft[pageName],
@@ -762,7 +761,8 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.saveObject.push({
     fn: async (action: Action<SaveActionObject>, options) => {
       const { default: noodl } = await import('../app/noodl')
-      const { context, abort, parser } = options as any
+      const { default: noodlui } = await import('../app/noodl-ui')
+      const { abort, parser } = options as any
 
       try {
         const { object } = action.original
@@ -786,7 +786,7 @@ const createActions = function ({ page }: { page: IPage }) {
                 const [nameFieldPath, save] = obj
 
                 if (_.isString(nameFieldPath) && _.isFunction(save)) {
-                  parser?.setLocalKey(context?.page)
+                  parser?.setLocalKey(noodlui?.page)
 
                   let nameField
 
@@ -795,7 +795,7 @@ const createActions = function ({ page }: { page: IPage }) {
                   } else {
                     nameField =
                       _.get(noodl?.root, nameFieldPath, null) ||
-                      _.get(noodl?.root?.[context?.page], nameFieldPath, {})
+                      _.get(noodl?.root?.[noodlui?.page], nameFieldPath, {})
                   }
 
                   const params = { ...nameField }
@@ -829,7 +829,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
   _actions.updateObject.push({
     fn: async (action: Action<UpdateActionObject>, options) => {
-      const { abort, component, context, stateHelpers } = options
+      const { abort, component, stateHelpers } = options
       const { default: noodl } = await import('../app/noodl')
       log.func('updateObject')
 
