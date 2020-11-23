@@ -37,6 +37,7 @@ import {
 } from 'noodl-utils'
 import { onSelectFile } from 'utils/dom'
 import { IListItem } from '../../packages/noodl-ui/src'
+import EmitAction from 'noodl-ui/src/Action/EmitAction'
 
 const log = Logger.create('actions.ts')
 
@@ -72,7 +73,45 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: Action<EmitActionObject>, options) => {
+    fn: async (action: EmitAction, options) => {
+      const { default: noodl } = await import('../app/noodl')
+      const { default: noodlui } = await import('../app/noodl-ui')
+
+      log.func('emit [dataKey]')
+      log.gold('Emitting', { action, ...options })
+
+      let { component, context } = options
+      let { actions, dataKey } = action
+      let originalDataKey = dataKey
+
+      const emitParams = {
+        actions,
+        pageName: noodlui.page,
+      } as any
+
+      const dataObject = findDataObject(component)
+
+      emitParams['dataKey'] = createEmitDataKey(dataKey, dataObject)
+
+      const emitResult = await noodl.emitCall(emitParams)
+
+      log.grey(`Called emitCall`, {
+        action,
+        component,
+        emitParams,
+        emitResult,
+        dataObject,
+        options,
+        originalDataKey,
+      })
+
+      return emitResult
+    },
+    trigger: 'dataKey',
+  })
+
+  _actions.emit.push({
+    fn: async (action: EmitAction, options) => {
       const { default: noodl } = await import('../app/noodl')
       const { default: noodlui } = await import('../app/noodl-ui')
 
@@ -80,8 +119,7 @@ const createActions = function ({ page }: { page: IPage }) {
       log.gold('Emitting', { action, ...options })
 
       let { component, context, ref } = options
-      let { emit } = action.original
-      let { actions, dataKey } = emit
+      let { actions, dataKey } = action
       let originalDataKey = dataKey
 
       const emitParams = {
@@ -441,11 +479,34 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: Action<EmitActionObject>, options) => {
+    fn: async (action: EmitAction, options, { noodl }) => {
       log.func('emit [onChange]')
-      log.grey(`Reached onChange emit`, { action, options })
-      log.grey(`Reached onChange emit`, { action, options })
-      log.grey(`Reached onChange emit`, { action, options })
+      const { ref } = options
+
+      const emitParams = {
+        actions: action.actions,
+        dataKey: action.dataKey,
+        pageName: ref.pageName,
+      }
+
+      const emitResult = await noodl.emitCall(emitParams)
+
+      log.grey('Called emitCall', {
+        action,
+        actionChain: ref,
+        emitParams,
+        emitResult,
+        options,
+      })
+
+      if (emitResult) {
+        const input = document.getElementById(options.component.id)
+        console.log(input)
+        console.log(input)
+        console.log(input)
+      }
+
+      return emitResult
     },
     trigger: 'onChange',
   })

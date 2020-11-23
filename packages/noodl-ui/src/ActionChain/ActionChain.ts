@@ -6,6 +6,7 @@ import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import { AbortExecuteError } from '../errors'
 import { isActionChainEmitTrigger } from '../utils/noodl'
+import isReference from '../utils/isReference'
 import * as T from '../types'
 
 const log = Logger.create('ActionChain')
@@ -46,24 +47,18 @@ class ActionChain<
       trigger,
     }: T.IActionChainConstructorArgs<ActionObjects, C>[1],
   ) {
-    this.#original = actions?.map((a) =>
-      isDraft(a) ? original(a) : a,
-    ) as T.IActionObject[]
+    this.#original = isDraft(actions)
+      ? (original(actions)?.map((a) =>
+          isDraft(a) ? original(a) : a,
+        ) as T.IActionObject[])
+      : (actions?.map((a) =>
+          isDraft(a) ? original(a) : a,
+        ) as T.IActionObject[])
     this['actions'] = this.#original
     this['component'] = component
     this['pageName'] = pageName
     this['pageObject'] = pageObject
     this['trigger'] = trigger
-
-    // log.func('constructor')
-    // log.grey('Initiated action objects', {
-    //   actions,
-    //   '#original': this.#original,
-    //   component,
-    //   trigger,
-    //   instance: this,
-    //   fns: this.fns,
-    // })
   }
 
   useAction(action: T.IActionChainUseObject): this
@@ -71,12 +66,14 @@ class ActionChain<
   useAction(action: T.IActionChainUseObject | T.IActionChainUseObject[]) {
     // Built in actions are forwarded to this.useBuiltIn
     _.forEach(_.isArray(action) ? action : [action], (obj) => {
-      if ('funcName' in obj) return void this.useBuiltIn(obj)
-      const currentActions = this.fns.action[obj.actionType] || []
-      this.fns.action[obj.actionType] = [
-        ...currentActions,
-        ...(_.isArray(obj) ? obj : ([obj] as any)),
-      ]
+      if ('funcName' in obj) {
+        this.useBuiltIn(obj)
+      } else {
+        this.fns.action[obj.actionType] = [
+          ...(this.fns.action[obj.actionType] || []),
+          ...(_.isArray(obj) ? obj : ([obj] as any)),
+        ]
+      }
     })
     return this
   }
@@ -134,10 +131,7 @@ class ActionChain<
       }
     }
 
-    let action =
-      obj.actionType === 'emit' || 'emit' in obj
-        ? new EmitAction(obj as T.EmitActionObject)
-        : new Action(obj)
+    let action
     let conditionalCallbackArgs = {} as any
     let callbacks: any[]
 
@@ -214,55 +208,70 @@ class ActionChain<
       }
     }
 
-    if (action.actionType === 'emit') {
-      const emitObj = obj as T.EmitActionObject
-      const emitAction = action as EmitAction
-      emitAction.set('trigger', this.trigger)
+    if (typeof obj === 'object') {
+      if (obj.actionType === 'emit' || 'emit' in obj) {
+        const emitObj = obj as T.EmitActionObject
+        const emitAction = new EmitAction(emitObj)
+        emitAction.set('trigger', this.trigger)
 
-      if (_.isPlainObject(emitObj.emit?.dataKey)) {
-        const entries = _.entries(emitObj.emit.dataKey)
-        const iteratorVar = this.component.get('iteratorVar') || ''
-        const isListItemDataObject = _.some(
-          _.values(emitObj?.emit?.dataKey),
-          (dataKey) => `${dataKey}`.startsWith(iteratorVar),
-        )
-        emitAction.set('iteratorVar', iteratorVar)
-        if (isListItemDataObject) {
-          emitAction.setDataObject(findListDataObject(this.component))
-        } else {
-          const [property, dataKey] = entries[0]
-          emitAction.setDataObject(
-            findDataObject({
-              dataKey,
-              pageObject: this.pageObject,
-              root: { [this.pageName || '']: this.pageObject },
-            }),
+        if (_.isPlainObject(emitObj.emit?.dataKey)) {
+          const entries = _.entries(emitObj.emit.dataKey)
+          const iteratorVar = this.component.get('iteratorVar') || ''
+          const isListItemDataObject = _.some(
+            _.values(emitObj?.emit?.dataKey),
+            (dataKey) => `${dataKey}`.startsWith(iteratorVar),
           )
+          emitAction.set('iteratorVar', iteratorVar)
+          if (isListItemDataObject) {
+            emitAction.setDataObject(findListDataObject(this.component))
+          } else {
+            const [property, dataKey] = entries[0]
+            emitAction.setDataObject(
+              findDataObject({
+                dataKey,
+                pageObject: this.pageObject,
+                root: { [this.pageName || '']: this.pageObject },
+              }),
+            )
+          }
+          for (let index = 0; index < entries.length; index++) {
+            const [property] = entries[index] || ''
+            emitAction.setDataKeyValue(property, emitAction.getDataObject())
+          }
+        } else if (_.isString(emitObj.emit?.dataKey)) {
+          emitAction.set('dataKey', emitObj.emit.dataKey)
+          if (isListConsumer(this.component)) {
+            emitAction.set('iteratorVar', this.component.get('iteratorVar'))
+            emitAction.setDataObject(findListDataObject(this.component))
+          } else {
+            emitAction.setDataObject(
+              findDataObject({
+                dataKey: emitObj.emit.dataKey,
+                pageObject: this.pageObject,
+                root: this.pageName
+                  ? { [this.pageName]: this.pageObject }
+                  : this.pageObject || {},
+              }),
+            )
+          }
         }
-        for (let index = 0; index < entries.length; index++) {
-          const [property] = entries[index] || ''
-          emitAction.setDataKeyValue(property, emitAction.getDataObject())
-        }
-      } else if (_.isString(emitObj.emit?.dataKey)) {
-        emitAction.set('dataKey', emitObj.emit.dataKey)
-        if (isListConsumer(this.component)) {
-          emitAction.set('iteratorVar', this.component.get('iteratorVar'))
-          emitAction.setDataObject(findListDataObject(this.component))
-        } else {
-          emitAction.setDataObject(
-            findDataObject({
-              dataKey: emitObj.emit.dataKey,
-              pageObject: this.pageObject,
-              root: this.pageName
-                ? { [this.pageName]: this.pageObject }
-                : this.pageObject || {},
-            }),
-          )
-        }
+        action = emitAction
+        attachFn(emitAction)
+      } else {
+        action = new Action(obj)
+        attachFn(action)
       }
-      attachFn(emitAction)
     } else {
-      attachFn(action)
+      log.func('createAction')
+      log.red(
+        `Expected an action object but received type ${typeof obj} instead`,
+        {
+          action,
+          actions: this.actions,
+          actionObj: obj,
+          actionChain: this,
+        },
+      )
     }
 
     return action
@@ -279,6 +288,7 @@ class ActionChain<
       if (timeoutRef) clearTimeout(timeoutRef)
       if (_state._execute) _state['_execute'] = executeFn
       this.#queue = []
+      this.status = null
       // this['gen'] = undefined
       this.loadQueue().loadGen()
       log.func('build')
@@ -330,14 +340,6 @@ class ActionChain<
           let result: any
           let iterator = await this.gen?.next?.()
 
-          // if (!result) {
-          //   console.warn(
-          //     `The action chain generated returned null or undefined. The ` +
-          //       `action chain will not be executed further`,
-          //     { event, ...this.getDefaultCallbackArgs() },
-          //   )
-          // }
-
           while (iterator && !iterator?.done) {
             action = iterator.value?.action
 
@@ -368,6 +370,14 @@ class ActionChain<
                   `Received a returned value from a(n) "${action.type}" executor`,
                   result,
                 )
+              } else {
+                // if (!result) {
+                //   console.warn(
+                //     `The action chain generated returned null or undefined. The ` +
+                //       `action chain will not be executed further`,
+                //     { event, ...this.getDefaultCallbackArgs() },
+                //   )
+                // }
               }
             }
           }
@@ -440,52 +450,79 @@ class ActionChain<
    * as soon as they are done executing
    */
   loadQueue() {
-    _.forEach(this.actions, (actionObj: T.IActionObject | Function) => {
-      let action: T.IAction<ActionObjects[number]> | undefined
+    _.forEach(
+      this.actions,
+      (actionObj: T.IActionObject | Function | string) => {
+        let action: T.IAction<ActionObjects[number]> | undefined
 
-      if (_.isFunction(actionObj)) {
-        if (!this.fns.action.anonymous?.length) {
+        if (_.isFunction(actionObj)) {
+          if (!this.fns.action.anonymous?.length) {
+            log.func('loadQueue')
+            log.red(
+              `Encountered an action object that is not an object type. You will` +
+                `need to register an "anonymous" action as an actionType if you want to ` +
+                `handle anonymous functions`,
+              { received: actionObj, component: this.component },
+            )
+          }
+          action = this.createAction({
+            actionType: 'anonymous',
+            fn: actionObj,
+          })
+        }
+        // Temporarily hardcode the actionType to blend in with the other actions
+        // for now until we find a better solution
+        else {
+          if (isReference(actionObj as string)) {
+            log.func('loadQueue')
+            log.red(
+              `Received a reference string but expected an action object`,
+              { actions: this.actions, actionObj, actionChain: this },
+            )
+          } else if (typeof actionObj === 'object') {
+            if ('emit' in actionObj) {
+              actionObj = {
+                ...actionObj,
+                actionType: 'emit',
+              } as T.EmitActionObject
+            } else if ('goto' in actionObj) {
+              actionObj = {
+                ...actionObj,
+                actionType: 'goto',
+              } as T.GotoActionObject
+            }
+            action = this.createAction(actionObj as T.BaseActionObject)
+          }
+        }
+
+        if (action) {
           log.func('loadQueue')
-          log.red(
-            `Encountered an action object that is not an object type. You will` +
-              `need to register an "anonymous" action as an actionType if you want to ` +
-              `handle anonymous functions`,
-            { received: actionObj, component: this.component },
+          this.#queue.push(action)
+          console.info(`Loaded "${action.actionType}" action into the queue`, {
+            action,
+            actionChain: this,
+            actions: this.actions,
+            component: this.component,
+            original: actionObj,
+          })
+        } else {
+          console.info(
+            `Could not convert action ${
+              typeof actionObj === 'object'
+                ? actionObj.actionType
+                : String(actionObj)
+            } to an instance`,
+            {
+              action,
+              actionChain: this,
+              actions: this.actions,
+              component: this.component,
+              original: actionObj,
+            },
           )
         }
-        action = this.createAction({
-          actionType: 'anonymous',
-          fn: actionObj,
-        })
-      }
-      // Temporarily hardcode the actionType to blend in with the other actions
-      // for now until we find a better solution
-      else {
-        if ('emit' in actionObj) {
-          actionObj = {
-            ...actionObj,
-            actionType: 'emit',
-          } as T.EmitActionObject
-        } else if ('goto' in actionObj) {
-          actionObj = {
-            ...actionObj,
-            actionType: 'goto',
-          } as T.GotoActionObject
-        }
-        action = this.createAction(actionObj as T.BaseActionObject)
-      }
-
-      if (action) {
-        log.func('loadQueue')
-        this.#queue.push(action)
-        log.grey(`Loaded "${action.actionType}" action into the queue`, {
-          action,
-          actionChain: this,
-          actions: this.actions,
-          component: this.component,
-        })
-      }
-    })
+      },
+    )
     return this
   }
 

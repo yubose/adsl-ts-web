@@ -126,7 +126,11 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
     // to change values on the fly by some "on change" logic (ex: input/select elements)
     import('../utils/sdkHelpers')
       .then(({ createOnDataValueChangeFn }) => {
-        const onChange = createOnDataValueChangeFn(datasetAttribs['data-key'])
+        const onChange = createOnDataValueChangeFn(
+          node,
+          component,
+          datasetAttribs['data-key'] || component.get('dataKey'),
+        )
         node.addEventListener('change', onChange)
       })
       .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
@@ -169,7 +173,7 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       console.groupEnd()
       // node.removeEventListener(eventType, attachEventHandler)
       // handleEventHandlers()
-      return handler(...args)
+      return handler?.(...args)
     }
 
     // TODO: Test this
@@ -507,7 +511,7 @@ noodluidom.on('plugin', async function (noop, component) {
   }
 })
 
-noodluidom.on('textfield', (node, component) => {
+noodluidom.on('textField', (node, component) => {
   if (node && component) {
     const contentType = component.get('contentType')
     // Password inputs

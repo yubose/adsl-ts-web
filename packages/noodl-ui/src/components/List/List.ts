@@ -347,7 +347,7 @@ class List extends Component implements IList {
 
   setBlueprint(newBlueprint: IListBlueprint) {
     this.#blueprint = newBlueprint
-    console.log(newBlueprint)
+    console.log('newBlueprint', newBlueprint)
     this.emit(event.component.list.BLUEPRINT, newBlueprint)
     return this
   }

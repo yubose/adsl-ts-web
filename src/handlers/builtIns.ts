@@ -340,7 +340,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
   builtInActions.redraw = async (action, options) => {
     log.func('redraw')
-    log.red('', { action, ...options })
+    log.red('', { action, options })
 
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
     const { default: noodl } = await import('../app/noodl')
@@ -348,10 +348,14 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     const { viewTag } = action.original
 
     const { component } = options
+    if (component.id in window.ac) delete window.ac[component.id]
     const node = document.getElementById(component.id)
 
     const [newNode, newComponent] = noodluidom.redraw(node, component, {
-      resolver: (c) => noodlui.resolveComponents(c),
+      resolver: (c) => {
+        if (c?.id in window.ac) delete window.ac[c.id]
+        return noodlui.resolveComponents(c)
+      },
     })
 
     log.gold(`newNode/newComponent`, {

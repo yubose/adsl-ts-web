@@ -4,7 +4,7 @@
  * isolate the imports into this file and replace them with stubs in testing
  */
 import _ from 'lodash'
-import { Draft } from 'immer'
+import { Draft, original } from 'immer'
 import Logger from 'logsnap'
 import { getAllByDataKey } from 'noodl-utils'
 import { isTextFieldLike } from 'noodl-ui-dom'
@@ -14,7 +14,11 @@ import noodlui from '../app/noodl-ui'
 const log = Logger.create('sdkHelpers.ts')
 
 /** THIS IS EXPERIMENTAL AND WILL MOVE TO ANOTHER LOCATION */
-export function createOnDataValueChangeFn(dataKey: string = '') {
+export function createOnDataValueChangeFn(
+  node,
+  component,
+  dataKey: string = '',
+) {
   return (e: Event) => {
     const target:
       | (typeof e.target & {
@@ -58,8 +62,11 @@ export function createOnDataValueChangeFn(dataKey: string = '') {
             `component but the dataKey "${dataKey}" is not a valid path of the ` +
             `root object`,
           {
+            component,
             dataKey,
+            draftRoot: original(draft),
             localRoot,
+            node,
             pageName: noodlui.page,
             pageObject: noodl.root[noodlui.page],
             value,
@@ -71,7 +78,8 @@ export function createOnDataValueChangeFn(dataKey: string = '') {
     if (updatedValue !== value) {
       log.func('createOnDataValueChangeFn')
       log.red(
-        `Applied an update to a value using dataKey "${dataKey}" but the before/after values weren't equivalent`,
+        `Applied an update to a value using dataKey "${dataKey}" but the ` +
+          `before/after values weren't equivalent`,
         { previousValue: value, nextValue: updatedValue, dataKey },
       )
     }

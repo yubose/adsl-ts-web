@@ -378,5 +378,5 @@ export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
     // log
     src = `${assetsUrl}${pathValue}`
   }
-  return src.replace(/\/\//g, '')
+  return src
 }

@@ -118,11 +118,11 @@ describe('dom', () => {
       })
     })
 
-    it.only(
+    it(
       'should show populated data values from deeply nested children ' +
         'expectedly to the DOM',
       () => {
-        const component = page.render({
+        page.render({
           type: 'view',
           children: [
             {
@@ -153,7 +153,6 @@ describe('dom', () => {
             },
           ],
         }).components[0]
-        console.info(component.toJS())
         const rootNode = page.rootNode as HTMLElement
         const titleLabels = getAllByDataKey('hello.title', rootNode)
         const colorLabel2 = getAllByDataKey('hello.color', rootNode)
@@ -391,6 +390,7 @@ describe('dom', () => {
       })
 
       it('should start off showing the eye closed icon', async () => {
+        noodlui.setAssetsUrl(assetsUrl)
         page.render(noodlComponent)
         await waitFor(() => {
           const img = document.getElementsByTagName('img')[0]

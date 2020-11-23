@@ -344,19 +344,11 @@ class NOODL implements T.INOODLUi {
         fn,
       })),
     )
-
     // @ts-expect-error
     if (!window.ac) window['ac'] = {}
     // @ts-expect-error
     window.ac[options.component?.id || ''] = actionChain
-
-    const buildOptions: T.IActionChainBuildOptions = {
-      context: this.getContext(),
-      parser: this.#parser,
-      trigger: options.trigger,
-    }
-
-    return actionChain.build(buildOptions)
+    return actionChain.build()
   }
 
   init({
@@ -389,6 +381,31 @@ class NOODL implements T.INOODLUi {
       roots: this.#root,
       viewport: this.#viewport,
     } as T.ResolverContext
+  }
+
+  getEmitHandlers(
+    trigger: T.IActionChainEmitTrigger | T.ResolveEmitTrigger,
+  ): T.IActionChainUseObjectBase<any>[]
+  getEmitHandlers(
+    trigger: (handlers: T.IActionChainUseObjectBase<any>) => boolean,
+  ): T.IActionChainUseObjectBase<any>[]
+  getEmitHandlers(
+    trigger?:
+      | (T.IActionChainEmitTrigger | T.ResolveEmitTrigger)
+      | ((handlers: T.IActionChainUseObjectBase<any>) => boolean),
+  ) {
+    const handlers = this.#cb.action.emit || []
+    if (!arguments.length) {
+      return handlers
+    }
+    if (trigger) {
+      if (typeof trigger === 'string') {
+        return handlers.filter((o) => o.trigger === trigger)
+      } else if (typeof trigger === 'function') {
+        return handlers.filter((o) => trigger(o))
+      }
+    }
+    return handlers
   }
 
   getPageObject(page: string) {
@@ -425,9 +442,12 @@ class NOODL implements T.INOODLUi {
       context: this.getContext(),
       createActionChainHandler: (
         ...[action, options]: Parameters<T.INOODLUi['createActionChainHandler']>
-      ) => this.createActionChainHandler(action, { ...options, component }),
+      ) =>
+        this.createActionChainHandler(action, { ...options, component } as any),
       createSrc: (path: string) => this.createSrc(path, component),
+      getBaseStyles: this.getBaseStyles.bind(this),
       resolveComponent: this.#resolve.bind(this),
+      resolveComponentDeep: this.resolveComponents.bind(this),
       parser: this.parser,
       showDataKey: this.#state.showDataKey,
       ...this.getStateGetters(),
@@ -454,7 +474,7 @@ class NOODL implements T.INOODLUi {
     component: T.IComponentTypeInstance | string,
     fn?: (component: T.IComponentTypeInstance | null) => boolean,
   ) {
-    let result: T.IComponentTypeInstance | null | undefined
+    let result: any
     if (fn === undefined) {
       if (component instanceof Component) {
         result = this.#state.nodes.get(component as T.IComponentTypeInstance)
@@ -462,10 +482,10 @@ class NOODL implements T.INOODLUi {
         const componentId = component
         const comparator = (node: T.IComponentTypeInstance) =>
           node?.id === componentId
-        result = findNodeInMap(this.#state.nodes, comparator)
+        result = _.noop(this.#state.nodes, comparator)
       }
     } else {
-      result = findNodeInMap(this.#state.nodes, fn)
+      result = _.noop(this.#state.nodes, fn)
     }
     return result || null
   }
@@ -603,6 +623,7 @@ class NOODL implements T.INOODLUi {
     component?: T.IComponentTypeInstance,
   ) {
     log.func('createSrc')
+    if (isDraft(path)) path = original(path)
 
     if (path) {
       // Plain strings
@@ -723,7 +744,7 @@ class NOODL implements T.INOODLUi {
             { component, path },
           )
         }
-        return resolveAssetUrl(path)
+        return resolveAssetUrl(path, this.assetsUrl)
       }
     }
 

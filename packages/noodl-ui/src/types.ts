@@ -828,6 +828,7 @@ export interface ConsumerOptions {
   context: ResolverContext
   createActionChainHandler: INOODLUi['createActionChainHandler']
   createSrc(path: Parameters<INOODLUi['createSrc']>[0]): string
+  getBaseStyles(styles?: NOODLStyle): Partial<NOODLStyle>
   getNode: INOODLUiStateHelpers['getNode']
   getNodes: INOODLUiStateHelpers['getNodes']
   getPageObject: INOODLUiStateHelpers['getPageObject']
@@ -840,6 +841,7 @@ export interface ConsumerOptions {
   resolveComponent(
     c: (NOODLComponentType | IComponentTypeInstance | IComponentTypeObject)[],
   ): IComponentTypeInstance[]
+  resolveComponentDeep: INOODLUi['resolveComponents']
   setNode: INOODLUiStateHelpers['setNode']
   showDataKey: boolean
 }

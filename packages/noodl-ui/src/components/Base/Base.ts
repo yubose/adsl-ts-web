@@ -131,9 +131,7 @@ class Component implements IComponent {
       // TODO - Deprecate component.noodlType since component.type is sufficient enough now
       if (key === 'type') return this.original.type
       const value = this.#retrieve(key, styleKey)
-      return (isDraft(value)
-        ? original(value)
-        : value) as IComponentTypeObject[K]
+      return value
     }
     // component.get(['someKey', 'someOtherKey'])
     else if (_.isArray(key)) {
@@ -177,7 +175,7 @@ class Component implements IComponent {
       }
     }
 
-    return value
+    return isDraft(value) ? original(value) : value
   }
 
   /**

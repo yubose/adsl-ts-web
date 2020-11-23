@@ -132,11 +132,8 @@ describe('_internalResolver', () => {
       expect(blueprint).to.have.property('iteratorVar', component.iteratorVar)
       expect(blueprint.children).to.have.lengthOf(3)
       expect(blueprint.children?.[0]).to.have.property('type', 'label')
-      expect(blueprint.children?.[1]).to.have.property('type', 'img')
-      expect(blueprint.children?.[1]).to.have.property(
-        'src',
-        `${assetsUrl}abc.jpg`,
-      )
+      expect(blueprint.children?.[1]).to.have.property('type', 'image')
+      expect(blueprint.children?.[1]).to.have.property('path', `abc.jpg`)
     })
 
     it('should start off with 2 children if listObject has 2 items', () => {
