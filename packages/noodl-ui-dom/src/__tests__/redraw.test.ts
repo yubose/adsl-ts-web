@@ -238,7 +238,7 @@ describe('redraw', () => {
     })
 
     describe('when using path emits after redrawing', () => {
-      it.only('should still emit and update the DOM', async () => {
+      xit('should still emit and update the DOM', async () => {
         let imgPath = 'selectOn.png'
         const pathSpy = sinon.spy()
         const onClickSpy = sinon.spy()
@@ -294,8 +294,39 @@ describe('redraw', () => {
     })
 
     describe('when user clicks on a redrawed node that has an onClick emit', () => {
-      xit('should still emit and update the DOM', () => {
-        //
+      it.only('should still be able to operate on and update the DOM', () => {
+        let path = 'abc.png'
+        const onClick = async (action, options) => {
+          console.info('I AM PATH')
+          path = path === 'abc.png' ? 'hello.jpg' : path
+        }
+        noodlui.use({ actionType: 'emit', fn: onClick, trigger: 'onClick' })
+        const view = noodlui.resolveComponents({
+          type: 'view',
+          children: [
+            {
+              type: 'image',
+              onClick: [
+                { emit: { dataKey: { var1: 'itemObject' }, actions: [] } },
+              ],
+            },
+          ],
+        })
+        noodluidom.on('image', (n, c) => {
+          const { onClick } = c.action
+          console.info(onClick)
+          console.info('start')
+          console.info(c)
+          n?.addEventListener('click', onClick)
+        })
+        console.info('end')
+        console.info('end')
+        console.info('end')
+        console.info(noodluidom.getAllCbs())
+        noodluidom.parse(view)
+        const img = document.getElementsByTagName('img')[0]
+
+        console.info(prettyDOM(img))
       })
     })
 

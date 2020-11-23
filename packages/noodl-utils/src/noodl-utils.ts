@@ -168,7 +168,7 @@ export function findParent<C extends IComponentTypeInstance>(
   return parent || null
 }
 
-interface ee {
+interface FindDataObjectOptions {
   component?: any
   dataKey?: string
   pageObject?: { [key: string]: any }
