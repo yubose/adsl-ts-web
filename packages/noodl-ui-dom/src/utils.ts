@@ -5,12 +5,14 @@
 //     let obj: any = value
 
 import {
+  eventTypes,
   Component,
   IComponentTypeInstance,
   IComponentTypeObject,
   NOODLComponent,
+  NOODLComponentType,
 } from 'noodl-ui'
-import { shapeKeys } from './constants'
+import { publish, walkOriginalChildren } from 'noodl-utils'
 
 //     while (parts.length) {
 //       const part = parts.shift()
@@ -48,30 +50,87 @@ export const get = <T = any>(o: T, k: string) => {
   return result
 }
 
+/**
+ *
+ * @param { IComponentTypeInstance | IComponentTypeObject | NOODLComponentType } component - NOODL component object, instance, or type
+ */
 export function getShape(
   component: IComponentTypeInstance,
+  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
+): IComponentTypeObject
+export function getShape(
+  noodlComponent: IComponentTypeObject,
+  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
+): IComponentTypeObject
+export function getShape(
+  componentType: NOODLComponentType,
+  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
+): IComponentTypeObject
+export function getShape(
+  components: (
+    | IComponentTypeInstance
+    | IComponentTypeObject
+    | NOODLComponentType
+  )[],
+  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
+): IComponentTypeObject
+export function getShape(
+  component: IComponentTypeInstance | IComponentTypeObject | NOODLComponentType,
+  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
 ): IComponentTypeObject {
-  let shape = {}
-  const shapeKeys = getShapeKeys()
-  // TODO - Use the "iteratorVar"
+  const shape = {} as IComponentTypeObject
+  let shapeKeys = getShapeKeys()
+  if (opts?.parent) {
+    shapeKeys = shapeKeys.concat(
+      getDynamicShapeKeys(
+        opts.parent,
+        component instanceof Component
+          ? component.original
+          : (component as IComponentTypeObject),
+      ),
+    )
+  }
+  if (opts?.shapeKeys) {
+    shapeKeys = shapeKeys.concat(opts.shapeKeys)
+  }
 
   if (component instanceof Component) {
-    if (component.get('iteratorVar')) {
-      // The noodl yml may also place the value of iteratorVar as a property
-      // as an empty string. So we include the value as a property to keep as well
-      shapeKeys.push(component.get('iteratorVar'))
-    }
+    return getShape(component.original, { ...opts, parent: component.original })
+  } else if (typeof component === 'string') {
+    return { type: component }
+  } else if (Array.isArray(component)) {
+    return component.map((c) => getShape(c, opts))
+  } else if (component && typeof component === 'object') {
+    const noodlComponent = component as IComponentTypeObject
+    // The noodl yml may also place the value of iteratorVar as a property
+    // as an empty string. So we include the value as a property to keep as well
     shapeKeys.forEach((key) => {
-      if (component.original?.[key]) {
-        shape[key] = component.original[key]
+      if (key in noodlComponent) {
+        if (key === 'children') {
+          shape.children = Array.isArray(noodlComponent.children)
+            ? (noodlComponent.children as IComponentTypeObject[])?.map(
+                (noodlChild) => {
+                  return getShape(noodlChild, {
+                    ...opts,
+                    parent: noodlComponent,
+                  })
+                },
+              )
+            : getShape(noodlComponent.children as any, {
+                ...opts,
+                parent: noodlComponent,
+              })
+        } else {
+          shape[key] = noodlComponent[key]
+        }
       }
     })
   }
-
   return shape
 }
 
 export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
+  const regex = /(required?)\s*$/i
   return [
     'type',
     'style',
@@ -84,8 +143,6 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
     'iteratorVar',
     'listObject',
     'maxPresent',
-    'onClick',
-    'onHover',
     'options',
     'path',
     'pathSelected',
@@ -100,8 +157,22 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
     'text=func',
     'viewTag',
     'videoFormat',
+    ...eventTypes,
     ...keys,
   ] as string[]
+}
+
+export function getDynamicShapeKeys(
+  noodlParent: IComponentTypeObject,
+  noodlChild: IComponentTypeObject,
+) {
+  const shapeKeys = [] as string[]
+  if (noodlParent?.iteratorVar) {
+    if (noodlParent.iteratorVar in noodlChild) {
+      shapeKeys.push(noodlParent.iteratorVar)
+    }
+  }
+  return shapeKeys
 }
 
 export function isHandlingEvent<N extends HTMLElement>(

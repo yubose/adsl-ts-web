@@ -14,8 +14,8 @@
   "scripts": {
     "build": "rm -rf dist && rollup -c --environment BUILD:production",
     "start": "rm -rf dist && rollup -c --environment BUILD:development -w",
-    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src"
+    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files \"../noodl-ui/dist\" --watch-files \"../noodl-ui-dom/dist\" --watch-files src src/**/*.test.ts --verbose",
+    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files \"../noodl-ui/dist\" --watch-files \"../noodl-ui-dom/dist\" --watch-files src"
   },
   "peerDependencies": {
     "noodl-ui": "^0.1.28"

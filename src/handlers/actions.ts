@@ -33,7 +33,7 @@ import {
   isBooleanTrue,
   isEmitObj,
   isPossiblyDataKey,
-  publish
+  publish,
 } from 'noodl-utils'
 import { onSelectFile } from 'utils/dom'
 import { IListItem } from '../../packages/noodl-ui/src'
@@ -451,6 +451,8 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   // Emit for trigger: "path"
+  // TODO - if src === assetsUrl
+  // TODO - else if src endsWith
   _actions.emit.push({
     fn: (
       args: { path: EmitActionObject; component: IComponentTypeInstance },

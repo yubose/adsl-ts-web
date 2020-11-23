@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import sinon from 'sinon'
 import { IResolver, Resolver, Viewport } from 'noodl-ui'
 import {
   assetsUrl,
@@ -8,7 +9,7 @@ import {
   viewport,
 } from './test-utils'
 
-// let logSpy: sinon.SinonStub
+let logSpy: sinon.SinonStub
 
 before(() => {
   console.clear()
@@ -23,7 +24,8 @@ before(() => {
     .setAssetsUrl(assetsUrl)
     .setRoot(page, root)
     .setPage(page)
-  // logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+
+  logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
 
   try {
     Object.defineProperty(noodlui, 'cleanup', {
@@ -46,6 +48,14 @@ before(() => {
     resolver.setResolver(r)
     noodlui.use(resolver as IResolver)
   })
+})
+
+after(() => {
+  logSpy.restore()
+})
+
+beforeEach(() => {
+  // noodlui.init({ _log: false, viewport })
 })
 
 afterEach(() => {

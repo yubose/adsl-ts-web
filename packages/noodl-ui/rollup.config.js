@@ -20,7 +20,7 @@ const config = {
       name: 'noodlui',
       sourcemap: true,
       globals: {
-        // noodlutils: ['noodl-utils'],
+        noodlutils: ['noodl-utils'],
       },
     },
   ],

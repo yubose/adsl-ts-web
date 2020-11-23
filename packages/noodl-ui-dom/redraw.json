@@ -4,96 +4,75 @@
       "children": [
         {
           "type": "label",
-          "dataKey": "itemObject.value",
           "style": {
-            "fontSize": "14px",
-            "top": "0px",
-            "left": "36.5px",
-            "color": "#636363",
+            "fontSize": "13px",
+            "top": "13.34px",
+            "left": "29.2px",
             "position": "absolute",
             "outline": "none"
           },
+          "dataKey": "itemObject.value",
           "children": [],
           "noodlType": "label",
           "listId": "",
           "listIndex": 0,
           "data-key": "itemObject.value",
           "data-name": "value",
-          "id": "_4n3h5jn03"
+          "id": "_nl88jchg1"
         },
         {
-          "type": "input",
-          "require": "true",
+          "type": "img",
           "style": {
-            "width": "146px",
-            "height": "20.009999999999998px",
-            "fontSize": "14px",
-            "border": {
-              "style": "6",
-              "color": "#7e7e7e",
-              "width": "3"
-            },
-            "borderWidth": "3",
-            "left": "182.5px",
-            "top": "0px",
-            "borderRadius": "3px",
+            "height": "33.35px",
+            "width": "18.25px",
+            "top": "13.34px",
+            "left": "0px",
             "position": "absolute",
             "outline": "none",
-            "borderColor": "#7e7e7e",
-            "borderStyle": "solid"
+            "objectFit": "contain"
           },
-          "placeholder": "Enter",
-          "dataKey": {
+          "path": {
             "emit": {
               "dataKey": {
                 "var": "itemObject"
               },
               "actions": [
                 {
-                  "=.builtIn.object.get": {
-                    "dataIn": {
-                      "object": "=..generalInfo",
-                      "key": "$var.key"
-                    }
-                  }
+                  "if": [
+                    {
+                      "=.builtIn.string.equal": {
+                        "dataIn": {
+                          "string1": "=..generalInfo.gender",
+                          "string2": "$var.value"
+                        }
+                      }
+                    },
+                    "selectOn.png",
+                    "selectOff.png"
+                  ]
                 }
               ]
             }
           },
+          "viewTag": "genderTag",
           "children": [],
-          "noodlType": "textField",
+          "noodlType": "image",
           "listId": "",
           "listIndex": 0,
-          "data-key": {
-            "emit": {
-              "dataKey": {
-                "var": "itemObject"
-              },
-              "actions": [
-                {
-                  "=.builtIn.object.get": {
-                    "dataIn": {
-                      "object": "=..generalInfo",
-                      "key": "$var.key"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "data-name": "",
-          "id": "_2fq0aj8px"
+          "data-viewtag": "genderTag",
+          "src": "",
+          "id": "_keqq95udf"
         }
       ],
       "listId": "",
       "listIndex": 0,
-      "id": "_lhlba9ept",
+      "id": "_vompwtz13",
       "iteratorVar": "",
       "noodlType": "listItem",
       "style": {
-        "left": "0px",
+        "left": "10.95px",
         "top": "0px",
-        "width": "365px",
+        "width": "109.5px",
         "height": "46.690000000000005px",
         "backgroundColor": "#ffffffff",
         "position": "relative",
@@ -104,43 +83,37 @@
       "type": "li"
     }
   ],
-  "listId": "_q34q3lkbb",
+  "listId": "_96640uo9l",
   "listItemCount": 1,
   "listObject": [
     {
-      "key": "firstNname",
-      "value": "First Name"
+      "key": "gender",
+      "value": "Male"
     },
     {
-      "key": "middleNameAndInitial",
-      "value": "Middle Name and Initial"
+      "key": "gender",
+      "value": "Female"
     },
     {
-      "key": "lastName",
-      "value": "Last Name"
-    },
-    {
-      "key": "dob",
-      "value": "Date of Birth"
-    },
-    {
-      "key": "preferredName",
-      "value": "Preferred name"
+      "key": "gender",
+      "value": "Other"
     }
   ],
-  "id": "_whhp11aq0",
+  "id": "_2hkzkfu6k",
   "iteratorVar": "itemObject",
   "style": {
-    "top": "66.7px",
+    "axis": "horizontal",
+    "top": "333.5px",
     "width": "365px",
     "height": "400.2px",
     "left": "0px",
     "position": "absolute",
     "outline": "none",
+    "display": "block",
+    "flexWrap": "nowrap",
     "overflowX": "hidden",
     "listStyle": "none",
     "padding": "0px",
-    "display": "block",
     "overflowY": "auto"
   },
   "type": "list"

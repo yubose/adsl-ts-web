@@ -8,6 +8,8 @@ import {
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isEmitObj,
+  isListConsumer,
+  findDataObject,
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
@@ -21,7 +23,7 @@ import {
   getRandomKey,
   hasLetter,
 } from './utils/common'
-import { isActionChainEmitTrigger } from './utils/noodl'
+import { isActionChainEmitTrigger, resolveAssetUrl } from './utils/noodl'
 import createComponent from './utils/createComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
@@ -590,29 +592,14 @@ class NOODL implements T.INOODLUi {
     component?: T.IComponentTypeInstance,
   ) {
     log.func('createSrc')
-    if (isDraft(path)) path = original(path) as typeof path
 
-    const resolvePath = (pathValue: string) => {
-      let src = ''
-      if (_.isString(pathValue)) {
-        if (/^(http|blob)/i.test(pathValue)) {
-          src = pathValue
-        } else if (pathValue.startsWith('~/')) {
-          // Should be handled by an SDK
-        } else {
-          src = this.assetsUrl + pathValue
-        }
-      } else {
-        // log
-        src = `${this.assetsUrl}${pathValue}`
-      }
-      return src
-    }
+    console.info(path)
+    console.info(component?.toJS())
 
     if (path) {
       // Plain strings
       if (_.isString(path)) {
-        return resolvePath(path)
+        return resolveAssetUrl(path, this.assetsUrl)
       }
       // "If" object evaluation
       else if (path.if) {
@@ -620,7 +607,17 @@ class NOODL implements T.INOODLUi {
           if (isNOODLBoolean(val)) return isBooleanTrue(val)
           if (typeof val === 'function') {
             if (component) {
-              let listItem: T.IListItem
+              let dataObject
+              if (component.get('dataKey')) {
+                dataObject = findDataObject({
+                  component,
+                  dataKey: component.get('dataKey'),
+                  pageObject: this.getPageObject(this.page),
+                  page: this.page,
+                })
+              } else {
+              }
+              if (isListConsumer()) let listItem: T.IListItem
               if (component.noodlType !== 'listItem') {
                 listItem = findParent(
                   component,
@@ -636,7 +633,7 @@ class NOODL implements T.INOODLUi {
           }
           return !!val
         }, path)
-        return resolvePath(path)
+        return resolveAssetUrl(path)
       }
       // Emit object evaluation
       else if (isEmitObj<T.EmitActionObject>(path)) {
@@ -667,15 +664,15 @@ class NOODL implements T.INOODLUi {
           if (result instanceof Promise) {
             return result
               .then((res) => {
-                console.info('result: ', resolvePath(res))
-                return resolvePath(res)
+                console.info('result: ', resolveAssetUrl(res))
+                return resolveAssetUrl(res)
               })
               .catch((err) => {
                 throw new Error(err)
               })
           } else {
             // console.info('result from aaaa: ', emitAction.result)
-            return resolvePath(result)
+            return resolveAssetUrl(result)
           }
         }
       }
@@ -741,7 +738,7 @@ class NOODL implements T.INOODLUi {
             { component, path },
           )
         }
-        return resolvePath(path)
+        return resolveAssetUrl(path)
       }
     }
 

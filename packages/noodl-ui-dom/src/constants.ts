@@ -12,7 +12,7 @@ export const componentEventMap = {
   plugin: 'plugin',
   popUp: 'popup',
   select: 'select',
-  textField: 'textfield',
+  textField: 'textField',
   video: 'video',
   view: 'view',
 } as const

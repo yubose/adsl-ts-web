@@ -17,6 +17,8 @@ import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 
 class Component implements IComponent {
+  // This cache is used internally to cache original objects (ex: action objects)
+  #cache: { [key: string]: any }
   #cb: { [eventName: string]: Function[] } = {}
   #component: WritableDraft<IComponentTypeObject> | IComponentTypeObject
   #children: IComponentTypeInstance[] = []
@@ -37,22 +39,23 @@ class Component implements IComponent {
   untouched: string[] = []
   stylesTouched: string[] = []
   stylesUntouched: string[] = []
-  shape: Partial<NOODLComponent>
 
   constructor(component: IComponentType) {
     const keys =
-      component instanceof Component ? component.keys : _.keys(component)
+      component instanceof Component
+        ? component.keys
+        : _.keys(_.isString(component) ? { type: component } : component)
     this['original'] =
       component instanceof Component
         ? component.original
         : _.isString(component)
         ? { noodlType: component }
         : component
-    this['shape'] = this.original
     this['keys'] = keys
     this['untouched'] = keys.slice()
     this['unhandled'] = keys.slice()
 
+    this.#cache = {}
     this.#component = createComponentDraftSafely(component) as WritableDraft<
       IComponentTypeObject
     >
@@ -72,12 +75,18 @@ class Component implements IComponent {
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
     _.forEach(eventTypes, (eventType) => {
-      if (component[eventType]) {
-        if (component?.original) {
-          this.action[eventType] = component?.original?.[eventType]
-          if (this.action[eventType]) {
-            this.#component[eventType] = this.action[eventType]
-          }
+      if (keys.includes(eventType)) {
+        // If the cached handler is a function, it is caching a function that
+        // was previously created internally. Since we need a reference to the
+        // original action objects to re-create actions on-demand, we must
+        // ensure that these are in their original form
+        if (
+          !this.#cache[eventType] ||
+          typeof this.#cache[eventType] === 'function'
+        ) {
+          this.#cache[eventType] = isDraft(this.#component[eventType])
+            ? original(this.#component[eventType])
+            : this.#component[eventType]
         }
         // TODO - Find out more about how our code is using this around the app
         // this.action[eventType] = isDraft(component[eventType])
@@ -141,7 +150,9 @@ class Component implements IComponent {
   ) => {
     let value
 
-    if (key === 'style') {
+    if (key === 'cache') {
+      return this.#cache
+    } else if (key === 'style') {
       // Retrieve the entire style object
       if (styleKey === undefined) {
         if (this.status !== 'drafting') this.touch('style')
@@ -480,6 +491,7 @@ class Component implements IComponent {
       { id: this.#id, noodlType: this.original.type },
       this.toJS(),
       {
+        _cache: this.#cache,
         _touched: this.touched,
         _untouched: this.untouched,
         _touchedStyles: this.stylesTouched,
@@ -495,15 +507,15 @@ class Component implements IComponent {
     const obj = isDraft(this.#component)
       ? current(this.#component as ProxiedComponent)
       : (this.#component as ProxiedComponent)
-
     if (obj?.children) {
       return {
         ...obj,
+        ...this.action,
         id: this.id,
         children: _.map(this.children(), (child) => child?.toJS?.()),
       }
     }
-    return obj
+    return { ...obj, ...this.action }
   }
 
   /**

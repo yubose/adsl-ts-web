@@ -181,7 +181,7 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
     _.forEach(eventTypes, (eventType) => {
       let handler = component.get(eventType)
       if (handler) {
-        console.log({ component, handler, eventType, node })
+        // console.log({ component, handler, eventType, node })
       }
       if (handler) {
         // setTimeout(() => {

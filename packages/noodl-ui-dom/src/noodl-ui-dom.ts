@@ -1,14 +1,11 @@
 import Logger from 'logsnap'
 import {
-  Component,
   createComponent,
   getType,
   IComponentTypeInstance,
   IComponentTypeObject,
   IListItem,
   NOODLComponentType,
-  Resolver,
-  ResolverFn,
 } from 'noodl-ui'
 import { getShape } from 'noodl-ui-dom/src/utils'
 import { publish } from 'noodl-utils'
@@ -195,7 +192,11 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   redraw(
     node: HTMLElement | null, // ex: li (dom node)
     component: IComponentTypeInstance, // ex: listItem (component instance)
-    opts?: { resolvers?: ResolverFn[] },
+    opts?: {
+      resolver?: (
+        noodlComponent: IComponentTypeObject | IComponentTypeObject[],
+      ) => IComponentTypeInstance
+    },
   ) {
     log.func('redraw')
 
@@ -205,6 +206,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     if (component) {
       const shape = getShape(component)
       const parent = component.parent()
+
       // Clean up noodl-ui listeners
       component.clearCbs?.()
       // Remove the child reference from the parent
@@ -230,25 +232,30 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         newComponent.setParent(parent)
         // Set the new component as a child on the parent
         parent.createChild(newComponent)
+        // Run the resolver if provided
+        // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
+        opts?.resolver?.(newComponent)
       } else {
         // log --> !parent || !newComponent
       }
     }
 
     if (node) {
-      let parentNode: any
       // Delete the node tree
       node.innerHTML = ''
+      newNode = document.createElement(getType(component))
       // Remove the node from the parentNode
       if (node.parentNode) {
-        parentNode = node.parentNode
-        node.parentNode.removeChild(node)
+        // parentNode = node.parentNode as HTMLElement
+        node.parentNode.replaceChild(newNode, node)
       }
-      // Create and attach the new node as the child of the original parentNode
-      newNode = document.createElement(getType(component))
-      if (newNode && parentNode) {
-        parentNode.appendChild(newNode)
-      }
+      this.emit('component', newNode, newComponent)
+      this.emit(componentEventMap[component.noodlType], newNode, newComponent)
+    } else if (component) {
+      // Some components like "plugin" can have a null as their node, but their
+      // component is still running
+      this.emit('component', null, newComponent)
+      this.emit(componentEventMap[component.noodlType], null, newComponent)
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]
@@ -350,6 +357,10 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     const fn = (type: string) => componentEventMap[type] === eventName
     eventKey = componentEventTypes.find(fn)
     return eventKey || ''
+  }
+
+  getAllCbs() {
+    return this.#callbacks
   }
 
   removeAllCbs() {

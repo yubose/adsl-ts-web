@@ -3,6 +3,7 @@ import {
   Component,
   createComponent,
   IComponentTypeInstance,
+  IComponentTypeObject,
   NOODLComponent,
   NOODLComponentType,
 } from 'noodl-ui'
@@ -183,29 +184,38 @@ export function findParent<C extends { parent?: Function } = any>(
   return parent || null
 }
 
-export function findDataObject(opts: {
+interface FindDataObjectOptions {
   component?: any
   dataKey?: string
   pageObject?: { [key: string]: any }
   root?: { [key: string]: any }
-}): any
-export function findDataObject(component: any): any
-export function findDataObject(component: any) {
-  let dataObject: any
-
+}
+export function findDataObject(component: IComponentTypeInstance): any
+export function findDataObject(component: FindDataObjectOptions): any
+export function findDataObject<O>(
+  component: IComponentTypeInstance | FindDataObjectOptions,
+): O | null {
+  let dataObject: O | undefined
+  let options: FindDataObjectOptions | undefined
   if (component) {
-    // component arg
-    if (typeof component?.children === 'function') {
+    if (component instanceof Component) {
       if (isListConsumer(component)) dataObject = findListDataObject(component)
-    } else {
-      // options arg
-      const { dataKey = '', pageObject = {}, root = {} } = component
-      // TODO - handle component.component
-      component = component.component
-      dataObject = get(pageObject, dataKey) || get(root, dataKey)
+      if (!dataObject && options) dataObject = findRootsDataObject(options)
+    } else if (typeof component === 'object') {
+      dataObject = findRootsDataObject(component as FindDataObjectOptions)
     }
   }
   return dataObject || null
+}
+
+export function findRootsDataObject(opts: {
+  dataKey?: string
+  pageObject?: { [key: string]: any }
+  root?: { [key: string]: any }
+}) {
+  let { dataKey = '', pageObject = {}, root = {} } = opts
+  // TODO - handle component.component
+  return get(pageObject, dataKey) || get(root, dataKey)
 }
 
 export function findListDataObject(component: any) {
@@ -213,7 +223,6 @@ export function findListDataObject(component: any) {
     if (component?.noodlType === 'listItem') {
       return component.getDataObject?.()
     }
-    console.log(component.toJS())
     return findParent(
       component,
       (p) => p?.noodlType === 'listItem',
@@ -435,3 +444,21 @@ export function publish(
     })
   }
 }
+
+/**
+ * Recursively invokes the provided callback on each NOODL child object starting from its instance
+ * @param { IComponentTypeObject } noodlComponent - NOODL component object
+ * @param { function } cb
+ */
+// export function (
+//   noodlChildren: IComponentTypeObject | IComponentTypeObject[],
+//   cb: (noodlChild: IComponentTypeObject) => void,
+// ) {
+//   if (typeof noodlChildren === 'string') {
+//     cb({ type: noodlChildren })
+//   } else if (Array.isArray(noodlChildren)) {
+//     noodlChildren.forEach((nc) => walkOriginalChildren(nc, cb))
+//   } else if (noodlChildren) {
+//     cb(noodlChildren as IComponentTypeObject)
+//   }
+// }

@@ -339,11 +339,6 @@ class ActionChain<
           // }
 
           while (iterator && !iterator?.done) {
-            log.red('iterator && !iterator', iterator)
-            log.red('iterator && !iterator', iterator)
-            log.red('iterator && !iterator', iterator)
-            log.red('iterator && !iterator', iterator)
-            log.red('iterator && !iterator', iterator)
             action = iterator.value?.action
 
             // Skip to the next loop

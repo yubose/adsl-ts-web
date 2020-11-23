@@ -363,3 +363,20 @@ export function isSubStreamComponent(value: any) {
     return _.isString(val) && /subStream/i.test(val)
   })
 }
+
+export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
+  let src = ''
+  if (_.isString(pathValue)) {
+    if (/^(http|blob)/i.test(pathValue)) {
+      src = pathValue
+    } else if (pathValue.startsWith('~/')) {
+      // Should be handled by an SDK
+    } else {
+      src = assetsUrl + pathValue
+    }
+  } else {
+    // log
+    src = `${assetsUrl}${pathValue}`
+  }
+  return src.replace(/\/\//g, '')
+}

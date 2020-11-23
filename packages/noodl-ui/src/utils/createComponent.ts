@@ -77,7 +77,9 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
 }
 
 function toInstance(value: IComponentTypeObject) {
-  if (!('children' in value)) value.children = []
+  if (!('children' in value)) {
+    // value.children = []
+  }
   switch (value.noodlType || value.type) {
     case 'list':
       return new List(value)

@@ -36,6 +36,7 @@ import { CachedPageObject } from '../app/types'
 import { CACHED_PAGES } from '../constants'
 import { NOODLBuiltInCheckFieldObject } from '../app/types/libExtensionTypes'
 import Meeting from '../meeting'
+import EmitAction from 'noodl-ui/src/Action/EmitAction'
 
 const log = Logger.create('builtIns.ts')
 
@@ -337,7 +338,33 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     window.location.reload()
   }
 
-  builtInActions.redraw = async (action, options, f = {}) => {
+  builtInActions.redraw = async (action, options) => {
+    log.func('redraw')
+    log.red('', { action, ...options })
+
+    const { default: noodluidom } = await import('../app/noodl-ui-dom')
+    const { default: noodl } = await import('../app/noodl')
+    const { default: noodlui } = await import('../app/noodl-ui')
+    const { viewTag } = action.original
+
+    const { component } = options
+    const node = document.getElementById(component.id)
+
+    const [newNode, newComponent] = noodluidom.redraw(node, component, {
+      resolver: (c) => noodlui.resolveComponents(c),
+    })
+
+    log.gold(`newNode/newComponent`, {
+      action,
+      options,
+      originalNode: node,
+      originalComponent: component,
+      newNode,
+      newComponent,
+    })
+  }
+
+  builtInActions.redraw___backup = async (action, options, f = {}) => {
     log.func('redraw')
     log.red('', { action, ...options })
 
