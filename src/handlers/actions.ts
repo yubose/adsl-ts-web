@@ -115,7 +115,7 @@ const createActions = function ({ page }: { page: IPage }) {
       const { default: noodl } = await import('../app/noodl')
       const { default: noodlui } = await import('../app/noodl-ui')
 
-      log.func('emit [ActionChain]')
+      log.func('emit [onChange]')
       log.gold('Emitting', { action, ...options })
 
       let { component, context, ref } = options
