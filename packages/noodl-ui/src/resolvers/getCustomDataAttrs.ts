@@ -132,7 +132,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         textFunc = component.get('text=func')
         // Strip off the iteratorVar to keep the path that starts from the data objefct
         path = dataKey?.split?.('.').slice(1)
-        dataObject = listItem?.getDataObject?.()
+        dataObject = findDataObject(component)
         if (!dataObject) {
           dataObject = findDataObject({
             dataKey,

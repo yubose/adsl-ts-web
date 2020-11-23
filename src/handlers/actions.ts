@@ -38,6 +38,7 @@ import {
 import { onSelectFile } from 'utils/dom'
 import { IListItem } from '../../packages/noodl-ui/src'
 import EmitAction from 'noodl-ui/src/Action/EmitAction'
+import noodlui from 'app/noodl-ui'
 
 const log = Logger.create('actions.ts')
 
@@ -828,7 +829,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
   _actions.updateObject.push({
     fn: async (action: Action<UpdateActionObject>, options) => {
-      const { abort, component, stateHelpers } = options
+      const { abort, component, context, stateHelpers } = options
       const { default: noodl } = await import('../app/noodl')
       log.func('updateObject')
 
@@ -892,24 +893,8 @@ const createActions = function ({ page }: { page: IPage }) {
             let { dataKey, dataObject } = object
             if (/(file|blob)/i.test(dataObject)) {
               dataObject = opts.file || dataObject
-            }
-            // TODO - Replace this hardcoded "itemObject" string with iteratorVar
-            if (dataObject === 'itemObject') {
-              if (stateHelpers) {
-                const { getList } = stateHelpers
-                const listId = component.get('listId')
-                const listItemIndex = component.get('listItemIndex')
-                const list = getList(listId) || []
-                const listItem = list[listItemIndex]
-                if (listItem) dataObject = listItem
-                log.salmon('', {
-                  listId,
-                  listItemIndex,
-                  list,
-                  listItem,
-                })
-              }
-              if (!dataObject) dataObject = options?.file
+            } else {
+              dataObject = findDataObject(component)
             }
             if (dataObject) {
               const params = { dataKey, dataObject }

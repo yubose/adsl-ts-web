@@ -660,4 +660,14 @@ describe('dom', () => {
       expect(labelEl.textContent).to.eq('hehehee')
     })
   })
+
+  describe('action: updateObject', () => {
+    xit(
+      'should replace the dataObject string with the actual dataObject if ' +
+        'update.object is in the shape: { dataKey, dataObject }',
+      () => {
+        //
+      },
+    )
+  })
 })

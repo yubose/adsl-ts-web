@@ -7,6 +7,7 @@ import {
   IComponentTypeInstance,
   IComponentTypeObject,
   IfObject,
+  IList,
   IListItem,
   NOODLComponent,
   NOODLComponentType,
@@ -203,16 +204,33 @@ export function findRootsDataObject(opts: {
 }
 
 export function findListDataObject(component: IComponentTypeInstance) {
+  let dataObject
+  let listItem: IListItem | undefined
   if (isListConsumer(component)) {
     if (component?.noodlType === 'listItem') {
-      return (component as IListItem).getDataObject?.()
+      listItem = component as IListItem
+    } else {
+      listItem = findParent(
+        component,
+        (p) => p?.noodlType === 'listItem',
+      ) as IListItem
     }
-    return (findParent(
-      component,
-      (p) => p?.noodlType === 'listItem',
-    ) as IListItem)?.getDataObject?.()
+    if (listItem) {
+      dataObject = listItem.getDataObject?.()
+      if (!dataObject && typeof listItem.get('listIndex') === 'number') {
+        const list = listItem?.parent?.() as IList
+        const childIndex = list.children().indexOf(listItem)
+        if (list) {
+          const listObject = list.getData()
+          if (listObject?.length) {
+            dataObject =
+              listObject[childIndex] || listObject[listItem.get('listIndex')]
+          }
+        }
+      }
+    }
   }
-  return null
+  return dataObject || null
 }
 
 export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(
