@@ -376,13 +376,6 @@ noodluidom.on<'list'>('list', (node: HTMLUListElement, component: IList) => {
       log.grey('', { ...result, ...options })
       const { listItem } = result
       const childNode = noodluidom.parse(listItem)
-      if (childNode) {
-      }
-
-      console.info(
-        `${childNode ? 'Created' : 'Could not create'} childNode for list item`,
-        { node, childNode, component, listItem },
-      )
     },
   )
 

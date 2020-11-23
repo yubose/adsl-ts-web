@@ -124,6 +124,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
       const emitParams = {
         actions,
+        dataKey: action.dataKey,
         pageName: noodlui.page,
       } as any
 
@@ -311,13 +312,6 @@ const createActions = function ({ page }: { page: IPage }) {
             let dataObject
             let dataValue
 
-            console.info({
-              key,
-              resolvedDataKey: dataPath,
-              iteratorVar,
-              originalDataKey,
-            })
-
             if (_.isString(dataPath)) {
               // List item descendant
               if (originalDataKey[key] === iteratorVar) {
@@ -329,13 +323,6 @@ const createActions = function ({ page }: { page: IPage }) {
                   component,
                   (parent) => parent?.noodlType === 'listItem',
                 ) as IListItem | null
-
-                console.info('------------------------------')
-                console.info('listItem', listItem)
-                console.info('dataObject', listItem?.getDataObject())
-                console.info('dataObject', listItem?.getDataObject())
-                console.info('dataObject', listItem?.getDataObject())
-                console.info('------------------------------')
 
                 if (listItem) {
                   dataObject =
@@ -442,11 +429,11 @@ const createActions = function ({ page }: { page: IPage }) {
             return acc
           }
 
-          emitParams['dataKey'] = _.reduce(
-            _.entries(dataKey),
-            createEmitDataKeyObject,
-            {} as any,
-          )
+          // emitParams['dataKey'] = _.reduce(
+          //   _.entries(dataKey),
+          //   ac,
+          //   {} as any,
+          // )
 
           log.grey('Calling emitCall', {
             actions,
