@@ -187,7 +187,8 @@ export function findDataObject<O>(
       if (isListConsumer(component)) dataObject = findListDataObject(component)
       if (!dataObject && options) dataObject = findRootsDataObject(options)
     } else if (typeof component === 'object') {
-      dataObject = findRootsDataObject(component as FindDataObjectOptions)
+      options = component as FindDataObjectOptions
+      dataObject = findRootsDataObject(options)
     }
   }
   return dataObject || null

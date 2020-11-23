@@ -4,7 +4,6 @@ import Logger from 'logsnap'
 import {
   evalIf,
   findParent,
-  findNodeInMap,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isEmitObj,
@@ -29,10 +28,9 @@ import { isActionChainEmitTrigger, resolveAssetUrl } from './utils/noodl'
 import createComponent from './utils/createComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
+import EmitAction from './Action/EmitAction'
 import { event } from './constants'
 import * as T from './types'
-import { noodlui } from './utils/test-utils'
-import { EmitAction } from '../dist'
 
 const log = Logger.create('noodl-ui')
 
@@ -659,12 +657,14 @@ class NOODL implements T.INOODLUi {
       }
       // Emit object evaluation
       else if (isEmitObj(path)) {
-        const emitAction = new EmitAction(path, { trigger: 'path' })
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
-        emitAction['callback'] = obj?.fn
 
         if (typeof obj?.fn === 'function') {
+          emitAction['callback'] = async (...args) => {
+            // const result = await
+          }
+
           // Result returned should be a string type
           let result = obj.fn(
             {
@@ -676,6 +676,10 @@ class NOODL implements T.INOODLUi {
           )
 
           if (isPromise(result)) {
+            // Turn this into an EmitAction
+            const emitAction = new EmitAction(path, { trigger: 'path' })
+            emitAction.callback = (...args) => Promise.resolve(...args)
+
             return result
               .then((res) => resolveAssetUrl(res as string, this.assetsUrl))
               .catch((err) => Promise.reject(err))
