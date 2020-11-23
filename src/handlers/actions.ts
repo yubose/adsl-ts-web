@@ -159,31 +159,33 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - else if src endsWith
   _actions.emit.push({
     fn: (args: { path: EmitActionObject; component }, { noodl }) => {
-      const { pageName, path, component } = args
+      log.func('path(emit)')
+      log.grey(`Calling emitCall`, args)
 
       let dataObject
       let iteratorVar = component.get('iteratorVar')
-      let params
+      let emitParams
+
       // This is most likely expecting a dataObject
-      if (iteratorVar) {
-        dataObject = findDataObject(component)
-      }
-      params = {
+      dataObject = findDataObject(component)
+
+      emitParams = {
         dataKey: createEmitDataKey(path.emit.dataKey, dataObject),
         actions: path.emit.actions,
         pageName,
       }
+
+      const { pageName, path, component } = args
       const logArgs = {
         component,
         dataObject,
         iteratorVar,
-        params,
+        emitParams,
         path,
       }
-      log.func('path(emit)')
-      log.grey(`Calling emitCall`, logArgs)
-      // let result = {}
-      let result = noodl.emitCall(params)
+
+      let result = noodl.emitCall(emitParams)
+
       if (result instanceof Promise) {
         return result.then((result: any) => {
           result = Array.isArray(result) ? result[0] : result
