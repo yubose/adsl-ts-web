@@ -103,6 +103,25 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         'text',
       ])
 
+      let fieldParts = dataKey?.split?.('.')
+      let field = fieldParts?.shift?.() || ''
+      let fieldValue = pageObject?.[field]
+
+      if (fieldParts?.length) {
+        while (fieldParts.length) {
+          field = (fieldParts?.shift?.() as string) || ''
+          field = field[0]?.toLowerCase?.() + field.substring(1)
+          fieldValue = fieldValue?.[field]
+        }
+      } else {
+        field = fieldParts?.[0] || ''
+      }
+      component.assign({
+        'data-key': dataKey,
+        'data-name': field,
+        'data-value': component.get('data-value') || fieldValue,
+      })
+
       // Handle list related components that expect data objects
       if (iteratorVar && dataKey.startsWith(iteratorVar)) {
         const listItem = findParent(component, (parent) => {
@@ -242,6 +261,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           )
         }
       }
+
       // Components that find their data values through a higher level like the root object
       else {
         if (isReference(dataKey)) {
@@ -274,25 +294,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       }
 
       if (dataValue) component.set('data-value', dataValue)
-    } else {
-      let fieldParts = dataKey?.split?.('.')
-      let field = fieldParts?.shift?.() || ''
-      let fieldValue = pageObject?.[field]
-
-      if (fieldParts?.length) {
-        while (fieldParts.length) {
-          field = (fieldParts?.shift?.() as string) || ''
-          field = field[0]?.toLowerCase?.() + field.substring(1)
-          fieldValue = fieldValue?.[field]
-        }
-      } else {
-        field = fieldParts?.[0] || ''
-      }
-      component.assign({
-        'data-key': dataKey,
-        'data-name': field,
-        'data-value': fieldValue,
-      })
     }
   }
 
