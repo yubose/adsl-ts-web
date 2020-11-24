@@ -154,6 +154,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     node: T.NOODLDOMElement | null,
     component: IComponentTypeInstance,
   ) {
+    console.info(`Emitting: ${eventName}`, { eventName, node, component })
     const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
     if (Array.isArray(callbacks)) {
       callbacks.forEach((fn) => fn && fn(node as T.NOODLDOMElement, component))

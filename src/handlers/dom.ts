@@ -53,7 +53,7 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
     placeholder = '',
     src,
     text = '',
-  } = component.get(['children', 'options', 'text', 'videoFormat'])
+  } = component.get(['children', 'options', 'src', 'text', 'videoFormat'])
 
   const { style, type } = component
 

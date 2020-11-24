@@ -199,7 +199,7 @@ class ActionChain<
               log.grey(`Accepting action chain trigger handler`, {
                 callbacks,
                 ...logArgs,
-                component: this.component,
+                component: this?.component,
               })
               return acc.concat(a.fn)
             },
@@ -223,14 +223,14 @@ class ActionChain<
 
         if (_.isPlainObject(emitObj.emit?.dataKey)) {
           const entries = _.entries(emitObj.emit.dataKey)
-          const iteratorVar = this.component.get('iteratorVar') || ''
+          const iteratorVar = this?.component?.get('iteratorVar') || ''
           const isListItemDataObject = _.some(
             _.values(emitObj?.emit?.dataKey),
             (dataKey) => `${dataKey}`.startsWith(iteratorVar),
           )
           emitAction.set('iteratorVar', iteratorVar)
           if (isListItemDataObject) {
-            emitAction.setDataObject(findListDataObject(this.component))
+            emitAction.setDataObject(findListDataObject(this?.component))
           } else {
             const [property, dataKey] = entries[0]
             emitAction.setDataObject(
@@ -247,9 +247,9 @@ class ActionChain<
           }
         } else if (_.isString(emitObj.emit?.dataKey)) {
           emitAction.set('dataKey', emitObj.emit.dataKey)
-          if (isListConsumer(this.component)) {
-            emitAction.set('iteratorVar', this.component.get('iteratorVar'))
-            emitAction.setDataObject(findListDataObject(this.component))
+          if (isListConsumer(this?.component)) {
+            emitAction.set('iteratorVar', this?.component.get('iteratorVar'))
+            emitAction.setDataObject(findListDataObject(this?.component))
           } else {
             emitAction.setDataObject(
               findDataObject({
@@ -429,7 +429,7 @@ class ActionChain<
   getDefaultCallbackArgs() {
     return {
       actions: this.actions,
-      component: this.component,
+      component: this?.component,
       pageName: this.pageName,
       pageObject: this.pageObject,
       queue: this.getQueue(),
@@ -460,7 +460,7 @@ class ActionChain<
             `Encountered an action object that is not an object type. You will` +
               `need to register an "anonymous" action as an actionType if you want to ` +
               `handle anonymous functions`,
-            { received: actionObj, component: this.component },
+            { received: actionObj, component: this?.component },
           )
         }
         action = this.createAction({
@@ -501,7 +501,7 @@ class ActionChain<
           action,
           actionChain: this,
           actions: this.actions,
-          component: this.component,
+          component: this?.component,
           original: actionObj,
         })
       } else {
@@ -515,7 +515,7 @@ class ActionChain<
             action,
             actionChain: this,
             actions: this.actions,
-            component: this.component,
+            component: this?.component,
             original: actionObj,
           },
         )
