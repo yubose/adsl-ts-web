@@ -15,10 +15,13 @@ import {
   IListItem,
   NOODLComponent,
 } from 'noodl-ui'
+import { getByDataKey } from 'noodl-utils'
 import axios from '../app/axios'
 import {
   assetsUrl,
+  builtIn,
   noodlui,
+  noodluidom,
   queryByDataKey,
   queryByDataListId,
   queryByDataName,
@@ -27,10 +30,8 @@ import {
   queryByDataViewtag,
   getAllByDataKey,
   page,
-  noodluidom,
 } from '../utils/test-utils'
 import { getListComponent1, saveOutput } from './helpers'
-import { getByDataKey } from 'noodl-utils'
 
 const mockAxios = new MockAxios(axios)
 
@@ -115,7 +116,7 @@ describe('dom', () => {
           ],
         })
         const listElem = document.querySelector('ul')
-        expect(listElem.children).to.have.lengthOf(4)
+        expect(listElem?.children).to.have.lengthOf(4)
       })
     })
 
@@ -155,9 +156,9 @@ describe('dom', () => {
           ],
         }).components[0]
         const rootNode = page.rootNode as HTMLElement
-        const titleLabels = getAllByDataKey('hello.title', rootNode)
-        const colorLabel2 = getAllByDataKey('hello.color', rootNode)
-        const textFields = getAllByDataKey('hello.count', rootNode)
+        const titleLabels = getAllByDataKey('hello.title', rootNode) as any
+        const colorLabel2 = getAllByDataKey('hello.color', rootNode) as any
+        const textFields = getAllByDataKey('hello.count', rootNode) as any
         expect(titleLabels[0].dataset.value).to.equal('apple')
         expect(colorLabel2[0].dataset.value).to.equal('red')
         expect(textFields[0].dataset.value).to.equal('5')
@@ -519,10 +520,10 @@ describe('dom', () => {
     }
 
     beforeEach(() => {
-      listObject = [
-        { key: 'Gender', value: 'Male' },
-        { key: 'Gender', value: 'Female' },
-      ]
+      // listObject = [
+      //   { key: 'Gender', value: 'Male' },
+      //   { key: 'Gender', value: 'Female' },
+      // ]
     })
 
     after(() => {
@@ -535,37 +536,39 @@ describe('dom', () => {
         { key: 'Gender', value: 'Male' },
         // { key: 'Gender', value: 'Female' },
       ]
+      // @ts-expect-error
       noodlui
         .setAssetsUrl(assetsUrl)
         .setRoot('Abc', { listData: { Gender: { Radio: listObject } } })
         .setPage('Abc')
-      noodlui.use({
-        actionType: 'emit',
-        fn: async (
-          action: IAction<EmitActionObject>,
-          options: ActionChainActionCallbackOptions,
-        ) => {
-          actionFnSpy(action, options)
-          const { emit } = action.original
-          const { actions, dataKey } = emit
-          const c = options.component as IComponentTypeInstance
-          // Internal --- START
-          const { dataObject = {} } = options
-          const listIndex = c?.get?.('listIndex')
-          if (dataObject.value === listObject[listIndex].value) {
-            // listObject[listIndex].value =
-          }
-          listObject[listIndex] = dataObject
-          // Internal --- END
-          injectedArgs = {
-            dataObject: options.dataObject,
-            listItem: options.listItem,
-            iteratorVar: options.iteratorVar,
-          }
-          return 'female.png'
-        },
-        trigger: 'path',
-      })
+      // .use({ actionType: 'builtIn', fn: builtIn.redraw })
+      // .use({
+      //   fn: async (
+      //     action: IAction<EmitActionObject>,
+      //     options: ActionChainActionCallbackOptions,
+      //   ) => {
+      //     actionFnSpy(action, options)
+      //     const { emit } = action.original
+      //     const { actions, dataKey } = emit
+      //     const c = options.component as IComponentTypeInstance
+      //     // Internal --- START
+      //     const { dataObject = {} } = options
+      //     const listIndex = c?.get?.('listIndex')
+      //     if (dataObject.value === listObject[listIndex].value) {
+      //       // listObject[listIndex].value =
+      //     }
+      //     listObject[listIndex] = dataObject
+      //     // Internal --- END
+      //     injectedArgs = {
+      //       dataObject: options.dataObject,
+      //       listItem: options.listItem,
+      //       iteratorVar: options.iteratorVar,
+      //     }
+      //     return 'female.png'
+      //   },
+      //   trigger: 'path',
+      // })
+      console.info(noodlui.getCbs())
 
       const view = page.render({
         type: 'view',
@@ -598,13 +601,10 @@ describe('dom', () => {
                       },
                     ],
                     path: {
-                      if: [
-                        // (obj: typeof listObject[number]) =>
-                        //   obj.value === 'Male',
-                        pathSpy,
-                        'male.png',
-                        'female.png',
-                      ],
+                      emit: {
+                        dataKey: { var: iteratorVar },
+                        actions: [{ if: [false, 'male.png', 'female.png'] }],
+                      },
                     },
                   },
                 ],
@@ -614,25 +614,31 @@ describe('dom', () => {
         ],
       }).components[0]
       const list = view.child()
+      const listItem = list.child()
+      const image = listItem.child(1)
       const ul = document.querySelector('ul')
       const [li1, li2] = Array.from(ul?.querySelectorAll('li') as any)
       const img1 = li1.querySelector('img') as HTMLImageElement
+      img1.dataset.testid = 'myimage'
       // const img2 = li2.querySelector('img') as HTMLImageElement
       // img1.click()
-      expect(pathSpy.called).to.be.true
+      const [newNode, newImage] = noodluidom.redraw(
+        await screen.findByTestId('myimage'),
+        image,
+      )
       await waitFor(() => {
-        expect(pathSpy.callCount).to.eq(3)
+        expect(document.getElementById(newImage.id)?.getAttribute('src')).to.eq(
+          noodlui.assetsUrl + 'female.png',
+        )
       })
-      console.info(pathSpy.firstCall.args)
-      console.info(actionFnSpy.firstCall.args)
       // expect(pathSpy.firstCall).to.eq(listObject[0])
     })
 
     xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", () => {
       noodlui
+        .use({ actionType: 'builtIn' })
         .setRoot('SignIn', { formData: { greeting: '12345', color: 'red' } })
         .setPage('SignIn')
-      console.info(noodlui.getCbs())
       const root = page.render({
         type: 'view',
         children: [
@@ -670,7 +676,6 @@ describe('dom', () => {
       expect(getImg().src).to.equal(noodlui.assetsUrl + 'abc.png')
       expect(getLabel().textContent).to.equal('12345')
       expect(getLabel2().textContent).to.equal('red')
-
       expect(getImg().src).not.to.eq(noodlui.assetsUrl + 'followMe.jpeg')
       expect(getLabel().textContent).not.to.eq('hehehee')
 
@@ -682,8 +687,6 @@ describe('dom', () => {
       image.set('src', noodlui.assetsUrl + 'followMe.jpeg')
 
       // const [newParentEl, newView] = noodluidom.redraw(parentEl, view)
-
-      console.info(prettyDOM())
 
       expect(getRedrawedImg().src).to.eq(noodlui.assetsUrl + 'followMe.jpeg')
       expect(getLabel().textContent).to.eq('hehehee')

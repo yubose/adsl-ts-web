@@ -340,7 +340,12 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.redraw = async (action, options) => {
     log.func('redraw')
     log.red('', { action, options })
-    console.info('redraw [test]', { action, options })
+    console.info('redraw [test]')
+    console.info('redraw [test]')
+    console.info('redraw [test]')
+    console.info('redraw [test]')
+    console.info('redraw [test]')
+    console.info('redraw [test]')
 
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
     const { default: noodl } = await import('../app/noodl')

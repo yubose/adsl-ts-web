@@ -5,8 +5,7 @@ import sinon from 'sinon'
 import { isEmitObj } from 'noodl-utils'
 import { IResolver, Resolver, Viewport } from 'noodl-ui'
 import Logger, { _color } from 'logsnap'
-import createActions from './handlers/actions'
-import createBuiltInActions from './handlers/builtIns'
+
 import {
   assetsUrl,
   getAllResolvers,
@@ -24,9 +23,6 @@ before(() => {
   // noodlui.init()
   console.clear()
   Logger.disable()
-
-  const actions = createActions({ page })
-  const builtIn = createBuiltInActions({ page })
 
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
@@ -56,31 +52,6 @@ before(() => {
       resolver.setResolver(r)
       noodlui.use(resolver as IResolver)
     })
-
-    noodlui
-      .use(
-        _.reduce(
-          _.entries(actions),
-          (arr, [actionType, actions]) =>
-            arr.concat(
-              actions.map((a) => ({
-                actionType,
-                ...a,
-                ...(isEmitObj(a) ? { context: { noodl, noodlui } } : undefined),
-              })),
-            ),
-          [] as any[],
-        ),
-      )
-      .use(
-        // @ts-expect-error
-        _.map(
-          _.entries({
-            redraw: builtIn.redraw,
-          }),
-          ([funcName, fn]) => ({ funcName, fn }),
-        ),
-      )
   } catch (error) {
     throw new Error(error)
   }
