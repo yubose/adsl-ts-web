@@ -27,6 +27,12 @@ describe('noodl-ui', () => {
     })
   })
 
+  describe('when resolving dataKeys referencing another global root object', () => {
+    xit('should receive the value from a different root object', () => {
+      // ex: Global.currentUser.vertex.id
+    })
+  })
+
   describe('when using createSrc', () => {
     it('should work for passing string paths', () => {
       const path = 'myimage.png'
