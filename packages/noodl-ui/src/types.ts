@@ -820,6 +820,7 @@ export interface ConsumerOptions {
   getNodes: INOODLUiStateHelpers['getNodes']
   getPageObject: INOODLUiStateHelpers['getPageObject']
   getResolvers(): INOODLUi['getResolvers']
+  getRoot(): { [key: string]: any }
   getState: INOODLUiStateHelpers['getState']
   page: string
   parser: ResolverOptions['parser']

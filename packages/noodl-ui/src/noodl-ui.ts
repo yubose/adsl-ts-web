@@ -439,6 +439,7 @@ class NOODL implements T.INOODLUi {
       ) => this.createActionChainHandler(action, options),
       createSrc: (path: string) => this.createSrc(path, component),
       getBaseStyles: this.getBaseStyles.bind(this),
+      getRoot: () => this.root,
       page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),

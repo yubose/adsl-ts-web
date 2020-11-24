@@ -18,7 +18,7 @@ const log = Logger.create('getCustomDataAttrs')
  *    (ex: "data-ux" for UX interactions between the library and the web app)
  */
 const getCustomDataAttrs: ResolverFn = (component, options) => {
-  const { context, getPageObject, showDataKey, parser } = options
+  const { context, getPageObject, getRoot, showDataKey, parser } = options
   const { page } = context
   const { noodlType } = component
   const { contentType = '', dataKey, viewTag } = component.get([
@@ -137,7 +137,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           dataObject = findDataObject({
             dataKey,
             pageObject,
-            root: context.roots,
+            root: getRoot(),
           })
           log.red(
             `The listItem parent did not have a dataObject available. ` +
@@ -260,17 +260,20 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
             },
           )
         }
-      }
-
-      // Components that find their data values through a higher level like the root object
-      else {
-        if (isReference(dataKey)) {
-          dataValue = parser.getByDataKey(
-            dataKey,
-            showDataKey ? dataKey : text || placeholder,
+      } else if (typeof dataKey === 'string' && !isReference(dataKey)) {
+        dataObject = findDataObject({
+          component,
+          dataKey: dataKey,
+          pageObject,
+          root: getRoot(),
+        })
+        if (dataObject) {
+          component.set(
+            'data-value',
+            typeof dataObject === 'string'
+              ? dataObject
+              : _.get(dataObject, dataKey),
           )
-        } else if (_.has(pageObject, dataKey)) {
-          dataValue = _.get(pageObject, dataKey, '')
         } else {
           log.red(
             `Unable to retrieve a data value for a ${component.noodlType} component. None of these conditions matched:\n` +
@@ -289,6 +292,16 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
               pageName: context.page,
               pageObject,
             },
+          )
+        }
+      }
+
+      // Components that find their data values through a higher level like the root object
+      else {
+        if (isReference(dataKey)) {
+          dataValue = parser.getByDataKey(
+            dataKey,
+            showDataKey ? dataKey : text || placeholder,
           )
         }
       }

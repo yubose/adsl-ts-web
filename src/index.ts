@@ -230,6 +230,7 @@ window.addEventListener('load', async () => {
         pageName,
         pageObject,
         pageModifiers,
+        Global: noodl.root.Global,
       })
       // This will be passed into the page renderer
       const pageSnapshot: NOODLPage = {
