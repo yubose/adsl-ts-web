@@ -62,7 +62,11 @@ describe('ActionChain', () => {
   describe('when adding actions', () => {
     it('should set the builtIns either by using a single object or an array', () => {
       const mockBuiltInFn = sinon.spy()
-      actionChain = new ActionChain(actions, {} as any)
+      const component = createComponent('view')
+      actionChain = new ActionChain(
+        [popUpDismissAction, updateObjectAction, pageJumpAction],
+        { component, trigger: 'onClick' },
+      )
       expect(actionChain.fns.builtIn).not.to.have.property('hello')
       expect(actionChain.fns.builtIn).not.to.have.property('hi')
       expect(actionChain.fns.builtIn).not.to.have.property('monster')
@@ -95,9 +99,9 @@ describe('ActionChain', () => {
     it('should populate the action array with the raw action objects', () => {
       const actionChain = new ActionChain(
         [pageJumpAction, popUpDismissAction],
-        {} as any,
+        { component: createComponent('textField'), trigger: 'onClick' },
       )
-      expect(actionChain.actions).to.include.members([
+      expect(actionChain.actions).to.include.deep.members([
         pageJumpAction,
         popUpDismissAction,
       ])
@@ -489,14 +493,91 @@ describe('ActionChain', () => {
     //
   })
 
+  it('should load the queue', () => {
+    const mockAnonFn = sinon.spy(() => 'abc')
+    const component = new List()
+    const actionChain = new ActionChain(
+      [
+        sinon.spy(),
+        { emit: { dataKey: { var1: 'h' }, actions: [] } },
+        { actionType: 'popUpDismiss' },
+      ],
+      { component, trigger: 'onClick' },
+    )
+    actionChain.useAction({ actionType: 'anonymous', fn: mockAnonFn })
+    actionChain.loadQueue()
+    const queue = actionChain.getQueue()
+    expect(queue.length).to.eq(3)
+    expect(queue[0]).to.be.instanceOf(Action)
+    expect(queue[1]).to.be.instanceOf(EmitAction)
+    expect(queue[2]).to.be.instanceOf(Action)
+    expect(queue[0].actionType).to.eq('anonymous')
+  })
+
   describe("when calling an action's 'execute' method", () => {
-    it('should pass the component instance to args', async () => {
-      const spy = sinon.spy()
-      noodlui.use({ actionType: 'anonymous', fn: spy })
+    it('actions should have been executed when the action chain was run', async () => {
+      const component = createComponent('video')
+      const actions = [
+        pageJumpAction,
+        popUpDismissAction,
+        { emit: { dataKey: { var1: 'f' }, actions: [] } },
+        sinon.spy(),
+      ]
+      const actionChain = new ActionChain(actions, {
+        component,
+        trigger: 'onClick',
+      })
+      const fn = actionChain.build()
+      const queue = actionChain.getQueue()
+      await fn()
+      queue.forEach((action) => {
+        expect(action.executed).to.be.true
+      })
+    })
+
+    it('should call the "execute" method', async () => {
+      const func = () => 'hello'
       const component = new List()
-      const actionChain = new ActionChain([spy], { component })
-      await actionChain.build()
-      expect(spy.firstCall.args[1])
+      const actionChain = new ActionChain([func], {
+        component,
+        trigger: 'onClick',
+      })
+      const executeSpy = sinon.spy(actionChain, 'execute')
+      const handler = actionChain.build()
+      await handler()
+      expect(executeSpy.called).to.be.true
+    })
+
+    it('the execute method should return something', async () => {
+      const func = () => 'hello'
+      const component = new List()
+      const actionChain = new ActionChain([func], {
+        component,
+        trigger: 'onClick',
+      })
+      actionChain.useAction({
+        actionType: 'anonymous',
+        fn: async () => 'hifafs',
+      })
+      const executeSpy = sinon.spy(actionChain, 'execute')
+      const handler = actionChain.build()
+      await handler()
+      const returnValue = await executeSpy.returnValues
+      console.info('returnValue', returnValue)
+      expect(executeSpy.called).to.be.true
+    })
+
+    it('should pass the component instance to args', async () => {
+      const mockAnonFn = sinon.spy()
+      const component = new List()
+      const actionChain = new ActionChain([mockAnonFn], {
+        component,
+        trigger: 'onClick',
+      })
+      const handler = actionChain.build()
+      await handler()
+      expect(mockAnonFn.called).to.be.true
+      expect(mockAnonFn.firstCall.args[1])
         .to.have.property('component')
         .that.is.eq(component)
     })
@@ -617,11 +698,10 @@ describe('ActionChain', () => {
           {
             actionType: 'emit',
             fn: mockPathEmitCallback,
-            context: {},
             trigger: 'path',
           },
         ] as any)
-        page = helpers.createPage(() => ({
+        page = {
           PatientChartGeneralInfo: {
             generalInfoTemp,
             components: [
@@ -657,11 +737,11 @@ describe('ActionChain', () => {
               },
             ],
           },
-        }))
-        originalPage = page.originalPage
-        view = page.components[0]
-        image = view.child() as any
-        textField = view.child(1) as any
+        }
+        // originalPage = page.originalPage
+        // view = page.components[0]
+        // image = view.child() as any
+        // textField = view.child(1) as any
       })
 
       describe('when emitting for list consumers', () => {
@@ -730,12 +810,12 @@ describe('ActionChain', () => {
         )
       })
 
-      it('should be able to access a dataObject coming from the root', async () => {
+      it.only('should be able to access a dataObject coming from the root', async () => {
         const pageObject = { gender: { value: 'Male' } }
         const emitSpy = sinon.spy()
         const image = createComponent({
           type: 'image',
-          dataKey: 'gender.value',
+          path: 'Male.png',
           onClick: [
             {
               emit: {
@@ -760,7 +840,8 @@ describe('ActionChain', () => {
           trigger: 'onClick',
         })
         const handler = actionChain.build()
-        await handler()
+        const results = await handler()
+        console.info(results)
         const arg = emitSpy.args[0][0]
         expect(arg).to.be.instanceOf(EmitAction)
         expect(arg.dataKey).to.eq('gender.value')

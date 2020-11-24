@@ -23,6 +23,7 @@ class ActionChain<
   #current: T.IAction | undefined
   #original: T.ActionObject[]
   #queue: T.IAction[] = []
+  #timeoutRef: NodeJS.Timeout
   actions: T.ActionObject[] = []
   actionsContext: T.IActionChainContext
   component: C
@@ -58,7 +59,10 @@ class ActionChain<
     this.#original = isDraft(actions) ? original(actions) : actions
     this.#original = this.#original?.map((a) => {
       const obj = isDraft(a) ? original(a) : a
-      return { ...obj, actionType: getActionType(obj) }
+      const result = { actionType: getActionType(obj) }
+      if (typeof obj === 'function') result.fn = obj
+      else Object.assign(result, obj)
+      return result
     }) as T.ActionObject[]
     this['actions'] = this.#original
     this['actionsContext'] = actionsContext
@@ -109,19 +113,25 @@ class ActionChain<
    * NOTE: obj should have an "actionType" by the time of this call
    */
   createAction<A = any>(obj: A) {
-    const runActionFuncs = async ({
+    async function* runActionFuncs({
+      ref,
       callbacks,
       instance,
       options,
     }: {
+      ref: ActionChain<any, any>
       callbacks: T.ActionChainActionCallback<ActionObjects>[]
       instance: ActionObjects[number]
       options: Parameters<T.ActionChainActionCallback<ActionObjects>>
-    }) => {
-      const numFuncs = callbacks.length
+    }) {
+      let numFuncs = callbacks.length
+      let results = []
+      let result
       for (let index = 0; index < numFuncs; index++) {
-        const fn = callbacks[index]
-        const result = await fn(instance, options, this.actionsContext)
+        // const fn = callbacks[index]
+        const fn = yield
+        result = await fn?.(instance, options, ref.actionsContext)
+        results.push(result)
         // TODO - Do a better way to identify the action
         if ((result || ({} as A)).actionType) {
           // We may get an action object returned back like from
@@ -131,11 +141,12 @@ class ActionChain<
           // as the first item in the queued actions
           const intermediaryAction = this.createAction(result)
           if (intermediaryAction) {
-            this.intermediary.push(intermediaryAction)
-            this.#queue = [intermediaryAction, ...this.#queue]
+            ref.intermediary.push(intermediaryAction)
+            ref.#queue = [intermediaryAction, ...ref.#queue]
           }
         }
       }
+      return results.length > 1 ? results : results[0]
     }
 
     let action: any
@@ -151,31 +162,45 @@ class ActionChain<
           T.ActionChainActionCallback<ActionObjects[number]>
         >[1],
       ) => {
+        let result, gen, iterator
         const callbackArgs = {
           ...options,
           ...conditionalCallbackArgs,
+          component: this.component,
           ref: this,
         }
         const logArgs = {
           action: _action,
+          component: this.component,
           callbackArgs,
           originalActionObj: obj,
           instance: _action,
           actions: this.actions,
-          queue: this.#queue,
+          queue: this.#queue.slice(),
         }
         log.func('attachFn')
         log.red('attachFn', { ...callbackArgs, ...logArgs })
         if (action.actionType === 'anonymous') {
           log.grey('Loading anonymous action', logArgs)
           if ('fn' in _action.original) {
-            await action.original.fn?.(instance, callbackArgs)
+            callbacks = [_action.original.fn]
+            gen = runActionFuncs({
+              ref: this,
+              callbacks,
+              instance: _action,
+              options: callbackArgs,
+            })
           }
         } else if (action.actionType === 'builtIn') {
           log.grey('Loading builtIn action', logArgs)
           callbacks = this.fns.builtIn[_action?.original?.funcName] || []
           if (!callbacks) return
-          await runActionFuncs({ callbacks, instance, options: callbackArgs })
+          gen = runActionFuncs({
+            ref: this,
+            callbacks,
+            instance,
+            options: callbackArgs,
+          })
         } else {
           callbacks = _.reduce(
             this.fns.action[action.actionType] ||
@@ -210,8 +235,28 @@ class ActionChain<
             callbacks,
           })
 
-          await runActionFuncs({ callbacks, instance, options: callbackArgs })
+          if (!gen) {
+            gen = runActionFuncs({
+              ref: this,
+              callbacks,
+              instance,
+              options: callbackArgs,
+            })
+          }
         }
+
+        await gen?.next()
+
+        const results = []
+        const fns = callbacks.slice()
+        let callback = fns.shift()
+
+        while (typeof callback === 'function') {
+          results.push((await gen?.next(callback))?.value)
+          callback = fns.shift()
+        }
+
+        return results
       }
     }
 
@@ -285,55 +330,10 @@ class ActionChain<
   }
 
   build() {
-    let timeoutRef: NodeJS.Timeout
+    this.loadQueue()
+    this.loadGen()
 
-    this.loadQueue().loadGen()
-
-    const _state = { _execute: _.noop } as any
-
-    const refresh = (executeFn: Function) => {
-      if (timeoutRef) clearTimeout(timeoutRef)
-      if (_state._execute) _state['_execute'] = executeFn
-      this.#queue = []
-      this.status = null
-      // this['gen'] = undefined
-      this.loadQueue().loadGen()
-      log.func('build')
-      log.grey(`Refreshed action chain`, {
-        actions: this.actions,
-        actionChain: this,
-        queue: this.getQueue(),
-      })
-    }
-
-    const fn = async (event?: any) => {
-      const _executeAction = async (
-        action: T.IAction,
-        handlerOptions: T.ActionChainActionCallbackOptions,
-      ) => {
-        try {
-          if (timeoutRef) clearTimeout(timeoutRef)
-
-          timeoutRef = setTimeout(() => {
-            const msg = `Action of type "${action.type}" timed out`
-            action.abort(msg)
-            this.abort(msg)
-              .then(() => {
-                throw new AbortExecuteError(msg)
-              })
-              .catch((err) => {
-                throw new AbortExecuteError(err)
-              })
-          }, 10000)
-
-          return action.execute(handlerOptions)
-        } catch (error) {
-          throw error
-        } finally {
-          clearTimeout(timeoutRef)
-        }
-      }
-
+    return async (event?: any) => {
       try {
         this.#setStatus('in.progress')
         log.func('execute')
@@ -342,7 +342,7 @@ class ActionChain<
           ...this.getDefaultCallbackArgs(),
         })
 
-        if (this.getQueue().length) {
+        if (this.#queue.length) {
           let action: T.IAction | undefined
           let result: any
           let iterator = await this.gen?.next?.()
@@ -356,7 +356,7 @@ class ActionChain<
             }
             // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
             else {
-              result = await _executeAction(action, {
+              result = await this.execute(action, {
                 event,
                 ...this.getDefaultCallbackArgs(),
               })
@@ -395,7 +395,7 @@ class ActionChain<
           log.grey('Action chain reached the end of execution', this)
           return iterator?.value
         } else {
-          // log
+          // logs
           log.red('Cannot start action chain without actions in the queue', {
             ...this.getDefaultCallbackArgs(),
             actionChain: this,
@@ -412,13 +412,36 @@ class ActionChain<
         await this.abort(error.message)
         throw new AbortExecuteError(error)
       } finally {
-        refresh(fn)
+        this.refresh()
       }
     }
+  }
 
-    _state['_execute'] = fn
-
-    return _state._execute
+  async execute(
+    action: T.IAction,
+    handlerOptions: T.ActionChainActionCallbackOptions,
+  ) {
+    let result
+    try {
+      if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
+      this.#timeoutRef = setTimeout(() => {
+        const msg = `Action of type "${action.type}" timed out`
+        action.abort(msg)
+        this.abort(msg)
+          .then(() => {
+            throw new AbortExecuteError(msg)
+          })
+          .catch((err) => {
+            throw new AbortExecuteError(err)
+          })
+      }, 10000)
+      result = await action.execute(handlerOptions)
+    } catch (error) {
+      throw error
+    } finally {
+      clearTimeout(this.#timeoutRef)
+    }
+    return result
   }
 
   /**
@@ -505,7 +528,7 @@ class ActionChain<
           original: actionObj,
         })
       } else {
-        console.info(
+        log.grey(
           `Could not convert action ${
             typeof actionObj === 'object'
               ? actionObj.actionType
@@ -606,6 +629,20 @@ class ActionChain<
     }
 
     return results
+  }
+
+  refresh() {
+    if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
+    this.#queue = []
+    this.status = null
+    // this['gen'] = undefined
+    this.loadQueue().loadGen()
+    log.func('build')
+    log.grey(`Refreshed action chain`, {
+      actions: this.actions,
+      actionChain: this,
+      queue: this.getQueue(),
+    })
   }
 
   #setStatus = (status: T.IActionChain['status']) => {
