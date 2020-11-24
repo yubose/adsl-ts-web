@@ -140,7 +140,7 @@ export interface INOODLUi {
     },
   ): (event: Event) => Promise<any>
   createSrc(
-    path: string | IfObject | EmitObject,
+    path: string | IfObject | EmitActionObject,
     component?: IComponentTypeInstance,
   ): string
   on(eventName: EventId, cb: INOODLUiComponentEventCallback): this
@@ -873,7 +873,7 @@ export type IActionObject =
   | ActionObject
   | AnonymousObject
   | BuiltInObject
-  | EmitObject
+  | EmitActionObject
   | EvalObject
   | PageJumpObject
   | PopupObject
@@ -896,7 +896,7 @@ export interface BuiltInObject extends ActionObject {
   funcName: string
 }
 
-export interface EmitObject extends ActionObject {
+export interface EmitActionObject extends ActionObject {
   emit: {
     actions: [any, any, any]
     dataKey: string | { [key: string]: string }
@@ -1071,7 +1071,7 @@ export interface IfObject {
   if: [any, any, any]
 }
 
-export type Path = string | EmitObject | IfObject
+export type Path = string | EmitActionObject | IfObject
 
 export interface IViewport {
   width: number | undefined
