@@ -8,7 +8,7 @@ import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import {
   ActionChain,
   createComponent,
-  EmitActionObject,
+  EmitObject,
   IComponentTypeInstance,
   IComponentTypeObject,
   IList,

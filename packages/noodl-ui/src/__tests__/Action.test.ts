@@ -2,14 +2,14 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import Action, { DEFAULT_TIMEOUT_DELAY } from '../Action'
-import { PageJumpActionObject } from '../types'
+import { PageJumpObject } from '../types'
 
-const mockPageJumpAction: PageJumpActionObject = {
+const mockPageJumpAction: PageJumpObject = {
   actionType: 'pageJump',
   destination: 'VideoChat',
 }
 
-let action: Action<PageJumpActionObject>
+let action: Action<PageJumpObject>
 
 beforeEach(() => {
   action = new Action(mockPageJumpAction, { callback: async () => {} })

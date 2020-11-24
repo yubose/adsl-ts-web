@@ -7,7 +7,7 @@ import { prettyDOM } from '@testing-library/dom'
 import { queryByText, screen, waitFor } from '@testing-library/dom'
 import {
   ActionChainActionCallbackOptions,
-  EmitActionObject,
+  EmitObject,
   IAction,
   IActionChainEmitTrigger,
   IComponentTypeInstance,
@@ -531,7 +531,7 @@ describe('dom', () => {
       noodlui.use({
         actionType: 'emit',
         fn: async (
-          action: IAction<EmitActionObject>,
+          action: IAction<EmitObject>,
           options: ActionChainActionCallbackOptions,
         ) => {
           actionFnSpy(action, options)

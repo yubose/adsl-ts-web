@@ -8,7 +8,7 @@ import {
   IComponentType,
   IListItem,
   NOODLComponentProps,
-  NOODLTextBoardBreakLine,
+  TextBoardBreakLine,
 } from '../types'
 import { isAllString, isBrowser } from './common'
 import { actionChainEmitTriggers } from '../constants'
@@ -73,7 +73,7 @@ export const identify = (function () {
       item: {
         isTextObject: (component: IComponent): boolean =>
           _.isString(component.get('text')),
-        isBreakLine: (value: unknown): value is NOODLTextBoardBreakLine =>
+        isBreakLine: (value: unknown): value is TextBoardBreakLine =>
           value === 'br',
       },
     },

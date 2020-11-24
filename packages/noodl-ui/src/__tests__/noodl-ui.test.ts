@@ -1,22 +1,15 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import {
-  IComponent,
-  NOODLComponent,
-  IComponentTypeInstance,
-  IList,
-  IListItem,
-} from '../types'
+import { findParent } from 'noodl-utils'
+import { IComponent, NOODLComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
-import ActionChain from '../ActionChain'
 import Component from '../components/Base'
 import List from '../components/List'
 import Viewport from '../Viewport'
 import ListItem from '../components/ListItem'
 import createComponent from '../utils/createComponent'
-import { findParent } from 'noodl-utils'
 
 let noodlComponent: NOODLComponent
 let component: IComponent
@@ -24,10 +17,6 @@ let component: IComponent
 beforeEach(() => {
   noodlComponent = mock.raw.getNOODLView() as NOODLComponent
   component = new Component(noodlComponent) as IComponent
-})
-
-afterEach(() => {
-  noodlui.cleanup()
 })
 
 describe('noodl-ui', () => {
@@ -190,21 +179,8 @@ describe('noodl-ui', () => {
         'getState',
         'parser',
         'resolveComponent',
-        'setNode',
         'showDataKey',
       ])
-    })
-
-    describe('getNodes', () => {
-      xit('should return an object of component nodes where key is component id and value is the instance', () => {
-        // console.info(noodlui.getNodes())
-      })
-    })
-
-    describe('getNode', () => {
-      xit('should return the component instance', () => {
-        //
-      })
     })
   })
 
@@ -238,13 +214,6 @@ describe('noodl-ui', () => {
       expect(noodlui.viewport).to.not.equal(viewport)
       noodlui.setViewport(viewport)
       expect(noodlui.viewport).to.equal(viewport)
-    })
-
-    it('should set the component node', () => {
-      const component = new Component({ type: 'list' })
-      expect(noodlui.getNode(component)).to.be.null
-      noodlui.setNode(component)
-      expect(noodlui.getNode(component)).to.equal(component)
     })
 
     it('should not return as an array if arg passed was not an array', () => {
@@ -359,11 +328,7 @@ describe('noodl-ui', () => {
       // expect(swordSpy.called).to.be.true
     })
 
-    xit('should pass the trigger prop to actionChain.build', () => {
-      //
-    })
-
-    xit('should pass in the resolver context', () => {
+    xit('should pass in the actionsContext, component, pageName, pageObject and trigger', () => {
       //
     })
   })

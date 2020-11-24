@@ -25,8 +25,8 @@ import {
   identify,
   IComponentTypeInstance,
   IResolver,
-  BuiltInActionObject,
-  NOODLPageObject,
+  BuiltInObject,
+  PageObject,
   Page as NOODLPage,
   Resolver,
   ResolverFn,
@@ -56,9 +56,9 @@ const log = Logger.create('src/index.ts')
  */
 function createPreparePage(options: {
   builtIn: {
-    goto: ActionChainActionCallback<BuiltInActionObject>
+    goto: ActionChainActionCallback<BuiltInObject>
     videoChat: (
-      action: BuiltInActionObject & {
+      action: BuiltInObject & {
         roomId: string
         accessToken: string
       },
@@ -68,7 +68,7 @@ function createPreparePage(options: {
   return async (
     pageName: string,
     pageModifiers: { evolve?: boolean } = {},
-  ): Promise<NOODLPageObject> => {
+  ): Promise<PageObject> => {
     const { default: noodl } = await import('app/noodl')
     console.log('--------------------------------------------------')
     console.log(noodl.root.SignIn)
@@ -244,7 +244,7 @@ window.addEventListener('load', async () => {
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
         noodlui
-          .init({ actionsContext: { emitCall: noodl.emitCall }, viewport })
+          .init({ actionsContext: { noodl }, viewport })
           .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageName)
           .setRoot(noodl.root)
@@ -274,15 +274,7 @@ window.addEventListener('load', async () => {
             _.reduce(
               _.entries(actions),
               (arr, [actionType, actions]) =>
-                arr.concat(
-                  actions.map((a) => ({
-                    actionType,
-                    ...a,
-                    ...(isEmitObj(a)
-                      ? { context: { noodl, noodlui } }
-                      : undefined),
-                  })),
-                ),
+                arr.concat(actions.map((a) => ({ ...a, actionType }))),
               [] as any[],
             ),
           )
@@ -308,7 +300,6 @@ window.addEventListener('load', async () => {
             ),
           )
 
-        forEachEntries(actions, (key, value) => noodlui.on(key, value))
         forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
 
         log.func('page.onBeforePageRender')

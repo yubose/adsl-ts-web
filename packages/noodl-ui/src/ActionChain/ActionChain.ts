@@ -17,13 +17,13 @@ import * as T from '../types'
 const log = Logger.create('ActionChain')
 
 class ActionChain<
-  ActionObjects extends T.IActionObject[],
+  ActionObjects extends T.ActionObject[],
   C extends T.IComponentTypeInstance
 > implements T.IActionChain<ActionObjects, C> {
   #current: T.IAction | undefined
-  #original: T.IActionObject[]
+  #original: T.ActionObject[]
   #queue: T.IAction[] = []
-  actions: T.BaseActionObject[] = []
+  actions: T.ActionObject[] = []
   actionsContext: T.IActionChainContext
   component: C
   current: {
@@ -33,7 +33,7 @@ class ActionChain<
   fns: T.IActionChain['fns'] = { action: {}, builtIn: {} }
   gen: T.IActionChain['gen']
   pageName?: string
-  pageObject?: T.NOODLPageObject | null
+  pageObject?: T.PageObject | null
   intermediary: T.IAction[] = []
   status: T.IActionChain['status'] = null
   trigger: T.IActionChainEmitTrigger | undefined
@@ -59,7 +59,7 @@ class ActionChain<
     this.#original = this.#original?.map((a) => {
       const obj = isDraft(a) ? original(a) : a
       return { ...obj, actionType: getActionType(obj) }
-    }) as T.IActionObject[]
+    }) as T.ActionObject[]
     this['actions'] = this.#original
     this['actionsContext'] = actionsContext
     this['component'] = component
@@ -217,7 +217,7 @@ class ActionChain<
 
     if (typeof obj === 'object') {
       if (obj.actionType === 'emit' || 'emit' in obj) {
-        const emitObj = obj as T.EmitActionObject
+        const emitObj = obj as T.EmitObject
         const emitAction = new EmitAction(emitObj)
         emitAction.set('trigger', this.trigger)
 
@@ -392,12 +392,13 @@ class ActionChain<
           //   this.actions as IAction[],
           //   this.getCallbackOptions({ event, ...buildOptions }),
           // )
-          log.grey('Action chain reached the end of execution')
+          log.grey('Action chain reached the end of execution', this)
           return iterator?.value
         } else {
           // log
           log.red('Cannot start action chain without actions in the queue', {
             ...this.getDefaultCallbackArgs(),
+            actionChain: this,
             event,
           })
         }
@@ -425,22 +426,16 @@ class ActionChain<
    * The current snapshot is also included in the result
    * @param { object } args
    */
-  // @ts-expect-error
-  getDefaultCallbackArgs(): ReturnType<
-    T.IActionChain['getDefaultCallbackArgs']
-  > {
-    // @ts-expect-error
+  getDefaultCallbackArgs() {
     return {
       actions: this.actions,
       component: this.component,
-      currentAction: this.#current,
-      originalActions: this.#original,
       pageName: this.pageName,
       pageObject: this.pageObject,
       queue: this.getQueue(),
       snapshot: this.getSnapshot(),
       status: this.status,
-    } as ReturnType<T.IActionChain['getDefaultCallbackArgs']>
+    }
   }
 
   /** Returns the current queue */
@@ -455,79 +450,77 @@ class ActionChain<
    * as soon as they are done executing
    */
   loadQueue() {
-    _.forEach(
-      this.actions,
-      (actionObj: T.IActionObject | Function | string) => {
-        let action: T.IAction<ActionObjects[number]> | undefined
+    _.forEach(this.actions, (actionObj: T.ActionObject | Function | string) => {
+      let action: T.IAction<ActionObjects[number]> | undefined
 
-        if (_.isFunction(actionObj)) {
-          if (!this.fns.action.anonymous?.length) {
-            log.func('loadQueue')
-            log.red(
-              `Encountered an action object that is not an object type. You will` +
-                `need to register an "anonymous" action as an actionType if you want to ` +
-                `handle anonymous functions`,
-              { received: actionObj, component: this.component },
-            )
-          }
-          action = this.createAction({
-            actionType: 'anonymous',
-            fn: actionObj,
-          })
-        }
-        // Temporarily hardcode the actionType to blend in with the other actions
-        // for now until we find a better solution
-        else {
-          if (isReference(actionObj as string)) {
-            log.func('loadQueue')
-            log.red(
-              `Received a reference string but expected an action object`,
-              { actions: this.actions, actionObj, actionChain: this },
-            )
-          } else if (typeof actionObj === 'object') {
-            if ('emit' in actionObj) {
-              actionObj = {
-                ...actionObj,
-                actionType: 'emit',
-              } as T.EmitActionObject
-            } else if ('goto' in actionObj) {
-              actionObj = {
-                ...actionObj,
-                actionType: 'goto',
-              } as T.GotoActionObject
-            }
-            action = this.createAction(actionObj as T.BaseActionObject)
-          }
-        }
-
-        if (action) {
+      if (_.isFunction(actionObj)) {
+        if (!this.fns.action.anonymous?.length) {
           log.func('loadQueue')
-          this.#queue.push(action)
-          log.grey(`Loaded "${action.actionType}" action into the queue`, {
+          log.red(
+            `Encountered an action object that is not an object type. You will` +
+              `need to register an "anonymous" action as an actionType if you want to ` +
+              `handle anonymous functions`,
+            { received: actionObj, component: this.component },
+          )
+        }
+        action = this.createAction({
+          actionType: 'anonymous',
+          fn: actionObj,
+        })
+      }
+      // Temporarily hardcode the actionType to blend in with the other actions
+      // for now until we find a better solution
+      else {
+        if (isReference(actionObj as string)) {
+          log.func('loadQueue')
+          log.red(`Received a reference string but expected an action object`, {
+            actions: this.actions,
+            actionObj,
+            actionChain: this,
+          })
+        } else if (typeof actionObj === 'object') {
+          if ('emit' in actionObj) {
+            actionObj = {
+              ...actionObj,
+              actionType: 'emit',
+            } as T.EmitObject
+          } else if ('goto' in actionObj) {
+            actionObj = {
+              ...actionObj,
+              actionType: 'goto',
+            } as T.GotoObject
+          }
+          action = this.createAction(actionObj as T.ActionObject)
+        }
+      }
+
+      if (action) {
+        log.func('loadQueue')
+        this.#queue.push(action)
+        log.grey(`Loaded "${action.actionType}" action into the queue`, {
+          action,
+          actionChain: this,
+          actions: this.actions,
+          component: this.component,
+          original: actionObj,
+        })
+      } else {
+        console.info(
+          `Could not convert action ${
+            typeof actionObj === 'object'
+              ? actionObj.actionType
+              : String(actionObj)
+          } to an instance`,
+          {
             action,
             actionChain: this,
             actions: this.actions,
             component: this.component,
             original: actionObj,
-          })
-        } else {
-          console.info(
-            `Could not convert action ${
-              typeof actionObj === 'object'
-                ? actionObj.actionType
-                : String(actionObj)
-            } to an instance`,
-            {
-              action,
-              actionChain: this,
-              actions: this.actions,
-              component: this.component,
-              original: actionObj,
-            },
-          )
-        }
-      },
-    )
+          },
+        )
+      }
+    })
     return this
   }
 
@@ -539,7 +532,6 @@ class ActionChain<
   /** Returns a snapshot of the current state in the action chain process */
   getSnapshot(): T.ActionChainSnapshot<ActionObjects> {
     return {
-      currentAction: (this.#current as T.IAction) || null,
       originalActions: this.#original,
       queue: this.getQueue(),
       status: this.status,
@@ -558,9 +550,9 @@ class ActionChain<
     })
 
     log.func('abort')
-    log.orange('Aborting...', { status: this.status })
+    log.orange('Aborting...', { reasons, status: this.status })
 
-    if (this.#current) this.#queue.unshift(this.#current)
+    // if (this.getQueue().length) this.#queue.unshift(this.#current)
 
     // Exhaust the remaining actions in the queue and abort them
     while (this.#queue.length) {
@@ -588,8 +580,8 @@ class ActionChain<
     //   }),
     // )
     // }
-    log.grey(`Refreshed action chain`, {
-      instance: this,
+    log.grey(`Abort finished`, {
+      actionChain: this,
       snapshot: this.getSnapshot(),
     })
 
@@ -614,17 +606,6 @@ class ActionChain<
     }
 
     return results
-  }
-
-  #next = async (args?: any) => {
-    const result = (await this.gen?.next(args)) as
-      | IteratorYieldResult<{
-          action: T.IAction
-          results: any[]
-        }>
-      | undefined
-    this.#current = result?.value?.action
-    return result
   }
 
   #setStatus = (status: T.IActionChain['status']) => {

@@ -1,6 +1,6 @@
 import Logger from 'logsnap'
 import {
-  BaseActionObject,
+  IActionObject,
   Component,
   createComponent,
   EmitActionObject,
@@ -69,11 +69,11 @@ export function createDeepChildren(
 
 export function createEmitDataKey<O = any>(dataKey: string, dataObject: O): O
 export function createEmitDataKey<O = any>(
-  dataKey: Record<string, string>,
+  dataKey: { [key: string]: any },
   dataObject: O,
 ): Record<string, O>
 export function createEmitDataKey<O = any>(
-  dataKey: string | Record<string, string>,
+  dataKey: string | { [key: string]: any },
   dataObject: O,
 ) {
   if (isStr(dataKey)) {
@@ -235,7 +235,7 @@ export function findListDataObject(component: IComponentTypeInstance) {
   return dataObject || null
 }
 
-export function getActionType<A extends BaseActionObject = any>(
+export function getActionType<A extends IActionObject = any>(
   obj: A | undefined,
 ) {
   if (obj && typeof obj === 'object') {

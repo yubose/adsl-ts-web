@@ -8,8 +8,8 @@ import ActionChain from '../ActionChain'
 import Action from '../Action'
 import {
   UpdateActionObject,
-  PageJumpActionObject,
-  PopupDismissActionObject,
+  PageJumpObject,
+  PopupDismissObject,
   IAction,
   IComponentTypeInstance,
   ResolverContext,
@@ -32,12 +32,12 @@ import Component from '../components/Base'
 
 const parser = makeRootsParser({ roots: {} })
 
-const pageJumpAction: PageJumpActionObject = {
+const pageJumpAction: PageJumpObject = {
   actionType: 'pageJump',
   destination: 'MeetingRoomCreate',
 }
 
-const popUpDismissAction: PopupDismissActionObject = {
+const popUpDismissAction: PopupDismissObject = {
   actionType: 'popUpDismiss',
   popUpView: 'warningView',
 }
@@ -49,11 +49,7 @@ const updateObjectAction: UpdateActionObject = {
   },
 }
 
-let actions: [
-  PopupDismissActionObject,
-  UpdateActionObject,
-  PageJumpActionObject,
-]
+let actions: [PopupDismissObject, UpdateActionObject, PageJumpObject]
 
 let actionChain: ActionChain<any[], IComponentTypeInstance>
 
@@ -135,6 +131,14 @@ describe('ActionChain', () => {
   })
 
   describe('when creating actions', () => {
+    xit('should treat the noodl anonymous object as an action with actionType: "anonymous"', () => {
+      //
+    })
+
+    xit('should treat the noodl emit object as an action with actionType: "emit"', () => {
+      //
+    })
+
     actionTypes.forEach((actionType) => {
       it(
         `should return an action instance when registering the ` +
@@ -296,8 +300,6 @@ describe('ActionChain', () => {
       expect(optionsArg).to.have.property('event')
       expect(optionsArg).to.have.property('actions')
       expect(optionsArg).to.have.property('component')
-      expect(optionsArg).to.have.property('currentAction')
-      expect(optionsArg).to.have.property('originalActions')
       expect(optionsArg).to.have.property('pageName')
       expect(optionsArg).to.have.property('pageObject')
       expect(optionsArg).to.have.property('queue')
@@ -479,6 +481,10 @@ describe('ActionChain', () => {
     const queue = actionChain.getQueue()
   })
 
+  xit('should show a different abort reason if it happened somewhere else', () => {
+    //
+  })
+
   xit('skipped actions should have the status "aborted" with some "unregistered callback" reason', () => {
     //
   })
@@ -489,7 +495,7 @@ describe('ActionChain', () => {
       noodlui.use({ actionType: 'anonymous', fn: spy })
       const component = new List()
       const actionChain = new ActionChain([spy], { component })
-      await actionChain.build({} as any)({} as any)
+      await actionChain.build()
       expect(spy.firstCall.args[1])
         .to.have.property('component')
         .that.is.eq(component)

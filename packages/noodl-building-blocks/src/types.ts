@@ -1,14 +1,14 @@
 import {
   ActionChainActionCallback,
-  EmitActionObject,
+  EmitObject,
   IfObject,
   NOODLActionType,
-  NOODLStyleBorderObject,
+  StyleBorderObject,
   NOODLComponentType,
   NOODLComponent,
   NOODLContentType,
-  NOODLPageObject,
-  NOODLStyle,
+  PageObject,
+  Style,
   Path,
   IViewport,
 } from 'noodl-ui'

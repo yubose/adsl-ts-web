@@ -4,13 +4,13 @@
  * "noodl-test-utils"
  */
 import {
-  BuiltInActionObject,
+  BuiltInObject,
   IComponentTypeInstance,
   IComponentTypeObject,
   IList,
   NOODLComponent,
   NOODLPage,
-  NOODLPageObject,
+  PageObject,
 } from '../../types'
 import { noodlui } from '../../utils/test-utils'
 
@@ -19,7 +19,7 @@ const EMPTY_PAGE = '__emptypage__'
 type NOODLComponentArgs = Partial<NOODLComponent>
 
 export function createBuiltInObject(
-  args: Partial<BuiltInActionObject> & { [key: string]: any },
+  args: Partial<BuiltInObject> & { [key: string]: any },
 ) {
   return {
     ...args,
@@ -99,7 +99,7 @@ export type CreatePageResult = typeof util & {
 
 class MockPage {
   name: string
-  object: NOODLPageObject | null
+  object: PageObject | null
 
   constructor(page: NOODLPage, opts: { actions: any[]; builtIns: any[] }) {
     this['name'] = Object.keys(page)[0]
@@ -157,7 +157,7 @@ export const createPage = function <K extends string>(
   }
 
   let state = {
-    [_page.name as K]: {} as NOODLPageObject,
+    [_page.name as K]: {} as PageObject,
   }
 
   let consumerPage: NOODLPage | any

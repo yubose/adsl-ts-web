@@ -2,11 +2,11 @@ import _ from 'lodash'
 import { Draft, isDraft, original } from 'immer'
 import {
   ActionChainActionCallbackOptions,
-  BuiltInActionObject,
+  BuiltInObject,
   getByDataUX,
   getDataValues,
   GotoURL,
-  GotoActionObject,
+  GotoObject,
   IComponentTypeInstance,
   IListItem,
 } from 'noodl-ui'
@@ -227,7 +227,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
 
-    const { evolve } = action.original as BuiltInActionObject
+    const { evolve } = action.original as BuiltInObject
     console.log(action)
     const requestPage = async (pageName: string) => {
       var shouldEvolve = false
@@ -261,7 +261,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     }
   }
 
-  builtInActions.goto = async (action: GotoURL | GotoActionObject, options) => {
+  builtInActions.goto = async (action: GotoURL | GotoObject, options) => {
     log.func('goto')
     log.red('', _.assign({ action }, options))
     log.red('HELLO')
@@ -727,7 +727,7 @@ export function onVideoChatBuiltIn({
   joinRoom: (token: string) => Promise<any>
 }) {
   return async function onVideoChat(
-    action: BuiltInActionObject & {
+    action: BuiltInObject & {
       roomId: string
       accessToken: string
     },
@@ -811,7 +811,7 @@ export function onVideoChatBuiltIn({
 }
 
 export function onBuiltinMissing(
-  action: BuiltInActionObject,
+  action: BuiltInObject,
   options: ActionChainActionCallbackOptions,
 ) {
   window.alert(`The button "${action.funcName}" is not available to use yet`)

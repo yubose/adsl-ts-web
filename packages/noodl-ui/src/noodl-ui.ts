@@ -296,7 +296,7 @@ class NOODL implements T.INOODLUi {
   }
 
   createActionChainHandler(
-    actions: T.IActionObject[],
+    actions: T.ActionObject[],
     options: {
       component: T.IComponentTypeInstance
       trigger: T.IActionChainEmitTrigger
@@ -366,7 +366,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  getBaseStyles(styles?: T.NOODLStyle) {
+  getBaseStyles(styles?: T.Style) {
     return {
       ...this.#root.Style,
       position: 'absolute',
@@ -424,17 +424,6 @@ class NOODL implements T.INOODLUi {
     }
   }
 
-  getResolverOptions(include?: { [key: string]: any }) {
-    return {
-      context: this.getContext(),
-      parser: this.parser,
-      resolveComponent: this.#resolve.bind(this),
-      ...this.getStateGetters(),
-      ...this.getStateSetters(),
-      ...include,
-    } as T.ResolverOptions
-  }
-
   getConsumerOptions({
     component,
     ...rest
@@ -461,40 +450,6 @@ class NOODL implements T.INOODLUi {
     } as T.ConsumerOptions
   }
 
-  getNodes() {
-    return this.#state.nodes
-  }
-
-  /**
-   * Retrieves a node stored internally when resolving the components.
-   * If a string is passed, the id will be used to grab a component with that id.
-   * If a component instance is used, it will be directly used to grab a component
-   * by strict equality.
-   * If a comparator function is passed, it will instead use the comparator to run
-   * through the map of nodes. If a comparator returns true, the node in that iteration
-   * will become the returned result
-   * @param { IComponentTypeInstance | string } component -
-   */
-  getNode(
-    component: T.IComponentTypeInstance | string,
-    fn?: (component: T.IComponentTypeInstance | null) => boolean,
-  ) {
-    let result: any
-    if (fn === undefined) {
-      if (component instanceof Component) {
-        result = this.#state.nodes.get(component as T.IComponentTypeInstance)
-      } else if (_.isString(component)) {
-        const componentId = component
-        const comparator = (node: T.IComponentTypeInstance) =>
-          node?.id === componentId
-        result = _.noop(this.#state.nodes, comparator)
-      }
-    } else {
-      result = _.noop(this.#state.nodes, fn)
-    }
-    return result || null
-  }
-
   getResolvers() {
     return this.#resolvers.map((resolver) => resolver.resolve)
   }
@@ -505,17 +460,13 @@ class NOODL implements T.INOODLUi {
 
   getStateGetters() {
     return {
-      getNodes: this.getNodes.bind(this),
-      getNode: this.getNode.bind(this),
       getPageObject: this.getPageObject.bind(this),
       getState: this.getState.bind(this),
     }
   }
 
   getStateSetters() {
-    return {
-      setNode: this.setNode.bind(this),
-    }
+    return {}
   }
 
   setAssetsUrl(assetsUrl: string) {
@@ -536,11 +487,6 @@ class NOODL implements T.INOODLUi {
 
   setViewport(viewport: T.IViewport) {
     this.#viewport = viewport
-    return this
-  }
-
-  setNode(component: T.IComponentTypeInstance) {
-    this.#state.nodes.set(component, component)
     return this
   }
 
@@ -641,18 +587,13 @@ class NOODL implements T.INOODLUi {
           if (isNOODLBoolean(val)) return isBooleanTrue(val)
           if (typeof val === 'function') {
             if (component) {
-              let dataObject
-              if (component.get('dataKey')) {
-                dataObject = findDataObject({
+              return val(
+                findDataObject({
                   component,
                   dataKey: component.get('dataKey'),
                   pageObject: this.getPageObject(this.page),
-                  page: this.page,
-                })
-              } else if (isListConsumer(component)) {
-                dataObject = findListDataObject(component)
-              }
-              return val(dataObject)
+                }),
+              )
             } else {
               return val()
             }
@@ -686,20 +627,10 @@ class NOODL implements T.INOODLUi {
             })
           }
 
-          emitAction.set('iteratorVar', component?.get?.('iteratorVar'))
-          emitAction.set(
-            'dataKey',
-            createEmitDataKey(path.emit?.dataKey, dataObject),
-          )
-          emitAction.set(
-            'dataObject',
-            findDataObject({
-              component,
-              dataKey: emitAction.dataKey,
-              pageObject,
-              root: this.actionsContext?.noodl?.root || this.root,
-            }),
-          )
+          emitAction
+            .set('dataKey', createEmitDataKey(path.emit?.dataKey, dataObject))
+            .set('dataObject', dataObject)
+            .set('iteratorVar', component?.get?.('iteratorVar'))
 
           emitAction['callback'] = async (snapshot) => {
             const callbacks = _.reduce(
@@ -707,16 +638,19 @@ class NOODL implements T.INOODLUi {
               (acc, obj) => (obj?.trigger === 'path' ? acc.concat(obj) : acc),
               [],
             )
+
             if (!callbacks.length) return ''
+
             const result = await Promise.race(
               callbacks.map((obj) =>
                 obj?.fn?.(
                   emitAction,
-                  { ...this.getConsumerOptions({ component }), path, snapshot },
+                  this.getConsumerOptions({ component, path, snapshot }),
                   this.actionsContext,
                 ),
               ),
             )
+
             // TODO - implement other scenarios
             if (Array.isArray(result)) {
               if (result.length) {

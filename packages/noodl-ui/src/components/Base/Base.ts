@@ -7,9 +7,9 @@ import {
   IComponentType,
   IComponentTypeInstance,
   IComponentTypeObject,
-  IActionObject,
+  ActionObject,
   NOODLComponentType,
-  NOODLStyle,
+  Style,
   ProxiedComponent,
   NOODLComponent,
 } from '../../types'
@@ -28,7 +28,7 @@ class Component implements IComponent {
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
-  action: IActionObject = {} as IActionObject
+  action: ActionObject = {} as ActionObject
   context: { [key: string]: any } = {}
   original: IComponentTypeObject
   resolved: boolean = false
@@ -116,15 +116,15 @@ class Component implements IComponent {
    */
   get<K extends keyof IComponentTypeObject>(
     key: K,
-    styleKey?: keyof NOODLStyle,
+    styleKey?: keyof Style,
   ): IComponentTypeObject[K]
   get<K extends keyof IComponentTypeObject>(
     key: K[],
-    styleKey?: keyof NOODLStyle,
+    styleKey?: keyof Style,
   ): Record<K, IComponentTypeObject[K]>
   get<K extends keyof IComponentTypeObject>(
     key: K | K[],
-    styleKey?: keyof NOODLStyle,
+    styleKey?: keyof Style,
   ): IComponentTypeObject[K] | Record<K, IComponentTypeObject[K]> {
     if (_.isString(key)) {
       // Returns the original type
@@ -144,7 +144,7 @@ class Component implements IComponent {
   /** Used by this.get */
   #retrieve = <K extends keyof IComponentTypeObject>(
     key: K,
-    styleKey?: keyof NOODLStyle,
+    styleKey?: keyof Style,
   ) => {
     let value
 
@@ -375,7 +375,7 @@ class Component implements IComponent {
    * @param { string } key - Component property or "style" if using styleKey for style lookups
    * @param { string? } styleKey - Style property if key === 'style'
    */
-  has(key: string, styleKey?: keyof NOODLStyle) {
+  has(key: string, styleKey?: keyof Style) {
     if (key === 'style') {
       if (_.isString(styleKey)) {
         return styleKey in (this.#component.style || {})
@@ -408,7 +408,7 @@ class Component implements IComponent {
    * using styleKey if key === 'style'
    * @param { string } key - Component property, or "style" if removing a style property using styleKey
    */
-  remove(key: string, styleKey?: keyof NOODLStyle) {
+  remove(key: string, styleKey?: keyof Style) {
     if (key === 'style' && _.isString(styleKey)) {
       if (this.#component.style) {
         delete this.#component.style[styleKey]
@@ -427,7 +427,7 @@ class Component implements IComponent {
    * Merges style props to the component's styles. Any styles with clashing names will be overridden
    * @param { object } styles
    */
-  assignStyles(styles: Partial<NOODLStyle>) {
+  assignStyles(styles: Partial<Style>) {
     return this.assign('style', styles)
   }
 
@@ -435,7 +435,7 @@ class Component implements IComponent {
    * Retrieves a value from the style object using styleKey
    * @param { string } styleKey
    */
-  getStyle<K extends keyof NOODLStyle>(styleKey: K) {
+  getStyle<K extends keyof Style>(styleKey: K) {
     return this.#component.style?.[styleKey]
   }
 
@@ -443,7 +443,7 @@ class Component implements IComponent {
    * Returns true of the component is using the styleKey in its style objext
    * @param { string } styleKey
    */
-  hasStyle<K extends keyof NOODLStyle>(styleKey: K) {
+  hasStyle<K extends keyof Style>(styleKey: K) {
     return this.has('style', styleKey)
   }
 
@@ -453,8 +453,8 @@ class Component implements IComponent {
    * @param { any } value - Value to set for the styleKey
    */
   setStyle(styleKey: string, value: any): this
-  setStyle<K extends keyof NOODLStyle>(styles: K): this
-  setStyle<K extends keyof NOODLStyle>(styleKey: string | K, value?: any) {
+  setStyle<K extends keyof Style>(styles: K): this
+  setStyle<K extends keyof Style>(styleKey: string | K, value?: any) {
     if (!this.#component.style) this.#component.style = {}
     if (_.isString(styleKey)) {
       if (this.#component.style) {
@@ -462,7 +462,7 @@ class Component implements IComponent {
         this.touchStyle(styleKey)
       }
     } else if (_.isObject(styleKey)) {
-      const style = this.#component.style as NOODLStyle
+      const style = this.#component.style as Style
       forEachEntries(styleKey, (key, value) => {
         style[key] = value
       })
@@ -474,7 +474,7 @@ class Component implements IComponent {
    * Removes a property from the style object using the styleKey
    * @param { string } styleKey
    */
-  removeStyle<K extends keyof NOODLStyle>(styleKey: K) {
+  removeStyle<K extends keyof Style>(styleKey: K) {
     this.remove('style', styleKey)
     return this
   }

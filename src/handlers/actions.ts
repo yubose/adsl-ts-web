@@ -3,10 +3,10 @@ import {
   Action,
   ActionChainActionCallback,
   ActionChainActionCallbackOptions,
-  AnonymousActionObject,
+  AnonymousObject,
   EmitAction,
-  EmitActionObject,
-  EvalActionObject,
+  EmitObject,
+  EvalObject,
   getByDataUX,
   getDataValues,
   getDataObjectValue,
@@ -15,10 +15,10 @@ import {
   IfObject,
   isReference,
   NOODLActionType,
-  PopupActionObject,
-  PopupDismissActionObject,
-  RefreshActionObject,
-  SaveActionObject,
+  PopupObject,
+  PopupDismissObject,
+  RefreshObject,
+  SaveObject,
   UpdateActionObject,
 } from 'noodl-ui'
 import {
@@ -57,11 +57,7 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions['updateObject'] = []
 
   _actions.anonymous.push({
-    fn: async (
-      action: Action<AnonymousActionObject>,
-      options,
-      actionsContext,
-    ) => {
+    fn: async (action: Action<AnonymousObject>, options, actionsContext) => {
       log.func('anonymous')
       log.grey(
         'Anonymous action call (LOOK IN THIS IN THE NOODL/YML IF YOU SEE THIS IF THIS IS INTENTIONAL)',
@@ -215,7 +211,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.evalObject.push({
-    fn: async (action: Action<EvalActionObject>, options, { noodlui }) => {
+    fn: async (action: Action<EvalObject>, options, { noodlui }) => {
       log.func('evalObject')
       if (_.isFunction(action?.original?.object)) {
         const result = await action.original?.object()
@@ -330,7 +326,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
   _actions.popUp.push({
     fn: async (
-      action: Action<PopupActionObject | PopupDismissActionObject>,
+      action: Action<PopupObject | PopupDismissObject>,
       options,
       actionsContext,
     ) => {
@@ -417,7 +413,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.refresh.push({
-    fn: (action: Action<RefreshActionObject>, options, actionsContext) => {
+    fn: (action: Action<RefreshObject>, options, actionsContext) => {
       log.func('refresh')
       log.grey(action.original.actionType, { action, ...options })
       window.location.reload()
@@ -425,7 +421,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.saveObject.push({
-    fn: async (action: Action<SaveActionObject>, options, actionsContext) => {
+    fn: async (action: Action<SaveObject>, options, actionsContext) => {
       const { default: noodl } = await import('../app/noodl')
       const { default: noodlui } = await import('../app/noodl-ui')
       const { abort, parser } = options as any

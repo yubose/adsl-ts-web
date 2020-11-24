@@ -1,7 +1,7 @@
 // @ts-nocheck
 import _ from 'lodash'
 import { Pair, YAMLMap, YAMLSeq } from 'yaml/types'
-import { NOODLStyleTextAlign } from '../../../src/types'
+import { StyleTextAlign } from '../../../src/types'
 import { isString } from '../../../src/utils/common'
 import { availableComponentTypes } from '../../../src/resolvers/getElementType'
 import {
@@ -228,7 +228,7 @@ evaluators.set('border', (value, { context, invalidate }) => {
 
 evaluators.set(
   'textAlign',
-  (value: NOODLStyleTextAlign, { context, invalidate }) => {
+  (value: StyleTextAlign, { context, invalidate }) => {
     if (isString(value)) {
       if (!knownTextAlignStrings.includes(value)) {
         invalidate(

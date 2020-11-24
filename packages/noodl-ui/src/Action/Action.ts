@@ -6,7 +6,7 @@ import {
   IActionOptions,
   IActionSnapshot,
   IActionStatus,
-  BaseActionObject,
+  ActionObject,
 } from '../types'
 import { getRandomKey } from '../utils/common'
 import { AbortExecuteError } from '../errors'
@@ -15,7 +15,7 @@ const log = Logger.create('Action')
 
 export const DEFAULT_TIMEOUT_DELAY = 8000
 
-class Action<OriginalAction extends BaseActionObject = BaseActionObject>
+class Action<OriginalAction extends ActionObject = ActionObject>
   implements IAction<OriginalAction> {
   #id: string
   #callback: IActionCallback | undefined

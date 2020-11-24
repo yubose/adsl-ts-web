@@ -1,4 +1,4 @@
-import { BuiltInActionObject, EmitActionObject, IfObject } from 'noodl-ui'
+import { BuiltInObject, EmitObject, IfObject } from 'noodl-ui'
 import * as T from './types'
 
 /* -------------------------------------------------------

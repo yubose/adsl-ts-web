@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import { EmitActionObject, IActionOptions, NOODLEmitTrigger } from '../types'
+import { EmitObject, IActionOptions, NOODLEmitTrigger } from '../types'
 import Action from './Action'
 
-class EmitAction extends Action<EmitActionObject> {
+class EmitAction extends Action<EmitObject> {
   #dataObject: any
   // #iteratorVar: string | undefined
   dataKey: string | { [key: string]: any } | undefined
@@ -11,8 +11,8 @@ class EmitAction extends Action<EmitActionObject> {
   #trigger: NOODLEmitTrigger | undefined
 
   constructor(
-    action: EmitActionObject,
-    options?: IActionOptions<EmitActionObject> &
+    action: EmitObject,
+    options?: IActionOptions<EmitObject> &
       Partial<{
         // iteratorVar: string
         trigger: NOODLEmitTrigger
