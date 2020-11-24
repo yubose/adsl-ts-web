@@ -2,19 +2,29 @@ import _ from 'lodash'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
+import { isEmitObj } from 'noodl-utils'
 import { IResolver, Resolver, Viewport } from 'noodl-ui'
 import Logger, { _color } from 'logsnap'
-import { assetsUrl, getAllResolvers, noodlui, page } from './utils/test-utils'
+import createActions from './handlers/actions'
+import {
+  assetsUrl,
+  getAllResolvers,
+  noodl,
+  noodlui,
+  page,
+} from './utils/test-utils'
 import './handlers/dom'
 
 chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
 
-before(async () => {
+before(() => {
   // noodlui.init()
   console.clear()
   Logger.disable()
+
+  const actions = createActions({ page })
 
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
@@ -25,7 +35,7 @@ before(async () => {
       writable: false,
       value: function _cleanup() {
         noodlui
-          .reset()
+          .reset({ keepCallbacks: true })
           .setAssetsUrl(assetsUrl)
           .setPage('MeetingLobby')
           .setViewport(new Viewport())
@@ -44,7 +54,24 @@ before(async () => {
       resolver.setResolver(r)
       noodlui.use(resolver as IResolver)
     })
-  } catch (error) {}
+
+    noodlui.use(
+      _.reduce(
+        _.entries(actions),
+        (arr, [actionType, actions]) =>
+          arr.concat(
+            actions.map((a) => ({
+              actionType,
+              ...a,
+              ...(isEmitObj(a) ? { context: { noodl, noodlui } } : undefined),
+            })),
+          ),
+        [] as any[],
+      ),
+    )
+  } catch (error) {
+    throw new Error(error)
+  }
 })
 
 after(() => {

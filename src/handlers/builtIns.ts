@@ -27,16 +27,15 @@ import {
   createEmitDataKey,
   publish,
 } from 'noodl-utils'
-import Page from 'Page'
 import Logger from 'logsnap'
 import validate from '../utils/validate'
+import Page from '../Page'
 import { toggleVisibility } from '../utils/dom'
 import { BuiltInActions } from '../app/types'
 import { CachedPageObject } from '../app/types'
 import { CACHED_PAGES } from '../constants'
 import { NOODLBuiltInCheckFieldObject } from '../app/types/libExtensionTypes'
 import Meeting from '../meeting'
-import EmitAction from 'noodl-ui/src/Action/EmitAction'
 
 const log = Logger.create('builtIns.ts')
 

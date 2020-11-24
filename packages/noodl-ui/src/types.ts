@@ -446,6 +446,7 @@ export type IActionChainConstructorArgs<
 > = [
   actions: ActionObjects,
   opts: {
+    actionsContext: IActionChainContext
     component: C
     pageName?: string
     pageObject?: NOODLPageObject
@@ -459,6 +460,7 @@ export interface IActionChain<
 > {
   abort(reason?: string | string[]): Promise<void>
   actions: BaseActionObject[]
+  actionsContext: IActionChainContext
   component: C
   createGenerator(): IActionChain['gen']
   current: { action: IAction<ActionObjects[number]> | undefined; index: number }
@@ -520,6 +522,11 @@ export interface IActionChain<
   useBuiltIn(
     action: IActionChainUseBuiltInObject | IActionChainUseBuiltInObject[],
   ): this
+}
+
+export interface IActionChainContext {
+  emitCall?: Function
+  noodlui: INOODLUi
 }
 
 export interface IActionChainBuildOptions {
@@ -834,6 +841,7 @@ export interface ConsumerOptions {
   getPageObject: INOODLUiStateHelpers['getPageObject']
   getResolvers(): INOODLUi['getResolvers']
   getState: INOODLUiStateHelpers['getState']
+  page: string
   parser: ResolverOptions['parser']
   resolveComponent(
     c: NOODLComponentType | IComponentTypeInstance | IComponentTypeObject,

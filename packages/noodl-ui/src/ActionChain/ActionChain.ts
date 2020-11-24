@@ -1,6 +1,11 @@
 import _ from 'lodash'
 import { isDraft, original } from 'immer'
-import { findDataObject, findListDataObject, isListConsumer } from 'noodl-utils'
+import {
+  findDataObject,
+  findListDataObject,
+  getActionType,
+  isListConsumer,
+} from 'noodl-utils'
 import Logger from 'logsnap'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
@@ -19,6 +24,7 @@ class ActionChain<
   #original: T.IActionObject[]
   #queue: T.IAction[] = []
   actions: T.BaseActionObject[] = []
+  actionsContext: T.IActionChainContext
   component: C
   current: {
     action: T.IAction | undefined
@@ -41,20 +47,21 @@ class ActionChain<
   constructor(
     actions: T.IActionChainConstructorArgs<ActionObjects, C>[0],
     {
+      actionsContext,
       component,
       pageName,
       pageObject,
       trigger,
     }: T.IActionChainConstructorArgs<ActionObjects, C>[1],
   ) {
-    this.#original = isDraft(actions)
-      ? (original(actions)?.map((a) =>
-          isDraft(a) ? original(a) : a,
-        ) as T.IActionObject[])
-      : (actions?.map((a) =>
-          isDraft(a) ? original(a) : a,
-        ) as T.IActionObject[])
+    // @ts-expect-error
+    this.#original = isDraft(actions) ? original(actions) : actions
+    this.#original = this.#original?.map((a) => {
+      const obj = isDraft(a) ? original(a) : a
+      return { ...obj, actionType: getActionType(obj) }
+    }) as T.IActionObject[]
     this['actions'] = this.#original
+    this['actionsContext'] = actionsContext
     this['component'] = component
     this['pageName'] = pageName
     this['pageObject'] = pageObject
@@ -114,7 +121,7 @@ class ActionChain<
       const numFuncs = callbacks.length
       for (let index = 0; index < numFuncs; index++) {
         const fn = callbacks[index]
-        const result = await fn(instance, options)
+        const result = await fn(instance, options, this.actionsContext)
         // TODO - Do a better way to identify the action
         if ((result || ({} as A)).actionType) {
           // We may get an action object returned back like from
@@ -315,7 +322,7 @@ class ActionChain<
                 throw new AbortExecuteError(msg)
               })
               .catch((err) => {
-                throw err
+                throw new AbortExecuteError(err)
               })
           }, 10000)
 
@@ -401,10 +408,8 @@ class ActionChain<
         //   this.getCallbackOptions({ event, error: err, ...buildOptions }),
         // )
         // TODO more handling
-        await this.abort(
-          `The value of "actions" given to this action chain was null or undefined`,
-        )
-        throw new Error(error)
+        await this.abort(error.message)
+        throw new AbortExecuteError(error)
       } finally {
         refresh(fn)
       }
@@ -587,6 +592,7 @@ class ActionChain<
       instance: this,
       snapshot: this.getSnapshot(),
     })
+
     // throw new Error(abortResult)
     // return abortResult
   }

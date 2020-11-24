@@ -1,5 +1,6 @@
 import Logger from 'logsnap'
 import {
+  BaseActionObject,
   Component,
   createComponent,
   EmitActionObject,
@@ -232,6 +233,17 @@ export function findListDataObject(component: IComponentTypeInstance) {
     }
   }
   return dataObject || null
+}
+
+export function getActionType<A extends BaseActionObject = any>(
+  obj: A | undefined,
+) {
+  if (obj && typeof obj === 'object') {
+    if ('actionType' in obj) return obj.actionType
+    if ('emit' in obj) return 'emit'
+    if ('goto' in obj) return 'goto'
+  }
+  return 'anonymous'
 }
 
 export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(

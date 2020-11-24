@@ -46,6 +46,7 @@ import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
 import './handlers/dom'
 import './styles.css'
+import { isEmitObj } from 'noodl-utils'
 
 const log = Logger.create('src/index.ts')
 
@@ -243,7 +244,7 @@ window.addEventListener('load', async () => {
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
         noodlui
-          .init({ actionsContext: { noodl }, viewport })
+          .init({ actionsContext: { emitCall: noodl.emitCall }, viewport })
           .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageName)
           .setRoot(noodl.root)
@@ -274,13 +275,13 @@ window.addEventListener('load', async () => {
               _.entries(actions),
               (arr, [actionType, actions]) =>
                 arr.concat(
-                  actions.map((a) => {
-                    const obj = { actionType, ...a }
-                    if (actionType === 'emit') {
-                      obj['context'] = { noodl, noodlui }
-                    }
-                    return obj
-                  }),
+                  actions.map((a) => ({
+                    actionType,
+                    ...a,
+                    ...(isEmitObj(a)
+                      ? { context: { noodl, noodlui } }
+                      : undefined),
+                  })),
                 ),
               [] as any[],
             ),

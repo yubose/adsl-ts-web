@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import CADL from '@aitmed/cadl'
 import {
   Action,
   ActionChainActionCallback,
@@ -22,8 +21,6 @@ import {
   SaveActionObject,
   UpdateActionObject,
 } from 'noodl-ui'
-import Logger from 'logsnap'
-import { IPage } from 'app/types'
 import {
   createEmitDataKey,
   evalIf,
@@ -35,7 +32,9 @@ import {
   isPossiblyDataKey,
   publish,
 } from 'noodl-utils'
-import { onSelectFile } from 'utils/dom'
+import Logger from 'logsnap'
+import { IPage } from '../app/types'
+import { onSelectFile } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
 
@@ -58,7 +57,11 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions['updateObject'] = []
 
   _actions.anonymous.push({
-    fn: async (action: Action<AnonymousActionObject>, options) => {
+    fn: async (
+      action: Action<AnonymousActionObject>,
+      options,
+      actionsContext,
+    ) => {
       log.func('anonymous')
       log.grey(
         'Anonymous action call (LOOK IN THIS IN THE NOODL/YML IF YOU SEE THIS IF THIS IS INTENTIONAL)',
@@ -71,7 +74,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+    fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, ...options })
 
@@ -102,9 +105,9 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+    fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
       log.func('emit [onClick]')
-      log.gold('Emitting', { action, ...options })
+      log.gold('Emitting', { action, noodl, noodlui, this: this, ...options })
 
       let { component, ref } = options
       let { actions, dataKey } = action
@@ -113,7 +116,7 @@ const createActions = function ({ page }: { page: IPage }) {
       const emitParams = {
         actions: action.actions,
         dataKey: action.dataKey,
-        pageName: noodlui.page,
+        pageName: noodlui?.page,
       } as any
 
       const emitResult = await noodl.emitCall(emitParams)
@@ -131,7 +134,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+    fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
       log.func('emit [onChange]')
 
       const emitParams = {
@@ -166,7 +169,7 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - if src === assetsUrl
   // TODO - else if src endsWith
   _actions.emit.push({
-    fn: (action: EmitAction, { component, pageName, path }, { noodl }) => {
+    fn: (action: EmitAction, { component, pageName, path }, { noodl } = {}) => {
       log.func('path [emit]')
       log.grey(`Calling emitCall`, { action, noodl })
 
@@ -212,7 +215,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.evalObject.push({
-    fn: async (action: Action<EvalActionObject>, options) => {
+    fn: async (action: Action<EvalActionObject>, options, { noodlui }) => {
       log.func('evalObject')
       if (_.isFunction(action?.original?.object)) {
         const result = await action.original?.object()
@@ -230,7 +233,6 @@ const createActions = function ({ page }: { page: IPage }) {
         const ifObj = action.original.object as IfObject
         if (_.isArray(ifObj)) {
           const { default: noodl } = await import('../app/noodl')
-          const { default: noodlui } = await import('../app/noodl-ui')
           const pageName = noodlui.page || ''
           const pageObject = noodl.root[noodlui.page]
           const object = evalIf((valEvaluating) => {
@@ -292,7 +294,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.goto.push({
-    fn: async (action: any, options) => {
+    fn: async (action: any, options, actionsContext) => {
       log.func('_actions.goto')
       log.red('goto action', { action, options })
       // URL
@@ -319,7 +321,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.pageJump.push({
-    fn: async (action: any, options) => {
+    fn: async (action: any, options, actionsContext) => {
       log.func('pageJump')
       log.grey('', { action, ...options })
       await page.requestPageChange(action.original.destination)
@@ -330,6 +332,7 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (
       action: Action<PopupActionObject | PopupDismissActionObject>,
       options,
+      actionsContext,
     ) => {
       const { default: noodlui } = await import('app/noodl-ui')
       log.func('popUp')
@@ -405,7 +408,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.popUpDismiss.push({
-    fn: async (action: any, options) => {
+    fn: async (action: any, options, actionsContext) => {
       log.func('popUpDismiss')
       log.grey('', { action, ...options })
       await Promise.all(_actions.popUp.map((obj) => obj.fn(action, options)))
@@ -414,7 +417,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.refresh.push({
-    fn: (action: Action<RefreshActionObject>, options) => {
+    fn: (action: Action<RefreshActionObject>, options, actionsContext) => {
       log.func('refresh')
       log.grey(action.original.actionType, { action, ...options })
       window.location.reload()
@@ -422,7 +425,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.saveObject.push({
-    fn: async (action: Action<SaveActionObject>, options) => {
+    fn: async (action: Action<SaveActionObject>, options, actionsContext) => {
       const { default: noodl } = await import('../app/noodl')
       const { default: noodlui } = await import('../app/noodl-ui')
       const { abort, parser } = options as any
@@ -491,7 +494,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.updateObject.push({
-    fn: async (action: Action<UpdateActionObject>, options) => {
+    fn: async (action: Action<UpdateActionObject>, options, actionsContext) => {
       const { abort, component, stateHelpers } = options
       const { default: noodl } = await import('../app/noodl')
       log.func('updateObject')

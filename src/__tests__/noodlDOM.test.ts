@@ -18,6 +18,9 @@ describe('DOM', () => {
     it('should be in the dom', () => {
       const path = 'abc.jpg'
       const c = { type: 'image', path, dataKey: 'formData.avatar' }
+      noodlui
+        .setRoot('SignIn', { formData: { avatar: 'https://avar.png' } })
+        .setPage('SignIn')
       const component = noodlui.resolveComponents(c)
       toDOM(component)
       const img = document.getElementsByTagName('img')[0]

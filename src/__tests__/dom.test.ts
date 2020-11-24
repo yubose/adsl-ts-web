@@ -30,6 +30,7 @@ import {
   noodluidom,
 } from '../utils/test-utils'
 import { getListComponent1, saveOutput } from './helpers'
+import { getByDataKey } from 'noodl-utils'
 
 const mockAxios = new MockAxios(axios)
 
@@ -504,7 +505,7 @@ describe('dom', () => {
     })
   })
 
-  xdescribe('when using redraw', () => {
+  describe('when using redraw', () => {
     const iteratorVar = 'hello'
     let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
     let actionFnSpy = sinon.spy()
@@ -616,12 +617,14 @@ describe('dom', () => {
       const img2 = li2.querySelector('img') as HTMLImageElement
       img1.click()
       expect(pathIfFnSpy.called).to.be.true
-      // expect(pathIfFnSpy.firstCall.args[0]).to.be.a('function')
+      expect(pathIfFnSpy.firstCall.args[0]).to.eq(listObject[0])
     })
 
-    xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", () => {
-      const pageObject = { formData: { greeting: '12345' } }
-      noodlui.setRoot('SignIn', pageObject).setPage('SignIn')
+    it("should be able to deeply recompute/redraw an html dom node's tree hierarchy", () => {
+      noodlui
+        .setRoot('SignIn', { formData: { greeting: '12345', color: 'red' } })
+        .setPage('SignIn')
+      console.info(noodlui.getCbs())
       const root = page.render({
         type: 'view',
         children: [
@@ -630,34 +633,53 @@ describe('dom', () => {
             children: [
               { type: 'image', path: 'abc.png', style: { shadow: 'true' } },
               { type: 'label', dataKey: 'formData.greeting' },
+              {
+                type: 'view',
+                children: [{ type: 'label', dataKey: 'formData.color' }],
+              },
             ],
           },
         ],
       }).components[0]
 
       const view = root.child()
-      const [image, label] = view.children() as [
-        IComponentTypeInstance,
-        IComponentTypeInstance,
-      ]
+      const image = view.child() as IComponentTypeInstance
 
       const parentEl = document.getElementById(view.id)
-      const imgEl = document.querySelector('img') as HTMLImageElement
-      const labelEl = document.querySelector('label') as HTMLLabelElement
 
-      expect(imgEl.src).to.equal(noodlui.assetsUrl + 'abc.png')
-      expect(labelEl.textContent).to.equal('12345')
+      const getImg = () =>
+        document.querySelector(
+          `img[src="${assetsUrl + 'abc.png'}"]`,
+        ) as HTMLImageElement
+      const getRedrawedImg = () =>
+        document.querySelector(
+          `img[src="${assetsUrl + 'followMe.jpeg'}"]`,
+        ) as HTMLImageElement
+      const getLabel = () =>
+        getByDataKey('formData.greeting') as HTMLLabelElement
+      const getLabel2 = () => getByDataKey('formData.color') as HTMLLabelElement
+
+      expect(getImg().src).to.equal(noodlui.assetsUrl + 'abc.png')
+      expect(getLabel().textContent).to.equal('12345')
+      expect(getLabel2().textContent).to.equal('red')
+
+      expect(getImg().src).not.to.eq(noodlui.assetsUrl + 'followMe.jpeg')
+      expect(getLabel().textContent).not.to.eq('hehehee')
+
+      noodlui.setRoot(noodlui.page, {
+        ...noodlui.root[noodlui.page],
+        formData: { greeting: 'hehehee', color: 'blue' },
+      })
 
       image.set('src', noodlui.assetsUrl + 'followMe.jpeg')
-      label.set('data-value', 'hehehee')
 
-      expect(imgEl.src).not.to.eq(noodlui.assetsUrl + 'followMe.jpeg')
-      expect(labelEl.textContent).not.to.eq('hehehee')
+      // const [newParentEl, newView] = noodluidom.redraw(parentEl, view)
 
-      noodluidom.redraw(parentEl, view)
+      console.info(prettyDOM())
 
-      expect(imgEl.src).to.eq(noodlui.assetsUrl + 'followMe.jpeg')
-      expect(labelEl.textContent).to.eq('hehehee')
+      expect(getRedrawedImg().src).to.eq(noodlui.assetsUrl + 'followMe.jpeg')
+      expect(getLabel().textContent).to.eq('hehehee')
+      expect(getLabel2().textContent).to.eq('blue')
     })
   })
 

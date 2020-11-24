@@ -156,24 +156,18 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       : eventType
     ).toLocaleLowerCase()
 
-    const fn = (...args: any[]) => {
+    const fn = (event?: MouseEvent | Event, ...args: any[]) => {
       log.func(`on all --> addEventListener: ${event}`)
       log.grey(`User action invoked handler`, {
+        event,
         component,
         handlerInArgs: handler,
         handlerInComponent: component.get(eventType),
+        otherArgs: args,
       })
-      console.groupCollapsed('', {
-        event,
-        node,
-        component,
-        handler: component.get(eventType),
-      })
-      console.trace()
-      console.groupEnd()
       // node.removeEventListener(eventType, attachEventHandler)
       // handleEventHandlers()
-      return handler?.(...args)
+      return handler?.(component, event)
     }
 
     // TODO: Test this

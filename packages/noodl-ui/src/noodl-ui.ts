@@ -10,6 +10,7 @@ import {
   isListConsumer,
   findDataObject,
   findListDataObject,
+  createEmitDataKey,
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
@@ -64,7 +65,7 @@ class NOODL implements T.INOODLUi {
   #root: { [key: string]: any } = {}
   #state: T.INOODLUiState
   #viewport: T.IViewport
-  actionsContext: any = {}
+  actionsContext: { emitCall?: any; noodlui: NOODL } = { noodlui: this }
   initialized: boolean = false
 
   constructor({
@@ -304,6 +305,7 @@ class NOODL implements T.INOODLUi {
     const actionChain = new ActionChain(
       _.isArray(actions) ? actions : [actions],
       {
+        actionsContext: this.getActionsContext(),
         component: options.component,
         pageName: this.page,
         pageObject: this.getPageObject(this.page),
@@ -354,13 +356,13 @@ class NOODL implements T.INOODLUi {
     _log = true,
     actionsContext,
     viewport,
-  }: { _log?: boolean; actionsContext?: any } & Partial<
+  }: { _log?: boolean; actionsContext?: NOODL['actionsContext'] } & Partial<
     Parameters<T.INOODLUi['init']>[0]
   > = {}) {
     if (!_log) Logger.disable()
     if (viewport) this.setViewport(viewport)
     this.initialized = true
-    this['actionsContext'] = actionsContext
+    if (actionsContext) _.assign(this.actionsContext, actionsContext)
     return this
   }
 
@@ -371,6 +373,10 @@ class NOODL implements T.INOODLUi {
       outline: 'none',
       ...styles,
     }
+  }
+
+  getActionsContext() {
+    return Object.assign({}, this.actionsContext)
   }
 
   getContext() {
@@ -441,10 +447,10 @@ class NOODL implements T.INOODLUi {
       context: this.getContext(),
       createActionChainHandler: (
         ...[action, options]: Parameters<T.INOODLUi['createActionChainHandler']>
-      ) =>
-        this.createActionChainHandler(action, { ...options, component } as any),
+      ) => this.createActionChainHandler(action, options),
       createSrc: (path: string) => this.createSrc(path, component),
       getBaseStyles: this.getBaseStyles.bind(this),
+      page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
       parser: this.parser,
@@ -661,25 +667,73 @@ class NOODL implements T.INOODLUi {
         const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
 
         if (typeof obj?.fn === 'function') {
-          emitAction['callback'] = async (...args) => {
-            // const result = await
+          const emitObj = { ...path, actionType: 'emit' } as T.EmitActionObject
+          const emitAction = new EmitAction(emitObj, { trigger: 'path' })
+          const pageObject = this.getPageObject(this.page)
+          let dataObject: any
+
+          if (_.isPlainObject(path.emit.dataKey)) {
+            _.forEach(_.keys(path.emit.dataKey), (key) => {
+              if (typeof key === 'string') {
+                dataObject = findDataObject({
+                  component,
+                  dataKey: key,
+                  pageObject,
+                  root: this.actionsContext?.noodl?.root || this.root,
+                })
+              }
+              emitAction.setDataKeyValue(key, dataObject)
+            })
+          }
+
+          emitAction.set('iteratorVar', component?.get?.('iteratorVar'))
+          emitAction.set(
+            'dataKey',
+            createEmitDataKey(path.emit?.dataKey, dataObject),
+          )
+          emitAction.set(
+            'dataObject',
+            findDataObject({
+              component,
+              dataKey: emitAction.dataKey,
+              pageObject,
+              root: this.actionsContext?.noodl?.root || this.root,
+            }),
+          )
+
+          emitAction['callback'] = async (snapshot) => {
+            const callbacks = _.reduce(
+              this.#cb.action.emit || [],
+              (acc, obj) => (obj?.trigger === 'path' ? acc.concat(obj) : acc),
+              [],
+            )
+            if (!callbacks.length) return ''
+            const result = await Promise.race(
+              callbacks.map((obj) =>
+                obj?.fn?.(
+                  emitAction,
+                  { ...this.getConsumerOptions({ component }), path, snapshot },
+                  this.actionsContext,
+                ),
+              ),
+            )
+            // TODO - implement other scenarios
+            if (Array.isArray(result)) {
+              if (result.length) {
+                //
+              }
+              return result[0]
+            }
+            return result || ''
           }
 
           // Result returned should be a string type
-          let result = obj.fn(
-            {
-              ...this.getConsumerOptions({ component }),
-              pageName: this.page,
-              path,
-            },
-            this.actionsContext,
-          )
+          let result = emitAction.execute(path)
 
           if (isPromise(result)) {
             // Turn this into an EmitAction
-            const emitAction = new EmitAction(path, { trigger: 'path' })
-            emitAction.callback = (...args) => Promise.resolve(...args)
-
+            // const emitAction = new EmitAction(path, { trigger: 'path' })
+            // emitAction.callback = (...args) => Promise.resolve(...args)
             return result
               .then((res) => resolveAssetUrl(res as string, this.assetsUrl))
               .catch((err) => Promise.reject(err))
@@ -691,55 +745,41 @@ class NOODL implements T.INOODLUi {
       // Assuming we are passing in a dataObject
       else if (typeof path === 'function') {
         if (component) {
-          let dataObject: any
+          const dataObject: any = findDataObject({
+            component,
+            dataKey: component.get('dataKey'),
+            pageObject: this.getPageObject(this.page),
+            root: this.root,
+          })
           // Assuming it is a component retrieving its value from a dataObject
           if (component.get?.('iteratorVar')) {
-            let listItem: T.IListItem
-            if (component.noodlType !== 'listItem') {
-              listItem = findParent(
-                component,
-                (p: any) => p?.noodlType === 'listItem',
-              )
-            } else {
-              listItem = component
-            }
-            if (listItem) {
-              dataObject = listItem.getDataObject()
-              path = evalIf((fn, val1, val2) => {
-                const result = fn(dataObject)
-                if (result) {
-                  console.info(
-                    `Result of path "if" func is truthy. Returning: ${val1}`,
-                    {
-                      component,
-                      dataObject,
-                      if: path.if,
-                      valOnTrue: val1,
-                      valOnFalse: val2,
-                    },
-                  )
-                } else {
-                  console.info(
-                    `Result of path "if" func is falsey. Returning: ${val2}`,
-                    {
-                      component,
-                      dataObject,
-                      if: path.if,
-                      valOnTrue: val1,
-                      valOnFalse: val2,
-                    },
-                  )
-                }
-                return result
-              }, path)
-            } else {
-              log.red(
-                `No listItem parent was found for a dataObject consumer using iteratorVar "${component.get(
-                  'iteratorVar',
-                )}`,
-                { path, component },
-              )
-            }
+            path = evalIf((fn, val1, val2) => {
+              const result = fn?.(dataObject)
+              if (result) {
+                log.grey(
+                  `Result of path "if" func is truthy. Returning: ${val1}`,
+                  {
+                    component,
+                    dataObject,
+                    if: path?.if,
+                    valOnTrue: val1,
+                    valOnFalse: val2,
+                  },
+                )
+              } else {
+                log.grey(
+                  `Result of path "if" func is falsey. Returning: ${val2}`,
+                  {
+                    component,
+                    dataObject,
+                    if: path?.if,
+                    valOnTrue: val1,
+                    valOnFalse: val2,
+                  },
+                )
+              }
+              return result
+            }, path)
           } else {
           }
         } else {

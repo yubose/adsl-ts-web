@@ -1,0 +1,233 @@
+{
+  "type": "div",
+  "children": [
+    {
+      "blueprint": {
+        "style": {
+          "position": "absolute",
+          "outline": "none"
+        },
+        "type": "listItem",
+        "hello": "",
+        "viewTag": "genderTag",
+        "children": [
+          {
+            "style": {
+              "position": "absolute",
+              "outline": "none"
+            },
+            "type": "label",
+            "dataKey": "hello.value",
+            "listId": "_ye4meny2m",
+            "iteratorVar": "hello"
+          },
+          {
+            "style": {
+              "position": "absolute",
+              "outline": "none"
+            },
+            "type": "image",
+            "viewTag": "maleTag",
+            "onClick": [
+              {
+                "emit": {
+                  "dataKey": {
+                    "var1": "hello",
+                    "var2": "hello"
+                  },
+                  "actions": [
+                    {
+                      "if": [
+                        {},
+                        {},
+                        {}
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "actionType": "builtIn",
+                "funcName": "redraw",
+                "viewTag": "genderTag"
+              }
+            ],
+            "path": {
+              "if": [
+                null,
+                "male.png",
+                "female.png"
+              ]
+            },
+            "listId": "_ye4meny2m",
+            "iteratorVar": "hello"
+          }
+        ],
+        "listId": "_ye4meny2m",
+        "iteratorVar": "hello"
+      },
+      "children": [
+        {
+          "children": [
+            {
+              "style": {
+                "position": "absolute",
+                "outline": "none"
+              },
+              "type": "label",
+              "dataKey": "hello.value",
+              "listId": "_ye4meny2m",
+              "iteratorVar": "hello",
+              "listIndex": 0,
+              "noodlType": "label",
+              "data-key": "hello.value",
+              "data-name": "value",
+              "data-value": "Male",
+              "dataObject": {
+                "key": "Gender",
+                "value": "Male"
+              }
+            },
+            {
+              "style": {
+                "position": "absolute",
+                "outline": "none",
+                "objectFit": "contain"
+              },
+              "type": "img",
+              "viewTag": "maleTag",
+              "path": {
+                "if": [
+                  null,
+                  "male.png",
+                  "female.png"
+                ]
+              },
+              "listId": "_ye4meny2m",
+              "iteratorVar": "hello",
+              "listIndex": 0,
+              "noodlType": "image",
+              "data-viewtag": "maleTag",
+              "src": "https://aitmed.com/assets/female.png",
+              "dataObject": {
+                "key": "Gender",
+                "value": "Male"
+              }
+            }
+          ],
+          "dataObject": {
+            "key": "Gender",
+            "value": "Male"
+          },
+          "listId": "_ye4meny2m",
+          "listIndex": 0,
+          "id": "_wu36rbs9r",
+          "iteratorVar": "hello",
+          "noodlType": "listItem",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "listStyle": "none",
+            "padding": 0
+          },
+          "type": "li"
+        },
+        {
+          "children": [
+            {
+              "style": {
+                "position": "absolute",
+                "outline": "none"
+              },
+              "type": "label",
+              "dataKey": "hello.value",
+              "listId": "_ye4meny2m",
+              "iteratorVar": "hello",
+              "listIndex": 1,
+              "noodlType": "label",
+              "data-key": "hello.value",
+              "data-name": "value",
+              "data-value": "Female",
+              "dataObject": {
+                "key": "Gender",
+                "value": "Female"
+              }
+            },
+            {
+              "style": {
+                "position": "absolute",
+                "outline": "none",
+                "objectFit": "contain"
+              },
+              "type": "img",
+              "viewTag": "maleTag",
+              "path": {
+                "if": [
+                  null,
+                  "male.png",
+                  "female.png"
+                ]
+              },
+              "listId": "_ye4meny2m",
+              "iteratorVar": "hello",
+              "listIndex": 1,
+              "noodlType": "image",
+              "data-viewtag": "maleTag",
+              "src": "https://aitmed.com/assets/female.png",
+              "dataObject": {
+                "key": "Gender",
+                "value": "Female"
+              }
+            }
+          ],
+          "dataObject": {
+            "key": "Gender",
+            "value": "Female"
+          },
+          "listId": "_ye4meny2m",
+          "listIndex": 1,
+          "id": "_4q73knvv2",
+          "iteratorVar": "hello",
+          "noodlType": "listItem",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "listStyle": "none",
+            "padding": 0
+          },
+          "type": "li"
+        }
+      ],
+      "listId": "_ye4meny2m",
+      "listItemCount": 2,
+      "listObject": [
+        {
+          "key": "Gender",
+          "value": "Male"
+        },
+        {
+          "key": "Gender",
+          "value": "Female"
+        }
+      ],
+      "id": "_kf26eq103",
+      "iteratorVar": "hello",
+      "style": {
+        "position": "absolute",
+        "outline": "none",
+        "overflowX": "hidden",
+        "listStyle": "none",
+        "padding": "0px",
+        "display": "block",
+        "overflowY": "auto"
+      },
+      "type": "list"
+    }
+  ],
+  "noodlType": "view",
+  "style": {
+    "position": "absolute",
+    "outline": "none"
+  },
+  "id": "_oldrthqdx"
+}

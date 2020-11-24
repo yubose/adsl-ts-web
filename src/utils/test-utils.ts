@@ -23,6 +23,18 @@ import Page from '../Page'
 
 export { noodlui, noodluidom }
 
+export const assetsUrl = 'https://aitmed.com/assets/'
+export const root = {}
+
+export class MockNoodl {
+  assetsUrl = assetsUrl
+  emitCall = (arg: any) => Promise.resolve(arg)
+  root = root
+}
+
+// Mock noodl SDK
+export const noodl = new MockNoodl()
+
 export function getByDataKey(dataKey: string, container?: Element) {
   return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
 }
@@ -95,8 +107,6 @@ export const queryByDataViewtag = queryHelpers.queryByAttribute.bind(
   null,
   'data-viewtag',
 )
-
-export const assetsUrl = 'https://aitmed.com/assets/'
 
 export function getAllResolvers() {
   return [
