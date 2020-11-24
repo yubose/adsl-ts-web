@@ -454,20 +454,20 @@ class ActionChain<
       let action: T.IAction<ActionObjects[number]> | undefined
 
       if (_.isFunction(actionObj)) {
-      //   if (!this.fns.action.anonymous?.length) {
-      //     log.func('loadQueue')
-      //     log.red(
-      //       `Encountered an action object that is not an object type. You will` +
-      //         `need to register an "anonymous" action as an actionType if you want to ` +
-      //         `handle anonymous functions`,
-      //       { received: actionObj, component: this.component },
-      //     )
-      //   }
-      //   action = this.createAction({
-      //     actionType: 'anonymous',
-      //     fn: actionObj,
-      //   })
-      // }
+        if (!this.fns.action.anonymous?.length) {
+          log.func('loadQueue')
+          log.red(
+            `Encountered an action object that is not an object type. You will` +
+              `need to register an "anonymous" action as an actionType if you want to ` +
+              `handle anonymous functions`,
+            { received: actionObj, component: this.component },
+          )
+        }
+        action = this.createAction({
+          actionType: 'anonymous',
+          fn: actionObj,
+        })
+      }
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
       else {
