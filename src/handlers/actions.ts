@@ -5,7 +5,7 @@ import {
   ActionChainActionCallbackOptions,
   AnonymousObject,
   EmitAction,
-  EmitObject,
+  EmitActionObject,
   EvalObject,
   getByDataUX,
   getDataValues,
@@ -167,7 +167,10 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.emit.push({
     fn: (action: EmitAction, { component, pageName, path }, { noodl } = {}) => {
       log.func('path [emit]')
-      log.grey(`Calling emitCall`, { action, noodl })
+      console.info(`Calling emitCall`, { action, noodl })
+      console.info(`Calling emitCall`, { action, noodl })
+      console.info(`Calling emitCall`, { action, noodl })
+      console.info(`Calling emitCall`, { action, noodl })
 
       let dataObject
       let iteratorVar = component.get('iteratorVar')

@@ -7,7 +7,7 @@ import { prettyDOM } from '@testing-library/dom'
 import { queryByText, screen, waitFor } from '@testing-library/dom'
 import {
   ActionChainActionCallbackOptions,
-  EmitObject,
+  EmitActionObject,
   IAction,
   IActionChainEmitTrigger,
   IComponentTypeInstance,
@@ -505,7 +505,7 @@ describe('dom', () => {
     })
   })
 
-  describe('when using redraw', () => {
+  describe.only('when using redraw', () => {
     const iteratorVar = 'hello'
     let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
     let actionFnSpy = sinon.spy()
@@ -523,7 +523,18 @@ describe('dom', () => {
         { key: 'Gender', value: 'Male' },
         { key: 'Gender', value: 'Female' },
       ]
-      noodlui
+    })
+
+    after(() => {
+      // saveOutput('dom.test.json', parent.toJS(), { spaces: 2 })
+    })
+
+    it('should deeply recompute/redraw its descendants', async () => {
+      const pathSpy = sinon.spy(async () => 'female.png')
+      listObject = [
+        { key: 'Gender', value: 'Male' },
+        // { key: 'Gender', value: 'Female' },
+      ]
       noodlui
         .setAssetsUrl(assetsUrl)
         .setRoot('Abc', { listData: { Gender: { Radio: listObject } } })
@@ -531,7 +542,7 @@ describe('dom', () => {
       noodlui.use({
         actionType: 'emit',
         fn: async (
-          action: IAction<EmitObject>,
+          action: IAction<EmitActionObject>,
           options: ActionChainActionCallbackOptions,
         ) => {
           actionFnSpy(action, options)
@@ -540,11 +551,7 @@ describe('dom', () => {
           const c = options.component as IComponentTypeInstance
           // Internal --- START
           const { dataObject = {} } = options
-          const listIndex = c.get('listIndex')
-          console.info('c', c.toJS())
-          console.info('listIndex', listIndex)
-          console.info('passedInDataObject', dataObject)
-          console.info('stateDataObject', listObject[listIndex])
+          const listIndex = c?.get?.('listIndex')
           if (dataObject.value === listObject[listIndex].value) {
             // listObject[listIndex].value =
           }
@@ -555,9 +562,12 @@ describe('dom', () => {
             listItem: options.listItem,
             iteratorVar: options.iteratorVar,
           }
+          return 'female.png'
         },
+        trigger: 'path',
       })
-      parent = page.render({
+
+      const view = page.render({
         type: 'view',
         children: [
           {
@@ -591,7 +601,7 @@ describe('dom', () => {
                       if: [
                         // (obj: typeof listObject[number]) =>
                         //   obj.value === 'Male',
-                        pathIfFnSpy,
+                        pathSpy,
                         'male.png',
                         'female.png',
                       ],
@@ -603,24 +613,22 @@ describe('dom', () => {
           },
         ],
       }).components[0]
-      component = parent.child() as IList
-    })
-
-    after(() => {
-      saveOutput('dom.test.json', parent.toJS(), { spaces: 2 })
-    })
-
-    it('should deeply recompute/redraw its descendants', () => {
+      const list = view.child()
       const ul = document.querySelector('ul')
       const [li1, li2] = Array.from(ul?.querySelectorAll('li') as any)
       const img1 = li1.querySelector('img') as HTMLImageElement
-      const img2 = li2.querySelector('img') as HTMLImageElement
-      img1.click()
-      expect(pathIfFnSpy.called).to.be.true
-      expect(pathIfFnSpy.firstCall.args[0]).to.eq(listObject[0])
+      // const img2 = li2.querySelector('img') as HTMLImageElement
+      // img1.click()
+      expect(pathSpy.called).to.be.true
+      await waitFor(() => {
+        expect(pathSpy.callCount).to.eq(3)
+      })
+      console.info(pathSpy.firstCall.args)
+      console.info(actionFnSpy.firstCall.args)
+      // expect(pathSpy.firstCall).to.eq(listObject[0])
     })
 
-    it("should be able to deeply recompute/redraw an html dom node's tree hierarchy", () => {
+    xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", () => {
       noodlui
         .setRoot('SignIn', { formData: { greeting: '12345', color: 'red' } })
         .setPage('SignIn')
