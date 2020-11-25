@@ -1,6 +1,6 @@
 import {
   ActionChainActionCallback,
-  EmitObject,
+  EmitActionObject,
   IfObject,
   NOODLActionType,
   StyleBorderObject,

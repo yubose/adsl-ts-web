@@ -8,7 +8,7 @@ import { expect } from 'chai'
 import {
   componentTypes,
   createComponent,
-  EmitObject,
+  EmitActionObject,
   eventTypes,
   IComponentTypeInstance,
   IList,
@@ -217,7 +217,7 @@ describe('noodl-ui-dom', () => {
     let iteratorVar: string
     let listObject: any[]
     let listId: string
-    let path: Omit<EmitObject, 'actionType'>
+    let path: Omit<EmitActionObject, 'actionType'>
     let noodlComponent: NOODLComponent
 
     beforeEach(() => {
