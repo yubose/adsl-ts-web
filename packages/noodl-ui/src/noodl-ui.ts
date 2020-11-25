@@ -646,7 +646,13 @@ class NOODL implements T.INOODLUi {
               callbacks.map((obj) =>
                 obj?.fn?.(
                   emitAction,
-                  this.getConsumerOptions({ component, path, snapshot }),
+                  this.getConsumerOptions({
+                    assetsUrl: this.assetsUrl,
+                    component,
+                    createSrc: this.createSrc,
+                    path,
+                    snapshot,
+                  }),
                   this.actionsContext,
                 ),
               ),

@@ -67,12 +67,11 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         if (component.noodlType === 'image') {
           node = new Image()
           node.onload = () => {
-            ;(container || document.body).appendChild(node)
-            node.onload = null
+            ;(container || document.body).insertBefore(node)
           }
           setTimeout(() => {
             node.src = component.get('src')
-          }, 200)
+          }, 10)
         } else {
           node = document.createElement(getType(component))
         }
@@ -165,7 +164,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     node: T.NOODLDOMElement | null,
     component: IComponentTypeInstance,
   ) {
-    console.info(`emitting: ${eventName}`, { eventName, node, component })
     const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
     if (Array.isArray(callbacks)) {
       callbacks.forEach((fn) => fn && fn(node as T.NOODLDOMElement, component))
@@ -264,13 +262,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         newNode = new Image()
         newNode.onload = () => {
           if (parentNode) {
-            parentNode.replaceChild(newNode, node)
+            node.remove()
+            parentNode.insertBefore(newNode)
+            // parentNode.replaceChild(newNode, node)
           }
-          newNode.onload = null
         }
         setTimeout(() => {
           newNode.src = component.get('src')
-        }, 200)
+        }, 10)
       } else {
         newNode = document.createElement(getType(component))
         if (parentNode) {

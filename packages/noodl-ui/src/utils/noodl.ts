@@ -332,17 +332,11 @@ export function getDataObjectValue<T = any>({
   dataKey: string
   iteratorVar: string
 }) {
-  let value
-  let dataPath = dataKey
-
-  if (dataObject && dataKey && iteratorVar) {
-    if (dataPath.startsWith(iteratorVar)) {
-      dataPath = dataPath.split('.').slice(1).join('.')
-    }
-    return _.get(dataObject, dataPath)
+  if (typeof dataObject === 'string') return dataObject
+  if (iteratorVar && dataKey.startsWith(iteratorVar)) {
+    dataKey = dataKey.split('.').slice(1).join('.')
   }
-
-  return value
+  return _.get(dataObject, dataKey)
 }
 
 /**

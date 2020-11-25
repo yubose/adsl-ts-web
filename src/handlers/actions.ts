@@ -428,7 +428,6 @@ const createActions = function ({ page }: { page: IPage }) {
 
       try {
         const { object } = action.original
-
         if (_.isFunction(object)) {
           log.func('saveObject')
           log.grey(`Directly invoking the object function with no parameters`, {
@@ -553,11 +552,18 @@ const createActions = function ({ page }: { page: IPage }) {
             }
           } else if (_.isObjectLike(object)) {
             let { dataKey, dataObject } = object
+            const iteratorVar = component.get('iteratorVar') || ''
+
             if (/(file|blob)/i.test(dataObject)) {
               dataObject = opts.file || dataObject
             }
+
             // TODO - Replace this hardcoded "itemObject" string with iteratorVar
-            if (dataObject === 'itemObject') {
+            if (
+              typeof dataObject === 'string' &&
+              dataObject.startsWith(iteratorVar)
+            ) {
+              dataObject = findDataObject(component)
               if (stateHelpers) {
                 const { getList } = stateHelpers
                 const listId = component.get('listId')

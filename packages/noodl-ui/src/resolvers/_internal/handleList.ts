@@ -49,7 +49,7 @@ const handleListInternalResolver = (
       }
       if (props.children) {
         if (Array.isArray(props.children)) {
-          props.children = props.children.map(deepChildren)
+          props.children = props.children.map((c) => deepChildren(c))
         } else {
           props.children = deepChildren(props.children)
         }
@@ -65,13 +65,12 @@ const handleListInternalResolver = (
   component.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
-    const listItem = createComponent(component?.getBlueprint()) as IListItem
+    let listItem = createComponent(component?.getBlueprint()) as IListItem
     listItem.id = getRandomKey()
     listItem.setParent(component)
     listItem.setDataObject?.(result.dataObject)
     listItem.set('listIndex', result.index)
-
-    resolveComponent(component.createChild(listItem))
+    listItem = resolveComponent(component.createChild(listItem)) as IListItem
 
     const logArgs = { options, ...result, list: component, listItem }
 
@@ -79,12 +78,12 @@ const handleListInternalResolver = (
 
     _resolveChildren(listItem, {
       onResolve: (c) => {
-        if (c.get('iteratorVar')) {
-          c.set('dataObject', result.dataObject)
-          c.set('listIndex', result.index)
-        }
+        c.set('dataObject', result.dataObject)
+        c.set('listIndex', result.index)
+        c.assign(commonProps)
         _internalResolver.resolve(c, {
           ...options,
+          component: c,
           resolveComponent,
         })
       },

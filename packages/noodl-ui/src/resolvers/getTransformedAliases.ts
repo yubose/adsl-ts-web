@@ -68,7 +68,7 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
         src
           .then((result: string) => {
             src = result
-            return component.set('src', createSrc(result))
+            component.set('src', createSrc(result))
           })
           .catch((err: Error) => {
             throw new Error(err.message)

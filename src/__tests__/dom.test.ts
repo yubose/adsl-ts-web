@@ -536,39 +536,10 @@ describe('dom', () => {
         { key: 'Gender', value: 'Male' },
         // { key: 'Gender', value: 'Female' },
       ]
-      // @ts-expect-error
       noodlui
         .setAssetsUrl(assetsUrl)
         .setRoot('Abc', { listData: { Gender: { Radio: listObject } } })
         .setPage('Abc')
-      // .use({ actionType: 'builtIn', fn: builtIn.redraw })
-      // .use({
-      //   fn: async (
-      //     action: IAction<EmitActionObject>,
-      //     options: ActionChainActionCallbackOptions,
-      //   ) => {
-      //     actionFnSpy(action, options)
-      //     const { emit } = action.original
-      //     const { actions, dataKey } = emit
-      //     const c = options.component as IComponentTypeInstance
-      //     // Internal --- START
-      //     const { dataObject = {} } = options
-      //     const listIndex = c?.get?.('listIndex')
-      //     if (dataObject.value === listObject[listIndex].value) {
-      //       // listObject[listIndex].value =
-      //     }
-      //     listObject[listIndex] = dataObject
-      //     // Internal --- END
-      //     injectedArgs = {
-      //       dataObject: options.dataObject,
-      //       listItem: options.listItem,
-      //       iteratorVar: options.iteratorVar,
-      //     }
-      //     return 'female.png'
-      //   },
-      //   trigger: 'path',
-      // })
-      console.info(noodlui.getCbs())
       const view = page.render({
         type: 'view',
         children: [

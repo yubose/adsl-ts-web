@@ -8,7 +8,6 @@ import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import {
   ActionChain,
   createComponent,
-  EmitObject,
   IComponentTypeInstance,
   IComponentTypeObject,
   IList,
@@ -17,7 +16,7 @@ import {
   List,
   NOODLComponent,
 } from 'noodl-ui'
-import { getAllResolvers, noodlui, noodluidom } from '../test-utils'
+import { assetsUrl, getAllResolvers, noodlui, noodluidom } from '../test-utils'
 import EmitRedraw from './helpers/EmitRedraw.json'
 import userEvent from '@testing-library/user-event'
 
@@ -293,40 +292,45 @@ describe('redraw', () => {
       })
     })
 
-    describe('when user clicks on a redrawed node that has an onClick emit', () => {
-      it.only('should still be able to operate on and update the DOM', () => {
-        let path = 'abc.png'
-        const onClick = async (action, options) => {
-          console.info('I AM PATH')
-          path = path === 'abc.png' ? 'hello.jpg' : path
+    xdescribe('when user clicks on a redrawed node that has an onClick emit', () => {
+      it('should still be able to operate on and update the DOM', async () => {
+        const abc = 'abc.png'
+        const hello = 'hello.jpeg'
+
+        let pathValue = abc
+        let image
+
+        const onClick = async (action, { component }) => {
+          pathValue = pathValue === abc ? hello : abc
+          noodluidom.redraw(document.getElementById(component.id), component)
         }
-        noodlui.use({ actionType: 'emit', fn: onClick, trigger: 'onClick' })
-        const view = noodlui.resolveComponents({
-          type: 'view',
-          children: [
-            {
-              type: 'image',
-              onClick: [
-                { emit: { dataKey: { var1: 'itemObject' }, actions: [] } },
-              ],
-            },
-          ],
-        })
+
+        noodlui
+          .use({ actionType: 'emit', fn: onClick, trigger: 'onClick' })
+          .use({
+            actionType: 'emit',
+            fn: async () => (pathValue === abc ? hello : abc),
+            trigger: 'path',
+          })
+
+        image = noodlui.resolveComponents({
+          type: 'image',
+          path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
+          onClick: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+        }) as IComponentTypeInstance
+
         noodluidom.on('image', (n, c) => {
           const { onClick } = c.action
-          console.info(onClick)
-          console.info('start')
-          console.info(c)
-          n?.addEventListener('click', onClick)
+          n.onclick = onClick
         })
-        console.info('end')
-        console.info('end')
-        console.info('end')
-        console.info(noodluidom.getAllCbs())
-        noodluidom.parse(view)
-        const img = document.getElementsByTagName('img')[0]
 
-        console.info(prettyDOM(img))
+        const img = noodluidom.parse(image)
+
+        await waitFor(() => {
+          expect(img?.src).to.eq(assetsUrl + hello)
+          img?.click()
+          expect(document.querySelector('img')).to.eq(assetsUrl + abc)
+        })
       })
     })
 
