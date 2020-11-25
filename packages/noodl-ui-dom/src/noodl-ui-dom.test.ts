@@ -8,7 +8,6 @@ import { expect } from 'chai'
 import {
   componentTypes,
   createComponent,
-  EmitObject,
   eventTypes,
   IComponentTypeInstance,
   IList,
@@ -16,13 +15,7 @@ import {
   NOODLComponent,
   NOODLComponentProps,
 } from 'noodl-ui'
-import {
-  assetsUrl,
-  listenToDOM,
-  noodlui,
-  noodluidom,
-  toDOM,
-} from './test-utils'
+import { assetsUrl, noodlui, noodluidom, toDOM } from './test-utils'
 import { getShape, getShapeKeys } from './utils'
 
 describe('noodl-ui-dom', () => {

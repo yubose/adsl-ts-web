@@ -744,6 +744,22 @@ describe('ActionChain', () => {
         // textField = view.child(1) as any
       })
 
+      xit('should populate dataObject in the instance', () => {
+        //
+      })
+
+      xit('should populate the dataKey(s)', () => {
+        //
+      })
+
+      xit('should populate the iteratorVar if the component is a list consumer', () => {
+        //
+      })
+
+      xit('should populate the trigger', () => {
+        //
+      })
+
       describe('when emitting for list consumers', () => {
         it(
           'should populate the EmitAction instance with dataKey, iteratorVar, ' +

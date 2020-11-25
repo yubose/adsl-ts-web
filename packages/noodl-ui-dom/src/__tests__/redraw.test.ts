@@ -237,7 +237,7 @@ describe('redraw', () => {
     })
 
     describe('when using path emits after redrawing', () => {
-      xit('should still emit and update the DOM', async () => {
+      it('should still be able to emit and update the DOM', async () => {
         let imgPath = 'selectOn.png'
         const pathSpy = sinon.spy()
         const onClickSpy = sinon.spy()
@@ -292,7 +292,7 @@ describe('redraw', () => {
       })
     })
 
-    xdescribe('when user clicks on a redrawed node that has an onClick emit', () => {
+    describe('when user clicks on a redrawed node that has an onClick emit', () => {
       it('should still be able to operate on and update the DOM', async () => {
         const abc = 'abc.png'
         const hello = 'hello.jpeg'
