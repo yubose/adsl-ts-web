@@ -27,6 +27,23 @@ import { publish, walkOriginalChildren } from 'noodl-utils'
 //   }
 // }
 
+export function createAsyncImageElement(
+  container: HTMLElement,
+  src?: string,
+  opts?: { timeout?: number },
+) {
+  let node = new Image()
+  node.onload = () => {
+    if (!container) container = document.body
+    container.insertBefore(node as HTMLImageElement, container.childNodes[0])
+  }
+  setTimeout(
+    () => void (node.src = src || ''),
+    typeof opts?.timeout === 'number' ? opts.timeout : 10,
+  )
+  return node
+}
+
 export function ensureDatasetHandlingArr<N extends HTMLElement>(node: N) {
   if (node && node.dataset) {
     if (!Array.isArray(node.dataset.handling)) {
