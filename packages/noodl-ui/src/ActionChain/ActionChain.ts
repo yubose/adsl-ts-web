@@ -523,10 +523,7 @@ class ActionChain<
         this.#queue.push(action)
         log.grey(`Loaded "${action.actionType}" action into the queue`, {
           action,
-          actionChain: this,
-          actions: this.actions,
           component: this?.component,
-          original: actionObj,
         })
       } else {
         log.grey(
