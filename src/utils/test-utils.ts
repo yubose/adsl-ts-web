@@ -20,11 +20,41 @@ import { NOODLDOMElement } from 'noodl-ui-dom'
 import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
 import Page from '../Page'
+import createActions from '../handlers/actions'
+import createBuiltInActions from '../handlers/builtIns'
+import { isEmitObj } from 'noodl-utils'
 
 export { noodlui, noodluidom }
 
+export const page = new Page()
 export const assetsUrl = 'https://aitmed.com/assets/'
 export const root = {}
+export const actions = createActions({ page })
+export const builtIn = createBuiltInActions({ page })
+
+noodlui
+  .use(
+    _.reduce(
+      _.entries(actions),
+      (arr, [actionType, actions]) =>
+        arr.concat(
+          actions.map((a) => ({
+            actionType,
+            ...a,
+            ...(isEmitObj(a) ? { context: { noodl, noodlui } } : undefined),
+          })),
+        ),
+      [] as any[],
+    ),
+  )
+  .use(
+    _.map(
+      _.entries({
+        redraw: builtIn.redraw,
+      }),
+      ([funcName, fn]) => ({ funcName, fn }),
+    ),
+  )
 
 export class MockNoodl {
   assetsUrl = assetsUrl
@@ -125,8 +155,6 @@ export function getAllResolvers() {
     getTransformedStyleAliases,
   ] as ResolverFn[]
 }
-
-export const page = new Page()
 
 export function toDOM(props: any): NOODLDOMElement | null {
   const node = noodluidom.parse(props)

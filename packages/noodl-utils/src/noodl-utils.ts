@@ -189,7 +189,10 @@ export function findDataObject<O>(
       if (!dataObject && options) dataObject = findRootsDataObject(options)
     } else if (typeof component === 'object') {
       options = component as FindDataObjectOptions
-      dataObject = findRootsDataObject(options)
+      if (isListConsumer(options.component)) {
+        dataObject = findListDataObject(options.component)
+      }
+      if (!dataObject) dataObject = findRootsDataObject(options)
     }
   }
   return dataObject || null
@@ -219,14 +222,20 @@ export function findListDataObject(component: IComponentTypeInstance) {
     }
     if (listItem) {
       dataObject = listItem.getDataObject?.()
-      if (!dataObject && typeof listItem.get('listIndex') === 'number') {
+      let listIndex = listItem.get('listIndex')
+      if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
+      if (!dataObject && typeof listIndex === 'number') {
         const list = listItem?.parent?.() as IList
-        const childIndex = list.children().indexOf(listItem)
         if (list) {
-          const listObject = list.getData()
+          let listObject = list.getData()
           if (listObject?.length) {
-            dataObject =
-              listObject[childIndex] || listObject[listItem.get('listIndex')]
+            dataObject = listObject[listIndex] || listObject[listIndex]
+          }
+          if (!dataObject) {
+            listObject = list.original?.listObject || []
+            if (listObject?.length) {
+              dataObject = listObject[listIndex] || listObject[listIndex]
+            }
           }
         }
       }

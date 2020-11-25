@@ -1,14 +1,13 @@
 import sinon from 'sinon'
 import fs from 'fs-extra'
 import path from 'path'
-import { prettyDOM, screen } from '@testing-library/dom'
+import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import chalk from 'chalk'
 import { expect } from 'chai'
 import {
   componentTypes,
   createComponent,
-  EmitActionObject,
   eventTypes,
   IComponentTypeInstance,
   IList,
@@ -16,7 +15,7 @@ import {
   NOODLComponent,
   NOODLComponentProps,
 } from 'noodl-ui'
-import { listenToDOM, noodlui, noodluidom, toDOM } from './test-utils'
+import { assetsUrl, noodlui, noodluidom, toDOM } from './test-utils'
 import { getShape, getShapeKeys } from './utils'
 
 describe('noodl-ui-dom', () => {
@@ -193,6 +192,26 @@ describe('noodl-ui-dom', () => {
         })
         noodluidom.parse(noodlui.resolveComponents(component))
         expect(screen.getByText(labelText))
+      })
+    })
+  })
+
+  describe('noodlType: image', () => {
+    it('should be able to support path emit', async () => {
+      noodlui.use({
+        actionType: 'emit',
+        fn: async () => 'hi.png',
+        trigger: 'path',
+      })
+      const img = noodluidom.parse(
+        noodlui.resolveComponents({
+          type: 'image',
+          path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
+        }) as IComponentTypeInstance,
+      )
+
+      await waitFor(() => {
+        expect(img?.src).to.eq(assetsUrl + 'hi.png')
       })
     })
   })
