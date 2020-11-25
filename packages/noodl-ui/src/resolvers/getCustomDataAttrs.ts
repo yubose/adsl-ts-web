@@ -20,7 +20,7 @@ const log = Logger.create('getCustomDataAttrs')
  */
 const getCustomDataAttrs: ResolverFn = (component, options) => {
   const { context, getPageObject, getRoot, showDataKey, parser } = options
-  const { page } = context
+  const { page, roots } = context
   const { noodlType } = component
   const { contentType = '', dataKey, viewTag } = component.get([
     'contentType',
@@ -85,16 +85,12 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           .set('iteratorVar', component.get('iteratorVar'))
       }
     } else if (_.isString(dataKey)) {
-      const { placeholder = '', text = '' } = component.get([
-        'placeholder',
-        'text',
-      ])
       let iteratorVar = component.get('iteratorVar')
       let dataObject = findDataObject({
         component,
         dataKey,
         pageObject,
-        root: getRoot(),
+        root: roots || getRoot(),
       })
       let dataValue = getDataObjectValue({ dataObject, dataKey, iteratorVar })
       let textFunc = component.get('text=func')
@@ -117,8 +113,10 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         'data-key': dataKey,
         'data-name': field,
         'data-value': _.isFunction(textFunc)
-          ? textFunc(dataValue) || text || placeholder
-          : dataValue || text || placeholder,
+          ? textFunc(dataValue) || ''
+          : typeof dataValue !== 'undefined'
+          ? dataValue
+          : dataValue || '',
       })
 
       // Components that find their data values through a higher level like the root object

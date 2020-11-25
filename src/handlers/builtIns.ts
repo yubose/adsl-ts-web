@@ -56,12 +56,13 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.toggleFlag = async (action, options) => {
     log.func('toggleFlag')
     console.log({ action, ...options })
+    const { default: noodlui } = await import('../app/noodl-ui')
     const { default: noodl } = await import('../app/noodl')
-    const { component, context, createSrc } = options
+    const { component } = options
+    const page = noodlui.page
     const { dataKey = '' } = action.original
     let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
     const node = document.getElementById(component.id)
-    const pageName = context.page || ''
 
     let dataValue: any
     let dataObject: any
@@ -113,9 +114,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
           } else {
             valEvaluating =
               _.get(noodl.root, valEvaluating) ||
-              _.get(noodl.root[context?.page?.name || ''], valEvaluating)
+              _.get(noodl.root[page || ''], valEvaluating)
           }
-          newSrc = createSrc(
+          newSrc = noodlui.createSrc(
             valEvaluating ? path.if?.[1] : path.if?.[2],
             component,
           )
@@ -130,25 +131,25 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         dataObject = noodl.root
         previousDataValue = _.get(dataObject, dataKey)
         onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-      } else if (_.has(noodl.root[context.page], dataKey)) {
-        dataObject = noodl.root[context.page]
+      } else if (_.has(noodl.root[page], dataKey)) {
+        dataObject = noodl.root[page]
         previousDataValue = _.get(dataObject, dataKey)
         onNextValue(previousDataValue, {
           updateDraft: {
-            path: `${dataKey}${context.page ? `.${context.page}` : ''}`,
+            path: `${dataKey}${page ? `.${page}` : ''}`,
           },
         })
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
             `Defaulting to attaching ${dataKey} as a path to the root object`,
-          { context, dataObject, dataKey },
+          { context: noodlui.getContext?.(), dataObject, dataKey },
         )
         dataObject = noodl.root
         previousDataValue = undefined
         nextDataValue = false
         onNextValue(previousDataValue, {
-          updateDraft: { path: `${dataKey}.${context.page || ''}` },
+          updateDraft: { path: `${dataKey}.${page || ''}` },
         })
       }
 
@@ -162,7 +163,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.grey('', {
       component: component.toJS(),
       componentInst: component,
-      context,
+      context: noodlui.getContext?.(),
       dataKey,
       dataValue,
       dataObject,
@@ -376,6 +377,12 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.redraw___backup = async (action, options, f = {}) => {
     log.func('redraw')
     log.red('', { action, ...options })
+    console.info('redraw')
+    console.info('redraw')
+    console.info('redraw')
+    console.info('redraw')
+    console.info('redraw')
+    console.info('redraw')
 
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
     const { default: noodl } = await import('../app/noodl')

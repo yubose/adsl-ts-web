@@ -3,13 +3,13 @@ import {
   getDataObjectValue,
   IAction,
   IListItem,
-  EmitObject,
+  EmitActionObject,
 } from 'noodl-ui'
 import { findParent } from 'noodl-utils'
 import sinon from 'sinon'
 
 export const emit = async (
-  action: IAction<'builtIn', EmitObject>,
+  action: IAction<'builtIn', EmitActionObject>,
   options: ActionChainActionCallbackOptions,
 ) => {
   let { component, context } = options

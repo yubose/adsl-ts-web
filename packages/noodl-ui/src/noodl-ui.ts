@@ -436,7 +436,7 @@ class NOODL implements T.INOODLUi {
       context: this.getContext(),
       createActionChainHandler: (
         ...[action, options]: Parameters<T.INOODLUi['createActionChainHandler']>
-      ) => this.createActionChainHandler(action, options),
+      ) => this.createActionChainHandler(action, { ...options, component }),
       createSrc: (path: string) => this.createSrc(path, component),
       getBaseStyles: this.getBaseStyles.bind(this),
       getRoot: () => this.root,
@@ -646,7 +646,13 @@ class NOODL implements T.INOODLUi {
               callbacks.map((obj) =>
                 obj?.fn?.(
                   emitAction,
-                  this.getConsumerOptions({ component, path, snapshot }),
+                  this.getConsumerOptions({
+                    assetsUrl: this.assetsUrl,
+                    component,
+                    createSrc: this.createSrc,
+                    path,
+                    snapshot,
+                  }),
                   this.actionsContext,
                 ),
               ),
@@ -670,9 +676,20 @@ class NOODL implements T.INOODLUi {
             // const emitAction = new EmitAction(path, { trigger: 'path' })
             // emitAction.callback = (...args) => Promise.resolve(...args)
             return result
-              .then((res) => resolveAssetUrl(res as string, this.assetsUrl))
+              .then((res) =>
+                typeof res === 'string' && res.startsWith('http')
+                  ? res
+                  : resolveAssetUrl(String(res), this.assetsUrl),
+              )
               .catch((err) => Promise.reject(err))
           } else if (result) {
+            console.info(result)
+            console.info(result)
+            console.info(result)
+            console.info(result)
+            if (typeof result === 'string' && result.startsWith('http')) {
+              return result
+            }
             return resolveAssetUrl(result, this.assetsUrl)
           }
         }

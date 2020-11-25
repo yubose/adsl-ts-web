@@ -56,9 +56,7 @@ const handleListInternalResolver = (
       }
       return props
     }
-    const blueprint = deepChildren(noodlListItem) as NOODLComponent
-    log.yellow('blueprint', blueprint)
-    return blueprint
+    return deepChildren(noodlListItem) as NOODLComponent
   }
 
   // Creates list items as new data objects are added

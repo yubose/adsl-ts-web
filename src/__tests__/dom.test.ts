@@ -536,40 +536,10 @@ describe('dom', () => {
         { key: 'Gender', value: 'Male' },
         // { key: 'Gender', value: 'Female' },
       ]
-      // @ts-expect-error
       noodlui
         .setAssetsUrl(assetsUrl)
         .setRoot('Abc', { listData: { Gender: { Radio: listObject } } })
         .setPage('Abc')
-      // .use({ actionType: 'builtIn', fn: builtIn.redraw })
-      // .use({
-      //   fn: async (
-      //     action: IAction<EmitActionObject>,
-      //     options: ActionChainActionCallbackOptions,
-      //   ) => {
-      //     actionFnSpy(action, options)
-      //     const { emit } = action.original
-      //     const { actions, dataKey } = emit
-      //     const c = options.component as IComponentTypeInstance
-      //     // Internal --- START
-      //     const { dataObject = {} } = options
-      //     const listIndex = c?.get?.('listIndex')
-      //     if (dataObject.value === listObject[listIndex].value) {
-      //       // listObject[listIndex].value =
-      //     }
-      //     listObject[listIndex] = dataObject
-      //     // Internal --- END
-      //     injectedArgs = {
-      //       dataObject: options.dataObject,
-      //       listItem: options.listItem,
-      //       iteratorVar: options.iteratorVar,
-      //     }
-      //     return 'female.png'
-      //   },
-      //   trigger: 'path',
-      // })
-      console.info(noodlui.getCbs())
-
       const view = page.render({
         type: 'view',
         children: [
@@ -616,19 +586,12 @@ describe('dom', () => {
       const list = view.child()
       const listItem = list.child()
       const image = listItem.child(1)
-      const ul = document.querySelector('ul')
-      const [li1, li2] = Array.from(ul?.querySelectorAll('li') as any)
-      const img1 = li1.querySelector('img') as HTMLImageElement
-      img1.dataset.testid = 'myimage'
-      // const img2 = li2.querySelector('img') as HTMLImageElement
-      // img1.click()
-      const [newNode, newImage] = noodluidom.redraw(
-        await screen.findByTestId('myimage'),
-        image,
-      )
+      document.getElementById(image.id)?.click()
       await waitFor(() => {
-        expect(document.getElementById(newImage.id)?.getAttribute('src')).to.eq(
-          noodlui.assetsUrl + 'female.png',
+        console.info(prettyDOM())
+        expect(
+          document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`).to
+            .exist,
         )
       })
       // expect(pathSpy.firstCall).to.eq(listObject[0])

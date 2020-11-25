@@ -254,6 +254,10 @@ class Action<OriginalAction extends ActionObject = ActionObject>
   isTimeoutRunning() {
     return this.#timeout !== null
   }
+
+  toString() {
+    return JSON.stringify(this.getSnapshot(), null, 2)
+  }
 }
 
 export default Action

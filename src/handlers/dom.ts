@@ -46,6 +46,7 @@ const defaultPropTable = {
 // This event is called for all components
 noodluidom.on('component', (node, component: IComponentTypeInstance) => {
   if (!node || !component) return
+  log.func('on [component]')
 
   const {
     children,
@@ -295,6 +296,7 @@ noodluidom.on('button', (node, component) => {
 noodluidom.on('image', function onCreateImage(node, component) {
   if (node && component) {
     const onClick = component.get('onClick')
+    log.func('on [image]')
 
     if (_.isFunction(onClick)) {
       node.style['cursor'] = 'pointer'
