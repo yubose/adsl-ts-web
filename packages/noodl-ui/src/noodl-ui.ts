@@ -670,9 +670,20 @@ class NOODL implements T.INOODLUi {
             // const emitAction = new EmitAction(path, { trigger: 'path' })
             // emitAction.callback = (...args) => Promise.resolve(...args)
             return result
-              .then((res) => resolveAssetUrl(res as string, this.assetsUrl))
+              .then((res) =>
+                typeof res === 'string' && res.startsWith('http')
+                  ? res
+                  : resolveAssetUrl(String(res), this.assetsUrl),
+              )
               .catch((err) => Promise.reject(err))
           } else if (result) {
+            console.info(result)
+            console.info(result)
+            console.info(result)
+            console.info(result)
+            if (typeof result === 'string' && result.startsWith('http')) {
+              return result
+            }
             return resolveAssetUrl(result, this.assetsUrl)
           }
         }

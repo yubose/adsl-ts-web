@@ -393,7 +393,8 @@ class ActionChain<
           //   this.getCallbackOptions({ event, ...buildOptions }),
           // )
           log.grey('Action chain reached the end of execution', this)
-          return iterator?.value
+          // return iterator?.value
+          return this.build
         } else {
           // logs
           log.red('Cannot start action chain without actions in the queue', {

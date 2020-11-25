@@ -64,7 +64,18 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         this.emit('plugin', null, component)
         this.#state.pairs[component.id] = { component, node: null }
       } else {
-        node = document.createElement(getType(component))
+        if (component.noodlType === 'image') {
+          node = new Image()
+          node.onload = () => {
+            ;(container || document.body).appendChild(node)
+            node.onload = null
+          }
+          setTimeout(() => {
+            node.src = component.get('src')
+          }, 200)
+        } else {
+          node = document.createElement(getType(component))
+        }
         this.#state.pairs[component.id] = { component, node }
 
         if (node) {
@@ -154,6 +165,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     node: T.NOODLDOMElement | null,
     component: IComponentTypeInstance,
   ) {
+    console.info(`emitting: ${eventName}`, { eventName, node, component })
     const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
     if (Array.isArray(callbacks)) {
       callbacks.forEach((fn) => fn && fn(node as T.NOODLDOMElement, component))
@@ -243,12 +255,30 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     if (node) {
       // Delete the node tree
       node.innerHTML = ''
-      newNode = document.createElement(getType(component))
-      // Remove the node from the parentNode
-      if (node.parentNode) {
-        // parentNode = node.parentNode as HTMLElement
-        node.parentNode.replaceChild(newNode, node)
+      // if (component.noodlType === 'image') {
+
+      // } else {
+      const parentNode = node.parentNode
+
+      if (component.noodlType === 'image') {
+        newNode = new Image()
+        newNode.onload = () => {
+          if (parentNode) {
+            parentNode.replaceChild(newNode, node)
+          }
+          newNode.onload = null
+        }
+        setTimeout(() => {
+          newNode.src = component.get('src')
+        }, 200)
+      } else {
+        newNode = document.createElement(getType(component))
+        if (parentNode) {
+          parentNode.replaceChild(newNode, node)
+        }
       }
+      // }
+
       this.emit('component', newNode, newComponent)
       this.emit(componentEventMap[component.noodlType], newNode, newComponent)
     } else if (component) {

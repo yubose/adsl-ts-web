@@ -165,7 +165,7 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - if src === assetsUrl
   // TODO - else if src endsWith
   _actions.emit.push({
-    fn: (action: EmitAction, { component, pageName, path }, { noodl } = {}) => {
+    fn: (action: EmitAction, { component, page, path }, { noodl } = {}) => {
       log.func('path [emit]')
       console.info(`Calling emitCall`)
 
@@ -179,7 +179,7 @@ const createActions = function ({ page }: { page: IPage }) {
       emitParams = {
         dataKey: createEmitDataKey(path.emit.dataKey, dataObject),
         actions: path.emit.actions,
-        pageName,
+        pageName: page,
       }
 
       const logArgs = {

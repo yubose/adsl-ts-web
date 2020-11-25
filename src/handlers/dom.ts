@@ -47,6 +47,9 @@ const defaultPropTable = {
 noodluidom.on('component', (node, component: IComponentTypeInstance) => {
   if (!node || !component) return
 
+  log.func('on [component]')
+  log.grey(`I was emitted`, { node, component })
+
   const {
     children,
     options,
@@ -295,6 +298,9 @@ noodluidom.on('button', (node, component) => {
 noodluidom.on('image', function onCreateImage(node, component) {
   if (node && component) {
     const onClick = component.get('onClick')
+
+    log.func('on [image]')
+    log.grey(`I was emitted as an IMAGE`, { node, component, onClick })
 
     if (_.isFunction(onClick)) {
       node.style['cursor'] = 'pointer'
