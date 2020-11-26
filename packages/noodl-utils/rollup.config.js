@@ -20,6 +20,7 @@ const config = {
       sourcemap: true,
       globals: {
         logsnap: 'Logger',
+        'noodl-ui': 'noodlui',
       },
     },
   ],

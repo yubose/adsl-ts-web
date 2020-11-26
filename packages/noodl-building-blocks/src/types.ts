@@ -7,7 +7,7 @@ import {
   NOODLComponentType,
   NOODLComponent,
   NOODLContentType,
-  PageObject,
+  NOODLPageObject,
   Style,
   Path,
   IViewport,

@@ -26,7 +26,7 @@ import {
   IComponentTypeInstance,
   IResolver,
   BuiltInObject,
-  PageObject,
+  NOODLPageObject,
   Page as NOODLPage,
   Resolver,
   ResolverFn,
@@ -67,7 +67,7 @@ function createPreparePage(options: {
   return async (
     pageName: string,
     pageModifiers: { evolve?: boolean } = {},
-  ): Promise<PageObject> => {
+  ): Promise<NOODLPageObject> => {
     const { default: noodl } = await import('app/noodl')
     console.log('--------------------------------------------------')
     console.log(noodl.root.SignIn)

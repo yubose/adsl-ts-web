@@ -760,8 +760,8 @@ describe('ActionChain', () => {
         //
       })
 
-      describe('when emitting for list consumers', () => {
-        it(
+      describe.only('when emitting for list consumers', () => {
+        it.only(
           'should populate the EmitAction instance with dataKey, iteratorVar, ' +
             'and the dataObject',
           async () => {
@@ -826,7 +826,7 @@ describe('ActionChain', () => {
         )
       })
 
-      it.only('should be able to access a dataObject coming from the root', async () => {
+      it('should be able to access a dataObject coming from the root', async () => {
         const pageObject = { gender: { value: 'Male' } }
         const emitSpy = sinon.spy()
         const image = createComponent({

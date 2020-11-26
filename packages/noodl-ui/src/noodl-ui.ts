@@ -628,6 +628,7 @@ class NOODL implements T.INOODLUi {
                   if (prevKey === key && !_.isNil(dataObject)) {
                     return emitAction.setDataKey(key, dataObject)
                   }
+
                   dataObject = findDataObject({
                     component,
                     dataKey: value,

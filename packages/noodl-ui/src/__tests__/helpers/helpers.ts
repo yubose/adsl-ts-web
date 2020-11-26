@@ -10,7 +10,7 @@ import {
   IList,
   NOODLComponent,
   NOODLPage,
-  PageObject,
+  NOODLPageObject,
 } from '../../types'
 import { noodlui } from '../../utils/test-utils'
 
@@ -99,7 +99,7 @@ export type CreatePageResult = typeof util & {
 
 class MockPage {
   name: string
-  object: PageObject | null
+  object: NOODLPageObject | null
 
   constructor(page: NOODLPage, opts: { actions: any[]; builtIns: any[] }) {
     this['name'] = Object.keys(page)[0]
@@ -157,7 +157,7 @@ export const createPage = function <K extends string>(
   }
 
   let state = {
-    [_page.name as K]: {} as PageObject,
+    [_page.name as K]: {} as NOODLPageObject,
   }
 
   let consumerPage: NOODLPage | any

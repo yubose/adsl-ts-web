@@ -308,7 +308,7 @@ class Page {
   /**
    * Takes a list of raw NOODL components and converts them into DOM nodes and appends
    * them to the DOM
-   * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | PageObject }
+   * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
    */
   public render(rawComponents: IComponentType | IComponentType[]) {
     let resolved = noodlui.resolveComponents(rawComponents)

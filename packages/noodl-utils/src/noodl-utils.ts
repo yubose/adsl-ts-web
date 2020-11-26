@@ -1,6 +1,8 @@
 import Logger from 'logsnap'
+import get from 'lodash/get'
+import has from 'lodash/has'
 import {
-  IActionObject,
+  ActionObject,
   Component,
   createComponent,
   EmitActionObject,
@@ -13,7 +15,7 @@ import {
   NOODLComponent,
   NOODLComponentType,
 } from 'noodl-ui'
-import { get, isArr, isBool, isFnc, isObj, isStr } from './_internal'
+import { isArr, isBool, isFnc, isObj, isStr } from './_internal'
 import * as T from './types'
 
 const log = Logger.create('noodl-utils')
@@ -68,47 +70,66 @@ export function createDeepChildren(
 }
 
 interface CreateEmitDataKeyOptionsObject {
-  dataObject?: any
-  pageObject?: any
-  root?: any
+  component?: IComponentTypeInstance
+  iteratorVar?: string
+  objs?:
+    | ({ [key: string]: any } | (() => { [key: string]: any }))
+    | ({ [key: string]: any } | (() => { [key: string]: any }))[]
 }
+
+/**f
+ * Transforms the dataKey of an emit object. If the dataKey is an object,
+ * the values of each property will be replaced by the data value based on
+ * the path described in its value. If the 2nd arg is an options object and
+ * a component is provided, it will check to see if the the path value begins
+ * with a component's iteratorVar. If it does, it will remove the iteratorVar
+ * and treat the rest of the string as a path of the expected dataObject
+ * @param { string | object } dataKey - Data key of an emit object
+ * @param { object } dataObject - Data object or an options object
+ * @param { object | undefined } dataObject.component
+ * @param { object | undefined } dataObject.dataObject
+ * @param { object | undefined } dataObject.iteratorVar
+ * @param { object | undefined } dataObject.pageObject
+ * @param { object | undefined } dataObject.root
+ */
 export function createEmitDataKey(
   dataKey: string,
-  dataObject:
-    | CreateEmitDataKeyOptionsObject
-    | CreateEmitDataKeyOptionsObject['dataObject'],
+  options: CreateEmitDataKeyOptionsObject,
 ): any
+/** asfs */
 export function createEmitDataKey(
   dataKey: { [key: string]: any },
-  dataObject:
-    | CreateEmitDataKeyOptionsObject
-    | CreateEmitDataKeyOptionsObject['dataObject'],
+  options: CreateEmitDataKeyOptionsObject,
 ): any
-export function createEmitDataKey<O = any>(
+export function createEmitDataKey(
   dataKey: string | { [key: string]: any },
-  dataObject:
-    | CreateEmitDataKeyOptionsObject
-    | CreateEmitDataKeyOptionsObject['dataObject'],
+  { component, iteratorVar, objs }: CreateEmitDataKeyOptionsObject = {},
 ) {
+  iteratorVar = iteratorVar || component?.get?.('iteratorVar')
+
   if (isStr(dataKey)) {
-    if (!dataKey.includes('.')) {
-      if ('dataObject' in dataObject) return dataObject.dataObject
-      return dataObject
-    } else {
-      // Walk to the data value using the presumed path
+    if (iteratorVar) {
+      if (dataKey === iteratorVar) return findDataValue(objs, dataKey)
+      if (dataKey.startsWith(iteratorVar)) {
+        dataKey = dataKey.split('.').slice(1).join('.')
+      }
     }
-    return dataObject
+    return findDataValue(objs, dataKey)
   } else if (isObj(dataKey)) {
     return Object.keys(dataKey).reduce((acc, key) => {
-      if (key.includes('.')) {
-        acc[key] = get(dataObject, key)
-      } else {
-        acc[key] = dataObject
+      let path = dataKey[key] || ''
+      if (iteratorVar) {
+        if (path === iteratorVar) {
+          acc[key] = findDataValue(objs, path)
+          return acc
+        } else if (path.startsWith(iteratorVar)) {
+          path = path.split('.').slice(1).join('.')
+        }
       }
+      acc[key] = findDataValue(objs, path)
       return acc
-    }, {} as { [varProp: string]: O })
+    }, {} as { [varProp: string]: any })
   }
-  return dataObject
 }
 
 /**
@@ -194,33 +215,56 @@ export function findParent<C extends IComponentTypeInstance>(
   return parent || null
 }
 
-interface FindDataObjectOptions {
-  component?: any
-  dataKey?: string
-  pageObject?: { [key: string]: any }
-  root?: { [key: string]: any }
-}
-export function findDataObject(component: IComponentTypeInstance): any
-export function findDataObject(component: FindDataObjectOptions): any
-export function findDataObject<O>(
-  component: IComponentTypeInstance | FindDataObjectOptions,
-): O | null {
-  let dataObject: O | undefined
-  let options: FindDataObjectOptions | undefined
-  if (component) {
-    if (component instanceof Component) {
-      if (isListConsumer(component)) dataObject = findListDataObject(component)
-      if (!dataObject && options) dataObject = findRootsDataObject(options)
-    } else if (typeof component === 'object') {
-      options = component as FindDataObjectOptions
-      if (isListConsumer(options.component)) {
-        dataObject = findListDataObject(options.component)
-      }
-      if (!dataObject) dataObject = findRootsDataObject(options)
+export function findDataObject(
+  objs: any,
+  opts: {
+    component?: IComponentTypeInstance
+    iteratorVar?: string
+    path: string
+  },
+) {
+  let path = opts.path
+  if (opts.iteratorVar || opts.component?.get?.('iteratorVar')) {
+    const iteratorVar = opts.iteratorVar || opts.component?.get('iteratorVar')
+    if (path === iteratorVar) return findDataValue(objs, path)
+    else if (path.startsWith(iteratorVar || '')) {
+      path = path.split('.').slice(1).join('.')
     }
   }
-  return dataObject || null
+  return findDataValue(objs, path)
 }
+
+export function findDataValue(objs: any, path: string) {
+  return get((Array.isArray(objs) ? objs : [objs]).find(Boolean), path)
+}
+
+// interface FindDataObjectOptions {
+//   component?: any
+//   dataKey?: string
+//   pageObject?: { [key: string]: any }
+//   root?: { [key: string]: any }
+// }
+// export function findDataObject(component: IComponentTypeInstance): any
+// export function findDataObject(component: FindDataObjectOptions): any
+// export function findDataObject<O>(
+//   component: IComponentTypeInstance | FindDataObjectOptions,
+// ): O | null {
+//   let dataObject: O | undefined
+//   let options: FindDataObjectOptions | undefined
+//   if (component) {
+//     if (component instanceof Component) {
+//       if (isListConsumer(component)) dataObject = findListDataObject(component)
+//       if (!dataObject && options) dataObject = findRootsDataObject(options)
+//     } else if (typeof component === 'object') {
+//       options = component as FindDataObjectOptions
+//       if (isListConsumer(options.component)) {
+//         dataObject = findListDataObject(options.component)
+//       }
+//       if (!dataObject) dataObject = findRootsDataObject(options)
+//     }
+//   }
+//   return dataObject || null
+// }
 
 export function findRootsDataObject(opts: {
   dataKey?: string
@@ -268,7 +312,7 @@ export function findListDataObject(component: IComponentTypeInstance) {
   return dataObject || null
 }
 
-export function getActionType<A extends IActionObject = any>(
+export function getActionType<A extends ActionObject = any>(
   obj: A | undefined,
 ) {
   if (obj && typeof obj === 'object') {
@@ -371,8 +415,12 @@ export function isComponentInstance<C extends IComponent = any>(
   return !!(component && component instanceof Component)
 }
 
-export function isEmitObj(value: unknown): value is EmitActionObject {
-  return value && typeof value === 'object' && 'emit' in value
+export function isEmitObj(value: any): value is EmitActionObject {
+  return !!(
+    value &&
+    typeof value === 'object' &&
+    ('emit' in value || value.actionType === 'emit')
+  )
 }
 
 export function isIfObj(value: unknown): value is IfObject {

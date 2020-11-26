@@ -36,7 +36,7 @@ import {
   identify,
   IResolver,
   BuiltInObject,
-  PageObject,
+  NOODLPageObject,
   Page as NOODLPage,
   Resolver,
   ResolverFn,
