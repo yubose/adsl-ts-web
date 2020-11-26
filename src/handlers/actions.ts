@@ -165,9 +165,12 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - if src === assetsUrl
   // TODO - else if src endsWith
   _actions.emit.push({
-    fn: (action: EmitAction, { component, page, path }, { noodl } = {}) => {
+    fn: (action: EmitAction, options, { noodl } = {}) => {
       log.func('path [emit]')
-      console.info(`Calling emitCall`)
+
+      const { component, page, path } = options
+
+      console.info(`Calling emitCall`, { action, options })
 
       let dataObject
       let iteratorVar = component.get('iteratorVar')
@@ -177,9 +180,12 @@ const createActions = function ({ page }: { page: IPage }) {
       dataObject = findDataObject(component)
 
       emitParams = {
-        dataKey: createEmitDataKey(path.emit.dataKey, dataObject),
         actions: path.emit.actions,
         pageName: page,
+      } as Partial<EmitActionObject>
+
+      if ('dataKey' in path.emit) {
+        emitParams.dataKey = createEmitDataKey(path.emit.dataKey, dataObject)
       }
 
       const logArgs = {
@@ -199,6 +205,7 @@ const createActions = function ({ page }: { page: IPage }) {
             `emitCall [promise] result: ${
               result === '' ? '(empty string)' : result
             }`,
+            logArgs,
           )
           return result
         })

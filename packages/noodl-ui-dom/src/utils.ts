@@ -29,7 +29,7 @@ import { publish, walkOriginalChildren } from 'noodl-utils'
 
 export function createAsyncImageElement(
   container: HTMLElement,
-  src?: string,
+  src?: (() => string) | string,
   opts?: { timeout?: number },
 ) {
   let node = new Image()
@@ -38,7 +38,7 @@ export function createAsyncImageElement(
     container.insertBefore(node as HTMLImageElement, container.childNodes[0])
   }
   setTimeout(
-    () => void (node.src = src || ''),
+    () => void (node.src = typeof src === 'function' ? src() : src || ''),
     typeof opts?.timeout === 'number' ? opts.timeout : 10,
   )
   return node

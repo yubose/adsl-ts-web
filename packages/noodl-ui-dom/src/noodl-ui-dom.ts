@@ -67,8 +67,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       } else {
         if (component.noodlType === 'image') {
           node = isEmitObj(component.get('path'))
-            ? createAsyncImageElement(
-                container || document.body,
+            ? createAsyncImageElement(container || document.body, () =>
                 component.get('src'),
               )
             : document.createElement('img')
@@ -253,16 +252,17 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         if (isEmitObj(component.get('path'))) {
           newNode = createAsyncImageElement(
             (parentNode || document.body) as HTMLElement,
-            component.get('src'),
+            () => component.get('src'),
           )
         } else {
           newNode = document.createElement('img')
         }
       } else {
         newNode = document.createElement(getType(component))
-        if (parentNode) {
-          parentNode.replaceChild(newNode as HTMLElement, node)
-        }
+      }
+
+      if (parentNode) {
+        parentNode.replaceChild(newNode as HTMLElement, node)
       }
 
       this.emit('component', newNode, newComponent as IComponentTypeInstance)
