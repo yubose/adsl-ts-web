@@ -16,7 +16,7 @@ export const rules = {
 }
 
 function makeRootsParser<RootObjects = any>(
-  roots?: RootObjects,
+  root?: RootObjects,
   defaultState?: { localKey?: string },
 ): RootsParser {
   let localKey = defaultState?.localKey || ''
@@ -46,11 +46,11 @@ function makeRootsParser<RootObjects = any>(
     let trimmedPath = path.replace(/(\.\.|\.)/, '')
     // Local/private reference
     if (path[0] === path[0].toLowerCase()) {
-      return _.get(roots?.[localKey], trimmedPath)
+      return _.get(root?.[localKey], trimmedPath)
     }
     // Global reference
     if (path[0] === path[0].toUpperCase()) {
-      return _.get(roots, trimmedPath)
+      return _.get(root, trimmedPath)
     }
   }
 
@@ -171,8 +171,7 @@ function makeRootsParser<RootObjects = any>(
           }
 
           result =
-            _.get(roots, nameFieldPath) ||
-            _.get(roots?.[localKey], nameFieldPath)
+            _.get(root, nameFieldPath) || _.get(root?.[localKey], nameFieldPath)
 
           if (!result) {
             log.red('Received an invalid value for nameField.getKeys', {
@@ -181,7 +180,7 @@ function makeRootsParser<RootObjects = any>(
               localKey,
               nameFieldPath,
               result,
-              roots,
+              root,
             })
           } else if (_.isObjectLike(result)) {
             fields = _.keys(result)
@@ -220,8 +219,8 @@ function makeRootsParser<RootObjects = any>(
         : dataKey
 
       return (
-        _.get(roots?.[localKey], path, fallbackValue) ||
-        _.get(roots, path, fallbackValue)
+        _.get(root?.[localKey], path, fallbackValue) ||
+        _.get(root, path, fallbackValue)
       )
     },
     mergeReference,
@@ -237,7 +236,7 @@ function makeRootsParser<RootObjects = any>(
       return this
     },
     setRoot(root: any) {
-      roots = root
+      root = root
       return this
     },
   }

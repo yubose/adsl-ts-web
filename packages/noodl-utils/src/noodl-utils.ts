@@ -67,22 +67,46 @@ export function createDeepChildren(
   return c as IComponentTypeInstance
 }
 
-export function createEmitDataKey<O = any>(dataKey: string, dataObject: O): O
-export function createEmitDataKey<O = any>(
+interface CreateEmitDataKeyOptionsObject {
+  dataObject?: any
+  pageObject?: any
+  root?: any
+}
+export function createEmitDataKey(
+  dataKey: string,
+  dataObject:
+    | CreateEmitDataKeyOptionsObject
+    | CreateEmitDataKeyOptionsObject['dataObject'],
+): any
+export function createEmitDataKey(
   dataKey: { [key: string]: any },
-  dataObject: O,
-): Record<string, O>
+  dataObject:
+    | CreateEmitDataKeyOptionsObject
+    | CreateEmitDataKeyOptionsObject['dataObject'],
+): any
 export function createEmitDataKey<O = any>(
   dataKey: string | { [key: string]: any },
-  dataObject: O,
+  dataObject:
+    | CreateEmitDataKeyOptionsObject
+    | CreateEmitDataKeyOptionsObject['dataObject'],
 ) {
   if (isStr(dataKey)) {
+    if (!dataKey.includes('.')) {
+      if ('dataObject' in dataObject) return dataObject.dataObject
+      return dataObject
+    } else {
+      // Walk to the data value using the presumed path
+    }
     return dataObject
   } else if (isObj(dataKey)) {
-    return Object.keys(dataKey).reduce(
-      (acc, key) => Object.assign(acc, { [key]: dataObject }),
-      {} as { [varProp: string]: O },
-    )
+    return Object.keys(dataKey).reduce((acc, key) => {
+      if (key.includes('.')) {
+        acc[key] = get(dataObject, key)
+      } else {
+        acc[key] = dataObject
+      }
+      return acc
+    }, {} as { [varProp: string]: O })
   }
   return dataObject
 }

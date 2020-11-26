@@ -20,7 +20,7 @@ const log = Logger.create('getCustomDataAttrs')
  */
 const getCustomDataAttrs: ResolverFn = (component, options) => {
   const { context, getPageObject, getRoot, showDataKey, parser } = options
-  const { page, roots } = context
+  const { page, root } = context
   const { noodlType } = component
   const { contentType = '', dataKey, viewTag } = component.get([
     'contentType',
@@ -90,7 +90,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         component,
         dataKey,
         pageObject,
-        root: roots || getRoot(),
+        root: root || getRoot(),
       })
       let dataValue = getDataObjectValue({ dataObject, dataKey, iteratorVar })
       let textFunc = component.get('text=func')

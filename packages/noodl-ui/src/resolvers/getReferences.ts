@@ -7,9 +7,9 @@ import isReference from '../utils/isReference'
  * component object
  */
 const getReferences: ResolverFn = (component, { context, parser }) => {
-  const { page, roots } = context
+  const { page, root } = context
 
-  if (roots) {
+  if (root) {
     let key: any, value: any
 
     for (let index = 0; index < component.keys.length; index++) {

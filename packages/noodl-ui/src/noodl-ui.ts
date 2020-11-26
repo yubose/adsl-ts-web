@@ -76,7 +76,7 @@ class NOODL implements T.INOODLUi {
     showDataKey?: boolean
     viewport?: T.IViewport
   } = {}) {
-    this.#parser = makeRootsParser({ roots: {} })
+    this.#parser = makeRootsParser({ root: {} })
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
   }
@@ -384,7 +384,7 @@ class NOODL implements T.INOODLUi {
     return {
       assetsUrl: this.assetsUrl,
       page: this.page,
-      roots: this.#getRoot(),
+      root: this.#getRoot(),
       viewport: this.#viewport,
     } as T.ResolverContext
   }
@@ -555,7 +555,7 @@ class NOODL implements T.INOODLUi {
 
   reset(opts?: { keepCallbacks?: boolean } = {}) {
     this.#root = {}
-    this.#parser = makeRootsParser({ roots: this.#root })
+    this.#parser = makeRootsParser({ root: this.#root })
     this.#state = _createState()
     if (!opts.keepCallbacks) {
       this.#cb = { action: [], builtIn: [], chaining: [] }
@@ -616,19 +616,21 @@ class NOODL implements T.INOODLUi {
         if (typeof obj?.fn === 'function') {
           const emitObj = { ...path, actionType: 'emit' } as T.EmitActionObject
           const emitAction = new EmitAction(emitObj, { trigger: 'path' })
+
           let dataObject: any
 
-          if ('dataKey' in emitObj) {
-            if (_.isPlainObject(emitObj.dataKey)) {
+          if (emitObj.emit?.dataKey) {
+            if (_.isPlainObject(emitObj.emit.dataKey)) {
               let prevKey: string
-              Object.entries(emitObj.dataKey).forEach(([key, value]) => {
+              Object.entries(emitObj.emit.dataKey).forEach(([key, value]) => {
                 if (typeof value === 'string') {
-                  if (prevKey === key && dataObject) {
+                  // If the current key was used in the previous loop, use that result
+                  if (prevKey === key && !_.isNil(dataObject)) {
                     return emitAction.setDataKey(key, dataObject)
                   }
                   dataObject = findDataObject({
                     component,
-                    dataKey: key,
+                    dataKey: value,
                     pageObject: this.getPageObject(this.page),
                     root: this.#getRoot(),
                   })
@@ -636,12 +638,12 @@ class NOODL implements T.INOODLUi {
                 if (dataObject) emitAction.setDataKey(key, dataObject)
                 prevKey = key
               })
-            } else if (typeof emitObj.dataKey === 'string') {
+            } else if (typeof emitObj.emit.dataKey === 'string') {
               emitAction.setDataKey(
-                emitObj.dataKey,
+                emitObj.emit.dataKey,
                 findDataObject({
                   component,
-                  dataKey: emitObj.dataKey,
+                  dataKey: emitObj.emit.dataKey,
                   pageObject: this.getPageObject[this.page],
                   root: this.#getRoot(),
                 }),

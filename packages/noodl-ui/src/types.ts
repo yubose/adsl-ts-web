@@ -816,8 +816,6 @@ export interface ConsumerOptions {
   createActionChainHandler: INOODLUi['createActionChainHandler']
   createSrc(path: Parameters<INOODLUi['createSrc']>[0]): string
   getBaseStyles(styles?: Style): Partial<Style>
-  getNode: INOODLUiStateHelpers['getNode']
-  getNodes: INOODLUiStateHelpers['getNodes']
   getPageObject: INOODLUiStateHelpers['getPageObject']
   getResolvers(): INOODLUi['getResolvers']
   getRoot(): { [key: string]: any }
@@ -837,7 +835,7 @@ export interface ConsumerOptions {
 export interface ResolverContext {
   assetsUrl: string
   page: string
-  roots: Record<string, any>
+  root: Record<string, any>
   viewport: IViewport | undefined
 }
 

@@ -315,7 +315,7 @@ window.addEventListener('load', async () => {
         previousPage,
         nextPage: pageSnapshot,
       })
-      // Refresh the roots
+      // Refresh the root
       // TODO - Leave root/page auto binded to the lib
       noodlui.setRoot(noodl.root).setPage(pageSnapshot.name)
       log.grey(`Set root + page obj after receiving page object`, {

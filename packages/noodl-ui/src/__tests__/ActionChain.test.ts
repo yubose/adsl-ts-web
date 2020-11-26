@@ -30,7 +30,7 @@ import { waitFor } from '@testing-library/dom'
 import EmitAction from '../Action/EmitAction'
 import Component from '../components/Base'
 
-const parser = makeRootsParser({ roots: {} })
+const parser = makeRootsParser({ root: {} })
 
 const pageJumpAction: PageJumpObject = {
   actionType: 'pageJump',

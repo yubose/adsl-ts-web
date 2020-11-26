@@ -273,22 +273,21 @@ class ActionChain<
             _.values(emitObj?.emit?.dataKey),
             (dataKey) => `${dataKey}`.startsWith(iteratorVar),
           )
+          let dataObject
           emitAction.set('iteratorVar', iteratorVar)
           if (isListItemDataObject) {
-            emitAction.setDataObject(findListDataObject(this?.component))
+            dataObject = findListDataObject(this?.component)
           } else {
             const [property, dataKey] = entries[0]
-            emitAction.setDataObject(
-              findDataObject({
-                dataKey,
-                pageObject: this.pageObject,
-                root: { [this.pageName || '']: this.pageObject },
-              }),
-            )
+            dataObject = findDataObject({
+              dataKey,
+              pageObject: this.pageObject,
+              root: { [this.pageName || '']: this.pageObject },
+            })
           }
           for (let index = 0; index < entries.length; index++) {
             const [property] = entries[index] || ''
-            emitAction.setDataKeyValue(property, emitAction.getDataObject())
+            emitAction.setDataKey(property, emitAction.getDataObject())
           }
         } else if (_.isString(emitObj.emit?.dataKey)) {
           emitAction.set('dataKey', emitObj.emit.dataKey)

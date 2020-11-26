@@ -18,7 +18,7 @@ describe('EvaluatorsList', () => {
     expect(evaluators.has(evaluator)).to.be.true
   })
 
-  it('should add the roots with the given object', () => {
+  it('should add the root with the given object', () => {
     evaluators.addRoot({
       fruits: ['apples'],
       myName: 'fbi',
@@ -29,7 +29,7 @@ describe('EvaluatorsList', () => {
     })
   })
 
-  it('should add the roots with the given key/value', () => {
+  it('should add the root with the given key/value', () => {
     evaluators.addRoot('myName', 'apple')
     expect(evaluators.getRoot()).to.deep.equal({
       myName: 'apple',
@@ -88,7 +88,7 @@ describe('Evaluating', () => {
       })
     })
 
-    describe('Page roots', () => {
+    describe('Page root', () => {
       const pageRootEvaluator = makeEvaluator((value, { push }) => {
         //
       })
