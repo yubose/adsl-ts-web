@@ -118,8 +118,9 @@ describe('noodl-ui', () => {
         // expect(action.dataKey).to.have.property('var1').eq(listObject[0])
       })
 
-      it('should populate the dataKey with the dataObject for non list consumers', async () => {
-        const pathSpy = sinon.spy(() => 'apple.jpeg')
+      it.only('should populate the dataKey with the dataObject for non list consumers', async () => {
+        const dataObject = { formData: { greeting: { fruit: 'apple' } } }
+        const pathSpy = sinon.spy(async () => 'apple.jpeg')
         const path = {
           emit: {
             dataKey: {
@@ -130,21 +131,17 @@ describe('noodl-ui', () => {
             actions: [{ if: [{}, {}, {}] }],
           },
         }
-        const dataObject = { formData: { greeting: { fruit: 'apple' } } }
         noodlui
           .setPage('H')
           .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
           .use({ getRoot: () => ({ H: { all: dataObject } }) })
         const image = createComponent({ type: 'image', path })
-        const src = await noodlui.createSrc(path, image)
-        noodlui.resolveComponents({
-          type: 'view',
-          children: [{ type: 'image', path }],
-        })
+        const src = await noodlui.createSrc(path as any, image)
         const [action]: [EmitAction] = pathSpy.args[0]
+        console.info(action)
         expect(action.dataKey).to.have.property('var1').to.eq(dataObject)
-        expect(action.dataKey).to.have.property('var2').to.eq(dataObject)
-        expect(action.dataKey).to.have.property('var3').to.eq(dataObject)
+        // expect(action.dataKey).to.have.property('var2').to.eq(dataObject)
+        // expect(action.dataKey).to.have.property('var3').to.eq(dataObject)
         // const listItem = list.child() as IListItem
         // console.info(listItem)
         // listItem.setDataObject({ fruit: 'apple', ext: '.png' })

@@ -613,26 +613,45 @@ class NOODL implements T.INOODLUi {
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
 
-        if (typeof obj?.fn === 'function') {w=
+        if (typeof obj?.fn === 'function') {
           const emitObj = { ...path, actionType: 'emit' } as T.EmitActionObject
           const emitAction = new EmitAction(emitObj, { trigger: 'path' })
           let dataObject: any
 
-          if (_.isPlainObject(path.emit.dataKey)) {
-            Object.keys(path.emit.dataKey).forEach((key) => {
-              if (typeof key === 'string') {
-                dataObject = findDataObject({
+          if ('dataKey' in emitObj) {
+            if (_.isPlainObject(emitObj.dataKey)) {
+              let prevKey: string
+              Object.entries(emitObj.dataKey).forEach(([key, value]) => {
+                if (typeof value === 'string') {
+                  if (prevKey === key && dataObject) {
+                    return emitAction.setDataKey(key, dataObject)
+                  }
+                  dataObject = findDataObject({
+                    component,
+                    dataKey: key,
+                    pageObject: this.getPageObject(this.page),
+                    root: this.#getRoot(),
+                  })
+                }
+                if (dataObject) emitAction.setDataKey(key, dataObject)
+                prevKey = key
+              })
+            } else if (typeof emitObj.dataKey === 'string') {
+              emitAction.setDataKey(
+                emitObj.dataKey,
+                findDataObject({
                   component,
-                  dataKey: key,
-                  pageObject: this.getPageObject(this.page),
+                  dataKey: emitObj.dataKey,
+                  pageObject: this.getPageObject[this.page],
                   root: this.#getRoot(),
-                })
-              }
-              emitAction.setDataKey(key, dataObject)
-            })
+                }),
+              )
+            }
           }
 
-          emitAction.set('iteratorVar', component?.get?.('iteratorVar'))
+          if (component?.get('iteratorVar')) {
+            emitAction.set('iteratorVar', component.get('iteratorVar'))
+          }
 
           emitAction['callback'] = async (snapshot) => {
             const callbacks = _.reduce(
@@ -650,7 +669,6 @@ class NOODL implements T.INOODLUi {
                   this.getConsumerOptions({
                     assetsUrl: this.assetsUrl,
                     component: component as T.IComponentTypeInstance,
-                    createSrc: this.createSrc,
                     path,
                     snapshot,
                   }),
