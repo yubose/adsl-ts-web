@@ -7,8 +7,8 @@ import {
   IListItem,
   NOODLComponentType,
 } from 'noodl-ui'
-import { publish } from 'noodl-utils'
-import { getShape } from './utils'
+import { isEmitObj, publish } from 'noodl-utils'
+import { createAsyncImageElement, getShape } from './utils'
 import {
   componentEventMap,
   componentEventIds,
@@ -66,16 +66,11 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         this.emit('plugin', null, component)
       } else {
         if (component.noodlType === 'image') {
-          node = new Image()
-          node.onload = () => {
-            ;(container || document.body).insertBefore(
-              node as HTMLImageElement,
-              (container as HTMLElement).childNodes[0],
-            )
-          }
-          setTimeout(() => {
-            ;(node as HTMLImageElement).src = component.get('src')
-          }, 10)
+          node = isEmitObj(component.get('path'))
+            ? createAsyncImageElement(container || document.body, () =>
+                component.get('src'),
+              )
+            : document.createElement('img')
         } else {
           node = document.createElement(getType(component))
         }
@@ -254,20 +249,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       node.innerHTML = ''
       const parentNode = node.parentNode
       if (component.noodlType === 'image') {
-        newNode = new Image()
-        newNode.onload = () => {
-          if (parentNode) {
-            node.remove()
-            parentNode.insertBefore(
-              newNode as HTMLImageElement,
-              parentNode.childNodes[0],
-            )
-            // parentNode.replaceChild(newNode, node)
-          }
+        if (isEmitObj(component.get('path'))) {
+          newNode = createAsyncImageElement(
+            (parentNode || document.body) as HTMLElement,
+            () => component.get('src'),
+          )
+        } else {
+          newNode = document.createElement('img')
         }
-        setTimeout(() => {
-          ;(newNode as HTMLImageElement).src = component.get('src')
-        }, 10)
       } else {
         newNode = document.createElement(getType(component))
         if (parentNode) {

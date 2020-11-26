@@ -2,7 +2,13 @@ import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { findParent } from 'noodl-utils'
-import { IComponent, NOODLComponent } from '../types'
+import {
+  IComponent,
+  IComponentTypeInstance,
+  IList,
+  IListItem,
+  NOODLComponent,
+} from '../types'
 import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
 import Component from '../components/Base'
@@ -10,6 +16,8 @@ import List from '../components/List'
 import Viewport from '../Viewport'
 import ListItem from '../components/ListItem'
 import createComponent from '../utils/createComponent'
+import { EmitAction } from '../../dist'
+import { waitFor } from '@testing-library/dom'
 
 let noodlComponent: NOODLComponent
 let component: IComponent
@@ -60,89 +68,124 @@ describe('noodl-ui', () => {
       },
     )
 
-    describe('when passing an emit object', () => {
-      describe('when providing a component', () => {
-        it('should work for passing emit objects', () => {
-          const iteratorVar = 'hello'
-          const path = {
-            emit: {
-              dataKey: {
-                var1: iteratorVar,
-              },
-              actions: [
-                {
-                  if: [() => false, {}, {}],
-                },
+    describe.only('when passing an emit object', () => {
+      it('should populate the dataKey with the dataObject for list consumers', () => {
+        const pathSpy = sinon.spy()
+        const iteratorVar = 'hello'
+        const path = {
+          emit: {
+            dataKey: {
+              var1: iteratorVar,
+              var2: iteratorVar,
+              var3: iteratorVar,
+            },
+            actions: [{ if: [() => false, {}, {}] }],
+          },
+        }
+        const listObject = [
+          { name: 'arthur', lastName: 'le' },
+          { name: 'henry', lastName: 'lopez' },
+        ]
+        noodlui.use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
+        const view = noodlui.resolveComponents({
+          type: 'view',
+          children: [
+            {
+              type: 'list',
+              listObject,
+              iteratorVar,
+              children: [
+                { type: 'listItem', children: [{ type: 'image', path }] },
               ],
             },
-          }
-          const view = createComponent('view')
-          const listItem = new ListItem()
-          listItem.setDataObject({ fruit: 'apple', ext: '.png' })
-          const image = createComponent('image')
-          image.set('path', path)
-          view.createChild(listItem)
-          listItem.createChild(image)
-          // @ts-expect-error
-          noodlui.use({
-            actionType: 'emit',
-            fn: (path: any, component: any) => {
-              const listItemComponent = findParent(
-                component,
-                (p) => p.noodlType === 'listItem',
-              )
-              const dataObject = listItemComponent.getDataObject()
-              return dataObject.fruit + dataObject.ext
-            },
-            trigger: 'path',
-          })
-          // noodlui.resolveComponents(view)
-          expect(noodlui.createSrc(path, image)).to.eq(
-            noodlui.assetsUrl + 'apple.png',
-          )
+          ],
         })
+        const list = view.child() as IList
+        const data = list.getData()
+        data.forEach((d) => list.removeDataObject(d))
+        data.forEach((d) => list.addDataObject(d))
+        expect(pathSpy.called).to.be.true
+        const [action]: [EmitAction] = pathSpy.args[0]
+        expect(action.dataKey).to.have.property('var1').to.eq(listObject[0])
+        expect(action.dataKey).to.have.property('var2').to.eq(listObject[0])
+        expect(action.dataKey).to.have.property('var3').to.eq(listObject[0])
+        // const listItem = list.child() as IListItem
+        // console.info(listItem)
+        // listItem.setDataObject({ fruit: 'apple', ext: '.png' })
+        // const image = listItem.child() as IComponentTypeInstance
+        // expect(pathSpy.called).to.be.true
+        // const [action, options]: [EmitAction, any] = pathSpy.args[0][0]
+        // expect(action.dataKey).to.have.property('var1').eq(listObject[0])
       })
 
-      describe('when not providing a component', () => {
-        it('should work for passing emit objects', () => {
-          const iteratorVar = 'hello'
-          const path = {
-            emit: {
-              dataKey: {
-                var1: iteratorVar,
-              },
-              actions: [
-                {
-                  if: [() => false, {}, {}],
-                },
-              ],
+      it('should populate the dataKey with the dataObject for non list consumers', async () => {
+        const pathSpy = sinon.spy(() => 'apple.jpeg')
+        const path = {
+          emit: {
+            dataKey: {
+              var1: 'H.all',
+              var2: 'H.all',
+              var3: 'H.all',
             },
-          }
-          const view = createComponent('view')
-          const listItem = new ListItem()
-          listItem.setDataObject({ fruit: 'apple', ext: '.png' })
-          const image = createComponent('image')
-          image.set('path', path)
-          view.createChild(listItem)
-          listItem.createChild(image)
-          // @ts-expect-error
-          noodlui.use({
-            actionType: 'emit',
-            fn: (path, component) => {
-              const listItemComponent = findParent(
-                component,
-                (p) => p.noodlType === 'listItem',
-              )
-              const dataObject = listItemComponent.getDataObject()
-              return dataObject.fruit + dataObject.ext
-            },
-            trigger: 'path',
-          })
-          // noodlui.resolveComponents(view)
-          expect(noodlui.createSrc(path, image)).to.eq(
-            noodlui.assetsUrl + 'apple.png',
-          )
+            actions: [{ if: [{}, {}, {}] }],
+          },
+        }
+        const dataObject = { formData: { greeting: { fruit: 'apple' } } }
+        noodlui
+          .setPage('H')
+          .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
+          .use({ getRoot: () => ({ H: { all: dataObject } }) })
+        const image = createComponent({ type: 'image', path })
+        const src = await noodlui.createSrc(path, image)
+        noodlui.resolveComponents({
+          type: 'view',
+          children: [{ type: 'image', path }],
         })
+        const [action]: [EmitAction] = pathSpy.args[0]
+        expect(action.dataKey).to.have.property('var1').to.eq(dataObject)
+        expect(action.dataKey).to.have.property('var2').to.eq(dataObject)
+        expect(action.dataKey).to.have.property('var3').to.eq(dataObject)
+        // const listItem = list.child() as IListItem
+        // console.info(listItem)
+        // listItem.setDataObject({ fruit: 'apple', ext: '.png' })
+        // const image = listItem.child() as IComponentTypeInstance
+        // expect(pathSpy.called).to.be.true
+        // const [action, options]: [EmitAction, any] = pathSpy.args[0][0]
+        // expect(action.dataKey).to.have.property('var1').eq(listObject[0])
+      })
+
+      it('should work for passing emit objects', () => {
+        const iteratorVar = 'hello'
+        const path = {
+          emit: {
+            dataKey: { var1: iteratorVar },
+            actions: [{ if: [() => false, {}, {}] }],
+          },
+        }
+        const view = createComponent('view')
+        const listItem = new ListItem()
+        listItem.setDataObject({ fruit: 'apple', ext: '.png' })
+        const image = createComponent('image')
+        image.set('path', path)
+        view.createChild(listItem)
+        listItem.createChild(image)
+        // @ts-expect-error
+        noodlui.use({
+          actionType: 'emit',
+          fn: (path, component) => {
+            const listItemComponent = findParent(
+              component,
+              (p) => p.noodlType === 'listItem',
+            )
+            const dataObject = listItemComponent.getDataObject()
+            return dataObject.fruit + dataObject.ext
+          },
+          trigger: 'path',
+        })
+        // noodlui.resolveComponents(view)
+        expect(noodlui.createSrc(path, image)).to.eq(
+          noodlui.assetsUrl + 'apple.png',
+        )
       })
     })
 

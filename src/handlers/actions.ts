@@ -166,7 +166,7 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - else if src endsWith
   _actions.emit.push({
     fn: (action: EmitAction, { component, page, path }, { noodl } = {}) => {
-      log.func('path [emit]')
+      log.func('emit [path]')
       console.info(`Calling emitCall`)
 
       let dataObject
@@ -199,6 +199,7 @@ const createActions = function ({ page }: { page: IPage }) {
             `emitCall [promise] result: ${
               result === '' ? '(empty string)' : result
             }`,
+            logArgs,
           )
           return result
         })

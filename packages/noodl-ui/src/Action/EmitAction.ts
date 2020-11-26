@@ -1,12 +1,10 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import { EmitActionObject, IActionOptions, NOODLEmitTrigger } from '../types'
 import Action from './Action'
 
 class EmitAction extends Action<EmitActionObject> {
-  #dataObject: any
-  // #iteratorVar: string | undefined
-  dataKey: string | { [key: string]: any } | undefined
   actions: any[] | undefined
+  dataKey: string | { [key: string]: any } | undefined
   iteratorVar: string | undefined
   #trigger: NOODLEmitTrigger | undefined
 
@@ -23,46 +21,68 @@ class EmitAction extends Action<EmitActionObject> {
     // console.info(options)
     this['actions'] = action?.emit?.actions
     this['dataKey'] = action?.emit?.dataKey
-    this['trigger'] = options?.trigger
+    this.#trigger = options?.trigger
   }
 
   get trigger() {
     return this.#trigger
   }
 
-  set trigger(trigger: NOODLEmitTrigger | undefined) {
-    this.#trigger = trigger
-  }
-
-  set(key: 'dataKey' | 'dataObject' | 'iteratorVar' | 'trigger', value: any) {
-    if (key === 'dataObject') return this.setDataObject(value)
-    this[key] = value
-    return this
-  }
-
-  getDataObject<T>(): T | undefined {
-    return this.#dataObject
-  }
-
-  setDataObject(dataObject: any) {
-    this.#dataObject = dataObject
-    return this
-  }
-
-  setDataKeyValue(property: string | { [key: string]: any }, value: any) {
-    if (typeof property === 'string') {
-      this.dataKey = {
-        ...(_.isString(this.dataKey) ? undefined : this.dataKey),
-        [property]: value,
-      }
-    } else if (property && typeof property === 'object') {
-      const properties = Object.keys(property)
-      properties.forEach((prop) => {
-        this.dataKey = {
-          ...(typeof this.dataKey === 'object' ? this.dataKey : undefined),
-          [prop]: value,
-        }
+  set(
+    values: {
+      dataKey?: string
+      iteratorVar?: string
+      trigger?: NOODLEmitTrigger
+    },
+    value?: any,
+  ): this
+  set(key: 'dataKey' | 'iteratorVar' | 'trigger', value: any): this
+  set(
+    key:
+      | ('dataKey' | 'iteratorVar' | 'trigger')
+      | { dataKey?: string; iteratorVar?: string; trigger?: NOODLEmitTrigger },
+    value: any,
+  ) {
+    if (arguments.length === 1 && typeof key === 'object') {
+      if (key === null) return void this.setDataKey(null)
+      Object.keys(key).forEach((k) => {
+        if (k === 'dataKey') this.setDataKey(key)
+        else this[k] = key[k]
       })
+    } else if (arguments.length == 2) {
+      if (key === 'dataKey') this.setDataKey(key as 'dataKey', value)
+      else if (key === 'trigger') this.#trigger = value
+      else this[key as string] = value
+    }
+    return this
+  }
+
+  setDataKey(key: string, value: any): this
+  setDataKey(key: { [key: string]: any }, value?: any): this
+  setDataKey(key: string | { [key: string]: any }, value?: any) {
+    if (arguments.length === 1) {
+      if (key === null) return void (this.dataKey = null)
+      if (isPlainObject(key)) {
+        if (!this.dataKey) this.dataKey = {}
+        value = { ...(this.dataKey as object), ...(key as object) }
+      } else {
+        value = key as string
+      }
+    } else if (arguments.length > 1) {
+      if (!this.dataKey) this.dataKey = {}
+      value = { ...(this.dataKey as object), [key as string]: value }
+    }
+    if (value != null) this.dataKey = value
+    return this
+  }
+
+  clearDataKey(key?: string) {
+    if (!arguments.length) {
+      this.dataKey = undefined
+    } else if (key) {
+      if (typeof this.dataKey === 'object') {
+        delete this.dataKey[key]
+      }
     }
     return this
   }
