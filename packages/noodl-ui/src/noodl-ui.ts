@@ -628,8 +628,14 @@ class NOODL implements T.INOODLUi {
             })
           }
 
+          if (path.emit.dataKey) {
+            emitAction.set(
+              'dataKey',
+              createEmitDataKey(path.emit?.dataKey, dataObject),
+            )
+          }
+
           emitAction
-            .set('dataKey', createEmitDataKey(path.emit?.dataKey, dataObject))
             .set('dataObject', dataObject)
             .set('iteratorVar', component?.get?.('iteratorVar'))
 
