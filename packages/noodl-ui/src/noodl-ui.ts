@@ -60,6 +60,7 @@ class NOODL implements T.INOODLUi {
       {},
     ),
   }
+  #getRoot: () => { [key: string]: any } = () => ({})
   #parser: T.RootsParser
   #resolvers: Resolver[] = []
   #root: { [key: string]: any } = {}
@@ -368,7 +369,7 @@ class NOODL implements T.INOODLUi {
 
   getBaseStyles(styles?: T.Style) {
     return {
-      ...this.#root.Style,
+      ...this.#getRoot()?.Style,
       position: 'absolute',
       outline: 'none',
       ...styles,
@@ -383,7 +384,7 @@ class NOODL implements T.INOODLUi {
     return {
       assetsUrl: this.assetsUrl,
       page: this.page,
-      roots: this.#root,
+      roots: this.#getRoot(),
       viewport: this.#viewport,
     } as T.ResolverContext
   }
@@ -414,7 +415,7 @@ class NOODL implements T.INOODLUi {
   }
 
   getPageObject(page: string) {
-    return this.#root[page]
+    return this.#getRoot()[page]
   }
 
   getStateHelpers() {
@@ -439,7 +440,7 @@ class NOODL implements T.INOODLUi {
       ) => this.createActionChainHandler(action, { ...options, component }),
       createSrc: (path: string) => this.createSrc(path, component),
       getBaseStyles: this.getBaseStyles.bind(this),
-      getRoot: () => this.root,
+      getRoot: this.#getRoot,
       page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
@@ -494,11 +495,13 @@ class NOODL implements T.INOODLUi {
   use(resolver: T.IResolver | T.IResolver[]): this
   use(action: T.IActionChainUseObject | T.IActionChainUseObject[]): this
   use(viewport: T.IViewport): this
+  use(opts: { getRoot: T.ConsumerOptions['getRoot'] }): this
   use(
     mod:
       | T.IResolver
       | T.IActionChainUseObject
       | T.IViewport
+      | { getRoot: T.ConsumerOptions['getRoot'] }
       | (T.IResolver | T.IActionChainUseObject)[],
     ...rest: any[]
   ) {
@@ -524,6 +527,8 @@ class NOODL implements T.INOODLUi {
           this.setViewport(m)
         } else if (m instanceof Resolver) {
           this.#resolvers.push(m)
+        } else if ('getRoot' in m) {
+          this.#getRoot = m.getRoot
         }
       }
     }
@@ -611,33 +616,42 @@ class NOODL implements T.INOODLUi {
         if (typeof obj?.fn === 'function') {
           const emitObj = { ...path, actionType: 'emit' } as T.EmitActionObject
           const emitAction = new EmitAction(emitObj, { trigger: 'path' })
-          const pageObject = this.getPageObject(this.page)
           let dataObject: any
 
-          if (_.isPlainObject(path.emit.dataKey)) {
-            _.forEach(_.keys(path.emit.dataKey), (key) => {
-              if (typeof key === 'string') {
-                dataObject = findDataObject({
+          if ('dataKey' in emitObj) {
+            if (_.isPlainObject(emitObj.dataKey)) {
+              let prevKey: string
+              Object.entries(emitObj.dataKey).forEach(([key, value]) => {
+                if (typeof value === 'string') {
+                  if (prevKey === key && dataObject) {
+                    return emitAction.setDataKey(key, dataObject)
+                  }
+                  dataObject = findDataObject({
+                    component,
+                    dataKey: key,
+                    pageObject: this.getPageObject(this.page),
+                    root: this.#getRoot(),
+                  })
+                }
+                if (dataObject) emitAction.setDataKey(key, dataObject)
+                prevKey = key
+              })
+            } else if (typeof emitObj.dataKey === 'string') {
+              emitAction.setDataKey(
+                emitObj.dataKey,
+                findDataObject({
                   component,
-                  dataKey: key,
-                  pageObject,
-                  root: this.actionsContext?.noodl?.root || this.root,
-                })
-              }
-              emitAction.setDataKeyValue(key, dataObject)
-            })
+                  dataKey: emitObj.dataKey,
+                  pageObject: this.getPageObject[this.page],
+                  root: this.#getRoot(),
+                }),
+              )
+            }
           }
 
-          if (path.emit.dataKey) {
-            emitAction.set(
-              'dataKey',
-              createEmitDataKey(path.emit?.dataKey, dataObject),
-            )
+          if (component?.get('iteratorVar')) {
+            emitAction.set('iteratorVar', component.get('iteratorVar'))
           }
-
-          emitAction
-            .set('dataObject', dataObject)
-            .set('iteratorVar', component?.get?.('iteratorVar'))
 
           emitAction['callback'] = async (snapshot) => {
             const callbacks = _.reduce(
@@ -654,8 +668,7 @@ class NOODL implements T.INOODLUi {
                   emitAction,
                   this.getConsumerOptions({
                     assetsUrl: this.assetsUrl,
-                    component,
-                    createSrc: this.createSrc,
+                    component: component as T.IComponentTypeInstance,
                     path,
                     snapshot,
                   }),
@@ -685,15 +698,14 @@ class NOODL implements T.INOODLUi {
               .then((res) =>
                 typeof res === 'string' && res.startsWith('http')
                   ? res
-                  : resolveAssetUrl(String(res), this.assetsUrl),
+                  : resolveAssetUrl(res, this.assetsUrl),
               )
               .catch((err) => Promise.reject(err))
           } else if (result) {
-            console.info(result)
-            console.info(result)
-            console.info(result)
-            console.info(result)
-            if (typeof result === 'string' && result.startsWith('http')) {
+            if (
+              typeof result === 'string' &&
+              (result as string).startsWith('http')
+            ) {
               return result
             }
             return resolveAssetUrl(result, this.assetsUrl)
@@ -707,7 +719,7 @@ class NOODL implements T.INOODLUi {
             component,
             dataKey: component.get('dataKey'),
             pageObject: this.getPageObject(this.page),
-            root: this.root,
+            root: this.#getRoot(),
           })
           // Assuming it is a component retrieving its value from a dataObject
           if (component.get?.('iteratorVar')) {

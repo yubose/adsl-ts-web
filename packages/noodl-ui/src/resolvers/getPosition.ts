@@ -11,6 +11,9 @@ const getPosition: ResolverFn = (component, { context }) => {
   const { style } = component
 
   if (style) {
+    if ('zIndex' in style) {
+      component.setStyle('zIndex', Number(style.zIndex))
+    }
     let styles
     if ('zIndex' in style) {
       component.setStyle('zIndex', Number(style.zIndex))

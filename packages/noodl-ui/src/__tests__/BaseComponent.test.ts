@@ -2,7 +2,7 @@ import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { IComponent, IComponentTypeInstance, IList, IListItem } from '../types'
-import Component from '../components/Base/Base'
+import Component from '../components/Base'
 import createComponent from '../utils/createComponent'
 
 let component: IComponent

@@ -18,7 +18,7 @@ import {
   EmitActionObject,
 } from '../types'
 import List from '../components/List'
-import * as helpers from './helpers/helpers'
+import * as helpers from './helpers'
 import {
   actionChainEmitTriggers,
   actionTypes,
