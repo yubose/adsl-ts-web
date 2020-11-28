@@ -208,23 +208,23 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     let newComponent: IComponentTypeInstance | undefined
 
     if (component) {
-      const shape = getShape(component)
       const parent = component.parent()
+      const shape = getShape(component)
 
       // Clean up noodl-ui listeners
       component.clearCbs?.()
       // Remove the child reference from the parent
-      component.parent()?.removeChild?.(component)
+      parent?.removeChild?.(component)
       // Remove the parent reference
       component.setParent?.(null)
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {
-          const parent = c.parent?.()
+          const cParent = c.parent?.()
           // Remove listeners
           c.clearCbs()
           // Remove child component references
-          parent?.removeChild?.(c)
+          cParent?.removeChild?.(c)
           // Remove the child's parent reference
           c.setParent?.(null)
         }
@@ -248,21 +248,22 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       // Delete the node tree
       node.innerHTML = ''
       const parentNode = node.parentNode
-      if (component.noodlType === 'image') {
-        if (isEmitObj(component.get('path'))) {
+      if (newComponent?.noodlType === 'image') {
+        if (isEmitObj(newComponent.get('path'))) {
           newNode = createAsyncImageElement(
             (parentNode || document.body) as HTMLElement,
-            () => component.get('src'),
+            () => newComponent?.get('src'),
           )
         } else {
           newNode = document.createElement('img')
         }
-      } else {
-        newNode = document.createElement(getType(component))
+      } else if (newComponent) {
+        newNode = document.createElement(getType(newComponent))
       }
 
       if (parentNode) {
         parentNode.replaceChild(newNode as HTMLElement, node)
+        node.remove()
       }
 
       this.emit('component', newNode, newComponent as IComponentTypeInstance)

@@ -588,11 +588,8 @@ describe('dom', () => {
       const image = listItem.child(1)
       document.getElementById(image.id)?.click()
       await waitFor(() => {
-        console.info(prettyDOM())
-        expect(
-          document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`).to
-            .exist,
-        )
+        expect(document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`))
+          .to.exist
       })
       // expect(pathSpy.firstCall).to.eq(listObject[0])
     })

@@ -1,6 +1,9 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { EmitActionObject, IActionOptions, NOODLEmitTrigger } from '../types'
 import Action from './Action'
+
+const log = Logger.create('EmitAction')
 
 class EmitAction extends Action<EmitActionObject> {
   #dataObject: any
@@ -50,10 +53,25 @@ class EmitAction extends Action<EmitActionObject> {
   }
 
   setDataKeyValue(property: string | { [key: string]: any }, value: any) {
+    log.func('setDataKeyValue')
     if (typeof property === 'string') {
       this.dataKey = {
         ...(_.isString(this.dataKey) ? undefined : this.dataKey),
         [property]: value,
+      }
+
+      if (!value) {
+        log.red(
+          `You are setting a value of ${value} onto the dataKey property "${property}". Is this intended?`,
+          this.getSnapshot(),
+        )
+      } else {
+        log.grey(
+          `Data value of "${
+            typeof value === 'object' ? JSON.stringify(value) : value
+          }" was set on dataKey property: ${property}`,
+          this.getSnapshot(),
+        )
       }
     } else if (property && typeof property === 'object') {
       const properties = Object.keys(property)
@@ -63,8 +81,29 @@ class EmitAction extends Action<EmitActionObject> {
           [prop]: value,
         }
       })
+      if (!property) {
+        log.red(
+          `You are setting a value of ${property} onto the dataKey. Is this intended?`,
+          this.getSnapshot(),
+        )
+      } else {
+        log.grey(
+          `Data value of "${JSON.stringify(property)}" was set on the dataKey`,
+          this.getSnapshot(),
+        )
+      }
     }
     return this
+  }
+
+  getSnapshot() {
+    return {
+      ...super.getSnapshot(),
+      dataKey: this.dataKey,
+      actions: this.actions,
+      iteratorVar: this.iteratorVar,
+      trigger: this.trigger,
+    }
   }
 }
 

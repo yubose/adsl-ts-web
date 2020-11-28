@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import sinon from 'sinon'
-import { IResolver, Resolver, Viewport } from 'noodl-ui'
+import { IResolver, Resolver } from 'noodl-ui'
 import {
   assetsUrl,
   noodlui,
@@ -11,14 +11,16 @@ import {
 
 let logSpy: sinon.SinonStub
 
+const page = 'GeneralInfo'
+const root = {
+  GeneralInfo: {
+    Radio: [{ key: 'Gender', value: '' }],
+  },
+}
+
 before(() => {
   console.clear()
-  const page = 'GeneralInfo'
-  const root = {
-    GeneralInfo: {
-      Radio: [{ key: 'Gender', value: '' }],
-    },
-  }
+
   noodlui
     .init({ _log: false, viewport })
     .setAssetsUrl(assetsUrl)
@@ -34,7 +36,7 @@ before(() => {
       writable: true,
       value: function _cleanup() {
         noodlui
-          .reset({ keepCallbacks: true })
+          .reset({ keepCallbacks: false })
           .setAssetsUrl(assetsUrl)
           .setRoot(page, root)
           .setPage(page)
@@ -56,6 +58,7 @@ after(() => {
 
 beforeEach(() => {
   // noodlui.init({ _log: false, viewport })
+  noodlui.setPage(page).setRoot(root)
 })
 
 afterEach(() => {

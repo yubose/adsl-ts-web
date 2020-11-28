@@ -30,12 +30,14 @@ import { publish, walkOriginalChildren } from 'noodl-utils'
 export function createAsyncImageElement(
   container: HTMLElement,
   src?: (() => string) | string,
-  opts?: { timeout?: number },
+  opts?: { onLoad?(): void; timeout?: number },
 ) {
   let node = new Image()
   node.onload = () => {
     if (!container) container = document.body
+    opts?.onLoad?.()
     container.insertBefore(node as HTMLImageElement, container.childNodes[0])
+    node && (node.onload = undefined)
   }
   setTimeout(
     () => void (node.src = typeof src === 'function' ? src() : src || ''),

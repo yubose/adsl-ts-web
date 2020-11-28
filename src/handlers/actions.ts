@@ -125,6 +125,8 @@ const createActions = function ({ page }: { page: IPage }) {
         options,
         originalDataKey: action.original?.emit?.dataKey,
       })
+
+      return emitResult
     },
     trigger: 'onClick',
   })

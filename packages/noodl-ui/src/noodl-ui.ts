@@ -605,6 +605,20 @@ class NOODL implements T.INOODLUi {
       }
       // Emit object evaluation
       else if (isEmitObj(path)) {
+        if (component) {
+          let onPath = (info: {
+            before: string
+            after: string
+            component: typeof component
+          }) => {
+            log.func('onPath')
+            log.grey(`onPath called on path result`, info)
+            component?.off('path', onPath)
+            onPath = undefined as any
+          }
+          component?.on('path', onPath)
+        }
+
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
 
@@ -615,16 +629,17 @@ class NOODL implements T.INOODLUi {
           let dataObject: any
 
           if (_.isPlainObject(path.emit.dataKey)) {
-            _.forEach(_.keys(path.emit.dataKey), (key) => {
-              if (typeof key === 'string') {
+            _.forEach(_.keys(path.emit.dataKey), (property) => {
+              const keyPath = path.emit.dataKey[property]
+              if (typeof keyPath === 'string') {
                 dataObject = findDataObject({
                   component,
-                  dataKey: key,
+                  dataKey: keyPath,
                   pageObject,
                   root: this.actionsContext?.noodl?.root || this.root,
                 })
               }
-              emitAction.setDataKeyValue(key, dataObject)
+              emitAction.setDataKeyValue(property, dataObject)
             })
           }
 
@@ -633,13 +648,20 @@ class NOODL implements T.INOODLUi {
               'dataKey',
               createEmitDataKey(path.emit?.dataKey, dataObject),
             )
+            log.grey(
+              `Data key finalized for path emit`,
+              emitAction.getSnapshot(),
+            )
           }
 
           emitAction
             .set('dataObject', dataObject)
             .set('iteratorVar', component?.get?.('iteratorVar'))
+          log.grey(`Data object set on emit`, dataObject)
+          log.grey(`iteratorVar set on emit`, component?.get('iteratorVar'))
 
           emitAction['callback'] = async (snapshot) => {
+            log.grey(`Executing emit action callback`, snapshot)
             const callbacks = _.reduce(
               this.#cb.action.emit || [],
               (acc, obj) => (obj?.trigger === 'path' ? acc.concat(obj) : acc),
@@ -654,7 +676,7 @@ class NOODL implements T.INOODLUi {
                   emitAction,
                   this.getConsumerOptions({
                     assetsUrl: this.assetsUrl,
-                    component,
+                    component: component as T.IComponentTypeInstance,
                     createSrc: this.createSrc,
                     path,
                     snapshot,
@@ -677,22 +699,33 @@ class NOODL implements T.INOODLUi {
           // Result returned should be a string type
           let result = emitAction.execute(path)
 
+          log.grey(`Result received from emit action`, emitAction.getSnapshot())
+
           if (isPromise(result)) {
+            log.grey(`Result is a promise`)
             // Turn this into an EmitAction
             // const emitAction = new EmitAction(path, { trigger: 'path' })
             // emitAction.callback = (...args) => Promise.resolve(...args)
             return result
-              .then((res) =>
-                typeof res === 'string' && res.startsWith('http')
-                  ? res
-                  : resolveAssetUrl(String(res), this.assetsUrl),
-              )
+              .then((res) => {
+                let finalizedRes: string
+                if (typeof res === 'string' && res.startsWith('http')) {
+                  finalizedRes = res
+                  log.grey(`Result is prefixed with http`, res)
+                } else {
+                  finalizedRes = resolveAssetUrl(String(res), this.assetsUrl)
+                  log.grey(`Result was not prefixed with http.`, {
+                    before: res,
+                    after: finalizedRes,
+                  })
+                }
+                log.grey(`Resolved promise with: `, finalizedRes)
+                component?.emit('path', { component, result: finalizedRes })
+                return finalizedRes
+              })
               .catch((err) => Promise.reject(err))
           } else if (result) {
-            console.info(result)
-            console.info(result)
-            console.info(result)
-            console.info(result)
+            log.grey(`Result was NOT a promise`)
             if (typeof result === 'string' && result.startsWith('http')) {
               return result
             }
