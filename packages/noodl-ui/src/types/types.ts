@@ -1,7 +1,6 @@
 import { Draft } from 'immer'
 import {
   ActionObject,
-  ActionObject,
   BuiltInObject,
   EmitActionObject,
   EvalObject,
@@ -95,7 +94,6 @@ export interface INOODLUi {
   initialized: boolean
   page: string
   root: { [key: string]: any }
-  init(opts: { viewport?: Viewport }): this
   createActionChainHandler(
     actions: ActionObject[],
     args: {

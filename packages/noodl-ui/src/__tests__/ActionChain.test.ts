@@ -760,8 +760,8 @@ describe('ActionChain', () => {
         //
       })
 
-      describe.only('when emitting for list consumers', () => {
-        it.only(
+      describe('when emitting for list consumers', () => {
+        it(
           'should populate the EmitAction instance with dataKey, iteratorVar, ' +
             'and the dataObject',
           async () => {

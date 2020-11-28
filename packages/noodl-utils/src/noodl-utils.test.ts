@@ -5,6 +5,7 @@ import {
   IComponentTypeInstance,
   IList,
   IListItem,
+  ListItem,
 } from 'noodl-ui'
 import * as n from '.'
 
@@ -30,72 +31,122 @@ describe('createEmitDataKey', () => {
   const dataObject = { key: 'gender', value: 'Female' }
   const pageObject = { genderInfo: dataObject }
   const root = { Global: {}, MeetingRoomCreate: pageObject }
-  const orig = { var1: 'itemObject', var2: 'itemObject.key' }
+  const orig = { var1: 'genderInfo', var2: 'genderInfo.key' }
 
-  it(
-    'should attach the dataObject itself if there are no dots in ' +
-      'the key and its a list consumer',
-    () => {
-      expect(
-        n.createEmitDataKey(orig, {
-          iteratorVar: 'itemObject',
-          objs: dataObject,
-        }),
-      ).to.have.property('var1', dataObject)
-    },
-  )
+  it('should attach the dataObjects from the paths', () => {
+    const dataKey = n.createEmitDataKey(orig, [dataObject, pageObject, root])
+    expect(dataKey).to.have.property('var1', dataObject)
+    expect(dataKey).to.have.property('var2', 'gender')
+  })
 
-  it('should attach the dataObject using a path', () => {
-    expect(
-      n.createEmitDataKey(
-        { ...orig, var2: 'MeetingRoomCreate' },
-        { objs: [dataObject, pageObject, root] },
-      ),
-    ).to.have.property('var2', pageObject)
+  it('should attach the dataObjects using a path', () => {
+    const dataKey = n.createEmitDataKey(
+      { var1: 'Global', var2: 'MeetingRoomCreate' },
+      [dataObject, pageObject, root],
+    )
+    expect(dataKey).to.have.property('var1', root.Global)
+    expect(dataKey).to.have.property('var2', root.MeetingRoomCreate)
   })
 
   it('should attach the dataObject using a string dataKey', () => {
     expect(
-      n.createEmitDataKey('MeetingRoomCreate', {
-        objs: [dataObject, pageObject, root],
-      }),
-    ).to.eq(pageObject)
-  })
-
-  it('should attach the dataObject using a string dataKey and its a list consumer', () => {
+      n.createEmitDataKey('MeetingRoomCreate', [dataObject, pageObject, root]),
+    ).to.eq(root.MeetingRoomCreate)
     expect(
-      n.createEmitDataKey('MeetingRoomCreate.hello', {
-        component: createComponent({ type: 'view', iteratorVar: 'hello' }),
-        objs: [
-          dataObject,
-          pageObject,
-          {
-            ...root,
-            MeetingRoomCreate: { ...root.MeetingRoomCreate, hello: 'abc' },
-          },
-        ],
-      }),
-    ).to.eq('abc')
+      n.createEmitDataKey('genderInfo.value', [dataObject, pageObject, root]),
+    ).to.eq('Female')
+    expect(n.createEmitDataKey('genderInfo.value', pageObject)).to.eq('Female')
+    expect(n.createEmitDataKey('key', dataObject)).to.eq('gender')
+  })
+})
+
+describe('findDataObject', () => {
+  const listObject = [
+    { fruits: ['apple'], color: 'purple' },
+    { fruits: ['banana'], color: 'red' },
+  ]
+  const pageObject = { hello: { name: 'Henry' }, listData: listObject }
+  const root = { Bottle: pageObject, Global: { vertex: {} } }
+  const iteratorVar = 'hello'
+  const noodlListItem = {
+    type: 'listItem',
+    children: [
+      { type: 'label', dataKey: iteratorVar },
+      { type: 'label', dataKey: `${iteratorVar}.fruits` },
+    ],
+  }
+
+  describe('when using a list consumer component', () => {
+    describe('when the data object is in the listItem instance', () => {
+      it('should return the data object by providing a list consumer component', () => {
+        const list = createComponent({
+          type: 'list',
+          iteratorVar,
+          listObject,
+          children: [noodlListItem],
+        })
+        const listItem = list.createChild(
+          createComponent(noodlListItem),
+        ) as ListItem
+        list.createChild(createComponent(noodlListItem))
+        const label1 = listItem.child() as IComponentTypeInstance
+        const label2 = listItem.child(1) as IComponentTypeInstance
+        expect(n.findDataObject(pageObject, { component: label1 })).to.eq(
+          listObject[0],
+        )
+      })
+    })
+
+    describe('when the data object is not in the listItem instance', () => {
+      xit('should look for the list item using a given listIndex', () => {
+        //
+      })
+    })
+
+    xit('should return the data object by providing an iteratorVar', () => {
+      //
+    })
   })
 
-  it(
-    'should strip off the iteratorVar and then proceed to use the key as ' +
-      'path if a component list consumer is provided',
-    () => {
-      expect(
-        n.createEmitDataKey(orig, {
-          iteratorVar: 'itemObject',
-          objs: dataObject,
-        }),
-      ).to.have.property('var2', 'gender')
-      expect(
-        n.createEmitDataKey(orig, {
-          iteratorVar: 'itemObject',
-          objs: [root, pageObject, dataObject],
-        }),
-      ).to.have.property('var2', 'gender')
+  xit('should be able to return the data object by using a page object', () => {
+    //
+  })
+
+  xit('should be able to return the data object by using a root object', () => {
+    //
+  })
+})
+
+describe('findDataValue', () => {
+  const obj1 = { fruits: ['apple'] }
+  const obj2 = { firstName: 'Chris', lastName: 'Le', email: 'pft@gmail.com' }
+  const obj3 = {
+    a: {
+      b: {
+        c: { d: { e: { f: ['hello', 1, 2] }, army: { weapons: ['ak47'] } } },
+      },
     },
-  )
+  }
+
+  it('should retrieve the value', () => {
+    expect(n.findDataValue([obj1, obj2, obj3], 'a.b.c.d.e.f')).to.eq(
+      obj3.a.b.c.d.e.f,
+    )
+  })
+
+  it('should retrieve the value', () => {
+    expect(n.findDataValue(obj3, 'a.b.c')).to.eq(obj3.a.b.c)
+  })
+
+  it('should retrieve the value', () => {
+    expect(n.findDataValue(obj1, 'fruits')).to.eq(obj1.fruits)
+  })
+
+  it('should retrieve the value', () => {
+    expect(
+      n.findDataValue([obj2, obj3, obj1], 'a.b.c.d.army.weapons[0]'),
+    ).to.eq('ak47')
+  })
 })
 
 describe('isBoolean', () => {
