@@ -32,7 +32,7 @@ const config = {
     resolve({
       extensions,
       customResolveOptions: {
-        moduleDirectory: ['node_modules', '../noodl-utils'],
+        moduleDirectory: ['node_modules'],
       },
     }),
     typescript({

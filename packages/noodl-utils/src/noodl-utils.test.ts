@@ -5,6 +5,7 @@ import {
   IComponentTypeInstance,
   IList,
   IListItem,
+  List,
   ListItem,
 } from 'noodl-ui'
 import * as n from '.'
@@ -68,52 +69,75 @@ describe('findDataObject', () => {
   const pageObject = { hello: { name: 'Henry' }, listData: listObject }
   const root = { Bottle: pageObject, Global: { vertex: {} } }
   const iteratorVar = 'hello'
-  const noodlListItem = {
-    type: 'listItem',
-    children: [
-      { type: 'label', dataKey: iteratorVar },
-      { type: 'label', dataKey: `${iteratorVar}.fruits` },
-    ],
-  }
 
   describe('when using a list consumer component', () => {
+    const pageObject = { hello: { name: 'Henry' }, listData: listObject }
+    const noodlList = {
+      type: 'list',
+      iteratorVar,
+      listObject,
+      children: [],
+    } as any
+    const noodlListItem = {
+      type: 'listItem',
+      children: [],
+    } as any
+    noodlList.children.push(noodlListItem)
+    let list: List
+    let listItem: ListItem
+    let label1: IComponentTypeInstance
+    let label2: IComponentTypeInstance
+
+    beforeEach(() => {
+      list = createComponent(noodlList) as List
+      listItem = createComponent(noodlListItem) as ListItem
+      label1 = createComponent({
+        type: 'label',
+        dataKey: noodlList.iteratorVar,
+        listIndex: 0,
+      })
+      label2 = createComponent({
+        type: 'label',
+        dataKey: `${noodlList.iteratorVar}.fruits`,
+        iteratorVar,
+        listIndex: 1,
+      })
+    })
+
     describe('when the data object is in the listItem instance', () => {
       it('should return the data object by providing a list consumer component', () => {
-        const list = createComponent({
-          type: 'list',
-          iteratorVar,
-          listObject,
-          children: [noodlListItem],
-        })
-        const listItem = list.createChild(
-          createComponent(noodlListItem),
-        ) as ListItem
-        list.createChild(createComponent(noodlListItem))
-        const label1 = listItem.child() as IComponentTypeInstance
-        const label2 = listItem.child(1) as IComponentTypeInstance
+        list.createChild(listItem as any)
+        listItem.createChild(label1)
+        listItem.createChild(label2)
+        listItem.setDataObject(pageObject.hello)
         expect(n.findDataObject(pageObject, { component: label1 })).to.eq(
-          listObject[0],
+          listItem.getDataObject(),
         )
       })
     })
 
     describe('when the data object is not in the listItem instance', () => {
-      xit('should look for the list item using a given listIndex', () => {
-        //
-      })
-    })
-
-    xit('should return the data object by providing an iteratorVar', () => {
-      //
+      it(
+        'should look for the data object in the list instance using the ' +
+          'listIndex if available',
+        () => {
+          list.createChild(listItem as any)
+          list.set('listObject', listObject)
+          listItem.createChild(label1)
+          listItem.createChild(label2)
+          label1.set('iteratorVar', list.iteratorVar)
+          expect(n.findDataObject(label1)).to.eq(listObject[0])
+        },
+      )
     })
   })
 
-  xit('should be able to return the data object by using a page object', () => {
-    //
+  it('should be able to return the data object by using a page object', () => {
+    expect(n.findDataObject(pageObject, 'hello.name')).to.eq('Henry')
   })
 
-  xit('should be able to return the data object by using a root object', () => {
-    //
+  it('should be able to return the data object by using a root object', () => {
+    expect(n.findDataObject(root, 'Bottle')).to.eq(pageObject)
   })
 })
 
@@ -200,38 +224,33 @@ describe('publish', () => {
   })
 })
 
-// describe('findChild', async () => {
-//   it('should be able to find nested children', () => {
-//     const injectProps = {
-//       iteratorVar: 'hello',
-//       itemObject: { fruits: ['apple'] },
-//       dataKey: 'formData.fruits',
-//     }
-//     const component = new ListComponent()
-//     const child1 = component.createChild('listItem')
-//     const childOfChild1 = child1.createChild('view')
-//     const childOfChildOfChild1 = childOfChild1.createChild('image')
-//     expect(
-//       n.findChild(component, (child) => child === childOfChildOfChild1),
-//     ).to.equal(childOfChildOfChild1)
-//   })
+xdescribe('findChild', () => {
+  it('should be able to find nested children', () => {
+    const component = new List()
+    const child1 = component.createChild(createComponent('listItem'))
+    const childOfChild1 = child1.createChild('view')
+    const childOfChildOfChild1 = childOfChild1.createChild('image')
+    expect(
+      n.findChild(component, (child) => child === childOfChildOfChild1),
+    ).to.equal(childOfChildOfChild1)
+  })
 
-//   it('should be able to find deepy nested children by properties', () => {
-//     const component = new ListComponent()
-//     const child = component.createChild('listItem')
-//     const childOfChild = child.createChild('view')
-//     const childOfChildOfChild = childOfChild.createChild('label')
-//     const textBoard = childOfChildOfChild.createChild('label')
-//     textBoard.set('textBoard', [
-//       { text: 'hello' },
-//       { br: null },
-//       { text: 'my name is christopher' },
-//     ])
-//     expect(
-//       n.findChild(component, (child) => Array.isArray(child.get('textBoard'))),
-//     ).to.equal(textBoard)
-//   })
-// })
+  it('should be able to find deepy nested children by properties', () => {
+    const component = new List()
+    const child = component.createChild('listItem')
+    const childOfChild = child.createChild('view')
+    const childOfChildOfChild = childOfChild.createChild('label')
+    const textBoard = childOfChildOfChild.createChild('label')
+    textBoard.set('textBoard', [
+      { text: 'hello' },
+      { br: null },
+      { text: 'my name is christopher' },
+    ])
+    expect(
+      n.findChild(component, (child) => Array.isArray(child.get('textBoard'))),
+    ).to.equal(textBoard)
+  })
+})
 
 // describe('findParent', () => {
 //   it('should be able to find grand parents by traversing up the chain', () => {
@@ -257,10 +276,10 @@ describe('publish', () => {
 //   let mapOfLists: Map<IList, IList>
 
 //   beforeEach(() => {
-//     component1 = new ListComponent()
-//     component2 = new ListComponent()
-//     component3 = new ListComponent()
-//     component4 = new ListComponent()
+//     component1 = new List()
+//     component2 = new List()
+//     component3 = new List()
+//     component4 = new List()
 //     component1.createChild('date')
 //     component2Child = component2.createChild('listItem')
 //     component2ChildChild = component2Child.createChild('view')

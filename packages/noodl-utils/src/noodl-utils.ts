@@ -186,28 +186,43 @@ export function findParent<C extends IComponentTypeInstance>(
   return parent || null
 }
 
+/**
+ * Finds a data object using a dataObject, an array of dataObjects or if a component
+ * instance is provided it is a list consumer, it will attempt to retrieve its data
+ * object from a listItem parent, or a list parent (using listIndex)
+ * @param { IComponentTypeInstance | object | array } objs - Component instance or a dataObject or an array of dataObjects
+ * @param { object | undefined } opts
+ * @param { object | undefined } opts.component
+ * @param { object | undefined } opts.path
+ */
+export function findDataObject(
+  component: IComponentTypeInstance,
+  opts?: any,
+): any
 export function findDataObject(
   objs: DataObject | DataObject[],
-  opts: {
-    component?: IComponentTypeInstance
-    iteratorVar?: string
-    path?: string
-  },
+  path: string,
+): any
+export function findDataObject(
+  objs: DataObject | DataObject[],
+  opts: { component?: IComponentTypeInstance; path?: string },
+): any
+export function findDataObject(
+  objs: IComponentTypeInstance | DataObject | DataObject[],
+  opts?: string | { component?: IComponentTypeInstance; path?: string },
 ) {
   let dataObject: any
-  let path = opts?.path || ''
-  if (opts?.component) dataObject = findListDataObject(opts.component)
-  if (dataObject) return dataObject
-  if (path) {
-    const iteratorVar = opts?.iteratorVar || ''
-    if (iteratorVar) {
-      if (iteratorVar === path) {
-        dataObject = (Array.isArray(objs) ? objs : [objs]).find(Boolean)
-      } else if (path.startsWith(iteratorVar)) {
-        path = path.split('.').slice(1).join('.')
-      }
+  // Find by path
+  if (!(objs instanceof Component)) {
+    if (isStr(opts)) {
+      dataObject = findDataValue(objs, opts)
+    } else if (isListConsumer(opts?.component)) {
+      dataObject = findListDataObject(opts?.component as IComponentTypeInstance)
+    } else if (opts?.path) {
+      dataObject = findDataValue(objs, opts.path)
     }
-    dataObject = dataObject || findDataValue(objs, path)
+  } else {
+    dataObject = findListDataObject(objs)
   }
   return dataObject || null
 }
