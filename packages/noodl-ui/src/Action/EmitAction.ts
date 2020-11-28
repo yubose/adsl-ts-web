@@ -1,10 +1,15 @@
-import isPlainObject from 'lodash/isPlainObject'
+import _ from 'lodash'
+import Logger from 'logsnap'
 import { EmitActionObject, IActionOptions, NOODLEmitTrigger } from '../types'
 import Action from './Action'
 
+const log = Logger.create('EmitAction')
+
 class EmitAction extends Action<EmitActionObject> {
-  actions: any[] | undefined
+  #dataObject: any
+  // #iteratorVar: string | undefined
   dataKey: string | { [key: string]: any } | undefined
+  actions: any[] | undefined
   iteratorVar: string | undefined
   #trigger: NOODLEmitTrigger | undefined
 
@@ -21,70 +26,84 @@ class EmitAction extends Action<EmitActionObject> {
     // console.info(options)
     this['actions'] = action?.emit?.actions
     this['dataKey'] = action?.emit?.dataKey
-    this.#trigger = options?.trigger
+    this['trigger'] = options?.trigger
   }
 
   get trigger() {
     return this.#trigger
   }
 
-  set(
-    values: {
-      dataKey?: string
-      iteratorVar?: string
-      trigger?: NOODLEmitTrigger
-    },
-    value?: any,
-  ): this
-  set(key: 'dataKey' | 'iteratorVar' | 'trigger', value: any): this
-  set(
-    key:
-      | ('dataKey' | 'iteratorVar' | 'trigger')
-      | { dataKey?: string; iteratorVar?: string; trigger?: NOODLEmitTrigger },
-    value: any,
-  ) {
-    if (arguments.length === 1 && typeof key === 'object') {
-      if (key === null) return void this.setDataKey(null)
-      Object.keys(key).forEach((k) => {
-        if (k === 'dataKey') this.setDataKey(key)
-        else this[k] = key[k]
-      })
-    } else if (arguments.length == 2) {
-      if (key === 'dataKey') this.setDataKey(key as 'dataKey', value)
-      else if (key === 'trigger') this.#trigger = value
-      else this[key as string] = value
-    }
+  set trigger(trigger: NOODLEmitTrigger | undefined) {
+    this.#trigger = trigger
+  }
+
+  set(key: 'dataKey' | 'dataObject' | 'iteratorVar' | 'trigger', value: any) {
+    if (key === 'dataObject') return this.setDataObject(value)
+    this[key] = value
     return this
   }
 
-  setDataKey(key: string, value: any): this
-  setDataKey(key: { [key: string]: any }, value?: any): this
-  setDataKey(key: string | { [key: string]: any }, value?: any) {
-    if (arguments.length === 1) {
-      if (key === null) return void (this.dataKey = null)
-      if (isPlainObject(key)) {
-        if (!this.dataKey) this.dataKey = {}
-        value = { ...(this.dataKey as object), ...(key as object) }
+  getDataObject<T>(): T | undefined {
+    return this.#dataObject
+  }
+
+  setDataObject(dataObject: any) {
+    this.#dataObject = dataObject
+    return this
+  }
+
+  setDataKeyValue(property: string | { [key: string]: any }, value: any) {
+    log.func('setDataKeyValue')
+    if (typeof property === 'string') {
+      this.dataKey = {
+        ...(_.isString(this.dataKey) ? undefined : this.dataKey),
+        [property]: value,
+      }
+
+      if (!value) {
+        log.red(
+          `You are setting a value of ${value} onto the dataKey property "${property}". Is this intended?`,
+          this.getSnapshot(),
+        )
       } else {
-        value = key as string
+        log.grey(
+          `Data value of "${
+            typeof value === 'object' ? JSON.stringify(value) : value
+          }" was set on dataKey property: ${property}`,
+          this.getSnapshot(),
+        )
       }
-    } else if (arguments.length > 1) {
-      if (!this.dataKey) this.dataKey = {}
-      value = { ...(this.dataKey as object), [key as string]: value }
+    } else if (property && typeof property === 'object') {
+      const properties = Object.keys(property)
+      properties.forEach((prop) => {
+        this.dataKey = {
+          ...(typeof this.dataKey === 'object' ? this.dataKey : undefined),
+          [prop]: value,
+        }
+      })
+      if (!property) {
+        log.red(
+          `You are setting a value of ${property} onto the dataKey. Is this intended?`,
+          this.getSnapshot(),
+        )
+      } else {
+        log.grey(
+          `Data value of "${JSON.stringify(property)}" was set on the dataKey`,
+          this.getSnapshot(),
+        )
+      }
     }
-    if (value != null) this.dataKey = value
     return this
   }
 
-  clearDataKey(key?: string) {
-    if (!arguments.length) {
-      this.dataKey = undefined
-    } else if (key) {
-      if (typeof this.dataKey === 'object') {
-        delete this.dataKey[key]
-      }
+  getSnapshot() {
+    return {
+      ...super.getSnapshot(),
+      dataKey: this.dataKey,
+      actions: this.actions,
+      iteratorVar: this.iteratorVar,
+      trigger: this.trigger,
     }
-    return this
   }
 }
 

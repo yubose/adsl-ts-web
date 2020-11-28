@@ -157,22 +157,23 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       : eventType
     ).toLocaleLowerCase()
 
-    const fn = (event?: MouseEvent | Event, ...args: any[]) => {
+    const fn = (event?: MouseEvent | Event) => {
       log.func(`on all --> addEventListener: ${event}`)
       log.grey(`User action invoked handler`, {
         event,
         component,
         handlerInArgs: handler,
         handlerInComponent: component.get(eventType),
-        otherArgs: args,
       })
       // node.removeEventListener(eventType, attachEventHandler)
       // handleEventHandlers()
-      return handler?.(component, event)
+      // This func is returned from ActionChain#build
+      return handler?.(event)
     }
 
     // TODO: Test this
     // Attach the event handler
+    log.gold(`Attached ${eventType} handler`, { node, component })
     node.addEventListener(event, fn)
   }
 
@@ -185,7 +186,7 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
       }
       if (handler) {
         // setTimeout(() => {
-        handler = component.get(eventType)
+        // handler = component.get(eventType)
         if (_.isArray(handler)) {
           import('app/noodl-ui').then(({ default: noodlui }) => {
             // component.draft()

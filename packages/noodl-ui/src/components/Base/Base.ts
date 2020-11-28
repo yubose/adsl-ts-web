@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
 import { WritableDraft } from 'immer/dist/internal'
 import { createDraft, isDraft, finishDraft, original, current } from 'immer'
 import { eventTypes } from '../../constants'
@@ -15,6 +16,10 @@ import {
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
 import { forEachEntries, getRandomKey } from '../../utils/common'
+
+const log = Logger.create('Base')
+
+// Current component events: 'path' attached by createSrc
 
 class Component implements IComponent {
   // This cache is used internally to cache original objects (ex: action objects)
@@ -646,28 +651,36 @@ class Component implements IComponent {
     return this
   }
 
+  on(eventName: 'path', cb: Function): this
   on<K = any>(eventName: K, cb: Function) {
     if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
+    log.func(`on [${this.noodlType}]`)
+    log.grey(`Subscribing listener for "${eventName}"`, this)
     this.#cb[eventName].push(cb)
     return this
   }
 
+  off(eventName: 'path', cb?: Function): this
   off(eventName: any, cb: Function) {
     if (_.isArray(this.#cb[eventName])) {
       if (this.#cb[eventName].includes(cb)) {
-        this.#cb[eventName] = _.filter(
-          this.#cb[eventName],
-          (callback) => callback !== cb,
-        )
+        log.func(`off [${this.noodlType}]`)
+        log.grey(`Removing listener for "${eventName}"`, this)
+        this.#cb[eventName].splice(this.#cb[eventName].indexOf(cb), 1)
       }
     }
     return this
   }
 
   emit(eventName: string, ...args: any[]) {
-    if (this.#cb[eventName]) {
-      _.forEach(this.#cb[eventName], (fn) => fn(...args))
-    }
+    log.func(`emit [${this.noodlType}]`)
+    _.forEach(this.#cb[eventName] || [], (fn) => {
+      log.grey(`Dispatching event for "${eventName}"`, {
+        component: this,
+        args,
+      })
+      fn(...args)
+    })
     return this
   }
 

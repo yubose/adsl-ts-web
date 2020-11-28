@@ -46,6 +46,7 @@ import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
 import './handlers/dom'
 import './styles.css'
+import { isEmitObj } from 'noodl-utils'
 
 const log = Logger.create('src/index.ts')
 

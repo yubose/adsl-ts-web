@@ -55,6 +55,7 @@ class List extends Component implements IList {
       >),
     )
     log.func('constructor')
+    log.gold(`Creating list component`, { args, component: this.toJS() })
     // These initial values will be set once in the prototype.
     // When we use .set, we will intercept the call and set them
     // on this instance instead

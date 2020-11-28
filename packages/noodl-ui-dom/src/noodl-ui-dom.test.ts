@@ -203,17 +203,23 @@ describe('noodl-ui-dom', () => {
         fn: async () => 'hi.png',
         trigger: 'path',
       })
-      const img = noodluidom.parse(
-        noodlui.resolveComponents({
-          type: 'image',
-          path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
-        }) as IComponentTypeInstance,
-      )
-
+      const image = noodlui.resolveComponents({
+        type: 'image',
+        path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
+      }) as IComponentTypeInstance
+      const img = noodluidom.parse(image)
       await waitFor(() => {
         expect(img?.src).to.eq(assetsUrl + 'hi.png')
       })
     })
+
+    xit(
+      'should be able to toggle on right away if it starts off with an ' +
+        'untoggled state',
+      () => {
+        //
+      },
+    )
   })
 
   describe('noodlType: plugin', () => {
@@ -289,7 +295,7 @@ describe('noodl-ui-dom', () => {
 
     it(
       'should return the default expected base shape for components ' +
-        'components that have them (NOODLComponent properties)',
+        'that have them (NOODLComponent properties)',
       () => {
         const component = createComponent(noodlComponent)
         const shape = getShape(component)
@@ -298,7 +304,7 @@ describe('noodl-ui-dom', () => {
           !shapeKeys.includes(key) ? delete noodlComponent[key] : undefined,
         )
         Object.keys(noodlComponent).forEach((k) => {
-          expect(noodlComponent[k]).to.eq(shape[k])
+          expect(noodlComponent[k]).to.deep.eq(shape[k])
           delete shape[k]
         })
         expect(Object.keys(shape)).to.have.lengthOf(0)

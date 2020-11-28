@@ -8,27 +8,27 @@ const logsnapPkg = require('./packages/logsnap/package.json')
 const noodluiPkg = require('./packages/noodl-ui/package.json')
 const noodlutilsPkg = require('./packages/noodl-utils/package.json')
 const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
-const CircularDependencyPlugin = require('circular-dependency-plugin')
-const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
+// const CircularDependencyPlugin = require('circular-dependency-plugin')
+// const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 
 const htmlPluginOptions = {
   filename: 'index.html',
   title: 'AiTmed Noodl Web',
   favicon: 'favicon.ico',
   // template: 'public/index.html',
-  // cache: false,
-  // scriptLoading: 'defer',
+  cache: false,
+  scriptLoading: 'defer',
   minify: false,
 }
 
 const plugins = [
-  new BundleStatsWebpackPlugin({
-    baseline: true,
-  }),
-  new CircularDependencyPlugin({
-    exclude: /node_modules/,
-    include: /src/,
-  }),
+  // new BundleStatsWebpackPlugin({
+  //   baseline: true,
+  // }),
+  // new CircularDependencyPlugin({
+  //   exclude: /node_modules/,
+  //   include: /src/,
+  // }),
   new webpack.DefinePlugin({
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
@@ -56,36 +56,36 @@ let productionOptions
 
 if (process.env.NODE_ENV === 'production') {
   productionOptions = {
-    // optimization: {
-    //   // minimize: true,
-    //   minimizer: [
-    //     new TerserPlugin({
-    //       parallel: 4,
-    //       sourceMap: true,
-    //     }),
-    //   ],
-    //   splitChunks: {
-    //     chunks: 'async',
-    //     minSize: 20000,
-    //     maxSize: 0,
-    //     minChunks: 1,
-    //     maxAsyncRequests: 30,
-    //     maxInitialRequests: 30,
-    //     automaticNameDelimiter: '~',
-    //     enforceSizeThreshold: 50000,
-    //     cacheGroups: {
-    //       defaultVendors: {
-    //         test: /[\\/]node_modules[\\/]/,
-    //         priority: -10,
-    //       },
-    //       default: {
-    //         minChunks: 2,
-    //         priority: -20,
-    //         reuseExistingChunk: true,
-    //       },
-    //     },
-    //   },
-    // },
+    optimization: {
+      // minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          parallel: 4,
+          sourceMap: true,
+        }),
+      ],
+      splitChunks: {
+        chunks: 'async',
+        minSize: 20000,
+        maxSize: 0,
+        minChunks: 1,
+        maxAsyncRequests: 30,
+        maxInitialRequests: 30,
+        automaticNameDelimiter: '~',
+        enforceSizeThreshold: 50000,
+        cacheGroups: {
+          defaultVendors: {
+            test: /[\\/]node_modules[\\/]/,
+            priority: -10,
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+        },
+      },
+    },
   }
 }
 

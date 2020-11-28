@@ -125,6 +125,8 @@ const createActions = function ({ page }: { page: IPage }) {
         options,
         originalDataKey: action.original?.emit?.dataKey,
       })
+
+      return emitResult
     },
     trigger: 'onClick',
   })
@@ -184,7 +186,7 @@ const createActions = function ({ page }: { page: IPage }) {
         pageName: page,
       } as Partial<EmitActionObject>
 
-      if ('dataKey' in path.emit) {
+      if (path.emit.dataKey) {
         emitParams.dataKey = createEmitDataKey(path.emit.dataKey, dataObject)
       }
 

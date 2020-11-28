@@ -44,16 +44,16 @@ beforeEach(() => {
   view = components[3] as IComponentTypeInstance
   listDemographics = view.child(2) as IList
   listGender = view.child(3) as IList
-  // {
-  //   const data = listDemographics.getData().slice()
-  //   data.forEach((d) => listDemographics.removeDataObject(d))
-  //   data.forEach((d) => listDemographics.addDataObject(d))
-  // }
-  // {
-  //   const data = listGender.getData().slice()
-  //   data.forEach((d) => listGender.removeDataObject(d))
-  //   data.forEach((d) => listGender.addDataObject(d))
-  // }
+  {
+    // const data = listDemographics.getData().slice()
+    // data.forEach((d) => listDemographics.removeDataObject(d))
+    // data.forEach((d) => listDemographics.addDataObject(d))
+  }
+  {
+    // const data = listGender.getData().slice()
+    // data.forEach((d) => listGender.removeDataObject(d))
+    // data.forEach((d) => listGender.addDataObject(d))
+  }
 })
 
 describe('redraw', () => {
@@ -98,15 +98,14 @@ describe('redraw', () => {
   })
 
   it('should recursively remove child references', () => {
-    const node = noodluidom.parse(view)
+    const node = noodluidom.parse(listGender)
     const listItem = listGender.child()
-    const label = listItem?.child(0)
-    const image = listItem?.child(1)
-    expect(!!findChild(view, (c) => c === image)).to.be.true
-    expect(!!findChild(view, (c) => c === label)).to.be.true
-    noodluidom.redraw(node, view)
-    expect(!!findChild(view, (c) => c === image)).to.be.false
-    expect(!!findChild(view, (c) => c === label)).to.be.false
+    const [label, image] = listItem?.children() || []
+    expect(!!findChild(listGender, (c) => c === image)).to.be.true
+    expect(!!findChild(listGender, (c) => c === label)).to.be.true
+    noodluidom.redraw(node, listGender)
+    expect(!!findChild(listGender, (c) => c === image)).to.be.false
+    expect(!!findChild(listGender, (c) => c === label)).to.be.false
   })
 
   xit('should recursively remove child listeners', async () => {
@@ -145,17 +144,19 @@ describe('redraw', () => {
   })
 
   it("should use the removing component's attrs as a blueprint to re-resolve the new one", () => {
+    const view = noodlui.resolveComponents(
+      EmitRedraw.components as NOODLComponent[],
+    )[3]
+    const list = view.child(2) as List
     noodluidom.parse(view)
-    const listItem = listGender.child() as IListItem
+    const listItem = list.child() as IListItem
     const liNode = document.getElementById(listItem?.id || '')
     const label = listItem?.child()
     const { type, dataKey, style, listId, iteratorVar, noodlType, listIndex } =
       label?.original || {}
-    const labelNode = document.getElementById(label?.id)
     expect(listItem.hasChild(label)).to.be.true
     noodluidom.redraw(liNode, listItem)
     expect(listItem.hasChild(label)).to.be.false
-    noodluidom.off('component', onComponentAttachId)
   })
 
   it('should set the original parent as the parent of the new redrawee component', () => {
@@ -327,15 +328,83 @@ describe('redraw', () => {
         const img = noodluidom.parse(image)
 
         await waitFor(() => {
-          expect(img?.src).to.eq(assetsUrl + hello)
+          expect((img as any)?.src).to.eq(assetsUrl + hello)
           img?.click()
-          expect(document.querySelector('img')).to.eq(assetsUrl + abc)
+          expect(document.querySelector('img')?.src).to.eq(assetsUrl + hello)
         })
       })
+
+      xit(
+        'path emit should be delayed until after the onClick / onChange emit ' +
+          'actions are done when clicked/changed from the user ' +
+          '(race conditions delays the finalized src re-evaluation',
+        () => {
+          //
+        },
+      )
+
+      xit(
+        'should be able to toggle off right away if it starts off with a ' +
+          'toggled state',
+        async (done) => {
+          const state = { pathValue: 'myimg.png' }
+          const pathSpy = sinon.spy(async () => state.pathValue)
+          const onClickSpy = sinon.spy(async (action, options) => {
+            state.pathValue = 'myotherimg.png'
+            return ['']
+          })
+          noodlui
+            .use([
+              { actionType: 'emit', fn: pathSpy, trigger: 'path' },
+              { actionType: 'emit', fn: onClickSpy, trigger: 'onClick' },
+            ])
+            .use({
+              actionType: 'builtIn',
+              funcName: 'redraw',
+              fn: async (a, { component }) =>
+                void noodluidom.redraw(
+                  document.getElementById(component.id),
+                  component,
+                ),
+            })
+          const view = noodlui.resolveComponents({
+            type: 'view',
+            children: [
+              {
+                type: 'image',
+                onClick: [
+                  { emit: { var1: 'hello' }, actions: [] },
+                  {
+                    actionType: 'builtIn',
+                    funcName: 'redraw',
+                    viewTag: 'genderTag',
+                  },
+                ],
+                path: { emit: { var1: 'hello' }, actions: [] },
+                viewTag: 'genderTag',
+              },
+            ],
+          })
+          const image = view.child() as IComponentTypeInstance
+          console.info('HELLO')
+          console.info(prettyDOM())
+          const node = noodluidom.parse(image)
+          await waitFor(() => {
+            const imgNode = document.querySelector(
+              `img[src=${assetsUrl + 'myimg.png'}]`,
+            )
+            console.info(document.querySelector('img'))
+            expect(imgNode).to.exist
+          })
+          console.info('GOODBYE')
+          const [newNode, newComponent] = noodluidom.redraw(node, image)
+          console.info(prettyDOM())
+        },
+      )
     })
 
-    xdescribe('when user types something on a redrawed input node that had an onChange emit', () => {
-      it.only('should still be emitting and updating the DOM', () => {
+    describe('when user types something on a redrawed input node that had an onChange emit', () => {
+      it('should still be emitting and updating the DOM', () => {
         const mockOnChangeEmit = async (action, { node, component }) => {
           node.setAttribute('placeholder', component.get('data-value'))
         }
@@ -353,16 +422,11 @@ describe('redraw', () => {
           children: [{ type: 'textField', dataKey: 'formData.password' }],
         })
         const textField = view.child() as IComponentTypeInstance
-        console.info(textField.action)
         noodluidom.on('textField', (node: HTMLInputElement, c) => {
-          console.info(chalk.yellow(c.get('data-value')))
-          console.info(node.id)
-          console.info(c.id)
           node.dataset.value = c.get('data-value') || ''
           node.value = c.get('data-value') || ''
 
           node.onchange = function (e) {
-            console.info(chalk.yellow(e.value || 'no value'))
             node.dataset.value = e.value
             throw new Error('i ran')
           }
@@ -494,5 +558,5 @@ describe('redraw', () => {
 })
 
 function onComponentAttachId(node: any, component: any) {
-  node.id = component.id
+  node && (node.id = component.id)
 }
