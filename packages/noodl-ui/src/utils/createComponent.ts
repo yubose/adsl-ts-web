@@ -1,22 +1,17 @@
 import _ from 'lodash'
-import {
-  IComponent,
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  NOODLComponentType,
-} from '../types'
+import { ComponentObject, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Component from '../components/Base'
 
 export interface PropsOptionFunc<T> {
-  (child: T): Partial<IComponentTypeObject>
+  (child: T): Partial<ComponentObject>
 }
-export type PropsOptionObj = IComponentTypeObject
+export type PropsOptionObj = ComponentObject
 
-interface Options<T extends NOODLComponentType = NOODLComponentType> {
-  props?: PropsOptionObj | PropsOptionFunc<IComponentTypeInstance<T>>
+interface Options {
+  props?: PropsOptionObj | PropsOptionFunc<Component>
 }
 
 /**
@@ -25,30 +20,32 @@ interface Options<T extends NOODLComponentType = NOODLComponentType> {
  * @param { string | object | Component } value - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
-function createComponent<K extends NOODLComponentType = NOODLComponentType>(
+function createComponent(noodlType: 'list', options?: Options): List
+function createComponent(noodlType: 'listItem', options?: Options): ListItem
+function createComponent<K extends ComponentType = ComponentType>(
   noodlType: K,
   options?: Options,
-): IComponentTypeInstance<K>
+): Component
 
-function createComponent<K extends NOODLComponentType = NOODLComponentType>(
-  value: IComponentTypeObject,
+function createComponent<K extends ComponentType = ComponentType>(
+  value: ComponentObject,
   options?: Options,
-): IComponentTypeInstance<K>
+): Component
 
-function createComponent<K extends NOODLComponentType = NOODLComponentType>(
-  component: IComponentTypeInstance<K>,
+function createComponent<K extends ComponentType = ComponentType>(
+  component: Component,
   options?: Options,
-): IComponentTypeInstance<K>
+): Component
 
-function createComponent<K extends NOODLComponentType = NOODLComponentType>(
-  value: K | IComponentTypeObject | IComponentTypeInstance<K>,
+function createComponent<K extends ComponentType = ComponentType>(
+  value: K | ComponentObject | Component,
   options?: Options,
-): IComponentTypeInstance<K> {
+): Component | List | ListItem {
   let childComponent: any
   let id: string = ''
   const props = toProps(value, options?.props)
 
-  // NOODLComponentType
+  // ComponentType
   if (typeof value === 'string') {
     childComponent = toInstance({ type: value, ...props })
   } else if (value instanceof Component) {
@@ -76,7 +73,7 @@ function createComponent<K extends NOODLComponentType = NOODLComponentType>(
   return childComponent
 }
 
-function toInstance(value: IComponentTypeObject) {
+function toInstance(value: ComponentObject) {
   if (!('children' in value)) {
     // value.children = []
   }
@@ -86,14 +83,14 @@ function toInstance(value: IComponentTypeObject) {
     case 'listItem':
       return new ListItem(value)
     default:
-      return new Component(value) as IComponent
+      return new Component(value)
   }
 }
 
 function toProps(
   value: any,
   props?: Options['props'],
-): Partial<IComponentTypeObject> | void {
+): Partial<ComponentObject> | void {
   if (props) {
     if (_.isFunction(props)) return props(value)
     return props

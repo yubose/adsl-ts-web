@@ -1,16 +1,15 @@
 import _ from 'lodash'
-import produce from 'immer'
 import Logger from 'logsnap'
+import List from '../../components/List'
+import ListItem from '../../components/ListItem'
 import { getRandomKey } from '../../utils/common'
 import {
   ConsumerOptions,
-  IComponentTypeObject,
-  IList,
-  IListBlueprint,
-  IListItem,
-  IResolver,
+  ComponentObject,
+  ListBlueprint,
   NOODLComponent,
 } from '../../types'
+import Resolver from '../../Resolver'
 import { event } from '../../constants'
 import { _resolveChildren } from './helpers'
 import createComponent from '../../utils/createComponent'
@@ -18,9 +17,9 @@ import createComponent from '../../utils/createComponent'
 const log = Logger.create('handleList')
 
 const handleListInternalResolver = (
-  component: IList,
+  component: List,
   options: ConsumerOptions,
-  _internalResolver: IResolver,
+  _internalResolver: Resolver,
 ) => {
   const { getBaseStyles, resolveComponent, resolveComponentDeep } = options
 
@@ -29,8 +28,8 @@ const handleListInternalResolver = (
     : {
         ...(typeof component?.original?.children === 'string'
           ? { type: component.original.children }
-          : { ...(component?.original?.children as IComponentTypeObject) }),
-      }) as IComponentTypeObject
+          : { ...(component?.original?.children as any) }),
+      }) as ComponentObject
 
   const commonProps = {
     listId: component.listId,
@@ -63,12 +62,12 @@ const handleListInternalResolver = (
   component.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
-    let listItem = createComponent(component?.getBlueprint()) as IListItem
+    let listItem = createComponent(component?.getBlueprint())
     listItem.id = getRandomKey()
     listItem.setParent(component)
     listItem.setDataObject?.(result.dataObject)
     listItem.set('listIndex', result.index)
-    listItem = resolveComponent(component.createChild(listItem)) as IListItem
+    listItem = resolveComponent(component.createChild(listItem))
 
     const logArgs = { options, ...result, list: component, listItem }
 
@@ -121,9 +120,7 @@ const handleListInternalResolver = (
   component.on(event.component.list.UPDATE_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.UPDATE_DATA_OBJECT}]`)
     const { index, dataObject } = result
-    const listItem: IListItem<'list'> | undefined = component.children()?.[
-      index
-    ]
+    const listItem: ListItem<'list'> | undefined = component.children()?.[index]
     listItem.setDataObject(dataObject)
     log.green(`Updated dataObject`, { result, ...options })
     const args = { ...result, listItem }
@@ -136,7 +133,7 @@ const handleListInternalResolver = (
 
   // Initiate the blueprint
   component.setBlueprint(
-    resolveBlueprint(rawBlueprint as NOODLComponent) as IListBlueprint,
+    resolveBlueprint(rawBlueprint as NOODLComponent) as ListBlueprint,
   )
 }
 

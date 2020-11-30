@@ -1,22 +1,19 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { IComponent, IList, NOODLComponent } from '../types'
-import EmitAction from '../Action/EmitAction'
-import { findParent } from 'noodl-utils'
+import { NOODLComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
 import Component from '../components/Base'
 import List from '../components/List'
 import Viewport from '../Viewport'
-import ListItem from '../components/ListItem'
 
 let noodlComponent: NOODLComponent
-let component: IComponent
+let component: Component
 
 beforeEach(() => {
   noodlComponent = mock.raw.getNOODLView() as NOODLComponent
-  component = new Component(noodlComponent) as IComponent
+  component = new Component(noodlComponent)
 })
 
 describe('noodl-ui', () => {
@@ -52,122 +49,48 @@ describe('noodl-ui', () => {
       expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + 'selected.png')
     })
 
-    it(
-      'should still resolve successfuly to the src even if the callback ' +
-        'is a promise',
-      async () => {
-        //
-      },
-    )
-
-    describe('when passing an emit object', () => {
-      it('should populate the dataKey with the dataObject for list consumers', () => {
-        const pathSpy = sinon.spy()
-        const iteratorVar = 'hello'
-        const path = {
-          emit: {
-            dataKey: {
-              var1: iteratorVar,
-              var2: iteratorVar,
-              var3: iteratorVar,
-            },
-            actions: [{ if: [() => false, {}, {}] }],
-          },
-        }
-        const listObject = [
-          { name: 'arthur', lastName: 'le' },
-          { name: 'henry', lastName: 'lopez' },
-        ]
-        noodlui.use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
-        const view = noodlui.resolveComponents({
-          type: 'view',
-          children: [
-            {
-              type: 'list',
-              listObject,
-              iteratorVar,
-              children: [
-                { type: 'listItem', children: [{ type: 'image', path }] },
-              ],
-            },
-          ],
-        })
-        const listItem = new ListItem()
-        listItem.setDataObject({ fruit: 'apple', ext: '.png' })
-        const image = createComponent('image')
-        image.set('path', path)
-        view.createChild(listItem)
-        listItem.createChild(image)
-        noodlui.use({
-          actionType: 'emit',
-          fn: (path: any, component: any) => {
-            const listItemComponent = findParent(
-              component,
-              (p) => p.noodlType === 'listItem',
-            )
-            const dataObject = listItemComponent.getDataObject()
-            return dataObject.fruit + dataObject.ext
-          },
-          trigger: 'path',
-        })
-        // noodlui.resolveComponents(view)
-        const list = view.child() as IList
-        const data = list.getData()
-        data.forEach((d) => list.removeDataObject(d))
-        data.forEach((d) => list.addDataObject(d))
-        const [action]: [EmitAction] = pathSpy.args[0]
-        expect(action.dataKey).to.have.property('var1').to.eq(listObject[0])
-        expect(action.dataKey).to.have.property('var2').to.eq(listObject[0])
-        expect(action.dataKey).to.have.property('var3').to.eq(listObject[0])
+    describe.only('when using path emits', () => {
+      it('should set the iteratorVar if it exists', () => {
+        const emitObj = { emit: { dataKey: { var1: 'g' }, actions: [] } }
+        const spy = sinon.spy()
+        noodlui.use({ actionType: 'emit', fn: spy, trigger: 'path' })
+        noodlui.createSrc(emitObj)
       })
-    })
 
-    it('should populate the dataKey with the dataObject for non list consumers', async () => {
-      const pathSpy = sinon.spy(async () => 'hello.png')
-      const path = {
-        emit: {
-          dataKey: {
-            var1: 'formData',
-            var2: 'formData.greeting.fruits',
-            var3: 'formData.greeting',
-          },
-          actions: [],
+      xit(
+        'should map through all the registered path emit callbacks and take ' +
+          'the first result it receives as the path value',
+        () => {
+          //
         },
-      }
-      const dataObject = { formData: { greeting: { fruits: ['apple'] } } }
-      noodlui
-        .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
-        .use({ getRoot: () => ({ Apple: dataObject }) })
-        .setPage('Apple')
-        .resolveComponents({
-          type: 'view',
-          children: [{ type: 'image', path }],
-        })
-      const [action]: [EmitAction] = pathSpy.args[0]
-      expect(action.dataKey).to.have.property('var1').to.eq(dataObject.formData)
-      expect(action.dataKey)
-        .to.have.property('var2')
-        .to.eq(dataObject.formData.greeting.fruits)
-      expect(action.dataKey)
-        .to.have.property('var3')
-        .to.eq(dataObject.formData.greeting)
-    })
-  })
+      )
 
-  it('should try to use a data object to pass to the if func if component is provided', () => {
-    const path = {
-      if: [(o: any) => o.gender === 'Male', 'male.png', 'female.png'],
-    } as any
-    const listItem = new ListItem() as any
-    listItem.setDataObject({ gender: 'Female' })
-    expect(noodlui.createSrc(path, listItem)).to.eq(
-      noodlui.assetsUrl + 'female.png',
-    )
-    const image = new Component({ type: 'image' })
-    listItem.createChild(image)
-    expect(noodlui.createSrc(path, image as any)).to.eq(
-      noodlui.assetsUrl + 'female.png',
-    )
+      describe('when passing options', () => {
+        xit('should pass in the createSrc helper', () => {
+          //
+        })
+
+        xit('should pass in the original path object', () => {
+          //
+        })
+
+        xit('should pass in the component', () => {
+          //
+        })
+      })
+
+      describe('when a dataKey property is in the emit obj', async () => {
+        xit('when the dataKey is an object', () => {
+          //
+        })
+
+        xit('when the dataKey is a string', () => {
+          //
+        })
+      })
+
+      describe('when the dataKey property is NOT in the emit obj', () => {})
+    })
   })
 })
 

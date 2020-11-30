@@ -7,8 +7,8 @@ import {
   getDataValues,
   GotoURL,
   GotoObject,
-  IComponentTypeInstance,
-  IListItem,
+  Component,
+  ListItem,
 } from 'noodl-ui'
 import {
   LocalAudioTrack,
@@ -23,8 +23,8 @@ import {
   isBooleanTrue,
   isBooleanFalse,
   isEmitObj,
-  findDataObject,
   createEmitDataKey,
+  findListDataObject,
   publish,
 } from 'noodl-utils'
 import Logger from 'logsnap'
@@ -76,7 +76,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     if (dataKey.startsWith(iteratorVar)) {
       let parts = dataKey.split('.').slice(1)
-      dataObject = findDataObject(component)
+      dataObject = findListDataObject(component)
       previousDataValue = _.get(dataObject, parts)
       // previousDataValueInSdk = _.get(noodl.root[context.page])
       dataValue = previousDataValue
@@ -465,7 +465,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       const listItem = findParent(
         component,
         (p) => p?.noodlType === 'listItem',
-      ) as IListItem
+      ) as ListItem
       if (listItem) {
         let dataObject = listItem.getDataObject()
         if (!dataObject) {

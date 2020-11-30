@@ -3,8 +3,8 @@ import Logger from 'logsnap'
 import {
   event as noodluiEvent,
   eventTypes,
-  IComponentTypeInstance,
-  IList,
+  Component,
+  List,
   isPromise,
   SelectOption,
 } from 'noodl-ui'
@@ -37,14 +37,14 @@ const defaultPropTable = {
     | string
     | {
         attribute: string
-        cond?(node: any, component: IComponentTypeInstance): boolean
+        cond?(node: any, component: Component): boolean
       }
   )[],
 }
 
 // TODO: Consider extending this to be better. We'll hard code this logic for now
 // This event is called for all components
-noodluidom.on('component', (node, component: IComponentTypeInstance) => {
+noodluidom.on('component', (node, component: Component) => {
   if (!node || !component) return
   log.func('on [component]')
 
@@ -71,21 +71,20 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
         }
         val =
           component.get((attr || '') as any) ||
-          component[(attr || '') as keyof IComponentTypeInstance]
+          component[(attr || '') as keyof Component]
       } else {
         attr = key
       }
       val =
-        component.get((attr || '') as keyof IComponentTypeInstance) ||
-        component[(attr || '') as keyof IComponentTypeInstance]
+        component.get((attr || '') as keyof Component) ||
+        component[(attr || '') as keyof Component]
       if (val !== undefined) node.setAttribute(attr as keyof typeof node, val)
     })
   }
   /** Handle dataset assignments */
   if (_.isArray(defaultPropTable.dataset)) {
     _.forEach(defaultPropTable.dataset, (key) => {
-      const val =
-        component.get(key) || component[key as keyof IComponentTypeInstance]
+      const val = component.get(key) || component[key as keyof Component]
       if (val !== undefined) node.dataset[key.replace('data-', '')] = val
     })
   }
@@ -96,8 +95,7 @@ noodluidom.on('component', (node, component: IComponentTypeInstance) => {
     let val
     while (prop) {
       if (prop !== undefined) {
-        val =
-          component.get(prop) || component[prop as keyof IComponentTypeInstance]
+        val = component.get(prop) || component[prop as keyof Component]
         // @ts-expect-error
         if (val !== undefined) node[prop] = val
       }
@@ -362,7 +360,7 @@ noodluidom.on('label', (node, component) => {
   }
 })
 
-noodluidom.on<'list'>('list', (node: HTMLUListElement, component: IList) => {
+noodluidom.on<'list'>('list', (node: HTMLUListElement, component: List) => {
   log.func('list')
   if (!component) return
 

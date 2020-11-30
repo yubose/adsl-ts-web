@@ -1,11 +1,12 @@
 import _ from 'lodash'
 import fs, { WriteOptions } from 'fs-extra'
 import path from 'path'
+import Component from '../components/Base'
 import getAlignAttrs from '../resolvers/getAlignAttrs'
 import getBorderAttrs from '../resolvers/getBorderAttrs'
 import getColors from '../resolvers/getColors'
 import getCustomDataAttrs from '../resolvers/getCustomDataAttrs'
-import getElementType, { getType } from '../resolvers/getElementType'
+import getElementType, { getTagName } from '../resolvers/getElementType'
 import getEventHandlers from '../resolvers/getEventHandlers'
 import getFontAttrs from '../resolvers/getFontAttrs'
 import getPosition from '../resolvers/getPosition'
@@ -17,11 +18,7 @@ import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
 import NOODLUi from '../noodl-ui'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
-import {
-  ResolverFn,
-  IComponentTypeObject,
-  IComponentTypeInstance,
-} from '../types'
+import { ResolverFn, ComponentObject } from '../types'
 
 export const assetsUrl = 'https://something.com/assets/'
 
@@ -34,14 +31,12 @@ export const noodlui = (function () {
     client: new NOODLUi({ viewport }),
   }
 
-  state.client.setAssetsUrl(assetsUrl)
-
   Object.defineProperty(state.client, 'cleanup', {
     configurable: true,
     enumerable: true,
     writable: true,
     value: function () {
-      state.client.reset()
+      state.client.reset({ keepCallbacks: false })
       state.client.initialized = true
     },
   })
@@ -87,11 +82,8 @@ export function getAllResolvers() {
   ] as ResolverFn[]
 }
 
-export function toDOM<
-  C extends IComponentTypeInstance,
-  N extends HTMLElement = HTMLElement
->(
-  noodlComponent: IComponentTypeObject,
+export function toDOM<C extends Component, N extends HTMLElement = HTMLElement>(
+  noodlComponent: ComponentObject,
   parentNode?: any,
 ): {
   component: C
@@ -99,7 +91,7 @@ export function toDOM<
   parentNode: N | null
 } {
   const component = noodlui.resolveComponents(noodlComponent) as C
-  const node = document.createElement(getType(component)) as N
+  const node = document.createElement(getTagName(component)) as N
   parentNode = parentNode || document.body
   parentNode.appendChild(node)
   return { component, node, parentNode }

@@ -8,11 +8,11 @@ import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import {
   ActionChain,
   createComponent,
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  IList,
-  IListEventId,
-  IListItem,
+  Component,
+  ComponentObject,
+  List,
+  ListEventId,
+  ListItem,
   List,
   NOODLComponent,
 } from 'noodl-ui'
@@ -28,10 +28,10 @@ let noodlView: NOODLComponent
 let noodlListDemographics: NOODLComponent
 let noodlListGender: NOODLComponent
 
-let components: IComponentTypeInstance[]
-let view: IComponentTypeInstance
-let listDemographics: IList
-let listGender: IList
+let components: Component[]
+let view: Component
+let listDemographics: List
+let listGender: List
 
 beforeEach(() => {
   noodluidom.on('component', onComponentAttachId)
@@ -41,9 +41,9 @@ beforeEach(() => {
   components = noodlui.resolveComponents(
     EmitRedraw.components as NOODLComponent[],
   )
-  view = components[3] as IComponentTypeInstance
-  listDemographics = view.child(2) as IList
-  listGender = view.child(3) as IList
+  view = components[3] as Component
+  listDemographics = view.child(2) as List
+  listGender = view.child(3) as List
   {
     // const data = listDemographics.getData().slice()
     // data.forEach((d) => listDemographics.removeDataObject(d))
@@ -74,12 +74,12 @@ describe('redraw', () => {
     listGender.on('retrieve.data.object', retrieveSpy)
     listGender.on('update.data.object', updateSpy)
     evtNames.forEach((evt) => {
-      expect(listGender.hasCb(evt as IListEventId, evts[evt])).to.be.true
+      expect(listGender.hasCb(evt as ListEventId, evts[evt])).to.be.true
     })
     const node = noodluidom.parse(listGender)
     noodluidom.redraw(node, listGender)
     evtNames.forEach((evt) => {
-      expect(listGender.hasCb(evt as IListEventId, evts[evt])).to.be.false
+      expect(listGender.hasCb(evt as ListEventId, evts[evt])).to.be.false
     })
   })
 
@@ -116,7 +116,7 @@ describe('redraw', () => {
     }
     const node = noodluidom.parse(view)
     listGender.on('add.data.object', spies.hello)
-    const listItem = listGender.child() as IListItem
+    const listItem = listGender.child() as ListItem
     const label = listItem?.child(0)
     const image = listItem?.child(1)
     image?.on('bye', spies.bye)
@@ -134,7 +134,7 @@ describe('redraw', () => {
 
   it('should remove the node by the parentNode', () => {
     noodluidom.parse(view)
-    const listItem = listGender.child() as IListItem
+    const listItem = listGender.child() as ListItem
     const image = listItem?.child(1)
     const imageNode = document.getElementById(image?.id)
     expect(!!imageNode?.parentNode?.contains(imageNode)).to.be.true
@@ -149,7 +149,7 @@ describe('redraw', () => {
     )[3]
     const list = view.child(2) as List
     noodluidom.parse(view)
-    const listItem = list.child() as IListItem
+    const listItem = list.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const label = listItem?.child()
     const { type, dataKey, style, listId, iteratorVar, noodlType, listIndex } =
@@ -161,7 +161,7 @@ describe('redraw', () => {
 
   it('should set the original parent as the parent of the new redrawee component', () => {
     noodluidom.parse(view)
-    const listItem = listGender.child() as IListItem
+    const listItem = listGender.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
     expect(newListItem.parent()).to.eq(listGender)
@@ -169,14 +169,14 @@ describe('redraw', () => {
 
   it('should set the new component as a child on the original parent', () => {
     noodluidom.parse(view)
-    const listItem = listGender.child() as IListItem
+    const listItem = listGender.child() as ListItem
     const [empty, newListItem] = noodluidom.redraw(null, listItem)
     expect(listGender.hasChild(newListItem)).to.be.true
   })
 
   // it('the redrawing component + node should hold the same ID', () => {
   //   noodluidom.parse(view)
-  //   const listItem = listGender.child() as IListItem
+  //   const listItem = listGender.child() as ListItem
   //   const liNode = document.getElementById(listItem?.id || '')
   //   const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
   //   expect(newLiNode).to.have.property('id').that.is.eq(newListItem.id)
@@ -185,7 +185,7 @@ describe('redraw', () => {
 
   it('should attach to the original parentNode as the new childNode', () => {
     noodluidom.parse(view)
-    const listItem = listGender.child() as IListItem
+    const listItem = listGender.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const ulNode = liNode?.parentNode
     expect(ulNode.contains(liNode)).to.be.true
@@ -199,8 +199,8 @@ describe('redraw', () => {
   describe('when deeply resolving components', () => {
     it('should use every component\'s "shape" as their redraw blueprint', () => {
       const createIsEqual = (
-        noodlComponent: IComponentTypeObject,
-        newInstance: IComponentTypeInstance,
+        noodlComponent: ComponentObject,
+        newInstance: Component,
       ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
       const node = noodluidom.parse(listDemographics)
       const [newNode, newComponent] = noodluidom.redraw(node, listDemographics)
@@ -218,8 +218,8 @@ describe('redraw', () => {
 
     it('should accept a component resolver to redraw all of its children', () => {
       const createIsEqual = (
-        noodlComponent: IComponentTypeObject,
-        newInstance: IComponentTypeInstance,
+        noodlComponent: ComponentObject,
+        newInstance: Component,
       ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
       const node = noodluidom.parse(listGender)
       const [newNode, newComponent] = noodluidom.redraw(node, listGender, {
@@ -278,7 +278,7 @@ describe('redraw', () => {
             },
           ],
         })
-        const image = view.child() as IComponentTypeInstance
+        const image = view.child() as Component
         noodluidom.parse(view)
         const img = document.querySelector('img')
         img?.click()
@@ -318,7 +318,7 @@ describe('redraw', () => {
           type: 'image',
           path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
           onClick: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
-        }) as IComponentTypeInstance
+        }) as Component
 
         noodluidom.on('image', (n, c) => {
           const { onClick } = c.action
@@ -385,7 +385,7 @@ describe('redraw', () => {
               },
             ],
           })
-          const image = view.child() as IComponentTypeInstance
+          const image = view.child() as Component
           console.info('HELLO')
           console.info(prettyDOM())
           const node = noodluidom.parse(image)
@@ -421,7 +421,7 @@ describe('redraw', () => {
           type: 'view',
           children: [{ type: 'textField', dataKey: 'formData.password' }],
         })
-        const textField = view.child() as IComponentTypeInstance
+        const textField = view.child() as Component
         noodluidom.on('textField', (node: HTMLInputElement, c) => {
           node.dataset.value = c.get('data-value') || ''
           node.value = c.get('data-value') || ''

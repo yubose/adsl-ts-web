@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import {
-  IComponentType,
-  IComponentTypeInstance,
+  ComponentCreationType,
+  Component,
   NOODLComponent,
   Page as NOODLUiPage,
 } from 'noodl-ui'
@@ -27,7 +27,7 @@ export interface PageOptions {
   builtIn?: {
     [funcName: string]: any
   }
-  renderer?(page: Page): { components: IComponentTypeInstance[] }
+  renderer?(page: Page): { components: Component[] }
 }
 
 /**
@@ -50,10 +50,7 @@ class Page {
       }) => Promise<any>)
     | undefined
   #onPageRendered:
-    | ((options: {
-        pageName: string
-        components: IComponentTypeInstance[]
-      }) => Promise<any>)
+    | ((options: { pageName: string; components: Component[] }) => Promise<any>)
     | undefined
   #onPageRequest:
     | ((params: {
@@ -126,7 +123,7 @@ class Page {
       }
 
       let pageSnapshot: NOODLUiPage | undefined
-      let components: IComponentTypeInstance[] = []
+      let components: Component[] = []
 
       if (!pageName) {
         log.func('navigate')
@@ -268,7 +265,7 @@ class Page {
   set onPageRendered(
     fn: (options: {
       pageName: string
-      components: IComponentTypeInstance[]
+      components: Component[]
     }) => Promise<any>,
   ) {
     this.#onPageRendered = fn
@@ -308,9 +305,11 @@ class Page {
   /**
    * Takes a list of raw NOODL components and converts them into DOM nodes and appends
    * them to the DOM
-   * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | NOODLPageObject }
+   * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | PageObject }
    */
-  public render(rawComponents: IComponentType | IComponentType[]) {
+  public render(
+    rawComponents: ComponentCreationType | ComponentCreationType[],
+  ) {
     let resolved = noodlui.resolveComponents(rawComponents)
     const components = _.isArray(resolved) ? resolved : [resolved]
     if (this.rootNode) {

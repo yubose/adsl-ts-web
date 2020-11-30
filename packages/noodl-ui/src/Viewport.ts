@@ -1,4 +1,4 @@
-import { IViewport, IViewportListener } from './types'
+import { IViewport, ViewportListener } from './types'
 import { isBrowser } from './utils/common'
 
 class Viewport implements IViewport {
@@ -30,7 +30,7 @@ class Viewport implements IViewport {
     return this.#onResize
   }
 
-  set onResize(callback: IViewportListener) {
+  set onResize(callback: ViewportListener) {
     if (isBrowser()) {
       window.removeEventListener('resize', this.#onResize)
 

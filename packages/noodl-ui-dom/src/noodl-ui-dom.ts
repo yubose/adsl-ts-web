@@ -1,11 +1,11 @@
 import Logger from 'logsnap'
 import {
   createComponent,
-  getType,
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  IListItem,
-  NOODLComponentType,
+  getTagName,
+  Component,
+  ComponentObject,
+  ListItem,
+  ComponentType,
 } from 'noodl-ui'
 import { isEmitObj, publish } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
@@ -33,9 +33,9 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   #state: {
     pairs: {
       [componentId: string]: {
-        component: IComponentTypeInstance
+        component: Component
         node: HTMLElement | null
-        shape: Partial<IComponentTypeObject>
+        shape: Partial<ComponentObject>
       }
     }
   } = { pairs: {} }
@@ -47,15 +47,15 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
-   * @param { IComponentTypeInstance } props
+   * @param { Component } props
    */
-  parse<C extends IComponentTypeInstance>(
+  parse<C extends Component>(
     component: C,
     container?: T.NOODLDOMElement | null,
   ) {
     let node: T.NOODLDOMElement | null = null
 
-    const { noodlType } = component || ({} as IComponentTypeInstance)
+    const { noodlType } = component || ({} as Component)
 
     if (component) {
       if (noodlType === 'plugin') {
@@ -72,7 +72,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
               )
             : document.createElement('img')
         } else {
-          node = document.createElement(getType(component))
+          node = document.createElement(getTagName(component))
         }
 
         if (node) {
@@ -83,7 +83,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             const listObject = listComponent.getData()
             const numDataObjects = listObject?.length || 0
             if (numDataObjects) {
-              listComponent.children().forEach((c: IListItem) => {
+              listComponent.children().forEach((c: ListItem) => {
                 c?.setDataObject?.(null)
                 listComponent.removeDataObject(0)
               })
@@ -96,13 +96,13 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             }
           }
           this.emit('component', node, component)
-          if (componentEventMap[noodlType as NOODLComponentType]) {
+          if (componentEventMap[noodlType as ComponentType]) {
             this.emit(componentEventMap[noodlType], node, component)
           }
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
-            component.children().forEach((child: IComponentTypeInstance) => {
+            component.children().forEach((child: Component) => {
               const childNode = this.parse(child, node) as HTMLElement
               node?.appendChild(childNode)
             })
@@ -121,10 +121,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    */
   on(
     eventName: T.NOODLDOMEvent,
-    callback: (
-      node: T.NOODLDOMElement | null,
-      component: IComponentTypeInstance,
-    ) => void,
+    callback: (node: T.NOODLDOMElement | null, component: Component) => void,
   ) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) callbacks.push(callback)
@@ -156,7 +153,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   emit<E extends string = T.NOODLDOMEvent>(
     eventName: E,
     node: T.NOODLDOMElement | null,
-    component: IComponentTypeInstance,
+    component: Component,
   ) {
     const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
     if (Array.isArray(callbacks)) {
@@ -195,17 +192,17 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
   redraw(
     node: HTMLElement | null, // ex: li (dom node)
-    component: IComponentTypeInstance, // ex: listItem (component instance)
+    component: Component, // ex: listItem (component instance)
     opts?: {
       resolver?: (
-        noodlComponent: IComponentTypeObject | IComponentTypeObject[],
-      ) => IComponentTypeInstance
+        noodlComponent: ComponentObject | ComponentObject[],
+      ) => Component
     },
   ) {
     log.func('redraw')
 
     let newNode: HTMLElement | null = null
-    let newComponent: IComponentTypeInstance | undefined
+    let newComponent: Component | undefined
 
     if (component) {
       const parent = component.parent()
@@ -258,7 +255,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           newNode = document.createElement('img')
         }
       } else if (newComponent) {
-        newNode = document.createElement(getType(newComponent))
+        newNode = document.createElement(getTagName(newComponent))
       }
 
       if (parentNode) {
@@ -266,20 +263,20 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         node.remove()
       }
 
-      this.emit('component', newNode, newComponent as IComponentTypeInstance)
+      this.emit('component', newNode, newComponent as Component)
       this.emit(
         componentEventMap[component.noodlType],
         newNode,
-        newComponent as IComponentTypeInstance,
+        newComponent as Component,
       )
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.emit('component', null, newComponent as IComponentTypeInstance)
+      this.emit('component', null, newComponent as Component)
       this.emit(
         componentEventMap[component.noodlType],
         null,
-        newComponent as IComponentTypeInstance,
+        newComponent as Component,
       )
     }
 
@@ -289,11 +286,11 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   /**
    * "Redraws" the DOM element tree starting from "node"
    * @param { HTMLElement | null } node - DOM node
-   * @param { IComponentTypeInstance } component - noodl-ui component instance
+   * @param { Component } component - noodl-ui component instance
    */
   redraw_backup(
     node: HTMLElement | null, // ex: li (dom node)
-    component: IComponentTypeInstance, // ex: listItem (component instance)
+    component: Component, // ex: listItem (component instance)
   ) {
     log.func('redraw')
 

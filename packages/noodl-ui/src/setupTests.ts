@@ -3,19 +3,28 @@ import sinon from 'sinon'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import Logger, { _color } from 'logsnap'
-import { noodlui } from './utils/test-utils'
+import { assetsUrl, noodlui } from './utils/test-utils'
 
 chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
 
 before(async () => {
-  noodlui.init()
   console.clear()
   Logger.disable()
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
-  } catch (error) {}
+  } catch (error) {
+    throw new Error(error.message)
+  }
+})
+
+beforeEach(() => {
+  noodlui.init({
+    _log: false,
+    getAssetsUrl: () => assetsUrl,
+    getRoot: () => ({}),
+  })
 })
 
 after(() => {
@@ -24,5 +33,5 @@ after(() => {
 
 afterEach(() => {
   document.body.textContent = ''
-  noodlui.cleanup()
+  // noodlui.cleanup()
 })

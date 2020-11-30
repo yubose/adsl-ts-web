@@ -10,21 +10,21 @@ import {
   getByDataUX,
   getDataValues,
   getDataObjectValue,
-  IActionChainUseObjectBase,
-  IComponentTypeInstance,
+  ActionChainUseObjectBase,
+  Component,
   IfObject,
   isReference,
-  NOODLActionType,
+  ActionType,
   PopupObject,
   PopupDismissObject,
   RefreshObject,
   SaveObject,
-  UpdateActionObject,
+  UpdateObject,
 } from 'noodl-ui'
 import {
   createEmitDataKey,
   evalIf,
-  findDataObject,
+  findListDataObject,
   findParent,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
@@ -40,8 +40,8 @@ const log = Logger.create('actions.ts')
 
 const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<
-    NOODLActionType,
-    Omit<IActionChainUseObjectBase<any>, 'actionType'>[]
+    ActionType,
+    Omit<ActionChainUseObjectBase<any>, 'actionType'>[]
   >
 
   _actions['anonymous'] = []
@@ -179,7 +179,7 @@ const createActions = function ({ page }: { page: IPage }) {
       let emitParams
 
       // This is most likely expecting a dataObject
-      dataObject = findDataObject(component)
+      dataObject = findListDataObject(component)
 
       emitParams = {
         actions: path.emit.actions,
@@ -498,7 +498,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.updateObject.push({
-    fn: async (action: Action<UpdateActionObject>, options, actionsContext) => {
+    fn: async (action: Action<UpdateObject>, options, actionsContext) => {
       const { abort, component, stateHelpers } = options
       const { default: noodl } = await import('../app/noodl')
       log.func('updateObject')
@@ -572,17 +572,17 @@ const createActions = function ({ page }: { page: IPage }) {
               typeof dataObject === 'string' &&
               dataObject.startsWith(iteratorVar)
             ) {
-              dataObject = findDataObject(component)
+              dataObject = findListDataObject(component)
               if (stateHelpers) {
                 const { getList } = stateHelpers
                 const listId = component.get('listId')
-                const listItemIndex = component.get('listItemIndex')
+                const listIndex = component.get('listIndex')
                 const list = getList(listId) || []
-                const listItem = list[listItemIndex]
+                const listItem = list[listIndex]
                 if (listItem) dataObject = listItem
                 log.salmon('', {
                   listId,
-                  listItemIndex,
+                  listIndex,
                   list,
                   listItem,
                 })

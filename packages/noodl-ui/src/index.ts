@@ -44,4 +44,4 @@ export {
   getDataObjectValue,
   identify,
 } from './utils/noodl'
-export { getType } from './resolvers/getElementType'
+export { getTagName } from './resolvers/getElementType'

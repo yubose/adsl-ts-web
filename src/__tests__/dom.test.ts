@@ -9,10 +9,10 @@ import {
   ActionChainActionCallbackOptions,
   EmitActionObject,
   IAction,
-  IActionChainEmitTrigger,
-  IComponentTypeInstance,
-  IList,
-  IListItem,
+  ActionChainEmitTrigger,
+  Component,
+  List,
+  ListItem,
   NOODLComponent,
 } from 'noodl-ui'
 import { getByDataKey } from 'noodl-utils'
@@ -176,7 +176,7 @@ describe('dom', () => {
       })
       const listSize = noodlList.listObject.length
       const li = document.querySelectorAll('li')
-      const component = components[0].child() as IList
+      const component = components[0].child() as List
       expect(li).to.have.lengthOf(listSize)
       component.addDataObject(
         Object.entries(noodlList.listObject[0]).reduce((acc, [k, v], index) => {
@@ -207,7 +207,7 @@ describe('dom', () => {
           ],
         })
         const view = components[0]
-        const list = view.child() as IList
+        const list = view.child() as List
         const ul = document.getElementById(list.id)
         expect(ul?.children).to.have.lengthOf(3)
         list.removeDataObject(0)
@@ -217,7 +217,7 @@ describe('dom', () => {
     )
 
     describe('when updating data objects and list items', () => {
-      let component: IList
+      let component: List
 
       beforeEach(() => {
         const iteratorVar = 'hello'
@@ -511,11 +511,11 @@ describe('dom', () => {
     let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
     let actionFnSpy = sinon.spy()
     let pathIfFnSpy = sinon.spy()
-    let parent: IComponentTypeInstance
-    let component: IList
+    let parent: Component
+    let component: List
     let injectedArgs: {
       dataObject: any
-      listItem: IListItem
+      listItem: ListItem
       iteratorVar: string
     }
 
@@ -622,7 +622,7 @@ describe('dom', () => {
       }).components[0]
 
       const view = root.child()
-      const image = view.child() as IComponentTypeInstance
+      const image = view.child() as Component
 
       const parentEl = document.getElementById(view.id)
 

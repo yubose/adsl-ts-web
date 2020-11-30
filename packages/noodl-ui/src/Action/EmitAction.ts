@@ -1,96 +1,72 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { EmitActionObject, IActionOptions, NOODLEmitTrigger } from '../types'
+import {
+  EmitActionObject,
+  ActionOptions,
+  EmitTrigger,
+  EmitObject,
+} from '../types'
 import Action from './Action'
 
 const log = Logger.create('EmitAction')
 
-class EmitAction extends Action<EmitActionObject> {
-  #dataObject: any
-  // #iteratorVar: string | undefined
+class EmitAction extends Action<EmitObject> {
   dataKey: string | { [key: string]: any } | undefined
   actions: any[] | undefined
   iteratorVar: string | undefined
-  #trigger: NOODLEmitTrigger | undefined
+  #trigger: EmitTrigger | undefined
 
   constructor(
-    action: EmitActionObject,
-    options?: IActionOptions<EmitActionObject> &
+    action: EmitObject,
+    options?: ActionOptions<EmitActionObject> &
       Partial<{
-        // iteratorVar: string
-        trigger: NOODLEmitTrigger
+        iteratorVar: string
+        trigger: EmitTrigger
       }>,
   ) {
-    super(action, options)
-    // console.info(action)
-    // console.info(options)
+    super({ ...action, actionType: 'emit' }, options)
     this['actions'] = action?.emit?.actions
     this['dataKey'] = action?.emit?.dataKey
     this['trigger'] = options?.trigger
+    if (options?.iteratorVar) this.set('iteratorVar', options.iteratorVar)
   }
 
   get trigger() {
     return this.#trigger
   }
 
-  set trigger(trigger: NOODLEmitTrigger | undefined) {
+  set trigger(trigger: EmitTrigger | undefined) {
     this.#trigger = trigger
   }
 
-  set(key: 'dataKey' | 'dataObject' | 'iteratorVar' | 'trigger', value: any) {
-    if (key === 'dataObject') return this.setDataObject(value)
+  set(key: 'dataKey' | 'iteratorVar' | 'trigger', value: any) {
     this[key] = value
     return this
   }
 
-  getDataObject<T>(): T | undefined {
-    return this.#dataObject
-  }
-
-  setDataObject(dataObject: any) {
-    this.#dataObject = dataObject
+  setDataKey(value: any) {
+    this.dataKey = value
     return this
   }
 
-  setDataKeyValue(property: string | { [key: string]: any }, value: any) {
-    log.func('setDataKeyValue')
-    if (typeof property === 'string') {
-      this.dataKey = {
-        ...(_.isString(this.dataKey) ? undefined : this.dataKey),
-        [property]: value,
-      }
-
-      if (!value) {
+  mergeDataKey(property: string, value: any): this
+  mergeDataKey(property: { [key: string]: any }, args?: never): this
+  mergeDataKey(property: string | { [key: string]: any }, value?: any) {
+    if (arguments.length === 1) {
+      if (typeof property !== 'object') {
+        log.func('mergeDataKey ')
         log.red(
-          `You are setting a value of ${value} onto the dataKey property "${property}". Is this intended?`,
-          this.getSnapshot(),
+          `Cannot merge dataKey with just a string. Did you mean to use setDataKey instead?`,
         )
       } else {
-        log.grey(
-          `Data value of "${
-            typeof value === 'object' ? JSON.stringify(value) : value
-          }" was set on dataKey property: ${property}`,
-          this.getSnapshot(),
-        )
+        Object.assign(this.dataKey, property)
       }
-    } else if (property && typeof property === 'object') {
-      const properties = Object.keys(property)
-      properties.forEach((prop) => {
-        this.dataKey = {
-          ...(typeof this.dataKey === 'object' ? this.dataKey : undefined),
-          [prop]: value,
-        }
-      })
-      if (!property) {
-        log.red(
-          `You are setting a value of ${property} onto the dataKey. Is this intended?`,
-          this.getSnapshot(),
-        )
-      } else {
-        log.grey(
-          `Data value of "${JSON.stringify(property)}" was set on the dataKey`,
-          this.getSnapshot(),
-        )
+    } else if (arguments.length === 2) {
+      if (typeof property === 'string') {
+        if (!_.isPlainObject(this.dataKey)) this.dataKey = {}
+        Object.assign(this.dataKey, value)
+      } else if (_.isPlainObject(property)) {
+        Object.assign(this.dataKey, property)
       }
     }
     return this

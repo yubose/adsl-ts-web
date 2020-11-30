@@ -1,27 +1,22 @@
 import _ from 'lodash'
-import {
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  ResolveComponent,
-} from '../../types'
+import Component from '../../components/Base'
+import { ComponentObject, ResolveComponent } from '../../types'
 import { forEachEntries } from '../../utils/common'
 import { forEachDeepChildren } from '../../utils/noodl'
 import createComponent, { PropsOptionObj } from '../../utils/createComponent'
 
 /**
  * Transforms a child or an array of children into their respective instances
- * @param { IComponentTypeInstance } c
+ * @param { Component } c
  * @param { object | undefined } opts - Optional options
  * @param { function } opts.onResolve - Callback called on each child that resolves
  * @param { object } opts.props - An object of component props passed to the resolving component
  * @param { function } opts.resolveComponent
  */
-export function _resolveChildren<
-  T extends IComponentTypeInstance = IComponentTypeInstance
->(
+export function _resolveChildren<T extends Component = Component>(
   c: T,
   opts: {
-    onResolve?(child: IComponentTypeInstance): void
+    onResolve?(child: Component): void
     props?: PropsOptionObj
     resolveComponent: ResolveComponent
   },
@@ -45,7 +40,7 @@ export function _resolveChildren<
           onResolve?.(
             resolveComponent?.(
               c.createChild(createComponent(noodlChild, { props })),
-            ) as IComponentTypeInstance,
+            ) as Component,
           )
         }
       })
@@ -55,8 +50,8 @@ export function _resolveChildren<
 
 export const redraw = (function () {
   const _applyChanges = (
-    component: IComponentTypeInstance,
-    changes: Partial<IComponentTypeObject>,
+    component: Component,
+    changes: Partial<ComponentObject>,
   ) => {
     forEachEntries(changes, (key, prop) => {
       component.set(key, prop)
@@ -64,10 +59,10 @@ export const redraw = (function () {
   }
 
   const _redraw = (
-    component: IComponentTypeInstance,
-    props: Partial<IComponentTypeObject>,
+    component: Component,
+    props: Partial<ComponentObject>,
     opts: {
-      onChild?(child: IComponentTypeInstance): void
+      onChild?(child: Component): void
       resolveComponent: ResolveComponent
     },
   ) => {

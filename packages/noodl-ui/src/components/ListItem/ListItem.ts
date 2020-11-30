@@ -1,17 +1,8 @@
 import _ from 'lodash'
 import Component from '../Base'
-import {
-  IComponent,
-  IComponentConstructor,
-  IComponentTypeInstance,
-  IListItem,
-  NOODLComponentType,
-} from '../../types'
-import { getDataObjectValue } from '../../utils/noodl'
+import { ComponentConstructor, ProxiedComponent } from '../../types'
 
-class ListItem<K extends NOODLComponentType = 'listItem'>
-  extends Component
-  implements IListItem<K> {
+class ListItem extends Component {
   #children: any[] = []
   #dataObject: any
   #listId: string = ''
@@ -20,14 +11,14 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
   #cb = { redraw: [] }
   values: { [dataKey: string]: any }
 
-  constructor(...args: ConstructorParameters<IComponentConstructor>)
+  constructor(...args: ConstructorParameters<ComponentConstructor>)
   constructor()
-  constructor(...args: any | ConstructorParameters<IComponentConstructor>) {
+  constructor(...args: any | ConstructorParameters<ComponentConstructor>) {
     super(
       ...((args.length
         ? args
         : [{ type: 'listItem' }]) as ConstructorParameters<
-        IComponentConstructor
+        ComponentConstructor
       >),
     )
   }
@@ -69,32 +60,54 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     this.#iteratorVar = iteratorVar
   }
 
-  set(...args: Parameters<IComponent['set']>) {
-    const [key, value] = args
+  get(
+    key:
+      | Parameters<Component['get']>[0]
+      | 'iteratorVar'
+      | 'listId'
+      | 'listIndex'
+      | ('iteratorVar' | 'listId' | 'listIndex')[],
+    styleKey?: any,
+  ) {
+    if (key === 'iteratorVar') return this.iteratorVar
+    if (key === 'listId') return this.listId
+    if (key === 'listIndex') return this.listIndex
+    return super.get(key, styleKey) as any
+  }
+
+  set<K extends keyof ProxiedComponent>(
+    key: K | 'iteratorVar' | 'listId' | 'listIndex',
+    value: any,
+    styleChanges?: any,
+  ) {
     if (key === 'iteratorVar') this['iteratorVar'] = value
     else if (key === 'listId') this['listId'] = value
     else if (key === 'listIndex') this['listIndex'] = value
-    else super.set(...args)
+    else super.set(key as any, value, styleChanges)
     return this
   }
 
-  createChild<C extends IComponentTypeInstance>(child: C): C {
-    child?.setParent?.(this)
-    child.set('listId', this.listId)
-    child.set('listIndex', this.listIndex)
+  createChild<C extends Component>(child: C): C {
+    if (child) {
+      child.setParent?.(this as any)
+      child.set('listId', this.listId)
+      child.set('listIndex', this.listIndex)
+    }
     this.#children.push(child)
     return child
   }
 
-  hasChild<C extends IComponentTypeInstance>(child: C) {
+  hasChild<C extends Component>(child: C) {
     return this.#children.includes(child)
   }
 
-  removeChild<C extends IComponentTypeInstance>(child: C) {
+  // @ts-expect-error
+  removeChild<C extends Component = any>(child: C) {
     if (child) {
       const index = this.#children.indexOf(child)
       if (index > -1) return this.#children.splice(index, 1)[0]
     }
+    return child
   }
 
   getDataObject() {
@@ -106,6 +119,7 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     return this
   }
 
+  // @ts-expect-error
   toJS() {
     return {
       children: _.map(this.#children, (child) => child.toJS?.()),
@@ -120,13 +134,8 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     }
   }
 
-  on<E extends 'redraw'>(eventName: E, cb: Function) {
-    if (eventName === 'redraw') {
-      // Restricting redraw to one handler only
-      // if (this.#cb.redraw.length) return
-      if (!this.#cb.redraw) this.#cb.redraw = []
-      this.#cb.redraw.push(cb)
-    } else if (eventName) {
+  on(eventName: string, cb: Function) {
+    if (eventName) {
       this.#cb[eventName] = Array.isArray(this.#cb[eventName])
         ? [...this.#cb[eventName], cb]
         : [cb]
@@ -143,39 +152,8 @@ class ListItem<K extends NOODLComponentType = 'listItem'>
     return this
   }
 
-  emit<E = 'redraw'>(eventName: E, ...args: any[]) {
+  emit(eventName: string, ...args: any[]) {
     _.forEach(this.#cb[eventName] || [], (fn) => fn(...args))
-  }
-
-  redraw(
-    patch: { type: 'data-object' | 'key-value'; key?: string; value?: any },
-    cb: (opts: {
-      child: IComponentTypeInstance
-      dataKey: string
-      dataValue: any
-    }) => void,
-  ) {
-    this.broadcast((child) => {
-      if (patch.type === 'data-object') {
-        let dataKey = child.get('dataKey') || ''
-        let dataObject = patch.value || this.getDataObject()
-        let dataValue
-
-        if (child.has('dataKey')) {
-          if (dataKey.startsWith(this.iteratorVar)) {
-            dataValue = getDataObjectValue({
-              dataKey,
-              dataObject,
-              iteratorVar: this.iteratorVar,
-            })
-          } else {
-            dataValue = _.get(dataObject, dataKey)
-          }
-        }
-
-        cb({ child, dataKey, dataObject, dataValue })
-      }
-    })
     return this
   }
 }

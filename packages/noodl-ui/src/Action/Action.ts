@@ -2,12 +2,12 @@ import _ from 'lodash'
 import Logger from 'logsnap'
 import {
   IAction,
-  IActionCallback,
-  IActionOptions,
-  IActionSnapshot,
-  IActionStatus,
+  ActionCallback,
+  ActionOptions,
+  ActionSnapshot,
+  ActionStatus,
   ActionObject,
-  ActionObject,
+  BaseActionObject,
 } from '../types/actionTypes'
 import { getRandomKey } from '../utils/common'
 import { AbortExecuteError } from '../errors'
@@ -16,15 +16,16 @@ const log = Logger.create('Action')
 
 export const DEFAULT_TIMEOUT_DELAY = 8000
 
-class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
+class Action<OriginalAction extends BaseActionObject = ActionObject>
+  implements IAction<any> {
   #id: string
-  #callback: IActionCallback | undefined
-  #onPending: (snapshot: IActionSnapshot) => any
-  #onResolved: (snapshot: IActionSnapshot) => any
-  #onError: (snapshot: IActionSnapshot) => any
-  #onAbort: (snapshot: IActionSnapshot) => any
+  #callback: ActionCallback | undefined
+  #onPending: (snapshot: ActionSnapshot) => any
+  #onResolved: (snapshot: ActionSnapshot) => any
+  #onError: (snapshot: ActionSnapshot) => any
+  #onAbort: (snapshot: ActionSnapshot) => any
   #onTimeout: any
-  #status: IActionStatus = null
+  #status: ActionStatus = null
   #timeout: NodeJS.Timeout | null = null
   #timeoutRemaining: number | null = null
   #timeoutInterval: any | null = null
@@ -38,10 +39,7 @@ class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
   type: OriginalAction['actionType']
   actionType: OriginalAction['actionType']
 
-  constructor(
-    action: OriginalAction,
-    options?: IActionOptions<OriginalAction>,
-  ) {
+  constructor(action: OriginalAction, options?: ActionOptions<OriginalAction>) {
     log.func('constructor')
     if (!action || !('actionType' in action)) {
       log.red(
@@ -138,7 +136,7 @@ class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
     return this.#callback
   }
 
-  set callback(callback: IActionCallback | undefined) {
+  set callback(callback: ActionCallback | undefined) {
     this.#callback = callback
     this['hasExecutor'] = _.isFunction(this.#callback)
   }
@@ -150,7 +148,7 @@ class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
   // Returns an update-to-date JS representation of this instance
   // This is needed to log to the console the current state instead of logging
   // this instance directly where values will not be as expected
-  getSnapshot(): IActionSnapshot<OriginalAction> {
+  getSnapshot(): ActionSnapshot<OriginalAction> {
     const snapshot = {
       actionType: this.type as string,
       hasExecutor: this.hasExecutor,
@@ -171,7 +169,7 @@ class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
     return this.#status
   }
 
-  set status(status: IActionStatus) {
+  set status(status: ActionStatus) {
     this.#status = status
     if (status === 'pending') this.onPending?.(this.getSnapshot())
     if (status === 'resolved') this.onResolved?.(this.getSnapshot())
@@ -184,12 +182,12 @@ class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
     return this.#onPending
   }
 
-  set onPending(onPending: (snapshot: IActionSnapshot<OriginalAction>) => any) {
+  set onPending(onPending: (snapshot: ActionSnapshot<OriginalAction>) => any) {
     this.#onPending = onPending
   }
 
   set onResolved(
-    onResolved: (snapshot: IActionSnapshot<OriginalAction>) => any,
+    onResolved: (snapshot: ActionSnapshot<OriginalAction>) => any,
   ) {
     this.#onResolved = onResolved
   }
@@ -198,7 +196,7 @@ class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
     return this.#onResolved
   }
 
-  set onError(onError: (snapshot: IActionSnapshot<OriginalAction>) => any) {
+  set onError(onError: (snapshot: ActionSnapshot<OriginalAction>) => any) {
     this.#onError = onError
   }
 
@@ -206,7 +204,7 @@ class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
     return this.#onError
   }
 
-  set onAbort(onAbort: (snapshot: IActionSnapshot<OriginalAction>) => any) {
+  set onAbort(onAbort: (snapshot: ActionSnapshot<OriginalAction>) => any) {
     this.#onAbort = onAbort
   }
 
@@ -227,7 +225,7 @@ class Action<OriginalAction = ActionObject> implements IAction<OriginalAction> {
     throw err
   }
 
-  set onTimeout(onTimeout: (snapshot: IActionSnapshot<OriginalAction>) => any) {
+  set onTimeout(onTimeout: (snapshot: ActionSnapshot<OriginalAction>) => any) {
     this.#onTimeout = onTimeout
   }
 

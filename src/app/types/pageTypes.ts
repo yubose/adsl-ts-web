@@ -1,4 +1,4 @@
-import { IComponentTypeInstance, Page as NOODLUiPage } from 'noodl-ui'
+import { Component, Page as NOODLUiPage } from 'noodl-ui'
 import * as constants from '../../constants'
 
 export type IPage = any

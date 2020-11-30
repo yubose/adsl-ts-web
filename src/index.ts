@@ -23,12 +23,10 @@ import {
   getTransformedStyleAliases,
   getDataValues,
   identify,
-  IComponentTypeInstance,
-  IResolver,
-  BuiltInObject,
-  NOODLPageObject,
-  Page as NOODLPage,
   Resolver,
+  BuiltInObject,
+  PageObject,
+  Page as NOODLUIPage,
   ResolverFn,
   Viewport,
 } from 'noodl-ui'
@@ -68,7 +66,7 @@ function createPreparePage(options: {
   return async (
     pageName: string,
     pageModifiers: { evolve?: boolean } = {},
-  ): Promise<NOODLPageObject> => {
+  ): Promise<PageObject> => {
     const { default: noodl } = await import('app/noodl')
     console.log('--------------------------------------------------')
     console.log(noodl.root.SignIn)
@@ -233,7 +231,7 @@ window.addEventListener('load', async () => {
         Global: noodl.root.Global,
       })
       // This will be passed into the page renderer
-      const pageSnapshot: NOODLPage = {
+      const pageSnapshot: NOODLUIPage = {
         name: pageName,
         object: pageObject,
       }
@@ -268,7 +266,7 @@ window.addEventListener('load', async () => {
                 getEventHandlers,
               ],
               (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
-              [] as IResolver[],
+              [] as Resolver[],
             ),
           )
           .use(
@@ -718,17 +716,14 @@ interface RedrawOptions {
 
 function redrawDebugger(opts: RedrawOptions): void
 function redrawDebugger(node: HTMLElement | null, opts: RedrawOptions): void
-function redrawDebugger(
-  node: HTMLElement | null,
-  component: IComponentTypeInstance,
-): void
+function redrawDebugger(node: HTMLElement | null, component: Component): void
 function redrawDebugger(
   node: HTMLElement | RedrawOptions | null,
-  opts: RedrawOptions | IComponentTypeInstance,
+  opts: RedrawOptions | Component,
 ) {
   if (node) {
     if (opts instanceof Component) {
-      const component = opts as IComponentTypeInstance
+      const component = opts as Component
     } else {
       const options = opts as RedrawOptions
       if (options.random) {

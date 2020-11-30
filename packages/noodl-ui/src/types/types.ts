@@ -1,48 +1,18 @@
-import { Draft } from 'immer'
-import {
-  ActionObject,
-  BuiltInObject,
-  EmitActionObject,
-  EvalObject,
-  GotoObject,
-  PageJumpObject,
-  PopupDismissObject,
-  PopupObject,
-  RefreshObject,
-  SaveObject,
-} from './actionTypes'
-import {
-  ActionChainActionCallback,
-  ActionChainActionCallbackOptions,
-  ActionChainCallbackOptions,
-  ActionChainActionCallbackReturnType,
-  ActionChainLifeCycleComponentListeners,
-  IActionChain,
-  IActionChainUseObject,
-  ParsedChainActionUpdateObject,
-} from './actionChainTypes'
-import {
-  IComponentType,
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  IResolver,
-  NOODLComponentProps,
-} from './componentTypes'
-import {
-  EventId,
-  NOODLActionTriggerType,
-  NOODLComponentType,
-  NOODLContentType,
-} from './constantTypes'
+import Component from '../components/Base'
+import { ActionObject, EmitActionObject } from './actionTypes'
+import { ActionChainActionCallbackOptions } from './actionChainTypes'
+import { ComponentObject } from './componentTypes'
+import { ComponentType, ContentType } from './constantTypes'
+import NOODLUI from '../noodl-ui'
 import Viewport from '../Viewport'
 
 export interface NOODLComponent {
-  type?: NOODLComponentType
+  type?: ComponentType
   style?: Style
   children?: NOODLComponent[]
   controls?: boolean
   dataKey?: string
-  contentType?: NOODLContentType
+  contentType?: ContentType
   inputType?: string // our custom key
   itemObject?: any
   isEditable?: boolean // specific to textView components atm
@@ -68,9 +38,53 @@ export interface NOODLComponent {
   videoFormat?: string
 }
 
-export type NOODLPage<K extends string = string> = Record<K, NOODLPageObject>
+export interface BuiltInActions {
+  [funcName: string]: <A extends {}>(
+    action: A,
+    options: ActionChainActionCallbackOptions,
+  ) => Promise<any> | any
+}
 
-export interface NOODLPageObject {
+export interface ComponentEventCallback {
+  (
+    noodlComponent: NOODLComponent,
+    args: {
+      component: Component
+      parent: Component | null
+    },
+  ): void
+}
+
+export interface ConsumerOptions {
+  component: Component
+  context: ResolverContext
+  createActionChainHandler: NOODLUI['createActionChainHandler']
+  createSrc(path: Parameters<NOODLUI['createSrc']>[0]): string
+  getBaseStyles(styles?: Style): Partial<Style>
+  getPageObject: StateHelpers['getPageObject']
+  getResolvers: NOODLUI['getResolvers']
+  getRoot(): { [key: string]: any }
+  getState: StateHelpers['getState']
+  parser: RootsParser
+  resolveComponent(
+    c:
+      | (ComponentType | Component | ComponentObject)
+      | (ComponentType | Component | ComponentObject)[],
+  ): Component
+  resolveComponentDeep: NOODLUI['resolveComponents']
+  showDataKey: boolean
+  viewport: Viewport
+}
+
+export type GotoURL = string
+
+export interface IfObject {
+  if: [any, any, any]
+}
+
+export type Page<K extends string = string> = Record<K, PageObject>
+
+export interface PageObject {
   components: NOODLComponent[]
   lastTop?: string
   final?: string // ex: "..save"
@@ -80,247 +94,58 @@ export interface NOODLPageObject {
   [key: string]: any
 }
 
-/* -------------------------------------------------------
-    ---- ACTIONS
-  -------------------------------------------------------- */
-
-/* -------------------------------------------------------
-  ---- CONSTANTS
--------------------------------------------------------- */
-
-export interface INOODLUi {
-  actionsContext: IActionChain['actionsContext']
-  assetsUrl: string
-  initialized: boolean
-  page: string
-  root: { [key: string]: any }
-  createActionChainHandler(
-    actions: ActionObject[],
-    args: {
-      component: IComponentTypeInstance
-      trigger?: NOODLActionTriggerType
-    },
-  ): (event: Event) => Promise<any>
-  createSrc(
-    path: string | IfObject | EmitActionObject,
-    component?: IComponentTypeInstance,
-  ): string
-  on(eventName: EventId, cb: INOODLUiComponentEventCallback): this
-  off(eventName: EventId, cb: INOODLUiComponentEventCallback): this
-  emit(
-    eventName: EventId,
-    ...args: Parameters<INOODLUiComponentEventCallback>
-  ): this
-  getContext(): ResolverContext
-  getConsumerOptions(args: {
-    component: IComponentTypeInstance
-    [key: string]: any
-  }): ConsumerOptions
-  getPageObject<P extends string>(page: P): INOODLUi['root'][P]
-  getResolvers(): ResolverFn[]
-  getState(): INOODLUiState
-  getStateHelpers(): INOODLUiStateHelpers
-  getStateGetters(): INOODLUiStateGetters
-  getStateSetters(): INOODLUiStateSetters
-  reset(): this
-  resolveComponents(
-    components: IComponentType | IComponentType[] | Page['object'],
-  ): IComponentTypeInstance | IComponentTypeInstance[] | null
-  setAssetsUrl(assetsUrl: string): this
-  setPage(page: string): this
-  setRoot(key: string | { [key: string]: any }, value?: any): this
-  setViewport(viewport: IViewport | null): this
-  use(resolver: IResolver | IResolver[]): this
-  use(action: IActionChainUseObject | IActionChainUseObject[]): this
-  use(viewport: IViewport): this
-  unuse(...args: Parameters<INOODLUi['use']>): this
-}
-
-export interface INOODLUiState {
-  page: string
-  showDataKey: boolean
-}
-
-export type INOODLUiStateHelpers = INOODLUiStateGetters & INOODLUiStateSetters
-
-export type INOODLUiStateGetters = Pick<INOODLUi, 'getState' | 'getPageObject'>
-
-export type INOODLUiStateSetters = { [key: string]: any }
-
-export interface INOODLUiComponentEventCallback<
-  NC = any,
-  C extends IComponentTypeInstance = IComponentTypeInstance
-> {
-  (
-    noodlComponent: NC,
-    args: { component: C; parent: IComponentTypeInstance | null },
-  ): void
-}
-
-/* -------------------------------------------------------
-  ---- COMPONENTS
--------------------------------------------------------- */
-
-/* -------------------------------------------------------
-  ---- ACTION CHAIN
--------------------------------------------------------- */
-
-/* -------------------------------------------------------
-  ---- LISTENERS
--------------------------------------------------------- */
-
-export interface BuiltInActions {
-  [funcName: string]: <A extends {}>(
-    action: A,
-    options: ActionChainActionCallbackOptions,
-  ) => Promise<any> | any
-}
-
-export interface LifeCycleListener<T = any> {
-  (component: T, options: ConsumerOptions):
-    | Promise<'abort' | undefined | void>
-    | 'abort'
-    | undefined
-    | void
-}
-
-// Listed in order of invocation
-export interface LifeCycleListeners {
-  onAction?: {
-    builtIn?: {
-      [funcName: string]: ActionChainActionCallback<BuiltInObject>
-    }
-    evalObject?: ActionChainActionCallback<EvalObject>
-    goto?: ActionChainActionCallback<GotoURL | GotoObject>
-    pageJump?: ActionChainActionCallback<PageJumpObject>
-    popUp?: ActionChainActionCallback<PopupObject>
-    popUpDismiss?: ActionChainActionCallback<PopupDismissObject>
-    saveObject?: (
-      action: SaveObject,
-      options: ActionChainActionCallbackOptions,
-    ) => Promise<any>
-    refresh?(
-      action: RefreshObject,
-      options: ActionChainActionCallbackOptions,
-    ): Promise<any>
-    updateObject?: (
-      action: ParsedChainActionUpdateObject,
-      options: ActionChainActionCallbackOptions,
-    ) => Promise<any>
-  }
-  onBeforeResolve?: LifeCycleListener | ActionChainLifeCycleComponentListeners
-  onBeforeResolveStyles?:
-    | ActionChainLifeCycleComponentListeners
-    | LifeCycleListener
-  onChainStart?: <Actions extends any[]>(
-    actions: Actions,
-    options: ActionChainCallbackOptions<Actions>,
-  ) => ActionChainActionCallbackReturnType
-  onChainAborted?: <Action = any>(
-    action: Action,
-    options: ActionChainCallbackOptions<Action[]>,
-  ) => ActionChainActionCallbackReturnType
-  onOverrideDataValue?: (key: string) => void
-  onBuiltinMissing?: <Action = any>(
-    action: Action,
-    options: ActionChainCallbackOptions<Action[]>,
-  ) => void
-  onChainEnd?: <Actions extends any[]>(
-    actions: Actions,
-    options: ActionChainCallbackOptions<Actions>,
-  ) => Promise<any>
-  onChainError?: <Action = any>(
-    error: Error,
-    action: Action,
-    options: ActionChainCallbackOptions<Action[]>,
-  ) => Promise<any>
-  onAfterResolve?: ActionChainLifeCycleComponentListeners | LifeCycleListener
-}
-
-export type ProxiedDraftComponent = Draft<ProxiedComponent>
+export type Path = string | Omit<EmitActionObject, 'actionType'> | IfObject
 
 export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {
-  blueprint?: any
-  custom?: boolean
+  blueprint?: ProxiedComponent
+  'data-key'?: string
+  'data-listid'?: any
+  'data-name'?: string
+  'data-value'?: string
+  'data-ux'?: string
   id?: string
   itemObject?: any
-  items?: any[]
   listId?: string
-  listItem?: any
-  listItemIndex?: number
+  listIndex?: number
   listObject?: '' | any[]
-  noodlType?: NOODLComponentType
-  parentId?: string
+  noodlType?: ComponentType
   style?: Style
-  children?:
-    | string
-    | number
-    | NOODLComponent
-    | NOODLComponentProps
-    | ProxiedComponent
-    | (NOODLComponent | NOODLComponentProps | ProxiedComponent)[]
-}
-
-export interface ResolveComponent<T = any> {
-  (component: IComponentTypeInstance): T
-}
-
-export type ResolverFn<T extends NOODLComponentType = NOODLComponentType> = ((
-  component: IComponentTypeInstance,
-  resolverConsumerOptions: ConsumerOptions,
-) => void) & {
-  getChildren?: Function
-}
-
-export interface ResolverOptions
-  extends LifeCycleListeners,
-    INOODLUiStateHelpers {
-  context: ResolverContext
-  parser: RootsParser
-  resolveComponent: ResolveComponent
-}
-
-export interface ConsumerOptions {
-  component: IComponentTypeInstance
-  context: ResolverContext
-  createActionChainHandler: INOODLUi['createActionChainHandler']
-  createSrc(path: Parameters<INOODLUi['createSrc']>[0]): string
-  getBaseStyles(styles?: Style): Partial<Style>
-  getPageObject: INOODLUiStateHelpers['getPageObject']
-  getResolvers(): INOODLUi['getResolvers']
-  getRoot(): { [key: string]: any }
-  getState: INOODLUiStateHelpers['getState']
-  page: string
-  parser: ResolverOptions['parser']
-  resolveComponent(
-    c: NOODLComponentType | IComponentTypeInstance | IComponentTypeObject,
-  ): IComponentTypeInstance
-  resolveComponent(
-    c: (NOODLComponentType | IComponentTypeInstance | IComponentTypeObject)[],
-  ): IComponentTypeInstance[]
-  resolveComponentDeep: INOODLUi['resolveComponents']
-  showDataKey: boolean
+  children?: ProxiedComponent | ProxiedComponent[]
+  [key: string]: any
 }
 
 export interface ResolverContext {
   assetsUrl: string
   page: string
-  root: Record<string, any>
-  viewport: IViewport | undefined
 }
 
-export interface Page {
-  name: string
-  object?: null | NOODLPageObject
+export interface ResolveComponent<T = any> {
+  (component: Component): T
 }
 
-export interface SelectOption {
-  key: string
-  label: string
-  value: string
+export interface ResolverFn<C = Component> {
+  (component: C, consumerOptions: ConsumerOptions): void
 }
 
-export interface RootsParser<Root extends {} = any> {
+export interface State {
+  page: string
+  showDataKey: boolean
+}
+
+export type StateHelpers = StateGetters & StateSetters
+
+export type StateGetters = {
+  getState(): State
+  getPageObject(page: string): PageObject
+}
+
+export type StateSetters = { [key: string]: any }
+
+export interface Root {
+  [key: string]: any
+}
+
+export interface RootsParser {
   get<K extends keyof Root>(key: string): Root[K] | any
   getLocalKey(): string
   getByDataKey(dataKey: string, fallbackValue?: any): any
@@ -334,56 +159,31 @@ export interface RootsParser<Root extends {} = any> {
   setRoot(root: any): this
 }
 
-/* -------------------------------------------------------
-    ---- ACTIONS
-  -------------------------------------------------------- */
-
-/* -------------------------------------------------------
-  ---- RAW/ORIGINAL NOODL TYPE DEFINITIONS
--------------------------------------------------------- */
-
-export interface NOODLPageObject {
-  components: NOODLComponent[]
-  lastTop?: string
-  listData?: { [key: string]: any }
-  final?: string // ex: "..save"
-  init?: string | string[] // ex: ["..formData.edge.get", "..formData.w9.get"]
-  module?: string
-  pageNumber?: string
-  [key: string]: any
+export interface SelectOption {
+  key: string
+  label: string
+  value: string
 }
 
-export interface NOODLComponent {
-  type?: NOODLComponentType
-  style?: Style
-  children?: NOODLComponent[]
-  controls?: boolean
-  dataKey?: string
-  contentType?: NOODLContentType
-  inputType?: string // our custom key
-  itemObject?: any
-  isEditable?: boolean // specific to textView components atm
-  iteratorVar?: string
-  listObject?: '' | any[]
-  maxPresent?: string // ex: "6" (Currently used in components with type: list)
-  onClick?: ActionObject[]
-  onHover?: ActionObject[]
-  options?: string[]
-  path?: string | IfObject
-  pathSelected?: string
-  poster?: string
-  placeholder?: string
-  resource?: string
-  required?: 'true' | 'false' | boolean
-  selected?: string
-  src?: string // our custom key
-  text?: string
-  textSelectd?: string
-  textBoard?: TextBoard
-  'text=func'?: any
-  viewTag?: string
-  videoFormat?: string
-  [key: string]: any
+export interface IViewport {
+  width: number | undefined
+  height: number | undefined
+  isValid(): boolean
+  onResize: ViewportListener | undefined
+}
+
+export interface ViewportOptions {
+  width: number
+  height: number
+}
+
+export interface ViewportListener {
+  (
+    viewport: ViewportOptions & {
+      previousWidth: number | undefined
+      previousHeight: number | undefined
+    },
+  ): Promise<any> | any
 }
 
 /* -------------------------------------------------------
@@ -444,37 +244,4 @@ export type TextBoardBreakLine = 'br'
 export interface TextBoardTextObject {
   text?: string
   color?: string
-}
-
-/* -------------------------------------------------------
-  ---- OTHER
--------------------------------------------------------- */
-
-export type GotoURL = string
-
-export interface IfObject {
-  if: [any, any, any]
-}
-
-export type Path = string | EmitActionObject | IfObject
-
-export interface IViewport {
-  width: number | undefined
-  height: number | undefined
-  isValid(): boolean
-  onResize: IViewportListener | undefined
-}
-
-export interface IViewportOptions {
-  width: number
-  height: number
-}
-
-export interface IViewportListener {
-  (
-    viewport: IViewportOptions & {
-      previousWidth: number | undefined
-      previousHeight: number | undefined
-    },
-  ): Promise<any> | any
 }

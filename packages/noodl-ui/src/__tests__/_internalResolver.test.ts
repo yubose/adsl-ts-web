@@ -9,12 +9,7 @@ import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import { assetsUrl, noodlui } from '../utils/test-utils'
-import {
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  IList,
-  IListItem,
-} from '../types'
+import { Component, ComponentObject, List, ListItem } from '../types'
 import { event } from '../constants'
 import createComponent from '../utils/createComponent'
 
@@ -87,7 +82,7 @@ describe('_internalResolver', () => {
           ],
         },
       ],
-    } as IComponentTypeObject
+    } as ComponentObject
 
     it('should start with no children (removes the listItem placeholder)', () => {
       const component = new List({ type: 'list', listObject: [] })
@@ -122,7 +117,7 @@ describe('_internalResolver', () => {
       }
       noodlParent.children.push(noodlList)
       const parent = noodlui.resolveComponents(noodlParent)
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const blueprint = component?.getBlueprint()
       expect(blueprint).to.have.property('viewTag', 'hello')
       expect(blueprint.style).to.have.property('width')
@@ -143,7 +138,7 @@ describe('_internalResolver', () => {
       }
       noodlParentComponent.children.push(noodlComponent)
       const parent = noodlui.resolveComponents(noodlParentComponent)
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const data = component.getData()
       component.set('listObject', [])
       data.forEach((d) => component.addDataObject(d))
@@ -160,7 +155,7 @@ describe('_internalResolver', () => {
         listObject: [...noodlComponent.listObject, {}, {}, {}],
       })
       const parent = noodlui.resolveComponents(noodlParentComponent)
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const data = component.getData()
       component.set('listObject', [])
       data.forEach((d) => component.addDataObject(d))
@@ -174,8 +169,8 @@ describe('_internalResolver', () => {
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
-      }) as IList
-      const component = parent.child() as IList
+      }) as List
+      const component = parent.child() as List
       component.on(event.component.list.CREATE_LIST_ITEM, spy)
       component.addDataObject({ hello: 'true' })
       expect(spy.called).to.be.true
@@ -188,8 +183,8 @@ describe('_internalResolver', () => {
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
-      }) as IList
-      const component = parent.child() as IList
+      }) as List
+      const component = parent.child() as List
       expect(spy.called).to.be.false
       component.on(event.component.list.REMOVE_LIST_ITEM, spy)
       component.removeDataObject(1)
@@ -201,8 +196,8 @@ describe('_internalResolver', () => {
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
-      }) as IList
-      const component = parent.child() as IList
+      }) as List
+      const component = parent.child() as List
       const data = component.getData()
       component.set('listObject', [])
       data.forEach((d) => component.addDataObject(d))
@@ -220,8 +215,8 @@ describe('_internalResolver', () => {
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
-      }) as IList
-      const component = parent.child() as IList
+      }) as List
+      const component = parent.child() as List
       const data = component.getData()
       data.forEach((d) => component.addDataObject(d))
       component.on(event.component.list.UPDATE_LIST_ITEM, spy)
@@ -276,7 +271,7 @@ describe('_internalResolver', () => {
         .setPage('SignIn')
       const noodlParent = { type: 'view', children: [noodlComponent] }
       const parent = noodlui.resolveComponents(noodlParent)
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const data = component.getData()
       component?.set('listObject', [])
       data.forEach((d) => component.addDataObject(d))
@@ -333,7 +328,7 @@ describe('_internalResolver', () => {
         .setPage('SignIn')
       const noodlParent = { type: 'view', children: [noodlComponent] }
       const parent = noodlui.resolveComponents(noodlParent)
-      const component = parent.child() as IList
+      const component = parent.child() as List
 
       const data = component.getData()
       component?.set('listObject', [])
@@ -391,7 +386,7 @@ describe('_internalResolver', () => {
           },
         ],
       })
-      const label = parent.child() as IComponentTypeInstance
+      const label = parent.child() as Component
       const br = label.child(0)
       const text = label.child(1)
       expect(br?.style).not.to.have.property('position')

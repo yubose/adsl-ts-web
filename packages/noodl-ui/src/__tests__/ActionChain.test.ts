@@ -2,35 +2,45 @@ import { expect } from 'chai'
 import chalk from 'chalk'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
-import { noodlui } from '../utils/test-utils'
-import makeRootsParser from '../factories/makeRootsParser'
+import { assetsUrl, noodlui } from '../utils/test-utils'
 import ActionChain from '../ActionChain'
 import Action from '../Action'
 import {
-  UpdateActionObject,
+  UpdateObject,
   PageJumpObject,
   PopupDismissObject,
-  IAction,
-  IComponentTypeInstance,
   ResolverContext,
-  IList,
-  IListItem,
-  EmitActionObject,
+  ActionChainConstructorArgs,
 } from '../types'
-import List from '../components/List'
-import * as helpers from './helpers/helpers'
-import {
-  actionChainEmitTriggers,
-  actionTypes,
-  emitTriggers,
-  resolveEmitTriggers,
-} from '../constants'
+import { actionChainEmitTriggers, actionTypes } from '../constants'
 import createComponent from '../utils/createComponent'
 import { waitFor } from '@testing-library/dom'
 import EmitAction from '../Action/EmitAction'
 import Component from '../components/Base'
+import List from '../components/List'
+import ListItem from '../components/ListItem'
+import { ActionObject } from '../../dist'
 
-const parser = makeRootsParser({ root: {} })
+let getRoot = () => ({
+  PatientChartGeneralInfo: {
+    generalInfo: {
+      gender: [
+        {
+          key: 'male',
+          value: 'Male',
+        },
+        {
+          key: 'female',
+          value: 'Female',
+        },
+        {
+          key: 'other',
+          value: 'Other',
+        },
+      ],
+    },
+  },
+})
 
 const pageJumpAction: PageJumpObject = {
   actionType: 'pageJump',
@@ -42,20 +52,34 @@ const popUpDismissAction: PopupDismissObject = {
   popUpView: 'warningView',
 }
 
-const updateObjectAction: UpdateActionObject = {
+const updateObjectAction: UpdateObject = {
   actionType: 'updateObject',
   object: {
     '.Global.meetroom.edge.refid@': '___.itemObject.id',
   },
 }
 
-let actions: [PopupDismissObject, UpdateActionObject, PageJumpObject]
+let actions: [PopupDismissObject, UpdateObject, PageJumpObject]
+let actionChain: ActionChain<any[], Component>
 
-let actionChain: ActionChain<any[], IComponentTypeInstance>
+const createActionChain = <Args extends ActionChainConstructorArgs<any>>(
+  args: Partial<{ actions: Args[0] } & Args[1]>,
+) =>
+  new ActionChain(args.actions || actions, {
+    component: createComponent('view'),
+    getRoot,
+    pageObject: getRoot().PatientChartGeneralInfo,
+    trigger: 'onClick',
+    ...args,
+  })
 
 beforeEach(() => {
   actions = [popUpDismissAction, updateObjectAction, pageJumpAction]
-  actionChain = new ActionChain(actions, {} as any)
+  actionChain = createActionChain({
+    actions,
+    component: createComponent('view'),
+  })
+  noodlui.use({ getRoot, getAssetsUrl: () => assetsUrl })
 })
 
 describe('ActionChain', () => {
@@ -63,10 +87,7 @@ describe('ActionChain', () => {
     it('should set the builtIns either by using a single object or an array', () => {
       const mockBuiltInFn = sinon.spy()
       const component = createComponent('view')
-      actionChain = new ActionChain(
-        [popUpDismissAction, updateObjectAction, pageJumpAction],
-        { component, trigger: 'onClick' },
-      )
+      actionChain = createActionChain({ component })
       expect(actionChain.fns.builtIn).not.to.have.property('hello')
       expect(actionChain.fns.builtIn).not.to.have.property('hi')
       expect(actionChain.fns.builtIn).not.to.have.property('monster')
@@ -97,10 +118,10 @@ describe('ActionChain', () => {
     })
 
     it('should populate the action array with the raw action objects', () => {
-      const actionChain = new ActionChain(
-        [pageJumpAction, popUpDismissAction],
-        { component: createComponent('textField'), trigger: 'onClick' },
-      )
+      actionChain = createActionChain({
+        actions: [pageJumpAction, popUpDismissAction],
+        component: createComponent('textField'),
+      })
       expect(actionChain.actions).to.include.deep.members([
         pageJumpAction,
         popUpDismissAction,
@@ -108,12 +129,11 @@ describe('ActionChain', () => {
     })
 
     it('should load up the action fns', () => {
-      const actionChain = new ActionChain(actions, {} as any)
       const popup = sinon.spy()
       const update = sinon.spy()
       const popupObj = { actionType: 'popUp', fn: [popup] }
-      const updateObj = { actionType: 'updateObject', fn: [update] }
-      actionChain.useAction(popupObj)
+      const updateObj = { actionType: 'updateObject', fn: [update] } as any
+      actionChain.useAction(popupObj as any)
       actionChain.useAction([updateObj])
       expect(actionChain.fns.action).to.have.property('popUp')
       expect(actionChain.fns.action.popUp).to.be.an('array')
@@ -124,23 +144,23 @@ describe('ActionChain', () => {
       expect(actionChain.fns.action.updateObject?.[0].fn?.[0]).to.eq(update)
       expect(actionChain.fns.action.updateObject).to.have.lengthOf(1)
     })
-
-    it(
-      'should forward the built ins to useBuiltIn if any builtIn objects ' +
-        'were passed in',
-      () => {
-        //
-      },
-    )
   })
 
   describe('when creating actions', () => {
-    xit('should treat the noodl anonymous object as an action with actionType: "anonymous"', () => {
-      //
+    it('should treat the noodl anonymous object as an action with actionType: "anonymous"', () => {
+      expect(
+        createActionChain({
+          actions: [sinon.spy() as any],
+        }).actions[0],
+      ).to.have.property('actionType', 'anonymous')
     })
 
-    xit('should treat the noodl emit object as an action with actionType: "emit"', () => {
-      //
+    it('should treat the noodl emit object as an action with actionType: "emit"', () => {
+      expect(
+        createActionChain({
+          actions: [{ emit: { dataKey: 'fasfas', actions: [] } }],
+        }).actions[0],
+      ).to.have.property('actionType', 'emit')
     })
 
     actionTypes.forEach((actionType) => {
@@ -149,12 +169,7 @@ describe('ActionChain', () => {
           `${chalk.yellow(actionType)} action`,
         () => {
           expect(
-            actionChain.createAction({
-              actionType,
-              fn: sinon.spy(),
-              trigger: 'onClick',
-              context: { noodl: 'hello' },
-            }),
+            actionChain.createAction({ actionType } as ActionObject),
           ).to.be.instanceOf(Action)
         },
       )
@@ -163,20 +178,19 @@ describe('ActionChain', () => {
 
   describe('when building the action chain handler', () => {
     it('should load up the queue', () => {
-      const view = createComponent('view') as IComponentTypeInstance
-      const actionChain = new ActionChain(
-        [
+      actionChain = createActionChain({
+        actions: [
           { actionType: 'builtIn', funcName: 'hello', fn: sinon.spy() },
           { emit: { dataKey: { var1: 'itemObject' }, actions: [{}, {}, {}] } },
-        ],
-        { component: view, trigger: 'onClick' },
-      )
+        ] as any,
+        component: createComponent('view'),
+        trigger: 'onClick',
+      })
       actionChain.useAction([
         { actionType: 'builtIn', funcName: 'hello', fn: sinon.spy() },
         {
           actionType: 'emit',
           fn: sinon.spy(() => Promise.resolve()),
-          context: {},
           trigger: 'onClick',
         },
       ])
@@ -188,11 +202,9 @@ describe('ActionChain', () => {
     })
 
     it('should be an EmitAction subclass instance for emit actions', () => {
-      const component = createComponent('view')
-      const actionChain = new ActionChain(
-        [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
-        { component, trigger: 'onClick' } as any,
-      )
+      actionChain = createActionChain({
+        actions: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+      })
       actionChain.build()
       expect(actionChain.getQueue()[0]).to.be.instanceOf(EmitAction)
     })
@@ -200,12 +212,11 @@ describe('ActionChain', () => {
     it('should load up the number of items in the queue correctly', async () => {
       const spy = sinon.spy()
       const emitUseObj = { actionType: 'emit', fn: spy, trigger: 'onChange' }
-      const component = createComponent('textField')
-      const actionChain = new ActionChain(
-        [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
-        { component, trigger: 'onClick' } as any,
-      )
-      actionChain.useAction(emitUseObj)
+      actionChain = createActionChain({
+        actions: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+        component: createComponent('textField'),
+      })
+      actionChain.useAction(emitUseObj as any)
       expect(actionChain.getQueue()).to.have.lengthOf(0)
       const handler = actionChain.build()
       expect(actionChain.getQueue()).to.have.lengthOf(1)
@@ -221,15 +232,13 @@ describe('ActionChain', () => {
       const emitSpy = sinon.spy()
       const builtInSpy = sinon.spy()
       const pageJumpSpy = sinon.spy()
-      const component = createComponent('image')
-      const actionChain = new ActionChain(
-        [
+      actionChain = createActionChain({
+        actions: [
           pageJumpAction,
           { emit: { dataKey: { var1: 'itemObject' }, actions: [] } },
           { actionType: 'builtIn', funcName: 'hello' },
         ],
-        { component, trigger: 'onClick' } as any,
-      )
+      })
       actionChain.useAction({
         actionType: 'emit',
         fn: emitSpy,
@@ -251,10 +260,7 @@ describe('ActionChain', () => {
       const mockEmitObj = {
         emit: { dataKey: { var1: 'itemObject' }, actions: [{}, {}, {}] },
       }
-      const actionChain = new ActionChain(
-        [mockEmitObj] as any,
-        { component: createComponent('view'), trigger: 'onClick' } as any,
-      )
+      actionChain = createActionChain({ actions: [mockEmitObj] as any })
       actionChain.useAction([
         {
           actionType: 'emit',
@@ -273,13 +279,11 @@ describe('ActionChain', () => {
       const mockEmitObj = {
         emit: { dataKey: { var1: 'itemObject' }, actions: [{}, {}, {}] },
       }
-      const actionChain = new ActionChain(
-        [mockEmitObj] as any,
-        { component: createComponent('view'), trigger: 'onClick' } as any,
-      ).useAction([
+      actionChain = createActionChain({
+        actions: [mockEmitObj] as any,
+      }).useAction([
         {
           actionType: 'emit',
-          context: { noodl: {} },
           fn: mockEmitFn,
           trigger: 'onChange',
         },
@@ -292,12 +296,15 @@ describe('ActionChain', () => {
     it('should pass the correct base essental args to the executor', async () => {
       const spy = sinon.spy()
       const emitUseObj = { actionType: 'emit', fn: spy, trigger: 'onChange' }
-      const component = createComponent('textField')
-      const actionChain = new ActionChain(
-        [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
-        { component, trigger: 'onChange' } as any,
-      )
-      actionChain.useAction(emitUseObj)
+      actionChain = createActionChain({
+        actions: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+        component: createComponent({
+          type: 'textField',
+          onChange: { emit: { dataKey: 'fsafa', actions: [] } },
+        }),
+        trigger: 'onChange',
+      })
+      actionChain.useAction(emitUseObj as any)
       const handler = actionChain.build()
       await handler()
       const optionsArg = spy.args[0][1]
@@ -312,11 +319,17 @@ describe('ActionChain', () => {
     })
 
     it(`should return a function`, () => {
-      const actionChain = new ActionChain(
-        [{ actionType: 'builtIn', funcName: 'hello', fn: sinon.spy() }],
-        { component: {} } as any,
-      )
-      expect(actionChain.build()).to.be.a('function')
+      expect(
+        createActionChain({
+          actions: [
+            {
+              actionType: 'builtIn',
+              funcName: 'hello',
+              fn: sinon.spy(),
+            } as any,
+          ],
+        }).build(),
+      ).to.be.a('function')
     })
   })
 
@@ -328,10 +341,9 @@ describe('ActionChain', () => {
         emit: { dataKey: { var1: 'itemObject' }, actions: [{}, {}, {}] },
       }
       const mockBuiltInObj = { actionType: 'builtIn', funcName: 'hello' }
-      const actionChain = new ActionChain(
-        [mockEmitObj, mockBuiltInObj] as any,
-        { component: createComponent('view'), trigger: 'onClick' } as any,
-      )
+      actionChain = createActionChain({
+        actions: [mockEmitObj, mockBuiltInObj] as any,
+      })
       actionChain.useAction([
         {
           actionType: 'emit',
@@ -351,13 +363,12 @@ describe('ActionChain', () => {
       'should call the builtIn funcs that were registered by their funcName ' +
         'when being run',
       async () => {
-        const actionChain = new ActionChain(
-          [...actions, { actionType: 'builtIn', funcName: 'red' }],
-          {} as any,
-        )
+        actionChain = createActionChain({
+          actions: [...actions, { actionType: 'builtIn', funcName: 'red' }],
+        })
         const spy = sinon.spy()
         actionChain.useBuiltIn({ funcName: 'red', fn: spy })
-        const func = actionChain.build({} as any)
+        const func = actionChain.build()
         await func()
         expect(spy.called).to.be.true
       },
@@ -367,54 +378,48 @@ describe('ActionChain', () => {
       'should call the non-builtIn funcs that were registered by actionType ' +
         'when being run',
       async () => {
-        const component = createComponent('view')
         const popupSpy = sinon.spy()
         const gotoSpy = sinon.spy()
         const emitSpy = sinon.spy()
         const updateObjectSpy = sinon.spy()
         const saveObjectSpy = sinon.spy()
         const evalObjectSpy = sinon.spy()
-        const actionChain = new ActionChain(
-          [
+        actionChain = createActionChain({
+          actions: [
             { actionType: 'popUpDismiss' },
             { goto: 'https://www.google.com' },
             { emit: { dataKey: { var1: 'hello' }, actions: [] } },
             { actionType: 'updateObject', object: () => {} },
             { actionType: 'saveObject' },
             { actionType: 'evalObject' },
-          ],
-          { component, trigger: 'onClick' },
-        )
-        actionChain.useAction({ actionType: 'popUpDismiss', fn: popupSpy })
-        actionChain.useAction({ actionType: 'goto', fn: gotoSpy })
-        actionChain.useAction({
-          actionType: 'updateObject',
-          fn: updateObjectSpy,
+          ] as any,
         })
-        actionChain.useAction([
-          { actionType: 'emit', fn: emitSpy, trigger: 'onClick' },
-          { actionType: 'saveObject', fn: saveObjectSpy },
-          { actionType: 'evalObject', fn: evalObjectSpy },
-        ])
+        actionChain
+          .useAction({ actionType: 'popUpDismiss', fn: popupSpy })
+          .useAction({ actionType: 'goto', fn: gotoSpy })
+          .useAction({ actionType: 'updateObject', fn: updateObjectSpy })
+          .useAction([
+            { actionType: 'emit', fn: emitSpy, trigger: 'onClick' },
+            { actionType: 'saveObject', fn: saveObjectSpy },
+            { actionType: 'evalObject', fn: evalObjectSpy },
+          ])
         const func = actionChain.build()
         await func()
         expect(popupSpy.called).to.be.true
         expect(gotoSpy.called).to.be.true
         expect(emitSpy.called).to.be.true
-        // expect(updateObjectSpy.called).to.be.true
-        // expect(saveObjectSpy.called).to.be.true
-        // expect(evalObjectSpy.called).to.be.true
+        expect(updateObjectSpy.called).to.be.true
+        expect(saveObjectSpy.called).to.be.true
+        expect(evalObjectSpy.called).to.be.true
       },
     )
 
     it('should pass in the anonymous func into the anonymous action callback', async () => {
       const spy = sinon.spy()
-      const component = new List() as IComponentTypeInstance
-      const actionChain = new ActionChain(
-        [pageJumpAction, { actionType: 'anonymous', fn: spy }],
-        { component },
-      )
-      const execute = actionChain.build({ trigger: 'onClick' } as any)
+      actionChain = createActionChain({
+        actions: [pageJumpAction, { actionType: 'anonymous', fn: spy }],
+      })
+      const execute = actionChain.build()
       await execute()
       expect(spy.firstCall.args[0].original)
         .to.have.property('fn')
@@ -422,17 +427,13 @@ describe('ActionChain', () => {
     })
 
     it('should receive the component in callback options', async () => {
+      const component = createComponent('view')
       const spy = sinon.spy()
-      const component = new List() as IComponentTypeInstance
-      const actionChain = new ActionChain(
-        [{ actionType: 'anonymous', fn: spy }],
-        { component },
-      )
-      const execute = actionChain.build({
-        context: {} as ResolverContext,
-        trigger: 'onClick',
+      actionChain = createActionChain({
+        actions: [{ actionType: 'anonymous', fn: spy }],
+        component,
       })
-      await execute({})
+      await actionChain.build()()
       expect(spy.called).to.be.true
       expect(spy.firstCall.args[1])
         .to.have.property('component')
@@ -441,10 +442,10 @@ describe('ActionChain', () => {
   })
 
   it('should update the "status" property when starting the action chain', () => {
-    const actionChain = new ActionChain([pageJumpAction], {} as any)
+    actionChain = createActionChain({ actions: [pageJumpAction] })
     const btn = document.createElement('button')
     btn.addEventListener('click', async (args) => {
-      const fn = actionChain.build({ parser } as any)
+      const fn = actionChain.build()
       await fn(args)
       return expect(actionChain.status).to.eq('done')
     })
@@ -453,20 +454,15 @@ describe('ActionChain', () => {
     expect(actionChain.status).to.equal('in.progress')
   })
 
-  xit(
+  it(
     'the status should be an object with an "aborted" property after ' +
       'explicitly calling "abort"',
     async () => {
-      const spy = sinon.spy()
-      const actionChain = new ActionChain([pageJumpAction], {
-        pageJump: spy,
-      })
+      actionChain = createActionChain({ actions: [pageJumpAction] })
       expect(actionChain.status).to.be.null
       const btn = document.createElement('button')
       const handler = () => {
-        try {
-          actionChain.abort()
-        } catch (error) {}
+        actionChain.abort()
       }
       btn.addEventListener('click', handler)
       btn.click()
@@ -474,16 +470,6 @@ describe('ActionChain', () => {
       expect(actionChain.status).to.have.property('aborted')
     },
   )
-
-  xit('calling abort should clear the queue', async () => {
-    const component = createComponent('view')
-    const actionChain = new ActionChain(
-      [pageJumpAction, popUpDismissAction, updateObjectAction],
-      { component, trigger: 'onClick' },
-    )
-    const handler = actionChain.build()
-    const queue = actionChain.getQueue()
-  })
 
   xit('should show a different abort reason if it happened somewhere else', () => {
     //
@@ -495,16 +481,14 @@ describe('ActionChain', () => {
 
   it('should load the queue', () => {
     const mockAnonFn = sinon.spy(() => 'abc')
-    const component = new List()
-    const actionChain = new ActionChain(
-      [
+    actionChain = createActionChain({
+      actions: [
         sinon.spy(),
         { emit: { dataKey: { var1: 'h' }, actions: [] } },
         { actionType: 'popUpDismiss' },
-      ],
-      { component, trigger: 'onClick' },
-    )
-    actionChain.useAction({ actionType: 'anonymous', fn: mockAnonFn })
+      ] as any,
+    })
+    actionChain.useAction({ actionType: 'anonymous', fn: mockAnonFn } as any)
     actionChain.loadQueue()
     const queue = actionChain.getQueue()
     expect(queue.length).to.eq(3)
@@ -522,11 +506,8 @@ describe('ActionChain', () => {
         popUpDismissAction,
         { emit: { dataKey: { var1: 'f' }, actions: [] } },
         sinon.spy(),
-      ]
-      const actionChain = new ActionChain(actions, {
-        component,
-        trigger: 'onClick',
-      })
+      ] as any
+      actionChain = createActionChain({ actions, component })
       const fn = actionChain.build()
       const queue = actionChain.getQueue()
       await fn()
@@ -538,10 +519,7 @@ describe('ActionChain', () => {
     it('should call the "execute" method', async () => {
       const func = () => 'hello'
       const component = new List()
-      const actionChain = new ActionChain([func], {
-        component,
-        trigger: 'onClick',
-      })
+      actionChain = createActionChain({ actions: [func] as any, component })
       const executeSpy = sinon.spy(actionChain, 'execute')
       const handler = actionChain.build()
       await handler()
@@ -551,10 +529,7 @@ describe('ActionChain', () => {
     it('the execute method should return something', async () => {
       const func = () => 'hello'
       const component = new List()
-      const actionChain = new ActionChain([func], {
-        component,
-        trigger: 'onClick',
-      })
+      actionChain = createActionChain({ actions: [func] as any, component })
       actionChain.useAction({
         actionType: 'anonymous',
         fn: async () => 'hifafs',
@@ -570,9 +545,9 @@ describe('ActionChain', () => {
     it('should pass the component instance to args', async () => {
       const mockAnonFn = sinon.spy()
       const component = new List()
-      const actionChain = new ActionChain([mockAnonFn], {
+      actionChain = createActionChain({
+        actions: [mockAnonFn] as any,
         component,
-        trigger: 'onClick',
       })
       const handler = actionChain.build()
       await handler()
@@ -610,10 +585,10 @@ describe('ActionChain', () => {
 
     describe('when executing emit actions', () => {
       let page: any
-      let view: IComponentTypeInstance
-      let list: IList
-      let image: IComponentTypeInstance
-      let textField: IComponentTypeInstance
+      let view: Component
+      let list: List
+      let image: Component
+      let textField: Component
       let originalPage: any
       let generalInfoTemp: { gender: { key: string; value: any } }
       let mockOnClickEmitCallback: sinon.SinonSpy
@@ -682,7 +657,9 @@ describe('ActionChain', () => {
         mockOnChangeEmitCallback = sinon.spy()
         mockPathEmitCallback = sinon.spy(() => 'fruit.png')
         noodlui
-          .setRoot('PatientChartGeneralInfo', { generalInfoTemp })
+          .use({
+            getRoot: () => ({ PatientChartGeneralInfo: { generalInfoTemp } }),
+          })
           .setPage('PatientChartGeneralInfo')
         noodlui.use([
           {
@@ -761,107 +738,96 @@ describe('ActionChain', () => {
       })
 
       describe('when emitting for list consumers', () => {
-        it(
-          'should populate the EmitAction instance with dataKey, iteratorVar, ' +
-            'and the dataObject',
-          async () => {
-            const listObject = [
-              { gender: { value: 'Male' } },
-              { gender: { value: 'Female' } },
-            ]
-            const iteratorVar = 'abc'
-            const emitSpy = sinon.spy()
-            const list = createComponent('list') as IList
-            const listItem = createComponent('listItem') as IListItem
-            const textField = createComponent({
-              type: 'textField',
-              dataKey: 'gender.value',
-              onChange: [
-                {
-                  emit: {
-                    dataKey: iteratorVar + '.gender.value',
-                    actions: [{}, {}, {}],
-                  },
+        it('should populate the EmitAction instance with the dataKey and iteratorVar', async () => {
+          const listObject = [
+            { gender: { value: 'Male' } },
+            { gender: { value: 'Female' } },
+          ]
+          const iteratorVar = 'abc'
+          const emitSpy = sinon.spy()
+          const list = createComponent('list')
+          const listItem = createComponent('listItem')
+          const textField = createComponent({
+            type: 'textField',
+            dataKey: `${iteratorVar}.gender.value`,
+            onChange: [
+              {
+                emit: {
+                  dataKey: `${iteratorVar}.gender.value`,
+                  actions: [{}, {}, {}],
                 },
-              ],
-            })
-            list
-              .set('iteratorVar', iteratorVar)
-              .set('listObject', listObject)
-              .set('listId', 'mylistid')
-            listItem
-              .set('iteratorVar', iteratorVar)
-              .set('listIndex', 0)
-              .set('listId', 'mylistid')
-              .setDataObject(listObject[0])
-            textField
-              .set('iteratorVar', iteratorVar)
-              .set('listIndex', 0)
-              .set('listId', 'mylistid')
-            list.createChild(listItem)
-            listItem.createChild(textField)
-            listItem.setDataObject(listObject[0])
-            const actionChain = new ActionChain(
-              [
-                pageJumpAction,
-                {
-                  emit: { dataKey: iteratorVar + '.gender.value', actions: [] },
-                },
-              ],
-              { component: textField, trigger: 'onChange' },
-            )
-            actionChain.useAction({
-              actionType: 'emit',
-              fn: emitSpy,
-              trigger: 'onChange',
-            })
-            const handler = actionChain.build()
-            await handler()
-            const arg = emitSpy.args[0][0]
-            expect(arg).to.be.instanceOf(EmitAction)
-            expect(arg.dataKey).to.eq(iteratorVar + '.gender.value')
-            expect(arg.iteratorVar).to.eq(iteratorVar)
-            expect(arg.getDataObject()).to.eq(listObject[0])
-          },
-        )
+              },
+            ],
+          })
+          list
+            .set('iteratorVar', iteratorVar)
+            .set('listObject', listObject)
+            .set('listId', 'mylistid')
+          listItem
+            .set('iteratorVar', iteratorVar)
+            .set('listIndex', 0)
+            .set('listId', 'mylistid')
+            .setDataObject(listObject[0])
+          textField
+            .set('iteratorVar', iteratorVar)
+            .set('listIndex', 0)
+            .set('listId', 'mylistid')
+          list.createChild(listItem)
+          listItem.createChild(textField)
+          listItem.setDataObject(listObject[0])
+          actionChain = createActionChain({
+            actions: [
+              pageJumpAction,
+              { emit: { dataKey: `${iteratorVar}.gender.value`, actions: [] } },
+            ] as any,
+            component: textField,
+            trigger: 'onChange',
+          }).useAction({ actionType: 'emit', fn: emitSpy, trigger: 'onChange' })
+          const handler = actionChain.build()
+          await handler()
+          const arg = emitSpy.args[0][0]
+          expect(arg).to.be.instanceOf(EmitAction)
+          console.info(arg)
+          expect(arg.dataKey).to.eq('Male')
+          expect(arg.iteratorVar).to.eq(iteratorVar)
+        })
       })
 
       it('should be able to access a dataObject coming from the root', async () => {
+        const pageName = 'MyPage'
         const pageObject = { gender: { value: 'Male' } }
-        const emitSpy = sinon.spy()
-        const image = createComponent({
-          type: 'image',
-          path: 'Male.png',
-          onClick: [
-            {
-              emit: {
-                dataKey: 'gender.value',
-                actions: [{}, {}, {}],
-              },
-            },
-          ],
-        })
-        const actionChain = new ActionChain(
-          [pageJumpAction, { emit: { dataKey: 'gender.value', actions: [] } }],
-          {
-            component: image,
-            trigger: 'onClick',
-            pageName: 'Hello',
-            pageObject,
+        const getRoot = () => ({ MyPage: pageObject })
+        const emitSpy = sinon.spy(async () => 'f')
+        const emitObj = {
+          emit: {
+            dataKey: pageName + '.gender.value',
+            actions: [{}, {}, {}],
           },
-        )
+        }
+
+        actionChain = createActionChain({
+          actions: [pageJumpAction, emitObj],
+          component: createComponent({
+            type: 'image',
+            path: 'Male.png',
+            onClick: [emitObj],
+          }),
+          pageName,
+          pageObject,
+          getRoot,
+          trigger: 'onClick',
+        })
         actionChain.useAction({
           actionType: 'emit',
           fn: emitSpy,
           trigger: 'onClick',
         })
         const handler = actionChain.build()
-        const results = await handler()
-        console.info(results)
-        const arg = emitSpy.args[0][0]
-        expect(arg).to.be.instanceOf(EmitAction)
-        expect(arg.dataKey).to.eq('gender.value')
-        expect(arg.getDataObject()).to.eq('Male')
+        await handler()
+        // @ts-expect-error
+        const emitAction = emitSpy.args[0][0] as EmitAction
+        expect(emitAction).to.be.instanceOf(EmitAction)
+        expect(emitAction.dataKey).to.eq('Male')
       })
 
       xit('should be able to access a dataObject coming from the local root', () => {
@@ -873,18 +839,15 @@ describe('ActionChain', () => {
       })
 
       xit('the dataObject passed to emit action should be in the args', () => {
-        const listItem = list.child() as IListItem
+        const listItem = list.child() as ListItem
         const image = listItem.child(1)
-        expect(listItem.getDataObject()).to.eq(image?.get('dataObject'))
       })
 
       it('should have a trigger value of "onClick" if triggered by an onClick', async () => {
         const emitSpy = sinon.spy()
-        const image = createComponent('image')
-        const actionChain = new ActionChain(
-          [{ emit: { dataKey: 'f', actions: [] } }],
-          { component: image, trigger: 'onClick' },
-        )
+        actionChain = createActionChain({
+          actions: [{ emit: { dataKey: 'f', actions: [] } }],
+        })
         actionChain.useAction({
           actionType: 'emit',
           trigger: 'onClick',
@@ -915,7 +878,7 @@ describe('ActionChain', () => {
             onClick: onClickEmitObj,
             placeholder: 'Enter',
             dataKey: 'itemObject.input',
-          }) as IComponentTypeInstance
+          }) as Component
       })
 
       describe('when using onChange emit', () => {
@@ -929,8 +892,9 @@ describe('ActionChain', () => {
             onChange: onChangeEmitObj,
             placeholder: 'Enter',
             dataKey: 'itemObject.input',
-          }) as IComponentTypeInstance
-          const actionChain = new ActionChain([onChangeEmitObj], {
+          }) as Component
+          actionChain = createActionChain({
+            actions: [onChangeEmitObj],
             component: textField,
             trigger: 'onChange',
           })
@@ -955,7 +919,7 @@ describe('ActionChain', () => {
     it('should refresh after done running', async () => {
       const component = createComponent('textField')
       const spy = sinon.spy()
-      const actionChain = new ActionChain(
+      actionChain = createActionChain(
         [
           pageJumpAction,
           popUpDismissAction,

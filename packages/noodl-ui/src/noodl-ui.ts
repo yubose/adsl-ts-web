@@ -2,15 +2,13 @@ import _ from 'lodash'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
 import {
+  createEmitDataKey,
   evalIf,
-  findParent,
+  findListDataObject,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isEmitObj,
-  isListConsumer,
-  findDataObject,
-  findListDataObject,
-  createEmitDataKey,
+  isIfObj,
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
@@ -35,19 +33,17 @@ import * as T from './types'
 
 const log = Logger.create('noodl-ui')
 
-function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
+function _createState(state?: Partial<T.State>) {
   return {
-    // nodes: new Map(), // Unused atm
     page: '',
     ...state,
-  } as T.INOODLUiState
+  } as T.State
 }
 
-class NOODL implements T.INOODLUi {
-  #assetsUrl: string = ''
+class NOODL {
   #cb: {
     action: Partial<
-      Record<T.NOODLActionType, T.IActionChainUseObjectBase<any, any>[]>
+      Record<T.ActionType, T.ActionChainUseObjectBase<any, any>[]>
     >
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
@@ -60,12 +56,13 @@ class NOODL implements T.INOODLUi {
       {},
     ),
   }
+  #getAssetsUrl: () => string
   #parser: T.RootsParser
   #resolvers: Resolver[] = []
-  #root: { [key: string]: any } = {}
-  #getRoot: () => {}
-  #state: T.INOODLUiState
-  #viewport: T.IViewport
+  #root: T.Root = {}
+  #getRoot: () => T.Root
+  #state: T.State
+  #viewport: Viewport
   actionsContext: { emitCall?: any; noodlui: NOODL } = { noodlui: this }
   initialized: boolean = false
 
@@ -74,7 +71,7 @@ class NOODL implements T.INOODLUi {
     viewport,
   }: {
     showDataKey?: boolean
-    viewport?: T.IViewport
+    viewport?: Viewport
   } = {}) {
     this.#parser = makeRootsParser({ root: {} })
     this.#state = _createState({ showDataKey })
@@ -82,7 +79,7 @@ class NOODL implements T.INOODLUi {
   }
 
   get assetsUrl() {
-    return this.#assetsUrl
+    return this.#getAssetsUrl()
   }
 
   get page() {
@@ -101,13 +98,16 @@ class NOODL implements T.INOODLUi {
     return this.#viewport
   }
 
-  resolveComponents(component: T.IComponentType): T.IComponentTypeInstance
-  resolveComponents(components: T.IComponentType[]): T.IComponentTypeInstance[]
+  resolveComponents(component: T.ComponentCreationType): Component
+  resolveComponents(components: T.ComponentCreationType[]): Component[]
   resolveComponents(
-    componentsParams: T.IComponentType | T.IComponentType[] | T.Page['object'],
+    componentsParams:
+      | T.ComponentCreationType
+      | T.ComponentCreationType[]
+      | T.Page['object'],
   ) {
     let components: any[] = []
-    let resolvedComponents: T.IComponentTypeInstance[] = []
+    let resolvedComponents: Component[] = []
 
     if (componentsParams) {
       if (componentsParams instanceof Component) {
@@ -140,9 +140,7 @@ class NOODL implements T.INOODLUi {
       : resolvedComponents[0]
   }
 
-  #resolve = (
-    c: T.NOODLComponentType | T.IComponentTypeInstance | T.IComponentTypeObject,
-  ) => {
+  #resolve = (c: T.ComponentType | Component | T.ComponentObject) => {
     const component = createComponent(c)
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component.original.style)
@@ -151,13 +149,14 @@ class NOODL implements T.INOODLUi {
 
     component.assignStyles(baseStyles)
 
+    // TODO - deprecate this
     if (this.parser.getLocalKey() !== this.page) {
       this.parser.setLocalKey(this.page)
     }
 
     // Finalizing
-    if (_.isObject(component.style)) {
-      forEachDeepEntries(component.style, (key, value: string) => {
+    if (component.style && typeof component.style === 'object') {
+      forEachDeepEntries(component.style, (key, value) => {
         if (_.isString(value)) {
           if (value.startsWith('0x')) {
             component.set('style', key, formatColor(value))
@@ -168,11 +167,9 @@ class NOODL implements T.INOODLUi {
       })
     }
 
-    _.forEach(this.#resolvers, (r: T.IResolver) =>
+    _.forEach(this.#resolvers, (r: Resolver) =>
       r.resolve(component, consumerOptions),
     )
-
-    // this.emit('afterResolve', component, consumerOptions)
 
     return component
   }
@@ -180,10 +177,10 @@ class NOODL implements T.INOODLUi {
   on(
     eventName: T.EventId,
     cb: (
-      noodlComponent: T.IComponentTypeObject,
+      noodlComponent: T.ComponentObject,
       args: {
-        component: T.IComponentTypeInstance
-        parent: T.IComponentTypeInstance | null
+        component: Component
+        parent?: Component | null
       },
     ) => void,
   ) {
@@ -191,16 +188,13 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  off(eventName: T.EventId, cb: T.INOODLUiComponentEventCallback<any>) {
+  off(eventName: T.EventId, cb: T.ComponentEventCallback) {
     if (_.isString(eventName)) this.#removeCb(eventName, cb)
     return this
   }
 
-  // emit(eventName: T.NOODLComponentEventId, cb: T.INOODLUiComponentEventCallback): void
-  emit(
-    eventName: T.EventId,
-    ...args: Parameters<T.INOODLUiComponentEventCallback<any>>
-  ) {
+  // emit(eventName: T.NOODLComponentEventId, cb: T.ComponentEventCallback): void
+  emit(eventName: T.EventId, ...args: Parameters<T.ComponentEventCallback>) {
     if (_.isString(eventName)) {
       const path = this.#getCbPath(eventName)
       if (path) {
@@ -236,10 +230,10 @@ class NOODL implements T.INOODLUi {
   #addCb = (
     key: T.IAction | T.EventId,
     cb:
-      | T.INOODLUiComponentEventCallback<any>
+      | T.ActionChainActionCallback
       | string
-      | { [key: string]: T.INOODLUiComponentEventCallback<any> },
-    cb2?: T.INOODLUiComponentEventCallback<any>,
+      | { [key: string]: T.ActionChainActionCallback },
+    cb2?: T.ActionChainActionCallback,
   ) => {
     if (key instanceof Action) {
       if (!_.isArray(this.#cb.action[key.actionType])) {
@@ -249,14 +243,14 @@ class NOODL implements T.INOODLUi {
     } else if (key === 'builtIn') {
       if (_.isString(cb)) {
         const funcName = cb
-        const fn = cb2 as T.INOODLUiComponentEventCallback<any>
+        const fn = cb2 as T.ActionChainActionCallback
         if (!_.isArray(this.#cb.builtIn[funcName])) {
           this.#cb.builtIn[funcName] = []
         }
         this.#cb.builtIn[funcName]?.push(fn)
       } else if (_.isPlainObject(cb)) {
         forEachEntries(
-          cb as { [key: string]: T.INOODLUiComponentEventCallback<any> },
+          cb as { [key: string]: T.ActionChainActionCallback },
           (key, value) => {
             const funcName = key
             const fn = value
@@ -273,7 +267,7 @@ class NOODL implements T.INOODLUi {
       const path = this.#getCbPath(key as any)
       if (path) {
         if (!_.isArray(this.#cb[path])) this.#cb[path] = []
-        this.#cb[path].push(cb as T.INOODLUiComponentEventCallback<any>)
+        this.#cb[path].push(cb as T.ActionChainActionCallback)
       }
     }
     return this
@@ -299,8 +293,8 @@ class NOODL implements T.INOODLUi {
   createActionChainHandler(
     actions: T.ActionObject[],
     options: {
-      component: T.IComponentTypeInstance
-      trigger: T.IActionChainEmitTrigger
+      component: Component
+      trigger: T.ActionChainEmitTrigger
     },
   ) {
     const actionChain = new ActionChain(
@@ -308,6 +302,7 @@ class NOODL implements T.INOODLUi {
       {
         actionsContext: this.getActionsContext(),
         component: options.component,
+        getRoot: this.#getRoot,
         pageName: this.page,
         pageObject: this.getPageObject(this.page),
         trigger: options.trigger,
@@ -322,27 +317,26 @@ class NOODL implements T.INOODLUi {
             (
               acc,
               actionObj: Omit<
-                T.IActionChainUseObjectBase<any, any>,
+                T.ActionChainUseObjectBase<any, any>,
                 'actionType'
               >,
             ) => {
-              if (actionType === 'emit' || 'emit' in (actionObj || {})) {
+              if (
+                isEmitObj(actionObj) &&
+                isActionChainEmitTrigger(actionObj.trigger)
+              ) {
                 // Only accept the emit action handlers where their
                 // actions only exist in action chains
-                if (isActionChainEmitTrigger(actionObj.trigger)) {
-                  return acc.concat({ actionType: 'emit', ...actionObj })
-                }
+                return acc.concat({ ...actionObj, actionType: 'emit' })
               }
               return acc.concat({ actionType, ...actionObj } as any)
             },
-            [] as T.IActionChainUseObjectBase<any>[],
+            [] as T.ActionChainUseObjectBase<any, any>[],
           ),
         ),
       [] as any[],
     )
-    useActionObjects.forEach((f) => {
-      actionChain.useAction(f)
-    })
+    useActionObjects.forEach((f) => actionChain.useAction(f))
     actionChain.useBuiltIn(
       _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
         funcName,
@@ -359,14 +353,17 @@ class NOODL implements T.INOODLUi {
   init({
     _log = true,
     actionsContext,
+    getAssetsUrl,
     getRoot,
     viewport,
   }: { _log?: boolean; actionsContext?: NOODL['actionsContext'] } & {
-    getRoot?: () => { [key: string]: any }
+    getAssetsUrl?: () => string
+    getRoot?: () => T.Root
     viewport?: Viewport
   } = {}) {
     if (!_log) Logger.disable()
     if (actionsContext) _.assign(this.actionsContext, actionsContext)
+    if (getAssetsUrl) this.#getAssetsUrl = getAssetsUrl
     if (getRoot) this.#getRoot = getRoot
     if (viewport) this.setViewport(viewport)
     this.initialized = true
@@ -375,7 +372,7 @@ class NOODL implements T.INOODLUi {
 
   getBaseStyles(styles?: T.Style) {
     return {
-      ...this.#root.Style,
+      ...this.#getRoot().Style,
       position: 'absolute',
       outline: 'none',
       ...styles,
@@ -390,21 +387,19 @@ class NOODL implements T.INOODLUi {
     return {
       assetsUrl: this.assetsUrl,
       page: this.page,
-      root: this.#getRoot(),
-      viewport: this.#viewport,
-    } as T.ResolverContext
+    }
   }
 
   getEmitHandlers(
-    trigger: T.IActionChainEmitTrigger | T.ResolveEmitTrigger,
-  ): T.IActionChainUseObjectBase<any>[]
+    trigger: T.ActionChainEmitTrigger | T.ResolveEmitTrigger,
+  ): T.ActionChainUseObjectBase<any, any>[]
   getEmitHandlers(
-    trigger: (handlers: T.IActionChainUseObjectBase<any>) => boolean,
-  ): T.IActionChainUseObjectBase<any>[]
+    trigger: (handlers: T.ActionChainUseObjectBase<any, any>) => boolean,
+  ): T.ActionChainUseObjectBase<any, any>[]
   getEmitHandlers(
     trigger?:
-      | (T.IActionChainEmitTrigger | T.ResolveEmitTrigger)
-      | ((handlers: T.IActionChainUseObjectBase<any>) => boolean),
+      | (T.ActionChainEmitTrigger | T.ResolveEmitTrigger)
+      | ((handlers: T.ActionChainUseObjectBase<any, any>) => boolean),
   ) {
     const handlers = this.#cb.action.emit || []
     if (!arguments.length) {
@@ -421,7 +416,7 @@ class NOODL implements T.INOODLUi {
   }
 
   getPageObject(page: string) {
-    return this.#root[page]
+    return this.#getRoot()[page]
   }
 
   getStateHelpers() {
@@ -435,23 +430,24 @@ class NOODL implements T.INOODLUi {
     component,
     ...rest
   }: {
-    component: T.IComponentTypeInstance
+    component: Component
     [key: string]: any
   }) {
     return {
       component,
       context: this.getContext(),
-      createActionChainHandler: (
-        ...[action, options]: Parameters<T.INOODLUi['createActionChainHandler']>
-      ) => this.createActionChainHandler(action, { ...options, component }),
-      createSrc: (path: string) => this.createSrc(path, component),
+      createActionChainHandler: (...[action, options]) =>
+        this.createActionChainHandler(action, { ...options, component } as any),
+      createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
       getBaseStyles: this.getBaseStyles.bind(this),
-      getRoot: () => this.root,
+      getResolvers: (() => this.#resolvers).bind(this),
+      getRoot: () => this.#getRoot(),
       page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
       parser: this.parser,
       showDataKey: this.#state.showDataKey,
+      viewport: this.viewport,
       ...this.getStateGetters(),
       ...this.getStateSetters(),
       ...rest,
@@ -477,19 +473,8 @@ class NOODL implements T.INOODLUi {
     return {}
   }
 
-  setAssetsUrl(assetsUrl: string) {
-    this.#assetsUrl = assetsUrl
-    return this
-  }
-
   setPage(pageName: string) {
     this.#state['page'] = pageName
-    return this
-  }
-
-  setRoot(root: string | { [key: string]: any }, value?: any) {
-    if (_.isString(root)) this.#root[root] = value
-    else this.#root = root
     return this
   }
 
@@ -498,18 +483,20 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  use(resolver: T.IResolver | T.IResolver[]): this
-  use(action: T.IActionChainUseObject | T.IActionChainUseObject[]): this
+  use(resolver: Resolver | Resolver[]): this
+  use(action: T.ActionChainUseObject | T.ActionChainUseObject[]): this
   use(viewport: T.IViewport): this
+  use(o: { getAssetsUrl?(): string; getRoot?(): T.Root }): this
   use(
     mod:
-      | T.IResolver
-      | T.IActionChainUseObject
+      | Resolver
+      | T.ActionChainUseObject
       | T.IViewport
-      | (T.IResolver | T.IActionChainUseObject)[],
+      | { getAssetsUrl?(): string; getRoot?(): T.Root }
+      | (Resolver | T.ActionChainUseObject | { getRoot(): T.Root })[],
     ...rest: any[]
   ) {
-    const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)
+    const mods = ((_.isArray(mod) ? mod : [mod]) as any[]).concat(rest)
     const handleMod = (m: typeof mods[number]) => {
       if (m) {
         if ('funcName' in m) {
@@ -531,6 +518,10 @@ class NOODL implements T.INOODLUi {
           this.setViewport(m)
         } else if (m instanceof Resolver) {
           this.#resolvers.push(m)
+        } else if ('getRoot' in m) {
+          this.#getRoot = m.getRoot
+        } else if ('getAssetsUrl' in m) {
+          this.#getAssetsUrl = m.getAssetsUrl
         }
       }
     }
@@ -543,7 +534,7 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  unuse(mod: T.IResolver) {
+  unuse(mod: Resolver) {
     if (mod instanceof Resolver) {
       if (mod.internal) {
         throw new Error('Internal resolvers cannot be removed')
@@ -555,34 +546,32 @@ class NOODL implements T.INOODLUi {
     return this
   }
 
-  reset(opts?: { keepCallbacks?: boolean } = {}) {
-    this.#root = {}
-    this.#parser = makeRootsParser({ root: this.#root })
+  reset(opts: { keepCallbacks?: boolean } = {}) {
+    this.#root = this.#getRoot()
+    this.#parser = makeRootsParser({ root: this.#getRoot() })
     this.#state = _createState()
     if (!opts.keepCallbacks) {
-      this.#cb = { action: [], builtIn: [], chaining: [] }
+      this.#cb = { action: [], builtIn: [], chaining: [] } as any
     }
     return this
   }
 
-  createSrc(
-    path: T.EmitActionObject,
-    component?: T.IComponentTypeInstance,
+  createSrc<O extends T.EmitObject>(
+    path: O,
+    component?: Component,
   ): string | Promise<string>
-  createSrc(
-    path: T.IfObject,
-    component?: T.IComponentTypeInstance,
+  createSrc<O extends T.IfObject>(
+    path: O,
+    component?: Component,
   ): string | Promise<string>
-  createSrc(
-    path: string,
-    component?: T.IComponentTypeInstance,
+  createSrc<S extends string>(
+    path: S,
+    component?: Component,
   ): string | Promise<string>
-  createSrc(
-    path: string | T.EmitActionObject | T.IfObject,
-    component?: T.IComponentTypeInstance,
-  ) {
+  createSrc(path: string | T.EmitObject | T.IfObject, component?: Component) {
     log.func('createSrc')
-    if (isDraft(path)) path = original(path)
+    // TODO - fix this in the component constructor so we can remove this
+    if (isDraft(path)) path = original(path) as typeof path
 
     if (path) {
       // Plain strings
@@ -590,100 +579,43 @@ class NOODL implements T.INOODLUi {
         return resolveAssetUrl(path, this.assetsUrl)
       }
       // "If" object evaluation
-      else if (path.if) {
-        path = evalIf((val: any) => {
-          if (isNOODLBoolean(val)) return isBooleanTrue(val)
-          if (typeof val === 'function') {
-            if (component) {
-              return val(
-                findDataObject({
-                  component,
-                  dataKey: component.get('dataKey'),
-                  pageObject: this.getPageObject(this.page),
-                }),
-              )
-            } else {
+      else if (isIfObj(path)) {
+        return resolveAssetUrl(
+          evalIf((val: any) => {
+            if (isNOODLBoolean(val)) return isBooleanTrue(val)
+            if (typeof val === 'function') {
+              if (component) return val(findListDataObject(component))
               return val()
             }
-          }
-          return !!val
-        }, path as T.IfObject)
-        return resolveAssetUrl(path as string, this.assetsUrl)
+            return !!val
+          }, path as T.IfObject),
+          this.assetsUrl,
+        )
       }
       // Emit object evaluation
       else if (isEmitObj(path)) {
-        if (component) {
-          let onPath = (info: {
-            before: string
-            after: string
-            component: typeof component
-          }) => {
-            log.func('onPath')
-            log.grey(`onPath called on path result`, info)
-            component?.off('path', onPath)
-            onPath = undefined as any
-          }
-          component?.on('path', onPath)
-        }
-
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
 
         if (typeof obj?.fn === 'function') {
           const emitObj = { ...path, actionType: 'emit' } as T.EmitActionObject
-          const emitAction = new EmitAction(emitObj, { trigger: 'path' })
+          const emitAction = new EmitAction(emitObj, {
+            iteratorVar: component?.get('iteratorVar'),
+            trigger: 'path',
+          })
+          emitAction.setDataKey(
+            createEmitDataKey(
+              emitObj.emit.dataKey,
+              [
+                findListDataObject(component),
+                () => this.getPageObject(this.page),
+                () => this.#getRoot(),
+              ],
+              { iteratorVar: emitAction.iteratorVar },
+            ),
+          )
 
-          let dataObject: any
-
-          if (emitObj.emit?.dataKey) {
-            if (_.isPlainObject(emitObj.emit.dataKey)) {
-              let prevKey: string
-              Object.entries(emitObj.emit.dataKey).forEach(([key, value]) => {
-                if (typeof value === 'string') {
-                  // If the current key was used in the previous loop, use that result
-                  if (prevKey === key && !_.isNil(dataObject)) {
-                    return emitAction.setDataKey(key, dataObject)
-                  }
-
-                  dataObject = findDataObject({
-                    component,
-                    dataKey: value,
-                    pageObject: this.getPageObject(this.page),
-                    root: this.#getRoot(),
-                  })
-                }
-                if (dataObject) emitAction.setDataKey(key, dataObject)
-                prevKey = key
-              })
-            } else if (typeof emitObj.emit.dataKey === 'string') {
-              emitAction.setDataKey(
-                emitObj.emit.dataKey,
-                findDataObject({
-                  component,
-                  dataKey: emitObj.emit.dataKey,
-                  pageObject: this.getPageObject[this.page],
-                  root: this.#getRoot(),
-                }),
-              )
-            }
-          }
-
-          if (path.emit.dataKey) {
-            emitAction.set(
-              'dataKey',
-              createEmitDataKey(path.emit?.dataKey, dataObject),
-            )
-            log.grey(
-              `Data key finalized for path emit`,
-              emitAction.getSnapshot(),
-            )
-          }
-
-          emitAction
-            .set('dataObject', dataObject)
-            .set('iteratorVar', component?.get?.('iteratorVar'))
-          log.grey(`Data object set on emit`, dataObject)
-          log.grey(`iteratorVar set on emit`, component?.get('iteratorVar'))
+          log.grey(`Data key finalized for path emit`, emitAction.getSnapshot())
 
           emitAction['callback'] = async (snapshot) => {
             log.grey(`Executing emit action callback`, snapshot)
@@ -698,14 +630,15 @@ class NOODL implements T.INOODLUi {
             const result = await Promise.race(
               callbacks.map((obj) =>
                 obj?.fn?.(
+                  // Instance
                   emitAction,
+                  // Options
                   this.getConsumerOptions({
-                    assetsUrl: this.assetsUrl,
-                    component: component as T.IComponentTypeInstance,
+                    component,
                     createSrc: this.createSrc,
                     path,
-                    snapshot,
                   }),
+                  // Action context
                   this.actionsContext,
                 ),
               ),
@@ -722,35 +655,24 @@ class NOODL implements T.INOODLUi {
           }
 
           // Result returned should be a string type
-          let result = emitAction.execute(path)
+          let result = emitAction.execute(path) as string | Promise<string>
 
           log.grey(`Result received from emit action`, emitAction.getSnapshot())
 
           if (isPromise(result)) {
-            log.grey(`Result is a promise`)
-            // Turn this into an EmitAction
-            // const emitAction = new EmitAction(path, { trigger: 'path' })
-            // emitAction.callback = (...args) => Promise.resolve(...args)
             return result
               .then((res) => {
                 let finalizedRes: string
                 if (typeof res === 'string' && res.startsWith('http')) {
                   finalizedRes = res
-                  log.grey(`Result is prefixed with http`, res)
                 } else {
                   finalizedRes = resolveAssetUrl(String(res), this.assetsUrl)
-                  log.grey(`Result was not prefixed with http.`, {
-                    before: res,
-                    after: finalizedRes,
-                  })
                 }
                 log.grey(`Resolved promise with: `, finalizedRes)
-                component?.emit('path', { component, result: finalizedRes })
                 return finalizedRes
               })
               .catch((err) => Promise.reject(err))
           } else if (result) {
-            log.grey(`Result was NOT a promise`)
             if (typeof result === 'string' && result.startsWith('http')) {
               return result
             }
@@ -761,12 +683,7 @@ class NOODL implements T.INOODLUi {
       // Assuming we are passing in a dataObject
       else if (typeof path === 'function') {
         if (component) {
-          const dataObject: any = findDataObject({
-            component,
-            dataKey: component.get('dataKey'),
-            pageObject: this.getPageObject(this.page),
-            root: this.root,
-          })
+          const dataObject: any = findListDataObject(component)
           // Assuming it is a component retrieving its value from a dataObject
           if (component.get?.('iteratorVar')) {
             path = evalIf((fn, val1, val2) => {
@@ -806,7 +723,7 @@ class NOODL implements T.INOODLUi {
             { component, path },
           )
         }
-        return resolveAssetUrl(path, this.assetsUrl)
+        return resolveAssetUrl(path, this.#getAssetsUrl())
       }
     }
 

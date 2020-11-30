@@ -1,26 +1,30 @@
 import _ from 'lodash'
 import { createDraft, isDraft } from 'immer'
 import { WritableDraft } from 'immer/dist/internal'
-import { IComponentType, NOODLComponentType, ProxiedComponent } from '../types'
+import {
+  ComponentCreationType,
+  ComponentType,
+  ProxiedComponent,
+} from '../types'
 
 /**
  * A helper utility to safely create a draft component
- * @param { IComponentType } component - Component type, component instance, or a plain component JS object
+ * @param { ComponentCreationType } component - Component type, component instance, or a plain component JS object
  */
 function createComponentDraftSafely(
-  component: IComponentType,
+  component: ComponentCreationType,
 ): WritableDraft<ProxiedComponent> {
   let value: WritableDraft<ProxiedComponent> | undefined
-  let noodlType: NOODLComponentType | undefined
+  let noodlType: ComponentType | undefined
   // Already a drafted component
   if (isDraft(component)) {
     value = component as WritableDraft<ProxiedComponent>
     value['noodlType'] = noodlType
-    noodlType = value.noodlType as NOODLComponentType
+    noodlType = value.noodlType as ComponentType
   }
   // Component type
   else if (_.isString(component)) {
-    noodlType = component
+    noodlType = component as ComponentType
     const proxiedComponent = { type: noodlType, noodlType } as ProxiedComponent
     value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
   }
@@ -28,11 +32,11 @@ function createComponentDraftSafely(
   else if (_.isFunction(component.toJS)) {
     const proxiedComponent = component.toJS() as ProxiedComponent
     value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
-    noodlType = proxiedComponent.noodlType as NOODLComponentType
+    noodlType = proxiedComponent.noodlType as ComponentType
   }
   // Proxied component
   else if (_.isPlainObject(component)) {
-    noodlType = component.noodlType || (component.type as NOODLComponentType)
+    noodlType = component.noodlType || (component.type as ComponentType)
     value = createDraft({
       ...component,
       noodlType,

@@ -7,32 +7,30 @@ import isReference from '../utils/isReference'
  * component object
  */
 const getReferences: ResolverFn = (component, { context, parser }) => {
-  const { page, root } = context
+  const { page } = context
 
-  if (root) {
-    let key: any, value: any
+  let key: any, value: any
 
-    for (let index = 0; index < component.keys.length; index++) {
-      key = component.keys[index]
-      value = component.get(key)
+  for (let index = 0; index < component.keys.length; index++) {
+    key = component.keys[index]
+    value = component.get(key)
 
-      if (isReference(key)) {
-        if (page && parser.getLocalKey() !== page) {
-          parser.setLocalKey(page)
-        }
-        component.assign(parser.get(key))
+    if (isReference(key)) {
+      if (page && parser.getLocalKey() !== page) {
+        parser.setLocalKey(page)
       }
+      component.assign(parser.get(key))
+    }
 
-      // Also check the value if they are a string and are a reference
-      if (isReference(value)) {
-        if (page && parser.getLocalKey() !== page) {
-          parser.setLocalKey(page)
-        }
-        if (key === 'style') {
-          component.assignStyles(parser.get(value))
-        } else {
-          component.assign(parser.get(value))
-        }
+    // Also check the value if they are a string and are a reference
+    if (isReference(value)) {
+      if (page && parser.getLocalKey() !== page) {
+        parser.setLocalKey(page)
+      }
+      if (key === 'style') {
+        component.assignStyles(parser.get(value))
+      } else {
+        component.assign(parser.get(value))
       }
     }
   }

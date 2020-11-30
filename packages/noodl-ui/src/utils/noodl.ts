@@ -1,13 +1,12 @@
 import _ from 'lodash'
 import { current } from 'immer'
+import Component from '../components/Base'
+import ListItem from '../components/ListItem'
 import {
-  IActionChainEmitTrigger,
-  IComponent,
-  IComponentTypeObject,
-  IComponentTypeInstance,
-  IComponentType,
-  IListItem,
-  NOODLComponentProps,
+  ActionChainEmitTrigger,
+  ComponentCreationType,
+  ComponentObject,
+  ProxiedComponent,
   TextBoardBreakLine,
 } from '../types'
 import { isAllString, isBrowser } from './common'
@@ -15,23 +14,21 @@ import { actionChainEmitTriggers } from '../constants'
 
 /**
  * Deeply traverses all children down the component's family tree
- * @param { IComponentTypeInstance | NOODLComponent | NOODLComponentProps | ProxiedComponent } component
+ * @param { Component | NOODLComponent | ProxiedComponent | ProxiedComponent } component
  */
-export function forEachDeepChildren<C extends IComponentTypeInstance>(
+export function forEachDeepChildren<C extends Component>(
   component: C,
-  cb: (component: C, child: IComponentType) => void,
+  cb: (component: C, child: ComponentCreationType) => void,
 ): void
-export function forEachDeepChildren<C extends IComponentTypeObject>(
+export function forEachDeepChildren<C extends ComponentObject>(
   component: C,
-  cb: (component: C, child: IComponentType) => void,
+  cb: (component: C, child: ComponentCreationType) => void,
 ): void
-export function forEachDeepChildren<
-  C extends IComponentTypeInstance | IComponentTypeObject
->(
+export function forEachDeepChildren<C extends Component | ComponentObject>(
   component: C,
   cb: (
-    parent: IComponentTypeInstance | IComponentTypeObject,
-    child: IComponentType,
+    parent: Component | ComponentObject,
+    child: ComponentCreationType,
   ) => void,
 ): void {
   if (component) {
@@ -46,14 +43,14 @@ export function forEachDeepChildren<
         forEachDeepChildren(child, cb)
       })
     } else if (component.children) {
-      cb(component, component.children as IComponentType)
+      cb(component, component.children as ComponentCreationType)
     }
   }
 }
 
 export function isActionChainEmitTrigger(
   trigger: any,
-): trigger is IActionChainEmitTrigger {
+): trigger is ActionChainEmitTrigger {
   return actionChainEmitTriggers.includes(trigger)
 }
 
@@ -66,12 +63,12 @@ export const identify = (function () {
       /** Returns true if value is a date component, false otherwise */
       isDate: (value: any): boolean =>
         checkForNoodlProp(value, 'text=func', _.negate(_.isUndefined)),
-      isPasswordInput: ({ contentType, noodlType }: NOODLComponentProps) =>
+      isPasswordInput: ({ contentType, noodlType }: ProxiedComponent) =>
         noodlType === 'textField' && contentType === 'password',
     },
     textBoard: {
       item: {
-        isTextObject: (component: IComponent): boolean =>
+        isTextObject: (component: Component): boolean =>
           _.isString(component.get('text')),
         isBreakLine: (value: unknown): value is TextBoardBreakLine =>
           value === 'br',
@@ -119,7 +116,7 @@ export const identify = (function () {
   return o
 })()
 
-export function isListItemComponent(o: any): o is IListItem {
+export function isListItemComponent(o: any): o is ListItem {
   return !!(o && o.noodlType === 'listItem' && typeof o.children === 'function')
 }
 
@@ -129,11 +126,11 @@ export function isListItemComponent(o: any): o is IListItem {
  * @param { string } iteratorVar
  * @param { object } obj - NOODL component
  */
-export function isIteratorVarConsumer(o: IComponentTypeInstance): boolean {
+export function isIteratorVarConsumer(o: Component): boolean {
   if (_.isPlainObject(o?.original)) {
     return (
       isAllString([o.original.dataKey, o.original.iteratorVar]) &&
-      o.original.dataKey.startsWith(o.original.iteratorVar)
+      (o.original.dataKey as string).startsWith(o.original.iteratorVar || '')
     )
   }
   return false

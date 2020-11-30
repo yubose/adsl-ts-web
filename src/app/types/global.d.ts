@@ -1,4 +1,4 @@
-import { NOODL, NOODLComponent, NOODLComponentProps } from 'noodl-ui'
+import { NOODL, NOODLComponent, ProxiedComponent } from 'noodl-ui'
 import {
   Room,
   Participant,
@@ -21,7 +21,7 @@ declare global {
     getByDataUX: any
     getDataValues: any
     components: NOODLComponent[]
-    pcomponents: NOODLComponentProps[]
+    pcomponents: ProxiedComponent[]
     meeting: Meeting
     modal: Modal
     noodlui: NOODL

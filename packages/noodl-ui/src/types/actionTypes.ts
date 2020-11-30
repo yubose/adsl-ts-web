@@ -7,12 +7,13 @@ export type ActionObject = BaseActionObject &
     | BuiltInObject
     | EmitActionObject
     | EvalObject
+    | GotoObject
     | PageJumpObject
     | PopupObject
     | PopupDismissObject
     | RefreshObject
     | SaveObject
-    | UpdateActionObject
+    | UpdateObject
   )
 
 export interface BaseActionObject {
@@ -29,8 +30,11 @@ export interface BuiltInObject extends BaseActionObject {
   funcName: string
 }
 
-export interface EmitActionObject extends BaseActionObject {
+export interface EmitActionObject extends BaseActionObject, EmitObject {
   actionType: 'emit'
+}
+
+export interface EmitObject extends BaseActionObject {
   emit: {
     actions: [any, any, any]
     dataKey: string | { [key: string]: string }
@@ -43,6 +47,7 @@ export interface EvalObject extends BaseActionObject {
 }
 
 export interface GotoObject extends BaseActionObject {
+  actionType: 'goto'
   destination?: string
 }
 
@@ -70,7 +75,7 @@ export interface SaveObject extends BaseActionObject {
   object?: [string, (...args: any[]) => any] | ((...args: any[]) => any)
 }
 
-export type UpdateActionObject<T = any> = {
+export type UpdateObject<T = any> = {
   actionType: 'updateObject'
   object?: T
 }
@@ -85,41 +90,41 @@ export interface IAction<A extends BaseActionObject = any> {
   execute<Args = any>(args?: Args): Promise<any>
   id: string
   isTimeoutRunning(): boolean
-  getSnapshot(): IActionSnapshot<A>
+  getSnapshot(): ActionSnapshot<A>
   original: A
   result: any
   resultReturned: boolean
-  status: IActionStatus
+  status: ActionStatus
   timeoutDelay: number
   type: A['actionType']
-  onPending(snapshot: IActionSnapshot): any
-  onResolved(snapshot: IActionSnapshot): any
-  onError(snapshot: IActionSnapshot): any
-  onAbort(snapshot: IActionSnapshot): any
+  onPending(snapshot: ActionSnapshot): any
+  onResolved(snapshot: ActionSnapshot): any
+  onError(snapshot: ActionSnapshot): any
+  onAbort(snapshot: ActionSnapshot): any
   onTimeout: any
 }
 
-export interface IActionCallback {
-  (snapshot: IActionSnapshot, handlerOptions?: any): any
+export interface ActionCallback {
+  (snapshot: ActionSnapshot, handlerOptions?: any): any
 }
 
-export interface IActionOptions<OriginalAction extends BaseActionObject = any> {
-  callback?: IActionCallback
+export interface ActionOptions<OriginalAction extends BaseActionObject = any> {
+  callback?: ActionCallback
   id?: string
-  onPending?: (snapshot: IActionSnapshot<OriginalAction>) => any
-  onResolved?: (snapshot: IActionSnapshot<OriginalAction>) => any
-  onTimeout?: (snapshot: IActionSnapshot<OriginalAction>) => any
-  onError?: (snapshot: IActionSnapshot<OriginalAction>) => any
-  onAbort?: (snapshot: IActionSnapshot<OriginalAction>) => any
+  onPending?: (snapshot: ActionSnapshot<OriginalAction>) => any
+  onResolved?: (snapshot: ActionSnapshot<OriginalAction>) => any
+  onTimeout?: (snapshot: ActionSnapshot<OriginalAction>) => any
+  onError?: (snapshot: ActionSnapshot<OriginalAction>) => any
+  onAbort?: (snapshot: ActionSnapshot<OriginalAction>) => any
   timeoutDelay?: number
 }
 
-export interface IActionSnapshot<OriginalAction = any> {
+export interface ActionSnapshot<OriginalAction = any> {
   actionType: string
   hasExecutor: boolean
   id: string
   original: OriginalAction
-  status: IActionStatus
+  status: ActionStatus
   timeout: {
     running: boolean
     remaining: number | null
@@ -128,7 +133,7 @@ export interface IActionSnapshot<OriginalAction = any> {
   error?: null | Error | AbortExecuteError
 }
 
-export type IActionStatus =
+export type ActionStatus =
   | null
   | 'pending'
   | 'resolved'

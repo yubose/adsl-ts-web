@@ -1,113 +1,59 @@
 import Action from '../Action'
 import ActionChain from '../ActionChain'
+import Component from '../components/Base'
+import NOODLUI from '../noodl-ui'
 import {
   ConsumerOptions,
-  INOODLUi,
-  INOODLUiStateGetters,
-  LifeCycleListener,
-  NOODLPageObject,
+  PageObject,
   ResolverContext,
-  ResolverOptions,
+  Root,
   RootsParser,
+  StateGetters,
 } from './types'
 import {
-  IActionChainEmitTrigger,
-  NOODLActionType,
-  NOODLActionTriggerType,
-  NOODLComponentType,
+  ActionChainEmitTrigger,
+  ActionType,
+  ActionTriggerType,
   ResolveEmitTrigger,
 } from './constantTypes'
-import { IComponentTypeInstance } from './componentTypes'
-import { ActionObject, BuiltInObject, UpdateActionObject } from './actionTypes'
+import { ActionObject, BuiltInObject } from './actionTypes'
 
-export interface IActionChain<
-  ActionObjects extends ActionObject[] = any[],
-  C extends IComponentTypeInstance = any
-> {
-  abort(reason?: string | string[]): Promise<void>
-  actions: ActionObject[]
-  actionsContext: IActionChainContext
-  component: C
-  createGenerator(): ActionChain<ActionObjects, C>['gen']
-  current: Action
-  execute(event?: any): Promise<any>
-  intermediary: Action[]
-  fns: {
-    action: Partial<
-      Record<
-        NOODLActionType,
-        ActionChainActionCallback<ActionObjects[number]>[]
-      >
-    >
-    builtIn: {
-      [funcName: string]: ActionChainActionCallback<ActionObjects[number]>[]
-    }
-  }
-  gen: AsyncGenerator<
-    { action: Action | undefined; results: IActionChainGeneratorResult[] },
-    IActionChainGeneratorResult[],
-    any
-  >
-  loadQueue(): this
-  loadGen(): this
-  next(
-    args?: any,
-  ): Promise<
-    IteratorResult<
-      { action: Action | undefined; results: IActionChainGeneratorResult[] },
-      IActionChainGeneratorResult[]
-    >
-  >
-  status:
-    | null
-    | 'in.progress'
-    | 'done'
-    | 'timed-out'
-    | { aborted: boolean | { reasons: string[] } }
-    | { error: Error }
-
-  useAction(action: IActionChainUseObject): this
-  useAction(action: IActionChainUseObject[]): this
-  useBuiltIn(
-    action: IActionChainUseBuiltInObject | IActionChainUseBuiltInObject[],
-  ): this
-}
-
-export type ActionChainConstructorArgs<
-  ActionObjects extends ActionObject[],
-  C extends IComponentTypeInstance
-> = [
-  actions: ActionObjects,
+export type ActionChainConstructorArgs<C extends Component> = [
+  actions: ActionObject[],
   opts: {
-    actionsContext?: IActionChainContext
+    actionsContext?: Partial<ActionChainContext>
     component: C
+    getRoot(): Root
     pageName?: string
-    pageObject?: NOODLPageObject
-    trigger: IActionChainEmitTrigger
+    pageObject?: PageObject
+    trigger: ActionChainEmitTrigger
   },
 ]
 
-export interface IActionChainGeneratorResult {
-  action: Action | undefined
+export interface ActionChainGeneratorResult<A extends Action = any> {
+  action: A | undefined
   result: any
 }
 
-export interface IActionChainContext {
-  noodlui: INOODLUi
+export interface ActionChainContext {
+  noodlui: NOODLUI
 }
 
-export type IActionChainUseObject =
-  | IActionChainUseObjectBase<any, any>
-  | IActionChainUseBuiltInObject
+export type ActionChainUseObject =
+  | ActionChainUseObjectBase
+  | ActionChainUseBuiltInObject
 
-export interface IActionChainUseObjectBase<A extends ActionObject, C> {
-  actionType: NOODLActionType
+export interface ActionChainUseObjectBase<
+  A extends ActionObject = ActionObject,
+  C = any
+> {
+  actionType: ActionType
   context?: C
   fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
-  trigger?: IActionChainEmitTrigger | ResolveEmitTrigger
+  trigger?: ActionChainEmitTrigger | ResolveEmitTrigger
 }
 
-export interface IActionChainUseBuiltInObject {
+export interface ActionChainUseBuiltInObject {
   actionType?: 'builtIn'
   funcName: string
   fn:
@@ -115,9 +61,7 @@ export interface IActionChainUseBuiltInObject {
     | ActionChainActionCallback<BuiltInObject>[]
 }
 
-export interface IActionChainAddActionObject<
-  S extends NOODLActionType = NOODLActionType
-> {
+export interface ActionChainAddActionObject<S extends ActionType = ActionType> {
   actionType: S
   fns: ActionChainActionCallback[]
 }
@@ -126,29 +70,24 @@ export interface ActionChainSnapshot<Actions extends any[]> {
   currentAction: Actions[number]
   original: ActionObject[]
   queue: Actions
-  status: ActionChain<Actions, IComponentTypeInstance>['status']
+  status: ActionChain<Actions, Component>['status']
 }
 
 export interface ActionChainCallbackOptions<Actions extends any[] = any[]> {
   abort(reason?: string | string[]): Promise<any>
   error?: Error
   event: EventTarget | undefined
-  parser?: ResolverOptions['parser']
+  parser?: RootsParser
   snapshot: ActionChainSnapshot<Actions>
-  trigger: NOODLActionTriggerType
+  trigger: ActionTriggerType
 }
 
-export interface ActionChainActionCallback<A = any> {
-  (
-    action: A,
-    options: ActionChainActionCallbackOptions,
-    args?: { file?: File; [key: string]: any },
-  ): ActionChainActionCallbackReturnType
+export interface ActionChainActionCallback<A extends ActionObject = any> {
+  (action: A, options: ActionChainActionCallbackOptions): Promise<any>
 }
 
-export interface ActionChainActionCallbackOptions<
-  T extends IComponentTypeInstance = any
-> extends INOODLUiStateGetters {
+export interface ActionChainActionCallbackOptions<T extends Component = any>
+  extends StateGetters {
   abort?(
     reason?: string | string[],
   ): Promise<IteratorYieldResult<any> | IteratorReturnResult<any> | undefined>
@@ -161,22 +100,5 @@ export interface ActionChainActionCallbackOptions<
   error?: Error
   parser: RootsParser
   snapshot: ActionChainSnapshot<any[]>
-  trigger: NOODLActionTriggerType
+  trigger: ActionTriggerType
 }
-
-export type ActionChainLifeCycleComponentListeners = Record<
-  NOODLComponentType,
-  LifeCycleListener
-> & {
-  finally?: LifeCycleListener
-}
-
-export type ActionChainActionCallbackReturnType =
-  | Promise<'abort' | undefined | void>
-  | 'abort'
-  | undefined
-  | void
-
-export type ParsedChainActionUpdateObject = UpdateActionObject<
-  ((...args: any[]) => Promise<any>)[] | ((...args: any[]) => Promise<any>)
->

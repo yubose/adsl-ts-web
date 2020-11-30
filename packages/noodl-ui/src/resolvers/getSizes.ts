@@ -7,9 +7,7 @@ import { hasDecimal, hasLetter } from '../utils/common'
  *  attributes
  */
 const getSizes: ResolverFn = (component, options) => {
-  const {
-    context: { viewport },
-  } = options
+  const { viewport } = options
 
   if (!viewport) {
     console.error(

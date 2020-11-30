@@ -5,7 +5,7 @@ import { expect } from 'chai'
 import { event } from '../constants'
 import { forEachDeepChildren } from '../utils/noodl'
 import { mock } from './mockData'
-import { IList, IListItem } from '../types'
+import { List, ListItem } from '../types'
 import { noodlui, toDOM } from '../utils/test-utils'
 import List from '../components/List'
 
@@ -45,7 +45,7 @@ describe('List', () => {
         type: 'view',
         children: [noodlComponent],
       })
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const noodlListItem = noodlComponent.children[0]
       const blueprint = component.getBlueprint()
       expect(blueprint.type).to.equal(noodlListItem.type)
@@ -60,7 +60,7 @@ describe('List', () => {
         type: 'view',
         children: [noodlComponent],
       })
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const blueprint = component?.getBlueprint()
       expect(blueprint.children).to.have.lengthOf(
         listItemComponent.children?.length as any,
@@ -215,7 +215,7 @@ describe('List', () => {
         ],
       })
 
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const ul = document.createElement('ul')
       node.appendChild(ul)
 
@@ -266,7 +266,7 @@ describe('List', () => {
           ],
         })
 
-        const component = parent.child() as IList
+        const component = parent.child() as List
         const ul = document.createElement('ul')
         node.appendChild(ul)
 
@@ -308,7 +308,7 @@ describe('List', () => {
         children: [{ type: 'listItem' }],
       })
 
-      _.forEach(component.children(), (c: IListItem) => {
+      _.forEach(component.children(), (c: ListItem) => {
         const li = document.createElement('li')
         li.id = c.id
         li.textContent += c.getDataObject().fruits[0]

@@ -5,12 +5,12 @@
  */
 import {
   BuiltInObject,
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  IList,
+  Component,
+  ComponentObject,
+  List,
   NOODLComponent,
-  NOODLPage,
-  NOODLPageObject,
+  Page,
+  PageObject,
 } from '../../types'
 import { noodlui } from '../../utils/test-utils'
 
@@ -66,10 +66,10 @@ export function getListItemWithEmit({
         style: { top: '0', left: '0.25', fontSize: '13' },
       },
     ],
-  } as IComponentTypeObject
+  } as ComponentObject
 }
 
-export function initiateListItems(list: IList) {
+export function initiateListItems(list: List) {
   if (typeof list?.getData === 'function') {
     const data = list.getData()
     list.set('listObject', [])
@@ -94,14 +94,14 @@ util = Object.entries(util).reduce((acc, [funcName, fn]) => {
 }, {}) as typeof util
 
 export type CreatePageResult = typeof util & {
-  components: IComponentTypeInstance[]
+  components: Component[]
 }
 
 class MockPage {
   name: string
-  object: NOODLPageObject | null
+  object: PageObject | null
 
-  constructor(page: NOODLPage, opts: { actions: any[]; builtIns: any[] }) {
+  constructor(page: Page, opts: { actions: any[]; builtIns: any[] }) {
     this['name'] = Object.keys(page)[0]
     this.object = page[this.name]
   }
@@ -142,7 +142,7 @@ class MockPage {
         acc.components.push(noodlComponent)
         return acc
       },
-      { components: [] as IComponentTypeInstance[] },
+      { components: [] as Component[] },
     )
 
     return results
@@ -150,17 +150,17 @@ class MockPage {
 }
 
 export const createPage = function <K extends string>(
-  cb: (args: typeof util) => NOODLPage,
+  cb: (args: typeof util) => Page,
 ) {
   let _page: { name: K | '' } = {
     name: '',
   }
 
   let state = {
-    [_page.name as K]: {} as NOODLPageObject,
+    [_page.name as K]: {} as PageObject,
   }
 
-  let consumerPage: NOODLPage | any
+  let consumerPage: Page | any
   let noodlComponents
 
   if (typeof cb === 'function') {

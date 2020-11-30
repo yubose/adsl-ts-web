@@ -1,40 +1,34 @@
-import { IComponentTypeInstance, IListItem, NOODLComponentType } from 'noodl-ui'
+import { Component, ListItem, ComponentType } from 'noodl-ui'
 import { componentEventMap, componentEventIds } from './constants'
 
 export interface INOODLUiDOM {
-  on<CT extends NOODLComponentType>(
+  on<CT extends ComponentType>(
     eventName: NOODLDOMEvent,
-    cb: (
-      node: NOODLDOMElement | null,
-      component: IComponentTypeInstance<CT>,
-    ) => void,
+    cb: (node: NOODLDOMElement | null, component: Component<CT>) => void,
   ): this
   off(
     eventName: NOODLDOMEvent,
-    cb: (
-      node: NOODLDOMElement | null,
-      component: IComponentTypeInstance,
-    ) => void,
+    cb: (node: NOODLDOMElement | null, component: Component) => void,
   ): this
   emit(
     eventName: NOODLDOMEvent,
     node: NOODLDOMElement | null,
-    component: IComponentTypeInstance,
+    component: Component,
   ): this
   getCallbacks(eventName: NOODLDOMEvent): Function[] | null
   isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
-  parse<C extends IComponentTypeInstance>(
+  parse<C extends Component>(
     component: C,
     container?: NOODLDOMElement | null,
   ): NOODLDOMElement | null
 }
 
 export interface INOODLDOMList {
-  addListItem(listItem: IListItem): this
-  getListItem(index: number): IListItem | null
-  removeListItem(index: number | IListItem): this
-  setListItem(index: number, listItem: IListItem): this
-  updateListItem(index: number | IListItem, listItem?: IListItem): this
+  addListItem(listItem: ListItem): this
+  getListItem(index: number): ListItem | null
+  removeListItem(index: number | ListItem): this
+  setListItem(index: number, listItem: ListItem): this
+  updateListItem(index: number | ListItem, listItem?: ListItem): this
 }
 
 export type NOODLDOMComponentType = keyof typeof componentEventMap
