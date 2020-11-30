@@ -214,6 +214,17 @@ class Page {
         modifiers,
       })
       if (shouldNavigate === true) {
+        var pagesArr = window.location.href.split('/')
+        var pagesStr = pagesArr[pagesArr.length - 1]
+        var urlArr = pagesStr.split('-')
+        if (urlArr.length > 1) {
+          newPage = urlArr[urlArr.length - 1]
+        } else {
+          var baseArr = urlArr[0].split('?')
+          if (baseArr.length > 1 && baseArr[1] !== "") {
+            newPage = baseArr[1]
+          }
+        }
         return this.navigate(newPage, modifiers).then(() => {
           this.previousPage = this.currentPage
           this.currentPage = newPage
