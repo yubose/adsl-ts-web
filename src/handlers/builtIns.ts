@@ -142,7 +142,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
-            `Defaulting to attaching ${dataKey} as a path to the root object`,
+          `Defaulting to attaching ${dataKey} as a path to the root object`,
           { context: noodlui.getContext?.(), dataObject, dataKey },
         )
         dataObject = noodl.root
@@ -198,7 +198,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => {}
+  builtInActions.checkVerificationCode = async (action) => { }
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -229,14 +229,11 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.grey('', { action, ...options })
 
     const { evolve } = action.original as BuiltInObject
-    console.log(action)
     const requestPage = async (pageName: string) => {
       var shouldEvolve = false
       if (isNOODLBoolean(evolve)) {
         shouldEvolve = evolve
       }
-      console.log('Is there evolve?', evolve)
-      console.log('Should I evolve?', shouldEvolve)
       await page.requestPageChange(pageName, {
         evolve: shouldEvolve,
       })
@@ -251,12 +248,30 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       let pg: string
       pg = cachedPages.shift()?.name || ''
       setCachedPages(cachedPages)
+
+      var pageUrlArr = page.pageUrl.split("-")
+      if (pageUrlArr.length > 1) {
+        pageUrlArr.pop()
+        while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
+          pageUrlArr.pop()
+        }
+        if (pageUrlArr.length === 1 && pageUrlArr[0].endsWith('MenuBar')) {
+          page.pageUrl = 'index.html?'
+        }
+        else {
+          page.pageUrl = pageUrlArr.join('-')
+        }
+      } else {
+        page.pageUrl = 'index.html?'
+      }
+      history.pushState({}, "", page.pageUrl)
+
       await requestPage(pg || '')
     } else {
       log.func('goBack')
       log.red(
         'Tried to navigate to a previous page but a previous page could not ' +
-          'be found',
+        'be found',
         { previousPage: page.previousPage, currentPage: page.currentPage },
       )
     }
@@ -618,9 +633,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // })
   }
 
-  builtInActions.signIn = async (action, options) => {}
-  builtInActions.signUp = async () => {}
-  builtInActions.signout = async () => {}
+  builtInActions.signIn = async (action, options) => { }
+  builtInActions.signUp = async () => { }
+  builtInActions.signout = async () => { }
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -712,7 +727,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     log.green(
       `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-        `root.${pageName}.${nameFieldPath}`,
+      `root.${pageName}.${nameFieldPath}`,
       file,
     )
   }

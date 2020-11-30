@@ -204,8 +204,7 @@ const createActions = function ({ page }: { page: IPage }) {
         return result.then((result: any) => {
           result = Array.isArray(result) ? result[0] : result
           log.grey(
-            `emitCall [promise] result: ${
-              result === '' ? '(empty string)' : result
+            `emitCall [promise] result: ${result === '' ? '(empty string)' : result
             }`,
             logArgs,
           )
@@ -270,7 +269,7 @@ const createActions = function ({ page }: { page: IPage }) {
             if (result) {
               log.hotpink(
                 `Received a value from evalObject's "if" evaluation. ` +
-                  `Returning it back to the action chain now`,
+                `Returning it back to the action chain now`,
                 { action, ...options, result },
               )
               return result
@@ -278,7 +277,7 @@ const createActions = function ({ page }: { page: IPage }) {
           } else {
             log.red(
               `Evaluated an "object" from an "if" object but it did not return a ` +
-                `function`,
+              `function`,
               { action, ...options, result: object },
             )
             return object
@@ -305,6 +304,10 @@ const createActions = function ({ page }: { page: IPage }) {
       // URL
       if (_.isString(action?.original?.goto)) {
         log.gold('Requesting string destination', { action, options })
+        var parse = page.pageUrl.endsWith("?") ? "" : "-"
+        page.pageUrl += parse
+        page.pageUrl += action.original.goto
+        history.pushState({}, "", page.pageUrl)
         await page.requestPageChange(action.original.goto)
       } else if (_.isPlainObject(action?.original?.goto)) {
         // Currently don't know of any known properties the goto syntax has.
@@ -312,6 +315,10 @@ const createActions = function ({ page }: { page: IPage }) {
         // soon be deprecated by this goto action
         if (action.original.destination || _.isString(action.original.goto)) {
           const url = action.original.destination || action.original.goto
+          var parse = page.pageUrl.endsWith("?") ? "" : "-"
+          page.pageUrl += parse
+          page.pageUrl += url
+          history.pushState({}, "", page.pageUrl)
           log.gold('Requesting object destination', { action, options })
           await page.requestPageChange(url)
         } else {
@@ -363,7 +370,7 @@ const createActions = function ({ page }: { page: IPage }) {
             if (isBooleanTrue(action.original.wait)) {
               log.grey(
                 `Popup action for popUpView "${action.original.popUpView}" is ` +
-                  `waiting on a response. Aborting now...`,
+                `waiting on a response. Aborting now...`,
                 { action, ...options },
               )
               abort?.()
@@ -485,7 +492,7 @@ const createActions = function ({ page }: { page: IPage }) {
           log.func('saveObject')
           log.red(
             `The "object" property in the saveObject action is a string which ` +
-              `is in the incorrect format. Possibly a parsing error?`,
+            `is in the incorrect format. Possibly a parsing error?`,
             { action, ...options },
           )
         }
@@ -545,7 +552,7 @@ const createActions = function ({ page }: { page: IPage }) {
           } else if (_.isString(object)) {
             log.red(
               `Received a string as an object property of updateObject. ` +
-                `Possibly parsed incorrectly?`,
+              `Possibly parsed incorrectly?`,
               { object, ...options, ...opts, action },
             )
           } else if (_.isArray(object)) {

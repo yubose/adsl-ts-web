@@ -38,30 +38,31 @@ export interface PageOptions {
 class Page {
   previousPage: string = ''
   currentPage: string = ''
+  pageUrl: string = 'index.html?'
   #onStart: ((pageName: string) => Promise<any>) | undefined
   #onRootNodeInitialized:
     | ((rootNode: NOODLDOMElement | null) => Promise<any>)
     | undefined
   #onBeforePageRender:
     | ((options: {
-        pageName: string
-        rootNode: NOODLDOMElement | null
-        pageModifiers: { evolve?: boolean } | undefined
-      }) => Promise<any>)
+      pageName: string
+      rootNode: NOODLDOMElement | null
+      pageModifiers: { evolve?: boolean } | undefined
+    }) => Promise<any>)
     | undefined
   #onPageRendered:
     | ((options: {
-        pageName: string
-        components: IComponentTypeInstance[]
-      }) => Promise<any>)
+      pageName: string
+      components: IComponentTypeInstance[]
+    }) => Promise<any>)
     | undefined
   #onPageRequest:
     | ((params: {
-        previous: string
-        current: string
-        requested: string
-        modifiers: { evolve?: boolean }
-      }) => boolean)
+      previous: string
+      current: string
+      requested: string
+      modifiers: { evolve?: boolean }
+    }) => boolean)
     | undefined
   #onModalStateChange:
     | ((prevState: PageModalState, nextState: PageModalState) => void)
@@ -149,7 +150,7 @@ class Page {
         if (this.requestingPage && this.requestingPage !== pageName) {
           log.grey(
             `Aborting this navigate request for ${pageName} because a more ` +
-              `recent request to "${this.requestingPage}" was called`,
+            `recent request to "${this.requestingPage}" was called`,
             { pageAborting: pageName, pageRequesting: this.requestingPage },
           )
           return
@@ -323,7 +324,7 @@ class Page {
       log.func('navigate')
       log.red(
         "Attempted to render the page's components but the root " +
-          'node was not initialized. The page will not show anything',
+        'node was not initialized. The page will not show anything',
         { rootNode: this.rootNode },
       )
     }
