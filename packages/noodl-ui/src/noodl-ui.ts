@@ -56,11 +56,11 @@ class NOODL {
       {},
     ),
   }
-  #getAssetsUrl: () => string
+  #getAssetsUrl: () => string = () => ''
   #parser: T.RootsParser
   #resolvers: Resolver[] = []
   #root: T.Root = {}
-  #getRoot: () => T.Root
+  #getRoot: () => T.Root = () => ({})
   #state: T.State
   #viewport: Viewport
   actionsContext: { emitCall?: any; noodlui: NOODL } = { noodlui: this }
@@ -91,7 +91,7 @@ class NOODL {
   }
 
   get root() {
-    return this.#root
+    return this.#getRoot()
   }
 
   get viewport() {
@@ -127,7 +127,9 @@ class NOODL {
 
     // Finish off with the internal resolvers to handle the children
     _.forEach(components, (c) => {
+      console.info(c)
       const component = this.#resolve(c)
+      console.info(component)
       _internalResolver.resolve(
         component,
         this.getConsumerOptions({ component }),
@@ -302,7 +304,7 @@ class NOODL {
       {
         actionsContext: this.getActionsContext(),
         component: options.component,
-        getRoot: this.#getRoot,
+        getRoot: this.#getRoot.bind(this),
         pageName: this.page,
         pageObject: this.getPageObject(this.page),
         trigger: options.trigger,
@@ -436,12 +438,13 @@ class NOODL {
     return {
       component,
       context: this.getContext(),
-      createActionChainHandler: (...[action, options]) =>
-        this.createActionChainHandler(action, { ...options, component } as any),
+      createActionChainHandler: (action, options) =>
+        this.createActionChainHandler(action, { ...options, component }),
       createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
+      getAssetsUrl: this.#getAssetsUrl.bind(this),
       getBaseStyles: this.getBaseStyles.bind(this),
       getResolvers: (() => this.#resolvers).bind(this),
-      getRoot: () => this.#getRoot(),
+      getRoot: this.#getRoot.bind(this),
       page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
@@ -518,10 +521,9 @@ class NOODL {
           this.setViewport(m)
         } else if (m instanceof Resolver) {
           this.#resolvers.push(m)
-        } else if ('getRoot' in m) {
-          this.#getRoot = m.getRoot
-        } else if ('getAssetsUrl' in m) {
-          this.#getAssetsUrl = m.getAssetsUrl
+        } else if ('getAssetsUrl' in m || 'getRoot' in m) {
+          if ('getAssetsUrl' in m) this.#getAssetsUrl = m.getAssetsUrl
+          if ('getRoot' in m) this.#getRoot = m.getRoot
         }
       }
     }
@@ -607,9 +609,9 @@ class NOODL {
             createEmitDataKey(
               emitObj.emit.dataKey,
               [
-                findListDataObject(component),
+                () => findListDataObject(component),
                 () => this.getPageObject(this.page),
-                () => this.#getRoot(),
+                () => this.root,
               ],
               { iteratorVar: emitAction.iteratorVar },
             ),
@@ -635,7 +637,6 @@ class NOODL {
                   // Options
                   this.getConsumerOptions({
                     component,
-                    createSrc: this.createSrc,
                     path,
                   }),
                   // Action context

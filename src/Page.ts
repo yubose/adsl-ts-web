@@ -8,7 +8,7 @@ import {
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'
-import { PageModalState, PageSnapshot } from './app/types'
+import { PageModalState } from './app/types'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
@@ -103,7 +103,7 @@ class Page {
   public async navigate(
     pageName: string,
     pageModifiers: { evolve?: boolean; force?: boolean } = {},
-  ): Promise<{ snapshot: PageSnapshot } | void> {
+  ): Promise<{ snapshot: any } | void> {
     // TODO: onTimedOut
     try {
       // Outside link

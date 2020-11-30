@@ -83,19 +83,27 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       })
       dataObject = findListDataObject(component)
       emitAction.setDataKey(
-        createEmitDataKey(dataKey, [
-          dataObject,
-          () => pageObject,
-          () => getRoot(),
-        ]),
+        createEmitDataKey(
+          dataKey,
+          [dataObject, () => pageObject, () => getRoot()],
+          { iteratorVar: emitAction.iteratorVar },
+        ),
       )
     } else if (_.isString(dataKey)) {
       const iteratorVar = component.get('iteratorVar') || ''
-      dataObject = findDataValue(
-        [findListDataObject(component), pageObject, getRoot()],
-        excludeIteratorVar(dataKey, iteratorVar),
-      )
-      let dataValue = dataObject
+      const path = excludeIteratorVar(dataKey, iteratorVar) || ''
+      dataObject = path
+        ? findDataValue(
+            [
+              findListDataObject(component),
+              () => getPageObject(page),
+              () => getRoot(),
+            ],
+            path,
+          )
+        : findListDataObject(component) || getPageObject(page) || getRoot()
+      // let dataValue = dataObject
+      let dataValue = path ? _.get(dataObject, dataKey) : dataObject
       let textFunc = component.get('text=func')
 
       let fieldParts = dataKey?.split?.('.')

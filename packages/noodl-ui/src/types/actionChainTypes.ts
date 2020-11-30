@@ -98,6 +98,10 @@ export interface ActionChainActionCallbackOptions<T extends Component = any>
   dataObject?: any
   event?: Event
   error?: Error
+  getAssetsUrl: ConsumerOptions['getAssetsUrl']
+  getRoot: ConsumerOptions['getRoot']
+  getPageObject: ConsumerOptions['getPageObject']
+  page: string
   parser: RootsParser
   snapshot: ActionChainSnapshot<any[]>
   trigger: ActionTriggerType

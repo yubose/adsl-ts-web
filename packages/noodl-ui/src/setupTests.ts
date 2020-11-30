@@ -20,11 +20,14 @@ before(async () => {
 })
 
 beforeEach(() => {
-  noodlui.init({
-    _log: false,
-    getAssetsUrl: () => assetsUrl,
-    getRoot: () => ({}),
-  })
+  noodlui
+    .init({
+      _log: false,
+    })
+    .use({
+      getAssetsUrl: () => assetsUrl,
+      getRoot: () => ({}),
+    })
 })
 
 after(() => {

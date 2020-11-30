@@ -20,6 +20,7 @@ import {
   RefreshObject,
   SaveObject,
   UpdateObject,
+  EmitObject,
 } from 'noodl-ui'
 import {
   createEmitDataKey,
@@ -167,15 +168,24 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - if src === assetsUrl
   // TODO - else if src endsWith
   _actions.emit.push({
-    fn: (action: EmitAction, options, { noodl } = {}) => {
+    fn: (
+      action: EmitAction,
+      options: ActionChainActionCallbackOptions & { path: EmitObject },
+      { noodl } = {},
+    ) => {
       log.func('path [emit]')
 
-      const { component, page, path } = options
-
-      console.info(`Calling emitCall`, { action, options })
+      const {
+        component,
+        getAssetsUrl,
+        getRoot,
+        getPageObject,
+        page,
+        path,
+      } = options
 
       let dataObject
-      let iteratorVar = component.get('iteratorVar')
+      let iteratorVar = component.get('iteratorVar') || ''
       let emitParams
 
       // This is most likely expecting a dataObject
@@ -184,10 +194,14 @@ const createActions = function ({ page }: { page: IPage }) {
       emitParams = {
         actions: path.emit.actions,
         pageName: page,
-      } as Partial<EmitActionObject>
+      } as any
 
       if (path.emit.dataKey) {
-        emitParams.dataKey = createEmitDataKey(path.emit.dataKey, dataObject)
+        emitParams.dataKey = createEmitDataKey(
+          path.emit.dataKey,
+          [dataObject, () => getPageObject(page), () => getRoot()],
+          { iteratorVar },
+        )
       }
 
       const logArgs = {

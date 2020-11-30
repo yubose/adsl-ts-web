@@ -110,9 +110,7 @@ export function createEmitDataKey(
 }
 
 export function excludeIteratorVar(dataKey: string, iteratorVar: string = '') {
-  return (
-    (dataKey && iteratorVar && dataKey.split('.').slice(1).join('.')) || dataKey
-  )
+  return dataKey && iteratorVar && dataKey.split('.').slice(1).join('.')
 }
 
 /**
@@ -185,7 +183,7 @@ export function findParent<C extends Component>(
   component: C,
   fn: (parent: Component | null) => boolean,
 ) {
-  let parent = component.parent?.()
+  let parent = component?.parent?.()
   if (fn(parent)) return parent
   if (parent) {
     while (parent) {
@@ -256,6 +254,7 @@ export const findDataValue = <O extends FindDataValueItem = any>(
   objs: O,
   path: string | string[],
 ) => {
+  if (!path) return unwrapObj(isArr(objs) ? objs[0] : objs)
   return get(
     unwrapObj(
       (isArr(objs) ? objs : [objs]).find((o) => has(unwrapObj(o), path)),

@@ -378,17 +378,20 @@ class ActionChain<
           iteratorVar: this.component.get('iteratorVar') || '',
           trigger: this.trigger,
         })
-        emitAction.setDataKey(
-          createEmitDataKey(
-            emitObj.emit.dataKey,
-            [
-              findListDataObject(this.component),
-              () => this.pageObject,
-              () => this.getRoot(),
-            ],
-            { iteratorVar: emitAction.iteratorVar },
-          ),
-        )
+        if (emitObj.emit?.dataKey) {
+          emitAction.setDataKey(
+            createEmitDataKey(
+              emitObj.emit.dataKey,
+              [
+                findListDataObject(this.component),
+                () => this.pageObject,
+                () => this.getRoot(),
+              ],
+              { iteratorVar: emitAction.iteratorVar },
+            ),
+          )
+        }
+
         attachFn((action = emitAction))
       } else {
         attachFn((action = new Action(obj)))

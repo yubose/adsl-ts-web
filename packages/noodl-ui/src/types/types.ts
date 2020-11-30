@@ -60,6 +60,7 @@ export interface ConsumerOptions {
   context: ResolverContext
   createActionChainHandler: NOODLUI['createActionChainHandler']
   createSrc(path: Parameters<NOODLUI['createSrc']>[0]): string
+  getAssetsUrl(): string
   getBaseStyles(styles?: Style): Partial<Style>
   getPageObject: StateHelpers['getPageObject']
   getResolvers: NOODLUI['getResolvers']

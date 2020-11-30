@@ -49,7 +49,7 @@ describe('noodl-ui', () => {
       expect(noodlui.createSrc(path)).to.eq(noodlui.assetsUrl + 'selected.png')
     })
 
-    describe.only('when using path emits', () => {
+    describe('when using path emits', () => {
       it('should set the iteratorVar if it exists', () => {
         const emitObj = { emit: { dataKey: { var1: 'g' }, actions: [] } }
         const spy = sinon.spy()
@@ -96,12 +96,7 @@ describe('noodl-ui', () => {
 
 describe('when using getters', () => {
   it('should return the resolver context', () => {
-    expect(noodlui.getContext()).to.have.keys([
-      'assetsUrl',
-      'page',
-      'root',
-      'viewport',
-    ])
+    expect(noodlui.getContext()).to.have.keys(['assetsUrl', 'page'])
   })
 
   it('should return all consumer options', () => {
@@ -112,6 +107,7 @@ describe('when using getters', () => {
       'createSrc',
       'getBaseStyles',
       'getPageObject',
+      'getResolvers',
       'getRoot',
       'getState',
       'page',
@@ -119,33 +115,37 @@ describe('when using getters', () => {
       'resolveComponent',
       'resolveComponentDeep',
       'showDataKey',
+      'viewport',
     ])
   })
 })
 
 describe('when using setters', () => {
-  it('should set the assets url', () => {
-    const prevAssetsUrl = noodlui.assetsUrl
-    noodlui.setAssetsUrl('https://google.com')
-    expect(noodlui.assetsUrl).to.not.equal(prevAssetsUrl)
+  it('should set the assets url getter', () => {
+    expect(noodlui.assetsUrl).not.to.eq('hello')
+    noodlui.use({ getAssetsUrl: () => 'https://google.com' })
+    expect(noodlui.assetsUrl).to.equal('https://google.com')
   })
 
   it('should set the page', () => {
     const pageName = 'Loopa'
     const pageObject = { module: 'paper', components: [] }
     noodlui.use({ getRoot: () => ({ [pageName]: pageObject }) })
-    expect(noodlui.page).to.equal('')
+    expect(noodlui.page).not.to.equal(pageName)
     noodlui.setPage(pageName)
     expect(noodlui.page).to.equal(pageName)
     expect(noodlui.getPageObject(pageName)).to.equal(pageObject)
   })
 
-  it('should set the root', () => {
+  it('should set the root getter', () => {
     const pageName = 'Loopa'
     const pageObject = { module: 'paper', components: [] }
     expect(noodlui.root).to.not.have.property(pageName, pageObject)
-    noodlui.setRoot(pageName, pageObject)
-    expect(noodlui.root).to.have.property(pageName, pageObject)
+    noodlui.use({ getRoot: () => ({ [pageName]: pageObject }) })
+    expect(noodlui.getConsumerOptions({} as any).getRoot()).to.have.property(
+      pageName,
+      pageObject,
+    )
   })
 
   it('should set the viewport', () => {

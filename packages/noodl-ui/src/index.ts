@@ -4,7 +4,7 @@ export { default as List } from './components/List'
 export { default as ListItem } from './components/ListItem'
 // Action chain
 export { default as Action } from './Action'
-export { default as ActionChain } from './ActionChain/ActionChain'
+export { default as ActionChain } from './ActionChain'
 export { default as EmitAction } from './Action/EmitAction'
 // Resolvers
 export { default as getAlignAttrs } from './resolvers/getAlignAttrs'

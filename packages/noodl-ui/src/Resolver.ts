@@ -1,7 +1,8 @@
 import _ from 'lodash'
-import { ConsumerOptions, Component, IResolver, ResolverFn } from './types'
+import Component from './components/Base'
+import { ConsumerOptions, ResolverFn } from './types'
 
-class Resolver implements IResolver {
+class Resolver {
   #isInternal: boolean = false
   #resolver: ResolverFn | null = null
 

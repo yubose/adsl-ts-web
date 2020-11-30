@@ -9,7 +9,7 @@ import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import { assetsUrl, noodlui } from '../utils/test-utils'
-import { Component, ComponentObject, List, ListItem } from '../types'
+import { ComponentObject } from '../types'
 import { event } from '../constants'
 import createComponent from '../utils/createComponent'
 
@@ -267,7 +267,9 @@ describe('_internalResolver', () => {
         ],
       }
       noodlui
-        .setRoot('SignIn', { listData: { someList: listObject } })
+        .use({
+          getRoot: () => ({ SignIn: { listData: { someList: listObject } } }),
+        })
         .setPage('SignIn')
       const noodlParent = { type: 'view', children: [noodlComponent] }
       const parent = noodlui.resolveComponents(noodlParent)
@@ -324,7 +326,9 @@ describe('_internalResolver', () => {
         ],
       }
       noodlui
-        .setRoot('SignIn', { listData: { someList: listObject } })
+        .use({
+          getRoot: () => ({ SignIn: { listData: { someList: listObject } } }),
+        })
         .setPage('SignIn')
       const noodlParent = { type: 'view', children: [noodlComponent] }
       const parent = noodlui.resolveComponents(noodlParent)

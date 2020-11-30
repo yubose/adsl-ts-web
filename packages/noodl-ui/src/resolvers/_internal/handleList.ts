@@ -62,7 +62,7 @@ const handleListInternalResolver = (
   component.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
-    let listItem = createComponent(component?.getBlueprint())
+    let listItem = createComponent(component?.getBlueprint()) as ListItem
     listItem.id = getRandomKey()
     listItem.setParent(component)
     listItem.setDataObject?.(result.dataObject)

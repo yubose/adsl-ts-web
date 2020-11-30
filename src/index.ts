@@ -22,6 +22,7 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   getDataValues,
+  List,
   identify,
   Resolver,
   BuiltInObject,
@@ -44,7 +45,6 @@ import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
 import './handlers/dom'
 import './styles.css'
-import { isEmitObj } from 'noodl-utils'
 
 const log = Logger.create('src/index.ts')
 
@@ -231,7 +231,7 @@ window.addEventListener('load', async () => {
         Global: noodl.root.Global,
       })
       // This will be passed into the page renderer
-      const pageSnapshot: NOODLUIPage = {
+      const pageSnapshot: { name: string; object: NOODLUIPage } = {
         name: pageName,
         object: pageObject,
       }
@@ -244,10 +244,12 @@ window.addEventListener('load', async () => {
         viewport.height = window.innerHeight
         noodlui
           .init({ actionsContext: { noodl }, viewport })
-          .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageName)
-          .setRoot(noodl.root)
           .use(viewport)
+          .use({
+            getAssetsUrl: () => noodl.assetsUrl,
+            getRoot: () => noodl.root,
+          })
           .use(
             _.reduce(
               [
@@ -316,7 +318,7 @@ window.addEventListener('load', async () => {
       })
       // Refresh the root
       // TODO - Leave root/page auto binded to the lib
-      noodlui.setRoot(noodl.root).setPage(pageSnapshot.name)
+      noodlui.setPage(pageSnapshot.name)
       log.grey(`Set root + page obj after receiving page object`, {
         previousPage: page.previousPage,
         currentPage: page.currentPage,
@@ -569,9 +571,9 @@ window.addEventListener('load', async () => {
         } else {
           // If an existing subStreams container is already existent in memory, re-initiate
           // the DOM node and blueprint since it was reset from a previous cleanup
-          log.red(`BLUEPRINT`, component.blueprint)
+          log.red(`BLUEPRINT`, (component as List).blueprint)
           subStreams.container = node
-          subStreams.blueprint = component.blueprint
+          subStreams.blueprint = (component as List).blueprint
         }
       }
       // Individual remote participant video element container

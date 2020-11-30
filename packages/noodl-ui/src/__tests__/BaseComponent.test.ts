@@ -1,8 +1,10 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { IComponent, Component, List, ListItem } from '../types'
-import Component from '../components/Base/Base'
+import { IComponent } from '../types'
+import Component from '../components/Base'
+import List from '../components/List'
+import ListItem from '../components/ListItem'
 import createComponent from '../utils/createComponent'
 
 let component: IComponent

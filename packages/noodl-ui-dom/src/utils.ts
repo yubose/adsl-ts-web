@@ -7,25 +7,10 @@
 import {
   eventTypes,
   Component,
-  Component,
   ComponentObject,
-  NOODLComponent,
   ComponentType,
+  NOODLComponent,
 } from 'noodl-ui'
-import { publish, walkOriginalChildren } from 'noodl-utils'
-
-//     while (parts.length) {
-//       const part = parts.shift()
-//       if (part) {
-//         prev = obj
-//         obj = obj?.[part]
-//         if (!obj) {
-//           prev = []
-//         }
-//       }
-//     }
-//   }
-// }
 
 export function createAsyncImageElement(
   container: HTMLElement,
@@ -37,7 +22,7 @@ export function createAsyncImageElement(
     if (!container) container = document.body
     opts?.onLoad?.()
     container.insertBefore(node as HTMLImageElement, container.childNodes[0])
-    node && (node.onload = undefined)
+    node && (node.onload = null)
   }
   setTimeout(
     () => void (node.src = typeof src === 'function' ? src() : src || ''),
