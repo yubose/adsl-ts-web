@@ -297,16 +297,9 @@ const createActions = function ({ page }: { page: IPage }) {
               return object
             }
           } else {
-<<<<<<< HEAD
-            log.red(
-              `Evaluated an "object" from an "if" object but it did not return a ` +
-              `function`,
-              { action, ...options, result: object },
-=======
             log.grey(
               `Received an "if" object but it was not in the form --> if [value, value, value]`,
               { action, ...options },
->>>>>>> 52ccc5a4c267fbb163ce2eb04b2f769f08d7e331
             )
           }
         } else {
