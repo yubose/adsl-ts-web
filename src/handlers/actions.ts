@@ -299,6 +299,8 @@ const createActions = function ({ page }: { page: IPage }) {
 
   _actions.goto.push({
     fn: async (action: any, options, actionsContext) => {
+      console.log('Hitting GoTo in actions.ts', action)
+      debugger
       log.func('_actions.goto')
       log.red('goto action', { action, options })
       // URL

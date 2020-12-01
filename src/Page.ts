@@ -109,6 +109,8 @@ class Page {
     pageName: string,
     pageModifiers: { evolve?: boolean; force?: boolean } = {},
   ): Promise<{ snapshot: PageSnapshot } | void> {
+    console.log('About to navigate to', pageName)
+    debugger
     // TODO: onTimedOut
     try {
       // Outside link
@@ -204,6 +206,8 @@ class Page {
     modifiers: { evolve?: boolean; force?: boolean } = {},
     internalize: boolean = false
   ) {
+    console.log('Hitting request page change in Page.ts', newPage, modifiers, internalize)
+    debugger
     if (
       newPage !== this.currentPage ||
       newPage.startsWith('http') ||
@@ -217,6 +221,8 @@ class Page {
       })
       if (shouldNavigate === true) {
         if (internalize) {
+          console.log('NOT HERE', modifiers)
+          debugger
           return this.navigate(newPage, modifiers).then(() => {
             this.previousPage = this.currentPage
             this.currentPage = newPage
@@ -237,6 +243,8 @@ class Page {
           var atchedUrl = pagesStr !== "" ? pagesStr : "index.html?" + newPage
           this.pageUrl = atchedUrl
           history.pushState({}, "", this.pageUrl)
+          console.log('NEW PAGE IS', newPage)
+          debugger
           return this.navigate(newPage, modifiers).then(() => {
             this.previousPage = this.currentPage
             this.currentPage = newPage

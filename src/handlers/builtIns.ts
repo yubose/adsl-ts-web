@@ -237,8 +237,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       }
       await page.requestPageChange(pageName, {
         evolve: shouldEvolve,
-      }),
-        true
+      })
     }
 
     var pg
@@ -278,6 +277,8 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.red('HELLO')
     log.red('HELLO')
     // URL
+    console.log('Hitting GoTo in builtInActions', action)
+    debugger
     if (_.isString(action)) {
       var parse = page.pageUrl.endsWith("?") ? "" : "-"
       page.pageUrl += parse
