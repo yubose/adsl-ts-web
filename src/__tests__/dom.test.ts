@@ -47,7 +47,9 @@ describe('dom', () => {
     it('should use data-value as text content if present for other elements (non data value elements)', () => {
       const dataKey = 'formData.greeting'
       const greeting = 'my greeting'
-      noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+      noodlui
+        .use({ getRoot: () => ({ formData: { greeting } }) })
+        .setPage('SignIn')
       page.render({
         type: 'label',
         dataKey,
@@ -64,7 +66,7 @@ describe('dom', () => {
       const dataKey = 'formData.greeting'
       const placeholder = 'my placeholder'
       noodlui
-        .setRoot('SignIn', { formData: { greeting: '' } })
+        .use({ getRoot: () => ({ formData: { greeting } }) })
         .setPage('SignIn')
       page.render({ type: 'label', dataKey, placeholder })
       const label = queryByDataKey(document.body, dataKey)
@@ -394,7 +396,6 @@ describe('dom', () => {
       })
 
       it('should start off showing the eye closed icon', async () => {
-        noodlui.setAssetsUrl(assetsUrl)
         page.render(noodlComponent)
         await waitFor(() => {
           const img = document.getElementsByTagName('img')[0]
@@ -537,8 +538,9 @@ describe('dom', () => {
         // { key: 'Gender', value: 'Female' },
       ]
       noodlui
-        .setAssetsUrl(assetsUrl)
-        .setRoot('Abc', { listData: { Gender: { Radio: listObject } } })
+        .use({
+          getRoot: () => ({ listData: { Gender: { Radio: listObject } } }),
+        })
         .setPage('Abc')
       const view = page.render({
         type: 'view',
@@ -582,11 +584,10 @@ describe('dom', () => {
             ],
           },
         ],
-      }).components[0]
+      } as any).components[0]
       const list = view.child()
       const listItem = list.child()
       list.getData().forEach((d) => list.addDataObject(d))
-      console.info(list.children())
       const image = listItem.child(1)
       // document.getElementById(image.id)?.click()
       // await waitFor(() => {

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import sinon from 'sinon'
-import { IResolver, Resolver } from 'noodl-ui'
+import { Resolver } from 'noodl-ui'
 import {
   assetsUrl,
   noodlui,
@@ -23,9 +23,11 @@ before(() => {
 
   noodlui
     .init({ _log: false, viewport })
-    .setAssetsUrl(assetsUrl)
-    .setRoot(page, root)
     .setPage(page)
+    .use({
+      getAssetsUrl: () => assetsUrl,
+      getRoot: () => root,
+    })
 
   logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
 
@@ -35,11 +37,7 @@ before(() => {
       enumerable: true,
       writable: true,
       value: function _cleanup() {
-        noodlui
-          .reset({ keepCallbacks: false })
-          .setAssetsUrl(assetsUrl)
-          .setRoot(page, root)
-          .setPage(page)
+        noodlui.reset({ keepCallbacks: false }).setPage(page)
       },
     })
   } catch (error) {
@@ -48,7 +46,7 @@ before(() => {
   _.forEach(getAllResolvers(), (r) => {
     const resolver = new Resolver()
     resolver.setResolver(r)
-    noodlui.use(resolver as IResolver)
+    noodlui.use(resolver as Resolver)
   })
 })
 
@@ -58,7 +56,7 @@ after(() => {
 
 beforeEach(() => {
   // noodlui.init({ _log: false, viewport })
-  noodlui.setPage(page).setRoot(root)
+  noodlui.setPage(page)
 })
 
 afterEach(() => {

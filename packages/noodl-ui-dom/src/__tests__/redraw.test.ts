@@ -403,13 +403,13 @@ describe('redraw', () => {
       )
     })
 
-    describe('when user types something on a redrawed input node that had an onChange emit', () => {
+    xdescribe('when user types something on a redrawed input node that had an onChange emit', () => {
       it('should still be emitting and updating the DOM', () => {
         const mockOnChangeEmit = async (action, { node, component }) => {
           node.setAttribute('placeholder', component.get('data-value'))
         }
         noodlui
-          .setRoot('Abc', { formData: { password: 'mypassword' } })
+          .use({ getRoot: () => ({ formData: { password: 'mypassword' } }) })
           .setPage('Abc')
         noodlui.use({
           actionType: 'emit',
