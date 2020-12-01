@@ -462,6 +462,7 @@ class ActionChain<
    */
   getDefaultCallbackArgs() {
     return {
+      abort: this.abort,
       actions: this.actions,
       component: this?.component,
       pageName: this.pageName,
