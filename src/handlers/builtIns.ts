@@ -228,6 +228,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
 
+    const { default: noodl } = await import('../app/noodl')
     const { evolve } = action.original as BuiltInObject
     const requestPage = async (pageName: string) => {
       var shouldEvolve = false
@@ -236,45 +237,35 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       }
       await page.requestPageChange(pageName, {
         evolve: shouldEvolve,
-      })
+      }),
+        true
     }
 
-    let cachedPages: CachedPageObject[] = getCachedPages()
-    if (cachedPages) {
-      cachedPages.shift()
-      while (cachedPages[0].name.endsWith('MenuBar') && cachedPages.length) {
-        cachedPages.shift()
-      }
-      let pg: string
-      pg = cachedPages.shift()?.name || ''
-      setCachedPages(cachedPages)
-
-      var pageUrlArr = page.pageUrl.split("-")
-      if (pageUrlArr.length > 1) {
+    var pg
+    var pagesArr = window.location.href.split('/')
+    var pagesStr = pagesArr[pagesArr.length - 1]
+    var pageUrlArr = pagesStr.split('-')
+    if (pageUrlArr.length > 1) {
+      pageUrlArr.pop()
+      while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
         pageUrlArr.pop()
-        while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
-          pageUrlArr.pop()
-        }
-        if (pageUrlArr.length === 1 && pageUrlArr[0].endsWith('MenuBar')) {
-          page.pageUrl = 'index.html?'
-        }
-        else {
-          page.pageUrl = pageUrlArr.join('-')
-        }
-      } else {
-        page.pageUrl = 'index.html?'
       }
-      history.pushState({}, "", page.pageUrl)
-
-      await requestPage(pg || '')
-    } else {
-      log.func('goBack')
-      log.red(
-        'Tried to navigate to a previous page but a previous page could not ' +
-        'be found',
-        { previousPage: page.previousPage, currentPage: page.currentPage },
-      )
+      if (pageUrlArr.length === 1 && pageUrlArr[0].endsWith('MenuBar')) {
+        page.pageUrl = 'index.html?'
+        pg = ""
+      }
+      else {
+        pg = pageUrlArr[pageUrlArr.length - 1]
+        page.pageUrl = pageUrlArr.join('-')
+      }
     }
+    else {
+      page.pageUrl = 'index.html?'
+      pg = noodl?.cadlEndpoint?.startPage
+    }
+    history.pushState({}, "", page.pageUrl)
+
+    await requestPage(pg || '')
   }
 
   builtInActions.goto = async (action: GotoURL | GotoObject, options) => {
@@ -288,10 +279,18 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.red('HELLO')
     // URL
     if (_.isString(action)) {
-      await page.requestPageChange(action)
+      var parse = page.pageUrl.endsWith("?") ? "" : "-"
+      page.pageUrl += parse
+      page.pageUrl += action
+      history.pushState({}, "", page.pageUrl)
+      await page.requestPageChange(action, undefined, true)
     } else if (_.isPlainObject(action)) {
       if (action.destination) {
-        await page.requestPageChange(action.destination)
+        var parse = page.pageUrl.endsWith("?") ? "" : "-"
+        page.pageUrl += parse
+        page.pageUrl += action.destination
+        history.pushState({}, "", page.pageUrl)
+        await page.requestPageChange(action.destination, undefined, true)
       } else {
         log.func('goto')
         log.red(

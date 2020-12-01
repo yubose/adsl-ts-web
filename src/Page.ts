@@ -12,6 +12,7 @@ import { PageModalState, PageSnapshot } from './app/types'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
+import { debug } from 'webpack'
 
 const log = Logger.create('Page.ts')
 
@@ -201,6 +202,7 @@ class Page {
   requestPageChange(
     newPage: string,
     modifiers: { evolve?: boolean; force?: boolean } = {},
+    internalize: boolean = false
   ) {
     if (
       newPage !== this.currentPage ||
@@ -214,21 +216,32 @@ class Page {
         modifiers,
       })
       if (shouldNavigate === true) {
-        var pagesArr = window.location.href.split('/')
-        var pagesStr = pagesArr[pagesArr.length - 1]
-        var urlArr = pagesStr.split('-')
-        if (urlArr.length > 1) {
-          newPage = urlArr[urlArr.length - 1]
-        } else {
-          var baseArr = urlArr[0].split('?')
-          if (baseArr.length > 1 && baseArr[1] !== "") {
-            newPage = baseArr[1]
-          }
+        if (internalize) {
+          return this.navigate(newPage, modifiers).then(() => {
+            this.previousPage = this.currentPage
+            this.currentPage = newPage
+          })
         }
-        return this.navigate(newPage, modifiers).then(() => {
-          this.previousPage = this.currentPage
-          this.currentPage = newPage
-        })
+        else {
+          var pagesArr = window.location.href.split('/')
+          var pagesStr = pagesArr[pagesArr.length - 1]
+          var urlArr = pagesStr.split('-')
+          if (urlArr.length > 1) {
+            newPage = urlArr[urlArr.length - 1]
+          } else {
+            var baseArr = urlArr[0].split('?')
+            if (baseArr.length > 1 && baseArr[1] !== "") {
+              newPage = baseArr[1]
+            }
+          }
+          var atchedUrl = pagesStr !== "" ? pagesStr : "index.html?" + newPage
+          this.pageUrl = atchedUrl
+          history.pushState({}, "", this.pageUrl)
+          return this.navigate(newPage, modifiers).then(() => {
+            this.previousPage = this.currentPage
+            this.currentPage = newPage
+          })
+        }
       }
     } else {
       log.func('changePage')

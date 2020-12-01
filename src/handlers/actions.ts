@@ -304,23 +304,27 @@ const createActions = function ({ page }: { page: IPage }) {
       // URL
       if (_.isString(action?.original?.goto)) {
         log.gold('Requesting string destination', { action, options })
+        var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
+        page.pageUrl += pre
         var parse = page.pageUrl.endsWith("?") ? "" : "-"
         page.pageUrl += parse
         page.pageUrl += action.original.goto
         history.pushState({}, "", page.pageUrl)
-        await page.requestPageChange(action.original.goto)
+        await page.requestPageChange(action.original.goto, undefined, true)
       } else if (_.isPlainObject(action?.original?.goto)) {
         // Currently don't know of any known properties the goto syntax has.
         // We will support a "destination" key since it exists on goto which will
         // soon be deprecated by this goto action
         if (action.original.destination || _.isString(action.original.goto)) {
           const url = action.original.destination || action.original.goto
+          var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
+          page.pageUrl += pre
           var parse = page.pageUrl.endsWith("?") ? "" : "-"
           page.pageUrl += parse
           page.pageUrl += url
           history.pushState({}, "", page.pageUrl)
           log.gold('Requesting object destination', { action, options })
-          await page.requestPageChange(url)
+          await page.requestPageChange(url, undefined, true)
         } else {
           log.func('goto')
           log.red(
