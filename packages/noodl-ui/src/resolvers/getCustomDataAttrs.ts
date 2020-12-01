@@ -51,6 +51,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     let listObjects: any[]
     const listComponent = component as any
     const listObject = listComponent.getData()
+    listComponent.set('data-listid', listComponent.id)
 
     if (listObject !== undefined) {
       // Hard code some of this stuff for the videoSubStream list component for
@@ -60,7 +61,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       } else {
         listObjects = _.isArray(listObject) ? listObject : [listObject]
       }
-      listComponent.set('data-listid', listComponent.id)
     } else {
       log.red(
         'A list component is missing the "listObject" property',

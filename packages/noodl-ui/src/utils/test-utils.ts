@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import fs, { WriteOptions } from 'fs-extra'
 import path from 'path'
-import Component from '../components/Base'
 import getAlignAttrs from '../resolvers/getAlignAttrs'
 import getBorderAttrs from '../resolvers/getBorderAttrs'
 import getColors from '../resolvers/getColors'
@@ -18,9 +17,48 @@ import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
 import NOODLUi from '../noodl-ui'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
-import { ResolverFn, ComponentObject } from '../types'
+import {
+  ResolverFn,
+  ComponentObject,
+  ConsumerOptions,
+  ComponentType,
+} from '../types'
+import createComponent from '../utils/createComponent'
+import Component from '../components/Base'
+import ListItem from '../components/ListItem'
+import List from '../components/List'
 
 export const assetsUrl = 'https://something.com/assets/'
+
+export function createResolverTest(resolver: ResolverFn) {
+  function _resolver<C extends ComponentObject & { type: 'list' }>(
+    component: C,
+    options?: ConsumerOptions,
+  ): List
+  function _resolver<C extends ComponentObject & { type: 'listItem' }>(
+    component: C,
+    options?: ConsumerOptions,
+  ): ListItem
+  function _resolver<C extends ComponentObject & { type: ComponentType }>(
+    component: C,
+    options?: ConsumerOptions,
+  ): Component
+  function _resolver<C extends ComponentObject>(
+    component: C,
+    options?: ConsumerOptions,
+  ) {
+    const instance = createComponent({
+      ...component,
+      noodlType: component.noodlType || component.type,
+    })
+    resolver(instance as any, {
+      ...noodlui.getConsumerOptions({ component: instance as any }),
+      ...options,
+    })
+    return instance
+  }
+  return _resolver
+}
 
 export const noodlui = (function () {
   const viewport = new Viewport()
