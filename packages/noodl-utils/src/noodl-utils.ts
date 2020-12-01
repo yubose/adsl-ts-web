@@ -110,7 +110,11 @@ export function createEmitDataKey(
 }
 
 export function excludeIteratorVar(dataKey: string, iteratorVar: string = '') {
-  return isStr(dataKey) && iteratorVar && dataKey.split('.').slice(1).join('.')
+  if (!isStr(dataKey)) return dataKey
+  if (iteratorVar && dataKey.startsWith(iteratorVar)) {
+    return dataKey.split('.').slice(1).join('.')
+  }
+  return dataKey
 }
 
 /**
@@ -322,6 +326,12 @@ export function getAllByDataListId<Elem extends HTMLElement = HTMLElement>() {
 
 export function getAllByDataName<Elem extends HTMLElement = HTMLElement>() {
   return Array.from(document.querySelectorAll('[data-name]')) as Elem[]
+}
+
+export function getAllByDataViewTag(viewTag: string) {
+  return typeof viewTag === 'string'
+    ? Array.from(document.querySelectorAll(`[data-viewtag="${viewTag}"]`))
+    : []
 }
 
 export function getByDataKey(value: string) {

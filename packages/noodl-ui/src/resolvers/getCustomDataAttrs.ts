@@ -92,18 +92,15 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     } else if (_.isString(dataKey)) {
       const iteratorVar = component.get('iteratorVar') || ''
       const path = excludeIteratorVar(dataKey, iteratorVar) || ''
-      dataObject = path
-        ? findDataValue(
-            [
-              findListDataObject(component),
-              () => getPageObject(page),
-              () => getRoot(),
-            ],
-            path,
-          )
-        : findListDataObject(component) || getPageObject(page) || getRoot()
+      const dataValue = findDataValue(
+        [
+          findListDataObject(component),
+          () => getPageObject(page),
+          () => getRoot(),
+        ],
+        path,
+      )
       // let dataValue = dataObject
-      let dataValue = _.get(dataObject, dataKey)
       let textFunc = component.get('text=func')
 
       let fieldParts = dataKey?.split?.('.')
@@ -125,8 +122,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         'data-name': field,
         'data-value': _.isFunction(textFunc)
           ? textFunc(dataValue) || ''
-          : typeof dataValue !== 'undefined'
-          ? dataValue
           : dataValue || '',
       })
 
@@ -135,7 +130,8 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       if (isReference(dataKey)) {
         if (dataValue != undefined) component.set('data-value', dataValue)
         else {
-          dataValue =
+          component.set(
+            'data-value',
             dataValue != undefined
               ? dataValue
               : parser.getByDataKey(
@@ -143,8 +139,8 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
                   showDataKey
                     ? dataKey
                     : component.get('text') || component.get('placeholder'),
-                )
-          component.set('data-value', dataValue)
+                ),
+          )
         }
       }
     }

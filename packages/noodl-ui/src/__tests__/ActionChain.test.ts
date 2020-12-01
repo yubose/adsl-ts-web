@@ -19,7 +19,7 @@ import EmitAction from '../Action/EmitAction'
 import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
-import { ActionObject } from '../../dist'
+import { ActionObject, PageObject } from '../../dist'
 
 let getRoot = () => ({
   PatientChartGeneralInfo: {
@@ -804,18 +804,18 @@ describe('ActionChain', () => {
             actions: [{}, {}, {}],
           },
         }
-
+        const actions = [pageJumpAction, emitObj] as any[]
+        const component = createComponent({
+          type: 'image',
+          path: 'Male.png',
+          onClick: actions,
+        })
         actionChain = createActionChain({
-          actions: [pageJumpAction, emitObj],
-          component: createComponent({
-            type: 'image',
-            path: 'Male.png',
-            onClick: [emitObj],
-          }),
+          actions,
+          component,
           pageName,
           pageObject,
           getRoot,
-          trigger: 'onClick',
         })
         actionChain.useAction({
           actionType: 'emit',

@@ -62,18 +62,21 @@ describe('dom', () => {
       expect(label?.innerHTML).to.equal(greeting)
     })
 
-    it('should use placeholder as text content if present (and also there is no data-value available) for other elements (non data value elements)', () => {
-      const dataKey = 'formData.greeting'
-      const placeholder = 'my placeholder'
-      noodlui
-        .use({ getRoot: () => ({ formData: { greeting } }) })
-        .setPage('SignIn')
-      page.render({ type: 'label', dataKey, placeholder })
-      const label = queryByDataKey(document.body, dataKey)
-      // @ts-expect-error
-      expect(label.value).to.be.undefined
-      expect(label?.innerHTML).to.equal(placeholder)
-    })
+    it(
+      'should use placeholder as text content if present (and also there is ' +
+        'no data-value available) for other elements (non data value elements)',
+      () => {
+        const dataKey = 'formData.greeting'
+        const placeholder = 'my placeholder'
+        noodlui
+          .use({ getRoot: () => ({ formData: { greeting: '' } }) })
+          .setPage('SignIn')
+        page.render({ type: 'label', dataKey, placeholder })
+        const label = queryByDataKey(document.body, dataKey) as any
+        expect(label.value).to.be.undefined
+        expect(label.innerHTML).to.equal(placeholder)
+      },
+    )
   })
 
   describe('component type: "list"', () => {
@@ -330,7 +333,9 @@ describe('dom', () => {
     it("should use the value computed from the dataKey as the element's value", () => {
       const dataKey = 'formData.greeting'
       const greeting = 'good morning'
-      noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+      noodlui
+        .use({ getRoot: () => ({ formData: { greeting } }) })
+        .setPage('SignIn')
       page.render({ type: 'textField', placeholder: 'hello, all', dataKey })
       const input = queryByDataKey(document.body, dataKey) as any
       expect(input.value).to.equal(greeting)
@@ -340,7 +345,9 @@ describe('dom', () => {
       const placeholder = 'my placeholder'
       const dataKey = 'formData.greeting'
       const greeting = 'good morning'
-      noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+      noodlui
+        .use({ getRoot: () => ({ formData: { greeting } }) })
+        .setPage('SignIn')
       page.render({ type: 'textField', dataKey, placeholder })
       expect(screen.getByPlaceholderText(placeholder)).to.exist
     })
@@ -382,7 +389,9 @@ describe('dom', () => {
       } as NOODLComponent
 
       beforeEach(() => {
-        noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+        noodlui
+          .use({ getRoot: () => ({ formData: { greeting } }) })
+          .setPage('SignIn')
       })
 
       it('should start off with hidden password mode for password inputs', async () => {
@@ -421,8 +430,11 @@ describe('dom', () => {
 
     it('should update the value of input', () => {
       const dataKey = 'formData.phoneNumber'
-      noodlui.setRoot('SignIn', { formData: { phoneNumber: '88814565555' } })
-      noodlui.setPage('SignIn')
+      noodlui
+        .use({
+          getRoot: () => ({ formData: { phoneNumber: '88814565555' } }),
+        })
+        .setPage('SignIn')
       page.render({
         type: 'textField',
         dataKey,
@@ -437,8 +449,11 @@ describe('dom', () => {
 
     xit('should update the value of dataset.value', async () => {
       const dataKey = 'formData.phoneNumber'
-      noodlui.setRoot('SignIn', { formData: { phoneNumber: '882465812' } })
-      noodlui.setPage('SignIn')
+      noodlui
+        .use({
+          getRoot: () => ({ formData: { phoneNumber: '882465812' } }),
+        })
+        .setPage('SignIn')
       page.render({
         type: 'textField',
         dataKey,
@@ -507,7 +522,7 @@ describe('dom', () => {
     })
   })
 
-  describe.only('when using redraw', () => {
+  describe('when using redraw', () => {
     const iteratorVar = 'hello'
     let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
     let actionFnSpy = sinon.spy()
@@ -603,7 +618,9 @@ describe('dom', () => {
     xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", () => {
       noodlui
         .use({ actionType: 'builtIn' })
-        .setRoot('SignIn', { formData: { greeting: '12345', color: 'red' } })
+        .use({
+          getRoot: () => ({ formData: { greeting: '12345', color: 'red' } }),
+        })
         .setPage('SignIn')
       const root = page.render({
         type: 'view',
@@ -645,9 +662,11 @@ describe('dom', () => {
       expect(getImg().src).not.to.eq(noodlui.assetsUrl + 'followMe.jpeg')
       expect(getLabel().textContent).not.to.eq('hehehee')
 
-      noodlui.setRoot(noodlui.page, {
-        ...noodlui.root[noodlui.page],
-        formData: { greeting: 'hehehee', color: 'blue' },
+      noodlui.use({
+        getRoot: () => ({
+          ...noodlui.root[noodlui.page],
+          formData: { greeting: 'hehehee', color: 'blue' },
+        }),
       })
 
       image.set('src', noodlui.assetsUrl + 'followMe.jpeg')

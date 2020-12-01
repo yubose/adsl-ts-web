@@ -15,7 +15,7 @@ import {
   ListItem,
   NOODLComponent,
 } from 'noodl-ui'
-import { assetsUrl, getAllResolvers, noodlui, noodluidom } from '../test-utils'
+import { assetsUrl, noodlui, noodluidom } from '../test-utils'
 import EmitRedraw from './helpers/EmitRedraw.json'
 import userEvent from '@testing-library/user-event'
 
@@ -96,7 +96,7 @@ describe('redraw', () => {
     expect(view.hasChild(listGender)).to.be.false
   })
 
-  it('should recursively remove child references', () => {
+  xit('should recursively remove child references', () => {
     const node = noodluidom.parse(listGender)
     const listItem = listGender.child()
     const [label, image] = listItem?.children() || []
@@ -141,22 +141,6 @@ describe('redraw', () => {
     noodluidom.off('component', onComponentAttachId)
   })
 
-  xit("should use the removing component's attrs as a blueprint to re-resolve the new one", () => {
-    const view = noodlui.resolveComponents(
-      EmitRedraw.components as NOODLComponent[],
-    )[3]
-    const list = view.child(2) as List
-    noodluidom.parse(view)
-    const listItem = list.child() as ListItem
-    const liNode = document.getElementById(listItem?.id || '')
-    const label = listItem?.child()
-    const { type, dataKey, style, listId, iteratorVar, noodlType, listIndex } =
-      label?.original || {}
-    expect(listItem.hasChild(label)).to.be.true
-    noodluidom.redraw(liNode, listItem)
-    expect(listItem.hasChild(label)).to.be.false
-  })
-
   it('should set the original parent as the parent of the new redrawee component', () => {
     noodluidom.parse(view)
     const listItem = listGender.child() as ListItem
@@ -194,362 +178,479 @@ describe('redraw', () => {
     noodluidom.off('component', onComponentAttachId)
   })
 
-  describe('when deeply resolving components', () => {
-    it('should use every component\'s "shape" as their redraw blueprint', () => {
-      const createIsEqual = (
-        noodlComponent: ComponentObject,
-        newInstance: Component,
-      ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
-      const node = noodluidom.parse(listDemographics)
-      const [newNode, newComponent] = noodluidom.redraw(node, listDemographics)
-      const isEqual = createIsEqual(noodlListDemographics, newComponent)
-      Object.keys(noodlListDemographics).forEach((prop) => {
-        if (prop === 'children') {
-          expect(noodlListDemographics?.children).to.deep.eq(
-            listDemographics?.original?.children,
-          )
-        } else {
-          expect(isEqual(prop)).to.be.true
-        }
+  it('should use every component\'s "shape" as their redraw blueprint', () => {
+    const createIsEqual = (
+      noodlComponent: ComponentObject,
+      newInstance: Component,
+    ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
+    const node = noodluidom.parse(listDemographics)
+    const [newNode, newComponent] = noodluidom.redraw(node, listDemographics)
+    const isEqual = createIsEqual(noodlListDemographics, newComponent)
+    Object.keys(noodlListDemographics).forEach((prop) => {
+      if (prop === 'children') {
+        expect(noodlListDemographics?.children).to.deep.eq(
+          listDemographics?.original?.children,
+        )
+      } else {
+        expect(isEqual(prop)).to.be.true
+      }
+    })
+  })
+
+  it('should accept a component resolver to redraw all of its children', () => {
+    const createIsEqual = (
+      noodlComponent: ComponentObject,
+      newInstance: Component,
+    ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
+    const node = noodluidom.parse(listGender)
+    const [newNode, newComponent] = noodluidom.redraw(node, listGender, {
+      resolver: (c) => noodlui.resolveComponents(c),
+    })
+    const isEqual = createIsEqual(noodlListGender, newComponent)
+    Object.keys(noodlListGender).forEach((prop) => {
+      if (prop === 'children') {
+        expect(noodlListGender.children).to.deep.eq(
+          newComponent.original.children,
+        )
+      } else {
+        expect(isEqual(prop)).to.be.true
+      }
+    })
+  })
+
+  describe('when using path emits after redrawing', () => {
+    it('should still be able to emit and update the DOM', async () => {
+      let imgPath = 'selectOn.png'
+      const pathSpy = sinon.spy()
+      const onClickSpy = sinon.spy()
+      const mockPathEmit = async (action, options) => {
+        pathSpy()
+        return imgPath === 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
+      }
+      const mockOnClickEmit = async (action, options) => {
+        onClickSpy()
+        imgPath = 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
+        return ['']
+      }
+      noodlui.use({
+        actionType: 'emit',
+        fn: mockPathEmit,
+        trigger: 'path',
+      } as any)
+      noodlui.use({
+        actionType: 'emit',
+        fn: mockOnClickEmit,
+        trigger: 'onClick',
+      } as any)
+      noodluidom.on('component', (n: HTMLInputElement, c) => {
+        n.setAttribute('src', c.get('src'))
+      })
+      noodluidom.on('image', (n: HTMLInputElement, c) => {
+        n.onclick = c.action.onClick
+      })
+      const view = noodlui.resolveComponents({
+        type: 'view',
+        children: [
+          {
+            type: 'image',
+            path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
+            onClick: [{ emit: { dataKey: { var1: 'hello' }, actions: [] } }],
+          },
+        ],
+      })
+      const image = view.child() as Component
+      noodluidom.parse(view)
+      const img = document.querySelector('img')
+      img?.click()
+      await waitFor(() => {
+        expect(pathSpy.called).to.be.true
+        expect(onClickSpy.called).to.be.true
+        expect(img?.getAttribute('src') || img?.src).to.eq(
+          noodlui.assetsUrl + imgPath,
+        )
       })
     })
+  })
 
-    it('should accept a component resolver to redraw all of its children', () => {
-      const createIsEqual = (
-        noodlComponent: ComponentObject,
-        newInstance: Component,
-      ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
-      const node = noodluidom.parse(listGender)
-      const [newNode, newComponent] = noodluidom.redraw(node, listGender, {
-        resolver: (c) => noodlui.resolveComponents(c),
-      })
-      const isEqual = createIsEqual(noodlListGender, newComponent)
-      Object.keys(noodlListGender).forEach((prop) => {
-        if (prop === 'children') {
-          expect(noodlListGender.children).to.deep.eq(
-            newComponent.original.children,
-          )
-        } else {
-          expect(isEqual(prop)).to.be.true
-        }
-      })
-    })
+  describe('when user clicks on a redrawed node that has an onClick emit', () => {
+    it('should still be able to operate on and update the DOM', async () => {
+      const abc = 'abc.png'
+      const hello = 'hello.jpeg'
 
-    describe('when using path emits after redrawing', () => {
-      it('should still be able to emit and update the DOM', async () => {
-        let imgPath = 'selectOn.png'
-        const pathSpy = sinon.spy()
-        const onClickSpy = sinon.spy()
-        const mockPathEmit = async (action, options) => {
-          pathSpy()
-          return imgPath === 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
-        }
-        const mockOnClickEmit = async (action, options) => {
-          onClickSpy()
-          imgPath = 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
-          return ['']
-        }
-        noodlui.use({
-          actionType: 'emit',
-          fn: mockPathEmit,
-          trigger: 'path',
-        } as any)
-        noodlui.use({
-          actionType: 'emit',
-          fn: mockOnClickEmit,
-          trigger: 'onClick',
-        } as any)
-        noodluidom.on('component', (n: HTMLInputElement, c) => {
-          n.setAttribute('src', c.get('src'))
-        })
-        noodluidom.on('image', (n: HTMLInputElement, c) => {
-          n.onclick = c.action.onClick
-        })
-        const view = noodlui.resolveComponents({
-          type: 'view',
-          children: [
-            {
-              type: 'image',
-              path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
-              onClick: [{ emit: { dataKey: { var1: 'hello' }, actions: [] } }],
-            },
-          ],
-        })
-        const image = view.child() as Component
-        noodluidom.parse(view)
-        const img = document.querySelector('img')
+      let pathValue = abc
+      let image
+
+      const onClick = async (action, { component }) => {
+        pathValue = pathValue === abc ? hello : abc
+        noodluidom.redraw(document.getElementById(component.id), component)
+      }
+
+      noodlui.use({ actionType: 'emit', fn: onClick, trigger: 'onClick' }).use({
+        actionType: 'emit',
+        fn: async () => (pathValue === abc ? hello : abc),
+        trigger: 'path',
+      })
+
+      image = noodlui.resolveComponents({
+        type: 'image',
+        path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
+        onClick: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+      }) as Component
+
+      noodluidom.on('image', (n, c) => {
+        const { onClick } = c.action
+        n.onclick = onClick
+      })
+
+      const img = noodluidom.parse(image)
+
+      await waitFor(() => {
+        expect((img as any)?.src).to.eq(assetsUrl + hello)
         img?.click()
-        await waitFor(() => {
-          expect(pathSpy.called).to.be.true
-          expect(onClickSpy.called).to.be.true
-          expect(img?.getAttribute('src') || img?.src).to.eq(
-            noodlui.assetsUrl + imgPath,
-          )
-        })
-      })
-    })
-
-    describe('when user clicks on a redrawed node that has an onClick emit', () => {
-      it('should still be able to operate on and update the DOM', async () => {
-        const abc = 'abc.png'
-        const hello = 'hello.jpeg'
-
-        let pathValue = abc
-        let image
-
-        const onClick = async (action, { component }) => {
-          pathValue = pathValue === abc ? hello : abc
-          noodluidom.redraw(document.getElementById(component.id), component)
-        }
-
-        noodlui
-          .use({ actionType: 'emit', fn: onClick, trigger: 'onClick' })
-          .use({
-            actionType: 'emit',
-            fn: async () => (pathValue === abc ? hello : abc),
-            trigger: 'path',
-          })
-
-        image = noodlui.resolveComponents({
-          type: 'image',
-          path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
-          onClick: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
-        }) as Component
-
-        noodluidom.on('image', (n, c) => {
-          const { onClick } = c.action
-          n.onclick = onClick
-        })
-
-        const img = noodluidom.parse(image)
-
-        await waitFor(() => {
-          expect((img as any)?.src).to.eq(assetsUrl + hello)
-          img?.click()
-          expect(document.querySelector('img')?.src).to.eq(assetsUrl + hello)
-        })
-      })
-
-      xit(
-        'path emit should be delayed until after the onClick / onChange emit ' +
-          'actions are done when clicked/changed from the user ' +
-          '(race conditions delays the finalized src re-evaluation',
-        () => {
-          //
-        },
-      )
-
-      xit(
-        'should be able to toggle off right away if it starts off with a ' +
-          'toggled state',
-        async (done) => {
-          const state = { pathValue: 'myimg.png' }
-          const pathSpy = sinon.spy(async () => state.pathValue)
-          const onClickSpy = sinon.spy(async (action, options) => {
-            state.pathValue = 'myotherimg.png'
-            return ['']
-          })
-          noodlui
-            .use([
-              { actionType: 'emit', fn: pathSpy, trigger: 'path' },
-              { actionType: 'emit', fn: onClickSpy, trigger: 'onClick' },
-            ])
-            .use({
-              actionType: 'builtIn',
-              funcName: 'redraw',
-              fn: async (a, { component }) =>
-                void noodluidom.redraw(
-                  document.getElementById(component.id),
-                  component,
-                ),
-            })
-          const view = noodlui.resolveComponents({
-            type: 'view',
-            children: [
-              {
-                type: 'image',
-                onClick: [
-                  { emit: { var1: 'hello' }, actions: [] },
-                  {
-                    actionType: 'builtIn',
-                    funcName: 'redraw',
-                    viewTag: 'genderTag',
-                  },
-                ],
-                path: { emit: { var1: 'hello' }, actions: [] },
-                viewTag: 'genderTag',
-              },
-            ],
-          })
-          const image = view.child() as Component
-          console.info('HELLO')
-          console.info(prettyDOM())
-          const node = noodluidom.parse(image)
-          await waitFor(() => {
-            const imgNode = document.querySelector(
-              `img[src=${assetsUrl + 'myimg.png'}]`,
-            )
-            console.info(document.querySelector('img'))
-            expect(imgNode).to.exist
-          })
-          console.info('GOODBYE')
-          const [newNode, newComponent] = noodluidom.redraw(node, image)
-          console.info(prettyDOM())
-        },
-      )
-    })
-
-    xdescribe('when user types something on a redrawed input node that had an onChange emit', () => {
-      it('should still be emitting and updating the DOM', () => {
-        const mockOnChangeEmit = async (action, { node, component }) => {
-          node.setAttribute('placeholder', component.get('data-value'))
-        }
-        noodlui
-          .use({ getRoot: () => ({ formData: { password: 'mypassword' } }) })
-          .setPage('Abc')
-        noodlui.use({
-          actionType: 'emit',
-          fn: mockOnChangeEmit as any,
-          trigger: 'onChange',
-          context: {},
-        })
-        const view = noodlui.resolveComponents({
-          type: 'view',
-          children: [{ type: 'textField', dataKey: 'formData.password' }],
-        })
-        const textField = view.child() as Component
-        noodluidom.on('textField', (node: HTMLInputElement, c) => {
-          node.dataset.value = c.get('data-value') || ''
-          node.value = c.get('data-value') || ''
-
-          node.onchange = function (e) {
-            node.dataset.value = e.value
-            throw new Error('i ran')
-          }
-          node.addEventListener('change', (e) => {
-            throw new Error('i ran')
-          })
-        })
-        const container = noodluidom.parse(view)
-        const input = screen.getByDisplayValue('mypassword')
-        // expect(input.dataset.value).to.eq('mypassword')
-        expect(input.value).to.eq('mypassword')
-        userEvent.clear(input)
-        userEvent.type(input, 'iwasadded')
-        // expect(input.dataset.value).to.eq('iwasadded')
-        expect(input.value).to.eq('iwasadded')
+        expect(document.querySelector('img')?.src).to.eq(assetsUrl + hello)
       })
     })
 
     xit(
-      'action chains should still be able to operate on the DOM without ' +
-        'having to re-assign them',
+      'path emit should be delayed until after the onClick / onChange emit ' +
+        'actions are done when clicked/changed from the user ' +
+        '(race conditions delays the finalized src re-evaluation',
       () => {
-        noodluidom.on('textField', function (n: HTMLInputElement, c) {
-          n.onchange = (e) => {
-            e.value = !e.value
-          }
-        })
-        noodluidom.on('image', (n: HTMLImageElement, c) => {
-          n.onclick = (e) => {
-            const targetId = 'targetme'
-            let targetNode = document.getElementById(targetId)
-            if (targetNode) {
-              targetNode.remove()
-            } else {
-              targetNode = document.createElement('div')
-              targetNode.id = targetId
-              document.body.appendChild(targetNode)
-            }
-            targetNode = null
-          }
-        })
-
-        const input = document.createElement('input')
-        const img = document.createElement('img')
-        const noodlView = {
-          type: 'view',
-          children: [
-            {
-              type: 'textField',
-              dataKey: 'formData.email',
-              placeholder: 'some placeholder',
-            },
-            {
-              type: 'image',
-              path: { emit: { dataKey: { var: 'hello' }, actions: [] } },
-            },
-            {
-              type: 'button',
-              onClick: [
-                { emit: { dataKey: { var1: 'myonclickvar' }, actions: [] } },
-              ],
-              style: { border: { style: '4' } },
-            },
-          ],
-        }
-        const view = noodlui.resolveComponents(noodlView)
-        input.id = 'mocknodeid'
-        const [textField, image, button] = view.children()
-
-        let inputValue = 'yes value'
-        let imgSrc = 'selectOn.png'
-
-        const mockOnClick = async (action, { component }) => {
-          // calls emit path
-        }
-
-        const mockOnChange = async (action, { component }) => {
-          return inputValue === 'yes value' ? 'no value' : 'yes value'
-        }
-
-        const mockPathEmit = async (
-          { pageName, path, component },
-          context: any,
-        ) => {
-          return imgSrc === 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
-        }
-
-        noodlui.use({
-          actionType: 'emit',
-          fn: mockOnChange,
-          trigger: 'onChange',
-        })
-        noodlui.use([
-          { actionType: 'emit', fn: mockPathEmit, trigger: 'path' },
-          { actionType: 'emit', fn: mockOnClick, trigger: 'onClick' },
-        ])
-        const actionChain = {
-          onClick: new ActionChain(
-            [
-              { emit: { dataKey: { var: 'myvar' }, actions: [] } },
-              { emit: { dataKey: { var1: 'myvar1' }, actions: [] } },
-            ],
-            { component: button, trigger: 'onClick' },
-          ),
-        }
-        const container = noodluidom.parse(view)
-        const [newNode, newComponent] = noodluidom.redraw(
-          document.getElementById(button.id),
-          button,
-          {
-            resolver: (c) => noodlui.resolveComponents(c),
-          },
-        )
-        expect(newComponent.action.onClick).to.eq(button?.action.onClick)
-        expect(document.getElementById(button.id)).to.be.null
+        //
       },
     )
 
-    xit('should deeply resolve the entire noodl-ui component tree down', () => {
-      const [newNode, newComponent] = noodluidom.redraw(null, view)
+    xit(
+      'should be able to toggle off right away if it starts off with a ' +
+        'toggled state',
+      async (done) => {
+        const state = { pathValue: 'myimg.png' }
+        const pathSpy = sinon.spy(async () => state.pathValue)
+        const onClickSpy = sinon.spy(async (action, options) => {
+          state.pathValue = 'myotherimg.png'
+          return ['']
+        })
+        noodlui
+          .use([
+            { actionType: 'emit', fn: pathSpy, trigger: 'path' },
+            { actionType: 'emit', fn: onClickSpy, trigger: 'onClick' },
+          ])
+          .use({
+            actionType: 'builtIn',
+            funcName: 'redraw',
+            fn: async (a, { component }) =>
+              void noodluidom.redraw(
+                document.getElementById(component.id),
+                component,
+              ),
+          })
+        const view = noodlui.resolveComponents({
+          type: 'view',
+          children: [
+            {
+              type: 'image',
+              onClick: [
+                { emit: { var1: 'hello' }, actions: [] },
+                {
+                  actionType: 'builtIn',
+                  funcName: 'redraw',
+                  viewTag: 'genderTag',
+                },
+              ],
+              path: { emit: { var1: 'hello' }, actions: [] },
+              viewTag: 'genderTag',
+            },
+          ],
+        })
+        const image = view.child() as Component
+        console.info('HELLO')
+        console.info(prettyDOM())
+        const node = noodluidom.parse(image)
+        await waitFor(() => {
+          const imgNode = document.querySelector(
+            `img[src=${assetsUrl + 'myimg.png'}]`,
+          )
+          console.info(document.querySelector('img'))
+          expect(imgNode).to.exist
+        })
+        console.info('GOODBYE')
+        const [newNode, newComponent] = noodluidom.redraw(node, image)
+        console.info(prettyDOM())
+      },
+    )
+  })
+
+  xdescribe('when user types something on a redrawed input node that had an onChange emit', () => {
+    it('should still be emitting and updating the DOM', () => {
+      const mockOnChangeEmit = async (action, { node, component }) => {
+        node.setAttribute('placeholder', component.get('data-value'))
+      }
+      noodlui
+        .use({ getRoot: () => ({ formData: { password: 'mypassword' } }) })
+        .setPage('Abc')
+      noodlui.use({
+        actionType: 'emit',
+        fn: mockOnChangeEmit as any,
+        trigger: 'onChange',
+        context: {},
+      })
+      const view = noodlui.resolveComponents({
+        type: 'view',
+        children: [{ type: 'textField', dataKey: 'formData.password' }],
+      })
+      const textField = view.child() as Component
+      noodluidom.on('textField', (node: HTMLInputElement, c) => {
+        node.dataset.value = c.get('data-value') || ''
+        node.value = c.get('data-value') || ''
+
+        node.onchange = function (e) {
+          node.dataset.value = e.value
+          throw new Error('i ran')
+        }
+        node.addEventListener('change', (e) => {
+          throw new Error('i ran')
+        })
+      })
+      const container = noodluidom.parse(view)
+      const input = screen.getByDisplayValue('mypassword')
+      // expect(input.dataset.value).to.eq('mypassword')
+      expect(input.value).to.eq('mypassword')
+      userEvent.clear(input)
+      userEvent.type(input, 'iwasadded')
+      // expect(input.dataset.value).to.eq('iwasadded')
+      expect(input.value).to.eq('iwasadded')
     })
   })
 
-  describe('when deeply resolving dom nodes', () => {
-    xit('should deeply resolve the entire dom node tree down', () => {
-      //
+  xit(
+    'action chains should still be able to operate on the DOM without ' +
+      'having to re-assign them',
+    () => {
+      noodluidom.on('textField', function (n: HTMLInputElement, c) {
+        n.onchange = (e) => {
+          e.value = !e.value
+        }
+      })
+      noodluidom.on('image', (n: HTMLImageElement, c) => {
+        n.onclick = (e) => {
+          const targetId = 'targetme'
+          let targetNode = document.getElementById(targetId)
+          if (targetNode) {
+            targetNode.remove()
+          } else {
+            targetNode = document.createElement('div')
+            targetNode.id = targetId
+            document.body.appendChild(targetNode)
+          }
+          targetNode = null
+        }
+      })
+
+      const input = document.createElement('input')
+      const img = document.createElement('img')
+      const noodlView = {
+        type: 'view',
+        children: [
+          {
+            type: 'textField',
+            dataKey: 'formData.email',
+            placeholder: 'some placeholder',
+          },
+          {
+            type: 'image',
+            path: { emit: { dataKey: { var: 'hello' }, actions: [] } },
+          },
+          {
+            type: 'button',
+            onClick: [
+              { emit: { dataKey: { var1: 'myonclickvar' }, actions: [] } },
+            ],
+            style: { border: { style: '4' } },
+          },
+        ],
+      }
+      const view = noodlui.resolveComponents(noodlView)
+      input.id = 'mocknodeid'
+      const [textField, image, button] = view.children()
+
+      let inputValue = 'yes value'
+      let imgSrc = 'selectOn.png'
+
+      const mockOnClick = async (action, { component }) => {
+        // calls emit path
+      }
+
+      const mockOnChange = async (action, { component }) => {
+        return inputValue === 'yes value' ? 'no value' : 'yes value'
+      }
+
+      const mockPathEmit = async (
+        { pageName, path, component },
+        context: any,
+      ) => {
+        return imgSrc === 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
+      }
+
+      noodlui.use({
+        actionType: 'emit',
+        fn: mockOnChange,
+        trigger: 'onChange',
+      })
+      noodlui.use([
+        { actionType: 'emit', fn: mockPathEmit, trigger: 'path' },
+        { actionType: 'emit', fn: mockOnClick, trigger: 'onClick' },
+      ])
+      const actionChain = {
+        onClick: new ActionChain(
+          [
+            { emit: { dataKey: { var: 'myvar' }, actions: [] } },
+            { emit: { dataKey: { var1: 'myvar1' }, actions: [] } },
+          ],
+          { component: button, trigger: 'onClick' },
+        ),
+      }
+      const container = noodluidom.parse(view)
+      const [newNode, newComponent] = noodluidom.redraw(
+        document.getElementById(button.id),
+        button,
+        {
+          resolver: (c) => noodlui.resolveComponents(c),
+        },
+      )
+      expect(newComponent.action.onClick).to.eq(button?.action.onClick)
+      expect(document.getElementById(button.id)).to.be.null
+    },
+  )
+
+  xit('should deeply resolve the entire noodl-ui component tree down', () => {
+    const [newNode, newComponent] = noodluidom.redraw(null, view)
+  })
+
+  it('dom nodes should remain in the dom', async () => {
+    const pathSpy = sinon.spy(async () => 'food.png')
+    const onClickSpy = sinon.spy(async () => [''])
+    const pathEmitObj = { emit: { dataKey: { var3: 'abc' }, actions: [] } }
+    const onClickEmitObj = { emit: { dataKey: { var3: 'abc' }, actions: [] } }
+    const iteratorVar = 'hello'
+    const listObject = [
+      { fruit: 'apple', color: 'red' },
+      { fruit: 'orange', color: 'blue' },
+    ]
+    noodlui
+      .setPage('Abc')
+      .use({
+        getRoot: () => ({ Abc: { formData: { password: 'mypassword' } } }),
+      })
+      .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
+      .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
+    const view = noodlui.resolveComponents({
+      type: 'view',
+      children: [
+        {
+          type: 'list',
+          contentType: 'listObject',
+          iteratorVar,
+          listObject,
+          children: [
+            {
+              type: 'listItem',
+              [iteratorVar]: '',
+              children: [
+                { type: 'textField', dataKey: 'formData.password' },
+                { type: 'label', dataKey: `${iteratorVar}.fruit` },
+                { type: 'image', path: pathEmitObj, onClick: onClickEmitObj },
+              ],
+            },
+          ],
+        },
+      ],
+    } as ComponentObject)
+    // @ts-expect-error
+    const list = view.child() as List
+    const data = list.getData().slice()
+    // data.forEach((d) => list.removeChild(0))
+    // data.forEach((d) => list.removeDataObject(d))
+    // data.forEach((d) => {
+    //   const listItem = createComponent(list.getBlueprint()) as ListItem
+    //   list.createChild(listItem.setDataObject(d))
+    // })
+    const getListNodes = () => document.querySelectorAll('ul')
+    const getListItemNodes = () => document.querySelectorAll('li')
+    const getImageNodes = () => document.querySelectorAll('img')
+    const getInputNodes = () => document.querySelectorAll('input')
+    noodluidom.parse(list)
+    expect(getListNodes()).to.have.lengthOf(1)
+    expect(getListItemNodes()).to.have.lengthOf(2)
+    expect(getImageNodes()).to.have.lengthOf(2)
+    expect(getInputNodes()).to.have.lengthOf(2)
+    noodluidom.redraw(list.child(), document.querySelector('listItem'))
+    expect(getListNodes()).to.have.lengthOf(1)
+    expect(getListItemNodes()).to.have.lengthOf(2)
+    expect(getImageNodes()).to.have.lengthOf(2)
+    expect(getInputNodes()).to.have.lengthOf(2)
+    // console.info(prettyDOM())
+  })
+
+  it('should look like it was originally before the redraw', () => {
+    const pathSpy = sinon.spy(async () => 'food.png')
+    const onClickSpy = sinon.spy(async () => [''])
+    const pathEmitObj = { emit: { dataKey: { var3: 'abc' }, actions: [] } }
+    const onClickEmitObj = { emit: { dataKey: { var3: 'abc' }, actions: [] } }
+    const iteratorVar = 'hello'
+    const listObject = [
+      { fruit: 'apple', color: 'red' },
+      { fruit: 'orange', color: 'blue' },
+    ]
+    noodlui
+      .setPage('Abc')
+      .use({
+        getRoot: () => ({ Abc: { formData: { password: 'mypassword' } } }),
+      })
+      .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
+      .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
+    const view = noodlui.resolveComponents({
+      type: 'view',
+      children: [
+        {
+          type: 'list',
+          iteratorVar,
+          listObject,
+          children: [
+            {
+              type: 'listItem',
+              [iteratorVar]: '',
+              children: [
+                { type: 'textField', dataKey: 'formData.password' },
+                { type: 'label', dataKey: `${iteratorVar}.fruit` },
+                { type: 'image', path: pathEmitObj, onClick: onClickEmitObj },
+              ],
+            },
+          ],
+        },
+      ],
     })
+    // @ts-expect-error
+    const list = view.child() as List
+    // const data = list.getData().slice()
+    // data.forEach((d) => list.removeChild(0))
+    // data.forEach((d) => list.removeDataObject(d))
+    // data.forEach((d) => list.addDataObject(d))
+    // const listItem = list.child() as ListItem
+    // const [textField, label, image] = listItem.children()
+    noodluidom.on('component', (n, c) => {
+      if (c.get('onChange')) n.onchange = c.get('onChange')
+      if (c.get('onClick')) n.onclick = c.get('onClick')
+    })
+    noodluidom.on('image', (n, c) => {
+      // n.src = c.get('src')
+    })
+    noodluidom.on('textField', (n, c) => {
+      n?.dataset.key = c.get('dataKey')
+      n?.dataset.value = c.get('data-value')
+      n.value = c.get('data-value')
+    })
+    noodluidom.parse(view)
+    console.info(prettyDOM())
   })
 })
 

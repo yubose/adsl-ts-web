@@ -190,7 +190,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
       this.emit('component', newNode, newComponent as Component)
       this.emit(
-        componentEventMap[component.noodlType],
+        componentEventMap[component?.noodlType],
         newNode,
         newComponent as Component,
       )
@@ -199,7 +199,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       // component is still running
       this.emit('component', null, newComponent as Component)
       this.emit(
-        componentEventMap[component.noodlType],
+        componentEventMap[component?.noodlType],
         null,
         newComponent as Component,
       )

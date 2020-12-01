@@ -105,6 +105,7 @@ describe('when using getters', () => {
       'context',
       'createActionChainHandler',
       'createSrc',
+      'getAssetsUrl',
       'getBaseStyles',
       'getPageObject',
       'getResolvers',

@@ -173,10 +173,19 @@ class ActionChain<
 
               if (result) {
                 if (action.type) log.func(action.type)
-                log.grey(
-                  `Received a returned value from a(n) "${action.type}" executor`,
-                  result,
-                )
+                if (Array.isArray(result)) {
+                  result.forEach((res) => {
+                    log.grey(
+                      `Received a returned value from a(n) "${action?.type}" executor`,
+                      res,
+                    )
+                  })
+                } else {
+                  log.grey(
+                    `Received a returned value from a(n) "${action.type}" executor`,
+                    result,
+                  )
+                }
               } else {
                 // if (!result) {
                 //   console.warn(

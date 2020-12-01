@@ -9,6 +9,7 @@ import {
   GotoObject,
   Component,
   ListItem,
+  EmitAction,
 } from 'noodl-ui'
 import {
   LocalAudioTrack,
@@ -18,13 +19,14 @@ import {
   Room,
 } from 'twilio-video'
 import {
+  createEmitDataKey,
+  findListDataObject,
   findParent,
+  getAllByDataViewTag,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isBooleanFalse,
   isEmitObj,
-  createEmitDataKey,
-  findListDataObject,
   publish,
 } from 'noodl-utils'
 import Logger from 'logsnap'
@@ -338,14 +340,22 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     window.location.reload()
   }
 
-  builtInActions.redraw = async (action, options) => {
+  builtInActions.redraw = async (action: EmitAction, options) => {
     log.func('redraw')
     log.red('', { action, options })
 
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
-    const { default: noodl } = await import('../app/noodl')
     const { default: noodlui } = await import('../app/noodl-ui')
-    const { viewTag } = action.original
+
+    const nodes = getAllByDataViewTag(options.component?.get?.('viewTag'))
+    const components =
+      findParent(options.component, (p) => p?.noodlType === 'listItem')
+        ?.parent?.()
+        ?.children?.()
+        ?.filter?.(
+          (c) => c?.get?.('viewTag') === options.component?.get?.('viewTag'),
+        ) || []
+    console.info(components)
 
     const { component } = options
     if (component.id in window.ac) delete window.ac[component.id]
