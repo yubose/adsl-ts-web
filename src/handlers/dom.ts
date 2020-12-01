@@ -57,7 +57,6 @@ noodluidom.on('component', (node, component: Component) => {
   } = component.get(['children', 'options', 'src', 'text', 'videoFormat'])
 
   const { style, type } = component
-
   /** Handle attributes */
   if (_.isArray(defaultPropTable.attributes)) {
     _.forEach(defaultPropTable.attributes, (key) => {

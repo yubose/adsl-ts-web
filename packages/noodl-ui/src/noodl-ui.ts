@@ -227,6 +227,11 @@ class NOODL {
     return this.#cb
   }
 
+  removeCbs(actionType: string) {
+    if (this.#cb.action[actionType]) this.#cb.action[actionType].length = 0
+    return this
+  }
+
   #addCb = (
     key: T.IAction | T.EventId,
     cb:

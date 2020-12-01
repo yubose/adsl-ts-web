@@ -12,7 +12,7 @@ chai.use(chaiAsPromised)
 let logSpy: sinon.SinonStub
 
 before(() => {
-  // noodlui.init()
+  noodlui.init({ _log: false })
   console.clear()
   Logger.disable()
 
@@ -65,4 +65,5 @@ afterEach(() => {
   page.rootNode = null
   // @ts-expect-error
   noodlui.cleanup()
+  noodluidom.removeAllCbs()
 })

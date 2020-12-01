@@ -358,23 +358,43 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     console.info(components)
 
     const { component } = options
-    if (component.id in window.ac) delete window.ac[component.id]
-    const node = document.getElementById(component.id)
 
-    const [newNode, newComponent] = noodluidom.redraw(node, component, {
-      resolver: (c) => {
-        if (c?.id in window.ac) delete window.ac[c.id]
-        return noodlui.resolveComponents(c)
-      },
-    })
+    const viewTag = component?.get?.('viewTag')
+
+    if (component?.id in window.ac) delete window.ac[component.id]
+
+    const redraw = (node: HTMLElement, child: Component) => {
+      const [newNode, newComponent] = noodluidom.redraw(node, child, {
+        dataObject: findDataObject(component),
+        resolver: (c) => {
+          if (c?.id in window.ac) delete window.ac[c.id]
+          return noodlui.resolveComponents(c)
+        },
+        viewTag,
+      })
+    }
+
+    // ;(
+    //   findParent(component, (p) => p?.get?.('viewTag') === viewTag)
+    //     ?.parent?.()
+    //     ?.children?.()
+    //     ?.filter((c: any) => c?.get('viewTag') === viewTag) || []
+    // ).forEach((viewTagComponent: Component) => {
+    //   const node = document.getElementById(viewTagComponent.id)
+    //   console.info(
+    //     '[Redrawing] ' + node
+    //       ? `Found node for viewTag component`
+    //       : `Could not find a node associated with the viewTag component`,
+    //     { node, component: viewTagComponent },
+    //   )
+    //   redraw(node as HTMLElement, viewTagComponent)
+    // })
+
+    redraw(document.getElementById(component.id), component)
 
     log.gold(`newNode/newComponent`, {
       action,
       options,
-      originalNode: node,
-      originalComponent: component,
-      newNode,
-      newComponent,
     })
   }
 

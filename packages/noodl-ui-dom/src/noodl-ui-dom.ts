@@ -7,7 +7,7 @@ import {
   ListItem,
   ComponentType,
 } from 'noodl-ui'
-import { isEmitObj, publish } from 'noodl-utils'
+import { findDataObject, isEmitObj, publish } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
 import {
   componentEventMap,
@@ -41,7 +41,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   } = { pairs: {} }
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
-    Logger[log?.enabled ? 'enable' : 'disable']?.()
+    // Logger[log?.enabled ? 'enable' : 'disable']?.()
   }
 
   /**
@@ -119,6 +119,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     node: HTMLElement | null, // ex: li (dom node)
     component: Component, // ex: listItem (component instance)
     opts?: {
+      dataObject?: any
       resolver?: (
         noodlComponent: ComponentObject | ComponentObject[],
       ) => Component
@@ -132,11 +133,20 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     if (component) {
       const parent = component.parent()
       const shape = getShape(component)
+      let dataObject: any
 
       // Clean up noodl-ui listeners
       component.clearCbs?.()
       // Remove the child reference from the parent
       parent?.removeChild?.(component)
+      if (parent?.noodlType === 'list') {
+        dataObject = component.getDataObject?.() || opts?.dataObject
+        console.info(
+          `Removing previous dataObject from listItem redrawee`,
+          dataObject,
+        )
+        dataObject && parent.removeDataObject(dataObject)
+      }
       // Remove the parent reference
       component.setParent?.(null)
       // Deeply walk down the tree hierarchy
@@ -153,7 +163,18 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       })
       // Create the new component
       newComponent = createComponent(shape)
+      if (dataObject && newComponent?.noodlType === 'listItem') {
+        console.info(
+          `Restoring dataObject on new redrawed listItem`,
+          dataObject,
+        )
+        newComponent.setDataObject?.(dataObject)
+      }
       if (parent && newComponent) {
+        // Set the original dataObject on the new component instance if available
+        if (component?.noodlType === 'listItem') {
+          newComponent.setDataObject?.(opts?.dataObject)
+        }
         // Set the original parent on the new component
         newComponent.setParent(parent)
         // Set the new component as a child on the parent
@@ -161,8 +182,9 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         // Run the resolver if provided
         // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
         opts?.resolver?.(newComponent)
-      } else {
+      } else if (newComponent) {
         // log --> !parent || !newComponent
+        opts?.resolver?.(newComponent)
       }
     }
 
@@ -177,15 +199,42 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             () => newComponent?.get('src') || '',
           )
         } else {
-          newNode = document.createElement('img')
+          // newNode = document.createElement('img')
+          newNode = this.parse(newComponent, parentNode || document.body)
         }
       } else if (newComponent) {
         newNode = document.createElement(getTagName(newComponent))
       }
 
       if (parentNode) {
-        parentNode.replaceChild(newNode as HTMLElement, node)
-        node.remove()
+        if (!newNode) {
+          log.red(`The new node created from redraw is null`, {
+            newNode,
+            node,
+            parentNode,
+            component,
+            newComponent,
+          })
+        }
+        if (parentNode.contains(node) && newNode) {
+          console.info(`Replacing old childNode with new childNode`, {
+            old: node,
+            new: newNode,
+            oldId: node.id,
+            newId: newNode.id,
+          })
+          parentNode.replaceChild(newNode as HTMLElement, node)
+          node.remove()
+        } else if (newNode) {
+          console.info(
+            `Inserting new childNode to parent instead of replacing`,
+            { newNode },
+          )
+          parentNode.insertBefore(
+            newNode as HTMLElement,
+            parentNode.childNodes[0],
+          )
+        }
       }
 
       this.emit('component', newNode, newComponent as Component)
@@ -355,6 +404,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
   getAllCbs() {
     return this.#callbacks
+  }
+
+  removeCbs(key: string) {
+    if (this.#callbacks.component[key]) {
+      this.#callbacks.component[key].length = 0
+    }
+    if (key === 'all') this.#callbacks.all.length = 0
+    return this
   }
 
   removeAllCbs() {
