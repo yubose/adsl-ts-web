@@ -264,16 +264,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         }
       }
     }
-    else if (pageUrlArr.length === 1) {
-      if(pageUrlArr[0].endsWith('MenuBar')) {
-        page.pageUrl = 'index.html?'
-        pg = noodl?.cadlEndpoint?.startPage
-      }
-      else {
-        pg = pageUrlArr[0].split('?')[1]
-        page.pageUrl = pageUrlArr[0]
-      }
-    }
     else {
       page.pageUrl = 'index.html?'
       pg = noodl?.cadlEndpoint?.startPage

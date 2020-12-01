@@ -117,9 +117,9 @@ class Page {
         return openOutboundURL(pageName)
       }
 
-      if(!noodl.root.Global.currentUser.vertex.sk) {
-        pageName = noodl.cadlEndpoint.startPage
-      }
+      // if(!noodl.root.Global.currentUser.vertex.sk) {
+      //   pageName = noodl.cadlEndpoint.startPage
+      // }
 
       this['requestingPage'] = pageName
 
