@@ -173,19 +173,10 @@ class ActionChain<
 
               if (result) {
                 if (action.type) log.func(action.type)
-                if (Array.isArray(result)) {
-                  result.forEach((res) => {
-                    log.grey(
-                      `Received a returned value from a(n) "${action?.type}" executor`,
-                      res,
-                    )
-                  })
-                } else {
-                  log.grey(
-                    `Received a returned value from a(n) "${action.type}" executor`,
-                    result,
-                  )
-                }
+                log.grey(
+                  `Received a returned value from a(n) "${action.type}" executor`,
+                  result,
+                )
               } else {
                 // if (!result) {
                 //   console.warn(
@@ -253,7 +244,7 @@ class ActionChain<
           // run this action before continuing
           // Start up a new Action with this object and inject it
           // as the first item in the queued actions
-          const intermediaryAction = this.createAction?.(result)
+          const intermediaryAction = this.createAction(result)
           if (intermediaryAction) {
             ref.intermediary.push(intermediaryAction)
             ref.#queue = [intermediaryAction, ...ref.#queue]
@@ -376,7 +367,7 @@ class ActionChain<
           callback = fns.shift()
         }
 
-        return results.length ? results : results[0]
+        return results
       }
     }
 
@@ -422,6 +413,56 @@ class ActionChain<
     return action
   }
 
+  /**
+   * Runs the next async generator call
+   * @param { any } args - Args for the next async call
+   */
+  async next(args?: any) {
+    const result = await this.gen.next(args)
+    if (result.value && result.value instanceof Action) {
+      this.current = result.value
+    }
+    return result
+  }
+
+  refresh() {
+    if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
+    this.#queue = []
+    this.status = null
+    // this['gen'] = undefined
+    this.loadQueue().loadGen()
+    log.func('build')
+    log.grey(`Refreshed action chain`, {
+      actions: this.actions,
+      actionChain: this,
+      queue: this.getQueue(),
+    })
+  }
+
+  /**
+   * Creates an asynchronous generator that generates the next immediate action
+   * when the previous has ended
+   */
+  async *createGenerator() {
+    let action: T.IAction | undefined
+    let results: T.ActionChainGeneratorResult[] = []
+
+    while (this.#queue.length) {
+      action = this.#queue.shift()
+      results.push({
+        action: action,
+        result: await (yield { action, results }),
+      })
+    }
+
+    return results
+  }
+
+  loadGen() {
+    this['gen'] = this.createGenerator()
+    return this
+  }
+
   async execute(
     action: T.IAction,
     handlerOptions: T.ActionChainActionCallbackOptions,
@@ -456,6 +497,7 @@ class ActionChain<
    */
   getDefaultCallbackArgs() {
     return {
+      abort: this.abort,
       actions: this.actions,
       component: this?.component,
       pageName: this.pageName,
@@ -491,7 +533,7 @@ class ActionChain<
             { received: actionObj, component: this?.component },
           )
         }
-        action = this?.createAction?.({
+        action = this.createAction({
           actionType: 'anonymous',
           fn: actionObj,
         })
@@ -502,7 +544,7 @@ class ActionChain<
         if (isReference(actionObj as string)) {
           log.func('loadQueue')
           log.red(`Received a reference string but expected an action object`, {
-            actions: this?.actions,
+            actions: this.actions,
             actionObj,
             actionChain: this,
           })
@@ -518,19 +560,17 @@ class ActionChain<
               actionType: 'goto',
             } as T.GotoObject
           }
-          action = this?.createAction?.(actionObj as T.ActionObject)
+          action = this.createAction(actionObj as T.ActionObject)
         }
       }
 
       if (action) {
         log.func('loadQueue')
-        if (this) {
-          this.#queue.push(action)
-          log.grey(`Loaded "${action.actionType}" action into the queue`, {
-            action,
-            component: this?.component,
-          })
-        }
+        this.#queue.push(action)
+        log.grey(`Loaded "${action.actionType}" action into the queue`, {
+          action,
+          component: this?.component,
+        })
       } else {
         log.grey(
           `Could not convert action ${
@@ -541,7 +581,7 @@ class ActionChain<
           {
             action,
             actionChain: this,
-            actions: this?.actions,
+            actions: this.actions,
             component: this?.component,
             original: actionObj,
           },
@@ -590,56 +630,6 @@ class ActionChain<
       this.fns.builtIn[funcName] = currentFns.concat(
         _.isArray(a.fn) ? a.fn : [a.fn],
       )
-    })
-  }
-
-  /**
-   * Creates an asynchronous generator that generates the next immediate action
-   * when the previous has ended
-   */
-  async *createGenerator() {
-    let action: T.IAction | undefined
-    let results: { action: T.IAction | undefined; result: any }[] = []
-
-    while (this.#queue.length) {
-      action = this.#queue.shift()
-      const result = await (yield { action, results })
-      // console.info('result', result)
-
-      if (_.isPlainObject(result)) {
-        if ('actionType' in result || 'goto' in result || 'emit' in result) {
-          // const newAction = this.createAction?.(result)
-          // this.#queue.unshift(newAction)
-          // console.log('newAction', newAction)
-          // this.intermediary.push(result)
-        }
-      }
-      results.push({
-        action: action,
-        result,
-      })
-    }
-
-    return results
-  }
-
-  insertIntermediaryAction(actionObj: T.ActionObject) {
-    const action = this.createAction(actionObj)
-    this.#queue.shift(action)
-    return action
-  }
-
-  refresh() {
-    if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
-    this.#queue = []
-    this.status = null
-    // this['gen'] = undefined
-    this.loadQueue().loadGen()
-    log.func('build')
-    log.grey(`Refreshed action chain`, {
-      actions: this.actions,
-      actionChain: this,
-      queue: this.getQueue(),
     })
 
     return this

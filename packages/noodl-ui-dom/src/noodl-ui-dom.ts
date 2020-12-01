@@ -7,7 +7,7 @@ import {
   ListItem,
   ComponentType,
 } from 'noodl-ui'
-import { findDataObject, isEmitObj, publish } from 'noodl-utils'
+import { isEmitObj, publish } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
 import {
   componentEventMap,

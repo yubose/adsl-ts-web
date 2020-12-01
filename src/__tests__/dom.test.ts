@@ -696,14 +696,13 @@ describe('dom', () => {
         { key: 'gender', value: 'Other' },
       ]
       noodlui.actionsContext = { noodl: { emitCall: () => [''] } }
-
+      console.info(noodlui.getCbs())
+      console.info(noodluidom.getAllCbs())
       noodlui
-        .reset({ keepCallbacks: false })
-        .setAssetsUrl(assetsUrl)
         .setPage('SignIn')
-        .setRoot({ SignIn: {} })
-        .use({ actionType: 'builtIn', funcName: 'redraw', fn: builtIn.redraw })
-        .use({ actionType: 'emit', path: imagePathSpy, trigger: 'path' })
+        // .use({ actionType: 'builtIn', funcName: 'redraw', fn: builtIn.redraw })
+        // .use({ actionType: 'emit', path: imagePathSpy, trigger: 'path' })
+        .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
       const list = page.render({
         type: 'list',
         iteratorVar,

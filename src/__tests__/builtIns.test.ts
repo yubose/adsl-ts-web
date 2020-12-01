@@ -1,7 +1,7 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { prettyDOM, waitFor } from '@testing-library/dom'
-import { List } from 'noodl-ui'
+import { Component, List, ListItem } from 'noodl-ui'
 import { assetsUrl, noodlui, noodluidom } from '../utils/test-utils'
 import createBuiltIns from '../handlers/builtIns'
 
@@ -29,14 +29,15 @@ describe('builtIns', () => {
       ]
       pageObject = { genderInfo: { gender: 'Female' } }
       noodlui.actionsContext = { noodl: { emitCall: async () => [''] } } as any
-      // @ts-expect-error
       noodlui
         .removeCbs('emit')
-        .setAssetsUrl(assetsUrl)
-        .setRoot('SignIn', pageObject)
         .setPage('SignIn')
         .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
         .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
+        .use({
+          getAssetsUrl: () => assetsUrl,
+          getRoot: () => ({ SignIn: pageObject }),
+        })
     })
 
     it.only('should not erase DOM nodes from the page', async () => {
@@ -58,30 +59,27 @@ describe('builtIns', () => {
                 path: { emit: { dataKey: { var1: 'f' }, actions: [] } },
                 onClick: [
                   { emit: { dataKey: { v1: 'f' }, actions: [] } },
-                  {
-                    actionType: 'builtIn',
-                    funcName: 'redraw',
-                    viewTag,
-                  },
+                  { actionType: 'builtIn', funcName: 'redraw', viewTag },
                 ],
               },
             ],
           },
         ],
-      }) as List
-      let listItem = list.child()
-      listItem?.setDataObject(listObject[0])
-      let image = listItem?.child(1)
-      noodluidom.parse(list)
-      await waitFor(async () => {
-        expect(document.getElementsByTagName('img')[0]).to.exist
-        expect(document.getElementsByTagName('label')[0]).to.exist
-        expect(document.getElementsByTagName('li')[0]).to.exist
-        await image?.get('onClick')()
-        expect(document.getElementsByTagName('img')[0]).to.exist
-        // expect(document.getElementsByTagName('label')[0]).to.exist
-        // expect(document.getElementsByTagName('li')[0]).to.exist
       })
+      console.info(noodluidom.getAllCbs())
+      let listItem = list.child() as ListItem
+      // let [label, image]: Component[] = listItem.children()
+      // listItem?.setDataObject(listObject[0])
+      // noodluidom.parse(list)
+      // await waitFor(async () => {
+      //   expect(document.getElementsByTagName('img')[0]).to.exist
+      //   expect(document.getElementsByTagName('label')[0]).to.exist
+      //   expect(document.getElementsByTagName('li')[0]).to.exist
+      //   await image?.get('onClick')()
+      //   expect(document.getElementsByTagName('img')[0]).to.exist
+      //   // expect(document.getElementsByTagName('label')[0]).to.exist
+      //   // expect(document.getElementsByTagName('li')[0]).to.exist
+      // })
     })
 
     it('should redraw the node with the viewTag if viewTag is provided', async () => {

@@ -26,6 +26,8 @@ import {
   createEmitDataKey,
   evalIf,
   findListDataObject,
+  findDataObject,
+  findDataValue,
   findParent,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
