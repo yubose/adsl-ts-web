@@ -21,9 +21,44 @@ import {
   ResolverFn,
   IComponentTypeObject,
   IComponentTypeInstance,
+  ConsumerOptions,
+  NOODLComponentType,
 } from '../types'
+import createComponent from '../utils/createComponent'
+import Component from '../components/Base'
+import ListItem from '../components/ListItem'
+import List from '../components/List'
 
 export const assetsUrl = 'https://something.com/assets/'
+
+export function createResolverTest(resolver: ResolverFn) {
+  function _resolver<C extends IComponentTypeObject & { type: 'list' }>(
+    component: C,
+    options?: ConsumerOptions,
+  ): List
+  function _resolver<C extends IComponentTypeObject & { type: 'listItem' }>(
+    component: C,
+    options?: ConsumerOptions,
+  ): ListItem
+  function _resolver<
+    C extends IComponentTypeObject & { type: NOODLComponentType }
+  >(component: C, options?: ConsumerOptions): Component
+  function _resolver<C extends IComponentTypeObject>(
+    component: C,
+    options?: ConsumerOptions,
+  ) {
+    const instance = createComponent({
+      ...component,
+      noodlType: component.noodlType || component.type,
+    })
+    resolver(instance as any, {
+      ...noodlui.getConsumerOptions({ component: instance as any }),
+      ...options,
+    })
+    return instance
+  }
+  return _resolver
+}
 
 export const noodlui = (function () {
   const viewport = new Viewport()

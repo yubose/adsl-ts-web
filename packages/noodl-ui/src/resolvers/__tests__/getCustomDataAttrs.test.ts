@@ -1,29 +1,11 @@
 import { expect } from 'chai'
-import { noodlui } from '../../utils/test-utils'
-import { ConsumerOptions, ProxiedComponent } from '../../types'
-import getCustomDataAttrs from '../getCustomDataAttrs'
-import createComponent from '../../utils/createComponent'
-import Component from '../../components/Base'
-import List from '../../components/List'
-import ListItem from '../../components/ListItem'
+import { createResolverTest, noodlui } from '../../utils/test-utils'
+import getCustomDataAttrsResolver from '../getCustomDataAttrs'
 
-let resolveDataAttrs: <C extends ProxiedComponent = ProxiedComponent>(
-  component: C,
-  options?: ConsumerOptions,
-) => C | List | ListItem
+let getCustomDataAttrs: ReturnType<typeof createResolverTest>
 
 beforeEach(() => {
-  resolveDataAttrs = (component: Component, options: ConsumerOptions) => {
-    const instance = createComponent({
-      ...component,
-      noodlType: component.noodlType || component.type,
-    })
-    getCustomDataAttrs(instance, {
-      ...noodlui.getConsumerOptions({ component: instance }),
-      ...options,
-    })
-    return instance
-  }
+  getCustomDataAttrs = createResolverTest(getCustomDataAttrsResolver)
 })
 
 describe('getCustomDataAttrs', () => {
@@ -32,7 +14,7 @@ describe('getCustomDataAttrs', () => {
   })
 
   it('should attach the data attribute for contentType: passwordHidden components and its value as passwordHidden', () => {
-    const label = resolveDataAttrs({
+    const label = getCustomDataAttrs({
       type: 'label',
       contentType: 'passwordHidden',
     })
@@ -41,13 +23,13 @@ describe('getCustomDataAttrs', () => {
 
   it('should attach the data attribute for popUp components and use viewTag as the value', () => {
     expect(
-      resolveDataAttrs({ type: 'popUp', viewTag: 'apple' }).toJS(),
+      getCustomDataAttrs({ type: 'popUp', viewTag: 'apple' }).toJS(),
     ).to.have.property('data-ux', 'apple')
   })
 
   it('should attach listId for list components', () => {
     expect(
-      resolveDataAttrs({
+      getCustomDataAttrs({
         type: 'list',
         listObject: [{ george: 'what' }],
         children: [],
@@ -65,7 +47,7 @@ describe('getCustomDataAttrs', () => {
 
   it('should attach the data-name prop for components that have a dataKey', () => {
     expect(
-      resolveDataAttrs({
+      getCustomDataAttrs({
         type: 'list',
         id: 'abc123',
         dataKey: 'hehe',
@@ -116,7 +98,7 @@ describe('getCustomDataAttrs', () => {
             actions: [],
           },
         }
-        list = resolveDataAttrs({
+        list = getCustomDataAttrs({
           type: 'list',
           iteratorVar,
           listObject,
