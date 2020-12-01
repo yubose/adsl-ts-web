@@ -345,10 +345,11 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
     const { default: noodlui } = await import('../app/noodl-ui')
-    const { viewTag } = action.original
     const { component } = options
 
-    if (component.id in window.ac) delete window.ac[component.id]
+    const viewTag = component?.get?.('viewTag')
+
+    if (component?.id in window.ac) delete window.ac[component.id]
 
     const redraw = (node: HTMLElement, child: Component) => {
       const [newNode, newComponent] = noodluidom.redraw(node, child, {
@@ -361,21 +362,23 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       })
     }
 
-    ;(
-      findParent(component, (p) => p?.get?.('viewTag') === viewTag)
-        ?.parent?.()
-        ?.children?.()
-        ?.filter((c: any) => c?.get('viewTag') === viewTag) || []
-    ).forEach((viewTagComponent: Component) => {
-      const node = document.getElementById(viewTagComponent.id)
-      console.info(
-        '[Redrawing] ' + node
-          ? `Found node for viewTag component`
-          : `Could not find a node associated with the viewTag component`,
-        { node, component: viewTagComponent },
-      )
-      redraw(node as HTMLElement, viewTagComponent)
-    })
+    // ;(
+    //   findParent(component, (p) => p?.get?.('viewTag') === viewTag)
+    //     ?.parent?.()
+    //     ?.children?.()
+    //     ?.filter((c: any) => c?.get('viewTag') === viewTag) || []
+    // ).forEach((viewTagComponent: Component) => {
+    //   const node = document.getElementById(viewTagComponent.id)
+    //   console.info(
+    //     '[Redrawing] ' + node
+    //       ? `Found node for viewTag component`
+    //       : `Could not find a node associated with the viewTag component`,
+    //     { node, component: viewTagComponent },
+    //   )
+    //   redraw(node as HTMLElement, viewTagComponent)
+    // })
+
+    redraw(document.getElementById(component.id), component)
 
     log.gold(`newNode/newComponent`, {
       action,

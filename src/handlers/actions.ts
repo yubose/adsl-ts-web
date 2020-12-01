@@ -228,78 +228,88 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.evalObject.push({
     fn: async (action: Action<EvalObject>, options, { noodlui }) => {
       log.func('evalObject')
-      if (_.isFunction(action?.original?.object)) {
-        const result = await action.original?.object()
-        log.orange(`Result from evalObject [action.object()]`, {
-          result,
-          action,
-          options,
-        })
-        if (result) {
-          const logArgs = { result, action, ...options }
-          log.grey(`Received a(n) ${typeof result} from an evalObject`, logArgs)
-          return result
-        }
-      } else if ('if' in (action.original.object || {})) {
-        const ifObj = action.original.object as IfObject
-        if (_.isArray(ifObj)) {
-          const { default: noodl } = await import('../app/noodl')
-          const pageName = noodlui.page || ''
-          const pageObject = noodl.root[noodlui.page]
-          const object = evalIf((valEvaluating) => {
-            let value
-            if (isNOODLBoolean(valEvaluating)) {
-              return isBooleanTrue(valEvaluating)
-            } else {
-              if (_.isString(valEvaluating)) {
-                if (isPossiblyDataKey(valEvaluating)) {
-                  if (_.has(noodl.root, valEvaluating)) {
-                    value = _.get(noodl.root[pageName], valEvaluating)
-                  } else if (_.has(pageObject, valEvaluating)) {
-                    value = _.get(pageObject, valEvaluating)
-                  }
-                }
-                if (isNOODLBoolean(value)) return isBooleanTrue(value)
-                return !!value
-              } else {
-                return !!value
-              }
-            }
-          }, ifObj)
-          log.orange(`Result from evalObject [action.object.if[]]`, {
-            result: object,
+      try {
+        if (_.isFunction(action?.original?.object)) {
+          const result = await action.original?.object()
+          log.orange(`Result from evalObject [action.object()]`, {
+            result,
             action,
             options,
           })
-          if (_.isFunction(object)) {
-            const result = await object()
-            if (result) {
-              log.hotpink(
-                `Received a value from evalObject's "if" evaluation. ` +
-                  `Returning it back to the action chain now`,
-                { action, ...options, result },
+          if (result) {
+            const { ref } = options
+            const logArgs = { result, action, ...options }
+            log.grey(
+              `Received a(n) ${typeof result} from an evalObject`,
+              logArgs,
+            )
+            const newAction = ref.insertIntermediaryAction(result)
+            log.grey('newAction', { newAction, queue: ref.getQueue() })
+            await newAction.execute(options)
+          }
+        } else if ('if' in (action.original.object || {})) {
+          const ifObj = action.original.object as IfObject
+          if (_.isArray(ifObj)) {
+            const { default: noodl } = await import('../app/noodl')
+            const pageName = noodlui.page || ''
+            const pageObject = noodl.root[noodlui.page]
+            const object = evalIf((valEvaluating) => {
+              let value
+              if (isNOODLBoolean(valEvaluating)) {
+                return isBooleanTrue(valEvaluating)
+              } else {
+                if (_.isString(valEvaluating)) {
+                  if (isPossiblyDataKey(valEvaluating)) {
+                    if (_.has(noodl.root, valEvaluating)) {
+                      value = _.get(noodl.root[pageName], valEvaluating)
+                    } else if (_.has(pageObject, valEvaluating)) {
+                      value = _.get(pageObject, valEvaluating)
+                    }
+                  }
+                  if (isNOODLBoolean(value)) return isBooleanTrue(value)
+                  return !!value
+                } else {
+                  return !!value
+                }
+              }
+            }, ifObj)
+            log.orange(`Result from evalObject [action.object.if[]]`, {
+              result: object,
+              action,
+              options,
+            })
+            if (_.isFunction(object)) {
+              const result = await object()
+              if (result) {
+                log.hotpink(
+                  `Received a value from evalObject's "if" evaluation. ` +
+                    `Returning it back to the action chain now`,
+                  { action, ...options, result },
+                )
+                return result
+              }
+            } else {
+              log.red(
+                `Evaluated an "object" from an "if" object but it did not return a ` +
+                  `function`,
+                { action, ...options, result: object },
               )
-              return result
+              return object
             }
           } else {
-            log.red(
-              `Evaluated an "object" from an "if" object but it did not return a ` +
-                `function`,
-              { action, ...options, result: object },
+            log.grey(
+              `Received an "if" object but it was not in the form --> if [value, value, value]`,
+              { action, ...options },
             )
-            return object
           }
         } else {
           log.grey(
-            `Received an "if" object but it was not in the form --> if [value, value, value]`,
+            `Expected to receive the "object" as a function but it was "${typeof action?.original}" instead`,
             { action, ...options },
           )
         }
-      } else {
-        log.grey(
-          `Expected to receive the "object" as a function but it was "${typeof action?.original}" instead`,
-          { action, ...options },
-        )
+      } catch (error) {
+        console.error(error)
       }
     },
   })

@@ -139,7 +139,7 @@ class ActionChain<
           // run this action before continuing
           // Start up a new Action with this object and inject it
           // as the first item in the queued actions
-          const intermediaryAction = this.createAction(result)
+          const intermediaryAction = this.createAction?.(result)
           if (intermediaryAction) {
             ref.intermediary.push(intermediaryAction)
             ref.#queue = [intermediaryAction, ...ref.#queue]
@@ -256,7 +256,7 @@ class ActionChain<
           callback = fns.shift()
         }
 
-        return results
+        return results.length ? results : results[0]
       }
     }
 
@@ -332,43 +332,53 @@ class ActionChain<
   build() {
     this.loadQueue()
     this.loadGen()
+    const ref = this
 
     return async (event?: any) => {
       try {
-        this.#setStatus('in.progress')
+        ref.#setStatus('in.progress')
         log.func('execute')
         log.grey('Action chain started', {
           event,
-          ...this.getDefaultCallbackArgs(),
+          ...ref.getDefaultCallbackArgs(),
         })
 
-        if (this.#queue.length) {
+        if (ref.#queue.length) {
           let action: T.IAction | undefined
           let result: any
-          let iterator = await this.gen?.next?.()
+          let iterator = await ref.gen?.next?.()
 
           while (iterator && !iterator?.done) {
             action = iterator.value?.action
 
             // Skip to the next loop
             if (!action) {
-              iterator = await this.gen.next()
+              iterator = await ref.gen.next()
             }
             // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
             else {
-              result = await this.execute(action, {
+              result = await ref.execute(action, {
                 event,
-                ...this.getDefaultCallbackArgs(),
+                ...ref.getDefaultCallbackArgs(),
               })
+              const onResult = async (r) => {
+                if (_.isPlainObject(r)) {
+                  iterator = await ref.gen.next(r)
+                } else if (_.isString(r)) {
+                  // TODO
+                } else if (_.isFunction(r)) {
+                  // TODO
+                } else {
+                  iterator = await ref.gen.next(r)
+                }
+              }
               // log.grey('Current results from action chain', result)
-              if (_.isPlainObject(result)) {
-                iterator = await this.gen.next(result)
-              } else if (_.isString(result)) {
-                // TODO
-              } else if (_.isFunction(result)) {
-                // TODO
+              if (Array.isArray(result)) {
+                for (let index = 0; index < result.length; index++) {
+                  await onResult(result[index])
+                }
               } else {
-                iterator = await this.gen.next(result)
+                await onResult(result)
               }
 
               if (result) {
@@ -392,14 +402,14 @@ class ActionChain<
           //   this.actions as IAction[],
           //   this.getCallbackOptions({ event, ...buildOptions }),
           // )
-          log.grey('Action chain reached the end of execution', this)
+          log.grey('Action chain reached the end of execution', ref)
           // return iterator?.value
-          return this.build
+          return ref.build
         } else {
           // logs
           log.red('Cannot start action chain without actions in the queue', {
-            ...this.getDefaultCallbackArgs(),
-            actionChain: this,
+            ...ref.getDefaultCallbackArgs(),
+            actionChain: ref,
             event,
           })
         }
@@ -410,10 +420,10 @@ class ActionChain<
         //   this.getCallbackOptions({ event, error: err, ...buildOptions }),
         // )
         // TODO more handling
-        await this.abort(error.message)
-        throw new AbortExecuteError(error)
+        await ref.abort(error.message)
+        // throw new AbortExecuteError(error)
       } finally {
-        this.refresh()
+        ref.refresh()
       }
     }
   }
@@ -487,7 +497,7 @@ class ActionChain<
             { received: actionObj, component: this?.component },
           )
         }
-        action = this.createAction({
+        action = this?.createAction?.({
           actionType: 'anonymous',
           fn: actionObj,
         })
@@ -498,7 +508,7 @@ class ActionChain<
         if (isReference(actionObj as string)) {
           log.func('loadQueue')
           log.red(`Received a reference string but expected an action object`, {
-            actions: this.actions,
+            actions: this?.actions,
             actionObj,
             actionChain: this,
           })
@@ -514,17 +524,19 @@ class ActionChain<
               actionType: 'goto',
             } as T.GotoObject
           }
-          action = this.createAction(actionObj as T.ActionObject)
+          action = this?.createAction?.(actionObj as T.ActionObject)
         }
       }
 
       if (action) {
         log.func('loadQueue')
-        this.#queue.push(action)
-        log.grey(`Loaded "${action.actionType}" action into the queue`, {
-          action,
-          component: this?.component,
-        })
+        if (this) {
+          this.#queue.push(action)
+          log.grey(`Loaded "${action.actionType}" action into the queue`, {
+            action,
+            component: this?.component,
+          })
+        }
       } else {
         log.grey(
           `Could not convert action ${
@@ -535,7 +547,7 @@ class ActionChain<
           {
             action,
             actionChain: this,
-            actions: this.actions,
+            actions: this?.actions,
             component: this?.component,
             original: actionObj,
           },
@@ -586,7 +598,9 @@ class ActionChain<
             `Aborted action of type ${action?.type || '<Missing action type>'}`,
             action,
           )
-        } catch (error) {}
+        } catch (error) {
+          console.error(error.message)
+        }
       }
     }
     // This will return an object like { value, done: true }
@@ -620,13 +634,30 @@ class ActionChain<
 
     while (this.#queue.length) {
       action = this.#queue.shift()
+      const result = await (yield { action, results })
+      // console.info('result', result)
+
+      if (_.isPlainObject(result)) {
+        if ('actionType' in result || 'goto' in result || 'emit' in result) {
+          // const newAction = this.createAction?.(result)
+          // this.#queue.unshift(newAction)
+          // console.log('newAction', newAction)
+          // this.intermediary.push(result)
+        }
+      }
       results.push({
         action: action,
-        result: await (yield { action, results }),
+        result,
       })
     }
 
     return results
+  }
+
+  insertIntermediaryAction(actionObj: T.ActionObject) {
+    const action = this.createAction(actionObj)
+    this.#queue.shift(action)
+    return action
   }
 
   refresh() {
