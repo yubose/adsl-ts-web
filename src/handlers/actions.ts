@@ -236,15 +236,6 @@ const createActions = function ({ page }: { page: IPage }) {
             action,
             options,
           })
-<<<<<<< HEAD
-          if (_.isFunction(object)) {
-            const result = await object()
-            if (result) {
-              log.hotpink(
-                `Received a value from evalObject's "if" evaluation. ` +
-                `Returning it back to the action chain now`,
-                { action, ...options, result },
-=======
           if (result) {
             const { ref } = options
             const logArgs = { result, action, ...options }
@@ -302,7 +293,6 @@ const createActions = function ({ page }: { page: IPage }) {
                 `Evaluated an "object" from an "if" object but it did not return a ` +
                   `function`,
                 { action, ...options, result: object },
->>>>>>> 52ccc5a4c267fbb163ce2eb04b2f769f08d7e331
               )
               return object
             }
