@@ -103,7 +103,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           )
         : findListDataObject(component) || getPageObject(page) || getRoot()
       // let dataValue = dataObject
-      let dataValue = path ? _.get(dataObject, dataKey) : dataObject
+      let dataValue = _.get(dataObject, dataKey)
       let textFunc = component.get('text=func')
 
       let fieldParts = dataKey?.split?.('.')

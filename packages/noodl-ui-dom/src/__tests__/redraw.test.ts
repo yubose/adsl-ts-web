@@ -13,7 +13,6 @@ import {
   List,
   ListEventId,
   ListItem,
-  List,
   NOODLComponent,
 } from 'noodl-ui'
 import { assetsUrl, getAllResolvers, noodlui, noodluidom } from '../test-utils'
@@ -103,9 +102,9 @@ describe('redraw', () => {
     const [label, image] = listItem?.children() || []
     expect(!!findChild(listGender, (c) => c === image)).to.be.true
     expect(!!findChild(listGender, (c) => c === label)).to.be.true
-    noodluidom.redraw(node, listGender)
-    expect(!!findChild(listGender, (c) => c === image)).to.be.false
-    expect(!!findChild(listGender, (c) => c === label)).to.be.false
+    const [newNode, newComponent] = noodluidom.redraw(node, listGender)
+    expect(!!findChild(newComponent, (c) => c === image)).to.be.false
+    expect(!!findChild(newComponent, (c) => c === label)).to.be.false
   })
 
   xit('should recursively remove child listeners', async () => {
@@ -126,7 +125,6 @@ describe('redraw', () => {
     expect(label.hasCb('fruit', spies.fruit)).to.be.true
     noodluidom.redraw(node, view)
     save(image?.toJS())
-    console.info(image)
     expect(listGender.hasCb('add.data.object', spies.hello)).to.be.false
     expect(image.hasCb('bye', spies.bye)).to.be.false
     expect(label.hasCb('fruit', spies.fruit)).to.be.false
@@ -143,7 +141,7 @@ describe('redraw', () => {
     noodluidom.off('component', onComponentAttachId)
   })
 
-  it("should use the removing component's attrs as a blueprint to re-resolve the new one", () => {
+  xit("should use the removing component's attrs as a blueprint to re-resolve the new one", () => {
     const view = noodlui.resolveComponents(
       EmitRedraw.components as NOODLComponent[],
     )[3]
@@ -265,7 +263,6 @@ describe('redraw', () => {
           n.setAttribute('src', c.get('src'))
         })
         noodluidom.on('image', (n: HTMLInputElement, c) => {
-          console.info(c.action)
           n.onclick = c.action.onClick
         })
         const view = noodlui.resolveComponents({
@@ -289,7 +286,6 @@ describe('redraw', () => {
             noodlui.assetsUrl + imgPath,
           )
         })
-        console.info(prettyDOM())
       })
     })
 

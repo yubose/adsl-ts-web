@@ -127,9 +127,7 @@ class NOODL {
 
     // Finish off with the internal resolvers to handle the children
     _.forEach(components, (c) => {
-      console.info(c)
       const component = this.#resolve(c)
-      console.info(component)
       _internalResolver.resolve(
         component,
         this.getConsumerOptions({ component }),

@@ -383,7 +383,7 @@ noodluidom.on<'list'>('list', (node: HTMLUListElement, component: List) => {
       const childNode = document.getElementById(listItem.id)
 
       if (childNode) {
-        console.info(
+        log.grey(
           'Found childNode for removed listItem. Removing it from the DOM now',
           {
             ...result,
@@ -393,15 +393,12 @@ noodluidom.on<'list'>('list', (node: HTMLUListElement, component: List) => {
         )
         node.removeChild(childNode)
       } else {
-        console.info(
-          `Could not find the child DOM node for a removed listItem`,
-          {
-            ...result,
-            ...options,
-            id: listItem.id,
-            childNode,
-          },
-        )
+        log.grey(`Could not find the child DOM node for a removed listItem`, {
+          ...result,
+          ...options,
+          id: listItem.id,
+          childNode,
+        })
       }
     },
   )

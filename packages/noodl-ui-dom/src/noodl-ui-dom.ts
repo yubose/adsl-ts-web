@@ -66,7 +66,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         this.emit('plugin', null, component)
       } else {
         if (component.noodlType === 'image') {
-          console.info(isEmitObj(component.get('path')), component.get('path'))
           node = isEmitObj(component.get('path'))
             ? createAsyncImageElement(
                 container || document.body,
@@ -114,82 +113,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     }
 
     return node || null
-  }
-
-  /**
-   * Registers a listener to the listeners list
-   * @param { string } eventName - Name of the listener event
-   * @param { function } callback - Callback to invoke when the event is emitted
-   */
-  on(
-    eventName: T.NOODLDOMEvent,
-    callback: (node: T.NOODLDOMElement | null, component: Component) => void,
-  ) {
-    const callbacks = this.getCallbacks(eventName)
-    if (Array.isArray(callbacks)) callbacks.push(callback)
-    return this
-  }
-
-  /**
-   * Removes a listener's callback from the listeners list
-   * @param { string } eventName - Name of the listener event
-   * @param { function } callback
-   */
-  off<E extends T.NOODLDOMEvent>(
-    eventName: E,
-    callback: Parameters<T.INOODLUiDOM['off']>[1],
-  ) {
-    const callbacks = this.getCallbacks(eventName)
-    if (Array.isArray(callbacks)) {
-      const index = callbacks.indexOf(callback)
-      if (index !== -1) callbacks.splice(index, 1)
-    }
-    return this
-  }
-
-  /**
-   * Emits an event name and calls all the callbacks registered to that event
-   * @param { string } eventName - Name of the listener event
-   * @param { ...any[] } args
-   */
-  emit<E extends string = T.NOODLDOMEvent>(
-    eventName: E,
-    node: T.NOODLDOMElement | null,
-    component: Component,
-  ) {
-    const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
-    if (Array.isArray(callbacks)) {
-      callbacks.forEach((fn) => fn && fn(node as T.NOODLDOMElement, component))
-    }
-    return this
-  }
-
-  /**
-   * Takes either a component type or any other name of an event and returns the
-   * callbacks associated with it
-   * @param { string } value - Component type or name of the event
-   */
-  getCallbacks(eventName?: T.NOODLDOMEvent) {
-    if (!arguments.length) return this.#callbacks
-    if (typeof eventName === 'string') {
-      const callbacksMap = this.#callbacks
-      if (eventName === 'component') return callbacksMap.all
-      if (componentEventIds.includes(eventName)) {
-        return callbacksMap.component[this.#getEventKey(eventName)]
-      } else if (eventName) {
-        if (!callbacksMap[eventName]) callbacksMap[eventName] = []
-        return callbacksMap[eventName]
-      }
-    }
-    return null
-  }
-
-  getPair(componentId: string) {
-    return this.#state.pairs[componentId]
-  }
-
-  getState() {
-    return this.#state
   }
 
   redraw(
@@ -283,6 +206,82 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]
+  }
+
+  /**
+   * Registers a listener to the listeners list
+   * @param { string } eventName - Name of the listener event
+   * @param { function } callback - Callback to invoke when the event is emitted
+   */
+  on(
+    eventName: T.NOODLDOMEvent,
+    callback: (node: T.NOODLDOMElement | null, component: Component) => void,
+  ) {
+    const callbacks = this.getCallbacks(eventName)
+    if (Array.isArray(callbacks)) callbacks.push(callback)
+    return this
+  }
+
+  /**
+   * Removes a listener's callback from the listeners list
+   * @param { string } eventName - Name of the listener event
+   * @param { function } callback
+   */
+  off<E extends T.NOODLDOMEvent>(
+    eventName: E,
+    callback: Parameters<T.INOODLUiDOM['off']>[1],
+  ) {
+    const callbacks = this.getCallbacks(eventName)
+    if (Array.isArray(callbacks)) {
+      const index = callbacks.indexOf(callback)
+      if (index !== -1) callbacks.splice(index, 1)
+    }
+    return this
+  }
+
+  /**
+   * Emits an event name and calls all the callbacks registered to that event
+   * @param { string } eventName - Name of the listener event
+   * @param { ...any[] } args
+   */
+  emit<E extends string = T.NOODLDOMEvent>(
+    eventName: E,
+    node: T.NOODLDOMElement | null,
+    component: Component,
+  ) {
+    const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
+    if (Array.isArray(callbacks)) {
+      callbacks.forEach((fn) => fn && fn(node as T.NOODLDOMElement, component))
+    }
+    return this
+  }
+
+  /**
+   * Takes either a component type or any other name of an event and returns the
+   * callbacks associated with it
+   * @param { string } value - Component type or name of the event
+   */
+  getCallbacks(eventName?: T.NOODLDOMEvent) {
+    if (!arguments.length) return this.#callbacks
+    if (typeof eventName === 'string') {
+      const callbacksMap = this.#callbacks
+      if (eventName === 'component') return callbacksMap.all
+      if (componentEventIds.includes(eventName)) {
+        return callbacksMap.component[this.#getEventKey(eventName)]
+      } else if (eventName) {
+        if (!callbacksMap[eventName]) callbacksMap[eventName] = []
+        return callbacksMap[eventName]
+      }
+    }
+    return null
+  }
+
+  getPair(componentId: string) {
+    return this.#state.pairs[componentId]
+  }
+
+  getState() {
+    return this.#state
   }
 
   /**

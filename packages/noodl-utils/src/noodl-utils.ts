@@ -110,7 +110,7 @@ export function createEmitDataKey(
 }
 
 export function excludeIteratorVar(dataKey: string, iteratorVar: string = '') {
-  return dataKey && iteratorVar && dataKey.split('.').slice(1).join('.')
+  return isStr(dataKey) && iteratorVar && dataKey.split('.').slice(1).join('.')
 }
 
 /**
