@@ -48,12 +48,11 @@ noodlui
     ),
   )
   .use(
-    _.map(
-      _.entries({
-        redraw: builtIn.redraw,
-      }),
-      ([funcName, fn]) => ({ funcName, fn }),
-    ),
+    // @ts-expect-error
+    _.map(_.entries({ redraw: builtIn.redraw }), ([funcName, fn]) => ({
+      funcName,
+      fn,
+    })),
   )
 
 export class MockNoodl {

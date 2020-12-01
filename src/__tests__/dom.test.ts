@@ -506,7 +506,7 @@ describe('dom', () => {
     })
   })
 
-  describe.only('when using redraw', () => {
+  describe('when using redraw', () => {
     const iteratorVar = 'hello'
     let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
     let actionFnSpy = sinon.spy()
@@ -536,10 +536,13 @@ describe('dom', () => {
         { key: 'Gender', value: 'Male' },
         // { key: 'Gender', value: 'Female' },
       ]
+      noodlui.reset({ keepCallbacks: false })
       noodlui
         .setAssetsUrl(assetsUrl)
         .setRoot('Abc', { listData: { Gender: { Radio: listObject } } })
         .setPage('Abc')
+        .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
+        .use({ actionType: 'builtIn', fn: builtIn.redraw, funcName: 'redraw' })
       const view = page.render({
         type: 'view',
         children: [
@@ -586,26 +589,44 @@ describe('dom', () => {
       const list = view.child()
       const listItem = list.child()
       const image = listItem.child(1)
+      expect(document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`))
+        .not.to.exist
       document.getElementById(image.id)?.click()
       await waitFor(() => {
         expect(document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`))
           .to.exist
       })
-      // expect(pathSpy.firstCall).to.eq(listObject[0])
     })
 
-    xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", () => {
+    xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", async () => {
+      const onClickSpy = sinon.spy(async () => {
+        noodlui.setRoot('SignIn', {
+          formData: { greeting: 'mynewgreeting', color: 'blue' },
+        })
+      })
+      noodlui.actionsContext = { noodl: { emitCall: () => [''] } }
       noodlui
-        .use({ actionType: 'builtIn' })
+        .reset({ keepCallbacks: false })
+        .setAssetsUrl(assetsUrl)
         .setRoot('SignIn', { formData: { greeting: '12345', color: 'red' } })
         .setPage('SignIn')
+        .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
+        .use({ actionType: 'builtIn', fn: builtIn.redraw, funcName: 'redraw' })
       const root = page.render({
         type: 'view',
         children: [
           {
             type: 'view',
             children: [
-              { type: 'image', path: 'abc.png', style: { shadow: 'true' } },
+              {
+                type: 'image',
+                path: 'abc.png',
+                style: { shadow: 'true' },
+                onClick: [
+                  { emit: { dataKey: { var1: 'f' }, actions: [] } },
+                  { actionType: 'builtIn', funcName: 'redraw' },
+                ],
+              },
               { type: 'label', dataKey: 'formData.greeting' },
               {
                 type: 'view',
@@ -619,38 +640,79 @@ describe('dom', () => {
       const view = root.child()
       const image = view.child() as IComponentTypeInstance
 
-      const parentEl = document.getElementById(view.id)
-
-      const getImg = () =>
-        document.querySelector(
-          `img[src="${assetsUrl + 'abc.png'}"]`,
-        ) as HTMLImageElement
-      const getRedrawedImg = () =>
-        document.querySelector(
-          `img[src="${assetsUrl + 'followMe.jpeg'}"]`,
-        ) as HTMLImageElement
       const getLabel = () =>
         getByDataKey('formData.greeting') as HTMLLabelElement
       const getLabel2 = () => getByDataKey('formData.color') as HTMLLabelElement
 
-      expect(getImg().src).to.equal(noodlui.assetsUrl + 'abc.png')
       expect(getLabel().textContent).to.equal('12345')
+      expect(getLabel().textContent).not.to.eq('mynewgreeting')
       expect(getLabel2().textContent).to.equal('red')
-      expect(getImg().src).not.to.eq(noodlui.assetsUrl + 'followMe.jpeg')
-      expect(getLabel().textContent).not.to.eq('hehehee')
 
-      noodlui.setRoot(noodlui.page, {
-        ...noodlui.root[noodlui.page],
-        formData: { greeting: 'hehehee', color: 'blue' },
+      await image.get('onClick')()
+
+      await waitFor(() => {
+        console.info(prettyDOM())
+        expect(getLabel().textContent).to.eq('mynewgreeting')
+        expect(getLabel2().textContent).to.eq('blue')
       })
+    })
 
-      image.set('src', noodlui.assetsUrl + 'followMe.jpeg')
+    it.only('should target the viewTag component/node if available', async () => {
+      let currentPath = 'male.png'
+      const imagePathSpy = sinon.spy(async () =>
+        currentPath === 'male.png' ? 'female.png' : 'male.png',
+      )
+      const viewTag = 'genderTag'
+      const iteratorVar = 'itemObject'
+      const listObject = [
+        { key: 'gender', value: 'Male' },
+        { key: 'gender', value: 'Female' },
+        { key: 'gender', value: 'Other' },
+      ]
+      noodlui.actionsContext = { noodl: { emitCall: () => [''] } }
 
-      // const [newParentEl, newView] = noodluidom.redraw(parentEl, view)
-
-      expect(getRedrawedImg().src).to.eq(noodlui.assetsUrl + 'followMe.jpeg')
-      expect(getLabel().textContent).to.eq('hehehee')
-      expect(getLabel2().textContent).to.eq('blue')
+      noodlui
+        .reset({ keepCallbacks: false })
+        .setAssetsUrl(assetsUrl)
+        .setPage('SignIn')
+        .setRoot({ SignIn: {} })
+        .use({ actionType: 'builtIn', funcName: 'redraw', fn: builtIn.redraw })
+        .use({ actionType: 'emit', path: imagePathSpy, trigger: 'path' })
+      const list = page.render({
+        type: 'list',
+        iteratorVar,
+        listObject,
+        children: [
+          {
+            type: 'listItem',
+            viewTag,
+            children: [
+              {
+                type: 'image',
+                path: { emit: { dataKey: 'f', actions: [] } },
+                onClick: [
+                  {
+                    actionType: 'builtIn',
+                    funcName: 'redraw',
+                    viewTag: 'genderTag',
+                  },
+                ],
+              },
+              { type: 'label', dataKey: 'gender.value' },
+            ],
+          },
+        ],
+      }).components[0]
+      const listItem = list.child() as IComponentTypeInstance
+      const image = listItem.child() as IComponentTypeInstance
+      expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
+      document.getElementById(image.id).click()
+      // await image.get('onClick')()
+      await waitFor(() => {
+        expect(document.querySelector('img')?.getAttribute('src')).to.eq(
+          assetsUrl + 'male.png',
+        )
+      })
     })
   })
 

@@ -5,12 +5,12 @@ import sinon from 'sinon'
 import { isEmitObj } from 'noodl-utils'
 import { IResolver, Resolver, Viewport } from 'noodl-ui'
 import Logger, { _color } from 'logsnap'
-
 import {
   assetsUrl,
   getAllResolvers,
   noodl,
   noodlui,
+  noodluidom,
   page,
 } from './utils/test-utils'
 import './handlers/dom'
@@ -20,7 +20,7 @@ chai.use(chaiAsPromised)
 let logSpy: sinon.SinonStub
 
 before(() => {
-  // noodlui.init()
+  noodlui.init({ _log: false })
   console.clear()
   Logger.disable()
 
@@ -33,7 +33,7 @@ before(() => {
       writable: false,
       value: function _cleanup() {
         noodlui
-          .reset({ keepCallbacks: true })
+          // .reset({ keepCallbacks: true })
           .setAssetsUrl(assetsUrl)
           .setPage('MeetingLobby')
           .setViewport(new Viewport())
@@ -71,4 +71,5 @@ afterEach(() => {
   page.rootNode = null
   // @ts-expect-error
   noodlui.cleanup()
+  noodluidom.removeAllCbs()
 })

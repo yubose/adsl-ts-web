@@ -103,7 +103,7 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.emit.push({
     fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
       log.func('emit [onClick]')
-      log.gold('Emitting', { action, noodl, noodlui, this: this, ...options })
+      log.gold('Emitting', { action, noodl, noodlui, ...options })
 
       let { component, ref } = options
       let { actions, dataKey } = action
@@ -111,9 +111,15 @@ const createActions = function ({ page }: { page: IPage }) {
 
       const emitParams = {
         actions: action.actions,
-        dataKey: action.dataKey,
         pageName: noodlui?.page,
       } as any
+
+      if (action.original.emit.dataKey) {
+        emitParams.dataKey = createEmitDataKey(
+          action.original.emit.dataKey,
+          findDataObject(component),
+        )
+      }
 
       const emitResult = await noodl.emitCall(emitParams)
 
@@ -172,7 +178,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
       const { component, page, path } = options
 
-      console.info(`Calling emitCall`, { action, options })
+      log.grey(`Calling emitCall`, { action, options })
 
       let dataObject
       let iteratorVar = component.get('iteratorVar')
