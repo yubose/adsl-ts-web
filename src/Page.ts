@@ -13,6 +13,7 @@ import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
 import { debug } from 'webpack'
+import noodl from 'app/noodl'
 
 const log = Logger.create('Page.ts')
 
@@ -109,13 +110,15 @@ class Page {
     pageName: string,
     pageModifiers: { evolve?: boolean; force?: boolean } = {},
   ): Promise<{ snapshot: PageSnapshot } | void> {
-    console.log('About to navigate to', pageName)
-    debugger
     // TODO: onTimedOut
     try {
       // Outside link
       if (_.isString(pageName) && pageName.startsWith('http')) {
         return openOutboundURL(pageName)
+      }
+
+      if(!noodl.root.Global.currentUser.vertex.sk) {
+        pageName = noodl.cadlEndpoint.startPage
       }
 
       this['requestingPage'] = pageName
@@ -204,10 +207,8 @@ class Page {
   requestPageChange(
     newPage: string,
     modifiers: { evolve?: boolean; force?: boolean } = {},
-    internalize: boolean = false
+    goback: boolean = false,
   ) {
-    console.log('Hitting request page change in Page.ts', newPage, modifiers, internalize)
-    debugger
     if (
       newPage !== this.currentPage ||
       newPage.startsWith('http') ||
@@ -220,31 +221,15 @@ class Page {
         modifiers,
       })
       if (shouldNavigate === true) {
-        if (internalize) {
-          console.log('NOT HERE', modifiers)
-          debugger
+        if (goback) {
+          modifiers.evolve = true
           return this.navigate(newPage, modifiers).then(() => {
             this.previousPage = this.currentPage
             this.currentPage = newPage
           })
         }
         else {
-          var pagesArr = window.location.href.split('/')
-          var pagesStr = pagesArr[pagesArr.length - 1]
-          var urlArr = pagesStr.split('-')
-          if (urlArr.length > 1) {
-            newPage = urlArr[urlArr.length - 1]
-          } else {
-            var baseArr = urlArr[0].split('?')
-            if (baseArr.length > 1 && baseArr[1] !== "") {
-              newPage = baseArr[1]
-            }
-          }
-          var atchedUrl = pagesStr !== "" ? pagesStr : "index.html?" + newPage
-          this.pageUrl = atchedUrl
           history.pushState({}, "", this.pageUrl)
-          console.log('NEW PAGE IS', newPage)
-          debugger
           return this.navigate(newPage, modifiers).then(() => {
             this.previousPage = this.currentPage
             this.currentPage = newPage
