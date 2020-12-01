@@ -143,12 +143,17 @@ class Page {
         })
         window.alert(`The value of page "${pageName}" is not valid`)
       } else {
+        console.log('333', pageName)
+        debugger
         // The caller is expected to provide their own page object
         pageSnapshot = await this.#onBeforePageRender?.({
           pageName,
           rootNode: this.rootNode,
           pageModifiers,
         })
+
+        console.log('Inside navigate', pageSnapshot)
+        debugger
 
         // Sometimes a navigate request coming from another location like a
         // "goto" action can invoke a request in the middle of this operation.

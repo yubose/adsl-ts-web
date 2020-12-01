@@ -90,7 +90,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         component,
         dataKey,
         pageObject,
-        root: roots || getRoot(),
+        root: getRoot() || roots,
       })
       let dataValue = getDataObjectValue({ dataObject, dataKey, iteratorVar })
       let textFunc = component.get('text=func')

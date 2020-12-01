@@ -232,6 +232,11 @@ class NOODL implements T.INOODLUi {
     return this.#cb
   }
 
+  removeCbs(actionType: string) {
+    if (this.#cb.action[actionType]) this.#cb.action[actionType].length = 0
+    return this
+  }
+
   #addCb = (
     key: T.IAction | T.EventId,
     cb:
@@ -677,7 +682,7 @@ class NOODL implements T.INOODLUi {
                   this.getConsumerOptions({
                     assetsUrl: this.assetsUrl,
                     component: component as T.IComponentTypeInstance,
-                    createSrc: this.createSrc,
+                    // createSrc: this.createSrc,
                     path,
                     snapshot,
                   }),
