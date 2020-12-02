@@ -12,6 +12,8 @@ import { PageModalState } from './app/types'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
+import { debug } from 'webpack'
+import noodl from 'app/noodl'
 
 const log = Logger.create('Page.ts')
 
@@ -23,6 +25,7 @@ export type PageListenerName =
   | 'onError'
 
 export interface PageOptions {
+  _log?: boolean
   rootNode?: HTMLElement | null
   builtIn?: {
     [funcName: string]: any
@@ -38,6 +41,7 @@ export interface PageOptions {
 class Page {
   previousPage: string = ''
   currentPage: string = ''
+  pageUrl: string = 'index.html?'
   #onStart: ((pageName: string) => Promise<any>) | undefined
   #onRootNodeInitialized:
     | ((rootNode: NOODLDOMElement | null) => Promise<any>)
@@ -112,6 +116,10 @@ class Page {
         return openOutboundURL(pageName)
       }
 
+      // if(!noodl.root.Global.currentUser.vertex.sk) {
+      //   pageName = noodl.cadlEndpoint.startPage
+      // }
+
       this['requestingPage'] = pageName
 
       await this.#onStart?.(pageName)
@@ -140,7 +148,6 @@ class Page {
           rootNode: this.rootNode,
           pageModifiers,
         })
-
         // Sometimes a navigate request coming from another location like a
         // "goto" action can invoke a request in the middle of this operation.
         // Give the latest call the priority
@@ -198,6 +205,7 @@ class Page {
   requestPageChange(
     newPage: string,
     modifiers: { evolve?: boolean; force?: boolean } = {},
+    goback: boolean = false,
   ) {
     if (
       newPage !== this.currentPage ||
@@ -211,10 +219,19 @@ class Page {
         modifiers,
       })
       if (shouldNavigate === true) {
-        return this.navigate(newPage, modifiers).then(() => {
-          this.previousPage = this.currentPage
-          this.currentPage = newPage
-        })
+        if (goback) {
+          modifiers.evolve = true
+          return this.navigate(newPage, modifiers).then(() => {
+            this.previousPage = this.currentPage
+            this.currentPage = newPage
+          })
+        } else {
+          history.pushState({}, '', this.pageUrl)
+          return this.navigate(newPage, modifiers).then(() => {
+            this.previousPage = this.currentPage
+            this.currentPage = newPage
+          })
+        }
       }
     } else {
       log.func('changePage')

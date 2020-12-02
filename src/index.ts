@@ -674,7 +674,34 @@ window.addEventListener('load', async () => {
     //   console.error(error)
     // }
   }
-  await page.requestPageChange(startPage)
+  // await page.requestPageChange(startPage)
+  if(page && window.location.href) {
+    var newPage
+    var hrefArr = window.location.href.split('/')
+    var urlArr = hrefArr[hrefArr.length-1]
+    if(urlArr === "") {
+      newPage = noodl.cadlEndpoint.startPage
+      page.pageUrl = urlArr
+      await page.requestPageChange(newPage)
+    }
+    else {
+      var pagesArr = urlArr.split('-')
+      if(pagesArr.length>1) {
+        newPage = pagesArr[pagesArr.length-1]
+      }
+      else {
+        var baseArr = pagesArr[0].split('?')
+        if (baseArr.length > 1 && baseArr[baseArr.length-1] !== "") {
+          newPage = baseArr[baseArr.length-1]
+        }
+        else {
+          newPage = noodl.cadlEndpoint.startPage
+        }
+      }
+      page.pageUrl = urlArr
+      await page.requestPageChange(newPage)
+    }
+  }
 })
 
 /* -------------------------------------------------------

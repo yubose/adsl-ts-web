@@ -38,6 +38,7 @@ import { CachedPageObject } from '../app/types'
 import { CACHED_PAGES } from '../constants'
 import { NOODLBuiltInCheckFieldObject } from '../app/types/libExtensionTypes'
 import Meeting from '../meeting'
+import noodl from 'app/noodl'
 
 const log = Logger.create('builtIns.ts')
 
@@ -144,7 +145,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
-            `Defaulting to attaching ${dataKey} as a path to the root object`,
+          `Defaulting to attaching ${dataKey} as a path to the root object`,
           { context: noodlui.getContext?.(), dataObject, dataKey },
         )
         dataObject = noodl.root
@@ -200,7 +201,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => {}
+  builtInActions.checkVerificationCode = async (action) => { }
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -231,37 +232,46 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.grey('', { action, ...options })
 
     const { evolve } = action.original as BuiltInObject
-    console.log(action)
     const requestPage = async (pageName: string) => {
       var shouldEvolve = false
       if (isNOODLBoolean(evolve)) {
         shouldEvolve = evolve
       }
-      console.log('Is there evolve?', evolve)
-      console.log('Should I evolve?', shouldEvolve)
       await page.requestPageChange(pageName, {
-        evolve: shouldEvolve,
-      })
+        evolve: true,
+      }, true)
     }
 
-    let cachedPages: CachedPageObject[] = getCachedPages()
-    if (cachedPages) {
-      cachedPages.shift()
-      while (cachedPages[0].name.endsWith('MenuBar') && cachedPages.length) {
-        cachedPages.shift()
+    var pg
+    var pageUrlArr = page.pageUrl.split('-')
+    if (pageUrlArr.length > 1) {
+      pageUrlArr.pop()
+      while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
+        pageUrlArr.pop()
       }
-      let pg: string
-      pg = cachedPages.shift()?.name || ''
-      setCachedPages(cachedPages)
-      await requestPage(pg || '')
-    } else {
-      log.func('goBack')
-      log.red(
-        'Tried to navigate to a previous page but a previous page could not ' +
-          'be found',
-        { previousPage: page.previousPage, currentPage: page.currentPage },
-      )
+
+      if (pageUrlArr.length > 1) {
+        pg = pageUrlArr[pageUrlArr.length - 1]
+        page.pageUrl = pageUrlArr.join('-')
+      }
+      else if (pageUrlArr.length === 1){
+        if(pageUrlArr[0].endsWith('MenuBar')) {
+          page.pageUrl = 'index.html?'
+          pg = noodl?.cadlEndpoint?.startPage
+        }
+        else {
+          pg = pageUrlArr[0].split('?')[1]
+          page.pageUrl = pageUrlArr[0]
+        }
+      }
     }
+    else {
+      page.pageUrl = 'index.html?'
+      pg = noodl?.cadlEndpoint?.startPage
+    }
+
+    history.pushState({}, "", page.pageUrl)
+    await requestPage(pg || '')
   }
 
   builtInActions.goto = async (action: GotoURL | GotoObject, options) => {
@@ -275,9 +285,27 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.red('HELLO')
     // URL
     if (_.isString(action)) {
+      var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
+      page.pageUrl += pre
+      var parse = page.pageUrl.endsWith("?") ? "" : "-"
+      if(action !== noodl.cadlEndpoint.startPage) {
+        page.pageUrl += parse
+        page.pageUrl += action
+      }
+      history.pushState({}, "", page.pageUrl)
+
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       if (action.destination) {
+        var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
+        page.pageUrl += pre
+        var parse = page.pageUrl.endsWith("?") ? "" : "-"
+        if(action.destination !== noodl.cadlEndpoint.startPage) {
+          page.pageUrl += parse
+          page.pageUrl += action.destination
+        }
+        history.pushState({}, "", page.pageUrl)
+
         await page.requestPageChange(action.destination)
       } else {
         log.func('goto')
@@ -705,9 +733,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // })
   }
 
-  builtInActions.signIn = async (action, options) => {}
-  builtInActions.signUp = async () => {}
-  builtInActions.signout = async () => {}
+  builtInActions.signIn = async (action, options) => { }
+  builtInActions.signUp = async () => { }
+  builtInActions.signout = async () => { }
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -799,7 +827,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     log.green(
       `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-        `root.${pageName}.${nameFieldPath}`,
+      `root.${pageName}.${nameFieldPath}`,
       file,
     )
   }
@@ -912,22 +940,3 @@ export function onBuiltinMissing(
 }
 
 export default createBuiltInActions
-
-/** Retrieves a list of cached pages */
-function getCachedPages(): CachedPageObject[] {
-  let result: CachedPageObject[] = []
-  const pageHistory = window.localStorage.getItem(CACHED_PAGES)
-  if (pageHistory) {
-    try {
-      result = JSON.parse(pageHistory) || []
-    } catch (error) {
-      console.error(error)
-    }
-  }
-  return result
-}
-
-/** Sets the list of cached pages */
-function setCachedPages(cache: CachedPageObject[]) {
-  window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
-}
