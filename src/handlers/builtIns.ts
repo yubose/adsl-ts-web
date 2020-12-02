@@ -231,50 +231,47 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
 
-    const { evolve } = action.original as BuiltInObject
-    const requestPage = async (pageName: string) => {
-      var shouldEvolve = false
-      if (isNOODLBoolean(evolve)) {
-        shouldEvolve = evolve
-      }
-      await page.requestPageChange(pageName, {
-        evolve: shouldEvolve,
-      }, true)
-    }
+    // const { evolve } = action.original as BuiltInObject
+    // const requestPage = async (pageName: string) => {
+    //   var shouldEvolve = false
+    //   if (isNOODLBoolean(evolve)) {
+    //     shouldEvolve = evolve
+    //   }
+    //   await page.requestPageChange(pageName, {
+    //     evolve: shouldEvolve,
+    //   }, true)
+    // }
 
-    var pg
-    var pageUrlArr = page.pageUrl.split('-')
-    console.log('Firhgasdf', pageUrlArr)
-    debugger
-    if (pageUrlArr.length > 1) {
-      pageUrlArr.pop()
-      while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
-        pageUrlArr.pop()
-      }
+    // var pg
+    // var pageUrlArr = page.pageUrl.split('-')
+    // if (pageUrlArr.length > 1) {
+    //   pageUrlArr.pop()
+    //   while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
+    //     pageUrlArr.pop()
+    //   }
 
-      if (pageUrlArr.length > 1) {
-        pg = pageUrlArr[pageUrlArr.length - 1]
-        page.pageUrl = pageUrlArr.join('-')
-      }
-      else if (pageUrlArr.length === 1) {
-        if (pageUrlArr[0].endsWith('MenuBar')) {
-          page.pageUrl = 'index.html?'
-          pg = noodl?.cadlEndpoint?.startPage
-        }
-        else {
-          pg = pageUrlArr[0].split('?')[1]
-          page.pageUrl = pageUrlArr[0]
-        }
-      }
-    }
-    else {
-      page.pageUrl = 'index.html?'
-      pg = noodl?.cadlEndpoint?.startPage
-    }
-    console.log('Firhgasdf222', pageUrlArr)
-    debugger
+    //   if (pageUrlArr.length > 1) {
+    //     pg = pageUrlArr[pageUrlArr.length - 1]
+    //     page.pageUrl = pageUrlArr.join('-')
+    //   }
+    //   else if (pageUrlArr.length === 1) {
+    //     if (pageUrlArr[0].endsWith('MenuBar')) {
+    //       page.pageUrl = 'index.html?'
+    //       pg = noodl?.cadlEndpoint?.startPage
+    //     }
+    //     else {
+    //       pg = pageUrlArr[0].split('?')[1]
+    //       page.pageUrl = pageUrlArr[0]
+    //     }
+    //   }
+    // }
+    // else {
+    //   page.pageUrl = 'index.html?'
+    //   pg = noodl?.cadlEndpoint?.startPage
+    // }
     // history.pushState({}, "", page.pageUrl)
-    await requestPage(pg || '')
+    // await requestPage(pg || '')
+    window.history.back()
   }
 
   builtInActions.goto = async (action: GotoURL | GotoObject, options) => {

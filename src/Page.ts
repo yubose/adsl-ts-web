@@ -222,7 +222,6 @@ class Page {
       if (shouldNavigate === true) {
         if (goback) {
           modifiers.evolve = true
-          // window.history.back()
           history.pushState({}, "", this.pageUrl)
           return this.navigate(newPage, modifiers).then(() => {
             this.previousPage = this.currentPage
