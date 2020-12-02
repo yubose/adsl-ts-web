@@ -15,6 +15,7 @@ import { isActionChainEmitTrigger } from '../utils/noodl'
 import isReference from '../utils/isReference'
 import { actionTypes } from '../constants'
 import * as T from '../types'
+import { ActionObject } from '../types'
 
 const log = Logger.create('ActionChain')
 
@@ -244,7 +245,7 @@ class ActionChain<
           // run this action before continuing
           // Start up a new Action with this object and inject it
           // as the first item in the queued actions
-          const intermediaryAction = this.createAction(result)
+          const intermediaryAction = ref.createAction(result)
           if (intermediaryAction) {
             ref.intermediary.push(intermediaryAction)
             ref.#queue = [intermediaryAction, ...ref.#queue]
@@ -598,6 +599,12 @@ class ActionChain<
       queue: this.getQueue(),
       status: this.status,
     }
+  }
+
+  insertIntermediaryAction(actionObj: ActionObject) {
+    const action = this.createAction(actionObj)
+    this.#queue.unshift(action)
+    return action
   }
 
   useAction(action: T.ActionChainUseObject): this
