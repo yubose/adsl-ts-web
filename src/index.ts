@@ -389,9 +389,36 @@ window.addEventListener('load', async () => {
 
   /** EXPERIMENTAL -- Custom routing */
   // TODO
-  window.addEventListener('popstate', function onPopState(e) {
-    log.func('addEventListener -- popstate')
-    log.grey({ state: e.state, timestamp: e.timeStamp, type: e.type })
+  window.addEventListener('popstate', async function onPopState(e) {
+    var pg
+    var pageUrlArr = page.pageUrl.split('-')
+
+    if (pageUrlArr.length > 1) {
+      pageUrlArr.pop()
+      while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
+        pageUrlArr.pop()
+      }
+      if (pageUrlArr.length > 1) {
+        pg = pageUrlArr[pageUrlArr.length - 1]
+        page.pageUrl = pageUrlArr.join('-')
+      }
+      else if (pageUrlArr.length === 1) {
+        if (pageUrlArr[0].endsWith('MenuBar')) {
+          page.pageUrl = 'index.html?'
+          pg = noodl?.cadlEndpoint?.startPage
+        }
+        else {
+          pg = pageUrlArr[0].split('?')[1]
+          page.pageUrl = pageUrlArr[0]
+        }
+      }
+    }
+    else {
+      page.pageUrl = 'index.html?'
+      pg = noodl?.cadlEndpoint?.startPage
+    }
+
+    await page.requestPageChange(pg, undefined, true)
   })
 
   /**
