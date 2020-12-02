@@ -7,8 +7,8 @@ import {
   RoomParticipantTrackPublication,
   RoomTrack,
   StreamType,
-} from 'app/types'
-import { attachVideoTrack } from 'utils/twilio'
+} from '../app/types'
+import { attachVideoTrack } from '../utils/twilio'
 
 const log = Logger.create('Streams.ts')
 

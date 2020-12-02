@@ -18,7 +18,6 @@ chai.use(chaiAsPromised)
 let logSpy: sinon.SinonStub
 
 before(() => {
-  noodluidom
   noodlui.init({ _log: false })
   console.clear()
   Logger.disable()

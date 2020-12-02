@@ -520,7 +520,7 @@ class List extends Component {
       listId: this.listId,
       listItemCount: this.length,
       listObject: this.#listObject,
-      id: this.id,
+      id: this?.id,
       iteratorVar: this.iteratorVar,
       style: this.style,
       type: this.type,

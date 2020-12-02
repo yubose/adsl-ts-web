@@ -72,10 +72,11 @@ class Page {
   public modal: Modal
   public requestingPage: string | undefined
 
-  constructor({ builtIn, rootNode = null }: PageOptions = {}) {
+  constructor({ _log = true, builtIn, rootNode = null }: PageOptions = {}) {
     this.builtIn = builtIn
     this.rootNode = rootNode
     this.modal = new Modal()
+    _log === false && Logger.disable()
 
     this._initializeRootNode = () => {
       const root = document.createElement('div')

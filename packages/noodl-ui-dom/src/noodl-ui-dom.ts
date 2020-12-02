@@ -66,10 +66,10 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         this.emit('plugin', null, component)
       } else {
         if (component.noodlType === 'image') {
-          component.on('path', (result) => {
+          component.on('path', (result: string) => {
             node.src = result
           })
-          console.info(component.get('path'))
+          // console.info(component.get('path'))
           node = isEmitObj(component.get('path'))
             ? createAsyncImageElement(container || document.body, {
                 onLoad: () => {},
@@ -121,12 +121,15 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   redraw(
     node: HTMLElement | null, // ex: li (dom node)
     component: Component, // ex: listItem (component instance)
-    opts?: {
+    {
+      dataObject,
+      ...opts
+    }: {
       dataObject?: any
       resolver?: (
         noodlComponent: ComponentObject | ComponentObject[],
       ) => Component
-    },
+    } = {},
   ) {
     log.func('redraw')
 
@@ -143,29 +146,17 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     if (component) {
       const parent = component.parent?.()
       const shape = getShape(component)
-      let dataObject: any
 
       // Clean up noodl-ui listeners
       component.clearCbs?.()
-      // Remove the child reference from the parent
-      parent?.removeChild?.(component)
+
       if (parent?.noodlType === 'list') {
-        dataObject = component.getDataObject?.() || opts?.dataObject
-        console.info(
-          `Removing previous dataObject from listItem redrawee`,
-          dataObject,
-        )
-        // dataObject && parent.removeDataObject(dataObject)
+        dataObject && parent.removeDataObject(dataObject)
       }
       // Remove the parent reference
       component.setParent?.(null)
-
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
-        log.gold(`Publishing for --> ${c?.noodlType}`, {
-          c,
-          cNode: document.getElementById(c.id),
-        })
         if (c) {
           const cParent = c.parent?.()
           log.gold(`cParent`, cParent)
@@ -180,57 +171,30 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       // Create the new component
       newComponent = createComponent(shape)
       if (dataObject && newComponent?.noodlType === 'listItem') {
-        log.gold(`Restoring dataObject on new redrawed listItem`, {
-          dataObject,
-          newComponent,
-          parent,
-        })
+        // Set the original dataObject on the new component instance if available
         newComponent.setDataObject?.(dataObject)
       }
       if (parent && newComponent) {
-        // Set the original dataObject on the new component instance if available
-        if (component?.noodlType === 'listItem') {
-          // newComponent.setDataObject?.(opts?.dataObject)
-        }
         // Set the original parent on the new component
         newComponent.setParent(parent)
+        // Remove the child reference from the parent
+        parent?.removeChild?.(component)
         // Set the new component as a child on the parent
         parent.createChild(newComponent)
         // Run the resolver if provided
         // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
-        opts?.resolver?.(newComponent)
-        // this.parse(newComponent)
+        newComponent = opts?.resolver?.(newComponent) || newComponent
       } else if (newComponent) {
         // log --> !parent || !newComponent
-        opts?.resolver?.(newComponent)
+        newComponent = opts?.resolver?.(newComponent) || newComponent
       }
     }
 
     if (node) {
-      // Delete the node tree
-      // node.innerHTML = ''
-      log.magenta('Deleted node.innerHTML', { node, component })
       const parentNode = node.parentNode
-
-      if (newComponent?.noodlType === 'image') {
-        if (isEmitObj(newComponent.get('path'))) {
-          newComponent.on('path', (result) => {
-            newNode.src = result
-          })
-
-          newNode = createAsyncImageElement(
-            (parentNode || document.body) as HTMLElement,
-          )
-        } else {
-          // newNode = document.createElement('img')
-          newNode = this.parse(newComponent, parentNode || document.body)
-        }
-      } else if (newComponent) {
-        // newNode = document.createElement(getTagName(newComponent))
+      if (newComponent) {
         newNode = this.parse(newComponent, parentNode || document.body)
       }
-
-      parentNode?.appendChild(newNode)
 
       if (parentNode) {
         if (!newNode) {
@@ -243,45 +207,18 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           })
         }
         if (parentNode.contains(node) && newNode) {
-          console.info(`Replacing old childNode with new childNode`, {
-            old: node,
-            new: newNode,
-            oldId: node?.id,
-            newId: newNode?.id,
-          })
-          node.childNodes.forEach((cc) => {
-            newNode?.appendChild(cc)
-          })
           parentNode.replaceChild(newNode as HTMLElement, node)
-          // parentNode.appendChild(newNode as HTMLElement)
-          // node.remove()
         } else if (newNode) {
-          console.info(
-            `Inserting new childNode to parent instead of replacing`,
-            { newNode },
-          )
           parentNode.insertBefore(
             newNode as HTMLElement,
             parentNode.childNodes[0],
           )
         }
       }
-
-      this.emit('component', newNode, newComponent as Component)
-      this.emit(
-        componentEventMap[component?.noodlType],
-        newNode,
-        newComponent as Component,
-      )
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.emit('component', null, newComponent as Component)
-      this.emit(
-        componentEventMap[component?.noodlType],
-        null,
-        newComponent as Component,
-      )
+      this.parse(newComponent)
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]

@@ -349,7 +349,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     const viewTag = action?.original?.viewTag || ''
 
-    const components =
+    let components =
       (viewTag &&
         findParent(options.component, (p) => p?.get?.('viewTag') === viewTag)
           ?.parent?.()
@@ -359,6 +359,14 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     const { component } = options
 
+    if (
+      viewTag &&
+      component.get('viewTag') === viewTag &&
+      !components.includes(component)
+    ) {
+      components.push(component)
+    }
+
     if (component?.id in window.ac) delete window.ac[component?.id]
 
     const redraw = (node: HTMLElement, child: Component, dataObject?: any) => {
@@ -366,18 +374,19 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       return noodluidom.redraw(node, child, {
         dataObject,
         resolver: (c: any) => {
-          if (c?.id in window.ac) delete window.ac[c.id]
-          return noodlui
-            .getConsumerOptions({ component: c })
-            .resolveComponent(c)
+          if (c && c?.id in window.ac) delete window.ac[c.id]
+          return noodlui.resolveComponents(c)
         },
         viewTag,
       })
     }
 
-    components.forEach((viewTagComponent: Component, index) => {
+    let startCount = 0
+
+    while (startCount < components.length) {
+      const viewTagComponent = components[startCount]
       const node = document.getElementById(viewTagComponent.id)
-      console.info(
+      log.grey(
         '[Redrawing] ' + node
           ? `Found node for viewTag component`
           : `Could not find a node associated with the viewTag component`,
@@ -389,20 +398,54 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         viewTagComponent,
         dataObject,
       )
-
       log.grey('Resolved redrawed component/node', {
         newNode,
         newComponent,
         dataObject,
       })
-      window[`r${index}`] = {
+      window[`r${startCount}`] = {
         n: newNode,
         c: newComponent,
         d: dataObject,
         origNode: node,
         origComponent: viewTagComponent,
-        index,
+        index: startCount,
       }
+      startCount++
+    }
+
+    console.info(components)
+    console.info(components)
+    console.info(components)
+    console.info(components)
+
+    components.forEach((viewTagComponent: Component, index) => {
+      // const node = document.getElementById(viewTagComponent.id)
+      // log.grey(
+      //   '[Redrawing] ' + node
+      //     ? `Found node for viewTag component`
+      //     : `Could not find a node associated with the viewTag component`,
+      //   { node, component: viewTagComponent },
+      // )
+      // const dataObject = findListDataObject(viewTagComponent)
+      // const [newNode, newComponent] = redraw(
+      //   node as HTMLElement,
+      //   viewTagComponent,
+      //   dataObject,
+      // )
+      // log.grey('Resolved redrawed component/node', {
+      //   newNode,
+      //   newComponent,
+      //   dataObject,
+      // })
+      // window[`r${index}`] = {
+      //   n: newNode,
+      //   c: newComponent,
+      //   d: dataObject,
+      //   origNode: node,
+      //   origComponent: viewTagComponent,
+      //   index,
+      // }
       // viewTagComponent.children()?.forEach?.((cc) => {
       //   const [nn, nc] = redraw(document.getElementById(cc.id), cc, dataObject)
       //   console.info(nn)

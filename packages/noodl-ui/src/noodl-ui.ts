@@ -145,7 +145,7 @@ class NOODL {
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component.original.style)
 
-    if (!component.id) component.id = getRandomKey()
+    if (!component?.id) component.id = getRandomKey()
 
     component.assignStyles(baseStyles)
 

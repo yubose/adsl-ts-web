@@ -5,6 +5,7 @@ import chalk from 'chalk'
 import _ from 'lodash'
 import { createDeepChildren, findChild, publish } from 'noodl-utils'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
+import userEvent from '@testing-library/user-event'
 import {
   ActionChain,
   createComponent,
@@ -14,14 +15,153 @@ import {
   ListEventId,
   ListItem,
   NOODLComponent,
+  ComponentType,
+  ActionObject,
+  ActionType,
 } from 'noodl-ui'
-import { assetsUrl, noodlui, noodluidom } from '../test-utils'
+import { assetsUrl, noodlui, noodluidom, toDOM } from '../test-utils'
 import EmitRedraw from './helpers/EmitRedraw.json'
-import userEvent from '@testing-library/user-event'
 
-const save = (data: any) => {
-  fs.writeJsonSync('redraw.json', data, { spaces: 2 })
+export type DataKeyType<K extends string = 'emit' | 'key'> = K
+export type PathType = 'emit' | 'if' | 'url'
+export type ActionSelection = ActionType | ActionObject
+export type ActionsConfig =
+  | ActionSelection[]
+  | Record<ActionType, ActionObject>
+  | { builtIn?: string[] }
+
+export function createNOODLComponent(
+  noodlComponent: ComponentType | Partial<ComponentObject>,
+  opts?: {
+    dataKey?: DataKeyType
+    iteratorVar?: string
+    onClick?: ActionsConfig
+    onChange?: ActionsConfig
+    path?: boolean | PathType
+  } & Partial<Omit<ComponentObject, 'path' | 'onClick' | 'dataKey'>>,
+) {
+  const props = {
+    ...opts,
+    type:
+      typeof noodlComponent === 'string' ? noodlComponent : noodlComponent.type,
+  } as ComponentObject
+
+  const createActionObjs = (configs: ActionsConfig) => {
+    const arr = Array.isArray(configs) ? configs : [configs]
+    return arr.reduce((acc, obj) => {
+      if (typeof obj === 'string') {
+        const parts = obj.split(':')
+        const [actionType] = parts
+        switch (actionType) {
+          case 'builtIn':
+            const funcName = parts[1]
+            let args = parts
+              .slice(2)
+              .reduce((acc, keyval) => {
+                if (acc.length) {
+                  if (!acc[acc.length - 1]) acc[acc.length - 1].push(keyval)
+                  if (acc[acc.length - 1].length < 2) {
+                    acc[acc.length - 1].push(keyval)
+                  } else {
+                    acc.push([keyval])
+                  }
+                } else {
+                  acc.push([keyval])
+                }
+                return acc
+              }, [])
+              .reduce(
+                (acc, [key, val]) => Object.assign(acc, { [key]: val }),
+                {},
+              )
+
+            return acc.concat({
+              actionType: 'builtIn',
+              funcName,
+              ...(typeof args === 'object' ? args : undefined),
+            })
+          case 'emit':
+            return acc.concat(
+              createEmitObj({
+                keys: ['hello1', 'hello2'],
+                iteratorVar: opts?.iteratorVar,
+              }),
+            )
+          default:
+            break
+        }
+      } else if (obj && !Array.isArray(obj) && typeof obj === 'object') {
+        // if 'emit' in obj
+        // if 'actionType' in obj
+        // etc
+      }
+      return acc
+    }, [] as any[])
+  }
+
+  const createDataKey = (type: DataKeyType, opts) =>
+    type === 'emit' ? createEmitObj(opts) : opts
+
+  const createEmitObj = (
+    opts?:
+      | {
+          actions?: [any, any, any]
+          keys?: string | string[]
+          iteratorVar?: string
+        }
+      | boolean,
+  ) => {
+    const getPrefilledEmitObj = () => {
+      const iteratorVar = (typeof opts === 'object' && opts.iteratorVar) || ''
+      return {
+        emit: {
+          dataKey: {
+            var1: iteratorVar || 'itemObject',
+            var2: `${iteratorVar || 'itemObject'}.value`,
+          },
+          actions: [{}, {}, {}],
+        },
+      }
+    }
+    if (typeof opts === 'boolean') {
+      return getPrefilledEmitObj()
+    } else if (!opts?.keys) {
+      return getPrefilledEmitObj()
+    } else {
+      return {
+        emit: {
+          dataKey: Array.isArray(opts.keys)
+            ? opts?.keys.reduce(
+                (acc, key, index) =>
+                  Object.assign(acc, { [`var${index + 1}`]: key }),
+                {},
+              )
+            : opts?.keys,
+        },
+      } as EmitObject
+    }
+  }
+
+  const createPath = (type: PathType | boolean, iteratorVar?: string = '') =>
+    type === 'emit'
+      ? createEmitObj({ iteratorVar })
+      : path === 'if'
+      ? { if: [] }
+      : path
+
+  if (opts) {
+    if (opts.dataKey) props.dataKey = createDataKey(opts.dataKey, opts)
+    if (opts.path) props.path = createPath(opts.path)
+    if (opts.onClick) props.onClick = createActionObjs(opts.onClick)
+    if (opts.onChange) props.onChange = createActionObjs(opts.onChange)
+  }
+
+  return props
 }
+
+// const save = (data: any) => {
+//   fs.writeJsonSync('redraw.json', data, { spaces: 2 })
+// }
 
 let noodlView: NOODLComponent
 let noodlListDemographics: NOODLComponent
@@ -33,16 +173,16 @@ let listDemographics: List
 let listGender: List
 
 beforeEach(() => {
-  noodluidom.on('component', onComponentAttachId)
-  noodlView = EmitRedraw.components[2] as NOODLComponent
-  noodlListDemographics = EmitRedraw.components[3].children[2] as NOODLComponent
-  noodlListGender = EmitRedraw.components[3].children[3] as NOODLComponent
-  components = noodlui.resolveComponents(
-    EmitRedraw.components as NOODLComponent[],
-  )
-  view = components[3] as Component
-  listDemographics = view.child(2) as List
-  listGender = view.child(3) as List
+  // noodluidom.on('component', onComponentAttachId)
+  // noodlView = EmitRedraw.components[2] as NOODLComponent
+  // noodlListDemographics = EmitRedraw.components[3].children[2] as NOODLComponent
+  // noodlListGender = EmitRedraw.components[3].children[3] as NOODLComponent
+  // components = noodlui.resolveComponents(
+  //   EmitRedraw.components as NOODLComponent[],
+  // )
+  // view = components[3] as Component
+  // listDemographics = view.child(2) as List
+  // listGender = view.child(3) as List
   {
     // const data = listDemographics.getData().slice()
     // data.forEach((d) => listDemographics.removeDataObject(d))
@@ -124,7 +264,6 @@ describe('redraw', () => {
     expect(image.hasCb('bye', spies.bye)).to.be.true
     expect(label.hasCb('fruit', spies.fruit)).to.be.true
     noodluidom.redraw(node, view)
-    save(image?.toJS())
     expect(listGender.hasCb('add.data.object', spies.hello)).to.be.false
     expect(image.hasCb('bye', spies.bye)).to.be.false
     expect(label.hasCb('fruit', spies.fruit)).to.be.false
@@ -670,6 +809,138 @@ describe('redraw', () => {
     })
     noodluidom.parse(view)
     console.info(prettyDOM())
+  })
+})
+
+describe.only('redraw(new)', () => {
+  let onClickSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
+  let pathSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
+  let redrawSpy: sinon.SinonSpy<[
+    node: HTMLElement | null,
+    component: Component,
+    opts?:
+      | {
+          dataObject?: any
+          resolver?:
+            | ((
+                noodlComponent: ComponentObject | ComponentObject[],
+              ) => Component)
+            | undefined
+        }
+      | undefined,
+  ]>
+  let viewTag = 'genderTag'
+  let view: Component
+  let list: List
+  let iteratorVar = 'itemObject'
+  let listObject: { key: 'gender'; value: 'Male' | 'Female' | 'Other' }[]
+  let pageObject = { genderInfo: { gender: 'Female' } }
+  let path = 'male.png'
+
+  beforeEach(() => {
+    listObject = [
+      { key: 'gender', value: 'Male' },
+      { key: 'gender', value: 'Female' },
+      { key: 'gender', value: 'Other' },
+    ]
+    pathSpy = sinon.spy(async () =>
+      path === 'male.png' ? 'female.png' : 'male.png',
+    )
+    onClickSpy = sinon.spy(async () => {
+      return (path = path === 'male.png' ? 'female.png' : 'male.png')
+    })
+    redrawSpy = sinon.spy(noodluidom, 'redraw')
+    noodlui.actionsContext = { noodl: { emitCall: async () => [''] } } as any
+    noodlui
+      .removeCbs('emit')
+      .setPage('SignIn')
+      .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
+      .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
+      .use({
+        getAssetsUrl: () => assetsUrl,
+        getRoot: () => ({ SignIn: pageObject }),
+      })
+    view = noodlui.resolveComponents({
+      type: 'view',
+      children: [
+        {
+          type: 'list',
+          iteratorVar,
+          listObject,
+          contentType: 'listObject',
+          children: [
+            {
+              type: 'listItem',
+              viewTag,
+              children: [
+                {
+                  type: 'label',
+                  dataKey: `${iteratorVar}.value`,
+                  iteratorVar,
+                },
+                createNOODLComponent('image', {
+                  path: 'emit',
+                  onClick: ['emit', `builtIn:redraw:viewTag:${viewTag}`],
+                }),
+              ],
+            },
+          ],
+        },
+      ],
+    } as any)
+    list = view.child() as List
+    toDOM(view)
+  })
+
+  after(() => {
+    // save('redrawBuiltInCall.test.json', redrawSpy.args, outputArgs)
+  })
+
+  afterEach(() => {
+    redrawSpy.restore()
+  })
+
+  it('should pass in the viewTag and the dataObject', async () => {
+    document.querySelector('img')?.click()
+    await waitFor(() => {
+      expect(redrawSpy.args[0][2]).to.have.property('viewTag', viewTag)
+      expect(redrawSpy.args[0][2]).to.have.property('dataObject')
+    })
+  })
+
+  it('should gather only the components that have the viewTag if a viewTag is provided', async () => {
+    document.querySelector('img')?.click()
+    await waitFor(() => {
+      expect(redrawSpy.called).to.be.true
+      expect(redrawSpy.callCount).to.eq(listObject.length)
+    })
+  })
+
+  it.only('should rerender the same amount of nodes it was redrawed with', async () => {
+    const img = document.querySelector('img')
+    const id = img?.id || ''
+    await waitFor(() => {
+      expect(document.getElementById(id)).to.exist
+      expect(document.querySelector('img')).to.be.instanceOf(HTMLElement)
+      document.getElementById(id)?.click()
+    })
+    await waitFor(() => {
+      expect(document.getElementById(id)).not.to.exist
+      expect(document.querySelectorAll('li').length).eq(listObject.length)
+    })
+    await waitFor(() => {
+      const liNodes = Array.from(document.querySelectorAll('li'))
+      const length = liNodes.length
+      for (let index = 0; index < length; index++) {
+        const li = liNodes[index]
+        // expect(li.children).to.have.lengthOf(
+        //   list.original.children[0].children.length,
+        // )
+      }
+      expect(document.querySelector('img')).to.exist
+    })
+    // expect(document.getElementById(id)).not.to.exist
+    let listItem = list.child() as ListItem
   })
 })
 

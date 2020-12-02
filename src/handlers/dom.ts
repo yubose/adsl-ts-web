@@ -13,11 +13,11 @@ import { isTextFieldLike } from 'noodl-ui-dom'
 import { forEachEntries } from '../utils/common'
 import { isDisplayable } from '../utils/dom'
 import createElement from '../utils/createElement'
-import noodluidom from '../app/noodl-ui-dom'
+import noodluidomClient from '../app/noodl-ui-dom'
 
 const log = Logger.create('dom.ts')
 
-export const listen = () => {
+export const listen = (noodluidom = noodluidomClient) => {
   const defaultPropTable = {
     dataset: [
       'data-listid',
@@ -368,9 +368,9 @@ export const listen = () => {
       noodluiEvent.component.list.CREATE_LIST_ITEM,
       (result, options) => {
         log.func(`list[${noodluiEvent.component.list.CREATE_LIST_ITEM}]`)
-        log.grey('', { ...result, ...options })
+        log.grey('CREATE_LIST_ITEM', { ...result, ...options })
         const { listItem } = result
-        const childNode = noodluidom.parse(listItem)
+        // const childNode = noodluidom.parse(listItem)
       },
     )
 
@@ -391,12 +391,12 @@ export const listen = () => {
               childNode,
             },
           )
-          node.removeChild(childNode)
+          // if (node.contains(childNode)) node.removeChild(childNode)
         } else {
           log.grey(`Could not find the child DOM node for a removed listItem`, {
             ...result,
             ...options,
-            id: listItem.id,
+            id: listItem?.id,
             childNode,
           })
         }
