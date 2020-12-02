@@ -340,7 +340,7 @@ class List extends Component {
 
   setBlueprint(newBlueprint: ListBlueprint) {
     this.#blueprint = newBlueprint
-    console.log('newBlueprint', newBlueprint)
+    // console.log('newBlueprint', newBlueprint)
     // @ts-expect-error
     this.emit(event.component.list.BLUEPRINT, newBlueprint)
     return this
@@ -377,7 +377,7 @@ class List extends Component {
       removedChild = this.#children.splice(child, 1)[0]
     } else if (_.isString(child)) {
       removedChild = child
-        ? _.find(this.#children, (c) => c.id === child)
+        ? _.find(this.#children, (c) => c?.id === child)
         : undefined
     } else if (this.#children.includes(child as any)) {
       if (this.#children.includes(child as any)) {
@@ -508,7 +508,7 @@ class List extends Component {
     if (typeof child === 'function') return _.find(this.#children, child)
     const fn =
       typeof child === 'string'
-        ? (c: ListItem) => !!c.id && c.id === child
+        ? (c: ListItem) => !!c?.id && c.id === child
         : (c: ListItem) => c === child
     return _.find(this.#children, fn)
   }

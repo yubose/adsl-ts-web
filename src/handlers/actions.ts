@@ -118,10 +118,7 @@ const createActions = function ({ page }: { page: IPage }) {
       } as any
 
       if (action.original.emit.dataKey) {
-        emitParams.dataKey = createEmitDataKey(
-          action.original.emit.dataKey,
-          findDataObject(component),
-        )
+        emitParams.dataKey = action.dataKey
       }
 
       const emitResult = await noodl.emitCall(emitParams)
@@ -374,7 +371,7 @@ const createActions = function ({ page }: { page: IPage }) {
       const { default: noodlui } = await import('app/noodl-ui')
       log.func('popUp')
       log.grey('', { action, ...options })
-      const { abort, component } = options
+      const { abort, component, ref } = options
       const elem = getByDataUX(action.original.popUpView) as HTMLElement
       log.gold('popUp action', { action, ...options, elem })
       if (elem) {
@@ -398,7 +395,7 @@ const createActions = function ({ page }: { page: IPage }) {
                   `waiting on a response. Aborting now...`,
                 { action, ...options },
               )
-              abort?.()
+              ref.abort?.()
             }
           }
         }

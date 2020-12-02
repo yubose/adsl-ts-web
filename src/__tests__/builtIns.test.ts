@@ -1,25 +1,41 @@
+import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { prettyDOM, waitFor } from '@testing-library/dom'
-import { Component, List, ListItem } from 'noodl-ui'
-import { assetsUrl, noodlui, noodluidom } from '../utils/test-utils'
+import { Component, ComponentObject, List, ListItem } from 'noodl-ui'
+import { assetsUrl, noodlui, noodluidom, page } from '../utils/test-utils'
 import createBuiltIns from '../handlers/builtIns'
+import { saveOutput } from './helpers'
 
 describe('builtIns', () => {
   describe('redraw', async () => {
-    let pageObject = { genderInfo: { gender: 'Female' } }
-    let currentPath = 'male.png'
-    let pathSpy = sinon.spy(async () =>
-      currentPath === 'male.png' ? 'female.png' : 'male.png',
-    )
-    let onClickSpy = sinon.spy(async () => {
-      console.info('hello?')
-      return (currentPath =
-        currentPath === 'male.png' ? 'female.png' : 'male.png')
-    })
-    const viewTag = 'genderTag'
-    const iteratorVar = 'itemObject'
+    let onClickSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
+    let pathSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
+    let redrawSpy: sinon.SinonSpy<[
+      node: HTMLElement | null,
+      component: Component,
+      opts?:
+        | {
+            dataObject?: any
+            resolver?:
+              | ((
+                  noodlComponent: ComponentObject | ComponentObject[],
+                ) => Component)
+              | undefined
+          }
+        | undefined,
+    ]>
+    let viewTag = 'genderTag'
+    let builtInRedrawObj = {
+      actionType: 'builtIn',
+      funcName: 'redraw',
+      viewTag,
+    }
+    let list: List
+    let iteratorVar = 'itemObject'
     let listObject: { key: 'gender'; value: 'Male' | 'Female' | 'Other' }[]
+    let pageObject = { genderInfo: { gender: 'Female' } }
+    let path = 'male.png'
 
     beforeEach(() => {
       listObject = [
@@ -27,21 +43,29 @@ describe('builtIns', () => {
         { key: 'gender', value: 'Female' },
         { key: 'gender', value: 'Other' },
       ]
-      pageObject = { genderInfo: { gender: 'Female' } }
       noodlui.actionsContext = { noodl: { emitCall: async () => [''] } } as any
       noodlui
         .removeCbs('emit')
         .setPage('SignIn')
+        .use({
+          getAssetsUrl: () => assetsUrl,
+        })
+      pathSpy = sinon.spy(async () =>
+        path === 'male.png' ? 'female.png' : 'male.png',
+      )
+      onClickSpy = sinon.spy(async () => {
+        console.info('hello?')
+        return (path = path === 'male.png' ? 'female.png' : 'male.png')
+      })
+      redrawSpy = sinon.spy(noodluidom, 'redraw')
+      noodlui
         .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
         .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
         .use({
           getAssetsUrl: () => assetsUrl,
           getRoot: () => ({ SignIn: pageObject }),
         })
-    })
-
-    it.only('should not erase DOM nodes from the page', async () => {
-      const list = noodlui.resolveComponents({
+      list = page.render({
         type: 'list',
         iteratorVar,
         listObject,
@@ -50,12 +74,45 @@ describe('builtIns', () => {
           {
             type: 'listItem',
             viewTag,
-            iteratorVar,
             children: [
               { type: 'label', dataKey: `${iteratorVar}.value`, iteratorVar },
               {
                 type: 'image',
-                iteratorVar,
+                path: { emit: { dataKey: { var1: 'f' }, actions: [] } },
+                onClick: [
+                  { emit: { dataKey: { v1: 'f' }, actions: [] } },
+                  builtInRedrawObj,
+                ],
+              },
+            ],
+          },
+        ],
+      } as any).components[0]
+    })
+
+    after(() => {
+      saveOutput('builtIns.test.json', list.toJS(), { spaces: 2 })
+      console.info(noodlui.getCbs())
+    })
+
+    afterEach(() => {
+      redrawSpy.restore()
+    })
+
+    it.only('should gather only the components that have the viewTag if a viewTag is provided', async () => {
+      page.render({
+        type: 'list',
+        iteratorVar,
+        listObject,
+        contentType: 'listObject',
+        children: [
+          {
+            type: 'listItem',
+            viewTag,
+            children: [
+              { type: 'label', dataKey: `${iteratorVar}.value`, iteratorVar },
+              {
+                type: 'image',
                 path: { emit: { dataKey: { var1: 'f' }, actions: [] } },
                 onClick: [
                   { emit: { dataKey: { v1: 'f' }, actions: [] } },
@@ -65,21 +122,46 @@ describe('builtIns', () => {
             ],
           },
         ],
+      } as any)
+      document.querySelector('img')?.click()
+      await waitFor(() => {
+        expect(redrawSpy.called).to.be.true
+        saveOutput('redrawBuiltInCall.test.json', redrawSpy.args, {
+          spaces: 2,
+        })
       })
-      console.info(noodluidom.getAllCbs())
+      redrawSpy.restore()
+    })
+
+    it('should rerender the same amount of nodes it was redrawed with', async () => {
+      await waitFor(() => {
+        expect(document.querySelector('img')).to.be.instanceOf(HTMLElement)
+        expect(document.querySelectorAll('li')).to.have.length.greaterThan(
+          listObject.length - 1,
+        )
+        // expect(document.querySelector('img')).to.have.property(
+        //   'src',
+        //   noodlui.assetsUrl + 'female.png',
+        // )
+        // // document.querySelector('img')?.click()
+        // expect(document.querySelector('img')).to.have.property(
+        //   'src',
+        //   noodlui.assetsUrl + 'male.png',
+        // )
+      })
       let listItem = list.child() as ListItem
-      // let [label, image]: Component[] = listItem.children()
-      // listItem?.setDataObject(listObject[0])
-      // noodluidom.parse(list)
-      // await waitFor(async () => {
-      //   expect(document.getElementsByTagName('img')[0]).to.exist
-      //   expect(document.getElementsByTagName('label')[0]).to.exist
-      //   expect(document.getElementsByTagName('li')[0]).to.exist
-      //   await image?.get('onClick')()
-      //   expect(document.getElementsByTagName('img')[0]).to.exist
-      //   // expect(document.getElementsByTagName('label')[0]).to.exist
-      //   // expect(document.getElementsByTagName('li')[0]).to.exist
-      // })
+    })
+
+    xit('label DOM nodes should still be there', () => {
+      //
+    })
+
+    xit('image DOM nodes should still be there', () => {
+      //
+    })
+
+    xit('should all display their own data from their own data object', () => {
+      //
     })
 
     it('should redraw the node with the viewTag if viewTag is provided', async () => {

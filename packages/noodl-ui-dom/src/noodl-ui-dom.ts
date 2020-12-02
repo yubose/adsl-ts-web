@@ -66,11 +66,14 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         this.emit('plugin', null, component)
       } else {
         if (component.noodlType === 'image') {
+          component.on('path', (result) => {
+            node.src = result
+          })
+          console.info(component.get('path'))
           node = isEmitObj(component.get('path'))
-            ? createAsyncImageElement(
-                container || document.body,
-                () => component?.get?.('src') || '',
-              )
+            ? createAsyncImageElement(container || document.body, {
+                onLoad: () => {},
+              })
             : document.createElement('img')
         } else {
           node = document.createElement(getTagName(component))
@@ -127,11 +130,18 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   ) {
     log.func('redraw')
 
+    if (!opts?.resolver) {
+      console.error(
+        `%cNo resolver was provided for redraw. The DOM nodes will be empty`,
+        { node, component, ...opts },
+      )
+    }
+
     let newNode: HTMLElement | null = null
     let newComponent: Component | undefined
 
     if (component) {
-      const parent = component.parent()
+      const parent = component.parent?.()
       const shape = getShape(component)
       let dataObject: any
 
@@ -145,14 +155,20 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           `Removing previous dataObject from listItem redrawee`,
           dataObject,
         )
-        dataObject && parent.removeDataObject(dataObject)
+        // dataObject && parent.removeDataObject(dataObject)
       }
       // Remove the parent reference
       component.setParent?.(null)
+
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
+        log.gold(`Publishing for --> ${c?.noodlType}`, {
+          c,
+          cNode: document.getElementById(c.id),
+        })
         if (c) {
           const cParent = c.parent?.()
+          log.gold(`cParent`, cParent)
           // Remove listeners
           c.clearCbs()
           // Remove child component references
@@ -164,16 +180,17 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       // Create the new component
       newComponent = createComponent(shape)
       if (dataObject && newComponent?.noodlType === 'listItem') {
-        console.info(
-          `Restoring dataObject on new redrawed listItem`,
+        log.gold(`Restoring dataObject on new redrawed listItem`, {
           dataObject,
-        )
+          newComponent,
+          parent,
+        })
         newComponent.setDataObject?.(dataObject)
       }
       if (parent && newComponent) {
         // Set the original dataObject on the new component instance if available
         if (component?.noodlType === 'listItem') {
-          newComponent.setDataObject?.(opts?.dataObject)
+          // newComponent.setDataObject?.(opts?.dataObject)
         }
         // Set the original parent on the new component
         newComponent.setParent(parent)
@@ -182,6 +199,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         // Run the resolver if provided
         // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
         opts?.resolver?.(newComponent)
+        // this.parse(newComponent)
       } else if (newComponent) {
         // log --> !parent || !newComponent
         opts?.resolver?.(newComponent)
@@ -190,21 +208,29 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
     if (node) {
       // Delete the node tree
-      node.innerHTML = ''
+      // node.innerHTML = ''
+      log.magenta('Deleted node.innerHTML', { node, component })
       const parentNode = node.parentNode
+
       if (newComponent?.noodlType === 'image') {
         if (isEmitObj(newComponent.get('path'))) {
+          newComponent.on('path', (result) => {
+            newNode.src = result
+          })
+
           newNode = createAsyncImageElement(
             (parentNode || document.body) as HTMLElement,
-            () => newComponent?.get('src') || '',
           )
         } else {
           // newNode = document.createElement('img')
           newNode = this.parse(newComponent, parentNode || document.body)
         }
       } else if (newComponent) {
-        newNode = document.createElement(getTagName(newComponent))
+        // newNode = document.createElement(getTagName(newComponent))
+        newNode = this.parse(newComponent, parentNode || document.body)
       }
+
+      parentNode?.appendChild(newNode)
 
       if (parentNode) {
         if (!newNode) {
@@ -220,10 +246,10 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           console.info(`Replacing old childNode with new childNode`, {
             old: node,
             new: newNode,
-            oldId: node.id,
-            newId: newNode.id,
+            oldId: node?.id,
+            newId: newNode?.id,
           })
-          parentNode.replaceChild(newNode as HTMLElement, node)
+          parentNode.appendChild(newNode as HTMLElement)
           node.remove()
         } else if (newNode) {
           console.info(

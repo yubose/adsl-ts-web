@@ -1,0 +1,77 @@
+[
+  [
+    {},
+    {
+      "action": {},
+      "context": {},
+      "resolved": false,
+      "handled": [],
+      "unhandled": [
+        "type",
+        "viewTag",
+        "children"
+      ],
+      "touched": [],
+      "untouched": [
+        "type",
+        "viewTag",
+        "children"
+      ],
+      "stylesTouched": [
+        "listStyle",
+        "padding",
+        "position"
+      ],
+      "stylesUntouched": [],
+      "original": {
+        "type": "listItem",
+        "viewTag": "genderTag",
+        "children": [
+          {
+            "type": "label",
+            "dataKey": "itemObject.value",
+            "iteratorVar": "itemObject"
+          },
+          {
+            "type": "image",
+            "path": {
+              "emit": {
+                "dataKey": {
+                  "var1": "f"
+                },
+                "actions": []
+              }
+            },
+            "onClick": [
+              {
+                "emit": {
+                  "dataKey": {
+                    "v1": "f"
+                  },
+                  "actions": []
+                }
+              },
+              {
+                "actionType": "builtIn",
+                "funcName": "redraw",
+                "viewTag": "genderTag"
+              }
+            ]
+          }
+        ]
+      },
+      "keys": [
+        "type",
+        "viewTag",
+        "children"
+      ]
+    },
+    {
+      "dataObject": {
+        "key": "gender",
+        "value": "Other"
+      },
+      "viewTag": "genderTag"
+    }
+  ]
+]

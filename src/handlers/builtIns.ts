@@ -64,7 +64,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     const page = noodlui.page
     const { dataKey = '' } = action.original
     let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
-    const node = document.getElementById(component.id)
+    const node = document.getElementById(component?.id)
 
     let dataValue: any
     let dataObject: any
@@ -347,50 +347,70 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     const { default: noodluidom } = await import('../app/noodl-ui-dom')
     const { default: noodlui } = await import('../app/noodl-ui')
 
-    const nodes = getAllByDataViewTag(options.component?.get?.('viewTag'))
+    const viewTag = action?.original?.viewTag || ''
+
     const components =
-      findParent(options.component, (p) => p?.noodlType === 'listItem')
-        ?.parent?.()
-        ?.children?.()
-        ?.filter?.(
-          (c) => c?.get?.('viewTag') === options.component?.get?.('viewTag'),
-        ) || []
-    console.info(components)
+      (viewTag &&
+        findParent(options.component, (p) => p?.get?.('viewTag') === viewTag)
+          ?.parent?.()
+          ?.children?.()
+          ?.filter?.((c) => c?.get?.('viewTag') === viewTag)) ||
+      []
 
     const { component } = options
 
-    const viewTag = component?.get?.('viewTag')
+    if (component?.id in window.ac) delete window.ac[component?.id]
 
-    if (component?.id in window.ac) delete window.ac[component.id]
-
-    const redraw = (node: HTMLElement, child: Component) => {
-      const [newNode, newComponent] = noodluidom.redraw(node, child, {
-        dataObject: findDataObject(component),
-        resolver: (c) => {
+    const redraw = (node: HTMLElement, child: Component, dataObject?: any) => {
+      log.grey(`Found dataObject for ${child?.noodlType}`, dataObject)
+      return noodluidom.redraw(node, child, {
+        dataObject,
+        resolver: (c: any) => {
           if (c?.id in window.ac) delete window.ac[c.id]
-          return noodlui.resolveComponents(c)
+          return noodlui
+            .getConsumerOptions({ component: c })
+            .resolveComponent(c)
         },
         viewTag,
       })
     }
 
-    // ;(
-    //   findParent(component, (p) => p?.get?.('viewTag') === viewTag)
-    //     ?.parent?.()
-    //     ?.children?.()
-    //     ?.filter((c: any) => c?.get('viewTag') === viewTag) || []
-    // ).forEach((viewTagComponent: Component) => {
-    //   const node = document.getElementById(viewTagComponent.id)
-    //   console.info(
-    //     '[Redrawing] ' + node
-    //       ? `Found node for viewTag component`
-    //       : `Could not find a node associated with the viewTag component`,
-    //     { node, component: viewTagComponent },
-    //   )
-    //   redraw(node as HTMLElement, viewTagComponent)
-    // })
+    components.forEach((viewTagComponent: Component, index) => {
+      const node = document.getElementById(viewTagComponent.id)
+      console.info(
+        '[Redrawing] ' + node
+          ? `Found node for viewTag component`
+          : `Could not find a node associated with the viewTag component`,
+        { node, component: viewTagComponent },
+      )
+      const dataObject = findListDataObject(viewTagComponent)
+      const [newNode, newComponent] = redraw(
+        node as HTMLElement,
+        viewTagComponent,
+        dataObject,
+      )
 
-    redraw(document.getElementById(component.id), component)
+      log.grey('Resolved redrawed component/node', {
+        newNode,
+        newComponent,
+        dataObject,
+      })
+      window[`r${index}`] = {
+        n: newNode,
+        c: newComponent,
+        d: dataObject,
+        origNode: node,
+        origComponent: viewTagComponent,
+        index,
+      }
+      // viewTagComponent.children()?.forEach?.((cc) => {
+      //   const [nn, nc] = redraw(document.getElementById(cc.id), cc, dataObject)
+      //   console.info(nn)
+      //   // node?.appendChild(nn)
+      // })
+    })
+
+    // redraw(document.getElementById(component.id), component)
 
     log.gold(`newNode/newComponent`, {
       action,
@@ -529,7 +549,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
                       path: ccPath,
                       listNode: document.getElementById(list.id),
                       listItemNode: document.getElementById(listItem.id),
-                      componentNode: document.getElementById(component.id),
+                      componentNode: document.getElementById(component?.id),
                       ccNode: document.getElementById(cc.id),
                       cNode: document.getElementById(c.id),
                       list,

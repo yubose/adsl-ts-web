@@ -29,7 +29,7 @@ before(() => {
       getRoot: () => root,
     })
 
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+  // logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
 
   try {
     Object.defineProperty(noodlui, 'cleanup', {
@@ -51,7 +51,7 @@ before(() => {
 })
 
 after(() => {
-  logSpy.restore()
+  // logSpy.restore()
 })
 
 beforeEach(() => {

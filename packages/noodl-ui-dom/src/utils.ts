@@ -14,20 +14,15 @@ import {
 
 export function createAsyncImageElement(
   container: HTMLElement,
-  src?: (() => string) | string,
-  opts?: { onLoad?(): void; timeout?: number },
+  opts?: { onLoad?(event: Event): void; timeout?: number },
 ) {
   let node = new Image()
-  node.onload = () => {
+  node.onload = (event) => {
     if (!container) container = document.body
-    opts?.onLoad?.()
     container.insertBefore(node as HTMLImageElement, container.childNodes[0])
-    node && (node.onload = null)
+    opts?.onLoad?.(event)
+    // node && (node.onload = null)
   }
-  setTimeout(
-    () => void (node.src = typeof src === 'function' ? src() : src || ''),
-    typeof opts?.timeout === 'number' ? opts.timeout : 10,
-  )
   return node
 }
 

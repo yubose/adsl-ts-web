@@ -226,6 +226,7 @@ describe('redraw', () => {
       })
       const onClickSpy = sinon.spy(async (action, options) => {
         imgPath = 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
+        console.info('HELLO ALL')
         return ['']
       })
       noodlui.use({
@@ -257,9 +258,12 @@ describe('redraw', () => {
       })
       const image = view.child() as Component
       noodluidom.parse(view)
+      await image.get('onClick')()
+
+      noodluidom.redraw(document.querySelector('img'), image)
       const img = document.querySelector('img')
       console.info(noodluidom.getAllCbs())
-      img?.click()
+      // img?.click()
       await waitFor(() => {
         console.info(onClickSpy)
         expect(onClickSpy.called).to.be.true
@@ -272,42 +276,57 @@ describe('redraw', () => {
     })
   })
 
-  describe('when user clicks on a redrawed node that has an onClick emit', () => {
+  describe.only('when user clicks on a redrawed node that has an onClick emit', () => {
     it('should still be able to operate on and update the DOM', async () => {
       const abc = 'abc.png'
       const hello = 'hello.jpeg'
-
-      let pathValue = abc
-      let image
+      const state = { url: abc }
 
       const onClick = async (action, { component }) => {
-        pathValue = pathValue === abc ? hello : abc
+        state.url = state.url === abc ? hello : abc
+        noodlui.use({ getRoot: () => ({ SignIn: { url: 'hehehehe' } }) })
         noodluidom.redraw(document.getElementById(component.id), component)
       }
 
-      noodlui.use({ actionType: 'emit', fn: onClick, trigger: 'onClick' }).use({
-        actionType: 'emit',
-        fn: async () => (pathValue === abc ? hello : abc),
-        trigger: 'path',
-      })
+      noodlui
+      noodlui
+        .setPage('SignIn')
+        .use({ actionType: 'emit', fn: async () => state.url, trigger: 'path' })
+        .use({ actionType: 'emit', fn: onClick, trigger: 'onClick' })
 
-      image = noodlui.resolveComponents({
-        type: 'image',
-        path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
-        onClick: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
-      }) as Component
+      // image = noodlui.resolveComponents({
+      //   type: 'image',
+      //   path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
+      //   onClick: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+      // }) as Component
 
       noodluidom.on('image', (n, c) => {
-        const { onClick } = c.action
-        n.onclick = onClick
+        n.onclick = c.get('onClick')
+        // noodluidom.redraw(n, c)
       })
 
-      const img = noodluidom.parse(image)
+      const listItem = noodlui.resolveComponents({
+        type: 'listItem',
+        children: [
+          {
+            type: 'image',
+            path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
+            onClick: [
+              { emit: { dataKey: { var1: 'itemObject' }, actions: [] } },
+            ],
+          },
+        ],
+      })
+
+      noodluidom.parse(listItem)
 
       await waitFor(() => {
-        expect((img as any)?.src).to.eq(assetsUrl + hello)
-        img?.click()
-        expect(document.querySelector('img')?.src).to.eq(assetsUrl + hello)
+        expect(document.querySelector('img')?.src).to.eq(assetsUrl + abc)
+        noodluidom.redraw(document.querySelector('li'), listItem, {
+          resolver: (c: any) => noodlui.resolveComponents(c),
+        })
+        console.info(prettyDOM())
+        // expect(document.querySelector('img')?.src).to.eq(assetsUrl + hello)
       })
     })
 
@@ -325,7 +344,7 @@ describe('redraw', () => {
         'toggled state',
       async (done) => {
         const state = { pathValue: 'myimg.png' }
-        const pathSpy = sinon.spy(async () => state.pathValue)
+        const pathSpy = sinon.sfpy(async () => state.pathValue)
         const onClickSpy = sinon.spy(async (action, options) => {
           state.pathValue = 'myotherimg.png'
           return ['']

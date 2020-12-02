@@ -205,7 +205,7 @@ class ActionChain<
       }
     }
 
-    return actionChainHandler
+    return actionChainHandler.bind(this)
   }
 
   #setStatus = (status: ActionChain<any, any>['status']) => {

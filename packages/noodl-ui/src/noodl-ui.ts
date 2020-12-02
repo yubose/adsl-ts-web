@@ -227,8 +227,11 @@ class NOODL {
     return this.#cb
   }
 
-  removeCbs(actionType: string) {
+  removeCbs(actionType: string, funcName?: string) {
     if (this.#cb.action[actionType]) this.#cb.action[actionType].length = 0
+    if (actionType === 'builtIn' && funcName) {
+      if (this.#cb.builtIn[funcName]) this.#cb.builtIn[funcName].length = 0
+    }
     return this
   }
 
@@ -612,9 +615,9 @@ class NOODL {
             createEmitDataKey(
               emitObj.emit.dataKey,
               [
-                () => findListDataObject(component),
+                findListDataObject(component),
                 () => this.getPageObject(this.page),
-                () => this.root,
+                () => this.#getRoot(),
               ],
               { iteratorVar: emitAction.iteratorVar },
             ),
@@ -648,39 +651,36 @@ class NOODL {
               ),
             )
 
-            // TODO - implement other scenarios
-            if (Array.isArray(result)) {
-              if (result.length) {
-                //
-              }
-              return result[0]
-            }
-            return result || ''
+            return (Array.isArray(result) ? result[0] : result) || ''
           }
 
           // Result returned should be a string type
           let result = emitAction.execute(path) as string | Promise<string>
+          let finalizedRes = ''
 
           log.grey(`Result received from emit action`, emitAction.getSnapshot())
 
           if (isPromise(result)) {
             return result
               .then((res) => {
-                let finalizedRes: string
                 if (typeof res === 'string' && res.startsWith('http')) {
                   finalizedRes = res
                 } else {
                   finalizedRes = resolveAssetUrl(String(res), this.assetsUrl)
                 }
                 log.grey(`Resolved promise with: `, finalizedRes)
+                component?.emit('path', finalizedRes)
                 return finalizedRes
               })
               .catch((err) => Promise.reject(err))
           } else if (result) {
             if (typeof result === 'string' && result.startsWith('http')) {
+              finalizedRes = result
+              component?.emit('path', finalizedRes)
               return result
             }
-            return resolveAssetUrl(result, this.assetsUrl)
+            finalizedRes = resolveAssetUrl(result, this.assetsUrl)
+            component?.emit('path', finalizedRes)
           }
         }
       }

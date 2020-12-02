@@ -379,7 +379,7 @@ noodluidom.on<'list'>('list', (node: HTMLUListElement, component: List) => {
       log.func(`list[${noodluiEvent.component.list.REMOVE_LIST_ITEM}]`)
       log.grey('', { ...result, ...options })
       const { listItem, successs } = result
-      const childNode = document.getElementById(listItem.id)
+      const childNode = document.getElementById(listItem?.id)
 
       if (childNode) {
         log.grey(
@@ -416,7 +416,7 @@ noodluidom.on<'list'>('list', (node: HTMLUListElement, component: List) => {
       log.func(`list[${noodluiEvent.component.list.UPDATE_LIST_ITEM}]`)
       log.grey('', { ...result, ...options })
       const { listItem, success } = result
-      const childNode = document.getElementById(listItem.id)
+      const childNode = document.getElementById(listItem?.id)
 
       // noodluidom.emit('list.item', childNode, listItem)
       noodluidom.redraw(childNode, listItem)

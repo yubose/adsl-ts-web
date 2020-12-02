@@ -1,0 +1,81 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "type": "label",
+          "dataKey": "itemObject.value",
+          "iteratorVar": "itemObject",
+          "noodlType": "label",
+          "style": {
+            "position": "absolute",
+            "outline": "none"
+          },
+          "listId": "",
+          "listIndex": 0,
+          "data-key": "itemObject.value",
+          "data-name": "value",
+          "data-value": "Male"
+        },
+        {
+          "type": "img",
+          "path": {
+            "emit": {
+              "dataKey": {
+                "var1": "f"
+              },
+              "actions": []
+            }
+          },
+          "noodlType": "image",
+          "style": {
+            "position": "absolute",
+            "outline": "none",
+            "objectFit": "contain"
+          },
+          "listId": "",
+          "listIndex": 0,
+          "src": "https://aitmed.com/assets/female.png"
+        }
+      ],
+      "dataObject": null,
+      "listId": "",
+      "listIndex": 0,
+      "id": "_wx0j0rh16",
+      "iteratorVar": "",
+      "noodlType": "listItem",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "type": "li"
+    }
+  ],
+  "listId": "_s93j6k0a9",
+  "listItemCount": 1,
+  "listObject": [
+    {
+      "key": "gender",
+      "value": "Female"
+    },
+    {
+      "key": "gender",
+      "value": "Other"
+    },
+    null
+  ],
+  "id": "_rii7bzqxa",
+  "iteratorVar": "itemObject",
+  "style": {
+    "position": "absolute",
+    "outline": "none",
+    "overflowX": "hidden",
+    "listStyle": "none",
+    "padding": "0px",
+    "display": "block",
+    "overflowY": "auto"
+  },
+  "type": "list"
+}
