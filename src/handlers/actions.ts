@@ -283,7 +283,7 @@ const createActions = function ({ page }: { page: IPage }) {
               if (result) {
                 log.hotpink(
                   `Received a value from evalObject's "if" evaluation. ` +
-                    `Returning it back to the action chain now`,
+                  `Returning it back to the action chain now`,
                   { action, ...options, result },
                 )
                 return result
@@ -291,7 +291,7 @@ const createActions = function ({ page }: { page: IPage }) {
             } else {
               log.red(
                 `Evaluated an "object" from an "if" object but it did not return a ` +
-                  `function`,
+                `function`,
                 { action, ...options, result: object },
               )
               return object
@@ -325,11 +325,10 @@ const createActions = function ({ page }: { page: IPage }) {
         var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
         page.pageUrl += pre
         var parse = page.pageUrl.endsWith("?") ? "" : "-"
-        if(action.original.goto !== noodl.cadlEndpoint.startPage) {
+        if (action.original.goto !== noodl.cadlEndpoint.startPage) {
           page.pageUrl += parse
           page.pageUrl += action.original.goto
         }
-        history.pushState({}, "", page.pageUrl)
 
         await page.requestPageChange(action.original.goto)
       } else if (_.isPlainObject(action?.original?.goto)) {
@@ -342,7 +341,7 @@ const createActions = function ({ page }: { page: IPage }) {
           var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
           page.pageUrl += pre
           var parse = page.pageUrl.endsWith("?") ? "" : "-"
-          if(url !== noodl.cadlEndpoint.startPage) {
+          if (url !== noodl.cadlEndpoint.startPage) {
             page.pageUrl += parse
             page.pageUrl += url
           }

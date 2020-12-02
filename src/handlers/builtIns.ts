@@ -38,6 +38,7 @@ import { CACHED_PAGES } from '../constants'
 import { NOODLBuiltInCheckFieldObject } from '../app/types/libExtensionTypes'
 import Meeting from '../meeting'
 import noodl from 'app/noodl'
+import { debug } from 'webpack'
 
 const log = Logger.create('builtIns.ts')
 
@@ -237,12 +238,14 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         shouldEvolve = evolve
       }
       await page.requestPageChange(pageName, {
-        evolve: true,
+        evolve: shouldEvolve,
       }, true)
     }
 
     var pg
     var pageUrlArr = page.pageUrl.split('-')
+    console.log('Firhgasdf', pageUrlArr)
+    debugger
     if (pageUrlArr.length > 1) {
       pageUrlArr.pop()
       while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
@@ -253,8 +256,8 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         pg = pageUrlArr[pageUrlArr.length - 1]
         page.pageUrl = pageUrlArr.join('-')
       }
-      else if (pageUrlArr.length === 1){
-        if(pageUrlArr[0].endsWith('MenuBar')) {
+      else if (pageUrlArr.length === 1) {
+        if (pageUrlArr[0].endsWith('MenuBar')) {
           page.pageUrl = 'index.html?'
           pg = noodl?.cadlEndpoint?.startPage
         }
@@ -268,8 +271,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       page.pageUrl = 'index.html?'
       pg = noodl?.cadlEndpoint?.startPage
     }
-
-    history.pushState({}, "", page.pageUrl)
+    console.log('Firhgasdf222', pageUrlArr)
+    debugger
+    // history.pushState({}, "", page.pageUrl)
     await requestPage(pg || '')
   }
 
@@ -287,11 +291,10 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
       page.pageUrl += pre
       var parse = page.pageUrl.endsWith("?") ? "" : "-"
-      if(action !== noodl.cadlEndpoint.startPage) {
+      if (action !== noodl.cadlEndpoint.startPage) {
         page.pageUrl += parse
         page.pageUrl += action
       }
-      history.pushState({}, "", page.pageUrl)
 
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
@@ -299,11 +302,10 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
         page.pageUrl += pre
         var parse = page.pageUrl.endsWith("?") ? "" : "-"
-        if(action.destination !== noodl.cadlEndpoint.startPage) {
+        if (action.destination !== noodl.cadlEndpoint.startPage) {
           page.pageUrl += parse
           page.pageUrl += action.destination
         }
-        history.pushState({}, "", page.pageUrl)
 
         await page.requestPageChange(action.destination)
       } else {
