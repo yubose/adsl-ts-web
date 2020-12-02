@@ -182,7 +182,7 @@ window.addEventListener('load', async () => {
     if (/videochat/i.test(page.currentPage) && !/videochat/i.test(pageName)) {
       log.grey(
         'You are navigating away from the video chat page. ' +
-          'Running cleanup operations now...',
+        'Running cleanup operations now...',
         streams,
       )
 
@@ -387,9 +387,36 @@ window.addEventListener('load', async () => {
 
   /** EXPERIMENTAL -- Custom routing */
   // TODO
-  window.addEventListener('popstate', function onPopState(e) {
-    log.func('addEventListener -- popstate')
-    log.grey({ state: e.state, timestamp: e.timeStamp, type: e.type })
+  window.addEventListener('popstate', async function onPopState(e) {
+    var pg
+    var pageUrlArr = page.pageUrl.split('-')
+
+    if (pageUrlArr.length > 1) {
+      pageUrlArr.pop()
+      while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
+        pageUrlArr.pop()
+      }
+      if (pageUrlArr.length > 1) {
+        pg = pageUrlArr[pageUrlArr.length - 1]
+        page.pageUrl = pageUrlArr.join('-')
+      }
+      else if (pageUrlArr.length === 1) {
+        if (pageUrlArr[0].endsWith('MenuBar')) {
+          page.pageUrl = 'index.html?'
+          pg = noodl?.cadlEndpoint?.startPage
+        }
+        else {
+          pg = pageUrlArr[0].split('?')[1]
+          page.pageUrl = pageUrlArr[0]
+        }
+      }
+    }
+    else {
+      page.pageUrl = 'index.html?'
+      pg = noodl?.cadlEndpoint?.startPage
+    }
+
+    await page.requestPageChange(pg, undefined, true)
   })
 
   /**
@@ -586,7 +613,7 @@ window.addEventListener('load', async () => {
             log.func('onCreateNode')
             log.red(
               `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+              `already exists in the subStreams container`,
               { subStreams, node, component },
             )
           }
@@ -631,8 +658,6 @@ window.addEventListener('load', async () => {
         noodl['aspectRatio'] = aspectRatio
         if (aspectRatio > 1 !== cache['landscape']) {
           cache['landscape'] = !cache.landscape
-          console.log('It all starts asdfasdfdsafds', page.currentPage)
-          debugger
           await page.requestPageChange(page.currentPage, { force: true })
         }
         viewport.width = width
@@ -675,31 +700,42 @@ window.addEventListener('load', async () => {
     // }
   }
   // await page.requestPageChange(startPage)
-  if(page && window.location.href) {
-    var newPage
+  if (!window.localStorage.getItem('tempConfigKey') && window.localStorage.getItem('config')) {
+    var localConfig = JSON.parse(window.localStorage.getItem('config'))
+    window.localStorage.setItem('tempConfigKey', localConfig.timestamp)
+  }
+
+  if (page && window.location.href) {
+    var newPage = noodl.cadlEndpoint.startPage
     var hrefArr = window.location.href.split('/')
-    var urlArr = hrefArr[hrefArr.length-1]
-    if(urlArr === "") {
-      newPage = noodl.cadlEndpoint.startPage
-      page.pageUrl = urlArr
+    var urlArr = hrefArr[hrefArr.length - 1]
+    var localConfig = JSON.parse(window.localStorage.getItem('config'))
+    if (window.localStorage.getItem('tempConfigKey') && (window.localStorage.getItem('tempConfigKey') !== JSON.stringify(localConfig.timestamp))) {
+      console.log('Huh?', window.localStorage.getItem('tempConfigKey'))
+      console.log('What?', JSON.stringify(localConfig.timestamp))
+      window.localStorage.removeItem('CACHED_PAGES')
+      page.pageUrl = "index.html?"
       await page.requestPageChange(newPage)
     }
     else {
-      var pagesArr = urlArr.split('-')
-      if(pagesArr.length>1) {
-        newPage = pagesArr[pagesArr.length-1]
+      if (urlArr === "") {
+        page.pageUrl = urlArr
+        await page.requestPageChange(newPage)
       }
       else {
-        var baseArr = pagesArr[0].split('?')
-        if (baseArr.length > 1 && baseArr[baseArr.length-1] !== "") {
-          newPage = baseArr[baseArr.length-1]
+        var pagesArr = urlArr.split('-')
+        if (pagesArr.length > 1) {
+          newPage = pagesArr[pagesArr.length - 1]
         }
         else {
-          newPage = noodl.cadlEndpoint.startPage
+          var baseArr = pagesArr[0].split('?')
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== "") {
+            newPage = baseArr[baseArr.length - 1]
+          }
         }
+        page.pageUrl = urlArr
+        await page.requestPageChange(newPage)
       }
-      page.pageUrl = urlArr
-      await page.requestPageChange(newPage)
     }
   }
 })

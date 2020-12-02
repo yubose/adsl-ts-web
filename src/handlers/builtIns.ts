@@ -38,6 +38,7 @@ import { CACHED_PAGES } from '../constants'
 import { NOODLBuiltInCheckFieldObject } from '../app/types/libExtensionTypes'
 import Meeting from '../meeting'
 import noodl from 'app/noodl'
+import { debug } from 'webpack'
 
 const log = Logger.create('builtIns.ts')
 
@@ -230,47 +231,47 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
 
-    const { evolve } = action.original as BuiltInObject
-    const requestPage = async (pageName: string) => {
-      var shouldEvolve = false
-      if (isNOODLBoolean(evolve)) {
-        shouldEvolve = evolve
-      }
-      await page.requestPageChange(pageName, {
-        evolve: true,
-      }, true)
-    }
+    // const { evolve } = action.original as BuiltInObject
+    // const requestPage = async (pageName: string) => {
+    //   var shouldEvolve = false
+    //   if (isNOODLBoolean(evolve)) {
+    //     shouldEvolve = evolve
+    //   }
+    //   await page.requestPageChange(pageName, {
+    //     evolve: shouldEvolve,
+    //   }, true)
+    // }
 
-    var pg
-    var pageUrlArr = page.pageUrl.split('-')
-    if (pageUrlArr.length > 1) {
-      pageUrlArr.pop()
-      while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
-        pageUrlArr.pop()
-      }
+    // var pg
+    // var pageUrlArr = page.pageUrl.split('-')
+    // if (pageUrlArr.length > 1) {
+    //   pageUrlArr.pop()
+    //   while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
+    //     pageUrlArr.pop()
+    //   }
 
-      if (pageUrlArr.length > 1) {
-        pg = pageUrlArr[pageUrlArr.length - 1]
-        page.pageUrl = pageUrlArr.join('-')
-      }
-      else if (pageUrlArr.length === 1){
-        if(pageUrlArr[0].endsWith('MenuBar')) {
-          page.pageUrl = 'index.html?'
-          pg = noodl?.cadlEndpoint?.startPage
-        }
-        else {
-          pg = pageUrlArr[0].split('?')[1]
-          page.pageUrl = pageUrlArr[0]
-        }
-      }
-    }
-    else {
-      page.pageUrl = 'index.html?'
-      pg = noodl?.cadlEndpoint?.startPage
-    }
-
-    history.pushState({}, "", page.pageUrl)
-    await requestPage(pg || '')
+    //   if (pageUrlArr.length > 1) {
+    //     pg = pageUrlArr[pageUrlArr.length - 1]
+    //     page.pageUrl = pageUrlArr.join('-')
+    //   }
+    //   else if (pageUrlArr.length === 1) {
+    //     if (pageUrlArr[0].endsWith('MenuBar')) {
+    //       page.pageUrl = 'index.html?'
+    //       pg = noodl?.cadlEndpoint?.startPage
+    //     }
+    //     else {
+    //       pg = pageUrlArr[0].split('?')[1]
+    //       page.pageUrl = pageUrlArr[0]
+    //     }
+    //   }
+    // }
+    // else {
+    //   page.pageUrl = 'index.html?'
+    //   pg = noodl?.cadlEndpoint?.startPage
+    // }
+    // history.pushState({}, "", page.pageUrl)
+    // await requestPage(pg || '')
+    window.history.back()
   }
 
   builtInActions.goto = async (action: GotoURL | GotoObject, options) => {
@@ -287,11 +288,10 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
       page.pageUrl += pre
       var parse = page.pageUrl.endsWith("?") ? "" : "-"
-      if(action !== noodl.cadlEndpoint.startPage) {
+      if (action !== noodl.cadlEndpoint.startPage) {
         page.pageUrl += parse
         page.pageUrl += action
       }
-      history.pushState({}, "", page.pageUrl)
 
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
@@ -299,11 +299,10 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
         page.pageUrl += pre
         var parse = page.pageUrl.endsWith("?") ? "" : "-"
-        if(action.destination !== noodl.cadlEndpoint.startPage) {
+        if (action.destination !== noodl.cadlEndpoint.startPage) {
           page.pageUrl += parse
           page.pageUrl += action.destination
         }
-        history.pushState({}, "", page.pageUrl)
 
         await page.requestPageChange(action.destination)
       } else {
