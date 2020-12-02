@@ -631,8 +631,6 @@ window.addEventListener('load', async () => {
         noodl['aspectRatio'] = aspectRatio
         if (aspectRatio > 1 !== cache['landscape']) {
           cache['landscape'] = !cache.landscape
-          console.log('It all starts asdfasdfdsafds', page.currentPage)
-          debugger
           await page.requestPageChange(page.currentPage, { force: true })
         }
         viewport.width = width
