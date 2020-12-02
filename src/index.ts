@@ -675,12 +675,19 @@ window.addEventListener('load', async () => {
     // }
   }
   // await page.requestPageChange(startPage)
+  if (!window.localStorage.getItem('tempConfigKey') && window.localStorage.getItem('config')) {
+    var localConfig = JSON.parse(window.localStorage.getItem('config'))
+    window.localStorage.setItem('tempConfigKey', localConfig.timestamp)
+  }
+
   if (page && window.location.href) {
     var newPage = noodl.cadlEndpoint.startPage
     var hrefArr = window.location.href.split('/')
     var urlArr = hrefArr[hrefArr.length - 1]
     var localConfig = JSON.parse(window.localStorage.getItem('config'))
-    if (noodl.myBaseUrl !== localConfig.myBaseUrl) {
+    if (window.localStorage.getItem('tempConfigKey') && (window.localStorage.getItem('tempConfigKey') !== JSON.stringify(localConfig.timestamp))) {
+      console.log('Huh?', window.localStorage.getItem('tempConfigKey'))
+      console.log('What?', JSON.stringify(localConfig.timestamp))
       window.localStorage.removeItem('CACHED_PAGES')
       page.pageUrl = "index.html?"
       await page.requestPageChange(newPage)
