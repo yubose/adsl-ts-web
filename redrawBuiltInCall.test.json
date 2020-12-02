@@ -7,48 +7,73 @@
       "resolved": false,
       "handled": [],
       "unhandled": [
+        "style",
         "type",
         "viewTag",
-        "children"
+        "children",
+        "listId",
+        "iteratorVar"
       ],
       "touched": [],
       "untouched": [
+        "style",
         "type",
         "viewTag",
-        "children"
+        "children",
+        "listId",
+        "iteratorVar"
       ],
       "stylesTouched": [
         "listStyle",
         "padding",
         "position"
       ],
-      "stylesUntouched": [],
+      "stylesUntouched": [
+        "outline"
+      ],
       "original": {
+        "style": {
+          "position": "absolute",
+          "outline": "none"
+        },
         "type": "listItem",
         "viewTag": "genderTag",
         "children": [
           {
+            "style": {
+              "position": "absolute",
+              "outline": "none"
+            },
             "type": "label",
             "dataKey": "itemObject.value",
-            "iteratorVar": "itemObject"
+            "iteratorVar": "itemObject",
+            "listId": "_7swffyeiz"
           },
           {
-            "type": "image",
+            "style": {
+              "position": "absolute",
+              "outline": "none"
+            },
             "path": {
               "emit": {
                 "dataKey": {
-                  "var1": "f"
+                  "var1": "itemObject",
+                  "var2": "itemObject.value"
                 },
-                "actions": []
+                "actions": [
+                  {},
+                  {},
+                  {}
+                ]
               }
             },
             "onClick": [
               {
                 "emit": {
                   "dataKey": {
-                    "v1": "f"
-                  },
-                  "actions": []
+                    "var1": "hello1",
+                    "var2": "hello2"
+                  }
                 }
               },
               {
@@ -56,14 +81,238 @@
                 "funcName": "redraw",
                 "viewTag": "genderTag"
               }
-            ]
+            ],
+            "type": "image",
+            "listId": "_7swffyeiz",
+            "iteratorVar": "itemObject"
           }
-        ]
+        ],
+        "listId": "_7swffyeiz",
+        "iteratorVar": "itemObject"
       },
       "keys": [
+        "style",
         "type",
         "viewTag",
-        "children"
+        "children",
+        "listId",
+        "iteratorVar"
+      ]
+    },
+    {
+      "dataObject": {
+        "key": "gender",
+        "value": "Male"
+      },
+      "viewTag": "genderTag"
+    }
+  ],
+  [
+    {},
+    {
+      "action": {},
+      "context": {},
+      "resolved": false,
+      "handled": [],
+      "unhandled": [
+        "style",
+        "type",
+        "viewTag",
+        "children",
+        "listId",
+        "iteratorVar"
+      ],
+      "touched": [],
+      "untouched": [
+        "style",
+        "type",
+        "viewTag",
+        "children",
+        "listId",
+        "iteratorVar"
+      ],
+      "stylesTouched": [
+        "listStyle",
+        "padding",
+        "position"
+      ],
+      "stylesUntouched": [
+        "outline"
+      ],
+      "original": {
+        "style": {
+          "position": "absolute",
+          "outline": "none"
+        },
+        "type": "listItem",
+        "viewTag": "genderTag",
+        "children": [
+          {
+            "style": {
+              "position": "absolute",
+              "outline": "none"
+            },
+            "type": "label",
+            "dataKey": "itemObject.value",
+            "iteratorVar": "itemObject",
+            "listId": "_7swffyeiz"
+          },
+          {
+            "style": {
+              "position": "absolute",
+              "outline": "none"
+            },
+            "path": {
+              "emit": {
+                "dataKey": {
+                  "var1": "itemObject",
+                  "var2": "itemObject.value"
+                },
+                "actions": [
+                  {},
+                  {},
+                  {}
+                ]
+              }
+            },
+            "onClick": [
+              {
+                "emit": {
+                  "dataKey": {
+                    "var1": "hello1",
+                    "var2": "hello2"
+                  }
+                }
+              },
+              {
+                "actionType": "builtIn",
+                "funcName": "redraw",
+                "viewTag": "genderTag"
+              }
+            ],
+            "type": "image",
+            "listId": "_7swffyeiz",
+            "iteratorVar": "itemObject"
+          }
+        ],
+        "listId": "_7swffyeiz",
+        "iteratorVar": "itemObject"
+      },
+      "keys": [
+        "style",
+        "type",
+        "viewTag",
+        "children",
+        "listId",
+        "iteratorVar"
+      ]
+    },
+    {
+      "dataObject": {
+        "key": "gender",
+        "value": "Female"
+      },
+      "viewTag": "genderTag"
+    }
+  ],
+  [
+    {},
+    {
+      "action": {},
+      "context": {},
+      "resolved": false,
+      "handled": [],
+      "unhandled": [
+        "style",
+        "type",
+        "viewTag",
+        "children",
+        "listId",
+        "iteratorVar"
+      ],
+      "touched": [],
+      "untouched": [
+        "style",
+        "type",
+        "viewTag",
+        "children",
+        "listId",
+        "iteratorVar"
+      ],
+      "stylesTouched": [
+        "listStyle",
+        "padding",
+        "position"
+      ],
+      "stylesUntouched": [
+        "outline"
+      ],
+      "original": {
+        "style": {
+          "position": "absolute",
+          "outline": "none"
+        },
+        "type": "listItem",
+        "viewTag": "genderTag",
+        "children": [
+          {
+            "style": {
+              "position": "absolute",
+              "outline": "none"
+            },
+            "type": "label",
+            "dataKey": "itemObject.value",
+            "iteratorVar": "itemObject",
+            "listId": "_7swffyeiz"
+          },
+          {
+            "style": {
+              "position": "absolute",
+              "outline": "none"
+            },
+            "path": {
+              "emit": {
+                "dataKey": {
+                  "var1": "itemObject",
+                  "var2": "itemObject.value"
+                },
+                "actions": [
+                  {},
+                  {},
+                  {}
+                ]
+              }
+            },
+            "onClick": [
+              {
+                "emit": {
+                  "dataKey": {
+                    "var1": "hello1",
+                    "var2": "hello2"
+                  }
+                }
+              },
+              {
+                "actionType": "builtIn",
+                "funcName": "redraw",
+                "viewTag": "genderTag"
+              }
+            ],
+            "type": "image",
+            "listId": "_7swffyeiz",
+            "iteratorVar": "itemObject"
+          }
+        ],
+        "listId": "_7swffyeiz",
+        "iteratorVar": "itemObject"
+      },
+      "keys": [
+        "style",
+        "type",
+        "viewTag",
+        "children",
+        "listId",
+        "iteratorVar"
       ]
     },
     {

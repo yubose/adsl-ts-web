@@ -34,7 +34,7 @@ export interface EmitActionObject extends BaseActionObject, EmitObject {
   actionType: 'emit'
 }
 
-export interface EmitObject extends BaseActionObject {
+export interface EmitObject {
   emit: {
     actions: [any, any, any]
     dataKey: string | { [key: string]: string }

@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import { queryHelpers } from '@testing-library/dom'
+import { isEmitObj } from 'noodl-utils'
 import {
+  createComponent as createComponentInstance,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -15,6 +17,14 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   ResolverFn,
+  EmitObject,
+  ComponentType,
+  ActionObject,
+  ActionType,
+  ComponentObject,
+  Component,
+  List,
+  ListItem,
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import noodlui from '../app/noodl-ui'
@@ -22,7 +32,6 @@ import noodluidom from '../app/noodl-ui-dom'
 import Page from '../Page'
 import createActions from '../handlers/actions'
 import createBuiltInActions from '../handlers/builtIns'
-import { isEmitObj } from 'noodl-utils'
 
 export { noodlui, noodluidom }
 
@@ -160,4 +169,162 @@ export function toDOM(props: any): NOODLDOMElement | null {
   if (page.rootNode) page.rootNode?.appendChild(node as NOODLDOMElement)
   else throw new Error('No root node exists in Page')
   return node
+}
+
+/* -------------------------------------------------------
+  ---- TEST UTILITIES 
+-------------------------------------------------------- */
+
+export type DataKeyType<K extends string = 'emit' | 'key'> = K
+export type PathType = 'emit' | 'if' | 'url'
+export type ActionSelection = ActionType | ActionObject
+export type ActionsConfig =
+  | ActionSelection[]
+  | Record<ActionType, ActionObject>
+  | { builtIn?: string[] }
+
+export function createComponent(
+  ...args: Parameters<typeof createNOODLComponent>
+) {
+  return createComponentInstance(createNOODLComponent(...args)) as
+    | Component
+    | List
+    | ListItem
+}
+
+export function createNOODLComponent(
+  noodlComponent: ComponentType | Partial<ComponentObject>,
+  opts?: {
+    dataKey?: DataKeyType
+    iteratorVar?: string
+    onClick?: ActionsConfig
+    onChange?: ActionsConfig
+    path?: boolean | PathType
+  } & Partial<Omit<ComponentObject, 'path' | 'onClick' | 'dataKey'>>,
+) {
+  const props = {
+    ...opts,
+    type:
+      typeof noodlComponent === 'string' ? noodlComponent : noodlComponent.type,
+  } as ComponentObject
+
+  const createActionObjs = (configs: ActionsConfig) => {
+    const arr = Array.isArray(configs) ? configs : [configs]
+    return arr.reduce((acc, obj) => {
+      if (typeof obj === 'string') {
+        const parts = obj.split(':')
+        const [actionType] = parts
+        switch (actionType) {
+          case 'builtIn':
+            const funcName = parts[1]
+            const args = parts
+              .slice(2)
+              .reduce((acc, keyval) => {
+                if (acc.length) {
+                  if (!acc[acc.length - 1]) acc[acc.length - 1].push(keyval)
+                  if (acc[acc.length - 1].length < 2) {
+                    acc[acc.length - 1].push(keyval)
+                  } else {
+                    acc.push([keyval])
+                  }
+                } else {
+                  acc.push([keyval])
+                }
+                return acc
+              }, [])
+              .reduce(
+                (acc, [key, val]) => Object.assign(acc, { [key]: val }),
+                {},
+              )
+
+            if (args && typeof args === 'string') {
+              try {
+                args = JSON.parse(args)
+                console.info(args)
+              } catch (error) {
+                console.error(error.message)
+              }
+            }
+            return acc.concat({
+              actionType: 'builtIn',
+              funcName,
+              ...(typeof args === 'object' ? args : undefined),
+            })
+          case 'emit':
+            return acc.concat(
+              createEmitObj({
+                keys: ['hello1', 'hello2'],
+                iteratorVar: opts?.iteratorVar,
+              }),
+            )
+          default:
+            break
+        }
+      } else if (obj && !Array.isArray(obj) && typeof obj === 'object') {
+        // if 'emit' in obj
+        // if 'actionType' in obj
+        // etc
+      }
+      return acc
+    }, [] as any[])
+  }
+
+  const createDataKey = (type: DataKeyType, opts) =>
+    type === 'emit' ? createEmitObj(opts) : opts
+
+  const createEmitObj = (
+    opts?:
+      | {
+          actions?: [any, any, any]
+          keys?: string | string[]
+          iteratorVar?: string
+        }
+      | boolean,
+  ) => {
+    const getPrefilledEmitObj = () => {
+      const iteratorVar = (typeof opts === 'object' && opts.iteratorVar) || ''
+      return {
+        emit: {
+          dataKey: {
+            var1: iteratorVar || 'itemObject',
+            var2: `${iteratorVar || 'itemObject'}.value`,
+          },
+          actions: [{}, {}, {}],
+        },
+      }
+    }
+    if (typeof opts === 'boolean') {
+      return getPrefilledEmitObj()
+    } else if (!opts?.keys) {
+      return getPrefilledEmitObj()
+    } else {
+      return {
+        emit: {
+          dataKey: Array.isArray(opts.keys)
+            ? opts?.keys.reduce(
+                (acc, key, index) =>
+                  Object.assign(acc, { [`var${index + 1}`]: key }),
+                {},
+              )
+            : opts?.keys,
+        },
+      } as EmitObject
+    }
+  }
+
+  const createPath = (type: PathType | boolean, iteratorVar?: string = '') =>
+    type === 'emit'
+      ? createEmitObj({ iteratorVar })
+      : path === 'if'
+      ? { if: [] }
+      : path
+
+  if (opts) {
+    if (opts.dataKey) props.dataKey = createDataKey(opts.dataKey, opts)
+    if (opts.path) props.path = createPath(opts.path)
+    if (opts.onClick) props.onClick = createActionObjs(opts.onClick)
+    if (opts.onChange) props.onChange = createActionObjs(opts.onChange)
+  }
+
+  return props
 }

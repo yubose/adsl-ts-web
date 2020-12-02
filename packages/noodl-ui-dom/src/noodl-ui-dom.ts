@@ -249,8 +249,12 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             oldId: node?.id,
             newId: newNode?.id,
           })
-          parentNode.appendChild(newNode as HTMLElement)
-          node.remove()
+          node.childNodes.forEach((cc) => {
+            newNode?.appendChild(cc)
+          })
+          parentNode.replaceChild(newNode as HTMLElement, node)
+          // parentNode.appendChild(newNode as HTMLElement)
+          // node.remove()
         } else if (newNode) {
           console.info(
             `Inserting new childNode to parent instead of replacing`,

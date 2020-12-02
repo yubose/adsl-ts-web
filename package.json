@@ -31,7 +31,7 @@
     "scripts:start": "rm -rf scripts/compiled && webpack --mode development --config webpack.scripts.js --watch",
     "cypress:open": "node_modules/.bin/cypress open",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --require source-map-support/register -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src",
+    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files \"src/**/*.ts\"",
     "test:noodlui": "lerna exec --scope noodl-ui \"npm run test\"",
     "test:noodlui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
     "test:noodlui:internal": "lerna exec --scope noodl-ui \"npm run test:file src/**/*_internalResolver.test.ts\"",

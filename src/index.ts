@@ -43,7 +43,7 @@ import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
-import './handlers/dom'
+import { listen } from './handlers/dom'
 import './styles.css'
 
 const log = Logger.create('src/index.ts')
@@ -89,6 +89,8 @@ window.addEventListener('load', async () => {
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
+
+  listen()
 
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')

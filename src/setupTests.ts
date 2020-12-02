@@ -11,7 +11,7 @@ import {
   noodluidom,
   page,
 } from './utils/test-utils'
-import './handlers/dom'
+import { listen } from './handlers/dom'
 
 chai.use(chaiAsPromised)
 
@@ -63,6 +63,7 @@ after(() => {
 })
 
 beforeEach(() => {
+  listen()
   page.initializeRootNode()
   document.body.appendChild(page.rootNode as HTMLElement)
 })
