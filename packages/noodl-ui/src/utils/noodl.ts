@@ -6,6 +6,7 @@ import {
   ActionChainEmitTrigger,
   ComponentCreationType,
   ComponentObject,
+  PluginLocation,
   ProxiedComponent,
   TextBoardBreakLine,
 } from '../types'
@@ -334,6 +335,19 @@ export function getDataObjectValue<T = any>({
     dataKey = dataKey.split('.').slice(1).join('.')
   }
   return _.get(dataObject, dataKey)
+}
+
+export function getPluginTypeLocation(value: string): PluginLocation | '' {
+  switch (value) {
+    case 'pluginHead':
+      return 'head'
+    case 'pluginBodyTop':
+      return 'body-top'
+    case 'pluginBodyTail':
+      return 'body-bottom'
+    default:
+      return ''
+  }
 }
 
 /**

@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import axios from 'axios'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
@@ -182,7 +183,7 @@ window.addEventListener('load', async () => {
     if (/videochat/i.test(page.currentPage) && !/videochat/i.test(pageName)) {
       log.grey(
         'You are navigating away from the video chat page. ' +
-        'Running cleanup operations now...',
+          'Running cleanup operations now...',
         streams,
       )
 
@@ -244,11 +245,17 @@ window.addEventListener('load', async () => {
         log.grey('Initializing noodl-ui client', { noodl, actions })
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
+        const fetch = async (url: string) =>
+          axios
+            .get(url)
+            .then(({ data }) => data)
+            .catch((err) => console.error(`[${err.name}]: ${err.message}`))
         noodlui
           .init({ actionsContext: { noodl }, viewport })
           .setPage(pageName)
           .use(viewport)
           .use({
+            fetch,
             getAssetsUrl: () => noodl.assetsUrl,
             getRoot: () => noodl.root,
           })
@@ -395,25 +402,25 @@ window.addEventListener('load', async () => {
 
     if (pageUrlArr.length > 1) {
       pageUrlArr.pop()
-      while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
+      while (
+        pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') &&
+        pageUrlArr.length > 1
+      ) {
         pageUrlArr.pop()
       }
       if (pageUrlArr.length > 1) {
         pg = pageUrlArr[pageUrlArr.length - 1]
         page.pageUrl = pageUrlArr.join('-')
-      }
-      else if (pageUrlArr.length === 1) {
+      } else if (pageUrlArr.length === 1) {
         if (pageUrlArr[0].endsWith('MenuBar')) {
           page.pageUrl = 'index.html?'
           pg = noodl?.cadlEndpoint?.startPage
-        }
-        else {
+        } else {
           pg = pageUrlArr[0].split('?')[1]
           page.pageUrl = pageUrlArr[0]
         }
       }
-    }
-    else {
+    } else {
       page.pageUrl = 'index.html?'
       pg = noodl?.cadlEndpoint?.startPage
     }
@@ -615,7 +622,7 @@ window.addEventListener('load', async () => {
             log.func('onCreateNode')
             log.red(
               `Attempted to add an element to a subStream but it ` +
-              `already exists in the subStreams container`,
+                `already exists in the subStreams container`,
               { subStreams, node, component },
             )
           }
@@ -702,7 +709,10 @@ window.addEventListener('load', async () => {
     // }
   }
   // await page.requestPageChange(startPage)
-  if (!window.localStorage.getItem('tempConfigKey') && window.localStorage.getItem('config')) {
+  if (
+    !window.localStorage.getItem('tempConfigKey') &&
+    window.localStorage.getItem('config')
+  ) {
     var localConfig = JSON.parse(window.localStorage.getItem('config'))
     window.localStorage.setItem('tempConfigKey', localConfig.timestamp)
   }
@@ -712,26 +722,27 @@ window.addEventListener('load', async () => {
     var hrefArr = window.location.href.split('/')
     var urlArr = hrefArr[hrefArr.length - 1]
     var localConfig = JSON.parse(window.localStorage.getItem('config'))
-    if (window.localStorage.getItem('tempConfigKey') && (window.localStorage.getItem('tempConfigKey') !== JSON.stringify(localConfig.timestamp))) {
+    if (
+      window.localStorage.getItem('tempConfigKey') &&
+      window.localStorage.getItem('tempConfigKey') !==
+        JSON.stringify(localConfig.timestamp)
+    ) {
       console.log('Huh?', window.localStorage.getItem('tempConfigKey'))
       console.log('What?', JSON.stringify(localConfig.timestamp))
       window.localStorage.removeItem('CACHED_PAGES')
-      page.pageUrl = "index.html?"
+      page.pageUrl = 'index.html?'
       await page.requestPageChange(newPage)
-    }
-    else {
-      if (urlArr === "") {
+    } else {
+      if (urlArr === '') {
         page.pageUrl = urlArr
         await page.requestPageChange(newPage)
-      }
-      else {
+      } else {
         var pagesArr = urlArr.split('-')
         if (pagesArr.length > 1) {
           newPage = pagesArr[pagesArr.length - 1]
-        }
-        else {
+        } else {
           var baseArr = pagesArr[0].split('?')
-          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== "") {
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
             newPage = baseArr[baseArr.length - 1]
           }
         }

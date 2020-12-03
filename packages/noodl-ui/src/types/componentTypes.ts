@@ -98,3 +98,9 @@ export interface ListDataObjectEventHandlerOptions {
   listId: string
   iteratorVar: string
 }
+
+export type PluginComponentType =
+  | 'plugin'
+  | 'pluginHead'
+  | 'pluginBodyTop'
+  | 'pluginBodyTail'

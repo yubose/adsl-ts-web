@@ -8,6 +8,7 @@ import getCustomDataAttrs from '../resolvers/getCustomDataAttrs'
 import getElementType, { getTagName } from '../resolvers/getElementType'
 import getEventHandlers from '../resolvers/getEventHandlers'
 import getFontAttrs from '../resolvers/getFontAttrs'
+import getPlugins from '../resolvers/getPlugins'
 import getPosition from '../resolvers/getPosition'
 import getReferences from '../resolvers/getReferences'
 import getSizes from '../resolvers/getSizes'
@@ -111,6 +112,7 @@ export function getAllResolvers() {
     getElementType,
     getEventHandlers,
     getFontAttrs,
+    getPlugins,
     getPosition,
     getReferences,
     getSizes,

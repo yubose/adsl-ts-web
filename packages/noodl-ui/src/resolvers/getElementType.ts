@@ -38,6 +38,10 @@ export function getTagName(component: Component): string {
       return 'li'
     case 'plugin':
       return 'div'
+    case 'pluginHead':
+    case 'pluginBodyTop':
+    case 'pluginBodyTail':
+      return 'script'
     case 'select':
       return 'select'
     case 'scrollView':

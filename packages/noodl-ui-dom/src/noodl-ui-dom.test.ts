@@ -47,6 +47,68 @@ describe('noodl-ui-dom', () => {
     expect(spy.called).to.be.true
   })
 
+  describe('when working with plugin components', () => {
+    describe('should emit plugin event for pluginHead, pluginBodyTop, pluginBodyTail', () => {
+      xit('', () => {
+        //
+      })
+    })
+
+    xit('should insert pluginHead components to head', () => {
+      //
+    })
+
+    xit('should be able to globally access all plugin components', () => {
+      //
+    })
+
+    xit('should start fetching the url content immediately by default', () => {
+      //
+    })
+
+    describe('when using the life cycle api', () => {
+      xit('should be able to explicitly set to load before parsing components', () => {
+        //
+      })
+
+      xit('should be able to explicitly set to load after parsing components', () => {
+        //
+      })
+
+      xit(
+        'should be able to explicitly set to load when certain components are ' +
+          'being rendered to the DOM',
+        () => {
+          //
+        },
+      )
+
+      xit('should emit an event "before fetching"', () => {
+        //
+      })
+
+      xit('should emit an event "after fetching"', () => {
+        //
+      })
+
+      xit('should emit an event "data received from fetching"', () => {
+        //
+      })
+    })
+
+    xit("should be able to access a plugin's loaded contents any time", () => {
+      //
+    })
+
+    xit('should show the timestamp and location in the api system that the plugin was fetched', () => {
+      //
+    })
+
+    xit('should be able to fetch the url content in ', () => {
+      //
+    })
+  })
+
   describe('when calling component events', () => {
     let fn1: sinon.SinonSpy
     let fn2: sinon.SinonSpy

@@ -30,15 +30,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
-  #state: {
-    pairs: {
-      [componentId: string]: {
-        component: Component
-        node: HTMLElement | null
-        shape: Partial<ComponentObject>
-      }
-    }
-  } = { pairs: {} }
+  #state: {} = {}
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
     // Logger[log?.enabled ? 'enable' : 'disable']?.()
@@ -292,53 +284,8 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     return null
   }
 
-  getPair(componentId: string) {
-    return this.#state.pairs[componentId]
-  }
-
   getState() {
     return this.#state
-  }
-
-  /**
-   * "Redraws" the DOM element tree starting from "node"
-   * @param { HTMLElement | null } node - DOM node
-   * @param { Component } component - noodl-ui component instance
-   */
-  redraw_backup(
-    node: HTMLElement | null, // ex: li (dom node)
-    component: Component, // ex: listItem (component instance)
-  ) {
-    log.func('redraw')
-
-    // Redraw the current node
-    this.emit(componentEventMap.all, node, component)
-    this.emit(componentEventMap[component?.noodlType], node, component)
-
-    publish(component, (c) => {
-      const childNode = document.getElementById(c?.id)
-      if (childNode) {
-        log.grey('CALLING REDRAW FOR PAIRED CHILD NODE / CHILD COMPONENT', {
-          baseNode: node,
-          baseComponent: component,
-          currentNode: childNode,
-          currentComponent: c,
-        })
-        // Redraw the child
-        this.emit(componentEventMap.all, childNode, c)
-        this.emit(componentEventMap[c?.noodlType], childNode, c)
-      } else {
-        log.grey(
-          'WAS NOT ABLE TO FIND PAIRED CHILD NODE / CHILD COMPONENT FOR A REDRAW',
-          {
-            baseNode: node,
-            baseComponent: component,
-            currentNode: childNode,
-            currentComponent: c,
-          },
-        )
-      }
-    })
   }
 
   /**
