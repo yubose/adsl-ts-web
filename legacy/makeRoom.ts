@@ -19,7 +19,7 @@ import {
   RoomParticipantTrackPublication,
   RoomTrack,
 } from 'app/types/meetingTypes'
-import { isMobile } from 'utils/common'
+// import { isMobile } from './/utils/common'
 import makeLocalTracks from './makeLocalTracks'
 import makeParticipants from './makeParticipants'
 

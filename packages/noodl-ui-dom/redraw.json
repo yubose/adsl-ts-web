@@ -1,126 +1,95 @@
-{
-  "blueprint": {
-    "style": {
-      "left": "0",
-      "top": "0",
-      "width": "1",
-      "height": "0.07",
-      "backgroundColor": "0xffffffff"
-    },
-    "type": "listItem",
-    "itemObject": "",
+[
+  {
     "children": [
       {
         "style": {
-          "fontSize": "14",
-          "top": "0",
-          "left": "0.1",
-          "color": "#636363"
+          "fontSize": "13px",
+          "top": "13.34px",
+          "left": "29.2px",
+          "position": "absolute",
+          "outline": "none"
         },
         "type": "label",
         "dataKey": "itemObject.value",
-        "listId": "_31iwcilnh",
-        "iteratorVar": "itemObject"
+        "listId": "_ns7svz7pl",
+        "iteratorVar": "itemObject",
+        "listIndex": 0,
+        "noodlType": "label",
+        "data-key": "itemObject.value",
+        "data-name": "value",
+        "data-value": "",
+        "dataObject": {
+          "key": "gender",
+          "value": "Male"
+        }
       },
       {
         "style": {
-          "width": "0.4",
-          "height": "0.03",
-          "fontSize": "14",
-          "border": {
-            "style": "6",
-            "color": "#7e7e7e",
-            "width": "3"
-          },
-          "borderWidth": "1.3",
-          "left": "0.5",
-          "top": "0",
-          "borderRadius": "3"
+          "height": "33.35px",
+          "width": "18.25px",
+          "top": "13.34px",
+          "left": "0px",
+          "position": "absolute",
+          "outline": "none",
+          "objectFit": "contain"
         },
-        "type": "textField",
-        "require": "true",
-        "placeholder": "Enter",
-        "dataKey": {
+        "type": "img",
+        "viewTag": "genderTag",
+        "path": {
           "emit": {
             "dataKey": {
               "var": "itemObject"
             },
             "actions": [
               {
-                "=.builtIn.object.get": {
-                  "dataIn": {
-                    "object": "=..generalInfo",
-                    "key": "$var.key"
-                  }
-                }
+                "if": [
+                  {
+                    "=.builtIn.string.equal": {
+                      "dataIn": {
+                        "string1": "=..generalInfo.gender",
+                        "string2": "$var.value"
+                      }
+                    }
+                  },
+                  "selectOn.png",
+                  "selectOff.png"
+                ]
               }
             ]
           }
         },
-        "onChange": {
-          "emit": {
-            "dataKey": {
-              "var": "itemObject"
-            },
-            "actions": [
-              {
-                "=.builtIn.object.set": {
-                  "dataIn": {
-                    "object": "=..generalInfo",
-                    "key": "$var.key",
-                    "value": "$var.value"
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "listId": "_31iwcilnh",
-        "iteratorVar": "itemObject"
+        "listId": "_ns7svz7pl",
+        "iteratorVar": "itemObject",
+        "listIndex": 0,
+        "noodlType": "image",
+        "data-viewtag": "genderTag",
+        "src": "",
+        "dataObject": {
+          "key": "gender",
+          "value": "Male"
+        }
       }
     ],
-    "listId": "_31iwcilnh",
-    "iteratorVar": "itemObject"
-  },
-  "children": [],
-  "listId": "_31iwcilnh",
-  "listItemCount": 0,
-  "listObject": [
-    {
-      "key": "firstNname",
-      "value": "First Name"
+    "dataObject": {
+      "key": "gender",
+      "value": "Male"
     },
-    {
-      "key": "middleNameAndInitial",
-      "value": "Middle Name and Initial"
+    "listId": "_ns7svz7pl",
+    "listIndex": 0,
+    "id": "_ffvuj1fdg",
+    "iteratorVar": "itemObject",
+    "noodlType": "listItem",
+    "style": {
+      "left": "10.95px",
+      "top": "0px",
+      "width": "109.5px",
+      "height": "46.690000000000005px",
+      "backgroundColor": "#ffffffff",
+      "position": "relative",
+      "outline": "none",
+      "listStyle": "none",
+      "padding": 0
     },
-    {
-      "key": "lastName",
-      "value": "Last Name"
-    },
-    {
-      "key": "dob",
-      "value": "Date of Birth"
-    },
-    {
-      "key": "preferredName",
-      "value": "Preferred name"
-    }
-  ],
-  "id": "_bfqov53yu",
-  "iteratorVar": "itemObject",
-  "style": {
-    "top": "66.7px",
-    "width": "365px",
-    "height": "400.2px",
-    "left": "0px",
-    "position": "absolute",
-    "outline": "none",
-    "overflowX": "hidden",
-    "listStyle": "none",
-    "padding": "0px",
-    "display": "block",
-    "overflowY": "auto"
-  },
-  "type": "list"
-}
+    "type": "li"
+  }
+]

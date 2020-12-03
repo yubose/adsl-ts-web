@@ -1,11 +1,11 @@
-import { IComponentTypeInstance } from 'noodl-ui'
+import { Component } from 'noodl-ui'
 import { NOODLDOMElement } from '../../types'
 
 class NOODLDOMBaseComponent {
-  #component: IComponentTypeInstance
+  #component: Component
   #node: NOODLDOMElement | null = null
 
-  constructor(node: NOODLDOMElement | null, component: IComponentTypeInstance) {
+  constructor(node: NOODLDOMElement | null, component: Component) {
     this.#node = node
     this.#component = component
   }

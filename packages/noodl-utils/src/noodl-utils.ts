@@ -1,19 +1,28 @@
 import Logger from 'logsnap'
+import get from 'lodash/get'
+import has from 'lodash/has'
 import {
-  IActionObject,
+  ActionObject,
   Component,
+  ComponentCreationType,
+  ComponentObject,
   createComponent,
   EmitActionObject,
-  IComponent,
-  IComponentTypeInstance,
-  IComponentTypeObject,
+  EmitObject,
   IfObject,
-  IList,
-  IListItem,
+  List,
+  ListItem,
   NOODLComponent,
-  NOODLComponentType,
 } from 'noodl-ui'
-import { get, isArr, isBool, isFnc, isObj, isStr } from './_internal'
+import {
+  array,
+  isArr,
+  isBool,
+  isFnc,
+  isObj,
+  isStr,
+  unwrapObj,
+} from './_internal'
 import * as T from './types'
 
 const log = Logger.create('noodl-utils')
@@ -21,23 +30,24 @@ const log = Logger.create('noodl-utils')
 // TODO - move to noodl-building-blocks
 /**
  * Deeply creates children until the depth is reached
- * @param { NOODLComponentType | IComponentTypeInstance } c - Component instance
+ * @param { ComponentCreationType | Component } c - Component instance
  * @param { object } opts
  * @param { number | undefined } opts.depth - The maximum depth to deeply recurse to. Defaults to 1
  * @param { object | undefined } opts.injectProps - Props to inject to desired components during the recursion
  * @param { object | undefined } opts.injectProps.last - Props to inject into the last created child
  */
 export function createDeepChildren(
-  c: NOODLComponentType | IComponentTypeInstance,
+  c: ComponentCreationType | Component,
   opts?: {
     depth?: number
-    injectProps?: { last?: { [key: string]: any } }
-    onCreate?(
-      child: IComponentTypeInstance,
-      depth: number,
-    ): Partial<NOODLComponent>
+    injectProps?: {
+      last?:
+        | { [key: string]: any }
+        | ((rootProps: Partial<ComponentObject>) => Partial<ComponentObject>)
+    }
+    onCreate?(child: Component, depth: number): Partial<NOODLComponent>
   },
-): IComponentTypeInstance {
+): Component {
   if (opts?.depth) {
     let count = 0
     let curr =
@@ -45,9 +55,8 @@ export function createDeepChildren(
         ? (c = createComponent({ type: c, children: [] }))
         : c
     while (count < opts.depth) {
-      const child = curr.createChild(
-        createComponent({ type: 'view', children: [] }),
-      )
+      const cc = createComponent({ type: 'view', children: [] })
+      const child = curr.createChild(cc)
       let injectingProps = opts?.onCreate?.(child, count)
       if (typeof injectingProps === 'object') {
         Object.entries(injectingProps).forEach(([k, v]) => child.set(k, v))
@@ -56,35 +65,56 @@ export function createDeepChildren(
       count++
       if (count === opts.depth) {
         if (opts.injectProps?.last) {
-          Object.entries(opts.injectProps?.last).forEach(([k, v]) => {
-            if (k === 'style') curr.set('style', k, v)
-            else curr.set(k, v)
-          })
+          Object.entries(unwrapObj(opts.injectProps?.last)).forEach(
+            ([k, v]) => {
+              if (k === 'style') curr.set('style', k, v)
+              else curr.set(k, v)
+            },
+          )
         }
       }
     }
   }
-  return c as IComponentTypeInstance
+  return c as Component
 }
 
-export function createEmitDataKey<O = any>(dataKey: string, dataObject: O): O
-export function createEmitDataKey<O = any>(
-  dataKey: { [key: string]: any },
-  dataObject: O,
-): Record<string, O>
-export function createEmitDataKey<O = any>(
-  dataKey: string | { [key: string]: any },
-  dataObject: O,
-) {
+/**f
+ * Transforms the dataKey of an emit object. If the dataKey is an object,
+ * the values of each property will be replaced by the data value based on
+ * the path described in its value. The 2nd arg should be a data object or
+ * an array of data objects that will be queried against. Data keys must
+ * be stripped of their iteratorVar prior to this call
+ * @param { string | object } dataKey - Data key of an emit object
+ * @param { object | object[] } dataObject - Data object or an array of data objects
+ */
+export function createEmitDataKey(
+  dataKey: string | T.PlainObject,
+  dataObject: T.QueryObj | T.QueryObj[],
+  opts?: { iteratorVar?: string },
+): any {
   if (isStr(dataKey)) {
-    return dataObject
-  } else if (isObj(dataKey)) {
-    return Object.keys(dataKey).reduce(
-      (acc, key) => Object.assign(acc, { [key]: dataObject }),
-      {} as { [varProp: string]: O },
+    return findDataValue(
+      dataObject,
+      excludeIteratorVar(dataKey, opts?.iteratorVar),
     )
+  } else if (isObj(dataKey)) {
+    return Object.keys(dataKey).reduce((acc, property) => {
+      acc[property] = findDataValue(
+        dataObject,
+        excludeIteratorVar(dataKey[property], opts?.iteratorVar),
+      )
+      return acc
+    }, {} as { [varProp: string]: any })
   }
-  return dataObject
+  return dataKey
+}
+
+export function excludeIteratorVar(dataKey: string, iteratorVar: string = '') {
+  if (!isStr(dataKey)) return dataKey
+  if (iteratorVar && dataKey.startsWith(iteratorVar)) {
+    return dataKey.split('.').slice(1).join('.')
+  }
+  return dataKey
 }
 
 /**
@@ -121,14 +151,14 @@ export function evalIf<IfObj extends { if: [any, any, any] }>(
  * Traverses the children hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned child
- * @param { IComponentTypeInstance } component
+ * @param { Component } component
  * @param { function } fn - Comparator function
  */
-export function findChild<C extends IComponentTypeInstance>(
+export function findChild<C extends Component>(
   component: C,
-  fn: (child: IComponentTypeInstance) => boolean,
-): IComponentTypeInstance | null {
-  let child: IComponentTypeInstance | null | undefined
+  fn: (child: Component) => boolean,
+): Component | null {
+  let child: Component | null | undefined
   let children = component?.children?.()?.slice?.() || []
 
   if (component) {
@@ -136,9 +166,7 @@ export function findChild<C extends IComponentTypeInstance>(
     while (child) {
       if (fn(child)) return child
       if (child?.length) {
-        child
-          .children?.()
-          .forEach((c: IComponentTypeInstance) => children.push(c))
+        child.children?.().forEach((c: Component) => children.push(c))
         child = children.pop()
       } else {
         break
@@ -152,14 +180,14 @@ export function findChild<C extends IComponentTypeInstance>(
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
- * @param { IComponentTypeInstance } component
+ * @param { Component } component
  * @param { function } fn
  */
-export function findParent<C extends IComponentTypeInstance>(
+export function findParent<C extends Component>(
   component: C,
-  fn: (parent: IComponentTypeInstance | null) => boolean,
+  fn: (parent: Component | null) => boolean,
 ) {
-  let parent = component.parent?.()
+  let parent = component?.parent?.()
   if (fn(parent)) return parent
   if (parent) {
     while (parent) {
@@ -170,72 +198,101 @@ export function findParent<C extends IComponentTypeInstance>(
   return parent || null
 }
 
-interface FindDataObjectOptions {
-  component?: any
-  dataKey?: string
-  pageObject?: { [key: string]: any }
-  root?: { [key: string]: any }
-}
-export function findDataObject(component: IComponentTypeInstance): any
-export function findDataObject(component: FindDataObjectOptions): any
-export function findDataObject<O>(
-  component: IComponentTypeInstance | FindDataObjectOptions,
-): O | null {
-  let dataObject: O | undefined
-  let options: FindDataObjectOptions | undefined
-  if (component) {
-    if (component instanceof Component) {
-      if (isListConsumer(component)) dataObject = findListDataObject(component)
-      if (!dataObject && options) dataObject = findRootsDataObject(options)
-    } else if (typeof component === 'object') {
-      options = component as FindDataObjectOptions
-      if (isListConsumer(options.component)) {
-        dataObject = findListDataObject(options.component)
-      }
-      if (!dataObject) dataObject = findRootsDataObject(options)
-    }
-  }
-  return dataObject || null
+/**
+ * Finds a data object using a dataObject, an array of dataObjects or if a component
+ * instance is provided it is a list consumer, it will attempt to retrieve its data
+ * object from a listItem parent, or a list parent (using listIndex)
+ * @param { Component | object | array } objs - Component instance or a dataObject or an array of dataObjects
+ * @param { object | undefined } opts
+ * @param { object | undefined } opts.component
+ * @param { object | undefined } opts.path
+ */
+// export function findDataObject(
+//   objs: T.PlainObject | T.PlainObject[],
+//   path: string,
+// ): any
+// export function findDataObject(
+//   objs: T.PlainObject | T.PlainObject[],
+//   opts: { component?: Component; path?: string },
+// ): any
+// export function findDataObject(component: Component, path?: string): any
+// export function findDataObject(
+//   objs: Component | T.PlainObject | T.PlainObject[],
+//   opts?: string | { component?: Component; path?: string },
+// ) {
+//   let dataObject: any
+//   // List consumers
+//   if (objs instanceof Component) {
+//     if (arguments.length > 1) {
+//       if (isStr(opts)) dataObject = findDataValue(objs, opts)
+//     } else dataObject = findListDataObject(objs)
+//   }
+//   // Non list consumers
+//   else {
+//     // Find by path
+//     if (isStr(opts)) {
+//       dataObject = findDataValue(objs, opts)
+//     } else {
+//       if (opts?.path !== undefined) {
+//         dataObject = findDataValue(objs, opts.path || '')
+//       }
+//       if (!dataObject && isListConsumer(opts?.component)) {
+//         dataObject = findListDataObject(opts?.component as Component)
+//       }
+//     }
+//   }
+//   return dataObject || null
+// }
+
+type FindDataValueItem =
+  | ((...args: any[]) => any)
+  | T.PlainObject
+  | FindDataValueItem[]
+
+/**
+ * Runs through objs and returns the value at path if a dataObject is received
+ * @param { function | object | array } objs - Data objects to iterate over
+ * @param { string | string[] } path
+ */
+export const findDataValue = <O extends FindDataValueItem = any>(
+  objs: O,
+  path: string | string[],
+) => {
+  if (!path) return unwrapObj(isArr(objs) ? objs[0] : objs)
+  return get(
+    unwrapObj(
+      (isArr(objs) ? objs : [objs]).find((o) => has(unwrapObj(o), path)),
+    ),
+    path,
+  )
 }
 
-export function findRootsDataObject(opts: {
-  dataKey?: string
-  pageObject?: { [key: string]: any }
-  root?: { [key: string]: any }
-}) {
-  let { dataKey = '', pageObject = {}, root = {} } = opts
-  // TODO - handle component.component
-  return get(pageObject, dataKey) || get(root, dataKey)
-}
-
-export function findListDataObject(component: IComponentTypeInstance) {
+export function findListDataObject(component: any) {
   let dataObject
-  let listItem: IListItem | undefined
-  if (isListConsumer(component)) {
-    if (component?.noodlType === 'listItem') {
-      listItem = component as IListItem
-    } else {
-      listItem = findParent(
-        component,
-        (p) => p?.noodlType === 'listItem',
-      ) as IListItem
-    }
-    if (listItem) {
-      dataObject = listItem.getDataObject?.()
-      let listIndex = listItem.get('listIndex')
-      if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
-      if (!dataObject && typeof listIndex === 'number') {
-        const list = listItem?.parent?.() as IList
-        if (list) {
-          let listObject = list.getData()
+  let listItem: ListItem | undefined
+  if (component?.noodlType === 'listItem') {
+    listItem = component as any
+  } else {
+    listItem = findParent(
+      component,
+      (p) => p?.noodlType === 'listItem',
+    ) as ListItem
+  }
+  if (listItem) {
+    dataObject = listItem.getDataObject?.()
+    let listIndex = listItem.get('listIndex')
+    if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
+    if (!dataObject && typeof listIndex === 'number') {
+      const list = listItem?.parent?.() as List
+      if (list) {
+        let listObject = list.getData()
+        if (listObject?.length) {
+          dataObject = listObject[listIndex]
+        }
+        if (!dataObject) {
+          listObject = list.original?.listObject || []
           if (listObject?.length) {
             dataObject = listObject[listIndex] || listObject[listIndex]
-          }
-          if (!dataObject) {
-            listObject = list.original?.listObject || []
-            if (listObject?.length) {
-              dataObject = listObject[listIndex] || listObject[listIndex]
-            }
           }
         }
       }
@@ -244,7 +301,7 @@ export function findListDataObject(component: IComponentTypeInstance) {
   return dataObject || null
 }
 
-export function getActionType<A extends IActionObject = any>(
+export function getActionType<A extends ActionObject = any>(
   obj: A | undefined,
 ) {
   if (obj && typeof obj === 'object') {
@@ -269,6 +326,12 @@ export function getAllByDataListId<Elem extends HTMLElement = HTMLElement>() {
 
 export function getAllByDataName<Elem extends HTMLElement = HTMLElement>() {
   return Array.from(document.querySelectorAll('[data-name]')) as Elem[]
+}
+
+export function getAllByDataViewTag(viewTag: string) {
+  return typeof viewTag === 'string'
+    ? Array.from(document.querySelectorAll(`[data-viewtag="${viewTag}"]`))
+    : []
 }
 
 export function getByDataKey(value: string) {
@@ -341,14 +404,16 @@ export function isBreakLineTextBoardItem<
   return isBreakLine(value) || isBreakLineObject(value)
 }
 
-export function isComponentInstance<C extends IComponent = any>(
-  component: unknown,
-): component is C {
-  return !!(component && component instanceof Component)
+export function isEmitObj(value: unknown): value is EmitObject {
+  return !!(value && typeof value === 'object' && 'emit' in value)
 }
 
-export function isEmitObj(value: unknown): value is EmitActionObject {
-  return value && typeof value === 'object' && 'emit' in value
+export function isEmitActionObj(value: unknown): value is EmitActionObject {
+  return !!(
+    value &&
+    typeof value === 'object' &&
+    ('emit' in value || value['actionType'] === 'emit')
+  )
 }
 
 export function isIfObj(value: unknown): value is IfObject {
@@ -359,7 +424,7 @@ export function isListConsumer(component: any) {
   return !!(
     component?.get?.('iteratorVar') ||
     component?.get?.('listId') ||
-    component?.get?.('listIndex') ||
+    component?.get?.('listIndex') != undefined ||
     component?.noodlType === 'listItem' ||
     (component && findParent(component, (p) => p?.noodlType === 'listItem'))
   )
@@ -371,6 +436,12 @@ export function isPasswordInput(value: unknown) {
     value['type'] === 'textField' &&
     value['contentType'] === 'password'
   )
+}
+
+const pluginTypes = ['pluginHead', 'pluginBodyTop', 'pluginBodyTail']
+
+export function isPluginComponent(value: any) {
+  return !!(value && pluginTypes.includes(value?.noodlType || value?.type))
 }
 
 /**
@@ -400,36 +471,16 @@ export function isTextBoardComponent<Component extends T.TextLike>(
 
 /**
  * Recursively invokes the provided callback on each child
- * @param { IComponentTypeInstance } component
+ * @param { Component } component
  * @param { function } cb
  */
 // TODO - Depth option
-export function publish(
-  component: IComponentTypeInstance,
-  cb: (child: IComponentTypeInstance) => void,
-) {
+export function publish(component: Component, cb: (child: Component) => void) {
   if (component && component instanceof Component) {
-    component.children().forEach((child) => {
+    component.children().forEach((child: Component) => {
       cb(child)
-      publish(child, cb)
+      // publish(child, cb)
+      child?.children?.forEach?.((c) => publish(c, cb))
     })
   }
 }
-
-/**
- * Recursively invokes the provided callback on each NOODL child object starting from its instance
- * @param { IComponentTypeObject } noodlComponent - NOODL component object
- * @param { function } cb
- */
-// export function (
-//   noodlChildren: IComponentTypeObject | IComponentTypeObject[],
-//   cb: (noodlChild: IComponentTypeObject) => void,
-// ) {
-//   if (typeof noodlChildren === 'string') {
-//     cb({ type: noodlChildren })
-//   } else if (Array.isArray(noodlChildren)) {
-//     noodlChildren.forEach((nc) => walkOriginalChildren(nc, cb))
-//   } else if (noodlChildren) {
-//     cb(noodlChildren as IComponentTypeObject)
-//   }
-// }

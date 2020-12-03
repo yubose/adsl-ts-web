@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import axios from 'axios'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
@@ -22,13 +23,12 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   getDataValues,
+  List,
   identify,
-  IComponentTypeInstance,
-  IResolver,
+  Resolver,
   BuiltInObject,
   PageObject,
-  Page as NOODLPage,
-  Resolver,
+  Page as NOODLUIPage,
   ResolverFn,
   Viewport,
 } from 'noodl-ui'
@@ -44,9 +44,8 @@ import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
-import './handlers/dom'
+import { listen } from './handlers/dom'
 import './styles.css'
-import { isEmitObj } from 'noodl-utils'
 
 const log = Logger.create('src/index.ts')
 
@@ -91,6 +90,8 @@ window.addEventListener('load', async () => {
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
+
+  listen()
 
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
@@ -233,7 +234,7 @@ window.addEventListener('load', async () => {
         Global: noodl.root.Global,
       })
       // This will be passed into the page renderer
-      const pageSnapshot: NOODLPage = {
+      const pageSnapshot: { name: string; object: NOODLUIPage } = {
         name: pageName,
         object: pageObject,
       }
@@ -244,12 +245,20 @@ window.addEventListener('load', async () => {
         log.grey('Initializing noodl-ui client', { noodl, actions })
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
+        const fetch = async (url: string) =>
+          axios
+            .get(url)
+            .then(({ data }) => data)
+            .catch((err) => console.error(`[${err.name}]: ${err.message}`))
         noodlui
           .init({ actionsContext: { noodl }, viewport })
-          .setAssetsUrl(noodl?.assetsUrl || '')
           .setPage(pageName)
-          .setRoot(noodl.root)
           .use(viewport)
+          .use({
+            fetch,
+            getAssetsUrl: () => noodl.assetsUrl,
+            getRoot: () => noodl.root,
+          })
           .use(
             _.reduce(
               [
@@ -268,7 +277,7 @@ window.addEventListener('load', async () => {
                 getEventHandlers,
               ],
               (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
-              [] as IResolver[],
+              [] as Resolver[],
             ),
           )
           .use(
@@ -316,9 +325,9 @@ window.addEventListener('load', async () => {
         previousPage,
         nextPage: pageSnapshot,
       })
-      // Refresh the roots
+      // Refresh the root
       // TODO - Leave root/page auto binded to the lib
-      noodlui.setRoot(noodl.root).setPage(pageSnapshot.name)
+      noodlui.setPage(pageSnapshot.name)
       log.grey(`Set root + page obj after receiving page object`, {
         previousPage: page.previousPage,
         currentPage: page.currentPage,
@@ -393,25 +402,25 @@ window.addEventListener('load', async () => {
 
     if (pageUrlArr.length > 1) {
       pageUrlArr.pop()
-      while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
+      while (
+        pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') &&
+        pageUrlArr.length > 1
+      ) {
         pageUrlArr.pop()
       }
       if (pageUrlArr.length > 1) {
         pg = pageUrlArr[pageUrlArr.length - 1]
         page.pageUrl = pageUrlArr.join('-')
-      }
-      else if (pageUrlArr.length === 1) {
+      } else if (pageUrlArr.length === 1) {
         if (pageUrlArr[0].endsWith('MenuBar')) {
           page.pageUrl = 'index.html?'
           pg = noodl?.cadlEndpoint?.startPage
-        }
-        else {
+        } else {
           pg = pageUrlArr[0].split('?')[1]
           page.pageUrl = pageUrlArr[0]
         }
       }
-    }
-    else {
+    } else {
       page.pageUrl = 'index.html?'
       pg = noodl?.cadlEndpoint?.startPage
     }
@@ -598,9 +607,9 @@ window.addEventListener('load', async () => {
         } else {
           // If an existing subStreams container is already existent in memory, re-initiate
           // the DOM node and blueprint since it was reset from a previous cleanup
-          log.red(`BLUEPRINT`, component.blueprint)
+          log.red(`BLUEPRINT`, (component as List).blueprint)
           subStreams.container = node
-          subStreams.blueprint = component.blueprint
+          subStreams.blueprint = (component as List).blueprint
         }
       }
       // Individual remote participant video element container
@@ -700,7 +709,10 @@ window.addEventListener('load', async () => {
     // }
   }
   // await page.requestPageChange(startPage)
-  if (!window.localStorage.getItem('tempConfigKey') && window.localStorage.getItem('config')) {
+  if (
+    !window.localStorage.getItem('tempConfigKey') &&
+    window.localStorage.getItem('config')
+  ) {
     var localConfig = JSON.parse(window.localStorage.getItem('config'))
     window.localStorage.setItem('tempConfigKey', localConfig.timestamp)
   }
@@ -719,15 +731,13 @@ window.addEventListener('load', async () => {
       if (!urlArr.startsWith('index.html?')) {
         page.pageUrl = 'index.html?'
         await page.requestPageChange(newPage)
-      }
-      else {
+      } else {
         var pagesArr = urlArr.split('-')
         if (pagesArr.length > 1) {
           newPage = pagesArr[pagesArr.length - 1]
-        }
-        else {
+        } else {
           var baseArr = pagesArr[0].split('?')
-          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== "") {
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
             newPage = baseArr[baseArr.length - 1]
           }
         }
@@ -781,17 +791,14 @@ interface RedrawOptions {
 
 function redrawDebugger(opts: RedrawOptions): void
 function redrawDebugger(node: HTMLElement | null, opts: RedrawOptions): void
-function redrawDebugger(
-  node: HTMLElement | null,
-  component: IComponentTypeInstance,
-): void
+function redrawDebugger(node: HTMLElement | null, component: Component): void
 function redrawDebugger(
   node: HTMLElement | RedrawOptions | null,
-  opts: RedrawOptions | IComponentTypeInstance,
+  opts: RedrawOptions | Component,
 ) {
   if (node) {
     if (opts instanceof Component) {
-      const component = opts as IComponentTypeInstance
+      const component = opts as Component
     } else {
       const options = opts as RedrawOptions
       if (options.random) {

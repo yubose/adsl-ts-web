@@ -1,10 +1,10 @@
 import { expect } from 'chai'
 import _ from 'lodash'
+import List from '../../components/List'
 import { findChild } from 'noodl-utils'
 import { noodlui } from '../../utils/test-utils'
 import { forEachDeepChildren, getDataObjectValue } from '../../utils/noodl'
 import { _resolveChildren } from './helpers'
-import { IList } from '../../types'
 
 describe('helpers', () => {
   describe('_resolveChildren', () => {
@@ -223,7 +223,7 @@ describe('helpers', () => {
       const listComponent = findChild(
         component,
         (c) => c.noodlType === 'list',
-      ) as IList
+      ) as List
     })
   })
 })

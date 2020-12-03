@@ -1,4 +1,4 @@
-import { event as noodluiEvent, IList, IListItem } from 'noodl-ui'
+import { event as noodluiEvent, List, ListItem } from 'noodl-ui'
 import NOODLDOMBaseComponent from '../base'
 import {
   INOODLDOMList,
@@ -9,9 +9,9 @@ import {
 class NOODLDOMList<DOMNode extends NOODLDOMElement>
   extends NOODLDOMBaseComponent
   implements INOODLDOMList {
-  #listItems: IListItem[] = []
+  #listItems: ListItem[] = []
 
-  constructor(...args: NOODLDOMConstructorArgs<IList, DOMNode>) {
+  constructor(...args: NOODLDOMConstructorArgs<List, DOMNode>) {
     super(...args)
 
     const [node, component] = args
@@ -22,7 +22,7 @@ class NOODLDOMList<DOMNode extends NOODLDOMElement>
         if (succeeded) {
           const listItemComponent = component.createChild(
             'listItem',
-          ) as IListItem
+          ) as ListItem
           listItemComponent.updateDataObject(dataObject)
           listItemComponent['listIndex'] = index
           this.addListItem(listItemComponent)
@@ -58,7 +58,7 @@ class NOODLDOMList<DOMNode extends NOODLDOMElement>
     )
   }
 
-  addListItem(listItem: IListItem) {
+  addListItem(listItem: ListItem) {
     this.#listItems.push(listItem)
     return this
   }
@@ -68,8 +68,8 @@ class NOODLDOMList<DOMNode extends NOODLDOMElement>
   }
 
   removeListItem(index: number): this
-  removeListItem(listItem: IListItem): this
-  removeListItem(listItem: number | IListItem) {
+  removeListItem(listItem: ListItem): this
+  removeListItem(listItem: number | ListItem) {
     if (typeof listItem === 'number') {
       const index = listItem
       if (this.#listItems.length - 1 < index) {
@@ -86,16 +86,16 @@ class NOODLDOMList<DOMNode extends NOODLDOMElement>
     return this
   }
 
-  setListItem(index: number, listItem: IListItem) {
+  setListItem(index: number, listItem: ListItem) {
     this.#listItems[index] = listItem
     return this
   }
 
-  updateListItem(index: number | IListItem, listItem?: IListItem) {
+  updateListItem(index: number | ListItem, listItem?: ListItem) {
     if (arguments.length > 1) {
-      this.#listItems[index as number] = listItem as IListItem
+      this.#listItems[index as number] = listItem as ListItem
     } else {
-      listItem = index as IListItem
+      listItem = index as ListItem
       index = this.#listItems.indexOf(listItem)
       if (index !== -1) {
         const updatedListItem = this.#listItems.splice(index, 1, listItem)

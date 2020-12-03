@@ -1,59 +1,64 @@
 import _ from 'lodash'
 import { isDraft, original } from 'immer'
 import {
-  findDataObject,
+  createEmitDataKey,
   findListDataObject,
   getActionType,
-  isListConsumer,
+  isEmitObj,
 } from 'noodl-utils'
 import Logger from 'logsnap'
+import Component from '../components/Base'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import { AbortExecuteError } from '../errors'
 import { isActionChainEmitTrigger } from '../utils/noodl'
 import isReference from '../utils/isReference'
+import { actionTypes } from '../constants'
 import * as T from '../types'
+import { ActionObject } from '../types'
 
 const log = Logger.create('ActionChain')
 
 class ActionChain<
-  ActionObjects extends T.ActionObject[],
-  C extends T.IComponentTypeInstance
-> implements T.IActionChain<ActionObjects, C> {
-  #current: T.IAction | undefined
+  ActionObjects extends T.ActionObject[] = T.ActionObject[],
+  C extends Component = any
+> {
   #original: T.ActionObject[]
   #queue: T.IAction[] = []
   #timeoutRef: NodeJS.Timeout
-  actions: T.ActionObject[] = []
-  actionsContext: T.IActionChainContext
+  actions: ActionObjects
+  actionsContext: T.ActionChainContext
   component: C
-  current: {
-    action: T.IAction | undefined
-    index: number
+  current: ActionObjects[number]
+  fns = { action: {}, builtIn: {} } as {
+    action: Record<T.ActionType, T.ActionChainActionCallback[]>
+    builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
   }
-  fns: T.IActionChain['fns'] = { action: {}, builtIn: {} }
-  gen: T.IActionChain['gen']
+  gen: AsyncGenerator<
+    {
+      action: ActionObjects[number] | undefined
+      results: T.ActionChainGeneratorResult[]
+    },
+    T.ActionChainGeneratorResult[],
+    any
+  >
+  getRoot: () => T.Root
+  intermediary: Action[] = []
   pageName?: string
   pageObject?: T.PageObject | null
-  intermediary: T.IAction[] = []
-  status: T.IActionChain['status'] = null
-  trigger: T.IActionChainEmitTrigger | undefined
-  // onBuiltinMissing?: T.LifeCycleListeners['onBuiltinMissing']
-  // onChainStart?: T.LifeCycleListeners['onChainStart']
-  // onChainEnd?: T.LifeCycleListeners['onChainEnd']
-  // onChainError?: T.LifeCycleListeners['onChainError']
-  // onChainAborted?: T.LifeCycleListeners['onChainAborted']
-  // onAfterResolve?: T.LifeCycleListeners['onAfterResolve']
+  status: 'idle' | 'aborted' | 'in.progress' | null = null
+  trigger: T.ActionChainEmitTrigger
 
   constructor(
-    actions: T.IActionChainConstructorArgs<ActionObjects, C>[0],
+    actions: T.ActionChainConstructorArgs<C>[0],
     {
       actionsContext,
       component,
+      getRoot,
       pageName,
       pageObject,
       trigger,
-    }: T.IActionChainConstructorArgs<ActionObjects, C>[1],
+    }: T.ActionChainConstructorArgs<C>[1],
   ) {
     // @ts-expect-error
     this.#original = isDraft(actions) ? original(actions) : actions
@@ -63,48 +68,149 @@ class ActionChain<
       if (typeof obj === 'function') result.fn = obj
       else Object.assign(result, obj)
       return result
-    }) as T.ActionObject[]
-    this['actions'] = this.#original
-    this['actionsContext'] = actionsContext
-    this['component'] = component
-    this['pageName'] = pageName
-    this['pageObject'] = pageObject
-    this['trigger'] = trigger
+    }) as ActionObjects
+
+    this.actions = this.#original as ActionObjects
+    this.actionsContext = actionsContext as T.ActionChainContext
+    this.component = component
+    this.fns.action = actionTypes.reduce(
+      (acc, type) => Object.assign(acc, { [type]: [] }),
+      {} as ActionChain['fns']['action'],
+    )
+    this.getRoot = getRoot
+    this.pageName = pageName
+    this.pageObject = pageObject
+    this.trigger = trigger
   }
 
-  useAction(action: T.IActionChainUseObject): this
-  useAction(action: T.IActionChainUseObject[]): this
-  useAction(action: T.IActionChainUseObject | T.IActionChainUseObject[]) {
-    // Built in actions are forwarded to this.useBuiltIn
-    _.forEach(_.isArray(action) ? action : [action], (obj) => {
-      if ('funcName' in obj) {
-        this.useBuiltIn(obj)
-      } else {
-        this.fns.action[obj.actionType] = [
-          ...(this.fns.action[obj.actionType] || []),
-          ...(_.isArray(obj) ? obj : ([obj] as any)),
-        ]
+  /**
+   * Aborts the action chain from further running
+   * @param { string | string[] | undefined } reason
+   */
+  async abort(reason?: string | string[]) {
+    const reasons = reason
+      ? _.isArray(reason)
+        ? reason
+        : [reason]
+      : ([] as string[])
+
+    this.#setStatus({
+      aborted: reasons.length ? { reasons } : true,
+    } as any)
+
+    log.func('abort')
+    log.orange('Aborting...', { reasons, status: this.status })
+
+    // Exhaust the remaining actions in the queue and abort them
+    while (this.#queue.length) {
+      const action = this.#queue.shift()
+      if (action?.status !== 'aborted') {
+        log.grey(`Aborting action ${action?.type}`, action?.getSnapshot())
+        try {
+          action?.abort(reason || '')
+          log.grey(
+            `Aborted action of type ${action?.type || '<Missing action type>'}`,
+            action,
+          )
+        } catch (error) {
+          throw new AbortExecuteError(error.message)
+        }
       }
+    }
+
+    log.grey(`Abort finished`, {
+      actionChain: this,
+      snapshot: this.getSnapshot(),
     })
-    return this
+    // This will return an object like { value, done: true }
+    return this.gen?.return?.(reasons.join(', '))
   }
 
-  useBuiltIn(
-    action: T.IActionChainUseBuiltInObject | T.IActionChainUseBuiltInObject[],
-  ) {
-    const actions = (_.isArray(action)
-      ? action
-      : [action]) as T.IActionChainUseBuiltInObject[]
+  build() {
+    this.loadQueue()
+    this.loadGen()
 
-    _.forEach(actions, (a) => {
-      const { funcName } = a
-      const currentFns = this.fns.builtIn[funcName] || []
-      this.fns.builtIn[funcName] = currentFns.concat(
-        _.isArray(a.fn) ? a.fn : [a.fn],
-      )
-    })
+    const actionChainHandler = async (event?: any) => {
+      try {
+        this.#setStatus('in.progress')
 
-    return this
+        log.func('execute')
+        log.grey('Action chain started', {
+          event,
+          ...this.getDefaultCallbackArgs(),
+        })
+
+        if (this.#queue.length) {
+          let action: Action | undefined
+          let result: any
+          let iterator = await this.next()
+          let options: ReturnType<
+            ActionChain<any, any>['getDefaultCallbackArgs']
+          > & {
+            event?: any
+          }
+
+          while (iterator && !iterator?.done) {
+            action = iterator.value?.action as Action
+
+            // Skip to the next loop
+            if (!action) {
+              iterator = await this.next()
+            }
+            // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
+            else {
+              options = { event, ...this.getDefaultCallbackArgs() }
+              result = await this.execute(action, options)
+              // log.grey('Current results from action chain', result)
+              if (_.isPlainObject(result)) {
+                iterator = await this.next(result)
+              } else if (_.isString(result)) {
+                // TODO
+              } else if (_.isFunction(result)) {
+                // TODO
+              } else {
+                iterator = await this.next(result)
+              }
+
+              if (result) {
+                if (action.type) log.func(action.type)
+                log.grey(
+                  `Received a returned value from a(n) "${action.type}" executor`,
+                  result,
+                )
+              } else {
+                // if (!result) {
+                //   console.warn(
+                //     `The action chain generated returned null or undefined. The ` +
+                //       `action chain will not be executed further`,
+                //     { event, ...this.getDefaultCallbackArgs() },
+                //   )
+                // }
+              }
+            }
+          }
+          log.grey('Action chain reached the end of execution', this)
+          return this.build
+        } else {
+          log.red('Cannot start action chain without actions in the queue', {
+            ...this.getDefaultCallbackArgs(),
+            ref: this,
+            event,
+          })
+        }
+      } catch (error) {
+        await this.abort(error.message)
+        throw new AbortExecuteError(error.message)
+      } finally {
+        this.refresh()
+      }
+    }
+
+    return actionChainHandler.bind(this)
+  }
+
+  #setStatus = (status: ActionChain<any, any>['status']) => {
+    this.status = status
   }
 
   /**
@@ -112,7 +218,7 @@ class ActionChain<
    * @param { object } obj - Action object
    * NOTE: obj should have an "actionType" by the time of this call
    */
-  createAction<A = any>(obj: A) {
+  createAction<A extends T.ActionObject>(obj: A) {
     async function* runActionFuncs({
       ref,
       callbacks,
@@ -139,7 +245,7 @@ class ActionChain<
           // run this action before continuing
           // Start up a new Action with this object and inject it
           // as the first item in the queued actions
-          const intermediaryAction = this.createAction?.(result)
+          const intermediaryAction = ref.createAction(result)
           if (intermediaryAction) {
             ref.intermediary.push(intermediaryAction)
             ref.#queue = [intermediaryAction, ...ref.#queue]
@@ -153,7 +259,7 @@ class ActionChain<
     let conditionalCallbackArgs = {} as any
     let callbacks: any[]
 
-    const attachFn = (_action: T.IAction) => {
+    const attachFn = (_action: Action | EmitAction) => {
       _action['callback'] = async (
         instance: Parameters<
           T.ActionChainActionCallback<ActionObjects[number]>
@@ -162,7 +268,7 @@ class ActionChain<
           T.ActionChainActionCallback<ActionObjects[number]>
         >[1],
       ) => {
-        let result, gen, iterator
+        let gen
         const callbackArgs = {
           ...options,
           ...conditionalCallbackArgs,
@@ -191,7 +297,7 @@ class ActionChain<
               options: callbackArgs,
             })
           }
-        } else if (action.actionType === 'builtIn') {
+        } else if (_action.original.actionType === 'builtIn') {
           log.grey('Loading builtIn action', logArgs)
           callbacks = this.fns.builtIn[_action?.original?.funcName] || []
           if (!callbacks) return
@@ -204,8 +310,11 @@ class ActionChain<
         } else {
           callbacks = _.reduce(
             this.fns.action[action.actionType] ||
-              ([] as T.IActionChainUseObjectBase<ActionObjects[number]>[]),
-            (acc, a: T.IActionChainUseObjectBase<ActionObjects[number]>) => {
+              ([] as T.ActionChainUseObjectBase<ActionObjects[number], any>[]),
+            (
+              acc,
+              a: T.ActionChainUseObjectBase<ActionObjects[number], any>,
+            ) => {
               const isUnrelatedTrigger =
                 action.actionType === 'emit' &&
                 !isActionChainEmitTrigger(this.trigger)
@@ -228,7 +337,10 @@ class ActionChain<
               })
               return acc.concat(a.fn)
             },
-            [],
+            [] as T.ActionChainUseObjectBase<
+              ActionObjects[number],
+              any
+            >['fn'][],
           )
           log.green('You reached the end of action[callback]', {
             _action,
@@ -256,62 +368,34 @@ class ActionChain<
           callback = fns.shift()
         }
 
-        return results.length ? results : results[0]
+        return results
       }
     }
 
     if (typeof obj === 'object') {
-      if (obj.actionType === 'emit' || 'emit' in obj) {
-        const emitObj = obj as T.EmitActionObject
-        const emitAction = new EmitAction(emitObj)
-        emitAction.set('trigger', this.trigger)
-
-        if (_.isPlainObject(emitObj.emit?.dataKey)) {
-          const entries = _.entries(emitObj.emit.dataKey)
-          const iteratorVar = this?.component?.get('iteratorVar') || ''
-          const isListItemDataObject = _.some(
-            _.values(emitObj?.emit?.dataKey),
-            (dataKey) => `${dataKey}`.startsWith(iteratorVar),
+      if (isEmitObj(obj)) {
+        const emitObj = obj as T.EmitObject
+        const emitAction = new EmitAction(emitObj, {
+          iteratorVar: this.component.get('iteratorVar') || '',
+          trigger: this.trigger,
+        })
+        if (emitObj.emit?.dataKey) {
+          emitAction.setDataKey(
+            createEmitDataKey(
+              emitObj.emit.dataKey,
+              [
+                findListDataObject(this.component),
+                () => this.pageObject,
+                () => this.getRoot(),
+              ],
+              { iteratorVar: emitAction.iteratorVar },
+            ),
           )
-          emitAction.set('iteratorVar', iteratorVar)
-          if (isListItemDataObject) {
-            emitAction.setDataObject(findListDataObject(this?.component))
-          } else {
-            const [property, dataKey] = entries[0]
-            emitAction.setDataObject(
-              findDataObject({
-                dataKey,
-                pageObject: this.pageObject,
-                root: { [this.pageName || '']: this.pageObject },
-              }),
-            )
-          }
-          for (let index = 0; index < entries.length; index++) {
-            const [property] = entries[index] || ''
-            emitAction.setDataKeyValue(property, emitAction.getDataObject())
-          }
-        } else if (_.isString(emitObj.emit?.dataKey)) {
-          emitAction.set('dataKey', emitObj.emit.dataKey)
-          if (isListConsumer(this?.component)) {
-            emitAction.set('iteratorVar', this?.component.get('iteratorVar'))
-            emitAction.setDataObject(findListDataObject(this?.component))
-          } else {
-            emitAction.setDataObject(
-              findDataObject({
-                dataKey: emitObj.emit.dataKey,
-                pageObject: this.pageObject,
-                root: this.pageName
-                  ? { [this.pageName]: this.pageObject }
-                  : this.pageObject || {},
-              }),
-            )
-          }
         }
-        action = emitAction
-        attachFn(emitAction)
+
+        attachFn((action = emitAction))
       } else {
-        action = new Action(obj)
-        attachFn(action)
+        attachFn((action = new Action(obj)))
       }
     } else {
       log.func('createAction')
@@ -320,8 +404,9 @@ class ActionChain<
         {
           action,
           actions: this.actions,
-          actionObj: obj,
-          actionChain: this,
+          original: obj,
+          queue: this.getQueue(),
+          ref: this,
         },
       )
     }
@@ -329,103 +414,54 @@ class ActionChain<
     return action
   }
 
-  build() {
-    this.loadQueue()
-    this.loadGen()
-    const ref = this
-
-    return async (event?: any) => {
-      try {
-        ref.#setStatus('in.progress')
-        log.func('execute')
-        log.grey('Action chain started', {
-          event,
-          ...ref.getDefaultCallbackArgs(),
-        })
-
-        if (ref.#queue.length) {
-          let action: T.IAction | undefined
-          let result: any
-          let iterator = await ref.gen?.next?.()
-
-          while (iterator && !iterator?.done) {
-            action = iterator.value?.action
-
-            // Skip to the next loop
-            if (!action) {
-              iterator = await ref.gen.next()
-            }
-            // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
-            else {
-              result = await ref.execute(action, {
-                event,
-                ...ref.getDefaultCallbackArgs(),
-              })
-              const onResult = async (r) => {
-                if (_.isPlainObject(r)) {
-                  iterator = await ref.gen.next(r)
-                } else if (_.isString(r)) {
-                  // TODO
-                } else if (_.isFunction(r)) {
-                  // TODO
-                } else {
-                  iterator = await ref.gen.next(r)
-                }
-              }
-              // log.grey('Current results from action chain', result)
-              if (Array.isArray(result)) {
-                for (let index = 0; index < result.length; index++) {
-                  await onResult(result[index])
-                }
-              } else {
-                await onResult(result)
-              }
-
-              if (result) {
-                if (action.type) log.func(action.type)
-                log.grey(
-                  `Received a returned value from a(n) "${action.type}" executor`,
-                  result,
-                )
-              } else {
-                // if (!result) {
-                //   console.warn(
-                //     `The action chain generated returned null or undefined. The ` +
-                //       `action chain will not be executed further`,
-                //     { event, ...this.getDefaultCallbackArgs() },
-                //   )
-                // }
-              }
-            }
-          }
-          // this.onChainEnd?.(
-          //   this.actions as IAction[],
-          //   this.getCallbackOptions({ event, ...buildOptions }),
-          // )
-          log.grey('Action chain reached the end of execution', ref)
-          // return iterator?.value
-          return ref.build
-        } else {
-          // logs
-          log.red('Cannot start action chain without actions in the queue', {
-            ...ref.getDefaultCallbackArgs(),
-            actionChain: ref,
-            event,
-          })
-        }
-      } catch (error) {
-        // this.onChainError?.(
-        //   err,
-        //   this.#current,
-        //   this.getCallbackOptions({ event, error: err, ...buildOptions }),
-        // )
-        // TODO more handling
-        await ref.abort(error.message)
-        // throw new AbortExecuteError(error)
-      } finally {
-        ref.refresh()
-      }
+  /**
+   * Runs the next async generator call
+   * @param { any } args - Args for the next async call
+   */
+  async next(args?: any) {
+    const result = await this.gen.next(args)
+    if (result.value && result.value instanceof Action) {
+      this.current = result.value
     }
+    return result
+  }
+
+  refresh() {
+    if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
+    this.#queue = []
+    this.status = null
+    // this['gen'] = undefined
+    this.loadQueue().loadGen()
+    log.func('build')
+    log.grey(`Refreshed action chain`, {
+      actions: this.actions,
+      actionChain: this,
+      queue: this.getQueue(),
+    })
+  }
+
+  /**
+   * Creates an asynchronous generator that generates the next immediate action
+   * when the previous has ended
+   */
+  async *createGenerator() {
+    let action: T.IAction | undefined
+    let results: T.ActionChainGeneratorResult[] = []
+
+    while (this.#queue.length) {
+      action = this.#queue.shift()
+      results.push({
+        action: action,
+        result: await (yield { action, results }),
+      })
+    }
+
+    return results
+  }
+
+  loadGen() {
+    this['gen'] = this.createGenerator()
+    return this
   }
 
   async execute(
@@ -498,7 +534,7 @@ class ActionChain<
             { received: actionObj, component: this?.component },
           )
         }
-        action = this?.createAction?.({
+        action = this.createAction({
           actionType: 'anonymous',
           fn: actionObj,
         })
@@ -509,7 +545,7 @@ class ActionChain<
         if (isReference(actionObj as string)) {
           log.func('loadQueue')
           log.red(`Received a reference string but expected an action object`, {
-            actions: this?.actions,
+            actions: this.actions,
             actionObj,
             actionChain: this,
           })
@@ -525,19 +561,17 @@ class ActionChain<
               actionType: 'goto',
             } as T.GotoObject
           }
-          action = this?.createAction?.(actionObj as T.ActionObject)
+          action = this.createAction(actionObj as T.ActionObject)
         }
       }
 
       if (action) {
         log.func('loadQueue')
-        if (this) {
-          this.#queue.push(action)
-          log.grey(`Loaded "${action.actionType}" action into the queue`, {
-            action,
-            component: this?.component,
-          })
-        }
+        this.#queue.push(action)
+        log.grey(`Loaded "${action.actionType}" action into the queue`, {
+          action,
+          component: this?.component,
+        })
       } else {
         log.grey(
           `Could not convert action ${
@@ -548,18 +582,13 @@ class ActionChain<
           {
             action,
             actionChain: this,
-            actions: this?.actions,
+            actions: this.actions,
             component: this?.component,
             original: actionObj,
           },
         )
       }
     })
-    return this
-  }
-
-  loadGen() {
-    this['gen'] = this.createGenerator()
     return this
   }
 
@@ -572,111 +601,45 @@ class ActionChain<
     }
   }
 
-  async abort(reason?: string | string[]) {
-    const reasons: string[] = reason
-      ? _.isArray(reason)
-        ? reason
-        : [reason]
-      : []
-
-    this.#setStatus({
-      aborted: reasons.length ? { reasons } : true,
-    })
-
-    log.func('abort')
-    log.orange('Aborting...', { reasons, status: this.status })
-
-    // if (this.getQueue().length) this.#queue.unshift(this.#current)
-
-    // Exhaust the remaining actions in the queue and abort them
-    while (this.#queue.length) {
-      const action = this.#queue.shift()
-      log.grey(`Aborting action ${action?.type}`, action?.getSnapshot())
-      if (action?.status !== 'aborted') {
-        try {
-          action?.abort(reason || '')
-          log.grey(
-            `Aborted action of type ${action?.type || '<Missing action type>'}`,
-            action,
-          )
-        } catch (error) {
-          console.error(error.message)
-        }
-      }
-    }
-    // This will return an object like { value, done: true }
-    const { value: abortResult = '' } =
-      (await this.gen?.return?.(reasons.join(', '))) || {}
-    // if (this.onChainAborted) {
-    // await this.onChainAborted?.(
-    //   this.#current,
-    //   this.getCallbackOptions({
-    //     omit: 'abort',
-    //     include: { abortResult },
-    //   }),
-    // )
-    // }
-    log.grey(`Abort finished`, {
-      actionChain: this,
-      snapshot: this.getSnapshot(),
-    })
-
-    // throw new Error(abortResult)
-    // return abortResult
-  }
-
-  /**
-   * Creates an asynchronous generator that generates the next immediate action
-   * when the previous has ended
-   */
-  async *createGenerator() {
-    let action: T.IAction | undefined
-    let results: { action: T.IAction | undefined; result: any }[] = []
-
-    while (this.#queue.length) {
-      action = this.#queue.shift()
-      const result = await (yield { action, results })
-      // console.info('result', result)
-
-      if (_.isPlainObject(result)) {
-        if ('actionType' in result || 'goto' in result || 'emit' in result) {
-          // const newAction = this.createAction?.(result)
-          // this.#queue.unshift(newAction)
-          // console.log('newAction', newAction)
-          // this.intermediary.push(result)
-        }
-      }
-      results.push({
-        action: action,
-        result,
-      })
-    }
-
-    return results
-  }
-
-  insertIntermediaryAction(actionObj: T.ActionObject) {
+  insertIntermediaryAction(actionObj: ActionObject) {
     const action = this.createAction(actionObj)
-    this.#queue.shift(action)
+    this.#queue.unshift(action)
     return action
   }
 
-  refresh() {
-    if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
-    this.#queue = []
-    this.status = null
-    // this['gen'] = undefined
-    this.loadQueue().loadGen()
-    log.func('build')
-    log.grey(`Refreshed action chain`, {
-      actions: this.actions,
-      actionChain: this,
-      queue: this.getQueue(),
+  useAction(action: T.ActionChainUseObject): this
+  useAction(action: T.ActionChainUseObject[]): this
+  useAction(action: T.ActionChainUseObject | T.ActionChainUseObject[]) {
+    // Built in actions are forwarded to this.useBuiltIn
+    _.forEach(_.isArray(action) ? action : [action], (obj) => {
+      if ('funcName' in obj) {
+        this.useBuiltIn(obj)
+      } else {
+        this.fns.action[obj.actionType] = [
+          ...(this.fns.action[obj.actionType] || []),
+          ...(_.isArray(obj) ? obj : ([obj] as any)),
+        ]
+      }
     })
+    return this
   }
 
-  #setStatus = (status: T.IActionChain['status']) => {
-    this.status = status
+  useBuiltIn(
+    action: T.ActionChainUseBuiltInObject | T.ActionChainUseBuiltInObject[],
+  ) {
+    const actions = (_.isArray(action)
+      ? action
+      : [action]) as T.ActionChainUseBuiltInObject[]
+
+    _.forEach(actions, (a) => {
+      const { funcName } = a
+      const currentFns = this.fns.builtIn[funcName] || []
+      this.fns.builtIn[funcName] = currentFns.concat(
+        _.isArray(a.fn) ? a.fn : [a.fn],
+      )
+    })
+
+    return this
   }
 }
 

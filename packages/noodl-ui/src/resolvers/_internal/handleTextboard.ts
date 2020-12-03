@@ -3,14 +3,15 @@ import Logger from 'logsnap'
 import { current, isDraft } from 'immer'
 import { isBreakLineTextBoardItem } from 'noodl-utils'
 import { formatColor } from '../../utils/common'
-import { ConsumerOptions, IComponentTypeInstance } from '../../types'
+import { ConsumerOptions } from '../../types'
 import { _resolveChildren } from './helpers'
+import Component from '../../components/Base'
 import createComponent from '../../utils/createComponent'
 
 const log = Logger.create('internal[handleList]')
 
 const handleTextboardInternalResolver = (
-  component: IComponentTypeInstance,
+  component: Component,
   options: ConsumerOptions,
   _internalResolver,
 ) => {

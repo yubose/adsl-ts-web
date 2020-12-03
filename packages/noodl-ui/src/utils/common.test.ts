@@ -5,9 +5,9 @@ import { forEachEntries, forEachDeepEntries, isAllString } from './common'
 
 describe('forEachDeepEntries', () => {
   const listComponent = getMockListComponent()
-  const entries = []
+  const entries = [] as any[]
 
-  let next = []
+  let next = [] as any[]
 
   forEachEntries(listComponent, (key, value) => {
     entries.push(key)

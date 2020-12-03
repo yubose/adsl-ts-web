@@ -1,8 +1,10 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { IComponent, IComponentTypeInstance, IList, IListItem } from '../types'
-import Component from '../components/Base/Base'
+import { IComponent } from '../types'
+import Component from '../components/Base'
+import List from '../components/List'
+import ListItem from '../components/ListItem'
 import createComponent from '../utils/createComponent'
 
 let component: IComponent
@@ -401,14 +403,14 @@ describe('BaseComponent', () => {
 
     describe('when using broadcast', () => {
       it('should hit all nested children in its component tree', () => {
-        const view = createComponent('view') as IComponentTypeInstance
-        const list = createComponent('list') as IList
-        const listItem = createComponent('listItem') as IListItem
-        const textField = createComponent('textField') as IComponentTypeInstance
+        const view = createComponent('view') as Component
+        const list = createComponent('list') as List
+        const listItem = createComponent('listItem') as ListItem
+        const textField = createComponent('textField') as Component
         textField.set('data-value', 'my data value')
-        const label = createComponent('label') as IComponentTypeInstance
+        const label = createComponent('label') as Component
         label.set('text', 'heres my text')
-        const nestedView = createComponent('view') as IComponentTypeInstance
+        const nestedView = createComponent('view') as Component
         view.createChild(list)
         list.createChild(listItem)
         listItem.createChild(nestedView)

@@ -1,16 +1,15 @@
 import _ from 'lodash'
 import {
   createEmitDataKey,
-  findDataObject,
-  findParent,
+  findListDataObject,
+  findDataValue,
   isEmitObj,
-  isListConsumer,
+  excludeIteratorVar,
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
-import { ResolverFn, IListItem, IList } from '../types'
+import { ResolverFn } from '../types'
 import EmitAction from '../Action/EmitAction'
-import { getDataObjectValue } from '../utils/noodl'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -20,7 +19,7 @@ const log = Logger.create('getCustomDataAttrs')
  */
 const getCustomDataAttrs: ResolverFn = (component, options) => {
   const { context, getPageObject, getRoot, showDataKey, parser } = options
-  const { page, roots } = context
+  const { page } = context
   const { noodlType } = component
   const { contentType = '', dataKey, viewTag } = component.get([
     'contentType',
@@ -50,8 +49,9 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     -------------------------------------------------------- */
   if (noodlType === 'list') {
     let listObjects: any[]
-    const listComponent = component as IList
+    const listComponent = component as any
     const listObject = listComponent.getData()
+    listComponent.set('data-listid', listComponent.id)
 
     if (listObject !== undefined) {
       // Hard code some of this stuff for the videoSubStream list component for
@@ -61,7 +61,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       } else {
         listObjects = _.isArray(listObject) ? listObject : [listObject]
       }
-      listComponent.set('data-listid', listComponent.id)
     } else {
       log.red(
         'A list component is missing the "listObject" property',
@@ -75,24 +74,33 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     -------------------------------------------------------- */
 
   if (dataKey) {
+    let dataObject: any
+
     if (isEmitObj(dataKey)) {
-      const emitAction = new EmitAction(dataKey, { trigger: 'dataKey' })
-      const dataObject = findDataObject(component)
-      if (isListConsumer(component)) {
-        emitAction
-          .set('dataKey', createEmitDataKey(dataKey, dataObject))
-          .set('dataObject', dataObject)
-          .set('iteratorVar', component.get('iteratorVar'))
-      }
-    } else if (_.isString(dataKey)) {
-      let iteratorVar = component.get('iteratorVar')
-      let dataObject = findDataObject({
-        component,
-        dataKey,
-        pageObject,
-        root: getRoot() || roots,
+      const emitAction = new EmitAction(dataKey, {
+        iteratorVar: component.get('iteratorVar'),
+        trigger: 'dataKey',
       })
-      let dataValue = getDataObjectValue({ dataObject, dataKey, iteratorVar })
+      dataObject = findListDataObject(component)
+      emitAction.setDataKey(
+        createEmitDataKey(
+          dataKey,
+          [dataObject, () => pageObject, () => getRoot()],
+          { iteratorVar: emitAction.iteratorVar },
+        ),
+      )
+    } else if (_.isString(dataKey)) {
+      const iteratorVar = component.get('iteratorVar') || ''
+      const path = excludeIteratorVar(dataKey, iteratorVar) || ''
+      const dataValue = findDataValue(
+        [
+          findListDataObject(component),
+          () => getPageObject(page),
+          () => getRoot(),
+        ],
+        path,
+      )
+      // let dataValue = dataObject
       let textFunc = component.get('text=func')
 
       let fieldParts = dataKey?.split?.('.')
@@ -114,8 +122,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         'data-name': field,
         'data-value': _.isFunction(textFunc)
           ? textFunc(dataValue) || ''
-          : typeof dataValue !== 'undefined'
-          ? dataValue
           : dataValue || '',
       })
 
@@ -124,7 +130,8 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       if (isReference(dataKey)) {
         if (dataValue != undefined) component.set('data-value', dataValue)
         else {
-          dataValue =
+          component.set(
+            'data-value',
             dataValue != undefined
               ? dataValue
               : parser.getByDataKey(
@@ -132,8 +139,8 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
                   showDataKey
                     ? dataKey
                     : component.get('text') || component.get('placeholder'),
-                )
-          component.set('data-value', dataValue)
+                ),
+          )
         }
       }
     }

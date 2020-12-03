@@ -19,7 +19,7 @@ const noodl = new NOODL({
       : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
   configUrl: MEET2D_CONFIG,
-  // configUrl: getConfigEndpoint('meet'),
+  // configUrl: 'http://localhost:8080/testpage.yml',
 })
 
 function getConfigEndpoint(name: string) {

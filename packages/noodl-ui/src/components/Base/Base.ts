@@ -4,15 +4,14 @@ import { WritableDraft } from 'immer/dist/internal'
 import { createDraft, isDraft, finishDraft, original, current } from 'immer'
 import { eventTypes } from '../../constants'
 import {
-  IComponent,
-  IComponentType,
-  IComponentTypeInstance,
-  IComponentTypeObject,
   ActionObject,
-  NOODLComponentType,
-  Style,
-  ProxiedComponent,
+  ComponentCreationType,
+  ComponentObject,
+  ComponentType,
+  IComponent,
   NOODLComponent,
+  ProxiedComponent,
+  Style,
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
 import { forEachEntries, getRandomKey } from '../../utils/common'
@@ -25,17 +24,17 @@ class Component implements IComponent {
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
   #cb: { [eventName: string]: Function[] } = {}
-  #component: WritableDraft<IComponentTypeObject> | IComponentTypeObject
-  #children: IComponentTypeInstance[] = []
+  #component: WritableDraft<ComponentObject> | ComponentObject
+  #children: Component[] = []
   #id: string = ''
-  #noodlType: NOODLComponentType
-  #parent: IComponentTypeInstance | null = null
+  #noodlType: ComponentType
+  #parent: Component | null = null
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
   action: ActionObject = {} as ActionObject
   context: { [key: string]: any } = {}
-  original: IComponentTypeObject
+  original: ComponentObject
   resolved: boolean = false
   keys: string[]
   handled: string[] = []
@@ -45,7 +44,7 @@ class Component implements IComponent {
   stylesTouched: string[] = []
   stylesUntouched: string[] = []
 
-  constructor(component: IComponentType) {
+  constructor(component: ComponentCreationType) {
     const keys =
       component instanceof Component
         ? component.keys
@@ -55,18 +54,18 @@ class Component implements IComponent {
         ? component.original
         : _.isString(component)
         ? { noodlType: component }
-        : component
+        : (component as any)
     this['keys'] = keys
     this['untouched'] = keys.slice()
     this['unhandled'] = keys.slice()
 
     this.#cache = {}
     this.#component = createComponentDraftSafely(component) as WritableDraft<
-      IComponentTypeObject
+      ComponentObject
     >
 
     this['id'] = this.#component.id || getRandomKey()
-    this['noodlType'] = this.#component.noodlType
+    this['noodlType'] = this.#component.noodlType as any
 
     if (!this.#component.style) this.#component['style'] = {}
 
@@ -119,35 +118,35 @@ class Component implements IComponent {
    * using styleKey if key === 'style'
    * @param { string } key - Component property or "style" if using styleKey for style lookups
    */
-  get<K extends keyof IComponentTypeObject>(
+  get<K extends keyof ComponentObject>(
     key: K,
     styleKey?: keyof Style,
-  ): IComponentTypeObject[K]
-  get<K extends keyof IComponentTypeObject>(
+  ): ComponentObject[K]
+  get<K extends keyof ComponentObject>(
     key: K[],
     styleKey?: keyof Style,
-  ): Record<K, IComponentTypeObject[K]>
-  get<K extends keyof IComponentTypeObject>(
+  ): Record<K, ComponentObject[K]>
+  get<K extends keyof ComponentObject>(
     key: K | K[],
     styleKey?: keyof Style,
-  ): IComponentTypeObject[K] | Record<K, IComponentTypeObject[K]> {
+  ): ComponentObject[K] | Record<K, ComponentObject[K]> | undefined {
     if (_.isString(key)) {
       // Returns the original type
       // TODO - Deprecate component.noodlType since component.type is sufficient enough now
-      if (key === 'type') return this.original.type
+      if (key === 'type') return this.original.type as any
       const value = this.#retrieve(key, styleKey)
       return value
     }
     // component.get(['someKey', 'someOtherKey'])
     else if (_.isArray(key)) {
-      const value = {} as Record<K, IComponentTypeObject[K]>
+      const value = {} as Record<K, ComponentObject[K]>
       _.forEach(key, (k) => (value[k] = this.#retrieve(k)))
       return value
     }
   }
 
   /** Used by this.get */
-  #retrieve = <K extends keyof IComponentTypeObject>(
+  #retrieve = <K extends keyof ComponentObject | 'cache'>(
     key: K,
     styleKey?: keyof Style,
   ) => {
@@ -175,8 +174,8 @@ class Component implements IComponent {
         value = this.original.type
       } else {
         value =
-          this.#component[key as keyof IComponentTypeObject] ||
-          this.original[key as keyof IComponentTypeObject]
+          this.#component[key as keyof ComponentObject] ||
+          this.original[key as keyof ComponentObject]
       }
     }
 
@@ -191,21 +190,9 @@ class Component implements IComponent {
    * @param { any? } value - Value to update key, or styleKey to update the style object if key === 'style'
    * @param { any? } styleChanges - Value to set on a style object if key === 'style'
    */
-  set<K extends keyof IComponentTypeObject>(
-    key: K,
-    value?: any,
-    styleChanges?: any,
-  ): this
-  set<O extends IComponentTypeObject>(
-    key: O,
-    value?: any,
-    styleChanges?: any,
-  ): this
-  set<K extends keyof IComponentTypeObject>(
-    key: K,
-    value?: any,
-    styleChanges?: any,
-  ) {
+  set<K extends string = any>(key: K, value?: any, styleChanges?: any): this
+  set<O extends ComponentObject>(key: O, value?: any, styleChanges?: any): this
+  set<K extends string = any>(key: K, value?: any, styleChanges?: any) {
     if (key === 'style') {
       if (this.#component.style) {
         this.#component.style[value] = styleChanges
@@ -217,7 +204,7 @@ class Component implements IComponent {
     } else {
       if (key === 'type') this.#component['type'] = value
       else {
-        this.#component[key as K] = value
+        this.#component[key as keyof ComponentObject] = value
         if (this.status !== 'drafting') this.#setHandledKey(key as string)
       }
     }
@@ -237,14 +224,14 @@ class Component implements IComponent {
   }
 
   get type() {
-    return this.#component?.type
+    return this.#component?.type as ComponentType
   }
 
   get noodlType() {
     return this.#noodlType
   }
 
-  set noodlType(value: NOODLComponentType) {
+  set noodlType(value: ComponentType) {
     this.#noodlType = value
   }
 
@@ -506,10 +493,10 @@ class Component implements IComponent {
   }
 
   /** Returns the JS representation of the currently resolved component */
-  toJS() {
+  toJS(): ProxiedComponent {
     const obj = isDraft(this.#component)
-      ? current(this.#component as ProxiedComponent)
-      : (this.#component as ProxiedComponent)
+      ? current(this.#component)
+      : this.#component
     if (obj?.children) {
       return {
         ...obj,
@@ -530,14 +517,14 @@ class Component implements IComponent {
   }
 
   parent() {
-    return this.#parent
+    return this.#parent as any
   }
 
   hasParent() {
     return !!this.#parent && this.#parent instanceof Component
   }
 
-  setParent(parent: IComponentTypeInstance | null) {
+  setParent(parent: Component | null) {
     this.#parent = parent
     return this
   }
@@ -557,7 +544,7 @@ class Component implements IComponent {
    * Creates and appends the new child instance to the childrens list
    * @param { IComponentType } props
    */
-  createChild<C extends IComponentTypeInstance>(child: C): C {
+  createChild<C extends Component>(child: C): C {
     child?.setParent?.(this)
     this.#children.push(child)
     return child
@@ -565,11 +552,11 @@ class Component implements IComponent {
 
   /**
    * Returns true if the child exists in the tree
-   * @param { IComponentTypeInstance | string } child - Child component or id
+   * @param { Component | string } child - Child component or id
    */
   hasChild(child: string): boolean
-  hasChild(child: IComponentTypeInstance): boolean
-  hasChild(child: IComponentTypeInstance | string): boolean {
+  hasChild(child: Component): boolean
+  hasChild(child: Component | string): boolean {
     if (_.isString(child)) {
       return !!_.find(this.#children, (c) => c?.id === child)
     } else if (child instanceof Component) {
@@ -584,12 +571,12 @@ class Component implements IComponent {
    * remove the first child by default
    * @param { Component | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
    */
-  removeChild(index: number): IComponentTypeInstance | undefined
-  removeChild(id: string): IComponentTypeInstance | undefined
-  removeChild(child: IComponentTypeInstance): IComponentTypeInstance | undefined
-  removeChild(): IComponentTypeInstance | undefined
-  removeChild(child?: IComponentTypeInstance | number | string) {
-    let removedChild: IComponentTypeInstance | undefined
+  removeChild(index: number): Component | undefined
+  removeChild(id: string): Component | undefined
+  removeChild(child: Component): Component | undefined
+  removeChild(): Component | undefined
+  removeChild(child?: Component | number | string) {
+    let removedChild: Component | undefined
     if (!arguments.length) {
       removedChild = this.#children.shift()
     } else if (_.isNumber(child) && this.#children[child]) {
@@ -598,8 +585,8 @@ class Component implements IComponent {
       removedChild = child
         ? _.find(this.#children, (c) => c.id === child)
         : undefined
-    } else if (this.hasChild(child as IComponentTypeInstance)) {
-      if (this.#children.includes(child as IComponentTypeInstance)) {
+    } else if (this.hasChild(child as Component)) {
+      if (this.#children.includes(child as Component)) {
         this.#children = _.filter(this.#children, (c) => {
           if (c === child) {
             removedChild = child
@@ -622,10 +609,10 @@ class Component implements IComponent {
 
   /**
    * Recursively invokes the provided callback on each child
-   * @param { IComponentTypeInstance }  - child
+   * @param { Component }  - child
    */
-  broadcast(cb: (child: IComponentTypeInstance) => void) {
-    const notify = (child: IComponentTypeInstance) => {
+  broadcast(cb: (child: Component) => void) {
+    const notify = (child: Component) => {
       cb(child)
       if (child) _.forEach(child.children(), (c) => notify(c))
     }
@@ -636,23 +623,23 @@ class Component implements IComponent {
   /**
    *
    * Recursively invokes the provided callback on each raw noodl child
-   * @param { IComponentTypeInstance } child
+   * @param { Component } child
    */
-  broadcastRaw(
-    cb: (c: IComponentTypeInstance, nc: NOODLComponent, index: number) => void,
-  ) {
-    const notify = (c: IComponentTypeInstance) => {
-      _.forEach(c.original?.children || [], (noodlChild, index) => {
-        cb?.(c, noodlChild, index)
-        c.children().forEach((cc) => notify(cc))
-      })
+  broadcastRaw(cb: (c: Component, nc: NOODLComponent, index: unknown) => void) {
+    const notify = (c: Component) => {
+      _.forEach(
+        c.original?.children || [],
+        (noodlChild: NOODLComponent, index) => {
+          cb?.(c, noodlChild, index)
+          c.children().forEach((cc) => notify(cc))
+        },
+      )
     }
     notify(this)
     return this
   }
 
-  on(eventName: 'path', cb: Function): this
-  on<K = any>(eventName: K, cb: Function) {
+  on(eventName: string, cb: Function) {
     if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
     log.func(`on [${this.noodlType}]`)
     log.grey(`Subscribing listener for "${eventName}"`, this)
@@ -660,7 +647,6 @@ class Component implements IComponent {
     return this
   }
 
-  off(eventName: 'path', cb?: Function): this
   off(eventName: any, cb: Function) {
     if (_.isArray(this.#cb[eventName])) {
       if (this.#cb[eventName].includes(cb)) {

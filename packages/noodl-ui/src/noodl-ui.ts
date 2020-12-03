@@ -2,15 +2,13 @@ import _ from 'lodash'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
 import {
+  createEmitDataKey,
   evalIf,
-  findParent,
+  findListDataObject,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isEmitObj,
-  isListConsumer,
-  findDataObject,
-  findListDataObject,
-  createEmitDataKey,
+  isIfObj,
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
@@ -32,22 +30,22 @@ import ActionChain from './ActionChain'
 import EmitAction from './Action/EmitAction'
 import { event } from './constants'
 import * as T from './types'
+import { PluginObject } from './types'
 
 const log = Logger.create('noodl-ui')
 
-function _createState(state?: Partial<T.INOODLUiState>): T.INOODLUiState {
+function _createState(state?: Partial<T.State>) {
   return {
-    // nodes: new Map(), // Unused atm
     page: '',
+    plugins: { head: [], body: { top: [], bottom: [] } },
     ...state,
-  } as T.INOODLUiState
+  } as T.State
 }
 
-class NOODL implements T.INOODLUi {
-  #assetsUrl: string = ''
+class NOODL {
   #cb: {
     action: Partial<
-      Record<T.NOODLActionType, T.IActionChainUseObjectBase<any>[]>
+      Record<T.ActionType, T.ActionChainUseObjectBase<any, any>[]>
     >
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
@@ -60,28 +58,63 @@ class NOODL implements T.INOODLUi {
       {},
     ),
   }
+  #fetch = ((typeof window !== 'undefined' && window.fetch) ||
+    _.noop) as T.Fetch
+  #getAssetsUrl: () => string = () => ''
   #parser: T.RootsParser
   #resolvers: Resolver[] = []
-  #root: { [key: string]: any } = {}
-  #state: T.INOODLUiState
-  #viewport: T.IViewport
+  #getRoot: () => T.Root = () => ({})
+  #state: T.State
+  #viewport: Viewport
   actionsContext: { emitCall?: any; noodlui: NOODL } = { noodlui: this }
   initialized: boolean = false
 
   constructor({
     showDataKey,
     viewport,
+    plugins,
   }: {
+    plugins?: {
+      fetcher?(...args: any[]): Promise<any>
+      head: any[]
+      body: {
+        top: any[]
+        bottom: any[]
+      }
+    }
     showDataKey?: boolean
-    viewport?: T.IViewport
+    viewport?: Viewport
   } = {}) {
-    this.#parser = makeRootsParser({ roots: {} })
+    this.#parser = makeRootsParser({ root: {} })
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
+    if (plugins) {
+      if (Array.isArray(plugins)) {
+        // Array of plugin urls. Defaults to inserting all in the head
+        this.#state.plugins.head = this.#state.plugins.head.concat(plugins)
+      } else {
+        // Explicitly setting directions for plugin urls
+        if (plugins.head?.length) {
+          this.#state.plugins.head = this.#state.plugins.head.concat(
+            plugins.head,
+          )
+        }
+        if (plugins.body?.top?.length) {
+          this.#state.plugins.body.top = this.#state.plugins.body.top.concat(
+            plugins.body.top,
+          )
+        }
+        if (plugins.body?.bottom?.length) {
+          this.#state.plugins.body.bottom = this.#state.plugins.body.bottom.concat(
+            plugins.body.bottom,
+          )
+        }
+      }
+    }
   }
 
   get assetsUrl() {
-    return this.#assetsUrl
+    return this.#getAssetsUrl()
   }
 
   get page() {
@@ -93,20 +126,23 @@ class NOODL implements T.INOODLUi {
   }
 
   get root() {
-    return this.#root
+    return this.#getRoot()
   }
 
   get viewport() {
     return this.#viewport
   }
 
-  resolveComponents(component: T.IComponentType): T.IComponentTypeInstance
-  resolveComponents(components: T.IComponentType[]): T.IComponentTypeInstance[]
+  resolveComponents(component: T.ComponentCreationType): Component
+  resolveComponents(components: T.ComponentCreationType[]): Component[]
   resolveComponents(
-    componentsParams: T.IComponentType | T.IComponentType[] | T.Page['object'],
+    componentsParams:
+      | T.ComponentCreationType
+      | T.ComponentCreationType[]
+      | T.Page['object'],
   ) {
     let components: any[] = []
-    let resolvedComponents: T.IComponentTypeInstance[] = []
+    let resolvedComponents: Component[] = []
 
     if (componentsParams) {
       if (componentsParams instanceof Component) {
@@ -139,24 +175,23 @@ class NOODL implements T.INOODLUi {
       : resolvedComponents[0]
   }
 
-  #resolve = (
-    c: T.NOODLComponentType | T.IComponentTypeInstance | T.IComponentTypeObject,
-  ) => {
+  #resolve = (c: T.ComponentType | Component | T.ComponentObject) => {
     const component = createComponent(c)
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component.original.style)
 
-    if (!component.id) component.id = getRandomKey()
+    if (!component?.id) component.id = getRandomKey()
 
     component.assignStyles(baseStyles)
 
+    // TODO - deprecate this
     if (this.parser.getLocalKey() !== this.page) {
       this.parser.setLocalKey(this.page)
     }
 
     // Finalizing
-    if (_.isObject(component.style)) {
-      forEachDeepEntries(component.style, (key, value: string) => {
+    if (component.style && typeof component.style === 'object') {
+      forEachDeepEntries(component.style, (key, value) => {
         if (_.isString(value)) {
           if (value.startsWith('0x')) {
             component.set('style', key, formatColor(value))
@@ -167,144 +202,18 @@ class NOODL implements T.INOODLUi {
       })
     }
 
-    _.forEach(this.#resolvers, (r: T.IResolver) =>
+    _.forEach(this.#resolvers, (r: Resolver) =>
       r.resolve(component, consumerOptions),
     )
 
-    // this.emit('afterResolve', component, consumerOptions)
-
     return component
-  }
-
-  on(
-    eventName: T.EventId,
-    cb: (
-      noodlComponent: T.IComponentTypeObject,
-      args: {
-        component: T.IComponentTypeInstance
-        parent: T.IComponentTypeInstance | null
-      },
-    ) => void,
-  ) {
-    if (_.isString(eventName)) this.#addCb(eventName, cb)
-    return this
-  }
-
-  off(eventName: T.EventId, cb: T.INOODLUiComponentEventCallback<any>) {
-    if (_.isString(eventName)) this.#removeCb(eventName, cb)
-    return this
-  }
-
-  // emit(eventName: T.NOODLComponentEventId, cb: T.INOODLUiComponentEventCallback): void
-  emit(
-    eventName: T.EventId,
-    ...args: Parameters<T.INOODLUiComponentEventCallback<any>>
-  ) {
-    if (_.isString(eventName)) {
-      const path = this.#getCbPath(eventName)
-      if (path) {
-        let cbs = _.get(this.#cb, path) as Function[]
-        if (!_.isArray(cbs)) cbs = cbs ? [cbs] : []
-        _.forEach(cbs, (cb) => cb(...args))
-      }
-    }
-    return this
-  }
-
-  #getCbPath = (key: T.EventId | 'action' | 'chaining' | 'all') => {
-    let path = ''
-    if (key === 'all') {
-      path = 'component.all'
-    } else if (key in this.#cb) {
-      path = key
-    } else if (key in this.#cb.action) {
-      path = `action.${key}`
-    } else if (key in this.#cb.builtIn) {
-      path = `builtIn.${key}`
-    } else if (key in this.#cb.chaining) {
-      path = `chaining.${key}`
-    }
-    return path
-  }
-
-  // Temp here for debugging
-  getCbs() {
-    return this.#cb
-  }
-
-  removeCbs(actionType: string) {
-    if (this.#cb.action[actionType]) this.#cb.action[actionType].length = 0
-    return this
-  }
-
-  #addCb = (
-    key: T.IAction | T.EventId,
-    cb:
-      | T.INOODLUiComponentEventCallback<any>
-      | string
-      | { [key: string]: T.INOODLUiComponentEventCallback<any> },
-    cb2?: T.INOODLUiComponentEventCallback<any>,
-  ) => {
-    if (key instanceof Action) {
-      if (!_.isArray(this.#cb.action[key.actionType])) {
-        this.#cb.action[key.actionType] = []
-      }
-      this.#cb.action[key.actionType].push(key)
-    } else if (key === 'builtIn') {
-      if (_.isString(cb)) {
-        const funcName = cb
-        const fn = cb2 as T.INOODLUiComponentEventCallback<any>
-        if (!_.isArray(this.#cb.builtIn[funcName])) {
-          this.#cb.builtIn[funcName] = []
-        }
-        this.#cb.builtIn[funcName]?.push(fn)
-      } else if (_.isPlainObject(cb)) {
-        forEachEntries(
-          cb as { [key: string]: T.INOODLUiComponentEventCallback<any> },
-          (key, value) => {
-            const funcName = key
-            const fn = value
-            if (!_.isArray(this.#cb.builtIn[funcName])) {
-              this.#cb.builtIn[funcName] = []
-            }
-            if (!this.#cb.builtIn[funcName]?.includes(fn)) {
-              this.#cb.builtIn[funcName]?.push(fn)
-            }
-          },
-        )
-      }
-    } else {
-      const path = this.#getCbPath(key as any)
-      if (path) {
-        if (!_.isArray(this.#cb[path])) this.#cb[path] = []
-        this.#cb[path].push(cb as T.INOODLUiComponentEventCallback<any>)
-      }
-    }
-    return this
-  }
-
-  #removeCb = (key: T.EventId, cb: Function) => {
-    const path = this.#getCbPath(key)
-    if (path) {
-      const cbs = _.get(this.#cb, path)
-      if (_.isArray(cbs)) {
-        if (cbs.includes(cb)) {
-          _.set(
-            this.#cb,
-            path,
-            _.filter(cbs, (fn) => fn !== cb),
-          )
-        }
-      }
-    }
-    return this
   }
 
   createActionChainHandler(
     actions: T.ActionObject[],
     options: {
-      component: T.IComponentTypeInstance
-      trigger: T.IActionChainEmitTrigger
+      component: Component
+      trigger: T.ActionChainEmitTrigger
     },
   ) {
     const actionChain = new ActionChain(
@@ -312,6 +221,7 @@ class NOODL implements T.INOODLUi {
       {
         actionsContext: this.getActionsContext(),
         component: options.component,
+        getRoot: this.#getRoot.bind(this),
         pageName: this.page,
         pageObject: this.getPageObject(this.page),
         trigger: options.trigger,
@@ -325,25 +235,27 @@ class NOODL implements T.INOODLUi {
             actionObjs || [],
             (
               acc,
-              actionObj: Omit<T.IActionChainUseObjectBase<any>, 'actionType'>,
+              actionObj: Omit<
+                T.ActionChainUseObjectBase<any, any>,
+                'actionType'
+              >,
             ) => {
-              if (actionType === 'emit' || 'emit' in (actionObj || {})) {
+              if (
+                isEmitObj(actionObj) &&
+                isActionChainEmitTrigger(actionObj.trigger)
+              ) {
                 // Only accept the emit action handlers where their
                 // actions only exist in action chains
-                if (isActionChainEmitTrigger(actionObj.trigger)) {
-                  return acc.concat({ actionType: 'emit', ...actionObj })
-                }
+                return acc.concat({ ...actionObj, actionType: 'emit' })
               }
               return acc.concat({ actionType, ...actionObj } as any)
             },
-            [] as T.IActionChainUseObjectBase<any>[],
+            [] as T.ActionChainUseObjectBase<any, any>[],
           ),
         ),
       [] as any[],
     )
-    useActionObjects.forEach((f) => {
-      actionChain.useAction(f)
-    })
+    useActionObjects.forEach((f) => actionChain.useAction(f))
     actionChain.useBuiltIn(
       _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
         funcName,
@@ -357,230 +269,22 @@ class NOODL implements T.INOODLUi {
     return actionChain.build()
   }
 
-  init({
-    _log = true,
-    actionsContext,
-    viewport,
-  }: { _log?: boolean; actionsContext?: NOODL['actionsContext'] } & Partial<
-    Parameters<T.INOODLUi['init']>[0]
-  > = {}) {
-    if (!_log) Logger.disable()
-    if (viewport) this.setViewport(viewport)
-    this.initialized = true
-    if (actionsContext) _.assign(this.actionsContext, actionsContext)
-    return this
-  }
-
-  getBaseStyles(styles?: T.Style) {
-    return {
-      ...this.#root.Style,
-      position: 'absolute',
-      outline: 'none',
-      ...styles,
-    }
-  }
-
-  getActionsContext() {
-    return Object.assign({}, this.actionsContext)
-  }
-
-  getContext() {
-    return {
-      assetsUrl: this.assetsUrl,
-      page: this.page,
-      roots: this.#root,
-      viewport: this.#viewport,
-    } as T.ResolverContext
-  }
-
-  getEmitHandlers(
-    trigger: T.IActionChainEmitTrigger | T.ResolveEmitTrigger,
-  ): T.IActionChainUseObjectBase<any>[]
-  getEmitHandlers(
-    trigger: (handlers: T.IActionChainUseObjectBase<any>) => boolean,
-  ): T.IActionChainUseObjectBase<any>[]
-  getEmitHandlers(
-    trigger?:
-      | (T.IActionChainEmitTrigger | T.ResolveEmitTrigger)
-      | ((handlers: T.IActionChainUseObjectBase<any>) => boolean),
-  ) {
-    const handlers = this.#cb.action.emit || []
-    if (!arguments.length) {
-      return handlers
-    }
-    if (trigger) {
-      if (typeof trigger === 'string') {
-        return handlers.filter((o) => o.trigger === trigger)
-      } else if (typeof trigger === 'function') {
-        return handlers.filter((o) => trigger(o))
-      }
-    }
-    return handlers
-  }
-
-  getPageObject(page: string) {
-    return this.#root[page]
-  }
-
-  getStateHelpers() {
-    return {
-      ...this.getStateGetters(),
-      ...this.getStateSetters(),
-    }
-  }
-
-  getConsumerOptions({
-    component,
-    ...rest
-  }: {
-    component: T.IComponentTypeInstance
-    [key: string]: any
-  }) {
-    return {
-      component,
-      context: this.getContext(),
-      createActionChainHandler: (
-        ...[action, options]: Parameters<T.INOODLUi['createActionChainHandler']>
-      ) => this.createActionChainHandler(action, { ...options, component }),
-      createSrc: (path: string) => this.createSrc(path, component),
-      getBaseStyles: this.getBaseStyles.bind(this),
-      getRoot: () => this.root,
-      page: this.page,
-      resolveComponent: this.#resolve.bind(this),
-      resolveComponentDeep: this.resolveComponents.bind(this),
-      parser: this.parser,
-      showDataKey: this.#state.showDataKey,
-      ...this.getStateGetters(),
-      ...this.getStateSetters(),
-      ...rest,
-    } as T.ConsumerOptions
-  }
-
-  getResolvers() {
-    return this.#resolvers.map((resolver) => resolver.resolve)
-  }
-
-  getState() {
-    return this.#state
-  }
-
-  getStateGetters() {
-    return {
-      getPageObject: this.getPageObject.bind(this),
-      getState: this.getState.bind(this),
-    }
-  }
-
-  getStateSetters() {
-    return {}
-  }
-
-  setAssetsUrl(assetsUrl: string) {
-    this.#assetsUrl = assetsUrl
-    return this
-  }
-
-  setPage(pageName: string) {
-    this.#state['page'] = pageName
-    return this
-  }
-
-  setRoot(root: string | { [key: string]: any }, value?: any) {
-    if (_.isString(root)) this.#root[root] = value
-    else this.#root = root
-    return this
-  }
-
-  setViewport(viewport: T.IViewport) {
-    this.#viewport = viewport
-    return this
-  }
-
-  use(resolver: T.IResolver | T.IResolver[]): this
-  use(action: T.IActionChainUseObject | T.IActionChainUseObject[]): this
-  use(viewport: T.IViewport): this
-  use(
-    mod:
-      | T.IResolver
-      | T.IActionChainUseObject
-      | T.IViewport
-      | (T.IResolver | T.IActionChainUseObject)[],
-    ...rest: any[]
-  ) {
-    const mods = (_.isArray(mod) ? mod : [mod]).concat(rest)
-    const handleMod = (m: typeof mods[number]) => {
-      if (m) {
-        if ('funcName' in m) {
-          if (!_.isArray(this.#cb.builtIn[m.funcName])) {
-            this.#cb.builtIn[m.funcName] = []
-          }
-          this.#cb.builtIn[m.funcName].push(
-            ...(_.isArray(m.fn) ? m.fn : [m.fn]),
-          )
-        } else if ('actionType' in m) {
-          if (!_.isArray(this.#cb.action[m.actionType])) {
-            this.#cb.action[m.actionType] = []
-          }
-          const obj = { actionType: m.actionType, fn: m.fn } as any
-          if ('context' in m) obj['context'] = m.context
-          if ('trigger' in m) obj['trigger'] = m.trigger
-          this.#cb.action[m.actionType]?.push(obj)
-        } else if (m instanceof Viewport) {
-          this.setViewport(m)
-        } else if (m instanceof Resolver) {
-          this.#resolvers.push(m)
-        }
-      }
-    }
-
-    _.forEach(mods, (m) => {
-      if (_.isArray(m)) _.forEach([...m, ...rest], (_m) => handleMod(_m))
-      else handleMod(m)
-    })
-
-    return this
-  }
-
-  unuse(mod: T.IResolver) {
-    if (mod instanceof Resolver) {
-      if (mod.internal) {
-        throw new Error('Internal resolvers cannot be removed')
-      }
-      if (this.#resolvers.includes(mod)) {
-        this.#resolvers = _.filter(this.#resolvers, (r) => r !== mod)
-      }
-    }
-    return this
-  }
-
-  reset(opts?: { keepCallbacks?: boolean } = {}) {
-    this.#root = {}
-    this.#parser = makeRootsParser({ roots: this.#root })
-    this.#state = _createState()
-    if (!opts.keepCallbacks) {
-      this.#cb = { action: [], builtIn: [], chaining: [] }
-    }
-    return this
-  }
-
-  createSrc(
-    path: T.EmitActionObject,
-    component?: T.IComponentTypeInstance,
+  createSrc<O extends T.EmitObject>(
+    path: O,
+    component?: Component,
   ): string | Promise<string>
-  createSrc(
-    path: T.IfObject,
-    component?: T.IComponentTypeInstance,
+  createSrc<O extends T.IfObject>(
+    path: O,
+    component?: Component,
   ): string | Promise<string>
-  createSrc(
-    path: string,
-    component?: T.IComponentTypeInstance,
+  createSrc<S extends string>(
+    path: S,
+    component?: Component,
   ): string | Promise<string>
-  createSrc(
-    path: string | T.EmitActionObject | T.IfObject,
-    component?: T.IComponentTypeInstance,
-  ) {
+  createSrc(path: string | T.EmitObject | T.IfObject, component?: Component) {
     log.func('createSrc')
-    if (isDraft(path)) path = original(path)
+    // TODO - fix this in the component constructor so we can remove this
+    if (isDraft(path)) path = original(path) as typeof path
 
     if (path) {
       // Plain strings
@@ -588,82 +292,43 @@ class NOODL implements T.INOODLUi {
         return resolveAssetUrl(path, this.assetsUrl)
       }
       // "If" object evaluation
-      else if (path.if) {
-        path = evalIf((val: any) => {
-          if (isNOODLBoolean(val)) return isBooleanTrue(val)
-          if (typeof val === 'function') {
-            if (component) {
-              return val(
-                findDataObject({
-                  component,
-                  dataKey: component.get('dataKey'),
-                  pageObject: this.getPageObject(this.page),
-                }),
-              )
-            } else {
+      else if (isIfObj(path)) {
+        return resolveAssetUrl(
+          evalIf((val: any) => {
+            if (isNOODLBoolean(val)) return isBooleanTrue(val)
+            if (typeof val === 'function') {
+              if (component) return val(findListDataObject(component))
               return val()
             }
-          }
-          return !!val
-        }, path as T.IfObject)
-        return resolveAssetUrl(path as string, this.assetsUrl)
+            return !!val
+          }, path as T.IfObject),
+          this.assetsUrl,
+        )
       }
       // Emit object evaluation
       else if (isEmitObj(path)) {
-        if (component) {
-          let onPath = (info: {
-            before: string
-            after: string
-            component: typeof component
-          }) => {
-            log.func('onPath')
-            log.grey(`onPath called on path result`, info)
-            component?.off('path', onPath)
-            onPath = undefined as any
-          }
-          component?.on('path', onPath)
-        }
-
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
 
         if (typeof obj?.fn === 'function') {
           const emitObj = { ...path, actionType: 'emit' } as T.EmitActionObject
-          const emitAction = new EmitAction(emitObj, { trigger: 'path' })
-          const pageObject = this.getPageObject(this.page)
-          let dataObject: any
+          const emitAction = new EmitAction(emitObj, {
+            iteratorVar: component?.get('iteratorVar'),
+            trigger: 'path',
+          })
+          emitAction.setDataKey(
+            createEmitDataKey(
+              emitObj.emit.dataKey,
+              [
+                findListDataObject(component),
+                () => this.getPageObject(this.page),
+                () => this.#getRoot(),
+              ],
+              { iteratorVar: emitAction.iteratorVar },
+            ),
+          )
 
-          if (_.isPlainObject(path.emit.dataKey)) {
-            _.forEach(_.keys(path.emit.dataKey), (property) => {
-              const keyPath = path.emit.dataKey[property]
-              if (typeof keyPath === 'string') {
-                dataObject = findDataObject({
-                  component,
-                  dataKey: keyPath,
-                  pageObject,
-                  root: this.actionsContext?.noodl?.root || this.root,
-                })
-              }
-              emitAction.setDataKeyValue(property, dataObject)
-            })
-          }
-
-          if (path.emit.dataKey) {
-            emitAction.set(
-              'dataKey',
-              createEmitDataKey(path.emit?.dataKey, dataObject),
-            )
-            log.grey(
-              `Data key finalized for path emit`,
-              emitAction.getSnapshot(),
-            )
-          }
-
-          emitAction
-            .set('dataObject', dataObject)
-            .set('iteratorVar', component?.get?.('iteratorVar'))
-          log.grey(`Data object set on emit`, dataObject)
-          log.grey(`iteratorVar set on emit`, component?.get('iteratorVar'))
+          log.grey(`Data key finalized for path emit`, emitAction.getSnapshot())
 
           emitAction['callback'] = async (snapshot) => {
             log.grey(`Executing emit action callback`, snapshot)
@@ -678,75 +343,56 @@ class NOODL implements T.INOODLUi {
             const result = await Promise.race(
               callbacks.map((obj) =>
                 obj?.fn?.(
+                  // Instance
                   emitAction,
+                  // Options
                   this.getConsumerOptions({
-                    assetsUrl: this.assetsUrl,
-                    component: component as T.IComponentTypeInstance,
-                    // createSrc: this.createSrc,
+                    component,
                     path,
-                    snapshot,
                   }),
+                  // Action context
                   this.actionsContext,
                 ),
               ),
             )
 
-            // TODO - implement other scenarios
-            if (Array.isArray(result)) {
-              if (result.length) {
-                //
-              }
-              return result[0]
-            }
-            return result || ''
+            return (Array.isArray(result) ? result[0] : result) || ''
           }
 
           // Result returned should be a string type
-          let result = emitAction.execute(path)
+          let result = emitAction.execute(path) as string | Promise<string>
+          let finalizedRes = ''
 
           log.grey(`Result received from emit action`, emitAction.getSnapshot())
 
           if (isPromise(result)) {
-            log.grey(`Result is a promise`)
-            // Turn this into an EmitAction
-            // const emitAction = new EmitAction(path, { trigger: 'path' })
-            // emitAction.callback = (...args) => Promise.resolve(...args)
             return result
               .then((res) => {
-                let finalizedRes: string
                 if (typeof res === 'string' && res.startsWith('http')) {
                   finalizedRes = res
-                  log.grey(`Result is prefixed with http`, res)
                 } else {
                   finalizedRes = resolveAssetUrl(String(res), this.assetsUrl)
-                  log.grey(`Result was not prefixed with http.`, {
-                    before: res,
-                    after: finalizedRes,
-                  })
                 }
                 log.grey(`Resolved promise with: `, finalizedRes)
-                component?.emit('path', { component, result: finalizedRes })
+                component?.emit('path', finalizedRes)
                 return finalizedRes
               })
               .catch((err) => Promise.reject(err))
           } else if (result) {
-            log.grey(`Result was NOT a promise`)
             if (typeof result === 'string' && result.startsWith('http')) {
+              finalizedRes = result
+              component?.emit('path', finalizedRes)
               return result
             }
-            return resolveAssetUrl(result, this.assetsUrl)
+            finalizedRes = resolveAssetUrl(result, this.assetsUrl)
+            component?.emit('path', finalizedRes)
           }
         }
       }
       // Assuming we are passing in a dataObject
       else if (typeof path === 'function') {
         if (component) {
-          const dataObject: any = findDataObject({
-            component,
-            dataKey: component.get('dataKey'),
-            pageObject: this.getPageObject(this.page),
-            root: this.root,
-          })
+          const dataObject: any = findListDataObject(component)
           // Assuming it is a component retrieving its value from a dataObject
           if (component.get?.('iteratorVar')) {
             path = evalIf((fn, val1, val2) => {
@@ -786,11 +432,398 @@ class NOODL implements T.INOODLUi {
             { component, path },
           )
         }
-        return resolveAssetUrl(path, this.assetsUrl)
+        return resolveAssetUrl(path, this.#getAssetsUrl())
       }
     }
 
     return ''
+  }
+
+  #createFetch = (fetchFn: T.Fetch | undefined): T.Fetch => {
+    if (fetchFn) {
+      this.#fetch = fetchFn
+      return this.#fetch
+    }
+    return (typeof window !== 'undefined'
+      ? (...args) =>
+          window
+            .fetch?.(...(args as Parameters<Window['fetch']>))
+            .then((response) => response.json())
+      : (_.noop as Window['fetch'])) as T.Fetch
+  }
+
+  plugins(location?: T.PluginLocation) {
+    switch (location) {
+      case 'head':
+        return this.getState().plugins.head
+      case 'body-top':
+        return this.getState().plugins.body.top
+      case 'body-bottom':
+        return this.getState().plugins.body.bottom
+      default:
+        return this.getState().plugins
+    }
+  }
+
+  setPlugin(value: string | T.PluginObject) {
+    if (!value) return
+    const plugin: PluginObject = this.#createPluginObject(value)
+    if (plugin.location === 'head') {
+      this.#state.plugins.head.push(plugin)
+    } else if (plugin.location === 'body-top') {
+      this.#state.plugins.body.top.push(plugin)
+    } else if (plugin.location === 'body-bottom') {
+      this.#state.plugins.body.bottom.push(plugin)
+    }
+    return plugin
+  }
+
+  #createPluginObject = (plugin: string | T.PluginObject): T.PluginObject => {
+    return typeof plugin === 'string'
+      ? {
+          location: 'head',
+          content: '',
+          url: plugin,
+        }
+      : Object.assign(
+          {},
+          plugin,
+          !plugin.location ? { location: 'head' } : undefined,
+        )
+  }
+
+  on(
+    eventName: T.EventId,
+    cb: (
+      noodlComponent: T.ComponentObject,
+      args: {
+        component: Component
+        parent?: Component | null
+      },
+    ) => void,
+  ) {
+    if (_.isString(eventName)) this.#addCb(eventName, cb)
+    return this
+  }
+
+  off(eventName: T.EventId, cb: T.ComponentEventCallback) {
+    if (_.isString(eventName)) this.#removeCb(eventName, cb)
+    return this
+  }
+
+  // emit(eventName: T.NOODLComponentEventId, cb: T.ComponentEventCallback): void
+  emit(eventName: T.EventId, ...args: Parameters<T.ComponentEventCallback>) {
+    if (_.isString(eventName)) {
+      const path = this.#getCbPath(eventName)
+      if (path) {
+        let cbs = _.get(this.#cb, path) as Function[]
+        if (!_.isArray(cbs)) cbs = cbs ? [cbs] : []
+        _.forEach(cbs, (cb) => cb(...args))
+      }
+    }
+    return this
+  }
+
+  #getCbPath = (key: T.EventId | 'action' | 'chaining' | 'all') => {
+    let path = ''
+    if (key === 'all') {
+      path = 'component.all'
+    } else if (key in this.#cb) {
+      path = key
+    } else if (key in this.#cb.action) {
+      path = `action.${key}`
+    } else if (key in this.#cb.builtIn) {
+      path = `builtIn.${key}`
+    } else if (key in this.#cb.chaining) {
+      path = `chaining.${key}`
+    }
+    return path
+  }
+
+  // Temp here for debugging
+  getCbs() {
+    return this.#cb
+  }
+
+  removeCbs(actionType: string, funcName?: string) {
+    if (this.#cb.action[actionType]) this.#cb.action[actionType].length = 0
+    if (actionType === 'builtIn' && funcName) {
+      if (this.#cb.builtIn[funcName]) this.#cb.builtIn[funcName].length = 0
+    }
+    return this
+  }
+
+  #addCb = (
+    key: T.IAction | T.EventId,
+    cb:
+      | T.ActionChainActionCallback
+      | string
+      | { [key: string]: T.ActionChainActionCallback },
+    cb2?: T.ActionChainActionCallback,
+  ) => {
+    if (key instanceof Action) {
+      if (!_.isArray(this.#cb.action[key.actionType])) {
+        this.#cb.action[key.actionType] = []
+      }
+      this.#cb.action[key.actionType].push(key)
+    } else if (key === 'builtIn') {
+      if (_.isString(cb)) {
+        const funcName = cb
+        const fn = cb2 as T.ActionChainActionCallback
+        if (!_.isArray(this.#cb.builtIn[funcName])) {
+          this.#cb.builtIn[funcName] = []
+        }
+        this.#cb.builtIn[funcName]?.push(fn)
+      } else if (_.isPlainObject(cb)) {
+        forEachEntries(
+          cb as { [key: string]: T.ActionChainActionCallback },
+          (key, value) => {
+            const funcName = key
+            const fn = value
+            if (!_.isArray(this.#cb.builtIn[funcName])) {
+              this.#cb.builtIn[funcName] = []
+            }
+            if (!this.#cb.builtIn[funcName]?.includes(fn)) {
+              this.#cb.builtIn[funcName]?.push(fn)
+            }
+          },
+        )
+      }
+    } else {
+      const path = this.#getCbPath(key as any)
+      if (path) {
+        if (!_.isArray(this.#cb[path])) this.#cb[path] = []
+        this.#cb[path].push(cb as T.ActionChainActionCallback)
+      }
+    }
+    return this
+  }
+
+  #removeCb = (key: T.EventId, cb: Function) => {
+    const path = this.#getCbPath(key)
+    if (path) {
+      const cbs = _.get(this.#cb, path)
+      if (_.isArray(cbs)) {
+        if (cbs.includes(cb)) {
+          _.set(
+            this.#cb,
+            path,
+            _.filter(cbs, (fn) => fn !== cb),
+          )
+        }
+      }
+    }
+    return this
+  }
+
+  init({
+    _log = true,
+    actionsContext,
+    getAssetsUrl,
+    getRoot,
+    viewport,
+  }: { _log?: boolean; actionsContext?: NOODL['actionsContext'] } & {
+    getAssetsUrl?: () => string
+    getRoot?: () => T.Root
+    viewport?: Viewport
+  } = {}) {
+    if (!_log) Logger.disable()
+    if (actionsContext) _.assign(this.actionsContext, actionsContext)
+    if (getAssetsUrl) this.#getAssetsUrl = getAssetsUrl
+    if (getRoot) this.#getRoot = getRoot
+    if (viewport) this.setViewport(viewport)
+    this.initialized = true
+    return this
+  }
+
+  getBaseStyles(styles?: T.Style) {
+    return {
+      ...this.#getRoot().Style,
+      position: 'absolute',
+      outline: 'none',
+      ...styles,
+    }
+  }
+
+  getActionsContext() {
+    return Object.assign({}, this.actionsContext)
+  }
+
+  getContext() {
+    return {
+      assetsUrl: this.assetsUrl,
+      page: this.page,
+    }
+  }
+
+  getEmitHandlers(
+    trigger: T.ActionChainEmitTrigger | T.ResolveEmitTrigger,
+  ): T.ActionChainUseObjectBase<any, any>[]
+  getEmitHandlers(
+    trigger: (handlers: T.ActionChainUseObjectBase<any, any>) => boolean,
+  ): T.ActionChainUseObjectBase<any, any>[]
+  getEmitHandlers(
+    trigger?:
+      | (T.ActionChainEmitTrigger | T.ResolveEmitTrigger)
+      | ((handlers: T.ActionChainUseObjectBase<any, any>) => boolean),
+  ) {
+    const handlers = this.#cb.action.emit || []
+    if (!arguments.length) {
+      return handlers
+    }
+    if (trigger) {
+      if (typeof trigger === 'string') {
+        return handlers.filter((o) => o.trigger === trigger)
+      } else if (typeof trigger === 'function') {
+        return handlers.filter((o) => trigger(o))
+      }
+    }
+    return handlers
+  }
+
+  getPageObject(page: string) {
+    return this.#getRoot()[page]
+  }
+
+  getStateHelpers() {
+    return {
+      ...this.getStateGetters(),
+      ...this.getStateSetters(),
+    }
+  }
+
+  getConsumerOptions({
+    component,
+    ...rest
+  }: {
+    component: Component
+    [key: string]: any
+  }) {
+    return {
+      component,
+      context: this.getContext(),
+      createActionChainHandler: (action, options) =>
+        this.createActionChainHandler(action, { ...options, component }),
+      createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
+      fetch: this.#fetch.bind(this),
+      getAssetsUrl: this.#getAssetsUrl.bind(this),
+      getBaseStyles: this.getBaseStyles.bind(this),
+      getResolvers: (() => this.#resolvers).bind(this),
+      getRoot: this.#getRoot.bind(this),
+      page: this.page,
+      resolveComponent: this.#resolve.bind(this),
+      resolveComponentDeep: this.resolveComponents.bind(this),
+      parser: this.parser,
+      showDataKey: this.#state.showDataKey,
+      viewport: this.viewport,
+      ...this.getStateGetters(),
+      ...this.getStateSetters(),
+      ...rest,
+    } as T.ConsumerOptions
+  }
+
+  getResolvers() {
+    return this.#resolvers.map((resolver) => resolver.resolve)
+  }
+
+  getState() {
+    return this.#state
+  }
+
+  getStateGetters() {
+    return {
+      getPageObject: this.getPageObject.bind(this),
+      getState: this.getState.bind(this),
+      plugins: this.plugins.bind(this),
+    }
+  }
+
+  getStateSetters() {
+    return {
+      setPlugin: this.setPlugin.bind(this),
+    }
+  }
+
+  setPage(pageName: string) {
+    this.#state['page'] = pageName
+    return this
+  }
+
+  setViewport(viewport: T.IViewport) {
+    this.#viewport = viewport
+    return this
+  }
+
+  use(resolver: Resolver | Resolver[]): this
+  use(action: T.ActionChainUseObject | T.ActionChainUseObject[]): this
+  use(viewport: T.IViewport): this
+  use(o: { fetch?: T.Fetch; getAssetsUrl?(): string; getRoot?(): T.Root }): this
+  use(
+    mod:
+      | Resolver
+      | T.ActionChainUseObject
+      | T.IViewport
+      | { getAssetsUrl?(): string; getRoot?(): T.Root }
+      | (Resolver | T.ActionChainUseObject | { getRoot(): T.Root })[],
+    ...rest: any[]
+  ) {
+    const mods = ((_.isArray(mod) ? mod : [mod]) as any[]).concat(rest)
+    const handleMod = (m: typeof mods[number]) => {
+      if (m) {
+        if ('funcName' in m) {
+          if (!_.isArray(this.#cb.builtIn[m.funcName])) {
+            this.#cb.builtIn[m.funcName] = []
+          }
+          this.#cb.builtIn[m.funcName].push(
+            ...(_.isArray(m.fn) ? m.fn : [m.fn]),
+          )
+        } else if ('actionType' in m) {
+          if (!_.isArray(this.#cb.action[m.actionType])) {
+            this.#cb.action[m.actionType] = []
+          }
+          const obj = { actionType: m.actionType, fn: m.fn } as any
+          if ('context' in m) obj['context'] = m.context
+          if ('trigger' in m) obj['trigger'] = m.trigger
+          this.#cb.action[m.actionType]?.push(obj)
+        } else if (m instanceof Viewport) {
+          this.setViewport(m)
+        } else if (m instanceof Resolver) {
+          this.#resolvers.push(m)
+        } else if ('fetch' in m || 'getAssetsUrl' in m || 'getRoot' in m) {
+          if ('getAssetsUrl' in m) this.#getAssetsUrl = m.getAssetsUrl
+          if ('getRoot' in m) this.#getRoot = m.getRoot
+          if ('fetch' in m) this.#fetch = this.#createFetch(m.fetch)
+        }
+      }
+    }
+
+    _.forEach(mods, (m) => {
+      if (_.isArray(m)) _.forEach([...m, ...rest], (_m) => handleMod(_m))
+      else handleMod(m)
+    })
+
+    return this
+  }
+
+  unuse(mod: Resolver) {
+    if (mod instanceof Resolver) {
+      if (mod.internal) {
+        throw new Error('Internal resolvers cannot be removed')
+      }
+      if (this.#resolvers.includes(mod)) {
+        this.#resolvers = _.filter(this.#resolvers, (r) => r !== mod)
+      }
+    }
+    return this
+  }
+
+  reset(opts: { keepCallbacks?: boolean; keepPlugins?: boolean } = {}) {
+    this.#parser = makeRootsParser({ root: this.#getRoot() })
+    this.#state = _createState()
+    if (!opts.keepCallbacks) {
+      this.#cb = { action: [], builtIn: [], chaining: [] } as any
+    }
+    return this
   }
 }
 

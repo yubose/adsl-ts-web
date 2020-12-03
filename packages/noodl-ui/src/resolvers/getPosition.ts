@@ -5,9 +5,8 @@ import { ResolverFn } from '../types'
 /**
  * Returns attributes according to NOODL position properties like 'top', 'left'
  */
-const getPosition: ResolverFn = (component, { context }) => {
-  if (!context.viewport) return
-  const { viewport } = context
+const getPosition: ResolverFn = (component, { viewport }) => {
+  if (!viewport) return
   const { style } = component
 
   if (style) {

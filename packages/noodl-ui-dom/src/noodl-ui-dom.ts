@@ -1,13 +1,13 @@
 import Logger from 'logsnap'
 import {
   createComponent,
-  getType,
-  IComponentTypeInstance,
-  IComponentTypeObject,
-  IListItem,
-  NOODLComponentType,
+  getTagName,
+  Component,
+  ComponentObject,
+  ListItem,
+  ComponentType,
 } from 'noodl-ui'
-import { findDataObject, isEmitObj, publish } from 'noodl-utils'
+import { isEmitObj, publish } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
 import {
   componentEventMap,
@@ -30,15 +30,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
-  #state: {
-    pairs: {
-      [componentId: string]: {
-        component: IComponentTypeInstance
-        node: HTMLElement | null
-        shape: Partial<IComponentTypeObject>
-      }
-    }
-  } = { pairs: {} }
+  #state: {} = {}
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
     // Logger[log?.enabled ? 'enable' : 'disable']?.()
@@ -47,15 +39,15 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
-   * @param { IComponentTypeInstance } props
+   * @param { Component } props
    */
-  parse<C extends IComponentTypeInstance>(
+  parse<C extends Component>(
     component: C,
     container?: T.NOODLDOMElement | null,
   ) {
     let node: T.NOODLDOMElement | null = null
 
-    const { noodlType } = component || ({} as IComponentTypeInstance)
+    const { noodlType } = component || ({} as Component)
 
     if (component) {
       if (noodlType === 'plugin') {
@@ -66,13 +58,17 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         this.emit('plugin', null, component)
       } else {
         if (component.noodlType === 'image') {
+          component.on('path', (result: string) => {
+            node.src = result
+          })
+          // console.info(component.get('path'))
           node = isEmitObj(component.get('path'))
-            ? createAsyncImageElement(container || document.body, () =>
-                component.get('src'),
-              )
+            ? createAsyncImageElement(container || document.body, {
+                onLoad: () => {},
+              })
             : document.createElement('img')
         } else {
-          node = document.createElement(getType(component))
+          node = document.createElement(getTagName(component))
         }
 
         if (node) {
@@ -83,7 +79,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             const listObject = listComponent.getData()
             const numDataObjects = listObject?.length || 0
             if (numDataObjects) {
-              listComponent.children().forEach((c: IListItem) => {
+              listComponent.children().forEach((c: ListItem) => {
                 c?.setDataObject?.(null)
                 listComponent.removeDataObject(0)
               })
@@ -96,13 +92,13 @@ class NOODLUIDOM implements T.INOODLUiDOM {
             }
           }
           this.emit('component', node, component)
-          if (componentEventMap[noodlType as NOODLComponentType]) {
+          if (componentEventMap[noodlType as ComponentType]) {
             this.emit(componentEventMap[noodlType], node, component)
           }
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
-            component.children().forEach((child: IComponentTypeInstance) => {
+            component.children().forEach((child: Component) => {
               const childNode = this.parse(child, node) as HTMLElement
               node?.appendChild(childNode)
             })
@@ -116,35 +112,37 @@ class NOODLUIDOM implements T.INOODLUiDOM {
 
   redraw(
     node: HTMLElement | null, // ex: li (dom node)
-    component: IComponentTypeInstance, // ex: listItem (component instance)
-    opts?: {
+    component: Component, // ex: listItem (component instance)
+    {
+      dataObject,
+      ...opts
+    }: {
       dataObject?: any
       resolver?: (
-        noodlComponent: IComponentTypeObject | IComponentTypeObject[],
-      ) => IComponentTypeInstance
-      viewTag?: string
-    },
+        noodlComponent: ComponentObject | ComponentObject[],
+      ) => Component
+    } = {},
   ) {
     log.func('redraw')
 
+    if (!opts?.resolver) {
+      console.error(
+        `%cNo resolver was provided for redraw. The DOM nodes will be empty`,
+        { node, component, ...opts },
+      )
+    }
+
     let newNode: HTMLElement | null = null
-    let newComponent: IComponentTypeInstance | undefined
+    let newComponent: Component | undefined
 
     if (component) {
-      const parent = component.parent()
+      const parent = component.parent?.()
       const shape = getShape(component)
-      let dataObject: any
 
       // Clean up noodl-ui listeners
       component.clearCbs?.()
-      // Remove the child reference from the parent
-      parent?.removeChild?.(component)
+
       if (parent?.noodlType === 'list') {
-        dataObject = component.getDataObject?.() || opts?.dataObject
-        console.info(
-          `Removing previous dataObject from listItem redrawee`,
-          dataObject,
-        )
         dataObject && parent.removeDataObject(dataObject)
       }
       // Remove the parent reference
@@ -153,6 +151,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       publish(component, (c) => {
         if (c) {
           const cParent = c.parent?.()
+          log.gold(`cParent`, cParent)
           // Remove listeners
           c.clearCbs()
           // Remove child component references
@@ -164,46 +163,28 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       // Create the new component
       newComponent = createComponent(shape)
       if (dataObject && newComponent?.noodlType === 'listItem') {
-        console.info(
-          `Restoring dataObject on new redrawed listItem`,
-          dataObject,
-        )
+        // Set the original dataObject on the new component instance if available
         newComponent.setDataObject?.(dataObject)
       }
       if (parent && newComponent) {
-        // Set the original dataObject on the new component instance if available
-        if (component?.noodlType === 'listItem') {
-          newComponent.setDataObject?.(opts?.dataObject)
-        }
         // Set the original parent on the new component
         newComponent.setParent(parent)
+        // Remove the child reference from the parent
+        parent?.removeChild?.(component)
         // Set the new component as a child on the parent
         parent.createChild(newComponent)
         // Run the resolver if provided
         // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
-        opts?.resolver?.(newComponent)
+        newComponent = opts?.resolver?.(newComponent) || newComponent
       } else if (newComponent) {
         // log --> !parent || !newComponent
-        opts?.resolver?.(newComponent)
+        newComponent = opts?.resolver?.(newComponent) || newComponent
       }
     }
 
     if (node) {
-      // Delete the node tree
-      node.innerHTML = ''
       const parentNode = node.parentNode
-      if (newComponent?.noodlType === 'image') {
-        if (isEmitObj(newComponent.get('path'))) {
-          newNode = createAsyncImageElement(
-            (parentNode || document.body) as HTMLElement,
-            () => newComponent?.get('src'),
-          )
-        } else {
-          // newNode = document.createElement('img')
-          newNode = this.parse(newComponent, parentNode || document.body)
-        }
-      } else if (newComponent) {
-        // newNode = document.createElement(getType(newComponent))
+      if (newComponent) {
         newNode = this.parse(newComponent, parentNode || document.body)
       }
 
@@ -218,41 +199,18 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           })
         }
         if (parentNode.contains(node) && newNode) {
-          console.info(`Replacing old childNode with new childNode`, {
-            old: node,
-            new: newNode,
-            oldId: node.id,
-            newId: newNode.id,
-          })
           parentNode.replaceChild(newNode as HTMLElement, node)
-          node.remove()
         } else if (newNode) {
-          console.info(
-            `Inserting new childNode to parent instead of replacing`,
-            { newNode },
-          )
           parentNode.insertBefore(
             newNode as HTMLElement,
             parentNode.childNodes[0],
           )
         }
       }
-
-      this.emit('component', newNode, newComponent as IComponentTypeInstance)
-      this.emit(
-        componentEventMap[newComponent.noodlType],
-        newNode,
-        newComponent as IComponentTypeInstance,
-      )
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.emit('component', null, newComponent as IComponentTypeInstance)
-      this.emit(
-        componentEventMap[newComponent.noodlType],
-        null,
-        newComponent as IComponentTypeInstance,
-      )
+      this.parse(newComponent)
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]
@@ -265,10 +223,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    */
   on(
     eventName: T.NOODLDOMEvent,
-    callback: (
-      node: T.NOODLDOMElement | null,
-      component: IComponentTypeInstance,
-    ) => void,
+    callback: (node: T.NOODLDOMElement | null, component: Component) => void,
   ) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) callbacks.push(callback)
@@ -300,7 +255,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   emit<E extends string = T.NOODLDOMEvent>(
     eventName: E,
     node: T.NOODLDOMElement | null,
-    component: IComponentTypeInstance,
+    component: Component,
   ) {
     const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
     if (Array.isArray(callbacks)) {
@@ -329,53 +284,8 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     return null
   }
 
-  getPair(componentId: string) {
-    return this.#state.pairs[componentId]
-  }
-
   getState() {
     return this.#state
-  }
-
-  /**
-   * "Redraws" the DOM element tree starting from "node"
-   * @param { HTMLElement | null } node - DOM node
-   * @param { IComponentTypeInstance } component - noodl-ui component instance
-   */
-  redraw_backup(
-    node: HTMLElement | null, // ex: li (dom node)
-    component: IComponentTypeInstance, // ex: listItem (component instance)
-  ) {
-    log.func('redraw')
-
-    // Redraw the current node
-    this.emit(componentEventMap.all, node, component)
-    this.emit(componentEventMap[component?.noodlType], node, component)
-
-    publish(component, (c) => {
-      const childNode = document.getElementById(c?.id)
-      if (childNode) {
-        log.grey('CALLING REDRAW FOR PAIRED CHILD NODE / CHILD COMPONENT', {
-          baseNode: node,
-          baseComponent: component,
-          currentNode: childNode,
-          currentComponent: c,
-        })
-        // Redraw the child
-        this.emit(componentEventMap.all, childNode, c)
-        this.emit(componentEventMap[c?.noodlType], childNode, c)
-      } else {
-        log.grey(
-          'WAS NOT ABLE TO FIND PAIRED CHILD NODE / CHILD COMPONENT FOR A REDRAW',
-          {
-            baseNode: node,
-            baseComponent: component,
-            currentNode: childNode,
-            currentComponent: c,
-          },
-        )
-      }
-    })
   }
 
   /**

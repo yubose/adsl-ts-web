@@ -1,9 +1,9 @@
 import _ from 'lodash'
-import { NOODLComponentProps } from 'noodl-ui'
+import { ProxiedComponent } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
-import { RoomParticipant } from 'app/types'
-import Stream from 'meeting/Stream'
-import Substreams from 'meeting/Substreams'
+import { RoomParticipant } from '../app/types'
+import Stream from '../meeting/Stream'
+import Substreams from '../meeting/Substreams'
 
 class MeetingStreams {
   #mainStream: Stream
@@ -41,7 +41,7 @@ class MeetingStreams {
 
   createSubStreamsContainer(
     container: NOODLDOMElement,
-    props: NOODLComponentProps,
+    props: ProxiedComponent,
   ) {
     this.#subStreams = new Substreams(container, props)
     return this.#subStreams

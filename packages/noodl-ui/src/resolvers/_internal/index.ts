@@ -1,12 +1,9 @@
 import _ from 'lodash'
-import Logger from 'logsnap'
+import Component from '../../components/Base'
 import handleList from './handleList'
 import handleTextboard from './handleTextboard'
 import Resolver from '../../Resolver'
 import { _resolveChildren } from './helpers'
-import { IComponentTypeInstance, IList } from '../../types'
-
-const log = Logger.create('_internalResolver')
 
 /**
  * These resolvers are used internally by the lib. They handle all the logic
@@ -16,18 +13,16 @@ const log = Logger.create('_internalResolver')
 const _internalResolver = new Resolver()
 
 _internalResolver.setResolver((component, options) => {
-  const { resolveComponent } = options
-
   /**
    * Deeply parses every child node in the tree
-   * @param { IComponentTypeInstance } c
+   * @param { Component } c
    */
-  const resolveChildren = (c: IComponentTypeInstance) => {
+  const resolveChildren = (c: Component) => {
     _resolveChildren(c, {
-      onResolve: (child) => {
+      onResolve: (child: any) => {
         if (child) {
           if (child.noodlType === 'list') {
-            return handleList(child as IList, options, _internalResolver)
+            return handleList(child, options, _internalResolver)
           }
           if (child.get('textBoard')) {
             return handleTextboard(child, options, _internalResolver)
@@ -35,7 +30,7 @@ _internalResolver.setResolver((component, options) => {
           return resolveChildren(child)
         }
       },
-      resolveComponent,
+      resolveComponent: options.resolveComponent,
     })
   }
 

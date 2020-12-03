@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { NOODLComponent, NOODLComponentProps } from 'noodl-ui'
+import { NOODLComponent, ProxiedComponent } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
 import { RoomParticipant } from 'app/types'
@@ -14,7 +14,7 @@ class MeetingSubstreams {
   blueprint: Partial<NOODLComponent> = {} // Experimental
   container: NOODLDOMElement
 
-  constructor(container: NOODLDOMElement, props: NOODLComponentProps) {
+  constructor(container: NOODLDOMElement, props: ProxiedComponent) {
     this.container = container
     this.blueprint = props?.blueprint
   }

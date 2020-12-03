@@ -297,7 +297,7 @@ async function runEvaluators({
 
     const noodlEvaluators = new NOODLEvaluator()
     noodlEvaluators.setRoot(root)
-    log.green('Appended the roots for incoming evaluations')
+    log.green('Appended the root for incoming evaluations')
     log.blank()
 
     let evaluatorCount = 0

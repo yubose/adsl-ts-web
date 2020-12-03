@@ -7,42 +7,22 @@
 import {
   eventTypes,
   Component,
-  IComponentTypeInstance,
-  IComponentTypeObject,
+  ComponentObject,
+  ComponentType,
   NOODLComponent,
-  NOODLComponentType,
 } from 'noodl-ui'
-import { publish, walkOriginalChildren } from 'noodl-utils'
-
-//     while (parts.length) {
-//       const part = parts.shift()
-//       if (part) {
-//         prev = obj
-//         obj = obj?.[part]
-//         if (!obj) {
-//           prev = []
-//         }
-//       }
-//     }
-//   }
-// }
 
 export function createAsyncImageElement(
   container: HTMLElement,
-  src?: (() => string) | string,
-  opts?: { onLoad?(): void; timeout?: number },
+  opts?: { onLoad?(event: Event): void; timeout?: number },
 ) {
   let node = new Image()
-  node.onload = () => {
+  node.onload = (event) => {
     if (!container) container = document.body
-    opts?.onLoad?.()
     container.insertBefore(node as HTMLImageElement, container.childNodes[0])
-    node && (node.onload = undefined)
+    opts?.onLoad?.(event)
+    // node && (node.onload = null)
   }
-  setTimeout(
-    () => void (node.src = typeof src === 'function' ? src() : src || ''),
-    typeof opts?.timeout === 'number' ? opts.timeout : 10,
-  )
   return node
 }
 
@@ -71,33 +51,29 @@ export const get = <T = any>(o: T, k: string) => {
 
 /**
  *
- * @param { IComponentTypeInstance | IComponentTypeObject | NOODLComponentType } component - NOODL component object, instance, or type
+ * @param { Component | ComponentObject | ComponentType } component - NOODL component object, instance, or type
  */
 export function getShape(
-  component: IComponentTypeInstance,
-  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
-): IComponentTypeObject
+  component: Component,
+  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
+): ComponentObject
 export function getShape(
-  noodlComponent: IComponentTypeObject,
-  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
-): IComponentTypeObject
+  noodlComponent: ComponentObject,
+  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
+): ComponentObject
 export function getShape(
-  componentType: NOODLComponentType,
-  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
-): IComponentTypeObject
+  componentType: ComponentType,
+  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
+): ComponentObject
 export function getShape(
-  components: (
-    | IComponentTypeInstance
-    | IComponentTypeObject
-    | NOODLComponentType
-  )[],
-  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
-): IComponentTypeObject
+  components: (Component | ComponentObject | ComponentType)[],
+  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
+): ComponentObject
 export function getShape(
-  component: IComponentTypeInstance | IComponentTypeObject | NOODLComponentType,
-  opts?: { parent?: IComponentTypeObject; shapeKeys?: string[] },
-): IComponentTypeObject {
-  const shape = {} as IComponentTypeObject
+  component: Component | ComponentObject | ComponentType,
+  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
+): ComponentObject {
+  const shape = {} as ComponentObject
   let shapeKeys = getShapeKeys()
   if (opts?.parent) {
     shapeKeys = shapeKeys.concat(
@@ -105,7 +81,7 @@ export function getShape(
         opts.parent,
         component instanceof Component
           ? component.original
-          : (component as IComponentTypeObject),
+          : (component as ComponentObject),
       ),
     )
   }
@@ -120,14 +96,14 @@ export function getShape(
   } else if (Array.isArray(component)) {
     return component.map((c) => getShape(c, opts))
   } else if (component && typeof component === 'object') {
-    const noodlComponent = component as IComponentTypeObject
+    const noodlComponent = component as ComponentObject
     // The noodl yml may also place the value of iteratorVar as a property
     // as an empty string. So we include the value as a property to keep as well
     shapeKeys.forEach((key) => {
       if (key in noodlComponent) {
         if (key === 'children') {
           shape.children = Array.isArray(noodlComponent.children)
-            ? (noodlComponent.children as IComponentTypeObject[])?.map(
+            ? (noodlComponent.children as ComponentObject[])?.map(
                 (noodlChild) => {
                   return getShape(noodlChild, {
                     ...opts,
@@ -182,8 +158,8 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
 }
 
 export function getDynamicShapeKeys(
-  noodlParent: IComponentTypeObject,
-  noodlChild: IComponentTypeObject,
+  noodlParent: ComponentObject,
+  noodlChild: ComponentObject,
 ) {
   const shapeKeys = [] as string[]
   if (noodlParent?.iteratorVar) {

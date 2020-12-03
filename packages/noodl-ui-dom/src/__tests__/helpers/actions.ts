@@ -2,7 +2,7 @@ import {
   ActionChainActionCallbackOptions,
   getDataObjectValue,
   IAction,
-  IListItem,
+  ListItem,
   EmitActionObject,
 } from 'noodl-ui'
 import { findParent } from 'noodl-utils'
@@ -50,7 +50,7 @@ export const emit = async (
         const listItem = findParent(
           component,
           (parent) => parent?.noodlType === 'listItem',
-        ) as IListItem | null
+        ) as ListItem | null
 
         if (listItem) {
           dataObject = listItem.getDataObject?.()
@@ -94,7 +94,7 @@ export const emit = async (
               const listItem = findParent(
                 component,
                 (parent) => parent?.noodlType === 'listItem',
-              ) as IListItem | null
+              ) as ListItem | null
               // console.info(findParent(component, (p) => p.noodlType === 'list'))
               // console.info('------------------------------')
               // console.info('listItem', listItem)

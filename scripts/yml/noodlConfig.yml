@@ -1,0 +1,28 @@
+baseUrl: ${cadlBaseUrl}
+assetsUrl: ${cadlBaseUrl}assets/
+languageSuffix:
+  zh_CN: _cn
+  es_ES: _es
+  unknown: _en
+fileSuffix: .yml
+startPage: PatientDashboard
+preload:
+  - BaseDataModel
+  - BaseCSS
+  - BasePage
+  - BootNoodlForMobile
+  - PatientChartDM
+page:
+  - PatientChart
+  - PatientChartGeneralInfo
+  - PatientChartPastMedicalHistory
+  - PatientChartAddAllergies
+  - PatientChartObstetrical
+  - PatientChartImmunizations
+  - EmitRedraw
+  - Home
+  - Star
+  - TestPlugIn
+  - PatientDashboard
+  - PatientChartAddMedications
+  - PatientChartAddHospitalization

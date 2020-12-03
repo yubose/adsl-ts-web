@@ -1,25 +1,24 @@
 import _ from 'lodash'
 import { findChild, findParent } from 'noodl-utils'
-import { IComponent, IList, IComponentTypeInstance } from '../types'
-import ListComponent from '../components/List'
-import ListItemComponent from '../components/ListItem'
+import List from '../components/List'
+import ListItem from '../components/ListItem'
 import Component from '../components/Base'
 
 /**
  * Uses the value given to find a list corresponding to its relation.
  * Supports component id / instance
  * @param { Map } lists - Map of lists
- * @param { string | IComponentTypeInstance } component - Component id or instance
+ * @param { string | Component } component - Component id or instance
  */
 function findList(
-  lists: Map<IList, IList>,
-  component: string | IComponentTypeInstance,
+  lists: Map<List, List>,
+  component: string | Component,
 ): any[] | null {
   let result: any[] | null = null
 
   if (component) {
-    let listComponent: IList
-    let listComponents: IList[]
+    let listComponent: List
+    let listComponents: List[]
     let listSize = lists.size
 
     // Assuming it is a component's id, we will use this and traverse the whole list,
@@ -28,14 +27,14 @@ function findList(
       let child: any
       const componentId = component
       listComponents = Array.from(lists.values())
-      const fn = (c: IComponent) => !!c.id && c.id === componentId
+      const fn = (c: Component) => !!c.id && c.id === componentId
       for (let index = 0; index < listSize; index++) {
         listComponent = listComponents[index]
         if (listComponent.id === component) {
           result = listComponent.getData()
           break
         }
-        child = findChild(listComponent, fn)
+        child = findChild(listComponent as any, fn as any)
         if (child) {
           result = listComponent.getData?.()
           break
@@ -44,12 +43,12 @@ function findList(
     }
     // TODO - Unit tests were failing on this if condition below. Come back to this later
     // Directly return the data
-    else if (component instanceof ListComponent) {
+    else if (component instanceof List) {
       result = component.getData()
     }
     // List item components should always be direct children of ListComponents
-    else if (component instanceof ListItemComponent) {
-      result = (component.parent() as IList)?.getData?.()
+    else if (component instanceof ListItem) {
+      result = (component.parent() as List)?.getData?.()
     }
     // Regular components should not hold the list data or data objects, so we
     // will assume here that it is some nested child. We can get the list by
@@ -57,10 +56,10 @@ function findList(
     else if (component instanceof Component) {
       let parent: any
       listComponents = Array.from(lists.values())
-      const fn = (c: IComponent) => c === listComponent
+      const fn = (c: any) => c === listComponent
       for (let index = 0; index < listSize; index++) {
         listComponent = listComponents[index]
-        parent = findParent(component, fn)
+        parent = findParent(component as any, fn)
         if (parent) {
           result = parent.getData?.()
           break

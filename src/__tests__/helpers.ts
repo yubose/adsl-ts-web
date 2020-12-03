@@ -1,6 +1,6 @@
 import fs, { WriteOptions } from 'fs-extra'
 import path from 'path'
-import { IComponentTypeObject } from 'noodl-ui'
+import { ComponentObject } from 'noodl-ui'
 
 export function saveOutput(filepath: string, data: any, options: WriteOptions) {
   fs.writeJsonSync(path.resolve(path.join(process.cwd(), filepath)), data, {
@@ -12,8 +12,8 @@ export function saveOutput(filepath: string, data: any, options: WriteOptions) {
 export function getViewComponent({
   children,
   ...args
-}: Partial<IComponentTypeObject>) {
-  return { type: 'view', children, ...args } as Partial<IComponentTypeObject>
+}: Partial<ComponentObject>) {
+  return { type: 'view', children, ...args } as Partial<ComponentObject>
 }
 
 export function getListObject1(...args: any[]) {
@@ -32,7 +32,7 @@ export function getListComponent1({
   iteratorVar,
   listObject = getListObject1(),
   ...args
-}: Partial<IComponentTypeObject> = {}) {
+}: Partial<ComponentObject> = {}) {
   // We'll just only take the first 3 dataKeys for testing
   const dataKeys = Object.keys(listObject[0]).slice(0, 3)
   return {
@@ -68,7 +68,7 @@ export function getListComponent1({
       },
     ],
     ...args,
-  } as Partial<IComponentTypeObject>
+  } as Partial<ComponentObject>
 }
 
 export function getListItemWithEmit({

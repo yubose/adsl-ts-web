@@ -1,6 +1,6 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { getByDataUX, NOODLComponent, NOODLComponentProps } from 'noodl-ui'
+import { getByDataUX, NOODLComponent, ProxiedComponent } from 'noodl-ui'
 import { noodlui } from '../utils/test-utils'
 import Meeting from './Meeting'
 import Streams from './Streams'
@@ -19,7 +19,7 @@ const mockSubstreamsProps = noodlui.resolveComponents(
   getMockSubstreamsContainer(),
 )[0]
 
-const blueprint = mockSubstreamsProps?.blueprint as NOODLComponentProps
+const blueprint = mockSubstreamsProps?.blueprint as ProxiedComponent
 
 let streams: Streams
 let subStreams: Substreams

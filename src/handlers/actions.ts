@@ -10,21 +10,24 @@ import {
   getByDataUX,
   getDataValues,
   getDataObjectValue,
-  IActionChainUseObjectBase,
-  IComponentTypeInstance,
+  ActionChainUseObjectBase,
+  Component,
   IfObject,
   isReference,
-  NOODLActionType,
+  ActionType,
   PopupObject,
   PopupDismissObject,
   RefreshObject,
   SaveObject,
-  UpdateActionObject,
+  UpdateObject,
+  EmitObject,
 } from 'noodl-ui'
 import {
   createEmitDataKey,
   evalIf,
+  findListDataObject,
   findDataObject,
+  findDataValue,
   findParent,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
@@ -41,8 +44,8 @@ const log = Logger.create('actions.ts')
 
 const createActions = function ({ page }: { page: IPage }) {
   const _actions = {} as Record<
-    NOODLActionType,
-    Omit<IActionChainUseObjectBase<any>, 'actionType'>[]
+    ActionType,
+    Omit<ActionChainUseObjectBase<any>, 'actionType'>[]
   >
 
   _actions['anonymous'] = []
@@ -116,10 +119,7 @@ const createActions = function ({ page }: { page: IPage }) {
       } as any
 
       if (action.original.emit.dataKey) {
-        emitParams.dataKey = createEmitDataKey(
-          action.original.emit.dataKey,
-          findDataObject(component),
-        )
+        emitParams.dataKey = action.dataKey
       }
 
       const emitResult = await noodl.emitCall(emitParams)
@@ -174,27 +174,40 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - if src === assetsUrl
   // TODO - else if src endsWith
   _actions.emit.push({
-    fn: (action: EmitAction, options, { noodl } = {}) => {
+    fn: (
+      action: EmitAction,
+      options: ActionChainActionCallbackOptions & { path: EmitObject },
+      { noodl } = {},
+    ) => {
       log.func('path [emit]')
 
-      const { component, page, path } = options
-
-      log.grey(`Calling emitCall`, { action, options })
+      const {
+        component,
+        getAssetsUrl,
+        getRoot,
+        getPageObject,
+        page,
+        path,
+      } = options
 
       let dataObject
-      let iteratorVar = component.get('iteratorVar')
+      let iteratorVar = component.get('iteratorVar') || ''
       let emitParams
 
       // This is most likely expecting a dataObject
-      dataObject = findDataObject(component)
+      dataObject = findListDataObject(component)
 
       emitParams = {
         actions: path.emit.actions,
         pageName: page,
-      } as Partial<EmitActionObject>
+      } as any
 
       if (path.emit.dataKey) {
-        emitParams.dataKey = createEmitDataKey(path.emit.dataKey, dataObject)
+        emitParams.dataKey = createEmitDataKey(
+          path.emit.dataKey,
+          [dataObject, () => getPageObject(page), () => getRoot()],
+          { iteratorVar },
+        )
       }
 
       const logArgs = {
@@ -243,9 +256,10 @@ const createActions = function ({ page }: { page: IPage }) {
               `Received a(n) ${typeof result} from an evalObject`,
               logArgs,
             )
-            const newAction = ref.insertIntermediaryAction(result)
+            const newAction = ref.insertIntermediaryAction.call(ref, result)
             log.grey('newAction', { newAction, queue: ref.getQueue() })
             await newAction.execute(options)
+            return result
           }
         } else if ('if' in (action.original.object || {})) {
           const ifObj = action.original.object as IfObject
@@ -322,9 +336,9 @@ const createActions = function ({ page }: { page: IPage }) {
       if (_.isString(action?.original?.goto)) {
         log.gold('Requesting string destination', { action, options })
 
-        var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
+        var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
         page.pageUrl += pre
-        var parse = page.pageUrl.endsWith("?") ? "" : "-"
+        var parse = page.pageUrl.endsWith('?') ? '' : '-'
         if (action.original.goto !== noodl.cadlEndpoint.startPage) {
           page.pageUrl += parse
           page.pageUrl += action.original.goto
@@ -338,9 +352,9 @@ const createActions = function ({ page }: { page: IPage }) {
         if (action.original.destination || _.isString(action.original.goto)) {
           const url = action.original.destination || action.original.goto
 
-          var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
+          var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
           page.pageUrl += pre
-          var parse = page.pageUrl.endsWith("?") ? "" : "-"
+          var parse = page.pageUrl.endsWith('?') ? '' : '-'
           if (url !== noodl.cadlEndpoint.startPage) {
             page.pageUrl += parse
             page.pageUrl += url
@@ -532,7 +546,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.updateObject.push({
-    fn: async (action: Action<UpdateActionObject>, options, actionsContext) => {
+    fn: async (action: Action<UpdateObject>, options, actionsContext) => {
       const { abort, component, stateHelpers } = options
       const { default: noodl } = await import('../app/noodl')
       log.func('updateObject')
@@ -606,17 +620,17 @@ const createActions = function ({ page }: { page: IPage }) {
               typeof dataObject === 'string' &&
               dataObject.startsWith(iteratorVar)
             ) {
-              dataObject = findDataObject(component)
+              dataObject = findListDataObject(component)
               if (stateHelpers) {
                 const { getList } = stateHelpers
                 const listId = component.get('listId')
-                const listItemIndex = component.get('listItemIndex')
+                const listIndex = component.get('listIndex')
                 const list = getList(listId) || []
-                const listItem = list[listItemIndex]
+                const listItem = list[listIndex]
                 if (listItem) dataObject = listItem
                 log.salmon('', {
                   listId,
-                  listItemIndex,
+                  listIndex,
                   list,
                   listItem,
                 })

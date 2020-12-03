@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import sinon from 'sinon'
-import { IResolver, Resolver } from 'noodl-ui'
+import Logger from 'logsnap'
+import { Resolver, Viewport } from 'noodl-ui'
 import {
   assetsUrl,
   noodlui,
@@ -8,6 +9,12 @@ import {
   getAllResolvers,
   viewport,
 } from './test-utils'
+import { listen } from '../../../src/handlers/dom'
+import createBuiltInActions from '../../../src/handlers/builtIns'
+import Page from '../../../src/Page'
+
+const pageClient = new Page({ _log: false })
+const builtIns = createBuiltInActions({ page: pageClient })
 
 let logSpy: sinon.SinonStub
 
@@ -20,14 +27,25 @@ const root = {
 
 before(() => {
   console.clear()
+  // Logger.disable()
 
   noodlui
     .init({ _log: false, viewport })
-    .setAssetsUrl(assetsUrl)
-    .setRoot(page, root)
     .setPage(page)
+    .use({})
+    .use({
+      getAssetsUrl: () => assetsUrl,
+      getRoot: () => root,
+    })
+    .use(
+      // @ts-expect-error
+      _.map(_.entries({ redraw: builtIns.redraw }), ([funcName, fn]) => ({
+        funcName,
+        fn,
+      })),
+    )
 
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+  // logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
 
   try {
     Object.defineProperty(noodlui, 'cleanup', {
@@ -35,11 +53,7 @@ before(() => {
       enumerable: true,
       writable: true,
       value: function _cleanup() {
-        noodlui
-          .reset({ keepCallbacks: false })
-          .setAssetsUrl(assetsUrl)
-          .setRoot(page, root)
-          .setPage(page)
+        noodlui.reset({ keepCallbacks: true }).setPage(page)
       },
     })
   } catch (error) {
@@ -48,17 +62,18 @@ before(() => {
   _.forEach(getAllResolvers(), (r) => {
     const resolver = new Resolver()
     resolver.setResolver(r)
-    noodlui.use(resolver as IResolver)
+    noodlui.use(resolver as Resolver)
   })
 })
 
 after(() => {
-  logSpy.restore()
+  // logSpy.restore()
 })
 
 beforeEach(() => {
+  listen(noodluidom)
   // noodlui.init({ _log: false, viewport })
-  noodlui.setPage(page).setRoot(root)
+  noodlui.setPage(page)
 })
 
 afterEach(() => {

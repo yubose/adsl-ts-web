@@ -32,14 +32,14 @@ describe('noodl (utils)', () => {
     } as any
     n.forEachDeepChildren(component, spy)
     const args = spy.args
-    expect(args[0][0]).to.equal(component.children[0])
-    expect(args[0][0]).to.have.property('a', true)
-    expect(args[1][0]).to.equal(component.children[0].children[0])
-    expect(args[2][0]).to.equal(component.children[0].children[0].children[0])
-    expect(args[3][0]).to.equal(
+    expect(args[0][1]).to.equal(component.children[0])
+    expect(args[0][1]).to.have.property('a', true)
+    expect(args[1][1]).to.equal(component.children[0].children[0])
+    expect(args[2][1]).to.equal(component.children[0].children[0].children[0])
+    expect(args[3][1]).to.equal(
       component.children[0].children[0].children[0].children[0],
     )
-    expect(args[4][0]).to.equal(
+    expect(args[4][1]).to.equal(
       component.children[0].children[0].children[0].children[0].children,
     )
   })

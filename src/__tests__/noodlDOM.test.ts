@@ -19,7 +19,7 @@ describe('DOM', () => {
       const path = 'abc.jpg'
       const c = { type: 'image', path, dataKey: 'formData.avatar' }
       noodlui
-        .setRoot('SignIn', { formData: { avatar: 'https://avar.png' } })
+        .use({ getRoot: () => ({ formData: { avatar: 'https://avar.png' } }) })
         .setPage('SignIn')
       const component = noodlui.resolveComponents(c)
       toDOM(component)

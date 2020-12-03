@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import {
-  IComponentType,
-  IComponentTypeInstance,
+  ComponentCreationType,
+  Component,
   NOODLComponent,
   Page as NOODLUiPage,
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { openOutboundURL } from './utils/common'
-import { PageModalState, PageSnapshot } from './app/types'
+import { PageModalState } from './app/types'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
@@ -25,11 +25,12 @@ export type PageListenerName =
   | 'onError'
 
 export interface PageOptions {
+  _log?: boolean
   rootNode?: HTMLElement | null
   builtIn?: {
     [funcName: string]: any
   }
-  renderer?(page: Page): { components: IComponentTypeInstance[] }
+  renderer?(page: Page): { components: Component[] }
 }
 
 /**
@@ -47,24 +48,21 @@ class Page {
     | undefined
   #onBeforePageRender:
     | ((options: {
-      pageName: string
-      rootNode: NOODLDOMElement | null
-      pageModifiers: { evolve?: boolean } | undefined
-    }) => Promise<any>)
+        pageName: string
+        rootNode: NOODLDOMElement | null
+        pageModifiers: { evolve?: boolean } | undefined
+      }) => Promise<any>)
     | undefined
   #onPageRendered:
-    | ((options: {
-      pageName: string
-      components: IComponentTypeInstance[]
-    }) => Promise<any>)
+    | ((options: { pageName: string; components: Component[] }) => Promise<any>)
     | undefined
   #onPageRequest:
     | ((params: {
-      previous: string
-      current: string
-      requested: string
-      modifiers: { evolve?: boolean }
-    }) => boolean)
+        previous: string
+        current: string
+        requested: string
+        modifiers: { evolve?: boolean }
+      }) => boolean)
     | undefined
   #onModalStateChange:
     | ((prevState: PageModalState, nextState: PageModalState) => void)
@@ -78,10 +76,11 @@ class Page {
   public modal: Modal
   public requestingPage: string | undefined
 
-  constructor({ builtIn, rootNode = null }: PageOptions = {}) {
+  constructor({ _log = true, builtIn, rootNode = null }: PageOptions = {}) {
     this.builtIn = builtIn
     this.rootNode = rootNode
     this.modal = new Modal()
+    _log === false && Logger.disable()
 
     this._initializeRootNode = () => {
       const root = document.createElement('div')
@@ -109,7 +108,7 @@ class Page {
   public async navigate(
     pageName: string,
     pageModifiers: { evolve?: boolean; force?: boolean } = {},
-  ): Promise<{ snapshot: PageSnapshot } | void> {
+  ): Promise<{ snapshot: any } | void> {
     // TODO: onTimedOut
     try {
       // Outside link
@@ -133,7 +132,7 @@ class Page {
       }
 
       let pageSnapshot: NOODLUiPage | undefined
-      let components: IComponentTypeInstance[] = []
+      let components: Component[] = []
 
       if (!pageName) {
         log.func('navigate')
@@ -155,7 +154,7 @@ class Page {
         if (this.requestingPage && this.requestingPage !== pageName) {
           log.grey(
             `Aborting this navigate request for ${pageName} because a more ` +
-            `recent request to "${this.requestingPage}" was called`,
+              `recent request to "${this.requestingPage}" was called`,
             { pageAborting: pageName, pageRequesting: this.requestingPage },
           )
           return
@@ -227,9 +226,8 @@ class Page {
             this.previousPage = this.currentPage
             this.currentPage = newPage
           })
-        }
-        else {
-          history.pushState({}, "", this.pageUrl)
+        } else {
+          history.pushState({}, '', this.pageUrl)
           return this.navigate(newPage, modifiers).then(() => {
             this.previousPage = this.currentPage
             this.currentPage = newPage
@@ -286,7 +284,7 @@ class Page {
   set onPageRendered(
     fn: (options: {
       pageName: string
-      components: IComponentTypeInstance[]
+      components: Component[]
     }) => Promise<any>,
   ) {
     this.#onPageRendered = fn
@@ -328,7 +326,9 @@ class Page {
    * them to the DOM
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | PageObject }
    */
-  public render(rawComponents: IComponentType | IComponentType[]) {
+  public render(
+    rawComponents: ComponentCreationType | ComponentCreationType[],
+  ) {
     let resolved = noodlui.resolveComponents(rawComponents)
     const components = _.isArray(resolved) ? resolved : [resolved]
     if (this.rootNode) {
@@ -341,7 +341,7 @@ class Page {
       log.func('navigate')
       log.red(
         "Attempted to render the page's components but the root " +
-        'node was not initialized. The page will not show anything',
+          'node was not initialized. The page will not show anything',
         { rootNode: this.rootNode },
       )
     }

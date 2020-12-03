@@ -5,9 +5,9 @@ import { expect } from 'chai'
 import { event } from '../constants'
 import { forEachDeepChildren } from '../utils/noodl'
 import { mock } from './mockData'
-import { IList, IListItem } from '../types'
 import { noodlui, toDOM } from '../utils/test-utils'
 import List from '../components/List'
+import ListItem from '../components/ListItem'
 
 describe('List', () => {
   describe('when instantiating', () => {
@@ -45,12 +45,11 @@ describe('List', () => {
         type: 'view',
         children: [noodlComponent],
       })
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const noodlListItem = noodlComponent.children[0]
       const blueprint = component.getBlueprint()
       expect(blueprint.type).to.equal(noodlListItem.type)
       expect(blueprint.contentType).to.equal(noodlListItem.contentType)
-      expect(blueprint.id).to.exist
     })
 
     it('should include the same amount of children as the listitem placeholder component did', () => {
@@ -60,7 +59,7 @@ describe('List', () => {
         type: 'view',
         children: [noodlComponent],
       })
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const blueprint = component?.getBlueprint()
       expect(blueprint.children).to.have.lengthOf(
         listItemComponent.children?.length as any,
@@ -77,26 +76,26 @@ describe('List', () => {
       const listItemComponent = noodlComponent.children[0]
       const blueprint = component.getBlueprint()
       const [label1, label2, label3, view, button] = blueprint.children as any
-      expect(label1.noodlType).to.eq(listItemComponent.children?.[0].type)
+      // expect(label1.noodlType).to.eq(listItemComponent.children?.[0].type)
       expect(label1.text).to.eq(listItemComponent.children?.[0].text)
       expect(label1.dataKey).to.eq(listItemComponent.children?.[0].dataKey)
       // expect(label1.style).to.deep.eq(listItemComponent.children?.[0].style)
-      expect(label2.noodlType).to.eq(listItemComponent.children?.[1].type)
+      // expect(label2.noodlType).to.eq(listItemComponent.children?.[1].type)
       expect(label2.text).to.eq(listItemComponent.children?.[1].text)
       expect(label2.dataKey).to.eq(listItemComponent.children?.[1].dataKey)
       // expect(label2.style).to.deep.eq(listItemComponent.children?.[1].style)
-      expect(label3.noodlType).to.eq(listItemComponent.children?.[2].type)
+      // expect(label3.noodlType).to.eq(listItemComponent.children?.[2].type)
       expect(label3.text).to.eq(listItemComponent.children?.[2].text)
       expect(label3.dataKey).to.eq(listItemComponent.children?.[2].dataKey)
       // expect(label3.style).to.deep.eq(listItemComponent.children?.[2].style)
-      expect(view.noodlType).to.eq(listItemComponent.children?.[3].type)
+      // expect(view.noodlType).to.eq(listItemComponent.children?.[3].type)
       expect(view.viewTag).to.eq(listItemComponent.children?.[3].viewTag)
       expect(view.required).to.eq(listItemComponent.children?.[3].required)
       // expect(view.style).to.deep.eq(listItemComponent.children?.[3].style)
       expect(view.children).to.have.lengthOf(1)
-      expect(view.children[0].noodlType).to.eq('view')
-      expect(view.children[0].children[0].noodlType).to.eq('view')
-      expect(view.children[0].children[0].children[0].noodlType).to.eq('view')
+      // expect(view.children[0].noodlType).to.eq('view')
+      // expect(view.children[0].children[0].noodlType).to.eq('view')
+      // expect(view.children[0].children[0].children[0].noodlType).to.eq('view')
       expect(view.children[0].children[0].children[0].listId).to.eq(
         component.listId,
       )
@@ -215,7 +214,7 @@ describe('List', () => {
         ],
       })
 
-      const component = parent.child() as IList
+      const component = parent.child() as List
       const ul = document.createElement('ul')
       node.appendChild(ul)
 
@@ -266,7 +265,7 @@ describe('List', () => {
           ],
         })
 
-        const component = parent.child() as IList
+        const component = parent.child() as List
         const ul = document.createElement('ul')
         node.appendChild(ul)
 
@@ -308,7 +307,7 @@ describe('List', () => {
         children: [{ type: 'listItem' }],
       })
 
-      _.forEach(component.children(), (c: IListItem) => {
+      _.forEach(component.children(), (c: ListItem) => {
         const li = document.createElement('li')
         li.id = c.id
         li.textContent += c.getDataObject().fruits[0]

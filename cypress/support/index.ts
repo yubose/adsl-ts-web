@@ -37,7 +37,7 @@ import {
   IResolver,
   BuiltInObject,
   PageObject,
-  Page as NOODLPage,
+  Page,
   Resolver,
   ResolverFn,
   Viewport,
@@ -51,10 +51,11 @@ viewport.height = window.innerHeight
 
 noodlui
   .init({ viewport })
-  .setAssetsUrl(noodl?.assetsUrl || '')
   .setPage('SignIn')
-  .setRoot(noodl.root)
-  .use(viewport)
+  .use({
+    getAssetsUrl: () => noodl?.assetsUrl || '',
+    getRoot: () => noodl.root,
+  })
   .use(
     [
       getElementType,

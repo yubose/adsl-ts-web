@@ -1,22 +1,16 @@
 import _ from 'lodash'
 import Component from '../Base'
-import {
-  IComponent,
-  IComponentConstructor,
-  IListItemChild,
-  IListItem,
-  IComponentTypeInstance,
-} from '../../types'
+import { IComponent, ComponentConstructor } from '../../types'
 import createComponent from '../../utils/createComponent'
 
-class ListItemChildComponent extends Component implements IListItemChild {
+class ListItemChildComponent extends Component {
   #listId: string = ''
   #iteratorVar: string = ''
 
-  constructor(...args: ConstructorParameters<IComponentConstructor>) {
+  constructor(...args: ConstructorParameters<ComponentConstructor>) {
     super(...args)
-    this['listId'] = this.get('listId')
-    this['iteratorVar'] = this.get('iteratorVar')
+    this['listId'] = this.get('listId') as any
+    this['iteratorVar'] = this.get('iteratorVar') as any
   }
 
   get listId() {
@@ -40,17 +34,17 @@ class ListItemChildComponent extends Component implements IListItemChild {
   }
 
   createChild(...args: Parameters<IComponent['createChild']>) {
-    const child = createComponent(...args) as IListItemChild<any>
+    const child = createComponent(...args) as any
     child?.set('listId', this.listId).set('iteratorVar', this.iteratorVar)
     return child
   }
 
   getDataObject() {
-    let parent: IComponentTypeInstance | null = super.parent()
+    let parent: Component | null = super.parent()
 
     while (parent) {
       if (parent?.noodlType === 'listItem') {
-        return (parent as IListItem).getDataObject()
+        return (parent as any).getDataObject()
       }
     }
   }

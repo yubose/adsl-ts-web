@@ -5,9 +5,10 @@ import getAlignAttrs from '../resolvers/getAlignAttrs'
 import getBorderAttrs from '../resolvers/getBorderAttrs'
 import getColors from '../resolvers/getColors'
 import getCustomDataAttrs from '../resolvers/getCustomDataAttrs'
-import getElementType, { getType } from '../resolvers/getElementType'
+import getElementType, { getTagName } from '../resolvers/getElementType'
 import getEventHandlers from '../resolvers/getEventHandlers'
 import getFontAttrs from '../resolvers/getFontAttrs'
+import getPlugins from '../resolvers/getPlugins'
 import getPosition from '../resolvers/getPosition'
 import getReferences from '../resolvers/getReferences'
 import getSizes from '../resolvers/getSizes'
@@ -19,11 +20,46 @@ import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 import {
   ResolverFn,
-  IComponentTypeObject,
-  IComponentTypeInstance,
+  ComponentObject,
+  ConsumerOptions,
+  ComponentType,
 } from '../types'
+import createComponent from '../utils/createComponent'
+import Component from '../components/Base'
+import ListItem from '../components/ListItem'
+import List from '../components/List'
 
 export const assetsUrl = 'https://something.com/assets/'
+
+export function createResolverTest(resolver: ResolverFn) {
+  function _resolver<C extends ComponentObject & { type: 'list' }>(
+    component: C,
+    options?: ConsumerOptions,
+  ): List
+  function _resolver<C extends ComponentObject & { type: 'listItem' }>(
+    component: C,
+    options?: ConsumerOptions,
+  ): ListItem
+  function _resolver<C extends ComponentObject & { type: ComponentType }>(
+    component: C,
+    options?: ConsumerOptions,
+  ): Component
+  function _resolver<C extends ComponentObject>(
+    component: C,
+    options?: ConsumerOptions,
+  ) {
+    const instance = createComponent({
+      ...component,
+      noodlType: component.noodlType || component.type,
+    })
+    resolver(instance as any, {
+      ...noodlui.getConsumerOptions({ component: instance as any }),
+      ...options,
+    })
+    return instance
+  }
+  return _resolver
+}
 
 export const noodlui = (function () {
   const viewport = new Viewport()
@@ -34,14 +70,12 @@ export const noodlui = (function () {
     client: new NOODLUi({ viewport }),
   }
 
-  state.client.setAssetsUrl(assetsUrl)
-
   Object.defineProperty(state.client, 'cleanup', {
     configurable: true,
     enumerable: true,
     writable: true,
     value: function () {
-      state.client.reset()
+      state.client.reset({ keepCallbacks: false })
       state.client.initialized = true
     },
   })
@@ -78,6 +112,7 @@ export function getAllResolvers() {
     getElementType,
     getEventHandlers,
     getFontAttrs,
+    getPlugins,
     getPosition,
     getReferences,
     getSizes,
@@ -87,11 +122,8 @@ export function getAllResolvers() {
   ] as ResolverFn[]
 }
 
-export function toDOM<
-  C extends IComponentTypeInstance,
-  N extends HTMLElement = HTMLElement
->(
-  noodlComponent: IComponentTypeObject,
+export function toDOM<C extends Component, N extends HTMLElement = HTMLElement>(
+  noodlComponent: ComponentObject,
   parentNode?: any,
 ): {
   component: C
@@ -99,7 +131,7 @@ export function toDOM<
   parentNode: N | null
 } {
   const component = noodlui.resolveComponents(noodlComponent) as C
-  const node = document.createElement(getType(component)) as N
+  const node = document.createElement(getTagName(component)) as N
   parentNode = parentNode || document.body
   parentNode.appendChild(node)
   return { component, node, parentNode }

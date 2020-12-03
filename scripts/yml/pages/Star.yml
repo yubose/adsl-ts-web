@@ -1,0 +1,107 @@
+Star:
+  pageNumber: "10"
+  formDate:
+    rate:
+      star1: false
+      star2: false
+      star3: false
+      star4: false
+      star5: false
+      score: ""
+  clearStar:
+    - ..formDate.rate.star1@: =false
+    - ..formDate.rate.star2@: =false
+    - ..formDate.rate.star3@: =false
+    - ..formDate.rate.star4@: =false
+    - ..formDate.rate.star5@: =false
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "0.2"
+        top: "0.1"
+        left: "0"
+        backgroundColor: "0x00000022"
+      children:
+        - type: image
+          viewTag: select
+          path:
+            if:
+              - formDate.rate.star1
+              - providerOn.png
+              - providerOff.png
+          style:
+            width: "0.1"
+            left: "0.1"
+          onClick:
+            - actionType: builtIn
+              funcName: toggleFlag
+              dataKey: formDate.rate.star1
+            - actionType: evalObject
+              object:
+                ..formDate.rate.score@: =1
+        - type: image
+          viewTag: select
+          path:
+            if:
+              - formDate.rate.star2
+              - providerOn.png
+              - providerOff.png
+          style:
+            width: "0.1"
+            left: "0.22"
+          onClick:
+            - actionType: builtIn
+              funcName: toggleFlag
+              dataKey: formDate.rate.star2
+        - type: image
+          viewTag: select
+          path:
+            if:
+              - formDate.rate.star3
+              - providerOn.png
+              - providerOff.png
+          style:
+            width: "0.1"
+            left: "0.33"
+          onClick:
+            - actionType: builtIn
+              funcName: toggleFlag
+              dataKey: formDate.rate.star3
+        - type: image
+          viewTag: select
+          path:
+            if:
+              - formDate.rate.star4
+              - providerOn.png
+              - providerOff.png
+          style:
+            width: "0.1"
+            left: "0.44"
+          onClick:
+            - actionType: builtIn
+              funcName: toggleFlag
+              dataKey: formDate.rate.star4
+        - type: image
+          viewTag: select
+          path:
+            if:
+              - formDate.rate.star5
+              - providerOn.png
+              - providerOff.png
+          style:
+            width: "0.1"
+            left: "0.55"
+          onClick:
+            - actionType: builtIn
+              funcName: toggleFlag
+              dataKey: formDate.rate.star5
+        - type: button
+          text: "5"
+          style:
+            width: "0.4"
+            left: "0.3"
+            top: "0.2"
+          onClick:
+            - actionType: evalObject
+              object: ..clearStar

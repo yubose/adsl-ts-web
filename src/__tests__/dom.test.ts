@@ -9,10 +9,10 @@ import {
   ActionChainActionCallbackOptions,
   EmitActionObject,
   IAction,
-  IActionChainEmitTrigger,
-  IComponentTypeInstance,
-  IList,
-  IListItem,
+  ActionChainEmitTrigger,
+  Component,
+  List,
+  ListItem,
   NOODLComponent,
 } from 'noodl-ui'
 import { getByDataKey } from 'noodl-utils'
@@ -47,7 +47,9 @@ describe('dom', () => {
     it('should use data-value as text content if present for other elements (non data value elements)', () => {
       const dataKey = 'formData.greeting'
       const greeting = 'my greeting'
-      noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+      noodlui
+        .use({ getRoot: () => ({ formData: { greeting } }) })
+        .setPage('SignIn')
       page.render({
         type: 'label',
         dataKey,
@@ -60,18 +62,21 @@ describe('dom', () => {
       expect(label?.innerHTML).to.equal(greeting)
     })
 
-    it('should use placeholder as text content if present (and also there is no data-value available) for other elements (non data value elements)', () => {
-      const dataKey = 'formData.greeting'
-      const placeholder = 'my placeholder'
-      noodlui
-        .setRoot('SignIn', { formData: { greeting: '' } })
-        .setPage('SignIn')
-      page.render({ type: 'label', dataKey, placeholder })
-      const label = queryByDataKey(document.body, dataKey)
-      // @ts-expect-error
-      expect(label.value).to.be.undefined
-      expect(label?.innerHTML).to.equal(placeholder)
-    })
+    it(
+      'should use placeholder as text content if present (and also there is ' +
+        'no data-value available) for other elements (non data value elements)',
+      () => {
+        const dataKey = 'formData.greeting'
+        const placeholder = 'my placeholder'
+        noodlui
+          .use({ getRoot: () => ({ formData: { greeting: '' } }) })
+          .setPage('SignIn')
+        page.render({ type: 'label', dataKey, placeholder })
+        const label = queryByDataKey(document.body, dataKey) as any
+        expect(label.value).to.be.undefined
+        expect(label.innerHTML).to.equal(placeholder)
+      },
+    )
   })
 
   describe('component type: "list"', () => {
@@ -176,7 +181,7 @@ describe('dom', () => {
       })
       const listSize = noodlList.listObject.length
       const li = document.querySelectorAll('li')
-      const component = components[0].child() as IList
+      const component = components[0].child() as List
       expect(li).to.have.lengthOf(listSize)
       component.addDataObject(
         Object.entries(noodlList.listObject[0]).reduce((acc, [k, v], index) => {
@@ -207,7 +212,7 @@ describe('dom', () => {
           ],
         })
         const view = components[0]
-        const list = view.child() as IList
+        const list = view.child() as List
         const ul = document.getElementById(list.id)
         expect(ul?.children).to.have.lengthOf(3)
         list.removeDataObject(0)
@@ -217,7 +222,7 @@ describe('dom', () => {
     )
 
     describe('when updating data objects and list items', () => {
-      let component: IList
+      let component: List
 
       beforeEach(() => {
         const iteratorVar = 'hello'
@@ -328,7 +333,9 @@ describe('dom', () => {
     it("should use the value computed from the dataKey as the element's value", () => {
       const dataKey = 'formData.greeting'
       const greeting = 'good morning'
-      noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+      noodlui
+        .use({ getRoot: () => ({ formData: { greeting } }) })
+        .setPage('SignIn')
       page.render({ type: 'textField', placeholder: 'hello, all', dataKey })
       const input = queryByDataKey(document.body, dataKey) as any
       expect(input.value).to.equal(greeting)
@@ -338,7 +345,9 @@ describe('dom', () => {
       const placeholder = 'my placeholder'
       const dataKey = 'formData.greeting'
       const greeting = 'good morning'
-      noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+      noodlui
+        .use({ getRoot: () => ({ formData: { greeting } }) })
+        .setPage('SignIn')
       page.render({ type: 'textField', dataKey, placeholder })
       expect(screen.getByPlaceholderText(placeholder)).to.exist
     })
@@ -380,7 +389,9 @@ describe('dom', () => {
       } as NOODLComponent
 
       beforeEach(() => {
-        noodlui.setRoot('SignIn', { formData: { greeting } }).setPage('SignIn')
+        noodlui
+          .use({ getRoot: () => ({ formData: { greeting } }) })
+          .setPage('SignIn')
       })
 
       it('should start off with hidden password mode for password inputs', async () => {
@@ -394,7 +405,6 @@ describe('dom', () => {
       })
 
       it('should start off showing the eye closed icon', async () => {
-        noodlui.setAssetsUrl(assetsUrl)
         page.render(noodlComponent)
         await waitFor(() => {
           const img = document.getElementsByTagName('img')[0]
@@ -420,8 +430,11 @@ describe('dom', () => {
 
     it('should update the value of input', () => {
       const dataKey = 'formData.phoneNumber'
-      noodlui.setRoot('SignIn', { formData: { phoneNumber: '88814565555' } })
-      noodlui.setPage('SignIn')
+      noodlui
+        .use({
+          getRoot: () => ({ formData: { phoneNumber: '88814565555' } }),
+        })
+        .setPage('SignIn')
       page.render({
         type: 'textField',
         dataKey,
@@ -436,8 +449,11 @@ describe('dom', () => {
 
     xit('should update the value of dataset.value', async () => {
       const dataKey = 'formData.phoneNumber'
-      noodlui.setRoot('SignIn', { formData: { phoneNumber: '882465812' } })
-      noodlui.setPage('SignIn')
+      noodlui
+        .use({
+          getRoot: () => ({ formData: { phoneNumber: '882465812' } }),
+        })
+        .setPage('SignIn')
       page.render({
         type: 'textField',
         dataKey,
@@ -511,11 +527,11 @@ describe('dom', () => {
     let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
     let actionFnSpy = sinon.spy()
     let pathIfFnSpy = sinon.spy()
-    let parent: IComponentTypeInstance
-    let component: IList
+    let parent: Component
+    let component: List
     let injectedArgs: {
       dataObject: any
-      listItem: IListItem
+      listItem: ListItem
       iteratorVar: string
     }
 
@@ -538,8 +554,9 @@ describe('dom', () => {
       ]
       noodlui.reset({ keepCallbacks: false })
       noodlui
-        .setAssetsUrl(assetsUrl)
-        .setRoot('Abc', { listData: { Gender: { Radio: listObject } } })
+        .use({
+          getRoot: () => ({ listData: { Gender: { Radio: listObject } } }),
+        })
         .setPage('Abc')
         .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
         .use({ actionType: 'builtIn', fn: builtIn.redraw, funcName: 'redraw' })
@@ -585,17 +602,20 @@ describe('dom', () => {
             ],
           },
         ],
-      }).components[0]
+      } as any).components[0]
       const list = view.child()
       const listItem = list.child()
+      list.getData().forEach((d) => list.addDataObject(d))
       const image = listItem.child(1)
-      expect(document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`))
-        .not.to.exist
-      document.getElementById(image.id)?.click()
-      await waitFor(() => {
-        expect(document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`))
-          .to.exist
-      })
+      // document.getElementById(image.id)?.click()
+      // await waitFor(() => {
+      //   console.info(prettyDOM())
+      //   expect(
+      //     document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`).to
+      //       .exist,
+      //   )
+      // })
+      // expect(pathSpy.firstCall).to.eq(listObject[0])
     })
 
     xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", async () => {
@@ -606,9 +626,10 @@ describe('dom', () => {
       })
       noodlui.actionsContext = { noodl: { emitCall: () => [''] } }
       noodlui
-        .reset({ keepCallbacks: false })
-        .setAssetsUrl(assetsUrl)
-        .setRoot('SignIn', { formData: { greeting: '12345', color: 'red' } })
+        .use({ actionType: 'builtIn' })
+        .use({
+          getRoot: () => ({ formData: { greeting: '12345', color: 'red' } }),
+        })
         .setPage('SignIn')
         .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
         .use({ actionType: 'builtIn', fn: builtIn.redraw, funcName: 'redraw' })
@@ -638,7 +659,7 @@ describe('dom', () => {
       }).components[0]
 
       const view = root.child()
-      const image = view.child() as IComponentTypeInstance
+      const image = view.child() as Component
 
       const getLabel = () =>
         getByDataKey('formData.greeting') as HTMLLabelElement
@@ -648,7 +669,12 @@ describe('dom', () => {
       expect(getLabel().textContent).not.to.eq('mynewgreeting')
       expect(getLabel2().textContent).to.equal('red')
 
-      await image.get('onClick')()
+      noodlui.use({
+        getRoot: () => ({
+          ...noodlui.root[noodlui.page],
+          formData: { greeting: 'hehehee', color: 'blue' },
+        }),
+      })
 
       await waitFor(() => {
         console.info(prettyDOM())
@@ -670,14 +696,13 @@ describe('dom', () => {
         { key: 'gender', value: 'Other' },
       ]
       noodlui.actionsContext = { noodl: { emitCall: () => [''] } }
-
+      console.info(noodlui.getCbs())
+      console.info(noodluidom.getAllCbs())
       noodlui
-        .reset({ keepCallbacks: false })
-        .setAssetsUrl(assetsUrl)
         .setPage('SignIn')
-        .setRoot({ SignIn: {} })
-        .use({ actionType: 'builtIn', funcName: 'redraw', fn: builtIn.redraw })
-        .use({ actionType: 'emit', path: imagePathSpy, trigger: 'path' })
+        // .use({ actionType: 'builtIn', funcName: 'redraw', fn: builtIn.redraw })
+        // .use({ actionType: 'emit', path: imagePathSpy, trigger: 'path' })
+        .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
       const list = page.render({
         type: 'list',
         iteratorVar,
