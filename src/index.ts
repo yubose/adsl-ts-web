@@ -711,15 +711,13 @@ window.addEventListener('load', async () => {
     var urlArr = hrefArr[hrefArr.length - 1]
     var localConfig = JSON.parse(window.localStorage.getItem('config'))
     if (window.localStorage.getItem('tempConfigKey') && (window.localStorage.getItem('tempConfigKey') !== JSON.stringify(localConfig.timestamp))) {
-      console.log('Huh?', window.localStorage.getItem('tempConfigKey'))
-      console.log('What?', JSON.stringify(localConfig.timestamp))
-      window.localStorage.removeItem('CACHED_PAGES')
+      window.localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
       page.pageUrl = "index.html?"
       await page.requestPageChange(newPage)
     }
     else {
-      if (urlArr === "") {
-        page.pageUrl = urlArr
+      if (!urlArr.startsWith('index.html?')) {
+        page.pageUrl = 'index.html?'
         await page.requestPageChange(newPage)
       }
       else {
