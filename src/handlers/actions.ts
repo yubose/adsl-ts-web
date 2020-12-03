@@ -344,7 +344,6 @@ const createActions = function ({ page }: { page: IPage }) {
           page.pageUrl += parse
           page.pageUrl += action.original.goto
         }
-        history.pushState({}, '', page.pageUrl)
 
         await page.requestPageChange(action.original.goto)
       } else if (_.isPlainObject(action?.original?.goto)) {
