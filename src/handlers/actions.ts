@@ -345,7 +345,6 @@ const createActions = function ({ page }: { page: IPage }) {
             page.pageUrl += parse
             page.pageUrl += url
           }
-          history.pushState({}, "", page.pageUrl)
 
           log.gold('Requesting object destination', { action, options })
           await page.requestPageChange(url)
