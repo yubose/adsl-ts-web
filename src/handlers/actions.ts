@@ -26,7 +26,6 @@ import {
   createEmitDataKey,
   evalIf,
   findListDataObject,
-  findDataObject,
   findDataValue,
   findParent,
   isBoolean as isNOODLBoolean,
@@ -38,7 +37,6 @@ import {
 import Logger from 'logsnap'
 import { IPage } from '../app/types'
 import { onSelectFile } from '../utils/dom'
-import noodl from 'app/noodl'
 
 const log = Logger.create('actions.ts')
 

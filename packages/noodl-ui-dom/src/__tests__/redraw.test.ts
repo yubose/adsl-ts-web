@@ -173,16 +173,16 @@ let listDemographics: List
 let listGender: List
 
 beforeEach(() => {
-  // noodluidom.on('component', onComponentAttachId)
-  // noodlView = EmitRedraw.components[2] as NOODLComponent
-  // noodlListDemographics = EmitRedraw.components[3].children[2] as NOODLComponent
-  // noodlListGender = EmitRedraw.components[3].children[3] as NOODLComponent
-  // components = noodlui.resolveComponents(
-  //   EmitRedraw.components as NOODLComponent[],
-  // )
-  // view = components[3] as Component
-  // listDemographics = view.child(2) as List
-  // listGender = view.child(3) as List
+  noodluidom.on('component', onComponentAttachId)
+  noodlView = EmitRedraw.components[2] as NOODLComponent
+  noodlListDemographics = EmitRedraw.components[3].children[2] as NOODLComponent
+  noodlListGender = EmitRedraw.components[3].children[3] as NOODLComponent
+  components = noodlui.resolveComponents(
+    EmitRedraw.components as NOODLComponent[],
+  )
+  view = components[3] as Component
+  listDemographics = view.child(2) as List
+  listGender = view.child(3) as List
   {
     // const data = listDemographics.getData().slice()
     // data.forEach((d) => listDemographics.removeDataObject(d))
@@ -415,7 +415,7 @@ describe('redraw', () => {
     })
   })
 
-  describe.only('when user clicks on a redrawed node that has an onClick emit', () => {
+  describe('when user clicks on a redrawed node that has an onClick emit', () => {
     it('should still be able to operate on and update the DOM', async () => {
       const abc = 'abc.png'
       const hello = 'hello.jpeg'
@@ -812,7 +812,7 @@ describe('redraw', () => {
   })
 })
 
-describe.only('redraw(new)', () => {
+describe('redraw(new)', () => {
   let onClickSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
   let pathSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
   let redrawSpy: sinon.SinonSpy<[
@@ -916,7 +916,7 @@ describe.only('redraw(new)', () => {
     })
   })
 
-  it.only('should rerender the same amount of nodes it was redrawed with', async () => {
+  it('should rerender the same amount of nodes it was redrawed with', async () => {
     const img = document.querySelector('img')
     const id = img?.id || ''
     await waitFor(() => {

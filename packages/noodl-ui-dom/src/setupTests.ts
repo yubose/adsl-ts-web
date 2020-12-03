@@ -32,7 +32,6 @@ before(() => {
   noodlui
     .init({ _log: false, viewport })
     .setPage(page)
-    .use({})
     .use({
       getAssetsUrl: () => assetsUrl,
       getRoot: () => root,

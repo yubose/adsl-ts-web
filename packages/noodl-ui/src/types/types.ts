@@ -1,8 +1,17 @@
 import Component from '../components/Base'
 import { ActionObject, EmitActionObject } from './actionTypes'
-import { ActionChainActionCallbackOptions } from './actionChainTypes'
+import {
+  ActionChainActionCallback,
+  ActionChainUseObjectBase,
+  ActionChainActionCallbackOptions,
+} from './actionChainTypes'
 import { ComponentObject } from './componentTypes'
-import { ComponentType, ContentType } from './constantTypes'
+import {
+  ActionChainEventId,
+  ActionType,
+  ComponentType,
+  ContentType,
+} from './constantTypes'
 import NOODLUI from '../noodl-ui'
 import Viewport from '../Viewport'
 
@@ -63,6 +72,11 @@ export interface ConsumerOptions {
   fetch: Fetch
   getAssetsUrl(): string
   getBaseStyles(styles?: Style): Partial<Style>
+  getCbs(): {
+    action: Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+    builtIn: { [funcName: string]: ActionChainActionCallback[] }
+    chaining: Partial<Record<ActionChainEventId, Function[]>>
+  }
   getPageObject: StateHelpers['getPageObject']
   getResolvers: NOODLUI['getResolvers']
   getRoot(): { [key: string]: any }
@@ -137,6 +151,7 @@ export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {
 }
 
 export interface ResolverContext {
+  actionsContext: { noodl: any; noodlui: NOODLUI }
   assetsUrl: string
   page: string
 }

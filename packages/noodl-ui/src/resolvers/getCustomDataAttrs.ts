@@ -10,6 +10,7 @@ import Logger from 'logsnap'
 import isReference from '../utils/isReference'
 import { ResolverFn } from '../types'
 import EmitAction from '../Action/EmitAction'
+import { isPromise } from '../utils/common'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -18,7 +19,14 @@ const log = Logger.create('getCustomDataAttrs')
  *    (ex: "data-ux" for UX interactions between the library and the web app)
  */
 const getCustomDataAttrs: ResolverFn = (component, options) => {
-  const { context, getPageObject, getRoot, showDataKey, parser } = options
+  const {
+    context,
+    getCbs,
+    getPageObject,
+    getRoot,
+    showDataKey,
+    parser,
+  } = options
   const { page } = context
   const { noodlType } = component
   const { contentType = '', dataKey, viewTag } = component.get([
@@ -84,11 +92,53 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       dataObject = findListDataObject(component)
       emitAction.setDataKey(
         createEmitDataKey(
-          dataKey,
+          emitAction.original.emit.dataKey,
           [dataObject, () => pageObject, () => getRoot()],
           { iteratorVar: emitAction.iteratorVar },
         ),
       )
+      let resolvedDataKey = ''
+      emitAction.callback = async (snapshot) => {
+        log.grey(`Executing dataKey emit action callback`, snapshot)
+        const callbacks = _.reduce(
+          getCbs().action.emit || [],
+          (acc, obj) => (obj?.trigger === 'dataKey' ? acc.concat(obj) : acc),
+          [],
+        )
+        if (!callbacks.length) return ''
+        const result = await Promise.race(
+          callbacks.map((obj) =>
+            obj?.fn?.(emitAction, options, context.actionsContext),
+          ),
+        )
+        return (Array.isArray(result) ? result[0] : result) || ''
+      }
+
+      // Result returned should be a string type
+      let result = emitAction.execute(dataKey) as string | Promise<string>
+
+      log.grey(`Result received from dataKey emit action`, {
+        snapshot: emitAction.getSnapshot(),
+        result,
+      })
+
+      if (isPromise(result)) {
+        result
+          .then((res) => {
+            resolvedDataKey = res
+            log.grey(`Resolved promise with: `, {
+              resolvedPromiseResult: resolvedDataKey,
+              action: emitAction,
+            })
+            component.set('data-key', resolvedDataKey)
+            component.emit('dataKey', resolvedDataKey)
+          })
+          .catch((err) => Promise.reject(err))
+      } else if (result) {
+        resolvedDataKey = result
+        component.set('data-key', resolvedDataKey)
+        component.emit('dataKey', resolvedDataKey)
+      }
     } else if (_.isString(dataKey)) {
       const iteratorVar = component.get('iteratorVar') || ''
       const path = excludeIteratorVar(dataKey, iteratorVar) || ''

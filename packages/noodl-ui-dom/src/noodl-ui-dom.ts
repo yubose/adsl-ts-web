@@ -1,11 +1,13 @@
 import Logger from 'logsnap'
 import {
   createComponent,
-  getTagName,
   Component,
   ComponentObject,
-  ListItem,
   ComponentType,
+  getTagName,
+  ListItem,
+  PluginLocation,
+  PluginObject,
 } from 'noodl-ui'
 import { isEmitObj, publish } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
@@ -30,6 +32,13 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
+  #plugins: {
+    head: PluginObject[]
+    body: {
+      top: PluginObject[]
+      bottom: PluginObject[]
+    }
+  } = { head: [], body: { top: [], bottom: [] } }
   #state: {} = {}
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
@@ -108,6 +117,19 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     }
 
     return node || null
+  }
+
+  plugins(location?: PluginLocation) {
+    switch (location) {
+      case 'head':
+        return this.#plugins.head
+      case 'body-top':
+        return this.#plugins.body.top
+      case 'body-bottom':
+        return this.#plugins.body.bottom
+      default:
+        return this.#plugins
+    }
   }
 
   redraw(

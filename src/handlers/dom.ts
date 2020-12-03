@@ -8,7 +8,7 @@ import {
   isPromise,
   SelectOption,
 } from 'noodl-ui'
-import { isBooleanTrue } from 'noodl-utils'
+import { isBooleanTrue, isEmitObj } from 'noodl-utils'
 import { isTextFieldLike } from 'noodl-ui-dom'
 import { forEachEntries } from '../utils/common'
 import { isDisplayable } from '../utils/dom'
@@ -87,6 +87,11 @@ export const listen = (noodluidom = noodluidomClient) => {
         const val = component.get(key) || component[key as keyof Component]
         if (val !== undefined) node.dataset[key.replace('data-', '')] = val
       })
+      if (isEmitObj(component.get('dataKey'))) {
+        component.on('dataKey', (dataKey: string) => {
+          node.dataset.key = dataKey
+        })
+      }
     }
     // Handle direct assignments
     if (_.isArray(defaultPropTable.values)) {
@@ -104,7 +109,7 @@ export const listen = (noodluidom = noodluidomClient) => {
     }
 
     // The src is placed on its "source" dom node
-    if (src && type === 'video') node.removeAttribute('src')
+    if (src && /(script|video)/.test(type)) node.removeAttribute('src')
 
     const datasetAttribs = component.get(defaultPropTable.dataset)
 
@@ -222,14 +227,16 @@ export const listen = (noodluidom = noodluidomClient) => {
     handleEventHandlers()
 
     /** Styles */
-    if (_.isPlainObject(style)) {
-      forEachEntries(style, (k, v) => (node.style[k as any] = v))
-    } else {
-      log.func('noodluidom.on: all')
-      log.red(
-        `Expected a style object but received ${typeof style} instead`,
-        style,
-      )
+    if (node?.tagName !== 'SCRIPT') {
+      if (_.isPlainObject(style)) {
+        forEachEntries(style, (k, v) => (node.style[k as any] = v))
+      } else {
+        log.func('noodluidom.on: all')
+        log.red(
+          `Expected a style object but received ${typeof style} instead`,
+          style,
+        )
+      }
     }
 
     /** Children */
@@ -370,6 +377,7 @@ export const listen = (noodluidom = noodluidomClient) => {
         log.func(`list[${noodluiEvent.component.list.CREATE_LIST_ITEM}]`)
         log.grey('CREATE_LIST_ITEM', { ...result, ...options })
         const { listItem } = result
+        // TODO - Unit test fails when this is uncommented. Double check the UI
         // const childNode = noodluidom.parse(listItem)
       },
     )

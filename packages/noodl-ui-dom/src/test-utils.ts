@@ -16,6 +16,7 @@ import {
   NOODL,
   ResolverFn,
   Viewport,
+  Component,
 } from 'noodl-ui'
 import { NOODLDOMElement } from './types'
 import NOODLUIDOM from './noodl-ui-dom'
@@ -48,7 +49,12 @@ export function getAllResolvers() {
 }
 
 export function toDOM(props: any): NOODLDOMElement | null {
-  const node = noodluidom.parse(props)
+  let node: HTMLElement | null = null
+  if (props instanceof Component) {
+    node = noodluidom.parse(props)
+  } else if (typeof props === 'object' && 'type' in props) {
+    node = noodluidom.parse(noodlui.resolveComponents(props))
+  }
   document.body.appendChild(node as any)
   return node
 }

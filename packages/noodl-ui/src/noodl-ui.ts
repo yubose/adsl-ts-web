@@ -30,7 +30,6 @@ import ActionChain from './ActionChain'
 import EmitAction from './Action/EmitAction'
 import { event } from './constants'
 import * as T from './types'
-import { PluginObject } from './types'
 
 const log = Logger.create('noodl-ui')
 
@@ -467,7 +466,7 @@ class NOODL {
 
   setPlugin(value: string | T.PluginObject) {
     if (!value) return
-    const plugin: PluginObject = this.#createPluginObject(value)
+    const plugin: T.PluginObject = this.#createPluginObject(value)
     if (plugin.location === 'head') {
       this.#state.plugins.head.push(plugin)
     } else if (plugin.location === 'body-top') {
@@ -651,9 +650,10 @@ class NOODL {
 
   getContext() {
     return {
+      actionsContext: this.actionsContext,
       assetsUrl: this.assetsUrl,
       page: this.page,
-    }
+    } as T.ResolverContext
   }
 
   getEmitHandlers(
@@ -708,6 +708,7 @@ class NOODL {
       fetch: this.#fetch.bind(this),
       getAssetsUrl: this.#getAssetsUrl.bind(this),
       getBaseStyles: this.getBaseStyles.bind(this),
+      getCbs: this.getCbs.bind(this),
       getResolvers: (() => this.#resolvers).bind(this),
       getRoot: this.#getRoot.bind(this),
       page: this.page,

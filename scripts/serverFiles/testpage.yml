@@ -13,7 +13,7 @@ viewWidthHeightRatio:
   max: '2.0'
 debug: console_log_api
 # cadlBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/testpage0.21/
-cadlBaseUrl: 'http://localhost:8080/'
+cadlBaseUrl: 'http://127.0.0.1:3001/'
 cadlMain: cadlEndpoint.yml
 myBaseUrl: ''
 timestamp: 12012020

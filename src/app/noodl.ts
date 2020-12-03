@@ -18,8 +18,8 @@ const noodl = new NOODL({
       ? getAspectRatio(window.innerWidth, window.innerHeight)
       : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  // configUrl: TESTPAGE,
-  configUrl: 'http://localhost:8080/testpage.yml',
+  configUrl: TESTPAGE,
+  // configUrl: 'http://localhost:8080/testpage.yml',
 })
 
 function getConfigEndpoint(name: string) {

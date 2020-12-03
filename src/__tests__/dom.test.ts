@@ -173,7 +173,7 @@ describe('dom', () => {
       },
     )
 
-    it('should append a new list item node if a data object is added', () => {
+    xit('should append a new list item node if a data object is added', async () => {
       const noodlList = getListComponent1({ iteratorVar: 'cat' })
       const { components } = page.render({
         type: 'view',
@@ -189,7 +189,10 @@ describe('dom', () => {
           return acc
         }, {} as any),
       )
-      expect(document.querySelectorAll('li')).to.have.lengthOf(listSize + 1)
+      console.info(noodluidom.getAllCbs())
+      await waitFor(() => {
+        expect(document.querySelectorAll('li')).to.have.lengthOf(listSize + 1)
+      })
     })
 
     xit(
@@ -683,11 +686,9 @@ describe('dom', () => {
       })
     })
 
-    it.only('should target the viewTag component/node if available', async () => {
+    it('should target the viewTag component/node if available', async () => {
       let currentPath = 'male.png'
-      const imagePathSpy = sinon.spy(async () =>
-        currentPath === 'male.png' ? 'female.png' : 'male.png',
-      )
+      const imagePathSpy = sinon.spy(async () => currentPath)
       const viewTag = 'genderTag'
       const iteratorVar = 'itemObject'
       const listObject = [
@@ -696,46 +697,57 @@ describe('dom', () => {
         { key: 'gender', value: 'Other' },
       ]
       noodlui.actionsContext = { noodl: { emitCall: () => [''] } }
-      console.info(noodlui.getCbs())
-      console.info(noodluidom.getAllCbs())
+      noodlui.removeCbs('emit')
       noodlui
         .setPage('SignIn')
-        // .use({ actionType: 'builtIn', funcName: 'redraw', fn: builtIn.redraw })
-        // .use({ actionType: 'emit', path: imagePathSpy, trigger: 'path' })
+        .use({
+          actionType: 'emit',
+          trigger: 'onClick',
+          fn: async () => {
+            currentPath = currentPath === 'male.png' ? 'female.png' : 'male.png'
+          },
+        })
+        .use({ actionType: 'emit', trigger: 'path', fn: imagePathSpy })
         .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
-      const list = page.render({
-        type: 'list',
-        iteratorVar,
-        listObject,
+      const view = page.render({
+        type: 'view',
         children: [
           {
-            type: 'listItem',
-            viewTag,
+            type: 'list',
+            iteratorVar,
+            listObject,
             children: [
               {
-                type: 'image',
-                path: { emit: { dataKey: 'f', actions: [] } },
-                onClick: [
+                type: 'listItem',
+                viewTag,
+                children: [
                   {
-                    actionType: 'builtIn',
-                    funcName: 'redraw',
-                    viewTag: 'genderTag',
+                    type: 'image',
+                    path: { emit: { dataKey: 'f', actions: [] } },
+                    onClick: [
+                      { emit: { dataKey: '', actions: [] } },
+                      {
+                        actionType: 'builtIn',
+                        funcName: 'redraw',
+                        viewTag: 'genderTag',
+                      },
+                    ],
                   },
+                  { type: 'label', dataKey: 'gender.value' },
                 ],
               },
-              { type: 'label', dataKey: 'gender.value' },
             ],
           },
         ],
-      }).components[0]
-      const listItem = list.child() as IComponentTypeInstance
-      const image = listItem.child() as IComponentTypeInstance
+      } as any).components[0]
+      const list = view.child() as List
+      const listItem = list.child() as ListItem
+      const image = listItem.child() as Component
       expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
-      document.getElementById(image.id).click()
-      // await image.get('onClick')()
+      document.getElementById(image.id)?.click()
       await waitFor(() => {
         expect(document.querySelector('img')?.getAttribute('src')).to.eq(
-          assetsUrl + 'male.png',
+          assetsUrl + 'female.png',
         )
       })
     })

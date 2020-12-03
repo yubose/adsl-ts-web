@@ -34,12 +34,8 @@ import validate from '../utils/validate'
 import Page from '../Page'
 import { toggleVisibility } from '../utils/dom'
 import { BuiltInActions } from '../app/types'
-import { CachedPageObject } from '../app/types'
-import { CACHED_PAGES } from '../constants'
 import { NOODLBuiltInCheckFieldObject } from '../app/types/libExtensionTypes'
 import Meeting from '../meeting'
-import noodl from 'app/noodl'
-import { debug } from 'webpack'
 
 const log = Logger.create('builtIns.ts')
 
@@ -146,7 +142,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       } else {
         log.red(
           `${dataKey} is not a path of the data object. ` +
-          `Defaulting to attaching ${dataKey} as a path to the root object`,
+            `Defaulting to attaching ${dataKey} as a path to the root object`,
           { context: noodlui.getContext?.(), dataObject, dataKey },
         )
         dataObject = noodl.root
@@ -202,7 +198,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   }
 
   // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => { }
+  builtInActions.checkVerificationCode = async (action) => {}
 
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
@@ -286,9 +282,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.red('HELLO')
     // URL
     if (_.isString(action)) {
-      var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
+      var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
       page.pageUrl += pre
-      var parse = page.pageUrl.endsWith("?") ? "" : "-"
+      var parse = page.pageUrl.endsWith('?') ? '' : '-'
       if (action !== noodl.cadlEndpoint.startPage) {
         page.pageUrl += parse
         page.pageUrl += action
@@ -297,9 +293,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
       if (action.destination) {
-        var pre = page.pageUrl.startsWith("index.html?") ? "" : "index.html?"
+        var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
         page.pageUrl += pre
-        var parse = page.pageUrl.endsWith("?") ? "" : "-"
+        var parse = page.pageUrl.endsWith('?') ? '' : '-'
         if (action.destination !== noodl.cadlEndpoint.startPage) {
           page.pageUrl += parse
           page.pageUrl += action.destination
@@ -440,52 +436,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       }
       startCount++
     }
-
-    console.info(components)
-    console.info(components)
-    console.info(components)
-    console.info(components)
-
-    components.forEach((viewTagComponent: Component, index) => {
-      // const node = document.getElementById(viewTagComponent.id)
-      // log.grey(
-      //   '[Redrawing] ' + node
-      //     ? `Found node for viewTag component`
-      //     : `Could not find a node associated with the viewTag component`,
-      //   { node, component: viewTagComponent },
-      // )
-      // const dataObject = findListDataObject(viewTagComponent)
-      // const [newNode, newComponent] = redraw(
-      //   node as HTMLElement,
-      //   viewTagComponent,
-      //   dataObject,
-      // )
-      // log.grey('Resolved redrawed component/node', {
-      //   newNode,
-      //   newComponent,
-      //   dataObject,
-      // })
-      // window[`r${index}`] = {
-      //   n: newNode,
-      //   c: newComponent,
-      //   d: dataObject,
-      //   origNode: node,
-      //   origComponent: viewTagComponent,
-      //   index,
-      // }
-      // viewTagComponent.children()?.forEach?.((cc) => {
-      //   const [nn, nc] = redraw(document.getElementById(cc.id), cc, dataObject)
-      //   console.info(nn)
-      //   // node?.appendChild(nn)
-      // })
-    })
-
-    // redraw(document.getElementById(component.id), component)
-
-    log.gold(`newNode/newComponent`, {
-      action,
-      options,
-    })
   }
 
   builtInActions.redraw___backup = async (action, options, f = {}) => {
@@ -732,9 +682,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // })
   }
 
-  builtInActions.signIn = async (action, options) => { }
-  builtInActions.signUp = async () => { }
-  builtInActions.signout = async () => { }
+  builtInActions.signIn = async (action, options) => {}
+  builtInActions.signUp = async () => {}
+  builtInActions.signout = async () => {}
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
@@ -826,7 +776,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     log.green(
       `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-      `root.${pageName}.${nameFieldPath}`,
+        `root.${pageName}.${nameFieldPath}`,
       file,
     )
   }

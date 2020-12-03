@@ -1,21 +1,13 @@
 import sinon from 'sinon'
-import fs from 'fs-extra'
-import path from 'path'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
-import userEvent from '@testing-library/user-event'
-import chalk from 'chalk'
 import { expect } from 'chai'
 import {
-  componentTypes,
   createComponent,
-  eventTypes,
   Component,
-  List,
-  ListItem,
   NOODLComponent,
   ProxiedComponent,
 } from 'noodl-ui'
-import { assetsUrl, noodlui, noodluidom, toDOM } from './test-utils'
+import { assetsUrl, noodlui, noodluidom } from './test-utils'
 import { getShape, getShapeKeys } from './utils'
 
 describe('noodl-ui-dom', () => {
@@ -24,14 +16,14 @@ describe('noodl-ui-dom', () => {
     noodluidom.on('button', spy)
     const callbacksList = noodluidom.getCallbacks('button')
     expect(callbacksList).to.be.an('array')
-    expect(callbacksList?.[0]).to.eq(spy)
+    expect(callbacksList).to.include(spy)
   })
 
   it('should remove the func from the callbacks list', () => {
     const spy = sinon.spy()
     noodluidom.on('button', spy)
     let callbacksList = noodluidom.getCallbacks('button')
-    expect(callbacksList?.[0]).to.eq(spy)
+    expect(callbacksList).to.include(spy)
     noodluidom.off('button', spy)
     callbacksList = noodluidom.getCallbacks('button')
     expect(callbacksList).to.be.an('array')
@@ -45,68 +37,6 @@ describe('noodl-ui-dom', () => {
     // @ts-expect-error
     noodluidom.emit('label')
     expect(spy.called).to.be.true
-  })
-
-  describe('when working with plugin components', () => {
-    describe('should emit plugin event for pluginHead, pluginBodyTop, pluginBodyTail', () => {
-      xit('', () => {
-        //
-      })
-    })
-
-    xit('should insert pluginHead components to head', () => {
-      //
-    })
-
-    xit('should be able to globally access all plugin components', () => {
-      //
-    })
-
-    xit('should start fetching the url content immediately by default', () => {
-      //
-    })
-
-    describe('when using the life cycle api', () => {
-      xit('should be able to explicitly set to load before parsing components', () => {
-        //
-      })
-
-      xit('should be able to explicitly set to load after parsing components', () => {
-        //
-      })
-
-      xit(
-        'should be able to explicitly set to load when certain components are ' +
-          'being rendered to the DOM',
-        () => {
-          //
-        },
-      )
-
-      xit('should emit an event "before fetching"', () => {
-        //
-      })
-
-      xit('should emit an event "after fetching"', () => {
-        //
-      })
-
-      xit('should emit an event "data received from fetching"', () => {
-        //
-      })
-    })
-
-    xit("should be able to access a plugin's loaded contents any time", () => {
-      //
-    })
-
-    xit('should show the timestamp and location in the api system that the plugin was fetched', () => {
-      //
-    })
-
-    xit('should be able to fetch the url content in ', () => {
-      //
-    })
   })
 
   describe('when calling component events', () => {
@@ -245,7 +175,7 @@ describe('noodl-ui-dom', () => {
               ],
             },
           ],
-        } as ProxiedComponent
+        } as any
       })
 
       it('should append nested children as far down as possible', () => {
@@ -282,21 +212,6 @@ describe('noodl-ui-dom', () => {
         //
       },
     )
-  })
-
-  describe('noodlType: plugin', () => {
-    it('should receive null as the "DOM node" in the callback', () => {
-      const spy = sinon.spy()
-      const component = {
-        id: '123',
-        type: 'plugin',
-        noodlType: 'plugin',
-        path: 'https://what.com/what.jpg',
-      } as NOODLComponent
-      noodluidom.on('plugin', spy)
-      noodluidom.parse(noodlui.resolveComponents(component), document.body)
-      expect(spy.firstCall.args[0]).to.be.null
-    })
   })
 
   describe('getShape', () => {

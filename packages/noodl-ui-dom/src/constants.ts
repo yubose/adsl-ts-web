@@ -1,20 +1,12 @@
+import { componentTypes, ComponentType } from 'noodl-ui'
+
 export const componentEventMap = {
+  ...componentTypes.reduce(
+    (types, type) => Object.assign(types, { [type]: type }),
+    {} as Record<ComponentType, ComponentType>,
+  ),
   all: 'component',
-  button: 'button',
   br: 'breakline',
-  divider: 'divider',
-  footer: 'footer',
-  header: 'header',
-  image: 'image',
-  label: 'label',
-  list: 'list',
-  listItem: 'listItem',
-  plugin: 'plugin',
-  popUp: 'popup',
-  select: 'select',
-  textField: 'textField',
-  video: 'video',
-  view: 'view',
 } as const
 
 export const componentEventTypes = Object.keys(
