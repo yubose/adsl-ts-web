@@ -36,5 +36,5 @@ after(() => {
 
 afterEach(() => {
   document.body.textContent = ''
-  // noodlui.cleanup()
+  noodlui.cleanup()
 })

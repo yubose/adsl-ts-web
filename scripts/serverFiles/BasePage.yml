@@ -1,0 +1,336 @@
+BasePage:
+  pageNumber: "0"
+formData:
+  FirstName: ""
+FormView:
+  style: null
+  top: "0"
+  width: "1"
+  height: "0.13"
+FormViewLabel:
+  type: label
+  text: First name
+  style:
+    top: "0.01"
+    width: "0.8"
+    left: "0.1"
+    fontWeight: "400"
+    fontSize: "18"
+    textAlign:
+      x: left
+FormViewButton:
+  type: button
+  text: Upload
+  style:
+    top: "0.01"
+    width: "0.2"
+    left: "0.7"
+    fontWeight: "300"
+    fontSize: "16"
+    color: "0x579FD4"
+    backgroundColor: "0xffffff"
+    borderWidth: "0"
+    textAlign:
+      x: right
+FormViewTextField:
+  type: textField
+  placeholder: Enter here
+  style:
+    top: "0.07"
+    width: "0.8"
+    left: "0.1"
+    fontSize: "16"
+    color: "0x939393"
+    paddingLeft: 10px
+    paddingBottom: 7px
+    borderWidth: "1"
+    border:
+      style: "2"
+      color: "0x000000"
+FormViewText:
+  type: label
+  text: Enter here
+  style:
+    top: "0.07"
+    width: "0.8"
+    left: "0.1"
+    fontSize: "16"
+    color: "0x939393"
+    paddingLeft: 10px
+    paddingBottom: 7px
+    borderWidth: "1"
+    fontWeight: 200
+    border:
+      style: "2"
+      color: "0x000000"
+SmallButton:
+  type: button
+  text: Submit
+  style:
+    width: "0.4"
+    left: "0.3"
+    height: "0.07"
+    fontWeight: 200
+    fontSize: "18"
+    color: "0xffffff"
+    backgroundColor: "0x388ECC"
+    borderWidth: "0"
+    borderRadius: "3"
+    textAlign:
+      x: center
+p:
+  type: label
+  text: test
+  style:
+    width: "0.8"
+    left: "0.05"
+    color: "0xB5B5B5"
+    fontSize: "16"
+    fontWeight: 300
+PatientDashboardView:
+  type: view
+  style:
+    top: "0"
+    width: "0.35"
+    left: "0.1"
+    height: "0.15"
+    boxShadow: "1px 1px 1px #888888"
+    borderRadius: 5px
+PatientDashboardImage:
+  type: image
+  path: dateImg.png
+  style:
+    top: "0.03"
+    width: "0.13"
+    left: "0.11"
+PatientDashboardLabel:
+  type: label
+  text: Create Appointment (Invite patient)
+  style:
+    top: "0.11"
+    width: "0.3"
+    left: "0.025"
+    fontSize: "15"
+    fontWeight: "600"
+    color: "0x6b6b6b"
+    textAlign:
+      x: center
+CreateAppointmentView:
+  type: view
+  style:
+    top: "0"
+    left: "0.05"
+    width: "0.3"
+    height: "0.15"
+CreateAppointmentLabel:
+  type: label
+  text: Date
+  style:
+    top: "0.01"
+    left: "0.01"
+    fontSize: "14"
+    fontWeight: 300
+CreateAppointmentTextField:
+  type: textField
+  placeholder: Enter
+  style:
+    top: "0.05"
+    width: "0.3"
+    height: "0.03"
+    borderWidth: "1"
+    fontSize: "12"
+    borderRadius: "3"
+    color: OxABABABsss
+    paddingLeft: 5px
+    border:
+      style: "3"
+      color: OxABABAB
+BaseHeader:
+  type: header
+  style:
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+  children:
+    - type: button
+      text: =..title
+      style:
+        left: "0.25"
+        width: "0.5"
+        fontWeight: 300
+        height: "0.1"
+        fontSize: "18"
+        color: "0xffffffff"
+        textAlign:
+          x: center
+        backgroundColor: "0x388eccff"
+        border:
+          style: "1"
+HeaderRightButton:
+  type: label
+  style: .HeaderRightLink
+HeaderRightImg:
+  type: image
+  style: .HeaderRightImgStyle
+HeaderLeftButton:
+  type: button
+  onClick:
+    - actionType: builtIn
+      funcName: goBack
+  style:
+    top: "0"
+    left: "0.03"
+    width: "0.15"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+    zIndex: 100
+    textAlign:
+      y: center
+    border:
+      style: "1"
+  children:
+    - type: image
+      path: backWhiteArrow.png
+      style:
+        left: "0.02"
+        top: "0.04"
+        height: "0.02"
+        zIndex: 100
+      textAlign:
+        y: center
+    - type: label
+      text: Back
+      style:
+        left: "0.08"
+        top: "0"
+        height: "0.1"
+        zIndex: 100
+        fontSize: "15"
+        color: "0xffffffff"
+        textAlign:
+          x: left
+          y: center
+Menubar:
+  type: button
+  style:
+    width: "1"
+    height: "0.08"
+    border:
+      style: "2"
+      width: "3"
+      color: "0xe5e5e5"
+    backgroundColor: "0xffffff"
+MenubarImg:
+  type: image
+  style:
+    height: "0.05"
+    top: "0.015"
+    left: "0.1"
+MenubarTitle:
+  type: label
+  style:
+    left: "0.25"
+    top: "0"
+    height: "0.08"
+    fontSize: "19"
+    textAlign:
+      y: center
+PatientChartLabel:
+  type: label
+  text: Allgerge/irritant
+  style:
+    width: "0.35"
+    fontSize: "16"
+    fontWeight: 600
+    left: "0.1"
+ChartRadio_172:
+  .Radio:
+    style:
+      top: "0.004"
+      left: "0.15"
+ChartLabel_172:
+  type: label
+  style:
+    left: "0.25"
+    fontSize: "13"
+    top: "0"
+ChartRadio175:
+  .Radio:
+    style:
+      top: "0.004"
+      left: "0.1"
+ChartTitleLabel175:
+  type: label
+  style:
+    top: "0"
+    left: "0.15"
+    color: "#7f7f7f"
+ChartLabel175:
+  type: label
+  style:
+    top: "0"
+    left: "0.25"
+    color: "#7f7f7f"
+    fontSize: "14"
+BaseView:
+  type: view
+  style:
+    width: "1"
+    left: "0"
+ChartLabel:
+  - type: label
+    style:
+      top: "0"
+      left: "0.1"
+      color: "#5f5f5f"
+      fontSize: "14"
+PatientChartLabelLittle:
+  type: label
+  text: Lexapro
+  style:
+    width: "0.2"
+    fontSize: "13"
+    color: "0x4e4e4e"
+    fontWeight: 400
+    height: "0.025"
+PatientChartBorder:
+  type: button
+  onClick:
+    - actionType: builtIn
+      funcName: toggle
+  text: ""
+  textSelected: ✅
+  style:
+    left: "0.13"
+    width: "0.028"
+    height: "0.02"
+    border:
+      style: "3"
+      color: "0x939393"
+    backgroundColor: "0xffffff"
+PatientChartHistoryLabel:
+  type: label
+  text: Abnormal imaging or lab report
+  style:
+    width: "0.85"
+    left: "0.2"
+    fontSize: "11.5"
+    color: "0x4e4e4e"
+    fontWeight: 400
+    height: "0.025"
+    fontFamily: sans-serif
+ProgressField:
+  type: view
+  height: "0.15"
+  width: "0.07"
+Progress10:
+  type: view
+  style:
+    height: "0.015"
+    width: "0.92"
+    left: "0.04"
+    top: "0.125"
+  children:
+    - ? .ProgressField

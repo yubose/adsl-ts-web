@@ -1,0 +1,22 @@
+apiHost: ecostest.aitmed.com
+apiPort: '443'
+webApiHost: apiHost
+appApiHost: apiHost
+connectiontimeout: '5'
+loadingLevel: 1
+# designSuffix:
+#     widthHeightRatioThreshold: 1
+#     greaterEqual: ""
+#     less: v
+viewWidthHeightRatio:
+  min: '0.7'
+  max: '2.0'
+debug: console_log_api
+# cadlBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/testpage0.21/
+cadlBaseUrl: 'http://localhost:8080/'
+cadlMain: cadlEndpoint.yml
+myBaseUrl: ''
+timestamp: 12012020
+bodyTopPplugin: /bodyTopPlugin.html
+bodyTailPplugin: /bodyBottomPlugin.html
+headPlugin: /headPlugin.html

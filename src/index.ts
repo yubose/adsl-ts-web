@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import axios from 'axios'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
@@ -244,11 +245,17 @@ window.addEventListener('load', async () => {
         log.grey('Initializing noodl-ui client', { noodl, actions })
         viewport.width = window.innerWidth
         viewport.height = window.innerHeight
+        const fetch = async (url: string) =>
+          axios
+            .get(url)
+            .then(({ data }) => data)
+            .catch((err) => console.error(`[${err.name}]: ${err.message}`))
         noodlui
           .init({ actionsContext: { noodl }, viewport })
           .setPage(pageName)
           .use(viewport)
           .use({
+            fetch,
             getAssetsUrl: () => noodl.assetsUrl,
             getRoot: () => noodl.root,
           })
@@ -675,26 +682,23 @@ window.addEventListener('load', async () => {
     // }
   }
   // await page.requestPageChange(startPage)
-  if(page && window.location.href) {
+  if (page && window.location.href) {
     var newPage
     var hrefArr = window.location.href.split('/')
-    var urlArr = hrefArr[hrefArr.length-1]
-    if(urlArr === "") {
+    var urlArr = hrefArr[hrefArr.length - 1]
+    if (urlArr === '') {
       newPage = noodl.cadlEndpoint.startPage
       page.pageUrl = urlArr
       await page.requestPageChange(newPage)
-    }
-    else {
+    } else {
       var pagesArr = urlArr.split('-')
-      if(pagesArr.length>1) {
-        newPage = pagesArr[pagesArr.length-1]
-      }
-      else {
+      if (pagesArr.length > 1) {
+        newPage = pagesArr[pagesArr.length - 1]
+      } else {
         var baseArr = pagesArr[0].split('?')
-        if (baseArr.length > 1 && baseArr[baseArr.length-1] !== "") {
-          newPage = baseArr[baseArr.length-1]
-        }
-        else {
+        if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
+          newPage = baseArr[baseArr.length - 1]
+        } else {
           newPage = noodl.cadlEndpoint.startPage
         }
       }

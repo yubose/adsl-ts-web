@@ -60,6 +60,7 @@ export interface ConsumerOptions {
   context: ResolverContext
   createActionChainHandler: NOODLUI['createActionChainHandler']
   createSrc(path: Parameters<NOODLUI['createSrc']>[0]): string
+  fetch: Fetch
   getAssetsUrl(): string
   getBaseStyles(styles?: Style): Partial<Style>
   getPageObject: StateHelpers['getPageObject']
@@ -67,14 +68,24 @@ export interface ConsumerOptions {
   getRoot(): { [key: string]: any }
   getState: StateHelpers['getState']
   parser: RootsParser
+  plugins(location: 'head'): State['plugins']['head']
+  plugins(location: 'body'): State['plugins']['body']
+  plugins(location: 'body-top'): State['plugins']['body']['top']
+  plugins(location: 'body-bottom'): State['plugins']['body']['bottom']
+  plugins(location?: never): State['plugins']
   resolveComponent(
     c:
       | (ComponentType | Component | ComponentObject)
       | (ComponentType | Component | ComponentObject)[],
   ): Component
   resolveComponentDeep: NOODLUI['resolveComponents']
+  setPlugin(plugin: string | PluginObject): this
   showDataKey: boolean
   viewport: Viewport
+}
+
+export interface Fetch {
+  (...args: any[]): Promise<any>
 }
 
 export type GotoURL = string
@@ -97,8 +108,17 @@ export interface PageObject {
 
 export type Path = string | Omit<EmitActionObject, 'actionType'> | IfObject
 
+export type PluginLocation = 'head' | 'body-top' | 'body-bottom'
+
+export interface PluginObject {
+  location?: PluginLocation
+  url?: string
+  content?: string
+}
+
 export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {
   blueprint?: ProxiedComponent
+  content?: any
   'data-key'?: string
   'data-listid'?: any
   'data-name'?: string
@@ -109,6 +129,7 @@ export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {
   listId?: string
   listIndex?: number
   listObject?: '' | any[]
+  location?: PluginLocation
   noodlType?: ComponentType
   style?: Style
   children?: ProxiedComponent | ProxiedComponent[]
@@ -130,6 +151,13 @@ export interface ResolverFn<C = Component> {
 
 export interface State {
   page: string
+  plugins: {
+    head: PluginObject[]
+    body: {
+      top: PluginObject[]
+      bottom: PluginObject[]
+    }
+  }
   showDataKey: boolean
 }
 
@@ -138,9 +166,12 @@ export type StateHelpers = StateGetters & StateSetters
 export type StateGetters = {
   getState(): State
   getPageObject(page: string): PageObject
+  plugins: ConsumerOptions['plugins']
 }
 
-export type StateSetters = { [key: string]: any }
+export type StateSetters = { setPlugin: ConsumerOptions['setPlugin'] } & {
+  [key: string]: any
+}
 
 export interface Root {
   [key: string]: any
