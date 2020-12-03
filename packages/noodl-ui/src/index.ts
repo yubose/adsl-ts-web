@@ -43,6 +43,7 @@ export {
   getByDataUX,
   getDataValues,
   getDataObjectValue,
+  getPluginTypeLocation,
   identify,
 } from './utils/noodl'
 export { getTagName } from './resolvers/getElementType'

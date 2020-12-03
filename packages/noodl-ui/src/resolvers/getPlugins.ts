@@ -27,6 +27,7 @@ const getPlugins: ResolverFn = (
       } else if (loc === 'body-bottom') {
         plugin = { location: 'body-bottom' }
       }
+      component.set('location', loc)
       return plugin as PluginObject
     }
 
@@ -61,15 +62,16 @@ const getPlugins: ResolverFn = (
     getPluginPath(component.get('path'))
       .then((result) => {
         src = result
-        plugin.url = src
+        plugin && (plugin.url = src)
         component.set('src', src)
         // Use the default fetcher for now
         if (src) return fetch(src)
       })
       .then((content) => {
-        console.info('Received plugin content', { src, content })
+        log.grey('Received plugin content', { src, content })
         component.set('content', content)
-        plugin.content = content as any
+        component.emit('plugin:content', content)
+        plugin && (plugin.content = content as any)
         return plugin
       })
       .catch((err) => {

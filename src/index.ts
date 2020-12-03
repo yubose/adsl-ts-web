@@ -250,8 +250,19 @@ window.addEventListener('load', async () => {
             .get(url)
             .then(({ data }) => data)
             .catch((err) => console.error(`[${err.name}]: ${err.message}`))
+        const config = noodl.getConfig()
         noodlui
-          .init({ actionsContext: { noodl }, viewport })
+          .init({
+            actionsContext: { noodl },
+            plugins: {
+              head: [config.headPlugin],
+              body: {
+                top: [config.bodyTopPplugin],
+                bottom: [config.bodyTailPplugin],
+              },
+            },
+            viewport,
+          })
           .setPage(pageName)
           .use(viewport)
           .use({

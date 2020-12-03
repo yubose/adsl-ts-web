@@ -4,12 +4,13 @@ import {
   Component,
   ComponentObject,
   ComponentType,
+  getPluginTypeLocation,
   getTagName,
   ListItem,
   PluginLocation,
   PluginObject,
 } from 'noodl-ui'
-import { isEmitObj, publish } from 'noodl-utils'
+import { isEmitObj, isPluginComponent, publish } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
 import {
   componentEventMap,
@@ -19,6 +20,16 @@ import {
 import * as T from './types'
 
 const log = Logger.create('noodl-ui-dom')
+
+function createPluginState(): {
+  head: PluginObject[]
+  body: {
+    top: PluginObject[]
+    bottom: PluginObject[]
+  }
+} {
+  return { head: [], body: { top: [], bottom: [] } }
+}
 
 class NOODLUIDOM implements T.INOODLUiDOM {
   #callbacks: {
@@ -32,13 +43,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
-  #plugins: {
-    head: PluginObject[]
-    body: {
-      top: PluginObject[]
-      bottom: PluginObject[]
-    }
-  } = { head: [], body: { top: [], bottom: [] } }
+  #plugins: ReturnType<typeof createPluginState> = createPluginState()
   #state: {} = {}
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
@@ -59,12 +64,44 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     const { noodlType } = component || ({} as Component)
 
     if (component) {
-      if (noodlType === 'plugin') {
+      if (isPluginComponent(component)) {
         // Don't create a node. Except just emit the events accordingly
         // This is to allow the caller to determine whether they want to create
         // a separate DOM node or not
-        this.emit('component', null, component)
-        this.emit('plugin', null, component)
+        if (component.noodlType === 'plugin') {
+          this.emit('component', null, component)
+          this.emit('plugin', null, component)
+        } else {
+          // TODO - Add more supported mime types
+          const url = component.get('url') || ''
+          const location = getPluginTypeLocation(component.noodlType)
+          const scriptNode = document.createElement('script')
+          scriptNode.setAttribute(
+            'type',
+            url.endsWith('.html')
+              ? 'text/html'
+              : url.endsWith('.js')
+              ? 'text/javascript'
+              : 'text/html',
+          )
+          scriptNode.text = component.get('content') || ''
+          if (location === 'head') {
+            this.#plugins.head.push(this.#createPluginObject(component))
+            document.head.appendChild(scriptNode)
+          } else if (location === 'body-top') {
+            this.#plugins.body.top.push(this.#createPluginObject(component))
+            document.body.insertBefore(scriptNode, document.body.firstChild)
+          } else if (location === 'body-bottom') {
+            this.#plugins.body.bottom.push(this.#createPluginObject(component))
+            document.body.appendChild(scriptNode)
+          }
+          // The behavior for these specific components will take on the shape of
+          // a <script> DOM node, since the fetched contents from their url comes within
+          // the component instance themselves
+          this.emit('component', scriptNode, component)
+          this.emit(component.noodlType, scriptNode, component)
+          return scriptNode
+        }
       } else {
         if (component.noodlType === 'image') {
           component.on('path', (result: string) => {
@@ -130,6 +167,26 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       default:
         return this.#plugins
     }
+  }
+
+  #createPluginObject = (component: Component): PluginObject => {
+    if (component instanceof Component) {
+      const plugin = component.get(['location', 'content', 'src'])
+      plugin.url = plugin.src
+      delete plugin.src
+      if (!component.get('content')) {
+        component.on('plugin:content', (content) => {
+          console.info(
+            `Received plugin content hehehehe`,
+            component.get('content'),
+          )
+          // plugin.content = content
+        })
+        console.info(plugin)
+      }
+      return plugin
+    }
+    return { location: undefined, content: undefined, url: undefined }
   }
 
   redraw(
@@ -350,11 +407,13 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     return this
   }
 
-  removeAllCbs() {
+  reset() {
+    this.#plugins = createPluginState()
     this.#callbacks.all.length = 0
     Object.keys(this.#callbacks.component).forEach((key) => {
       this.#callbacks.component[key].length = 0
     })
+    return this
   }
 }
 

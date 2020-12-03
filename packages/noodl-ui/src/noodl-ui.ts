@@ -71,45 +71,13 @@ class NOODL {
   constructor({
     showDataKey,
     viewport,
-    plugins,
   }: {
-    plugins?: {
-      fetcher?(...args: any[]): Promise<any>
-      head: any[]
-      body: {
-        top: any[]
-        bottom: any[]
-      }
-    }
     showDataKey?: boolean
     viewport?: Viewport
   } = {}) {
     this.#parser = makeRootsParser({ root: {} })
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
-    if (plugins) {
-      if (Array.isArray(plugins)) {
-        // Array of plugin urls. Defaults to inserting all in the head
-        this.#state.plugins.head = this.#state.plugins.head.concat(plugins)
-      } else {
-        // Explicitly setting directions for plugin urls
-        if (plugins.head?.length) {
-          this.#state.plugins.head = this.#state.plugins.head.concat(
-            plugins.head,
-          )
-        }
-        if (plugins.body?.top?.length) {
-          this.#state.plugins.body.top = this.#state.plugins.body.top.concat(
-            plugins.body.top,
-          )
-        }
-        if (plugins.body?.bottom?.length) {
-          this.#state.plugins.body.bottom = this.#state.plugins.body.bottom.concat(
-            plugins.body.bottom,
-          )
-        }
-      }
-    }
   }
 
   get assetsUrl() {
@@ -624,6 +592,14 @@ class NOODL {
   }: { _log?: boolean; actionsContext?: NOODL['actionsContext'] } & {
     getAssetsUrl?: () => string
     getRoot?: () => T.Root
+    plugins?: {
+      fetcher?(...args: any[]): Promise<any>
+      head: any[]
+      body: {
+        top: any[]
+        bottom: any[]
+      }
+    }
     viewport?: Viewport
   } = {}) {
     if (!_log) Logger.disable()
@@ -790,10 +766,42 @@ class NOODL {
           this.setViewport(m)
         } else if (m instanceof Resolver) {
           this.#resolvers.push(m)
-        } else if ('fetch' in m || 'getAssetsUrl' in m || 'getRoot' in m) {
+        } else if (
+          'fetch' in m ||
+          'getAssetsUrl' in m ||
+          'getRoot' in m ||
+          'plugins' in m
+        ) {
           if ('getAssetsUrl' in m) this.#getAssetsUrl = m.getAssetsUrl
           if ('getRoot' in m) this.#getRoot = m.getRoot
           if ('fetch' in m) this.#fetch = this.#createFetch(m.fetch)
+          if ('plugins' in m) {
+            if (Array.isArray(m.plugins)) {
+              m.plugins.forEach((plugin: string | T.PluginObject) => {
+                this.setPlugin(plugin)
+              })
+            } else {
+              if (Array.isArray(m.plugins.head)) {
+                m.plugins.head.forEach((plugin: string | T.PluginObject) => {
+                  this.setPlugin(plugin)
+                })
+              }
+              if (Array.isArray(m.plugins.body?.top)) {
+                m.plugins.body.top.forEach(
+                  (plugin: string | T.PluginObject) => {
+                    this.setPlugin(plugin)
+                  },
+                )
+              }
+              if (Array.isArray(m.plugins.body?.bottom)) {
+                m.plugins.body.bottom.forEach(
+                  (plugin: string | T.PluginObject) => {
+                    this.setPlugin(plugin)
+                  },
+                )
+              }
+            }
+          }
         }
       }
     }

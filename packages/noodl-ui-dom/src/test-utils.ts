@@ -55,6 +55,6 @@ export function toDOM(props: any): NOODLDOMElement | null {
   } else if (typeof props === 'object' && 'type' in props) {
     node = noodluidom.parse(noodlui.resolveComponents(props))
   }
-  document.body.appendChild(node as any)
+  if (node) document.body.appendChild(node as any)
   return node
 }

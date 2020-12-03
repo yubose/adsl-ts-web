@@ -76,8 +76,9 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  document.head.textContent = ''
   document.body.textContent = ''
   // @ts-expect-error
   noodlui.cleanup()
-  noodluidom.removeAllCbs()
+  noodluidom.reset()
 })

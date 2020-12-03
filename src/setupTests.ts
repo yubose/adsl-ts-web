@@ -72,5 +72,5 @@ afterEach(() => {
   page.rootNode = null
   // @ts-expect-error
   noodlui.cleanup()
-  noodluidom.removeAllCbs()
+  noodluidom.reset()
 })

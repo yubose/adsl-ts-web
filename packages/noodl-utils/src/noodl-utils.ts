@@ -438,7 +438,7 @@ export function isPasswordInput(value: unknown) {
   )
 }
 
-const pluginTypes = ['pluginHead', 'pluginBodyTop', 'pluginBodyTail']
+const pluginTypes = ['plugin', 'pluginHead', 'pluginBodyTop', 'pluginBodyTail']
 
 export function isPluginComponent(value: any) {
   return !!(value && pluginTypes.includes(value?.noodlType || value?.type))

@@ -1,16 +1,9 @@
 import sinon from 'sinon'
 import nock from 'nock'
-import { prettyDOM, screen, waitFor } from '@testing-library/dom'
+import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import {
-  createComponent,
-  Component,
-  NOODLComponent,
-  ProxiedComponent,
-  ComponentObject,
-} from 'noodl-ui'
-import { assetsUrl, noodlui, noodluidom, toDOM } from '../test-utils'
-import { getShape, getShapeKeys } from '../utils'
+import { NOODLComponent, ComponentObject } from 'noodl-ui'
+import { noodlui, noodluidom, toDOM } from '../test-utils'
 
 let pluginHead: ComponentObject
 let pluginBodyTop: ComponentObject
@@ -27,9 +20,6 @@ beforeEach(() => {
 
 describe.only('plugins', () => {
   it('should receive null as the "DOM node" in the callback', () => {
-    nock('https://what.com', { reqheaders: { origin: '*' } })
-      .get('/what.jpg')
-      .reply(200, 'congrats')
     const spy = sinon.spy()
     const component = {
       id: '123',
@@ -83,7 +73,6 @@ describe.only('plugins', () => {
       }),
     )
     const nodes = Array.from(document.querySelectorAll('script'))
-    console.info(prettyDOM())
     nodes.forEach((scriptNode) => {
       expect(scriptNode.style.position).to.eq('')
       expect(scriptNode.style.outline).to.eq('')
@@ -92,26 +81,50 @@ describe.only('plugins', () => {
     })
   })
 
-  it('should insert pluginHead components to head', () => {
-    const node = toDOM(pluginHead)
-    expect(document.head.contains(node)).to.be.true
-    expect(document.body.contains(node)).to.be.false
+  it('should insert pluginHead components to head', async () => {
+    const node = noodluidom.parse(noodlui.resolveComponents(pluginHead))
+    await waitFor(() => {
+      expect(document.head.contains(node)).to.be.true
+      expect(document.body.contains(node)).to.be.false
+      console.info(prettyDOM(document.documentElement))
+    })
   })
 
-  xit('should insert pluginBodyTop components to beginning of body', () => {
-    //
+  it('should insert pluginBodyTop components to beginning of body', async () => {
+    document.body.innerHTML =
+      '<li>Hello</li>' + '<li>Hello</li>' + '<li>Hello</li>'
+    const node = noodluidom.parse(noodlui.resolveComponents(pluginBodyTop))
+    await waitFor(() => {
+      expect(document.body.firstChild).to.eq(node)
+    })
   })
 
-  xit('should insert pluginBodyTop components to the end of body', () => {
-    //
+  it('should insert pluginBodyTop components to the end of body', async () => {
+    document.body.innerHTML =
+      '<li>Hello</li>' + '<li>Hello</li>' + '<li>Hello</li>'
+    const node = noodluidom.parse(noodlui.resolveComponents(pluginBodyTail))
+    await waitFor(() => {
+      expect(document.body.lastChild).to.eq(node)
+    })
   })
 
-  xit('should be able to globally access all plugin components', () => {
-    //
+  it('should be able to globally access all plugin components', () => {
+    expect(noodluidom.plugins()).to.have.property('head')
+    expect(noodluidom.plugins()).to.have.property('body')
   })
 
-  xit('should start fetching the url content immediately by default', () => {
-    //
+  // Already handled in noodl-ui
+  xit('should fetch the url content immediately by default', async () => {
+    const pluginContent = '<script>console.info("You got me")</script>'
+    nock(noodlui.assetsUrl)
+      .get(('/' + pluginHead.path) as string)
+      .reply(200, pluginContent)
+    const node = noodluidom.parse(noodlui.resolveComponents(pluginHead))
+    await waitFor(() => {
+      const plugin = noodluidom.plugins('head')[0]
+      expect(plugin).to.exist
+      expect(plugin).to.have.property('content').eq(pluginContent)
+    })
   })
 
   describe('when using the life cycle api', () => {
@@ -144,15 +157,22 @@ describe.only('plugins', () => {
     })
   })
 
-  xit("should be able to access a plugin's loaded contents any time", () => {
-    //
-  })
-
-  xit('should show the timestamp and location in the api system that the plugin was fetched', () => {
-    //
-  })
-
-  xit('should be able to fetch the url content in ', () => {
-    //
+  it('should be able to form a plugin object and retain all the plugin props', async () => {
+    let plugin: any
+    const pluginContent = '<script>console.info("You got me")</script>'
+    const component = noodlui.resolveComponents(pluginHead)
+    // We are setting the content here because noodl-ui resolves the content
+    // Since we shouldn't test 3rd party libs, we will quickly just set the content ourselves
+    component.set('content', pluginContent)
+    noodluidom.parse(component)
+    await waitFor(() => {
+      plugin = noodluidom.plugins('head')[0]
+      expect(plugin).to.exist
+      expect(plugin).to.have.property('location').eq('head')
+    })
+    expect(plugin)
+      .to.have.property('url')
+      .eq(noodlui.assetsUrl + pluginHead.path)
+    expect(plugin).to.have.property('content').eq(pluginContent)
   })
 })
