@@ -343,6 +343,9 @@ const createActions = function ({ page }: { page: IPage }) {
           page.pageUrl += parse
           page.pageUrl += action.original.goto
         }
+        else {
+          page.pageUrl = "index.html?"
+        }
 
         await page.requestPageChange(action.original.goto)
       } else if (_.isPlainObject(action?.original?.goto)) {
@@ -358,6 +361,9 @@ const createActions = function ({ page }: { page: IPage }) {
           if (url !== noodl.cadlEndpoint.startPage) {
             page.pageUrl += parse
             page.pageUrl += url
+          }
+          else {
+            page.pageUrl = "index.html?"
           }
 
           log.gold('Requesting object destination', { action, options })

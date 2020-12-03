@@ -293,6 +293,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         page.pageUrl += parse
         page.pageUrl += action
       }
+      else {
+        page.pageUrl = "index.html?"
+      }
 
       await page.requestPageChange(action)
     } else if (_.isPlainObject(action)) {
@@ -303,6 +306,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         if (action.destination !== noodl.cadlEndpoint.startPage) {
           page.pageUrl += parse
           page.pageUrl += action.destination
+        }
+        else {
+          page.pageUrl = "index.html?"
         }
 
         await page.requestPageChange(action.destination)
