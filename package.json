@@ -55,7 +55,7 @@
     "noodl-utils": "file:packages\\noodl-utils"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.141",
+    "@aitmed/cadl": "^1.0.143",
     "@aitmed/ecos-lvl2-sdk": "^1.4.117",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",
