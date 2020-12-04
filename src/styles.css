@@ -31,3 +31,10 @@ select {
 video::-webkit-media-controls-fullscreen-button {
   display: none;
 }
+
+div.pluginHead,
+div.pluginBodyTop,
+div.pluginBodyTail {
+  position: absolute;
+  visibility: hidden;
+}

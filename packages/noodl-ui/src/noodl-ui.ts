@@ -23,7 +23,11 @@ import {
   hasLetter,
   isPromise,
 } from './utils/common'
-import { isActionChainEmitTrigger, resolveAssetUrl } from './utils/noodl'
+import {
+  getPluginTypeLocation,
+  isActionChainEmitTrigger,
+  resolveAssetUrl,
+} from './utils/noodl'
 import createComponent from './utils/createComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
@@ -126,6 +130,19 @@ class NOODL {
         components = [componentsParams]
       }
     }
+
+    // Add plugin components first
+    components = [
+      ..._.map(this.plugins('head'), (plugin: T.PluginObject) => plugin.ref),
+      ..._.map(
+        this.plugins('body-top'),
+        (plugin: T.PluginObject) => plugin.ref,
+      ),
+      ..._.map(
+        this.plugins('body-bottom'),
+        (plugin: T.PluginObject) => plugin.ref,
+      ),
+    ].concat(components)
 
     // Finish off with the internal resolvers to handle the children
     _.forEach(components, (c) => {
@@ -419,44 +436,78 @@ class NOODL {
       : (_.noop as Window['fetch'])) as T.Fetch
   }
 
-  plugins(location?: T.PluginLocation) {
-    switch (location) {
-      case 'head':
-        return this.getState().plugins.head
-      case 'body-top':
-        return this.getState().plugins.body.top
-      case 'body-bottom':
-        return this.getState().plugins.body.bottom
-      default:
-        return this.getState().plugins
-    }
-  }
-
-  setPlugin(value: string | T.PluginObject) {
-    if (!value) return
-    const plugin: T.PluginObject = this.#createPluginObject(value)
-    if (plugin.location === 'head') {
-      this.#state.plugins.head.push(plugin)
-    } else if (plugin.location === 'body-top') {
-      this.#state.plugins.body.top.push(plugin)
-    } else if (plugin.location === 'body-bottom') {
-      this.#state.plugins.body.bottom.push(plugin)
-    }
-    return plugin
-  }
-
-  #createPluginObject = (plugin: string | T.PluginObject): T.PluginObject => {
-    return typeof plugin === 'string'
-      ? {
+  createPluginObject(component: Component): T.PluginObject
+  createPluginObject(component: T.ComponentObject): T.PluginObject
+  createPluginObject(plugin: T.PluginObject): T.PluginObject
+  createPluginObject(path: string): T.PluginObject
+  createPluginObject(plugin: T.PluginCreationType): T.PluginObject
+  createPluginObject(plugin: T.PluginCreationType): T.PluginObject {
+    if (typeof plugin === 'string') {
+      plugin = {
+        content: '',
+        location: 'head',
+        path: plugin,
+        ref: createComponent({
+          type: 'pluginHead',
           location: 'head',
+          path: plugin,
           content: '',
-          url: plugin,
-        }
-      : Object.assign(
-          {},
-          plugin,
-          !plugin.location ? { location: 'head' } : undefined,
-        )
+        }),
+      }
+    } else if (plugin instanceof Component) {
+      plugin = {
+        content: plugin.get('content') || '',
+        location: getPluginTypeLocation(plugin.noodlType) as T.PluginLocation,
+        path: plugin.get('path'),
+        ref: plugin,
+      }
+    } else if ('type' in plugin) {
+      plugin = {
+        content: plugin.content || '',
+        location: getPluginTypeLocation(plugin.type as string) || 'head',
+        path: plugin.path,
+        ref: createComponent({
+          content: '',
+          path: '',
+          ...plugin,
+          location:
+            getPluginTypeLocation(plugin.noodlType || plugin.type || '') ||
+            'head',
+        }),
+      }
+    } else if (
+      'content' in plugin ||
+      'location' in plugin ||
+      'path' in plugin ||
+      'ref' in plugin
+    ) {
+      plugin = {
+        content: plugin.content || '',
+        location: plugin.location || 'head',
+        path: plugin.path || '',
+        ref:
+          plugin.ref ||
+          createComponent({
+            ...plugin,
+            location: 'head',
+            type: plugin.location === 'head' ? 'pluginHead' : 'pluginBodyTop',
+          }),
+      }
+    } else {
+      plugin = {
+        content: '',
+        location: 'head',
+        path: '',
+        ref: createComponent({
+          type: 'pluginHead',
+          content: '',
+          location: 'head',
+          path: '',
+        }),
+      }
+    }
+    plugin.ref.set('plugin', plugin)
+    return plugin.ref.get('plugin')
   }
 
   on(
@@ -731,17 +782,62 @@ class NOODL {
     return this
   }
 
+  plugins(location?: T.PluginLocation) {
+    switch (location) {
+      case 'head':
+        return this.getState().plugins.head
+      case 'body-top':
+        return this.getState().plugins.body.top
+      case 'body-bottom':
+        return this.getState().plugins.body.bottom
+      default:
+        return this.getState().plugins
+    }
+  }
+
+  setPlugin(value: T.PluginCreationType) {
+    if (!value) return
+    const plugin: T.PluginObject = this.createPluginObject(value)
+    log.func('setPlugin')
+    log.info(`Registering plugin: ${plugin.path}`, plugin)
+    if (plugin.location === 'head') {
+      this.#state.plugins.head.push(plugin)
+    } else if (plugin.location === 'body-top') {
+      this.#state.plugins.body.top.push(plugin)
+    } else if (plugin.location === 'body-bottom') {
+      this.#state.plugins.body.bottom.push(plugin)
+    }
+    return plugin
+  }
+
   use(resolver: Resolver | Resolver[]): this
   use(action: T.ActionChainUseObject | T.ActionChainUseObject[]): this
   use(viewport: T.IViewport): this
-  use(o: { fetch?: T.Fetch; getAssetsUrl?(): string; getRoot?(): T.Root }): this
+  use(o: {
+    fetch?: T.Fetch
+    getAssetsUrl?(): string
+    getRoot?(): T.Root
+    plugins?: T.PluginCreationType[]
+  }): this
   use(
     mod:
       | Resolver
       | T.ActionChainUseObject
       | T.IViewport
-      | { getAssetsUrl?(): string; getRoot?(): T.Root }
-      | (Resolver | T.ActionChainUseObject | { getRoot(): T.Root })[],
+      | {
+          getAssetsUrl?(): string
+          getRoot?(): T.Root
+          plugins?: T.PluginCreationType[]
+        }
+      | (
+          | Resolver
+          | T.ActionChainUseObject
+          | {
+              getAssetsUrl?(): string
+              getRoot?(): T.Root
+              plugins?: T.PluginCreationType[]
+            }
+        )[],
     ...rest: any[]
   ) {
     const mods = ((_.isArray(mod) ? mod : [mod]) as any[]).concat(rest)
@@ -777,29 +873,9 @@ class NOODL {
           if ('fetch' in m) this.#fetch = this.#createFetch(m.fetch)
           if ('plugins' in m) {
             if (Array.isArray(m.plugins)) {
-              m.plugins.forEach((plugin: string | T.PluginObject) => {
+              m.plugins.forEach((plugin: T.PluginCreationType) => {
                 this.setPlugin(plugin)
               })
-            } else {
-              if (Array.isArray(m.plugins.head)) {
-                m.plugins.head.forEach((plugin: string | T.PluginObject) => {
-                  this.setPlugin(plugin)
-                })
-              }
-              if (Array.isArray(m.plugins.body?.top)) {
-                m.plugins.body.top.forEach(
-                  (plugin: string | T.PluginObject) => {
-                    this.setPlugin(plugin)
-                  },
-                )
-              }
-              if (Array.isArray(m.plugins.body?.bottom)) {
-                m.plugins.body.bottom.forEach(
-                  (plugin: string | T.PluginObject) => {
-                    this.setPlugin(plugin)
-                  },
-                )
-              }
             }
           }
         }

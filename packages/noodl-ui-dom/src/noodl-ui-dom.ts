@@ -72,35 +72,54 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           this.emit('component', null, component)
           this.emit('plugin', null, component)
         } else {
-          // TODO - Add more supported mime types
-          const url = component.get('url') || ''
-          const location = getPluginTypeLocation(component.noodlType)
-          const scriptNode = document.createElement('script')
-          scriptNode.setAttribute(
-            'type',
-            url.endsWith('.html')
+          const plugin = component.get('plugin')
+          const src = component.get('src') || ''
+          if (plugin) {
+            const mimeType = src.endsWith?.('.html')
               ? 'text/html'
-              : url.endsWith('.js')
+              : src.endsWith?.('.js')
               ? 'text/javascript'
-              : 'text/html',
-          )
-          scriptNode.text = component.get('content') || ''
-          if (location === 'head') {
-            this.#plugins.head.push(this.#createPluginObject(component))
-            document.head.appendChild(scriptNode)
-          } else if (location === 'body-top') {
-            this.#plugins.body.top.push(this.#createPluginObject(component))
-            document.body.insertBefore(scriptNode, document.body.firstChild)
-          } else if (location === 'body-bottom') {
-            this.#plugins.body.bottom.push(this.#createPluginObject(component))
-            document.body.appendChild(scriptNode)
+              : 'text/html'
+
+            // TODO - Find more cases to handle
+            if (mimeType !== 'text/javascript') {
+              node = document.createElement('div')
+            }
+
+            // TODO - Add more supported mime types
+            component.on('plugin:content', (content: any) => {
+              if (mimeType === 'text/html') {
+                ;(node as HTMLDivElement).innerHTML = content
+                if (plugin.location === 'head') {
+                  // this.#plugins.head.push(this.#createPluginObject(component))
+                  document.head.appendChild(node)
+                } else if (plugin.location === 'body-top') {
+                  // this.#plugins.body.top.push(this.#createPluginObject(component))
+                  document.body.insertBefore(node, document.body.firstChild)
+                } else if (plugin.location === 'body-bottom') {
+                  // this.#plugins.body.bottom.push(
+                  //   this.#createPluginObject(component),
+                  // )
+                  document.body.appendChild(node)
+                }
+                this.emit('component', node as HTMLDivElement, component)
+                this.emit(
+                  component.noodlType,
+                  node as HTMLDivElement,
+                  component,
+                )
+              } else if (mimeType === 'text/javascript') {
+                this.emit('component', null, component)
+                this.emit('plugin', null, component)
+              }
+            })
+
+            // The behavior for these specific components will take on the shape of
+            // a <script> DOM node, since the fetched contents from their url comes within
+            // the component instance themselves
+
+            return node
           }
-          // The behavior for these specific components will take on the shape of
-          // a <script> DOM node, since the fetched contents from their url comes within
-          // the component instance themselves
-          this.emit('component', scriptNode, component)
-          this.emit(component.noodlType, scriptNode, component)
-          return scriptNode
         }
       } else {
         if (component.noodlType === 'image') {

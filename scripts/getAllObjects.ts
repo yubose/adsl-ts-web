@@ -72,7 +72,9 @@ async function getAllObjects({
   log.blue('Cleaning up previous data...')
 
   await fs.remove(dir)
-  await fs.ensureDir(path.resolve(dir, 'pages'))
+  if (parseMode !== 'yml') {
+    await fs.ensureDir(path.resolve(dir, 'pages'))
+  }
 
   log.blue(`Recreated the ${parseMode}s directory`)
   log.blank()
@@ -89,7 +91,7 @@ async function getAllObjects({
           data: resolvedPage,
           dir: path.join(
             paths[parseMode],
-            /(base|config)/i.test(name) ? '' : 'pages',
+            /(base|config)/i.test(name) || parseMode === 'yml' ? '' : 'pages',
           ),
           filename: name + saver.getExt(),
           type: parseMode,

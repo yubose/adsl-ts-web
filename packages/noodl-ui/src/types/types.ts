@@ -14,6 +14,7 @@ import {
 } from './constantTypes'
 import NOODLUI from '../noodl-ui'
 import Viewport from '../Viewport'
+import { EmitObject } from '../../dist'
 
 export interface NOODLComponent {
   type?: ComponentType
@@ -122,12 +123,19 @@ export interface PageObject {
 
 export type Path = string | Omit<EmitActionObject, 'actionType'> | IfObject
 
+export type PluginCreationType =
+  | string
+  | Component
+  | ComponentObject
+  | PluginObject
+
 export type PluginLocation = 'head' | 'body-top' | 'body-bottom'
 
 export interface PluginObject {
   location?: PluginLocation
-  url?: string
+  path?: string
   content?: string
+  ref: Component
 }
 
 export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {

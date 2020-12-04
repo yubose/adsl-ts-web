@@ -17,6 +17,7 @@ import {
   getEventHandlers,
   getFontAttrs,
   getPosition,
+  getPlugins,
   getReferences,
   getStylesByElementType,
   getSizes,
@@ -31,6 +32,7 @@ import {
   Page as NOODLUIPage,
   ResolverFn,
   Viewport,
+  ComponentObject,
 } from 'noodl-ui'
 import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'
@@ -91,7 +93,7 @@ window.addEventListener('load', async () => {
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
 
-  listen()
+  listen(noodluidom)
 
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
@@ -251,16 +253,36 @@ window.addEventListener('load', async () => {
             .then(({ data }) => data)
             .catch((err) => console.error(`[${err.name}]: ${err.message}`))
         const config = noodl.getConfig()
+        const plugins = [
+          { type: 'pluginHead', path: 'googleTM.html' },
+        ] as ComponentObject[]
+        if (config.headPlugin) {
+          plugins.push(
+            noodlui.createPluginObject({
+              type: 'pluginHead',
+              path: config.headPlugin,
+            }),
+          )
+        }
+        if (config.bodyTopPplugin) {
+          plugins.push(
+            noodlui.createPluginObject({
+              type: 'pluginBodyTop',
+              path: config.bodyTopPplugin,
+            }),
+          )
+        }
+        if (config.bodyTailPplugin) {
+          plugins.push(
+            noodlui.createPluginObject({
+              type: 'pluginBodyTail',
+              path: config.bodyTailPplugin,
+            }),
+          )
+        }
         noodlui
           .init({
             actionsContext: { noodl },
-            plugins: {
-              head: [config.headPlugin],
-              body: {
-                top: [config.bodyTopPplugin],
-                bottom: [config.bodyTailPplugin],
-              },
-            },
             viewport,
           })
           .setPage(pageName)
@@ -269,6 +291,7 @@ window.addEventListener('load', async () => {
             fetch,
             getAssetsUrl: () => noodl.assetsUrl,
             getRoot: () => noodl.root,
+            plugins,
           })
           .use(
             _.reduce(
@@ -280,6 +303,7 @@ window.addEventListener('load', async () => {
                 getBorderAttrs,
                 getColors,
                 getFontAttrs,
+                getPlugins,
                 getPosition,
                 getSizes,
                 getStylesByElementType,
@@ -738,14 +762,12 @@ window.addEventListener('load', async () => {
       window.localStorage.getItem('tempConfigKey') !==
         JSON.stringify(localConfig.timestamp)
     ) {
-      console.log('Huh?', window.localStorage.getItem('tempConfigKey'))
-      console.log('What?', JSON.stringify(localConfig.timestamp))
-      window.localStorage.removeItem('CACHED_PAGES')
+      window.localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
       page.pageUrl = 'index.html?'
       await page.requestPageChange(newPage)
     } else {
-      if (urlArr === '') {
-        page.pageUrl = urlArr
+      if (!urlArr.startsWith('index.html?')) {
+        page.pageUrl = 'index.html?'
         await page.requestPageChange(newPage)
       } else {
         var pagesArr = urlArr.split('-')

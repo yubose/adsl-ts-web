@@ -30,6 +30,6 @@ export const paths = (function () {
     scripts: scriptsPath,
     compiled: `${scriptsPath}/compiled`,
     json: `${scriptsPath}/objects`,
-    yml: `${scriptsPath}/yml`,
+    yml: `${scriptsPath}/serverFiles`,
   } as const
 })()

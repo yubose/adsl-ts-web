@@ -1,122 +1,107 @@
 PatientDashboard:
-  title: 'Dashboard'
-  pageNumber: '80'
+  title: Dashboard
+  pageNumber: "80"
   components:
-    - type: pluginHead
-      path: googleTM.html
-    - .BaseHeader:
-    - .HeaderRightImg:
+    - ? .BaseHeader
+    - .HeaderRightImg: null
       path: sideNav2.png
-      # onClick:
-      #   - goto: MenuBar
     - type: view
       style:
-        top: '0.1'
-        left: '0'
-        width: '1'
-        height: '0.2'
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.2"
       children:
         - type: view
-          # onClick:
-          #   - goto: WaitingRoom
           style:
-            top: '0.05'
-            width: '0.6'
-            left: '0.2'
-            height: '0.2'
-            backgroundColor: '0x398ECC'
-            boxShadow: '1px 1px #888888'
-            borderRadius: '5'
+            top: "0.05"
+            width: "0.6"
+            left: "0.2"
+            height: "0.2"
+            backgroundColor: "0x398ECC"
+            boxShadow: "1px 1px #888888"
+            borderRadius: "5"
           children:
             - type: image
               path: doctorman.png
               style:
-                top: '0.05'
-                width: '0.15'
-                # height: "0.2"
-                left: '0.15'
+                top: "0.05"
+                width: "0.15"
+                left: "0.15"
             - type: image
               path: doctorwoman.png
               style:
-                top: '0.05'
-                width: '0.15'
-                # height: "0.2"
-                left: '0.30'
+                top: "0.05"
+                width: "0.15"
+                left: "0.30"
             - type: label
               text: Meet width Doctor
               style:
-                top: '0.14'
-                fontSize: '16'
-                color: '0xffffff'
+                top: "0.14"
+                fontSize: "16"
+                color: "0xffffff"
                 fontWeight: 360
-                width: '0.6'
+                width: "0.6"
                 textAlign:
                   x: center
     - type: view
       style:
-        top: '0.4'
-        width: '1'
-        left: '0'
-        height: '0.7'
+        top: "0.4"
+        width: "1"
+        left: "0"
+        height: "0.7"
       children:
-        - .PatientDashboardView:
+        - .PatientDashboardView: null
           onClick:
             - goto: SelectKey
           children:
-            - .PatientDashboardImage:
+            - .PatientDashboardImage: null
               path: visit.history.png
-            - .PatientDashboardLabel:
+            - .PatientDashboardLabel: null
               text: SelectKey
-        - .PatientDashboardView:
-          # onClick:
-          #   - goto: MedicalRecords
+        - .PatientDashboardView: null
           style:
-            left: '0.55'
+            left: "0.55"
           children:
-            - .PatientDashboardImage:
+            - .PatientDashboardImage: null
               path: medical.records.png
-            - .PatientDashboardLabel:
+            - .PatientDashboardLabel: null
               text: Medical Records
-        - .PatientDashboardView:
-          # onClick:
-          #   - goto: Profile
+        - .PatientDashboardView: null
           style:
-            top: '0.2'
+            top: "0.2"
           children:
-            - .PatientDashboardImage:
+            - .PatientDashboardImage: null
               path: profile.png
-            - .PatientDashboardLabel:
+            - .PatientDashboardLabel: null
               text: Profiles
-        - .PatientDashboardView:
-          # onClick:
-          #   - goto: VitalSignsTracker
+        - .PatientDashboardView: null
           style:
-            top: '0.2'
-            left: '0.55'
+            top: "0.2"
+            left: "0.55"
           children:
-            - .PatientDashboardImage:
+            - .PatientDashboardImage: null
               path: remote.health.png
-            - .PatientDashboardLabel:
+            - .PatientDashboardLabel: null
               text: Vital Signs
-        - .PatientDashboardView:
+        - .PatientDashboardView: null
           onClick:
             - goto: PatientChart
           style:
-            top: '0.4'
+            top: "0.4"
           children:
-            - .PatientDashboardImage:
+            - .PatientDashboardImage: null
               path: create.appointment.png
-            - .PatientDashboardLabel:
+            - .PatientDashboardLabel: null
               text: Patient Chart
-        - .PatientDashboardView:
+        - .PatientDashboardView: null
           onClick:
-            # - goto: Contacts
             - goto: EmitRedraw
           style:
-            top: '0.4'
-            left: '0.55'
+            top: "0.4"
+            left: "0.55"
           children:
-            - .PatientDashboardImage:
+            - .PatientDashboardImage: null
               path: contacts.png
-            - .PatientDashboardLabel:
+            - .PatientDashboardLabel: null
               text: EmitRedraw
