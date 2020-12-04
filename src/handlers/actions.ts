@@ -340,8 +340,26 @@ const createActions = function ({ page }: { page: IPage }) {
         page.pageUrl += pre
         var parse = page.pageUrl.endsWith('?') ? '' : '-'
         if (action.original.goto !== noodl.cadlEndpoint.startPage) {
-          page.pageUrl += parse
-          page.pageUrl += action.original.goto
+          var check1 = "?" + action.original.goto
+          var check2 = "-" + action.original.goto
+          var check1Idx = page.pageUrl.indexOf(check1)
+          var check2Idx = page.pageUrl.indexOf(check2)
+          if (check1Idx !== -1) {
+            page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
+            parse = page.pageUrl.endsWith('?') ? '' : '-'
+            page.pageUrl += parse
+            page.pageUrl += action.original.goto
+          }
+          else if (check2Idx !== -1) {
+            page.pageUrl = page.pageUrl.substring(0, check2Idx)
+            parse = page.pageUrl.endsWith('?') ? '' : '-'
+            page.pageUrl += parse
+            page.pageUrl += action.original.goto
+          }
+          else {
+            page.pageUrl += parse
+            page.pageUrl += action.original.goto
+          }
         }
         else {
           page.pageUrl = "index.html?"
@@ -359,8 +377,26 @@ const createActions = function ({ page }: { page: IPage }) {
           page.pageUrl += pre
           var parse = page.pageUrl.endsWith('?') ? '' : '-'
           if (url !== noodl.cadlEndpoint.startPage) {
-            page.pageUrl += parse
-            page.pageUrl += url
+            var check1 = "?" + url
+            var check2 = "-" + url
+            var check1Idx = page.pageUrl.indexOf(check1)
+            var check2Idx = page.pageUrl.indexOf(check2)
+            if (check1Idx !== -1) {
+              page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
+              parse = page.pageUrl.endsWith('?') ? '' : '-'
+              page.pageUrl += parse
+              page.pageUrl += url
+            }
+            else if (check2Idx !== -1) {
+              page.pageUrl = page.pageUrl.substring(0, check2Idx)
+              parse = page.pageUrl.endsWith('?') ? '' : '-'
+              page.pageUrl += parse
+              page.pageUrl += url
+            }
+            else {
+              page.pageUrl += parse
+              page.pageUrl += url
+            }
           }
           else {
             page.pageUrl = "index.html?"
