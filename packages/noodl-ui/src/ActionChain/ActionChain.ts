@@ -277,12 +277,13 @@ class ActionChain<
         }
         const logArgs = {
           action: _action,
-          component: this.component,
+          component: callbackArgs.component,
           callbackArgs,
           originalActionObj: obj,
           instance: _action,
           actions: this.actions,
           queue: this.#queue.slice(),
+          ref: callbackArgs.ref,
         }
         log.func('attachFn')
         log.red('attachFn', { ...callbackArgs, ...logArgs })
@@ -291,7 +292,7 @@ class ActionChain<
           if ('fn' in _action.original) {
             callbacks = [_action.original.fn]
             gen = runActionFuncs({
-              ref: this,
+              ref: callbackArgs.ref,
               callbacks,
               instance: _action,
               options: callbackArgs,
@@ -302,7 +303,7 @@ class ActionChain<
           callbacks = this.fns.builtIn[_action?.original?.funcName] || []
           if (!callbacks) return
           gen = runActionFuncs({
-            ref: this,
+            ref: callbackArgs.ref,
             callbacks,
             instance,
             options: callbackArgs,
@@ -330,11 +331,6 @@ class ActionChain<
               if (a.actionType === 'emit' && this.trigger !== a.trigger) {
                 return acc
               }
-              log.grey(`Accepting action chain trigger handler`, {
-                callbacks,
-                ...logArgs,
-                component: this?.component,
-              })
               return acc.concat(a.fn)
             },
             [] as T.ActionChainUseObjectBase<
@@ -363,7 +359,8 @@ class ActionChain<
         const fns = callbacks.slice()
         let callback = fns.shift()
 
-        while (typeof callback === 'function') {
+        // TODO - unit test this (this.isAborted solves a closure bug)
+        while (typeof callback === 'function' && !this.isAborted()) {
           results.push((await gen?.next(callback))?.value)
           callback = fns.shift()
         }
@@ -483,6 +480,13 @@ class ActionChain<
           })
       }, 10000)
       result = await action.execute(handlerOptions)
+      if (_.isPlainObject(result)) {
+        if ('wait' in result)
+          await this.abort(
+            `An action returned from a "${action.actionType}" type requested to wait`,
+          )
+      }
+      return result
     } catch (error) {
       throw error
     } finally {
@@ -566,12 +570,7 @@ class ActionChain<
       }
 
       if (action) {
-        log.func('loadQueue')
         this.#queue.push(action)
-        log.grey(`Loaded "${action.actionType}" action into the queue`, {
-          action,
-          component: this?.component,
-        })
       } else {
         log.grey(
           `Could not convert action ${
@@ -605,6 +604,15 @@ class ActionChain<
     const action = this.createAction(actionObj)
     this.#queue.unshift(action)
     return action
+  }
+
+  isAborted() {
+    return !!(
+      this.status === 'aborted' ||
+      (this.status &&
+        typeof this.status === 'object' &&
+        'aborted' in this.status)
+    )
   }
 
   useAction(action: T.ActionChainUseObject): this

@@ -152,7 +152,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       )
       // let dataValue = dataObject
       let textFunc = component.get('text=func')
-
       let fieldParts = dataKey?.split?.('.')
       let field = fieldParts?.shift?.() || ''
       let fieldValue = pageObject?.[field]

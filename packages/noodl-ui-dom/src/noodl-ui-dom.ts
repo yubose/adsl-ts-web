@@ -71,54 +71,44 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         if (component.noodlType === 'plugin') {
           this.emit('component', null, component)
           this.emit('plugin', null, component)
+          return node
         } else {
           const plugin = component.get('plugin')
-          const src = component.get('src') || ''
+          let src = component.get('src') || ''
           if (plugin) {
             const mimeType = src.endsWith?.('.html')
               ? 'text/html'
               : src.endsWith?.('.js')
               ? 'text/javascript'
               : 'text/html'
-
-            // TODO - Find more cases to handle
-            if (mimeType !== 'text/javascript') {
-              node = document.createElement('div')
-            }
-
-            // TODO - Add more supported mime types
-            component.on('plugin:content', (content: any) => {
-              if (mimeType === 'text/html') {
-                ;(node as HTMLDivElement).innerHTML = content
+            if (mimeType === 'text/javascript') {
+              node = document.createElement('script')
+              node.type = 'text/javascript'
+              node.onload = () => {
                 if (plugin.location === 'head') {
-                  // this.#plugins.head.push(this.#createPluginObject(component))
                   document.head.appendChild(node)
                 } else if (plugin.location === 'body-top') {
-                  // this.#plugins.body.top.push(this.#createPluginObject(component))
-                  document.body.insertBefore(node, document.body.firstChild)
+                  document.body.insertBefore(node, document.body.childNodes[0])
                 } else if (plugin.location === 'body-bottom') {
-                  // this.#plugins.body.bottom.push(
-                  //   this.#createPluginObject(component),
-                  // )
                   document.body.appendChild(node)
                 }
-                this.emit('component', node as HTMLDivElement, component)
-                this.emit(
-                  component.noodlType,
-                  node as HTMLDivElement,
-                  component,
-                )
-              } else if (mimeType === 'text/javascript') {
-                this.emit('component', null, component)
-                this.emit('plugin', null, component)
               }
-            })
-
-            // The behavior for these specific components will take on the shape of
-            // a <script> DOM node, since the fetched contents from their url comes within
-            // the component instance themselves
-
-            return node
+              // TODO - Add more supported mime types
+              component.on('path', (newSrc: string) => {
+                console.log('RECEIVED PLUGIN SRC', newSrc)
+                console.log('RECEIVED PLUGIN SRC', newSrc)
+                console.log('RECEIVED PLUGIN SRC', newSrc)
+                console.log('RECEIVED PLUGIN SRC', newSrc)
+                console.log('RECEIVED PLUGIN SRC', newSrc)
+                console.log('RECEIVED PLUGIN SRC', newSrc)
+                src = newSrc
+                node.src = src
+              })
+              // The behavior for these specific components will take on the shape of
+              // a <script> DOM node, since the fetched contents from their url comes within
+              // the component instance themselves
+              return node
+            }
           }
         }
       } else {
@@ -128,9 +118,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
           })
           // console.info(component.get('path'))
           node = isEmitObj(component.get('path'))
-            ? createAsyncImageElement(container || document.body, {
-                onLoad: () => {},
-              })
+            ? createAsyncImageElement(container || document.body, {})
             : document.createElement('img')
         } else {
           node = document.createElement(getTagName(component))

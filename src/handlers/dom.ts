@@ -109,7 +109,7 @@ export const listen = (noodluidom = noodluidomClient) => {
     }
 
     // The src is placed on its "source" dom node
-    if (src && /(script|video)/.test(type)) node.removeAttribute('src')
+    if (src && /(video)/.test(type)) node.removeAttribute('src')
 
     const datasetAttribs = component.get(defaultPropTable.dataset)
 
@@ -176,7 +176,6 @@ export const listen = (noodluidom = noodluidomClient) => {
 
       // TODO: Test this
       // Attach the event handler
-      log.gold(`Attached ${eventType} handler`, { node, component })
       node.addEventListener(event, fn)
     }
 

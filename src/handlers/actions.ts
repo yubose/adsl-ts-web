@@ -139,11 +139,15 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.emit.push({
     fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
       log.func('emit [onChange]')
+      log.grey('', { action, options })
 
       const emitParams = {
         actions: action.actions,
-        dataKey: action.dataKey,
         pageName: noodlui.page,
+      } as any
+
+      if ('dataKey' in action.original.emit || {}) {
+        emitParams.dataKey = action.dataKey
       }
 
       const emitResult = await noodl.emitCall(emitParams)
@@ -151,17 +155,11 @@ const createActions = function ({ page }: { page: IPage }) {
       log.grey('Called emitCall', {
         action,
         actionChain: options.ref,
+        component: options.component,
         emitParams,
         emitResult,
         options,
       })
-
-      if (emitResult) {
-        const input = document.getElementById(options.component.id)
-        console.log(input)
-        console.log(input)
-        console.log(input)
-      }
 
       return emitResult
     },
@@ -222,7 +220,8 @@ const createActions = function ({ page }: { page: IPage }) {
         return result.then((result: any) => {
           result = Array.isArray(result) ? result[0] : result
           log.grey(
-            `emitCall [promise] result: ${result === '' ? '(empty string)' : result
+            `emitCall [promise] result: ${
+              result === '' ? '(empty string)' : result
             }`,
             logArgs,
           )
@@ -255,9 +254,16 @@ const createActions = function ({ page }: { page: IPage }) {
               logArgs,
             )
             const newAction = ref.insertIntermediaryAction.call(ref, result)
-            log.grey('newAction', { newAction, queue: ref.getQueue() })
-            await newAction.execute(options)
-            return result
+            if (_.isPlainObject(result) && 'wait' in result) {
+              log.red('newAction requested "WAIT"', {
+                newAction: result,
+                queue: ref.getQueue(),
+                node: document.getElementById(options.component.id),
+              })
+              // await ref.abort()
+              throw new Error('aborted')
+            } else log.grey('newAction', { newAction, queue: ref.getQueue() })
+            // return newAction.execute(options)
           }
         } else if ('if' in (action.original.object || {})) {
           const ifObj = action.original.object as IfObject
@@ -295,7 +301,7 @@ const createActions = function ({ page }: { page: IPage }) {
               if (result) {
                 log.hotpink(
                   `Received a value from evalObject's "if" evaluation. ` +
-                  `Returning it back to the action chain now`,
+                    `Returning it back to the action chain now`,
                   { action, ...options, result },
                 )
                 return result
@@ -303,7 +309,7 @@ const createActions = function ({ page }: { page: IPage }) {
             } else {
               log.red(
                 `Evaluated an "object" from an "if" object but it did not return a ` +
-                `function`,
+                  `function`,
                 { action, ...options, result: object },
               )
               return object
@@ -338,11 +344,26 @@ const createActions = function ({ page }: { page: IPage }) {
         page.pageUrl += pre
         var parse = page.pageUrl.endsWith('?') ? '' : '-'
         if (action.original.goto !== noodl.cadlEndpoint.startPage) {
-          page.pageUrl += parse
-          page.pageUrl += action.original.goto
-        }
-        else {
-          page.pageUrl = "index.html?"
+          var check1 = '?' + action.original.goto
+          var check2 = '-' + action.original.goto
+          var check1Idx = page.pageUrl.indexOf(check1)
+          var check2Idx = page.pageUrl.indexOf(check2)
+          if (check1Idx !== -1) {
+            page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
+            parse = page.pageUrl.endsWith('?') ? '' : '-'
+            page.pageUrl += parse
+            page.pageUrl += action.original.goto
+          } else if (check2Idx !== -1) {
+            page.pageUrl = page.pageUrl.substring(0, check2Idx)
+            parse = page.pageUrl.endsWith('?') ? '' : '-'
+            page.pageUrl += parse
+            page.pageUrl += action.original.goto
+          } else {
+            page.pageUrl += parse
+            page.pageUrl += action.original.goto
+          }
+        } else {
+          page.pageUrl = 'index.html?'
         }
 
         await page.requestPageChange(action.original.goto)
@@ -357,11 +378,26 @@ const createActions = function ({ page }: { page: IPage }) {
           page.pageUrl += pre
           var parse = page.pageUrl.endsWith('?') ? '' : '-'
           if (url !== noodl.cadlEndpoint.startPage) {
-            page.pageUrl += parse
-            page.pageUrl += url
-          }
-          else {
-            page.pageUrl = "index.html?"
+            var check1 = '?' + url
+            var check2 = '-' + url
+            var check1Idx = page.pageUrl.indexOf(check1)
+            var check2Idx = page.pageUrl.indexOf(check2)
+            if (check1Idx !== -1) {
+              page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
+              parse = page.pageUrl.endsWith('?') ? '' : '-'
+              page.pageUrl += parse
+              page.pageUrl += url
+            } else if (check2Idx !== -1) {
+              page.pageUrl = page.pageUrl.substring(0, check2Idx)
+              parse = page.pageUrl.endsWith('?') ? '' : '-'
+              page.pageUrl += parse
+              page.pageUrl += url
+            } else {
+              page.pageUrl += parse
+              page.pageUrl += url
+            }
+          } else {
+            page.pageUrl = 'index.html?'
           }
 
           log.gold('Requesting object destination', { action, options })
@@ -415,7 +451,7 @@ const createActions = function ({ page }: { page: IPage }) {
             if (isBooleanTrue(action.original.wait)) {
               log.grey(
                 `Popup action for popUpView "${action.original.popUpView}" is ` +
-                `waiting on a response. Aborting now...`,
+                  `waiting on a response. Aborting now...`,
                 { action, ...options },
               )
               ref.abort?.()
@@ -537,7 +573,7 @@ const createActions = function ({ page }: { page: IPage }) {
           log.func('saveObject')
           log.red(
             `The "object" property in the saveObject action is a string which ` +
-            `is in the incorrect format. Possibly a parsing error?`,
+              `is in the incorrect format. Possibly a parsing error?`,
             { action, ...options },
           )
         }
@@ -597,7 +633,7 @@ const createActions = function ({ page }: { page: IPage }) {
           } else if (_.isString(object)) {
             log.red(
               `Received a string as an object property of updateObject. ` +
-              `Possibly parsed incorrectly?`,
+                `Possibly parsed incorrectly?`,
               { object, ...options, ...opts, action },
             )
           } else if (_.isArray(object)) {

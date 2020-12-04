@@ -12,6 +12,6 @@ cadlBaseUrl: http://127.0.0.1:3001/
 cadlMain: cadlEndpoint.yml
 myBaseUrl: 'http://127.0.0.1:3001/'
 timestamp: 12012020
-bodyTopPplugin: ~/pi.html
-bodyTailPplugin: ~/pi.html
-headPlugin: ~/pi.html
+bodyTopPplugin: ~/googleTM.js
+bodyTailPplugin: ~/googleTM.js
+headPlugin: ~/googleTM.js

@@ -132,17 +132,20 @@ class NOODL {
     }
 
     // Add plugin components first
-    components = [
-      ..._.map(this.plugins('head'), (plugin: T.PluginObject) => plugin.ref),
-      ..._.map(
-        this.plugins('body-top'),
-        (plugin: T.PluginObject) => plugin.ref,
-      ),
-      ..._.map(
-        this.plugins('body-bottom'),
-        (plugin: T.PluginObject) => plugin.ref,
-      ),
-    ].concat(components)
+    _.forEach(
+      [
+        ..._.map(this.plugins('head'), (plugin: T.PluginObject) => plugin.ref),
+        ..._.map(
+          this.plugins('body-top'),
+          (plugin: T.PluginObject) => plugin.ref,
+        ),
+        ..._.map(
+          this.plugins('body-bottom'),
+          (plugin: T.PluginObject) => plugin.ref,
+        ),
+      ],
+      (c) => this.#resolve(c),
+    )
 
     // Finish off with the internal resolvers to handle the children
     _.forEach(components, (c) => {
@@ -300,19 +303,23 @@ class NOODL {
             iteratorVar: component?.get('iteratorVar'),
             trigger: 'path',
           })
-          emitAction.setDataKey(
-            createEmitDataKey(
-              emitObj.emit.dataKey,
-              [
-                findListDataObject(component),
-                () => this.getPageObject(this.page),
-                () => this.#getRoot(),
-              ],
-              { iteratorVar: emitAction.iteratorVar },
-            ),
-          )
-
-          log.grey(`Data key finalized for path emit`, emitAction.getSnapshot())
+          if ('dataKey' in emitAction.original.emit || {}) {
+            emitAction.setDataKey(
+              createEmitDataKey(
+                emitObj.emit.dataKey,
+                [
+                  findListDataObject(component),
+                  () => this.getPageObject(this.page),
+                  () => this.#getRoot(),
+                ],
+                { iteratorVar: emitAction.iteratorVar },
+              ),
+            )
+            log.grey(
+              `Data key finalized for path emit`,
+              emitAction.getSnapshot(),
+            )
+          }
 
           emitAction['callback'] = async (snapshot) => {
             log.grey(`Executing emit action callback`, snapshot)
@@ -327,13 +334,8 @@ class NOODL {
             const result = await Promise.race(
               callbacks.map((obj) =>
                 obj?.fn?.(
-                  // Instance
                   emitAction,
-                  // Options
-                  this.getConsumerOptions({
-                    component,
-                    path,
-                  }),
+                  this.getConsumerOptions({ component, path }),
                   // Action context
                   this.actionsContext,
                 ),
@@ -347,7 +349,10 @@ class NOODL {
           let result = emitAction.execute(path) as string | Promise<string>
           let finalizedRes = ''
 
-          log.grey(`Result received from emit action`, emitAction.getSnapshot())
+          log.grey(`Result received from emit action`, {
+            action: emitAction,
+            result,
+          })
 
           if (isPromise(result)) {
             return result

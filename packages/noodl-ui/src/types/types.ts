@@ -14,7 +14,6 @@ import {
 } from './constantTypes'
 import NOODLUI from '../noodl-ui'
 import Viewport from '../Viewport'
-import { EmitObject } from '../../dist'
 
 export interface NOODLComponent {
   type?: ComponentType
@@ -132,6 +131,7 @@ export type PluginCreationType =
 export type PluginLocation = 'head' | 'body-top' | 'body-bottom'
 
 export interface PluginObject {
+  initiated?: boolean
   location?: PluginLocation
   path?: string
   content?: string

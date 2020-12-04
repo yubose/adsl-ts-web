@@ -1,14 +1,11 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
-import fs from 'fs-extra'
-import chalk from 'chalk'
 import _ from 'lodash'
-import { createDeepChildren, findChild, publish } from 'noodl-utils'
+import { findChild } from 'noodl-utils'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import {
   ActionChain,
-  createComponent,
   Component,
   ComponentObject,
   List,

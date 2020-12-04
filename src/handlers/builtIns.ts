@@ -274,23 +274,32 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.goto = async (action: GotoURL | GotoObject, options) => {
     log.func('goto')
     log.red('', _.assign({ action }, options))
-    log.red('HELLO')
-    log.red('HELLO')
-    log.red('HELLO')
-    log.red('HELLO')
-    log.red('HELLO')
-    log.red('HELLO')
     // URL
     if (_.isString(action)) {
       var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
       page.pageUrl += pre
       var parse = page.pageUrl.endsWith('?') ? '' : '-'
       if (action !== noodl.cadlEndpoint.startPage) {
-        page.pageUrl += parse
-        page.pageUrl += action
-      }
-      else {
-        page.pageUrl = "index.html?"
+        var check1 = '?' + action
+        var check2 = '-' + action
+        var check1Idx = page.pageUrl.indexOf(check1)
+        var check2Idx = page.pageUrl.indexOf(check2)
+        if (check1Idx !== -1) {
+          page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
+          parse = page.pageUrl.endsWith('?') ? '' : '-'
+          page.pageUrl += parse
+          page.pageUrl += action
+        } else if (check2Idx !== -1) {
+          page.pageUrl = page.pageUrl.substring(0, check2Idx)
+          parse = page.pageUrl.endsWith('?') ? '' : '-'
+          page.pageUrl += parse
+          page.pageUrl += action
+        } else {
+          page.pageUrl += parse
+          page.pageUrl += action
+        }
+      } else {
+        page.pageUrl = 'index.html?'
       }
 
       await page.requestPageChange(action)
@@ -300,11 +309,26 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         page.pageUrl += pre
         var parse = page.pageUrl.endsWith('?') ? '' : '-'
         if (action.destination !== noodl.cadlEndpoint.startPage) {
-          page.pageUrl += parse
-          page.pageUrl += action.destination
-        }
-        else {
-          page.pageUrl = "index.html?"
+          var check1 = '?' + action.destination
+          var check2 = '-' + action.destination
+          var check1Idx = page.pageUrl.indexOf(check1)
+          var check2Idx = page.pageUrl.indexOf(check2)
+          if (check1Idx !== -1) {
+            page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
+            parse = page.pageUrl.endsWith('?') ? '' : '-'
+            page.pageUrl += parse
+            page.pageUrl += action.destination
+          } else if (check2Idx !== -1) {
+            page.pageUrl = page.pageUrl.substring(0, check2Idx)
+            parse = page.pageUrl.endsWith('?') ? '' : '-'
+            page.pageUrl += parse
+            page.pageUrl += action.destination
+          } else {
+            page.pageUrl += parse
+            page.pageUrl += action.destination
+          }
+        } else {
+          page.pageUrl = 'index.html?'
         }
 
         await page.requestPageChange(action.destination)

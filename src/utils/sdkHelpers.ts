@@ -6,7 +6,11 @@
 import _ from 'lodash'
 import { Draft, original } from 'immer'
 import Logger from 'logsnap'
-import { getAllByDataKey } from 'noodl-utils'
+import {
+  findListDataObject,
+  getAllByDataKey,
+  isListConsumer,
+} from 'noodl-utils'
 import { isTextFieldLike } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'
@@ -19,6 +23,8 @@ export function createOnDataValueChangeFn(
   component,
   dataKey: string = '',
 ) {
+  log.func('createOnDataValueChangeFn')
+
   return (e: Event) => {
     const target:
       | (typeof e.target & {
@@ -31,50 +37,65 @@ export function createOnDataValueChangeFn(
 
     let updatedValue
 
-    noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
-      if (_.has(draft?.[noodlui.page], dataKey)) {
-        _.set(draft?.[noodlui.page], dataKey, value)
-        /**
-         * EXPERIMENTAL - When a data key from the local root is being updated
-         * by a node, update all other nodes that are referencing it.
-         * Note: This will not work for list items which is fine because they
-         * reference their own data objects
-         */
-        const linkedNodes = getAllByDataKey(dataKey)
-        if (linkedNodes.length) {
-          _.forEach(linkedNodes, (node) => {
-            // Since select elements have options as children, we should not
-            // edit by innerHTML or we would have to unnecessarily re-render the nodes
-            if (node.tagName === 'SELECT') {
-              //
-            } else if (isTextFieldLike(node)) {
-              node.dataset['value'] = value
-              node['value'] = value || ''
-            } else {
-              node.innerHTML = `${value || ''}`
-            }
-          })
-        }
+    if (isListConsumer(component)) {
+      const dataObject = findListDataObject(component)
+      if (dataObject) {
+        _.set(dataObject, dataKey, node.value)
+        updatedValue = _.get(dataObject, dataKey)
+        component.set('data-value', node.value)
+        node.dataset.value = node.value
       } else {
-        log.func('createOnDataValueChangeFn')
         log.red(
-          `Attempted to update a data value from an onChange onto a data value ` +
-            `component but the dataKey "${dataKey}" is not a valid path of the ` +
-            `root object`,
-          {
-            component,
-            dataKey,
-            draftRoot: original(draft),
-            localRoot,
-            node,
-            pageName: noodlui.page,
-            pageObject: noodl.root[noodlui.page],
-            value,
-          },
+          'Expected a dataObject to update from onChange but no dataObject was found',
+          { component, node, dataKey, currentValue: value },
         )
       }
-    })
-    updatedValue = _.get(noodl.root?.[noodlui.page], dataKey)
+    } else {
+      noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
+        if (_.has(draft?.[noodlui.page], dataKey)) {
+          _.set(draft?.[noodlui.page], dataKey, value)
+          /**
+           * EXPERIMENTAL - When a data key from the local root is being updated
+           * by a node, update all other nodes that are referencing it.
+           * Note: This will not work for list items which is fine because they
+           * reference their own data objects
+           */
+          const linkedNodes = getAllByDataKey(dataKey)
+          if (linkedNodes.length) {
+            _.forEach(linkedNodes, (node) => {
+              // Since select elements have options as children, we should not
+              // edit by innerHTML or we would have to unnecessarily re-render the nodes
+              if (node.tagName === 'SELECT') {
+                //
+              } else if (isTextFieldLike(node)) {
+                node.dataset['value'] = value
+                node['value'] = value || ''
+              } else {
+                node.innerHTML = `${value || ''}`
+              }
+            })
+          }
+        } else {
+          log.red(
+            `Attempted to update a data value from an onChange onto a data value ` +
+              `component but the dataKey "${dataKey}" is not a valid path of the ` +
+              `root object`,
+            {
+              component,
+              dataKey,
+              draftRoot: original(draft),
+              localRoot,
+              node,
+              pageName: noodlui.page,
+              pageObject: noodl.root[noodlui.page],
+              value,
+            },
+          )
+        }
+      })
+      updatedValue = _.get(noodl.root?.[noodlui.page], dataKey)
+    }
+
     if (updatedValue !== value) {
       log.func('createOnDataValueChangeFn')
       log.red(

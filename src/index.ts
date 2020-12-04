@@ -254,7 +254,8 @@ window.addEventListener('load', async () => {
             .catch((err) => console.error(`[${err.name}]: ${err.message}`))
         const config = noodl.getConfig()
         const plugins = [
-          { type: 'pluginHead', path: 'googleTM.html' },
+          { type: 'pluginHead', path: 'googleTM.js' },
+          // { type: 'bodyTopPplugin', path: 'googleTMBodyTop.html' },
         ] as ComponentObject[]
         if (config.headPlugin) {
           plugins.push(
