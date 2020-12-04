@@ -150,6 +150,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         ],
         path,
       )
+      log.gold('dataValue', dataValue)
       // let dataValue = dataObject
       let textFunc = component.get('text=func')
       let fieldParts = dataKey?.split?.('.')

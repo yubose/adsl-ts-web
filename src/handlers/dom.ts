@@ -130,10 +130,16 @@ export const listen = (noodluidom = noodluidomClient) => {
       // to change values on the fly by some "on change" logic (ex: input/select elements)
       import('../utils/sdkHelpers')
         .then(({ createOnDataValueChangeFn }) => {
+          const dataKey = datasetAttribs['data-key'] || component.get('dataKey')
+          const iteratorVar = component.get('iteratorVar') || ''
           const onChange = createOnDataValueChangeFn(
             node,
             component,
-            datasetAttribs['data-key'] || component.get('dataKey'),
+            typeof dataKey === 'string'
+              ? dataKey.startsWith(iteratorVar)
+                ? dataKey.split('.').slice(1).join('.')
+                : dataKey
+              : dataKey,
           )
           node.addEventListener('change', onChange)
         })

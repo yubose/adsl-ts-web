@@ -377,16 +377,23 @@ class ActionChain<
           trigger: this.trigger,
         })
         if (emitObj.emit?.dataKey) {
+          console.log(
+            'findListDataObject(component)',
+            findListDataObject(this.component),
+          )
           emitAction.setDataKey(
-            createEmitDataKey(
-              emitObj.emit.dataKey,
-              [
-                findListDataObject(this.component),
-                () => this.pageObject,
-                () => this.getRoot(),
-              ],
-              { iteratorVar: emitAction.iteratorVar },
-            ),
+            emitAction.iteratorVar &&
+              emitObj.emit?.dataKey === emitAction.iteratorVar
+              ? findListDataObject(this.component)
+              : createEmitDataKey(
+                  emitObj.emit.dataKey,
+                  [
+                    findListDataObject(this.component),
+                    () => this.pageObject,
+                    () => this.getRoot(),
+                  ],
+                  { iteratorVar: emitAction.iteratorVar },
+                ),
           )
         }
 
