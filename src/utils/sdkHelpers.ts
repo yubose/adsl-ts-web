@@ -11,49 +11,84 @@ import {
   getAllByDataKey,
   isListConsumer,
 } from 'noodl-utils'
-import { isTextFieldLike } from 'noodl-ui-dom'
+import { Component } from 'noodl-ui'
+import { isTextFieldLike, NOODLDOMDataValueElement } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'
 
 const log = Logger.create('sdkHelpers.ts')
 
-/** THIS IS EXPERIMENTAL AND WILL MOVE TO ANOTHER LOCATION */
+/**
+ * This returns a function that is intended to be placed on a "data value"
+ * element's "onchange" event (Like input elements)
+ * @param { HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement } node
+ * @param { Component } component - Component instance
+ * @param { object } options
+ * @param { string } options.eventName
+ * @param { function | undefined } options.onChange - onChange callback. This is most likely the function returned from ActionChain#build most of the time
+ */
 export function createOnDataValueChangeFn(
-  node,
-  component,
-  dataKey: string = '',
+  node: NOODLDOMDataValueElement,
+  component: Component,
+  {
+    eventName,
+    onChange: onChangeProp,
+  }: { eventName: 'onchange'; onChange?(event: Event): Promise<any> },
 ) {
   log.func('createOnDataValueChangeFn')
 
-  return (e: Event) => {
+  let iteratorVar = component.get('iteratorVar') || ''
+  let dataKey = component.get('data-key') || component.get('dataKey') || ''
+
+  dataKey =
+    typeof dataKey === 'string'
+      ? iteratorVar && dataKey.startsWith(iteratorVar)
+        ? dataKey.split('.').slice(1).join('.')
+        : dataKey
+      : dataKey
+
+  // Initiates the values
+  node.value = component.get('data-value') || ''
+  if (node.tagName === 'SELECT') {
+    if ((node as HTMLSelectElement).length) {
+      // Put the default value to the first option in the list
+      ;(node as HTMLSelectElement)['selectedIndex'] = 0
+    }
+  } else {
+    node.dataset.value = node.value || ''
+  }
+
+  const onChange = async (event: Event) => {
     const target:
-      | (typeof e.target & {
+      | (typeof event.target & {
           value?: string
         })
-      | null = e.target
+      | null = event.target
 
     const localRoot = noodl?.root?.[noodlui.page]
     const value = target?.value || ''
 
-    let updatedValue
-
     if (isListConsumer(component)) {
       const dataObject = findListDataObject(component)
       if (dataObject) {
-        _.set(dataObject, dataKey, node.value)
-        updatedValue = _.get(dataObject, dataKey)
-        component.set('data-value', node.value)
-        node.dataset.value = node.value
+        _.set(dataObject, dataKey, value)
+        component.set('data-value', value)
+        node.dataset.value = value
+        // TODO - Come back to this to provide more powerful functionality
+        await onChangeProp?.(event)
       } else {
         log.red(
           'Expected a dataObject to update from onChange but no dataObject was found',
-          { component, node, dataKey, currentValue: value },
+          { component, node, dataKey, currentValue: value, event, eventName },
         )
       }
     } else {
       noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
         if (_.has(draft?.[noodlui.page], dataKey)) {
           _.set(draft?.[noodlui.page], dataKey, value)
+          component.set('data-value', value)
+          node.dataset.value = value
+          onChangeProp?.(event)
           /**
            * EXPERIMENTAL - When a data key from the local root is being updated
            * by a node, update all other nodes that are referencing it.
@@ -69,7 +104,6 @@ export function createOnDataValueChangeFn(
                 //
               } else if (isTextFieldLike(node)) {
                 node.dataset['value'] = value
-                node['value'] = value || ''
               } else {
                 node.innerHTML = `${value || ''}`
               }
@@ -93,18 +127,10 @@ export function createOnDataValueChangeFn(
           )
         }
       })
-      updatedValue = _.get(noodl.root?.[noodlui.page], dataKey)
-    }
-
-    if (updatedValue !== value) {
-      log.func('createOnDataValueChangeFn')
-      log.red(
-        `Applied an update to a value using dataKey "${dataKey}" but the ` +
-          `before/after values weren't equivalent`,
-        { previousValue: value, nextValue: updatedValue, dataKey },
-      )
     }
   }
+
+  return onChange
 }
 
 /** Handles onClick events for "goTo" handling.

@@ -353,7 +353,8 @@ class ActionChain<
           }
         }
 
-        await gen?.next()
+        const consumerResult = await gen?.next()
+        log.gold('consumerResult', consumerResult)
 
         const results = []
         const fns = callbacks.slice()
@@ -377,10 +378,6 @@ class ActionChain<
           trigger: this.trigger,
         })
         if (emitObj.emit?.dataKey) {
-          console.log(
-            'findListDataObject(component)',
-            findListDataObject(this.component),
-          )
           emitAction.setDataKey(
             emitAction.iteratorVar &&
               emitObj.emit?.dataKey === emitAction.iteratorVar

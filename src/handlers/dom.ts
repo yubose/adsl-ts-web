@@ -114,39 +114,9 @@ export const listen = (noodluidom = noodluidomClient) => {
     const datasetAttribs = component.get(defaultPropTable.dataset)
 
     /** Data values */
-    if (isTextFieldLike(node)) {
-      node['value'] = datasetAttribs['data-value'] || ''
-      if (node.tagName === 'SELECT') {
-        if ((node as HTMLSelectElement).length) {
-          // Put the default value to the first option in the list
-          ;(node as HTMLSelectElement)['selectedIndex'] = 0
-        }
-      } else {
-        node.dataset['value'] = node.value || ''
-        node['value'] = datasetAttribs['data-value'] || ''
-      }
-
-      // Attach an additional listener for data-value elements that are expected
-      // to change values on the fly by some "on change" logic (ex: input/select elements)
-      import('../utils/sdkHelpers')
-        .then(({ createOnDataValueChangeFn }) => {
-          const dataKey = datasetAttribs['data-key'] || component.get('dataKey')
-          const iteratorVar = component.get('iteratorVar') || ''
-          const onChange = createOnDataValueChangeFn(
-            node,
-            component,
-            typeof dataKey === 'string'
-              ? dataKey.startsWith(iteratorVar)
-                ? dataKey.split('.').slice(1).join('.')
-                : dataKey
-              : dataKey,
-          )
-          node.addEventListener('change', onChange)
-        })
-        .catch((err) => (log.func('noodluidom.on: all'), log.red(err.message)))
-    } else if (component.get('text=func')) {
+    if (component.get('text=func')) {
       node.innerHTML = datasetAttribs['data-value'] || ''
-    } else {
+    } else if (!isTextFieldLike(node)) {
       // For non data-value elements like labels or divs that just display content
       // If there's no data-value (which takes precedence here), use the placeholder
       // to display as a fallback
@@ -160,76 +130,48 @@ export const listen = (noodluidom = noodluidomClient) => {
         datasetAttribs['data-value'] || component.get('placeholder') || ''
     }
 
+    // The "handler" argument is a func returned from ActionChain#build
     const attachEventHandler = (eventType: any, handler: Function) => {
-      const event = (eventType.startsWith('on')
+      const eventName = (eventType.startsWith('on')
         ? eventType.replace('on', '')
         : eventType
       ).toLocaleLowerCase()
-
-      const fn = (event?: MouseEvent | Event) => {
-        log.func(`on all --> addEventListener: ${event}`)
-        log.grey(`User action invoked handler`, {
-          event,
-          component,
-          handlerInArgs: handler,
-          handlerInComponent: component.get(eventType),
+      if (isTextFieldLike(node)) {
+        // Attach an additional listener for data-value elements that are expected
+        // to change values on the fly by some "on change" logic (ex: input/select elements)
+        import('../utils/sdkHelpers').then(({ createOnDataValueChangeFn }) => {
+          node.addEventListener(
+            eventName,
+            createOnDataValueChangeFn(node, component, {
+              onChange: handler,
+              eventName,
+            }),
+          )
         })
-        // node.removeEventListener(eventType, attachEventHandler)
-        // handleEventHandlers()
-        // This func is returned from ActionChain#build
-        return handler?.(event)
+      } else {
+        node.addEventListener(eventName, (event) => {
+          log.func(`on component --> addEventListener: ${eventName}`)
+          log.grey(`User action invoked handler`, {
+            component,
+            event,
+            eventName,
+            node,
+          })
+          return handler?.(event)
+        })
       }
-
-      // TODO: Test this
-      // Attach the event handler
-      node.addEventListener(event, fn)
     }
 
     /** Event handlers */
-    function handleEventHandlers() {
+    if (isTextFieldLike(node)) {
+      attachEventHandler('onChange', component.get('onChange'))
+    } else {
       _.forEach(eventTypes, (eventType) => {
-        let handler = component.get(eventType)
-        if (handler) {
-          // console.log({ component, handler, eventType, node })
-        }
-        if (handler) {
-          // setTimeout(() => {
-          // handler = component.get(eventType)
-          if (_.isArray(handler)) {
-            import('app/noodl-ui').then(({ default: noodlui }) => {
-              // component.draft()
-
-              // handler = noodlui.createActionChainHandler(handler, {
-              //   component,
-              //   trigger: eventType,
-              // })
-
-              // component.set(eventType, handler)
-
-              if (isPromise(handler)) {
-                handler.then((result) => {
-                  console.log('result', result)
-                  console.log('result', result)
-                  console.log('result', result)
-                  console.log('result', result)
-                  console.log('result', result)
-                  attachEventHandler(eventType, result)
-                  // component.done()
-                })
-              } else {
-                attachEventHandler(eventType, handler)
-                // component.done()
-              }
-            })
-          } else {
-            attachEventHandler(eventType, handler)
-          }
-          // }, 300)
+        if (component.get(eventType)) {
+          attachEventHandler(eventType, component.get(eventType))
         }
       })
     }
-
-    handleEventHandlers()
 
     /** Styles */
     if (node?.tagName !== 'SCRIPT') {
