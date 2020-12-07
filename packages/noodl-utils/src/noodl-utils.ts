@@ -441,16 +441,19 @@ export function isListKey(
   dataKey: string,
   component: string | Component | ComponentObject,
 ) {
+  if (arguments.length < 2) {
+    throw new Error('Missing second argument')
+  }
   if (isStr(dataKey) && component) {
     if (isStr(component)) {
       return dataKey.startsWith(component)
     }
     if (component instanceof Component) {
-      return dataKey.startsWith(
+      const iteratorVar =
         component.get('iteratorVar') ||
-          findParent(component, (p) => !!p?.get('iteratorVar')) ||
-          '',
-      )
+        findParent(component, (p) => !!p?.get('iteratorVar')) ||
+        ''
+      return !!iteratorVar && dataKey.startsWith(iteratorVar)
     }
     if ('iteratorVar' in component) {
       return dataKey.startsWith(component.iteratorVar || '')

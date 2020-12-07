@@ -9,6 +9,26 @@ beforeEach(() => {
 })
 
 describe('getCustomDataAttrs', () => {
+  it('should set the data-key', () => {
+    expect(
+      getCustomDataAttrs({ type: 'label', dataKey: 'formData.password' }).get(
+        'data-key',
+      ),
+    ).eq('formData.password')
+  })
+
+  it.only('should set the data-name', () => {
+    expect(
+      getCustomDataAttrs({ type: 'label', dataKey: 'formData.password' }).get(
+        'data-name',
+      ),
+    ).eq('password')
+  })
+
+  xit('should set the data-value', () => {
+    //
+  })
+
   xit('should assign the data-key, data-name and data-value', () => {
     //
   })

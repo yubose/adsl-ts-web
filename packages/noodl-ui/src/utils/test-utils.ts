@@ -31,7 +31,10 @@ import List from '../components/List'
 
 export const assetsUrl = 'https://something.com/assets/'
 
-export function createResolverTest(resolver: ResolverFn) {
+export function createResolverTest(
+  resolver: ResolverFn,
+  consumerOptions?: Partial<ConsumerOptions>,
+) {
   function _resolver<C extends ComponentObject & { type: 'list' }>(
     component: C,
     options?: ConsumerOptions,
@@ -55,6 +58,7 @@ export function createResolverTest(resolver: ResolverFn) {
     resolver(instance as any, {
       ...noodlui.getConsumerOptions({ component: instance as any }),
       ...options,
+      ...consumerOptions,
     })
     return instance
   }
