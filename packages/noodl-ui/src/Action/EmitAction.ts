@@ -20,13 +20,14 @@ class EmitAction extends Action<EmitObject> {
     action: EmitObject,
     options?: ActionOptions<EmitActionObject> &
       Partial<{
+        dataKey?: any
         iteratorVar: string
         trigger: EmitTrigger
       }>,
   ) {
     super({ ...action, actionType: 'emit' }, options)
     this['actions'] = action?.emit?.actions
-    this['dataKey'] = action?.emit?.dataKey
+    this['dataKey'] = options?.dataKey || action?.emit?.dataKey
     this['trigger'] = options?.trigger
     if (options?.iteratorVar) this.set('iteratorVar', options.iteratorVar)
     if (options?.callback) this.callback = options.callback

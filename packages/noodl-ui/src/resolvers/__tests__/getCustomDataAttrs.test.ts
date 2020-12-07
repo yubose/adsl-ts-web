@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { createResolverTest, noodlui } from '../../utils/test-utils'
+import { createComponent } from '../../../dist'
+import { createResolverTest } from '../../utils/test-utils'
 import getCustomDataAttrsResolver from '../getCustomDataAttrs'
 
 let getCustomDataAttrs: ReturnType<typeof createResolverTest>
@@ -17,7 +18,7 @@ describe('getCustomDataAttrs', () => {
     ).eq('formData.password')
   })
 
-  it.only('should set the data-name', () => {
+  it('should set the data-name', () => {
     expect(
       getCustomDataAttrs({ type: 'label', dataKey: 'formData.password' }).get(
         'data-name',
@@ -25,12 +26,38 @@ describe('getCustomDataAttrs', () => {
     ).eq('password')
   })
 
-  xit('should set the data-value', () => {
-    //
+  it('should set the data-value for list consumers', () => {
+    expect(
+      getCustomDataAttrs({ type: 'label', dataKey: 'formData.password' }).get(
+        'data-name',
+      ),
+    ).eq('password')
   })
 
-  xit('should assign the data-key, data-name and data-value', () => {
-    //
+  it('should set the data-value for non list consumers', () => {
+    expect(
+      getCustomDataAttrs({ type: 'label', dataKey: 'formData.password' }).get(
+        'data-name',
+      ),
+    ).eq('password')
+  })
+
+  it('should attach viewTag as the value for data-viewtag', () => {
+    expect(
+      getCustomDataAttrs({ type: 'label', viewTag: 'hello' }).get(
+        'data-viewtag',
+      ),
+    ).to.eq('hello')
+  })
+
+  it('should attach data-listid for list components', () => {
+    expect(
+      getCustomDataAttrs({
+        type: 'list',
+        listObject: [{ george: 'what' }],
+        children: [],
+      }).get('data-listid'),
+    ).to.exist
   })
 
   it('should attach the data attribute for contentType: passwordHidden components and its value as passwordHidden', () => {
@@ -41,43 +68,80 @@ describe('getCustomDataAttrs', () => {
     expect(label.get('data-ux')).to.eq('passwordHidden')
   })
 
-  it('should attach the data attribute for popUp components and use viewTag as the value', () => {
-    expect(
-      getCustomDataAttrs({ type: 'popUp', viewTag: 'apple' }).toJS(),
-    ).to.have.property('data-ux', 'apple')
-  })
-
-  it('should attach listId for list components', () => {
+  it('should use the dataKey and text=func function to resolve the expected data-value for date (text=func) components', () => {
+    const result = '10 seconds ago'
     expect(
       getCustomDataAttrs({
-        type: 'list',
-        listObject: [{ george: 'what' }],
-        children: [],
-      }).toJS(),
-    ).to.have.property('listId')
+        type: 'label',
+        text: '2020/08/02',
+        dataKey: 'hello12345',
+        'text=func': () => result,
+      }).get('data-value'),
+    ).to.eq(result)
   })
 
-  xit('should attach the data-value value from an itemObject component for dates', () => {
-    const result = resolve({
-      type: 'list',
-      id: 'abc123',
-      'text=func': () => {},
+  describe('when working with the dataKey', () => {
+    describe('when handling dataValue emits', () => {
+      xit('should pass the value from the emit executor', async () => {
+        const iteratorVar = 'hello'
+        const dataObject = { fruit: 'apple' }
+        const listObject = [dataObject, { fruit: 'orange' }]
+        const list = createComponent({
+          type: 'list',
+          listObject,
+          iteratorVar,
+          children: [],
+        })
+        const listItem = createComponent({
+          type: 'listItem',
+          iteratorVar,
+          children: [],
+        })
+        const textField = createComponent({
+          type: 'textField',
+          dataKey: `${iteratorVar}.fruit`,
+          iteratorVar,
+          dataValue: {
+            emit: { dataKey: { var1: iteratorVar }, actions: [] },
+          },
+        })
+        list.createChild(listItem)
+        list.set('listObject', listObject)
+        listItem.createChild(textField)
+        listItem.setDataObject(dataObject)
+        getCustomDataAttrs(list)
+        expect(textField.get('data-value')).to.eq('apple')
+      })
     })
-  })
 
-  it('should attach the data-name prop for components that have a dataKey', () => {
-    expect(
-      getCustomDataAttrs({
-        type: 'list',
-        id: 'abc123',
-        dataKey: 'hehe',
-        iteratorVar: 'hello',
-        children: [],
-      }).toJS(),
-    ).to.have.property('data-name')
-  })
+    it('should look in the page object to find its dataObject (non list consumers)', () => {
+      const pageName = 'SignIn'
+      expect(
+        getCustomDataAttrs(
+          { type: 'label', dataKey: 'hello.gender' },
+          {
+            context: { page: pageName },
+            getRoot: () => ({
+              [pageName]: { hello: { gender: 'Female' } },
+            }),
+            page: pageName,
+          },
+        ).get('data-value'),
+      ).to.eq('Female')
+    })
 
-  describe('when working with dataKey', () => {
+    xit(
+      'should attempt to look into the root object if a dataObject ' +
+        'isnt available in the page object',
+      () => {
+        //
+      },
+    )
+
+    xit('should attempt to resolve reference dotted dataKeys', () => {
+      //
+    })
+
     describe('when the dataKey is an emit object', () => {
       let listObject = [] as { key: string; value: string }[]
       let iteratorVar = 'helloObject'
@@ -131,20 +195,6 @@ describe('getCustomDataAttrs', () => {
           ],
         }) as any
       })
-
-      xit('should resolve the dataKey and iteratorVar on the emit action instance', () => {
-        // expect()
-      })
-    })
-
-    describe('when resolving data values related to text=func', () => {
-      //
-    })
-  })
-
-  describe('should attach viewTag as the value for data-ux', () => {
-    xit('', () => {
-      //
     })
   })
 })

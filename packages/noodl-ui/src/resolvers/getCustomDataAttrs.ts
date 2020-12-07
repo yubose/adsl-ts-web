@@ -5,6 +5,7 @@ import {
   findDataValue,
   isEmitObj,
   excludeIteratorVar,
+  isListKey,
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
@@ -56,209 +57,111 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       ---- LISTS
     -------------------------------------------------------- */
   if (noodlType === 'list') {
-    let listObjects: any[]
-    const listComponent = component as any
-    const listObject = listComponent.getData()
-    listComponent.set('data-listid', listComponent.id)
-
-    if (listObject !== undefined) {
-      // Hard code some of this stuff for the videoSubStream list component for
-      // now until we figure out a better solution
-      if (/(vidoeSubStream|videoSubStream)/i.test(contentType || '')) {
-        listObjects = pageObject?.listData?.participants || []
-      } else {
-        listObjects = _.isArray(listObject) ? listObject : [listObject]
-      }
-    } else {
-      log.red(
-        'A list component is missing the "listObject" property',
-        listComponent.snapshot(),
-      )
-    }
+    component.set('data-listid', component.id)
   }
 
   /* -------------------------------------------------------
       ---- REFERENCES / DATAKEY 
     -------------------------------------------------------- */
 
-  if (dataKey) {
-    let dataObject: any
+  if (_.isString(dataKey)) {
+    let iteratorVar = component.get('iteratorVar') || ''
+    let dataObject: any = findListDataObject(component)
+    let dataPath = excludeIteratorVar(dataKey, iteratorVar) || ''
+    let dataValue = component.get('dataValue')
+    let fieldParts = dataKey?.split?.('.')
+    let field = fieldParts?.shift?.() || ''
+    let fieldValue = pageObject?.[field]
+    let textFunc = component.get('text=func')
 
-    if (isEmitObj(dataKey)) {
-      const emitAction = new EmitAction(dataKey, {
-        iteratorVar: component.get('iteratorVar'),
-        trigger: 'dataKey',
-      })
-      dataObject = findListDataObject(component)
-      emitAction.setDataKey(
-        createEmitDataKey(
-          emitAction.original.emit.dataKey,
-          [dataObject, () => pageObject, () => getRoot()],
-          { iteratorVar: emitAction.iteratorVar },
+    // component.set(
+    //   'data-name',
+    //   dataKey.split('.')[dataKey.length ? dataKey.length - 1 : 0],
+    // )
+
+    if (isEmitObj(dataValue)) {
+      const emitAction = new EmitAction(dataValue, {
+        iteratorVar,
+        trigger: 'dataValue',
+        callback: async (action, options) => {
+          const callbacks = _.reduce(
+            getCbs('action').emit || [],
+            (acc, obj) =>
+              obj?.trigger === 'dataValue' ? acc.concat(obj) : acc,
+            [] as any[],
+          )
+          if (!callbacks.length) return ''
+          const result = (await Promise.race(
+            callbacks.map((obj) =>
+              obj?.fn?.(emitAction, options, context.actionsContext),
+            ),
+          )) as any
+          return (Array.isArray(result) ? result[0] : result) || ''
+        },
+        dataKey: createEmitDataKey(
+          dataValue,
+          [dataObject, () => getPageObject(context.page), () => getRoot()],
+          { iteratorVar },
         ),
-      )
-      let resolvedDataKey = ''
-      emitAction.callback = async (snapshot) => {
-        log.grey(`Executing dataKey emit action callback`, snapshot)
-        const callbacks = _.reduce(
-          getCbs().action.emit || [],
-          (acc, obj) => (obj?.trigger === 'dataKey' ? acc.concat(obj) : acc),
-          [],
-        )
-        if (!callbacks.length) return ''
-        const result = await Promise.race(
-          callbacks.map((obj) =>
-            obj?.fn?.(emitAction, options, context.actionsContext),
-          ),
-        )
-        return (Array.isArray(result) ? result[0] : result) || ''
-      }
-
-      // Result returned should be a string type
-      let result = emitAction.execute(dataKey) as string | Promise<string>
-
-      log.grey(`Result received from dataKey emit action`, {
-        snapshot: emitAction.getSnapshot(),
-        result,
       })
-
+      let result = emitAction.execute(options)
       if (isPromise(result)) {
         result
-          .then((res) => {
-            resolvedDataKey = res
-            log.grey(`Resolved promise with: `, {
-              resolvedPromiseResult: resolvedDataKey,
-              action: emitAction,
-            })
-            component.set('data-key', resolvedDataKey)
-            component.emit('dataKey', resolvedDataKey)
+          .then((res) => component.set('data-value', (dataValue = res)))
+          .catch((err) => {
+            console.error(err)
+            throw new Error(err.message)
           })
-          .catch((err) => Promise.reject(err))
-      } else if (result) {
-        resolvedDataKey = result
-        component.set('data-key', resolvedDataKey)
-        component.emit('dataKey', resolvedDataKey)
-      }
-    } else if (_.isString(dataKey)) {
-      let textFunc = component.get('text=func')
-      let fieldParts = dataKey?.split?.('.')
-      let field = fieldParts?.shift?.() || ''
-      let fieldValue = pageObject?.[field]
-      let iteratorVar = component.get('iteratorVar') || ''
-      let path = excludeIteratorVar(dataKey, iteratorVar) || ''
-      let dataValue = component.get('dataValue')
-      dataObject = findListDataObject(component)
-
-      if (isEmitObj(dataValue)) {
-        log.grey('Found dataValue emit', {
-          component,
-          dataKey,
-          dataObject,
-          dataValue,
-        })
-        const emitAction = new EmitAction(dataValue, {
-          callback: async (action, options) => {
-            const callbacks = _.reduce(
-              getCbs('action').emit || [],
-              (acc, obj) =>
-                obj?.trigger === 'dataValue' ? acc.concat(obj) : acc,
-              [],
-            )
-            if (!callbacks.length) return ''
-            const result = await Promise.race(
-              callbacks.map((obj) =>
-                obj?.fn?.(emitAction, options, context.actionsContext),
-              ),
-            )
-            return (Array.isArray(result) ? result[0] : result) || ''
-          },
-          iteratorVar,
-          trigger: 'dataValue',
-        })
-        emitAction.setDataKey(
-          createEmitDataKey(
-            emitAction.original.emit.dataKey,
-            [dataObject, () => pageObject, () => getRoot()],
-            { iteratorVar },
-          ),
-        )
-        let result = emitAction.execute(options)
-        if (isPromise(result)) {
-          log.grey(`Result (emit) is a promise`, {
-            action: emitAction,
-            component,
-            dataKey,
-            dataValue,
-            result,
-          })
-          result
-            .then((res) => {
-              log.grey(`Resolved (emit) promise with: `, res)
-              dataValue = res
-              component.set('data-value', dataValue)
-              component.emit('dataValue', dataValue)
-            })
-            .catch((err) => {
-              console.error(err)
-              throw new Error(err.message)
-            })
-        } else {
-          dataValue = result
-          component.set('data-value', dataValue)
-          component.emit('dataValue', dataValue)
-          log.grey(`Data value (emit) set`, {
-            action: emitAction,
-            component,
-            dataKey,
-            dataValue,
-          })
-        }
       } else {
+        component.set('data-value', (dataValue = result))
+      }
+    } else {
+      if (!dataValue) {
         dataValue = findDataValue(
           [
             findListDataObject(component),
             () => getPageObject(page),
             () => getRoot(),
           ],
-          path,
+          dataPath,
         )
       }
+    }
 
-      if (fieldParts?.length) {
-        while (fieldParts.length) {
-          field = (fieldParts?.shift?.() as string) || ''
-          field = field[0]?.toLowerCase?.() + field.substring(1)
-          fieldValue = fieldValue?.[field]
-        }
-      } else {
-        field = fieldParts?.[0] || ''
+    if (fieldParts?.length) {
+      while (fieldParts.length) {
+        field = (fieldParts?.shift?.() as string) || ''
+        field = field[0]?.toLowerCase?.() + field.substring(1)
+        fieldValue = fieldValue?.[field]
       }
+    } else {
+      field = fieldParts?.[0] || ''
+    }
 
-      component.assign({
-        'data-key': dataKey,
-        'data-name': field,
-        'data-value': _.isFunction(textFunc)
-          ? textFunc(dataValue) || ''
-          : dataValue || '',
-      })
+    component.assign({
+      'data-key': dataKey,
+      'data-name': field,
+      'data-value': _.isFunction(textFunc)
+        ? textFunc(dataValue) || ''
+        : dataValue || '',
+    })
 
-      // Components that find their data values through a higher level like the root object
-      //   else {
-      if (isReference(dataKey)) {
-        if (dataValue != undefined) component.set('data-value', dataValue)
-        else {
-          component.set(
-            'data-value',
-            dataValue != undefined
-              ? dataValue
-              : parser.getByDataKey(
-                  dataKey,
-                  showDataKey
-                    ? dataKey
-                    : component.get('text') || component.get('placeholder'),
-                ),
-          )
-        }
+    // Components that find their data values through a higher level like the root object
+    //   else {
+    if (isReference(dataKey)) {
+      if (dataValue != undefined) component.set('data-value', dataValue)
+      else {
+        component.set(
+          'data-value',
+          dataValue != undefined
+            ? dataValue
+            : parser.getByDataKey(
+                dataKey,
+                showDataKey
+                  ? dataKey
+                  : component.get('text') || component.get('placeholder'),
+              ),
+        )
       }
     }
   }
