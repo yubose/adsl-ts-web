@@ -140,17 +140,22 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         component.emit('dataKey', resolvedDataKey)
       }
     } else if (_.isString(dataKey)) {
-      log.gold('dataValue', dataValue)
       let textFunc = component.get('text=func')
       let fieldParts = dataKey?.split?.('.')
       let field = fieldParts?.shift?.() || ''
       let fieldValue = pageObject?.[field]
-      const iteratorVar = component.get('iteratorVar') || ''
-      const path = excludeIteratorVar(dataKey, iteratorVar) || ''
+      let iteratorVar = component.get('iteratorVar') || ''
+      let path = excludeIteratorVar(dataKey, iteratorVar) || ''
       let dataValue = component.get('dataValue')
+      dataObject = findListDataObject(component)
 
       if (isEmitObj(dataValue)) {
-        log.grey('Found dataValue emit', { component, dataKey, dataValue })
+        log.grey('Found dataValue emit', {
+          component,
+          dataKey,
+          dataObject,
+          dataValue,
+        })
         const emitAction = new EmitAction(dataValue, {
           callback: async (action, options) => {
             const callbacks = _.reduce(
@@ -170,6 +175,13 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           iteratorVar,
           trigger: 'dataValue',
         })
+        emitAction.setDataKey(
+          createEmitDataKey(
+            emitAction.original.emit.dataKey,
+            [dataObject, () => pageObject, () => getRoot()],
+            { iteratorVar },
+          ),
+        )
         let result = emitAction.execute(options)
         if (isPromise(result)) {
           log.grey(`Result (emit) is a promise`, {
@@ -177,11 +189,14 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
             component,
             dataKey,
             dataValue,
+            result,
           })
           result
             .then((res) => {
               log.grey(`Resolved (emit) promise with: `, res)
               dataValue = res
+              component.set('data-value', dataValue)
+              component.emit('dataValue', dataValue)
             })
             .catch((err) => {
               console.error(err)
@@ -189,6 +204,8 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
             })
         } else {
           dataValue = result
+          component.set('data-value', dataValue)
+          component.emit('dataValue', dataValue)
           log.grey(`Data value (emit) set`, {
             action: emitAction,
             component,

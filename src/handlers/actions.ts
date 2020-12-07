@@ -104,6 +104,36 @@ const createActions = function ({ page }: { page: IPage }) {
 
   _actions.emit.push({
     fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
+      log.func('emit [dataValue]')
+      log.grey('', { action, options })
+
+      const emitParams = {
+        actions: action.actions,
+        pageName: noodlui.page,
+      } as any
+
+      if ('dataKey' in action.original.emit || {}) {
+        emitParams.dataKey = action.dataKey
+      }
+
+      const emitResult = await noodl.emitCall(emitParams)
+
+      log.grey('Called emitCall [dataValue]', {
+        action,
+        actionChain: options.ref,
+        component: options.component,
+        emitParams,
+        emitResult,
+        options,
+      })
+
+      return emitResult
+    },
+    trigger: 'dataValue',
+  })
+
+  _actions.emit.push({
+    fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
       log.func('emit [onClick]')
       log.gold('Emitting', { action, noodl, noodlui, ...options })
 
@@ -122,7 +152,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
       const emitResult = await noodl.emitCall(emitParams)
 
-      log.gold(`Ran emitCall`, {
+      log.gold(`Ran emitCall [onClick]`, {
         actions: action.actions,
         component: options.component,
         emitParams,
@@ -454,7 +484,7 @@ const createActions = function ({ page }: { page: IPage }) {
                   `waiting on a response. Aborting now...`,
                 { action, ...options },
               )
-              ref.abort?.()
+              await ref.abort?.()
             }
           }
         }
@@ -474,6 +504,10 @@ const createActions = function ({ page }: { page: IPage }) {
                 const pageName = noodlui?.page || ''
                 const pathToTage = 'verificationCode.response.edge.tage'
                 let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
+                console.log(vcode)
+                console.log(vcode)
+                console.log(vcode)
+                console.log(vcode)
                 if (vcode) {
                   vcode = String(vcode)
                   vcodeInput.value = vcode

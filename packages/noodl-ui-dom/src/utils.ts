@@ -214,13 +214,11 @@ export const handlingDataset = (function () {
 export function isTextFieldLike(
   node: unknown,
 ): node is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
-  return (
+  return !!(
     node &&
     node instanceof HTMLElement &&
-    !!(
-      node.tagName === 'INPUT' ||
+    (node.tagName === 'INPUT' ||
       node.tagName === 'SELECT' ||
-      node.tagName === 'TEXTAREA'
-    )
+      node.tagName === 'TEXTAREA')
   )
 }

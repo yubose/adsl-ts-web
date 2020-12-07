@@ -430,6 +430,35 @@ export function isListConsumer(component: any) {
   )
 }
 
+/**
+ * Returns true if the dataKey begins with the value of iteratorVar
+ * @param {  }  -
+ */
+export function isListKey(dataKey: string, iteratorVar: string): boolean
+export function isListKey(dataKey: string, component: Component): boolean
+export function isListKey(dataKey: string, component: ComponentObject): boolean
+export function isListKey(
+  dataKey: string,
+  component: string | Component | ComponentObject,
+) {
+  if (isStr(dataKey) && component) {
+    if (isStr(component)) {
+      return dataKey.startsWith(component)
+    }
+    if (component instanceof Component) {
+      return dataKey.startsWith(
+        component.get('iteratorVar') ||
+          findParent(component, (p) => !!p?.get('iteratorVar')) ||
+          '',
+      )
+    }
+    if ('iteratorVar' in component) {
+      return dataKey.startsWith(component.iteratorVar || '')
+    }
+  }
+  return false
+}
+
 export function isPasswordInput(value: unknown) {
   return (
     isObj(value) &&
