@@ -29,6 +29,7 @@ class EmitAction extends Action<EmitObject> {
     this['dataKey'] = action?.emit?.dataKey
     this['trigger'] = options?.trigger
     if (options?.iteratorVar) this.set('iteratorVar', options.iteratorVar)
+    if (options?.callback) this.callback = options.callback
   }
 
   get trigger() {

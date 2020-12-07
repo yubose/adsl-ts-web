@@ -16,7 +16,7 @@ export const actionTypes = [
 
 export const actionChainEmitTriggers = ['onClick', 'onChange'] as const
 
-export const resolveEmitTriggers = ['dataKey', 'path'] as const
+export const resolveEmitTriggers = ['dataKey', 'dataValue', 'path'] as const
 
 export const emitTriggers = [
   ...actionChainEmitTriggers,

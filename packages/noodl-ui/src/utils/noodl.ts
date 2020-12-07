@@ -6,12 +6,15 @@ import {
   ActionChainEmitTrigger,
   ComponentCreationType,
   ComponentObject,
+  EmitObject,
+  EmitTrigger,
   PluginLocation,
   ProxiedComponent,
   TextBoardBreakLine,
 } from '../types'
 import { isAllString, isBrowser } from './common'
 import { actionChainEmitTriggers } from '../constants'
+import EmitAction from '../Action/EmitAction'
 
 /**
  * Deeply traverses all children down the component's family tree

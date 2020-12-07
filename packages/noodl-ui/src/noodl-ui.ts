@@ -563,8 +563,8 @@ class NOODL {
     return path
   }
 
-  // Temp here for debugging
-  getCbs() {
+  getCbs(key?: 'action' | 'builtIn' | 'chaining') {
+    if (key) return this.#cb[key]
     return this.#cb
   }
 

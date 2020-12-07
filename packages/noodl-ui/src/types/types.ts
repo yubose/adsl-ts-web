@@ -72,7 +72,18 @@ export interface ConsumerOptions {
   fetch: Fetch
   getAssetsUrl(): string
   getBaseStyles(styles?: Style): Partial<Style>
-  getCbs(): {
+  getCbs(
+    key: 'action',
+  ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+  getCbs(
+    key: 'builtIn',
+  ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+  getCbs(
+    key: 'chaining',
+  ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+  getCbs(
+    key?: 'action' | 'builtIn' | 'chaining',
+  ): {
     action: Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
     builtIn: { [funcName: string]: ActionChainActionCallback[] }
     chaining: Partial<Record<ActionChainEventId, Function[]>>

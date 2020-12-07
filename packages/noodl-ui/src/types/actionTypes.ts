@@ -1,5 +1,6 @@
+import Action from '../Action'
 import { AbortExecuteError } from '../errors'
-import { IfObject } from './types'
+import { ConsumerOptions, IfObject } from './types'
 
 export type ActionObject = BaseActionObject &
   (
@@ -104,8 +105,8 @@ export interface IAction<A extends BaseActionObject = any> {
   onTimeout: any
 }
 
-export interface ActionCallback {
-  (snapshot: ActionSnapshot, handlerOptions?: any): any
+export interface ActionCallback<A extends Action = Action> {
+  (snapshot: A, handlerOptions?: ConsumerOptions): any
 }
 
 export interface ActionOptions<OriginalAction extends BaseActionObject = any> {

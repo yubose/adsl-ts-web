@@ -29,7 +29,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
   } = options
   const { page } = context
   const { noodlType } = component
-  const { contentType = '', dataKey, viewTag } = component.get([
+  let { contentType = '', dataKey, viewTag } = component.get([
     'contentType',
     'dataKey',
     'viewTag',
@@ -140,22 +140,72 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         component.emit('dataKey', resolvedDataKey)
       }
     } else if (_.isString(dataKey)) {
-      const iteratorVar = component.get('iteratorVar') || ''
-      const path = excludeIteratorVar(dataKey, iteratorVar) || ''
-      const dataValue = findDataValue(
-        [
-          findListDataObject(component),
-          () => getPageObject(page),
-          () => getRoot(),
-        ],
-        path,
-      )
       log.gold('dataValue', dataValue)
-      // let dataValue = dataObject
       let textFunc = component.get('text=func')
       let fieldParts = dataKey?.split?.('.')
       let field = fieldParts?.shift?.() || ''
       let fieldValue = pageObject?.[field]
+      const iteratorVar = component.get('iteratorVar') || ''
+      const path = excludeIteratorVar(dataKey, iteratorVar) || ''
+      let dataValue = component.get('dataValue')
+
+      if (isEmitObj(dataValue)) {
+        log.grey('Found dataValue emit', { component, dataKey, dataValue })
+        const emitAction = new EmitAction(dataValue, {
+          callback: async (action, options) => {
+            const callbacks = _.reduce(
+              getCbs('action').emit || [],
+              (acc, obj) =>
+                obj?.trigger === 'dataValue' ? acc.concat(obj) : acc,
+              [],
+            )
+            if (!callbacks.length) return ''
+            const result = await Promise.race(
+              callbacks.map((obj) =>
+                obj?.fn?.(emitAction, options, context.actionsContext),
+              ),
+            )
+            return (Array.isArray(result) ? result[0] : result) || ''
+          },
+          iteratorVar,
+          trigger: 'dataValue',
+        })
+        let result = emitAction.execute(options)
+        if (isPromise(result)) {
+          log.grey(`Result (emit) is a promise`, {
+            action: emitAction,
+            component,
+            dataKey,
+            dataValue,
+          })
+          result
+            .then((res) => {
+              log.grey(`Resolved (emit) promise with: `, res)
+              dataValue = res
+            })
+            .catch((err) => {
+              console.error(err)
+              throw new Error(err.message)
+            })
+        } else {
+          dataValue = result
+          log.grey(`Data value (emit) set`, {
+            action: emitAction,
+            component,
+            dataKey,
+            dataValue,
+          })
+        }
+      } else {
+        dataValue = findDataValue(
+          [
+            findListDataObject(component),
+            () => getPageObject(page),
+            () => getRoot(),
+          ],
+          path,
+        )
+      }
 
       if (fieldParts?.length) {
         while (fieldParts.length) {
