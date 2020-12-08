@@ -1,4 +1,5 @@
 import express from 'express'
+import chalk from 'chalk'
 import cors from 'cors'
 import yaml from 'yaml'
 // import { use } from 'body-parser'
@@ -11,8 +12,10 @@ const getPath = (...paths: string[]) =>
 const getServerFilePath = (...paths: string[]) =>
   getPath(path.join('scripts/serverFiles'), ...paths)
 
-const loadFile = (filepath: string) =>
-  fs.readFileSync(getServerFilePath(filepath), { encoding: 'utf8' })
+const loadFile = (
+  filepath: string,
+  opts?: Parameters<typeof fs.readFileSync>[1],
+) => fs.readFileSync(getServerFilePath(filepath), { encoding: 'utf8' }, opts)
 
 fs.ensureDirSync(getServerFilePath('assets'))
 const assetPaths = fs.readdirSync(getServerFilePath('assets'), 'utf8')
@@ -29,20 +32,28 @@ app.use(
   }),
 )
 
+console.log('')
+rootFiles
+  .filter((o) => o.endsWith('.yml'))
+  .forEach((rootFile) => {
+    console.log(`Route opened: ${chalk.yellow('/' + rootFile)}`)
+    app.get(`/${rootFile}`, (req, res) => {
+      res.send(loadFile(rootFile))
+    })
+  })
+console.log('')
+
 allPages.forEach((page) => {
   app.get(`/${page}_en.yml`, (req, res) => {
     res.send(loadFile(page + '.yml'))
   })
 })
-;['testpage.yml', 'cadlEndpoint.yml', 'pi.html'].forEach((filepath) => {
-  app.get(`/${filepath}`, (req, res) => {
-    res.send(loadFile(filepath))
-  })
-})
 
 assetPaths.forEach((assetPath) => {
   app.get(`/assets/${assetPath}`, (req, res) => {
-    res.send(loadFile(`assets/${assetPath}`))
+    res
+      .writeHead(200, { 'Content-Type': 'image/png' }, 'buffer')
+      .end(fs.readFileSync(getServerFilePath(`/assets/${assetPath}`)))
   })
 })
 

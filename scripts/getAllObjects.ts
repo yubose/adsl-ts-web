@@ -4,17 +4,19 @@ import _ from 'lodash'
 import path from 'path'
 import * as log from './utils/log'
 import Aggregator from './modules/Aggregator'
-import Saver, { DataOptions } from './modules/Saver'
+import Saver from './modules/Saver'
 import { ParseMode, ParseModeModifier } from './types'
 import { paths } from './config'
 
 /** Fetches, parses and saves NOODL page objects to the base object dir */
 async function getAllObjects({
+  config: configName,
   dir,
   endpoint,
   parseMode,
   parseModifier = 'default',
 }: {
+  config: string
   dir: string
   endpoint: string
   parseMode: ParseMode
@@ -22,22 +24,36 @@ async function getAllObjects({
 }) {
   const exts = { [parseMode]: true }
   const saver = new Saver({ dir, exts: { ...exts, yml: false } })
-  const aggregator = new Aggregator({ endpoint, ...exts, yml: false })
+  const aggregator = new Aggregator({
+    endpoint,
+    ...exts,
+    yml: false,
+    baseOptions: {
+      meta: {
+        rootConfig: { label: configName },
+        appConfig: { label: 'cadlEndpoint' },
+      },
+    },
+  })
   const { base } = aggregator
 
   base.onRootConfig = () => {
-    log.yellow(`Retrieved root config using ${chalk.magentaBright(endpoint)}`)
+    log.yellow(
+      `Retrieved ${
+        base.meta.rootConfig.label
+      } config using ${chalk.magentaBright(endpoint)}`,
+    )
   }
 
   base.onNoodlConfig = () => {
-    log.yellow(`Retrieved noodl config`)
+    log.yellow(`Retrieved ${base.meta.appConfig.label} config`)
     log.white(`Config version set to ${chalk.yellowBright(base.version)}`)
     log.blank()
   }
 
   base.onBaseItems = async () => {
     const names = _.keys(base.items)
-    let consoleSaveMsg = `Saving rootConfig, noodlConfig`
+    let consoleSaveMsg = `Saving ${base.meta.rootConfig.label} config, ${base.meta.appConfig.label} config`
 
     _.forEach(names, (name, index, coll) => {
       name && log.green(`Retrieved ${name}`)
@@ -71,7 +87,7 @@ async function getAllObjects({
   log.blue(`Endpoint set to ${chalk.magentaBright(endpoint)}`)
   log.blue('Cleaning up previous data...')
 
-  await fs.remove(dir)
+  // await fs.remove(dir)
   if (parseMode !== 'yml') {
     await fs.ensureDir(path.resolve(dir, 'pages'))
   }

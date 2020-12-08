@@ -1,11 +1,13 @@
 import _ from 'lodash'
-import BaseSetup from './BaseSetup'
-import AppSetup from './AppSetup'
+import BaseSetup, { BasesOptions } from './BaseSetup'
+import AppSetup, { PagesOptions } from './AppSetup'
 
 export interface AggregatorOptions {
   endpoint?: string
   json?: boolean
   yml?: boolean
+  baseOptions?: Partial<BasesOptions>
+  appOptions?: Partial<PagesOptions>
 }
 
 class Aggregator {
@@ -14,9 +16,14 @@ class Aggregator {
   items: { [name: string]: any } = {}
   endpoint: AggregatorOptions['endpoint']
 
-  constructor({ endpoint, ...options }: AggregatorOptions) {
-    this.#baseSetup = new BaseSetup({ endpoint, ...options })
-    this.#appSetup = new AppSetup(options)
+  constructor({
+    endpoint,
+    baseOptions,
+    appOptions,
+    ...options
+  }: AggregatorOptions) {
+    this.#baseSetup = new BaseSetup({ endpoint, ...options, ...baseOptions })
+    this.#appSetup = new AppSetup({ ...options, ...appOptions })
     this.endpoint = endpoint
   }
 
@@ -25,8 +32,8 @@ class Aggregator {
     includePages = true,
   }: { includeBasePages?: boolean; includePages?: boolean } = {}) {
     const {
-      rootConfig: { json: rootConfig },
-      noodlConfig: { json: noodlConfig },
+      [this.base.meta.rootConfig.label]: { json: rootConfig },
+      [this.base.meta.appConfig.label]: { json: noodlConfig },
     } = await this.#baseSetup.load({ includeBasePages })
     if (includePages) {
       this.#appSetup.baseUrl = this.#baseSetup.baseUrl

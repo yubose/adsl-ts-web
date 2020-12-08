@@ -5,6 +5,10 @@ export interface BasesOptions {
   endpoint?: string
   json?: boolean
   yml?: boolean
+  meta?: {
+    rootConfig?: { label?: string }
+    appConfig?: { label?: string }
+  }
 }
 
 class BaseSetup {
@@ -14,6 +18,10 @@ class BaseSetup {
   #onBaseItems: () => any
   endpoint: BasesOptions['endpoint']
   baseUrl: string = ''
+  meta = {
+    rootConfig: { label: 'root' },
+    appConfig: { label: 'noodl' },
+  }
   noodlEndpoint: string = ''
   noodlBaseUrl: string = ''
   version: string = ''
@@ -21,32 +29,38 @@ class BaseSetup {
   constructor(options: BasesOptions = {}) {
     this.#helper = new SetupHelper(options)
     this.endpoint = options.endpoint
+    if (options?.meta) {
+      this.meta.rootConfig.label = options.meta.rootConfig?.label || 'root'
+      this.meta.appConfig.label = options.meta.appConfig?.label || 'noodl'
+    }
   }
 
   async load({ includeBasePages = true }: { includeBasePages?: boolean }) {
     // Load/save root config in memory
     await this.#helper.loadNoodlObject({
-      name: 'rootConfig',
+      name: this.meta.rootConfig.label,
       url: this.endpoint,
     })
     const items = this.#helper.items
     // Set version, root baseUrl
     this['version'] = this.getLatestVersion()
     this['baseUrl'] = (
-      items.rootConfig.json.cadlBaseUrl || items.rootConfig.json.noodlBaseUrl
+      items[this.meta.rootConfig.label].json.cadlBaseUrl ||
+      items[this.meta.rootConfig.label].json.noodlBaseUrl
     )?.replace?.('${cadlVersion}', this.version)
     this.onRootConfig?.()
     // Set noodl config, endpoint, baseUrl
-    this['noodlEndpoint'] = `${this.baseUrl}${items.rootConfig.json.cadlMain}`
+    this['noodlEndpoint'] = `${this.baseUrl}${
+      items[this.meta.rootConfig.label].json?.cadlMain
+    }`
     await this.#helper.loadNoodlObject({
       url: this.noodlEndpoint,
-      name: 'noodlConfig',
+      name: this.meta.appConfig.label,
     })
-    const noodlConfig = this.#helper.get('noodlConfig')
-    this['noodlBaseUrl'] = items.noodlConfig.json.baseUrl.replace(
-      '${cadlBaseUrl}',
-      this.baseUrl,
-    )
+    const noodlConfig = this.#helper.get(this.meta.appConfig.label)
+    this['noodlBaseUrl'] = items[
+      this.meta.appConfig.label
+    ].json.baseUrl.replace('${cadlBaseUrl}', this.baseUrl)
     this.onNoodlConfig?.()
     if (includeBasePages) {
       const numPreloadingPages = this.noodlConfig.json.preload?.length || 0
@@ -65,11 +79,11 @@ class BaseSetup {
   }
 
   get rootConfig() {
-    return this.#helper.items.rootConfig
+    return this.#helper.items[this.meta.rootConfig.label]
   }
 
   get noodlConfig() {
-    return this.#helper.items.noodlConfig
+    return this.#helper.items[this.meta.appConfig.label]
   }
 
   get items() {

@@ -504,10 +504,6 @@ const createActions = function ({ page }: { page: IPage }) {
                 const pageName = noodlui?.page || ''
                 const pathToTage = 'verificationCode.response.edge.tage'
                 let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
-                console.log(vcode)
-                console.log(vcode)
-                console.log(vcode)
-                console.log(vcode)
                 if (vcode) {
                   vcode = String(vcode)
                   vcodeInput.value = vcode

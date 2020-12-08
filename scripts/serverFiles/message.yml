@@ -4,14 +4,20 @@ webApiHost: apiHost
 appApiHost: apiHost
 connectiontimeout: '5'
 loadingLevel: 1
-viewWidthHeightRatio:
-  min: '0.7'
-  max: '2.0'
 debug: console_log_api
+web:
+  cadlVersion:
+    stable: 0.1
+    test: 0.1
+ios:
+  cadlVersion:
+    stable: 0.1
+    test: 0.1
+android:
+  cadlVersion:
+    stable: 0.1
+    test: 0.1
 cadlBaseUrl: http://127.0.0.1:3001/
 cadlMain: cadlEndpoint.yml
-myBaseUrl: 'http://127.0.0.1:3001/'
-timestamp: 12012020
-bodyTopPplugin: ~/googleTM.js
-bodyTailPplugin: ~/googleTM.js
-headPlugin: ~/googleTM.js
+timestamp: 11062020
+myBaseUrl: http://127.0.0.1:3001/

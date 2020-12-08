@@ -37,6 +37,7 @@ program
 
         const { default: getAllObjects } = await import('./getAllObjects')
         await getAllObjects({
+          config,
           endpoint: endpoint.get(config),
           dir: paths[parseMode],
           parseMode,
