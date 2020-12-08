@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
+import chaiDOM from 'chai-dom'
 import sinon from 'sinon'
 import { Resolver, Viewport } from 'noodl-ui'
 import Logger, { _color } from 'logsnap'
@@ -13,6 +14,7 @@ import {
 } from './utils/test-utils'
 import { listen } from './handlers/dom'
 
+chai.use(chaiDOM)
 chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub

@@ -1,17 +1,15 @@
 import _ from 'lodash'
 import {
   createEmitDataKey,
+  excludeIteratorVar,
   findListDataObject,
   findDataValue,
   isEmitObj,
-  excludeIteratorVar,
-  isListKey,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import isReference from '../utils/isReference'
-import { ResolverFn } from '../types'
 import EmitAction from '../Action/EmitAction'
 import { isPromise } from '../utils/common'
+import { ResolverFn } from '../types'
 
 const log = Logger.create('getCustomDataAttrs')
 
@@ -20,22 +18,14 @@ const log = Logger.create('getCustomDataAttrs')
  *    (ex: "data-ux" for UX interactions between the library and the web app)
  */
 const getCustomDataAttrs: ResolverFn = (component, options) => {
-  const {
-    context,
-    getCbs,
-    getPageObject,
-    getRoot,
-    showDataKey,
-    parser,
-  } = options
+  const { context, getCbs, getPageObject, getRoot } = options
   const { page } = context
   const { noodlType } = component
-  let { contentType = '', dataKey, viewTag } = component.get([
+  const { contentType = '', dataKey, viewTag } = component.get([
     'contentType',
     'dataKey',
     'viewTag',
   ])
-  const pageObject = getPageObject(page)
 
   /* -------------------------------------------------------
      ---- UI VISIBILITY RELATED
@@ -71,9 +61,9 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     let dataValue = component.get('dataValue')
     let fieldParts = dataKey?.split?.('.')
     let field = fieldParts?.shift?.() || ''
-    let fieldValue = pageObject?.[field]
-    let textFunc = component.get('text=func')
+    let fieldValue = getPageObject(page)?.[field]
     let resolvedValue: any
+    let textFunc = component.get('text=func')
 
     // component.set(
     //   'data-name',
@@ -82,31 +72,30 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
 
     if (isEmitObj(dataValue)) {
       const emitAction = new EmitAction(dataValue, {
-        iteratorVar,
-        trigger: 'dataValue',
-      })
-      emitAction.setDataKey(
-        createEmitDataKey(
-          emitAction.original.emit.dataKey,
+        callback: async (action, options) => {
+          const callbacks = _.reduce(
+            getCbs('action').emit || [],
+            (acc, obj) =>
+              obj?.trigger === 'dataValue' ? acc.concat(obj) : acc,
+            [] as any[],
+          )
+          if (!callbacks.length) return ''
+          const result = (await Promise.race(
+            callbacks.map((obj) =>
+              obj?.fn?.(emitAction, options, context.actionsContext),
+            ),
+          )) as any
+          return (Array.isArray(result) ? result[0] : result) || ''
+        },
+        dataKey: createEmitDataKey(
+          dataValue.emit.dataKey,
           [dataObject, () => getPageObject(context.page), () => getRoot()],
           { iteratorVar },
         ),
-      )
-      emitAction.callback = async (action, options) => {
-        const callbacks = _.reduce(
-          getCbs('action').emit || [],
-          (acc, obj) => (obj?.trigger === 'dataValue' ? acc.concat(obj) : acc),
-          [] as any[],
-        )
-        if (!callbacks.length) return ''
-        const result = (await Promise.race(
-          callbacks.map((obj) =>
-            obj?.fn?.(emitAction, options, context.actionsContext),
-          ),
-        )) as any
-        return (Array.isArray(result) ? result[0] : result) || ''
-      }
-      let result = emitAction.execute(options)
+        iteratorVar,
+        trigger: 'dataValue',
+      })
+      const result = emitAction.execute(options)
       if (isPromise(result)) {
         result
           .then((res) => {
@@ -122,17 +111,14 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
         component.set('data-value', result)
       }
     } else {
-      if (!dataValue) {
-        dataValue = findDataValue(
-          [
-            findListDataObject(component),
-            () => getPageObject(page),
-            () => getRoot(),
-          ],
-          dataPath,
-        )
-        resolvedValue = dataValue
-      }
+      resolvedValue = findDataValue(
+        [
+          findListDataObject(component),
+          () => getPageObject(page),
+          () => getRoot(),
+        ],
+        dataPath,
+      )
     }
 
     if (fieldParts?.length) {
@@ -152,27 +138,27 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     component.assign({
       'data-key': dataKey,
       'data-name': field,
-      'data-value': resolvedValue != undefined ? resolvedValue : '',
+      'data-value': resolvedValue || '',
     })
 
     // Components that find their data values through a higher level like the root object
     //   else {
-    if (isReference(dataKey)) {
-      if (dataValue != undefined) component.set('data-value', dataValue)
-      else {
-        component.set(
-          'data-value',
-          dataValue != undefined
-            ? dataValue
-            : parser.getByDataKey(
-                dataKey,
-                showDataKey
-                  ? dataKey
-                  : component.get('text') || component.get('placeholder'),
-              ),
-        )
-      }
-    }
+    // if (isReference(dataKey)) {
+    //   if (resolvedValue != undefined) component.set('data-value', resolvedValue)
+    //   else {
+    //     component.set(
+    //       'data-value',
+    //       resolvedValue != undefined
+    //         ? resolvedValue
+    //         : parser.getByDataKey(
+    //             dataKey,
+    //             showDataKey
+    //               ? dataKey
+    //               : component.get('text') || component.get('placeholder'),
+    //           ),
+    //     )
+    //   }
+    // }
   }
 
   /* -------------------------------------------------------

@@ -49,6 +49,7 @@
     "lib:start:noodlutils": "cross-env NODE_ENV=development lerna run start --ignore=noodl-ui --ignore=noodl-ui-dom --ignore=logsnap"
   },
   "dependencies": {
+    "@types/chai-dom": "0.0.10",
     "logsnap": "file:packages\\logsnap",
     "noodl-building-blocks": "file:packages\\noodl-building-blocks",
     "noodl-ui": "file:packages\\noodl-ui",
@@ -90,6 +91,7 @@
     "bundle-stats-webpack-plugin": "^2.2.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
+    "chai-dom": "^1.8.2",
     "chalk": "^4.1.0",
     "circular-dependency-plugin": "^5.2.0",
     "commander": "^6.1.0",

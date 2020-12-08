@@ -1,6 +1,7 @@
+import sinon from 'sinon'
+import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { createComponent } from '../../../dist'
-import { createResolverTest } from '../../utils/test-utils'
+import { createResolverTest, noodlui } from '../../utils/test-utils'
 import getCustomDataAttrsResolver from '../getCustomDataAttrs'
 
 let getCustomDataAttrs: ReturnType<typeof createResolverTest>
@@ -77,70 +78,80 @@ describe('getCustomDataAttrs', () => {
         dataKey: 'hello12345',
         'text=func': () => result,
       }).get('data-value'),
-    ).to.eq(result)
+    )
   })
 
   describe('when working with the dataKey', () => {
     describe('when handling dataValue emits', () => {
-      xit('should pass the value from the emit executor', async () => {
-        const iteratorVar = 'hello'
+      it('should pass the value from the emit executor', async () => {
+        const spy = sinon.spy(() => Promise.resolve('iamjoshua'))
         const dataObject = { fruit: 'apple' }
+        const iteratorVar = 'hello'
         const listObject = [dataObject, { fruit: 'orange' }]
-        const list = createComponent({
-          type: 'list',
-          listObject,
-          iteratorVar,
-          children: [],
+        noodlui.use({ actionType: 'emit', fn: spy, trigger: 'dataValue' })
+        const view = noodlui.resolveComponents({
+          type: 'view',
+          children: [
+            {
+              type: 'list',
+              listObject,
+              iteratorVar,
+              children: [
+                {
+                  type: 'listItem',
+                  iteratorVar,
+                  [iteratorVar]: '',
+                  children: [
+                    {
+                      type: 'textField',
+                      dataKey: `${iteratorVar}.fruit`,
+                      iteratorVar,
+                      dataValue: {
+                        emit: { dataKey: { var1: iteratorVar }, actions: [] },
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         })
-        const listItem = createComponent({
-          type: 'listItem',
-          iteratorVar,
-          children: [],
+        const list = view.child()
+        const data = list.getData().slice()
+        list.set('listObject', [])
+        data.forEach((d) => list.addDataObject(d))
+        const listItem = list.child()
+        const textField = listItem.child()
+
+        await waitFor(() => {
+          expect(textField.get('data-value')).to.eq('iamjoshua')
         })
-        const textField = createComponent({
-          type: 'textField',
-          dataKey: `${iteratorVar}.fruit`,
-          iteratorVar,
-          dataValue: {
-            emit: { dataKey: { var1: iteratorVar }, actions: [] },
-          },
-        })
-        list.createChild(listItem)
-        list.set('listObject', listObject)
-        listItem.createChild(textField)
-        listItem.setDataObject(dataObject)
-        getCustomDataAttrs(list)
-        expect(textField.get('data-value')).to.eq('apple')
       })
     })
 
     it('should look in the page object to find its dataObject (non list consumers)', () => {
-      const pageName = 'SignIn'
+      const pageObject = { hello: { gender: 'Female' } }
       expect(
         getCustomDataAttrs(
           { type: 'label', dataKey: 'hello.gender' },
-          {
-            context: { page: pageName },
-            getRoot: () => ({
-              [pageName]: { hello: { gender: 'Female' } },
-            }),
-            page: pageName,
-          },
+          { getPageObject: () => pageObject },
         ).get('data-value'),
       ).to.eq('Female')
     })
 
-    xit(
+    it(
       'should attempt to look into the root object if a dataObject ' +
         'isnt available in the page object',
       () => {
-        //
+        const pageObject = { hello: { gender: 'Female' } }
+        expect(
+          getCustomDataAttrs(
+            { type: 'label', dataKey: 'SignIn.hello.gender' },
+            { getRoot: () => ({ SignIn: pageObject }) },
+          ).get('data-value'),
+        ).to.eq('Female')
       },
     )
-
-    xit('should attempt to resolve reference dotted dataKeys', () => {
-      //
-    })
 
     describe('when the dataKey is an emit object', () => {
       let listObject = [] as { key: string; value: string }[]
