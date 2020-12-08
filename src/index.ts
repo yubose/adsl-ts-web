@@ -68,7 +68,7 @@ function createPreparePage(options: {
 }) {
   return async (
     pageName: string,
-    pageModifiers: { evolve?: boolean } = {},
+    pageModifiers: { reload?: boolean } = {},
   ): Promise<PageObject> => {
     const { default: noodl } = await import('app/noodl')
     console.log('--------------------------------------------------')

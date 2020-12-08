@@ -228,14 +228,14 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
 
-    // const { evolve } = action.original as BuiltInObject
+    // const { reload } = action.original as BuiltInObject
     // const requestPage = async (pageName: string) => {
     //   var shouldEvolve = false
-    //   if (isNOODLBoolean(evolve)) {
-    //     shouldEvolve = evolve
+    //   if (isNOODLBoolean(reload)) {
+    //     shouldEvolve = reload
     //   }
     //   await page.requestPageChange(pageName, {
-    //     evolve: shouldEvolve,
+    //     reload: shouldEvolve,
     //   }, true)
     // }
 

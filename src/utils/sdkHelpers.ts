@@ -50,7 +50,7 @@ export function createOnDataValueChangeFn(
       ;(node as HTMLSelectElement)['selectedIndex'] = 0
     }
   } else {
-    node.dataset.value = node.value || ''
+    node.dataset.value = component.get('data-value')
   }
 
   const onChange = async (event: Event) => {

@@ -73,6 +73,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     let field = fieldParts?.shift?.() || ''
     let fieldValue = pageObject?.[field]
     let textFunc = component.get('text=func')
+    let resolvedValue: any
 
     // component.set(
     //   'data-name',
@@ -83,37 +84,42 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       const emitAction = new EmitAction(dataValue, {
         iteratorVar,
         trigger: 'dataValue',
-        callback: async (action, options) => {
-          const callbacks = _.reduce(
-            getCbs('action').emit || [],
-            (acc, obj) =>
-              obj?.trigger === 'dataValue' ? acc.concat(obj) : acc,
-            [] as any[],
-          )
-          if (!callbacks.length) return ''
-          const result = (await Promise.race(
-            callbacks.map((obj) =>
-              obj?.fn?.(emitAction, options, context.actionsContext),
-            ),
-          )) as any
-          return (Array.isArray(result) ? result[0] : result) || ''
-        },
-        dataKey: createEmitDataKey(
-          dataValue,
+      })
+      emitAction.setDataKey(
+        createEmitDataKey(
+          emitAction.original.emit.dataKey,
           [dataObject, () => getPageObject(context.page), () => getRoot()],
           { iteratorVar },
         ),
-      })
+      )
+      emitAction.callback = async (action, options) => {
+        const callbacks = _.reduce(
+          getCbs('action').emit || [],
+          (acc, obj) => (obj?.trigger === 'dataValue' ? acc.concat(obj) : acc),
+          [] as any[],
+        )
+        if (!callbacks.length) return ''
+        const result = (await Promise.race(
+          callbacks.map((obj) =>
+            obj?.fn?.(emitAction, options, context.actionsContext),
+          ),
+        )) as any
+        return (Array.isArray(result) ? result[0] : result) || ''
+      }
       let result = emitAction.execute(options)
       if (isPromise(result)) {
         result
-          .then((res) => component.set('data-value', (dataValue = res)))
+          .then((res) => {
+            resolvedValue = res
+            component.set('data-value', res)
+          })
           .catch((err) => {
             console.error(err)
             throw new Error(err.message)
           })
       } else {
-        component.set('data-value', (dataValue = result))
+        resolvedValue = result
+        component.set('data-value', result)
       }
     } else {
       if (!dataValue) {
@@ -125,6 +131,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           ],
           dataPath,
         )
+        resolvedValue = dataValue
       }
     }
 
@@ -138,12 +145,14 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       field = fieldParts?.[0] || ''
     }
 
+    if (typeof textFunc === 'function') {
+      resolvedValue = textFunc(resolvedValue)
+    }
+
     component.assign({
       'data-key': dataKey,
       'data-name': field,
-      'data-value': _.isFunction(textFunc)
-        ? textFunc(dataValue) || ''
-        : dataValue || '',
+      'data-value': resolvedValue != undefined ? resolvedValue : '',
     })
 
     // Components that find their data values through a higher level like the root object

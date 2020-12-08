@@ -50,7 +50,7 @@ class Page {
     | ((options: {
         pageName: string
         rootNode: NOODLDOMElement | null
-        pageModifiers: { evolve?: boolean } | undefined
+        pageModifiers: { reload?: boolean } | undefined
       }) => Promise<any>)
     | undefined
   #onPageRendered:
@@ -61,7 +61,7 @@ class Page {
         previous: string
         current: string
         requested: string
-        modifiers: { evolve?: boolean }
+        modifiers: { reload?: boolean }
       }) => boolean)
     | undefined
   #onModalStateChange:
@@ -103,11 +103,11 @@ class Page {
    * and begins parsing the NOODL components before rendering them to the rootNode.
    * Returns a snapshot of the page name, object, and its parsed/rendered components
    * @param { string } pageName
-   * @param { boolean | undefined } pageModifiers.evolve - Set to false to disable the page's
+   * @param { boolean | undefined } pageModifiers.reload - Set to false to disable the page's
    */
   public async navigate(
     pageName: string,
-    pageModifiers: { evolve?: boolean; force?: boolean } = {},
+    pageModifiers: { reload?: boolean; force?: boolean } = {},
   ): Promise<{ snapshot: any } | void> {
     // TODO: onTimedOut
     try {
@@ -200,11 +200,11 @@ class Page {
    * If the call returns true, the page will begin navigating to the next page
    * else it will do nothing
    * @param { string } requestedPage - Page name to request
-   * @param { boolean? } modifiers.evolve - Set to false to disable the sdk's "evolve" for this route change. It internally set to true by default
+   * @param { boolean? } modifiers.reload - Set to false to disable the sdk's "reload" for this route change. It internally set to true by default
    */
   requestPageChange(
     newPage: string,
-    modifiers: { evolve?: boolean; force?: boolean } = {},
+    modifiers: { reload?: boolean; force?: boolean } = {},
     goback: boolean = false,
   ) {
     if (
@@ -220,8 +220,8 @@ class Page {
       })
       if (shouldNavigate === true) {
         if (goback) {
-          modifiers.evolve = true
-          history.pushState({}, "", this.pageUrl)
+          modifiers.reload = true
+          history.pushState({}, '', this.pageUrl)
           return this.navigate(newPage, modifiers).then(() => {
             this.previousPage = this.currentPage
             this.currentPage = newPage
@@ -275,7 +275,7 @@ class Page {
     fn: (options: {
       pageName: string
       rootNode: NOODLDOMElement | null
-      pageModifiers: { evolve?: boolean } | undefined
+      pageModifiers: { reload?: boolean } | undefined
     }) => Promise<NOODLUiPage | undefined>,
   ) {
     this.#onBeforePageRender = fn

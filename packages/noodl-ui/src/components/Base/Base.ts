@@ -196,7 +196,7 @@ class Component implements IComponent {
     if (key === 'style') {
       if (this.#component.style) {
         this.#component.style[value] = styleChanges
-        if (this.status !== 'drafting' && !this.isHandled('style')) {
+        if (!this.isHandled('style')) {
           this.#setHandledKey('style')
         }
         this.#setHandledStyleKey(value)

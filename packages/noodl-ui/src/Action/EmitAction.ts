@@ -27,7 +27,7 @@ class EmitAction extends Action<EmitObject> {
   ) {
     super({ ...action, actionType: 'emit' }, options)
     this['actions'] = action?.emit?.actions
-    this['dataKey'] = options?.dataKey || action?.emit?.dataKey
+    this.setDataKey(options?.dataKey || action?.emit?.dataKey)
     this['trigger'] = options?.trigger
     if (options?.iteratorVar) this.set('iteratorVar', options.iteratorVar)
     if (options?.callback) this.callback = options.callback
