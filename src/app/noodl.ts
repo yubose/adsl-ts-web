@@ -1,16 +1,17 @@
 import NOODL from '@aitmed/cadl'
 import { getAspectRatio } from '../utils/common'
 
-const WWW_CONFIG = getConfigEndpoint('www')
-const WWW2_CONFIG = getConfigEndpoint('www2')
-const PATIENT_CONFIG = getConfigEndpoint('patient')
-const PATIENT_D_CONFIG = getConfigEndpoint('patientd')
-const PROVIDER_CONFIG = getConfigEndpoint('provider')
-const MEET2_CONFIG = getConfigEndpoint('meet2')
-const MEET2D_CONFIG = getConfigEndpoint('meet2d') // meet2d.aitmed.io
-const MEET2P_CONFIG = getConfigEndpoint('meet2p') // meet2p.aitmed.io
-const MEET3D_CONFIG = getConfigEndpoint('meet3d')
+const WWW = getConfigEndpoint('www')
+const WWW2 = getConfigEndpoint('www2')
+const PATIENT = getConfigEndpoint('patient')
+const PATIENT_D = getConfigEndpoint('patientd')
+const PROVIDER = getConfigEndpoint('provider')
+const MEET2 = getConfigEndpoint('meet2')
+const MEET2D = getConfigEndpoint('meet2d') // meet2d.aitmed.io
+const MEET2P = getConfigEndpoint('meet2p') // meet2p.aitmed.io
+const MEET3D = getConfigEndpoint('meet3d')
 const TESTPAGE = getConfigEndpoint('testpage')
+const NOTIFICATION = getConfigEndpoint('message')
 
 const noodl = new NOODL({
   aspectRatio:
@@ -18,7 +19,7 @@ const noodl = new NOODL({
       ? getAspectRatio(window.innerWidth, window.innerHeight)
       : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: TESTPAGE,
+  configUrl: MEET2D,
   // configUrl: 'http://127.0.0.1:3001/testpage.yml',
 })
 
