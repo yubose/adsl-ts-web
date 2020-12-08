@@ -88,7 +88,7 @@ function createPreparePage(options: {
 
 window.addEventListener('load', async () => {
   // Experimenting dynamic import (code splitting)
-  // const { Account } = await import('@aitmed/cadl')
+  const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
@@ -120,14 +120,11 @@ window.addEventListener('load', async () => {
       Meeting,
       Logger,
     },
-    otherNoodl: {
-      actions,
-      lifeCycles,
-      streams,
-      noodl,
-      noodlui,
-    },
+    noodl,
+    noodlui,
     util: {
+      Account,
+      actions,
       cp: copyToClipboard,
       getDataValues,
       getByDataUX,
@@ -582,6 +579,9 @@ window.addEventListener('load', async () => {
         newParticipantsList: noodl.root?.VideoChat?.listData?.participants,
       })
     }
+    if (Meeting.getWaitingMessageElement()) {
+      Meeting.getWaitingMessageElement().style.visibility = 'hidden'
+    }
   }
 
   Meeting.onRemoveRemoteParticipant = function (participant, stream) {
@@ -607,6 +607,11 @@ window.addEventListener('load', async () => {
       newParticipantsList: noodl.root?.VideoChat?.listData?.participants,
       removedParticipant: participant,
     })
+    if (!Meeting.room.participants.size) {
+      if (Meeting.getWaitingMessageElement()) {
+        Meeting.getWaitingMessageElement().style.visibility = 'visible'
+      }
+    }
   }
 
   /* -------------------------------------------------------

@@ -203,6 +203,13 @@ export function getPosition(el: HTMLElement) {
   }
 }
 
+export function isVisible(node: any) {
+  return (
+    node?.style?.visibility === 'visible' ||
+    node?.style?.visibility !== 'hidden'
+  )
+}
+
 export interface SetStyle<Elem extends HTMLElement> {
   (node: Elem, key: string | { [key: string]: any }, value?: any): void
 }

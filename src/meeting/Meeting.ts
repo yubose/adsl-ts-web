@@ -12,6 +12,7 @@ import {
 import Logger from 'logsnap'
 import { getByDataUX, ProxiedComponent, Viewport } from 'noodl-ui'
 import { isMobile } from '../utils/common'
+import { isVisible } from '../utils/dom'
 import noodluidom from '../app/noodl-ui-dom'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
@@ -71,10 +72,6 @@ const Meeting = (function () {
             },
           },
         })
-        console.log(room)
-        console.log(room)
-        console.log(room)
-        console.log(room)
         _internal['_room'] = room
         // TEMPORARY
         setTimeout(() => {
@@ -315,6 +312,9 @@ const Meeting = (function () {
         inviteOthers: o.getInviteOthersElement(),
         vidoeSubStream: o.getParticipantsListElement(),
       }
+    },
+    getWaitingMessageElement() {
+      return getByDataUX('passwordHidden') as HTMLDivElement
     },
     getStreams() {
       return _internal._streams
