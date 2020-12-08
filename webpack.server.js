@@ -1,0 +1,97 @@
+const path = require('path')
+const webpack = require('webpack')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+const baseDir = path.join(__dirname, 'dev/server')
+
+let devServer
+let entry = 'index.ts'
+
+const presets = ['@babel/preset-env']
+const plugins = [
+  new webpack.WatchIgnorePlugin([/\.js$/, /\.json$/, /\.d\.ts$/]),
+]
+let target = 'node'
+
+if (process.env.SERVER === true) {
+  devServer = {
+    compress: false,
+    contentBase: [
+      path.join(__dirname, 'scripts/compiled'),
+      path.join(__dirname, 'src', 'assets'),
+    ],
+    host: '127.0.0.1',
+    hot: true,
+    port: 3000,
+  }
+  entry = process.env.FILE
+  presets.push('@babel/preset-typescript')
+  plugins.push(
+    new HtmlWebpackPlugin({
+      filename: 'index.html',
+      title: 'Mock - DevServer',
+      favicon: 'favicon.ico',
+      // cache: true,
+      minify: false,
+    }),
+  )
+  target = 'web'
+}
+
+module.exports = {
+  entry: path.join(baseDir, entry),
+  target,
+  devServer,
+  devtool: 'inline-source-map',
+  mode: 'development',
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        exclude: /(node_modules)/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets,
+              plugins: [
+                'lodash',
+                '@babel/plugin-transform-runtime',
+                ['@babel/plugin-proposal-class-properties', { loose: true }],
+                ['@babel/plugin-proposal-private-methods', { loose: true }],
+              ],
+            },
+          },
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true,
+              configFile: 'tsconfig.scripts.json',
+            },
+          },
+        ],
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.ts', '.js'],
+    modules: [path.resolve(__dirname, 'scripts'), 'node_modules'],
+  },
+  output: {
+    filename: 'index.js',
+    path: compiledDir,
+  },
+  plugins,
+  externals: [],
+  optimization: {
+    // splitChunks: {
+    //   cacheGroups: {
+    //     commons: {
+    //       name: 'commons',
+    //       chunks: 'initial',
+    //       minChunks: 2,
+    //     },
+    //   },
+    // },
+  },
+}

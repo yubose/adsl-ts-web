@@ -218,6 +218,7 @@ class Page {
         requested: newPage,
         modifiers,
       })
+      debugger
       if (shouldNavigate === true) {
         if (goback) {
           modifiers.reload = true

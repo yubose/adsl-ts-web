@@ -10,7 +10,7 @@ const getPath = (...paths: string[]) =>
   path.resolve(path.join(process.cwd(), ...paths))
 
 const getServerFilePath = (...paths: string[]) =>
-  getPath(path.join('scripts/serverFiles'), ...paths)
+  getPath(path.join('dev/server/serverFiles'), ...paths)
 
 const loadFile = (
   filepath: string,

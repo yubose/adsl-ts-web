@@ -313,8 +313,8 @@ const Meeting = (function () {
         vidoeSubStream: o.getParticipantsListElement(),
       }
     },
-    getWaitingMessageElement() {
-      return getByDataUX('passwordHidden') as HTMLDivElement
+    getWaitingMessageElement(): HTMLDivElement | HTMLDivElement[] {
+      return getByDataUX('passwordHidden')
     },
     getStreams() {
       return _internal._streams
