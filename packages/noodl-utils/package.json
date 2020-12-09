@@ -44,5 +44,8 @@
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
+  },
+  "dependencies": {
+    "noodl-types": "file:../noodl-types"
   }
 }
