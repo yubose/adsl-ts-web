@@ -26,6 +26,7 @@ import {
   Component,
   List,
   ListItem,
+  IComponent,
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import noodlui from '../app/noodl-ui'
@@ -96,27 +97,25 @@ export function getAllByDataKey(dataKey: string, container?: Element) {
   )
 }
 
-export function getAllByDataName(dataKey: string, container?: Element) {
+export function getAllByDataName(dataName: string, container?: Element) {
   return (container || document.body).querySelectorAll(
-    `[data-key="${dataKey}"]`,
+    `[data-name="${dataName}"]`,
   )
 }
 
-export function getAllByDataListId(dataKey: string, container?: Element) {
+export function getAllByDataListId(listId: string, container?: Element) {
   return (container || document.body).querySelectorAll(
-    `[data-key="${dataKey}"]`,
+    `[data-listid="${listId}"]`,
   )
 }
 
-export function getAllByDataUx(dataKey: string, container?: Element) {
-  return (container || document.body).querySelectorAll(
-    `[data-key="${dataKey}"]`,
-  )
+export function getAllByDataUx(dataUx: string, container?: Element) {
+  return (container || document.body).querySelectorAll(`[data-ux="${dataUx}"]`)
 }
 
-export function getAllByDataValue(dataKey: string, container?: Element) {
+export function getAllByDataValue(dataValue: string, container?: Element) {
   return (container || document.body).querySelectorAll(
-    `[data-key="${dataKey}"]`,
+    `[data-value="${dataValue}"]`,
   )
 }
 
@@ -166,10 +165,12 @@ export function getAllResolvers() {
   ] as ResolverFn[]
 }
 
-export function toDOM(props: any): NOODLDOMElement | null {
+export function toDOM<C extends IComponent = Component>(
+  props: C,
+  container: any = page.rootNode || document.body,
+): NOODLDOMElement {
   const node = noodluidom.parse(props)
-  if (page.rootNode) page.rootNode?.appendChild(node as NOODLDOMElement)
-  else throw new Error('No root node exists in Page')
+  container.appendChild(node as NOODLDOMElement)
   return node
 }
 
@@ -177,18 +178,19 @@ export function toDOM(props: any): NOODLDOMElement | null {
   ---- TEST UTILITIES 
 -------------------------------------------------------- */
 
-export type DataKeyType<K extends string = 'emit' | 'key'> = K
-export type PathType = 'emit' | 'if' | 'url'
 export type ActionSelection = ActionType | ActionObject
 export type ActionsConfig =
   | ActionSelection[]
   | Record<ActionType, ActionObject>
   | { builtIn?: string[] }
+export type DataKeyType<K extends string = 'emit' | 'key'> = K
+export type PathType = 'emit' | 'if' | 'url'
 
 export function createComponent(
-  ...args: Parameters<typeof createNOODLComponent>
+  noodlComponent: ComponentObject,
+  opts?: Parameters<typeof createNOODLComponent>[1],
 ) {
-  return createComponentInstance(createNOODLComponent(...args)) as
+  return createComponentInstance(createNOODLComponent(noodlComponent, opts)) as
     | Component
     | List
     | ListItem
@@ -197,11 +199,13 @@ export function createComponent(
 export function createNOODLComponent(
   noodlComponent: ComponentType | Partial<ComponentObject>,
   opts?: {
+    props?: Partial<ComponentObject>
     dataKey?: DataKeyType
     iteratorVar?: string
     onClick?: ActionsConfig
     onChange?: ActionsConfig
     path?: boolean | PathType
+    resolver?: typeof noodlui['resolveComponents']
   } & Partial<Omit<ComponentObject, 'path' | 'onClick' | 'dataKey'>>,
 ) {
   const props = {
@@ -328,5 +332,14 @@ export function createNOODLComponent(
     if (opts.onChange) props.onChange = createActionObjs(opts.onChange)
   }
 
-  return props
+  return opts?.resolver?.call?.(noodlui, props) || props
+}
+
+export function createNOODLElement<N extends HTMLElement>(
+  noodlComponent: Parameters<typeof createNOODLComponent>[0],
+  options?: Parameters<typeof createNOODLComponent>[1],
+) {
+  const component = createComponent(noodlComponent, options) as any
+  const node = toDOM(component)
+  return node as N
 }

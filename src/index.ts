@@ -579,9 +579,7 @@ window.addEventListener('load', async () => {
         newParticipantsList: noodl.root?.VideoChat?.listData?.participants,
       })
     }
-    if (Meeting.getWaitingMessageElement()) {
-      Meeting.getWaitingMessageElement().style.visibility = 'hidden'
-    }
+    Meeting.hideWaitingElements()
   }
 
   Meeting.onRemoveRemoteParticipant = function (participant, stream) {
@@ -607,11 +605,7 @@ window.addEventListener('load', async () => {
       newParticipantsList: noodl.root?.VideoChat?.listData?.participants,
       removedParticipant: participant,
     })
-    if (!Meeting.room.participants.size) {
-      if (Meeting.getWaitingMessageElement()) {
-        Meeting.getWaitingMessageElement().style.visibility = 'visible'
-      }
-    }
+    if (!Meeting.room.participants.size) Meeting.showWaitingElements()
   }
 
   /* -------------------------------------------------------
