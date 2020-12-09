@@ -43,6 +43,7 @@
     }
   },
   "dependencies": {
-    "noodl-building-blocks": "file:../noodl-building-blocks"
+    "noodl-building-blocks": "file:../noodl-building-blocks",
+    "noodl-types": "file:../noodl-types"
   }
 }

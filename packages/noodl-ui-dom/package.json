@@ -40,5 +40,7 @@
   "peerDependencies": {
     "noodl-ui": "^0.1.28"
   },
-  "dependencies": {}
+  "dependencies": {
+    "noodl-types": "file:../noodl-types"
+  }
 }
