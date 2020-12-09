@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { ProxiedComponent } from 'noodl-ui'
+import { ListBlueprint, NOODL } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RoomParticipant } from '../app/types'
 import Stream from '../meeting/Stream'
@@ -41,9 +41,9 @@ class MeetingStreams {
 
   createSubStreamsContainer(
     container: NOODLDOMElement,
-    props: ProxiedComponent,
+    opts?: { blueprint?: ListBlueprint; resolver?: NOODL['resolveComponents'] },
   ) {
-    this.#subStreams = new Substreams(container, props)
+    this.#subStreams = new Substreams(container, opts)
     return this.#subStreams
   }
 
