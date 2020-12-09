@@ -337,9 +337,10 @@ describe('dom', () => {
       const dataKey = 'formData.greeting'
       const greeting = 'good morning'
       noodlui
-        .use({ getRoot: () => ({ formData: { greeting } }) })
+        .use({ getRoot: () => ({ SignIn: { formData: { greeting } } }) })
         .setPage('SignIn')
       page.render({ type: 'textField', placeholder: 'hello, all', dataKey })
+      console.info(prettyDOM())
       const input = queryByDataKey(document.body, dataKey) as any
       expect(input.value).to.equal(greeting)
     })

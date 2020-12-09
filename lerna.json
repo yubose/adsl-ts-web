@@ -4,6 +4,22 @@
   "command": {
     "bootstrap": {
       "hoist": true
+    },
+    "run": {
+      "ignore": [
+        "logsnap",
+        "noodl-building-blocks",
+        "noodl-types",
+        "noodl-utils"
+      ]
+    },
+    "exec": {
+      "ignore": [
+        "logsnap",
+        "noodl-building-blocks",
+        "noodl-types",
+        "noodl-utils"
+      ]
     }
   }
 }

@@ -8,7 +8,7 @@ import {
   RoomTrack,
   StreamType,
 } from '../app/types'
-import { attachVideoTrack } from '../utils/twilio'
+import { attachAudioTrack, attachVideoTrack } from '../utils/twilio'
 
 const log = Logger.create('Streams.ts')
 
@@ -290,7 +290,12 @@ class MeetingStream {
     const node = this.getElement()
     if (node) {
       if (track.kind === 'audio') {
-        this.#node?.appendChild(track.attach())
+        attachAudioTrack(node, track)
+        log.func('attachTrack')
+        log.green(`Loaded the participant's audio track`, {
+          ...this.snapshot(),
+          track,
+        })
       } else if (track.kind === 'video') {
         attachVideoTrack(node, track)
         log.func('attachTrack')

@@ -21,6 +21,6 @@
     "strictNullChecks": true,
     "target": "es2015"
   },
-  "include": ["src", "packages/**/*.ts"],
+  "include": ["src", "packages/**/*/dist"],
   "exclude": ["_data", "node_modules", "legacy"]
 }
