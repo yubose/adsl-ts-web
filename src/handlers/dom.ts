@@ -86,10 +86,14 @@ export const listen = (noodluidom = noodluidomClient) => {
       _.forEach(defaultPropTable.dataset, (key) => {
         const val = component.get(key) || component[key as keyof Component]
         if (val !== undefined) node.dataset[key.replace('data-', '')] = val
+        // Initiate the value
+        if (key === 'data-value' && 'value' in node) {
+          node.value = node.dataset.value
+        }
       })
       if (isEmitObj(component.get('dataKey'))) {
         component.on('dataKey', (dataKey: string) => {
-          node.dataset.key = dataKey
+          node.dataset.key = val
         })
       }
     }

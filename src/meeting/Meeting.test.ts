@@ -15,12 +15,6 @@ class MockParticipant {
   off() {}
 }
 
-const mockSubstreamsProps = noodlui.resolveComponents(
-  getMockSubstreamsContainer(),
-)[0]
-
-const blueprint = mockSubstreamsProps?.blueprint as ProxiedComponent
-
 let streams: Streams
 let subStreams: Substreams
 let selfStream: Stream
@@ -35,7 +29,10 @@ beforeEach(() => {
   streams = Meeting.getStreams()
   subStreams = streams.createSubStreamsContainer(
     document.createElement('div'),
-    mockSubstreamsProps,
+    {
+      blueprint: getMockSubstreamsContainer().children[0],
+      resolver: noodlui.resolveComponents.bind(noodlui),
+    },
   )
   selfStream = streams.getSelfStream()
   mainStream = streams.getMainStream()
