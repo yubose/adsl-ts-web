@@ -15,11 +15,13 @@ const htmlPluginOptions = {
   filename: 'index.html',
   title: 'AiTmed Noodl Web',
   favicon: 'favicon.ico',
-  template: process.env.ECOS_ENV !== 'test' ? 'public/index.html' : undefined,
   cache: false,
   scriptLoading: 'defer',
   minify: false,
 }
+
+if (process.env.ECOS_ENV !== 'test')
+  htmlPluginOptions.template = 'public/index.html'
 
 const plugins = [
   // new BundleStatsWebpackPlugin({
