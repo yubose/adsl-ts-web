@@ -1,11 +1,20 @@
 import _ from 'lodash'
-import { RemoteParticipant, VideoTrack } from 'twilio-video'
+import { AudioTrack, RemoteParticipant, VideoTrack } from 'twilio-video'
 
 export function forEachParticipant(
   participants: Map<string, RemoteParticipant>,
   cb: (participant: RemoteParticipant) => any,
 ) {
   _.forEach(Array.from(participants.values()), cb)
+}
+
+export function attachAudioTrack<T extends HTMLElement>(
+  node: T,
+  track: AudioTrack,
+) {
+  const audioElem = track.attach()
+  node.appendChild(audioElem)
+  return node
 }
 
 /**

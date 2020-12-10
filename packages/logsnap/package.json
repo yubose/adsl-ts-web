@@ -1,6 +1,6 @@
 {
   "name": "logsnap",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Colorful, easy to use logging for the browser",
   "keywords": [
     "console",
@@ -43,6 +43,7 @@
     }
   },
   "dependencies": {
-    "noodl-building-blocks": "file:../noodl-building-blocks"
+    "noodl-building-blocks": "file:../noodl-building-blocks",
+    "noodl-types": "file:../noodl-types"
   }
 }

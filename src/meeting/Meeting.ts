@@ -97,8 +97,8 @@ const Meeting = (function () {
           trackPublication?.unpublish?.()
         }
         // Unpublish local tracks
-        _internal._room?.localParticipant.audioTracks.forEach(unpublishTracks)
-        _internal._room?.localParticipant.videoTracks.forEach(unpublishTracks)
+        _internal._room?.localParticipant?.audioTracks.forEach(unpublishTracks)
+        _internal._room?.localParticipant?.videoTracks.forEach(unpublishTracks)
         _internal._room?.disconnect?.()
       }
       return this
@@ -133,18 +133,27 @@ const Meeting = (function () {
           return this
         }
 
-        if (subStreams) {
-          if (!subStreams.participantExists(participant)) {
-            log.func('addRemoteParticipant')
-            // Create a new DOM node
-            const props = subStreams.blueprint
-            const node = noodluidom.parse(props as any) as any
-            const subStream = subStreams.create({ node, participant }).last()
-            Meeting.onAddRemoteParticipant?.(participant, mainStream)
-            log.green(
-              `Created a new subStream and bound the newly connected participant to it`,
-              { blueprint: props, node, participant, subStream },
-            )
+          if (subStreams) {
+            if (!subStreams.participantExists(participant)) {
+              log.func('addRemoteParticipant')
+              // Create a new DOM node
+              const props = subStreams.blueprint
+              const node = noodluidom.parse(
+                subStreams.resolver?.(props) || props,
+              ) as any
+              const subStream = subStreams.create({ node, participant }).last()
+              Meeting.onAddRemoteParticipant?.(participant, mainStream)
+              log.green(
+                `Created a new subStream and bound the newly connected participant to it`,
+                { blueprint: props, node, participant, subStream },
+              )
+            } else {
+              log.func('addRemoteParticipant')
+              log.orange(
+                `Did not proceed to add this remotes participant to a ` +
+                  `subStream because they are already in one`,
+              )
+            }
           } else {
             log.func('addRemoteParticipant')
             log.orange(

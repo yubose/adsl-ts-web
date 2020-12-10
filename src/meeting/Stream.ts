@@ -8,7 +8,7 @@ import {
   RoomTrack,
   StreamType,
 } from '../app/types'
-import { attachVideoTrack } from '../utils/twilio'
+import { attachAudioTrack, attachVideoTrack } from '../utils/twilio'
 
 const log = Logger.create('Streams.ts')
 
@@ -26,6 +26,7 @@ class MeetingStream {
     if (node) this.#node = node
     if (uxTag) this.#uxTag = uxTag
     this.type = type
+    if (!type) console.log({ this: this, node, uxTag })
   }
 
   getElement() {
@@ -51,7 +52,11 @@ class MeetingStream {
    * @param { NOODLDOMElement } node
    */
   isSameElement(node: NOODLDOMElement) {
-    return this.#node === node
+    return (
+      !!node &&
+      !!this.#node &&
+      (this.#node === node || this.#node?.id === node.id)
+    )
   }
 
   /** Removes the DOM node for this stream from the DOM */
@@ -290,10 +295,15 @@ class MeetingStream {
     const node = this.getElement()
     if (node) {
       if (track.kind === 'audio') {
-        this.#node?.appendChild(track.attach())
+        attachAudioTrack(node, track)
+        log.func('attachTrack (audio)')
+        log.green(`Loaded the participant's audio track`, {
+          ...this.snapshot(),
+          track,
+        })
       } else if (track.kind === 'video') {
         attachVideoTrack(node, track)
-        log.func('attachTrack')
+        log.func('attachTrack (video)')
         log.green(`Loaded the participant's video track`, {
           ...this.snapshot(),
           track,

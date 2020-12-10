@@ -151,9 +151,11 @@ export function checkForNoodlProp(
   prop: string,
   predicate: (o: any) => boolean,
 ) {
-  if (_.isObjectLike(component) && _.isString(prop)) {
+  if (
+    (component && typeof component === 'object') ||
+    (typeof component === 'function' && _.isString(prop))
+  ) {
     if (predicate(component[prop])) return true
-    if (predicate(component.noodl?.[prop])) return true
   }
   return false
 }
