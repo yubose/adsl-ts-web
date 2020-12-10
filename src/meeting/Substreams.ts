@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { NOODLComponent, ProxiedComponent } from 'noodl-ui'
+import { NOODL, ListBlueprint } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
 import { RoomParticipant } from 'app/types'
@@ -11,12 +11,17 @@ const log = Logger.create('Substreams.ts')
 /** The container for subStreams */
 class MeetingSubstreams {
   #subStreams: Stream[] = []
-  blueprint: Partial<NOODLComponent> = {} // Experimental
+  blueprint: ListBlueprint
   container: NOODLDOMElement
+  resolver: NOODL['resolveComponents'] = (c: any) => c
 
-  constructor(container: NOODLDOMElement, props: ProxiedComponent) {
+  constructor(
+    container: NOODLDOMElement,
+    opts?: { blueprint?: ListBlueprint; resolver?: NOODL['resolveComponents'] },
+  ) {
     this.container = container
-    this.blueprint = props?.blueprint
+    this.blueprint = (opts?.blueprint || {}) as ListBlueprint
+    this.resolver = opts?.resolver as NOODL['resolveComponents']
   }
 
   get length() {
@@ -139,6 +144,12 @@ class MeetingSubstreams {
     if (stream instanceof Stream) {
       const fn = (s: Stream) => s !== stream
       this.#subStreams = _.filter(this.#subStreams, fn)
+      try {
+        stream.removeElement()
+        stream.unpublish(stream.getParticipant())
+      } catch (error) {
+        console.error(error.message)
+      }
     } else if (_.isNumber(stream)) {
       const index = stream
       if (_.inRange(index, 0, this.#subStreams.length)) {
@@ -160,7 +171,7 @@ class MeetingSubstreams {
 
   reset() {
     this.#subStreams = []
-    this['blueprint'] = {}
+    this['blueprint'] = {} as ListBlueprint
     this['container'] = null
     return this
   }

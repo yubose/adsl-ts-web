@@ -20,7 +20,7 @@ const noodl = new NOODL({
       ? getAspectRatio(window.innerWidth, window.innerHeight)
       : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: LOCAL_SERVER,
+  configUrl: MEET2D,
 })
 
 function getConfigEndpoint(name: string) {

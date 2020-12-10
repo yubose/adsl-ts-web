@@ -639,10 +639,17 @@ window.addEventListener('load', async () => {
         }
       }
       // Remote participants container
-      else if (identify.stream.video.isSubStreamsContainer(component.toJS())) {
+      else if (
+        /(vidoeSubStream|videoSubStream)/i.test(
+          component.get('contentType') || '',
+        )
+      ) {
         let subStreams = streams.getSubStreamsContainer()
         if (!subStreams) {
-          subStreams = streams.createSubStreamsContainer(node, component.toJS())
+          subStreams = streams.createSubStreamsContainer(node, {
+            blueprint: component.getBlueprint(),
+            resolver: noodlui.resolveComponents.bind(noodlui),
+          })
           log.func('onCreateNode')
           log.green('Created subStreams container', subStreams)
         } else {
@@ -650,7 +657,8 @@ window.addEventListener('load', async () => {
           // the DOM node and blueprint since it was reset from a previous cleanup
           log.red(`BLUEPRINT`, (component as List).blueprint)
           subStreams.container = node
-          subStreams.blueprint = (component as List).blueprint
+          subStreams.blueprint = component.getBlueprint()
+          subStreams.resolver = noodlui.resolveComponents.bind(noodlui)
         }
       }
       // Individual remote participant video element container
@@ -658,7 +666,15 @@ window.addEventListener('load', async () => {
         const subStreams = streams.getSubStreamsContainer() as MeetingSubstreams
         if (subStreams) {
           if (!subStreams.elementExists(node)) {
-            subStreams.create({ node } as any)
+            // subStreams.create({ node } as any)
+            // log.grey(
+            //   `Added a subStreams stream with only a DOM node but not a participant`,
+            //   {
+            //     node,
+            //     component,
+            //     subStreams,
+            //   },
+            // )
           } else {
             log.func('onCreateNode')
             log.red(
