@@ -1,23 +1,8 @@
-0 silly argv {
-0 silly argv   _: [ 'create' ],
-0 silly argv   lernaVersion: '3.22.1',
-0 silly argv   '$0': 'lerna',
-0 silly argv   name: 'noodl-test-utils',
-0 silly argv   loc: 'package'
-0 silly argv }
-1 notice cli v3.22.1
-2 verbose rootPath /Users/christ/aitmed-noodl-web
-3 info versioning independent
-4 error Error: canceled
-4 error     at Interface.<anonymous> (/Users/christ/aitmed-noodl-web/node_modules/read/lib/read.js:66:13)
-4 error     at Interface.emit (events.js:210:5)
-4 error     at Interface._ttyWrite (readline.js:887:16)
-4 error     at ReadStream.onkeypress (readline.js:191:10)
-4 error     at ReadStream.emit (events.js:210:5)
-4 error     at emitKeys (internal/readline/utils.js:433:14)
-4 error     at emitKeys.next (<anonymous>)
-4 error     at ReadStream.onData (readline.js:1153:36)
-4 error     at ReadStream.emit (events.js:210:5)
-4 error     at addChunk (_stream_readable.js:308:12)
-4 error     at readableAddChunk (_stream_readable.js:289:11)
-4 error     at ReadStream.Readable.push (_stream_readable.js:223:10)
+76 warn complete Waiting for 1 child process to exit. CTRL-C to exit immediately.
+77 error Error: Command failed: git tag logsnap@0.0.17 -m logsnap@0.0.17
+77 error fatal: tag 'logsnap@0.0.17' already exists
+77 error
+77 error     at makeError (/Users/christ/aitmed-noodl-web/node_modules/execa/index.js:174:9)
+77 error     at /Users/christ/aitmed-noodl-web/node_modules/execa/index.js:278:16
+77 error     at processTicksAndRejections (internal/process/task_queues.js:93:5)
+77 error     at async Promise.all (index 0)
