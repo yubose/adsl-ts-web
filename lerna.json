@@ -6,10 +6,10 @@
       "hoist": true
     },
     "run": {
-      "ignore": ["logsnap", "noodl-building-blocks"]
+      "ignore": ["noodl-building-blocks"]
     },
     "exec": {
-      "ignore": ["logsnap", "noodl-building-blocks"]
+      "ignore": ["noodl-building-blocks"]
     }
   }
 }
