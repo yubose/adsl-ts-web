@@ -97,8 +97,8 @@ const Meeting = (function () {
           trackPublication?.unpublish?.()
         }
         // Unpublish local tracks
-        _internal._room?.localParticipant.audioTracks.forEach(unpublishTracks)
-        _internal._room?.localParticipant.videoTracks.forEach(unpublishTracks)
+        _internal._room?.localParticipant?.audioTracks.forEach(unpublishTracks)
+        _internal._room?.localParticipant?.videoTracks.forEach(unpublishTracks)
         _internal._room?.disconnect?.()
       }
       return this

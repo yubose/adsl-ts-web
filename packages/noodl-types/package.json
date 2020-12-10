@@ -1,0 +1,24 @@
+{
+  "name": "noodl-types",
+  "version": "1.0.0",
+  "description": "NOODL TypeScript Definitions",
+  "author": "Christopher Tran <christopher@aitmed.com>",
+  "homepage": "",
+  "license": "ISC",
+  "types": "dist/index.d.ts",
+  "directories": {
+    "dist": "dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "start": "rm -rf dist && tsc --watch",
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  }
+}

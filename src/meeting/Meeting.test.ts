@@ -49,24 +49,18 @@ afterEach(() => {
 })
 
 describe('Meeting', () => {
-  describe('disconnecting from the meeting', () => {
+  describe('when leaving the meeting', () => {
     it('should disconnect from the room', () => {
-      //
+      const spy = sinon.spy()
+      Meeting.room.disconnect = spy
+      Meeting.room.state = 'connected'
+      expect(Meeting.room.state).to.eq('connected')
+      expect(Meeting.room.disconnect).not.to.have.been.called
+      Meeting.leave()
+      expect(Meeting.room.disconnect).to.have.been.called
     })
 
     xit('should unpublish tracks', () => {
-      //
-    })
-
-    xit('should clean up selfStream', () => {
-      //
-    })
-
-    xit('should clean up mainStream', () => {
-      //
-    })
-
-    xit('should clean up all subStreams including the subStream container', () => {
       //
     })
   })

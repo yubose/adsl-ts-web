@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist",
+    "emitDeclarationOnly": true,
+    "moduleResolution": "node",
+    "noEmitOnError": false,
+    "outDir": "dist",
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "es5"
+  },
+  "exclude": ["node_modules", "dist"],
+  "include": ["src"]
+}
