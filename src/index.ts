@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import firebase from 'firebase/app'
 import axios from 'axios'
 import {
   LocalAudioTrackPublication,
@@ -34,6 +35,7 @@ import {
   Viewport,
   ComponentObject,
 } from 'noodl-ui'
+import { firebaseConfig } from './app/firebase'
 import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'
 import { forEachEntries, getAspectRatio, isMobile } from './utils/common'
@@ -42,14 +44,17 @@ import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createLifeCycles from './handlers/lifeCycles'
-import {} from 'module'
+import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
 import { listen } from './handlers/dom'
 import './styles.css'
+import 'firebase/messaging'
 
 const log = Logger.create('src/index.ts')
+
+firebase.initializeApp(firebaseConfig)
 
 /**
  * A factory func that returns a func that prepares the next page on the SDK
@@ -92,6 +97,7 @@ window.addEventListener('load', async () => {
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
+  const messaging = firebase.messaging()
 
   listen(noodluidom)
 
@@ -104,7 +110,7 @@ window.addEventListener('load', async () => {
   // redirections before proceeding
   const viewport = new Viewport()
   const page = new Page()
-  const app = new App({ viewport })
+  const app = new App({ messaging, viewport })
   const builtIn = createBuiltInActions({ page })
   const actions = createActions({ page })
   const lifeCycles = createLifeCycles()

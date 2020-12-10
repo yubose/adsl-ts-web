@@ -48,7 +48,7 @@ describe('dom', () => {
       const dataKey = 'formData.greeting'
       const greeting = 'my greeting'
       noodlui
-        .use({ getRoot: () => ({ formData: { greeting } }) })
+        .use({ getRoot: () => ({ SignIn: { formData: { greeting } } }) })
         .setPage('SignIn')
       page.render({
         type: 'label',
@@ -56,8 +56,8 @@ describe('dom', () => {
         placeholder: 'hello, all',
         id: 'id123',
       })
+      console.info(prettyDOM())
       const label = queryByDataKey(document.body, dataKey)
-      // @ts-expect-error
       expect(label.value).to.be.undefined
       expect(label?.innerHTML).to.equal(greeting)
     })

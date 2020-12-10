@@ -1,13 +1,7 @@
 import sinon from 'sinon'
-import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
-import { getByDataUX, NOODLComponent, ProxiedComponent } from 'noodl-ui'
-import {
-  createNOODLElement,
-  noodlui,
-  noodluidom,
-  page,
-} from '../utils/test-utils'
+import { getByDataUX, NOODLComponent } from 'noodl-ui'
+import { noodlui, page } from '../utils/test-utils'
 import Meeting from './Meeting'
 import Stream from './Stream'
 import Streams from './Streams'
@@ -20,12 +14,6 @@ class MockParticipant {
   on() {}
   off() {}
 }
-
-const mockSubstreamsProps = noodlui.resolveComponents(
-  getMockSubstreamsContainer(),
-)[0]
-
-const blueprint = mockSubstreamsProps?.blueprint as ProxiedComponent
 
 let streams: Streams
 let subStreams: Substreams
@@ -41,7 +29,10 @@ beforeEach(() => {
   streams = Meeting.getStreams()
   subStreams = streams.createSubStreamsContainer(
     document.createElement('div'),
-    mockSubstreamsProps,
+    {
+      blueprint: getMockSubstreamsContainer().children[0],
+      resolver: noodlui.resolveComponents.bind(noodlui),
+    },
   )
   selfStream = streams.getSelfStream()
   mainStream = streams.getMainStream()

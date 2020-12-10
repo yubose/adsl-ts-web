@@ -1,21 +1,34 @@
 import _ from 'lodash'
+import Logger from 'logsnap'
+import firebase from 'firebase/app'
 import { Viewport } from 'noodl-ui'
 import { AuthStatus } from 'app/types/commonTypes'
+
+const log = Logger.create('App.ts')
 
 class App {
   #isRetrievingUserState: (isRetrieving: boolean) => void = () => {}
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
   authStatus: AuthStatus | '' = ''
+  messaging: firebase.messaging.Messaging
   getViewport: () => Viewport
 
-  constructor({ viewport }: { viewport: Viewport }) {
+  constructor({
+    messaging,
+    viewport,
+  }: {
+    messaging: firebase.messaging.Messaging
+    viewport: Viewport
+  }) {
     this.getViewport = () => viewport
+    this.messaging = messaging
   }
 
   public async initialize() {
     const { default: noodl } = await import('app/noodl')
 
     await noodl.init()
+    this.initNotifications()
 
     const startPage = noodl?.cadlEndpoint?.startPage
 
@@ -45,6 +58,19 @@ class App {
     return {
       startPage,
     }
+  }
+
+  initNotifications() {
+    /**
+     * Messages are received when
+     *  1. Messages are received while the page has focus
+     *  2. A notification bubble was clicked on an app notification created
+     *    by a service worker `messaging.setBackgroundMessageHandler` handler
+     */
+    this.messaging.onMessage((payload) => {
+      log.func('onMessage')
+      log.grey(`Message received`, payload)
+    })
   }
 
   get onAuthStatus() {

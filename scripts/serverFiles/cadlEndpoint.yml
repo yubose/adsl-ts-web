@@ -1,5 +1,5 @@
 baseUrl: ${cadlBaseUrl}
-assetsUrl: ${cadlBaseUrl}assets/
+assetsUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/message_0.1/assets/
 languageSuffix:
   zh_CN: _cn
   es_ES: _es

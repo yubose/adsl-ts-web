@@ -2,9 +2,9 @@ import { Component, ListItem, ComponentType } from 'noodl-ui'
 import { componentEventMap, componentEventIds } from './constants'
 
 export interface INOODLUiDOM {
-  on<CT extends ComponentType>(
+  on(
     eventName: NOODLDOMEvent,
-    cb: (node: NOODLDOMElement | null, component: Component<CT>) => void,
+    cb: (node: NOODLDOMElement | null, component: Component) => void,
   ): this
   off(
     eventName: NOODLDOMEvent,

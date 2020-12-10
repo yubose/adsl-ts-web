@@ -12,7 +12,6 @@ import {
 import Logger from 'logsnap'
 import { getByDataUX, ProxiedComponent, Viewport } from 'noodl-ui'
 import { isMobile } from '../utils/common'
-import { isVisible } from '../utils/dom'
 import noodluidom from '../app/noodl-ui-dom'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
@@ -133,27 +132,20 @@ const Meeting = (function () {
           return this
         }
 
-          if (subStreams) {
-            if (!subStreams.participantExists(participant)) {
-              log.func('addRemoteParticipant')
-              // Create a new DOM node
-              const props = subStreams.blueprint
-              const node = noodluidom.parse(
-                subStreams.resolver?.(props) || props,
-              ) as any
-              const subStream = subStreams.create({ node, participant }).last()
-              Meeting.onAddRemoteParticipant?.(participant, mainStream)
-              log.green(
-                `Created a new subStream and bound the newly connected participant to it`,
-                { blueprint: props, node, participant, subStream },
-              )
-            } else {
-              log.func('addRemoteParticipant')
-              log.orange(
-                `Did not proceed to add this remotes participant to a ` +
-                  `subStream because they are already in one`,
-              )
-            }
+        if (subStreams) {
+          if (!subStreams.participantExists(participant)) {
+            log.func('addRemoteParticipant')
+            // Create a new DOM node
+            const props = subStreams.blueprint
+            const node = noodluidom.parse(
+              subStreams.resolver?.(props) || props,
+            ) as any
+            const subStream = subStreams.create({ node, participant }).last()
+            Meeting.onAddRemoteParticipant?.(participant, mainStream)
+            log.green(
+              `Created a new subStream and bound the newly connected participant to it`,
+              { blueprint: props, node, participant, subStream },
+            )
           } else {
             log.func('addRemoteParticipant')
             log.orange(
@@ -162,17 +154,23 @@ const Meeting = (function () {
             )
           }
         } else {
-          // NOTE: We cannot create a container here because the container is
-          // only created while rendering/parsing the NOODL components. It should
-          // stay that way to reduce complexity
           log.func('addRemoteParticipant')
-          log.red(
-            `Cannot add participant without the subStreams container, ` +
-              `which doesn't exist. This participant will not be shown on ` +
-              `the page`,
-            { participant, streams: _internal._streams },
+          log.orange(
+            `Did not proceed to add this remotes participant to a ` +
+              `subStream because they are already in one`,
           )
         }
+      } else {
+        // NOTE: We cannot create a container here because the container is
+        // only created while rendering/parsing the NOODL components. It should
+        // stay that way to reduce complexity
+        log.func('addRemoteParticipant')
+        log.red(
+          `Cannot add participant without the subStreams container, ` +
+            `which doesn't exist. This participant will not be shown on ` +
+            `the page`,
+          { participant, streams: _internal._streams },
+        )
       }
       return this
     },
