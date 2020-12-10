@@ -75,6 +75,7 @@ class Page {
   public rootNode: HTMLElement | null = null
   public modal: Modal
   public requestingPage: string | undefined
+  public requestingPageModifiers: { reload?: boolean } = {}
 
   constructor({ _log = true, builtIn, rootNode = null }: PageOptions = {}) {
     this.builtIn = builtIn
@@ -220,7 +221,7 @@ class Page {
       })
       if (shouldNavigate === true) {
         if (goback) {
-          modifiers.reload = true
+          modifiers.reload = modifiers.reload === false ? false : true
           history.pushState({}, '', this.pageUrl)
           return this.navigate(newPage, modifiers).then(() => {
             this.previousPage = this.currentPage

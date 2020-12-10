@@ -268,6 +268,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     // }
     // history.pushState({}, "", page.pageUrl)
     // await requestPage(pg || '')
+    if (typeof action.original?.reload === 'boolean') {
+      page.requestingPageModifiers.reload = action.original.reload
+    }
     window.history.back()
   }
 

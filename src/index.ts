@@ -453,8 +453,13 @@ window.addEventListener('load', async () => {
       page.pageUrl = 'index.html?'
       pg = noodl?.cadlEndpoint?.startPage
     }
-
-    await page.requestPageChange(pg, undefined, true)
+    let pageModifiers = undefined
+    if (typeof page.requestingPageModifiers.reload === 'boolean') {
+      pageModifiers = {
+        reload: page.requestingPageModifiers.reload,
+      }
+    }
+    await page.requestPageChange(pg, pageModifiers, true)
   })
 
   /**
