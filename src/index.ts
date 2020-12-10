@@ -458,6 +458,7 @@ window.addEventListener('load', async () => {
       pageModifiers = {
         reload: page.requestingPageModifiers.reload,
       }
+      delete page.requestingPageModifiers.reload
     }
     await page.requestPageChange(pg, pageModifiers, true)
   })
