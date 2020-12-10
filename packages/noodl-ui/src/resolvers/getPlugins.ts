@@ -1,73 +1,85 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
 import { isPluginComponent } from 'noodl-utils'
-import { PluginObject, ResolverFn } from '../types'
+import { ConsumerOptions, PluginObject, ResolverFn } from '../types'
 import { isPromise } from '../utils/common'
 import { resolveAssetUrl } from '../utils/noodl'
 
 const log = Logger.create('getPlugins')
 
-const getPlugins: ResolverFn = (
-  component,
-  { createSrc, fetch, getAssetsUrl, plugins },
-) => {
-  if (isPluginComponent(component)) {
-    const path = component.get('path') || ''
-    if (typeof path === 'string') {
-      const exists = plugins('head')
-        .concat(plugins('body-top').concat(plugins('body-bottom')))
-        .some((obj) => obj.path === path && obj.initiated)
-      if (exists) {
-        log.grey(`Skipped a duplicate call to "${component.get('path')}"`, {
-          component,
-          path,
-          plugins: plugins(),
-        })
-        return
-      }
-    }
-    // Resolves the path, returning the final url
-    const getPluginSrc = async (path: string) => {
-      let url = createSrc(path)
-      if (isPromise(url)) {
-        const finalizedUrl = await url
-        url = resolveAssetUrl(finalizedUrl, getAssetsUrl())
-      }
-      return url
-    }
+const getPlugins = (function (): ResolverFn {
+  /**
+   * Returns true if a plugin with the same path was previously loaded
+   * @param { string } path - The image path
+   * @param { function } plugins - Plugin getter
+   */
+  const pluginExists = (path: string, plugins: ConsumerOptions['plugins']) =>
+    typeof path === 'string' &&
+    plugins('head')
+      .concat(plugins('body-top').concat(plugins('body-bottom')))
+      .some((obj) => obj.path === path && obj.initiated)
 
-    let src: string
-    const plugin = component.get('plugin') as PluginObject
-
-    // Only load the plugin if it doesn't have its contents yet
-    getPluginSrc(component.get('path'))
-      .then((result) => {
-        src = result
-        component.set('src', src).emit('path', src)
-        // Use the default fetcher for now
-        if (src) return fetch(src)
-      })
-      .then((content) => {
-        plugin.content = content
-        if (plugin.content) {
-          log.grey('Received plugin content', {
-            src,
-            content: plugin.content,
-          })
-          component
-            .set('content', plugin.content)
-            .emit('plugin:content', plugin.content)
-        } else {
-          log.red(`Received empty content for plugin "${plugin.path}"`, plugin)
-        }
-      })
-      .catch((err) => {
-        console.error(`[${err.name}]: ${err.message}`)
-      })
-      .finally(() => {
-        plugin.initiated = true
-      })
+  /**
+   * Resolves the path, returning the final url
+   * @param { string } path - Image path
+   * @param { string } assetsUrl - Assets url
+   * @param { function } createSrc
+   */
+  const getPluginUrl = async (
+    path: string,
+    assetsUrl: string,
+    createSrc: ConsumerOptions['createSrc'],
+  ) => {
+    let url = createSrc(path)
+    if (isPromise(url)) {
+      const finalizedUrl = await url
+      url = resolveAssetUrl(finalizedUrl, assetsUrl)
+    }
+    return url
   }
-}
+
+  return (component, { createSrc, fetch, getAssetsUrl, plugins }) => {
+    if (isPluginComponent(component)) {
+      const path = component.get('path') || ''
+      const plugin = component.get('plugin') as PluginObject
+
+      let src: string
+
+      if (pluginExists(path as string, plugins)) return
+
+      // Only load the plugin if it doesn't have its contents yet
+      getPluginUrl(component.get('path') as string, getAssetsUrl(), createSrc)
+        .then((result) => {
+          src = result
+          component.set('src', src).emit('path', src)
+          // Use the default fetcher for now
+          if (src) return fetch(src)
+        })
+        .then((content) => {
+          plugin.content = content
+          if (plugin.content) {
+            log.grey('Received plugin content', {
+              src,
+              content: plugin.content,
+            })
+            component
+              .set('content', plugin.content)
+              .emit('plugin:content', plugin.content)
+          } else {
+            log.red(
+              `Received empty content for plugin "${plugin.path}"`,
+              plugin,
+            )
+          }
+        })
+        .catch((err) => {
+          console.error(`[${err.name}]: ${err.message}`)
+        })
+        .finally(() => {
+          plugin.initiated = true
+        })
+    }
+  }
+})()
 
 export default getPlugins
