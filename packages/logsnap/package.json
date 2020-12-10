@@ -1,6 +1,6 @@
 {
   "name": "logsnap",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "Colorful, easy to use logging for the browser",
   "keywords": [
     "console",
