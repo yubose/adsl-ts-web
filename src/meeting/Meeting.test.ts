@@ -1,6 +1,6 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { getByDataUX, NOODLComponent, ProxiedComponent } from 'noodl-ui'
+import { NOODLComponent } from 'noodl-ui'
 import { noodlui } from '../utils/test-utils'
 import Meeting from './Meeting'
 import Streams from './Streams'
