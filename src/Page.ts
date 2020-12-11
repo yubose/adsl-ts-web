@@ -12,8 +12,6 @@ import { PageModalState } from './app/types'
 import noodlui from './app/noodl-ui'
 import noodluidom from './app/noodl-ui-dom'
 import Modal from './components/NOODLModal'
-import { debug } from 'webpack'
-import noodl from 'app/noodl'
 
 const log = Logger.create('Page.ts')
 

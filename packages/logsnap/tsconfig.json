@@ -2,11 +2,11 @@
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "src",
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
-    "module": "esnext",
+    "lib": ["dom", "es5", "es6", "es7"],
+    "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "dist",
@@ -16,5 +16,5 @@
     "target": "es5"
   },
   "exclude": ["dist", "node_modules"],
-  "include": ["src", "rollup.config.js"]
+  "include": ["src"]
 }

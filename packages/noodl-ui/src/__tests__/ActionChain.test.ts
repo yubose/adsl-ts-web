@@ -1,25 +1,22 @@
 import { expect } from 'chai'
 import chalk from 'chalk'
 import sinon from 'sinon'
-import userEvent from '@testing-library/user-event'
 import { assetsUrl, noodlui } from '../utils/test-utils'
 import ActionChain from '../ActionChain'
 import Action from '../Action'
 import {
+  ActionObject,
   UpdateObject,
   PageJumpObject,
   PopupDismissObject,
-  ResolverContext,
   ActionChainConstructorArgs,
 } from '../types'
 import { actionChainEmitTriggers, actionTypes } from '../constants'
 import createComponent from '../utils/createComponent'
-import { waitFor } from '@testing-library/dom'
 import EmitAction from '../Action/EmitAction'
 import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
-import { ActionObject, PageObject } from '../../dist'
 
 let getRoot = () => ({
   PatientChartGeneralInfo: {
@@ -64,14 +61,22 @@ let actionChain: ActionChain<any[], Component>
 
 const createActionChain = <Args extends ActionChainConstructorArgs<any>>(
   args: Partial<{ actions: Args[0] } & Args[1]>,
-) =>
-  new ActionChain(args.actions || actions, {
-    component: createComponent('view'),
-    getRoot,
-    pageObject: getRoot().PatientChartGeneralInfo,
-    trigger: 'onClick',
-    ...args,
-  })
+) => {
+  const component = createComponent('view')
+  return new ActionChain(
+    args.actions || actions,
+    {
+      ...noodlui.getConsumerOptions({ component }),
+      component,
+      getPageObject: (f: string = 'PatientChartGeneralInfo') => getRoot()[f],
+      getRoot,
+      page: 'PatientChartGeneralInfo',
+      trigger: 'onClick',
+      ...args,
+    },
+    { noodlui },
+  )
+}
 
 beforeEach(() => {
   actions = [popUpDismissAction, updateObjectAction, pageJumpAction]
@@ -311,10 +316,10 @@ describe('ActionChain', () => {
       expect(optionsArg).to.have.property('event')
       expect(optionsArg).to.have.property('actions')
       expect(optionsArg).to.have.property('component')
-      expect(optionsArg).to.have.property('pageName')
-      expect(optionsArg).to.have.property('pageObject')
+      expect(optionsArg).to.have.property('page')
+      expect(optionsArg).to.have.property('getPageObject')
+      expect(optionsArg).to.have.property('getRoot')
       expect(optionsArg).to.have.property('queue')
-      expect(optionsArg).to.have.property('snapshot')
       expect(optionsArg).to.have.property('status')
     })
 
@@ -853,6 +858,7 @@ describe('ActionChain', () => {
           trigger: 'onClick',
           fn: emitSpy,
         })
+        console.info(actionChain)
         const handler = actionChain.build()
         await handler()
         expect(emitSpy.firstCall.args[0]).to.have.property('trigger', 'onClick')

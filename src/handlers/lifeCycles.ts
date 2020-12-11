@@ -2,7 +2,7 @@ import _ from 'lodash'
 import {
   ActionChainCallbackOptions,
   ActionChainActionCallback,
-  ActionChainActionCallbackOptions,
+  ActionConsumerCallbackOptions,
   ActionChainEventId,
   ActionObject,
   NOODLComponent,
@@ -21,7 +21,7 @@ function createLifeCycles() {
     },
     async chainStart(
       actions: ActionObject[],
-      options: ActionChainActionCallbackOptions,
+      options: ActionConsumerCallbackOptions,
     ) {
       log.func('onChainStart')
       log.grey('onChainStart args', { actions, ...options })
@@ -30,10 +30,7 @@ function createLifeCycles() {
       //   if (file) return { file }
       // }
     },
-    chainEnd(
-      actions: ActionObject[],
-      options: ActionChainActionCallbackOptions,
-    ) {
+    chainEnd(actions: ActionObject[], options: ActionConsumerCallbackOptions) {
       const logMsg = `%c[onChainEnd]`
       const logStyle = `color:#e50087;font-weight:bold;`
       console.log(logMsg, logStyle, { actions, ...options })
@@ -41,16 +38,13 @@ function createLifeCycles() {
     chainError(
       error: Error,
       action: ActionObject,
-      options: ActionChainActionCallbackOptions,
+      options: ActionConsumerCallbackOptions,
     ) {
       const logMsg = `%c[onChainError]`
       const logStyle = `color:#e50087;font-weight:bold;`
       console.log(logMsg, logStyle, { action, error, ...options })
     },
-    chainAborted(
-      action: ActionObject,
-      options: ActionChainActionCallbackOptions,
-    ) {
+    chainAborted(action: ActionObject, options: ActionConsumerCallbackOptions) {
       const logMsg = `%c[onChainAborted]`
       const logStyle = `color:#e50087;font-weight:bold;`
       console.log(logMsg, logStyle, { action, ...options })

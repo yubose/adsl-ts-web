@@ -3,7 +3,7 @@ import { ActionObject, EmitActionObject } from './actionTypes'
 import {
   ActionChainActionCallback,
   ActionChainUseObjectBase,
-  ActionChainActionCallbackOptions,
+  ActionConsumerCallbackOptions,
 } from './actionChainTypes'
 import { ComponentObject } from './componentTypes'
 import {
@@ -50,7 +50,7 @@ export interface NOODLComponent {
 export interface BuiltInActions {
   [funcName: string]: <A extends {}>(
     action: A,
-    options: ActionChainActionCallbackOptions,
+    options: ActionConsumerCallbackOptions,
   ) => Promise<any> | any
 }
 

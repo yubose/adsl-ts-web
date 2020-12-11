@@ -1,5 +1,5 @@
 import {
-  ActionChainActionCallbackOptions,
+  ActionConsumerCallbackOptions,
   getDataObjectValue,
   IAction,
   ListItem,
@@ -10,7 +10,7 @@ import sinon from 'sinon'
 
 export const emit = async (
   action: IAction<'builtIn', EmitActionObject>,
-  options: ActionChainActionCallbackOptions,
+  options: ActionConsumerCallbackOptions,
 ) => {
   let { component, context } = options
   let { emit } = action.original

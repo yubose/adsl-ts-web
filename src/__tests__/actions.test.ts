@@ -1,5 +1,17 @@
 import { expect } from 'chai'
+import { waitFor } from '@testing-library/dom'
 import sinon from 'sinon'
+import { Action } from 'noodl-ui'
+import { noodlui, page } from '../utils/test-utils'
+
+const commonKeysInOptionsArg = [
+  // 'context', TODO - Deprecate context for spread instead
+  'event',
+  'getState',
+  'getPageObject',
+  'plugins',
+  'snapshot',
+]
 
 describe('actions', () => {
   describe('anonymous', () => {
@@ -68,9 +80,26 @@ describe('actions', () => {
     })
   })
 
-  describe('updateObject', () => {
-    xit('should be given the correct args', () => {
-      //
+  describe.only('updateObject', () => {
+    it('should be given the correct args', async () => {
+      const spy = sinon.spy()
+      noodlui.removeCbs('updateObject')
+      noodlui.use({ actionType: 'updateObject', fn: spy })
+      const image = noodlui.resolveComponents({
+        type: 'image',
+        path: 'abc.png',
+        onClick: [{ actionType: 'updateObject', object: [] }],
+      })
+      console.info(noodlui.getCbs())
+      await image.get('onClick')()
+      const [action, options, actionsContext] = spy.args[0]
+      expect(spy).to.have.been.called
+      expect(action).to.be.instanceOf(Action)
+      expect(options).to.have.property('component').eq(image)
+      expect(actionsContext).to.have.property('noodlui')
+      commonKeysInOptionsArg.concat('ref').forEach((key) => {
+        expect(options).to.have.property(key).eq(options[key])
+      })
     })
   })
 })

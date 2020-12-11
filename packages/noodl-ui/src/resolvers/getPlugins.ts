@@ -1,11 +1,8 @@
 import _ from 'lodash'
-import Logger from 'logsnap'
 import { isPluginComponent } from 'noodl-utils'
 import { ConsumerOptions, PluginObject, ResolverFn } from '../types'
 import { isPromise } from '../utils/common'
 import { resolveAssetUrl } from '../utils/noodl'
-
-const log = Logger.create('getPlugins')
 
 const getPlugins = (function (): ResolverFn {
   /**
@@ -47,7 +44,6 @@ const getPlugins = (function (): ResolverFn {
 
       if (pluginExists(path as string, plugins)) return
 
-      // Only load the plugin if it doesn't have its contents yet
       getPluginUrl(component.get('path') as string, getAssetsUrl(), createSrc)
         .then((result) => {
           src = result
@@ -57,23 +53,12 @@ const getPlugins = (function (): ResolverFn {
         })
         .then((content) => {
           plugin.content = content
-          if (plugin.content) {
-            log.grey('Received plugin content', {
-              src,
-              content: plugin.content,
-            })
-            component
-              .set('content', plugin.content)
-              .emit('plugin:content', plugin.content)
-          } else {
-            log.red(
-              `Received empty content for plugin "${plugin.path}"`,
-              plugin,
-            )
-          }
+          component
+            .set('content', plugin.content)
+            .emit('plugin:content', plugin.content)
         })
         .catch((err) => {
-          console.error(`[${err.name}]: ${err.message}`)
+          console.error(`[${err.name}]: ${err.message}`, err)
         })
         .finally(() => {
           plugin.initiated = true

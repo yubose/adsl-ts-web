@@ -97,6 +97,7 @@ export interface IAction<A extends BaseActionObject = any> {
   resultReturned: boolean
   status: ActionStatus
   timeoutDelay: number
+  trigger: string
   type: A['actionType']
   onPending(snapshot: ActionSnapshot): any
   onResolved(snapshot: ActionSnapshot): any
@@ -118,6 +119,7 @@ export interface ActionOptions<OriginalAction extends BaseActionObject = any> {
   onError?: (snapshot: ActionSnapshot<OriginalAction>) => any
   onAbort?: (snapshot: ActionSnapshot<OriginalAction>) => any
   timeoutDelay?: number
+  trigger?: string
 }
 
 export interface ActionSnapshot<OriginalAction = any> {

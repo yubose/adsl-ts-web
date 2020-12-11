@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { Draft, isDraft, original } from 'immer'
 import {
-  ActionChainActionCallbackOptions,
+  ActionConsumerCallbackOptions,
   BuiltInObject,
   getByDataUX,
   getDataValues,
@@ -916,7 +916,7 @@ export function onVideoChatBuiltIn({
 
 export function onBuiltinMissing(
   action: BuiltInObject,
-  options: ActionChainActionCallbackOptions,
+  options: ActionConsumerCallbackOptions,
 ) {
   window.alert(`The button "${action.funcName}" is not available to use yet`)
 }

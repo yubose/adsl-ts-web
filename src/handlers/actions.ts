@@ -1,17 +1,13 @@
 import _ from 'lodash'
 import {
   Action,
-  ActionChainActionCallback,
-  ActionChainActionCallbackOptions,
+  ActionConsumerCallbackOptions,
   AnonymousObject,
   EmitAction,
-  EmitActionObject,
   EvalObject,
   getByDataUX,
   getDataValues,
-  getDataObjectValue,
   ActionChainUseObjectBase,
-  Component,
   IfObject,
   isReference,
   ActionType,
@@ -26,13 +22,9 @@ import {
   createEmitDataKey,
   evalIf,
   findListDataObject,
-  findDataValue,
-  findParent,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
-  isEmitObj,
   isPossiblyDataKey,
-  publish,
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import { IPage } from '../app/types'
@@ -59,26 +51,19 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions['updateObject'] = []
 
   _actions.anonymous.push({
-    fn: async (action: Action<AnonymousObject>, options, actionsContext) => {
-      log.func('anonymous')
-      log.grey(
-        'Anonymous action call (LOOK IN THIS IN THE NOODL/YML IF YOU SEE THIS IF THIS IS INTENTIONAL)',
-        { action, ...options },
-      )
-      const { component } = options
+    fn: async (action: Action<AnonymousObject>, options) => {
       const { fn } = action.original || {}
-      if (component) fn?.()
+      if (options?.component) fn?.()
     },
   })
 
+  /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
+    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, ...options })
 
-      let { component } = options
-      let { actions, dataKey } = action
-      let originalDataKey = dataKey
+      let { dataKey } = action
 
       const emitParams = {
         actions: action.actions,
@@ -102,8 +87,9 @@ const createActions = function ({ page }: { page: IPage }) {
     trigger: 'dataKey',
   })
 
+  /** DATA VALUE EMIT */
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
+    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
       log.func('emit [dataValue]')
       log.grey('', { action, options })
 
@@ -133,13 +119,9 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
+    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
       log.func('emit [onClick]')
       log.gold('Emitting', { action, noodl, noodlui, ...options })
-
-      let { component, ref } = options
-      let { actions, dataKey } = action
-      let originalDataKey = dataKey
 
       const emitParams = {
         actions: action.actions,
@@ -153,12 +135,12 @@ const createActions = function ({ page }: { page: IPage }) {
       const emitResult = await noodl.emitCall(emitParams)
 
       log.gold(`Ran emitCall [onClick]`, {
+        action,
         actions: action.actions,
         component: options.component,
         emitParams,
         emitResult,
         options,
-        originalDataKey: action.original?.emit?.dataKey,
       })
 
       return emitResult
@@ -167,7 +149,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui } = {}) => {
+    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
       log.func('emit [onChange]')
       log.grey('', { action, options })
 
@@ -200,67 +182,48 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - if src === assetsUrl
   // TODO - else if src endsWith
   _actions.emit.push({
-    fn: (
+    fn: async (
       action: EmitAction,
-      options: ActionChainActionCallbackOptions & { path: EmitObject },
-      { noodl } = {},
+      options: ActionConsumerCallbackOptions & { path: EmitObject },
+      { noodl },
     ) => {
       log.func('path [emit]')
+      const { component, context, getRoot, getPageObject, path } = options
 
-      const {
-        component,
-        getAssetsUrl,
-        getRoot,
-        getPageObject,
-        page,
-        path,
-      } = options
-
-      let dataObject
-      let iteratorVar = component.get('iteratorVar') || ''
-      let emitParams
-
-      // This is most likely expecting a dataObject
-      dataObject = findListDataObject(component)
-
-      emitParams = {
+      const page = context.page || ''
+      const dataObject = findListDataObject(component)
+      const iteratorVar = component.get('iteratorVar') || ''
+      const emitParams = {
         actions: path.emit.actions,
         pageName: page,
       } as any
 
-      if (path.emit.dataKey) {
+      if (action.original.emit.dataKey) {
         emitParams.dataKey = createEmitDataKey(
-          path.emit.dataKey,
+          action.original.emit.dataKey,
           [dataObject, () => getPageObject(page), () => getRoot()],
           { iteratorVar },
         )
       }
 
       const logArgs = {
+        action,
+        actions: action.actions,
         component,
         dataObject,
-        iteratorVar,
         emitParams,
-        path,
+        iteratorVar,
+        options,
       }
 
-      let result = noodl.emitCall(emitParams)
+      const result = await noodl.emitCall(emitParams)
 
-      if (result instanceof Promise) {
-        return result.then((result: any) => {
-          result = Array.isArray(result) ? result[0] : result
-          log.grey(
-            `emitCall [promise] result: ${
-              result === '' ? '(empty string)' : result
-            }`,
-            logArgs,
-          )
-          return result
-        })
-      }
-      result = Array.isArray(result) ? result[0] : result
-      log.grey('emitCall was called', { ...logArgs, result })
-      return result
+      log.grey(
+        `emitCall call result: ${result === '' ? '(empty string)' : result}`,
+        { ...logArgs, result },
+      )
+
+      return Array.isArray(result) ? result[0] : result
     },
     trigger: 'path',
   })
@@ -548,7 +511,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.saveObject.push({
-    fn: async (action: Action<SaveObject>, options, actionsContext) => {
+    fn: async (action: Action<SaveObject>, options) => {
       const { default: noodl } = await import('../app/noodl')
       const { default: noodlui } = await import('../app/noodl-ui')
       const { abort, parser } = options as any
@@ -653,7 +616,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
         async function callObject(
           object: any,
-          opts: ActionChainActionCallbackOptions & {
+          opts: ActionConsumerCallbackOptions & {
             action: any
             file?: File
           },

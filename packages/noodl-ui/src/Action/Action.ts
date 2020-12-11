@@ -25,6 +25,7 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
   #onError: (snapshot: ActionSnapshot) => any
   #onAbort: (snapshot: ActionSnapshot) => any
   #onTimeout: any
+  #trigger: string = ''
   #status: ActionStatus = null
   #timeout: NodeJS.Timeout | null = null
   #timeoutRemaining: number | null = null
@@ -55,6 +56,7 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
     this.type = action.actionType // TODO - Deprecate this.type for this.actionType
     this.actionType =
       action.actionType || ('emit' in action || {} ? 'emit' : '')
+    this.trigger = options?.trigger || ''
   }
 
   /**
@@ -139,6 +141,14 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
   set callback(callback: ActionCallback | undefined) {
     this.#callback = callback
     this['hasExecutor'] = _.isFunction(this.#callback)
+  }
+
+  get trigger() {
+    return this.#trigger
+  }
+
+  set trigger(trigger: string) {
+    this.#trigger = trigger || ''
   }
 
   get id() {

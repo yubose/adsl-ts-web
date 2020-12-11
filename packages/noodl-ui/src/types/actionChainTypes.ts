@@ -17,6 +17,7 @@ import {
   ResolveEmitTrigger,
 } from './constantTypes'
 import { ActionObject, BuiltInObject } from './actionTypes'
+import { EmitObject } from '.'
 
 export type ActionChainConstructorArgs<C extends Component> = [
   actions: ActionObject[],
@@ -35,7 +36,8 @@ export interface ActionChainGeneratorResult<A extends Action = any> {
   result: any
 }
 
-export interface ActionChainContext {
+export interface ActionChainContext<SDK = any> {
+  noodl?: SDK
   noodlui: NOODLUI
 }
 
@@ -44,12 +46,12 @@ export type ActionChainUseObject =
   | ActionChainUseBuiltInObject
 
 export interface ActionChainUseObjectBase<
-  A extends ActionObject = ActionObject,
-  C = any
+  A extends ActionObject = any,
+  NoodlClient = any
 > {
   actionType: ActionType
-  context?: C
-  fn: ActionChainActionCallback<A> | ActionChainActionCallback<A>[]
+  context?: { noodl: NoodlClient }
+  fn: ActionChainActionCallback<A>
   trigger?: ActionChainEmitTrigger | ResolveEmitTrigger
 }
 
@@ -66,11 +68,11 @@ export interface ActionChainAddActionObject<S extends ActionType = ActionType> {
   fns: ActionChainActionCallback[]
 }
 
-export interface ActionChainSnapshot<Actions extends any[]> {
-  currentAction: Actions[number]
+export interface ActionChainSnapshot {
+  currentAction: Action
   original: ActionObject[]
-  queue: Actions
-  status: ActionChain<Actions, Component>['status']
+  queue: Action[]
+  status: ActionChain<ActionObject[], Component>['status']
 }
 
 export interface ActionChainCallbackOptions<Actions extends any[] = any[]> {
@@ -83,26 +85,30 @@ export interface ActionChainCallbackOptions<Actions extends any[] = any[]> {
 }
 
 export interface ActionChainActionCallback<A extends ActionObject = any> {
-  (action: A, options: ActionChainActionCallbackOptions): Promise<any>
+  (
+    action: A,
+    options: ActionConsumerCallbackOptions,
+    actionsContext: ActionChainContext,
+  ): Promise<any> | void
 }
 
-export interface ActionChainActionCallbackOptions<T extends Component = any>
-  extends StateGetters {
-  abort?(
-    reason?: string | string[],
-  ): Promise<IteratorYieldResult<any> | IteratorReturnResult<any> | undefined>
-  builtIn: Partial<Record<string, ActionChainCallbackOptions[]>>
-  component: T
-  context: ResolverContext
-  createSrc: ConsumerOptions['createSrc']
-  dataObject?: any
+export interface ActionConsumerCallbackOptions
+  extends StateGetters,
+    Pick<
+      ConsumerOptions,
+      | 'component'
+      | 'getAssetsUrl'
+      | 'getCbs'
+      | 'getResolvers'
+      | 'getRoot'
+      | 'getState'
+      | 'page'
+      | 'plugins'
+      | 'setPlugin'
+      | 'viewport'
+    > {
+  abort?: ActionChain['abort']
   event?: Event
-  error?: Error
-  getAssetsUrl: ConsumerOptions['getAssetsUrl']
-  getRoot: ConsumerOptions['getRoot']
-  getPageObject: ConsumerOptions['getPageObject']
-  page: string
-  parser: RootsParser
-  snapshot: ActionChainSnapshot<any[]>
-  trigger: ActionTriggerType
+  path?: EmitObject
+  ref?: ActionChain
 }

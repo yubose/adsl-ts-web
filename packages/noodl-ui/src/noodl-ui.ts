@@ -69,7 +69,7 @@ class NOODL {
   #getRoot: () => T.Root = () => ({})
   #state: T.State
   #viewport: Viewport
-  actionsContext: { emitCall?: any; noodlui: NOODL } = { noodlui: this }
+  actionsContext: T.ActionChainContext = { noodlui: this }
   initialized: boolean = false
 
   constructor({
@@ -198,21 +198,14 @@ class NOODL {
 
   createActionChainHandler(
     actions: T.ActionObject[],
-    options: {
-      component: Component
+    options: T.ActionConsumerCallbackOptions & {
       trigger: T.ActionChainEmitTrigger
     },
   ) {
     const actionChain = new ActionChain(
       _.isArray(actions) ? actions : [actions],
-      {
-        actionsContext: this.getActionsContext(),
-        component: options.component,
-        getRoot: this.#getRoot.bind(this),
-        pageName: this.page,
-        pageObject: this.getPageObject(this.page),
-        trigger: options.trigger,
-      },
+      options,
+      this.actionsContext,
     )
     const useActionObjects = _.reduce(
       _.entries(this.#cb.action),
@@ -735,7 +728,19 @@ class NOODL {
       component,
       context: this.getContext(),
       createActionChainHandler: (action, options) =>
-        this.createActionChainHandler(action, { ...options, component }),
+        this.createActionChainHandler.call(this, action, {
+          ...options,
+          component,
+          getAssetsUrl: this.#getAssetsUrl.bind(this),
+          getCbs: this.getCbs.bind(this),
+          getResolvers: (() => this.#resolvers).bind(this),
+          getRoot: this.#getRoot.bind(this),
+          getState: this.getState.bind(this),
+          page: this.page,
+          plugins: this.plugins.bind(this),
+          setPlugin: this.setPlugin.bind(this),
+          viewport: this.viewport,
+        }),
       createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
       fetch: this.#fetch.bind(this),
       getAssetsUrl: this.#getAssetsUrl.bind(this),
