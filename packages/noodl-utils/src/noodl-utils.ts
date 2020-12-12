@@ -501,6 +501,10 @@ export function isTextBoardComponent<Component extends T.TextLike>(
   return isObj(value) && isStr(value['text'])
 }
 
+/* -------------------------------------------------------
+  ---- Action identifiers
+-------------------------------------------------------- */
+
 /**
  * Recursively invokes the provided callback on each child
  * @param { Component } component

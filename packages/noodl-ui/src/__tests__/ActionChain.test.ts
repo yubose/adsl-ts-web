@@ -18,6 +18,8 @@ import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 
+const actionsContext = { noodl: {}, noodlui }
+
 let getRoot = () => ({
   PatientChartGeneralInfo: {
     generalInfo: {
@@ -37,6 +39,7 @@ let getRoot = () => ({
       ],
     },
   },
+  SignIn: { formData: { greeting: 'hello' } },
 })
 
 const pageJumpAction: PageJumpObject = {
@@ -69,12 +72,12 @@ const createActionChain = <Args extends ActionChainConstructorArgs<any>>(
       ...noodlui.getConsumerOptions({ component }),
       component,
       getPageObject: (f: string = 'PatientChartGeneralInfo') => getRoot()[f],
-      getRoot,
+      getRoot: () => getRoot(),
       page: 'PatientChartGeneralInfo',
       trigger: 'onClick',
       ...args,
     },
-    { noodlui },
+    args.actionsContext || actionsContext,
   )
 }
 
@@ -174,7 +177,9 @@ describe('ActionChain', () => {
           `${chalk.yellow(actionType)} action`,
         () => {
           expect(
-            actionChain.createAction({ actionType } as ActionObject),
+            actionChain.createAction[actionType]({
+              actionType,
+            } as ActionObject),
           ).to.be.instanceOf(Action)
         },
       )
@@ -480,10 +485,6 @@ describe('ActionChain', () => {
     //
   })
 
-  xit('skipped actions should have the status "aborted" with some "unregistered callback" reason', () => {
-    //
-  })
-
   it('should load the queue', () => {
     const mockAnonFn = sinon.spy(() => 'abc')
     actionChain = createActionChain({
@@ -562,9 +563,37 @@ describe('ActionChain', () => {
         .that.is.eq(component)
     })
 
-    xit('should pass actions context to emit actions', () => {
-      //
-    })
+    actionTypes
+      .filter((f) => !/(anonymous|builtIn)/i.test(f))
+      .forEach((actionType) => {
+        it(
+          `should pass actions context to ${actionType} action callbacks as the ` +
+            '3rd arg',
+          async () => {
+            const spy = sinon.spy()
+            const component = new List()
+            actionChain = createActionChain({
+              actions: [{ actionType }] as any,
+              component,
+            })
+            actionChain.useAction({
+              actionType,
+              fn: spy,
+              trigger: 'onClick',
+            })
+            const handler = actionChain.build()
+            await handler()
+            expect(spy.args[0]?.[0]).to.be.instanceOf(Action)
+            expect(spy.args[0]?.[0].actionType).to.eq(actionType)
+            expect(spy.args[0][2])
+              .to.have.property('noodl')
+              .eq(actionsContext.noodl)
+            expect(spy.args[0][2])
+              .to.have.property('noodlui')
+              .eq(actionsContext.noodlui)
+          },
+        )
+      })
 
     describe('if the caller returned a string', () => {
       //

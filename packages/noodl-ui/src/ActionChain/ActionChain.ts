@@ -1,17 +1,12 @@
 import _ from 'lodash'
 import { isDraft, original } from 'immer'
-import {
-  createEmitDataKey,
-  findListDataObject,
-  getActionType,
-  isEmitObj,
-} from 'noodl-utils'
+import { getActionType } from 'noodl-utils'
 import Logger from 'logsnap'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import isReference from '../utils/isReference'
+import createActionCreatorFactory from './createActionCreatorFactory'
 import { AbortExecuteError } from '../errors'
-import { isActionChainEmitTrigger } from '../utils/noodl'
 import { actionTypes } from '../constants'
 import * as T from '../types'
 
@@ -30,9 +25,10 @@ class ActionChain<
   actions: ActionObjects
   actionsContext: T.ActionChainContext
   component: T.IComponent
+  createAction: ReturnType<typeof createActionCreatorFactory>
   current: Action
   fns = { action: {}, builtIn: {} } as {
-    action: Record<T.ActionType, T.ActionChainActionCallback[]>
+    action: Record<T.ActionType, T.ActionChainUseObjectBase<T.ActionObject>[]>
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
   }
   gen: AsyncGenerator<
@@ -72,6 +68,7 @@ class ActionChain<
       {} as ActionChain['fns']['action'],
     )
     this.trigger = options.trigger
+    this.createAction = createActionCreatorFactory(this, options)
   }
 
   /**
@@ -141,8 +138,7 @@ class ActionChain<
             }
             // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
             else {
-              result = await this.execute.call(
-                this,
+              result = await this.execute(
                 action,
                 this.getDefaultCallbackArgs({ event }),
               )
@@ -190,212 +186,6 @@ class ActionChain<
 
   #setStatus = (status: ActionChain<any, any>['status']) => {
     this.status = status
-  }
-
-  /**
-   * Creates and returns a new Action instance
-   * @param { object } obj - Action object
-   * NOTE: obj should have an "actionType" by the time of this call
-   */
-  createAction<A extends T.ActionObject>(obj: A) {
-    async function* runActionFuncs({
-      ref,
-      callbacks,
-      instance,
-      options,
-    }: {
-      ref: ActionChain<any, any>
-      callbacks: T.ActionChainActionCallback<ActionObjects>[]
-      instance: ActionObjects[number]
-      options: Parameters<T.ActionChainActionCallback<ActionObjects>>
-    }) {
-      let numFuncs = callbacks.length
-      let results = []
-      let result
-      for (let index = 0; index < numFuncs; index++) {
-        const fn = yield
-        result = await fn?.(instance, options, ref.actionsContext)
-        results.push(result)
-        // TODO - Do a better way to identify the action
-        if ((result || ({} as A)).actionType) {
-          // We may get an action object returned back like from
-          // evalObject. If this is the case we need to immediately
-          // run this action before continuing
-          // Start up a new Action with this object and inject it
-          // as the first item in the queued actions
-          const intermediaryAction = ref.createAction(result)
-          if (intermediaryAction) {
-            ref.intermediary.push(intermediaryAction)
-            ref.#queue = [intermediaryAction, ...ref.#queue]
-          }
-        }
-      }
-      return results.length > 1 ? results : results[0]
-    }
-
-    let action: any
-    let conditionalCallbackArgs = {} as any
-    let callbacks: any[]
-
-    const attachFn = (_action: Action | EmitAction) => {
-      _action.trigger = this.trigger
-      _action.callback = async (
-        instance: Parameters<
-          T.ActionChainActionCallback<ActionObjects[number]>
-        >[0],
-        options: Parameters<
-          T.ActionChainActionCallback<ActionObjects[number]>
-        >[1],
-      ) => {
-        let gen
-        const callbackArgs = {
-          ...options,
-          ...conditionalCallbackArgs,
-          component: this.component,
-          ref: this,
-        }
-        const logArgs = {
-          action: _action,
-          actions: callbackArgs.ref.actions,
-          callbackArgs,
-          component: callbackArgs.component,
-          originalActionObj: obj,
-          instance: _action,
-          queue: callbackArgs.ref.#queue.slice(),
-          ref: callbackArgs.ref,
-        }
-        log.func('attachFn')
-        if (action.actionType === 'anonymous') {
-          log.grey('Loading anonymous action', logArgs)
-          if ('fn' in _action.original) {
-            callbacks = [_action.original.fn]
-            gen = runActionFuncs({
-              ref: callbackArgs.ref,
-              callbacks,
-              instance: _action,
-              options: callbackArgs,
-            })
-          }
-        } else if (_action.original.actionType === 'builtIn') {
-          log.grey('Loading builtIn action', logArgs)
-          callbacks =
-            callbackArgs.ref.fns.builtIn[_action?.original?.funcName] || []
-          if (!callbacks) return
-          gen = runActionFuncs({
-            ref: callbackArgs.ref,
-            callbacks,
-            instance,
-            options: callbackArgs,
-          })
-        } else {
-          callbacks = _.reduce(
-            this.fns.action[action.actionType] ||
-              ([] as T.ActionChainUseObjectBase<ActionObjects[number], any>[]),
-            (
-              acc,
-              a: T.ActionChainUseObjectBase<ActionObjects[number], any>,
-            ) => {
-              const isUnrelatedTrigger =
-                action.actionType === 'emit' &&
-                !isActionChainEmitTrigger(callbackArgs.ref.trigger)
-              if (isUnrelatedTrigger) {
-                log.grey(
-                  `Discarding unrelated action "${action.actionType}" from the action callback`,
-                  { callbacks, ...logArgs },
-                )
-                return acc
-              }
-              // Only attach the action handlers that these object expect
-              // ex: Don't attach onChange emit handlers to onClick emits
-              if (
-                a.actionType === 'emit' &&
-                callbackArgs.ref.trigger !== a.trigger
-              ) {
-                return acc
-              }
-              return acc.concat(a.fn)
-            },
-            [] as T.ActionChainUseObjectBase<
-              ActionObjects[number],
-              any
-            >['fn'][],
-          )
-          log.green('You reached the end of action[callback]', {
-            _action,
-            callbacks,
-          })
-
-          if (!gen) {
-            gen = runActionFuncs({
-              ref: callbackArgs.ref,
-              callbacks,
-              instance,
-              options: callbackArgs,
-            })
-          }
-        }
-
-        const consumerResult = await gen?.next()
-        log.gold('consumerResult', consumerResult)
-
-        const results = []
-        const fns = callbacks.slice()
-        let callback = fns.shift()
-
-        // TODO - unit test this (this.isAborted solves a closure bug)
-        while (typeof callback === 'function' && !this.isAborted()) {
-          results.push((await gen?.next(callback))?.value)
-          callback = fns.shift()
-        }
-
-        return results
-      }
-    }
-
-    if (typeof obj === 'object') {
-      if (isEmitObj(obj)) {
-        const emitObj = obj as T.EmitObject
-        const emitAction = new EmitAction(emitObj, {
-          iteratorVar: this.component.get('iteratorVar') || '',
-          trigger: this.trigger,
-        })
-        if (emitObj.emit?.dataKey) {
-          emitAction.setDataKey(
-            emitAction.iteratorVar &&
-              emitObj.emit?.dataKey === emitAction.iteratorVar
-              ? findListDataObject(this.component)
-              : createEmitDataKey(
-                  emitObj.emit.dataKey,
-                  [
-                    findListDataObject(this.component),
-                    () =>
-                      this.#consumerArgs.getPageObject(this.#consumerArgs.page),
-                    () => this.#consumerArgs.getRoot(),
-                  ],
-                  { iteratorVar: emitAction.iteratorVar },
-                ),
-          )
-        }
-
-        attachFn((action = emitAction))
-      } else {
-        attachFn((action = new Action(obj, { trigger: this.trigger })))
-      }
-    } else {
-      log.func('createAction')
-      log.red(
-        `Expected an action object but received type ${typeof obj} instead`,
-        {
-          action,
-          actions: this.actions,
-          original: obj,
-          queue: this.getQueue(),
-          ref: this,
-        },
-      )
-    }
-
-    return action
   }
 
   /**
@@ -511,7 +301,7 @@ class ActionChain<
    */
   loadQueue() {
     _.forEach(this.actions, (actionObj: T.ActionObject | Function | string) => {
-      let action: T.IAction<ActionObjects[number]> | undefined
+      let action: Action | EmitAction | undefined
 
       if (_.isFunction(actionObj)) {
         if (!this.fns.action.anonymous?.length) {
@@ -523,7 +313,10 @@ class ActionChain<
             { received: actionObj, component: this?.component },
           )
         }
-        action = this.createAction({ actionType: 'anonymous', fn: actionObj })
+        action = this.createAction.anonymous({
+          actionType: 'anonymous',
+          fn: actionObj,
+        })
       }
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
@@ -543,16 +336,30 @@ class ActionChain<
             } as T.EmitActionObject
           } else if ('goto' in actionObj) {
             actionObj = {
-              ...actionObj,
+              ...(actionObj as any),
               actionType: 'goto',
             } as T.GotoObject
           }
-          action = this.createAction(actionObj as T.ActionObject)
+
+          console.info(
+            'this.createAction[actionObj.actionType]: ',
+            this.createAction[actionObj.actionType],
+          )
+
+          if (typeof this.createAction[actionObj.actionType] === 'function') {
+            action = this.createAction[actionObj.actionType](actionObj as any)
+          } else {
+            log.red(
+              `Expected "createAction" to be a function. This action will ` +
+                `not be available`,
+              actionObj,
+            )
+          }
         }
       }
 
       if (action) {
-        this.#queue.push(action)
+        this.#queue.push(action as Action)
       } else {
         log.grey(
           `Could not convert action ${
@@ -584,9 +391,19 @@ class ActionChain<
   }
 
   insertIntermediaryAction(actionObj: T.ActionObject) {
-    const action = this.createAction(actionObj)
-    this.#queue.unshift(action)
-    return action
+    let action: Action | EmitAction | undefined
+    if (typeof this.createAction[actionObj.actionType] === 'function') {
+      action = this.createAction[actionObj.actionType](actionObj as any)
+      this.#queue.unshift(action as Action)
+    } else {
+      log.func('insertIntermediaryAction')
+      log.red(
+        `Expected "createAction" to be a function. This action will ` +
+          `not be available`,
+        actionObj,
+      )
+    }
+    return action as Action | EmitAction
   }
 
   isAborted() {
