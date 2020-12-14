@@ -141,6 +141,7 @@ window.addEventListener('load', async () => {
 
   const preparePage = createPreparePage({
     builtIn: {
+      checkField: builtIn.checkField,
       goto: builtIn.goto,
       videoChat: onVideoChatBuiltIn({ joinRoom: Meeting.join }),
     },
