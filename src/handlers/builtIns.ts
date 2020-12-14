@@ -178,7 +178,11 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
   builtInActions.checkField = (action, options) => {
     log.func('checkField')
-    const { contentType } = action.original as NOODLBuiltInCheckFieldObject
+    log.grey('checkField', { action, options })
+    const contentType =
+      action?.original?.contentType || action?.contentType || ''
+    // const { contentType } =
+    //   (action.original as NOODLBuiltInCheckFieldObject) || {}
     const node = getByDataUX(contentType)
     console.groupCollapsed({ action, options, node })
     console.trace()
