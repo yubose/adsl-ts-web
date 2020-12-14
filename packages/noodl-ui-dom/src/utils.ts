@@ -1,9 +1,3 @@
-// export function ensureArray(value: any, path: string) {
-//   if (value && typeof value === 'object' && typeof path === 'string') {
-//     let parts = path.split(' ')
-//     let prev: any
-//     let obj: any = value
-
 import {
   eventTypes,
   Component,
@@ -12,6 +6,13 @@ import {
   NOODLComponent,
 } from 'noodl-ui'
 
+/**
+ * Creates an image element that loads asynchronously
+ * @param { HTMLElement } container - Element to attach the image in
+ * @param { object } options
+ * @param { function | undefined } options.onLoad
+ * @param { number | undefined } options.timeout
+ */
 export function createAsyncImageElement(
   container: HTMLElement,
   opts?: { onLoad?(event: Event): void; timeout?: number },
@@ -21,7 +22,6 @@ export function createAsyncImageElement(
     if (!container) container = document.body
     container.insertBefore(node as HTMLImageElement, container.childNodes[0])
     opts?.onLoad?.(event)
-    // node && (node.onload = null)
   }
   return node
 }

@@ -5,16 +5,7 @@ import MockAxios from 'axios-mock-adapter'
 import { expect } from 'chai'
 import { prettyDOM } from '@testing-library/dom'
 import { queryByText, screen, waitFor } from '@testing-library/dom'
-import {
-  ActionChainActionCallbackOptions,
-  EmitActionObject,
-  IAction,
-  ActionChainEmitTrigger,
-  Component,
-  List,
-  ListItem,
-  NOODLComponent,
-} from 'noodl-ui'
+import { Component, List, ListItem, NOODLComponent } from 'noodl-ui'
 import { getByDataKey } from 'noodl-utils'
 import axios from '../app/axios'
 import {
@@ -291,26 +282,6 @@ describe('dom', () => {
     })
   })
 
-  xdescribe('component type: "plugin"', () => {
-    it('should have ran the js script retrieved from the XHR request', async () => {
-      const spy = sinon.spy()
-      const div = document.createElement('div')
-      div.id = 'testing'
-      div.onclick = spy
-      document.body.appendChild(div)
-      const pathname = 'somejsfile.js'
-      const url = `${assetsUrl}${pathname}`
-      const content = `var s = 54;
-      const abc = document.getElementById('testing');
-      abc.click();`
-      mockAxios.onGet(url).reply(200, content)
-      page.render({ type: 'plugin', path: '/somejsfile.js' })
-      await waitFor(() => {
-        expect(spy.called).to.be.true
-      })
-    })
-  })
-
   describe('component type: "select"', () => {
     it('should show a default value for select elements', () => {
       page.render({
@@ -455,7 +426,9 @@ describe('dom', () => {
       const dataKey = 'formData.phoneNumber'
       noodlui
         .use({
-          getRoot: () => ({ formData: { phoneNumber: '882465812' } }),
+          getRoot: () => ({
+            SignIn: { formData: { phoneNumber: '882465812' } },
+          }),
         })
         .setPage('SignIn')
       page.render({
@@ -464,9 +437,14 @@ describe('dom', () => {
         placeholder: 'Enter your phone number',
       })
       const input = queryByDataKey(document.body, dataKey) as HTMLInputElement
-      expect(input.dataset.value).to.eq('')
-      userEvent.type(input, '6262465555')
-      expect(input.dataset.value).to.equal('6262465555')
+      await waitFor(() => {
+        expect(input.dataset.value).to.eq('882465812')
+        input.click()
+        userEvent.type(input, '6262465555')
+      })
+      await waitFor(() => {
+        expect(input.dataset.value).to.equal('6262465555')
+      })
     })
   })
 

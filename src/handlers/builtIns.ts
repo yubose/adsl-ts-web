@@ -1,15 +1,14 @@
 import _ from 'lodash'
-import { Draft, isDraft, original } from 'immer'
+import { isDraft, original } from 'immer'
 import {
   ActionConsumerCallbackOptions,
   BuiltInObject,
+  Component,
+  EmitAction,
   getByDataUX,
   getDataValues,
   GotoURL,
   GotoObject,
-  Component,
-  ListItem,
-  EmitAction,
 } from 'noodl-ui'
 import {
   LocalAudioTrack,
@@ -19,15 +18,11 @@ import {
   Room,
 } from 'twilio-video'
 import {
-  createEmitDataKey,
   findListDataObject,
   findParent,
-  getAllByDataViewTag,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isBooleanFalse,
-  isEmitObj,
-  publish,
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import validate from '../utils/validate'
@@ -41,140 +36,6 @@ const log = Logger.create('builtIns.ts')
 
 const createBuiltInActions = function ({ page }: { page: Page }) {
   const builtInActions: BuiltInActions = {}
-
-  builtInActions.stringCompare = async (action, options) => {
-    log.func('stringCompare')
-    log.grey('', { action, ...options })
-    const password = action.original?.object?.[0] || ''
-    const confirmPassword = action.original?.object?.[1] || ''
-    if (password !== confirmPassword) {
-      const abort = options.abort
-      await abort?.('Passwords do not match')
-    }
-  }
-
-  builtInActions.toggleFlag = async (action, options) => {
-    log.func('toggleFlag')
-    console.log({ action, ...options })
-    const { default: noodlui } = await import('../app/noodl-ui')
-    const { default: noodl } = await import('../app/noodl')
-    const { component } = options
-    const page = noodlui.page
-    const { dataKey = '' } = action.original
-    let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
-    const node = document.getElementById(component?.id)
-
-    let dataValue: any
-    let dataObject: any
-    let previousDataValue: boolean | undefined = undefined
-    let nextDataValue: boolean | undefined = undefined
-    let newSrc = ''
-
-    if (isDraft(path)) path = original(path)
-
-    log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
-
-    if (dataKey.startsWith(iteratorVar)) {
-      let parts = dataKey.split('.').slice(1)
-      dataObject = findListDataObject(component)
-      previousDataValue = _.get(dataObject, parts)
-      // previousDataValueInSdk = _.get(noodl.root[context.page])
-      dataValue = previousDataValue
-      if (isNOODLBoolean(dataValue)) {
-        // true -> false / false -> true
-        nextDataValue = !isBooleanTrue(dataValue)
-      } else {
-        // Set to true if am item exists
-        nextDataValue = !dataValue
-      }
-      _.set(dataObject, parts, nextDataValue)
-    } else {
-      const onNextValue = (
-        previousValue: any,
-        { updateDraft }: { updateDraft?: { path: string } } = {},
-      ) => {
-        let nextValue: any
-        if (isNOODLBoolean(previousValue)) {
-          nextValue = isBooleanTrue(previousValue) ? false : true
-        }
-        nextValue = !previousValue
-        if (updateDraft) {
-          noodl.editDraft((draft: any) => {
-            _.set(draft, updateDraft.path, nextValue)
-          })
-        }
-        // Propagate the changes to to UI if there is a path "if" object that
-        // references the value as well
-        if (node && _.isObjectLike(path)) {
-          let valEvaluating = path.if?.[0]
-          // If the dataKey is the same as the the value we are evaluating we can
-          // just re-use the nextDataValue
-          if (valEvaluating === dataKey) {
-            valEvaluating = nextValue
-          } else {
-            valEvaluating =
-              _.get(noodl.root, valEvaluating) ||
-              _.get(noodl.root[page || ''], valEvaluating)
-          }
-          newSrc = noodlui.createSrc(
-            valEvaluating ? path.if?.[1] : path.if?.[2],
-            component,
-          )
-          node.setAttribute('src', newSrc)
-        }
-        return nextValue
-      }
-
-      dataObject = noodl.root
-
-      if (_.has(noodl.root, dataKey)) {
-        dataObject = noodl.root
-        previousDataValue = _.get(dataObject, dataKey)
-        onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-      } else if (_.has(noodl.root[page], dataKey)) {
-        dataObject = noodl.root[page]
-        previousDataValue = _.get(dataObject, dataKey)
-        onNextValue(previousDataValue, {
-          updateDraft: {
-            path: `${dataKey}${page ? `.${page}` : ''}`,
-          },
-        })
-      } else {
-        log.red(
-          `${dataKey} is not a path of the data object. ` +
-            `Defaulting to attaching ${dataKey} as a path to the root object`,
-          { context: noodlui.getContext?.(), dataObject, dataKey },
-        )
-        dataObject = noodl.root
-        previousDataValue = undefined
-        nextDataValue = false
-        onNextValue(previousDataValue, {
-          updateDraft: { path: `${dataKey}.${page || ''}` },
-        })
-      }
-
-      if (/mic/i.test(dataKey)) {
-        builtInActions.toggleMicrophoneOnOff?.(action, options)
-      } else if (/camera/i.test(dataKey)) {
-        builtInActions.toggleCameraOnOff?.(action, options)
-      }
-    }
-
-    log.grey('', {
-      component: component.toJS(),
-      componentInst: component,
-      context: noodlui.getContext?.(),
-      dataKey,
-      dataValue,
-      dataObject,
-      previousDataValue,
-      nextDataValue,
-      previousDataValueInSdk: newSrc,
-      node,
-      path,
-      options,
-    })
-  }
 
   builtInActions.checkField = (action, options) => {
     log.func('checkField')
@@ -197,9 +58,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     }
   }
 
-  // Called on signin + signup
-  builtInActions.checkVerificationCode = async (action) => {}
-
   // Called after uaser fills out the form in CreateNewAccount and presses Submit
   builtInActions.checkUsernamePassword = (action, { abort }: any) => {
     // dispatchRedux(mergeCacheAuthValues(dataValues))
@@ -211,70 +69,22 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     abort('Creating account')
   }
 
-  builtInActions.cleanLocalStorage = () => {
-    log.func('cleanLocalStorage')
-    window.localStorage.clear()
-    log.green(`Cleared local storage`)
-  }
-
-  // Called when user enters their verification code in the popup and clicks submit
-  builtInActions.enterVerificationCode = async (action, options) => {
-    log.func('enterVerificationCode').red('', _.assign({ action }, options))
-    // if (/SignUp/.test(location.pathname)) await signup?.onSubmit()
-    // else await signin?.onSubmit()
-  }
+  builtInActions.cleanLocalStorage = () => window.localStorage.clear()
 
   builtInActions.goBack = async (action, options) => {
     log.func('goBack')
     log.grey('', { action, ...options })
-
-    // const { reload } = action.original as BuiltInObject
-    // const requestPage = async (pageName: string) => {
-    //   var shouldEvolve = false
-    //   if (isNOODLBoolean(reload)) {
-    //     shouldEvolve = reload
-    //   }
-    //   await page.requestPageChange(pageName, {
-    //     reload: shouldEvolve,
-    //   }, true)
-    // }
-
-    // var pg
-    // var pageUrlArr = page.pageUrl.split('-')
-    // if (pageUrlArr.length > 1) {
-    //   pageUrlArr.pop()
-    //   while (pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') && pageUrlArr.length > 1) {
-    //     pageUrlArr.pop()
-    //   }
-
-    //   if (pageUrlArr.length > 1) {
-    //     pg = pageUrlArr[pageUrlArr.length - 1]
-    //     page.pageUrl = pageUrlArr.join('-')
-    //   }
-    //   else if (pageUrlArr.length === 1) {
-    //     if (pageUrlArr[0].endsWith('MenuBar')) {
-    //       page.pageUrl = 'index.html?'
-    //       pg = noodl?.cadlEndpoint?.startPage
-    //     }
-    //     else {
-    //       pg = pageUrlArr[0].split('?')[1]
-    //       page.pageUrl = pageUrlArr[0]
-    //     }
-    //   }
-    // }
-    // else {
-    //   page.pageUrl = 'index.html?'
-    //   pg = noodl?.cadlEndpoint?.startPage
-    // }
-    // history.pushState({}, "", page.pageUrl)
-    // await requestPage(pg || '')
     if (typeof action.original?.reload === 'boolean') {
       page.requestingPageModifiers.reload = action.original.reload
     }
     window.history.back()
   }
 
-  builtInActions.goto = async (action: GotoURL | GotoObject, options) => {
+  builtInActions.goto = async (
+    action: GotoURL | GotoObject,
+    options,
+    { noodl },
+  ) => {
     log.func('goto')
     log.red('', _.assign({ action }, options))
     // URL
@@ -471,254 +281,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     }
   }
 
-  builtInActions.redraw___backup = async (action, options, f = {}) => {
-    log.func('redraw')
-    log.red('', { action, ...options })
-
-    const { default: noodluidom } = await import('../app/noodl-ui-dom')
-    const { default: noodl } = await import('../app/noodl')
-    const { default: noodlui } = await import('../app/noodl-ui')
-    const { viewTag } = action.original
-
-    const actionObjectOnComponentThatCalledRedraw = action.original
-    const componentThatCalledRedraw = options.component
-    const redrawTargetingNode = document.querySelector(
-      `[data-viewtag="${viewTag}"]`,
-    )
-    const redrawTargetingComponent = findParent(
-      componentThatCalledRedraw,
-      (p) => p?.noodlType === 'listItem',
-    )
-
-    log.grey('Invoking "redraw"', {
-      actionObjectOnComponentThatCalledRedraw,
-      componentThatCalledRedraw, // ex: image
-      redrawTargetingNode, // ex: listItem
-      redrawTargetingComponent, // ex: listItem
-      dataObjectQueries: {
-        'options.dataObject': options?.dataObject,
-        "component.get('dataObject')": options?.component?.get?.('dataObject'),
-        'component.getDataObject()': options?.component?.getDataObject?.(),
-        'listItem.getDataObject': redrawTargetingComponent?.getDataObject?.(),
-        "listItem.get('dataObject')": redrawTargetingComponent?.get?.(
-          'dataObject',
-        ),
-      },
-    })
-
-    const currentPage = noodlui.page
-    noodlui.reset({ keepCallbacks: true })
-    noodlui.setRoot(noodl.root).setPage(currentPage)
-    // await page.onBeforePageRender({ pageName: noodlui.page })
-    // noodlui
-    // await page.navigate(noodlui.page, { force: true })
-    // page.render(noodl.root[noodlui.page]?.components)
-    // await page.requestPageChange(noodlui.page, { force: true })
-
-    /**
-     * fdfdsfdsklfmkdsmfksmdkfmskfmkdsmfkdsfds */
-
-    // if (redrawTargetingNode) {
-    const node = document.getElementById(componentThatCalledRedraw?.id)
-    const parent = componentThatCalledRedraw.parent()
-    const parentNode = node?.parentNode
-    if (!parentNode) {
-      console.error('not a parent node', {
-        componentThatCalledRedraw,
-        componentThatCalledRedrawNodeSet: componentThatCalledRedraw.get('node'),
-        parent,
-        parentNode,
-        node,
-      })
-      return
-    }
-    if (!node) {
-      console.error('not a node', {
-        componentThatCalledRedraw,
-        componentThatCalledRedrawNodeSet: componentThatCalledRedraw.get('node'),
-        parent,
-        parentNode,
-        node,
-      })
-      return
-    }
-    // node.innerHTML = ''
-    // node.remove()
-    const resolvedComponent = noodlui.resolveComponents(
-      componentThatCalledRedraw.original,
-    )
-    resolvedComponent.setParent(parent)
-    componentThatCalledRedraw && parent.removeChild?.(componentThatCalledRedraw)
-    noodluidom.parse(resolvedComponent, parentNode)
-    /**
-     * fdfdsfdsklfmkdsmfksmdkfmskfmkdsmfkdsfds */
-
-    /**
-     * TEMP
-     */
-    if (componentThatCalledRedraw.get('listId')) {
-      const component = componentThatCalledRedraw
-      console.log('componentThatCalledRedraw is a list item consumer')
-      const listItem = findParent(
-        component,
-        (p) => p?.noodlType === 'listItem',
-      ) as ListItem
-      if (listItem) {
-        let dataObject = listItem.getDataObject()
-        if (!dataObject) {
-          log.grey(
-            'dataObject was not found on the listItem parent. Looking through List...',
-          )
-          const list = listItem.parent()
-          if (list) {
-            log.grey(
-              'Found list parent. Refreshing dataObject and listIndex for all',
-              { list, listItem, component },
-            )
-            const listData = list?.getData?.() || []
-            if (listData.length) {
-              log.grey('There are dataObjects in the listObject')
-              _.forEach(list.children(), (c, index) => {
-                dataObject = listData[index]
-                c?.setDataObject?.(dataObject)
-                c.set('listIndex', index)
-                publish(c, async (cc) => {
-                  if (isEmitObj(cc.get('path'))) {
-                    const ccPath = cc.get('path')
-                    const emitParams = {
-                      actions: ccPath?.emit?.actions,
-                      dataKey: createEmitDataKey(
-                        ccPath?.emit?.dataKey,
-                        dataObject,
-                      ),
-                      pageName: noodlui.page,
-                    }
-                    log.gold(`Running emitCall`, {
-                      component,
-                      currentChild: c,
-                      currentBroadcastedChild: cc,
-                      emitParams,
-                      dataObject,
-                      path: ccPath,
-                      listNode: document.getElementById(list.id),
-                      listItemNode: document.getElementById(listItem.id),
-                      componentNode: document.getElementById(component?.id),
-                      ccNode: document.getElementById(cc.id),
-                      cNode: document.getElementById(c.id),
-                      list,
-                      listItem,
-                      listData,
-                    })
-                    let result = await noodl.emitCall(emitParams)
-                    log.gold(`emitCall result`, result)
-                    if (result) {
-                      result = Array.isArray(result) ? result[0] : result
-                    }
-                    cc.set('src', noodlui.createSrc(result, cc))
-                    return
-                  }
-                  log.grey(
-                    `(Broadcasting) Set listIndex to ${index} for listItem child ${cc?.noodlType}`,
-                    {
-                      list,
-                      listItem,
-                      currentListItemChild: c,
-                      component,
-                      broadcastedListItemChildOfChild: cc,
-                    },
-                  )
-                })
-                log.grey('set the dataObject for listItem', dataObject)
-              })
-            } else {
-              log.grey('No dataObjects are present in the listObject')
-            }
-          }
-        }
-      }
-    }
-    /**
-     * TEMP
-     */
-
-    return
-
-    // if (redrawTargetingNode) {
-    // const node = document.getElementById(componentThatCalledRedraw?.id)
-    // const parent = componentThatCalledRedraw.parent()
-    // const parentNode = node?.parentNode
-    // if (!parentNode) {
-    //   console.error('not a parent node', {
-    //     componentThatCalledRedraw,
-    //     componentThatCalledRedrawNodeSet: componentThatCalledRedraw.get('node'),
-    //     parent,
-    //     parentNode,
-    //     node,
-    //   })
-    //   return
-    // }
-    // if (!node) {
-    //   console.error('not a node', {
-    //     componentThatCalledRedraw,
-    //     componentThatCalledRedrawNodeSet: componentThatCalledRedraw.get('node'),
-    //     parent,
-    //     parentNode,
-    //     node,
-    //   })
-    //   return
-    // }
-    // // node.innerHTML = ''
-    // // node.remove()
-    // const resolvedComponent = noodlui.resolveComponents(
-    //   componentThatCalledRedraw.original,
-    // )
-    // resolvedComponent.setParent(parent)
-    // componentThatCalledRedraw && parent.removeChild?.(componentThatCalledRedraw)
-    // noodluidom.parse(resolvedComponent, parentNode)
-    // }
-
-    // noodluidom.redraw(
-    //   redrawTargetingNode, // ex: listItem
-    //   redrawTargetingComponent, // ex: listItem
-    // )
-
-    // await page.navigate(noodlui.page, { force: true })
-    // page.render(noodl.root[noodlui.page]?.components)
-    // page.render(componentThatCalledRedraw.original)
-
-    // console.info('Redrawing: ', {
-    //   component: componentThatCalledRedraw,
-    //   node: document.getElementById(componentThatCalledRedraw.id),
-    // })
-
-    // if (componentThatCalledRedraw.get('path')) {
-    //   componentThatCalledRedraw.set(
-    //     'src',
-    //     noodlui.createSrc(componentThatCalledRedraw.get('path')),
-    //   )
-    // }
-
-    // componentThatCalledRedraw?.broadcast?.((child) => {
-    //   console.info('Redrawing: ', {
-    //     rootComponent: componentThatCalledRedraw,
-    //     child,
-    //   })
-    //   if (child.get('path')) {
-    //     child.set(
-    //       'src',
-    //       noodlui.createSrc(
-    //         componentThatCalledRedraw.get('path'),
-    //         componentThatCalledRedraw,
-    //       ),
-    //     )
-    //   }
-    // })
-  }
-
-  builtInActions.signIn = async (action, options) => {}
-  builtInActions.signUp = async () => {}
-  builtInActions.signout = async () => {}
-
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')
     const path = 'VideoChat.cameraOn'
@@ -732,7 +294,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       )?.track as LocalVideoTrack
 
       const { default: noodl } = await import('../app/noodl')
-      noodl.editDraft((draft) => {
+      noodl.editDraft((draft: any) => {
         if (videoTrack) {
           if (videoTrack.isEnabled) {
             videoTrack.disable()
@@ -766,7 +328,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       )?.track as LocalAudioTrack
 
       const { default: noodl } = await import('../app/noodl')
-      noodl.editDraft((draft) => {
+      noodl.editDraft((draft: any) => {
         if (audioTrack) {
           if (audioTrack.isEnabled) {
             audioTrack.disable()
@@ -782,40 +344,128 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     }
   }
 
-  builtInActions.UploadFile = async (action, options, { file }: any) => {
-    log.func('UploadFile')
+  builtInActions.toggleFlag = async (action, options, actionsContext) => {
+    log.func('toggleFlag')
+    console.log({ action, ...options })
+    const { default: noodlui } = await import('../app/noodl-ui')
+    const { default: noodl } = await import('../app/noodl')
+    const { component } = options
+    const page = noodlui.page
+    const { dataKey = '' } = action.original || {}
+    let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
+    const node = document.getElementById(component?.id)
 
-    let dataValues = getDataValues<{ title: string }, 'title'>()
+    let dataValue: any
+    let dataObject: any
+    let previousDataValue: boolean | undefined = undefined
+    let nextDataValue: boolean | undefined = undefined
+    let newSrc = ''
 
-    const params: {
-      title: string
-      content: File | Blob
-    } = { content: file, title: dataValues.title } as {
-      title: string
-      content: File | Blob
+    if (isDraft(path)) path = original(path)
+
+    log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
+
+    if (dataKey.startsWith(iteratorVar)) {
+      let parts = dataKey.split('.').slice(1)
+      dataObject = findListDataObject(component)
+      previousDataValue = _.get(dataObject, parts)
+      // previousDataValueInSdk = _.get(noodl.root[context.page])
+      dataValue = previousDataValue
+      if (isNOODLBoolean(dataValue)) {
+        // true -> false / false -> true
+        nextDataValue = !isBooleanTrue(dataValue)
+      } else {
+        // Set to true if am item exists
+        nextDataValue = !dataValue
+      }
+      _.set(dataObject, parts, nextDataValue)
+    } else {
+      const onNextValue = (
+        previousValue: any,
+        { updateDraft }: { updateDraft?: { path: string } } = {},
+      ) => {
+        let nextValue: any
+        if (isNOODLBoolean(previousValue)) {
+          nextValue = isBooleanTrue(previousValue) ? false : true
+        }
+        nextValue = !previousValue
+        if (updateDraft) {
+          noodl.editDraft((draft: any) => {
+            _.set(draft, updateDraft.path, nextValue)
+          })
+        }
+        // Propagate the changes to to UI if there is a path "if" object that
+        // references the value as well
+        if (node && _.isObjectLike(path)) {
+          let valEvaluating = path.if?.[0]
+          // If the dataKey is the same as the the value we are evaluating we can
+          // just re-use the nextDataValue
+          if (valEvaluating === dataKey) {
+            valEvaluating = nextValue
+          } else {
+            valEvaluating =
+              _.get(noodl.root, valEvaluating) ||
+              _.get(noodl.root[page || ''], valEvaluating)
+          }
+          newSrc = noodlui.createSrc(
+            valEvaluating ? path.if?.[1] : path.if?.[2],
+            component,
+          )
+          node.setAttribute('src', newSrc)
+        }
+        return nextValue
+      }
+
+      dataObject = noodl.root
+
+      if (_.has(noodl.root, dataKey)) {
+        dataObject = noodl.root
+        previousDataValue = _.get(dataObject, dataKey)
+        onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
+      } else if (_.has(noodl.root[page], dataKey)) {
+        dataObject = noodl.root[page]
+        previousDataValue = _.get(dataObject, dataKey)
+        onNextValue(previousDataValue, {
+          updateDraft: {
+            path: `${dataKey}${page ? `.${page}` : ''}`,
+          },
+        })
+      } else {
+        log.red(
+          `${dataKey} is not a path of the data object. ` +
+            `Defaulting to attaching ${dataKey} as a path to the root object`,
+          { context: noodlui.getContext?.(), dataObject, dataKey },
+        )
+        dataObject = noodl.root
+        previousDataValue = undefined
+        nextDataValue = false
+        onNextValue(previousDataValue, {
+          updateDraft: { path: `${dataKey}.${page || ''}` },
+        })
+      }
+
+      if (/mic/i.test(dataKey)) {
+        builtInActions.toggleMicrophoneOnOff?.(action, options, actionsContext)
+      } else if (/camera/i.test(dataKey)) {
+        builtInActions.toggleCameraOnOff?.(action, options, actionsContext)
+      }
     }
 
-    log.grey('', { file, params, action, ...options })
-
-    const nameFieldPath = ''
-
-    const { default: noodl } = await import('../app/noodl')
-
-    const pageName = options.context?.page || ''
-
-    noodl.editDraft((draft: Draft<any>) => {
-      _.set(draft?.[pageName], nameFieldPath, file)
+    log.grey('', {
+      component: component.toJS(),
+      componentInst: component,
+      context: noodlui.getContext?.(),
+      dataKey,
+      dataValue,
+      dataObject,
+      previousDataValue,
+      nextDataValue,
+      previousDataValueInSdk: newSrc,
+      node,
+      path,
+      options,
     })
-
-    log.green(
-      `Attached the Blob/File "${file?.title}" of type "${file?.type}" on ` +
-        `root.${pageName}.${nameFieldPath}`,
-      file,
-    )
   }
-
-  builtInActions.UploadPhoto = builtInActions.UploadFile
-  builtInActions.UploadDocuments = builtInActions.UploadFile
 
   return builtInActions
 }

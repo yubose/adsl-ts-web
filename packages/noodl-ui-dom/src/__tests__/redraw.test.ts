@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
-import _ from 'lodash'
 import { findChild } from 'noodl-utils'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
@@ -812,20 +811,22 @@ describe('redraw', () => {
 describe('redraw(new)', () => {
   let onClickSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
   let pathSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
-  let redrawSpy: sinon.SinonSpy<[
-    node: HTMLElement | null,
-    component: Component,
-    opts?:
-      | {
-          dataObject?: any
-          resolver?:
-            | ((
-                noodlComponent: ComponentObject | ComponentObject[],
-              ) => Component)
-            | undefined
-        }
-      | undefined,
-  ]>
+  let redrawSpy: sinon.SinonSpy<
+    [
+      node: HTMLElement | null,
+      component: Component,
+      opts?:
+        | {
+            dataObject?: any
+            resolver?:
+              | ((
+                  noodlComponent: ComponentObject | ComponentObject[],
+                ) => Component)
+              | undefined
+          }
+        | undefined,
+    ]
+  >
   let viewTag = 'genderTag'
   let view: Component
   let list: List

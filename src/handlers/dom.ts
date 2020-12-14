@@ -1,11 +1,10 @@
-import _, { sortedLastIndex } from 'lodash'
+import _ from 'lodash'
 import Logger from 'logsnap'
 import {
   event as noodluiEvent,
   eventTypes,
   Component,
   List,
-  isPromise,
   SelectOption,
 } from 'noodl-ui'
 import { isBooleanTrue, isEmitObj } from 'noodl-utils'

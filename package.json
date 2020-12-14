@@ -55,8 +55,7 @@
     "noodl-building-blocks": "file:packages/noodl-building-blocks",
     "noodl-types": "file:packages/noodl-types",
     "noodl-ui": "file:packages/noodl-ui",
-    "noodl-ui-dom": "file:packages/noodl-ui-dom",
-    "noodl-utils": "file:packages/noodl-utils"
+    "noodl-ui-dom": "file:packages/noodl-ui-dom"
   },
   "devDependencies": {
     "@aitmed/cadl": "^1.0.153",
@@ -123,7 +122,7 @@
     "nock": "^13.0.4",
     "nodemon": "^2.0.4",
     "noodl-ui": "file:../noodl-ui",
-    "noodl-utils": "^0.0.23",
+    "noodl-utils": "file:packages/noodl-utils",
     "nyc": "^15.1.0",
     "prettier": "^2.1.2",
     "rollup": "^2.35.1",

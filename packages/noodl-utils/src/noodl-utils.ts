@@ -198,52 +198,6 @@ export function findParent<C extends Component>(
   return parent || null
 }
 
-/**
- * Finds a data object using a dataObject, an array of dataObjects or if a component
- * instance is provided it is a list consumer, it will attempt to retrieve its data
- * object from a listItem parent, or a list parent (using listIndex)
- * @param { Component | object | array } objs - Component instance or a dataObject or an array of dataObjects
- * @param { object | undefined } opts
- * @param { object | undefined } opts.component
- * @param { object | undefined } opts.path
- */
-// export function findDataObject(
-//   objs: T.PlainObject | T.PlainObject[],
-//   path: string,
-// ): any
-// export function findDataObject(
-//   objs: T.PlainObject | T.PlainObject[],
-//   opts: { component?: Component; path?: string },
-// ): any
-// export function findDataObject(component: Component, path?: string): any
-// export function findDataObject(
-//   objs: Component | T.PlainObject | T.PlainObject[],
-//   opts?: string | { component?: Component; path?: string },
-// ) {
-//   let dataObject: any
-//   // List consumers
-//   if (objs instanceof Component) {
-//     if (arguments.length > 1) {
-//       if (isStr(opts)) dataObject = findDataValue(objs, opts)
-//     } else dataObject = findListDataObject(objs)
-//   }
-//   // Non list consumers
-//   else {
-//     // Find by path
-//     if (isStr(opts)) {
-//       dataObject = findDataValue(objs, opts)
-//     } else {
-//       if (opts?.path !== undefined) {
-//         dataObject = findDataValue(objs, opts.path || '')
-//       }
-//       if (!dataObject && isListConsumer(opts?.component)) {
-//         dataObject = findListDataObject(opts?.component as Component)
-//       }
-//     }
-//   }
-//   return dataObject || null
-// }
-
 type FindDataValueItem =
   | ((...args: any[]) => any)
   | T.PlainObject

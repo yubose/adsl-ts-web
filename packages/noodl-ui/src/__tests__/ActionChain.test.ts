@@ -6,6 +6,7 @@ import ActionChain from '../ActionChain'
 import Action from '../Action'
 import {
   ActionObject,
+  ActionChainContext,
   UpdateObject,
   PageJumpObject,
   PopupDismissObject,
@@ -17,6 +18,7 @@ import EmitAction from '../Action/EmitAction'
 import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
+import { first } from 'lodash'
 
 const actionsContext = { noodl: {}, noodlui }
 
@@ -77,7 +79,7 @@ const createActionChain = <Args extends ActionChainConstructorArgs<any>>(
       trigger: 'onClick',
       ...args,
     },
-    args.actionsContext || actionsContext,
+    (args.actionsContext || actionsContext) as ActionChainContext,
   )
 }
 
@@ -179,7 +181,7 @@ describe('ActionChain', () => {
           expect(
             actionChain.createAction[actionType]({
               actionType,
-            } as ActionObject),
+            } as any),
           ).to.be.instanceOf(Action)
         },
       )
@@ -604,13 +606,69 @@ describe('ActionChain', () => {
     })
 
     describe('if the caller returned an object', () => {
-      xit('should inject the result to the beginning of the queue if the result is an action noodl object', () => {
-        //
-      })
+      it(
+        'should add the object to the "intermediary" list if the returned ' +
+          'result was an action noodl object',
+        () => {
+          let queue: any[]
+          const pageJumpSpy = sinon.spy(() =>
+            Promise.resolve({
+              actionType: 'saveObject',
+              object: {},
+            }),
+          )
+          const saveObjectSpy = sinon.spy((a, b) => {
+            queue = b.queue
+          })
+          const ref = createActionChain({
+            actions: [pageJumpAction, popUpDismissAction, updateObjectAction],
+          })
+          return ref
+            .useAction({
+              actionType: 'pageJump',
+              fn: pageJumpSpy,
+              trigger: 'onClick',
+            })
+            .useAction({
+              actionType: 'saveObject',
+              fn: saveObjectSpy,
+              trigger: 'onClick',
+            })
+            .build()()
+            .then(() => {
+              expect(ref.intermediary[0])
+                .to.be.instanceOf(Action)
+                .to.have.property('actionType')
+                .eq('saveObject')
+            })
+        },
+      )
 
-      xit('should add the object to the "intermediary" list if the returned result was an action noodl object', () => {
-        //
-      })
+      it(
+        'should run the callback that was registered for a returned action object ' +
+          'that has an actionType corresponding to it if the consumer returned an action object ' +
+          'with that actionType',
+        () => {
+          const saveObjectSpy = sinon.spy()
+          return createActionChain({
+            actions: [pageJumpAction, popUpDismissAction, updateObjectAction],
+          })
+            .useAction({ actionType: 'saveObject', fn: saveObjectSpy })
+            .useAction({
+              actionType: 'pageJump',
+              fn: async () => ({ actionType: 'saveObject', object: {} }),
+            })
+            .build()()
+            .then(() => {
+              expect(saveObjectSpy).to.have.been.called
+              expect(saveObjectSpy.firstCall.args[0]).to.be.instanceOf(Action)
+              expect(saveObjectSpy.firstCall.args[0]).to.have.property(
+                'actionType',
+                'saveObject',
+              )
+            })
+        },
+      )
     })
 
     describe('if the caller called the "abort" callback', () => {
@@ -618,159 +676,6 @@ describe('ActionChain', () => {
     })
 
     describe('when executing emit actions', () => {
-      let page: any
-      let view: Component
-      let list: List
-      let image: Component
-      let textField: Component
-      let originalPage: any
-      let generalInfoTemp: { gender: { key: string; value: any } }
-      let mockOnClickEmitCallback: sinon.SinonSpy
-      let mockOnChangeEmitCallback: sinon.SinonSpy
-      let mockPathEmitCallback: sinon.SinonSpy
-      let pathEmit = {
-        emit: {
-          dataKey: {
-            var: 'generalInfoTemp',
-          },
-          actions: [
-            {
-              if: [
-                {
-                  '=.builtIn.object.has': {
-                    dataIn: {
-                      object: '..generalInfoTemp.gender',
-                      key: '$var.key',
-                    },
-                  },
-                },
-                'selectOn.png',
-                'selectOff.png',
-              ],
-            },
-          ],
-        },
-      } as any
-      let onChangeEmit = {
-        emit: {
-          dataKey: {
-            var: 'itemObject',
-          },
-          actions: [
-            {
-              '=.builtIn.object.set': {
-                dataIn: {
-                  object: '..generalInfoTemp',
-                  key: '$var.key',
-                  value: '$var.input',
-                },
-              },
-            },
-          ],
-        },
-      } as any
-
-      beforeEach(() => {
-        generalInfoTemp = {
-          gender: [
-            {
-              key: 'male',
-              value: 'Male',
-            },
-            {
-              key: 'female',
-              value: 'Female',
-            },
-            {
-              key: 'other',
-              value: 'Other',
-            },
-          ],
-        }
-        mockOnClickEmitCallback = sinon.spy(() => 'abc.png')
-        mockOnChangeEmitCallback = sinon.spy()
-        mockPathEmitCallback = sinon.spy(() => 'fruit.png')
-        noodlui
-          .use({
-            getRoot: () => ({ PatientChartGeneralInfo: { generalInfoTemp } }),
-          })
-          .setPage('PatientChartGeneralInfo')
-        noodlui.use([
-          {
-            actionType: 'emit',
-            fn: mockOnClickEmitCallback,
-            trigger: 'onClick',
-          },
-          {
-            actionType: 'emit',
-            fn: mockOnChangeEmitCallback,
-            trigger: 'onChange',
-          },
-          {
-            actionType: 'emit',
-            fn: mockPathEmitCallback,
-            trigger: 'path',
-          },
-        ] as any)
-        page = {
-          PatientChartGeneralInfo: {
-            generalInfoTemp,
-            components: [
-              {
-                type: 'view',
-                viewTag: 'genderTag',
-                children: [
-                  {
-                    type: 'image',
-                    path: pathEmit,
-                    onClick: [
-                      {
-                        emit: {
-                          dataKey: { var: 'generalInfoTemp' },
-                          actions: [{ if: [{}, {}, {}] }],
-                        },
-                      } as any,
-                      {
-                        actionType: 'builtIn',
-                        funcName: 'redraw',
-                        viewTag: 'genderTag',
-                      },
-                    ],
-                  },
-                  {
-                    type: 'textField',
-                    style: { width: '0.4', height: '0.03' },
-                    placeholder: 'Enter',
-                    dataKey: 'itemObject.input',
-                    onChange: onChangeEmit,
-                  },
-                ],
-              },
-            ],
-          },
-        }
-        // originalPage = page.originalPage
-        // view = page.components[0]
-        // image = view.child() as any
-        // textField = view.child(1) as any
-      })
-
-      xit('should populate dataObject in the instance', () => {
-        //
-      })
-
-      xit('should populate the dataKey(s)', () => {
-        //
-      })
-
-      xit('should populate the iteratorVar if the component is a list consumer', () => {
-        //
-      })
-
-      xit('should populate the trigger', () => {
-        //
-      })
-
       describe('when emitting for list consumers', () => {
         it('should populate the EmitAction instance with the dataKey and iteratorVar', async () => {
           const listObject = [
@@ -850,7 +755,7 @@ describe('ActionChain', () => {
           pageName,
           pageObject,
           getRoot,
-        })
+        } as any)
         actionChain.useAction({
           actionType: 'emit',
           fn: emitSpy,
@@ -864,23 +769,10 @@ describe('ActionChain', () => {
         expect(emitAction.dataKey).to.eq('Male')
       })
 
-      xit('should be able to access a dataObject coming from the local root', () => {
-        //
-      })
-
-      xit('should be able to access the dataObject coming from a list', () => {
-        //
-      })
-
-      xit('the dataObject passed to emit action should be in the args', () => {
-        const listItem = list.child() as ListItem
-        const image = listItem.child(1)
-      })
-
       it('should have a trigger value of "onClick" if triggered by an onClick', async () => {
         const emitSpy = sinon.spy()
         actionChain = createActionChain({
-          actions: [{ emit: { dataKey: 'f', actions: [] } }],
+          actions: [{ emit: { dataKey: 'f', actions: [] } }] as any,
         })
         actionChain.useAction({
           actionType: 'emit',
@@ -906,14 +798,6 @@ describe('ActionChain', () => {
             actions: [{}, {}, {}],
           },
         }
-        const createTextField = () =>
-          createComponent({
-            type: 'textField',
-            onChange: onChangeEmitObj,
-            onClick: onClickEmitObj,
-            placeholder: 'Enter',
-            dataKey: 'itemObject.input',
-          }) as Component
       })
 
       describe('when using onChange emit', () => {
@@ -929,7 +813,7 @@ describe('ActionChain', () => {
             dataKey: 'itemObject.input',
           }) as Component
           actionChain = createActionChain({
-            actions: [onChangeEmitObj],
+            actions: [onChangeEmitObj as any],
             component: textField,
             trigger: 'onChange',
           })
@@ -954,14 +838,14 @@ describe('ActionChain', () => {
     it('should refresh after done running', async () => {
       const component = createComponent('textField')
       const spy = sinon.spy()
-      actionChain = createActionChain(
-        [
+      actionChain = createActionChain({
+        actions: [
           pageJumpAction,
           popUpDismissAction,
-          { emit: { dataKey: 'hello', actions: [] } },
+          { emit: { dataKey: 'hello', actions: [] } } as any,
         ],
-        { component, trigger: 'onClick' },
-      )
+        component,
+      })
       actionChain.useAction([
         { actionType: 'pageJump', fn: spy },
         { actionType: 'popUpDismiss', fn: spy },
@@ -969,16 +853,12 @@ describe('ActionChain', () => {
       ])
       const onClick = actionChain.build()
       const queue = actionChain.getQueue().slice()
-      queue.forEach((action) => {
-        expect(action.executed).to.be.false
-      })
+      queue.forEach((action) => expect(action.executed).to.be.false)
       await onClick({})
-      queue.forEach((action) => {
-        expect(action.executed).to.be.true
-      })
-      actionChain.getQueue().forEach((action) => {
-        expect(action.executed).to.be.false
-      })
+      queue.forEach((action) => expect(action.executed).to.be.true)
+      actionChain
+        .getQueue()
+        .forEach((action) => expect(action.executed).to.be.false)
     })
   })
 })

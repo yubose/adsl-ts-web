@@ -733,6 +733,7 @@ class NOODL {
           component,
           getAssetsUrl: this.#getAssetsUrl.bind(this),
           getCbs: this.getCbs.bind(this),
+          getPageObject: this.getPageObject.bind(this),
           getResolvers: (() => this.#resolvers).bind(this),
           getRoot: this.#getRoot.bind(this),
           getState: this.getState.bind(this),
@@ -787,7 +788,7 @@ class NOODL {
     return this
   }
 
-  setViewport(viewport: T.IViewport) {
+  setViewport(viewport: Viewport) {
     this.#viewport = viewport
     return this
   }

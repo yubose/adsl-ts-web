@@ -40,6 +40,7 @@
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
   },
   "dependencies": {
-    "noodl-types": "file:../noodl-types"
+    "noodl-types": "file:../noodl-types",
+    "noodl-utils": "file:../noodl-utils"
   }
 }

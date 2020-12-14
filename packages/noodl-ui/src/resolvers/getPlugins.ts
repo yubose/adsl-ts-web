@@ -57,12 +57,8 @@ const getPlugins = (function (): ResolverFn {
             .set('content', plugin.content)
             .emit('plugin:content', plugin.content)
         })
-        .catch((err) => {
-          console.error(`[${err.name}]: ${err.message}`, err)
-        })
-        .finally(() => {
-          plugin.initiated = true
-        })
+        .catch((err) => console.error(`[${err.name}]: ${err.message}`, err))
+        .finally(() => (plugin.initiated = true))
     }
   }
 })()

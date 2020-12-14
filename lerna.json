@@ -5,11 +5,14 @@
     "bootstrap": {
       "hoist": true
     },
+    "add": {
+      "ignore": ["noodl-utils", "noodl-types", "noodl-building-blocks"]
+    },
     "run": {
-      "ignore": ["noodl-types", "noodl-building-blocks"]
+      "ignore": ["noodl-utils", "noodl-types", "noodl-building-blocks"]
     },
     "exec": {
-      "ignore": ["noodl-types", "noodl-building-blocks"]
+      "ignore": ["noodl-utils", "noodl-types", "noodl-building-blocks"]
     }
   }
 }

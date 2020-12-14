@@ -20,5 +20,8 @@
     "build": "rm -rf dist && tsc",
     "start": "rm -rf dist && tsc --watch",
     "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "noodl-utils": "file:../noodl-utils"
   }
 }

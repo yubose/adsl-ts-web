@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import sinon from 'sinon'
-import Logger from 'logsnap'
 import { Resolver, Viewport } from 'noodl-ui'
 import {
   assetsUrl,

@@ -2,10 +2,14 @@ import _ from 'lodash'
 import sinon from 'sinon'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
+import chaiDOM from 'chai-dom'
+import sinonChai from 'sinon-chai'
 import Logger, { _color } from 'logsnap'
 import { assetsUrl, noodlui } from './utils/test-utils'
 
 chai.use(chaiAsPromised)
+chai.use(chaiDOM)
+chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 

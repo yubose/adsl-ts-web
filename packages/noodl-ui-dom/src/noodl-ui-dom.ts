@@ -4,11 +4,8 @@ import {
   Component,
   ComponentObject,
   ComponentType,
-  getPluginTypeLocation,
   getTagName,
   ListItem,
-  PluginLocation,
-  PluginObject,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent, publish } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
@@ -21,17 +18,7 @@ import * as T from './types'
 
 const log = Logger.create('noodl-ui-dom')
 
-function createPluginState(): {
-  head: PluginObject[]
-  body: {
-    top: PluginObject[]
-    bottom: PluginObject[]
-  }
-} {
-  return { head: [], body: { top: [], bottom: [] } }
-}
-
-class NOODLUIDOM implements T.INOODLUiDOM {
+class NOODLUIDOM {
   #callbacks: {
     all: Function[]
     component: Record<T.NOODLDOMComponentType, Function[]>
@@ -43,8 +30,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
-  #plugins: ReturnType<typeof createPluginState> = createPluginState()
-  #state: {} = {}
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
     // Logger[log?.enabled ? 'enable' : 'disable']?.()
@@ -83,26 +68,22 @@ class NOODLUIDOM implements T.INOODLUiDOM {
               : 'text/html'
             if (mimeType === 'text/javascript') {
               node = document.createElement('script')
-              node.type = 'text/javascript'
+              ;(node as HTMLScriptElement).type = 'text/javascript'
               node.onload = () => {
                 if (plugin.location === 'head') {
-                  document.head.appendChild(node)
+                  document.head.appendChild(node as any)
                 } else if (plugin.location === 'body-top') {
-                  document.body.insertBefore(node, document.body.childNodes[0])
+                  document.body.insertBefore(
+                    node as any,
+                    document.body.childNodes[0],
+                  )
                 } else if (plugin.location === 'body-bottom') {
-                  document.body.appendChild(node)
+                  document.body.appendChild(node as any)
                 }
               }
-              // TODO - Add more supported mime types
               component.on('path', (newSrc: string) => {
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
                 src = newSrc
-                node.src = src
+                node && ((node as HTMLImageElement).src = src)
               })
               // The behavior for these specific components will take on the shape of
               // a <script> DOM node, since the fetched contents from their url comes within
@@ -114,9 +95,8 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       } else {
         if (component.noodlType === 'image') {
           component.on('path', (result: string) => {
-            node.src = result
+            node && ((node as HTMLImageElement).src = result)
           })
-          // console.info(component.get('path'))
           node = isEmitObj(component.get('path'))
             ? createAsyncImageElement(container || document.body, {})
             : document.createElement('img')
@@ -161,39 +141,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     }
 
     return node || null
-  }
-
-  plugins(location?: PluginLocation) {
-    switch (location) {
-      case 'head':
-        return this.#plugins.head
-      case 'body-top':
-        return this.#plugins.body.top
-      case 'body-bottom':
-        return this.#plugins.body.bottom
-      default:
-        return this.#plugins
-    }
-  }
-
-  #createPluginObject = (component: Component): PluginObject => {
-    if (component instanceof Component) {
-      const plugin = component.get(['location', 'content', 'src'])
-      plugin.url = plugin.src
-      delete plugin.src
-      if (!component.get('content')) {
-        component.on('plugin:content', (content) => {
-          console.info(
-            `Received plugin content hehehehe`,
-            component.get('content'),
-          )
-          // plugin.content = content
-        })
-        console.info(plugin)
-      }
-      return plugin
-    }
-    return { location: undefined, content: undefined, url: undefined }
   }
 
   redraw(
@@ -250,7 +197,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       newComponent = createComponent(shape)
       if (dataObject && newComponent?.noodlType === 'listItem') {
         // Set the original dataObject on the new component instance if available
-        newComponent.setDataObject?.(dataObject)
+        ;(newComponent as any).setDataObject?.(dataObject)
       }
       if (parent && newComponent) {
         // Set the original parent on the new component
@@ -261,29 +208,23 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         parent.createChild(newComponent)
         // Run the resolver if provided
         // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
-        newComponent = opts?.resolver?.(newComponent) || newComponent
+        newComponent = opts?.resolver?.(newComponent as any) || newComponent
       } else if (newComponent) {
         // log --> !parent || !newComponent
-        newComponent = opts?.resolver?.(newComponent) || newComponent
+        newComponent = opts?.resolver?.(newComponent as any) || newComponent
       }
     }
 
     if (node) {
       const parentNode = node.parentNode
       if (newComponent) {
-        newNode = this.parse(newComponent, parentNode || document.body)
+        newNode = this.parse(
+          newComponent,
+          (parentNode || document.body) as HTMLElement,
+        )
       }
 
       if (parentNode) {
-        if (!newNode) {
-          log.red(`The new node created from redraw is null`, {
-            newNode,
-            node,
-            parentNode,
-            component,
-            newComponent,
-          })
-        }
         if (parentNode.contains(node) && newNode) {
           parentNode.replaceChild(newNode as HTMLElement, node)
         } else if (newNode) {
@@ -296,7 +237,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.parse(newComponent)
+      this.parse(newComponent as Component)
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]
@@ -321,10 +262,7 @@ class NOODLUIDOM implements T.INOODLUiDOM {
    * @param { string } eventName - Name of the listener event
    * @param { function } callback
    */
-  off<E extends T.NOODLDOMEvent>(
-    eventName: E,
-    callback: Parameters<T.INOODLUiDOM['off']>[1],
-  ) {
+  off<E extends T.NOODLDOMEvent>(eventName: E, callback: Function) {
     const callbacks = this.getCallbacks(eventName)
     if (Array.isArray(callbacks)) {
       const index = callbacks.indexOf(callback)
@@ -370,10 +308,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     return null
   }
 
-  getState() {
-    return this.#state
-  }
-
   /**
    * Returns true if key can exist as a property or method on a DOM node of tagName
    * @param { string } tagName - HTML tag
@@ -415,7 +349,6 @@ class NOODLUIDOM implements T.INOODLUiDOM {
   }
 
   reset() {
-    this.#plugins = createPluginState()
     this.#callbacks.all.length = 0
     Object.keys(this.#callbacks.component).forEach((key) => {
       this.#callbacks.component[key].length = 0

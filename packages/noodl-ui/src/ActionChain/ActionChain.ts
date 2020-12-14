@@ -168,7 +168,6 @@ class ActionChain<
           log.red(
             'Cannot start action chain without actions in the queue',
             this.getDefaultCallbackArgs({
-              ref: this,
               event,
             }),
           )
@@ -284,6 +283,7 @@ class ActionChain<
       abort: this.abort.bind(this),
       actions: this.actions,
       queue: this.getQueue(),
+      snapshot: this.getSnapshot(),
       status: this.status,
     }
   }
@@ -341,11 +341,6 @@ class ActionChain<
             } as T.GotoObject
           }
 
-          console.info(
-            'this.createAction[actionObj.actionType]: ',
-            this.createAction[actionObj.actionType],
-          )
-
           if (typeof this.createAction[actionObj.actionType] === 'function') {
             action = this.createAction[actionObj.actionType](actionObj as any)
           } else {
@@ -395,6 +390,7 @@ class ActionChain<
     if (typeof this.createAction[actionObj.actionType] === 'function') {
       action = this.createAction[actionObj.actionType](actionObj as any)
       this.#queue.unshift(action as Action)
+      this.intermediary.push(action as Action)
     } else {
       log.func('insertIntermediaryAction')
       log.red(

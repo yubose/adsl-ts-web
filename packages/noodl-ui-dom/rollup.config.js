@@ -34,7 +34,7 @@ const config = {
       browser: true,
       extensions,
       customResolveOptions: {
-        moduleDirectory: ['node_modules'],
+        moduleDirectory: ['../../node_modules'],
       },
     }),
     typescript({

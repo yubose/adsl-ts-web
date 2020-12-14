@@ -49,7 +49,7 @@ const createActionCreatorFactory = function (
       const fn = yield
       result = await fn?.(
         action,
-        { ...consumerArgs, ...ref.getSnapshot(), event },
+        { ...consumerArgs, snapshot: ref.getSnapshot(), event, ref },
         ref.actionsContext,
       )
       results.push(result)

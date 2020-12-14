@@ -74,18 +74,18 @@ export interface ActionChainSnapshot {
   status: ActionChain<ActionObject[], Component>['status']
 }
 
-export interface ActionChainCallbackOptions<Actions extends any[] = any[]> {
+export interface ActionChainCallbackOptions {
   abort(reason?: string | string[]): Promise<any>
   error?: Error
   event: EventTarget | undefined
   parser?: RootsParser
-  snapshot: ActionChainSnapshot<Actions>
+  snapshot: ActionChainSnapshot
   trigger: ActionTriggerType
 }
 
 export interface ActionChainActionCallback<A extends ActionObject = any> {
   (
-    action: A,
+    action: Action<A>,
     options: ActionConsumerCallbackOptions,
     actionsContext: ActionChainContext,
   ): Promise<any> | void
@@ -98,15 +98,16 @@ export interface ActionConsumerCallbackOptions
       | 'component'
       | 'getAssetsUrl'
       | 'getCbs'
+      | 'getPageObject'
       | 'getResolvers'
       | 'getRoot'
       | 'getState'
-      | 'page'
       | 'plugins'
       | 'setPlugin'
       | 'viewport'
     > {
   abort?: ActionChain['abort']
+  page?: string
   event?: Event
   path?: EmitObject
   ref?: ActionChain
