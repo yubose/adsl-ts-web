@@ -10,6 +10,7 @@ import {
   Component,
   ListItem,
   EmitAction,
+  Action,
 } from 'noodl-ui'
 import {
   LocalAudioTrack,
@@ -179,25 +180,41 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.checkField = (action, options) => {
     log.func('checkField')
     log.grey('checkField', { action, options })
-    const contentType =
-      action?.original?.contentType || action?.contentType || ''
-    // const { contentType } =
-    //   (action.original as NOODLBuiltInCheckFieldObject) || {}
-    const node = getByDataUX(contentType)
-    console.groupCollapsed({ action, options, node })
-    console.trace()
-    console.groupEnd()
-    if (node) {
-      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) => {
-        const result = isHidden ? 'visible' : 'hidden'
-        log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
-          action,
-          ...options,
-          node,
-          result,
+    let contentType: string = '',
+      delay: number = 0
+
+    if (action instanceof Action) {
+      contentType = action.original?.contentType || ''
+      delay = action.original?.wait || 0
+    } else {
+      contentType = action.contentType || ''
+      delay = action.wait || 0
+    }
+
+    const onCheckField = () => {
+      const node = getByDataUX(contentType)
+      log.gold('checkField', { contentType, delay, action })
+      console.groupCollapsed({ action, options, node, contentType, delay })
+      console.trace()
+      console.groupEnd()
+      if (node) {
+        toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) => {
+          const result = isHidden ? 'visible' : 'hidden'
+          log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
+            action,
+            ...options,
+            node,
+            result,
+          })
+          return result
         })
-        return result
-      })
+      }
+    }
+
+    if (delay > 0) {
+      setTimeout(() => onCheckField(), delay)
+    } else {
+      onCheckField()
     }
   }
 
