@@ -416,7 +416,7 @@ export function isEmitActionObj(value: unknown): value is EmitActionObject {
   )
 }
 
-export function isIfObj(value: unknown): value is IfObject {
+export function isIfObj(value: any): value is IfObject {
   return value && typeof value === 'object' && 'if' in value
 }
 
@@ -515,7 +515,7 @@ export function publish(component: Component, cb: (child: Component) => void) {
   if (component && component instanceof Component) {
     component.children().forEach((child: Component) => {
       cb(child)
-      // publish(child, cb)
+      // @ts-expect-error
       child?.children?.forEach?.((c) => publish(c, cb))
     })
   }
