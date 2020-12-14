@@ -1,8 +1,14 @@
-76 warn complete Waiting for 1 child process to exit. CTRL-C to exit immediately.
-77 error Error: Command failed: git tag logsnap@0.0.17 -m logsnap@0.0.17
-77 error fatal: tag 'logsnap@0.0.17' already exists
-77 error
-77 error     at makeError (/Users/christ/aitmed-noodl-web/node_modules/execa/index.js:174:9)
-77 error     at /Users/christ/aitmed-noodl-web/node_modules/execa/index.js:278:16
-77 error     at processTicksAndRejections (internal/process/task_queues.js:93:5)
-77 error     at async Promise.all (index 0)
+0 silly argv {
+0 silly argv   _: [ 'exec' ],
+0 silly argv   scope: 'noodl-ui',
+0 silly argv   args: [],
+0 silly argv   lernaVersion: '3.22.1',
+0 silly argv   '$0': 'lerna',
+0 silly argv   cmd: 'npm run start'
+0 silly argv }
+1 notice cli v3.22.1
+2 verbose rootPath /Users/christ/aitmed-noodl-web
+3 info versioning independent
+4 error JSONError: Unexpected number in JSON at position 1372 while parsing '{  "name": "noodl-ui",  "version": "0.' in packages/noodl-ui/package.json
+4 error     at module.exports (/Users/christ/aitmed-noodl-web/node_modules/load-json-file/node_modules/parse-json/index.js:26:19)
+4 error     at parse (/Users/christ/aitmed-noodl-web/node_modules/load-json-file/index.js:15:9)

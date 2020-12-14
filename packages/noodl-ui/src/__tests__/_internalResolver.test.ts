@@ -2,16 +2,13 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import chalk from 'chalk'
 import _ from 'lodash'
-import { prettyDOM } from '@testing-library/dom'
 import { findChild, findParent } from 'noodl-utils'
 import _internalResolver from '../resolvers/_internal'
 import Component from '../components/Base'
 import List from '../components/List'
-import ListItem from '../components/ListItem'
 import { assetsUrl, noodlui } from '../utils/test-utils'
 import { ComponentObject } from '../types'
 import { event } from '../constants'
-import createComponent from '../utils/createComponent'
 
 describe('_internalResolver', () => {
   describe('list', () => {

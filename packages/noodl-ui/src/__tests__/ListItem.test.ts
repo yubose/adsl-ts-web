@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import { expect } from 'chai'
-import { mock } from './mockData'
 import Component from '../components/Base'
 import ListItemComponent from '../components/ListItem'
 

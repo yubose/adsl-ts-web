@@ -21,6 +21,11 @@
     "strictNullChecks": true,
     "target": "es2015"
   },
-  "include": ["src", "packages/**/*.ts"],
+  "include": [
+    "src",
+    "packages/noodl-ui/**/*",
+    "packages/noodl-utils/**/*",
+    "packages/noodl-ui-dom/**/*"
+  ],
   "exclude": ["_data", "node_modules", "legacy"]
 }

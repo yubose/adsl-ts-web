@@ -6,10 +6,10 @@
       "hoist": true
     },
     "run": {
-      "ignore": ["noodl-building-blocks"]
+      "ignore": ["noodl-types", "noodl-building-blocks"]
     },
     "exec": {
-      "ignore": ["noodl-building-blocks"]
+      "ignore": ["noodl-types", "noodl-building-blocks"]
     }
   }
 }

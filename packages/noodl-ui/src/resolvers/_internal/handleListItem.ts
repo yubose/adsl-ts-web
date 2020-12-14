@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import createComponent from '../../utils/createComponent'
 import { ResolverFn } from '../../types'
 
 const log = Logger.create('internal[handleListItem')

@@ -5,7 +5,6 @@ import NOODLUI from '../noodl-ui'
 import {
   ConsumerOptions,
   PageObject,
-  ResolverContext,
   Root,
   RootsParser,
   StateGetters,
