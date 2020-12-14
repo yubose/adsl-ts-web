@@ -4,7 +4,6 @@ const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const pkg = require('./package.json')
-const logsnapPkg = require('./packages/logsnap/package.json')
 const noodluiPkg = require('./packages/noodl-ui/package.json')
 const noodlutilsPkg = require('./packages/noodl-utils/package.json')
 const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
@@ -44,7 +43,6 @@ const plugins = [
         'noodl-ui': noodluiPkg.version,
         'noodl-utils': noodlutilsPkg.version,
         'noodl-ui-dom': noodluidomPkg.version,
-        logsnap: logsnapPkg.version,
         typescript: pkg.devDependencies.typescript,
         'twilio-video': pkg.devDependencies['twilio-video'],
       },
