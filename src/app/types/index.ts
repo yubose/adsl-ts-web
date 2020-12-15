@@ -9,7 +9,6 @@ export * from './pageTypes'
 export type BuiltInFuncName =
   | 'checkField'
   | 'checkUsernamePassword'
-  | 'checkVerificationCode'
   | 'cleanLocalStorage'
   | 'goBack'
   | 'goto'

@@ -15,8 +15,6 @@ class App {
   public async initialize() {
     const { default: noodl } = await import('app/noodl')
 
-    await noodl.init()
-
     const startPage = noodl?.cadlEndpoint?.startPage
 
     if (!this.authStatus) {

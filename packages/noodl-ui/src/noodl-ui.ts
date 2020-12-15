@@ -29,6 +29,7 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import createComponent from './utils/createComponent'
+import getActionConsumerOptions from './utils/getActionConsumerOptions'
 import Action from './Action'
 import ActionChain from './ActionChain'
 import EmitAction from './Action/EmitAction'
@@ -199,12 +200,14 @@ class NOODL {
   createActionChainHandler(
     actions: T.ActionObject[],
     options: T.ActionConsumerCallbackOptions & {
-      trigger: T.ActionChainEmitTrigger
+      trigger?: T.ActionChainEmitTrigger
     },
   ) {
     const actionChain = new ActionChain(
       _.isArray(actions) ? actions : [actions],
-      options,
+      options as T.ActionConsumerCallbackOptions & {
+        trigger: T.ActionChainEmitTrigger
+      },
       this.actionsContext,
     )
     const useActionObjects = _.reduce(
@@ -729,18 +732,9 @@ class NOODL {
       context: this.getContext(),
       createActionChainHandler: (action, options) =>
         this.createActionChainHandler.call(this, action, {
+          ...getActionConsumerOptions(this),
           ...options,
           component,
-          getAssetsUrl: this.#getAssetsUrl.bind(this),
-          getCbs: this.getCbs.bind(this),
-          getPageObject: this.getPageObject.bind(this),
-          getResolvers: (() => this.#resolvers).bind(this),
-          getRoot: this.#getRoot.bind(this),
-          getState: this.getState.bind(this),
-          page: this.page,
-          plugins: this.plugins.bind(this),
-          setPlugin: this.setPlugin.bind(this),
-          viewport: this.viewport,
         }),
       createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
       fetch: this.#fetch.bind(this),

@@ -90,6 +90,7 @@ window.addEventListener('load', async () => {
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
 
+  await noodl.init()
   listen(noodluidom)
 
   // Auto login for the time being
@@ -324,15 +325,11 @@ window.addEventListener('load', async () => {
               _.entries({
                 checkField: builtIn.checkField,
                 checkUsernamePassword: builtIn.checkUsernamePassword,
-                enterVerificationCode: builtIn.checkVerificationCode,
                 goBack: builtIn.goBack,
                 lockApplication: builtIn.lockApplication,
                 logOutOfApplication: builtIn.logOutOfApplication,
                 logout: builtIn.logout,
                 redraw: builtIn.redraw,
-                signIn: builtIn.signIn,
-                signUp: builtIn.signUp,
-                signout: builtIn.signout,
                 toggleCameraOnOff: builtIn.toggleCameraOnOff,
                 toggleFlag: builtIn.toggleFlag,
                 toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,

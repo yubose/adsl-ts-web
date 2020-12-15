@@ -38,7 +38,7 @@ const getPlugins = (function (): ResolverFn {
   return (component, { createSrc, fetch, getAssetsUrl, plugins }) => {
     if (isPluginComponent(component)) {
       const path = component.get('path') || ''
-      const plugin = component.get('plugin') as PluginObject
+      const plugin = (component.get('plugin') as PluginObject) || {}
 
       let src: string
 
