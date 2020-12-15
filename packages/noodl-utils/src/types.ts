@@ -2,10 +2,6 @@ export type DateLike<T extends { 'text=func': any } = { 'text=func': any }> = T
 
 export type PlainObject = { [key: string]: any }
 
-export interface PlainObjectFunc<DataObject = PlainObject> {
-  (): DataObject
-}
-
 export interface DataObject {
   [key: string]: any
 }

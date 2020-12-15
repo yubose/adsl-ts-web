@@ -54,7 +54,7 @@ describe('createEmitDataKey', () => {
   })
 })
 
-describe('findDataObject', () => {
+describe('findDataValue', () => {
   let listId = 'mylistid'
   let listObject = [
     { fruits: ['apple'], color: 'purple' },
@@ -104,9 +104,7 @@ describe('findDataObject', () => {
         listItem.createChild(label1)
         listItem.createChild(label2)
         listItem.setDataObject(pageObject.hello)
-        expect(n.findDataObject(pageObject, { component: label1 })).to.eq(
-          listItem.getDataObject(),
-        )
+        expect(n.findListDataObject(label1)).to.eq(listItem.getDataObject())
       })
     })
 
@@ -138,18 +136,18 @@ describe('findDataObject', () => {
           label1.set('iteratorVar', list.iteratorVar)
           const child3 = listItem.child(2)
           console.info(child3.toJS())
-          expect(n.findDataObject(label1)).to.eq(listObject[0])
+          expect(n.findListDataObject(label1)).to.eq(listObject[0])
         },
       )
     })
   })
 
   it('should be able to return the data object by using a page object', () => {
-    expect(n.findDataObject(pageObject, 'hello.name')).to.eq('Henry')
+    expect(n.findDataValue(pageObject, 'hello.name')).to.eq('Henry')
   })
 
   it('should be able to return the data object by using a root object', () => {
-    expect(n.findDataObject(root, 'Bottle')).to.eq(pageObject)
+    expect(n.findDataValue(root, 'Bottle')).to.eq(pageObject)
   })
 })
 
@@ -185,10 +183,6 @@ describe('findDataValue', () => {
       {},
     ]
     expect(n.findDataValue(objs, 'doctors.michael')).to.eq(dataObject)
-  })
-
-  xit('should work with data objs', () => {
-    //
   })
 
   it('should retrieve the value', () => {
@@ -261,11 +255,11 @@ describe('isBreakLineTextBoardItem', () => {
     expect(n.isBreakLineTextBoardItem({ text: 'hello' })).to.be.false
   })
 
-  xit('should return true', () => {
+  it('should return true', () => {
     expect(n.isBreakLineTextBoardItem({ br: undefined })).to.be.true
   })
 
-  xit('should return true', () => {
+  it('should return true', () => {
     expect(n.isBreakLineTextBoardItem('br')).to.be.true
   })
 })

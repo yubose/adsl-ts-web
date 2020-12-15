@@ -14,15 +14,7 @@ import {
   ListItem,
   NOODLComponent,
 } from 'noodl-ui'
-import {
-  array,
-  isArr,
-  isBool,
-  isFnc,
-  isObj,
-  isStr,
-  unwrapObj,
-} from './_internal'
+import { isArr, isBool, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
 
 const log = Logger.create('noodl-utils')
@@ -469,8 +461,10 @@ export function publish(component: Component, cb: (child: Component) => void) {
   if (component && component instanceof Component) {
     component.children().forEach((child: Component) => {
       cb(child)
-      // @ts-expect-error
-      child?.children?.forEach?.((c) => publish(c, cb))
+      child?.children()?.forEach?.((c) => {
+        cb(c)
+        publish(c, cb)
+      })
     })
   }
 }
