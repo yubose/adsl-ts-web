@@ -160,9 +160,8 @@ export function findChild<C extends Component>(
       if (child?.length) {
         child.children?.().forEach((c: Component) => children.push(c))
         child = children.pop()
-      } else {
-        break
       }
+      if (!children.length) break
     }
   }
   return null
