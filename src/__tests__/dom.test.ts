@@ -675,7 +675,8 @@ describe('dom', () => {
         { key: 'gender', value: 'Female' },
         { key: 'gender', value: 'Other' },
       ]
-      noodlui.actionsContext = { noodl: { emitCall: () => [''] } }
+      // @ts-expect-error
+      noodlui.actionsContext = { noodl: {} }
       noodlui.removeCbs('emit')
       noodlui
         .setPage('SignIn')

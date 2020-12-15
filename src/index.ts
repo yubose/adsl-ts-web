@@ -57,6 +57,7 @@ const log = Logger.create('src/index.ts')
  */
 function createPreparePage(options: {
   builtIn: {
+    checkField: any
     goto: ActionChainActionCallback<BuiltInObject>
     videoChat: (
       action: BuiltInObject & {
@@ -141,6 +142,7 @@ window.addEventListener('load', async () => {
 
   const preparePage = createPreparePage({
     builtIn: {
+      checkField: builtIn.checkField,
       goto: builtIn.goto,
       videoChat: onVideoChatBuiltIn({ joinRoom: Meeting.join }),
     },

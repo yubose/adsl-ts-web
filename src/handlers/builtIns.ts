@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { isDraft, original } from 'immer'
 import {
+  Action,
   ActionConsumerCallbackOptions,
   BuiltInObject,
   Component,
@@ -39,22 +40,41 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
   builtInActions.checkField = (action, options) => {
     log.func('checkField')
-    const { contentType } = action.original as NOODLBuiltInCheckFieldObject
-    const node = getByDataUX(contentType)
-    console.groupCollapsed({ action, options, node })
-    console.trace()
-    console.groupEnd()
-    if (node) {
-      toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) => {
-        const result = isHidden ? 'visible' : 'hidden'
-        log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
-          action,
-          ...options,
-          node,
-          result,
+    log.grey('checkField', { action, options })
+    let contentType: string = '',
+      delay: number = 0
+
+    if (action instanceof Action) {
+      contentType = action.original?.contentType || ''
+      delay = Number(action.original?.wait) || 0
+    } else {
+      contentType = action.contentType || ''
+      delay = Number(action.wait) || 0
+    }
+
+    const onCheckField = () => {
+      const node = getByDataUX(contentType)
+      console.groupCollapsed({ action, options, node })
+      console.trace()
+      console.groupEnd()
+      if (node) {
+        toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) => {
+          const result = isHidden ? 'visible' : 'hidden'
+          log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
+            action,
+            ...options,
+            node,
+            result,
+          })
+          return result
         })
-        return result
-      })
+      }
+    }
+
+    if (delay > 0) {
+      setTimeout(() => onCheckField, delay)
+    } else {
+      onCheckField()
     }
   }
 
