@@ -90,7 +90,6 @@ window.addEventListener('load', async () => {
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
 
-  await noodl.init()
   listen(noodluidom)
 
   // Auto login for the time being
