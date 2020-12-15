@@ -35,7 +35,6 @@ import validate from '../utils/validate'
 import Page from '../Page'
 import { toggleVisibility } from '../utils/dom'
 import { BuiltInActions } from '../app/types'
-import { NOODLBuiltInCheckFieldObject } from '../app/types/libExtensionTypes'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
