@@ -153,14 +153,12 @@ export function findChild<C extends Component>(
   let child: Component | null | undefined
   let children = component?.children?.()?.slice?.() || []
 
-  if (component) {
+  if (component instanceof Component) {
     child = children.shift() || null
     while (child) {
       if (fn(child)) return child
-      if (child?.length) {
-        child.children?.().forEach((c: Component) => children.push(c))
-        child = children.pop()
-      } else if (!children.length) break
+      child.children?.().forEach((c: Component) => children.push(c))
+      child = children.pop()
     }
   }
   return null
