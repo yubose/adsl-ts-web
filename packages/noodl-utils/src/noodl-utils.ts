@@ -394,9 +394,10 @@ export function isListKey(
     if (component instanceof Component) {
       const iteratorVar =
         component.get('iteratorVar') ||
+        component.original?.iteratorVar ||
         findParent(component, (p) => !!p?.get('iteratorVar')) ||
         ''
-      return !!iteratorVar && dataKey.startsWith(iteratorVar)
+      return !!(iteratorVar && dataKey.startsWith(iteratorVar))
     }
     if ('iteratorVar' in component) {
       return dataKey.startsWith(component.iteratorVar || '')
