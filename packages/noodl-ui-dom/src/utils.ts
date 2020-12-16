@@ -50,6 +50,24 @@ export const get = <T = any>(o: T, k: string) => {
   return result
 }
 
+export function getDataAttribKeys() {
+  return [
+    'data-key',
+    'data-listid',
+    'data-name',
+    'data-viewtag',
+    'data-value',
+    'data-ux',
+  ] as (
+    | 'data-key'
+    | 'data-listid'
+    | 'data-name'
+    | 'data-viewtag'
+    | 'data-value'
+    | 'data-ux'
+  )[]
+}
+
 /**
  *
  * @param { Component | ComponentObject | ComponentType } component - NOODL component object, instance, or type
@@ -244,4 +262,18 @@ export function isTextFieldLike(
       node.tagName === 'SELECT' ||
       node.tagName === 'TEXTAREA')
   )
+}
+
+export function withEnhancedGet(fn) {
+  return function (node: HTMLElement, component: Component) {
+    const enhancedComponent = Object.create(component)
+    Object.defineProperty(enhancedComponent, 'get', {
+      value: function (...args) {
+        const key = args[0]
+        console.info(`KEY IN CLOSURE: `, key)
+        return component.get(...args)
+      },
+    })
+    return fn(node, component)
+  }
 }

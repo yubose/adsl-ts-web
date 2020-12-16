@@ -1,79 +1,139 @@
-export default function (noodluidom: any) {}
+import { Component } from 'noodl-ui'
+import { getDataAttribKeys } from '../../utils'
 
-// noodluidom.on('component', (node, component: Component) => {
-//   if (!node || !component) return
-//   log.func('on [component]')
+export interface AttribConfig {
+  name?:string
+  keys?: string | string[]
+  cond?(node: HTMLElement | null, component: Component): boolean
+  fn(node:HTMLElement | null,component:Component):void
+}
 
-//   const {
-//     children,
-//     options,
-//     placeholder = '',
-//     src,
-//     text = '',
-//   } = component.get(['children', 'options', 'src', 'text', 'videoFormat'])
+const handlers = (function() {
+  let objs = []
 
-//   const { style, type } = component
-//   /** Handle attributes */
-//   if (_.isArray(defaultPropTable.attributes)) {
-//     _.forEach(defaultPropTable.attributes, (key) => {
-//       let attr, val: any
-//       if (!_.isString(key)) {
-//         const { attribute, cond } = key
-//         if (_.isFunction(cond)) {
-//           if (cond(node, component)) attr = attribute
-//         } else {
-//           attr = attribute
-//         }
-//         val =
-//           component.get((attr || '') as any) ||
-//           component[(attr || '') as keyof Component]
-//       } else {
-//         attr = key
-//       }
-//       val =
-//         component.get((attr || '') as keyof Component) ||
-//         component[(attr || '') as keyof Component]
-//       if (val !== undefined) node.setAttribute(attr as keyof typeof node, val)
-//     })
-//   }
-//   /** Handle dataset assignments */
-//   if (_.isArray(defaultPropTable.dataset)) {
-//     _.forEach(defaultPropTable.dataset, (key) => {
-//       const val = component.get(key) || component[key as keyof Component]
-//       if (val !== undefined) node.dataset[key.replace('data-', '')] = val
-//       // Initiate the value
-//       if (key === 'data-value' && 'value' in node) {
-//         node.value = node.dataset.value
-//       }
-//     })
-//     if (isEmitObj(component.get('dataKey'))) {
-//       component.on('dataKey', (dataKey: string) => {
-//         node.dataset.key = val
-//       })
-//     }
-//   }
-//   // Handle direct assignments
-//   if (_.isArray(defaultPropTable.values)) {
-//     const pending = defaultPropTable.values.slice()
-//     let prop = pending.pop()
-//     let val
-//     while (prop) {
-//       if (prop !== undefined) {
-//         val = component.get(prop) || component[prop as keyof Component]
-//         // @ts-expect-error
-//         if (val !== undefined) node[prop] = val
-//       }
-//       prop = pending.pop()
-//     }
-//   }
+  const o = {
+    register(obj: AttribConfig) {
+      objs = objs.concat(obj)
+      return o
+    },
+    run(node: HTMLElement | null, component: Component) {
+      const numObjs = objs.length
+      for (let index = 0; index < numObjs; index++) {
+        const obj = objs[index];
+      }
+      return o
+    }
+  }
+  return o
+})()
 
-//   // The src is placed on its "source" dom node
-//   if (src && /(video)/.test(type)) node.removeAttribute('src')
+  handlers.register({
+    name: 'dataset',
+    keys: getDataAttribKeys(),
+    fn: (node, component) => {
+      if (node && component) {
+        Object.entries(component.get(getDataAttribKeys() as any) as { [key:string]:any}).forEach(([k,v]) => {
+          if (v != undefined) node.dataset[k.replace('data-', '')] = v
+        })
+      }
+     
+    }
+  })
+.register({
+  name: 'src',
+  keys: 'src',
+  cond:(node,component)=>node.tagName !== 'VIDEO',
+})
 
-//   const datasetAttribs = component.get(defaultPropTable.dataset)
 
-//   /** Data values */
-//   /** Emit's onChange will be handled in action handlers */
+
+
+
+
+const defaultPropTable = {
+  dataset: getDataAttribKeys().slice(),
+  values: ['id'] as string[],
+  attributes: [
+    'placeholder',
+    {
+      attribute: 'src',
+      cond: (node: any) => node.tagName !== 'VIDEO',
+    },
+  ] as (
+    | string
+    | {
+        attribute: string
+        cond?(node: any, component: Component): boolean
+      }
+  )[],
+}
+
+function handleDatasetAttribs(node, component) {
+  const {
+    children,
+    options,
+    placeholder = '',
+    src,
+    text = '',
+  } = component.get(['children', 'options', 'src', 'text', 'videoFormat'])
+
+  node.id = component.id || ''
+
+  const { style, type } = component
+  /** Handle attributes */
+  if (_.isArray(defaultPropTable.attributes)) {
+    _.forEach(defaultPropTable.attributes, (key) => {
+      let attr, val: any
+      if (!_.isString(key)) {
+        const { attribute, cond } = key
+        if (_.isFunction(cond)) {
+          if (cond(node, component)) attr = attribute
+        } else {
+          attr = attribute
+        }
+        val =
+          component.get((attr || '') as any) ||
+          component[(attr || '') as keyof Component]
+      } else {
+        attr = key
+      }
+      val =
+        component.get((attr || '') as keyof Component) ||
+        component[(attr || '') as keyof Component]
+      if (val !== undefined) node.setAttribute(attr as keyof typeof node, val)
+    })
+  }
+  /** Handle dataset assignments */
+  getDataAttribKeys().forEach((key) => {
+      const val = component.get(key) || component[key ]
+      if (val !== undefined) node.dataset[key.replace('data-', '')] = val
+      // Initiate the value
+      if (key === 'data-value' && 'value' in node) {
+        node.value = node.dataset.value
+      }
+    })
+  // Handle direct assignments
+  // if (_.isArray(defaultPropTable.values)) {
+  //   const pending = defaultPropTable.values.slice()
+  //   let prop = pending.pop()
+  //   let val
+  //   while (prop) {
+  //     if (prop !== undefined) {
+  //       val = component.get(prop) || component[prop as keyof Component]
+  //       // @ts-expect-error
+  //       if (val !== undefined) node[prop] = val
+  //     }
+  //     prop = pending.pop()
+  //   }
+  // }
+
+  // The src is placed on its "source" dom node
+  // if (src && /(video)/.test(type)) node.removeAttribute('src')
+
+  // const datasetAttribs = component.get(defaultPropTable.dataset)
+
+  /** Data values */
+  /** Emit's onChange will be handled in action handlers */
 //   if (!isEmitObj(component.get('dataValue'))) {
 //     if (component.get('text=func')) {
 //       node.innerHTML = datasetAttribs['data-value'] || ''
@@ -91,6 +151,11 @@ export default function (noodluidom: any) {}
 //         datasetAttribs['data-value'] || component.get('placeholder') || ''
 //     }
 //   }
+// }
+
+// noodluidom.on('component', (node, component: Component) => {
+//   if (!node || !component) return
+//   log.func('on [component]')
 
 //   // The "handler" argument is a func returned from ActionChain#build
 //   const attachEventHandler = (eventType: any, handler: Function) => {
