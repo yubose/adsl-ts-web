@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { expect } from 'chai'
 import sinon from 'sinon'
 import { createComponent, Component, List, ListItem } from 'noodl-ui'

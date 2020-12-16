@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { publish } from 'noodl-utils'
 import Component from '../../components/Base'
 import handleList from './handleList'
 import handleTextboard from './handleTextboard'
@@ -34,7 +35,18 @@ _internalResolver.setResolver((component, options) => {
     })
   }
 
+  const resolveInternalNode = <C extends Component = any>(c: C) => {
+    console.log(options.componentCache().state())
+    if (c.id && typeof options.componentCache === 'function') {
+      options.componentCache().set(c)
+      publish(c as any, (innerChild) => {
+        if (innerChild?.id) options.componentCache().set(innerChild)
+      })
+    }
+  }
+
   resolveChildren(component)
+  resolveInternalNode(component)
 })
 
 _internalResolver.internal = true

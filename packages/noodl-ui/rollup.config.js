@@ -30,8 +30,8 @@ const config = {
     resolve({
       extensions,
       customResolveOptions: {
-        paths: ['../../node_modules'],
-        moduleDirectory: ['../../node_modules'],
+        paths: ['node_modules'],
+        moduleDirectory: ['node_modules'],
       },
     }),
     typescript({
@@ -43,7 +43,7 @@ const config = {
     babel({
       babelHelpers: 'runtime',
       include: ['src/**/*'],
-      exclude: ['../../node_modules'],
+      exclude: ['node_modules'],
       extensions,
       sourceMaps: true,
     }),

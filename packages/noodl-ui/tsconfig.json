@@ -12,6 +12,7 @@
     "noImplicitAny": true,
     "outDir": "dist",
     "strictNullChecks": true,
+    "skipLibCheck": true,
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "esnext"

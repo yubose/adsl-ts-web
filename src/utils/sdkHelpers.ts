@@ -14,7 +14,7 @@ import {
   isListKey,
 } from 'noodl-utils'
 import { Component } from 'noodl-ui'
-import { isTextFieldLike, NOODLDOMDataValueElement } from 'noodl-ui-dom'
+import { isTextFieldLike } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'
 
@@ -30,7 +30,7 @@ const log = Logger.create('sdkHelpers.ts')
  * @param { function | undefined } options.onChange - onChange callback. This is most likely the function returned from ActionChain#build
  */
 export function createOnDataValueChangeFn(
-  node: NOODLDOMDataValueElement,
+  node: any,
   component: Component,
   {
     eventName,
@@ -43,14 +43,13 @@ export function createOnDataValueChangeFn(
 
   // Initiates the values
   node.value = component.get('data-value') || ''
+  node.dataset.value = component.get('data-value') || ''
 
   if (node.tagName === 'SELECT') {
     if ((node as HTMLSelectElement).length) {
       // Put the default value to the first option in the list
       ;(node as HTMLSelectElement)['selectedIndex'] = 0
     }
-  } else {
-    node.dataset.value = component.get('data-value')
   }
 
   const onChange = async (event: Event) => {
@@ -98,7 +97,7 @@ export function createOnDataValueChangeFn(
               // Since select elements have options as children, we should not
               // edit by innerHTML or we would have to unnecessarily re-render the nodes
               if (node.tagName === 'SELECT') {
-                //
+                // TODO - handle this
               } else if (isTextFieldLike(node)) {
                 node.dataset['value'] = value
               } else {

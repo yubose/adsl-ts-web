@@ -23,9 +23,9 @@
   },
   "include": [
     "src",
-    "packages/noodl-ui/**/*",
-    "packages/noodl-utils/**/*",
-    "packages/noodl-ui-dom/**/*"
+    "packages/noodl-ui/dist",
+    "packages/noodl-utils/dist",
+    "packages/noodl-ui-dom/dist"
   ],
   "exclude": ["_data", "node_modules", "legacy"]
 }

@@ -60,9 +60,9 @@ class Component implements IComponent {
     this['unhandled'] = keys.slice()
 
     this.#cache = {}
-    this.#component = createComponentDraftSafely(component) as WritableDraft<
-      ComponentObject
-    >
+    this.#component = createComponentDraftSafely(
+      component,
+    ) as WritableDraft<ComponentObject>
 
     this['id'] = this.#component.id || getRandomKey()
     this['noodlType'] = this.#component.noodlType as any
@@ -641,8 +641,8 @@ class Component implements IComponent {
 
   on(eventName: string, cb: Function) {
     if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
-    log.func(`on [${this.noodlType}]`)
-    log.grey(`Subscribing listener for "${eventName}"`, this)
+    // log.func(`on [${this.noodlType}]`)
+    // log.grey(`Subscribing listener for "${eventName}"`, this)
     this.#cb[eventName].push(cb)
     return this
   }

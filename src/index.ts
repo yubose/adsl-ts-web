@@ -90,7 +90,7 @@ window.addEventListener('load', async () => {
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
 
-  listen(noodluidom)
+  listen(noodluidom, noodlui)
 
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
@@ -108,6 +108,7 @@ window.addEventListener('load', async () => {
   const streams = Meeting.getStreams()
 
   window.build = process.env.BUILD
+  window.noodlui = noodlui
   window.app = {
     build: process.env.BUILD,
     client: {
@@ -340,10 +341,7 @@ window.addEventListener('load', async () => {
         forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
 
         log.func('page.onBeforePageRender')
-        log.green(
-          'Initialized noodl-ui client',
-          noodl.root.PatientChartGeneralInfo,
-        )
+        log.green('Initialized noodl-ui client', noodl)
       }
 
       const previousPage = page.previousPage

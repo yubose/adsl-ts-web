@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import sinon from 'sinon'
-import { Resolver, Viewport } from 'noodl-ui'
+import { Resolver } from 'noodl-ui'
 import {
   assetsUrl,
   noodlui,

@@ -59,7 +59,7 @@ const handleListInternalResolver = (
   }
 
   // Creates list items as new data objects are added
-  component.on(event.component.list.ADD_DATA_OBJECT, (result, options) => {
+  component.on(event.component.list.ADD_DATA_OBJECT, (result, args) => {
     log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
     let listItem = createComponent(component?.getBlueprint()) as ListItem
@@ -69,9 +69,10 @@ const handleListInternalResolver = (
       listItem.setDataObject?.(result.dataObject)
       listItem.set('listIndex', result.index)
       listItem = resolveComponent(component.createChild(listItem))
+      options.componentCache().set(listItem)
     }
 
-    const logArgs = { options, ...result, list: component, listItem }
+    const logArgs = { options: args, ...result, list: component, listItem }
 
     // log.grey(`Created a new listItem`, listItem)
 
@@ -81,7 +82,7 @@ const handleListInternalResolver = (
         c.set('listIndex', result.index)
         c.assign(commonProps)
         _internalResolver.resolve(c, {
-          ...options,
+          ...args,
           component: c,
           resolveComponent,
         })

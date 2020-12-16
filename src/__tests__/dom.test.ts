@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
-import MockAxios from 'axios-mock-adapter'
 import { expect } from 'chai'
 import { prettyDOM } from '@testing-library/dom'
 import { queryByText, screen, waitFor } from '@testing-library/dom'
@@ -24,8 +23,6 @@ import {
 } from '../utils/test-utils'
 import { getListComponent1, saveOutput } from './helpers'
 
-const mockAxios = new MockAxios(axios)
-
 describe('dom', () => {
   describe('when creating any type of component', () => {
     it('should attach the id', () => {
@@ -47,7 +44,6 @@ describe('dom', () => {
         placeholder: 'hello, all',
         id: 'id123',
       })
-      console.info(prettyDOM())
       const label = queryByDataKey(document.body, dataKey)
       expect(label.value).to.be.undefined
       expect(label?.innerHTML).to.equal(greeting)
@@ -180,7 +176,6 @@ describe('dom', () => {
           return acc
         }, {} as any),
       )
-      console.info(noodluidom.getAllCbs())
       await waitFor(() => {
         expect(document.querySelectorAll('li')).to.have.lengthOf(listSize + 1)
       })
@@ -311,7 +306,6 @@ describe('dom', () => {
         .use({ getRoot: () => ({ SignIn: { formData: { greeting } } }) })
         .setPage('SignIn')
       page.render({ type: 'textField', placeholder: 'hello, all', dataKey })
-      console.info(prettyDOM())
       const input = queryByDataKey(document.body, dataKey) as any
       expect(input.value).to.equal(greeting)
     })
@@ -638,7 +632,7 @@ describe('dom', () => {
             ],
           },
         ],
-      }).components[0]
+      } as any).components[0]
 
       const view = root.child()
       const image = view.child() as Component
@@ -659,7 +653,6 @@ describe('dom', () => {
       })
 
       await waitFor(() => {
-        console.info(prettyDOM())
         expect(getLabel().textContent).to.eq('mynewgreeting')
         expect(getLabel2().textContent).to.eq('blue')
       })
@@ -675,9 +668,11 @@ describe('dom', () => {
         { key: 'gender', value: 'Female' },
         { key: 'gender', value: 'Other' },
       ]
+      const redrawSpy = sinon.spy(noodlui.getCbs('builtIn').redraw[0])
       // @ts-expect-error
       noodlui.actionsContext = { noodl: {} }
       noodlui.removeCbs('emit')
+      noodlui.getCbs('builtIn').redraw[0] = redrawSpy
       noodlui
         .setPage('SignIn')
         .use({
@@ -726,6 +721,7 @@ describe('dom', () => {
       expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
       document.getElementById(image.id)?.click()
       await waitFor(() => {
+        expect(redrawSpy).to.have.been.called
         expect(document.querySelector('img')?.getAttribute('src')).to.eq(
           assetsUrl + 'female.png',
         )

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Logger from 'logsnap'
 import get from 'lodash/get'
 import has from 'lodash/has'

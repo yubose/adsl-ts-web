@@ -4,6 +4,7 @@ import {
   ComponentObject,
   ComponentType,
   NOODLComponent,
+  SelectOption,
 } from 'noodl-ui'
 
 /**
@@ -102,17 +103,24 @@ export function getShape(
     shapeKeys.forEach((key) => {
       if (key in noodlComponent) {
         if (key === 'children') {
+          // @ts-expect-error
           shape.children = Array.isArray(noodlComponent.children)
             ? (noodlComponent.children as ComponentObject[])?.map(
-                (noodlChild) => {
-                  return getShape(noodlChild, {
+                (noodlChild) =>
+                  getShape(noodlChild, {
                     ...opts,
                     parent: noodlComponent,
-                  })
-                },
+                  }),
               )
             : getShape(noodlComponent.children as any, {
                 ...opts,
+                noodlType:
+                  typeof noodlComponent.children === 'object'
+                    ? noodlComponent.children.noodlType ||
+                      noodlComponent.children.type
+                    : typeof noodlComponent.children === 'string'
+                    ? noodlComponent.children
+                    : undefined,
                 parent: noodlComponent,
               })
         } else {
@@ -210,6 +218,21 @@ export const handlingDataset = (function () {
 
   return o
 })()
+
+export function toSelectOption(value: any): SelectOption {
+  if (typeof value !== 'object') {
+    return { key: value, label: value, value }
+  }
+  return value
+}
+
+export function optionExists(node: HTMLSelectElement, option: any) {
+  return (
+    !!node &&
+    !!option &&
+    [...node.options].some((opt) => opt.value === toSelectOption(option).value)
+  )
+}
 
 export function isTextFieldLike(
   node: unknown,

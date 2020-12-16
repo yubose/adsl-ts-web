@@ -29,6 +29,7 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import createComponent from './utils/createComponent'
+import createComponentCache from './utils/componentCache'
 import getActionConsumerOptions from './utils/getActionConsumerOptions'
 import Action from './Action'
 import ActionChain from './ActionChain'
@@ -47,6 +48,7 @@ function _createState(state?: Partial<T.State>) {
 }
 
 class NOODL {
+  #cache = createComponentCache()
   #cb: {
     action: Partial<
       Record<T.ActionType, T.ActionChainUseObjectBase<any, any>[]>
@@ -765,6 +767,7 @@ class NOODL {
 
   getStateGetters() {
     return {
+      componentCache: this.componentCache.bind(this),
       getPageObject: this.getPageObject.bind(this),
       getState: this.getState.bind(this),
       plugins: this.plugins.bind(this),
@@ -779,6 +782,7 @@ class NOODL {
 
   setPage(pageName: string) {
     this.#state['page'] = pageName
+    this.componentCache().clear()
     return this
   }
 
@@ -905,6 +909,10 @@ class NOODL {
       }
     }
     return this
+  }
+
+  componentCache() {
+    return this.#cache
   }
 
   reset(opts: { keepCallbacks?: boolean; keepPlugins?: boolean } = {}) {

@@ -14,9 +14,10 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "strictNullChecks": true,
+    "skipLibCheck": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "esnext"
   },
-  "exclude": ["node_modules", "dist", "setupTests.ts"],
-  "include": ["src"]
+  "exclude": ["node_modules", "dist"],
+  "include": ["src/**/*"]
 }

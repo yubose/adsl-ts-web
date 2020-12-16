@@ -64,7 +64,7 @@ after(() => {
 })
 
 beforeEach(() => {
-  listen(noodluidom)
+  listen(noodluidom, noodlui)
   page.initializeRootNode()
   document.body.appendChild(page.rootNode as HTMLElement)
 })

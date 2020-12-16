@@ -1,0 +1,120 @@
+SelectRedraw:
+  BookingSlots:
+    - 10
+    - 15
+    - 30
+    - 45
+    - 60
+  BookingSlotsSelect: ''
+  ScheduleSettingsTemp:
+    TimeSpan:
+      - 00:00
+      - 12:00
+  AvailableTime:
+    timeStart: ''
+    timeEnd: ''
+  components:
+    - type: view
+      style:
+        top: '0'
+        left: '0'
+        width: '1'
+        height: '1'
+      children:
+        - type: label
+          text: BookingTimeSpan
+          style:
+            left: '0.05'
+            width: '0.9'
+            top: '0.02'
+            fontSize: '20'
+            fontWeight: '500'
+            textAlign:
+              x: left
+        - type: select
+          contentType: TimeCode
+          dataKey: BookingSlotsSelect
+          options: ..BookingSlots
+          required: 'true'
+          onChange:
+            - emit:
+                actions:
+                  - =.builtIn.array.LoopToGenerate:
+                      dataIn:
+                        - =..BookingSlotsSelect
+                      dataOut: SelectRedraw.ScheduleSettingsTemp.TimeSpan
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: AvailableTimeTag
+          style:
+            left: '0.11'
+            top: '0.075'
+            width: '0.25'
+            height: '0.03'
+            fontSize: '14'
+            fontStyle: bold
+            borderWidth: '1'
+            boxSizing: content-box
+            border:
+              style: '3'
+            borderColor: '0x00000033'
+        - type: label
+          text: Minutes(s)
+          style:
+            width: '0.2'
+            left: '0.38'
+            top: '0.075'
+            height: '0.03'
+            textAlign:
+              y: center
+        - type: label
+          text: Available Time
+          style:
+            left: '0.05'
+            width: '0.9'
+            top: '0.13'
+            fontSize: '20'
+            fontWeight: '500'
+            textAlign:
+              x: left
+        - type: view
+          style:
+            width: '1'
+            height: '0.04'
+            left: '0'
+            top: '0.185'
+          children:
+            - type: select
+              dataKey: AvailableTime.timeStart
+              viewTag: AvailableTimeTag
+              options: ..ScheduleSettingsTemp.TimeSpan
+              required: 'true'
+              style:
+                left: '0.11'
+                top: '0'
+                width: '0.25'
+                height: '0.03'
+                fontSize: '14'
+                fontStyle: bold
+                borderWidth: '1'
+                boxSizing: content-box
+                border:
+                  style: '3'
+                borderColor: '0x00000033'
+            - type: select
+              viewTag: AvailableTimeTag
+              options: ..ScheduleSettingsTemp.TimeSpan
+              required: 'true'
+              dataKey: AvailableTime.timeEnd
+              style:
+                left: '0.45'
+                top: '0'
+                width: '0.25'
+                height: '0.03'
+                fontSize: '14'
+                fontStyle: bold
+                borderWidth: '1'
+                boxSizing: content-box
+                border:
+                  style: '3'
+                borderColor: '0x00000033'

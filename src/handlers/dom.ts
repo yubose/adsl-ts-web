@@ -5,10 +5,10 @@ import {
   eventTypes,
   Component,
   List,
-  SelectOption,
+  NOODL as NOODLUI,
 } from 'noodl-ui'
 import { isBooleanTrue, isEmitObj } from 'noodl-utils'
-import { isTextFieldLike } from 'noodl-ui-dom'
+import { isTextFieldLike, resolveSelectElement } from 'noodl-ui-dom'
 import { forEachEntries } from '../utils/common'
 import { isDisplayable } from '../utils/dom'
 import createElement from '../utils/createElement'
@@ -16,7 +16,7 @@ import noodluidomClient from '../app/noodl-ui-dom'
 
 const log = Logger.create('dom.ts')
 
-export const listen = (noodluidom = noodluidomClient) => {
+export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
   const defaultPropTable = {
     dataset: [
       'data-listid',
@@ -208,31 +208,7 @@ export const listen = (noodluidom = noodluidomClient) => {
 
     /** Children */
     if (options) {
-      if (type === 'select') {
-        if (_.isArray(options)) {
-          _.forEach(options, (option: SelectOption, index) => {
-            if (option) {
-              const optionElem = document.createElement('option')
-              optionElem['id'] = option.key
-              optionElem['value'] = option?.value
-              optionElem['innerText'] = option.label
-              node.appendChild(optionElem)
-              if (option?.value === datasetAttribs['data-value']) {
-                // Default to the selected index if the user already has a state set before
-                ;(node as HTMLSelectElement)['selectedIndex'] = index
-              }
-            } else {
-              // TODO: log
-            }
-          })
-          // Default to the first item if the user did not previously set their state
-          if ((node as HTMLSelectElement).selectedIndex == -1) {
-            ;(node as HTMLSelectElement)['selectedIndex'] = 0
-          }
-        } else {
-          // TODO: log
-        }
-      }
+      if (node?.tagName === 'SELECT') resolveSelectElement(node, component)
     }
 
     if (!node.innerHTML.trim()) {
@@ -344,6 +320,7 @@ export const listen = (noodluidom = noodluidomClient) => {
         log.func(`list[${noodluiEvent.component.list.CREATE_LIST_ITEM}]`)
         log.grey('CREATE_LIST_ITEM', { ...result, ...options })
         const { listItem } = result
+        noodlui.componentCache().set(listItem)
         // TODO - Unit test fails when this is uncommented. Double check the UI
         // const childNode = noodluidom.parse(listItem)
       },
@@ -355,6 +332,7 @@ export const listen = (noodluidom = noodluidomClient) => {
         log.func(`list[${noodluiEvent.component.list.REMOVE_LIST_ITEM}]`)
         log.grey('', { ...result, ...options })
         const { listItem, successs } = result
+        noodlui.componentCache().remove(listItem)
         const childNode = document.getElementById(listItem?.id)
 
         if (childNode) {

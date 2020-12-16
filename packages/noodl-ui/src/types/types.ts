@@ -1,4 +1,6 @@
 import Component from '../components/Base'
+import List from '../components/List'
+import ListItem from '../components/ListItem'
 import { ActionObject, EmitActionObject } from './actionTypes'
 import {
   ActionChainActionCallback,
@@ -12,6 +14,7 @@ import {
   ComponentType,
   ContentType,
 } from './constantTypes'
+import componentCache from '../utils/componentCache'
 import NOODLUI from '../noodl-ui'
 import Viewport from '../Viewport'
 
@@ -54,6 +57,8 @@ export interface BuiltInActions {
   ) => Promise<any> | any
 }
 
+export type ComponentCache = ReturnType<typeof componentCache>
+
 export interface ComponentEventCallback {
   (
     noodlComponent: NOODLComponent,
@@ -65,6 +70,7 @@ export interface ComponentEventCallback {
 }
 
 export interface ConsumerOptions {
+  componentCache(): ComponentCache
   component: Component
   context: ResolverContext
   createActionChainHandler: NOODLUI['createActionChainHandler']
@@ -198,6 +204,7 @@ export interface State {
 export type StateHelpers = StateGetters & StateSetters
 
 export type StateGetters = {
+  componentCache(): ComponentCache
   getState(): State
   getPageObject(page: string): PageObject
   plugins: ConsumerOptions['plugins']
