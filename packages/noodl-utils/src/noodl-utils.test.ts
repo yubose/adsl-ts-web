@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { expect } from 'chai'
 import sinon from 'sinon'
-import { createComponent, Component, List, ListItem } from 'noodl-ui'
+import { createComponent, Component, List, ListItem } from '../noodl-ui'
 import * as n from '.'
 
 let listObject: { key: 'gender'; value: 'Male' | 'Female' | 'Other' }[]

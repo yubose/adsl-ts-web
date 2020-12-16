@@ -46,7 +46,7 @@
   "dependencies": {
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
-    "noodl-utils": "file:packages/noodl-utils"
+    "noodl-utils": "0.0.33"
   },
   "devDependencies": {
     "@aitmed/cadl": "^1.0.157",
