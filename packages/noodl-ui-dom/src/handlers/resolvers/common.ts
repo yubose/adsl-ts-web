@@ -1,268 +1,133 @@
-import { Component } from 'noodl-ui'
-import { getDataAttribKeys } from '../../utils'
+import { eventTypes } from 'noodl-ui'
+import { NOODLDOMDataValueElement } from '../../types'
+import {
+  getDataAttribKeys,
+  isTextFieldLike,
+  normalizeEventName,
+} from '../../utils'
+import resolveSelectElement from './select'
+import resolve from '../../resolve'
 
-export interface AttribConfig {
-  name?:string
-  keys?: string | string[]
-  cond?(node: HTMLElement | null, component: Component): boolean
-  fn(node:HTMLElement | null,component:Component):void
-}
-
-const handlers = (function() {
-  let objs = []
-
-  const o = {
-    register(obj: AttribConfig) {
-      objs = objs.concat(obj)
-      return o
-    },
-    run(node: HTMLElement | null, component: Component) {
-      const numObjs = objs.length
-      for (let index = 0; index < numObjs; index++) {
-        const obj = objs[index];
-      }
-      return o
-    }
-  }
-  return o
-})()
-
-  handlers.register({
+resolve
+  .register({
     name: 'dataset',
-    keys: getDataAttribKeys(),
-    fn: (node, component) => {
-      if (node && component) {
-        Object.entries(component.get(getDataAttribKeys() as any) as { [key:string]:any}).forEach(([k,v]) => {
-          if (v != undefined) node.dataset[k.replace('data-', '')] = v
-        })
-      }
-     
-    }
-  })
-.register({
-  name: 'src',
-  keys: 'src',
-  cond:(node,component)=>node.tagName !== 'VIDEO',
-})
-
-
-
-
-
-
-const defaultPropTable = {
-  dataset: getDataAttribKeys().slice(),
-  values: ['id'] as string[],
-  attributes: [
-    'placeholder',
-    {
-      attribute: 'src',
-      cond: (node: any) => node.tagName !== 'VIDEO',
+    cond: (node, component) => !!(node && component),
+    resolve: (node, component) => {
+      Object.entries(
+        component.get(getDataAttribKeys() as any) as { [key: string]: any },
+      ).forEach(
+        ([k, v]) =>
+          v != undefined && node && (node.dataset[k.replace('data-', '')] = v),
+      )
     },
-  ] as (
-    | string
-    | {
-        attribute: string
-        cond?(node: any, component: Component): boolean
-      }
-  )[],
-}
-
-function handleDatasetAttribs(node, component) {
-  const {
-    children,
-    options,
-    placeholder = '',
-    src,
-    text = '',
-  } = component.get(['children', 'options', 'src', 'text', 'videoFormat'])
-
-  node.id = component.id || ''
-
-  const { style, type } = component
-  /** Handle attributes */
-  if (_.isArray(defaultPropTable.attributes)) {
-    _.forEach(defaultPropTable.attributes, (key) => {
-      let attr, val: any
-      if (!_.isString(key)) {
-        const { attribute, cond } = key
-        if (_.isFunction(cond)) {
-          if (cond(node, component)) attr = attribute
-        } else {
-          attr = attribute
+  })
+  .register({
+    name: 'data values in non-textfield-like components',
+    cond: (node) => !!node && !isTextFieldLike(node),
+    resolve: (node, component) => {
+      let { children, placeholder, text } = component.get([
+        'children',
+        'placeholder',
+        'text',
+      ])
+      text = component.get('data-value') || text || ''
+      if (!text && children) text = `${children}` || ''
+      if (!text && placeholder) text = placeholder
+      if (!text) text = ''
+      if (text && node) node.innerHTML = `${text}`
+    },
+    // if (node && !node.innerHTML.trim()) {
+    //   if (isDisplayable(component.get('data-value'))) {
+    //     node.innerHTML = `${component.get('data-value')}`
+    //   } else if (isDisplayable(component.get('children'))) {
+    //     node.innerHTML = `${component.get('children')}`
+    //   } else if (isDisplayable(component.get('text'))) {
+    //     node.innerHTML = `${component.get('text')}`
+    //   }
+    //   if (text && node) node.innerHTML = text
+    // }
+  })
+  .register({
+    name: 'events',
+    cond: Boolean,
+    resolve: (node: NOODLDOMDataValueElement, component) => {
+      eventTypes.forEach((eventType: string) => {
+        if (typeof component.get(eventType) === 'function') {
+          node.addEventListener(normalizeEventName(eventType), (e) =>
+            component.get(eventType)(e),
+          )
         }
-        val =
-          component.get((attr || '') as any) ||
-          component[(attr || '') as keyof Component]
-      } else {
-        attr = key
+      })
+    },
+  })
+  .register({
+    name: 'id',
+    resolve: (node, component) => node && (node.id = component.id || ''),
+  })
+  .register({
+    name: 'input enter key',
+    cond: (node) => !!(node?.tagName === 'INPUT'),
+    resolve: (node: HTMLInputElement) => {
+      node.onkeypress = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          const inputs = document.querySelectorAll('input')
+          const currentIndex = [...inputs].findIndex((el) =>
+            node.isEqualNode(el),
+          )
+          const targetIndex = (currentIndex + 1) % inputs.length
+          if (currentIndex + 1 < inputs.length) inputs[targetIndex]?.focus?.()
+        }
       }
-      val =
-        component.get((attr || '') as keyof Component) ||
-        component[(attr || '') as keyof Component]
-      if (val !== undefined) node.setAttribute(attr as keyof typeof node, val)
-    })
-  }
-  /** Handle dataset assignments */
-  getDataAttribKeys().forEach((key) => {
-      const val = component.get(key) || component[key ]
-      if (val !== undefined) node.dataset[key.replace('data-', '')] = val
-      // Initiate the value
-      if (key === 'data-value' && 'value' in node) {
-        node.value = node.dataset.value
+    },
+  })
+  .register({
+    name: 'path (non videos)',
+    cond: (n, c, { original }) =>
+      typeof original?.path === 'string' && n?.tagName !== 'VIDEO',
+    resolve: (node: HTMLImageElement, component) => {
+      node.src = component.get('src') || ''
+    },
+  })
+  .register({
+    name: 'placeholder',
+    cond: (node, component) =>
+      !!(node && 'placeholder' in node && !component.get('placeholder')),
+    resolve: (node: HTMLInputElement, component) =>
+      node && (node.placeholder = component.get('placeholder') || ''),
+  })
+  .register({
+    name: 'select',
+    cond: (node) => node?.tagName === 'SELECT',
+    resolve: resolveSelectElement,
+  })
+  .register({
+    name: 'styles',
+    resolve: (node, component) => {
+      if (node && node.tagName !== 'SCRIPT') {
+        const { style } = component
+        if (style != null && typeof style === 'object') {
+          Object.entries(style).forEach((k: any, v: any) => (style[k] = v))
+        }
       }
-    })
-  // Handle direct assignments
-  // if (_.isArray(defaultPropTable.values)) {
-  //   const pending = defaultPropTable.values.slice()
-  //   let prop = pending.pop()
-  //   let val
-  //   while (prop) {
-  //     if (prop !== undefined) {
-  //       val = component.get(prop) || component[prop as keyof Component]
-  //       // @ts-expect-error
-  //       if (val !== undefined) node[prop] = val
-  //     }
-  //     prop = pending.pop()
-  //   }
-  // }
+    },
+  })
+  .register({
+    name: 'text=func',
+    cond: (n, c) => typeof c.get('text=func') === 'function',
+    resolve: (node, c) => node && (node.innerHTML = c.get('data-value') || ''),
+  })
 
-  // The src is placed on its "source" dom node
-  // if (src && /(video)/.test(type)) node.removeAttribute('src')
-
-  // const datasetAttribs = component.get(defaultPropTable.dataset)
-
-  /** Data values */
-  /** Emit's onChange will be handled in action handlers */
-//   if (!isEmitObj(component.get('dataValue'))) {
-//     if (component.get('text=func')) {
-//       node.innerHTML = datasetAttribs['data-value'] || ''
-//     } else if (!isTextFieldLike(node)) {
-//       // For non data-value elements like labels or divs that just display content
-//       // If there's no data-value (which takes precedence here), use the placeholder
-//       // to display as a fallback
-//       let text = ''
-//       text = datasetAttribs['data-value'] || ''
-//       if (!text && children) text = `${children}` || ''
-//       if (!text && placeholder) text = placeholder
-//       if (!text) text = ''
-//       if (text) node.innerHTML = `${text}`
-//       node['innerHTML'] =
-//         datasetAttribs['data-value'] || component.get('placeholder') || ''
-//     }
-//   }
-// }
-
-// noodluidom.on('component', (node, component: Component) => {
-//   if (!node || !component) return
-//   log.func('on [component]')
-
-//   // The "handler" argument is a func returned from ActionChain#build
-//   const attachEventHandler = (eventType: any, handler: Function) => {
-//     const eventName = (eventType.startsWith('on')
-//       ? eventType.replace('on', '')
-//       : eventType
-//     ).toLocaleLowerCase()
-//     if (isTextFieldLike(node)) {
-//       // Attach an additional listener for data-value elements that are expected
-//       // to change values on the fly by some "on change" logic (ex: input/select elements)
-//       import('../utils/sdkHelpers').then(({ createOnDataValueChangeFn }) => {
-//         node.addEventListener(
-//           eventName,
-//           createOnDataValueChangeFn(node, component, {
-//             onChange: handler,
-//             eventName,
-//           }),
-//         )
-//         node.onkeypress = (e: KeyboardEvent) => {
-//           if (e.key === 'Enter') {
-//             const inputs = document.querySelectorAll('input')
-//             log.grey(`Moving to next input field`)
-//             const currentIndex = [...inputs].findIndex((el) =>
-//               node.isEqualNode(el),
-//             )
-//             //focus the following element
-//             const targetIndex = (currentIndex + 1) % inputs.length
-//             if (currentIndex + 1 < inputs.length) {
-//               inputs[targetIndex]?.focus?.()
-//             }
-//           }
-//         }
-//       })
-//     } else {
-//       node.addEventListener(eventName, (event) => {
-//         log.func(`on component --> addEventListener: ${eventName}`)
-//         log.grey(`User action invoked handler`, {
-//           component,
-//           event,
-//           eventName,
-//           node,
-//         })
-//         return handler?.(event)
-//       })
-//     }
-//   }
-
-//   /** Event handlers */
-//   if (isTextFieldLike(node)) {
-//     attachEventHandler('onChange', component.get('onChange'))
-//   } else {
-//     _.forEach(eventTypes, (eventType) => {
-//       if (component.get(eventType)) {
-//         attachEventHandler(eventType, component.get(eventType))
-//       }
-//     })
-//   }
-
-//   /** Styles */
-//   if (node?.tagName !== 'SCRIPT') {
-//     if (_.isPlainObject(style)) {
-//       forEachEntries(style, (k, v) => (node.style[k as any] = v))
-//     } else {
-//       log.func('noodluidom.on: all')
-//       log.red(
-//         `Expected a style object but received ${typeof style} instead`,
-//         style,
-//       )
-//     }
-//   }
-
-//   /** Children */
-//   if (options) {
-//     if (type === 'select') {
-//       if (_.isArray(options)) {
-//         _.forEach(options, (option: SelectOption, index) => {
-//           if (option) {
-//             const optionElem = document.createElement('option')
-//             optionElem['id'] = option.key
-//             optionElem['value'] = option?.value
-//             optionElem['innerText'] = option.label
-//             node.appendChild(optionElem)
-//             if (option?.value === datasetAttribs['data-value']) {
-//               // Default to the selected index if the user already has a state set before
-//               ;(node as HTMLSelectElement)['selectedIndex'] = index
-//             }
-//           } else {
-//             // TODO: log
-//           }
-//         })
-//         // Default to the first item if the user did not previously set their state
-//         if ((node as HTMLSelectElement).selectedIndex == -1) {
-//           ;(node as HTMLSelectElement)['selectedIndex'] = 0
-//         }
-//       } else {
-//         // TODO: log
-//       }
-//     }
-//   }
-
-//   if (!node.innerHTML.trim()) {
-//     if (isDisplayable(datasetAttribs['data-value'])) {
-//       node.innerHTML = `${datasetAttribs['data-value']}`
-//     } else if (isDisplayable(children)) {
-//       node.innerHTML = `${children}`
-//     } else if (isDisplayable(text)) {
-//       node.innerHTML = `${text}`
-//     }
-//   }
-// })
+/*
+          import('../utils/sdkHelpers').then(
+            ({ createOnDataValueChangeFn }) => {
+              node.addEventListener(
+                eventName,
+                createOnDataValueChangeFn(node, component, {
+                  onChange: handler,
+                  eventName,
+                }),
+              )
+           
+            },
+          )
+*/

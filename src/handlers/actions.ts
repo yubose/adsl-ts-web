@@ -162,6 +162,7 @@ const createActions = function ({ page }: { page: IPage }) {
         emitParams.dataKey = action.dataKey
       }
 
+      debugger
       const emitResult = await noodl.emitCall(emitParams)
 
       log.grey('Called emitCall', {

@@ -133,12 +133,14 @@ export function getShape(
             : getShape(noodlComponent.children as any, {
                 ...opts,
                 noodlType:
-                  typeof noodlComponent.children === 'object'
+                  opts?.noodlType ||
+                  (typeof noodlComponent.children === 'object'
                     ? noodlComponent.children.noodlType ||
                       noodlComponent.children.type
                     : typeof noodlComponent.children === 'string'
                     ? noodlComponent.children
-                    : undefined,
+                    : undefined) ||
+                  opts?.type,
                 parent: noodlComponent,
               })
         } else {
@@ -164,6 +166,7 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
     'iteratorVar',
     'listObject',
     'maxPresent',
+    'noodlType',
     'options',
     'path',
     'pathSelected',
@@ -194,6 +197,15 @@ export function getDynamicShapeKeys(
     }
   }
   return shapeKeys
+}
+
+/**
+ * Returns true if the value can be displayed in the UI as normal.
+ * A displayable value is any value that is a string or number
+ * @param { any } value
+ */
+export function isDisplayable(value: unknown): value is string | number {
+  return value == 0 || typeof value === 'string' || typeof value === 'number'
 }
 
 export function isHandlingEvent<N extends HTMLElement>(
@@ -237,11 +249,12 @@ export const handlingDataset = (function () {
   return o
 })()
 
-export function toSelectOption(value: any): SelectOption {
-  if (typeof value !== 'object') {
-    return { key: value, label: value, value }
-  }
-  return value
+export function normalizeEventName(eventName: string) {
+  return typeof eventName === 'string'
+    ? eventName.startsWith('on')
+      ? eventName.replace('on', '').toLowerCase()
+      : eventName.toLowerCase()
+    : eventName
 }
 
 export function optionExists(node: HTMLSelectElement, option: any) {
@@ -262,6 +275,13 @@ export function isTextFieldLike(
       node.tagName === 'SELECT' ||
       node.tagName === 'TEXTAREA')
   )
+}
+
+export function toSelectOption(value: any): SelectOption {
+  if (typeof value !== 'object') {
+    return { key: value, label: value, value }
+  }
+  return value
 }
 
 export function withEnhancedGet(fn) {

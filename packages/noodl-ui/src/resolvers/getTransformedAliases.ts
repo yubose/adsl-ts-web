@@ -1,9 +1,10 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { isBooleanTrue, isEmitObj } from 'noodl-utils'
+import { findDataValue, isBooleanTrue, isEmitObj } from 'noodl-utils'
 import { contentTypes } from '../constants'
 import { ResolverFn } from '../types'
 import { isPromise } from '../utils/common'
+import isReference from '../utils/isReference'
 
 const log = Logger.create('getTransformedAliases')
 
@@ -11,7 +12,10 @@ const log = Logger.create('getTransformedAliases')
  * Renames some keywords to align more with html/css/etc
  *  ex: resource --> src (for images)
  */
-const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
+const getTransformedAliases: ResolverFn = (
+  component,
+  { context, createSrc, getPageObject, getRoot },
+) => {
   const {
     type,
     contentType,
@@ -128,7 +132,7 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
   }
 
   // Select components
-  if (_.isArray(options)) {
+  if (options) {
     const toOption = (option: any, index: number) =>
       _.isString(option) || _.isNumber(option)
         ? {
@@ -138,7 +142,18 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
             label: option,
           }
         : option
-    component.set('options', _.map(options, toOption))
+    if (_.isArray(options)) {
+      component.set('options', _.map(options, toOption))
+    } else if (isReference(options)) {
+      const optionsPath = options.startsWith('.')
+        ? options.replace(/(..|.)/, '')
+        : options
+      const dataOptions =
+        _.get(getPageObject(context.page), optionsPath) ||
+        _.get(getRoot(), optionsPath) ||
+        []
+      component.set('options', dataOptions.map(toOption))
+    }
   }
 }
 

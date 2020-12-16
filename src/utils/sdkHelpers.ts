@@ -4,7 +4,7 @@
  * isolate the imports into this file and replace them with stubs in testing
  */
 import _ from 'lodash'
-import { Draft, original } from 'immer'
+import { current, Draft, original } from 'immer'
 import Logger from 'logsnap'
 import {
   excludeIteratorVar,
@@ -106,6 +106,7 @@ export function createOnDataValueChangeFn(
             })
           }
         } else {
+          debugger
           log.red(
             `Attempted to update a data value from an onChange onto a data value ` +
               `component but the dataKey "${dataKey}" is not a valid path of the ` +

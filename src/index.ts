@@ -72,7 +72,10 @@ function createPreparePage(options: {
     pageModifiers: { reload?: boolean } = {},
   ): Promise<PageObject> => {
     const { default: noodl } = await import('app/noodl')
-    await noodl.initPage(pageName, [], { ...options, ...pageModifiers })
+    await noodl.initPage(pageName, [], {
+      ...options,
+      ...pageModifiers,
+    })
     log.func('createPreparePage')
     log.grey(`Ran noodl.initPage on page "${pageName}"`, {
       pageName,

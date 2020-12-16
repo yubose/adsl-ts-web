@@ -30,6 +30,7 @@ class NOODLUIDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
+  resolvers: T.NodeResolverConfig[]
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
     // Logger[log?.enabled ? 'enable' : 'disable']?.()
@@ -353,6 +354,11 @@ class NOODLUIDOM {
     Object.keys(this.#callbacks.component).forEach((key) => {
       this.#callbacks.component[key].length = 0
     })
+    return this
+  }
+
+  register(obj: T.NodeResolverConfig) {
+    this.resolvers.push(obj)
     return this
   }
 }

@@ -36,7 +36,6 @@ _internalResolver.setResolver((component, options) => {
   }
 
   const resolveInternalNode = <C extends Component = any>(c: C) => {
-    console.log(options.componentCache().state())
     if (c.id && typeof options.componentCache === 'function') {
       options.componentCache().set(c)
       publish(c as any, (innerChild) => {

@@ -807,8 +807,6 @@ class NOODL {
   setPlugin(value: T.PluginCreationType) {
     if (!value) return
     const plugin: T.PluginObject = this.createPluginObject(value)
-    log.func('setPlugin')
-    log.info(`Registering plugin: ${plugin.path}`, plugin)
     if (plugin.location === 'head') {
       this.#state.plugins.head.push(plugin)
     } else if (plugin.location === 'body-top') {
