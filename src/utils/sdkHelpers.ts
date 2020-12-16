@@ -11,13 +11,13 @@ import {
   findListDataObject,
   getAllByDataKey,
   isEmitObj,
+  isListConsumer,
   isListKey,
 } from 'noodl-utils'
 import { Component } from 'noodl-ui'
 import { isTextFieldLike } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'
-import { isListConsumer } from '../../packages/noodl-utils/dist'
 
 const log = Logger.create('sdkHelpers.ts')
 
@@ -64,7 +64,6 @@ export function createOnDataValueChangeFn(
     const value = target?.value || ''
 
     if (isListKey(dataKey, component)) {
-      debugger
       const dataObject = findListDataObject(component)
       if (dataObject) {
         _.set(dataObject, excludeIteratorVar(dataKey, iteratorVar), value)

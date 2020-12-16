@@ -7,6 +7,7 @@ import {
   findListDataObject,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
+  isComponent,
   isEmitObj,
   isIfObj,
 } from 'noodl-utils'
@@ -119,7 +120,7 @@ class NOODL {
     let resolvedComponents: Component[] = []
 
     if (componentsParams) {
-      if (componentsParams instanceof Component) {
+      if (isComponent(componentsParams)) {
         components = [componentsParams]
       } else if (!_.isArray(componentsParams) && _.isObject(componentsParams)) {
         if ('components' in componentsParams) {
@@ -457,7 +458,7 @@ class NOODL {
           content: '',
         }),
       }
-    } else if (plugin instanceof Component) {
+    } else if (isComponent(plugin)) {
       plugin = {
         content: plugin.get('content') || '',
         location: getPluginTypeLocation(plugin.noodlType) as T.PluginLocation,

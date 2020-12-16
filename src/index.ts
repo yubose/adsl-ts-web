@@ -5,6 +5,7 @@ import {
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import Logger from 'logsnap'
+import { isComponent } from 'noodl-utils'
 import {
   ActionChainActionCallback,
   Component,
@@ -858,7 +859,7 @@ function redrawDebugger(
   opts: RedrawOptions | Component,
 ) {
   if (node) {
-    if (opts instanceof Component) {
+    if (isComponent(opts)) {
       const component = opts as Component
     } else {
       const options = opts as RedrawOptions

@@ -154,7 +154,7 @@ export function findChild<C extends Component>(
   let child: Component | null | undefined
   let children = component?.children?.()?.slice?.() || []
 
-  if (component instanceof Component) {
+  if (isComponent(component)) {
     child = children.shift() || null
     while (child) {
       if (fn(child)) return child
@@ -347,6 +347,14 @@ export function isBreakLineTextBoardItem<
   return isBreakLine(value) || isBreakLineObject(value)
 }
 
+export function isComponent(component: unknown): component is Component {
+  return (
+    component &&
+    (typeof component === 'object' || typeof component === 'function') &&
+    typeof component.children === 'function'
+  )
+}
+
 export function isEmitObj(value: unknown): value is EmitObject {
   return !!(value && typeof value === 'object' && 'emit' in value)
 }
@@ -391,7 +399,7 @@ export function isListKey(
     if (isStr(component)) {
       return dataKey.startsWith(component)
     }
-    if (component instanceof Component) {
+    if (isComponent(component)) {
       const iteratorVar =
         component.get('iteratorVar') ||
         component.original?.iteratorVar ||
@@ -456,7 +464,7 @@ export function isTextBoardComponent<Component extends T.TextLike>(
  */
 // TODO - Depth option
 export function publish(component: Component, cb: (child: Component) => void) {
-  if (component && component instanceof Component) {
+  if (isComponent(component)) {
     component.children().forEach((child: Component) => {
       cb(child)
       child?.children()?.forEach?.((c) => {

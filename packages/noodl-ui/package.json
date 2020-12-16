@@ -37,6 +37,9 @@
     }
   },
   "gitHead": "57753b8cd427d177c623188a536c58a70f9a8cbd",
+  "devDependencies": {
+    "noodl-utils": "file:../noodl-utils"
+  },
   "dependencies": {
     "noodl-utils": "file:../noodl-utils"
   }

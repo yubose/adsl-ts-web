@@ -6,6 +6,8 @@ import {
   NOODLComponent,
   SelectOption,
 } from 'noodl-ui'
+import { isComponent } from 'noodl-utils'
+import { NodeResolverConfig } from './types'
 
 /**
  * Creates an image element that loads asynchronously
@@ -98,7 +100,7 @@ export function getShape(
     shapeKeys = shapeKeys.concat(
       getDynamicShapeKeys(
         opts.parent,
-        component instanceof Component
+        isComponent(component)
           ? component.original
           : (component as ComponentObject),
       ),
@@ -108,7 +110,7 @@ export function getShape(
     shapeKeys = shapeKeys.concat(opts.shapeKeys)
   }
 
-  if (component instanceof Component) {
+  if (isComponent(component)) {
     return getShape(component.original, { ...opts, parent: component.original })
   } else if (typeof component === 'string') {
     return { type: component }
@@ -283,6 +285,12 @@ export function toSelectOption(value: any): SelectOption {
   }
   return value
 }
+
+export function runResolvers(
+  resolvers: NodeResolverConfig[],
+  node,
+  component,
+) {}
 
 export function withEnhancedGet(fn) {
   return function (node: HTMLElement, component: Component) {

@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { isComponent } from 'noodl-utils'
 import { ComponentObject, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
 import List from '../components/List'
@@ -48,7 +49,7 @@ function createComponent<K extends ComponentType = ComponentType>(
   // ComponentType
   if (typeof value === 'string') {
     childComponent = toInstance({ type: value, ...props })
-  } else if (value instanceof Component) {
+  } else if (isComponent(value)) {
     // IComponentInstanceType
     childComponent = value
     id = childComponent.id

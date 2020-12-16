@@ -1,14 +1,16 @@
 {
-  "packages": [
-    "packages/noodl-utils",
-    "packages/noodl-ui",
-    "packages/noodl-ui-dom"
-  ],
+  "packages": ["packages/*"],
 
   "version": "independent",
   "command": {
     "bootstrap": {
       "hoist": true
+    },
+    "run": {
+      "ignore": ["noodl-types", "noodl-building-blocks"]
+    },
+    "exec": {
+      "ignore": ["noodl-types", "noodl-building-blocks"]
     }
   }
 }
