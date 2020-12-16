@@ -14,7 +14,7 @@ import {
   List,
   ListItem,
   NOODLComponent,
-} from '../noodl-ui'
+} from 'noodl-ui'
 import { isArr, isBool, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
 

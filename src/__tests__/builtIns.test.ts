@@ -1,20 +1,9 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import userEvent from '@testing-library/user-event'
 import { prettyDOM, waitFor } from '@testing-library/dom'
-import { findChild, getByDataKey } from 'noodl-utils'
-import { Component, ComponentObject, List, ListItem } from 'noodl-ui'
-import {
-  assetsUrl,
-  createComponent,
-  createNOODLComponent,
-  noodlui,
-  noodluidom,
-  page,
-} from '../utils/test-utils'
-import createBuiltIns from '../handlers/builtIns'
-import { saveOutput } from './helpers'
+import { findChild } from 'noodl-utils'
+import { noodlui, noodluidom, page } from '../utils/test-utils'
 
 describe('builtIns', () => {
   describe('redraw', () => {
@@ -108,6 +97,7 @@ describe('builtIns', () => {
       await waitFor(() => {
         expect(redrawSpy.called).to.be.true
       })
+      redrawSpy.restore()
     })
 
     xit('should be able to grab non list consumer components with the viewTag', async () => {
