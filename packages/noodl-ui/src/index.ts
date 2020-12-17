@@ -43,13 +43,16 @@ export * from './types'
 
 export { isPromise } from './utils/common'
 export {
-  getDataValues,
-  getDataObjectValue,
-  getPluginTypeLocation,
   findChild,
   findListDataObject,
   findParent,
+  getDataValues,
+  getDataObjectValue,
+  getPluginTypeLocation,
   isListKey,
+  isListConsumer,
+  isActionChainEmitTrigger,
+  isSubStreamComponent,
   identify,
 } from './utils/noodl'
 export { getTagName } from './resolvers/getElementType'

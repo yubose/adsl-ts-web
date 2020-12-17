@@ -7,8 +7,6 @@ import {
   ComponentObject,
   NOODLComponent,
   PluginLocation,
-  ProxiedComponent,
-  TextBoardBreakLine,
 } from '../types'
 import { isBrowser } from './common'
 import { actionChainEmitTriggers } from '../constants'
@@ -39,7 +37,7 @@ export function createDeepChildren(
     let count = 0
     let curr =
       typeof c === 'string'
-        ? (c = createComponent({ type: c, children: [] }))
+        ? (c = createComponent({ type: c, children: [] } as any))
         : c
     while (count < opts.depth) {
       const cc = createComponent({ type: 'view', children: [] })
@@ -112,21 +110,6 @@ export function isActionChainEmitTrigger(
 // }
 export const identify = (function () {
   const o = {
-    component: {
-      /** Returns true if value is a date component, false otherwise */
-      isDate: (value: any): boolean =>
-        checkForNoodlProp(value, 'text=func', _.negate(_.isUndefined)),
-      isPasswordInput: ({ contentType, noodlType }: ProxiedComponent) =>
-        noodlType === 'textField' && contentType === 'password',
-    },
-    textBoard: {
-      item: {
-        isTextObject: (component: Component): boolean =>
-          _.isString(component.get('text')),
-        isBreakLine: (value: unknown): value is TextBoardBreakLine =>
-          value === 'br',
-      },
-    },
     stream: {
       video: {
         /** Returns true if value has a viewTag of "mainStream" */
@@ -476,14 +459,23 @@ export function isListKey(
   return false
 }
 
-/**
- * Returns true if value has a viewTag of "selfStream", false otherwise
- * @param { any } value
- */
-export function isSelfStreamComponent(value: any) {
-  const fn = (val: string) => _.isString(val) && /selfStream/i.test(val)
-  return checkForNoodlProp(value, 'viewTag', fn)
+export function isListConsumer(component: any) {
+  return !!(
+    component?.get?.('iteratorVar') ||
+    component?.get?.('listId') ||
+    component?.get?.('listIndex') != undefined ||
+    component?.noodlType === 'listItem' ||
+    (component && findParent(component, (p) => p?.noodlType === 'listItem'))
+  )
 }
+
+// export function isPasswordInput(value: unknown) {
+//   return (
+//     _.isObjectLike(value) &&
+//     value['type'] === 'textField' &&
+//     value['contentType'] === 'password'
+//   )
+// }
 
 /**
  * Returns true if value has a viewTag of "subStream", false otherwise
@@ -493,6 +485,28 @@ export function isSubStreamComponent(value: any) {
   return checkForNoodlProp(value, 'viewTag', (val: string) => {
     return _.isString(val) && /subStream/i.test(val)
   })
+}
+
+/**
+ * Recursively invokes the provided callback on each child
+ * @param { Component } component
+ * @param { function } cb
+ */
+// TODO - Depth option
+export function publish(component: Component, cb: (child: Component) => void) {
+  if (
+    component &&
+    typeof component === 'object' &&
+    typeof component['children'] === 'function'
+  ) {
+    component.children().forEach((child: Component) => {
+      cb(child)
+      child?.children()?.forEach?.((c) => {
+        cb(c)
+        publish(c, cb)
+      })
+    })
+  }
 }
 
 export function resolveAssetUrl(pathValue: string, assetsUrl: string) {

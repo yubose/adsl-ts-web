@@ -6,8 +6,9 @@ import {
   ComponentType,
   getTagName,
   ListItem,
+  publish,
 } from 'noodl-ui'
-import { isEmitObj, isPluginComponent, publish } from 'noodl-utils'
+import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
 import {
   componentEventMap,

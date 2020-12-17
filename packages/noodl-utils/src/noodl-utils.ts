@@ -1,18 +1,8 @@
-// @ts-nocheck
-import Logger from 'logsnap'
 import get from 'lodash/get'
 import has from 'lodash/has'
-import {
-  ActionObject,
-  Component,
-  EmitActionObject,
-  EmitObject,
-  IfObject,
-} from 'noodl-ui'
+import { ActionObject, EmitObject, IfObject } from 'noodl-ui'
 import { isArr, isBool, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
-
-const log = Logger.create('noodl-utils')
 
 /**f
  * Transforms the dataKey of an emit object. If the dataKey is an object,
@@ -73,12 +63,6 @@ export function evalIf<IfObj extends { if: [any, any, any] }>(
   if (Array.isArray(ifObj.if)) {
     const [val, onTrue, onFalse] = ifObj.if
     return fn(val, onTrue, onFalse) ? onTrue : onFalse
-  } else {
-    log.func('evalIf')
-    log.red(
-      `An "if" object was encountered but it was not an array. ` +
-        `The evaluation operation was skipped`,
-    )
   }
   return false
 }
@@ -192,10 +176,6 @@ export function isBooleanFalse(value: unknown): value is false | 'false' {
   return value === false || value === 'false'
 }
 
-export function isBreakLine(value: unknown): value is 'br' {
-  return value === 'br'
-}
-
 export function isBreakLineObject<T extends { br: any } = { br: string }>(
   value: unknown,
 ): value is T {
@@ -206,41 +186,15 @@ export function isBreakLineObject<T extends { br: any } = { br: string }>(
 export function isBreakLineTextBoardItem<
   T extends { br: any } = { br: string }
 >(value: unknown): value is 'br' | T {
-  return isBreakLine(value) || isBreakLineObject(value)
+  return value === 'br' || isBreakLineObject(value)
 }
 
 export function isEmitObj(value: unknown): value is EmitObject {
   return !!(value && typeof value === 'object' && 'emit' in value)
 }
 
-export function isEmitActionObj(value: unknown): value is EmitActionObject {
-  return !!(
-    value &&
-    typeof value === 'object' &&
-    ('emit' in value || value['actionType'] === 'emit')
-  )
-}
-
 export function isIfObj(value: any): value is IfObject {
   return value && typeof value === 'object' && 'if' in value
-}
-
-export function isListConsumer(component: any) {
-  return !!(
-    component?.get?.('iteratorVar') ||
-    component?.get?.('listId') ||
-    component?.get?.('listIndex') != undefined ||
-    component?.noodlType === 'listItem' ||
-    (component && findParent(component, (p) => p?.noodlType === 'listItem'))
-  )
-}
-
-export function isPasswordInput(value: unknown) {
-  return (
-    isObj(value) &&
-    value['type'] === 'textField' &&
-    value['contentType'] === 'password'
-  )
 }
 
 const pluginTypes = ['plugin', 'pluginHead', 'pluginBodyTop', 'pluginBodyTail']
@@ -256,46 +210,4 @@ export function isPluginComponent(value: any) {
  */
 export function isPossiblyDataKey(value: unknown) {
   return typeof value === 'string' ? !!value.match(/\./g)?.length : false
-}
-
-/** Returns true if value has a viewTag of "selfStream", false otherwise */
-export function isSelfStreamComponent(value: unknown) {
-  return isStr(value) && /selfStream/i.test(value)
-}
-
-/** Returns true if value is a date component, false otherwise */
-export function isDateComponent(value: unknown): value is T.DateLike {
-  return isObj(value) && 'text=func' in value
-}
-
-export function isTextBoardComponent<Component extends T.TextLike>(
-  value: Component,
-): value is Component {
-  return isObj(value) && isStr(value['text'])
-}
-
-/* -------------------------------------------------------
-  ---- Action identifiers
--------------------------------------------------------- */
-
-/**
- * Recursively invokes the provided callback on each child
- * @param { Component } component
- * @param { function } cb
- */
-// TODO - Depth option
-export function publish(component: Component, cb: (child: Component) => void) {
-  if (
-    component &&
-    typeof component === 'object' &&
-    typeof component.function === 'function'
-  ) {
-    component.children().forEach((child: Component) => {
-      cb(child)
-      child?.children()?.forEach?.((c) => {
-        cb(c)
-        publish(c, cb)
-      })
-    })
-  }
 }

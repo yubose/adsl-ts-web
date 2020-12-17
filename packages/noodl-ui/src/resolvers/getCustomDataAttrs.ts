@@ -137,25 +137,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       'data-name': field,
       'data-value': resolvedValue || '',
     })
-
-    // Components that find their data values through a higher level like the root object
-    //   else {
-    // if (isReference(dataKey)) {
-    //   if (resolvedValue != undefined) component.set('data-value', resolvedValue)
-    //   else {
-    //     component.set(
-    //       'data-value',
-    //       resolvedValue != undefined
-    //         ? resolvedValue
-    //         : parser.getByDataKey(
-    //             dataKey,
-    //             showDataKey
-    //               ? dataKey
-    //               : component.get('text') || component.get('placeholder'),
-    //           ),
-    //     )
-    //   }
-    // }
   }
 
   /* -------------------------------------------------------

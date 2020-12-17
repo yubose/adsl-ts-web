@@ -1,10 +1,10 @@
 import _ from 'lodash'
-import { publish } from 'noodl-utils'
 import Component from '../../components/Base'
 import handleList from './handleList'
 import handleTextboard from './handleTextboard'
 import Resolver from '../../Resolver'
 import { _resolveChildren } from './helpers'
+import { publish } from '../../utils/noodl'
 
 /**
  * These resolvers are used internally by the lib. They handle all the logic

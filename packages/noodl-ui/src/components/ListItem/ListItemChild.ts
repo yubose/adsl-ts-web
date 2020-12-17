@@ -29,10 +29,6 @@ class ListItemChildComponent extends Component {
     this.#iteratorVar = iteratorVar
   }
 
-  get isListConsumer() {
-    return true
-  }
-
   createChild(...args: Parameters<IComponent['createChild']>) {
     const child = createComponent(...args) as any
     child?.set('listId', this.listId).set('iteratorVar', this.iteratorVar)
