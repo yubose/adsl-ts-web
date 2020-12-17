@@ -1,6 +1,6 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
-import { ActionObject, EmitObject, IfObject } from 'noodl-ui'
+import { ActionObject, EmitObject, IfObject } from 'noodl-types'
 import { isArr, isBool, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
 

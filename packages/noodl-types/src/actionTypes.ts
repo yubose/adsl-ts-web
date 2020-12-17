@@ -1,4 +1,4 @@
-import { IfObject } from '.'
+import { IfObject } from './commonTypes'
 
 export type ActionType =
   | 'builtIn'

@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
+import { findChild } from 'noodl-ui'
 import { prettyDOM, waitFor } from '@testing-library/dom'
-import { findChild } from 'noodl-utils'
 import { noodlui, noodluidom, page } from '../utils/test-utils'
 
 describe('builtIns', () => {
@@ -82,7 +82,7 @@ describe('builtIns', () => {
       } as any
     })
 
-    it.only('should be able to grab list consumer components with the viewTag', async () => {
+    it('should be able to grab list consumer components with the viewTag', async () => {
       const emitCall = sinon.spy()
       const redrawSpy = sinon.spy(noodluidom, 'redraw')
       noodlui.init({ actionsContext: { noodl: { emitCall }, noodluidom } })

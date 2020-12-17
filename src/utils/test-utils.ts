@@ -27,7 +27,7 @@ import {
   List,
   ListItem,
 } from 'noodl-ui'
-import { NOODLDOMElement } from 'noodl-ui-dom'
+import {   } from 'noodl-ui-dom'
 import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
 import Page from '../Page'

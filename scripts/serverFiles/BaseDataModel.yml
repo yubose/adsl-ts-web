@@ -1,6 +1,5 @@
 VoidObj: vVoOiIdD
 EmptyObj: ""
-EmptyArray: []
 EcosObj:
   id: ""
   name: ""
@@ -42,6 +41,7 @@ Document:
     isEncryped: "0"
     isExtraKeyNeeded: "0"
     isEditable: "0"
+    isCached: "1"
     applicationDataType: "0"
     mediaType: "0"
     size: auto
@@ -82,27 +82,11 @@ Global:
     vertex:
       .Vertex: ""
       name:
-        userName: ""
-        phoneNumber: ""
-        avatar: ""
-        email: ""
-        password: ""
-        confirmPassword: ""
+        userName: username
+        firstName: ""
+        lastName: ""
     JWT: ""
   rootNotebookID: ""
-  shareNotebook:
-    edge:
-      .Edge: ""
-      type: 10003
-      bvid: .Global.currentUser.vertex.id
-      refid: .Global.rootNotebookID
-      name:
-        isEncrypted: "1"
-    edgeAPI:
-      .EdgeAPI: ""
-      store:
-        api: ce
-        dataKey: Global.shareNotebook.edge
   actingUser:
     DataCache:
       expireTime: 2hr
@@ -123,31 +107,23 @@ Global:
         dataKey: Global.rootRoomInfo.edge
   profile:
     document: ""
+  contact:
+    document:
+      name:
+        data:
+          firstName: ""
+          lastName: ""
+          phoneNumber: ""
+  phoneNumber: ""
+  _nonce: 0
   VideoChatObjStore:
     reference:
       edge: ""
   DocReference:
     document: ""
+  DocProfile:
+    document: ""
   popUpMessage: ""
-  waitingRoom:
-    edge:
-      .Edge: ""
-  PatientChart:
-    ? GeneralInfo
-    ? PastMedicalHistory
-    ? AddAllergies
-    ? Obstetrical
-  vitalSigns:
-    document:
-      .Document: ""
-      name: null
-  medicalRecord:
-    edge:
-      .Edge: ""
-      name:
-        recordName: Xray Report
-        date: July 4.2020
-        time: 10.30am
 CountryCode:
   - "+1"
   - "+52"
@@ -156,20 +132,10 @@ CountryCode:
 DocType:
   PubProfile: "256"
   Profile: "257"
+  UploadProfile: "258"
   Contact: "513"
   ContactFav: "515"
   GetAllContact: type in (513,515)
   GetFavContact: type=515
   UploadFile: "1025"
   MeetingNote: "1537"
-  PatientChart: "105"
-  VitalSigns: "2049"
-  VitalQuestionnaire: "90000"
-  MedicalRecord: "2305"
-EdgeType:
-  ContactSupport: "2020"
-  Feedback: "1090"
-  WaitingRoom: "40000"
-  InviteInfo: "1053"
-VertexType:
-  User: "1"

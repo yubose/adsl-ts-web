@@ -28,6 +28,7 @@ MeetingSummary:
         maxcount: "1"
         obfname: mtime
         dataKey: docResponse
+        _nonce: =.Global._nonce
   components:
     - ? .BaseHeader3
     - ? .HeaderLeftButton

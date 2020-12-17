@@ -31,6 +31,8 @@ CreateNewAccount:
     - ..formData.vertexAPI.store
   update:
     - .Global.currentUser.vertex@: =..formData.response.vertex
+    - .Global.currentUser.vertex.name.firstName@: =..formData.vertex.name.firstName
+    - .Global.currentUser.vertex.name.lastName@: =..formData.vertex.name.lastName
     - .Global.currentUser.JWT@: =..formData.response.jwt
     - .Global.rootNotebookID@: =.Global.currentUser.vertex.deat.rnb64ID
     - .Global.currentUser.dataCache.loadingDateTime@: =.Global.currentDateTime
@@ -42,7 +44,7 @@ CreateNewAccount:
       message: Password should be same
       viewTag: samePassword
     - .BaseCheckView: ""
-      message: Please input password
+      message: Please fill out required fields
       viewTag: inputPassword
     - .BaseCheckView: ""
       message: Please check the box
@@ -149,7 +151,7 @@ CreateNewAccount:
             top: "0.45"
             left: "0.121"
             height: "0.1"
-            width: "0.4"
+            width: "0.3"
           children:
             - type: label
               text: FirstName
@@ -172,7 +174,7 @@ CreateNewAccount:
                 left: "0"
                 backgroundColor: "0xffffff"
                 top: "0.05"
-                width: "0.747"
+                width: "0.3"
                 height: "0.041"
                 borderWidth: "1"
                 border:
@@ -183,12 +185,12 @@ CreateNewAccount:
         - type: view
           style:
             top: "0.45"
-            left: "0.5"
+            left: "0.57"
             height: "0.1"
-            width: "0.4"
+            width: "0.3"
           children:
             - type: label
-              text: lastName
+              text: LastName
               style:
                 color: "0x000000"
                 left: "0"
@@ -208,7 +210,7 @@ CreateNewAccount:
                 left: "0"
                 backgroundColor: "0xffffff"
                 top: "0.05"
-                width: "0.747"
+                width: "0.3"
                 height: "0.041"
                 borderWidth: "1"
                 border:
@@ -469,6 +471,30 @@ CreateNewAccount:
               object:
                 - if:
                     - =..formData.vertex.name.password
+                    - continue
+                    - actionType: popUp
+                      popUpView: inputPassword
+                      wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.vertex.name.userName
+                    - continue
+                    - actionType: popUp
+                      popUpView: inputPassword
+                      wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.vertex.name.firstName
+                    - continue
+                    - actionType: popUp
+                      popUpView: inputPassword
+                      wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.vertex.name.lastName
                     - continue
                     - actionType: popUp
                       popUpView: inputPassword

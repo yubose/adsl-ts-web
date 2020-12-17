@@ -5,27 +5,56 @@ languageSuffix:
   es_ES: _es
   unknown: _en
 fileSuffix: .yml
-startPage: PatientDashboard
+startPage: SignIn
 preload:
-  - BaseDataModel
-  - BaseCSS
   - BasePage
-  - BootNoodlForMobile
-  - PatientChartDM
-  - BaseMessage
+  - BaseCSS
+  - BaseDataModel
+  - ~/HomePageUrl
 page:
-  - PatientChart
-  - PatientChartGeneralInfo
-  - PatientChartPastMedicalHistory
-  - PatientChartAddAllergies
-  - PatientChartObstetrical
-  - PatientChartImmunizations
-  - EmitRedraw
-  - Home
-  - Star
-  - ChatPage
-  - TestPlugIn
-  - PatientDashboard
-  - PatientChartAddMedications
-  - PatientChartAddHospitalization
-  - SelectRedraw
+  - Welcome
+  - WelcomeLoad
+  - SignIn
+  - EditProfile
+  - DisplayProfile
+  - PubProfile
+  - ShareProfile
+  - PersonalDocuments
+  - DocumentDetail
+  - MeetingRoomInvited
+  - MeetingRoomCreate
+  - MeetingRoomHistory
+  - MeetingSummary
+  - MeetingSharedDocuments
+  - SideMenuBar
+  - ContactsList
+  - UploadContact
+  - FavoriteList
+  - UploadFavorite
+  - UploadRecent
+  - AddContact
+  - AddDocuments
+  - ContactInformation
+  - EditContact
+  - MeetingLobby
+  - UploadDocuments
+  - UploadSharedDocuments
+  - MeetingDocumentsNotes
+  - MeetingDocumentsShared
+  - InviteContact
+  - InviteeInfo01
+  - InviteeInfo02
+  - InviteSuccess01
+  - InviteSuccess02
+  - FAQs
+  - ContactSupport
+  - AboutAitmed
+  - ManageMeeting
+  - SignUp
+  - CreateNewAccount
+  - VideoChat
+  - Logout
+  - EmptyPage
+  - PrivacyPolicy
+  - UserAgreement
+  - ServicesAgreement

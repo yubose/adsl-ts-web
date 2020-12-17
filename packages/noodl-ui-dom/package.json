@@ -41,6 +41,7 @@
     "noodl-utils": "^0.0.30"
   },
   "dependencies": {
+    "noodl-types": "file:../noodl-types",
     "noodl-utils": "file:../noodl-utils"
   }
 }

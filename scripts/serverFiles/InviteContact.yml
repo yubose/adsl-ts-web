@@ -225,6 +225,10 @@ InviteContact:
               onClick:
                 - actionType: saveObject
                   object: ..save
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
                 - actionType: popUpDismiss
                   popUpView: confirmView
                 - goto: InviteSuccess01

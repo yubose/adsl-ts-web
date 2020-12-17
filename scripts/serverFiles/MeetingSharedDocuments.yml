@@ -20,6 +20,7 @@ MeetingSharedDocuments:
       xfname: eid
       obfname: mtime
       maxcount: "20"
+      _nonce: =.Global._nonce
   components:
     - type: view
       style:

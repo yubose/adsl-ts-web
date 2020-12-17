@@ -45,5 +45,8 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
+  },
+  "dependencies": {
+    "noodl-types": "file:../noodl-types"
   }
 }

@@ -40,13 +40,15 @@
     "test:components": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/*Component*.test.ts\"",
     "test:noodlutils": "lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "lerna exec --scope noodl-utils \"npm run test:file\"",
-    "lib:build": "cross-env NODE_ENV=development lerna run --parallel build",
-    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --parallel start"
+    "lib:build": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-types build && lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
+    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-types build && lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
   },
   "dependencies": {
+    "noodl-building-blocks": "file:packages/noodl-building-blocks",
+    "noodl-types": "file:packages/noodl-types",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
-    "noodl-utils": "0.0.35"
+    "noodl-utils": "file:packages/noodl-utils"
   },
   "devDependencies": {
     "@aitmed/cadl": "^1.0.158",
@@ -112,6 +114,8 @@
     "mochawesome": "^6.1.1",
     "nock": "^13.0.4",
     "nodemon": "^2.0.4",
+    "noodl-ui": "file:../noodl-ui",
+    "noodl-utils": "file:../noodl-utils",
     "nyc": "^15.1.0",
     "prettier": "^2.1.2",
     "rollup": "^2.35.1",

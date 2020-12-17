@@ -1,150 +1,203 @@
 BasePage:
   pageNumber: "0"
-formData:
-  FirstName: ""
-FormView:
-  style: null
-  top: "0"
-  width: "1"
-  height: "0.13"
-FormViewLabel:
+HeaderTitle2:
   type: label
-  text: First name
+  text: =..title
   style:
-    top: "0.01"
-    width: "0.8"
-    left: "0.1"
-    fontWeight: "400"
-    fontSize: "18"
-    textAlign:
-      x: left
-FormViewButton:
-  type: button
-  text: Upload
-  style:
-    top: "0.01"
-    width: "0.2"
-    left: "0.7"
-    fontWeight: "300"
-    fontSize: "16"
-    color: "0x579FD4"
-    backgroundColor: "0xffffff"
-    borderWidth: "0"
-    textAlign:
-      x: right
-FormViewTextField:
-  type: textField
-  placeholder: Enter here
-  style:
-    top: "0.07"
-    width: "0.8"
-    left: "0.1"
-    fontSize: "16"
-    color: "0x939393"
-    paddingLeft: 10px
-    paddingBottom: 7px
-    borderWidth: "1"
-    border:
-      style: "2"
-      color: "0x000000"
-FormViewText:
-  type: label
-  text: Enter here
-  style:
-    top: "0.07"
-    width: "0.8"
-    left: "0.1"
-    fontSize: "16"
-    color: "0x939393"
-    paddingLeft: 10px
-    paddingBottom: 7px
-    borderWidth: "1"
-    fontWeight: 200
-    border:
-      style: "2"
-      color: "0x000000"
-SmallButton:
-  type: button
-  text: Submit
-  style:
-    width: "0.4"
     left: "0.3"
-    height: "0.07"
-    fontWeight: 200
-    fontSize: "18"
-    color: "0xffffff"
-    backgroundColor: "0x388ECC"
-    borderWidth: "0"
-    borderRadius: "3"
-    textAlign:
-      x: center
-p:
-  type: label
-  text: test
-  style:
-    width: "0.8"
-    left: "0.05"
-    color: "0xB5B5B5"
-    fontSize: "16"
-    fontWeight: 300
-PatientDashboardView:
-  type: view
-  style:
-    top: "0"
-    width: "0.35"
-    left: "0.1"
-    height: "0.15"
-    boxShadow: "1px 1px 1px #888888"
-    borderRadius: 5px
-PatientDashboardImage:
-  type: image
-  path: dateImg.png
-  style:
     top: "0.03"
-    width: "0.13"
-    left: "0.11"
-PatientDashboardLabel:
-  type: label
-  text: Create Appointment (Invite patient)
-  style:
-    top: "0.11"
-    width: "0.3"
-    left: "0.025"
-    fontSize: "15"
-    fontWeight: "600"
-    color: "0x6b6b6b"
+    width: "0.4"
+    fontWeight: 300
+    height: "0.04"
+    fontSize: "14"
+    color: "0xFFFFFF"
     textAlign:
       x: center
-CreateAppointmentView:
+RightCancelButton:
+  type: button
+  text: Cancel
+  style:
+    color: "0xFFFFFF"
+    fontSize: "12"
+    left: "0.75"
+    top: "0.02"
+    fontWeight: 300
+    width: "0.25"
+    height: "0.054"
+    backgroundColor: "0x388ecc"
+    onClick:
+      - goto: DisplayProfile
+RightEditButton:
+  type: button
+  text: Edit
+  style:
+    color: "0xFFFFFF"
+    fontSize: "12"
+    left: "0.75"
+    top: "0.02"
+    fontWeight: 300
+    width: "0.25"
+    height: "0.054"
+    backgroundColor: "0x388ecc"
+    onClick:
+      - goto: EditProfile
+RightShareButton:
+  type: button
+  text: Share
+  style:
+    color: "0xFFFFFF"
+    fontSize: "12"
+    left: "0.75"
+    top: "0.02"
+    fontWeight: 300
+    width: "0.25"
+    height: "0.054"
+    backgroundColor: "0x388ecc"
+    onClick:
+      - goto: EditProfile
+LeftBackButton:
+  type: button
+  onClick:
+    - actionType: builtIn
+      funcName: goBack
+  style:
+    left: "0.03"
+    top: "0.025"
+    width: "0.15"
+    height: "0.05"
+    backgroundColor: "0x388eccff"
+  children:
+    - type: image
+      path: backWhiteArrow.png
+      style:
+        left: "0.02"
+        top: "0.01"
+        width: "0.04"
+        height: "0.02"
+    - type: label
+      text: Back
+      style:
+        left: "0.08"
+        top: "0"
+        width: "0.08"
+        height: "0.04"
+        fontSize: "12"
+        color: "0xffffffff"
+        textAlign:
+          x: left
+          y: center
+MenuHeader:
   type: view
   style:
+    left: "0"
     top: "0"
-    left: "0.05"
-    width: "0.3"
-    height: "0.15"
-CreateAppointmentLabel:
-  type: label
-  text: Date
+    width: "1"
+    height: "0.2"
+    backgroundColor: "0x388eccff"
+  children:
+    - type: label
+      text: =..title
+      style:
+        color: "0xffffffff"
+        top: "0"
+        left: "0.08"
+        width: "0.7"
+        height: "0.15"
+        fontSize: "21"
+        fontWeight: 400
+        zIndex: "1000"
+        textAlign:
+          y: center
+    - type: image
+      path: sideNav2.png
+      style:
+        left: "0.83"
+        top: "0.06"
+        height: "0.03"
+      onClick:
+        - goto: SideMenuBar
+SubMenuView:
+  type: view
   style:
-    top: "0.01"
-    left: "0.01"
-    fontSize: "14"
-    fontWeight: 300
-CreateAppointmentTextField:
-  type: textField
-  placeholder: Enter
+    left: "0"
+    top: "0.15"
+    width: "1"
+    height: "0.05"
+SubMenuButton:
+  type: button
+  text: Invited
   style:
-    top: "0.05"
-    width: "0.3"
-    height: "0.03"
-    borderWidth: "1"
-    fontSize: "12"
-    borderRadius: "3"
-    color: OxABABABsss
-    paddingLeft: 5px
+    color: "0x9bc6e5ff"
+    backgroundColor: "0x388eccff"
+    fontSize: "18"
+    left: "0"
+    top: "0"
+    width: "0.33"
+    height: "0.05"
     border:
-      style: "3"
-      color: OxABABAB
+      style: "1"
+    display: inline
+    textAlign:
+      x: center
+      y: center
+  onClick:
+    - goto: MeetingRoomInvited
+WithCancelHeader:
+  type: header
+  style:
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+  children:
+    - type: label
+      text: =..title
+      style:
+        left: "0.35"
+        width: "0.3"
+        top: "0.032"
+        fontWeight: 400
+        height: "0.1"
+        fontSize: "19"
+        color: "0xffffffff"
+        textAlign:
+          x: center
+    - type: label
+      text: Cancel
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+      style:
+        left: "0.82"
+        width: "0.18"
+        height: "0.1"
+        fontSize: "15"
+        fontWeight: 300
+        color: "0xffffffff"
+        textAlign:
+          y: center
+BaseHeader3:
+  type: header
+  style:
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+  children:
+    - type: label
+      text: =..title
+      style:
+        left: "0.25"
+        width: "0.5"
+        top: "0.033"
+        fontWeight: 400
+        height: "0.1"
+        fontSize: "19"
+        color: "0xffffffff"
+        textAlign:
+          x: center
 BaseHeader:
   type: header
   style:
@@ -157,23 +210,19 @@ BaseHeader:
     - type: button
       text: =..title
       style:
-        left: "0.25"
-        width: "0.5"
+        left: "0.3"
+        width: "0.4"
+        top: "0"
         fontWeight: 300
+        backgroundColor: "0x388eccff"
         height: "0.1"
         fontSize: "18"
         color: "0xffffffff"
         textAlign:
           x: center
-        backgroundColor: "0x388eccff"
-        border:
-          style: "1"
 HeaderRightButton:
   type: label
   style: .HeaderRightLink
-HeaderRightImg:
-  type: image
-  style: .HeaderRightImgStyle
 HeaderLeftButton:
   type: button
   onClick:
@@ -188,8 +237,6 @@ HeaderLeftButton:
     zIndex: 100
     textAlign:
       y: center
-    border:
-      style: "1"
   children:
     - type: image
       path: backWhiteArrow.png
@@ -206,131 +253,501 @@ HeaderLeftButton:
         left: "0.08"
         top: "0"
         height: "0.1"
+        width: "0.1"
         zIndex: 100
-        fontSize: "15"
+        fontSize: "17"
         color: "0xffffffff"
         textAlign:
           x: left
           y: center
-Menubar:
-  type: button
-  style:
-    width: "1"
-    height: "0.08"
-    border:
-      style: "2"
-      width: "3"
-      color: "0xe5e5e5"
-    backgroundColor: "0xffffff"
-MenubarImg:
+HeaderRightImg:
   type: image
+  path: sideNav2.png
+  style: .HeaderRightImgStyle
+SearchField:
+  type: textField
+  contentType: text
   style:
-    height: "0.05"
-    top: "0.015"
-    left: "0.1"
-MenubarTitle:
+    left: "0.08"
+    width: "0.6"
+    height: "0.03"
+    backgroundColor: "0xE8E8E8"
+    fontSize: "12"
+    textAlign:
+      x: left
+      y: center
+SearchDoc:
+  type: button
+  text: Search
+  style:
+    backgroundColor: "0x388ecc"
+    height: "0.03"
+    color: "0xfff"
+    width: "0.18"
+SuccessPopup:
+  type: popUp
+  viewTag: successPopUp
+  style:
+    width: "0.88"
+    height: "0.3"
+    top: "0.3"
+    left: "0.06"
+    zIndex: "100"
+    backgroundColor: "0x00000066"
+    borderRadius: "7"
+  children:
+    - type: image
+      path: successMark.png
+      style:
+        width: "0.2"
+        left: "0.34"
+        top: "0.05"
+    - type: button
+      text: ok
+      style:
+        width: "0.6"
+        left: "0.14"
+        height: "0.05"
+        top: "0.2"
+        backgroundColor: "0x00000000"
+        fontSize: "20"
+        color: "0xffffff"
+        border:
+          style: "1"
+          color: "0x000000"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: successPopUp
+UploadModule:
+  type: view
+  style:
+    width: "0.7"
+    left: "0.15"
+    height: "0.12"
+    border:
+      style: "4"
+      width: "1.5"
+      color: "0xacacac"
+  children:
+    - type: image
+      path: cloud.png
+      style:
+        height: "0.04"
+        top: "0.04"
+        left: "0.1"
+    - type: label
+      text: Click here to upload
+      style:
+        width: "0.5"
+        fontSize: "14"
+        height: "0.12"
+        left: "0.26"
+        color: "0xacacac"
+        textAlign:
+          y: center
+BaseCheckView:
+  type: popUp
+  viewTag: baseCheckView
+  message: error code
+  style:
+    width: "0.88"
+    height: "0.3"
+    top: "0.3"
+    left: "0.06"
+    zIndex: "100"
+    backgroundColor: "0xeaeaea"
+    borderRadius: "7"
+  children:
+    - type: label
+      text: __.message
+      text2: _.text3
+      text3: v
+      text4: __.children.1.text
+      style:
+        .LabelStyle:
+          left: "0"
+          top: "0.08"
+          width: "0.89333"
+          height: "0.05"
+          color: "0x000000"
+          fontSize: "19"
+          display: inline
+          fontFamily: sans-serif
+          textAlign:
+            x: center
+            y: center
+    - type: button
+      text: ok
+      style:
+        width: "0.6"
+        left: "0.4"
+        height: "0.05"
+        top: "0.2"
+        backgroundColor: "0x00000000"
+        fontSize: "20"
+        color: "0xffffff"
+        border:
+          style: "1"
+          color: "0x000000"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: ___.viewTag
+SignInCheck:
+  if:
+    - =.Global.currentUser.vertex.sk
+    - continue
+    - goto: SignIn
+MonthlyCard:
+  type: view
+  style:
+    width: "0.88"
+    left: "0.06"
+    height: "0.22"
+  children:
+    - type: button
+      text: Monthly
+      style:
+        width: "0.88"
+        height: "0.05"
+        backgroundColor: "0xfaab25"
+        fontSize: "22"
+        fontWeight: bold
+        textAlign:
+          x: center
+    - type: view
+      style:
+        width: "0.88"
+        top: "0.05"
+        height: "0.17"
+        backgroundColor: "0xfeeed4"
+      children:
+        - type: button
+          text: $ 35.95/month
+          style:
+            height: "0.06"
+            backgroundColor: "0xfeeed4"
+            width: "0.87"
+            fontSize: "22"
+            fontWeight: bold
+            textAlign:
+              x: center
+        - .SubscriptionsCardList: null
+          style:
+            top: "0.06"
+          children:
+            - ? .SubscriptionsCardStar
+            - .SubscriptionsCardLable: null
+              text: Monthly subscription
+        - .SubscriptionsCardList: null
+          style:
+            top: "0.1"
+          children:
+            - ? .SubscriptionsCardStar
+            - .SubscriptionsCardLable: null
+              text: Renewed every 30 days
+BiannualCard:
+  type: view
+  style:
+    width: "0.88"
+    left: "0.06"
+    height: "0.25"
+  children:
+    - type: button
+      text: Bi-annual
+      style:
+        width: "0.88"
+        height: "0.05"
+        backgroundColor: "0x388ecc"
+        fontSize: "22"
+        fontWeight: bold
+        color: "0xffffff"
+        textAlign:
+          x: center
+    - type: view
+      style:
+        width: "0.88"
+        top: "0.05"
+        height: "0.2"
+        backgroundColor: "0xd7e8f5"
+      children:
+        - type: button
+          text: $ 149.95 for 6 months
+          style:
+            height: "0.06"
+            backgroundColor: "0xd7e8f5"
+            width: "0.87"
+            fontSize: "22"
+            fontWeight: bold
+            textAlign:
+              x: center
+        - type: label
+          style:
+            top: "0.06"
+            width: "0.88"
+            height: "0.04"
+            fontSize: "16"
+            fontWeight: bold
+            textAlign:
+              x: center
+          textBoard:
+            - text: "30% off "
+              color: "0xd56168"
+            - text: "&nbsp;"
+            - text: ($24.99/month)
+        - .SubscriptionsCardList: null
+          style:
+            top: "0.1"
+          children:
+            - ? .SubscriptionsCardStar
+            - .SubscriptionsCardLable: null
+              text: 3-monthly subscription
+        - .SubscriptionsCardList: null
+          style:
+            top: "0.14"
+          children:
+            - ? .SubscriptionsCardStar
+            - .SubscriptionsCardLable: null
+              text: Renewed every 90 days
+AnnualCard:
+  type: view
+  style:
+    width: "0.88"
+    left: "0.06"
+    height: "0.25"
+  children:
+    - type: button
+      text: Annual
+      style:
+        width: "0.88"
+        height: "0.05"
+        backgroundColor: "#2fb355"
+        fontSize: "22"
+        fontWeight: bold
+        color: "0xffffff"
+        textAlign:
+          x: center
+    - type: view
+      style:
+        width: "0.88"
+        top: "0.05"
+        height: "0.2"
+        backgroundColor: "0xd5f0dd"
+      children:
+        - type: button
+          text: $ 249.95 for 12 months
+          style:
+            height: "0.06"
+            backgroundColor: "0xd5f0dd"
+            width: "0.87"
+            fontSize: "22"
+            fontWeight: bold
+            textAlign:
+              x: center
+        - type: label
+          style:
+            top: "0.06"
+            width: "0.88"
+            fontSize: "16"
+            fontWeight: bold
+            height: "0.04"
+            textAlign:
+              x: center
+          textBoard:
+            - text: "Over 40% off "
+              color: "0xd56168"
+            - text: "&nbsp;"
+            - text: ($20.83/month)
+        - .SubscriptionsCardList: null
+          style:
+            top: "0.1"
+          children:
+            - ? .SubscriptionsCardStar
+            - .SubscriptionsCardLable: null
+              text: 12-monthly annual subscription
+        - .SubscriptionsCardList: null
+          style:
+            top: "0.14"
+          children:
+            - ? .SubscriptionsCardStar
+            - .SubscriptionsCardLable: null
+              text: Renewed every years
+SubscriptionsCardList:
+  type: view
+  style:
+    width: "0.88"
+    height: "0.04"
+SubscriptionsCardStar:
+  type: image
+  path: rateapp.png
+  style:
+    height: "0.02"
+    top: "0.01"
+    left: "0.07"
+SubscriptionsCardLable:
   type: label
   style:
-    left: "0.25"
-    top: "0"
-    height: "0.08"
-    fontSize: "19"
+    left: "0.15"
+    height: "0.04"
+    fontWeight: "500"
+    width: "0.7"
     textAlign:
       y: center
-PatientChartLabel:
-  type: label
-  text: Allgerge/irritant
+PayMenthod: null
+FreeTrialPageChoiceIcon:
+  type: image
+  path: chooseIcon.png
   style:
-    width: "0.35"
-    fontSize: "16"
-    fontWeight: 600
-    left: "0.1"
-ChartRadio_172:
-  .Radio:
-    style:
-      top: "0.004"
-      left: "0.15"
-ChartLabel_172:
+    left: "0"
+    top: "0.003"
+    width: "0.05"
+FreeTrialPageChoiceText:
   type: label
+  text: Document storage
   style:
-    left: "0.25"
-    fontSize: "13"
+    left: "0.07"
+    height: "0.04"
     top: "0"
-ChartRadio175:
-  .Radio:
-    style:
-      top: "0.004"
-      left: "0.1"
-ChartTitleLabel175:
-  type: label
-  style:
-    top: "0"
-    left: "0.15"
-    color: "#7f7f7f"
-ChartLabel175:
-  type: label
-  style:
-    top: "0"
-    left: "0.25"
-    color: "#7f7f7f"
-    fontSize: "14"
-BaseView:
+    fontSize: "15"
+    fontFamily: sans-serif
+FreeTrialPageChoice:
   type: view
   style:
-    width: "1"
-    left: "0"
-ChartLabel:
-  - type: label
-    style:
-      top: "0"
-      left: "0.1"
-      color: "#5f5f5f"
-      fontSize: "14"
-PatientChartLabelLittle:
-  type: label
-  text: Lexapro
+    left: "0.15"
+    width: "0.7"
+    top: "0.72"
+    height: "0.12"
+  children:
+    - .FreeTrialPageChoiceIcon
+    - .FreeTrialPageChoiceText
+    - .FreeTrialPageChoiceIcon: null
+      style:
+        top: "0.033"
+    - .FreeTrialPageChoiceText: null
+      text: In-Meeting Document sharing
+      style:
+        top: "0.03"
+    - .FreeTrialPageChoiceIcon: null
+      style:
+        top: "0.063"
+    - .FreeTrialPageChoiceText: null
+      text: Group meetings
+      style:
+        top: "0.06"
+    - .FreeTrialPageChoiceIcon: null
+      style:
+        top: "0.093"
+    - .FreeTrialPageChoiceText: null
+      text: In-Meeting Notes
+      style:
+        top: "0.09"
+ForeachSubCard:
+  type: view
   style:
-    width: "0.2"
-    fontSize: "13"
-    color: "0x4e4e4e"
-    fontWeight: 400
-    height: "0.025"
-PatientChartBorder:
-  type: button
-  onClick:
-    - actionType: builtIn
-      funcName: toggle
-  text: ""
-  textSelected: ✅
-  style:
-    left: "0.13"
-    width: "0.028"
-    height: "0.02"
+    left: "0.125"
+    height: "0.23"
+    width: "0.75"
+    backgroundColor: "0xccecd5aa"
+    zIndex: "100"
     border:
       style: "3"
-      color: "0x939393"
-    backgroundColor: "0xffffff"
-PatientChartHistoryLabel:
-  type: label
-  text: Abnormal imaging or lab report
-  style:
-    width: "0.85"
-    left: "0.2"
-    fontSize: "11.5"
-    color: "0x4e4e4e"
-    fontWeight: 400
-    height: "0.025"
-    fontFamily: sans-serif
-ProgressField:
-  type: view
-  height: "0.15"
-  width: "0.07"
-Progress10:
-  type: view
-  style:
-    height: "0.015"
-    width: "0.92"
-    left: "0.04"
-    top: "0.125"
+    borderColor: "0xccecd5"
+    borderRadius: "10"
   children:
-    - ? .ProgressField
+    - type: label
+      style:
+        width: "0.75"
+        height: "0.1"
+        fontSize: "28"
+        textAlign:
+          x: center
+      textBoard:
+        - text: For each subsciption
+        - ? br
+        - text: referral, you get
+    - type: label
+      text: ONE MONTH FREE
+      style:
+        top: "0.095"
+        width: "0.75"
+        height: "0.06"
+        fontSize: "30"
+        fontStyle: bold
+        color: "0x30b354"
+        textAlign:
+          x: center
+    - type: label
+      textBoard:
+        - text: "*Simply have your friend enter your phone "
+        - ? br
+        - text: number on your AiTmed account when paying for their subscription*
+      style:
+        top: "0.145"
+        width: "0.75"
+        height: "0.1"
+        fontSize: "14"
+        lineHeight: 20px
+        textAlign:
+          x: center
+ForeachSubView:
+  type: view
+  style:
+    top: "0.2"
+    width: "1"
+  children:
+    - ? .ForeachSubCard
+    - type: image
+      path: imgpshMobileSave.png
+      style:
+        Index: 100
+        left: "0.8"
+        width: "0.2"
+        top: "0.07"
+IconStar:
+  type: image
+  path: providerOn.png
+  style:
+    top: "0.003"
+    width: "0.04"
+suboptionText:
+  type: label
+  text: Document storage
+  style:
+    left: "0.06"
+    textAlign:
+      x: left
+suboptionView:
+  type: view
+  style:
+    left: "0.17"
+    top: "0.62"
+    width: "0.7"
+    height: "0.5"
+FAQsTitle:
+  type: label
+  text: What is AiTmed?
+  style:
+    left: "0.07"
+    width: "0.86"
+    lineHeight: 30px
+    fontSize: "19"
+    fontFamily: sans-serif
+    fontWeight: "400"
+    height: "0.05"
+    textAlign:
+      x: left
+FAQsText:
+  type: label
+  text: AiTmed is a telemedicine service that makes the process to see a doctor
+    that much easier. We are a company that helps businesses in the medical
+    facility be able to see their patients from home.
+  style:
+    left: "0.07"
+    width: "0.86"
+    lineHeight: 25px
+    fontSize: "14"
+    fontFamily: sans-serif
+    letterSpacing: 0.5px
+    fontWeight: "400"
+    textAlign: justify
+    color: "#9f9f9f"
+    height: "0.3"

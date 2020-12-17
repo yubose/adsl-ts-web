@@ -17,14 +17,16 @@ function getActionConsumerOptions(
       noodlui.getConsumerOptions({
         // Create a dummy component to avoid unexpected data type errors
         component: createComponent('view'),
-        getAssetsUrl: (() => noodlui.assetsUrl).bind(noodlui),
-        getPageObject: noodlui.getPageObject.bind(noodlui),
-        getState: noodlui.getState.bind(noodlui),
-        plugins: noodlui.plugins.bind(noodlui),
-        setPlugin: noodlui.setPlugin.bind(noodlui),
       }),
       ['component', 'getCbs', 'getResolvers', 'getRoot', 'page', 'viewport'],
     ),
+    {
+      getAssetsUrl: (() => noodlui.assetsUrl).bind(noodlui),
+      getPageObject: noodlui.getPageObject.bind(noodlui),
+      getState: noodlui.getState.bind(noodlui),
+      plugins: noodlui.plugins.bind(noodlui),
+      setPlugin: noodlui.setPlugin.bind(noodlui),
+    },
   ) as ActionConsumerCallbackOptions
 }
 
