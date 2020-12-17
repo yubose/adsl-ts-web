@@ -1,0 +1,127 @@
+FAQs:
+  pageNumber: "470"
+  title: FAQs
+  init: ""
+  viewPort: top
+  components:
+    - .BaseHeader
+    - ? .HeaderLeftButton
+    - type: view
+      style:
+        top: "0.1"
+        height: "2.47"
+        left: "0"
+        width: "1"
+      children:
+        - type: image
+          path: avatar21919321920.png
+          style:
+            top: "0.07"
+            width: "0.7"
+            left: "0.15"
+        - .FAQsTitle: null
+          text: What is AiTmed?
+          style:
+            top: 180px
+        - .FAQsText: null
+          text: AiTmed is a telemedicine service that makes the process to see a doctor
+            that much easier. We are a company that helps businesses in the
+            medical facility be able to see their patients from home.
+          style:
+            top: 230px
+        - .FAQsTitle: null
+          text: How can I use AiTmed?
+          style:
+            top: 380px
+        - .FAQsText: null
+          text: AITmed can be used by medical facilities that takes or would like to take
+            virtual appointments. It is an online platform that securely allows
+            face to to face virtual calls for users to see their current or
+            established doctors with no online documentation. This platform is
+            an easy, convenient, secure way to have non-essential appointment
+            with your provider.
+          style:
+            top: 430px
+        - .FAQsTitle: null
+          text: What is blockchain?
+          style:
+            top: 680px
+        - .FAQsText: null
+          style:
+            top: 730px
+          text: Blockchain technology is most simplified form is an encrypted system that
+            keeps all information in the system safe and unhackable. AiTmed is a
+            blockchain system that is built specifically to guard every users
+            information. To be user safe, AiTmed does not keep track of personal
+            information. We created a separate and different sign up process for
+            the safety of our users. YOUR security and privacy is our top prior
+            Advantages and security
+        - .FAQsTitle: null
+          text: How do I recover my password?
+          style:
+            top: 1030px
+        - .FAQsText: null
+          style:
+            top: 1090px
+          text: AiTmed hasn’t created a recover password at this time. The best way to
+            never lose track of your account is to continue to write your
+            password multiple times, this is why in our log out stage you must
+            type your password before logging out to help you remember for next
+            time.
+        - .FAQsTitle: null
+          text: Why does AiTmed have a different sign up process?
+          style:
+            top: 1280px
+            lineHeight: 30px
+        - .FAQsText: null
+          style:
+            top: 1370px
+          text: AiTmed is a blockchain encrypted system that is built specifically to
+            guard every users information. When an account is created that name,
+            number and password is only known to that user. To the user safe,
+            AiTmed does not keep track of personal information. We created a
+            separate and different sign up process for the safety of our users.
+            YOUR security and privacy is our top priority.
+        - .FAQsTitle: null
+          text: How to sign up with AiTmed?
+          style:
+            top: 1620px
+        - .FAQsText: null
+          style:
+            top: 1680px
+          text: To create an account with AiTmed is as easy as using your cell phone
+            number, entering the verification code sent to you and typing in a
+            new username to use. Click the sign up button and you now have a new
+            AiTmed account.
+        - .FAQsTitle: null
+          text: How to create an appointment?
+          style:
+            top: 1880px
+        - .FAQsText: null
+          style:
+            top: 1930px
+          text: An appointment should be created by the office. Under the Invited tab and
+            new appointment will show. Click the appointment and should lead you
+            to a video. Keep track of all your appointments through the history
+            tab.
+        - .FAQsTitle: null
+          text: Can I invite someone that does not have an AiTmed account?
+          style:
+            top: 2100px
+        - .FAQsText: null
+          style:
+            top: 2180px
+          text: Yes a person without an account can be invite but they must create an
+            account to join into the meeting room. AiTmed unfortunately can not
+            allow
+        - .FAQsTitle: null
+          text: Do you offer 24/7 virtual calls?
+          style:
+            top: 2320px
+        - .FAQsText: null
+          style:
+            top: 2360px
+          text: AiTmed does not specially offer 24/7 virtually calls but it allows the
+            doctors office to become longer an larger hours. Schedule an
+            appointment after hours if possible through your medical office
+            today.

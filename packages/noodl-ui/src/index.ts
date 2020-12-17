@@ -29,6 +29,7 @@ export { default as createActionCreatorFactory } from './ActionChain/createActio
 export { default as findList } from './utils/findList'
 export { default as getActionConsumerOptions } from './utils/getActionConsumerOptions'
 export { default as isReference } from './utils/isReference'
+export { default as isComponent } from './utils/isComponent'
 export { default as NOODL } from './noodl-ui'
 export { default as Viewport } from './Viewport'
 export {
@@ -42,10 +43,13 @@ export * from './types'
 
 export { isPromise } from './utils/common'
 export {
-  getByDataUX,
   getDataValues,
   getDataObjectValue,
   getPluginTypeLocation,
+  findChild,
+  findListDataObject,
+  findParent,
+  isListKey,
   identify,
 } from './utils/noodl'
 export { getTagName } from './resolvers/getElementType'

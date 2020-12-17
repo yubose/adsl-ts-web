@@ -1,0 +1,220 @@
+MeetingSummary:
+  pageNumber: "270"
+  title: Meeting Summary
+  init:
+    - .SignInCheck
+    - ..meetingNote.docAPI.get
+    - actionType: evalObject
+      object:
+        .MeetingSummary.meetingNote.document@: =..docResponse.doc.0
+  dataObject: .Global.rootRoomInfo.edge
+  docResponse:
+    doc:
+      - type: .DocType.MeetingNote
+        eid: .Global.rootRoomInfo.edge.refid
+        name: ""
+    error: ""
+    jwt: ""
+  meetingNote:
+    document: ""
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        api: rd
+        ids:
+          - .Global.rootRoomInfo.edge.refid
+        xfname: eid
+        type: .DocType.MeetingNote
+        maxcount: "1"
+        obfname: mtime
+        dataKey: docResponse
+  components:
+    - ? .BaseHeader3
+    - ? .HeaderLeftButton
+    - type: button
+      text: View Meeting Documents
+      onClick:
+        - goto: MeetingSharedDocuments
+      style:
+        width: "0.7"
+        left: "0.15"
+        top: "0.13"
+        height: "0.05"
+        color: "0xffffffff"
+        backgroundColor: "0x388eccff"
+    - type: view
+      style:
+        left: "0.1"
+        top: "0.17"
+        width: "0.8"
+        height: "0.5"
+      children:
+        - type: label
+          text: Meeting Name
+          style:
+            left: "0"
+            top: "0.05"
+            width: "0.8"
+            height: "0.04"
+            fontSize: "14"
+            color: "0x808080aa"
+            textAlign:
+              x: left
+              y: center
+        - type: label
+          dataKey: dataObject.name.roomName
+          style:
+            left: "0"
+            top: "0.09"
+            width: "0.8"
+            height: "0.04"
+            fontSize: "16"
+            fontWeight: 400
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              color: "0x000000ef"
+            borderWidth: "1"
+        - type: label
+          text: Paticipants
+          style:
+            left: "0"
+            top: "0.15"
+            width: "0.8"
+            height: "0.04"
+            fontSize: "14"
+            textAlign:
+              x: left
+              y: center
+            color: "0x808080aa"
+        - type: label
+          style:
+            left: "0"
+            top: "0.19"
+            width: "0.8"
+            fontWeight: 400
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              color: "0x000000ef"
+            borderWidth: "1"
+        - type: label
+          text: Date and Time
+          style:
+            left: "0"
+            top: "0.25"
+            width: "0.8"
+            height: "0.04"
+            fontSize: "14"
+            color: "0x808080aa"
+            textAlign:
+              x: left
+              y: center
+        - type: label
+          text=func: .builtIn.string.formatUnixtime_en
+          dataKey: dataObject.ctime
+          style:
+            left: "0"
+            top: "0.29"
+            width: "0.8"
+            fontWeight: 400
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              color: "0x000000ef"
+            borderWidth: "1"
+        - type: label
+          text: Duration
+          style:
+            left: "0"
+            top: "0.35"
+            width: "0.8"
+            height: "0.04"
+            fontSize: "14"
+            color: "0x808080aa"
+            textAlign:
+              x: left
+              y: center
+        - type: label
+          text=func: .builtIn.string.formatDurationInSecond
+          dataKey: dataObject.tage
+          style:
+            left: "0"
+            top: "0.39"
+            fontWeight: 400
+            width: "0.8"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              color: "0x000000ef"
+            borderWidth: "1"
+        - type: label
+          text: title
+          style:
+            left: "0"
+            top: "0.45"
+            width: "0.8"
+            height: "0.04"
+            fontSize: "14"
+            color: "0x808080aa"
+            textAlign:
+              x: left
+              y: center
+        - type: label
+          dataKey: meetingNote.document.name.title
+          style:
+            left: "0"
+            top: "0.49"
+            fontWeight: 400
+            width: "0.8"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              color: "0x000000ef"
+            borderWidth: "1"
+        - type: label
+          text: Notes
+          style:
+            left: "0"
+            top: "0.55"
+            width: "0.8"
+            height: "0.04"
+            fontSize: "14"
+            color: "0x808080aa"
+            textAlign:
+              x: left
+              y: center
+        - type: label
+          dataKey: meetingNote.document.name.data.note
+          style:
+            left: "0"
+            top: "0.59"
+            fontWeight: 400
+            width: "0.8"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              color: "0x000000ef"
+            borderWidth: "1"

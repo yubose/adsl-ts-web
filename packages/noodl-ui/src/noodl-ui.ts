@@ -4,7 +4,6 @@ import Logger from 'logsnap'
 import {
   createEmitDataKey,
   evalIf,
-  findListDataObject,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isEmitObj,
@@ -24,6 +23,7 @@ import {
   isPromise,
 } from './utils/common'
 import {
+  findListDataObject,
   getPluginTypeLocation,
   isActionChainEmitTrigger,
   resolveAssetUrl,
@@ -31,6 +31,7 @@ import {
 import createComponent from './utils/createComponent'
 import createComponentCache from './utils/componentCache'
 import getActionConsumerOptions from './utils/getActionConsumerOptions'
+import isComponent from './utils/isComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
 import EmitAction from './Action/EmitAction'
@@ -119,7 +120,7 @@ class NOODL {
     let resolvedComponents: Component[] = []
 
     if (componentsParams) {
-      if (componentsParams instanceof Component) {
+      if (isComponent(componentsParams)) {
         components = [componentsParams]
       } else if (!_.isArray(componentsParams) && _.isObject(componentsParams)) {
         if ('components' in componentsParams) {
@@ -457,7 +458,7 @@ class NOODL {
           content: '',
         }),
       }
-    } else if (plugin instanceof Component) {
+    } else if (isComponent(plugin)) {
       plugin = {
         content: plugin.get('content') || '',
         location: getPluginTypeLocation(plugin.noodlType) as T.PluginLocation,
@@ -807,8 +808,6 @@ class NOODL {
   setPlugin(value: T.PluginCreationType) {
     if (!value) return
     const plugin: T.PluginObject = this.createPluginObject(value)
-    log.func('setPlugin')
-    log.info(`Registering plugin: ${plugin.path}`, plugin)
     if (plugin.location === 'head') {
       this.#state.plugins.head.push(plugin)
     } else if (plugin.location === 'body-top') {

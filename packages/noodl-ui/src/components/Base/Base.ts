@@ -14,6 +14,7 @@ import {
   Style,
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
+import isComponent from '../../utils/isComponent'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 
 const log = Logger.create('Base')
@@ -45,16 +46,14 @@ class Component implements IComponent {
   stylesUntouched: string[] = []
 
   constructor(component: ComponentCreationType) {
-    const keys =
-      component instanceof Component
-        ? component.keys
-        : _.keys(_.isString(component) ? { type: component } : component)
-    this['original'] =
-      component instanceof Component
-        ? component.original
-        : _.isString(component)
-        ? { noodlType: component }
-        : (component as any)
+    const keys = isComponent(component)
+      ? component.keys
+      : _.keys(_.isString(component) ? { type: component } : component)
+    this['original'] = isComponent(component)
+      ? component.original
+      : _.isString(component)
+      ? { noodlType: component }
+      : (component as any)
     this['keys'] = keys
     this['untouched'] = keys.slice()
     this['unhandled'] = keys.slice()
@@ -521,7 +520,7 @@ class Component implements IComponent {
   }
 
   hasParent() {
-    return !!this.#parent && this.#parent instanceof Component
+    return !!this.#parent && isComponent(this.#parent)
   }
 
   setParent(parent: Component | null) {
@@ -559,7 +558,7 @@ class Component implements IComponent {
   hasChild(child: Component | string): boolean {
     if (_.isString(child)) {
       return !!_.find(this.#children, (c) => c?.id === child)
-    } else if (child instanceof Component) {
+    } else if (isComponent(child)) {
       return this.#children.includes(child)
     }
     return false

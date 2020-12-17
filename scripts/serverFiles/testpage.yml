@@ -10,7 +10,7 @@ viewWidthHeightRatio:
 debug: console_log_api
 cadlBaseUrl: http://127.0.0.1:3001/
 cadlMain: cadlEndpoint.yml
-myBaseUrl: http://127.0.0.1:3001
+myBaseUrl: http://127.0.0.1:3001/
 timestamp: 12012020
 bodyTopPplugin: ~/pi.html
 bodyTailPplugin: ~/pi.html

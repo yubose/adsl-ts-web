@@ -83,6 +83,7 @@ const handleListInternalResolver = (
         c.assign(commonProps)
         _internalResolver.resolve(c, {
           ...args,
+          ...options,
           component: c,
           resolveComponent,
         })

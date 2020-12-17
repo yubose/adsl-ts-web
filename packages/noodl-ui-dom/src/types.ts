@@ -81,3 +81,23 @@ export type NOODLDOMElements = Pick<
   | 'ul'
   | 'video'
 >
+
+export interface NodeResolver<
+  N extends NOODLDOMElement = any,
+  C = any,
+  RT = any
+> {
+  (
+    node: N | null,
+    component: C,
+    opts: {
+      original: any
+    },
+  ): RT
+}
+
+export interface NodeResolverConfig {
+  name?: string
+  cond?: NodeResolver<any, any, boolean>
+  resolve: NodeResolver<any, any, void>
+}

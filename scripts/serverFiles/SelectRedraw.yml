@@ -41,7 +41,7 @@ SelectRedraw:
                 actions:
                   - =.builtIn.array.LoopToGenerate:
                       dataIn:
-                        - =..BookingSlotsSelect
+                        span: =..BookingSlotsSelect
                       dataOut: SelectRedraw.ScheduleSettingsTemp.TimeSpan
             - actionType: builtIn
               funcName: redraw

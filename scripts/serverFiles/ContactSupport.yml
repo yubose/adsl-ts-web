@@ -1,0 +1,125 @@
+ContactSupport:
+  pageNumber: "480"
+  title: Contact Support
+  init: ""
+  save:
+    - ..formData.edgeAPI.store
+  formData:
+    edge:
+      name:
+        subject: subject
+        question: Question
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataKey: formData.edge
+  components:
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+        - ? .BaseHeader3
+        - ? .HeaderLeftButton
+        - type: view
+          style:
+            left: "0"
+            top: "0"
+            width: "0.7"
+            height: "0.04"
+          children:
+            - type: label
+              text: We would be glad to support you
+              style:
+                color: "0x000000"
+                left: "0.15"
+                top: "0.2"
+                width: "0.8"
+                height: "0.04"
+                fontSize: "16"
+                fontWeight: 400
+                textAlign:
+                  x: center
+                  y: center
+            - type: label
+              text: You will receive a separate reply to confirm your question has been
+                submitted
+              style:
+                color: "0x0070bf"
+                left: "0.05"
+                top: "0.3"
+                width: "0.9"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: center
+                  y: center
+            - type: select
+              dataKey: formData.edge.name.subject
+              style:
+                color: "0xE4E4E4"
+                left: "0.2"
+                top: "0.4"
+                width: "0.6"
+                height: "0.04"
+                required: "true"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                  color: "0xA8A8A8"
+              options:
+                - Subject
+                - AK
+                - AZ
+                - AR
+                - CA
+                - CO
+            - type: textField
+              placeholder: Question
+              dataKey: formData.edge.name.question
+              contentType: text
+              style:
+                color: "0xE4E4E4"
+                left: "0.2"
+                top: "0.5"
+                width: "0.6"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0xA8A8A8"
+            - type: button
+              text: Submit
+              onClick:
+                - goto: SideMenuBar
+                - actionType: saveObject
+                  object: ..save
+              style:
+                left: "0.15"
+                top: "0.8"
+                width: "0.7"
+                height: "0.05"
+                color: "0xffffffff"
+                backgroundColor: "0x388ecc"
+                textAlign:
+                  x: center
+            - type: button
+              text: Cancel
+              onClick:
+                - goto: SideMenuBar
+              style:
+                left: "0.15"
+                top: "0.86"
+                width: "0.7"
+                height: "0.07"
+                color: "0x6b6b6b"
+                backgroundColor: "0xFFFFFF"
+                textAlign:
+                  x: center

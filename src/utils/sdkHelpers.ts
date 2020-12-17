@@ -8,12 +8,11 @@ import { Draft, original } from 'immer'
 import Logger from 'logsnap'
 import {
   excludeIteratorVar,
-  findListDataObject,
   getAllByDataKey,
   isEmitObj,
-  isListKey,
+  isListConsumer,
 } from 'noodl-utils'
-import { Component } from 'noodl-ui'
+import { Component, findListDataObject, isListKey } from 'noodl-ui'
 import { isTextFieldLike } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'
@@ -80,11 +79,27 @@ export function createOnDataValueChangeFn(
       }
     } else {
       noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
-        if (_.has(draft?.[noodlui.page], dataKey)) {
-          _.set(draft?.[noodlui.page], dataKey, value)
-          component.set('data-value', value)
-          node.dataset.value = value
-          onChangeProp?.(event)
+        if (!_.has(draft?.[noodlui.page], dataKey)) {
+          log.orange(
+            `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +
+              `If this is intended then ignore this message.`,
+            {
+              component,
+              dataKey,
+              draftRoot: original(draft),
+              localRoot,
+              node,
+              pageName: noodlui.page,
+              pageObject: noodl.root[noodlui.page],
+              value,
+            },
+          )
+        }
+        _.set(draft?.[noodlui.page], dataKey, value)
+        component.set('data-value', value)
+        node.dataset.value = value
+        onChangeProp?.(event)
+        if (!isListConsumer(component)) {
           /**
            * EXPERIMENTAL - When a data key from the local root is being updated
            * by a node, update all other nodes that are referencing it.
@@ -105,22 +120,6 @@ export function createOnDataValueChangeFn(
               }
             })
           }
-        } else {
-          log.red(
-            `Attempted to update a data value from an onChange onto a data value ` +
-              `component but the dataKey "${dataKey}" is not a valid path of the ` +
-              `root object`,
-            {
-              component,
-              dataKey,
-              draftRoot: original(draft),
-              localRoot,
-              node,
-              pageName: noodlui.page,
-              pageObject: noodl.root[noodlui.page],
-              value,
-            },
-          )
         }
       })
     }

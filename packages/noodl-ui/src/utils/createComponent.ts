@@ -4,6 +4,7 @@ import { forEachEntries, getRandomKey } from './common'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Component from '../components/Base'
+import isComponent from './isComponent'
 
 export interface PropsOptionFunc<T> {
   (child: T): Partial<ComponentObject>
@@ -48,7 +49,7 @@ function createComponent<K extends ComponentType = ComponentType>(
   // ComponentType
   if (typeof value === 'string') {
     childComponent = toInstance({ type: value, ...props })
-  } else if (value instanceof Component) {
+  } else if (isComponent(value)) {
     // IComponentInstanceType
     childComponent = value
     id = childComponent.id

@@ -1,7 +1,7 @@
 import NOODL from '@aitmed/cadl'
 import { getAspectRatio } from '../utils/common'
 
-const LOCAL_SERVER = 'http://127.0.0.1:3001/message.yml'
+const LOCAL_SERVER = 'http://127.0.0.1:3001/testpage.yml'
 const WWW = getConfigEndpoint('www')
 const WWW2 = getConfigEndpoint('www2')
 const PATIENT = getConfigEndpoint('patient')
@@ -20,7 +20,7 @@ const noodl = new NOODL({
       ? getAspectRatio(window.innerWidth, window.innerHeight)
       : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
-  configUrl: LOCAL_SERVER,
+  configUrl: MEET2D,
 })
 
 function getConfigEndpoint(name: string) {

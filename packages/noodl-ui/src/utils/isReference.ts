@@ -5,7 +5,7 @@ import _ from 'lodash'
  * @param { any } value - A value to check if it is a reference
  */
 
-function isReference(value: string) {
+function isReference(value: any) {
   if (!_.isString(value)) return false
   if (value.startsWith('.')) return true
   if (value.startsWith('=')) return true

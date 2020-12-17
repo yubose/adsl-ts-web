@@ -6,16 +6,16 @@ import {
   ActionConsumerCallbackOptions,
   BuiltInObject,
   Component,
-  createActionCreatorFactory,
   EmitAction,
+  findListDataObject,
   getActionConsumerOptions,
-  getByDataUX,
   getDataValues,
   GotoURL,
   GotoObject,
   ActionChainActionCallback,
   ActionObject,
 } from 'noodl-ui'
+import { getByDataUX } from 'noodl-ui-dom'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
@@ -24,8 +24,6 @@ import {
   Room,
 } from 'twilio-video'
 import {
-  findListDataObject,
-  findParent,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isBooleanFalse,
@@ -52,8 +50,8 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       contentType = action.original?.contentType || ''
       delay = action.original?.wait || 0
     } else {
-      // contentType = action.contentType || ''
-      // delay = action.wait || 0
+      contentType = action.contentType || ''
+      delay = action.wait || 0
     }
 
     const onCheckField = () => {
@@ -521,61 +519,63 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     })
   }
 
+  return builtInActions
+
   // Wrapper that converts action objects to their action instances.
   // This is to allow these built in funcs to be executed outside of
   // components like during the "init" phase of page objects
-  return Object.entries(builtInActions).reduce((acc, [funcName, fn]) => {
-    acc[funcName as keyof typeof acc] = async (
-      ...[
-        action,
-        options,
-        actionsContext,
-      ]: Parameters<ActionChainActionCallback>
-    ) => {
-      if (!(action instanceof Action) && _.isPlainObject(action)) {
-        const actionObj = action as ActionObject
-        const { default: noodl } = await import('../app/noodl')
-        const { default: noodlui } = await import('../app/noodl-ui')
-        const consumerArgs = getActionConsumerOptions(
-          noodlui,
-        ) as ActionConsumerCallbackOptions & {
-          trigger: any
-        }
-        actionsContext = actionsContext ||
-          noodlui.actionsContext || { noodl, noodlui }
-        const ref = new ActionChain(
-          [actionObj],
-          {
-            ...consumerArgs,
-            component: options?.component || consumerArgs.component,
-          },
-          actionsContext,
-        )
-        if (actionObj.actionType === 'builtIn') {
-          ref.useBuiltIn({
-            actionType: actionObj.actionType,
-            funcName: actionObj.funcName,
-            fn:
-              builtInActions[actionObj.funcName as keyof typeof builtInActions],
-          })
-        } else {
-          const { default: createActions } = await import('./actions')
-          const actionHandlers = createActions({ page })
-          actionHandlers[actionObj.actionType]?.forEach?.((o) =>
-            ref.useAction({
-              actionType: actionObj.actionType,
-              fn: o.fn,
-              trigger: o.trigger,
-            }),
-          )
-        }
-        action = (ref.createAction as any)?.[actionObj.actionType]?.(action)
-        console.info(action)
-      }
-      return fn?.(action, options, actionsContext)
-    }
-    return acc
-  }, {} as typeof builtInActions)
+  // return Object.entries(builtInActions).reduce((acc, [funcName, fn]) => {
+  //   acc[funcName as keyof typeof acc] = async (
+  //     ...[
+  //       action,
+  //       options,
+  //       actionsContext,
+  //     ]: Parameters<ActionChainActionCallback>
+  //   ) => {
+  //     if (!(action instanceof Action) && _.isPlainObject(action)) {
+  //       const actionObj = action as ActionObject
+  //       const { default: noodl } = await import('../app/noodl')
+  //       const { default: noodlui } = await import('../app/noodl-ui')
+  //       const consumerArgs = getActionConsumerOptions(
+  //         noodlui,
+  //       ) as ActionConsumerCallbackOptions & {
+  //         trigger: any
+  //       }
+  //       actionsContext = actionsContext ||
+  //         noodlui.actionsContext || { noodl, noodlui }
+  //       const ref = new ActionChain(
+  //         [actionObj],
+  //         {
+  //           ...consumerArgs,
+  //           component: options?.component || consumerArgs.component,
+  //         },
+  //         actionsContext,
+  //       )
+  //       if (actionObj.actionType === 'builtIn') {
+  //         ref.useBuiltIn({
+  //           actionType: actionObj.actionType,
+  //           funcName: actionObj.funcName,
+  //           fn:
+  //             builtInActions[actionObj.funcName as keyof typeof builtInActions],
+  //         })
+  //       } else {
+  //         const { default: createActions } = await import('./actions')
+  //         const actionHandlers = createActions({ page })
+  //         actionHandlers[actionObj.actionType]?.forEach?.((o) =>
+  //           ref.useAction({
+  //             actionType: actionObj.actionType,
+  //             fn: o.fn,
+  //             trigger: o.trigger,
+  //           }),
+  //         )
+  //       }
+  //       action = (ref.createAction as any)?.[actionObj.actionType]?.(action)
+  //       console.info(action)
+  //     }
+  //     return fn?.(action, options, actionsContext)
+  //   }
+  //   return acc
+  // }, {} as typeof builtInActions)
 }
 
 /* -------------------------------------------------------

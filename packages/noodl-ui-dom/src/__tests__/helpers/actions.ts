@@ -1,11 +1,11 @@
 import {
   ActionConsumerCallbackOptions,
+  findParent,
   getDataObjectValue,
   IAction,
   ListItem,
   EmitActionObject,
 } from 'noodl-ui'
-import { findParent } from 'noodl-utils'
 import sinon from 'sinon'
 
 export const emit = async (

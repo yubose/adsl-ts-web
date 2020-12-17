@@ -5,10 +5,10 @@ import {
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import Logger from 'logsnap'
+import { getByDataUX } from 'noodl-ui-dom'
 import {
   ActionChainActionCallback,
   Component,
-  getByDataUX,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -24,6 +24,7 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   getDataValues,
+  isComponent,
   List,
   identify,
   Resolver,
@@ -72,7 +73,10 @@ function createPreparePage(options: {
     pageModifiers: { reload?: boolean } = {},
   ): Promise<PageObject> => {
     const { default: noodl } = await import('app/noodl')
-    await noodl.initPage(pageName, [], { ...options, ...pageModifiers })
+    await noodl.initPage(pageName, [], {
+      ...options,
+      ...pageModifiers,
+    })
     log.func('createPreparePage')
     log.grey(`Ran noodl.initPage on page "${pageName}"`, {
       pageName,
@@ -855,7 +859,7 @@ function redrawDebugger(
   opts: RedrawOptions | Component,
 ) {
   if (node) {
-    if (opts instanceof Component) {
+    if (isComponent(opts)) {
       const component = opts as Component
     } else {
       const options = opts as RedrawOptions

@@ -1,6 +1,6 @@
 {
   "name": "noodl-utils",
-  "version": "0.0.31",
+  "version": "0.0.36",
   "description": "Utility/helpers for working with NOODL values",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "main": "dist/index.js",
@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "start": "rm -rf dist && tsc -w",
+    "prestart": "rm -rf dist",
+    "start": "tsc -w",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src"
   },
