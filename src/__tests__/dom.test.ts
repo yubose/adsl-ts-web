@@ -6,12 +6,10 @@ import { prettyDOM } from '@testing-library/dom'
 import { queryByText, screen, waitFor } from '@testing-library/dom'
 import { Component, List, ListItem, NOODLComponent } from 'noodl-ui'
 import { getByDataKey } from 'noodl-utils'
-import axios from '../app/axios'
 import {
   assetsUrl,
   builtIn,
   noodlui,
-  noodluidom,
   queryByDataKey,
   queryByDataListId,
   queryByDataName,
@@ -44,7 +42,7 @@ describe('dom', () => {
         placeholder: 'hello, all',
         id: 'id123',
       })
-      const label = queryByDataKey(document.body, dataKey)
+      const label = queryByDataKey(document.body, dataKey) as any
       expect(label.value).to.be.undefined
       expect(label?.innerHTML).to.equal(greeting)
     })
@@ -161,7 +159,7 @@ describe('dom', () => {
     )
 
     xit('should append a new list item node if a data object is added', async () => {
-      const noodlList = getListComponent1({ iteratorVar: 'cat' })
+      const noodlList = getListComponent1({ iteratorVar: 'cat' }) as any
       const { components } = page.render({
         type: 'view',
         children: [noodlList],
@@ -205,7 +203,6 @@ describe('dom', () => {
         const ul = document.getElementById(list.id)
         expect(ul?.children).to.have.lengthOf(3)
         list.removeDataObject(0)
-        saveOutput('dom.test.json', view.toJS(), { spaces: 2 })
         expect(ul?.children).to.have.lengthOf(2)
       },
     )
@@ -290,7 +287,7 @@ describe('dom', () => {
 
     it('should create the select option children when rendering', () => {
       const options = ['abc', '123', 5, 1995]
-      page.render({ type: 'select', options, id: 'myid123' })
+      page.render({ type: 'select', options, id: 'myid123' } as any)
       _.forEach(options, (option, index) => {
         expect(document.querySelector(`option[value="${options[index]}"]`)).to
           .exist
@@ -337,7 +334,7 @@ describe('dom', () => {
             noodlType: 'listItem',
             id: 'id123',
             [key as string]: 'abc123',
-          })
+          } as any)
           expect((queryFn as Function)(document.body, 'abc123')).to.exist
         })
       },
@@ -501,26 +498,6 @@ describe('dom', () => {
   describe('when using redraw', () => {
     const iteratorVar = 'hello'
     let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
-    let actionFnSpy = sinon.spy()
-    let pathIfFnSpy = sinon.spy()
-    let parent: Component
-    let component: List
-    let injectedArgs: {
-      dataObject: any
-      listItem: ListItem
-      iteratorVar: string
-    }
-
-    beforeEach(() => {
-      // listObject = [
-      //   { key: 'Gender', value: 'Male' },
-      //   { key: 'Gender', value: 'Female' },
-      // ]
-    })
-
-    after(() => {
-      // saveOutput('dom.test.json', parent.toJS(), { spaces: 2 })
-    })
 
     it('should deeply recompute/redraw its descendants', async () => {
       const pathSpy = sinon.spy(async () => 'female.png')
@@ -535,7 +512,11 @@ describe('dom', () => {
         })
         .setPage('Abc')
         .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
-        .use({ actionType: 'builtIn', fn: builtIn.redraw, funcName: 'redraw' })
+        .use({
+          actionType: 'builtIn',
+          fn: builtIn.redraw,
+          funcName: 'redraw',
+        } as any)
       const view = page.render({
         type: 'view',
         children: [
@@ -581,7 +562,7 @@ describe('dom', () => {
       } as any).components[0]
       const list = view.child()
       const listItem = list.child()
-      list.getData().forEach((d) => list.addDataObject(d))
+      list.getData().forEach((d: any) => list.addDataObject(d))
       const image = listItem.child(1)
       // document.getElementById(image.id)?.click()
       // await waitFor(() => {
@@ -594,70 +575,6 @@ describe('dom', () => {
       // expect(pathSpy.firstCall).to.eq(listObject[0])
     })
 
-    xit("should be able to deeply recompute/redraw an html dom node's tree hierarchy", async () => {
-      const onClickSpy = sinon.spy(async () => {
-        noodlui.setRoot('SignIn', {
-          formData: { greeting: 'mynewgreeting', color: 'blue' },
-        })
-      })
-      noodlui.actionsContext = { noodl: { emitCall: () => [''] } }
-      noodlui
-        .use({ actionType: 'builtIn' })
-        .use({
-          getRoot: () => ({ formData: { greeting: '12345', color: 'red' } }),
-        })
-        .setPage('SignIn')
-        .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
-        .use({ actionType: 'builtIn', fn: builtIn.redraw, funcName: 'redraw' })
-      const root = page.render({
-        type: 'view',
-        children: [
-          {
-            type: 'view',
-            children: [
-              {
-                type: 'image',
-                path: 'abc.png',
-                style: { shadow: 'true' },
-                onClick: [
-                  { emit: { dataKey: { var1: 'f' }, actions: [] } },
-                  { actionType: 'builtIn', funcName: 'redraw' },
-                ],
-              },
-              { type: 'label', dataKey: 'formData.greeting' },
-              {
-                type: 'view',
-                children: [{ type: 'label', dataKey: 'formData.color' }],
-              },
-            ],
-          },
-        ],
-      } as any).components[0]
-
-      const view = root.child()
-      const image = view.child() as Component
-
-      const getLabel = () =>
-        getByDataKey('formData.greeting') as HTMLLabelElement
-      const getLabel2 = () => getByDataKey('formData.color') as HTMLLabelElement
-
-      expect(getLabel().textContent).to.equal('12345')
-      expect(getLabel().textContent).not.to.eq('mynewgreeting')
-      expect(getLabel2().textContent).to.equal('red')
-
-      noodlui.use({
-        getRoot: () => ({
-          ...noodlui.root[noodlui.page],
-          formData: { greeting: 'hehehee', color: 'blue' },
-        }),
-      })
-
-      await waitFor(() => {
-        expect(getLabel().textContent).to.eq('mynewgreeting')
-        expect(getLabel2().textContent).to.eq('blue')
-      })
-    })
-
     it('should target the viewTag component/node if available', async () => {
       let currentPath = 'male.png'
       const imagePathSpy = sinon.spy(async () => currentPath)
@@ -668,10 +585,12 @@ describe('dom', () => {
         { key: 'gender', value: 'Female' },
         { key: 'gender', value: 'Other' },
       ]
+      // @ts-expect-error
       const redrawSpy = sinon.spy(noodlui.getCbs('builtIn').redraw[0])
       // @ts-expect-error
       noodlui.actionsContext = { noodl: {} }
       noodlui.removeCbs('emit')
+      // @ts-expect-error
       noodlui.getCbs('builtIn').redraw[0] = redrawSpy
       noodlui
         .setPage('SignIn')
@@ -727,15 +646,5 @@ describe('dom', () => {
         )
       })
     })
-  })
-
-  describe('action: updateObject', () => {
-    xit(
-      'should replace the dataObject string with the actual dataObject if ' +
-        'update.object is in the shape: { dataKey, dataObject }',
-      () => {
-        //
-      },
-    )
   })
 })

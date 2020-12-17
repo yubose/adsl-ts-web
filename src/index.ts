@@ -8,7 +8,9 @@ import Logger from 'logsnap'
 import { getByDataUX } from 'noodl-ui-dom'
 import {
   ActionChainActionCallback,
+  BuiltInObject,
   Component,
+  ComponentObject,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -24,16 +26,14 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   getDataValues,
+  identify,
   isComponent,
   List,
-  identify,
-  Resolver,
-  BuiltInObject,
-  PageObject,
   Page as NOODLUIPage,
+  PageObject,
+  Resolver,
   ResolverFn,
   Viewport,
-  ComponentObject,
 } from 'noodl-ui'
 import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'

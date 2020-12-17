@@ -6,7 +6,6 @@ import {
   ListItem,
   EmitActionObject,
 } from 'noodl-ui'
-import sinon from 'sinon'
 
 export const emit = async (
   action: IAction<'builtIn', EmitActionObject>,

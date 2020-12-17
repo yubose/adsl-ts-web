@@ -54,7 +54,14 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
       placeholder = '',
       src,
       text = '',
-    } = component.get(['children', 'options', 'src', 'text', 'videoFormat'])
+    } = component.get([
+      'children',
+      'options',
+      'placeholder',
+      'src',
+      'text',
+      'videoFormat',
+    ])
 
     const { style, type } = component
     /** Handle attributes */
@@ -90,11 +97,6 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
           node.value = node.dataset.value
         }
       })
-      if (isEmitObj(component.get('dataKey'))) {
-        component.on('dataKey', (dataKey: string) => {
-          node.dataset.key = val
-        })
-      }
     }
     // Handle direct assignments
     if (_.isArray(defaultPropTable.values)) {
@@ -104,7 +106,6 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
       while (prop) {
         if (prop !== undefined) {
           val = component.get(prop) || component[prop as keyof Component]
-          // @ts-expect-error
           if (val !== undefined) node[prop] = val
         }
         prop = pending.pop()
@@ -128,7 +129,7 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
         let text = ''
         text = datasetAttribs['data-value'] || ''
         if (!text && children) text = `${children}` || ''
-        if (!text && placeholder) text = placeholder
+        if (!text && placeholder) text = placeholder as string
         if (!text) text = ''
         if (text) node.innerHTML = `${text}`
         node['innerHTML'] =
@@ -137,7 +138,10 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
     }
 
     // The "handler" argument is a func returned from ActionChain#build
-    const attachEventHandler = (eventType: any, handler: Function) => {
+    const attachEventHandler = (
+      eventType: any,
+      handler: (event: Event) => any,
+    ) => {
       const eventName = (eventType.startsWith('on')
         ? eventType.replace('on', '')
         : eventType
@@ -169,7 +173,7 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
           }
         })
       } else {
-        node.addEventListener(eventName, (event) => {
+        node.addEventListener(eventName, (event: Event) => {
           log.func(`on component --> addEventListener: ${eventName}`)
           log.grey(`User action invoked handler`, {
             component,
@@ -222,16 +226,19 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
     }
   })
 
-  noodluidom.on('button', (node, component) => {
+  noodluidom.on('button', (node: HTMLButtonElement, component: Component) => {
     if (node && component) {
-      const { onClick: onClickProp, src } = component.get(['onClick', 'src'])
+      const { onClick: onClickProp, src = '' } = component.get([
+        'onClick',
+        'src',
+      ])
       /**
        * Buttons that have a "src" property
        * ? NOTE: Seems like these components are deprecated. Leave this here for now
        */
       if (src) {
         const img = document.createElement('img')
-        img.src = src
+        img.src = src as string
         img.style['width'] = '35%'
         img.style['height'] = '35%'
         node.style['overflow'] = 'hidden'
@@ -242,7 +249,10 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
     }
   })
 
-  noodluidom.on('image', function onCreateImage(node, component) {
+  noodluidom.on('image', function onCreateImage(
+    node: HTMLImageElement,
+    component: Component,
+  ) {
     if (node && component) {
       const onClick = component.get('onClick')
       log.func('on [image]')
@@ -269,14 +279,12 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
         const context = noodlui.getContext()
         const pageObject = noodlui.root[context?.page || ''] || {}
         if (
-          // @ts-expect-error
           node?.src === pageObject?.docDetail?.document?.name?.data &&
           pageObject?.docDetail?.document?.name?.type == 'application/pdf'
         ) {
           node.style.visibility = 'hidden'
           const parentNode = document.getElementById(parent?.id || '')
           const iframeEl = document.createElement('iframe')
-          // @ts-expect-error
           iframeEl.setAttribute('src', node.src)
 
           if (_.isPlainObject(component.style)) {
@@ -297,7 +305,7 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
     }
   })
 
-  noodluidom.on('label', (node, component) => {
+  noodluidom.on('label', (node: HTMLLabelElement, component: Component) => {
     if (node && component) {
       const dataValue = component.get('data-value')
       const { placeholder, text } = component.get(['placeholder', 'text'])
@@ -310,7 +318,7 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
     }
   })
 
-  noodluidom.on<'list'>('list', (node: HTMLUListElement, component: List) => {
+  noodluidom.on('list', (node: HTMLUListElement, component: List) => {
     log.func('list')
     if (!component) return
 
@@ -392,39 +400,8 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
     )
   })
 
-  noodluidom.on('listItem', (node, component) => {
-    log.func('listItem')
-    // log.gold('Entered listItem node/component', {
-    //   node,
-    //   component: component.toJS(),
-    // })
-    // component.on('redraw', () => {
-    //   component.broadcast((c) => {
-    //     console.info(c.id)
-    //     let dataKey = c.get('dataKey') || ''
-    //     if (dataKey.startsWith(component.iteratorVar)) {
-    //       if (c.type === 'label') {
-    //         const labelNode = document.querySelector(`[data-key="${dataKey}"]`)
-    //         if (labelNode) {
-    //           dataKey = dataKey.split('.').slice(1).join('.')
-    //           let dataValue = _.get(component.getDataObject(), dataKey)
-    //           console.info('dataValue', dataValue)
-    //           if (dataValue) labelNode.textContent = dataValue
-    //         }
-    //         console.info('IM HERE!!!', { dataKey, labelNode })
-    //       } else if (c.type === 'input') {
-    //         log.func('list.item [redraw] REMINDER -- implement this')
-    //       }
-    //     } else {
-    //       // const n = document.querySelector(`[data-key="${dataKey}"]`)
-    //       // if (n) n.textContent = _.get(component.getDataObject(), dataKey)
-    //     }
-    //   })
-    // })
-  })
-
   // /** NOTE: node is null in this handler */
-  noodluidom.on('plugin', async function (noop, component) {
+  noodluidom.on('plugin', async function (node = null, component: Component) {
     log.func('plugin')
     const src = component?.get?.('src')
     if (typeof src === 'string') {
@@ -449,105 +426,107 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
     }
   })
 
-  noodluidom.on('textField', (node, component) => {
-    if (node && component) {
-      const contentType = component.get('contentType')
-      // Password inputs
-      if (contentType === 'password') {
-        if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-          import('../app/noodl-ui').then(({ default: noodlui }) => {
-            const assetsUrl = noodlui.assetsUrl || ''
-            const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
-            const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
-            const originalParent = node?.parentNode as HTMLDivElement
-            const newParent = document.createElement('div')
-            const eyeContainer = document.createElement('button')
-            const eyeIcon = document.createElement('img')
+  noodluidom.on(
+    'textField',
+    (node: HTMLTextAreaElement, component: Component) => {
+      if (node && component) {
+        // Password inputs
+        if (component.get('contentType') === 'password') {
+          if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
+            import('../app/noodl-ui').then(({ default: noodlui }) => {
+              const assetsUrl = noodlui.assetsUrl || ''
+              const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
+              const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
+              const originalParent = node?.parentNode as HTMLDivElement
+              const newParent = document.createElement('div')
+              const eyeContainer = document.createElement('button')
+              const eyeIcon = document.createElement('img')
 
-            // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
-            const dividedStyleKeys = [
-              'position',
-              'left',
-              'top',
-              'right',
-              'bottom',
-              'width',
-              'height',
-            ] as const
+              // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
+              const dividedStyleKeys = [
+                'position',
+                'left',
+                'top',
+                'right',
+                'bottom',
+                'width',
+                'height',
+              ] as const
 
-            // Transfer styles to the new parent to position our custom elements
-            _.forEach(dividedStyleKeys, (styleKey) => {
-              newParent.style[styleKey] = component.style?.[styleKey]
-              // Remove the transfered styles from the original input element
-              node.style[styleKey] = ''
-            })
+              // Transfer styles to the new parent to position our custom elements
+              _.forEach(dividedStyleKeys, (styleKey) => {
+                newParent.style[styleKey] = component.style?.[styleKey]
+                // Remove the transfered styles from the original input element
+                node.style[styleKey] = ''
+              })
 
-            newParent.style['display'] = 'flex'
-            newParent.style['alignItems'] = 'center'
-            newParent.style['background'] = 'none'
+              newParent.style['display'] = 'flex'
+              newParent.style['alignItems'] = 'center'
+              newParent.style['background'] = 'none'
 
-            node.style['width'] = '100%'
-            node.style['height'] = '100%'
+              node.style['width'] = '100%'
+              node.style['height'] = '100%'
 
-            eyeContainer.style['top'] = '0px'
-            eyeContainer.style['bottom'] = '0px'
-            eyeContainer.style['right'] = '6px'
-            eyeContainer.style['width'] = '42px'
-            eyeContainer.style['background'] = 'none'
-            eyeContainer.style['border'] = '0px'
-            eyeContainer.style['outline'] = 'none'
+              eyeContainer.style['top'] = '0px'
+              eyeContainer.style['bottom'] = '0px'
+              eyeContainer.style['right'] = '6px'
+              eyeContainer.style['width'] = '42px'
+              eyeContainer.style['background'] = 'none'
+              eyeContainer.style['border'] = '0px'
+              eyeContainer.style['outline'] = 'none'
 
-            eyeIcon.style['width'] = '100%'
-            eyeIcon.style['height'] = '100%'
-            eyeIcon.style['userSelect'] = 'none'
+              eyeIcon.style['width'] = '100%'
+              eyeIcon.style['height'] = '100%'
+              eyeIcon.style['userSelect'] = 'none'
 
-            eyeIcon.setAttribute('src', eyeClosed)
-            eyeContainer.setAttribute(
-              'title',
-              'Click here to reveal your password',
-            )
-            node.setAttribute('type', 'password')
-            node.setAttribute('data-testid', 'password')
+              eyeIcon.setAttribute('src', eyeClosed)
+              eyeContainer.setAttribute(
+                'title',
+                'Click here to reveal your password',
+              )
+              node.setAttribute('type', 'password')
+              node.setAttribute('data-testid', 'password')
 
-            // Restructing the node structure to match our custom effects with the
-            // toggling of the eye iconsf
+              // Restructing the node structure to match our custom effects with the
+              // toggling of the eye iconsf
 
-            if (originalParent) {
-              if (originalParent.contains(node))
-                originalParent.removeChild(node)
-              originalParent.appendChild(newParent)
-            }
-            eyeContainer.appendChild(eyeIcon)
-            newParent.appendChild(node)
-            newParent.appendChild(eyeContainer)
-
-            let selected = false
-
-            eyeIcon.dataset.mods = ''
-            eyeIcon.dataset.mods += '[password.eye.toggle]'
-            eyeContainer.onclick = () => {
-              if (selected) {
-                eyeIcon.setAttribute('src', eyeOpened)
-                node?.setAttribute('type', 'text')
-              } else {
-                eyeIcon.setAttribute('src', eyeClosed)
-                node?.setAttribute('type', 'password')
+              if (originalParent) {
+                if (originalParent.contains(node))
+                  originalParent.removeChild(node)
+                originalParent.appendChild(newParent)
               }
-              selected = !selected
-              eyeContainer['title'] = !selected
-                ? 'Click here to hide your password'
-                : 'Click here to reveal your password'
-            }
-          })
-        }
-      } else {
-        // Set to "text" by default
-        node.setAttribute('type', 'text')
-      }
-    }
-  })
+              eyeContainer.appendChild(eyeIcon)
+              newParent.appendChild(node)
+              newParent.appendChild(eyeContainer)
 
-  noodluidom.on('video', (node, component) => {
+              let selected = false
+
+              eyeIcon.dataset.mods = ''
+              eyeIcon.dataset.mods += '[password.eye.toggle]'
+              eyeContainer.onclick = () => {
+                if (selected) {
+                  eyeIcon.setAttribute('src', eyeOpened)
+                  node?.setAttribute('type', 'text')
+                } else {
+                  eyeIcon.setAttribute('src', eyeClosed)
+                  node?.setAttribute('type', 'password')
+                }
+                selected = !selected
+                eyeContainer['title'] = !selected
+                  ? 'Click here to hide your password'
+                  : 'Click here to reveal your password'
+              }
+            })
+          }
+        } else {
+          // Set to "text" by default
+          node.setAttribute('type', 'text')
+        }
+      }
+    },
+  )
+
+  noodluidom.on('video', (node: HTMLVideoElement, component: Component) => {
     if (!component) return
     const { controls, poster, src, videoType } = component.get([
       'controls',

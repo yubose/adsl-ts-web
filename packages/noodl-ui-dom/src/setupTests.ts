@@ -1,5 +1,3 @@
-import _ from 'lodash'
-import sinon from 'sinon'
 import { Resolver } from 'noodl-ui'
 import {
   assetsUrl,
@@ -15,7 +13,7 @@ import Page from '../../../src/Page'
 const pageClient = new Page({ _log: false })
 const builtIns = createBuiltInActions({ page: pageClient })
 
-let logSpy: sinon.SinonStub
+// let logSpy: sinon.SinonStub
 
 const page = 'GeneralInfo'
 const root = {
@@ -37,7 +35,7 @@ before(() => {
     })
     .use(
       // @ts-expect-error
-      _.map(_.entries({ redraw: builtIns.redraw }), ([funcName, fn]) => ({
+      Object.entries({ redraw: builtIns.redraw }).map(([funcName, fn]) => ({
         funcName,
         fn,
       })),
@@ -57,7 +55,7 @@ before(() => {
   } catch (error) {
     throw new Error(error)
   }
-  _.forEach(getAllResolvers(), (r) => {
+  getAllResolvers().forEach((r) => {
     const resolver = new Resolver()
     resolver.setResolver(r)
     noodlui.use(resolver as Resolver)
@@ -69,7 +67,7 @@ after(() => {
 })
 
 beforeEach(() => {
-  listen(noodluidom)
+  listen(noodluidom, noodlui)
   // noodlui.init({ _log: false, viewport })
   noodlui.setPage(page)
 })

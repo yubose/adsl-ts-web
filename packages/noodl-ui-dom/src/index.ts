@@ -1,9 +1,9 @@
 export { default } from './noodl-ui-dom'
 export * from './noodl-ui-dom'
-export { default as resolveSelectElement } from './handlers/resolvers/select'
 export * from './constants'
 export * from './types'
 
+export { default as resolveSelectElement } from './handlers/resolvers/select'
 export {
   getByDataUX,
   getDataAttribKeys,

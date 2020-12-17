@@ -54,7 +54,7 @@ describe('noodl-ui', () => {
         const emitObj = { emit: { dataKey: { var1: 'g' }, actions: [] } }
         const spy = sinon.spy()
         noodlui.use({ actionType: 'emit', fn: spy, trigger: 'path' })
-        noodlui.createSrc(emitObj)
+        noodlui.createSrc(emitObj as any)
       })
 
       xit(
@@ -175,7 +175,7 @@ describe('when resolving components', () => {
       type: 'button',
       text: 'hello',
       onClick,
-    })
+    } as any)
     expect(resolvedComponent.get('onClick')).to.be.a('function')
   })
 
