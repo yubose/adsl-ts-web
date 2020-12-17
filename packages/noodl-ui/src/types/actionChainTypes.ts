@@ -96,6 +96,7 @@ export interface ActionConsumerCallbackOptions
     Pick<
       ConsumerOptions,
       | 'component'
+      | 'context'
       | 'getAssetsUrl'
       | 'getCbs'
       | 'getPageObject'

@@ -246,16 +246,16 @@ const createActions = function ({ page }: { page: IPage }) {
               `Received a(n) ${typeof result} from an evalObject`,
               logArgs,
             )
-            const newAction = ref.insertIntermediaryAction.call(ref, result)
+            const newAction = ref?.insertIntermediaryAction.call(ref, result)
             if (_.isPlainObject(result) && 'wait' in result) {
               log.red('newAction requested "WAIT"', {
                 newAction: result,
-                queue: ref.getQueue(),
+                queue: ref?.getQueue(),
                 node: document.getElementById(options.component.id),
               })
               // await ref.abort()
               throw new Error('aborted')
-            } else log.grey('newAction', { newAction, queue: ref.getQueue() })
+            } else log.grey('newAction', { newAction, queue: ref?.getQueue() })
             // return newAction.execute(options)
           }
         } else if ('if' in (action.original.object || {})) {
@@ -329,6 +329,7 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (action: any, options, actionsContext) => {
       log.func('_actions.goto')
       log.red('goto action', { action, options })
+      const { noodl } = actionsContext
       // URL
       if (_.isString(action?.original?.goto)) {
         log.gold('Requesting string destination', { action, options })
@@ -447,7 +448,7 @@ const createActions = function ({ page }: { page: IPage }) {
                   `waiting on a response. Aborting now...`,
                 { action, ...options },
               )
-              await ref.abort?.()
+              await ref?.abort?.()
             }
           }
         }
@@ -497,7 +498,9 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (action: any, options, actionsContext) => {
       log.func('popUpDismiss')
       log.grey('', { action, ...options })
-      await Promise.all(_actions.popUp.map((obj) => obj.fn(action, options)))
+      await Promise.all(
+        _actions.popUp.map((obj) => obj.fn(action, options, actionsContext)),
+      )
       return
     },
   })

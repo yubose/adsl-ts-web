@@ -35,6 +35,7 @@ export function createResolverTest(
   resolver: ResolverFn,
   consumerOptions?: Partial<ConsumerOptions>,
 ) {
+  // @ts-expect-error
   function _resolver<C extends ComponentObject & { type: 'list' }>(
     component: C,
     options?: ConsumerOptions,

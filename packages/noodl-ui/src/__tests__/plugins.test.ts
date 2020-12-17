@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { noodlui } from '../utils/test-utils'
 
-describe.only('when working with plugins', () => {
+describe('when working with plugins', () => {
   describe('when instantiating noodl-ui', () => {
     xit('should fall back to window.fetch fetcher', () => {
       //

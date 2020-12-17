@@ -1,5 +1,5 @@
-import { Component } from 'noodl-ui'
-import { optionExists, toSelectOption } from '../../utils'
+import { optionExists, toSelectOption } from '../utils'
+import { RegisterOptions } from '../types'
 
 export const setOption = (
   node: HTMLSelectElement,
@@ -19,13 +19,12 @@ export const setOption = (
   ) as HTMLOptionElement
 }
 
-const resolveSelectElement = <N extends HTMLSelectElement = any>(
-  node: N | null,
-  component: Component,
-) => {
-  if (node && Array.isArray(component.get('options'))) {
+export default {
+  name: '[noodl-ui-dom] select',
+  cond: (node) => node?.tagName === 'SELECT',
+  resolve(node, component) {
     const dataValue = component.get('data-value')
-    component.get('options')?.forEach((option: any, index) => {
+    component.get('options')?.forEach((option: any, index: number) => {
       if (option) {
         option = toSelectOption(option)
         setOption(node, option)
@@ -36,7 +35,5 @@ const resolveSelectElement = <N extends HTMLSelectElement = any>(
       }
     })
     if (node?.selectedIndex == -1) node.selectedIndex = 0
-  }
-}
-
-export default resolveSelectElement
+  },
+} as RegisterOptions

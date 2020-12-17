@@ -47,7 +47,7 @@ import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
-import { listen } from './handlers/dom'
+// import { listen } from './handlers/dom'
 import './styles.css'
 
 const log = Logger.create('src/index.ts')
@@ -88,13 +88,10 @@ function createPreparePage(options: {
 }
 
 window.addEventListener('load', async () => {
-  // Experimenting dynamic import (code splitting)
   const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
-
-  listen(noodluidom, noodlui)
 
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
@@ -113,6 +110,7 @@ window.addEventListener('load', async () => {
 
   window.build = process.env.BUILD
   window.noodlui = noodlui
+  window.noodluidom = noodluidom
   window.app = {
     build: process.env.BUILD,
     client: {
@@ -283,7 +281,7 @@ window.addEventListener('load', async () => {
         }
         noodlui
           .init({
-            actionsContext: { noodl },
+            actionsContext: { noodl, noodluidom },
             viewport,
           })
           .setPage(pageName)
@@ -620,8 +618,10 @@ window.addEventListener('load', async () => {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-  noodluidom.on('component', (node, component) => {
-    if (node && component) {
+  noodluidom.register({
+    name: 'meeting',
+    node: (node, component) => !!(node && component),
+    resolve(node, component) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(component.toJS())) {
         const mainStream = streams.getMainStream()
@@ -698,7 +698,7 @@ window.addEventListener('load', async () => {
           )
         }
       }
-    }
+    },
   })
 
   /* -------------------------------------------------------

@@ -15,6 +15,8 @@ import {
   componentEventIds,
   componentEventTypes,
 } from './constants'
+import resolve from './resolve'
+import * as defaultResolvers from './resolvers'
 import * as T from './types'
 
 const log = Logger.create('noodl-ui-dom')
@@ -31,10 +33,11 @@ class NOODLUIDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
-  resolvers: T.NodeResolverConfig[]
+  #R = resolve
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
     // Logger[log?.enabled ? 'enable' : 'disable']?.()
+    this.#R.use(Object.values(defaultResolvers))
   }
 
   /**
@@ -56,8 +59,9 @@ class NOODLUIDOM {
         // This is to allow the caller to determine whether they want to create
         // a separate DOM node or not
         if (component.noodlType === 'plugin') {
-          this.emit('component', null, component)
-          this.emit('plugin', null, component)
+          this.#R.run(node, component)
+          // this.emit('component', null, component)
+          // this.emit('plugin', null, component)
           return node
         } else {
           const plugin = component.get('plugin')
@@ -126,10 +130,12 @@ class NOODLUIDOM {
               }
             }
           }
-          this.emit('component', node, component)
-          if (componentEventMap[noodlType as ComponentType]) {
-            this.emit(componentEventMap[noodlType], node, component)
-          }
+          // this.emit('component', node, component)
+
+          // if (componentEventMap[noodlType as ComponentType]) {
+          //   this.emit(componentEventMap[noodlType], node, component)
+          // }
+          this.#R.run(node, component)
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
@@ -359,8 +365,12 @@ class NOODLUIDOM {
   }
 
   register(obj: T.NodeResolverConfig) {
-    this.resolvers.push(obj)
+    this.#R.use(obj)
     return this
+  }
+
+  resolvers() {
+    return this.#R.get()
   }
 }
 

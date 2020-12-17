@@ -134,6 +134,7 @@ export function getShape(
               )
             : getShape(noodlComponent.children as any, {
                 ...opts,
+                // @ts-expect-error
                 noodlType:
                   opts?.noodlType ||
                   (typeof noodlComponent.children === 'object'

@@ -82,14 +82,19 @@ export type NOODLDOMElements = Pick<
   | 'video'
 >
 
+export type NodeResolverBaseArgs<N extends NOODLDOMElement = any, C = any> = [
+  node: N | null,
+  component: C,
+]
+
 export interface NodeResolver<
   N extends NOODLDOMElement = any,
   C = any,
   RT = any
 > {
   (
-    node: N | null,
-    component: C,
+    node: NodeResolverBaseArgs<N, C>[0],
+    component: NodeResolverBaseArgs<N, C>[1],
     opts: {
       original: any
     },
@@ -101,3 +106,5 @@ export interface NodeResolverConfig {
   cond?: NodeResolver<any, any, boolean>
   resolve: NodeResolver<any, any, void>
 }
+
+export type RegisterOptions = NodeResolverConfig

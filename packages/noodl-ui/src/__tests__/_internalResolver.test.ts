@@ -283,7 +283,7 @@ describe('_internalResolver', () => {
       expect(listItem1.child(1)?.child(0)?.get('iteratorVar')).to.exist
     })
 
-    it.only('should populate all descendant dataKey consumers expectedly', () => {
+    it('should populate all descendant dataKey consumers expectedly', () => {
       const dataObject1 = { title: 'This is my title', color: 'red' }
       const dataObject2 = { title: 'This is 2md title', color: 'brown' }
       const dataObject3 = { title: 'This is 3rd title', color: 'cyan' }

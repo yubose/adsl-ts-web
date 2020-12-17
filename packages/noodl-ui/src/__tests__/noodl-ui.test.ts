@@ -96,26 +96,35 @@ describe('noodl-ui', () => {
 
 describe('when using getters', () => {
   it('should return the resolver context', () => {
-    expect(noodlui.getContext()).to.have.keys(['assetsUrl', 'page'])
+    expect(noodlui.getContext()).to.have.keys([
+      'actionsContext',
+      'assetsUrl',
+      'page',
+    ])
   })
 
   it('should return all consumer options', () => {
     expect(noodlui.getConsumerOptions({} as any)).to.have.keys([
       'component',
+      'componentCache',
       'context',
       'createActionChainHandler',
       'createSrc',
+      'fetch',
       'getAssetsUrl',
       'getBaseStyles',
+      'getCbs',
       'getPageObject',
       'getResolvers',
       'getRoot',
       'getState',
       'page',
       'parser',
+      'plugins',
       'resolveComponent',
       'resolveComponentDeep',
       'showDataKey',
+      'setPlugin',
       'viewport',
     ])
   })
