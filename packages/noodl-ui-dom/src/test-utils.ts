@@ -13,11 +13,11 @@ import {
   getSizes,
   getTransformedAliases,
   getTransformedStyleAliases,
+  isComponent,
   NOODL,
   ResolverFn,
   Viewport,
 } from 'noodl-ui'
-import { isComponent } from 'noodl-utils'
 import { NOODLDOMElement } from './types'
 import NOODLUIDOM from './noodl-ui-dom'
 

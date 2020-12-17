@@ -2,39 +2,57 @@ CreateNewAccount:
   module: patient
   title: Create New Account
   pageNumber: "45"
-  save:
-    - ..formData.vertexAPI.store
-    - .Global.rootNotebook.edgeAPI.store
-  update:
-    .Global.currentUser.vertex@: =..formData.vertex
-    .Global.currentUser.JWT@: =..formData.JWT
-    =.Global.contactList.get: ""
-    .Global.contactList.dataCache.loadingDateTime@: =.Global.currentDateTime
-    .Global.currentUser.dataCache.loadingDateTime@: =.Global.currentDateTime
   formData:
+    response: ""
     vertex:
       .Vertex: ""
       type: "1"
       name:
         countryCode: .SignUp.formData.countryCode
         phoneNumber: .SignUp.formData.phoneNumber
-        userName: username
-        password: new password
-        confirmPassword: confirmPassword
+        userName: ""
+        firstName: ""
+        lastName: ""
+        password: ""
+        confirmPassword: ""
         avatar: https://public.aitmed.com/avatar/JohnDoe.jpg
+        verificationCode: .SignUp.formData.code
+        signature: ""
     vertexAPI:
       .VertexAPI: ""
       store:
         api: builtIn.createNewAccount
-        dataKey: formData.vertex
-    JWT: =.Global.currentUser.JWT
+        dataIn: formData.vertex
+        dataOut: formData.response
+    target: false
+    tar: false
+    confirm: ""
+  save:
+    - ..formData.vertexAPI.store
+  update:
+    - .Global.currentUser.vertex@: =..formData.response.vertex
+    - .Global.currentUser.JWT@: =..formData.response.jwt
+    - .Global.rootNotebookID@: =.Global.currentUser.vertex.deat.rnb64ID
+    - .Global.currentUser.dataCache.loadingDateTime@: =.Global.currentDateTime
   components:
+    - .BaseCheckView: ""
+      message: Incorrect verificationCode
+      viewTag: wrongCode
+    - .BaseCheckView: ""
+      message: Password should be same
+      viewTag: samePassword
+    - .BaseCheckView: ""
+      message: Please input password
+      viewTag: inputPassword
+    - .BaseCheckView: ""
+      message: Please check the box
+      viewTag: noSelected
     - type: view
       style:
         left: "0"
         top: "0"
         width: "1"
-        height: "1"
+        height: "1.2"
       children:
         - type: image
           path: aitmedLogo.png
@@ -48,7 +66,7 @@ CreateNewAccount:
           style:
             color: "0x3185c7ff"
             left: "0.147"
-            top: "0.357"
+            top: "0.3"
             width: "0.72"
             height: "0.041"
             fontSize: "16"
@@ -60,7 +78,7 @@ CreateNewAccount:
         - type: view
           style:
             left: "0.121"
-            top: "0.42"
+            top: "0.35"
             width: "0.2"
             height: "0.09"
           children:
@@ -80,8 +98,7 @@ CreateNewAccount:
               contentType: countryCode
               placeholder: ..formData.vertex.name.countryCode
               dataKey: formData.vertex.name.countryCode
-              options:
-                - "+1"
+              options: .CountryCode
               required: "true"
               style:
                 left: "0"
@@ -97,7 +114,7 @@ CreateNewAccount:
         - type: view
           style:
             left: "0.3333"
-            top: "0.42"
+            top: "0.35"
             width: "0.61333"
             height: "0.09"
           children:
@@ -113,11 +130,8 @@ CreateNewAccount:
                 textAlign:
                   x: left
                   y: center
-            - type: textField
-              contentType: phoneNumber
-              placeholder: ..formData.vertex.name.phoneNumber
+            - type: label
               dataKey: formData.vertex.name.phoneNumber
-              required: "true"
               style:
                 fontSize: "14"
                 left: "0"
@@ -130,65 +144,301 @@ CreateNewAccount:
                 textAlign:
                   x: left
                   y: center
-        - type: textField
-          contentType: text
-          placeholder: ..formData.vertex.name.userName
-          dataKey: formData.vertex.name.userName
-          required: "true"
+        - type: view
           style:
-            fontSize: "14"
-            left: "0.134"
-            top: "0.5313"
-            width: "0.747"
-            height: "0.041"
-            borderWidth: "1"
-            border:
-              style: "2"
-            textAlign:
-              x: left
-              y: center
-        - type: textField
-          contentType: password
-          placeholder: ..formData.vertex.name.password
-          dataKey: formData.vertex.name.password
-          required: "true"
+            top: "0.45"
+            left: "0.121"
+            height: "0.1"
+            width: "0.4"
+          children:
+            - type: label
+              text: FirstName
+              style:
+                color: "0x000000"
+                left: "0"
+                top: "0.01"
+                width: "0.2"
+                height: "0.041"
+                fontSize: "12"
+                textAlign:
+                  x: left
+            - type: textField
+              contentType: text
+              placeholder: Enter here
+              dataKey: formData.vertex.name.firstName
+              required: "true"
+              style:
+                fontSize: "14"
+                left: "0"
+                backgroundColor: "0xffffff"
+                top: "0.05"
+                width: "0.747"
+                height: "0.041"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                textAlign:
+                  x: left
+                  y: center
+        - type: view
           style:
-            fontSize: "14"
-            left: "0.134"
-            top: "0.5994"
-            width: "0.747"
-            height: "0.041"
-            borderWidth: "1"
-            border:
-              style: "2"
-            textAlign:
-              x: left
-              y: center
-        - type: textField
-          contentType: password
-          placeholder: ..formData.vertex.name.confirmPassword
-          dataKey: formData.vertex.name.confirmPassword
-          required: "true"
+            top: "0.45"
+            left: "0.5"
+            height: "0.1"
+            width: "0.4"
+          children:
+            - type: label
+              text: lastName
+              style:
+                color: "0x000000"
+                left: "0"
+                top: "0.01"
+                width: "0.2"
+                height: "0.041"
+                fontSize: "12"
+                textAlign:
+                  x: left
+            - type: textField
+              contentType: text
+              placeholder: Enter here
+              dataKey: formData.vertex.name.lastName
+              required: "true"
+              style:
+                fontSize: "14"
+                left: "0"
+                backgroundColor: "0xffffff"
+                top: "0.05"
+                width: "0.747"
+                height: "0.041"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                textAlign:
+                  x: left
+                  y: center
+        - type: view
           style:
-            fontSize: "14"
-            left: "0.134"
-            top: "0.66757"
-            width: "0.747"
-            height: "0.041"
-            borderWidth: "1"
-            border:
-              style: "2"
-            textAlign:
-              x: left
-              y: center
+            top: "0.55"
+            left: "0.121"
+            width: "0.9"
+            height: "0.1"
+          children:
+            - type: label
+              text: Username
+              style:
+                color: "0x000000"
+                left: "0"
+                top: "0.01"
+                width: "0.2"
+                height: "0.041"
+                fontSize: "12"
+                textAlign:
+                  x: left
+            - type: textField
+              contentType: text
+              placeholder: Create your own
+              dataKey: formData.vertex.name.userName
+              required: "true"
+              style:
+                fontSize: "14"
+                left: "0"
+                backgroundColor: "0xffffff"
+                top: "0.05"
+                width: "0.747"
+                height: "0.041"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                textAlign:
+                  x: left
+                  y: center
+        - type: view
+          style:
+            top: "0.65"
+            left: "0.121"
+            height: "0.1"
+            width: "0.9"
+          children:
+            - type: label
+              text: New Password
+              style:
+                color: "0x000000"
+                left: "0"
+                top: "0.01"
+                width: "0.5"
+                height: "0.041"
+                fontSize: "12"
+                textAlign:
+                  x: left
+            - type: textField
+              contentType: password
+              placeholder: Enter here
+              dataKey: formData.vertex.name.password
+              required: "true"
+              style:
+                fontSize: "14"
+                left: "0"
+                top: "0.05"
+                width: "0.747"
+                height: "0.041"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                textAlign:
+                  x: left
+                  y: center
+        - type: view
+          style:
+            top: "0.75"
+            left: "0.121"
+            height: "0.1"
+            width: "0.9"
+          children:
+            - type: label
+              text: Confirm Password
+              style:
+                color: "0x000000"
+                left: "0"
+                top: "0.01"
+                width: "0.5"
+                height: "0.041"
+                fontSize: "12"
+                textAlign:
+                  x: left
+            - type: textField
+              contentType: password
+              placeholder: Enter here
+              dataKey: formData.vertex.name.confirmPassword
+              required: "true"
+              style:
+                fontSize: "14"
+                left: "0"
+                top: "0.05"
+                width: "0.747"
+                height: "0.041"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                textAlign:
+                  x: left
+                  y: center
+        - type: view
+          style:
+            top: "0.88"
+            left: "0.1"
+            width: "0.9"
+            height: "0.3"
+          children:
+            - type: image
+              viewTag: select
+              onClick:
+                - emit:
+                    actions:
+                      - if:
+                          - =.CreateNewAccount.formData.target
+                          - .CreateNewAccount.formData.target@: false
+                          - .CreateNewAccount.formData.target@: true
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: select
+              path:
+                emit:
+                  actions:
+                    - if:
+                        - =.CreateNewAccount.formData.target
+                        - https://public.aitmed.com/commonRes/selectOn.png
+                        - https://public.aitmed.com/commonRes/selectOff.png
+              style:
+                left: "0"
+                width: "0.05"
+            - type: label
+              style:
+                color: "0x000000"
+                left: "0.05"
+                fontSize: "11"
+                height: "0.1"
+                textAlign:
+                  x: left
+              onClick:
+                - goto: UserAgreement
+              textBoard:
+                - text: I agree to
+                - text: "&nbsp;"
+                - text: Aitmed Trems of Use Agreement
+                  color: "0x69AAD8"
+                - text: "&nbsp;"
+                - text: " and "
+            - type: label
+              style:
+                color: "0x000000"
+                left: "0.05"
+                top: "0.03"
+                height: "0.1"
+                fontSize: "11"
+                textAlign:
+                  x: left
+              onClick:
+                - goto: PrivacyPolicy
+              textBoard:
+                - text: AiTmed Privacy Policy
+                  color: "0x69AAD8"
+            - type: image
+              viewTag: select
+              onClick:
+                - emit:
+                    actions:
+                      - if:
+                          - =.CreateNewAccount.formData.tar
+                          - .CreateNewAccount.formData.tar@: false
+                          - .CreateNewAccount.formData.tar@: true
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: select
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.tar
+                        - goto: ServicesAgreement
+                        - continue
+              path:
+                emit:
+                  actions:
+                    - if:
+                        - =.CreateNewAccount.formData.tar
+                        - https://public.aitmed.com/commonRes/selectOn.png
+                        - https://public.aitmed.com/commonRes/selectOff.png
+              style:
+                left: "0"
+                width: "0.05"
+                top: "0.07"
+            - type: label
+              textBoard:
+                - text: I also agree to
+                - text: "&nbsp;"
+                - text: " AiTmed Master Subscription  "
+                  color: "0x69aad8"
+                - text: and Services Agreement
+                  color: "0x69aad8"
+              onClick:
+                - goto: ServicesAgreement
+              style:
+                color: "0x000000"
+                left: "0.05"
+                top: "0.07"
+                width: "0.65"
+                height: "0.06"
+                fontSize: "11"
+                lineHeight: "2"
+                textAlign:
+                  x: left
         - type: button
           text: Sign Up
           style:
             color: "0xffffffff"
             fontSize: "16"
-            fontStyle: bold
             left: "0.134"
-            top: "0.75"
+            top: "1.03"
+            fontWeight: 400
             width: "0.747"
             height: "0.06"
             backgroundColor: "0x388eccff"
@@ -199,49 +449,99 @@ CreateNewAccount:
               x: center
               y: center
           onClick:
-            - actionType: builtIn
-              funcName: checkUsernamePassword
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.target
+                    - continue
+                    - actionType: popUp
+                      popUpView: noSelected
+                      wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.tar
+                    - continue
+                    - actionType: popUp
+                      popUpView: noSelected
+                      wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.vertex.name.password
+                    - continue
+                    - actionType: popUp
+                      popUpView: inputPassword
+                      wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.vertex.name.password
+                          string2: =..formData.vertex.name.confirmPassword
+                    - continue
+                    - actionType: popUp
+                      popUpView: samePassword
+                      wait: true
             - actionType: saveObject
               object: ..save
             - actionType: evalObject
               object: ..update
-            - actionType: pageJump
-              destination: SignIn
-            - =.FirebaseToken.registerToken
+            - actionType: evalObject
+              object:
+                =.builtIn.eccNaCl.decryptAES:
+                  dataIn:
+                    key: =..formData.vertex.name.password
+                    message: =..formData.response.vertex.esk
+                  dataOut: Global.currentUser.vertex.sk
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.response.vertex.pk
+                    - goto: MeetingRoomInvited
+                    - actionType: popUp
+                      popUpView: wrongCode
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.response.vertex.pk
+                    - continue
+                    - goto: SignUp
         - type: view
           style:
             left: "0"
-            top: "0.89"
+            top: "1.09"
             width: "1"
             height: "0.054"
           children:
             - type: label
               text: Already have an account?
               style:
-                .LabelStyle:
-                  color: "0x00000088"
-                  fontSize: "14"
-                  left: "0"
-                  top: "0"
-                  width: "0.6"
-                  height: "0.054"
-                  display: inline
-                  textAlign:
-                    x: right
-                    y: center
-            - type: button
+                color: "0x00000088"
+                fontSize: "14"
+                left: "0.1"
+                top: "0"
+                width: "0.6"
+                height: "0.08"
+                textAlign:
+                  x: right
+                  y: center
+            - type: label
               text: Sign In
               style:
                 color: "0x3185c7ff"
                 fontSize: "14"
                 fontStyle: bold
-                left: "0.61"
+                left: "0.7"
                 top: "0"
+                fontWeight: 400
                 width: "0.25"
-                height: "0.054"
+                height: "0.08"
                 backgroundColor: "0xffffffff"
                 border:
                   style: "1"
+                textAlign:
+                  y: center
               onClick:
-                - actionType: pageJump
-                  destination: SignIn
+                - goto: SignIn

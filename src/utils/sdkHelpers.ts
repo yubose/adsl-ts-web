@@ -4,17 +4,15 @@
  * isolate the imports into this file and replace them with stubs in testing
  */
 import _ from 'lodash'
-import { current, Draft, original } from 'immer'
+import { Draft, original } from 'immer'
 import Logger from 'logsnap'
 import {
   excludeIteratorVar,
-  findListDataObject,
   getAllByDataKey,
   isEmitObj,
   isListConsumer,
-  isListKey,
 } from 'noodl-utils'
-import { Component } from 'noodl-ui'
+import { Component, findListDataObject, isListKey } from 'noodl-ui'
 import { isTextFieldLike } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'

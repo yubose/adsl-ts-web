@@ -87,7 +87,6 @@ SelectRedraw:
             - type: select
               dataKey: AvailableTime.timeStart
               viewTag: AvailableTimeTag
-              optionsKey: ScheduleSettingsTemp.TimeSpan
               options: ..ScheduleSettingsTemp.TimeSpan
               required: 'true'
               style:

@@ -1,4 +1,4 @@
-import { createEmitDataKey, findListDataObject } from 'noodl-utils'
+import { createEmitDataKey } from 'noodl-utils'
 import Logger from 'logsnap'
 import { actionTypes } from '../constants'
 import {
@@ -15,7 +15,7 @@ import {
 import ActionChain from '.'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
-import { isActionChainEmitTrigger } from '../utils/noodl'
+import { findListDataObject, isActionChainEmitTrigger } from '../utils/noodl'
 
 const log = Logger.create('createAction')
 

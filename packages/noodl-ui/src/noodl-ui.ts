@@ -4,10 +4,8 @@ import Logger from 'logsnap'
 import {
   createEmitDataKey,
   evalIf,
-  findListDataObject,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
-  isComponent,
   isEmitObj,
   isIfObj,
 } from 'noodl-utils'
@@ -25,6 +23,7 @@ import {
   isPromise,
 } from './utils/common'
 import {
+  findListDataObject,
   getPluginTypeLocation,
   isActionChainEmitTrigger,
   resolveAssetUrl,
@@ -32,6 +31,7 @@ import {
 import createComponent from './utils/createComponent'
 import createComponentCache from './utils/componentCache'
 import getActionConsumerOptions from './utils/getActionConsumerOptions'
+import isComponent from './utils/isComponent'
 import Action from './Action'
 import ActionChain from './ActionChain'
 import EmitAction from './Action/EmitAction'

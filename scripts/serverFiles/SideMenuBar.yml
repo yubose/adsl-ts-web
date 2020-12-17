@@ -1,0 +1,626 @@
+SideMenuBar:
+  pageNumber: "290"
+  init:
+    - .SignInCheck
+    - ..feedback.edgeAPI.get
+    - actionType: evalObject
+      object:
+        - .MenuBar.feedback.edge@: =..feedback.response.edge.0
+  feedback:
+    response: ""
+    edge:
+      .Edge: ""
+      type: .EdgeType.Feedback
+      bvid: .Global.currentUser.vertex.id
+      name:
+        stars: 5
+        content: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataKey: feedback.edge
+      get:
+        dataKey: feedback.response
+        type: .EdgeType.Feedback
+  components:
+    - ? .SuccessPopup
+    - type: view
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: view
+          style:
+            top: "0"
+            left: "0"
+            width: "1"
+            height: "0.2"
+            backgroundColor: "0x388eccff"
+          children:
+            - type: view
+              style:
+                top: "0"
+                left: "0.05"
+                width: "0.1"
+                height: "0.2"
+                backgroundColor: "0x388eccff"
+              children:
+                - type: image
+                  path: sideNav2.png
+                  style:
+                    top: "0.085"
+                    left: "0.015"
+                    height: "0.03"
+                  onClick:
+                    - actionType: builtIn
+                      funcName: goBack
+            - type: view
+              style:
+                top: "0"
+                left: "0.22"
+                width: "0.2"
+                height: "0.2"
+              children:
+                - type: image
+                  path: drImg.png
+                  style:
+                    left: "0.04"
+                    height: "0.06"
+                    top: "0.07"
+                    borderRadius: "10000"
+                    border:
+                      style: "5"
+            - type: view
+              style:
+                top: "0"
+                left: "0.42"
+                width: "0.5"
+                height: "0.2"
+              children:
+                - type: label
+                  dataKey: Global.currentUser.vertex.name.userName
+                  style:
+                    left: "0.045"
+                    width: "0.5"
+                    height: "0.2"
+                    color: "0xffffffff"
+                    fontWeight: "300"
+                    fontSize: "21"
+                    textAlign:
+                      y: center
+        - type: view
+          style:
+            top: "0.25"
+            left: "0.2"
+            height: "0.42"
+            width: "0.7"
+          children:
+            - type: view
+              style:
+                top: "0"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: profile.png
+                  style:
+                    left: "0.05"
+                    top: "0.01"
+                    height: "0.03"
+                - type: button
+                  text: Profile
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - goto: DisplayProfile
+            - type: view
+              style:
+                top: "0.05"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: contact.png
+                  style:
+                    left: "0.05"
+                    top: "0.01"
+                    height: "0.03"
+                - type: button
+                  text: Contacts
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - goto: ContactsList
+            - type: view
+              style:
+                top: "0.1"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: Documents2.png
+                  style:
+                    left: "0.05"
+                    top: "0.01"
+                    height: "0.03"
+                - type: button
+                  text: Documents
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - goto: PersonalDocuments
+            - type: view
+              style:
+                top: "0.15"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: payment.png
+                  style:
+                    left: "0.05"
+                    top: "0.01"
+                    height: "0.03"
+                - type: button
+                  text: Payment
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - goto: InactiveMySubscription
+            - type: view
+              style:
+                top: "0.2"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: dollar.png
+                  style:
+                    left: "0.05"
+                    top: "0.012"
+                    height: "0.026"
+                - type: button
+                  text: Subscriptions
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - goto: FreeTrailMysubscription
+            - type: view
+              style:
+                top: "0.25"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: faq2.png
+                  style:
+                    left: "0.05"
+                    top: "0.01"
+                    height: "0.03"
+                - type: button
+                  text: FAQ
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - goto: FAQs
+            - type: view
+              style:
+                top: "0.3"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: about.png
+                  style:
+                    left: "0.05"
+                    top: "0.01"
+                    height: "0.03"
+                - type: button
+                  text: About
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - goto: AboutAitmed
+            - type: view
+              style:
+                top: "0.35"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: rateapp.png
+                  style:
+                    left: "0.05"
+                    top: "0.01"
+                    height: "0.03"
+                - type: button
+                  text: Rate App
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - actionType: popUp
+                      popUpView: feedbackView
+            - type: view
+              style:
+                top: "0.4"
+                left: "0"
+                width: "0.7"
+                height: "0.05"
+              children:
+                - type: image
+                  path: membership.png
+                  style:
+                    left: "0.05"
+                    top: "0.01"
+                    height: "0.03"
+                - type: button
+                  text: Contact Support
+                  style:
+                    top: "0"
+                    left: "0.16"
+                    width: "0.5"
+                    height: "0.05"
+                    fontSize: 15
+                    letterSpacing: 1.5
+                    backgroundColor: "0xFFFFFF"
+                    textAlign:
+                      y: center
+                  onClick:
+                    - goto: ContactSupport
+        - type: view
+          style:
+            top: "0.75"
+            left: "0.5"
+            width: "0.4"
+            height: "0.2"
+          children:
+            - type: image
+              path: aitmedLogo2.png
+              style:
+                top: "0"
+                left: "0"
+                width: "0.25"
+        - type: view
+          style:
+            top: "0.94"
+            left: "0.2"
+            width: "0.7"
+            height: "0.06"
+          children:
+            - type: image
+              path: logout.png
+              style:
+                left: "0.05"
+                top: "0.015"
+                height: "0.03"
+            - type: button
+              text: Log Out
+              style:
+                top: "0"
+                left: "0.16"
+                width: "0.5"
+                height: "0.06"
+                fontSize: 15
+                color: "0x6b6c6cff"
+                backgroundColor: "0xffffff"
+                textAlign:
+                  y: center
+              onClick:
+                - goto: Logout
+        - type: popUp
+          viewTag: feedbackView
+          style:
+            left: "0"
+            top: "0.0"
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000066"
+          children:
+            - type: view
+              style:
+                left: "0.055"
+                top: "0.19"
+                width: "0.88"
+                height: "0.65"
+                backgroundColor: "0xffffffff"
+                border:
+                  style: "3"
+                  color: "0xffffffff"
+                borderRadius: "7"
+              children:
+                - type: image
+                  path: aitmedLogo.png
+                  style:
+                    left: "0"
+                    top: "0"
+                    width: "0.4"
+                    height: "0.2"
+                - type: label
+                  text: How are we doing?
+                  style:
+                    left: "0.05"
+                    top: "0.2"
+                    width: "0.6"
+                    height: "0.04"
+                    fontSize: "16"
+                    textAlign:
+                      x: left
+                      y: center
+                    fontColor: "0x00000088"
+                - .BaseView: null
+                  style:
+                    top: "0.25"
+                  viewTag: starsTag
+                  children:
+                    - type: image
+                      dataKey: feedback.edge.name.stars
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                                - =.builtIn.number.inRange:
+                                    dataIn:
+                                      number: =..feedback.edge.name.stars
+                                      start: 1
+                                      end: 5
+                                - https://public.aitmed.com/commonRes/providerOn.png
+                                - https://public.aitmed.com/commonRes/providerOff.png
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            ..feedback.edge.name.stars@: 1
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: starsTag
+                      style:
+                        left: "0.05"
+                        top: "0"
+                        width: "0.1"
+                    - type: image
+                      dataKey: feedback.edge.name.stars
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                                - =.builtIn.number.inRange:
+                                    dataIn:
+                                      number: =..feedback.edge.name.stars
+                                      start: 2
+                                      end: 5
+                                - https://public.aitmed.com/commonRes/providerOn.png
+                                - https://public.aitmed.com/commonRes/providerOff.png
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            ..feedback.edge.name.stars@: 2
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: starsTag
+                      style:
+                        left: "0.17"
+                        top: "0"
+                        width: "0.1"
+                    - type: image
+                      dataKey: feedback.edge.name.stars
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                                - =.builtIn.number.inRange:
+                                    dataIn:
+                                      number: =..feedback.edge.name.stars
+                                      start: 3
+                                      end: 5
+                                - https://public.aitmed.com/commonRes/providerOn.png
+                                - https://public.aitmed.com/commonRes/providerOff.png
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            ..feedback.edge.name.stars@: 3
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: starsTag
+                      style:
+                        left: "0.29"
+                        top: "0"
+                        width: "0.1"
+                    - type: image
+                      dataKey: feedback.edge.name.stars
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                                - =.builtIn.number.inRange:
+                                    dataIn:
+                                      number: =..feedback.edge.name.stars
+                                      start: 4
+                                      end: 5
+                                - https://public.aitmed.com/commonRes/providerOn.png
+                                - https://public.aitmed.com/commonRes/providerOff.png
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            ..feedback.edge.name.stars@: 4
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: starsTag
+                      style:
+                        left: "0.41"
+                        top: "0"
+                        width: "0.1"
+                    - type: image
+                      dataKey: feedback.edge.name.stars
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                                - =.builtIn.number.inRange:
+                                    dataIn:
+                                      number: =..feedback.edge.name.stars
+                                      start: 5
+                                      end: 5
+                                - https://public.aitmed.com/commonRes/providerOn.png
+                                - https://public.aitmed.com/commonRes/providerOff.png
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            ..feedback.edge.name.stars@: 5
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: starsTag
+                      style:
+                        left: "0.53"
+                        top: "0"
+                        width: "0.1"
+                - type: label
+                  text: Feedback
+                  style:
+                    left: "0.04"
+                    top: "0.32"
+                    width: "0.2"
+                    height: "0.03"
+                    fontSize: "15"
+                    textAlign:
+                      x: left
+                      y: center
+                - type: label
+                  text: 0/150 characters
+                  style:
+                    left: "0.53"
+                    top: "0.32"
+                    width: "0.4"
+                    height: "0.03"
+                    color: "0xB0B0B0"
+                    fontSize: "15"
+                    textAlign:
+                      x: left
+                      y: center
+                - type: textView
+                  dataKey: FeedBack.edge.name.content
+                  isEditable: "true"
+                  style:
+                    left: "0.04"
+                    top: "0.37"
+                    height: "0.15"
+                    width: "0.8"
+                    border:
+                      style: "3"
+                      color: "0x00000088"
+                - type: button
+                  text: Submit
+                  style:
+                    color: "0xFFFFFF"
+                    left: "0.04"
+                    top: "0.55"
+                    width: "0.8"
+                    fontSoize: "18"
+                    height: "0.05"
+                    backgroundColor: "0x2fb355"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.SideMenuBar.feedback.edgeAPI.store: ""
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: popUpDismiss
+                      popUpView: feedbackView
+                - type: button
+                  text: Cancel
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: feedbackView
+                    - goto: SideMenuBar
+                  style:
+                    left: "0.04"
+                    fontSoize: "18"
+                    top: "0.6"
+                    width: "0.8"
+                    height: "0.04"
+                    backgroundColor: "0xffffffff"

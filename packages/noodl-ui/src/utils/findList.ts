@@ -1,5 +1,6 @@
 import _ from 'lodash'
-import { findChild, findParent, isComponent } from 'noodl-utils'
+import { findChild, findParent } from './noodl'
+import isComponent from './isComponent'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Component from '../components/Base'

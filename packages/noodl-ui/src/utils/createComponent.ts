@@ -1,10 +1,10 @@
 import _ from 'lodash'
-import { isComponent } from 'noodl-utils'
 import { ComponentObject, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Component from '../components/Base'
+import isComponent from './isComponent'
 
 export interface PropsOptionFunc<T> {
   (child: T): Partial<ComponentObject>

@@ -1,0 +1,253 @@
+AddContact:
+  pageNumber: "360 "
+  title: Add Contact
+  init:
+    - .SignInCheck
+  save:
+    - =.AddContact.newContact.docAPI.store: ""
+  newContact:
+    document:
+      .Document: ""
+      eid: .Global.rootNotebookID
+      type: .DocType.Contact
+      name:
+        title: ""
+        type: ..newContact.docAPI.store.subtype.mediaType
+        data:
+          phoneNumber: ""
+          email: ""
+          firstName: ""
+          middleName: ""
+          lastName: ""
+          note: ""
+          isFavorite: false
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: newContact.document
+        subtype:
+          mediaType: application/json
+  components:
+    - ? .BaseHeader
+    - .HeaderRightButton: null
+      text: cancel
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    - type: view
+      style:
+        left: "0"
+        top: "0.1"
+        width: "1"
+        height: "1"
+        contentSize:
+          width: "1"
+          height: "1.2"
+      children:
+        - type: label
+          text: "Phone #"
+          style:
+            left: "0.15"
+            top: "0.05"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0x00000058"
+            textAlign:
+              x: left
+              y: center
+        - type: textField
+          dataKey: newContact.document.name.data.phoneNumber
+          contentType: phoneNumber
+          style:
+            left: "0.15"
+            top: "0.1"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0x000000"
+        - type: label
+          text: Email
+          style:
+            left: "0.15"
+            top: "0.15"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0x00000058"
+            textAlign:
+              x: left
+              y: center
+        - type: textField
+          dataKey: newContact.document.name.data.email
+          contentType: email
+          style:
+            left: "0.15"
+            top: "0.2"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0x000000"
+        - type: label
+          text: First name
+          style:
+            left: "0.15"
+            top: "0.25"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0x00000058"
+            textAlign:
+              x: left
+              y: center
+        - type: textField
+          dataKey: newContact.document.name.data.firstName
+          contentType: text
+          style:
+            left: "0.15"
+            top: "0.3"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0x000000"
+        - type: label
+          text: Middle name
+          style:
+            left: "0.15"
+            top: "0.35"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0x00000058"
+            textAlign:
+              x: left
+              y: center
+        - type: textField
+          dataKey: newContact.document.name.data.middleName
+          contentType: text
+          style:
+            left: "0.15"
+            top: "0.4"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0x000000"
+        - type: label
+          text: Last name
+          style:
+            left: "0.15"
+            top: "0.45"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0x00000058"
+            textAlign:
+              x: left
+              y: center
+        - type: textField
+          dataKey: newContact.document.name.data.lastName
+          contentType: text
+          style:
+            left: "0.15"
+            top: "0.5"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0x000000"
+        - type: label
+          text: Add Note
+          style:
+            left: "0.15"
+            top: "0.55"
+            width: "0.8"
+            height: "0.04"
+            fontSize: "12"
+            color: "0x00000058"
+            textAlign:
+              x: left
+              y: center
+        - type: textView
+          isEditable: "true"
+          dataKey: newContact.document.name.data.note
+          contentType: text
+          style:
+            left: "0.15"
+            top: "0.6"
+            width: "0.7"
+            height: "0.15"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "4"
+              width: "1"
+              color: "0x000000"
+        - type: button
+          text: Save
+          onClick:
+            - actionType: evalObject
+              object: ..save
+            - actionType: evalObject
+              object:
+                .Global._nonce@:
+                  =.builtIn.math.random: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+          style:
+            left: "0.2"
+            top: "0.78"
+            width: "0.6"
+            height: "0.07"
+            color: "0xffffffff"
+            fontSize: "16"
+            backgroundColor: "0x3366FF"
+            textAlign:
+              x: center
+        - type: button
+          text: Delete
+          onClick:
+            - actionType: builtIn
+              funcName: goBack
+          style:
+            left: "0.2"
+            top: "0.88"
+            width: "0.6"
+            height: "0.07"
+            color: "0xfa0808"
+            fontSize: "16"
+            backgroundColor: "0xFFFFFF"
+            textAlign:
+              x: center

@@ -5,71 +5,14 @@ import has from 'lodash/has'
 import {
   ActionObject,
   Component,
-  ComponentCreationType,
-  ComponentObject,
-  createComponent,
   EmitActionObject,
   EmitObject,
   IfObject,
-  List,
-  ListItem,
-  NOODLComponent,
 } from 'noodl-ui'
 import { isArr, isBool, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
 
 const log = Logger.create('noodl-utils')
-
-// TODO - move to noodl-building-blocks
-/**
- * Deeply creates children until the depth is reached
- * @param { ComponentCreationType | Component } c - Component instance
- * @param { object } opts
- * @param { number | undefined } opts.depth - The maximum depth to deeply recurse to. Defaults to 1
- * @param { object | undefined } opts.injectProps - Props to inject to desired components during the recursion
- * @param { object | undefined } opts.injectProps.last - Props to inject into the last created child
- */
-export function createDeepChildren(
-  c: ComponentCreationType | Component,
-  opts?: {
-    depth?: number
-    injectProps?: {
-      last?:
-        | { [key: string]: any }
-        | ((rootProps: Partial<ComponentObject>) => Partial<ComponentObject>)
-    }
-    onCreate?(child: Component, depth: number): Partial<NOODLComponent>
-  },
-): Component {
-  if (opts?.depth) {
-    let count = 0
-    let curr =
-      typeof c === 'string'
-        ? (c = createComponent({ type: c, children: [] }))
-        : c
-    while (count < opts.depth) {
-      const cc = createComponent({ type: 'view', children: [] })
-      const child = curr.createChild(cc)
-      let injectingProps = opts?.onCreate?.(child, count)
-      if (typeof injectingProps === 'object') {
-        Object.entries(injectingProps).forEach(([k, v]) => child.set(k, v))
-      }
-      curr = child
-      count++
-      if (count === opts.depth) {
-        if (opts.injectProps?.last) {
-          Object.entries(unwrapObj(opts.injectProps?.last)).forEach(
-            ([k, v]) => {
-              if (k === 'style') curr.set('style', k, v)
-              else curr.set(k, v)
-            },
-          )
-        }
-      }
-    }
-  }
-  return c as Component
-}
 
 /**f
  * Transforms the dataKey of an emit object. If the dataKey is an object,
@@ -140,53 +83,6 @@ export function evalIf<IfObj extends { if: [any, any, any] }>(
   return false
 }
 
-/**
- * Traverses the children hierarchy, running the comparator function in each
- * iteration. If a callback returns true, the node in that iteration will become
- * the returned child
- * @param { Component } component
- * @param { function } fn - Comparator function
- */
-export function findChild<C extends Component>(
-  component: C,
-  fn: (child: Component) => boolean,
-): Component | null {
-  let child: Component | null | undefined
-  let children = component?.children?.()?.slice?.() || []
-
-  if (isComponent(component)) {
-    child = children.shift() || null
-    while (child) {
-      if (fn(child)) return child
-      child.children?.().forEach((c: Component) => children.push(c))
-      child = children.pop()
-    }
-  }
-  return null
-}
-
-/**
- * Traverses the parent hierarchy, running the comparator function in each
- * iteration. If a callback returns true, the node in that iteration will become
- * the returned parent
- * @param { Component } component
- * @param { function } fn
- */
-export function findParent<C extends Component>(
-  component: C,
-  fn: (parent: Component | null) => boolean,
-) {
-  let parent = component?.parent?.()
-  if (fn(parent)) return parent
-  if (parent) {
-    while (parent) {
-      parent = parent.parent?.()
-      if (fn(parent)) return parent
-    }
-  }
-  return parent || null
-}
-
 type FindDataValueItem =
   | ((...args: any[]) => any)
   | T.PlainObject
@@ -208,40 +104,6 @@ export const findDataValue = <O extends FindDataValueItem = any>(
     ),
     path,
   )
-}
-
-export function findListDataObject(component: any) {
-  let dataObject
-  let listItem: ListItem | undefined
-  if (component?.noodlType === 'listItem') {
-    listItem = component as any
-  } else {
-    listItem = findParent(
-      component,
-      (p) => p?.noodlType === 'listItem',
-    ) as ListItem
-  }
-  if (listItem) {
-    dataObject = listItem.getDataObject?.()
-    let listIndex = listItem.get('listIndex')
-    if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
-    if (!dataObject && typeof listIndex === 'number') {
-      const list = listItem?.parent?.() as List
-      if (list) {
-        let listObject = list.getData()
-        if (listObject?.length) {
-          dataObject = listObject[listIndex]
-        }
-        if (!dataObject) {
-          listObject = list.original?.listObject || []
-          if (listObject?.length) {
-            dataObject = listObject[listIndex] || listObject[listIndex]
-          }
-        }
-      }
-    }
-  }
-  return dataObject || null
 }
 
 export function getActionType<A extends ActionObject = any>(
@@ -347,14 +209,6 @@ export function isBreakLineTextBoardItem<
   return isBreakLine(value) || isBreakLineObject(value)
 }
 
-export function isComponent(component: unknown): component is Component {
-  return (
-    component &&
-    (typeof component === 'object' || typeof component === 'function') &&
-    typeof component.children === 'function'
-  )
-}
-
 export function isEmitObj(value: unknown): value is EmitObject {
   return !!(value && typeof value === 'object' && 'emit' in value)
 }
@@ -379,39 +233,6 @@ export function isListConsumer(component: any) {
     component?.noodlType === 'listItem' ||
     (component && findParent(component, (p) => p?.noodlType === 'listItem'))
   )
-}
-
-/**
- * Returns true if the dataKey begins with the value of iteratorVar
- * @param {  }  -
- */
-export function isListKey(dataKey: string, iteratorVar: string): boolean
-export function isListKey(dataKey: string, component: Component): boolean
-export function isListKey(dataKey: string, component: ComponentObject): boolean
-export function isListKey(
-  dataKey: string,
-  component: string | Component | ComponentObject,
-) {
-  if (arguments.length < 2) {
-    throw new Error('Missing second argument')
-  }
-  if (isStr(dataKey) && component) {
-    if (isStr(component)) {
-      return dataKey.startsWith(component)
-    }
-    if (isComponent(component)) {
-      const iteratorVar =
-        component.get('iteratorVar') ||
-        component.original?.iteratorVar ||
-        findParent(component, (p) => !!p?.get('iteratorVar')) ||
-        ''
-      return !!(iteratorVar && dataKey.startsWith(iteratorVar))
-    }
-    if ('iteratorVar' in component) {
-      return dataKey.startsWith(component.iteratorVar || '')
-    }
-  }
-  return false
 }
 
 export function isPasswordInput(value: unknown) {
@@ -464,7 +285,11 @@ export function isTextBoardComponent<Component extends T.TextLike>(
  */
 // TODO - Depth option
 export function publish(component: Component, cb: (child: Component) => void) {
-  if (isComponent(component)) {
+  if (
+    component &&
+    typeof component === 'object' &&
+    typeof component.function === 'function'
+  ) {
     component.children().forEach((child: Component) => {
       cb(child)
       child?.children()?.forEach?.((c) => {

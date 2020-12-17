@@ -1,19 +1,69 @@
 import _ from 'lodash'
 import { current } from 'immer'
 import Component from '../components/Base'
-import ListItem from '../components/ListItem'
 import {
   ActionChainEmitTrigger,
   ComponentCreationType,
   ComponentObject,
-  EmitObject,
-  EmitTrigger,
+  NOODLComponent,
   PluginLocation,
   ProxiedComponent,
   TextBoardBreakLine,
 } from '../types'
-import { isAllString, isBrowser } from './common'
+import { isBrowser } from './common'
 import { actionChainEmitTriggers } from '../constants'
+import createComponent from './createComponent'
+import isComponent from './isComponent'
+
+/**
+ * Deeply creates children until the depth is reached
+ * @param { ComponentCreationType | Component } c - Component instance
+ * @param { object } opts
+ * @param { number | undefined } opts.depth - The maximum depth to deeply recurse to. Defaults to 1
+ * @param { object | undefined } opts.injectProps - Props to inject to desired components during the recursion
+ * @param { object | undefined } opts.injectProps.last - Props to inject into the last created child
+ */
+export function createDeepChildren(
+  c: ComponentCreationType | Component,
+  opts?: {
+    depth?: number
+    injectProps?: {
+      last?:
+        | { [key: string]: any }
+        | ((rootProps: Partial<ComponentObject>) => Partial<ComponentObject>)
+    }
+    onCreate?(child: Component, depth: number): Partial<NOODLComponent>
+  },
+): Component {
+  if (opts?.depth) {
+    let count = 0
+    let curr =
+      typeof c === 'string'
+        ? (c = createComponent({ type: c, children: [] }))
+        : c
+    while (count < opts.depth) {
+      const cc = createComponent({ type: 'view', children: [] })
+      const child = curr.createChild(cc)
+      let injectingProps = opts?.onCreate?.(child, count)
+      if (typeof injectingProps === 'object') {
+        Object.entries(injectingProps).forEach(([k, v]) => child.set(k, v))
+      }
+      curr = child
+      count++
+      if (count === opts.depth) {
+        if (opts.injectProps?.last) {
+          Object.entries(unwrapObj(opts.injectProps?.last)).forEach(
+            ([k, v]) => {
+              if (k === 'style') curr.set('style', k, v)
+              else curr.set(k, v)
+            },
+          )
+        }
+      }
+    }
+  }
+  return c as Component
+}
 
 /**
  * Deeply traverses all children down the component's family tree
@@ -119,26 +169,6 @@ export const identify = (function () {
   return o
 })()
 
-export function isListItemComponent(o: any): o is ListItem {
-  return !!(o && o.noodlType === 'listItem' && typeof o.children === 'function')
-}
-
-/**
- * Returns true if obj is represents something expecting to receive incoming data by
- * their dataKey reference.
- * @param { string } iteratorVar
- * @param { object } obj - NOODL component
- */
-export function isIteratorVarConsumer(o: Component): boolean {
-  if (_.isPlainObject(o?.original)) {
-    return (
-      isAllString([o.original.dataKey, o.original.iteratorVar]) &&
-      (o.original.dataKey as string).startsWith(o.original.iteratorVar || '')
-    )
-  }
-  return false
-}
-
 /**
  * Checks for a prop in the component object in the top level as well as the "noodl" property level
  * @param { object } component - NOODL component
@@ -160,22 +190,81 @@ export function checkForNoodlProp(
 }
 
 /**
- * Returns the HTML DOM node or an array of HTML DOM nodes using the data-ux,
- * otherwise returns null
- * @param { string } key - The value of a data-ux element
+ * Traverses the children hierarchy, running the comparator function in each
+ * iteration. If a callback returns true, the node in that iteration will become
+ * the returned child
+ * @param { Component } component
+ * @param { function } fn - Comparator function
  */
-export function getByDataUX(key: string) {
-  if (typeof key === 'string') {
-    const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
-    if (nodeList.length) {
-      const nodes = [] as HTMLElement[]
-      nodeList.forEach((node: HTMLElement, key) => {
-        nodes.push(node)
-      })
-      return nodes.length === 1 ? nodes[0] : nodes
+export function findChild<C extends Component>(
+  component: C,
+  fn: (child: Component) => boolean,
+): Component | null {
+  let child: Component | null | undefined
+  let children = component?.children?.()?.slice?.() || []
+
+  if (isComponent(component)) {
+    child = children.shift() || null
+    while (child) {
+      if (fn(child)) return child
+      child.children?.().forEach((c: Component) => children.push(c))
+      child = children.pop()
     }
   }
   return null
+}
+
+/**
+ * Traverses the parent hierarchy, running the comparator function in each
+ * iteration. If a callback returns true, the node in that iteration will become
+ * the returned parent
+ * @param { Component } component
+ * @param { function } fn
+ */
+export function findParent<C extends Component>(
+  component: C,
+  fn: (parent: Component | null) => boolean,
+) {
+  let parent = component?.parent?.()
+  if (fn(parent)) return parent
+  if (parent) {
+    while (parent) {
+      parent = parent.parent?.()
+      if (fn(parent)) return parent
+    }
+  }
+  return parent || null
+}
+
+export function findListDataObject(component: any) {
+  let dataObject
+  let listItem: any
+  if (component?.noodlType === 'listItem') {
+    listItem = component as any
+  } else {
+    listItem = findParent(component, (p) => p?.noodlType === 'listItem') as any
+  }
+  if (listItem) {
+    dataObject = listItem.getDataObject?.()
+    let listIndex = listItem.get('listIndex')
+    if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
+    if (!dataObject && typeof listIndex === 'number') {
+      const list = listItem?.parent?.() as any
+      if (list) {
+        let listObject = list.getData()
+        if (listObject?.length) {
+          dataObject = listObject[listIndex]
+        }
+        if (!dataObject) {
+          listObject = list.original?.listObject || []
+          if (listObject?.length) {
+            dataObject = listObject[listIndex] || listObject[listIndex]
+          }
+        }
+      }
+    }
+  }
+  return dataObject || null
 }
 
 /**
@@ -355,6 +444,39 @@ export function getPluginTypeLocation(value: string): PluginLocation | '' {
 }
 
 /**
+ * Returns true if the dataKey begins with the value of iteratorVar
+ * @param {  }  -
+ */
+export function isListKey(dataKey: string, iteratorVar: string): boolean
+export function isListKey(dataKey: string, component: Component): boolean
+export function isListKey(dataKey: string, component: ComponentObject): boolean
+export function isListKey(
+  dataKey: string,
+  component: string | Component | ComponentObject,
+) {
+  if (arguments.length < 2) {
+    throw new Error('Missing second argument')
+  }
+  if (typeof dataKey === 'string' && component) {
+    if (typeof component === 'string') {
+      return dataKey.startsWith(component)
+    }
+    if (isComponent(component)) {
+      const iteratorVar =
+        component.get('iteratorVar') ||
+        component.original?.iteratorVar ||
+        findParent(component, (p) => !!p?.get('iteratorVar')) ||
+        ''
+      return !!(iteratorVar && dataKey.startsWith(iteratorVar))
+    }
+    if ('iteratorVar' in component) {
+      return dataKey.startsWith(component.iteratorVar || '')
+    }
+  }
+  return false
+}
+
+/**
  * Returns true if value has a viewTag of "selfStream", false otherwise
  * @param { any } value
  */
@@ -388,4 +510,8 @@ export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
     src = `${assetsUrl}${pathValue}`
   }
   return src
+}
+
+export function unwrapObj(obj: any) {
+  return typeof obj === 'function' ? obj() : obj
 }

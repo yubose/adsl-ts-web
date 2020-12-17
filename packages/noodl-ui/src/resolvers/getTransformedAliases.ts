@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { findDataValue, isBooleanTrue, isEmitObj } from 'noodl-utils'
+import { isBooleanTrue, isEmitObj } from 'noodl-utils'
 import { contentTypes } from '../constants'
 import { ResolverFn } from '../types'
 import { isPromise } from '../utils/common'

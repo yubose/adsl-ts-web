@@ -3,10 +3,10 @@ import {
   Component,
   ComponentObject,
   ComponentType,
+  isComponent,
   NOODLComponent,
   SelectOption,
 } from 'noodl-ui'
-import { isComponent } from 'noodl-utils'
 import { NodeResolverConfig } from './types'
 
 /**
@@ -186,6 +186,25 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
     ...eventTypes,
     ...keys,
   ] as string[]
+}
+
+/**
+ * Returns the HTML DOM node or an array of HTML DOM nodes using the data-ux,
+ * otherwise returns null
+ * @param { string } key - The value of a data-ux element
+ */
+export function getByDataUX(key: string) {
+  if (typeof key === 'string') {
+    const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
+    if (nodeList.length) {
+      const nodes = [] as HTMLElement[]
+      nodeList.forEach((node: HTMLElement, key) => {
+        nodes.push(node)
+      })
+      return nodes.length === 1 ? nodes[0] : nodes
+    }
+  }
+  return null
 }
 
 export function getDynamicShapeKeys(

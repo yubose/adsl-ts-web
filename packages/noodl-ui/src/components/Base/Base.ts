@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Logger from 'logsnap'
-import { isComponent } from 'noodl-utils'
 import { WritableDraft } from 'immer/dist/internal'
 import { createDraft, isDraft, finishDraft, original, current } from 'immer'
 import { eventTypes } from '../../constants'
@@ -15,6 +14,7 @@ import {
   Style,
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
+import isComponent from '../../utils/isComponent'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 
 const log = Logger.create('Base')

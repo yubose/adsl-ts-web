@@ -3,7 +3,96 @@ SignUp:
   pageNumber: "20"
   formData:
     countryCode: "+1"
-    phoneNumber: 000-000-0002
+    phoneNumber: ""
+    code: ""
+  apiData:
+    phoneNumber: ""
+  verificationCode:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1010
+      name:
+        phone_number: =..apiData.phoneNumber
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: SignUp.verificationCode.edge
+        dataOut: SignUp.verificationCode.response
+  save:
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.SignUp.formData.countryCode
+          - " "
+          - =.SignUp.formData.phoneNumber
+        dataOut: SignUp.apiData.phoneNumber
+    - =.SignUp.verificationCode.edgeAPI.store: ""
+  check:
+    - =.SignUp.loginNewDevice.edgeAPI.store: ""
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..loginNewDevice.response.code
+              string2: 0
+        - actionType: popUp
+          popUpView: existUser
+          wait: true
+        - continue
+  update:
+    - =.SignUp.loginUser.edgeAPI.store: ""
+    - =.SignUp.retrieveVertex.vertexAPI.store: ""
+  retrieveVertex:
+    response: ""
+    vertex:
+      .Vertex: ""
+      type: "-1"
+      id: =..loginNewDevice.response.edge.deat.user_id
+      name:
+        countryCode: =.SignUp.formData.countryCode
+        phoneNumber: =..loginNewDevice.response.edge.name.phone_number
+        verificationCode: =..loginNewDevice.response.edge.name.verification_code
+      uid: =.SignUp.apiData.phoneNumber
+    jwt: =..loginUser.response.jwt
+    vertexAPI:
+      .VertexAPI: ""
+      store:
+        api: cv
+        dataIn: SignUp.retrieveVertex.vertex
+        dataOut: SignUp.retrieveVertex.response
+      delete:
+        api: dx
+        dataIn: SignUp.retrieveVertex.vertex
+  loginNewDevice:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1040
+      name:
+        phone_number: =..apiData.phoneNumber
+        verification_code: =..formData.code
+      deat:
+        UserId: ""
+        Pk: ""
+        Esk: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: SignUp.loginNewDevice.edge
+        dataOut: SignUp.loginNewDevice.response
+  loginUser:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1030
+      bvid: =..loginNewDevice.response.edge.deat.user_id
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: SignUp.loginUser.edge
+        dataOut: SignUp.loginUser.response
   components:
     - type: view
       style:
@@ -12,7 +101,13 @@ SignUp:
         width: "1"
         height: "1"
       children:
-        - .LogoSign
+        - type: image
+          path: mLogo.png
+          style:
+            left: "0.1"
+            top: "0.1"
+            width: "0.32"
+            height: "0.17"
         - type: label
           text: Create Your Account with AiTmed
           style:
@@ -47,8 +142,7 @@ SignUp:
               contentType: countryCode
               placeholder: ..formData.countryCode
               dataKey: formData.countryCode
-              options:
-                - "+1"
+              options: .CountryCode
               required: "true"
               style:
                 left: "0"
@@ -57,6 +151,7 @@ SignUp:
                 height: "0.041"
                 fontSize: "14"
                 borderWidth: "1"
+                boxSizing: border-box
                 border:
                   style: "2"
                   color: "0x00000058"
@@ -81,7 +176,7 @@ SignUp:
                   y: center
             - type: textField
               contentType: phoneNumber
-              placeholder: ..formData.phoneNumber
+              placeholder: input phoneNumber
               dataKey: formData.phoneNumber
               required: "true"
               style:
@@ -94,6 +189,7 @@ SignUp:
                 border:
                   style: "2"
                 display: inline
+                boxSizing: border-box
                 textAlign:
                   x: left
                   y: center
@@ -115,15 +211,245 @@ SignUp:
               x: center
               y: center
           onClick:
-            - actionType: builtIn
-              funcName: signUp
-            - actionType: pageJump
-              destination: CreateNewAccount
+            - actionType: evalObject
+              object: ..save
+            - actionType: popUp
+              popUpView: confirmView
+        - type: popUp
+          viewTag: existUser
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000066"
+          children:
+            - type: view
+              style:
+                left: "0.05"
+                top: "0.3"
+                width: "0.89333"
+                height: "0.35"
+                zIndex: "100"
+                backgroundColor: "0xeaeaea"
+                border:
+                  style: "5"
+                borderRadius: "15"
+              children:
+                - type: label
+                  text: You already had an account or have been invited
+                  style:
+                    .LabelStyle:
+                      left: "0"
+                      top: "0.08"
+                      width: "0.89333"
+                      height: "0.05"
+                      color: "0x000000"
+                      fontSize: "19"
+                      display: inline
+                      fontFamily: sans-serif
+                      textAlign:
+                        x: center
+                        y: center
+                - type: label
+                  text: Do you want to register for a new account?
+                  style:
+                    .LabelStyle:
+                      left: "0.02"
+                      top: "0.15"
+                      width: "0.84"
+                      height: "0.05"
+                      color: "0x000000"
+                      fontSize: "19"
+                      display: inline
+                      fontFamily: sans-serif
+                      textAlign:
+                        x: center
+                        y: center
+                - type: divider
+                  style:
+                    .DividerStyle:
+                      left: "0"
+                      top: "0.25436"
+                      width: "0.89333"
+                      height: "0.001"
+                      backgroundColor: "0x00000088"
+                - type: button
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: existUser
+                    - goto: SignIn
+                  text: CANCEL
+                  style:
+                    .LabelStyle:
+                      left: "0"
+                      top: "0.275"
+                      width: "0.42"
+                      height: "0.06812"
+                      color: "0x007affff"
+                      fontSize: "19"
+                      display: inline
+                      backgroundColor: "0xeaeaea"
+                      textAlign:
+                        x: center
+                        y: center
+                      border:
+                        style: "5"
+                        borderRadius: "15"
+                - type: button
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: existUser
+                    - actionType: evalObject
+                      object: ..update
+                    - goto: CreateNewAccount
+                  text: OKAY
+                  style:
+                    .LabelStyle:
+                      left: "0.45"
+                      top: "0.275"
+                      width: "0.42"
+                      height: "0.06812"
+                      color: "0x007affff"
+                      fontSize: "19"
+                      display: inline
+                      backgroundColor: "0xeeeeee"
+                      textAlign:
+                        x: center
+                        y: center
+                      border:
+                        style: "5"
+                        borderRadius: "15"
+                - type: divider
+                  style:
+                    .DividerStyle:
+                      left: "0.45"
+                      top: "0.255"
+                      width: "0.001"
+                      height: "0.08"
+                      backgroundColor: "0x00000088"
+        - type: popUp
+          viewTag: confirmView
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000066"
+          children:
+            - type: view
+              style:
+                left: "0.05"
+                top: "0.3"
+                width: "0.89333"
+                height: "0.35"
+                zIndex: "100"
+                backgroundColor: "0xeaeaea"
+                border:
+                  style: "5"
+                borderRadius: "15"
+              children:
+                - type: label
+                  text: Enter the 6-digit verification code
+                  style:
+                    .LabelStyle:
+                      left: "0"
+                      top: "0.08"
+                      width: "0.89333"
+                      height: "0.05"
+                      color: "0x000000"
+                      fontSize: "19"
+                      display: inline
+                      fontFamily: sans-serif
+                      textAlign:
+                        x: center
+                        y: center
+                - type: textField
+                  contentType: text
+                  dataKey: formData.code
+                  required: "true"
+                  style:
+                    .LabelStyle:
+                      left: "0.02"
+                      top: "0.15"
+                      width: "0.84"
+                      height: "0.05"
+                      color: "0x00000088"
+                      fontSize: "20"
+                      display: inline
+                      border:
+                        style: "3"
+                        color: "0xb5b5b8"
+                      borderWidth: "1"
+                      textAlign:
+                        x: center
+                        y: center
+                - type: divider
+                  style:
+                    .DividerStyle:
+                      left: "0"
+                      top: "0.25436"
+                      width: "0.89333"
+                      height: "0.001"
+                      backgroundColor: "0x00000088"
+                - type: button
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: confirmView
+                  text: CANCEL
+                  style:
+                    .LabelStyle:
+                      left: "0"
+                      top: "0.275"
+                      width: "0.42"
+                      height: "0.06812"
+                      color: "0x007affff"
+                      fontSize: "19"
+                      display: inline
+                      backgroundColor: "0xeaeaea"
+                      textAlign:
+                        x: center
+                        y: center
+                      border:
+                        style: "5"
+                        borderRadius: "15"
+                - type: button
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: confirmView
+                    - actionType: evalObject
+                      object: ..check
+                    - goto: CreateNewAccount
+                  text: SUBMIT
+                  style:
+                    .LabelStyle:
+                      left: "0.45"
+                      top: "0.275"
+                      width: "0.42"
+                      height: "0.06812"
+                      color: "0x007affff"
+                      fontSize: "19"
+                      display: inline
+                      backgroundColor: "0xeaeaea"
+                      textAlign:
+                        x: center
+                        y: center
+                      border:
+                        style: "5"
+                        borderRadius: "15"
+                - type: divider
+                  style:
+                    .DividerStyle:
+                      left: "0.45"
+                      top: "0.255"
+                      width: "0.002"
+                      height: "0.08"
+                      backgroundColor: "0x00000088"
         - type: view
           style:
             left: "0"
             top: "0.89"
-            width: "0.1"
+            width: "1"
             height: "0.054"
           children:
             - type: label
@@ -133,7 +459,7 @@ SignUp:
                   color: "0x00000088"
                   fontSize: "14"
                   left: "0"
-                  top: "0"
+                  top: "0.013"
                   width: "0.6"
                   height: "0.054"
                   display: inline
@@ -150,9 +476,8 @@ SignUp:
                 top: "0"
                 width: "0.25"
                 height: "0.054"
-                backgroundColor: "0xffffffff"
+                backgroundColor: "0xffffff00"
                 border:
                   style: "1"
               onClick:
-                - actionType: pageJump
-                  destination: SignIn
+                - goto: SignIn

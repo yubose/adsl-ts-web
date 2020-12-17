@@ -10,9 +10,9 @@ import {
   Room,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import { getByDataUX, ProxiedComponent, Viewport } from 'noodl-ui'
+import { getByDataUX } from 'noodl-ui-dom'
+import { Viewport } from 'noodl-ui'
 import { isMobile } from '../utils/common'
-import { isVisible } from '../utils/dom'
 import noodluidom from '../app/noodl-ui-dom'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'

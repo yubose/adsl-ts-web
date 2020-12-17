@@ -5,11 +5,10 @@ import {
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import { isComponent } from 'noodl-utils'
+import { getByDataUX } from 'noodl-ui-dom'
 import {
   ActionChainActionCallback,
   Component,
-  getByDataUX,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -25,6 +24,7 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   getDataValues,
+  isComponent,
   List,
   identify,
   Resolver,
