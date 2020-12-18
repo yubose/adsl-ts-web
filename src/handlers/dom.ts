@@ -8,7 +8,7 @@ import {
   NOODL as NOODLUI,
 } from 'noodl-ui'
 import { isBooleanTrue, isEmitObj } from 'noodl-utils'
-import { isTextFieldLike } from 'noodl-ui-dom'
+import { isTextFieldLike, NOODLDOMElement } from 'noodl-ui-dom'
 import { forEachEntries } from '../utils/common'
 import { isDisplayable } from '../utils/dom'
 import createElement from '../utils/createElement'
@@ -44,7 +44,7 @@ export const listen = (noodluidom = noodluidomClient, noodlui: NOODLUI) => {
 
   // TODO: Consider extending this to be better. We'll hard code this logic for now
   // This event is called for all components
-  noodluidom.on('component', (node: HTMLElement, component: Component) => {
+  noodluidom.on('component', (node: NOODLDOMElement, component: Component) => {
     if (!node || !component) return
     log.func('on [component]')
 

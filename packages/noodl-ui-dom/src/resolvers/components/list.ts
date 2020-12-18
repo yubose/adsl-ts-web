@@ -1,10 +1,12 @@
 import { event as noodluiEvent } from 'noodl-ui'
-import { RegisterOptions } from '../types'
+import { RegisterOptions } from '../../types'
 
 export default {
   name: 'list',
-  cond: (n, c) => !!(n && c?.noodlType === 'list'),
-  resolve(node, component, { noodlui }: any) {
+  cond: 'list',
+  resolve(node, component, options) {
+    const { noodlui, redraw } = options
+
     component.on(
       noodluiEvent.component.list.CREATE_LIST_ITEM,
       (result, options) => {
@@ -52,7 +54,7 @@ export default {
 
     component.on(
       noodluiEvent.component.list.UPDATE_LIST_ITEM,
-      (result, options, { noodluidom }: any) => {
+      (result, options) => {
         console.log(
           `%clist[${noodluiEvent.component.list.UPDATE_LIST_ITEM}]`,
           `color:#95a5a6;font-weight:bold;`,
@@ -62,7 +64,7 @@ export default {
         const childNode = document.getElementById(listItem?.id)
 
         // noodluidom.emit('list.item', childNode, listItem)
-        noodluidom.redraw(childNode, listItem)
+        redraw(childNode, listItem, options)
         if (childNode) {
           console.log(`Reached the childNode block for an updated listItem`, {
             ...result,

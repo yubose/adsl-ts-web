@@ -135,6 +135,7 @@ window.addEventListener('load', async () => {
   window.redraw = redrawDebugger
 
   Meeting.initialize({ page, viewport })
+  noodluidom.register(noodlui)
 
   app.onAuthStatus = (status) => {
     log.func('app.onAuthStatus')

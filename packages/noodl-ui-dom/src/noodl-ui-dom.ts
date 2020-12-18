@@ -1,10 +1,10 @@
-import Logger from 'logsnap'
 import {
   createComponent,
   Component,
   ComponentObject,
   getTagName,
   ListItem,
+  NOODL as NOODLUI,
   publish,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
@@ -18,8 +18,6 @@ import createResolver from './createResolver'
 import * as defaultResolvers from './resolvers'
 import * as T from './types'
 
-const log = Logger.create('noodl-ui-dom')
-
 class NOODLUIDOM {
   #callbacks: {
     all: Function[]
@@ -32,10 +30,9 @@ class NOODLUIDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
-  #R
+  #R: ReturnType<typeof createResolver>
 
-  constructor({ log }: { log?: { enabled?: boolean } } = {}) {
-    // Logger[log?.enabled ? 'enable' : 'disable']?.()
+  constructor() {
     this.#R = createResolver()
     this.#R.use(Object.values(defaultResolvers))
   }
@@ -164,8 +161,6 @@ class NOODLUIDOM {
       ) => Component
     } = {},
   ) {
-    log.func('redraw')
-
     if (!opts?.resolver) {
       console.error(
         `%cNo resolver was provided for redraw. The DOM nodes will be empty`,
@@ -192,7 +187,6 @@ class NOODLUIDOM {
       publish(component, (c) => {
         if (c) {
           const cParent = c.parent?.()
-          log.gold(`cParent`, cParent)
           // Remove listeners
           c.clearCbs()
           // Remove child component references
@@ -364,7 +358,9 @@ class NOODLUIDOM {
     return this
   }
 
-  register(obj: T.NodeResolverConfig) {
+  register(obj: T.NodeResolverConfig): this
+  register(obj: NOODLUI): this
+  register(obj: NOODLUI | T.NodeResolverConfig) {
     this.#R.use(obj)
     return this
   }

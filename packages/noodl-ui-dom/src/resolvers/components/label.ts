@@ -1,10 +1,10 @@
-import { RegisterOptions } from '../types'
+import { RegisterOptions } from '../../types'
 
 export default {
   name: '[noodl-ui-dom] label',
   cond: (node, c) => !!(node && c?.noodlType === 'label'),
   resolve(node, component) {
-    const dataValue = component.get('data-value')
+    const dataValue = component.get('data-value') || ''
     const { placeholder, text } = component.get(['placeholder', 'text'])
     if (dataValue) node.innerHTML = dataValue
     else if (text) node.innerHTML = text

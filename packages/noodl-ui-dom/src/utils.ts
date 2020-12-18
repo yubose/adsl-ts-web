@@ -7,7 +7,6 @@ import {
   NOODLComponent,
   SelectOption,
 } from 'noodl-ui'
-import { NodeResolverConfig } from './types'
 
 /**
  * Creates an image element that loads asynchronously
@@ -304,24 +303,4 @@ export function toSelectOption(value: any): SelectOption {
     return { key: value, label: value, value }
   }
   return value
-}
-
-export function runResolvers(
-  resolvers: NodeResolverConfig[],
-  node,
-  component,
-) {}
-
-export function withEnhancedGet(fn) {
-  return function (node: HTMLElement, component: Component) {
-    const enhancedComponent = Object.create(component)
-    Object.defineProperty(enhancedComponent, 'get', {
-      value: function (...args) {
-        const key = args[0]
-        console.info(`KEY IN CLOSURE: `, key)
-        return component.get(...args)
-      },
-    })
-    return fn(node, component)
-  }
 }

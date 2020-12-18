@@ -1,3 +1,4 @@
+import { ComponentObject, ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
 import { componentEventMap, componentEventIds } from './constants'
 
 export type NOODLDOMComponentType = keyof typeof componentEventMap
@@ -82,11 +83,6 @@ export type NOODLDOMElements = Pick<
   | 'video'
 >
 
-export type NodeResolverBaseArgs<N extends NOODLDOMElement = any, C = any> = [
-  node: N | null,
-  component: C,
-]
-
 export interface NodeResolver<
   N extends NOODLDOMElement = any,
   C = any,
@@ -95,16 +91,46 @@ export interface NodeResolver<
   (
     node: NodeResolverBaseArgs<N, C>[0],
     component: NodeResolverBaseArgs<N, C>[1],
-    opts: {
-      original: any
-    },
+    opts: NodeResolverOptions,
   ): RT
 }
 
+export type NodeResolverBaseArgs<N extends NOODLDOMElement = any, C = any> = [
+  node: N | null,
+  component: C,
+]
+
 export interface NodeResolverConfig {
-  name?: string
-  cond?: NodeResolver<any, any, boolean>
+  cond?: NOODLDOMComponentEvent | NodeResolver<any, any, boolean>
   resolve: NodeResolver<any, any, void>
+}
+
+export interface NodeResolverOptions {
+  noodlui: NOODLUI
+  original: ComponentObject
+  redraw: Redraw
+}
+
+export type NodeResolverUseObject = NodeResolverConfig | NOODLUI
+
+export interface NodeResolverRunner {
+  (
+    node: NOODLDOMElement | null,
+    component: ComponentInstance,
+    options: NodeResolverOptions,
+  ): void
+}
+
+export interface Redraw {
+  (
+    node: NOODLDOMElement | null,
+    component: ComponentInstance,
+    options: {
+      resolver(
+        noodlComponent: ComponentObject | ComponentObject[],
+      ): ComponentInstance | ComponentInstance[]
+    },
+  ): [typeof node, ComponentInstance]
 }
 
 export type RegisterOptions = NodeResolverConfig

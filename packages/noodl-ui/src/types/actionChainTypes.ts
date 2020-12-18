@@ -71,7 +71,7 @@ export interface ActionChainSnapshot {
   currentAction: Action
   original: ActionObject[]
   queue: Action[]
-  status: ActionChain<ActionObject[], Component>['status']
+  status: ActionChain<ActionObject[], any>['status']
 }
 
 export interface ActionChainCallbackOptions {

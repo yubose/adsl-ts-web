@@ -1,5 +1,5 @@
 import { isBooleanTrue } from 'noodl-utils'
-import { RegisterOptions } from '../types'
+import { RegisterOptions } from '../../types'
 
 export default {
   name: '[noodl-ui-dom] video',

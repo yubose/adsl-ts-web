@@ -59,9 +59,9 @@ class Component implements IComponent {
     this['unhandled'] = keys.slice()
 
     this.#cache = {}
-    this.#component = createComponentDraftSafely(
-      component,
-    ) as WritableDraft<ComponentObject>
+    this.#component = createComponentDraftSafely(component) as WritableDraft<
+      ComponentObject
+    >
 
     this['id'] = this.#component.id || getRandomKey()
     this['noodlType'] = this.#component.noodlType as any
@@ -604,19 +604,6 @@ class Component implements IComponent {
 
   get length() {
     return this.#children?.length || 0
-  }
-
-  /**
-   * Recursively invokes the provided callback on each child
-   * @param { Component }  - child
-   */
-  broadcast(cb: (child: Component) => void) {
-    const notify = (child: Component) => {
-      cb(child)
-      if (child) _.forEach(child.children(), (c) => notify(c))
-    }
-    _.forEach(this.children(), (child) => notify(child))
-    return this
   }
 
   /**

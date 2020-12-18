@@ -1,5 +1,5 @@
-import { optionExists, toSelectOption } from '../utils'
-import { RegisterOptions } from '../types'
+import { optionExists, toSelectOption } from '../../utils'
+import { RegisterOptions } from '../../types'
 
 export const setOption = (
   node: HTMLSelectElement,

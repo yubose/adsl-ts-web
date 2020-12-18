@@ -1,11 +1,12 @@
 // Strictly targeted components
-export { default as button } from './button'
-export { default as image } from './image'
-export { default as label } from './label'
-export { default as list } from './list'
-export { default as select } from './select'
-export { default as video } from './video'
+export { default as button } from './components/button'
+export { default as image } from './components/image'
+export { default as label } from './components/label'
+export { default as list } from './components/list'
+export { default as select } from './components/select'
+export { default as video } from './components/video'
 // Others
+export { default as common } from './common'
 export { default as dataset } from './dataset'
 export { default as events } from './events'
 export { default as id } from './id'

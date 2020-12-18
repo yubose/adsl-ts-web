@@ -400,35 +400,6 @@ describe('BaseComponent', () => {
       const expectedResult = targetChild?.parent()?.parent()?.parent()
       expect(expectedResult).to.equal(child1child)
     })
-
-    describe('when using broadcast', () => {
-      it('should hit all nested children in its component tree', () => {
-        const view = createComponent('view') as Component
-        const list = createComponent('list') as List
-        const listItem = createComponent('listItem') as ListItem
-        const textField = createComponent('textField') as Component
-        textField.set('data-value', 'my data value')
-        const label = createComponent('label') as Component
-        label.set('text', 'heres my text')
-        const nestedView = createComponent('view') as Component
-        view.createChild(list)
-        list.createChild(listItem)
-        listItem.createChild(nestedView)
-        nestedView.createChild(label)
-        nestedView.createChild(textField)
-        let labelText, textFieldValue
-        view.broadcast((child) => {
-          if (child.noodlType === 'label') {
-            labelText = child.get('text')
-          }
-          if (child.noodlType === 'textField') {
-            textFieldValue = child.get('data-value')
-          }
-        })
-        expect(labelText).to.eq('heres my text')
-        expect(textFieldValue).to.eq('my data value')
-      })
-    })
   })
 
   describe('when attaching event handlers', () => {

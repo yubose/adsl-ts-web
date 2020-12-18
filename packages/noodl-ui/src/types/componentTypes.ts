@@ -1,22 +1,26 @@
 import Component from '../components/Base'
+import List from '../components/List'
+import ListItem from '../components/ListItem'
 import { NOODLComponent, ProxiedComponent, Style } from './types'
-import { ActionObject } from './actionTypes'
 import { ComponentType } from './constantTypes'
+import { ActionChainActionCallback } from './actionChainTypes'
+
+export type ComponentInstance = Component | List | ListItem
 
 export type ComponentConstructor = new (
   component: ComponentCreationType,
-) => Component
+) => ComponentInstance
 
-export type ComponentCreationType = string | ComponentObject | Component
+export type ComponentCreationType = string | ComponentObject | ComponentInstance
 
 export type ComponentObject = NOODLComponent & ProxiedComponent
 
 export interface IComponent<K = ComponentType> {
   id: string
-  type: K
+  type: string
   noodlType: K
   style: Style
-  action: ActionObject
+  action: Record<'onChange' | 'onClick', ActionChainActionCallback>
   length: number
   original: ComponentObject
   status: 'drafting' | 'idle' | 'idle/resolved'
@@ -29,16 +33,15 @@ export interface IComponent<K = ComponentType> {
     value?: { [key: string]: any },
   ): this
   assignStyles(styles: Partial<Style>): this
-  broadcast(cb: (child: Component) => void): this
-  child(index?: number): Component | undefined
-  children(): Component[]
-  createChild<C extends Component>(child: C): C
+  child(index?: number): ComponentInstance | undefined
+  children(): ComponentInstance[]
+  createChild<C extends ComponentInstance>(child: C): C
   hasChild(childId: string): boolean
-  hasChild(child: Component): boolean
-  removeChild(child: Component): Component | undefined
-  removeChild(id: string): Component | undefined
-  removeChild(index: number): Component | undefined
-  removeChild(): Component | undefined
+  hasChild(child: ComponentInstance): boolean
+  removeChild(child: ComponentInstance): ComponentInstance | undefined
+  removeChild(id: string): ComponentInstance | undefined
+  removeChild(index: number): ComponentInstance | undefined
+  removeChild(): ComponentInstance | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
   get<K extends keyof ComponentObject>(
@@ -57,7 +60,7 @@ export interface IComponent<K = ComponentType> {
   merge(key: string | { [key: string]: any }, value?: any): this
   on(eventName: string, cb: Function): this
   off(eventName: string, cb: Function): this
-  parent(): Component | null
+  parent(): ComponentInstance | null
   remove(key: string, styleKey?: keyof Style): this
   removeStyle<K extends keyof Style>(styleKey: K): this
   set<K extends keyof ComponentObject>(
@@ -66,7 +69,7 @@ export interface IComponent<K = ComponentType> {
     styleChanges?: any,
   ): this
   set<O extends ComponentObject>(key: O, value?: any, styleChanges?: any): this
-  setParent(parent: Component): this
+  setParent(parent: ComponentInstance): this
   setStyle<K extends keyof Style>(styleKey: K, value: any): this
   snapshot(): ProxiedComponent & {
     _touched: string[]
