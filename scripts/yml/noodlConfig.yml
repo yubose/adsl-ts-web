@@ -5,24 +5,18 @@ languageSuffix:
   es_ES: _es
   unknown: _en
 fileSuffix: .yml
-startPage: PatientDashboard
+startPage: SignIn
 preload:
-  - BaseDataModel
-  - BaseCSS
   - BasePage
-  - BootNoodlForMobile
-  - PatientChartDM
+  - BaseCSS
+  - BaseDataModel
+  - BaseMessage
 page:
-  - PatientChart
-  - PatientChartGeneralInfo
-  - PatientChartPastMedicalHistory
-  - PatientChartAddAllergies
-  - PatientChartObstetrical
-  - PatientChartImmunizations
-  - EmitRedraw
-  - Home
-  - Star
-  - TestPlugIn
-  - PatientDashboard
-  - PatientChartAddMedications
-  - PatientChartAddHospitalization
+  - SignIn
+  - SignUp
+  - Logout
+  - CreateNewAccount
+  - ChatPage
+  - ChatList
+  - NewChat
+  - SideNav

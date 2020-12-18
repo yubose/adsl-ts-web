@@ -29,6 +29,7 @@ This allows for faster compilation, faster load times and quicker development fl
   - aitcom_11
 - `meet2d.yml` --> cadltest.aitmed.io
 - `testpage.yml`
+- `message.yml`
 
 ## Todos
 

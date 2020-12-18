@@ -1,9 +1,29 @@
-import { event as noodluiEvent } from 'noodl-ui'
+import { event as noodluiEvent, ListItem } from 'noodl-ui'
 import { RegisterOptions } from '../../types'
 
 export default {
   name: 'list',
   cond: 'list',
+  before(node, component, options) {
+    console.log({ node, component, options })
+    // noodl-ui delegates the responsibility for us to decide how
+    // to control how list children are first rendered to the DOM
+    const listComponent = component as any
+    const listObject = listComponent.getData()
+    const numDataObjects = listObject?.length || 0
+    if (numDataObjects) {
+      listComponent.children().forEach((c: ListItem) => {
+        c?.setDataObject?.(null)
+        listComponent.removeDataObject(0)
+      })
+      listComponent.set('listObject', [])
+      // Remove the placeholders
+      for (let index = 0; index < numDataObjects; index++) {
+        // This emits the "create list item" event that we should already have a listener for
+        listComponent.addDataObject(listObject[index])
+      }
+    }
+  },
   resolve(node, component, options) {
     const { noodlui, redraw } = options
 

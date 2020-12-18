@@ -3,8 +3,9 @@ import NOODLUIDOM, { isTextFieldLike } from 'noodl-ui-dom'
 
 const noodluidom = new NOODLUIDOM()
 
-export const listen = (opts) => {
+export const listen = ({ noodlui }: any) => {
   return noodluidom
+    .register(noodlui)
     .register({
       name: 'data-value (sync with sdk)',
       cond: (node) => isTextFieldLike(node),

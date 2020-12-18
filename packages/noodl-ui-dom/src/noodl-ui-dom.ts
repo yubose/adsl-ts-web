@@ -3,7 +3,6 @@ import {
   Component,
   ComponentObject,
   getTagName,
-  ListItem,
   NOODL as NOODLUI,
   publish,
 } from 'noodl-ui'
@@ -58,82 +57,21 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         // a separate DOM node or not
         if (component.noodlType === 'plugin') {
           this.#R.run(node, component)
-          // this.emit('component', null, component)
-          // this.emit('plugin', null, component)
           return node
         } else {
-          const plugin = component.get('plugin')
-          let src = component.get('src') || ''
-          if (plugin) {
-            const mimeType = src.endsWith?.('.html')
-              ? 'text/html'
-              : src.endsWith?.('.js')
-              ? 'text/javascript'
-              : 'text/html'
-            if (mimeType === 'text/javascript') {
-              node = document.createElement('script')
-              ;(node as HTMLScriptElement).type = 'text/javascript'
-              node.onload = () => {
-                if (plugin.location === 'head') {
-                  document.head.appendChild(node as any)
-                } else if (plugin.location === 'body-top') {
-                  document.body.insertBefore(
-                    node as any,
-                    document.body.childNodes[0],
-                  )
-                } else if (plugin.location === 'body-bottom') {
-                  document.body.appendChild(node as any)
-                }
-              }
-              component.on('path', (newSrc: string) => {
-                src = newSrc
-                node && ((node as HTMLImageElement).src = src)
-              })
-              // The behavior for these specific components will take on the shape of
-              // a <script> DOM node, since the fetched contents from their url comes within
-              // the component instance themselves
-              return node
-            }
-          }
+          // We will delegate the role of the node creation to the consumer
+          this.#R.run((result: T.NOODLDOMElement) => (node = result), component)
         }
       } else {
         if (component.noodlType === 'image') {
-          component.on('path', (result: string) => {
-            node && ((node as HTMLImageElement).src = result)
-          })
           node = isEmitObj(component.get('path'))
             ? createAsyncImageElement(container || document.body, {})
             : document.createElement('img')
         } else {
           node = document.createElement(getTagName(component))
         }
-
+        this.#R.run(node, component)
         if (node) {
-          if (component?.noodlType === 'list') {
-            // noodl-ui delegates the responsibility for us to decide how
-            // to control how list children are first rendered to the DOM
-            const listComponent = component as any
-            const listObject = listComponent.getData()
-            const numDataObjects = listObject?.length || 0
-            if (numDataObjects) {
-              listComponent.children().forEach((c: ListItem) => {
-                c?.setDataObject?.(null)
-                listComponent.removeDataObject(0)
-              })
-              listComponent.set('listObject', [])
-              // Remove the placeholders
-              for (let index = 0; index < numDataObjects; index++) {
-                // This emits the "create list item" event that we should already have a listener for
-                listComponent.addDataObject(listObject[index])
-              }
-            }
-          }
-          // this.emit('component', node, component)
-
-          // if (componentEventMap[noodlType as ComponentType]) {
-          //   this.emit(componentEventMap[noodlType], node, component)
-          // }
-          this.#R.run(node, component)
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
@@ -359,9 +297,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this
   }
 
-  register(obj: T.NodeResolverConfig): this
-  register(obj: NOODLUI): this
-  register(obj: NOODLUI | T.NodeResolverConfig) {
+  register(obj: NOODLUI | T.NodeResolverConfig): this {
     this.#R.use(obj)
     return this
   }

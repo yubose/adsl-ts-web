@@ -38,6 +38,7 @@ export interface ActionChainGeneratorResult<A extends Action = any> {
 export interface ActionChainContext<SDK = any> {
   noodl?: SDK
   noodlui: NOODLUI
+  [key: string]: any
 }
 
 export type ActionChainUseObject =

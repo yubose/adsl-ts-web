@@ -102,8 +102,11 @@ export type NodeResolverBaseArgs<N extends NOODLDOMElement = any, C = any> = [
 ]
 
 export interface NodeResolverConfig {
+  name?: string
   cond?: NOODLDOMComponentEvent | NodeResolver<any, any, boolean>
-  resolve: NodeResolver<any, any, void>
+  before?: NodeResolver<any, any, void>
+  resolve?: NodeResolver<any, any, void>
+  after?: NodeResolver<any, any, void>
 }
 
 export interface NodeResolverOptions {
@@ -120,6 +123,12 @@ export interface NodeResolverRunner {
     component: ComponentInstance,
     options: NodeResolverOptions,
   ): void
+}
+
+export interface NodeResolverLifecycle {
+  before: NodeResolverRunner[]
+  resolve: NodeResolverRunner[]
+  after: NodeResolverRunner[]
 }
 
 export interface Redraw {

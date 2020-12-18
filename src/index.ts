@@ -5,11 +5,10 @@ import {
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import NOODLUIDOM, { getByDataUX } from 'noodl-ui-dom'
+import { getByDataUX } from 'noodl-ui-dom'
 import {
   ActionChainActionCallback,
   BuiltInObject,
-  Component,
   ComponentObject,
   getElementType,
   getAlignAttrs,
@@ -27,7 +26,6 @@ import {
   getTransformedStyleAliases,
   getDataValues,
   identify,
-  isComponent,
   List,
   Page as NOODLUIPage,
   PageObject,
@@ -47,7 +45,6 @@ import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
-// import { listen } from './handlers/dom'
 import './styles.css'
 
 const log = Logger.create('src/index.ts')
@@ -134,7 +131,6 @@ window.addEventListener('load', async () => {
   }
   window.noodl = noodl
   window.cp = copyToClipboard
-  window.redraw = redrawDebugger
 
   Meeting.initialize({ page, viewport })
 
@@ -283,7 +279,7 @@ window.addEventListener('load', async () => {
         }
         noodlui
           .init({
-            actionsContext: { noodl, noodluidom },
+            actionsContext: { noodl, noodluidom } as any,
             viewport,
           })
           .setPage(pageName)
@@ -325,6 +321,7 @@ window.addEventListener('load', async () => {
             ),
           )
           .use(
+            // @ts-expect-error
             _.map(
               _.entries({
                 checkField: builtIn.checkField,
@@ -622,7 +619,7 @@ window.addEventListener('load', async () => {
 
   noodluidom.register({
     name: 'meeting',
-    node: (node, component) => !!(node && component),
+    cond: (node: any, component: any) => !!(node && component),
     resolve(node, component) {
       // Dominant/main participant/speaker
       if (identify.stream.video.isMainStream(component.toJS())) {
@@ -843,33 +840,4 @@ function getCachedPages(): CachedPageObject[] {
 /** Sets the list of cached pages */
 function setCachedPages(cache: CachedPageObject[]) {
   window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
-}
-
-/* -------------------------------------------------------
-  ---- INTERNAL USE FOR DEBUGGING
--------------------------------------------------------- */
-
-interface RedrawOptions {
-  random?: boolean
-}
-
-function redrawDebugger(opts: RedrawOptions): void
-function redrawDebugger(node: HTMLElement | null, opts: RedrawOptions): void
-function redrawDebugger(node: HTMLElement | null, component: Component): void
-function redrawDebugger(
-  node: HTMLElement | RedrawOptions | null,
-  opts: RedrawOptions | Component,
-) {
-  if (node) {
-    if (isComponent(opts)) {
-      const component = opts as Component
-    } else {
-      const options = opts as RedrawOptions
-      if (options.random) {
-        const walk = (n: HTMLElement) => {
-          // const children
-        }
-      }
-    }
-  }
 }

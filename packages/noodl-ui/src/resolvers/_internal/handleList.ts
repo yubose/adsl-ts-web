@@ -10,6 +10,7 @@ import {
   NOODLComponent,
 } from '../../types'
 import Resolver from '../../Resolver'
+import { publish } from '../../utils/noodl'
 import { event } from '../../constants'
 import { _resolveChildren } from './helpers'
 import createComponent from '../../utils/createComponent'
@@ -96,23 +97,33 @@ const handleListInternalResolver = (
   })
 
   // Removes list items when their data object is removed
-  component.on(event.component.list.DELETE_DATA_OBJECT, (result, options) => {
+  component.on(event.component.list.DELETE_DATA_OBJECT, (result, args) => {
     log.func(`on[${event.component.list.DELETE_DATA_OBJECT}]`)
     const listItem = component.find(
       (child) => child?.getDataObject?.() === result.dataObject,
     )
     const dataObjectBefore = listItem?.getDataObject?.()
     listItem?.setDataObject(null)
-    if (listItem) component.removeChild(listItem)
+    if (listItem) {
+      component.removeChild(listItem)
+      const removeFromCache = options.componentCache().remove
+      removeFromCache(listItem)
+      publish(listItem, (c) => {
+        console.log(`Removing from cache: ${c.id}`)
+        removeFromCache(c)
+      })
+    }
     log.grey(`Deleted a listItem`, {
       ...result,
-      ...options,
+      ...args,
       listItem,
       dataObjectBefore,
       dataObjectAfter: listItem?.getDataObject?.(),
     })
-    const args = { ...result, listItem }
-    component.emit(event.component.list.REMOVE_LIST_ITEM, args)
+    component.emit(event.component.list.REMOVE_LIST_ITEM, {
+      ...result,
+      listItem,
+    } as any)
   })
 
   component.on(event.component.list.RETRIEVE_DATA_OBJECT, (result, options) => {

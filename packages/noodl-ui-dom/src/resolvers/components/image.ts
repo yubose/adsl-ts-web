@@ -16,5 +16,9 @@ export default {
       node.style['width'] = '100%'
       node.style['height'] = '100%'
     }
+
+    component.on('path', (result: string) => {
+      node && ((node as HTMLImageElement).src = result)
+    })
   },
 } as RegisterOptions

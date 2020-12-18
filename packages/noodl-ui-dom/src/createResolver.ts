@@ -1,4 +1,4 @@
-import { NOODL as NOODLUI } from 'noodl-ui'
+import { ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
 import { componentEventIds } from './constants'
 import NOODLUIDOMInternal from './Internal'
 import * as T from './types'
@@ -23,13 +23,6 @@ const createResolver = function createResolver() {
   //   return () => middlewares.forEach((fn) => fn(...args))
   // }
 
-  function _resolve(
-    obj: T.NodeResolverConfig,
-    ...args: T.NodeResolverBaseArgs
-  ) {
-    return obj.resolve(...args, util.options(...args))
-  }
-
   function _run(
     runner: <N extends T.NOODLDOMElement = any>(
       configs: T.NodeResolverConfig[],
@@ -50,24 +43,43 @@ const createResolver = function createResolver() {
     )
   }
 
-  function _isComponentEvent(type: T.NOODLDOMComponentEvent) {
-    return componentEventIds.includes(type)
+  function _isComponentEvent(
+    type: T.NOODLDOMComponentEvent,
+    component: ComponentInstance,
+  ) {
+    return type === component?.noodlType || type === component?.type
   }
 
   function _getRunners(
     configs: T.NodeResolverConfig[],
     ...args: T.NodeResolverBaseArgs
   ) {
-    return configs.reduce((acc, obj) => {
+    const attach = (
+      acc: T.NodeResolverRunner[],
+      obj: T.NodeResolverConfig,
+      fn: T.NodeResolverRunner,
+    ) => {
       if (typeof obj.cond === 'string') {
         // If they passed in a resolver strictly for this node/component
-        return _isComponentEvent(obj.cond) ? acc.concat(obj) : acc
+        if (_isComponentEvent(obj.cond, args[1])) acc.push(fn)
       } else if (typeof obj.cond === 'function') {
         // If they only want this resolver depending on a certain condition
-        return obj.cond(...args, util.options(...args)) ? acc.concat(obj) : acc
+        if (obj.cond(...args, util.options(...args))) acc.push(fn)
       }
-      return acc.concat(obj)
-    }, [] as T.NodeResolverConfig[])
+    }
+    return configs.reduce(
+      (acc, obj) => {
+        if (obj.before) attach(acc.before, obj, obj.before)
+        if (obj.resolve) attach(acc.resolve, obj, obj.resolve)
+        if (obj.after) attach(acc.after, obj, obj.after)
+        return acc
+      },
+      {
+        before: [],
+        resolve: [],
+        after: [],
+      } as T.NodeResolverLifecycle,
+    )
   }
 
   const o = {
@@ -76,11 +88,12 @@ const createResolver = function createResolver() {
       return o
     },
     run: _run((configs, node, component) => {
-      const runners = _getRunners(configs, node, component)
+      const { before, resolve, after } = _getRunners(configs, node, component)
+      const runners = [...before, ...resolve, ...after]
       const total = runners.length
       // TODO - feat. consumer return value
       for (let index = 0; index < total; index++) {
-        _resolve(runners[index], node, component)
+        runners[index](node, component, util.options(node, component))
       }
       return this
     }),

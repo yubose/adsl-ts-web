@@ -73,7 +73,7 @@ class NOODL {
   #getRoot: () => T.Root = () => ({})
   #state: T.State
   #viewport: Viewport
-  actionsContext: T.ActionChainContext = { noodlui: this }
+  actionsContext: T.ActionChainContext = { noodlui: this; }
   initialized: boolean = false
 
   constructor({

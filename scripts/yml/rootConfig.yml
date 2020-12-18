@@ -4,14 +4,20 @@ webApiHost: apiHost
 appApiHost: apiHost
 connectiontimeout: "5"
 loadingLevel: 1
-viewWidthHeightRatio:
-  min: "0.7"
-  max: "2.0"
 debug: console_log_api
-cadlBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/testpage0.21/
+web:
+  cadlVersion:
+    stable: 0.1
+    test: 0.1
+ios:
+  cadlVersion:
+    stable: 0.1
+    test: 0.1
+android:
+  cadlVersion:
+    stable: 0.1
+    test: 0.1
+cadlBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/message_${cadlVersion}/
 cadlMain: cadlEndpoint.yml
-myBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/noodl/testpage0.21
-timestamp: 12012020
-bodyTopPplugin: ~/pi.html
-bodyTailPplugin: ~/pi.html
-headPlugin: ~/pi.html
+timestamp: 11062020
+myBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/message_0.1/

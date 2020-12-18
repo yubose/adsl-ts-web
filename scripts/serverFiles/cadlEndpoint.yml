@@ -10,51 +10,13 @@ preload:
   - BasePage
   - BaseCSS
   - BaseDataModel
-  - ~/HomePageUrl
+  - BaseMessage
 page:
-  - Welcome
-  - WelcomeLoad
   - SignIn
-  - EditProfile
-  - DisplayProfile
-  - PubProfile
-  - ShareProfile
-  - PersonalDocuments
-  - DocumentDetail
-  - MeetingRoomInvited
-  - MeetingRoomCreate
-  - MeetingRoomHistory
-  - MeetingSummary
-  - MeetingSharedDocuments
-  - SideMenuBar
-  - ContactsList
-  - UploadContact
-  - FavoriteList
-  - UploadFavorite
-  - UploadRecent
-  - AddContact
-  - AddDocuments
-  - ContactInformation
-  - EditContact
-  - MeetingLobby
-  - UploadDocuments
-  - UploadSharedDocuments
-  - MeetingDocumentsNotes
-  - MeetingDocumentsShared
-  - InviteContact
-  - InviteeInfo01
-  - InviteeInfo02
-  - InviteSuccess01
-  - InviteSuccess02
-  - FAQs
-  - ContactSupport
-  - AboutAitmed
-  - ManageMeeting
   - SignUp
-  - CreateNewAccount
-  - VideoChat
   - Logout
-  - EmptyPage
-  - PrivacyPolicy
-  - UserAgreement
-  - ServicesAgreement
+  - CreateNewAccount
+  - ChatPage
+  - ChatList
+  - NewChat
+  - SideNav

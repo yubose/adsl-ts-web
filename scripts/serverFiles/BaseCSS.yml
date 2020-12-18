@@ -170,34 +170,3 @@ LeftButtonStyle:
     top: "0"
     width: "0.18667"
     height: "0.03405"
-HeaderRightLink:
-  left: "0.82"
-  width: "0.2"
-  height: "0.1"
-  fontSize: "17"
-  letterSpacing: "2"
-  fontWeight: 300
-  color: "0xffffffff"
-  zIndex: "1000"
-  textAlign:
-    y: center
-HeaderRightImgStyle:
-  left: "0.87"
-  top: "0.036"
-  height: "0.028"
-  zIndex: "10000"
-SearchButton:
-  type: button
-  text: Search
-  style:
-    left: "0.02"
-    top: "0.02"
-    width: "0.15"
-    height: "0.035"
-    color: "0xffffff"
-    backgroundColor: "0x388ecc"
-    fontSize: "12"
-    border:
-      style: "3"
-      color: "0x388ecc"
-    borderRadius: "2"

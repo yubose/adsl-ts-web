@@ -274,7 +274,7 @@ class Page {
     fn: (options: {
       pageName: string
       rootNode: NOODLDOMElement | null
-      pageModifiers: { reload?: boolean } | undefined
+      pageModifiers: { force?: boolean; reload?: boolean } | undefined
     }) => Promise<NOODLUiPage | undefined>,
   ) {
     this.#onBeforePageRender = fn
