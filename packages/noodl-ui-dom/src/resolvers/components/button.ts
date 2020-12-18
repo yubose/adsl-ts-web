@@ -2,7 +2,7 @@ import { RegisterOptions } from '../../types'
 
 export default {
   name: '[noodl-ui-dom] button',
-  cond: (n, c) => !!(n?.tagName === 'BUTTON' && c?.type === 'button'),
+  cond: 'button',
   resolve(node, component) {
     const { onClick: onClickProp, src = '' } = component.get(['onClick', 'src'])
     /**

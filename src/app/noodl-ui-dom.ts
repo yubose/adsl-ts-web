@@ -1,86 +1,89 @@
 import { Component } from 'noodl-ui'
-import NOODLUIDOM from 'noodl-ui-dom'
-// import { noodluidom } from '../../packages/noodl-ui-dom/src/test-utils'
+import NOODLUIDOM, { isTextFieldLike } from 'noodl-ui-dom'
 
 const noodluidom = new NOODLUIDOM()
 
-noodluidom
-  .register({
-    name: 'data-value (sync with sdk)',
-    resolve(node: any, component: any) {
-      // Attach an additional listener for data-value elements that are expected
-      // to change values on the fly by some "on change" logic (ex: input/select elements)
-      import('../utils/sdkHelpers').then(({ createOnDataValueChangeFn }) => {
-        node.addEventListener(
-          'onchange',
-          createOnDataValueChangeFn(node, component, {
-            onChange: component.get('onChange'),
-            eventName: 'onchange',
-          }),
+export const listen = (opts) => {
+  return noodluidom
+    .register({
+      name: 'data-value (sync with sdk)',
+      cond: (node) => isTextFieldLike(node),
+      resolve(node, component) {
+        // Attach an additional listener for data-value elements that are expected
+        // to change values on the fly by some "on change" logic (ex: input/select elements)
+        return import('../utils/sdkHelpers').then(
+          ({ createOnDataValueChangeFn }) => {
+            node.addEventListener(
+              'change',
+              createOnDataValueChangeFn(node, component, {
+                onChange: component.get('onChange'),
+                eventName: 'onchange',
+              }),
+            )
+          },
         )
-      })
-    },
-  })
-  .register({
-    name: 'image',
-    resolve(node: any, component: any) {
-      import('../app/noodl-ui').then(({ default: noodlui }) => {
-        const parent = component.parent()
-        const context = noodlui.getContext()
-        const pageObject = noodlui.root[context?.page || ''] || {}
-        if (
-          node?.src === pageObject?.docDetail?.document?.name?.data &&
-          pageObject?.docDetail?.document?.name?.type == 'application/pdf'
-        ) {
-          node.style.visibility = 'hidden'
-          const parentNode = document.getElementById(parent?.id || '')
-          const iframeEl = document.createElement('iframe')
-          iframeEl.setAttribute('src', node.src)
-          if (_.isPlainObject(component.style)) {
-            Object.entries(component.style).forEach(([k, v]) => {
-              // @ts-expect-error
-              iframeEl.style[k] = v
-            })
-          }
-          parentNode?.appendChild(iframeEl)
-        }
-      })
-    },
-  })
-  .register({
-    name: 'plugin',
-    cond: (node, component) => component.noodlType === 'plugin',
-    async resolve(node: any, component: any) {
-      const src = component?.get?.('src')
-      if (typeof src === 'string') {
-        if (src.startsWith('http')) {
-          if (src.endsWith('.js')) {
-            const { default: axios } = await import('../app/axios')
-            const { data } = await axios.get(src)
-            /**
-             * TODO - Check the ext of the filename
-             * TODO - If its js, run eval on it
-             */
-            try {
-              console.log(data)
-              eval(data)
-            } catch (error) {
-              console.error(error)
+      },
+    })
+    .register({
+      name: 'image',
+      cond: 'image',
+      resolve(node, component) {
+        return import('../app/noodl-ui').then(({ default: noodlui }) => {
+          const parent = component.parent()
+          const context = noodlui.getContext()
+          const pageObject = noodlui.root[context?.page || ''] || {}
+          if (
+            node?.src === pageObject?.docDetail?.document?.name?.data &&
+            pageObject?.docDetail?.document?.name?.type == 'application/pdf'
+          ) {
+            node.style.visibility = 'hidden'
+            const parentNode = document.getElementById(parent?.id || '')
+            const iframeEl = document.createElement('iframe')
+            iframeEl.setAttribute('src', node.src)
+            if (_.isPlainObject(component.style)) {
+              Object.entries(component.style).forEach(([k, v]) => {
+                // @ts-expect-error
+                iframeEl.style[k] = v
+              })
             }
+            parentNode?.appendChild(iframeEl)
           }
-        } else {
-          console.error(
-            `Received a src from a "plugin" component that did not start with an http(s) protocol`,
-            { component: component.toJS(), src },
-          )
+        })
+      },
+    })
+    .register({
+      name: 'plugin',
+      cond: 'plugin',
+      async resolve(node: any, component: any) {
+        const src = component?.get?.('src')
+        if (typeof src === 'string') {
+          if (src.startsWith('http')) {
+            if (src.endsWith('.js')) {
+              const { default: axios } = await import('../app/axios')
+              const { data } = await axios.get(src)
+              /**
+               * TODO - Check the ext of the filename
+               * TODO - If its js, run eval on it
+               */
+              try {
+                eval(data)
+              } catch (error) {
+                console.error(error)
+              }
+            }
+          } else {
+            console.error(
+              `Received a src from a "plugin" component that did not start with an http(s) protocol`,
+              { component: component.toJS(), src },
+            )
+          }
         }
-      }
-    },
-  })
-  .register({
-    name: 'password textField',
-    resolve(node: HTMLTextAreaElement, component: Component) {
-      if (node && component) {
+      },
+    })
+    .register({
+      name: 'textField (password + non password)',
+      cond: 'textField',
+      resolve(node: HTMLTextAreaElement, component: Component) {
         // Password inputs
         if (component.get('contentType') === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
@@ -173,8 +176,8 @@ noodluidom
           // Set to "text" by default
           node.setAttribute('type', 'text')
         }
-      }
-    },
-  })
+      },
+    })
+}
 
 export default noodluidom

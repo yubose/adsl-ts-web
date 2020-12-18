@@ -14,11 +14,12 @@ import {
   componentEventIds,
   componentEventTypes,
 } from './constants'
+import NOODLUIDOMInternal from './Internal'
 import createResolver from './createResolver'
 import * as defaultResolvers from './resolvers'
 import * as T from './types'
 
-class NOODLUIDOM {
+class NOODLUIDOM extends NOODLUIDOMInternal {
   #callbacks: {
     all: Function[]
     component: Record<T.NOODLDOMComponentType, Function[]>
@@ -33,7 +34,9 @@ class NOODLUIDOM {
   #R: ReturnType<typeof createResolver>
 
   constructor() {
+    super()
     this.#R = createResolver()
+    this.#R.use(this)
     this.#R.use(Object.values(defaultResolvers))
   }
 
@@ -47,8 +50,6 @@ class NOODLUIDOM {
     container?: T.NOODLDOMElement | null,
   ) {
     let node: T.NOODLDOMElement | null = null
-
-    const { noodlType } = component || ({} as Component)
 
     if (component) {
       if (isPluginComponent(component)) {

@@ -13,7 +13,7 @@ import {
   isListConsumer,
   isListKey,
 } from 'noodl-ui'
-import { isTextFieldLike } from 'noodl-ui-dom'
+import { isTextFieldLike, NOODLDOMDataValueElement } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'
 
@@ -29,7 +29,7 @@ const log = Logger.create('sdkHelpers.ts')
  * @param { function | undefined } options.onChange - onChange callback. This is most likely the function returned from ActionChain#build
  */
 export function createOnDataValueChangeFn(
-  node: any,
+  node: NOODLDOMDataValueElement,
   component: Component,
   {
     eventName,

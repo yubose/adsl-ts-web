@@ -1,4 +1,5 @@
 import { ComponentObject, ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
+import Internal from './Internal'
 import { componentEventMap, componentEventIds } from './constants'
 
 export type NOODLDOMComponentType = keyof typeof componentEventMap
@@ -111,7 +112,7 @@ export interface NodeResolverOptions {
   redraw: Redraw
 }
 
-export type NodeResolverUseObject = NodeResolverConfig | NOODLUI
+export type NodeResolverUseObject = NodeResolverConfig | NOODLUI | Internal
 
 export interface NodeResolverRunner {
   (

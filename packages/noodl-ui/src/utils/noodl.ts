@@ -271,7 +271,6 @@ export function getDataFields(
     if (dataKeys) {
       // Ensure that it is an array
       if (_.isString(dataKeys)) dataKeys = [dataKeys]
-      console.log(current(dataKeys))
 
       return _.isArray(dataKeys)
         ? dataKeys.reduce((acc, dataKey) => {

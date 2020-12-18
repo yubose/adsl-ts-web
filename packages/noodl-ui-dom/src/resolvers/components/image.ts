@@ -2,7 +2,7 @@ import { RegisterOptions } from '../../types'
 
 export default {
   name: '[noodl-ui-dom] image',
-  cond: (n, c) => !!(c?.noodlType === 'image' || c?.type === 'img'),
+  cond: 'image',
   resolve(node, component) {
     const onClick = component.get('onClick')
 

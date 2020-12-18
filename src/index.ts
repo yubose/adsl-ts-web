@@ -5,7 +5,7 @@ import {
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import { getByDataUX } from 'noodl-ui-dom'
+import NOODLUIDOM, { getByDataUX } from 'noodl-ui-dom'
 import {
   ActionChainActionCallback,
   BuiltInObject,
@@ -91,7 +91,7 @@ window.addEventListener('load', async () => {
   const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui } = await import('app/noodl-ui')
-  const { default: noodluidom } = await import('app/noodl-ui-dom')
+  const { listen: registerNOODLDOMListeners } = await import('app/noodl-ui-dom')
 
   // Auto login for the time being
   // const vcode = await Account.requestVerificationCode('+1 8882465555')
@@ -107,10 +107,12 @@ window.addEventListener('load', async () => {
   const actions = createActions({ page })
   const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
+  const noodluidom = (window.noodluidom = registerNOODLDOMListeners({
+    noodlui,
+  }))
 
   window.build = process.env.BUILD
   window.noodlui = noodlui
-  window.noodluidom = noodluidom
   window.app = {
     build: process.env.BUILD,
     client: {
@@ -135,7 +137,6 @@ window.addEventListener('load', async () => {
   window.redraw = redrawDebugger
 
   Meeting.initialize({ page, viewport })
-  noodluidom.register(noodlui)
 
   app.onAuthStatus = (status) => {
     log.func('app.onAuthStatus')

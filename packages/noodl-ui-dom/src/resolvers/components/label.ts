@@ -2,7 +2,7 @@ import { RegisterOptions } from '../../types'
 
 export default {
   name: '[noodl-ui-dom] label',
-  cond: (node, c) => !!(node && c?.noodlType === 'label'),
+  cond: 'label',
   resolve(node, component) {
     const dataValue = component.get('data-value') || ''
     const { placeholder, text } = component.get(['placeholder', 'text'])

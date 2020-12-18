@@ -1,16 +1,20 @@
-import { isComponent, NOODL as NOODLUI } from 'noodl-ui'
+import { NOODL as NOODLUI } from 'noodl-ui'
 import { componentEventIds } from './constants'
+import NOODLUIDOMInternal from './Internal'
 import * as T from './types'
 
 const createResolver = function createResolver() {
   let objs: T.NodeResolverConfig[] = []
   let noodlui: NOODLUI
+  let noodluidom: any
 
   const util = {
     options: (...args: T.NodeResolverBaseArgs) =>
       ({
         original: args[1].original,
-      } as ReturnType<T.NodeResolverUtil['options']>),
+        noodlui,
+        redraw: noodluidom.redraw,
+      } as T.NodeResolverOptions),
   }
 
   // const middlewares = [] as any[]
@@ -46,11 +50,8 @@ const createResolver = function createResolver() {
     )
   }
 
-  function _isComponentEvent(
-    type: T.NOODLDOMComponentEvent,
-    ...args: T.NodeResolverBaseArgs
-  ) {
-    return isComponent(args[1] && componentEventIds.includes(type))
+  function _isComponentEvent(type: T.NOODLDOMComponentEvent) {
+    return componentEventIds.includes(type)
   }
 
   function _getRunners(
@@ -60,7 +61,7 @@ const createResolver = function createResolver() {
     return configs.reduce((acc, obj) => {
       if (typeof obj.cond === 'string') {
         // If they passed in a resolver strictly for this node/component
-        return _isComponentEvent(obj.cond, ...args) ? acc.concat(obj) : acc
+        return _isComponentEvent(obj.cond) ? acc.concat(obj) : acc
       } else if (typeof obj.cond === 'function') {
         // If they only want this resolver depending on a certain condition
         return obj.cond(...args, util.options(...args)) ? acc.concat(obj) : acc
@@ -94,11 +95,15 @@ const createResolver = function createResolver() {
     use(value: T.NodeResolverUseObject | T.NodeResolverUseObject[]) {
       if (Array.isArray(value)) {
         value.forEach((val) => o.use(val))
-      } else {
+      } else if (value) {
         if (_isResolverConfig(value)) {
           o.register(value)
         } else if (value instanceof NOODLUI) {
           noodlui = value
+        } else if (value instanceof NOODLUIDOMInternal) {
+          noodluidom = value
+        } else if (typeof value === 'object') {
+          //
         }
       }
       return o
