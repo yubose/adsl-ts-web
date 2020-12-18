@@ -3,7 +3,7 @@ import { RegisterOptions } from '../types'
 
 export default {
   name: 'list',
-  cond: (n, c) => !!c,
+  cond: (n, c) => !!(n && c?.noodlType === 'list'),
   resolve(node, component, { noodlui }: any) {
     component.on(
       noodluiEvent.component.list.CREATE_LIST_ITEM,

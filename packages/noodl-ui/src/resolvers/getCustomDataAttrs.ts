@@ -161,6 +161,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     } else {
       // TODO convert others to use data-view-tag
       component.set('data-viewtag', viewTag)
+      if (!component.get('data-ux')) component.set('data-ux', viewTag)
     }
   }
 }

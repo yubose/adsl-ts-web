@@ -4,7 +4,7 @@ import { NOODLDOMDataValueElement, RegisterOptions } from '../types'
 
 export default {
   name: '[noodl-ui-dom] events',
-  cond: Boolean,
+  cond: (n, c) => Boolean(n && c),
   resolve: (node: NOODLDOMDataValueElement, component) => {
     eventTypes.forEach((eventType: string) => {
       if (typeof component.get(eventType) === 'function') {

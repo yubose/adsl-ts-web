@@ -21,7 +21,7 @@ export const setOption = (
 
 export default {
   name: '[noodl-ui-dom] select',
-  cond: (node) => node?.tagName === 'SELECT',
+  cond: (node, c) => node?.tagName === 'SELECT',
   resolve(node, component) {
     const dataValue = component.get('data-value')
     component.get('options')?.forEach((option: any, index: number) => {

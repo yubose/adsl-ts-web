@@ -12,7 +12,7 @@ export interface NodeResolverRunner {
   (node: HTMLElement | null, component: any, util: NodeResolverUtil): void
 }
 
-const handlers = (function () {
+const createResolver = function createResolver() {
   let objs: NodeResolverConfig[] = []
 
   const util = {
@@ -64,8 +64,8 @@ const handlers = (function () {
         if (typeof obj.cond === 'function') {
           if (obj.cond(node, component, util.getOptions(node, component))) {
             _resolve(obj, node, component)
+            continue
           }
-          continue
         }
         _resolve(obj, node, component)
       }
@@ -91,6 +91,6 @@ const handlers = (function () {
   }
 
   return o
-})()
+}
 
-export default handlers
+export default createResolver

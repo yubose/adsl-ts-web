@@ -12,7 +12,6 @@ import {
   noodluidom,
   page,
 } from './utils/test-utils'
-import { listen } from './handlers/dom'
 
 chai.use(chaiDOM)
 chai.use(sinonChai)
@@ -64,7 +63,6 @@ after(() => {
 })
 
 beforeEach(() => {
-  listen(noodluidom, noodlui)
   page.initializeRootNode()
   document.body.appendChild(page.rootNode as HTMLElement)
 })

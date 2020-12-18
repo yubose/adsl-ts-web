@@ -66,6 +66,11 @@ This allows for faster compilation, faster load times and quicker development fl
 - redraw
   - remove --> give a key --> removes the object
 - `${itemObject.key}`
+- register action
+  - config: message
+  - ref pages: ChatPage
+  - builtIn: funcName `hide` and `show`
+  - contentType: `hidden`
 
 ## Lib Todos
 

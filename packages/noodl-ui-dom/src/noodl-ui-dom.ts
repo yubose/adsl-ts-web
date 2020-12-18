@@ -3,7 +3,6 @@ import {
   createComponent,
   Component,
   ComponentObject,
-  ComponentType,
   getTagName,
   ListItem,
   publish,
@@ -15,7 +14,7 @@ import {
   componentEventIds,
   componentEventTypes,
 } from './constants'
-import resolve from './resolve'
+import createResolver from './createResolver'
 import * as defaultResolvers from './resolvers'
 import * as T from './types'
 
@@ -33,10 +32,11 @@ class NOODLUIDOM {
     ),
   }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
-  #R = resolve
+  #R
 
   constructor({ log }: { log?: { enabled?: boolean } } = {}) {
     // Logger[log?.enabled ? 'enable' : 'disable']?.()
+    this.#R = createResolver()
     this.#R.use(Object.values(defaultResolvers))
   }
 

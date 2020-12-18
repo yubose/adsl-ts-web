@@ -48,13 +48,21 @@ export function getAllResolvers() {
   ] as ResolverFn[]
 }
 
-export function toDOM(props: any): NOODLDOMElement | null {
-  let node: HTMLElement | null = null
+export function toDOM<N = NOODLDOMElement | null, C = any>(
+  props: any,
+): [N | null, C] {
+  // @ts-expect-error
+  let node: N = null
+  let component: C | undefined
   if (isComponent(props)) {
-    node = noodluidom.parse(props)
+    // @ts-expect-error
+    node = noodluidom.parse(props as any) as N
+    component = props as any
   } else if (typeof props === 'object' && 'type' in props) {
-    node = noodluidom.parse(noodlui.resolveComponents(props))
+    component = noodlui.resolveComponents(props) as any
+    // @ts-expect-error
+    node = noodluidom.parse(component) as N
   }
   if (node) document.body.appendChild(node as any)
-  return node
+  return [node, component] as [N, C]
 }

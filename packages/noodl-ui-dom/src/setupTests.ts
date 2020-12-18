@@ -1,4 +1,5 @@
 import { Resolver } from 'noodl-ui'
+import Logger from 'logsnap'
 import {
   assetsUrl,
   noodlui,
@@ -6,12 +7,6 @@ import {
   getAllResolvers,
   viewport,
 } from './test-utils'
-import { listen } from '../../../src/handlers/dom'
-import createBuiltInActions from '../../../src/handlers/builtIns'
-import Page from '../../../src/Page'
-
-const pageClient = new Page({ _log: false })
-const builtIns = createBuiltInActions({ page: pageClient })
 
 // let logSpy: sinon.SinonStub
 
@@ -24,7 +19,7 @@ const root = {
 
 before(() => {
   console.clear()
-  // Logger.disable()
+  Logger.disable()
 
   noodlui
     .init({ _log: false, viewport })
@@ -33,13 +28,12 @@ before(() => {
       getAssetsUrl: () => assetsUrl,
       getRoot: () => root,
     })
-    .use(
-      // @ts-expect-error
-      Object.entries({ redraw: builtIns.redraw }).map(([funcName, fn]) => ({
-        funcName,
-        fn,
-      })),
-    )
+  // .use(
+  //   Object.entries({ redraw: builtIns.redraw }).map(([funcName, fn]) => ({
+  //     funcName,
+  //     fn,
+  //   })),
+  // )
 
   // logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
 
@@ -67,7 +61,6 @@ after(() => {
 })
 
 beforeEach(() => {
-  listen(noodluidom, noodlui)
   // noodlui.init({ _log: false, viewport })
   noodlui.setPage(page)
 })

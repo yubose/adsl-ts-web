@@ -3,7 +3,7 @@ import { RegisterOptions } from '../types'
 
 export default {
   name: '[noodl-ui-dom] video',
-  cond: (node) => node?.tagName === 'VIDEO',
+  cond: (node, component) => !!(node && component?.type === 'video'),
   resolve(node, component) {
     const { controls, poster, src, videoType } = component.get([
       'controls',

@@ -10,23 +10,21 @@ noodluidom
     resolve(node: any, component: any) {
       // Attach an additional listener for data-value elements that are expected
       // to change values on the fly by some "on change" logic (ex: input/select elements)
-      return import('../utils/sdkHelpers').then(
-        ({ createOnDataValueChangeFn }) => {
-          node.addEventListener(
-            'onchange',
-            createOnDataValueChangeFn(node, component, {
-              onChange: component.get('onChange'),
-              eventName: 'onchange',
-            }),
-          )
-        },
-      )
+      import('../utils/sdkHelpers').then(({ createOnDataValueChangeFn }) => {
+        node.addEventListener(
+          'onchange',
+          createOnDataValueChangeFn(node, component, {
+            onChange: component.get('onChange'),
+            eventName: 'onchange',
+          }),
+        )
+      })
     },
   })
   .register({
     name: 'image',
     resolve(node: any, component: any) {
-      return import('../app/noodl-ui').then(({ default: noodlui }) => {
+      import('../app/noodl-ui').then(({ default: noodlui }) => {
         const parent = component.parent()
         const context = noodlui.getContext()
         const pageObject = noodlui.root[context?.page || ''] || {}
@@ -56,16 +54,19 @@ noodluidom
       const src = component?.get?.('src')
       if (typeof src === 'string') {
         if (src.startsWith('http')) {
-          const { default: axios } = await import('../app/axios')
-          const { data } = await axios.get(src)
-          /**
-           * TODO - Check the ext of the filename
-           * TODO - If its js, run eval on it
-           */
-          try {
-            eval(data)
-          } catch (error) {
-            console.error(error)
+          if (src.endsWith('.js')) {
+            const { default: axios } = await import('../app/axios')
+            const { data } = await axios.get(src)
+            /**
+             * TODO - Check the ext of the filename
+             * TODO - If its js, run eval on it
+             */
+            try {
+              console.log(data)
+              eval(data)
+            } catch (error) {
+              console.error(error)
+            }
           }
         } else {
           console.error(
