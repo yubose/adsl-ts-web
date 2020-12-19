@@ -8,11 +8,17 @@ const createComponentCache = function () {
       cache = {}
       return o
     },
+    has(component: ComponentInstance | string) {
+      return cache[typeof component === 'string' ? component : component?.id]
+    },
     get(component: ComponentInstance) {
-      return cache[component.id]
+      return component && cache[component.id]
+    },
+    get length() {
+      return Object.keys(cache).length
     },
     set(component: ComponentInstance) {
-      cache[component.id] = component
+      component && (cache[component.id] = component)
       return o
     },
     remove(component: ComponentInstance) {

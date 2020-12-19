@@ -13,7 +13,6 @@ import ListItem from '../ListItem'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { event } from '../../constants'
 
-
 class List extends Component implements IComponent {
   #blueprint: ListBlueprint
   #children: ListItem[] = []
@@ -94,7 +93,7 @@ class List extends Component implements IComponent {
       index: this.#listObject.length - 1,
       dataObject,
       success: true,
-    }
+    } as ListDataObjectOperationResult<DataObject>
     this.emit(
       event.component.list.ADD_DATA_OBJECT,
       result,
@@ -172,13 +171,13 @@ class List extends Component implements IComponent {
 
   removeDataObject<DataObject>(
     pred: (dataObject: DataObject | null) => boolean,
-  ): { index: number | null; dataObject: DataObject | null; success: boolean }
+  ): ListDataObjectOperationResult<DataObject>
   removeDataObject<DataObject>(
     dataObject: DataObject,
-  ): { index: number | null; dataObject: DataObject | null; success: boolean }
+  ): ListDataObjectOperationResult<DataObject>
   removeDataObject<DataObject>(
     index: number,
-  ): { index: number; dataObject: DataObject | null; success: boolean }
+  ): ListDataObjectOperationResult<DataObject>
   removeDataObject<DataObject = any>(
     dataObject: DataObject | number | ((pred: DataObject | null) => boolean),
   ) {
@@ -250,17 +249,17 @@ class List extends Component implements IComponent {
       dataObject: typeof dataObject === 'object' ? dataObject : null,
       success: false,
       error: 'listObject was empty',
-    }
+    } as ListDataObjectOperationResult<DataObject>
   }
 
   updateDataObject<DataObject = any>(
     index: number,
     dataObject: DataObject | null,
-  ): { index: number; dataObject: DataObject | null; success: boolean }
+  ): ListDataObjectOperationResult<DataObject>
   updateDataObject<DataObject = any>(
     pred: (dataObject: DataObject | null) => boolean,
     dataObject: DataObject | null,
-  ): { index: number | null; dataObject: DataObject | null; success: boolean }
+  ): ListDataObjectOperationResult<DataObject>
   updateDataObject<DataObject = any>(
     index: number | ((dataObject: DataObject | null) => boolean),
     dataObject: DataObject | null,
@@ -321,7 +320,11 @@ class List extends Component implements IComponent {
       }
     }
 
-    return { index: null, dataObject: null, success: false }
+    return {
+      index: null,
+      dataObject: null,
+      success: false,
+    } as ListDataObjectOperationResult<DataObject>
   }
 
   get blueprint() {
@@ -340,8 +343,6 @@ class List extends Component implements IComponent {
   setBlueprint(newBlueprint: ListBlueprint) {
     this.#blueprint = newBlueprint
     // console.log('newBlueprint', newBlueprint)
-    // @ts-expect-error
-    this.emit(event.component.list.BLUEPRINT, newBlueprint)
     return this
   }
 
@@ -409,46 +410,102 @@ class List extends Component implements IComponent {
     return this
   }
 
-  emit<E = 'blueprint'>(eventName: E, blueprint: ListBlueprint): this
-  emit<E = 'redraw'>(eventName: E): this
-  emit<E extends Exclude<ListEventId, 'blueprint'>>(
-    eventName: E,
-    result: ListDataObjectOperationResult,
+  emit<DataObject = any>(
+    eventName:
+      | 'add.data.object'
+      | 'delete.data.object'
+      | 'update.data.object'
+      | 'retrieve.data.object',
+    result: ListDataObjectOperationResult<DataObject>,
     args: ListDataObjectEventHandlerOptions,
   ): this
-  emit<Args extends any[]>(eventName: ListEventId, ...args: Args) {
+  emit<DataObject = any>(
+    eventName:
+      | 'create.list.item'
+      | 'remove.list.item'
+      | 'retrieve.list.item'
+      | 'update.list.item',
+    result: ListDataObjectOperationResult<DataObject> & {
+      listItem: ListItem
+    },
+    args: ListDataObjectEventHandlerOptions,
+  ): this
+  emit<DataObject = any>(
+    eventName:
+      | 'add.data.object'
+      | 'delete.data.object'
+      | 'update.data.object'
+      | 'retrieve.data.object'
+      | 'create.list.item'
+      | 'remove.list.item'
+      | 'retrieve.list.item'
+      | 'update.list.item',
+    result:
+      | ListDataObjectOperationResult<DataObject>
+      | (ListDataObjectOperationResult<DataObject> & {
+          listItem: ListItem
+        }),
+    opts: ListDataObjectEventHandlerOptions,
+  ) {
     if (eventName in this.#cb) {
-      _.forEach(this.#cb[eventName], (cb) => cb(...args))
-    } else {
-      // TODO emit in Component
+      _.forEach(this.#cb[eventName], (cb) => cb(result, opts))
     }
     return this
   }
 
-  // @ts-expect-error
-  on(eventName: 'redraw', cb: () => void): this
-  on(
+  on<DataObject = any>(
+    eventName:
+      | 'add.data.object'
+      | 'delete.data.object'
+      | 'update.data.object'
+      | 'retrieve.data.object',
+    cb: (
+      result: ListDataObjectOperationResult<DataObject>,
+      args: ListDataObjectEventHandlerOptions,
+    ) => void,
+  ): this
+  on<DataObject = any>(
+    eventName:
+      | 'create.list.item'
+      | 'remove.list.item'
+      | 'retrieve.list.item'
+      | 'update.list.item',
+    cb: (
+      result: ListDataObjectOperationResult<DataObject> & {
+        listItem: ListItem
+      },
+      args: ListDataObjectEventHandlerOptions,
+    ) => void,
+  ): this
+  on<DataObject = any>(
     eventName:
       | 'add.data.object'
       | 'delete.data.object'
       | 'remove.data.object'
-      | 'retrieve.data.object',
+      | 'retrieve.data.object'
+      | 'create.list.item'
+      | 'remove.list.item'
+      | 'retrieve.list.item'
+      | 'update.list.item',
     cb: (
-      result: ListDataObjectOperationResult,
+      result: ListDataObjectOperationResult<DataObject> & {
+        listItem: ListItem
+      },
       args: ListDataObjectEventHandlerOptions,
     ) => void,
-  ): this
-  on(
-    eventName: ListEventId,
-    cb:
-      | ((blueprint: ListBlueprint) => void)
-      | ((
-          result: ListDataObjectOperationResult,
-          args: ListDataObjectEventHandlerOptions,
-        ) => void),
-  ) {
-    if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
-    this.#cb[eventName].push(cb)
+  ): this {
+    switch (eventName) {
+      case 'add.data.object':
+      case 'delete.data.object':
+      case 'remove.data.object':
+      case 'retrieve.data.object':
+      case 'create.list.item':
+      case 'remove.list.item':
+      case 'retrieve.list.item':
+      case 'update.list.item':
+        if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
+        this.#cb[eventName].push(cb)
+    }
     return this
   }
 

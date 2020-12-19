@@ -1,8 +1,8 @@
 import {
-  eventTypes,
-  Component,
+  ComponentInstance,
   ComponentObject,
   ComponentType,
+  eventTypes,
   isComponent,
   NOODLComponent,
   SelectOption,
@@ -71,10 +71,10 @@ export function getDataAttribKeys() {
 
 /**
  *
- * @param { Component | ComponentObject | ComponentType } component - NOODL component object, instance, or type
+ * @param { ComponentInstance | ComponentObject | ComponentType } component - NOODL component object, instance, or type
  */
 export function getShape(
-  component: Component,
+  component: ComponentInstance,
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
@@ -86,11 +86,11 @@ export function getShape(
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
-  components: (Component | ComponentObject | ComponentType)[],
+  components: (ComponentInstance | ComponentObject | ComponentType)[],
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
-  component: Component | ComponentObject | ComponentType,
+  component: ComponentInstance | ComponentObject | ComponentType,
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject {
   const shape = {} as ComponentObject
@@ -135,14 +135,14 @@ export function getShape(
                 ...opts,
                 // @ts-expect-error
                 noodlType:
-                  opts?.noodlType ||
+                  (opts as any)?.noodlType ||
                   (typeof noodlComponent.children === 'object'
-                    ? noodlComponent.children.noodlType ||
-                      noodlComponent.children.type
+                    ? (noodlComponent.children as any).noodlType ||
+                      (noodlComponent.children as any).type
                     : typeof noodlComponent.children === 'string'
                     ? noodlComponent.children
                     : undefined) ||
-                  opts?.type,
+                  (opts as any)?.type,
                 parent: noodlComponent,
               })
         } else {

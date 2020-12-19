@@ -16,11 +16,13 @@ export type ComponentCreationType = string | ComponentObject | ComponentInstance
 export type ComponentObject = NOODLComponent & ProxiedComponent
 
 export interface IComponent<K = ComponentType> {
+  action: Partial<
+    Record<'onChange' | 'onClick', ActionChainActionCallback<any>>
+  >
   id: string
   type: string
   noodlType: K
   style: Style
-  action: Partial<Record<'onChange' | 'onClick', ActionChainActionCallback>>
   length: number
   original: ComponentObject
   status: 'drafting' | 'idle' | 'idle/resolved'

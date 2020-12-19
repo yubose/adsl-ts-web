@@ -45,14 +45,18 @@ export function applyMockDOMResolver(opts: {
   resolver: NodeResolverConfig
   root?: { [key: string]: any }
 }) {
-  const utils = { componentCache: noodlui.componentCache } as {
+  const utils = {
+    assetsUrl: opts.assetsUrl || noodlui.assetsUrl,
+    componentCache: noodlui.componentCache.bind(noodlui),
+  } as {
+    assetsUrl: string
     componentCache: NOODLUI['componentCache']
     node: NOODLDOMElement
     component: ComponentInstance
   }
   noodluidom.register(opts.resolver)
   noodlui.setPage(opts.pageName || '').use({
-    getAssetsUrl: () => assetsUrl || noodlui.assetsUrl || '',
+    getAssetsUrl: () => utils.assetsUrl,
     getRoot: () => ({
       ...opts.root,
       [opts.pageName || '']: {

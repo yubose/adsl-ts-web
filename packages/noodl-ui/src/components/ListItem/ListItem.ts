@@ -1,6 +1,10 @@
 import _ from 'lodash'
 import Component from '../Base'
-import { ComponentConstructor, ProxiedComponent } from '../../types'
+import {
+  ComponentInstance,
+  ComponentConstructor,
+  ProxiedComponent,
+} from '../../types'
 
 class ListItem extends Component {
   #children: any[] = []
@@ -62,7 +66,6 @@ class ListItem extends Component {
 
   get(
     key:
-      | Parameters<Component['get']>[0]
       | 'iteratorVar'
       | 'listId'
       | 'listIndex'
@@ -87,22 +90,22 @@ class ListItem extends Component {
     return this
   }
 
-  createChild<C extends Component>(child: C): C {
+  createChild<C extends ComponentInstance>(child: C): C {
     if (child) {
-      child.setParent?.(this as any)
-      child.set('listId', this.listId)
-      child.set('listIndex', this.listIndex)
+      ;(child as any).setParent?.(this)
+      ;(child as any).set('listId', this.listId)
+      ;(child as any).set('listIndex', this.listIndex)
     }
     this.#children.push(child)
     return child
   }
 
-  hasChild<C extends Component>(child: C) {
+  hasChild<C extends ComponentInstance>(child: C) {
     return this.#children.includes(child)
   }
 
   // @ts-expect-error
-  removeChild<C extends Component = any>(child: C) {
+  removeChild<C extends ComponentInstance = any>(child: C) {
     if (child) {
       const index = this.#children.indexOf(child)
       if (index > -1) return this.#children.splice(index, 1)[0]

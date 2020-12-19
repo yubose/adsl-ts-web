@@ -4,7 +4,6 @@ import List from '../../components/List'
 import ListItem from '../../components/ListItem'
 import { getRandomKey } from '../../utils/common'
 import {
-  ComponentInstance,
   ComponentObject,
   ConsumerOptions,
   ListBlueprint,
@@ -23,7 +22,7 @@ const handleListInternalResolver = (
   options: ConsumerOptions,
   _internalResolver: Resolver,
 ) => {
-  const { getBaseStyles, resolveComponent, resolveComponentDeep } = options
+  const { getBaseStyles, resolveComponent } = options
 
   const rawBlueprint = (Array.isArray(component?.original?.children)
     ? { ...component.original.children[0] }
@@ -50,7 +49,7 @@ const handleListInternalResolver = (
       }
       if (props.children) {
         if (Array.isArray(props.children)) {
-          props.children = props.children.map((c) => deepChildren(c))
+          props.children = props.children.map((c: any) => deepChildren(c))
         } else {
           props.children = deepChildren(props.children)
         }
@@ -64,13 +63,13 @@ const handleListInternalResolver = (
   component.on(event.component.list.ADD_DATA_OBJECT, (result, args) => {
     log.func(`on[${event.component.list.ADD_DATA_OBJECT}]`)
 
-    let listItem = createComponent(component?.getBlueprint()) as ListItem
+    let listItem = createComponent(component?.getBlueprint() as any) as ListItem
     if (listItem) {
       listItem.id = getRandomKey()
-      listItem.setParent(component)
+      listItem.setParent(component as any)
       listItem.setDataObject?.(result.dataObject)
       listItem.set('listIndex', result.index)
-      listItem = resolveComponent(component.createChild(listItem))
+      listItem = resolveComponent(component.createChild(listItem)) as any
       options.componentCache().set(listItem)
     }
 
@@ -79,7 +78,7 @@ const handleListInternalResolver = (
     // log.grey(`Created a new listItem`, listItem)
 
     _resolveChildren(listItem, {
-      onResolve: (c) => {
+      onResolve: (c: any) => {
         c.set('dataObject', result.dataObject)
         c.set('listIndex', result.index)
         c.assign(commonProps)
@@ -90,11 +89,19 @@ const handleListInternalResolver = (
           resolveComponent,
         })
       },
-      props: { ...commonProps, listIndex: result.index },
+      props: { ...commonProps, listIndex: result.index as number },
       resolveComponent,
     })
 
-    component.emit(event.component.list.CREATE_LIST_ITEM, logArgs)
+    component.emit(
+      event.component.list.CREATE_LIST_ITEM,
+      { ...result, listItem },
+      {
+        blueprint: component.getBlueprint(),
+        iteratorVar: component.iteratorVar,
+        listId: component.listId,
+      },
+    )
   })
 
   // Removes list items when their data object is removed
@@ -106,7 +113,7 @@ const handleListInternalResolver = (
     const dataObjectBefore = listItem?.getDataObject?.()
     listItem?.setDataObject(null)
     if (listItem) {
-      component.removeChild(listItem)
+      component.removeChild()
       const removeFromCache = options.componentCache().remove
       removeFromCache(listItem)
       publish(listItem, (c) => {
@@ -121,30 +128,26 @@ const handleListInternalResolver = (
       dataObjectBefore,
       dataObjectAfter: listItem?.getDataObject?.(),
     })
-    component.emit(event.component.list.REMOVE_LIST_ITEM, {
-      ...result,
-      listItem,
-    } as any)
-  })
-
-  component.on(event.component.list.RETRIEVE_DATA_OBJECT, (result, options) => {
-    log.func(`on[${event.component.list.RETRIEVE_DATA_OBJECT}]`)
-    log.gold(`Retrieved a dataObject`, { result, ...options })
+    component.emit(
+      event.component.list.REMOVE_LIST_ITEM,
+      { ...result, listItem } as any,
+      {} as any,
+    )
   })
 
   // Updates list items with new updates to their data object
   component.on(event.component.list.UPDATE_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.UPDATE_DATA_OBJECT}]`)
     const { index, dataObject } = result
-    const listItem: ListItem<'list'> | undefined = component.children()?.[index]
-    listItem.setDataObject(dataObject)
-    log.green(`Updated dataObject`, { result, ...options })
-    const args = { ...result, listItem }
-    component.emit(event.component.list.UPDATE_LIST_ITEM, args)
-    listItem.emit(event.component.listItem.REDRAW, {
-      type: 'data-object',
-      value: dataObject,
-    })
+    const listItem: ListItem | undefined = component.children()?.[
+      index as number
+    ]
+    listItem?.setDataObject(dataObject)
+    component.emit(
+      event.component.list.UPDATE_LIST_ITEM,
+      { ...result, listItem: listItem as ListItem },
+      options,
+    )
   })
 
   // Initiate the blueprint

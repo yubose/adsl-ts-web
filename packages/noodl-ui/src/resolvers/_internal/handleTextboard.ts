@@ -13,9 +13,8 @@ const log = Logger.create('internal[handleList]')
 const handleTextboardInternalResolver = (
   component: Component,
   options: ConsumerOptions,
-  _internalResolver,
+  _internalResolver: any,
 ) => {
-  const { resolveComponent } = options
   let { textBoard, text } = component.get(['textBoard', 'text'])
   if (isDraft(textBoard)) textBoard = current(textBoard)
 
@@ -31,7 +30,7 @@ const handleTextboardInternalResolver = (
     _.forEach(textBoard, (item) => {
       if (isBreakLineTextBoardItem(item)) {
         const br = createComponent('br')
-        component.createChild(br)
+        component.createChild(br as any)
       } else {
         /**
          * NOTE: Normally in the return type we would return the child
@@ -50,7 +49,7 @@ const handleTextboardInternalResolver = (
           },
           text: item.text,
         })
-        component.createChild(text)
+        component.createChild(text as any)
       }
     })
   } else {

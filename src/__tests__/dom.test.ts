@@ -2,68 +2,40 @@ import _ from 'lodash'
 import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
 import { expect } from 'chai'
-import { prettyDOM } from '@testing-library/dom'
 import { queryByText, screen, waitFor } from '@testing-library/dom'
 import { Component, List, ListItem, NOODLComponent } from 'noodl-ui'
-import { getByDataKey } from 'noodl-utils'
 import {
   assetsUrl,
-  builtIn,
   noodlui,
   queryByDataKey,
-  queryByDataListId,
-  queryByDataName,
-  queryByDataUx,
-  queryByDataValue,
-  queryByDataViewtag,
   getAllByDataKey,
   page,
 } from '../utils/test-utils'
-import { getListComponent1, saveOutput } from './helpers'
+import { getListComponent1 } from './helpers'
 
 describe('dom', () => {
-  describe('when creating any type of component', () => {
-    it('should attach the id', () => {
-      page.render({ type: 'button', style: {}, id: 'abc123' })
-      expect(document.getElementById('abc123')).to.exist
-    })
-  })
-
-  describe('component type: "label"', () => {
-    it('should use data-value as text content if present for other elements (non data value elements)', () => {
-      const dataKey = 'formData.greeting'
-      const greeting = 'my greeting'
-      noodlui
-        .use({ getRoot: () => ({ SignIn: { formData: { greeting } } }) })
-        .setPage('SignIn')
-      page.render({
+  describe('textBoard', () => {
+    it('should be in the correct form in the DOM', () => {
+      const noodlComponent = {
         type: 'label',
-        dataKey,
-        placeholder: 'hello, all',
-        id: 'id123',
-      })
-      const label = queryByDataKey(document.body, dataKey) as any
-      expect(label.value).to.be.undefined
-      expect(label?.innerHTML).to.equal(greeting)
+        textBoard: [
+          { text: 'Medical Records' },
+          { br: null },
+          { text: 'Upload an image or document' },
+        ],
+      } as NOODLComponent
+      const view = page.render({ type: 'view', children: [noodlComponent] })
+        .components[0]
+      const label = view.child()
+      const node = document.getElementById(label.id)
+      const children = node?.children as HTMLCollection
+      expect(children[0].tagName).to.equal('LABEL')
+      expect(children[1].tagName).to.equal('BR')
+      expect(children[2].tagName).to.equal('LABEL')
+      expect(screen.getByText('Medical Records')).to.exist
+      expect(screen.getByText('Upload an image or document')).to.exist
     })
-
-    it(
-      'should use placeholder as text content if present (and also there is ' +
-        'no data-value available) for other elements (non data value elements)',
-      () => {
-        const dataKey = 'formData.greeting'
-        const placeholder = 'my placeholder'
-        noodlui
-          .use({ getRoot: () => ({ formData: { greeting: '' } }) })
-          .setPage('SignIn')
-        page.render({ type: 'label', dataKey, placeholder })
-        const label = queryByDataKey(document.body, dataKey) as any
-        expect(label.value).to.be.undefined
-        expect(label.innerHTML).to.equal(placeholder)
-      },
-    )
   })
-
   describe('component type: "list"', () => {
     describe('when freshly rendering to the DOM', () => {
       it('should have the data-listid attribute', () => {
@@ -265,386 +237,170 @@ describe('dom', () => {
     })
   })
 
-  describe('component type: image', () => {
-    it('should attach the src attribute', () => {
-      page.render({ type: 'image', path: 'img123.jpg', style: {} })
-      expect(
-        document.querySelector(`img[src="${noodlui.assetsUrl}img123.jpg"]`),
-      ).to.exist
-    })
-  })
+  describe('type: "textField" with contentType: "password"', () => {
+    const dataKey = 'formData.greeting'
+    const greeting = 'good morning'
+    let eyeOpened = 'makePasswordVisiable.png'
+    let eyeClosed = 'makePasswordInvisible.png'
+    let regexTitlePwVisible = /click here to hide your password/i
+    let regexTitlePwInvisible = /click here to reveal your password/i
+    const noodlComponent = {
+      type: 'textField',
+      contentType: 'password',
+      dataKey,
+      placeholder: 'your password',
+    } as NOODLComponent
 
-  describe('component type: "select"', () => {
-    it('should show a default value for select elements', () => {
-      page.render({
-        type: 'select',
-        'data-name': 'country',
-        options: ['abc', '+52', '+86', '+965'],
-      })
-      const select = queryByDataName(document.body, 'country') as any
-      expect(select?.value).to.equal('abc')
-    })
-
-    it('should create the select option children when rendering', () => {
-      const options = ['abc', '123', 5, 1995]
-      page.render({ type: 'select', options, id: 'myid123' } as any)
-      _.forEach(options, (option, index) => {
-        expect(document.querySelector(`option[value="${options[index]}"]`)).to
-          .exist
-      })
-    })
-  })
-
-  describe('component type: "textField"', () => {
-    it("should use the value computed from the dataKey as the element's value", () => {
-      const dataKey = 'formData.greeting'
-      const greeting = 'good morning'
-      noodlui
-        .use({ getRoot: () => ({ SignIn: { formData: { greeting } } }) })
-        .setPage('SignIn')
-      page.render({ type: 'textField', placeholder: 'hello, all', dataKey })
-      const input = queryByDataKey(document.body, dataKey) as any
-      expect(input.value).to.equal(greeting)
-    })
-
-    it('should attach placeholders', () => {
-      const placeholder = 'my placeholder'
-      const dataKey = 'formData.greeting'
-      const greeting = 'good morning'
+    beforeEach(() => {
       noodlui
         .use({ getRoot: () => ({ formData: { greeting } }) })
         .setPage('SignIn')
-      page.render({ type: 'textField', dataKey, placeholder })
-      expect(screen.getByPlaceholderText(placeholder)).to.exist
     })
 
-    _.forEach(
-      [
-        ['data-listid', queryByDataListId],
-        ['data-name', queryByDataName],
-        ['data-key', queryByDataKey],
-        ['data-ux', queryByDataUx],
-        ['data-value', queryByDataValue],
-        ['data-viewtag', queryByDataViewtag],
-      ],
-      ([key, queryFn]) => {
-        it(`should attach ${key}`, () => {
-          page.render({
-            type: 'li',
-            noodlType: 'listItem',
-            id: 'id123',
-            [key as string]: 'abc123',
-          } as any)
-          expect((queryFn as Function)(document.body, 'abc123')).to.exist
-        })
-      },
-    )
-
-    describe('type: "textField" with contentType: "password"', () => {
-      const dataKey = 'formData.greeting'
-      const greeting = 'good morning'
-      let eyeOpened = 'makePasswordVisiable.png'
-      let eyeClosed = 'makePasswordInvisible.png'
-      let regexTitlePwVisible = /click here to hide your password/i
-      let regexTitlePwInvisible = /click here to reveal your password/i
-      const noodlComponent = {
-        type: 'textField',
-        contentType: 'password',
-        dataKey,
-        placeholder: 'your password',
-      } as NOODLComponent
-
-      beforeEach(() => {
-        noodlui
-          .use({ getRoot: () => ({ formData: { greeting } }) })
-          .setPage('SignIn')
-      })
-
-      it('should start off with hidden password mode for password inputs', async () => {
-        page.render({
-          type: 'view',
-          children: [{ type: 'textField', contentType: 'password' }],
-        })
-        const input = await screen.findByTestId('password')
-        expect(input).to.exist
-        expect((input as HTMLInputElement).type).to.equal('password')
-      })
-
-      it('should start off showing the eye closed icon', async () => {
-        page.render(noodlComponent)
-        await waitFor(() => {
-          const img = document.getElementsByTagName('img')[0]
-          expect(img.getAttribute('src')).to.eq(assetsUrl + eyeClosed)
-        })
-      })
-
-      it('should flip the eye icon to open when clicked', async () => {
-        page.render(noodlComponent)
-        const eyeContainer = await screen.findByTitle(regexTitlePwInvisible)
-        let img = document.querySelector('img')
-        expect(img).to.exist
-        expect(img?.getAttribute('src')).not.to.eq(assetsUrl + eyeOpened)
-        await waitFor(() => {
-          img = document.querySelector('img')
-          expect(img?.getAttribute('src')).to.eq(assetsUrl + eyeClosed)
-        })
-        expect(eyeContainer).to.exist
-        eyeContainer.click()
-        img?.click()
-      })
-    })
-
-    it('should update the value of input', () => {
-      const dataKey = 'formData.phoneNumber'
-      noodlui
-        .use({
-          getRoot: () => ({ formData: { phoneNumber: '88814565555' } }),
-        })
-        .setPage('SignIn')
+    it('should start off with hidden password mode for password inputs', async () => {
       page.render({
-        type: 'textField',
-        dataKey,
-        placeholder: 'Enter your phone number',
+        type: 'view',
+        children: [{ type: 'textField', contentType: 'password' }],
       })
-      const input = queryByDataKey(document.body, dataKey) as HTMLInputElement
-      expect(input.value).to.eq('88814565555')
-      userEvent.clear(input)
+      const input = await screen.findByTestId('password')
+      expect(input).to.exist
+      expect((input as HTMLInputElement).type).to.equal('password')
+    })
+
+    it('should start off showing the eye closed icon', async () => {
+      page.render(noodlComponent)
+      await waitFor(() => {
+        const img = document.getElementsByTagName('img')[0]
+        expect(img.getAttribute('src')).to.eq(assetsUrl + eyeClosed)
+      })
+    })
+
+    it('should flip the eye icon to open when clicked', async () => {
+      page.render(noodlComponent)
+      const eyeContainer = await screen.findByTitle(regexTitlePwInvisible)
+      let img = document.querySelector('img')
+      expect(img).to.exist
+      expect(img?.getAttribute('src')).not.to.eq(assetsUrl + eyeOpened)
+      await waitFor(() => {
+        img = document.querySelector('img')
+        expect(img?.getAttribute('src')).to.eq(assetsUrl + eyeClosed)
+      })
+      expect(eyeContainer).to.exist
+      eyeContainer.click()
+      img?.click()
+    })
+  })
+
+  it('should update the value of input', () => {
+    const dataKey = 'formData.phoneNumber'
+    noodlui
+      .use({
+        getRoot: () => ({ formData: { phoneNumber: '88814565555' } }),
+      })
+      .setPage('SignIn')
+    page.render({
+      type: 'textField',
+      dataKey,
+      placeholder: 'Enter your phone number',
+    })
+    const input = queryByDataKey(document.body, dataKey) as HTMLInputElement
+    expect(input.value).to.eq('88814565555')
+    userEvent.clear(input)
+    userEvent.type(input, '6262465555')
+    expect(input.value).to.equal('6262465555')
+  })
+
+  xit('should update the value of dataset.value', async () => {
+    const dataKey = 'formData.phoneNumber'
+    noodlui
+      .use({
+        getRoot: () => ({
+          SignIn: { formData: { phoneNumber: '882465812' } },
+        }),
+      })
+      .setPage('SignIn')
+    page.render({
+      type: 'textField',
+      dataKey,
+      placeholder: 'Enter your phone number',
+    })
+    const input = queryByDataKey(document.body, dataKey) as HTMLInputElement
+    await waitFor(() => {
+      expect(input.dataset.value).to.eq('882465812')
+      input.click()
       userEvent.type(input, '6262465555')
-      expect(input.value).to.equal('6262465555')
     })
-
-    xit('should update the value of dataset.value', async () => {
-      const dataKey = 'formData.phoneNumber'
-      noodlui
-        .use({
-          getRoot: () => ({
-            SignIn: { formData: { phoneNumber: '882465812' } },
-          }),
-        })
-        .setPage('SignIn')
-      page.render({
-        type: 'textField',
-        dataKey,
-        placeholder: 'Enter your phone number',
-      })
-      const input = queryByDataKey(document.body, dataKey) as HTMLInputElement
-      await waitFor(() => {
-        expect(input.dataset.value).to.eq('882465812')
-        input.click()
-        userEvent.type(input, '6262465555')
-      })
-      await waitFor(() => {
-        expect(input.dataset.value).to.equal('6262465555')
-      })
+    await waitFor(() => {
+      expect(input.dataset.value).to.equal('6262465555')
     })
   })
+})
 
-  describe('component type: "video"', () => {
-    it('should attach poster if present', () => {
-      page.render({
-        type: 'video',
-        poster: 'my-poster.jpeg',
-        videoFormat: 'mp4',
-      })
-      const node = document.querySelector('video')
-      expect(node?.getAttribute('poster')).to.equal(
-        `${assetsUrl}my-poster.jpeg`,
-      )
+it('should target the viewTag component/node if available', async () => {
+  let currentPath = 'male.png'
+  const imagePathSpy = sinon.spy(async () => currentPath)
+  const viewTag = 'genderTag'
+  const iteratorVar = 'itemObject'
+  const listObject = [
+    { key: 'gender', value: 'Male' },
+    { key: 'gender', value: 'Female' },
+    { key: 'gender', value: 'Other' },
+  ]
+  const redrawSpy = sinon.spy(noodlui.getCbs('builtIn').redraw[0])
+  noodlui.actionsContext = { noodl: {} }
+  noodlui.removeCbs('emit')
+  noodlui.getCbs('builtIn').redraw[0] = redrawSpy
+  noodlui
+    .setPage('SignIn')
+    .use({
+      actionType: 'emit',
+      trigger: 'onClick',
+      fn: async () => {
+        currentPath = currentPath === 'male.png' ? 'female.png' : 'male.png'
+      },
     })
-
-    it('should have object-fit set to "contain"', () => {
-      page.render({ type: 'video', videoFormat: 'mp4' })
-      const node = document.querySelector('video')
-      expect(node?.style.objectFit).to.equal('contain')
-    })
-
-    it('should create the source element as a child if the src is present', () => {
-      page.render({ type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' })
-      const node = document.querySelector('video')
-      const sourceEl = node?.querySelector('source')
-      expect(sourceEl).to.exist
-    })
-
-    it('should have src set on the child source element instead of the video element itself', () => {
-      const path = 'asdloldlas.mp4'
-      page.render({ type: 'video', path, videoFormat: 'mp4' })
-      const node = document.querySelector('video')
-      const sourceEl = node?.querySelector('source')
-      expect(node?.getAttribute('src')).not.to.equal(assetsUrl + path)
-      expect(sourceEl?.getAttribute('src')).to.equal(assetsUrl + path)
-    })
-
-    it('should have the video type on the child source element instead of the video element itself', () => {
-      page.render({ type: 'video', path: 'abc123.png', videoFormat: 'mp4' })
-      const node = document.querySelector('video')
-      const sourceEl = node?.querySelector('source')
-      expect(node?.getAttribute('type')).not.to.equal('mp4')
-      expect(sourceEl?.getAttribute('type')).to.equal(`video/mp4`)
-    })
-
-    it('should include the "browser not supported" message', () => {
-      page.render({ type: 'video', path: 'abc.jpeg', videoFormat: 'mp4' })
-      expect(screen.getByText(/sorry/i)).to.exist
-    })
-
-    it('should create a "source" element and attach the src attribute for video components', () => {
-      const path = 'pathology.mp4'
-      page.render({ type: 'video', path, videoFormat: 'mp4', id: 'id123' })
-      const sourceElem = document.body?.querySelector('source')
-      expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + path)
-    })
-  })
-
-  describe('when using redraw', () => {
-    const iteratorVar = 'hello'
-    let listObject: { key: 'Gender'; value: '' | 'Male' | 'Female' }[]
-
-    it('should deeply recompute/redraw its descendants', async () => {
-      const pathSpy = sinon.spy(async () => 'female.png')
-      listObject = [
-        { key: 'Gender', value: 'Male' },
-        // { key: 'Gender', value: 'Female' },
-      ]
-      noodlui.reset({ keepCallbacks: false })
-      noodlui
-        .use({
-          getRoot: () => ({ listData: { Gender: { Radio: listObject } } }),
-        })
-        .setPage('Abc')
-        .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
-        .use({
-          actionType: 'builtIn',
-          fn: builtIn.redraw,
-          funcName: 'redraw',
-        } as any)
-      const view = page.render({
-        type: 'view',
+    .use({ actionType: 'emit', trigger: 'path', fn: imagePathSpy })
+    .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
+  const view = page.render({
+    type: 'view',
+    children: [
+      {
+        type: 'list',
+        iteratorVar,
+        listObject,
         children: [
           {
-            type: 'list',
-            listObject,
-            iteratorVar,
+            type: 'listItem',
+            viewTag,
             children: [
               {
-                type: 'listItem',
-                [iteratorVar]: '',
-                viewTag: 'genderTag',
-                children: [
-                  { type: 'label', dataKey: `${iteratorVar}.value` },
+                type: 'image',
+                path: { emit: { dataKey: 'f', actions: [] } },
+                onClick: [
+                  { emit: { dataKey: '', actions: [] } },
                   {
-                    type: 'image',
-                    viewTag: 'maleTag',
-                    onClick: [
-                      {
-                        emit: {
-                          dataKey: { var1: iteratorVar, var2: iteratorVar },
-                          actions: [{ if: [{}, {}, {}] }],
-                        },
-                      },
-                      {
-                        actionType: 'builtIn',
-                        funcName: 'redraw',
-                        viewTag: 'genderTag',
-                      },
-                    ],
-                    path: {
-                      emit: {
-                        dataKey: { var: iteratorVar },
-                        actions: [{ if: [false, 'male.png', 'female.png'] }],
-                      },
-                    },
+                    actionType: 'builtIn',
+                    funcName: 'redraw',
+                    viewTag: 'genderTag',
                   },
                 ],
               },
+              { type: 'label', dataKey: 'gender.value' },
             ],
           },
         ],
-      } as any).components[0]
-      const list = view.child()
-      const listItem = list.child()
-      list.getData().forEach((d: any) => list.addDataObject(d))
-      const image = listItem.child(1)
-      // document.getElementById(image.id)?.click()
-      // await waitFor(() => {
-      //   console.info(prettyDOM())
-      //   expect(
-      //     document.querySelector(`img[src="${assetsUrl + 'female.png'}"]`).to
-      //       .exist,
-      //   )
-      // })
-      // expect(pathSpy.firstCall).to.eq(listObject[0])
-    })
-
-    it('should target the viewTag component/node if available', async () => {
-      let currentPath = 'male.png'
-      const imagePathSpy = sinon.spy(async () => currentPath)
-      const viewTag = 'genderTag'
-      const iteratorVar = 'itemObject'
-      const listObject = [
-        { key: 'gender', value: 'Male' },
-        { key: 'gender', value: 'Female' },
-        { key: 'gender', value: 'Other' },
-      ]
-      // @ts-expect-error
-      const redrawSpy = sinon.spy(noodlui.getCbs('builtIn').redraw[0])
-      // @ts-expect-error
-      noodlui.actionsContext = { noodl: {} }
-      noodlui.removeCbs('emit')
-      // @ts-expect-error
-      noodlui.getCbs('builtIn').redraw[0] = redrawSpy
-      noodlui
-        .setPage('SignIn')
-        .use({
-          actionType: 'emit',
-          trigger: 'onClick',
-          fn: async () => {
-            currentPath = currentPath === 'male.png' ? 'female.png' : 'male.png'
-          },
-        })
-        .use({ actionType: 'emit', trigger: 'path', fn: imagePathSpy })
-        .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
-      const view = page.render({
-        type: 'view',
-        children: [
-          {
-            type: 'list',
-            iteratorVar,
-            listObject,
-            children: [
-              {
-                type: 'listItem',
-                viewTag,
-                children: [
-                  {
-                    type: 'image',
-                    path: { emit: { dataKey: 'f', actions: [] } },
-                    onClick: [
-                      { emit: { dataKey: '', actions: [] } },
-                      {
-                        actionType: 'builtIn',
-                        funcName: 'redraw',
-                        viewTag: 'genderTag',
-                      },
-                    ],
-                  },
-                  { type: 'label', dataKey: 'gender.value' },
-                ],
-              },
-            ],
-          },
-        ],
-      } as any).components[0]
-      const list = view.child() as List
-      const listItem = list.child() as ListItem
-      const image = listItem.child() as Component
-      expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
-      document.getElementById(image.id)?.click()
-      await waitFor(() => {
-        expect(redrawSpy).to.have.been.called
-        expect(document.querySelector('img')?.getAttribute('src')).to.eq(
-          assetsUrl + 'female.png',
-        )
-      })
-    })
+      },
+    ],
+  } as any).components[0]
+  const list = view.child() as List
+  const listItem = list.child() as ListItem
+  const image = listItem.child() as Component
+  expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
+  document.getElementById(image.id)?.click()
+  await waitFor(() => {
+    expect(redrawSpy).to.have.been.called
+    expect(document.querySelector('img')?.getAttribute('src')).to.eq(
+      assetsUrl + 'female.png',
+    )
   })
 })

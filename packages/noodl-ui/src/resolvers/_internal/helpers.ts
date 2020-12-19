@@ -38,7 +38,7 @@ export function _resolveChildren<
         if (noodlChild) {
           onResolve?.(
             resolveComponent?.(
-              c.createChild(createComponent(noodlChild, { props })),
+              (c as any).createChild(createComponent(noodlChild, { props })),
             ) as ComponentInstance,
           )
         }

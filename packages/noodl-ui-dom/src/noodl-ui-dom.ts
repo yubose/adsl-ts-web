@@ -8,7 +8,6 @@ import {
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
-import { componentEventMap, componentEventTypes } from './constants'
 import NOODLUIDOMInternal from './Internal'
 import createResolver from './createResolver'
 import * as defaultResolvers from './resolvers'
@@ -20,7 +19,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
   constructor() {
     super()
-
     this.#R = createResolver()
     this.#R.use(this)
     this.#R.use(Object.values(defaultResolvers))
@@ -31,7 +29,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
    * resolves its children hieararchy until there are none left
    * @param { ComponentInstance } props
    */
-  parse<C extends ComponentInstance>(
+  parse<C extends ComponentInstance = any>(
     component: C,
     container?: T.NOODLDOMElement | null,
   ) {
@@ -51,11 +49,13 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         }
       } else {
         if (component.noodlType === 'image') {
-          node = isEmitObj(component.get('path'))
+          node = isEmitObj((component as any).get('path'))
             ? createAsyncImageElement(container || document.body, {})
             : document.createElement('img')
         } else {
-          node = document.createElement(getTagName(component))
+          node = document.createElement(
+            getTagName(component as ComponentInstance),
+          )
         }
         this.#R.run(node, component)
         if (node) {
@@ -184,19 +184,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       return key in this.#stub.elements[tagName]
     }
     return false
-  }
-
-  /**
-   * Takes an event name like "on.create" and returns the direct parent key
-   * @param { string } eventName - Name of an event
-   */
-  #getEventKey = (eventName: T.NOODLDOMEvent) => {
-    // TODO - Add more cases
-    let eventKey: string | undefined
-    if (eventName === 'component') return 'all'
-    const fn = (type: string) => componentEventMap[type] === eventName
-    eventKey = componentEventTypes.find(fn)
-    return eventKey || ''
   }
 
   register(obj: NOODLUI | T.NodeResolverConfig): this {
