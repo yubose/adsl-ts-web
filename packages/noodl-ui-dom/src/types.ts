@@ -1,11 +1,11 @@
-import { ComponentObject, ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
-import Internal from './Internal'
-import { componentEventMap, componentEventIds } from './constants'
+import {
+  ComponentObject,
+  ComponentInstance,
+  ComponentType,
+  NOODL as NOODLUI,
+} from 'noodl-ui'
 
-export type NOODLDOMComponentType = keyof typeof componentEventMap
-export type NOODLDOMComponentEvent = typeof componentEventIds[number]
 export type NOODLDOMElementTypes = keyof NOODLDOMElements
-export type NOODLDOMEvent = NOODLDOMComponentEvent // Will be extended to include non-component events in the future
 
 export type NOODLDOMDataValueElement =
   | HTMLInputElement
@@ -84,63 +84,63 @@ export type NOODLDOMElements = Pick<
   | 'video'
 >
 
-export interface NodeResolver<
-  N extends NOODLDOMElement = any,
-  C = any,
-  RT = any
+/**
+ * Type utility/factory to construct node resolver func types. Node resolver
+ * funcs in noodl-ui-dom are any functions that take a DOM node as the first
+ * argument and a component instance as the second, at its base structure
+ */
+export interface NOODLUIDOMResolveFunc<
+  N extends NOODLDOMElement,
+  C extends ComponentInstance,
+  Args extends unknown,
+  RT extends unknown
 > {
-  (
-    node: NodeResolverBaseArgs<N, C>[0],
-    component: NodeResolverBaseArgs<N, C>[1],
-    opts: NodeResolverOptions,
-  ): RT
+  (node: N | null | ((node: N | null) => any), component: C, args: Args): RT
 }
 
-export type NodeResolverBaseArgs<N extends NOODLDOMElement = any, C = any> = [
-  node: N | null,
-  component: C,
+export type NodeResolver<RT = any> = NOODLUIDOMResolveFunc<
+  NOODLDOMElement,
+  ComponentInstance,
+  {
+    noodlui: NOODLUI
+    original: ComponentObject
+    redraw: Redraw
+  },
+  RT | void
+>
+
+export type NodeResolverBaseArgs = [
+  Parameters<NodeResolver>[0],
+  Parameters<NodeResolver>[1],
 ]
+
+export type NodeResolverUtils = Parameters<NodeResolver>[2]
 
 export interface NodeResolverConfig {
   name?: string
-  cond?: NOODLDOMComponentEvent | NodeResolver<any, any, boolean>
-  before?: NodeResolver<any, any, void>
-  resolve?: NodeResolver<any, any, void>
-  after?: NodeResolver<any, any, void>
-}
-
-export interface NodeResolverOptions {
-  noodlui: NOODLUI
-  original: ComponentObject
-  redraw: Redraw
-}
-
-export type NodeResolverUseObject = NodeResolverConfig | NOODLUI | Internal
-
-export interface NodeResolverRunner {
-  (
-    node: NOODLDOMElement | null,
-    component: ComponentInstance,
-    options: NodeResolverOptions,
-  ): void
+  cond?: ComponentType | NodeResolver<boolean>
+  before?: NodeResolverConfig | NodeResolver
+  resolve?: NodeResolverConfig | NodeResolver
+  after?: NodeResolverConfig | NodeResolver
 }
 
 export interface NodeResolverLifecycle {
-  before: NodeResolverRunner[]
-  resolve: NodeResolverRunner[]
-  after: NodeResolverRunner[]
+  before: NodeResolver[]
+  resolve: NodeResolver[]
+  after: NodeResolver[]
 }
 
-export interface Redraw {
-  (
-    node: NOODLDOMElement | null,
-    component: ComponentInstance,
-    options: {
-      resolver(
-        noodlComponent: ComponentObject | ComponentObject[],
-      ): ComponentInstance | ComponentInstance[]
-    },
-  ): [typeof node, ComponentInstance]
-}
+export type NodeResolverLifeCycleEvent = 'before' | 'resolve' | 'after'
+
+export type Redraw = NOODLUIDOMResolveFunc<
+  NOODLDOMElement,
+  ComponentInstance,
+  {
+    resolver(
+      noodlComponent: ComponentObject | ComponentObject[],
+    ): ComponentInstance | ComponentInstance[]
+  },
+  [NOODLDOMElement, ComponentInstance]
+>
 
 export type RegisterOptions = NodeResolverConfig

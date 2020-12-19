@@ -1,6 +1,8 @@
-import { ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
+import { ComponentInstance, ComponentType, NOODL as NOODLUI } from 'noodl-ui'
 import NOODLUIDOMInternal from './Internal'
 import * as T from './types'
+
+type UseObject = T.NodeResolverConfig | NOODLUI | NOODLUIDOMInternal
 
 const createResolver = function createResolver() {
   const _internal: {
@@ -15,12 +17,13 @@ const createResolver = function createResolver() {
   }
 
   const util = {
-    options: (...args: T.NodeResolverBaseArgs) =>
-      ({
+    options(...args: T.NodeResolverBaseArgs) {
+      return {
         original: args[1].original,
         noodlui: _internal.noodlui,
         redraw: _internal.noodluidom.redraw,
-      } as T.NodeResolverOptions),
+      } as T.NodeResolverUtils
+    },
   }
 
   // const middlewares = [] as any[]
@@ -28,18 +31,6 @@ const createResolver = function createResolver() {
   // const _middlewareResolver = (...args: T.NodeResolverBaseArgs) => {
   //   return () => middlewares.forEach((fn) => fn(...args))
   // }
-
-  function _run(
-    runner: <N extends T.NOODLDOMElement = any>(
-      configs: T.NodeResolverConfig[],
-      node: T.NodeResolverBaseArgs<N, any>[0],
-      component: T.NodeResolverBaseArgs<N, any>[1],
-    ) => void,
-  ) {
-    return (...args: T.NodeResolverBaseArgs) => {
-      return runner(_internal.objs, ...args)
-    }
-  }
 
   function _isResolverConfig(value: any): value is T.NodeResolverConfig {
     return (
@@ -50,34 +41,35 @@ const createResolver = function createResolver() {
   }
 
   function _isComponentEvent(
-    type: T.NOODLDOMComponentEvent,
+    type: ComponentType,
     component: ComponentInstance,
   ) {
     return type === component?.noodlType || type === component?.type
   }
 
-  function _getRunners(
-    configs: T.NodeResolverConfig[],
-    ...args: T.NodeResolverBaseArgs
-  ) {
+  function _getRunners(...args: T.NodeResolverBaseArgs) {
     const attach = (
-      acc: T.NodeResolverRunner[],
+      lifeCycleEvent: T.NodeResolverLifeCycleEvent,
+      acc: T.NodeResolverLifecycle,
       obj: T.NodeResolverConfig,
-      fn: T.NodeResolverRunner,
     ) => {
       if (typeof obj.cond === 'string') {
         // If they passed in a resolver strictly for this node/component
-        if (_isComponentEvent(obj.cond, args[1])) acc.push(fn)
+        if (_isComponentEvent(obj.cond, args[1])) {
+          acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.NodeResolver)
+        }
       } else if (typeof obj.cond === 'function') {
         // If they only want this resolver depending on a certain condition
-        if (obj.cond(...args, util.options(...args))) acc.push(fn)
+        if (obj.cond(...args, util.options(...args))) {
+          acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.NodeResolver)
+        }
       }
     }
-    return configs.reduce(
+    return _internal.objs.reduce(
       (acc, obj) => {
-        if (obj.before) attach(acc.before, obj, obj.before)
-        if (obj.resolve) attach(acc.resolve, obj, obj.resolve)
-        if (obj.after) attach(acc.after, obj, obj.after)
+        if (obj.before) attach('before', acc, obj)
+        if (obj.resolve) attach('resolve', acc, obj)
+        if (obj.after) attach('after', acc, obj)
         return acc
       },
       {
@@ -93,16 +85,16 @@ const createResolver = function createResolver() {
       if (!_internal.objs.includes(obj)) _internal.objs.push(obj)
       return o
     },
-    run: _run((configs, node, component) => {
-      const { before, resolve, after } = _getRunners(configs, node, component)
+    run: (...args: T.NodeResolverBaseArgs) => {
+      const { before, resolve, after } = _getRunners(...args)
       const runners = [...before, ...resolve, ...after]
       const total = runners.length
       // TODO - feat. consumer return value
       for (let index = 0; index < total; index++) {
-        runners[index](node, component, util.options(node, component))
+        runners[index](...args, util.options(...args))
       }
       return this
-    }),
+    },
     clear() {
       _internal.objs.length = 0
       return o
@@ -111,7 +103,7 @@ const createResolver = function createResolver() {
       if (key === 'noodlui') return _internal.noodlui
       return _internal.objs
     },
-    use(value: T.NodeResolverUseObject | T.NodeResolverUseObject[]) {
+    use(value: UseObject | UseObject[]) {
       if (Array.isArray(value)) {
         value.forEach((val) => o.use(val))
       } else if (value) {

@@ -28,14 +28,6 @@ export function createAsyncImageElement(
   return node
 }
 
-export function ensureDatasetHandlingArr<N extends HTMLElement>(node: N) {
-  if (node && node.dataset) {
-    if (!Array.isArray(node.dataset.handling)) {
-      node.dataset.handling = [] as any
-    }
-  }
-}
-
 export const get = <T = any>(o: T, k: string) => {
   if (typeof o !== 'object' || typeof k !== 'string') return
 
