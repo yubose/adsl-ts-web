@@ -1,4 +1,4 @@
-import { RegisterOptions } from '../types'
+import { NOODLDOMElement, RegisterOptions } from '../types'
 import { isTextFieldLike } from '../utils'
 
 export default {
@@ -9,7 +9,7 @@ export default {
     (component.get('text') ||
       component.get('placeholder') ||
       component.get('data-value')),
-  resolve: (node, component) => {
+  resolve: (node: NOODLDOMElement, component) => {
     const dataValue = component.get('data-value')
     let { placeholder, text } = component.get(['placeholder', 'text'])
     text = typeof dataValue === 'string' ? dataValue : text || text || ''

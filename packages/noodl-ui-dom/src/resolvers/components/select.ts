@@ -1,29 +1,6 @@
 import { optionExists, toSelectOption } from '../../utils'
 import { RegisterOptions } from '../../types'
 
-export const setOption = (
-  node: HTMLSelectElement,
-  option: any,
-): HTMLOptionElement => {
-  option = toSelectOption(option)
-  if (!optionExists(node, option)) {
-    const optionNode = document.createElement('option')
-    optionNode.id = option.key
-    optionNode.value = option.value
-    optionNode.innerText = option.label
-    node.appendChild(optionNode)
-    if (option?.value === datasetAttribs['data-value']) {
-      // Default to the selected index if the user already has a state set before
-      ;(node as HTMLSelectElement)['selectedIndex'] = index
-    }
-
-    return optionNode
-  }
-  return [...node.options].find(
-    (opt) => opt.value === option.value,
-  ) as HTMLOptionElement
-}
-
 export default {
   name: '[noodl-ui-dom] select',
   cond: 'select',

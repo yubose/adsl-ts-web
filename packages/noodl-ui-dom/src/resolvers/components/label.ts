@@ -3,7 +3,7 @@ import { RegisterOptions } from '../../types'
 export default {
   name: '[noodl-ui-dom] label',
   cond: 'label',
-  resolve(node, component) {
+  resolve(node: HTMLLabelElement, component) {
     const dataValue = component.get('data-value') || ''
     const { placeholder, text } = component.get(['placeholder', 'text'])
     if (dataValue) node.innerHTML = dataValue

@@ -7,6 +7,7 @@ import {
   ListDataObjectEventHandlerOptions,
   ListDataObjectOperationResult,
   ProxiedComponent,
+  ComponentObject,
 } from '../../types'
 import Component from '../Base'
 import ListItem from '../ListItem'
@@ -481,7 +482,7 @@ class List extends Component implements IComponent {
     eventName:
       | 'add.data.object'
       | 'delete.data.object'
-      | 'remove.data.object'
+      | 'update.data.object'
       | 'retrieve.data.object'
       | 'create.list.item'
       | 'remove.list.item'
@@ -497,7 +498,7 @@ class List extends Component implements IComponent {
     switch (eventName) {
       case 'add.data.object':
       case 'delete.data.object':
-      case 'remove.data.object':
+      case 'update.data.object':
       case 'retrieve.data.object':
       case 'create.list.item':
       case 'remove.list.item':
@@ -580,7 +581,7 @@ class List extends Component implements IComponent {
       iteratorVar: this.iteratorVar,
       style: this.style,
       type: this.type,
-    }
+    } as ComponentObject
   }
 
   #getDataObjectHandlerOptions = (): ListDataObjectEventHandlerOptions => ({

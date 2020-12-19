@@ -3,7 +3,7 @@ import { RegisterOptions } from '../../types'
 export default {
   name: '[noodl-ui-dom] image',
   cond: 'image',
-  resolve(node, component) {
+  resolve(node: HTMLImageElement, component) {
     const onClick = component.get('onClick')
 
     if (typeof onClick === 'function') {

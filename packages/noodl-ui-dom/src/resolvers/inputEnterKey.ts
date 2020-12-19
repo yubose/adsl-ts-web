@@ -1,8 +1,8 @@
-import { RegisterOptions } from '../types'
+import { NOODLDOMElement, RegisterOptions } from '../types'
 
 export default {
   name: '[noodl-ui-dom] input enter key',
-  cond: (node) => !!(node?.tagName === 'INPUT'),
+  cond: (node: NOODLDOMElement) => !!(node?.tagName === 'INPUT'),
   resolve: (node: HTMLInputElement) => {
     node.onkeypress = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {

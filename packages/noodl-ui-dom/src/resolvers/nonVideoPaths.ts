@@ -1,8 +1,9 @@
-import { RegisterOptions } from '../types'
+import { NOODLDOMElement, RegisterOptions } from '../types'
 
 export default {
   name: '[noodl-ui-dom] path (non videos)',
-  cond: (n, c, { original }) => !!original?.path && n?.tagName !== 'VIDEO',
+  cond: (n: NOODLDOMElement, c, { original }) =>
+    !!original?.path && n?.tagName !== 'VIDEO',
   resolve: (node: HTMLImageElement, component) => {
     node.src = component.get('src') || ''
   },

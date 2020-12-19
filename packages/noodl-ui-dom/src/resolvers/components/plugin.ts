@@ -48,7 +48,7 @@ export default {
         if (typeof getNode === 'function') {
           getNode(node)
         } else {
-          node = getNode
+          node = getNode as HTMLScriptElement
         }
       }
     }

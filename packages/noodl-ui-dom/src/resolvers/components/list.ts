@@ -4,7 +4,7 @@ import { RegisterOptions } from '../../types'
 export default {
   name: 'list',
   cond: 'list',
-  before(node, component, options) {
+  before(node: HTMLUListElement, component, options) {
     console.log({ node, component, options })
     // noodl-ui delegates the responsibility for us to decide how
     // to control how list children are first rendered to the DOM
@@ -24,7 +24,7 @@ export default {
       }
     }
   },
-  resolve(node, component: List, options) {
+  resolve(node: HTMLUListElement, component: List, options) {
     const { noodlui, redraw } = options
     component.on(
       noodluiEvent.component.list.CREATE_LIST_ITEM,

@@ -16,9 +16,6 @@ export type ComponentCreationType = string | ComponentObject | ComponentInstance
 export type ComponentObject = NOODLComponent & ProxiedComponent
 
 export interface IComponent<K = ComponentType> {
-  action: Partial<
-    Record<'onChange' | 'onClick', ActionChainActionCallback<any>>
-  >
   id: string
   type: string
   noodlType: K
@@ -84,6 +81,7 @@ export interface IComponent<K = ComponentType> {
   }
   touch(key: string): this
   touchStyle(styleKey: string): this
+  toJS(): Partial<ComponentObject>
 }
 
 export type ListBlueprint = ProxiedComponent & {

@@ -4,13 +4,11 @@ import { WritableDraft } from 'immer/dist/internal'
 import { createDraft, isDraft, finishDraft, original, current } from 'immer'
 import { eventTypes } from '../../constants'
 import {
-  ActionObject,
   ComponentCreationType,
+  ComponentInstance,
   ComponentObject,
   ComponentType,
   IComponent,
-  NOODLComponent,
-  ProxiedComponent,
   Style,
 } from '../../types'
 import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
@@ -26,14 +24,13 @@ class Component implements IComponent {
   #cache: { [key: string]: any }
   #cb: { [eventName: string]: Function[] } = {}
   #component: WritableDraft<ComponentObject> | ComponentObject
-  #children: Component[] = []
+  #children: ComponentInstance[] = []
   #id: string = ''
   #noodlType: ComponentType
-  #parent: Component | null = null
+  #parent: ComponentInstance | null = null
   #status: 'drafting' | 'idle' = 'drafting'
   #stylesHandled: string[] = []
   #stylesUnhandled: string[] = []
-  action: ActionObject = {} as ActionObject
   context: { [key: string]: any } = {}
   original: ComponentObject
   resolved: boolean = false
@@ -492,19 +489,18 @@ class Component implements IComponent {
   }
 
   /** Returns the JS representation of the currently resolved component */
-  toJS(): ProxiedComponent {
+  toJS(): ComponentObject {
     const obj = isDraft(this.#component)
       ? current(this.#component)
       : this.#component
     if (obj?.children) {
       return {
         ...obj,
-        ...this.action,
         id: this.id,
         children: _.map(this.children(), (child) => child?.toJS?.()),
       }
     }
-    return { ...obj, ...this.action }
+    return obj as ComponentObject
   }
 
   /**
@@ -523,7 +519,7 @@ class Component implements IComponent {
     return !!this.#parent && isComponent(this.#parent)
   }
 
-  setParent(parent: Component | null) {
+  setParent(parent: ComponentInstance | null) {
     this.#parent = parent
     return this
   }
@@ -543,7 +539,7 @@ class Component implements IComponent {
    * Creates and appends the new child instance to the childrens list
    * @param { IComponentType } props
    */
-  createChild<C extends Component>(child: C): C {
+  createChild<C extends ComponentInstance>(child: C): C {
     child?.setParent?.(this)
     this.#children.push(child)
     return child
@@ -551,11 +547,11 @@ class Component implements IComponent {
 
   /**
    * Returns true if the child exists in the tree
-   * @param { Component | string } child - Child component or id
+   * @param { ComponentInstance | string } child - Child component or id
    */
   hasChild(child: string): boolean
-  hasChild(child: Component): boolean
-  hasChild(child: Component | string): boolean {
+  hasChild(child: ComponentInstance): boolean
+  hasChild(child: ComponentInstance | string): boolean {
     if (_.isString(child)) {
       return !!_.find(this.#children, (c) => c?.id === child)
     } else if (isComponent(child)) {
@@ -568,14 +564,14 @@ class Component implements IComponent {
    * Removes a child from its children. You can pass in either the instance
    * directly, the index leading to the child, the component's id, or leave the args empty to
    * remove the first child by default
-   * @param { Component | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
+   * @param { ComponentInstance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
    */
-  removeChild(index: number): Component | undefined
-  removeChild(id: string): Component | undefined
-  removeChild(child: Component): Component | undefined
-  removeChild(): Component | undefined
-  removeChild(child?: Component | number | string) {
-    let removedChild: Component | undefined
+  removeChild(index: number): ComponentInstance | undefined
+  removeChild(id: string): ComponentInstance | undefined
+  removeChild(child: ComponentInstance): ComponentInstance | undefined
+  removeChild(): ComponentInstance | undefined
+  removeChild(child?: ComponentInstance | number | string) {
+    let removedChild: ComponentInstance | undefined
     if (!arguments.length) {
       removedChild = this.#children.shift()
     } else if (_.isNumber(child) && this.#children[child]) {
@@ -584,8 +580,8 @@ class Component implements IComponent {
       removedChild = child
         ? _.find(this.#children, (c) => c.id === child)
         : undefined
-    } else if (this.hasChild(child as Component)) {
-      if (this.#children.includes(child as Component)) {
+    } else if (this.hasChild(child as ComponentInstance)) {
+      if (this.#children.includes(child as ComponentInstance)) {
         this.#children = _.filter(this.#children, (c) => {
           if (c === child) {
             removedChild = child
@@ -604,25 +600,6 @@ class Component implements IComponent {
 
   get length() {
     return this.#children?.length || 0
-  }
-
-  /**
-   *
-   * Recursively invokes the provided callback on each raw noodl child
-   * @param { Component } child
-   */
-  broadcastRaw(cb: (c: Component, nc: NOODLComponent, index: unknown) => void) {
-    const notify = (c: Component) => {
-      _.forEach(
-        c.original?.children || [],
-        (noodlChild: NOODLComponent, index) => {
-          cb?.(c, noodlChild, index)
-          c.children().forEach((cc) => notify(cc))
-        },
-      )
-    }
-    notify(this)
-    return this
   }
 
   on(eventName: string, cb: Function) {

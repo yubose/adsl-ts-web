@@ -3,6 +3,7 @@ import Component from '../Base'
 import {
   ComponentInstance,
   ComponentConstructor,
+  ComponentObject,
   ProxiedComponent,
 } from '../../types'
 
@@ -64,18 +65,11 @@ class ListItem extends Component {
     this.#iteratorVar = iteratorVar
   }
 
-  get(
-    key:
-      | 'iteratorVar'
-      | 'listId'
-      | 'listIndex'
-      | ('iteratorVar' | 'listId' | 'listIndex')[],
-    styleKey?: any,
-  ) {
+  get(key: any, styleKey: any) {
     if (key === 'iteratorVar') return this.iteratorVar
     if (key === 'listId') return this.listId
     if (key === 'listIndex') return this.listIndex
-    return super.get(key, styleKey) as any
+    return super.get(key, styleKey)
   }
 
   set<K extends keyof ProxiedComponent>(
@@ -122,7 +116,6 @@ class ListItem extends Component {
     return this
   }
 
-  // @ts-expect-error
   toJS() {
     return {
       children: _.map(this.#children, (child) => child.toJS?.()),
@@ -134,7 +127,7 @@ class ListItem extends Component {
       noodlType: this.noodlType,
       style: this.style,
       type: this.type,
-    }
+    } as ComponentObject
   }
 
   on(eventName: string, cb: Function) {

@@ -11,7 +11,7 @@ const createResolver = function createResolver() {
     noodluidom: any
   } = {
     objs: [],
-    // @ts-expect-error
+    // @ts-ignore
     noodlui: undefined,
     noodluidom: undefined,
   }
@@ -25,12 +25,6 @@ const createResolver = function createResolver() {
       } as T.NodeResolverUtils
     },
   }
-
-  // const middlewares = [] as any[]
-
-  // const _middlewareResolver = (...args: T.NodeResolverBaseArgs) => {
-  //   return () => middlewares.forEach((fn) => fn(...args))
-  // }
 
   function _isResolverConfig(value: any): value is T.NodeResolverConfig {
     return (

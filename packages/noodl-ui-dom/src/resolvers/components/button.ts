@@ -3,7 +3,7 @@ import { RegisterOptions } from '../../types'
 export default {
   name: '[noodl-ui-dom] button',
   cond: 'button',
-  resolve(node, component) {
+  resolve(node: HTMLButtonElement, component) {
     const { onClick: onClickProp, src = '' } = component.get(['onClick', 'src'])
     /**
      * Buttons that have a "src" property

@@ -4,7 +4,7 @@ import { RegisterOptions } from '../../types'
 export default {
   name: '[noodl-ui-dom] video',
   cond: 'video',
-  resolve(node, component) {
+  resolve(node: HTMLVideoElement, component) {
     const { controls, poster, src, videoType } = component.get([
       'controls',
       'poster',
