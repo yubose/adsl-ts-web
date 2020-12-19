@@ -1,6 +1,6 @@
 import {
   createComponent,
-  Component,
+  ComponentInstance,
   ComponentObject,
   getTagName,
   NOODL as NOODLUI,
@@ -8,32 +8,19 @@ import {
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { createAsyncImageElement, getShape } from './utils'
-import {
-  componentEventMap,
-  componentEventIds,
-  componentEventTypes,
-} from './constants'
+import { componentEventMap, componentEventTypes } from './constants'
 import NOODLUIDOMInternal from './Internal'
 import createResolver from './createResolver'
 import * as defaultResolvers from './resolvers'
 import * as T from './types'
 
 class NOODLUIDOM extends NOODLUIDOMInternal {
-  #callbacks: {
-    all: Function[]
-    component: Record<T.NOODLDOMComponentType, Function[]>
-  } = {
-    all: [],
-    component: componentEventTypes.reduce(
-      (acc, evt: T.NOODLDOMComponentType) => Object.assign(acc, { [evt]: [] }),
-      {} as Record<T.NOODLDOMComponentType, Function[]>,
-    ),
-  }
   #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
   #R: ReturnType<typeof createResolver>
 
   constructor() {
     super()
+
     this.#R = createResolver()
     this.#R.use(this)
     this.#R.use(Object.values(defaultResolvers))
@@ -42,9 +29,9 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
-   * @param { Component } props
+   * @param { ComponentInstance } props
    */
-  parse<C extends Component>(
+  parse<C extends ComponentInstance>(
     component: C,
     container?: T.NOODLDOMElement | null,
   ) {
@@ -75,8 +62,8 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
-            component.children().forEach((child: Component) => {
-              const childNode = this.parse(child, node) as HTMLElement
+            component.children().forEach((child: ComponentInstance) => {
+              const childNode = this.parse(child, node) as T.NOODLDOMElement
               node?.appendChild(childNode)
             })
           }
@@ -88,8 +75,8 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
   }
 
   redraw(
-    node: HTMLElement | null, // ex: li (dom node)
-    component: Component, // ex: listItem (component instance)
+    node: T.NOODLDOMElement | null, // ex: li (dom node)
+    component: ComponentInstance, // ex: listItem (component instance)
     {
       dataObject,
       ...opts
@@ -97,7 +84,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       dataObject?: any
       resolver?: (
         noodlComponent: ComponentObject | ComponentObject[],
-      ) => Component
+      ) => ComponentInstance
     } = {},
   ) {
     if (!opts?.resolver) {
@@ -107,8 +94,8 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       )
     }
 
-    let newNode: HTMLElement | null = null
-    let newComponent: Component | undefined
+    let newNode: T.NOODLDOMElement | null = null
+    let newComponent: ComponentInstance | undefined
 
     if (component) {
       const parent = component.parent?.()
@@ -161,16 +148,16 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       if (newComponent) {
         newNode = this.parse(
           newComponent,
-          (parentNode || document.body) as HTMLElement,
+          (parentNode || document.body) as T.NOODLDOMElement,
         )
       }
 
       if (parentNode) {
         if (parentNode.contains(node) && newNode) {
-          parentNode.replaceChild(newNode as HTMLElement, node)
+          parentNode.replaceChild(newNode as T.NOODLDOMElement, node)
         } else if (newNode) {
           parentNode.insertBefore(
-            newNode as HTMLElement,
+            newNode as T.NOODLDOMElement,
             parentNode.childNodes[0],
           )
         }
@@ -178,75 +165,10 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.parse(newComponent as Component)
+      this.parse(newComponent as ComponentInstance)
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]
-  }
-
-  /**
-   * Registers a listener to the listeners list
-   * @param { string } eventName - Name of the listener event
-   * @param { function } callback - Callback to invoke when the event is emitted
-   */
-  on(
-    eventName: T.NOODLDOMEvent,
-    callback: (node: T.NOODLDOMElement | null, component: Component) => void,
-  ) {
-    const callbacks = this.getCallbacks(eventName)
-    if (Array.isArray(callbacks)) callbacks.push(callback)
-    return this
-  }
-
-  /**
-   * Removes a listener's callback from the listeners list
-   * @param { string } eventName - Name of the listener event
-   * @param { function } callback
-   */
-  off<E extends T.NOODLDOMEvent>(eventName: E, callback: Function) {
-    const callbacks = this.getCallbacks(eventName)
-    if (Array.isArray(callbacks)) {
-      const index = callbacks.indexOf(callback)
-      if (index !== -1) callbacks.splice(index, 1)
-    }
-    return this
-  }
-
-  /**
-   * Emits an event name and calls all the callbacks registered to that event
-   * @param { string } eventName - Name of the listener event
-   * @param { ...any[] } args
-   */
-  emit<E extends string = T.NOODLDOMEvent>(
-    eventName: E,
-    node: T.NOODLDOMElement | null,
-    component: Component,
-  ) {
-    const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
-    if (Array.isArray(callbacks)) {
-      callbacks.forEach((fn) => fn && fn(node as T.NOODLDOMElement, component))
-    }
-    return this
-  }
-
-  /**
-   * Takes either a component type or any other name of an event and returns the
-   * callbacks associated with it
-   * @param { string } value - Component type or name of the event
-   */
-  getCallbacks(eventName?: T.NOODLDOMEvent) {
-    if (!arguments.length) return this.#callbacks
-    if (typeof eventName === 'string') {
-      const callbacksMap = this.#callbacks
-      if (eventName === 'component') return callbacksMap.all
-      if (componentEventIds.includes(eventName)) {
-        return callbacksMap.component[this.#getEventKey(eventName)]
-      } else if (eventName) {
-        if (!callbacksMap[eventName]) callbacksMap[eventName] = []
-        return callbacksMap[eventName]
-      }
-    }
-    return null
   }
 
   /**
@@ -277,26 +199,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return eventKey || ''
   }
 
-  getAllCbs() {
-    return this.#callbacks
-  }
-
-  removeCbs(key: string) {
-    if (this.#callbacks.component[key]) {
-      this.#callbacks.component[key].length = 0
-    }
-    if (key === 'all') this.#callbacks.all.length = 0
-    return this
-  }
-
-  reset() {
-    this.#callbacks.all.length = 0
-    Object.keys(this.#callbacks.component).forEach((key) => {
-      this.#callbacks.component[key].length = 0
-    })
-    return this
-  }
-
   register(obj: NOODLUI | T.NodeResolverConfig): this {
     this.#R.use(obj)
     return this
@@ -304,6 +206,11 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
   resolvers() {
     return this.#R.get()
+  }
+
+  reset() {
+    this.#R.clear()
+    return this
   }
 }
 

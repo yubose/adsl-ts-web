@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import Component from './components/Base'
-import { ConsumerOptions, ResolverFn } from './types'
+import { ComponentInstance, ConsumerOptions, ResolverFn } from './types'
 
 class Resolver {
   #isInternal: boolean = false
@@ -24,7 +23,7 @@ class Resolver {
     return this
   }
 
-  resolve(component: Component, options: ConsumerOptions) {
+  resolve(component: ComponentInstance, options: ConsumerOptions) {
     this.#resolver?.(component, options)
     return this
   }

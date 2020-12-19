@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { ComponentObject, ComponentType } from '../types'
+import { ComponentInstance, ComponentObject, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
@@ -12,13 +12,13 @@ export interface PropsOptionFunc<T> {
 export type PropsOptionObj = ComponentObject
 
 interface Options {
-  props?: PropsOptionObj | PropsOptionFunc<Component>
+  props?: PropsOptionObj | PropsOptionFunc<ComponentInstance>
 }
 
 /**
  * A helper/utility to create Component instances corresponding to their NOODL
  * component type
- * @param { string | object | Component } value - NOODL component type, a component object, or a Component instance
+ * @param { string | object | ComponentInstance } value - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
 function createComponent(noodlType: 'list', options?: Options): List
@@ -26,22 +26,22 @@ function createComponent(noodlType: 'listItem', options?: Options): ListItem
 function createComponent<K extends ComponentType = ComponentType>(
   noodlType: K,
   options?: Options,
-): Component
+): ComponentInstance
 
 function createComponent<K extends ComponentType = ComponentType>(
   value: ComponentObject,
   options?: Options,
-): Component
+): ComponentInstance
 
 function createComponent<K extends ComponentType = ComponentType>(
-  component: Component,
+  component: ComponentInstance,
   options?: Options,
-): Component
+): ComponentInstance
 
 function createComponent<K extends ComponentType = ComponentType>(
   value: K | ComponentObject | Component,
   options?: Options,
-): Component | List | ListItem {
+): ComponentInstance | List | ListItem {
   let childComponent: any
   let id: string = ''
   const props = toProps(value, options?.props)

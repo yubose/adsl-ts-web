@@ -1,4 +1,4 @@
-import Component from '../components/Base'
+import { ComponentInstance } from '../types'
 
 const createComponentCache = function () {
   let cache = {}
@@ -8,14 +8,14 @@ const createComponentCache = function () {
       cache = {}
       return o
     },
-    get(component: Component) {
+    get(component: ComponentInstance) {
       return cache[component.id]
     },
-    set(component: Component) {
+    set(component: ComponentInstance) {
       cache[component.id] = component
       return o
     },
-    remove(component: Component) {
+    remove(component: ComponentInstance) {
       delete cache[component.id]
       return o
     },

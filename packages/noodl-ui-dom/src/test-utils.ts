@@ -1,4 +1,5 @@
 import {
+  ComponentInstance,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -14,20 +15,56 @@ import {
   getTransformedAliases,
   getTransformedStyleAliases,
   isComponent,
-  NOODL,
+  NOODL as NOODLUI,
   ResolverFn,
   Viewport,
 } from 'noodl-ui'
-import { NOODLDOMElement } from './types'
+import * as resolvers from './resolvers'
+import { NOODLDOMElement, NodeResolverConfig } from './types'
 import NOODLUIDOM from './noodl-ui-dom'
 
-export const noodluidom = new NOODLUIDOM()
 export const assetsUrl = 'https://aitmed.com/assets/'
+export const noodluidom = new NOODLUIDOM()
+export const noodlui = new NOODLUI()
 export const viewport = new Viewport()
-export const noodlui = new NOODL()
 
 viewport.width = 365
 viewport.height = 667
+
+/**
+ * A helper that tests a noodl-ui-dom DOM resolver. This automatically prepares
+ * the noodl-ui client so that you don't have to. The root object automatically
+ * inserts the pageName and pageObject if they are both set, so its entirely optional
+ * to provide a getRoot function in that case
+ */
+export function applyMockDOMResolver(opts: {
+  assetsUrl?: string
+  component?: any
+  pageName?: string
+  pageObject?: any
+  resolver: NodeResolverConfig
+  root?: { [key: string]: any }
+}) {
+  const utils = { componentCache: noodlui.componentCache } as {
+    componentCache: NOODLUI['componentCache']
+    node: NOODLDOMElement
+    component: ComponentInstance
+  }
+  noodluidom.register(opts.resolver)
+  noodlui.setPage(opts.pageName || '').use({
+    getAssetsUrl: () => assetsUrl || noodlui.assetsUrl || '',
+    getRoot: () => ({
+      ...opts.root,
+      [opts.pageName || '']: {
+        ...opts.pageObject,
+        ...opts.root?.[opts.pageName || ''],
+      },
+    }),
+  })
+  utils.component = noodlui.resolveComponents(opts.component)
+  utils.node = noodluidom.parse(utils.component) as NOODLDOMElement
+  return utils
+}
 
 export function getAllResolvers() {
   return [
@@ -48,14 +85,22 @@ export function getAllResolvers() {
   ] as ResolverFn[]
 }
 
-export function toDOM<N = NOODLDOMElement | null, C = any>(
-  props: any,
-): [N | null, C] {
-  // @ts-expect-error
-  let node: N = null
+export function getDOMResolver(key: keyof typeof resolvers) {
+  return resolvers[key]
+}
+
+export function getDOMResolvers(asFuncs?: boolean) {
+  if (asFuncs) return Object.values(resolvers)
+  return resolvers
+}
+
+export function toDOM<
+  N extends NOODLDOMElement = NOODLDOMElement,
+  C extends ComponentInstance = any
+>(props: any) {
+  let node: N | null = null
   let component: C | undefined
   if (isComponent(props)) {
-    // @ts-expect-error
     node = noodluidom.parse(props as any) as N
     component = props as any
   } else if (typeof props === 'object' && 'type' in props) {
@@ -64,5 +109,5 @@ export function toDOM<N = NOODLDOMElement | null, C = any>(
     node = noodluidom.parse(component) as N
   }
   if (node) document.body.appendChild(node as any)
-  return [node, component] as [N, C]
+  return [node, component] as [NonNullable<N>, C]
 }

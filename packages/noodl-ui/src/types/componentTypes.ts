@@ -20,7 +20,7 @@ export interface IComponent<K = ComponentType> {
   type: string
   noodlType: K
   style: Style
-  action: Record<'onChange' | 'onClick', ActionChainActionCallback>
+  action: Partial<Record<'onChange' | 'onClick', ActionChainActionCallback>>
   length: number
   original: ComponentObject
   status: 'drafting' | 'idle' | 'idle/resolved'

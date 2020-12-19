@@ -1,9 +1,8 @@
 import _ from 'lodash'
-import { current } from 'immer'
-import Component from '../components/Base'
 import {
   ActionChainEmitTrigger,
   ComponentCreationType,
+  ComponentInstance,
   ComponentObject,
   NOODLComponent,
   PluginLocation,
@@ -15,14 +14,14 @@ import isComponent from './isComponent'
 
 /**
  * Deeply creates children until the depth is reached
- * @param { ComponentCreationType | Component } c - Component instance
+ * @param { ComponentCreationType | ComponentInstance } c - ComponentInstance instance
  * @param { object } opts
  * @param { number | undefined } opts.depth - The maximum depth to deeply recurse to. Defaults to 1
  * @param { object | undefined } opts.injectProps - Props to inject to desired components during the recursion
  * @param { object | undefined } opts.injectProps.last - Props to inject into the last created child
  */
 export function createDeepChildren(
-  c: ComponentCreationType | Component,
+  c: ComponentCreationType | ComponentInstance,
   opts?: {
     depth?: number
     injectProps?: {
@@ -30,9 +29,9 @@ export function createDeepChildren(
         | { [key: string]: any }
         | ((rootProps: Partial<ComponentObject>) => Partial<ComponentObject>)
     }
-    onCreate?(child: Component, depth: number): Partial<NOODLComponent>
+    onCreate?(child: ComponentInstance, depth: number): Partial<NOODLComponent>
   },
-): Component {
+): ComponentInstance {
   if (opts?.depth) {
     let count = 0
     let curr =
@@ -60,14 +59,14 @@ export function createDeepChildren(
       }
     }
   }
-  return c as Component
+  return c as ComponentInstance
 }
 
 /**
  * Deeply traverses all children down the component's family tree
- * @param { Component | NOODLComponent | ProxiedComponent | ProxiedComponent } component
+ * @param { ComponentInstance | NOODLComponent | ProxiedComponent | ProxiedComponent } component
  */
-export function forEachDeepChildren<C extends Component>(
+export function forEachDeepChildren<C extends ComponentInstance>(
   component: C,
   cb: (component: C, child: ComponentCreationType) => void,
 ): void
@@ -75,10 +74,12 @@ export function forEachDeepChildren<C extends ComponentObject>(
   component: C,
   cb: (component: C, child: ComponentCreationType) => void,
 ): void
-export function forEachDeepChildren<C extends Component | ComponentObject>(
+export function forEachDeepChildren<
+  C extends ComponentInstance | ComponentObject
+>(
   component: C,
   cb: (
-    parent: Component | ComponentObject,
+    parent: ComponentInstance | ComponentObject,
     child: ComponentCreationType,
   ) => void,
 ): void {
@@ -176,21 +177,21 @@ export function checkForNoodlProp(
  * Traverses the children hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned child
- * @param { Component } component
+ * @param { ComponentInstance } component
  * @param { function } fn - Comparator function
  */
-export function findChild<C extends Component>(
+export function findChild<C extends ComponentInstance>(
   component: C,
-  fn: (child: Component) => boolean,
-): Component | null {
-  let child: Component | null | undefined
+  fn: (child: ComponentInstance) => boolean,
+): ComponentInstance | null {
+  let child: ComponentInstance | null | undefined
   let children = component?.children?.()?.slice?.() || []
 
   if (isComponent(component)) {
     child = children.shift() || null
     while (child) {
       if (fn(child)) return child
-      child.children?.().forEach((c: Component) => children.push(c))
+      child.children?.().forEach((c: ComponentInstance) => children.push(c))
       child = children.pop()
     }
   }
@@ -201,12 +202,12 @@ export function findChild<C extends Component>(
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
- * @param { Component } component
+ * @param { ComponentInstance } component
  * @param { function } fn
  */
-export function findParent<C extends Component>(
+export function findParent<C extends ComponentInstance>(
   component: C,
-  fn: (parent: Component | null) => boolean,
+  fn: (parent: ComponentInstance | null) => boolean,
 ) {
   let parent = component?.parent?.()
   if (fn(parent)) return parent
@@ -430,11 +431,14 @@ export function getPluginTypeLocation(value: string): PluginLocation | '' {
  * @param {  }  -
  */
 export function isListKey(dataKey: string, iteratorVar: string): boolean
-export function isListKey(dataKey: string, component: Component): boolean
+export function isListKey(
+  dataKey: string,
+  component: ComponentInstance,
+): boolean
 export function isListKey(dataKey: string, component: ComponentObject): boolean
 export function isListKey(
   dataKey: string,
-  component: string | Component | ComponentObject,
+  component: string | ComponentInstance | ComponentObject,
 ) {
   if (arguments.length < 2) {
     throw new Error('Missing second argument')
@@ -488,17 +492,20 @@ export function isSubStreamComponent(value: any) {
 
 /**
  * Recursively invokes the provided callback on each child
- * @param { Component } component
+ * @param { ComponentInstance } component
  * @param { function } cb
  */
 // TODO - Depth option
-export function publish(component: Component, cb: (child: Component) => void) {
+export function publish(
+  component: ComponentInstance,
+  cb: (child: ComponentInstance) => void,
+) {
   if (
     component &&
     typeof component === 'object' &&
     typeof component['children'] === 'function'
   ) {
-    component.children().forEach((child: Component) => {
+    component.children().forEach((child: ComponentInstance) => {
       cb(child)
       child?.children()?.forEach?.((c) => {
         cb(c)

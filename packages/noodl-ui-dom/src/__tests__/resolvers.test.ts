@@ -1,29 +1,45 @@
 import chalk from 'chalk'
 import { expect } from 'chai'
 import { prettyDOM, screen } from '@testing-library/dom'
-import { noodlui, toDOM } from '../test-utils'
+import {
+  applyMockDOMResolver,
+  getDOMResolver,
+  noodlui,
+  noodluidom,
+  toDOM,
+} from '../test-utils'
 import * as resolvers from '../resolvers'
 
 describe('default resolvers', () => {
   describe('common', () => {
     it('should display data value if it is displayable', () => {
-      noodlui
-        .setPage('F')
-        .use({ getRoot: () => ({ F: { formData: { password: 'abc' } } }) })
-      toDOM({ type: 'label', dataKey: 'formData.password' })
-      expect(screen.findByText('abc')).to.exist
+      const { node } = applyMockDOMResolver({
+        resolver: resolvers.common,
+        pageName: 'F',
+        pageObject: { formData: { password: 'asfafsbc' } },
+        component: {
+          type: 'label',
+          dataKey: 'F.formData.password',
+          text: 'fdsfdsf',
+        },
+      })
+      expect(node.textContent).to.eq('asfafsbc')
     })
   })
 
   describe('button', () => {
     it('should have a pointer cursor if it has an onClick', () => {
-      const [node, component] = toDOM({
-        type: 'button',
-        text: 'hello',
-        style: { fontSize: '14' },
-        onClick: [],
+      const { node } = applyMockDOMResolver({
+        resolver: resolvers.common,
+        pageName: 'F',
+        pageObject: { formData: { password: 'asfafsbc' } },
+        component: {
+          type: 'button',
+          text: 'hello',
+          style: { fontSize: '14' },
+          onClick: [],
+        },
       })
-      resolvers.button.resolve(node, component)
       expect(node.style).to.have.property('cursor').eq('pointer')
     })
   })
@@ -91,24 +107,38 @@ describe('events', () => {
 
 describe('image', () => {
   it('should attach the pointer cursor if it has onClick', () => {
-    const [node, component] = toDOM({ type: 'image', onClick: [] })
-    resolvers.image.resolve(node, component)
-    expect(node.style).to.have.property('cursor').eq('pointer')
+    expect(
+      applyMockDOMResolver({
+        component: { type: 'image', onClick: [] },
+        resolver: resolvers.image,
+      }).node.style,
+    )
+      .to.have.property('cursor')
+      .eq('pointer')
   })
 
   it('should set width and height to 100% if it has children (deprecate soon)', () => {
-    const [node, component] = toDOM({ type: 'image', children: [] })
-    resolvers.image.resolve(node, component)
-    expect(node.style).to.have.property('width').eq('100%')
-    expect(node.style).to.have.property('height').eq('100%')
+    const {
+      node: { style },
+    } = applyMockDOMResolver({
+      component: { type: 'image', children: [] },
+      resolver: resolvers.image,
+    })
+    expect(style).to.have.property('width').eq('100%')
+    expect(style).to.have.property('height').eq('100%')
   })
 })
 
 describe('label', () => {
   it('should attach the pointer cursor if it has onClick', () => {
-    const [node, component] = toDOM({ type: 'label', onClick: [] })
-    resolvers.label.resolve(node, component)
-    expect(node.style).to.have.property('cursor').eq('pointer')
+    expect(
+      applyMockDOMResolver({
+        component: { type: 'label', onClick: [] },
+        resolver: resolvers.label,
+      }).node.style,
+    )
+      .to.have.property('cursor')
+      .eq('pointer')
   })
 })
 
@@ -117,7 +147,19 @@ describe('list', () => {
     `should attach to noodlui cache when receiving the ` +
       `${chalk.yellow('create.list.item')} event`,
     () => {
-      //
+      const { component, componentCache } = applyMockDOMResolver({
+        component: {
+          type: 'list',
+          iteratorVar: 'hello',
+          listObject: [{ hello: 'greeting' }],
+          children: [{ type: 'listItem' }],
+        },
+        resolver: resolvers.image,
+      })
+
+      // for (let child of component.children()) {
+      //   expect(componentCache().state()).to.have.property(child.id)
+      // }
     },
   )
 

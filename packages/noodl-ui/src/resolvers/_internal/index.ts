@@ -1,10 +1,10 @@
 import _ from 'lodash'
-import Component from '../../components/Base'
 import handleList from './handleList'
 import handleTextboard from './handleTextboard'
 import Resolver from '../../Resolver'
 import { _resolveChildren } from './helpers'
 import { publish } from '../../utils/noodl'
+import { ComponentInstance } from '../../types'
 
 /**
  * These resolvers are used internally by the lib. They handle all the logic
@@ -16,9 +16,9 @@ const _internalResolver = new Resolver()
 _internalResolver.setResolver((component, options) => {
   /**
    * Deeply parses every child node in the tree
-   * @param { Component } c
+   * @param { ComponentInstance } c
    */
-  const resolveChildren = (c: Component) => {
+  const resolveChildren = (c: ComponentInstance) => {
     _resolveChildren(c, {
       onResolve: (child: any) => {
         if (child) {
@@ -35,7 +35,7 @@ _internalResolver.setResolver((component, options) => {
     })
   }
 
-  const resolveInternalNode = <C extends Component = any>(c: C) => {
+  const resolveInternalNode = <C extends ComponentInstance = any>(c: C) => {
     if (c.id && typeof options.componentCache === 'function') {
       options.componentCache().set(c)
       publish(c as any, (innerChild) => {

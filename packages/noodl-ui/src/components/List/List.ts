@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import Logger from 'logsnap'
 import {
   ComponentConstructor,
+  IComponent,
   ListBlueprint,
   ListEventId,
   ListDataObjectEventHandlerOptions,
@@ -13,9 +13,8 @@ import ListItem from '../ListItem'
 import { forEachEntries, getRandomKey } from '../../utils/common'
 import { event } from '../../constants'
 
-const log = Logger.create('List')
 
-class List extends Component {
+class List extends Component implements IComponent {
   #blueprint: ListBlueprint
   #children: ListItem[] = []
   #listId: string

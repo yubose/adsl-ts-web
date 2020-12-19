@@ -1,19 +1,25 @@
 import { ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
-import { componentEventIds } from './constants'
 import NOODLUIDOMInternal from './Internal'
 import * as T from './types'
 
 const createResolver = function createResolver() {
-  let objs: T.NodeResolverConfig[] = []
-  let noodlui: NOODLUI
-  let noodluidom: any
+  const _internal: {
+    objs: T.NodeResolverConfig[]
+    noodlui: NOODLUI
+    noodluidom: any
+  } = {
+    objs: [],
+    // @ts-expect-error
+    noodlui: undefined,
+    noodluidom: undefined,
+  }
 
   const util = {
     options: (...args: T.NodeResolverBaseArgs) =>
       ({
         original: args[1].original,
-        noodlui,
-        redraw: noodluidom.redraw,
+        noodlui: _internal.noodlui,
+        redraw: _internal.noodluidom.redraw,
       } as T.NodeResolverOptions),
   }
 
@@ -31,7 +37,7 @@ const createResolver = function createResolver() {
     ) => void,
   ) {
     return (...args: T.NodeResolverBaseArgs) => {
-      return runner(objs, ...args)
+      return runner(_internal.objs, ...args)
     }
   }
 
@@ -84,7 +90,7 @@ const createResolver = function createResolver() {
 
   const o = {
     register(obj: T.NodeResolverConfig) {
-      if (!objs.includes(obj)) objs.push(obj)
+      if (!_internal.objs.includes(obj)) _internal.objs.push(obj)
       return o
     },
     run: _run((configs, node, component) => {
@@ -98,12 +104,12 @@ const createResolver = function createResolver() {
       return this
     }),
     clear() {
-      objs.length = 0
+      _internal.objs.length = 0
       return o
     },
     get(key?: string) {
-      if (key === 'noodlui') return noodlui
-      return objs
+      if (key === 'noodlui') return _internal.noodlui
+      return _internal.objs
     },
     use(value: T.NodeResolverUseObject | T.NodeResolverUseObject[]) {
       if (Array.isArray(value)) {
@@ -112,9 +118,9 @@ const createResolver = function createResolver() {
         if (_isResolverConfig(value)) {
           o.register(value)
         } else if (value instanceof NOODLUI) {
-          noodlui = value
+          _internal.noodlui = value
         } else if (value instanceof NOODLUIDOMInternal) {
-          noodluidom = value
+          _internal.noodluidom = value
         } else if (typeof value === 'object') {
           //
         }

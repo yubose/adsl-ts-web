@@ -11,7 +11,6 @@ import {
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
-import Component from './components/Base'
 import _internalResolver from './resolvers/_internal'
 import makeRootsParser from './factories/makeRootsParser'
 import {
@@ -40,11 +39,11 @@ import * as T from './types'
 
 const log = Logger.create('noodl-ui')
 
-function _createState(state?: Partial<T.State>) {
+function _createState(initialState?: Partial<T.State>) {
   return {
     page: '',
     plugins: { head: [], body: { top: [], bottom: [] } },
-    ...state,
+    ...initialState,
   } as T.State
 }
 
@@ -108,8 +107,8 @@ class NOODL {
     return this.#viewport
   }
 
-  resolveComponents(component: T.ComponentCreationType): Component
-  resolveComponents(components: T.ComponentCreationType[]): Component[]
+  resolveComponents(component: T.ComponentCreationType): T.ComponentInstance
+  resolveComponents(components: T.ComponentCreationType[]): T.ComponentInstance[]
   resolveComponents(
     componentsParams:
       | T.ComponentCreationType
@@ -117,7 +116,7 @@ class NOODL {
       | T.Page['object'],
   ) {
     let components: any[] = []
-    let resolvedComponents: Component[] = []
+    let resolvedComponents: T.ComponentInstance[] = []
 
     if (componentsParams) {
       if (isComponent(componentsParams)) {
@@ -166,8 +165,8 @@ class NOODL {
       : resolvedComponents[0]
   }
 
-  #resolve = (c: T.ComponentType | Component | T.ComponentObject) => {
-    const component = createComponent(c)
+  #resolve = (c: T.ComponentType | T.ComponentInstance | T.ComponentObject) => {
+    const component = createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component.original.style)
 
@@ -257,17 +256,17 @@ class NOODL {
 
   createSrc<O extends T.EmitObject>(
     path: O,
-    component?: Component,
+    component?: T.ComponentInstance,
   ): string | Promise<string>
   createSrc<O extends T.IfObject>(
     path: O,
-    component?: Component,
+    component?: T.ComponentInstance,
   ): string | Promise<string>
   createSrc<S extends string>(
     path: S,
-    component?: Component,
+    component?: T.ComponentInstance,
   ): string | Promise<string>
-  createSrc(path: string | T.EmitObject | T.IfObject, component?: Component) {
+  createSrc(path: string | T.EmitObject | T.IfObject, component?: T.ComponentInstance) {
     log.func('createSrc')
     // TODO - fix this in the component constructor so we can remove this
     if (isDraft(path)) path = original(path) as typeof path
@@ -440,7 +439,7 @@ class NOODL {
       : (_.noop as Window['fetch'])) as T.Fetch
   }
 
-  createPluginObject(component: Component): T.PluginObject
+  createPluginObject(component: T.ComponentInstance): T.PluginObject
   createPluginObject(component: T.ComponentObject): T.PluginObject
   createPluginObject(plugin: T.PluginObject): T.PluginObject
   createPluginObject(path: string): T.PluginObject
@@ -519,8 +518,8 @@ class NOODL {
     cb: (
       noodlComponent: T.ComponentObject,
       args: {
-        component: Component
-        parent?: Component | null
+        component: T.ComponentInstance
+        parent?: T.ComponentInstance | null
       },
     ) => void,
   ) {
@@ -529,7 +528,21 @@ class NOODL {
   }
 
   off(eventName: T.EventId, cb: T.ComponentEventCallback) {
-    if (_.isString(eventName)) this.#removeCb(eventName, cb)
+    if (_.isString(eventName))  {
+      const path = this.#getCbPath(eventName)
+    if (path) {
+      const cbs = _.get(this.#cb, path)
+      if (_.isArray(cbs)) {
+        if (cbs.includes(cb)) {
+          _.set(
+            this.#cb,
+            path,
+            _.filter(cbs, (fn) => fn !== cb),
+          )
+        }
+      }
+    }
+    }
     return this
   }
 
@@ -621,22 +634,6 @@ class NOODL {
     return this
   }
 
-  #removeCb = (key: T.EventId, cb: Function) => {
-    const path = this.#getCbPath(key)
-    if (path) {
-      const cbs = _.get(this.#cb, path)
-      if (_.isArray(cbs)) {
-        if (cbs.includes(cb)) {
-          _.set(
-            this.#cb,
-            path,
-            _.filter(cbs, (fn) => fn !== cb),
-          )
-        }
-      }
-    }
-    return this
-  }
 
   init({
     _log = true,
@@ -676,7 +673,7 @@ class NOODL {
   }
 
   getActionsContext() {
-    return Object.assign({}, this.actionsContext)
+    return this.actionsContext
   }
 
   getContext() {
@@ -687,30 +684,6 @@ class NOODL {
     } as T.ResolverContext
   }
 
-  getEmitHandlers(
-    trigger: T.ActionChainEmitTrigger | T.ResolveEmitTrigger,
-  ): T.ActionChainUseObjectBase<any, any>[]
-  getEmitHandlers(
-    trigger: (handlers: T.ActionChainUseObjectBase<any, any>) => boolean,
-  ): T.ActionChainUseObjectBase<any, any>[]
-  getEmitHandlers(
-    trigger?:
-      | (T.ActionChainEmitTrigger | T.ResolveEmitTrigger)
-      | ((handlers: T.ActionChainUseObjectBase<any, any>) => boolean),
-  ) {
-    const handlers = this.#cb.action.emit || []
-    if (!arguments.length) {
-      return handlers
-    }
-    if (trigger) {
-      if (typeof trigger === 'string') {
-        return handlers.filter((o) => o.trigger === trigger)
-      } else if (typeof trigger === 'function') {
-        return handlers.filter((o) => trigger(o))
-      }
-    }
-    return handlers
-  }
 
   getPageObject(page: string) {
     return this.#getRoot()[page]
@@ -727,7 +700,7 @@ class NOODL {
     component,
     ...rest
   }: {
-    component: Component
+    component: T.ComponentInstance
     [key: string]: any
   }) {
     return {
@@ -916,7 +889,7 @@ class NOODL {
 
   reset(opts: { keepCallbacks?: boolean; keepPlugins?: boolean } = {}) {
     this.#parser = makeRootsParser({ root: this.#getRoot() })
-    this.#state = _createState()
+    this.#state = _createState(opts.keepPlugins ? {plugins:this.#state.plugins} : undefined)
     if (!opts.keepCallbacks) {
       this.#cb = { action: [], builtIn: [], chaining: [] } as any
     }

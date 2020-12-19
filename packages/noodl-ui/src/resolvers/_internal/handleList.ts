@@ -4,8 +4,9 @@ import List from '../../components/List'
 import ListItem from '../../components/ListItem'
 import { getRandomKey } from '../../utils/common'
 import {
-  ConsumerOptions,
+  ComponentInstance,
   ComponentObject,
+  ConsumerOptions,
   ListBlueprint,
   NOODLComponent,
 } from '../../types'

@@ -5,7 +5,7 @@ import {
   ActionChainUseObjectBase,
   ActionConsumerCallbackOptions,
 } from './actionChainTypes'
-import { ComponentObject } from './componentTypes'
+import { ComponentInstance, ComponentObject } from './componentTypes'
 import {
   ActionChainEventId,
   ActionType,
@@ -183,7 +183,7 @@ export interface ResolveComponent<T = any> {
   (component: Component): T
 }
 
-export interface ResolverFn<C = Component> {
+export interface ResolverFn<C extends ComponentInstance = any> {
   (component: C, consumerOptions: ConsumerOptions): void
 }
 
