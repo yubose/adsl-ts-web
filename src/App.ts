@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { Viewport } from 'noodl-ui'
 import { AuthStatus } from 'app/types/commonTypes'
 

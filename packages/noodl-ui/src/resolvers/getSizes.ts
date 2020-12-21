@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isFinite from 'lodash/isFinite'
 import { ResolverFn } from '../types'
 import { hasDecimal, hasLetter } from '../utils/common'
 
@@ -20,14 +20,14 @@ const getSizes: ResolverFn = (component, options) => {
   const width = component.getStyle('width')
   const height = component.getStyle('height')
 
-  if (!_.isUndefined(width)) {
+  if (width !== undefined) {
     component.setStyle(
       'width',
       String(getSize(width, viewport.width as number)),
     )
   }
 
-  if (!_.isUndefined(height)) {
+  if (height !== undefined) {
     component.setStyle(
       'height',
       String(getSize(height, viewport.height as number)),
@@ -46,7 +46,7 @@ function getSize(value: string | number, viewportSize: number) {
   } else if (value == '1') {
     return `${viewportSize}px`
   } else {
-    if (_.isString(value)) {
+    if (typeof value === 'string') {
       if (!hasLetter(value)) {
         if (hasDecimal(value)) {
           return `${Number(value) * viewportSize}px`
@@ -57,7 +57,7 @@ function getSize(value: string | number, viewportSize: number) {
         // Assuming it already has a 'px' appended
         return value
       }
-    } else if (_.isFinite(value)) {
+    } else if (isFinite(value)) {
       if (hasDecimal(value)) {
         return `${value * viewportSize}px`
       } else {

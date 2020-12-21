@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import get from 'lodash/get'
 import Logger from 'logsnap'
 import { isBooleanTrue, isEmitObj } from 'noodl-utils'
 import { contentTypes } from '../constants'
@@ -60,7 +60,7 @@ const getTransformedAliases: ResolverFn = (
   }
 
   if (required) component.set('required', isBooleanTrue(required))
-  if (_.isBoolean(controls)) component.set('controls', controls)
+  if (typeof controls === 'boolean') component.set('controls', controls)
   if (poster) component.set('poster', createSrc(poster))
 
   if (path || resource) {
@@ -134,7 +134,7 @@ const getTransformedAliases: ResolverFn = (
   // Select components
   if (options) {
     const toOption = (option: any, index: number) =>
-      _.isString(option) || _.isNumber(option)
+      typeof option === 'string' || typeof option === 'number'
         ? {
             index,
             key: option,
@@ -142,15 +142,15 @@ const getTransformedAliases: ResolverFn = (
             label: option,
           }
         : option
-    if (_.isArray(options)) {
-      component.set('options', _.map(options, toOption))
+    if (Array.isArray(options)) {
+      component.set('options', options.map(toOption))
     } else if (isReference(options)) {
       const optionsPath = options.startsWith('.')
         ? options.replace(/(..|.)/, '')
         : options
       const dataOptions =
-        _.get(getPageObject(context.page), optionsPath) ||
-        _.get(getRoot(), optionsPath) ||
+        get(getPageObject(context.page), optionsPath) ||
+        get(getRoot(), optionsPath) ||
         []
       component.set('options', dataOptions.map(toOption))
     }

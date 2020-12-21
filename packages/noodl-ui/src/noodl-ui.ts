@@ -1,4 +1,7 @@
-import _ from 'lodash'
+import get from 'lodash/get'
+import set from 'lodash/set'
+import isPlainObject from 'lodash/isPlainObject'
+import noop from 'lodash/noop'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
 import {
@@ -58,21 +61,19 @@ class NOODL {
   } = {
     action: {},
     builtIn: {},
-    chaining: _.reduce(
-      _.values(event.actionChain),
-      (acc, key) => _.assign(acc, { [key]: [] }),
+    chaining: Object.values(event.actionChain).reduce(
+      (acc, key) => Object.assign(acc, { [key]: [] }),
       {},
     ),
   }
-  #fetch = ((typeof window !== 'undefined' && window.fetch) ||
-    _.noop) as T.Fetch
+  #fetch = ((typeof window !== 'undefined' && window.fetch) || noop) as T.Fetch
   #getAssetsUrl: () => string = () => ''
   #parser: T.RootsParser
   #resolvers: Resolver[] = []
   #getRoot: () => T.Root = () => ({})
   #state: T.State
   #viewport: Viewport
-  actionsContext: T.ActionChainContext = { noodlui: this; }
+  actionsContext: T.ActionChainContext = { noodlui: this }
   initialized: boolean = false
 
   constructor({
@@ -108,7 +109,9 @@ class NOODL {
   }
 
   resolveComponents(component: T.ComponentCreationType): T.ComponentInstance
-  resolveComponents(components: T.ComponentCreationType[]): T.ComponentInstance[]
+  resolveComponents(
+    components: T.ComponentCreationType[],
+  ): T.ComponentInstance[]
   resolveComponents(
     componentsParams:
       | T.ComponentCreationType
@@ -121,37 +124,33 @@ class NOODL {
     if (componentsParams) {
       if (isComponent(componentsParams)) {
         components = [componentsParams]
-      } else if (!_.isArray(componentsParams) && _.isObject(componentsParams)) {
+      } else if (
+        !Array.isArray(componentsParams) &&
+        typeof componentsParams === 'object'
+      ) {
         if ('components' in componentsParams) {
           components = componentsParams.components
         } else {
           components = [componentsParams]
         }
-      } else if (_.isArray(componentsParams)) {
+      } else if (Array.isArray(componentsParams)) {
         components = componentsParams
-      } else if (_.isString(componentsParams)) {
+      } else if (typeof componentsParams === 'string') {
         components = [componentsParams]
       }
     }
 
     // Add plugin components first
-    _.forEach(
-      [
-        ..._.map(this.plugins('head'), (plugin: T.PluginObject) => plugin.ref),
-        ..._.map(
-          this.plugins('body-top'),
-          (plugin: T.PluginObject) => plugin.ref,
-        ),
-        ..._.map(
-          this.plugins('body-bottom'),
-          (plugin: T.PluginObject) => plugin.ref,
-        ),
-      ],
-      (c) => this.#resolve(c),
-    )
+    ;[
+      ...this.plugins('head').map((plugin: T.PluginObject) => plugin.ref),
+      ...this.plugins('body-top').map((plugin: T.PluginObject) => plugin.ref),
+      ...this.plugins('body-bottom').map(
+        (plugin: T.PluginObject) => plugin.ref,
+      ),
+    ].forEach((c) => this.#resolve(c))
 
     // Finish off with the internal resolvers to handle the children
-    _.forEach(components, (c) => {
+    components.forEach((c) => {
       const component = this.#resolve(c)
       _internalResolver.resolve(
         component,
@@ -160,7 +159,7 @@ class NOODL {
       resolvedComponents.push(component)
     })
 
-    return _.isArray(componentsParams)
+    return Array.isArray(componentsParams)
       ? resolvedComponents
       : resolvedComponents[0]
   }
@@ -182,7 +181,7 @@ class NOODL {
     // Finalizing
     if (component.style && typeof component.style === 'object') {
       forEachDeepEntries(component.style, (key, value) => {
-        if (_.isString(value)) {
+        if (typeof value === 'string') {
           if (value.startsWith('0x')) {
             component.set('style', key, formatColor(value))
           } else if (/(fontsize|borderwidth|borderradius)/i.test(key)) {
@@ -192,7 +191,7 @@ class NOODL {
       })
     }
 
-    _.forEach(this.#resolvers, (r: Resolver) =>
+    this.#resolvers.forEach((r: Resolver) =>
       r.resolve(component, consumerOptions),
     )
 
@@ -206,43 +205,42 @@ class NOODL {
     },
   ) {
     const actionChain = new ActionChain(
-      _.isArray(actions) ? actions : [actions],
+      Array.isArray(actions) ? actions : [actions],
       options as T.ActionConsumerCallbackOptions & {
         trigger: T.ActionChainEmitTrigger
       },
       this.actionsContext,
     )
-    const useActionObjects = _.reduce(
-      _.entries(this.#cb.action),
+    const useActionObjects = Object.entries(this.#cb.action).reduce(
       (arr, [actionType, actionObjs]) =>
         arr.concat(
-          _.reduce(
-            actionObjs || [],
-            (
-              acc,
-              actionObj: Omit<
-                T.ActionChainUseObjectBase<any, any>,
-                'actionType'
-              >,
-            ) => {
-              if (
-                isEmitObj(actionObj) &&
-                isActionChainEmitTrigger(actionObj.trigger)
-              ) {
-                // Only accept the emit action handlers where their
-                // actions only exist in action chains
-                return acc.concat({ ...actionObj, actionType: 'emit' })
-              }
-              return acc.concat({ actionType, ...actionObj } as any)
-            },
-            [] as T.ActionChainUseObjectBase<any, any>[],
-          ),
+          actionObjs ||
+            [].reduce(
+              (
+                acc,
+                actionObj: Omit<
+                  T.ActionChainUseObjectBase<any, any>,
+                  'actionType'
+                >,
+              ) => {
+                if (
+                  isEmitObj(actionObj) &&
+                  isActionChainEmitTrigger(actionObj.trigger)
+                ) {
+                  // Only accept the emit action handlers where their
+                  // actions only exist in action chains
+                  return acc.concat({ ...actionObj, actionType: 'emit' })
+                }
+                return acc.concat({ actionType, ...actionObj } as any)
+              },
+              [] as T.ActionChainUseObjectBase<any, any>[],
+            ),
         ),
       [] as any[],
     )
     useActionObjects.forEach((f) => actionChain.useAction(f))
     actionChain.useBuiltIn(
-      _.map(_.entries(this.#cb.builtIn), ([funcName, fn]) => ({
+      Object.entries(this.#cb.builtIn).map(([funcName, fn]) => ({
         funcName,
         fn,
       })),
@@ -266,14 +264,17 @@ class NOODL {
     path: S,
     component?: T.ComponentInstance,
   ): string | Promise<string>
-  createSrc(path: string | T.EmitObject | T.IfObject, component?: T.ComponentInstance) {
+  createSrc(
+    path: string | T.EmitObject | T.IfObject,
+    component?: T.ComponentInstance,
+  ) {
     log.func('createSrc')
     // TODO - fix this in the component constructor so we can remove this
     if (isDraft(path)) path = original(path) as typeof path
 
     if (path) {
       // Plain strings
-      if (_.isString(path)) {
+      if (typeof path === 'string') {
         return resolveAssetUrl(path, this.assetsUrl)
       }
       // "If" object evaluation
@@ -321,8 +322,7 @@ class NOODL {
 
           emitAction['callback'] = async (snapshot) => {
             log.grey(`Executing emit action callback`, snapshot)
-            const callbacks = _.reduce(
-              this.#cb.action.emit || [],
+            const callbacks = (this.#cb.action.emit || []).reduce(
               (acc, obj) => (obj?.trigger === 'path' ? acc.concat(obj) : acc),
               [],
             )
@@ -436,7 +436,7 @@ class NOODL {
           window
             .fetch?.(...(args as Parameters<Window['fetch']>))
             .then((response) => response.json())
-      : (_.noop as Window['fetch'])) as T.Fetch
+      : (noop as Window['fetch'])) as T.Fetch
   }
 
   createPluginObject(component: T.ComponentInstance): T.PluginObject
@@ -523,37 +523,37 @@ class NOODL {
       },
     ) => void,
   ) {
-    if (_.isString(eventName)) this.#addCb(eventName, cb)
+    if (typeof eventName === 'string') this.#addCb(eventName, cb)
     return this
   }
 
   off(eventName: T.EventId, cb: T.ComponentEventCallback) {
-    if (_.isString(eventName))  {
+    if (typeof eventName === 'string') {
       const path = this.#getCbPath(eventName)
-    if (path) {
-      const cbs = _.get(this.#cb, path)
-      if (_.isArray(cbs)) {
-        if (cbs.includes(cb)) {
-          _.set(
-            this.#cb,
-            path,
-            _.filter(cbs, (fn) => fn !== cb),
-          )
+      if (path) {
+        const cbs = get(this.#cb, path)
+        if (Array.isArray(cbs)) {
+          if (cbs.includes(cb)) {
+            set(
+              this.#cb,
+              path,
+              cbs.filter((fn) => fn !== cb),
+            )
+          }
         }
       }
-    }
     }
     return this
   }
 
   // emit(eventName: T.NOODLComponentEventId, cb: T.ComponentEventCallback): void
   emit(eventName: T.EventId, ...args: Parameters<T.ComponentEventCallback>) {
-    if (_.isString(eventName)) {
+    if (typeof eventName === 'string') {
       const path = this.#getCbPath(eventName)
       if (path) {
-        let cbs = _.get(this.#cb, path) as Function[]
-        if (!_.isArray(cbs)) cbs = cbs ? [cbs] : []
-        _.forEach(cbs, (cb) => cb(...args))
+        let cbs = get(this.#cb, path) as Function[]
+        if (!Array.isArray(cbs)) cbs = cbs ? [cbs] : []
+        cbs.forEach((cb) => cb(...args))
       }
     }
     return this
@@ -597,25 +597,25 @@ class NOODL {
     cb2?: T.ActionChainActionCallback,
   ) => {
     if (key instanceof Action) {
-      if (!_.isArray(this.#cb.action[key.actionType])) {
+      if (!Array.isArray(this.#cb.action[key.actionType])) {
         this.#cb.action[key.actionType] = []
       }
       this.#cb.action[key.actionType].push(key)
     } else if (key === 'builtIn') {
-      if (_.isString(cb)) {
+      if (typeof cb === 'string') {
         const funcName = cb
         const fn = cb2 as T.ActionChainActionCallback
-        if (!_.isArray(this.#cb.builtIn[funcName])) {
+        if (!Array.isArray(this.#cb.builtIn[funcName])) {
           this.#cb.builtIn[funcName] = []
         }
         this.#cb.builtIn[funcName]?.push(fn)
-      } else if (_.isPlainObject(cb)) {
+      } else if (isPlainObject(cb)) {
         forEachEntries(
           cb as { [key: string]: T.ActionChainActionCallback },
           (key, value) => {
             const funcName = key
             const fn = value
-            if (!_.isArray(this.#cb.builtIn[funcName])) {
+            if (!Array.isArray(this.#cb.builtIn[funcName])) {
               this.#cb.builtIn[funcName] = []
             }
             if (!this.#cb.builtIn[funcName]?.includes(fn)) {
@@ -627,13 +627,12 @@ class NOODL {
     } else {
       const path = this.#getCbPath(key as any)
       if (path) {
-        if (!_.isArray(this.#cb[path])) this.#cb[path] = []
+        if (!Array.isArray(this.#cb[path])) this.#cb[path] = []
         this.#cb[path].push(cb as T.ActionChainActionCallback)
       }
     }
     return this
   }
-
 
   init({
     _log = true,
@@ -655,7 +654,7 @@ class NOODL {
     viewport?: Viewport
   } = {}) {
     if (!_log) Logger.disable()
-    if (actionsContext) _.assign(this.actionsContext, actionsContext)
+    if (actionsContext) Object.assign(this.actionsContext, actionsContext)
     if (getAssetsUrl) this.#getAssetsUrl = getAssetsUrl
     if (getRoot) this.#getRoot = getRoot
     if (viewport) this.setViewport(viewport)
@@ -683,7 +682,6 @@ class NOODL {
       page: this.page,
     } as T.ResolverContext
   }
-
 
   getPageObject(page: string) {
     return this.#getRoot()[page]
@@ -821,18 +819,18 @@ class NOODL {
         )[],
     ...rest: any[]
   ) {
-    const mods = ((_.isArray(mod) ? mod : [mod]) as any[]).concat(rest)
+    const mods = ((Array.isArray(mod) ? mod : [mod]) as any[]).concat(rest)
     const handleMod = (m: typeof mods[number]) => {
       if (m) {
         if ('funcName' in m) {
-          if (!_.isArray(this.#cb.builtIn[m.funcName])) {
+          if (!Array.isArray(this.#cb.builtIn[m.funcName])) {
             this.#cb.builtIn[m.funcName] = []
           }
           this.#cb.builtIn[m.funcName].push(
-            ...(_.isArray(m.fn) ? m.fn : [m.fn]),
+            ...(Array.isArray(m.fn) ? m.fn : [m.fn]),
           )
         } else if ('actionType' in m) {
-          if (!_.isArray(this.#cb.action[m.actionType])) {
+          if (!Array.isArray(this.#cb.action[m.actionType])) {
             this.#cb.action[m.actionType] = []
           }
           const obj = { actionType: m.actionType, fn: m.fn } as any
@@ -863,8 +861,8 @@ class NOODL {
       }
     }
 
-    _.forEach(mods, (m) => {
-      if (_.isArray(m)) _.forEach([...m, ...rest], (_m) => handleMod(_m))
+    mods.forEach((m) => {
+      if (Array.isArray(m)) [...m, ...rest].forEach((_m) => handleMod(_m))
       else handleMod(m)
     })
 
@@ -877,7 +875,7 @@ class NOODL {
         throw new Error('Internal resolvers cannot be removed')
       }
       if (this.#resolvers.includes(mod)) {
-        this.#resolvers = _.filter(this.#resolvers, (r) => r !== mod)
+        this.#resolvers = this.#resolvers.filter((r) => r !== mod)
       }
     }
     return this
@@ -889,7 +887,9 @@ class NOODL {
 
   reset(opts: { keepCallbacks?: boolean; keepPlugins?: boolean } = {}) {
     this.#parser = makeRootsParser({ root: this.#getRoot() })
-    this.#state = _createState(opts.keepPlugins ? {plugins:this.#state.plugins} : undefined)
+    this.#state = _createState(
+      opts.keepPlugins ? { plugins: this.#state.plugins } : undefined,
+    )
     if (!opts.keepCallbacks) {
       this.#cb = { action: [], builtIn: [], chaining: [] } as any
     }

@@ -1,5 +1,5 @@
+import isPlainObject from 'lodash/isPlainObject'
 import { YAMLMap } from 'yaml/types'
-import _ from 'lodash'
 import { NOODLMapIdentities } from './identifyMap'
 
 export interface PushInvalidation {
@@ -19,7 +19,7 @@ export type EvaluateMap = Record<NOODLMapIdentities, Evaluate>
 const evaluateMaps = {} as EvaluateMap
 
 evaluateMaps.actionObject = function (action, push: PushInvalidation) {
-  if (_.isPlainObject(action)) {
+  if (isPlainObject(action)) {
     //
   } else if (action instanceof YAMLMap) {
     //

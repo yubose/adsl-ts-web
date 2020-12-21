@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { ResolverFn } from '../types'
 import { eventTypes } from '../constants'
 
@@ -6,7 +5,7 @@ import { eventTypes } from '../constants'
 const getEventHandlers: ResolverFn = (component, options) => {
   if (component) {
     const { createActionChainHandler } = options
-    _.forEach(eventTypes, (eventType) => {
+    eventTypes.forEach((eventType) => {
       if (component.keys.includes(eventType)) {
         const actionObj = component.get('cache')?.[eventType]
 

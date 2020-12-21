@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
 import {
   EmitActionObject,
@@ -55,9 +55,9 @@ class EmitAction extends Action<EmitObject> {
       }
     } else if (arguments.length === 2) {
       if (typeof property === 'string') {
-        if (!_.isPlainObject(this.dataKey)) this.dataKey = {}
+        if (!isPlainObject(this.dataKey)) this.dataKey = {}
         Object.assign(this.dataKey, value)
-      } else if (_.isPlainObject(property)) {
+      } else if (isPlainObject(property)) {
         Object.assign(this.dataKey, property)
       }
     }

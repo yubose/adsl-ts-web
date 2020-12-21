@@ -1,5 +1,4 @@
 // @ts-nocheck
-import _ from 'lodash'
 import { expect } from 'chai'
 import { Draft } from 'immer'
 import { makeResolverTest } from '../../utils/test-utils'

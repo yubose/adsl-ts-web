@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { expect } from 'chai'
 import { noodlui } from '../../utils/test-utils'
 import { _resolveChildren } from './helpers'

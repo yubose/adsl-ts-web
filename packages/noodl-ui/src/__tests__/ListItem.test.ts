@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { expect } from 'chai'
 import Component from '../components/Base'
 import ListItemComponent from '../components/ListItem'

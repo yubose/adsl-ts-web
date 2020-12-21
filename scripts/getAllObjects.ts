@@ -1,6 +1,5 @@
 import fs from 'fs-extra'
 import chalk from 'chalk'
-import _ from 'lodash'
 import path from 'path'
 import * as log from './utils/log'
 import Aggregator from './modules/Aggregator'
@@ -52,10 +51,10 @@ async function getAllObjects({
   }
 
   base.onBaseItems = async () => {
-    const names = _.keys(base.items)
+    const names = Object.keys(base.items)
     let consoleSaveMsg = `Saving ${base.meta.rootConfig.label} config, ${base.meta.appConfig.label} config`
 
-    _.forEach(names, (name, index, coll) => {
+    names.forEach((name, index, coll) => {
       name && log.green(`Retrieved ${name}`)
       if (index + 1 < coll.length) {
         consoleSaveMsg += `, ${name}`
@@ -101,7 +100,7 @@ async function getAllObjects({
       includePages: true,
     })
     await Promise.all(
-      _.map(_.entries(items), async ([name, { json: resolvedPage }]) => {
+      Object.entries(items).map(async ([name, { json: resolvedPage }]) => {
         const opts = {}
         await saver.save({
           data: resolvedPage,

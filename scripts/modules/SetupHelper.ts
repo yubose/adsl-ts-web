@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import yaml from 'yaml'
 import chalk from 'chalk'
 import axios from 'axios'

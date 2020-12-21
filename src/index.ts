@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import set from 'lodash/set'
+import some from 'lodash/some'
 import axios from 'axios'
 import {
   LocalAudioTrackPublication,
@@ -209,7 +210,7 @@ window.addEventListener('load', async () => {
         )
       }
 
-      if (_.isArray(subStreams)) {
+      if (Array.isArray(subStreams)) {
         subStreams.forEach((subStream) => {
           if (subStream.getElement()) {
             log.grey("Wiping a subStream's state", subStream.reset())
@@ -291,30 +292,28 @@ window.addEventListener('load', async () => {
             plugins,
           })
           .use(
-            _.reduce(
-              [
-                getElementType,
-                getTransformedAliases,
-                getReferences,
-                getAlignAttrs,
-                getBorderAttrs,
-                getColors,
-                getFontAttrs,
-                getPlugins,
-                getPosition,
-                getSizes,
-                getStylesByElementType,
-                getTransformedStyleAliases,
-                getCustomDataAttrs,
-                getEventHandlers,
-              ],
+            [
+              getElementType,
+              getTransformedAliases,
+              getReferences,
+              getAlignAttrs,
+              getBorderAttrs,
+              getColors,
+              getFontAttrs,
+              getPlugins,
+              getPosition,
+              getSizes,
+              getStylesByElementType,
+              getTransformedStyleAliases,
+              getCustomDataAttrs,
+              getEventHandlers,
+            ].reduce(
               (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
               [] as Resolver[],
             ),
           )
           .use(
-            _.reduce(
-              _.entries(actions),
+            Object.entries(actions).reduce(
               (arr, [actionType, actions]) =>
                 arr.concat(actions.map((a) => ({ ...a, actionType }))),
               [] as any[],
@@ -322,21 +321,18 @@ window.addEventListener('load', async () => {
           )
           .use(
             // @ts-expect-error
-            _.map(
-              _.entries({
-                checkField: builtIn.checkField,
-                checkUsernamePassword: builtIn.checkUsernamePassword,
-                goBack: builtIn.goBack,
-                lockApplication: builtIn.lockApplication,
-                logOutOfApplication: builtIn.logOutOfApplication,
-                logout: builtIn.logout,
-                redraw: builtIn.redraw,
-                toggleCameraOnOff: builtIn.toggleCameraOnOff,
-                toggleFlag: builtIn.toggleFlag,
-                toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
-              }),
-              ([funcName, fn]) => ({ funcName, fn }),
-            ),
+            Object.entries({
+              checkField: builtIn.checkField,
+              checkUsernamePassword: builtIn.checkUsernamePassword,
+              goBack: builtIn.goBack,
+              lockApplication: builtIn.lockApplication,
+              logOutOfApplication: builtIn.logOutOfApplication,
+              logout: builtIn.logout,
+              redraw: builtIn.redraw,
+              toggleCameraOnOff: builtIn.toggleCameraOnOff,
+              toggleFlag: builtIn.toggleFlag,
+              toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
+            }).map(([funcName, fn]) => ({ funcName, fn })),
           )
 
         forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
@@ -555,7 +551,7 @@ window.addEventListener('load', async () => {
       participant,
       stream,
     })
-    const isInSdk = _.some(
+    const isInSdk = some(
       noodl.root?.VideoChat?.listData?.participants || [],
       (p) => p.sid === participant.sid,
     )
@@ -569,7 +565,7 @@ window.addEventListener('load', async () => {
         const participants = Meeting.removeFalseyParticipants(
           draft?.VideoChat?.listData?.participants || [],
         ).concat(participant)
-        _.set(draft, 'VideoChat.listData.participants', participants)
+        set(draft, 'VideoChat.listData.participants', participants)
       })
 
       log.func('Meeting.onAddRemoteParticipant')
@@ -590,14 +586,12 @@ window.addEventListener('load', async () => {
      * @param { RemoteParticipant } participant
      */
     noodl.editDraft((draft: typeof noodl.root) => {
-      _.set(
+      set(
         draft.VideoChat.listData,
         'participants',
         Meeting.removeFalseyParticipants(
-          _.filter(
-            draft?.VideoChat?.listData?.participants || [],
-            (p) => p !== participant,
-          ),
+          draft?.VideoChat?.listData?.participants ||
+            [].filter((p) => p !== participant),
         ),
       )
     })

@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Logger from 'logsnap'
 import { current, isDraft } from 'immer'
 import { isBreakLineTextBoardItem } from 'noodl-utils'
@@ -18,8 +17,8 @@ const handleTextboardInternalResolver = (
   let { textBoard, text } = component.get(['textBoard', 'text'])
   if (isDraft(textBoard)) textBoard = current(textBoard)
 
-  if (_.isArray(textBoard)) {
-    if (_.isString(text)) {
+  if (Array.isArray(textBoard)) {
+    if (typeof text === 'string') {
       log.red(
         'A component cannot have a "text" and "textBoard" property because ' +
           'they both overlap. The "text" will take precedence.',
@@ -27,7 +26,7 @@ const handleTextboardInternalResolver = (
       )
     }
 
-    _.forEach(textBoard, (item) => {
+    textBoard.forEach((item) => {
       if (isBreakLineTextBoardItem(item)) {
         const br = createComponent('br')
         component.createChild(br as any)

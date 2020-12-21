@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import get from 'lodash/get'
+import isPlainObject from 'lodash/isPlainObject'
 import {
   ActionChainEmitTrigger,
   ComponentCreationType,
@@ -84,13 +85,13 @@ export function forEachDeepChildren<
   ) => void,
 ): void {
   if (component) {
-    if (_.isArray(component.children)) {
-      _.forEach(component.children, (child) => {
+    if (Array.isArray(component.children)) {
+      component.children.forEach((child) => {
         cb(component, child)
         forEachDeepChildren(child, cb)
       })
-    } else if (_.isFunction(component.children)) {
-      _.forEach(component.children(), (child) => {
+    } else if (typeof component.children === 'function') {
+      component.children().forEach((child) => {
         cb(component, child)
         forEachDeepChildren(child, cb)
       })
@@ -107,7 +108,7 @@ export function isActionChainEmitTrigger(
 }
 
 // function createRegexKeysOnProps(keys: string | string[]) {
-//   const regex = new RegExp(_.isArray(keys) ? )
+//   const regex = new RegExp(Array.isArray(keys) ? )
 // }
 export const identify = (function () {
   const o = {
@@ -115,7 +116,8 @@ export const identify = (function () {
       video: {
         /** Returns true if value has a viewTag of "mainStream" */
         isMainStream: (value: any) => {
-          const fn = (val: string) => _.isString(val) && /mainStream/i.test(val)
+          const fn = (val: string) =>
+            typeof val === 'string' && /mainStream/i.test(val)
           return (
             checkForNoodlProp(value, 'viewTag', fn) ||
             checkForNoodlProp(value, 'data-ux', fn)
@@ -123,7 +125,8 @@ export const identify = (function () {
         },
         /** Returns true if value has a viewTag of "selfStream" */
         isSelfStream: (value: any) => {
-          const fn = (val: string) => _.isString(val) && /selfStream/i.test(val)
+          const fn = (val: string) =>
+            typeof val === 'string' && /selfStream/i.test(val)
           return (
             checkForNoodlProp(value, 'viewTag', fn) ||
             checkForNoodlProp(value, 'data-ux', fn)
@@ -136,14 +139,15 @@ export const identify = (function () {
         isSubStreamsContainer(value: any) {
           return checkForNoodlProp(value, 'contentType', (val: string) => {
             return (
-              _.isString(val) && /(vidoeSubStream|videoSubStream)/i.test(val)
+              typeof val === 'string' &&
+              /(vidoeSubStream|videoSubStream)/i.test(val)
             )
           })
         },
         /** Returns true if value has a viewTag of "subStream", */
         isSubStream(value: any) {
           return checkForNoodlProp(value, 'viewTag', (val: string) => {
-            return _.isString(val) && /(subStream)/i.test(val)
+            return typeof val === 'string' && /(subStream)/i.test(val)
           })
         },
       },
@@ -166,7 +170,7 @@ export function checkForNoodlProp(
 ) {
   if (
     (component && typeof component === 'object') ||
-    (typeof component === 'function' && _.isString(prop))
+    (typeof component === 'function' && typeof prop === 'string')
   ) {
     if (predicate(component[prop])) return true
   }
@@ -271,9 +275,9 @@ export function getDataFields(
   if (isBrowser()) {
     if (dataKeys) {
       // Ensure that it is an array
-      if (_.isString(dataKeys)) dataKeys = [dataKeys]
+      if (typeof dataKeys === 'string') dataKeys = [dataKeys]
 
-      return _.isArray(dataKeys)
+      return Array.isArray(dataKeys)
         ? dataKeys.reduce((acc, dataKey) => {
             acc[dataKey] = getDataField(dataKey)
             return acc
@@ -308,7 +312,7 @@ export function getDataFields(
 
 function getDataValue(node: string | null | Element): string | number | null {
   if (node) {
-    if (_.isString(node)) {
+    if (typeof node === 'string') {
       const dataKey = node
       node = getDataField(dataKey)
     }
@@ -349,14 +353,14 @@ export function getDataValues<Fields, K extends keyof Fields>(
   let fn
 
   // Array of field keys
-  if (_.isArray(nodes)) {
+  if (Array.isArray(nodes)) {
     fn = (name: K) => (result[name as string] = getDataValue(name as string))
-    _.forEach(nodes, fn)
+    nodes.forEach(fn)
   }
   // Object of nodes where key is the data name and value is an HTMLElement
-  else if (_.isPlainObject(nodes)) {
+  else if (isPlainObject(nodes)) {
     fn = (name: string) => (result[name] = getDataValue(nodes?.[name] || ''))
-    _.forEach(_.keys(nodes || {}), fn)
+    Object.keys(nodes || {}).forEach(fn)
   }
   // If they don't pass in any arguments, do a global query for all nodes
   // that are assigned a custom data-name attribute
@@ -377,7 +381,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
           )
         }
       }
-      _.forEach(_.keys(allNodes), fn)
+      Object.keys(allNodes).forEach(fn)
     }
   } else {
     console.log(
@@ -410,7 +414,7 @@ export function getDataObjectValue<T = any>({
   if (iteratorVar && dataKey.startsWith(iteratorVar)) {
     dataKey = dataKey.split('.').slice(1).join('.')
   }
-  return _.get(dataObject, dataKey)
+  return get(dataObject, dataKey)
 }
 
 export function getPluginTypeLocation(value: string): PluginLocation | '' {
@@ -486,7 +490,7 @@ export function isListConsumer(component: any) {
  */
 export function isSubStreamComponent(value: any) {
   return checkForNoodlProp(value, 'viewTag', (val: string) => {
-    return _.isString(val) && /subStream/i.test(val)
+    return typeof val === 'string' && /subStream/i.test(val)
   })
 }
 
@@ -517,7 +521,7 @@ export function publish(
 
 export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
   let src = ''
-  if (_.isString(pathValue)) {
+  if (typeof pathValue === 'string') {
     if (/^(http|blob)/i.test(pathValue)) {
       src = pathValue
     } else if (pathValue.startsWith('~/')) {

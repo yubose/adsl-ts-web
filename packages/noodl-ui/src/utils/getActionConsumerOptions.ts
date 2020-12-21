@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import pick from 'lodash/pick'
 import { ActionConsumerCallbackOptions } from '../types'
 import createComponent from '../utils/createComponent'
 import NOODLUI from '../noodl-ui'
@@ -13,7 +13,7 @@ function getActionConsumerOptions(
 ): ActionConsumerCallbackOptions {
   return Object.assign(
     {},
-    _.pick(
+    pick(
       noodlui.getConsumerOptions({
         // Create a dummy component to avoid unexpected data type errors
         component: createComponent('view'),

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import { createDraft, isDraft } from 'immer'
 import { WritableDraft } from 'immer/dist/internal'
 import {
@@ -23,19 +23,19 @@ function createComponentDraftSafely(
     noodlType = value.noodlType as ComponentType
   }
   // Component type
-  else if (_.isString(component)) {
+  else if (typeof component === 'string') {
     noodlType = component as ComponentType
     const proxiedComponent = { type: noodlType, noodlType } as ProxiedComponent
     value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
   }
   // Component instance
-  else if (_.isFunction(component.toJS)) {
+  else if (typeof component.toJS === 'function') {
     const proxiedComponent = component.toJS() as ProxiedComponent
     value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
     noodlType = proxiedComponent.noodlType as ComponentType
   }
   // Proxied component
-  else if (_.isPlainObject(component)) {
+  else if (isPlainObject(component)) {
     noodlType = component.noodlType || (component.type as ComponentType)
     value = createDraft({
       ...component,

@@ -1,4 +1,6 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
+import find from 'lodash/find'
+import merge from 'lodash/merge'
 import Logger from 'logsnap'
 import { WritableDraft } from 'immer/dist/internal'
 import { createDraft, isDraft, finishDraft, original, current } from 'immer'
@@ -45,10 +47,12 @@ class Component implements IComponent {
   constructor(component: ComponentCreationType) {
     const keys = isComponent(component)
       ? component.keys
-      : _.keys(_.isString(component) ? { type: component } : component)
+      : Object.keys(
+          typeof component === 'string' ? { type: component } : component,
+        )
     this['original'] = isComponent(component)
       ? component.original
-      : _.isString(component)
+      : typeof component === 'string'
       ? { noodlType: component }
       : (component as any)
     this['keys'] = keys
@@ -65,8 +69,8 @@ class Component implements IComponent {
 
     if (!this.#component.style) this.#component['style'] = {}
 
-    if (_.isPlainObject(this.#component.style)) {
-      this.#stylesUnhandled = _.keys(this.#component.style)
+    if (isPlainObject(this.#component.style)) {
+      this.#stylesUnhandled = Object.keys(this.#component.style)
       this['stylesUntouched'] = this.#stylesUnhandled.slice()
     } else if (isDraft(this.#component.style)) {
       // this.#component.style = current(this.#component.style)
@@ -74,7 +78,7 @@ class Component implements IComponent {
 
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
-    _.forEach(eventTypes, (eventType) => {
+    eventTypes.forEach((eventType) => {
       if (keys.includes(eventType)) {
         // If the cached handler is a function, it is caching a function that
         // was previously created internally. Since we need a reference to the
@@ -97,11 +101,11 @@ class Component implements IComponent {
 
     // Immer proxifies some funcs / objects but we need them in their original form
     // in the resolve process, so we need to convert them to their original form
-    _.forEach(keys, (key) => {
+    keys.forEach((key) => {
       if (isDraft(this.#component[key])) {
         const orig = original(this.#component[key])
         // this.#component[key] = original(this.#component[key])
-        if (_.isObject(this.original)) {
+        if (typeof this.original === 'object') {
           // this.original[key] = orig
         }
       }
@@ -126,7 +130,7 @@ class Component implements IComponent {
     key: K | K[],
     styleKey?: keyof Style,
   ): ComponentObject[K] | Record<K, ComponentObject[K]> | undefined {
-    if (_.isString(key)) {
+    if (typeof key === 'string') {
       // Returns the original type
       // TODO - Deprecate component.noodlType since component.type is sufficient enough now
       if (key === 'type') return this.original.type as any
@@ -134,9 +138,9 @@ class Component implements IComponent {
       return value
     }
     // component.get(['someKey', 'someOtherKey'])
-    else if (_.isArray(key)) {
+    else if (Array.isArray(key)) {
       const value = {} as Record<K, ComponentObject[K]>
-      _.forEach(key, (k) => (value[k] = this.#retrieve(k)))
+      key.forEach((k) => (value[k] = this.#retrieve(k)))
       return value
     }
   }
@@ -159,7 +163,7 @@ class Component implements IComponent {
           : this.original.style
       }
       // Retrieve a property of the style object
-      else if (_.isString(styleKey)) {
+      else if (typeof styleKey === 'string') {
         if (this.status !== 'drafting') this.touchStyle(styleKey)
         value = this.original.style?.[styleKey]
       }
@@ -264,23 +268,26 @@ class Component implements IComponent {
   done({ mergeUntouched = false } = {}) {
     if (this.status === 'drafting') {
       if (mergeUntouched) {
-        _.forEach(this.untouched, (untouchedKey) => {
+        this.untouched.forEach((untouchedKey) => {
           this.set(untouchedKey, this.#component[untouchedKey])
         })
       }
       // Prevent style keys that are not in valid DOM shapes from leaking to the DOM
-      _.forEach(
-        ['border', 'isHidden', 'required', 'shadow', 'textColor'] as const,
-        (styleKey) => {
-          this.removeStyle(styleKey)
-        },
-      )
+      ;([
+        'border',
+        'isHidden',
+        'required',
+        'shadow',
+        'textColor',
+      ] as const).forEach((styleKey) => {
+        this.removeStyle(styleKey)
+      })
       this.#component = isDraft(this.#component)
         ? finishDraft(this.#component)
         : this.#component
       this.#status = 'idle'
-      if (_.isArray(this.#cb.resolved)) {
-        _.forEach(this.#cb.resolved, (fn) => fn(this.#component))
+      if (Array.isArray(this.#cb.resolved)) {
+        this.#cb.resolved.forEach((fn) => fn(this.#component))
       }
     }
     // this.resolved is meant to be set only once as soon as it has been set
@@ -345,14 +352,14 @@ class Component implements IComponent {
    * @param { object? } value - Object to merge into the component props (or into the component's style object if key === "style")
    */
   assign(key: string | { [key: string]: any }, value?: { [key: string]: any }) {
-    if (_.isString(key)) {
+    if (typeof key === 'string') {
       if (key === 'style') {
-        _.assign(this.#component.style, value)
+        Object.assign(this.#component.style, value)
       } else {
-        _.assign(this.#component[key], value)
+        Object.assign(this.#component[key], value)
       }
-    } else if (_.isPlainObject(key)) {
-      _.assign(this.#component, key)
+    } else if (isPlainObject(key)) {
+      Object.assign(this.#component, key)
     }
     return this
   }
@@ -365,7 +372,7 @@ class Component implements IComponent {
    */
   has(key: string, styleKey?: keyof Style) {
     if (key === 'style') {
-      if (_.isString(styleKey)) {
+      if (typeof styleKey === 'string') {
         return styleKey in (this.#component.style || {})
       }
       return false
@@ -379,14 +386,14 @@ class Component implements IComponent {
    * @param { string | object } key - Component property or "style" if merging into the style object, or an object of component props to merge directly into the component
    */
   merge(key: string | { [key: string]: any }, value?: any) {
-    if (_.isString(key)) {
+    if (typeof key === 'string') {
       if (key === 'style') {
-        _.merge(this.#component.style, value)
+        merge(this.#component.style, value)
       } else {
-        _.merge(this.#component, value)
+        merge(this.#component, value)
       }
-    } else if (_.isPlainObject(key)) {
-      _.merge(this.#component, key)
+    } else if (isPlainObject(key)) {
+      merge(this.#component, key)
     }
     return this
   }
@@ -397,7 +404,7 @@ class Component implements IComponent {
    * @param { string } key - Component property, or "style" if removing a style property using styleKey
    */
   remove(key: string, styleKey?: keyof Style) {
-    if (key === 'style' && _.isString(styleKey)) {
+    if (key === 'style' && typeof styleKey === 'string') {
       if (this.#component.style) {
         delete this.#component.style[styleKey]
       }
@@ -444,12 +451,12 @@ class Component implements IComponent {
   setStyle<K extends keyof Style>(styles: K): this
   setStyle<K extends keyof Style>(styleKey: string | K, value?: any) {
     if (!this.#component.style) this.#component.style = {}
-    if (_.isString(styleKey)) {
+    if (typeof styleKey === 'string') {
       if (this.#component.style) {
         this.#component.style[styleKey] = value
         this.touchStyle(styleKey)
       }
-    } else if (_.isObject(styleKey)) {
+    } else if (typeof styleKey === 'string') {
       const style = this.#component.style as Style
       forEachEntries(styleKey, (key, value) => {
         style[key] = value
@@ -473,7 +480,7 @@ class Component implements IComponent {
    * If it is still a draft it is converted into plain JS
    */
   snapshot() {
-    return _.assign(
+    return Object.assign(
       { id: this.#id, noodlType: this.original.type },
       this.toJS(),
       {
@@ -497,7 +504,7 @@ class Component implements IComponent {
       return {
         ...obj,
         id: this.id,
-        children: _.map(this.children(), (child) => child?.toJS?.()),
+        children: this.children().map((child) => child?.toJS?.()),
       }
     }
     return obj as ComponentObject
@@ -552,8 +559,8 @@ class Component implements IComponent {
   hasChild(child: string): boolean
   hasChild(child: ComponentInstance): boolean
   hasChild(child: ComponentInstance | string): boolean {
-    if (_.isString(child)) {
-      return !!_.find(this.#children, (c) => c?.id === child)
+    if (typeof child === 'string') {
+      return !!find(this.#children, (c) => c?.id === child)
     } else if (isComponent(child)) {
       return this.#children.includes(child)
     }
@@ -574,15 +581,15 @@ class Component implements IComponent {
     let removedChild: ComponentInstance | undefined
     if (!arguments.length) {
       removedChild = this.#children.shift()
-    } else if (_.isNumber(child) && this.#children[child]) {
+    } else if (typeof child === 'number' && this.#children[child]) {
       removedChild = this.#children.splice(child, 1)[0]
-    } else if (_.isString(child)) {
+    } else if (typeof child === 'string') {
       removedChild = child
-        ? _.find(this.#children, (c) => c.id === child)
+        ? find(this.#children, (c) => c.id === child)
         : undefined
     } else if (this.hasChild(child as ComponentInstance)) {
       if (this.#children.includes(child as ComponentInstance)) {
-        this.#children = _.filter(this.#children, (c) => {
+        this.#children = this.#children.filter((c) => {
           if (c === child) {
             removedChild = child
             return false
@@ -603,7 +610,7 @@ class Component implements IComponent {
   }
 
   on(eventName: string, cb: Function) {
-    if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
+    if (!Array.isArray(this.#cb[eventName])) this.#cb[eventName] = []
     // log.func(`on [${this.noodlType}]`)
     // log.grey(`Subscribing listener for "${eventName}"`, this)
     this.#cb[eventName].push(cb)
@@ -611,7 +618,7 @@ class Component implements IComponent {
   }
 
   off(eventName: any, cb: Function) {
-    if (_.isArray(this.#cb[eventName])) {
+    if (Array.isArray(this.#cb[eventName])) {
       if (this.#cb[eventName].includes(cb)) {
         log.func(`off [${this.noodlType}]`)
         log.grey(`Removing listener for "${eventName}"`, this)
@@ -623,7 +630,7 @@ class Component implements IComponent {
 
   emit(eventName: string, ...args: any[]) {
     log.func(`emit [${this.noodlType}]`)
-    _.forEach(this.#cb[eventName] || [], (fn) => {
+    ;(this.#cb[eventName] || []).forEach((fn) => {
       log.grey(`Dispatching event for "${eventName}"`, {
         component: this,
         args,

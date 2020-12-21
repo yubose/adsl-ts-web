@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isFinite from 'lodash/isFinite'
 import { ResolverFn } from '../types'
 import { hasLetter } from '../utils/common'
 
@@ -9,14 +9,14 @@ const getFontAttrs: ResolverFn = (component) => {
   const fontFamily = component.getStyle('fontFamily')
 
   // '10' --> '10px'
-  if (_.isString(fontSize) && !hasLetter(fontSize)) {
+  if (typeof fontSize === 'string' && !hasLetter(fontSize)) {
     component.setStyle('fontSize', `${fontSize}px`)
   }
   // 10 --> '10px'
-  else if (_.isFinite(fontSize)) {
+  else if (isFinite(fontSize)) {
     component.setStyle('fontSize', `${fontSize}px`)
   }
-  if (_.isString(fontFamily)) {
+  if (typeof fontFamily === 'string') {
     component.setStyle('fontFamily', fontFamily)
   }
   // { fontStyle } --> { fontWeight }

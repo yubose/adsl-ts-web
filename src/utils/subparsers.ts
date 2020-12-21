@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
+import noop from 'lodash/noop'
 import { NOODLComponent, ProxiedComponent } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
@@ -17,12 +18,12 @@ export async function parseList(
 ) {
   const { default: noodlui } = await import('../app/noodl-ui')
   // const { parse } = parserOptions
-  const parse = _.noop as any
+  const parse = noop as any
   const blueprint: NOODLComponent = props.blueprint
   const listData = props['data-listdata']
   const listId = props['data-listid']
 
-  _.forEach(listData, (listItem) => {
+  listData.forEach((listItem) => {
     const component = noodlui.resolveComponents(blueprint)[0]
     const liNode = parse(component)
     if (liNode) {
@@ -36,17 +37,17 @@ export async function parseList(
       )
     }
 
-    if (liNode && _.isArray(blueprint?.children)) {
-      _.forEach(blueprint.children, (blueprintChild: NOODLComponent) => {
+    if (liNode && Array.isArray(blueprint?.children)) {
+      blueprint.children.forEach((blueprintChild: NOODLComponent) => {
         const resolvedBlueprintChild = noodlui.resolveComponents(
           blueprintChild,
         )[0]
         if (
-          _.isString(resolvedBlueprintChild) ||
-          _.isNumber(resolvedBlueprintChild)
+          typeof resolvedBlueprintChild === 'string' ||
+          typeof resolvedBlueprintChild === 'number'
         ) {
           liNode.innerHTML += `${resolvedBlueprintChild}`
-        } else if (_.isPlainObject(resolvedBlueprintChild)) {
+        } else if (isPlainObject(resolvedBlueprintChild)) {
           parse(resolvedBlueprintChild)
         }
       })

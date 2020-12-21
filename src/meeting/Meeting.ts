@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { EventEmitter } from 'events'
 import {
   connect,
@@ -325,7 +324,7 @@ const Meeting = (function () {
      * Wipes the entire internal state. This is mainly just used for testing
      */
     reset() {
-      _.assign(_internal, {
+      Object.assign(_internal, {
         _page: undefined,
         _viewport: undefined,
         _room: new EventEmitter() as Room,
@@ -335,7 +334,7 @@ const Meeting = (function () {
       return this
     },
     removeFalseyParticipants(participants: any[]) {
-      return _.filter(participants, (p) => !!p?.sid)
+      return participants.filter((p) => !!p?.sid)
     },
   }
 
@@ -344,7 +343,8 @@ const Meeting = (function () {
     // @ts-expect-error
     o.getInternal = () => _internal
     // @ts-expect-error
-    o.setInternal = (opts: typeof _internal) => void _.assign(_internal, opts)
+    o.setInternal = (opts: typeof _internal) =>
+      void Object.assign(_internal, opts)
   }
 
   return o as typeof o & {

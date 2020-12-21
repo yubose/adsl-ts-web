@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { ListBlueprint, NOODL } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RoomParticipant } from '../app/types'

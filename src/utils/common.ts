@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import spread from 'lodash/spread'
+import isPlainObject from 'lodash/isPlainObject'
 
 /**
  * Runs a series of functions from left to right, passing in the argument of the
@@ -32,8 +33,8 @@ export function forEachEntries<Obj>(
   value: Obj,
   callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
 ) {
-  if (value && _.isObject(value)) {
-    _.forEach(_.entries(value), _.spread(callback))
+  if (value && typeof value === 'object') {
+    Object.entries(value).forEach(spread(callback))
   }
 }
 
@@ -48,9 +49,9 @@ export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
   value: Obj | undefined,
   callback: (key: string, value: Obj[K], obj: Obj) => void,
 ) {
-  if (_.isArray(value)) {
-    _.forEach(value, (val) => forEachDeepEntries(val, callback))
-  } else if (_.isPlainObject(value)) {
+  if (Array.isArray(value)) {
+    value.forEach((val) => forEachDeepEntries(val, callback))
+  } else if (isPlainObject(value)) {
     forEachEntries(value as Obj, (k, v: Obj[K]) => {
       callback(k, v, value as Obj)
       forEachDeepEntries(v, callback as any)
@@ -68,8 +69,8 @@ export function forEachEntriesOnObj<Obj>(
   value: Obj,
   callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
 ) {
-  if (value && _.isObject(value)) {
-    _.forEach(_.entries(value), _.spread(callback))
+  if (value && typeof value === 'object') {
+    Object.entries(value).forEach(spread(callback))
     callback('', value)
   }
 }
@@ -85,9 +86,9 @@ export function forEachDeepEntriesOnObj<Obj extends {}, K extends keyof Obj>(
   value: Obj | undefined,
   callback: (key: string, value: Obj[K], obj: Obj) => void,
 ) {
-  if (_.isArray(value)) {
-    _.forEach(value, (val) => forEachDeepEntriesOnObj(val, callback))
-  } else if (_.isPlainObject(value)) {
+  if (Array.isArray(value)) {
+    value.forEach((val) => forEachDeepEntriesOnObj(val, callback))
+  } else if (isPlainObject(value)) {
     forEachDeepEntries(value as Obj, callback)
   }
 }
@@ -126,7 +127,7 @@ export function getAspectRatio(width: number, height: number) {
  * @return { boolean }
  */
 export function isMobile() {
-  return _.isString(navigator?.userAgent)
+  return typeof navigator?.userAgent === 'string'
     ? /Mobile/.test(navigator.userAgent)
     : false
 }
@@ -135,7 +136,7 @@ export function isMobile() {
  * @param { string } value
  */
 export function isUnicode(value: unknown) {
-  return _.isString(value) && value.startsWith('\\u')
+  return typeof value === 'string' && value.startsWith('\\u')
 }
 
 /**
@@ -169,9 +170,8 @@ export function reduceEntries<Obj>(
   ) => typeof acc,
   initialValue?: any,
 ) {
-  if (value && _.isObject(value)) {
-    return _.reduce(
-      _.entries(value),
+  if (value && typeof value === 'string') {
+    return Object.entries(value).reduce(
       (acc, [k, v], index) =>
         callback(acc, { key: k as keyof Obj, value: v }, index),
       initialValue,

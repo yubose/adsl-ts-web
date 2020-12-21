@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { ComponentInstance, ConsumerOptions, ResolverFn } from './types'
 
 class Resolver {

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import { ComponentInstance, ResolveComponent } from '../../types'
 import createComponent, { PropsOptionObj } from '../../utils/createComponent'
 
@@ -27,14 +27,14 @@ export function _resolveChildren<
 
     if (typeof c.original.children === 'string') {
       noodlChildren = [{ type: c.original.children }]
-    } else if (_.isPlainObject(c.original.children)) {
+    } else if (isPlainObject(c.original.children)) {
       noodlChildren = [c.original.children]
-    } else if (_.isArray(c.original.children)) {
+    } else if (Array.isArray(c.original.children)) {
       noodlChildren = c.original.children
     }
 
     if (noodlChildren) {
-      _.forEach(noodlChildren, (noodlChild) => {
+      noodlChildren.forEach((noodlChild) => {
         if (noodlChild) {
           onResolve?.(
             resolveComponent?.(

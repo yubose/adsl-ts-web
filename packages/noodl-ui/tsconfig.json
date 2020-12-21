@@ -10,6 +10,7 @@
     "moduleResolution": "node",
     "noEmitOnError": false,
     "noImplicitAny": true,
+    "noUnusedLocals": true,
     "outDir": "dist",
     "strictNullChecks": true,
     "skipLibCheck": true,

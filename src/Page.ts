@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Logger from 'logsnap'
 import {
   ComponentCreationType,
@@ -111,7 +110,7 @@ class Page {
     // TODO: onTimedOut
     try {
       // Outside link
-      if (_.isString(pageName) && pageName.startsWith('http')) {
+      if (typeof pageName === 'string' && pageName.startsWith('http')) {
         return openOutboundURL(pageName)
       }
 
@@ -168,7 +167,7 @@ class Page {
           components: rendered.components,
         })
 
-        if (_.isArray(rendered.components)) {
+        if (Array.isArray(rendered.components)) {
           components = rendered.components
         } else {
           log.func('navigate')
@@ -182,10 +181,10 @@ class Page {
       this.requestingPage = undefined
 
       return {
-        snapshot: _.assign({ components }, pageSnapshot),
+        snapshot: Object.assign({ components }, pageSnapshot),
       }
     } catch (error) {
-      if (_.isFunction(this.#onError)) {
+      if (typeof this.#onError === 'function') {
         this.#onError?.({ error, pageName })
       } else {
         throw new Error(error)
@@ -329,11 +328,11 @@ class Page {
     rawComponents: ComponentCreationType | ComponentCreationType[],
   ) {
     let resolved = noodlui.resolveComponents(rawComponents)
-    const components = _.isArray(resolved) ? resolved : [resolved]
+    const components = Array.isArray(resolved) ? resolved : [resolved]
     if (this.rootNode) {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
-      _.forEach(components, (component) => {
+      components.forEach((component) => {
         noodluidom.parse(component, this.rootNode)
       })
     } else {

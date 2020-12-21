@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import yaml, { Document } from 'yaml'
 import path from 'path'
 
@@ -45,7 +45,7 @@ export async function getDirFilesAsDocNodes(
   let filenames: string[],
     results: Document[] | ResultObject[] = []
 
-  if (_.isString(dir)) {
+  if (typeof dir === 'string') {
     filenames = await fs.readdir(dir)
     for (let index = 0; index < filenames.length; index++) {
       const filename = filenames[index]
@@ -54,12 +54,12 @@ export async function getDirFilesAsDocNodes(
       // @ts-ignore
       if (data) results.push(data)
     }
-  } else if (_.isPlainObject(dir)) {
+  } else if (isPlainObject(dir)) {
     let { dir: _dir, files, returnAs } = dir
     filenames = await fs.readdir(_dir)
 
     if (files) {
-      if (_.isString(files)) files = [files]
+      if (typeof files === 'string') files = [files]
       // Only look for the given file names in the given directory
       filenames = filenames.filter((filename) => {
         for (let index = 0; index < files.length; index++) {

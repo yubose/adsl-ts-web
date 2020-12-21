@@ -1,5 +1,6 @@
-import _ from 'lodash'
 import Logger from 'logsnap'
+import inRange from 'lodash/inRange'
+import last from 'lodash/last'
 import { NOODL, ListBlueprint } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
@@ -62,7 +63,7 @@ class MeetingSubstreams {
   addToCollection(stream: Stream, index?: number) {
     log.func('addToCollection')
     if (!this.#subStreams.includes(stream)) {
-      if (_.isNumber(index)) {
+      if (typeof index === 'number') {
         this.#subStreams.splice(index, 0, stream)
         log.grey(
           `Inserted subStream to subStreams collection at index: ${index}`,
@@ -97,7 +98,7 @@ class MeetingSubstreams {
    * @param { NOODLDOMElement } node
    */
   elementExists(node: NOODLDOMElement) {
-    return _.some(this.#subStreams, (subStream: Stream) => {
+    return this.#subStreams.some((subStream: Stream) => {
       return subStream.isSameElement(node)
     })
   }
@@ -108,7 +109,7 @@ class MeetingSubstreams {
    * @param { RoomParticipant } participant
    */
   participantExists(participant: RoomParticipant) {
-    return _.some(this.#subStreams, (subStream: Stream) => {
+    return this.#subStreams.some((subStream: Stream) => {
       console.log(subStream)
       return subStream && subStream.isSameParticipant(participant)
     })
@@ -129,7 +130,7 @@ class MeetingSubstreams {
    * @param { Stream } stream
    */
   findBy(cb: (stream: Stream) => boolean) {
-    return _.find(this.#subStreams, cb)
+    return this.#subStreams.find(cb)
   }
 
   /**
@@ -143,16 +144,16 @@ class MeetingSubstreams {
   removeSubStream(stream: Stream | number) {
     if (stream instanceof Stream) {
       const fn = (s: Stream) => s !== stream
-      this.#subStreams = _.filter(this.#subStreams, fn)
+      this.#subStreams = this.#subStreams.filter(fn)
       try {
         stream.removeElement()
         stream.unpublish(stream.getParticipant())
       } catch (error) {
         console.error(error.message)
       }
-    } else if (_.isNumber(stream)) {
+    } else if (typeof stream === 'number') {
       const index = stream
-      if (_.inRange(index, 0, this.#subStreams.length)) {
+      if (inRange(index, 0, this.#subStreams.length)) {
         this.#subStreams.splice(index, 1)
       }
     }
@@ -166,7 +167,7 @@ class MeetingSubstreams {
 
   /** Returns the last subStream in the collection */
   last() {
-    return _.last([...this.#subStreams])
+    return last([...this.#subStreams])
   }
 
   reset() {

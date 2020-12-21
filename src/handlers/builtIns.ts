@@ -1,19 +1,19 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
+import get from 'lodash/get'
+import has from 'lodash/has'
+import set from 'lodash/set'
+import isObjectLike from 'lodash/isObjectLike'
 import { isDraft, original } from 'immer'
 import {
   Action,
-  ActionChain,
   ActionConsumerCallbackOptions,
   BuiltInObject,
   Component,
   EmitAction,
   findListDataObject,
-  getActionConsumerOptions,
   getDataValues,
   GotoURL,
   GotoObject,
-  ActionChainActionCallback,
-  ActionObject,
 } from 'noodl-ui'
 import { getByDataUX } from 'noodl-ui-dom'
 import {
@@ -61,16 +61,19 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       console.trace()
       console.groupEnd()
       if (node) {
-        toggleVisibility(_.isArray(node) ? node[0] : node, ({ isHidden }) => {
-          const result = isHidden ? 'visible' : 'hidden'
-          log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
-            action,
-            ...options,
-            node,
-            result,
-          })
-          return result
-        })
+        toggleVisibility(
+          Array.isArray(node) ? node[0] : node,
+          ({ isHidden }) => {
+            const result = isHidden ? 'visible' : 'hidden'
+            log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
+              action,
+              ...options,
+              node,
+              result,
+            })
+            return result
+          },
+        )
       }
     }
 
@@ -110,9 +113,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   ) => {
     if (!noodl) noodl = (await import('../app/noodl')).default
     log.func('goto')
-    log.red('', _.assign({ action }, options))
+    log.red('', Object.assign({ action }, options))
     // URL
-    if (_.isString(action)) {
+    if (typeof action === 'string') {
       var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
       page.pageUrl += pre
       var parse = page.pageUrl.endsWith('?') ? '' : '-'
@@ -140,7 +143,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       }
 
       await page.requestPageChange(action)
-    } else if (_.isPlainObject(action)) {
+    } else if (isPlainObject(action)) {
       if (action.destination) {
         var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
         page.pageUrl += pre
@@ -173,7 +176,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         log.func('goto')
         log.red(
           'Tried to go to a page but could not find information on the whereabouts',
-          _.assign({ action }, options),
+          Object.assign({ action }, options),
         )
       }
     }
@@ -338,11 +341,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         }
         startCount++
       }
-      
+
       componentCacheSize = getComponentCacheSize(noodlui)
-      log.red(
-        `COMPONENT CACHE SIZE: ${componentCacheSize }`,
-      )
+      log.red(`COMPONENT CACHE SIZE: ${componentCacheSize}`)
     }
   })()
 
@@ -363,11 +364,11 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         if (videoTrack) {
           if (videoTrack.isEnabled) {
             videoTrack.disable()
-            _.set(draft, path, false)
+            set(draft, path, false)
             log.grey(`Toggled video OFF for LocalParticipant`, localParticipant)
           } else {
             videoTrack.enable()
-            _.set(draft, path, true)
+            set(draft, path, true)
             log.grey(`Toggled video ON for LocalParticipant`, localParticipant)
           }
         } else {
@@ -397,12 +398,12 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         if (audioTrack) {
           if (audioTrack.isEnabled) {
             audioTrack.disable()
-            _.set(draft, path, false)
+            set(draft, path, false)
             log.grey(`Toggled audio OFF for LocalParticipant`, localParticipant)
           } else {
             log.grey(`Toggled audio ON for LocalParticipant`, localParticipant)
             audioTrack.enable()
-            _.set(draft, path, true)
+            set(draft, path, true)
           }
         }
       })
@@ -433,7 +434,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     if (dataKey.startsWith(iteratorVar)) {
       let parts = dataKey.split('.').slice(1)
       dataObject = findListDataObject(component)
-      previousDataValue = _.get(dataObject, parts)
+      previousDataValue = get(dataObject, parts)
       // previousDataValueInSdk = _.get(noodl.root[context.page])
       dataValue = previousDataValue
       if (isNOODLBoolean(dataValue)) {
@@ -443,7 +444,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         // Set to true if am item exists
         nextDataValue = !dataValue
       }
-      _.set(dataObject, parts, nextDataValue)
+      set(dataObject, parts, nextDataValue)
     } else {
       const onNextValue = (
         previousValue: any,
@@ -456,24 +457,24 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         nextValue = !previousValue
         if (updateDraft) {
           noodl.editDraft((draft: any) => {
-            _.set(draft, updateDraft.path, nextValue)
+            set(draft, updateDraft.path, nextValue)
           })
         }
         // Propagate the changes to to UI if there is a path "if" object that
         // references the value as well
-        if (node && _.isObjectLike(path)) {
-          let valEvaluating = path.if?.[0]
+        if (node && isObjectLike(path)) {
+          let valEvaluating = path?.if?.[0]
           // If the dataKey is the same as the the value we are evaluating we can
           // just re-use the nextDataValue
           if (valEvaluating === dataKey) {
             valEvaluating = nextValue
           } else {
             valEvaluating =
-              _.get(noodl.root, valEvaluating) ||
-              _.get(noodl.root[page || ''], valEvaluating)
+              get(noodl.root, valEvaluating) ||
+              get(noodl.root[page || ''], valEvaluating)
           }
           newSrc = noodlui.createSrc(
-            valEvaluating ? path.if?.[1] : path.if?.[2],
+            valEvaluating ? path?.if?.[1] : path?.if?.[2],
             component,
           )
           node.setAttribute('src', newSrc)
@@ -483,13 +484,13 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
       dataObject = noodl.root
 
-      if (_.has(noodl.root, dataKey)) {
+      if (has(noodl.root, dataKey)) {
         dataObject = noodl.root
-        previousDataValue = _.get(dataObject, dataKey)
+        previousDataValue = get(dataObject, dataKey)
         onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-      } else if (_.has(noodl.root[page], dataKey)) {
+      } else if (has(noodl.root[page], dataKey)) {
         dataObject = noodl.root[page]
-        previousDataValue = _.get(dataObject, dataKey)
+        previousDataValue = get(dataObject, dataKey)
         onNextValue(previousDataValue, {
           updateDraft: {
             path: `${dataKey}${page ? `.${page}` : ''}`,

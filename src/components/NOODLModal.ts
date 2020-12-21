@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import { PageModalState, Styles } from '../app/types'
 import { forEachEntries } from '../utils/common'
 import NOODLDOMElement from './NOODLElement'
@@ -76,7 +76,7 @@ class Modal extends NOODLDOMElement {
   ) {
     if (!this.isRendered()) {
       this.id = id
-      if (_.isPlainObject(options)) {
+      if (isPlainObject(options)) {
         forEachEntries(options, (key, value) => {
           // @ts-expect-error
           this[key] = value

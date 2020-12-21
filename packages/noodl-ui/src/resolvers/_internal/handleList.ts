@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Logger from 'logsnap'
 import List from '../../components/List'
 import ListItem from '../../components/ListItem'

@@ -1,4 +1,6 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
+import find from 'lodash/find'
+import isNil from 'lodash/isNil'
 import {
   ComponentConstructor,
   IComponent,
@@ -88,7 +90,7 @@ class List extends Component implements IComponent {
   addDataObject<DataObject = any>(
     dataObject: DataObject,
   ): ListDataObjectOperationResult<DataObject> {
-    if (!_.isArray(this.#listObject)) this.#listObject = []
+    if (!Array.isArray(this.#listObject)) this.#listObject = []
     this.#listObject.push(dataObject)
     const result = {
       index: this.#listObject.length - 1,
@@ -112,10 +114,10 @@ class List extends Component implements IComponent {
   ): ListDataObjectOperationResult {
     let result = {} as ListDataObjectOperationResult
 
-    if (_.isArray(this.#listObject)) {
+    if (Array.isArray(this.#listObject)) {
       // By index
       if (typeof index === 'number') {
-        const dataObject = _.isArray(this.#listObject)
+        const dataObject = Array.isArray(this.#listObject)
           ? this.#listObject[index]
           : null
 
@@ -137,7 +139,7 @@ class List extends Component implements IComponent {
       // By query
       if (typeof index === 'function') {
         const query = index
-        if (_.isArray(this.#listObject)) {
+        if (Array.isArray(this.#listObject)) {
           for (let index = 0; index < this.#listObject.length; index++) {
             const dataObject = this.#listObject[index]
             if (query(dataObject)) {
@@ -190,13 +192,13 @@ class List extends Component implements IComponent {
         error: 'listObject was empty',
       }
     }
-    if (!_.isNil(dataObject)) {
+    if (!isNil(dataObject)) {
       let index
       let removedDataObject: any
       // By query func
       if (typeof dataObject === 'function') {
         const fn = dataObject
-        index = _.findIndex(this.#listObject, fn)
+        index = this.#listObject.findIndex(fn)
         removedDataObject = this.#listObject.splice(index, 1)[0]
         const result = {
           index,
@@ -212,7 +214,7 @@ class List extends Component implements IComponent {
       }
       // By direct reference
       else if (typeof dataObject === 'object') {
-        index = _.findIndex(this.#listObject, (obj) => obj === dataObject)
+        index = this.#listObject.findIndex((obj) => obj === dataObject)
         if (index !== -1)
           removedDataObject = this.#listObject.splice(index, 1)[0]
         const result = {
@@ -266,11 +268,11 @@ class List extends Component implements IComponent {
     dataObject: DataObject | null,
   ) {
     // By index
-    if (_.isNumber(index)) {
+    if (typeof index === 'number') {
       const prevDataObject = this.#listObject[index]
-      this.#listObject[index] = _.isPlainObject(prevDataObject)
+      this.#listObject[index] = isPlainObject(prevDataObject)
         ? { ...prevDataObject, ...dataObject }
-        : _.isArray(prevDataObject)
+        : Array.isArray(prevDataObject)
         ? prevDataObject.concat(dataObject)
         : prevDataObject
       const result = {
@@ -286,9 +288,9 @@ class List extends Component implements IComponent {
       return result
     }
     // By function query
-    if (_.isFunction(index)) {
+    if (typeof index === 'function') {
       const pred = index
-      if (_.isArray(this.#listObject)) {
+      if (Array.isArray(this.#listObject)) {
         const numItems = this.#listObject.length
         for (let i = 0; i < numItems; i++) {
           const dataObject = this.#listObject[i]
@@ -350,7 +352,7 @@ class List extends Component implements IComponent {
   // @ts-expect-error
   child(index?: number) {
     if (!arguments.length) return this.#children[0]
-    if (_.isNumber(index)) return this.#children[index]
+    if (typeof index === 'number') return this.#children[index]
     return undefined
   }
 
@@ -374,15 +376,15 @@ class List extends Component implements IComponent {
     let removedChild: Component | ListItem | undefined
     if (!arguments.length) {
       removedChild = this.#children.shift()
-    } else if (_.isNumber(child) && this.#children[child]) {
+    } else if (typeof child === 'number' && this.#children[child]) {
       removedChild = this.#children.splice(child, 1)[0]
-    } else if (_.isString(child)) {
+    } else if (typeof child === 'string') {
       removedChild = child
-        ? _.find(this.#children, (c) => c?.id === child)
+        ? find(this.#children, (c) => c?.id === child)
         : undefined
     } else if (this.#children.includes(child as any)) {
       if (this.#children.includes(child as any)) {
-        this.#children = _.filter(this.#children, (c) => {
+        this.#children = this.#children.filter((c) => {
           if (c === (child as any)) {
             removedChild = child as any
             return false
@@ -449,7 +451,7 @@ class List extends Component implements IComponent {
     opts: ListDataObjectEventHandlerOptions,
   ) {
     if (eventName in this.#cb) {
-      _.forEach(this.#cb[eventName], (cb) => cb(result, opts))
+      this.#cb[eventName].forEach((cb) => cb(result, opts))
     }
     return this
   }
@@ -504,7 +506,7 @@ class List extends Component implements IComponent {
       case 'remove.list.item':
       case 'retrieve.list.item':
       case 'update.list.item':
-        if (!_.isArray(this.#cb[eventName])) this.#cb[eventName] = []
+        if (!Array.isArray(this.#cb[eventName])) this.#cb[eventName] = []
         this.#cb[eventName].push(cb)
     }
     return this
@@ -523,7 +525,7 @@ class List extends Component implements IComponent {
   }
 
   clearCbs() {
-    _.forEach(_.entries(this.#cb), ([k, v]) => {
+    Object.entries(this.#cb).forEach(([k, v]) => {
       this.#cb[k].length = 0
     })
     return this
@@ -537,7 +539,7 @@ class List extends Component implements IComponent {
   exists(child: ListItem): boolean
   exists(child: string | ListItem) {
     if (child) {
-      if (_.isString(child)) return this.find(child)
+      if (typeof child === 'string') return this.find(child)
       else return this.#children.includes(child)
     }
     return false
@@ -562,18 +564,18 @@ class List extends Component implements IComponent {
       | ((listItem: ListItem, index: number) => boolean),
   ) {
     if (typeof child === 'number') return this.#children[child]
-    if (typeof child === 'function') return _.find(this.#children, child)
+    if (typeof child === 'function') return find(this.#children, child)
     const fn =
       typeof child === 'string'
         ? (c: ListItem) => !!c?.id && c.id === child
         : (c: ListItem) => c === child
-    return _.find(this.#children, fn)
+    return find(this.#children, fn)
   }
 
   toJS() {
     return {
       blueprint: this.getBlueprint(),
-      children: _.map(this.#children, (child) => child.toJS()),
+      children: this.#children.map((child) => child.toJS()),
       listId: this.listId,
       listItemCount: this.length,
       listObject: this.#listObject,

@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import isNaN from 'lodash/isNaN'
+import isObjectLike from 'lodash/isObjectLike'
 import { ResolverFn } from '../types'
 import { hasLetter } from '../utils/common'
 import { presets } from '../constants'
@@ -16,7 +17,7 @@ const getBorderAttrs: ResolverFn = (component) => {
   const { style } = component
 
   if (style) {
-    if (!_.isUndefined(style.border)) {
+    if (style.border !== undefined) {
       let borderStyle, color, width, line
       const { border } = style
 
@@ -24,7 +25,7 @@ const getBorderAttrs: ResolverFn = (component) => {
         component.setStyle('borderStyle', 'none')
       }
 
-      if (_.isObjectLike(border)) {
+      if (isObjectLike(border)) {
         borderStyle = border.style
         color = border.color
         width = border.width
@@ -61,20 +62,20 @@ const getBorderAttrs: ResolverFn = (component) => {
       }
     }
 
-    if (_.isString(style?.borderRadius)) {
+    if (typeof style?.borderRadius === 'string') {
       if (!hasLetter(style.borderRadius)) {
         component.setStyle('borderRadius', `${style.borderRadius}px`)
       }
-    } else if (_.isNumber(style.borderRadius)) {
+    } else if (typeof style.borderRadius === 'number') {
       component.setStyle('borderRadius', `${style.borderRadius}px`)
     }
 
     if (style.borderWidth) {
-      if (_.isString(style.borderWidth)) {
+      if (typeof style.borderWidth === 'string') {
         if (!hasLetter(style.borderWidth)) {
           component.setStyle('borderWidth', `${style.borderWidth}px`)
         }
-      } else if (_.isNumber(style.borderWidth)) {
+      } else if (typeof style.borderWidth === 'number') {
         component.setStyle('borderWidth', `${style.borderWidth}px`)
       }
     }
@@ -85,7 +86,7 @@ const getBorderAttrs: ResolverFn = (component) => {
     if (style.borderRadius) {
       const regex = /[a-zA-Z]+$/
       const radius = Number(`${style.borderRadius}`.replace(regex, ''))
-      if (!_.isNaN(radius)) {
+      if (!isNaN(radius)) {
         component.setStyle('borderRadius', `${radius}px`)
         if (
           !style.borderWidth ||

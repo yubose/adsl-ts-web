@@ -1,6 +1,6 @@
-import _ from 'lodash'
 import { isDraft, original } from 'immer'
 import { getActionType } from 'noodl-utils'
+import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
@@ -77,7 +77,7 @@ class ActionChain<
    */
   async abort(reason?: string | string[]) {
     const reasons = reason
-      ? _.isArray(reason)
+      ? Array.isArray(reason)
         ? reason
         : [reason]
       : ([] as string[])
@@ -143,11 +143,11 @@ class ActionChain<
                 this.getDefaultCallbackArgs({ event }),
               )
               // log.grey('Current results from action chain', result)
-              if (_.isPlainObject(result)) {
+              if (isPlainObject(result)) {
                 iterator = await this.next(result)
-              } else if (_.isString(result)) {
+              } else if (typeof result === 'string') {
                 // TODO
-              } else if (_.isFunction(result)) {
+              } else if (typeof result === 'function') {
                 // TODO
               } else {
                 iterator = await this.next(result)
@@ -257,7 +257,7 @@ class ActionChain<
           })
       }, 10000)
       result = await action.execute(handlerOptions)
-      if (_.isPlainObject(result)) {
+      if (isPlainObject(result)) {
         if ('wait' in result)
           await this.abort(
             `An action returned from a "${action.actionType}" type requested to wait`,
@@ -300,10 +300,10 @@ class ActionChain<
    * as soon as they are done executing
    */
   loadQueue() {
-    _.forEach(this.actions, (actionObj: T.ActionObject | Function | string) => {
+    this.actions.forEach((actionObj: T.ActionObject | Function | string) => {
       let action: Action | EmitAction | undefined
 
-      if (_.isFunction(actionObj)) {
+      if (typeof actionObj === 'function') {
         if (!this.fns.action.anonymous?.length) {
           log.func('loadQueue')
           log.red(
@@ -415,13 +415,13 @@ class ActionChain<
   useAction(action: T.ActionChainUseObject[]): this
   useAction(action: T.ActionChainUseObject | T.ActionChainUseObject[]) {
     // Built in actions are forwarded to this.useBuiltIn
-    _.forEach(_.isArray(action) ? action : [action], (obj) => {
+    ;(Array.isArray(action) ? action : [action]).forEach((obj) => {
       if ('funcName' in obj) {
         this.useBuiltIn(obj)
       } else {
         this.fns.action[obj.actionType] = [
           ...(this.fns.action[obj.actionType] || []),
-          ...(_.isArray(obj) ? obj : ([obj] as any)),
+          ...(Array.isArray(obj) ? obj : ([obj] as any)),
         ]
       }
     })
@@ -431,15 +431,15 @@ class ActionChain<
   useBuiltIn(
     action: T.ActionChainUseBuiltInObject | T.ActionChainUseBuiltInObject[],
   ) {
-    const actions = (_.isArray(action)
+    const actions = (Array.isArray(action)
       ? action
       : [action]) as T.ActionChainUseBuiltInObject[]
 
-    _.forEach(actions, (a) => {
+    actions.forEach((a) => {
       const { funcName } = a
       const currentFns = this.fns.builtIn[funcName] || []
       this.fns.builtIn[funcName] = currentFns.concat(
-        _.isArray(a.fn) ? a.fn : [a.fn],
+        Array.isArray(a.fn) ? a.fn : [a.fn],
       )
     })
 

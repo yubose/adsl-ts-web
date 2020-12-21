@@ -1,4 +1,6 @@
-import _ from 'lodash'
+import isObjectLike from 'lodash/isObjectLike'
+import last from 'lodash/last'
+import get from 'lodash/get'
 import Logger from 'logsnap'
 import isReference from '../utils/isReference'
 import { RootsParser } from '../types'
@@ -46,11 +48,11 @@ function makeRootsParser<RootObjects = any>(
     let trimmedPath = path.replace(/(\.\.|\.)/, '')
     // Local/private reference
     if (path[0] === path[0].toLowerCase()) {
-      return _.get(root?.[localKey], trimmedPath)
+      return get(root?.[localKey], trimmedPath)
     }
     // Global reference
     if (path[0] === path[0].toUpperCase()) {
-      return _.get(root, trimmedPath)
+      return get(root, trimmedPath)
     }
   }
 
@@ -83,7 +85,7 @@ function makeRootsParser<RootObjects = any>(
    * @param { string } keyword
    */
   function _parsePostEvaluationKeyword(keyword: string) {
-    if (_.isString(keyword)) {
+    if (typeof keyword === 'string') {
       const regex = /^(\.{1,2}|@|=|_)([a-zA-Z0-9]+)/i
       const matches = keyword.match(regex)
       if (Array.isArray(matches)) {
@@ -99,10 +101,10 @@ function makeRootsParser<RootObjects = any>(
    * @param { any } value
    */
   function _parse(value: any): any {
-    if (_.isString(value)) {
+    if (typeof value === 'string') {
       return _get(value)
     }
-    if (value && _.isObjectLike(value)) {
+    if (value && isObjectLike(value)) {
       const keys = Object.keys(value)
       return keys.reduce((acc, key) => {
         if (isReference(key)) {
@@ -128,10 +130,10 @@ function makeRootsParser<RootObjects = any>(
    * @param { object } originalObj - Original object including the refKey key/value that will be merged with the refKey omitted
    */
   function mergeReference<T = any>(refKey: keyof T, originalObj: T) {
-    if (_.isObjectLike(originalObj)) {
-      if (_.isString(refKey)) {
+    if (isObjectLike(originalObj)) {
+      if (typeof refKey === 'string') {
         let value
-        if (_.isObjectLike(originalObj[refKey])) {
+        if (isObjectLike(originalObj[refKey])) {
           value = originalObj[refKey]
         }
         return {
@@ -160,7 +162,7 @@ function makeRootsParser<RootObjects = any>(
         nameFieldPath,
         result
 
-      if (_.isString(key)) {
+      if (typeof key == 'string') {
         if (isReference(key)) {
           fields = _get(key)
         } else {
@@ -171,7 +173,7 @@ function makeRootsParser<RootObjects = any>(
           }
 
           result =
-            _.get(root, nameFieldPath) || _.get(root?.[localKey], nameFieldPath)
+            get(root, nameFieldPath) || get(root?.[localKey], nameFieldPath)
 
           if (!result) {
             log.red('Received an invalid value for nameField.getKeys', {
@@ -182,8 +184,8 @@ function makeRootsParser<RootObjects = any>(
               result,
               root,
             })
-          } else if (_.isObjectLike(result)) {
-            fields = _.keys(result)
+          } else if (isObjectLike(result)) {
+            fields = Object.keys(result)
           }
 
           return fields
@@ -219,20 +221,20 @@ function makeRootsParser<RootObjects = any>(
         : dataKey
 
       return (
-        _.get(root?.[localKey], path, fallbackValue) ||
-        _.get(root, path, fallbackValue)
+        get(root?.[localKey], path, fallbackValue) ||
+        get(root, path, fallbackValue)
       )
     },
     mergeReference,
     nameField: _nameField,
     parse: _parse,
     parseDataKey(value: string) {
-      if (!_.isString(value)) value = String(value)
+      if (typeof value !== 'string') value = String(value)
       const key = value.startsWith('.') ? value.replace(/(..|.)/, '') : value
-      return _.last(key.split('.'))
+      return last(key.split('.'))
     },
     setLocalKey(key: string) {
-      if (_.isString(key)) localKey = key
+      if (typeof key === 'string') localKey = key
       return this
     },
     setRoot(root: any) {

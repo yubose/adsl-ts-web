@@ -1,7 +1,6 @@
 // @ts-nocheck
 import path from 'path'
 import chalk from 'chalk'
-import _ from 'lodash'
 import fs from 'fs-extra'
 import * as evaluators from './evaluators/evaluators'
 import { logError } from '../../src/utils/common'
@@ -70,7 +69,7 @@ export class NOODLEvaluator {
     let keyword: string | undefined
     let regex: RegExp | undefined
 
-    if (_.isString(trigger)) {
+    if (typeof trigger === 'string') {
       keyword = trigger
     } else if (trigger instanceof RegExp) {
       regex = trigger
@@ -130,7 +129,7 @@ export class NOODLEvaluator {
       }
     })
 
-    if (_.isObject(obj)) {
+    if (typeof obj === 'object') {
       // Check + invoke matching evaluators by regex
       // this._evaluators.regex.forEach(([regex, evaluate]) => {
       //   if (regex.test(key)) {
@@ -211,7 +210,7 @@ export class NOODLEvaluator {
   ) {
     let properties: string[]
 
-    if (_.isObject(obj)) {
+    if (typeof obj === 'object') {
       properties = Object.keys(obj)
 
       let value: any

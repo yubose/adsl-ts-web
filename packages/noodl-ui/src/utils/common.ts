@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
+import spread from 'lodash/spread'
 
 /**
  * Runs forEach on each key/value pair of the value, passing in the key as the first
@@ -10,8 +11,8 @@ export function forEachEntries<Obj extends {}, K extends keyof Obj>(
   value: Obj,
   callback: (key: string, value: Obj[K]) => void,
 ) {
-  if (_.isPlainObject(value)) {
-    _.forEach(_.entries(value), _.spread(callback))
+  if (isPlainObject(value)) {
+    Object.entries(value).forEach(spread(callback))
   }
 }
 
@@ -26,9 +27,9 @@ export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
   value: Obj | undefined,
   callback: (key: string, value: Obj[K], obj: Obj) => void,
 ) {
-  if (_.isArray(value)) {
-    _.forEach(value, (val) => forEachDeepEntries(val, callback))
-  } else if (_.isPlainObject(value)) {
+  if (Array.isArray(value)) {
+    value.forEach((val) => forEachDeepEntries(val, callback))
+  } else if (isPlainObject(value)) {
     forEachEntries(value as Obj, (k, v: Obj[K]) => {
       callback(k, v, value as Obj)
       forEachDeepEntries(v, callback as any)
@@ -41,7 +42,7 @@ export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
  * @param { string } value - Raw color value from NOODL
  */
 export function formatColor(value: string) {
-  if (_.isString(value) && value.startsWith('0x')) {
+  if (typeof value === 'string' && value.startsWith('0x')) {
     return value.replace('0x', '#')
   }
   return value || ''

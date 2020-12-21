@@ -3,8 +3,10 @@
  * currently breaking tests when being imported. To prevent this, we can
  * isolate the imports into this file and replace them with stubs in testing
  */
-import _ from 'lodash'
 import { Draft, original } from 'immer'
+import has from 'lodash/has'
+import set from 'lodash/set'
+import upperFirst from 'lodash/upperFirst'
 import Logger from 'logsnap'
 import { excludeIteratorVar, getAllByDataKey, isEmitObj } from 'noodl-utils'
 import {
@@ -64,7 +66,7 @@ export function createOnDataValueChangeFn(
     if (isListKey(dataKey, component)) {
       const dataObject = findListDataObject(component)
       if (dataObject) {
-        _.set(dataObject, excludeIteratorVar(dataKey, iteratorVar), value)
+        set(dataObject, excludeIteratorVar(dataKey, iteratorVar), value)
         component.set('data-value', value)
         node.dataset.value = value
       } else {
@@ -79,7 +81,7 @@ export function createOnDataValueChangeFn(
       }
     } else {
       noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
-        if (!_.has(draft?.[noodlui.page], dataKey)) {
+        if (!has(draft?.[noodlui.page], dataKey)) {
           log.orange(
             `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +
               `If this is intended then ignore this message.`,
@@ -95,7 +97,7 @@ export function createOnDataValueChangeFn(
             },
           )
         }
-        _.set(draft?.[noodlui.page], dataKey, value)
+        set(draft?.[noodlui.page], dataKey, value)
         component.set('data-value', value)
         node.dataset.value = value
         onChangeProp?.(event)
@@ -108,7 +110,7 @@ export function createOnDataValueChangeFn(
            */
           const linkedNodes = getAllByDataKey(dataKey)
           if (linkedNodes.length) {
-            _.forEach(linkedNodes, (node) => {
+            linkedNodes.forEach((node) => {
               // Since select elements have options as children, we should not
               // edit by innerHTML or we would have to unnecessarily re-render the nodes
               if (node.tagName === 'SELECT') {
@@ -138,13 +140,13 @@ export function createOnDataValueChangeFn(
 export function getPagePath(pageName: string | RegExp) {
   // @ts-expect-error
   const pages = noodl?.cadlEndpoint?.page || noodl?.noodlEndpoint?.page || []
-  const pagePath = _.find(pages, (name: string) =>
-    _.isString(pageName)
+  const pagePath = pages.find((name: string) =>
+    typeof pageName === 'string'
       ? name.includes(pageName)
       : pageName instanceof RegExp
       ? pageName.test(name)
       : false,
   )
   // Ensure the first letter is capitalized
-  return pagePath ? _.upperFirst(pagePath) : ''
+  return pagePath ? upperFirst(pagePath) : ''
 }

@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { getByDataUX, NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
 import {

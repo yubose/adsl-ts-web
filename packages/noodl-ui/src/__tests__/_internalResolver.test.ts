@@ -1,7 +1,6 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import chalk from 'chalk'
-import _ from 'lodash'
 import { findChild } from '../utils/noodl'
 import _internalResolver from '../resolvers/_internal'
 import Component from '../components/Base'

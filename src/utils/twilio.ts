@@ -1,11 +1,10 @@
-import _ from 'lodash'
 import { AudioTrack, RemoteParticipant, VideoTrack } from 'twilio-video'
 
 export function forEachParticipant(
   participants: Map<string, RemoteParticipant>,
   cb: (participant: RemoteParticipant) => any,
 ) {
-  _.forEach(Array.from(participants.values()), cb)
+  Array.from(participants.values()).forEach(cb)
 }
 
 export function attachAudioTrack<T extends HTMLElement>(

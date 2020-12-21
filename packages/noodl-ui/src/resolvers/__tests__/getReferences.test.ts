@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isEqual from 'lodash/isEqual'
 import { expect } from 'chai'
 import { makeResolverTest } from '../../utils/test-utils'
 
@@ -38,7 +38,7 @@ describe('getReferences', () => {
   xit('should perform more operations on nested references if encountered', () => {
     const result = resolve({ style: '.HeaderStyle' })
     expect(result.style).to.satisfy((style) => {
-      return _.isEqual(style, {
+      return isEqual(style, {
         ...rootMap.ColorTheme,
         blue: '#3185c7ff',
         highLightColor: '#3185c7ff',

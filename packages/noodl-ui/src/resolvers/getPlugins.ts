@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { isPluginComponent } from 'noodl-utils'
 import { ConsumerOptions, PluginObject, ResolverFn } from '../types'
 import { isPromise } from '../utils/common'

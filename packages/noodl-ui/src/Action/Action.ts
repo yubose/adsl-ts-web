@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Logger from 'logsnap'
 import {
   IAction,
@@ -140,7 +139,7 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
 
   set callback(callback: ActionCallback | undefined) {
     this.#callback = callback
-    this['hasExecutor'] = _.isFunction(this.#callback)
+    this['hasExecutor'] = typeof this.#callback === 'function'
   }
 
   get trigger() {
@@ -223,7 +222,7 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
   }
 
   abort(reason: string | string[], callback?: Function) {
-    if (_.isArray(reason)) {
+    if (Array.isArray(reason)) {
       reason = reason.join(', ')
     }
     if (this.isTimeoutRunning()) {

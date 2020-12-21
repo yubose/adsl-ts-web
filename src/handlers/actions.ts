@@ -1,4 +1,9 @@
-import _ from 'lodash'
+import isObjectLike from 'lodash/isObjectLike'
+import omit from 'lodash/omit'
+import has from 'lodash/has'
+import set from 'lodash/set'
+import get from 'lodash/get'
+import isPlainObject from 'lodash/isPlainObject'
 import { getByDataUX } from 'noodl-ui-dom'
 import {
   Action,
@@ -232,7 +237,7 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (action: Action<EvalObject>, options, { noodlui }) => {
       log.func('evalObject')
       try {
-        if (_.isFunction(action?.original?.object)) {
+        if (typeof action?.original?.object === 'function') {
           const result = await action.original?.object()
           log.orange(`Result from evalObject [action.object()]`, {
             result,
@@ -247,7 +252,7 @@ const createActions = function ({ page }: { page: IPage }) {
               logArgs,
             )
             const newAction = ref?.insertIntermediaryAction.call(ref, result)
-            if (_.isPlainObject(result) && 'wait' in result) {
+            if (isPlainObject(result) && 'wait' in result) {
               log.red('newAction requested "WAIT"', {
                 newAction: result,
                 queue: ref?.getQueue(),
@@ -260,7 +265,7 @@ const createActions = function ({ page }: { page: IPage }) {
           }
         } else if ('if' in (action.original.object || {})) {
           const ifObj = action.original.object as IfObject
-          if (_.isArray(ifObj)) {
+          if (Array.isArray(ifObj)) {
             const { default: noodl } = await import('../app/noodl')
             const pageName = noodlui.page || ''
             const pageObject = noodl.root[noodlui.page]
@@ -269,12 +274,12 @@ const createActions = function ({ page }: { page: IPage }) {
               if (isNOODLBoolean(valEvaluating)) {
                 return isBooleanTrue(valEvaluating)
               } else {
-                if (_.isString(valEvaluating)) {
+                if (typeof valEvaluating === 'string') {
                   if (isPossiblyDataKey(valEvaluating)) {
-                    if (_.has(noodl.root, valEvaluating)) {
-                      value = _.get(noodl.root[pageName], valEvaluating)
-                    } else if (_.has(pageObject, valEvaluating)) {
-                      value = _.get(pageObject, valEvaluating)
+                    if (has(noodl.root, valEvaluating)) {
+                      value = get(noodl.root[pageName], valEvaluating)
+                    } else if (has(pageObject, valEvaluating)) {
+                      value = get(pageObject, valEvaluating)
                     }
                   }
                   if (isNOODLBoolean(value)) return isBooleanTrue(value)
@@ -289,7 +294,7 @@ const createActions = function ({ page }: { page: IPage }) {
               action,
               options,
             })
-            if (_.isFunction(object)) {
+            if (typeof object === 'function') {
               const result = await object()
               if (result) {
                 log.hotpink(
@@ -331,7 +336,7 @@ const createActions = function ({ page }: { page: IPage }) {
       log.red('goto action', { action, options })
       const { noodl } = actionsContext
       // URL
-      if (_.isString(action?.original?.goto)) {
+      if (typeof action?.original?.goto === 'string') {
         log.gold('Requesting string destination', { action, options })
 
         var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
@@ -361,11 +366,14 @@ const createActions = function ({ page }: { page: IPage }) {
         }
 
         await page.requestPageChange(action.original.goto)
-      } else if (_.isPlainObject(action?.original?.goto)) {
+      } else if (isPlainObject(action?.original?.goto)) {
         // Currently don't know of any known properties the goto syntax has.
         // We will support a "destination" key since it exists on goto which will
         // soon be deprecated by this goto action
-        if (action.original.destination || _.isString(action.original.goto)) {
+        if (
+          action.original.destination ||
+          typeof action.original.goto === 'string'
+        ) {
           const url = action.original.destination || action.original.goto
 
           var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
@@ -467,13 +475,13 @@ const createActions = function ({ page }: { page: IPage }) {
               import('../app/noodl').then(({ default: noodl }) => {
                 const pageName = noodlui?.page || ''
                 const pathToTage = 'verificationCode.response.edge.tage'
-                let vcode = _.get(noodl.root?.[pageName], pathToTage, '')
+                let vcode = get(noodl.root?.[pageName], pathToTage, '')
                 if (vcode) {
                   vcode = String(vcode)
                   vcodeInput.value = vcode
                   vcodeInput.dataset.value = vcode
                   noodl.editDraft((draft: any) => {
-                    _.set(
+                    set(
                       draft[pageName],
                       (vcodeInput.dataset.key as string) || 'formData.code',
                       vcode,
@@ -521,25 +529,28 @@ const createActions = function ({ page }: { page: IPage }) {
 
       try {
         const { object } = action.original
-        if (_.isFunction(object)) {
+        if (typeof object === 'function') {
           log.func('saveObject')
           log.grey(`Directly invoking the object function with no parameters`, {
             action,
             ...options,
           })
           await object()
-        } else if (_.isArray(object)) {
+        } else if (Array.isArray(object)) {
           const numObjects = object.length
           for (let index = 0; index < numObjects; index++) {
             const obj = object[index]
-            if (_.isArray(obj)) {
+            if (Array.isArray(obj)) {
               // Assuming this a tuple where the first item is the path to the "name" field
               // and the second item is the actual function that takes in values from using
               // the name field to retrieve values
               if (obj.length === 2) {
                 const [nameFieldPath, save] = obj
 
-                if (_.isString(nameFieldPath) && _.isFunction(save)) {
+                if (
+                  typeof nameFieldPath === 'string' &&
+                  typeof save === 'function'
+                ) {
                   parser?.setLocalKey(noodlui?.page)
 
                   let nameField
@@ -548,8 +559,8 @@ const createActions = function ({ page }: { page: IPage }) {
                     nameField = parser.get(nameFieldPath)
                   } else {
                     nameField =
-                      _.get(noodl?.root, nameFieldPath, null) ||
-                      _.get(noodl?.root?.[noodlui?.page], nameFieldPath, {})
+                      get(noodl?.root, nameFieldPath, null) ||
+                      get(noodl?.root?.[noodlui?.page], nameFieldPath, {})
                   }
 
                   const params = { ...nameField }
@@ -565,7 +576,7 @@ const createActions = function ({ page }: { page: IPage }) {
               }
             }
           }
-        } else if (_.isString(object)) {
+        } else if (typeof object === 'string') {
           log.func('saveObject')
           log.red(
             `The "object" property in the saveObject action is a string which ` +
@@ -612,7 +623,7 @@ const createActions = function ({ page }: { page: IPage }) {
         // action = { actionType: 'updateObject', dataKey, dataObject }
         else {
           if (action.original?.dataKey || action.original?.dataObject) {
-            const object = _.omit(action.original, 'actionType')
+            const object = omit(action.original, 'actionType')
             await callObject(object, callObjectOptions)
           }
         }
@@ -624,18 +635,18 @@ const createActions = function ({ page }: { page: IPage }) {
             file?: File
           },
         ) {
-          if (_.isFunction(object)) {
+          if (typeof object === 'function') {
             await object()
-          } else if (_.isString(object)) {
+          } else if (typeof object === 'string') {
             log.red(
               `Received a string as an object property of updateObject. ` +
                 `Possibly parsed incorrectly?`,
               { object, ...options, ...opts, action },
             )
-          } else if (_.isArray(object)) {
+          } else if (Array.isArray(object)) {
             for (let index = 0; index < object.length; index++) {
               const obj = object[index]
-              if (_.isFunction(obj)) {
+              if (typeof obj === 'function') {
                 // Handle promises/functions separately because they need to be
                 // awaited in this line for control flow
                 await obj()
@@ -643,7 +654,7 @@ const createActions = function ({ page }: { page: IPage }) {
                 await callObject(obj, opts)
               }
             }
-          } else if (_.isObjectLike(object)) {
+          } else if (isObjectLike(object)) {
             let { dataKey, dataObject } = object
             const iteratorVar = component.get('iteratorVar') || ''
 

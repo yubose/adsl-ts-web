@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Component from '../Base'
 import { IComponent, ComponentConstructor } from '../../types'
 import createComponent from '../../utils/createComponent'

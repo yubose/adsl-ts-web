@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Component from '../Base'
 import {
   ComponentInstance,
@@ -30,7 +29,7 @@ class ListItem extends Component {
 
   child(index?: number) {
     if (!arguments.length) return this.#children[0]
-    return _.isNumber(index) ? this.#children[index] : undefined
+    return typeof index === 'number' ? this.#children[index] : undefined
   }
 
   children() {
@@ -118,7 +117,7 @@ class ListItem extends Component {
 
   toJS() {
     return {
-      children: _.map(this.#children, (child) => child.toJS?.()),
+      children: this.#children.map((child) => child.toJS?.()),
       dataObject: this.getDataObject(),
       listId: this.listId,
       listIndex: this.listIndex,
@@ -149,7 +148,7 @@ class ListItem extends Component {
   }
 
   emit(eventName: string, ...args: any[]) {
-    _.forEach(this.#cb[eventName] || [], (fn) => fn(...args))
+    ;(this.#cb[eventName] || []).forEach((fn) => fn(...args))
     return this
   }
 }

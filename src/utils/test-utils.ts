@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { queryHelpers } from '@testing-library/dom'
 import { isEmitObj } from 'noodl-utils'
 import {
@@ -27,7 +26,7 @@ import {
   List,
   ListItem,
 } from 'noodl-ui'
-import {   } from 'noodl-ui-dom'
+import {} from 'noodl-ui-dom'
 import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
 import Page from '../Page'
@@ -44,8 +43,7 @@ export const builtIn = createBuiltInActions({ page })
 
 noodlui
   .use(
-    _.reduce(
-      _.entries(actions),
+    Object.entries(actions).reduce(
       (arr, [actionType, actions]) =>
         arr.concat(
           actions.map((a) => ({
@@ -59,7 +57,7 @@ noodlui
   )
   .use(
     // @ts-expect-error
-    _.map(_.entries({ redraw: builtIn.redraw }), ([funcName, fn]) => ({
+    Object.entries({ redraw: builtIn.redraw }).map(([funcName, fn]) => ({
       funcName,
       fn,
     })),

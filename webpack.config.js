@@ -7,13 +7,13 @@ const pkg = require('./package.json')
 const noodluiPkg = require('./packages/noodl-ui/package.json')
 const noodlutilsPkg = require('./packages/noodl-utils/package.json')
 const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
-// const CircularDependencyPlugin = require('circular-dependency-plugin')
-// const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
-
+const CircularDependencyPlugin = require('circular-dependency-plugin')
+const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
+//
 const htmlPluginOptions = {
   filename: 'index.html',
   title: 'AiTmed Noodl Web',
-  favicon: 'favicon.ico',
+  favicon: 'public/favicon.ico',
   cache: false,
   scriptLoading: 'defer',
   minify: false,
@@ -23,13 +23,13 @@ if (process.env.ECOS_ENV !== 'test')
   htmlPluginOptions.template = 'public/index.html'
 
 const plugins = [
-  // new BundleStatsWebpackPlugin({
-  //   baseline: true,
-  // }),
-  // new CircularDependencyPlugin({
-  //   exclude: /node_modules/,
-  //   include: /src/,
-  // }),
+  new BundleStatsWebpackPlugin({
+    baseline: true,
+  }),
+  new CircularDependencyPlugin({
+    exclude: /node_modules/,
+    include: /src/,
+  }),
   new webpack.DefinePlugin({
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),

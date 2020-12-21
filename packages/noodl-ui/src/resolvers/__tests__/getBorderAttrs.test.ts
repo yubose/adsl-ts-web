@@ -1,5 +1,4 @@
 import { expect } from 'chai'
-import _ from 'lodash'
 import { makeResolverTest } from '../../utils/test-utils'
 import getBorderAttrs from '../getBorderAttrs'
 

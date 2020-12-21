@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import {
   createEmitDataKey,
   excludeIteratorVar,
@@ -51,7 +50,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       ---- REFERENCES / DATAKEY 
     -------------------------------------------------------- */
 
-  if (_.isString(dataKey)) {
+  if (typeof dataKey === 'string') {
     let iteratorVar = component.get('iteratorVar') || ''
     let dataObject: any = findListDataObject(component)
     let dataPath = excludeIteratorVar(dataKey, iteratorVar) || ''
@@ -70,8 +69,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     if (isEmitObj(dataValue)) {
       const emitAction = new EmitAction(dataValue, {
         callback: async (action, options) => {
-          const callbacks = _.reduce(
-            getCbs('action').emit || [],
+          const callbacks = (getCbs('action').emit || []).reduce(
             (acc, obj) =>
               obj?.trigger === 'dataValue' ? acc.concat(obj) : acc,
             [] as any[],

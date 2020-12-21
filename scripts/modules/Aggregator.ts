@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import BaseSetup, { BasesOptions } from './BaseSetup'
 import AppSetup, { PagesOptions } from './AppSetup'
 
@@ -40,7 +39,7 @@ class Aggregator {
       this.#appSetup.endpoint = this.#baseSetup.baseUrl + rootConfig.cadlMain
       await this.#appSetup.load(noodlConfig.page)
     }
-    _.assign(this.items, this.#baseSetup.items, this.#appSetup.items)
+    Object.assign(this.items, this.#baseSetup.items, this.#appSetup.items)
     return this.items
   }
 
@@ -53,7 +52,7 @@ class Aggregator {
   }
 
   get length() {
-    return _.keys(this.items).length
+    return Object.keys(this.items).length
   }
 
   objects({
@@ -61,15 +60,11 @@ class Aggregator {
     pages = true,
   }: { basePages?: boolean; pages?: boolean } = {}) {
     const destruct = (obj) =>
-      _.reduce(
-        _.entries(obj),
-        (acc, [key, value]) => {
-          acc[key] = value?.json
-          return acc
-        },
-        {} as any,
-      )
-    return _.assign(
+      Object.entries(obj).reduce((acc, [key, value]) => {
+        acc[key] = value?.json
+        return acc
+      }, {} as any)
+    return Object.assign(
       {},
       basePages ? destruct(this.#baseSetup.items) : undefined,
       pages ? destruct(this.#appSetup.items) : undefined,

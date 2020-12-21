@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { ResolverFn } from '../types'
 import isReference from '../utils/isReference'
 

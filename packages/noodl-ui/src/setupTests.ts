@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import noop from 'lodash/noop'
 import sinon from 'sinon'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
@@ -17,7 +17,7 @@ before(async () => {
   console.clear()
   Logger.disable()
   try {
-    logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+    logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
   } catch (error) {
     throw new Error(error.message)
   }

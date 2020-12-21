@@ -1,5 +1,3 @@
-// @ts-nocheck
-import _ from 'lodash'
 import path from 'path'
 import fs from 'fs-extra'
 import yaml from 'yaml'
@@ -37,7 +35,7 @@ class Saver {
   save(opts?: DataOptions[]): Promise<any>
   async save(opts: DataOptions | DataOptions[]) {
     let filepath: string
-    const batches = _.isArray(opts) ? opts : [opts]
+    const batches = Array.isArray(opts) ? opts : [opts]
     const numBatches = batches.length
 
     if (this.dir) fs.ensureDirSync(this.dir)

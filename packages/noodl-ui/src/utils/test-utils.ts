@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import fs, { WriteOptions } from 'fs-extra'
 import path from 'path'
 import getAlignAttrs from '../resolvers/getAlignAttrs'
@@ -35,7 +34,6 @@ export function createResolverTest(
   resolver: ResolverFn,
   consumerOptions?: Partial<ConsumerOptions>,
 ) {
-  // @ts-expect-error
   function _resolver<C extends ComponentObject & { type: 'list' }>(
     component: C,
     options?: ConsumerOptions,
@@ -85,11 +83,12 @@ export const noodlui = (function () {
     },
   })
 
-  _.reduce(
-    getAllResolvers(),
-    (acc, r) => acc.concat(new Resolver().setResolver(r)),
-    [] as Resolver[],
-  ).forEach((r) => state.client.use(r))
+  getAllResolvers()
+    .reduce(
+      (acc, r) => acc.concat(new Resolver().setResolver(r)),
+      [] as Resolver[],
+    )
+    .forEach((r) => state.client.use(r))
 
   Object.defineProperty(state.client, 'save', {
     configurable: true,

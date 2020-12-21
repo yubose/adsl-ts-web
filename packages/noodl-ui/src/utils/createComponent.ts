@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import { ComponentInstance, ComponentObject, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
 import List from '../components/List'
@@ -53,7 +53,7 @@ function createComponent<K extends ComponentType = ComponentType>(
     // IComponentInstanceType
     childComponent = value
     id = childComponent.id
-    if (props && _.isPlainObject(props)) {
+    if (props && isPlainObject(props)) {
       forEachEntries(props, (k, v) => childComponent.set(k, v))
     }
   } else {
@@ -93,7 +93,7 @@ function toProps(
   props?: Options['props'],
 ): Partial<ComponentObject> | void {
   if (props) {
-    if (_.isFunction(props)) return props(value)
+    if (typeof props === 'function') return props(value)
     return props
   }
 }

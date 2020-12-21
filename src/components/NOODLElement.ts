@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { Styles } from '../app/types'
 import { setStyle } from '../utils/dom'
 

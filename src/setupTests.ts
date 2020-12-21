@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import noop from 'lodash/noop'
 import chai from 'chai'
 import chaiDOM from 'chai-dom'
 import sinonChai from 'sinon-chai'
@@ -24,7 +24,7 @@ before(() => {
   Logger.disable()
 
   try {
-    logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+    logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
 
     Object.defineProperty(noodlui, 'cleanup', {
       configurable: false,
@@ -48,7 +48,7 @@ before(() => {
       },
     })
 
-    _.forEach(getAllResolvers(), (r) => {
+    getAllResolvers().forEach((r) => {
       const resolver = new Resolver()
       resolver.setResolver(r)
       noodlui.use(resolver as Resolver)

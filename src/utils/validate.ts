@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 export type ValidateName =
   | 'email'
   | 'firstName'
@@ -43,7 +41,7 @@ _createMultiple({
 })
 
 validate.email = function (email: unknown) {
-  if (_.isString(email)) {
+  if (typeof email === 'string') {
     const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     if (!regex.test(email)) {
       return 'The email is invalid'
@@ -54,7 +52,7 @@ validate.email = function (email: unknown) {
 _createMultiple({
   keys: ['username', 'userName'],
   validate: (key, value: any) => {
-    if (_.isString(value)) {
+    if (typeof value === 'string') {
       if (!value) return 'Username is required'
       if (value.length < 5) return 'The userName is too short'
     }
@@ -115,7 +113,7 @@ export async function getFormErrors<FormValues extends {}>(
         // const isValid = await isValidPhoneNumber(options)
         // if (!isValid) errors.push('The phone number is invalid')
       }
-      if (_.isFunction(validator)) {
+      if (typeof validator === 'function') {
         // @ts-expect-error
         errMsg = validator(value)
         if (errMsg) errors.push(errMsg)

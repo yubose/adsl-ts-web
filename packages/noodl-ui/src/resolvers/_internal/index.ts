@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import handleList from './handleList'
 import handleTextboard from './handleTextboard'
 import Resolver from '../../Resolver'

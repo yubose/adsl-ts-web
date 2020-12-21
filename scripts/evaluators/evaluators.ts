@@ -1,5 +1,4 @@
 // @ts-nocheck
-import _ from 'lodash'
 import { Pair, YAMLMap, YAMLSeq } from 'yaml/types'
 import { StyleTextAlign } from '../../../src/types'
 import { isString } from '../../../src/utils/common'
@@ -47,7 +46,7 @@ const _create = function (
     if (options.keyword) {
       let keywords = options.keyword.keywords
 
-      if (!_.isArray(keywords)) {
+      if (!Array.isArray(keywords)) {
         keywords = [keywords]
       }
 
@@ -72,7 +71,7 @@ evaluators.actionChain = function (pair: Pair, push) {
           if (identifyMap.actionObject(action)) {
             return true
           }
-        } else if (_.isPlainObject(action)) {
+        } else if (isPlainObject(action)) {
           if ('actionType' in action) {
             return true
           }
@@ -82,7 +81,7 @@ evaluators.actionChain = function (pair: Pair, push) {
       for (let index = 0; index < actionChain.length; index++) {
         const action = actionChain[index]
 
-        if (_.isPlainObject(action)) {
+        if (isPlainObject(action)) {
           if ('actionType' in action) {
             return true
           }
@@ -108,8 +107,8 @@ _create('eventHandlers', {
         actions.forEach((action) => {
           evaluators.actionObject(action, push)
         })
-      } else if (_.isArray(seq)) {
-        _.forEach(seq, (action) => {
+      } else if (Array.isArray(seq)) {
+        seq.forEach((action) => {
           evaluators.actionObject(action, push)
         })
       }

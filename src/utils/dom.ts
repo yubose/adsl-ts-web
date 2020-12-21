@@ -1,5 +1,5 @@
-import _ from 'lodash'
 import Logger from 'logsnap'
+import isPlainObject from 'lodash/isPlainObject'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { FileInputEvent, Styles } from 'app/types'
 import { forEachEntries } from './common'
@@ -8,7 +8,8 @@ const log = Logger.create('src/utils/dom.ts')
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
-  textarea.value = _.isString(value) ? value : JSON.stringify(value, null, 2)
+  textarea.value =
+    typeof value === 'string' ? value : JSON.stringify(value, null, 2)
   document.body.appendChild(textarea)
   textarea.select()
   textarea.setSelectionRange(0, 9999999)
@@ -234,7 +235,7 @@ export function setStyle(
         value = ''
       }
       node.style[key as any] = value
-    } else if (_.isPlainObject(key)) {
+    } else if (isPlainObject(key)) {
       forEachEntries(key, (k: any, v) => {
         node.style[k] = v
       })
@@ -336,7 +337,7 @@ export function toggleVisibility(
 ) {
   if (node?.style) {
     const isHidden = node.style.visibility === 'hidden'
-    if (_.isFunction(cond)) {
+    if (typeof cond === 'function') {
       node.style['visibility'] = cond({ isHidden })
     } else {
       node.style['visibility'] = isHidden ? 'visible' : 'hidden'

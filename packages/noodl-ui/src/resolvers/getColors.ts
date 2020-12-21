@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { forEachEntries, formatColor } from '../utils/common'
 import { ResolverFn } from '../types'
 
@@ -10,7 +9,7 @@ import { ResolverFn } from '../types'
 const getColors: ResolverFn = (component) => {
   if (component.style) {
     forEachEntries(component.style, (key, value) => {
-      if (_.isString(value)) {
+      if (typeof value === 'string') {
         if (value.startsWith('0x')) {
           // Rename textColor to color
           if (key === 'textColor') {

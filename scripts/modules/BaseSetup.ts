@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import SetupHelper from './SetupHelper'
 
 export interface BasesOptions {
