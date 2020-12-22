@@ -1,5 +1,4 @@
 import { createEmitDataKey } from 'noodl-utils'
-import Logger from 'logsnap'
 import { actionTypes } from '../constants'
 import {
   ActionObject,
@@ -16,8 +15,6 @@ import ActionChain from '.'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import { findListDataObject, isActionChainEmitTrigger } from '../utils/noodl'
-
-const log = Logger.create('createAction')
 
 const createActionCreatorFactory = function (
   ref: ActionChain,
@@ -119,8 +116,6 @@ const createActionCreatorFactory = function (
         return acc
       }, {}),
     anonymous(obj: AnonymousObject) {
-      log.func('anonymous')
-      log.grey('Loading anonymous action', { ref, ...consumerArgs })
       const action = new Action(obj, { trigger: ref.trigger })
       action.callback = async (inst, event: any) =>
         action.original &&
@@ -133,8 +128,6 @@ const createActionCreatorFactory = function (
       return action
     },
     builtIn(obj: BuiltInObject) {
-      log.func('builtIn')
-      log.grey('Loading builtIn action', { ...consumerArgs, obj })
       const action = new Action(obj, { trigger: ref.trigger })
       action.callback = async (inst, event: any) =>
         getResults(

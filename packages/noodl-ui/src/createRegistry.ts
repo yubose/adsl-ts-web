@@ -31,12 +31,18 @@ const createRegistry = function createRegistry({ ref }: { ref: NOODLUI }) {
     exists(component: ComponentInstance): boolean
     exists(eventName: string): boolean
     exists(component: ComponentInstance | string) {
-      if (typeof component === 'string')
-      const registerInfo = o.getRegisterInfo(component)
-      if (registerInfo) {
-        const { eventName = '', registerId = '' } = registerInfo
-        return !!registry[eventName]
+      if (typeof component === 'string') {
+        const eventName = component
+        // TODO - more search locations
+        registe
+      } else if (isComponent(component)) {
+        const registerInfo = o.getRegisterInfo(component)
+        if (registerInfo) {
+          const { eventName = '', registerId = '' } = registerInfo
+          return !!registry[eventName]
+        }
       }
+    
       return false
     },
     get() {
@@ -59,7 +65,10 @@ const createRegistry = function createRegistry({ ref }: { ref: NOODLUI }) {
     register(component: ComponentInstance) {
       if (isComponent(component)) {
         if (component.noodlType === 'register') {
-          //
+          // TODO - Other ways that identifies event ids
+          if (component.get('onEvent')) {
+
+          }
         }
       } else {
         //

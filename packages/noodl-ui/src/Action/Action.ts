@@ -84,13 +84,13 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
         this.status = 'timed-out'
       }, this.timeoutDelay || DEFAULT_TIMEOUT_DELAY)
 
-      log.func(`execute --> ${this.type}`)
-      log.hotpink(
-        `${
-          this.type === 'builtIn' ? `funcName: ${this.original.funcName}` : ''
-        }Executing`,
-        { snapshot: this.getSnapshot(), args },
-      )
+      // log.func(`execute --> ${this.type}`)
+      // log.hotpink(
+      //   `${
+      //     this.type === 'builtIn' ? `funcName: ${this.original.funcName}` : ''
+      //   }Executing`,
+      //   { snapshot: this.getSnapshot(), args },
+      // )
 
       // TODO - Logic for return values as objects (new if/ condition in action chains)
       this.result = await this.callback?.(this, args)
@@ -102,16 +102,7 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
       this.error = error
       this.status = 'error'
       // TODO more thought on this
-      if (error instanceof AbortExecuteError) {
-        log.red('Caught an AbortExecuteError error', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        })
-        throw error
-      } else {
-        throw error
-      }
+      throw error
     } finally {
       this.clearTimeout()
       this.clearInterval()
@@ -123,7 +114,6 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
       }
 
       if (this.result) logArgs['result'] = this.result
-
       log.func(
         `${this.type}${
           this.type === 'builtIn' ? ` ---> ${this.original.funcName}` : ''

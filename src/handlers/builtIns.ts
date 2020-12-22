@@ -56,23 +56,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     const onCheckField = () => {
       const node = getByDataUX(contentType)
-      log.gold('checkField', { contentType, delay, action })
-      console.groupCollapsed({ action, options, node, contentType, delay })
-      console.trace()
-      console.groupEnd()
       if (node) {
-        toggleVisibility(
-          Array.isArray(node) ? node[0] : node,
-          ({ isHidden }) => {
-            const result = isHidden ? 'visible' : 'hidden'
-            log.hotpink(`Toggling visibility to ${result.toUpperCase()}`, {
-              action,
-              ...options,
-              node,
-              result,
-            })
-            return result
-          },
+        toggleVisibility(Array.isArray(node) ? node[0] : node, ({ isHidden }) =>
+          isHidden ? 'visible' : 'hidden',
         )
       }
     }

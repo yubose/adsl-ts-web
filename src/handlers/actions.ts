@@ -225,7 +225,6 @@ const createActions = function ({ page }: { page: IPage }) {
 
       log.grey(
         `emitCall call result: ${result === '' ? '(empty string)' : result}`,
-        { ...logArgs, result },
       )
 
       return Array.isArray(result) ? result[0] : result
@@ -239,18 +238,8 @@ const createActions = function ({ page }: { page: IPage }) {
       try {
         if (typeof action?.original?.object === 'function') {
           const result = await action.original?.object()
-          log.orange(`Result from evalObject [action.object()]`, {
-            result,
-            action,
-            options,
-          })
           if (result) {
             const { ref } = options
-            const logArgs = { result, action, ...options }
-            log.grey(
-              `Received a(n) ${typeof result} from an evalObject`,
-              logArgs,
-            )
             const newAction = ref?.insertIntermediaryAction.call(ref, result)
             if (isPlainObject(result) && 'wait' in result) {
               log.red('newAction requested "WAIT"', {
@@ -289,11 +278,6 @@ const createActions = function ({ page }: { page: IPage }) {
                 }
               }
             }, ifObj)
-            log.orange(`Result from evalObject [action.object.if[]]`, {
-              result: object,
-              action,
-              options,
-            })
             if (typeof object === 'function') {
               const result = await object()
               if (result) {

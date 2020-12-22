@@ -70,7 +70,7 @@ function createPreparePage(options: {
     pageModifiers: { reload?: boolean } = {},
   ): Promise<PageObject> => {
     return new Promise((resolve, reject) => {
-      import('app/noodl')
+      return import('app/noodl')
         .then(({ default: noodl }) => {
           return noodl.initPage(pageName, [], {
             ...options,
@@ -80,6 +80,7 @@ function createPreparePage(options: {
               log.grey(`Ran noodl.initPage on page "${pageName}"`, {
                 pageName,
                 pageModifiers,
+                pageObject: noodl.root[pageName],
                 ...options,
               })
               resolve(noodl.root[pageName])

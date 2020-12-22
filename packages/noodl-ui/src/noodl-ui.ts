@@ -316,10 +316,6 @@ class NOODL {
                 { iteratorVar: emitAction.iteratorVar },
               ),
             )
-            log.grey(
-              `Data key finalized for path emit`,
-              emitAction.getSnapshot(),
-            )
           }
 
           emitAction['callback'] = async (snapshot) => {
@@ -362,7 +358,6 @@ class NOODL {
                 } else {
                   finalizedRes = resolveAssetUrl(String(res), this.assetsUrl)
                 }
-                log.grey(`Resolved promise with: `, finalizedRes)
                 component?.emit('path', finalizedRes)
                 return finalizedRes
               })
@@ -384,34 +379,7 @@ class NOODL {
           const dataObject: any = findListDataObject(component)
           // Assuming it is a component retrieving its value from a dataObject
           if (component.get?.('iteratorVar')) {
-            path = evalIf((fn, val1, val2) => {
-              const result = fn?.(dataObject)
-              if (result) {
-                log.grey(
-                  `Result of path "if" func is truthy. Returning: ${val1}`,
-                  {
-                    component,
-                    dataObject,
-                    if: path?.if,
-                    valOnTrue: val1,
-                    valOnFalse: val2,
-                  },
-                )
-              } else {
-                log.grey(
-                  `Result of path "if" func is falsey. Returning: ${val2}`,
-                  {
-                    component,
-                    dataObject,
-                    if: path?.if,
-                    valOnTrue: val1,
-                    valOnFalse: val2,
-                  },
-                )
-              }
-              return result
-            }, path)
-          } else {
+            path = evalIf((fn, val1, val2) => fn?.(dataObject), path)
           }
         } else {
           log.red(

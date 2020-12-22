@@ -72,10 +72,6 @@ const handleListInternalResolver = (
       componentCache().set(listItem)
     }
 
-    const logArgs = { options: args, ...result, list: component, listItem }
-
-    // log.grey(`Created a new listItem`, listItem)
-
     _resolveChildren(listItem, {
       onResolve: (c: any) => {
         c.set('dataObject', result.dataObject)

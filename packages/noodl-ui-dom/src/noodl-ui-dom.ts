@@ -58,11 +58,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         }
         this.#R.run(node, component)
         if (node) {
-          if (component.noodlType == 'label' && component.get('text2')) {
-            console.log(node)
-            console.log(component)
-            debugger
-          }
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {

@@ -354,7 +354,14 @@ class Component implements IComponent {
   assign(key: string | { [key: string]: any }, value?: { [key: string]: any }) {
     if (typeof key === 'string') {
       if (key === 'style') {
-        Object.assign(this.#component.style, value)
+        if (typeof this.#component.style !== 'object') {
+          log.func('assign')
+          log.red(`Cannot assign style object properties to a type "${typeof this.#component.style}"`, ,{
+            key,value,style:this.#component.style
+          })
+        } else {
+          Object.assign(this.#component.style, value)
+        }
       } else {
         Object.assign(this.#component[key], value)
       }
@@ -629,14 +636,7 @@ class Component implements IComponent {
   }
 
   emit(eventName: string, ...args: any[]) {
-    log.func(`emit [${this.noodlType}]`)
-    ;(this.#cb[eventName] || []).forEach((fn) => {
-      log.grey(`Dispatching event for "${eventName}"`, {
-        component: this,
-        args,
-      })
-      fn(...args)
-    })
+    this.#cb[eventName]?.forEach((fn) => fn(...args))
     return this
   }
 

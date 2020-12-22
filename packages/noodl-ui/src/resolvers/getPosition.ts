@@ -8,7 +8,7 @@ const getPosition: ResolverFn = (component, { viewport }) => {
   if (!viewport) return
   const { style } = component
 
-  if (style) {
+  if (typeof style === 'object') {
     let styles
     if ('zIndex' in style) {
       component.setStyle('zIndex', Number(style.zIndex))
