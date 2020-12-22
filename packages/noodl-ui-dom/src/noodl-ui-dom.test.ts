@@ -1,39 +1,8 @@
 import { expect } from 'chai'
 import { createComponent, NOODLComponent, EmitObject } from 'noodl-ui'
-import { noodluidom } from './test-utils'
 import { getShape, getShapeKeys } from './utils'
 
 describe('noodl-ui-dom', () => {
-  describe('isValidAttribute', () => {
-    it('should return true for possible assigned attributes on the dom node', () => {
-      expect(noodluidom.isValidAttr('div', 'style')).to.be.true
-      expect(noodluidom.isValidAttr('div', 'setAttribute')).to.be.true
-      expect(noodluidom.isValidAttr('div', 'id')).to.be.true
-      expect(noodluidom.isValidAttr('div', 'dataset')).to.be.true
-    })
-
-    it('should return false for all of these', () => {
-      expect(noodluidom.isValidAttr('div', 'abc')).to.be.false
-      expect(noodluidom.isValidAttr('div', 'value')).to.be.false
-      expect(noodluidom.isValidAttr('div', 'options')).to.be.false
-    })
-
-    it('should return true for all of these', () => {
-      expect(noodluidom.isValidAttr('textarea', 'value')).to.be.true
-      expect(noodluidom.isValidAttr('input', 'value')).to.be.true
-      expect(noodluidom.isValidAttr('select', 'value')).to.be.true
-      expect(noodluidom.isValidAttr('input', 'placeholder')).to.be.true
-      expect(noodluidom.isValidAttr('input', 'required')).to.be.true
-    })
-
-    it('should return false for all of these', () => {
-      expect(noodluidom.isValidAttr('select', 'abc')).to.be.false
-      expect(noodluidom.isValidAttr('select', 'rows')).to.be.false
-      expect(noodluidom.isValidAttr('input', 'rows')).to.be.false
-      expect(noodluidom.isValidAttr('textarea', 'options')).to.be.false
-    })
-  })
-
   describe('getShape', () => {
     let dataKey: string
     let iteratorVar: string

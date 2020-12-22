@@ -36,12 +36,11 @@ import {
 } from 'noodl-ui'
 import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'
-import { forEachEntries, getAspectRatio, isMobile } from './utils/common'
+import { getAspectRatio, isMobile } from './utils/common'
 import { copyToClipboard } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
-import createLifeCycles from './handlers/lifeCycles'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
@@ -66,22 +65,29 @@ function createPreparePage(options: {
     ) => Promise<void>
   }
 }) {
-  return async (
+  return (
     pageName: string,
     pageModifiers: { reload?: boolean } = {},
   ): Promise<PageObject> => {
-    const { default: noodl } = await import('app/noodl')
-    await noodl.initPage(pageName, [], {
-      ...options,
-      ...pageModifiers,
+    return new Promise((resolve, reject) => {
+      import('app/noodl')
+        .then(({ default: noodl }) => {
+          return noodl.initPage(pageName, [], {
+            ...options,
+            ...pageModifiers,
+            done() {
+              log.func('createPreparePage')
+              log.grey(`Ran noodl.initPage on page "${pageName}"`, {
+                pageName,
+                pageModifiers,
+                ...options,
+              })
+              resolve(noodl.root[pageName])
+            },
+          })
+        })
+        .catch(reject)
     })
-    log.func('createPreparePage')
-    log.grey(`Ran noodl.initPage on page "${pageName}"`, {
-      pageName,
-      pageModifiers,
-      ...options,
-    })
-    return noodl.root[pageName]
   }
 }
 
@@ -103,7 +109,6 @@ window.addEventListener('load', async () => {
   const app = new App({ viewport })
   const builtIn = createBuiltInActions({ page })
   const actions = createActions({ page })
-  const lifeCycles = createLifeCycles()
   const streams = Meeting.getStreams()
   const noodluidom = (window.noodluidom = registerNOODLDOMListeners({
     noodlui,
@@ -334,8 +339,6 @@ window.addEventListener('load', async () => {
               toggleMicrophoneOnOff: builtIn.toggleMicrophoneOnOff,
             }).map(([funcName, fn]) => ({ funcName, fn })),
           )
-
-        forEachEntries(lifeCycles, (key, value) => noodlui.on(key, value))
 
         log.func('page.onBeforePageRender')
         log.green('Initialized noodl-ui client', noodl)

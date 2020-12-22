@@ -1,3 +1,4 @@
+import { ActionObject } from './actionTypes'
 import { StyleObject } from './styleTypes'
 
 export type ComponentType =
@@ -11,7 +12,9 @@ export type ComponentType =
   | 'listItem'
   | 'plugin'
   | 'pluginHead'
+  | 'pluginBodyTail'
   | 'popUp'
+  | 'register'
   | 'select'
   | 'scrollView'
   | 'textField'
@@ -71,6 +74,12 @@ export interface PluginHeadComponentObject extends ComponentObject {
 
 export interface PopUpComponentObject extends ComponentObject {
   type: 'popUp'
+}
+
+export interface RegisterComponentObject extends ComponentObject {
+  type: 'register'
+  onEvent?: string
+  actions?: ActionObject[]
 }
 
 export interface SelectComponentObject extends ComponentObject {

@@ -187,6 +187,16 @@ export interface ResolverFn<C extends ComponentInstance = any> {
   (component: C, consumerOptions: ConsumerOptions): void
 }
 
+export interface RegistryObject {
+  called: boolean
+  callCount: number
+  callbacks: Function[]
+  page: string
+  refs: {
+    components: ComponentInstance[]
+  }
+}
+
 export interface State {
   page: string
   plugins: {
@@ -194,6 +204,11 @@ export interface State {
     body: {
       top: PluginObject[]
       bottom: PluginObject[]
+    }
+  }
+  registry: {
+    onEvent: {
+      [eventName: string]: RegistryObject
     }
   }
   showDataKey: boolean

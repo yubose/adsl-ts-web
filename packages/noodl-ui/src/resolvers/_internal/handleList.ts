@@ -21,7 +21,7 @@ const handleListInternalResolver = (
   options: ConsumerOptions,
   _internalResolver: Resolver,
 ) => {
-  const { getBaseStyles, resolveComponent } = options
+  const { getBaseStyles, resolveComponent, componentCache } = options
 
   const rawBlueprint = (Array.isArray(component?.original?.children)
     ? { ...component.original.children[0] }
@@ -69,7 +69,7 @@ const handleListInternalResolver = (
       listItem.setDataObject?.(result.dataObject)
       listItem.set('listIndex', result.index)
       listItem = resolveComponent(component.createChild(listItem)) as any
-      options.componentCache().set(listItem)
+      componentCache().set(listItem)
     }
 
     const logArgs = { options: args, ...result, list: component, listItem }
@@ -113,7 +113,7 @@ const handleListInternalResolver = (
     listItem?.setDataObject(null)
     if (listItem) {
       component.removeChild()
-      const removeFromCache = options.componentCache().remove
+      const removeFromCache = componentCache().remove
       removeFromCache(listItem)
       publish(listItem, (c) => {
         console.log(`Removing from cache: ${c.id}`)

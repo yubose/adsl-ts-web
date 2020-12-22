@@ -46,6 +46,7 @@ function _createState(initialState?: Partial<T.State>) {
   return {
     page: '',
     plugins: { head: [], body: { top: [], bottom: [] } },
+    registry: {},
     ...initialState,
   } as T.State
 }
@@ -148,6 +149,7 @@ class NOODL {
         (plugin: T.PluginObject) => plugin.ref,
       ),
     ].forEach((c) => this.#resolve(c))
+    // ;[...this.registry(this.page)]
 
     // Finish off with the internal resolvers to handle the children
     components.forEach((c) => {
@@ -763,6 +765,9 @@ class NOODL {
     return this
   }
 
+  plugins(location: 'head'): T.PluginObject[]
+  plugins(location: 'body-top'): T.PluginObject[]
+  plugins(location: 'body-bottom'): T.PluginObject[]
   plugins(location?: T.PluginLocation) {
     switch (location) {
       case 'head':
@@ -787,6 +792,35 @@ class NOODL {
       this.#state.plugins.body.bottom.push(plugin)
     }
     return plugin
+  }
+
+  registry<K extends string = any>(pageName: string): T.State['registry'][K]
+  registry(pageName?: string): T.State['registry']
+  registry(pageName?: string) {
+    if (typeof pageName === 'string' && pageName in this.getState().registry) {
+      return this.getState().registry[pageName]
+    }
+    return this.getState().registry
+  }
+
+  // TODO - Support other types of register args
+  register(component: T.ComponentInstance) {
+    if (isComponent(component)) {
+      if (component.get('onEvent')) {
+        const eventName = component.get('onEvent') || ''
+        if (!this.#state.registry.onEvent[this.page]) {
+          this.#state.registry.onEvent[this.page] = {
+            [eventName]: {
+              called: false,
+              callCount: 0,
+              refs: {},
+            },
+          }
+        }
+      }
+    }
+
+    return this
   }
 
   use(resolver: Resolver | Resolver[]): this
@@ -885,11 +919,18 @@ class NOODL {
     return this.#cache
   }
 
-  reset(opts: { keepCallbacks?: boolean; keepPlugins?: boolean } = {}) {
+  reset(
+    opts: {
+      keepCallbacks?: boolean
+      keepPlugins?: boolean
+      keepRegistry?: boolean
+    } = {},
+  ) {
+    const newState = {} as Partial<T.State>
+    if (opts.keepPlugins) newState.plugins = this.#state.plugins
+    if (opts.keepRegistry) newState.registry = this.#state.registry
     this.#parser = makeRootsParser({ root: this.#getRoot() })
-    this.#state = _createState(
-      opts.keepPlugins ? { plugins: this.#state.plugins } : undefined,
-    )
+    this.#state = _createState(newState)
     if (!opts.keepCallbacks) {
       this.#cb = { action: [], builtIn: [], chaining: [] } as any
     }

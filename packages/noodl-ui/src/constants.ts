@@ -36,6 +36,7 @@ export const componentTypes = [
   'pluginBodyTop',
   'pluginBodyTail',
   'popUp',
+  'register',
   'searchBar',
   'select',
   'scrollView',

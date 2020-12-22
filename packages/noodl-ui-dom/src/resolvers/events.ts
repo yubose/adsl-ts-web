@@ -8,9 +8,12 @@ export default {
   resolve: (node: NOODLDOMDataValueElement, component) => {
     eventTypes.forEach((eventType: string) => {
       if (typeof component.get(eventType) === 'function') {
-        node.addEventListener(
-          normalizeEventName(eventType),
-          component.get(eventType),
+        // Putting a setTimeout here helps to avoid the race condition in where
+        // the emitted action handlers are being called before local root object
+        // gets their data values updated.
+        // TODO - Unit test + think of a better solution
+        node.addEventListener(normalizeEventName(eventType), (e) =>
+          setTimeout(() => Promise.resolve(component.get(eventType)(e))),
         )
       }
     })

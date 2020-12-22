@@ -14,7 +14,6 @@ import * as defaultResolvers from './resolvers'
 import * as T from './types'
 
 class NOODLUIDOM extends NOODLUIDOMInternal {
-  #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
   #R: ReturnType<typeof createResolver>
 
   constructor() {
@@ -59,6 +58,11 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         }
         this.#R.run(node, component)
         if (node) {
+          if (component.noodlType == 'label' && component.get('text2')) {
+            console.log(node)
+            console.log(component)
+            debugger
+          }
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
@@ -169,21 +173,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]
-  }
-
-  /**
-   * Returns true if key can exist as a property or method on a DOM node of tagName
-   * @param { string } tagName - HTML tag
-   * @param { string } key - Property of a DOM node
-   */
-  isValidAttr(tagName: T.NOODLDOMElementTypes, key: string) {
-    if (key && tagName) {
-      if (!this.#stub.elements[tagName]) {
-        this.#stub.elements[tagName] = document.createElement(tagName)
-      }
-      return key in this.#stub.elements[tagName]
-    }
-    return false
   }
 
   register(obj: NOODLUI | T.NodeResolverConfig): this {

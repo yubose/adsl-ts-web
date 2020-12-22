@@ -1,8 +1,7 @@
-import sinon from 'sinon'
 import userEvent from '@testing-library/user-event'
 import { expect } from 'chai'
 import { queryByText, screen, waitFor } from '@testing-library/dom'
-import { Component, List, ListItem, NOODLComponent } from 'noodl-ui'
+import { List, NOODLComponent } from 'noodl-ui'
 import {
   assetsUrl,
   noodlui,
@@ -12,29 +11,7 @@ import {
 } from '../utils/test-utils'
 import { getListComponent1 } from './helpers'
 
-describe('dom', () => {
-  describe('textBoard', () => {
-    it('should be in the correct form in the DOM', () => {
-      const noodlComponent = {
-        type: 'label',
-        textBoard: [
-          { text: 'Medical Records' },
-          { br: null },
-          { text: 'Upload an image or document' },
-        ],
-      } as NOODLComponent
-      const view = page.render({ type: 'view', children: [noodlComponent] })
-        .components[0]
-      const label = view.child()
-      const node = document.getElementById(label.id)
-      const children = node?.children as HTMLCollection
-      expect(children[0].tagName).to.equal('LABEL')
-      expect(children[1].tagName).to.equal('BR')
-      expect(children[2].tagName).to.equal('LABEL')
-      expect(screen.getByText('Medical Records')).to.exist
-      expect(screen.getByText('Upload an image or document')).to.exist
-    })
-  })
+xdescribe('dom', () => {
   describe('component type: "list"', () => {
     describe('when freshly rendering to the DOM', () => {
       it('should have the data-listid attribute', () => {
@@ -332,74 +309,5 @@ describe('dom', () => {
     await waitFor(() => {
       expect(input.dataset.value).to.equal('6262465555')
     })
-  })
-})
-
-it('should target the viewTag component/node if available', async () => {
-  let currentPath = 'male.png'
-  const imagePathSpy = sinon.spy(async () => currentPath)
-  const viewTag = 'genderTag'
-  const iteratorVar = 'itemObject'
-  const listObject = [
-    { key: 'gender', value: 'Male' },
-    { key: 'gender', value: 'Female' },
-    { key: 'gender', value: 'Other' },
-  ]
-  const redrawSpy = sinon.spy(noodlui.getCbs('builtIn').redraw[0])
-  noodlui.actionsContext = { noodl: {} }
-  noodlui.removeCbs('emit')
-  noodlui.getCbs('builtIn').redraw[0] = redrawSpy
-  noodlui
-    .setPage('SignIn')
-    .use({
-      actionType: 'emit',
-      trigger: 'onClick',
-      fn: async () => {
-        currentPath = currentPath === 'male.png' ? 'female.png' : 'male.png'
-      },
-    })
-    .use({ actionType: 'emit', trigger: 'path', fn: imagePathSpy })
-    .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
-  const view = page.render({
-    type: 'view',
-    children: [
-      {
-        type: 'list',
-        iteratorVar,
-        listObject,
-        children: [
-          {
-            type: 'listItem',
-            viewTag,
-            children: [
-              {
-                type: 'image',
-                path: { emit: { dataKey: 'f', actions: [] } },
-                onClick: [
-                  { emit: { dataKey: '', actions: [] } },
-                  {
-                    actionType: 'builtIn',
-                    funcName: 'redraw',
-                    viewTag: 'genderTag',
-                  },
-                ],
-              },
-              { type: 'label', dataKey: 'gender.value' },
-            ],
-          },
-        ],
-      },
-    ],
-  } as any).components[0]
-  const list = view.child() as List
-  const listItem = list.child() as ListItem
-  const image = listItem.child() as Component
-  expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
-  document.getElementById(image.id)?.click()
-  await waitFor(() => {
-    expect(redrawSpy).to.have.been.called
-    expect(document.querySelector('img')?.getAttribute('src')).to.eq(
-      assetsUrl + 'female.png',
-    )
   })
 })

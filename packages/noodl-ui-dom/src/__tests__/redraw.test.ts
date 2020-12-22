@@ -169,7 +169,6 @@ let listDemographics: List
 let listGender: List
 
 beforeEach(() => {
-  noodluidom.on('component', onComponentAttachId)
   noodlView = EmitRedraw.components[2] as NOODLComponent
   noodlListDemographics = EmitRedraw.components[3].children[2] as NOODLComponent
   noodlListGender = EmitRedraw.components[3].children[3] as NOODLComponent
@@ -191,7 +190,7 @@ beforeEach(() => {
   }
 })
 
-describe('redraw', () => {
+xdescribe('redraw', () => {
   it("should clean up the component's listeners", () => {
     const addSpy = sinon.spy()
     const deleteSpy = sinon.spy()
@@ -353,7 +352,7 @@ describe('redraw', () => {
     })
   })
 
-  describe('when using path emits after redrawing', () => {
+  xdescribe('when using path emits after redrawing', () => {
     it('should still be able to emit and update the DOM', async () => {
       let imgPath = 'selectOn.png'
       const pathSpy = sinon.spy(async () => {
@@ -411,7 +410,7 @@ describe('redraw', () => {
     })
   })
 
-  describe('when user clicks on a redrawed node that has an onClick emit', () => {
+  xdescribe('when user clicks on a redrawed node that has an onClick emit', () => {
     it('should still be able to operate on and update the DOM', async () => {
       const abc = 'abc.png'
       const hello = 'hello.jpeg'
@@ -808,7 +807,7 @@ describe('redraw', () => {
   })
 })
 
-describe('redraw(new)', () => {
+xdescribe('redraw(new)', () => {
   let onClickSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
   let pathSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
   let redrawSpy: sinon.SinonSpy<[
@@ -943,3 +942,196 @@ describe('redraw(new)', () => {
 function onComponentAttachId(node: any, component: any) {
   node && (node.id = component.id)
 }
+
+xit('should target the viewTag component/node if available', async () => {
+  let currentPath = 'male.png'
+  const imagePathSpy = sinon.spy(async () => currentPath)
+  const viewTag = 'genderTag'
+  const iteratorVar = 'itemObject'
+  const listObject = [
+    { key: 'gender', value: 'Male' },
+    { key: 'gender', value: 'Female' },
+    { key: 'gender', value: 'Other' },
+  ]
+  const redrawSpy = sinon.spy(noodlui.getCbs('builtIn').redraw[0])
+  noodlui.actionsContext = { noodl: {} } as any
+  noodlui.removeCbs('emit')
+  noodlui.getCbs('builtIn').redraw[0] = redrawSpy
+  noodlui
+    .setPage('SignIn')
+    .use({
+      actionType: 'emit',
+      trigger: 'onClick',
+      fn: async () => {
+        currentPath = currentPath === 'male.png' ? 'female.png' : 'male.png'
+      },
+    })
+    .use({ actionType: 'emit', trigger: 'path', fn: imagePathSpy })
+    .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
+  const view = page.render({
+    type: 'view',
+    children: [
+      {
+        type: 'list',
+        iteratorVar,
+        listObject,
+        children: [
+          {
+            type: 'listItem',
+            viewTag,
+            children: [
+              {
+                type: 'image',
+                path: { emit: { dataKey: 'f', actions: [] } },
+                onClick: [
+                  { emit: { dataKey: '', actions: [] } },
+                  {
+                    actionType: 'builtIn',
+                    funcName: 'redraw',
+                    viewTag: 'genderTag',
+                  },
+                ],
+              },
+              { type: 'label', dataKey: 'gender.value' },
+            ],
+          },
+        ],
+      },
+    ],
+  } as any).components[0]
+  const list = view.child() as List
+  const listItem = list.child() as ListItem
+  const image = listItem.child() as Component
+  expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
+  document.getElementById(image.id)?.click()
+  await waitFor(() => {
+    expect(redrawSpy).to.have.been.called
+    expect(document.querySelector('img')?.getAttribute('src')).to.eq(
+      assetsUrl + 'female.png',
+    )
+  })
+})
+
+xdescribe('redraw', () => {
+  let iteratorVar = 'hello'
+  let listObject: { key: 'gender'; value: 'Male' | 'Female' | 'Other' }[]
+  let timeSpanOptions: string[]
+  let noodlComponents: any
+
+  beforeEach(() => {
+    timeSpanOptions = ['00:00', '00:30']
+    listObject = [
+      { key: 'gender', value: 'Male' },
+      { key: 'gender', value: 'Female' },
+      { key: 'gender', value: 'Other' },
+    ]
+    noodlComponents = {
+      type: 'view',
+      children: [
+        {
+          type: 'list',
+          iteratorVar,
+          listObject,
+          contentType: 'listObject',
+          children: [
+            {
+              type: 'listItem',
+              viewTag: 'fruit',
+              [iteratorVar]: '',
+              children: [{ type: 'label', dataKey: `${iteratorVar}.value` }],
+            },
+          ],
+        },
+        {
+          type: 'view',
+          children: [
+            {
+              type: 'select',
+              contentType: 'TimeCode',
+              dataKey: 'BookingSlotsSelect',
+              options: [10, 15, 30, 45, 60],
+              required: 'true',
+              onChange: [
+                { emit: { actions: [] } },
+                {
+                  actionType: 'builtIn',
+                  funcName: 'redraw',
+                  viewTag: 'AvailableTimeTag',
+                },
+              ],
+            },
+            { type: 'label', text: 'Available Time' },
+            {
+              type: 'view',
+              style: {},
+              children: [
+                {
+                  type: 'select',
+                  dataKey: 'AvailableTime.timeStart',
+                  viewTag: 'AvailableTimeTag',
+                  options: timeSpanOptions,
+                  required: 'true',
+                },
+                {
+                  type: 'select',
+                  viewTag: 'AvailableTimeTag',
+                  options: timeSpanOptions,
+                  required: 'true',
+                  dataKey: 'AvailableTime.timeEnd',
+                  style: { left: '0.45' },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    } as any
+  })
+
+  it('should be able to grab list consumer components with the viewTag', async () => {
+    const emitCall = sinon.spy()
+    const redrawSpy = sinon.spy(noodluidom, 'redraw')
+    noodlui.init({ actionsContext: { noodl: { emitCall }, noodluidom } })
+    // noodlui.getCbs('builtIn').redraw = [spy]
+    const view = page.render(noodlComponents).components[0]
+    const select = findChild(
+      view,
+      (c) => c.get('dataKey') === 'BookingSlotsSelect',
+    )
+    const node = document.getElementById(select.id) as HTMLSelectElement
+    await select?.action.onChange()
+    await waitFor(() => {
+      expect(redrawSpy.called).to.be.true
+    })
+    redrawSpy.restore()
+  })
+
+  xit('should be able to grab non list consumer components with the viewTag', async () => {
+    const pageName = 'SelectRedraw'
+    const pageObject = {
+      ScheduleSettingsTemp: {
+        TimeSpan: timeSpanOptions,
+      },
+    }
+    const onChangeSpy = sinon.spy(async () => {
+      timeSpanOptions.push(...['01:00', '01:30', '02:00'])
+    })
+    const redrawFn = noodlui.getCbs('builtIn')?.redraw[0]
+    const spy = sinon.spy(redrawFn)
+    noodlui
+      .setPage(pageName)
+      .use({ actionType: 'emit', fn: onChangeSpy, trigger: 'onChange' })
+      .use({
+        getRoot: () => ({ [pageName]: pageObject }),
+        getPageObject: () => pageObject,
+      } as any)
+    const view = page.render(noodlComponents)
+    await waitFor(() => {
+      expect(spy).to.have.been.called
+    })
+  })
+
+  xit('should pair the corresponding node with each grabbed component', () => {
+    //
+  })
+})

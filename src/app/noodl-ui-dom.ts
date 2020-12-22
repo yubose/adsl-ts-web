@@ -1,9 +1,10 @@
-import { Component } from 'noodl-ui'
-import NOODLUIDOM, { isTextFieldLike } from 'noodl-ui-dom'
+import isPlainObject from 'lodash/isPlainObject'
+import { NOODL as NOODLUI } from 'noodl-ui'
+import NOODLUIDOM, { isTextFieldLike, NOODLDOMElement } from 'noodl-ui-dom'
 
 const noodluidom = new NOODLUIDOM()
 
-export const listen = ({ noodlui }: any) => {
+export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
   return noodluidom
     .register(noodlui)
     .register({
@@ -14,7 +15,7 @@ export const listen = ({ noodlui }: any) => {
         // to change values on the fly by some "on change" logic (ex: input/select elements)
         return import('../utils/sdkHelpers').then(
           ({ createOnDataValueChangeFn }) => {
-            node.addEventListener(
+            ;(node as NOODLDOMElement)?.addEventListener(
               'change',
               createOnDataValueChangeFn(node, component, {
                 onChange: component.get('onChange'),
@@ -30,22 +31,22 @@ export const listen = ({ noodlui }: any) => {
       cond: 'image',
       resolve(node, component) {
         return import('../app/noodl-ui').then(({ default: noodlui }) => {
+          const img = node as HTMLImageElement
           const parent = component.parent()
           const context = noodlui.getContext()
           const pageObject = noodlui.root[context?.page || ''] || {}
           if (
-            node?.src === pageObject?.docDetail?.document?.name?.data &&
+            img?.src === pageObject?.docDetail?.document?.name?.data &&
             pageObject?.docDetail?.document?.name?.type == 'application/pdf'
           ) {
-            node.style.visibility = 'hidden'
+            img.style.visibility = 'hidden'
             const parentNode = document.getElementById(parent?.id || '')
             const iframeEl = document.createElement('iframe')
-            iframeEl.setAttribute('src', node.src)
-            if (_.isPlainObject(component.style)) {
-              Object.entries(component.style).forEach(([k, v]) => {
-                // @ts-expect-error
-                iframeEl.style[k] = v
-              })
+            iframeEl.setAttribute('src', img.src)
+            if (isPlainObject(component.style)) {
+              Object.entries(component.style).forEach(
+                ([k, v]) => (iframeEl.style[k as any] = v),
+              )
             }
             parentNode?.appendChild(iframeEl)
           }
@@ -84,7 +85,7 @@ export const listen = ({ noodlui }: any) => {
     .register({
       name: 'textField (password + non password)',
       cond: 'textField',
-      resolve(node: HTMLTextAreaElement, component: Component) {
+      resolve(node: HTMLTextAreaElement, component) {
         // Password inputs
         if (component.get('contentType') === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
@@ -112,15 +113,15 @@ export const listen = ({ noodlui }: any) => {
               dividedStyleKeys.forEach((styleKey) => {
                 newParent.style[styleKey] = component.style?.[styleKey]
                 // Remove the transfered styles from the original input element
-                node.style[styleKey] = ''
+                node && (node.style[styleKey] = '')
               })
 
               newParent.style['display'] = 'flex'
               newParent.style['alignItems'] = 'center'
               newParent.style['background'] = 'none'
 
-              node.style['width'] = '100%'
-              node.style['height'] = '100%'
+              node && (node.style['width'] = '100%')
+              node && (node.style['height'] = '100%')
 
               eyeContainer.style['top'] = '0px'
               eyeContainer.style['bottom'] = '0px'
@@ -139,8 +140,8 @@ export const listen = ({ noodlui }: any) => {
                 'title',
                 'Click here to reveal your password',
               )
-              node.setAttribute('type', 'password')
-              node.setAttribute('data-testid', 'password')
+              node && node.setAttribute('type', 'password')
+              node && node.setAttribute('data-testid', 'password')
 
               // Restructing the node structure to match our custom effects with the
               // toggling of the eye iconsf

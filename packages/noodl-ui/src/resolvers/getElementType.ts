@@ -11,6 +11,7 @@ const getElementType: ResolverFn = (component) => {
     'noodlType',
     component.original.noodlType || component.original.type,
   )
+  if (component.noodlType === 'popUp') console.log(component.toJS())
 }
 
 export function getTagName(component: ComponentInstance): string {

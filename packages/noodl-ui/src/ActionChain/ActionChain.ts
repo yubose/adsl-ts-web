@@ -203,7 +203,6 @@ class ActionChain<
     if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
     this.#queue = []
     this.status = null
-    // this['gen'] = undefined
     this.loadQueue()
     this.loadGen()
     log.func('build')
@@ -234,7 +233,7 @@ class ActionChain<
   }
 
   loadGen() {
-    this['gen'] = this.createGenerator()
+    this.gen = this.createGenerator()
     return this
   }
 

@@ -24,8 +24,9 @@ export default {
       }
     }
   },
-  resolve(node: HTMLUListElement, component: List, options) {
-    const { noodlui, redraw } = options
+  resolve(node: HTMLUListElement, component: List, resolveOpts) {
+    // TODO - noodlui / redraw is UNDEFINED HERE. INVESTIGATE THIS
+    const { noodlui, redraw } = resolveOpts
     component.on(
       noodluiEvent.component.list.CREATE_LIST_ITEM,
       (result, options) => {
@@ -36,7 +37,7 @@ export default {
         )
 
         const { listItem } = result
-        noodlui.componentCache().set(listItem)
+        noodlui?.componentCache().set(listItem)
         // TODO - Unit test fails when this is uncommented. Double check the UI
         // const childNode = noodluidom.parse(listItem)
       },
@@ -51,7 +52,7 @@ export default {
           { ...result, ...options },
         )
         const { listItem, success } = result
-        noodlui.componentCache().remove(listItem)
+        noodlui?.componentCache().remove(listItem)
         const childNode = document.getElementById(listItem?.id)
 
         if (childNode) {

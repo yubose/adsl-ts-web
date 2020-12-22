@@ -279,4 +279,26 @@ describe('when creating action chain handlers', () => {
   xit('should pass in the actionsContext, component, pageName, pageObject and trigger', () => {
     //
   })
+
+  // describe('textBoard', () => {
+  //   it.only('should be in the correct form in the DOM', () => {
+  //     const { node } = applyMockDOMResolver({
+  //       component: {
+  //         type: 'label',
+  //         textBoard: [
+  //           { text: 'Medical Records' },
+  //           { br: null },
+  //           { text: 'Upload an image or document' },
+  //         ],
+  //       },
+  //       resolver: resolvers.image,
+  //     })
+  //     const children = node?.children
+  //     expect(children[0].tagName).to.equal('LABEL')
+  //     expect(children[1].tagName).to.equal('BR')
+  //     expect(children[2].tagName).to.equal('LABEL')
+  //     expect(screen.getByText('Medical Records')).to.exist
+  //     expect(screen.getByText('Upload an image or document')).to.exist
+  //   })
+  // })
 })

@@ -35,10 +35,10 @@ _internalResolver.setResolver((component, options) => {
   }
 
   const resolveInternalNode = <C extends ComponentInstance = any>(c: C) => {
-    if (c.id && typeof options.componentCache === 'function') {
+    if (c.id && typeof options?.componentCache === 'function') {
       options.componentCache().set(c)
       publish(c as any, (innerChild) => {
-        if (innerChild?.id) options.componentCache().set(innerChild)
+        if (innerChild?.id) options?.componentCache().set(innerChild)
       })
     }
   }

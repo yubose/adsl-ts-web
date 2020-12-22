@@ -1,25 +1,23 @@
 import chalk from 'chalk'
-import { prettyDOM } from '@testing-library/dom'
+import { List, ListItem } from 'noodl-ui'
+import { prettyDOM, screen } from '@testing-library/dom'
 import { expect } from 'chai'
 import { applyMockDOMResolver, noodlui, toDOM } from '../test-utils'
 import * as resolvers from '../resolvers'
-import { List, ListItem } from 'noodl-ui'
 
-describe('default resolvers', () => {
-  describe('common', () => {
-    it('should display data value if it is displayable', () => {
-      const { node } = applyMockDOMResolver({
-        resolver: resolvers.common,
-        pageName: 'F',
-        pageObject: { formData: { password: 'asfafsbc' } },
-        component: {
-          type: 'label',
-          dataKey: 'F.formData.password',
-          text: 'fdsfdsf',
-        },
-      })
-      expect(node.textContent).to.eq('asfafsbc')
+describe.only('internal resolvers', () => {
+  it('should display data value if it is displayable', () => {
+    const { node } = applyMockDOMResolver({
+      resolver: resolvers.common,
+      pageName: 'F',
+      pageObject: { formData: { password: 'asfafsbc' } },
+      component: {
+        type: 'label',
+        dataKey: 'F.formData.password',
+        text: 'fdsfdsf',
+      },
     })
+    expect(node.textContent).to.eq('asfafsbc')
   })
 
   describe('button', () => {
