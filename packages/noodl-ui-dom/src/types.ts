@@ -59,6 +59,7 @@ export type NodeResolver<RT = any> = NOODLUIDOMResolveFunc<
   {
     noodlui: NOODLUI
     original: ComponentObject
+    parse: Parse
     redraw: Redraw
   },
   RT | void
@@ -86,6 +87,10 @@ export interface NodeResolverLifecycle {
 }
 
 export type NodeResolverLifeCycleEvent = 'before' | 'resolve' | 'after'
+
+export interface Parse<C extends ComponentInstance = any> {
+  (component: C, container?: NOODLDOMElement | null): NOODLDOMElement | null
+}
 
 export type Redraw = NOODLUIDOMResolveFunc<
   NOODLDOMElement,

@@ -231,15 +231,6 @@ window.addEventListener('load', async () => {
     if (pageName !== page.currentPage || pageModifiers?.force) {
       // Load the page in the SDK
       const pageObject = await preparePage(pageName, pageModifiers)
-      log.grey(`Received pageObject`, {
-        previousPage: page.previousPage,
-        currentPage: page.currentPage,
-        requestedPage: pageName,
-        pageName,
-        pageObject,
-        pageModifiers,
-        Global: noodl.root.Global,
-      })
       // This will be passed into the page renderer
       const pageSnapshot: { name: string; object: NOODLUIPage } = {
         name: pageName,

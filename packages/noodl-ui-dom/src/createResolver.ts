@@ -21,6 +21,7 @@ const createResolver = function createResolver() {
       return {
         original: args[1].original,
         noodlui: _internal.noodlui,
+        parse: _internal.noodluidom.parse,
         redraw: _internal.noodluidom.redraw,
       } as T.NodeResolverUtils
     },

@@ -155,14 +155,6 @@ class ActionChain<
               } else {
                 iterator = await this.next(result)
               }
-
-              if (result) {
-                if (action.type) log.func(action.type)
-                log.grey(
-                  `Received a returned value from a(n) "${action.type}" executor`,
-                  result,
-                )
-              }
             }
           }
           log.grey('Action chain reached the end of execution', this)
@@ -344,7 +336,9 @@ class ActionChain<
           }
 
           if (typeof this.createAction[actionObj.actionType] === 'function') {
-            action = this.createAction[actionObj.actionType](actionObj as any)
+            action = this.createAction[actionObj.actionType]({
+              ...actionObj,
+            } as any)
           } else {
             log.red(
               `Expected "createAction" to be a function. This action will ` +

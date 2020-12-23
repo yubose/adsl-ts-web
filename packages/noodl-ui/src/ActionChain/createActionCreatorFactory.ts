@@ -132,7 +132,7 @@ const createActionCreatorFactory = function (
       action.callback = async (inst, event: any) =>
         getResults(
           action,
-          ref.fns.builtIn[action?.original?.funcName] || [],
+          ref.fns.builtIn[action?.original?.funcName].slice() || [],
           event,
         )
       return action
@@ -152,16 +152,19 @@ const createActionCreatorFactory = function (
         trigger: ref.trigger,
       })
       action.callback = async (inst, event: any) => {
-        const callbacks = (ref.fns.action.emit || []).reduce((acc, a) => {
-          if (
-            (a.actionType === 'emit' &&
-              !isActionChainEmitTrigger(ref.trigger)) ||
-            ref.trigger !== a.trigger
-          ) {
-            return acc
-          }
-          return acc.concat(a.fn)
-        }, [] as ActionChainUseObjectBase<ActionObject>['fn'][])
+        const callbacks = (ref.fns.action.emit.slice() || []).reduce(
+          (acc, a) => {
+            if (
+              (a.actionType === 'emit' &&
+                !isActionChainEmitTrigger(ref.trigger)) ||
+              ref.trigger !== a.trigger
+            ) {
+              return acc
+            }
+            return acc.concat(a.fn)
+          },
+          [] as ActionChainUseObjectBase<ActionObject>['fn'][],
+        )
         return getResults(action as any, callbacks, event)
       }
       return action

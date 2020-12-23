@@ -58,6 +58,7 @@ export function isComponent(value: unknown) {
     !!value &&
     isObj(value) &&
     'type' in value &&
+    // @ts-expect-error
     componentTypes.includes(value.type)
   )
 }

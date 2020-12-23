@@ -175,16 +175,7 @@ function makeRootsParser<RootObjects = any>(
           result =
             get(root, nameFieldPath) || get(root?.[localKey], nameFieldPath)
 
-          if (!result) {
-            log.red('Received an invalid value for nameField.getKeys', {
-              fields,
-              key,
-              localKey,
-              nameFieldPath,
-              result,
-              root,
-            })
-          } else if (isObjectLike(result)) {
+          if (isObjectLike(result)) {
             fields = Object.keys(result)
           }
 

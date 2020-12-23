@@ -242,11 +242,6 @@ const createActions = function ({ page }: { page: IPage }) {
             const { ref } = options
             const newAction = ref?.insertIntermediaryAction.call(ref, result)
             if (isPlainObject(result) && 'wait' in result) {
-              log.red('newAction requested "WAIT"', {
-                newAction: result,
-                queue: ref?.getQueue(),
-                node: document.getElementById(options.component.id),
-              })
               // await ref.abort()
               throw new Error('aborted')
             } else log.grey('newAction', { newAction, queue: ref?.getQueue() })

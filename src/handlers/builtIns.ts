@@ -275,12 +275,11 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     )
 
     const redraw = (node: HTMLElement, child: Component, dataObject?: any) => {
-      log.grey(`dataObject for ${child?.noodlType}`, dataObject)
       return noodluidom.redraw(node, child, {
         dataObject,
         resolver: (c: any) => {
-          if (c && c?.id in window.ac) delete window.ac[c.id]
-          noodlui.componentCache().remove(c)
+          // if (c && c?.id in window.ac) delete window.ac[c.id]
+          noodlui.componentCache().set(c)
           return noodlui.resolveComponents(c)
         },
         viewTag,

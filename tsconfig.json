@@ -22,10 +22,10 @@
     "target": "es2015"
   },
   "include": [
-    "src",
+    "src/**/*",
     "packages/noodl-ui/dist",
     "packages/noodl-utils/dist",
     "packages/noodl-ui-dom/dist"
   ],
-  "exclude": ["_data", "node_modules", "legacy"]
+  "exclude": ["node_modules"]
 }

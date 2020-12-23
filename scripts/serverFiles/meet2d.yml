@@ -1,8 +1,8 @@
 apiHost: ecostest.aitmed.com
-apiPort: "443"
+apiPort: '443'
 webApiHost: apiHost
 appApiHost: apiHost
-connectiontimeout: "5"
+connectiontimeout: '5'
 loadingLevel: 1
 debug: console_log_api
 viewWidthHeightRatio:
@@ -20,10 +20,10 @@ android:
   cadlVersion:
     stable: 0.5d
     test: 0.5d
-cadlBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/meet2_${cadlVersion}/
+cadlBaseUrl: http://127.0.0.1:3001/
 cadlMain: cadlEndpoint.yml
 timestamp: 12082020
-myBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/meet2_0.5d/
+myBaseUrl: http://127.0.0.1:3001/
 keywords:
   - telemedicine
   - Telehealth

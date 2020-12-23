@@ -5,7 +5,7 @@ languageSuffix:
   es_ES: _es
   unknown: _en
 fileSuffix: .yml
-startPage: SelectRedraw
+startPage: PatientDashboard
 preload:
   - BaseDataModel
   - BaseCSS

@@ -79,7 +79,6 @@ const getTransformedAliases: ResolverFn = (
           .finally(() => {
             if (isPromise(src)) {
               src.then((r) => {
-                console.log('Received src', r)
                 component.set(
                   'src',
                   isPromise(r)

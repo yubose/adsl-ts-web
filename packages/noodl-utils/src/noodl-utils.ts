@@ -4,7 +4,7 @@ import { ActionObject } from 'noodl-types'
 import { isArr, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
 
-/**f
+/**
  * Transforms the dataKey of an emit object. If the dataKey is an object,
  * the values of each property will be replaced by the data value based on
  * the path described in its value. The 2nd arg should be a data object or
