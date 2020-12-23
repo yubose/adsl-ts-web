@@ -32,7 +32,12 @@ ContactSupport:
             height: "0.04"
           children:
             - type: label
-              text: We would be glad to support you
+              textBoard:
+                - text: Please call our Customer Service
+                - ? br
+                - text: number with any questions and
+                - ? br
+                - text: concerns you may have!
               style:
                 color: "0x000000"
                 left: "0.15"
@@ -43,83 +48,28 @@ ContactSupport:
                 fontWeight: 400
                 textAlign:
                   x: center
-                  y: center
-            - type: label
-              text: You will receive a separate reply to confirm your question has been
-                submitted
-              style:
-                color: "0x0070bf"
-                left: "0.05"
-                top: "0.3"
-                width: "0.9"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: center
-                  y: center
-            - type: select
-              dataKey: formData.edge.name.subject
-              style:
-                color: "0xE4E4E4"
-                left: "0.2"
-                top: "0.4"
-                width: "0.6"
-                height: "0.04"
-                required: "true"
-                borderWidth: "1"
-                border:
-                  style: "2"
-                  color: "0xA8A8A8"
-              options:
-                - Subject
-                - AK
-                - AZ
-                - AR
-                - CA
-                - CO
-            - type: textField
-              placeholder: Question
-              dataKey: formData.edge.name.question
-              contentType: text
-              style:
-                color: "0xE4E4E4"
-                left: "0.2"
-                top: "0.5"
-                width: "0.6"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0xA8A8A8"
             - type: button
-              text: Submit
-              onClick:
-                - goto: SideMenuBar
-                - actionType: saveObject
-                  object: ..save
+              text: Call  (714) 600-2529
               style:
                 left: "0.15"
-                top: "0.8"
+                top: "0.3"
                 width: "0.7"
                 height: "0.05"
                 color: "0xffffffff"
+                borderRadius: "5"
                 backgroundColor: "0x388ecc"
                 textAlign:
                   x: center
             - type: button
-              text: Cancel
+              text: We will be glad to assist you!
               onClick:
                 - goto: SideMenuBar
               style:
                 left: "0.15"
-                top: "0.86"
+                top: "0.36"
                 width: "0.7"
                 height: "0.07"
-                color: "0x6b6b6b"
+                color: "0x2FB355"
                 backgroundColor: "0xFFFFFF"
                 textAlign:
                   x: center

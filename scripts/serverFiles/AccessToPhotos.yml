@@ -1,0 +1,98 @@
+AccessToPhotos:
+  title: Access to photos
+  pageNumber: "370"
+  viewPort: top
+  components:
+    - type: view
+      style:
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: image
+          onClick:
+            - goto: ScanQRCode
+          path: cross.png
+          style:
+            top: "0.05"
+            left: "0.05"
+            width: "0.1"
+        - type: image
+          path: gallery.png
+          style:
+            top: "0.2"
+            width: "0.4"
+            left: "0.3"
+        - type: image
+          path: hand.png
+          style:
+            top: "0.29"
+            width: "0.1"
+            left: "0.65"
+        - type: label
+          textBoard:
+            - text: AiTmed would like to access
+            - ? br
+            - text: your contacts
+          style:
+            top: "0.4"
+            width: "1"
+            height: "0.2"
+            fontSize: "20"
+            fontWeight: "500"
+            textAlign:
+              x: center
+        - type: label
+          textBoard:
+            - ? br
+            - text: Do you allow AiTmed to access your
+            - ? br
+            - text: photos?
+          style:
+            top: "0.44"
+            width: "1"
+            height: "0.2"
+            fontSize: "20"
+            fontWeight: "400"
+            textAlign:
+              x: center
+        - type: button
+          text: Allow to Access Photos
+          onClick:
+            - goto: ScanQRCode
+          style:
+            top: "0.6"
+            width: "0.6"
+            left: "0.2"
+            height: "0.05"
+            fontSize: "20"
+            fontWeight: "500"
+            color: "0x007AFF"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+            borderRadius: "5"
+            border:
+              style: 3
+            borderWidth: "1"
+            borderColor: "0x707070"
+        - type: button
+          text: Don't Allow
+          onClick:
+            - goto: ScanQRCode
+          style:
+            top: "0.7"
+            width: "0.6"
+            left: "0.2"
+            height: "0.05"
+            fontSize: "20"
+            fontWeight: "500"
+            color: "0x007AFF"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+            borderRadius: "5"
+            border:
+              style: 3
+            borderWidth: "1"
+            borderColor: "0x707070"

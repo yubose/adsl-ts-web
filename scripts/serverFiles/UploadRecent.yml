@@ -20,6 +20,7 @@ UploadRecent:
       api: re
       dataIn: listData.edge
       dataOut: listData.response
+      _nonce: =.Global._nonce
   inviteMeeting:
     edge: ""
   generalInfo:
@@ -31,6 +32,7 @@ UploadRecent:
         left: "0"
         width: "1"
         height: "1"
+        position: fixed
       children:
         - ? .BaseHeader3
         - .HeaderLeftButton: null

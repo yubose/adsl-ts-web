@@ -1,0 +1,63 @@
+ScanQRCode:
+  title: Scan QR Code
+  pageNumber: "360"
+  viewPort: top
+  components:
+    - type: view
+      style:
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x000000"
+      children:
+        - type: image
+          path: left_arrow_cricle.png
+          style:
+            top: "0.05"
+            left: "0.05"
+            width: "0.1"
+        - type: label
+          text: Scan QR code
+          style:
+            top: "0.2"
+            width: "1"
+            height: "0.03"
+            color: "0xffffff"
+            fontSize: "20"
+            fontWeight: "500"
+            textAlign:
+              x: center
+        - type: view
+          onClick:
+            - goto: AccessToPhotos
+          style:
+            top: "0.8"
+            left: "0.07"
+            width: "0.15"
+            height: "0.07"
+            borderRadius: "50"
+            backgroundColor: "0xffffff"
+          children:
+            - type: image
+              path: image_circle.png
+              style:
+                top: "0.014"
+                left: "0.025"
+                width: "0.1"
+        - type: view
+          onClick:
+            - goto: MyQRCode
+          style:
+            top: "0.8"
+            left: "0.78"
+            width: "0.15"
+            height: "0.07"
+            borderRadius: "50"
+            backgroundColor: "0xffffff"
+          children:
+            - type: image
+              path: QR.png
+              style:
+                top: "0.014"
+                left: "0.025"
+                width: "0.1"

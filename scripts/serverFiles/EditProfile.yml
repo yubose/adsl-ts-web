@@ -3,10 +3,16 @@ EditProfile:
   title: Edit Profile
   init:
     - .SignInCheck
+    - if:
+        - =.DisplayProfile.docProfile.doc.0.name.type
+        - ..tar@: .DisplayProfile.docDetail.document.name.data
+        - ..tar@: drImg.png
   profileObject: .DisplayProfile.profileObject
+  tar: ""
   save:
-    - =.EditProfile.uploadProfile.docAPI.store: ""
     - =.EditProfile.profile.docAPI.store: ""
+  update:
+    - =.EditProfile.uploadProfile.docAPI.store: ""
   uploadProfile:
     document:
       .Document: ""
@@ -36,420 +42,293 @@ EditProfile:
   components:
     - type: view
       style:
-        left: "0"
         top: "0"
         width: "1"
-        height: "1.7"
+        height: "1"
       children:
-        - ? .BaseHeader
-        - .HeaderRightButton: null
+        - ? .BaseHeader3
+        - .HeaderLeftButton2: null
           text: Cancel
           onClick:
-            - actionType: builtIn
-              funcName: goBack
+            - goto: DisplayProfile
+        - .HeaderRightButton: null
+          text: Done
+          onClick:
+            - goto: DisplayProfile
         - type: image
+          path: ..tar
           contentType: file
+          viewTag: avatarTag
+          style:
+            top: "0.15"
+            width: "0.2"
+            left: "0.1"
+        - type: button
+          text: Change Image
           onClick:
             - actionType: updateObject
               dataObject: BLOB
               dataKey: EditProfile.uploadProfile.document.name.data
-          path: drImg.png
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: avatarTag
+            - actionType: evalObject
+              object: ..update
           style:
-            left: "0.39"
-            top: "0.12"
-            width: "0.22"
-            border:
-              style: "5"
-            borderRadius: 1000
-        - type: image
-          backgourndColor: "0xe0dfe6ff"
-          path: chooseAvatar2.png
-          style:
-            left: "0.38"
-            top: "0.2"
-            width: "0.05"
-            border:
-              style: "5"
-            borderRadius: 10000
+            top: "0.35"
+            left: "0.05"
+            width: "0.3"
+            height: "0.04"
+            backgroundColor: "0xffffff"
+            borderWidth: "0"
+            color: "0x388ECC"
+            textAlign:
+              x: center
         - type: view
           style:
-            top: "0.25"
+            top: "0.12"
+            left: "0.4"
+            width: "0.4"
+            height: "0.2"
           children:
             - type: label
-              text: Aitmed ID
+              textBoard:
+                - text: First name
+                - text: "*"
+                  color: "0xD53C42"
               style:
-                left: "0.15"
-                top: "0.01"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: Global.currentUser.vertex.id
-              style:
-                left: "0.35"
-                top: "0.01"
+                top: "0"
+                fontSize: "18"
+                fontWeight: "400"
                 width: "0.5"
                 height: "0.04"
-                fontSize: "12"
-                textAlign:
-                  x: left
-                  y: center
-                color: "0x00000058"
-                border:
-                  style: "2"
-                  width: "1"
-            - type: label
-              text: "Phone #"
+            - type: textField
+              placeholder: .Global.currentUser.vertex.name.firstName
+              dataKey: profileObject.name.data.firstName
               style:
-                left: "0.15"
-                top: "0.08"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: Global.currentUser.vertex.uid
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.13"
-                width: "0.7"
-                height: "0.04"
+                top: "0.04"
                 fontSize: "16"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
+                fontWeight: "400"
+                width: "0.5"
+                height: "0.02"
                 border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
+                  style: "3"
+                borderWidth: "1.5"
+                borderRadius: "5"
+            - type: label
+              textBoard:
+                - text: Last name
+                - text: "*"
+                  color: "0xD53C42"
+              style:
+                top: "0.1"
+                fontSize: "18"
+                fontWeight: "400"
+                width: "0.5"
+                height: "0.04"
+            - type: textField
+              placeholder: .Global.currentUser.vertex.name.lastName
+              dataKey: profileObject.name.data.lastName
+              style:
+                top: "0.14"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.5"
+                height: "0.02"
+                border:
+                  style: "3"
+                borderWidth: "1.5"
+                borderRadius: "5"
+        - type: view
+          style:
+            top: "0.4"
+            width: "0.9"
+            left: "0.05"
+            height: "0.35"
+            border:
+              style: "3"
+            borderWidth: "1"
+            borderColor: "0x388FCD"
+            borderRadius: "5"
+          children:
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.05"
+                backgroundColor: "0x388FCD"
+              children:
+                - type: label
+                  text: Contact Information
+                  style:
+                    top: "0.008"
+                    width: "0.9"
+                    height: "0.03"
+                    fontSize: "20"
+                    color: "0xffffff"
+                    fontWeight: "400"
+                    textAlign:
+                      x: center
+            - type: label
+              text: Phone number
+              style:
+                top: "0.07"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.35"
+                height: "0.03"
+                left: "0.05"
+            - type: label
+              placeholder: .Global.currentUser.vertex.uid
+              dataKey: profileObject.name.data.phone
+              isEdit: false
+              style:
+                top: "0.07"
+                width: "0.5"
+                height: "0.03"
+                left: "0.35"
+                fontSize: "16"
+                fontWeight: "400"
+                color: "0xacacac"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderRadius: "5"
+                textAlign:
+                  x: center
             - type: label
               text: Email
               style:
-                left: "0.15"
-                top: "0.18"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
+                top: "0.11"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.2"
+                height: "0.03"
+                left: "0.05"
             - type: textField
-              placeholder: your email
+              placeholder: example@domain.com
               dataKey: profileObject.name.data.email
-              contentType: text
               style:
-                left: "0.15"
-                top: "0.23"
-                width: "0.7"
-                height: "0.04"
+                top: "0.11"
+                width: "0.59"
+                height: "0.03"
+                left: "0.25"
                 fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: First name
-              style:
-                left: "0.15"
-                top: "0.28"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: textField
-              placeholder: your first name
-              dataKey: profileObject.name.data.firstName
-              contentType: text
-              required: "true"
-              style:
-                left: "0.15"
-                top: "0.33"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Middle name
-              style:
-                left: "0.15"
-                top: "0.38"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: textField
-              placeholder: your middle name
-              dataKey: profileObject.name.data.middleName
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.43"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Last name
-              style:
-                left: "0.15"
-                top: "0.48"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: textField
-              placeholder: your last name
-              dataKey: profileObject.name.data.lastName
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.53"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Mailing address
-              style:
-                left: "0.15"
-                top: "0.58"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: textField
-              placeholder: your mail address
-              dataKey: profileObject.name.data.mailingAddress
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.63"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: City
-              style:
-                left: "0.15"
-                top: "0.68"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: textField
-              placeholder: your city
-              dataKey: profileObject.name.data.city
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.73"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: State
-              style:
-                left: "0.15"
-                top: "0.78"
-                width: "0.325"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: select
-              dataKey: profileObject.name.data.state
-              style:
-                left: "0.15"
-                top: "0.83"
-                width: "0.325"
-                height: "0.04"
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-              backgroundColor: "0xffffff"
-              options:
-                - AL
-                - AK
-                - AZ
-                - AR
-                - CA
-                - CO
-            - type: label
-              text: Zip
-              style:
-                left: "0.525"
-                top: "0.78"
-                width: "0.325"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: textField
-              placeholder: your zip
-              dataKey: profileObject.name.data.zip
-              contentType: text
-              style:
-                left: "0.525"
-                top: "0.83"
-                width: "0.325"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Language
-              style:
-                left: "0.15"
-                top: "0.88"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: textField
-              placeholder: your language
-              dataKey: profileObject.name.data.language
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.93"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Add note
-              style:
-                left: "0.15"
-                top: "0.98"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x000000"
-                textAlign:
-                  x: left
-                  y: center
-            - type: textView
-              isEditable: "true"
-              dataKey: profileObject.name.data.note
-              contentType: text
-              style:
-                left: "0.15"
-                top: "1.03"
-                width: "0.7"
-                height: "0.15"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
+                fontWeight: "400"
                 border:
                   style: "3"
-                  width: "1"
-                  color: "0x00000058"
-            - type: button
-              text: Save
-              onClick:
-                - actionType: evalObject
-                  object: ..save
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
-                - actionType: evalObject
-                  object:
-                    .DisplayProfile.profileObject@: =..profileObject
-                - actionType: evalObject
-                  object:
-                    .Global.DocProfile.document@: =.EditProfile.uploadProfile.document
-                - actionType: builtIn
-                  funcName: goBack
-                  reload: true
-              style:
-                left: "0.2"
-                top: "1.25"
-                width: "0.6"
-                height: "0.0493"
-                fontWeight: 400
-                color: "0xffffffff"
-                backgroundColor: "0x3366FF"
-                borderRadius: 2
+                borderWidth: "1"
+                borderRadius: "5"
                 textAlign:
                   x: center
+            - type: label
+              text: Address
+              style:
+                top: "0.15"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.35"
+                height: "0.03"
+                left: "0.05"
+            - type: textField
+              placeholder: Lin1
+              dataKey: profileObject.name.data.line1
+              style:
+                top: "0.15"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.59"
+                height: "0.03"
+                left: "0.25"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderRadius: "5"
+            - type: textField
+              placeholder: Lin2
+              dataKey: profileObject.name.data.line2
+              style:
+                top: "0.19"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.59"
+                height: "0.03"
+                left: "0.25"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderRadius: "5"
+            - type: textField
+              placeholder: City
+              dataKey: profileObject.name.data.city
+              style:
+                top: "0.23"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.18"
+                height: "0.03"
+                left: "0.25"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderRadius: "5"
+            - type: textField
+              placeholder: State
+              dataKey: profileObject.name.data.state
+              style:
+                top: "0.23"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.18"
+                height: "0.03"
+                left: "0.455"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderRadius: "5"
+            - type: textField
+              placeholder: Zip code
+              dataKey: profileObject.name.data.zip
+              style:
+                top: "0.23"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.18"
+                height: "0.03"
+                left: "0.66"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderRadius: "5"
+            - type: textField
+              placeholder: Country
+              dataKey: profileObject.name.data.country
+              style:
+                top: "0.27"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.59"
+                height: "0.03"
+                left: "0.25"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderRadius: "5"
+        - type: button
+          text: Save
+          onClick:
+            - actionType: evalObject
+              object: ..save
+            - actionType: evalObject
+              object:
+                .Global._nonce@:
+                  =.builtIn.math.random: ""
+            - goto: DisplayProfile
+          style:
+            top: "0.8"
+            width: "0.5"
+            left: "0.25"
+            height: "0.05"
+            backgroundColor: "0x398FCD"
+            color: "0xffffff"
+            textAlign:
+              x: center

@@ -1,20 +1,6 @@
-DocumentDetail:
-  pageNumber: "450"
-  title: My Documents
-  init:
-    - .SignInCheck
-    - actionType: evalObject
-      object:
-        .DocumentDetail.docDetail.document@: =.Global.DocReference.document
-    - actionType: evalObject
-      object:
-        =.builtIn.utils.base64ToBlob:
-          dataIn:
-            data: =..docDetail.document.name.data
-            type: =..docDetail.document.name.type
-          dataOut: DocumentDetail.docDetail.document.name.data
-  save:
-    - =.DocumentDetail.docDetail.docAPI.delete: ""
+EditMyDocument:
+  pageNumber: "524"
+  title: Edit My Documents
   docDetail:
     document: ""
     docAPI:
@@ -28,7 +14,7 @@ DocumentDetail:
     - ? .BaseHeader3
     - ? .HeaderLeftButton
     - .HeaderRightButton: null
-      text: Edit
+      text: Done
       onClick:
         - goto: EditMyDocument
     - type: view
@@ -42,8 +28,8 @@ DocumentDetail:
             width: "1"
             height: "0.85"
           children:
-            - type: label
-              text: Health Update
+            - type: textField
+              placeholder: Health Update
               dataKey: docDetail.document.name.title
               style:
                 left: "0.15"
@@ -52,6 +38,9 @@ DocumentDetail:
                 height: "0.04"
                 fontSize: "20"
                 color: "0x000000"
+                border:
+                  style: "3"
+                borderWidth: "1"
                 textAlign:
                   x: center
             - type: view
@@ -93,6 +82,7 @@ DocumentDetail:
                     width: "0.005"
                     backgroundColor: "0x00000099"
                 - type: textField
+                  placeholder: Dr.Christopher Grenz
                   style:
                     top: "0.015"
                     left: "0.4"
@@ -105,6 +95,7 @@ DocumentDetail:
                     border:
                       style: "1"
                 - type: textField
+                  placeholder: December 12,2002 at 2:37 PM
                   style:
                     top: "0.06"
                     left: "0.37"
@@ -124,13 +115,13 @@ DocumentDetail:
                 width: "0.8"
                 height: "0.55"
             - type: button
-              text: Go To Meeting Summary
+              text: Save
               onClick:
                 - goto: MeetingSummary
               style:
-                left: "0.133"
-                top: "0.77"
-                width: "0.72"
+                left: "0.55"
+                top: "0.83"
+                width: "0.3"
                 height: "0.05"
                 backgroundColor: "0x388eccff"
                 borderRadius: "5"
@@ -138,15 +129,15 @@ DocumentDetail:
                 textAlign:
                   x: center
             - type: button
-              text: Remove from meeting
+              text: Remove
               onClick:
                 - actionType: popUp
                   popUpView: removeView
               style:
-                left: "0.133"
+                left: "0.15"
                 top: "0.83"
                 borderRadius: "5"
-                width: "0.72"
+                width: "0.3"
                 height: "0.05"
                 backgroundColor: "0xd53c42"
                 color: "0xffffff"

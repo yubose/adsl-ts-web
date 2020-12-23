@@ -1,6 +1,6 @@
 UploadSharedDocuments:
   pageNumber: "415"
-  title: SharedDocuments
+  title: Meeting Documents
   init:
     - .SignInCheck
     - ..listData.get
@@ -20,121 +20,159 @@ UploadSharedDocuments:
       maxcount: "20"
       _nonce: =.Global._nonce
   components:
-    - ? .BaseHeader3
-    - ? .HeaderLeftButton
     - type: view
       style:
-        top: "0.1"
-        left: "0.05"
-        width: "0.9"
-        height: "0.08"
+        width: "1"
+        height: "1"
+        left: "0"
+        top: "0"
+        position: fixed
       children:
-        - .SearchField: null
-          placeholder: "  Search Documents"
+        - ? .BaseHeader3
+        - ? .HeaderLeftButton
+        - type: view
           style:
-            left: "0.2"
-            top: "0.025"
-        - .SearchDoc: null
-          style:
-            top: "0.025"
-    - type: view
-      style:
-        top: "0.17"
-      children:
-        - type: list
-          contentType: listObject
-          listObject: ..listData.sharedDoc.doc
-          iteratorVar: itemObject
-          style:
-            color: "0x000000"
-            backgroundColor: "0xFFFFFF"
-            left: "0.05"
-            top: "0"
-            width: "0.9"
-            height: "0.7"
+            top: "0.1"
+            left: "0"
+            width: "1"
+            height: "0.1"
           children:
-            - type: listItem
-              itemObject: ""
+            - type: button
+              onClick:
+                - goto: UploadDocuments
+              text: My Documents
+              style:
+                color: "0x388eccff"
+                left: "0.07"
+                top: "0.02"
+                width: "0.4"
+                height: "0.05"
+                border:
+                  style: "3"
+                borderRadius: "50"
+                borderWidth: "1"
+                backgroundColor: "0xffffff"
+                display: inline
+                borderColor: "0x388eccff"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              onClick:
+                - goto: SharedDocuments
+              text: Upload
+              style:
+                color: "0x388eccff"
+                left: "0.53"
+                top: "0.02"
+                width: "0.4"
+                height: "0.05"
+                border:
+                  style: "3"
+                borderRadius: "50"
+                display: inline
+                borderWidth: "1"
+                backgroundColor: "0xffffff"
+                borderColor: "0x388eccff"
+                textAlign:
+                  x: center
+                  y: center
+        - type: view
+          style:
+            top: "0.2"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..listData.sharedDoc.doc
+              iteratorVar: itemObject
               style:
                 color: "0x000000"
                 backgroundColor: "0xFFFFFF"
-                left: "0"
+                left: "0.05"
                 top: "0"
-                width: "1"
-                height: "0.07"
-                border:
-                  style: "2"
-                borderWidth: "1"
-                borderColor: "0x00000011"
-                textAlign:
-                  x: left
-                  y: center
+                width: "0.9"
+                height: "0.7"
               children:
-                - type: label
-                  text: Urgent Care Evaluation Report
-                  dataKey: itemObject.name.title
-                  onClick:
-                    - actionType: updateObject
-                      dataKey: Global.DocReference.document
-                      dataObject: itemObject
-                    - goto: DocumentDetail
+                - type: listItem
+                  itemObject: ""
                   style:
-                    left: "0.1"
-                    top: "0.02"
-                    width: "0.7"
-                    height: "0.02"
-                    fontSize: "13"
-                    fontWeight: "500"
+                    color: "0x000000"
+                    backgroundColor: "0xFFFFFF"
+                    left: "0"
+                    top: "0"
+                    width: "1"
+                    height: "0.07"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
                     textAlign:
+                      x: left
                       y: center
-                - type: label
-                  text: 10.30am
-                  text=func: .builtIn.string.formatUnixtime_en
-                  dataKey: itemObject.ctime
-                  style:
-                    color: "0x808080"
-                    left: "0.7"
-                    top: "0.01"
-                    width: "0.2"
-                    height: "0.02"
-                    fontSize: "12"
-                  textAlign:
-                    y: center
-    - type: button
-      onClick:
-        - goto: UploadDocuments
-      text: Share from MyDocuments
-      style:
-        color: "0xFFFFFF"
-        background: "0x388eccff"
-        left: "0.2"
-        top: "0.85"
-        width: "0.6"
-        height: "0.05"
-        border:
-          style: "5"
-        borderRadius: "0"
-        display: inline
-        textAlign:
-          x: center
-          y: center
-    - type: button
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-      text: Back to MeetingLobby
-      style:
-        color: "0xFFFFFF"
-        background: "0x388eccff"
-        left: "0.2"
-        top: "0.93"
-        width: "0.6"
-        height: "0.05"
-        border:
-          style: "5"
-        borderRadius: "0"
-        display: inline
-        textAlign:
-          x: center
-          y: center
+                  children:
+                    - type: label
+                      text: Urgent Care Evaluation Report
+                      dataKey: itemObject.name.title
+                      onClick:
+                        - actionType: updateObject
+                          dataKey: Global.DocReference.document
+                          dataObject: itemObject
+                        - goto: DocumentDetail
+                      style:
+                        left: "0.1"
+                        top: "0.02"
+                        width: "0.7"
+                        height: "0.02"
+                        fontSize: "13"
+                        fontWeight: "500"
+                        textAlign:
+                          y: center
+                    - type: label
+                      text: 10.30am
+                      text=func: .builtIn.string.formatUnixtime_en
+                      dataKey: itemObject.ctime
+                      style:
+                        color: "0x808080"
+                        left: "0.7"
+                        top: "0.01"
+                        width: "0.2"
+                        height: "0.02"
+                        fontSize: "12"
+                      textAlign:
+                        y: center
+        - type: button
+          onClick:
+            - goto: UploadDocuments
+          text: Share from My Documents
+          style:
+            color: "0xFFFFFF"
+            background: "0x388eccff"
+            left: "0.2"
+            top: "0.85"
+            width: "0.6"
+            height: "0.05"
+            border:
+              style: "5"
+            borderRadius: "0"
+            display: inline
+            textAlign:
+              x: center
+              y: center
+        - type: button
+          onClick:
+            - goto: SharedDocuments
+          text: Upload in Meeting
+          style:
+            color: "0xFFFFFF"
+            background: "0x388eccff"
+            left: "0.2"
+            top: "0.93"
+            width: "0.6"
+            height: "0.05"
+            border:
+              style: "5"
+            borderRadius: "0"
+            display: inline
+            textAlign:
+              x: center
+              y: center

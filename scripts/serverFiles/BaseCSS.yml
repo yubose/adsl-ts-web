@@ -28,7 +28,186 @@ LabelStyle:
     textAlign:
       x: left
       y: center
-DividerStyle:
-  width: "0.9"
-  height: "0.00136"
-  backgroundColor: "0xd3d3d3ff"
+TextFieldStyle:
+  .Style:
+    border:
+      style: "1"
+    outline: none
+CheckBoxStyle:
+  .Style:
+    width: "0.0434"
+    height: "0.0204"
+ButtonStyle:
+  .Style:
+    textColor: "0xffffffff"
+    backgroundColor: "0xffffffff"
+    border:
+      style: "1"
+    shadow: "true"
+FooterStyle:
+  .Style:
+    left: "0"
+    top: "0.93188"
+    width: "1"
+    height: "0.0667574"
+    backgroundColor: "0xffffffff"
+TabBarButton1Style:
+  .Style:
+    left: "0.087"
+    top: "0.707"
+    width: "0.087"
+    height: "0.04"
+    activeColor: .colorTheme.highLightColor
+TabBarLabel1Style:
+  .Style:
+    left: "0.087"
+    top: "0.707"
+    width: "0.087"
+    height: "0.04"
+    fontSize: "13"
+    color: "0x878787ff"
+TabBarButton2Style:
+  .Style:
+    left: "0.246"
+    top: "0.707"
+    width: "0.087"
+    height: "0.04"
+TabBarLabel2Style:
+  .Style:
+    left: "0.087"
+    top: "0.707"
+    width: "0.087"
+    height: "0.04"
+    color: "0x878787ff"
+    fontSize: "13"
+TabBarButton3Style:
+  .Style:
+    left: "0.478"
+    top: "0.707"
+    width: "0.087"
+    height: "0.04"
+TabBarLabel3Style:
+  .Style:
+    left: "0.087"
+    top: "0.707"
+    width: "0.087"
+    height: "0.04"
+    fontSize: "13"
+    color: "0x878787ff"
+TabBarButton4Style:
+  .Style:
+    left: "0.681"
+    top: "0.707"
+    width: "0.087"
+    height: "0.04"
+TabBarLabel4Style:
+  .Style:
+    left: "0.087"
+    top: "0.707"
+    width: "0.087"
+    height: "0.04"
+    fontSize: "13"
+    color: "0x878787ff"
+TagViewStyle:
+  .Style:
+    width: "1"
+    backgroundColor: "0xedf3f7ff"
+TagViewIndicatorStyle:
+  .Style:
+    width: "0.072"
+    height: "0.00272"
+    color: "0xfda512"
+GreenButtonStyle:
+  .Style:
+    width: "0.391"
+    height: "0.04"
+    borderRadius: "8"
+    backgroundColor: "0x02b449ff"
+    shadow: "true"
+SearchBarStyle:
+  .Style:
+    backgroundColor: "0xa9a9a9ff"
+    width: "0.783"
+    height: "0.03"
+    borderRadius: "8"
+    outline: none
+SurroundBorderStyle:
+  .Style:
+    color: "0xfda512ff"
+GlowyBorderStyle:
+  .Style:
+    fontStyle: italic
+    border:
+      width: "1"
+      line: solid
+CardViewStyle:
+  .Style:
+    borderRadius: "0.16"
+CardViewTitleStyle:
+  .Style:
+    top: "0.02"
+    left: "0.07"
+CardViewSubtitleStyle:
+  .Style:
+    top: "0.04"
+    left: "0.07"
+CardViewIconStyle:
+  .Style:
+    top: "0.02"
+    left: "0.02"
+    width: "0.04"
+    height: "0.04"
+ScrollViewStyle:
+  .Style:
+    left: "0"
+    top: "0.065"
+    width: "1"
+    height: "0.935"
+LeftButtonStyle:
+  .Style:
+    left: "0.0582"
+    top: "0"
+    width: "0.18667"
+    height: "0.03405"
+HeaderRightLink:
+  left: "0.82"
+  width: "0.2"
+  height: "0.1"
+  fontSize: "17"
+  letterSpacing: "2"
+  fontWeight: 300
+  color: "0xffffffff"
+  zIndex: "1000"
+  textAlign:
+    y: center
+HeaderLeftLink:
+  left: "0.05"
+  width: "0.2"
+  height: "0.1"
+  fontSize: "17"
+  letterSpacing: "2"
+  fontWeight: 300
+  color: "0xffffffff"
+  zIndex: "1000"
+  textAlign:
+    y: center
+HeaderRightImgStyle:
+  left: "0.87"
+  top: "0.036"
+  height: "0.028"
+  zIndex: "10000"
+SearchButton:
+  type: button
+  text: Search
+  style:
+    left: "0.02"
+    top: "0.02"
+    width: "0.15"
+    height: "0.035"
+    color: "0xffffff"
+    backgroundColor: "0x388ecc"
+    fontSize: "12"
+    border:
+      style: "3"
+      color: "0x388ecc"
+    borderRadius: "2"

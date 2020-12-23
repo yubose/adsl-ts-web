@@ -1,12 +1,13 @@
 UploadDocuments:
   pageNumber: "415"
-  title: MyDocuments
+  title: My Directory
   init:
     - .SignInCheck
     - ..listData.get
   listData:
     personalDoc:
-      ? doc
+      doc:
+        isSelected: false
     get:
       .DocAPI.get: ""
       api: rd
@@ -22,6 +23,8 @@ UploadDocuments:
   sharedDoc: ""
   selectedDoc:
     isSelected: false
+  generalInfo:
+    value: true
   components:
     - .BaseCheckView: ""
       message: Uploading in progress ...
@@ -88,9 +91,14 @@ UploadDocuments:
                   viewTag: select
                   path:
                     emit:
+                      dataKey:
+                        var: itemObject
                       actions:
                         - if:
-                            - =.UploadDocuments.selectedDoc.isSelected
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..generalInfo.value
+                                  string2: $var.isSelected
                             - https://public.aitmed.com/commonRes/selectOn.png
                             - https://public.aitmed.com/commonRes/selectOff.png
                   onClick:
@@ -98,11 +106,23 @@ UploadDocuments:
                       dataKey: UploadDocuments.selectedDoc
                       dataObject: itemObject
                     - emit:
+                        dataKey:
+                          var: itemObject
                         actions:
                           - if:
-                              - =.UploadDocuments.selectedDoc.isSelected
-                              - .UploadDocuments.selectedDoc.isSelected@: false
-                              - .UploadDocuments.selectedDoc.isSelected@: true
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..generalInfo.value
+                                    string2: $var.isSelected
+                              - =.builtIn.object.clear:
+                                  dataIn:
+                                    object: $var
+                                    key: isSelected
+                              - =.builtIn.object.set:
+                                  dataIn:
+                                    object: $var
+                                    key: isSelected
+                                    value: true
                     - actionType: builtIn
                       funcName: redraw
                       viewTag: select
@@ -158,7 +178,7 @@ UploadDocuments:
         - actionType: builtIn
           funcName: goBack
           reload: true
-      text: Share one document to meeting
+      text: Share in meeting
       style:
         color: "0xFFFFFF"
         background: "0x388eccff"

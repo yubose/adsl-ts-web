@@ -3,207 +3,80 @@ AboutAitmed:
   init: ""
   title: About
   components:
-    - ? .BaseHeader3
-    - ? .HeaderLeftButton
-    - type: label
-      text: About AiTmed
-      style:
-        left: "0.1"
-        top: "0.125"
-        width: "0.8"
-        height: "0.05"
-        fontSize: "14"
-        fontFamily: sans-serif
-        letterSpacing: "2"
-        textAlign:
-          x: center
-        color: "0x6dacdaff"
-        border:
-          style: "2"
-          color: "0xb7b7b7ff"
-        borderWidth: "1"
-    - type: view
-      style:
-        top: "0.22"
-        width: "0.9"
-        height: "1.92"
-        left: "0.05"
-        border:
-          style: "3"
-          color: "0x9f9f9f"
-      children:
-        - type: view
-          style:
-            width: "0.86"
-            left: "0.02"
-            top: "0.02"
-          children:
-            - type: label
-              style:
-                color: "0x9f9f9f"
-                fontSize: "13"
-                textAlign:
-                  x: left
-                width: "0.86"
-              textBoard:
-                - text: Our Vision and Mission
-                  color: "0x000000"
-                - ? br
-                - text: ""
-                - ? br
-                - text: Our vision is to become the premier and world leader in telehealth service
-                    by using blockchain and Artificial Intelligence technology
-                    to give people the most secure and highest level of personal
-                    privacy in a faster, more convenient platform that will
-                    produce better outcomes for our consumers, physicians,
-                    employers, employees, and medical institutions that we
-                    serve.
-                  color: "0x000000af"
-                - ? br
-                - text: ""
-                - ? br
-                - text: AiTmed's History
-                  color: "0x000000"
-                - ? br
-                - text: ""
-                - ? br
-                - text: The company began in 2015 as a telemedicine platform. In 2019 it developed
-                    its own ECOS (Edge Computing Operating System) platform,
-                    which is integrating blockchain encryption and artificial
-                    intelligence technology.
-                  color: "0x000000af"
-                - ? br
-                - text: ""
-                - ? br
-                - text: AiTmed's Foundational Core Technology
-                  color: "0x000000"
-                - ? br
-                - text: ""
-                - ? br
-                - text: The ECOS provides fast, secure, and personal privacy, under HIPAA
-                    compliance. The core technology was integrated into the
-                    companies new Prynote product, where anyone can store and
-                    share private notes on a highly secure domain/database,
-                    similar to Bitcoin. This revolutionary technology was
-                    integrated into the telehealth industry will enable the
-                    medical community to share critical information in a secure
-                    private setting at high speed with ease. This will then
-                    allow compatibility with Electronic Medical Record (EMR)
-                    systems to improve the continuum of care process for the
-                    consumer, patient, insurance companies, medical providers,
-                    or any third parties involved in the patient care.
-                  color: "0x000000af"
-                - ? br
-                - text: ""
-                - ? br
-                - text: AiTmed's Products and Services
-                  color: "0x000000"
-                - ? br
-                - text: ""
-                - ? br
-                - text: AiTmed is designed to be the telehealth platform for people's illness and
-                    wellness.
-                  color: "0x000000af"
-                - ? br
-                - text: ""
-                - ? br
-                - text: "For Providers:"
-                  color: "0x000000"
-                - ? br
-                - text: ""
-                - ? br
-                - text: "AiTmed's platform offers services to solo/group practices, clinics,
-                    nursing homes, surgery centers, hospitals, imaging centers,
-                    labs, etc. AiTmed provides many comprehensive telehealth
-                    solutions designed to enhance the provider's use:"
-                  color: "0x000000af"
-                - text: -Virtual waiting room
-                  color: "0x000000af"
-                - text: -HD Video
-                  color: "0x000000af"
-                - text: -E-prescription service add-on
-                  color: "0x000000af"
-                - text: -Blockchain Encrypted Documentation
-                  color: "0x000000af"
-                - text: -Premium E-Referral Network
-                  color: "0x000000af"
-                - text: -Self-scheduling for both providers and patients
-                  color: "0x000000af"
-                - text: -Customized dashboard for each provider and clinic
-                  color: "0x000000af"
-                - ? br
-                - text: ""
-                - ? br
-                - text: "For Patients/Users:"
-                  color: "0x000000"
-                - ? br
-                - text: ""
-                - ? br
-                - text: AiTmed encourages patients to continue a healthy lifestyle everyday
-                    through the AiTmed Wellness platform. This service allows
-                    patients to utilize the most private and secure
-                    blockchain-encryption technology to store your medical
-                    records and personal information, while allowing you to
-                    share documents of your choice instantly. AiTmed has a
-                    provider's network that allows users/patients to find a
-                    doctor of their choice and the ability to self-schedule.
-                  color: "0x000000af"
-                - ? br
-                - text: ""
-                - ? br
-                - text: AiTmed Wellness
-                  color: "0x000000"
-                - ? br
-                - text: ""
-                - ? br
-                - text: "AiTmed's Wellness platform includes several features to improve and
-                    maintain your health everyday:"
-                  color: "0x000000af"
-                - text: -Vital Signs Monitoring - simply connect a bluetooth device
-                  color: "0x000000af"
-                - text: -Health A-Z - Medical Encyclopedia of Diagnosis and Treatment
-                  color: "0x000000af"
-                - text: -Wellness Community - Support groups to discuss treatments and therapies
-                  color: "0x000000af"
-                - text: -Medical Webinar - Doctor-led discussions about common ailments and
-                    problems
-                  color: "0x000000af"
-                - text: -Share Your Wellness Story - describe what keeps you motivated and on
-                    track to wellness
-                  color: "0x000000af"
-                - ? br
-                - text: ""
-                - ? br
-                - text: AiTmed Store
-                  color: "0x000000"
-                - ? br
-                - text: ""
-                - ? br
-                - text: AiTmed's E-commerce Store will provide vital monitoring kits that can be
-                    integrated directly into our platform. AiTmed also supplies
-                    the highest quality nutrition, supplements, and durable
-                    medical equipment (DME) for patients/users to benefit their
-                    wellness and give them support.
-                  color: "0x000000af"
-                - ? br
-                - text: ""
-                - ? br
-    - type: button
-      text: Done
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
-      style:
-        top: "2.2"
-        width: "0.7"
-        backgroundColor: "0x388ecc"
-        height: "0.06"
-        color: "0xffffff"
-        left: "0.15"
-        textAlign:
-          x: center
     - type: view
       style:
         width: "1"
-        height: "0.1"
-        top: "2.23"
+        height: "1"
+        left: "0"
+        top: "0"
+        position: fixed
+      children:
+        - ? .BaseHeader3
+        - ? .HeaderLeftButton
+        - type: label
+          text: About AiTmed
+          style:
+            left: "0.1"
+            top: "0.125"
+            width: "0.8"
+            height: "0.05"
+            fontSize: "14"
+            fontFamily: sans-serif
+            letterSpacing: "2"
+            textAlign:
+              x: center
+            color: "0x6DACDA"
+            border:
+              style: "2"
+            borderColor: "0xb7b7b7ff"
+            borderWidth: "1"
+        - type: view
+          style:
+            top: "0.22"
+            width: "0.9"
+            height: "0.4"
+            left: "0.05"
+          children:
+            - type: view
+              style:
+                width: "0.86"
+                left: "0.02"
+                top: "0"
+              children:
+                - type: label
+                  style:
+                    color: "0x9f9f9f"
+                    fontSize: "14"
+                    width: "0.86"
+                    textAlign: justify
+                  textBoard:
+                    - text: AiTmed began in 2015 as a telemedicine platform. In 2019 it developed its
+                        own ECOS (Edge Computing Operating System) platform,
+                        which is integrating blockchain encryption and
+                        artificial intelligence technology. AiTmed is designed
+                        to be the telehealth platform for people's illness and
+                        wellness. Our vision is to become the premier and world
+                        leader in telehealth service. By using blockchain and
+                        Artificial Intelligence technology we want to give
+                        people the most secure and highest level of personal
+                        privacy in a faster, more convenient platform. Our goal
+                        is to produce top quality software to our consumers. We
+                        are a company that is willing to conform to the needs
+                        and demands of society at any point in time. We want to
+                        be the shining star that our health care system and
+                        society need and can utilize every day. AiTmed is what
+                        everyone has been waiting for.
+        - type: button
+          text: Done
+          onClick:
+            - actionType: builtIn
+              funcName: goBack
+          style:
+            top: "0.8"
+            width: "0.7"
+            backgroundColor: "0x388ecc"
+            height: "0.06"
+            color: "0xffffff"
+            left: "0.15"
+            textAlign:
+              x: center
