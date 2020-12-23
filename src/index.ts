@@ -117,6 +117,8 @@ window.addEventListener('load', async () => {
 
   window.build = process.env.BUILD
   window.noodlui = noodlui
+  // @ts-expect-error
+  window.componentCache = noodlui.componentCache.bind(noodlui)
   window.app = {
     build: process.env.BUILD,
     client: {

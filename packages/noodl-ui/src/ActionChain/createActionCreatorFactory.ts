@@ -162,7 +162,6 @@ const createActionCreatorFactory = function (
           }
           return acc.concat(a.fn)
         }, [] as ActionChainUseObjectBase<ActionObject>['fn'][])
-
         return getResults(action as any, callbacks, event)
       }
       return action

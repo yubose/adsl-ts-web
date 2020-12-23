@@ -21,9 +21,9 @@ FirebaseToken:
       - .FirebaseToken.edge.name.accessToken@: =.builtIn.getFCMToken
       - .FirebaseToken.edge.evid@: =.builtIn.getAPPID
       - .FirebaseToken.edge.refid@: =.builtIn.getFCMTokenSHA256Half
-      - =.FirebaseToken.edgeAPI.store
+      - =.FirebaseToken.edgeAPI.store: ""
   unregisterToken:
-    - =.FirebaseToken.edgeAPI.delete
+    - =.FirebaseToken.edgeAPI.delete: ""
   checkTokenExpire:
     if:
       - =.builtIn.needUpdateToken
@@ -42,7 +42,9 @@ CreateChatRelation:
       .EdgeAPI: ""
       store:
         api: ce
-        dataKey: CreateChatRelation.createChatEdge.edge
+        dataIn: CreateChatRelation.createChatEdge.edge
+        dataOut: CreateChatRelation.createChatEdge.result
+    result: ""
   fun_createGroupChatRootEdge:
     parameter:
       name:
@@ -53,7 +55,7 @@ CreateChatRelation:
       - .CreateChatRelation.createChatEdge.edge.refid@: ""
       - .CreateChatRelation.createChatEdge.edge.subType@: 1
       - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_createGroupChatRootEdge.parameter.name
-      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store: ""
   fun_createGroupChatInviteEdge:
     parameter:
       refid: ""
@@ -65,7 +67,7 @@ CreateChatRelation:
       - .CreateChatRelation.createChatEdge.edge.refid@: =.CreateChatRelation.fun_createGroupChatInviteEdge.parameter.refid
       - .CreateChatRelation.createChatEdge.edge.subType@: 1
       - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_createGroupChatInviteEdge.parameter.name
-      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store: ""
   fun_create1To1ChatEdge:
     parameter:
       refid: ""
@@ -76,7 +78,7 @@ CreateChatRelation:
       - .CreateChatRelation.createChatEdge.edge.id@: ""
       - .CreateChatRelation.createChatEdge.edge.subType@: 0
       - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_create1To1ChatEdge.parameter.name
-      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store: ""
 CreateDocInChat:
   document:
     docAPI:
@@ -89,7 +91,7 @@ CreateDocInChat:
           isOnServer: auto
           isZipped: 0
           isBinary: 0
-          isEncryped: 0
+          isEncrypted: 0
           isExtraKeyNeeded: 0
           isEditable: 0
           applicationDataType: 0
@@ -97,6 +99,19 @@ CreateDocInChat:
         name:
           title: default title
           data: ""
+  fun_createFileDoc:
+    parameter:
+      name:
+        data:
+          fileContent: bntData
+          senderName: ""
+    execute:
+      - .CreateDocInChat.document.docAPI.store.subtype.isOnServer@: 0
+      - .CreateDocInChat.document.docAPI.store.subtype.mediaType@: 4
+      - .CreateDocInChat.document.docAPI.store.type@: 1025
+      - .CreateDocInChat.document.docAPI.store.name.data@: =.CreateDocInChat.fun_createFileDoc.parameter.name.data
+      - .CreateDocInChat.document.docAPI.store.eid@: =.CreateDocInChat.fun_createFileDoc.parameter.eid
+      - =.CreateDocInChat.document.docAPI.store: ""
   fun_createMessageDoc:
     parameter:
       eid: ""
@@ -105,10 +120,12 @@ CreateDocInChat:
         senderName: ""
         senderAvatar: ""
     execute:
+      - .CreateDocInChat.document.docAPI.store.subtype.isOnServer@: 1
+      - .CreateDocInChat.document.docAPI.store.subtype.mediaType@: 8
       - .CreateDocInChat.document.docAPI.store.type@: 769
       - .CreateDocInChat.document.docAPI.store.name.data@: =.CreateDocInChat.fun_createMessageDoc.parameter.data
       - .CreateDocInChat.document.docAPI.store.eid@: =.CreateDocInChat.fun_createMessageDoc.parameter.eid
-      - =.CreateDocInChat.document.docAPI.store
+      - =.CreateDocInChat.document.docAPI.store: ""
   fun_createInviteDoc:
     parameter:
       eid: ""
@@ -120,7 +137,7 @@ CreateDocInChat:
       - .CreateDocInChat.document.docAPI.store.type@: 1281
       - .CreateDocInChat.document.docAPI.store.name.data@: =.CreateDocInChat.fun_createInviteDoc.parameter.data
       - .CreateDocInChat.document.docAPI.store.eid@: =.CreateDocInChat.fun_createInviteDoc.parameter.eid
-      - =.CreateDocInChat.document.docAPI.store
+      - =.CreateDocInChat.document.docAPI.store: ""
 ReceiveMessagePopUp:
   type: popUp
   viewTag: receiveMessagePopUp

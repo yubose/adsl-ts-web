@@ -1,14 +1,18 @@
 import { expect } from 'chai'
-import { createComponent, NOODLComponent, EmitObject } from 'noodl-ui'
+import path from 'path'
+import { createComponent, NOODLComponent } from 'noodl-ui'
 import { getShape, getShapeKeys } from './utils'
 
 describe('noodl-ui-dom', () => {
+  xit('should attach an "events" property as an array if their component has an event', () => {
+    //
+  })
+
   describe('getShape', () => {
     let dataKey: string
     let iteratorVar: string
     let listObject: any[]
     let listId: string
-    let path: Omit<EmitObject, 'actionType'>
     let noodlComponent: NOODLComponent
 
     beforeEach(() => {

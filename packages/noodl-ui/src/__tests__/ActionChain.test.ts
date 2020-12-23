@@ -1,24 +1,21 @@
 import { expect } from 'chai'
 import chalk from 'chalk'
 import sinon from 'sinon'
-import { assetsUrl, noodlui } from '../utils/test-utils'
 import ActionChain from '../ActionChain'
 import Action from '../Action'
+import createComponent from '../utils/createComponent'
+import Component from '../components/Base'
+import EmitAction from '../Action/EmitAction'
+import List from '../components/List'
+import { assetsUrl, noodlui } from '../utils/test-utils'
+import { actionChainEmitTriggers, actionTypes } from '../constants'
 import {
-  ActionObject,
   ActionChainContext,
   UpdateObject,
   PageJumpObject,
   PopupDismissObject,
   ActionChainConstructorArgs,
 } from '../types'
-import { actionChainEmitTriggers, actionTypes } from '../constants'
-import createComponent from '../utils/createComponent'
-import EmitAction from '../Action/EmitAction'
-import Component from '../components/Base'
-import List from '../components/List'
-import ListItem from '../components/ListItem'
-import { first } from 'lodash'
 
 const actionsContext = { noodl: {}, noodlui }
 

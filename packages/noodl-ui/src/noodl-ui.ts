@@ -251,7 +251,7 @@ class NOODL {
     if (!window.ac) window['ac'] = {}
     // @ts-expect-error
     window.ac[options.component?.id || ''] = actionChain
-    return actionChain.build()
+    return actionChain.build.call(actionChain).bind(actionChain)
   }
 
   createSrc<O extends T.EmitObject>(
@@ -675,10 +675,10 @@ class NOODL {
       component,
       context: this.getContext(),
       createActionChainHandler: (action, options) =>
-        this.createActionChainHandler.call(this, action, {
+        this.createActionChainHandler(action, {
           ...getActionConsumerOptions(this),
           ...options,
-          component,
+          component: component as any,
         }),
       createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
       fetch: this.#fetch.bind(this),

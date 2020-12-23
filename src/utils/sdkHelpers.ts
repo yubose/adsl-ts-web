@@ -100,6 +100,7 @@ export function createOnDataValueChangeFn(
         set(draft?.[noodlui.page], dataKey, value)
         component.set('data-value', value)
         node.dataset.value = value
+
         if (!isListConsumer(component)) {
           /**
            * EXPERIMENTAL - When a data key from the local root is being updated

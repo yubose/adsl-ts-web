@@ -12,9 +12,17 @@ export default {
         // the emitted action handlers are being called before local root object
         // gets their data values updated.
         // TODO - Unit test + think of a better solution
-        node.addEventListener(normalizeEventName(eventType), (e) =>
-          setTimeout(() => Promise.resolve(component.get(eventType)(e))),
-        )
+        node.addEventListener(normalizeEventName(eventType), (e) => {
+          setTimeout(() => {
+            const logMsg = `%cI AM CALLED!!!!`
+            console.log(logMsg, `color:#ec0000;font-weight:bold;`, {
+              node,
+              component,
+              event: e,
+            })
+            Promise.resolve(component.get(eventType).call(component, e))
+          })
+        })
       }
     })
   },

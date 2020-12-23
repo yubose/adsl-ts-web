@@ -122,7 +122,10 @@ class ActionChain<
       try {
         this.#setStatus('in.progress')
         log.func('execute')
-        log.grey('Action chain started', this.getDefaultCallbackArgs({ event }))
+        log.grey('Action chain started', {
+          ...this.getDefaultCallbackArgs({ event }),
+          fns: this.fns,
+        })
 
         if (this.#queue.length) {
           let action: Action | undefined
@@ -163,7 +166,7 @@ class ActionChain<
             }
           }
           log.grey('Action chain reached the end of execution', this)
-          return this.build
+          return actionChainHandler.bind(this)
         } else {
           log.red(
             'Cannot start action chain without actions in the queue',
@@ -207,7 +210,7 @@ class ActionChain<
     this.loadGen()
     log.func('build')
     log.grey(`Refreshed action chain`, {
-      actions: this.actions,
+      actions: this.actions.slice(),
       actionChain: this,
       queue: this.getQueue(),
     })

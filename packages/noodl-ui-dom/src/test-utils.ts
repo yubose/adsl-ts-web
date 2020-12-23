@@ -104,7 +104,7 @@ export function toDOM<
 >(props: any) {
   let node: N | null = null
   let component: C | undefined
-  if (isComponent(props)) {
+  if (typeof props?.children === 'function') {
     node = noodluidom.parse(props as any) as N
     component = props as any
   } else if (typeof props === 'object' && 'type' in props) {

@@ -18,14 +18,4 @@ export default {
     if (!text) text = ''
     if (text && node) node.innerHTML = `${text}`
   },
-  // if (node && !node.innerHTML.trim()) {
-  //   if (isDisplayable(component.get('data-value'))) {
-  //     node.innerHTML = `${component.get('data-value')}`
-  //   } else if (isDisplayable(component.get('children'))) {
-  //     node.innerHTML = `${component.get('children')}`
-  //   } else if (isDisplayable(component.get('text'))) {
-  //     node.innerHTML = `${component.get('text')}`
-  //   }
-  //   if (text && node) node.innerHTML = text
-  // }
 } as RegisterOptions

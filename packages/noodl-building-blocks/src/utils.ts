@@ -1,24 +1,33 @@
-import { BuiltInObject, EmitActionObject, IfObject } from 'noodl-ui'
-import * as T from './types'
+import * as T from 'noodl-types'
+import { IfObject } from 'noodl-ui'
 
 /* -------------------------------------------------------
   ---- COMPONENTS
 -------------------------------------------------------- */
 
-export function createImage(opts: Partial<T.INOODLImage>) {
-  return { type: 'image', ...opts } as T.INOODLImage
+export function createComponent<C extends T.ComponentObject = any>(
+  opts?: Partial<C>,
+) {
+  return { ...opts } as C
 }
 
-export function createList(opts: Partial<T.INOODLList>) {
-  return { type: 'list', ...opts } as T.INOODLList
+export function createImage(opts: Partial<T.ImageComponentObject>) {
+  return createComponent({ type: 'image', ...opts })
 }
 
-export function createListItem(opts: Partial<T.INOODLListItem>) {
-  return { type: 'listItem', ...opts } as T.INOODLListItem
+export function createList(opts: Partial<T.ListComponentObject>) {
+  return createComponent({ type: 'list', ...opts }) as T.ListComponentObject
 }
 
-export function createView(opts: Partial<T.INOODLView>) {
-  return { type: 'view', ...opts } as T.INOODLView
+export function createListItem(opts: Partial<T.ListItemComponentObject>) {
+  return createComponent({
+    type: 'listItem',
+    ...opts,
+  }) as T.ListItemComponentObject
+}
+
+export function createView(opts: Partial<T.ViewComponentObject>) {
+  return createComponent({ type: 'view', ...opts }) as T.ViewComponentObject
 }
 
 /* -------------------------------------------------------
@@ -29,16 +38,16 @@ export function createView(opts: Partial<T.INOODLView>) {
   ---- ACTIONS
 -------------------------------------------------------- */
 
-export function createBuiltInObject(args: Partial<T.IBuiltInAction>) {
+export function createBuiltInObject(args: Partial<T.BuiltInActionObject>) {
   return {
     funcName: '',
     actionType: 'builtIn',
     ...args,
-  } as T.IBuiltInAction
+  } as T.BuiltInActionObject
 }
 
-export function createEmitObject({ dataKey, actions }: Partial<T.IEmitAction>) {
-  return { emit: { dataKey, actions } } as T.IEmitAction
+export function createEmitObject({ dataKey, actions }: Partial<T.EmitObject>) {
+  return { emit: { dataKey, actions } } as T.EmitObject
 }
 
 /* -------------------------------------------------------

@@ -219,119 +219,112 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     window.location.reload()
   }
 
-  builtInActions.redraw = (function () {
-    let componentCacheSize = 0
+  let componentCacheSize = 0
 
-    const getComponentCacheSize = (noodlui: any) => {
-      return Object.keys(noodlui.componentCache().state()).length
-    }
+  const getComponentCacheSize = (noodlui: any) => {
+    return Object.keys(noodlui.componentCache().state()).length
+  }
 
-    return function redraw(
-      action: EmitAction,
-      options,
-      { noodlui, noodluidom },
-    ) {
-      log.func('redraw')
-      log.red('', { action, options })
+  builtInActions.redraw = async function redraw(
+    action: EmitAction,
+    options,
+    { noodlui, noodluidom },
+  ) {
+    log.func('redraw')
+    log.red('', { action, options })
 
-      const viewTag = action?.original?.viewTag || ''
+    const viewTag = action?.original?.viewTag || ''
 
-      let components = Object.values(
-        noodlui.componentCache().state() || {},
-      ).reduce((acc, c: Component) => {
-        if (c && c.get('viewTag') === viewTag) return acc.concat(c)
+    let components = Object.values(
+      noodlui.componentCache().state() || {},
+    ).reduce((acc, c: Component) => {
+      if (c && c.get('viewTag') === viewTag) return acc.concat(c)
+      return acc
+    }, [] as Component[])
+
+    log.gold('viewTaggedComponents', {
+      viewtagged: components.reduce((acc, c) => {
+        acc[c.id] = { component: c, node: document.getElementById(c.id) }
         return acc
-      }, [] as Component[])
+      }, {}),
+    })
 
-      log.gold(
-        'viewTaggedComponents',
-        components.reduce((acc, c) => {
-          acc[c.id] = { component: c, node: document.getElementById(c.id) }
-          return acc
-        }, {}),
-      )
+    // let components =
+    //   (viewTag &&
+    //     findParent(options.component, (p) => p?.get?.('viewTag') === viewTag)
+    //       ?.parent?.()
+    //       ?.children?.()
+    //       ?.filter?.((c) => c?.get?.('viewTag') === viewTag)) ||
+    //   []
 
-      // let components =
-      //   (viewTag &&
-      //     findParent(options.component, (p) => p?.get?.('viewTag') === viewTag)
-      //       ?.parent?.()
-      //       ?.children?.()
-      //       ?.filter?.((c) => c?.get?.('viewTag') === viewTag)) ||
-      //   []
+    const { component } = options
 
-      const { component } = options
-
-      if (
-        viewTag &&
-        component.get('viewTag') === viewTag &&
-        !components.includes(component)
-      ) {
-        components.push(component)
-      }
-
-      if (component?.id in window.ac) delete window.ac[component?.id]
-
-      log.grey(
-        `# of components with viewTag "${viewTag}": ${components.length}`,
-        components,
-      )
-
-      const redraw = (
-        node: HTMLElement,
-        child: Component,
-        dataObject?: any,
-      ) => {
-        log.grey(`dataObject for ${child?.noodlType}`, dataObject)
-        return noodluidom.redraw(node, child, {
-          dataObject,
-          resolver: (c: any) => {
-            if (c && c?.id in window.ac) delete window.ac[c.id]
-            noodlui.componentCache().remove(c)
-            return noodlui.resolveComponents(c)
-          },
-          viewTag,
-        })
-      }
-
-      let startCount = 0
-
-      while (startCount < components.length) {
-        const viewTagComponent = components[startCount]
-        const node = document.getElementById(viewTagComponent.id)
-        log.grey(
-          '[Redrawing] ' + node
-            ? `Found node for viewTag component`
-            : `Could not find a node associated with the viewTag component`,
-          { node, component: viewTagComponent },
-        )
-        const dataObject = findListDataObject(viewTagComponent)
-        const [newNode, newComponent] = redraw(
-          node as HTMLElement,
-          viewTagComponent,
-          dataObject,
-        )
-
-        log.grey('Resolved redrawed component/node', {
-          newNode,
-          newComponent,
-          dataObject,
-        })
-        noodlui.componentCache().set(newComponent).remove(viewTagComponent)
-        window[`r${startCount}`] = {
-          n: newNode,
-          c: newComponent,
-          d: dataObject,
-          origNode: node,
-          origComponent: viewTagComponent,
-          index: startCount,
-        }
-        startCount++
-      }
-
-      componentCacheSize = getComponentCacheSize(noodlui)
-      log.red(`COMPONENT CACHE SIZE: ${componentCacheSize}`)
+    if (
+      viewTag &&
+      component.get('viewTag') === viewTag &&
+      !components.includes(component)
+    ) {
+      components.push(component)
     }
-  })()
+
+    if (component?.id in window.ac) delete window.ac[component?.id]
+
+    log.grey(
+      `# of components with viewTag "${viewTag}": ${components.length}`,
+      components,
+    )
+
+    const redraw = (node: HTMLElement, child: Component, dataObject?: any) => {
+      log.grey(`dataObject for ${child?.noodlType}`, dataObject)
+      return noodluidom.redraw(node, child, {
+        dataObject,
+        resolver: (c: any) => {
+          if (c && c?.id in window.ac) delete window.ac[c.id]
+          noodlui.componentCache().remove(c)
+          return noodlui.resolveComponents(c)
+        },
+        viewTag,
+      })
+    }
+
+    let startCount = 0
+
+    while (startCount < components.length) {
+      const viewTagComponent = components[startCount]
+      const node = document.getElementById(viewTagComponent.id)
+      log.grey(
+        '[Redrawing] ' + node
+          ? `Found node for viewTag component`
+          : `Could not find a node associated with the viewTag component`,
+        { node, component: viewTagComponent },
+      )
+      const dataObject = findListDataObject(viewTagComponent)
+      const [newNode, newComponent] = redraw(
+        node as HTMLElement,
+        viewTagComponent,
+        dataObject,
+      )
+
+      log.grey('Resolved redrawed component/node', {
+        newNode,
+        newComponent,
+        dataObject,
+      })
+      noodlui.componentCache().remove(viewTagComponent).set(newComponent)
+      window[`r${startCount}`] = {
+        n: newNode,
+        c: newComponent,
+        d: dataObject,
+        origNode: node,
+        origComponent: viewTagComponent,
+        index: startCount,
+      }
+      startCount++
+    }
+
+    componentCacheSize = getComponentCacheSize(noodlui)
+    log.red(`COMPONENT CACHE SIZE: ${componentCacheSize}`)
+  }
 
   builtInActions.toggleCameraOnOff = async () => {
     log.func('toggleCameraOnOff')

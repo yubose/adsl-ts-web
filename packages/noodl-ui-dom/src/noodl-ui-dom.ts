@@ -56,6 +56,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
             getTagName(component as ComponentInstance),
           )
         }
+
         this.#R.run(node, component)
         if (node) {
           const parent = container || document.body

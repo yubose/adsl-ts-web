@@ -5,7 +5,7 @@ import { expect } from 'chai'
 import { applyMockDOMResolver, noodlui, toDOM } from '../test-utils'
 import * as resolvers from '../resolvers'
 
-describe.only('internal resolvers', () => {
+describe('internal resolvers', () => {
   it('should display data value if it is displayable', () => {
     const { node } = applyMockDOMResolver({
       resolver: resolvers.common,

@@ -221,47 +221,6 @@ export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
 }
 
-export function isHandlingEvent<N extends HTMLElement>(
-  node: N,
-  eventId: string,
-) {
-  if (node && eventId && Array.isArray(node.dataset.handling)) {
-    return node.dataset.handling.includes(eventId)
-  }
-  return false
-}
-
-export const handlingDataset = (function () {
-  function _get(node: any) {
-    return node?.dataset?.handling
-  }
-
-  function _parse(node: any) {
-    let result: any
-    if (node) {
-      try {
-        result = JSON.parse(_get(node))
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    return result || null
-  }
-
-  function _insert(node: any, value: string) {
-    let result: any
-    const handling = _parse(node)
-    return result
-  }
-
-  const o = {
-    parse: _parse,
-    insert: _insert,
-  }
-
-  return o
-})()
-
 export function normalizeEventName(eventName: string) {
   return typeof eventName === 'string'
     ? eventName.startsWith('on')

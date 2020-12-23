@@ -21,6 +21,7 @@ function getActionConsumerOptions(
       ['component', 'getCbs', 'getResolvers', 'getRoot', 'page', 'viewport'],
     ),
     {
+      componentCache: noodlui.componentCache.bind(noodlui),
       getAssetsUrl: (() => noodlui.assetsUrl).bind(noodlui),
       getPageObject: noodlui.getPageObject.bind(noodlui),
       getState: noodlui.getState.bind(noodlui),

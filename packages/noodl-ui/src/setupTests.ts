@@ -24,14 +24,10 @@ before(async () => {
 })
 
 beforeEach(() => {
-  noodlui
-    .init({
-      _log: false,
-    })
-    .use({
-      getAssetsUrl: () => assetsUrl,
-      getRoot: () => ({}),
-    })
+  noodlui.init({ _log: false }).use({
+    getAssetsUrl: () => assetsUrl,
+    getRoot: () => ({}),
+  })
 })
 
 after(() => {
@@ -39,6 +35,7 @@ after(() => {
 })
 
 afterEach(() => {
+  document.head.textContent = ''
   document.body.textContent = ''
-  noodlui.cleanup()
+  noodlui.reset()
 })

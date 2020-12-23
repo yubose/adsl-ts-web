@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
-import { prettyDOM, screen, waitFor } from '@testing-library/dom'
+import { prettyDOM, screen, wait, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import {
   ActionChain,
@@ -14,9 +14,11 @@ import {
   ComponentType,
   ActionObject,
   ActionType,
+  ComponentInstance,
 } from 'noodl-ui'
 import { assetsUrl, noodlui, noodluidom, toDOM } from '../test-utils'
 import EmitRedraw from './helpers/EmitRedraw.json'
+import { toSelectOption } from '../utils'
 
 export type DataKeyType<K extends string = 'emit' | 'key'> = K
 export type PathType = 'emit' | 'if' | 'url'
@@ -190,7 +192,54 @@ beforeEach(() => {
   }
 })
 
-xdescribe('redraw', () => {
+describe('redraw', () => {
+  describe.only('select component', () => {
+    it('should render more option children if the data has more items', async () => {
+      let options = ['00:00', '00:10']
+      let otherOptions = ['00:20', '00:30']
+      let [node, component] = toDOM({ type: 'select', options }) as [
+        HTMLSelectElement,
+        ComponentInstance,
+      ]
+      let optionsNodes = Array.from(node.options)
+      expect(node.options).to.have.lengthOf(2)
+      optionsNodes.forEach((optionNode, index) => {
+        expect(optionNode.value).to.eq(options[index])
+      })
+      options.push(...otherOptions)
+      let result = noodluidom.redraw(node, component)
+      node = result[0] as HTMLSelectElement
+      component = result[1]
+      expect(node.options).to.have.lengthOf(4)
+      for (let index = 0; index < node.options.length; index++) {
+        expect(node.options[index].value).to.eq(options[index])
+      }
+    })
+
+    it('should re-attach the onchange handler', async () => {
+      const spy = sinon.spy()
+      const options = ['00:00', '00:10', '00:20']
+      noodlui.use({ actionType: 'emit', fn: spy, trigger: 'onChange' })
+      const [node, component] = noodluidom.redraw(
+        ...toDOM({
+          type: 'select',
+          options,
+          onChange: [{ emit: { dataKey: { var1: 'hey' }, actions: [] } }],
+        }),
+      ) as [HTMLSelectElement, ComponentInstance]
+      node.click()
+      await waitFor(() => {
+        expect(spy.called).to.be.true
+      })
+      // expect(node.options).to.have.lengthOf(3)
+      console.info(prettyDOM())
+    })
+
+    xit('recreated options children should be reused if they are the same', () => {
+      //
+    })
+  })
+
   it("should clean up the component's listeners", () => {
     const addSpy = sinon.spy()
     const deleteSpy = sinon.spy()

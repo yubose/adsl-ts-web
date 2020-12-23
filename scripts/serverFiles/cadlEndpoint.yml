@@ -5,18 +5,27 @@ languageSuffix:
   es_ES: _es
   unknown: _en
 fileSuffix: .yml
-startPage: SignIn
+startPage: SelectRedraw
 preload:
-  - BasePage
-  - BaseCSS
   - BaseDataModel
+  - BaseCSS
+  - BasePage
+  - BootNoodlForMobile
+  - PatientChartDM
   - BaseMessage
 page:
-  - SignIn
-  - SignUp
-  - Logout
-  - CreateNewAccount
+  - PatientChart
+  - PatientChartGeneralInfo
+  - PatientChartPastMedicalHistory
+  - PatientChartAddAllergies
+  - PatientChartObstetrical
+  - PatientChartImmunizations
+  - EmitRedraw
+  - Home
+  - Star
   - ChatPage
-  - ChatList
-  - NewChat
-  - SideNav
+  - TestPlugIn
+  - PatientDashboard
+  - PatientChartAddMedications
+  - PatientChartAddHospitalization
+  - SelectRedraw
