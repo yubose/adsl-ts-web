@@ -1,6 +1,6 @@
 DisplayProfile:
   pageNumber: "330"
-  title: Private Profile
+  title: My Profile
   init:
     - .SignInCheck
     - ..profile.docAPI.get
@@ -32,15 +32,50 @@ DisplayProfile:
             dataOut: DisplayProfile.docDetail.document.name.data
         - continue
     - if:
-        - =..docProfile.doc.0
+        - =..docProfile.doc.0.name.type
         - ..tar@: ..docDetail.document.name.data
         - ..tar@: drImg.png
     - if:
         - =..docProfile.doc.0
         - .Global.currentUser.vertex.name.avatar@: ..docDetail.document.name.data
         - continue
+    - if:
+        - =..profileObject.name.data.firstName
+        - actionType: evalObject
+          object:
+            =.builtIn.string.concat:
+              dataIn:
+                - =..profileObject.name.data.firstName
+                - " "
+                - =..profileObject.name.data.lastName
+              dataOut: DisplayProfile.concatInfo.name
+        - continue
+    - if:
+        - =..profileObject.name.data.state
+        - actionType: evalObject
+          object:
+            =.builtIn.string.concat:
+              dataIn:
+                - =..profileObject.name.data.line1
+                - " "
+                - =..profileObject.name.data.line2
+                - " "
+                - =..profileObject.name.data.city
+                - " "
+                - =..profileObject.name.data.state
+                - " "
+                - =..profileObject.name.data.zip
+                - " "
+                - =..profileObject.name.data.country
+              dataOut: DisplayProfile.concatInfo.address
+        - continue
+  concatInfo:
+    name: ""
+    address: ""
   docDetail:
-    document: ""
+    document:
+      name:
+        data: drImg.png
   tar: ""
   profileObject:
     .Document: ""
@@ -50,18 +85,16 @@ DisplayProfile:
       title: ""
       type: application/json
       data:
-        avatarUrl: drImg.png
         phone: .Global.currentUser.vertex.uid
+        userName: .Global.currentUser.vertex.name.userName
         email: ""
-        firstName: ""
-        middleName: ""
-        lastName: ""
-        mailingAddress: ""
+        firstName: .Global.currentUser.vertex.name.firstName
+        lastName: .Global.currentUser.vertex.name.lastName
+        line1: ""
+        line2: ""
         city: ""
         state: ""
         zip: ""
-        language: ""
-        note: ""
         country: ""
   profile:
     docAPI:
@@ -104,347 +137,162 @@ DisplayProfile:
     error: ""
     jwt: ""
   components:
-    - type: scrollView
+    - type: view
       style:
-        left: "0"
         top: "0"
         width: "1"
-        height: "1.7"
-        contentSize:
-          width: "1"
-          height: "1.7"
+        height: "1"
       children:
         - ? .BaseHeader3
-        - ? .HeaderLeftButton
-        - .HeaderRightButton: null
+        - .HeaderLeftButton2: null
           text: Edit
           onClick:
             - goto: EditProfile
+        - .HeaderRightImg: null
+          path: sideNav2.png
+          onClick:
+            - goto: SideMenuBar
         - type: image
           path: ..tar
           style:
-            left: "0.34"
-            top: "0.1"
-            width: "0.25"
-            border:
-              style: "5"
-            borderRadius: 60
-          onClick:
-            - goto: PubProfile
+            top: "0.15"
+            width: "0.2"
+            left: "0.1"
         - type: view
           style:
-            top: "0.2"
+            top: "0.15"
+            left: "0.35"
+            width: "0.4"
+            height: "0.2"
           children:
             - type: label
-              text: Aitmed ID
+              dataKey: DisplayProfile.concatInfo.name
               style:
-                left: "0.15"
-                top: "0.05"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              text: .Global.currentUser.vertex.id
-              dataKey: Global.currentUser.vertex.id
-              contentType: text
-              style:
-                left: "0.35"
-                top: "0.05"
+                top: "0.01"
+                fontSize: "20"
+                fontWeight: "500"
                 width: "0.5"
                 height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
             - type: label
-              text: "Phone #"
+              text: "Username:"
               style:
-                left: "0.15"
-                top: "0.1"
-                width: "0.7"
+                top: "0.05"
+                fontSize: "20"
+                fontWeight: "400"
+                width: "0.2"
                 height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
+            - type: label
+              dataKey: Global.currentUser.vertex.name.userName
+              style:
+                left: "0.3"
+                top: "0.05"
+                fontSize: "20"
+                fontWeight: "400"
+                width: "0.2"
+                height: "0.04"
+        - type: view
+          style:
+            top: "0.3"
+            width: "0.8"
+            left: "0.1"
+            height: "0.4"
+            border:
+              style: "3"
+            borderWidth: "1"
+            borderColor: "0x388FCD"
+            borderRadius: "5"
+          children:
+            - type: view
+              style:
+                width: "0.8"
+                height: "0.05"
+                backgroundColor: "0x388FCD"
+              children:
+                - type: label
+                  text: Contact Information
+                  style:
+                    top: "0.008"
+                    width: "0.8"
+                    height: "0.03"
+                    fontSize: "20"
+                    color: "0xffffff"
+                    fontWeight: "400"
+                    textAlign:
+                      x: center
+            - type: label
+              text: Phone number
+              style:
+                top: "0.07"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.35"
+                height: "0.03"
+                left: "0.05"
             - type: label
               dataKey: Global.currentUser.vertex.uid
-              contentType: phoneNumber
               style:
-                left: "0.15"
-                top: "0.15"
-                width: "0.7"
-                height: "0.04"
+                top: "0.07"
                 fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
+                fontWeight: "400"
+                width: "0.35"
+                height: "0.03"
+                left: "0.4"
             - type: label
               text: Email
               style:
-                left: "0.15"
-                top: "0.2"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
+                top: "0.11"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.35"
+                height: "0.03"
+                left: "0.05"
             - type: label
               dataKey: profileObject.name.data.email
-              contentType: email
               style:
-                left: "0.15"
+                top: "0.15"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.6"
+                height: "0.03"
+                left: "0.1"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                textAlign:
+                  x: center
+            - type: label
+              text: Address
+              style:
+                top: "0.2"
+                fontSize: "16"
+                fontWeight: "400"
+                width: "0.35"
+                height: "0.03"
+                left: "0.05"
+            - type: label
+              dataKey: DisplayProfile.concatInfo.address
+              style:
                 top: "0.25"
-                width: "0.7"
-                height: "0.04"
                 fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
+                fontWeight: "400"
+                width: "0.6"
+                height: "0.1"
+                left: "0.1"
                 border:
                   style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: name
-              style:
-                left: "0.15"
-                top: "0.3"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
+                borderWidth: "1"
                 textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: profileObject.name.data.firstName
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.35"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Mailing address
-              style:
-                left: "0.15"
-                top: "0.4"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: profileObject.name.data.mailingAddress
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.45"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Mailing City
-              style:
-                left: "0.15"
-                top: "0.5"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: profileObject.name.data.city
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.55"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Mailing State
-              style:
-                left: "0.15"
-                top: "0.6"
-                width: "0.325"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: profileObject.name.data.state
-              style:
-                left: "0.15"
-                top: "0.65"
-                width: "0.7"
-                height: "0.04"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Mailing Zip
-              style:
-                left: "0.15"
-                top: "0.7"
-                width: "0.325"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: profileObject.name.data.zip
-              contentType: number
-              style:
-                left: "0.15"
-                top: "0.75"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Language
-              style:
-                left: "0.15"
-                top: "0.8"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: profileObject.name.data.language
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.85"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: label
-              text: Notes
-              style:
-                left: "0.15"
-                top: "0.9"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "12"
-                color: "0x00000058"
-                textAlign:
-                  x: left
-                  y: center
-            - type: label
-              dataKey: profileObject.name.data.note
-              contentType: text
-              style:
-                left: "0.15"
-                top: "0.95"
-                width: "0.7"
-                height: "0.04"
-                fontSize: "16"
-                textAlign:
-                  x: left
-                  y: center
-                border:
-                  style: "2"
-                  width: "1"
-                  color: "0x00000058"
-            - type: button
-              onClick:
-                - goto: PersonalDocuments
-              style:
-                left: "0"
-                top: "1.02"
-                width: "1"
-                height: "0.15"
-                backgroundColor: "0xffffff"
-              children:
-                - type: image
-                  dataModel: editProviderForm
-                  dataId: documents
-                  path: documents.png
-                  style:
-                    left: "0.1"
-                    top: "0.025"
-                    height: "0.1"
-                    border:
-                      style: "5"
-                - type: label
-                  text: Health Records & Medical Documentation
-                  style:
-                    left: "0.4"
-                    top: "0.06"
-                    fontStyle: bold
-                    width: "0.5"
-                    height: "0.04"
-                    fontSize: "14"
-                    color: "0x000000"
-                    textAlign:
-                      x: left
-                      y: center
+                  x: center
+        - type: button
+          text: Share my QR code
+          onClick:
+            - goto: MyQRCode
+          style:
+            top: "0.8"
+            width: "0.5"
+            left: "0.25"
+            height: "0.05"
+            backgroundColor: "0x398FCD"
+            color: "0xffffff"
+            textAlign:
+              x: center

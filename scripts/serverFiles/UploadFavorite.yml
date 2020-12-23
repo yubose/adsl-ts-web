@@ -23,6 +23,7 @@ UploadFavorite:
       xfname: eid
       maxcount: "500"
       obfname: mtime
+      _nonce: =.Global._nonce
   generalInfo:
     value: true
   components:
@@ -32,6 +33,7 @@ UploadFavorite:
         left: "0"
         width: "1"
         height: "1"
+        position: fixed
       children:
         - ? .BaseHeader3
         - .HeaderLeftButton: null

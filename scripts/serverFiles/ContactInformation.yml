@@ -22,7 +22,7 @@ ContactInformation:
           height: "1"
       children:
         - type: label
-          text: Name
+          text: First Name
           style:
             left: "0.15"
             top: "0.03"
@@ -50,7 +50,7 @@ ContactInformation:
               width: "1"
               color: "0xc2c2c2"
         - type: label
-          text: "Phone #"
+          text: Last Name
           style:
             left: "0.15"
             top: "0.12"
@@ -62,7 +62,7 @@ ContactInformation:
               x: left
               y: center
         - type: label
-          dataKey: dataObject.name.data.phoneNumber
+          dataKey: dataObject.name.data.lastName
           contentType: text
           style:
             left: "0.15"
@@ -78,10 +78,38 @@ ContactInformation:
               width: "1"
               color: "0xc2c2c2"
         - type: label
+          text: "Phone #"
+          style:
+            left: "0.15"
+            top: "0.21"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0xc2c2c2"
+            textAlign:
+              x: left
+              y: center
+        - type: label
+          dataKey: dataObject.name.data.phoneNumber
+          contentType: text
+          style:
+            left: "0.15"
+            top: "0.25"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0xc2c2c2"
+        - type: label
           text: Notes
           style:
             left: "0.15"
-            top: "0.22"
+            top: "0.31"
             width: "0.7"
             height: "0.04"
             fontSize: "12"
@@ -94,7 +122,7 @@ ContactInformation:
           dataKey: dataObject.name.data.note
           style:
             left: "0.15"
-            top: "0.27"
+            top: "0.35"
             width: "0.7"
             height: "0.04"
             fontSize: "16"

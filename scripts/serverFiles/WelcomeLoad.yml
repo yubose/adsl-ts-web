@@ -7,15 +7,20 @@ WelcomeLoad:
         top: "0"
         width: "1"
         height: "1"
-        backgroundColor: "0x69ba94"
       children:
         - type: image
-          path: aitmedLogoWhite.png
+          path: backpic.png
           style:
-            left: "0.35"
+            left: "0"
+            width: "1"
+            height: "1"
+            top: "0"
+        - type: image
+          path: logo.png
+          style:
             top: "0.3"
-            width: "0.32"
-            height: "0.17"
+            width: "0.38"
+            left: "0.31"
         - type: label
           text: WELCOME TO
           style:
@@ -24,21 +29,20 @@ WelcomeLoad:
             top: "0.5"
             width: "0.7"
             height: "0.041"
-            fontSize: "20"
+            fontSize: "26"
             display: inline
             textAlign:
               x: center
               y: center
         - type: label
-          text: AITMED
+          text: AiTmeet
           style:
             color: "0xFFFFFF"
             left: "0.15"
             top: "0.55"
             width: "0.7"
             height: "0.041"
-            fontSize: "25"
-            fontStyle: bold
+            fontSize: "28"
             display: inline
             textAlign:
               x: center
@@ -47,6 +51,6 @@ WelcomeLoad:
           path: progressBar100persent.png
           style:
             left: "0.0"
-            top: "1"
+            top: "0.98"
             width: "1"
             height: "0.02"

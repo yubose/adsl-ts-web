@@ -1,4 +1,3 @@
-AppName: AiTChat
 VoidObj: vVoOiIdD
 EmptyObj: ""
 EcosObj:
@@ -35,6 +34,17 @@ Document:
   .EcosObj: ""
   eid: ""
   fid: ""
+  subtype:
+    isOnServer: "1"
+    isZipped: auto
+    isBinary: "0"
+    isEncryped: "0"
+    isExtraKeyNeeded: "0"
+    isEditable: "0"
+    isCached: "1"
+    applicationDataType: "0"
+    mediaType: "0"
+    size: auto
 DocAPI:
   get:
     api: rd
@@ -44,33 +54,27 @@ DocAPI:
     maxcount: "1"
   store:
     api: cd
-    type:
-      isOnServer: auto
-      isZipped: auto
-      isBinary: "0"
-      isEncryped: "0"
-      isExtraKeyNeeded: "0"
-      isEditable: "0"
-      applicationDataType: "0"
-      mediaType: "0"
-      size: auto
 Message:
   avatar: https://public.aitmed.com/avatar/JohnDoe.jpg
   to: ""
-  from: .Global.currentUser.name.firstName
+  from: =.Global.currentUser.name.firstName
   createDate: ""
   createTime: ""
   subject: A Subject
   content: The message
   applicationLink: ""
 Const:
+  profile: "1"
   w9: "101"
   workComp: "102"
+  share: "103"
+  contact: "104"
+ErrorMessage: ""
 DataCache:
   loadingDateTime: "0"
   expireTime: 24hr
 Global:
-  currentDateTime: .builtIn.currentDateTime
+  currentDateTime: =.builtIn.currentDateTime
   currentUser:
     dataCache:
       .DataCache: ""
@@ -78,44 +82,17 @@ Global:
     vertex:
       .Vertex: ""
       name:
-        userName: username
-        avatar: ""
+        userName: ""
+        firstName: ""
+        lastName: ""
     JWT: ""
-  contactList:
-    dataCache:
-      .DataCache: ""
-      expireTime: 2hr
-    contacts:
-      - .Edge:
-          name:
-            aitmedId: "1234567"
-            userName: Sang Rose Lee
-            phone: (714)123-4212
-            notes: Been in the provider for 10 yrs
-    get:
-      .EdgeAPI.get: ""
-      dataKey: Global.contactList.contacts
-      id: .Global.currentUser.vertex.id
-      type: "10002"
-      xfname: bvid
-  rootNotebook:
-    edge:
-      .Edge: ""
-      type: "10000"
-      bvid: .Global.currentUser.vertex.id
-    edgeAPI:
-      .EdgeAPI: ""
-      get:
-        type: "10000"
-        xfname: bvid
-        dataKey: Global.rootNotebook.edge
-      store:
-        dataKey: Global.rootNotebook.edge
+  rootNotebookID: ""
   actingUser:
     DataCache:
       expireTime: 2hr
     vertex: .Vertex
   rootRoomInfo:
+    response: ""
     edge:
       .Edge: ""
       type: 40000
@@ -128,11 +105,37 @@ Global:
       store:
         api: ce
         dataKey: Global.rootRoomInfo.edge
+  profile:
+    document: ""
+  contact:
+    document:
+      name:
+        data:
+          firstName: ""
+          lastName: ""
+          phoneNumber: ""
+  phoneNumber: ""
+  _nonce: 0
   VideoChatObjStore:
     reference:
       edge: ""
-Credential:
-  patientUser:
-    vertex:
-      .Vertex: ""
-      type: patient
+  DocReference:
+    document: ""
+  DocProfile:
+    document: ""
+  popUpMessage: ""
+CountryCode:
+  - "+1"
+  - "+52"
+  - "+86"
+  - "+965"
+DocType:
+  PubProfile: "256"
+  Profile: "257"
+  UploadProfile: "258"
+  Contact: "513"
+  ContactFav: "515"
+  GetAllContact: type in (513,515)
+  GetFavContact: type=515
+  UploadFile: "1025"
+  MeetingNote: "1537"

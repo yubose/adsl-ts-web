@@ -1,9 +1,16 @@
 PersonalDocuments:
   pageNumber: "410"
-  title: MyDocuments
+  title: My Documents
   init:
     - .SignInCheck
     - ..listData.get
+    - if:
+        - ..listData.personalDoc.doc.0
+        - continue
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100
   listData:
     personalDoc:
       doc:
@@ -32,7 +39,10 @@ PersonalDocuments:
         height: "1"
       children:
         - ? .BaseHeader3
-        - ? .HeaderLeftButton
+        - .HeaderRightImg: null
+          path: sideNav2.png
+          onClick:
+            - goto: SideMenuBar
         - type: view
           style:
             top: "0.1"
@@ -64,6 +74,17 @@ PersonalDocuments:
                     top: "0.03"
                     left: "0.85"
                     height: "0.02"
+                - type: label
+                  contentType: messageHidden
+                  text: No documents added
+                  style:
+                    left: "0.25"
+                    top: "0.08"
+                    width: "0.72"
+                    height: "0.04"
+                    color: "0x000058"
+                    fontSize: "16"
+                    isHidden: "true"
         - type: view
           style:
             top: "0.17"
@@ -84,7 +105,7 @@ PersonalDocuments:
                     left: "0"
                     top: "0"
                     width: "1"
-                    height: "0.07"
+                    height: "0.1"
                     border:
                       style: "2"
                     borderWidth: "1"
@@ -113,8 +134,8 @@ PersonalDocuments:
                       dataKey: itemObject.ctime
                       style:
                         color: "0x808080"
-                        left: "0.7"
-                        top: "0.01"
-                        width: "0.2"
+                        left: "0.05"
+                        top: "0.06"
+                        width: "0.4"
                         height: "0.02"
                         fontSize: "12"

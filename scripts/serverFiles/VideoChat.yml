@@ -49,6 +49,18 @@ VideoChat:
       sCondition: tage=0 AND ctime>UNIX_TIMESTAMP()-86400
       maxcount: "20"
   components:
+    - type: register
+      onEvent: twilioOnPeopleJoin
+      action:
+        actionType: builtIn
+        funcName: hide
+        viewTag: waitForOtherTag
+    - type: register
+      onEvent: twilioOnNoParticipant
+      action:
+        actionType: builtIn
+        funcName: show
+        viewTag: waitForOtherTag
     - type: view
       style:
         left: "0"
@@ -101,6 +113,7 @@ VideoChat:
                   x: center
         - type: image
           path: meetingCircle.png
+          viewTag: needHidden
           style:
             left: "0.4"
             top: "0.4"
@@ -109,8 +122,9 @@ VideoChat:
               style: "5"
           borderRadius: 32
         - type: label
-          contentType: passwordHidden
+          contentType: hidden
           text: Waiting for others to join
+          viewTag: needHidden
           style:
             left: "0"
             top: "0.55"

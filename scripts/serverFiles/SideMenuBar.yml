@@ -31,6 +31,7 @@ SideMenuBar:
         left: "0"
         width: "1"
         height: "1"
+        position: fixed
       children:
         - type: view
           style:
@@ -106,13 +107,13 @@ SideMenuBar:
                 height: "0.05"
               children:
                 - type: image
-                  path: profile.png
+                  path: profile2.png
                   style:
                     left: "0.05"
-                    top: "0.01"
-                    height: "0.03"
+                    top: "0.015"
+                    width: "0.07"
                 - type: button
-                  text: Profile
+                  text: My Profile
                   style:
                     top: "0"
                     left: "0.16"
@@ -133,13 +134,13 @@ SideMenuBar:
                 height: "0.05"
               children:
                 - type: image
-                  path: contact.png
+                  path: contact2.png
                   style:
                     left: "0.05"
-                    top: "0.01"
-                    height: "0.03"
+                    top: "0.015"
+                    width: "0.07"
                 - type: button
-                  text: Contacts
+                  text: My Directory
                   style:
                     top: "0"
                     left: "0.16"
@@ -166,7 +167,7 @@ SideMenuBar:
                     top: "0.01"
                     height: "0.03"
                 - type: button
-                  text: Documents
+                  text: My Documents
                   style:
                     top: "0"
                     left: "0.16"
@@ -187,13 +188,13 @@ SideMenuBar:
                 height: "0.05"
               children:
                 - type: image
-                  path: payment.png
+                  path: dollar.png
                   style:
                     left: "0.05"
                     top: "0.01"
                     height: "0.03"
                 - type: button
-                  text: Payment
+                  text: My Package
                   style:
                     top: "0"
                     left: "0.16"
@@ -209,33 +210,6 @@ SideMenuBar:
             - type: view
               style:
                 top: "0.2"
-                left: "0"
-                width: "0.7"
-                height: "0.05"
-              children:
-                - type: image
-                  path: dollar.png
-                  style:
-                    left: "0.05"
-                    top: "0.012"
-                    height: "0.026"
-                - type: button
-                  text: Subscriptions
-                  style:
-                    top: "0"
-                    left: "0.16"
-                    width: "0.5"
-                    height: "0.05"
-                    fontSize: 15
-                    letterSpacing: 1.5
-                    backgroundColor: "0xFFFFFF"
-                    textAlign:
-                      y: center
-                  onClick:
-                    - goto: FreeTrailMysubscription
-            - type: view
-              style:
-                top: "0.25"
                 left: "0"
                 width: "0.7"
                 height: "0.05"
@@ -262,7 +236,7 @@ SideMenuBar:
                     - goto: FAQs
             - type: view
               style:
-                top: "0.3"
+                top: "0.25"
                 left: "0"
                 width: "0.7"
                 height: "0.05"
@@ -289,35 +263,7 @@ SideMenuBar:
                     - goto: AboutAitmed
             - type: view
               style:
-                top: "0.35"
-                left: "0"
-                width: "0.7"
-                height: "0.05"
-              children:
-                - type: image
-                  path: rateapp.png
-                  style:
-                    left: "0.05"
-                    top: "0.01"
-                    height: "0.03"
-                - type: button
-                  text: Rate App
-                  style:
-                    top: "0"
-                    left: "0.16"
-                    width: "0.5"
-                    height: "0.05"
-                    fontSize: 15
-                    letterSpacing: 1.5
-                    backgroundColor: "0xFFFFFF"
-                    textAlign:
-                      y: center
-                  onClick:
-                    - actionType: popUp
-                      popUpView: feedbackView
-            - type: view
-              style:
-                top: "0.4"
+                top: "0.3"
                 left: "0"
                 width: "0.7"
                 height: "0.05"
@@ -345,12 +291,12 @@ SideMenuBar:
         - type: view
           style:
             top: "0.75"
-            left: "0.5"
+            left: "0.6"
             width: "0.4"
             height: "0.2"
           children:
             - type: image
-              path: aitmedLogo2.png
+              path: aitmedLogo22.png
               style:
                 top: "0"
                 left: "0"

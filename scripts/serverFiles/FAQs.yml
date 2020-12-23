@@ -8,17 +8,28 @@ FAQs:
     - ? .HeaderLeftButton
     - type: view
       style:
-        top: "0.1"
+        top: "0"
         height: "2.47"
         left: "0"
         width: "1"
       children:
-        - type: image
-          path: avatar21919321920.png
+        - type: label
+          text: Frequently Asked Questions
           style:
-            top: "0.07"
-            width: "0.7"
-            left: "0.15"
+            left: "0.1"
+            top: "0.125"
+            width: "0.8"
+            height: "0.05"
+            fontSize: "14"
+            fontFamily: sans-serif
+            letterSpacing: "2"
+            textAlign:
+              x: center
+            color: "0x6DACDA"
+            border:
+              style: "2"
+            borderColor: "0xb7b7b7ff"
+            borderWidth: "1"
         - .FAQsTitle: null
           text: What is AiTmed?
           style:
@@ -125,3 +136,15 @@ FAQs:
             doctors office to become longer an larger hours. Schedule an
             appointment after hours if possible through your medical office
             today.
+        - type: button
+          text: Done
+          style:
+            left: "0.2"
+            top: 2530px
+            width: "0.6"
+            height: "0.05"
+            color: "0xffffffff"
+            borderRadius: "5"
+            backgroundColor: "0x388ecc"
+            textAlign:
+              x: center

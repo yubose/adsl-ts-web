@@ -1,10 +1,10 @@
-AddDocuments:
+SharedDocuments:
   pageNumber: 430 440
   title: Upload Documents
   init:
     - .SignInCheck
   save:
-    - =.AddDocuments.newDoc.docAPI.store: ""
+    - =.SharedDocuments.newDoc.docAPI.store: ""
   newDoc:
     document:
       .Document: ""
@@ -19,7 +19,7 @@ AddDocuments:
       deat:
         sig: ""
         url: ""
-      eid: .Global.rootNotebookID
+      eid: .Global.rootRoomInfo.edge.id
     docAPI:
       .DocAPI: ""
       store:
@@ -196,7 +196,7 @@ AddDocuments:
               onClick:
                 - actionType: updateObject
                   dataObject: BLOB
-                  dataKey: AddDocuments.newDoc.document.name.data
+                  dataKey: SharedDocuments.newDoc.document.name.data
                 - actionType: popUpDismiss
                   popUpView: selectView
                 - actionType: builtIn
@@ -221,7 +221,7 @@ AddDocuments:
               onClick:
                 - actionType: updateObject
                   dataObject: BLOB
-                  dataKey: AddDocuments.newDoc.document.name.data
+                  dataKey: SharedDocuments.newDoc.document.name.data
                 - actionType: popUpDismiss
                   popUpView: selectView
                 - actionType: builtIn
@@ -246,7 +246,7 @@ AddDocuments:
               onClick:
                 - actionType: updateObject
                   dataObject: BLOB
-                  dataKey: AddDocuments.newDoc.document.name.data
+                  dataKey: SharedDocuments.newDoc.document.name.data
                 - actionType: popUpDismiss
                   popUpView: selectView
                 - actionType: builtIn

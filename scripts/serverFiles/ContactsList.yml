@@ -1,9 +1,16 @@
 ContactsList:
   pageNumber: "340"
-  title: Contacts
+  title: My Directory
   init:
     - .SignInCheck
     - ..listData.get
+    - if:
+        - ..listData.contactList.doc.0
+        - continue
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100
   save:
     - =.ContactsList.contactInfo.docAPI.store: ""
   searchData:
@@ -103,6 +110,17 @@ ContactsList:
                     top: "0.015"
                     left: "0.83"
                     height: "0.03"
+                - type: label
+                  contentType: messageHidden
+                  text: No contacts added
+                  style:
+                    left: "0.31"
+                    top: "0.05"
+                    width: "0.72"
+                    height: "0.04"
+                    color: "0x000058"
+                    fontSize: "16"
+                    isHidden: "true"
             - type: list
               contentType: listObject
               listObject: ..listData.contactList.doc
@@ -204,8 +222,9 @@ ContactsList:
                     - type: image
                       path: rightYellowArrow.png
                       style:
-                        left: "0.87"
-                        top: "0.04"
-                        height: "0.02"
+                        left: "0.82"
+                        top: "0.03"
+                        height: "0.03"
+                        zIndex: 1000
                       onClick:
                         - goto: ContactInformation

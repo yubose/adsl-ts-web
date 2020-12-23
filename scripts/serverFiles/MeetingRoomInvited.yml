@@ -33,6 +33,7 @@ MeetingRoomInvited:
         top: "0"
         width: "1"
         height: "1"
+        position: fixed
       children:
         - ? .MenuHeader
         - .SubMenuView: null

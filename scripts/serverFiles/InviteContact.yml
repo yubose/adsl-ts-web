@@ -99,6 +99,93 @@ InviteContact:
               style: "2"
               color: "0x707070ff"
             borderWidth: "1"
+    - type: view
+      style:
+        left: "0"
+        width: "1"
+        top: "0.5"
+        height: "0.15"
+      children:
+        - type: view
+          onClick:
+            - goto: ContactAccess
+          style:
+            left: "0.1"
+            top: "0"
+            width: "0.8"
+            height: "0.06"
+            border:
+              style: "3"
+            borderRadius: "30"
+            borderColor: "0x388ecc"
+            borderWidth: "1"
+          children:
+            - type: image
+              path: addressBook.png
+              style:
+                left: "0.05"
+                width: "0.08"
+                top: "0.01"
+            - type: label
+              text: Add contact from Phone
+              style:
+                left: "0.18"
+                top: "0.005"
+                width: "0.7"
+                height: "0.04"
+                textAlign:
+                  x: left
+                fontSize: "16"
+            - type: label
+              text: Add contacts from your phone
+              style:
+                left: "0.18"
+                top: "0.03"
+                width: "0.7"
+                height: "0.02"
+                color: "0x00000066"
+                textAlign:
+                  x: left
+                fontSize: "14"
+        - type: view
+          style:
+            left: "0.1"
+            top: "0.08"
+            width: "0.8"
+            height: "0.06"
+            border:
+              style: "3"
+            borderRadius: "40"
+            borderColor: "0x388ecc"
+            borderWidth: 0.0001px
+          children:
+            - type: image
+              path: QRcode.png
+              style:
+                left: "0.05"
+                width: "0.08"
+                top: "0.01"
+            - type: label
+              text: Add with QR code
+              style:
+                left: "0.18"
+                top: "0.005"
+                width: "0.7"
+                height: "0.04"
+                textAlign:
+                  x: left
+                fontSize: "16"
+            - type: label
+              text: Scan a friends QR code
+              style:
+                left: "0.18"
+                top: "0.03"
+                width: "0.7"
+                height: "0.02"
+                color: "0x00000066"
+                textAlign:
+                  x: left
+                fontSize: "14"
     - type: button
       onClick:
         - actionType: popUp
