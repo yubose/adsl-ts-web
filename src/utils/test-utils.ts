@@ -1,5 +1,6 @@
 import { queryHelpers } from '@testing-library/dom'
 import { isEmitObj } from 'noodl-utils'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import {
   createComponent as createComponentInstance,
   getElementType,
@@ -26,7 +27,6 @@ import {
   List,
   ListItem,
 } from 'noodl-ui'
-import {} from 'noodl-ui-dom'
 import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
 import Page from '../Page'
@@ -40,6 +40,13 @@ export const assetsUrl = 'https://aitmed.com/assets/'
 export const root = {}
 export const actions = createActions({ page })
 export const builtIn = createBuiltInActions({ page })
+
+export const deviceSize = {
+  galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },
+  iphone6: { width: 375, height: 667, aspectRatio: 0.562545720555962 },
+  ipad: { width: 768, height: 1024, aspectRatio: 0.7495126705653021 },
+  widescreen: { width: 1920, height: 1080, aspectRatio: 1.777777777777778 },
+} as const
 
 noodlui
   .use(

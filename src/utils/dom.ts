@@ -1,10 +1,7 @@
-import Logger from 'logsnap'
 import isPlainObject from 'lodash/isPlainObject'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { FileInputEvent, Styles } from 'app/types'
 import { forEachEntries } from './common'
-
-const log = Logger.create('src/utils/dom.ts')
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')

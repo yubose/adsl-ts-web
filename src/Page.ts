@@ -23,7 +23,7 @@ export type PageListenerName =
 
 export interface PageOptions {
   _log?: boolean
-  rootNode?: HTMLElement | null
+  rootNode: HTMLDivElement
   builtIn?: {
     [funcName: string]: any
   }
@@ -74,25 +74,27 @@ class Page {
   public requestingPage: string | undefined
   public requestingPageModifiers: { reload?: boolean } = {}
 
-  constructor({ _log = true, builtIn, rootNode = null }: PageOptions = {}) {
+  constructor({ _log = true, builtIn }: PageOptions = {}) {
     this.builtIn = builtIn
-    this.rootNode = rootNode
     this.modal = new Modal()
     _log === false && Logger.disable()
 
     this._initializeRootNode = () => {
-      const root = document.createElement('div')
-      root.id = 'root'
-      root.style.position = 'absolute'
-      root.style.width = '100%'
-      root.style.height = '100%'
-      this.rootNode = root
-      document.body.appendChild(root)
+      if (this.rootNode === null) {
+        this.rootNode = document.createElement('div')
+      }
+      this.rootNode.id = 'root'
+      this.rootNode.style.position = 'absolute'
+      this.rootNode.style.width = '100%'
+      this.rootNode.style.height = '100%'
+      if (!document.body.contains(this.rootNode)) {
+        document.body.appendChild(this.rootNode)
+      }
     }
   }
 
   initializeRootNode() {
-    if (this.rootNode) return
+    if (this.rootNode !== null) return
     this._initializeRootNode()
   }
 
@@ -332,6 +334,8 @@ class Page {
     if (this.rootNode) {
       // Clean up previous nodes
       this.rootNode.innerHTML = ''
+      // this.rootNode.remove()
+      this.initializeRootNode()
       components.forEach((component) => {
         noodluidom.parse(component, this.rootNode)
       })

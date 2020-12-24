@@ -33,6 +33,7 @@ import {
   Resolver,
   ResolverFn,
   Viewport,
+  ViewportListener,
 } from 'noodl-ui'
 import { CachedPageObject, PageModalId } from './app/types'
 import { forEachParticipant } from './utils/twilio'
@@ -41,6 +42,7 @@ import { copyToClipboard } from './utils/dom'
 import { modalIds, CACHED_PAGES } from './constants'
 import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
+import getViewportSizeWithMinMax from './utils/getViewportSizeWithMinMax'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
@@ -241,13 +243,24 @@ window.addEventListener('load', async () => {
       if (!noodlui.initialized) {
         log.func('page.onBeforePageRender')
         log.grey('Initializing noodl-ui client', { noodl, actions })
-        viewport.width = window.innerWidth
-        viewport.height = window.innerHeight
+
+        const initialViewportSize = computeViewportSize({
+          width: window.innerWidth,
+          height: window.innerHeight,
+          previousWidth: window.innerWidth,
+          previousHeight: window.innerHeight,
+        })
+        viewport.width = initialViewportSize.width
+        viewport.height = initialViewportSize.height
+        noodl.aspectRatio = initialViewportSize.aspectRatio
+        document.body.style.width = initialViewportSize.width + 'px'
+        document.body.style.height = initialViewportSize.height + 'px'
+        document.body.style.margin =
+          initialViewportSize.aspectRatio > 1 ? 'auto' : ''
+
         const fetch = async (url: string) =>
-          axios
-            .get(url)
-            .then(({ data }) => data)
-            .catch((err) => console.error(`[${err.name}]: ${err.message}`))
+          axios.get(url).then(({ data }) => data)
+        // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
         const config = noodl.getConfig()
         const plugins = [
           { type: 'pluginHead', path: 'googleTM.js' },
@@ -694,7 +707,38 @@ window.addEventListener('load', async () => {
   /* -------------------------------------------------------
     ---- VIEWPORT / WINDOW SIZING
   -------------------------------------------------------- */
-  // Register the onresize listener once, if it isn't already registered
+
+  function computeViewportSize({
+    width,
+    height,
+    previousWidth,
+    previousHeight,
+  }: Parameters<ViewportListener>[0]) {
+    const aspectRatio = getAspectRatio(width, height)
+    const viewWidthHeightRatio = noodl.getConfig().viewWidthHeightRatio as {
+      min: number
+      max: number
+    }
+    if (viewWidthHeightRatio) {
+      const newSizes = getViewportSizeWithMinMax({
+        width,
+        height,
+        aspectRatio,
+        ...viewWidthHeightRatio,
+      })
+      width = newSizes.width
+      height = newSizes.height
+    }
+    return {
+      width,
+      height,
+      previousWidth,
+      previousHeight,
+      aspectRatio,
+      constrained: !!viewWidthHeightRatio,
+    }
+  }
+
   /**
    * This manages viewport aspect ratios for the SDK whenever it changes.
    * This affects the endpoints that the SDK uses to load pages
@@ -704,28 +748,53 @@ window.addEventListener('load', async () => {
       landscape: true,
     }
 
-    viewport.onResize = async ({
-      width,
-      height,
-      previousWidth,
-      previousHeight,
-    }) => {
+    viewport.onResize = async (args) => {
+      log.func('onResize')
+
+      let callCount = 0
+      const { width, height, previousWidth, previousHeight } = args
+
       if (width !== previousWidth || height !== previousHeight) {
         log.grey('Updating aspectRatio because viewport changed')
-        const aspectRatio = getAspectRatio(width, height)
+
+        const { aspectRatio, constrained, width, height } = computeViewportSize(
+          args,
+        )
+
         noodl['aspectRatio'] = aspectRatio
-        if (aspectRatio > 1 !== cache['landscape']) {
-          cache['landscape'] = !cache.landscape
-          await page.requestPageChange(page.currentPage, { force: true })
-        }
         viewport.width = width
         viewport.height = height
+
+        // if (aspectRatio > 1 !== cache['landscape']) {
+        //   cache['landscape'] = !cache.landscape
+        //   callCount++
+        //   await page.requestPageChange(page.currentPage, { force: true })
+        // } else {
+        // }
+
         if (page.rootNode) {
+          callCount++
+          document.body.style.width = viewport.width + 'px'
+          document.body.style.height = viewport.height + 'px'
+          document.body.style.margin = aspectRatio > 1 ? 'auto' : ''
           page.rootNode.style.width = `${width}px`
           page.rootNode.style.height = `${height}px`
+          ;(constrained && (page.rootNode.style.overflowX = 'auto')) ||
+            (page.rootNode.style.overflowX = 'hidden')
           page.render(noodl?.root?.[page.currentPage]?.components)
-        } else {
-          // TODO
+        }
+
+        if (callCount > 1) {
+          log.red(
+            `REMINDER: LOOK INTO THIS CODE BLOCK IF YOU SEE THIS. POSSIBLE DUPLICATE RENDER`,
+            {
+              width,
+              height,
+              previousWidth,
+              previousHeight,
+              callCount,
+            },
+          )
         }
       }
     }

@@ -39,6 +39,7 @@
     "test:actionchain": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/ActionChain.test.ts --verbose\"",
     "test:noodlutils": "lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "lerna exec --scope noodl-utils \"npm run test:file\"",
+    "test:chainoodldom": "lerna exec --scope chai-noodl-dom \"npm run test\"",
     "lib:build": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-types build && lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-types build && lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
   },
