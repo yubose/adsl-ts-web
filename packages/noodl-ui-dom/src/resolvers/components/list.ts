@@ -5,7 +5,6 @@ export default {
   name: 'list',
   cond: 'list',
   before(node: HTMLUListElement, component, options) {
-    console.log({ node, component, options })
     // noodl-ui delegates the responsibility for us to decide how
     // to control how list children are first rendered to the DOM
     const listComponent = component as any
