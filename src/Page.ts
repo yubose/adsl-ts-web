@@ -91,6 +91,8 @@ class Page {
         document.body.appendChild(this.rootNode)
       }
     }
+
+    this.initializeRootNode()
   }
 
   initializeRootNode() {

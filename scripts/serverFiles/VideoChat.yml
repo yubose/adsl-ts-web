@@ -1,5 +1,5 @@
 VideoChat:
-  pageNumber: "190"
+  pageNumber: '190'
   init:
     - .SignInCheck
     - actionType: evalObject
@@ -13,17 +13,17 @@ VideoChat:
       funcName: videoChat
       roomId: ..roomInfo.response.edge.deat.roomId
       accessToken: ..roomInfo.response.edge.deat.accessToken
-  cameraOn: "true"
-  micOn: "true"
-  miuAutoMicOffTimespan: "3"
-  miuAutoMicOffThresdhold: "3"
-  emptyId: ""
+  cameraOn: 'true'
+  micOn: 'true'
+  miuAutoMicOffTimespan: '3'
+  miuAutoMicOffThresdhold: '3'
+  emptyId: ''
   save:
     - ..roomInfo.edgeAPI.store
   roomInfo:
-    response: ""
+    response: ''
     edge:
-      .Global.VideoChatObjStore.reference.edge: ""
+      .Global.VideoChatObjStore.reference.edge: ''
       id: ..emptyId
       bvid: .Global.currentUser.vertex.id
       evid: ..emptyId
@@ -31,23 +31,23 @@ VideoChat:
       refid: .Global.VideoChatObjStore.reference.edge.id
       type: 40000
     edgeAPI:
-      .EdgeAPI: ""
+      .EdgeAPI: ''
       store:
         api: ce
         dataIn: roomInfo.edge
         dataOut: roomInfo.response
   listData:
     participants:
-      - ? .Edge
+      - .Edge:
     get:
-      .EdgeAPI.get: ""
+      .EdgeAPI.get: ''
       api: re
       dataKey: listData.participants
       id: .MeetingLobbyStart.rootRoom.edge.id
-      type: "40000"
+      type: '40000'
       xfname: refid
       sCondition: tage=0 AND ctime>UNIX_TIMESTAMP()-86400
-      maxcount: "20"
+      maxcount: '20'
   components:
     - type: register
       onEvent: twilioOnPeopleJoin
@@ -63,126 +63,126 @@ VideoChat:
         viewTag: waitForOtherTag
     - type: view
       style:
-        left: "0"
-        top: "0"
-        width: "1"
-        height: "1"
-        backgroundColor: "0x400000"
+        left: '0'
+        top: '0'
+        width: '1'
+        height: '1'
+        backgroundColor: '0x400000'
       children:
         - type: image
           path: videoChatbg.png
           style:
-            left: "0"
-            top: "0"
-            height: "1"
+            left: '0'
+            top: '0'
+            height: '1'
         - type: view
           viewTag: mainStream
           style:
-            left: "0"
-            top: "0"
-            width: "1"
-            height: "1"
-            backgroundColor: "0x00000000"
+            left: '0'
+            top: '0'
+            width: '1'
+            height: '1'
+            backgroundColor: '0x00000000'
         - type: view
           viewTag: selfStream
           style:
-            left: "0.04"
-            top: "0.1"
-            width: "0.2"
-            height: "0.15"
-            backgroundColor: "0x00000000"
+            left: '0.04'
+            top: '0.1'
+            width: '0.2'
+            height: '0.15'
+            backgroundColor: '0x00000000'
         - type: view
           style:
-            left: "0"
-            top: "0"
-            width: "1"
-            height: "0.07"
-            backgroundColor: "0x000000"
+            left: '0'
+            top: '0'
+            width: '1'
+            height: '0.07'
+            backgroundColor: '0x000000'
           children:
             - type: label
               dataKey: roomInfo.edge.name.roomName
               style:
-                left: "0"
-                top: "0.02"
-                width: "1"
-                height: "0.01"
-                fontSize: "16"
-                color: "0xFFFFFF"
-                backgroundColor: "0x000000"
+                left: '0'
+                top: '0.02'
+                width: '1'
+                height: '0.01'
+                fontSize: '16'
+                color: '0xFFFFFF'
+                backgroundColor: '0x000000'
                 textAlign:
                   x: center
         - type: image
           path: meetingCircle.png
           viewTag: needHidden
           style:
-            left: "0.4"
-            top: "0.4"
-            width: "0.2"
+            left: '0.4'
+            top: '0.4'
+            width: '0.2'
             border:
-              style: "5"
+              style: '5'
           borderRadius: 32
         - type: label
           contentType: hidden
           text: Waiting for others to join
           viewTag: needHidden
           style:
-            left: "0"
-            top: "0.55"
-            width: "1"
-            height: "0.04"
-            fontSize: "16"
-            color: "0xFFFFFF"
+            left: '0'
+            top: '0.55'
+            width: '1'
+            height: '0.04'
+            fontSize: '16'
+            color: '0xFFFFFF'
             textAlign:
               x: center
         - type: list
           contentType: videoSubStream
-          listObject: ""
+          listObject: ''
           iteratorVar: itemObject
           style:
             axis: horizontal
-            left: "0.04"
-            top: "0.62"
-            width: "0.92"
-            height: "0.15"
+            left: '0.04'
+            top: '0.62'
+            width: '0.92'
+            height: '0.15'
           children:
             - type: listItem
-              itemObject: ""
+              itemObject: ''
               style:
-                left: "0"
-                top: "0"
-                width: "0.18"
-                height: "0.15"
+                left: '0'
+                top: '0'
+                width: '0.18'
+                height: '0.15'
                 border:
-                  style: "1"
+                  style: '1'
               children:
                 - type: view
                   viewTag: subStream
                   style:
-                    left: "0.015"
-                    top: "0"
-                    width: "0.15"
-                    height: "0.15"
+                    left: '0.015'
+                    top: '0'
+                    width: '0.15'
+                    height: '0.15'
                     border:
-                      style: "5"
-                    borderRadius: "5"
+                      style: '5'
+                    borderRadius: '5'
         - type: image
           path: Notes.png
           style:
-            width: "0.12"
-            top: "0.45"
-            left: "0.76"
+            width: '0.12'
+            top: '0.45'
+            left: '0.76'
           onClick:
             - goto: MeetingDocumentsNotes
         - type: view
           style:
-            left: "0"
-            top: "0.9"
-            width: "1"
-            height: "0.1"
+            left: '0'
+            top: '0.9'
+            width: '1'
+            height: '0.1'
             border:
-              style: "5"
-            backgroundColor: "0x000000"
-            position: fixed
+              style: '5'
+            backgroundColor: '0x000000'
+
           children:
             - type: image
               viewTag: camera
@@ -207,10 +207,10 @@ VideoChat:
                   funcName: toggleFlag
                   dataKey: VideoChat.cameraOn
               style:
-                left: "0.067"
-                top: "0.03"
-                width: "0.12"
-                height: "0.035"
+                left: '0.067'
+                top: '0.03'
+                width: '0.12'
+                height: '0.035'
             - type: image
               viewTag: microphone
               path:
@@ -234,10 +234,10 @@ VideoChat:
                   funcName: toggleFlag
                   dataKey: VideoChat.micOn
               style:
-                left: "0.254"
-                top: "0.022"
-                width: "0.12"
-                height: "0.05"
+                left: '0.254'
+                top: '0.022'
+                width: '0.12'
+                height: '0.05'
             - type: image
               path: hangUp.png
               onClick:
@@ -252,33 +252,33 @@ VideoChat:
                 - actionType: evalObject
                   object:
                     .Global._nonce@:
-                      =.builtIn.math.random: ""
+                      =.builtIn.math.random: ''
                 - goto: MeetingRoomHistory
               style:
-                left: "0.44"
-                top: "0.0185"
-                width: "0.12"
-                backgroundColor: "0xd81e06"
+                left: '0.44'
+                top: '0.0185'
+                width: '0.12'
+                backgroundColor: '0xd81e06'
                 border:
-                  style: "3"
-                  width: "1"
-                borderRadius: "100"
+                  style: '3'
+                  width: '1'
+                borderRadius: '100'
             - type: image
               path: inviteOthers.png
               onClick:
                 - goto: ManageMeeting
               style:
-                left: "0.628"
-                top: "0.0185"
-                width: "0.11"
-                height: "0.06"
+                left: '0.628'
+                top: '0.0185'
+                width: '0.11'
+                height: '0.06'
             - type: image
               path: notificationTabBar.png
               style:
-                left: "0.815"
-                top: "0.02"
-                width: "0.1"
-                height: "0.055"
+                left: '0.815'
+                top: '0.02'
+                width: '0.1'
+                height: '0.055'
               onClick:
                 - actionType: evalObject
                   object:

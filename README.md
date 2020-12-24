@@ -92,6 +92,9 @@ This allows for faster compilation, faster load times and quicker development fl
       1. Page name
       2. Page object
       3. Page NOODL DOM components
+9. View tag scrolling
+   1. `goto: #genderTag` --> scroll to node with the `genderTag` viewTag
+   2. `pageName#genderTag` --> navigate to page then scroll to the `genderTag` viewTag
 
 ## Navigating pages
 

@@ -1,11 +1,11 @@
 UploadContact:
-  pageNumber: "340"
+  pageNumber: '340'
   title: Invite
   init:
     - .SignInCheck
     - ..listData.get
   searchData:
-    searchContact: ""
+    searchContact: ''
   listData:
     contactList:
       doc:
@@ -14,13 +14,13 @@ UploadContact:
             firstName: Test
             isFavorite: false
     get:
-      .DocAPI.get: ""
+      .DocAPI.get: ''
       api: rd
       dataKey: listData.contactList
       ids:
         - .Global.rootNotebookID
       xfname: eid
-      maxcount: "500"
+      maxcount: '500'
       obfname: mtime
       sCondition: .DocType.GetAllContact
       _nonce: =.Global._nonce
@@ -29,88 +29,88 @@ UploadContact:
   components:
     - type: view
       style:
-        top: "0"
-        left: "0"
-        width: "1"
-        height: "1"
-        position: fixed
+        top: '0'
+        left: '0'
+        width: '1'
+        height: '1'
+
       children:
-        - ? .BaseHeader3
+        - .BaseHeader3:
         - .HeaderLeftButton: null
           onClick:
             - goto: MeetingLobby
         - .SubMenuView: null
           style:
-            top: "0.09"
-            backgroundColor: "0x388ecc"
-            height: "0.1"
-            zIndex: "10"
+            top: '0.09'
+            backgroundColor: '0x388ecc'
+            height: '0.1'
+            zIndex: '10'
           children:
             - .SubMenuButton: null
               text: Favorites
               style:
-                top: "0.03"
+                top: '0.03'
               onClick:
                 - goto: UploadFavorite
             - .SubMenuButton: null
               text: Recents
               style:
-                top: "0.03"
-                left: "0.33"
+                top: '0.03'
+                left: '0.33'
               onClick:
                 - goto: UploadRecent
             - .SubMenuButton: null
               text: Contacts
               style:
-                top: "0.03"
-                left: "0.66"
-                color: "0xffffffff"
+                top: '0.03'
+                left: '0.66'
+                color: '0xffffffff'
               onClick:
                 - goto: UploadContact
         - type: view
           style:
-            top: "0.2"
-            left: "0.05"
-            width: "1"
-            height: "0.2"
+            top: '0.2'
+            left: '0.05'
+            width: '1'
+            height: '0.2'
           children:
             - .SearchField: null
               placeHolder: search contacts
               style:
-                left: "0.2"
-                top: "0.01"
+                left: '0.2'
+                top: '0.01'
             - .SearchDoc: null
               style:
-                top: "0.01"
+                top: '0.01'
             - type: image
               path: add.png
               onClick:
                 - goto: InviteeInfo01
               style:
-                top: "0.015"
-                left: "0.83"
-                height: "0.03"
+                top: '0.015'
+                left: '0.83'
+                height: '0.03'
         - type: list
           contentType: listObject
           listObject: ..listData.contactList.doc
           iteratorVar: itemObject
           style:
-            top: "0.25"
-            left: "0.05"
-            width: "0.9"
-            height: "0.6"
+            top: '0.25'
+            left: '0.05'
+            width: '0.9'
+            height: '0.6'
           children:
             - type: listItem
-              itemObject: ""
+              itemObject: ''
               style:
-                left: "0"
-                top: "0"
-                width: "1"
-                height: "0.1"
+                left: '0'
+                top: '0'
+                width: '1'
+                height: '0.1'
                 border:
-                  style: "2"
-                borderWidth: "1"
-                borderColor: "0x00000011"
+                  style: '2'
+                borderWidth: '1'
+                borderColor: '0x00000011'
               children:
                 - type: image
                   viewTag: select
@@ -127,16 +127,16 @@ UploadContact:
                             - https://public.aitmed.com/commonRes/providerOn.png
                             - https://public.aitmed.com/commonRes/providerOff.png
                   style:
-                    top: "0.03"
-                    left: "0"
-                    height: "0.04"
+                    top: '0.03'
+                    left: '0'
+                    height: '0.04'
                 - type: image
                   path: drImg.png
                   style:
-                    borderRadius: "10000"
-                    height: "0.07"
-                    top: "0.015"
-                    left: "0.13"
+                    borderRadius: '10000'
+                    height: '0.07'
+                    top: '0.015'
+                    left: '0.13'
                 - type: label
                   dataKey: itemObject.name.data.firstName
                   onClick:
@@ -145,8 +145,8 @@ UploadContact:
                       dataObject: itemObject
                     - goto: InviteContact
                   style:
-                    left: "0.3"
-                    height: "0.1"
-                    width: "0.45"
+                    left: '0.3'
+                    height: '0.1'
+                    width: '0.45'
                     textAlign:
                       y: center

@@ -1,5 +1,5 @@
 SignIn:
-  pageNumber: "30"
+  pageNumber: '30'
   init:
     - if:
         - .builtIn.isIOS
@@ -26,8 +26,8 @@ SignIn:
     - ..appLink.url@: https://play.google.com/store/apps/details?id=com.aitmed.aitcom
     - ..appLink.img@: https://public.aitmed.com/commonRes/google-play.png
   appLink:
-    url: ""
-    img: ""
+    url: ''
+    img: ''
   save:
     - =.builtIn.eccNaCl.decryptAES:
         dataIn:
@@ -46,11 +46,11 @@ SignIn:
           popUpView: wrongPassword
           wait: true
   check:
-    - =.SignIn.loginNewDevice.edgeAPI.store: ""
+    - =.SignIn.loginNewDevice.edgeAPI.store: ''
     - actionType: evalObject
       object:
         .Global._nonce@:
-          =.builtIn.math.random: ""
+          =.builtIn.math.random: ''
     - if:
         - =.builtIn.string.equal:
             dataIn:
@@ -61,8 +61,8 @@ SignIn:
           popUpView: wrongCode
           wait: true
   update:
-    - =.SignIn.loginUser.edgeAPI.store: ""
-    - =.SignIn.retrieveVertex.vertexAPI.get: ""
+    - =.SignIn.loginUser.edgeAPI.store: ''
+    - =.SignIn.retrieveVertex.vertexAPI.get: ''
     - .Global.currentUser.vertex@: =..retrieveVertex.response.vertex.0
     - .Global.currentUser.JWT@: =..loginUser.response.jwt
     - =.builtIn.storeCredentials:
@@ -75,16 +75,16 @@ SignIn:
     - .Global.rootNotebookID@: =.Global.currentUser.vertex.deat.rnb64ID
     - .Global.currentUser.dataCache.loadingDateTime@: =.Global.currentDateTime
   formData:
-    countryCode: "+1"
-    phoneNumber: ""
-    password: ""
-    code: ""
-    sk: ""
-    pass: ""
+    countryCode: '+1'
+    phoneNumber: ''
+    password: ''
+    code: ''
+    sk: ''
+    pass: ''
   retrieveVertex:
-    response: ""
+    response: ''
     vertex:
-      .Vertex: ""
+      .Vertex: ''
       id: =..loginNewDevice.response.edge.deat.user_id
     vertexAPI:
       get:
@@ -92,102 +92,102 @@ SignIn:
         dataIn: SignIn.retrieveVertex.vertex
         dataOut: SignIn.retrieveVertex.response
   verificationCode:
-    response: ""
+    response: ''
     edge:
-      .Edge: ""
+      .Edge: ''
       type: 1010
       _nonce: =.Global._nonce
       name:
         phone_number: =..apiData.phoneNumber
     edgeAPI:
-      .EdgeAPI: ""
+      .EdgeAPI: ''
       store:
         api: ce
         dataIn: SignIn.verificationCode.edge
         dataOut: SignIn.verificationCode.response
   loginNewDevice:
-    response: ""
+    response: ''
     edge:
-      .Edge: ""
+      .Edge: ''
       type: 1040
       _nonce: =.Global._nonce
       name:
         phone_number: =..apiData.phoneNumber
         verification_code: =..formData.code
       deat:
-        UserId: ""
-        Pk: ""
-        Esk: ""
+        UserId: ''
+        Pk: ''
+        Esk: ''
     edgeAPI:
-      .EdgeAPI: ""
+      .EdgeAPI: ''
       store:
         api: ce
         dataIn: SignIn.loginNewDevice.edge
         dataOut: SignIn.loginNewDevice.response
   loginUser:
-    response: ""
+    response: ''
     edge:
-      .Edge: ""
+      .Edge: ''
       type: 1030
       _nonce: =.Global._nonce
       bvid: =..loginNewDevice.response.edge.deat.user_id
     edgeAPI:
-      .EdgeAPI: ""
+      .EdgeAPI: ''
       store:
         api: ce
         dataIn: SignIn.loginUser.edge
         dataOut: SignIn.loginUser.response
   apiData:
-    phoneNumber: ""
+    phoneNumber: ''
   initFocus: phoneNumberVT
   components:
-    - .BaseCheckView: ""
+    - .BaseCheckView: ''
       message: Incorrect Password
       viewTag: wrongPassword
-    - .BaseCheckView: ""
+    - .BaseCheckView: ''
       message: Incorrect verificationCode
       viewTag: wrongCode
     - type: view
       style:
-        left: "0"
-        top: "0"
-        width: "1"
-        height: "1"
-        position: fixed
+        left: '0'
+        top: '0'
+        width: '1'
+        height: '1'
+
       children:
         - type: image
           path: backpic.png
           style:
-            left: "0"
-            width: "1"
-            top: "0"
+            left: '0'
+            width: '1'
+            top: '0'
         - type: image
           path: logo.png
           style:
-            top: "0.08"
-            width: "0.38"
-            left: "0.31"
+            top: '0.08'
+            width: '0.38'
+            left: '0.31'
         - type: view
           style:
-            top: "0.35"
-            height: "0.65"
-            width: "1"
-            left: "0"
-            backgroundColor: "0xffffff"
+            top: '0.35'
+            height: '0.65'
+            width: '1'
+            left: '0'
+            backgroundColor: '0xffffff'
             border:
               style: 3
-            borderRadius: "50"
+            borderRadius: '50'
             boxSizing: border-box
           children:
             - type: label
               text: Welcome back!
               style:
-                color: "0x000000ff"
-                left: "0.147"
-                top: "0.05"
-                width: "0.72"
-                height: "0.041"
-                fontSize: "28"
+                color: '0x000000ff'
+                left: '0.147'
+                top: '0.05'
+                width: '0.72'
+                height: '0.041'
+                fontSize: '28'
                 display: inline
                 textAlign:
                   x: left
@@ -195,32 +195,32 @@ SignIn:
             - type: label
               text: Sign in to continue
               style:
-                color: "0x00000088"
-                left: "0.147"
-                top: "0.1"
-                width: "0.72"
-                height: "0.041"
-                fontSize: "22"
+                color: '0x00000088'
+                left: '0.147'
+                top: '0.1'
+                width: '0.72'
+                height: '0.041'
+                fontSize: '22'
                 display: inline
                 textAlign:
                   x: left
                   y: center
             - type: view
               style:
-                left: "0.121"
-                top: "0.18"
-                width: "0.2"
-                height: "0.09"
+                left: '0.121'
+                top: '0.18'
+                width: '0.2'
+                height: '0.09'
               children:
                 - type: label
                   text: Country
                   style:
-                    color: "0x00000058"
-                    left: "0"
-                    top: "0"
-                    width: "0.2"
-                    height: "0.041"
-                    fontSize: "12"
+                    color: '0x00000058'
+                    left: '0'
+                    top: '0'
+                    width: '0.2'
+                    height: '0.041'
+                    fontSize: '12'
                     textAlign:
                       x: left
                       y: center
@@ -229,34 +229,34 @@ SignIn:
                   placeholder: ..formData.countryCode
                   dataKey: formData.countryCode
                   options: .CountryCode
-                  required: "true"
+                  required: 'true'
                   style:
-                    left: "0"
-                    top: "0.045"
-                    width: "0.2"
-                    height: "0.041"
-                    fontSize: "14"
-                    borderWidth: "1"
+                    left: '0'
+                    top: '0.045'
+                    width: '0.2'
+                    height: '0.041'
+                    fontSize: '14'
+                    borderWidth: '1'
                     box-sizing: border-box
                     border:
-                      style: "2"
-                      color: "0x00000058"
+                      style: '2'
+                      color: '0x00000058'
             - type: view
               style:
-                left: "0.3333"
-                top: "0.18"
-                width: "0.61333"
-                height: "0.09"
+                left: '0.3333'
+                top: '0.18'
+                width: '0.61333'
+                height: '0.09'
               children:
                 - type: label
                   text: Phone
                   style:
-                    color: "0x00000058"
-                    left: "0"
-                    top: "0"
-                    width: "0.483"
-                    height: "0.041"
-                    fontSize: "12"
+                    color: '0x00000058'
+                    left: '0'
+                    top: '0'
+                    width: '0.483'
+                    height: '0.041'
+                    fontSize: '12'
                     textAlign:
                       x: left
                       y: center
@@ -265,49 +265,49 @@ SignIn:
                   contentType: phoneNumber
                   placeholder: your phone number
                   dataKey: formData.phoneNumber
-                  required: "true"
+                  required: 'true'
                   style:
                     textAlign:
                       x: left
-                    fontSize: "14"
-                    left: "0"
-                    top: "0.045"
-                    width: "0.54667"
-                    height: "0.041"
-                    required: "true"
-                    borderWidth: "1"
+                    fontSize: '14'
+                    left: '0'
+                    top: '0.045'
+                    width: '0.54667'
+                    height: '0.041'
+                    required: 'true'
+                    borderWidth: '1'
                     box-sizing: border-box
                     border:
-                      style: "2"
+                      style: '2'
             - type: textField
               contentType: password
               placeholder: your password
               dataKey: formData.password
-              required: "true"
+              required: 'true'
               style:
                 textAlign:
                   x: left
-                fontSize: "14"
-                left: "0.121"
-                top: "0.314"
-                width: "0.76"
-                height: "0.041"
-                backgroundColor: "0x388ecc00"
-                borderWidth: "1"
+                fontSize: '14'
+                left: '0.121'
+                top: '0.314'
+                width: '0.76'
+                height: '0.041'
+                backgroundColor: '0x388ecc00'
+                borderWidth: '1'
                 border:
-                  style: "2"
+                  style: '2'
             - type: label
               text: Forget password?
               onClick:
                 - actionType: popUp
                   popUpView: resetUser
               style:
-                color: "0x00000058"
-                left: "0.56"
-                top: "0.38"
-                width: "0.32"
-                height: "0.041"
-                fontSize: "14"
+                color: '0x00000058'
+                left: '0.56'
+                top: '0.38'
+                width: '0.32'
+                height: '0.041'
+                fontSize: '14'
                 display: inline
                 textAlign:
                   x: right
@@ -315,16 +315,16 @@ SignIn:
             - type: button
               text: Sign In
               style:
-                color: "0xffffffff"
-                fontSize: "16"
+                color: '0xffffffff'
+                fontSize: '16'
                 fontStyle: bold
-                left: "0.134"
-                top: "0.46"
-                width: "0.747"
-                height: "0.06"
-                backgroundColor: "0x388eccff"
+                left: '0.134'
+                top: '0.46'
+                width: '0.747'
+                height: '0.06'
+                backgroundColor: '0x388eccff'
                 border:
-                  style: "1"
+                  style: '1'
                 display: inline
                 textAlign:
                   x: center
@@ -335,7 +335,7 @@ SignIn:
                     =.builtIn.string.concat:
                       dataIn:
                         - =.SignIn.formData.countryCode
-                        - " "
+                        - ' '
                         - =.SignIn.formData.phoneNumber
                       dataOut: SignIn.apiData.phoneNumber
                 - actionType: evalObject
@@ -356,89 +356,89 @@ SignIn:
                     - if:
                         - =.Global.currentUser.vertex.sk
                         - continue
-                        - =.SignIn.verificationCode.edgeAPI.store: ""
+                        - =.SignIn.verificationCode.edgeAPI.store: ''
                 - actionType: evalObject
                   object:
                     .Global._nonce@:
-                      =.builtIn.math.random: ""
+                      =.builtIn.math.random: ''
                 - actionType: popUp
                   popUpView: inputVerificationCode
             - type: image
               path: ..appLink.img
               style:
-                width: "0.3"
-                top: "0.52"
-                left: "0.57"
-                height: "0.07"
-                borderWidth: "0"
+                width: '0.3'
+                top: '0.52'
+                left: '0.57'
+                height: '0.07'
+                borderWidth: '0'
               onClick:
                 - goto: ..appLink.url
             - type: view
               style:
-                left: "0"
-                top: "0.58"
-                width: "1"
-                height: "0.054"
-                backgroundColor: "0xffffff"
+                left: '0'
+                top: '0.58'
+                width: '1'
+                height: '0.054'
+                backgroundColor: '0xffffff'
               children:
                 - type: label
                   text: New to AiTmed?
                   style:
-                    color: "0xb1b1b1"
-                    fontSize: "15"
-                    left: "0.2"
-                    top: "0"
-                    width: "0.3"
-                    height: "0.054"
+                    color: '0xb1b1b1'
+                    fontSize: '15'
+                    left: '0.2'
+                    top: '0'
+                    width: '0.3'
+                    height: '0.054'
                     textAlign:
                       x: right
                       y: center
                 - type: button
                   text: Sign Up
                   style:
-                    color: "0x3185c7ff"
-                    fontSize: "15"
+                    color: '0x3185c7ff'
+                    fontSize: '15'
                     fontStyle: bold
-                    left: "0.544"
-                    top: "0"
-                    width: "0.25"
-                    height: "0.054"
-                    backgroundColor: "0xffffff00"
+                    left: '0.544'
+                    top: '0'
+                    width: '0.25'
+                    height: '0.054'
+                    backgroundColor: '0xffffff00'
                     border:
-                      style: "1"
+                      style: '1'
                   onClick:
                     - goto: SignUp
         - type: popUp
           viewTag: resetUser
           style:
-            left: "0"
-            top: "0"
-            width: "1"
-            height: "1"
-            backgroundColor: "0x00000066"
+            left: '0'
+            top: '0'
+            width: '1'
+            height: '1'
+            backgroundColor: '0x00000066'
           children:
             - type: view
               style:
-                left: "0.05"
-                top: "0.3"
-                width: "0.89333"
-                height: "0.35"
-                zIndex: "100"
-                backgroundColor: "0xeaeaea"
+                left: '0.05'
+                top: '0.3'
+                width: '0.89333'
+                height: '0.35'
+                zIndex: '100'
+                backgroundColor: '0xeaeaea'
                 border:
-                  style: "5"
-                borderRadius: "15"
+                  style: '5'
+                borderRadius: '15'
               children:
                 - type: label
                   text: If you forget the password,
                   style:
                     .LabelStyle:
-                      left: "0"
-                      top: "0.08"
-                      width: "0.89333"
-                      height: "0.05"
-                      color: "0x000000"
-                      fontSize: "19"
+                      left: '0'
+                      top: '0.08'
+                      width: '0.89333'
+                      height: '0.05'
+                      color: '0x000000'
+                      fontSize: '19'
                       display: inline
                       fontFamily: sans-serif
                       textAlign:
@@ -448,12 +448,12 @@ SignIn:
                   text: you can reset the account in SignUp
                   style:
                     .LabelStyle:
-                      left: "0.02"
-                      top: "0.15"
-                      width: "0.84"
-                      height: "0.05"
-                      color: "0x000000"
-                      fontSize: "19"
+                      left: '0.02'
+                      top: '0.15'
+                      width: '0.84'
+                      height: '0.05'
+                      color: '0x000000'
+                      fontSize: '19'
                       display: inline
                       fontFamily: sans-serif
                       textAlign:
@@ -462,11 +462,11 @@ SignIn:
                 - type: divider
                   style:
                     .DividerStyle:
-                      left: "0"
-                      top: "0.25436"
-                      width: "0.89333"
-                      height: "0.001"
-                      backgroundColor: "0x00000088"
+                      left: '0'
+                      top: '0.25436'
+                      width: '0.89333'
+                      height: '0.001'
+                      backgroundColor: '0x00000088'
                 - type: button
                   onClick:
                     - actionType: popUpDismiss
@@ -475,20 +475,20 @@ SignIn:
                   text: CANCEL
                   style:
                     .LabelStyle:
-                      left: "0"
-                      top: "0.275"
-                      width: "0.42"
-                      height: "0.06812"
-                      color: "0x007affff"
-                      fontSize: "19"
+                      left: '0'
+                      top: '0.275'
+                      width: '0.42'
+                      height: '0.06812'
+                      color: '0x007affff'
+                      fontSize: '19'
                       display: inline
-                      backgroundColor: "0xeaeaea"
+                      backgroundColor: '0xeaeaea'
                       textAlign:
                         x: center
                         y: center
                       border:
-                        style: "5"
-                        borderRadius: "15"
+                        style: '5'
+                        borderRadius: '15'
                 - type: button
                   onClick:
                     - actionType: popUpDismiss
@@ -497,59 +497,59 @@ SignIn:
                   text: OKAY
                   style:
                     .LabelStyle:
-                      left: "0.45"
-                      top: "0.275"
-                      width: "0.42"
-                      height: "0.06812"
-                      color: "0x007affff"
-                      fontSize: "19"
+                      left: '0.45'
+                      top: '0.275'
+                      width: '0.42'
+                      height: '0.06812'
+                      color: '0x007affff'
+                      fontSize: '19'
                       display: inline
-                      backgroundColor: "0xeeeeee"
+                      backgroundColor: '0xeeeeee'
                       textAlign:
                         x: center
                         y: center
                       border:
-                        style: "5"
-                        borderRadius: "15"
+                        style: '5'
+                        borderRadius: '15'
                 - type: divider
                   style:
                     .DividerStyle:
-                      left: "0.45"
-                      top: "0.255"
-                      width: "0.001"
-                      height: "0.08"
-                      backgroundColor: "0x00000088"
+                      left: '0.45'
+                      top: '0.255'
+                      width: '0.001'
+                      height: '0.08'
+                      backgroundColor: '0x00000088'
         - type: popUp
           viewTag: inputVerificationCode
           style:
-            left: "0"
-            top: "0"
-            width: "1"
-            height: "1"
-            backgroundColor: "0x00000066"
+            left: '0'
+            top: '0'
+            width: '1'
+            height: '1'
+            backgroundColor: '0x00000066'
           children:
             - type: view
               style:
-                left: "0.05"
-                top: "0.3"
-                width: "0.89333"
-                height: "0.35"
-                zIndex: "100"
-                backgroundColor: "0xeaeaea"
+                left: '0.05'
+                top: '0.3'
+                width: '0.89333'
+                height: '0.35'
+                zIndex: '100'
+                backgroundColor: '0xeaeaea'
                 border:
-                  style: "5"
-                borderRadius: "15"
+                  style: '5'
+                borderRadius: '15'
               children:
                 - type: label
                   text: Enter the 6-digit verification code
                   style:
                     .LabelStyle:
-                      left: "0"
-                      top: "0.08"
-                      width: "0.89333"
-                      height: "0.05"
-                      color: "0x000000"
-                      fontSize: "19"
+                      left: '0'
+                      top: '0.08'
+                      width: '0.89333'
+                      height: '0.05'
+                      color: '0x000000'
+                      fontSize: '19'
                       display: inline
                       fontFamily: sans-serif
                       textAlign:
@@ -558,31 +558,31 @@ SignIn:
                 - type: textField
                   contentType: text
                   dataKey: formData.code
-                  required: "true"
+                  required: 'true'
                   style:
                     .LabelStyle:
-                      left: "0.02"
-                      top: "0.15"
-                      width: "0.84"
-                      height: "0.05"
-                      color: "0x00000088"
-                      fontSize: "20"
+                      left: '0.02'
+                      top: '0.15'
+                      width: '0.84'
+                      height: '0.05'
+                      color: '0x00000088'
+                      fontSize: '20'
                       display: inline
                       border:
-                        style: "3"
-                        color: "0xb5b5b8"
-                      borderWidth: "1"
+                        style: '3'
+                        color: '0xb5b5b8'
+                      borderWidth: '1'
                       textAlign:
                         x: center
                         y: center
                 - type: divider
                   style:
                     .DividerStyle:
-                      left: "0"
-                      top: "0.25436"
-                      width: "0.89333"
-                      height: "0.001"
-                      backgroundColor: "0x00000088"
+                      left: '0'
+                      top: '0.25436'
+                      width: '0.89333'
+                      height: '0.001'
+                      backgroundColor: '0x00000088'
                 - type: button
                   onClick:
                     - actionType: popUpDismiss
@@ -590,20 +590,20 @@ SignIn:
                   text: CANCEL
                   style:
                     .LabelStyle:
-                      left: "0"
-                      top: "0.275"
-                      width: "0.42"
-                      height: "0.06812"
-                      color: "0x007affff"
-                      fontSize: "19"
+                      left: '0'
+                      top: '0.275'
+                      width: '0.42'
+                      height: '0.06812'
+                      color: '0x007affff'
+                      fontSize: '19'
                       display: inline
-                      backgroundColor: "0xeaeaea"
+                      backgroundColor: '0xeaeaea'
                       textAlign:
                         x: center
                         y: center
                       border:
-                        style: "5"
-                        borderRadius: "15"
+                        style: '5'
+                        borderRadius: '15'
                 - type: button
                   onClick:
                     - actionType: popUpDismiss
@@ -643,25 +643,25 @@ SignIn:
                   text: SUBMIT
                   style:
                     .LabelStyle:
-                      left: "0.45"
-                      top: "0.275"
-                      width: "0.42"
-                      height: "0.06812"
-                      color: "0x007affff"
-                      fontSize: "19"
+                      left: '0.45'
+                      top: '0.275'
+                      width: '0.42'
+                      height: '0.06812'
+                      color: '0x007affff'
+                      fontSize: '19'
                       display: inline
-                      backgroundColor: "0xeaeaea"
+                      backgroundColor: '0xeaeaea'
                       textAlign:
                         x: center
                         y: center
                       border:
-                        style: "5"
-                        borderRadius: "15"
+                        style: '5'
+                        borderRadius: '15'
                 - type: divider
                   style:
                     .DividerStyle:
-                      left: "0.45"
-                      top: "0.255"
-                      width: "0.002"
-                      height: "0.08"
-                      backgroundColor: "0x00000088"
+                      left: '0.45'
+                      top: '0.255'
+                      width: '0.002'
+                      height: '0.08'
+                      backgroundColor: '0x00000088'
