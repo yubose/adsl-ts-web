@@ -31,6 +31,7 @@ import {
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import Page from '../Page'
+import { resolvePageUrl } from '../utils/common'
 import { toggleVisibility } from '../utils/dom'
 import { BuiltInActions } from '../app/types'
 import Meeting from '../meeting'
@@ -92,80 +93,34 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     window.history.back()
   }
 
+  // @ts-expect-error
   builtInActions.goto = async (
     action: GotoURL | GotoObject,
     options,
-    { noodl },
+    // @ts-expect-error
+    { noodl } = {},
   ) => {
-    if (!noodl) noodl = (await import('../app/noodl')).default
     log.func('goto')
     log.red('', Object.assign({ action }, options))
-    // URL
-    if (typeof action === 'string') {
-      var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
-      page.pageUrl += pre
-      var parse = page.pageUrl.endsWith('?') ? '' : '-'
-      if (action !== noodl.cadlEndpoint.startPage) {
-        var check1 = '?' + action
-        var check2 = '-' + action
-        var check1Idx = page.pageUrl.indexOf(check1)
-        var check2Idx = page.pageUrl.indexOf(check2)
-        if (check1Idx !== -1) {
-          page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
-          parse = page.pageUrl.endsWith('?') ? '' : '-'
-          page.pageUrl += parse
-          page.pageUrl += action
-        } else if (check2Idx !== -1) {
-          page.pageUrl = page.pageUrl.substring(0, check2Idx)
-          parse = page.pageUrl.endsWith('?') ? '' : '-'
-          page.pageUrl += parse
-          page.pageUrl += action
-        } else {
-          page.pageUrl += parse
-          page.pageUrl += action
-        }
-      } else {
-        page.pageUrl = 'index.html?'
-      }
-
-      await page.requestPageChange(action)
-    } else if (isPlainObject(action)) {
-      if (action.destination) {
-        var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
-        page.pageUrl += pre
-        var parse = page.pageUrl.endsWith('?') ? '' : '-'
-        if (action.destination !== noodl.cadlEndpoint.startPage) {
-          var check1 = '?' + action.destination
-          var check2 = '-' + action.destination
-          var check1Idx = page.pageUrl.indexOf(check1)
-          var check2Idx = page.pageUrl.indexOf(check2)
-          if (check1Idx !== -1) {
-            page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
-            parse = page.pageUrl.endsWith('?') ? '' : '-'
-            page.pageUrl += parse
-            page.pageUrl += action.destination
-          } else if (check2Idx !== -1) {
-            page.pageUrl = page.pageUrl.substring(0, check2Idx)
-            parse = page.pageUrl.endsWith('?') ? '' : '-'
-            page.pageUrl += parse
-            page.pageUrl += action.destination
-          } else {
-            page.pageUrl += parse
-            page.pageUrl += action.destination
-          }
-        } else {
-          page.pageUrl = 'index.html?'
-        }
-
-        await page.requestPageChange(action.destination)
-      } else {
-        log.func('goto')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          Object.assign({ action }, options),
-        )
-      }
+    noodl = noodl || (await import('../app/noodl')).default
+    let destination =
+      typeof action === 'string'
+        ? action
+        : isPlainObject(action)
+        ? action.destination
+        : ''
+    if (!destination) {
+      log.func('goto')
+      log.red(
+        'Tried to go to a page but could not find information on the whereabouts',
+        Object.assign({ action }, options),
+      )
     }
+    page.pageUrl = resolvePageUrl(page.pageUrl, {
+      dest: destination || '',
+      startPage: noodl.cadlEndpoint.startPage,
+    })
+    await page.requestPageChange(destination || '')
   }
 
   /** Shared common logic for both lock/logout logic */

@@ -43,7 +43,7 @@ describe('viewWidthHeightMinMax', () => {
     `when the user\'s aspect ratio is larger than the ` +
       `${chalk.yellow('max')} ratio`,
     () => {
-      it.only(`should calculate the width using ${chalk.white(
+      it(`should calculate the width using ${chalk.white(
         'max * viewport height',
       )}`, () => {
         viewport.width = deviceSize.widescreen.width

@@ -75,6 +75,40 @@ export function isMobile() {
     ? /Mobile/.test(navigator.userAgent)
     : false
 }
+
+/**
+ * Parses a NOODL destination, commonly received from goto
+ * or pageJump actions as a string. The return value (for now) is
+ * intended to be directly assigned to page.pageUrl (subject to change)
+ * @param { string } currentPageUrl - Current page url (should be page.pageUrl from the Page instance)
+ * @param { string } options.dest - Destination
+ * @param { string } options.startPage
+ */
+export function resolvePageUrl(
+  currentPageUrl: string,
+  { dest = '', startPage = '' }: { dest: string; startPage?: string },
+) {
+  currentPageUrl = currentPageUrl.startsWith('index.html?') ? '' : 'index.html?'
+  let symbol = currentPageUrl.endsWith('?') ? '' : '-'
+  if (dest !== startPage) {
+    const questionMarkIndex = currentPageUrl.indexOf('?' + dest)
+    const hyphenIndex = currentPageUrl.indexOf('-' + dest)
+    if (questionMarkIndex !== -1) {
+      currentPageUrl = currentPageUrl.substring(0, questionMarkIndex + 1)
+      symbol = currentPageUrl.endsWith('?') ? '' : '-'
+      currentPageUrl += symbol + dest
+    } else if (hyphenIndex !== -1) {
+      currentPageUrl = currentPageUrl.substring(0, hyphenIndex)
+      symbol = currentPageUrl.endsWith('?') ? '' : '-'
+      currentPageUrl += symbol + dest
+    } else {
+      currentPageUrl += symbol + dest
+    }
+  } else {
+    currentPageUrl = 'index.html?'
+  }
+  return currentPageUrl
+}
 /**
  * Simulates a user-click and opens the link in a new tab.
  * @param { string } url - An outside link

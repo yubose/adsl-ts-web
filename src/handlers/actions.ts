@@ -33,6 +33,7 @@ import {
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import { IPage } from '../app/types'
+import { resolvePageUrl } from '../utils/common'
 import { onSelectFile } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
@@ -312,84 +313,26 @@ const createActions = function ({ page }: { page: IPage }) {
   _actions.goto.push({
     fn: async (action: any, options, actionsContext) => {
       log.func('_actions.goto')
-      log.red('goto action', { action, options })
+      log.red('goto action', { action, options, actionsContext })
       const { noodl } = actionsContext
-      // URL
-      if (typeof action?.original?.goto === 'string') {
-        log.gold('Requesting string destination', { action, options })
-
-        var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
-        page.pageUrl += pre
-        var parse = page.pageUrl.endsWith('?') ? '' : '-'
-        if (action.original.goto !== noodl.cadlEndpoint.startPage) {
-          var check1 = '?' + action.original.goto
-          var check2 = '-' + action.original.goto
-          var check1Idx = page.pageUrl.indexOf(check1)
-          var check2Idx = page.pageUrl.indexOf(check2)
-          if (check1Idx !== -1) {
-            page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
-            parse = page.pageUrl.endsWith('?') ? '' : '-'
-            page.pageUrl += parse
-            page.pageUrl += action.original.goto
-          } else if (check2Idx !== -1) {
-            page.pageUrl = page.pageUrl.substring(0, check2Idx)
-            parse = page.pageUrl.endsWith('?') ? '' : '-'
-            page.pageUrl += parse
-            page.pageUrl += action.original.goto
-          } else {
-            page.pageUrl += parse
-            page.pageUrl += action.original.goto
-          }
-        } else {
-          page.pageUrl = 'index.html?'
-        }
-
-        await page.requestPageChange(action.original.goto)
-      } else if (isPlainObject(action?.original?.goto)) {
-        // Currently don't know of any known properties the goto syntax has.
-        // We will support a "destination" key since it exists on goto which will
-        // soon be deprecated by this goto action
-        if (
-          action.original.destination ||
-          typeof action.original.goto === 'string'
-        ) {
-          const url = action.original.destination || action.original.goto
-
-          var pre = page.pageUrl.startsWith('index.html?') ? '' : 'index.html?'
-          page.pageUrl += pre
-          var parse = page.pageUrl.endsWith('?') ? '' : '-'
-          if (url !== noodl.cadlEndpoint.startPage) {
-            var check1 = '?' + url
-            var check2 = '-' + url
-            var check1Idx = page.pageUrl.indexOf(check1)
-            var check2Idx = page.pageUrl.indexOf(check2)
-            if (check1Idx !== -1) {
-              page.pageUrl = page.pageUrl.substring(0, check1Idx + 1)
-              parse = page.pageUrl.endsWith('?') ? '' : '-'
-              page.pageUrl += parse
-              page.pageUrl += url
-            } else if (check2Idx !== -1) {
-              page.pageUrl = page.pageUrl.substring(0, check2Idx)
-              parse = page.pageUrl.endsWith('?') ? '' : '-'
-              page.pageUrl += parse
-              page.pageUrl += url
-            } else {
-              page.pageUrl += parse
-              page.pageUrl += url
-            }
-          } else {
-            page.pageUrl = 'index.html?'
-          }
-
-          log.gold('Requesting object destination', { action, options })
-          await page.requestPageChange(url)
-        } else {
-          log.func('goto')
-          log.red(
-            'Tried to go to a page but could not find information on the whereabouts',
-            { action, ...options },
-          )
-        }
+      let destination =
+        typeof action.original.goto === 'string'
+          ? action.original.goto
+          : isPlainObject(action.original.goto)
+          ? action.original.destination || action.original.goto
+          : ''
+      if (destination) {
+        page.pageUrl = resolvePageUrl(page.pageUrl, {
+          dest: destination,
+          startPage: noodl.cadlEndpoint.startPage,
+        })
+        await page.requestPageChange(destination)
+      } else {
+        log.func('goto')
+        log.red(
+          'Tried to go to a page but could not find information on the whereabouts',
+          { action, ...options },
+        )
       }
     },
   })
