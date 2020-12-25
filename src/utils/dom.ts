@@ -1,6 +1,6 @@
-import isPlainObject from 'lodash/isPlainObject'
 import { NOODLDOMElement } from 'noodl-ui-dom'
-import { FileInputEvent, Styles } from 'app/types'
+import { FileInputEvent } from '../app/types'
+import { isPlainObject } from 'lodash'
 import { forEachEntries } from './common'
 
 export function copyToClipboard(value: string) {
@@ -12,62 +12,6 @@ export function copyToClipboard(value: string) {
   textarea.setSelectionRange(0, 9999999)
   document.execCommand('copy')
   textarea.remove()
-}
-
-export function forEachChildNode(
-  node: NOODLDOMElement | ChildNode,
-  cb: (node: ChildNode, index: number, parent: NodeListOf<ChildNode>) => void,
-) {
-  node?.childNodes?.forEach?.((childNode, index, parent) => {
-    cb(childNode, index, parent)
-    childNode.childNodes?.forEach?.((childOfChildNode) =>
-      forEachChildNode(childOfChildNode, cb),
-    )
-  })
-}
-
-export function forEachDeepChildNode(
-  node: Parameters<typeof forEachChildNode>[0],
-  cb: Parameters<typeof forEachChildNode>[1],
-  {
-    on,
-  }: {
-    on?: {
-      attribute: boolean
-      comment?: boolean
-      element?: boolean
-      text?: boolean
-    }
-  } = {},
-) {
-  if (node?.childNodes.length) {
-    const callOnNodeTypes = [] as number[]
-    const callCb = (...args: Parameters<typeof cb>) => {
-      if (callOnNodeTypes.length) {
-        if (callOnNodeTypes.includes(args[0].nodeType)) cb(...args)
-      } else {
-        // Default to calling the cb on all child nodes
-        cb(...args)
-      }
-    }
-    if (on) {
-      forEachEntries(
-        on,
-        (
-          key: 'attribute' | 'comment' | 'element' | 'text',
-          value: boolean | undefined,
-        ) => {
-          if (value) {
-            if (key === 'attribute') callOnNodeTypes.push(1)
-            else if (key === 'comment') callOnNodeTypes.push(1)
-            else if (key === 'element') callOnNodeTypes.push(1)
-            else if (key === 'text') callOnNodeTypes.push(1)
-          }
-        },
-      )
-    }
-    forEachChildNode(node, callCb)
-  }
 }
 
 export function getDocumentScrollTop() {
@@ -174,70 +118,11 @@ export function onSelectFile(
   })
 }
 
-export function getOffset(el: HTMLElement) {
-  const html = el.ownerDocument.documentElement
-  let box = { top: 0, left: 0 }
-  // If we don't have gBCR, just use 0,0 rather than error
-  // BlackBerry 5, iOS 3 (original iPhone)
-  if (typeof el.getBoundingClientRect !== 'undefined') {
-    box = el.getBoundingClientRect()
-  }
-  return {
-    top: box.top + window.pageYOffset - html.clientTop,
-    left: box.left + window.pageXOffset - html.clientLeft,
-  }
-}
-
-export function getPosition(el: HTMLElement) {
-  if (!el) {
-    return {
-      left: 0,
-      top: 0,
-    }
-  }
-  return {
-    left: el.offsetLeft,
-    top: el.offsetTop,
-  }
-}
-
 export function isVisible(node: any) {
   return (
     node?.style?.visibility === 'visible' ||
     node?.style?.visibility !== 'hidden'
   )
-}
-
-export interface SetStyle<Elem extends HTMLElement> {
-  (node: Elem, key: string | { [key: string]: any }, value?: any): void
-}
-
-/**
- * Sets the style for an HTML DOM element. If key is an empty string it
- * will erase all styles
- * @param { HTMLElement } node
- * @param { string | Styles | undefined } key
- * @param { any | undefined } value
- */
-export function setStyle(
-  node: HTMLElement,
-  key?: string | Styles,
-  value?: any,
-) {
-  if (node) {
-    if (typeof key === 'string') {
-      // Normalize unsetting
-      if (key === '') {
-        key = 'cssText'
-        value = ''
-      }
-      node.style[key as any] = value
-    } else if (isPlainObject(key)) {
-      forEachEntries(key, (k: any, v) => {
-        node.style[k] = v
-      })
-    }
-  }
 }
 
 /**
@@ -281,45 +166,6 @@ export function scrollTo(to = 0, duration = 16) {
   })
 }
 
-/* -------------------------------------------------------
-  ---- NOODL-UI-DOM UTILITIES
--------------------------------------------------------- */
-
-const matchNoodlType = (type: any) => ({ noodlType }: any) => noodlType === type
-
-export const isButton = matchNoodlType('button')
-export const isDivider = matchNoodlType('divider')
-export const isHeader = matchNoodlType('header')
-export const isImage = matchNoodlType('image')
-export const isLabel = matchNoodlType('label')
-export const isList = matchNoodlType('list')
-export const isListItem = matchNoodlType('listItem')
-export const isPopUp = matchNoodlType('popUp')
-export const isSelect = matchNoodlType('select')
-export const isTextField = matchNoodlType('textField')
-export const isView = matchNoodlType('view')
-
-/* -------------------------------------------------------
-  ---- DOM MANIPULATION
--------------------------------------------------------- */
-
-export const setAttr = (attr: string) => (v: keyof NOODLDOMElement) => (
-  n: NOODLDOMElement,
-) => (n[attr] = v)
-export const setDataAttr = (attr: string) => (v: keyof NOODLDOMElement) => (
-  n: NOODLDOMElement,
-) => (n['dataset'][attr] = v)
-
-export const setDataListId = setDataAttr('data-listid')
-export const setDataName = setDataAttr('data-name')
-export const setDataKey = setDataAttr('data-key')
-export const setDataUx = setDataAttr('data-ux')
-export const setDataValue = setDataAttr('data-value')
-export const setId = setAttr('id')
-export const setPlaceholder = setAttr('placeholder')
-export const setSrc = setAttr('src')
-export const setVideoFormat = setAttr('type')
-
 /**
  * Toggles the visibility state of a DOM node. If a condition func is passed,
  * it will be called and passed an object with a "isHidden" prop that reveals its
@@ -338,6 +184,30 @@ export function toggleVisibility(
       node.style['visibility'] = cond({ isHidden })
     } else {
       node.style['visibility'] = isHidden ? 'visible' : 'hidden'
+    }
+  }
+}
+
+/**
+ * Sets the style for an HTML DOM element. If key is an empty string it
+ * will erase all styles
+ * @param { HTMLElement } node
+ * @param { string | Styles | undefined } key
+ * @param { any | undefined } value
+ */
+export function setStyle(node: HTMLElement, key?: string | any, value?: any) {
+  if (node) {
+    if (typeof key === 'string') {
+      // Normalize unsetting
+      if (key === '') {
+        key = 'cssText'
+        value = ''
+      }
+      node.style[key as any] = value
+    } else if (isPlainObject(key)) {
+      forEachEntries(key, (k: any, v) => {
+        node.style[k] = v
+      })
     }
   }
 }

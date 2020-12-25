@@ -14,6 +14,7 @@ import {
   getDataValues,
   GotoURL,
   GotoObject,
+  ComponentInstance,
 } from 'noodl-ui'
 import { getByDataUX } from 'noodl-ui-dom'
 import {
@@ -29,7 +30,6 @@ import {
   isBooleanFalse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import validate from '../utils/validate'
 import Page from '../Page'
 import { toggleVisibility } from '../utils/dom'
 import { BuiltInActions } from '../app/types'
@@ -95,7 +95,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.goto = async (
     action: GotoURL | GotoObject,
     options,
-    { noodl } = {},
+    { noodl },
   ) => {
     if (!noodl) noodl = (await import('../app/noodl')).default
     log.func('goto')
@@ -178,12 +178,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       const isVisible = hiddenPwLabel.style.visibility === 'visible'
       if (isVisible) hiddenPwLabel.style.visibility = 'hidden'
     }
-    // Validate the syntax of their password first
-    const errMsg = validate.password(password)
-    if (errMsg) {
-      window.alert(errMsg)
-      return 'abort'
-    }
     // Validate if their password is correct or not
     const { Account } = await import('@aitmed/cadl')
     const isValid = Account.verifyUserPassword(password)
@@ -233,18 +227,23 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('redraw')
     log.red('', { action, options })
 
+    // @ts-expect-error
     const viewTag = action?.original?.viewTag || ''
 
     let components = Object.values(
       noodlui.componentCache().state() || {},
-    ).reduce((acc, c: Component) => {
+    ).reduce((acc, c: any) => {
       if (c && c.get('viewTag') === viewTag) return acc.concat(c)
       return acc
-    }, [] as Component[])
+    }, []) as ComponentInstance[]
 
     log.gold('viewTaggedComponents', {
-      viewtagged: components.reduce((acc, c) => {
-        acc[c.id] = { component: c, node: document.getElementById(c.id) }
+      viewtagged: components?.reduce((acc, c) => {
+        // @ts-expect-error
+        acc[c.id] = {
+          component: c,
+          node: document.getElementById(c.id),
+        } as any
         return acc
       }, {}),
     })
@@ -267,6 +266,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       components.push(component)
     }
 
+    // @ts-expect-error
     if (component?.id in window.ac) delete window.ac[component?.id]
 
     log.grey(
@@ -289,7 +289,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     let startCount = 0
 
     while (startCount < components.length) {
-      const viewTagComponent = components[startCount]
+      const viewTagComponent = components[startCount] as ComponentInstance
       const node = document.getElementById(viewTagComponent.id)
       log.grey(
         '[Redrawing] ' + node
@@ -300,6 +300,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       const dataObject = findListDataObject(viewTagComponent)
       const [newNode, newComponent] = redraw(
         node as HTMLElement,
+        // @ts-expect-error
         viewTagComponent,
         dataObject,
       )
@@ -310,14 +311,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         dataObject,
       })
       noodlui.componentCache().remove(viewTagComponent).set(newComponent)
-      window[`r${startCount}`] = {
-        n: newNode,
-        c: newComponent,
-        d: dataObject,
-        origNode: node,
-        origComponent: viewTagComponent,
-        index: startCount,
-      }
       startCount++
     }
 
@@ -395,6 +388,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     const { default: noodl } = await import('../app/noodl')
     const { component } = options
     const page = noodlui.page
+    // @ts-expect-error
     const { dataKey = '' } = action.original || {}
     let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
     const node = document.getElementById(component?.id)
@@ -441,6 +435,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         // Propagate the changes to to UI if there is a path "if" object that
         // references the value as well
         if (node && isObjectLike(path)) {
+          // @ts-expect-error
           let valEvaluating = path?.if?.[0]
           // If the dataKey is the same as the the value we are evaluating we can
           // just re-use the nextDataValue
@@ -452,9 +447,10 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
               get(noodl.root[page || ''], valEvaluating)
           }
           newSrc = noodlui.createSrc(
+            // @ts-expect-error
             valEvaluating ? path?.if?.[1] : path?.if?.[2],
             component,
-          )
+          ) as string
           node.setAttribute('src', newSrc)
         }
         return nextValue
