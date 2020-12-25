@@ -80,6 +80,10 @@ export function isMobile() {
  * Parses a NOODL destination, commonly received from goto
  * or pageJump actions as a string. The return value (for now) is
  * intended to be directly assigned to page.pageUrl (subject to change)
+ * The target string to analyze here is the "destination" which might come
+ * in various forms such as:
+ *    GotoViewTag#redTag
+ *    
  * @param { string } currentPageUrl - Current page url (should be page.pageUrl from the Page instance)
  * @param { string } options.dest - Destination
  * @param { string } options.startPage
@@ -93,6 +97,7 @@ export function resolvePageUrl(
   if (dest !== startPage) {
     const questionMarkIndex = currentPageUrl.indexOf('?' + dest)
     const hyphenIndex = currentPageUrl.indexOf('-' + dest)
+    const hashIndex = currentPageUrl.indexOf('#')
     if (questionMarkIndex !== -1) {
       currentPageUrl = currentPageUrl.substring(0, questionMarkIndex + 1)
       symbol = currentPageUrl.endsWith('?') ? '' : '-'
