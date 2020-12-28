@@ -12,6 +12,10 @@ export type ActionType =
 
 export interface ActionObject<T extends string = any> {
   actionType: T
+  dataKey?: any
+  reload?: boolean
+  viewTag?: string
+  wait?: boolean | number
   [key: string]: any
 }
 

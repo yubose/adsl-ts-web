@@ -29,3 +29,5 @@ page:
   - PatientChartAddMedications
   - PatientChartAddHospitalization
   - SelectRedraw
+  - TestRedaw
+  - GotoViewTag

@@ -47,6 +47,7 @@ import Page from './Page'
 import Meeting from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
 import './styles.css'
+import { root } from 'utils/test-utils'
 
 const log = Logger.create('src/index.ts')
 
@@ -181,18 +182,20 @@ window.addEventListener('load', async () => {
       previousHeight: window.innerHeight,
     })
 
+    console.log('initialViewportSize', initialViewportSize)
     updateViewport({
       width: initialViewportSize.width,
       height: initialViewportSize.height,
     })
 
     noodl.aspectRatio = initialViewportSize.aspectRatio
+    document.body.style.width = `${initialViewportSize.width}px`
+    document.body.style.height = `${initialViewportSize.height}px`
 
     if (page.rootNode) {
       page.rootNode.style.width = `${initialViewportSize.width}px`
       page.rootNode.style.height = `${initialViewportSize.height}px`
       page.rootNode.style.overflowX = 'auto'
-      // else page.rootNode.style.overflowX = 'hidden'
     }
 
     listenOnViewport(
@@ -201,16 +204,31 @@ window.addEventListener('load', async () => {
         aspectRatio,
         width,
         height,
+        min,
+        max,
       }: ReturnType<typeof computeViewportSize>) => {
         log.func('listenOnViewport')
-        log.grey('Updating aspectRatio because viewport changed')
+        log.grey('Updating aspectRatio because viewport changed', { min, max })
+
         noodl.aspectRatio = aspectRatio
-        // Centers the view if the width is constrained
-        updateViewport({ width, height })
+
+        document.body.style.width = `${width}px`
+        document.body.style.height = `${height}px`
+
         if (page.rootNode) {
           page.rootNode.style.width = `${width}px`
           page.rootNode.style.height = `${height}px`
-          page.rootNode.style.overflowX = 'auto'
+        }
+
+        if (aspectRatio < min) {
+          if (page.rootNode) page.rootNode.style.overflowX = 'auto'
+          document.body.style.overflowX = 'auto'
+          document.body.style.position = 'absolute'
+        } else if (aspectRatio > max) {
+          if (page.rootNode) page.rootNode.style.overflowX = 'hidden'
+          document.body.style.width = `${max * height}px`
+          document.body.style.overflowX = 'hidden'
+          document.body.style.position = 'relative'
         }
         page.render(noodl?.root?.[page.currentPage]?.components)
       },

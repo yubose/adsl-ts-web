@@ -21,7 +21,7 @@ const createViewportHandler = function (viewport: Viewport) {
       previousHeight,
     }: Parameters<ViewportListener>[0]) {
       const aspectRatio = getAspectRatio(width, height)
-      if (min && max) {
+      if (typeof min === 'number' && typeof max === 'number') {
         const newSizes = getViewportSizeWithMinMax({
           width,
           height,
@@ -38,6 +38,8 @@ const createViewportHandler = function (viewport: Viewport) {
         previousWidth,
         previousHeight,
         aspectRatio,
+        min,
+        max,
       }
     },
     getCurrentAspectRatio() {
@@ -46,19 +48,6 @@ const createViewportHandler = function (viewport: Viewport) {
     updateViewport({ width, height }: { width: number; height: number }) {
       viewport.width = width
       viewport.height = height
-      // Setting these styles on the body elemenet helps the scrolling effect
-      // to behave expectedly
-      document.body.style.width = width + 'px'
-      document.body.style.height = height + 'px'
-      document.body.style.position = 'relative'
-      if (o.getCurrentAspectRatio() > 1) {
-        document.body.style.margin = 'auto'
-        document.body.style.overflowX = 'hidden'
-      } else {
-        document.body.style.margin = 'undefined'
-        document.body.style.overflowX = 'auto'
-      }
-
       return o
     },
     on(ev: string, fn: Function) {
@@ -88,9 +77,9 @@ const createViewportHandler = function (viewport: Viewport) {
     log.func('onResize')
     const { width, height, previousWidth, previousHeight } = args
     if (width !== previousWidth || height !== previousHeight) {
+      console.log('Viewport changed', args)
       const results = o.computeViewportSize(args)
-      const { width, height } = results
-      o.updateViewport({ width, height })
+      o.updateViewport(results)
       // if (aspectRatio > 1 !== cache['landscape']) {
       //   cache['landscape'] = !cache.landscape
       //   callCount++
