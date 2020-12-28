@@ -38,8 +38,13 @@
   },
   "gitHead": "57753b8cd427d177c623188a536c58a70f9a8cbd",
   "dependencies": {
-    "noodl-types": "file:../noodl-types",
-    "noodl-ui": "file:../noodl-ui",
     "noodl-utils": "file:../noodl-utils"
+  },
+  "peerDependencies": {
+    "noodl-ui": "^0.1.35"
+  },
+  "devDependencies": {
+    "noodl-types": "file:../noodl-types",
+    "noodl-ui": "file:../noodl-ui"
   }
 }

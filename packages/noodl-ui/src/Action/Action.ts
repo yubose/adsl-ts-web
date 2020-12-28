@@ -84,14 +84,6 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
         this.status = 'timed-out'
       }, this.timeoutDelay || DEFAULT_TIMEOUT_DELAY)
 
-      // log.func(`execute --> ${this.type}`)
-      // log.hotpink(
-      //   `${
-      //     this.type === 'builtIn' ? `funcName: ${this.original.funcName}` : ''
-      //   }Executing`,
-      //   { snapshot: this.getSnapshot(), args },
-      // )
-
       // TODO - Logic for return values as objects (new if/ condition in action chains)
       this.result = await this.callback?.(this, args)
       if (this.result !== undefined) this['resultReturned'] = true
@@ -107,19 +99,6 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
       this.clearTimeout()
       this.clearInterval()
       this.executed = true
-
-      const logArgs = {
-        snapshot: this.getSnapshot(),
-        args,
-      }
-
-      if (this.result) logArgs['result'] = this.result
-      log.func(
-        `${this.type}${
-          this.type === 'builtIn' ? ` ---> ${this.original.funcName}` : ''
-        }`,
-      )
-      log.hotpink('Executed', logArgs)
     }
   }
 

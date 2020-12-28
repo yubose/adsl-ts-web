@@ -195,8 +195,6 @@ window.addEventListener('load', async () => {
       // else page.rootNode.style.overflowX = 'hidden'
     }
 
-    console.log('initial viewport dimensions', initialViewportSize)
-
     listenOnViewport(
       'resize',
       ({
