@@ -46,7 +46,6 @@
   "dependencies": {
     "g": "^2.0.1",
     "noodl-building-blocks": "file:packages/noodl-building-blocks",
-    "noodl-cli": "0.0.5",
     "noodl-types": "file:packages/noodl-types",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
