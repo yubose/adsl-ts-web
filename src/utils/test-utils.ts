@@ -26,6 +26,7 @@ import {
   Component,
   List,
   ListItem,
+  Viewport,
 } from 'noodl-ui'
 import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
@@ -40,6 +41,7 @@ export const assetsUrl = 'https://aitmed.com/assets/'
 export const root = {}
 export const actions = createActions({ page })
 export const builtIn = createBuiltInActions({ page })
+export const viewport = new Viewport()
 
 export const deviceSize = {
   galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },

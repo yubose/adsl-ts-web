@@ -3,7 +3,7 @@ import chai from 'chai'
 import chaiDOM from 'chai-dom'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
-import { Resolver, Viewport } from 'noodl-ui'
+import { Resolver } from 'noodl-ui'
 import Logger, { _color } from 'logsnap'
 import {
   assetsUrl,
@@ -11,6 +11,7 @@ import {
   noodlui,
   noodluidom,
   page,
+  viewport,
 } from './utils/test-utils'
 
 chai.use(chaiDOM)
@@ -43,8 +44,9 @@ before(() => {
               },
             }),
           })
+
           .setPage('MeetingLobby')
-          .setViewport(new Viewport())
+          .setViewport(viewport)
       },
     })
 

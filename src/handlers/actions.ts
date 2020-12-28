@@ -349,9 +349,8 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (
       action: Action<PopupObject | PopupDismissObject>,
       options,
-      actionsContext,
+      { noodlui },
     ) => {
-      const { default: noodlui } = await import('app/noodl-ui')
       log.func('popUp')
       log.grey('', { action, ...options })
       const { abort, component, ref } = options

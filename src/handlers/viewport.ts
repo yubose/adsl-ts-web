@@ -9,10 +9,6 @@ const createViewportHandler = function (viewport: Viewport) {
   const log = Logger.create('createViewportHandler')
   const fns = [] as Function[]
 
-  let cache = {
-    landscape: true,
-  }
-
   const o = {
     computeViewportSize({
       width,
@@ -45,19 +41,25 @@ const createViewportHandler = function (viewport: Viewport) {
     getCurrentAspectRatio() {
       return getAspectRatio(viewport.width as number, viewport.height as number)
     },
-    updateViewport({ width, height }: { width: number; height: number }) {
-      viewport.width = width
-      viewport.height = height
-      return o
-    },
-    on(ev: string, fn: Function) {
-      if (ev === 'resize') {
-        fns.push(fn as Viewport['onResize'])
-      }
-      return o
-    },
     getMinMaxRatio() {
       return { min, max }
+    },
+    isConstrained() {
+      if (typeof min === 'number' && typeof max === 'number') {
+        const aspectRatio = o.getCurrentAspectRatio()
+        console.info(`aspectRatio [isConstrained]`, {
+          aspectRatio,
+          width: viewport.width,
+          height: viewport.height,
+          windowWidth: window.innerWidth,
+          windowHeight: window.innerHeight,
+        })
+        return aspectRatio <= min || aspectRatio >= max
+      }
+    },
+    on(ev: string, fn: Function) {
+      if (ev === 'resize') fns.push(fn as Viewport['onResize'])
+      return o
     },
     setMinAspectRatio(value: number) {
       min = Number(value)
@@ -66,6 +68,11 @@ const createViewportHandler = function (viewport: Viewport) {
     setMaxAspectRatio(value: number) {
       max = Number(value)
       return this
+    },
+    setViewportSize({ width, height }: { width: number; height: number }) {
+      viewport.width = width
+      viewport.height = height
+      return o
     },
   }
 
@@ -79,7 +86,7 @@ const createViewportHandler = function (viewport: Viewport) {
     if (width !== previousWidth || height !== previousHeight) {
       console.log('Viewport changed', args)
       const results = o.computeViewportSize(args)
-      o.updateViewport(results)
+      o.setViewportSize(results)
       // if (aspectRatio > 1 !== cache['landscape']) {
       //   cache['landscape'] = !cache.landscape
       //   callCount++

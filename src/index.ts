@@ -109,11 +109,11 @@ window.addEventListener('load', async () => {
   // redirections before proceeding
   const {
     computeViewportSize,
-    on: listenOnViewport,
+    on: onViewportChange,
     setMinAspectRatio,
     setMaxAspectRatio,
+    setViewportSize,
     viewport,
-    updateViewport,
   } = createViewportHandler(new Viewport())
   const page = new Page()
   const app = new App({ viewport })
@@ -175,30 +175,32 @@ window.addEventListener('load', async () => {
       setMaxAspectRatio(max)
     }
 
-    const initialViewportSize = computeViewportSize({
+    const { aspectRatio, width, height, min, max } = computeViewportSize({
       width: window.innerWidth,
       height: window.innerHeight,
       previousWidth: window.innerWidth,
       previousHeight: window.innerHeight,
     })
 
-    console.log('initialViewportSize', initialViewportSize)
-    updateViewport({
-      width: initialViewportSize.width,
-      height: initialViewportSize.height,
-    })
+    setViewportSize({ width, height })
+    noodl.aspectRatio = aspectRatio
 
-    noodl.aspectRatio = initialViewportSize.aspectRatio
-    document.body.style.width = `${initialViewportSize.width}px`
-    document.body.style.height = `${initialViewportSize.height}px`
-
-    if (page.rootNode) {
-      page.rootNode.style.width = `${initialViewportSize.width}px`
-      page.rootNode.style.height = `${initialViewportSize.height}px`
-      page.rootNode.style.overflowX = 'auto'
+    const handleRootNodes = () => {
+      if (aspectRatio < min) {
+        if (page.rootNode) page.rootNode.style.overflowX = 'auto'
+        document.body.style.overflowX = 'auto'
+        document.body.style.position = 'absolute'
+      } else if (aspectRatio > max) {
+        if (page.rootNode) page.rootNode.style.overflowX = 'hidden'
+        document.body.style.width = `${max * height}px`
+        document.body.style.overflowX = 'hidden'
+        document.body.style.position = 'relative'
+      }
     }
 
-    listenOnViewport(
+    handleRootNodes()
+
+    onViewportChange(
       'resize',
       ({
         aspectRatio,
@@ -207,7 +209,7 @@ window.addEventListener('load', async () => {
         min,
         max,
       }: ReturnType<typeof computeViewportSize>) => {
-        log.func('listenOnViewport')
+        log.func('onViewportChange')
         log.grey('Updating aspectRatio because viewport changed', { min, max })
 
         noodl.aspectRatio = aspectRatio
@@ -220,16 +222,7 @@ window.addEventListener('load', async () => {
           page.rootNode.style.height = `${height}px`
         }
 
-        if (aspectRatio < min) {
-          if (page.rootNode) page.rootNode.style.overflowX = 'auto'
-          document.body.style.overflowX = 'auto'
-          document.body.style.position = 'absolute'
-        } else if (aspectRatio > max) {
-          if (page.rootNode) page.rootNode.style.overflowX = 'hidden'
-          document.body.style.width = `${max * height}px`
-          document.body.style.overflowX = 'hidden'
-          document.body.style.position = 'relative'
-        }
+        handleRootNodes()
         page.render(noodl?.root?.[page.currentPage]?.components)
       },
     )

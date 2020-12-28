@@ -73,6 +73,11 @@ class Page {
   public modal: Modal
   public requestingPage: string | undefined
   public requestingPageModifiers: { reload?: boolean } = {}
+  onRendered: {
+    on: 'load'
+    once?: boolean
+    fn: (...args: any[]) => any
+  }[] = []
 
   constructor({ _log = true, builtIn }: PageOptions = {}) {
     this.builtIn = builtIn
@@ -142,7 +147,6 @@ class Page {
           pageName,
           rootNode: this.rootNode,
         })
-        window.alert(`The value of page "${pageName}" is not valid`)
       } else {
         // The caller is expected to provide their own page object
         pageSnapshot = await this.#onBeforePageRender?.({
