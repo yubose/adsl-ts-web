@@ -1,7 +1,8 @@
 import Logger from 'logsnap'
 import {
-  ComponentCreationType,
   Component,
+  ComponentCreationType,
+  ComponentInstance,
   NOODLComponent,
   Page as NOODLUiPage,
 } from 'noodl-ui'
@@ -14,12 +15,13 @@ import Modal from './components/NOODLModal'
 
 const log = Logger.create('Page.ts')
 
-export type PageListenerName =
-  | 'onStart'
-  | 'onRootNodeInitialized'
-  | 'onBeforePageRender'
-  | 'onPageRendered'
-  | 'onError'
+export type PageEvent =
+  | 'start'
+  | 'root-node'
+  | 'before-page-render'
+  | 'page-rendered'
+  | 'error'
+  | 'modal-state-change'
 
 export interface PageOptions {
   _log?: boolean
@@ -30,49 +32,24 @@ export interface PageOptions {
   renderer?(page: Page): { components: Component[] }
 }
 
+export type IPage = Page
+
 /**
  * This Page class is responsible for managing a NOODL page's state that is relative
  * to the page that is being presented to the user, like managing parsed components or
  * action chains that are running.
  */
 class Page {
+  private _initializeRootNode: () => void
+  #cbs = {} as Record<PageEvent, ((...args: any[]) => Promise<any> | any)[]>
   previousPage: string = ''
   currentPage: string = ''
   pageUrl: string = 'index.html?'
-  #onStart: ((pageName: string) => Promise<any>) | undefined
-  #onRootNodeInitialized:
-    | ((rootNode: NOODLDOMElement | null) => Promise<any>)
-    | undefined
-  #onBeforePageRender:
-    | ((options: {
-        pageName: string
-        rootNode: NOODLDOMElement | null
-        pageModifiers: { reload?: boolean } | undefined
-      }) => Promise<any>)
-    | undefined
-  #onPageRendered:
-    | ((options: { pageName: string; components: Component[] }) => Promise<any>)
-    | undefined
-  #onPageRequest:
-    | ((params: {
-        previous: string
-        current: string
-        requested: string
-        modifiers: { reload?: boolean }
-      }) => boolean)
-    | undefined
-  #onModalStateChange:
-    | ((prevState: PageModalState, nextState: PageModalState) => void)
-    | undefined
-  #onError:
-    | ((options: { error: Error; pageName: string }) => Promise<any>)
-    | undefined
-  private _initializeRootNode: () => void
-  public builtIn: PageOptions['builtIn']
-  public rootNode: HTMLElement | null = null
-  public modal: Modal
-  public requestingPage: string | undefined
-  public requestingPageModifiers: { reload?: boolean } = {}
+  builtIn: PageOptions['builtIn']
+  rootNode: HTMLElement | null = null
+  modal: Modal
+  requestingPage: string | undefined
+  requestingPageModifiers: { reload?: boolean } = {}
   onRendered: {
     on: 'load'
     once?: boolean
@@ -112,7 +89,7 @@ class Page {
    * @param { string } pageName
    * @param { boolean | undefined } pageModifiers.reload - Set to false to disable the page's
    */
-  public async navigate(
+  async navigate(
     pageName: string,
     pageModifiers: { reload?: boolean; force?: boolean } = {},
   ): Promise<{ snapshot: any } | void> {
@@ -129,13 +106,13 @@ class Page {
 
       this['requestingPage'] = pageName
 
-      await this.#onStart?.(pageName)
+      await this.emit('start', pageName)
 
       // Create the root node where we will be placing DOM nodes inside.
       // The root node is a direct child of document.body
       if (!this.rootNode) {
         this.initializeRootNode()
-        this.#onRootNodeInitialized?.(this.rootNode)
+        await this.emit('root-node', this.rootNode)
       }
 
       let pageSnapshot: NOODLUiPage | undefined
@@ -149,11 +126,12 @@ class Page {
         })
       } else {
         // The caller is expected to provide their own page object
-        pageSnapshot = await this.#onBeforePageRender?.({
+        const pageSnapshot = await this.emit('before-page-render', {
           pageName,
           rootNode: this.rootNode,
           pageModifiers,
         })
+
         // Sometimes a navigate request coming from another location like a
         // "goto" action can invoke a request in the middle of this operation.
         // Give the latest call the priority
@@ -170,13 +148,13 @@ class Page {
           pageSnapshot?.object?.components as NOODLComponent[],
         )
 
-        this.#onPageRendered?.({
+        await this.emit('page-rendered', {
           pageName,
           components: rendered.components,
         })
 
         if (Array.isArray(rendered.components)) {
-          components = rendered.components
+          components = rendered.components as any
         } else {
           log.func('navigate')
           log.red(
@@ -192,11 +170,8 @@ class Page {
         snapshot: Object.assign({ components }, pageSnapshot),
       }
     } catch (error) {
-      if (typeof this.#onError === 'function') {
-        this.#onError?.({ error, pageName })
-      } else {
-        throw new Error(error)
-      }
+      await this.emit('error', { error, pageName })
+      throw new Error(error)
     }
   }
 
@@ -208,7 +183,7 @@ class Page {
    * @param { string } requestedPage - Page name to request
    * @param { boolean? } modifiers.reload - Set to false to disable the sdk's "reload" for this route change. It internally set to true by default
    */
-  requestPageChange(
+  async requestPageChange(
     newPage: string,
     modifiers: { reload?: boolean; force?: boolean } = {},
     goback: boolean = false,
@@ -218,27 +193,17 @@ class Page {
       newPage.startsWith('http') ||
       modifiers.force
     ) {
-      const shouldNavigate = this.#onPageRequest?.({
-        previous: this.previousPage,
-        current: this.currentPage,
-        requested: newPage,
-        modifiers,
-      })
-      if (shouldNavigate === true) {
-        if (goback) {
-          modifiers.reload = modifiers.reload === false ? false : true
-          history.pushState({}, '', this.pageUrl)
-          return this.navigate(newPage, modifiers).then(() => {
-            this.previousPage = this.currentPage
-            this.currentPage = newPage
-          })
-        } else {
-          history.pushState({}, '', this.pageUrl)
-          return this.navigate(newPage, modifiers).then(() => {
-            this.previousPage = this.currentPage
-            this.currentPage = newPage
-          })
-        }
+      if (goback) {
+        modifiers.reload = modifiers.reload === false ? false : true
+        history.pushState({}, '', this.pageUrl)
+        await this.navigate(newPage, modifiers)
+        this.previousPage = this.currentPage
+        this.currentPage = newPage
+      } else {
+        history.pushState({}, '', this.pageUrl)
+        await this.navigate(newPage, modifiers)
+        this.previousPage = this.currentPage
+        this.currentPage = newPage
       }
     } else {
       log.func('changePage')
@@ -260,69 +225,18 @@ class Page {
     const prevState = this.modal.getState()
     this.modal.open(id, content, options as PageModalState)
     const nextState = this.modal.getState()
-    this?.onModalStateChange?.(prevState, nextState)
+    this.emit('modal-state-change', prevState, nextState)
   }
 
   closeModal() {
     //
   }
 
-  set onStart(fn: (pageName: string) => Promise<any>) {
-    this.#onStart = fn
-  }
-
-  set onRootNodeInitialized(
-    fn: (rootNode: NOODLDOMElement | null) => Promise<any>,
-  ) {
-    this.#onRootNodeInitialized = fn
-  }
-
-  set onBeforePageRender(
-    fn: (options: {
-      pageName: string
-      rootNode: NOODLDOMElement | null
-      pageModifiers: { force?: boolean; reload?: boolean } | undefined
-    }) => Promise<NOODLUiPage | undefined>,
-  ) {
-    this.#onBeforePageRender = fn
-  }
-
-  set onPageRendered(
-    fn: (options: {
-      pageName: string
-      components: Component[]
-    }) => Promise<any>,
-  ) {
-    this.#onPageRendered = fn
-  }
-
-  get onPageRequest() {
-    return this.#onPageRequest
-  }
-
-  set onPageRequest(fn) {
-    this.#onPageRequest = fn
-  }
-
-  get onModalStateChange() {
-    return this.#onModalStateChange
-  }
-
-  set onModalStateChange(fn) {
-    this.#onModalStateChange = fn
-  }
-
-  set onError(
-    fn: (options: { error: Error; pageName: string }) => Promise<any>,
-  ) {
-    this.#onError = fn
-  }
-
   /**
    * Returns the link to the main dashboard page by using the noodl base url
    * @param { string } baseUrl - Base url retrieved from the noodl config
    */
-  public async getDashboardPath() {
+  async getDashboardPath() {
     const { getPagePath } = await import('./utils/sdkHelpers')
     return getPagePath(/meeting/)
   }
@@ -332,9 +246,7 @@ class Page {
    * them to the DOM
    * @param { NOODLUIPage } page - Page in the shape of { name: string; object: null | PageObject }
    */
-  public render(
-    rawComponents: ComponentCreationType | ComponentCreationType[],
-  ) {
+  render(rawComponents: ComponentCreationType | ComponentCreationType[]) {
     let resolved = noodlui.resolveComponents(rawComponents)
     const components = Array.isArray(resolved) ? resolved : [resolved]
     if (this.rootNode) {
@@ -363,13 +275,13 @@ class Page {
    *  Returns a JS representation of the current rootNode and nodes of the
    * current page
    */
-  public getNodes() {
+  getNodes() {
     return {
       rootNode: this.rootNode,
     }
   }
 
-  public setBuiltIn(builtIn: any) {
+  setBuiltIn(builtIn: any) {
     this.builtIn = builtIn
     return this
   }
@@ -382,6 +294,68 @@ class Page {
       currentPage: this.currentPage,
       ...this.getNodes(),
     }
+  }
+
+  on(event: 'start', fn: (page: string) => Promise<void> | void): this
+  on(
+    event: 'root-node',
+    fn: (node: HTMLDivElement) => Promise<void> | void,
+  ): this
+  on(
+    event: 'before-page-render',
+    fn: (args: {
+      pageName: string
+      pageModifiers: { force?: boolean; reload?: boolean }
+    }) => Promise<void> | void,
+  ): this
+  on(
+    event: 'page-rendered',
+    fn: (args: {
+      pageName: string
+      components: ComponentInstance[]
+    }) => Promise<void> | void,
+  ): this
+  on(
+    event: 'error',
+    fn: (args: { error: Error; pageName: string }) => Promise<void> | void,
+  ): this
+  on(
+    event: 'modal-state-change',
+    fn: (
+      prevState: PageModalState,
+      nextState: PageModalState,
+    ) => Promise<void> | void,
+  ): this
+  on(eventName: string, fn: (...args: any[]) => Promise<any> | any) {
+    switch (eventName) {
+      case 'start':
+      case 'root-node':
+      case 'before-page-render':
+      case 'page-rendered':
+      case 'error':
+      case 'modal-state-change':
+        if (!Array.isArray(this.#cbs[eventName])) this.#cbs[eventName] = []
+        if (!this.#cbs[eventName].includes(fn)) {
+          this.#cbs[eventName].push(fn)
+        }
+    }
+    return this
+  }
+
+  async emit(event: PageEvent, ...args: any[]) {
+    let result
+    const fns = this.#cbs[event]
+    if (fns.length) {
+      const numFns = fns.length
+      for (let index = 0; index < numFns; index++) {
+        const fn = fns[index]
+        // For now we will just use the first return value received
+        // as the value to the caller that called emit if they are
+        // expecting some value
+        if (!result) result = await fn(...args)
+      }
+    }
+    return result
   }
 }
 

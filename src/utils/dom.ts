@@ -1,6 +1,6 @@
+import isPlainObject from 'lodash/isPlainObject'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { FileInputEvent } from '../app/types'
-import { isPlainObject } from 'lodash'
 import { forEachEntries } from './common'
 
 export function copyToClipboard(value: string) {

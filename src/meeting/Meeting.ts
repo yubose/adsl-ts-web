@@ -29,6 +29,8 @@ interface Internal {
   _token: string
 }
 
+export type IMeeting = typeof Meeting
+
 // import makePublications from './makePublications'
 // import makeTrack from './makeTrack'
 

@@ -5,7 +5,7 @@ import NOODLUIDOM, { isTextFieldLike, NOODLDOMElement } from 'noodl-ui-dom'
 const noodluidom = new NOODLUIDOM()
 
 export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
-  return noodluidom
+  noodluidom
     .register(noodlui)
     .register({
       name: 'data-value (sync with sdk)',
@@ -85,11 +85,12 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     .register({
       name: 'textField (password + non password)',
       cond: 'textField',
-      resolve(node: HTMLTextAreaElement, component) {
+      resolve(node: any, component: any) {
         // Password inputs
         if (component.get('contentType') === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
             import('../app/noodl-ui').then(({ default: noodlui }) => {
+              console.log('HLELO:!?!?')
               const assetsUrl = noodlui.assetsUrl || ''
               const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
               const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
@@ -180,6 +181,10 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
         }
       },
     })
+
+  console.log(`%cRegistered noodl-ui-dom listeners`, `color:#95a5a6;`)
+
+  return noodluidom
 }
 
 export default noodluidom

@@ -321,6 +321,11 @@ const createActions = function ({ page }: { page: IPage }) {
           : isPlainObject(action.original.goto)
           ? action.original.destination || action.original.goto
           : ''
+      if (destination.includes('#')) {
+        // Most likely a viewTag on the destination page
+        const elemToScrollTo = destination.split('#')[1]
+        destination = destination.substring(0, destination.indexOf('#'))
+      }
       if (destination) {
         page.pageUrl = resolvePageUrl(page.pageUrl, {
           dest: destination,
@@ -338,7 +343,7 @@ const createActions = function ({ page }: { page: IPage }) {
   })
 
   _actions.pageJump.push({
-    fn: async (action: any, options, actionsContext) => {
+    fn: async (action: any, options) => {
       log.func('pageJump')
       log.grey('', { action, ...options })
       await page.requestPageChange(action.original.destination)

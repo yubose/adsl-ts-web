@@ -16,6 +16,7 @@ declare global {
     account: any
     app: any
     build: any
+    componentCache: any
     noodl: any
     env: string | undefined
     getByDataUX: any
