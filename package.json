@@ -31,7 +31,6 @@
     "server": "ts-node-dev --transpile-only --project tsconfig.test.json --watch scripts scripts/server.ts",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files \"src/**/*.ts\"",
-    "test:chainoodl": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --watch --watch-files scripts \"scripts/chai-noodl.test.ts\"",
     "test:noodlui": "lerna exec --scope noodl-ui \"npm run test\"",
     "test:noodlui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
     "test:noodluidom": "lerna exec --scope noodl-ui-dom \"npm run test\"",
@@ -39,14 +38,10 @@
     "test:actionchain": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/ActionChain.test.ts --verbose\"",
     "test:noodlutils": "lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "lerna exec --scope noodl-utils \"npm run test:file\"",
-    "test:chainoodldom": "lerna exec --scope chai-noodl-dom \"npm run test\"",
-    "lib:build": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-types build && lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
-    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-types build && lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
+    "lib:build": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
+    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
   },
   "dependencies": {
-    "g": "^2.0.1",
-    "noodl-building-blocks": "file:packages/noodl-building-blocks",
-    "noodl-types": "file:packages/noodl-types",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-utils": "file:packages/noodl-utils"

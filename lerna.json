@@ -1,6 +1,5 @@
 {
   "packages": ["packages/*"],
-  "ignore": ["chai-noodl-dom", "noodl-building-blocks"],
   "version": "independent",
   "command": {
     "bootstrap": {
