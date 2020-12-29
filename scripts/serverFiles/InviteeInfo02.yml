@@ -1,6 +1,6 @@
-InviteeInfo02:
+InviteeInfo02: # This is page name
   module: meetingroom
-  title: Invite
+  title: "Invite"
   pageNumber: "140"
   init:
     - .SignInCheck
@@ -23,13 +23,16 @@ InviteeInfo02:
       store:
         api: ce
         dataIn: inviteMeeting.edge
+
   components:
-    - ? .BaseHeader3
-    - ? .HeaderLeftButton
-    - .HeaderRightButton: null
+    - .BaseHeader3:
+    - .HeaderLeftButton:
+    - .HeaderRightButton:
       text: Contacts
       onClick:
         - goto: ContactsList
+    # - .HeaderRightButton:
+    #   text: Contacts
     - type: view
       style:
         left: "0"
@@ -120,14 +123,14 @@ InviteeInfo02:
           x: center
         border:
           style: "1"
-    - type: popUp
+    - type: popUp # view
       viewTag: confirmView
       style:
         left: "0"
         top: "0"
         width: "1"
-        height: "1"
-        backgroundColor: "0x00000066"
+        height: "1" 
+        backgroundColor: "0x00000066" 
       children:
         - type: view
           style:
@@ -141,7 +144,7 @@ InviteeInfo02:
             borderRadius: "15"
           children:
             - type: label
-              text: Send Invite Link
+              text: "Send Invite Link"
               style:
                 .LabelStyle:
                   left: "0"
@@ -156,7 +159,7 @@ InviteeInfo02:
                     x: center
                     y: center
             - type: label
-              text: Send invite link to
+              text: "Send invite link to"
               style:
                 .LabelStyle:
                   left: "0"
@@ -168,8 +171,9 @@ InviteeInfo02:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: label
+              # text: "John"
               dataKey: inviteMeeting.edge.name.firstName
               style:
                 .LabelStyle:
@@ -182,8 +186,9 @@ InviteeInfo02:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: label
+              #text: "+1 7148397253"
               dataKey: inviteMeeting.edge.name.phoneNumber
               style:
                 .LabelStyle:
@@ -196,7 +201,7 @@ InviteeInfo02:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: divider
               style:
                 .DividerStyle:
@@ -206,7 +211,7 @@ InviteeInfo02:
                   height: "0.001"
                   backgroundColor: "0x00000088"
             - type: button
-              onClick:
+              onClick: 
                 - actionType: popUpDismiss
                   popUpView: confirmView
               text: Cancel
@@ -221,12 +226,13 @@ InviteeInfo02:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
                   border:
                     style: "5"
                   borderRadius: "15"
+
             - type: button
-              onClick:
+              onClick: 
                 - actionType: saveObject
                   object: ..save
                 - actionType: popUpDismiss
@@ -244,7 +250,7 @@ InviteeInfo02:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
                   border:
                     style: "5"
                   borderRadius: "15"

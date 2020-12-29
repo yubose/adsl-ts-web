@@ -1,63 +1,73 @@
-ShareProfile:
-  pageNumber: "320"
-  title: ShareProfile
-  components:
-    - type: scrollView
-      style:
-        left: "0"
-        top: "0"
-        width: "1"
-        height: "1"
-        contentSize:
+  ShareProfile: # This is page name
+    pageNumber: "320"
+    title: "ShareProfile"
+    components:
+      - type: scrollView
+        style:
+          left: "0"
+          top: "0"
           width: "1"
-          height: "1.0"
-      children:
-        - ? .BaseHeader3
-        - ? .HeaderLeftButton
-        - type: view
-          style:
-            top: "0.1"
-          children:
-            - type: image
-              dataModel: editProviderForm
-              dataId: profilePhoto
-              path: qrCode.png
-              style:
-                left: "0.35"
-                top: "0.09"
-                width: "0.25"
-                height: "0.15"
-                border:
-                  style: "5"
-                borderRadius: 32
-            - type: button
-              text: Share Personal Complete Profile
-              onClick:
-                - goto: DisplayProfile
-              style:
-                left: "0.05"
-                top: "0.35"
-                width: "0.9"
-                height: "0.07"
-                color: "0xffffff"
-                backgroundColor: "0x388ECC"
-                borderRadius: 2
-                fontWeight: 500
-                textAlign:
-                  x: center
-            - type: button
-              text: Share Name,Phone Number,and AiTmed ID Only
-              onClick:
-                - goto: DisplayProfile
-              style:
-                left: "0.05"
-                top: "0.45"
-                width: "0.9"
-                fontWeight: 500
-                height: "0.07"
-                color: "0xffffff"
-                borderRadius: 2
-                backgroundColor: "0x388ECC"
-                textAlign:
-                  x: center
-                  y: center
+          height: "1"
+          contentSize:
+            width: "1"
+            height: "1.0"
+        children:      
+          - .BaseHeader3:
+          - .HeaderLeftButton:
+          - type: view
+            style:
+              top: "0.1"
+            children:
+              # - type: divider
+              #   style:
+              #     .DividerStyle:
+              #       left: "0"
+              #       top: "0.04"
+              #       width: "1"
+              #       backgroundColor: "0x00000058"
+              - type: image
+                dataModel: editProviderForm
+                dataId: profilePhoto
+                path: qrCode.png
+                style:
+                  left: "0.35"
+                  top: "0.09"
+                  width: "0.25"
+                  height: "0.15"
+                  border:
+                    style: "5"
+                  borderRadius: 32   
+              - type: button
+                text: Share Personal Complete Profile
+                onClick: 
+                  - goto: DisplayProfile 
+                style:
+                  left: "0.05"
+                  top: "0.35"
+                  width: "0.9"
+                  height: "0.07"
+                  color: "0xffffff"
+                  backgroundColor: "0x388ECC"
+                  # fontStyle: bold
+                  borderRadius: 2
+                  fontWeight: 500
+                  textAlign:
+                    x: center
+              - type: button
+                text: Share Name,Phone Number,and AiTmed ID Only
+                onClick: 
+                  - goto: DisplayProfile
+                style:
+                  # fontStyle: bold
+                  left: "0.05"
+                  top: "0.45"
+                  width: "0.9"
+                  fontWeight: 500
+                  height: "0.07"
+                  color: "0xffffff"
+                  borderRadius: 2
+                  backgroundColor: "0x388ECC"
+                  textAlign:
+                    x: center
+                    y: center
+                   

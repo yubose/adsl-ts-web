@@ -1,6 +1,6 @@
 MeetingSharedDocuments:
-  pageNumber: "280"
-  title: Shared Documents
+  pageNumber: "280" # xd page 8
+  title: "Shared Documents"
   init:
     - .SignInCheck
     - ..listData.get
@@ -8,18 +8,18 @@ MeetingSharedDocuments:
     sharedDoc:
       doc:
         name:
-          title: Urgent Care Evaluation Report
+          title: "Urgent Care Evaluation Report"
     get:
-      .DocAPI.get: ""
+      .DocAPI.get : ""
       api: rd
       dataKey: listData.sharedDoc
       ObjType: 4
-      ids:
+      ids: 
         - .Global.rootRoomInfo.edge.refid
       type: .DocType.UploadFile
-      xfname: eid
-      obfname: mtime
-      maxcount: "20"
+      xfname : eid
+      obfname : "mtime" 
+      maxcount : "20"
       _nonce: =.Global._nonce
   components:
     - type: view
@@ -29,11 +29,11 @@ MeetingSharedDocuments:
         width: "1"
         height: "1"
       children:
-        - ? .BaseHeader3
-        - ? .HeaderLeftButton
+        - .BaseHeader3:
+        - .HeaderLeftButton:
         - type: list
           contentType: listObject
-          listObject: ..listData.sharedDoc.doc
+          listObject: ..listData.sharedDoc.doc # to dataObject to enumerate the list
           iteratorVar: itemObject
           style:
             left: "0"
@@ -55,9 +55,9 @@ MeetingSharedDocuments:
                   width: "1"
                   color: "0xE0E0E0"
               onClick:
-                - actionType: updateObject
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                   dataKey: Global.DocReference.document
-                  dataObject: itemObject
+                  dataObject: itemObject 
                 - goto: DocumentDetail
               children:
                 - type: label
@@ -69,13 +69,13 @@ MeetingSharedDocuments:
                     width: "0.7"
                     height: "0.06"
                     fontSize: "15"
-                    fontStyle: bold
+                    fontStyle: bold 
                     textAlign:
                       y: center
                 - type: label
                   text: 10.30am
                   text=func: .builtIn.string.formatUnixtime_en
-                  dataKey: itemObject.ctime
+                  dataKey: itemObject.ctime 
                   style:
                     color: "0x808080"
                     left: "0.8"
@@ -83,6 +83,19 @@ MeetingSharedDocuments:
                     width: "0.2"
                     height: "0.1"
                     fontSize: "12"
-                    fontStyle: bold
+                    fontStyle: bold 
                     textAlign:
                       y: center
+                # - type: label
+                #   text: July 4,2020
+                #   text=func:  .builtIn.string.formatDurationInSecond
+                #   dataKey: itemObject.tage # hh:mm'ss"
+                #   style:
+                #     color: "0x808080"
+                #     left: "0.05"
+                #     top: "0.04"
+                #     width: "0.6"
+                #     height: "0.02"
+                #     fontSize: "12"
+                #     textAlign:
+                #       y: center 

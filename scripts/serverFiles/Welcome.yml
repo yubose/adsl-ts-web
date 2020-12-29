@@ -9,8 +9,8 @@ Welcome:
         height: "1"
       children:
         - type: image
-          path: backpic.png
-          style:
+          path: "backpic.png"
+          style: 
             left: "0"
             width: "1"
             height: "1"
@@ -43,14 +43,15 @@ Welcome:
             width: "0.7"
             height: "0.041"
             fontSize: "28"
+            # fontStyle: bold
             display: inline
             textAlign:
               x: center
-              y: center
+              y: center      
         - type: image
           path: progressBar10persent.png
           style:
             left: "0.0"
             top: "0.98"
             width: "1"
-            height: "0.02"
+            height: "0.02"  

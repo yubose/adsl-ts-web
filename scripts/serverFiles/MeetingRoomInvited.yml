@@ -1,103 +1,112 @@
 MeetingRoomInvited:
-  pageNumber: '80'
+  pageNumber: "80" # xd pages 4
   init:
     - .SignInCheck
     - ..listData.get
     - if:
-        - ..listData.invitedroom.edge.0
-        - continue
-        - =.builtIn.checkField:
-            dataIn:
-              contentType: messageHidden
-              wait: 100
-  lastTop: '0.0'
-  title: Meeting Rooms
-  listData:
+      - ..listData.invitedroom.edge.0
+      - continue
+      - =.builtIn.checkField:
+          dataIn:
+            contentType: messageHidden
+            wait: 100 
+  lastTop: "0.0" # keep updated for list rendering.
+  title: "Meeting Rooms"
+  listData: 
     invitedroom:
       edge:
+        # - .Edge:
+        #   name: 
+        #     hostName: "Invited Room 1"
+        #     roomName: "Test Room 1"
+        # - .Edge:
+        #   name: 
+        #     hostName: "Invited Room 2"
+        #     roomName: "Test Room 2"
     get:
-      .EdgeAPI.get: ''
+      .EdgeAPI.get : ""
       api: re
       dataKey: listData.invitedroom
       id: .Global.currentUser.vertex.id
-      type: '1053'
-      xfname: evid
-      sCondition: tage=0 AND ctime>UNIX_TIMESTAMP()-86400
-      maxcount: '20'
-      obfname: mtime
+      type : "1053"
+      xfname : evid
+      # sCondition: "tage=0 AND ctime>UNIX_TIMESTAMP()-7200" # active invite, it will be closed when host closed the meeting room
+      sCondition: "tage=0 AND ctime>UNIX_TIMESTAMP()-86400" # active invite, it will be closed when host closed the meeting room
+      maxcount : "20"
+      obfname : "mtime" 
       _nonce: =.Global._nonce
   components:
     - type: view
       style:
-        left: '0'
-        top: '0'
-        width: '1'
-        height: '1'
-
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        position: "fixed"  
       children:
         - .MenuHeader:
-        - .SubMenuView: null
+        - .SubMenuView:
           children:
-            - .SubMenuButton: null
+            - .SubMenuButton:
               style:
-                color: '0xffffffff'
-            - .SubMenuButton: null
-              text: Create
+                color: "0xffffffff"
+            - .SubMenuButton:
+              text: "Create"
               style:
-                left: '0.34'
+                left: "0.34"
               onClick:
                 - goto: MeetingRoomCreate
-            - .SubMenuButton: null
-              text: History
+            - .SubMenuButton:
+              text: "History"
               style:
-                left: '0.67'
+                left: "0.67"
               onClick:
                 - goto: MeetingRoomHistory
         - type: label
           contentType: messageHidden
-          text: No current invitations
+          text: "No current invitations"
           style:
-            left: '0.31'
-            top: '0.25'
-            width: '0.72'
-            height: '0.04'
-            color: '0x000058'
-            fontSize: '16'
-            isHidden: 'true'
+            left: "0.31"
+            top: "0.25"
+            width: "0.72"
+            height: "0.04"
+            color: "0x000058"
+            fontSize: "16"
+            isHidden: "true"
         - type: list
           contentType: listObject
           listObject: ..listData.invitedroom.edge
           iteratorVar: itemObject
           style:
-            left: '0'
-            top: '0.19'
-            width: '1'
-            height: '0.8'
+            left: "0"
+            top: "0.19"
+            width: "1"
+            height: "0.8"
           children:
             - type: listItem
-              itemObject: ''
-              onClick:
-                - actionType: updateObject
+              itemObject: ""
+              onClick: 
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                   dataKey: Global.VideoChatObjStore.reference.edge
                   dataObject: itemObject
                 - goto: VideoChat
               style:
-                left: '0'
-                top: '0'
-                width: '1'
-                height: '0.15'
+                left: "0"
+                top: "0"
+                width: "1"
+                height: "0.15"
               children:
                 - type: label
                   dataKey: itemObject.name.hostName
                   style:
-                    left: '0.08'
-                    top: '0.03'
-                    width: '0.15'
-                    height: '0.08'
-                    fontSize: '32'
+                    left: "0.08"
+                    top: "0.03"
+                    width: "0.15"
+                    height: "0.08"
+                    fontSize: "32"
                     fontStyle: bold
-                    color: '0xffffffff'
-                    backgroundColor: '0xff8f90ff'
+                    color: "0xffffffff"
+                    backgroundColor: "0xff8f90ff"
                     display: inline
                     textAlign:
                       x: center
@@ -105,17 +114,17 @@ MeetingRoomInvited:
                 - type: label
                   dataKey: itemObject.name.roomName
                   style:
-                    left: '0.3'
-                    top: '0.06'
-                    width: '0.74'
-                    height: '0.03'
+                    left: "0.3"
+                    top: "0.06"
+                    width: "0.74"
+                    height: "0.03"
                     fontWeight: 400
-                    fontSize: '16'
-                    color: '0x000000ff'
+                    fontSize: "16"
+                    color: "0x000000ff"
                 - type: image
                   path: rightArrow.png
                   style:
-                    left: '0.88'
-                    top: '0.02'
-                    width: '0.07'
-                    height: '0.03'
+                    left: "0.88"
+                    top: "0.02"
+                    width: "0.07"
+                    height: "0.03"

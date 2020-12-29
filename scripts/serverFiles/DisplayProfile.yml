@@ -1,7 +1,7 @@
 DisplayProfile:
   pageNumber: "330"
-  title: My Profile
-  init:
+  title: "My Profile"
+  init: 
     - .SignInCheck
     - ..profile.docAPI.get
     - ..profilePic.docAPI.get
@@ -10,18 +10,18 @@ DisplayProfile:
         - actionType: evalObject
           object:
             .DisplayProfile.profileObject@: =..docResponse.doc.0
-        - continue
+        - continue  
     - if:
-        - =..docResponse.doc.0
+        - =..docResponse.doc.0      
         - actionType: evalObject
           object:
             .Global.DocProfile.document@: =..docProfile.doc.0
-        - continue
+        - continue    
     - if:
         - =..docResponse.doc.0
         - actionType: evalObject
           object:
-            .DisplayProfile.docDetail.document@: =.Global.DocProfile.document
+            .DisplayProfile.docDetail.document@: =.Global.DocProfile.document   
         - continue
     - if:
         - =..docProfile.doc.0
@@ -30,60 +30,64 @@ DisplayProfile:
               data: =..docDetail.document.name.data
               type: =..docDetail.document.name.type
             dataOut: DisplayProfile.docDetail.document.name.data
-        - continue
+        - continue  
     - if:
         - =..docProfile.doc.0.name.type
         - ..tar@: ..docDetail.document.name.data
-        - ..tar@: drImg.png
+        - ..tar@: drImg.png 
     - if:
         - =..docProfile.doc.0
-        - .Global.currentUser.vertex.name.avatar@: ..docDetail.document.name.data
-        - continue
-    - if:
-        - =..profileObject.name.data.firstName
-        - actionType: evalObject
-          object:
-            =.builtIn.string.concat:
-              dataIn:
-                - =..profileObject.name.data.firstName
-                - " "
-                - =..profileObject.name.data.lastName
-              dataOut: DisplayProfile.concatInfo.name
-        - continue
-    - if:
-        - =..profileObject.name.data.state
-        - actionType: evalObject
-          object:
-            =.builtIn.string.concat:
-              dataIn:
-                - =..profileObject.name.data.line1
-                - " "
-                - =..profileObject.name.data.line2
-                - " "
-                - =..profileObject.name.data.city
-                - " "
-                - =..profileObject.name.data.state
-                - " "
-                - =..profileObject.name.data.zip
-                - " "
-                - =..profileObject.name.data.country
-              dataOut: DisplayProfile.concatInfo.address
-        - continue
+        - .Global.currentUser.vertex.name.avatar@: ..docDetail.document.name.data 
+        - continue 
+    # concat fistname and lastname to display 
+    - if:   
+      - =..profileObject.name.data.firstName
+      - actionType: evalObject
+        object:
+          =.builtIn.string.concat:
+            dataIn:
+              - =..profileObject.name.data.firstName
+              - " "
+              - =..profileObject.name.data.lastName   
+            dataOut: DisplayProfile.concatInfo.name 
+      - continue
+    # concat address information to display
+    - if:   
+      - =..profileObject.name.data.state
+      - actionType: evalObject
+        object:
+          =.builtIn.string.concat:
+            dataIn:
+              - =..profileObject.name.data.line1
+              - " "
+              - =..profileObject.name.data.line2
+              - " "
+              - =..profileObject.name.data.city 
+              - " "
+              - =..profileObject.name.data.state 
+              - " "
+              - =..profileObject.name.data.zip
+              - " "
+              - =..profileObject.name.data.country
+            dataOut: DisplayProfile.concatInfo.address
+      - continue 
+  #dataObject: .EditProfile.profile.document'
+
   concatInfo:
     name: ""
     address: ""
   docDetail:
-    document:
+    document: 
       name:
         data: drImg.png
-  tar: ""
+  tar: ""    
   profileObject:
     .Document: ""
     eid: .Global.rootNotebookID
     type: .DocType.Profile
     name:
       title: ""
-      type: application/json
+      type: "application/json"
       data:
         phone: .Global.currentUser.vertex.uid
         userName: .Global.currentUser.vertex.name.userName
@@ -97,67 +101,81 @@ DisplayProfile:
         zip: ""
         country: ""
   profile:
-    docAPI:
+    docAPI: 
       get:
-        .DocAPI.get: ""
+        .DocAPI.get: "" 
         api: rd
         ids:
           - .Global.rootNotebookID
         xfname: eid
-        type: .DocType.Profile
-        obfname: mtime
+        type: .DocType.Profile #  type: "257"
+        obfname: "mtime"
         maxcount: "1"
         dataKey: docResponse
         _nonce: =.Global._nonce
-  docResponse:
+  docResponse: 
     doc:
-      - type: .DocType.Profile
+      - type: .DocType.Profile # - type: "257" # private profile
         eid: .Global.rootNotebookID
         name: ""
     error: ""
-    jwt: ""
+    jwt: "" 
   profilePic:
-    docAPI:
+    docAPI: 
       get:
-        .DocAPI.get: ""
+        .DocAPI.get: "" 
         api: rd
         ids:
           - .Global.rootNotebookID
         xfname: eid
-        type: .DocType.UploadProfile
-        obfname: mtime
+        type: .DocType.UploadProfile   
+        obfname: "mtime"
         maxcount: "1"
         dataKey: docProfile
         _nonce: =.Global._nonce
-  docProfile:
+  docProfile: 
     doc:
-      - type: .DocType.UploadProfile
+      - type: .DocType.UploadProfile 
         eid: .Global.rootNotebookID
         name: ""
     error: ""
-    jwt: ""
+    jwt: ""      
   components:
     - type: view
-      style:
+      style: 
         top: "0"
         width: "1"
         height: "1"
       children:
-        - ? .BaseHeader3
-        - .HeaderLeftButton2: null
+        - .BaseHeader3:
+        - .HeaderLeftButton2:
           text: Edit
           onClick:
             - goto: EditProfile
-        - .HeaderRightImg: null
+        - .HeaderRightImg:
           path: sideNav2.png
           onClick:
             - goto: SideMenuBar
+
         - type: image
           path: ..tar
           style:
             top: "0.15"
             width: "0.2"
             left: "0.1"
+        # - type: label
+        #   text: CG 
+        #   style:
+        #     top: "0.165"
+        #     left: "0.1"
+        #     width: "0.2"
+        #     height: "0.08"
+        #     fontSize: "36"
+        #     fontWeight: 500
+        #     Index: 10
+        #     color: "0xffffff"
+        #     textAlign:
+        #       x: center
         - type: view
           style:
             top: "0.15"
@@ -166,7 +184,8 @@ DisplayProfile:
             height: "0.2"
           children:
             - type: label
-              dataKey: DisplayProfile.concatInfo.name
+              # text: Christopher Grenz
+              dataKey: DisplayProfile.concatInfo.name 
               style:
                 top: "0.01"
                 fontSize: "20"
@@ -180,7 +199,7 @@ DisplayProfile:
                 fontSize: "20"
                 fontWeight: "400"
                 width: "0.2"
-                height: "0.04"
+                height: '0.04'
             - type: label
               dataKey: Global.currentUser.vertex.name.userName
               style:
@@ -189,8 +208,9 @@ DisplayProfile:
                 fontSize: "20"
                 fontWeight: "400"
                 width: "0.2"
-                height: "0.04"
+                height: '0.04'
         - type: view
+          # text: Contact Information
           style:
             top: "0.3"
             width: "0.8"
@@ -209,7 +229,7 @@ DisplayProfile:
                 backgroundColor: "0x388FCD"
               children:
                 - type: label
-                  text: Contact Information
+                  text: "Contact Information"
                   style:
                     top: "0.008"
                     width: "0.8"
@@ -229,6 +249,7 @@ DisplayProfile:
                 height: "0.03"
                 left: "0.05"
             - type: label
+              # text: "123-456-7890"
               dataKey: Global.currentUser.vertex.uid
               style:
                 top: "0.07"
@@ -247,6 +268,7 @@ DisplayProfile:
                 height: "0.03"
                 left: "0.05"
             - type: label
+              # text: "1234567890@gmail.com"
               dataKey: profileObject.name.data.email
               style:
                 top: "0.15"
@@ -270,6 +292,7 @@ DisplayProfile:
                 height: "0.03"
                 left: "0.05"
             - type: label
+              # text: "4114 Sepulveda Blvd"
               dataKey: DisplayProfile.concatInfo.address
               style:
                 top: "0.25"
@@ -283,16 +306,20 @@ DisplayProfile:
                 borderWidth: "1"
                 textAlign:
                   x: center
-        - type: button
-          text: Share my QR code
-          onClick:
-            - goto: MyQRCode
-          style:
-            top: "0.8"
-            width: "0.5"
-            left: "0.25"
-            height: "0.05"
-            backgroundColor: "0x398FCD"
-            color: "0xffffff"
-            textAlign:
-              x: center
+        # - type: button
+        #   text: Share my QR code
+        #   onClick:
+        #     - goto: MyQRCode
+        #   style:
+        #     top: "0.8"
+        #     width: "0.5"
+        #     left: "0.25"
+        #     height: "0.05"
+        #     backgroundColor: "0x398FCD"
+        #     color: "0xffffff"
+        #     textAlign:
+        #       x: center        
+
+
+
+

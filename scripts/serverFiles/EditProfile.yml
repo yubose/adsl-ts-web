@@ -1,20 +1,21 @@
 EditProfile:
   pageNumber: "310"
-  title: Edit Profile
-  init:
+  title: "Edit Profile"
+  init: 
     - .SignInCheck
     - if:
-        - =.DisplayProfile.docProfile.doc.0.name.type
-        - ..tar@: .DisplayProfile.docDetail.document.name.data
-        - ..tar@: drImg.png
+      - =.DisplayProfile.docProfile.doc.0.name.type
+      - ..tar@: .DisplayProfile.docDetail.document.name.data
+      - ..tar@: drImg.png 
   profileObject: .DisplayProfile.profileObject
+  ##
   tar: ""
   save:
     - =.EditProfile.profile.docAPI.store: ""
   update:
-    - =.EditProfile.uploadProfile.docAPI.store: ""
+    - =.EditProfile.uploadProfile.docAPI.store: ""  
   uploadProfile:
-    document:
+    document: #DOC
       .Document: ""
       subtype:
         isEncrypted: "1"
@@ -26,36 +27,48 @@ EditProfile:
         data: binFile
       deat:
         sig: ""
-        url: ""
+        url: ""     
       eid: .Global.rootNotebookID
-    docAPI:
+    docAPI: 
       store:
         api: cd
         dataKey: uploadProfile.document
         subtype:
-          mediaType: ""
-  profile:
-    docAPI:
+          mediaType: "" # mediaType : "image/jpeg"  
+  profile: 
+    # Austin removed document: ".DisplayProfile.profile.document"
+    docAPI: 
       store:
         api: cd
         dataKey: EditProfile.profileObject
   components:
     - type: view
-      style:
+      style: 
         top: "0"
         width: "1"
         height: "1"
       children:
-        - ? .BaseHeader3
-        - .HeaderLeftButton2: null
+        - .BaseHeader3:
+        - .HeaderLeftButton2:
           text: Cancel
           onClick:
             - goto: DisplayProfile
-        - .HeaderRightButton: null
+        - .HeaderRightButton:
           text: Done
           onClick:
             - goto: DisplayProfile
+        # - type: label
+        #   text: "Fill out required fields*"
+        #   style:
+        #     top: "0.10"
+        #     width: "1"
+        #     height: "0.01"
+        #     fontSize: "14"
+        #     color: "0xD53C42"
+        #     textAlign:
+        #       x: center
         - type: image
+          #path: drImg.png
           path: ..tar
           contentType: file
           viewTag: avatarTag
@@ -63,8 +76,22 @@ EditProfile:
             top: "0.15"
             width: "0.2"
             left: "0.1"
+        # - type: label
+        #   text: CG 
+        #   style:
+        #     top: "0.165"
+        #     left: "0.1"
+        #     width: "0.2"
+        #     height: "0.08"
+        #     fontSize: "36"
+        #     fontWeight: 500
+        #     Index: 10
+        #     color: "0xffffff"
+        #     textAlign:
+        #       x: center
         - type: button
           text: Change Image
+          # contentType: file
           onClick:
             - actionType: updateObject
               dataObject: BLOB
@@ -73,7 +100,7 @@ EditProfile:
               funcName: redraw
               viewTag: avatarTag
             - actionType: evalObject
-              object: ..update
+              object: ..update  
           style:
             top: "0.35"
             left: "0.05"
@@ -93,7 +120,7 @@ EditProfile:
           children:
             - type: label
               textBoard:
-                - text: First name
+                - text: "First name"
                 - text: "*"
                   color: "0xD53C42"
               style:
@@ -105,7 +132,7 @@ EditProfile:
             - type: textField
               placeholder: .Global.currentUser.vertex.name.firstName
               dataKey: profileObject.name.data.firstName
-              style:
+              style: 
                 top: "0.04"
                 fontSize: "16"
                 fontWeight: "400"
@@ -117,7 +144,7 @@ EditProfile:
                 borderRadius: "5"
             - type: label
               textBoard:
-                - text: Last name
+                - text: "Last name"
                 - text: "*"
                   color: "0xD53C42"
               style:
@@ -129,7 +156,7 @@ EditProfile:
             - type: textField
               placeholder: .Global.currentUser.vertex.name.lastName
               dataKey: profileObject.name.data.lastName
-              style:
+              style: 
                 top: "0.14"
                 fontSize: "16"
                 fontWeight: "400"
@@ -139,7 +166,25 @@ EditProfile:
                   style: "3"
                 borderWidth: "1.5"
                 borderRadius: "5"
+            # - type: label
+            #   text: "Username:"
+            #   style:
+            #     top: "0.13"
+            #     fontSize: "18"
+            #     fontWeight: "400"
+            #     width: "0.2"
+            #     height: '0.02'
+            # - type: label
+            #   dataKey: Global.currentUser.vertex.name.userName
+            #   style:
+            #     left: "0.05"
+            #     top: "0.16"
+            #     fontSize: "18"
+            #     fontWeight: "400"
+            #     width: "0.2"
+            #     height: '0.02'
         - type: view
+          # text: Contact Information
           style:
             top: "0.4"
             width: "0.9"
@@ -158,7 +203,7 @@ EditProfile:
                 backgroundColor: "0x388FCD"
               children:
                 - type: label
-                  text: Contact Information
+                  text: "Contact Information"
                   style:
                     top: "0.008"
                     width: "0.9"
@@ -205,7 +250,7 @@ EditProfile:
                 height: "0.03"
                 left: "0.05"
             - type: textField
-              placeholder: example@domain.com
+              placeholder: "example@domain.com"
               dataKey: profileObject.name.data.email
               style:
                 top: "0.11"
@@ -230,7 +275,7 @@ EditProfile:
                 height: "0.03"
                 left: "0.05"
             - type: textField
-              placeholder: Lin1
+              placeholder: "Lin1"
               dataKey: profileObject.name.data.line1
               style:
                 top: "0.15"
@@ -244,7 +289,7 @@ EditProfile:
                 borderWidth: "1"
                 borderRadius: "5"
             - type: textField
-              placeholder: Lin2
+              placeholder: "Lin2"
               dataKey: profileObject.name.data.line2
               style:
                 top: "0.19"
@@ -258,7 +303,7 @@ EditProfile:
                 borderWidth: "1"
                 borderRadius: "5"
             - type: textField
-              placeholder: City
+              placeholder: "City"
               dataKey: profileObject.name.data.city
               style:
                 top: "0.23"
@@ -272,7 +317,7 @@ EditProfile:
                 borderWidth: "1"
                 borderRadius: "5"
             - type: textField
-              placeholder: State
+              placeholder: "State"
               dataKey: profileObject.name.data.state
               style:
                 top: "0.23"
@@ -286,7 +331,7 @@ EditProfile:
                 borderWidth: "1"
                 borderRadius: "5"
             - type: textField
-              placeholder: Zip code
+              placeholder: "Zip code"
               dataKey: profileObject.name.data.zip
               style:
                 top: "0.23"
@@ -300,7 +345,7 @@ EditProfile:
                 borderWidth: "1"
                 borderRadius: "5"
             - type: textField
-              placeholder: Country
+              placeholder: "Country"
               dataKey: profileObject.name.data.country
               style:
                 top: "0.27"
@@ -313,8 +358,24 @@ EditProfile:
                   style: "3"
                 borderWidth: "1"
                 borderRadius: "5"
+                # textAlign:
+                #   x: center
+            # - type: label
+            #   text: "4114 Sepulveda Blvd"
+            #   style:
+            #     top: "0.23"
+            #     fontSize: "16"
+            #     fontWeight: "400"
+            #     width: "0.6"
+            #     height: "0.03"
+            #     left: "0.1"
+            #     border:
+            #       style: "2"
+            #     borderWidth: "1"
+            #     textAlign:
+            #       x: center
         - type: button
-          text: Save
+          text:   Save
           onClick:
             - actionType: evalObject
               object: ..save

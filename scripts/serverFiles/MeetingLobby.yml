@@ -1,8 +1,8 @@
 MeetingLobby:
   module: meetingroom
-  pageNumber: 160_110
-  title: Meeting Lobby
-  rootRoom:
+  pageNumber: "160_110" # xd page 11
+  title: "Meeting Lobby"
+  rootRoom:  # this must be a root room
     response: ""
     edge: ""
     edgeAPI:
@@ -28,18 +28,27 @@ MeetingLobby:
     - ..listData.get
   save:
     - ..rootRoom.edgeAPI.store
-  listData:
+  listData: 
     response:
-      ? edge
+      edge:
+        # - .Edge:
+        #     name:
+        #       firstName: "test"
+        #       lastName: "1"
+        # - .Edge:
+        #     name:
+        #       firstName: "test"
+        #       lastName: "2"
     edge:
       .Edge: ""
+      #id: .MeetingLobby.rootRoom.edge.id
       id: .Global.rootRoomInfo.edge.id
-      type: 1053
-      xfname: refid
-      maxcount: "20"
-      sCondition: tage=0 AND ctime>UNIX_TIMESTAMP()-7200
+      type : 1053
+      xfname : refid
+      maxcount : "20"
+      sCondition: "tage=0 AND ctime>UNIX_TIMESTAMP()-7200"  
     get:
-      .EdgeAPI.get: ""
+      .EdgeAPI.get : ""
       api: re
       dataIn: listData.edge
       dataOut: listData.response
@@ -52,8 +61,8 @@ MeetingLobby:
         width: "1"
         height: "1"
       children:
-        - ? .BaseHeader3
-        - .HeaderLeftButton: null
+        - .BaseHeader3:
+        - .HeaderLeftButton:
           onClick:
             - goto: MeetingRoomCreate
         - type: view
@@ -62,7 +71,7 @@ MeetingLobby:
             top: "0.09"
             width: "1"
             height: "0.15"
-            backgroundColor: "0x388eccff"
+            backgroundColor: "0x388eccff"  
           children:
             - type: label
               text: Room name
@@ -72,12 +81,13 @@ MeetingLobby:
                 top: "0.03"
                 width: "0.6"
                 fontWeight: 400
+                # zIndex: 10
                 height: "0.04"
                 fontSize: "16"
-            - type: textField
+            - type: textField # take users' input
               contentType: text
-              placeholder: Please type the title here
-              dataKey: rootRoom.edge.name.roomName
+              placeholder: "Please type the title here"
+              dataKey: rootRoom.edge.name.roomName # users' input will be saved to this key
               style:
                 left: "0.05"
                 top: "0.08"
@@ -94,7 +104,7 @@ MeetingLobby:
                 border:
                   style: "2"
             - type: label
-              text: Save
+              text: "Save"
               style:
                 top: "0.08"
                 left: "0.8"
@@ -110,6 +120,7 @@ MeetingLobby:
                 - actionType: saveObject
                   object: ..save
                 - goto: MeetingRoomCreate
+                
         - type: view
           style:
             top: "0.28"
@@ -119,8 +130,8 @@ MeetingLobby:
             - type: view
               style:
                 top: "0"
-                left: "0"
-                width: "0.5"
+                left: "0" 
+                width: "0.5" 
                 height: "0.2"
               children:
                 - type: image
@@ -132,7 +143,7 @@ MeetingLobby:
                     left: "0.165"
                     width: "0.17"
                 - type: label
-                  text: Meeting Documents
+                  text: Meeting Documents 
                   style:
                     top: "0.1"
                     left: "0.01"
@@ -142,11 +153,13 @@ MeetingLobby:
                     fontWeight: 400
                     textAlign:
                       x: center
+                
+                    
             - type: view
               style:
                 top: "0"
-                left: "0.5"
-                width: "0.5"
+                left: "0.5" 
+                width: "0.5" 
                 height: "0.2"
               children:
                 - type: image
@@ -169,7 +182,7 @@ MeetingLobby:
                     textAlign:
                       x: center
             - type: label
-              text: Meeting Participants
+              text: "Meeting Participants"
               style:
                 top: "0.14"
                 left: "0"
@@ -177,21 +190,45 @@ MeetingLobby:
                 height: "0.05"
                 fontSize: 20
                 color: "0x00000099"
-                textAlign:
+                textAlign: 
                   x: center
-                border:
+                border: 
                   style: "2"
                 borderColor: "0x00000044"
-                borderWidth: 0.001px
-            - type: list
+                borderWidth: "0.001px"
+              
+                
+              # children:
+              #   - type: label
+              #     text: 1
+              #     dataKey:
+              #     style:
+              #       width: "0.18"
+              #       color: "0xeb3d38" 
+              #       fontSize: "16"
+              #       textAlign:
+              #         x: right
+              #   - type: label
+              #     text: Document(s) have been uploaded.
+              #     dataKey:
+              #     style:
+              #       width: "0.8"
+              #       left: "0.19"
+              #       color: "0x000000" 
+              #       fontSize: "16"
+            - type: list # hardcoded listObject
               contentType: listObject
-              listObject: ..listData.response.edge
-              iteratorVar: itemObject
+              listObject: ..listData.response.edge # to dataObject to enumerate the list
+              iteratorVar: itemObject # iteratorVar is a reserve key of CADL
+              #for (itemObject in listObject) do something
+              #  ..messageDoc@ = itemObject
               style:
                 left: "0"
                 top: "0.17"
                 width: "1"
+                # backgroundColor: "0xcdcdcd"
                 height: "0.48"
+              #for loop through listObject, we got each itemObject
               children:
                 - type: listItem
                   itemObject: ""
@@ -231,14 +268,14 @@ MeetingLobby:
                         color: "0x000000ff"
                     - type: button
                       onClick:
-                        - actionType: updateObject
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                           dataKey: MeetingLobby.inviteesInfo.edge
-                          dataObject: itemObject
+                          dataObject: itemObject # this must be a rootRoom
                         - actionType: evalObject
-                          object:
-                            .MeetingLobby.inviteesInfo.edge.tage@: 1
+                          object: 
+                            .MeetingLobby.inviteesInfo.edge.tage@: 1 
                         - actionType: evalObject
-                          object:
+                          object: 
                             - =.MeetingLobby.inviteesInfo.edgeAPI.store: ""
                         - actionType: refresh
                       text: Delete
@@ -253,7 +290,7 @@ MeetingLobby:
                         textAlign:
                           x: center
                         border:
-                          style: "1"
+                          style: "1"    
             - type: button
               onClick:
                 - actionType: updateObject
@@ -302,23 +339,24 @@ MeetingLobby:
                   style: "1"
               onClick:
                 - actionType: evalObject
-                  object:
-                    ..rootRoom.edge.tage@: -1
+                  object: 
+                    ..rootRoom.edge.tage@: -1 
                 - actionType: saveObject
-                  object: ..save
+                  object: ..save 
                 - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
-                - goto: MeetingRoomHistory
-    - type: popUp
+                  object: 
+                    .Global._nonce@: 
+                      =.builtIn.math.random: ""    
+                - goto: MeetingRoomHistory              
+        
+    - type: popUp # view
       viewTag: warningView
       style:
         left: "0"
         top: "0"
         width: "1"
-        height: "1"
-        backgroundColor: "0x00000066"
+        height: "1" 
+        backgroundColor: "0x00000066" 
       children:
         - type: view
           style:
@@ -332,7 +370,7 @@ MeetingLobby:
             borderRadius: "15"
           children:
             - type: label
-              text: OOPS
+              text: "OOPS"
               style:
                 .LabelStyle:
                   left: "0"
@@ -347,7 +385,7 @@ MeetingLobby:
                     x: center
                     y: center
             - type: label
-              text: There is no title of meeting
+              text: "There is no title of meeting"
               style:
                 .LabelStyle:
                   left: "0"
@@ -359,7 +397,7 @@ MeetingLobby:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: divider
               style:
                 .DividerStyle:
@@ -368,7 +406,7 @@ MeetingLobby:
                   width: "0.89333"
                   backgroundColor: "0x00000088"
             - type: button
-              onClick:
+              onClick: 
                 - actionType: popUpDismiss
                   popUpView: warningView
               text: OK
@@ -383,7 +421,7 @@ MeetingLobby:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
                   border:
                     style: "5"
                   borderRadius: "15"

@@ -1,10 +1,10 @@
 AccessToPhotos:
-  title: Access to photos
+  title: "Access to photos"
   pageNumber: "370"
   viewPort: top
-  components:
+  components: 
     - type: view
-      style:
+      style: 
         top: "0"
         width: "1"
         height: "1"
@@ -32,8 +32,12 @@ AccessToPhotos:
         - type: label
           textBoard:
             - text: AiTmed would like to access
-            - ? br
+            - br:
             - text: your contacts
+            # - br:
+            # - text: Do you allow AiTmed to access your 
+            # - br:
+            # - text: photos?
           style:
             top: "0.4"
             width: "1"
@@ -44,9 +48,9 @@ AccessToPhotos:
               x: center
         - type: label
           textBoard:
-            - ? br
-            - text: Do you allow AiTmed to access your
-            - ? br
+            - br:
+            - text: Do you allow AiTmed to access your 
+            - br:
             - text: photos?
           style:
             top: "0.44"

@@ -1,16 +1,16 @@
 FavoriteList:
   pageNumber: "350"
-  title: My Directory
+  title: "My Directory" # xd page 37
   init:
     - .SignInCheck
     - ..listData.get
     - if:
-        - ..listData.favoriteList.doc.0
-        - continue
-        - =.builtIn.checkField:
-            dataIn:
-              contentType: messageHidden
-              wait: 100
+      - ..listData.favoriteList.doc.0
+      - continue
+      - =.builtIn.checkField:
+          dataIn:
+            contentType: messageHidden
+            wait: 100      
   save:
     - =.FavoriteList.contactInfo.docAPI.store: ""
   searchData:
@@ -20,28 +20,29 @@ FavoriteList:
       doc:
         name:
           data:
-            firstName: Test
+            firstName: "Test"
             isFavorite: true
     get:
-      .DocAPI.get: ""
+      .DocAPI.get : ""
       api: rd
       dataKey: listData.favoriteList
-      ids:
+      ids: 
         - .Global.rootNotebookID
       type: .DocType.ContactFav
       xfname: eid
-      maxcount: "500"
-      obfname: mtime
+      maxcount : "500"
+      obfname : "mtime" 
       _nonce: =.Global._nonce
   contactInfo:
-    document: ""
+    document: 
+      _nonce: =.Global._nonce
     docAPI:
-      .DocAPI: ""
+      .DocAPI: "" 
       store:
         api: cd
         dataKey: FavoriteList.contactInfo.document
   generalInfo:
-    value: true
+    value: true       
   components:
     - type: view
       style:
@@ -50,30 +51,30 @@ FavoriteList:
         width: "1"
         height: "1"
       children:
-        - ? .BaseHeader3
-        - .HeaderLeftButton: null
+        - .BaseHeader3:
+        - .HeaderLeftButton:
           onClick:
             - goto: MeetingRoomCreate
-        - .HeaderRightImg: null
+        - .HeaderRightImg:
           path: sideNav2.png
           onClick:
             - goto: SideMenuBar
-        - .SubMenuView: null
+        - .SubMenuView:
           style:
             top: "0.09"
             height: "0.1"
             backgroundColor: "0x388ecc"
           children:
-            - .SubMenuButton: null
-              text: Contacts
+            - .SubMenuButton:
+              text: "Contacts"
               style:
                 top: "0.03"
                 left: "0.15"
                 zIndex: 100
               onClick:
                 - goto: ContactsList
-            - .SubMenuButton: null
-              text: Favorites
+            - .SubMenuButton:
+              text: "Favorites"
               style:
                 top: "0.03"
                 left: "0.5"
@@ -94,13 +95,14 @@ FavoriteList:
                 width: "0.9"
                 height: "0.05"
               children:
-                - .SearchField: null
-                  placeHolder: search contacts
+                - .SearchField:
+                  placeHolder: "search contacts"
                   style:
                     left: "0.2"
                     top: "0.01"
-                - .SearchDoc: null
+                - .SearchDoc: 
                   style:
+                    # left: "0"
                     top: "0.01"
                 - type: image
                   path: add.png
@@ -112,7 +114,7 @@ FavoriteList:
                     height: "0.03"
                 - type: label
                   contentType: messageHidden
-                  text: No favorited contacts to show
+                  text: "No favorited contacts to show"
                   style:
                     left: "0.1"
                     top: "0.05"
@@ -126,7 +128,7 @@ FavoriteList:
                     display: inline
                     textAlign:
                       x: center
-                      y: center
+                      y: center                                         
         - type: view
           style:
             top: "0.25"
@@ -136,7 +138,7 @@ FavoriteList:
           children:
             - type: list
               contentType: listObject
-              listObject: ..listData.favoriteList.doc
+              listObject: ..listData.favoriteList.doc # to dataObject to enumerate the list
               iteratorVar: itemObject
               style:
                 top: "0"
@@ -163,9 +165,12 @@ FavoriteList:
                         left: "0"
                         height: "0.04"
                       onClick:
-                        - actionType: updateObject
+                        # - actionType: builtIn
+                        #   funcName: toggleFlag
+                        #   dataKey: itemObject.name.data.isFavorite
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                           dataKey: FavoriteList.contactInfo.document
-                          dataObject: itemObject
+                          dataObject: itemObject # this must be a rootRoom
                         - emit:
                             dataKey:
                               var: itemObject
@@ -186,21 +191,21 @@ FavoriteList:
                                         key: name.data.isFavorite
                                         value: true
                         - actionType: evalObject
-                          object:
+                          object: 
                             - if:
                                 - =.FavoriteList.contactInfo.document.name.data.isFavorite
                                 - .FavoriteList.contactInfo.document.type@: =.DocType.ContactFav
                                 - .FavoriteList.contactInfo.document.type@: =.DocType.Contact
                         - actionType: builtIn
                           funcName: redraw
-                          viewTag: select
+                          viewTag: select          
                         - actionType: evalObject
                           object: ..save
                         - actionType: evalObject
-                          object:
-                            .Global._nonce@:
-                              =.builtIn.math.random: ""
-                      path:
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: "" 
+                      path: 
                         emit:
                           dataKey:
                             var: itemObject
@@ -212,6 +217,8 @@ FavoriteList:
                                       string2: $var.name.data.isFavorite
                                 - https://public.aitmed.com/commonRes/providerOn.png
                                 - https://public.aitmed.com/commonRes/providerOff.png
+                      # path: providerOn.png
+                      # pathSelected: providerOff.png
                     - type: image
                       path: drImg.png
                       style:
@@ -221,10 +228,10 @@ FavoriteList:
                         left: "0.13"
                     - type: label
                       dataKey: itemObject.name.data.firstName
-                      onClick:
-                        - actionType: updateObject
+                      onClick: 
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                           dataKey: Global.DocReference.document
-                          dataObject: itemObject
+                          dataObject: itemObject # this must be a rootRoom
                         - goto: ContactInformation
                       style:
                         left: "0.3"

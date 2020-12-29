@@ -1,36 +1,38 @@
-InviteeInfo01:
+InviteeInfo01: # This is page name
   module: meetingroom
-  title: Invite
-  pageNumber: "140"
+  title: "Invite"
+  pageNumber: "140"  # xd page 16
   init:
     - .SignInCheck
   save:
     - ..inviteMeeting.edgeAPI.store
-  update:
+  update: 
     - =.InviteeInfo01.newContact.docAPI.store: ""
   newContact:
     document:
       .Document: ""
+      # subtype: 
+      #   applicationDataType : .Const.contact # 104
       eid: .Global.rootNotebookID
-      type: .DocType.Contact
+      type: .DocType.Contact # 2
       name:
         title: ""
         type: ..newContact.docAPI.store.subtype.mediaType
-        data:
+        data: 
           phoneNumber: ""
           email: ""
           firstName: ""
           middleName: ""
           lastName: ""
           note: ""
-          isFavorite: false
+          isFavorite: false  
     docAPI:
       .DocAPI: ""
       store:
         api: cd
         dataKey: newContact.document
         subtype:
-          mediaType: application/json
+          mediaType: "application/json" # mediaType : "image/jpeg"
   inviteMeeting:
     edge:
       .Edge: ""
@@ -48,9 +50,12 @@ InviteeInfo01:
       store:
         api: ce
         dataIn: inviteMeeting.edge
+
   components:
-    - ? .BaseHeader3
-    - ? .HeaderLeftButton
+    - .BaseHeader3:
+    - .HeaderLeftButton:
+    # - .HeaderRightButton:
+    #   text: Contacts
     - type: view
       style:
         left: "0"
@@ -141,14 +146,14 @@ InviteeInfo01:
           x: center
         border:
           style: "1"
-    - type: popUp
+    - type: popUp # view
       viewTag: confirmView
       style:
         left: "0"
         top: "0"
         width: "1"
-        height: "1"
-        backgroundColor: "0x00000066"
+        height: "1" 
+        backgroundColor: "0x00000066" 
       children:
         - type: view
           style:
@@ -162,7 +167,7 @@ InviteeInfo01:
             borderRadius: "15"
           children:
             - type: label
-              text: Send Invite Link
+              text: "Send Invite Link"
               style:
                 .LabelStyle:
                   left: "0"
@@ -177,7 +182,7 @@ InviteeInfo01:
                     x: center
                     y: center
             - type: label
-              text: Send invite link to
+              text: "Send invite link to"
               style:
                 .LabelStyle:
                   left: "0"
@@ -189,8 +194,9 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: label
+              # text: "John"
               dataKey: inviteMeeting.edge.name.firstName
               style:
                 .LabelStyle:
@@ -203,8 +209,9 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: label
+              #text: "+1 7148397253"
               dataKey: inviteMeeting.edge.name.phoneNumber
               style:
                 .LabelStyle:
@@ -217,7 +224,7 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: divider
               style:
                 .DividerStyle:
@@ -227,7 +234,7 @@ InviteeInfo01:
                   height: "0.001"
                   backgroundColor: "0x00000088"
             - type: button
-              onClick:
+              onClick: 
                 - actionType: popUpDismiss
                   popUpView: confirmView
               text: Cancel
@@ -242,22 +249,23 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
                   border:
                     style: "5"
                   borderRadius: "15"
+
             - type: button
-              onClick:
+              onClick: 
                 - actionType: saveObject
                   object: ..save
                 - actionType: evalObject
-                  object:
-                    .Global._nonce@:
+                  object: 
+                    .Global._nonce@: 
                       =.builtIn.math.random: ""
                 - actionType: popUpDismiss
                   popUpView: confirmView
                 - actionType: evalObject
-                  object:
+                  object: 
                     - .Global.contact.document.name.data.phoneNumber@: =..inviteMeeting.edge.name.phoneNumber
                     - .Global.contact.document.name.data.firstName@: =..inviteMeeting.edge.name.firstName
                 - actionType: popUp
@@ -274,7 +282,7 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
                   border:
                     style: "5"
                   borderRadius: "15"
@@ -286,14 +294,14 @@ InviteeInfo01:
                   width: "0.001"
                   height: "0.07"
                   backgroundColor: "0x00000088"
-    - type: popUp
+    - type: popUp # view
       viewTag: addContact
       style:
         left: "0"
         top: "0"
         width: "1"
-        height: "1"
-        backgroundColor: "0x00000066"
+        height: "1" 
+        backgroundColor: "0x00000066" 
       children:
         - type: view
           style:
@@ -307,7 +315,7 @@ InviteeInfo01:
             borderRadius: "15"
           children:
             - type: label
-              text: Do you want to add
+              text: "Do you want to add"
               style:
                 .LabelStyle:
                   left: "0"
@@ -319,8 +327,9 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: label
+              # text: "John"
               dataKey: inviteMeeting.edge.name.firstName
               style:
                 .LabelStyle:
@@ -333,9 +342,9 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: label
-              text: in Contacts?
+              text: "in Contacts?"
               style:
                 .LabelStyle:
                   left: "0"
@@ -347,7 +356,7 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: divider
               style:
                 .DividerStyle:
@@ -357,10 +366,10 @@ InviteeInfo01:
                   height: "0.001"
                   backgroundColor: "0x00000088"
             - type: button
-              onClick:
+              onClick: 
                 - actionType: popUpDismiss
                   popUpView: addContact
-                - goto: InviteSuccess01
+                - goto: InviteSuccess01 
               text: Cancel
               style:
                 .LabelStyle:
@@ -373,14 +382,15 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
                   border:
                     style: "5"
                   borderRadius: "15"
+
             - type: button
-              onClick:
+              onClick: 
                 - actionType: evalObject
-                  object:
+                  object: 
                     - ..newContact.document.name.data.phoneNumber@: =..inviteMeeting.edge.name.phoneNumber
                     - ..newContact.document.name.data.firstName@: =..inviteMeeting.edge.name.firstName
                     - ..newContact.document.name.data.lastName@: =..inviteMeeting.edge.name.lastName
@@ -401,7 +411,7 @@ InviteeInfo01:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
                   border:
                     style: "5"
                   borderRadius: "15"
@@ -413,3 +423,4 @@ InviteeInfo01:
                   width: "0.001"
                   height: "0.07"
                   backgroundColor: "0x00000088"
+

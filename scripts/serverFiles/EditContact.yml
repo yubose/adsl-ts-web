@@ -1,17 +1,17 @@
 EditContact:
-  pageNumber: "390"
-  title: EditContact
-  init:
+  pageNumber: "390"  # xd page 40
+  title: "EditContact"
+  init: 
     - .SignInCheck
   save:
-    - =.contactInfo.docAPI.store: ""
+    - =.contactInfo.docAPI.store: "" 
   update:
     - =.contactInfo.docAPI.delete: ""
   contactInfo:
-    document:
+    document: 
       .Global.DocReference.document: ""
     docAPI:
-      .DocAPI: ""
+      .DocAPI: "" 
       store:
         api: cd
         dataKey: EditContact.contactInfo.document
@@ -19,7 +19,7 @@ EditContact:
         api: dx
         dataIn: EditContact.contactInfo.document
   components:
-    - ? .WithCancelHeader
+    - .WithCancelHeader:
     - type: scrollView
       style:
         left: "0"
@@ -60,10 +60,10 @@ EditContact:
             border:
               style: "2"
               width: "1"
-              color: "0x000000"
+              color: "0x000000"       
         - type: label
           textBoard:
-            - text: First name
+            - text: "First name"
             - text: "*"
               color: "0xD53C42"
           style:
@@ -92,9 +92,10 @@ EditContact:
               style: "2"
               width: "1"
               color: "0x000000"
+
         - type: label
           textBoard:
-            - text: Last name
+            - text: "Last name"
             - text: "*"
               color: "0xD53C42"
           style:
@@ -151,14 +152,25 @@ EditContact:
               style: "4"
               width: "1"
               color: "0x000000"
+        # - type: image
+        #   dataId: qrCode
+        #   path: qrCode.png
+        #   style:
+        #     left: "0.35"
+        #     top: "1"
+        #     width: "0.25"
+        #     height: "0.15"
+        #     border:
+        #       style: "5"
+        #     borderRadius: "0.075"
         - type: button
           text: Save
-          onClick:
+          onClick: 
             - actionType: evalObject
               object: ..save
             - actionType: evalObject
-              object:
-                .Global._nonce@:
+              object: 
+                .Global._nonce@: 
                   =.builtIn.math.random: ""
             - goto: ContactsList
           style:
@@ -170,15 +182,16 @@ EditContact:
             backgroundColor: "0x3366FF"
             textAlign:
               x: center
+
         - type: button
           text: Delete
-          onClick:
+          onClick: 
             - actionType: evalObject
               object: ..update
             - actionType: evalObject
-              object:
-                .Global._nonce@:
-                  =.builtIn.math.random: ""
+              object: 
+                .Global._nonce@: 
+                  =.builtIn.math.random: ""   
             - goto: ContactsList
           style:
             left: "0.2"

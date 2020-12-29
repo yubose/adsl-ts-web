@@ -1,18 +1,18 @@
 ContactsList:
   pageNumber: "340"
-  title: My Directory
+  title: "My Directory" # xd page 36
   init:
     - .SignInCheck
     - ..listData.get
     - if:
-        - ..listData.contactList.doc.0
-        - continue
-        - =.builtIn.checkField:
-            dataIn:
-              contentType: messageHidden
-              wait: 100
+      - ..listData.contactList.doc.0
+      - continue
+      - =.builtIn.checkField:
+          dataIn:
+            contentType: messageHidden
+            wait: 100 
   save:
-    - =.ContactsList.contactInfo.docAPI.store: ""
+    - =.ContactsList.contactInfo.docAPI.store: ""  
   searchData:
     searchContact: ""
   listData:
@@ -20,28 +20,29 @@ ContactsList:
       doc:
         name:
           data:
-            firstName: Test
+            firstName: "Test"
             isFavorite: false
     get:
-      .DocAPI.get: ""
+      .DocAPI.get : ""
       api: rd
       dataKey: listData.contactList
-      ids:
+      ids: 
         - .Global.rootNotebookID
       xfname: eid
-      maxcount: "500"
-      obfname: mtime
-      sCondition: .DocType.GetAllContact
+      maxcount : "500"
+      obfname : "mtime" 
+      sCondition: .DocType.GetAllContact # favorite bit=1, private bit=0 512 is contact
       _nonce: =.Global._nonce
   contactInfo:
-    document: ""
+    document: 
+      _nonce: =.Global._nonce
     docAPI:
-      .DocAPI: ""
+      .DocAPI: "" 
       store:
         api: cd
         dataKey: ContactsList.contactInfo.document
   generalInfo:
-    value: true
+    value: true         
   components:
     - type: view
       style:
@@ -50,31 +51,31 @@ ContactsList:
         width: "1"
         height: "1"
       children:
-        - ? .BaseHeader3
-        - .HeaderLeftButton: null
+        - .BaseHeader3:
+        - .HeaderLeftButton:
           onClick:
             - goto: MeetingRoomCreate
-        - .HeaderRightImg: null
+        - .HeaderRightImg:
           path: sideNav2.png
           onClick:
             - goto: SideMenuBar
-        - .SubMenuView: null
+        - .SubMenuView:
           style:
             top: "0.09"
             backgroundColor: "0x388ecc"
             height: "0.1"
             zIndex: "10"
           children:
-            - .SubMenuButton: null
-              text: Contacts
+            - .SubMenuButton:
+              text: "Contacts"
               style:
                 top: "0.03"
                 left: "0.15"
                 color: "0xffffffff"
               onClick:
                 - goto: ContactsList
-            - .SubMenuButton: null
-              text: Favorites
+            - .SubMenuButton:
+              text: "Favorites"
               style:
                 top: "0.03"
                 left: "0.5"
@@ -93,14 +94,16 @@ ContactsList:
                 left: "0.05"
                 width: "0.9"
                 height: "0.05"
+                # backgroundColor: "0xcdcdcd"
               children:
-                - .SearchField: null
-                  placeHolder: search contacts
+                - .SearchField:
+                  placeHolder: "search contacts"
                   style:
                     left: "0.2"
                     top: "0.01"
-                - .SearchDoc: null
+                - .SearchDoc: 
                   style:
+                    # left: "0"
                     top: "0.01"
                 - type: image
                   path: add.png
@@ -112,7 +115,7 @@ ContactsList:
                     height: "0.03"
                 - type: label
                   contentType: messageHidden
-                  text: No contacts added
+                  text: "No contacts added"
                   style:
                     left: "0.31"
                     top: "0.05"
@@ -120,10 +123,10 @@ ContactsList:
                     height: "0.04"
                     color: "0x000058"
                     fontSize: "16"
-                    isHidden: "true"
+                    isHidden: "true"    
             - type: list
               contentType: listObject
-              listObject: ..listData.contactList.doc
+              listObject: ..listData.contactList.doc # to dataObject to enumerate the list
               iteratorVar: itemObject
               style:
                 top: "0.15"
@@ -149,7 +152,7 @@ ContactsList:
                         top: "0.03"
                         left: "0"
                         height: "0.04"
-                      path:
+                      path: 
                         emit:
                           dataKey:
                             var: itemObject
@@ -162,9 +165,12 @@ ContactsList:
                                 - https://public.aitmed.com/commonRes/providerOn.png
                                 - https://public.aitmed.com/commonRes/providerOff.png
                       onClick:
-                        - actionType: updateObject
+                        # - actionType: builtIn
+                        #   funcName: toggleFlag
+                        #   dataKey: itemObject.name.data.isFavorite
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                           dataKey: ContactsList.contactInfo.document
-                          dataObject: itemObject
+                          dataObject: itemObject # this must be a rootRoom
                         - emit:
                             dataKey:
                               var: itemObject
@@ -186,9 +192,15 @@ ContactsList:
                                         value: true
                         - actionType: builtIn
                           funcName: redraw
-                          viewTag: select
+                          viewTag: select    
+                        # - actionType: evalObject
+                        #   object:
+                        #     - if:
+                        #         - =.ContactsList.contactInfo.document.name.data.isFavorite
+                        #         - .ContactsList.contactInfo.document.name.data.isFavorite@: false
+                        #         - .ContactsList.contactInfo.document.name.data.isFavorite@: true
                         - actionType: evalObject
-                          object:
+                          object: 
                             - if:
                                 - =.ContactsList.contactInfo.document.name.data.isFavorite
                                 - .ContactsList.contactInfo.document.type@: =.DocType.ContactFav
@@ -196,9 +208,14 @@ ContactsList:
                         - actionType: evalObject
                           object: ..save
                         - actionType: evalObject
-                          object:
-                            .Global._nonce@:
-                              =.builtIn.math.random: ""
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: "" 
+                        # - actionType: refresh  
+ 
+                      # path: providerOff.png
+                      # pathSelected: providerOn.png
+                      # new environment can use 
                     - type: image
                       path: drImg.png
                       style:
@@ -208,8 +225,8 @@ ContactsList:
                         left: "0.13"
                     - type: label
                       dataKey: itemObject.name.data.firstName
-                      onClick:
-                        - actionType: updateObject
+                      onClick: 
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                           dataKey: Global.DocReference.document
                           dataObject: itemObject
                         - goto: ContactInformation

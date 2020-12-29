@@ -1,55 +1,56 @@
-MeetingDocumentsShared:
-  pageNumber: "170"
-  title: Meeting Documents
+MeetingDocumentsShared: 
+  pageNumber: "170"  # xd page 14
+  title: "Meeting Documents"
   init:
     - .SignInCheck
     - ..listData.get
+    # - ..listData.store
   listData:
     sharedDoc:
       doc:
         name:
-          title: Urgent Care Evaluation Report
+          title: "Urgent Care Evaluation Report"
     get:
-      .DocAPI.get: ""
+      .DocAPI.get : ""
       api: rd
       dataKey: listData.sharedDoc
       type: .DocType.UploadFile
-      ids:
+      ids: 
         - .Global.VideoChatObjStore.reference.edge.refid
       xfname: eid
-      maxcount: "20"
+      maxcount : "20"
   components:
-    - ? .BaseHeader3
-    - .HeaderLeftButton: null
+    - .BaseHeader3:
+    - .HeaderLeftButton: 
       onClick:
-        - goto: VideoChat
-    - .SubMenuView: null
+        - goto: VideoChat 
+    - .SubMenuView:
       style:
         top: "0.09"
         height: "0.1"
         backgroundColor: "0x388ecc"
       children:
-        - .SubMenuButton: null
+        - .SubMenuButton:
           text: Notes
           style:
             top: "0.03"
-            width: "0.2"
+            width: '0.2'
             left: "0.2"
             textAlign:
               x: center
           onClick:
             - goto: MeetingDocumentsNotes
-        - .SubMenuButton: null
+        - .SubMenuButton:
           text: Shared
           onClick:
             - goto: MeetingDocumentsShared
           style:
             top: "0.03"
-            width: "0.2"
+            width: '0.2'
             left: "0.6"
             textAlign:
-              x: center
-            color: "0xffffff"
+              x: center   
+            color: "0xffffff"  
         - type: list
           contentType: listObject
           listObject: ..listData.sharedDoc.doc
@@ -74,9 +75,9 @@ MeetingDocumentsShared:
                   width: "1"
                   color: "0xE0E0E0"
               onClick:
-                - actionType: updateObject
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                   dataKey: Global.DocReference.document
-                  dataObject: itemObject
+                  dataObject: itemObject # this must be a rootRoom
                 - goto: DocumentDetail
               children:
                 - type: label
@@ -87,18 +88,31 @@ MeetingDocumentsShared:
                     width: "0.7"
                     height: "0.06"
                     fontSize: "15"
-                    fontStyle: bold
+                    fontStyle: bold 
                     textAlign:
                       y: center
                 - type: label
                   text=func: .builtIn.string.formatUnixtime_en
-                  dataKey: itemObject.ctime
+                  dataKey: itemObject.ctime 
                   style:
                     color: "0x808080"
                     left: "0.8"
                     width: "0.2"
                     height: "0.1"
                     fontSize: "12"
-                    fontStyle: bold
+                    fontStyle: bold 
                     textAlign:
                       y: center
+                # - type: label
+                #   text: July 4,2020
+                #   text=func:  .builtIn.string.formatDurationInSecond
+                #   dataKey: itemObject.tage # hh:mm'ss"
+                #   style:
+                #     color: "0x808080"
+                #     left: "0.05"
+                #     top: "0.04"
+                #     width: "0.6"
+                #     height: "0.02"
+                #     fontSize: "12"
+                #     textAlign:
+                #       y: center

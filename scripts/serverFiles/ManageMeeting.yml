@@ -1,7 +1,7 @@
 ManageMeeting:
   pageNumber: "260"
-  title: Manage Meeting
-  lobbyRoom:
+  title: "Manage Meeting"
+  lobbyRoom:  # this must be a root room
     response: ""
     edge: ""
     edgeAPI:
@@ -9,18 +9,18 @@ ManageMeeting:
       store:
         api: ce
         dataKey: lobbyRoom.edge
-  listData:
+  listData: 
     response:
-      ? edge
+      edge:
     edge:
       .Edge: ""
       id: .Global.VideoChatObjStore.reference.edge.id
-      type: 1053
-      xfname: refid
-      maxcount: "20"
-      sCondition: tage=0 AND ctime>UNIX_TIMESTAMP()-7200
+      type : 1053
+      xfname : refid
+      maxcount : "20"
+      sCondition: "tage=0 AND ctime>UNIX_TIMESTAMP()-7200"          
     get:
-      .EdgeAPI.get: ""
+      .EdgeAPI.get : ""
       api: re
       dataIn: listData.edge
       dataOut: listData.response
@@ -36,18 +36,21 @@ ManageMeeting:
         dataOut: inviteesInfo.response
   init:
     - if:
-        - =.Global.currentUser.vertex.sk
+        - =.Global.currentUser.vertex.sk  # 'true', 'false'
         - continue
         - goto: SignIn
+    # - actionType: updateObject
+    #   dataKey: ManageMeeting.lobbyRoom.edge
+    #   dataObject: .Global.rootRoomInfo.edge  
     - actionType: evalObject
       object:
-        .ManageMeeting.lobbyRoom.edge@: =.Global.rootRoomInfo.edge
+        .ManageMeeting.lobbyRoom.edge@: =.Global.rootRoomInfo.edge   
     - ..listData.get
   save:
-    - ..lobbyRoom.edgeAPI.store
+    - ..lobbyRoom.edgeAPI.store     
   update:
     - ..inviteesInfo.edgeAPI.store
-  components:
+  components: 
     - type: view
       style:
         left: "0"
@@ -61,10 +64,10 @@ ManageMeeting:
             top: "0"
             width: "1"
             height: "0.2"
-            backgroundColor: "0x388eccff"
+            backgroundColor: "0x388eccff"  
           children:
-            - ? .BaseHeader3
-            - .HeaderLeftButton: null
+            - .BaseHeader3:
+            - .HeaderLeftButton:
               onClick:
                 - goto: VideoChat
             - type: label
@@ -78,7 +81,7 @@ ManageMeeting:
                 fontSize: "16"
             - type: button
               text: Update
-              onClick:
+              onClick: 
                 - actionType: updateObject
                   dataKey: Global.rootRoomInfo.edge.name.roomName
                   dataObject: ..lobbyRoom.edge.name.roomName
@@ -86,8 +89,8 @@ ManageMeeting:
                   dataKey: Global.VideoChatObjStore.reference.edge.name.roomName
                   dataObject: ..lobbyRoom.edge.name.roomName
                 - actionType: saveObject
-                  object: ..save
-                - goto: VideoChat
+                  object: ..save    
+                - goto: VideoChat 
               style:
                 color: "0xffffffff"
                 left: "0.78"
@@ -98,10 +101,10 @@ ManageMeeting:
                 background: "0x388eccff"
                 border:
                   style: "5"
-            - type: textField
+            - type: textField # take users' input
               contentType: text
-              placeholder: Please type the title here
-              dataKey: lobbyRoom.edge.name.roomName
+              placeholder: "Please type the title here"
+              dataKey: lobbyRoom.edge.name.roomName # users' input will be saved to this key
               style:
                 left: "0.05"
                 top: "0.14"
@@ -117,6 +120,7 @@ ManageMeeting:
                 borderColor: "0xffffffff"
                 border:
                   style: "2"
+        
         - type: view
           style:
             top: "0.22"
@@ -127,8 +131,8 @@ ManageMeeting:
             - type: view
               style:
                 top: "0"
-                left: "0"
-                width: "0.5"
+                left: "0" 
+                width: "0.5" 
                 height: "0.2"
               children:
                 - type: image
@@ -145,7 +149,7 @@ ManageMeeting:
                         .Global.rootRoomInfo.edge.id@: =.Global.VideoChatObjStore.reference.edge.id
                     - goto: UploadSharedDocuments
                 - type: label
-                  text: Uploaded Document
+                  text: Uploaded Document 
                   style:
                     top: "0.1"
                     left: "0.01"
@@ -155,11 +159,21 @@ ManageMeeting:
                     fontWeight: 400
                     textAlign:
                       x: center
+                # - type: button
+                #   text: 1 Document Uploaded
+                #   style:
+                #     top: "0.14"
+                #     left: "0"
+                #     width: "0.5"
+                #     height: "0.05"
+                #     color: "0x388ecc"
+                #     backgroundColor: "0xffffff"
+                #     fontSize: 13
             - type: view
               style:
                 top: "0"
-                left: "0.5"
-                width: "0.5"
+                left: "0.5" 
+                width: "0.5" 
                 height: "0.2"
               children:
                 - type: image
@@ -183,15 +197,18 @@ ManageMeeting:
                     fontWeight: 400
                     textAlign:
                       x: center
-        - type: list
+        - type: list # hardcoded listObject
           contentType: listObject
-          listObject: ..listData.response.edge
-          iteratorVar: itemObject
+          listObject: ..listData.response.edge # to dataObject to enumerate the list
+          iteratorVar: itemObject # iteratorVar is a reserve key of CADL
+          #for (itemObject in listObject) do something
+          #  ..messageDoc@ = itemObject
           style:
             left: "0"
             top: "0.2"
             width: "1"
             height: "0.48"
+          #for loop through listObject, we got each itemObject
           children:
             - type: listItem
               itemObject: ""
@@ -204,7 +221,7 @@ ManageMeeting:
                   style: "1"
               children:
                 - type: label
-                  text: J
+                  text: "J"
                   dataKey: itemObject.name.firstName
                   style:
                     left: "0.08"
@@ -221,7 +238,7 @@ ManageMeeting:
                       y: center
                 - type: label
                   dataKey: itemObject.name.lastName
-                  text: John Smith
+                  text: "John Smith"
                   style:
                     left: "0.3"
                     top: "0.24"
@@ -229,17 +246,18 @@ ManageMeeting:
                     height: "0.03"
                     fontSize: "18"
                     color: "0x000000ff"
+
                 - type: button
                   onClick:
-                    - actionType: updateObject
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                       dataKey: ManageMeeting.inviteesInfo.edge
-                      dataObject: itemObject
+                      dataObject: itemObject # this must be a rootRoom
                     - actionType: evalObject
-                      object:
-                        .ManageMeeting.inviteesInfo.edge.tage@: -1
+                      object: 
+                        .ManageMeeting.inviteesInfo.edge.tage@: -1 
                     - actionType: saveObject
-                      object: ..update
-                    - actionType: refresh
+                      object: ..update  
+                    - actionType: refresh 
                   text: Delete
                   style:
                     left: "0.8"
@@ -253,14 +271,30 @@ ManageMeeting:
                       x: center
                     border:
                       style: "1"
-    - type: popUp
+        # - type: button
+        #   text: Close Meeting Room
+        #   onClick:
+        #     - goto: MeetingSummary
+        #   style:
+        #     left: "0.2"
+        #     top: "0.75"
+        #     width: "0.6"
+        #     fontWeight: 500
+        #     height: "0.07"
+        #     color: "0xffffff"
+        #     borderRadius: 2
+        #     backgroundColor: "0xD53C42"
+        #     textAlign:
+        #       x: center
+              
+    - type: popUp # view
       viewTag: warningView
       style:
         left: "0"
         top: "0"
         width: "1"
-        height: "1"
-        backgroundColor: "0x00000066"
+        height: "1" 
+        backgroundColor: "0x00000066" 
       children:
         - type: view
           style:
@@ -274,7 +308,7 @@ ManageMeeting:
             borderRadius: "15"
           children:
             - type: label
-              text: OOPS
+              text: "OOPS"
               style:
                 .LabelStyle:
                   left: "0"
@@ -289,7 +323,7 @@ ManageMeeting:
                     x: center
                     y: center
             - type: label
-              text: There is no title of meeting
+              text: "There is no title of meeting"
               style:
                 .LabelStyle:
                   left: "0"
@@ -301,7 +335,7 @@ ManageMeeting:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
             - type: divider
               style:
                 .DividerStyle:
@@ -310,7 +344,7 @@ ManageMeeting:
                   width: "0.89333"
                   backgroundColor: "0x00000088"
             - type: button
-              onClick:
+              onClick: 
                 - actionType: popUpDismiss
                   popUpView: warningView
               text: OK
@@ -325,7 +359,7 @@ ManageMeeting:
                   display: inline
                   textAlign:
                     x: center
-                    y: center
+                    y: center 
                   border:
                     style: "5"
                   borderRadius: "15"

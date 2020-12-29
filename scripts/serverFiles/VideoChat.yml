@@ -1,191 +1,202 @@
 VideoChat:
-  pageNumber: '190'
+  pageNumber: "190"
   init:
     - .SignInCheck
     - actionType: evalObject
-      object:
+      object: 
         ..rootRoomInfo.edge.tage@: 0
     - ..save
     - actionType: evalObject
-      object:
+      object: 
         .Global.rootRoomInfo.edge@: =..roomInfo.response.edge
     - actionType: builtIn
       funcName: videoChat
       roomId: ..roomInfo.response.edge.deat.roomId
       accessToken: ..roomInfo.response.edge.deat.accessToken
-  cameraOn: 'true'
-  micOn: 'true'
-  miuAutoMicOffTimespan: '3'
-  miuAutoMicOffThresdhold: '3'
-  emptyId: ''
+ 
+  cameraOn: "true"
+  micOn: "true"
+  miuAutoMicOffTimespan: "3" # seconds
+  miuAutoMicOffThresdhold: "3" # mic volume calibrate between 0 to 9, <= 3 will turn micOff Automatically if user set the mic is on. Mic will not turn on automatically within the minAutoMicOffTimespan even a higher level of volumn detectec.
+
+  emptyId: ""
   save:
-    - ..roomInfo.edgeAPI.store
+    - ..roomInfo.edgeAPI.store  
   roomInfo:
-    response: ''
+    response: ""
     edge:
-      .Global.VideoChatObjStore.reference.edge: ''
-      id: ..emptyId
-      bvid: .Global.currentUser.vertex.id
+      .Global.VideoChatObjStore.reference.edge: ""
+      id: ..emptyId # create a new edge
+      bvid: .Global.currentUser.vertex.id # always current userId
       evid: ..emptyId
       name: .Global.VideoChatObjStore.reference.edge.name
       refid: .Global.VideoChatObjStore.reference.edge.id
-      type: 40000
+      type: 40000 # may from 1053, need to be override
     edgeAPI:
-      .EdgeAPI: ''
+      .EdgeAPI: ""
       store:
         api: ce
-        dataIn: roomInfo.edge
+        dataIn: roomInfo.edge # return result should updated to roomInfo.edge as well
         dataOut: roomInfo.response
-  listData:
+  listData: 
     participants:
       - .Edge:
     get:
-      .EdgeAPI.get: ''
+      .EdgeAPI.get : ""
       api: re
       dataKey: listData.participants
       id: .MeetingLobbyStart.rootRoom.edge.id
-      type: '40000'
-      xfname: refid
-      sCondition: tage=0 AND ctime>UNIX_TIMESTAMP()-86400
-      maxcount: '20'
+      type : "40000"
+      xfname : refid
+      #sCondition: "tage=0 AND ctime>UNIX_TIMESTAMP()-7200"
+      sCondition: "tage=0 AND ctime>UNIX_TIMESTAMP()-86400"
+      maxcount : "20"
   components:
     - type: register
       onEvent: twilioOnPeopleJoin
-      action:
-        actionType: builtIn
-        funcName: hide
-        viewTag: waitForOtherTag
+      actions:
+        - actionType: builtIn
+          funcName: hide
+          viewTag: waitForOtherTag
     - type: register
       onEvent: twilioOnNoParticipant
-      action:
-        actionType: builtIn
-        funcName: show
-        viewTag: waitForOtherTag
+      actions:
+        - actionType: builtIn
+          funcName: show
+          viewTag: waitForOtherTag
     - type: view
       style:
-        left: '0'
-        top: '0'
-        width: '1'
-        height: '1'
-        backgroundColor: '0x400000'
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x400000" 
       children:
         - type: image
-          path: videoChatbg.png
+          path: waitingroom.png
           style:
-            left: '0'
-            top: '0'
-            height: '1'
+            left: "0"
+            top: "0"
+            # width: "1"
+            height: "1"
         - type: view
           viewTag: mainStream
           style:
-            left: '0'
-            top: '0'
-            width: '1'
-            height: '1'
-            backgroundColor: '0x00000000'
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000000"
         - type: view
           viewTag: selfStream
           style:
-            left: '0.04'
-            top: '0.1'
-            width: '0.2'
-            height: '0.15'
-            backgroundColor: '0x00000000'
+            left: "0.04"
+            top: "0.1"
+            width: "0.2"
+            height: "0.15"
+            backgroundColor: "0x00000000"
         - type: view
           style:
-            left: '0'
-            top: '0'
-            width: '1'
-            height: '0.07'
-            backgroundColor: '0x000000'
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "0.07"
+            backgroundColor: "0x000000"
           children:
             - type: label
               dataKey: roomInfo.edge.name.roomName
               style:
-                left: '0'
-                top: '0.02'
-                width: '1'
-                height: '0.01'
-                fontSize: '16'
-                color: '0xFFFFFF'
-                backgroundColor: '0x000000'
+                left: "0"
+                top: "0.02"
+                width: "1"
+                height: "0.01"
+                fontSize: "16"
+                color: "0xFFFFFF"
+                backgroundColor: "0x000000"
                 textAlign:
                   x: center
         - type: image
           path: meetingCircle.png
-          viewTag: needHidden
+          viewTag: waitForOtherTag
           style:
-            left: '0.4'
-            top: '0.4'
-            width: '0.2'
+            left: "0.4"
+            top: "0.4"
+            width: "0.2"
             border:
-              style: '5'
+              style: "5"
           borderRadius: 32
         - type: label
-          contentType: hidden
-          text: Waiting for others to join
-          viewTag: needHidden
+          contentType: hidden # passwordHidden
+          viewTag: waitForOtherTag
+          text: "Waiting for others to join"
+          #viewTag: needHidden
           style:
-            left: '0'
-            top: '0.55'
-            width: '1'
-            height: '0.04'
-            fontSize: '16'
-            color: '0xFFFFFF'
+            left: "0"
+            top: "0.55"
+            width: "1"
+            height: "0.04"
+            fontSize: "16"
+            color: "0xFFFFFF"
             textAlign:
               x: center
-        - type: list
-          contentType: videoSubStream
-          listObject: ''
+        - type: list # hardcoded listObject
+          contentType: videoSubStream # listObject
+          listObject: "" # provide by twilio API ..listData.participants # to dataObject to enumerate the list
           iteratorVar: itemObject
+          #for (itemObject in listObject) do something
+          #  ..messageDoc@ = itemObject
           style:
             axis: horizontal
-            left: '0.04'
-            top: '0.62'
-            width: '0.92'
-            height: '0.15'
+            left: "0.04"
+            top: "0.62"
+            width: "0.92"
+            height: "0.15"
+          #for loop through listObject, we got each itemObject
           children:
             - type: listItem
-              itemObject: ''
+              itemObject: ""
               style:
-                left: '0'
-                top: '0'
-                width: '0.18'
-                height: '0.15'
+                left: "0"
+                top: "0"
+                width: "0.18"
+                height: "0.15"
                 border:
-                  style: '1'
+                  style: "1"                
               children:
                 - type: view
                   viewTag: subStream
+                  # twilio API(js sdk) provides subStream html element.
                   style:
-                    left: '0.015'
-                    top: '0'
-                    width: '0.15'
-                    height: '0.15'
+                    left: "0.015"
+                    top: "0"
+                    width: "0.15"
+                    height: "0.15"      
                     border:
-                      style: '5'
-                    borderRadius: '5'
+                      style: "5"
+                    borderRadius: "5"
         - type: image
           path: Notes.png
           style:
-            width: '0.12'
-            top: '0.45'
-            left: '0.76'
+            width: "0.12"
+            top: "0.45"
+            left: "0.76"  
           onClick:
-            - goto: MeetingDocumentsNotes
+            - goto: MeetingDocumentsNotes          
         - type: view
           style:
-            left: '0'
-            top: '0.9'
-            width: '1'
-            height: '0.1'
+            left: "0"
+            top: "0.9"
+            width: "1"
+            height: "0.1"      
             border:
-              style: '5'
-            backgroundColor: '0x000000'
-
+              style: "5"
+            backgroundColor: "0x000000"
+            position: "fixed"
           children:
             - type: image
               viewTag: camera
+              #path: cameraOn.png
+              #pathSelected: cameraOff.png
               path:
                 emit:
                   actions:
@@ -193,13 +204,15 @@ VideoChat:
                         - =.VideoChat.cameraOn
                         - https://public.aitmed.com/commonRes/cameraOn.png
                         - https://public.aitmed.com/commonRes/cameraOff.png
-              onClick:
+              onClick: 
+                #- actionType: builtIn
+                #  funcName: toggleCameraOnOff
                 - emit:
                     actions:
                       - if:
-                          - =.VideoChat.cameraOn
-                          - .VideoChat.cameraOn@: false
-                          - .VideoChat.cameraOn@: true
+                        - =.VideoChat.cameraOn
+                        - .VideoChat.cameraOn@: false
+                        - .VideoChat.cameraOn@: true    
                 - actionType: builtIn
                   funcName: redraw
                   viewTag: camera
@@ -207,12 +220,14 @@ VideoChat:
                   funcName: toggleFlag
                   dataKey: VideoChat.cameraOn
               style:
-                left: '0.067'
-                top: '0.03'
-                width: '0.12'
-                height: '0.035'
+                left: "0.067"
+                top: "0.03"
+                width: "0.12"
+                height: "0.035"      
             - type: image
               viewTag: microphone
+              # path: micOn.png
+              # pathSelected: micOff.png
               path:
                 emit:
                   actions:
@@ -220,13 +235,15 @@ VideoChat:
                         - =.VideoChat.micOn
                         - https://public.aitmed.com/commonRes/micOn.png
                         - https://public.aitmed.com/commonRes/micOff.png
-              onClick:
+              onClick: 
+                # - actionType: builtIn
+                #  funcName: toggleMicrophoneOnOff
                 - emit:
                     actions:
                       - if:
-                          - =.VideoChat.micOn
-                          - .VideoChat.micOn@: false
-                          - .VideoChat.micOn@: true
+                        - =.VideoChat.micOn
+                        - .VideoChat.micOn@: false
+                        - .VideoChat.micOn@: true    
                 - actionType: builtIn
                   funcName: redraw
                   viewTag: microphone
@@ -234,53 +251,60 @@ VideoChat:
                   funcName: toggleFlag
                   dataKey: VideoChat.micOn
               style:
-                left: '0.254'
-                top: '0.022'
-                width: '0.12'
-                height: '0.05'
+                left: "0.254"
+                top: "0.022"
+                width: "0.12"
+                height: "0.05"   
             - type: image
               path: hangUp.png
-              onClick:
+              onClick: 
                 - actionType: evalObject
-                  object:
-                    ..roomInfo.edge.id@: =..roomInfo.response.edge.id
+                  object: 
+                    ..roomInfo.edge.id@: =..roomInfo.response.edge.id          
                 - actionType: evalObject
-                  object:
+                  object: 
                     ..roomInfo.edge.tage@: 1
                 - actionType: saveObject
                   object: ..save
                 - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ''
+                  object: 
+                    .Global._nonce@: 
+                      =.builtIn.math.random: ""
                 - goto: MeetingRoomHistory
               style:
-                left: '0.44'
-                top: '0.0185'
-                width: '0.12'
-                backgroundColor: '0xd81e06'
+                left: "0.44"
+                top: "0.0185"
+                width: "0.12"
+                # height: "0.05"
+                backgroundColor: "0xd81e06"
                 border:
-                  style: '3'
-                  width: '1'
-                borderRadius: '100'
+                  style: "3"
+                  width: "1"
+                # borderWidth: "0.0001px"
+                borderRadius: "100"
             - type: image
+              # viewTag: inviteOthers
               path: inviteOthers.png
-              onClick:
+              onClick: 
                 - goto: ManageMeeting
+              # pathSelected: aitmedLogo_selected.png
               style:
-                left: '0.628'
-                top: '0.0185'
-                width: '0.11'
-                height: '0.06'
+                left: "0.628"
+                top: "0.0185"
+                width: "0.11"
+                height: "0.06"
+            
             - type: image
-              path: notificationTabBar.png
+              path: notificationTabBar.png # for screensharing later
               style:
-                left: '0.815'
-                top: '0.02'
-                width: '0.1'
-                height: '0.055'
+                left: "0.815"
+                top: "0.02"
+                width: "0.1"
+                height: "0.055" 
               onClick:
                 - actionType: evalObject
-                  object:
+                  object: 
                     .Global.rootRoomInfo.edge@: =.Global.VideoChatObjStore.reference.edge
-                - goto: MeetingDocumentsShared
+                - goto: MeetingDocumentsShared              
+            
+            

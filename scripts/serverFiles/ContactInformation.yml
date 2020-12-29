@@ -1,13 +1,13 @@
-ContactInformation:
-  pageNumber: "380"
-  title: Contact Information
+ ContactInformation:
+  pageNumber: "380"  # xd page 380
+  title: "Contact Information"
   init:
     - .SignInCheck
   dataObject: .Global.DocReference.document
   components:
-    - ? .BaseHeader3
-    - ? .HeaderLeftButton
-    - .HeaderRightButton: null
+    - .BaseHeader3:
+    - .HeaderLeftButton:
+    - .HeaderRightButton:
       text: Edit
       onClick:
         - goto: EditContact
@@ -60,7 +60,7 @@ ContactInformation:
             color: "0xc2c2c2"
             textAlign:
               x: left
-              y: center
+              y: center              
         - type: label
           dataKey: dataObject.name.data.lastName
           contentType: text
@@ -76,7 +76,7 @@ ContactInformation:
             border:
               style: "2"
               width: "1"
-              color: "0xc2c2c2"
+              color: "0xc2c2c2"        
         - type: label
           text: "Phone #"
           style:
@@ -106,7 +106,7 @@ ContactInformation:
               width: "1"
               color: "0xc2c2c2"
         - type: label
-          text: Notes
+          text: "Notes"
           style:
             left: "0.15"
             top: "0.31"
@@ -117,7 +117,12 @@ ContactInformation:
             textAlign:
               x: left
               y: center
+            # border:
+            #   style: "2"
+            #   width: "1"
+            #   color: "0xc2c2c2"
         - type: label
+          # text: Been in the provider for 10 yrs
           contentType: text
           dataKey: dataObject.name.data.note
           style:

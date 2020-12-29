@@ -1,10 +1,10 @@
 ScanQRCode:
-  title: Scan QR Code
+  title: "Scan QR Code"
   pageNumber: "360"
   viewPort: top
-  components:
+  components: 
     - type: view
-      style:
+      style: 
         top: "0"
         width: "1"
         height: "1"
@@ -61,3 +61,5 @@ ScanQRCode:
                 top: "0.014"
                 left: "0.025"
                 width: "0.1"
+
+

@@ -1,19 +1,21 @@
 PubProfile:
   pageNumber: "330"
-  title: Public Profile
-  init:
+  title: "Public Profile"
+  init: 
     - .SignInCheck
     - ..profile.docAPI.get
     - actionType: evalObject
       object:
         .DisplayProfile.profileObject@: =..docResponse.doc.0
+  #dataObject: .EditProfile.profile.document
   profileObject:
     .Document: ""
     eid: .Global.rootNotebookID
     type: .DocType.PubProfile
     name:
       title: ""
-      type: application/json
+      # type: ..profile.docAPI.store.type.mediaType
+      type: "application/json"
       data:
         avatarUrl: drImg.png
         phone: .Global.currentUser.vertex.uid
@@ -29,38 +31,38 @@ PubProfile:
         note: ""
         country: ""
   profile:
-    docAPI:
+    docAPI: 
       get:
-        .DocAPI.get: ""
+        .DocAPI.get: "" 
         api: rd
         ids:
           - .Global.rootNotebookID
         xfname: eid
-        type: .DocType.PubProfile
-        obfname: mtime
+        type: .DocType.PubProfile #  type: "257"
+        obfname: "mtime"
         maxcount: "1"
         dataKey: docResponse
-  docResponse:
+  docResponse: 
     doc:
-      - type: .DocType.PubProfile
+      - type: .DocType.PubProfile # - type: "257" # private profile
         eid: .Global.rootNotebookID
         name: ""
     error: ""
-    jwt: ""
+    jwt: ""   
   components:
     - type: scrollView
       style:
         left: "0"
         top: "0"
         width: "1"
-        height: "1.7"
+        height: "1.7"                                                       
         contentSize:
           width: "1"
           height: "1.7"
-      children:
-        - ? .BaseHeader3
-        - ? .HeaderLeftButton
-        - .HeaderRightButton: null
+      children:     
+        - .BaseHeader3:
+        - .HeaderLeftButton:
+        - .HeaderRightButton:
           text: Edit
           onClick:
             - goto: EditProfile
@@ -68,21 +70,22 @@ PubProfile:
           dataModel: editProviderForm
           dataId: profilePhoto
           path: drImg.png
+          #path: ..profile.document.name.data.avatarUrl
           style:
             left: "0.34"
             top: "0.1"
             width: "0.25"
             border:
               style: "5"
-            borderRadius: 60
+            borderRadius: 60 
           onClick:
             - goto: DisplayProfile
         - type: view
           style:
             top: "0.2"
-          children:
+          children:            
             - type: label
-              text: Aitmed ID
+              text: "Aitmed ID"
               style:
                 left: "0.15"
                 top: "0.05"
@@ -92,7 +95,7 @@ PubProfile:
                 color: "0x00000058"
                 textAlign:
                   x: left
-                  y: center
+                  y: center   
             - type: label
               dataKey: Global.currentUser.vertex.id
               contentType: text
@@ -109,7 +112,7 @@ PubProfile:
                 border:
                   style: "2"
                   width: "1"
-                  color: "0x00000058"
+                  color: "0x00000058"           
             - type: label
               text: "Phone #"
               style:
@@ -123,6 +126,7 @@ PubProfile:
                   x: left
                   y: center
             - type: label
+              #placeholder: "(714) 123-4212"
               dataKey: Global.currentUser.vertex.uid
               contentType: phoneNumber
               style:
@@ -139,7 +143,7 @@ PubProfile:
                   width: "1"
                   color: "0x00000058"
             - type: label
-              text: Email
+              text: "Email"
               style:
                 left: "0.15"
                 top: "0.2"
@@ -151,6 +155,7 @@ PubProfile:
                   x: left
                   y: center
             - type: label
+              #placeholder: "gmarshall@urgentcareac.com"
               dataKey: profileObject.name.data.email
               contentType: email
               style:
@@ -167,7 +172,7 @@ PubProfile:
                   width: "1"
                   color: "0x00000058"
             - type: label
-              text: name
+              text: "name"
               style:
                 left: "0.15"
                 top: "0.3"
@@ -179,6 +184,7 @@ PubProfile:
                   x: left
                   y: center
             - type: label
+              #placeholder: United States
               dataKey: profileObject.name.data.firstName
               contentType: text
               style:
@@ -195,7 +201,7 @@ PubProfile:
                   width: "1"
                   color: "0x00000058"
             - type: label
-              text: Mailing address
+              text: "Mailing address"
               style:
                 left: "0.15"
                 top: "0.4"
@@ -207,6 +213,7 @@ PubProfile:
                   x: left
                   y: center
             - type: label
+              #placeholder: "1234 Anaheim Street"
               dataKey: profileObject.name.data.mailingAddress
               contentType: text
               style:
@@ -235,6 +242,7 @@ PubProfile:
                   x: left
                   y: center
             - type: label
+              #placeholder: "Anaheim"
               dataKey: profileObject.name.data.city
               contentType: text
               style:
@@ -263,7 +271,8 @@ PubProfile:
                   x: left
                   y: center
             - type: label
-              dataKey: profileObject.name.data.state
+              #placeholder: "California"
+              dataKey: profileObject.name.data.state 
               style:
                 left: "0.15"
                 top: "0.65"
@@ -275,7 +284,7 @@ PubProfile:
                 border:
                   style: "2"
                   width: "1"
-                  color: "0x00000058"
+                  color: "0x00000058"       
             - type: label
               text: Mailing Zip
               style:
@@ -289,6 +298,7 @@ PubProfile:
                   x: left
                   y: center
             - type: label
+              #placeholder: 91234
               dataKey: profileObject.name.data.zip
               contentType: number
               style:
@@ -305,7 +315,7 @@ PubProfile:
                   width: "1"
                   color: "0x00000058"
             - type: label
-              text: Language
+              text: "Language"
               style:
                 left: "0.15"
                 top: "0.8"
@@ -317,6 +327,7 @@ PubProfile:
                   x: left
                   y: center
             - type: label
+              #placeholder: "English, Spanish"
               dataKey: profileObject.name.data.language
               contentType: text
               style:
@@ -343,8 +354,9 @@ PubProfile:
                 color: "0x00000058"
                 textAlign:
                   x: left
-                  y: center
+                  y: center     
             - type: label
+              #placeholder: "Been in the provider for 10 years"
               dataKey: profileObject.name.data.note
               contentType: text
               style:
@@ -367,7 +379,7 @@ PubProfile:
                 left: "0"
                 top: "1.02"
                 width: "1"
-                height: "0.15"
+                height: "0.15" 
                 backgroundColor: "0xffffff"
               children:
                 - type: image
@@ -392,4 +404,4 @@ PubProfile:
                     color: "0x000000"
                     textAlign:
                       x: left
-                      y: center
+                      y: center  

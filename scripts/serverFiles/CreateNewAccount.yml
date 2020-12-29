@@ -1,12 +1,12 @@
-CreateNewAccount:
+CreateNewAccount: # This is page name
   module: patient
   title: Create New Account
   pageNumber: "45"
   formData:
     response: ""
-    vertex:
+    vertex : # inherit from BaseDataModel_en.yml
       .Vertex: ""
-      type: "1"
+      type : "1"
       name:
         countryCode: .SignUp.formData.countryCode
         phoneNumber: .SignUp.formData.phoneNumber
@@ -15,71 +15,77 @@ CreateNewAccount:
         lastName: ""
         password: ""
         confirmPassword: ""
-        avatar: https://public.aitmed.com/avatar/JohnDoe.jpg
+        avatar : "https://public.aitmed.com/avatar/JohnDoe.jpg"
         verificationCode: .SignUp.formData.code
         signature: ""
     vertexAPI:
       .VertexAPI: ""
       store:
-        api: builtIn.createNewAccount
+        api: builtIn.createNewAccount # construct uid, pk, esk .. for new account
         dataIn: formData.vertex
         dataOut: formData.response
     target: false
     tar: false
     confirm: ""
-  save:
-    - ..formData.vertexAPI.store
-  update:
-    - .Global.currentUser.vertex@: =..formData.response.vertex
-    - .Global.currentUser.vertex.name.firstName@: =..formData.vertex.name.firstName
-    - .Global.currentUser.vertex.name.lastName@: =..formData.vertex.name.lastName
-    - .Global.currentUser.JWT@: =..formData.response.jwt
+  # init: 
+    # - if:
+    #   - =.ServicesAgreement.agreement.servicesAgreement
+    #   - ..selectData.tar@: "selectOn.png"
+    #   - ..selectData.tar@: "selectOff.png"
+  save: 
+    - ..formData.vertexAPI.store #
+    # - .Global.rootNotebook.edgeAPI.store
+  update: 
+    - .Global.currentUser.vertex@ : =..formData.response.vertex # set {".Global.currentUser.vertex":".builtIn.UserVertex"}
+    - .Global.currentUser.vertex.name.firstName@ : =..formData.vertex.name.firstName
+    - .Global.currentUser.vertex.name.lastName@ : =..formData.vertex.name.lastName      
+    - .Global.currentUser.JWT@ : =..formData.response.jwt
     - .Global.rootNotebookID@: =.Global.currentUser.vertex.deat.rnb64ID
-    - .Global.currentUser.dataCache.loadingDateTime@: =.Global.currentDateTime
+    - .Global.currentUser.dataCache.loadingDateTime@ : =.Global.currentDateTime  
   components:
     - .BaseCheckView: ""
-      message: Incorrect verificationCode
+      message: "Incorrect verificationCode"
       viewTag: wrongCode
     - .BaseCheckView: ""
-      message: Password should be same
+      message: "Password should be same"
       viewTag: samePassword
     - .BaseCheckView: ""
-      message: Please fill out required fields
+      message: "Please fill out required fields"
       viewTag: inputPassword
     - .BaseCheckView: ""
-      message: Please check the box
+      message: "Please check the box"
       viewTag: noSelected
-    - type: view
+    - type: scrollView
       style:
         left: "0"
         top: "0"
         width: "1"
-        height: "1"
+        # height: "1"
       children:
         - type: image
-          path: backpic.png
-          style:
+          path: "backpic.png"
+          style: 
             left: "0"
             width: "1"
             top: "0"
         - type: image
-          path: logo.png
-          style:
+          path: "logo.png"
+          style: 
             top: "0.05"
             width: "0.38"
             left: "0.31"
         - type: view
-          style:
+          style: 
             top: "0.25"
             height: "0.9"
             width: "1"
             left: "0"
             backgroundColor: "0xffffff"
-            border:
+            border: 
               style: 3
             borderRadius: "50"
-            boxSizing: border-box
-          children:
+            boxSizing: "border-box"
+          children: 
             - type: label
               text: Create New Account with AiTmed
               style:
@@ -91,11 +97,11 @@ CreateNewAccount:
                 fontSize: "18"
                 fontStyle: bold
                 display: inline
-                textAlign:
+                textAlign: 
                   x: center
                   y: center
             - type: label
-              text: Fill out required fields*
+              text: "Fill out required fields*"
               style:
                 top: "0.06"
                 width: "1"
@@ -103,7 +109,7 @@ CreateNewAccount:
                 fontSize: "14"
                 color: "0xD53C42"
                 textAlign:
-                  x: center
+                  x: center                   
             - type: view
               style:
                 left: "0.121"
@@ -115,7 +121,7 @@ CreateNewAccount:
                   textBoard:
                     - text: Country
                     - text: "*"
-                      color: "0xD53C42"
+                      color: "0xD53C42"                  
                   style:
                     color: "0x00000058"
                     left: "0"
@@ -123,14 +129,15 @@ CreateNewAccount:
                     width: "0.2"
                     height: "0.041"
                     fontSize: "12"
-                    textAlign:
+                    textAlign: 
                       x: left
                       y: center
                 - type: select
                   contentType: countryCode
                   placeholder: ..formData.vertex.name.countryCode
-                  dataKey: formData.vertex.name.countryCode
-                  options: .CountryCode
+                  dataKey: formData.vertex.name.countryCode # formData.countryCode : inputValue
+                  options:
+                    .CountryCode
                   required: "true"
                   style:
                     left: "0"
@@ -138,11 +145,11 @@ CreateNewAccount:
                     width: "0.2"
                     height: "0.041"
                     fontSize: "14"
-                    placeholder: US +1
+                    placeholder: "US +1"
                     borderWidth: "1"
                     border:
                       style: "2"
-                      color: "0x00000058"
+                      color: "0x00000058"        
             - type: view
               style:
                 left: "0.3333"
@@ -154,7 +161,7 @@ CreateNewAccount:
                   textBoard:
                     - text: Phone
                     - text: "*"
-                      color: "0xD53C42"
+                      color: "0xD53C42"    
                   style:
                     color: "0x00000058"
                     left: "0"
@@ -162,11 +169,14 @@ CreateNewAccount:
                     width: "0.2"
                     height: "0.041"
                     fontSize: "12"
-                    textAlign:
+                    textAlign: 
                       x: left
                       y: center
                 - type: label
-                  dataKey: formData.vertex.name.phoneNumber
+                  # contentType: phoneNumber
+                  # placeholder: ..formData.vertex.name.phoneNumber
+                  dataKey: formData.vertex.name.phoneNumber # formData.countryCode : inputValue
+                  # required: "true"
                   style:
                     fontSize: "14"
                     left: "0"
@@ -176,7 +186,7 @@ CreateNewAccount:
                     borderWidth: "1"
                     border:
                       style: "2"
-                    textAlign:
+                    textAlign: 
                       x: left
                       y: center
             - type: view
@@ -190,7 +200,7 @@ CreateNewAccount:
                   textBoard:
                     - text: First Name
                     - text: "*"
-                      color: "0xD53C42"
+                      color: "0xD53C42"    
                   style:
                     color: "0x000000"
                     left: "0"
@@ -198,12 +208,12 @@ CreateNewAccount:
                     width: "0.2"
                     height: "0.041"
                     fontSize: "12"
-                    textAlign:
+                    textAlign: 
                       x: left
                 - type: textField
                   contentType: text
-                  placeholder: Enter here
-                  dataKey: formData.vertex.name.firstName
+                  placeholder: "Enter here"
+                  dataKey: formData.vertex.name.firstName # formData.countryCode : inputValue
                   required: "true"
                   style:
                     fontSize: "14"
@@ -215,7 +225,7 @@ CreateNewAccount:
                     borderWidth: "1"
                     border:
                       style: "2"
-                    textAlign:
+                    textAlign: 
                       x: left
                       y: center
             - type: view
@@ -229,7 +239,7 @@ CreateNewAccount:
                   textBoard:
                     - text: Last Name
                     - text: "*"
-                      color: "0xD53C42"
+                      color: "0xD53C42"    
                   style:
                     color: "0x000000"
                     left: "0"
@@ -237,12 +247,12 @@ CreateNewAccount:
                     width: "0.2"
                     height: "0.041"
                     fontSize: "12"
-                    textAlign:
+                    textAlign: 
                       x: left
                 - type: textField
                   contentType: text
-                  placeholder: Enter here
-                  dataKey: formData.vertex.name.lastName
+                  placeholder: "Enter here"
+                  dataKey: formData.vertex.name.lastName # formData.countryCode : inputValue
                   required: "true"
                   style:
                     fontSize: "14"
@@ -254,9 +264,9 @@ CreateNewAccount:
                     borderWidth: "1"
                     border:
                       style: "2"
-                    textAlign:
+                    textAlign: 
                       x: left
-                      y: center
+                      y: center                  
             - type: view
               style:
                 top: "0.3"
@@ -268,7 +278,7 @@ CreateNewAccount:
                   textBoard:
                     - text: Username
                     - text: "*"
-                      color: "0xD53C42"
+                      color: "0xD53C42"    
                   style:
                     color: "0x000000"
                     left: "0"
@@ -276,12 +286,12 @@ CreateNewAccount:
                     width: "0.2"
                     height: "0.041"
                     fontSize: "12"
-                    textAlign:
+                    textAlign: 
                       x: left
                 - type: textField
                   contentType: text
-                  placeholder: Create your own
-                  dataKey: formData.vertex.name.userName
+                  placeholder: "Create your own"
+                  dataKey: formData.vertex.name.userName # formData.countryCode : inputValue
                   required: "true"
                   style:
                     fontSize: "14"
@@ -293,7 +303,7 @@ CreateNewAccount:
                     borderWidth: "1"
                     border:
                       style: "2"
-                    textAlign:
+                    textAlign: 
                       x: left
                       y: center
             - type: view
@@ -307,7 +317,7 @@ CreateNewAccount:
                   textBoard:
                     - text: New Password
                     - text: "*"
-                      color: "0xD53C42"
+                      color: "0xD53C42"    
                   style:
                     color: "0x000000"
                     left: "0"
@@ -315,12 +325,12 @@ CreateNewAccount:
                     width: "0.5"
                     height: "0.041"
                     fontSize: "12"
-                    textAlign:
-                      x: left
+                    textAlign: 
+                      x: left        
                 - type: textField
                   contentType: password
-                  placeholder: Enter here
-                  dataKey: formData.vertex.name.password
+                  placeholder: "Enter here"
+                  dataKey: formData.vertex.name.password # formData.countryCode : inputValue
                   required: "true"
                   style:
                     fontSize: "14"
@@ -331,7 +341,7 @@ CreateNewAccount:
                     borderWidth: "1"
                     border:
                       style: "2"
-                    textAlign:
+                    textAlign: 
                       x: left
                       y: center
             - type: view
@@ -345,7 +355,7 @@ CreateNewAccount:
                   textBoard:
                     - text: Confirm Password
                     - text: "*"
-                      color: "0xD53C42"
+                      color: "0xD53C42"    
                   style:
                     color: "0x000000"
                     left: "0"
@@ -353,12 +363,12 @@ CreateNewAccount:
                     width: "0.5"
                     height: "0.041"
                     fontSize: "12"
-                    textAlign:
-                      x: left
+                    textAlign: 
+                      x: left 
                 - type: textField
                   contentType: password
-                  placeholder: Enter here
-                  dataKey: formData.vertex.name.confirmPassword
+                  placeholder: "Enter here"
+                  dataKey: formData.vertex.name.confirmPassword # formData.countryCode : inputValue
                   required: "true"
                   style:
                     fontSize: "14"
@@ -369,10 +379,10 @@ CreateNewAccount:
                     borderWidth: "1"
                     border:
                       style: "2"
-                    textAlign:
+                    textAlign: 
                       x: left
                       y: center
-            - type: view
+            - type: view 
               style:
                 top: "0.63"
                 left: "0.1"
@@ -385,19 +395,21 @@ CreateNewAccount:
                     - emit:
                         actions:
                           - if:
-                              - =.CreateNewAccount.formData.target
-                              - .CreateNewAccount.formData.target@: false
-                              - .CreateNewAccount.formData.target@: true
+                            - =.CreateNewAccount.formData.target
+                            - .CreateNewAccount.formData.target@: false
+                            - .CreateNewAccount.formData.target@: true    
                     - actionType: builtIn
                       funcName: redraw
                       viewTag: select
-                  path:
+                  path: 
                     emit:
                       actions:
                         - if:
                             - =.CreateNewAccount.formData.target
                             - https://public.aitmed.com/commonRes/selectOn.png
                             - https://public.aitmed.com/commonRes/selectOff.png
+                  # path: selectOff.png
+                  # pathSelected: selectOn.png
                   style:
                     left: "0"
                     width: "0.05"
@@ -405,17 +417,20 @@ CreateNewAccount:
                   style:
                     color: "0x000000"
                     left: "0.07"
+                    # top: "0.01"
+                    # width: "0.5"
+                    # height: "0.041"
                     fontSize: "11"
                     width: "0.72"
                     height: "0.03"
-                    textAlign:
+                    textAlign: 
                       x: left
                   onClick:
                     - goto: UserAgreement
                   textBoard:
-                    - text: I agree to
+                    - text: "I agree to"
                     - text: "&nbsp;"
-                    - text: Aitmed Trems of Use Agreement
+                    - text: "Aitmed Trems of Use Agreement"
                       color: "0x69AAD8"
                     - text: "&nbsp;"
                     - text: " and "
@@ -426,13 +441,14 @@ CreateNewAccount:
                     top: "0.03"
                     width: "0.72"
                     height: "0.03"
+                    # height: "0.041"
                     fontSize: "11"
-                    textAlign:
+                    textAlign: 
                       x: left
                   onClick:
                     - goto: ServicesAgreement
                   textBoard:
-                    - text: AiTmed Master Subscription Agreement
+                    - text: "AiTmed Master Subscription Agreement"
                       color: "0x69AAD8"
                 - type: image
                   viewTag: select
@@ -440,19 +456,19 @@ CreateNewAccount:
                     - emit:
                         actions:
                           - if:
-                              - =.CreateNewAccount.formData.tar
-                              - .CreateNewAccount.formData.tar@: false
-                              - .CreateNewAccount.formData.tar@: true
+                            - =.CreateNewAccount.formData.tar
+                            - .CreateNewAccount.formData.tar@: false
+                            - .CreateNewAccount.formData.tar@: true    
                     - actionType: builtIn
                       funcName: redraw
                       viewTag: select
                     - actionType: evalObject
                       object:
                         - if:
-                            - =..formData.tar
-                            - goto: ServicesAgreement
-                            - continue
-                  path:
+                          - =..formData.tar
+                          - goto: ServicesAgreement
+                          - continue
+                  path: #..selectData.tar
                     emit:
                       actions:
                         - if:
@@ -464,8 +480,8 @@ CreateNewAccount:
                     width: "0.05"
                     top: "0.065"
                 - type: label
-                  textBoard:
-                    - text: I also agree to
+                  textBoard: 
+                    - text: "I also agree to"
                     - text: "&nbsp;&nbsp;"
                     - text: "AiTmed Privacy Policy "
                       color: "0x69aad8"
@@ -479,13 +495,15 @@ CreateNewAccount:
                     height: "0.03"
                     fontSize: "11"
                     lineHeight: "2"
-                    textAlign:
+                    # backgroundColor: "0xcdcdcd"
+                    textAlign: 
                       x: left
             - type: button
               text: Sign Up
               style:
                 color: "0xffffffff"
                 fontSize: "16"
+                # fontStyle: bold
                 left: "0.134"
                 top: "0.76"
                 fontWeight: 400
@@ -498,55 +516,55 @@ CreateNewAccount:
                 textAlign:
                   x: center
                   y: center
-              onClick:
+              onClick: 
                 - actionType: evalObject
                   object:
                     - if:
-                        - =..formData.target
-                        - continue
-                        - actionType: popUp
-                          popUpView: noSelected
-                          wait: true
+                      - =..formData.target
+                      - continue
+                      - actionType: popUp
+                        popUpView: noSelected
+                        wait: true
                 - actionType: evalObject
                   object:
                     - if:
-                        - =..formData.tar
-                        - continue
-                        - actionType: popUp
-                          popUpView: noSelected
-                          wait: true
+                      - =..formData.tar
+                      - continue
+                      - actionType: popUp
+                        popUpView: noSelected
+                        wait: true 
                 - actionType: evalObject
                   object:
                     - if:
-                        - =..formData.vertex.name.password
-                        - continue
-                        - actionType: popUp
-                          popUpView: inputPassword
-                          wait: true
+                      - =..formData.vertex.name.password
+                      - continue
+                      - actionType: popUp
+                        popUpView: inputPassword
+                        wait: true
                 - actionType: evalObject
                   object:
                     - if:
-                        - =..formData.vertex.name.userName
-                        - continue
-                        - actionType: popUp
-                          popUpView: inputPassword
-                          wait: true
+                      - =..formData.vertex.name.userName
+                      - continue
+                      - actionType: popUp
+                        popUpView: inputPassword
+                        wait: true
                 - actionType: evalObject
                   object:
                     - if:
-                        - =..formData.vertex.name.firstName
-                        - continue
-                        - actionType: popUp
-                          popUpView: inputPassword
-                          wait: true
+                      - =..formData.vertex.name.firstName
+                      - continue
+                      - actionType: popUp
+                        popUpView: inputPassword
+                        wait: true                      
                 - actionType: evalObject
                   object:
                     - if:
-                        - =..formData.vertex.name.lastName
-                        - continue
-                        - actionType: popUp
-                          popUpView: inputPassword
-                          wait: true
+                      - =..formData.vertex.name.lastName
+                      - continue
+                      - actionType: popUp
+                        popUpView: inputPassword
+                        wait: true                                         
                 - actionType: evalObject
                   object:
                     - if:
@@ -557,31 +575,31 @@ CreateNewAccount:
                         - continue
                         - actionType: popUp
                           popUpView: samePassword
-                          wait: true
+                          wait: true                          
                 - actionType: saveObject
-                  object: ..save
+                  object: ..save 
                 - actionType: evalObject
-                  object: ..update
+                  object: ..update  
                 - actionType: evalObject
                   object:
                     =.builtIn.eccNaCl.decryptAES:
                       dataIn:
                         key: =..formData.vertex.name.password
                         message: =..formData.response.vertex.esk
-                      dataOut: Global.currentUser.vertex.sk
+                      dataOut: Global.currentUser.vertex.sk  
                 - actionType: evalObject
                   object:
                     - if:
                         - =..formData.response.vertex.pk
                         - goto: MeetingRoomInvited
                         - actionType: popUp
-                          popUpView: wrongCode
+                          popUpView: wrongCode 
                 - actionType: evalObject
                   object:
                     - if:
-                        - =..formData.response.vertex.pk
-                        - continue
-                        - goto: SignUp
+                      - =..formData.response.vertex.pk
+                      - continue
+                      - goto: SignUp  
             - type: view
               style:
                 left: "0"
@@ -619,5 +637,5 @@ CreateNewAccount:
                     textAlign:
                       x: left
                       y: center
-                  onClick:
+                  onClick: 
                     - goto: SignIn

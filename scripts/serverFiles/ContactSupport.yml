@@ -1,14 +1,14 @@
 ContactSupport:
   pageNumber: "480"
-  title: Contact Support
+  title: "Contact Support"
   init: ""
   save:
     - ..formData.edgeAPI.store
   formData:
     edge:
       name:
-        subject: subject
-        question: Question
+        subject: "subject"
+        question: "Question"
     edgeAPI:
       .EdgeAPI: ""
       store:
@@ -22,8 +22,8 @@ ContactSupport:
         width: "1"
         height: "1"
       children:
-        - ? .BaseHeader3
-        - ? .HeaderLeftButton
+        - .BaseHeader3:
+        - .HeaderLeftButton:
         - type: view
           style:
             left: "0"
@@ -32,12 +32,13 @@ ContactSupport:
             height: "0.04"
           children:
             - type: label
+              # text: "Please call our Customer Service number with any questions and concerns you may have!"
               textBoard:
-                - text: Please call our Customer Service
-                - ? br
-                - text: number with any questions and
-                - ? br
-                - text: concerns you may have!
+                - text: "Please call our Customer Service"
+                - br:
+                - text: "number with any questions and"
+                - br:
+                - text: "concerns you may have!"
               style:
                 color: "0x000000"
                 left: "0.15"
@@ -48,8 +49,13 @@ ContactSupport:
                 fontWeight: 400
                 textAlign:
                   x: center
+                  # y: center
             - type: button
-              text: Call  (714) 600-2529
+              text: "Call  (714) 600-2529"
+              # onClick:
+              #   - goto: SideMenuBar 
+              #   - actionType: saveObject
+              #     object: ..save
               style:
                 left: "0.15"
                 top: "0.3"
@@ -60,9 +66,10 @@ ContactSupport:
                 backgroundColor: "0x388ecc"
                 textAlign:
                   x: center
+
             - type: button
               text: We will be glad to assist you!
-              onClick:
+              onClick: 
                 - goto: SideMenuBar
               style:
                 left: "0.15"

@@ -1,55 +1,59 @@
 MeetingDocumentsNotes:
-  pageNumber: "180"
-  title: Meeting Notes
-  init:
+  pageNumber: "180"  # xd page 13
+  title: "Meeting Notes"
+  init: 
     - .SignInCheck
     - ..newNote.docAPI.get
+        # if the .docResponse.doc is out of refernce1), target object could end up in following trhee form
+        # 1) null, 2) keep the string literally, 3) leave target intact
     - if:
-        - =..docResponse.doc.0
-        - .MeetingDocumentsNotes.newNote.document@: =..docResponse.doc.0
-        - continue
-  save:
-    - =.MeetingDocumentsNotes.newNote.docAPI.store: ""
+       -  =..docResponse.doc.0
+       -  .MeetingDocumentsNotes.newNote.document@: =..docResponse.doc.0
+       # -  .MeetingDocumentsNotes.newNote.document@: .EmptyObj
+       # -  .MeetingDocumentsNotes.newNote.document@: ..docResponse.doc.0
+       - continue
+  save: 
+    - =.MeetingDocumentsNotes.newNote.docAPI.store: "" 
   newNote:
     document:
       .Document: ""
       eid: .Global.VideoChatObjStore.reference.edge.id
-      type: .DocType.MeetingNote
-      name:
+      type: .DocType.MeetingNote # "6" # meeting notes for all participants
+      name: 
         title: ""
         type: ..newNote.docAPI.store.subtype.mediaType
-        data:
+        data: 
           note: ""
       subtype:
-        mediaType: text/plain
+        mediaType: "text/plain" # mediaType : "image/jpeg"
     docAPI:
-      .DocAPI: ""
+      .DocAPI: ""    
       store:
-        api: cd
+        api: cd 
         dataKey: newNote.document
       get:
-        .DocAPI.get: ""
+        .DocAPI.get: "" 
         api: rd
         ids:
           - .Global.VideoChatObjStore.reference.edge.id
         xfname: eid
-        type: .DocType.MeetingNote
+        type: .DocType.MeetingNote # "6"
         maxcount: "1"
-        obfname: mtime
+        obfname: "mtime"
         dataKey: docResponse
         _nonce: =.Global._nonce
-  docResponse:
+  docResponse: 
     doc:
-      - type: .DocType.MeetingNote
+      - type: .DocType.MeetingNote # "6" # private profile
         eid: .Global.rootRoomInfo.edge.id
         name: ""
     error: ""
-    jwt: ""
+    jwt: ""  
   components:
-    - ? .BaseHeader3
-    - .HeaderLeftButton: null
+    - .BaseHeader3:
+    - .HeaderLeftButton:
       onClick:
-        - goto: VideoChat
+        - goto: VideoChat 
     - type: view
       style:
         top: "0.1"
@@ -74,7 +78,7 @@ MeetingDocumentsNotes:
         - type: textView
           isEditable: "true"
           placeholder: Text Here
-          dataKey: newNote.document.name.data.note
+          dataKey: newNote.document.name.data.note # users' input will be saved to this key
           style:
             textAlign:
               y: top
@@ -102,9 +106,15 @@ MeetingDocumentsNotes:
               x: center
           onClick:
             - actionType: evalObject
-              object: ..save
+              object: ..save 
             - actionType: evalObject
-              object:
-                .Global._nonce@:
+              object: 
+                .Global._nonce@: 
                   =.builtIn.math.random: ""
+            # - actionType: evalObject
+            #   object:
+            #     ..shareNote.document.name.title@:  =..newNote.document.name.title
+            # - actionType: saveObject
+            #   object: ..update 
             - goto: VideoChat
+

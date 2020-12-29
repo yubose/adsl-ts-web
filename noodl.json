@@ -1,0 +1,16 @@
+{
+  "objects": {
+    "json": {
+      "dir": ["scripts/objects"]
+    },
+    "yml": {
+      "dir": ["scripts/serverFiles"]
+    }
+  },
+  "server": {
+    "baseUrl": "http://127.0.0.1",
+    "dir": "server",
+    "port": 3000,
+    "url": "http://127.0.0.1:3000/"
+  }
+}
