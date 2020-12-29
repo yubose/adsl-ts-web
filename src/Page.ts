@@ -24,8 +24,6 @@ export type PageEvent =
   | 'modal-state-change'
 
 export interface PageOptions {
-  _log?: boolean
-  rootNode: HTMLDivElement
   builtIn?: {
     [funcName: string]: any
   }
@@ -56,22 +54,18 @@ class Page {
     fn: (...args: any[]) => any
   }[] = []
 
-  constructor({ _log = true, builtIn }: PageOptions = {}) {
+  constructor({ builtIn }: PageOptions = {}) {
     this.builtIn = builtIn
     this.modal = new Modal()
-    _log === false && Logger.disable()
 
     this._initializeRootNode = () => {
-      if (this.rootNode === null) {
-        this.rootNode = document.createElement('div')
-      }
+      if (this.rootNode === null) this.rootNode = document.createElement('div')
       this.rootNode.id = 'root'
       this.rootNode.style.position = 'absolute'
       this.rootNode.style.width = '100%'
       this.rootNode.style.height = '100%'
-      if (!document.body.contains(this.rootNode)) {
+      if (!document.body.contains(this.rootNode))
         document.body.appendChild(this.rootNode)
-      }
     }
 
     this.initializeRootNode()
