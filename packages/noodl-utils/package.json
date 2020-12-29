@@ -24,8 +24,7 @@
   "homepage": "",
   "license": "ISC",
   "directories": {
-    "dist": "dist",
-    "test": "__tests__"
+    "dist": "dist"
   },
   "files": [
     "dist"
@@ -37,6 +36,9 @@
   "peerDependencies": {
     "noodl-ui": "^0.1.33"
   },
+  "devDependencies": {
+    "noodl-types": "file:../noodl-types"
+  },
   "prettier": {
     "arrowParens": "always",
     "endOfLine": "lf",
@@ -45,8 +47,5 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
-  },
-  "dependencies": {
-    "noodl-types": "file:../noodl-types"
   }
 }
