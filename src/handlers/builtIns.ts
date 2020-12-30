@@ -88,7 +88,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
     if (typeof action.original?.reload === 'boolean') {
-      page.requestingPageModifiers.reload = action.original.reload
+      page.setModifier(page.getState().previous, {
+        reload: action.original.reload,
+      })
     }
     window.history.back()
   }
@@ -358,7 +360,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
 
-    if (dataKey.startsWith(iteratorVar)) {
+    if (dataKey?.startsWith(iteratorVar)) {
       let parts = dataKey.split('.').slice(1)
       dataObject = findListDataObject(component)
       previousDataValue = get(dataObject, parts)

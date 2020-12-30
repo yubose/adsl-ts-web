@@ -113,7 +113,7 @@ PatientDashboard:
               text: EmitRedraw
         - .PatientDashboardView: null
           onClick:
-            - goto: GotoViewTag#redTag
+            - goto: GotoViewTag#blueTag
           style:
             top: '0.6'
           children:

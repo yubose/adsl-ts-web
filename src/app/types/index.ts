@@ -6,6 +6,10 @@ export * from './libExtensionTypes'
 export * from './meetingTypes'
 export * from './pageTypes'
 
+export interface AnyFn<Args = any, RT = any> {
+  (...args: Args[]): RT
+}
+
 export type BuiltInFuncName =
   | 'checkField'
   | 'checkUsernamePassword'
@@ -23,3 +27,8 @@ export type BuiltInFuncName =
 export type BuiltInActions<Obj extends BuiltInObject = BuiltInObject> = Partial<
   Record<BuiltInFuncName, ActionChainActionCallback<Obj>>
 >
+
+export interface CachedPageObject {
+  name: string
+  timestamp: number
+}

@@ -51,40 +51,36 @@ window.addEventListener('load', async () => {
   /** EXPERIMENTAL -- Custom routing */
   // TODO
   window.addEventListener('popstate', async function onPopState(e) {
-    var pg
-    var pageUrlArr = page.pageUrl.split('-')
+    let pg
+    let parts = page.pageUrl.split('-')
 
-    if (pageUrlArr.length > 1) {
-      pageUrlArr.pop()
-      while (
-        pageUrlArr[pageUrlArr.length - 1].endsWith('MenuBar') &&
-        pageUrlArr.length > 1
-      ) {
-        pageUrlArr.pop()
+    if (parts.length > 1) {
+      parts.pop()
+      while (parts[parts.length - 1].endsWith('MenuBar') && parts.length > 1) {
+        parts.pop()
       }
-      if (pageUrlArr.length > 1) {
-        pg = pageUrlArr[pageUrlArr.length - 1]
-        page.pageUrl = pageUrlArr.join('-')
-      } else if (pageUrlArr.length === 1) {
-        if (pageUrlArr[0].endsWith('MenuBar')) {
+      if (parts.length > 1) {
+        pg = parts[parts.length - 1]
+        page.pageUrl = parts.join('-')
+      } else if (parts.length === 1) {
+        if (parts[0].endsWith('MenuBar')) {
           page.pageUrl = 'index.html?'
           pg = noodl?.cadlEndpoint?.startPage
         } else {
-          pg = pageUrlArr[0].split('?')[1]
-          page.pageUrl = pageUrlArr[0]
+          pg = parts[0].split('?')[1]
+          page.pageUrl = parts[0]
         }
       }
     } else {
       page.pageUrl = 'index.html?'
       pg = noodl?.cadlEndpoint?.startPage
     }
-    let pageModifiers = undefined
-    if (typeof page.requestingPageModifiers.reload === 'boolean') {
-      pageModifiers = {
-        reload: page.requestingPageModifiers.reload,
+    const currentModifiers = page.getState().modifiers[pg]
+    if (currentModifiers) {
+      if (typeof currentModifiers.reload === 'boolean') {
+        page.setModifier(pg, { reload: currentModifiers.reload })
       }
-      delete page.requestingPageModifiers.reload
     }
-    await page.requestPageChange(pg, pageModifiers, true)
+    await page.requestPageChange(pg, { goBack: true })
   })
 })

@@ -35,7 +35,7 @@ import { AuthStatus } from './app/types/commonTypes'
 import { listen as registerNOODLDOMListeners } from './app/noodl-ui-dom'
 import { IPage } from './Page'
 import { IMeeting } from './meeting'
-import { modalIds, CACHED_PAGES } from './constants'
+import { modalIds, CACHED_PAGES, pageEvent } from './constants'
 import { CachedPageObject, PageModalId } from './app/types'
 import { isMobile } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
@@ -50,10 +50,7 @@ export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
 class App {
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
-  #preparePage = {} as (
-    pageName: string,
-    pageModifiers: { reload?: boolean },
-  ) => Promise<PageObject>
+  #preparePage = {} as (pageName: string) => Promise<PageObject>
   #viewportUtils = {} as ViewportUtils
   actions = {} as ReturnType<typeof createActions>
   authStatus: AuthStatus | '' = ''
@@ -121,13 +118,10 @@ class App {
       }
     }
 
-    this.#preparePage = async (
-      pageName: string,
-      pageModifiers: { reload?: boolean } = {},
-    ): Promise<PageObject> => {
+    this.#preparePage = async (pageName: string): Promise<PageObject> => {
       try {
         await noodl.initPage(pageName, [], {
-          ...pageModifiers,
+          ...page.getState().modifiers[pageName],
           builtIn: {
             checkField: builtIn.checkField,
             goto: builtIn.goto,
@@ -137,7 +131,7 @@ class App {
         log.func('createPreparePage')
         log.grey(`Ran noodl.initPage on page "${pageName}"`, {
           pageName,
-          pageModifiers,
+          pageModifiers: page.getState().modifiers[pageName],
           pageObject: noodl.root[pageName],
         })
         return noodl.root[pageName]
@@ -183,7 +177,7 @@ class App {
         page.pageUrl = 'index.html?'
         await page.requestPageChange(newPage)
       } else {
-        if (!urlArr.startsWith('index.html?')) {
+        if (!urlArr?.startsWith('index.html?')) {
           page.pageUrl = 'index.html?'
           await page.requestPageChange(newPage)
         } else {
@@ -251,212 +245,218 @@ class App {
           this.page.rootNode.style.width = `${width}px`
           this.page.rootNode.style.height = `${height}px`
         }
-        this.page.render(this.noodl?.root?.[this.page.currentPage]?.components)
+        this.page.render(
+          this.noodl?.root?.[this.page.getState().current]?.components,
+        )
       },
     )
   }
 
   observePages(page: IPage) {
     page
-      .on('start', (pageName) => {
+      .on(pageEvent.ON_NAVIGATE_START, (pageName) => {
         console.log(
           `%cRendering the DOM for page: "${pageName}"`,
           `color:#95a5a6;`,
         )
       })
-      .on('root-node', () => {
+      .on(pageEvent.ON_CREATE_ROOT_NODE, (node) => {
         console.log(`%cRoot node initialized`, `color:#00b406`)
       })
-      // @ts-expect-error
-      .on('before-page-render', async ({ pageName, pageModifiers }) => {
-        if (
-          /videochat/i.test(page.currentPage) &&
-          !/videochat/i.test(pageName)
-        ) {
-          this.meeting.leave()
-          log.func('page [before-page-render]')
-          log.grey(`Disconnected from room`, this.meeting.room)
+      .on(
+        pageEvent.ON_BEFORE_RENDER_COMPONENTS as any,
+        async ({ pageName }) => {
+          if (
+            /videochat/i.test(page.getState().current) &&
+            !/videochat/i.test(pageName)
+          ) {
+            this.meeting.leave()
+            log.func('page [before-page-render]')
+            log.grey(`Disconnected from room`, this.meeting.room)
 
-          const mainStream = this.streams.getMainStream()
-          const selfStream = this.streams.getSelfStream()
-          const subStreamsContainer = this.streams.getSubStreamsContainer()
-          const subStreams = subStreamsContainer?.getSubstreamsCollection()
+            const mainStream = this.streams.getMainStream()
+            const selfStream = this.streams.getSelfStream()
+            const subStreamsContainer = this.streams.getSubStreamsContainer()
+            const subStreams = subStreamsContainer?.getSubstreamsCollection()
 
-          if (mainStream.getElement()) {
-            log.grey('Wiping mainStream state', mainStream.reset())
+            if (mainStream.getElement()) {
+              log.grey('Wiping mainStream state', mainStream.reset())
+            }
+            if (selfStream.getElement()) {
+              log.grey('Wiping selfStream state', selfStream.reset())
+            }
+            if (subStreamsContainer?.length) {
+              const logMsg = `Wiping subStreams container's state`
+              log.grey(logMsg, subStreamsContainer.reset())
+            }
+            if (Array.isArray(subStreams)) {
+              subStreams.forEach((subStream) => {
+                if (subStream.getElement()) {
+                  log.grey(`Wiping a subStream's state`, subStream.reset())
+                  subStreamsContainer?.removeSubStream(subStream)
+                }
+              })
+            }
           }
-          if (selfStream.getElement()) {
-            log.grey('Wiping selfStream state', selfStream.reset())
-          }
-          if (subStreamsContainer?.length) {
-            const logMsg = `Wiping subStreams container's state`
-            log.grey(logMsg, subStreamsContainer.reset())
-          }
-          if (Array.isArray(subStreams)) {
-            subStreams.forEach((subStream) => {
-              if (subStream.getElement()) {
-                log.grey(`Wiping a subStream's state`, subStream.reset())
-                subStreamsContainer?.removeSubStream(subStream)
+
+          let pageSnapshot = {} as { name: string; object: any }
+          let pageModifiers = page.getState().modifiers[pageName]
+
+          if (pageName !== page.getState().current || pageModifiers?.force) {
+            // Load the page in the SDK
+            const pageObject = await this.#preparePage(pageName)
+            // This will be passed into the page renderer
+            pageSnapshot = {
+              name: pageName,
+              object: pageObject,
+            }
+            // Initialize the noodl-ui client (parses components) if it
+            // isn't already initialized
+            if (!this.initialized) {
+              log.func('page [before-page-render]')
+              log.grey('Initializing noodl-ui client', {
+                noodl: this.noodl,
+                actions: this.actions,
+                pageSnapshot,
+              })
+
+              const fetch = (url: string) =>
+                axios.get(url).then(({ data }) => data)
+              // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
+              const config = this.noodl.getConfig()
+              const plugins = [
+                { type: 'pluginHead', path: 'googleTM.js' },
+                // { type: 'bodyTopPplugin', path: 'googleTMBodyTop.html' },
+              ] as ComponentObject[]
+              if (config.headPlugin) {
+                plugins.push(
+                  this.noodlui.createPluginObject({
+                    type: 'pluginHead',
+                    path: config.headPlugin,
+                  }),
+                )
               }
-            })
-          }
-        }
+              if (config.bodyTopPplugin) {
+                plugins.push(
+                  this.noodlui.createPluginObject({
+                    type: 'pluginBodyTop',
+                    path: config.bodyTopPplugin,
+                  }),
+                )
+              }
+              if (config.bodyTailPplugin) {
+                plugins.push(
+                  this.noodlui.createPluginObject({
+                    type: 'pluginBodyTail',
+                    path: config.bodyTailPplugin,
+                  }),
+                )
+              }
+              this.noodlui
+                .init({
+                  actionsContext: {
+                    noodl: this.noodl,
+                    noodluidom: this.noodluidom,
+                  } as any,
+                  viewport: this.#viewportUtils.viewport,
+                })
+                .setPage(pageName)
+                .use(this.#viewportUtils.viewport)
+                .use({
+                  fetch,
+                  getAssetsUrl: () => this.noodl.assetsUrl,
+                  getRoot: () => this.noodl.root,
+                  plugins,
+                })
+                .use(
+                  [
+                    getElementType,
+                    getTransformedAliases,
+                    getReferences,
+                    getAlignAttrs,
+                    getBorderAttrs,
+                    getColors,
+                    getFontAttrs,
+                    getPlugins,
+                    getPosition,
+                    getSizes,
+                    getStylesByElementType,
+                    getTransformedStyleAliases,
+                    getCustomDataAttrs,
+                    getEventHandlers,
+                  ].reduce(
+                    (acc, r: ResolverFn) =>
+                      acc.concat(new Resolver().setResolver(r)),
+                    [] as Resolver[],
+                  ),
+                )
+                .use(
+                  Object.entries(this.actions).reduce(
+                    (arr, [actionType, actions]) =>
+                      arr.concat(actions.map((a) => ({ ...a, actionType }))),
+                    [] as any[],
+                  ),
+                )
+                .use(
+                  // @ts-expect-error
+                  Object.entries({
+                    checkField: this.builtIn.checkField,
+                    checkUsernamePassword: this.builtIn.checkUsernamePassword,
+                    goBack: this.builtIn.goBack,
+                    lockApplication: this.builtIn.lockApplication,
+                    logOutOfApplication: this.builtIn.logOutOfApplication,
+                    logout: this.builtIn.logout,
+                    redraw: this.builtIn.redraw,
+                    toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
+                    toggleFlag: this.builtIn.toggleFlag,
+                    toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
+                  }).map(([funcName, fn]) => ({ funcName, fn })),
+                )
 
-        let pageSnapshot = {} as { name: string; object: any }
+              log.func('page [before-page-render]')
+              log.green('Initialized noodl-ui client', this.noodlui)
+            }
 
-        if (pageName !== page.currentPage || pageModifiers?.force) {
-          // Load the page in the SDK
-          const pageObject = await this.#preparePage(pageName, pageModifiers)
-          // This will be passed into the page renderer
-          pageSnapshot = {
-            name: pageName,
-            object: pageObject,
-          }
-          // Initialize the noodl-ui client (parses components) if it
-          // isn't already initialized
-          if (!this.initialized) {
+            const previousPage = page.getState().previous
             log.func('page [before-page-render]')
-            log.grey('Initializing noodl-ui client', {
-              noodl: this.noodl,
-              actions: this.actions,
+            log.grey(`${previousPage} --> ${pageName}`, page.snapshot())
+            // Refresh the root
+            // TODO - Leave root/page auto binded to the lib
+            this.noodlui.setPage(pageSnapshot.name)
+            log.grey(`Set root + page obj after receiving page object`, {
+              previousPage: page.getState().previous,
+              currentPage: page.getState().current,
+              requestedPage: pageName,
+              pageName,
+              pageObject,
             })
-
-            const fetch = (url: string) =>
-              axios.get(url).then(({ data }) => data)
-            // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
-            const config = this.noodl.getConfig()
-            const plugins = [
-              { type: 'pluginHead', path: 'googleTM.js' },
-              // { type: 'bodyTopPplugin', path: 'googleTMBodyTop.html' },
-            ] as ComponentObject[]
-            if (config.headPlugin) {
-              plugins.push(
-                this.noodlui.createPluginObject({
-                  type: 'pluginHead',
-                  path: config.headPlugin,
-                }),
-              )
+            // NOTE: not being used atm
+            if (page.rootNode && page.rootNode.id !== pageName) {
+              page.rootNode.id = pageName
             }
-            if (config.bodyTopPplugin) {
-              plugins.push(
-                this.noodlui.createPluginObject({
-                  type: 'pluginBodyTop',
-                  path: config.bodyTopPplugin,
-                }),
-              )
-            }
-            if (config.bodyTailPplugin) {
-              plugins.push(
-                this.noodlui.createPluginObject({
-                  type: 'pluginBodyTail',
-                  path: config.bodyTailPplugin,
-                }),
-              )
-            }
-            this.noodlui
-              .init({
-                actionsContext: {
-                  noodl: this.noodl,
-                  noodluidom: this.noodluidom,
-                } as any,
-                viewport: this.#viewportUtils.viewport,
-              })
-              .setPage(pageName)
-              .use(this.#viewportUtils.viewport)
-              .use({
-                fetch,
-                getAssetsUrl: () => this.noodl.assetsUrl,
-                getRoot: () => this.noodl.root,
-                plugins,
-              })
-              .use(
-                [
-                  getElementType,
-                  getTransformedAliases,
-                  getReferences,
-                  getAlignAttrs,
-                  getBorderAttrs,
-                  getColors,
-                  getFontAttrs,
-                  getPlugins,
-                  getPosition,
-                  getSizes,
-                  getStylesByElementType,
-                  getTransformedStyleAliases,
-                  getCustomDataAttrs,
-                  getEventHandlers,
-                ].reduce(
-                  (acc, r: ResolverFn) =>
-                    acc.concat(new Resolver().setResolver(r)),
-                  [] as Resolver[],
-                ),
-              )
-              .use(
-                Object.entries(this.actions).reduce(
-                  (arr, [actionType, actions]) =>
-                    arr.concat(actions.map((a) => ({ ...a, actionType }))),
-                  [] as any[],
-                ),
-              )
-              .use(
-                // @ts-expect-error
-                Object.entries({
-                  checkField: this.builtIn.checkField,
-                  checkUsernamePassword: this.builtIn.checkUsernamePassword,
-                  goBack: this.builtIn.goBack,
-                  lockApplication: this.builtIn.lockApplication,
-                  logOutOfApplication: this.builtIn.logOutOfApplication,
-                  logout: this.builtIn.logout,
-                  redraw: this.builtIn.redraw,
-                  toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
-                  toggleFlag: this.builtIn.toggleFlag,
-                  toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
-                }).map(([funcName, fn]) => ({ funcName, fn })),
-              )
-
+            return pageSnapshot
+          } else {
             log.func('page [before-page-render]')
-            log.green('Initialized noodl-ui client', this.noodlui)
+            log.green('Avoided a duplicate navigate request')
           }
 
-          const previousPage = page.previousPage
-          log.func('page [before-page-render]')
-          log.grey(`${previousPage} --> ${pageName}`, {
-            previousPage,
-            nextPage: pageSnapshot,
-          })
-          // Refresh the root
-          // TODO - Leave root/page auto binded to the lib
-          this.noodlui.setPage(pageSnapshot.name)
-          log.grey(`Set root + page obj after receiving page object`, {
-            previousPage: page.previousPage,
-            currentPage: page.currentPage,
-            requestedPage: pageName,
-            pageName,
-            pageObject,
-          })
-          // NOTE: not being used atm
-          if (page.rootNode && page.rootNode.id !== pageName) {
-            page.rootNode.id = pageName
-          }
           return pageSnapshot
-        } else {
-          log.func('page [before-page-render]')
-          log.green('Avoided a duplicate navigate request')
-        }
-
-        return pageSnapshot
-      })
-      .on('page-rendered', async ({ pageName, components }) => {
-        log.func('page [page-rendered]')
-        log.green(`Done rendering DOM nodes for ${pageName}`)
-        // @ts-expect-error
-        window.pcomponents = components
-        // Cache to rehydrate if they disconnect
-        // TODO
-        this.cachePage(pageName)
-        log.grey(`Cached page: "${pageName}"`)
-      })
-      .on('error', ({ error }) => {
+        },
+      )
+      .on(
+        pageEvent.ON_COMPONENTS_RENDERED,
+        async ({ pageName, components }) => {
+          log.func('page [rendered]')
+          log.green(`Done rendering DOM nodes for ${pageName}`)
+          // @ts-expect-error
+          window.pcomponents = components
+          // Cache to rehydrate if they disconnect
+          // TODO
+          this.cachePage(pageName)
+          log.grey(`Cached page: "${pageName}"`)
+        },
+      )
+      .on(pageEvent.ON_NAVIGATE_ERROR, ({ error }) => {
         console.error(error)
         log.func('page.onError')
         log.red(error.message, error)
@@ -468,9 +468,15 @@ class App {
        * Dispatch openModal/closeModal to open/close this modal
        */
       // NOTE - This is not being used atm
-      .on('modal-state-change', (prevState, nextState) => {
+      .on(pageEvent.ON_MODAL_STATE_CHANGE, (prevState, nextState) => {
         const { id, opened, ...rest } = nextState
         log.func('page [modal-state-change]')
+        log.red(`page [modal-state-change]`)
+        log.red(`page [modal-state-change]`)
+        log.red(`page [modal-state-change]`)
+        log.red(`page [modal-state-change]`)
+        log.red(`page [modal-state-change]`)
+        log.red(`page [modal-state-change]`)
         if (opened) {
           const modalId = modalIds[id as PageModalId]
           // const modalComponent = modalComponents[modalId]

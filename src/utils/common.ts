@@ -1,6 +1,17 @@
 import spread from 'lodash/spread'
 import isPlainObject from 'lodash/isPlainObject'
 
+export function createEmptyObjectWithKeys<K extends string = any, I = any>(
+  keys: K[],
+  initiatingValue?: I,
+  startingValue?: any,
+): Record<K, I> {
+  return keys.reduce(
+    (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
+    startingValue,
+  )
+}
+
 /**
  * Runs forEach on each key/value pair of the value, passing in the key as the first
  * argument and the value as the second argument on each iteration
@@ -92,7 +103,7 @@ export function resolvePageUrl(
   currentUrl: string,
   { dest = '', startPage = '' }: { dest: string; startPage?: string },
 ) {
-  currentUrl = currentUrl.startsWith('index.html?')
+  currentUrl = currentUrl?.startsWith?.('index.html?')
     ? currentUrl
     : currentUrl + 'index.html?'
 

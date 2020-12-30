@@ -23,6 +23,8 @@ before(() => {
   noodlui.init({ _log: false })
   console.clear()
   Logger.disable()
+  // @ts-expect-error
+  delete window.location
 
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
@@ -65,13 +67,11 @@ after(() => {
 })
 
 beforeEach(() => {
-  page.initializeRootNode()
   document.body.appendChild(page.rootNode as HTMLElement)
 })
 
 afterEach(() => {
   document.body.textContent = ''
-  page.rootNode = null
   // @ts-expect-error
   noodlui.cleanup()
   noodluidom.reset()

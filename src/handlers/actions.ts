@@ -32,7 +32,8 @@ import {
   isPossiblyDataKey,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import { IPage } from '../app/types'
+import { IPage } from '../Page'
+import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
 import { onSelectFile } from '../utils/dom'
 
@@ -325,6 +326,9 @@ const createActions = function ({ page }: { page: IPage }) {
         // Most likely a viewTag on the destination page
         const elemToScrollTo = destination.split('#')[1]
         destination = destination.substring(0, destination.indexOf('#'))
+        page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+          console.log(`pageEvent.ON_COMPONENTS_RENDERED CALLBACK CALLED`)
+        })
       }
       if (destination) {
         page.pageUrl = resolvePageUrl(page.pageUrl, {

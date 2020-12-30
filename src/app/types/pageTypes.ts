@@ -1,10 +1,15 @@
+import { AnyFn } from '.'
 import * as constants from '../../constants'
 
-export type IPage = any
+export type PageCbs<K extends PageEvent | PageStatus> = Record<K, AnyFn[]>
+export type PageEvent = typeof constants.pageEvent[keyof typeof constants.pageEvent]
+export type PageStatus = typeof constants.pageStatus[keyof typeof constants.pageStatus]
+export type PageModalId = keyof typeof constants['modalIds']
 
-export interface CachedPageObject {
-  name: string
-  timestamp: number
+export interface PageCallbackObjectConfig {
+  fn: AnyFn
+  cond?(snapshot?: PageSnapshot): boolean
+  once?: boolean
 }
 
 export interface PageModalState {
@@ -14,20 +19,10 @@ export interface PageModalState {
   props: { [key: string]: any }
 }
 
-export type PageModalId = keyof typeof constants['modalIds']
-
-// export type PageRenderStatus = typeof constants.pageRenderStatuses[number]
-export type PageRenderStatus = typeof constants['renderStatus'][keyof typeof constants['renderStatus']]
-
-export interface PageRootNodeState {
-  id: string
-  initializing: boolean
-  initialized: boolean
-  initializeError: null | any
-}
-
-export interface PageComponentsRenderState {
-  rendering: boolean
-  rendered: boolean
-  renderError: null | any
+export interface PageSnapshot {
+  status: PageStatus
+  previous: string
+  current: string
+  requestingPage: string
+  rootNode: HTMLDivElement
 }
