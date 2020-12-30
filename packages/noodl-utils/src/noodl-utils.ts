@@ -131,6 +131,10 @@ export function getByDataListId(value: string) {
   return document.querySelector(`[data-listid="${value}"]`)
 }
 
+export function getByDataViewTag(value: string) {
+  return document.querySelector(`[data-viewtag="${value}"]`)
+}
+
 export function getDataValue<T = any>(
   dataObject: T | undefined,
   dataKey: string | undefined,

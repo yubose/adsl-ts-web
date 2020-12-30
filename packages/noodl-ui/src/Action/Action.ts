@@ -24,7 +24,7 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
   #onError: (snapshot: ActionSnapshot) => any
   #onAbort: (snapshot: ActionSnapshot) => any
   #onTimeout: any
-  #trigger: string = ''
+  #trigger: string[] = []
   #status: ActionStatus = null
   #timeout: NodeJS.Timeout | null = null
   #timeoutRemaining: number | null = null
@@ -55,7 +55,7 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
     this.type = action.actionType // TODO - Deprecate this.type for this.actionType
     this.actionType =
       action.actionType || ('emit' in action || {} ? 'emit' : '')
-    this.trigger = options?.trigger || ''
+    if (options?.trigger) this.addTrigger(options.trigger)
   }
 
   /**
@@ -115,12 +115,36 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
     return this.#trigger
   }
 
-  set trigger(trigger: string) {
-    this.#trigger = trigger || ''
-  }
-
   get id() {
     return this.#id
+  }
+
+  addTrigger(trigger: string | string[]) {
+    if (typeof trigger === 'string') {
+      if (!this.#trigger.includes(trigger)) this.#trigger.push(trigger)
+    } else if (Array.isArray(trigger)) {
+      trigger.forEach(
+        (t) => !this.#trigger.includes(t) && this.#trigger.push(t),
+      )
+    }
+    return this
+  }
+
+  removeTrigger(trigger: string | string[]) {
+    if (typeof trigger === 'string' && this.#trigger.includes(trigger)) {
+      this.#trigger = this.#trigger.filter((t) => t !== trigger)
+    } else if (Array.isArray(trigger)) {
+      const triggersRemoving = [] as string[]
+      trigger.forEach(
+        (t) => this.#trigger.includes(t) && triggersRemoving.push(t),
+      )
+      if (triggersRemoving.length) {
+        this.#trigger = this.#trigger.filter(
+          (t) => !triggersRemoving.includes(t),
+        )
+      }
+    }
+    return this
   }
 
   // Returns an update-to-date JS representation of this instance

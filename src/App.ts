@@ -260,9 +260,6 @@ class App {
           `color:#95a5a6;`,
         )
       })
-      .on(pageEvent.ON_CREATE_ROOT_NODE, (node) => {
-        console.log(`%cRoot node initialized`, `color:#00b406`)
-      })
       .on(
         pageEvent.ON_BEFORE_RENDER_COMPONENTS as any,
         async ({ pageName }) => {
@@ -448,7 +445,6 @@ class App {
         async ({ pageName, components }) => {
           log.func('page [rendered]')
           log.green(`Done rendering DOM nodes for ${pageName}`)
-          // @ts-expect-error
           window.pcomponents = components
           // Cache to rehydrate if they disconnect
           // TODO
@@ -471,12 +467,6 @@ class App {
       .on(pageEvent.ON_MODAL_STATE_CHANGE, (prevState, nextState) => {
         const { id, opened, ...rest } = nextState
         log.func('page [modal-state-change]')
-        log.red(`page [modal-state-change]`)
-        log.red(`page [modal-state-change]`)
-        log.red(`page [modal-state-change]`)
-        log.red(`page [modal-state-change]`)
-        log.red(`page [modal-state-change]`)
-        log.red(`page [modal-state-change]`)
         if (opened) {
           const modalId = modalIds[id as PageModalId]
           // const modalComponent = modalComponents[modalId]

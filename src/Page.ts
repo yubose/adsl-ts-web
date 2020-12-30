@@ -43,16 +43,12 @@ class Page {
     ),
   }
   pageUrl: string = 'index.html?'
-  rootNode: HTMLElement | null = null
+  rootNode: HTMLDivElement
   modal: Modal
 
   constructor() {
     this.modal = new Modal()
-    this.#createRootNode()
-  }
-
-  #createRootNode = () => {
-    if (this.rootNode === null) this.rootNode = document.createElement('div')
+    this.rootNode = document.createElement('div')
     this.rootNode.id = 'root'
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
@@ -66,9 +62,11 @@ class Page {
   }
 
   clearCbs() {
-    for (let obj of Object.values(this.#cbs)) {
-      Array.isArray(obj) && (obj.length = 0)
-    }
+    Object.values(this.#cbs).forEach((arr) => {
+      while (arr.length) {
+        arr.pop()
+      }
+    })
     return this
   }
 
@@ -79,39 +77,36 @@ class Page {
   /**
    * Requests to change the page to another page
    * TODO - Merge this into page.navigate
+   * !NOTE - Page modifiers (ex: "reload") is expected to be set before this call via page.setModifier
    * @param { string } newPage - Page name to request
-   * @param { boolean | undefined } options.goBack
+   * @param { boolean | undefined } options.force - Force the navigate to happen
    */
   async requestPageChange(
     newPage: string = '',
-    {
-      force,
-      goBack = false,
-      reload,
-    }: { force?: boolean; goBack?: boolean; reload?: boolean } = {},
+    { force }: { force?: boolean } = {},
   ) {
-    if (
-      newPage !== this.getState().current ||
-      newPage.startsWith('http') ||
-      !!force
-    ) {
+    const { current } = this.getState()
+    if (newPage !== current || newPage.startsWith('http') || !!force) {
       this.setRequestingPage(newPage)
-      if (goBack) {
-        this.setModifier(newPage, { reload: reload === false ? false : true })
-      }
       if (process.env.NODE_ENV !== 'test') {
         history.pushState({}, '', this.pageUrl)
       }
       await this.navigate(newPage)
-      this.setPreviousPage(this.getState().current).setCurrentPage(newPage)
+      this.setPreviousPage(current)
+      this.setCurrentPage(newPage)
     } else {
       log.func('requestPageChange')
       log.orange(
         'Skipped the request to change page because we are already on the page',
-        { ...pick(this.getState(), ['previous', 'current']), newPage },
+        {
+          ...pick(this.getState(), ['previous', 'current']),
+          requestedPage: newPage,
+        },
       )
+      // TODO - handle this
       await this.emit(pageEvent.ON_NAVIGATE_ABORT, {
         pageName: newPage,
+        reason: 'duplicate-request',
         from: 'requestPageChange',
       })
     }
@@ -131,9 +126,9 @@ class Page {
       if (typeof pageName === 'string' && pageName.startsWith('http')) {
         await this.emit(pageEvent.ON_OUTBOUND_REDIRECT, pageName)
         openOutboundURL(pageName)
-        return this.setStatus(pageStatus.IDLE)
+        return this.#onNavigateEnd({ pageName })
       }
-      this.setRequestingPage(pageName)
+
       await this.emit(pageEvent.ON_NAVIGATE_START, pageName)
 
       // The caller is expected to provide their own page object
@@ -154,38 +149,48 @@ class Page {
             `recent request to "${requestingPage}" was called`,
           { pageAborting: pageName, pageRequesting: requestingPage },
         )
-        this.setStatus(pageStatus.IDLE)
         await this.emit(pageEvent.ON_NAVIGATE_ABORT, {
           pageName,
           from: 'navigate',
         })
-        return
+        return this.#onNavigateEnd({ pageName })
       }
 
       const components = this.render(
         pageSnapshot?.object?.components as NOODLComponent[],
       ) as ComponentInstance[]
 
-      // Remove the page modifiers so they don't propagate to subsequent navigates
-      delete this.#state.modifiers[pageName]
-
-      this.setStatus(pageStatus.COMPONENTS_RENDERED)
       await this.emit(pageEvent.ON_COMPONENTS_RENDERED, {
         pageName,
         components,
       })
 
-      this.setRequestingPage('').setCurrentPage(pageName)
-      this.setStatus(pageStatus.IDLE)
+      this.#onNavigateEnd({ pageName })
 
       return {
         snapshot: Object.assign({ components }, pageSnapshot),
       }
     } catch (error) {
       await this.emit(pageEvent.ON_NAVIGATE_ERROR, { error, pageName })
-      this.setStatus(pageStatus.NAVIGATE_ERROR)
+      this.#onNavigateEnd({ error, pageName })
       throw new Error(error)
     }
+  }
+
+  /**
+   * Encapsulates common cleanup operations when navigation is ending
+   * !NOTE - Should not be called if an error occurred
+   */
+  #onNavigateEnd = ({
+    error,
+    pageName,
+  }: {
+    error?: boolean
+    pageName?: string
+  } = {}) => {
+    this.setStatus(error ? pageStatus.NAVIGATE_ERROR : pageStatus.IDLE)
+    // Remove the page modifiers so they don't propagate to subsequent navigates
+    pageName && delete this.#state.modifiers[pageName]
   }
 
   /**
@@ -196,24 +201,40 @@ class Page {
   render(rawComponents: ComponentCreationType | ComponentCreationType[]) {
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
-    if (!this.rootNode) {
-      this.setStatus(pageStatus.CREATING_ROOT_NODE)
-      this.#createRootNode()
-      this.setStatus(pageStatus.ROOT_NODE_CREATED)
-      this.emitSync(pageEvent.ON_CREATE_ROOT_NODE, this.rootNode)
-    }
     this.setStatus(pageStatus.RESOLVING_COMPONENTS)
     let resolved = noodlui.resolveComponents(rawComponents)
     this.setStatus(pageStatus.COMPONENTS_RESOLVED)
     const components = Array.isArray(resolved) ? resolved : [resolved]
-    this.rootNode && (this.rootNode.innerHTML = '')
+    this.rootNode.innerHTML = ''
     this.setStatus(pageStatus.RENDERING_COMPONENTS)
     components.forEach((component) => {
       noodluidom.parse(component, this.rootNode)
     })
     this.setStatus(pageStatus.COMPONENTS_RENDERED)
-    this.emitSync(pageEvent.ON_COMPONENTS_RENDERED)
     return components
+  }
+
+  getPreviousPage(startPage: string = this.getState().previous) {
+    let previousPage
+    let parts = this.pageUrl.split('-')
+    if (parts.length > 1) {
+      parts.pop()
+      while (parts[parts.length - 1].endsWith('MenuBar') && parts.length > 1) {
+        parts.pop()
+      }
+      if (parts.length > 1) {
+        previousPage = parts[parts.length - 1]
+      } else if (parts.length === 1) {
+        if (parts[0].endsWith('MenuBar')) {
+          previousPage = startPage
+        } else {
+          previousPage = parts[0].split('?')[1]
+        }
+      }
+    } else {
+      previousPage = startPage
+    }
+    return previousPage || ''
   }
 
   /**
@@ -235,19 +256,17 @@ class Page {
     if (typeof fn === 'function') {
       config.fn = fn
     } else if (fn && typeof fn === 'object') {
-      Object.assign(config, fn)
+      Object.keys(fn).forEach((key) => ((config as any)[key] = fn[key]))
     }
     return config
   }
 
   on(
     event: T.PageEvent | T.PageStatus,
-    fn: AnyFn | T.PageCallbackObjectConfig,
+    fn: AnyFn | Partial<T.PageCallbackObjectConfig>,
   ) {
     if (!Array.isArray(this.#cbs[event])) this.#cbs[event] = []
-    this.#cbs[event].push(
-      this.createCbConfig(typeof fn === 'function' ? { fn } : fn),
-    )
+    this.#cbs[event] = this.#cbs[event].concat(this.createCbConfig(fn))
     return this
   }
 
@@ -266,15 +285,16 @@ class Page {
 
   async emit(event: T.PageEvent | T.PageStatus, ...args: any[]) {
     let result
-    let fnObjs = this.#cbs[event]
-    if (fnObjs?.length) {
-      const numObjs = fnObjs.length
+    let objs = this.#cbs[event]
+    if (objs?.length) {
+      const numObjs = objs.length
       for (let index = 0; index < numObjs; index++) {
-        const obj = fnObjs[index]
+        const obj = objs[index]
+        // Remove the observer if the consumer registered it as a "once"ified handler
+        if (obj.once) objs.splice(objs.indexOf(obj), 1)
         // For now we will just use the first return value received
         // as the value to the caller that called emit if they are
         // expecting some value
-        if (obj.once) fnObjs.splice(fnObjs.indexOf(obj), 1)
         if (!result) result = await obj.fn(...args)
         else await obj.fn(...args)
       }
@@ -284,15 +304,16 @@ class Page {
 
   emitSync(event: T.PageEvent | T.PageStatus, ...args: any[]) {
     let result
-    let fnObjs = this.#cbs[event]
-    if (fnObjs?.length) {
-      const numObjs = fnObjs.length
+    let objs = this.#cbs[event]
+    if (objs?.length) {
+      const numObjs = objs.length
       for (let index = 0; index < numObjs; index++) {
-        const obj = fnObjs[index]
+        const obj = objs[index]
+        // Remove the observer if the consumer registered it as a "once"ified handler
+        if (obj.once) objs.splice(objs.indexOf(obj), 1)
         // For now we will just use the first return value received
         // as the value to the caller that called emit if they are
         // expecting some value
-        if (obj.once) fnObjs.splice(fnObjs.indexOf(obj), 1)
         if (!result) result = obj.fn(...args)
         else obj.fn(...args)
       }
@@ -303,6 +324,8 @@ class Page {
   setStatus(status: T.PageStatus) {
     this.#state.status = status
     this.emitSync(status, status)
+    if (status === pageStatus.IDLE) this.setRequestingPage('')
+    else if (status === pageStatus.NAVIGATE_ERROR) this.setRequestingPage('')
     return this
   }
 

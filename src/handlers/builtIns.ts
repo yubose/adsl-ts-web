@@ -84,13 +84,14 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
   builtInActions.cleanLocalStorage = () => window.localStorage.clear()
 
-  builtInActions.goBack = async (action, options) => {
+  builtInActions.goBack = async (action, options, { noodl }) => {
     log.func('goBack')
     log.grey('', { action, ...options })
     if (typeof action.original?.reload === 'boolean') {
-      page.setModifier(page.getState().previous, {
-        reload: action.original.reload,
-      })
+      page.setModifier(
+        page.getPreviousPage(noodl.cadlEndpoint.startPage || '').trim(),
+        { reload: action.original.reload },
+      )
     }
     window.history.back()
   }
@@ -106,11 +107,11 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.red('', Object.assign({ action }, options))
     noodl = noodl || (await import('../app/noodl')).default
     let destination =
-      typeof action === 'string'
+      (typeof action === 'string'
         ? action
         : isPlainObject(action)
         ? action.destination
-        : ''
+        : '') || ''
     if (!destination) {
       log.func('goto')
       log.red(
@@ -118,8 +119,9 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         Object.assign({ action }, options),
       )
     }
-    page.pageUrl = resolvePageUrl(page.pageUrl, {
-      dest: destination || '',
+    page.pageUrl = resolvePageUrl({
+      destination,
+      pageUrl: page.pageUrl,
       startPage: noodl.cadlEndpoint.startPage,
     })
     await page.requestPageChange(destination || '')

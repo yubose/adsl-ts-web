@@ -17,7 +17,7 @@ class ActionChain<
   C extends T.IComponent = any
 > {
   #consumerArgs: T.ActionConsumerCallbackOptions & {
-    trigger: T.ActionChainEmitTrigger
+    trigger: T.ActionChainEmitTrigger[]
   }
   #original: T.ActionObject[]
   #queue: Action[] = []
@@ -41,15 +41,23 @@ class ActionChain<
   >
   intermediary: Action[] = []
   status: 'idle' | 'aborted' | 'in.progress' | null = null
-  trigger: T.ActionChainEmitTrigger
+  trigger: T.ActionChainEmitTrigger[]
 
   constructor(
     actions: T.ActionChainConstructorArgs<C>[0],
     options: T.ActionConsumerCallbackOptions & {
-      trigger: T.ActionChainEmitTrigger
+      trigger: T.ActionChainEmitTrigger | T.ActionChainEmitTrigger[]
     },
     actionsContext: T.ActionChainContext,
   ) {
+
+    if (options?.trigger) {
+      if (typeof options.trigger === 'string') {
+        this.trigger.push(options.trigger)
+      } else if (Array.isArray(options.trigger)) {
+        options.trigger.forEach((t) => this.trigger.push(t))
+      }
+    }
     // @ts-expect-error
     this.#original = isDraft(actions) ? original(actions) : actions
     this.#original = this.#original?.map((a) => {
@@ -59,7 +67,7 @@ class ActionChain<
       else Object.assign(result, obj)
       return result
     }) as ActionObjects
-    this.#consumerArgs = options
+    this.#consumerArgs = {...options,trigger: this.trigger}
     this.actions = this.#original as ActionObjects
     this.actionsContext = actionsContext
     this.component = options.component
@@ -67,7 +75,7 @@ class ActionChain<
       (acc, type) => Object.assign(acc, { [type]: [] }),
       {} as ActionChain['fns']['action'],
     )
-    this.trigger = options.trigger
+   
     this.createAction = createActionCreatorFactory(this, options)
   }
 

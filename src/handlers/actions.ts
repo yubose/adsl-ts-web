@@ -27,6 +27,7 @@ import {
 import {
   createEmitDataKey,
   evalIf,
+  getByDataViewTag,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isPossiblyDataKey,
@@ -35,7 +36,7 @@ import Logger from 'logsnap'
 import { IPage } from '../Page'
 import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
-import { onSelectFile } from '../utils/dom'
+import { onSelectFile, scrollTo } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
 
@@ -69,8 +70,6 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (action: EmitAction, options, { noodl, noodlui }) => {
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, ...options })
-
-      let { dataKey } = action
 
       const emitParams = {
         actions: action.actions,
@@ -196,7 +195,6 @@ const createActions = function ({ page }: { page: IPage }) {
     ) => {
       log.func('path [emit]')
       const { component, context, getRoot, getPageObject, path } = options
-
       const page = context.page || ''
       const dataObject = findListDataObject(component)
       const iteratorVar = component.get('iteratorVar') || ''
@@ -211,16 +209,6 @@ const createActions = function ({ page }: { page: IPage }) {
           [dataObject, () => getPageObject(page), () => getRoot()],
           { iteratorVar },
         )
-      }
-
-      const logArgs = {
-        action,
-        actions: action.actions,
-        component,
-        dataObject,
-        emitParams,
-        iteratorVar,
-        options,
       }
 
       const result = await noodl.emitCall(emitParams)
@@ -317,22 +305,57 @@ const createActions = function ({ page }: { page: IPage }) {
       log.red('goto action', { action, options, actionsContext })
       const { noodl } = actionsContext
       let destination =
-        typeof action.original.goto === 'string'
+        (typeof action.original.goto === 'string'
           ? action.original.goto
           : isPlainObject(action.original.goto)
           ? action.original.destination || action.original.goto
-          : ''
-      if (destination.includes('#')) {
+          : '') || ''
+      /**
+       * The "hash": symbol here is the noodl's separator when we parse the destination for more info that may be contained within it (ex: GoToDashboard#redTag)
+       */
+      // Hash was the previous way but we'll just provide backwards compatibility
+      const denoter = destination.includes('#')
+        ? '#'
+        : destination.includes('/')
+        ? '/'
+        : ''
+      if (denoter) {
+        const defaultDuration = 350
         // Most likely a viewTag on the destination page
-        const elemToScrollTo = destination.split('#')[1]
-        destination = destination.substring(0, destination.indexOf('#'))
+        const [elemIdToScrollTo, serializedProps = ''] = (destination.split(
+          denoter,
+        )[1] as string)?.split(';')
+        let currentKey = ''
+        const props = serializedProps.split(':').reduce((acc, v, index) => {
+          if (index % 2 === 1) acc[currentKey] = v
+          else if (index % 2 === 0) currentKey = v
+          return acc
+        }, {} as any)
+        const duration = Number(
+          action.original?.duration !== undefined
+            ? action.original?.duration
+            : 'duration' in props
+            ? props.duration
+            : defaultDuration,
+        )
+        destination = destination.substring(0, destination.indexOf(denoter))
+        // Scroll to the element when DOM nodes are ready
         page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-          console.log(`pageEvent.ON_COMPONENTS_RENDERED CALLBACK CALLED`)
+          const node = getByDataViewTag(elemIdToScrollTo)
+          if (node) scrollTo(node.getBoundingClientRect().top, duration)
+          else {
+            log.func(pageEvent.ON_COMPONENTS_RENDERED)
+            log.red('Could not find a DOM node to scroll to', {
+              action,
+              options,
+            })
+          }
         })
       }
       if (destination) {
-        page.pageUrl = resolvePageUrl(page.pageUrl, {
-          dest: destination,
+        page.pageUrl = resolvePageUrl({
+          destination,
+          pageUrl: page.pageUrl,
           startPage: noodl.cadlEndpoint.startPage,
         })
         await page.requestPageChange(destination)

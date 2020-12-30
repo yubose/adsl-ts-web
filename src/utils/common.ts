@@ -95,38 +95,43 @@ export function isMobile() {
  * in various forms such as:
  *    GotoViewTag#redTag
  *
- * @param { string } currentUrl - Current page url (should be page.pageUrl from the Page instance)
- * @param { string } options.dest - Destination
+ * @param { string } pageUrl - Current page url (should be page.pageUrl from the Page instance)
+ * @param { string } options.destination - Destination
  * @param { string } options.startPage
  */
-export function resolvePageUrl(
-  currentUrl: string,
-  { dest = '', startPage = '' }: { dest: string; startPage?: string },
-) {
-  currentUrl = currentUrl?.startsWith?.('index.html?')
-    ? currentUrl
-    : currentUrl + 'index.html?'
+export function resolvePageUrl({
+  destination = '',
+  pageUrl = '',
+  startPage = '',
+}: {
+  destination: string
+  pageUrl: string
+  startPage?: string
+}) {
+  pageUrl = pageUrl?.startsWith?.('index.html?')
+    ? pageUrl
+    : pageUrl + 'index.html?'
 
-  let separator = currentUrl.endsWith('?') ? '' : '-'
+  let separator = pageUrl.endsWith('?') ? '' : '-'
 
-  if (dest !== startPage) {
-    const questionMarkIndex = currentUrl.indexOf(`?${dest}`)
-    const hyphenIndex = currentUrl.indexOf(`-${dest}`)
+  if (destination !== startPage) {
+    const questionMarkIndex = pageUrl.indexOf(`?${destination}`)
+    const hyphenIndex = pageUrl.indexOf(`-${destination}`)
     if (questionMarkIndex !== -1) {
-      currentUrl = currentUrl.substring(0, questionMarkIndex + 1)
-      separator = currentUrl.endsWith('?') ? '' : '-'
-      currentUrl += `${separator}${dest}`
+      pageUrl = pageUrl.substring(0, questionMarkIndex + 1)
+      separator = pageUrl.endsWith('?') ? '' : '-'
+      pageUrl += `${separator}${destination}`
     } else if (hyphenIndex !== -1) {
-      currentUrl = currentUrl.substring(0, hyphenIndex)
-      separator = currentUrl.endsWith('?') ? '' : '-'
-      currentUrl += `${separator}${dest}`
+      pageUrl = pageUrl.substring(0, hyphenIndex)
+      separator = pageUrl.endsWith('?') ? '' : '-'
+      pageUrl += `${separator}${destination}`
     } else {
-      currentUrl += `${separator}${dest}`
+      pageUrl += `${separator}${destination}`
     }
   } else {
-    currentUrl = 'index.html?'
+    pageUrl = 'index.html?'
   }
-  return currentUrl
+  return pageUrl
 }
 /**
  * Simulates a user-click and opens the link in a new tab.

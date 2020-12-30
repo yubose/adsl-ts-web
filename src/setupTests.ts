@@ -25,6 +25,8 @@ before(() => {
   Logger.disable()
   // @ts-expect-error
   delete window.location
+  // @ts-expect-error
+  window.location = {}
 
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)

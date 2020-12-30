@@ -203,13 +203,13 @@ class NOODL {
   createActionChainHandler(
     actions: T.ActionObject[],
     options: T.ActionConsumerCallbackOptions & {
-      trigger?: T.ActionChainEmitTrigger
+      trigger?: T.ActionChainEmitTrigger | T.ActionChainEmitTrigger[]
     },
   ) {
     const actionChain = new ActionChain(
       Array.isArray(actions) ? actions : [actions],
       options as T.ActionConsumerCallbackOptions & {
-        trigger: T.ActionChainEmitTrigger
+        trigger: T.ActionChainEmitTrigger | T.ActionChainEmitTrigger[]
       },
       this.actionsContext,
     )
@@ -296,7 +296,9 @@ class NOODL {
       // Emit object evaluation
       else if (isEmitObj(path)) {
         // TODO - narrow this query to avoid only using the first encountered obj
-        const obj = this.#cb.action.emit?.find?.((o) => o?.trigger === 'path')
+        const obj = this.#cb.action.emit?.find?.((o) =>
+          o.trigger?.includes('path'),
+        )
 
         if (typeof obj?.fn === 'function') {
           const emitObj = { ...path, actionType: 'emit' } as T.EmitActionObject
@@ -321,7 +323,8 @@ class NOODL {
           emitAction['callback'] = async (snapshot) => {
             log.grey(`Executing emit action callback`, snapshot)
             const callbacks = (this.#cb.action.emit || []).reduce(
-              (acc, obj) => (obj?.trigger === 'path' ? acc.concat(obj) : acc),
+              (acc, obj) =>
+                obj?.trigger?.includes('path') ? acc.concat(obj) : acc,
               [],
             )
 

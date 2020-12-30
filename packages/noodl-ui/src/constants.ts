@@ -64,6 +64,7 @@ export const contentTypes = [
 ] as const
 
 export const eventTypes = [
+  'onBlur',
   'onClick',
   'onChange',
   'onHover',

@@ -156,8 +156,8 @@ const createActionCreatorFactory = function (
           (acc, a) => {
             if (
               (a.actionType === 'emit' &&
-                !isActionChainEmitTrigger(ref.trigger)) ||
-              ref.trigger !== a.trigger
+                !isActionChainEmitTrigger(a.trigger)) ||
+              !ref.trigger.includes(a.trigger)
             ) {
               return acc
             }

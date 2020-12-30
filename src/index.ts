@@ -48,39 +48,26 @@ window.addEventListener('load', async () => {
   window.noodlui = noodlui
   window.noodluidom = noodluidom
 
-  /** EXPERIMENTAL -- Custom routing */
-  // TODO
   window.addEventListener('popstate', async function onPopState(e) {
-    let pg
+    const goBackPage = page.getPreviousPage(noodl.cadlEndpoint?.startPage)
     let parts = page.pageUrl.split('-')
-
     if (parts.length > 1) {
       parts.pop()
       while (parts[parts.length - 1].endsWith('MenuBar') && parts.length > 1) {
         parts.pop()
       }
       if (parts.length > 1) {
-        pg = parts[parts.length - 1]
         page.pageUrl = parts.join('-')
       } else if (parts.length === 1) {
         if (parts[0].endsWith('MenuBar')) {
           page.pageUrl = 'index.html?'
-          pg = noodl?.cadlEndpoint?.startPage
         } else {
-          pg = parts[0].split('?')[1]
           page.pageUrl = parts[0]
         }
       }
     } else {
       page.pageUrl = 'index.html?'
-      pg = noodl?.cadlEndpoint?.startPage
     }
-    const currentModifiers = page.getState().modifiers[pg]
-    if (currentModifiers) {
-      if (typeof currentModifiers.reload === 'boolean') {
-        page.setModifier(pg, { reload: currentModifiers.reload })
-      }
-    }
-    await page.requestPageChange(pg, { goBack: true })
+    await page.requestPageChange(goBackPage)
   })
 })
