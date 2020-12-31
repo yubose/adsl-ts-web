@@ -83,7 +83,7 @@ describe('events', () => {
   })
 
   // TODO - onEnter and others
-  const eventNames = ['onClick', 'onChange']
+  const eventNames = ['onBlur', 'onClick', 'onChange']
   eventNames.forEach((eventName) => {
     it(`should attach the ${chalk.yellow(eventName)} handler`, () => {
       if (eventName === 'onClick') {

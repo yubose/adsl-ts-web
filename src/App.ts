@@ -140,6 +140,7 @@ class App {
       }
     }
 
+    this.observeInternal(noodlui)
     this.observeViewport(this.getViewportUtils())
     this.observePages(page)
     this.observeMeetings(meeting)
@@ -200,6 +201,17 @@ class App {
 
   getViewportUtils() {
     return this.#viewportUtils
+  }
+
+  // Cleans window.ac (used for debugging atm)
+  observeInternal(noodlui: any) {
+    noodlui.on('page', (pageName: string) => {
+      if (typeof window !== 'undefined' && 'ac' in window) {
+        Object.keys(window.ac).forEach((key) => {
+          delete window.ac[key]
+        })
+      }
+    })
   }
 
   observeViewport(utils: ReturnType<typeof createViewportHandler>) {
@@ -602,11 +614,6 @@ class App {
               [].filter((p) => p !== participant),
           ),
         )
-      })
-      log.func('Meeting.onRemoveRemoteParticipant')
-      log.green('Updated SDK with removal of participant', {
-        newParticipantsList: this.noodl.root?.VideoChat?.listData?.participants,
-        removedParticipant: participant,
       })
       if (!this.meeting.room.participants.size) {
         if (this.meeting.getWaitingMessageElement()) {

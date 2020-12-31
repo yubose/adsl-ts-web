@@ -18,67 +18,67 @@ TestRedaw:
     - key: partnerLogo/mtmccLogo.png
     - key: partnerLogo/pathlabLogo.png
   generalInfo:
-    isPage: "1"
+    isPage: '1'
     solid: circle_solid.png
     hollow: circle_hollow.png
   components:
     - .BaseHeader
     - type: view
       style:
-        left: "0"
-        top: "0"
-        width: "1"
-        height: "10"
-        backgroundColor: "#F5F5F5"
+        left: '0'
+        top: '0'
+        width: '1'
+        height: '10'
+        backgroundColor: '#F5F5F5'
       children:
         - type: view
           style:
-            top: "0.2"
-            width: "1"
-            left: "0"
-            height: "1.2"
-            backgroundColor: "0xffffff"
+            top: '0.2'
+            width: '1'
+            left: '0'
+            height: '1.2'
+            backgroundColor: '0xffffff'
           children:
             - type: label
               text: Our Partners
               style:
-                left: "0.15"
-                width: "0.7"
-                top: "0.04"
-                height: "0.1"
-                color: "0x000000"
+                left: '0.15'
+                width: '0.7'
+                top: '0.04'
+                height: '0.1'
+                color: '0x000000'
                 fontFamily: sans-serif
                 fontSize: 5.5vh
-                fontWeight: "500"
+                fontWeight: '500'
                 textAlign:
                   x: center
             - type: view
               style:
-                width: "1"
-                height: "0.9"
-                left: "0"
-                top: "0.2"
+                width: '1'
+                height: '0.9'
+                left: '0'
+                top: '0.2'
               children:
                 - type: list
                   contentType: listObject
                   listObject: ..logoName
                   iteratorVar: itemObject
                   style:
-                    top: "0"
-                    left: "0"
-                    width: "1"
-                    height: "0.9"
+                    top: '0'
+                    left: '0'
+                    width: '1'
+                    height: '0.9'
                     display: flex
                   viewTag: partnersImage
                   children:
                     - type: listItem
-                      itemObject: ""
+                      itemObject: ''
                       style:
-                        left: "0"
-                        top: "0"
+                        left: '0'
+                        top: '0'
                         display: inline-block
-                        width: "0.24"
-                        height: "0.17"
+                        width: '0.24'
+                        height: '0.17'
                       children:
                         - type: image
                           path:
@@ -91,16 +91,16 @@ TestRedaw:
                                     - $var.key
                                     - $var.key
                           style:
-                            top: "0"
-                            width: "0.18"
-                            left: "0.03"
+                            top: '0'
+                            width: '0.18'
+                            left: '0.03'
             - type: view
               style:
-                top: "0.8"
-                width: "1"
-                left: "0"
-                height: "0.05"
-                backgroundColor: "0xffffff"
+                top: '0.8'
+                width: '1'
+                left: '0'
+                height: '0.05'
+                backgroundColor: '0xffffff'
               viewTag: LogoTag
               children:
                 - type: image
@@ -112,7 +112,7 @@ TestRedaw:
                             - =.builtIn.string.equal:
                                 dataIn:
                                   string1: =.TestRedaw.generalInfo.isPage
-                                  string2: "1"
+                                  string2: '1'
                             - ..generalInfo.solid
                             - ..generalInfo.hollow
                   onClick:
@@ -123,17 +123,17 @@ TestRedaw:
                               - =.builtIn.string.equal:
                                   dataIn:
                                     string1: =.TestRedaw.generalInfo.isPage
-                                    string2: "1"
+                                    string2: '1'
                               - =.builtIn.object.set:
                                   dataIn:
                                     object: =.TestRedaw.generalInfo
                                     key: isPage
-                                    value: "2"
+                                    value: '2'
                               - =.builtIn.object.set:
                                   dataIn:
                                     object: =.TestRedaw.generalInfo
                                     key: isPage
-                                    value: "1"
+                                    value: '1'
                     - actionType: evalObject
                       object:
                         - .TestRedaw.logoName@: =.TestRedaw.logo1
@@ -144,9 +144,9 @@ TestRedaw:
                       funcName: redraw
                       viewTag: partnersImage
                   style:
-                    top: "0"
-                    width: "0.012"
-                    left: "0.48"
+                    top: '0'
+                    width: '0.012'
+                    left: '0.48'
                 - type: image
                   path:
                     emit:
@@ -156,7 +156,7 @@ TestRedaw:
                             - =.builtIn.string.equal:
                                 dataIn:
                                   string1: =.TestRedaw.generalInfo.isPage
-                                  string2: "1"
+                                  string2: '1'
                             - ..generalInfo.hollow
                             - ..generalInfo.solid
                   onClick:
@@ -167,17 +167,17 @@ TestRedaw:
                               - =.builtIn.string.equal:
                                   dataIn:
                                     string1: =.TestRedaw.generalInfo.isPage
-                                    string2: "1"
+                                    string2: '1'
                               - =.builtIn.object.set:
                                   dataIn:
                                     object: =.TestRedaw.generalInfo
                                     key: isPage
-                                    value: "2"
+                                    value: '2'
                               - =.builtIn.object.set:
                                   dataIn:
                                     object: =.TestRedaw.generalInfo
                                     key: isPage
-                                    value: "1"
+                                    value: '1'
                     - actionType: evalObject
                       object:
                         - .TestRedaw.logoName@: =.TestRedaw.logo2
@@ -188,6 +188,6 @@ TestRedaw:
                       funcName: redraw
                       viewTag: partnersImage
                   style:
-                    top: "0"
-                    width: "0.012"
-                    left: "0.5"
+                    top: '0'
+                    width: '0.012'
+                    left: '0.5'

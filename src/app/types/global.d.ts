@@ -13,6 +13,7 @@ declare global {
   interface Window {
     // client.ts
     // index.ts
+    ac: any
     account: any
     app: any
     build: any

@@ -12,7 +12,11 @@ export const actionTypes = [
   'updateObject',
 ] as const
 
-export const actionChainEmitTriggers = ['onClick', 'onChange'] as const
+export const actionChainEmitTriggers = [
+  'onBlur',
+  'onClick',
+  'onChange',
+] as const
 
 export const resolveEmitTriggers = ['dataKey', 'dataValue', 'path'] as const
 

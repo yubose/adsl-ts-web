@@ -126,6 +126,36 @@ const createActions = function ({ page }: { page: IPage }) {
 
   _actions.emit.push({
     fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+      log.func('emit [onBlur]')
+      log.grey('', { action, options })
+
+      const emitParams = {
+        actions: action.actions,
+        pageName: noodlui.page,
+      } as any
+
+      if ('dataKey' in action.original.emit || {}) {
+        emitParams.dataKey = action.dataKey
+      }
+
+      const emitResult = await noodl.emitCall(emitParams)
+
+      log.grey('Called emitCall', {
+        action,
+        actionChain: options.ref,
+        component: options.component,
+        emitParams,
+        emitResult,
+        options,
+      })
+
+      return emitResult
+    },
+    trigger: 'onBlur',
+  })
+
+  _actions.emit.push({
+    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
       log.func('emit [onClick]')
       log.gold('Emitting', { action, noodl, noodlui, ...options })
 
@@ -310,6 +340,7 @@ const createActions = function ({ page }: { page: IPage }) {
           : isPlainObject(action.original.goto)
           ? action.original.destination || action.original.goto
           : '') || ''
+
       /**
        * The "hash": symbol here is the noodl's separator when we parse the destination for more info that may be contained within it (ex: GoToDashboard#redTag)
        */
@@ -320,17 +351,25 @@ const createActions = function ({ page }: { page: IPage }) {
         ? '/'
         : ''
       if (denoter) {
-        const defaultDuration = 350
-        // Most likely a viewTag on the destination page
-        const [elemIdToScrollTo, serializedProps = ''] = (destination.split(
-          denoter,
-        )[1] as string)?.split(';')
+        let isSamePage = false
+        let elemIdToScrollTo = ''
+        let defaultDuration = 350
+        let serializedProps = ''
+        if (destination.indexOf(denoter) === 0) {
+          elemIdToScrollTo = destination.replace(denoter, '')
+          isSamePage = true
+        } else {
+          // Most likely a viewTag on the destination page
+          const parts = (destination.split(denoter)[1] as string)?.split(';')
+          elemIdToScrollTo = parts[0]
+          serializedProps = parts[1] || ''
+        }
         let currentKey = ''
         const props = serializedProps.split(':').reduce((acc, v, index) => {
           if (index % 2 === 1) acc[currentKey] = v
           else if (index % 2 === 0) currentKey = v
           return acc
-        }, {} as any)
+        }, {} as { [key: string]: any })
         const duration = Number(
           action.original?.duration !== undefined
             ? action.original?.duration
@@ -339,18 +378,20 @@ const createActions = function ({ page }: { page: IPage }) {
             : defaultDuration,
         )
         destination = destination.substring(0, destination.indexOf(denoter))
-        // Scroll to the element when DOM nodes are ready
-        page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+        const scrollToNode = () => {
           const node = getByDataViewTag(elemIdToScrollTo)
           if (node) scrollTo(node.getBoundingClientRect().top, duration)
           else {
-            log.func(pageEvent.ON_COMPONENTS_RENDERED)
+            log.func('scrollToNode')
             log.red('Could not find a DOM node to scroll to', {
               action,
               options,
+              elemIdToScrollTo,
             })
           }
-        })
+        }
+        if (isSamePage) scrollToNode()
+        else page.once(pageEvent.ON_COMPONENTS_RENDERED, scrollToNode)
       }
       if (destination) {
         page.pageUrl = resolvePageUrl({

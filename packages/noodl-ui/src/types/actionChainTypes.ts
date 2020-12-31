@@ -26,7 +26,7 @@ export type ActionChainConstructorArgs<C extends Component> = [
     getRoot(): Root
     pageName?: string
     pageObject?: PageObject
-    trigger: ActionChainEmitTrigger | ActionChainEmitTrigger[]
+    trigger: ActionChainEmitTrigger
   },
 ]
 
@@ -52,10 +52,7 @@ export interface ActionChainUseObjectBase<
   actionType: ActionType
   context?: { noodl: NoodlClient }
   fn: ActionChainActionCallback<A>
-  trigger?:
-    | ActionChainEmitTrigger
-    | ResolveEmitTrigger
-    | (ActionChainEmitTrigger | ResolveEmitTrigger)[]
+  trigger?: ActionChainEmitTrigger | ResolveEmitTrigger
 }
 
 export interface ActionChainUseBuiltInObject {
@@ -84,7 +81,7 @@ export interface ActionChainCallbackOptions {
   event: EventTarget | undefined
   parser?: RootsParser
   snapshot: ActionChainSnapshot
-  trigger: ActionTriggerType[]
+  trigger: ActionTriggerType
 }
 
 export interface ActionChainActionCallback<A extends ActionObject = any> {

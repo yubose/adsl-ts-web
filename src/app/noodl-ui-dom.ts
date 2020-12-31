@@ -22,6 +22,15 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
                 eventName: 'onchange',
               }),
             )
+            if (component.get('onBlur')) {
+              ;(node as NOODLDOMElement)?.addEventListener(
+                'blur',
+                createOnDataValueChangeFn(node, component, {
+                  onBlur: component.get('onBlur'),
+                  eventName: 'onblur',
+                }),
+              )
+            }
           },
         )
       },

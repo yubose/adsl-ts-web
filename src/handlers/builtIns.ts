@@ -225,9 +225,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       components.push(component)
     }
 
-    // @ts-expect-error
-    if (component?.id in window.ac) delete window.ac[component?.id]
-
     log.grey(
       `# of components with viewTag "${viewTag}": ${components.length}`,
       components,
@@ -237,7 +234,6 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
       return noodluidom.redraw(node, child, {
         dataObject,
         resolver: (c: any) => {
-          // if (c && c?.id in window.ac) delete window.ac[c.id]
           noodlui.componentCache().set(c)
           return noodlui.resolveComponents(c)
         },
@@ -476,6 +472,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   //     ...[
   //       action,
   //       options,
+
   //       actionsContext,
   //     ]: Parameters<ActionChainActionCallback>
   //   ) => {
