@@ -8,9 +8,9 @@ viewWidthHeightRatio:
   min: '0.7'
   max: '2.0'
 debug: console_log_api
-cadlBaseUrl: http://127.0.0.1:3001/
+cadlBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/testpage0.29/
 cadlMain: cadlEndpoint.yml
-myBaseUrl: http://127.0.0.1:3001/
+myBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/testpage0.29/
 timestamp: 12012020
 bodyTopPplugin: ~/bodyTop.html
 bodyTailPplugin: ~/bodyTail.html

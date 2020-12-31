@@ -1,55 +1,55 @@
 PatientDashboard:
   title: Dashboard
-  pageNumber: '80'
+  pageNumber: "80"
   components:
-    - .BaseHeader:
+    - ? .BaseHeader
     - .HeaderRightImg: null
       path: sideNav2.png
     - type: view
       style:
-        top: '0.1'
-        left: '0'
-        width: '1'
-        height: '0.2'
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.2"
       children:
         - type: view
           style:
-            top: '0.05'
-            width: '0.6'
-            left: '0.2'
-            height: '0.2'
-            backgroundColor: '0x398ECC'
-            boxShadow: '1px 1px #888888'
-            borderRadius: '5'
+            top: "0.05"
+            width: "0.6"
+            left: "0.2"
+            height: "0.2"
+            backgroundColor: "0x398ECC"
+            boxShadow: "1px 1px #888888"
+            borderRadius: "5"
           children:
             - type: image
               path: doctorman.png
               style:
-                top: '0.05'
-                width: '0.15'
-                left: '0.15'
+                top: "0.05"
+                width: "0.15"
+                left: "0.15"
             - type: image
               path: doctorwoman.png
               style:
-                top: '0.05'
-                width: '0.15'
-                left: '0.30'
+                top: "0.05"
+                width: "0.15"
+                left: "0.30"
             - type: label
               text: Meet width Doctor
               style:
-                top: '0.14'
-                fontSize: '16'
-                color: '0xffffff'
+                top: "0.14"
+                fontSize: "16"
+                color: "0xffffff"
                 fontWeight: 360
-                width: '0.6'
+                width: "0.6"
                 textAlign:
                   x: center
     - type: view
       style:
-        top: '0.4'
-        width: '1'
-        left: '0'
-        height: '0.7'
+        top: "0.4"
+        width: "1"
+        left: "0"
+        height: "0.7"
       children:
         - .PatientDashboardView: null
           onClick:
@@ -63,7 +63,7 @@ PatientDashboard:
           onClick:
             - goto: LeftPage
           style:
-            left: '0.55'
+            left: "0.55"
           children:
             - .PatientDashboardImage: null
               path: medical.records.png
@@ -73,7 +73,7 @@ PatientDashboard:
           onClick:
             - goto: RightPage
           style:
-            top: '0.2'
+            top: "0.2"
           children:
             - .PatientDashboardImage: null
               path: profile.png
@@ -83,8 +83,8 @@ PatientDashboard:
           onClick:
             - goto: SelectRedraw
           style:
-            top: '0.2'
-            left: '0.55'
+            top: "0.2"
+            left: "0.55"
           children:
             - .PatientDashboardImage: null
               path: remote.health.png
@@ -94,7 +94,7 @@ PatientDashboard:
           onClick:
             - goto: PatientChart
           style:
-            top: '0.4'
+            top: "0.4"
           children:
             - .PatientDashboardImage: null
               path: create.appointment.png
@@ -104,8 +104,8 @@ PatientDashboard:
           onClick:
             - goto: EmitRedraw
           style:
-            top: '0.4'
-            left: '0.55'
+            top: "0.4"
+            left: "0.55"
           children:
             - .PatientDashboardImage: null
               path: contacts.png
@@ -113,9 +113,9 @@ PatientDashboard:
               text: EmitRedraw
         - .PatientDashboardView: null
           onClick:
-            - goto: GotoViewTag^blueTag
+            - goto: GotoViewTag#redTag
           style:
-            top: '0.6'
+            top: "0.6"
           children:
             - .PatientDashboardImage: null
               path: create.appointment.png
@@ -125,8 +125,8 @@ PatientDashboard:
           onClick:
             - goto: TestRedaw
           style:
-            top: '0.6'
-            left: '0.55'
+            top: "0.6"
+            left: "0.55"
           children:
             - .PatientDashboardImage: null
               path: contacts.png
