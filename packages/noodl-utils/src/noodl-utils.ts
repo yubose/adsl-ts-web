@@ -206,7 +206,7 @@ export const parse = (function () {
               : duration
           }
         } else {
-          result.destination = destination
+          result.destination = destination.replace(denoter, '')
           result.isSamePage = false
         }
       } else {
