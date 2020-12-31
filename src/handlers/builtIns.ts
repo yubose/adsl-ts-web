@@ -99,14 +99,19 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     window.history.back()
   }
 
+  // Currently, goto can be invoked from the "init" in a page object, resulting
+  // in options and noodl to be undefined.
+  // TODO - wrap and autoconvert non-action instances
   // @ts-expect-error
   builtInActions.goto = async (
     action: GotoURL | GotoObject,
     options,
-    { noodl },
+    // @ts-expect-error
+    { noodl } = {},
   ) => {
     log.func('goto')
     log.red('', { action, ...options })
+    noodl = noodl || (await import('../app/noodl')).default
     const { destination, id = '', isSamePage, duration } = parse.destination(
       (typeof action === 'string'
         ? action
