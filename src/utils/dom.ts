@@ -166,6 +166,13 @@ export function scrollTo(to = 0, duration = 16) {
   })
 }
 
+export function scrollToElem(
+  node: any,
+  { duration }: { duration?: number } = {},
+) {
+  if (node) scrollTo(node.getBoundingClientRect().top, duration)
+}
+
 /**
  * Toggles the visibility state of a DOM node. If a condition func is passed,
  * it will be called and passed an object with a "isHidden" prop that reveals its

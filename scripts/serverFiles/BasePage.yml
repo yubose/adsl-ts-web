@@ -323,8 +323,9 @@ PatientChartHistoryLabel:
     fontFamily: sans-serif
 ProgressField:
   type: view
-  height: "0.15"
-  width: "0.07"
+  style:
+    height: "0.15"
+    width: "0.07"
 Progress10:
   type: view
   style:

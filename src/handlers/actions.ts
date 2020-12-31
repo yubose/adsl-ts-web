@@ -31,11 +31,13 @@ import {
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isPossiblyDataKey,
+  parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import { IPage } from '../Page'
 import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
+import { scrollToElem } from '../utils/dom'
 import { onSelectFile, scrollTo } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
@@ -334,78 +336,34 @@ const createActions = function ({ page }: { page: IPage }) {
       log.func('_actions.goto')
       log.red('goto action', { action, options, actionsContext })
       const { noodl } = actionsContext
-      let destination =
+      const { destination, id = '', isSamePage, duration } = parse.destination(
         (typeof action.original.goto === 'string'
           ? action.original.goto
           : isPlainObject(action.original.goto)
           ? action.original.destination || action.original.goto
-          : '') || ''
-
-      /**
-       * The "hash": symbol here is the noodl's separator when we parse the destination for more info that may be contained within it (ex: GoToDashboard#redTag)
-       */
-      // Hash was the previous way but we'll just provide backwards compatibility
-      const denoter = destination.includes('#')
-        ? '#'
-        : destination.includes('/')
-        ? '/'
-        : ''
-      if (denoter) {
-        let isSamePage = false
-        let elemIdToScrollTo = ''
-        let defaultDuration = 350
-        let serializedProps = ''
-        if (destination.indexOf(denoter) === 0) {
-          elemIdToScrollTo = destination.replace(denoter, '')
-          isSamePage = true
-        } else {
-          // Most likely a viewTag on the destination page
-          const parts = (destination.split(denoter)[1] as string)?.split(';')
-          elemIdToScrollTo = parts[0]
-          serializedProps = parts[1] || ''
+          : '') || '',
+      )
+      if (isSamePage) {
+        scrollToElem(getByDataViewTag(id), { duration })
+      } else {
+        if (id) {
+          page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+            scrollToElem(getByDataViewTag(id), { duration })
+          })
         }
-        let currentKey = ''
-        const props = serializedProps.split(':').reduce((acc, v, index) => {
-          if (index % 2 === 1) acc[currentKey] = v
-          else if (index % 2 === 0) currentKey = v
-          return acc
-        }, {} as { [key: string]: any })
-        const duration = Number(
-          action.original?.duration !== undefined
-            ? action.original?.duration
-            : 'duration' in props
-            ? props.duration
-            : defaultDuration,
-        )
-        destination = destination.substring(0, destination.indexOf(denoter))
-        const scrollToNode = () => {
-          const node = getByDataViewTag(elemIdToScrollTo)
-          if (node) scrollTo(node.getBoundingClientRect().top, duration)
-          else {
-            log.func('scrollToNode')
-            log.red('Could not find a DOM node to scroll to', {
-              action,
-              options,
-              elemIdToScrollTo,
-            })
-          }
-        }
-        if (isSamePage) scrollToNode()
-        else page.once(pageEvent.ON_COMPONENTS_RENDERED, scrollToNode)
-      }
-      if (destination) {
         page.pageUrl = resolvePageUrl({
           destination,
           pageUrl: page.pageUrl,
           startPage: noodl.cadlEndpoint.startPage,
         })
         await page.requestPageChange(destination)
-      } else {
-        log.func('goto')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          { action, ...options },
-        )
+        if (!destination) {
+          log.func('goto')
+          log.red(
+            'Tried to go to a page but could not find information on the whereabouts',
+            { action, ...options },
+          )
+        }
       }
     },
   })

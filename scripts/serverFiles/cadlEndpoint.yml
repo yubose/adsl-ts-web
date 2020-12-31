@@ -31,3 +31,5 @@ page:
   - SelectRedraw
   - TestRedaw
   - GotoViewTag
+  - LeftPage
+  - RightPage

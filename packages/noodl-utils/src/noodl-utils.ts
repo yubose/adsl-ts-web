@@ -1,7 +1,7 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
 import { ActionObject } from 'noodl-types'
-import { isArr, isObj, isStr, unwrapObj } from './_internal'
+import { isArr, isNum, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
 
 /**
@@ -153,3 +153,68 @@ export function getDataValue<T = any>(
     }
   }
 }
+
+export const parse = (function () {
+  const o = {
+    /**
+     * Parses a destination string
+     * (In most scenarios it will be coming from goto actions)
+     * @param { string } destination
+     */
+    destination(
+      destination: string,
+      {
+        denoter = '^',
+        duration = 350,
+      }: { denoter?: string; duration?: number } = {},
+    ) {
+      const result = { duration } as {
+        destination: string
+        id?: string
+        isSamePage?: boolean
+        duration: number
+        [key: string]: any
+      }
+      if (isStr(destination)) {
+        if (denoter && destination.includes(denoter)) {
+          if (destination.indexOf(denoter) === 0) {
+            // Most likely a viewTag on the destination page.
+            // For now we will just always assume it represents an
+            // html element holding the viewTag
+            result.destination = ''
+            result.id = destination.replace(denoter, '')
+            result.isSamePage = true
+          } else {
+            const parts = destination.split(denoter)[1]?.split(';')
+            let serializedProps = parts?.[1] || ''
+            let propKey = ''
+            if (serializedProps.startsWith(';')) {
+              serializedProps = serializedProps.replace(';', '')
+            }
+            result.id = parts?.[0] || ''
+            result.isSamePage = false
+            result.destination = destination.substring(
+              0,
+              destination.indexOf(denoter),
+            )
+            serializedProps.split(':').forEach((v, index) => {
+              if (index % 2 === 1) result[propKey] = v
+              else if (index % 2 === 0) propKey = v
+            })
+            result.duration = isNum(result.props?.duration)
+              ? result.props.duration
+              : duration
+          }
+        } else {
+          result.destination = destination
+          result.isSamePage = false
+        }
+      } else {
+        result.destination = ''
+      }
+      return result
+    },
+  }
+
+  return o
+})()

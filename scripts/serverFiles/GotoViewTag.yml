@@ -2,51 +2,51 @@ GotoViewTag:
   components:
     - type: view
       style:
-        left: '0'
-        top: '0'
-        width: '1'
-        height: '10'
-        backgroundColor: '#F5F5F5'
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "10"
+        backgroundColor: "#F5F5F5"
       children:
         - .SmallButton: null
           text: go red
           onClick:
-            - goto:
+            - goto: ^redTag
           style:
-            top: '0.02'
-            left: '0.3'
+            top: "0.02"
+            left: "0.3"
         - .SmallButton: null
           text: go green
           onClick:
-            - goto:
+            - goto: ^greenTag
           style:
-            top: '0.02'
-            left: '0.45'
+            top: "0.02"
+            left: "0.45"
         - .SmallButton: null
           text: go blue
           onClick:
-            - goto: /blueTag
+            - goto: ^blueTag
           style:
-            top: '0.02'
-            left: '0.6'
+            top: "0.02"
+            left: "0.6"
         - type: view
           viewTag: redTag
           style:
-            top: '0.15'
-            width: '1'
-            height: '0.8'
-            backgroundColor: '0xD74E57'
+            top: "0.15"
+            width: "1"
+            height: "0.8"
+            backgroundColor: "0xD74E57"
         - type: view
           viewTag: greenTag
           style:
-            top: '0.95'
-            width: '1'
-            height: '0.8'
-            backgroundColor: '0x288C4C'
+            top: "0.95"
+            width: "1"
+            height: "0.8"
+            backgroundColor: "0x288C4C"
         - type: view
           viewTag: blueTag
           style:
-            top: '1.75'
-            width: '1'
-            height: '0.8'
-            backgroundColor: '0x388ECC'
+            top: "1.75"
+            width: "1"
+            height: "0.8"
+            backgroundColor: "0x388ECC"

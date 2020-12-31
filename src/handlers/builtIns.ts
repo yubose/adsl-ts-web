@@ -25,15 +25,18 @@ import {
   Room,
 } from 'twilio-video'
 import {
+  getByDataViewTag,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isBooleanFalse,
+  parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import Page from '../Page'
 import { resolvePageUrl } from '../utils/common'
-import { toggleVisibility } from '../utils/dom'
+import { scrollToElem, toggleVisibility } from '../utils/dom'
 import { BuiltInActions } from '../app/types'
+import { pageEvent } from '../constants'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
@@ -100,31 +103,39 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
   builtInActions.goto = async (
     action: GotoURL | GotoObject,
     options,
-    // @ts-expect-error
-    { noodl } = {},
+    { noodl },
   ) => {
     log.func('goto')
-    log.red('', Object.assign({ action }, options))
-    noodl = noodl || (await import('../app/noodl')).default
-    let destination =
+    log.red('', { action, ...options })
+    const { destination, id = '', isSamePage, duration } = parse.destination(
       (typeof action === 'string'
         ? action
         : isPlainObject(action)
         ? action.destination
-        : '') || ''
-    if (!destination) {
-      log.func('goto')
-      log.red(
-        'Tried to go to a page but could not find information on the whereabouts',
-        Object.assign({ action }, options),
-      )
+        : '') || '',
+    )
+    if (isSamePage) {
+      scrollToElem(getByDataViewTag(id), { duration })
+    } else {
+      if (id) {
+        page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+          scrollToElem(getByDataViewTag(id), { duration })
+        })
+      }
+      page.pageUrl = resolvePageUrl({
+        destination,
+        pageUrl: page.pageUrl,
+        startPage: noodl.cadlEndpoint.startPage,
+      })
+      await page.requestPageChange(destination)
+      if (!destination) {
+        log.func('builtIn:goto')
+        log.red(
+          'Tried to go to a page but could not find information on the whereabouts',
+          { action, ...options },
+        )
+      }
     }
-    page.pageUrl = resolvePageUrl({
-      destination,
-      pageUrl: page.pageUrl,
-      startPage: noodl.cadlEndpoint.startPage,
-    })
-    await page.requestPageChange(destination || '')
   }
 
   /** Shared common logic for both lock/logout logic */

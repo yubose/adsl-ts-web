@@ -95,6 +95,7 @@ This allows for faster compilation, faster load times and quicker development fl
 9. View tag scrolling
    1. `goto: #genderTag` --> scroll to node with the `genderTag` viewTag
    2. `pageName#genderTag` --> navigate to page then scroll to the `genderTag` viewTag
+10. emit return value as toast --> `{ toast: { message: '', style: {} } }`
 
 ## Navigating pages
 
@@ -128,7 +129,6 @@ This allows for faster compilation, faster load times and quicker development fl
 | sid | name |
 | --- | ---- |
 
-
 PA9211e55522d08dd12bff0cb845cd9d6f | 8882465555 (Laptop - main)
 PA66a90e64872904394caf2891b69880f0 | 8882468491 (Laptop - 2nd)
 PA15c1e191d9ad973fb473c12c471a3882 | 8882468491
@@ -136,3 +136,14 @@ PA0e4bd0e3c2d8bc33b7c372f83320084c | 8882468491
 PAc1893f64325658d1acec25e99a158da7 | 8882462345 (Desktop)
 
 ---
+
+## goto examples
+
+```yml
+- goto: AbcDashboard^redTag
+- goto: AbcDashboard^redTag;duration:15000 # slow scroll effect for 15 seconds
+- goto: AbcDashboard^redTag;duration:0 # instantly scroll to element
+- goto: AbcDashboard^redTag # defaulted to 350 ms
+- goto: ^redTag # defaulted to 350 ms
+- goto: ^redTag;duration:15000 # slow scroll effect for 15 seconds
+```
