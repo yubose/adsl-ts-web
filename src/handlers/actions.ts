@@ -39,6 +39,7 @@ import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
 import { scrollToElem } from '../utils/dom'
 import { onSelectFile, scrollTo } from '../utils/dom'
+import { emit } from 'noodl-ui-dom/dist/__tests__/helpers/actions'
 
 const log = Logger.create('actions.ts')
 
@@ -234,6 +235,20 @@ const createActions = function ({ page }: { page: IPage }) {
         actions: path.emit.actions,
         pageName: page,
       } as any
+
+      if (
+        action.dataKey &&
+        'var' in action.dataKey &&
+        action.dataKey.var === undefined &&
+        action.original.emit.dataKey
+      ) {
+        const dataKey = createEmitDataKey(
+          action.original.emit.dataKey,
+          [dataObject, () => getPageObject(page), () => getRoot()],
+          { iteratorVar },
+        )
+        // debugger
+      }
 
       if (action.original.emit.dataKey) {
         emitParams.dataKey = createEmitDataKey(

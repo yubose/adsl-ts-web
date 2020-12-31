@@ -30,6 +30,7 @@ page:
   - PatientChartAddHospitalization
   - SelectRedraw
   - TestRedaw
+  - TestRedraw
   - GotoViewTag
   - LeftPage
   - RightPage

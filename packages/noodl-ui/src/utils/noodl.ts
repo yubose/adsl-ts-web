@@ -224,7 +224,7 @@ export function findParent<C extends ComponentInstance>(
   return parent || null
 }
 
-export function findListDataObject(component: any) {
+export function findListDataObject(component: ComponentInstance) {
   let dataObject
   let listItem: any
   if (component?.noodlType === 'listItem') {

@@ -25,6 +25,7 @@ export function createEmitDataKey(
     )
   } else if (isObj(dataKey)) {
     return Object.keys(dataKey).reduce((acc, property) => {
+      debugger
       acc[property] = findDataValue(
         dataObject,
         excludeIteratorVar(dataKey[property], opts?.iteratorVar),
@@ -161,21 +162,28 @@ export const parse = (function () {
      * (In most scenarios it will be coming from goto actions)
      * @param { string } destination
      */
-    destination(
-      destination: string,
-      {
-        denoter = '^',
-        duration = 350,
-      }: { denoter?: string; duration?: number } = {},
-    ) {
-      const result = { duration } as {
+    destination<
+      RT extends {
         destination: string
         id?: string
         isSamePage?: boolean
         duration: number
         [key: string]: any
-      }
+      } = any
+    >(
+      destination: string,
+      {
+        denoter = '^',
+        duration = 350,
+      }: { denoter?: string; duration?: number } = {},
+    ): RT {
+      const result = { duration } as RT
       if (isStr(destination)) {
+        // TEMP here until cache issue is fixed
+        if (!destination.includes(denoter)) {
+          if (destination.includes('#')) denoter = '#'
+          else if (destination.includes('/')) denoter = '/'
+        }
         if (denoter && destination.includes(denoter)) {
           if (destination.indexOf(denoter) === 0) {
             // Most likely a viewTag on the destination page.
@@ -198,7 +206,7 @@ export const parse = (function () {
               destination.indexOf(denoter),
             )
             serializedProps.split(':').forEach((v, index) => {
-              if (index % 2 === 1) result[propKey] = v
+              if (index % 2 === 1) (result as any)[propKey] = v
               else if (index % 2 === 0) propKey = v
             })
             result.duration = isNum(result.props?.duration)

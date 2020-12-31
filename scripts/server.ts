@@ -23,6 +23,7 @@ const cadlEndpointConfig = yaml.parse(loadFile('cadlEndpoint.yml'))
 const basePages = cadlEndpointConfig.preload
 const pages = cadlEndpointConfig.page
 const assetPaths = fs.readdirSync(getServerFilePath('assets'), 'utf8')
+console.log(assetPaths)
 
 // console.log(`BASE PAGES: `, basePages)
 // console.log(`PAGES: `, pages)
@@ -63,14 +64,25 @@ files.pages.forEach((page) => {
   const route = `/${page}_en.yml`
   const obj = loadFile(page + '.yml')
   app.get(route, (req, res) => {
+    console.log()
     res.send(obj)
   })
 })
 
 assetPaths.forEach((assetPath) => {
+  app.get(`/assets/partnerLogo/${assetPath}`, (req, res) => {
+    res
+      .writeHead(200, 'buffer', { 'Content-Type': 'image/png' })
+      .end(fs.readFileSync(getServerFilePath(`/assets/${assetPath}`)))
+  })
   app.get(`/assets/${assetPath}`, (req, res) => {
     res
-      .writeHead(200, { 'Content-Type': 'image/png' }, 'buffer')
+      .writeHead(200, 'buffer', { 'Content-Type': 'image/png' })
+      .end(fs.readFileSync(getServerFilePath(`/assets/${assetPath}`)))
+  })
+  app.get(`/${assetPath}`, (req, res) => {
+    res
+      .writeHead(200, 'buffer', { 'Content-Type': 'image/png' })
       .end(fs.readFileSync(getServerFilePath(`/assets/${assetPath}`)))
   })
 })

@@ -19,14 +19,18 @@ window.addEventListener('load', async () => {
   const actions = createActions({ page })
   const builtIn = createBuiltInActions({ page })
 
-  await app.initialize({
-    actions,
-    builtIn,
-    meeting: Meeting,
-    noodlui,
-    noodluidom,
-    page,
-  })
+  try {
+    await app.initialize({
+      actions,
+      builtIn,
+      meeting: Meeting,
+      noodlui,
+      noodluidom,
+      page,
+    })
+  } catch (error) {
+    console.error(error)
+  }
 
   window.app = {
     Account,
