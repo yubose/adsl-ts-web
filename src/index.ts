@@ -1,5 +1,3 @@
-import { getByDataUX } from 'noodl-ui-dom'
-import { getDataValues } from 'noodl-ui'
 import { copyToClipboard } from './utils/dom'
 import createActions from './handlers/actions'
 import createBuiltInActions from './handlers/builtIns'
@@ -11,7 +9,7 @@ import './styles.css'
 window.addEventListener('load', async () => {
   const { Account } = await import('@aitmed/cadl')
   const { default: noodl } = await import('app/noodl')
-  const { default: noodlui } = await import('app/noodl-ui')
+  const { default: noodlui, getWindowHelpers } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
 
   const page = new Page()
@@ -46,11 +44,10 @@ window.addEventListener('load', async () => {
   window.build = process.env.BUILD
   window.componentCache = noodlui.componentCache.bind(noodlui)
   window.cp = copyToClipboard
-  window.getByDataUX = getByDataUX
-  window.getDataValues = getDataValues
   window.noodl = noodl
   window.noodlui = noodlui
   window.noodluidom = noodluidom
+  Object.assign(window, getWindowHelpers())
 
   window.addEventListener('popstate', async function onPopState(e) {
     const goBackPage = page.getPreviousPage(noodl.cadlEndpoint?.startPage)
@@ -75,3 +72,5 @@ window.addEventListener('load', async () => {
     await page.requestPageChange(goBackPage)
   })
 })
+
+async function populateWindowWithNOODLUiHelpers() {}

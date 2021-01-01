@@ -15,6 +15,7 @@ import {
   EmitObject,
   EvalObject,
   findListDataObject,
+  findParent,
   getDataValues,
   IfObject,
   isReference,
@@ -39,7 +40,6 @@ import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
 import { scrollToElem } from '../utils/dom'
 import { onSelectFile, scrollTo } from '../utils/dom'
-import { emit } from 'noodl-ui-dom/dist/__tests__/helpers/actions'
 
 const log = Logger.create('actions.ts')
 
@@ -230,7 +230,12 @@ const createActions = function ({ page }: { page: IPage }) {
       const { component, context, getRoot, getPageObject, path } = options
       const page = context.page || ''
       const dataObject = findListDataObject(component)
-      const iteratorVar = component.get('iteratorVar') || ''
+      const iteratorVar =
+        component.get('iteratorVar') ||
+        findParent(component, (p: any) => !!p?.get?.('iteratorVar'))?.get?.(
+          'iteratorVar',
+        ) ||
+        ''
       const emitParams = {
         actions: path.emit.actions,
         pageName: page,

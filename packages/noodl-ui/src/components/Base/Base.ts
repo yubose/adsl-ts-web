@@ -60,9 +60,9 @@ class Component implements IComponent {
     this['unhandled'] = keys.slice()
 
     this.#cache = {}
-    this.#component = createComponentDraftSafely(component) as WritableDraft<
-      ComponentObject
-    >
+    this.#component = createComponentDraftSafely(
+      component,
+    ) as WritableDraft<ComponentObject>
 
     this['id'] = this.#component.id || getRandomKey()
     this['noodlType'] = this.#component.noodlType as any
@@ -356,9 +356,11 @@ class Component implements IComponent {
       if (key === 'style') {
         if (typeof this.#component.style !== 'object') {
           log.func('assign')
-          log.red(`Cannot assign style object properties to a type "${typeof this.#component.style}"`, ,{
-            key,value,style:this.#component.style
-          })
+          log.red(
+            `Cannot assign style object properties to a type "${typeof this
+              .#component.style}"`,
+            { key, value, style: this.#component.style },
+          )
         } else {
           Object.assign(this.#component.style, value)
         }

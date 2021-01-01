@@ -255,6 +255,10 @@ export function findListDataObject(component: ComponentInstance) {
   return dataObject || null
 }
 
+export function findIteratorVar(component: ComponentInstance) {
+  const listItem = findParent(component, (p) => {})
+}
+
 /**
  * Returns the node matching the data key
  * @param { string } dataKey - Data path leading to the value in the data model object
@@ -511,7 +515,7 @@ export function publish(
   ) {
     component.children().forEach((child: ComponentInstance) => {
       cb(child)
-      child?.children()?.forEach?.((c) => {
+      child?.children()?.forEach?.((c: ComponentInstance) => {
         cb(c)
         publish(c, cb)
       })

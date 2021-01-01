@@ -13,23 +13,24 @@ import { ComponentInstance } from '../../types'
 const _internalResolver = new Resolver()
 
 _internalResolver.setResolver((component, options) => {
+  const run = (child: any) => {
+    if (child) {
+      if (child.noodlType === 'list') {
+        return handleList(child, options, _internalResolver)
+      }
+      if (child.get('textBoard')) {
+        return handleTextboard(child, options, _internalResolver)
+      }
+      return resolveChildren(child)
+    }
+  }
   /**
    * Deeply parses every child node in the tree
    * @param { ComponentInstance } c
    */
   const resolveChildren = (c: ComponentInstance) => {
     _resolveChildren(c, {
-      onResolve: (child: any) => {
-        if (child) {
-          if (child.noodlType === 'list') {
-            return handleList(child, options, _internalResolver)
-          }
-          if (child.get('textBoard')) {
-            return handleTextboard(child, options, _internalResolver)
-          }
-          return resolveChildren(child)
-        }
-      },
+      onResolve: run,
       resolveComponent: options.resolveComponent,
     })
   }
@@ -43,6 +44,7 @@ _internalResolver.setResolver((component, options) => {
     }
   }
 
+  run(component)
   resolveChildren(component)
   resolveInternalNode(component)
 })

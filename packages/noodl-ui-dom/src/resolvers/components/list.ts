@@ -24,9 +24,7 @@ export default {
     }
   },
   resolve(node: HTMLUListElement, component: List, resolveOpts) {
-    // TODO - noodlui / redraw is UNDEFINED HERE. INVESTIGATE THIS
     const { noodlui, parse, redraw } = resolveOpts
-    console.log('resolveOpts', resolveOpts)
     component.on(
       noodluiEvent.component.list.CREATE_LIST_ITEM,
       (result, options) => {

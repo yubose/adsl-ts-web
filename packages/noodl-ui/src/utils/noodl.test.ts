@@ -7,6 +7,14 @@ import ListItem from '../components/ListItem'
 import * as n from './noodl'
 
 describe('noodl (utils)', () => {
+  describe.only(`createDeepChildren`, () => {
+    it(`should create/parse everything from a raw noodl object`, () => {
+      n.createDeepChildren('view', {
+        depth: 10,
+      })
+    })
+  })
+
   it('should call the callback everytime a nested child is encountered', () => {
     const spy = sinon.spy()
     const component = {
@@ -84,7 +92,7 @@ describe('noodl (utils)', () => {
 
   describe('findParent', () => {
     it('should be able to find grand parents by traversing up the chain', () => {
-      const component = createComponent({ type: 'view' })
+      const component = createComponent({ type: 'view', children: [] })
       const child = component.createChild(createComponent('list') as any)
       const childOfChild = child.createChild(createComponent('listItem') as any)
       const childOfChildOfChild = childOfChild.createChild(

@@ -9,12 +9,13 @@ import {
   ActionConsumerCallbackOptions,
   BuiltInObject,
   Component,
+  ComponentInstance,
   EmitAction,
   findListDataObject,
   getDataValues,
   GotoURL,
   GotoObject,
-  ComponentInstance,
+  publish,
 } from 'noodl-ui'
 import { getByDataUX } from 'noodl-ui-dom'
 import {
@@ -207,10 +208,10 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
 
     let components = Object.values(
       noodlui.componentCache().state() || {},
-    ).reduce((acc, c: any) => {
+    ).reduce((acc: ComponentInstance[], c: any) => {
       if (c && c.get('viewTag') === viewTag) return acc.concat(c)
       return acc
-    }, []) as ComponentInstance[]
+    }, [])
 
     log.gold('viewTaggedComponents', {
       viewtagged: components?.reduce((acc, c) => {
@@ -222,6 +223,20 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
         return acc
       }, {}),
     })
+
+    const cleanup = (component: ComponentInstance) => {
+      noodlui.componentCache().remove(component)
+      publish(component, (c) => {
+        console.log('HELLO:', c)
+        if (c) {
+          log.func('redraw [cleanup]')
+          log.grey(`Cleaning component ${component.id} from the cache`, c)
+          noodlui.componentCache().remove(c)
+        }
+      })
+    }
+
+    cleanup(options?.component)
 
     // let components =
     //   (viewTag &&

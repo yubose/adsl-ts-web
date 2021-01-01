@@ -13,6 +13,7 @@ class ListItem extends Component {
   #listIndex: null | number = null
   #iteratorVar: string = ''
   #cb = { redraw: [] }
+  hasDataObject: boolean = false
   values: { [dataKey: string]: any }
 
   constructor(...args: ConstructorParameters<ComponentConstructor>)
@@ -21,9 +22,9 @@ class ListItem extends Component {
     super(
       ...((args.length
         ? args
-        : [{ type: 'listItem' }]) as ConstructorParameters<
-        ComponentConstructor
-      >),
+        : [
+            { type: 'listItem' },
+          ]) as ConstructorParameters<ComponentConstructor>),
     )
   }
 
@@ -112,6 +113,7 @@ class ListItem extends Component {
 
   setDataObject<T>(data: T) {
     this.#dataObject = data
+    this.hasDataObject = !!this.#dataObject
     return this
   }
 
