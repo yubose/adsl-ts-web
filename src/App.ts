@@ -1,6 +1,6 @@
 import axios from 'axios'
 import Logger from 'logsnap'
-import NOODLUIDOM from 'noodl-ui-dom'
+import NOODLUIDOM, { eventId } from 'noodl-ui-dom'
 import set from 'lodash/set'
 import some from 'lodash/some'
 import {
@@ -43,6 +43,7 @@ import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
+import { publish } from 'noodl-ui'
 
 const log = Logger.create('App.ts')
 
@@ -625,6 +626,21 @@ class App {
     /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
+
+    this.noodluidom.configure({
+      redraw: {
+        resolveComponents: this.noodlui.resolveComponents.bind(this.noodlui),
+      },
+    })
+
+    this.noodluidom.on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
+      console.log('Removed from componentCache: ' + component.id)
+      this.noodlui.componentCache().remove(component)
+      publish(component, (c) => {
+        console.log('Removed from componentCache: ' + component.id)
+        this.noodlui.componentCache().remove(c)
+      })
+    })
 
     this.noodluidom.register({
       name: 'meeting',

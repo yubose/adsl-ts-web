@@ -1,35 +1,11 @@
-import {
-  ComponentInstance,
-  getElementType,
-  getAlignAttrs,
-  getBorderAttrs,
-  getCustomDataAttrs,
-  getColors,
-  getEventHandlers,
-  getFontAttrs,
-  getPlugins,
-  getPosition,
-  getReferences,
-  getStylesByElementType,
-  getSizes,
-  getTransformedAliases,
-  getTransformedStyleAliases,
-  isComponent,
-  NOODL as NOODLUI,
-  ResolverFn,
-  Viewport,
-} from 'noodl-ui'
-import * as resolvers from './resolvers'
-import { NOODLDOMElement, NodeResolverConfig } from './types'
+import { ComponentInstance, NOODL as NOODLUI, Viewport } from 'noodl-ui'
+import { NOODLDOMElement } from './types'
 import NOODLUIDOM from './noodl-ui-dom'
 
 export const assetsUrl = 'https://aitmed.com/assets/'
 export const noodluidom = new NOODLUIDOM()
 export const noodlui = new NOODLUI()
 export const viewport = new Viewport()
-
-viewport.width = 365
-viewport.height = 667
 
 /**
  * A helper that tests a noodl-ui-dom DOM resolver. This automatically prepares
@@ -42,7 +18,7 @@ export function applyMockDOMResolver(opts: {
   component?: any
   pageName?: string
   pageObject?: any
-  resolver: NodeResolverConfig
+  resolver: any
   root?: { [key: string]: any }
 }) {
   const utils = {
@@ -68,34 +44,6 @@ export function applyMockDOMResolver(opts: {
   utils.component = noodlui.resolveComponents(opts.component)
   utils.node = noodluidom.draw(utils.component) as NOODLDOMElement
   return utils
-}
-
-export function getAllResolvers() {
-  return [
-    getAlignAttrs,
-    getBorderAttrs,
-    getColors,
-    getCustomDataAttrs,
-    getElementType,
-    getEventHandlers,
-    getFontAttrs,
-    getPlugins,
-    getPosition,
-    getReferences,
-    getSizes,
-    getStylesByElementType,
-    getTransformedAliases,
-    getTransformedStyleAliases,
-  ] as ResolverFn[]
-}
-
-export function getDOMResolver(key: keyof typeof resolvers) {
-  return resolvers[key]
-}
-
-export function getDOMResolvers(asFuncs?: boolean) {
-  if (asFuncs) return Object.values(resolvers)
-  return resolvers
 }
 
 export function toDOM<

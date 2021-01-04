@@ -1,9 +1,28 @@
 import chalk from 'chalk'
-import { List, ListItem } from 'noodl-ui'
+import { List, ListItem, NOODLComponent } from 'noodl-ui'
 import { prettyDOM, screen } from '@testing-library/dom'
 import { expect } from 'chai'
 import { applyMockDOMResolver, noodlui, toDOM } from '../test-utils'
 import * as resolvers from '../resolvers'
+
+const getNoodlList = () =>
+  ({
+    type: 'list',
+    iteratorVar: 'itemObject',
+    listObject: [
+      { key: 'gender', value: 'Male' },
+      { key: 'gender', value: 'Female' },
+      { key: 'gender', value: 'Other' },
+    ],
+    children: [
+      {
+        type: 'listItem',
+        children: [{ type: 'label', dataKey: 'itemObject.value' }],
+      },
+    ],
+  } as NOODLComponent)
+
+const getList = () => noodlui.resolveComponents(getNoodlList())
 
 describe('internal resolvers', () => {
   it('should display data value if it is displayable', () => {
@@ -136,57 +155,47 @@ describe('label', () => {
 })
 
 describe('list', () => {
-  xit(
-    `should attach to noodlui cache when receiving the ` +
-      `${chalk.yellow('create.list.item')} event`,
-    () => {
-      const result = applyMockDOMResolver({
-        component: {
-          type: 'list',
-          iteratorVar: 'hello',
-          listObject: [],
-          children: [
-            { type: 'listItem', children: [{ type: 'label', text: 'f' }] },
-          ],
-        },
-        resolver: resolvers.image,
-      })
-      const component = result.component as List
-      const componentCache = result.componentCache
-      component.removeChild()
-      expect(componentCache).to.have.lengthOf(0)
-      const dataObject = { fruit: 'apple' }
-      component.addDataObject(dataObject)
-      // component.createChild(listItem)
-      const listItem = component.child() as ListItem
-      component.emit(
-        'create.list.item',
-        { dataObject, listItem, index: 0 } as any,
-        {} as any,
-      )
-      expect(componentCache).to.have.lengthOf(1)
+  it(`should add created list items to the component cache`, () => {
+    const result = applyMockDOMResolver({
+      component: getNoodlList(),
+      resolver: resolvers.image,
+    })
+    const component = result.component as List
+    const componentCache = result.componentCache
+    component.children().forEach((child: any) => {
+      expect(componentCache().has(child)).to.be.true
+    })
+    expect(componentCache().length).to.eq(4)
+    component.addDataObject({})
+    expect(componentCache().length).to.eq(5)
+  })
 
-      // for (let child of component.children()) {
-      //   expect(componentCache().state()).to.have.property(child.id)
-      // }
-    },
-  )
+  it(`should remove removed list items from the component cache`, () => {
+    const result = applyMockDOMResolver({
+      component: getNoodlList(),
+      resolver: resolvers.image,
+    })
+    const component = result.component as List
+    const componentCache = result.componentCache
+    expect(componentCache().length).to.eq(4)
+    const child2 = component.child(1) as ListItem
+    expect(componentCache().has(child2)).to.be.true
+    component.removeDataObject(child2.getDataObject())
+    expect(componentCache().has(child2)).to.be.false
+  })
 
-  xit(
-    `should remove from noodlui cache when receiving the ` +
-      `${chalk.yellow('remove.list.item')} event`,
-    () => {
-      //
-    },
-  )
-
-  xit(
-    `should remove from the DOM receiving the ` +
-      `${chalk.yellow('remove.list.item')} event`,
-    () => {
-      //
-    },
-  )
+  it(`should remove the corresponding list item's DOM node from the DOM`, () => {
+    const result = applyMockDOMResolver({
+      component: getNoodlList(),
+      resolver: resolvers.image,
+    })
+    const component = result.component as List
+    const child2 = component.child(1)
+    const child2Node = document.getElementById(child2?.id || '')
+    expect(document.body.contains(child2Node)).to.be.true
+    component.removeDataObject(child2?.getDataObject())
+    expect(document.body.contains(child2Node)).to.be.false
+  })
 
   // TODO - update.list.item handling?
 })

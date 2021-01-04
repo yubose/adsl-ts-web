@@ -3,21 +3,6 @@ import { isEmitObj } from 'noodl-utils'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import {
   createComponent as createComponentInstance,
-  getElementType,
-  getAlignAttrs,
-  getBorderAttrs,
-  getCustomDataAttrs,
-  getColors,
-  getEventHandlers,
-  getFontAttrs,
-  getPlugins,
-  getPosition,
-  getReferences,
-  getStylesByElementType,
-  getSizes,
-  getTransformedAliases,
-  getTransformedStyleAliases,
-  ResolverFn,
   EmitObject,
   ComponentType,
   ActionObject,
@@ -153,25 +138,6 @@ export const queryByDataViewtag = queryHelpers.queryByAttribute.bind(
   null,
   'data-viewtag',
 )
-
-export function getAllResolvers() {
-  return [
-    getAlignAttrs,
-    getBorderAttrs,
-    getColors,
-    getCustomDataAttrs,
-    getElementType,
-    getEventHandlers,
-    getFontAttrs,
-    getPlugins,
-    getPosition,
-    getReferences,
-    getSizes,
-    getStylesByElementType,
-    getTransformedAliases,
-    getTransformedStyleAliases,
-  ] as ResolverFn[]
-}
 
 export function toDOM(props: any): NOODLDOMElement | null {
   const node = noodluidom.draw(props)

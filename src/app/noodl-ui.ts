@@ -1,4 +1,5 @@
 import pick from 'lodash/pick'
+import { findReferences } from 'noodl-utils'
 import {
   getByDataUX,
   getDataAttribKeys,
@@ -17,6 +18,7 @@ const noodlui = new lib.NOODL()
 export function getWindowHelpers() {
   return Object.assign(
     {
+      findReferences,
       getByDataUX,
       getDataAttribKeys,
       getDynamicShapeKeys,

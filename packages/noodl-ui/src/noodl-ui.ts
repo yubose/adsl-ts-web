@@ -168,9 +168,10 @@ class NOODL {
   #resolve = (c: T.ComponentType | T.ComponentInstance | T.ComponentObject) => {
     const component = createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
+    const baseStyles = this.getBaseStyles(component.original.style)
 
     component.id = component.id || getRandomKey()
-    component.assignStyles(this.getBaseStyles(component.original.style))
+    component.assignStyles(baseStyles)
 
     // Finalizing
     if (component.style && typeof component.style === 'object') {
@@ -891,7 +892,12 @@ class NOODL {
     if (opts.keepRegistry) newState.registry = this.#state.registry
     this.#state = _createState(newState)
     if (!opts.keepCallbacks) {
-      this.#cb = { action: [], builtIn: [], chaining: [] } as any
+      this.#cb = {
+        action: [],
+        builtIn: [],
+        chaining: [],
+        on: { page: [] },
+      } as any
     }
     return this
   }

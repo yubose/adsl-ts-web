@@ -102,6 +102,24 @@ export const findDataValue = <O extends FindDataValueItem = any>(
   )
 }
 
+export function findReferences(obj: any): string[] {
+  let results = [] as string[]
+  ;(Array.isArray(obj) ? obj : [obj]).forEach((o) => {
+    if (isStr(o)) {
+      if (o.startsWith('.')) results.push(o)
+    } else if (isArr(o)) {
+      results = results.concat(findReferences(o))
+    } else if (isObj(o)) {
+      for (let key in o) {
+        const value = o[key]
+        results = results.concat(findReferences(key))
+        results = results.concat(findReferences(value))
+      }
+    }
+  })
+  return results
+}
+
 export function getActionType<A extends ActionObject = any>(
   obj: A | undefined,
 ) {

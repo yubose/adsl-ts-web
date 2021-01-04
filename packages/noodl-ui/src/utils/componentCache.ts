@@ -9,7 +9,10 @@ const createComponentCache = function () {
       return o
     },
     has(component: ComponentInstance | string) {
-      return cache[typeof component === 'string' ? component : component?.id]
+      return (
+        (typeof component === 'string' ? component : component?.id || '') in
+        cache
+      )
     },
     get(component: ComponentInstance) {
       return component && cache[component.id]
@@ -22,7 +25,7 @@ const createComponentCache = function () {
       return o
     },
     remove(component: ComponentInstance) {
-      delete cache[component.id]
+      component && delete cache[component.id]
       return o
     },
     state() {

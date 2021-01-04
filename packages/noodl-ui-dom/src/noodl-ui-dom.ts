@@ -1,12 +1,12 @@
 import {
   createComponent,
   ComponentInstance,
-  ComponentObject,
   getTagName,
   NOODL as NOODLUI,
   publish,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
+import { eventId } from './constants'
 import { createAsyncImageElement, getShape } from './utils'
 import NOODLUIDOMInternal from './Internal'
 import createResolver from './createResolver'
@@ -15,12 +15,44 @@ import * as T from './types'
 
 class NOODLUIDOM extends NOODLUIDOMInternal {
   #R: ReturnType<typeof createResolver>
+  #cbs = {
+    redraw: {
+      cleanup: [] as ((...args: Parameters<NOODLUIDOM['redraw']>) => void)[],
+    },
+  }
+  config: {
+    redraw: {
+      resolveComponents: NOODLUI['resolveComponents'] | undefined
+    }
+  } = { redraw: { resolveComponents: undefined } }
 
   constructor() {
     super()
     this.#R = createResolver()
     this.#R.use(this)
     this.#R.use(Object.values(defaultResolvers))
+  }
+
+  get callbacks() {
+    return this.#cbs
+  }
+
+  configure({
+    redraw,
+  }: {
+    redraw?: {
+      cleanup?: (...args: Parameters<NOODLUIDOM['redraw']>) => void
+      resolveComponents?: NOODLUI['resolveComponents']
+    }
+  }) {
+    if (redraw) {
+      if (redraw.resolveComponents) {
+        // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
+        this.config.redraw.resolveComponents = redraw.resolveComponents
+      }
+    }
+
+    return this
   }
 
   /**
@@ -56,7 +88,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
             getTagName(component as ComponentInstance),
           )
         }
-
         this.#R.run(node, component)
         if (node) {
           const parent = container || document.body
@@ -77,25 +108,11 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
   redraw(
     node: T.NOODLDOMElement | null, // ex: li (dom node)
     component: ComponentInstance, // ex: listItem (component instance)
-    {
-      dataObject,
-      ...opts
-    }: {
-      dataObject?: any
-      resolver?: (
-        noodlComponent: ComponentObject | ComponentObject[],
-      ) => ComponentInstance
-    } = {},
+    args: { dataObject?: any } = {},
   ) {
-    if (!opts?.resolver) {
-      console.error(
-        `%cNo resolver was provided for redraw. The DOM nodes will be empty`,
-        { node, component, ...opts },
-      )
-    }
-
     let newNode: T.NOODLDOMElement | null = null
     let newComponent: ComponentInstance | undefined
+    let { dataObject } = args
 
     if (component) {
       const parent = component.parent?.()
@@ -104,11 +121,12 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       // Clean up noodl-ui listeners
       component.clearCbs?.()
 
-      if (parent?.noodlType === 'list') {
-        // dataObject && parent.removeDataObject(dataObject)
-      }
+      // if (parent?.noodlType === 'list') {
+      // dataObject && parent.removeDataObject(dataObject)
+      // }
       // Remove the parent reference
       component.setParent?.(null)
+      this.#emit(eventId.redraw.ON_BEFORE_CLEANUP, node, component, args)
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {
@@ -135,11 +153,12 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         // Set the new component as a child on the parent
         parent.createChild(newComponent)
         // Run the resolver if provided
-        // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
-        newComponent = opts?.resolver?.(newComponent as any) || newComponent
+        newComponent =
+          this.config.redraw.resolveComponents?.(newComponent) || newComponent
       } else if (newComponent) {
         // log --> !parent || !newComponent
-        newComponent = opts?.resolver?.(newComponent as any) || newComponent
+        newComponent =
+          this.config.redraw.resolveComponents?.(newComponent) || newComponent
       }
     }
 
@@ -171,6 +190,27 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return [newNode, newComponent] as [typeof node, typeof component]
   }
 
+  #emit = (event: Parameters<NOODLUIDOM['on']>[0], ...args: any[]) => {
+    if (event === eventId.redraw.ON_BEFORE_CLEANUP) {
+      this.#cbs.redraw.cleanup.forEach((cb) => {
+        cb(...(args as Parameters<NOODLUIDOM['redraw']>))
+      })
+    }
+    return this
+  }
+
+  on(
+    event: typeof eventId.redraw.ON_BEFORE_CLEANUP,
+    fn: (...args: Parameters<NOODLUIDOM['redraw']>) => void,
+  ) {
+    if (event === eventId.redraw.ON_BEFORE_CLEANUP) {
+      if (!this.#cbs.redraw.cleanup.includes(fn)) {
+        this.#cbs.redraw.cleanup.push(fn)
+      }
+    }
+    return this
+  }
+
   register(obj: NOODLUI | T.NodeResolverConfig): this {
     this.#R.use(obj)
     return this
@@ -182,6 +222,14 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
   reset() {
     this.#R.clear()
+    const clearCbs = (obj: any) => {
+      if (Array.isArray(obj)) {
+        obj.length = 0
+      } else if (obj && typeof obj === 'object') {
+        Object.values(obj).forEach((o) => clearCbs(o))
+      }
+    }
+    Object.values(this.#cbs).forEach((obj) => clearCbs(obj))
     return this
   }
 }

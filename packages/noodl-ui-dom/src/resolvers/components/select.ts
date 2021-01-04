@@ -1,4 +1,4 @@
-import { optionExists, toSelectOption } from '../../utils'
+import { toSelectOption } from '../../utils'
 import { RegisterOptions } from '../../types'
 import { SelectOption } from 'noodl-ui'
 
@@ -24,7 +24,6 @@ export default {
         optionNode.id = option.key
         optionNode.value = option.value
         optionNode.textContent = option.label
-
         if (option?.value === component.get('data-value')) {
           // Default to the selected index if the user already has a state set before
           node.selectedIndex = index

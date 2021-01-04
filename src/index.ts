@@ -72,5 +72,3 @@ window.addEventListener('load', async () => {
     await page.requestPageChange(goBackPage)
   })
 })
-
-async function populateWindowWithNOODLUiHelpers() {}

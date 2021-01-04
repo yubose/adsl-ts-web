@@ -44,12 +44,12 @@ const handleListInternalResolver = (
   const resolveBlueprint = (noodlListItem: NOODLComponent) => {
     const deepChildren = (noodlComponent: any) => {
       const props = {
-        ...noodlComponent,
-        ...commonProps,
         style: {
           ...getBaseStyles(),
           ...noodlComponent.style,
         },
+        ...noodlComponent,
+        ...commonProps,
       }
       if (props.children) {
         if (Array.isArray(props.children)) {

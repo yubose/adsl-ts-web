@@ -2,12 +2,8 @@ import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import Resolver from './Resolver'
-import {
-  assetsUrl,
-  getAllResolvers,
-  noodlui,
-  viewport,
-} from './utils/test-utils'
+import { assetsUrl, noodlui, viewport } from './utils/test-utils'
+import getAllResolvers from './utils/getAllResolvers'
 
 chai.use(sinonChai)
 

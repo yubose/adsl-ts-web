@@ -7,6 +7,7 @@ export { default as Action } from './Action'
 export { default as ActionChain } from './ActionChain'
 export { default as EmitAction } from './Action/EmitAction'
 // Resolvers
+export { default as getAllResolvers } from './utils/getAllResolvers'
 export { default as getAlignAttrs } from './resolvers/getAlignAttrs'
 export { default as getBorderAttrs } from './resolvers/getBorderAttrs'
 export { default as getColors } from './resolvers/getColors'
@@ -40,7 +41,6 @@ export {
   contentTypes,
 } from './constants'
 export * from './types'
-
 export { isPromise } from './utils/common'
 export {
   findChild,

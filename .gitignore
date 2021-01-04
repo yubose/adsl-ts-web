@@ -6,5 +6,6 @@ node_modules
 compiled
 scripts/objects/**
 scripts/ymls/**
+scripts/serverFiles/**
 coverage/
 report*

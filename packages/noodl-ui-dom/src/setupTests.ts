@@ -1,6 +1,7 @@
-import { Resolver } from 'noodl-ui'
 import sinon from 'sinon'
-import { assetsUrl, getAllResolvers, noodlui, noodluidom } from './test-utils'
+import { getAllResolvers, Resolver, publish } from 'noodl-ui'
+import { eventId } from './constants'
+import { assetsUrl, noodlui, noodluidom, viewport } from './test-utils'
 
 let logSpy: sinon.SinonStub
 
@@ -9,14 +10,29 @@ const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 
 before(() => {
   console.clear()
-  noodluidom.register(noodlui)
+  noodlui.init({ _log: false })
+  noodluidom
+    .configure({
+      redraw: {
+        resolveComponents: noodlui.resolveComponents.bind(noodlui),
+      },
+    })
+    .on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
+      noodlui.componentCache().remove(component)
+      publish(component, (c) => {
+        noodlui.componentCache().remove(c)
+      })
+    })
+    .register(noodlui)
+
+  viewport.width = 365
+  viewport.height = 667
 
   logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
 
   getAllResolvers().forEach((r) => {
-    const resolver = new Resolver()
-    resolver.setResolver(r)
-    noodlui.use(resolver as Resolver)
+    const resolver = new Resolver().setResolver(r)
+    noodlui.use(resolver)
   })
 })
 
@@ -34,5 +50,6 @@ beforeEach(() => {
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
+  // Resets plugins, registry, noodlui.page
   noodlui.reset()
 })

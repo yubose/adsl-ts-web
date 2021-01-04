@@ -3,7 +3,7 @@ import path from 'path'
 import { createComponent, NOODLComponent } from 'noodl-ui'
 import { getShape, getShapeKeys } from './utils'
 
-describe('noodl-ui-dom', () => {
+xdescribe('noodl-ui-dom', () => {
   xit('should attach an "events" property as an array if their component has an event', () => {
     //
   })

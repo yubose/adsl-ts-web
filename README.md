@@ -147,3 +147,11 @@ PAc1893f64325658d1acec25e99a158da7 | 8882462345 (Desktop)
 - goto: ^redTag # defaulted to 350 ms
 - goto: ^redTag;duration:15000 # slow scroll effect for 15 seconds
 ```
+
+## Tools
+
+### Reference lifecycle results
+
+1. yml
+2. sdk
+3. noodl-ui
