@@ -320,7 +320,7 @@ export function createNOODLComponent(
       } as EmitObject
     }
   }
-
+  const path = '' as string
   const createPath = (type: PathType | boolean, iteratorVar?: string = '') =>
     type === 'emit'
       ? createEmitObj({ iteratorVar })
