@@ -40,7 +40,7 @@ export function createEmitDataKey(
         dataObject,
         excludeIteratorVar(dataKey[property], opts?.iteratorVar),
       )
-      debugger
+      // debugger
       return acc
     }, {} as { [varProp: string]: any })
   }

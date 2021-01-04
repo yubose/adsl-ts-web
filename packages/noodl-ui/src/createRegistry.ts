@@ -1,5 +1,6 @@
+// @ts-nocheck
 import NOODLUI from './noodl-ui'
-import { ComponentInstance, RegistryObject, State,  } from './types'
+import { ComponentInstance, RegistryObject, State } from './types'
 import isComponent from './utils/isComponent'
 
 const createRegistry = function createRegistry({ ref }: { ref: NOODLUI }) {
@@ -12,8 +13,8 @@ const createRegistry = function createRegistry({ ref }: { ref: NOODLUI }) {
       callbacks: [],
       page: '',
       refs: {
-        components: []
-      }
+        components: [],
+      },
     } as RegistryObject
     if (initialState) {
       Object.keys(initialState).forEach((key: keyof RegistryObject) => {
@@ -28,25 +29,25 @@ const createRegistry = function createRegistry({ ref }: { ref: NOODLUI }) {
   }
 
   const o = {
-    exists(component: ComponentInstance): boolean
-    exists(eventName: string): boolean
-    exists(component: ComponentInstance | string) {
-      if (typeof component === 'string') {
-        const eventName = component
-        // TODO - more search locations
-        registe
-      } else if (isComponent(component)) {
-        const registerInfo = o.getRegisterInfo(component)
-        if (registerInfo) {
-          const { eventName = '', registerId = '' } = registerInfo
-          return !!registry[eventName]
-        }
-      }
-    
-      return false
-    },
-    get() {
+    // exists(component: ComponentInstance): boolean
+    // exists(eventName: string): boolean
+    // exists(component: ComponentInstance | string) {
+    //   if (typeof component === 'string') {
+    //     const eventName = component
+    //     // TODO - more search locations
+    //     registe
+    //   } else if (isComponent(component)) {
+    //     const registerInfo = o.getRegisterInfo(component)
+    //     if (registerInfo) {
+    //       const { eventName = '', registerId = '' } = registerInfo
+    //       return !!registry[eventName]
+    //     }
+    //   }
 
+    //   return false
+    // },
+    get() {
+      //
     },
     getRegisterInfo(component: ComponentInstance) {
       if (isComponent(component)) {
@@ -54,7 +55,7 @@ const createRegistry = function createRegistry({ ref }: { ref: NOODLUI }) {
           const registerConfig = registry.onEvent
           return {
             eventName: 'onEvent',
-            pageName: 
+            pageName: '',
             registerId: component.get('onEvent'),
           }
         }
@@ -67,7 +68,6 @@ const createRegistry = function createRegistry({ ref }: { ref: NOODLUI }) {
         if (component.noodlType === 'register') {
           // TODO - Other ways that identifies event ids
           if (component.get('onEvent')) {
-
           }
         }
       } else {

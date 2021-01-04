@@ -2,13 +2,7 @@ import Action from '../Action'
 import ActionChain from '../ActionChain'
 import Component from '../components/Base'
 import NOODLUI from '../noodl-ui'
-import {
-  ConsumerOptions,
-  PageObject,
-  Root,
-  RootsParser,
-  StateGetters,
-} from './types'
+import { ConsumerOptions, PageObject, Root, StateGetters } from './types'
 import {
   ActionChainEmitTrigger,
   ActionType,
@@ -79,7 +73,6 @@ export interface ActionChainCallbackOptions {
   abort(reason?: string | string[]): Promise<any>
   error?: Error
   event: EventTarget | undefined
-  parser?: RootsParser
   snapshot: ActionChainSnapshot
   trigger: ActionTriggerType
 }

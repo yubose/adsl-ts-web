@@ -67,7 +67,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     // )
 
     if (isEmitObj(dataValue)) {
-      const emitAction = new EmitAction(dataValue, {
+      const emitAction = new EmitAction(dataValue as any, {
         callback: async (action, options) => {
           const callbacks = (getCbs('action').emit || []).reduce(
             (acc, obj) =>

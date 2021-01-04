@@ -1,30 +1,39 @@
-import noop from 'lodash/noop'
 import sinon from 'sinon'
 import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
-import chaiDOM from 'chai-dom'
 import sinonChai from 'sinon-chai'
-import Logger, { _color } from 'logsnap'
-import { assetsUrl, noodlui } from './utils/test-utils'
+import Resolver from './Resolver'
+import {
+  assetsUrl,
+  getAllResolvers,
+  noodlui,
+  viewport,
+} from './utils/test-utils'
 
-chai.use(chaiAsPromised)
-chai.use(chaiDOM)
 chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 
 before(async () => {
   console.clear()
-  Logger.disable()
+  noodlui.init({ _log: false })
+  noodlui.use(viewport)
+
+  viewport.width = 365
+  viewport.height = 667
+
   try {
-    logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
+    logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
   } catch (error) {
     throw new Error(error.message)
   }
 })
 
 beforeEach(() => {
-  noodlui.init({ _log: false }).use({
+  getAllResolvers().forEach((r) => {
+    const resolver = new Resolver().setResolver(r)
+    noodlui.use(resolver)
+  })
+  noodlui.use({
     getAssetsUrl: () => assetsUrl,
     getRoot: () => ({}),
   })
@@ -37,5 +46,6 @@ after(() => {
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
+  // Resets plugins, registry and noodlui.page
   noodlui.reset()
 })

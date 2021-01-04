@@ -13,28 +13,21 @@ import { ComponentInstance } from '../../types'
 const _internalResolver = new Resolver()
 
 _internalResolver.setResolver((component, options) => {
-  const run = (child: any) => {
-    if (child) {
-      if (child.noodlType === 'list') {
-        return handleList(child, options, _internalResolver)
+  const run = (component: ComponentInstance) => {
+    if (component) {
+      if (component.noodlType === 'list') {
+        return handleList(component as any, options, _internalResolver)
       }
-      if (child.get('textBoard')) {
-        return handleTextboard(child, options, _internalResolver)
+      if (component.get('textBoard')) {
+        return handleTextboard(component as any, options, _internalResolver)
       }
-      return resolveChildren(child)
+      // Deeply parses every child node in the tree
+      _resolveChildren(component, {
+        onResolve: (o) => run(o),
+        resolveComponent: (...args) => options.resolveComponent(...args),
+      })
     }
   }
-  /**
-   * Deeply parses every child node in the tree
-   * @param { ComponentInstance } c
-   */
-  const resolveChildren = (c: ComponentInstance) => {
-    _resolveChildren(c, {
-      onResolve: run,
-      resolveComponent: options.resolveComponent,
-    })
-  }
-
   const resolveInternalNode = <C extends ComponentInstance = any>(c: C) => {
     if (c.id && typeof options?.componentCache === 'function') {
       options.componentCache().set(c)
@@ -45,7 +38,6 @@ _internalResolver.setResolver((component, options) => {
   }
 
   run(component)
-  resolveChildren(component)
   resolveInternalNode(component)
 })
 

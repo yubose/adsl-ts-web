@@ -1,4 +1,3 @@
-import isObjectLike from 'lodash/isObjectLike'
 import isPlainObject from 'lodash/isPlainObject'
 import { ResolverFn } from '../types'
 import { textAlignStrings } from '../constants'
@@ -29,7 +28,7 @@ const getAlignAttrs: ResolverFn = (component) => {
         }
       }
       // { x, y }
-      else if (isObjectLike(style.textAlign)) {
+      else if (isPlainObject(style.textAlign)) {
         const { x, y } = style.textAlign
         if (x !== undefined) {
           value = getTextAlign(x)

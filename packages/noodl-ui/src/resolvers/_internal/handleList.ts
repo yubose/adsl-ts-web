@@ -21,7 +21,12 @@ const handleListInternalResolver = (
   options: ConsumerOptions,
   _internalResolver: Resolver,
 ) => {
-  const { getBaseStyles, resolveComponent, componentCache } = options
+  const {
+    getBaseStyles,
+    resolveComponent,
+    resolveComponentDeep,
+    componentCache,
+  } = options
 
   const rawBlueprint = (Array.isArray(component?.original?.children)
     ? { ...component.original.children[0] }
@@ -39,16 +44,16 @@ const handleListInternalResolver = (
   const resolveBlueprint = (noodlListItem: NOODLComponent) => {
     const deepChildren = (noodlComponent: any) => {
       const props = {
+        ...noodlComponent,
+        ...commonProps,
         style: {
           ...getBaseStyles(),
           ...noodlComponent.style,
         },
-        ...noodlComponent,
-        ...commonProps,
       }
       if (props.children) {
         if (Array.isArray(props.children)) {
-          props.children = props.children.map((c: any) => deepChildren(c))
+          props.children = props.children.map(deepChildren)
         } else {
           props.children = deepChildren(props.children)
         }
@@ -77,12 +82,12 @@ const handleListInternalResolver = (
         c.set('dataObject', result.dataObject)
         c.set('listIndex', result.index)
         c.assign(commonProps)
-        _internalResolver.resolve(c, {
-          ...args,
-          ...options,
-          component: c,
-          resolveComponent,
-        })
+        // _internalResolver.resolve(c, {
+        //   ...args,
+        //   ...options,
+        //   component: c,
+        //   resolveComponent,
+        // })
       },
       props: { ...commonProps, listIndex: result.index as number },
       resolveComponent,
@@ -109,11 +114,11 @@ const handleListInternalResolver = (
     listItem?.setDataObject(null)
     if (listItem) {
       component.removeChild()
-      const removeFromCache = componentCache().remove
-      removeFromCache(listItem)
+      componentCache().remove(listItem)
       publish(listItem, (c) => {
-        console.log(`Removing from cache: ${c.id}`)
-        removeFromCache(c)
+        log.func(event.component.list.DELETE_DATA_OBJECT)
+        log.green(`Removing from cache: ${c.id}`)
+        componentCache().remove(c)
       })
     }
     log.grey(`Deleted a listItem`, {

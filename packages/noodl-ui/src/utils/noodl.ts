@@ -498,6 +498,22 @@ export function isSubStreamComponent(value: any) {
   })
 }
 
+export function parseReference(
+  ref: string,
+  { page = '', root = {} }: { page?: string; root?: any },
+) {
+  let trimmedPath = ref.replace(/(\.\.|\.)/, '')
+  // Local/private reference
+  if (ref[0] === ref[0].toLowerCase()) {
+    return get(root?.[page], trimmedPath)
+  }
+  // Global reference
+  if (ref[0] === ref[0].toUpperCase()) {
+    return get(root, trimmedPath)
+  }
+  return ''
+}
+
 /**
  * Recursively invokes the provided callback on each child
  * @param { ComponentInstance } component

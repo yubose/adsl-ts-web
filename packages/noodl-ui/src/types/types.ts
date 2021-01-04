@@ -96,7 +96,6 @@ export interface ConsumerOptions {
   getResolvers: NOODLUI['getResolvers']
   getRoot(): { [key: string]: any }
   getState: StateHelpers['getState']
-  parser: RootsParser
   plugins(location: 'head'): State['plugins']['head']
   plugins(location: 'body'): State['plugins']['body']
   plugins(location: 'body-top'): State['plugins']['body']['top']
@@ -229,20 +228,6 @@ export type StateSetters = { setPlugin: ConsumerOptions['setPlugin'] } & {
 
 export interface Root {
   [key: string]: any
-}
-
-export interface RootsParser {
-  get<K extends keyof Root>(key: string): Root[K] | any
-  getLocalKey(): string
-  getByDataKey(dataKey: string, fallbackValue?: any): any
-  mergeReference<T = any>(refKey: keyof T, originalObj: T): any
-  nameField: {
-    getKeys(key: string): string[]
-  }
-  parse(value: any): any
-  parseDataKey(dataKey: string): string | undefined
-  setLocalKey(key: string): this
-  setRoot(root: any): this
 }
 
 export interface SelectOption {

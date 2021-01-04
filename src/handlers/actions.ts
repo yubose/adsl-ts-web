@@ -19,6 +19,7 @@ import {
   getDataValues,
   IfObject,
   isReference,
+  parseReference,
   PopupObject,
   PopupDismissObject,
   RefreshObject,
@@ -39,7 +40,7 @@ import { IPage } from '../Page'
 import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
 import { scrollToElem } from '../utils/dom'
-import { onSelectFile, scrollTo } from '../utils/dom'
+import { onSelectFile } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
 
@@ -497,7 +498,7 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (action: Action<SaveObject>, options) => {
       const { default: noodl } = await import('../app/noodl')
       const { default: noodlui } = await import('../app/noodl-ui')
-      const { abort, parser } = options as any
+      const { abort, getRoot, getPageObject, page } = options
 
       try {
         const { object } = action.original
@@ -523,12 +524,13 @@ const createActions = function ({ page }: { page: IPage }) {
                   typeof nameFieldPath === 'string' &&
                   typeof save === 'function'
                 ) {
-                  parser?.setLocalKey(noodlui?.page)
-
                   let nameField
 
                   if (isReference(nameFieldPath)) {
-                    nameField = parser.get(nameFieldPath)
+                    nameField = parseReference(nameFieldPath, {
+                      page: noodlui.page,
+                      root: getRoot(),
+                    })
                   } else {
                     nameField =
                       get(noodl?.root, nameFieldPath, null) ||

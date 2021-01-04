@@ -118,7 +118,6 @@ describe('when using getters', () => {
       'getRoot',
       'getState',
       'page',
-      'parser',
       'plugins',
       'resolveComponent',
       'resolveComponentDeep',

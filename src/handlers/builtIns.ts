@@ -225,26 +225,15 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     })
 
     const cleanup = (component: ComponentInstance) => {
-      noodlui.componentCache().remove(component)
       publish(component, (c) => {
-        console.log('HELLO:', c)
         if (c) {
           log.func('redraw [cleanup]')
           log.grey(`Cleaning component ${component.id} from the cache`, c)
           noodlui.componentCache().remove(c)
         }
       })
+      noodlui.componentCache().remove(component)
     }
-
-    cleanup(options?.component)
-
-    // let components =
-    //   (viewTag &&
-    //     findParent(options.component, (p) => p?.get?.('viewTag') === viewTag)
-    //       ?.parent?.()
-    //       ?.children?.()
-    //       ?.filter?.((c) => c?.get?.('viewTag') === viewTag)) ||
-    //   []
 
     const { component } = options
 
@@ -277,6 +266,7 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     while (startCount < components.length) {
       const viewTagComponent = components[startCount] as ComponentInstance
       const node = document.getElementById(viewTagComponent.id)
+      cleanup(viewTagComponent)
       log.grey(
         '[Redrawing] ' + node
           ? `Found node for viewTag component`

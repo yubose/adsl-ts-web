@@ -7,7 +7,7 @@ import ListItem from '../components/ListItem'
 import * as n from './noodl'
 
 describe('noodl (utils)', () => {
-  describe.only(`createDeepChildren`, () => {
+  describe(`createDeepChildren`, () => {
     it(`should create/parse everything from a raw noodl object`, () => {
       n.createDeepChildren('view', {
         depth: 10,

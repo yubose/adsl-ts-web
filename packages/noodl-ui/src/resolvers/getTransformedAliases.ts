@@ -66,7 +66,7 @@ const getTransformedAliases: ResolverFn = (
   if (path || resource) {
     let src = path || resource || ''
     if (isEmitObj(src)) {
-      src = createSrc(src)
+      src = createSrc(src as any)
       if (isPromise(src)) {
         src
           .then((result: string) => {

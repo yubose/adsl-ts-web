@@ -4,7 +4,6 @@ import chalk from 'chalk'
 import fs from 'fs-extra'
 import * as evaluators from './evaluators/evaluators'
 import { logError } from '../../src/utils/common'
-import makeRootsParser from '../../src/makeRootsParser'
 import getDirFilesAsJson from './utils/getDirFilesAsJson'
 import * as log from './utils/log'
 

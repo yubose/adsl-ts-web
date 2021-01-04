@@ -99,7 +99,7 @@ describe('Action', () => {
     action.callback = async () => {
       throw err
     }
-    await expect(action.execute({ abc: 'letters' })).to.eventually.rejected
+    expect(action.execute({ abc: 'letters' })).to.throw()
     expect(action.error).to.eq(err)
     expect(action.status).to.eq('error')
   })
@@ -108,7 +108,7 @@ describe('Action', () => {
     action.callback = async () => {
       return 'abc'
     }
-    await expect(action.execute({ abc: 'letters' })).to.eventually.fulfilled
+    expect(action.execute({ abc: 'letters' }))
     expect(action.status).to.eq('resolved')
   })
 

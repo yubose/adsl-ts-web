@@ -1,5 +1,4 @@
-import fs, { WriteOptions } from 'fs-extra'
-import path from 'path'
+import fs from 'fs-extra'
 import getAlignAttrs from '../resolvers/getAlignAttrs'
 import getBorderAttrs from '../resolvers/getBorderAttrs'
 import getColors from '../resolvers/getColors'
@@ -15,7 +14,6 @@ import getStylesByElementType from '../resolvers/getStylesByElementType'
 import getTransformedAliases from '../resolvers/getTransformedAliases'
 import getTransformedStyleAliases from '../resolvers/getTransformedStyleAliases'
 import NOODLUi from '../noodl-ui'
-import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 import {
   ResolverFn,
@@ -64,48 +62,20 @@ export function createResolverTest(
   return _resolver
 }
 
-export const noodlui = (function () {
-  const viewport = new Viewport()
-  viewport.width = 365
-  viewport.height = 667
-
-  const state = {
-    client: new NOODLUi({ viewport }),
-  }
-
-  Object.defineProperty(state.client, 'cleanup', {
-    configurable: true,
-    enumerable: true,
-    writable: true,
-    value: function () {
-      state.client.reset({ keepCallbacks: false })
-      state.client.initialized = true
-    },
+export function saveToFs(
+  filepath: string,
+  data: any,
+  options?: Partial<fs.WriteOptions>,
+) {
+  fs.writeJsonSync(filepath, data, {
+    spaces: 2,
+    ...options,
   })
+}
 
-  getAllResolvers()
-    .reduce(
-      (acc, r) => acc.concat(new Resolver().setResolver(r)),
-      [] as Resolver[],
-    )
-    .forEach((r) => state.client.use(r))
+export const noodlui = new NOODLUi()
 
-  Object.defineProperty(state.client, 'save', {
-    configurable: true,
-    writable: true,
-    value: function (filepath: string, data: any, options: WriteOptions) {
-      fs.writeJsonSync(path.resolve(path.join(process.cwd(), filepath)), data, {
-        spaces: 2,
-        ...options,
-      })
-    },
-  })
-
-  return state.client as NOODLUi & {
-    cleanup: () => void
-    save: (filepath: string, data: any, options?: Partial<WriteOptions>) => void
-  }
-})()
+export const viewport = new Viewport()
 
 export function getAllResolvers() {
   return [

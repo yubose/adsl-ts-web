@@ -30,7 +30,7 @@ export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
   if (Array.isArray(value)) {
     value.forEach((val) => forEachDeepEntries(val, callback))
   } else if (isPlainObject(value)) {
-    forEachEntries(value as Obj, (k, v: Obj[K]) => {
+    Object.entries(value as Obj).forEach(([k, v]: [string, Obj[K]]) => {
       callback(k, v, value as Obj)
       forEachDeepEntries(v, callback as any)
     })

@@ -25,7 +25,6 @@ describe('_internalResolver', () => {
         },
       ],
       iteratorVar: 'itemObject',
-      style: { width: '1', height: '0.5' },
       children: [
         {
           type: 'listItem',
@@ -38,40 +37,16 @@ describe('_internalResolver', () => {
             },
             { goto: 'VideoChat' },
           ],
-          style: { borderWidth: '1', borderColor: '0x00000011' },
           children: [
-            {
-              type: 'label',
-              dataKey: 'itemObject.name.hostName',
-              style: {
-                backgroundColor: '0xff8f90ff',
-                display: 'inline',
-                textAlign: { x: 'center', y: 'center' },
-              },
-            },
-            {
-              type: 'label',
-              dataKey: 'itemObject.name.roomName',
-              style: { fontWeight: 400, fontSize: '16' },
-            },
+            { type: 'label', dataKey: 'itemObject.name.hostName' },
+            { type: 'label', dataKey: 'itemObject.name.roomName' },
             {
               type: 'view',
               viewTag: 'abc',
               children: [
                 {
                   type: 'view',
-                  children: [
-                    {
-                      type: 'image',
-                      path: 'rightArrow.png',
-                      style: {
-                        left: '0.88',
-                        top: '0.02',
-                        width: '0.07',
-                        height: '0.03',
-                      },
-                    },
-                  ],
+                  children: [{ type: 'image', path: 'rightArrow.png' }],
                 },
               ],
             },
@@ -151,7 +126,7 @@ describe('_internalResolver', () => {
       noodlParentComponent.children.push({
         ...noodlComponent,
         // @ts-expect-error
-        listObject: [...noodlComponent.listObject, {}, {}, {}] as any,
+        listObject: noodlComponent.listObject?.concat({}, {}, {}),
       })
       const parent = noodlui.resolveComponents(noodlParentComponent)
       const component = parent.child() as any
@@ -325,7 +300,6 @@ describe('_internalResolver', () => {
       }
       const noodlParent = { type: 'view', children: [noodlComponent] }
       const parent = noodlui.resolveComponents(noodlParent as any)
-      // @ts-expect-error
       const list = parent.child() as List
       const data = list.getData()
       list?.set('listObject', [])

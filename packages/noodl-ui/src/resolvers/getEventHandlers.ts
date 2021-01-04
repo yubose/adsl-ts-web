@@ -13,7 +13,7 @@ const getEventHandlers: ResolverFn = (component, options) => {
           // if (!component.action[eventType]) {
           const handler = createActionChainHandler(actionObj, {
             trigger: eventType,
-          })
+          } as any)
           component.set(eventType, handler)
           // component.action[eventType] = handler
         }

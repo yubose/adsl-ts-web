@@ -15,7 +15,6 @@ import {
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import _internalResolver from './resolvers/_internal'
-import makeRootsParser from './factories/makeRootsParser'
 import {
   forEachDeepEntries,
   forEachEntries,
@@ -75,7 +74,6 @@ class NOODL {
   }
   #fetch = ((typeof window !== 'undefined' && window.fetch) || noop) as T.Fetch
   #getAssetsUrl: () => string = () => ''
-  #parser: T.RootsParser
   #resolvers: Resolver[] = []
   #getRoot: () => T.Root = () => ({})
   #state: T.State
@@ -90,7 +88,6 @@ class NOODL {
     showDataKey?: boolean
     viewport?: Viewport
   } = {}) {
-    this.#parser = makeRootsParser({ root: {} })
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
   }
@@ -101,10 +98,6 @@ class NOODL {
 
   get page() {
     return this.#state.page
-  }
-
-  get parser() {
-    return this.#parser
   }
 
   get root() {
@@ -175,16 +168,9 @@ class NOODL {
   #resolve = (c: T.ComponentType | T.ComponentInstance | T.ComponentObject) => {
     const component = createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
-    const baseStyles = this.getBaseStyles(component.original.style)
 
-    if (!component?.id) component.id = getRandomKey()
-
-    component.assignStyles(baseStyles)
-
-    // TODO - deprecate this
-    if (this.parser.getLocalKey() !== this.page) {
-      this.parser.setLocalKey(this.page)
-    }
+    component.id = component.id || getRandomKey()
+    component.assignStyles(this.getBaseStyles(component.original.style))
 
     // Finalizing
     if (component.style && typeof component.style === 'object') {
@@ -696,7 +682,6 @@ class NOODL {
       page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
-      parser: this.parser,
       showDataKey: this.#state.showDataKey,
       viewport: this.viewport,
       ...this.getStateGetters(),
@@ -904,7 +889,6 @@ class NOODL {
     const newState = {} as Partial<T.State>
     if (opts.keepPlugins) newState.plugins = this.#state.plugins
     if (opts.keepRegistry) newState.registry = this.#state.registry
-    this.#parser = makeRootsParser({ root: this.#getRoot() })
     this.#state = _createState(newState)
     if (!opts.keepCallbacks) {
       this.#cb = { action: [], builtIn: [], chaining: [] } as any

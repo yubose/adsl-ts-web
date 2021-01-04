@@ -34,15 +34,15 @@ export function _resolveChildren<
     }
 
     if (noodlChildren) {
-      noodlChildren.forEach((noodlChild) => {
-        if (noodlChild) {
+      noodlChildren.forEach(
+        (noodlChild) =>
+          noodlChild &&
           onResolve?.(
             resolveComponent?.(
               (c as any).createChild(createComponent(noodlChild, { props })),
             ) as ComponentInstance,
-          )
-        }
-      })
+          ),
+      )
     }
   }
 }

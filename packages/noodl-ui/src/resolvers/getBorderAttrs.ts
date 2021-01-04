@@ -1,5 +1,5 @@
 import isNaN from 'lodash/isNaN'
-import isObjectLike from 'lodash/isObjectLike'
+import isPlainObject from 'lodash/isPlainObject'
 import { ResolverFn } from '../types'
 import { hasLetter } from '../utils/common'
 import { presets } from '../constants'
@@ -25,7 +25,7 @@ const getBorderAttrs: ResolverFn = (component) => {
         component.setStyle('borderStyle', 'none')
       }
 
-      if (isObjectLike(border)) {
+      if (isPlainObject(border)) {
         borderStyle = border.style
         color = border.color
         width = border.width

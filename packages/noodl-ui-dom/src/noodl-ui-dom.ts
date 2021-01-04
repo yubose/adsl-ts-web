@@ -105,7 +105,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       component.clearCbs?.()
 
       if (parent?.noodlType === 'list') {
-        dataObject && parent.removeDataObject(dataObject)
+        // dataObject && parent.removeDataObject(dataObject)
       }
       // Remove the parent reference
       component.setParent?.(null)
