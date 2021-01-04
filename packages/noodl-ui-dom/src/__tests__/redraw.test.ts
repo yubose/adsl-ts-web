@@ -259,7 +259,7 @@ describe('redraw', () => {
     evtNames.forEach((evt) => {
       expect(listGender.hasCb(evt as ListEventId, evts[evt])).to.be.true
     })
-    const node = noodluidom.parse(listGender)
+    const node = noodluidom.draw(listGender)
     noodluidom.redraw(node, listGender)
     evtNames.forEach((evt) => {
       expect(listGender.hasCb(evt as ListEventId, evts[evt])).to.be.false
@@ -268,20 +268,20 @@ describe('redraw', () => {
 
   it('should remove the parent reference', () => {
     expect(listGender.parent()).to.eq(view)
-    const node = noodluidom.parse(listGender)
+    const node = noodluidom.draw(listGender)
     noodluidom.redraw(node, listGender)
     expect(listGender.parent()).to.be.null
   })
 
   it("should remove the component from the parent's children", () => {
     expect(view.hasChild(listGender)).to.be.true
-    const node = noodluidom.parse(listGender)
+    const node = noodluidom.draw(listGender)
     noodluidom.redraw(node, listGender)
     expect(view.hasChild(listGender)).to.be.false
   })
 
   xit('should recursively remove child references', () => {
-    const node = noodluidom.parse(listGender)
+    const node = noodluidom.draw(listGender)
     const listItem = listGender.child()
     const [label, image] = listItem?.children() || []
     expect(!!findChild(listGender, (c) => c === image)).to.be.true
@@ -297,7 +297,7 @@ describe('redraw', () => {
       bye: sinon.spy(),
       fruit: sinon.spy(),
     }
-    const node = noodluidom.parse(view)
+    const node = noodluidom.draw(view)
     listGender.on('add.data.object', spies.hello)
     const listItem = listGender.child() as ListItem
     const label = listItem?.child(0)
@@ -314,7 +314,7 @@ describe('redraw', () => {
   })
 
   it('should remove the node by the parentNode', () => {
-    noodluidom.parse(view)
+    noodluidom.draw(view)
     const listItem = listGender.child() as ListItem
     const image = listItem?.child(1)
     const imageNode = document.getElementById(image?.id)
@@ -325,7 +325,7 @@ describe('redraw', () => {
   })
 
   it('should set the original parent as the parent of the new redrawee component', () => {
-    noodluidom.parse(view)
+    noodluidom.draw(view)
     const listItem = listGender.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
@@ -333,14 +333,14 @@ describe('redraw', () => {
   })
 
   it('should set the new component as a child on the original parent', () => {
-    noodluidom.parse(view)
+    noodluidom.draw(view)
     const listItem = listGender.child() as ListItem
     const [empty, newListItem] = noodluidom.redraw(null, listItem)
     expect(listGender.hasChild(newListItem)).to.be.true
   })
 
   // it('the redrawing component + node should hold the same ID', () => {
-  //   noodluidom.parse(view)
+  //   noodluidom.draw(view)
   //   const listItem = listGender.child() as ListItem
   //   const liNode = document.getElementById(listItem?.id || '')
   //   const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
@@ -349,7 +349,7 @@ describe('redraw', () => {
   // })
 
   it('should attach to the original parentNode as the new childNode', () => {
-    noodluidom.parse(view)
+    noodluidom.draw(view)
     const listItem = listGender.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const ulNode = liNode?.parentNode
@@ -366,7 +366,7 @@ describe('redraw', () => {
       noodlComponent: ComponentObject,
       newInstance: Component,
     ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
-    const node = noodluidom.parse(listDemographics)
+    const node = noodluidom.draw(listDemographics)
     const [newNode, newComponent] = noodluidom.redraw(node, listDemographics)
     const isEqual = createIsEqual(noodlListDemographics, newComponent)
     Object.keys(noodlListDemographics).forEach((prop) => {
@@ -385,7 +385,7 @@ describe('redraw', () => {
       noodlComponent: ComponentObject,
       newInstance: Component,
     ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
-    const node = noodluidom.parse(listGender)
+    const node = noodluidom.draw(listGender)
     const [newNode, newComponent] = noodluidom.redraw(node, listGender, {
       resolver: (c) => noodlui.resolveComponents(c),
     })
@@ -440,7 +440,7 @@ describe('redraw', () => {
         ],
       })
       const image = view.child() as Component
-      noodluidom.parse(view)
+      noodluidom.draw(view)
       await image.get('onClick')()
 
       noodluidom.redraw(document.querySelector('img'), image)
@@ -501,7 +501,7 @@ describe('redraw', () => {
         ],
       })
 
-      noodluidom.parse(listItem)
+      noodluidom.draw(listItem)
 
       await waitFor(() => {
         expect(document.querySelector('img')?.src).to.eq(assetsUrl + abc)
@@ -567,7 +567,7 @@ describe('redraw', () => {
         const image = view.child() as Component
         console.info('HELLO')
         console.info(prettyDOM())
-        const node = noodluidom.parse(image)
+        const node = noodluidom.draw(image)
         await waitFor(() => {
           const imgNode = document.querySelector(
             `img[src=${assetsUrl + 'myimg.png'}]`,
@@ -613,7 +613,7 @@ describe('redraw', () => {
           throw new Error('i ran')
         })
       })
-      const container = noodluidom.parse(view)
+      const container = noodluidom.draw(view)
       const input = screen.getByDisplayValue('mypassword')
       // expect(input.dataset.value).to.eq('mypassword')
       expect(input.value).to.eq('mypassword')
@@ -711,7 +711,7 @@ describe('redraw', () => {
           { component: button, trigger: 'onClick' },
         ),
       }
-      const container = noodluidom.parse(view)
+      const container = noodluidom.draw(view)
       const [newNode, newComponent] = noodluidom.redraw(
         document.getElementById(button.id),
         button,
@@ -780,7 +780,7 @@ describe('redraw', () => {
     const getListItemNodes = () => document.querySelectorAll('li')
     const getImageNodes = () => document.querySelectorAll('img')
     const getInputNodes = () => document.querySelectorAll('input')
-    noodluidom.parse(list)
+    noodluidom.draw(list)
     expect(getListNodes()).to.have.lengthOf(1)
     expect(getListItemNodes()).to.have.lengthOf(2)
     expect(getImageNodes()).to.have.lengthOf(2)
@@ -851,7 +851,7 @@ describe('redraw', () => {
       n?.dataset.value = c.get('data-value')
       n.value = c.get('data-value')
     })
-    noodluidom.parse(view)
+    noodluidom.draw(view)
     console.info(prettyDOM())
   })
 })
@@ -859,20 +859,22 @@ describe('redraw', () => {
 xdescribe('redraw(new)', () => {
   let onClickSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
   let pathSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
-  let redrawSpy: sinon.SinonSpy<[
-    node: HTMLElement | null,
-    component: Component,
-    opts?:
-      | {
-          dataObject?: any
-          resolver?:
-            | ((
-                noodlComponent: ComponentObject | ComponentObject[],
-              ) => Component)
-            | undefined
-        }
-      | undefined,
-  ]>
+  let redrawSpy: sinon.SinonSpy<
+    [
+      node: HTMLElement | null,
+      component: Component,
+      opts?:
+        | {
+            dataObject?: any
+            resolver?:
+              | ((
+                  noodlComponent: ComponentObject | ComponentObject[],
+                ) => Component)
+              | undefined
+          }
+        | undefined,
+    ]
+  >
   let viewTag = 'genderTag'
   let view: Component
   let list: List

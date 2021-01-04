@@ -66,7 +66,7 @@ export function applyMockDOMResolver(opts: {
     }),
   })
   utils.component = noodlui.resolveComponents(opts.component)
-  utils.node = noodluidom.parse(utils.component) as NOODLDOMElement
+  utils.node = noodluidom.draw(utils.component) as NOODLDOMElement
   return utils
 }
 
@@ -105,12 +105,12 @@ export function toDOM<
   let node: N | null = null
   let component: C | undefined
   if (typeof props?.children === 'function') {
-    node = noodluidom.parse(props as any) as N
+    node = noodluidom.draw(props as any) as N
     component = props as any
   } else if (typeof props === 'object' && 'type' in props) {
     component = noodlui.resolveComponents(props) as any
     // @ts-expect-error
-    node = noodluidom.parse(component) as N
+    node = noodluidom.draw(component) as N
   }
   if (node) document.body.appendChild(node as any)
   return [node, component] as [NonNullable<N>, C]

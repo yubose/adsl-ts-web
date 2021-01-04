@@ -140,7 +140,7 @@ const Meeting = (function () {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = subStreams.blueprint
-              const node = noodluidom.parse(
+              const node = noodluidom.draw(
                 subStreams.resolver?.(props) || props,
               ) as any
               const subStream = subStreams.create({ node, participant }).last()

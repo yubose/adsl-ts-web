@@ -174,7 +174,7 @@ export function getAllResolvers() {
 }
 
 export function toDOM(props: any): NOODLDOMElement | null {
-  const node = noodluidom.parse(props)
+  const node = noodluidom.draw(props)
   if (page.rootNode) page.rootNode?.appendChild(node as NOODLDOMElement)
   else throw new Error('No root node exists in Page')
   return node

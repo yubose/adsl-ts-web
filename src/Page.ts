@@ -208,7 +208,7 @@ class Page {
     this.rootNode.innerHTML = ''
     this.setStatus(pageStatus.RENDERING_COMPONENTS)
     components.forEach((component) => {
-      noodluidom.parse(component, this.rootNode)
+      noodluidom.draw(component, this.rootNode)
     })
     this.setStatus(pageStatus.COMPONENTS_RENDERED)
     return components
