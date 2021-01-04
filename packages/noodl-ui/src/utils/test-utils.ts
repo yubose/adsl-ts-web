@@ -1,5 +1,4 @@
 import fs from 'fs-extra'
-import getTransformedAliases from '../resolvers/getTransformedAliases'
 import { getTagName } from '../resolvers/getElementType'
 import NOODLUi from '../noodl-ui'
 import Viewport from '../Viewport'
