@@ -28,7 +28,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
    * resolves its children hieararchy until there are none left
    * @param { ComponentInstance } props
    */
-  parse<C extends ComponentInstance = any>(
+  draw<C extends ComponentInstance = any>(
     component: C,
     container?: T.NOODLDOMElement | null,
   ) {
@@ -63,7 +63,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
             component.children().forEach((child: ComponentInstance) => {
-              const childNode = this.parse(child, node) as T.NOODLDOMElement
+              const childNode = this.draw(child, node) as T.NOODLDOMElement
               node?.appendChild(childNode)
             })
           }
@@ -146,7 +146,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     if (node) {
       const parentNode = node.parentNode
       if (newComponent) {
-        newNode = this.parse(
+        newNode = this.draw(
           newComponent,
           (parentNode || document.body) as T.NOODLDOMElement,
         )
@@ -165,7 +165,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.parse(newComponent as ComponentInstance)
+      this.draw(newComponent as ComponentInstance)
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]
