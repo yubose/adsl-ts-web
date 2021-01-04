@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "allowJs": true,
+    "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationDir": "dist",
@@ -10,7 +10,6 @@
     "moduleResolution": "node",
     "noEmitOnError": false,
     "noImplicitAny": true,
-    "noUnusedLocals": true,
     "outDir": "dist",
     "strictNullChecks": true,
     "skipLibCheck": true,
@@ -19,5 +18,5 @@
     "target": "esnext"
   },
   "exclude": ["node_modules", "dist"],
-  "include": ["src/**/*"]
+  "include": ["src"]
 }
