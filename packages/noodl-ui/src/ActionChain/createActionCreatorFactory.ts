@@ -16,7 +16,6 @@ import ActionChain from '.'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import { findListDataObject, isActionChainEmitTrigger } from '../utils/noodl'
-import { ToastObject } from 'noodl-types'
 
 const createActionCreatorFactory = function (
   ref: ActionChain,
@@ -37,8 +36,8 @@ const createActionCreatorFactory = function (
    * @param { Event } event
    */
   async function* run(
-    action: Action,
-    callbacks: ActionChainActionCallback<Action>[],
+    action: Action<any>,
+    callbacks: ActionChainActionCallback<Action<any>>[],
     event: any,
   ) {
     let numCallbacks = callbacks.length
@@ -126,13 +125,13 @@ const createActionCreatorFactory = function (
       .reduce((acc, actionType) => {
         if (/(anonymous|builtIn|emit)/i.test(actionType)) return acc
         acc[actionType] = (obj: ActionObject) => {
-          const action = new Action(obj, {
-            trigger: ref.trigger,
-          })
+          const action = new Action(obj, { trigger: ref.trigger })
           action.callback = async (inst: Action<ActionObject>, event: any) =>
             getResults(
               action,
-              (ref.fns.action[action.actionType] || []).map((a) => a.fn),
+              (ref.fns.action[action.actionType] || []).map(
+                (a: ActionChainUseObjectBase) => a.fn,
+              ),
               event,
             )
           return action
@@ -146,7 +145,9 @@ const createActionCreatorFactory = function (
         'fn' in action.original &&
         getResults(
           action,
-          [action.original.fn] as ActionChainActionCallback<ActionObject>[],
+          [action.original.fn] as ActionChainActionCallback<
+            Action<AnonymousObject>
+          >[],
           event,
         )
       return action
@@ -187,7 +188,7 @@ const createActionCreatorFactory = function (
             }
             return acc.concat(a.fn)
           },
-          [] as ActionChainUseObjectBase<ActionObject>['fn'][],
+          [] as ActionChainUseObjectBase<EmitAction<EmitActionObject>>['fn'][],
         )
         return getResults(action as any, callbacks, event)
       }

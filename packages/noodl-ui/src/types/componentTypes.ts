@@ -3,7 +3,6 @@ import List from '../components/List'
 import ListItem from '../components/ListItem'
 import { NOODLComponent, ProxiedComponent, Style } from './types'
 import { ComponentType } from './constantTypes'
-import { ActionChainActionCallback } from './actionChainTypes'
 
 export type ComponentInstance = Component | List | ListItem
 

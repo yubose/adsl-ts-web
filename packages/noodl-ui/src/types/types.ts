@@ -1,4 +1,3 @@
-import Component from '../components/Base'
 import { ActionObject, EmitActionObject } from './actionTypes'
 import {
   ActionChainActionCallback,
@@ -61,15 +60,15 @@ export interface ComponentEventCallback {
   (
     noodlComponent: NOODLComponent,
     args: {
-      component: Component
-      parent: Component | null
+      component: ComponentInstance
+      parent: ComponentInstance | null
     },
   ): void
 }
 
 export interface ConsumerOptions {
   componentCache(): ComponentCache
-  component: Component
+  component: ComponentInstance
   context: ResolverContext
   createActionChainHandler: NOODLUI['createActionChainHandler']
   createSrc(path: Parameters<NOODLUI['createSrc']>[0]): string
@@ -103,9 +102,9 @@ export interface ConsumerOptions {
   plugins(location?: never): State['plugins']
   resolveComponent(
     c:
-      | (ComponentType | Component | ComponentObject)
-      | (ComponentType | Component | ComponentObject)[],
-  ): Component
+      | (ComponentType | ComponentInstance | ComponentObject)
+      | (ComponentType | ComponentInstance | ComponentObject)[],
+  ): ComponentInstance
   resolveComponentDeep: NOODLUI['resolveComponents']
   setPlugin(plugin: string | PluginObject): this
   showDataKey: boolean
@@ -138,7 +137,7 @@ export type Path = string | Omit<EmitActionObject, 'actionType'> | IfObject
 
 export type PluginCreationType =
   | string
-  | Component
+  | ComponentInstance
   | ComponentObject
   | PluginObject
 
@@ -149,7 +148,7 @@ export interface PluginObject {
   location?: PluginLocation
   path?: string
   content?: string
-  ref: Component
+  ref: ComponentInstance
 }
 
 export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {
@@ -179,7 +178,7 @@ export interface ResolverContext {
 }
 
 export interface ResolveComponent<T = any> {
-  (component: Component): T
+  (component: ComponentInstance): T
 }
 
 export interface ResolverFn<C extends ComponentInstance = any> {

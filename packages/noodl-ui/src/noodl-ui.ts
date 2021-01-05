@@ -1,6 +1,5 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
-import isPlainObject from 'lodash/isPlainObject'
 import noop from 'lodash/noop'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
@@ -17,7 +16,6 @@ import Viewport from './Viewport'
 import _internalResolver from './resolvers/_internal'
 import {
   forEachDeepEntries,
-  forEachEntries,
   formatColor,
   getRandomKey,
   hasLetter,
@@ -33,7 +31,6 @@ import createComponent from './utils/createComponent'
 import createComponentCache from './utils/componentCache'
 import getActionConsumerOptions from './utils/getActionConsumerOptions'
 import isComponent from './utils/isComponent'
-import Action from './Action'
 import ActionChain from './ActionChain'
 import EmitAction from './Action/EmitAction'
 import { event } from './constants'
@@ -321,7 +318,7 @@ class NOODL {
             if (!callbacks.length) return ''
 
             const result = await Promise.race(
-              callbacks.map((obj) =>
+              callbacks.map((obj: T.ActionChainUseObjectBase) =>
                 obj?.fn?.(
                   emitAction,
                   this.getConsumerOptions({ component, path }),
@@ -476,9 +473,10 @@ class NOODL {
     return plugin.ref.get('plugin')
   }
 
-  // on(eventName: 'page', cb: (page: string) => any): this
-  on(eventName: 'page', cb: (page: string) => void) {
-    if (typeof eventName === 'string') this.#addCb(eventName, cb)
+  on(event: 'page', fn: (page: string) => void) {
+    if (event === 'page') {
+      if (!this.#cb.on.page.includes(fn)) this.#cb.on.page.push(fn)
+    }
     return this
   }
 
@@ -539,52 +537,6 @@ class NOODL {
     if (this.#cb.action[actionType]) this.#cb.action[actionType].length = 0
     if (actionType === 'builtIn' && funcName) {
       if (this.#cb.builtIn[funcName]) this.#cb.builtIn[funcName].length = 0
-    }
-    return this
-  }
-
-  #addCb = (
-    key: T.IAction | T.EventId,
-    cb:
-      | T.ActionChainActionCallback
-      | string
-      | { [key: string]: T.ActionChainActionCallback },
-    cb2?: T.ActionChainActionCallback,
-  ) => {
-    if (key instanceof Action) {
-      if (!Array.isArray(this.#cb.action[key.actionType])) {
-        this.#cb.action[key.actionType] = []
-      }
-      this.#cb.action[key.actionType].push(key)
-    } else if (key === 'builtIn') {
-      if (typeof cb === 'string') {
-        const funcName = cb
-        const fn = cb2 as T.ActionChainActionCallback
-        if (!Array.isArray(this.#cb.builtIn[funcName])) {
-          this.#cb.builtIn[funcName] = []
-        }
-        this.#cb.builtIn[funcName]?.push(fn)
-      } else if (isPlainObject(cb)) {
-        forEachEntries(
-          cb as { [key: string]: T.ActionChainActionCallback },
-          (key, value) => {
-            const funcName = key
-            const fn = value
-            if (!Array.isArray(this.#cb.builtIn[funcName])) {
-              this.#cb.builtIn[funcName] = []
-            }
-            if (!this.#cb.builtIn[funcName]?.includes(fn)) {
-              this.#cb.builtIn[funcName]?.push(fn)
-            }
-          },
-        )
-      }
-    } else {
-      const path = this.#getCbPath(key as any)
-      if (path) {
-        if (!Array.isArray(this.#cb[path])) this.#cb[path] = []
-        this.#cb[path].push(cb as T.ActionChainActionCallback)
-      }
     }
     return this
   }
@@ -890,13 +842,6 @@ class NOODL {
         chaining: [],
         on: { page: [] },
       } as any
-    }
-    return this
-  }
-
-  on(event: string, fn: Function) {
-    if (event === 'page') {
-      if (!this.#cb.on.page.includes(fn)) this.#cb.on.page.push(fn)
     }
     return this
   }

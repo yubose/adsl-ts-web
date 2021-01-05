@@ -12,23 +12,23 @@ import * as T from '../types'
 
 const log = Logger.create('ActionChain')
 
-class ActionChain<
-  ActionObjects extends T.ActionObject[] = T.ActionObject[],
-  C extends T.IComponent = any
-> {
+class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
   #consumerArgs: T.ActionConsumerCallbackOptions & {
     trigger: T.ActionChainEmitTrigger
   }
   #original: T.ActionObject[]
-  #queue: Action[] = []
+  #queue: Action<ActionObjects[number]>[] = []
   #timeoutRef: NodeJS.Timeout
   actions: ActionObjects
   actionsContext: T.ActionChainContext
-  component: T.IComponent
+  component: T.ComponentInstance
   createAction: ReturnType<typeof createActionCreatorFactory>
-  current: Action
+  current: Action<ActionObjects[number]>
   fns = { action: {}, builtIn: {} } as {
-    action: Record<T.ActionType, T.ActionChainUseObjectBase<T.ActionObject>[]>
+    action: Record<
+      T.ActionType,
+      T.ActionChainUseObjectBase<Action<ActionObjects[number]>>[]
+    >
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
   }
   gen: AsyncGenerator<
@@ -39,12 +39,12 @@ class ActionChain<
     T.ActionChainGeneratorResult[],
     any
   >
-  intermediary: Action[] = []
+  intermediary: Action<ActionObjects[number]>[] = []
   status: 'idle' | 'aborted' | 'in.progress' | null = null
   trigger: T.ActionChainEmitTrigger
 
   constructor(
-    actions: T.ActionChainConstructorArgs<C>[0],
+    actions: T.ActionChainConstructorArgs<any>[0],
     options: T.ActionConsumerCallbackOptions & {
       trigger: T.ActionChainEmitTrigger
     },
@@ -54,7 +54,7 @@ class ActionChain<
     this.#original = isDraft(actions) ? original(actions) : actions
     this.#original = this.#original?.map((a) => {
       const obj = isDraft(a) ? original(a) : a
-      const result = { actionType: getActionType(obj) }
+      const result = { actionType: getActionType(obj) } as any
       if (typeof obj === 'function') result.fn = obj
       else Object.assign(result, obj)
       return result
@@ -93,11 +93,13 @@ class ActionChain<
     while (this.#queue.length) {
       const action = this.#queue.shift()
       if (action?.status !== 'aborted') {
-        log.grey(`Aborting action ${action?.type}`, action)
+        log.grey(`Aborting action ${action?.actionType}`, action)
         try {
           action?.abort(reason || '')
           log.grey(
-            `Aborted action of type ${action?.type || '<Missing action type>'}`,
+            `Aborted action of type ${
+              action?.actionType || '<Missing action type>'
+            }`,
             action,
           )
         } catch (error) {
@@ -111,7 +113,7 @@ class ActionChain<
       snapshot: this.getSnapshot(),
     })
     // This will return an object like { value, done: true }
-    return this.gen?.return?.(reasons.join(', '))
+    return this.gen?.return?.(reasons.join(', ') as any)
   }
 
   build() {
@@ -128,12 +130,12 @@ class ActionChain<
         })
 
         if (this.#queue.length) {
-          let action: Action | undefined
+          let action: Action<ActionObjects[number]> | undefined
           let result: any
           let iterator = await this.next()
 
           while (iterator && !iterator?.done) {
-            action = iterator.value?.action as Action
+            action = iterator.value?.action as Action<ActionObjects[number]>
 
             // Skip to the next loop
             if (!action) {
@@ -178,7 +180,7 @@ class ActionChain<
     return actionChainHandler.bind(this)
   }
 
-  #setStatus = (status: ActionChain<any, any>['status']) => {
+  #setStatus = (status: ActionChain<any>['status']) => {
     this.status = status
   }
 
@@ -240,7 +242,7 @@ class ActionChain<
     try {
       if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
       this.#timeoutRef = setTimeout(() => {
-        const msg = `Action of type "${action.type}" timed out`
+        const msg = `Action of type "${action.actionType}" timed out`
         action.abort(msg)
         this.abort(msg)
           .then(() => {
@@ -295,7 +297,10 @@ class ActionChain<
    */
   loadQueue() {
     this.actions.forEach((actionObj: T.ActionObject | Function | string) => {
-      let action: Action | EmitAction | undefined
+      let action:
+        | Action<T.ActionObject>
+        | EmitAction<T.EmitActionObject>
+        | undefined
 
       if (typeof actionObj === 'function') {
         if (!this.fns.action.anonymous?.length) {
@@ -350,7 +355,7 @@ class ActionChain<
       }
 
       if (action) {
-        this.#queue.push(action as Action)
+        this.#queue.push(action as Action<T.ActionObject>)
       } else {
         log.grey(
           `Could not convert action ${
@@ -382,11 +387,14 @@ class ActionChain<
   }
 
   insertIntermediaryAction(actionObj: T.ActionObject) {
-    let action: Action | EmitAction | undefined
+    let action:
+      | Action<T.ActionObject>
+      | EmitAction<T.EmitActionObject>
+      | undefined
     if (typeof this.createAction[actionObj.actionType] === 'function') {
       action = this.createAction[actionObj.actionType](actionObj as any)
-      this.#queue.unshift(action as Action)
-      this.intermediary.push(action as Action)
+      this.#queue.unshift(action as Action<ActionObjects[number]>)
+      this.intermediary.push(action as Action<ActionObjects[number]>)
     } else {
       log.func('insertIntermediaryAction')
       log.red(
@@ -395,7 +403,7 @@ class ActionChain<
         actionObj,
       )
     }
-    return action as Action | EmitAction
+    return action as Action<T.ActionObject> | EmitAction<T.EmitActionObject>
   }
 
   isAborted() {

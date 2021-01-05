@@ -1,22 +1,19 @@
 import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
-import {
-  EmitActionObject,
-  ActionOptions,
-  EmitTrigger,
-  EmitObject,
-} from '../types'
+import { IAction, ActionOptions, EmitActionObject, EmitTrigger } from '../types'
 import Action from './Action'
 
 const log = Logger.create('EmitAction')
 
-class EmitAction extends Action<EmitObject> {
+class EmitAction<OriginalAction extends EmitActionObject>
+  extends Action<OriginalAction>
+  implements IAction {
   dataKey: string | { [key: string]: any } | undefined
   actions: any[] | undefined
   iteratorVar: string | undefined
 
   constructor(
-    action: EmitObject,
+    action: OriginalAction,
     options?: ActionOptions<EmitActionObject> &
       Partial<{
         dataKey?: any

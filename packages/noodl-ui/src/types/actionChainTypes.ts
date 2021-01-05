@@ -9,7 +9,7 @@ import {
   ActionTriggerType,
   ResolveEmitTrigger,
 } from './constantTypes'
-import { ActionObject, BuiltInObject } from './actionTypes'
+import { ActionObject, BuiltInObject, EmitActionObject } from './actionTypes'
 import { EmitObject } from '.'
 import EmitAction from '../Action/EmitAction'
 
@@ -26,7 +26,7 @@ export type ActionChainConstructorArgs<C extends Component> = [
 ]
 
 export interface ActionChainGeneratorResult<
-  A extends Action | EmitAction = any
+  A extends Action<ActionObject> | EmitAction<EmitActionObject> = any
 > {
   action: A | undefined
   result: any
@@ -43,7 +43,7 @@ export type ActionChainUseObject =
   | ActionChainUseBuiltInObject
 
 export interface ActionChainUseObjectBase<
-  A extends Action = Action,
+  A extends Action<ActionObject> = Action<ActionObject>,
   NoodlClient = any
 > {
   actionType: ActionType
@@ -56,8 +56,8 @@ export interface ActionChainUseBuiltInObject {
   actionType?: 'builtIn'
   funcName: string
   fn:
-    | ActionChainActionCallback<BuiltInObject>
-    | ActionChainActionCallback<BuiltInObject>[]
+    | ActionChainActionCallback<Action<BuiltInObject>>
+    | ActionChainActionCallback<Action<BuiltInObject>>[]
 }
 
 export interface ActionChainAddActionObject<S extends ActionType = ActionType> {
@@ -66,9 +66,9 @@ export interface ActionChainAddActionObject<S extends ActionType = ActionType> {
 }
 
 export interface ActionChainSnapshot {
-  currentAction: Action | EmitAction
+  currentAction: Action<ActionObject> | EmitAction<EmitActionObject>
   original: ActionObject[]
-  queue: (Action | EmitAction)[]
+  queue: (Action<ActionObject> | EmitAction<EmitActionObject>)[]
   status: ActionChain<ActionObject[], any>['status']
 }
 
@@ -80,7 +80,9 @@ export interface ActionChainCallbackOptions {
   trigger: ActionTriggerType
 }
 
-export interface ActionChainActionCallback<A extends Action = any> {
+export interface ActionChainActionCallback<
+  A extends Action<ActionObject> = any
+> {
   (
     action: A,
     options: ActionConsumerCallbackOptions,
