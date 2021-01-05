@@ -1,6 +1,6 @@
 {
   "name": "noodl-utils",
-  "version": "0.0.40",
+  "version": "0.0.41",
   "description": "Utility/helpers for working with NOODL values",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "main": "dist/index.js",
@@ -33,7 +33,6 @@
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
   },
-  "peerDependencies": {},
   "devDependencies": {
     "noodl-types": "file:../noodl-types"
   },
