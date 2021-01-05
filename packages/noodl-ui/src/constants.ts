@@ -104,6 +104,7 @@ export const event = {
   action: {
     PAGEJUMP: 'pageJump',
     BUILTIN: 'builtIn',
+    EMIT: 'emit',
     EVALOBJECT: 'evalObject',
     GOTO: 'goto',
     UPDATEOBJECT: 'updateObject',
@@ -111,6 +112,7 @@ export const event = {
     SAVEOBJECT: 'saveObject',
     POPUP: 'popUp',
     POPUPDISMISS: 'popUpDismiss',
+    TOAST: 'toast',
   },
   actionChain: {
     ON_BEFORE_RESOLVE: 'beforeResolve',

@@ -11,6 +11,7 @@ import {
 } from './constantTypes'
 import { ActionObject, BuiltInObject } from './actionTypes'
 import { EmitObject } from '.'
+import EmitAction from '../Action/EmitAction'
 
 export type ActionChainConstructorArgs<C extends Component> = [
   actions: ActionObject[],
@@ -24,7 +25,9 @@ export type ActionChainConstructorArgs<C extends Component> = [
   },
 ]
 
-export interface ActionChainGeneratorResult<A extends Action = any> {
+export interface ActionChainGeneratorResult<
+  A extends Action | EmitAction = any
+> {
   action: A | undefined
   result: any
 }
@@ -40,7 +43,7 @@ export type ActionChainUseObject =
   | ActionChainUseBuiltInObject
 
 export interface ActionChainUseObjectBase<
-  A extends ActionObject = any,
+  A extends Action = Action,
   NoodlClient = any
 > {
   actionType: ActionType
@@ -63,9 +66,9 @@ export interface ActionChainAddActionObject<S extends ActionType = ActionType> {
 }
 
 export interface ActionChainSnapshot {
-  currentAction: Action
+  currentAction: Action | EmitAction
   original: ActionObject[]
-  queue: Action[]
+  queue: (Action | EmitAction)[]
   status: ActionChain<ActionObject[], any>['status']
 }
 
@@ -77,9 +80,9 @@ export interface ActionChainCallbackOptions {
   trigger: ActionTriggerType
 }
 
-export interface ActionChainActionCallback<A extends ActionObject = any> {
+export interface ActionChainActionCallback<A extends Action = any> {
   (
-    action: Action<A>,
+    action: A,
     options: ActionConsumerCallbackOptions,
     actionsContext: ActionChainContext,
   ): Promise<any> | void

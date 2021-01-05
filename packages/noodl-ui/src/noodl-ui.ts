@@ -476,16 +476,8 @@ class NOODL {
     return plugin.ref.get('plugin')
   }
 
-  on(
-    eventName: T.EventId,
-    cb: (
-      noodlComponent: T.ComponentObject,
-      args: {
-        component: T.ComponentInstance
-        parent?: T.ComponentInstance | null
-      },
-    ) => void,
-  ) {
+  // on(eventName: 'page', cb: (page: string) => any): this
+  on(eventName: 'page', cb: (page: string) => void) {
     if (typeof eventName === 'string') this.#addCb(eventName, cb)
     return this
   }

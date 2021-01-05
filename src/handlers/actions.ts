@@ -74,7 +74,7 @@ const createActions = function ({ page }: { page: IPage }) {
 
   /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+    fn: async (action, options, { noodl, noodlui }) => {
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, ...options })
 
@@ -226,7 +226,7 @@ const createActions = function ({ page }: { page: IPage }) {
   // TODO - else if src endsWith
   _actions.emit.push({
     fn: async (
-      action: EmitAction,
+      action,
       options: ActionConsumerCallbackOptions & { path: EmitObject },
       { noodl },
     ) => {
@@ -572,17 +572,20 @@ const createActions = function ({ page }: { page: IPage }) {
     },
   })
 
-  // _actions.toast.push({
-  //   fn: async (action, options) => {
-  //     try {
-  //       log.func('toast')
-  //       log.grey('', { action, options })
-
-  //     } catch (error) {
-  //       throw new Error(error)
-  //     }
-  //   },
-  // })
+  _actions.toast.push({
+    fn: async (action, options) => {
+      try {
+        log.func('toast')
+        log.gold('', { action, options })
+        createToast(action.original?.message || '', {
+          timeout: 8000,
+          cancel: 'Close',
+        })
+      } catch (error) {
+        throw new Error(error)
+      }
+    },
+  })
 
   _actions.updateObject.push({
     fn: async (action: Action<UpdateObject>, options, actionsContext) => {
@@ -700,33 +703,33 @@ const createActions = function ({ page }: { page: IPage }) {
     },
   })
 
-  _actions.emit.forEach((useObj) => {
-    useObj.fn = async function emit(...args) {
-      const result = await useObj.fn(...args)
-      if (Array.isArray(result)) {
-        const numItems = result.length
-        for (let index = 0; index < numItems; index++) {
-          const res = result[index]
-          if (isPlainObject(res)) {
-            if ('toast' in res) {
-              createToast(res.toast?.message || '', {
-                cancel: 'Close',
-                timeout: 8000,
-              })
-            }
-          }
-        }
-      } else {
-        if (isPlainObject(result) && 'toast' in result) {
-          createToast(result.toast?.message || '', {
-            cancel: 'Close',
-            timeout: 8000,
-          })
-        }
-      }
-      return result
-    }
-  })
+  // _actions.emit.forEach((useObj) => {
+  //   useObj.fn = async function emit(...args) {
+  //     const result = await useObj.fn(...args)
+  //     if (Array.isArray(result)) {
+  //       const numItems = result.length
+  //       for (let index = 0; index < numItems; index++) {
+  //         const res = result[index]
+  //         if (isPlainObject(res)) {
+  //           if ('toast' in res) {
+  //             createToast(res.toast?.message || '', {
+  //               cancel: 'Close',
+  //               timeout: 8000,
+  //             })
+  //           }
+  //         }
+  //       }
+  //     } else {
+  //       if (isPlainObject(result) && 'toast' in result) {
+  //         createToast(result.toast?.message || '', {
+  //           cancel: 'Close',
+  //           timeout: 8000,
+  //         })
+  //       }
+  //     }
+  //     return result
+  //   }
+  // })
 
   return _actions
 }

@@ -1,6 +1,7 @@
-import Action from '../Action'
+import { ToastObject } from 'noodl-types'
 import { AbortExecuteError } from '../errors'
 import { ConsumerOptions, IfObject } from './types'
+import Action from '../Action'
 
 export type ActionObject = BaseActionObject &
   (
@@ -14,6 +15,7 @@ export type ActionObject = BaseActionObject &
     | PopupDismissObject
     | RefreshObject
     | SaveObject
+    | ToastObject
     | UpdateObject
   )
 

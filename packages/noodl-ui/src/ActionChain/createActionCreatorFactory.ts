@@ -1,5 +1,6 @@
 import { createEmitDataKey } from 'noodl-utils'
 import { actionTypes } from '../constants'
+import isPlainObject from 'lodash/isPlainObject'
 import {
   ActionObject,
   ActionChainActionCallback,
@@ -15,6 +16,7 @@ import ActionChain from '.'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
 import { findListDataObject, isActionChainEmitTrigger } from '../utils/noodl'
+import { ToastObject } from 'noodl-types'
 
 const createActionCreatorFactory = function (
   ref: ActionChain,
@@ -36,7 +38,7 @@ const createActionCreatorFactory = function (
    */
   async function* run(
     action: Action,
-    callbacks: ActionChainActionCallback<ActionObject>[],
+    callbacks: ActionChainActionCallback<Action>[],
     event: any,
   ) {
     let numCallbacks = callbacks.length
@@ -56,13 +58,35 @@ const createActionCreatorFactory = function (
         },
         ref.actionsContext,
       )
-      results.push(result)
-      // TODO - Do a better way to identify the action
-      if ((result || ({} as any)).actionType) {
-        // We may get an action object returned back like from
-        // evalObject. If this is the case we need to immediately
-        // run this action next before continuing
-        ref.insertIntermediaryAction(result)
+      if (result) {
+        // TODO - Do a better way to identify the action
+        if ((result || ({} as any)).actionType) {
+          // We may get an action object returned back like from
+          // evalObject. If this is the case we need to immediately
+          // run this action next before continuing
+          ref.insertIntermediaryAction(result)
+        }
+        if (Array.isArray(result)) {
+          result.forEach((res) => {
+            results.push(res)
+            if (isPlainObject(res)) {
+              if ('toast' in res) {
+                console.log(
+                  `%cTOAST OBJECT`,
+                  `color:#00D8C2;font-weight:bold;`,
+                  { action, ref, toast: res },
+                )
+                ref.insertIntermediaryAction({ ...res, actionType: 'toast' })
+              } else if ('emit' in res) {
+                //
+              } else if ('actionType' in res) {
+                //
+              }
+            }
+          })
+        } else {
+          results.push(result)
+        }
       }
     }
     return results.length > 1 ? results : results[0]
