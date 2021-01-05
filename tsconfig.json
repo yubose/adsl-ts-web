@@ -25,7 +25,8 @@
     "src/**/*",
     "packages/noodl-ui/dist",
     "packages/noodl-utils/dist",
-    "packages/noodl-ui-dom/dist"
+    "packages/noodl-ui-dom/dist",
+    "scripts/serverFiles"
   ],
   "exclude": ["node_modules"]
 }

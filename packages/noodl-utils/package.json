@@ -33,9 +33,7 @@
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
   },
-  "peerDependencies": {
-    "noodl-ui": "^0.1.33"
-  },
+  "peerDependencies": {},
   "devDependencies": {
     "noodl-types": "file:../noodl-types"
   },

@@ -60,6 +60,10 @@
       ""
     ]
   },
+  "toast": {
+    "prefix": "toast",
+    "body": "import toast from 'vercel-toast'"
+  },
   "prettyDOM": {
     "prefix": "importpdom",
     "body": "import { prettyDOM } from '@testing-library/dom'"

@@ -4,6 +4,7 @@ import createBuiltInActions from './handlers/builtIns'
 import App from './App'
 import Page from './Page'
 import Meeting from './meeting'
+import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
 
 window.addEventListener('load', async () => {

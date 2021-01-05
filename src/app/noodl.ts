@@ -18,6 +18,9 @@ const NOTIFICATION = getConfigEndpoint('message')
 // that use public.aitmed.com as the host name when deploying to s3.
 // So this should never be edited. Instead, change the 2nd condition
 // instead of changing the SAFE_DEPLOY_URL
+//    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : TESTPAGE
+//    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
+//    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
 
 const noodl = new NOODL({

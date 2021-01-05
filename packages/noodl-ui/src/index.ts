@@ -54,6 +54,7 @@ export {
   isActionChainEmitTrigger,
   isSubStreamComponent,
   identify,
+  parseReference,
   publish,
 } from './utils/noodl'
 export { getTagName } from './resolvers/getElementType'

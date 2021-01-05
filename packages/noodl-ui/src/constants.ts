@@ -9,6 +9,7 @@ export const actionTypes = [
   'popUpDismiss',
   'refresh',
   'saveObject',
+  'toast',
   'updateObject',
 ] as const
 
@@ -16,6 +17,7 @@ export const actionChainEmitTriggers = [
   'onBlur',
   'onClick',
   'onChange',
+  'toast',
 ] as const
 
 export const resolveEmitTriggers = ['dataKey', 'dataValue', 'path'] as const

@@ -42,9 +42,11 @@
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
   },
   "dependencies": {
+    "noodl-types": "^1.0.8",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
-    "noodl-utils": "file:packages/noodl-utils"
+    "noodl-utils": "file:packages/noodl-utils",
+    "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
     "@aitmed/cadl": "^1.0.174",
