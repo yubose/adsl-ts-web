@@ -59,7 +59,7 @@ const updateObjectAction: UpdateObject = {
 }
 
 let actions: [PopupDismissObject, UpdateObject, PageJumpObject]
-let actionChain: ActionChain<any[], Component>
+let actionChain: ActionChain<any[]>
 
 const createActionChain = <Args extends ActionChainConstructorArgs<any>>(
   args: Partial<{ actions: Args[0] } & Args[1]>,
@@ -89,28 +89,23 @@ beforeEach(() => {
   noodlui.use({ getRoot, getAssetsUrl: () => assetsUrl })
 })
 
-describe('ActionChain', () => {
+describe(chalk.keyword('orange')('ActionChain'), () => {
   describe('when adding actions', () => {
     it('should set the builtIns either by using a single object or an array', () => {
       const mockBuiltInFn = sinon.spy()
       const component = createComponent('view')
       actionChain = createActionChain({ component })
-      expect(actionChain.fns.builtIn).not.to.have.property('hello')
-      expect(actionChain.fns.builtIn).not.to.have.property('hi')
-      expect(actionChain.fns.builtIn).not.to.have.property('monster')
-      expect(actionChain.fns.builtIn).not.to.have.property('dopple')
+      const builtInFns = actionChain.fns.builtIn
+      expect(builtInFns).not.to.have.property('hello')
+      expect(builtInFns).not.to.have.property('hi')
+      expect(builtInFns).not.to.have.property('monster')
+      expect(builtInFns).not.to.have.property('dopple')
       actionChain.useBuiltIn({ funcName: 'hello', fn: mockBuiltInFn })
-      expect(actionChain.fns.builtIn)
-        .to.have.property('hello')
-        .that.includes(mockBuiltInFn)
+      expect(builtInFns).to.have.property('hello').that.includes(mockBuiltInFn)
       actionChain.useBuiltIn({ funcName: 'lion', fn: [mockBuiltInFn] })
-      expect(actionChain.fns.builtIn)
-        .to.have.property('lion')
-        .that.includes(mockBuiltInFn)
+      expect(builtInFns).to.have.property('lion').that.includes(mockBuiltInFn)
       actionChain.useBuiltIn([{ funcName: 'hi', fn: mockBuiltInFn }])
-      expect(actionChain.fns.builtIn)
-        .to.have.property('hi')
-        .that.includes(mockBuiltInFn)
+      expect(builtInFns).to.have.property('hi').that.includes(mockBuiltInFn)
       actionChain.useBuiltIn([
         {
           funcName: 'monster',
@@ -165,7 +160,7 @@ describe('ActionChain', () => {
     it('should treat the noodl emit object as an action with actionType: "emit"', () => {
       expect(
         createActionChain({
-          actions: [{ emit: { dataKey: 'fasfas', actions: [] } }],
+          actions: [{ emit: { dataKey: 'fasfas', actions: [] } } as any],
         }).actions[0],
       ).to.have.property('actionType', 'emit')
     })
@@ -212,7 +207,9 @@ describe('ActionChain', () => {
 
     it('should be an EmitAction subclass instance for emit actions', () => {
       actionChain = createActionChain({
-        actions: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+        actions: [
+          { emit: { dataKey: { var1: 'itemObject' }, actions: [] } } as any,
+        ],
       })
       actionChain.build()
       expect(actionChain.getQueue()[0]).to.be.instanceOf(EmitAction)
@@ -222,7 +219,9 @@ describe('ActionChain', () => {
       const spy = sinon.spy()
       const emitUseObj = { actionType: 'emit', fn: spy, trigger: 'onChange' }
       actionChain = createActionChain({
-        actions: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+        actions: [
+          { emit: { dataKey: { var1: 'itemObject' }, actions: [] } } as any,
+        ],
         component: createComponent('textField'),
       })
       actionChain.useAction(emitUseObj as any)
@@ -244,7 +243,7 @@ describe('ActionChain', () => {
       actionChain = createActionChain({
         actions: [
           pageJumpAction,
-          { emit: { dataKey: { var1: 'itemObject' }, actions: [] } },
+          { emit: { dataKey: { var1: 'itemObject' }, actions: [] } } as any,
           { actionType: 'builtIn', funcName: 'hello' },
         ],
       })
@@ -306,7 +305,9 @@ describe('ActionChain', () => {
       const spy = sinon.spy()
       const emitUseObj = { actionType: 'emit', fn: spy, trigger: 'onChange' }
       actionChain = createActionChain({
-        actions: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
+        actions: [
+          { emit: { dataKey: { var1: 'itemObject' }, actions: [] } } as any,
+        ],
         component: createComponent({
           type: 'textField',
           onChange: { emit: { dataKey: 'fsafa', actions: [] } },
@@ -543,7 +544,6 @@ describe('ActionChain', () => {
       const handler = actionChain.build()
       await handler()
       const returnValue = await executeSpy.returnValues
-      console.info('returnValue', returnValue)
       expect(executeSpy.called).to.be.true
     })
 
@@ -723,7 +723,6 @@ describe('ActionChain', () => {
           await handler()
           const arg = emitSpy.args[0][0]
           expect(arg).to.be.instanceOf(EmitAction)
-          console.info(arg)
           expect(arg.dataKey).to.eq('Male')
           expect(arg.iteratorVar).to.eq(iteratorVar)
         })
@@ -776,7 +775,6 @@ describe('ActionChain', () => {
           trigger: 'onClick',
           fn: emitSpy,
         })
-        console.info(actionChain)
         const handler = actionChain.build()
         await handler()
         expect(emitSpy.firstCall.args[0]).to.have.property('trigger', 'onClick')

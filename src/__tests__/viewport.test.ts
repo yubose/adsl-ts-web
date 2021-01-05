@@ -33,7 +33,6 @@ afterEach(() => {
     innerWidth: originalWidth,
     innerHeight: originalHeight,
   })
-  console.info({ width: window.innerWidth, height: window.innerHeight })
 })
 
 describe('viewport', () => {

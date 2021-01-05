@@ -4,7 +4,6 @@ import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
 import Action from '../Action'
 import EmitAction from '../Action/EmitAction'
-import isReference from '../utils/isReference'
 import createActionCreatorFactory from './createActionCreatorFactory'
 import { AbortExecuteError } from '../errors'
 import { actionTypes } from '../constants'
@@ -82,9 +81,9 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
         : [reason]
       : ([] as string[])
 
-    this.#setStatus({
+    this.status = {
       aborted: reasons.length ? { reasons } : true,
-    } as any)
+    } as any
 
     log.func('abort')
     log.orange('Aborting...', { reasons, status: this.status })
@@ -96,22 +95,11 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
         log.grey(`Aborting action ${action?.actionType}`, action)
         try {
           action?.abort(reason || '')
-          log.grey(
-            `Aborted action of type ${
-              action?.actionType || '<Missing action type>'
-            }`,
-            action,
-          )
         } catch (error) {
           throw new AbortExecuteError(error.message)
         }
       }
     }
-
-    log.grey(`Abort finished`, {
-      actionChain: this,
-      snapshot: this.getSnapshot(),
-    })
     // This will return an object like { value, done: true }
     return this.gen?.return?.(reasons.join(', ') as any)
   }
@@ -122,8 +110,8 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
 
     const actionChainHandler = async (event?: any) => {
       try {
-        this.#setStatus('in.progress')
-        log.func('execute')
+        this.status = 'in.progress'
+        log.func('actionChainHandler')
         log.grey('Action chain started', {
           ...this.getDefaultCallbackArgs({ event }),
           fns: this.fns,
@@ -178,10 +166,6 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     }
 
     return actionChainHandler.bind(this)
-  }
-
-  #setStatus = (status: ActionChain<any>['status']) => {
-    this.status = status
   }
 
   /**
@@ -303,15 +287,6 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
         | undefined
 
       if (typeof actionObj === 'function') {
-        if (!this.fns.action.anonymous?.length) {
-          log.func('loadQueue')
-          log.red(
-            `Encountered an action object that is not an object type. You will` +
-              `need to register an "anonymous" action as an actionType if you want to ` +
-              `handle anonymous functions`,
-            { received: actionObj, component: this?.component },
-          )
-        }
         action = this.createAction.anonymous({
           actionType: 'anonymous',
           fn: actionObj,
@@ -320,58 +295,20 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
       else {
-        if (isReference(actionObj as string)) {
-          log.func('loadQueue')
-          log.red(`Received a reference string but expected an action object`, {
-            actions: this.actions,
-            actionObj,
-            actionChain: this,
-          })
-        } else if (typeof actionObj === 'object') {
+        if (typeof actionObj === 'object') {
           if ('emit' in actionObj) {
-            actionObj = {
-              ...actionObj,
-              actionType: 'emit',
-            } as T.EmitActionObject
+            actionObj.actionType = 'emit'
           } else if ('goto' in actionObj) {
-            actionObj = {
-              ...(actionObj as any),
-              actionType: 'goto',
-            } as T.GotoObject
+            ;(actionObj as T.GotoObject).actionType = 'goto'
           }
-
           if (typeof this.createAction[actionObj.actionType] === 'function') {
             action = this.createAction[actionObj.actionType]({
               ...actionObj,
-            } as any)
-          } else {
-            log.red(
-              `Expected "createAction" to be a function. This action will ` +
-                `not be available`,
-              actionObj,
-            )
+            } as T.ActionObject)
           }
         }
       }
-
-      if (action) {
-        this.#queue.push(action as Action<T.ActionObject>)
-      } else {
-        log.grey(
-          `Could not convert action ${
-            typeof actionObj === 'object'
-              ? actionObj.actionType
-              : String(actionObj)
-          } to an instance`,
-          {
-            action,
-            actionChain: this,
-            actions: this.actions,
-            component: this.component,
-            original: actionObj,
-          },
-        )
-      }
+      if (action) this.#queue.push(action as Action<T.ActionObject>)
     })
     return this
   }
@@ -395,13 +332,6 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
       action = this.createAction[actionObj.actionType](actionObj as any)
       this.#queue.unshift(action as Action<ActionObjects[number]>)
       this.intermediary.push(action as Action<ActionObjects[number]>)
-    } else {
-      log.func('insertIntermediaryAction')
-      log.red(
-        `Expected "createAction" to be a function. This action will ` +
-          `not be available`,
-        actionObj,
-      )
     }
     return action as Action<T.ActionObject> | EmitAction<T.EmitActionObject>
   }

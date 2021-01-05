@@ -215,7 +215,6 @@ export function createNOODLComponent(
             if (args && typeof args === 'string') {
               try {
                 args = JSON.parse(args)
-                console.info(args)
               } catch (error) {
                 console.error(error.message)
               }

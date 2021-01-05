@@ -47,13 +47,6 @@ const createViewportHandler = function (viewport: Viewport) {
     isConstrained() {
       if (typeof min === 'number' && typeof max === 'number') {
         const aspectRatio = o.getCurrentAspectRatio()
-        console.info(`aspectRatio [isConstrained]`, {
-          aspectRatio,
-          width: viewport.width,
-          height: viewport.height,
-          windowWidth: window.innerWidth,
-          windowHeight: window.innerHeight,
-        })
         return aspectRatio <= min || aspectRatio >= max
       }
     },

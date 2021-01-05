@@ -1,4 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
+import { createToast, Toast } from 'vercel-toast'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { FileInputEvent } from '../app/types'
 import { forEachEntries } from './common'
@@ -171,6 +172,14 @@ export function scrollToElem(
   { duration }: { duration?: number } = {},
 ) {
   if (node) scrollTo(node.getBoundingClientRect().top, duration)
+}
+
+export function toast(message: string, options?: Toast['options']) {
+  return createToast(message, {
+    cancel: 'Close',
+    timeout: 8000,
+    ...options,
+  })
 }
 
 /**

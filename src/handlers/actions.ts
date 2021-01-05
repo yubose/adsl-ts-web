@@ -3,7 +3,6 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import get from 'lodash/get'
-import { createToast } from 'vercel-toast'
 import isPlainObject from 'lodash/isPlainObject'
 import { getByDataUX } from 'noodl-ui-dom'
 import {
@@ -26,7 +25,6 @@ import {
   RefreshObject,
   SaveObject,
   UpdateObject,
-  ActionChainActionCallback,
 } from 'noodl-ui'
 import {
   createEmitDataKey,
@@ -41,8 +39,7 @@ import Logger from 'logsnap'
 import { IPage } from '../Page'
 import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
-import { scrollToElem } from '../utils/dom'
-import { onSelectFile } from '../utils/dom'
+import { onSelectFile, scrollToElem, toast } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
 
@@ -563,10 +560,7 @@ const createActions = function ({ page }: { page: IPage }) {
         }
       } catch (error) {
         console.error(error)
-        createToast(error.message, {
-          timeout: 8000,
-          cancel: 'Close',
-        })
+        toast(error.message)
         return abort()
       }
     },
@@ -577,10 +571,7 @@ const createActions = function ({ page }: { page: IPage }) {
       try {
         log.func('toast')
         log.gold('', { action, options })
-        createToast(action.original?.message || '', {
-          timeout: 8000,
-          cancel: 'Close',
-        })
+        toast(action.original?.message || '')
       } catch (error) {
         throw new Error(error)
       }
@@ -694,10 +685,7 @@ const createActions = function ({ page }: { page: IPage }) {
         }
       } catch (error) {
         console.error(error)
-        createToast(error.message, {
-          timeout: 8000,
-          cancel: 'Close',
-        })
+        toast(error.message)
         // await abort?.(error.message)
       }
     },

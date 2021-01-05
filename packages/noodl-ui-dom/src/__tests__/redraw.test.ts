@@ -270,7 +270,6 @@ describe('redraw', () => {
       })
       const onClickSpy = sinon.spy(async (action, options) => {
         imgPath = 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
-        console.info('HELLO ALL')
         return ['']
       })
       noodlui.use({
@@ -286,7 +285,6 @@ describe('redraw', () => {
       noodluidom.on('image', (n: HTMLInputElement, c) => {
         n.setAttribute('src', c.get('src'))
         n.onclick = async (e) => {
-          console.info(`Image oncnlick invoking`, c.get('onClick'))
           await c.get('onClick')(e)
         }
       })
@@ -306,10 +304,8 @@ describe('redraw', () => {
 
       noodluidom.redraw(document.querySelector('img'), image)
       const img = document.querySelector('img')
-      console.info(noodluidom.getAllCbs())
       // img?.click()
       await waitFor(() => {
-        console.info(onClickSpy)
         expect(onClickSpy.called).to.be.true
         // expect(pathSpy.called).to.be.true
         // expect(onClickSpy.called).to.be.true
@@ -430,7 +426,6 @@ describe('redraw', () => {
           const imgNode = document.querySelector(
             `img[src=${assetsUrl + 'myimg.png'}]`,
           )
-          console.info(document.querySelector('img'))
           expect(imgNode).to.exist
         })
         const [newNode, newComponent] = noodluidom.redraw(node, image)

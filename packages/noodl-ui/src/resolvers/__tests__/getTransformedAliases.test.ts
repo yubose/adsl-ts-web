@@ -106,7 +106,6 @@ describe('getTransformedAliases', () => {
         const image = createComponent({ type: 'image', path })
         list.child()?.createChild(image)
         const result = await noodlui.createSrc(image)
-        console.info(emitSpy.args[0][0])
       })
 
       xit('should have its dataKey and dataObject populated', () => {
