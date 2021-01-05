@@ -249,7 +249,12 @@ class App {
         min,
         max,
       }: ReturnType<typeof computeViewportSize>) => {
-        log.func('on [viewport]')
+        log.func('on resize [viewport]')
+        if (this.noodlui.page === 'VideoChat') {
+          return log.grey(
+            `Skipping avoiding the page rerender on the VideoChat "onresize" event`,
+          )
+        }
         log.grey('Updating aspectRatio because viewport changed', { min, max })
         this.noodl.aspectRatio = aspectRatio
         document.body.style.width = `${width}px`
