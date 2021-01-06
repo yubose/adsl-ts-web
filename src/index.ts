@@ -48,6 +48,7 @@ window.addEventListener('load', async () => {
   window.noodl = noodl
   window.noodlui = noodlui
   window.noodluidom = noodluidom
+  window.addRemoteParticipant = Meeting.addRemoteParticipant
   Object.assign(window, getWindowHelpers())
 
   window.addEventListener('popstate', async function onPopState(e) {

@@ -107,23 +107,31 @@ const Meeting = (function () {
     /**
      * Adds a remote participant to the sdk and the internal state
      * @param { RemoteParticipant } participant
+     * @param { object } options - This is temporarily used for debugging
      */
-    addRemoteParticipant(participant: T.RoomParticipant) {
+    addRemoteParticipant(
+      participant: T.RoomParticipant,
+      {
+        force = '',
+      }: {
+        force?: 'mainStream' | 'selfStream' | 'subStream' | ''
+      } = {},
+    ) {
       if (_internal._room?.state === 'connected') {
-        if (!o.isParticipantLocal(participant)) {
+        if (force || !o.isParticipantLocal(participant)) {
           const mainStream = _internal._streams?.getMainStream()
           const subStreams = _internal._streams?.getSubStreamsContainer()
-          if (mainStream.isSameParticipant(participant)) {
-            // Safe checking -- remove the participant from a subStream if they
-            // are in an existing one for some reason
-            if (subStreams?.participantExists(participant)) {
-              let subStream = subStreams.findBy((s: Stream) =>
+          // Safe checking -- remove the participant from a subStream if they
+          // are in an existing one for some reason
+          if (!force && mainStream.isSameParticipant(participant)) {
+            if (!subStreams?.participantExists(participant)) {
+              let subStream = subStreams?.findBy((s: Stream) =>
                 s.isSameParticipant(participant),
               )
               if (subStream) {
                 subStream.unpublish()
                 subStream.removeElement()
-                subStreams.removeSubStream(subStream)
+                subStreams?.removeSubStream(subStream)
               }
             }
             return this
@@ -136,7 +144,10 @@ const Meeting = (function () {
           }
 
           if (subStreams) {
-            if (!subStreams.participantExists(participant)) {
+            if (
+              force === 'subStream' ||
+              !subStreams.participantExists(participant)
+            ) {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = subStreams.blueprint

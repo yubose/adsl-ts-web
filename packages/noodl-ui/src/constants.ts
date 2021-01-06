@@ -37,6 +37,7 @@ export const componentTypes = [
   'label',
   'list',
   'listItem',
+  'noodl',
   'plugin',
   'pluginHead',
   'pluginBodyTop',

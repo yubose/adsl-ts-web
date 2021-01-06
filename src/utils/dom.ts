@@ -174,8 +174,8 @@ export function scrollToElem(
   if (node) scrollTo(node.getBoundingClientRect().top, duration)
 }
 
-export function toast(message: string, options?: Toast['options']) {
-  return createToast(message, {
+export function toast(message: string | number, options?: Toast['options']) {
+  return createToast(String(message), {
     cancel: 'Close',
     timeout: 8000,
     ...options,

@@ -71,6 +71,9 @@ class NOODL {
   }
   #fetch = ((typeof window !== 'undefined' && window.fetch) || noop) as T.Fetch
   #getAssetsUrl: () => string = () => ''
+  #getBaseUrl: () => string = () => ''
+  #getPreloadPages: () => string[] = () => []
+  #getPages: () => string[] = () => []
   #resolvers: Resolver[] = []
   #getRoot: () => T.Root = () => ({})
   #state: T.State
@@ -265,9 +268,20 @@ class NOODL {
     if (isDraft(path)) path = original(path) as typeof path
 
     if (path) {
-      // Plain strings
       if (typeof path === 'string') {
-        return resolveAssetUrl(path, this.assetsUrl)
+        // Components of type "noodl" can have a path that points directly to a page
+        // ex: "path: LeftPage"
+        if (
+          this.#getPages()
+            .concat(this.#getPreloadPages())
+            .includes(path)
+        ) {
+          const result = this.#getBaseUrl() + path + '_en.yml'
+          setTimeout(() => component?.emit('path', result))
+          return result
+        } else {
+          return resolveAssetUrl(path, this.assetsUrl)
+        }
       }
       // "If" object evaluation
       else if (isIfObj(path)) {
@@ -620,8 +634,11 @@ class NOODL {
       createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
       fetch: this.#fetch.bind(this),
       getAssetsUrl: this.#getAssetsUrl.bind(this),
+      getBaseUrl: this.#getBaseUrl.bind(this),
       getBaseStyles: this.getBaseStyles.bind(this),
       getCbs: this.getCbs.bind(this),
+      getPreloadPages: this.#getPreloadPages.bind(this),
+      getPages: this.#getPages.bind(this),
       getResolvers: (() => this.#resolvers).bind(this),
       getRoot: this.#getRoot.bind(this),
       page: this.page,
@@ -734,6 +751,9 @@ class NOODL {
   use(o: {
     fetch?: T.Fetch
     getAssetsUrl?(): string
+    getBaseUrl?(): string
+    getPreloadPages?(): string[]
+    getPages?(): string[]
     getRoot?(): T.Root
     plugins?: T.PluginCreationType[]
   }): this
@@ -744,6 +764,9 @@ class NOODL {
       | T.IViewport
       | {
           getAssetsUrl?(): string
+          getBaseUrl?(): string
+          getPreloadPages?(): string[]
+          getPages?(): string[]
           getRoot?(): T.Root
           plugins?: T.PluginCreationType[]
         }
@@ -752,6 +775,9 @@ class NOODL {
           | T.ActionChainUseObject
           | {
               getAssetsUrl?(): string
+              getBaseUrl?(): string
+              getPreloadPages?(): string[]
+              getPages?(): string[]
               getRoot?(): T.Root
               plugins?: T.PluginCreationType[]
             }
@@ -783,10 +809,16 @@ class NOODL {
         } else if (
           'fetch' in m ||
           'getAssetsUrl' in m ||
+          'getBaseUrl' in m ||
+          'getPreloadPages' in m ||
+          'getPages' in m ||
           'getRoot' in m ||
           'plugins' in m
         ) {
           if ('getAssetsUrl' in m) this.#getAssetsUrl = m.getAssetsUrl
+          if ('getBaseUrl' in m) this.#getBaseUrl = m.getBaseUrl
+          if ('getPreloadPages' in m) this.#getPreloadPages = m.getPreloadPages
+          if ('getPages' in m) this.#getPages = m.getPages
           if ('getRoot' in m) this.#getRoot = m.getRoot
           if ('fetch' in m) this.#fetch = this.#createFetch(m.fetch)
           if ('plugins' in m) {

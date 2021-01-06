@@ -74,6 +74,7 @@ export interface ConsumerOptions {
   createSrc(path: Parameters<NOODLUI['createSrc']>[0]): string
   fetch: Fetch
   getAssetsUrl(): string
+  getBaseUrl(): string
   getBaseStyles(styles?: Style): Partial<Style>
   getCbs(
     key: 'action',

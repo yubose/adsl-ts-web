@@ -35,6 +35,8 @@ export function getTagName(component: ComponentInstance): string {
       return 'ul'
     case 'listItem':
       return 'li'
+    case 'noodl':
+      return 'iframe'
     case 'plugin':
       return 'div'
     case 'pluginHead':
