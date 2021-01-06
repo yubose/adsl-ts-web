@@ -15,6 +15,7 @@ declare global {
     // index.ts
     ac: any
     account: any
+    addRemoteParticipant: any
     app: any
     build: any
     componentCache: any

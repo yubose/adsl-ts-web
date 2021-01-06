@@ -1,4 +1,5 @@
 import pick from 'lodash/pick'
+import { toast } from '../utils/dom'
 import { findReferences } from 'noodl-utils'
 import {
   getByDataUX,
@@ -24,6 +25,7 @@ export function getWindowHelpers() {
       getDynamicShapeKeys,
       getShape,
       getShapeKeys,
+      toast,
     },
     pick(lib, [
       'findChild',
