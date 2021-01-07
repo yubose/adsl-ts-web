@@ -22,7 +22,7 @@ export const pageStatus = {
   NAVIGATE_ERROR: 'status:navigate.error',
   SNAPSHOT_RECEIVED: 'status:snapshot.received',
   RESOLVING_COMPONENTS: 'status:resolving.components',
-  COMPONENTS_RESOLVED: 'status:components.resolved',
+  COMPONENTS_RECEIVED: 'status:components.resolved',
   RENDERING_COMPONENTS: 'status:rendering.components',
   COMPONENTS_RENDERED: 'status:components.rendered',
 } as const

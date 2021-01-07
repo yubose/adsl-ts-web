@@ -550,7 +550,6 @@ export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
       src = assetsUrl + pathValue
     }
   } else {
-    // log
     src = `${assetsUrl}${pathValue}`
   }
   return src

@@ -25,6 +25,7 @@ class Component implements IComponent {
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
   #cb: { [eventName: string]: Function[] } = {}
+  #cbIds: string[] = []
   #component: WritableDraft<ComponentObject> | ComponentObject
   #children: ComponentInstance[] = []
   #id: string = ''
@@ -618,7 +619,12 @@ class Component implements IComponent {
     return this.#children?.length || 0
   }
 
-  on(eventName: string, cb: Function) {
+  on(eventName: string, cb: Function, id: string = '') {
+    if (id) {
+      if (!this.#cbIds.includes(id)) this.#cbIds.push(id)
+      else return this
+    }
+
     if (!Array.isArray(this.#cb[eventName])) this.#cb[eventName] = []
     // log.func(`on [${this.noodlType}]`)
     // log.grey(`Subscribing listener for "${eventName}"`, this)

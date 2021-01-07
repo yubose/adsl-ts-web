@@ -1,4 +1,5 @@
 import handleList from './handleList'
+import handlePage from './handlePage'
 import handleTextboard from './handleTextboard'
 import Resolver from '../../Resolver'
 import { _resolveChildren } from './helpers'
@@ -17,6 +18,13 @@ _internalResolver.setResolver((component, options) => {
     if (component) {
       if (component.noodlType === 'list') {
         return handleList(component as any, options, _internalResolver)
+      }
+      if (component.noodlType === 'page') {
+        return handlePage(
+          component as ComponentInstance,
+          options,
+          _internalResolver,
+        )
       }
       if (component.get('textBoard')) {
         return handleTextboard(component as any, options, _internalResolver)

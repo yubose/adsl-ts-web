@@ -10,6 +10,7 @@ import {
   ActionType,
   ComponentType,
   ContentType,
+  PageEventId,
 } from './constantTypes'
 import componentCache from '../utils/componentCache'
 import NOODLUI from '../noodl-ui'
@@ -85,12 +86,15 @@ export interface ConsumerOptions {
   getCbs(
     key: 'chaining',
   ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+  getCbs(key: PageEventId): ((page: string) => any)[]
+  getCbs(key: 'new.page.ref'): ((ref: NOODLUI) => Promise<void> | undefined)[]
   getCbs(
-    key?: 'action' | 'builtIn' | 'chaining',
+    key?: 'action' | 'builtIn' | 'chaining' | PageEventId,
   ): {
     action: Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
     builtIn: { [funcName: string]: ActionChainActionCallback[] }
     chaining: Partial<Record<ActionChainEventId, Function[]>>
+    on: Partial<Record<PageEventId, any[]>>
   }
   getPageObject: StateHelpers['getPageObject']
   getResolvers: NOODLUI['getResolvers']
@@ -108,6 +112,7 @@ export interface ConsumerOptions {
   ): ComponentInstance
   resolveComponentDeep: NOODLUI['resolveComponents']
   setPlugin(plugin: string | PluginObject): this
+  spawn: NOODLUI['spawn']
   showDataKey: boolean
   viewport: Viewport
 }
@@ -167,6 +172,7 @@ export interface ProxiedComponent extends Omit<NOODLComponent, 'children'> {
   listObject?: '' | any[]
   location?: PluginLocation
   noodlType?: ComponentType
+  ref?: NOODLUI // Used for component type: page
   style?: Style
   children?: ProxiedComponent | ProxiedComponent[]
   [key: string]: any

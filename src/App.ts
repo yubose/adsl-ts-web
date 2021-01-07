@@ -9,6 +9,7 @@ import {
 } from 'twilio-video'
 import {
   ComponentObject,
+  event as noodluiEvent,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -27,6 +28,7 @@ import {
   List,
   NOODL as NOODLUI,
   PageObject,
+  publish,
   ResolverFn,
   Resolver,
   Viewport,
@@ -43,11 +45,27 @@ import createActions from './handlers/actions'
 import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
-import { publish } from 'noodl-ui'
 
 const log = Logger.create('App.ts')
 
 export type ViewportUtils = ReturnType<typeof createViewportHandler>
+
+const resolvers = [
+  getElementType,
+  getTransformedAliases,
+  getReferences,
+  getAlignAttrs,
+  getBorderAttrs,
+  getColors,
+  getFontAttrs,
+  getPlugins,
+  getPosition,
+  getSizes,
+  getStylesByElementType,
+  getTransformedStyleAliases,
+  getCustomDataAttrs,
+  getEventHandlers,
+]
 
 class App {
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
@@ -141,6 +159,7 @@ class App {
       }
     }
 
+    this.observeClient({ noodlui, noodl })
     this.observeInternal(noodlui)
     this.observeViewport(this.getViewportUtils())
     this.observePages(page)
@@ -204,9 +223,52 @@ class App {
     return this.#viewportUtils
   }
 
+  observeClient({ noodl, noodlui }: { noodl: any; noodlui: NOODLUI }) {
+    // When noodl-ui emits this it expects a new "child" instance. To keep memory usage
+    // to a minimum, keep the root references the same as the one in the parent instance
+    // Currently this is used by components of type: page
+    noodlui
+      .on(noodluiEvent.NEW_PAGE, async (page: string) => {
+        await noodl.initPage(page)
+        log.func(`[observeClient][${noodluiEvent.NEW_PAGE}]`)
+        log.grey(`Initiated page: ${page}`)
+      })
+      .on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
+        ref
+          .use(
+            resolvers.reduce(
+              (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
+              [] as Resolver[],
+            ),
+          )
+          .use(
+            Object.entries(this.actions).reduce(
+              (arr, [actionType, actions]) =>
+                arr.concat(actions.map((a) => ({ ...a, actionType }))),
+              [] as any[],
+            ),
+          )
+          .use(
+            // @ts-expect-error
+            Object.entries({
+              checkField: this.builtIn.checkField,
+              checkUsernamePassword: this.builtIn.checkUsernamePassword,
+              goBack: this.builtIn.goBack,
+              lockApplication: this.builtIn.lockApplication,
+              logOutOfApplication: this.builtIn.logOutOfApplication,
+              logout: this.builtIn.logout,
+              redraw: this.builtIn.redraw,
+              toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
+              toggleFlag: this.builtIn.toggleFlag,
+              toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
+            }).map(([funcName, fn]) => ({ funcName, fn })),
+          )
+      })
+  }
+
   // Cleans window.ac (used for debugging atm)
-  observeInternal(noodlui: any) {
-    noodlui.on('page', (pageName: string) => {
+  observeInternal(noodlui: NOODLUI) {
+    noodlui.on(noodluiEvent.SET_PAGE, () => {
       if (typeof window !== 'undefined' && 'ac' in window) {
         Object.keys(window.ac).forEach((key) => {
           delete window.ac[key]
@@ -336,10 +398,7 @@ class App {
                 axios.get(url).then(({ data }) => data)
               // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
               const config = this.noodl.getConfig()
-              const plugins = [
-                { type: 'pluginHead', path: 'googleTM.js' },
-                // { type: 'bodyTopPplugin', path: 'googleTMBodyTop.html' },
-              ] as ComponentObject[]
+              const plugins = [] as ComponentObject[]
               if (config.headPlugin) {
                 plugins.push(
                   this.noodlui.createPluginObject({
@@ -384,22 +443,7 @@ class App {
                   plugins,
                 })
                 .use(
-                  [
-                    getElementType,
-                    getTransformedAliases,
-                    getReferences,
-                    getAlignAttrs,
-                    getBorderAttrs,
-                    getColors,
-                    getFontAttrs,
-                    getPlugins,
-                    getPosition,
-                    getSizes,
-                    getStylesByElementType,
-                    getTransformedStyleAliases,
-                    getCustomDataAttrs,
-                    getEventHandlers,
-                  ].reduce(
+                  resolvers.reduce(
                     (acc, r: ResolverFn) =>
                       acc.concat(new Resolver().setResolver(r)),
                     [] as Resolver[],

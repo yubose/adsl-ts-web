@@ -56,7 +56,9 @@ class NOODL {
     builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     on: {
-      page: ((pageName: string) => void)[]
+      [event.SET_PAGE]: ((pageName: string) => void)[]
+      [event.NEW_PAGE]: ((page: string) => Promise<NOODL> | undefined)[]
+      [event.NEW_PAGE_REF]: ((ref: NOODL) => Promise<void> | undefined)[]
     }
   } = {
     action: {},
@@ -66,7 +68,9 @@ class NOODL {
       {},
     ),
     on: {
-      page: [],
+      [event.SET_PAGE]: [],
+      [event.NEW_PAGE]: [],
+      [event.NEW_PAGE_REF]: [],
     },
   }
   #fetch = ((typeof window !== 'undefined' && window.fetch) || noop) as T.Fetch
@@ -79,6 +83,9 @@ class NOODL {
   #state: T.State
   #viewport: Viewport
   actionsContext: T.ActionChainContext = { noodlui: this }
+  refs: { main: NOODL } & { [page: string]: NOODL } = {
+    main: this,
+  }
   initialized: boolean = false
 
   constructor({
@@ -276,9 +283,9 @@ class NOODL {
             .concat(this.#getPreloadPages())
             .includes(path)
         ) {
-          const result = this.#getBaseUrl() + path + '_en.yml'
-          setTimeout(() => component?.emit('path', result))
-          return result
+          const pageLink = this.#getBaseUrl() + path + '_en.yml'
+          setTimeout(() => component?.emit('path', pageLink))
+          return pageLink
         } else {
           return resolveAssetUrl(path, this.assetsUrl)
         }
@@ -487,9 +494,21 @@ class NOODL {
     return plugin.ref.get('plugin')
   }
 
-  on(event: 'page', fn: (page: string) => void) {
-    if (event === 'page') {
-      if (!this.#cb.on.page.includes(fn)) this.#cb.on.page.push(fn)
+  on(e: typeof event.SET_PAGE, fn: (page: string) => void): this
+  on(
+    e: typeof event.NEW_PAGE,
+    fn: (page: string) => Promise<T.NOODLComponent[] | undefined>,
+  ): this
+  on(
+    e: typeof event.NEW_PAGE_REF,
+    fn: (ref: NOODL) => Promise<void> | undefined,
+  ): this
+  on(e: any, fn: any) {
+    if ([event.SET_PAGE, event.NEW_PAGE, event.NEW_PAGE_REF].includes(e)) {
+      if (!this.#cb.on[e]) this.#cb.on[e] = []
+      if (!this.#cb.on[e].includes(fn)) {
+        this.#cb.on[e].push(fn)
+      }
     }
     return this
   }
@@ -538,12 +557,35 @@ class NOODL {
       path = `builtIn.${key}`
     } else if (key in this.#cb.chaining) {
       path = `chaining.${key}`
+    } else if (
+      [event.SET_PAGE, event.NEW_PAGE, event.NEW_PAGE_REF].includes(key as any)
+    ) {
+      path = `on.${key}`
     }
     return path
   }
 
-  getCbs(key?: 'action' | 'builtIn' | 'chaining') {
-    if (key) return this.#cb[key]
+  getCbs(
+    key?:
+      | 'action'
+      | 'builtIn'
+      | 'chaining'
+      | typeof event.SET_PAGE
+      | typeof event.NEW_PAGE
+      | typeof event.NEW_PAGE_REF,
+  ) {
+    if (key) {
+      switch (key) {
+        case 'action':
+        case 'builtIn':
+        case 'chaining':
+          return this.#cb[key]
+        case event.SET_PAGE:
+        case event.NEW_PAGE:
+        case event.NEW_PAGE_REF:
+          return this.#cb.on[key]
+      }
+    }
     return this.#cb
   }
 
@@ -645,7 +687,8 @@ class NOODL {
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
       showDataKey: this.#state.showDataKey,
-      viewport: this.viewport,
+      spawn: this.spawn.bind(this),
+      viewport: this.#viewport,
       ...this.getStateGetters(),
       ...this.getStateSetters(),
       ...rest,
@@ -677,13 +720,13 @@ class NOODL {
 
   setPage(pageName: string) {
     this.#state['page'] = pageName
-    this.#cb.on.page.forEach((cb) => cb?.(pageName))
+    this.#cb.on[event.SET_PAGE].forEach((cb) => cb?.(pageName))
     this.componentCache().clear()
     return this
   }
 
   setViewport(viewport: Viewport) {
-    this.#viewport = viewport
+    this.#viewport = viewport // main
     return this
   }
 
@@ -743,6 +786,32 @@ class NOODL {
     }
 
     return this
+  }
+
+  /**
+   * Spawns a new noodl-ui instance and stores the reference in memory
+   * This is used to create a "sandboxed" noodl-ui engine to render isolated
+   * components (useful for iframes). This by default is used internally by
+   * components of type: page
+   * @param { string } page - Page name
+   * @param { ...object } constructorArgs - Arguments to the constructor
+   */
+  spawn(page: string, ...constructorArgs: ConstructorParameters<typeof NOODL>) {
+    this.refs[page] = new NOODL(...constructorArgs)
+    this.refs[page].init({ actionsContext: this.actionsContext })
+    this.refs[page].setPage(page)
+    this.refs[page].viewport.width = this.viewport.width
+    this.refs[page].viewport.height = this.viewport.height
+    this.refs[page].use({
+      fetch: this.#fetch.bind(this),
+      getAssetsUrl: () => this.assetsUrl,
+      getBaseUrl: this.#getBaseUrl.bind(this),
+      getPreloadPages: this.#getPreloadPages.bind(this),
+      getPages: this.#getPages.bind(this),
+      getRoot: this.#getRoot.bind(this),
+      plugins: this.plugins.bind(this),
+    })
+    return this.refs[page]
   }
 
   use(resolver: Resolver | Resolver[]): this

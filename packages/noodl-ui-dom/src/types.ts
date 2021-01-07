@@ -59,7 +59,7 @@ export type NodeResolver<RT = any> = NOODLUIDOMResolveFunc<
   {
     noodlui: NOODLUI
     original: ComponentObject
-    parse: Parse
+    draw: Parse
     redraw: Redraw
   },
   RT | void
