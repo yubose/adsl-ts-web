@@ -357,26 +357,32 @@ const createActions = function ({ page }: { page: IPage }) {
       log.func('_actions.goto')
       log.red('goto action', { action, options, actionsContext })
       const { noodl } = actionsContext
-      const { destination, id = '', isSamePage, duration } = parse.destination(
+      const destinationParam =
         (typeof action.original.goto === 'string'
           ? action.original.goto
           : isPlainObject(action.original.goto)
           ? action.original.destination || action.original.goto
-          : '') || '',
+          : '') || ''
+      let { destination, id = '', isSamePage, duration } = parse.destination(
+        destinationParam,
       )
       if (isSamePage) {
         scrollToElem(getByDataViewTag(id), { duration })
       } else {
-        if (id) {
-          page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-            scrollToElem(getByDataViewTag(id), { duration })
+        if (!destinationParam?.startsWith?.('http')) {
+          if (id) {
+            page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+              scrollToElem(getByDataViewTag(id), { duration })
+            })
+          }
+          page.pageUrl = resolvePageUrl({
+            destination,
+            pageUrl: page.pageUrl,
+            startPage: noodl.cadlEndpoint.startPage,
           })
+        } else {
+          destination = destinationParam
         }
-        page.pageUrl = resolvePageUrl({
-          destination,
-          pageUrl: page.pageUrl,
-          startPage: noodl.cadlEndpoint.startPage,
-        })
         await page.requestPageChange(destination)
         if (!destination) {
           log.func('goto')

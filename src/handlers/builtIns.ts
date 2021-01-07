@@ -113,29 +113,35 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goto')
     log.red('', { action, ...options })
     noodl = noodl || (await import('../app/noodl')).default
-    const { destination, id = '', isSamePage, duration } = parse.destination(
+    const destinationParam =
       (typeof action === 'string'
         ? action
         : isPlainObject(action)
         ? action.destination
-        : '') || '',
+        : '') || ''
+    let { destination, id = '', isSamePage, duration } = parse.destination(
+      destinationParam,
     )
     if (isSamePage) {
       scrollToElem(getByDataViewTag(id), { duration })
     } else {
-      if (id) {
-        page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-          scrollToElem(getByDataViewTag(id), { duration })
+      if (!destinationParam?.startsWith?.('http')) {
+        if (id) {
+          page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+            scrollToElem(getByDataViewTag(id), { duration })
+          })
+        }
+        page.pageUrl = resolvePageUrl({
+          destination,
+          pageUrl: page.pageUrl,
+          startPage: noodl.cadlEndpoint.startPage,
         })
+      } else {
+        destination = destinationParam
       }
-      page.pageUrl = resolvePageUrl({
-        destination,
-        pageUrl: page.pageUrl,
-        startPage: noodl.cadlEndpoint.startPage,
-      })
       await page.requestPageChange(destination)
       if (!destination) {
-        log.func('builtIn:goto')
+        log.func('goto')
         log.red(
           'Tried to go to a page but could not find information on the whereabouts',
           { action, ...options },
