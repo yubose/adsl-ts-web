@@ -9,14 +9,7 @@ export default {
   cond: 'page',
   resolve(node: HTMLIFrameElement, component, options) {
     const { draw, redraw, noodlui } = options
-    const body = node.contentDocument?.body
-    const path = component.get('path') || ''
-    node.name = path
-    window[path.toLowerCase()] = node
-    window.srcdoc = document.createElement('div')
-    window.srcdoc.style.width = '100%'
-    window.srcdoc.style.height = '100%'
-    window.srcdoc.style.background = 'blue'
+    node.name = component.get('path') || ''
 
     const log = (id: string, msg: string, data: any) => {
       console.log(
@@ -68,28 +61,14 @@ export default {
         log(
           noodluiEvent.component.page.RESOLVED_COMPONENTS,
           'Resolved components',
-          component,
+          { component, children: component.children() },
         )
         component.children().forEach((child: ComponentInstance) => {
-          const childNode = draw(child, body)
-          body?.appendChild(childNode)
+          console.log(child)
+          const childNode = draw(child, node.contentDocument?.body)
+          redraw(childNode, child, options)
+          window.child = childNode
         })
-
-        // redraw(node, component, {
-        //   resolver: (o) => noodlui.resolveComponents(o),
-        // })
-        // children.forEach((c) => {
-        //   const childNode = draw(c, body)
-        //   // redraw(childNode, c,
-        //   //   resolver: noodlui.resolveComponents.bind(noodlui),
-        //   // })
-
-        //   log(
-        //     noodluiEvent.component.page.RESOLVED_COMPONENTS,
-        //     'Drawn child node',
-        //     childNode,
-        //   )
-        // })
       },
       `[noodl-ui-dom] ${noodluiEvent.component.page.RESOLVED_COMPONENTS}`,
     )

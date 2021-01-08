@@ -37,6 +37,7 @@ import { event } from './constants'
 import * as T from './types'
 
 const log = Logger.create('noodl-ui')
+let id = 0
 
 function _createState(initialState?: Partial<T.State>) {
   return {
@@ -48,6 +49,7 @@ function _createState(initialState?: Partial<T.State>) {
 }
 
 class NOODL {
+  #id: number
   #cache = createComponentCache()
   #cb: {
     action: Partial<
@@ -83,8 +85,8 @@ class NOODL {
   #state: T.State
   #viewport: Viewport
   actionsContext: T.ActionChainContext = { noodlui: this }
-  refs: { main: NOODL } & { [page: string]: NOODL } = {
-    main: this,
+  refs: { main: NOODL } & { [page: string]: NOODL } = {} as { main: NOODL } & {
+    [page: string]: NOODL
   }
   initialized: boolean = false
 
@@ -95,8 +97,16 @@ class NOODL {
     showDataKey?: boolean
     viewport?: Viewport
   } = {}) {
+    id++
+    this.#id = id
+    log.func('Constructor')
+    log.grey(`Instance id ${id} created`, this)
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
+  }
+
+  get id() {
+    return this.#id
   }
 
   get assetsUrl() {
@@ -720,7 +730,7 @@ class NOODL {
 
   setPage(pageName: string) {
     this.#state['page'] = pageName
-    this.#cb.on[event.SET_PAGE].forEach((cb) => cb?.(pageName))
+    this.#cb.on[event.SET_PAGE]?.forEach((cb) => cb?.(pageName))
     this.componentCache().clear()
     return this
   }
@@ -744,6 +754,14 @@ class NOODL {
       default:
         return this.getState().plugins
     }
+  }
+
+  getRef(key: string) {
+    return this.refs[key]
+  }
+
+  setRef(key: string, ref: NOODL) {
+    this.refs[key] = ref
   }
 
   setPlugin(value: T.PluginCreationType) {
@@ -800,17 +818,18 @@ class NOODL {
     this.refs[page] = new NOODL(...constructorArgs)
     this.refs[page].init({ actionsContext: this.actionsContext })
     this.refs[page].setPage(page)
-    this.refs[page].viewport.width = this.viewport.width
-    this.refs[page].viewport.height = this.viewport.height
+    // this.refs[page].viewport.width = this.viewport.width
+    // this.refs[page].viewport.height = this.viewport.height
     this.refs[page].use({
       fetch: this.#fetch.bind(this),
-      getAssetsUrl: () => this.assetsUrl,
+      getAssetsUrl: (() => this.assetsUrl).bind(this),
       getBaseUrl: this.#getBaseUrl.bind(this),
       getPreloadPages: this.#getPreloadPages.bind(this),
       getPages: this.#getPages.bind(this),
       getRoot: this.#getRoot.bind(this),
       plugins: this.plugins.bind(this),
     })
+    this.refs[page].setRef('parent', this)
     return this.refs[page]
   }
 

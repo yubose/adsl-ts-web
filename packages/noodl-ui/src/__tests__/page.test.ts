@@ -7,61 +7,76 @@ import { ComponentInstance, NOODLComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
 import { event as eventId } from '../constants'
 import Component from '../components/Base'
+import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 
+let path = 'HelloPage' as const
+let pageObject = {
+  genders: [
+    { key: 'Gender', value: 'Male' },
+    { key: 'Gender', value: 'Female' },
+    { key: 'Gender', value: 'Other' },
+  ],
+}
 let noodlComponent: NOODLComponent
-let receivedComponents = [
-  { type: 'view', children: [{ type: 'image', path: 'abc.png' }] },
+let generatedComponents = [
+  {
+    type: 'view',
+    children: [
+      {
+        type: 'list',
+        contentType: 'listObject',
+        iteratorVar: 'itemObject',
+        listObject: pageObject.genders,
+        children: [
+          { type: 'image', path: 'abc.png' },
+          { type: 'label', dataKey: 'itemObject.key' },
+        ],
+      },
+    ],
+  },
 ] as NOODLComponent[]
-let eventHandler = async () => receivedComponents
 
 beforeEach(() => {
   noodlComponent = {
     type: 'page',
-    path: 'HelloPage',
+    path,
   } as NOODLComponent
-  noodlui.on(eventId.RETRIEVE_COMPONENTS, eventHandler)
+  // TODO - Find out why our test this fails when we take async off
+  // noodlui.on(eventId.NEW_PAGE_REF, async () => {})
+  noodlui.setPage('Hello')
+  noodlui.use({
+    getRoot: () => ({
+      Hello: {},
+      [path]: { ...pageObject, components: generatedComponents },
+    }),
+    getPages: () => ['Hello', path],
+  })
 })
 
 describe(`component: ${chalk.keyword('orange')('page')}`, () => {
   it(
-    `should be able to receive the raw noodl components from a ` +
-      `subscribed observer`,
+    `should get the children in the root object by using the path (page) ` +
+      ` as the key`,
     async () => {
       const spy = sinon.spy()
       const component = noodlui.resolveComponents(noodlComponent)
       component.on(eventId.component.page.COMPONENTS_RECEIVED, spy)
       await waitFor(() => {
-        expect(spy).to.be.calledWith(receivedComponents)
+        expect(spy).to.be.called
+        expect(spy).to.be.calledWith(generatedComponents)
       })
     },
   )
 
-  it(`should be able to receive the resolved components as children`, async () => {
+  it(`should resolve the children using the children it grabbed from the root object`, async () => {
     const spy = sinon.spy()
     const component = noodlui.resolveComponents(noodlComponent)
     component.on(eventId.component.page.RESOLVED_COMPONENTS, spy)
     await waitFor(() => {
       expect(spy).to.be.called
       const args = spy.args[0][0]
-      expect(args).to.have.property('raw')
-      expect(args).to.have.property('component')
-      expect(args).to.have.property('children')
-      expect(args.children).to.be.an('array')
-      expect(args.children[0]).to.be.instanceOf(Component)
-    })
-  })
-
-  it(`should append the received resolved component children as its children`, async () => {
-    const spy = sinon.spy()
-    const component = noodlui.resolveComponents(noodlComponent)
-    component.on(eventId.component.page.RESOLVED_COMPONENTS, spy)
-    await waitFor(() => {
-      const args = spy.args[0][0]
-      expect(args.children).to.include.members(component.children())
-      component.children().forEach((child) => {
-        expect(component.hasChild(child)).to.be.true
-      })
+      expect(args).to.include.members(component.children())
     })
   })
 

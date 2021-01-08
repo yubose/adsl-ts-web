@@ -20,18 +20,20 @@ const handlePageInternalResolver = async (
       resolveComponent,
       resolveComponentDeep,
       spawn,
-      viewport: mainViewport,
     } = options
 
-    const newPageFns = getCbs(eventId.NEW_PAGE)
-    const numNewPageFns = newPageFns.length
     const newPageRefFns = getCbs(eventId.NEW_PAGE_REF)
     const numNewPageRefFns = newPageRefFns.length
-    log.grey(`[type: page] Retrieved ${numNewPageFns} page funcs`, newPageFns)
+    log.grey(
+      `[type: page] Retrieved ${numNewPageRefFns} page funcs`,
+      newPageRefFns,
+    )
     const path = component.get('path') || ''
     log.grey(`[type: page] Path is "${path}"`)
     const viewport = new Viewport()
-    log.grey(`[type: page] Initiated viewport`)
+    viewport.width = Number(component.style.width?.replace('px', ''))
+    viewport.height = Number(component.style.height?.replace('px', ''))
+    log.grey(`[type: page] Initiated viewport`, component)
     const ref = spawn(path, { viewport })
 
     log.grey(`[type: page] Spawned a new noodl-ui process`, {
@@ -45,17 +47,27 @@ const handlePageInternalResolver = async (
     // to the consumer, but the rest should automatically be handled by this lib
     for (let index = 0; index < numNewPageRefFns; index++) {
       const fn = newPageRefFns[index]
-      await fn?.(ref)
+      let result = fn?.(ref) as Promise<any>
+      if (
+        (typeof result === 'function' || typeof result === 'object') &&
+        typeof result['then'] === 'function'
+      ) {
+        result = await result
+      }
     }
 
     component.set('ref', ref)
-    log.grey(`Ref set on component`, { component, ref })
+    component.emit(eventId.component.page.SET_REF, ref)
+
+    log.grey(`Ref set on component`, { component, path, ref })
     log.gold(component.style.width)
     log.gold(component.style.height)
 
     const pageObject = getPageObject(path)
 
-    if (!pageObject) {
+    if (pageObject) {
+      log.gold('Page object grabbed', { component, pageObject, ref })
+    } else if (!pageObject) {
       log.red(`Expected a page object but received ${typeof pageObject}`, {
         component,
         pageObject,
@@ -68,9 +80,7 @@ const handlePageInternalResolver = async (
 
     component.emit(eventId.component.page.COMPONENTS_RECEIVED, noodlComponents)
 
-    const resolvedComponents = resolveComponentDeep(noodlComponents)
-
-    component.emit(eventId.component.page.RESOLVED_COMPONENTS)
+    const resolvedComponents = ref.resolveComponents(noodlComponents)
 
     // Set the parent/child references to stay in sync
     ;(Array.isArray(resolvedComponents)
@@ -80,6 +90,11 @@ const handlePageInternalResolver = async (
       component.createChild(c)
       c?.setParent?.(component)
     })
+
+    component.emit(
+      eventId.component.page.RESOLVED_COMPONENTS,
+      resolvedComponents,
+    )
 
     log.gold('resolvedComponents', {
       component,

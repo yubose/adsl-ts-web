@@ -5,6 +5,6 @@ export default {
   cond: (n: NOODLDOMElement, c, { original }) =>
     !!original?.path && n?.tagName !== 'VIDEO' && n?.tagName !== 'IFRAME',
   resolve: (node: HTMLImageElement, component) => {
-    node.src = component.get('src') || ''
+    node && (node.src = component.get('src') || '')
   },
 } as RegisterOptions

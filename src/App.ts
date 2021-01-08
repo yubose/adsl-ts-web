@@ -227,43 +227,40 @@ class App {
     // When noodl-ui emits this it expects a new "child" instance. To keep memory usage
     // to a minimum, keep the root references the same as the one in the parent instance
     // Currently this is used by components of type: page
-    noodlui
-      .on(noodluiEvent.NEW_PAGE, async (page: string) => {
-        await noodl.initPage(page)
-        log.func(`[observeClient][${noodluiEvent.NEW_PAGE}]`)
-        log.grey(`Initiated page: ${page}`)
-      })
-      .on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
-        ref
-          .use(
-            resolvers.reduce(
-              (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
-              [] as Resolver[],
-            ),
-          )
-          .use(
-            Object.entries(this.actions).reduce(
-              (arr, [actionType, actions]) =>
-                arr.concat(actions.map((a) => ({ ...a, actionType }))),
-              [] as any[],
-            ),
-          )
-          .use(
-            // @ts-expect-error
-            Object.entries({
-              checkField: this.builtIn.checkField,
-              checkUsernamePassword: this.builtIn.checkUsernamePassword,
-              goBack: this.builtIn.goBack,
-              lockApplication: this.builtIn.lockApplication,
-              logOutOfApplication: this.builtIn.logOutOfApplication,
-              logout: this.builtIn.logout,
-              redraw: this.builtIn.redraw,
-              toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
-              toggleFlag: this.builtIn.toggleFlag,
-              toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
-            }).map(([funcName, fn]) => ({ funcName, fn })),
-          )
-      })
+    noodlui.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
+      await noodl.initPage(ref.page)
+      log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
+      log.grey(`Initiated page: ${ref.page}`)
+      ref
+        .use(
+          resolvers.reduce(
+            (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
+            [] as Resolver[],
+          ),
+        )
+        .use(
+          Object.entries(this.actions).reduce(
+            (arr, [actionType, actions]) =>
+              arr.concat(actions.map((a) => ({ ...a, actionType }))),
+            [] as any[],
+          ),
+        )
+        .use(
+          // @ts-expect-error
+          Object.entries({
+            checkField: this.builtIn.checkField,
+            checkUsernamePassword: this.builtIn.checkUsernamePassword,
+            goBack: this.builtIn.goBack,
+            lockApplication: this.builtIn.lockApplication,
+            logOutOfApplication: this.builtIn.logOutOfApplication,
+            logout: this.builtIn.logout,
+            redraw: this.builtIn.redraw,
+            toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
+            toggleFlag: this.builtIn.toggleFlag,
+            toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
+          }).map(([funcName, fn]) => ({ funcName, fn })),
+        )
+    })
   }
 
   // Cleans window.ac (used for debugging atm)
