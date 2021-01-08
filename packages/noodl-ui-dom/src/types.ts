@@ -3,7 +3,13 @@ import {
   ComponentInstance,
   ComponentType,
   NOODL as NOODLUI,
+  NOODLComponent,
 } from 'noodl-ui'
+import { eventId } from './constants'
+
+export interface AnyFn {
+  (...args: any[]): any
+}
 
 export type NOODLDOMElementTypes = keyof NOODLDOMElements
 
@@ -103,4 +109,30 @@ export type Redraw = NOODLUIDOMResolveFunc<
   [NOODLDOMElement, ComponentInstance]
 >
 
+export interface Render {
+  (noodlComponents: NOODLComponent | NOODLComponent[]): ComponentInstance[]
+}
+
 export type RegisterOptions = NodeResolverConfig
+
+/* -------------------------------------------------------
+  ---- PAGE TYPES
+-------------------------------------------------------- */
+
+export type PageCbs<K extends PageEvent | PageStatus> = Record<K, AnyFn[]>
+export type PageEvent = typeof eventId.page.on[keyof typeof eventId.page.on]
+export type PageStatus = typeof eventId.page.status[keyof typeof eventId.page.status]
+
+export interface PageCallbackObjectConfig {
+  fn: AnyFn
+  cond?(snapshot?: PageSnapshot): boolean
+  once?: boolean
+}
+
+export interface PageSnapshot {
+  status: PageStatus
+  previous: string
+  current: string
+  requestingPage: string
+  rootNode: HTMLDivElement
+}

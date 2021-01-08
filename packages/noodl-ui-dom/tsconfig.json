@@ -15,7 +15,7 @@
     "strictNullChecks": true,
     "skipLibCheck": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es6"
+    "target": "esnext"
   },
   "exclude": ["node_modules", "dist"],
   "include": ["src"]

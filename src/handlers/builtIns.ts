@@ -17,7 +17,7 @@ import {
   GotoObject,
   publish,
 } from 'noodl-ui'
-import { getByDataUX } from 'noodl-ui-dom'
+import NOODLUIDOM, { getByDataUX } from 'noodl-ui-dom'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
@@ -33,7 +33,6 @@ import {
   parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import Page from '../Page'
 import { resolvePageUrl } from '../utils/common'
 import { scrollToElem, toggleVisibility } from '../utils/dom'
 import { BuiltInActions } from '../app/types'
@@ -42,7 +41,11 @@ import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
 
-const createBuiltInActions = function ({ page }: { page: Page }) {
+const createBuiltInActions = function ({
+  noodluidom,
+}: {
+  noodluidom: NOODLUIDOM
+}) {
   const builtInActions: BuiltInActions = {}
 
   builtInActions.checkField = (action, options) => {
@@ -92,8 +95,10 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     log.func('goBack')
     log.grey('', { action, ...options })
     if (typeof action.original?.reload === 'boolean') {
-      page.setModifier(
-        page.getPreviousPage(noodl.cadlEndpoint.startPage || '').trim(),
+      noodluidom.page.setModifier(
+        noodluidom.page
+          .getPreviousPage(noodl.cadlEndpoint.startPage || '')
+          .trim(),
         { reload: action.original.reload },
       )
     }
@@ -127,19 +132,19 @@ const createBuiltInActions = function ({ page }: { page: Page }) {
     } else {
       if (!destinationParam?.startsWith?.('http')) {
         if (id) {
-          page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+          noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
             scrollToElem(getByDataViewTag(id), { duration })
           })
         }
-        page.pageUrl = resolvePageUrl({
+        noodluidom.page.pageUrl = resolvePageUrl({
           destination,
-          pageUrl: page.pageUrl,
+          pageUrl: noodluidom.page.pageUrl,
           startPage: noodl.cadlEndpoint.startPage,
         })
       } else {
         destination = destinationParam
       }
-      await page.requestPageChange(destination)
+      await noodluidom.page.requestPageChange(destination)
       if (!destination) {
         log.func('goto')
         log.red(

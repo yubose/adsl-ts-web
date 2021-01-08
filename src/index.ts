@@ -2,7 +2,6 @@ import { copyToClipboard } from './utils/dom'
 import createActions from './handlers/actions'
 import createBuiltInActions from './handlers/builtIns'
 import App from './App'
-import Page from './Page'
 import Meeting from './meeting'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
@@ -13,10 +12,10 @@ window.addEventListener('load', async () => {
   const { default: noodlui, getWindowHelpers } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
 
-  const page = new Page()
+  const page = noodluidom.page
   const app = new App()
-  const actions = createActions({ page })
-  const builtIn = createBuiltInActions({ page })
+  const actions = createActions({ noodluidom })
+  const builtIn = createBuiltInActions({ noodluidom })
 
   try {
     await app.initialize({
@@ -25,7 +24,6 @@ window.addEventListener('load', async () => {
       meeting: Meeting,
       noodlui,
       noodluidom,
-      page,
     })
   } catch (error) {
     console.error(error)

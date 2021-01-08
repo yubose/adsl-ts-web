@@ -1,15 +1,17 @@
 import {
-  createComponent,
   ComponentInstance,
+  createComponent,
   getTagName,
   NOODL as NOODLUI,
+  NOODLComponent,
   publish,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { eventId } from './constants'
 import { createAsyncImageElement, getShape } from './utils'
-import NOODLUIDOMInternal from './Internal'
 import createResolver from './createResolver'
+import NOODLUIDOMInternal from './Internal'
+import Page from './Page'
 import * as defaultResolvers from './resolvers'
 import * as T from './types'
 
@@ -21,13 +23,21 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     },
   }
   config: {
+    page: {
+      resolveComponents: NOODLUI['resolveComponents'] | undefined
+    }
     redraw: {
       resolveComponents: NOODLUI['resolveComponents'] | undefined
     }
-  } = { redraw: { resolveComponents: undefined } }
+  } = {
+    page: { resolveComponents: undefined },
+    redraw: { resolveComponents: undefined },
+  }
+  page: Page
 
   constructor() {
     super()
+    this.page = new Page(this.render.bind(this))
     this.#R = createResolver()
     this.#R.use(this)
     this.#R.use(Object.values(defaultResolvers))
@@ -38,13 +48,22 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
   }
 
   configure({
+    page,
     redraw,
   }: {
+    page?: {
+      resolveComponents?: NOODLUI['resolveComponents']
+    }
     redraw?: {
       cleanup?: (...args: Parameters<NOODLUIDOM['redraw']>) => void
       resolveComponents?: NOODLUI['resolveComponents']
     }
   }) {
+    if (page) {
+      if (page.resolveComponents) {
+        this.config.page.resolveComponents = page.resolveComponents
+      }
+    }
     if (redraw) {
       if (redraw.resolveComponents) {
         // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
@@ -53,6 +72,31 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     }
 
     return this
+  }
+
+  /**
+   * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
+   * @param { NOODLComponent | NOODLComponent[] } components
+   */
+  render(rawComponents: NOODLComponent | NOODLComponent[]) {
+    if (!this.config.page.resolveComponents)
+      throw new Error(
+        'Cannot render without a component resolver. Use the "configure" ' +
+          'method to pass one in',
+      )
+    // Create the root node where we will be placing DOM nodes inside.
+    // The root node is a direct child of document.body
+    this.page.setStatus(eventId.page.status.RESOLVING_COMPONENTS)
+    const resolved = this.config.page.resolveComponents(rawComponents)
+    this.page.setStatus(eventId.page.status.COMPONENTS_RECEIVED)
+    const components = Array.isArray(resolved) ? resolved : [resolved]
+    this.page.rootNode.innerHTML = ''
+    this.page.setStatus(eventId.page.status.RENDERING_COMPONENTS)
+    components.forEach((component) => {
+      this.draw(component, this.page.rootNode)
+    })
+    this.page.setStatus(eventId.page.status.COMPONENTS_RENDERED)
+    return components
   }
 
   /**

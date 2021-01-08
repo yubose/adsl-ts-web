@@ -8,8 +8,8 @@ export const noodlui = new NOODLUI()
 export const viewport = new Viewport()
 
 /**
- * A helper that tests a noodl-ui-dom DOM resolver. This automatically prepares
- * the noodl-ui client so that you don't have to. The root object automatically
+ * A helper that tests a noodl-ui-dom DOM resolver. This helps to automatically prepare
+ * the noodl-ui client when testing resolvers. The root object automatically
  * inserts the pageName and pageObject if they are both set, so its entirely optional
  * to provide a getRoot function in that case
  */

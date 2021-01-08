@@ -28,6 +28,17 @@ export function createAsyncImageElement(
   return node
 }
 
+export function createEmptyObjectWithKeys<K extends string = any, I = any>(
+  keys: K[],
+  initiatingValue?: I,
+  startingValue?: any,
+): Record<K, I> {
+  return keys.reduce(
+    (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
+    startingValue,
+  )
+}
+
 export const get = <T = any>(o: T, k: string) => {
   if (typeof o !== 'object' || typeof k !== 'string') return
 
@@ -227,6 +238,16 @@ export function normalizeEventName(eventName: string) {
       ? eventName.replace('on', '').toLowerCase()
       : eventName.toLowerCase()
     : eventName
+}
+
+/**
+ * Simulates a user-click and opens the link in a new tab.
+ * @param { string } url - An outside link
+ */
+export function openOutboundURL(url: string) {
+  if (typeof window !== 'undefined') {
+    window.location.href = url
+  }
 }
 
 export function optionExists(node: HTMLSelectElement, option: any) {

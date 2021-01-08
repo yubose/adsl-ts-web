@@ -1,6 +1,6 @@
 import { queryHelpers } from '@testing-library/dom'
 import { isEmitObj } from 'noodl-utils'
-import { NOODLDOMElement } from 'noodl-ui-dom'
+import { NOODLDOMElement, Page } from 'noodl-ui-dom'
 import {
   createComponent as createComponentInstance,
   EmitObject,
@@ -15,7 +15,6 @@ import {
 } from 'noodl-ui'
 import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
-import Page from '../Page'
 import createActions from '../handlers/actions'
 import createBuiltInActions from '../handlers/builtIns'
 

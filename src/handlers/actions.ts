@@ -4,7 +4,7 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
-import { getByDataUX } from 'noodl-ui-dom'
+import NOODLUIDOM, { getByDataUX } from 'noodl-ui-dom'
 import {
   Action,
   ActionConsumerCallbackOptions,
@@ -36,14 +36,13 @@ import {
   parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import { IPage } from '../Page'
 import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
 import { onSelectFile, scrollToElem, toast } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
 
-const createActions = function ({ page }: { page: IPage }) {
+const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
   const _actions = {} as Record<
     ActionType,
     Omit<ActionChainUseObjectBase<any>, 'actionType'>[]
@@ -371,19 +370,19 @@ const createActions = function ({ page }: { page: IPage }) {
       } else {
         if (!destinationParam?.startsWith?.('http')) {
           if (id) {
-            page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+            noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
               scrollToElem(getByDataViewTag(id), { duration })
             })
           }
-          page.pageUrl = resolvePageUrl({
+          noodluidom.page.pageUrl = resolvePageUrl({
             destination,
-            pageUrl: page.pageUrl,
+            pageUrl: noodluidom.page.pageUrl,
             startPage: noodl.cadlEndpoint.startPage,
           })
         } else {
           destination = destinationParam
         }
-        await page.requestPageChange(destination)
+        await noodluidom.page.requestPageChange(destination)
         if (!destination) {
           log.func('goto')
           log.red(
@@ -399,7 +398,7 @@ const createActions = function ({ page }: { page: IPage }) {
     fn: async (action: any, options) => {
       log.func('pageJump')
       log.grey('', { action, ...options })
-      await page.requestPageChange(action.original.destination)
+      await noodluidom.page.requestPageChange(action.original.destination)
     },
   })
 

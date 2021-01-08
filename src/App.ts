@@ -1,6 +1,6 @@
 import axios from 'axios'
 import Logger from 'logsnap'
-import NOODLUIDOM, { eventId } from 'noodl-ui-dom'
+import NOODLUIDOM, { eventId, Page } from 'noodl-ui-dom'
 import set from 'lodash/set'
 import some from 'lodash/some'
 import {
@@ -35,9 +35,8 @@ import {
 } from 'noodl-ui'
 import { AuthStatus } from './app/types/commonTypes'
 import { listen as registerNOODLDOMListeners } from './app/noodl-ui-dom'
-import { IPage } from './Page'
 import { IMeeting } from './meeting'
-import { modalIds, CACHED_PAGES, pageEvent } from './constants'
+import { CACHED_PAGES, pageEvent } from './constants'
 import { CachedPageObject, PageModalId } from './app/types'
 import { isMobile } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
@@ -79,7 +78,6 @@ class App {
   noodl: any
   noodlui = {} as NOODLUI
   noodluidom = {} as NOODLUIDOM
-  page: IPage = {} as IPage
   streams = {} as ReturnType<IMeeting['getStreams']>
 
   async initialize({
@@ -88,14 +86,12 @@ class App {
     meeting,
     noodlui,
     noodluidom,
-    page,
   }: {
     actions: ReturnType<typeof createActions>
     builtIn: ReturnType<typeof createBuiltInActions>
     meeting: IMeeting
     noodlui: NOODLUI
     noodluidom: NOODLUIDOM
-    page: IPage
   }) {
     const { Account } = await import('@aitmed/cadl')
     const noodl = (await import('app/noodl')).default
@@ -105,13 +101,12 @@ class App {
     this.noodl = noodl
     this.noodlui = noodlui
     this.noodluidom = noodluidom
-    this.page = page
     this.streams = meeting.getStreams()
     this.#viewportUtils = createViewportHandler(new Viewport())
 
     await noodl.init()
     meeting.initialize({
-      page,
+      page: this.noodluidom.page,
       viewport: this.#viewportUtils.viewport,
     })
     registerNOODLDOMListeners({ noodlui })
@@ -140,7 +135,7 @@ class App {
     this.#preparePage = async (pageName: string): Promise<PageObject> => {
       try {
         await noodl.initPage(pageName, [], {
-          ...page.getState().modifiers[pageName],
+          ...this.noodluidom.page.getState().modifiers[pageName],
           builtIn: {
             checkField: builtIn.checkField,
             goto: builtIn.goto,
@@ -150,7 +145,7 @@ class App {
         log.func('createPreparePage')
         log.grey(`Ran noodl.initPage on page "${pageName}"`, {
           pageName,
-          pageModifiers: page.getState().modifiers[pageName],
+          pageModifiers: this.noodluidom.page.getState().modifiers[pageName],
           pageObject: noodl.root[pageName],
         })
         return noodl.root[pageName]
@@ -162,7 +157,7 @@ class App {
     this.observeClient({ noodlui, noodl })
     this.observeInternal(noodlui)
     this.observeViewport(this.getViewportUtils())
-    this.observePages(page)
+    this.observePages(this.noodluidom.page)
     this.observeMeetings(meeting)
 
     /* -------------------------------------------------------
@@ -184,7 +179,7 @@ class App {
       window.localStorage.setItem('tempConfigKey', localConfig.timestamp)
     }
 
-    if (page && window.location.href) {
+    if (this.noodluidom.page && window.location.href) {
       let newPage = noodl.cadlEndpoint.startPage
       let hrefArr = window.location.href.split('/')
       let urlArr = hrefArr[hrefArr.length - 1]
@@ -195,12 +190,12 @@ class App {
           JSON.stringify(localConfig.timestamp)
       ) {
         window.localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
-        page.pageUrl = 'index.html?'
-        await page.requestPageChange(newPage)
+        this.noodluidom.page.pageUrl = 'index.html?'
+        await this.noodluidom.page.requestPageChange(newPage)
       } else {
         if (!urlArr?.startsWith('index.html?')) {
-          page.pageUrl = 'index.html?'
-          await page.requestPageChange(newPage)
+          this.noodluidom.page.pageUrl = 'index.html?'
+          await this.noodluidom.page.requestPageChange(newPage)
         } else {
           let pagesArr = urlArr.split('-')
           if (pagesArr.length > 1) {
@@ -211,8 +206,8 @@ class App {
               newPage = baseArr[baseArr.length - 1]
             }
           }
-          page.pageUrl = urlArr
-          await page.requestPageChange(newPage)
+          this.noodluidom.page.pageUrl = urlArr
+          await this.noodluidom.page.requestPageChange(newPage)
         }
       }
     }
@@ -315,18 +310,19 @@ class App {
         this.noodl.aspectRatio = aspectRatio
         document.body.style.width = `${width}px`
         document.body.style.height = `${height}px`
-        if (this.page.rootNode) {
-          this.page.rootNode.style.width = `${width}px`
-          this.page.rootNode.style.height = `${height}px`
+        if (this.noodluidom.page.rootNode) {
+          this.noodluidom.page.rootNode.style.width = `${width}px`
+          this.noodluidom.page.rootNode.style.height = `${height}px`
         }
-        this.page.render(
-          this.noodl?.root?.[this.page.getState().current]?.components,
+        this.noodluidom.render(
+          this.noodl?.root?.[this.noodluidom.page.getState().current]
+            ?.components,
         )
       },
     )
   }
 
-  observePages(page: IPage) {
+  observePages(page: Page) {
     page
       .on(pageEvent.ON_NAVIGATE_START, (pageName) => {
         console.log(
@@ -401,7 +397,7 @@ class App {
                   this.noodlui.createPluginObject({
                     type: 'pluginHead',
                     path: config.headPlugin,
-                  }),
+                  }) as any,
                 )
               }
               if (config.bodyTopPplugin) {
@@ -409,7 +405,7 @@ class App {
                   this.noodlui.createPluginObject({
                     type: 'pluginBodyTop',
                     path: config.bodyTopPplugin,
-                  }),
+                  }) as any,
                 )
               }
               if (config.bodyTailPplugin) {
@@ -417,7 +413,7 @@ class App {
                   this.noodlui.createPluginObject({
                     type: 'pluginBodyTail',
                     path: config.bodyTailPplugin,
-                  }),
+                  }) as any,
                 )
               }
               this.noodlui
@@ -517,32 +513,6 @@ class App {
         log.red(error.message, error)
         // window.alert(error.message)
         // TODO - narrow the reasons down more
-      })
-      /**
-       * Triggers opening/closing the modal if a matching modal id is set
-       * Dispatch openModal/closeModal to open/close this modal
-       */
-      // NOTE - This is not being used atm
-      .on(pageEvent.ON_MODAL_STATE_CHANGE, (prevState, nextState) => {
-        const { id, opened, ...rest } = nextState
-        log.func('page [modal-state-change]')
-        if (opened) {
-          const modalId = modalIds[id as PageModalId]
-          // const modalComponent = modalComponents[modalId]
-          const modalComponent = undefined
-          if (modalComponent) {
-            this.page.modal.open(id, modalComponent, { opened, ...rest })
-            log.green('Modal opened', { prevState, nextState })
-          } else {
-            log.red(
-              'Tried to open the modal component but the node was not available',
-              { prevState, nextState, node: this.page.modal.node },
-            )
-          }
-        } else {
-          this.page.modal.close()
-          log.green('Closed modal', { prevState, nextState })
-        }
       })
   }
 
@@ -674,6 +644,9 @@ class App {
   -------------------------------------------------------- */
 
     this.noodluidom.configure({
+      page: {
+        resolveComponents: this.noodlui.resolveComponents.bind(this.noodlui),
+      },
       redraw: {
         resolveComponents: this.noodlui.resolveComponents.bind(this.noodlui),
       },

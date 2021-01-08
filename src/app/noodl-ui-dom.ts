@@ -99,7 +99,6 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
         if (component.get('contentType') === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
             import('../app/noodl-ui').then(({ default: noodlui }) => {
-              console.log('HLELO:!?!?')
               const assetsUrl = noodlui.assetsUrl || ''
               const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
               const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
