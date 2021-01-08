@@ -278,8 +278,14 @@ class App {
       setViewportSize,
     } = utils
 
-    if (this.noodl.getConfig()?.viewWidthHeightRatio) {
-      const { min, max } = this.noodl.getConfig()?.viewWidthHeightRatio
+    // The viewWidthHeightRatio in cadlEndpoint (app config) overwrites the
+    // viewWidthHeightRatio in root config
+    const viewWidthHeightRatio =
+      this.noodl.cadlEndpoint?.viewWidthHeightRatio ||
+      this.noodl.getConfig?.()?.viewWidthHeightRatio
+
+    if (viewWidthHeightRatio) {
+      const { min, max } = viewWidthHeightRatio
       setMinAspectRatio(min)
       setMaxAspectRatio(max)
     }
