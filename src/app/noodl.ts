@@ -3,6 +3,7 @@ import { getAspectRatio } from '../utils/common'
 
 const LOCAL_SERVER = 'http://127.0.0.1:3001/testpage.yml'
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
+const DOCC19 = getConfigEndpoint('docc19')
 const WWW = getConfigEndpoint('www')
 const WWW2 = getConfigEndpoint('www2')
 const PATIENT = getConfigEndpoint('patient')
