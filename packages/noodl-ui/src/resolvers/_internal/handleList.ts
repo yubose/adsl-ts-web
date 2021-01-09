@@ -8,7 +8,7 @@ import {
   ListBlueprint,
   NOODLComponent,
 } from '../../types'
-import Resolver from '../../Resolver'
+import { Resolver } from '../../Resolver'
 import { publish } from '../../utils/noodl'
 import { event } from '../../constants'
 import { _resolveChildren } from './helpers'
@@ -19,7 +19,7 @@ const log = Logger.create('handleList')
 const handleListInternalResolver = (
   component: List,
   options: ConsumerOptions,
-  _internalResolver: Resolver,
+  _internalResolver: InternalResolver,
 ) => {
   const {
     getBaseStyles,

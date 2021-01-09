@@ -1,5 +1,5 @@
-import { expect } from 'chai'
 import path from 'path'
+import { expect } from 'chai'
 import { createComponent, NOODLComponent } from 'noodl-ui'
 import { getShape, getShapeKeys } from './utils'
 

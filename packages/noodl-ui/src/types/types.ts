@@ -1,10 +1,12 @@
+import { ComponentObject } from 'noodl-types'
 import { ActionObject, EmitActionObject } from './actionTypes'
 import {
   ActionChainActionCallback,
+  ActionChainContext,
   ActionChainUseObjectBase,
   ActionConsumerCallbackOptions,
 } from './actionChainTypes'
-import { ComponentInstance, ComponentObject } from './componentTypes'
+import { ComponentCreationType, ComponentInstance } from './componentTypes'
 import {
   ActionChainEventId,
   ActionType,
@@ -15,6 +17,33 @@ import {
 import componentCache from '../utils/componentCache'
 import NOODLUI from '../noodl-ui'
 import Viewport from '../Viewport'
+
+export interface INOODLUI {
+  actionsContext: ActionChainContext
+  assetsUrl: string
+  page: string
+  viewport: Viewport
+  resolveComponents: NOODLUI['resolveComponents']
+  createActionChainHandler: NOODLUI['createActionChainHandler']
+  createSrc: NOODLUI['createSrc']
+  createPluginObject: NOODLUI['createPluginObject']
+  getBaseStyles: NOODLUI['getBaseStyles']
+  getActionsContext: NOODLUI['getActionsContext']
+  getContext: NOODLUI['getContext']
+  getPageObject: NOODLUI['getPageObject']
+  getStateHelpers: NOODLUI['getStateHelpers']
+  getConsumerOptions: NOODLUI['getConsumerOptions']
+  getResolvers: NOODLUI['getResolvers']
+  getState: NOODLUI['getState']
+  getStateGetters: NOODLUI['getStateGetters']
+  getStateSetters: NOODLUI['getStateSetters']
+  setPage(page: string): this
+  plugins: NOODLUI['plugins']
+  use: NOODLUI['use']
+  unuse: NOODLUI['unuse']
+  componentCache: NOODLUI['componentCache']
+  reset(...args: any[]): any
+}
 
 export interface NOODLComponent {
   type?: ComponentType
@@ -87,7 +116,7 @@ export interface ConsumerOptions {
     key: 'chaining',
   ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
   getCbs(key: PageEventId): ((page: string) => any)[]
-  getCbs(key: 'new.page.ref'): ((ref: NOODLUI) => Promise<void> | undefined)[]
+  getCbs(key: 'new.page.ref'): ((component: any) => Promise<void> | undefined)[]
   getCbs(
     key?: 'action' | 'builtIn' | 'chaining' | PageEventId,
   ): {
@@ -127,7 +156,10 @@ export interface IfObject {
   if: [any, any, any]
 }
 
-export type Page<K extends string = string> = Record<K, PageObject>
+export type PageObjectContainer<K extends string = string> = Record<
+  K,
+  PageObject
+>
 
 export interface PageObject {
   components: NOODLComponent[]

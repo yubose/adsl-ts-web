@@ -46,16 +46,16 @@ class List extends Component implements IComponent {
   constructor()
   constructor(...args: any | ConstructorParameters<ComponentConstructor>) {
     super(
-      ...((args.length ? args : [{ type: 'list' }]) as ConstructorParameters<
-        ComponentConstructor
-      >),
+      ...((args.length
+        ? args
+        : [{ type: 'list' }]) as ConstructorParameters<ComponentConstructor>),
     )
     // These initial values will be set once in the prototype.
     // When we use .set, we will intercept the call and set them
     // on this instance instead
     this.set('listId', getRandomKey())
-    this.set('listObject', this.get('listObject') || [])
-    this.set('iteratorVar', this.get('iteratorVar') || '')
+    this.set('listObject', super.get('listObject') || [])
+    this.set('iteratorVar', super.get('iteratorVar') || '')
     this.#children = []
   }
 
@@ -394,6 +394,10 @@ class List extends Component implements IComponent {
       }
     }
     return removedChild
+  }
+
+  get(...args: Parameters<IComponent['get']>) {
+    return super.get(...args)
   }
 
   set<

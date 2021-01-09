@@ -1,53 +1,105 @@
 import Logger from 'logsnap'
-import { ComponentInstance, ConsumerOptions } from '../../types'
+import isNil from 'lodash/isNil'
+import { ConsumerOptions } from '../../types'
 import { _resolveChildren } from './helpers'
 import { event as eventId } from '../../constants'
-import Resolver from '../../Resolver'
+import { InternalResolver } from '../../Resolver'
+import Page from '../../components/Page'
 import Viewport from './../../Viewport'
 
 const log = Logger.create('handlePage')
 
 const handlePageInternalResolver = async (
-  component: ComponentInstance,
+  component: Page,
   options: ConsumerOptions,
-  _internalResolver: Resolver,
+  ref: Parameters<InternalResolver['resolve']>[2],
 ) => {
   try {
     const {
       componentCache,
+      context,
+      createActionChainHandler,
+      createSrc,
+      getAssetsUrl,
+      getBaseStyles,
+      getBaseUrl,
       getCbs,
       getPageObject,
+      getResolvers,
+      getState,
+      plugins,
       resolveComponent,
       resolveComponentDeep,
+      setPlugin,
       spawn,
+      viewport: mainViewport,
     } = options
 
     const newPageRefFns = getCbs(eventId.NEW_PAGE_REF)
-    const numNewPageRefFns = newPageRefFns.length
+    const numNewPageRefFns = newPageRefFns?.length
     log.grey(
       `[type: page] Retrieved ${numNewPageRefFns} page funcs`,
       newPageRefFns,
     )
-    const path = component.get('path') || ''
-    log.grey(`[type: page] Path is "${path}"`)
+
     const viewport = new Viewport()
-    viewport.width = Number(component.style.width?.replace('px', ''))
-    viewport.height = Number(component.style.height?.replace('px', ''))
-    log.grey(`[type: page] Initiated viewport`, component)
-    const ref = spawn(path, { viewport })
+
+    viewport.width = isNil(component.style?.width)
+      ? mainViewport.width
+      : Number(String(component.style.width).replace('px', ''))
+
+    viewport.height = isNil(component.style?.height)
+      ? mainViewport.height
+      : Number(String(component.style.height).replace('px', ''))
+
+    log.grey(`[type: page] Initiated viewport`, {
+      mainViewport,
+      component,
+      refViewport: viewport,
+    })
+
+    const path = component.get('path') as string
+    // const ref = component.setRef(spawn(path, { viewport })).getRef() as any
+    component.viewport = viewport
 
     log.grey(`[type: page] Spawned a new noodl-ui process`, {
-      ref,
+      // ref,
       path,
-      viewport,
       component,
     })
+
+    component.actionsContext = {
+      ...context.actionsContext,
+      noodlui: component,
+    }
+    component.assetsUrl = context.assetsUrl
+    component.componentCache = componentCache.bind(component)
+    component.createActionChainHandler = createActionChainHandler.bind(
+      component,
+    )
+    component.createSrc = createSrc.bind(component)
+    component.getAssetsUrl = getAssetsUrl.bind(component)
+    component.getBaseStyles = getBaseStyles.bind(component)
+    component.getBaseUrl = getBaseUrl.bind(component)
+    component.getContext = ref.getContext.bind(component)
+    component.getPageObject = ref.getPageObject.bind(component)
+    component.getStateHelpers = ref.getStateHelpers.bind(component)
+    component.getConsumerOptions = ref.getConsumerOptions.bind(component)
+    component.getResolvers = getResolvers.bind(component)
+    component.getState = getState.bind(component)
+    component.getStateGetters = ref.getStateGetters.bind(component)
+    component.getStateSetters = ref.getStateSetters.bind(component)
+    component.resolveComponents = ref.resolveComponents.bind(component)
+    component.plugins = plugins.bind(component)
+    component.use = ref.use.bind(ref)
+    component.unuse = ref.unuse.bind(ref)
+    window.p = component
 
     // Note: We leave the builtins/actions/resolvers to be re-attached delegated
     // to the consumer, but the rest should automatically be handled by this lib
     for (let index = 0; index < numNewPageRefFns; index++) {
       const fn = newPageRefFns[index]
-      let result = fn?.(ref) as Promise<any>
+      let result = fn?.(component as Page) as Promise<any>
       if (
         (typeof result === 'function' || typeof result === 'object') &&
         typeof result['then'] === 'function'
@@ -56,29 +108,33 @@ const handlePageInternalResolver = async (
       }
     }
 
-    component.set('ref', ref)
-    component.emit(eventId.component.page.SET_REF, ref)
+    // setTimeout(() => component.emit(eventId.component.page.SET_REF, ))
 
-    log.grey(`Ref set on component`, { component, path, ref })
-    log.gold(component.style.width)
-    log.gold(component.style.height)
+    // log.grey(`Ref set on component`, { component, path, })
 
     const pageObject = getPageObject(path)
 
     if (pageObject) {
-      log.gold('Page object grabbed', { component, pageObject, ref })
+      log.gold('Page object grabbed', { component, pageObject })
     } else if (!pageObject) {
       log.red(`Expected a page object but received ${typeof pageObject}`, {
         component,
         pageObject,
         path,
-        ref,
       })
     }
 
     const noodlComponents = pageObject?.components || []
 
-    component.emit(eventId.component.page.COMPONENTS_RECEIVED, noodlComponents)
+    // Setting a timeout allows this call to run after consumers attach
+    // listeners to this component, which will allow them to catch this
+    // event when attaching listeners
+    setTimeout(() =>
+      component.emit(
+        eventId.component.page.COMPONENTS_RECEIVED,
+        noodlComponents,
+      ),
+    )
 
     const resolvedComponents = ref.resolveComponents(noodlComponents)
 
@@ -91,9 +147,11 @@ const handlePageInternalResolver = async (
       c?.setParent?.(component)
     })
 
-    component.emit(
-      eventId.component.page.RESOLVED_COMPONENTS,
-      resolvedComponents,
+    setTimeout(() =>
+      component.emit(
+        eventId.component.page.RESOLVED_COMPONENTS,
+        resolvedComponents,
+      ),
     )
 
     log.gold('resolvedComponents', {
@@ -103,10 +161,10 @@ const handlePageInternalResolver = async (
       resolvedComponents,
     })
 
-    if (!Array.isArray(noodlComponents) || !noodlComponents.length) {
+    if (!Array.isArray(noodlComponents) || !noodlComponents?.length) {
       component.emit(eventId.component.page.MISSING_COMPONENTS, {
         component,
-        path: component.get('path'),
+        path: component.get('path') as string,
       })
       log.func(eventId.component.page.MISSING_COMPONENTS)
       log.red(
@@ -117,6 +175,7 @@ const handlePageInternalResolver = async (
       )
     }
   } catch (error) {
+    console.error(error)
     throw new Error(error)
   }
 }

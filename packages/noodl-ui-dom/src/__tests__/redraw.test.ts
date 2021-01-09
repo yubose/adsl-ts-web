@@ -38,7 +38,7 @@ let componentCache = noodlui.componentCache.bind(
   noodlui,
 ) as typeof noodlui.componentCache
 
-describe('redraw', () => {
+xdescribe('redraw', () => {
   it(`should remove the redrawing components from the component cache`, () => {
     const list = getListGender()
     const node = noodluidom.draw(list) as HTMLUListElement

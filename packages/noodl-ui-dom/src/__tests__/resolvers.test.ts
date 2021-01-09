@@ -1,6 +1,6 @@
 import chalk from 'chalk'
-import { List, ListItem, NOODLComponent } from 'noodl-ui'
-import { prettyDOM, screen } from '@testing-library/dom'
+import { ComponentInstance, List, ListItem, NOODLComponent } from 'noodl-ui'
+import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { applyMockDOMResolver, noodlui, toDOM } from '../test-utils'
 import * as resolvers from '../resolvers'
@@ -24,7 +24,7 @@ const getNoodlList = () =>
 
 const getList = () => noodlui.resolveComponents(getNoodlList())
 
-describe('internal resolvers', () => {
+describe(chalk.keyword('orange')('resolvers'), () => {
   it('should display data value if it is displayable', () => {
     const { node } = applyMockDOMResolver({
       resolver: resolvers.common,
@@ -198,6 +198,64 @@ describe('list', () => {
   })
 
   // TODO - update.list.item handling?
+})
+
+describe.only('page', () => {
+  let result: ReturnType<typeof applyMockDOMResolver>
+  let node: HTMLIFrameElement
+  let component: ComponentInstance
+
+  beforeEach(() => {
+    result = applyMockDOMResolver({
+      component: { type: 'page', path: 'LeftPage' },
+      pageName: 'Hello',
+      pageObject: {},
+      root: {
+        LeftPage: {
+          components: [
+            { type: 'image', path: 'abc.png' },
+            {
+              type: 'button',
+              text: 'what',
+              onClick: [{ goto: 'Somewhere' }],
+            },
+            { type: 'label', text: 'label text' },
+          ],
+        },
+      },
+      resolver: resolvers.page,
+    })
+    node = result.node as HTMLIFrameElement
+    component = result.component
+  })
+
+  it(
+    `should draw and attach each resolved component as children DOM nodes to ` +
+      `node.contentDocument.body`,
+    async () => {
+      await waitFor(() => {
+        expect(result.node.querySelector('img')).to.exist
+        expect(result.node.querySelector('button')).to.exist
+        expect(result.node.querySelector('label')).to.exist
+      })
+    },
+  )
+
+  it(
+    `each immediate resolved child should be position according to their ` +
+      `own viewport dimensions`,
+    async () => {
+      await waitFor(() => {
+        const [
+          image,
+          button,
+          label,
+        ] = component.children() as ComponentInstance[]
+        console.info(component.get('ref'))
+        expect(component.get('ref')).to.exist
+      })
+    },
+  )
 })
 
 describe('video', () => {

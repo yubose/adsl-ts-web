@@ -11,22 +11,10 @@ export default {
     const { draw, redraw, noodlui } = options
     node.name = component.get('path') || ''
 
-    const log = (id: string, msg: string, data: any) => {
-      console.log(
-        `%c[noodl-ui-dom][${id}] ${msg}`,
-        `color:#c4a901;font-weight:bold;`,
-        { ...data, ...options },
-      )
-    }
-
     component.on(
       'path',
       (src: string) => {
-        console.log(`%cRECEIVED SRC`, `color:#00b406;font-weight:bold;`, {
-          component,
-          node,
-          src,
-        })
+        console.log(`%cReceived src`, `color:#00b406;font-weight:bold;`, src)
       },
       '[noodl-ui-dom] path',
     )
@@ -34,10 +22,11 @@ export default {
     component.on(
       noodluiEvent.component.page.COMPONENTS_RECEIVED,
       (noodlComponents) => {
-        log(
-          noodluiEvent.component.page.COMPONENTS_RECEIVED,
-          'Received components',
-          { noodlComponents },
+        console.log(
+          `%c[noodl-ui-dom][${noodluiEvent.component.page.COMPONENTS_RECEIVED}] ` +
+            `Received components`,
+          `color:gold;font-weight:bold;`,
+          noodlComponents,
         )
       },
       `[noodl-ui-dom] ${noodluiEvent.component.page.COMPONENTS_RECEIVED}`,
@@ -46,9 +35,10 @@ export default {
     component.on(
       noodluiEvent.component.page.RETRIEVE_COMPONENTS,
       (args) => {
-        log(
-          noodluiEvent.component.page.RETRIEVE_COMPONENTS,
-          'Retrieve components',
+        console.log(
+          `%c[noodl-ui-dom][${noodluiEvent.component.page.RETRIEVE_COMPONENTS}] ` +
+            `Retrieve components`,
+          `color:gold;font-weight:bold;`,
           args,
         )
       },
@@ -58,16 +48,16 @@ export default {
     component.on(
       noodluiEvent.component.page.RESOLVED_COMPONENTS,
       () => {
-        log(
-          noodluiEvent.component.page.RESOLVED_COMPONENTS,
-          'Resolved components',
+        console.log(
+          `%c[noodl-ui-dom][${noodluiEvent.component.page.RESOLVED_COMPONENTS}] ` +
+            `Resolved components`,
+          `color:gold;font-weight:bold;`,
           { component, children: component.children() },
         )
         component.children().forEach((child: ComponentInstance) => {
-          console.log(child)
           const childNode = draw(child, node.contentDocument?.body)
-          redraw(childNode, child, options)
-          window.child = childNode
+          // redraw(childNode, child, options)
+          ;(window as any).child = childNode
         })
       },
       `[noodl-ui-dom] ${noodluiEvent.component.page.RESOLVED_COMPONENTS}`,
@@ -77,7 +67,8 @@ export default {
       noodluiEvent.component.page.MISSING_COMPONENTS,
       (args) => {
         console.log(
-          `%c[noodl-ui-dom][${noodluiEvent.component.page.MISSING_COMPONENTS}] Missing components`,
+          `%c[noodl-ui-dom][${noodluiEvent.component.page.MISSING_COMPONENTS}] ` +
+            `Missing components`,
           `color:#ec0000;font-weight:bold;`,
           args,
         )

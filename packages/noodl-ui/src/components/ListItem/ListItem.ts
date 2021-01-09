@@ -3,10 +3,11 @@ import {
   ComponentInstance,
   ComponentConstructor,
   ComponentObject,
+  IComponent,
   ProxiedComponent,
 } from '../../types'
 
-class ListItem extends Component {
+class ListItem extends Component implements IComponent {
   #children: any[] = []
   #dataObject: any
   #listId: string = ''
@@ -65,11 +66,11 @@ class ListItem extends Component {
     this.#iteratorVar = iteratorVar
   }
 
-  get(key: any, styleKey: any) {
-    if (key === 'iteratorVar') return this.iteratorVar
-    if (key === 'listId') return this.listId
-    if (key === 'listIndex') return this.listIndex
-    return super.get(key, styleKey)
+  get(...args: Parameters<IComponent['get']>) {
+    if (args[0] === 'iteratorVar') return this.iteratorVar
+    if (args[0] === 'listId') return this.listId
+    if (args[0] === 'listIndex') return this.listIndex
+    return super.get(args[0], args[1])
   }
 
   set<K extends keyof ProxiedComponent>(

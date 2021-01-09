@@ -1,49 +1,61 @@
+import { ComponentObject, PageComponentObject } from 'noodl-types'
 import fs from 'fs-extra'
 import { getTagName } from '../resolvers/getElementType'
 import NOODLUi from '../noodl-ui'
 import Viewport from '../Viewport'
-import {
-  ResolverFn,
-  ComponentObject,
-  ConsumerOptions,
-  ComponentType,
-} from '../types'
+import { ResolverFn, ConsumerOptions, ComponentInstance } from '../types'
+import { InternalResolver } from '../Resolver'
+import handlePageInternalResolver from '../resolvers/_internal/handlePage'
 import createComponent from '../utils/createComponent'
 import Component from '../components/Base'
 import ListItem from '../components/ListItem'
 import List from '../components/List'
+import Page from '../components/Page'
 
 export const assetsUrl = 'https://something.com/assets/'
 
 export function createResolverTest(
-  resolver: ResolverFn,
+  resolver: ResolverFn | typeof handlePageInternalResolver,
   consumerOptions?: Partial<ConsumerOptions>,
+  ref?: NOODLUi,
 ) {
-  function _resolver<C extends ComponentObject & { type: 'list' }>(
+  function _resolver<C extends PageComponentObject>(
+    component: C,
+    options?: ConsumerOptions,
+    ref?: NOODLUi,
+  ): Page
+  function _resolver<C extends ComponentObject>(
     component: C,
     options?: ConsumerOptions,
   ): List
-  function _resolver<C extends ComponentObject & { type: 'listItem' }>(
+  function _resolver<C extends ComponentObject>(
     component: C,
     options?: ConsumerOptions,
   ): ListItem
-  function _resolver<C extends ComponentObject & { type: ComponentType }>(
+  function _resolver<C extends ComponentObject>(
     component: C,
     options?: ConsumerOptions,
   ): Component
   function _resolver<C extends ComponentObject>(
     component: C,
     options?: ConsumerOptions,
+    overriddenRef?: NOODLUi,
   ) {
     const instance = createComponent({
       ...component,
       noodlType: component.noodlType || component.type,
     })
-    resolver(instance as any, {
-      ...noodlui.getConsumerOptions({ component: instance as any }),
-      ...options,
-      ...consumerOptions,
-    })
+    resolver(
+      instance as any,
+      {
+        ...noodlui.getConsumerOptions({
+          component: instance as ComponentInstance,
+        }),
+        ...options,
+        ...consumerOptions,
+      },
+      overriddenRef || ref || noodlui,
+    )
     return instance
   }
   return _resolver

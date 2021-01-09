@@ -27,6 +27,7 @@ import {
   isActionChainEmitTrigger,
   resolveAssetUrl,
 } from './utils/noodl'
+import Page from './components/Page'
 import createComponent from './utils/createComponent'
 import createComponentCache from './utils/componentCache'
 import getActionConsumerOptions from './utils/getActionConsumerOptions'
@@ -60,7 +61,7 @@ class NOODL {
     on: {
       [event.SET_PAGE]: ((pageName: string) => void)[]
       [event.NEW_PAGE]: ((page: string) => Promise<NOODL> | undefined)[]
-      [event.NEW_PAGE_REF]: ((ref: NOODL) => Promise<void> | undefined)[]
+      [event.NEW_PAGE_REF]: ((ref: Page) => Promise<void> | undefined)[]
     }
   } = {
     action: {},
@@ -133,7 +134,7 @@ class NOODL {
     componentsParams:
       | T.ComponentCreationType
       | T.ComponentCreationType[]
-      | T.Page['object'],
+      | T.PageObjectContainer['object'],
   ) {
     let components: any[] = []
     let resolvedComponents: T.ComponentInstance[] = []
@@ -173,6 +174,7 @@ class NOODL {
       _internalResolver.resolve(
         component,
         this.getConsumerOptions({ component }),
+        this,
       )
       resolvedComponents.push(component)
     })
@@ -837,6 +839,7 @@ class NOODL {
   use(action: T.ActionChainUseObject | T.ActionChainUseObject[]): this
   use(viewport: T.IViewport): this
   use(o: {
+    actionsContext?: Partial<NOODL['actionsContext']>
     fetch?: T.Fetch
     getAssetsUrl?(): string
     getBaseUrl?(): string
@@ -851,6 +854,7 @@ class NOODL {
       | T.ActionChainUseObject
       | T.IViewport
       | {
+          actionsContext?: Partial<NOODL['actionsContext']>
           getAssetsUrl?(): string
           getBaseUrl?(): string
           getPreloadPages?(): string[]
@@ -862,6 +866,7 @@ class NOODL {
           | Resolver
           | T.ActionChainUseObject
           | {
+              actionsContext?: Partial<NOODL['actionsContext']>
               getAssetsUrl?(): string
               getBaseUrl?(): string
               getPreloadPages?(): string[]
@@ -895,6 +900,7 @@ class NOODL {
         } else if (m instanceof Resolver) {
           this.#resolvers.push(m)
         } else if (
+          'actionsContext' in m ||
           'fetch' in m ||
           'getAssetsUrl' in m ||
           'getBaseUrl' in m ||
@@ -903,6 +909,8 @@ class NOODL {
           'getRoot' in m ||
           'plugins' in m
         ) {
+          // prettier-ignore
+          if ('actionsContext' in m) Object.assign(this.actionsContext, m.actionsContext)
           if ('getAssetsUrl' in m) this.#getAssetsUrl = m.getAssetsUrl
           if ('getBaseUrl' in m) this.#getBaseUrl = m.getBaseUrl
           if ('getPreloadPages' in m) this.#getPreloadPages = m.getPreloadPages

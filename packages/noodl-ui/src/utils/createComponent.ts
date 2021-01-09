@@ -1,10 +1,11 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { ComponentInstance, ComponentObject, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
+import isComponent from './isComponent'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Component from '../components/Base'
-import isComponent from './isComponent'
+import Page from '../components/Page'
 
 export interface PropsOptionFunc<T> {
   (child: T): Partial<ComponentObject>
@@ -23,6 +24,7 @@ interface Options {
  */
 function createComponent(noodlType: 'list', options?: Options): List
 function createComponent(noodlType: 'listItem', options?: Options): ListItem
+function createComponent(noodlType: 'page', options?: Options): Page
 function createComponent<K extends ComponentType = ComponentType>(
   noodlType: K,
   options?: Options,
@@ -41,7 +43,7 @@ function createComponent<K extends ComponentType = ComponentType>(
 function createComponent<K extends ComponentType = ComponentType>(
   value: K | ComponentObject | Component,
   options?: Options,
-): ComponentInstance | List | ListItem {
+): ComponentInstance | List | ListItem | Page {
   let childComponent: any
   let id: string = ''
   const props = toProps(value, options?.props)
@@ -83,6 +85,8 @@ function toInstance(value: ComponentObject) {
       return new List(value)
     case 'listItem':
       return new ListItem(value)
+    case 'page':
+      return new Page(value)
     default:
       return new Component(value)
   }

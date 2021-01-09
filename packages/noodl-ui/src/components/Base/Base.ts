@@ -21,7 +21,7 @@ const log = Logger.create('Base')
 
 // Current component events: 'path' attached by createSrc
 
-class Component implements IComponent {
+class Component implements IComponent<any> {
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
   #cb: { [eventName: string]: Function[] } = {}
@@ -119,14 +119,6 @@ class Component implements IComponent {
    * using styleKey if key === 'style'
    * @param { string } key - Component property or "style" if using styleKey for style lookups
    */
-  get<K extends keyof ComponentObject>(
-    key: K,
-    styleKey?: keyof Style,
-  ): ComponentObject[K]
-  get<K extends keyof ComponentObject>(
-    key: K[],
-    styleKey?: keyof Style,
-  ): Record<K, ComponentObject[K]>
   get<K extends keyof ComponentObject>(
     key: K | K[],
     styleKey?: keyof Style,
@@ -491,7 +483,7 @@ class Component implements IComponent {
    */
   snapshot() {
     return Object.assign(
-      { id: this.#id, noodlType: this.original.type },
+      { id: this.#id, noodlType: this.original.type as ComponentType },
       this.toJS(),
       {
         _cache: this.#cache,

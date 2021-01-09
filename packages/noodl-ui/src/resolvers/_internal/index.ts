@@ -1,7 +1,8 @@
 import handleList from './handleList'
 import handlePage from './handlePage'
 import handleTextboard from './handleTextboard'
-import Resolver from '../../Resolver'
+import Page from '../../components/Page'
+import { InternalResolver } from '../../Resolver'
 import { _resolveChildren } from './helpers'
 import { publish } from '../../utils/noodl'
 import { ComponentInstance } from '../../types'
@@ -11,20 +12,16 @@ import { ComponentInstance } from '../../types'
  * as defined in the NOODL spec and they're responsible for ensuring that
  * the components are behaving as expected behind the scenes
  */
-const _internalResolver = new Resolver()
+const _internalResolver = new InternalResolver()
 
-_internalResolver.setResolver((component, options) => {
+_internalResolver.setResolver((component, options, ref) => {
   const run = (component: ComponentInstance) => {
     if (component) {
       if (component.noodlType === 'list') {
         return handleList(component as any, options, _internalResolver)
       }
       if (component.noodlType === 'page') {
-        return handlePage(
-          component as ComponentInstance,
-          options,
-          _internalResolver,
-        )
+        return handlePage(component as Page, options, ref)
       }
       if (component.get('textBoard')) {
         return handleTextboard(component as any, options, _internalResolver)

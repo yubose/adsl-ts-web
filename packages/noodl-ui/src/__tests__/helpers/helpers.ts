@@ -5,13 +5,13 @@
  */
 import {
   BuiltInObject,
-  Component,
   ComponentObject,
-  List,
   NOODLComponent,
-  Page,
+  PageObjectContainer,
   PageObject,
 } from '../../types'
+import Component from '../../components/Base'
+import List from '../../components/List'
 import { noodlui } from '../../utils/test-utils'
 
 const EMPTY_PAGE = '__emptypage__'
@@ -101,7 +101,10 @@ class MockPage {
   name: string
   object: PageObject | null
 
-  constructor(page: Page, opts: { actions: any[]; builtIns: any[] }) {
+  constructor(
+    page: PageObjectContainer,
+    opts: { actions: any[]; builtIns: any[] },
+  ) {
     this['name'] = Object.keys(page)[0]
     this.object = page[this.name]
   }
@@ -150,7 +153,7 @@ class MockPage {
 }
 
 export const createPage = function <K extends string>(
-  cb: (args: typeof util) => Page,
+  cb: (args: typeof util) => PageObjectContainer,
 ) {
   let _page: { name: K | '' } = {
     name: '',
@@ -160,7 +163,7 @@ export const createPage = function <K extends string>(
     [_page.name as K]: {} as PageObject,
   }
 
-  let consumerPage: Page | any
+  let consumerPage: PageObjectContainer | any
   let noodlComponents
 
   if (typeof cb === 'function') {
