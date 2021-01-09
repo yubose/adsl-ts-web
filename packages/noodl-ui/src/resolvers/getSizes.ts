@@ -9,14 +9,6 @@ import { hasDecimal, hasLetter } from '../utils/common'
 const getSizes: ResolverFn = (component, options) => {
   const { viewport } = options
 
-  if (!viewport) {
-    console.error(
-      `"getSizes" returned early because viewport is null or undefined`,
-      options,
-    )
-    return
-  }
-
   const width = component.getStyle('width')
   const height = component.getStyle('height')
 

@@ -59,6 +59,7 @@ export interface IComponent<K = ComponentType> {
   on(eventName: string, cb: Function): this
   off(eventName: string, cb: Function): this
   parent(): ComponentInstance | null
+  ref?: any // Used in components of type: "page" atm.
   remove(key: string, styleKey?: keyof Style): this
   removeStyle<K extends keyof Style>(styleKey: K): this
   set<K extends keyof ComponentObject>(

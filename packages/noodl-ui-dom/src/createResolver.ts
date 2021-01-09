@@ -21,8 +21,8 @@ const createResolver = function createResolver() {
       return {
         original: args[1].original,
         noodlui: _internal.noodlui,
-        parse: _internal.noodluidom.draw,
-        redraw: _internal.noodluidom.redraw,
+        draw: _internal.noodluidom.draw.bind(_internal.noodluidom),
+        redraw: _internal.noodluidom.redraw.bind(_internal.noodluidom),
       } as T.NodeResolverUtils
     },
   }

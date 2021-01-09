@@ -37,7 +37,7 @@ export const componentTypes = [
   'label',
   'list',
   'listItem',
-  'noodl',
+  'page',
   'plugin',
   'pluginHead',
   'pluginBodyTop',
@@ -141,7 +141,17 @@ export const event = {
       REDRAW: 'redraw',
       REDRAWED: 'redrawed',
     },
+    page: {
+      RETRIEVE_COMPONENTS: 'component:page:retrieve.components',
+      COMPONENTS_RECEIVED: 'component:page:components.received',
+      MISSING_COMPONENTS: 'component:page:missing.components',
+      RESOLVED_COMPONENTS: 'component:page:resolved.components',
+      SET_REF: 'component:page:set.ref',
+    },
   },
+  SET_PAGE: 'set.page',
+  NEW_PAGE: 'new.page',
+  NEW_PAGE_REF: 'new.page.ref',
 } as const
 
 /** { textAlign: '' } */

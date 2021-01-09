@@ -29,7 +29,7 @@ const getStylesByElementType: ResolverFn = (component, options) => {
         .setStyle('padding', '0px')
         .setStyle(
           'display',
-          component.style.axis === 'horizontal' ? 'flex' : 'block',
+          component.original.style?.axis === 'horizontal' ? 'flex' : 'block',
         )
       return void component.setStyle('overflowY', 'auto')
     // Flipping the position to relative to make the list items stack on top of eachother.

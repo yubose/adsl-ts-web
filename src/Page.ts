@@ -203,7 +203,7 @@ class Page {
     // The root node is a direct child of document.body
     this.setStatus(pageStatus.RESOLVING_COMPONENTS)
     let resolved = noodlui.resolveComponents(rawComponents)
-    this.setStatus(pageStatus.COMPONENTS_RESOLVED)
+    this.setStatus(pageStatus.COMPONENTS_RECEIVED)
     const components = Array.isArray(resolved) ? resolved : [resolved]
     this.rootNode.innerHTML = ''
     this.setStatus(pageStatus.RENDERING_COMPONENTS)
