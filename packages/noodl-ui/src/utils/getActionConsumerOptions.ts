@@ -6,27 +6,27 @@ import NOODLUI from '../noodl-ui'
 /**
  * A helper to generate action callback options for consumers. Intended
  * to be exported for use
- * @param { NOODLUI } noodlui - noodl-ui client
+ * @param { NOODLUI } instance - noodl-ui client or Page component
  */
 function getActionConsumerOptions(
-  noodlui: NOODLUI,
+  instance: NOODLUI,
 ): ActionConsumerCallbackOptions {
   return Object.assign(
     {},
     pick(
-      noodlui.getConsumerOptions({
+      instance.getConsumerOptions({
         // Create a dummy component to avoid unexpected data type errors
         component: createComponent('view'),
       }),
       ['component', 'getCbs', 'getResolvers', 'getRoot', 'page', 'viewport'],
     ),
     {
-      componentCache: noodlui.componentCache.bind(noodlui),
-      getAssetsUrl: (() => noodlui.assetsUrl).bind(noodlui),
-      getPageObject: noodlui.getPageObject.bind(noodlui),
-      getState: noodlui.getState.bind(noodlui),
-      plugins: noodlui.plugins.bind(noodlui),
-      setPlugin: noodlui.setPlugin.bind(noodlui),
+      componentCache: instance.componentCache.bind(instance),
+      getAssetsUrl: (() => instance.assetsUrl).bind(instance),
+      getPageObject: instance.getPageObject.bind(instance),
+      getState: instance.getState.bind(instance),
+      plugins: instance.plugins.bind(instance),
+      setPlugin: instance.setPlugin.bind(instance),
     },
   ) as ActionConsumerCallbackOptions
 }

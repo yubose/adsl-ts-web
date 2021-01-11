@@ -1,15 +1,17 @@
 import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
+import getAllResolvers from './utils/getAllResolvers'
 import Resolver from './Resolver'
 import { assetsUrl, noodlui, viewport } from './utils/test-utils'
-import getAllResolvers from './utils/getAllResolvers'
 
 chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 
-before(async () => {
+const resolvers = getAllResolvers().map((r) => new Resolver().setResolver(r))
+
+before(() => {
   console.clear()
   noodlui.init({ _log: false })
   noodlui.use(viewport)
@@ -25,10 +27,7 @@ before(async () => {
 })
 
 beforeEach(() => {
-  getAllResolvers().forEach((r) => {
-    const resolver = new Resolver().setResolver(r)
-    noodlui.use(resolver)
-  })
+  resolvers.forEach((r) => noodlui.use(r))
   noodlui.use({
     getAssetsUrl: () => assetsUrl,
     getRoot: () => ({}),

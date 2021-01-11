@@ -1,6 +1,7 @@
 // Component type: page
 import { expect } from 'chai'
 import { waitFor } from '@testing-library/dom'
+import fs from 'fs-extra'
 import {
   ComponentObject,
   ImageComponentObject,
@@ -11,7 +12,12 @@ import {
 } from 'noodl-types'
 import chalk from 'chalk'
 import sinon from 'sinon'
-import { ComponentInstance, NOODLComponent } from '../types'
+import {
+  ComponentInstance,
+  NOODLComponent,
+  StoreActionObject,
+  StoreBuiltInObject,
+} from '../types'
 import { noodlui, createResolverTest } from '../utils/test-utils'
 import { event as eventId } from '../constants'
 import Component from '../components/Base'
@@ -19,6 +25,9 @@ import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 import NOODLUI from '../noodl-ui'
 import internalHandlePage from '../resolvers/_internal/handlePage'
+import getStore from '../store'
+import Page from '../components/Page'
+import getAllResolvers from '../utils/getAllResolvers'
 
 let path = 'HelloPage' as const
 let pageObject = {
@@ -68,12 +77,46 @@ beforeEach(() => {
 })
 
 describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
-  describe.only(`references`, () => {
-    xit(`assetsUrl should use the return value of the root instance`, () => {
-      const component = handlePage(noodlComponent)
+  describe(`references`, () => {
+    describe(`actionsContext`, () => {
+      it(`should inherit the props except actionsContext.noodlui from the root instance`, () => {
+        const spy = sinon.spy()
+        const hello = {}
+        noodlui.use({ actionsContext: { spy, hello } })
+        const component = handlePage(noodlComponent)
+        expect(noodlui.actionsContext.spy).to.eq(component.actionsContext.spy)
+        expect(noodlui.actionsContext.hello).to.eq(
+          component.actionsContext.hello,
+        )
+        expect(noodlui.actionsContext.noodlui).not.to.eq(
+          component.actionsContext.noodlui,
+        )
+      })
+      it(`should point actionsContext.noodlui to the component itself`, () => {
+        const component = handlePage(noodlComponent)
+        expect(component.actionsContext.noodlui).to.eq(component)
+      })
     })
-    xit(`componentCache`, () => {
-      //
+
+    describe(`assetsUrl`, () => {
+      it('should initialize to the current value of the assetsUrl in the root instance', () => {
+        const component = handlePage(noodlComponent)
+        expect(noodlui.assetsUrl).to.eq(component.assetsUrl)
+      })
+      it(`should use its own getter onwards`, () => {
+        const component = handlePage(noodlComponent)
+        component.assetsUrl = 'abc'
+        expect(noodlui.assetsUrl).not.to.eq(component.assetsUrl)
+      })
+    })
+
+    describe(`componentCache`, () => {
+      it(`should be pointing to the same resources as the componentCache one in the root instance`, () => {
+        const component = handlePage(noodlComponent)
+        expect(noodlui.componentCache().state()).to.eq(
+          component.componentCache().state(),
+        )
+      })
     })
 
     xit(`createActionChainHandler should be the same as the one in the root instance`, () => {
@@ -295,7 +338,6 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
         `parent, while other properties should stay the same as the ones in the parent`,
       () => {
         const component = noodlui.resolveComponents(noodlComponent)
-        expect()
       },
     )
   })
@@ -310,4 +352,162 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       component.on(eventId.component.page.SET_REF, spy)
     },
   )
+
+  describe(`use`, () => {
+    describe(`when passing action objects`, () => {
+      it(`pass the call to store`, () => {
+        const page = new Page()
+        const spy = sinon.spy(getStore(), 'use')
+        const args = { actionType: 'pageJump', fn: sinon.spy() }
+        page.use(args)
+        expect(spy).to.be.calledWith(args)
+        spy.restore()
+      })
+    })
+    describe(`when passing builtIn objects`, () => {
+      it(`pass the call to store`, () => {
+        const page = new Page()
+        const spy = sinon.spy(getStore(), 'use')
+        const args = {
+          actionType: 'builtIn',
+          funcName: 'pearl',
+          fn: sinon.spy(),
+        }
+        page.use(args)
+        expect(spy).to.be.calledWith(args)
+        spy.restore()
+      })
+    })
+    describe(`when passing resolvers`, () => {
+      it(`pass the call to store`, () => {
+        const page = new Page()
+        const spy = sinon.spy(getStore(), 'use')
+        const resolver = new Resolver()
+        resolver.setResolver((c) => undefined)
+        page.use(resolver)
+        expect(spy).to.be.calledWith(resolver)
+        spy.restore()
+      })
+    })
+    it(`should set the viewport`, () => {
+      const page = new Page()
+      const viewport = new Viewport()
+      expect(page.viewport).to.be.undefined
+      page.use(viewport)
+      expect(page.viewport).to.eq(viewport)
+    })
+    it(`should merge to the actionsContext`, () => {
+      const page = new Page()
+      page.use({ actionsContext: { hello: 'one', bye: 'two' } })
+      expect(page.actionsContext).to.have.property('hello', 'one')
+      expect(page.actionsContext).to.have.property('bye', 'two')
+    })
+    it(`should set the function getAssetsUrl`, () => {
+      const page = new Page()
+      page.use({ getAssetsUrl: () => 'abc/' })
+      expect(page.getAssetsUrl()).to.eq('abc/')
+    })
+    it(`should set the function getBaseUrl`, () => {
+      const page = new Page()
+      page.use({ getBaseUrl: () => 'abc/' })
+      expect(page.getBaseUrl()).to.eq('abc/')
+    })
+    it(`should set the function getPages`, () => {
+      const page = new Page()
+      const preloadPages = ['1', '2', '3']
+      page.use({ getPages: () => preloadPages })
+      expect(page.getPages()).to.eq(preloadPages)
+    })
+    it(`should set the function getPreloadPages`, () => {
+      const page = new Page()
+      const preloadPages = ['1', '2', '3']
+      page.use({ getPreloadPages: () => preloadPages })
+      expect(page.getPreloadPages()).to.eq(preloadPages)
+    })
+    it(`should set the function getRoot`, () => {
+      const root = {}
+      const page = new Page()
+      page.use({ getRoot: () => root })
+      expect(page.getRoot()).to.eq(root)
+    })
+  })
+
+  describe.only(`toJS`, () => {
+    it(`should return the expected object`, () => {
+      const actionsContext = { fruits: [] }
+      const assetsUrl = 'https://abc.com/assets/'
+      const baseUrl = 'https://abc.com/'
+      const currentPage = 'Apple'
+      const preloadPages = ['hello', 'hi']
+      const pages = ['Go', 'Bye']
+      const root = { greeting: 'hi' }
+      const page = new Page()
+      page.setPage(currentPage)
+      page.use({
+        actionsContext,
+        getAssetsUrl: () => assetsUrl,
+        getBaseUrl: () => baseUrl,
+        getPages: () => pages,
+        getPreloadPages: () => preloadPages,
+        getRoot: () => root,
+      })
+      const js = page.toJS()
+      expect(js).to.have.property('assetsUrl', assetsUrl)
+      expect(js).to.have.property('baseUrl', baseUrl)
+      expect(js).to.have.property('currentPage', currentPage)
+      expect(js).to.have.property('preloadPages', preloadPages)
+      expect(js).to.have.property('pages', pages)
+      expect(js).to.have.property('root', root)
+      expect(js).to.have.property('style')
+      // expect(js).to.have.property('type', 'iframe')
+      expect(js).to.have.property('noodlType', 'page')
+    })
+  })
+
+  describe(`resolveComponents`, () => {
+    it.only(`should render identical components in structure as the noodl-ui instance`, () => {
+      noodlui.setPage(path)
+      const pageJumpUseObj = {
+        actionType: 'pageJump',
+        fn: sinon.spy(),
+      } as StoreActionObject<any>
+      const builtInUseObj = {
+        actionType: 'builtIn',
+        funcName: 'dog',
+        fn: sinon.spy(),
+      } as StoreBuiltInObject<any>
+      const actionsContext = { myName: 'isChris' }
+      const baseUrl = 'https://abc.com/'
+      const assetsUrl = baseUrl + 'assets/'
+      const root = noodlui.root
+      const initInstance = (inst: Page | NOODLUI) => {
+        inst
+          .setPage(path)
+          .use(noodlui.viewport as any)
+          .use(pageJumpUseObj)
+          .use(builtInUseObj)
+          .use({
+            actionsContext,
+            getAssetsUrl: () => assetsUrl,
+            getBaseUrl: () => baseUrl,
+            getRoot: () => root,
+          })
+        if (inst instanceof Page) {
+          getAllResolvers().forEach((r) => inst.use(r))
+        }
+      }
+
+      const components = noodlui.resolveComponents(generatedComponents)
+      const page = new Page({ type: 'page', path })
+      initInstance(noodlui)
+      initInstance(page)
+      const resolvedPageComponents = page.resolveComponents(generatedComponents)
+      console.info(components[0].toJS())
+      console.info(resolvedPageComponents[0].toJS())
+      fs.writeJsonSync('page.test.json', {
+        'noodl-ui': components[0].toJS(),
+        page: resolvedPageComponents[0].toJS(),
+      })
+    })
+  })
 })

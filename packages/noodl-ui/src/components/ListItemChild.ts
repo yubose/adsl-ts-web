@@ -1,6 +1,6 @@
-import Component from '../Base'
-import { IComponent, ComponentConstructor } from '../../types'
-import createComponent from '../../utils/createComponent'
+import Component from './Base'
+import { IComponent, ComponentConstructor } from '../types'
+import createComponent from '../utils/createComponent'
 
 class ListItemChildComponent extends Component {
   #listId: string = ''

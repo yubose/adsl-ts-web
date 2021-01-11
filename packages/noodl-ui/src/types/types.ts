@@ -102,7 +102,7 @@ export interface ConsumerOptions {
   context: ResolverContext
   createActionChainHandler: NOODLUI['createActionChainHandler']
   createSrc(path: Parameters<NOODLUI['createSrc']>[0]): string
-  fetch: Fetch
+  fetch?: Fetch
   getAssetsUrl(): string
   getBaseUrl(): string
   getBaseStyles(styles?: Style): Partial<Style>
@@ -141,7 +141,7 @@ export interface ConsumerOptions {
   ): ComponentInstance
   resolveComponentDeep: NOODLUI['resolveComponents']
   setPlugin(plugin: string | PluginObject): this
-  spawn: NOODLUI['spawn']
+  spawn?: NOODLUI['spawn']
   showDataKey: boolean
   viewport: Viewport
 }

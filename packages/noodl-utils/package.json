@@ -16,7 +16,7 @@
     "prestart": "rm -rf dist",
     "start": "tsc -w",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src"
+    "test:file": "NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src"
   },
   "keywords": [
     "noodl"

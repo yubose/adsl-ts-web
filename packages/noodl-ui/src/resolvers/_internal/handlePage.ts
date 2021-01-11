@@ -3,7 +3,6 @@ import isNil from 'lodash/isNil'
 import { ConsumerOptions } from '../../types'
 import { _resolveChildren } from './helpers'
 import { event as eventId } from '../../constants'
-import { InternalResolver } from '../../Resolver'
 import Page from '../../components/Page'
 import Viewport from './../../Viewport'
 
@@ -12,7 +11,7 @@ const log = Logger.create('handlePage')
 const handlePageInternalResolver = async (
   component: Page,
   options: ConsumerOptions,
-  ref: Parameters<InternalResolver['resolve']>[2],
+  ref: any, // noodl-ui instance,
 ) => {
   try {
     const {
@@ -70,7 +69,7 @@ const handlePageInternalResolver = async (
 
     component.actionsContext = {
       ...context.actionsContext,
-      noodlui: component,
+      noodlui: component as any,
     }
     component.assetsUrl = context.assetsUrl
     component.componentCache = componentCache.bind(component)

@@ -1,14 +1,10 @@
 import Logger from 'logsnap'
+import { ComponentObject } from 'noodl-types'
 import List from '../../components/List'
 import ListItem from '../../components/ListItem'
 import { getRandomKey } from '../../utils/common'
-import {
-  ComponentObject,
-  ConsumerOptions,
-  ListBlueprint,
-  NOODLComponent,
-} from '../../types'
-import { Resolver } from '../../Resolver'
+import { ConsumerOptions, ListBlueprint, NOODLComponent } from '../../types'
+import { InternalResolver } from '../../Resolver'
 import { publish } from '../../utils/noodl'
 import { event } from '../../constants'
 import { _resolveChildren } from './helpers'

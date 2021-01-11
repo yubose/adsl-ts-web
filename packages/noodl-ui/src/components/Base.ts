@@ -4,18 +4,18 @@ import merge from 'lodash/merge'
 import Logger from 'logsnap'
 import { WritableDraft } from 'immer/dist/internal'
 import { createDraft, isDraft, finishDraft, original, current } from 'immer'
-import { eventTypes } from '../../constants'
+import { ComponentObject } from 'noodl-types'
+import { eventTypes } from '../constants'
 import {
   ComponentCreationType,
   ComponentInstance,
-  ComponentObject,
   ComponentType,
   IComponent,
   Style,
-} from '../../types'
-import createComponentDraftSafely from '../../utils/createComponentDraftSafely'
-import isComponent from '../../utils/isComponent'
-import { forEachEntries, getRandomKey } from '../../utils/common'
+} from '../types'
+import createComponentDraftSafely from '../utils/createComponentDraftSafely'
+import isComponent from '../utils/isComponent'
+import { forEachEntries, getRandomKey } from '../utils/common'
 
 const log = Logger.create('Base')
 

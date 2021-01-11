@@ -1,5 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject'
-import { ComponentInstance, ComponentObject, ComponentType } from '../types'
+import { ComponentObject } from 'noodl-types'
+import { ComponentInstance, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
 import isComponent from './isComponent'
 import List from '../components/List'

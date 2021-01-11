@@ -1,5 +1,4 @@
 import { ComponentInstance, ConsumerOptions, ResolverFn } from './types'
-import NOODLUI from './noodl-ui'
 
 class Resolver {
   #isInternal: boolean = false
@@ -50,18 +49,14 @@ export class InternalResolver {
     resolver: <C extends ComponentInstance>(
       component: C,
       consumerOptions: ConsumerOptions,
-      ref: NOODLUI,
+      ref: any,
     ) => void,
   ) {
     this.#resolver = resolver
     return this
   }
 
-  resolve(
-    component: ComponentInstance,
-    options: ConsumerOptions,
-    ref: NOODLUI,
-  ) {
+  resolve(component: ComponentInstance, options: ConsumerOptions, ref: any) {
     this.#resolver?.(component, options, ref)
     return this
   }

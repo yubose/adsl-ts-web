@@ -3,9 +3,9 @@
  * once its core API is established
  * "noodl-test-utils"
  */
+import { ComponentObject } from 'noodl-types'
 import {
   BuiltInObject,
-  ComponentObject,
   NOODLComponent,
   PageObjectContainer,
   PageObject,

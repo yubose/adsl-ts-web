@@ -683,7 +683,7 @@ class NOODL {
         this.createActionChainHandler(action, {
           ...getActionConsumerOptions(this),
           ...options,
-          component: component as any,
+          component: component as T.ComponentInstance,
         }),
       createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
       fetch: this.#fetch.bind(this),
@@ -852,7 +852,7 @@ class NOODL {
     mod:
       | Resolver
       | T.ActionChainUseObject
-      | T.IViewport
+      | Viewport
       | {
           actionsContext?: Partial<NOODL['actionsContext']>
           getAssetsUrl?(): string

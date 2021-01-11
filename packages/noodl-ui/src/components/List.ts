@@ -1,6 +1,7 @@
 import isPlainObject from 'lodash/isPlainObject'
 import find from 'lodash/find'
 import isNil from 'lodash/isNil'
+import { ComponentObject } from 'noodl-types'
 import {
   ComponentConstructor,
   IComponent,
@@ -9,12 +10,11 @@ import {
   ListDataObjectEventHandlerOptions,
   ListDataObjectOperationResult,
   ProxiedComponent,
-  ComponentObject,
-} from '../../types'
-import Component from '../Base'
-import ListItem from '../ListItem'
-import { forEachEntries, getRandomKey } from '../../utils/common'
-import { event } from '../../constants'
+} from '../types'
+import Component from './Base'
+import ListItem from './ListItem'
+import { forEachEntries, getRandomKey } from '../utils/common'
+import { event } from '../constants'
 
 class List extends Component implements IComponent {
   #blueprint: ListBlueprint

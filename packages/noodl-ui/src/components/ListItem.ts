@@ -1,11 +1,11 @@
-import Component from '../Base'
+import { ComponentObject } from 'noodl-types'
+import Component from './Base'
 import {
   ComponentInstance,
   ComponentConstructor,
-  ComponentObject,
   IComponent,
   ProxiedComponent,
-} from '../../types'
+} from '../types'
 
 class ListItem extends Component implements IComponent {
   #children: any[] = []

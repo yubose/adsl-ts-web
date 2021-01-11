@@ -75,7 +75,7 @@ export interface IComponent<C extends ComponentObject, Type extends C['type']> {
   }
   touch(key: keyof C): this
   touchStyle(styleKey: keyof StyleObject): this
-  toJS<O extends PlainObject>(): O
+  toJS(): any
 }
 
 export type ListBlueprint = ProxiedComponent & {

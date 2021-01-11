@@ -1,6 +1,6 @@
 import { ComponentInstance } from '../types'
 
-const createComponentCache = function () {
+const createComponentCache = (function () {
   let cache = {}
 
   const o = {
@@ -33,7 +33,9 @@ const createComponentCache = function () {
     },
   }
 
-  return o
-}
+  return function _createComponentCache() {
+    return o
+  }
+})()
 
 export default createComponentCache
