@@ -3,7 +3,7 @@ import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Page from '../components/Page'
-import { ProxiedComponent } from './types'
+import { NOODLComponent, ProxiedComponent } from './types'
 import { PlainObject } from '.'
 
 export type ComponentInstance = Component | List | ListItem | Page
@@ -12,7 +12,11 @@ export type ComponentConstructor = new (
   component: ComponentCreationType,
 ) => ComponentInstance
 
-export type ComponentCreationType = string | ComponentObject | ComponentInstance
+export type ComponentCreationType =
+  | string
+  | ComponentObject
+  | NOODLComponent
+  | ComponentInstance
 
 export interface IComponent<C extends ComponentObject, Type extends C['type']> {
   id: string

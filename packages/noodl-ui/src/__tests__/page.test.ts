@@ -1,7 +1,7 @@
 // Component type: page
 import { expect } from 'chai'
 import { waitFor } from '@testing-library/dom'
-import fs from 'fs-extra'
+import isEqual from 'lodash/isEqual'
 import {
   ComponentObject,
   ImageComponentObject,
@@ -10,24 +10,20 @@ import {
   PageComponentObject,
   ViewComponentObject,
 } from 'noodl-types'
+import _internalResolver from '../resolvers/_internal'
 import chalk from 'chalk'
 import sinon from 'sinon'
-import {
-  ComponentInstance,
-  NOODLComponent,
-  StoreActionObject,
-  StoreBuiltInObject,
-} from '../types'
+import { StoreActionObject, StoreBuiltInObject } from '../types'
 import { noodlui, createResolverTest } from '../utils/test-utils'
 import { event as eventId } from '../constants'
-import Component from '../components/Base'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 import NOODLUI from '../noodl-ui'
 import internalHandlePage from '../resolvers/_internal/handlePage'
 import getStore from '../store'
+import List from '../components/List'
 import Page from '../components/Page'
-import getAllResolvers from '../utils/getAllResolvers'
+import createComponent from '../utils/createComponent'
 
 let path = 'HelloPage' as const
 let pageObject = {
@@ -41,6 +37,7 @@ let noodlComponent: PageComponentObject
 let generatedComponents = [
   {
     type: 'view',
+    style: { width: '1', height: '1', left: '0', top: '0' },
     children: [
       {
         type: 'list',
@@ -48,8 +45,16 @@ let generatedComponents = [
         iteratorVar: 'itemObject',
         listObject: pageObject.genders,
         children: [
-          { type: 'image', path: 'abc.png' } as ImageComponentObject,
-          { type: 'label', dataKey: 'itemObject.key' } as LabelComponentObject,
+          {
+            type: 'listItem',
+            children: [
+              { type: 'image', path: 'abc.png' } as ImageComponentObject,
+              {
+                type: 'label',
+                dataKey: 'itemObject.key',
+              } as LabelComponentObject,
+            ],
+          },
         ],
       } as ListComponentObject,
     ],
@@ -61,7 +66,7 @@ beforeEach(() => {
   noodlComponent = {
     type: 'page',
     path,
-    style: { width: '0.2', height: '0.2', left: '0.2', top: '1' },
+    style: { width: '0.5', height: '0.5', left: '0.2', top: '1' },
   } as PageComponentObject
   // TODO - Find out why our test this fails when we take async off
   // noodlui.on(eventId.NEW_PAGE_REF, async () => {})
@@ -79,22 +84,15 @@ beforeEach(() => {
 describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
   describe(`references`, () => {
     describe(`actionsContext`, () => {
-      it(`should inherit the props except actionsContext.noodlui from the root instance`, () => {
+      it(`should inherit the props from the root instance`, () => {
         const spy = sinon.spy()
         const hello = {}
         noodlui.use({ actionsContext: { spy, hello } })
-        const component = handlePage(noodlComponent)
+        const component = noodlui.resolveComponents(noodlComponent) as Page
         expect(noodlui.actionsContext.spy).to.eq(component.actionsContext.spy)
         expect(noodlui.actionsContext.hello).to.eq(
           component.actionsContext.hello,
         )
-        expect(noodlui.actionsContext.noodlui).not.to.eq(
-          component.actionsContext.noodlui,
-        )
-      })
-      it(`should point actionsContext.noodlui to the component itself`, () => {
-        const component = handlePage(noodlComponent)
-        expect(component.actionsContext.noodlui).to.eq(component)
       })
     })
 
@@ -119,89 +117,19 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       })
     })
 
-    xit(`createActionChainHandler should be the same as the one in the root instance`, () => {
+    it(`page should be different than the one in the root instance`, () => {
       const component = handlePage(noodlComponent)
-    })
-    xit(`createPluginObject should be the same as the one in the root instance`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`createSrc should be the same as the one in the root instance`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getActionsContext should return the same props as the one in the root instance but "noodlui" should point to the page component`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getBaseStyles should be the same as the one in the root instance`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getContext should be the same as the one in the root instance but actionsContext and page should be the one in the page component`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getCbs should be the same as the one in the root instance`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getPageObject should return the page object from root intance but the page should be the page set on the page component`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getConsumerOptions`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getResolvers`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getState`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getStateHelpers`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getStateGetters`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`getStateSetters`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`page should be different than the one in the root instance`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`plugins`, () => {
-      //
+      expect(component.page).not.to.eq(noodlui.page)
     })
 
-    xit(`root should return the same root object as the one in the root instance`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`setPage`, () => {
-      //
-    })
-    xit(`setPlugin`, () => {
-      //
+    it(`root should return the same root object as the one in the root instance`, () => {
+      const component = noodlui.resolveComponents(noodlComponent) as Page
+      expect(isEqual(component.getRoot(), noodlui.root))
     })
 
-    xit(`setViewport`, () => {
-      //
-    })
-
-    xit(`viewport should be different than the one in the root instance`, () => {
+    it(`viewport should be different than the one in the root instance`, () => {
       const component = handlePage(noodlComponent)
-    })
-    xit(`resolveComponents should be the same reference as the one in the root instance`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`____ from resolveComponents args should point to the one in the page component`, () => {
-      const component = handlePage(noodlComponent)
-    })
-    xit(`use`, () => {
-      //
-    })
-    xit(`unuse`, () => {
-      //
-    })
-  })
-
-  describe('behavior', () => {
-    xit(`constructor`, () => {
-      //
+      expect(component.viewport).not.to.eq(noodlui.viewport)
     })
   })
 
@@ -247,39 +175,33 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
     },
   )
 
-  it(`should pass the ref to the new noodl-ui instance to ${chalk.magenta(
+  it(`should pass the page component to the ${chalk.magenta(
     eventId.NEW_PAGE_REF,
-  )} and ${chalk.magenta(
-    eventId.component.page.SET_REF,
-  )} listeners`, async () => {
+  )} listener`, async () => {
     const spy = sinon.spy()
     noodlui.on(eventId.NEW_PAGE_REF, spy)
-    const component = noodlui.resolveComponents(noodlComponent)
-    component.on(eventId.component.page.SET_REF, spy)
+    const component = noodlui.resolveComponents(noodlComponent) as Page
     await waitFor(() => {
       expect(spy.firstCall.args[0]).to.not.eq(noodlui)
-      expect(spy.firstCall.args[0]).to.eq(component.get('ref'))
-      expect(spy.secondCall.args[0]).to.eq(component.get('ref'))
-      expect(spy.secondCall.args[0]).to.eq(spy.firstCall.args[0])
-      expect(component.get('ref')).to.be.instanceOf(NOODLUI)
+      expect(spy.firstCall.args[0]).to.eq(component)
     })
   })
 
   it(`should create a new and isolated viewport from the main viewport`, () => {
-    const component = noodlui.resolveComponents(noodlComponent)
+    const component = noodlui.resolveComponents(noodlComponent) as Page
     const mainViewport = noodlui.viewport
-    const refViewport = component.get('ref').viewport
+    const refViewport = component.viewport
     expect(mainViewport).to.be.instanceOf(Viewport)
     expect(refViewport).to.be.instanceOf(Viewport)
     expect(mainViewport).to.not.eq(refViewport)
   })
 
   it(
-    `should set the width/height of the ref viewport using the page ` +
+    `should set the width/height of the viewport using the page ` +
       `component's width/height`,
     () => {
-      const component = noodlui.resolveComponents(noodlComponent)
-      const refViewport = component.get('ref').viewport
+      const component = noodlui.resolveComponents(noodlComponent) as Page
+      const refViewport = component.viewport
       expect(refViewport.width).to.eq(
         Number(component.style.width?.replace('px', '')),
       )
@@ -295,67 +217,36 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
     () => {
       delete noodlComponent.style?.width
       delete noodlComponent.style?.height
-      const component = noodlui.resolveComponents(noodlComponent)
+      const component = noodlui.resolveComponents(noodlComponent) as Page
       const mainViewport = noodlui.viewport
-      const refViewport = component.get('ref').viewport
+      const refViewport = component.viewport
       expect(refViewport.width).to.eq(mainViewport.width)
       expect(refViewport.height).to.eq(mainViewport.height)
     },
   )
 
-  it(`should set the page on the ref to the "path" set on the page component`, () => {
-    const component = noodlui.resolveComponents(noodlComponent)
-    expect(component.get('ref')).to.have.property('page').eq(path)
+  it(`should set the page to the "path" set on the page component`, () => {
+    const component = noodlui.resolveComponents(noodlComponent) as Page
+    expect(component).to.have.property('page').eq(path)
   })
 
   describe(`actionsContext`, () => {
-    describe(`actionsContext.noodlui`, () => {
-      it(`should point to the new ref instance instead of the root instance`, () => {
-        const component = noodlui.resolveComponents(noodlComponent)
-        const ref = component.get('ref') as NOODLUI
-        expect(ref).to.be.instanceOf(NOODLUI)
-        expect(ref.actionsContext.noodlui).instanceOf(NOODLUI)
-        // expect(ref.actionsContext.noodlui).not.to.eq(noodlui)
-        // expect(ref.actionsContext.noodlui).to.eq(ref)
-      })
-    })
-
-    describe(`actionsContext [other arbitrary props]`, () => {
+    describe(`actionsContext [arbitrary props]`, () => {
       it(`should be reusing other actionsContext props from the root instance`, () => {
         const spy = sinon.spy()
         const s = { yes: 'no' }
         noodlui.use({ actionsContext: { spy } })
         noodlui.use({ actionsContext: { s } })
-        const component = noodlui.resolveComponents(noodlComponent)
-        const ref = component.get('ref') as NOODLUI
-        expect(ref.actionsContext).to.have.property('spy').eq(spy)
-        expect(ref.actionsContext).to.have.property('s').eq(s)
+        const page = noodlui.resolveComponents(noodlComponent) as Page
+        expect(page.actionsContext).to.have.property('spy').eq(spy)
+        expect(page.actionsContext).to.have.property('s').eq(s)
       })
     })
-
-    xit(
-      `should ensure the "noodl-ui" property in the ref points to it self and not the ` +
-        `parent, while other properties should stay the same as the ones in the parent`,
-      () => {
-        const component = noodlui.resolveComponents(noodlComponent)
-      },
-    )
   })
-
-  xit(
-    `should receive sandboxed noodl-ui ref as the noodl-ui instance in ` +
-      `action/builtIn callbacks`,
-    () => {
-      const spy = sinon.spy()
-      noodlui.on(eventId.NEW_PAGE_REF, spy)
-      const component = noodlui.resolveComponents(noodlComponent)
-      component.on(eventId.component.page.SET_REF, spy)
-    },
-  )
 
   describe(`use`, () => {
     describe(`when passing action objects`, () => {
-      it(`pass the call to store`, () => {
+      it(`should pass the call to store`, () => {
         const page = new Page()
         const spy = sinon.spy(getStore(), 'use')
         const args = { actionType: 'pageJump', fn: sinon.spy() }
@@ -364,8 +255,9 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
         spy.restore()
       })
     })
+
     describe(`when passing builtIn objects`, () => {
-      it(`pass the call to store`, () => {
+      it(`should pass the call to store`, () => {
         const page = new Page()
         const spy = sinon.spy(getStore(), 'use')
         const args = {
@@ -378,17 +270,20 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
         spy.restore()
       })
     })
+
     describe(`when passing resolvers`, () => {
-      it(`pass the call to store`, () => {
+      it(`should pass the call to store`, () => {
         const page = new Page()
         const spy = sinon.spy(getStore(), 'use')
         const resolver = new Resolver()
         resolver.setResolver((c) => undefined)
-        page.use(resolver)
-        expect(spy).to.be.calledWith(resolver)
+        const obj = { name: 'hello', resolver }
+        page.use(obj)
+        expect(spy).to.be.calledWith(obj)
         spy.restore()
       })
     })
+
     it(`should set the viewport`, () => {
       const page = new Page()
       const viewport = new Viewport()
@@ -432,7 +327,13 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
     })
   })
 
-  describe.only(`toJS`, () => {
+  it(`should return the expected resolvers`, () => {
+    const page = noodlui.resolveComponents(noodlComponent) as Page
+    expect(getStore().resolvers.length).to.be.greaterThan(1)
+    expect(page.getResolvers()).to.have.lengthOf(getStore().resolvers.length)
+  })
+
+  describe(`toJS`, () => {
     it(`should return the expected object`, () => {
       const actionsContext = { fruits: [] }
       const assetsUrl = 'https://abc.com/assets/'
@@ -465,7 +366,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
   })
 
   describe(`resolveComponents`, () => {
-    it.only(`should render identical components in structure as the noodl-ui instance`, () => {
+    it(`should render identical components in structure as the noodl-ui instance`, () => {
       noodlui.setPage(path)
       const pageJumpUseObj = {
         actionType: 'pageJump',
@@ -484,8 +385,8 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
         inst
           .setPage(path)
           .use(noodlui.viewport as any)
-          .use(pageJumpUseObj)
-          .use(builtInUseObj)
+          .use(pageJumpUseObj as any)
+          .use(builtInUseObj as any)
           .use({
             actionsContext,
             getAssetsUrl: () => assetsUrl,
@@ -493,7 +394,8 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
             getRoot: () => root,
           })
         if (inst instanceof Page) {
-          getAllResolvers().forEach((r) => inst.use(r))
+          inst.createComponent = createComponent
+          inst._internalResolver = _internalResolver
         }
       }
 
@@ -502,12 +404,44 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       initInstance(noodlui)
       initInstance(page)
       const resolvedPageComponents = page.resolveComponents(generatedComponents)
-      console.info(components[0].toJS())
-      console.info(resolvedPageComponents[0].toJS())
-      fs.writeJsonSync('page.test.json', {
-        'noodl-ui': components[0].toJS(),
-        page: resolvedPageComponents[0].toJS(),
+      const list1Instance = components[0].child()
+      const list2Instance = resolvedPageComponents[0].child()
+      ;[list1Instance].concat(list2Instance).forEach((list: List) => {
+        const data = list.getData()
+        list.set('listObject', [])
+        data.forEach((d) => list.removeDataObject(d))
+        data.forEach((d) => list.addDataObject(d))
       })
+      const js1 = components[0].toJS()
+      const js2 = resolvedPageComponents[0].toJS()
+      const list1 = js1.children?.[0]
+      const list2 = js2.children?.[0]
+      const liBlueprint1 = list1.blueprint
+      const liBlueprint2 = list2.blueprint
+      const listObject1 = list1.listObject
+      const listObject2 = list2.listObject
+      expect(list1.type).to.eq(list2.type)
+      expect(list1.children).to.have.lengthOf(list2.children.length)
+      expect(list1.children).to.have.lengthOf(list2.children.length)
+      expect(list1.noodlType).to.eq(list2.noodlType)
+      expect(list1.iteratorVar).to.exist
+      expect(list1.iteratorVar).to.eq(list2.iteratorVar)
+      expect(liBlueprint1.type).to.eq(liBlueprint2.type)
+      expect(isEqual(liBlueprint1.style, liBlueprint2.style)).to.be.true
+      expect(liBlueprint1.path).to.eq(liBlueprint2.path)
+      expect(isEqual(listObject1, listObject2)).to.be.true
+      expect(isEqual(list1.style, list2.style)).to.be.true
+      expect(list1.children[0].children[0].type).to.eq('img')
+      expect(list1.children[0].children[0].noodlType).to.eq('image')
     })
+  })
+
+  it(`should resolve components dimensions using the page components's viewport`, () => {
+    const page = noodlui.resolveComponents(noodlComponent) as Page
+    expect(page.children()).to.have.length.greaterThan(0)
+    const child = page.child()
+    expect(child.style.width).to.eq(page.style.width)
+    expect(child.style.height).to.eq(page.style.height)
+    console.info(page.toJS())
   })
 })

@@ -157,7 +157,7 @@ const createActionCreatorFactory = function (
       action.callback = async (inst, event: any) =>
         getResults(
           action,
-          ref.fns.builtIn[action?.original?.funcName].slice() || [],
+          ref.fns.builtIn[action?.original?.funcName]?.slice() || [],
           event,
         )
       return action
@@ -177,7 +177,7 @@ const createActionCreatorFactory = function (
         trigger: ref.trigger,
       })
       action.callback = async (inst, event: any) => {
-        const callbacks = (ref.fns.action.emit.slice() || []).reduce(
+        const callbacks = (ref.fns.action.emit?.slice() || []).reduce(
           (acc, a) => {
             if (
               (a.actionType === 'emit' &&

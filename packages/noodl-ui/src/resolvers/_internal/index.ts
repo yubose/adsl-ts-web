@@ -1,7 +1,6 @@
 import handleList from './handleList'
 import handlePage from './handlePage'
 import handleTextboard from './handleTextboard'
-import Page from '../../components/Page'
 import { InternalResolver } from '../../Resolver'
 import { _resolveChildren } from './helpers'
 import { publish } from '../../utils/noodl'
@@ -21,7 +20,7 @@ _internalResolver.setResolver((component, options, ref) => {
         return handleList(component as any, options, _internalResolver)
       }
       if (component.noodlType === 'page') {
-        return handlePage(component as Page, options, ref)
+        return handlePage(component as any, options, { _internalResolver, ref })
       }
       if (component.get('textBoard')) {
         return handleTextboard(component as any, options, _internalResolver)

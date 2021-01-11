@@ -6,7 +6,7 @@ import {
   ActionChainUseObjectBase,
   ActionConsumerCallbackOptions,
 } from './actionChainTypes'
-import { ComponentCreationType, ComponentInstance } from './componentTypes'
+import { ComponentInstance } from './componentTypes'
 import {
   ActionChainEventId,
   ActionType,
@@ -126,6 +126,8 @@ export interface ConsumerOptions {
     on: Partial<Record<PageEventId, any[]>>
   }
   getPageObject: StateHelpers['getPageObject']
+  getPages(): string[]
+  getPreloadPages(): string[]
   getResolvers: NOODLUI['getResolvers']
   getRoot(): { [key: string]: any }
   getState: StateHelpers['getState']

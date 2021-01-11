@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import sinon from 'sinon'
 import Action, { DEFAULT_TIMEOUT_DELAY } from '../Action'
@@ -99,9 +100,11 @@ describe('Action', () => {
     action.callback = async () => {
       throw err
     }
-    expect(action.execute({ abc: 'letters' })).to.throw()
-    expect(action.error).to.eq(err)
-    expect(action.status).to.eq('error')
+    expect(async () => {
+      expect(await action.execute({ abc: 'letters' })).to.throw()
+      expect(action.error).to.eq(err)
+      expect(action.status).to.eq('error')
+    })
   })
 
   it('should set status to resolved if the execution was a success (async)', async () => {
@@ -109,7 +112,9 @@ describe('Action', () => {
       return 'abc'
     }
     expect(action.execute({ abc: 'letters' }))
-    expect(action.status).to.eq('resolved')
+    await waitFor(() => {
+      expect(action.status).to.eq('resolved')
+    })
   })
 
   it('(async) should set a timeout while running the execution and clear it when resolved ', async () => {
@@ -132,56 +137,5 @@ describe('Action', () => {
     expect(action.isTimeoutRunning()).to.be.true
     await promise
     expect(action.isTimeoutRunning()).to.be.false
-  })
-
-  it('should call the "onPending" callback if pending', () => {
-    const spy = sinon.spy()
-    action.onPending = spy
-    expect(spy.called).to.be.false
-    expect(action.status).to.be.null
-    action.status = 'pending'
-    expect(action.status).to.eq('pending')
-    expect(spy.called).to.be.true
-  })
-
-  it('should call the "onResolved" callback if resolved', () => {
-    const spy = sinon.spy()
-    action.onResolved = spy
-    expect(spy.called).to.be.false
-    expect(action.status).to.be.null
-    action.status = 'resolved'
-    expect(action.status).to.eq('resolved')
-    expect(spy.called).to.be.true
-  })
-
-  it('should call the "onTimeout" callback if timed out', () => {
-    const spy = sinon.spy()
-    action.onTimeout = spy
-    expect(spy.called).to.be.false
-    expect(action.status).to.be.null
-    action.status = 'timed-out'
-    expect(action.status).to.eq('timed-out')
-    expect(spy.called).to.be.true
-  })
-
-  it('should call the "onError" callback if error', () => {
-    // TODO: different variations of "error"
-    const spy = sinon.spy()
-    action.onError = spy
-    expect(spy.called).to.be.false
-    expect(action.status).to.be.null
-    action.status = 'error'
-    expect(action.status).to.eq('error')
-    expect(spy.called).to.be.true
-  })
-
-  it('should call the "onAbort" callback if aborted', () => {
-    const spy = sinon.spy()
-    action.onAbort = spy
-    expect(spy.called).to.be.false
-    expect(action.status).to.be.null
-    action.status = 'aborted'
-    expect(action.status).to.eq('aborted')
-    expect(spy.called).to.be.true
   })
 })

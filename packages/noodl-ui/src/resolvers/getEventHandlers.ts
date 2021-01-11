@@ -8,14 +8,11 @@ const getEventHandlers: ResolverFn = (component, options) => {
     eventTypes.forEach((eventType) => {
       if (component.keys.includes(eventType)) {
         const actionObj = component.get('cache')?.[eventType]
-
         if (actionObj) {
-          // if (!component.action[eventType]) {
           const handler = createActionChainHandler(actionObj, {
             trigger: eventType,
           } as any)
           component.set(eventType, handler)
-          // component.action[eventType] = handler
         }
       }
     })

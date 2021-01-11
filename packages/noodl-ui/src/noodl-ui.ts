@@ -34,6 +34,7 @@ import getActionConsumerOptions from './utils/getActionConsumerOptions'
 import isComponent from './utils/isComponent'
 import ActionChain from './ActionChain'
 import EmitAction from './Action/EmitAction'
+import getStore from './store'
 import { event } from './constants'
 import * as T from './types'
 
@@ -247,10 +248,10 @@ class NOODL {
                 }
                 return acc.concat({ actionType, ...actionObj } as any)
               },
-              [] as T.ActionChainUseObjectBase<any, any>[],
+              [] as T.ActionChainUseObjectBase<any>[],
             ),
         ),
-      [] as any[],
+      [] as T.ActionChainUseObjectBase<any>[],
     )
     useActionObjects.forEach((f) => actionChain.useAction(f))
     actionChain.useBuiltIn(
@@ -327,7 +328,7 @@ class NOODL {
             iteratorVar: component?.get('iteratorVar'),
             trigger: 'path',
           })
-          if ('dataKey' in emitAction.original.emit || {}) {
+          if ('dataKey' in (emitAction.original.emit || {})) {
             emitAction.setDataKey(
               createEmitDataKey(
                 emitObj.emit.dataKey,
@@ -699,7 +700,6 @@ class NOODL {
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
       showDataKey: this.#state.showDataKey,
-      spawn: this.spawn.bind(this),
       viewport: this.#viewport,
       ...this.getStateGetters(),
       ...this.getStateSetters(),
@@ -726,7 +726,7 @@ class NOODL {
 
   getStateSetters() {
     return {
-      setPlugin: this.setPlugin.bind(this),
+      setPlugin: this.setPlugin?.bind?.(this),
     }
   }
 
@@ -887,6 +887,7 @@ class NOODL {
           this.#cb.builtIn[m.funcName].push(
             ...(Array.isArray(m.fn) ? m.fn : [m.fn]),
           )
+          getStore().use(m)
         } else if ('actionType' in m) {
           if (!Array.isArray(this.#cb.action[m.actionType])) {
             this.#cb.action[m.actionType] = []
@@ -895,6 +896,9 @@ class NOODL {
           if ('context' in m) obj['context'] = m.context
           if ('trigger' in m) obj['trigger'] = m.trigger
           this.#cb.action[m.actionType]?.push(obj)
+          getStore().use(obj)
+        } else if ('resolver' in m) {
+          getStore().use(m)
         } else if (m instanceof Viewport) {
           this.setViewport(m)
         } else if (m instanceof Resolver) {

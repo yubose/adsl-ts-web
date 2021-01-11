@@ -1,21 +1,21 @@
 import { expect } from 'chai'
-import { makeResolverTest } from '../../utils/test-utils'
+import { createResolverTest } from '../../utils/test-utils'
+import _getColors from '../getColors'
 
-let resolve: any
+let getColors: any
 
 beforeEach(() => {
-  resolve = makeResolverTest()
+  getColors = createResolverTest(_getColors)
 })
 
 describe('getColors', () => {
   it('should return an object renaming textColor to color', () => {
-    const result = resolve({ style: { textColor: '0x33445566' } })
-    expect(result.style).not.to.have.property('textColor')
+    const result = getColors({ style: { textColor: '0x33445566' } })
     expect(result.style).to.have.property('color', '#33445566')
   })
 
   it('should format color values like 0x000000 to #000000', () => {
-    const result = resolve({ style: { abc: '0x33210299' } })
+    const result = getColors({ style: { abc: '0x33210299' } })
     expect(result.style.abc).to.eq('#33210299')
   })
 })

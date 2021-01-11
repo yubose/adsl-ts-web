@@ -14,8 +14,8 @@ window.addEventListener('load', async () => {
 
   const page = noodluidom.page
   const app = new App()
-  const actions = createActions({ noodluidom })
-  const builtIn = createBuiltInActions({ noodluidom })
+  const actions = createActions({ noodlui, noodluidom })
+  const builtIn = createBuiltInActions({ noodlui, noodluidom })
 
   try {
     await app.initialize({

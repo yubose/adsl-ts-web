@@ -1,11 +1,11 @@
 import { expect } from 'chai'
-import { makeResolverTest } from '../../utils/test-utils'
+import { createResolverTest } from '../../utils/test-utils'
 import getBorderAttrs from '../getBorderAttrs'
 
 let _getBorderAttrs: any
 
 beforeEach(() => {
-  _getBorderAttrs = makeResolverTest({ resolvers: getBorderAttrs })
+  _getBorderAttrs = createResolverTest(getBorderAttrs)
 })
 
 describe('getBorderAttrs', () => {

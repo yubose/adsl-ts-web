@@ -4,6 +4,7 @@ import { ResolverFn, ConsumerOptions, ComponentInstance } from '../types'
 import { getTagName } from '../resolvers/getElementType'
 import NOODLUi from '../noodl-ui'
 import Viewport from '../Viewport'
+import _internalResolver from '../resolvers/_internal'
 import handlePageInternalResolver from '../resolvers/_internal/handlePage'
 import createComponent from '../utils/createComponent'
 import Component from '../components/Base'
@@ -53,7 +54,7 @@ export function createResolverTest(
         ...options,
         ...consumerOptions,
       },
-      overriddenRef || ref || noodlui,
+      { ref: overriddenRef || ref || noodlui, _internalResolver },
     )
     return instance
   }

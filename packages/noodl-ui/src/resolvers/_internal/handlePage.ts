@@ -5,32 +5,27 @@ import { _resolveChildren } from './helpers'
 import { event as eventId } from '../../constants'
 import Page from '../../components/Page'
 import Viewport from './../../Viewport'
+import createComponent from '../../utils/createComponent'
 
 const log = Logger.create('handlePage')
 
 const handlePageInternalResolver = async (
   component: Page,
   options: ConsumerOptions,
-  ref: any, // noodl-ui instance,
+  { _internalResolver, ref }: any, // ref === noodl-ui instance
 ) => {
   try {
     const {
-      componentCache,
       context,
-      createActionChainHandler,
-      createSrc,
       getAssetsUrl,
-      getBaseStyles,
       getBaseUrl,
       getCbs,
       getPageObject,
-      getResolvers,
+      getPages,
+      getPreloadPages,
+      getRoot,
       getState,
       plugins,
-      resolveComponent,
-      resolveComponentDeep,
-      setPlugin,
-      spawn,
       viewport: mainViewport,
     } = options
 
@@ -43,55 +38,55 @@ const handlePageInternalResolver = async (
 
     const viewport = new Viewport()
 
-    viewport.width = isNil(component.style?.width)
-      ? mainViewport.width
-      : Number(String(component.style.width).replace('px', ''))
+    if (component.style?.width === undefined) {
+      viewport.width = mainViewport.width
+    } else {
+      viewport.width = Number(String(component.style?.width).replace('px', ''))
+    }
 
-    viewport.height = isNil(component.style?.height)
-      ? mainViewport.height
-      : Number(String(component.style.height).replace('px', ''))
-
-    log.grey(`[type: page] Initiated viewport`, {
-      mainViewport,
-      component,
-      refViewport: viewport,
-    })
+    if (component.style?.height === undefined) {
+      viewport.height = mainViewport.height
+    } else {
+      viewport.height = Number(
+        String(component?.style?.height).replace('px', ''),
+      )
+    }
 
     const path = component.get('path') as string
     // const ref = component.setRef(spawn(path, { viewport })).getRef() as any
     component.viewport = viewport
 
-    log.grey(`[type: page] Spawned a new noodl-ui process`, {
-      // ref,
-      path,
-      component,
-    })
+    // log.grey(`[type: page] Spawned a new noodl-ui process`, {
+    //   // ref,
+    //   path,
+    //   component,
+    // })
 
-    component.actionsContext = {
-      ...context.actionsContext,
-      noodlui: component as any,
-    }
-    component.assetsUrl = context.assetsUrl
-    component.componentCache = componentCache.bind(component)
-    component.createActionChainHandler = createActionChainHandler.bind(
-      component,
-    )
-    component.createSrc = createSrc.bind(component)
-    component.getAssetsUrl = getAssetsUrl.bind(component)
-    component.getBaseStyles = getBaseStyles.bind(component)
-    component.getBaseUrl = getBaseUrl.bind(component)
-    component.getContext = ref.getContext.bind(component)
-    component.getPageObject = ref.getPageObject.bind(component)
+    component.assetsUrl = getAssetsUrl()
     component.getStateHelpers = ref.getStateHelpers.bind(component)
-    component.getConsumerOptions = ref.getConsumerOptions.bind(component)
-    component.getResolvers = getResolvers.bind(component)
     component.getState = getState.bind(component)
     component.getStateGetters = ref.getStateGetters.bind(component)
     component.getStateSetters = ref.getStateSetters.bind(component)
-    component.resolveComponents = ref.resolveComponents.bind(component)
     component.plugins = plugins.bind(component)
-    component.use = ref.use.bind(ref)
-    component.unuse = ref.unuse.bind(ref)
+    component.use({
+      getAssetsUrl: () => getAssetsUrl(),
+      getBaseUrl: () => getBaseUrl(),
+      getRoot: getRoot.bind(ref),
+      getPages: () => getPages(),
+      getPreloadPages: () => getPreloadPages(),
+    })
+    console.info(component.toJS())
+    component._internalResolver = _internalResolver
+    component.createComponent = createComponent.bind(component)
+
+    Object.entries(context.actionsContext || {}).forEach(([k, v]) => {
+      if (k !== 'noodlui') {
+        component.use({
+          actionsContext: { [k]: v },
+        })
+      }
+    })
+
     window.p = component
 
     // Note: We leave the builtins/actions/resolvers to be re-attached delegated
@@ -135,7 +130,7 @@ const handlePageInternalResolver = async (
       ),
     )
 
-    const resolvedComponents = ref.resolveComponents(noodlComponents)
+    const resolvedComponents = component.resolveComponents(noodlComponents)
 
     // Set the parent/child references to stay in sync
     ;(Array.isArray(resolvedComponents)

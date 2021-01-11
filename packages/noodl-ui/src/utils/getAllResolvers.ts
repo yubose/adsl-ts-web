@@ -33,4 +33,23 @@ function getAllResolvers() {
   ] as ResolverFn[]
 }
 
+export function getAllResolversAsMap() {
+  return {
+    getAlignAttrs,
+    getBorderAttrs,
+    getColors,
+    getCustomDataAttrs,
+    getElementType,
+    getEventHandlers,
+    getFontAttrs,
+    getPlugins,
+    getPosition,
+    getReferences,
+    getSizes,
+    getStylesByElementType,
+    getTransformedAliases,
+    getTransformedStyleAliases,
+  }
+}
+
 export default getAllResolvers

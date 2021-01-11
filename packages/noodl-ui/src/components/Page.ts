@@ -13,7 +13,7 @@ import {
   isEmitObj,
   isIfObj,
 } from 'noodl-utils'
-import { isDraft, original } from 'immer'
+import { current, isDraft, original } from 'immer'
 import { event } from '../constants'
 import {
   findListDataObject,
@@ -21,13 +21,11 @@ import {
   resolveAssetUrl,
 } from '../utils/noodl'
 import ActionChain from '../ActionChain'
-import BasePage from './BasePage'
 import Component from './Base'
 import getStore from '../store'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 import * as u from '../utils/internal'
-import createComponent from '../utils/createComponent'
 import {
   forEachDeepEntries,
   formatColor,
@@ -35,7 +33,6 @@ import {
   hasLetter,
   isPromise,
 } from '../utils/common'
-import _internalResolver from '../resolvers/_internal'
 import getActionConsumerOptions from '../utils/getActionConsumerOptions'
 import * as T from '../types'
 import EmitAction from '../Action/EmitAction'
@@ -66,23 +63,18 @@ class Page
   }
   #getAssetsUrl: () => string = () => ''
   #getBaseUrl: () => string = () => ''
-  #getPageObject: T.INOODLUI['getPageObject']
   #getPages: () => string[] = () => []
   #getPreloadPages: () => string[] = () => []
   #getRoot: () => T.Root
   #getStateHelpers: T.INOODLUI['getStateHelpers']
-  #getResolvers: T.INOODLUI['getResolvers']
-  #getState: T.INOODLUI['getState']
-  #getStateGetters: T.INOODLUI['getStateGetters']
-  #getStateSetters: T.INOODLUI['getStateSetters']
   #page = ''
   #pages = [] as string[]
-  #preloadPages = [] as string[]
-  #reset: T.INOODLUI['reset']
   #state: T.State
   #viewport: Viewport
+  _internalResolver: any = {}
   assetsUrl = ''
   componentCache = componentCache
+  createComponent: (...args: any[]) => any = (f) => f
   showDataKey = true
 
   constructor(...args: any | ConstructorParameters<T.ComponentConstructor>) {
@@ -208,6 +200,11 @@ class Page
     if (!window.ac) window['ac'] = {}
     // @ts-expect-error
     window.ac[options.component?.id || ''] = actionChain
+    console.info(actionChain.getSnapshot())
+    console.info(actionChain.getSnapshot())
+    console.info(actionChain.getSnapshot())
+    console.info(actionChain.getSnapshot())
+    console.info(actionChain.getSnapshot())
     return actionChain.build().bind(actionChain)
   }
 
@@ -235,16 +232,12 @@ class Page
       if (typeof path === 'string') {
         // Components of type "noodl" can have a path that points directly to a page
         // ex: "path: LeftPage"
-        if (
-          this.#getPages()
-            .concat(this.#getPreloadPages())
-            .includes(path)
-        ) {
-          const pageLink = this.#getBaseUrl() + path + '_en.yml'
+        if (this.getPages().concat(this.getPreloadPages()).includes(path)) {
+          const pageLink = this.getBaseUrl() + path + '_en.yml'
           setTimeout(() => component?.emit('path', pageLink))
           return pageLink
         } else {
-          return resolveAssetUrl(path, this.#getAssetsUrl())
+          return resolveAssetUrl(path, this.getAssetsUrl())
         }
       }
       // "If" object evaluation
@@ -258,7 +251,7 @@ class Page
             }
             return !!val
           }, path as T.IfObject),
-          this.#getAssetsUrl(),
+          this.getAssetsUrl(),
         )
       }
       // Emit object evaluation
@@ -278,8 +271,8 @@ class Page
                 emitObj.emit.dataKey,
                 [
                   findListDataObject(component as T.ComponentInstance),
-                  () => this.#getPageObject(this.page),
-                  () => this.#getRoot(),
+                  () => this.getPageObject(this.page),
+                  () => this.getRoot(),
                 ],
                 { iteratorVar: emitAction.iteratorVar },
               ),
@@ -326,7 +319,7 @@ class Page
                 } else {
                   finalizedRes = resolveAssetUrl(
                     String(res),
-                    this.#getAssetsUrl(),
+                    this.getAssetsUrl(),
                   )
                 }
                 component?.emit('path', finalizedRes)
@@ -339,7 +332,7 @@ class Page
               component?.emit('path', finalizedRes)
               return result
             }
-            finalizedRes = resolveAssetUrl(result, this.#getAssetsUrl())
+            finalizedRes = resolveAssetUrl(result, this.getAssetsUrl())
             component?.emit('path', finalizedRes)
           }
         }
@@ -360,16 +353,21 @@ class Page
             { component, path },
           )
         }
-        return resolveAssetUrl(path, this.#getAssetsUrl())
+        return resolveAssetUrl(path, this.getAssetsUrl())
       }
     }
 
     return ''
   }
 
+  #getActionsContext = () => ({
+    ...this.actionsContext,
+    noodlui: this,
+  })
+
   getBaseStyles(styles?: T.Style) {
     return {
-      ...this.#getRoot().Style,
+      ...this.getRoot().Style,
       position: 'absolute',
       outline: 'none',
       ...styles,
@@ -379,7 +377,7 @@ class Page
   getContext() {
     return {
       actionsContext: this.actionsContext,
-      assetsUrl: this.#getAssetsUrl(),
+      assetsUrl: this.getAssetsUrl(),
       page: this.page,
     } as T.ResolverContext
   }
@@ -392,16 +390,28 @@ class Page
     this.#pages = pages
   }
 
-  get preloadPages() {
-    return this.#preloadPages
+  getAssetsUrl() {
+    return this.#getAssetsUrl()
   }
 
-  set preloadPages(preloadPages: string[]) {
-    this.#preloadPages = preloadPages
+  getBaseUrl() {
+    return this.#getBaseUrl()
   }
 
   getPageObject(page: string) {
-    return this.#getRoot()[page]
+    return this.getRoot()[page]
+  }
+
+  getPages() {
+    return this.#getPages()
+  }
+
+  getPreloadPages() {
+    return this.#getPreloadPages()
+  }
+
+  getRoot() {
+    return this.#getRoot()
   }
 
   get getStateHelpers() {
@@ -410,10 +420,6 @@ class Page
 
   set getStateHelpers(getStateHelpers) {
     this.#getStateHelpers = getStateHelpers
-  }
-
-  get getRoot() {
-    return this.#getRoot
   }
 
   getResolvers() {
@@ -425,7 +431,11 @@ class Page
   }
 
   getStateGetters() {
-    return {}
+    return {
+      componentCache: this.componentCache.bind(this),
+      getPageObject: this.getPageObject.bind(this),
+      getState: this.getState.bind(this),
+    }
   }
 
   getStateSetters() {
@@ -442,21 +452,22 @@ class Page
     return {
       component,
       context: this.getContext(),
-      createActionChainHandler: ((action, options) =>
-        this.createActionChainHandler(action, {
-          ...getActionConsumerOptions(this as any),
+      createActionChainHandler: ((action, options) => {
+        return this.createActionChainHandler(action, {
+          ...getActionConsumerOptions(this),
           ...options,
           component,
-        })).bind(this),
+        })
+      }).bind(this),
       createSrc: ((path: string) => this.createSrc(path, component)).bind(this),
-      getAssetsUrl: this.#getAssetsUrl.bind(this),
-      getBaseUrl: this.#getBaseUrl.bind(this),
+      getAssetsUrl: this.getAssetsUrl.bind(this),
+      getBaseUrl: this.getBaseUrl.bind(this),
       getBaseStyles: this.getBaseStyles.bind(this),
       getCbs: this.getCbs.bind(this),
-      getPreloadPages: this.#getPreloadPages.bind(this),
-      getPages: this.#getPages.bind(this),
+      getPreloadPages: this.getPreloadPages.bind(this),
+      getPages: this.getPages.bind(this),
       getResolvers: this.getResolvers.bind(this),
-      getRoot: this.#getRoot.bind(this),
+      getRoot: this.getRoot.bind(this),
       page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
@@ -501,19 +512,19 @@ class Page
     }
 
     // Add plugin components first
-    ;[
-      ...this.plugins('head').map((plugin: T.PluginObject) => plugin.ref),
-      ...this.plugins('body-top').map((plugin: T.PluginObject) => plugin.ref),
-      ...this.plugins('body-bottom').map(
-        (plugin: T.PluginObject) => plugin.ref,
-      ),
-    ].forEach((c) => this.#resolve(c))
+    // ;[
+    //   ...this.plugins('head').map((plugin: T.PluginObject) => plugin.ref),
+    //   ...this.plugins('body-top').map((plugin: T.PluginObject) => plugin.ref),
+    //   ...this.plugins('body-bottom').map(
+    //     (plugin: T.PluginObject) => plugin.ref,
+    //   ),
+    // ].forEach((c) => this.#resolve(c))
     // ;[...this.registry(this.page)]
 
     // Finish off with the internal resolvers to handle the children
     components.forEach((c) => {
       const component = this.#resolve(c)
-      _internalResolver.resolve(
+      this._internalResolver.resolve(
         component,
         this.getConsumerOptions({ component }),
         this,
@@ -527,9 +538,9 @@ class Page
   }
 
   #resolve = (c: ComponentType | T.ComponentInstance | ComponentObject) => {
-    const component = createComponent(c as any)
+    const component = this.createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
-    const baseStyles = this.getBaseStyles(component.original.style)
+    const baseStyles = this.getBaseStyles(component.original?.style)
     component.id = component.id || getRandomKey()
     component.assignStyles(baseStyles)
 
@@ -546,7 +557,11 @@ class Page
       })
     }
 
-    getStore().resolvers.forEach((r) => r.resolve(component, consumerOptions))
+    console.log(getStore().resolvers)
+
+    getStore().resolvers.forEach((obj) =>
+      obj.resolver.resolve(component, consumerOptions),
+    )
 
     return component
   }
@@ -554,12 +569,14 @@ class Page
   toJS() {
     return {
       ...super.toJS(),
-      assetsUrl: this.#getAssetsUrl(),
-      baseUrl: this.#getBaseUrl(),
+      id: this.id,
+      children: this.children().map((child) => child?.toJS?.()),
+      assetsUrl: this.getAssetsUrl(),
+      baseUrl: this.getBaseUrl(),
       currentPage: this.page,
-      pages: this.#getPages(),
-      preloadPages: this.#getPreloadPages(),
-      root: this.#getRoot(),
+      pages: this.getPages(),
+      preloadPages: this.getPreloadPages(),
+      root: this.getRoot(),
     }
   }
 
@@ -581,20 +598,39 @@ class Page
     plugins?: T.PluginCreationType[]
     [key: string]: any
   }): this
-  use(v: any) {
+  use(
+    v:
+      | T.StoreActionObject<any>
+      | T.StoreBuiltInObject<any>
+      | Resolver
+      | Viewport
+      | {
+          actionsContext?: Partial<T.ActionChainContext>
+          getAssetsUrl?(): string
+          getBaseUrl?(): string
+          getPreloadPages?(): string[]
+          getPages?(): string[]
+          getRoot?(): T.Root
+          plugins?: T.PluginCreationType[]
+          [key: string]: any
+        },
+  ) {
     if (v) {
-      if ('actionType' in v || 'funcName' in v || v instanceof Resolver) {
-        getStore().use(v)
+      if ('actionType' in v || 'funcName' in v || 'resolver' in v) {
+        getStore().use(v as any)
       } else if (v instanceof Viewport) {
         this.viewport = v
       } else {
         // prettier-ignore
         if ('actionsContext' in v) u.assign(this.actionsContext, v.actionsContext)
-        if ('getAssetsUrl' in v) this.#getAssetsUrl = v.getAssetsUrl
-        if ('getBaseUrl' in v) this.#getBaseUrl = v.getBaseUrl
-        if ('getPreloadPages' in v) this.#getPreloadPages = v.getPreloadPages
-        if ('getPages' in v) this.#getPages = v.getPages
-        if ('getRoot' in v) this.#getRoot = v.getRoot
+        if ('getAssetsUrl' in v)
+          this.#getAssetsUrl = v.getAssetsUrl as Page['getAssetsUrl']
+        if ('getBaseUrl' in v)
+          this.#getBaseUrl = v.getBaseUrl as Page['getBaseUrl']
+        if ('getPreloadPages' in v)
+          this.#getPreloadPages = v.getPreloadPages as Page['getPreloadPages']
+        if ('getPages' in v) this.#getPages = v.getPages as Page['getPages']
+        if ('getRoot' in v) this.#getRoot = v.getRoot as Page['getRoot']
         if ('plugins' in v) {
           if (u.isArr(v.plugins)) {
             v.plugins.forEach((plugin: T.PluginCreationType) => {

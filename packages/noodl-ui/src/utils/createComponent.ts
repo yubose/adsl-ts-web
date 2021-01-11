@@ -3,9 +3,9 @@ import { ComponentObject } from 'noodl-types'
 import { ComponentInstance, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
 import isComponent from './isComponent'
+import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
-import Component from '../components/Base'
 import Page from '../components/Page'
 
 export interface PropsOptionFunc<T> {

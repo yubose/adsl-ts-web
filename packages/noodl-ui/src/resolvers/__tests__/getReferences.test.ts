@@ -1,6 +1,7 @@
 import isEqual from 'lodash/isEqual'
 import { expect } from 'chai'
-import { makeResolverTest } from '../../utils/test-utils'
+import { createResolverTest } from '../../utils/test-utils'
+import _getReferences from '../getReferences'
 
 let rootMap: any
 
@@ -28,15 +29,15 @@ beforeEach(() => {
   }
 })
 
-let resolve: any
+let getReferences: any
 
 beforeEach(() => {
-  resolve = makeResolverTest()
+  getReferences = createResolverTest(_getReferences)
 })
 
 describe('getReferences', () => {
   xit('should perform more operations on nested references if encountered', () => {
-    const result = resolve({ style: '.HeaderStyle' })
+    const result = getReferences({ style: '.HeaderStyle' })
     expect(result.style).to.satisfy((style) => {
       return isEqual(style, {
         ...rootMap.ColorTheme,

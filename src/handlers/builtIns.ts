@@ -15,7 +15,7 @@ import {
   getDataValues,
   GotoURL,
   GotoObject,
-  publish,
+  NOODL as NOODLUI,
 } from 'noodl-ui'
 import NOODLUIDOM, { getByDataUX } from 'noodl-ui-dom'
 import {
@@ -42,8 +42,10 @@ import Meeting from '../meeting'
 const log = Logger.create('builtIns.ts')
 
 const createBuiltInActions = function ({
+  noodlui,
   noodluidom,
 }: {
+  noodlui: NOODLUI
   noodluidom: NOODLUIDOM
 }) {
   const builtInActions: BuiltInActions = {}
@@ -202,15 +204,11 @@ const createBuiltInActions = function ({
 
   let componentCacheSize = 0
 
-  const getComponentCacheSize = (noodlui: any) => {
+  const getComponentCacheSize = () => {
     return Object.keys(noodlui.componentCache().state()).length
   }
 
-  builtInActions.redraw = async function redraw(
-    action: EmitAction,
-    options,
-    { noodlui, noodluidom },
-  ) {
+  builtInActions.redraw = async function redraw(action: EmitAction, options) {
     log.func('redraw')
     log.red('', { action, options })
 
@@ -355,7 +353,6 @@ const createBuiltInActions = function ({
   builtInActions.toggleFlag = async (action, options, actionsContext) => {
     log.func('toggleFlag')
     console.log({ action, ...options })
-    const { default: noodlui } = await import('../app/noodl-ui')
     const { default: noodl } = await import('../app/noodl')
     const { component } = options
     const page = noodlui.page

@@ -188,7 +188,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     this.loadGen()
     log.func('build')
     log.grey(`Refreshed action chain`, {
-      actions: this.actions.slice(),
+      actions: this.actions?.slice?.() || [],
       actionChain: this,
       queue: this.getQueue(),
     })
@@ -270,7 +270,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
 
   /** Returns the current queue */
   getQueue() {
-    return this.#queue.slice()
+    return this.#queue?.slice?.()
   }
 
   /**

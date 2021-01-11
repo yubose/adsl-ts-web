@@ -4,12 +4,13 @@ import createComponent from './createComponent'
 import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
+import createDeepChildren from '../utils/createDeepChildren'
 import * as n from './noodl'
 
 describe('noodl (utils)', () => {
   describe(`createDeepChildren`, () => {
     it(`should create/parse everything from a raw noodl object`, () => {
-      n.createDeepChildren('view', {
+      createDeepChildren('view', {
         depth: 10,
       })
     })
@@ -166,7 +167,7 @@ describe('noodl (utils)', () => {
   describe('publish', () => {
     it('should recursively call the callback', () => {
       const spy = sinon.spy()
-      const view = n.createDeepChildren('view', {
+      const view = createDeepChildren('view', {
         depth: 6,
         injectProps: {
           last: {

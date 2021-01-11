@@ -1,12 +1,12 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import chalk from 'chalk'
+import { ComponentObject } from 'noodl-types'
 import { findChild } from '../utils/noodl'
 import _internalResolver from '../resolvers/_internal'
 import Component from '../components/Base'
 import List from '../components/List'
 import { noodlui } from '../utils/test-utils'
-import { ComponentObject } from '../types'
 import { event } from '../constants'
 
 describe('_internalResolver', () => {
@@ -253,8 +253,6 @@ describe('_internalResolver', () => {
       const [listItem1] = component?.children() || []
       expect(listItem1.child()?.get?.('listId')).to.exist
       expect(listItem1.child()?.get?.('iteratorVar')).to.exist
-      expect(listItem1.child(1)?.child(0)?.get('listId')).to.exist
-      expect(listItem1.child(1)?.child(0)?.get('iteratorVar')).to.exist
     })
 
     it('should populate all descendant dataKey consumers expectedly', () => {

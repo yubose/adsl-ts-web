@@ -10,6 +10,7 @@ import {
 import {
   ComponentObject,
   event as noodluiEvent,
+  getAllResolversAsMap,
   getElementType,
   getAlignAttrs,
   getBorderAttrs,
@@ -37,7 +38,7 @@ import { AuthStatus } from './app/types/commonTypes'
 import { listen as registerNOODLDOMListeners } from './app/noodl-ui-dom'
 import { IMeeting } from './meeting'
 import { CACHED_PAGES, pageEvent } from './constants'
-import { CachedPageObject, PageModalId } from './app/types'
+import { CachedPageObject } from './app/types'
 import { isMobile } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
 import createActions from './handlers/actions'
@@ -470,6 +471,13 @@ class App {
                     toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
                   }).map(([funcName, fn]) => ({ funcName, fn })),
                 )
+
+              Object.entries(getAllResolversAsMap()).forEach(
+                ([name, resolver]) => {
+                  const r = new Resolver().setResolver(resolver)
+                  this.noodlui.use({ name, resolver: r })
+                },
+              )
 
               log.func('page [before-page-render]')
               log.green('Initialized noodl-ui client', this.noodlui)

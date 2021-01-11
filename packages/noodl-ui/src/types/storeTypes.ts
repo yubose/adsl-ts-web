@@ -2,7 +2,9 @@ import { ActionObject, ActionType } from 'noodl-types'
 import { ActionChainActionCallback } from './actionChainTypes'
 import { ActionChainEmitTrigger, ResolveEmitTrigger } from './constantTypes'
 import { BuiltInObject } from './actionTypes'
+import { ResolverFn } from '.'
 import Action from '../Action'
+import Resolver from '../Resolver'
 
 export interface StoreActionObject<A extends ActionObject> {
   actionType: ActionType
@@ -17,3 +19,8 @@ export interface StoreBuiltInObject<A extends BuiltInObject> {
 }
 
 export interface StoreChainingObject {}
+
+export interface StoreResolverObject {
+  name: string
+  resolver: Resolver
+}

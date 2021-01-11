@@ -1,23 +1,19 @@
 import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
-import getAllResolvers from './utils/getAllResolvers'
+import { getAllResolversAsMap } from './utils/getAllResolvers'
 import Resolver from './Resolver'
 import { assetsUrl, noodlui, viewport } from './utils/test-utils'
+import getStore from './store'
 
 chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 
-const resolvers = getAllResolvers().map((r) => new Resolver().setResolver(r))
-
 before(() => {
   console.clear()
   noodlui.init({ _log: false })
   noodlui.use(viewport)
-
-  viewport.width = 365
-  viewport.height = 667
 
   try {
     logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
@@ -27,9 +23,17 @@ before(() => {
 })
 
 beforeEach(() => {
-  resolvers.forEach((r) => noodlui.use(r))
+  Object.entries(getAllResolversAsMap()).forEach(([name, resolver]) => {
+    const r = new Resolver().setResolver(resolver)
+    noodlui.use(r)
+    noodlui.use({ name, resolver: r })
+    getStore().use({ name, resolver: r })
+  })
+  noodlui.viewport.width = 375
+  noodlui.viewport.height = 667
   noodlui.use({
     getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => 'https://google.com/',
     getRoot: () => ({}),
   })
 })

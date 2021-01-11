@@ -19,6 +19,7 @@ import {
   getDataValues,
   IfObject,
   isReference,
+  NOODL as NOODLUI,
   parseReference,
   PopupObject,
   PopupDismissObject,
@@ -42,7 +43,13 @@ import { onSelectFile, scrollToElem, toast } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
 
-const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
+const createActions = function ({
+  noodlui,
+  noodluidom,
+}: {
+  noodlui: NOODLUI
+  noodluidom: NOODLUIDOM
+}) {
   const _actions = {} as Record<
     ActionType,
     Omit<ActionChainUseObjectBase<any>, 'actionType'>[]
@@ -70,7 +77,7 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
 
   /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
   _actions.emit.push({
-    fn: async (action, options, { noodl, noodlui }) => {
+    fn: async (action, options, { noodl }) => {
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, ...options })
 
@@ -98,7 +105,7 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
 
   /** DATA VALUE EMIT */
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+    fn: async (action: EmitAction, options, { noodl }) => {
       log.func('emit [dataValue]')
       log.grey('', { action, options })
 
@@ -128,7 +135,7 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+    fn: async (action: EmitAction, options, { noodl }) => {
       log.func('emit [onBlur]')
       log.grey('', { action, options })
 
@@ -158,7 +165,7 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+    fn: async (action: EmitAction, options, { noodl }) => {
       log.func('emit [onClick]')
       log.gold('Emitting', { action, noodl, noodlui, ...options })
 
@@ -188,7 +195,7 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
   })
 
   _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl, noodlui }) => {
+    fn: async (action: EmitAction, options, { noodl }) => {
       log.func('emit [onChange]')
       log.grey('', { action, options })
 
@@ -275,7 +282,7 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
   })
 
   _actions.evalObject.push({
-    fn: async (action: Action<EvalObject>, options, { noodlui }) => {
+    fn: async (action: Action<EvalObject>, options) => {
       log.func('evalObject')
       try {
         if (typeof action?.original?.object === 'function') {
@@ -403,11 +410,7 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
   })
 
   _actions.popUp.push({
-    fn: async (
-      action: Action<PopupObject | PopupDismissObject>,
-      options,
-      { noodlui },
-    ) => {
+    fn: async (action: Action<PopupObject | PopupDismissObject>, options) => {
       log.func('popUp')
       log.grey('', { action, ...options })
       const { abort, component, ref } = options
@@ -492,7 +495,7 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
   })
 
   _actions.refresh.push({
-    fn: (action: Action<RefreshObject>, options, actionsContext) => {
+    fn: (action: Action<RefreshObject>, options) => {
       log.func('refresh')
       log.grey(action.original.actionType, { action, ...options })
       window.location.reload()
@@ -502,7 +505,6 @@ const createActions = function ({ noodluidom }: { noodluidom: NOODLUIDOM }) {
   _actions.saveObject.push({
     fn: async (action: Action<SaveObject>, options) => {
       const { default: noodl } = await import('../app/noodl')
-      const { default: noodlui } = await import('../app/noodl-ui')
       const { abort, getRoot, getPageObject, page } = options
 
       try {
