@@ -91,4 +91,7 @@ const getStore = (function () {
   }
 })()
 
+// @ts-expect-error
+if (typeof window !== 'undefined') window.store = getStore()
+
 export default getStore

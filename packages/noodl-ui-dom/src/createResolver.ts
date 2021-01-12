@@ -1,5 +1,6 @@
 import { ComponentInstance, ComponentType, NOODL as NOODLUI } from 'noodl-ui'
 import NOODLUIDOMInternal from './Internal'
+import { findWindow, isPageConsumer } from './utils'
 import * as T from './types'
 
 type UseObject = T.NodeResolverConfig | NOODLUI | NOODLUIDOMInternal
@@ -17,6 +18,13 @@ const createResolver = function createResolver() {
   }
 
   const util = {
+    actionsContext(): T.ActionChainDOMContext {
+      return {
+        ..._internal.noodlui?.actionsContext,
+        findWindow,
+        isPageConsumer,
+      }
+    },
     options(...args: T.NodeResolverBaseArgs) {
       return {
         original: args[1].original,
@@ -110,6 +118,12 @@ const createResolver = function createResolver() {
           o.register(value)
         } else if (value instanceof NOODLUI) {
           _internal.noodlui = value
+          if (_internal.noodlui.actionsContext) {
+            Object.assign(
+              _internal.noodlui.actionsContext,
+              util.actionsContext(),
+            )
+          }
         } else if (value instanceof NOODLUIDOMInternal) {
           _internal.noodluidom = value
         } else if (typeof value === 'object') {

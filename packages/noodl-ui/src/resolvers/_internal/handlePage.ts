@@ -67,7 +67,6 @@ const handlePageInternalResolver = async (
       getPages: () => getPages(),
       getPreloadPages: () => getPreloadPages(),
     })
-    console.info(component.toJS())
     component._internalResolver = _internalResolver
     component.createComponent = createComponent.bind(component)
 

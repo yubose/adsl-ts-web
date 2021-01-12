@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { ComponentInstance, List, ListItem, NOODLComponent } from 'noodl-ui'
-import { prettyDOM, screen, waitFor } from '@testing-library/dom'
+import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { applyMockDOMResolver, noodlui, toDOM } from '../test-utils'
 import * as resolvers from '../resolvers'
@@ -17,12 +17,13 @@ const getNoodlList = () =>
     children: [
       {
         type: 'listItem',
-        children: [{ type: 'label', dataKey: 'itemObject.value' }],
+        children: [
+          { type: 'label', dataKey: 'itemObject.value' },
+          { type: 'image', path: 'abc.png' },
+        ],
       },
     ],
   } as NOODLComponent)
-
-const getList = () => noodlui.resolveComponents(getNoodlList())
 
 describe(chalk.keyword('orange')('resolvers'), () => {
   it('should display data value if it is displayable', () => {
@@ -41,18 +42,21 @@ describe(chalk.keyword('orange')('resolvers'), () => {
 
   describe('button', () => {
     it('should have a pointer cursor if it has an onClick', () => {
-      const { node } = applyMockDOMResolver({
-        resolver: resolvers.common,
-        pageName: 'F',
-        pageObject: { formData: { password: 'asfafsbc' } },
-        component: {
-          type: 'button',
-          text: 'hello',
-          style: { fontSize: '14' },
-          onClick: [],
-        },
-      })
-      expect(node.style).to.have.property('cursor').eq('pointer')
+      expect(
+        applyMockDOMResolver({
+          resolver: resolvers.button,
+          pageName: 'F',
+          pageObject: { formData: { password: 'asfafsbc' } },
+          component: {
+            type: 'button',
+            text: 'hello',
+            style: { fontSize: '14' },
+            onClick: [{ emit: { dataKey: { var1: 'g' }, actions: [] } }],
+          },
+        }).node.style,
+      )
+        .to.have.property('cursor')
+        .eq('pointer')
     })
   })
 
@@ -200,7 +204,7 @@ describe('list', () => {
   // TODO - update.list.item handling?
 })
 
-describe.only('page', () => {
+describe('page', () => {
   let result: ReturnType<typeof applyMockDOMResolver>
   let node: HTMLIFrameElement
   let component: ComponentInstance
@@ -240,22 +244,6 @@ describe.only('page', () => {
       })
     },
   )
-
-  it(
-    `each immediate resolved child should be position according to their ` +
-      `own viewport dimensions`,
-    async () => {
-      await waitFor(() => {
-        const [
-          image,
-          button,
-          label,
-        ] = component.children() as ComponentInstance[]
-        console.info(component.get('ref'))
-        expect(component.get('ref')).to.exist
-      })
-    },
-  )
 })
 
 describe('video', () => {
@@ -269,11 +257,10 @@ describe('video', () => {
   })
 
   it('should create the source element as a child if the src is present', () => {
-    const { node } = applyMockDOMResolver({
+    const sourceEl = applyMockDOMResolver({
       component: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
       resolver: resolvers.video,
-    })
-    const sourceEl = node?.querySelector('source')
+    }).node?.querySelector('source')
     expect(sourceEl).to.exist
   })
 

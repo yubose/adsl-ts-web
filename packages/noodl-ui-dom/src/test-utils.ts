@@ -15,6 +15,7 @@ export const viewport = new Viewport()
  */
 export function applyMockDOMResolver(opts: {
   assetsUrl?: string
+  baseUrl?: string
   component?: any
   pageName?: string
   pageObject?: any
@@ -27,12 +28,15 @@ export function applyMockDOMResolver(opts: {
   } as {
     assetsUrl: string
     componentCache: NOODLUI['componentCache']
+    noodlui: NOODLUI
+    noodluidom: NOODLUIDOM
     node: NOODLDOMElement
     component: ComponentInstance
   }
-  noodluidom.register(opts.resolver)
+  noodluidom.register({ resolve: opts.resolver })
   noodlui.setPage(opts.pageName || '').use({
     getAssetsUrl: () => utils.assetsUrl,
+    getBaseUrl: () => opts.baseUrl || 'https://google.com/',
     getRoot: () => ({
       ...opts.root,
       [opts.pageName || '']: {

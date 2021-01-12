@@ -1,40 +1,77 @@
 import { ComponentInstance } from '../types'
 
 const createComponentCache = (function () {
-  let cache = {}
+  let observers = { clear: [], remove: [], set: [] }
+  let store = {}
 
-  const o = {
+  function on(
+    e: 'clear',
+    fn: (store: { [id: string]: ComponentInstance }) => void,
+  ): typeof cache
+  function on(
+    e: 'set',
+    fn: (component: ComponentInstance, args: { store: typeof store }) => void,
+  ): typeof cache
+  function on(
+    e: 'remove',
+    fn: (component: ComponentInstance, args: { cache: typeof cache }) => void,
+  ): typeof cache
+  function on(e: 'clear' | 'remove' | 'set', fn: any) {
+    const obs = observers[e] as any[]
+    if (Array.isArray(obs) && !obs.includes(fn)) {
+      obs.push(fn)
+    }
+    return cache
+  }
+
+  const emit = (e: 'clear' | 'remove' | 'set', ...args: any[]) => {
+    observers[e]?.forEach?.((fn: any) => fn(...args))
+  }
+
+  const cache = {
+    on,
     clear() {
-      cache = {}
-      return o
+      const removed = {}
+      Object.entries(store).forEach(([key, value]) => {
+        removed[key] = value
+        delete store[key]
+        emit('clear', removed, { cache })
+      })
+      return cache
     },
     has(component: ComponentInstance | string) {
       return (
         (typeof component === 'string' ? component : component?.id || '') in
-        cache
+        store
       )
     },
     get(component: ComponentInstance) {
-      return component && cache[component.id]
+      if (component) return store[component.id]
     },
     get length() {
-      return Object.keys(cache).length
+      return Object.keys(store).length
     },
     set(component: ComponentInstance) {
-      component && (cache[component.id] = component)
-      return o
+      if (component) {
+        store[component.id] = component
+        emit('set', component, { cache })
+      }
+      return cache
     },
     remove(component: ComponentInstance) {
-      component && delete cache[component.id]
-      return o
+      if (component && store[component.id]) {
+        delete store[component.id]
+        emit('remove', component, { cache })
+      }
+      return cache
     },
     state() {
-      return cache
+      return store
     },
   }
 
   return function _createComponentCache() {
-    return o
+    return cache
   }
 })()
 

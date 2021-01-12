@@ -1,11 +1,11 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
+import { ComponentObject } from 'noodl-types'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import {
   ActionChain,
   Component,
-  ComponentObject,
   findChild,
   List,
   ListEventId,

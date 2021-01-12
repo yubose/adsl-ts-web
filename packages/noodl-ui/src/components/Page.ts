@@ -184,7 +184,6 @@ class Page
       objs.forEach((obj) => {
         // Only accept the emit action handlers where their
         // actions only exist in action chains
-        // @ts-expect-error
         actionChain.useAction({
           ...obj,
           actionType: isActionChainEmitTrigger(obj.trigger)
@@ -200,11 +199,6 @@ class Page
     if (!window.ac) window['ac'] = {}
     // @ts-expect-error
     window.ac[options.component?.id || ''] = actionChain
-    console.info(actionChain.getSnapshot())
-    console.info(actionChain.getSnapshot())
-    console.info(actionChain.getSnapshot())
-    console.info(actionChain.getSnapshot())
-    console.info(actionChain.getSnapshot())
     return actionChain.build().bind(actionChain)
   }
 

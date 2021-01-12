@@ -33,6 +33,7 @@
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files \"src/**/*.ts\"",
     "test:noodlui": "lerna exec --scope noodl-ui \"npm run test\"",
     "test:noodlui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
+    "test:noodlui:file:nosetup": "lerna exec --scope noodl-ui \"npm run test:file:nosetup\"",
     "test:noodluidom": "lerna exec --scope noodl-ui-dom \"npm run test\"",
     "test:noodluidom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:actionchain": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/ActionChain.test.ts --verbose\"",

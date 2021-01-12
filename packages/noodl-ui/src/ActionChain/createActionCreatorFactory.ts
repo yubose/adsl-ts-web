@@ -5,12 +5,12 @@ import {
   ActionObject,
   ActionChainActionCallback,
   ActionConsumerCallbackOptions,
-  ActionChainUseObjectBase,
   ActionType,
   AnonymousObject,
   BuiltInObject,
   EmitActionObject,
   EmitObject,
+  StoreActionObject,
 } from '../types'
 import ActionChain from '.'
 import Action from '../Action'
@@ -130,7 +130,7 @@ const createActionCreatorFactory = function (
             getResults(
               action,
               (ref.fns.action[action.actionType] || []).map(
-                (a: ActionChainUseObjectBase) => a.fn,
+                (a: StoreActionObject<any>) => a.fn,
               ),
               event,
             )
@@ -188,7 +188,7 @@ const createActionCreatorFactory = function (
             }
             return acc.concat(a.fn)
           },
-          [] as ActionChainUseObjectBase<EmitAction<EmitActionObject>>['fn'][],
+          [] as StoreActionObject<any>['fn'][],
         )
         return getResults(action as any, callbacks, event)
       }

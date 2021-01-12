@@ -3,6 +3,7 @@ import set from 'lodash/set'
 import noop from 'lodash/noop'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
+import { ComponentObject } from 'noodl-types'
 import {
   createEmitDataKey,
   evalIf,
@@ -55,9 +56,9 @@ class NOODL {
   #cache = createComponentCache()
   #cb: {
     action: Partial<
-      Record<T.ActionType, T.ActionChainUseObjectBase<any, any>[]>
+      Record<T.ActionType | 'emit' | 'goto' | 'toast', T.StoreActionObject[]>
     >
-    builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
+    builtIn: { [funcName: string]: T.StoreBuiltInObject[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     on: {
       [event.SET_PAGE]: ((pageName: string) => void)[]
@@ -185,7 +186,7 @@ class NOODL {
       : resolvedComponents[0]
   }
 
-  #resolve = (c: T.ComponentType | T.ComponentInstance | T.ComponentObject) => {
+  #resolve = (c: T.ComponentType | T.ComponentInstance | ComponentObject) => {
     const component = createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component.original.style)
@@ -206,8 +207,8 @@ class NOODL {
       })
     }
 
-    this.#resolvers.forEach((r: Resolver) => {
-      r.resolve(component, consumerOptions)
+    getStore().resolvers.forEach((obj) => {
+      obj.resolver.resolve(component, consumerOptions)
     })
 
     return component
@@ -226,40 +227,20 @@ class NOODL {
       },
       this.actionsContext,
     )
-    const useActionObjects = Object.entries(this.#cb.action).reduce(
-      (arr, [actionType, actionObjs]) =>
-        arr.concat(
-          actionObjs ||
-            [].reduce(
-              (
-                acc,
-                actionObj: Omit<
-                  T.ActionChainUseObjectBase<any, any>,
-                  'actionType'
-                >,
-              ) => {
-                if (
-                  isEmitObj(actionObj) &&
-                  isActionChainEmitTrigger(actionObj.trigger)
-                ) {
-                  // Only accept the emit action handlers where their
-                  // actions only exist in action chains
-                  return acc.concat({ ...actionObj, actionType: 'emit' })
-                }
-                return acc.concat({ actionType, ...actionObj } as any)
-              },
-              [] as T.ActionChainUseObjectBase<any>[],
-            ),
-        ),
-      [] as T.ActionChainUseObjectBase<any>[],
-    )
-    useActionObjects.forEach((f) => actionChain.useAction(f))
-    actionChain.useBuiltIn(
-      Object.entries(this.#cb.builtIn).map(([funcName, fn]) => ({
-        funcName,
-        fn,
-      })),
-    )
+    Object.values(getStore().actions).forEach((objs) => {
+      objs.forEach((obj) => {
+        if (isEmitObj(obj)) {
+          // Only accept the emit action handlers where their
+          // actions only exist in action chains
+          if (!isActionChainEmitTrigger(obj.trigger)) return
+          obj.actionType = 'emit'
+        }
+        actionChain.useAction(obj)
+      })
+    })
+    Object.values(getStore().builtIns).forEach((obj) => {
+      actionChain.useBuiltIn(obj)
+    })
     // @ts-expect-error
     if (!window.ac) window['ac'] = {}
     // @ts-expect-error
@@ -320,7 +301,7 @@ class NOODL {
       // Emit object evaluation
       else if (isEmitObj(path)) {
         // TODO - narrow this query to avoid only using the first encountered obj
-        const obj = this.#cb.action.emit?.find?.((o) => o.trigger === 'path')
+        const obj = getStore().actions.emit?.find?.((o) => o.trigger === 'path')
 
         if (typeof obj?.fn === 'function') {
           const emitObj = { ...path, actionType: 'emit' } as T.EmitActionObject
@@ -352,7 +333,7 @@ class NOODL {
             if (!callbacks.length) return ''
 
             const result = await Promise.race(
-              callbacks.map((obj: T.ActionChainUseObjectBase) =>
+              callbacks.map((obj: T.StoreActionObject) =>
                 obj?.fn?.(
                   emitAction,
                   this.getConsumerOptions({ component, path }),
@@ -560,6 +541,7 @@ class NOODL {
 
   #getCbPath = (key: T.EventId | 'action' | 'chaining' | 'all') => {
     let path = ''
+    const store = getStore()
     if (key === 'all') {
       path = 'component.all'
     } else if (key in this.#cb) {
@@ -580,8 +562,8 @@ class NOODL {
 
   getCbs(
     key?:
-      | 'action'
-      | 'builtIn'
+      | 'actions'
+      | 'builtIns'
       | 'chaining'
       | typeof event.SET_PAGE
       | typeof event.NEW_PAGE
@@ -589,10 +571,10 @@ class NOODL {
   ) {
     if (key) {
       switch (key) {
-        case 'action':
-        case 'builtIn':
+        case 'actions':
+        case 'builtIns':
         case 'chaining':
-          return this.#cb[key]
+          return getStore()[key]
         case event.SET_PAGE:
         case event.NEW_PAGE:
         case event.NEW_PAGE_REF:
@@ -603,9 +585,11 @@ class NOODL {
   }
 
   removeCbs(actionType: string, funcName?: string) {
-    if (this.#cb.action[actionType]) this.#cb.action[actionType].length = 0
+    if (getStore().actions[actionType])
+      getStore().actions[actionType].length = 0
     if (actionType === 'builtIn' && funcName) {
-      if (this.#cb.builtIn[funcName]) this.#cb.builtIn[funcName].length = 0
+      if (getStore().builtIns[funcName])
+        getStore().builtIns[funcName].length = 0
     }
     return this
   }
@@ -837,7 +821,7 @@ class NOODL {
 
   use(resolver: Resolver | Resolver[]): this
   use(action: T.ActionChainUseObject | T.ActionChainUseObject[]): this
-  use(viewport: T.IViewport): this
+  use(viewport: Viewport): this
   use(o: {
     actionsContext?: Partial<NOODL['actionsContext']>
     fetch?: T.Fetch
@@ -880,13 +864,7 @@ class NOODL {
     const mods = ((Array.isArray(mod) ? mod : [mod]) as any[]).concat(rest)
     const handleMod = (m: typeof mods[number]) => {
       if (m) {
-        if ('funcName' in m) {
-          if (!Array.isArray(this.#cb.builtIn[m.funcName])) {
-            this.#cb.builtIn[m.funcName] = []
-          }
-          this.#cb.builtIn[m.funcName].push(
-            ...(Array.isArray(m.fn) ? m.fn : [m.fn]),
-          )
+        if ('actionType' in m || 'funcName' in m || 'resolver' in m) {
           getStore().use(m)
         } else if ('actionType' in m) {
           if (!Array.isArray(this.#cb.action[m.actionType])) {

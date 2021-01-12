@@ -1,4 +1,5 @@
 import { Viewport } from 'noodl-ui'
+import NOODLUIDOM, { Page } from 'noodl-ui-dom'
 import {
   LocalParticipant,
   LocalTrack,
@@ -7,7 +8,6 @@ import {
   RemoteTrack,
   RemoteTrackPublication,
 } from 'twilio-video'
-import { IPage } from '.'
 
 export type RoomParticipant = LocalParticipant | RemoteParticipant
 export type RoomParticipantTrackPublication =
@@ -16,7 +16,8 @@ export type RoomParticipantTrackPublication =
 export type RoomTrack = LocalTrack | RemoteTrack
 
 export interface InitializeMeetingOptions {
-  page: IPage
+  noodluidom: NOODLUIDOM
+  page: Page
   viewport: Viewport
 }
 

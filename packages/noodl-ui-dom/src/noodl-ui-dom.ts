@@ -1,6 +1,6 @@
+import { ActionType } from 'noodl-types'
 import {
   ActionObject,
-  AnonymousObject,
   BuiltInObject,
   ComponentInstance,
   createComponent,
@@ -22,7 +22,6 @@ import NOODLUIDOMInternal from './Internal'
 import Page from './Page'
 import * as defaultResolvers from './resolvers'
 import * as T from './types'
-import { GotoUrl } from 'noodl-types'
 
 class NOODLUIDOM extends NOODLUIDOMInternal {
   #R: ReturnType<typeof createResolver>
@@ -50,6 +49,18 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     this.#R = createResolver()
     this.#R.use(this)
     this.#R.use(Object.values(defaultResolvers))
+  }
+
+  get actions() {
+    return this.#R.get('noodlui').getCbs('actions') as {
+      [K in ActionType]: StoreActionObject<any, T.ActionChainDOMContext>[]
+    }
+  }
+
+  get builtIns() {
+    return this.#R.get('noodlui').getCbs('builtIns') as {
+      [funcName: string]: StoreBuiltInObject<any, T.ActionChainDOMContext>[]
+    }
   }
 
   get callbacks() {
@@ -96,7 +107,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     this.page.setStatus(eventId.page.status.RESOLVING_COMPONENTS)
-    const resolved = this.config.page.resolveComponents(rawComponents)
+    const resolved = this.#R.get('noodlui')?.resolveComponents(rawComponents)
     this.page.setStatus(eventId.page.status.COMPONENTS_RECEIVED)
     const components = Array.isArray(resolved) ? resolved : [resolved]
     this.page.rootNode.innerHTML = ''
@@ -270,18 +281,18 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       | EmitActionObject
       | GotoActionObject
       | ToastActionObject
-  >(obj: StoreActionObject<A>): this
+  >(obj: StoreActionObject<A, T.ActionChainDOMContext>): this
   register<B extends BuiltInObject>(obj: StoreBuiltInObject<B>): this
   register<R extends T.NodeResolverConfig>(obj: R): this
   register(
     obj:
       | T.NodeResolverConfig
-      | StoreActionObject<any>
-      | StoreBuiltInObject<any>,
+      | StoreActionObject<any, T.ActionChainDOMContext>
+      | StoreBuiltInObject<any, T.ActionChainDOMContext>,
   ): this {
     if ('resolve' in obj) {
       this.#R.use(obj)
-    } else if ('actionType' in obj) {
+    } else if ('actionType' in obj || 'funcName' in obj) {
       this.#R.get('noodlui').use(obj)
     }
     return this

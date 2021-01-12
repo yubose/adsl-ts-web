@@ -1,5 +1,5 @@
 import sinon from 'sinon'
-import { getAllResolvers, Resolver, publish } from 'noodl-ui'
+import { getAllResolversAsMap, Resolver, publish } from 'noodl-ui'
 import { eventId } from './constants'
 import { assetsUrl, noodlui, noodluidom, viewport } from './test-utils'
 
@@ -23,16 +23,17 @@ before(() => {
         noodlui.componentCache().remove(c)
       })
     })
-    .register(noodlui)
+    .use(noodlui)
 
-  viewport.width = 365
+  viewport.width = 375
   viewport.height = 667
 
   logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
 
-  getAllResolvers().forEach((r) => {
+  Object.entries(getAllResolversAsMap()).forEach(([name, r]) => {
     const resolver = new Resolver().setResolver(r)
     noodlui.use(resolver)
+    noodlui.use({ name, resolver } as any)
   })
 })
 
@@ -43,6 +44,7 @@ after(() => {
 beforeEach(() => {
   noodlui.setPage(page).use({
     getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => 'https://google.com/',
     getRoot: () => root,
   })
 })

@@ -5,10 +5,12 @@ export * from './noodl-ui-dom'
 export * from './types'
 
 export {
+  findWindow,
   getByDataUX,
   getDataAttribKeys,
   getDynamicShapeKeys,
   getShape,
   getShapeKeys,
+  isPageConsumer,
   isTextFieldLike,
 } from './utils'

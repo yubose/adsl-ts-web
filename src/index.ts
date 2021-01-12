@@ -1,6 +1,4 @@
 import { copyToClipboard } from './utils/dom'
-import createActions from './handlers/actions'
-import createBuiltInActions from './handlers/builtIns'
 import App from './App'
 import Meeting from './meeting'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -14,24 +12,9 @@ window.addEventListener('load', async () => {
 
   const page = noodluidom.page
   const app = new App()
-  const actions = createActions({ noodlui, noodluidom })
-  const builtIn = createBuiltInActions({ noodlui, noodluidom })
-
-  try {
-    await app.initialize({
-      actions,
-      builtIn,
-      meeting: Meeting,
-      noodlui,
-      noodluidom,
-    })
-  } catch (error) {
-    console.error(error)
-  }
 
   window.app = {
     Account,
-    actions,
     app,
     build: process.env.BUILD,
     cp: copyToClipboard,
@@ -48,6 +31,16 @@ window.addEventListener('load', async () => {
   window.noodluidom = noodluidom
   window.addRemoteParticipant = Meeting.addRemoteParticipant
   Object.assign(window, getWindowHelpers())
+
+  try {
+    await app.initialize({
+      meeting: Meeting,
+      noodlui,
+      noodluidom,
+    })
+  } catch (error) {
+    console.error(error)
+  }
 
   window.addEventListener('popstate', async function onPopState(e) {
     const goBackPage = page.getPreviousPage(noodl.cadlEndpoint?.startPage)

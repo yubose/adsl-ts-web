@@ -35,7 +35,6 @@ import {
   Viewport,
 } from 'noodl-ui'
 import { AuthStatus } from './app/types/commonTypes'
-import { listen as registerNOODLDOMListeners } from './app/noodl-ui-dom'
 import { IMeeting } from './meeting'
 import { CACHED_PAGES, pageEvent } from './constants'
 import { CachedPageObject } from './app/types'
@@ -82,22 +81,25 @@ class App {
   streams = {} as ReturnType<IMeeting['getStreams']>
 
   async initialize({
-    actions,
-    builtIn,
+    // actions,
+    // builtIn,
     meeting,
     noodlui,
     noodluidom,
   }: {
-    actions: ReturnType<typeof createActions>
-    builtIn: ReturnType<typeof createBuiltInActions>
+    // actions: ReturnType<typeof createActions>
+    // builtIn: ReturnType<typeof createBuiltInActions>
     meeting: IMeeting
     noodlui: NOODLUI
     noodluidom: NOODLUIDOM
   }) {
     const { Account } = await import('@aitmed/cadl')
     const noodl = (await import('app/noodl')).default
-    this.actions = actions
-    this.builtIn = builtIn
+    const { listen: registerNOODLDOMListeners } = await import(
+      'app/noodl-ui-dom'
+    )
+    // this.actions = actions
+    // this.builtIn = builtIn
     this.meeting = meeting
     this.noodl = noodl
     this.noodlui = noodlui
@@ -107,9 +109,11 @@ class App {
 
     await noodl.init()
     meeting.initialize({
+      noodluidom,
       page: this.noodluidom.page,
       viewport: this.#viewportUtils.viewport,
     })
+
     registerNOODLDOMListeners({ noodlui })
 
     let startPage = noodl?.cadlEndpoint?.startPage
@@ -138,8 +142,8 @@ class App {
         await noodl.initPage(pageName, [], {
           ...this.noodluidom.page.getState().modifiers[pageName],
           builtIn: {
-            checkField: builtIn.checkField,
-            goto: builtIn.goto,
+            checkField: this.noodluidom.builtIns.checkField.find(Boolean)?.fn,
+            goto: this.noodluidom.builtIns.goto.find(Boolean)?.fn,
             videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
           },
         })
@@ -227,35 +231,34 @@ class App {
       await noodl.initPage(ref.page)
       log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
       log.grey(`Initiated page: ${ref.page}`)
-      ref
-        .use(
-          resolvers.reduce(
-            (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
-            [] as Resolver[],
-          ),
-        )
-        .use(
-          Object.entries(this.actions).reduce(
-            (arr, [actionType, actions]) =>
-              arr.concat(actions.map((a) => ({ ...a, actionType }))),
-            [] as any[],
-          ),
-        )
-        .use(
-          // @ts-expect-error
-          Object.entries({
-            checkField: this.builtIn.checkField,
-            checkUsernamePassword: this.builtIn.checkUsernamePassword,
-            goBack: this.builtIn.goBack,
-            lockApplication: this.builtIn.lockApplication,
-            logOutOfApplication: this.builtIn.logOutOfApplication,
-            logout: this.builtIn.logout,
-            redraw: this.builtIn.redraw,
-            toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
-            toggleFlag: this.builtIn.toggleFlag,
-            toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
-          }).map(([funcName, fn]) => ({ funcName, fn })),
-        )
+      ref.use(
+        resolvers.reduce(
+          (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
+          [] as Resolver[],
+        ),
+      )
+      // .use(
+      //   Object.entries(this.actions).reduce(
+      //     (arr, [actionType, actions]) =>
+      //       arr.concat(actions.map((a) => ({ ...a, actionType }))),
+      //     [] as any[],
+      //   ),
+      // )
+      // .use(
+      //   // @ts-expect-error
+      //   Object.entries({
+      //     checkField: this.builtIn.checkField,
+      //     checkUsernamePassword: this.builtIn.checkUsernamePassword,
+      //     goBack: this.builtIn.goBack,
+      //     lockApplication: this.builtIn.lockApplication,
+      //     logOutOfApplication: this.builtIn.logOutOfApplication,
+      //     logout: this.builtIn.logout,
+      //     redraw: this.builtIn.redraw,
+      //     toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
+      //     toggleFlag: this.builtIn.toggleFlag,
+      //     toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
+      //   }).map(([funcName, fn]) => ({ funcName, fn })),
+      // )
     })
   }
 
@@ -390,7 +393,6 @@ class App {
               log.func('page [before-page-render]')
               log.grey('Initializing noodl-ui client', {
                 noodl: this.noodl,
-                actions: this.actions,
                 pageSnapshot,
               })
 
@@ -449,28 +451,28 @@ class App {
                     [] as Resolver[],
                   ),
                 )
-                .use(
-                  Object.entries(this.actions).reduce(
-                    (arr, [actionType, actions]) =>
-                      arr.concat(actions.map((a) => ({ ...a, actionType }))),
-                    [] as any[],
-                  ),
-                )
-                .use(
-                  // @ts-expect-error
-                  Object.entries({
-                    checkField: this.builtIn.checkField,
-                    checkUsernamePassword: this.builtIn.checkUsernamePassword,
-                    goBack: this.builtIn.goBack,
-                    lockApplication: this.builtIn.lockApplication,
-                    logOutOfApplication: this.builtIn.logOutOfApplication,
-                    logout: this.builtIn.logout,
-                    redraw: this.builtIn.redraw,
-                    toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
-                    toggleFlag: this.builtIn.toggleFlag,
-                    toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
-                  }).map(([funcName, fn]) => ({ funcName, fn })),
-                )
+              // .use(
+              //   Object.entries(this.actions).reduce(
+              //     (arr, [actionType, actions]) =>
+              //       arr.concat(actions.map((a) => ({ ...a, actionType }))),
+              //     [] as any[],
+              //   ),
+              // )
+              // .use(
+              //   // @ts-expect-error
+              //   Object.entries({
+              //     checkField: this.builtIn.checkField,
+              //     checkUsernamePassword: this.builtIn.checkUsernamePassword,
+              //     goBack: this.builtIn.goBack,
+              //     lockApplication: this.builtIn.lockApplication,
+              //     logOutOfApplication: this.builtIn.logOutOfApplication,
+              //     logout: this.builtIn.logout,
+              //     redraw: this.builtIn.redraw,
+              //     toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
+              //     toggleFlag: this.builtIn.toggleFlag,
+              //     toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
+              //   }).map(([funcName, fn]) => ({ funcName, fn })),
+              // )
 
               Object.entries(getAllResolversAsMap()).forEach(
                 ([name, resolver]) => {

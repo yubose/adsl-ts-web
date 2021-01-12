@@ -442,6 +442,5 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
     const child = page.child()
     expect(child.style.width).to.eq(page.style.width)
     expect(child.style.height).to.eq(page.style.height)
-    console.info(page.toJS())
   })
 })

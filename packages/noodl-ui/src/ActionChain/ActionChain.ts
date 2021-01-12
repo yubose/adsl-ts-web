@@ -8,6 +8,12 @@ import createActionCreatorFactory from './createActionCreatorFactory'
 import { AbortExecuteError } from '../errors'
 import { actionTypes } from '../constants'
 import * as T from '../types'
+import {
+  AnonymousObject,
+  EmitActionObject,
+  GotoActionObject,
+  ToastActionObject,
+} from '../types'
 
 const log = Logger.create('ActionChain')
 
@@ -22,13 +28,19 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
   actionsContext: T.ActionChainContext
   component: T.ComponentInstance
   createAction: ReturnType<typeof createActionCreatorFactory>
-  current: Action<ActionObjects[number]>
+  current: Action<
+    | T.ActionObject
+    | AnonymousObject
+    | EmitActionObject
+    | GotoActionObject
+    | ToastActionObject
+  >
   fns = { action: {}, builtIn: {} } as {
     action: Record<
-      T.ActionType,
-      T.ActionChainUseObjectBase<Action<ActionObjects[number]>>[]
+      T.ActionType | 'anonymous' | 'emit' | 'goto' | 'toast',
+      T.StoreActionObject<any>[]
     >
-    builtIn: { [funcName: string]: T.ActionChainActionCallback[] }
+    builtIn: { [funcName: string]: T.StoreBuiltInObject<any>[] }
   }
   gen: AsyncGenerator<
     {
@@ -345,9 +357,9 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     )
   }
 
-  useAction(action: T.ActionChainUseObject): this
-  useAction(action: T.ActionChainUseObject[]): this
-  useAction(action: T.ActionChainUseObject | T.ActionChainUseObject[]) {
+  useAction(action: T.StoreActionObject<any>): this
+  useAction(action: T.StoreActionObject<any>[]): this
+  useAction(action: T.StoreActionObject<any> | T.StoreActionObject<any>[]) {
     // Built in actions are forwarded to this.useBuiltIn
     ;(Array.isArray(action) ? action : [action]).forEach((obj) => {
       if ('funcName' in obj) {
@@ -362,19 +374,15 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     return this
   }
 
-  useBuiltIn(
-    action: T.ActionChainUseBuiltInObject | T.ActionChainUseBuiltInObject[],
-  ) {
+  useBuiltIn(action: T.StoreBuiltInObject<any> | T.StoreBuiltInObject<any>[]) {
     const actions = (Array.isArray(action)
       ? action
-      : [action]) as T.ActionChainUseBuiltInObject[]
+      : [action]) as T.StoreBuiltInObject<any>[]
 
     actions.forEach((a) => {
       const { funcName } = a
       const currentFns = this.fns.builtIn[funcName] || []
-      this.fns.builtIn[funcName] = currentFns.concat(
-        Array.isArray(a.fn) ? a.fn : [a.fn],
-      )
+      this.fns.builtIn[funcName] = currentFns.concat(Array.isArray(a) ? a : [a])
     })
 
     return this

@@ -1,23 +1,35 @@
+import { ComponentObject } from 'noodl-types'
 import {
   ComponentInstance,
-  ComponentObject,
   ComponentType,
   eventTypes,
+  findParent,
   isComponent,
   NOODLComponent,
   SelectOption,
 } from 'noodl-ui'
+import { NOODLDOMElement } from './types'
+
+const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
+const isArr = (v: any): v is any[] => Array.isArray(v)
+const isBool = (v: any): v is boolean => typeof v === 'boolean'
+const isObj = (v: any): v is { [key: string]: any } =>
+  !!v && !isArr(v) && typeof v === 'object'
+const isNum = (v: any): v is number => typeof v === 'number'
+const isStr = (v: any): v is string => typeof v === 'string'
+const isUnd = (v: any): v is undefined => typeof v === 'undefined'
+const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
+  typeof v === 'function'
 
 /**
  * Creates an image element that loads asynchronously
  * @param { HTMLElement } container - Element to attach the image in
  * @param { object } options
  * @param { function | undefined } options.onLoad
- * @param { number | undefined } options.timeout
  */
 export function createAsyncImageElement(
   container: HTMLElement,
-  opts?: { onLoad?(event: Event): void; timeout?: number },
+  opts?: { onLoad?(event: Event): void },
 ) {
   let node = new Image()
   node.onload = (event) => {
@@ -39,8 +51,18 @@ export function createEmptyObjectWithKeys<K extends string = any, I = any>(
   )
 }
 
+export function findWindow(node: NOODLDOMElement | Element | null) {
+  if (node instanceof Element) {
+    for (let index = 0; index < window.length; index++) {
+      const win = window[index]
+      if (win.document.contains(node)) return win
+    }
+  }
+  return null
+}
+
 export const get = <T = any>(o: T, k: string) => {
-  if (typeof o !== 'object' || typeof k !== 'string') return
+  if (!isObj(o) || !isStr(k)) return
 
   let parts = k.split('.').reverse()
   let result: any = o
@@ -114,11 +136,11 @@ export function getShape(
 
   if (isComponent(component)) {
     return getShape(component.original, { ...opts, parent: component.original })
-  } else if (typeof component === 'string') {
+  } else if (isStr(component)) {
     return { type: component }
-  } else if (Array.isArray(component)) {
-    return component.map((c) => getShape(c, opts))
-  } else if (component && typeof component === 'object') {
+  } else if (isArr(component)) {
+    return component.map((c) => getShape(c, opts)) as any
+  } else if (component && isObj(component)) {
     const noodlComponent = component as ComponentObject
     // The noodl yml may also place the value of iteratorVar as a property
     // as an empty string. So we include the value as a property to keep as well
@@ -126,7 +148,7 @@ export function getShape(
       if (key in noodlComponent) {
         if (key === 'children') {
           // @ts-expect-error
-          shape.children = Array.isArray(noodlComponent.children)
+          shape.children = isArr(noodlComponent.children)
             ? (noodlComponent.children as ComponentObject[])?.map(
                 (noodlChild) =>
                   getShape(noodlChild, {
@@ -139,10 +161,10 @@ export function getShape(
                 // @ts-expect-error
                 noodlType:
                   (opts as any)?.noodlType ||
-                  (typeof noodlComponent.children === 'object'
+                  (isObj(noodlComponent.children)
                     ? (noodlComponent.children as any).noodlType ||
                       (noodlComponent.children as any).type
-                    : typeof noodlComponent.children === 'string'
+                    : isStr(noodlComponent.children)
                     ? noodlComponent.children
                     : undefined) ||
                   (opts as any)?.type,
@@ -197,7 +219,7 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
  * @param { string } key - The value of a data-ux element
  */
 export function getByDataUX(key: string) {
-  if (typeof key === 'string') {
+  if (isStr(key)) {
     const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
     if (nodeList.length) {
       const nodes = [] as HTMLElement[]
@@ -229,11 +251,21 @@ export function getDynamicShapeKeys(
  * @param { any } value
  */
 export function isDisplayable(value: unknown): value is string | number {
-  return value == 0 || typeof value === 'string' || typeof value === 'number'
+  return value == 0 || isStr(value) || isNum(value)
+}
+
+/**
+ * Returns true if the component is a descendant of a component of type: "page"
+ * @param { ComponentInstance } component
+ */
+export function isPageConsumer(component: ComponentInstance | undefined) {
+  return isComponent(component)
+    ? !!findParent(component, (parent) => parent?.noodlType === 'page')
+    : false
 }
 
 export function normalizeEventName(eventName: string) {
-  return typeof eventName === 'string'
+  return isStr(eventName)
     ? eventName.startsWith('on')
       ? eventName.replace('on', '').toLowerCase()
       : eventName.toLowerCase()
@@ -271,8 +303,8 @@ export function isTextFieldLike(
 }
 
 export function toSelectOption(value: any): SelectOption {
-  if (typeof value !== 'object') {
+  if (!isObj(value)) {
     return { key: value, label: value, value }
   }
-  return value
+  return value as SelectOption
 }

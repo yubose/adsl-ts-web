@@ -2,6 +2,7 @@
 export { default as Component } from './components/Base'
 export { default as List } from './components/List'
 export { default as ListItem } from './components/ListItem'
+export { default as Page } from './components/Page'
 // Action chain
 export { default as Action } from './Action'
 export { default as ActionChain } from './ActionChain'

@@ -52,7 +52,9 @@ export interface ActionChainUseObjectBase<
   trigger?: ActionChainEmitTrigger | ResolveEmitTrigger
 }
 
-export interface ActionChainUseBuiltInObject {
+export interface ActionChainUseBuiltInObject<
+  AContext extends ActionChainContext
+> {
   actionType?: 'builtIn'
   funcName: string
   fn:
@@ -79,23 +81,15 @@ export interface ActionChainCallbackOptions {
   snapshot: ActionChainSnapshot
   trigger: ActionTriggerType
 }
-
-export interface ActionChainActionCallback<
-  A extends Action<ActionObject> | EmitAction<EmitActionObject> = any
-> {
-  (
-    action: A,
-    options: ActionConsumerCallbackOptions,
-    actionsContext: ActionChainContext,
-  ): Promise<any> | void
 }
 export interface ActionChainActionCallback<
-  A extends Action<ActionObject> | EmitAction<EmitActionObject> = any
+  A extends Action<ActionObject> | EmitAction<EmitActionObject>,
+  AContext extends ActionChainContext = any
 > {
   (
     action: A,
     options: ActionConsumerCallbackOptions,
-    actionsContext: ActionChainContext,
+    actionsContext: AContext,
   ): Promise<any> | void
 }
 

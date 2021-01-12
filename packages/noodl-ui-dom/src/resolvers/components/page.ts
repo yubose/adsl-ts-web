@@ -12,14 +12,6 @@ export default {
     node.name = component.get('path') || ''
 
     component.on(
-      'path',
-      (src: string) => {
-        console.log(`%cReceived src`, `color:#00b406;font-weight:bold;`, src)
-      },
-      '[noodl-ui-dom] path',
-    )
-
-    component.on(
       noodluiEvent.component.page.COMPONENTS_RECEIVED,
       (noodlComponents) => {
         console.log(
@@ -30,19 +22,6 @@ export default {
         )
       },
       `[noodl-ui-dom] ${noodluiEvent.component.page.COMPONENTS_RECEIVED}`,
-    )
-
-    component.on(
-      noodluiEvent.component.page.RETRIEVE_COMPONENTS,
-      (args) => {
-        console.log(
-          `%c[noodl-ui-dom][${noodluiEvent.component.page.RETRIEVE_COMPONENTS}] ` +
-            `Retrieve components`,
-          `color:gold;font-weight:bold;`,
-          args,
-        )
-      },
-      `[noodl-ui-dom] ${noodluiEvent.component.page.RETRIEVE_COMPONENTS}`,
     )
 
     component.on(

@@ -9,10 +9,9 @@ import {
   Room,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import { getByDataUX, Page } from 'noodl-ui-dom'
+import NOODLUIDOM, { getByDataUX, Page } from 'noodl-ui-dom'
 import { Viewport } from 'noodl-ui'
 import { isMobile } from '../utils/common'
-import noodluidom from '../app/noodl-ui-dom'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
 import MeetingSubstreams from '../meeting/Substreams'
@@ -22,6 +21,7 @@ const log = Logger.create('Meeting.ts')
 
 interface Internal {
   _page: Page | undefined
+  _noodluidom: NOODLUIDOM
   _viewport: Viewport | undefined
   _room: Room
   _streams: Streams
@@ -37,13 +37,15 @@ const Meeting = (function () {
   const _internal: Internal = {
     _page: undefined,
     _viewport: undefined,
+    _noodluidom: null as any,
     _room: new EventEmitter() as Room,
     _streams: new Streams(),
     _token: '',
   } as Internal
 
   const o = {
-    initialize({ page, viewport }: T.InitializeMeetingOptions) {
+    initialize({ noodluidom, page, viewport }: T.InitializeMeetingOptions) {
+      _internal['_noodluidom'] = noodluidom
       _internal['_page'] = page
       _internal['_viewport'] = viewport
       return this
@@ -150,7 +152,7 @@ const Meeting = (function () {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = subStreams.blueprint
-              const node = noodluidom.draw(
+              const node = _internal._noodluidom.draw(
                 subStreams.resolver?.(props) || props,
               ) as any
               const subStream = subStreams.create({ node, participant }).last()

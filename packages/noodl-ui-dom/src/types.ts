@@ -1,5 +1,6 @@
 import { ComponentObject } from 'noodl-types'
 import {
+  ActionChainContext,
   ComponentInstance,
   ComponentType,
   NOODL as NOODLUI,
@@ -9,6 +10,11 @@ import { eventId } from './constants'
 
 export interface AnyFn {
   (...args: any[]): any
+}
+
+export interface ActionChainDOMContext extends ActionChainContext {
+  findWindow(node: NOODLDOMElement | null): Window | null
+  isPageConsumer(component: ComponentInstance | undefined): boolean
 }
 
 export type NOODLDOMElementTypes = keyof NOODLDOMElements

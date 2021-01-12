@@ -107,10 +107,10 @@ export interface ConsumerOptions {
   getBaseUrl(): string
   getBaseStyles(styles?: Style): Partial<Style>
   getCbs(
-    key: 'action',
+    key: 'actions',
   ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
   getCbs(
-    key: 'builtIn',
+    key: 'builtIns',
   ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
   getCbs(
     key: 'chaining',
@@ -118,7 +118,7 @@ export interface ConsumerOptions {
   getCbs(key: PageEventId): ((page: string) => any)[]
   getCbs(key: 'new.page.ref'): ((component: any) => Promise<void> | undefined)[]
   getCbs(
-    key?: 'action' | 'builtIn' | 'chaining' | PageEventId,
+    key?: 'actions' | 'builtIns' | 'chaining' | PageEventId,
   ): {
     action: Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
     builtIn: { [funcName: string]: ActionChainActionCallback[] }
@@ -143,7 +143,6 @@ export interface ConsumerOptions {
   ): ComponentInstance
   resolveComponentDeep: NOODLUI['resolveComponents']
   setPlugin(plugin: string | PluginObject): this
-  spawn?: NOODLUI['spawn']
   showDataKey: boolean
   viewport: Viewport
 }
