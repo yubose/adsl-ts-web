@@ -6,6 +6,7 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import {
   Action,
+  ActionChainContext,
   ActionConsumerCallbackOptions,
   AnonymousObject,
   EmitAction,
@@ -56,7 +57,10 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
   noodluidom
     .register({
       actionType: 'anonymous',
-      fn: async (action: Action<AnonymousObject>, options) => {
+      fn: async (
+        action: Action<AnonymousObject>,
+        options: ActionConsumerCallbackOptions,
+      ) => {
         const { fn } = action.original || {}
         if (options?.component) fn?.()
       },
@@ -68,7 +72,11 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
     .register({
       actionType: 'emit',
-      fn: async (action: EmitAction<EmitActionObject>, options, { noodl }) => {
+      fn: async (
+        action: EmitAction<EmitActionObject>,
+        options: ActionConsumerCallbackOptions,
+        { noodl }: ActionChainContext,
+      ) => {
         log.func('emit [dataKey]')
         log.gold('Emitting', { action, ...options })
 
@@ -96,7 +104,11 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     /** DATA VALUE EMIT */
     .register({
       actionType: 'emit',
-      fn: async (action: EmitAction<EmitActionObject>, options, { noodl }) => {
+      fn: async (
+        action: EmitAction<EmitActionObject>,
+        options: ActionConsumerCallbackOptions,
+        { noodl }: ActionChainContext,
+      ) => {
         log.func('emit [dataValue]')
         log.grey('', { action, options })
 
@@ -127,7 +139,11 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     /** onBlur EMIT */
     .register({
       actionType: 'emit',
-      fn: async (action: EmitAction<EmitActionObject>, options, { noodl }) => {
+      fn: async (
+        action: EmitAction<EmitActionObject>,
+        options: ActionConsumerCallbackOptions,
+        { noodl }: ActionChainContext,
+      ) => {
         log.func('emit [onBlur]')
         log.grey('', { action, options })
 
@@ -158,7 +174,11 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     /** onClick EMIT */
     .register({
       actionType: 'emit',
-      fn: async (action: EmitAction<EmitActionObject>, options, { noodl }) => {
+      fn: async (
+        action: EmitAction<EmitActionObject>,
+        options: ActionConsumerCallbackOptions,
+        { noodl }: ActionChainContext,
+      ) => {
         log.func('emit [onClick]')
         log.gold('Emitting', { action, noodl, noodlui, ...options })
 
@@ -189,7 +209,11 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     /** onChange EMIT */
     .register({
       actionType: 'emit',
-      fn: async (action: EmitAction<EmitActionObject>, options, { noodl }) => {
+      fn: async (
+        action: EmitAction<EmitActionObject>,
+        options: ActionConsumerCallbackOptions,
+        { noodl }: ActionChainContext,
+      ) => {
         log.func('emit [onChange]')
         log.grey('', { action, options })
 
@@ -223,7 +247,7 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
       fn: async (
         action: EmitAction<EmitActionObject>,
         options: ActionConsumerCallbackOptions & { path: EmitObject },
-        { noodl },
+        { noodl }: ActionChainContext,
       ) => {
         log.func('path [emit]')
         const { component, context, getRoot, getPageObject, path } = options
@@ -260,7 +284,10 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     })
     .register({
       actionType: 'evalObject',
-      fn: async (action: Action<EvalActionObject>, options) => {
+      fn: async (
+        action: Action<EvalActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) => {
         log.func('evalObject')
         try {
           if (typeof action?.original?.object === 'function') {
@@ -338,7 +365,11 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     })
     .register({
       actionType: 'goto',
-      fn: async (action: Action<GotoActionObject>, options, actionsContext) => {
+      fn: async (
+        action: Action<GotoActionObject>,
+        options: ActionConsumerCallbackOptions,
+        actionsContext: ActionChainContext,
+      ) => {
         log.func('_actions.goto')
         log.red('goto action', { action, options, actionsContext })
         const { noodl } = actionsContext
@@ -396,7 +427,10 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     })
     .register({
       actionType: 'pageJump',
-      fn: async (action: Action<PageJumpActionObject>, options) => {
+      fn: async (
+        action: Action<PageJumpActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) => {
         log.func('pageJump')
         log.grey('', { action, ...options })
         await noodluidom.page.requestPageChange(action.original.destination)
@@ -406,7 +440,7 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
       actionType: 'popUp',
       fn: async (
         action: Action<PopupActionObject | PopupDismissActionObject>,
-        options,
+        options: ActionConsumerCallbackOptions,
       ) => {
         log.func('popUp')
         log.grey('', { action, ...options })
@@ -483,8 +517,8 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
       actionType: 'popUpDismiss',
       fn: async (
         action: Action<PopupDismissActionObject>,
-        options,
-        actionsContext,
+        options: ActionConsumerCallbackOptions,
+        actionsContext: ActionChainContext,
       ) => {
         log.func('popUpDismiss')
         log.grey('', { action, ...options })
@@ -496,7 +530,10 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     })
     .register({
       actionType: 'refresh',
-      fn: (action: Action<RefreshActionObject>, options) => {
+      fn: (
+        action: Action<RefreshActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) => {
         log.func('refresh')
         log.grey(action.original.actionType, { action, ...options })
         window.location.reload()
@@ -504,7 +541,10 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     })
     .register({
       actionType: 'saveObject',
-      fn: async (action: Action<SaveActionObject>, options) => {
+      fn: async (
+        action: Action<SaveActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) => {
         const { default: noodl } = await import('../app/noodl')
         const { abort, getRoot, getPageObject, page } = options
 
@@ -581,7 +621,10 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
     })
     .register({
       actionType: 'toast',
-      fn: async (action: Action<ToastActionObject>, options) => {
+      fn: async (
+        action: Action<ToastActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) => {
         try {
           log.func('toast')
           log.gold('', { action, options })
@@ -595,8 +638,8 @@ export const listen = ({ noodlui }: { noodlui: NOODLUI }) => {
       actionType: 'updateObject',
       fn: async (
         action: Action<UpdateActionObject>,
-        options,
-        actionsContext,
+        options: ActionConsumerCallbackOptions,
+        actionsContext: ActionChainContext,
       ) => {
         const { abort, component, stateHelpers } = options
         const { default: noodl } = await import('../app/noodl')
