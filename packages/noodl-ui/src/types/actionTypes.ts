@@ -1,4 +1,4 @@
-import { ToastObject } from 'noodl-types'
+import { StyleObject, ToastObject } from 'noodl-types'
 import { AbortExecuteError } from '../errors'
 import { ConsumerOptions, IfObject } from './types'
 import Action from '../Action'
@@ -68,6 +68,12 @@ export interface EvalObject extends BaseActionObject {
   object?: Function | IfObject
 }
 
+export interface GotoActionObject extends BaseActionObject {
+  actionType: 'goto'
+  goto: string
+  [key: string]: any
+}
+
 export interface GotoObject extends BaseActionObject {
   actionType: 'goto'
   destination?: string
@@ -95,6 +101,12 @@ export interface RefreshObject extends BaseActionObject {
 export interface SaveObject extends BaseActionObject {
   actionType: 'saveObject'
   object?: [string, (...args: any[]) => any] | ((...args: any[]) => any)
+}
+
+export interface ToastActionObject extends BaseActionObject {
+  actionType: 'toast'
+  message: string
+  style?: Partial<StyleObject>
 }
 
 export type UpdateObject<T = any> = {

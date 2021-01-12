@@ -75,6 +75,13 @@ const createResolver = function createResolver() {
     )
   }
 
+  function _get(key: 'noodlui'): NOODLUI
+  function _get(key?: undefined): typeof _internal.objs
+  function _get(key?: 'noodlui' | undefined) {
+    if (key === 'noodlui') return _internal.noodlui
+    return _internal.objs
+  }
+
   const o = {
     register(obj: T.NodeResolverConfig) {
       if (!_internal.objs.includes(obj)) _internal.objs.push(obj)
@@ -94,10 +101,7 @@ const createResolver = function createResolver() {
       _internal.objs.length = 0
       return o
     },
-    get(key?: string) {
-      if (key === 'noodlui') return _internal.noodlui
-      return _internal.objs
-    },
+    get: _get,
     use(value: UseObject | UseObject[]) {
       if (Array.isArray(value)) {
         value.forEach((val) => o.use(val))

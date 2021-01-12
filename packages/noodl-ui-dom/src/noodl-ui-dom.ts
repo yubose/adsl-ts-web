@@ -1,10 +1,18 @@
 import {
+  ActionObject,
+  AnonymousObject,
+  BuiltInObject,
   ComponentInstance,
   createComponent,
+  EmitActionObject,
   getTagName,
+  GotoActionObject,
   NOODL as NOODLUI,
   NOODLComponent,
   publish,
+  StoreActionObject,
+  StoreBuiltInObject,
+  ToastActionObject,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { eventId } from './constants'
@@ -14,6 +22,7 @@ import NOODLUIDOMInternal from './Internal'
 import Page from './Page'
 import * as defaultResolvers from './resolvers'
 import * as T from './types'
+import { GotoUrl } from 'noodl-types'
 
 class NOODLUIDOM extends NOODLUIDOMInternal {
   #R: ReturnType<typeof createResolver>
@@ -255,8 +264,26 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this
   }
 
-  register(obj: NOODLUI | T.NodeResolverConfig): this {
-    this.#R.use(obj)
+  register<
+    A extends
+      | ActionObject
+      | EmitActionObject
+      | GotoActionObject
+      | ToastActionObject
+  >(obj: StoreActionObject<A>): this
+  register<B extends BuiltInObject>(obj: StoreBuiltInObject<B>): this
+  register<R extends T.NodeResolverConfig>(obj: R): this
+  register(
+    obj:
+      | T.NodeResolverConfig
+      | StoreActionObject<any>
+      | StoreBuiltInObject<any>,
+  ): this {
+    if ('resolve' in obj) {
+      this.#R.use(obj)
+    } else if ('actionType' in obj) {
+      this.#R.get('noodlui').use(obj)
+    }
     return this
   }
 
@@ -274,6 +301,13 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       }
     }
     Object.values(this.#cbs).forEach((obj) => clearCbs(obj))
+    return this
+  }
+
+  use(obj: NOODLUI) {
+    if (obj instanceof NOODLUI) {
+      this.#R.use(obj)
+    }
     return this
   }
 }

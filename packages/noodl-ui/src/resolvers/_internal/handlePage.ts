@@ -1,5 +1,4 @@
 import Logger from 'logsnap'
-import isNil from 'lodash/isNil'
 import { ConsumerOptions } from '../../types'
 import { _resolveChildren } from './helpers'
 import { event as eventId } from '../../constants'
@@ -53,14 +52,7 @@ const handlePageInternalResolver = async (
     }
 
     const path = component.get('path') as string
-    // const ref = component.setRef(spawn(path, { viewport })).getRef() as any
     component.viewport = viewport
-
-    // log.grey(`[type: page] Spawned a new noodl-ui process`, {
-    //   // ref,
-    //   path,
-    //   component,
-    // })
 
     component.assetsUrl = getAssetsUrl()
     component.getStateHelpers = ref.getStateHelpers.bind(component)
@@ -101,10 +93,6 @@ const handlePageInternalResolver = async (
         result = await result
       }
     }
-
-    // setTimeout(() => component.emit(eventId.component.page.SET_REF, ))
-
-    // log.grey(`Ref set on component`, { component, path, })
 
     const pageObject = getPageObject(path)
 

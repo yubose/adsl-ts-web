@@ -206,9 +206,9 @@ class NOODL {
       })
     }
 
-    this.#resolvers.forEach((r: Resolver) =>
-      r.resolve(component, consumerOptions),
-    )
+    this.#resolvers.forEach((r: Resolver) => {
+      r.resolve(component, consumerOptions)
+    })
 
     return component
   }

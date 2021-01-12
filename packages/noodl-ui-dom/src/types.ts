@@ -1,5 +1,5 @@
+import { ComponentObject } from 'noodl-types'
 import {
-  ComponentObject,
   ComponentInstance,
   ComponentType,
   NOODL as NOODLUI,

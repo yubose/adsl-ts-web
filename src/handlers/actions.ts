@@ -373,7 +373,22 @@ const createActions = function ({
         destinationParam,
       )
       if (isSamePage) {
-        scrollToElem(getByDataViewTag(id), { duration })
+        let id = options.component.id
+        let win
+        let index = 0
+
+        if (window.length) {
+          win = window[index++]
+          while (win) {
+            const node2 = document.getElementById(id)
+            window.node2 = node2
+            const node = win.document.getElementById(id)
+            if (node) scrollToElem(node, { win, duration: 800 })
+            win = window[index++]
+          }
+        } else {
+          scrollToElem(getByDataViewTag(id), { duration })
+        }
       } else {
         if (!destinationParam?.startsWith?.('http')) {
           if (id) {

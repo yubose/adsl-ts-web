@@ -1,4 +1,5 @@
 import Logger from 'logsnap'
+import { GotoObject, GotoUrl, ToastObject } from 'noodl-types'
 import {
   IAction,
   ActionCallback,
@@ -6,15 +7,23 @@ import {
   ActionSnapshot,
   ActionStatus,
   ActionObject,
+  GotoActionObject,
+  ToastActionObject,
 } from '../types/actionTypes'
 import { getRandomKey } from '../utils/common'
 import { AbortExecuteError } from '../errors'
+import { ComponentType } from '../types'
 
 const log = Logger.create('Action')
 
 export const DEFAULT_TIMEOUT_DELAY = 8000
 
-class Action<OriginalAction extends ActionObject> implements IAction {
+class Action<
+  OriginalAction extends
+    | ActionObject
+    | GotoActionObject
+    | ToastActionObject = any
+> implements IAction {
   #id: string
   #callback: ActionCallback | undefined
   #trigger: string
@@ -31,7 +40,7 @@ class Action<OriginalAction extends ActionObject> implements IAction {
   timeoutDelay: number = DEFAULT_TIMEOUT_DELAY
   actionType: OriginalAction['actionType']
 
-  constructor(action: OriginalAction, options?: ActionOptions<OriginalAction>) {
+  constructor(action: OriginalAction, options?: ActionOptions<ActionObject>) {
     log.func('constructor')
     if (!action || !('actionType' in action)) {
       log.red(
@@ -44,8 +53,15 @@ class Action<OriginalAction extends ActionObject> implements IAction {
     this.#callback = options?.callback
     this.original = action
     this.timeoutDelay = options?.timeoutDelay || DEFAULT_TIMEOUT_DELAY
-    this.actionType =
-      action.actionType || ('emit' in action || {} ? 'emit' : '')
+    if (typeof action === 'string') {
+      this.actionType = 'goto'
+    } else {
+      if ('emit' in action) this.actionType = 'emit'
+      else if ('goto' in action) this.actionType = 'goto'
+      else if ('toast' in action) this.actionType = 'toast'
+      else this.actionType = action['actionType']
+    }
+
     if (options?.trigger) this.#trigger = options.trigger
   }
 

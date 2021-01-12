@@ -69,7 +69,7 @@ export interface ActionChainSnapshot {
   currentAction: Action<ActionObject> | EmitAction<EmitActionObject>
   original: ActionObject[]
   queue: (Action<ActionObject> | EmitAction<EmitActionObject>)[]
-  status: ActionChain<ActionObject[], any>['status']
+  status: ActionChain<ActionObject[]>['status']
 }
 
 export interface ActionChainCallbackOptions {
@@ -81,7 +81,16 @@ export interface ActionChainCallbackOptions {
 }
 
 export interface ActionChainActionCallback<
-  A extends Action<ActionObject> = any
+  A extends Action<ActionObject> | EmitAction<EmitActionObject> = any
+> {
+  (
+    action: A,
+    options: ActionConsumerCallbackOptions,
+    actionsContext: ActionChainContext,
+  ): Promise<any> | void
+}
+export interface ActionChainActionCallback<
+  A extends Action<ActionObject> | EmitAction<EmitActionObject> = any
 > {
   (
     action: A,
@@ -97,11 +106,12 @@ export interface ActionConsumerCallbackOptions
       | 'component'
       | 'context'
       | 'getAssetsUrl'
+      | 'getBaseUrl'
       | 'getCbs'
-      | 'getPageObject'
+      | 'getPages'
+      | 'getPreloadPages'
       | 'getResolvers'
       | 'getRoot'
-      | 'getState'
       | 'plugins'
       | 'setPlugin'
       | 'viewport'

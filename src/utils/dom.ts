@@ -131,8 +131,8 @@ export function isVisible(node: any) {
  * Note: do not support fixed position of body
  * @param { number } value
  */
-function setDocumentScrollTop(value: number) {
-  window.scrollTo(0, value)
+function setDocumentScrollTop(value: number, win?: Window) {
+  ;(win || window).scrollTo(0, value)
   return value
 }
 
@@ -142,7 +142,7 @@ function setDocumentScrollTop(value: number) {
  * @param  {Number} duration assign the animate duration
  * @return {Null}            return null
  */
-export function scrollTo(to = 0, duration = 16) {
+export function scrollTo(to = 0, duration = 16, win?: Window) {
   if (duration < 0) {
     return
   }
@@ -153,25 +153,25 @@ export function scrollTo(to = 0, duration = 16) {
   const perTick = (diff / duration) * 10
   requestAnimationFrame(() => {
     if (Math.abs(perTick) > Math.abs(diff)) {
-      setDocumentScrollTop(getDocumentScrollTop() + diff)
+      setDocumentScrollTop(getDocumentScrollTop() + diff, win)
       return
     }
-    setDocumentScrollTop(getDocumentScrollTop() + perTick)
+    setDocumentScrollTop(getDocumentScrollTop() + perTick, win)
     if (
       (diff > 0 && getDocumentScrollTop() >= to) ||
       (diff < 0 && getDocumentScrollTop() <= to)
     ) {
       return
     }
-    scrollTo(to, duration - 16)
+    scrollTo(to, duration - 16, win)
   })
 }
 
 export function scrollToElem(
   node: any,
-  { duration }: { duration?: number } = {},
+  { win, duration }: { win?: Window; duration?: number } = {},
 ) {
-  if (node) scrollTo(node.getBoundingClientRect().top, duration)
+  node && scrollTo(node.getBoundingClientRect().bottom, duration, win)
 }
 
 export function toast(message: string | number, options?: Toast['options']) {
