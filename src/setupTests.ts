@@ -2,22 +2,18 @@ import noop from 'lodash/noop'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
-import { getAllResolvers, Resolver } from 'noodl-ui'
-import {
-  assetsUrl,
-  noodlui,
-  noodluidom,
-  page,
-  viewport,
-} from './utils/test-utils'
+import { eventId } from 'noodl-ui-dom'
+import { getAllResolversAsMap, publish, Resolver } from 'noodl-ui'
+import { assetsUrl, noodlui, noodluidom, viewport } from './utils/test-utils'
 
 chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
+let root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 
 before(() => {
-  noodlui.init({ _log: false })
   console.clear()
+  noodlui.init({ _log: false })
   // @ts-expect-error
   delete window.location
   // @ts-expect-error
@@ -25,10 +21,23 @@ before(() => {
 
   logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
 
-  getAllResolvers().forEach((r) => {
+  noodluidom
+    .on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
+      noodlui.componentCache().remove(component)
+      publish(component, (c) => {
+        noodlui.componentCache().remove(c)
+      })
+    })
+    .use(noodlui)
+
+  Object.entries(getAllResolversAsMap()).forEach(([name, r]) => {
     const resolver = new Resolver().setResolver(r)
     noodlui.use(resolver)
+    noodlui.use({ name, resolver } as any)
   })
+
+  viewport.width = 375
+  viewport.height = 667
 })
 
 after(() => {
@@ -36,24 +45,16 @@ after(() => {
 })
 
 beforeEach(() => {
-  document.body.appendChild(page.rootNode as HTMLElement)
+  noodlui.setPage('GeneralInfo').use({
+    getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => 'https://google.com/',
+    getRoot: () => root,
+  })
 })
 
 afterEach(() => {
+  document.head.textContent = ''
   document.body.textContent = ''
-  noodlui
-    .setPage('MeetingLobby')
-    .reset({ keepCallbacks: true })
-    .use(viewport)
-    .use({
-      getAssetsUrl: () => assetsUrl,
-      getRoot: () => ({
-        MeetingLobby: {
-          module: 'meetingroom',
-          title: 'Meeting Lobby',
-          formData: { phoneNumber: '', password: '', code: '' },
-        },
-      }),
-    })
-  noodluidom.reset()
+  // Resets plugins, registry, noodlui.page
+  noodlui.reset()
 })

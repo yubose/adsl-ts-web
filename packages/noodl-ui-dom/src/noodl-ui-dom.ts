@@ -145,7 +145,10 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       } else {
         if (component.noodlType === 'image') {
           node = isEmitObj((component as any).get('path'))
-            ? createAsyncImageElement(container || document.body, {})
+            ? createAsyncImageElement(
+                (container || document.body) as HTMLElement,
+                {},
+              )
             : document.createElement('img')
         } else {
           node = document.createElement(
@@ -218,11 +221,13 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         parent.createChild(newComponent)
         // Run the resolver if provided
         newComponent =
-          this.config.redraw.resolveComponents?.(newComponent) || newComponent
+          this.#R.get('noodlui').resolveComponents?.(newComponent) ||
+          newComponent
       } else if (newComponent) {
         // log --> !parent || !newComponent
         newComponent =
-          this.config.redraw.resolveComponents?.(newComponent) || newComponent
+          this.#R.get('noodlui').resolveComponents?.(newComponent) ||
+          newComponent
       }
     }
 
@@ -282,7 +287,9 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       | GotoActionObject
       | ToastActionObject
   >(obj: StoreActionObject<A, T.ActionChainDOMContext>): this
-  register<B extends BuiltInObject>(obj: StoreBuiltInObject<B>): this
+  register<B extends BuiltInObject>(
+    obj: StoreBuiltInObject<B, T.ActionChainDOMContext>,
+  ): this
   register<R extends T.NodeResolverConfig>(obj: R): this
   register(
     obj:

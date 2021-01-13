@@ -101,7 +101,7 @@ const createActionCreatorFactory = function (
    */
   const getResults = async <A extends Action<ActionObject>>(
     action: A,
-    callbacks: ActionChainActionCallback[],
+    callbacks: ActionChainActionCallback<any>[],
     event: any,
   ) => {
     const results = []
@@ -157,7 +157,9 @@ const createActionCreatorFactory = function (
       action.callback = async (inst, event: any) =>
         getResults(
           action,
-          ref.fns.builtIn[action?.original?.funcName]?.slice() || [],
+          (ref.fns.builtIn[action?.original?.funcName]?.slice() || []).map(
+            (obj) => obj.fn,
+          ),
           event,
         )
       return action

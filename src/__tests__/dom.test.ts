@@ -3,13 +3,14 @@ import { screen, waitFor } from '@testing-library/dom'
 import { NOODLComponent } from 'noodl-ui'
 import { assetsUrl, noodlui, page } from '../utils/test-utils'
 
-xdescribe('dom', () => {
+describe('DOM', () => {
   describe('type: "textField" with contentType: "password"', () => {
     const dataKey = 'formData.greeting'
     const greeting = 'good morning'
     let eyeOpened = 'makePasswordVisiable.png'
     let eyeClosed = 'makePasswordInvisible.png'
     let regexTitlePwInvisible = /click here to reveal your password/i
+
     const noodlComponent = {
       type: 'textField',
       contentType: 'password',

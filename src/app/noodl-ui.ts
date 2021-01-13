@@ -1,6 +1,9 @@
 import pick from 'lodash/pick'
 import {
+  findByElementId,
+  findByViewTag,
   findWindow,
+  findWindowDocument,
   getByDataUX,
   getDataAttribKeys,
   getDynamicShapeKeys,
@@ -21,7 +24,10 @@ export function getWindowHelpers() {
   return Object.assign(
     {
       findReferences,
+      findByElementId,
+      findByViewTag,
       findWindow,
+      findWindowDocument,
       getByDataUX,
       getDataAttribKeys,
       getDynamicShapeKeys,

@@ -5,7 +5,10 @@ export * from './noodl-ui-dom'
 export * from './types'
 
 export {
+  findByElementId,
+  findByViewTag,
   findWindow,
+  findWindowDocument,
   getByDataUX,
   getDataAttribKeys,
   getDynamicShapeKeys,

@@ -51,14 +51,62 @@ export function createEmptyObjectWithKeys<K extends string = any, I = any>(
   )
 }
 
-export function findWindow(node: NOODLDOMElement | Element | null) {
-  if (node instanceof Element) {
-    for (let index = 0; index < window.length; index++) {
-      const win = window[index]
-      if (win.document.contains(node)) return win
+/**
+ * Returns the DOM node. This method searches through several window objects
+ * @param { string | ComponentInstance } component - Component id or instance
+ */
+export function findByElementId(
+  component: ComponentInstance,
+): NOODLDOMElement | Element | HTMLElement | null
+export function findByElementId(id: string): NOODLDOMElement | Element | null
+export function findByElementId(c: ComponentInstance | string) {
+  if (!c) return c
+  const id = isStr(c) ? c : c.id
+  const fn = (doc: Document | null | undefined) => getByElementId(id, doc)
+  if (isPageConsumer(c)) return fn(findWindowDocument((doc) => !!fn(doc)))
+  return getByElementId(id)
+}
+
+export function findByViewTag(
+  component: ComponentInstance,
+): NOODLDOMElement | Element | null
+export function findByViewTag(viewTag: string): NOODLDOMElement | Element | null
+export function findByViewTag(c: ComponentInstance | string) {
+  if (!c) return c
+  const viewTag = isStr(c) ? c : c.get('viewTag')
+  const fn = (doc: Document | null | undefined) => getByViewTag(viewTag, doc)
+  if (isPageConsumer(c)) return fn(findWindowDocument((doc) => !!fn(doc)))
+  return getByViewTag(viewTag)
+}
+
+export function findWindow(
+  cb: (
+    win: Window | HTMLIFrameElement['contentWindow'],
+  ) => boolean | null | undefined,
+) {
+  if (isBrowser()) {
+    if (window.length) {
+      let index = 0
+      while (index < window.length) {
+        if (cb(window[index])) return window[index]
+        index++
+      }
+    } else {
+      if (cb(window)) return window
     }
   }
   return null
+}
+
+export function findWindowDocument(
+  cb: (
+    doc: Document | HTMLIFrameElement['contentDocument'],
+  ) => boolean | null | undefined,
+) {
+  const win = findWindow((w) => cb(w?.['contentDocument'] || w?.document))
+  return (win?.['contentDocument'] || win?.document) as
+    | Document
+    | HTMLIFrameElement['contentDocument']
 }
 
 export const get = <T = any>(o: T, k: string) => {
@@ -74,6 +122,34 @@ export const get = <T = any>(o: T, k: string) => {
   }
 
   return result
+}
+
+export function getByDataKey(
+  value: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | Element | null {
+  return (doc || document).querySelector(`[data-key="${value}"]`)
+}
+
+export function getByListId(
+  value: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | Element | null {
+  return (doc || document).querySelector(`[data-listid="${value}"]`)
+}
+
+export function getByViewTag(
+  value: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | Element | null {
+  return (doc || document).querySelector(`[data-viewtag="${value}"]`)
+}
+
+export function getByElementId(
+  id: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | Element | null {
+  return (doc || document).getElementById(id)
 }
 
 export function getDataAttribKeys() {
@@ -245,6 +321,10 @@ export function getDynamicShapeKeys(
   return shapeKeys
 }
 
+export function isBrowser() {
+  return typeof window !== 'undefined'
+}
+
 /**
  * Returns true if the value can be displayed in the UI as normal.
  * A displayable value is any value that is a string or number
@@ -258,7 +338,7 @@ export function isDisplayable(value: unknown): value is string | number {
  * Returns true if the component is a descendant of a component of type: "page"
  * @param { ComponentInstance } component
  */
-export function isPageConsumer(component: ComponentInstance | undefined) {
+export function isPageConsumer(component: any): boolean {
   return isComponent(component)
     ? !!findParent(component, (parent) => parent?.noodlType === 'page')
     : false

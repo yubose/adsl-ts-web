@@ -108,19 +108,39 @@ export interface ConsumerOptions {
   getBaseStyles(styles?: Style): Partial<Style>
   getCbs(
     key: 'actions',
-  ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+  ): Partial<
+    Record<
+      ActionType | 'emit' | 'goto' | 'toast',
+      ActionChainUseObjectBase<any, any>[]
+    >
+  >
   getCbs(
     key: 'builtIns',
-  ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+  ): Partial<
+    Record<
+      ActionType | 'emit' | 'goto' | 'toast',
+      ActionChainUseObjectBase<any, any>[]
+    >
+  >
   getCbs(
     key: 'chaining',
-  ): Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+  ): Partial<
+    Record<
+      ActionType | 'emit' | 'goto' | 'toast',
+      ActionChainUseObjectBase<any, any>[]
+    >
+  >
   getCbs(key: PageEventId): ((page: string) => any)[]
   getCbs(key: 'new.page.ref'): ((component: any) => Promise<void> | undefined)[]
   getCbs(
     key?: 'actions' | 'builtIns' | 'chaining' | PageEventId,
   ): {
-    action: Partial<Record<ActionType, ActionChainUseObjectBase<any, any>[]>>
+    action: Partial<
+      Record<
+        ActionType | 'emit' | 'goto' | 'toast',
+        ActionChainUseObjectBase<any, any>[]
+      >
+    >
     builtIn: { [funcName: string]: ActionChainActionCallback[] }
     chaining: Partial<Record<ActionChainEventId, Function[]>>
     on: Partial<Record<PageEventId, any[]>>

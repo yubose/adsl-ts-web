@@ -13,7 +13,22 @@ export interface AnyFn {
 }
 
 export interface ActionChainDOMContext extends ActionChainContext {
-  findWindow(node: NOODLDOMElement | null): Window | null
+  findByElementId(
+    c: ComponentInstance | string,
+  ): NOODLDOMElement | null | undefined
+  findByViewTag(
+    c: ComponentInstance | string,
+  ): NOODLDOMElement | null | undefined
+  findWindow(
+    fn: (
+      win: Window | HTMLIFrameElement['contentWindow'],
+    ) => boolean | null | undefined,
+  ): Window | null
+  findWindowDocument(
+    fn: (
+      doc: Document | HTMLIFrameElement['contentDocument'],
+    ) => boolean | null | undefined,
+  ): Document | null
   isPageConsumer(component: ComponentInstance | undefined): boolean
 }
 
@@ -24,10 +39,9 @@ export type NOODLDOMDataValueElement =
   | HTMLSelectElement
   | HTMLTextAreaElement
 
-export type NOODLDOMElement = Extract<
-  NOODLDOMElements[NOODLDOMElementTypes],
-  HTMLElement
->
+export type NOODLDOMElement =
+  | Extract<NOODLDOMElements[NOODLDOMElementTypes], HTMLElement>
+  | Element
 
 export type NOODLDOMElements = Pick<
   HTMLElementTagNameMap,
@@ -68,7 +82,7 @@ export interface NOODLUIDOMResolveFunc<
 export type NodeResolver<RT = any> = NOODLUIDOMResolveFunc<
   NOODLDOMElement,
   ComponentInstance,
-  {
+  ActionChainDOMContext & {
     noodlui: NOODLUI
     original: ComponentObject
     draw: Parse

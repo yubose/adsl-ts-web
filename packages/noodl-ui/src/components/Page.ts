@@ -91,6 +91,14 @@ class Page
     return this.#page
   }
 
+  get pages() {
+    return this.#getPages()
+  }
+
+  get preloadPages() {
+    return this.#getPreloadPages()
+  }
+
   get viewport() {
     return this.#viewport
   }
@@ -374,14 +382,6 @@ class Page
       assetsUrl: this.getAssetsUrl(),
       page: this.page,
     } as T.ResolverContext
-  }
-
-  get pages() {
-    return this.#pages
-  }
-
-  set pages(pages: string[]) {
-    this.#pages = pages
   }
 
   getAssetsUrl() {

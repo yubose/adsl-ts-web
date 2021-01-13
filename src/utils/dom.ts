@@ -169,7 +169,7 @@ export function scrollTo(to = 0, duration = 16, win?: Window) {
 
 export function scrollToElem(
   node: any,
-  { win, duration }: { win?: Window; duration?: number } = {},
+  { win, duration }: { win?: Window | null; duration?: number } = {},
 ) {
   node && scrollTo(node.getBoundingClientRect().bottom, duration, win)
 }

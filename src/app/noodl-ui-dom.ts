@@ -63,7 +63,7 @@ const log = Logger.create('src/app/noodl-ui-dom.ts')
 const noodluidom = new NOODLUIDOM()
 
 export const listen = ({
-  noodl,
+  noodl, // @aitmed/cadl SDK
   noodlui,
 }: {
   noodl: any
@@ -264,7 +264,7 @@ export const listen = ({
         options: ActionConsumerCallbackOptions & { path: EmitObject },
         { noodl },
       ) => {
-        log.func('path [emit]')
+        log.func('emit [path]')
         const { component, context, getRoot, getPageObject, path } = options
         const page = context.page || ''
         const dataObject = findListDataObject(component)
@@ -286,7 +286,6 @@ export const listen = ({
             { iteratorVar },
           )
         }
-
         const result = await noodl.emitCall(emitParams)
 
         log.grey(
@@ -387,7 +386,12 @@ export const listen = ({
       ) => {
         log.func('goto')
         log.red('goto action', { action, options, ...actionsContext })
-        const { findWindow, isPageConsumer, noodl } = actionsContext
+        const {
+          findWindow,
+          findByElementId,
+          findByViewTag,
+          noodl,
+        } = actionsContext
         const { component } = options
 
         const destinationParam =
@@ -401,54 +405,67 @@ export const listen = ({
           destinationParam,
         )
 
-        let win: Window | null | undefined
-
-        const node =
-          getByDataViewTag(id) || document.getElementById(component.id)
-
-        if (node) {
-          win = findWindow(node)
-        } else {
-          // log
-        }
-
-        log.gold(`[goto props]`, {
-          win,
-          node,
+        log.grey('', {
+          destinationParam,
           destination,
+          duration,
           id,
           isSamePage,
-          isPageConsumer: isPageConsumer(component),
-          duration,
-          component,
-          document,
         })
 
-        if (isSamePage) {
-          node && scrollToElem(node, { win: win as Window, duration })
-        } else {
-          if (!destinationParam?.startsWith?.('http')) {
-            if (id) {
+        if (id) {
+          const node = findByViewTag(id) || findByElementId(component.id)
+
+          if (node) {
+            let win = findWindow((w) => {
+              if (w) {
+                if ('contentDocument' in w) {
+                  return (w as any).contentDocument.contains?.(node)
+                }
+                return w.document?.contains?.(node)
+              } else return false
+            })
+            if (isSamePage) {
+              scrollToElem(node, { win, duration })
+            } else {
               noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-                scrollToElem(node, { win: win as Window, duration })
+                scrollToElem(node, { win, duration })
               })
             }
-            noodluidom.page.pageUrl = resolvePageUrl({
-              destination,
-              pageUrl: noodluidom.page.pageUrl,
-              startPage: noodl.cadlEndpoint.startPage,
-            })
           } else {
-            destination = destinationParam
-          }
-          await noodluidom.page.requestPageChange(destination)
-          if (!destination) {
-            log.func('goto')
             log.red(
-              'Tried to go to a page but could not find information on the whereabouts',
-              { action, ...options },
+              `Could not search for a DOM node with an identity of "${id}"`,
+              {
+                node,
+                id,
+                destination,
+                isSamePage,
+                duration,
+                action,
+                options,
+                actionsContext,
+              },
             )
           }
+        }
+
+        if (!destinationParam?.startsWith?.('http')) {
+          noodluidom.page.pageUrl = resolvePageUrl({
+            destination,
+            pageUrl: noodluidom.page.pageUrl,
+            startPage: noodl.cadlEndpoint.startPage,
+          })
+        } else {
+          destination = destinationParam
+        }
+
+        await noodluidom.page.requestPageChange(destination)
+        if (!destination) {
+          log.func('goto')
+          log.red(
+            'Tried to go to a page but could not find information on the whereabouts',
+            { action, ...options },
+          )
         }
       },
     })
@@ -471,7 +488,7 @@ export const listen = ({
       ) => {
         log.func('popUp')
         log.grey('', { action, ...options })
-        const { abort, component, ref } = options
+        const { ref } = options
         const elem = getByDataUX(action.original.popUpView) as HTMLElement
         log.gold('popUp action', { action, ...options, elem })
         if (elem) {
@@ -670,7 +687,7 @@ export const listen = ({
         options: ActionConsumerCallbackOptions,
         { noodl },
       ) => {
-        const { abort, component, stateHelpers } = options
+        const { abort, component } = options
         log.func('updateObject')
 
         const callObjectOptions = { action, ...options } as any
@@ -743,21 +760,7 @@ export const listen = ({
                 dataObject.startsWith(iteratorVar)
               ) {
                 dataObject = findListDataObject(component)
-                if (stateHelpers) {
-                  const { getList } = stateHelpers
-                  const listId = component.get('listId')
-                  const listIndex = component.get('listIndex')
-                  const list = getList(listId) || []
-                  const listItem = list[listIndex]
-                  if (listItem) dataObject = listItem
-                  log.salmon('', {
-                    listId,
-                    listIndex,
-                    list,
-                    listItem,
-                  })
-                }
-                if (!dataObject) dataObject = options?.file
+                if (!dataObject) dataObject = (options as any)?.file
               }
               if (dataObject) {
                 const params = { dataKey, dataObject }
@@ -792,14 +795,14 @@ export const listen = ({
         log.func('checkField')
         log.grey('checkField', { action, options })
         let contentType: string = '',
-          delay: number = 0
+          delay: number | boolean = 0
 
         if (action instanceof Action) {
           contentType = action.original?.contentType || ''
           delay = action.original?.wait || 0
         } else {
-          contentType = action.contentType || ''
-          delay = action.wait || 0
+          contentType = (action as any).contentType || ''
+          delay = (action as any).wait || 0
         }
 
         const onCheckField = () => {
@@ -813,7 +816,7 @@ export const listen = ({
         }
 
         if (delay > 0) {
-          setTimeout(() => onCheckField(), delay)
+          setTimeout(() => onCheckField(), delay as any)
         } else {
           onCheckField()
         }
@@ -938,11 +941,12 @@ export const listen = ({
       ) {
         log.func('toggleFlag')
         console.log({ action, ...options })
+        const { findByElementId } = actionsContext
         const { component } = options
         const page = noodlui.page
         const { dataKey = '' } = action.original || {}
         let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
-        const node = document.getElementById(component?.id)
+        const node = findByElementId(component)
 
         let dataValue: any
         let dataObject: any
@@ -1113,7 +1117,7 @@ export const listen = ({
           (typeof action === 'string'
             ? action
             : isPlainObject(action)
-            ? action.destination
+            ? (action as any).destination
             : '') || ''
         let { destination, id = '', isSamePage, duration } = parse.destination(
           destinationParam,
@@ -1152,6 +1156,7 @@ export const listen = ({
       async fn(
         action: Action<BuiltInActionObject>,
         options: ActionConsumerCallbackOptions,
+        { findByViewTag },
       ) {
         log.func('redraw')
         log.red('', { action, options })
@@ -1165,16 +1170,6 @@ export const listen = ({
           return acc
         }, [])
 
-        log.gold('viewTaggedComponents', {
-          viewtagged: components?.reduce((acc, c) => {
-            acc[c.id] = {
-              component: c,
-              node: document.getElementById(c.id),
-            } as any
-            return acc
-          }, {}),
-        })
-
         const { component } = options
 
         if (
@@ -1185,29 +1180,17 @@ export const listen = ({
           components.push(component)
         }
 
-        log.grey(
-          `# of components with viewTag "${viewTag}": ${components.length}`,
-          components,
-        )
-
         let startCount = 0
 
         while (startCount < components.length) {
           const viewTagComponent = components[startCount] as ComponentInstance
-          const node = document.getElementById(viewTagComponent.id)
-          log.grey(
-            '[Redrawing] ' + node
-              ? `Found node for viewTag component`
-              : `Could not find a node associated with the viewTag component`,
-            { node, component: viewTagComponent },
-          )
+          const node = findByViewTag(viewTagComponent)
           const dataObject = findListDataObject(viewTagComponent)
           const [newNode, newComponent] = noodluidom.redraw(
             node as HTMLElement,
             viewTagComponent,
             { dataObject },
           )
-
           log.grey('Resolved redrawed component/node', {
             newNode,
             newComponent,
@@ -1256,7 +1239,7 @@ export const listen = ({
     .register({
       name: 'image',
       cond: 'image',
-      async resolve(node, component) {
+      async resolve(node, component, { findByElementId }) {
         const { default: noodlui } = await import('../app/noodl-ui')
         const img = node as HTMLImageElement
         const parent = component.parent()
@@ -1267,7 +1250,7 @@ export const listen = ({
           pageObject?.docDetail?.document?.name?.type == 'application/pdf'
         ) {
           img.style.visibility = 'hidden'
-          const parentNode = document.getElementById(parent?.id || '')
+          const parentNode = findByElementId(parent)
           const iframeEl = document.createElement('iframe')
           iframeEl.setAttribute('src', img.src)
           if (isPlainObject(component.style)) {

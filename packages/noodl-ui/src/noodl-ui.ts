@@ -325,7 +325,7 @@ class NOODL {
 
           emitAction['callback'] = async (snapshot) => {
             log.grey(`Executing emit action callback`, snapshot)
-            const callbacks = (this.#cb.action.emit || []).reduce(
+            const callbacks = (getStore().actions.emit || []).reduce(
               (acc, obj) => (obj?.trigger === 'path' ? acc.concat(obj) : acc),
               [],
             )
@@ -654,6 +654,10 @@ class NOODL {
     }
   }
 
+  getBaseUrl() {
+    return this.#getBaseUrl?.()
+  }
+
   getConsumerOptions({
     component,
     ...rest
@@ -865,17 +869,6 @@ class NOODL {
     const handleMod = (m: typeof mods[number]) => {
       if (m) {
         if ('actionType' in m || 'funcName' in m || 'resolver' in m) {
-          getStore().use(m)
-        } else if ('actionType' in m) {
-          if (!Array.isArray(this.#cb.action[m.actionType])) {
-            this.#cb.action[m.actionType] = []
-          }
-          const obj = { actionType: m.actionType, fn: m.fn } as any
-          if ('context' in m) obj['context'] = m.context
-          if ('trigger' in m) obj['trigger'] = m.trigger
-          this.#cb.action[m.actionType]?.push(obj)
-          getStore().use(obj)
-        } else if ('resolver' in m) {
           getStore().use(m)
         } else if (m instanceof Viewport) {
           this.setViewport(m)

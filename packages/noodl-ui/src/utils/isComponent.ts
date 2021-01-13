@@ -1,12 +1,6 @@
-// import Logger from 'logsnap'
-import Component from '../components/Base'
-import List from '../components/List'
-import ListItem from '../components/ListItem'
+import { ComponentInstance } from '../types'
 
-// const log = Logger.create('isComponent')
-
-function isComponent(component: any): component is Component | List | ListItem {
-  // log.info(`Is component? ${component instanceof Component}`, component)
+function isComponent(component: any): component is ComponentInstance {
   return !!(
     component &&
     typeof component !== 'string' &&

@@ -64,8 +64,8 @@ const handlePageInternalResolver = async (
       getAssetsUrl: () => getAssetsUrl(),
       getBaseUrl: () => getBaseUrl(),
       getRoot: getRoot.bind(ref),
-      getPages: () => getPages(),
-      getPreloadPages: () => getPreloadPages(),
+      getPages: getPages.bind(ref),
+      getPreloadPages: getPreloadPages.bind(ref),
     })
     component._internalResolver = _internalResolver
     component.createComponent = createComponent.bind(component)
@@ -78,7 +78,8 @@ const handlePageInternalResolver = async (
       }
     })
 
-    window.p = component
+    // @ts-expect-error
+    if (path === 'GotoViewTag') window.p = component
 
     // Note: We leave the builtins/actions/resolvers to be re-attached delegated
     // to the consumer, but the rest should automatically be handled by this lib

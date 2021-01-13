@@ -3,28 +3,14 @@ import Logger from 'logsnap'
 import NOODLUIDOM, { eventId, Page } from 'noodl-ui-dom'
 import set from 'lodash/set'
 import some from 'lodash/some'
+import { ComponentObject } from 'noodl-types'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import {
-  ComponentObject,
   event as noodluiEvent,
   getAllResolversAsMap,
-  getElementType,
-  getAlignAttrs,
-  getBorderAttrs,
-  getCustomDataAttrs,
-  getColors,
-  getEventHandlers,
-  getFontAttrs,
-  getPosition,
-  getPlugins,
-  getReferences,
-  getStylesByElementType,
-  getSizes,
-  getTransformedAliases,
-  getTransformedStyleAliases,
   identify,
   List,
   NOODL as NOODLUI,
@@ -40,8 +26,7 @@ import { CACHED_PAGES, pageEvent } from './constants'
 import { CachedPageObject } from './app/types'
 import { isMobile } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
-import createActions from './handlers/actions'
-import createBuiltInActions, { onVideoChatBuiltIn } from './handlers/builtIns'
+import { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
 
@@ -49,30 +34,11 @@ const log = Logger.create('App.ts')
 
 export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
-const resolvers = [
-  getElementType,
-  getTransformedAliases,
-  getReferences,
-  getAlignAttrs,
-  getBorderAttrs,
-  getColors,
-  getFontAttrs,
-  getPlugins,
-  getPosition,
-  getSizes,
-  getStylesByElementType,
-  getTransformedStyleAliases,
-  getCustomDataAttrs,
-  getEventHandlers,
-]
-
 class App {
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
   #preparePage = {} as (pageName: string) => Promise<PageObject>
   #viewportUtils = {} as ViewportUtils
-  actions = {} as ReturnType<typeof createActions>
   authStatus: AuthStatus | '' = ''
-  builtIn = {} as ReturnType<typeof createBuiltInActions>
   initialized: boolean = false
   meeting: IMeeting = {} as IMeeting
   noodl: any
@@ -114,7 +80,7 @@ class App {
       viewport: this.#viewportUtils.viewport,
     })
 
-    registerNOODLDOMListeners({ noodlui })
+    registerNOODLDOMListeners({ noodl, noodlui })
 
     let startPage = noodl?.cadlEndpoint?.startPage
 
@@ -231,34 +197,9 @@ class App {
       await noodl.initPage(ref.page)
       log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
       log.grey(`Initiated page: ${ref.page}`)
-      ref.use(
-        resolvers.reduce(
-          (acc, r: ResolverFn) => acc.concat(new Resolver().setResolver(r)),
-          [] as Resolver[],
-        ),
-      )
-      // .use(
-      //   Object.entries(this.actions).reduce(
-      //     (arr, [actionType, actions]) =>
-      //       arr.concat(actions.map((a) => ({ ...a, actionType }))),
-      //     [] as any[],
-      //   ),
-      // )
-      // .use(
-      //   // @ts-expect-error
-      //   Object.entries({
-      //     checkField: this.builtIn.checkField,
-      //     checkUsernamePassword: this.builtIn.checkUsernamePassword,
-      //     goBack: this.builtIn.goBack,
-      //     lockApplication: this.builtIn.lockApplication,
-      //     logOutOfApplication: this.builtIn.logOutOfApplication,
-      //     logout: this.builtIn.logout,
-      //     redraw: this.builtIn.redraw,
-      //     toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
-      //     toggleFlag: this.builtIn.toggleFlag,
-      //     toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
-      //   }).map(([funcName, fn]) => ({ funcName, fn })),
-      // )
+      Object.values(getAllResolversAsMap).forEach((resolver) => {
+        ref.use(new Resolver().setResolver(resolver))
+      })
     })
   }
 
@@ -444,35 +385,6 @@ class App {
                   getRoot: () => this.noodl.root,
                   plugins,
                 })
-                .use(
-                  resolvers.reduce(
-                    (acc, r: ResolverFn) =>
-                      acc.concat(new Resolver().setResolver(r)),
-                    [] as Resolver[],
-                  ),
-                )
-              // .use(
-              //   Object.entries(this.actions).reduce(
-              //     (arr, [actionType, actions]) =>
-              //       arr.concat(actions.map((a) => ({ ...a, actionType }))),
-              //     [] as any[],
-              //   ),
-              // )
-              // .use(
-              //   // @ts-expect-error
-              //   Object.entries({
-              //     checkField: this.builtIn.checkField,
-              //     checkUsernamePassword: this.builtIn.checkUsernamePassword,
-              //     goBack: this.builtIn.goBack,
-              //     lockApplication: this.builtIn.lockApplication,
-              //     logOutOfApplication: this.builtIn.logOutOfApplication,
-              //     logout: this.builtIn.logout,
-              //     redraw: this.builtIn.redraw,
-              //     toggleCameraOnOff: this.builtIn.toggleCameraOnOff,
-              //     toggleFlag: this.builtIn.toggleFlag,
-              //     toggleMicrophoneOnOff: this.builtIn.toggleMicrophoneOnOff,
-              //   }).map(([funcName, fn]) => ({ funcName, fn })),
-              // )
 
               Object.entries(getAllResolversAsMap()).forEach(
                 ([name, resolver]) => {
@@ -480,11 +392,9 @@ class App {
                   this.noodlui.use({ name, resolver: r })
                 },
               )
-
               log.func('page [before-page-render]')
               log.green('Initialized noodl-ui client', this.noodlui)
             }
-
             const previousPage = page.getState().previous
             log.func('page [before-page-render]')
             log.grey(`${previousPage} --> ${pageName}`, page.snapshot())
@@ -729,15 +639,6 @@ class App {
           const subStreams = this.streams.getSubStreamsContainer() as MeetingSubstreams
           if (subStreams) {
             if (!subStreams.elementExists(node)) {
-              // subStreams.create({ node } as any)
-              // log.grey(
-              //   `Added a subStreams stream with only a DOM node but not a participant`,
-              //   {
-              //     node,
-              //     component,
-              //     subStreams,
-              //   },
-              // )
             } else {
               log.func('onCreateNode')
               log.red(

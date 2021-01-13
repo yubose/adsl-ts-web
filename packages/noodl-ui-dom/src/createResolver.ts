@@ -1,6 +1,12 @@
 import { ComponentInstance, ComponentType, NOODL as NOODLUI } from 'noodl-ui'
 import NOODLUIDOMInternal from './Internal'
-import { findWindow, isPageConsumer } from './utils'
+import {
+  findByElementId,
+  findByViewTag,
+  findWindow,
+  findWindowDocument,
+  isPageConsumer,
+} from './utils'
 import * as T from './types'
 
 type UseObject = T.NodeResolverConfig | NOODLUI | NOODLUIDOMInternal
@@ -17,23 +23,29 @@ const createResolver = function createResolver() {
     noodluidom: undefined,
   }
 
-  const util = {
-    actionsContext(): T.ActionChainDOMContext {
-      return {
-        ..._internal.noodlui?.actionsContext,
-        findWindow,
-        isPageConsumer,
-      }
-    },
-    options(...args: T.NodeResolverBaseArgs) {
-      return {
-        original: args[1].original,
-        noodlui: _internal.noodlui,
-        draw: _internal.noodluidom.draw.bind(_internal.noodluidom),
-        redraw: _internal.noodluidom.redraw.bind(_internal.noodluidom),
-      } as T.NodeResolverUtils
-    },
-  }
+  const util = (function () {
+    return {
+      actionsContext(): T.ActionChainDOMContext {
+        return {
+          ..._internal.noodlui?.actionsContext,
+          findByElementId,
+          findByViewTag,
+          findWindow,
+          findWindowDocument,
+          isPageConsumer,
+        }
+      },
+      options(...args: T.NodeResolverBaseArgs) {
+        return {
+          ...util.actionsContext(),
+          original: args[1].original,
+          noodlui: _internal.noodlui,
+          draw: _internal.noodluidom.draw.bind(_internal.noodluidom),
+          redraw: _internal.noodluidom.redraw.bind(_internal.noodluidom),
+        } as T.NodeResolverUtils
+      },
+    }
+  })()
 
   function _isResolverConfig(value: any): value is T.NodeResolverConfig {
     return (
