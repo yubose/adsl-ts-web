@@ -1,9 +1,9 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
 import noop from 'lodash/noop'
-import { isDraft, original } from 'immer'
+import { isDraft, original, applyPatches } from 'immer'
 import Logger from 'logsnap'
-import { ComponentObject } from 'noodl-types'
+import { ActionType, ComponentObject } from 'noodl-types'
 import {
   createEmitDataKey,
   evalIf,
@@ -160,14 +160,18 @@ class NOODL {
       }
     }
 
-    // Add plugin components first
-    ;[
-      ...this.plugins('head').map((plugin: T.PluginObject) => plugin.ref),
-      ...this.plugins('body-top').map((plugin: T.PluginObject) => plugin.ref),
-      ...this.plugins('body-bottom').map(
-        (plugin: T.PluginObject) => plugin.ref,
-      ),
-    ].forEach((c) => this.#resolve(c))
+    // Page components are currently not using plugins
+    if (this?.plugins) {
+      // Add plugin components first
+      ;[
+        ...this.plugins('head').map((plugin: T.PluginObject) => plugin.ref),
+        ...this.plugins('body-top').map((plugin: T.PluginObject) => plugin.ref),
+        ...this.plugins('body-bottom').map(
+          (plugin: T.PluginObject) => plugin.ref,
+        ),
+      ].forEach((c) => this.#resolve(c))
+    }
+
     // ;[...this.registry(this.page)]
 
     // Finish off with the internal resolvers to handle the children
@@ -561,6 +565,16 @@ class NOODL {
   }
 
   getCbs(
+    key: 'actions',
+  ): Partial<
+    Record<ActionType | 'emit' | 'goto' | 'toast', T.StoreActionObject[]>
+  >
+  getCbs(
+    key: 'builtIns',
+  ): Partial<
+    Record<ActionType | 'emit' | 'goto' | 'toast', T.StoreBuiltInObject[]>
+  >
+  getCbs(
     key?:
       | 'actions'
       | 'builtIns'
@@ -574,7 +588,7 @@ class NOODL {
         case 'actions':
         case 'builtIns':
         case 'chaining':
-          return getStore()[key]
+          return getStore()[key] as any
         case event.SET_PAGE:
         case event.NEW_PAGE:
         case event.NEW_PAGE_REF:
@@ -647,13 +661,6 @@ class NOODL {
     return this.#getRoot()[page]
   }
 
-  getStateHelpers() {
-    return {
-      ...this.getStateGetters(),
-      ...this.getStateSetters(),
-    }
-  }
-
   getBaseUrl() {
     return this.#getBaseUrl?.()
   }
@@ -667,6 +674,7 @@ class NOODL {
   }) {
     return {
       component,
+      componentCache: this.componentCache.bind(this),
       context: this.getContext(),
       createActionChainHandler: (action, options) =>
         this.createActionChainHandler(action, {
@@ -682,15 +690,17 @@ class NOODL {
       getCbs: this.getCbs.bind(this),
       getPreloadPages: this.#getPreloadPages.bind(this),
       getPages: this.#getPages.bind(this),
+      getPageObject: this.getPageObject.bind(this),
       getResolvers: (() => this.#resolvers).bind(this),
       getRoot: this.#getRoot.bind(this),
+      getState: this.getState.bind(this),
+      plugins: this.plugins.bind(this),
       page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
       showDataKey: this.#state.showDataKey,
       viewport: this.#viewport,
-      ...this.getStateGetters(),
-      ...this.getStateSetters(),
+      setPlugin: this.setPlugin.bind(this),
       ...rest,
     } as T.ConsumerOptions
   }
@@ -701,21 +711,6 @@ class NOODL {
 
   getState() {
     return this.#state
-  }
-
-  getStateGetters() {
-    return {
-      componentCache: this.componentCache.bind(this),
-      getPageObject: this.getPageObject.bind(this),
-      getState: this.getState.bind(this),
-      plugins: this.plugins.bind(this),
-    }
-  }
-
-  getStateSetters() {
-    return {
-      setPlugin: this.setPlugin?.bind?.(this),
-    }
   }
 
   setPage(pageName: string) {
@@ -736,13 +731,13 @@ class NOODL {
   plugins(location?: T.PluginLocation) {
     switch (location) {
       case 'head':
-        return this.getState().plugins.head
+        return this.getState()?.plugins?.head
       case 'body-top':
-        return this.getState().plugins.body.top
+        return this.getState()?.plugins?.body.top
       case 'body-bottom':
-        return this.getState().plugins.body.bottom
+        return this.getState()?.plugins?.body.bottom
       default:
-        return this.getState().plugins
+        return this.getState()?.plugins
     }
   }
 
@@ -758,11 +753,11 @@ class NOODL {
     if (!value) return
     const plugin: T.PluginObject = this.createPluginObject(value)
     if (plugin.location === 'head') {
-      this.#state.plugins.head.push(plugin)
+      this.#state?.plugins?.head.push(plugin)
     } else if (plugin.location === 'body-top') {
-      this.#state.plugins.body.top.push(plugin)
+      this.#state?.plugins?.body.top.push(plugin)
     } else if (plugin.location === 'body-bottom') {
-      this.#state.plugins.body.bottom.push(plugin)
+      this.#state?.plugins?.body.bottom.push(plugin)
     }
     return plugin
   }
@@ -932,6 +927,8 @@ class NOODL {
       keepCallbacks?: boolean
       keepPlugins?: boolean
       keepRegistry?: boolean
+      keepActions?: boolean
+      keepBuiltIns?: boolean
     } = {},
   ) {
     const newState = {} as Partial<T.State>
@@ -946,6 +943,8 @@ class NOODL {
         on: { page: [] },
       } as any
     }
+    if (!opts.keepActions) getStore().clearActions()
+    if (!opts.keepBuiltIns) getStore().clearBuiltIns()
     return this
   }
 }

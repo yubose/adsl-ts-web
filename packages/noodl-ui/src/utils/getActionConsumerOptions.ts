@@ -1,6 +1,8 @@
 import pick from 'lodash/pick'
 import { ActionConsumerCallbackOptions } from '../types'
 import NOODLUI from '../noodl-ui'
+import Page from '../components/Page'
+import isComponent from './isComponent'
 
 /**
  * A helper to generate action callback options for consumers. Intended
@@ -8,7 +10,7 @@ import NOODLUI from '../noodl-ui'
  * @param { NOODLUI } instance - noodl-ui client or Page component
  */
 function getActionConsumerOptions(
-  instance: NOODLUI,
+  instance: NOODLUI | Page,
 ): ActionConsumerCallbackOptions {
   return Object.assign(
     {},
@@ -24,9 +26,11 @@ function getActionConsumerOptions(
       getAssetsUrl: (() => instance.assetsUrl).bind(instance),
       getPageObject: instance.getPageObject.bind(instance),
       getState: instance.getState.bind(instance),
-      plugins: instance.plugins.bind(instance),
-      setPlugin: instance.setPlugin?.bind(instance),
+      plugins: instance.plugins?.bind(instance),
     },
+    isComponent(instance)
+      ? undefined
+      : { setPlugin: instance.setPlugin?.bind(instance) },
   ) as ActionConsumerCallbackOptions
 }
 

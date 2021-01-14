@@ -103,7 +103,7 @@ const handleListInternalResolver = (
   // Removes list items when their data object is removed
   component.on(event.component.list.DELETE_DATA_OBJECT, (result, args) => {
     log.func(`on[${event.component.list.DELETE_DATA_OBJECT}]`)
-    const listItem = component.find(
+    const listItem = component?.find(
       (child) => child?.getDataObject?.() === result.dataObject,
     )
     const dataObjectBefore = listItem?.getDataObject?.()

@@ -52,7 +52,7 @@ export function applyMockDOMResolver(opts: {
 
 export function toDOM<
   N extends NOODLDOMElement = NOODLDOMElement,
-  C extends ComponentInstance = any
+  C extends ComponentInstance = ComponentInstance
 >(props: any) {
   let node: N | null = null
   let component: C | undefined

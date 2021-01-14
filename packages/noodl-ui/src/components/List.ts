@@ -543,7 +543,7 @@ class List extends Component implements IComponent {
   exists(child: ListItem): boolean
   exists(child: string | ListItem) {
     if (child) {
-      if (typeof child === 'string') return this.find(child)
+      if (typeof child === 'string') return this?.find(child)
       else return this.#children.includes(child)
     }
     return false

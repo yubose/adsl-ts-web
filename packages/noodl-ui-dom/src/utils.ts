@@ -52,32 +52,38 @@ export function createEmptyObjectWithKeys<K extends string = any, I = any>(
 }
 
 /**
- * Returns the DOM node. This method searches through several window objects
- * @param { string | ComponentInstance } component - Component id or instance
+ * Creates a function that queries for a DOM node.
+ * This method searches through several window/document objects and is most
+ * useful for page consumer components
+ * @param { string } key
+ * @param { function } fn
  */
-export function findByElementId(
-  component: ComponentInstance,
-): NOODLDOMElement | Element | HTMLElement | null
-export function findByElementId(id: string): NOODLDOMElement | Element | null
-export function findByElementId(c: ComponentInstance | string) {
-  if (!c) return c
-  const id = isStr(c) ? c : c.id
-  const fn = (doc: Document | null | undefined) => getByElementId(id, doc)
-  if (isPageConsumer(c)) return fn(findWindowDocument((doc) => !!fn(doc)))
-  return getByElementId(id)
+export function makeFinder(
+  key: 'id' | 'viewTag',
+  fn: (
+    id: string,
+    doc?: Document | null | undefined,
+  ) => NOODLDOMElement | HTMLElement | Element | null,
+) {
+  const find = (
+    c: string | ComponentInstance,
+  ): NOODLDOMElement | HTMLElement | Element | null => {
+    let str = ''
+    let cb = (doc: Document | null | undefined) => fn(str, doc)
+    if (!c) return null
+    if (isStr(c)) {
+      str = c
+    } else {
+      str = c?.[key] || c?.get?.(key) || c?.original?.[key] || ''
+      if (isPageConsumer(c)) return cb(findWindowDocument((doc) => !!cb(doc)))
+    }
+    return fn(str)
+  }
+  return find
 }
 
-export function findByViewTag(
-  component: ComponentInstance,
-): NOODLDOMElement | Element | null
-export function findByViewTag(viewTag: string): NOODLDOMElement | Element | null
-export function findByViewTag(c: ComponentInstance | string) {
-  if (!c) return c
-  const viewTag = isStr(c) ? c : c.get('viewTag')
-  const fn = (doc: Document | null | undefined) => getByViewTag(viewTag, doc)
-  if (isPageConsumer(c)) return fn(findWindowDocument((doc) => !!fn(doc)))
-  return getByViewTag(viewTag)
-}
+export const findByElementId = makeFinder('id', getByElementId)
+export const findByViewTag = makeFinder('viewTag', getByViewTag)
 
 export function findWindow(
   cb: (

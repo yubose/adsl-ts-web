@@ -81,7 +81,7 @@ export interface ActionChainCallbackOptions {
   snapshot: ActionChainSnapshot
   trigger: ActionTriggerType
 }
-}
+
 export interface ActionChainActionCallback<
   A extends Action<ActionObject> | EmitAction<EmitActionObject>,
   AContext extends ActionChainContext = any

@@ -56,5 +56,5 @@ afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
   // Resets plugins, registry, noodlui.page
-  noodlui.reset()
+  noodlui.reset({ keepCallbacks: false })
 })

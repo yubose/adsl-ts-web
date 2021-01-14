@@ -5,10 +5,12 @@ import {
   ComponentInstance,
   createComponent,
   EmitActionObject,
+  findParent,
   getTagName,
   GotoActionObject,
   NOODL as NOODLUI,
   NOODLComponent,
+  Page as PageComponent,
   publish,
   StoreActionObject,
   StoreBuiltInObject,
@@ -16,7 +18,7 @@ import {
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { eventId } from './constants'
-import { createAsyncImageElement, getShape } from './utils'
+import { createAsyncImageElement, getShape, isPageConsumer } from './utils'
 import createResolver from './createResolver'
 import NOODLUIDOMInternal from './Internal'
 import Page from './Page'
@@ -29,17 +31,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     redraw: {
       cleanup: [] as ((...args: Parameters<NOODLUIDOM['redraw']>) => void)[],
     },
-  }
-  config: {
-    page: {
-      resolveComponents: NOODLUI['resolveComponents'] | undefined
-    }
-    redraw: {
-      resolveComponents: NOODLUI['resolveComponents'] | undefined
-    }
-  } = {
-    page: { resolveComponents: undefined },
-    redraw: { resolveComponents: undefined },
   }
   page: Page
 
@@ -67,43 +58,15 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#cbs
   }
 
-  configure({
-    page,
-    redraw,
-  }: {
-    page?: {
-      resolveComponents?: NOODLUI['resolveComponents']
-    }
-    redraw?: {
-      cleanup?: (...args: Parameters<NOODLUIDOM['redraw']>) => void
-      resolveComponents?: NOODLUI['resolveComponents']
-    }
-  }) {
-    if (page) {
-      if (page.resolveComponents) {
-        this.config.page.resolveComponents = page.resolveComponents
-      }
-    }
-    if (redraw) {
-      if (redraw.resolveComponents) {
-        // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
-        this.config.redraw.resolveComponents = redraw.resolveComponents
-      }
-    }
-
-    return this
-  }
-
   /**
    * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
    * @param { NOODLComponent | NOODLComponent[] } components
    */
   render(rawComponents: NOODLComponent | NOODLComponent[]) {
-    if (!this.config.page.resolveComponents)
-      throw new Error(
-        'Cannot render without a component resolver. Use the "configure" ' +
-          'method to pass one in',
-      )
+    // if (!this.#R.get('noodlui'))
+    // throw new Error(
+    //   'Cannot render without a noodlui or page component',
+    // )
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     this.page.setStatus(eventId.page.status.RESOLVING_COMPONENTS)
@@ -175,7 +138,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
   redraw(
     node: T.NOODLDOMElement | null, // ex: li (dom node)
     component: ComponentInstance, // ex: listItem (component instance)
-    args: { dataObject?: any } = {},
+    args: { dataObject?: any; resolveComponents?: any } = {},
   ) {
     let newNode: T.NOODLDOMElement | null = null
     let newComponent: ComponentInstance | undefined
@@ -184,6 +147,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     if (component) {
       const parent = component.parent?.()
       const shape = getShape(component)
+      const _isPageConsumer = isPageConsumer(component)
 
       // Clean up noodl-ui listeners
       component.clearCbs?.()
@@ -212,6 +176,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         // Set the original dataObject on the new component instance if available
         ;(newComponent as any).setDataObject?.(dataObject)
       }
+      let resolveComponents: NOODLUI['resolveComponents'] | undefined
       if (parent && newComponent) {
         // Set the original parent on the new component
         newComponent.setParent(parent)
@@ -219,16 +184,20 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         parent?.removeChild?.(component)
         // Set the new component as a child on the parent
         parent.createChild(newComponent)
-        // Run the resolver if provided
-        newComponent =
-          this.#R.get('noodlui').resolveComponents?.(newComponent) ||
-          newComponent
-      } else if (newComponent) {
-        // log --> !parent || !newComponent
-        newComponent =
-          this.#R.get('noodlui').resolveComponents?.(newComponent) ||
-          newComponent
       }
+      if (_isPageConsumer) {
+        const page = findParent(
+          component,
+          (p) => p?.noodlType === 'page',
+        ) as PageComponent
+        resolveComponents = page?.resolveComponents?.bind?.(page)
+      }
+      if (!resolveComponents) resolveComponents = args?.resolveComponents
+      if (!resolveComponents) {
+        const noodlui = this.#R.get('noodlui')
+        resolveComponents = noodlui.resolveComponents?.bind?.(noodlui)
+      }
+      newComponent = resolveComponents?.(newComponent) || newComponent
     }
 
     if (node) {

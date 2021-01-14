@@ -17,6 +17,7 @@ import {
 import componentCache from '../utils/componentCache'
 import NOODLUI from '../noodl-ui'
 import Viewport from '../Viewport'
+import { StoreActionObject, StoreBuiltInObject } from './storeTypes'
 
 export interface INOODLUI {
   actionsContext: ActionChainContext
@@ -31,12 +32,9 @@ export interface INOODLUI {
   getActionsContext: NOODLUI['getActionsContext']
   getContext: NOODLUI['getContext']
   getPageObject: NOODLUI['getPageObject']
-  getStateHelpers: NOODLUI['getStateHelpers']
   getConsumerOptions: NOODLUI['getConsumerOptions']
   getResolvers: NOODLUI['getResolvers']
   getState: NOODLUI['getState']
-  getStateGetters: NOODLUI['getStateGetters']
-  getStateSetters: NOODLUI['getStateSetters']
   setPage(page: string): this
   plugins: NOODLUI['plugins']
   use: NOODLUI['use']
@@ -109,18 +107,12 @@ export interface ConsumerOptions {
   getCbs(
     key: 'actions',
   ): Partial<
-    Record<
-      ActionType | 'emit' | 'goto' | 'toast',
-      ActionChainUseObjectBase<any, any>[]
-    >
+    Record<ActionType | 'emit' | 'goto' | 'toast', StoreActionObject[]>
   >
   getCbs(
     key: 'builtIns',
   ): Partial<
-    Record<
-      ActionType | 'emit' | 'goto' | 'toast',
-      ActionChainUseObjectBase<any, any>[]
-    >
+    Record<ActionType | 'emit' | 'goto' | 'toast', StoreBuiltInObject[]>
   >
   getCbs(
     key: 'chaining',
@@ -141,7 +133,7 @@ export interface ConsumerOptions {
         ActionChainUseObjectBase<any, any>[]
       >
     >
-    builtIn: { [funcName: string]: ActionChainActionCallback[] }
+    builtIn: { [funcName: string]: ActionChainActionCallback<any>[] }
     chaining: Partial<Record<ActionChainEventId, Function[]>>
     on: Partial<Record<PageEventId, any[]>>
   }

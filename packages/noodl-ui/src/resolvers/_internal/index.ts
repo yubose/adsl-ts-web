@@ -3,8 +3,9 @@ import handlePage from './handlePage'
 import handleTextboard from './handleTextboard'
 import { InternalResolver } from '../../Resolver'
 import { _resolveChildren } from './helpers'
-import { publish } from '../../utils/noodl'
+import { findParent, publish } from '../../utils/noodl'
 import { ComponentInstance } from '../../types'
+import Page from '../../components/Page'
 
 /**
  * These resolvers are used internally by the lib. They handle all the logic
@@ -25,10 +26,27 @@ _internalResolver.setResolver((component, options, ref) => {
       if (component.get('textBoard')) {
         return handleTextboard(component as any, options, _internalResolver)
       }
+
+      let resolveComponents: Page['resolveComponents'] | undefined
+
+      findParent(component, (p: Page) => {
+        if (p?.noodlType === 'page') {
+          resolveComponents = p.resolveComponents.bind(p)
+          return true
+        }
+        return false
+      })
+
+      if (!resolveComponents) {
+        resolveComponents = options.resolveComponent.bind(
+          ref,
+        ) as Page['resolveComponents']
+      }
+
       // Deeply parses every child node in the tree
       _resolveChildren(component, {
         onResolve: (o) => run(o),
-        resolveComponent: (...args) => options.resolveComponent(...args),
+        resolveComponent: (...args) => resolveComponents?.(...args),
       })
     }
   }

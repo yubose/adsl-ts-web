@@ -55,17 +55,14 @@ const handlePageInternalResolver = async (
     component.viewport = viewport
 
     component.assetsUrl = getAssetsUrl()
-    component.getStateHelpers = ref.getStateHelpers.bind(component)
     component.getState = getState.bind(component)
-    component.getStateGetters = ref.getStateGetters.bind(component)
-    component.getStateSetters = ref.getStateSetters.bind(component)
     component.plugins = plugins.bind(component)
     component.use({
       getAssetsUrl: () => getAssetsUrl(),
       getBaseUrl: () => getBaseUrl(),
-      getRoot: getRoot.bind(ref),
-      getPages: getPages.bind(ref),
-      getPreloadPages: getPreloadPages.bind(ref),
+      getRoot: () => getRoot(),
+      getPages: () => getPages(),
+      getPreloadPages: () => getPreloadPages(),
     })
     component._internalResolver = _internalResolver
     component.createComponent = createComponent.bind(component)

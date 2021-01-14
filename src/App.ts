@@ -108,8 +108,8 @@ class App {
         await noodl.initPage(pageName, [], {
           ...this.noodluidom.page.getState().modifiers[pageName],
           builtIn: {
-            checkField: this.noodluidom.builtIns.checkField.find(Boolean)?.fn,
-            goto: this.noodluidom.builtIns.goto.find(Boolean)?.fn,
+            checkField: this.noodluidom.builtIns.checkField?.find(Boolean)?.fn,
+            goto: this.noodluidom.builtIns.goto?.find(Boolean)?.fn,
             videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
           },
         })
@@ -568,15 +568,6 @@ class App {
     /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
-
-    this.noodluidom.configure({
-      page: {
-        resolveComponents: this.noodlui.resolveComponents.bind(this.noodlui),
-      },
-      redraw: {
-        resolveComponents: this.noodlui.resolveComponents.bind(this.noodlui),
-      },
-    })
 
     this.noodluidom.on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
       console.log('Removed from componentCache: ' + component.id)

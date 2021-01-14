@@ -18,12 +18,12 @@ import { event } from '../constants'
 import {
   findListDataObject,
   isActionChainEmitTrigger,
+  publish,
   resolveAssetUrl,
 } from '../utils/noodl'
 import ActionChain from '../ActionChain'
 import Component from './Base'
 import getStore from '../store'
-import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 import * as u from '../utils/internal'
 import {
@@ -37,6 +37,7 @@ import getActionConsumerOptions from '../utils/getActionConsumerOptions'
 import * as T from '../types'
 import EmitAction from '../Action/EmitAction'
 import componentCache from '../utils/componentCache'
+import { ActionObject } from '../types'
 
 const log = Logger.create('Page (component)')
 
@@ -66,9 +67,7 @@ class Page
   #getPages: () => string[] = () => []
   #getPreloadPages: () => string[] = () => []
   #getRoot: () => T.Root
-  #getStateHelpers: T.INOODLUI['getStateHelpers']
   #page = ''
-  #pages = [] as string[]
   #state: T.State
   #viewport: Viewport
   _internalResolver: any = {}
@@ -166,6 +165,14 @@ class Page
 
   setPage(page: string) {
     this.#page = page
+    publish(this, (child) => {
+      log.func('[setPage][publish]')
+      const cache = this.componentCache()
+      if (cache.has(child)) {
+        log.grey(`Clearing ${child.id} from componentCache`)
+        this.componentCache().remove(child)
+      }
+    })
     return this
   }
 
@@ -362,11 +369,6 @@ class Page
     return ''
   }
 
-  #getActionsContext = () => ({
-    ...this.actionsContext,
-    noodlui: this,
-  })
-
   getBaseStyles(styles?: T.Style) {
     return {
       ...this.getRoot().Style,
@@ -405,15 +407,7 @@ class Page
   }
 
   getRoot() {
-    return this.#getRoot()
-  }
-
-  get getStateHelpers() {
-    return this.#getStateHelpers
-  }
-
-  set getStateHelpers(getStateHelpers) {
-    this.#getStateHelpers = getStateHelpers
+    return this.#getRoot() || {}
   }
 
   getResolvers() {
@@ -422,18 +416,6 @@ class Page
 
   getState() {
     return this.#state
-  }
-
-  getStateGetters() {
-    return {
-      componentCache: this.componentCache.bind(this),
-      getPageObject: this.getPageObject.bind(this),
-      getState: this.getState.bind(this),
-    }
-  }
-
-  getStateSetters() {
-    return {}
   }
 
   getConsumerOptions({
@@ -445,9 +427,13 @@ class Page
   }) {
     return {
       component,
+      componentCache: this.componentCache.bind(this),
       context: this.getContext(),
-      createActionChainHandler: ((action, options) => {
-        return this.createActionChainHandler(action, {
+      createActionChainHandler: ((
+        actions: ActionObject[],
+        options: { trigger: T.ActionChainEmitTrigger },
+      ) => {
+        return this.createActionChainHandler(actions, {
           ...getActionConsumerOptions(this),
           ...options,
           component,
@@ -460,17 +446,17 @@ class Page
       getCbs: this.getCbs.bind(this),
       getPreloadPages: this.getPreloadPages.bind(this),
       getPages: this.getPages.bind(this),
+      getPageObject: this.getPageObject.bind(this),
       getResolvers: this.getResolvers.bind(this),
       getRoot: this.getRoot.bind(this),
+      getState: this.getState.bind(this),
       page: this.page,
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
       showDataKey: this.showDataKey,
       viewport: this.viewport,
-      ...this.getStateGetters(),
-      ...this.getStateSetters(),
       ...rest,
-    } as any
+    }
   }
 
   resolveComponents(component: T.ComponentCreationType): T.ComponentInstance
@@ -551,10 +537,8 @@ class Page
       })
     }
 
-    console.log(getStore().resolvers)
-
     getStore().resolvers.forEach((obj) =>
-      obj.resolver.resolve(component, consumerOptions),
+      obj.resolver.resolve(component, consumerOptions as T.ConsumerOptions),
     )
 
     return component
@@ -580,7 +564,6 @@ class Page
 
   use<A extends T.ActionObject>(obj: T.StoreActionObject<A>): this
   use<B extends T.BuiltInObject>(obj: T.StoreBuiltInObject<B>): this
-  use<R extends Resolver>(resolver: R): this
   use<V extends Viewport>(viewport: V): this
   use(options: {
     actionsContext?: Partial<T.ActionChainContext>
@@ -589,14 +572,12 @@ class Page
     getPreloadPages?(): string[]
     getPages?(): string[]
     getRoot?(): T.Root
-    plugins?: T.PluginCreationType[]
     [key: string]: any
   }): this
   use(
     v:
       | T.StoreActionObject<any>
       | T.StoreBuiltInObject<any>
-      | Resolver
       | Viewport
       | {
           actionsContext?: Partial<T.ActionChainContext>
@@ -605,7 +586,6 @@ class Page
           getPreloadPages?(): string[]
           getPages?(): string[]
           getRoot?(): T.Root
-          plugins?: T.PluginCreationType[]
           [key: string]: any
         },
   ) {
@@ -625,13 +605,6 @@ class Page
           this.#getPreloadPages = v.getPreloadPages as Page['getPreloadPages']
         if ('getPages' in v) this.#getPages = v.getPages as Page['getPages']
         if ('getRoot' in v) this.#getRoot = v.getRoot as Page['getRoot']
-        if ('plugins' in v) {
-          if (u.isArr(v.plugins)) {
-            v.plugins.forEach((plugin: T.PluginCreationType) => {
-              // this.setPlugin(plugin)
-            })
-          }
-        }
       }
     }
     return this

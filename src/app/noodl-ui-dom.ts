@@ -414,7 +414,7 @@ export const listen = ({
         })
 
         if (id) {
-          const node = findByViewTag(id) || findByElementId(component.id)
+          const node = findByViewTag(component) || findByElementId(component)
 
           if (node) {
             let win = findWindow((w) => {
@@ -459,13 +459,16 @@ export const listen = ({
           destination = destinationParam
         }
 
-        await noodluidom.page.requestPageChange(destination)
-        if (!destination) {
-          log.func('goto')
-          log.red(
-            'Tried to go to a page but could not find information on the whereabouts',
-            { action, ...options },
-          )
+        if (!isSamePage) {
+          await noodluidom.page.requestPageChange(destination)
+
+          if (!destination) {
+            log.func('goto')
+            log.red(
+              'Tried to go to a page but could not find information on the whereabouts',
+              { action, ...options },
+            )
+          }
         }
       },
     })

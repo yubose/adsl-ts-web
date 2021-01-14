@@ -96,7 +96,7 @@ export const findDataValue = <O extends FindDataValueItem = any>(
   if (!path) return unwrapObj(isArr(objs) ? objs[0] : objs)
   return get(
     unwrapObj(
-      (isArr(objs) ? objs : [objs]).find((o) => has(unwrapObj(o), path)),
+      (isArr(objs) ? objs : [objs])?.find((o) => has(unwrapObj(o), path)),
     ),
     path,
   )

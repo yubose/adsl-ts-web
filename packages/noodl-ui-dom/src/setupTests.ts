@@ -1,7 +1,11 @@
+import chai from 'chai'
 import sinon from 'sinon'
+import sinonChai from 'sinon-chai'
 import { getAllResolversAsMap, Resolver, publish } from 'noodl-ui'
 import { eventId } from './constants'
 import { assetsUrl, noodlui, noodluidom, viewport } from './test-utils'
+
+chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 
@@ -12,11 +16,6 @@ before(() => {
   console.clear()
   noodlui.init({ _log: false })
   noodluidom
-    .configure({
-      redraw: {
-        resolveComponents: noodlui.resolveComponents.bind(noodlui),
-      },
-    })
     .on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
       noodlui.componentCache().remove(component)
       publish(component, (c) => {
@@ -31,9 +30,7 @@ before(() => {
   logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
 
   Object.entries(getAllResolversAsMap()).forEach(([name, r]) => {
-    const resolver = new Resolver().setResolver(r)
-    noodlui.use(resolver)
-    noodlui.use({ name, resolver } as any)
+    noodlui.use({ name, resolver: new Resolver().setResolver(r) } as any)
   })
 })
 

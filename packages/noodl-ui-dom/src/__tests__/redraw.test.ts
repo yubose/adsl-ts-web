@@ -38,7 +38,24 @@ let componentCache = noodlui.componentCache.bind(
   noodlui,
 ) as typeof noodlui.componentCache
 
-xdescribe('redraw', () => {
+describe.only('redraw', () => {
+  describe(`events`, () => {
+    it(`should convert the action chain arrays back to their function handlers`, async () => {
+      const [node, component] = toDOM({
+        type: 'label',
+        onClick: [{ emit: { dataKey: { var1: 'hey' }, actions: [] } }],
+      })
+      const [newNode, newComponent] = noodluidom.redraw(node, component) as [
+        HTMLSelectElement,
+        ComponentInstance,
+      ]
+      expect(component.get('onClick')).to.be.a('function')
+      await waitFor(() => {
+        expect(newComponent.get('onClick')).to.be.a('function')
+      })
+    })
+  })
+
   it(`should remove the redrawing components from the component cache`, () => {
     const list = getListGender()
     const node = noodluidom.draw(list) as HTMLUListElement
@@ -92,13 +109,11 @@ xdescribe('redraw', () => {
         }),
       ) as [HTMLSelectElement, ComponentInstance]
       node.dispatchEvent(new Event('change'))
+      expect(node).to.exist
+      expect(component).to.exist
       await waitFor(() => {
-        expect(spy.called).to.be.true
+        expect(spy).to.have.been.called
       })
-    })
-
-    xit('recreated options children should be reused if they are the same', () => {
-      //
     })
   })
 
