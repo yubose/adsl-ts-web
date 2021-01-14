@@ -433,9 +433,9 @@ const createActions = function ({
       log.gold('popUp action', { action, ...options, elem })
       if (elem) {
         if (action.original.actionType === 'popUp') {
-          elem.style.visibility = 'visible'
+          elem.style && (elem.style.visibility = 'visible')
         } else if (action.original.actionType === 'popUpDismiss') {
-          elem.style.visibility = 'hidden'
+          elem.style && (elem.style.visibility = 'hidden')
         }
         // Some popup components render values using the dataKey. There is a bug
         // where an action returns a popUp action from an evalObject action. At

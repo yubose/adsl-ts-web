@@ -199,7 +199,7 @@ export const listen = ({
 
         const emitParams = {
           actions: action.actions,
-          pageName: noodlui?.page,
+          pageName: options?.page,
         } as any
 
         if (action.original.emit.dataKey) {
@@ -494,7 +494,7 @@ export const listen = ({
         const { ref } = options
         const elem = getByDataUX(action.original.popUpView) as HTMLElement
         log.gold('popUp action', { action, ...options, elem })
-        if (elem) {
+        if (elem?.style) {
           if (action.original.actionType === 'popUp') {
             elem.style.visibility = 'visible'
           } else if (action.original.actionType === 'popUpDismiss') {
@@ -1159,7 +1159,7 @@ export const listen = ({
       async fn(
         action: Action<BuiltInActionObject>,
         options: ActionConsumerCallbackOptions,
-        { findByViewTag },
+        { findByElementId },
       ) {
         log.func('redraw')
         log.red('', { action, options })
@@ -1183,17 +1183,29 @@ export const listen = ({
           components.push(component)
         }
 
+        if (!components.length) {
+          log.red(`Could not find any components to redraw`, {
+            action,
+            ...options,
+            component,
+          })
+        } else {
+          log.grey(`Redrawing ${components.length} components`, components)
+        }
+
         let startCount = 0
 
         while (startCount < components.length) {
           const viewTagComponent = components[startCount] as ComponentInstance
-          const node = findByViewTag(viewTagComponent)
+          const node = findByElementId(viewTagComponent)
           const dataObject = findListDataObject(viewTagComponent)
+          const opts = { dataObject }
           const [newNode, newComponent] = noodluidom.redraw(
             node as HTMLElement,
             viewTagComponent,
-            { dataObject },
+            opts,
           )
+          debugger
           log.grey('Resolved redrawed component/node', {
             newNode,
             newComponent,
@@ -1252,7 +1264,7 @@ export const listen = ({
           img?.src === pageObject?.docDetail?.document?.name?.data &&
           pageObject?.docDetail?.document?.name?.type == 'application/pdf'
         ) {
-          img.style.visibility = 'hidden'
+          img?.style && (img.style.visibility = 'hidden')
           const parentNode = findByElementId(parent)
           const iframeEl = document.createElement('iframe')
           iframeEl.setAttribute('src', img.src)

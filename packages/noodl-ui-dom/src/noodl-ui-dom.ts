@@ -190,6 +190,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
           component,
           (p) => p?.noodlType === 'page',
         ) as PageComponent
+
         resolveComponents = page?.resolveComponents?.bind?.(page)
       }
       if (!resolveComponents) resolveComponents = args?.resolveComponents

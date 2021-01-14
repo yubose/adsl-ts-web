@@ -15,41 +15,41 @@ import Page from '../../components/Page'
 const _internalResolver = new InternalResolver()
 
 _internalResolver.setResolver((component, options, ref) => {
-  const run = (component: ComponentInstance) => {
-    if (component) {
-      if (component.noodlType === 'list') {
-        return handleList(component as any, options, _internalResolver)
-      }
-      if (component.noodlType === 'page') {
-        return handlePage(component as any, options, { _internalResolver, ref })
-      }
-      if (component.get('textBoard')) {
-        return handleTextboard(component as any, options, _internalResolver)
-      }
+  let resolveComponents: Page['resolveComponents'] | undefined
 
-      let resolveComponents: Page['resolveComponents'] | undefined
+  findParent(component, (p: Page) => {
+    if (p?.noodlType === 'page') {
+      resolveComponents = p.resolveComponents.bind(p)
+      return true
+    }
+    return false
+  })
 
-      findParent(component, (p: Page) => {
-        if (p?.noodlType === 'page') {
-          resolveComponents = p.resolveComponents.bind(p)
-          return true
-        }
-        return false
-      })
+  if (!resolveComponents) {
+    resolveComponents = options.resolveComponent.bind(
+      ref,
+    ) as Page['resolveComponents']
+  }
 
-      if (!resolveComponents) {
-        resolveComponents = options.resolveComponent.bind(
-          ref,
-        ) as Page['resolveComponents']
+  const run = (c: ComponentInstance) => {
+    if (c) {
+      if (c.noodlType === 'list') {
+        return handleList(c as any, options, _internalResolver)
       }
-
+      if (c.noodlType === 'page') {
+        return handlePage(c as any, options, { _internalResolver, ref })
+      }
+      if (c.get('textBoard')) {
+        return handleTextboard(c as any, options, _internalResolver)
+      }
       // Deeply parses every child node in the tree
-      _resolveChildren(component, {
+      _resolveChildren(c, {
         onResolve: (o) => run(o),
         resolveComponent: (...args) => resolveComponents?.(...args),
       })
     }
   }
+
   const resolveInternalNode = <C extends ComponentInstance = any>(c: C) => {
     if (c.id && typeof options?.componentCache === 'function') {
       options.componentCache().set(c)
