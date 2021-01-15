@@ -32,8 +32,8 @@ export function hasLetter(value: any): boolean {
  */
 export default {
   name: 'getBorders',
-  resolve({ component, original }) {
-    const { style } = original
+  resolve(component) {
+    const { style } = component
 
     console.log(`[getBorderAttrs] HELLO`)
 

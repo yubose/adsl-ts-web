@@ -20,38 +20,6 @@ const _store = {
 }
 
 const ComponentResolver = (function () {
-  interface Pair {
-    component: WritableDraft<ComponentObject>
-    original: ComponentObject
-  }
-
-  interface ResolverRegisterFn {
-    (pair: Pair): (stepFn: ResolverRegisterStepFn) => (pair: Pair) => Pair
-  }
-
-  interface ResolverRegisterStepFn {
-    (pair: Pair, fn: ResolverRegisterFn): ResolverRegisterStepFn
-  }
-
-  interface ResolverRegisterHOF {
-    (stepFn: ResolverRegisterStepFn): ResolverRegisterStepFn
-  }
-
-  let hofResolvers: ResolverRegisterHOF[] = []
-
-  const compose = (...fns: ResolverRegisterFn[]) => (
-    stepFn: ResolverRegisterStepFn,
-  ) => fns.reduceRight((acc, fn) => fn(acc), stepFn)
-
-  const createResolver = (fn: ResolverRegisterFn) => (
-    stepFn: ResolverRegisterStepFn,
-  ): ResolverRegisterStepFn => (acc, pair) => stepFn(acc, fn(pair))
-
-  const step = (nextStep: ResolverRegisterStepFn, pair: Pair) => nextStep(pair)
-
-  const composed = compose(...hofResolvers)
-  const runResolvers = composed(step)
-
   const wrapResolveComponent = (fn: T.AnyFn) => {
     return (component: ComponentObject) => {
       //
@@ -66,48 +34,51 @@ const ComponentResolver = (function () {
       },
       createPage() {
         const page = new PageMaster()
+
+        interface Pair {
+          component: WritableDraft<ComponentObject>
+          original: ComponentObject
+        }
+
+        interface ResolverRegisterFn {
+          (component: T.NOODLComponent): (stepFn) => (acc, c) => any
+        }
+
+        interface ResolverRegisterHOF {
+          (stepFn): (acc, component: T.NOODLComponent) => any
+        }
+
+        let hofResolvers: ResolverRegisterFn[] = []
+
+        const compose = (...fns: ResolverRegisterFn[]) => (stepFn) =>
+          fns.reduceRight((acc, fn) => fn(acc), stepFn)
+
+        const step = (nextStep, component: T.NOODLComponent) =>
+          nextStep(component)
+
+        const fns = Object.values(_store.resolvers).map((o) => {
+          return
+        })
+        const composed = compose(
+          ...fns.map(
+            (obj) => (stepFn) => (acc, component: T.NOODLComponent) => {
+              obj.resolve(component)
+              return stepFn(acc, component)
+            },
+          ),
+        )(step)
+
+        page.resolveComponent = (original: T.NOODLComponent) => {
+          return produce(original, (draft) => {
+            composed(draft)
+          })
+        }
+
         page.resolveComponents = () => {
           const actions = Object.values(_store.actions)
           const builtIns = Object.values(_store.builtIns)
           const resolvers = Object.values(_store.resolvers)
-
-          const runResolvers = (
-            pair: {
-              component: WritableDraft<ComponentObject>
-              original: ComponentObject
-            },
-            consumerOptions?: any,
-          ) => {
-            for (let i = 0; i < resolvers.length; i++) {
-              const resolver = resolvers[i]
-              resolver.resolve(pair, consumerOptions)
-            }
-          }
-
-          const run = (pair: {
-            component: WritableDraft<ComponentObject>
-            original: ComponentObject
-          }) => {
-            runResolvers(pair)
-            if (Array.isArray(pair.component.children)) {
-              const numChildren = pair.component.children.length
-              for (let i = 0; i < numChildren; i++) {
-                const child = pair.component.children[i]
-                const newPair = { component: child }
-                runResolvers
-              }
-            }
-          }
-
-          const nextComponents = page.components.map((original) =>
-            produce(original, (draft) => {
-              runResolvers({ component: draft, original })
-              if (Array.isArray(original.children)) {
-              }
-            }),
-          )
-
-          page.components = nextComponents
+          page.components = page.components.map(page.resolveComponent)
         }
 
         _store.pages.set(page.id, page)
@@ -131,6 +102,7 @@ const ComponentResolver = (function () {
 
 class PageMaster {
   #page: string = ''
+  #resolveComponent: (original: T.NOODLComponent) => any
   #resolveComponents: T.AnyFn
   #components: ComponentObject[] = []
   id: string
@@ -150,6 +122,14 @@ class PageMaster {
 
   get page() {
     return this.#page || ''
+  }
+
+  get resolveComponent() {
+    return this.#resolveComponent
+  }
+
+  set resolveComponent(fn) {
+    this.#resolveComponent = fn
   }
 
   get resolveComponents() {
@@ -210,23 +190,15 @@ let original = {
     textColor: '0x03300033',
     backgrouncColor: '0x33004455',
   },
-}
+} as T.NOODLComponent
 
 const changes = [] as any[]
 const inverseChanges = [] as any[]
 
-const result = produce(
-  component,
-  (draft) => {
-    for (let resolver of Object.values(_store.resolvers)) {
-      resolver.resolve({ component: draft, original })
-    }
-  },
-  (patches, inversePatches) => {
-    changes.push(...patches)
-    inversePatches.push(...inversePatches)
-  },
-)
+page.components = [original]
+page.resolveComponents()
+
+console.log(`Result`, page.components)
 
 // const patches = applyPatches(component, changes)
 // console.log(`Result`, result)

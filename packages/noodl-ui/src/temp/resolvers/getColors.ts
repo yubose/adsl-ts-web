@@ -12,9 +12,9 @@ export function formatColor(value: string) {
  */
 export default {
   name: 'getColors',
-  resolve({ component, original }) {
+  resolve(component) {
     console.log(`[getColors] HELLO`)
-    Object.entries(original.style).forEach((key, value) => {
+    Object.entries(component.style).forEach((key, value) => {
       if (typeof value === 'string') {
         if (value.startsWith('0x')) {
           // Rename textColor to color
