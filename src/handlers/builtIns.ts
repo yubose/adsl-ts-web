@@ -8,16 +8,17 @@ import {
   Action,
   ActionConsumerCallbackOptions,
   BuiltInObject,
-  Component,
   ComponentInstance,
-  EmitAction,
   findListDataObject,
   getDataValues,
-  GotoURL,
-  GotoObject,
   NOODL as NOODLUI,
 } from 'noodl-ui'
-import NOODLUIDOM, { getByDataUX } from 'noodl-ui-dom'
+import NOODLUIDOM, {
+  getByDataUX,
+  isTextFieldLike,
+  NOODLDOMElement,
+} from 'noodl-ui-dom'
+import { BuiltInActionObject } from 'noodl-types'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
@@ -35,130 +36,654 @@ import {
 import Logger from 'logsnap'
 import { resolvePageUrl } from '../utils/common'
 import { scrollToElem, toggleVisibility } from '../utils/dom'
-import { BuiltInActions } from '../app/types'
 import { pageEvent } from '../constants'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
 
 const createBuiltInActions = function ({
+  noodl,
   noodlui,
   noodluidom,
 }: {
+  noodl: any
   noodlui: NOODLUI
   noodluidom: NOODLUIDOM
 }) {
-  const builtInActions: BuiltInActions = {}
+  /* -------------------------------------------------------
+    ---- ACTIONS (non-builtIn)
+  -------------------------------------------------------- */
 
-  builtInActions.checkField = (action, options) => {
-    log.func('checkField')
-    log.grey('checkField', { action, options })
-    let contentType: string = '',
-      delay: number = 0
+  /* -------------------------------------------------------
+  ---- ACTIONS (builtIn)
+  -------------------------------------------------------- */
+  noodluidom
+    .register({
+      actionType: 'builtIn',
+      funcName: 'checkField',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) {
+        log.func('checkField')
+        log.grey('checkField', { action, options })
+        let contentType: string = '',
+          delay: number | boolean = 0
 
-    if (action instanceof Action) {
-      contentType = action.original?.contentType || ''
-      delay = action.original?.wait || 0
-    } else {
-      contentType = action.contentType || ''
-      delay = action.wait || 0
-    }
+        if (action instanceof Action) {
+          contentType = action.original?.contentType || ''
+          delay = action.original?.wait || 0
+        } else {
+          contentType = (action as any).contentType || ''
+          delay = (action as any).wait || 0
+        }
 
-    const onCheckField = () => {
-      const node = getByDataUX(contentType)
-      if (node) {
-        toggleVisibility(Array.isArray(node) ? node[0] : node, ({ isHidden }) =>
-          isHidden ? 'visible' : 'hidden',
-        )
-      }
-    }
+        const onCheckField = () => {
+          const node = getByDataUX(contentType)
+          if (node) {
+            toggleVisibility(
+              Array.isArray(node) ? node[0] : node,
+              ({ isHidden }) => (isHidden ? 'visible' : 'hidden'),
+            )
+          }
+        }
 
-    if (delay > 0) {
-      setTimeout(() => onCheckField(), delay)
-    } else {
-      onCheckField()
-    }
-  }
+        if (delay > 0) {
+          setTimeout(() => onCheckField(), delay as any)
+        } else {
+          onCheckField()
+        }
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'goBack',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) {
+        log.func('goBack')
+        log.grey('', { action, ...options })
+        if (typeof action.original?.reload === 'boolean') {
+          noodluidom.page.setModifier(
+            noodluidom.page
+              .getPreviousPage(noodl.cadlEndpoint.startPage || '')
+              .trim(),
+            { reload: action.original.reload },
+          )
+        }
+        window.history.back()
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'toggleCameraOnOff',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+        actionsContext,
+      ) {
+        log.func('toggleCameraOnOff')
+        const path = 'VideoChat.cameraOn'
 
-  // Called after uaser fills out the form in CreateNewAccount and presses Submit
-  builtInActions.checkUsernamePassword = (action, { abort }: any) => {
-    // dispatchRedux(mergeCacheAuthValues(dataValues))
-    const { password, confirmPassword } = getDataValues()
-    if (password !== confirmPassword) {
-      window.alert('Your passwords do not match')
-      abort('Passwords do not match')
-    }
-    abort('Creating account')
-  }
+        let localParticipant = Meeting.localParticipant
+        let videoTrack: LocalVideoTrack | undefined
 
-  builtInActions.cleanLocalStorage = () => window.localStorage.clear()
+        if (localParticipant) {
+          videoTrack = Array.from(localParticipant.tracks.values()).find(
+            (trackPublication) => trackPublication.kind === 'video',
+          )?.track as LocalVideoTrack
 
-  builtInActions.goBack = async (action, options, { noodl }) => {
-    log.func('goBack')
-    log.grey('', { action, ...options })
-    if (typeof action.original?.reload === 'boolean') {
-      noodluidom.page.setModifier(
-        noodluidom.page
-          .getPreviousPage(noodl.cadlEndpoint.startPage || '')
-          .trim(),
-        { reload: action.original.reload },
-      )
-    }
-    window.history.back()
-  }
-
-  // Currently, goto can be invoked from the "init" in a page object, resulting
-  // in options and noodl to be undefined.
-  // TODO - wrap and autoconvert non-action instances
-  // @ts-expect-error
-  builtInActions.goto = async (
-    action: GotoURL | GotoObject,
-    options,
-    // @ts-expect-error
-    { noodl } = {},
-  ) => {
-    log.func('goto')
-    log.red('', { action, ...options })
-    noodl = noodl || (await import('../app/noodl')).default
-    const destinationParam =
-      (typeof action === 'string'
-        ? action
-        : isPlainObject(action)
-        ? action.destination
-        : '') || ''
-    let { destination, id = '', isSamePage, duration } = parse.destination(
-      destinationParam,
-    )
-    if (isSamePage) {
-      scrollToElem(getByDataViewTag(id), { duration })
-    } else {
-      if (!destinationParam?.startsWith?.('http')) {
-        if (id) {
-          noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-            scrollToElem(getByDataViewTag(id), { duration })
+          const { default: noodl } = await import('../app/noodl')
+          noodl.editDraft((draft: any) => {
+            if (videoTrack) {
+              if (videoTrack.isEnabled) {
+                videoTrack.disable()
+                set(draft, path, false)
+                log.grey(
+                  `Toggled video OFF for LocalParticipant`,
+                  localParticipant,
+                )
+              } else {
+                videoTrack.enable()
+                set(draft, path, true)
+                log.grey(
+                  `Toggled video ON for LocalParticipant`,
+                  localParticipant,
+                )
+              }
+            } else {
+              log.red(
+                `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
+                { localParticipant, room: Meeting.room },
+              )
+            }
           })
         }
-        noodluidom.page.pageUrl = resolvePageUrl({
-          destination,
-          pageUrl: noodluidom.page.pageUrl,
-          startPage: noodl.cadlEndpoint.startPage,
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'toggleMicrophoneOnOff',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+        actionsContext,
+      ) {
+        log.func('toggleMicrophoneOnOff')
+        const path = 'VideoChat.micOn'
+
+        let localParticipant = Meeting.localParticipant
+        let audioTrack: LocalAudioTrack | undefined
+
+        if (localParticipant) {
+          audioTrack = Array.from(localParticipant.tracks.values()).find(
+            (trackPublication) => trackPublication.kind === 'audio',
+          )?.track as LocalAudioTrack
+
+          const { default: noodl } = await import('../app/noodl')
+          noodl.editDraft((draft: any) => {
+            if (audioTrack) {
+              if (audioTrack.isEnabled) {
+                audioTrack.disable()
+                set(draft, path, false)
+                log.grey(
+                  `Toggled audio OFF for LocalParticipant`,
+                  localParticipant,
+                )
+              } else {
+                log.grey(
+                  `Toggled audio ON for LocalParticipant`,
+                  localParticipant,
+                )
+                audioTrack.enable()
+                set(draft, path, true)
+              }
+            }
+          })
+        }
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'toggleFlag',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+        actionsContext,
+      ) {
+        log.func('toggleFlag')
+        console.log({ action, ...options })
+        const { findByElementId } = actionsContext
+        const { component } = options
+        const page = noodlui.page
+        const { dataKey = '' } = action.original || {}
+        let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
+        const node = findByElementId(component)
+
+        let dataValue: any
+        let dataObject: any
+        let previousDataValue: boolean | undefined = undefined
+        let nextDataValue: boolean | undefined = undefined
+        let newSrc = ''
+
+        if (isDraft(path)) path = original(path)
+
+        log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
+
+        if (dataKey?.startsWith(iteratorVar)) {
+          let parts = dataKey.split('.').slice(1)
+          dataObject = findListDataObject(component)
+          previousDataValue = get(dataObject, parts)
+          // previousDataValueInSdk = _.get(noodl.root[context.page])
+          dataValue = previousDataValue
+          if (isNOODLBoolean(dataValue)) {
+            // true -> false / false -> true
+            nextDataValue = !isBooleanTrue(dataValue)
+          } else {
+            // Set to true if am item exists
+            nextDataValue = !dataValue
+          }
+          set(dataObject, parts, nextDataValue)
+        } else {
+          const onNextValue = (
+            previousValue: any,
+            { updateDraft }: { updateDraft?: { path: string } } = {},
+          ) => {
+            let nextValue: any
+            if (isNOODLBoolean(previousValue)) {
+              nextValue = isBooleanTrue(previousValue) ? false : true
+            }
+            nextValue = !previousValue
+            if (updateDraft) {
+              noodl.editDraft((draft: any) => {
+                set(draft, updateDraft.path, nextValue)
+              })
+            }
+            // Propagate the changes to to UI if there is a path "if" object that
+            // references the value as well
+            if (node && isObjectLike(path)) {
+              let valEvaluating = path?.if?.[0]
+              // If the dataKey is the same as the the value we are evaluating we can
+              // just re-use the nextDataValue
+              if (valEvaluating === dataKey) {
+                valEvaluating = nextValue
+              } else {
+                valEvaluating =
+                  get(noodl.root, valEvaluating) ||
+                  get(noodl.root[page || ''], valEvaluating)
+              }
+              newSrc = noodlui.createSrc(
+                valEvaluating ? path?.if?.[1] : path?.if?.[2],
+                component,
+              ) as string
+              node.setAttribute('src', newSrc)
+            }
+            return nextValue
+          }
+
+          dataObject = noodl.root
+
+          if (has(noodl.root, dataKey)) {
+            dataObject = noodl.root
+            previousDataValue = get(dataObject, dataKey)
+            onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
+          } else if (has(noodl.root[page], dataKey)) {
+            dataObject = noodl.root[page]
+            previousDataValue = get(dataObject, dataKey)
+            onNextValue(previousDataValue, {
+              updateDraft: {
+                path: `${dataKey}${page ? `.${page}` : ''}`,
+              },
+            })
+          } else {
+            log.red(
+              `${dataKey} is not a path of the data object. ` +
+                `Defaulting to attaching ${dataKey} as a path to the root object`,
+              { context: noodlui.getContext?.(), dataObject, dataKey },
+            )
+            dataObject = noodl.root
+            previousDataValue = undefined
+            nextDataValue = false
+            onNextValue(previousDataValue, {
+              updateDraft: { path: `${dataKey}.${page || ''}` },
+            })
+          }
+
+          if (/mic/i.test(dataKey)) {
+            noodluidom.builtIns.toggleMicrophoneOnOff
+              .find(Boolean)
+              ?.fn?.(action, options, actionsContext)
+          } else if (/camera/i.test(dataKey)) {
+            noodluidom.builtIns.toggleCameraOnOff
+              .find(Boolean)
+              ?.fn?.(action, options, actionsContext)
+          }
+        }
+
+        log.grey('', {
+          component: component.toJS(),
+          componentInst: component,
+          context: noodlui.getContext?.(),
+          dataKey,
+          dataValue,
+          dataObject,
+          previousDataValue,
+          nextDataValue,
+          previousDataValueInSdk: newSrc,
+          node,
+          path,
+          options,
         })
-      } else {
-        destination = destinationParam
-      }
-      await noodluidom.page.requestPageChange(destination)
-      if (!destination) {
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'lockApplication',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) {
+        const result = await _onLockLogout()
+        if (result === 'abort') return 'abort'
+        const { Account } = await import('@aitmed/cadl')
+        await Account.logout(false)
+        window.location.reload()
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'logOutOfApplication',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) {
+        const result = await _onLockLogout()
+        if (result === 'abort') return 'abort'
+        const { Account } = await import('@aitmed/cadl')
+        await Account.logout(true)
+        window.location.reload()
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'logout',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) {
+        const result = await _onLockLogout()
+        if (result === 'abort') return 'abort'
+        const { Account } = await import('@aitmed/cadl')
+        await Account.logout(true)
+        window.location.reload()
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'goto',
+      async fn(action: Action<any>, options: ActionConsumerCallbackOptions) {
         log.func('goto')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          { action, ...options },
+        log.red('', { action, ...options })
+        noodl = noodl || (await import('../app/noodl')).default
+        const destinationParam =
+          (typeof action === 'string'
+            ? action
+            : isPlainObject(action)
+            ? (action as any).destination
+            : '') || ''
+        let { destination, id = '', isSamePage, duration } = parse.destination(
+          destinationParam,
         )
-      }
-    }
+        if (isSamePage) {
+          scrollToElem(getByDataViewTag(id), { duration })
+        } else {
+          if (!destinationParam?.startsWith?.('http')) {
+            if (id) {
+              noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
+                scrollToElem(getByDataViewTag(id), { duration })
+              })
+            }
+            noodluidom.page.pageUrl = resolvePageUrl({
+              destination,
+              pageUrl: noodluidom.page.pageUrl,
+              startPage: noodl.cadlEndpoint.startPage,
+            })
+          } else {
+            destination = destinationParam
+          }
+          await noodluidom.page.requestPageChange(destination)
+          if (!destination) {
+            log.func('goto')
+            log.red(
+              'Tried to go to a page but could not find information on the whereabouts',
+              { action, ...options },
+            )
+          }
+        }
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'redraw',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+        { findByElementId },
+      ) {
+        log.func('redraw')
+        log.red('', { action, options })
+
+        const viewTag = action?.original?.viewTag || ''
+
+        let components = Object.values(
+          noodlui.componentCache().state() || {},
+        ).reduce((acc: ComponentInstance[], c: any) => {
+          if (c && c.get('viewTag') === viewTag) return acc.concat(c)
+          return acc
+        }, [])
+
+        const { component } = options
+
+        if (
+          viewTag &&
+          component.get('viewTag') === viewTag &&
+          !components.includes(component)
+        ) {
+          components.push(component)
+        }
+
+        if (!components.length) {
+          log.red(`Could not find any components to redraw`, {
+            action,
+            ...options,
+            component,
+          })
+        } else {
+          log.grey(`Redrawing ${components.length} components`, components)
+        }
+
+        let startCount = 0
+
+        while (startCount < components.length) {
+          const viewTagComponent = components[startCount] as ComponentInstance
+          const node = findByElementId(viewTagComponent)
+          const dataObject = findListDataObject(viewTagComponent)
+          const opts = { dataObject }
+          const [newNode, newComponent] = noodluidom.redraw(
+            node as HTMLElement,
+            viewTagComponent,
+            opts,
+          )
+          log.grey('Resolved redrawed component/node', {
+            newNode,
+            newComponent,
+            dataObject,
+          })
+          noodlui.componentCache().set(newComponent)
+          startCount++
+        }
+
+        componentCacheSize = getComponentCacheSize(noodlui)
+        log.red(`COMPONENT CACHE SIZE: ${componentCacheSize}`)
+      },
+    })
+  /* -------------------------------------------------------
+    ---- NODE RESOLVERS
+  -------------------------------------------------------- */
+  noodluidom
+    .register({
+      name: 'data-value (sync with sdk)',
+      cond: (node) => isTextFieldLike(node),
+      resolve(node, component) {
+        // Attach an additional listener for data-value elements that are expected
+        // to change values on the fly by some "on change" logic (ex: input/select elements)
+        return import('../utils/sdkHelpers').then(
+          ({ createOnDataValueChangeFn }) => {
+            ;(node as NOODLDOMElement)?.addEventListener(
+              'change',
+              createOnDataValueChangeFn(node, component, {
+                onChange: component.get('onChange'),
+                eventName: 'onchange',
+              }),
+            )
+            if (component.get('onBlur')) {
+              ;(node as NOODLDOMElement)?.addEventListener(
+                'blur',
+                createOnDataValueChangeFn(node, component, {
+                  onBlur: component.get('onBlur'),
+                  eventName: 'onblur',
+                }),
+              )
+            }
+          },
+        )
+      },
+    })
+    .register({
+      name: 'image',
+      cond: 'image',
+      async resolve(node, component, { findByElementId }) {
+        const { default: noodlui } = await import('../app/noodl-ui')
+        const img = node as HTMLImageElement
+        const parent = component.parent()
+        const context = noodlui.getContext()
+        const pageObject = noodlui.root[context?.page || ''] || {}
+        if (
+          img?.src === pageObject?.docDetail?.document?.name?.data &&
+          pageObject?.docDetail?.document?.name?.type == 'application/pdf'
+        ) {
+          img?.style && (img.style.visibility = 'hidden')
+          const parentNode = findByElementId(parent)
+          const iframeEl = document.createElement('iframe')
+          iframeEl.setAttribute('src', img.src)
+          if (isPlainObject(component.style)) {
+            Object.entries(component.style).forEach(
+              ([k, v]) => (iframeEl.style[k as any] = v),
+            )
+          }
+          parentNode?.appendChild(iframeEl)
+        }
+      },
+    })
+    .register({
+      name: 'plugin',
+      cond: 'plugin',
+      async resolve(node, component: any) {
+        const src = component?.get?.('src')
+        if (typeof src === 'string') {
+          if (src.startsWith('http')) {
+            if (src.endsWith('.js')) {
+              const { default: axios } = await import('../app/axios')
+              const { data } = await axios.get(src)
+              /**
+               * TODO - Check the ext of the filename
+               * TODO - If its js, run eval on it
+               */
+              try {
+                eval(data)
+              } catch (error) {
+                console.error(error)
+              }
+            }
+          } else {
+            console.error(
+              `Received a src from a "plugin" component that did not start with an http(s) protocol`,
+              { component: component.toJS(), src },
+            )
+          }
+        }
+      },
+    })
+    .register({
+      name: 'textField (password + non password)',
+      cond: 'textField',
+      resolve(node: any, component: any) {
+        // Password inputs
+        if (component.get('contentType') === 'password') {
+          if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
+            import('../app/noodl-ui').then(({ default: noodlui }) => {
+              const assetsUrl = noodlui.assetsUrl || ''
+              const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
+              const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
+              const originalParent = node?.parentNode as HTMLDivElement
+              const newParent = document.createElement('div')
+              const eyeContainer = document.createElement('button')
+              const eyeIcon = document.createElement('img')
+
+              // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
+              const dividedStyleKeys = [
+                'position',
+                'left',
+                'top',
+                'right',
+                'bottom',
+                'width',
+                'height',
+              ] as const
+
+              // Transfer styles to the new parent to position our custom elements
+              dividedStyleKeys.forEach((styleKey) => {
+                newParent.style[styleKey] = component.style?.[styleKey]
+                // Remove the transfered styles from the original input element
+                node && (node.style[styleKey] = '')
+              })
+
+              newParent.style['display'] = 'flex'
+              newParent.style['alignItems'] = 'center'
+              newParent.style['background'] = 'none'
+
+              node && (node.style['width'] = '100%')
+              node && (node.style['height'] = '100%')
+
+              eyeContainer.style['top'] = '0px'
+              eyeContainer.style['bottom'] = '0px'
+              eyeContainer.style['right'] = '6px'
+              eyeContainer.style['width'] = '42px'
+              eyeContainer.style['background'] = 'none'
+              eyeContainer.style['border'] = '0px'
+              eyeContainer.style['outline'] = 'none'
+
+              eyeIcon.style['width'] = '100%'
+              eyeIcon.style['height'] = '100%'
+              eyeIcon.style['userSelect'] = 'none'
+
+              eyeIcon.setAttribute('src', eyeClosed)
+              eyeContainer.setAttribute(
+                'title',
+                'Click here to reveal your password',
+              )
+              node && node.setAttribute('type', 'password')
+              node && node.setAttribute('data-testid', 'password')
+
+              // Restructing the node structure to match our custom effects with the
+              // toggling of the eye iconsf
+
+              if (originalParent) {
+                if (originalParent.contains(node))
+                  originalParent.removeChild(node)
+                originalParent.appendChild(newParent)
+              }
+              eyeContainer.appendChild(eyeIcon)
+              newParent.appendChild(node)
+              newParent.appendChild(eyeContainer)
+
+              let selected = false
+
+              eyeIcon.dataset.mods = ''
+              eyeIcon.dataset.mods += '[password.eye.toggle]'
+              eyeContainer.onclick = () => {
+                if (selected) {
+                  eyeIcon.setAttribute('src', eyeOpened)
+                  node?.setAttribute('type', 'text')
+                } else {
+                  eyeIcon.setAttribute('src', eyeClosed)
+                  node?.setAttribute('type', 'password')
+                }
+                selected = !selected
+                eyeContainer['title'] = !selected
+                  ? 'Click here to hide your password'
+                  : 'Click here to reveal your password'
+              }
+            })
+          }
+        } else {
+          // Set to "text" by default
+          node.setAttribute('type', 'text')
+        }
+      },
+    })
+
+  console.log(`%cRegistered noodl-ui-dom listeners`, `color:#95a5a6;`)
+
+  let componentCacheSize = 0
+
+  function getComponentCacheSize(noodlui: NOODLUI) {
+    return Object.keys(noodlui.componentCache().state()).length
   }
 
   /** Shared common logic for both lock/logout logic */
-  const _onLockLogout = async () => {
+  async function _onLockLogout() {
     const dataValues = getDataValues() as { password: string }
     const hiddenPwLabel = getByDataUX('passwordHidden') as HTMLDivElement
     let password = dataValues.password || ''
@@ -180,359 +705,7 @@ const createBuiltInActions = function ({
     }
   }
 
-  builtInActions.lockApplication = async (action, options) => {
-    const result = await _onLockLogout()
-    if (result === 'abort') return 'abort'
-    const { Account } = await import('@aitmed/cadl')
-    await Account.logout(false)
-    window.location.reload()
-  }
-
-  builtInActions.logOutOfApplication = async (action, options) => {
-    const result = await _onLockLogout()
-    if (result === 'abort') return 'abort'
-    const { Account } = await import('@aitmed/cadl')
-    await Account.logout(true)
-    window.location.reload()
-  }
-
-  builtInActions.logout = async () => {
-    const { Account } = await import('@aitmed/cadl')
-    await Account.logout(true)
-    window.location.reload()
-  }
-
-  let componentCacheSize = 0
-
-  const getComponentCacheSize = () => {
-    return Object.keys(noodlui.componentCache().state()).length
-  }
-
-  builtInActions.redraw = async function redraw(action: EmitAction, options) {
-    log.func('redraw')
-    log.red('', { action, options })
-
-    // @ts-expect-error
-    const viewTag = action?.original?.viewTag || ''
-
-    let components = Object.values(
-      noodlui.componentCache().state() || {},
-    ).reduce((acc: ComponentInstance[], c: any) => {
-      if (c && c.get('viewTag') === viewTag) return acc.concat(c)
-      return acc
-    }, [])
-
-    log.gold('viewTaggedComponents', {
-      viewtagged: components?.reduce((acc, c) => {
-        // @ts-expect-error
-        acc[c.id] = {
-          component: c,
-          node: document.getElementById(c.id),
-        } as any
-        return acc
-      }, {}),
-    })
-
-    const { component } = options
-
-    if (
-      viewTag &&
-      component.get('viewTag') === viewTag &&
-      !components.includes(component)
-    ) {
-      components.push(component)
-    }
-
-    log.grey(
-      `# of components with viewTag "${viewTag}": ${components.length}`,
-      components,
-    )
-
-    const redraw = (node: HTMLElement, child: Component, dataObject?: any) => {
-      return noodluidom.redraw(node, child, {
-        dataObject,
-        viewTag,
-      })
-    }
-
-    let startCount = 0
-
-    while (startCount < components.length) {
-      const viewTagComponent = components[startCount] as ComponentInstance
-      const node = document.getElementById(viewTagComponent.id)
-      log.grey(
-        '[Redrawing] ' + node
-          ? `Found node for viewTag component`
-          : `Could not find a node associated with the viewTag component`,
-        { node, component: viewTagComponent },
-      )
-      const dataObject = findListDataObject(viewTagComponent)
-      const [newNode, newComponent] = redraw(
-        node as HTMLElement,
-        // @ts-expect-error
-        viewTagComponent,
-        dataObject,
-      )
-
-      log.grey('Resolved redrawed component/node', {
-        newNode,
-        newComponent,
-        dataObject,
-      })
-      noodlui.componentCache().set(newComponent)
-      startCount++
-    }
-
-    componentCacheSize = getComponentCacheSize(noodlui)
-    log.red(`COMPONENT CACHE SIZE: ${componentCacheSize}`)
-  }
-
-  builtInActions.toggleCameraOnOff = async () => {
-    log.func('toggleCameraOnOff')
-    const path = 'VideoChat.cameraOn'
-
-    let localParticipant = Meeting.localParticipant
-    let videoTrack: LocalVideoTrack | undefined
-
-    if (localParticipant) {
-      videoTrack = Array.from(localParticipant.tracks.values()).find(
-        (trackPublication) => trackPublication.kind === 'video',
-      )?.track as LocalVideoTrack
-
-      const { default: noodl } = await import('../app/noodl')
-      noodl.editDraft((draft: any) => {
-        if (videoTrack) {
-          if (videoTrack.isEnabled) {
-            videoTrack.disable()
-            set(draft, path, false)
-            log.grey(`Toggled video OFF for LocalParticipant`, localParticipant)
-          } else {
-            videoTrack.enable()
-            set(draft, path, true)
-            log.grey(`Toggled video ON for LocalParticipant`, localParticipant)
-          }
-        } else {
-          log.red(
-            `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
-            { localParticipant, room: Meeting.room },
-          )
-        }
-      })
-    }
-  }
-
-  builtInActions.toggleMicrophoneOnOff = async () => {
-    log.func('toggleMicrophoneOnOff')
-    const path = 'VideoChat.micOn'
-
-    let localParticipant = Meeting.localParticipant
-    let audioTrack: LocalAudioTrack | undefined
-
-    if (localParticipant) {
-      audioTrack = Array.from(localParticipant.tracks.values()).find(
-        (trackPublication) => trackPublication.kind === 'audio',
-      )?.track as LocalAudioTrack
-
-      const { default: noodl } = await import('../app/noodl')
-      noodl.editDraft((draft: any) => {
-        if (audioTrack) {
-          if (audioTrack.isEnabled) {
-            audioTrack.disable()
-            set(draft, path, false)
-            log.grey(`Toggled audio OFF for LocalParticipant`, localParticipant)
-          } else {
-            log.grey(`Toggled audio ON for LocalParticipant`, localParticipant)
-            audioTrack.enable()
-            set(draft, path, true)
-          }
-        }
-      })
-    }
-  }
-
-  builtInActions.toggleFlag = async (action, options, actionsContext) => {
-    log.func('toggleFlag')
-    console.log({ action, ...options })
-    const { default: noodl } = await import('../app/noodl')
-    const { component } = options
-    const page = noodlui.page
-    // @ts-expect-error
-    const { dataKey = '' } = action.original || {}
-    let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
-    const node = document.getElementById(component?.id)
-
-    let dataValue: any
-    let dataObject: any
-    let previousDataValue: boolean | undefined = undefined
-    let nextDataValue: boolean | undefined = undefined
-    let newSrc = ''
-
-    if (isDraft(path)) path = original(path)
-
-    log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
-
-    if (dataKey?.startsWith(iteratorVar)) {
-      let parts = dataKey.split('.').slice(1)
-      dataObject = findListDataObject(component)
-      previousDataValue = get(dataObject, parts)
-      // previousDataValueInSdk = _.get(noodl.root[context.page])
-      dataValue = previousDataValue
-      if (isNOODLBoolean(dataValue)) {
-        // true -> false / false -> true
-        nextDataValue = !isBooleanTrue(dataValue)
-      } else {
-        // Set to true if am item exists
-        nextDataValue = !dataValue
-      }
-      set(dataObject, parts, nextDataValue)
-    } else {
-      const onNextValue = (
-        previousValue: any,
-        { updateDraft }: { updateDraft?: { path: string } } = {},
-      ) => {
-        let nextValue: any
-        if (isNOODLBoolean(previousValue)) {
-          nextValue = isBooleanTrue(previousValue) ? false : true
-        }
-        nextValue = !previousValue
-        if (updateDraft) {
-          noodl.editDraft((draft: any) => {
-            set(draft, updateDraft.path, nextValue)
-          })
-        }
-        // Propagate the changes to to UI if there is a path "if" object that
-        // references the value as well
-        if (node && isObjectLike(path)) {
-          // @ts-expect-error
-          let valEvaluating = path?.if?.[0]
-          // If the dataKey is the same as the the value we are evaluating we can
-          // just re-use the nextDataValue
-          if (valEvaluating === dataKey) {
-            valEvaluating = nextValue
-          } else {
-            valEvaluating =
-              get(noodl.root, valEvaluating) ||
-              get(noodl.root[page || ''], valEvaluating)
-          }
-          newSrc = noodlui.createSrc(
-            // @ts-expect-error
-            valEvaluating ? path?.if?.[1] : path?.if?.[2],
-            component,
-          ) as string
-          node.setAttribute('src', newSrc)
-        }
-        return nextValue
-      }
-
-      dataObject = noodl.root
-
-      if (has(noodl.root, dataKey)) {
-        dataObject = noodl.root
-        previousDataValue = get(dataObject, dataKey)
-        onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-      } else if (has(noodl.root[page], dataKey)) {
-        dataObject = noodl.root[page]
-        previousDataValue = get(dataObject, dataKey)
-        onNextValue(previousDataValue, {
-          updateDraft: {
-            path: `${dataKey}${page ? `.${page}` : ''}`,
-          },
-        })
-      } else {
-        log.red(
-          `${dataKey} is not a path of the data object. ` +
-            `Defaulting to attaching ${dataKey} as a path to the root object`,
-          { context: noodlui.getContext?.(), dataObject, dataKey },
-        )
-        dataObject = noodl.root
-        previousDataValue = undefined
-        nextDataValue = false
-        onNextValue(previousDataValue, {
-          updateDraft: { path: `${dataKey}.${page || ''}` },
-        })
-      }
-
-      if (/mic/i.test(dataKey)) {
-        builtInActions.toggleMicrophoneOnOff?.(action, options, actionsContext)
-      } else if (/camera/i.test(dataKey)) {
-        builtInActions.toggleCameraOnOff?.(action, options, actionsContext)
-      }
-    }
-
-    log.grey('', {
-      component: component.toJS(),
-      componentInst: component,
-      context: noodlui.getContext?.(),
-      dataKey,
-      dataValue,
-      dataObject,
-      previousDataValue,
-      nextDataValue,
-      previousDataValueInSdk: newSrc,
-      node,
-      path,
-      options,
-    })
-  }
-
-  return builtInActions
-
-  // Wrapper that converts action objects to their action instances.
-  // This is to allow these built in funcs to be executed outside of
-  // components like during the "init" phase of page objects
-  // return Object.entries(builtInActions).reduce((acc, [funcName, fn]) => {
-  //   acc[funcName as keyof typeof acc] = async (
-  //     ...[
-  //       action,
-  //       options,
-
-  //       actionsContext,
-  //     ]: Parameters<ActionChainActionCallback>
-  //   ) => {
-  //     if (!(action instanceof Action) && _.isPlainObject(action)) {
-  //       const actionObj = action as ActionObject
-  //       const { default: noodl } = await import('../app/noodl')
-  //       const { default: noodlui } = await import('../app/noodl-ui')
-  //       const consumerArgs = getActionConsumerOptions(
-  //         noodlui,
-  //       ) as ActionConsumerCallbackOptions & {
-  //         trigger: any
-  //       }
-  //       actionsContext = actionsContext ||
-  //         noodlui.actionsContext || { noodl, noodlui }
-  //       const ref = new ActionChain(
-  //         [actionObj],
-  //         {
-  //           ...consumerArgs,
-  //           component: options?.component || consumerArgs.component,
-  //         },
-  //         actionsContext,
-  //       )
-  //       if (actionObj.actionType === 'builtIn') {
-  //         ref.useBuiltIn({
-  //           actionType: actionObj.actionType,
-  //           funcName: actionObj.funcName,
-  //           fn:
-  //             builtInActions[actionObj.funcName as keyof typeof builtInActions],
-  //         })
-  //       } else {
-  //         const { default: createActions } = await import('./actions')
-  //         const actionHandlers = createActions({ page })
-  //         actionHandlers[actionObj.actionType]?.forEach?.((o) =>
-  //           ref.useAction({
-  //             actionType: actionObj.actionType,
-  //             fn: o.fn,
-  //             trigger: o.trigger,
-  //           }),
-  //         )
-  //       }
-  //       action = (ref.createAction as any)?.[actionObj.actionType]?.(action)
-  //       console.info(action)
-  //     }
-  //     return fn?.(action, options, actionsContext)
-  //   }
-  //   return acc
-  // }, {} as typeof builtInActions)
+  return noodluidom
 }
 
 /* -------------------------------------------------------

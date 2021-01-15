@@ -155,3 +155,12 @@ PAc1893f64325658d1acec25e99a158da7 | 8882462345 (Desktop)
 1. yml
 2. sdk
 3. noodl-ui
+
+compose = (...fns) --> (arg) --> fns.reduceRight
+(acc, fn) -->
+fn(stepFn)
+fn(stepFn)
+fn(stepFn)
+fn(stepFn)
+fn(stepFn)
+-->

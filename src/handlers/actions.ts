@@ -8,12 +8,9 @@ import NOODLUIDOM, { getByDataUX } from 'noodl-ui-dom'
 import {
   Action,
   ActionConsumerCallbackOptions,
-  ActionChainUseObjectBase,
-  ActionType,
   AnonymousObject,
   EmitAction,
   EmitObject,
-  EvalObject,
   findListDataObject,
   findParent,
   getDataValues,
@@ -21,16 +18,13 @@ import {
   isReference,
   NOODL as NOODLUI,
   parseReference,
-  PopupObject,
-  PopupDismissObject,
-  RefreshObject,
-  SaveObject,
-  UpdateObject,
+  EmitActionObject,
+  GotoActionObject,
+  ToastActionObject,
 } from 'noodl-ui'
 import {
   createEmitDataKey,
   evalIf,
-  getByDataViewTag,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isPossiblyDataKey,
@@ -40,6 +34,15 @@ import Logger from 'logsnap'
 import { pageEvent } from '../constants'
 import { resolvePageUrl } from '../utils/common'
 import { onSelectFile, scrollToElem, toast } from '../utils/dom'
+import {
+  EvalActionObject,
+  PageJumpActionObject,
+  PopupActionObject,
+  PopupDismissActionObject,
+  RefreshActionObject,
+  SaveActionObject,
+  UpdateActionObject,
+} from 'noodl-types'
 
 const log = Logger.create('actions.ts')
 
@@ -50,34 +53,25 @@ const createActions = function ({
   noodlui: NOODLUI
   noodluidom: NOODLUIDOM
 }) {
-  const _actions = {} as Record<
-    ActionType,
-    Omit<ActionChainUseObjectBase<any>, 'actionType'>[]
-  >
-
-  _actions['anonymous'] = []
-  _actions['emit'] = []
-  _actions['evalObject'] = []
-  _actions['goto'] = []
-  _actions['pageJump'] = []
-  _actions['popUp'] = []
-  _actions['popUpDismiss'] = []
-  _actions['popUp'] = []
-  _actions['refresh'] = []
-  _actions['saveObject'] = []
-  _actions['toast'] = []
-  _actions['updateObject'] = []
-
-  _actions.anonymous.push({
-    fn: async (action: Action<AnonymousObject>, options) => {
+  noodluidom.register({
+    actionType: 'anonymous',
+    fn: async (
+      action: Action<AnonymousObject>,
+      options: ActionConsumerCallbackOptions,
+    ) => {
       const { fn } = action.original || {}
       if (options?.component) fn?.()
     },
   })
 
   /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
-  _actions.emit.push({
-    fn: async (action, options, { noodl }) => {
+  noodluidom.register({
+    actionType: 'emit',
+    fn: async (
+      action: EmitAction<EmitActionObject>,
+      options: ActionConsumerCallbackOptions,
+      { noodl },
+    ) => {
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, ...options })
 
@@ -104,8 +98,13 @@ const createActions = function ({
   })
 
   /** DATA VALUE EMIT */
-  _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl }) => {
+  noodluidom.register({
+    actionType: 'emit',
+    fn: async (
+      action: EmitAction<EmitActionObject>,
+      options: ActionConsumerCallbackOptions,
+      { noodl },
+    ) => {
       log.func('emit [dataValue]')
       log.grey('', { action, options })
 
@@ -134,8 +133,14 @@ const createActions = function ({
     trigger: 'dataValue',
   })
 
-  _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl }) => {
+  /** onBlur EMIT */
+  noodluidom.register({
+    actionType: 'emit',
+    fn: async (
+      action: EmitAction<EmitActionObject>,
+      options: ActionConsumerCallbackOptions,
+      { noodl },
+    ) => {
       log.func('emit [onBlur]')
       log.grey('', { action, options })
 
@@ -164,14 +169,20 @@ const createActions = function ({
     trigger: 'onBlur',
   })
 
-  _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl }) => {
+  /** onClick EMIT */
+  noodluidom.register({
+    actionType: 'emit',
+    fn: async (
+      action: EmitAction<EmitActionObject>,
+      options: ActionConsumerCallbackOptions,
+      { noodl },
+    ) => {
       log.func('emit [onClick]')
       log.gold('Emitting', { action, noodl, noodlui, ...options })
 
       const emitParams = {
         actions: action.actions,
-        pageName: noodlui?.page,
+        pageName: options?.page,
       } as any
 
       if (action.original.emit.dataKey) {
@@ -194,8 +205,14 @@ const createActions = function ({
     trigger: 'onClick',
   })
 
-  _actions.emit.push({
-    fn: async (action: EmitAction, options, { noodl }) => {
+  /** onChange EMIT */
+  noodluidom.register({
+    actionType: 'emit',
+    fn: async (
+      action: EmitAction<EmitActionObject>,
+      options: ActionConsumerCallbackOptions,
+      { noodl },
+    ) => {
       log.func('emit [onChange]')
       log.grey('', { action, options })
 
@@ -224,16 +241,15 @@ const createActions = function ({
     trigger: 'onChange',
   })
 
-  // Emit for trigger: "path"
-  // TODO - if src === assetsUrl
-  // TODO - else if src endsWith
-  _actions.emit.push({
+  /** PATH EMIT */
+  noodluidom.register({
+    actionType: 'emit',
     fn: async (
-      action,
+      action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions & { path: EmitObject },
       { noodl },
     ) => {
-      log.func('path [emit]')
+      log.func('emit [path]')
       const { component, context, getRoot, getPageObject, path } = options
       const page = context.page || ''
       const dataObject = findListDataObject(component)
@@ -248,20 +264,6 @@ const createActions = function ({
         pageName: page,
       } as any
 
-      if (
-        action.dataKey &&
-        'var' in action.dataKey &&
-        action.dataKey.var === undefined &&
-        action.original.emit.dataKey
-      ) {
-        const dataKey = createEmitDataKey(
-          action.original.emit.dataKey,
-          [dataObject, () => getPageObject(page), () => getRoot()],
-          { iteratorVar },
-        )
-        // debugger
-      }
-
       if (action.original.emit.dataKey) {
         emitParams.dataKey = createEmitDataKey(
           action.original.emit.dataKey,
@@ -269,7 +271,6 @@ const createActions = function ({
           { iteratorVar },
         )
       }
-
       const result = await noodl.emitCall(emitParams)
 
       log.grey(
@@ -281,8 +282,12 @@ const createActions = function ({
     trigger: 'path',
   })
 
-  _actions.evalObject.push({
-    fn: async (action: Action<EvalObject>, options) => {
+  noodluidom.register({
+    actionType: 'evalObject',
+    fn: async (
+      action: Action<EvalActionObject>,
+      options: ActionConsumerCallbackOptions,
+    ) => {
       log.func('evalObject')
       try {
         if (typeof action?.original?.object === 'function') {
@@ -358,53 +363,91 @@ const createActions = function ({
     },
   })
 
-  _actions.goto.push({
-    fn: async (action: any, options, actionsContext) => {
-      log.func('_actions.goto')
-      log.red('goto action', { action, options, actionsContext })
-      const { noodl } = actionsContext
+  noodluidom.register({
+    actionType: 'goto',
+    fn: async (
+      action: Action<GotoActionObject>,
+      options: ActionConsumerCallbackOptions,
+      actionsContext,
+    ) => {
+      log.func('goto')
+      log.red('goto action', { action, options, ...actionsContext })
+      const {
+        findWindow,
+        findByElementId,
+        findByViewTag,
+        noodl,
+      } = actionsContext
+      const { component } = options
+
       const destinationParam =
         (typeof action.original.goto === 'string'
           ? action.original.goto
           : isPlainObject(action.original.goto)
           ? action.original.destination || action.original.goto
           : '') || ''
+
       let { destination, id = '', isSamePage, duration } = parse.destination(
         destinationParam,
       )
-      if (isSamePage) {
-        let id = options.component.id
-        let win
-        let index = 0
 
-        if (window.length) {
-          win = window[index++]
-          while (win) {
-            const node2 = document.getElementById(id)
-            window.node2 = node2
-            const node = win.document.getElementById(id)
-            if (node) scrollToElem(node, { win, duration: 800 })
-            win = window[index++]
-          }
-        } else {
-          scrollToElem(getByDataViewTag(id), { duration })
-        }
-      } else {
-        if (!destinationParam?.startsWith?.('http')) {
-          if (id) {
+      log.grey('', {
+        destinationParam,
+        destination,
+        duration,
+        id,
+        isSamePage,
+      })
+
+      if (id) {
+        const node = findByViewTag(component) || findByElementId(component)
+
+        if (node) {
+          let win = findWindow((w) => {
+            if (w) {
+              if ('contentDocument' in w) {
+                return (w as any).contentDocument.contains?.(node)
+              }
+              return w.document?.contains?.(node)
+            } else return false
+          })
+          if (isSamePage) {
+            scrollToElem(node, { win, duration })
+          } else {
             noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-              scrollToElem(getByDataViewTag(id), { duration })
+              scrollToElem(node, { win, duration })
             })
           }
-          noodluidom.page.pageUrl = resolvePageUrl({
-            destination,
-            pageUrl: noodluidom.page.pageUrl,
-            startPage: noodl.cadlEndpoint.startPage,
-          })
         } else {
-          destination = destinationParam
+          log.red(
+            `Could not search for a DOM node with an identity of "${id}"`,
+            {
+              node,
+              id,
+              destination,
+              isSamePage,
+              duration,
+              action,
+              options,
+              actionsContext,
+            },
+          )
         }
+      }
+
+      if (!destinationParam?.startsWith?.('http')) {
+        noodluidom.page.pageUrl = resolvePageUrl({
+          destination,
+          pageUrl: noodluidom.page.pageUrl,
+          startPage: noodl.cadlEndpoint.startPage,
+        })
+      } else {
+        destination = destinationParam
+      }
+
+      if (!isSamePage) {
         await noodluidom.page.requestPageChange(destination)
+
         if (!destination) {
           log.func('goto')
           log.red(
@@ -416,26 +459,34 @@ const createActions = function ({
     },
   })
 
-  _actions.pageJump.push({
-    fn: async (action: any, options) => {
+  noodluidom.register({
+    actionType: 'pageJump',
+    fn: async (
+      action: Action<PageJumpActionObject>,
+      options: ActionConsumerCallbackOptions,
+    ) => {
       log.func('pageJump')
       log.grey('', { action, ...options })
       await noodluidom.page.requestPageChange(action.original.destination)
     },
   })
 
-  _actions.popUp.push({
-    fn: async (action: Action<PopupObject | PopupDismissObject>, options) => {
+  noodluidom.register({
+    actionType: 'popUp',
+    fn: async (
+      action: Action<PopupActionObject | PopupDismissActionObject>,
+      options: ActionConsumerCallbackOptions,
+    ) => {
       log.func('popUp')
       log.grey('', { action, ...options })
-      const { abort, component, ref } = options
+      const { ref } = options
       const elem = getByDataUX(action.original.popUpView) as HTMLElement
       log.gold('popUp action', { action, ...options, elem })
-      if (elem) {
+      if (elem?.style) {
         if (action.original.actionType === 'popUp') {
-          elem.style && (elem.style.visibility = 'visible')
+          elem.style.visibility = 'visible'
         } else if (action.original.actionType === 'popUpDismiss') {
-          elem.style && (elem.style.visibility = 'hidden')
+          elem.style.visibility = 'hidden'
         }
         // Some popup components render values using the dataKey. There is a bug
         // where an action returns a popUp action from an evalObject action. At
@@ -498,27 +549,42 @@ const createActions = function ({
     },
   })
 
-  _actions.popUpDismiss.push({
-    fn: async (action: any, options, actionsContext) => {
+  noodluidom.register({
+    actionType: 'popUpDismiss',
+    fn: async (
+      action: Action<PopupDismissActionObject>,
+      options: ActionConsumerCallbackOptions,
+      actionsContext,
+    ) => {
       log.func('popUpDismiss')
       log.grey('', { action, ...options })
       await Promise.all(
-        _actions.popUp.map((obj) => obj.fn(action, options, actionsContext)),
+        noodluidom.actions.popUp.map((obj) =>
+          obj.fn(action, options, actionsContext),
+        ),
       )
       return
     },
   })
 
-  _actions.refresh.push({
-    fn: (action: Action<RefreshObject>, options) => {
+  noodluidom.register({
+    actionType: 'refresh',
+    fn: (
+      action: Action<RefreshActionObject>,
+      options: ActionConsumerCallbackOptions,
+    ) => {
       log.func('refresh')
       log.grey(action.original.actionType, { action, ...options })
       window.location.reload()
     },
   })
 
-  _actions.saveObject.push({
-    fn: async (action: Action<SaveObject>, options) => {
+  noodluidom.register({
+    actionType: 'saveObject',
+    fn: async (
+      action: Action<SaveActionObject>,
+      options: ActionConsumerCallbackOptions,
+    ) => {
       const { default: noodl } = await import('../app/noodl')
       const { abort, getRoot, getPageObject, page } = options
 
@@ -583,13 +649,17 @@ const createActions = function ({
       } catch (error) {
         console.error(error)
         toast(error.message)
-        return abort()
+        return abort?.()
       }
     },
   })
 
-  _actions.toast.push({
-    fn: async (action, options) => {
+  noodluidom.register({
+    actionType: 'toast',
+    fn: async (
+      action: Action<ToastActionObject>,
+      options: ActionConsumerCallbackOptions,
+    ) => {
       try {
         log.func('toast')
         log.gold('', { action, options })
@@ -600,10 +670,14 @@ const createActions = function ({
     },
   })
 
-  _actions.updateObject.push({
-    fn: async (action: Action<UpdateObject>, options, actionsContext) => {
-      const { abort, component, stateHelpers } = options
-      const { default: noodl } = await import('../app/noodl')
+  noodluidom.register({
+    actionType: 'updateObject',
+    fn: async (
+      action: Action<UpdateActionObject>,
+      options: ActionConsumerCallbackOptions,
+      { noodl },
+    ) => {
+      const { abort, component } = options
       log.func('updateObject')
 
       const callObjectOptions = { action, ...options } as any
@@ -676,21 +750,7 @@ const createActions = function ({
               dataObject.startsWith(iteratorVar)
             ) {
               dataObject = findListDataObject(component)
-              if (stateHelpers) {
-                const { getList } = stateHelpers
-                const listId = component.get('listId')
-                const listIndex = component.get('listIndex')
-                const list = getList(listId) || []
-                const listItem = list[listIndex]
-                if (listItem) dataObject = listItem
-                log.salmon('', {
-                  listId,
-                  listIndex,
-                  list,
-                  listItem,
-                })
-              }
-              if (!dataObject) dataObject = options?.file
+              if (!dataObject) dataObject = (options as any)?.file
             }
             if (dataObject) {
               const params = { dataKey, dataObject }
@@ -712,36 +772,6 @@ const createActions = function ({
       }
     },
   })
-
-  // _actions.emit.forEach((useObj) => {
-  //   useObj.fn = async function emit(...args) {
-  //     const result = await useObj.fn(...args)
-  //     if (Array.isArray(result)) {
-  //       const numItems = result.length
-  //       for (let index = 0; index < numItems; index++) {
-  //         const res = result[index]
-  //         if (isPlainObject(res)) {
-  //           if ('toast' in res) {
-  //             createToast(res.toast?.message || '', {
-  //               cancel: 'Close',
-  //               timeout: 8000,
-  //             })
-  //           }
-  //         }
-  //       }
-  //     } else {
-  //       if (isPlainObject(result) && 'toast' in result) {
-  //         createToast(result.toast?.message || '', {
-  //           cancel: 'Close',
-  //           timeout: 8000,
-  //         })
-  //       }
-  //     }
-  //     return result
-  //   }
-  // })
-
-  return _actions
 }
 
 export default createActions
