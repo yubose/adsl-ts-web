@@ -1,10 +1,11 @@
 import NOODL from '@aitmed/cadl'
 import { getAspectRatio } from '../utils/common'
 
-const LOCAL_SERVER = 'http://127.0.0.1:3001/ww2.yml'
+const LOCAL_SERVER = 'http://127.0.0.1:3001/testpage.yml'
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
 const DOCC19 = getConfigEndpoint('docc19')
 const WWW = getConfigEndpoint('www')
+const WW2 = getConfigEndpoint('ww2')
 const WWW2 = getConfigEndpoint('www2')
 const PATIENT = getConfigEndpoint('patient')
 const PATIENT_D = getConfigEndpoint('patientd')

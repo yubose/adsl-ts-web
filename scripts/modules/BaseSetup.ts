@@ -44,13 +44,13 @@ class BaseSetup {
     // Set version, root baseUrl
     this['version'] = this.getLatestVersion()
     this['baseUrl'] = (
-      items[this.meta.rootConfig.label].json.cadlBaseUrl ||
-      items[this.meta.rootConfig.label].json.noodlBaseUrl
+      items[this.meta.rootConfig.label]?.json.cadlBaseUrl ||
+      items[this.meta.rootConfig.label]?.json.noodlBaseUrl
     )?.replace?.('${cadlVersion}', this.version)
     this.onRootConfig?.()
     // Set noodl config, endpoint, baseUrl
     this['noodlEndpoint'] = `${this.baseUrl}${
-      items[this.meta.rootConfig.label].json?.cadlMain
+      items[this.meta.rootConfig.label]?.json?.cadlMain
     }`
     await this.#helper.loadNoodlObject({
       url: this.noodlEndpoint,
@@ -59,20 +59,20 @@ class BaseSetup {
     const noodlConfig = this.#helper.get(this.meta.appConfig.label)
     this['noodlBaseUrl'] = items[
       this.meta.appConfig.label
-    ].json.baseUrl.replace('${cadlBaseUrl}', this.baseUrl)
+    ]?.json.baseUrl.replace('${cadlBaseUrl}', this.baseUrl)
     this.onNoodlConfig?.()
     if (includeBasePages) {
-      const numPreloadingPages = this.noodlConfig.json.preload?.length || 0
+      const numPreloadingPages = this.noodlConfig?.json.preload?.length || 0
       for (let index = 0; index < numPreloadingPages; index++) {
-        const name = this.noodlConfig.json.preload?.[index]
+        const name = this.noodlConfig?.json.preload?.[index]
         const url = `${this.noodlBaseUrl}${name}_en.yml`
         await this.#helper.loadNoodlObject({ url, name })
       }
       this.onBaseItems?.()
     }
     return {
-      rootConfig: this.rootConfig.json,
-      noodlConfig: noodlConfig.json,
+      rootConfig: this.rootConfig?.json,
+      noodlConfig: noodlConfig?.json,
       ...this.#helper.items,
     }
   }
@@ -95,11 +95,11 @@ class BaseSetup {
   }
 
   getRootConfig() {
-    return this.rootConfig.json
+    return this.rootConfig?.json
   }
 
   getNoodlConfig() {
-    return this.noodlConfig.json
+    return this.noodlConfig?.json
   }
 
   get onRootConfig() {
