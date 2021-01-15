@@ -414,16 +414,26 @@ export const listen = ({
         })
 
         if (id) {
-          const node = findByViewTag(component) || findByElementId(component)
+          const node = findByViewTag(id) || findByElementId(id)
 
           if (node) {
-            let win = findWindow((w) => {
-              if (w) {
-                if ('contentDocument' in w) {
-                  return (w as any).contentDocument.contains?.(node)
-                }
-                return w.document?.contains?.(node)
-              } else return false
+            let win: Window | undefined | null
+            if (document.contains?.(node)) {
+              win = window
+            } else {
+              win = findWindow((w) => {
+                if (w) {
+                  if ('contentDocument' in w) {
+                    return (w as any).contentDocument.contains?.(node)
+                  }
+                  return w.document?.contains?.(node)
+                } else return false
+              })
+            }
+            console.log(`WIN: `, {
+              win,
+              node,
+              boundingClientRect: node.getBoundingClientRect(),
             })
             if (isSamePage) {
               scrollToElem(node, { win, duration })

@@ -131,7 +131,7 @@ export function isVisible(node: any) {
  * Note: do not support fixed position of body
  * @param { number } value
  */
-function setDocumentScrollTop(value: number, win?: Window) {
+function setDocumentScrollTop(value: number, win?: Window | null) {
   ;(win || window).scrollTo(0, value)
   return value
 }
@@ -142,7 +142,7 @@ function setDocumentScrollTop(value: number, win?: Window) {
  * @param  {Number} duration assign the animate duration
  * @return {Null}            return null
  */
-export function scrollTo(to = 0, duration = 16, win?: Window) {
+export function scrollTo(to = 0, duration = 16, win?: Window | null) {
   if (duration < 0) {
     return
   }
@@ -171,7 +171,7 @@ export function scrollToElem(
   node: any,
   { win, duration }: { win?: Window | null; duration?: number } = {},
 ) {
-  node && scrollTo(node.getBoundingClientRect().bottom, duration, win)
+  node && scrollTo(node.getBoundingClientRect().top, duration, win)
 }
 
 export function toast(message: string | number, options?: Toast['options']) {

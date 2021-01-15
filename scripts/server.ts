@@ -96,6 +96,8 @@ const otherFiles = [
   'message.yml',
   'meet2d.yml',
   'testpage.yml',
+  'ww2.yml',
+  'www.yml',
 ]
 const serverPath = getServerFilePath('')
 otherFiles.forEach((filename) => {
