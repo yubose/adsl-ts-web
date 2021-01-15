@@ -74,6 +74,12 @@ describe.only('redraw', () => {
     //
   })
 
+  describe(`page component consumers`, () => {
+    xit(`should be using their page component's resolveComponents when redrawing`, () => {
+      //
+    })
+  })
+
   describe('select component', () => {
     it('should render more option children if the data has more items', async () => {
       let options = ['00:00', '00:10']

@@ -16,7 +16,6 @@ import {
   NOODL as NOODLUI,
   PageObject,
   publish,
-  ResolverFn,
   Resolver,
   Viewport,
 } from 'noodl-ui'
@@ -26,7 +25,8 @@ import { CACHED_PAGES, pageEvent } from './constants'
 import { CachedPageObject } from './app/types'
 import { isMobile } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
-import { onVideoChatBuiltIn } from './handlers/builtIns'
+import createActions from './handlers/actions'
+import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
 
@@ -61,11 +61,7 @@ class App {
   }) {
     const { Account } = await import('@aitmed/cadl')
     const noodl = (await import('app/noodl')).default
-    const { listen: registerNOODLDOMListeners } = await import(
-      'app/noodl-ui-dom'
-    )
-    // this.actions = actions
-    // this.builtIn = builtIn
+    noodluidom.use(noodlui)
     this.meeting = meeting
     this.noodl = noodl
     this.noodlui = noodlui
@@ -74,13 +70,13 @@ class App {
     this.#viewportUtils = createViewportHandler(new Viewport())
 
     await noodl.init()
+    createActions({ noodlui, noodluidom })
+    createBuiltIns({ noodl, noodlui, noodluidom })
     meeting.initialize({
       noodluidom,
       page: this.noodluidom.page,
       viewport: this.#viewportUtils.viewport,
     })
-
-    registerNOODLDOMListeners({ noodl, noodlui })
 
     let startPage = noodl?.cadlEndpoint?.startPage
 

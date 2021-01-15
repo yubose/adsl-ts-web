@@ -2,7 +2,13 @@ import Action from '../Action'
 import ActionChain from '../ActionChain'
 import Component from '../components/Base'
 import NOODLUI from '../noodl-ui'
-import { ConsumerOptions, PageObject, Root, StateGetters } from './types'
+import {
+  ComponentCache,
+  ConsumerOptions,
+  PageObject,
+  Root,
+  State,
+} from './types'
 import {
   ActionChainEmitTrigger,
   ActionType,
@@ -94,25 +100,28 @@ export interface ActionChainActionCallback<
 }
 
 export interface ActionConsumerCallbackOptions
-  extends StateGetters,
-    Pick<
-      ConsumerOptions,
-      | 'component'
-      | 'context'
-      | 'getAssetsUrl'
-      | 'getBaseUrl'
-      | 'getCbs'
-      | 'getPages'
-      | 'getPreloadPages'
-      | 'getResolvers'
-      | 'getRoot'
-      | 'plugins'
-      | 'setPlugin'
-      | 'viewport'
-    > {
+  extends Pick<
+    ConsumerOptions,
+    | 'component'
+    | 'context'
+    | 'getAssetsUrl'
+    | 'getBaseUrl'
+    | 'getCbs'
+    | 'getPages'
+    | 'getPreloadPages'
+    | 'getResolvers'
+    | 'getRoot'
+    | 'plugins'
+    | 'setPlugin'
+    | 'viewport'
+  > {
   abort?: ActionChain['abort']
-  page?: string
+  componentCache(): ComponentCache
   event?: Event
+  getState(): State
+  getPageObject(page: string): PageObject
+  page?: string
   path?: EmitObject
+  plugins: ConsumerOptions['plugins']
   ref?: ActionChain
 }

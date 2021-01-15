@@ -1,11 +1,4 @@
-import {
-  ActionObject,
-  ActionType,
-  EmitObject,
-  GotoObject,
-  GotoUrl,
-  ToastObject,
-} from 'noodl-types'
+import { ActionObject } from 'noodl-types'
 import {
   ActionChainActionCallback,
   ActionChainContext,
@@ -18,7 +11,7 @@ import {
   ToastActionObject,
 } from './actionTypes'
 import Action from '../Action'
-import Resolver from '../Resolver'
+import { AnyFn } from '.'
 
 export interface StoreActionObject<
   A extends
@@ -45,6 +38,9 @@ export interface StoreBuiltInObject<
 export interface StoreChainingObject {}
 
 export interface StoreResolverObject {
-  name: string
-  resolver: Resolver
+  name?: string
+  cond?(...args: any[]): boolean
+  before?: AnyFn
+  resolve: AnyFn
+  after?: AnyFn
 }
