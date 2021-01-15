@@ -1,28 +1,83 @@
 import { ComponentObject } from 'noodl-types'
-import { WritableDraft } from 'immer/dist/internal'
+import { WritableDraft, current } from 'immer/dist/internal'
 import produce, { applyPatches, enablePatches } from 'immer'
 import ActionChain from '../ActionChain'
-import getBorders from './resolvers/getBorderAttrs'
+import getAlignments from './resolvers/getAlignments'
+import getBorders from './resolvers/getBorders'
 import getColors from './resolvers/getColors'
 import getElementType from './resolvers/getElementType'
+// import getEventHandlers from './resolvers/getEventHandlers'
+import getFonts from './resolvers/getFonts'
+import getPosition from './resolvers/getPosition'
+import getSizes from './resolvers/getSizes'
+import getStylesByComponentType from './resolvers/getStylesByComponentType'
+import getTransformedStyles from './resolvers/getTransformedStyles'
 import { getRandomKey } from '../utils/common'
+import getStore from '../store'
+import componentCache from '../utils/componentCache'
+import Viewport from '../Viewport'
 import * as T from '../types'
 
 enablePatches()
 
 const _store = {
-  actions: {} as { [actionType: string]: T.StoreActionObject[] },
-  builtIns: {} as { [funcName: string]: T.StoreBuiltInObject[] },
-  resolvers: { getBorders, getColors, getElementType } as {
+  get actions() {
+    return getStore().actions
+  },
+  get builtIns() {
+    return getStore().builtIns
+  },
+  // actions: getStore().actions as { [actionType: string]: T.StoreActionObject[] },
+  // builtIns: getStore().builtIns as { [funcName: string]: T.StoreBuiltInObject[] },
+  resolvers: {
+    getAlignments,
+    getBorders,
+    getColors,
+    getElementType,
+    getFonts,
+    getPosition,
+    getSizes,
+    getStylesByComponentType,
+    getTransformedStyles,
+  } as {
     [name: string]: T.StoreResolverObject
   },
   pages: new Map<string, PageMaster>(),
 }
 
 const ComponentResolver = (function () {
-  const wrapResolveComponent = (fn: T.AnyFn) => {
-    return (component: ComponentObject) => {
-      //
+  function createResolverHOF(consumerOptions: any) {
+    return function (resolverFn) {
+      return function (stepFn) {
+        return function (acc, component) {
+          resolverFn(component, consumerOptions)
+          return stepFn(acc, component)
+        }
+      }
+    }
+  }
+
+  function composeResolvers(...fns) {
+    return function (step) {
+      return fns.reduceRight((acc, fn) => fn(acc), step)
+    }
+  }
+
+  function getConsumerOptions(pageMaster: PageMaster) {
+    return {
+      componentCache,
+      createSrc: pageMaster.createSrc,
+      getAssetsUrl: pageMaster.getAssetsUrl.bind(pageMaster),
+      getBaseUrl: pageMaster.getBaseUrl.bind(pageMaster),
+      getBaseStyles: pageMaster.getBaseStyles.bind(pageMaster),
+      getCbs: pageMaster.getCbs.bind(pageMaster),
+      getPageObject: pageMaster.getPageObject.bind(pageMaster),
+      getPages: pageMaster.getPages.bind(pageMaster),
+      getPreloadPages: pageMaster.getPreloadPages.bind(pageMaster),
+      getResolvers: () => _store.resolvers,
+      getRoot: pageMaster.getRoot.bind(pageMaster),
+      getState: pageMaster.getState.bind(pageMaster),
+      viewport: pageMaster.viewport,
     }
   }
 
@@ -33,53 +88,32 @@ const ComponentResolver = (function () {
         return actionChain
       },
       createPage() {
-        const page = new PageMaster()
+        let page = new PageMaster()
+        let viewport = new Viewport()
 
-        interface ResolverRegisterFn {
-          (component: ComponentObject): (stepFn) => (acc, c) => any
-        }
+        const step = (acc: ComponentObject[], component: ComponentObject) =>
+          acc.concat(component)
 
-        let hofResolvers: ResolverRegisterFn[] = []
-
-        const compose = (...fns: ResolverRegisterFn[]) => (stepFn) =>
-          fns.reduceRight((acc, fn) => fn(acc), stepFn)
-
-        const step = (nextStep, value) => nextStep(value)
-
-        const fns = Object.values(_store.resolvers).map((o) => {
-          return
-        })
-        const composed = compose(
-          ...fns.map((obj) => (stepFn) => (acc, component: ComponentObject) => {
-            obj.resolve(component)
-            return stepFn(acc, component)
-          }),
-        )(step)
-
+        page.use(viewport)
         page.resolveComponent = (original: ComponentObject) => {
-          return produce(original, (draft) => {
-            composed(draft)
-          })
+          const resolvers = Object.values(_store.resolvers).map(
+            (obj) => obj.resolve,
+          )
+          const composedResolvers = composeResolvers(
+            ...resolvers.map(createResolverHOF(getConsumerOptions(page))),
+          )
+          const resolve = composedResolvers(step)
+          return produce(original, (draft) => void resolve(draft))
         }
 
         page.resolveComponents = () => {
-          const actions = Object.values(_store.actions)
-          const builtIns = Object.values(_store.builtIns)
-          const resolvers = Object.values(_store.resolvers)
           page.components = page.components.map(page.resolveComponent)
+          return page.components
         }
 
         _store.pages.set(page.id, page)
         return page
       },
-      createResolver(fn: (pair: { component: any; original: any }) => any) {
-        const hofResolver = createResolver(fn)
-        hofResolvers.push(hofResolver)
-        return hofResolver
-      },
-      resolveComponent: wrapResolveComponent((component: ComponentObject) => {
-        //
-      }),
     }
 
     return o
@@ -93,6 +127,7 @@ class PageMaster {
   #resolveComponent: (original: ComponentObject) => any
   #resolveComponents: T.AnyFn
   #components: ComponentObject[] = []
+  #viewport: Viewport
   id: string
   obj: any = {}
 
@@ -128,6 +163,10 @@ class PageMaster {
     this.#resolveComponents = fn
   }
 
+  get viewport() {
+    return this.#viewport
+  }
+
   getAssetsUrl() {
     return this.obj.getAssetsUrl()
   }
@@ -159,7 +198,9 @@ class PageMaster {
   }
 
   use(v: any) {
-    if (v && typeof v === 'object') {
+    if (v instanceof Viewport) {
+      this.#viewport = v
+    } else if (v && typeof v === 'object') {
       Object.entries(v).forEach(([key, value]) => {
         this.obj[key] = value
       })
@@ -169,24 +210,24 @@ class PageMaster {
 
 export default ComponentResolver
 
-let page = ComponentResolver.createPage()
-let component = { style: {} }
-let original = {
-  type: 'view',
-  style: {
-    border: { style: '2' },
-    textColor: '0x03300033',
-    backgrouncColor: '0x33004455',
-  },
-} as ComponentObject
+// let page = ComponentResolver.createPage()
+// let component = { style: {} }
+// let original = {
+//   type: 'view',
+//   style: {
+//     border: { style: '2' },
+//     textColor: '0x03300033',
+//     backgrouncColor: '0x33004455',
+//   },
+// } as ComponentObject
 
-const changes = [] as any[]
-const inverseChanges = [] as any[]
+// const changes = [] as any[]
+// const inverseChanges = [] as any[]
 
-page.components = [original]
-page.resolveComponents()
+// page.components = [original]
+// page.resolveComponents()
 
-console.log(`Result`, page.components)
+// console.log(`Result`, page.components)
 
 // const patches = applyPatches(component, changes)
 // console.log(`Result`, result)

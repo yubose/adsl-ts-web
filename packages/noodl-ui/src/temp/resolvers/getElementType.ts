@@ -1,5 +1,7 @@
-export function getTagName(component: any): string {
-  switch (component.type) {
+import { ComponentObject } from 'noodl-types'
+
+export function getTagName(component: ComponentObject): string {
+  switch (component?.type) {
     case 'br':
       return 'br'
     case 'button':
@@ -50,12 +52,12 @@ export function getTagName(component: any): string {
  */
 export default {
   name: 'getElementType',
-  resolve(component) {
-    console.log(`[getElementType] HELLO`)
+  resolve(component: ComponentObject) {
+    if (!component) return
     // NOTE: component.get('type') is specially modified to return the
     // noodl component type and not our parsed one
     if (component) {
-      component.type = component.type
+      component.type = getTagName(component)
       component.noodlType = component.type
     }
   },

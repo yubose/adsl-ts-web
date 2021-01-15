@@ -1,31 +1,33 @@
-import { hasDecimal, hasLetter } from '../utils/common'
-import { ResolverFn } from '../types'
+import { ComponentObject } from 'noodl-types'
+import { hasDecimal, hasLetter } from '../../utils/common'
 
 /**
- * Returns attributes according to NOODL position properties like 'top', 'left'
+ * Resolves a component's html tag name by evaluating the NOODL "type" property
  */
-const getPosition: ResolverFn = (component, { viewport }) => {
-  if (!viewport || !component) return
-  const { style } = component
+export default {
+  name: 'getFonts',
+  resolve(component: ComponentObject, { viewport }) {
+    if (!component) return
+    if (!component.style) component.style = {}
 
-  if (typeof style === 'object') {
-    let styles
-    if ('zIndex' in style) {
-      component.setStyle('zIndex', Number(style.zIndex))
+    if (!viewport) return
+
+    if ('zIndex' in component.style) {
+      component.style.zIndex = Number(component.style.zIndex)
     }
-    if (typeof style.top !== 'undefined') {
-      styles = handlePosition(style, 'top', viewport.height as number)
-      if (styles) {
-        component.assignStyles(styles)
-      }
+    if (typeof component.style.top !== 'undefined') {
+      Object.assign(
+        component.style,
+        handlePosition(component.style, 'top', viewport.height as number),
+      )
     }
-    if (typeof style.left !== 'undefined') {
-      styles = handlePosition(style, 'left', viewport.width as number)
-      if (styles) {
-        component.assignStyles(styles)
-      }
+    if (typeof component.style.left !== 'undefined') {
+      Object.assign(
+        component.style,
+        handlePosition(component.style, 'left', viewport.width as number),
+      )
     }
-  }
+  },
 }
 
 function handlePosition(styleObj: any, key: string, viewportSize: number) {
@@ -69,5 +71,3 @@ function getViewportRatio(viewportSize: number, size: string | number) {
   }
   return viewportSize
 }
-
-export default getPosition
