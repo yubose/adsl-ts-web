@@ -1,3 +1,4 @@
+import { ComponentObject } from 'noodl-types'
 import isNaN from 'lodash/isNaN'
 import isPlainObject from 'lodash/isPlainObject'
 
@@ -32,7 +33,7 @@ export function hasLetter(value: any): boolean {
  */
 export default {
   name: 'getBorders',
-  resolve(component) {
+  resolve(component: ComponentObject) {
     const { style } = component
 
     console.log(`[getBorderAttrs] HELLO`)
@@ -42,7 +43,7 @@ export default {
         let borderStyle, color, width, line
         const { border } = style
 
-        if (border == '0') {
+        if (border == '0' || border == 'none') {
           component.borderStyle = 'none'
         }
 

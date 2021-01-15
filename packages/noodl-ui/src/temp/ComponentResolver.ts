@@ -35,17 +35,8 @@ const ComponentResolver = (function () {
       createPage() {
         const page = new PageMaster()
 
-        interface Pair {
-          component: WritableDraft<ComponentObject>
-          original: ComponentObject
-        }
-
         interface ResolverRegisterFn {
-          (component: T.NOODLComponent): (stepFn) => (acc, c) => any
-        }
-
-        interface ResolverRegisterHOF {
-          (stepFn): (acc, component: T.NOODLComponent) => any
+          (component: ComponentObject): (stepFn) => (acc, c) => any
         }
 
         let hofResolvers: ResolverRegisterFn[] = []
@@ -53,22 +44,19 @@ const ComponentResolver = (function () {
         const compose = (...fns: ResolverRegisterFn[]) => (stepFn) =>
           fns.reduceRight((acc, fn) => fn(acc), stepFn)
 
-        const step = (nextStep, component: T.NOODLComponent) =>
-          nextStep(component)
+        const step = (nextStep, value) => nextStep(value)
 
         const fns = Object.values(_store.resolvers).map((o) => {
           return
         })
         const composed = compose(
-          ...fns.map(
-            (obj) => (stepFn) => (acc, component: T.NOODLComponent) => {
-              obj.resolve(component)
-              return stepFn(acc, component)
-            },
-          ),
+          ...fns.map((obj) => (stepFn) => (acc, component: ComponentObject) => {
+            obj.resolve(component)
+            return stepFn(acc, component)
+          }),
         )(step)
 
-        page.resolveComponent = (original: T.NOODLComponent) => {
+        page.resolveComponent = (original: ComponentObject) => {
           return produce(original, (draft) => {
             composed(draft)
           })
@@ -102,7 +90,7 @@ const ComponentResolver = (function () {
 
 class PageMaster {
   #page: string = ''
-  #resolveComponent: (original: T.NOODLComponent) => any
+  #resolveComponent: (original: ComponentObject) => any
   #resolveComponents: T.AnyFn
   #components: ComponentObject[] = []
   id: string
@@ -190,7 +178,7 @@ let original = {
     textColor: '0x03300033',
     backgrouncColor: '0x33004455',
   },
-} as T.NOODLComponent
+} as ComponentObject
 
 const changes = [] as any[]
 const inverseChanges = [] as any[]
