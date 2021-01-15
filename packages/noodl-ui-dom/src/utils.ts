@@ -77,7 +77,8 @@ export function makeFinder(
       str = c?.[key] || c?.get?.(key) || c?.original?.[key] || ''
       if (isPageConsumer(c)) return cb(findWindowDocument((doc) => !!cb(doc)))
     }
-    return fn(str)
+    // return fn(str)
+    return cb(findWindowDocument((doc) => !!cb(doc)))
   }
   return find
 }

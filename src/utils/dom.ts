@@ -15,12 +15,8 @@ export function copyToClipboard(value: string) {
   textarea.remove()
 }
 
-export function getDocumentScrollTop() {
-  // IE8 used `document.documentElement`
-  return (
-    (document.documentElement && document.documentElement.scrollTop) ||
-    document.body.scrollTop
-  )
+export function getDocumentScrollTop(doc?: Document | null) {
+  return (doc || document)?.body?.scrollTop
 }
 
 /**
@@ -142,36 +138,44 @@ function setDocumentScrollTop(value: number, win?: Window | null) {
  * @param  {Number} duration assign the animate duration
  * @return {Null}            return null
  */
-export function scrollTo(to = 0, duration = 16, win?: Window | null) {
+export function scrollTo(
+  to = 0,
+  duration = 16,
+  { doc, win }: { doc?: Document | null; win?: Window | null },
+) {
   if (duration < 0) {
     return
   }
-  const diff = to - getDocumentScrollTop()
+  const diff = to - getDocumentScrollTop(doc)
   if (diff === 0) {
     return
   }
   const perTick = (diff / duration) * 10
   requestAnimationFrame(() => {
     if (Math.abs(perTick) > Math.abs(diff)) {
-      setDocumentScrollTop(getDocumentScrollTop() + diff, win)
+      setDocumentScrollTop(getDocumentScrollTop(doc) + diff, win)
       return
     }
-    setDocumentScrollTop(getDocumentScrollTop() + perTick, win)
+    setDocumentScrollTop(getDocumentScrollTop(doc) + perTick, win)
     if (
-      (diff > 0 && getDocumentScrollTop() >= to) ||
-      (diff < 0 && getDocumentScrollTop() <= to)
+      (diff > 0 && getDocumentScrollTop(doc) >= to) ||
+      (diff < 0 && getDocumentScrollTop(doc) <= to)
     ) {
       return
     }
-    scrollTo(to, duration - 16, win)
+    scrollTo(to, duration - 16, { doc, win })
   })
 }
 
 export function scrollToElem(
   node: any,
-  { win, duration }: { win?: Window | null; duration?: number } = {},
+  {
+    win,
+    doc,
+    duration,
+  }: { win?: Window | null; doc?: Document | null; duration?: number } = {},
 ) {
-  node && scrollTo(node.getBoundingClientRect().top, duration, win)
+  node && scrollTo(node.getBoundingClientRect().top, duration, { doc, win })
 }
 
 export function toast(message: string | number, options?: Toast['options']) {

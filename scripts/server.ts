@@ -95,9 +95,9 @@ const otherFiles = [
   'cadlEndpoint.yml',
   'message.yml',
   'meet2d.yml',
-  'testpage.yml',
   'ww2.yml',
   'www.yml',
+  'testpage.yml',
 ]
 const serverPath = getServerFilePath('')
 otherFiles.forEach((filename) => {

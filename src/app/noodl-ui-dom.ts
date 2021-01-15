@@ -390,9 +390,9 @@ export const listen = ({
           findWindow,
           findByElementId,
           findByViewTag,
+          isPageConsumer,
           noodl,
         } = actionsContext
-        const { component } = options
 
         const destinationParam =
           (typeof action.original.goto === 'string'
@@ -414,19 +414,30 @@ export const listen = ({
         })
 
         if (id) {
+          const isInsidePageComponent = isPageConsumer(options.component)
           const node = findByViewTag(id) || findByElementId(id)
+          const viewTagProps = {
+            node,
+            component: options.componentCache().get(node?.id),
+            viewTag: id,
+          }
+          console.log('viewTagProps', viewTagProps)
 
           if (node) {
             let win: Window | undefined | null
+            let doc: Document | null | undefined
             if (document.contains?.(node)) {
               win = window
+              doc = window.document
             } else {
               win = findWindow((w) => {
                 if (w) {
                   if ('contentDocument' in w) {
-                    return (w as any).contentDocument.contains?.(node)
+                    doc = (w as any).contentDocument
+                  } else {
+                    doc = w.document
                   }
-                  return w.document?.contains?.(node)
+                  return doc?.contains?.(node)
                 } else return false
               })
             }
@@ -435,12 +446,21 @@ export const listen = ({
               node,
               boundingClientRect: node.getBoundingClientRect(),
             })
+            const scroll = () => {
+              if (isInsidePageComponent) {
+                scrollToElem(node, { win, doc, duration })
+              } else {
+                node.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center',
+                  inline: 'center',
+                })
+              }
+            }
             if (isSamePage) {
-              scrollToElem(node, { win, duration })
+              scroll()
             } else {
-              noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-                scrollToElem(node, { win, duration })
-              })
+              noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
             }
           } else {
             log.red(
@@ -1215,7 +1235,6 @@ export const listen = ({
             viewTagComponent,
             opts,
           )
-          debugger
           log.grey('Resolved redrawed component/node', {
             newNode,
             newComponent,
