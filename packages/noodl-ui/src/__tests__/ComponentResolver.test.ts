@@ -48,7 +48,7 @@ describe(chalk.keyword('orange')('ComponentResolver'), () => {
       } as ComponentObject
       pageResolver.components.push(view)
       pageResolver.components.push(image)
-      console.info(pageResolver.components)
+      console.info(pageResolver.resolveComponents())
     })
   })
 })
