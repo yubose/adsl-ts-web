@@ -10,6 +10,7 @@ export default {
   resolve(component: ComponentObject) {
     if (!component) return
     if (!component.style) component.style = {}
+
     const { fontSize, fontStyle, fontFamily } = component.style
     // '10' --> '10px'
     if (typeof fontSize === 'string' && !hasLetter(fontSize)) {

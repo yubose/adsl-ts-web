@@ -1,4 +1,4 @@
-import { forEachEntries, formatColor } from '../utils/common'
+import { formatColor } from '../utils/common'
 import { ResolverFn } from '../types'
 
 /**
@@ -7,20 +7,22 @@ import { ResolverFn } from '../types'
  * @param { Component } component
  */
 const getColors: ResolverFn = (component) => {
-  if (component.style) {
-    forEachEntries(component.style, (key, value) => {
+  if (component?.style) {
+    Object.entries(component.style).forEach((key: any, value) => {
       if (typeof value === 'string') {
+        if (key === 'textColor') {
+          // TODO: This shouldn't be disabled but enabling this makes some text white which
+          //    becomes invisible on the page. Find out the solution to getting this right
+          // result['textColor'] = value.replace('0x', '#')
+          component.style.color = formatColor(value)
+          delete component.style.textColor
+        }
         if (value.startsWith('0x')) {
           // Rename textColor to color
-          if (key === 'textColor') {
-            // TODO: This shouldn't be disabled but enabling this makes some text white which
-            //    becomes invisible on the page. Find out the solution to getting this right
-            // result['textColor'] = value.replace('0x', '#')
-            component.setStyle('color', formatColor(value))
-          } else {
+          if (key !== 'textColor') {
             // Convert other keys if they aren't formatted as well just in case
             // textColor for "color" attr is handled above
-            component.setStyle(key, formatColor(value))
+            component.style[key] = formatColor(value)
           }
         }
       }

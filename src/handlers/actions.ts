@@ -282,6 +282,54 @@ const createActions = function ({
     trigger: 'path',
   })
 
+  /** PLACEHOLDER EMIT */
+  noodluidom.register({
+    actionType: 'emit',
+    fn: async (
+      action: EmitAction<EmitActionObject>,
+      options: ActionConsumerCallbackOptions & { path: EmitObject },
+      { noodl },
+    ) => {
+      log.func('emit [placeholder]')
+      log.grey('', { action, ...options })
+      const {
+        component,
+        context,
+        getRoot,
+        getPageObject,
+        placeholder,
+      } = options
+      const page = context.page || ''
+      const dataObject = findListDataObject(component)
+      const iteratorVar =
+        component.get('iteratorVar') ||
+        findParent(component, (p: any) => !!p?.get?.('iteratorVar'))?.get?.(
+          'iteratorVar',
+        ) ||
+        ''
+      const emitParams = {
+        actions: placeholder.emit.actions,
+        pageName: page,
+      } as any
+
+      if (action.original.emit.dataKey) {
+        emitParams.dataKey = createEmitDataKey(
+          action.original.emit.dataKey,
+          [dataObject, () => getPageObject(page), () => getRoot()],
+          { iteratorVar },
+        )
+      }
+      const result = await noodl.emitCall(emitParams)
+
+      log.grey(
+        `emitCall call result: ${result === '' ? '(empty string)' : result}`,
+      )
+
+      return Array.isArray(result) ? result[0] : result
+    },
+    trigger: 'placeholder',
+  })
+
   noodluidom.register({
     actionType: 'evalObject',
     fn: async (

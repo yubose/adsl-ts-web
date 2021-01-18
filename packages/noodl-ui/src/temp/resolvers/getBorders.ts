@@ -103,5 +103,7 @@ export default {
         }
       }
     }
+
+    if ('border' in (component?.style || {})) delete component.style?.border
   },
 }

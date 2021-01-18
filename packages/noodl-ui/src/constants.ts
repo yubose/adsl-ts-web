@@ -20,7 +20,12 @@ export const actionChainEmitTriggers = [
   'toast',
 ] as const
 
-export const resolveEmitTriggers = ['dataKey', 'dataValue', 'path'] as const
+export const resolveEmitTriggers = [
+  'dataKey',
+  'dataValue',
+  'path',
+  'placeholder',
+] as const
 
 export const emitTriggers = [
   ...actionChainEmitTriggers,

@@ -1,7 +1,7 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
 import noop from 'lodash/noop'
-import { isDraft, original, applyPatches } from 'immer'
+import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
 import { ActionType, ComponentObject } from 'noodl-types'
 import {

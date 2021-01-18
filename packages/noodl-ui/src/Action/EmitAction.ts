@@ -28,7 +28,7 @@ class EmitAction<OriginalAction extends EmitActionObject>
     if (options?.callback) this.callback = options.callback
   }
 
-  set(key: 'dataKey' | 'iteratorVar' | 'trigger', value: any) {
+  set(key: 'dataKey' | 'iteratorVar' | 'trigger' | 'placeholder', value: any) {
     this[key] = value
     return this
   }

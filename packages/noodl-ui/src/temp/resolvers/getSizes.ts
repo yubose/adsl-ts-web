@@ -7,7 +7,7 @@ import { hasDecimal, hasLetter } from '../../utils/common'
  */
 export default {
   name: 'getSizes',
-  resolve(component: ComponentObject, { viewport }) {
+  resolve(component: ComponentObject, { viewport } = {}) {
     if (!component) return
     if (!component.style) component.style = {}
 

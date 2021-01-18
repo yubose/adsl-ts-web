@@ -5,13 +5,11 @@ import { hasDecimal, hasLetter } from '../../utils/common'
  * Resolves a component's html tag name by evaluating the NOODL "type" property
  */
 export default {
-  name: 'getFonts',
-  resolve(component: ComponentObject, { viewport }) {
+  name: 'getPosition',
+  resolve(component: ComponentObject, { viewport } = {}) {
     if (!component) return
     if (!component.style) component.style = {}
-
     if (!viewport) return
-
     if ('zIndex' in component.style) {
       component.style.zIndex = Number(component.style.zIndex)
     }
