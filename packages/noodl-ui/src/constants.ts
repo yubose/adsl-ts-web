@@ -170,3 +170,51 @@ export const textAlignStrings = [
 
 /** { textAlign: { x, y } } */
 export const textAlignXYStrings = ['left', 'center', 'right']
+
+/* -------------------------------------------------------
+  ---- LIB CONSTANTS
+-------------------------------------------------------- */
+export const consumer = {
+  types: {
+    MORPH: 'morph',
+    RENAME: 'rename',
+    REMOVE: 'remove',
+    REPLACE: 'replace',
+  },
+  ids: {
+    FONT_FAMILY: 'style.fontFamily',
+    HEADER: 'header',
+    LIST: 'list',
+    LISTITEM: 'listItem',
+    MORPH_ALIGN: 'morph.style.align',
+    MORPH_AXIS: 'morph.style.axis',
+    MORPH_BORDER: 'morph.style.border',
+    MORPH_DISPLAY: 'morph.style.display',
+    MORPH_FONTSTYLE: 'morph.style.fontStyle',
+    MORPH_ISHIDDEN: 'morph.style.isHidden',
+    MORPH_TEXTCOLOR: 'morph.style.textColor',
+    MORPH_TEXTALIGN: 'morph.style.textAlign',
+    MORPH_PATH_RESOURCE: 'morph.path.resource',
+    MORPH_PATH_RESOURCE_ASYNC: 'morph.path.resource.async',
+    MORPH_SHADOW: 'morph.style.shadow',
+    POPUP: 'popUp',
+    REMOVE_IMAGE_WIDTH: 'remove.image.width',
+    REMOVE_IMAGE_HEIGHT: 'remove.image.height',
+    REPLACE_COLOR_HEX: 'replace.style.color.hex',
+    REPLACE_CONTROLS: 'replace.controls',
+    REPLACE_CONTENTTYPE: 'replace.contentType',
+    REPLACE_EVENT_HANDLER: 'replace.event.handler',
+    REPLACE_FONTSIZE: 'replace.style.fontSize',
+    REPLACE_OPTIONS: 'replace.options',
+    REPLACE_POSITION: 'replace.style.position',
+    REPLACE_POSTER: 'replace.poster',
+    REPLACE_PLACEHOLDER: 'replace.placeholder',
+    REPLACE_HEIGHT: 'replace.style.height',
+    REPLACE_VIDEOFORMAT: 'replace.videoFormat',
+    REPLACE_WIDTH: 'replace.style.width',
+    REPLACE_ZINDEX: 'replace.style.zIndex',
+    REQUIRED: 'required',
+    TEXTVIEW: 'textView',
+    VIDEO: 'video',
+  } as const,
+} as const

@@ -31,7 +31,7 @@ function getTextAlign(textAlign: string): undefined | object {
  */
 export default {
   name: 'getAlignments',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (!component) return
     if (!component.style) component.style = {}
     let value

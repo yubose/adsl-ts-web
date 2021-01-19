@@ -5,7 +5,7 @@ import { ComponentObject } from 'noodl-types'
  */
 export default {
   name: 'getEventHandlers',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (component) {
       const { createActionChainHandler } = options
       eventTypes.forEach((eventType) => {

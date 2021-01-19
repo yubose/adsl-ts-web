@@ -424,9 +424,9 @@ const createActions = function ({
         findWindow,
         findByElementId,
         findByViewTag,
+        isPageConsumer,
         noodl,
       } = actionsContext
-      const { component } = options
 
       const destinationParam =
         (typeof action.original.goto === 'string'
@@ -448,23 +448,47 @@ const createActions = function ({
       })
 
       if (id) {
-        const node = findByViewTag(component) || findByElementId(component)
+        const isInsidePageComponent = isPageConsumer(options.component)
+        const node = findByViewTag(id) || findByElementId(id)
 
         if (node) {
-          let win = findWindow((w) => {
-            if (w) {
-              if ('contentDocument' in w) {
-                return (w as any).contentDocument.contains?.(node)
-              }
-              return w.document?.contains?.(node)
-            } else return false
-          })
-          if (isSamePage) {
-            scrollToElem(node, { win, duration })
+          let win: Window | undefined | null
+          let doc: Document | null | undefined
+          if (document.contains?.(node)) {
+            win = window
+            doc = window.document
           } else {
-            noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-              scrollToElem(node, { win, duration })
+            win = findWindow((w) => {
+              if (w) {
+                if ('contentDocument' in w) {
+                  doc = (w as any).contentDocument
+                } else {
+                  doc = w.document
+                }
+                return doc?.contains?.(node)
+              } else return false
             })
+          }
+          console.log(`WIN: `, {
+            win,
+            node,
+            boundingClientRect: node.getBoundingClientRect(),
+          })
+          const scroll = () => {
+            if (isInsidePageComponent) {
+              scrollToElem(node, { win, doc, duration })
+            } else {
+              node.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center',
+              })
+            }
+          }
+          if (isSamePage) {
+            scroll()
+          } else {
+            noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
           }
         } else {
           log.red(

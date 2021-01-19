@@ -14,7 +14,7 @@ export function formatColor(value: string) {
  */
 export default {
   name: 'getColors',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (!component) return
     if (component?.style) {
       Object.entries(component.style || {}).forEach(([key, value]) => {

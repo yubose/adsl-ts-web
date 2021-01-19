@@ -1,12 +1,19 @@
 import { ComponentObject } from 'noodl-types'
 import { hasDecimal, hasLetter } from '../../utils/common'
+import Viewport from '../../Viewport'
 
 /**
  * Resolves a component's html tag name by evaluating the NOODL "type" property
  */
 export default {
   name: 'getPosition',
-  resolve(component: ComponentObject, { viewport } = {}) {
+  resolve({
+    component,
+    viewport,
+  }: {
+    component: ComponentObject
+    viewport: Viewport
+  }) {
     if (!component) return
     if (!component.style) component.style = {}
     if (!viewport) return

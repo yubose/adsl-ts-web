@@ -5,7 +5,7 @@ import { ComponentObject } from 'noodl-types'
  */
 export default {
   name: 'getStylesByComponentType',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (!component) return
     if (!component.style) component.style = {}
 

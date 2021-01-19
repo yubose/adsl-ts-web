@@ -7,7 +7,7 @@ import { hasLetter } from '../../utils/common'
  */
 export default {
   name: 'getFonts',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (!component) return
     if (!component.style) component.style = {}
 

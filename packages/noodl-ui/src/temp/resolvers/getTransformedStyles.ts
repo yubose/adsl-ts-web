@@ -7,7 +7,7 @@ import { isBoolean as isNOODLBoolean, isBooleanTrue } from 'noodl-utils'
  */
 export default {
   name: 'getTransformedStyles',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (!component) return
     if (!component.style) component.style = {}
 

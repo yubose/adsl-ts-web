@@ -4,17 +4,11 @@ import chalk from 'chalk'
 import { ComponentObject } from 'noodl-types'
 import ComponentResolver, {
   _store,
-  accumulator,
-  composeResolvers,
-  createResolverHOF,
   dataResolverKeys,
   dataResolvers,
   getConsumerOptions,
   staticResolvers,
   identity,
-  prop,
-  step,
-  values,
 } from '../temp/ComponentResolver'
 import { presets } from '../constants'
 import * as resolvers from '../temp/resolvers'
@@ -41,14 +35,14 @@ beforeEach(() => {
 
 describe(chalk.keyword('orange')('ComponentResolver'), () => {
   describe(`composing`, () => {
-    values(staticResolvers).forEach((obj) => {
+    Object.values(staticResolvers).forEach((obj) => {
       it('should be a resolver object', () => {
         expect(obj).to.have.property('resolve')
       })
     })
 
-    it(`should return a function expecting 1 arg (the step fn)`, () => {
-      const resolversList = values(staticResolvers)
+    xit(`should return a function expecting 1 arg (the step fn)`, () => {
+      const resolversList = Object.values(staticResolvers)
       const composed = composeResolvers(
         ...resolversList.reduce((acc, obj) => {
           return acc.concat(createResolverHOF(obj.resolve))

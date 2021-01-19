@@ -2,7 +2,7 @@ import { ComponentObject } from 'noodl-types'
 
 export default {
   name: 'getChildren',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (!component) return
 
     if (component.children) {

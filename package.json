@@ -36,6 +36,7 @@
     "test:noodlui:file:nosetup": "lerna exec --scope noodl-ui \"npm run test:file:nosetup\"",
     "noodlui:file:resolver": "lerna exec --scope noodl-ui \"ts-node-dev -r jsdom-global/register --respawn --transpile-only --project tsconfig.test.json src/temp/ComponentResolver.ts\"",
     "test:noodlui:resolver": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/ComponentResolver.test.ts\"",
+    "test:noodlui:consumer": "lerna exec --scope noodl-ui \"npm run test:file src/temp/consumers/consumers.test.ts\"",
     "test:noodluidom": "lerna exec --scope noodl-ui-dom \"npm run test\"",
     "test:noodluidom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:noodluidom:redraw": "lerna exec --scope noodl-ui-dom \"npm run test:file src/__tests__/redraw.test.ts\"",
@@ -53,7 +54,7 @@
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.187",
+    "@aitmed/cadl": "^1.0.188",
     "@aitmed/ecos-lvl2-sdk": "^1.4.118",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",

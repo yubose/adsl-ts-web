@@ -382,39 +382,118 @@ const createBuiltInActions = function ({
     .register({
       actionType: 'builtIn',
       funcName: 'goto',
-      async fn(action: Action<any>, options: ActionConsumerCallbackOptions) {
-        log.func('goto')
+      async fn(
+        action: Action<any>,
+        options: ActionConsumerCallbackOptions,
+        actionsContext,
+      ) {
+        log.func('builtIn [goto]')
         log.red('', { action, ...options })
-        noodl = noodl || (await import('../app/noodl')).default
         const destinationParam =
           (typeof action === 'string'
             ? action
             : isPlainObject(action)
             ? (action as any).destination
             : '') || ''
+
+        let findWindow: any
+        let findByElementId: any
+        let findByViewTag: any
+        let isPageConsumer: any
+
+        // Since some builtIn funcs like "goto" are invoked early on by an "init"
+        // from a page object. Since actionsContext is not available at that time,
+        // we have to manually import these utilities on demand if they aren't available
+        if (!actionsContext) {
+          let noodluidomlib = await import('noodl-ui-dom')
+          findWindow = noodluidomlib.findWindow
+          findByElementId = noodluidomlib.findByElementId
+          findByViewTag = noodluidomlib.findByViewTag
+          isPageConsumer = noodluidomlib.isPageConsumer
+        }
+
         let { destination, id = '', isSamePage, duration } = parse.destination(
           destinationParam,
         )
-        if (isSamePage) {
-          scrollToElem(getByDataViewTag(id), { duration })
-        } else {
-          if (!destinationParam?.startsWith?.('http')) {
-            if (id) {
-              noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, () => {
-                scrollToElem(getByDataViewTag(id), { duration })
+
+        log.grey('', {
+          destinationParam,
+          destination,
+          duration,
+          id,
+          isSamePage,
+        })
+
+        if (id) {
+          const isInsidePageComponent = isPageConsumer(options.component)
+          const node = findByViewTag(id) || findByElementId(id)
+
+          if (node) {
+            let win: Window | undefined | null
+            let doc: Document | null | undefined
+            if (document.contains?.(node)) {
+              win = window
+              doc = window.document
+            } else {
+              win = findWindow((w) => {
+                if (w) {
+                  if ('contentDocument' in w) {
+                    doc = (w as any).contentDocument
+                  } else {
+                    doc = w.document
+                  }
+                  return doc?.contains?.(node)
+                } else return false
               })
             }
-            noodluidom.page.pageUrl = resolvePageUrl({
-              destination,
-              pageUrl: noodluidom.page.pageUrl,
-              startPage: noodl.cadlEndpoint.startPage,
-            })
+            const scroll = () => {
+              if (isInsidePageComponent) {
+                scrollToElem(node, { win, doc, duration })
+              } else {
+                node.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center',
+                  inline: 'center',
+                })
+              }
+            }
+            if (isSamePage) {
+              scroll()
+            } else {
+              noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+            }
           } else {
-            destination = destinationParam
+            log.red(
+              `Could not search for a DOM node with an identity of "${id}"`,
+              {
+                node,
+                id,
+                destination,
+                isSamePage,
+                duration,
+                action,
+                options,
+                actionsContext,
+              },
+            )
           }
+        }
+
+        if (!destinationParam?.startsWith?.('http')) {
+          noodluidom.page.pageUrl = resolvePageUrl({
+            destination,
+            pageUrl: noodluidom.page.pageUrl,
+            startPage: noodl.cadlEndpoint.startPage,
+          })
+        } else {
+          destination = destinationParam
+        }
+
+        if (!isSamePage) {
           await noodluidom.page.requestPageChange(destination)
+
           if (!destination) {
-            log.func('goto')
+            log.func('builtIn')
             log.red(
               'Tried to go to a page but could not find information on the whereabouts',
               { action, ...options },

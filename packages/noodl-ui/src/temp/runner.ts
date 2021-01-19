@@ -1,32 +1,21 @@
-import produce from 'immer'
 import { WritableDraft } from 'immer/dist/internal'
 import { ComponentObject } from 'noodl-types'
 import { AnyFn } from '../types'
 
 const runner = (function () {
-  class RunnerPath {
-    component: ComponentObject
-
-    children = [] as ComponentObject[]
-
-    constructor(component: ComponentObject) {
-      this.component = component
-    }
-  }
-
   const o = {
-    run(component: WritableDraft<ComponentObject>, resolve: AnyFn) {
+    run(args: { component: WritableDraft<ComponentObject>; draw: AnyFn }) {
+      const { component, draw, ...rest } = args
+
       if (component) {
-        const runnerPath = new RunnerPath(component)
-        resolve(component)
+        draw(args)
         if (Array.isArray(component.children)) {
           const numChildren = component.children.length
           for (let index = 0; index < numChildren; index++) {
-            runnerPath.children[0]
-            resolve(component.children[index])
+            draw({ component: component.children[index], draw, ...rest })
           }
         } else if (component.children) {
-          resolve(component.children)
+          draw({ component: component.children, draw, ...rest })
         }
       }
     },

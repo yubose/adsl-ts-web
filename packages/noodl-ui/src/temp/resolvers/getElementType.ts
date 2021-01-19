@@ -52,7 +52,7 @@ export function getTagName(component: ComponentObject): string {
  */
 export default {
   name: 'getElementType',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (!component) return
     // NOTE: component.get('type') is specially modified to return the
     // noodl component type and not our parsed one

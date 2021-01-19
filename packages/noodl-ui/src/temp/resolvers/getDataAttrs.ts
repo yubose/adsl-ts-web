@@ -14,10 +14,14 @@ const uXContentTypes = ['passwordHidden', 'messageHidden'] as const
 
 export default {
   name: 'getDataAttrs',
-  resolve(
-    component: ComponentObject,
-    { getActionsContext, getPageObject, getActions, getCurrentPage, getRoot },
-  ) {
+  resolve({
+    component,
+    getActionsContext,
+    getPageObject,
+    getActions,
+    getCurrentPage,
+    getRoot,
+  }: any) {
     if (!component) return
 
     const { type, contentType, dataKey, viewTag, id } = component

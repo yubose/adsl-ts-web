@@ -15,7 +15,7 @@ import { presets } from '../../constants'
  */
 export default {
   name: 'getBorders',
-  resolve(component: ComponentObject) {
+  resolve({ component }: { component: ComponentObject }) {
     if (!component) return
     if (component?.style) {
       if (component.style.border !== undefined) {

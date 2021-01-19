@@ -1,4 +1,4 @@
-import { ComponentObject } from 'noodl-types'
+import { ComponentObject, StyleObject } from 'noodl-types'
 import { ActionObject, EmitActionObject } from './actionTypes'
 import {
   ActionChainActionCallback,
@@ -92,6 +92,27 @@ export interface ComponentEventCallback {
       parent: ComponentInstance | null
     },
   ): void
+}
+
+export interface ConsumerObject<
+  O extends ComponentObject = ComponentObject,
+  K extends keyof ComponentObject = keyof ComponentObject
+> {
+  id?: string
+  prop?: K
+  cond?(...args: any[]): boolean
+  async?: boolean
+  type?: 'morph' | 'replace' | 'remove' | 'rename'
+  resolve?(args: ConsumerResolveArgs): any
+}
+
+export interface ConsumerResolveArgs<K extends string = string> {
+  key: K
+  styleKey: keyof StyleObject
+  value: any
+  component: ComponentObject
+  original: ComponentObject
+  viewport: Viewport
 }
 
 export interface ConsumerOptions {
