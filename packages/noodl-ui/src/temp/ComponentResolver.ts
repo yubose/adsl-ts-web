@@ -6,7 +6,7 @@ import unset from 'lodash/unset'
 import pick from 'lodash/pick'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
-import mergeWith from 'lodash/mergeWith'
+import merge from 'lodash/merge'
 import update from 'lodash/update'
 import { WritableDraft, current } from 'immer/dist/internal'
 import produce, { applyPatches, enablePatches, produceWithPatches } from 'immer'
@@ -103,49 +103,66 @@ const Consumer = (function () {
         { async, cond, type, prop, resolve }: T.ConsumerObject,
         component: ComponentObject,
       ) => {
-        if (cond && !cond({ component })) return
+        const getArgs = (opts?: Partial<T.ConsumerResolveArgs>) => {
+          if (!component) return {} as T.ConsumerResolveArgs
+          const obj = { component } as Partial<T.ConsumerResolveArgs>
+          if (typeof prop !== 'string') prop = String(prop)
+          if (prop.startsWith('style:')) {
+            obj.key = 'style'
+            obj.styleKey = prop.replace('style:', '')
+            obj.value = get(component, `${obj.key}.${obj.styleKey}`)
+          } else {
+            obj.key = prop
+            obj.value = get(component, obj.key)
+          }
+          return {
+            ...obj,
+            ...opts,
+          } as T.ConsumerResolveArgs
+        }
+
+        if (cond && !cond(getArgs())) return
         if (type === 'remove') {
-          util.Consumer.op.remove({ key: prop, component })
+          util.Consumer.op.remove(undefined, getArgs())
         } else {
           if (async) {
-            resolve?.({ component }).then((value) => {
-              util.Consumer.op[type]?.({ key: prop, value, component })
+            resolve?.(getArgs()).then((value: any) => {
+              util.Consumer.op[type as string]?.(value, getArgs())
             })
           } else {
-            util.Consumer.op[type]?.({
-              key: prop,
-              value: resolve?.({
-                component,
-                value: getValueArg({ component, prop }),
-              }),
-              component,
-            })
+            util.Consumer.op[type as string]?.(resolve?.(getArgs()), getArgs())
           }
         }
       },
     ),
     op: {
-      morph({ key, value, component }: T.ConsumerResolveArgs) {
-        if (value && typeof value === 'object') {
-          mergeWith(get(component, key), value, (obj, src, key) => {
-            return value
-          })
-        }
+      morph(
+        returnValue: any,
+        { key, styleKey, component }: T.ConsumerResolveArgs,
+      ) {
+        console.info({ key, styleKey, component })
+        merge(component[key], returnValue)
+        const deleted = unset(
+          component,
+          key === 'style' ? `style.${styleKey}` : key,
+        )
+        return this
+      },
+      remove(_, { key, component }: T.ConsumerResolveArgs) {
         const deleted = unset(component, key)
         return this
       },
-      remove({ key, component }: T.ConsumerResolveArgs) {
-        const deleted = unset(component, key)
-        return this
-      },
-      rename({ key, value: renamedKey, component }: T.ConsumerResolveArgs) {
+      rename(returnValue: any, { key, component }: T.ConsumerResolveArgs) {
         const currentValue = get(component, key, '')
         const deleted = unset(component, key)
-        set(component, renamedKey, currentValue)
+        set(component, returnValue, currentValue)
         return this
       },
-      replace({ key, value, component }: T.ConsumerResolveArgs) {
-        set(component, key, value || '')
+      replace(
+        returnValue: any = '',
+        { key, component }: T.ConsumerResolveArgs,
+      ) {
+        set(component, key, returnValue)
         return this
       },
     },

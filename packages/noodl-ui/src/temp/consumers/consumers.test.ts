@@ -1,5 +1,6 @@
 import chalk from 'chalk'
-import sinon from 'sinon'
+import sinon, { spy } from 'sinon'
+import produce from 'immer'
 import { expect } from 'chai'
 import { consumer as c, presets } from '../../constants'
 import { util } from '../ComponentResolver'
@@ -32,139 +33,142 @@ describe(chalk.keyword('orange')('consumers'), () => {
       expect(spy.secondCall.args[0]).to.have.property('value', '12')
     })
     describe(`when the "prop" property was passed in`, () => {
-      xit(`should run the resolve func automatically when there is no "cond" func passed in`, () => {
-        //
+      it(`should run the resolve func automatically when there is no "cond" func passed in`, () => {
+        const spy = sinon.spy()
+        util.Consumer.consume({ type: c.types.MORPH, resolve: spy })({} as any)
+        expect(spy).to.be.called
       })
-      xit(`should run the "cond" func first before running resolve func if it was passed in`, () => {
-        //
+      it(`should run the "cond" func first before running resolve func if it was passed in`, () => {
+        const obj = {
+          type: c.types.MORPH,
+          resolve: sinon.spy(),
+          prop: 'type',
+          cond: sinon.spy(() => true),
+        }
+        util.Consumer.consume(obj)({ type: 'view' })
+        expect(obj.resolve).to.be.calledAfter(obj.cond)
       })
-      xit(`should run the "resolve" func if the cond returns true`, () => {
-        //
-      })
-      xit(`should ${chalk.red(
+      it(`should ${chalk.red(
         'not',
       )} run the resolve func if the cond returns false`, () => {
-        //
+        const obj = {
+          type: c.types.MORPH,
+          prop: 'style',
+          resolve: sinon.spy(),
+          cond: sinon.spy(() => false),
+        }
+        util.Consumer.consume(obj)({ type: 'view' })
+        expect(obj.resolve).not.to.be.called
       })
     })
     describe(`when the "prop" property was ${chalk.red(
       'not',
     )} passed in`, () => {
-      xit(`should run the "resolve" func if the passed in cond func returns true`, () => {
-        //
+      it(`should run the "resolve" func if the passed in cond func returns true`, () => {
+        const obj = {
+          type: c.types.MORPH,
+          resolve: sinon.spy(),
+          cond: sinon.spy(() => true),
+        }
+        util.Consumer.consume(obj)({ type: 'view' })
+        expect(obj.resolve).to.be.called
       })
-      xit(`should ${chalk.red(
+      it(`should ${chalk.red(
         'not',
       )} run the "resolve" func if the passed in cond func returns ${chalk.magenta(
         'false',
       )}`, () => {
-        //
+        const obj = { type: c.types.MORPH, resolve: sinon.spy() }
+        util.Consumer.consume(obj)({ type: 'view' })
+        expect(obj.resolve).to.be.called
       })
     })
     describe(`when both "prop" and "cond" is not passed in`, () => {
-      xit(`should automatically run the "resolve" func`, () => {
-        //
+      it(`should automatically run the "resolve" func`, () => {
+        const obj = {
+          type: c.types.MORPH,
+          resolve: sinon.spy(),
+          cond: sinon.spy(() => true),
+        }
+        util.Consumer.consume(obj)({ type: 'view' })
+        expect(obj.resolve).to.be.calledAfter(obj.cond)
       })
     })
   })
 
   describe(`when deciding how to pass in args`, () => {
     describe(`when the "prop" property was passed in`, () => {
+      let obj: Omit<T.ConsumerObject, 'resolve'> & { resolve: sinon.SinonSpy }
+
+      beforeEach(() => {
+        obj = {
+          type: c.types.MORPH,
+          prop: 'style:fontSize',
+          resolve: sinon.spy(),
+        }
+        util.Consumer.consume(obj)({ type: 'view', style: { fontSize: '12' } })
+      })
+
       describe(`when prefixing with ${chalk.magenta('style:')}`, () => {
-        xit(`should pass in "key" as "style"`, () => {
-          //
+        it(`should pass in "key" as "style"`, () => {
+          expect(obj.resolve.firstCall.firstArg).to.have.property(
+            'key',
+            'style',
+          )
         })
-        xit(`should pass in "styleKey" as the key in the style object`, () => {
-          //
+        it(`should pass in "styleKey" as the key in the style object`, () => {
+          expect(obj.resolve.firstCall.firstArg).to.have.property(
+            'styleKey',
+            'fontSize',
+          )
         })
 
-        xit(`should pass in "value" as the value of style[styleKey]`, () => {
-          //
-        })
-      })
-      describe(`when the "prop" property was ${chalk.red(
-        'not',
-      )} passed in`, () => {
-        xit(`should pass in "key" as the property of the component object`, () => {
-          //
-        })
-        xit(`should pass in "value" as the value from component[key]`, () => {
-          //
-        })
-      })
-
-      describe(`${chalk.magenta(`type: ${c.types.MORPH}`)}`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-      describe(`${chalk.magenta(`type: ${c.types.REMOVE}`)}`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-      describe(`${chalk.magenta(`type: ${c.types.RENAME}`)}`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-      describe(`${chalk.magenta(`type: ${c.types.REPLACE}`)}`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-    })
-
-    describe(`when the "prop" property was ${chalk.red(
-      'not',
-    )} passed in`, () => {
-      describe(`${chalk.magenta(`type: ${c.types.MORPH}`)}`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-      describe(`${chalk.magenta(`type: ${c.types.REMOVE}`)}`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-      describe(`${chalk.magenta(`type: ${c.types.RENAME}`)}`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-      describe(`${chalk.magenta(`type: ${c.types.REPLACE}`)}`, () => {
-        xit(``, () => {
-          //
+        it(`should pass in "value" as the value of style[styleKey]`, () => {
+          expect(obj.resolve.firstCall.firstArg).to.have.property('value', '12')
         })
       })
     })
   })
 
-  describe(`when expecting and using the "resolve" func return values`, () => {
+  describe(`when using the returned values from "resolve"`, () => {
     describe(`when the "prop" property was passed in`, () => {
-      describe(`morph`, () => {
-        describe(`when it is prefixed with "${chalk.magenta(
-          'style:',
-        )}"`, () => {
-          xit(`should spread the return value props on the style object if prefixed with "style:"`, () => {
-            //
+      describe(c.types.MORPH, () => {
+        it.only(`should spread the return value props on the style object if prefixed with "style:"`, () => {
+          const newBorder = { borderRadius: '0px', borderWidth: '1px' }
+          const obj = {
+            type: c.types.MORPH,
+            prop: 'style:border',
+            resolve: () => newBorder,
+          }
+          let component = {
+            type: 'view',
+            style: { border: { style: '2' } },
+          } as any
+          component = produce(component, (draft: any) => {
+            util.Consumer.consume(obj)(draft)
           })
-          xit(`should spread the return value props ${chalk.magenta(
-            'outside',
-          )} of the style object if ${chalk.red(
-            'not',
-          )} prefixed with "style:"`, () => {
-            //
-          })
+          console.info(component)
+          expect(component.style).to.have.property(
+            'borderRadius',
+            newBorder.borderRadius,
+          )
+          expect(component.style).to.have.property('borderStyle', 'none')
+          expect(component.style).to.have.property('borderBottomStyle', 'solid')
+        })
+        xit(`should spread the return value props ${chalk.magenta(
+          'outside',
+        )} of the style object if ${chalk.red(
+          'not',
+        )} prefixed with "style:"`, () => {
+          //
         })
       })
-      describe(`remove`, () => {
+      describe(c.types.REMOVE, () => {
         xit(`should ignore the return values`, () => {
           //
         })
       })
-      describe(`rename`, () => {
+      describe(c.types.RENAME, () => {
         xit(`should use the return value to rename the prop on the style object if prefixed with "style:"`, () => {
           //
         })
@@ -174,7 +178,7 @@ describe(chalk.keyword('orange')('consumers'), () => {
           //
         })
       })
-      describe(`replace`, () => {
+      describe(c.types.REPLACE, () => {
         xit(`should use the return value to replace the value of component.style[styleKey] if prefixed with "style:"`, () => {
           //
         })
