@@ -13,9 +13,12 @@ declare global {
   interface Window {
     // client.ts
     // index.ts
+    ac: any
     account: any
+    addRemoteParticipant: any
     app: any
     build: any
+    componentCache: any
     noodl: any
     env: string | undefined
     getByDataUX: any

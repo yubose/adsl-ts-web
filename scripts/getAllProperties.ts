@@ -1,17 +1,13 @@
 // Recurses through objects and exposes all the properties of objects and
 // its nested objects
-import fs from 'fs-extra'
-import _ from 'lodash'
+import spread from 'lodash/spread'
+import isObjectLike from 'lodash/isObjectLike'
+import orderBy from 'lodash/orderBy'
 import chalk from 'chalk'
 import Aggregator from './modules/Aggregator'
-import Saver, { DataOptions } from './modules/Saver'
+import Saver from './modules/Saver'
 import { sortObjByProperties } from './utils/common'
-import { getDirFilesAsJson } from './utils/filesystem'
-import {
-  forEachDeepEntries,
-  forEachDeepEntriesOnObj,
-} from '../src/utils/common'
-import { paths } from './config'
+import { forEachDeepEntries } from '../src/utils/common'
 import * as log from './utils/log'
 
 export interface GetAllPropertiesOutput {
@@ -55,22 +51,22 @@ async function getAllNOODLProperties({
       basePages: false,
     })
 
-    _.forEach(_.entries(objects), ([pageName, page]) => {
+    Object.entries(objects).forEach(([pageName, page]) => {
       pageCount++
       name = pageName
       forEachDeepEntries(page[pageName], (key: string) => {
         if (/^[a-zA-Z]+$/i.test(key)) {
-          if (_.isUndefined(output.results[name])) {
+          if (typeof output.results[name] === 'undefined') {
             output.results[name] = { [key]: 0 }
           }
 
-          if (_.isUndefined(output.results[name][key])) {
+          if (typeof output.results[name][key] === 'undefined') {
             output.results[name][key] = 0
           }
 
           output.results[name][key]++
 
-          if (_.isUndefined(output.overall[key])) {
+          if (typeof output.overall[key] === 'undefined') {
             output.overall[key] = 0
           }
 
@@ -84,20 +80,21 @@ async function getAllNOODLProperties({
 
     // Sort the overall counts in descending order to make it easier to read
     {
-      const keyValues = _.entries(output.overall)
+      const keyValues = Object.entries(output.overall)
       output.overall = {}
-      _.forEach(
-        keyValues.sort((a, b) => (a[1] > b[1] ? -1 : 1)),
-        _.spread((key, count) => {
-          output.overall[key] = count
-        }),
-      )
+      keyValues
+        .sort((a, b) => (a[1] > b[1] ? -1 : 1))
+        .forEach(
+          spread((key, count) => {
+            output.overall[key] = count
+          }),
+        )
     }
 
     // Sort the output results to make it easier to read
-    _.forEach(_.orderBy(_.keys(output.results)), (filename) => {
+    orderBy(Object.keys(output.results)).forEach((filename) => {
       // If the value is nested object (second level)
-      if (_.isObjectLike(output.results[filename])) {
+      if (isObjectLike(output.results[filename])) {
         output.results[filename] = sortObjByProperties(output.results[filename])
       }
     })

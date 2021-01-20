@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { isBooleanFalse, isBooleanTrue } from 'noodl-utils'
 import { ResolverFn } from '../types'
 

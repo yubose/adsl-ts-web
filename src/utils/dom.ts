@@ -1,14 +1,13 @@
-import _ from 'lodash'
-import Logger from 'logsnap'
+import isPlainObject from 'lodash/isPlainObject'
+import { createToast, Toast } from 'vercel-toast'
 import { NOODLDOMElement } from 'noodl-ui-dom'
-import { FileInputEvent, Styles } from 'app/types'
+import { FileInputEvent } from '../app/types'
 import { forEachEntries } from './common'
-
-const log = Logger.create('src/utils/dom.ts')
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
-  textarea.value = _.isString(value) ? value : JSON.stringify(value, null, 2)
+  textarea.value =
+    typeof value === 'string' ? value : JSON.stringify(value, null, 2)
   document.body.appendChild(textarea)
   textarea.select()
   textarea.setSelectionRange(0, 9999999)
@@ -16,68 +15,8 @@ export function copyToClipboard(value: string) {
   textarea.remove()
 }
 
-export function forEachChildNode(
-  node: NOODLDOMElement | ChildNode,
-  cb: (node: ChildNode, index: number, parent: NodeListOf<ChildNode>) => void,
-) {
-  node?.childNodes?.forEach?.((childNode, index, parent) => {
-    cb(childNode, index, parent)
-    childNode.childNodes?.forEach?.((childOfChildNode) =>
-      forEachChildNode(childOfChildNode, cb),
-    )
-  })
-}
-
-export function forEachDeepChildNode(
-  node: Parameters<typeof forEachChildNode>[0],
-  cb: Parameters<typeof forEachChildNode>[1],
-  {
-    on,
-  }: {
-    on?: {
-      attribute: boolean
-      comment?: boolean
-      element?: boolean
-      text?: boolean
-    }
-  } = {},
-) {
-  if (node?.childNodes.length) {
-    const callOnNodeTypes = [] as number[]
-    const callCb = (...args: Parameters<typeof cb>) => {
-      if (callOnNodeTypes.length) {
-        if (callOnNodeTypes.includes(args[0].nodeType)) cb(...args)
-      } else {
-        // Default to calling the cb on all child nodes
-        cb(...args)
-      }
-    }
-    if (on) {
-      forEachEntries(
-        on,
-        (
-          key: 'attribute' | 'comment' | 'element' | 'text',
-          value: boolean | undefined,
-        ) => {
-          if (value) {
-            if (key === 'attribute') callOnNodeTypes.push(1)
-            else if (key === 'comment') callOnNodeTypes.push(1)
-            else if (key === 'element') callOnNodeTypes.push(1)
-            else if (key === 'text') callOnNodeTypes.push(1)
-          }
-        },
-      )
-    }
-    forEachChildNode(node, callCb)
-  }
-}
-
-export function getDocumentScrollTop() {
-  // IE8 used `document.documentElement`
-  return (
-    (document.documentElement && document.documentElement.scrollTop) ||
-    document.body.scrollTop
-  )
+export function getDocumentScrollTop(doc?: Document | null) {
+  return (doc || document)?.body?.scrollTop
 }
 
 /**
@@ -176,33 +115,6 @@ export function onSelectFile(
   })
 }
 
-export function getOffset(el: HTMLElement) {
-  const html = el.ownerDocument.documentElement
-  let box = { top: 0, left: 0 }
-  // If we don't have gBCR, just use 0,0 rather than error
-  // BlackBerry 5, iOS 3 (original iPhone)
-  if (typeof el.getBoundingClientRect !== 'undefined') {
-    box = el.getBoundingClientRect()
-  }
-  return {
-    top: box.top + window.pageYOffset - html.clientTop,
-    left: box.left + window.pageXOffset - html.clientLeft,
-  }
-}
-
-export function getPosition(el: HTMLElement) {
-  if (!el) {
-    return {
-      left: 0,
-      top: 0,
-    }
-  }
-  return {
-    left: el.offsetLeft,
-    top: el.offsetTop,
-  }
-}
-
 export function isVisible(node: any) {
   return (
     node?.style?.visibility === 'visible' ||
@@ -210,45 +122,13 @@ export function isVisible(node: any) {
   )
 }
 
-export interface SetStyle<Elem extends HTMLElement> {
-  (node: Elem, key: string | { [key: string]: any }, value?: any): void
-}
-
-/**
- * Sets the style for an HTML DOM element. If key is an empty string it
- * will erase all styles
- * @param { HTMLElement } node
- * @param { string | Styles | undefined } key
- * @param { any | undefined } value
- */
-export function setStyle(
-  node: HTMLElement,
-  key?: string | Styles,
-  value?: any,
-) {
-  if (node) {
-    if (typeof key === 'string') {
-      // Normalize unsetting
-      if (key === '') {
-        key = 'cssText'
-        value = ''
-      }
-      node.style[key as any] = value
-    } else if (_.isPlainObject(key)) {
-      forEachEntries(key, (k: any, v) => {
-        node.style[k] = v
-      })
-    }
-  }
-}
-
 /**
  * Set the current vertical position of the scroll bar for document
  * Note: do not support fixed position of body
  * @param { number } value
  */
-function setDocumentScrollTop(value: number) {
-  window.scrollTo(0, value)
+function setDocumentScrollTop(value: number, win?: Window | null) {
+  ;(win || window).scrollTo(0, value)
   return value
 }
 
@@ -258,69 +138,53 @@ function setDocumentScrollTop(value: number) {
  * @param  {Number} duration assign the animate duration
  * @return {Null}            return null
  */
-export function scrollTo(to = 0, duration = 16) {
+export function scrollTo(
+  to = 0,
+  duration = 16,
+  { doc, win }: { doc?: Document | null; win?: Window | null },
+) {
   if (duration < 0) {
     return
   }
-  const diff = to - getDocumentScrollTop()
+  const diff = to - getDocumentScrollTop(doc)
   if (diff === 0) {
     return
   }
   const perTick = (diff / duration) * 10
   requestAnimationFrame(() => {
     if (Math.abs(perTick) > Math.abs(diff)) {
-      setDocumentScrollTop(getDocumentScrollTop() + diff)
+      setDocumentScrollTop(getDocumentScrollTop(doc) + diff, win)
       return
     }
-    setDocumentScrollTop(getDocumentScrollTop() + perTick)
+    setDocumentScrollTop(getDocumentScrollTop(doc) + perTick, win)
     if (
-      (diff > 0 && getDocumentScrollTop() >= to) ||
-      (diff < 0 && getDocumentScrollTop() <= to)
+      (diff > 0 && getDocumentScrollTop(doc) >= to) ||
+      (diff < 0 && getDocumentScrollTop(doc) <= to)
     ) {
       return
     }
-    scrollTo(to, duration - 16)
+    scrollTo(to, duration - 16, { doc, win })
   })
 }
 
-/* -------------------------------------------------------
-  ---- NOODL-UI-DOM UTILITIES
--------------------------------------------------------- */
+export function scrollToElem(
+  node: any,
+  {
+    win,
+    doc,
+    duration,
+  }: { win?: Window | null; doc?: Document | null; duration?: number } = {},
+) {
+  node && scrollTo(node.getBoundingClientRect().top, duration, { doc, win })
+}
 
-const matchNoodlType = (type: any) => ({ noodlType }: any) => noodlType === type
-
-export const isButton = matchNoodlType('button')
-export const isDivider = matchNoodlType('divider')
-export const isHeader = matchNoodlType('header')
-export const isImage = matchNoodlType('image')
-export const isLabel = matchNoodlType('label')
-export const isList = matchNoodlType('list')
-export const isListItem = matchNoodlType('listItem')
-export const isPopUp = matchNoodlType('popUp')
-export const isSelect = matchNoodlType('select')
-export const isTextField = matchNoodlType('textField')
-export const isView = matchNoodlType('view')
-
-/* -------------------------------------------------------
-  ---- DOM MANIPULATION
--------------------------------------------------------- */
-
-export const setAttr = (attr: string) => (v: keyof NOODLDOMElement) => (
-  n: NOODLDOMElement,
-) => (n[attr] = v)
-export const setDataAttr = (attr: string) => (v: keyof NOODLDOMElement) => (
-  n: NOODLDOMElement,
-) => (n['dataset'][attr] = v)
-
-export const setDataListId = setDataAttr('data-listid')
-export const setDataName = setDataAttr('data-name')
-export const setDataKey = setDataAttr('data-key')
-export const setDataUx = setDataAttr('data-ux')
-export const setDataValue = setDataAttr('data-value')
-export const setId = setAttr('id')
-export const setPlaceholder = setAttr('placeholder')
-export const setSrc = setAttr('src')
-export const setVideoFormat = setAttr('type')
+export function toast(message: string | number, options?: Toast['options']) {
+  return createToast(String(message), {
+    cancel: 'Close',
+    timeout: 8000,
+    ...options,
+  })
+}
 
 /**
  * Toggles the visibility state of a DOM node. If a condition func is passed,
@@ -336,10 +200,34 @@ export function toggleVisibility(
 ) {
   if (node?.style) {
     const isHidden = node.style.visibility === 'hidden'
-    if (_.isFunction(cond)) {
+    if (typeof cond === 'function') {
       node.style['visibility'] = cond({ isHidden })
     } else {
       node.style['visibility'] = isHidden ? 'visible' : 'hidden'
+    }
+  }
+}
+
+/**
+ * Sets the style for an HTML DOM element. If key is an empty string it
+ * will erase all styles
+ * @param { HTMLElement } node
+ * @param { string | Styles | undefined } key
+ * @param { any | undefined } value
+ */
+export function setStyle(node: HTMLElement, key?: string | any, value?: any) {
+  if (node) {
+    if (typeof key === 'string') {
+      // Normalize unsetting
+      if (key === '') {
+        key = 'cssText'
+        value = ''
+      }
+      node.style[key as any] = value
+    } else if (isPlainObject(key)) {
+      forEachEntries(key, (k: any, v) => {
+        node.style[k] = v
+      })
     }
   }
 }

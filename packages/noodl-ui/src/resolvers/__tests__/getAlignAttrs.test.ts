@@ -1,8 +1,6 @@
-// @ts-nocheck
-import _ from 'lodash'
 import { expect } from 'chai'
 import { Draft } from 'immer'
-import { makeResolverTest } from '../../utils/test-utils'
+import { createResolverTest } from '../../utils/test-utils'
 import { NOODLComponent } from '../../types'
 import _getAlignAttrs from '../getAlignAttrs'
 
@@ -10,7 +8,7 @@ let component: Draft<NOODLComponent>
 let getAlignAttrs: any
 
 beforeEach(() => {
-  getAlignAttrs = makeResolverTest({ resolvers: _getAlignAttrs })
+  getAlignAttrs = createResolverTest(_getAlignAttrs)
   component = {
     type: 'view',
     style: {

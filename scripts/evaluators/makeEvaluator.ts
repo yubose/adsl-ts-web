@@ -1,4 +1,6 @@
-import _ from 'lodash'
+import uniqueId from 'lodash/uniqueId'
+import isPlainObject from 'lodash/isPlainObject'
+import omit from 'lodash/omit'
 
 export type ExpectedType =
   | 'array'
@@ -19,18 +21,18 @@ const makeEvaluator = function (
   evaluate: Evaluator,
   options?: EvaluatorOptions,
 ) {
-  let _id = _.uniqueId()
+  let _id = uniqueId()
   let _results: { reason: string; value: any }[] = []
   let _context: { [key: string]: any } = {}
 
   return {
     addContext(context: string | { [key: string]: any }, options?: string) {
-      if (_.isPlainObject(context)) {
+      if (isPlainObject(context)) {
         Object.entries(context).forEach(([key, value]) => {
           _context[key] = value
         })
       } else {
-        if (_.isString(context) && _.isString(options)) {
+        if (typeof context === 'string' && typeof options === 'string') {
           const key = context
           const value = options
           _context[key] = value
@@ -43,8 +45,8 @@ const makeEvaluator = function (
     getResults(pickKeys?: string | string[]) {
       let context
 
-      if (_.isString(pickKeys) || Array.isArray(pickKeys)) {
-        context = _.omit(_context, pickKeys)
+      if (typeof pickKeys === 'string' || Array.isArray(pickKeys)) {
+        context = omit(_context, pickKeys)
       }
 
       return {
@@ -72,9 +74,8 @@ const makeEvaluator = function (
       value: any,
       expectedType: ExpectedType | ExpectedType[],
     ) {
-      const expectedTypes: string[] = _.isString(expectedType)
-        ? [expectedType]
-        : expectedType
+      const expectedTypes: string[] =
+        typeof expectedType === 'string' ? [expectedType] : expectedType
 
       const result = typeof value
 

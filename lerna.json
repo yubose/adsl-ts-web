@@ -4,12 +4,6 @@
   "command": {
     "bootstrap": {
       "hoist": true
-    },
-    "run": {
-      "ignore": ["noodl-building-blocks"]
-    },
-    "exec": {
-      "ignore": ["noodl-building-blocks"]
     }
   }
 }

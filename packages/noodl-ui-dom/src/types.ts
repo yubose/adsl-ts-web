@@ -1,114 +1,158 @@
-import { Component, ListItem, ComponentType } from 'noodl-ui'
-import { componentEventMap, componentEventIds } from './constants'
+import { ComponentObject } from 'noodl-types'
+import {
+  ActionChainContext,
+  ComponentInstance,
+  ComponentType,
+  NOODL as NOODLUI,
+  NOODLComponent,
+} from 'noodl-ui'
+import { eventId } from './constants'
 
-export interface INOODLUiDOM {
-  on(
-    eventName: NOODLDOMEvent,
-    cb: (node: NOODLDOMElement | null, component: Component) => void,
-  ): this
-  off(
-    eventName: NOODLDOMEvent,
-    cb: (node: NOODLDOMElement | null, component: Component) => void,
-  ): this
-  emit(
-    eventName: NOODLDOMEvent,
-    node: NOODLDOMElement | null,
-    component: Component,
-  ): this
-  getCallbacks(eventName: NOODLDOMEvent): Function[] | null
-  isValidAttr(tagName: NOODLDOMElementTypes, key: string): boolean
-  parse<C extends Component>(
-    component: C,
-    container?: NOODLDOMElement | null,
-  ): NOODLDOMElement | null
+export interface AnyFn {
+  (...args: any[]): any
 }
 
-export interface INOODLDOMList {
-  addListItem(listItem: ListItem): this
-  getListItem(index: number): ListItem | null
-  removeListItem(index: number | ListItem): this
-  setListItem(index: number, listItem: ListItem): this
-  updateListItem(index: number | ListItem, listItem?: ListItem): this
+export interface ActionChainDOMContext extends ActionChainContext {
+  findByElementId(
+    c: ComponentInstance | string,
+  ): NOODLDOMElement | null | undefined
+  findByViewTag(
+    c: ComponentInstance | string,
+  ): NOODLDOMElement | null | undefined
+  findWindow(
+    fn: (
+      win: Window | HTMLIFrameElement['contentWindow'],
+    ) => boolean | null | undefined,
+  ): Window | null
+  findWindowDocument(
+    fn: (
+      doc: Document | HTMLIFrameElement['contentDocument'],
+    ) => boolean | null | undefined,
+  ): Document | null
+  isPageConsumer(component: ComponentInstance | undefined): boolean
 }
 
-export type NOODLDOMComponentType = keyof typeof componentEventMap
-export type NOODLDOMComponentEvent = typeof componentEventIds[number]
 export type NOODLDOMElementTypes = keyof NOODLDOMElements
-export type NOODLDOMEvent = NOODLDOMComponentEvent // Will be extended to include non-component events in the future
 
 export type NOODLDOMDataValueElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement
 
-export type NOODLDOMElement = Extract<
-  NOODLDOMElements[NOODLDOMElementTypes],
-  HTMLElement
->
+export type NOODLDOMElement =
+  | Extract<NOODLDOMElements[NOODLDOMElementTypes], HTMLElement>
+  | Element
 
 export type NOODLDOMElements = Pick<
   HTMLElementTagNameMap,
-  | 'a'
-  | 'article'
-  | 'audio'
-  | 'b'
-  | 'blockquote'
-  | 'body'
   | 'br'
   | 'button'
-  | 'canvas'
-  | 'caption'
-  | 'code'
-  | 'col'
   | 'div'
-  | 'em'
-  | 'embed'
-  | 'fieldset'
-  | 'figure'
   | 'footer'
-  | 'form'
-  | 'h1'
-  | 'h2'
-  | 'h3'
-  | 'h4'
-  | 'h5'
-  | 'h6'
-  | 'header'
-  | 'hr'
-  | 'html'
-  | 'i'
   | 'img'
   | 'input'
   | 'iframe'
   | 'label'
   | 'li'
   | 'link'
-  | 'main'
-  | 'meta'
-  | 'nav'
-  | 'noscript'
   | 'ol'
   | 'option'
-  | 'p'
-  | 'pre'
-  | 'script'
+  // | 'script'
   | 'select'
-  | 'section'
-  | 'small'
-  | 'source'
   | 'span'
-  | 'strong'
-  | 'style'
-  | 'table'
-  | 'tbody'
-  | 'td'
   | 'textarea'
-  | 'tfoot'
-  | 'th'
-  | 'thead'
-  | 'title'
-  | 'tr'
-  | 'track'
   | 'ul'
   | 'video'
 >
+
+/**
+ * Type utility/factory to construct node resolver func types. Node resolver
+ * funcs in noodl-ui-dom are any functions that take a DOM node as the first
+ * argument and a component instance as the second, at its base structure
+ */
+export interface NOODLUIDOMResolveFunc<
+  N extends NOODLDOMElement,
+  C extends ComponentInstance,
+  Args extends unknown,
+  RT extends unknown
+> {
+  (node: N | null | ((node: N | null) => any), component: C, args: Args): RT
+}
+
+export type NodeResolver<RT = any> = NOODLUIDOMResolveFunc<
+  NOODLDOMElement,
+  ComponentInstance,
+  ActionChainDOMContext & {
+    noodlui: NOODLUI
+    original: ComponentObject
+    draw: Parse
+    redraw: Redraw
+  },
+  RT | void
+>
+
+export type NodeResolverBaseArgs = [
+  Parameters<NodeResolver>[0],
+  Parameters<NodeResolver>[1],
+]
+
+export type NodeResolverUtils = Parameters<NodeResolver>[2]
+
+export interface NodeResolverConfig {
+  name?: string
+  cond?: ComponentType | NodeResolver<boolean>
+  before?: NodeResolverConfig | NodeResolver
+  resolve?: NodeResolverConfig | NodeResolver
+  after?: NodeResolverConfig | NodeResolver
+}
+
+export interface NodeResolverLifecycle {
+  before: NodeResolver[]
+  resolve: NodeResolver[]
+  after: NodeResolver[]
+}
+
+export type NodeResolverLifeCycleEvent = 'before' | 'resolve' | 'after'
+
+export interface Parse<C extends ComponentInstance = any> {
+  (component: C, container?: NOODLDOMElement | null): NOODLDOMElement | null
+}
+
+export type Redraw = NOODLUIDOMResolveFunc<
+  NOODLDOMElement,
+  ComponentInstance,
+  {
+    resolver(
+      noodlComponent: ComponentObject | ComponentObject[],
+    ): ComponentInstance | ComponentInstance[]
+  },
+  [NOODLDOMElement, ComponentInstance]
+>
+
+export interface Render {
+  (noodlComponents: NOODLComponent | NOODLComponent[]): ComponentInstance[]
+}
+
+export type RegisterOptions = NodeResolverConfig
+
+/* -------------------------------------------------------
+  ---- PAGE TYPES
+-------------------------------------------------------- */
+
+export type PageCbs<K extends PageEvent | PageStatus> = Record<K, AnyFn[]>
+export type PageEvent = typeof eventId.page.on[keyof typeof eventId.page.on]
+export type PageStatus = typeof eventId.page.status[keyof typeof eventId.page.status]
+
+export interface PageCallbackObjectConfig {
+  fn: AnyFn
+  cond?(snapshot?: PageSnapshot): boolean
+  once?: boolean
+}
+
+export interface PageSnapshot {
+  status: PageStatus
+  previous: string
+  current: string
+  requestingPage: string
+  rootNode: HTMLDivElement
+}

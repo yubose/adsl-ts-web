@@ -1,17 +1,13 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import chalk from 'chalk'
-import _ from 'lodash'
-import { prettyDOM } from '@testing-library/dom'
-import { findChild, findParent } from 'noodl-utils'
+import { ComponentObject } from 'noodl-types'
+import { findChild } from '../utils/noodl'
 import _internalResolver from '../resolvers/_internal'
 import Component from '../components/Base'
 import List from '../components/List'
-import ListItem from '../components/ListItem'
-import { assetsUrl, noodlui } from '../utils/test-utils'
-import { ComponentObject } from '../types'
+import { noodlui } from '../utils/test-utils'
 import { event } from '../constants'
-import createComponent from '../utils/createComponent'
 
 describe('_internalResolver', () => {
   describe('list', () => {
@@ -29,7 +25,6 @@ describe('_internalResolver', () => {
         },
       ],
       iteratorVar: 'itemObject',
-      style: { width: '1', height: '0.5' },
       children: [
         {
           type: 'listItem',
@@ -42,40 +37,16 @@ describe('_internalResolver', () => {
             },
             { goto: 'VideoChat' },
           ],
-          style: { borderWidth: '1', borderColor: '0x00000011' },
           children: [
-            {
-              type: 'label',
-              dataKey: 'itemObject.name.hostName',
-              style: {
-                backgroundColor: '0xff8f90ff',
-                display: 'inline',
-                textAlign: { x: 'center', y: 'center' },
-              },
-            },
-            {
-              type: 'label',
-              dataKey: 'itemObject.name.roomName',
-              style: { fontWeight: 400, fontSize: '16' },
-            },
+            { type: 'label', dataKey: 'itemObject.name.hostName' },
+            { type: 'label', dataKey: 'itemObject.name.roomName' },
             {
               type: 'view',
               viewTag: 'abc',
               children: [
                 {
                   type: 'view',
-                  children: [
-                    {
-                      type: 'image',
-                      path: 'rightArrow.png',
-                      style: {
-                        left: '0.88',
-                        top: '0.02',
-                        width: '0.07',
-                        height: '0.03',
-                      },
-                    },
-                  ],
+                  children: [{ type: 'image', path: 'rightArrow.png' }],
                 },
               ],
             },
@@ -115,9 +86,10 @@ describe('_internalResolver', () => {
         ],
         iteratorVar: 'cat',
       }
-      noodlParent.children.push(noodlList)
-      const parent = noodlui.resolveComponents(noodlParent)
-      const component = parent.child() as List
+      // @ts-expect-error
+      noodlParent.children.push(noodlList as any)
+      const parent = noodlui.resolveComponents(noodlParent as any)
+      const component = parent.child() as any
       const blueprint = component?.getBlueprint()
       expect(blueprint).to.have.property('viewTag', 'hello')
       expect(blueprint.style).to.have.property('width')
@@ -136,12 +108,13 @@ describe('_internalResolver', () => {
         type: 'view',
         children: [],
       }
+      // @ts-expect-error
       noodlParentComponent.children.push(noodlComponent)
-      const parent = noodlui.resolveComponents(noodlParentComponent)
-      const component = parent.child() as List
+      const parent = noodlui.resolveComponents(noodlParentComponent as any)
+      const component = parent.child() as any
       const data = component.getData()
       component.set('listObject', [])
-      data.forEach((d) => component.addDataObject(d))
+      data.forEach((d: any) => component.addDataObject(d))
       expect(component).to.have.lengthOf(2)
     })
 
@@ -149,13 +122,14 @@ describe('_internalResolver', () => {
       const noodlParentComponent = {
         type: 'view',
         children: [],
-      }
+      } as any
       noodlParentComponent.children.push({
         ...noodlComponent,
-        listObject: [...noodlComponent.listObject, {}, {}, {}],
+        // @ts-expect-error
+        listObject: noodlComponent.listObject?.concat({}, {}, {}),
       })
       const parent = noodlui.resolveComponents(noodlParentComponent)
-      const component = parent.child() as List
+      const component = parent.child() as any
       const data = component.getData()
       component.set('listObject', [])
       data.forEach((d) => component.addDataObject(d))
@@ -169,7 +143,7 @@ describe('_internalResolver', () => {
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
-      }) as List
+      }) as any
       const component = parent.child() as List
       component.on(event.component.list.CREATE_LIST_ITEM, spy)
       component.addDataObject({ hello: 'true' })
@@ -183,7 +157,7 @@ describe('_internalResolver', () => {
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
-      }) as List
+      }) as any
       const component = parent.child() as List
       expect(spy.called).to.be.false
       component.on(event.component.list.REMOVE_LIST_ITEM, spy)
@@ -192,11 +166,10 @@ describe('_internalResolver', () => {
     })
 
     it('should update the data object when calling updateDataObject', () => {
-      const spy = sinon.spy()
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
-      }) as List
+      }) as any
       const component = parent.child() as List
       const data = component.getData()
       component.set('listObject', [])
@@ -215,7 +188,7 @@ describe('_internalResolver', () => {
       const parent = noodlui.resolveComponents({
         type: 'view',
         children: [noodlComponent],
-      }) as List
+      }) as any
       const component = parent.child() as List
       const data = component.getData()
       data.forEach((d) => component.addDataObject(d))
@@ -272,19 +245,17 @@ describe('_internalResolver', () => {
         })
         .setPage('SignIn')
       const noodlParent = { type: 'view', children: [noodlComponent] }
-      const parent = noodlui.resolveComponents(noodlParent)
-      const component = parent.child() as List
+      const parent = noodlui.resolveComponents(noodlParent as any)
+      const component = parent.child() as any
       const data = component.getData()
       component?.set('listObject', [])
-      data.forEach((d) => component.addDataObject(d))
+      data.forEach((d: any) => component.addDataObject(d))
       const [listItem1] = component?.children() || []
       expect(listItem1.child()?.get?.('listId')).to.exist
       expect(listItem1.child()?.get?.('iteratorVar')).to.exist
-      expect(listItem1.child(1)?.child(0)?.get('listId')).to.exist
-      expect(listItem1.child(1)?.child(0)?.get('iteratorVar')).to.exist
     })
 
-    it.only('should populate all descendant dataKey consumers expectedly', () => {
+    it('should populate all descendant dataKey consumers expectedly', () => {
       const dataObject1 = { title: 'This is my title', color: 'red' }
       const dataObject2 = { title: 'This is 2md title', color: 'brown' }
       const dataObject3 = { title: 'This is 3rd title', color: 'cyan' }
@@ -327,7 +298,6 @@ describe('_internalResolver', () => {
       }
       const noodlParent = { type: 'view', children: [noodlComponent] }
       const parent = noodlui.resolveComponents(noodlParent as any)
-      // @ts-expect-error
       const list = parent.child() as List
       const data = list.getData()
       list?.set('listObject', [])
@@ -367,7 +337,7 @@ describe('_internalResolver', () => {
             textBoard: [{ br: null }, { text: 'hello' }, { br: null }],
           },
         ],
-      })
+      } as any)
       const label = parent.child()
       expect(label?.child(0)).to.have.property('noodlType', 'br')
       expect(label?.child(1)).to.have.property('noodlType', 'label')
@@ -383,7 +353,7 @@ describe('_internalResolver', () => {
             textBoard: [{ br: null }, { text: 'hello' }, { br: null }],
           },
         ],
-      })
+      } as any)
       const label = parent.child() as Component
       const br = label.child(0)
       const text = label.child(1)
@@ -465,7 +435,7 @@ describe('_internalResolver', () => {
       )
 
       const textField = findChild(component, (child) =>
-        /my placeholder/i.test(child?.get('placeholder')),
+        /my placeholder/i.test(child?.get('placeholder') as string),
       )
 
       expect(textField).to.be.instanceOf(Component)

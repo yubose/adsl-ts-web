@@ -47,54 +47,22 @@
     "prefix": "fedentries",
     "body": "import { forEachDeepEntries } from 'utils/common'"
   },
-  "border test": {
-    "prefix": "b1",
-    "body": "border: '1px solid red',"
-  },
-  "border test2": {
-    "prefix": "b2",
-    "body": "border: '1px solid green',"
-  },
-  "border test3": {
-    "prefix": "b3",
-    "body": "border: '1px solid magenta',"
-  },
-  "border test4": {
-    "prefix": "b4",
-    "body": "border: '1px solid blue',"
-  },
-  "border test5": {
-    "prefix": "b5",
-    "body": "border: '1px solid #fe7200',"
-  },
-  "color": {
-    "prefix": "color",
-    "body": "import { color } from 'utils/twilio'"
-  },
-  "color from": {
-    "prefix": "colorfrom",
-    "body": "import { getColorFrom } from 'utils/twilio'"
-  },
-  "new reducer": {
-    "prefix": "reducer",
-    "body": ["$1(state, { payload }: PayloadAction<$2>) {", "  $3", "},"]
-  },
-  "toDOMNode": {
-    "prefix": "todom",
-    "body": "import { toDOMNode } from 'utils/noodl'"
-  },
   "test": {
     "prefix": "test",
     "body": [
       "import { expect } from 'chai'",
       "",
-      "describe('$1', () => {",
-      "  xit('$2', () => {",
+      "describe(`$1`, () => {",
+      "  xit(`$2`, () => {",
       "    $3",
       "  })",
       "})",
       ""
     ]
+  },
+  "toast": {
+    "prefix": "toast",
+    "body": "import toast from 'vercel-toast'"
   },
   "prettyDOM": {
     "prefix": "importpdom",

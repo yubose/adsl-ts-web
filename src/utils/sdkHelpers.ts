@@ -3,17 +3,18 @@
  * currently breaking tests when being imported. To prevent this, we can
  * isolate the imports into this file and replace them with stubs in testing
  */
-import _ from 'lodash'
 import { Draft, original } from 'immer'
+import has from 'lodash/has'
+import set from 'lodash/set'
+import upperFirst from 'lodash/upperFirst'
 import Logger from 'logsnap'
+import { excludeIteratorVar, getAllByDataKey, isEmitObj } from 'noodl-utils'
 import {
-  excludeIteratorVar,
+  Component,
   findListDataObject,
-  getAllByDataKey,
-  isEmitObj,
+  isListConsumer,
   isListKey,
-} from 'noodl-utils'
-import { Component } from 'noodl-ui'
+} from 'noodl-ui'
 import { isTextFieldLike, NOODLDOMDataValueElement } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
 import noodlui from '../app/noodl-ui'
@@ -43,14 +44,13 @@ export function createOnDataValueChangeFn(
 
   // Initiates the values
   node.value = component.get('data-value') || ''
+  node.dataset.value = component.get('data-value') || ''
 
   if (node.tagName === 'SELECT') {
     if ((node as HTMLSelectElement).length) {
       // Put the default value to the first option in the list
       ;(node as HTMLSelectElement)['selectedIndex'] = 0
     }
-  } else {
-    node.dataset.value = component.get('data-value')
   }
 
   const onChange = async (event: Event) => {
@@ -66,7 +66,7 @@ export function createOnDataValueChangeFn(
     if (isListKey(dataKey, component)) {
       const dataObject = findListDataObject(component)
       if (dataObject) {
-        _.set(dataObject, excludeIteratorVar(dataKey, iteratorVar), value)
+        set(dataObject, excludeIteratorVar(dataKey, iteratorVar), value)
         component.set('data-value', value)
         node.dataset.value = value
       } else {
@@ -81,36 +81,10 @@ export function createOnDataValueChangeFn(
       }
     } else {
       noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
-        if (_.has(draft?.[noodlui.page], dataKey)) {
-          _.set(draft?.[noodlui.page], dataKey, value)
-          component.set('data-value', value)
-          node.dataset.value = value
-          onChangeProp?.(event)
-          /**
-           * EXPERIMENTAL - When a data key from the local root is being updated
-           * by a node, update all other nodes that are referencing it.
-           * Note: This will not work for list items which is fine because they
-           * reference their own data objects
-           */
-          const linkedNodes = getAllByDataKey(dataKey)
-          if (linkedNodes.length) {
-            _.forEach(linkedNodes, (node) => {
-              // Since select elements have options as children, we should not
-              // edit by innerHTML or we would have to unnecessarily re-render the nodes
-              if (node.tagName === 'SELECT') {
-                //
-              } else if (isTextFieldLike(node)) {
-                node.dataset['value'] = value
-              } else {
-                node.innerHTML = `${value || ''}`
-              }
-            })
-          }
-        } else {
-          log.red(
-            `Attempted to update a data value from an onChange onto a data value ` +
-              `component but the dataKey "${dataKey}" is not a valid path of the ` +
-              `root object`,
+        if (!has(draft?.[noodlui.page], dataKey)) {
+          log.orange(
+            `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +
+              `If this is intended then ignore this message.`,
             {
               component,
               dataKey,
@@ -123,7 +97,34 @@ export function createOnDataValueChangeFn(
             },
           )
         }
+        set(draft?.[noodlui.page], dataKey, value)
+        component.set('data-value', value)
+        node.dataset.value = value
+
+        if (!isListConsumer(component)) {
+          /**
+           * EXPERIMENTAL - When a data key from the local root is being updated
+           * by a node, update all other nodes that are referencing it.
+           * Note: This will not work for list items which is fine because they
+           * reference their own data objects
+           */
+          const linkedNodes = getAllByDataKey(dataKey)
+          if (linkedNodes.length) {
+            linkedNodes.forEach((node) => {
+              // Since select elements have options as children, we should not
+              // edit by innerHTML or we would have to unnecessarily re-render the nodes
+              if (node.tagName === 'SELECT') {
+                // TODO - handle this
+              } else if (isTextFieldLike(node)) {
+                node.dataset['value'] = value
+              } else {
+                node.innerHTML = `${value || ''}`
+              }
+            })
+          }
+        }
       })
+      onChangeProp?.(event)
     }
   }
 
@@ -140,13 +141,13 @@ export function createOnDataValueChangeFn(
 export function getPagePath(pageName: string | RegExp) {
   // @ts-expect-error
   const pages = noodl?.cadlEndpoint?.page || noodl?.noodlEndpoint?.page || []
-  const pagePath = _.find(pages, (name: string) =>
-    _.isString(pageName)
+  const pagePath = pages.find((name: string) =>
+    typeof pageName === 'string'
       ? name.includes(pageName)
       : pageName instanceof RegExp
       ? pageName.test(name)
       : false,
   )
   // Ensure the first letter is capitalized
-  return pagePath ? _.upperFirst(pagePath) : ''
+  return pagePath ? upperFirst(pagePath) : ''
 }

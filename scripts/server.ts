@@ -1,4 +1,5 @@
 import express from 'express'
+import difference from 'lodash/difference'
 import chalk from 'chalk'
 import cors from 'cors'
 import yaml from 'yaml'
@@ -15,15 +16,33 @@ const getServerFilePath = (...paths: string[]) =>
 const loadFile = (
   filepath: string,
   opts?: Parameters<typeof fs.readFileSync>[1],
-) => fs.readFileSync(getServerFilePath(filepath), { encoding: 'utf8' }, opts)
+) => fs.readFileSync(getServerFilePath(filepath), { encoding: 'utf8' })
 
 fs.ensureDirSync(getServerFilePath('assets'))
-const assetPaths = fs.readdirSync(getServerFilePath('assets'), 'utf8')
-const rootFiles = fs.readdirSync(getServerFilePath(''), 'utf8')
 const cadlEndpointConfig = yaml.parse(loadFile('cadlEndpoint.yml'))
-const allPages = cadlEndpointConfig.page.concat(cadlEndpointConfig.preload)
+const basePages = cadlEndpointConfig.preload
+const pages = cadlEndpointConfig.page
+const assetPaths = fs.readdirSync(getServerFilePath('assets'), 'utf8')
+console.log(assetPaths)
+
+// console.log(`BASE PAGES: `, basePages)
+// console.log(`PAGES: `, pages)
 
 const app = express()
+const dirFiles = fs.readdirSync(getServerFilePath(''), {
+  encoding: 'utf8',
+  withFileTypes: false,
+})
+
+const files = dirFiles.reduce(
+  (acc, filename) => {
+    const withoutExt = filename.substring(0, filename.indexOf('.'))
+    if (basePages.includes(withoutExt)) acc.basePages.push(withoutExt)
+    else if (pages.includes(withoutExt)) acc.pages.push(withoutExt)
+    return acc
+  },
+  { basePages: [], pages: [] },
+)
 
 app.use(
   cors({
@@ -33,28 +52,98 @@ app.use(
 )
 
 console.log('')
-rootFiles
-  .filter((o) => o.endsWith('.yml'))
-  .forEach((rootFile) => {
-    console.log(`Route opened: ${chalk.yellow('/' + rootFile)}`)
-    app.get(`/${rootFile}`, (req, res) => {
-      res.send(loadFile(rootFile))
-    })
-  })
-console.log('')
 
-allPages.forEach((page) => {
-  app.get(`/${page}_en.yml`, (req, res) => {
-    res.send(loadFile(page + '.yml'))
+files.basePages.forEach((name) => {
+  const route = `/${name}_en.yml`
+  console.log(route)
+  app.get(route, (req, res) => {
+    res.send(loadFile(name + '.yml'))
+  })
+})
+files.pages.forEach((page) => {
+  const route = `/${page}_en.yml`
+  const obj = loadFile(page + '.yml')
+  app.get(route, (req, res) => {
+    console.log()
+    res.send(obj)
   })
 })
 
 assetPaths.forEach((assetPath) => {
+  app.get(`/assets/partnerLogo/${assetPath}`, (req, res) => {
+    res
+      .writeHead(200, 'buffer', { 'Content-Type': 'image/png' })
+      .end(fs.readFileSync(getServerFilePath(`/assets/${assetPath}`)))
+  })
   app.get(`/assets/${assetPath}`, (req, res) => {
     res
-      .writeHead(200, { 'Content-Type': 'image/png' }, 'buffer')
+      .writeHead(200, 'buffer', { 'Content-Type': 'image/png' })
+      .end(fs.readFileSync(getServerFilePath(`/assets/${assetPath}`)))
+  })
+  app.get(`/${assetPath}`, (req, res) => {
+    res
+      .writeHead(200, 'buffer', { 'Content-Type': 'image/png' })
       .end(fs.readFileSync(getServerFilePath(`/assets/${assetPath}`)))
   })
 })
+
+app.get('/HomePageUrl_en.yml', (req, res) => {
+  res.send(``)
+})
+
+const otherFiles = [
+  'cadlEndpoint.yml',
+  'message.yml',
+  'meet2d.yml',
+  'ww2.yml',
+  'www.yml',
+  'testpage.yml',
+]
+const serverPath = getServerFilePath('')
+otherFiles.forEach((filename) => {
+  if (fs.existsSync(path.join(serverPath, filename))) {
+    const route = `/${filename}`
+    console.log(chalk.yellow(`Registering route: ${route}`))
+    app.get(route, (req, res) => {
+      res.send(loadFile(filename))
+    })
+  }
+})
+
+// app.get('/aitmed.yml', (req, res) => {
+//   res.send(loadFile('aitmed.yml'))
+// })
+
+// app.get('/testpage.yml', (req, res) => {
+//   res.send(loadFile('testpage.yml'))
+// })
+
+// app.get('/cadlEndpoint.yml', (req, res) => {
+//   res.send(loadFile('cadlEndpoint.yml'))
+// })
+
+// app.get('/BaseCSS_en.yml', (req, res) => {
+//   res.send(loadFile('BaseCSS.yml'))
+// })
+
+// app.get('/BasePage_en.yml', (req, res) => {
+//   res.send(loadFile('BasePage.yml'))
+// })
+
+// app.get('/BaseDataModel_en.yml', (req, res) => {
+//   res.send(loadFile('BaseDataModel.yml'))
+// })
+
+// app.get('/BootNoodlForMobile_en.yml', (req, res) => {
+//   res.send(loadFile('BootNoodlForMobile.yml'))
+// })
+
+// app.get('/PatientChartDM_en.yml', (req, res) => {
+//   res.send(loadFile('PatientChartDM.yml'))
+// })
+
+// app.get('/PatientDashboard_en.yml', (req, res) => {
+//   res.send(loadFile('PatientDashboard.yml'))
+// })
 
 app.listen(3001)

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import sortBy from 'lodash/sortBy'
 
 /**
  * Creates a new object with the provides keys as properties, and optionally
@@ -7,7 +7,7 @@ import _ from 'lodash'
  * @param { any } initialValue - Value to set on each key value
  */
 export function createObjWithKeys(keys: string | string[], initialValue: any) {
-  return _.reduce(keys, (_, key) => ({ [key]: initialValue }), {})
+  return keys?.reduce((_, key) => ({ [key]: initialValue }), {})
 }
 
 /**
@@ -22,17 +22,17 @@ export function createRegexpByKeywords(
   let _keywords: string[] = []
   let flags = 'i' // default
 
-  if (_.isString(keywords)) {
+  if (typeof keywords === 'string') {
     if (args.length) {
       _keywords = [keywords, ...args]
     } else {
       _keywords = [keywords]
     }
-  } else if (_.isArray(keywords)) {
+  } else if (Array.isArray(keywords)) {
     _keywords = keywords
-  } else if (_.isObjectLike(keywords)) {
+  } else if (isObjectLike(keywords)) {
     _keywords = keywords.keywords
-    flags = _.isUndefined(keywords.flags) ? flags : keywords.flags
+    flags = keywords.flags === undefined ? flags : keywords.flags
   }
 
   return new RegExp(
@@ -46,10 +46,9 @@ export function createRegexpByKeywords(
 }
 
 export function sortObjByProperties(obj: any) {
-  if (_.isObjectLike(obj)) {
-    return _.reduce(
-      _.sortBy(_.keys(obj)),
-      (acc, key) => _.assign(acc, { [key]: obj[key] }),
+  if (isObjectLike(obj)) {
+    return sortBy(Object.keys(obj)).reduce(
+      (acc, key) => Object.assign(acc, { [key]: obj[key] }),
       {},
     )
   }

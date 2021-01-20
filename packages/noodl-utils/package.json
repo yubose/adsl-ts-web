@@ -1,6 +1,6 @@
 {
   "name": "noodl-utils",
-  "version": "0.0.21",
+  "version": "0.0.41",
   "description": "Utility/helpers for working with NOODL values",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "main": "dist/index.js",
@@ -12,13 +12,11 @@
     "npm": ">=6"
   },
   "scripts": {
-    "build": "rm -rf dist && rollup -c --environment BUILD:production",
-    "start": "rm -rf dist && rollup -c --environment BUILD:development -w",
+    "build": "rm -rf dist && tsc",
+    "prestart": "rm -rf dist",
+    "start": "tsc -w",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src"
-  },
-  "peerDependencies": {
-    "noodl-ui": "^0.1.28"
+    "test:file": "NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global/register --extensions ts --watch --watch-files src"
   },
   "keywords": [
     "noodl"
@@ -26,12 +24,18 @@
   "homepage": "",
   "license": "ISC",
   "directories": {
-    "dist": "dist",
-    "test": "__tests__"
+    "dist": "dist"
   },
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
+  },
+  "devDependencies": {
+    "noodl-types": "file:../noodl-types"
+  },
   "prettier": {
     "arrowParens": "always",
     "endOfLine": "lf",
@@ -40,9 +44,5 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
-  },
-  "repository": {
-    "type": "git",
-    "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
   }
 }

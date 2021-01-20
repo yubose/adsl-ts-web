@@ -1,22 +1,21 @@
-import _ from 'lodash'
-import Component from '../../components/Base'
-import { ComponentObject, ResolveComponent } from '../../types'
-import { forEachEntries } from '../../utils/common'
-import { forEachDeepChildren } from '../../utils/noodl'
+import isPlainObject from 'lodash/isPlainObject'
+import { ComponentInstance, ResolveComponent } from '../../types'
 import createComponent, { PropsOptionObj } from '../../utils/createComponent'
 
 /**
  * Transforms a child or an array of children into their respective instances
- * @param { Component } c
+ * @param { ComponentInstance } c
  * @param { object | undefined } opts - Optional options
  * @param { function } opts.onResolve - Callback called on each child that resolves
  * @param { object } opts.props - An object of component props passed to the resolving component
  * @param { function } opts.resolveComponent
  */
-export function _resolveChildren<T extends Component = Component>(
+export function _resolveChildren<
+  T extends ComponentInstance = ComponentInstance
+>(
   c: T,
   opts: {
-    onResolve?(child: Component): void
+    onResolve?(child: ComponentInstance): void
     props?: PropsOptionObj
     resolveComponent: ResolveComponent
   },
@@ -28,69 +27,22 @@ export function _resolveChildren<T extends Component = Component>(
 
     if (typeof c.original.children === 'string') {
       noodlChildren = [{ type: c.original.children }]
-    } else if (_.isPlainObject(c.original.children)) {
+    } else if (isPlainObject(c.original.children)) {
       noodlChildren = [c.original.children]
-    } else if (_.isArray(c.original.children)) {
+    } else if (Array.isArray(c.original.children)) {
       noodlChildren = c.original.children
     }
 
     if (noodlChildren) {
-      _.forEach(noodlChildren, (noodlChild) => {
-        if (noodlChild) {
+      noodlChildren.forEach(
+        (noodlChild) =>
+          noodlChild &&
           onResolve?.(
             resolveComponent?.(
-              c.createChild(createComponent(noodlChild, { props })),
-            ) as Component,
-          )
-        }
-      })
+              (c as any).createChild(createComponent(noodlChild, { props })),
+            ) as ComponentInstance,
+          ),
+      )
     }
   }
 }
-
-export const redraw = (function () {
-  const _applyChanges = (
-    component: Component,
-    changes: Partial<ComponentObject>,
-  ) => {
-    forEachEntries(changes, (key, prop) => {
-      component.set(key, prop)
-    })
-  }
-
-  const _redraw = (
-    component: Component,
-    props: Partial<ComponentObject>,
-    opts: {
-      onChild?(child: Component): void
-      resolveComponent: ResolveComponent
-    },
-  ) => {
-    const { onChild, resolveComponent } = opts
-
-    _applyChanges(component, props)
-
-    if (component?.length) {
-      forEachDeepChildren(component, (c) => {
-        // TODO - resolve dataKey as objects (found in redraw actions)
-        if (_.isString(child.get('dataKey')) && !child.get('data-value')) {
-          const dataKey = child.get('dataKey')
-          // Labels just need a simple data-value from using their dataKey as a path
-          if (child.noodlType === 'label') {
-            if (listItem) {
-              const dataObject = listItem?.getDataObject?.()
-              // console.info(dataObject)
-              if (dataObject) {
-                child.set('data-value', getDataValue(dataObject, dataKey))
-              }
-            }
-          }
-        }
-
-        onChild?.(c)
-      })
-    }
-  }
-
-  return _redraw
-})()

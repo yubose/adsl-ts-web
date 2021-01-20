@@ -1,84 +1,10 @@
-import Logger from 'logsnap'
 import get from 'lodash/get'
 import has from 'lodash/has'
-import {
-  ActionObject,
-  Component,
-  ComponentCreationType,
-  ComponentObject,
-  createComponent,
-  EmitActionObject,
-  EmitObject,
-  IfObject,
-  List,
-  ListItem,
-  NOODLComponent,
-} from 'noodl-ui'
-import {
-  array,
-  isArr,
-  isBool,
-  isFnc,
-  isObj,
-  isStr,
-  unwrapObj,
-} from './_internal'
+import { ActionObject } from 'noodl-types'
+import { isArr, isNum, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
 
-const log = Logger.create('noodl-utils')
-
-// TODO - move to noodl-building-blocks
 /**
- * Deeply creates children until the depth is reached
- * @param { ComponentCreationType | Component } c - Component instance
- * @param { object } opts
- * @param { number | undefined } opts.depth - The maximum depth to deeply recurse to. Defaults to 1
- * @param { object | undefined } opts.injectProps - Props to inject to desired components during the recursion
- * @param { object | undefined } opts.injectProps.last - Props to inject into the last created child
- */
-export function createDeepChildren(
-  c: ComponentCreationType | Component,
-  opts?: {
-    depth?: number
-    injectProps?: {
-      last?:
-        | { [key: string]: any }
-        | ((rootProps: Partial<ComponentObject>) => Partial<ComponentObject>)
-    }
-    onCreate?(child: Component, depth: number): Partial<NOODLComponent>
-  },
-): Component {
-  if (opts?.depth) {
-    let count = 0
-    let curr =
-      typeof c === 'string'
-        ? (c = createComponent({ type: c, children: [] }))
-        : c
-    while (count < opts.depth) {
-      const cc = createComponent({ type: 'view', children: [] })
-      const child = curr.createChild(cc)
-      let injectingProps = opts?.onCreate?.(child, count)
-      if (typeof injectingProps === 'object') {
-        Object.entries(injectingProps).forEach(([k, v]) => child.set(k, v))
-      }
-      curr = child
-      count++
-      if (count === opts.depth) {
-        if (opts.injectProps?.last) {
-          Object.entries(unwrapObj(opts.injectProps?.last)).forEach(
-            ([k, v]) => {
-              if (k === 'style') curr.set('style', k, v)
-              else curr.set(k, v)
-            },
-          )
-        }
-      }
-    }
-  }
-  return c as Component
-}
-
-/**f
  * Transforms the dataKey of an emit object. If the dataKey is an object,
  * the values of each property will be replaced by the data value based on
  * the path described in its value. The 2nd arg should be a data object or
@@ -99,10 +25,22 @@ export function createEmitDataKey(
     )
   } else if (isObj(dataKey)) {
     return Object.keys(dataKey).reduce((acc, property) => {
+      console.log({
+        dataKey,
+        dataObject,
+        acc,
+        property,
+        opts,
+        excludedIteratorVar: excludeIteratorVar(
+          dataKey[property],
+          opts?.iteratorVar,
+        ),
+      })
       acc[property] = findDataValue(
         dataObject,
         excludeIteratorVar(dataKey[property], opts?.iteratorVar),
       )
+      // debugger
       return acc
     }, {} as { [varProp: string]: any })
   }
@@ -137,112 +75,9 @@ export function evalIf<IfObj extends { if: [any, any, any] }>(
   if (Array.isArray(ifObj.if)) {
     const [val, onTrue, onFalse] = ifObj.if
     return fn(val, onTrue, onFalse) ? onTrue : onFalse
-  } else {
-    log.func('evalIf')
-    log.red(
-      `An "if" object was encountered but it was not an array. ` +
-        `The evaluation operation was skipped`,
-    )
   }
   return false
 }
-
-/**
- * Traverses the children hierarchy, running the comparator function in each
- * iteration. If a callback returns true, the node in that iteration will become
- * the returned child
- * @param { Component } component
- * @param { function } fn - Comparator function
- */
-export function findChild<C extends Component>(
-  component: C,
-  fn: (child: Component) => boolean,
-): Component | null {
-  let child: Component | null | undefined
-  let children = component?.children?.()?.slice?.() || []
-
-  if (component) {
-    child = children.shift() || null
-    while (child) {
-      if (fn(child)) return child
-      if (child?.length) {
-        child.children?.().forEach((c: Component) => children.push(c))
-        child = children.pop()
-      } else {
-        break
-      }
-    }
-  }
-  return null
-}
-
-/**
- * Traverses the parent hierarchy, running the comparator function in each
- * iteration. If a callback returns true, the node in that iteration will become
- * the returned parent
- * @param { Component } component
- * @param { function } fn
- */
-export function findParent<C extends Component>(
-  component: C,
-  fn: (parent: Component | null) => boolean,
-) {
-  let parent = component?.parent?.()
-  if (fn(parent)) return parent
-  if (parent) {
-    while (parent) {
-      parent = parent.parent?.()
-      if (fn(parent)) return parent
-    }
-  }
-  return parent || null
-}
-
-/**
- * Finds a data object using a dataObject, an array of dataObjects or if a component
- * instance is provided it is a list consumer, it will attempt to retrieve its data
- * object from a listItem parent, or a list parent (using listIndex)
- * @param { Component | object | array } objs - Component instance or a dataObject or an array of dataObjects
- * @param { object | undefined } opts
- * @param { object | undefined } opts.component
- * @param { object | undefined } opts.path
- */
-// export function findDataObject(
-//   objs: T.PlainObject | T.PlainObject[],
-//   path: string,
-// ): any
-// export function findDataObject(
-//   objs: T.PlainObject | T.PlainObject[],
-//   opts: { component?: Component; path?: string },
-// ): any
-// export function findDataObject(component: Component, path?: string): any
-// export function findDataObject(
-//   objs: Component | T.PlainObject | T.PlainObject[],
-//   opts?: string | { component?: Component; path?: string },
-// ) {
-//   let dataObject: any
-//   // List consumers
-//   if (objs instanceof Component) {
-//     if (arguments.length > 1) {
-//       if (isStr(opts)) dataObject = findDataValue(objs, opts)
-//     } else dataObject = findListDataObject(objs)
-//   }
-//   // Non list consumers
-//   else {
-//     // Find by path
-//     if (isStr(opts)) {
-//       dataObject = findDataValue(objs, opts)
-//     } else {
-//       if (opts?.path !== undefined) {
-//         dataObject = findDataValue(objs, opts.path || '')
-//       }
-//       if (!dataObject && isListConsumer(opts?.component)) {
-//         dataObject = findListDataObject(opts?.component as Component)
-//       }
-//     }
-//   }
-//   return dataObject || null
-// }
 
 type FindDataValueItem =
   | ((...args: any[]) => any)
@@ -261,44 +96,28 @@ export const findDataValue = <O extends FindDataValueItem = any>(
   if (!path) return unwrapObj(isArr(objs) ? objs[0] : objs)
   return get(
     unwrapObj(
-      (isArr(objs) ? objs : [objs]).find((o) => has(unwrapObj(o), path)),
+      (isArr(objs) ? objs : [objs])?.find((o) => has(unwrapObj(o), path)),
     ),
     path,
   )
 }
 
-export function findListDataObject(component: any) {
-  let dataObject
-  let listItem: ListItem | undefined
-  if (component?.noodlType === 'listItem') {
-    listItem = component as any
-  } else {
-    listItem = findParent(
-      component,
-      (p) => p?.noodlType === 'listItem',
-    ) as ListItem
-  }
-  if (listItem) {
-    dataObject = listItem.getDataObject?.()
-    let listIndex = listItem.get('listIndex')
-    if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
-    if (!dataObject && typeof listIndex === 'number') {
-      const list = listItem?.parent?.() as List
-      if (list) {
-        let listObject = list.getData()
-        if (listObject?.length) {
-          dataObject = listObject[listIndex]
-        }
-        if (!dataObject) {
-          listObject = list.original?.listObject || []
-          if (listObject?.length) {
-            dataObject = listObject[listIndex] || listObject[listIndex]
-          }
-        }
+export function findReferences(obj: any): string[] {
+  let results = [] as string[]
+  ;(Array.isArray(obj) ? obj : [obj]).forEach((o) => {
+    if (isStr(o)) {
+      if (o.startsWith('.')) results.push(o)
+    } else if (isArr(o)) {
+      results = results.concat(findReferences(o))
+    } else if (isObj(o)) {
+      for (let key in o) {
+        const value = o[key]
+        results = results.concat(findReferences(key))
+        results = results.concat(findReferences(value))
       }
     }
-  }
-  return dataObject || null
+  })
+  return results
 }
 
 export function getActionType<A extends ActionObject = any>(
@@ -342,6 +161,10 @@ export function getByDataListId(value: string) {
   return document.querySelector(`[data-listid="${value}"]`)
 }
 
+export function getByDataViewTag(value: string) {
+  return document.querySelector(`[data-viewtag="${value}"]`)
+}
+
 export function getDataValue<T = any>(
   dataObject: T | undefined,
   dataKey: string | undefined,
@@ -361,158 +184,74 @@ export function getDataValue<T = any>(
   }
 }
 
-/**
- * Returns true if the value is a NOODL boolean. A value is a NOODL boolean
- * if the value is truthy, true, "true", false, or "false"
- * @param { any } value
- */
-export function isBoolean(value: unknown) {
-  return isBool(value) || isBooleanTrue(value) || isBooleanFalse(value)
-}
-
-/**
- * Returns true if the value is a NOODL true type. A NOODL true type is any
- * value that is the boolean true or the string "true"
- * @param { any } value
- */
-export function isBooleanTrue(value: unknown): value is true | 'true' {
-  return value === true || value === 'true'
-}
-
-/**
- * Returns true if the value is a NOODL false type. A NOODL false type is any
- * value that is the boolean false or the string "false"
- */
-export function isBooleanFalse(value: unknown): value is false | 'false' {
-  return value === false || value === 'false'
-}
-
-export function isBreakLine(value: unknown): value is 'br' {
-  return value === 'br'
-}
-
-export function isBreakLineObject<T extends { br: any } = { br: string }>(
-  value: unknown,
-): value is T {
-  if (value && typeof value === 'object' && 'br' in value) return true
-  return false
-}
-
-export function isBreakLineTextBoardItem<
-  T extends { br: any } = { br: string }
->(value: unknown): value is 'br' | T {
-  return isBreakLine(value) || isBreakLineObject(value)
-}
-
-export function isEmitObj(value: unknown): value is EmitObject {
-  return !!(value && typeof value === 'object' && 'emit' in value)
-}
-
-export function isEmitActionObj(value: unknown): value is EmitActionObject {
-  return !!(
-    value &&
-    typeof value === 'object' &&
-    ('emit' in value || value['actionType'] === 'emit')
-  )
-}
-
-export function isIfObj(value: unknown): value is IfObject {
-  return value && typeof value === 'object' && 'if' in value
-}
-
-export function isListConsumer(component: any) {
-  return !!(
-    component?.get?.('iteratorVar') ||
-    component?.get?.('listId') ||
-    component?.get?.('listIndex') != undefined ||
-    component?.noodlType === 'listItem' ||
-    (component && findParent(component, (p) => p?.noodlType === 'listItem'))
-  )
-}
-
-/**
- * Returns true if the dataKey begins with the value of iteratorVar
- * @param {  }  -
- */
-export function isListKey(dataKey: string, iteratorVar: string): boolean
-export function isListKey(dataKey: string, component: Component): boolean
-export function isListKey(dataKey: string, component: ComponentObject): boolean
-export function isListKey(
-  dataKey: string,
-  component: string | Component | ComponentObject,
-) {
-  if (arguments.length < 2) {
-    throw new Error('Missing second argument')
+export const parse = (function () {
+  const o = {
+    /**
+     * Parses a destination string
+     * (In most scenarios it will be coming from goto actions)
+     * @param { string } destination
+     */
+    destination<
+      RT extends {
+        destination: string
+        id?: string
+        isSamePage?: boolean
+        duration: number
+        [key: string]: any
+      } = any
+    >(
+      destination: string,
+      {
+        denoter = '^',
+        duration = 350,
+      }: { denoter?: string; duration?: number } = {},
+    ): RT {
+      const result = { duration } as RT
+      if (isStr(destination)) {
+        // TEMP here until cache issue is fixed
+        if (!destination.includes(denoter)) {
+          if (destination.includes('#')) denoter = '#'
+          else if (destination.includes('/')) denoter = '/'
+        }
+        if (denoter && destination.includes(denoter)) {
+          if (destination.indexOf(denoter) === 0) {
+            // Most likely a viewTag on the destination page.
+            // For now we will just always assume it represents an
+            // html element holding the viewTag
+            result.destination = ''
+            result.id = destination.replace(denoter, '')
+            result.isSamePage = true
+          } else {
+            const parts = destination.split(denoter)[1]?.split(';')
+            let serializedProps = parts?.[1] || ''
+            let propKey = ''
+            if (serializedProps.startsWith(';')) {
+              serializedProps = serializedProps.replace(';', '')
+            }
+            result.id = parts?.[0] || ''
+            result.isSamePage = false
+            result.destination = destination.substring(
+              0,
+              destination.indexOf(denoter),
+            )
+            serializedProps.split(':').forEach((v, index) => {
+              if (index % 2 === 1) (result as any)[propKey] = v
+              else if (index % 2 === 0) propKey = v
+            })
+            result.duration = isNum(result.props?.duration)
+              ? result.props.duration
+              : duration
+          }
+        } else {
+          result.destination = destination.replace(denoter, '')
+          result.isSamePage = false
+        }
+      } else {
+        result.destination = ''
+      }
+      return result
+    },
   }
-  if (isStr(dataKey) && component) {
-    if (isStr(component)) {
-      return dataKey.startsWith(component)
-    }
-    if (component instanceof Component) {
-      const iteratorVar =
-        component.get('iteratorVar') ||
-        findParent(component, (p) => !!p?.get('iteratorVar')) ||
-        ''
-      return !!iteratorVar && dataKey.startsWith(iteratorVar)
-    }
-    if ('iteratorVar' in component) {
-      return dataKey.startsWith(component.iteratorVar || '')
-    }
-  }
-  return false
-}
 
-export function isPasswordInput(value: unknown) {
-  return (
-    isObj(value) &&
-    value['type'] === 'textField' &&
-    value['contentType'] === 'password'
-  )
-}
-
-const pluginTypes = ['plugin', 'pluginHead', 'pluginBodyTop', 'pluginBodyTail']
-
-export function isPluginComponent(value: any) {
-  return !!(value && pluginTypes.includes(value?.noodlType || value?.type))
-}
-
-/**
- * Returns true if the value possibly leads to some data, which is possible
- * for strings that have at least a dot in them which can be some dataKey
- * @param { string } value
- */
-export function isPossiblyDataKey(value: unknown) {
-  return typeof value === 'string' ? !!value.match(/\./g)?.length : false
-}
-
-/** Returns true if value has a viewTag of "selfStream", false otherwise */
-export function isSelfStreamComponent(value: unknown) {
-  return isStr(value) && /selfStream/i.test(value)
-}
-
-/** Returns true if value is a date component, false otherwise */
-export function isDateComponent(value: unknown): value is T.DateLike {
-  return isObj(value) && 'text=func' in value
-}
-
-export function isTextBoardComponent<Component extends T.TextLike>(
-  value: Component,
-): value is Component {
-  return isObj(value) && isStr(value['text'])
-}
-
-/**
- * Recursively invokes the provided callback on each child
- * @param { Component } component
- * @param { function } cb
- */
-// TODO - Depth option
-export function publish(component: Component, cb: (child: Component) => void) {
-  if (component && component instanceof Component) {
-    component.children().forEach((child: Component) => {
-      cb(child)
-      // publish(child, cb)
-      child?.children?.forEach?.((c) => publish(c, cb))
-    })
-  }
-}
+  return o
+})()

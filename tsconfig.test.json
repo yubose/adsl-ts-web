@@ -5,9 +5,10 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "commonjs",
-    "target": "es2019"
+    "noEmitOnError": false,
+    "target": "es2017"
   },
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "scripts"],
+  "exclude": ["node_modules", "scripts", "packages/**/*"],
   "include": ["src/**/*.test.ts"]
 }

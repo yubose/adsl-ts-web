@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { NOODLComponent } from '../types'
@@ -54,7 +53,7 @@ describe('noodl-ui', () => {
         const emitObj = { emit: { dataKey: { var1: 'g' }, actions: [] } }
         const spy = sinon.spy()
         noodlui.use({ actionType: 'emit', fn: spy, trigger: 'path' })
-        noodlui.createSrc(emitObj)
+        noodlui.createSrc(emitObj as any)
       })
 
       xit(
@@ -96,26 +95,37 @@ describe('noodl-ui', () => {
 
 describe('when using getters', () => {
   it('should return the resolver context', () => {
-    expect(noodlui.getContext()).to.have.keys(['assetsUrl', 'page'])
+    expect(noodlui.getContext()).to.have.keys([
+      'actionsContext',
+      'assetsUrl',
+      'page',
+    ])
   })
 
   it('should return all consumer options', () => {
     expect(noodlui.getConsumerOptions({} as any)).to.have.keys([
       'component',
+      'componentCache',
       'context',
       'createActionChainHandler',
       'createSrc',
+      'fetch',
       'getAssetsUrl',
+      'getBaseUrl',
       'getBaseStyles',
+      'getCbs',
       'getPageObject',
+      'getPages',
+      'getPreloadPages',
       'getResolvers',
       'getRoot',
       'getState',
       'page',
-      'parser',
+      'plugins',
       'resolveComponent',
       'resolveComponentDeep',
       'showDataKey',
+      'setPlugin',
       'viewport',
     ])
   })
@@ -175,7 +185,7 @@ describe('when resolving components', () => {
       type: 'button',
       text: 'hello',
       onClick,
-    })
+    } as any)
     expect(resolvedComponent.get('onClick')).to.be.a('function')
   })
 
@@ -271,4 +281,26 @@ describe('when creating action chain handlers', () => {
   xit('should pass in the actionsContext, component, pageName, pageObject and trigger', () => {
     //
   })
+
+  // describe('textBoard', () => {
+  //   it.only('should be in the correct form in the DOM', () => {
+  //     const { node } = applyMockDOMResolver({
+  //       component: {
+  //         type: 'label',
+  //         textBoard: [
+  //           { text: 'Medical Records' },
+  //           { br: null },
+  //           { text: 'Upload an image or document' },
+  //         ],
+  //       },
+  //       resolver: resolvers.image,
+  //     })
+  //     const children = node?.children
+  //     expect(children[0].tagName).to.equal('LABEL')
+  //     expect(children[1].tagName).to.equal('BR')
+  //     expect(children[2].tagName).to.equal('LABEL')
+  //     expect(screen.getByText('Medical Records')).to.exist
+  //     expect(screen.getByText('Upload an image or document')).to.exist
+  //   })
+  // })
 })

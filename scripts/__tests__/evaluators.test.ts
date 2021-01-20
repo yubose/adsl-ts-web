@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import { YAMLSeq } from 'yaml/types'
-import _ from 'lodash'
 import identifyPair from '../utils/identifyPair'
 import EvaluatorsList from '../evaluators/EvaluatorsList'
 import makeEvaluator from '../evaluators/makeEvaluator'

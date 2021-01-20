@@ -1,5 +1,5 @@
-import _ from 'lodash'
-import { findChild, findParent } from 'noodl-utils'
+import { findChild, findParent } from './noodl'
+import isComponent from './isComponent'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Component from '../components/Base'
@@ -23,7 +23,7 @@ function findList(
 
     // Assuming it is a component's id, we will use this and traverse the whole list,
     // comparing the id to each of the list's tree
-    if (_.isString(component)) {
+    if (typeof component === 'string') {
       let child: any
       const componentId = component
       listComponents = Array.from(lists.values())
@@ -53,7 +53,7 @@ function findList(
     // Regular components should not hold the list data or data objects, so we
     // will assume here that it is some nested child. We can get the list by
     // traversing parents
-    else if (component instanceof Component) {
+    else if (isComponent(component)) {
       let parent: any
       listComponents = Array.from(lists.values())
       const fn = (c: any) => c === listComponent

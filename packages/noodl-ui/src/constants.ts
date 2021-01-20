@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 export const actionTypes = [
   'anonymous', // lib
   'builtIn',
@@ -11,12 +9,23 @@ export const actionTypes = [
   'popUpDismiss',
   'refresh',
   'saveObject',
+  'toast',
   'updateObject',
 ] as const
 
-export const actionChainEmitTriggers = ['onClick', 'onChange'] as const
+export const actionChainEmitTriggers = [
+  'onBlur',
+  'onClick',
+  'onChange',
+  'toast',
+] as const
 
-export const resolveEmitTriggers = ['dataKey', 'dataValue', 'path'] as const
+export const resolveEmitTriggers = [
+  'dataKey',
+  'dataValue',
+  'path',
+  'placeholder',
+] as const
 
 export const emitTriggers = [
   ...actionChainEmitTriggers,
@@ -33,11 +42,13 @@ export const componentTypes = [
   'label',
   'list',
   'listItem',
+  'page',
   'plugin',
   'pluginHead',
   'pluginBodyTop',
   'pluginBodyTail',
   'popUp',
+  'register',
   'searchBar',
   'select',
   'scrollView',
@@ -65,6 +76,7 @@ export const contentTypes = [
 ] as const
 
 export const eventTypes = [
+  'onBlur',
   'onClick',
   'onChange',
   'onHover',
@@ -98,6 +110,7 @@ export const event = {
   action: {
     PAGEJUMP: 'pageJump',
     BUILTIN: 'builtIn',
+    EMIT: 'emit',
     EVALOBJECT: 'evalObject',
     GOTO: 'goto',
     UPDATEOBJECT: 'updateObject',
@@ -105,6 +118,7 @@ export const event = {
     SAVEOBJECT: 'saveObject',
     POPUP: 'popUp',
     POPUPDISMISS: 'popUpDismiss',
+    TOAST: 'toast',
   },
   actionChain: {
     ON_BEFORE_RESOLVE: 'beforeResolve',
@@ -132,7 +146,17 @@ export const event = {
       REDRAW: 'redraw',
       REDRAWED: 'redrawed',
     },
+    page: {
+      RETRIEVE_COMPONENTS: 'component:page:retrieve.components',
+      COMPONENTS_RECEIVED: 'component:page:components.received',
+      MISSING_COMPONENTS: 'component:page:missing.components',
+      RESOLVED_COMPONENTS: 'component:page:resolved.components',
+      SET_REF: 'component:page:set.ref',
+    },
   },
+  SET_PAGE: 'set.page',
+  NEW_PAGE: 'new.page',
+  NEW_PAGE_REF: 'new.page.ref',
 } as const
 
 /** { textAlign: '' } */
@@ -146,3 +170,51 @@ export const textAlignStrings = [
 
 /** { textAlign: { x, y } } */
 export const textAlignXYStrings = ['left', 'center', 'right']
+
+/* -------------------------------------------------------
+  ---- LIB CONSTANTS
+-------------------------------------------------------- */
+export const consumer = {
+  types: {
+    MORPH: 'morph',
+    RENAME: 'rename',
+    REMOVE: 'remove',
+    REPLACE: 'replace',
+  },
+  ids: {
+    FONT_FAMILY: 'style.fontFamily',
+    HEADER: 'header',
+    LIST: 'list',
+    LISTITEM: 'listItem',
+    MORPH_ALIGN: 'morph.style.align',
+    MORPH_AXIS: 'morph.style.axis',
+    MORPH_BORDER: 'morph.style.border',
+    MORPH_DISPLAY: 'morph.style.display',
+    MORPH_FONTSTYLE: 'morph.style.fontStyle',
+    MORPH_ISHIDDEN: 'morph.style.isHidden',
+    MORPH_TEXTCOLOR: 'morph.style.textColor',
+    MORPH_TEXTALIGN: 'morph.style.textAlign',
+    MORPH_PATH_RESOURCE: 'morph.path.resource',
+    MORPH_PATH_RESOURCE_ASYNC: 'morph.path.resource.async',
+    MORPH_SHADOW: 'morph.style.shadow',
+    POPUP: 'popUp',
+    REMOVE_IMAGE_WIDTH: 'remove.image.width',
+    REMOVE_IMAGE_HEIGHT: 'remove.image.height',
+    REPLACE_COLOR_HEX: 'replace.style.color.hex',
+    REPLACE_CONTROLS: 'replace.controls',
+    REPLACE_CONTENTTYPE: 'replace.contentType',
+    REPLACE_EVENT_HANDLER: 'replace.event.handler',
+    REPLACE_FONTSIZE: 'replace.style.fontSize',
+    REPLACE_OPTIONS: 'replace.options',
+    REPLACE_POSITION: 'replace.style.position',
+    REPLACE_POSTER: 'replace.poster',
+    REPLACE_PLACEHOLDER: 'replace.placeholder',
+    REPLACE_HEIGHT: 'replace.style.height',
+    REPLACE_VIDEOFORMAT: 'replace.videoFormat',
+    REPLACE_WIDTH: 'replace.style.width',
+    REPLACE_ZINDEX: 'replace.style.zIndex',
+    REQUIRED: 'required',
+    TEXTVIEW: 'textView',
+    VIDEO: 'video',
+  } as const,
+} as const

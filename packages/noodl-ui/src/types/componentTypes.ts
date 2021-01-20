@@ -1,84 +1,85 @@
+import { ComponentObject, StyleObject } from 'noodl-types'
 import Component from '../components/Base'
-import { NOODLComponent, ProxiedComponent, Style } from './types'
-import { ActionObject } from './actionTypes'
-import { ComponentType } from './constantTypes'
+import List from '../components/List'
+import ListItem from '../components/ListItem'
+import Page from '../components/Page'
+import { NOODLComponent, ProxiedComponent } from './types'
+import { PlainObject } from '.'
+
+export type ComponentInstance = Component | List | ListItem | Page
 
 export type ComponentConstructor = new (
   component: ComponentCreationType,
-) => Component
+) => ComponentInstance
 
-export type ComponentCreationType = string | ComponentObject | Component
+export type ComponentCreationType =
+  | string
+  | ComponentObject
+  | NOODLComponent
+  | ComponentInstance
 
-export type ComponentObject = NOODLComponent & ProxiedComponent
-
-export interface IComponent<K = ComponentType> {
+export interface IComponent<C extends ComponentObject, Type extends C['type']> {
   id: string
-  type: K
-  noodlType: K
-  style: Style
-  action: ActionObject
+  type: string
+  noodlType: Type
+  style: StyleObject
   length: number
-  original: ComponentObject
+  original: C
   status: 'drafting' | 'idle' | 'idle/resolved'
-  stylesTouched: string[]
-  stylesUntouched: string[]
-  touched: string[]
-  untouched: string[]
-  assign(
-    key: string | { [key: string]: any },
-    value?: { [key: string]: any },
-  ): this
-  assignStyles(styles: Partial<Style>): this
-  broadcast(cb: (child: Component) => void): this
-  child(index?: number): Component | undefined
-  children(): Component[]
-  createChild<C extends Component>(child: C): C
-  hasChild(childId: string): boolean
-  hasChild(child: Component): boolean
-  removeChild(child: Component): Component | undefined
-  removeChild(id: string): Component | undefined
-  removeChild(index: number): Component | undefined
-  removeChild(): Component | undefined
+  stylesTouched: keyof StyleObject[]
+  stylesUntouched: keyof StyleObject[]
+  touched: keyof C[]
+  untouched: keyof C[]
+  assign(key: keyof C | PlainObject, value?: PlainObject): this
+  assignStyles(styles: StyleObject): this
+  child(index?: number): ComponentInstance | undefined
+  children(): ComponentInstance[]
+  createChild<Child extends ComponentInstance = any>(child: Child): Child
+  hasChild(id: string): boolean
+  hasChild(child: ComponentInstance): boolean
+  removeChild(child: ComponentInstance): ComponentInstance | undefined
+  removeChild(id: string): ComponentInstance | undefined
+  removeChild(index: number): ComponentInstance | undefined
+  removeChild(): ComponentInstance | undefined
   done(options?: { mergeUntouched?: boolean }): this
   draft(): this
-  get<K extends keyof ComponentObject>(
-    key: K | K[],
-    styleKey?: keyof Style,
-  ): ComponentObject[K] | Record<K, ComponentObject[K]>
-  getStyle<K extends keyof Style>(styleKey: K): Style[K]
-  has(key: string, styleKey?: keyof Style): boolean
+  get<K extends keyof C>(key: K, styleKey?: keyof StyleObject): C[K]
+  get<K extends keyof C>(
+    key: K[],
+    styleKey?: keyof StyleObject,
+  ): Record<K, C[K]>
+  get(key: keyof C, styleKey?: keyof StyleObject): any
+  getStyle<K extends keyof StyleObject>(styleKey: K): StyleObject[K]
+  has(key: keyof C, styleKey?: keyof StyleObject): boolean
   hasParent(): boolean
-  hasStyle<K extends keyof Style>(styleKey: K): boolean
-  isHandled(key: string): boolean
-  isTouched(key: string): boolean
-  isStyleTouched(styleKey: string): boolean
-  isStyleHandled(key: string): boolean
-  keys: string[]
-  merge(key: string | { [key: string]: any }, value?: any): this
+  hasStyle<K extends keyof StyleObject>(styleKey: K): boolean
+  isHandled(key: keyof C): boolean
+  isTouched(key: keyof C): boolean
+  isStyleTouched(styleKey: keyof StyleObject): boolean
+  isStyleHandled(key: keyof StyleObject): boolean
+  keys: keyof C[]
+  merge(key: keyof C | PlainObject, value?: any): this
   on(eventName: string, cb: Function): this
   off(eventName: string, cb: Function): this
-  parent(): Component | null
-  remove(key: string, styleKey?: keyof Style): this
-  removeStyle<K extends keyof Style>(styleKey: K): this
-  set<K extends keyof ComponentObject>(
-    key: K,
-    value?: any,
-    styleChanges?: any,
-  ): this
-  set<O extends ComponentObject>(key: O, value?: any, styleChanges?: any): this
-  setParent(parent: Component): this
-  setStyle<K extends keyof Style>(styleKey: K, value: any): this
+  parent(): ComponentInstance | null
+  remove(key: keyof C, styleKey?: keyof StyleObject): this
+  removeStyle<K extends keyof StyleObject>(styleKey: K): this
+  set<K extends keyof C>(key: K, value?: any, styleChanges?: any): this
+  set<O extends C>(key: O, value?: any, styleChanges?: any): this
+  setParent(parent: ComponentInstance): this
+  setStyle<K extends keyof StyleObject>(styleKey: K, value: any): this
   snapshot(): ProxiedComponent & {
-    _touched: string[]
-    _untouched: string[]
-    _touchedStyles: string[]
-    _untouchedStyles: string[]
-    _handled: string[]
-    _unhandled: string[]
-    noodlType: ComponentType | undefined
+    _touched: keyof C[]
+    _untouched: keyof C[]
+    _touchedStyles: keyof StyleObject[]
+    _untouchedStyles: keyof StyleObject[]
+    _handled: keyof C[]
+    _unhandled: keyof C[]
+    noodlType: Type
   }
-  touch(key: string): this
-  touchStyle(styleKey: string): this
+  touch(key: keyof C): this
+  touchStyle(styleKey: keyof StyleObject): this
+  toJS(): any
 }
 
 export type ListBlueprint = ProxiedComponent & {

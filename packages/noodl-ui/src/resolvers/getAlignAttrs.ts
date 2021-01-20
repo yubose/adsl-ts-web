@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import { ResolverFn } from '../types'
 import { textAlignStrings } from '../constants'
 
@@ -21,16 +21,16 @@ const getAlignAttrs: ResolverFn = (component) => {
 
     if (style.textAlign) {
       // "centerX", "centerY", "left", "center", "right"
-      if (_.isString(style.textAlign)) {
+      if (typeof style.textAlign === 'string') {
         value = getTextAlign(style.textAlign)
         if (value) {
           component.removeStyle('textAlign').assignStyles(value)
         }
       }
       // { x, y }
-      else if (_.isObjectLike(style.textAlign)) {
+      else if (isPlainObject(style.textAlign)) {
         const { x, y } = style.textAlign
-        if (!_.isUndefined(x)) {
+        if (x !== undefined) {
           value = getTextAlign(x)
           if (value) {
             component.assignStyles(value)
@@ -39,7 +39,7 @@ const getAlignAttrs: ResolverFn = (component) => {
             }
           }
         }
-        if (!_.isUndefined(y)) {
+        if (y !== undefined) {
           value = getTextAlign(y)
           if (value) {
             // The y value needs to be handled manually here since getTextAlign will
@@ -67,7 +67,7 @@ const getAlignAttrs: ResolverFn = (component) => {
       component.setStyle('display', 'inline')
     }
 
-    if (_.isPlainObject(component.getStyle('textAlign'))) {
+    if (isPlainObject(component.getStyle('textAlign'))) {
       component.removeStyle('textAlign')
     }
   }

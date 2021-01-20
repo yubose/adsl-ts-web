@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import difference from 'lodash/difference'
+import isPlainObject from 'lodash/isPlainObject'
 import { expect } from 'chai'
 import { NOODLComponent } from '../types'
 import { forEachEntries, forEachDeepEntries, isAllString } from './common'
@@ -11,23 +12,23 @@ describe('forEachDeepEntries', () => {
 
   forEachEntries(listComponent, (key, value) => {
     entries.push(key)
-    if (_.isPlainObject(value) || _.isArray(value)) {
+    if (isPlainObject(value) || Array.isArray(value)) {
       next.push(value)
     }
   })
 
   while (next.length) {
     const value = next.shift()
-    if (_.isArray(value)) {
-      _.forEach(value, (val) => {
-        if (_.isPlainObject(val) || _.isArray(val)) {
+    if (Array.isArray(value)) {
+      value.forEach((val) => {
+        if (isPlainObject(val) || Array.isArray(val)) {
           next.push(val)
         }
       })
-    } else if (_.isPlainObject(value)) {
+    } else if (isPlainObject(value)) {
       forEachEntries(value, (key, val) => {
         entries.push(key)
-        if (_.isPlainObject(val) || _.isArray(val)) {
+        if (isPlainObject(val) || Array.isArray(val)) {
           next.push(val)
         }
       })
@@ -39,7 +40,7 @@ describe('forEachDeepEntries', () => {
     forEachDeepEntries(listComponent, (key, value) => {
       results.push(key)
     })
-    expect(_.difference(entries, results).length).to.eq(0)
+    expect(difference(entries, results).length).to.eq(0)
   })
 })
 

@@ -1,0 +1,334 @@
+NewChat :
+  init:
+    - if :
+      - .builtIn.SignInOk
+      - continue
+      - goto: SignIn
+
+    # clean up left over data from previous visit
+    - ..bufferChat@: ""
+    - ..rootChat@: ""
+    - ..phoneInput@: ""
+    - ..contacts.list@: ""
+
+
+
+  # data =======================================================================
+  emptyObj: ""
+  bufferChat: ""
+  rootChat: ""  # the group chat root edge
+  oneToOneChatEdge: ""
+
+  phoneInput: ""
+
+  bufferContent:
+    edge:
+      name:
+        InviteePhoneNumber: ""
+
+  bufferAsList:
+    - name: ""
+
+  contacts:
+    list: ""  # many edges
+    get:
+      .EdgeAPI.get : ""
+      dataKey: contacts.list
+      id: "" # rootChat.id , updated by createGroupChatRootEdge
+      type : 1091
+      xfname : refid | id # root group chat edge_id.
+      maxcount : "20"
+      obfname : "mtime"
+
+  # methods ==============================================================================
+
+  create1To1Edge: # input from buffer
+    - .CreateChatRelation.fun_create1To1ChatEdge.parameter.name.InviteePhoneNumber@ : =..bufferChat.edge.name.InviteePhoneNumber
+    - .CreateChatRelation.fun_create1To1ChatEdge.parameter.name.InviterName@ : =.Global.currentUser.vertex.name.userName
+    - =.CreateChatRelation.fun_create1To1ChatEdge.execute
+    - ..oneToOneChatEdge@: =.CreateChatRelation.createChatEdge.edge # saved to this object, when jump to chat page, use this saved object to update the chat page edge
+    - ..bufferChat@: ""
+
+  createGroupChatRootEdge: # input from buffer
+    - .CreateChatRelation.fun_createGroupChatRootEdge.parameter.name.InviteePhoneNumber@ : =..bufferChat.edge.name.InviteePhoneNumber
+    - .CreateChatRelation.fun_createGroupChatRootEdge.parameter.name.InviterName@ : =.Global.currentUser.vertex.name.userName
+    - =.CreateChatRelation.fun_createGroupChatRootEdge.execute
+    - ..rootChat@: =.CreateChatRelation.createChatEdge.edge
+    - ..contacts.get.id@: =..rootChat.id
+    - ..bufferChat@: ""
+
+  createGroupChatInviteEdge: # input not from buffer, from current textfield
+    - .CreateChatRelation.fun_createGroupChatInviteEdge.parameter.refid@: =..rootChat.id
+    - .CreateChatRelation.fun_createGroupChatInviteEdge.parameter.name.InviteePhoneNumber@: =..phoneInput
+    - .CreateChatRelation.fun_createGroupChatInviteEdge.parameter.name.InviterName@: =.Global.currentUser.vertex.name.userName
+    - =.CreateChatRelation.fun_createGroupChatInviteEdge.execute
+    - ..bufferChat@: ""
+
+  updateChatPageEdge:
+    if:
+      - =..rootChat
+      - .ChatPage.chatEdge@: =..rootChat  # if group chat use the group root edge
+      - .ChatPage.chatEdge@: =..oneToOneChatEdge  # if 1 to 1 chat, use the saved edge
+
+  createBuffer:
+    - ..bufferContent.edge.name.InviteePhoneNumber@: =..phoneInput
+    - ..bufferChat@: =..bufferContent
+
+  displayBufferInList:
+    - ..bufferAsList.0.name@: =..bufferContent.edge.name
+    - ..contacts.list@: =..bufferAsList
+
+  # first time clicked, we don't know if this is 1 to 1 or group chat, so save to buffer
+  # if second time clicked (there is already a buffer), user want to create group chat
+  # any other time, user want to invite people into the group
+  onAddMemberClicked:
+
+    - if:
+      - =..rootChat # if rootChat exist:
+      - trueCase:
+        - =..createGroupChatInviteEdge # have a group chat root edge, invite this person
+        - =..contacts.get
+      - falseCase:
+          - if:
+              - =..bufferChat  # return false if empty
+              - trueCase: # have a buffer, user want to create a group chat
+                - =..createGroupChatRootEdge # from buffer
+                - =..createGroupChatInviteEdge # from current input
+                - =..contacts.get
+              - falseCase: # first time clicking, not sure this is for 1 to 1 or group chat. create the buffer
+                - =..createBuffer
+                - =..displayBufferInList
+
+    # - actionType: refresh  NOT NEEDED, let list handle auto refresh when its data source changed
+
+  onStartChatClicked:
+    - if:
+      - =..bufferChat # return false if empty
+      - =..create1To1Edge # there is a buffer, must be 1 to 1 chat
+      - continue # group chat, all edges are created
+    - =..updateChatPageEdge
+    - goto: ChatPage
+
+
+  # UI ===========================================
+  components:
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+
+        - type: view
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "0.08"
+            backgroundColor: "0x388eccff"
+          children:
+            - type: view
+              style:
+                left: "0.0582"
+                top: "0.01"
+                width: "0.18667"
+                height: "0.05"
+              onClick:
+                - actionType: pageJump
+                  destination: ChatList
+              children:
+                - type: image
+                  path: ~/assets/backWhiteArrow.png
+                  style:
+                    left: "0"
+                    top: "0.01"
+                    width: "0.053333"
+                    height: "0.03"
+                    color: "0xffffffff"
+                    backgroundColor: "0x388eccff"
+                - type: label
+                  text: Back # =..backLabel ## replace local variable
+                  style:
+                    left: "0.0667"
+                    top: "0.0"
+                    width: "0.12"
+                    height: "0.05"
+                    fontSize: "18"
+                    color: "0xffffffff"
+                    backgroundColor: "0x388eccff"
+            - type: label
+              text: NewChat
+              style:
+                left: "0.25"
+                top: "0.02"
+                width: "0.5"
+                height: "0.03405"
+                fontSize: "18"
+                display: inline
+                color: "0xffffffff"
+                backgroundColor: "0x388eccff"
+                textAlign:
+                  x: center
+                  y: center
+
+
+        - type: textField # take users' input
+          contentType: phoneNumber
+          placeholder: InviteePhoneNumber
+          dataKey: phoneInput  # users' input will be saved to this key
+          style:
+            textAlign:
+              x: left
+            fontSize: "14"
+            left: "0.1"
+            top: "0.1"
+            width: "0.8"
+            height: "0.04"
+            required: "true"
+            borderWidth: "1"
+            border:
+              style: "2"
+
+
+        - type: button
+          text: Add Member
+          style:
+            color: "0xffffffff"
+            fontSize: "16"
+            fontStyle: bold
+            left: "0.1"
+            top: "0.15"
+            width: "0.35"
+            height: "0.06"
+            backgroundColor: "0x388eccff"
+            border:
+              style: "1"
+            display: inline
+            textAlign:
+              x: center
+              y: center
+          onClick:
+            - =..onAddMemberClicked
+
+        - type: button
+          text: Start Chat
+          style:
+            color: "0xffffffff"
+            fontSize: "16"
+            fontStyle: bold
+            left: "0.5"
+            top: "0.15"
+            width: "0.35"
+            height: "0.06"
+            backgroundColor: "0x388eccff"
+            border:
+              style: "1"
+            display: inline
+            textAlign:
+              x: center
+              y: center
+          onClick:
+            # - =..onStartChatClicked
+            - goto: ChatPage
+
+
+        - type: list
+          contentType: listObject
+          listObject: ..contacts.list
+          iteratorVar: itemObject
+          style:
+            left: "0"
+            top: "0.25"
+            width: "1"
+            height: "0.72"
+          #for loop through listObject, we got each itemObject
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                left: "0"
+                top: "0"
+                width: "1"
+                height: "0.15"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000011"
+
+              children:
+                - type: label
+                  dataKey: itemObject.name.InviteePhoneNumber
+                  style:
+                    left: "0.25"
+                    top: "0.06"
+                    width: "0.74"
+                    height: "0.03"
+                    fontSize: "18"
+                    color: "0x000000ff"
+
+
+    - type: popUp # view
+      viewTag: completeView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "0.7"
+        backgroundColor: "0x00000066"
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.2"
+            width: "0.89333"
+            height: "0.3"
+            backgroundColor: "0xeeeeeeff"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "Edge 1091 is created"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.04"
+                  width: "0.89333"
+                  height: "0.027247"
+                  color: "0x00000088"
+                  fontSize: "20"
+                  fontStyle: bold
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center
+
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0"
+                  top: "0.20436"
+                  width: "0.89333"
+                  backgroundColor: "0x00000088"
+            - type: button
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: completeView
+                - goto: ChatList
+              text: OK
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.225"
+                  width: "0.89333"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "17"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center
+                  border:
+                    style: "5"
+                  borderRadius: "15"

@@ -1,5 +1,3 @@
-// @ts-nocheck
-import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { event } from '../constants'
@@ -34,7 +32,7 @@ describe('List', () => {
         encounters.push(child)
       })
       expect(encounters.length).to.equal(count)
-      _.forEach(encounters as any, (enc) => {
+      ;(encounters as any).forEach((enc) => {
         expect(enc.listId).to.equal(blueprint.listId)
       })
     })
@@ -232,7 +230,7 @@ describe('List', () => {
       // List components delegates us to call the shots on how to render the data
       component.set('listObject', [])
 
-      _.forEach(data, (dataObject) => {
+      data.forEach((dataObject) => {
         component.addDataObject(dataObject)
       })
 
@@ -279,7 +277,7 @@ describe('List', () => {
           ul.appendChild(li)
         })
 
-        _.forEach(data, (dataObject) => {
+        data.forEach((dataObject) => {
           component.addDataObject(dataObject)
         })
 
@@ -307,7 +305,7 @@ describe('List', () => {
         children: [{ type: 'listItem' }],
       })
 
-      _.forEach(component.children(), (c: ListItem) => {
+      component.children().forEach((c: ListItem) => {
         const li = document.createElement('li')
         li.id = c.id
         li.textContent += c.getDataObject().fruits[0]
@@ -355,7 +353,7 @@ describe('List', () => {
             ],
           })
 
-          _.forEach(component.children(), (c) => {
+          component.children().forEach((c) => {
             const li = document.createElement('li')
             li.id = c.id
             li.textContent += c.getDataObject().fruits[0]

@@ -1,67 +1,97 @@
-import Logger from 'logsnap'
+import { ActionType } from 'noodl-types'
 import {
+  ActionObject,
+  BuiltInObject,
+  ComponentInstance,
   createComponent,
-  Component,
-  ComponentObject,
-  ComponentType,
-  getPluginTypeLocation,
+  EmitActionObject,
+  findParent,
   getTagName,
-  ListItem,
-  PluginLocation,
-  PluginObject,
+  GotoActionObject,
+  NOODL as NOODLUI,
+  NOODLComponent,
+  Page as PageComponent,
+  publish,
+  StoreActionObject,
+  StoreBuiltInObject,
+  ToastActionObject,
 } from 'noodl-ui'
-import { isEmitObj, isPluginComponent, publish } from 'noodl-utils'
-import { createAsyncImageElement, getShape } from './utils'
-import {
-  componentEventMap,
-  componentEventIds,
-  componentEventTypes,
-} from './constants'
+import { isEmitObj, isPluginComponent } from 'noodl-utils'
+import { eventId } from './constants'
+import { createAsyncImageElement, getShape, isPageConsumer } from './utils'
+import createResolver from './createResolver'
+import NOODLUIDOMInternal from './Internal'
+import Page from './Page'
+import * as defaultResolvers from './resolvers'
 import * as T from './types'
 
-const log = Logger.create('noodl-ui-dom')
-
-function createPluginState(): {
-  head: PluginObject[]
-  body: {
-    top: PluginObject[]
-    bottom: PluginObject[]
+class NOODLUIDOM extends NOODLUIDOMInternal {
+  #R: ReturnType<typeof createResolver>
+  #cbs = {
+    redraw: {
+      cleanup: [] as ((...args: Parameters<NOODLUIDOM['redraw']>) => void)[],
+    },
   }
-} {
-  return { head: [], body: { top: [], bottom: [] } }
-}
+  page: Page
 
-class NOODLUIDOM implements T.INOODLUiDOM {
-  #callbacks: {
-    all: Function[]
-    component: Record<T.NOODLDOMComponentType, Function[]>
-  } = {
-    all: [],
-    component: componentEventTypes.reduce(
-      (acc, evt: T.NOODLDOMComponentType) => Object.assign(acc, { [evt]: [] }),
-      {} as Record<T.NOODLDOMComponentType, Function[]>,
-    ),
+  constructor() {
+    super()
+    this.page = new Page(this.render.bind(this))
+    this.#R = createResolver()
+    this.#R.use(this)
+    this.#R.use(Object.values(defaultResolvers))
   }
-  #stub: { elements: { [key: string]: T.NOODLDOMElement } } = { elements: {} }
-  #plugins: ReturnType<typeof createPluginState> = createPluginState()
-  #state: {} = {}
 
-  constructor({ log }: { log?: { enabled?: boolean } } = {}) {
-    // Logger[log?.enabled ? 'enable' : 'disable']?.()
+  get actions() {
+    return this.#R.get('noodlui').getCbs('actions') as {
+      [K in ActionType]: StoreActionObject<any, T.ActionChainDOMContext>[]
+    }
+  }
+
+  get builtIns() {
+    return this.#R.get('noodlui').getCbs('builtIns') as {
+      [funcName: string]: StoreBuiltInObject<any, T.ActionChainDOMContext>[]
+    }
+  }
+
+  get callbacks() {
+    return this.#cbs
+  }
+
+  /**
+   * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
+   * @param { NOODLComponent | NOODLComponent[] } components
+   */
+  render(rawComponents: NOODLComponent | NOODLComponent[]) {
+    // if (!this.#R.get('noodlui'))
+    // throw new Error(
+    //   'Cannot render without a noodlui or page component',
+    // )
+    // Create the root node where we will be placing DOM nodes inside.
+    // The root node is a direct child of document.body
+    this.page.setStatus(eventId.page.status.RESOLVING_COMPONENTS)
+    const resolved = this.#R.get('noodlui')?.resolveComponents(rawComponents)
+    this.page.setStatus(eventId.page.status.COMPONENTS_RECEIVED)
+    const components = Array.isArray(resolved) ? resolved : [resolved]
+    this.page.rootNode.innerHTML = ''
+    this.page.setStatus(eventId.page.status.RENDERING_COMPONENTS)
+    components.forEach((component) => {
+      this.draw(component, this.page.rootNode)
+    })
+    this.page.setStatus(eventId.page.status.COMPONENTS_RENDERED)
+    return components
   }
 
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
-   * @param { Component } props
+   * @param { ComponentInstance } props
    */
-  parse<C extends Component>(
+  draw<C extends ComponentInstance = any>(
     component: C,
     container?: T.NOODLDOMElement | null,
   ) {
     let node: T.NOODLDOMElement | null = null
-
-    const { noodlType } = component || ({} as Component)
 
     if (component) {
       if (isPluginComponent(component)) {
@@ -69,90 +99,32 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         // This is to allow the caller to determine whether they want to create
         // a separate DOM node or not
         if (component.noodlType === 'plugin') {
-          this.emit('component', null, component)
-          this.emit('plugin', null, component)
+          this.#R.run(node, component)
           return node
         } else {
-          const plugin = component.get('plugin')
-          let src = component.get('src') || ''
-          if (plugin) {
-            const mimeType = src.endsWith?.('.html')
-              ? 'text/html'
-              : src.endsWith?.('.js')
-              ? 'text/javascript'
-              : 'text/html'
-            if (mimeType === 'text/javascript') {
-              node = document.createElement('script')
-              node.type = 'text/javascript'
-              node.onload = () => {
-                if (plugin.location === 'head') {
-                  document.head.appendChild(node)
-                } else if (plugin.location === 'body-top') {
-                  document.body.insertBefore(node, document.body.childNodes[0])
-                } else if (plugin.location === 'body-bottom') {
-                  document.body.appendChild(node)
-                }
-              }
-              // TODO - Add more supported mime types
-              component.on('path', (newSrc: string) => {
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                console.log('RECEIVED PLUGIN SRC', newSrc)
-                src = newSrc
-                node.src = src
-              })
-              // The behavior for these specific components will take on the shape of
-              // a <script> DOM node, since the fetched contents from their url comes within
-              // the component instance themselves
-              return node
-            }
-          }
+          // We will delegate the role of the node creation to the consumer
+          this.#R.run((result: T.NOODLDOMElement) => (node = result), component)
         }
       } else {
         if (component.noodlType === 'image') {
-          component.on('path', (result: string) => {
-            node.src = result
-          })
-          // console.info(component.get('path'))
-          node = isEmitObj(component.get('path'))
-            ? createAsyncImageElement(container || document.body, {})
+          node = isEmitObj((component as any).get('path'))
+            ? createAsyncImageElement(
+                (container || document.body) as HTMLElement,
+                {},
+              )
             : document.createElement('img')
         } else {
-          node = document.createElement(getTagName(component))
+          node = document.createElement(
+            getTagName(component as ComponentInstance),
+          )
         }
-
+        this.#R.run(node, component)
         if (node) {
-          if (component?.noodlType === 'list') {
-            // noodl-ui delegates the responsibility for us to decide how
-            // to control how list children are first rendered to the DOM
-            const listComponent = component as any
-            const listObject = listComponent.getData()
-            const numDataObjects = listObject?.length || 0
-            if (numDataObjects) {
-              listComponent.children().forEach((c: ListItem) => {
-                c?.setDataObject?.(null)
-                listComponent.removeDataObject(0)
-              })
-              listComponent.set('listObject', [])
-              // Remove the placeholders
-              for (let index = 0; index < numDataObjects; index++) {
-                // This emits the "create list item" event that we should already have a listener for
-                listComponent.addDataObject(listObject[index])
-              }
-            }
-          }
-          this.emit('component', node, component)
-          if (componentEventMap[noodlType as ComponentType]) {
-            this.emit(componentEventMap[noodlType], node, component)
-          }
           const parent = container || document.body
           if (!parent.contains(node)) parent.appendChild(node)
           if (component.length) {
-            component.children().forEach((child: Component) => {
-              const childNode = this.parse(child, node) as HTMLElement
+            component.children().forEach((child: ComponentInstance) => {
+              const childNode = this.draw(child, node) as T.NOODLDOMElement
               node?.appendChild(childNode)
             })
           }
@@ -163,81 +135,33 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     return node || null
   }
 
-  plugins(location?: PluginLocation) {
-    switch (location) {
-      case 'head':
-        return this.#plugins.head
-      case 'body-top':
-        return this.#plugins.body.top
-      case 'body-bottom':
-        return this.#plugins.body.bottom
-      default:
-        return this.#plugins
-    }
-  }
-
-  #createPluginObject = (component: Component): PluginObject => {
-    if (component instanceof Component) {
-      const plugin = component.get(['location', 'content', 'src'])
-      plugin.url = plugin.src
-      delete plugin.src
-      if (!component.get('content')) {
-        component.on('plugin:content', (content) => {
-          console.info(
-            `Received plugin content hehehehe`,
-            component.get('content'),
-          )
-          // plugin.content = content
-        })
-        console.info(plugin)
-      }
-      return plugin
-    }
-    return { location: undefined, content: undefined, url: undefined }
-  }
-
   redraw(
-    node: HTMLElement | null, // ex: li (dom node)
-    component: Component, // ex: listItem (component instance)
-    {
-      dataObject,
-      ...opts
-    }: {
-      dataObject?: any
-      resolver?: (
-        noodlComponent: ComponentObject | ComponentObject[],
-      ) => Component
-    } = {},
+    node: T.NOODLDOMElement | null, // ex: li (dom node)
+    component: ComponentInstance, // ex: listItem (component instance)
+    args: { dataObject?: any; resolveComponents?: any } = {},
   ) {
-    log.func('redraw')
-
-    if (!opts?.resolver) {
-      console.error(
-        `%cNo resolver was provided for redraw. The DOM nodes will be empty`,
-        { node, component, ...opts },
-      )
-    }
-
-    let newNode: HTMLElement | null = null
-    let newComponent: Component | undefined
+    let newNode: T.NOODLDOMElement | null = null
+    let newComponent: ComponentInstance | undefined
+    let { dataObject } = args
 
     if (component) {
       const parent = component.parent?.()
       const shape = getShape(component)
+      const _isPageConsumer = isPageConsumer(component)
 
       // Clean up noodl-ui listeners
       component.clearCbs?.()
 
-      if (parent?.noodlType === 'list') {
-        dataObject && parent.removeDataObject(dataObject)
-      }
+      // if (parent?.noodlType === 'list') {
+      // dataObject && parent.removeDataObject(dataObject)
+      // }
       // Remove the parent reference
       component.setParent?.(null)
+      this.#emit(eventId.redraw.ON_BEFORE_CLEANUP, node, component, args)
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {
           const cParent = c.parent?.()
-          log.gold(`cParent`, cParent)
           // Remove listeners
           c.clearCbs()
           // Remove child component references
@@ -250,8 +174,9 @@ class NOODLUIDOM implements T.INOODLUiDOM {
       newComponent = createComponent(shape)
       if (dataObject && newComponent?.noodlType === 'listItem') {
         // Set the original dataObject on the new component instance if available
-        newComponent.setDataObject?.(dataObject)
+        ;(newComponent as any).setDataObject?.(dataObject)
       }
+      let resolveComponents: NOODLUI['resolveComponents'] | undefined
       if (parent && newComponent) {
         // Set the original parent on the new component
         newComponent.setParent(parent)
@@ -259,36 +184,38 @@ class NOODLUIDOM implements T.INOODLUiDOM {
         parent?.removeChild?.(component)
         // Set the new component as a child on the parent
         parent.createChild(newComponent)
-        // Run the resolver if provided
-        // !NOTE - opts.resolver needs to be provided as an anonymous func to preserve the "this" value
-        newComponent = opts?.resolver?.(newComponent) || newComponent
-      } else if (newComponent) {
-        // log --> !parent || !newComponent
-        newComponent = opts?.resolver?.(newComponent) || newComponent
       }
+      if (_isPageConsumer) {
+        const page = findParent(
+          component,
+          (p) => p?.noodlType === 'page',
+        ) as PageComponent
+
+        resolveComponents = page?.resolveComponents?.bind?.(page)
+      }
+      if (!resolveComponents) resolveComponents = args?.resolveComponents
+      if (!resolveComponents) {
+        const noodlui = this.#R.get('noodlui')
+        resolveComponents = noodlui.resolveComponents?.bind?.(noodlui)
+      }
+      newComponent = resolveComponents?.(newComponent) || newComponent
     }
 
     if (node) {
       const parentNode = node.parentNode
       if (newComponent) {
-        newNode = this.parse(newComponent, parentNode || document.body)
+        newNode = this.draw(
+          newComponent,
+          (parentNode || document.body) as T.NOODLDOMElement,
+        )
       }
 
       if (parentNode) {
-        if (!newNode) {
-          log.red(`The new node created from redraw is null`, {
-            newNode,
-            node,
-            parentNode,
-            component,
-            newComponent,
-          })
-        }
         if (parentNode.contains(node) && newNode) {
-          parentNode.replaceChild(newNode as HTMLElement, node)
+          parentNode.replaceChild(newNode as T.NOODLDOMElement, node)
         } else if (newNode) {
           parentNode.insertBefore(
-            newNode as HTMLElement,
+            newNode as T.NOODLDOMElement,
             parentNode.childNodes[0],
           )
         }
@@ -296,130 +223,79 @@ class NOODLUIDOM implements T.INOODLUiDOM {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.parse(newComponent)
+      this.draw(newComponent as ComponentInstance)
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]
   }
 
-  /**
-   * Registers a listener to the listeners list
-   * @param { string } eventName - Name of the listener event
-   * @param { function } callback - Callback to invoke when the event is emitted
-   */
+  #emit = (event: Parameters<NOODLUIDOM['on']>[0], ...args: any[]) => {
+    if (event === eventId.redraw.ON_BEFORE_CLEANUP) {
+      this.#cbs.redraw.cleanup.forEach((cb) => {
+        cb(...(args as Parameters<NOODLUIDOM['redraw']>))
+      })
+    }
+    return this
+  }
+
   on(
-    eventName: T.NOODLDOMEvent,
-    callback: (node: T.NOODLDOMElement | null, component: Component) => void,
+    event: typeof eventId.redraw.ON_BEFORE_CLEANUP,
+    fn: (...args: Parameters<NOODLUIDOM['redraw']>) => void,
   ) {
-    const callbacks = this.getCallbacks(eventName)
-    if (Array.isArray(callbacks)) callbacks.push(callback)
-    return this
-  }
-
-  /**
-   * Removes a listener's callback from the listeners list
-   * @param { string } eventName - Name of the listener event
-   * @param { function } callback
-   */
-  off<E extends T.NOODLDOMEvent>(
-    eventName: E,
-    callback: Parameters<T.INOODLUiDOM['off']>[1],
-  ) {
-    const callbacks = this.getCallbacks(eventName)
-    if (Array.isArray(callbacks)) {
-      const index = callbacks.indexOf(callback)
-      if (index !== -1) callbacks.splice(index, 1)
-    }
-    return this
-  }
-
-  /**
-   * Emits an event name and calls all the callbacks registered to that event
-   * @param { string } eventName - Name of the listener event
-   * @param { ...any[] } args
-   */
-  emit<E extends string = T.NOODLDOMEvent>(
-    eventName: E,
-    node: T.NOODLDOMElement | null,
-    component: Component,
-  ) {
-    const callbacks = this.getCallbacks(eventName as T.NOODLDOMEvent)
-    if (Array.isArray(callbacks)) {
-      callbacks.forEach((fn) => fn && fn(node as T.NOODLDOMElement, component))
-    }
-    return this
-  }
-
-  /**
-   * Takes either a component type or any other name of an event and returns the
-   * callbacks associated with it
-   * @param { string } value - Component type or name of the event
-   */
-  getCallbacks(eventName?: T.NOODLDOMEvent) {
-    if (!arguments.length) return this.#callbacks
-    if (typeof eventName === 'string') {
-      const callbacksMap = this.#callbacks
-      if (eventName === 'component') return callbacksMap.all
-      if (componentEventIds.includes(eventName)) {
-        return callbacksMap.component[this.#getEventKey(eventName)]
-      } else if (eventName) {
-        if (!callbacksMap[eventName]) callbacksMap[eventName] = []
-        return callbacksMap[eventName]
+    if (event === eventId.redraw.ON_BEFORE_CLEANUP) {
+      if (!this.#cbs.redraw.cleanup.includes(fn)) {
+        this.#cbs.redraw.cleanup.push(fn)
       }
     }
-    return null
-  }
-
-  getState() {
-    return this.#state
-  }
-
-  /**
-   * Returns true if key can exist as a property or method on a DOM node of tagName
-   * @param { string } tagName - HTML tag
-   * @param { string } key - Property of a DOM node
-   */
-  isValidAttr(tagName: T.NOODLDOMElementTypes, key: string) {
-    if (key && tagName) {
-      if (!this.#stub.elements[tagName]) {
-        this.#stub.elements[tagName] = document.createElement(tagName)
-      }
-      return key in this.#stub.elements[tagName]
-    }
-    return false
-  }
-
-  /**
-   * Takes an event name like "on.create" and returns the direct parent key
-   * @param { string } eventName - Name of an event
-   */
-  #getEventKey = (eventName: T.NOODLDOMEvent) => {
-    // TODO - Add more cases
-    let eventKey: string | undefined
-    if (eventName === 'component') return 'all'
-    const fn = (type: string) => componentEventMap[type] === eventName
-    eventKey = componentEventTypes.find(fn)
-    return eventKey || ''
-  }
-
-  getAllCbs() {
-    return this.#callbacks
-  }
-
-  removeCbs(key: string) {
-    if (this.#callbacks.component[key]) {
-      this.#callbacks.component[key].length = 0
-    }
-    if (key === 'all') this.#callbacks.all.length = 0
     return this
+  }
+
+  register<
+    A extends
+      | ActionObject
+      | EmitActionObject
+      | GotoActionObject
+      | ToastActionObject
+  >(obj: StoreActionObject<A, T.ActionChainDOMContext>): this
+  register<B extends BuiltInObject>(
+    obj: StoreBuiltInObject<B, T.ActionChainDOMContext>,
+  ): this
+  register<R extends T.NodeResolverConfig>(obj: R): this
+  register(
+    obj:
+      | T.NodeResolverConfig
+      | StoreActionObject<any, T.ActionChainDOMContext>
+      | StoreBuiltInObject<any, T.ActionChainDOMContext>,
+  ): this {
+    if ('resolve' in obj) {
+      this.#R.use(obj)
+    } else if ('actionType' in obj || 'funcName' in obj) {
+      this.#R.get('noodlui').use(obj)
+    }
+    return this
+  }
+
+  resolvers() {
+    return this.#R.get()
   }
 
   reset() {
-    this.#plugins = createPluginState()
-    this.#callbacks.all.length = 0
-    Object.keys(this.#callbacks.component).forEach((key) => {
-      this.#callbacks.component[key].length = 0
-    })
+    this.#R.clear()
+    const clearCbs = (obj: any) => {
+      if (Array.isArray(obj)) {
+        obj.length = 0
+      } else if (obj && typeof obj === 'object') {
+        Object.values(obj).forEach((o) => clearCbs(o))
+      }
+    }
+    Object.values(this.#cbs).forEach((obj) => clearCbs(obj))
+    return this
+  }
+
+  use(obj: NOODLUI) {
+    if (obj instanceof NOODLUI) {
+      this.#R.use(obj)
+    }
     return this
   }
 }

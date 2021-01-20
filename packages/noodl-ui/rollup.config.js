@@ -10,47 +10,46 @@ import progress from 'rollup-plugin-progress'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 
-const config = {
-  input: 'src/index.ts',
-  output: [
-    {
-      dir: 'dist',
-      exports: 'named',
-      format: 'umd',
-      name: 'noodlui',
-      sourcemap: true,
-      globals: {
-        noodlutils: ['noodl-utils'],
+const configs = [
+  {
+    input: 'src/index.ts',
+    output: [
+      {
+        dir: 'dist',
+        exports: 'named',
+        format: 'umd',
+        name: 'noodlui',
+        sourcemap: true,
+        globals: {},
       },
-    },
-  ],
-  plugins: [
-    external(),
-    commonjs(),
-    filesize(),
-    progress(),
-    resolve({
-      extensions,
-      customResolveOptions: {
-        moduleDirectory: ['node_modules'],
-      },
-    }),
-    typescript({
-      rollupCommonJSResolveHack: true,
-      check: false,
-      abortOnError: false,
-      clean: true,
-    }),
-    babel({
-      babelHelpers: 'runtime',
-      include: ['src/**/*'],
-      exclude: ['node_modules'],
-      extensions,
-      // sourceMaps: true,
-    }),
-    // Env var set by root lerna repo
-    // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),
-  ],
-}
+    ],
+    plugins: [
+      external(),
+      commonjs(),
+      filesize(),
+      progress(),
+      resolve({
+        extensions,
+        customResolveOptions: {
+          moduleDirectory: ['node_modules'],
+        },
+      }),
+      typescript({
+        rollupCommonJSResolveHack: true,
+        check: false,
+        abortOnError: false,
+        clean: true,
+      }),
+      // Env var set by root lerna repo
+      // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),s,
+      babel({
+        babelHelpers: 'runtime',
+        include: ['src/**/*'],
+        exclude: ['node_modules'],
+        extensions,
+      }),
+    ],
+  },
+]
 
-export default config
+export default configs

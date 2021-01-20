@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { EventEmitter } from 'events'
 import {
   connect,
@@ -10,12 +9,11 @@ import {
   Room,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import { getByDataUX, ProxiedComponent, Viewport } from 'noodl-ui'
+import NOODLUIDOM, { getByDataUX, Page } from 'noodl-ui-dom'
+import { Viewport } from 'noodl-ui'
 import { isMobile } from '../utils/common'
-import noodluidom from '../app/noodl-ui-dom'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
-import Page from '../Page'
 import MeetingSubstreams from '../meeting/Substreams'
 import * as T from '../app/types/meetingTypes'
 
@@ -23,11 +21,14 @@ const log = Logger.create('Meeting.ts')
 
 interface Internal {
   _page: Page | undefined
+  _noodluidom: NOODLUIDOM
   _viewport: Viewport | undefined
   _room: Room
   _streams: Streams
   _token: string
 }
+
+export type IMeeting = typeof Meeting
 
 // import makePublications from './makePublications'
 // import makeTrack from './makeTrack'
@@ -36,13 +37,15 @@ const Meeting = (function () {
   const _internal: Internal = {
     _page: undefined,
     _viewport: undefined,
+    _noodluidom: null as any,
     _room: new EventEmitter() as Room,
     _streams: new Streams(),
     _token: '',
   } as Internal
 
   const o = {
-    initialize({ page, viewport }: T.InitializeMeetingOptions) {
+    initialize({ noodluidom, page, viewport }: T.InitializeMeetingOptions) {
+      _internal['_noodluidom'] = noodluidom
       _internal['_page'] = page
       _internal['_viewport'] = viewport
       return this
@@ -105,72 +108,82 @@ const Meeting = (function () {
     /**
      * Adds a remote participant to the sdk and the internal state
      * @param { RemoteParticipant } participant
+     * @param { object } options - This is temporarily used for debugging
      */
-    addRemoteParticipant(participant: T.RoomParticipant) {
+    addRemoteParticipant(
+      participant: T.RoomParticipant,
+      {
+        force = '',
+      }: {
+        force?: 'mainStream' | 'selfStream' | 'subStream' | ''
+      } = {},
+    ) {
       if (_internal._room?.state === 'connected') {
-        const mainStream = _internal._streams?.getMainStream()
-        const subStreams = _internal._streams?.getSubStreamsContainer()
-        if (mainStream.isSameParticipant(participant)) {
+        if (force || !o.isParticipantLocal(participant)) {
+          const mainStream = _internal._streams?.getMainStream()
+          const subStreams = _internal._streams?.getSubStreamsContainer()
           // Safe checking -- remove the participant from a subStream if they
           // are in an existing one for some reason
-          if (subStreams?.participantExists(participant)) {
-            let subStream = subStreams.findBy((s: Stream) =>
-              s.isSameParticipant(participant),
-            )
-            if (subStream) {
-              subStream.unpublish()
-              subStream.removeElement()
-              subStreams.removeSubStream(subStream)
+          if (!force && mainStream.isSameParticipant(participant)) {
+            if (!subStreams?.participantExists(participant)) {
+              let subStream = subStreams?.findBy((s: Stream) =>
+                s.isSameParticipant(participant),
+              )
+              if (subStream) {
+                subStream.unpublish()
+                subStream.removeElement()
+                subStreams?.removeSubStream(subStream)
+              }
             }
+            return this
           }
-          return this
-        }
-        // Just set the participant as the mainStream  since it's open
-        if (!mainStream.isAnyParticipantSet()) {
-          mainStream.setParticipant(participant)
-          Meeting.onAddRemoteParticipant?.(participant, mainStream)
-          return this
-        }
-
-        if (subStreams) {
-          if (!subStreams.participantExists(participant)) {
-            log.func('addRemoteParticipant')
-            // Create a new DOM node
-            const props = subStreams.blueprint
-            const node = noodluidom.parse(
-              subStreams.resolver?.(props) || props,
-            ) as any
-            const subStream = subStreams.create({ node, participant }).last()
+          // Just set the participant as the mainStream  since it's open
+          if (!mainStream.isAnyParticipantSet()) {
+            mainStream.setParticipant(participant)
             Meeting.onAddRemoteParticipant?.(participant, mainStream)
-            log.green(
-              `Created a new subStream and bound the newly connected participant to it`,
-              { blueprint: props, node, participant, subStream },
-            )
+            return this
+          }
+
+          if (subStreams) {
+            if (
+              force === 'subStream' ||
+              !subStreams.participantExists(participant)
+            ) {
+              log.func('addRemoteParticipant')
+              // Create a new DOM node
+              const props = subStreams.blueprint
+              const node = _internal._noodluidom.draw(
+                subStreams.resolver?.(props) || props,
+              ) as any
+              const subStream = subStreams.create({ node, participant }).last()
+              Meeting.onAddRemoteParticipant?.(participant, mainStream)
+              log.green(
+                `Created a new subStream and bound the newly connected participant to it`,
+                { blueprint: props, node, participant, subStream },
+              )
+            } else {
+              log.func('addRemoteParticipant')
+              log.orange(
+                `Did not proceed to add this remotes participant to a ` +
+                  `subStream because they are already in one`,
+              )
+            }
           } else {
+            // NOTE: We cannot create a container here because the container is
+            // only created while rendering/parsing the NOODL components. It should
+            // stay that way to reduce complexity
             log.func('addRemoteParticipant')
-            log.orange(
-              `Did not proceed to add this remotes participant to a ` +
-                `subStream because they are already in one`,
+            log.red(
+              `Cannot add participant without the subStreams container, ` +
+                `which doesn't exist. This participant will not be shown on ` +
+                `the page`,
+              { participant, streams: _internal._streams },
             )
           }
         } else {
           log.func('addRemoteParticipant')
-          log.orange(
-            `Did not proceed to add this remotes participant to a ` +
-              `subStream because they are already in one`,
-          )
+          log.red('This call is intended for remote participants')
         }
-      } else {
-        // NOTE: We cannot create a container here because the container is
-        // only created while rendering/parsing the NOODL components. It should
-        // stay that way to reduce complexity
-        log.func('addRemoteParticipant')
-        log.red(
-          `Cannot add participant without the subStreams container, ` +
-            `which doesn't exist. This participant will not be shown on ` +
-            `the page`,
-          { participant, streams: _internal._streams },
-        )
       }
       return this
     },
@@ -316,22 +329,7 @@ const Meeting = (function () {
       }
     },
     getWaitingMessageElement() {
-      return getByDataUX('passwordHidden')
-    },
-    // Hides the "Waiting for others to join" message and the white circle
-    hideWaitingElements() {
-      const nodes = Meeting.getWaitingMessageElement()
-      if (nodes)
-        (Array.isArray(nodes) ? nodes : [nodes]).forEach(
-          (node) => node && (node.style.visibility = 'hidden'),
-        )
-    },
-    showWaitingElements() {
-      const nodes = Meeting.getWaitingMessageElement()
-      if (nodes)
-        (Array.isArray(nodes) ? nodes : [nodes]).forEach(
-          (node) => node && (node.style.visibility = 'visible'),
-        )
+      return getByDataUX('passwordHidden') as HTMLDivElement
     },
     getStreams() {
       return _internal._streams
@@ -340,17 +338,17 @@ const Meeting = (function () {
      * Wipes the entire internal state. This is mainly just used for testing
      */
     reset() {
-      _.assign(_internal, {
+      Object.assign(_internal, {
         _page: undefined,
+        _viewport: undefined,
         _room: new EventEmitter() as Room,
         _streams: new Streams(),
         _token: '',
-        _viewport: undefined,
       })
       return this
     },
     removeFalseyParticipants(participants: any[]) {
-      return _.filter(participants, (p) => !!p?.sid)
+      return participants.filter((p) => !!p?.sid)
     },
   }
 
@@ -359,7 +357,8 @@ const Meeting = (function () {
     // @ts-expect-error
     o.getInternal = () => _internal
     // @ts-expect-error
-    o.setInternal = (opts: typeof _internal) => void _.assign(_internal, opts)
+    o.setInternal = (opts: typeof _internal) =>
+      void Object.assign(_internal, opts)
   }
 
   return o as typeof o & {

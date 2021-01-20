@@ -1,6 +1,4 @@
-import _ from 'lodash'
-import { getByDataUX } from 'noodl-ui'
-import { NOODLDOMElement } from 'noodl-ui-dom'
+import { getByDataUX, NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
 import {
   RoomParticipant,

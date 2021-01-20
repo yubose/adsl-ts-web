@@ -1,53 +1,59 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import createComponent from '../../utils/createComponent'
-import { assetsUrl, noodlui } from '../../utils/test-utils'
+import { createResolverTest, noodlui } from '../../utils/test-utils'
+import _getTransformedAliases from '../getTransformedAliases'
+
+let getTransformedAliases: any
+
+beforeEach(() => {
+  getTransformedAliases = createResolverTest(_getTransformedAliases)
+})
 
 describe('getTransformedAliases', () => {
   it('should return the correct inputType', () => {
     let result: any
 
-    result = resolve({ contentType: 'email' })
+    result = getTransformedAliases({ contentType: 'email' })
     expect(result.contentType).to.eq('email')
 
-    result = resolve({ contentType: 'tel' })
+    result = getTransformedAliases({ contentType: 'tel' })
     expect(result.contentType).to.eq('tel')
 
-    result = resolve({ contentType: 'countryCode' })
+    result = getTransformedAliases({ contentType: 'countryCode' })
     expect(result.contentType).to.eq('countryCode')
 
-    result = resolve({ contentType: 'phone' })
+    result = getTransformedAliases({ contentType: 'phone' })
     expect(result.contentType).to.eq('phone')
   })
 
   it('should prepend the assetsUrl if it doesnt start with a protocol like https://', () => {
-    const result = resolve({ path: 'hello123' })
-    expect(result).to.have.property(
-      'src',
-      'https://something.com/assets/hello123',
-    )
+    const result = getTransformedAliases({ path: 'hello123' })
+    expect(result.get('src')).to.eq('https://something.com/assets/hello123')
   })
 
   it('should not prepend anything and leave it as is if the it already starts with a protocol like https://', () => {
-    const result = resolve({ resource: 'https://google.com/hello123' })
-    expect(result.src).to.equal('https://google.com/hello123')
+    const result = getTransformedAliases({
+      resource: 'https://google.com/hello123',
+    })
+    expect(result.get('src')).to.equal('https://google.com/hello123')
   })
 
   it('should transform the options property for †he select element', () => {
-    const result = resolve({ options: ['one', 'two', 'three'] })
+    const result = getTransformedAliases({ options: ['one', 'two', 'three'] })
     const computedOptions = [
       { index: 0, key: 'one', value: 'one', label: 'one' },
       { index: 1, key: 'two', value: 'two', label: 'two' },
       { index: 2, key: 'three', value: 'three', label: 'three' },
     ]
-    expect(result.options).to.have.deep.members(computedOptions)
+    expect(result.get('options')).to.have.deep.members(computedOptions)
   })
 
-  describe.only('when using the path ("if" object)', () => {
+  describe('when using the path ("if" object)', () => {
     it('should handle strings starting with "http"', () => {
       const first = 'selectedHand.png'
       const second = 'unselectedHand.png'
-      // const result = resolve({
+      // const result = getTransformedAliases({
       //   type: 'image',
       //   path: { if: ['abc', first, second] },
       // })
@@ -62,29 +68,29 @@ describe('getTransformedAliases', () => {
       //
     })
 
-    describe.only('when handling emit path objects', () => {
+    describe('when handling emit path objects', () => {
       xit('should not call registered emit handlers that are not the "path" trigger', () => {
         //
       })
 
-      it('should use the return value from emit objects if provided (non-promise)', () => {
+      it('should use the return value from emit objects if provided (non-promise)', async () => {
         const emitSpy = sinon.spy(() => 'abc.png')
         const path = { emit: { dataKey: { var1: 'itemObject' }, actions: [] } }
         const useEmitObj = { actionType: 'emit', fn: emitSpy, trigger: 'path' }
-        noodlui.use(useEmitObj)
+        noodlui.use(useEmitObj as any)
         const image = createComponent({ type: 'image', path })
-        const result = noodlui.createSrc(image)
+        const result = await noodlui.createSrc(path as any, image)
         expect(result).to.eq(noodlui.assetsUrl + 'abc.png')
       })
 
       it('should use the return value from emit objects if provided (promise)', async () => {
         const expectedResult = noodlui.assetsUrl + '123.jpeg'
-        const emitSpy = sinon.spy(async () => Promise.resolve('123.jpeg'))
+        const emitSpy = sinon.spy(() => Promise.resolve('123.jpeg'))
         const path = { emit: { dataKey: { var1: 'itemObject' }, actions: [] } }
         const useEmitObj = { actionType: 'emit', fn: emitSpy, trigger: 'path' }
-        noodlui.use(useEmitObj)
+        noodlui.use(useEmitObj as any)
         const image = createComponent({ type: 'image', path })
-        const result = await noodlui.createSrc(image)
+        const result = await noodlui.createSrc(image as any)
         expect(result).to.eq(expectedResult)
       })
 
@@ -92,6 +98,9 @@ describe('getTransformedAliases', () => {
         const iteratorVar = 'hello'
         const listId = 'mylistid'
         const listObject = [{ fruit: 'apple' }]
+        const emitSpy = sinon.spy()
+        const useEmitObj = { actionType: 'emit', fn: emitSpy, trigger: 'path' }
+        noodlui.use(useEmitObj)
         const list = noodlui.resolveComponents({
           type: 'list',
           iteratorVar,
@@ -99,14 +108,10 @@ describe('getTransformedAliases', () => {
           listObject,
           children: [{ type: 'listItem' }],
         })
-        const emitSpy = sinon.spy()
         const path = { emit: { dataKey: { var1: 'itemObject' }, actions: [] } }
-        const useEmitObj = { actionType: 'emit', fn: emitSpy, trigger: 'path' }
-        noodlui.use(useEmitObj)
         const image = createComponent({ type: 'image', path })
         list.child()?.createChild(image)
         const result = await noodlui.createSrc(image)
-        console.info(emitSpy.args[0][0])
       })
 
       xit('should have its dataKey and dataObject populated', () => {

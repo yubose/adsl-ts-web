@@ -1,84 +1,54 @@
-import _ from 'lodash'
+import chai from 'chai'
 import sinon from 'sinon'
-import Logger from 'logsnap'
-import { Resolver, Viewport } from 'noodl-ui'
-import {
-  assetsUrl,
-  noodlui,
-  noodluidom,
-  getAllResolvers,
-  viewport,
-} from './test-utils'
-import { listen } from '../../../src/handlers/dom'
-import createBuiltInActions from '../../../src/handlers/builtIns'
-import Page from '../../../src/Page'
+import sinonChai from 'sinon-chai'
+import { getAllResolversAsMap, Resolver, publish } from 'noodl-ui'
+import { eventId } from './constants'
+import { assetsUrl, noodlui, noodluidom, viewport } from './test-utils'
 
-const pageClient = new Page({ _log: false })
-const builtIns = createBuiltInActions({ page: pageClient })
+chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 
 const page = 'GeneralInfo'
-const root = {
-  GeneralInfo: {
-    Radio: [{ key: 'Gender', value: '' }],
-  },
-}
+const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 
 before(() => {
   console.clear()
-  // Logger.disable()
-
-  noodlui
-    .init({ _log: false, viewport })
-    .setPage(page)
-    .use({
-      getAssetsUrl: () => assetsUrl,
-      getRoot: () => root,
+  noodlui.init({ _log: false })
+  noodluidom
+    .on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
+      noodlui.componentCache().remove(component)
+      publish(component, (c) => {
+        noodlui.componentCache().remove(c)
+      })
     })
-    .use(
-      // @ts-expect-error
-      _.map(_.entries({ redraw: builtIns.redraw }), ([funcName, fn]) => ({
-        funcName,
-        fn,
-      })),
-    )
+    .use(noodlui)
 
-  // logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+  viewport.width = 375
+  viewport.height = 667
 
-  try {
-    Object.defineProperty(noodlui, 'cleanup', {
-      configurable: true,
-      enumerable: true,
-      writable: true,
-      value: function _cleanup() {
-        noodlui.reset({ keepCallbacks: true }).setPage(page)
-      },
-    })
-  } catch (error) {
-    throw new Error(error)
-  }
-  _.forEach(getAllResolvers(), (r) => {
-    const resolver = new Resolver()
-    resolver.setResolver(r)
-    noodlui.use(resolver as Resolver)
+  logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
+
+  Object.entries(getAllResolversAsMap()).forEach(([name, r]) => {
+    noodlui.use({ name, resolver: new Resolver().setResolver(r) } as any)
   })
 })
 
 after(() => {
-  // logSpy.restore()
+  logSpy.restore()
 })
 
 beforeEach(() => {
-  listen(noodluidom)
-  // noodlui.init({ _log: false, viewport })
-  noodlui.setPage(page)
+  noodlui.setPage(page).use({
+    getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => 'https://google.com/',
+    getRoot: () => root,
+  })
 })
 
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
-  // @ts-expect-error
-  noodlui.cleanup()
-  noodluidom.reset()
+  // Resets plugins, registry, noodlui.page
+  noodlui.reset()
 })

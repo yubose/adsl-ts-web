@@ -1,26 +1,21 @@
-import _ from 'lodash'
-import { current } from 'immer'
-import Component from '../components/Base'
-import ListItem from '../components/ListItem'
+import { ComponentObject } from 'noodl-types'
+import get from 'lodash/get'
+import isPlainObject from 'lodash/isPlainObject'
 import {
   ActionChainEmitTrigger,
   ComponentCreationType,
-  ComponentObject,
-  EmitObject,
-  EmitTrigger,
+  ComponentInstance,
   PluginLocation,
-  ProxiedComponent,
-  TextBoardBreakLine,
 } from '../types'
-import { isAllString, isBrowser } from './common'
+import { isBrowser } from './common'
 import { actionChainEmitTriggers } from '../constants'
-import EmitAction from '../Action/EmitAction'
+import isComponent from './isComponent'
 
 /**
  * Deeply traverses all children down the component's family tree
- * @param { Component | NOODLComponent | ProxiedComponent | ProxiedComponent } component
+ * @param { ComponentInstance | NOODLComponent | ProxiedComponent | ProxiedComponent } component
  */
-export function forEachDeepChildren<C extends Component>(
+export function forEachDeepChildren<C extends ComponentInstance>(
   component: C,
   cb: (component: C, child: ComponentCreationType) => void,
 ): void
@@ -28,21 +23,23 @@ export function forEachDeepChildren<C extends ComponentObject>(
   component: C,
   cb: (component: C, child: ComponentCreationType) => void,
 ): void
-export function forEachDeepChildren<C extends Component | ComponentObject>(
+export function forEachDeepChildren<
+  C extends ComponentInstance | ComponentObject
+>(
   component: C,
   cb: (
-    parent: Component | ComponentObject,
+    parent: ComponentInstance | ComponentObject,
     child: ComponentCreationType,
   ) => void,
 ): void {
   if (component) {
-    if (_.isArray(component.children)) {
-      _.forEach(component.children, (child) => {
+    if (Array.isArray(component.children)) {
+      component.children.forEach((child) => {
         cb(component, child)
         forEachDeepChildren(child, cb)
       })
-    } else if (_.isFunction(component.children)) {
-      _.forEach(component.children(), (child) => {
+    } else if (typeof component.children === 'function') {
+      component.children().forEach((child) => {
         cb(component, child)
         forEachDeepChildren(child, cb)
       })
@@ -59,30 +56,16 @@ export function isActionChainEmitTrigger(
 }
 
 // function createRegexKeysOnProps(keys: string | string[]) {
-//   const regex = new RegExp(_.isArray(keys) ? )
+//   const regex = new RegExp(Array.isArray(keys) ? )
 // }
 export const identify = (function () {
   const o = {
-    component: {
-      /** Returns true if value is a date component, false otherwise */
-      isDate: (value: any): boolean =>
-        checkForNoodlProp(value, 'text=func', _.negate(_.isUndefined)),
-      isPasswordInput: ({ contentType, noodlType }: ProxiedComponent) =>
-        noodlType === 'textField' && contentType === 'password',
-    },
-    textBoard: {
-      item: {
-        isTextObject: (component: Component): boolean =>
-          _.isString(component.get('text')),
-        isBreakLine: (value: unknown): value is TextBoardBreakLine =>
-          value === 'br',
-      },
-    },
     stream: {
       video: {
         /** Returns true if value has a viewTag of "mainStream" */
         isMainStream: (value: any) => {
-          const fn = (val: string) => _.isString(val) && /mainStream/i.test(val)
+          const fn = (val: string) =>
+            typeof val === 'string' && /mainStream/i.test(val)
           return (
             checkForNoodlProp(value, 'viewTag', fn) ||
             checkForNoodlProp(value, 'data-ux', fn)
@@ -90,7 +73,8 @@ export const identify = (function () {
         },
         /** Returns true if value has a viewTag of "selfStream" */
         isSelfStream: (value: any) => {
-          const fn = (val: string) => _.isString(val) && /selfStream/i.test(val)
+          const fn = (val: string) =>
+            typeof val === 'string' && /selfStream/i.test(val)
           return (
             checkForNoodlProp(value, 'viewTag', fn) ||
             checkForNoodlProp(value, 'data-ux', fn)
@@ -103,14 +87,15 @@ export const identify = (function () {
         isSubStreamsContainer(value: any) {
           return checkForNoodlProp(value, 'contentType', (val: string) => {
             return (
-              _.isString(val) && /(vidoeSubStream|videoSubStream)/i.test(val)
+              typeof val === 'string' &&
+              /(vidoeSubStream|videoSubStream)/i.test(val)
             )
           })
         },
         /** Returns true if value has a viewTag of "subStream", */
         isSubStream(value: any) {
           return checkForNoodlProp(value, 'viewTag', (val: string) => {
-            return _.isString(val) && /(subStream)/i.test(val)
+            return typeof val === 'string' && /(subStream)/i.test(val)
           })
         },
       },
@@ -119,26 +104,6 @@ export const identify = (function () {
 
   return o
 })()
-
-export function isListItemComponent(o: any): o is ListItem {
-  return !!(o && o.noodlType === 'listItem' && typeof o.children === 'function')
-}
-
-/**
- * Returns true if obj is represents something expecting to receive incoming data by
- * their dataKey reference.
- * @param { string } iteratorVar
- * @param { object } obj - NOODL component
- */
-export function isIteratorVarConsumer(o: Component): boolean {
-  if (_.isPlainObject(o?.original)) {
-    return (
-      isAllString([o.original.dataKey, o.original.iteratorVar]) &&
-      (o.original.dataKey as string).startsWith(o.original.iteratorVar || '')
-    )
-  }
-  return false
-}
 
 /**
  * Checks for a prop in the component object in the top level as well as the "noodl" property level
@@ -153,7 +118,7 @@ export function checkForNoodlProp(
 ) {
   if (
     (component && typeof component === 'object') ||
-    (typeof component === 'function' && _.isString(prop))
+    (typeof component === 'function' && typeof prop === 'string')
   ) {
     if (predicate(component[prop])) return true
   }
@@ -161,22 +126,85 @@ export function checkForNoodlProp(
 }
 
 /**
- * Returns the HTML DOM node or an array of HTML DOM nodes using the data-ux,
- * otherwise returns null
- * @param { string } key - The value of a data-ux element
+ * Traverses the children hierarchy, running the comparator function in each
+ * iteration. If a callback returns true, the node in that iteration will become
+ * the returned child
+ * @param { ComponentInstance } component
+ * @param { function } fn - Comparator function
  */
-export function getByDataUX(key: string) {
-  if (typeof key === 'string') {
-    const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
-    if (nodeList.length) {
-      const nodes = [] as HTMLElement[]
-      nodeList.forEach((node: HTMLElement, key) => {
-        nodes.push(node)
-      })
-      return nodes.length === 1 ? nodes[0] : nodes
+export function findChild<C extends ComponentInstance>(
+  component: C,
+  fn: (child: ComponentInstance) => boolean,
+): ComponentInstance | null {
+  let child: ComponentInstance | null | undefined
+  let children = component?.children?.()?.slice?.() || []
+
+  if (isComponent(component)) {
+    child = children.shift() || null
+    while (child) {
+      if (fn(child)) return child
+      child.children?.().forEach((c: ComponentInstance) => children.push(c))
+      child = children.pop()
     }
   }
   return null
+}
+
+/**
+ * Traverses the parent hierarchy, running the comparator function in each
+ * iteration. If a callback returns true, the node in that iteration will become
+ * the returned parent
+ * @param { ComponentInstance } component
+ * @param { function } fn
+ */
+export function findParent<C extends ComponentInstance>(
+  component: C,
+  fn: (parent: ComponentInstance | null) => boolean,
+) {
+  let parent = component?.parent?.()
+  if (fn(parent)) return parent
+  if (parent) {
+    while (parent) {
+      parent = parent.parent?.()
+      if (fn(parent)) return parent
+    }
+  }
+  return parent || null
+}
+
+export function findListDataObject(component: ComponentInstance) {
+  let dataObject
+  let listItem: any
+  if (component?.noodlType === 'listItem') {
+    listItem = component as any
+  } else {
+    listItem = findParent(component, (p) => p?.noodlType === 'listItem') as any
+  }
+  if (listItem) {
+    dataObject = listItem.getDataObject?.()
+    let listIndex = listItem.get('listIndex')
+    if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
+    if (!dataObject && typeof listIndex === 'number') {
+      const list = listItem?.parent?.() as any
+      if (list) {
+        let listObject = list.getData()
+        if (listObject?.length) {
+          dataObject = listObject[listIndex]
+        }
+        if (!dataObject) {
+          listObject = list.original?.listObject || []
+          if (listObject?.length) {
+            dataObject = listObject[listIndex] || listObject[listIndex]
+          }
+        }
+      }
+    }
+  }
+  return dataObject || null
+}
+
+export function findIteratorVar(component: ComponentInstance) {
+  const listItem = findParent(component, (p) => {})
 }
 
 /**
@@ -199,10 +227,9 @@ export function getDataFields(
   if (isBrowser()) {
     if (dataKeys) {
       // Ensure that it is an array
-      if (_.isString(dataKeys)) dataKeys = [dataKeys]
-      console.log(current(dataKeys))
+      if (typeof dataKeys === 'string') dataKeys = [dataKeys]
 
-      return _.isArray(dataKeys)
+      return Array.isArray(dataKeys)
         ? dataKeys.reduce((acc, dataKey) => {
             acc[dataKey] = getDataField(dataKey)
             return acc
@@ -237,7 +264,7 @@ export function getDataFields(
 
 function getDataValue(node: string | null | Element): string | number | null {
   if (node) {
-    if (_.isString(node)) {
+    if (typeof node === 'string') {
       const dataKey = node
       node = getDataField(dataKey)
     }
@@ -278,14 +305,14 @@ export function getDataValues<Fields, K extends keyof Fields>(
   let fn
 
   // Array of field keys
-  if (_.isArray(nodes)) {
+  if (Array.isArray(nodes)) {
     fn = (name: K) => (result[name as string] = getDataValue(name as string))
-    _.forEach(nodes, fn)
+    nodes.forEach(fn)
   }
   // Object of nodes where key is the data name and value is an HTMLElement
-  else if (_.isPlainObject(nodes)) {
+  else if (isPlainObject(nodes)) {
     fn = (name: string) => (result[name] = getDataValue(nodes?.[name] || ''))
-    _.forEach(_.keys(nodes || {}), fn)
+    Object.keys(nodes || {}).forEach(fn)
   }
   // If they don't pass in any arguments, do a global query for all nodes
   // that are assigned a custom data-name attribute
@@ -306,7 +333,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
           )
         }
       }
-      _.forEach(_.keys(allNodes), fn)
+      Object.keys(allNodes).forEach(fn)
     }
   } else {
     console.log(
@@ -339,7 +366,7 @@ export function getDataObjectValue<T = any>({
   if (iteratorVar && dataKey.startsWith(iteratorVar)) {
     dataKey = dataKey.split('.').slice(1).join('.')
   }
-  return _.get(dataObject, dataKey)
+  return get(dataObject, dataKey)
 }
 
 export function getPluginTypeLocation(value: string): PluginLocation | '' {
@@ -356,13 +383,58 @@ export function getPluginTypeLocation(value: string): PluginLocation | '' {
 }
 
 /**
- * Returns true if value has a viewTag of "selfStream", false otherwise
- * @param { any } value
+ * Returns true if the dataKey begins with the value of iteratorVar
+ * @param {  }  -
  */
-export function isSelfStreamComponent(value: any) {
-  const fn = (val: string) => _.isString(val) && /selfStream/i.test(val)
-  return checkForNoodlProp(value, 'viewTag', fn)
+export function isListKey(dataKey: string, iteratorVar: string): boolean
+export function isListKey(
+  dataKey: string,
+  component: ComponentInstance,
+): boolean
+export function isListKey(dataKey: string, component: ComponentObject): boolean
+export function isListKey(
+  dataKey: string,
+  component: string | ComponentInstance | ComponentObject,
+) {
+  if (arguments.length < 2) {
+    throw new Error('Missing second argument')
+  }
+  if (typeof dataKey === 'string' && component) {
+    if (typeof component === 'string') {
+      return dataKey.startsWith(component)
+    }
+    if (isComponent(component)) {
+      const iteratorVar =
+        component.get('iteratorVar') ||
+        component.original?.iteratorVar ||
+        findParent(component, (p) => !!p?.get('iteratorVar')) ||
+        ''
+      return !!(iteratorVar && dataKey.startsWith(iteratorVar))
+    }
+    if ('iteratorVar' in component) {
+      return dataKey.startsWith(component.iteratorVar || '')
+    }
+  }
+  return false
 }
+
+export function isListConsumer(component: any) {
+  return !!(
+    component?.get?.('iteratorVar') ||
+    component?.get?.('listId') ||
+    component?.get?.('listIndex') != undefined ||
+    component?.noodlType === 'listItem' ||
+    (component && findParent(component, (p) => p?.noodlType === 'listItem'))
+  )
+}
+
+// export function isPasswordInput(value: unknown) {
+//   return (
+//     _.isObjectLike(value) &&
+//     value['type'] === 'textField' &&
+//     value['contentType'] === 'password'
+//   )
+// }
 
 /**
  * Returns true if value has a viewTag of "subStream", false otherwise
@@ -370,13 +442,54 @@ export function isSelfStreamComponent(value: any) {
  */
 export function isSubStreamComponent(value: any) {
   return checkForNoodlProp(value, 'viewTag', (val: string) => {
-    return _.isString(val) && /subStream/i.test(val)
+    return typeof val === 'string' && /subStream/i.test(val)
   })
+}
+
+export function parseReference(
+  ref: string,
+  { page = '', root = {} }: { page?: string; root?: any },
+) {
+  let trimmedPath = ref.replace(/(\.\.|\.)/, '')
+  // Local/private reference
+  if (ref[0] === ref[0].toLowerCase()) {
+    return get(root?.[page], trimmedPath)
+  }
+  // Global reference
+  if (ref[0] === ref[0].toUpperCase()) {
+    return get(root, trimmedPath)
+  }
+  return ''
+}
+
+/**
+ * Recursively invokes the provided callback on each child
+ * @param { ComponentInstance } component
+ * @param { function } cb
+ */
+// TODO - Depth option
+export function publish(
+  component: ComponentInstance,
+  cb: (child: ComponentInstance) => void,
+) {
+  if (
+    component &&
+    typeof component === 'object' &&
+    typeof component['children'] === 'function'
+  ) {
+    component.children().forEach((child: ComponentInstance) => {
+      cb(child)
+      child?.children()?.forEach?.((c: ComponentInstance) => {
+        cb(c)
+        publish(c, cb)
+      })
+    })
+  }
 }
 
 export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
   let src = ''
-  if (_.isString(pathValue)) {
+  if (typeof pathValue === 'string') {
     if (/^(http|blob)/i.test(pathValue)) {
       src = pathValue
     } else if (pathValue.startsWith('~/')) {
@@ -385,8 +498,11 @@ export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
       src = assetsUrl + pathValue
     }
   } else {
-    // log
     src = `${assetsUrl}${pathValue}`
   }
   return src
+}
+
+export function unwrapObj(obj: any) {
+  return typeof obj === 'function' ? obj() : obj
 }

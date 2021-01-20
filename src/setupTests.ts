@@ -1,64 +1,43 @@
-import _ from 'lodash'
+import noop from 'lodash/noop'
 import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
-import chaiDOM from 'chai-dom'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
-import { Resolver, Viewport } from 'noodl-ui'
-import Logger, { _color } from 'logsnap'
-import {
-  assetsUrl,
-  getAllResolvers,
-  noodlui,
-  noodluidom,
-  page,
-} from './utils/test-utils'
-import { listen } from './handlers/dom'
+import { eventId } from 'noodl-ui-dom'
+import { getAllResolversAsMap, publish, Resolver } from 'noodl-ui'
+import { assetsUrl, noodlui, noodluidom, viewport } from './utils/test-utils'
 
-chai.use(chaiDOM)
-chai.use(chaiAsPromised)
 chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
+let root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 
 before(() => {
-  noodlui.init({ _log: false })
   console.clear()
-  Logger.disable()
+  noodlui.init({ _log: false })
+  // @ts-expect-error
+  delete window.location
+  // @ts-expect-error
+  window.location = {}
 
-  try {
-    logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+  logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
 
-    Object.defineProperty(noodlui, 'cleanup', {
-      configurable: false,
-      enumerable: false,
-      writable: false,
-      value: function _cleanup() {
-        noodlui
-          .reset({ keepCallbacks: true })
-          .use({
-            getAssetsUrl: () => assetsUrl,
-            getRoot: () => ({
-              MeetingLobby: {
-                module: 'meetingroom',
-                title: 'Meeting Lobby',
-                formData: { phoneNumber: '', password: '', code: '' },
-              },
-            }),
-          })
-          .setPage('MeetingLobby')
-          .setViewport(new Viewport())
-      },
+  noodluidom
+    .on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
+      noodlui.componentCache().remove(component)
+      publish(component, (c) => {
+        noodlui.componentCache().remove(c)
+      })
     })
+    .use(noodlui)
 
-    _.forEach(getAllResolvers(), (r) => {
-      const resolver = new Resolver()
-      resolver.setResolver(r)
-      noodlui.use(resolver as Resolver)
-    })
-  } catch (error) {
-    throw new Error(error)
-  }
+  Object.entries(getAllResolversAsMap()).forEach(([name, r]) => {
+    const resolver = new Resolver().setResolver(r)
+    noodlui.use(resolver)
+    noodlui.use({ name, resolver } as any)
+  })
+
+  viewport.width = 375
+  viewport.height = 667
 })
 
 after(() => {
@@ -66,15 +45,16 @@ after(() => {
 })
 
 beforeEach(() => {
-  listen()
-  page.initializeRootNode()
-  document.body.appendChild(page.rootNode as HTMLElement)
+  noodlui.setPage('GeneralInfo').use({
+    getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => 'https://google.com/',
+    getRoot: () => root,
+  })
 })
 
 afterEach(() => {
+  document.head.textContent = ''
   document.body.textContent = ''
-  page.rootNode = null
-  // @ts-expect-error
-  noodlui.cleanup()
-  noodluidom.reset()
+  // Resets plugins, registry, noodlui.page
+  noodlui.reset({ keepCallbacks: false })
 })

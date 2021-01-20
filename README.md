@@ -29,6 +29,7 @@ This allows for faster compilation, faster load times and quicker development fl
   - aitcom_11
 - `meet2d.yml` --> cadltest.aitmed.io
 - `testpage.yml`
+- `message.yml`
 
 ## Todos
 
@@ -40,23 +41,11 @@ This allows for faster compilation, faster load times and quicker development fl
   - back button detection
   - max 10 entries
   - final goal: compress/decompress with base64
-- find out / try to remember what austin said about non-found images in the UI
-- Favorites / Contact list path if image flip
 - images with an empty `src` attribute showing the "special" border. disable it or make it invisible in `stable` env
-- config `testpage` --> `PatientChartGeneralInfo` = the emit/redraw syntax
-- routing for android/ios page jump
 - viewport top in yml not implemented
 - if obj expressions
   - ex: `itemObject.value == "Female"` (string) --> grab itemObject, compare `.value` prop with `==`
-- PatientChartGeneralInfo --> redraw reference
-- Support `path` objects
-  - if
-    - 1st item --> data to use
-    - use this if true
-    - use this if false
 - history
-- autobind root/page updates on the `noodl-ui` lib
-- find use cases for `page.rootNode.id`
 - bugs
   - footer 4.0 --> 4.1 top value placement
   - input focus issue on androids
@@ -66,6 +55,11 @@ This allows for faster compilation, faster load times and quicker development fl
 - redraw
   - remove --> give a key --> removes the object
 - `${itemObject.key}`
+- register action
+  - config: message
+  - ref pages: ChatPage
+  - builtIn: funcName `hide` and `show`
+  - contentType: `hidden`
 
 ## Lib Todos
 
@@ -98,6 +92,10 @@ This allows for faster compilation, faster load times and quicker development fl
       1. Page name
       2. Page object
       3. Page NOODL DOM components
+9. View tag scrolling
+   1. `goto: #genderTag` --> scroll to node with the `genderTag` viewTag
+   2. `pageName#genderTag` --> navigate to page then scroll to the `genderTag` viewTag
+10. emit return value as toast --> `{ toast: { message: '', style: {} } }`
 
 ## Navigating pages
 
@@ -131,11 +129,38 @@ This allows for faster compilation, faster load times and quicker development fl
 | sid | name |
 | --- | ---- |
 
-
 PA9211e55522d08dd12bff0cb845cd9d6f | 8882465555 (Laptop - main)
 PA66a90e64872904394caf2891b69880f0 | 8882468491 (Laptop - 2nd)
 PA15c1e191d9ad973fb473c12c471a3882 | 8882468491
 PA0e4bd0e3c2d8bc33b7c372f83320084c | 8882468491
 PAc1893f64325658d1acec25e99a158da7 | 8882462345 (Desktop)
 
----
+## Firebase
+
+## goto examples
+
+```yml
+- goto: AbcDashboard^redTag
+- goto: AbcDashboard^redTag;duration:15000 # slow scroll effect for 15 seconds
+- goto: AbcDashboard^redTag;duration:0 # instantly scroll to element
+- goto: AbcDashboard^redTag # defaulted to 350 ms
+- goto: ^redTag # defaulted to 350 ms
+- goto: ^redTag;duration:15000 # slow scroll effect for 15 seconds
+```
+
+## Tools
+
+### Reference lifecycle results
+
+1. yml
+2. sdk
+3. noodl-ui
+
+compose = (...fns) --> (arg) --> fns.reduceRight
+(acc, fn) -->
+fn(stepFn)
+fn(stepFn)
+fn(stepFn)
+fn(stepFn)
+fn(stepFn)
+-->

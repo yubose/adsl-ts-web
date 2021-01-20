@@ -1,1 +1,0 @@
-export const BUILDING_BLOCKS = 'BUILDING_BLOCKS'

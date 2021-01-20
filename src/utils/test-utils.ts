@@ -1,5 +1,5 @@
-import _ from 'lodash'
 import { queryHelpers } from '@testing-library/dom'
+<<<<<<< HEAD
 import { isEmitObj } from 'noodl-utils'
 import {
   createComponent as createComponentInstance,
@@ -29,42 +29,26 @@ import {
   IComponent,
 } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
+=======
+import { NOODLDOMElement, Page } from 'noodl-ui-dom'
+import { ComponentInstance, Viewport } from 'noodl-ui'
+>>>>>>> dev2
 import noodlui from '../app/noodl-ui'
 import noodluidom from '../app/noodl-ui-dom'
-import Page from '../Page'
-import createActions from '../handlers/actions'
-import createBuiltInActions from '../handlers/builtIns'
 
 export { noodlui, noodluidom }
 
 export const page = new Page()
 export const assetsUrl = 'https://aitmed.com/assets/'
-export const root = {}
-export const actions = createActions({ page })
-export const builtIn = createBuiltInActions({ page })
+export const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
+export const viewport = new Viewport()
 
-noodlui
-  .use(
-    _.reduce(
-      _.entries(actions),
-      (arr, [actionType, actions]) =>
-        arr.concat(
-          actions.map((a) => ({
-            actionType,
-            ...a,
-            ...(isEmitObj(a) ? { context: { noodl, noodlui } } : undefined),
-          })),
-        ),
-      [] as any[],
-    ),
-  )
-  .use(
-    // @ts-expect-error
-    _.map(_.entries({ redraw: builtIn.redraw }), ([funcName, fn]) => ({
-      funcName,
-      fn,
-    })),
-  )
+export const deviceSize = {
+  galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },
+  iphone6: { width: 375, height: 667, aspectRatio: 0.562545720555962 },
+  ipad: { width: 768, height: 1024, aspectRatio: 0.7495126705653021 },
+  widescreen: { width: 1920, height: 1080, aspectRatio: 1.777777777777778 },
+} as const
 
 export class MockNoodl {
   assetsUrl = assetsUrl
@@ -146,6 +130,7 @@ export const queryByDataViewtag = queryHelpers.queryByAttribute.bind(
   'data-viewtag',
 )
 
+<<<<<<< HEAD
 export function getAllResolvers() {
   return [
     getAlignAttrs,
@@ -342,4 +327,22 @@ export function createNOODLElement<N extends HTMLElement>(
   const component = createComponent(noodlComponent, options) as any
   const node = toDOM(component)
   return node as N
+=======
+export function toDOM<
+  N extends NOODLDOMElement = NOODLDOMElement,
+  C extends ComponentInstance = any
+>(props: any) {
+  let node: N | null = null
+  let component: C | undefined
+  if (typeof props?.children === 'function') {
+    node = noodluidom.draw(props as any) as N
+    component = props as any
+  } else if (typeof props === 'object' && 'type' in props) {
+    component = noodlui.resolveComponents(props) as any
+    // @ts-expect-error
+    node = noodluidom.draw(component) as N
+  }
+  if (node) document.body.appendChild(node as any)
+  return [node, component] as [NonNullable<N>, C]
+>>>>>>> dev2
 }

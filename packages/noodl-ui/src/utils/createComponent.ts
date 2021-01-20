@@ -1,9 +1,12 @@
-import _ from 'lodash'
-import { ComponentObject, ComponentType } from '../types'
+import isPlainObject from 'lodash/isPlainObject'
+import { ComponentObject } from 'noodl-types'
+import { ComponentInstance, ComponentType } from '../types'
 import { forEachEntries, getRandomKey } from './common'
+import isComponent from './isComponent'
+import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
-import Component from '../components/Base'
+import Page from '../components/Page'
 
 export interface PropsOptionFunc<T> {
   (child: T): Partial<ComponentObject>
@@ -11,36 +14,37 @@ export interface PropsOptionFunc<T> {
 export type PropsOptionObj = ComponentObject
 
 interface Options {
-  props?: PropsOptionObj | PropsOptionFunc<Component>
+  props?: PropsOptionObj | PropsOptionFunc<ComponentInstance>
 }
 
 /**
  * A helper/utility to create Component instances corresponding to their NOODL
  * component type
- * @param { string | object | Component } value - NOODL component type, a component object, or a Component instance
+ * @param { string | object | ComponentInstance } value - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
 function createComponent(noodlType: 'list', options?: Options): List
 function createComponent(noodlType: 'listItem', options?: Options): ListItem
+function createComponent(noodlType: 'page', options?: Options): Page
 function createComponent<K extends ComponentType = ComponentType>(
   noodlType: K,
   options?: Options,
-): Component
+): ComponentInstance
 
 function createComponent<K extends ComponentType = ComponentType>(
   value: ComponentObject,
   options?: Options,
-): Component
+): ComponentInstance
 
 function createComponent<K extends ComponentType = ComponentType>(
-  component: Component,
+  component: ComponentInstance,
   options?: Options,
-): Component
+): ComponentInstance
 
 function createComponent<K extends ComponentType = ComponentType>(
   value: K | ComponentObject | Component,
   options?: Options,
-): Component | List | ListItem {
+): ComponentInstance | List | ListItem | Page {
   let childComponent: any
   let id: string = ''
   const props = toProps(value, options?.props)
@@ -48,11 +52,11 @@ function createComponent<K extends ComponentType = ComponentType>(
   // ComponentType
   if (typeof value === 'string') {
     childComponent = toInstance({ type: value, ...props })
-  } else if (value instanceof Component) {
+  } else if (isComponent(value)) {
     // IComponentInstanceType
     childComponent = value
     id = childComponent.id
-    if (props && _.isPlainObject(props)) {
+    if (props && isPlainObject(props)) {
       forEachEntries(props, (k, v) => childComponent.set(k, v))
     }
   } else {
@@ -82,6 +86,8 @@ function toInstance(value: ComponentObject) {
       return new List(value)
     case 'listItem':
       return new ListItem(value)
+    case 'page':
+      return new Page(value)
     default:
       return new Component(value)
   }
@@ -92,7 +98,7 @@ function toProps(
   props?: Options['props'],
 ): Partial<ComponentObject> | void {
   if (props) {
-    if (_.isFunction(props)) return props(value)
+    if (typeof props === 'function') return props(value)
     return props
   }
 }

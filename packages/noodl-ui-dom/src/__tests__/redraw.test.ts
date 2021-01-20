@@ -1,198 +1,128 @@
-import { expect } from 'chai'
 import sinon from 'sinon'
-import _ from 'lodash'
-import { findChild } from 'noodl-utils'
+import { expect } from 'chai'
+import { ComponentObject } from 'noodl-types'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import {
   ActionChain,
   Component,
-  ComponentObject,
+  findChild,
   List,
   ListEventId,
   ListItem,
-  NOODLComponent,
-  ComponentType,
-  ActionObject,
-  ActionType,
+  ComponentInstance,
+  createComponent,
 } from 'noodl-ui'
 import { assetsUrl, noodlui, noodluidom, toDOM } from '../test-utils'
-import EmitRedraw from './helpers/EmitRedraw.json'
 
-export type DataKeyType<K extends string = 'emit' | 'key'> = K
-export type PathType = 'emit' | 'if' | 'url'
-export type ActionSelection = ActionType | ActionObject
-export type ActionsConfig =
-  | ActionSelection[]
-  | Record<ActionType, ActionObject>
-  | { builtIn?: string[] }
+const getListGender = () =>
+  noodlui.resolveComponents({
+    type: 'list',
+    iteratorVar: 'itemObject',
+    listObject: [
+      { key: 'gender', value: 'Male' },
+      { key: 'gender', value: 'Female' },
+      { key: 'gender', value: 'Other' },
+    ],
+    children: [
+      {
+        type: 'listItem',
+        children: [{ type: 'label', dataKey: 'itemObject.value' }],
+      },
+    ],
+  })
 
-export function createNOODLComponent(
-  noodlComponent: ComponentType | Partial<ComponentObject>,
-  opts?: {
-    dataKey?: DataKeyType
-    iteratorVar?: string
-    onClick?: ActionsConfig
-    onChange?: ActionsConfig
-    path?: boolean | PathType
-  } & Partial<Omit<ComponentObject, 'path' | 'onClick' | 'dataKey'>>,
-) {
-  const props = {
-    ...opts,
-    type:
-      typeof noodlComponent === 'string' ? noodlComponent : noodlComponent.type,
-  } as ComponentObject
-
-  const createActionObjs = (configs: ActionsConfig) => {
-    const arr = Array.isArray(configs) ? configs : [configs]
-    return arr.reduce((acc, obj) => {
-      if (typeof obj === 'string') {
-        const parts = obj.split(':')
-        const [actionType] = parts
-        switch (actionType) {
-          case 'builtIn':
-            const funcName = parts[1]
-            let args = parts
-              .slice(2)
-              .reduce((acc, keyval) => {
-                if (acc.length) {
-                  if (!acc[acc.length - 1]) acc[acc.length - 1].push(keyval)
-                  if (acc[acc.length - 1].length < 2) {
-                    acc[acc.length - 1].push(keyval)
-                  } else {
-                    acc.push([keyval])
-                  }
-                } else {
-                  acc.push([keyval])
-                }
-                return acc
-              }, [])
-              .reduce(
-                (acc, [key, val]) => Object.assign(acc, { [key]: val }),
-                {},
-              )
-
-            return acc.concat({
-              actionType: 'builtIn',
-              funcName,
-              ...(typeof args === 'object' ? args : undefined),
-            })
-          case 'emit':
-            return acc.concat(
-              createEmitObj({
-                keys: ['hello1', 'hello2'],
-                iteratorVar: opts?.iteratorVar,
-              }),
-            )
-          default:
-            break
-        }
-      } else if (obj && !Array.isArray(obj) && typeof obj === 'object') {
-        // if 'emit' in obj
-        // if 'actionType' in obj
-        // etc
-      }
-      return acc
-    }, [] as any[])
-  }
-
-  const createDataKey = (type: DataKeyType, opts) =>
-    type === 'emit' ? createEmitObj(opts) : opts
-
-  const createEmitObj = (
-    opts?:
-      | {
-          actions?: [any, any, any]
-          keys?: string | string[]
-          iteratorVar?: string
-        }
-      | boolean,
-  ) => {
-    const getPrefilledEmitObj = () => {
-      const iteratorVar = (typeof opts === 'object' && opts.iteratorVar) || ''
-      return {
-        emit: {
-          dataKey: {
-            var1: iteratorVar || 'itemObject',
-            var2: `${iteratorVar || 'itemObject'}.value`,
-          },
-          actions: [{}, {}, {}],
-        },
-      }
-    }
-    if (typeof opts === 'boolean') {
-      return getPrefilledEmitObj()
-    } else if (!opts?.keys) {
-      return getPrefilledEmitObj()
-    } else {
-      return {
-        emit: {
-          dataKey: Array.isArray(opts.keys)
-            ? opts?.keys.reduce(
-                (acc, key, index) =>
-                  Object.assign(acc, { [`var${index + 1}`]: key }),
-                {},
-              )
-            : opts?.keys,
-        },
-      } as EmitObject
-    }
-  }
-
-  const createPath = (type: PathType | boolean, iteratorVar?: string = '') =>
-    type === 'emit'
-      ? createEmitObj({ iteratorVar })
-      : path === 'if'
-      ? { if: [] }
-      : path
-
-  if (opts) {
-    if (opts.dataKey) props.dataKey = createDataKey(opts.dataKey, opts)
-    if (opts.path) props.path = createPath(opts.path)
-    if (opts.onClick) props.onClick = createActionObjs(opts.onClick)
-    if (opts.onChange) props.onChange = createActionObjs(opts.onChange)
-  }
-
-  return props
-}
-
-// const save = (data: any) => {
-//   fs.writeJsonSync('redraw.json', data, { spaces: 2 })
-// }
-
-let noodlView: NOODLComponent
-let noodlListDemographics: NOODLComponent
-let noodlListGender: NOODLComponent
-
-let components: Component[]
 let view: Component
-let listDemographics: List
 let listGender: List
+let componentCache = noodlui.componentCache.bind(
+  noodlui,
+) as typeof noodlui.componentCache
 
-beforeEach(() => {
-  noodluidom.on('component', onComponentAttachId)
-  noodlView = EmitRedraw.components[2] as NOODLComponent
-  noodlListDemographics = EmitRedraw.components[3].children[2] as NOODLComponent
-  noodlListGender = EmitRedraw.components[3].children[3] as NOODLComponent
-  components = noodlui.resolveComponents(
-    EmitRedraw.components as NOODLComponent[],
-  )
-  view = components[3] as Component
-  listDemographics = view.child(2) as List
-  listGender = view.child(3) as List
-  {
-    // const data = listDemographics.getData().slice()
-    // data.forEach((d) => listDemographics.removeDataObject(d))
-    // data.forEach((d) => listDemographics.addDataObject(d))
-  }
-  {
-    // const data = listGender.getData().slice()
-    // data.forEach((d) => listGender.removeDataObject(d))
-    // data.forEach((d) => listGender.addDataObject(d))
-  }
-})
+describe.only('redraw', () => {
+  describe(`events`, () => {
+    it(`should convert the action chain arrays back to their function handlers`, async () => {
+      const [node, component] = toDOM({
+        type: 'label',
+        onClick: [{ emit: { dataKey: { var1: 'hey' }, actions: [] } }],
+      })
+      const [newNode, newComponent] = noodluidom.redraw(node, component) as [
+        HTMLSelectElement,
+        ComponentInstance,
+      ]
+      expect(component.get('onClick')).to.be.a('function')
+      await waitFor(() => {
+        expect(newComponent.get('onClick')).to.be.a('function')
+      })
+    })
+  })
 
-describe('redraw', () => {
+  it(`should remove the redrawing components from the component cache`, () => {
+    const list = getListGender()
+    const node = noodluidom.draw(list) as HTMLUListElement
+    const idsToBeRemoved = list.children().map(({ id }) => id)
+    expect(componentCache()).to.have.lengthOf(4)
+    list
+      .children()
+      .forEach((child: any) => expect(componentCache().has(child)).to.be.true)
+    noodluidom.redraw(node, list)
+    idsToBeRemoved.forEach(
+      (id: string) => expect(componentCache().has(id)).to.be.false,
+    )
+  })
+
+  xit(`should add the redrawed components to the component cache`, () => {
+    //
+  })
+
+  describe(`page component consumers`, () => {
+    xit(`should be using their page component's resolveComponents when redrawing`, () => {
+      //
+    })
+  })
+
+  describe('select component', () => {
+    it('should render more option children if the data has more items', async () => {
+      let options = ['00:00', '00:10']
+      let otherOptions = ['00:20', '00:30']
+      let [node, component] = toDOM({ type: 'select', options }) as [
+        HTMLSelectElement,
+        ComponentInstance,
+      ]
+      let optionsNodes = Array.from(node.options)
+      expect(node.options).to.have.lengthOf(2)
+      optionsNodes.forEach((optionNode, index) => {
+        expect(optionNode.value).to.eq(options[index])
+      })
+      options.push(...otherOptions)
+      let result = noodluidom.redraw(node, component)
+      node = result[0] as HTMLSelectElement
+      component = result[1]
+      expect(node.options).to.have.lengthOf(4)
+      for (let index = 0; index < node.options.length; index++) {
+        expect(node.options[index].value).to.eq(options[index])
+      }
+    })
+
+    it('should re-attach the onchange handler', async () => {
+      const spy = sinon.spy()
+      const options = ['00:00', '00:10', '00:20']
+      noodlui.use({ actionType: 'emit', fn: spy, trigger: 'onChange' })
+      const [node, component] = noodluidom.redraw(
+        ...toDOM({
+          type: 'select',
+          options,
+          onChange: [{ emit: { dataKey: { var1: 'hey' }, actions: [] } }],
+        }),
+      ) as [HTMLSelectElement, ComponentInstance]
+      node.dispatchEvent(new Event('change'))
+      expect(node).to.exist
+      expect(component).to.exist
+      await waitFor(() => {
+        expect(spy).to.have.been.called
+      })
+    })
+  })
+
   it("should clean up the component's listeners", () => {
     const addSpy = sinon.spy()
     const deleteSpy = sinon.spy()
@@ -205,36 +135,44 @@ describe('redraw', () => {
       'update.data.object': updateSpy,
     } as const
     const evtNames = Object.keys(evts)
-    listGender.on('add.data.object', addSpy)
-    listGender.on('delete.data.object', deleteSpy)
-    listGender.on('retrieve.data.object', retrieveSpy)
-    listGender.on('update.data.object', updateSpy)
+    const list = getListGender()
+    list.on('add.data.object', addSpy)
+    list.on('delete.data.object', deleteSpy)
+    list.on('retrieve.data.object', retrieveSpy)
+    list.on('update.data.object', updateSpy)
     evtNames.forEach((evt) => {
-      expect(listGender.hasCb(evt as ListEventId, evts[evt])).to.be.true
+      expect(list.hasCb(evt as ListEventId, evts[evt])).to.be.true
     })
-    const node = noodluidom.parse(listGender)
-    noodluidom.redraw(node, listGender)
+    const node = noodluidom.draw(list)
+    noodluidom.redraw(node, list)
     evtNames.forEach((evt) => {
-      expect(listGender.hasCb(evt as ListEventId, evts[evt])).to.be.false
+      expect(list.hasCb(evt as ListEventId, evts[evt])).to.be.false
     })
   })
 
   it('should remove the parent reference', () => {
-    expect(listGender.parent()).to.eq(view)
-    const node = noodluidom.parse(listGender)
-    noodluidom.redraw(node, listGender)
-    expect(listGender.parent()).to.be.null
+    const view = createComponent('view')
+    const list = getListGender()
+    list.setParent(view)
+    expect(list.parent()).to.eq(view)
+    const node = noodluidom.draw(list)
+    noodluidom.redraw(node, list)
+    expect(list.parent()).to.be.null
   })
 
   it("should remove the component from the parent's children", () => {
-    expect(view.hasChild(listGender)).to.be.true
-    const node = noodluidom.parse(listGender)
-    noodluidom.redraw(node, listGender)
-    expect(view.hasChild(listGender)).to.be.false
+    const view = createComponent('view')
+    const list = getListGender()
+    view.createChild(list)
+    list.setParent(view)
+    expect(view.hasChild(list)).to.be.true
+    const node = noodluidom.draw(list)
+    noodluidom.redraw(node, list)
+    expect(view.hasChild(list)).to.be.false
   })
 
   xit('should recursively remove child references', () => {
-    const node = noodluidom.parse(listGender)
+    const node = noodluidom.draw(listGender)
     const listItem = listGender.child()
     const [label, image] = listItem?.children() || []
     expect(!!findChild(listGender, (c) => c === image)).to.be.true
@@ -244,56 +182,46 @@ describe('redraw', () => {
     expect(!!findChild(newComponent, (c) => c === label)).to.be.false
   })
 
-  xit('should recursively remove child listeners', async () => {
-    const spies = {
-      hello: sinon.spy(),
-      bye: sinon.spy(),
-      fruit: sinon.spy(),
-    }
-    const node = noodluidom.parse(view)
-    listGender.on('add.data.object', spies.hello)
-    const listItem = listGender.child() as ListItem
-    const label = listItem?.child(0)
-    const image = listItem?.child(1)
-    image?.on('bye', spies.bye)
-    label?.on('fruit', spies.fruit)
-    expect(listGender.hasCb('add.data.object', spies.hello)).to.be.true
-    expect(image.hasCb('bye', spies.bye)).to.be.true
-    expect(label.hasCb('fruit', spies.fruit)).to.be.true
-    noodluidom.redraw(node, view)
-    expect(listGender.hasCb('add.data.object', spies.hello)).to.be.false
-    expect(image.hasCb('bye', spies.bye)).to.be.false
-    expect(label.hasCb('fruit', spies.fruit)).to.be.false
-  })
-
-  it('should remove the node by the parentNode', () => {
-    noodluidom.parse(view)
-    const listItem = listGender.child() as ListItem
+  xit('should keep the original parent node after redraw', () => {
+    const view = createComponent('view')
+    const list = getListGender()
+    list.setParent(view)
+    view.createChild(list)
+    const node = noodluidom.draw(view)
+    const listItem = list.child() as ListItem
     const image = listItem?.child(1)
     const imageNode = document.getElementById(image?.id)
-    expect(!!imageNode?.parentNode?.contains(imageNode)).to.be.true
-    noodluidom.redraw(imageNode, image)
-    expect(!!imageNode?.parentNode?.contains(imageNode)).to.be.false
-    noodluidom.off('component', onComponentAttachId)
+    const parentNode = imageNode?.parentNode
+    expect(!!parentNode?.contains(imageNode)).to.be.true
+    // noodluidom.redraw(imageNode, image)
+    // expect(!!parentNode?.contains(imageNode)).to.be.false
   })
 
   it('should set the original parent as the parent of the new redrawee component', () => {
-    noodluidom.parse(view)
-    const listItem = listGender.child() as ListItem
+    const view = createComponent('view')
+    const list = getListGender()
+    view.createChild(list)
+    list.setParent(view)
+    noodluidom.draw(view)
+    const listItem = list.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
-    expect(newListItem.parent()).to.eq(listGender)
+    expect(newListItem?.parent()).to.eq(list)
   })
 
   it('should set the new component as a child on the original parent', () => {
-    noodluidom.parse(view)
-    const listItem = listGender.child() as ListItem
+    const view = createComponent('view')
+    const list = getListGender()
+    view.createChild(list)
+    list.setParent(view)
+    noodluidom.draw(view)
+    const listItem = list.child() as ListItem
     const [empty, newListItem] = noodluidom.redraw(null, listItem)
-    expect(listGender.hasChild(newListItem)).to.be.true
+    expect(list.hasChild(newListItem)).to.be.true
   })
 
   // it('the redrawing component + node should hold the same ID', () => {
-  //   noodluidom.parse(view)
+  //   noodluidom.draw(view)
   //   const listItem = listGender.child() as ListItem
   //   const liNode = document.getElementById(listItem?.id || '')
   //   const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
@@ -302,8 +230,12 @@ describe('redraw', () => {
   // })
 
   it('should attach to the original parentNode as the new childNode', () => {
-    noodluidom.parse(view)
-    const listItem = listGender.child() as ListItem
+    const view = createComponent('view')
+    const list = getListGender()
+    view.createChild(list)
+    list.setParent(view)
+    noodluidom.draw(view)
+    const listItem = list.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const ulNode = liNode?.parentNode
     expect(ulNode.contains(liNode)).to.be.true
@@ -311,22 +243,20 @@ describe('redraw', () => {
     expect(ulNode.contains(liNode)).to.be.false
     expect(ulNode.children).to.have.length.greaterThan(0)
     expect(newNode.parentNode).to.eq(ulNode)
-    noodluidom.off('component', onComponentAttachId)
   })
 
   it('should use every component\'s "shape" as their redraw blueprint', () => {
+    const list = getListGender()
     const createIsEqual = (
       noodlComponent: ComponentObject,
       newInstance: Component,
     ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
-    const node = noodluidom.parse(listDemographics)
-    const [newNode, newComponent] = noodluidom.redraw(node, listDemographics)
-    const isEqual = createIsEqual(noodlListDemographics, newComponent)
-    Object.keys(noodlListDemographics).forEach((prop) => {
+    const node = noodluidom.draw(list)
+    const [newNode, newComponent] = noodluidom.redraw(node, list)
+    const isEqual = createIsEqual(list.original, newComponent)
+    Object.keys(list.original).forEach((prop) => {
       if (prop === 'children') {
-        expect(noodlListDemographics?.children).to.deep.eq(
-          listDemographics?.original?.children,
-        )
+        expect(list.original?.children).to.deep.eq(list?.original?.children)
       } else {
         expect(isEqual(prop)).to.be.true
       }
@@ -334,18 +264,17 @@ describe('redraw', () => {
   })
 
   it('should accept a component resolver to redraw all of its children', () => {
+    const list = getListGender()
     const createIsEqual = (
       noodlComponent: ComponentObject,
       newInstance: Component,
     ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
-    const node = noodluidom.parse(listGender)
-    const [newNode, newComponent] = noodluidom.redraw(node, listGender, {
-      resolver: (c) => noodlui.resolveComponents(c),
-    })
-    const isEqual = createIsEqual(noodlListGender, newComponent)
-    Object.keys(noodlListGender).forEach((prop) => {
+    const node = noodluidom.draw(list)
+    const [newNode, newComponent] = noodluidom.redraw(node, list)
+    const isEqual = createIsEqual(list.original, newComponent)
+    Object.keys(list.original).forEach((prop) => {
       if (prop === 'children') {
-        expect(noodlListGender.children).to.deep.eq(
+        expect(list.original.children).to.deep.eq(
           newComponent.original.children,
         )
       } else {
@@ -354,7 +283,7 @@ describe('redraw', () => {
     })
   })
 
-  describe('when using path emits after redrawing', () => {
+  xdescribe('when using path emits after redrawing', () => {
     it('should still be able to emit and update the DOM', async () => {
       let imgPath = 'selectOn.png'
       const pathSpy = sinon.spy(async () => {
@@ -362,7 +291,6 @@ describe('redraw', () => {
       })
       const onClickSpy = sinon.spy(async (action, options) => {
         imgPath = 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
-        console.info('HELLO ALL')
         return ['']
       })
       noodlui.use({
@@ -378,7 +306,6 @@ describe('redraw', () => {
       noodluidom.on('image', (n: HTMLInputElement, c) => {
         n.setAttribute('src', c.get('src'))
         n.onclick = async (e) => {
-          console.info(`Image oncnlick invoking`, c.get('onClick'))
           await c.get('onClick')(e)
         }
       })
@@ -393,15 +320,13 @@ describe('redraw', () => {
         ],
       })
       const image = view.child() as Component
-      noodluidom.parse(view)
+      noodluidom.draw(view)
       await image.get('onClick')()
 
       noodluidom.redraw(document.querySelector('img'), image)
       const img = document.querySelector('img')
-      console.info(noodluidom.getAllCbs())
       // img?.click()
       await waitFor(() => {
-        console.info(onClickSpy)
         expect(onClickSpy.called).to.be.true
         // expect(pathSpy.called).to.be.true
         // expect(onClickSpy.called).to.be.true
@@ -412,7 +337,7 @@ describe('redraw', () => {
     })
   })
 
-  describe('when user clicks on a redrawed node that has an onClick emit', () => {
+  xdescribe('when user clicks on a redrawed node that has an onClick emit', () => {
     it('should still be able to operate on and update the DOM', async () => {
       const abc = 'abc.png'
       const hello = 'hello.jpeg'
@@ -454,14 +379,13 @@ describe('redraw', () => {
         ],
       })
 
-      noodluidom.parse(listItem)
+      noodluidom.draw(listItem)
 
       await waitFor(() => {
         expect(document.querySelector('img')?.src).to.eq(assetsUrl + abc)
         noodluidom.redraw(document.querySelector('li'), listItem, {
           resolver: (c: any) => noodlui.resolveComponents(c),
         })
-        console.info(prettyDOM())
         // expect(document.querySelector('img')?.src).to.eq(assetsUrl + hello)
       })
     })
@@ -518,19 +442,14 @@ describe('redraw', () => {
           ],
         })
         const image = view.child() as Component
-        console.info('HELLO')
-        console.info(prettyDOM())
-        const node = noodluidom.parse(image)
+        const node = noodluidom.draw(image)
         await waitFor(() => {
           const imgNode = document.querySelector(
             `img[src=${assetsUrl + 'myimg.png'}]`,
           )
-          console.info(document.querySelector('img'))
           expect(imgNode).to.exist
         })
-        console.info('GOODBYE')
         const [newNode, newComponent] = noodluidom.redraw(node, image)
-        console.info(prettyDOM())
       },
     )
   })
@@ -566,7 +485,7 @@ describe('redraw', () => {
           throw new Error('i ran')
         })
       })
-      const container = noodluidom.parse(view)
+      const container = noodluidom.draw(view)
       const input = screen.getByDisplayValue('mypassword')
       // expect(input.dataset.value).to.eq('mypassword')
       expect(input.value).to.eq('mypassword')
@@ -664,7 +583,7 @@ describe('redraw', () => {
           { component: button, trigger: 'onClick' },
         ),
       }
-      const container = noodluidom.parse(view)
+      const container = noodluidom.draw(view)
       const [newNode, newComponent] = noodluidom.redraw(
         document.getElementById(button.id),
         button,
@@ -733,7 +652,7 @@ describe('redraw', () => {
     const getListItemNodes = () => document.querySelectorAll('li')
     const getImageNodes = () => document.querySelectorAll('img')
     const getInputNodes = () => document.querySelectorAll('input')
-    noodluidom.parse(list)
+    noodluidom.draw(list)
     expect(getListNodes()).to.have.lengthOf(1)
     expect(getListItemNodes()).to.have.lengthOf(2)
     expect(getImageNodes()).to.have.lengthOf(2)
@@ -743,7 +662,6 @@ describe('redraw', () => {
     expect(getListItemNodes()).to.have.lengthOf(2)
     expect(getImageNodes()).to.have.lengthOf(2)
     expect(getInputNodes()).to.have.lengthOf(2)
-    // console.info(prettyDOM())
   })
 
   it('should look like it was originally before the redraw', () => {
@@ -804,28 +722,29 @@ describe('redraw', () => {
       n?.dataset.value = c.get('data-value')
       n.value = c.get('data-value')
     })
-    noodluidom.parse(view)
-    console.info(prettyDOM())
+    noodluidom.draw(view)
   })
 })
 
-describe('redraw(new)', () => {
+xdescribe('redraw(new)', () => {
   let onClickSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
   let pathSpy: sinon.SinonSpy<[], Promise<'male.png' | 'female.png'>>
-  let redrawSpy: sinon.SinonSpy<[
-    node: HTMLElement | null,
-    component: Component,
-    opts?:
-      | {
-          dataObject?: any
-          resolver?:
-            | ((
-                noodlComponent: ComponentObject | ComponentObject[],
-              ) => Component)
-            | undefined
-        }
-      | undefined,
-  ]>
+  let redrawSpy: sinon.SinonSpy<
+    [
+      node: HTMLElement | null,
+      component: Component,
+      opts?:
+        | {
+            dataObject?: any
+            resolver?:
+              | ((
+                  noodlComponent: ComponentObject | ComponentObject[],
+                ) => Component)
+              | undefined
+          }
+        | undefined,
+    ]
+  >
   let viewTag = 'genderTag'
   let view: Component
   let list: List
@@ -944,3 +863,196 @@ describe('redraw(new)', () => {
 function onComponentAttachId(node: any, component: any) {
   node && (node.id = component.id)
 }
+
+xit('should target the viewTag component/node if available', async () => {
+  let currentPath = 'male.png'
+  const imagePathSpy = sinon.spy(async () => currentPath)
+  const viewTag = 'genderTag'
+  const iteratorVar = 'itemObject'
+  const listObject = [
+    { key: 'gender', value: 'Male' },
+    { key: 'gender', value: 'Female' },
+    { key: 'gender', value: 'Other' },
+  ]
+  const redrawSpy = sinon.spy(noodlui.getCbs('builtIn').redraw[0])
+  noodlui.actionsContext = { noodl: {} } as any
+  noodlui.removeCbs('emit')
+  noodlui.getCbs('builtIn').redraw[0] = redrawSpy
+  noodlui
+    .setPage('SignIn')
+    .use({
+      actionType: 'emit',
+      trigger: 'onClick',
+      fn: async () => {
+        currentPath = currentPath === 'male.png' ? 'female.png' : 'male.png'
+      },
+    })
+    .use({ actionType: 'emit', trigger: 'path', fn: imagePathSpy })
+    .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
+  const view = page.render({
+    type: 'view',
+    children: [
+      {
+        type: 'list',
+        iteratorVar,
+        listObject,
+        children: [
+          {
+            type: 'listItem',
+            viewTag,
+            children: [
+              {
+                type: 'image',
+                path: { emit: { dataKey: 'f', actions: [] } },
+                onClick: [
+                  { emit: { dataKey: '', actions: [] } },
+                  {
+                    actionType: 'builtIn',
+                    funcName: 'redraw',
+                    viewTag: 'genderTag',
+                  },
+                ],
+              },
+              { type: 'label', dataKey: 'gender.value' },
+            ],
+          },
+        ],
+      },
+    ],
+  } as any).components[0]
+  const list = view.child() as List
+  const listItem = list.child() as ListItem
+  const image = listItem.child() as Component
+  expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
+  document.getElementById(image.id)?.click()
+  await waitFor(() => {
+    expect(redrawSpy).to.have.been.called
+    expect(document.querySelector('img')?.getAttribute('src')).to.eq(
+      assetsUrl + 'female.png',
+    )
+  })
+})
+
+xdescribe('redraw', () => {
+  let iteratorVar = 'hello'
+  let listObject: { key: 'gender'; value: 'Male' | 'Female' | 'Other' }[]
+  let timeSpanOptions: string[]
+  let noodlComponents: any
+
+  beforeEach(() => {
+    timeSpanOptions = ['00:00', '00:30']
+    listObject = [
+      { key: 'gender', value: 'Male' },
+      { key: 'gender', value: 'Female' },
+      { key: 'gender', value: 'Other' },
+    ]
+    noodlComponents = {
+      type: 'view',
+      children: [
+        {
+          type: 'list',
+          iteratorVar,
+          listObject,
+          contentType: 'listObject',
+          children: [
+            {
+              type: 'listItem',
+              viewTag: 'fruit',
+              [iteratorVar]: '',
+              children: [{ type: 'label', dataKey: `${iteratorVar}.value` }],
+            },
+          ],
+        },
+        {
+          type: 'view',
+          children: [
+            {
+              type: 'select',
+              contentType: 'TimeCode',
+              dataKey: 'BookingSlotsSelect',
+              options: [10, 15, 30, 45, 60],
+              required: 'true',
+              onChange: [
+                { emit: { actions: [] } },
+                {
+                  actionType: 'builtIn',
+                  funcName: 'redraw',
+                  viewTag: 'AvailableTimeTag',
+                },
+              ],
+            },
+            { type: 'label', text: 'Available Time' },
+            {
+              type: 'view',
+              style: {},
+              children: [
+                {
+                  type: 'select',
+                  dataKey: 'AvailableTime.timeStart',
+                  viewTag: 'AvailableTimeTag',
+                  options: timeSpanOptions,
+                  required: 'true',
+                },
+                {
+                  type: 'select',
+                  viewTag: 'AvailableTimeTag',
+                  options: timeSpanOptions,
+                  required: 'true',
+                  dataKey: 'AvailableTime.timeEnd',
+                  style: { left: '0.45' },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    } as any
+  })
+
+  it('should be able to grab list consumer components with the viewTag', async () => {
+    const emitCall = sinon.spy()
+    const redrawSpy = sinon.spy(noodluidom, 'redraw')
+    noodlui.init({ actionsContext: { noodl: { emitCall }, noodluidom } })
+    // noodlui.getCbs('builtIn').redraw = [spy]
+    const view = page.render(noodlComponents).components[0]
+    const select = findChild(
+      view,
+      (c) => c.get('dataKey') === 'BookingSlotsSelect',
+    )
+    const node = document.getElementById(select.id) as HTMLSelectElement
+    await select?.action.onChange()
+    await waitFor(() => {
+      expect(redrawSpy.called).to.be.true
+    })
+    redrawSpy.restore()
+  })
+
+  xit('should be able to grab non list consumer components with the viewTag', async () => {
+    const pageName = 'SelectRedraw'
+    const pageObject = {
+      ScheduleSettingsTemp: {
+        TimeSpan: timeSpanOptions,
+      },
+    }
+    const onChangeSpy = sinon.spy(async () => {
+      timeSpanOptions.push(...['01:00', '01:30', '02:00'])
+    })
+    const redrawFn = noodlui.getCbs('builtIn')?.redraw[0]
+    const spy = sinon.spy(redrawFn)
+    noodlui
+      .setPage(pageName)
+      .use({ actionType: 'emit', fn: onChangeSpy, trigger: 'onChange' })
+      .use({
+        getRoot: () => ({ [pageName]: pageObject }),
+        getPageObject: () => pageObject,
+      } as any)
+    const view = page.render(noodlComponents)
+    await waitFor(() => {
+      expect(spy).to.have.been.called
+    })
+  })
+
+  xit('should pair the corresponding node with each grabbed component', () => {
+    //
+  })
+})

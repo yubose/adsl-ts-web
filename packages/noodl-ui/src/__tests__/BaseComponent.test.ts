@@ -1,10 +1,7 @@
-import _ from 'lodash'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { IComponent } from '../types'
 import Component from '../components/Base'
-import List from '../components/List'
-import ListItem from '../components/ListItem'
 import createComponent from '../utils/createComponent'
 
 let component: IComponent
@@ -258,14 +255,14 @@ describe('BaseComponent', () => {
     })
 
     xit('should prefix the ids of their children with its own component id', () => {
-      _.forEach(component.children() as IComponent[], (child) => {
+      ;(component.children() as IComponent[]).forEach((child) => {
         expect(child.id.startsWith(component.id)).to.be.true
       })
     })
 
     it('should allow children to get access to this instance', () => {
       const children = component.children() as IComponent[]
-      _.forEach(children, (child) => {
+      children.forEach((child) => {
         expect(child.parent()).to.equal(component)
       })
     })
@@ -399,35 +396,6 @@ describe('BaseComponent', () => {
       expectedChild.createChild(targetChild)
       const expectedResult = targetChild?.parent()?.parent()?.parent()
       expect(expectedResult).to.equal(child1child)
-    })
-
-    describe('when using broadcast', () => {
-      it('should hit all nested children in its component tree', () => {
-        const view = createComponent('view') as Component
-        const list = createComponent('list') as List
-        const listItem = createComponent('listItem') as ListItem
-        const textField = createComponent('textField') as Component
-        textField.set('data-value', 'my data value')
-        const label = createComponent('label') as Component
-        label.set('text', 'heres my text')
-        const nestedView = createComponent('view') as Component
-        view.createChild(list)
-        list.createChild(listItem)
-        listItem.createChild(nestedView)
-        nestedView.createChild(label)
-        nestedView.createChild(textField)
-        let labelText, textFieldValue
-        view.broadcast((child) => {
-          if (child.noodlType === 'label') {
-            labelText = child.get('text')
-          }
-          if (child.noodlType === 'textField') {
-            textFieldValue = child.get('data-value')
-          }
-        })
-        expect(labelText).to.eq('heres my text')
-        expect(textFieldValue).to.eq('my data value')
-      })
     })
   })
 

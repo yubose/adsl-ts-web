@@ -1,3 +1,0 @@
-# `logsnap`
-
-## Usage

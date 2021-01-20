@@ -1,6 +1,5 @@
-// @ts-nocheck
+import isPlainObject from 'lodash/isPlainObject'
 import yaml, { Document, Options } from 'yaml'
-import _ from 'lodash'
 import makeEvaluator from './makeEvaluator'
 
 class EvaluatorsList {
@@ -23,9 +22,9 @@ class EvaluatorsList {
     if (key !== undefined) {
       if (!this._root) this._root = {}
     }
-    if (_.isString(key) && _.isString(value)) {
+    if (typeof key === 'string' && typeof value === 'string') {
       this._root[key] = value
-    } else if (!_.isString(key) && _.isPlainObject(key)) {
+    } else if (typeof key !== 'string' && isPlainObject(key)) {
       Object.entries(key).forEach(([key, value]) => {
         this._root[key] = value
       })
@@ -34,14 +33,14 @@ class EvaluatorsList {
   }
 
   getRoot(key?: string) {
-    if (_.isString(key)) {
+    if (typeof key === 'string') {
       return this._root[key]
     }
     return this._root
   }
 
   getResults() {
-    return _.map(this._evaluators, (evaluator) => {
+    return this._evaluators.map((evaluator) => {
       return evaluator.getResults()
     })
   }
@@ -57,9 +56,9 @@ class EvaluatorsList {
   }
 
   run(value: any, context?: { name?: string }) {
-    _.forEach(this._evaluators, (evaluator) => {
-      if (_.isPlainObject(context)) {
-        _.forEach(Object.keys(context), (key) => {
+    this._evaluators.forEach((evaluator) => {
+      if (isPlainObject(context)) {
+        Object.keys(context).forEach((key) => {
           if (!evaluator.hasContext(key)) {
             evaluator.addContext(key, context[key])
           }

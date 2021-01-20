@@ -1,7 +1,6 @@
 // @ts-nocheck
-import _ from 'lodash'
+import chunk from 'lodash/chunk'
 import SetupHelper from './SetupHelper'
-
 export interface PagesOptions {
   baseUrl?: string
   endpoint?: string
@@ -32,7 +31,7 @@ class AppSetup {
       })
     }
 
-    const chunks = _.chunk(pageNames, Math.ceil(pageNames.length / 4))
+    const chunks = chunk(pageNames, Math.ceil(pageNames.length / 4))
     // Parallel reqs for instant response
     let chunk1: any = Promise.all(chunks[0].map(loadPage))
     let chunk2: any = Promise.all(chunks[1].map(loadPage))

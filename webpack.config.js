@@ -4,17 +4,17 @@ const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const pkg = require('./package.json')
-const logsnapPkg = require('./packages/logsnap/package.json')
 const noodluiPkg = require('./packages/noodl-ui/package.json')
 const noodlutilsPkg = require('./packages/noodl-utils/package.json')
 const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
-// const CircularDependencyPlugin = require('circular-dependency-plugin')
-// const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
-
+const CircularDependencyPlugin = require('circular-dependency-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
+//
 const htmlPluginOptions = {
   filename: 'index.html',
   title: 'AiTmed Noodl Web',
-  favicon: 'favicon.ico',
+  favicon: 'public/favicon.ico',
   cache: false,
   scriptLoading: 'defer',
   minify: false,
@@ -24,14 +24,17 @@ if (process.env.ECOS_ENV !== 'test')
   htmlPluginOptions.template = 'public/index.html'
 
 const plugins = [
-  // new BundleStatsWebpackPlugin({
-  //   baseline: true,
-  // }),
-  // new CircularDependencyPlugin({
-  //   exclude: /node_modules/,
-  //   include: /src/,
-  // }),
+  new BundleStatsWebpackPlugin({
+    baseline: true,
+  }),
+  new CircularDependencyPlugin({
+    exclude: /node_modules/,
+    include: /src/,
+  }),
   new webpack.DefinePlugin({
+    // if process.env.DEPLOYING === true, this forces the config url in
+    // src/app/noodl.ts to point to the public.aitmed.com host
+    'process.env.DEPLOYING': JSON.stringify(process.env.DEPLOYING),
     'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.USE_DEV_PATHS': JSON.stringify(process.env.USE_DEV_PATHS),
@@ -44,7 +47,6 @@ const plugins = [
         'noodl-ui': noodluiPkg.version,
         'noodl-utils': noodlutilsPkg.version,
         'noodl-ui-dom': noodluidomPkg.version,
-        logsnap: logsnapPkg.version,
         typescript: pkg.devDependencies.typescript,
         'twilio-video': pkg.devDependencies['twilio-video'],
       },
@@ -169,6 +171,14 @@ module.exports = {
   },
   plugins: [
     ...plugins,
+    new CopyPlugin({
+      patterns: [
+        {
+          from: 'src/firebase-messaging-sw.js',
+          to: 'public/firebase-messaging-sw.js',
+        },
+      ],
+    }),
     new webpack.ProgressPlugin({
       handler(percentage, msg, ...args) {
         console.clear()

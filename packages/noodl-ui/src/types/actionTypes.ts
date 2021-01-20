@@ -1,6 +1,26 @@
-import Action from '../Action'
+import { StyleObject, ToastObject } from 'noodl-types'
 import { AbortExecuteError } from '../errors'
 import { ConsumerOptions, IfObject } from './types'
+import Action from '../Action'
+
+export interface IAction<A extends ActionObject = any> {
+  abort(reason: string | string[], callback?: IAction<A>['callback']): void
+  actionType: A['actionType']
+  callback: ((...args: any[]) => any) | undefined
+  clearTimeout(): void
+  clearInterval(): void
+  error: null | Error
+  execute<Args extends any[] = any[]>(...args: Args): Promise<any>
+  id: string
+  isTimeoutRunning(): boolean
+  getSnapshot(): ActionSnapshot<A>
+  original: A
+  result: any
+  resultReturned: boolean
+  status: ActionStatus
+  timeoutDelay: number
+  trigger: string
+}
 
 export type ActionObject = BaseActionObject &
   (
@@ -14,6 +34,7 @@ export type ActionObject = BaseActionObject &
     | PopupDismissObject
     | RefreshObject
     | SaveObject
+    | ToastObject
     | UpdateObject
   )
 
@@ -47,6 +68,12 @@ export interface EvalObject extends BaseActionObject {
   object?: Function | IfObject
 }
 
+export interface GotoActionObject extends BaseActionObject {
+  actionType: 'goto'
+  goto: string
+  [key: string]: any
+}
+
 export interface GotoObject extends BaseActionObject {
   actionType: 'goto'
   destination?: string
@@ -76,36 +103,18 @@ export interface SaveObject extends BaseActionObject {
   object?: [string, (...args: any[]) => any] | ((...args: any[]) => any)
 }
 
+export interface ToastActionObject extends BaseActionObject {
+  actionType: 'toast'
+  message: string
+  style?: Partial<StyleObject>
+}
+
 export type UpdateObject<T = any> = {
   actionType: 'updateObject'
   object?: T
 }
 
-export interface IAction<A extends BaseActionObject = any> {
-  abort(reason: string | string[], callback?: IAction<A>['callback']): void
-  actionType: A['actionType']
-  callback: ((...args: any[]) => any) | undefined
-  clearTimeout(): void
-  clearInterval(): void
-  error: null | Error
-  execute<Args = any>(args?: Args): Promise<any>
-  id: string
-  isTimeoutRunning(): boolean
-  getSnapshot(): ActionSnapshot<A>
-  original: A
-  result: any
-  resultReturned: boolean
-  status: ActionStatus
-  timeoutDelay: number
-  type: A['actionType']
-  onPending(snapshot: ActionSnapshot): any
-  onResolved(snapshot: ActionSnapshot): any
-  onError(snapshot: ActionSnapshot): any
-  onAbort(snapshot: ActionSnapshot): any
-  onTimeout: any
-}
-
-export interface ActionCallback<A extends Action = Action> {
+export interface ActionCallback<A extends Action<any> = Action<any>> {
   (snapshot: A, handlerOptions?: ConsumerOptions): any
 }
 
@@ -118,6 +127,7 @@ export interface ActionOptions<OriginalAction extends BaseActionObject = any> {
   onError?: (snapshot: ActionSnapshot<OriginalAction>) => any
   onAbort?: (snapshot: ActionSnapshot<OriginalAction>) => any
   timeoutDelay?: number
+  trigger?: string
 }
 
 export interface ActionSnapshot<OriginalAction = any> {

@@ -1,41 +1,123 @@
-// export function ensureArray(value: any, path: string) {
-//   if (value && typeof value === 'object' && typeof path === 'string') {
-//     let parts = path.split(' ')
-//     let prev: any
-//     let obj: any = value
-
+import { ComponentObject } from 'noodl-types'
 import {
-  eventTypes,
-  Component,
-  ComponentObject,
+  ComponentInstance,
   ComponentType,
+  eventTypes,
+  findParent,
+  isComponent,
   NOODLComponent,
+  SelectOption,
 } from 'noodl-ui'
+import { NOODLDOMElement } from './types'
 
+const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
+const isArr = (v: any): v is any[] => Array.isArray(v)
+const isBool = (v: any): v is boolean => typeof v === 'boolean'
+const isObj = (v: any): v is { [key: string]: any } =>
+  !!v && !isArr(v) && typeof v === 'object'
+const isNum = (v: any): v is number => typeof v === 'number'
+const isStr = (v: any): v is string => typeof v === 'string'
+const isUnd = (v: any): v is undefined => typeof v === 'undefined'
+const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
+  typeof v === 'function'
+
+/**
+ * Creates an image element that loads asynchronously
+ * @param { HTMLElement } container - Element to attach the image in
+ * @param { object } options
+ * @param { function | undefined } options.onLoad
+ */
 export function createAsyncImageElement(
   container: HTMLElement,
-  opts?: { onLoad?(event: Event): void; timeout?: number },
+  opts?: { onLoad?(event: Event): void },
 ) {
   let node = new Image()
   node.onload = (event) => {
     if (!container) container = document.body
     container.insertBefore(node as HTMLImageElement, container.childNodes[0])
     opts?.onLoad?.(event)
-    // node && (node.onload = null)
   }
   return node
 }
 
-export function ensureDatasetHandlingArr<N extends HTMLElement>(node: N) {
-  if (node && node.dataset) {
-    if (!Array.isArray(node.dataset.handling)) {
-      node.dataset.handling = [] as any
+export function createEmptyObjectWithKeys<K extends string = any, I = any>(
+  keys: K[],
+  initiatingValue?: I,
+  startingValue?: any,
+): Record<K, I> {
+  return keys.reduce(
+    (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
+    startingValue,
+  )
+}
+
+/**
+ * Creates a function that queries for a DOM node.
+ * This method searches through several window/document objects and is most
+ * useful for page consumer components
+ * @param { string } key
+ * @param { function } fn
+ */
+export function makeFinder(
+  key: 'id' | 'viewTag',
+  fn: (
+    id: string,
+    doc?: Document | null | undefined,
+  ) => NOODLDOMElement | HTMLElement | Element | null,
+) {
+  const find = (
+    c: string | ComponentInstance,
+  ): NOODLDOMElement | HTMLElement | Element | null => {
+    let str = ''
+    let cb = (doc: Document | null | undefined) => fn(str, doc)
+    if (!c) return null
+    if (isStr(c)) {
+      str = c
+    } else {
+      str = c?.[key] || c?.get?.(key) || c?.original?.[key] || ''
+      if (isPageConsumer(c)) return cb(findWindowDocument((doc) => !!cb(doc)))
+    }
+    // return fn(str)
+    return cb(findWindowDocument((doc) => !!cb(doc)))
+  }
+  return find
+}
+
+export const findByElementId = makeFinder('id', getByElementId)
+export const findByViewTag = makeFinder('viewTag', getByViewTag)
+
+export function findWindow(
+  cb: (
+    win: Window | HTMLIFrameElement['contentWindow'],
+  ) => boolean | null | undefined,
+) {
+  if (isBrowser()) {
+    if (window.length) {
+      let index = 0
+      while (index < window.length) {
+        if (cb(window[index])) return window[index]
+        index++
+      }
+    } else {
+      if (cb(window)) return window
     }
   }
+  return null
+}
+
+export function findWindowDocument(
+  cb: (
+    doc: Document | HTMLIFrameElement['contentDocument'],
+  ) => boolean | null | undefined,
+) {
+  const win = findWindow((w) => cb(w?.['contentDocument'] || w?.document))
+  return (win?.['contentDocument'] || win?.document) as
+    | Document
+    | HTMLIFrameElement['contentDocument']
 }
 
 export const get = <T = any>(o: T, k: string) => {
-  if (typeof o !== 'object' || typeof k !== 'string') return
+  if (!isObj(o) || !isStr(k)) return
 
   let parts = k.split('.').reverse()
   let result: any = o
@@ -49,12 +131,58 @@ export const get = <T = any>(o: T, k: string) => {
   return result
 }
 
+export function getByDataKey(
+  value: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | Element | null {
+  return (doc || document).querySelector(`[data-key="${value}"]`)
+}
+
+export function getByListId(
+  value: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | Element | null {
+  return (doc || document).querySelector(`[data-listid="${value}"]`)
+}
+
+export function getByViewTag(
+  value: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | Element | null {
+  return (doc || document).querySelector(`[data-viewtag="${value}"]`)
+}
+
+export function getByElementId(
+  id: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | Element | null {
+  return (doc || document).getElementById(id)
+}
+
+export function getDataAttribKeys() {
+  return [
+    'data-key',
+    'data-listid',
+    'data-name',
+    'data-viewtag',
+    'data-value',
+    'data-ux',
+  ] as (
+    | 'data-key'
+    | 'data-listid'
+    | 'data-name'
+    | 'data-viewtag'
+    | 'data-value'
+    | 'data-ux'
+  )[]
+}
+
 /**
  *
- * @param { Component | ComponentObject | ComponentType } component - NOODL component object, instance, or type
+ * @param { ComponentInstance | ComponentObject | ComponentType } component - NOODL component object, instance, or type
  */
 export function getShape(
-  component: Component,
+  component: ComponentInstance,
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
@@ -66,11 +194,11 @@ export function getShape(
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
-  components: (Component | ComponentObject | ComponentType)[],
+  components: (ComponentInstance | ComponentObject | ComponentType)[],
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
-  component: Component | ComponentObject | ComponentType,
+  component: ComponentInstance | ComponentObject | ComponentType,
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject {
   const shape = {} as ComponentObject
@@ -79,7 +207,7 @@ export function getShape(
     shapeKeys = shapeKeys.concat(
       getDynamicShapeKeys(
         opts.parent,
-        component instanceof Component
+        isComponent(component)
           ? component.original
           : (component as ComponentObject),
       ),
@@ -89,30 +217,40 @@ export function getShape(
     shapeKeys = shapeKeys.concat(opts.shapeKeys)
   }
 
-  if (component instanceof Component) {
+  if (isComponent(component)) {
     return getShape(component.original, { ...opts, parent: component.original })
-  } else if (typeof component === 'string') {
+  } else if (isStr(component)) {
     return { type: component }
-  } else if (Array.isArray(component)) {
-    return component.map((c) => getShape(c, opts))
-  } else if (component && typeof component === 'object') {
+  } else if (isArr(component)) {
+    return component.map((c) => getShape(c, opts)) as any
+  } else if (component && isObj(component)) {
     const noodlComponent = component as ComponentObject
     // The noodl yml may also place the value of iteratorVar as a property
     // as an empty string. So we include the value as a property to keep as well
     shapeKeys.forEach((key) => {
       if (key in noodlComponent) {
         if (key === 'children') {
-          shape.children = Array.isArray(noodlComponent.children)
+          // @ts-expect-error
+          shape.children = isArr(noodlComponent.children)
             ? (noodlComponent.children as ComponentObject[])?.map(
-                (noodlChild) => {
-                  return getShape(noodlChild, {
+                (noodlChild) =>
+                  getShape(noodlChild, {
                     ...opts,
                     parent: noodlComponent,
-                  })
-                },
+                  }),
               )
             : getShape(noodlComponent.children as any, {
                 ...opts,
+                // @ts-expect-error
+                noodlType:
+                  (opts as any)?.noodlType ||
+                  (isObj(noodlComponent.children)
+                    ? (noodlComponent.children as any).noodlType ||
+                      (noodlComponent.children as any).type
+                    : isStr(noodlComponent.children)
+                    ? noodlComponent.children
+                    : undefined) ||
+                  (opts as any)?.type,
                 parent: noodlComponent,
               })
         } else {
@@ -138,6 +276,7 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
     'iteratorVar',
     'listObject',
     'maxPresent',
+    'noodlType',
     'options',
     'path',
     'pathSelected',
@@ -157,6 +296,25 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
   ] as string[]
 }
 
+/**
+ * Returns the HTML DOM node or an array of HTML DOM nodes using the data-ux,
+ * otherwise returns null
+ * @param { string } key - The value of a data-ux element
+ */
+export function getByDataUX(key: string) {
+  if (isStr(key)) {
+    const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
+    if (nodeList.length) {
+      const nodes = [] as HTMLElement[]
+      nodeList.forEach((node: HTMLElement, key) => {
+        nodes.push(node)
+      })
+      return nodes.length === 1 ? nodes[0] : nodes
+    }
+  }
+  return null
+}
+
 export function getDynamicShapeKeys(
   noodlParent: ComponentObject,
   noodlChild: ComponentObject,
@@ -170,46 +328,54 @@ export function getDynamicShapeKeys(
   return shapeKeys
 }
 
-export function isHandlingEvent<N extends HTMLElement>(
-  node: N,
-  eventId: string,
-) {
-  if (node && eventId && Array.isArray(node.dataset.handling)) {
-    return node.dataset.handling.includes(eventId)
-  }
-  return false
+export function isBrowser() {
+  return typeof window !== 'undefined'
 }
 
-export const handlingDataset = (function () {
-  function _get(node: any) {
-    return node?.dataset?.handling
-  }
+/**
+ * Returns true if the value can be displayed in the UI as normal.
+ * A displayable value is any value that is a string or number
+ * @param { any } value
+ */
+export function isDisplayable(value: unknown): value is string | number {
+  return value == 0 || isStr(value) || isNum(value)
+}
 
-  function _parse(node: any) {
-    let result: any
-    if (node) {
-      try {
-        result = JSON.parse(_get(node))
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    return result || null
-  }
+/**
+ * Returns true if the component is a descendant of a component of type: "page"
+ * @param { ComponentInstance } component
+ */
+export function isPageConsumer(component: any): boolean {
+  return isComponent(component)
+    ? !!findParent(component, (parent) => parent?.noodlType === 'page')
+    : false
+}
 
-  function _insert(node: any, value: string) {
-    let result: any
-    const handling = _parse(node)
-    return result
-  }
+export function normalizeEventName(eventName: string) {
+  return isStr(eventName)
+    ? eventName.startsWith('on')
+      ? eventName.replace('on', '').toLowerCase()
+      : eventName.toLowerCase()
+    : eventName
+}
 
-  const o = {
-    parse: _parse,
-    insert: _insert,
+/**
+ * Simulates a user-click and opens the link in a new tab.
+ * @param { string } url - An outside link
+ */
+export function openOutboundURL(url: string) {
+  if (typeof window !== 'undefined') {
+    window.location.href = url
   }
+}
 
-  return o
-})()
+export function optionExists(node: HTMLSelectElement, option: any) {
+  return (
+    !!node &&
+    !!option &&
+    [...node.options].some((opt) => opt.value === toSelectOption(option).value)
+  )
+}
 
 export function isTextFieldLike(
   node: unknown,
@@ -221,4 +387,11 @@ export function isTextFieldLike(
       node.tagName === 'SELECT' ||
       node.tagName === 'TEXTAREA')
   )
+}
+
+export function toSelectOption(value: any): SelectOption {
+  if (!isObj(value)) {
+    return { key: value, label: value, value }
+  }
+  return value as SelectOption
 }

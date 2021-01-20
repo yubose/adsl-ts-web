@@ -1,17 +1,13 @@
-import _ from 'lodash'
 import {
   createEmitDataKey,
   excludeIteratorVar,
-  findListDataObject,
   findDataValue,
   isEmitObj,
 } from 'noodl-utils'
-import Logger from 'logsnap'
 import EmitAction from '../Action/EmitAction'
 import { isPromise } from '../utils/common'
+import { findListDataObject } from '../utils/noodl'
 import { ResolverFn } from '../types'
-
-const log = Logger.create('getCustomDataAttrs')
 
 /**
  * Attaches any custom data- attributes not handled in other resolvers
@@ -54,7 +50,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       ---- REFERENCES / DATAKEY 
     -------------------------------------------------------- */
 
-  if (_.isString(dataKey)) {
+  if (typeof dataKey === 'string') {
     let iteratorVar = component.get('iteratorVar') || ''
     let dataObject: any = findListDataObject(component)
     let dataPath = excludeIteratorVar(dataKey, iteratorVar) || ''
@@ -71,10 +67,9 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     // )
 
     if (isEmitObj(dataValue)) {
-      const emitAction = new EmitAction(dataValue, {
+      const emitAction = new EmitAction(dataValue as any, {
         callback: async (action, options) => {
-          const callbacks = _.reduce(
-            getCbs('action').emit || [],
+          const callbacks = (getCbs('actions').emit || []).reduce(
             (acc, obj) =>
               obj?.trigger === 'dataValue' ? acc.concat(obj) : acc,
             [] as any[],
@@ -140,25 +135,6 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       'data-name': field,
       'data-value': resolvedValue || '',
     })
-
-    // Components that find their data values through a higher level like the root object
-    //   else {
-    // if (isReference(dataKey)) {
-    //   if (resolvedValue != undefined) component.set('data-value', resolvedValue)
-    //   else {
-    //     component.set(
-    //       'data-value',
-    //       resolvedValue != undefined
-    //         ? resolvedValue
-    //         : parser.getByDataKey(
-    //             dataKey,
-    //             showDataKey
-    //               ? dataKey
-    //               : component.get('text') || component.get('placeholder'),
-    //           ),
-    //     )
-    //   }
-    // }
   }
 
   /* -------------------------------------------------------
@@ -183,6 +159,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
     } else {
       // TODO convert others to use data-view-tag
       component.set('data-viewtag', viewTag)
+      if (!component.get('data-ux')) component.set('data-ux', viewTag)
     }
   }
 }

@@ -6,7 +6,7 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
-import { terser } from 'rollup-plugin-terser'
+// import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 
@@ -20,7 +20,6 @@ const config = {
       name: 'noodluidom',
       sourcemap: 'inline-source-map',
       globals: {
-        logsnap: 'Logger',
         'noodl-ui': 'noodlui',
       },
     },
@@ -46,11 +45,11 @@ const config = {
     babel({
       babelHelpers: 'runtime',
       include: ['src/**/*'],
-      exclude: ['node_modules'],
+      exclude: ['node_modules/**/*'],
       extensions,
     }),
     // Env var set by root lerna repo
-    ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),
+    // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),
   ],
 }
 

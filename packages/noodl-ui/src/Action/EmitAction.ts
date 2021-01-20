@@ -1,23 +1,19 @@
-import _ from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
-import {
-  EmitActionObject,
-  ActionOptions,
-  EmitTrigger,
-  EmitObject,
-} from '../types'
+import { IAction, ActionOptions, EmitActionObject, EmitTrigger } from '../types'
 import Action from './Action'
 
 const log = Logger.create('EmitAction')
 
-class EmitAction extends Action<EmitObject> {
+class EmitAction<OriginalAction extends EmitActionObject>
+  extends Action<OriginalAction>
+  implements IAction {
   dataKey: string | { [key: string]: any } | undefined
   actions: any[] | undefined
   iteratorVar: string | undefined
-  #trigger: EmitTrigger | undefined
 
   constructor(
-    action: EmitObject,
+    action: OriginalAction,
     options?: ActionOptions<EmitActionObject> &
       Partial<{
         dataKey?: any
@@ -26,22 +22,13 @@ class EmitAction extends Action<EmitObject> {
       }>,
   ) {
     super({ ...action, actionType: 'emit' }, options)
-    this['actions'] = action?.emit?.actions
+    this.actions = action?.emit?.actions
     this.setDataKey(options?.dataKey || action?.emit?.dataKey)
-    this['trigger'] = options?.trigger
     if (options?.iteratorVar) this.set('iteratorVar', options.iteratorVar)
     if (options?.callback) this.callback = options.callback
   }
 
-  get trigger() {
-    return this.#trigger
-  }
-
-  set trigger(trigger: EmitTrigger | undefined) {
-    this.#trigger = trigger
-  }
-
-  set(key: 'dataKey' | 'iteratorVar' | 'trigger', value: any) {
+  set(key: 'dataKey' | 'iteratorVar' | 'trigger' | 'placeholder', value: any) {
     this[key] = value
     return this
   }
@@ -65,9 +52,9 @@ class EmitAction extends Action<EmitObject> {
       }
     } else if (arguments.length === 2) {
       if (typeof property === 'string') {
-        if (!_.isPlainObject(this.dataKey)) this.dataKey = {}
+        if (!isPlainObject(this.dataKey)) this.dataKey = {}
         Object.assign(this.dataKey, value)
-      } else if (_.isPlainObject(property)) {
+      } else if (isPlainObject(property)) {
         Object.assign(this.dataKey, property)
       }
     }

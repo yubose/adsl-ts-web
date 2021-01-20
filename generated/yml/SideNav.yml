@@ -1,0 +1,85 @@
+SideNav: # This is page name
+  module: meeting
+  pageNumber: "4"
+  formData:
+    userName: .Global.currentUser.vertex.name.userName
+    avatar: .Global.currentUser.vertex.name.avatar
+  components:
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: view
+          onClick: 
+            - actionType: pageJump
+              destination: ChatList
+          style:
+            left: "0"
+            top: "0"
+            width: "0.2"
+            height: "0.15"
+            backgroundColor: "0x388eccff"
+          children:
+            - type: image
+              path: ~/assets/meetingRoomMore.png
+              onClick: 
+                - actionType: pageJump
+                  destination: ChatList
+              style:
+                left: "0.0533"
+                top: "0.04"
+                width: "0.096"
+                height: "0.04904" 
+        - type: view
+          style:
+            left: "0.2"
+            top: "0"
+            width: "0.001"
+            height: "1"         
+            backgroundColor: "0x00000011"
+        - type: view
+          style:
+            left: "0.2"
+            top: "0"
+            width: "0.8"
+            height: "1"
+          children:
+            - type: view
+              style:
+                left: "0.1"
+                top: "0.9"
+                width: "0.74667"
+                height: "0.0408"
+                onClick: 
+                  - actionType: pageJump
+                    destination: Logout
+              children:
+                - type: image
+                  path: ~/assets/logout.png
+                  style:
+                    left: "0"
+                    top: "0"
+                    width: "0.08"
+                    height: "0.04"
+                - type: button
+                  text: Log out
+                  onClick: 
+                    - actionType: pageJump
+                      destination: Logout
+                  style:
+                    color: "0x0000008c"
+                    backgroundColor: "0x00000000"
+                    fontSize: "13"
+                    fontStyle: bold
+                    left: "0.08"
+                    top: "0"
+                    width: "0.6667"
+                    height: "0.04"
+                    textAlign:
+                      x: left
+                      y: center
+                    border:
+                      style: "1"

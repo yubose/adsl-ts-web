@@ -1,9 +1,13 @@
-import _ from 'lodash'
+import get from 'lodash/get'
 import Logger from 'logsnap'
-import { isBooleanTrue, isEmitObj } from 'noodl-utils'
+import { createEmitDataKey, isBooleanTrue, isEmitObj } from 'noodl-utils'
+import EmitAction from '../Action/EmitAction'
 import { contentTypes } from '../constants'
-import { ResolverFn } from '../types'
+import getStore from '../store'
+import { EmitActionObject, ResolverFn, StoreActionObject } from '../types'
 import { isPromise } from '../utils/common'
+import isReference from '../utils/isReference'
+import { findListDataObject } from '../utils/noodl'
 
 const log = Logger.create('getTransformedAliases')
 
@@ -11,7 +15,8 @@ const log = Logger.create('getTransformedAliases')
  * Renames some keywords to align more with html/css/etc
  *  ex: resource --> src (for images)
  */
-const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
+const getTransformedAliases: ResolverFn = (component, consumerOptions) => {
+  const { context, createSrc, getPageObject, getRoot } = consumerOptions
   const {
     type,
     contentType,
@@ -19,6 +24,7 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
     path,
     resource,
     required,
+    placeholder,
     poster,
     controls,
   } = component.get([
@@ -26,6 +32,7 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
     'contentType',
     'options',
     'path',
+    'placeholder',
     'resource',
     'required',
     'poster',
@@ -56,13 +63,13 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
   }
 
   if (required) component.set('required', isBooleanTrue(required))
-  if (_.isBoolean(controls)) component.set('controls', controls)
+  if (typeof controls === 'boolean') component.set('controls', controls)
   if (poster) component.set('poster', createSrc(poster))
 
   if (path || resource) {
     let src = path || resource || ''
     if (isEmitObj(src)) {
-      src = createSrc(src)
+      src = createSrc(src as any)
       if (isPromise(src)) {
         src
           .then((result: string) => {
@@ -75,7 +82,6 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
           .finally(() => {
             if (isPromise(src)) {
               src.then((r) => {
-                console.log('Received src', r)
                 component.set(
                   'src',
                   isPromise(r)
@@ -128,9 +134,9 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
   }
 
   // Select components
-  if (_.isArray(options)) {
+  if (options) {
     const toOption = (option: any, index: number) =>
-      _.isString(option) || _.isNumber(option)
+      typeof option === 'string' || typeof option === 'number'
         ? {
             index,
             key: option,
@@ -138,7 +144,85 @@ const getTransformedAliases: ResolverFn = (component, { createSrc }) => {
             label: option,
           }
         : option
-    component.set('options', _.map(options, toOption))
+    if (Array.isArray(options)) {
+      component.set('options', options.map(toOption))
+    } else if (isReference(options)) {
+      const optionsPath = options.startsWith('.')
+        ? options.replace(/(..|.)/, '')
+        : options
+      const dataOptions =
+        get(getPageObject(context.page), optionsPath) ||
+        get(getRoot(), optionsPath) ||
+        []
+      component.set('options', dataOptions.map(toOption))
+    }
+  }
+
+  if (isEmitObj(placeholder)) {
+    const obj = getStore().actions.emit?.find?.(
+      (o) => o.trigger === 'placeholder',
+    )
+
+    if (typeof obj?.fn === 'function') {
+      const emitObj = { ...placeholder, actionType: 'emit' } as EmitActionObject
+      const emitAction = new EmitAction(emitObj, {
+        iteratorVar: component?.get('iteratorVar'),
+        trigger: 'placeholder',
+      })
+      if ('dataKey' in (emitAction.original.emit || {})) {
+        emitAction.setDataKey(
+          createEmitDataKey(
+            emitObj.emit.dataKey,
+            [
+              findListDataObject(component),
+              () => getPageObject(context.page),
+              () => getRoot(),
+            ],
+            { iteratorVar: emitAction.iteratorVar },
+          ),
+        )
+      }
+
+      emitAction['callback'] = async (snapshot) => {
+        log.grey(`Executing emit [placeholder] action callback`, snapshot)
+        const callbacks = (getStore().actions.emit || []).reduce(
+          (acc, obj) =>
+            obj?.trigger === 'placeholder' ? acc.concat(obj) : acc,
+          [],
+        )
+
+        if (!callbacks.length) return ''
+
+        const result = await Promise.all(
+          callbacks.map((obj: StoreActionObject) =>
+            obj?.fn?.(
+              emitAction,
+              { ...consumerOptions, placeholder },
+              context.actionsContext,
+            ),
+          ),
+        )
+
+        return (Array.isArray(result) ? result[0] : result) || ''
+      }
+
+      const result = emitAction.execute(placeholder) as string | Promise<string>
+
+      log.grey(`Result received from emit [placeholder] action`, {
+        action: emitAction,
+        result,
+      })
+
+      if (isPromise(result)) {
+        result
+          .then((res) => {
+            component.set('placeholder', res).emit('placeholder', res)
+          })
+          .catch((err) => Promise.reject(err))
+      } else if (result) {
+        component.set('placeholder', result).emit('placeholder', result)
+      }
+    }
   }
 }
 

@@ -1,5 +1,5 @@
-import _ from 'lodash'
 import Logger from 'logsnap'
+import { GotoObject, GotoUrl, ToastObject } from 'noodl-types'
 import {
   IAction,
   ActionCallback,
@@ -7,24 +7,26 @@ import {
   ActionSnapshot,
   ActionStatus,
   ActionObject,
-  BaseActionObject,
+  GotoActionObject,
+  ToastActionObject,
 } from '../types/actionTypes'
 import { getRandomKey } from '../utils/common'
 import { AbortExecuteError } from '../errors'
+import { ComponentType } from '../types'
 
 const log = Logger.create('Action')
 
 export const DEFAULT_TIMEOUT_DELAY = 8000
 
-class Action<OriginalAction extends BaseActionObject = ActionObject>
-  implements IAction<any> {
+class Action<
+  OriginalAction extends
+    | ActionObject
+    | GotoActionObject
+    | ToastActionObject = any
+> implements IAction {
   #id: string
   #callback: ActionCallback | undefined
-  #onPending: (snapshot: ActionSnapshot) => any
-  #onResolved: (snapshot: ActionSnapshot) => any
-  #onError: (snapshot: ActionSnapshot) => any
-  #onAbort: (snapshot: ActionSnapshot) => any
-  #onTimeout: any
+  #trigger: string
   #status: ActionStatus = null
   #timeout: NodeJS.Timeout | null = null
   #timeoutRemaining: number | null = null
@@ -36,10 +38,9 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
   result: any
   resultReturned: boolean = false
   timeoutDelay: number = DEFAULT_TIMEOUT_DELAY
-  type: OriginalAction['actionType']
   actionType: OriginalAction['actionType']
 
-  constructor(action: OriginalAction, options?: ActionOptions<OriginalAction>) {
+  constructor(action: OriginalAction, options?: ActionOptions<ActionObject>) {
     log.func('constructor')
     if (!action || !('actionType' in action)) {
       log.red(
@@ -52,9 +53,16 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
     this.#callback = options?.callback
     this.original = action
     this.timeoutDelay = options?.timeoutDelay || DEFAULT_TIMEOUT_DELAY
-    this.type = action.actionType // TODO - Deprecate this.type for this.actionType
-    this.actionType =
-      action.actionType || ('emit' in action || {} ? 'emit' : '')
+    if (typeof action === 'string') {
+      this.actionType = 'goto'
+    } else {
+      if ('emit' in action) this.actionType = 'emit'
+      else if ('goto' in action) this.actionType = 'goto'
+      else if ('toast' in action) this.actionType = 'toast'
+      else this.actionType = action['actionType']
+    }
+
+    if (options?.trigger) this.#trigger = options.trigger
   }
 
   /**
@@ -62,7 +70,7 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
    * passing in any additional arguments
    * @param { any } args - Arguments passed to the executor function
    */
-  async execute<Args = any>(args?: Args): Promise<any> {
+  async execute<Args extends any[]>(...args: Args): Promise<any> {
     log.func('execute')
     try {
       if (this.#timeout) this.clearTimeout()
@@ -83,16 +91,8 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
         this.status = 'timed-out'
       }, this.timeoutDelay || DEFAULT_TIMEOUT_DELAY)
 
-      log.func(`execute --> ${this.type}`)
-      log.hotpink(
-        `${
-          this.type === 'builtIn' ? `funcName: ${this.original.funcName}` : ''
-        }Executing`,
-        { snapshot: this.getSnapshot(), args },
-      )
-
       // TODO - Logic for return values as objects (new if/ condition in action chains)
-      this.result = await this.callback?.(this, args)
+      this.result = await this.callback?.(this, ...args)
       if (this.result !== undefined) this['resultReturned'] = true
       this.status = 'resolved'
 
@@ -101,34 +101,11 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
       this.error = error
       this.status = 'error'
       // TODO more thought on this
-      if (error instanceof AbortExecuteError) {
-        log.red('Caught an AbortExecuteError error', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        })
-        throw error
-      } else {
-        throw error
-      }
+      throw error
     } finally {
       this.clearTimeout()
       this.clearInterval()
       this.executed = true
-
-      const logArgs = {
-        snapshot: this.getSnapshot(),
-        args,
-      }
-
-      if (this.result) logArgs['result'] = this.result
-
-      log.func(
-        `${this.type}${
-          this.type === 'builtIn' ? ` ---> ${this.original.funcName}` : ''
-        }`,
-      )
-      log.hotpink('Executed', logArgs)
     }
   }
 
@@ -138,21 +115,28 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
 
   set callback(callback: ActionCallback | undefined) {
     this.#callback = callback
-    this['hasExecutor'] = _.isFunction(this.#callback)
+    this.hasExecutor = typeof this.#callback === 'function'
+  }
+
+  get trigger() {
+    return this.#trigger
+  }
+
+  set trigger(trigger: string) {
+    this.#trigger = trigger
   }
 
   get id() {
     return this.#id
   }
-
   // Returns an update-to-date JS representation of this instance
   // This is needed to log to the console the current state instead of logging
   // this instance directly where values will not be as expected
   getSnapshot(): ActionSnapshot<OriginalAction> {
     const snapshot = {
-      actionType: this.type as string,
+      actionType: this.actionType,
       hasExecutor: this.hasExecutor,
-      id: this.id as string,
+      id: this.id,
       original: this.original,
       status: this.status,
       timeout: {
@@ -171,80 +155,25 @@ class Action<OriginalAction extends BaseActionObject = ActionObject>
 
   set status(status: ActionStatus) {
     this.#status = status
-    if (status === 'pending') this.onPending?.(this.getSnapshot())
-    if (status === 'resolved') this.onResolved?.(this.getSnapshot())
-    if (status === 'error') this.onError?.(this.getSnapshot())
-    if (status === 'timed-out') this.onTimeout?.(this.getSnapshot())
-    if (status === 'aborted') this.onAbort?.(this.getSnapshot())
-  }
-
-  get onPending() {
-    return this.#onPending
-  }
-
-  set onPending(onPending: (snapshot: ActionSnapshot<OriginalAction>) => any) {
-    this.#onPending = onPending
-  }
-
-  set onResolved(
-    onResolved: (snapshot: ActionSnapshot<OriginalAction>) => any,
-  ) {
-    this.#onResolved = onResolved
-  }
-
-  get onResolved() {
-    return this.#onResolved
-  }
-
-  set onError(onError: (snapshot: ActionSnapshot<OriginalAction>) => any) {
-    this.#onError = onError
-  }
-
-  get onError() {
-    return this.#onError
-  }
-
-  set onAbort(onAbort: (snapshot: ActionSnapshot<OriginalAction>) => any) {
-    this.#onAbort = onAbort
-  }
-
-  get onAbort() {
-    return this.#onAbort
   }
 
   abort(reason: string | string[], callback?: Function) {
-    if (_.isArray(reason)) {
-      reason = reason.join(', ')
-    }
-    if (this.isTimeoutRunning()) {
-      this.clearTimeout()
-    }
+    if (Array.isArray(reason)) reason = reason.join(', ')
+    if (this.isTimeoutRunning()) this.clearTimeout()
     this.status = 'aborted'
     const err = new AbortExecuteError(reason)
     callback?.(err)
     throw err
   }
 
-  set onTimeout(onTimeout: (snapshot: ActionSnapshot<OriginalAction>) => any) {
-    this.#onTimeout = onTimeout
-  }
-
-  get onTimeout() {
-    return this.#onTimeout
-  }
-
   clearTimeout() {
-    if (this.#timeout) {
-      clearTimeout(this.#timeout)
-    }
+    if (this.#timeout) clearTimeout(this.#timeout)
     this.#timeout = null
     this.#timeoutRemaining = null
   }
 
   clearInterval() {
-    if (this.#timeoutInterval) {
-      clearInterval(this.#timeoutInterval)
-    }
+    if (this.#timeoutInterval) clearInterval(this.#timeoutInterval)
     this.#timeoutInterval = null
     this.#timeoutRemaining = null
   }

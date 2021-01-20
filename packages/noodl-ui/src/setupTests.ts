@@ -1,33 +1,41 @@
-import _ from 'lodash'
 import sinon from 'sinon'
 import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
-import Logger, { _color } from 'logsnap'
-import { assetsUrl, noodlui } from './utils/test-utils'
+import sinonChai from 'sinon-chai'
+import { getAllResolversAsMap } from './utils/getAllResolvers'
+import Resolver from './Resolver'
+import { assetsUrl, noodlui, viewport } from './utils/test-utils'
+import getStore from './store'
 
-chai.use(chaiAsPromised)
+chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 
-before(async () => {
+before(() => {
   console.clear()
-  Logger.disable()
+  noodlui.init({ _log: false })
+  noodlui.use(viewport)
+
   try {
-    logSpy = sinon.stub(global.console, 'log').callsFake(() => _.noop)
+    logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
   } catch (error) {
     throw new Error(error.message)
   }
 })
 
 beforeEach(() => {
-  noodlui
-    .init({
-      _log: false,
-    })
-    .use({
-      getAssetsUrl: () => assetsUrl,
-      getRoot: () => ({}),
-    })
+  Object.entries(getAllResolversAsMap()).forEach(([name, resolver]) => {
+    const r = new Resolver().setResolver(resolver)
+    noodlui.use(r)
+    noodlui.use({ name, resolver: r })
+    getStore().use({ name, resolver: r })
+  })
+  noodlui.viewport.width = 375
+  noodlui.viewport.height = 667
+  noodlui.use({
+    getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => 'https://google.com/',
+    getRoot: () => ({}),
+  })
 })
 
 after(() => {
@@ -35,6 +43,8 @@ after(() => {
 })
 
 afterEach(() => {
+  document.head.textContent = ''
   document.body.textContent = ''
-  noodlui.cleanup()
+  // Resets plugins, registry and noodlui.page
+  noodlui.reset()
 })

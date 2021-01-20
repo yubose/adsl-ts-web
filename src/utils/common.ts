@@ -1,25 +1,15 @@
-import _ from 'lodash'
+import spread from 'lodash/spread'
+import isPlainObject from 'lodash/isPlainObject'
 
-/**
- * Runs a series of functions from left to right, passing in the argument of the
- *    invokee to each function
- * @param { function[] } fns - Arguments of functions
- */
-
-export function callAll(...fns: any[]) {
-  return (...args: any[]) =>
-    fns.forEach((fn) => typeof fn === 'function' && fn(...args))
-}
-
-/**
- * Takes a string that is a unicode, decodes it and returns the result
- *    (Useful for rendering raw unicode because react sanitizes input)
- * @param { string } value
- */
-export function decodeUnicode(value: string) {
-  return value.replace(/\\u(\w\w\w\w)/g, (a, b) => {
-    return String.fromCharCode(parseInt(b, 16))
-  })
+export function createEmptyObjectWithKeys<K extends string = any, I = any>(
+  keys: K[],
+  initiatingValue?: I,
+  startingValue?: any,
+): Record<K, I> {
+  return keys.reduce(
+    (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
+    startingValue,
+  )
 }
 
 /**
@@ -32,8 +22,8 @@ export function forEachEntries<Obj>(
   value: Obj,
   callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
 ) {
-  if (value && _.isObject(value)) {
-    _.forEach(_.entries(value), _.spread(callback))
+  if (value && typeof value === 'object') {
+    Object.entries(value).forEach(spread(callback))
   }
 }
 
@@ -48,47 +38,13 @@ export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
   value: Obj | undefined,
   callback: (key: string, value: Obj[K], obj: Obj) => void,
 ) {
-  if (_.isArray(value)) {
-    _.forEach(value, (val) => forEachDeepEntries(val, callback))
-  } else if (_.isPlainObject(value)) {
+  if (Array.isArray(value)) {
+    value.forEach((val) => forEachDeepEntries(val, callback))
+  } else if (isPlainObject(value)) {
     forEachEntries(value as Obj, (k, v: Obj[K]) => {
       callback(k, v, value as Obj)
       forEachDeepEntries(v, callback as any)
     })
-  }
-}
-
-/**
- * Runs forEach on each key/value pair of the value, passing in the key as the first
- * argument and the value as the second argument on each iteration
- * @param { object } value
- * @param { function } callback - Callback function to run on each key/value entry
- */
-export function forEachEntriesOnObj<Obj>(
-  value: Obj,
-  callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
-) {
-  if (value && _.isObject(value)) {
-    _.forEach(_.entries(value), _.spread(callback))
-    callback('', value)
-  }
-}
-
-/**
- * Runs forEach on each key/value pair of the value, passing in the key as the first
- * argument and the value as the second argument on each iteration.
- * This is a recursion version of forEachEntries
- * @param { object } value
- * @param { function } callback - Callback function to run on each key/value entry
- */
-export function forEachDeepEntriesOnObj<Obj extends {}, K extends keyof Obj>(
-  value: Obj | undefined,
-  callback: (key: string, value: Obj[K], obj: Obj) => void,
-) {
-  if (_.isArray(value)) {
-    _.forEach(value, (val) => forEachDeepEntriesOnObj(val, callback))
-  } else if (_.isPlainObject(value)) {
-    forEachDeepEntries(value as Obj, callback)
   }
 }
 
@@ -126,56 +82,63 @@ export function getAspectRatio(width: number, height: number) {
  * @return { boolean }
  */
 export function isMobile() {
-  return _.isString(navigator?.userAgent)
+  return typeof navigator?.userAgent === 'string'
     ? /Mobile/.test(navigator.userAgent)
     : false
 }
 
-/** Returns true if the string is potentially a unicode string
- * @param { string } value
+/**
+ * Parses a NOODL destination, commonly received from goto
+ * or pageJump actions as a string. The return value (for now) is
+ * intended to be directly assigned to page.pageUrl (subject to change)
+ * The target string to analyze here is the "destination" which might come
+ * in various forms such as:
+ *    GotoViewTag#redTag
+ *
+ * @param { string } pageUrl - Current page url (should be page.pageUrl from the Page instance)
+ * @param { string } options.destination - Destination
+ * @param { string } options.startPage
  */
-export function isUnicode(value: unknown) {
-  return _.isString(value) && value.startsWith('\\u')
-}
+export function resolvePageUrl({
+  destination = '',
+  pageUrl = '',
+  startPage = '',
+}: {
+  destination: string
+  pageUrl: string
+  startPage?: string
+}) {
+  pageUrl = pageUrl?.startsWith?.('index.html?')
+    ? pageUrl
+    : pageUrl + 'index.html?'
 
+  let separator = pageUrl.endsWith('?') ? '' : '-'
+
+  if (destination !== startPage) {
+    const questionMarkIndex = pageUrl.indexOf(`?${destination}`)
+    const hyphenIndex = pageUrl.indexOf(`-${destination}`)
+    if (questionMarkIndex !== -1) {
+      pageUrl = pageUrl.substring(0, questionMarkIndex + 1)
+      separator = pageUrl.endsWith('?') ? '' : '-'
+      pageUrl += `${separator}${destination}`
+    } else if (hyphenIndex !== -1) {
+      pageUrl = pageUrl.substring(0, hyphenIndex)
+      separator = pageUrl.endsWith('?') ? '' : '-'
+      pageUrl += `${separator}${destination}`
+    } else {
+      pageUrl += `${separator}${destination}`
+    }
+  } else {
+    pageUrl = 'index.html?'
+  }
+  return pageUrl
+}
 /**
  * Simulates a user-click and opens the link in a new tab.
  * @param { string } url - An outside link
  */
 export function openOutboundURL(url: string) {
   if (typeof window !== 'undefined') {
-    // const a = document.createElement('a')
-    // a.href = url
-    // a.setAttribute('target', '_blank')
-    // a.setAttribute('rel', 'noopener noreferrer')
-    // a.click()
     window.location.href = url
   }
-}
-
-/**
- * Runs reduce on each key/value pair of the value, passing in the key and value as an
- * object like { key, value } on each iteration as the second argument
- * @param { object } value
- * @param { function } callback - Callback to invoke on the key/value object. This function should be in the form of a reducer callback
- * @param { any? } initialValue - An optional initial value to start the accumulator with
- */
-export function reduceEntries<Obj>(
-  value: Obj,
-  callback: <K extends keyof Obj>(
-    acc: any,
-    { key, value }: { key: K; value: Obj[K] },
-    index: number,
-  ) => typeof acc,
-  initialValue?: any,
-) {
-  if (value && _.isObject(value)) {
-    return _.reduce(
-      _.entries(value),
-      (acc, [k, v], index) =>
-        callback(acc, { key: k as keyof Obj, value: v }, index),
-      initialValue,
-    )
-  }
-  return value
 }

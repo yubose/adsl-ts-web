@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import chalk from 'chalk'
 import { createObjWithKeys, createRegexpByKeywords } from './utils/common'
 import * as log from './utils/log'
@@ -40,7 +39,7 @@ async function getAllKeywordOccurrences({
     }
 
     base.onBaseItems = () => {
-      _.forEach(_.keys(base.items), (name) => {
+      Object.keys(base.items).forEach((name) => {
         name && log.green(`Retrieved ${name}`)
       })
     }
@@ -53,7 +52,7 @@ async function getAllKeywordOccurrences({
       includePages: true,
     })
 
-    const allObjects = _.map(_.entries(items), ([key, value]) => ({
+    const allObjects = Object.entries(items).map(([key, value]) => ({
       data: value,
       filename: key,
       filepath: '',
@@ -112,7 +111,7 @@ function createAccumulator(keywords: string[]) {
         results: createObjWithKeys(keywords, {}),
       }
     }
-    if (!_.isArray(stats[pageName].results[key])) {
+    if (!Array.isArray(stats[pageName].results[key])) {
       stats[pageName].results[key] = []
     }
     stats[pageName].results[key].push({ value })

@@ -1,11 +1,13 @@
+import orderBy from 'lodash/orderBy'
+
 // Sorts properties alphabetically  and returns the new object
-import _ from 'lodash'
 
 function sortObjByProperties(obj: any) {
-  if (_.isObject(obj)) {
-    const sortedKeys = _.orderBy(_.keys(obj), 'asc')
-    const fn = (acc: any, key: string) => _.assign(acc, { [key]: obj[key] }, {})
-    return _.reduce(sortedKeys, fn, {})
+  if (typeof obj === 'object') {
+    const sortedKeys = orderBy(Object.keys(obj), 'asc')
+    const fn = (acc: any, key: string) =>
+      Object.assign(acc, { [key]: obj[key] }, {})
+    return sortedKeys.reduce(fn, {})
   }
   return obj
 }

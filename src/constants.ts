@@ -1,25 +1,28 @@
+export const CACHED_PAGES = 'CACHED_PAGES'
+
 export const modalIds = {
   VERIFICATON_CODE: 'VERIFICATON_CODE',
 } as const
 
-export const CACHED_PAGES = 'CACHED_PAGES'
-
-/** Page render statuses */
-export const renderStatus = {
-  idle: '',
-  initiating: 'initiating',
-  initializingRootNode: 'initializing.root.node',
-  initializedRootNode: 'initialized.root.node',
-  initializeRootNodeFailed: 'initialize.root.node.failed',
-  renderingComponents: 'rendering.components',
-  renderedComponents: 'rendered.components',
-  renderComponentsFailed: 'render.components.failed',
-  cached: 'cached',
-  receivedSnapshot: 'received.snapshot',
-  rendered: 'rendered',
+/** Ordered by occurrence */
+export const pageEvent = {
+  ON_NAVIGATE_START: 'on:navigate.start',
+  ON_NAVIGATE_ABORT: 'on:navigate.abort',
+  ON_OUTBOUND_REDIRECT: 'on:outbound.redirect',
+  ON_BEFORE_RENDER_COMPONENTS: 'on:before.render.components',
+  ON_COMPONENTS_RENDERED: 'on:components.rendered',
+  ON_NAVIGATE_ERROR: 'on:navigate.error',
+  ON_MODAL_STATE_CHANGE: 'on:modal.state.change',
 } as const
 
-/** NOODL DOM Parser event names */
-export const noodlDomParserEvents = {
-  onCreateNode: 'on.create.node',
+/** Ordered by occurrence */
+export const pageStatus = {
+  IDLE: 'status:idle',
+  NAVIGATING: 'status:navigating',
+  NAVIGATE_ERROR: 'status:navigate.error',
+  SNAPSHOT_RECEIVED: 'status:snapshot.received',
+  RESOLVING_COMPONENTS: 'status:resolving.components',
+  COMPONENTS_RECEIVED: 'status:components.resolved',
+  RENDERING_COMPONENTS: 'status:rendering.components',
+  COMPONENTS_RENDERED: 'status:components.rendered',
 } as const

@@ -9,3 +9,26 @@
 ```bash
 npm install --save noodl-ui-dom
 ```
+
+- noodlui.assetsUrl
+  - `#getAssetsUrl`
+- noodlui.componentCache
+- noodlui.createSrc
+  - `#getAssetsUrl`
+  - `#getBaseUrl`
+  - `#getPreloadPages`
+  - `#getPages`
+  - `getPageObject`
+  - `#getRoot`
+  - `#getConsumerOptions`
+- noodlui.getContext
+  - `actionsContext`
+  - `assetsUrl`
+  - `page`
+- noodlui.page
+- noodlui.resolveComponents
+  - `getBaseStyles`
+  - `getConsumerOptions`
+  - `plugins`
+- noodlui.root
+  - `#getRoot`

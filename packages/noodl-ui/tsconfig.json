@@ -12,10 +12,11 @@
     "noImplicitAny": true,
     "outDir": "dist",
     "strictNullChecks": true,
+    "skipLibCheck": true,
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "esnext"
   },
-  "exclude": ["node_modules/**/*", "dist"],
+  "exclude": ["node_modules", "dist"],
   "include": ["src"]
 }

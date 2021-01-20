@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { hasDecimal, hasLetter } from '../utils/common'
 import { ResolverFn } from '../types'
 
@@ -6,21 +5,21 @@ import { ResolverFn } from '../types'
  * Returns attributes according to NOODL position properties like 'top', 'left'
  */
 const getPosition: ResolverFn = (component, { viewport }) => {
-  if (!viewport) return
+  if (!viewport || !component) return
   const { style } = component
 
-  if (style) {
+  if (typeof style === 'object') {
     let styles
     if ('zIndex' in style) {
       component.setStyle('zIndex', Number(style.zIndex))
     }
-    if (!_.isUndefined(style.top)) {
+    if (typeof style.top !== 'undefined') {
       styles = handlePosition(style, 'top', viewport.height as number)
       if (styles) {
         component.assignStyles(styles)
       }
     }
-    if (!_.isUndefined(style.left)) {
+    if (typeof style.left !== 'undefined') {
       styles = handlePosition(style, 'left', viewport.width as number)
       if (styles) {
         component.assignStyles(styles)
@@ -32,7 +31,7 @@ const getPosition: ResolverFn = (component, { viewport }) => {
 function handlePosition(styleObj: any, key: string, viewportSize: number) {
   const value = styleObj[key]
   // String
-  if (_.isString(value)) {
+  if (typeof value === 'string') {
     if (value == '0') {
       return { [key]: '0px' }
     } else if (value == '1') {
