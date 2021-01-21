@@ -1,3 +1,5 @@
+// @ts-expect-error
+process.env.TS_CONFIG_PATHS = true
 process.env.TS_NODE_PROJECT = 'tsconfig.test.json'
 import 'ts-mocha'
 import 'jsdom-global/register'
@@ -12,8 +14,7 @@ const cli = new Command()
 
 cli.parse(process.argv)
 
-const getFilePath = (...args: string[]) =>
-  path.resolve(path.join(process.cwd(), ...args))
+const getFilePath = (...args) => path.resolve(path.join(process.cwd(), ...args))
 
 const dirs = {
   noodlui: 'packages/noodl-ui',
@@ -25,6 +26,10 @@ const getFilesList = async () => {
   switch (cli.args[0]) {
     case 'redraw':
       return globby(path.join(dirs.noodluidom, 'src/__tests__/redraw.test.ts'))
+    case 'resolver':
+      return [
+        path.join(dirs.noodlui, 'src/__tests__/ComponentResolver.test.ts'),
+      ]
     default:
       return []
   }
@@ -41,17 +46,19 @@ const mocha = new Mocha({
     afterEach() {},
   },
   inlineDiffs: true,
+
   // parallel: true,
   // reporter: 'list',
   ui: 'bdd',
 })
 
-mocha.enableGlobalSetup(true)
+// mocha.enableGlobalSetup(true)
 
-mocha.globalSetup((done) => {
-  import(getFilePath(dirs.noodluidom, 'src/setupTests.ts'))
-  done()
-})
+// mocha.globalSetup((done) => {
+//   // import(getFilePath(dirs.noodluidom, 'src/setupTests.ts'))
+
+//   done()
+// })
 
 getFilesList()
   .then((files) => {

@@ -105,7 +105,7 @@ describe(chalk.keyword('orange')('ComponentResolver'), () => {
     })
   })
 
-  describe(`when getting the resolved results`, () => {
+  describe.only(`when getting the resolved results`, () => {
     it(`should resolve the border`, () => {
       const [result] = pageResolver.resolveComponents()
       expect(result.style).to.have.property('borderRadius', '0px')
