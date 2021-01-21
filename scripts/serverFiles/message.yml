@@ -1,22 +1,22 @@
 apiHost: ecostest.aitmed.com
-apiPort: "443"
+apiPort: '443'
 webApiHost: apiHost
 appApiHost: apiHost
-connectiontimeout: "5"
+connectiontimeout: '5'
 loadingLevel: 1
 debug: console_log_api
 web:
-  cadlVersion:
+  cadlVersion :
     stable: 0.1
-    test: 0.1
+    test : 0.1
 ios:
   cadlVersion:
     stable: 0.1
-    test: 0.1
+    test : 0.1
 android:
   cadlVersion:
-    stable: 0.1
-    test: 0.1
+    stable : 0.1
+    test : 0.1
 cadlBaseUrl: https://s3.us-east-2.amazonaws.com/public.aitmed.com/cadl/message_${cadlVersion}/
 cadlMain: cadlEndpoint.yml
 timestamp: 11062020

@@ -2,6 +2,7 @@
 _data
 build
 dist
+generated
 node_modules
 compiled
 scripts/objects/**

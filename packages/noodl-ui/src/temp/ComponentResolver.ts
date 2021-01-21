@@ -5,9 +5,9 @@ import set from 'lodash/set'
 import unset from 'lodash/unset'
 import pick from 'lodash/pick'
 import omit from 'lodash/omit'
+import initial from 'lodash/initial'
 import has from 'lodash/has'
 import merge from 'lodash/merge'
-import update from 'lodash/update'
 import { WritableDraft, current } from 'immer/dist/internal'
 import produce, { applyPatches, enablePatches, produceWithPatches } from 'immer'
 import ActionChain from '../ActionChain'
@@ -16,41 +16,16 @@ import getStore from '../store'
 import componentCache from '../utils/componentCache'
 import Viewport from '../Viewport'
 import runner from './Runner'
-import EmitAction from '../Action/EmitAction'
-import Action from '../Action'
 import consumers from './consumers/index'
 import { consumer as c } from '../constants'
 import * as T from '../types'
 import * as resolverMap from './resolvers'
+import { isObj } from '../utils/internal'
 
 enablePatches()
 
-interface State {
-  actions: {
-    active: { [id: string]: Action | EmitAction<any> }
-    aborted: { [id: string]: Action | EmitAction<any> }
-    running: { [id: string]: Action | EmitAction<any> }
-  }
-  actionChains: {
-    active: { [id: string]: ActionChain }
-    aborted: { [id: string]: ActionChain }
-    running: { [id: string]: ActionChain }
-  }
-  clients: {
-    root: PageMaster
-  } & { [id: string]: PageMaster }
-}
-
-interface HOFResolverFn {
-  (step: Step): (acc: any, component: ComponentObject) => ComponentObject[]
-}
-
-interface ResolverFn {
-  (component: WritableDraft<ComponentObject>, consumerOptions?: any): void
-}
-
 interface Step {
-  (acc: any, reducer: any): any
+  (acc: any, value: any): any
 }
 
 export const dataResolverKeys = ['getDataAttrs', 'getEventHandlers'] as const
@@ -74,122 +49,126 @@ export const _store = {
 }
 
 const Consumer = (function () {
-  const getValueArg = ({
-    prop = '',
+  const getArgs = ({
+    prop,
     component,
-  }: {
-    component: ComponentObject
-    prop: string
-  }) => {
-    if (!component) return
-    return get(component, prop)
+    ...rest
+  }: Partial<
+    T.ConsumerObject & { component: ComponentObject } & { [key: string]: any }
+  >) => {
+    if (!component) return {} as T.ConsumerResolveArgs
+    const obj = { component } as Partial<T.ConsumerResolveArgs>
+    if (typeof prop !== 'string') prop = String(prop)
+    if (prop.startsWith('style:')) {
+      obj.key = 'style'
+      obj.styleKey = prop.replace('style:', '')
+      obj.value = get(component, `${obj.key}.${obj.styleKey}`)
+    } else {
+      obj.key = prop
+      obj.value = get(component, obj.key)
+    }
+    return {
+      ...rest,
+      ...obj,
+    } as T.ConsumerResolveArgs
   }
 
   const o = {
     compose(...objs: T.ConsumerObject[]) {
-      return (step: Step) =>
-        objs.reduceRight((acc, obj) => step(acc, obj(acc)), identity)
+      return (step: Step) => {
+        return objs.reduceRight((acc, obj) => {
+          const hof = o.createHOF(obj)
+          return step(acc, hof(component))
+        }, identity)
+      }
     },
-    createHOF: curry(
-      <Options = any>(
-        consumerOptions: Options,
-        fn: any,
-        step: any,
-        component: ComponentObject,
-      ) => step(component, fn(component, consumerOptions)),
-    ),
-    consume: curry(
-      (
-        { async, cond, type, prop, resolve }: T.ConsumerObject,
-        component: ComponentObject,
-      ) => {
-        const getArgs = (opts?: Partial<T.ConsumerResolveArgs>) => {
-          if (!component) return {} as T.ConsumerResolveArgs
-          const obj = { component } as Partial<T.ConsumerResolveArgs>
-          if (typeof prop !== 'string') prop = String(prop)
-          if (prop.startsWith('style:')) {
-            obj.key = 'style'
-            obj.styleKey = prop.replace('style:', '')
-            obj.value = get(component, `${obj.key}.${obj.styleKey}`)
-          } else {
-            obj.key = prop
-            obj.value = get(component, obj.key)
-          }
-          return {
-            ...obj,
-            ...opts,
-          } as T.ConsumerResolveArgs
-        }
+    createHOF(obj: T.ConsumerObject) {
+      return (fn: any) => (step: Step) => (v) => {
+        o.consume(obj)(v)
+        return step(v, fn(v))
+      }
+    },
+    consume: curry((obj: T.ConsumerObject, component: ComponentObject) => {
+      if (!component) return component
 
-        if (cond && !cond(getArgs())) return
-        if (type === 'remove') {
-          util.Consumer.op.remove(undefined, getArgs())
-        } else {
-          if (async) {
-            resolve?.(getArgs()).then((value: any) => {
-              util.Consumer.op[type as string]?.(value, getArgs())
-            })
-          } else {
-            util.Consumer.op[type as string]?.(resolve?.(getArgs()), getArgs())
-          }
+      const callOp = (opts: { obj: T.ConsumerObject; value: any }) => {
+        const type = opts.obj.type || ''
+        util.Consumer.op[type]?.(
+          opts.value,
+          getArgs({ ...opts.obj, component }),
+        )
+        if (typeof obj.finally === 'function') {
+          obj.finally(getArgs({ ...opts.obj, component }))
+        } else if (isObj(obj.finally)) {
+          util.Consumer.consume(obj, component)
         }
-      },
-    ),
+      }
+
+      const getArgsProps = { ...obj, component }
+
+      if (obj.cond && !obj.cond(getArgs(getArgsProps))) return
+      if (obj.type === 'remove') {
+        callOp({ obj, value: undefined })
+      } else {
+        if (obj.async) {
+          obj.resolve?.(getArgs(getArgsProps)).then((value: any) => {
+            callOp({ obj, value })
+          })
+        } else {
+          callOp({ obj, value: obj.resolve?.(getArgs(getArgsProps)) })
+        }
+      }
+      return component
+    }),
     op: {
+      // Default operator -- runs when "type" is missing
+      ''(returnValue: any, opts: T.ConsumerResolveArgs) {
+        console.info(`DEFAULT CONSUME OP CALLED`, { returnValue, opts })
+        return this
+      },
       morph(
         returnValue: any,
         { key, styleKey, component }: T.ConsumerResolveArgs,
       ) {
-        console.info({ key, styleKey, component })
         merge(component[key], returnValue)
-        const deleted = unset(
-          component,
-          key === 'style' ? `style.${styleKey}` : key,
-        )
+        const deleted = unset(component, styleKey ? `style.${styleKey}` : key)
         return this
       },
       remove(_, { key, component }: T.ConsumerResolveArgs) {
         const deleted = unset(component, key)
         return this
       },
-      rename(returnValue: any, { key, component }: T.ConsumerResolveArgs) {
-        const currentValue = get(component, key, '')
-        const deleted = unset(component, key)
-        set(component, returnValue, currentValue)
+      rename(
+        returnValue: any,
+        { key, styleKey, component }: T.ConsumerResolveArgs,
+      ) {
+        const path = styleKey ? `style.${styleKey}` : key
+        const currentValue = get(component, path, '')
+        const deleted = unset(component, path)
+        set(
+          component,
+          styleKey ? `style.${returnValue}` : returnValue,
+          currentValue,
+        )
         return this
       },
       replace(
         returnValue: any = '',
-        { key, component }: T.ConsumerResolveArgs,
+        { key, styleKey, component }: T.ConsumerResolveArgs,
       ) {
-        set(component, key, returnValue)
+        const path = styleKey ? `style.${styleKey}` : key
+        set(component, path, returnValue)
         return this
       },
     },
   }
+
   return o
 })()
 
-const Resolver = {
-  compose(...fns: HOFResolverFn[]) {
-    return (step: Step) => {
-      return fns.reduceRight((acc, fn) => step(acc, fn(acc)), identity)
-    }
-  },
-  createHOF: curry(
-    <Options = any>(
-      consumerOptions: Options,
-      fn: ResolverFn,
-      step: Step,
-      component: ComponentObject,
-    ) => step(component, fn({ ...component, ...consumerOptions })),
-  ),
-}
-
 export const util = {
   Consumer,
-  Resolver,
-  step(acc = (...args: any[]) => {}, value: any) {
+  step(acc: T.AnyFn, value: any) {
     return acc(value)
   },
 }
@@ -230,32 +209,15 @@ const ComponentResolver = (function () {
         let page = new PageMaster()
         let viewport = new Viewport()
 
-        const resolverFns = Object.values(staticResolvers).reduce(
-          (acc, obj) =>
-            acc.concat(
-              util.Resolver.createHOF(getConsumerOptions(page))(obj.resolve),
-            ),
-          [],
-        )
-        const consumerFns = consumers.reduce(
-          (acc, obj) =>
-            acc.concat(util.Consumer.createHOF({})(util.Consumer.consume(obj))),
-          [],
-        )
-        const composedResolvers = util.Resolver.compose(...resolverFns)
-        const composedConsumers = util.Consumer.compose(...consumerFns)
-        const transformedResolver = composedResolvers(util.step)
+        const composedConsumers = util.Consumer.compose(..._store.consumers)
         const transformedConsumer = composedConsumers(util.step)
-
-        const composeTransformedFns = (...fns) => (c) =>
-          fns.reduceRight((acc, fn) => acc(fn(c)), identity)
 
         page.use(viewport)
         page.resolveComponent = (original: ComponentObject) => {
           return produce(
             original,
             (draft) => {
-              runner.run({ component: draft, draw: transformedResolver })
+              runner.run({ component: draft, draw: transformedConsumer })
             },
             (patches) => void console.info(patches),
           )

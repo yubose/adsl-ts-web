@@ -43,12 +43,13 @@
     "test:actionchain": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/ActionChain.test.ts --verbose\"",
     "test:noodlutils": "lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "lerna exec --scope noodl-utils \"npm run test:file\"",
+    "test:root": "cross-env NODE_ENV=test ts-node-dev --respawn --transpile-only --project tsconfig.test.json mocha.ts",
     "lib:build": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
   },
   "dependencies": {
-    "firebase": "^8.2.3",
-    "noodl-types": "^1.0.17",
+    "date-fns": "^2.16.1",
+    "noodl-types": "^1.0.20",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-utils": "file:packages/noodl-utils",

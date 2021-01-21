@@ -1,4 +1,5 @@
 {
+  "initialOption": "retrieve.objects",
   "objects": {
     "json": {
       "dir": ["scripts/objects"]

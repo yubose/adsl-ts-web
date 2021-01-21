@@ -205,7 +205,7 @@ class Component implements IComponent<any> {
   }
 
   get contentType() {
-    return this.#component.contentType
+    return this.original?.contentType
   }
 
   get id() {
