@@ -1,4 +1,5 @@
 import Logger from 'logsnap'
+import isPlainObject from 'lodash/isPlainObject'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
@@ -13,7 +14,7 @@ import { _resolveChildren } from './helpers'
 
 const log = Logger.create('handleTimer')
 
-const handlePageInternalResolver = (
+const handleTimer = (
   component: ComponentInstance,
   options: ConsumerOptions,
 ) => {
@@ -61,27 +62,22 @@ const handlePageInternalResolver = (
         [() => getRoot(), () => getPageObject(context.page)],
         dataKey,
       )
-      if (!has(dataObject, dataKey)) {
-        log.red(
-          `The path does not exist at ${dataKey} in the local/root either`,
-          { component, dataKey, dataObject, options },
-        )
-      } else {
-        log.green(
-          `The path exists in the outer local/root object area. Grabbing value at the path now...`,
-          { component, dataKey, dataObject, options },
-        )
+
+      if (isPlainObject(dataObject)) {
         dataValue = get(dataObject, dataKey)
+      } else {
+        dataValue = dataObject
       }
     }
 
     if (dataValue === undefined) {
       log.red(
-        `No data object or value could be found. Defaulting to overriding and setting the key/value at: ${dataKey}`,
+        `No data object or value could be found. `,
+        // `No data object or value could be found. Defaulting to overriding and setting the key/value at: ${dataKey}`,
         { component, options, dataKey, dataObject, dataValue },
       )
-      // TODO - Start the timer at 00:00 ?
-      set(dataObject, dataKey, '00:00')
+      // // TODO - Start the timer at 00:00 ?
+      // set(dataObject, dataKey, '00:00')
     } else {
       log.green('A data value exists in the root/local object level', {
         component,
@@ -96,4 +92,4 @@ const handlePageInternalResolver = (
   }
 }
 
-export default handlePageInternalResolver
+export default handleTimer

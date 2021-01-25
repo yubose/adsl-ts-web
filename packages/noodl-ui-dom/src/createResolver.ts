@@ -40,6 +40,7 @@ const createResolver = function createResolver() {
           ...util.actionsContext(),
           original: args[1].original,
           noodlui: _internal.noodlui,
+          noodluidom: _internal.noodluidom,
           draw: _internal.noodluidom.draw.bind(_internal.noodluidom),
           redraw: _internal.noodluidom.redraw.bind(_internal.noodluidom),
         } as T.NodeResolverUtils

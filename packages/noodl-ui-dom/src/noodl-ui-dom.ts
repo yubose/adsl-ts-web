@@ -28,6 +28,11 @@ import * as T from './types'
 class NOODLUIDOM extends NOODLUIDOMInternal {
   #R: ReturnType<typeof createResolver>
   #cbs = {
+    page: {
+      on: {
+        [eventId.page.on.ON_DOM_CLEANUP]: [] as (() => void)[],
+      },
+    },
     redraw: {
       cleanup: [] as ((...args: Parameters<NOODLUIDOM['redraw']>) => void)[],
     },
@@ -73,6 +78,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     const resolved = this.#R.get('noodlui')?.resolveComponents(rawComponents)
     this.page.setStatus(eventId.page.status.COMPONENTS_RECEIVED)
     const components = Array.isArray(resolved) ? resolved : [resolved]
+    this.#emit(eventId.page.on.ON_DOM_CLEANUP)
     this.page.rootNode.innerHTML = ''
     this.page.setStatus(eventId.page.status.RENDERING_COMPONENTS)
     components.forEach((component) => {
@@ -234,18 +240,38 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       this.#cbs.redraw.cleanup.forEach((cb) => {
         cb(...(args as Parameters<NOODLUIDOM['redraw']>))
       })
+    } else if (event === eventId.page.on.ON_DOM_CLEANUP) {
+      this.#cbs.page.on[eventId.page.on.ON_DOM_CLEANUP]?.forEach((cb) => cb())
     }
     return this
   }
 
+  on(event: typeof eventId.page.on.ON_DOM_CLEANUP, fn: () => void): this
   on(
     event: typeof eventId.redraw.ON_BEFORE_CLEANUP,
     fn: (...args: Parameters<NOODLUIDOM['redraw']>) => void,
+  ): this
+  on(
+    event:
+      | typeof eventId.page.on.ON_DOM_CLEANUP
+      | typeof eventId.redraw.ON_BEFORE_CLEANUP,
+    fn: (...args: any[]) => void,
   ) {
-    if (event === eventId.redraw.ON_BEFORE_CLEANUP) {
+    if (event === eventId.page.on.ON_DOM_CLEANUP) {
+      this.#cbs.page.on[eventId.page.on.ON_DOM_CLEANUP].push(fn)
+    } else if (event === eventId.redraw.ON_BEFORE_CLEANUP) {
       if (!this.#cbs.redraw.cleanup.includes(fn)) {
         this.#cbs.redraw.cleanup.push(fn)
       }
+    }
+    return this
+  }
+
+  off(event: typeof eventId.page.on.ON_DOM_CLEANUP, fn: any) {
+    if (event === eventId.page.on.ON_DOM_CLEANUP) {
+      this.#cbs.page.on[eventId.page.on.ON_DOM_CLEANUP] = this.#cbs.page.on[
+        eventId.page.on.ON_DOM_CLEANUP
+      ].filter((cb) => cb !== fn)
     }
     return this
   }
