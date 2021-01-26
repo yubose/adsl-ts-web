@@ -1,3 +1,5 @@
+import add from 'date-fns/add'
+import startOfDay from 'date-fns/startOfDay'
 import { NOODLDOMElement, RegisterOptions } from '../types'
 import { eventId } from '../constants'
 
@@ -9,6 +11,10 @@ export default (function () {
     }
   }
 
+  function increment(date: Date) {
+    return add(new Date(date), { seconds: 1 })
+  }
+
   return {
     name: '[noodl-ui-dom] text=func',
     cond: (n, c) => typeof c.get('text=func') === 'function',
@@ -16,11 +22,13 @@ export default (function () {
       if (component.contentType === 'timer') {
         if (!timers[component.id]) {
           const textFunc = component.get('text=func') || ((x: any) => x)
-
           const obj = {
-            current: 0,
+            current: startOfDay(new Date()),
             ref: setInterval(() => {
-              node && (node.textContent = textFunc(obj.current++))
+              node &&
+                (node.textContent = textFunc(
+                  (obj.current = increment(obj.current)),
+                ))
               component.emit('interval', timers[component.id])
             }, 1000),
             clear: () => {
