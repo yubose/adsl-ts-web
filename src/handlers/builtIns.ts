@@ -416,6 +416,10 @@ const createBuiltInActions = function ({
           destinationParam,
         )
 
+        if (destination === destinationParam) {
+          noodluidom.page.setRequestingPage(destination)
+        }
+
         log.grey('', {
           destinationParam,
           destination,

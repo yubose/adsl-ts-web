@@ -28,7 +28,7 @@ import {
 } from 'noodl-ui'
 import { AuthStatus } from './app/types/commonTypes'
 import { IMeeting } from './meeting'
-import { CACHED_PAGES, pageEvent } from './constants'
+import { CACHED_PAGES, pageEvent, pageStatus } from './constants'
 import { CachedPageObject } from './app/types'
 import { isMobile } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
@@ -122,6 +122,7 @@ class App {
           pageName,
           pageModifiers: this.noodluidom.page.getState().modifiers[pageName],
           pageObject: noodl.root[pageName],
+          snapshot: this.noodluidom.page.snapshot(),
         })
         return noodl.root[pageName]
       } catch (error) {
@@ -279,15 +280,16 @@ class App {
 
   observePages(page: Page) {
     page
-      .on(pageEvent.ON_NAVIGATE_START, (pageName) => {
+      .on(pageEvent.ON_NAVIGATE_START, (snapshot) => {
         console.log(
-          `%cRendering the DOM for page: "${pageName}"`,
+          `%cRendering the DOM for page: "${snapshot.requesting}"`,
           `color:#95a5a6;`,
+          snapshot,
         )
       })
       .on(
         pageEvent.ON_BEFORE_RENDER_COMPONENTS as any,
-        async ({ pageName }) => {
+        async ({ requesting: pageName }) => {
           if (
             /videochat/i.test(page.getState().current) &&
             !/videochat/i.test(pageName)
@@ -321,17 +323,31 @@ class App {
             }
           }
 
-          let pageSnapshot = {} as { name: string; object: any }
+          let pageSnapshot = {} as { name: string; object: any } | 'old.request'
           let pageModifiers = page.getState().modifiers[pageName]
 
           if (pageName !== page.getState().current || pageModifiers?.force) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
-            // This will be passed into the page renderer
-            pageSnapshot = {
-              name: pageName,
-              object: pageObject,
+            const noodluidomPageSnapshot = this.noodluidom.page.snapshot()
+            // There is a bug that two parallel requests can happen at the same time, and
+            // when the second request finishes before the first, the page renders the first page
+            // in the DOM. To work around this bug we can determine this is occurring using
+            // the conditions below
+            if (
+              noodluidomPageSnapshot.requesting === '' &&
+              noodluidomPageSnapshot.status === pageStatus.IDLE &&
+              noodluidomPageSnapshot.current !== pageName
+            ) {
+              pageSnapshot = 'old.request'
+            } else {
+              // This will be passed into the page renderer
+              pageSnapshot = {
+                name: pageName,
+                object: pageObject,
+              }
             }
+
             // Initialize the noodl-ui client (parses components) if it
             // isn't already initialized
             if (!this.initialized) {
@@ -404,7 +420,7 @@ class App {
             log.grey(`${previousPage} --> ${pageName}`, page.snapshot())
             // Refresh the root
             // TODO - Leave root/page auto binded to the lib
-            this.noodlui.setPage(pageSnapshot.name)
+            this.noodlui.setPage(pageName)
             log.grey(`Set root + page obj after receiving page object`, {
               previousPage: page.getState().previous,
               currentPage: page.getState().current,
@@ -427,7 +443,7 @@ class App {
       )
       .on(
         pageEvent.ON_COMPONENTS_RENDERED,
-        async ({ pageName, components }) => {
+        async ({ requesting: pageName, components }) => {
           log.func('page [rendered]')
           log.green(`Done rendering DOM nodes for ${pageName}`)
           window.pcomponents = components

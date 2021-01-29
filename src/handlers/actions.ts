@@ -420,6 +420,7 @@ const createActions = function ({
     ) => {
       log.func('goto')
       log.red('goto action', { action, options, ...actionsContext })
+
       const {
         findWindow,
         findByElementId,
@@ -438,6 +439,10 @@ const createActions = function ({
       let { destination, id = '', isSamePage, duration } = parse.destination(
         destinationParam,
       )
+
+      if (destination === destinationParam) {
+        noodluidom.page.setRequestingPage(destination)
+      }
 
       log.grey('', {
         destinationParam,
