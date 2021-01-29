@@ -1,6 +1,12 @@
 import axios from 'axios'
+import CADL from '@aitmed/cadl'
+import getSeconds from 'date-fns/getSeconds'
+import subSeconds from 'date-fns/subSeconds'
+import startOfDay from 'date-fns/startOfDay'
+import add from 'date-fns/add'
 import Logger from 'logsnap'
-import NOODLUIDOM, { eventId, Page } from 'noodl-ui-dom'
+import NOODLUIDOM, { eventId, NOODLDOMElement, Page } from 'noodl-ui-dom'
+import get from 'lodash/get'
 import set from 'lodash/set'
 import some from 'lodash/some'
 import { ComponentObject } from 'noodl-types'
@@ -9,6 +15,7 @@ import {
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import {
+  ComponentInstance,
   event as noodluiEvent,
   getAllResolversAsMap,
   identify,
@@ -29,6 +36,7 @@ import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
+import { WritableDraft } from 'immer/dist/internal'
 
 const log = Logger.create('App.ts')
 
@@ -41,7 +49,7 @@ class App {
   authStatus: AuthStatus | '' = ''
   initialized: boolean = false
   meeting: IMeeting = {} as IMeeting
-  noodl: any
+  noodl = {} as CADL
   noodlui = {} as NOODLUI
   noodluidom = {} as NOODLUIDOM
   streams = {} as ReturnType<IMeeting['getStreams']>
@@ -375,7 +383,7 @@ class App {
                 .use({
                   fetch,
                   getAssetsUrl: () => this.noodl.assetsUrl,
-                  getBaseUrl: () => this.noodl.baseUrl,
+                  getBaseUrl: () => this.noodl.cadlBaseUrl,
                   getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
                   getPages: () => this.noodl.cadlEndpoint?.page || [],
                   getRoot: () => this.noodl.root,
@@ -564,6 +572,101 @@ class App {
     /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
+
+    this.noodluidom.register({
+      name: 'videoChat.timer.updater',
+      cond: (n, c) => typeof c.get('text=func') === 'function',
+      resolve: (node, component) => {
+        const dataKey = component.get('dataKey')
+
+        if (component.contentType === 'timer') {
+          component.on(
+            'initial.timer',
+            (setInitialTime: (date: Date) => void) => {
+              const initialTime = startOfDay(new Date())
+              // Initial SDK value is set in seconds
+              const initialSeconds = get(this.noodl.root, dataKey, 0) as number
+              // Sdk evaluates from start of day. So we must add onto the start of day
+              // the # of seconds of the initial value in the Global object
+              let initialValue = add(initialTime, { seconds: initialSeconds })
+              if (initialValue === null || initialValue === undefined) {
+                initialValue = new Date()
+              }
+              setInitialTime(initialValue)
+            },
+          )
+
+          // Look at the hard code implementation in noodl-ui-dom
+          // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
+          // the api declaration
+          component.on(
+            'timer.ref',
+            (ref: {
+              start(): void
+              current: Date
+              ref: NodeJS.Timeout
+              clear: () => void
+              increment(): void
+              set(value: any): void
+              onInterval?:
+                | ((args: {
+                    node: NOODLDOMElement
+                    component: ComponentInstance
+                    ref: typeof ref
+                  }) => void)
+                | null
+            }) => {
+              const textFunc = component.get('text=func') || ((x: any) => x)
+
+              component.on(
+                'interval',
+                ({
+                  node,
+                  component,
+                }: {
+                  node: NOODLDOMElement
+                  component: ComponentInstance
+                  ref: typeof ref
+                }) => {
+                  this.noodl.editDraft(
+                    (draft: WritableDraft<{ [key: string]: any }>) => {
+                      let seconds = get(draft, dataKey, 0)
+                      set(draft, dataKey, seconds + 1)
+                      let updatedSecs = get(draft, dataKey)
+                      if (
+                        updatedSecs !== null &&
+                        typeof updatedSecs === 'number'
+                      ) {
+                        if (seconds === updatedSecs) {
+                          // Not updated
+                          log.func('text=func timer [noodluidom.register]')
+                          log.red(
+                            `Tried to update the value of ${dataKey} but the value remained the same`,
+                            {
+                              node,
+                              component,
+                              seconds,
+                              updatedSecs,
+                              ref,
+                            },
+                          )
+                        } else {
+                          // Updated
+                          ref.increment()
+                          node.textContent = textFunc(ref.current)
+                        }
+                      }
+                    },
+                  )
+                },
+              )
+
+              ref.start()
+            },
+          )
+        }
+      },
+    })
 
     this.noodluidom.on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
       console.log('Removed from componentCache: ' + component.id)

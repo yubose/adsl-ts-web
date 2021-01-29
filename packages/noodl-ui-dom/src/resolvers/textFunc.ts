@@ -2,17 +2,18 @@ import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
 import { NOODLDOMElement, RegisterOptions } from '../types'
 import { eventId } from '../constants'
+import { ComponentInstance } from 'noodl-ui'
 
 export default (function () {
   const timers = {} as {
     [componentId: string]: {
-      ref: NodeJS.Timeout
-      current: number
+      start(): void
+      current: Date
+      ref: null | NodeJS.Timeout
+      clear(): void
+      increment(): void
+      set(value: any): void
     }
-  }
-
-  function increment(date: Date) {
-    return add(new Date(date), { seconds: 1 })
   }
 
   return {
@@ -20,34 +21,49 @@ export default (function () {
     cond: (n, c) => typeof c.get('text=func') === 'function',
     resolve: (node: NOODLDOMElement, component, { noodluidom }) => {
       if (component.contentType === 'timer') {
-        if (!timers[component.id]) {
-          const textFunc = component.get('text=func') || ((x: any) => x)
-          const obj = {
-            current: startOfDay(new Date()),
-            ref: setInterval(() => {
-              node &&
-                (node.textContent = textFunc(
-                  (obj.current = increment(obj.current)),
-                ))
-              component.emit('interval', timers[component.id])
-            }, 1000),
-            clear: () => {
-              clearInterval(obj.ref)
-              console.info(`Cleared timer`, obj)
-            },
-          }
+        setTimeout(() => {
+          component.emit('initial.timer', (initialTime: Date) => {
+            timers[component.id] = {
+              start() {
+                timers[component.id].ref = setInterval(() => {
+                  component.emit('interval', {
+                    node,
+                    component,
+                    ref: timers[component.id],
+                  })
+                }, 1000)
+              },
+              current: initialTime || startOfDay(new Date()),
+              ref: null,
+              set(value: any) {
+                timers[component.id] = value
+              },
+              increment() {
+                if (timers[component.id]) {
+                  timers[component.id].current = add(
+                    new Date(timers[component.id].current),
+                    { seconds: 1 },
+                  )
+                }
+              },
+              clear() {
+                clearInterval(timers[component.id].ref)
+                noodluidom.off(
+                  eventId.page.on.ON_DOM_CLEANUP,
+                  timers[component.id]?.clear,
+                )
+                console.info(`Cleared timer`, timers[component.id])
+              },
+            }
 
-          timers[component.id] = obj
+            noodluidom.on(
+              eventId.page.on.ON_DOM_CLEANUP,
+              timers[component.id]?.clear,
+            )
 
-          const clearTimer = () => {
-            obj.clear()
-            noodluidom.off(eventId.page.on.ON_DOM_CLEANUP, clearTimer)
-          }
-
-          noodluidom.on(eventId.page.on.ON_DOM_CLEANUP, clearTimer)
-
-          component.emit('interval', timers[component.id])
-        }
+            component.emit('timer.ref', timers[component.id])
+          })
+        }, 500)
       } else {
         node && (node.textContent = component.get('data-value') || '')
       }
