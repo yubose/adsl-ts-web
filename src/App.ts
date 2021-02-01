@@ -77,7 +77,7 @@ class App {
     this.streams = meeting.getStreams()
     this.#viewportUtils = createViewportHandler(new Viewport())
 
-    await noodl.init()
+    await noodl.init.call(noodl)
     createActions({ noodlui, noodluidom })
     createBuiltIns({ noodl, noodlui, noodluidom })
     meeting.initialize({

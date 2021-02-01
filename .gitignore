@@ -10,3 +10,4 @@ scripts/ymls/**
 scripts/serverFiles/**
 coverage/
 report*
+server/
