@@ -110,7 +110,12 @@ export function findWindowDocument(
     doc: Document | HTMLIFrameElement['contentDocument'],
   ) => boolean | null | undefined,
 ) {
-  const win = findWindow((w) => cb(w?.['contentDocument'] || w?.document))
+  let win: Window | null | undefined
+  try {
+    win = findWindow((w) => cb(w?.['contentDocument'] || w?.document))
+  } catch (error) {
+    console.error(error)
+  }
   return (win?.['contentDocument'] || win?.document) as
     | Document
     | HTMLIFrameElement['contentDocument']
