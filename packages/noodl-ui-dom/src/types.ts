@@ -6,6 +6,7 @@ import {
   NOODL as NOODLUI,
   NOODLComponent,
 } from 'noodl-ui'
+import NOODLUIDOM from'./noodl-ui-dom
 import { eventId } from './constants'
 
 export interface AnyFn {
@@ -84,6 +85,7 @@ export type NodeResolver<RT = any> = NOODLUIDOMResolveFunc<
   ComponentInstance,
   ActionChainDOMContext & {
     noodlui: NOODLUI
+    noodluidom: NOODLUIDOM
     original: ComponentObject
     draw: Parse
     redraw: Redraw

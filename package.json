@@ -30,7 +30,7 @@
     "scripts:start": "rm -rf scripts/compiled && webpack --mode development --config webpack.scripts.js --watch",
     "server": "ts-node-dev --transpile-only --project tsconfig.test.json --watch scripts scripts/server.ts",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files \"src/**/*.ts\"",
+    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src",
     "test:noodlui": "lerna exec --scope noodl-ui \"npm run test\"",
     "test:noodlui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
     "test:noodlui:file:nosetup": "lerna exec --scope noodl-ui \"npm run test:file:nosetup\"",
@@ -43,19 +43,20 @@
     "test:actionchain": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/ActionChain.test.ts --verbose\"",
     "test:noodlutils": "lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "lerna exec --scope noodl-utils \"npm run test:file\"",
+    "test:root": "cross-env NODE_ENV=test ts-node-dev --respawn --transpile-only --project tsconfig.test.json mocha.ts",
     "lib:build": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
   },
   "dependencies": {
-    "firebase": "^8.2.3",
-    "noodl-types": "^1.0.17",
+    "date-fns": "^2.16.1",
+    "noodl-types": "^1.0.20",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-utils": "file:packages/noodl-utils",
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.188",
+    "@aitmed/cadl": "^1.0.203",
     "@aitmed/ecos-lvl2-sdk": "^1.4.118",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",

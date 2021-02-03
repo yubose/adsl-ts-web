@@ -420,6 +420,7 @@ const createActions = function ({
     ) => {
       log.func('goto')
       log.red('goto action', { action, options, ...actionsContext })
+
       const {
         findWindow,
         findByElementId,
@@ -438,6 +439,10 @@ const createActions = function ({
       let { destination, id = '', isSamePage, duration } = parse.destination(
         destinationParam,
       )
+
+      if (destination === destinationParam) {
+        noodluidom.page.setRequestingPage(destination)
+      }
 
       log.grey('', {
         destinationParam,
@@ -554,6 +559,17 @@ const createActions = function ({
       const { ref } = options
       const elem = getByDataUX(action.original.popUpView) as HTMLElement
       log.gold('popUp action', { action, ...options, elem })
+      if (action.original.dismissOnTouchOutside) {
+        const onTouchOutside = function onTouchOutside(
+          this: HTMLDivElement,
+          e: Event,
+        ) {
+          e.preventDefault()
+          elem.style.visibility = 'hidden'
+          document.body.removeEventListener('click', onTouchOutside)
+        }
+        document.body.addEventListener('click', onTouchOutside)
+      }
       if (elem?.style) {
         if (action.original.actionType === 'popUp') {
           elem.style.visibility = 'visible'
@@ -579,6 +595,7 @@ const createActions = function ({
             }
           }
         }
+
         // Auto prefills the verification code when ECOS_ENV === 'test'
         // and when the entered phone number starts with 888
         if (process.env.ECOS_ENV === 'test') {

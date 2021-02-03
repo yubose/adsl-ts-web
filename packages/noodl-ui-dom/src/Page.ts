@@ -75,7 +75,7 @@ class Page {
     { force }: { force?: boolean } = {},
   ) {
     const { current } = this.getState()
-    if (newPage !== current || newPage.startsWith('http') || !!force) {
+    if (newPage !== current || newPage?.startsWith('http') || !!force) {
       this.setRequestingPage(newPage)
       if (process.env.NODE_ENV !== 'test') {
         history.pushState({}, '', this.pageUrl)
@@ -94,7 +94,7 @@ class Page {
       )
       // TODO - handle this
       await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-        pageName: newPage,
+        ...this.snapshot(),
         reason: 'duplicate-request',
         from: 'requestPageChange',
       })
@@ -116,45 +116,61 @@ class Page {
             'Pass one in by directing setting the "render" property',
         )
       this.setStatus(eventId.page.status.NAVIGATING)
+
       // Outside link
-      if (typeof pageName === 'string' && pageName.startsWith('http')) {
-        await this.emit(eventId.page.on.ON_OUTBOUND_REDIRECT, pageName)
+      if (typeof pageName === 'string' && pageName?.startsWith('http')) {
+        await this.emit(eventId.page.on.ON_OUTBOUND_REDIRECT, this.snapshot())
         openOutboundURL(pageName)
         return this.#onNavigateEnd({ pageName })
       }
 
-      await this.emit(eventId.page.on.ON_NAVIGATE_START, pageName)
+      // TODO - Put a page checker here
 
-      // The caller is expected to provide their own page object
-      const pageSnapshot = (await this.emit(
-        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
-        { pageName, rootNode: this.rootNode },
-      )) as Record<string, PageObject>
+      await this.emit(eventId.page.on.ON_NAVIGATE_START, this.snapshot())
 
       const requestingPage = this.getState().requesting
 
-      this.setStatus(eventId.page.status.SNAPSHOT_RECEIVED)
+      log.hotpink('', {
+        requestingPage,
+        pageName,
+        snapshot: this.snapshot(),
+      })
+
       // Sometimes a navigate request coming from another location like a
       // "goto" action can invoke a request in the middle of this operation.
       // Give the latest call the priority
-      if (requestingPage && requestingPage !== pageName) {
-        log.grey(
+      if (this.getState().requesting !== pageName) {
+        log.orange(
           `Aborting this navigate request for ${pageName} because a more ` +
             `recent request to "${requestingPage}" was called`,
           { pageAborting: pageName, pageRequesting: requestingPage },
         )
         await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
+          ...this.snapshot(),
           pageName,
           from: 'navigate',
         })
         return this.#onNavigateEnd({ pageName })
       }
 
+      // The caller is expected to provide their own page object
+      const pageSnapshot = (await this.emit(
+        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
+        this.snapshot(),
+      )) as Record<string, PageObject> | 'old.request'
+
+      if (pageSnapshot === 'old.request') {
+        return
+      }
+
+      this.setStatus(eventId.page.status.SNAPSHOT_RECEIVED)
+
       const components = this.render(
         pageSnapshot?.object?.components as NOODLComponent[],
       ) as ComponentInstance[]
 
       await this.emit(eventId.page.on.ON_COMPONENTS_RENDERED, {
+        ...this.snapshot(),
         pageName,
         components,
       })
@@ -165,7 +181,11 @@ class Page {
         snapshot: Object.assign({ components }, pageSnapshot),
       }
     } catch (error) {
-      await this.emit(eventId.page.on.ON_NAVIGATE_ERROR, { error, pageName })
+      await this.emit(eventId.page.on.ON_NAVIGATE_ERROR, {
+        error,
+        pageName,
+        ...this.snapshot(),
+      })
       this.#onNavigateEnd({ error, pageName })
       throw new Error(error)
     }
@@ -194,13 +214,13 @@ class Page {
     let parts = this.pageUrl.split('-')
     if (parts.length > 1) {
       parts.pop()
-      while (parts[parts.length - 1].endsWith('MenuBar') && parts.length > 1) {
+      while (parts[parts.length - 1]?.endsWith('MenuBar') && parts.length > 1) {
         parts.pop()
       }
       if (parts.length > 1) {
         previousPage = parts[parts.length - 1]
       } else if (parts.length === 1) {
-        if (parts[0].endsWith('MenuBar')) {
+        if (parts[0]?.endsWith('MenuBar')) {
           previousPage = startPage
         } else {
           previousPage = parts[0].split('?')[1]

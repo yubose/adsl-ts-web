@@ -8,6 +8,7 @@ export const eventId = {
       ON_NAVIGATE_START: 'on:navigate.start',
       ON_NAVIGATE_ABORT: 'on:navigate.abort',
       ON_OUTBOUND_REDIRECT: 'on:outbound.redirect',
+      ON_DOM_CLEANUP: 'on:dom.cleanup',
       ON_BEFORE_RENDER_COMPONENTS: 'on:before.render.components',
       ON_COMPONENTS_RENDERED: 'on:components.rendered',
       ON_NAVIGATE_ERROR: 'on:navigate.error',

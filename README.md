@@ -49,6 +49,8 @@ This allows for faster compilation, faster load times and quicker development fl
 - bugs
   - footer 4.0 --> 4.1 top value placement
   - input focus issue on androids
+- contentType: timer
+  - inc/dec value at `dataKey` every second
 
 ## Notes
 

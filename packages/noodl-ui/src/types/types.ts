@@ -99,19 +99,24 @@ export interface ConsumerObject<
   K extends keyof ComponentObject = keyof ComponentObject
 > {
   id?: string
-  prop?: K
-  cond?(...args: any[]): boolean
+  prop: K
+  cond?(args: ConsumerResolveArgs): boolean
   async?: boolean
   type?: 'morph' | 'replace' | 'remove' | 'rename'
   resolve?(args: ConsumerResolveArgs): any
+  finally?: ((args: ConsumerResolveArgs) => void) | ConsumerObject
 }
 
 export interface ConsumerResolveArgs<K extends string = string> {
   key: K
   styleKey: keyof StyleObject
   value: any
-  component: ComponentObject
-  original: ComponentObject
+  component: Required<ComponentObject>
+  original: Required<ComponentObject>
+  page: string
+  getContext(): ResolverContext
+  getPageObject(page: string): PageObject
+  getRoot(): Root
   viewport: Viewport
 }
 

@@ -2,6 +2,7 @@ import get from 'lodash/get'
 import Logger from 'logsnap'
 import {
   createEmitDataKey,
+  isBooleanFalse,
   isBooleanTrue,
   isEmitObj,
   isReference,
@@ -24,7 +25,6 @@ export default [
     id: c.ids.MORPH_ALIGN,
     type: c.types.MORPH,
     prop: 'style.align',
-    cond: ({ component }) => isObj(component?.style),
     resolve({ value }) {
       switch (value) {
         case 'centerX':
@@ -38,7 +38,6 @@ export default [
     id: c.ids.MORPH_AXIS,
     type: c.types.MORPH,
     prop: 'style.axis',
-    cond: ({ component }) => isObj(component?.style),
     resolve({ value }) {
       if (value === 'horizontal') {
         return { display: 'flex', flexWrap: 'nowrap' }
@@ -137,23 +136,23 @@ export default [
       return style
     },
   },
+  // TODO - Make a nicer intuitive implentation that fits the consumer api flow (ex: use return values instead)
   {
-    id: c.ids.REPLACE_COLOR_HEX,
-    type: c.types.REPLACE,
+    id: c.ids.COLOR_HEX,
     cond: ({ component }) => {
-      if (component && typeof component?.style === 'object') {
-        return Object.keys(component.style).find(
+      if (isObj(component.style)) {
+        return Object.keys(component.style).some(
           (key) =>
-            typeof component.style[key] === 'string' &&
+            typeof component.style?.[key] === 'string' &&
             component.style[key].startsWith('0x'),
         )
       }
     },
     resolve({ component }) {
-      Object.keys(component.style).forEach((key) => {
-        const value = component.style[key]
+      Object.keys(component.style || {}).forEach((styleKey) => {
+        const value = component.style?.[styleKey]
         if (typeof value === 'string' && value.startsWith('0x')) {
-          component.style[key] = value.replace('0x', '#')
+          ;(component.style as any)[styleKey] = value.replace('0x', '#')
         }
       })
     },
@@ -162,7 +161,7 @@ export default [
     id: c.ids.REPLACE_CONTENTTYPE,
     type: c.types.REPLACE,
     prop: 'contentType',
-    cond: ({ component }) => component?.type !== 'label',
+    cond: ({ component }) => component.type !== 'label',
     resolve({ value: contentType }) {
       return contentType === 'phone'
         ? 'tel'
@@ -172,22 +171,18 @@ export default [
     },
   },
   {
-    id: c.ids.MORPH_DISPLAY,
+    id: c.ids.DISPLAY,
     prop: 'style.display',
-    resolve({ value }) {
-      return { display: value }
-    },
   },
   {
     id: c.ids.FONT_FAMILY,
     prop: 'style.fontFamily',
   },
+  // TODO - Rework to a more official "consume" type
   {
     id: c.ids.HEADER,
-    prop: 'type',
-    cond: ({ component }) => component?.type === 'header',
+    cond: ({ component }) => component.type === 'header',
     resolve({ component }) {
-      if (!component.style) component.style = {}
       component.style.zIndex = 100
     },
   },
@@ -196,38 +191,38 @@ export default [
   {
     id: c.ids.REMOVE_IMAGE_WIDTH,
     type: c.types.REMOVE,
-    cond: ({ component, original }) =>
-      component?.type === 'image' && !('width' in (original?.style || {})),
-    finally: {
-      resolve({ component }) {
-        component.style.objectFit = 'contain'
-      },
+    prop: 'style.width',
+    cond: ({ component }) =>
+      component.type === 'image' && !('width' in component.style),
+    finally({ component }) {
+      component.style.objectFit = 'contain'
     },
   },
   {
     id: c.ids.REMOVE_IMAGE_HEIGHT,
     type: c.types.REMOVE,
-    cond: ({ component, original }) =>
-      component?.type === 'image' && !('height' in (original?.style || {})),
+    prop: 'style.height',
+    cond: ({ component }) =>
+      component?.type === 'image' && !('height' in component.style),
   },
   {
     id: c.ids.LIST,
     prop: 'style',
-    cond: ({ component }) => component?.type === 'list',
+    cond: ({ component }) => component.type === 'list',
     resolve({ component }) {
       return {
         overflowX: 'hidden',
         overflowY: 'auto',
         listStyle: 'none',
         padding: '0px',
-        display: component.style?.axis === 'horizontal' ? 'flex' : 'block',
+        display: component.style.axis === 'horizontal' ? 'flex' : 'block',
       }
     },
   },
   {
     id: c.ids.LISTITEM,
     prop: 'style',
-    cond: ({ component }) => component?.type === 'listItem',
+    cond: ({ component }) => component.type === 'listItem',
     resolve() {
       return {
         listStyle: 'none',
@@ -239,7 +234,7 @@ export default [
   {
     id: c.ids.REPLACE_OPTIONS,
     prop: 'options',
-    resolve({ value, getPageObject, getRoot }) {
+    resolve({ value, getPageObject, getRoot, page }) {
       const toOption = (option: any, index: number) =>
         typeof option === 'string' || typeof option === 'number'
           ? {
@@ -259,7 +254,7 @@ export default [
           ? value.replace(/(..|.)/, '')
           : value
         const dataOptions =
-          get(getPageObject(context.page), optionsPath) ||
+          get(getPageObject(page), optionsPath) ||
           get(getRoot(), optionsPath) ||
           []
         return dataOptions.map(toOption)
@@ -270,8 +265,9 @@ export default [
     id: c.ids.REPLACE_CONTROLS,
     type: c.types.REPLACE,
     prop: 'controls',
+    cond: ({ value }) => typeof value === 'boolean',
     resolve({ value }) {
-      if (typeof value === 'boolean') return value
+      return value
     },
   },
   {
@@ -288,7 +284,7 @@ export default [
     type: c.types.MORPH,
     prop: 'style.isHidden',
     resolve({ value }) {
-      return { visibility: value ? 'hidden' : 'visible' }
+      return { visibility: isBooleanTrue(value) ? 'hidden' : 'visible' }
     },
   },
   {
@@ -300,6 +296,8 @@ export default [
         return {
           boxShadow: '5px 5px 10px 3px rgba(0, 0, 0, 0.015)',
         }
+      } else if (isBooleanFalse(value)) {
+        return { boxShadow: 'none' }
       }
     },
   },
@@ -309,8 +307,8 @@ export default [
     type: c.types.MORPH,
     prop: ['path', 'resource'],
     cond: ({ value }) => isEmitObj(value),
-    async resolve({ value = '', createSrc }) {
-      return { src: await createSrc?.(value) }
+    async resolve({ value, createSrc }) {
+      return { src: (await createSrc?.(value)) || '' }
     },
   },
   {
@@ -322,10 +320,11 @@ export default [
       const {
         value: placeholder,
         component,
-        context,
+        getContext,
         getStore,
         getPageObject,
         getRoot,
+        page = '',
       } = args
 
       log.func('resolve [placeholder:emit]')
@@ -351,7 +350,7 @@ export default [
               emitObj.emit.dataKey,
               [
                 findListDataObject(component),
-                () => getPageObject(context?.page || ''),
+                () => getPageObject(page),
                 () => getRoot(),
               ],
               { iteratorVar: emitAction.iteratorVar },
@@ -374,7 +373,7 @@ export default [
               obj?.fn?.(
                 emitAction,
                 { ...args, placeholder },
-                context.actionsContext,
+                getContext().actionsContext,
               ),
             ),
           )
@@ -406,7 +405,7 @@ export default [
   {
     id: c.ids.POPUP,
     prop: 'style',
-    cond: ({ component }) => component?.type === 'popUp',
+    cond: ({ component }) => component.type === 'popUp',
     resolve() {
       return { visibility: 'hidden' }
     },
@@ -414,7 +413,7 @@ export default [
   {
     id: c.ids.TEXTVIEW,
     prop: 'style',
-    cond: ({ component }) => component?.type === 'textView',
+    cond: ({ component }) => component.type === 'textView',
     resolve() {
       return { rows: 10 }
     },
@@ -435,20 +434,20 @@ export default [
   },
   {
     id: c.ids.MORPH_FONTSTYLE,
-    type: c.types.REPLACE,
+    type: c.types.MORPH,
     prop: 'style.fontStyle',
-    resolve({ value: fontStyle }) {
+    cond: ({ value }) => value === 'bold',
+    resolve() {
       // '10' --> '10px'
-      if (fontStyle === 'bold') {
-        return { fontWeight: 'bold' }
-      }
+      return { fontWeight: 'bold' }
     },
   },
   {
     id: c.ids.REPLACE_POSITION,
     type: c.types.REPLACE,
+    prop: ['style.top', 'style.left'],
     cond: ({ component }) =>
-      'top' in (component?.style || {}) || 'left' in (component?.style || {}),
+      'top' in component.style || 'left' in component.style,
     resolve({ key, value, component, viewport }) {
       const style = {} as any
       /**
@@ -511,15 +510,17 @@ export default [
     type: c.types.RENAME,
     prop: 'style.textColor',
     cond: ({ component }) => 'textColor' in (component.style || {}),
-    resolve({ value }) {
-      return { color: value.replace('0x', '#') }
+    resolve() {
+      return 'color'
+    },
+    finally({ component, value = '' }) {
+      component.style.color = value.replace('0x', '#')
     },
   },
   {
     id: c.ids.MORPH_TEXTALIGN,
     type: c.types.MORPH,
     prop: 'style.textAlign',
-    cond: ({ component }) => isObj(component?.style),
     resolve({ value, component }) {
       /**
        *  Returns an object transformed using the value of textAlign
@@ -546,12 +547,12 @@ export default [
       }
 
       // "centerX", "centerY", "left", "center", "right"
-      if (typeof component.style.textAlign === 'string') {
+      if (typeof component.style?.textAlign === 'string') {
         value = getTextAlign(component.style.textAlign)
         if (value) return value
       }
       // { x, y }
-      else if (isObj(component.style.textAlign)) {
+      else if (isObj(component.style?.textAlign)) {
         const { x, y } = component.style.textAlign
         if (x !== undefined) {
           return getTextAlign(x)
@@ -573,6 +574,7 @@ export default [
   },
   {
     id: c.ids.REPLACE_WIDTH,
+    type: c.types.REPLACE,
     prop: ['style.width', 'style.height'],
     cond: ({ component }) =>
       component?.style?.width !== undefined ||
@@ -616,21 +618,24 @@ export default [
   },
   {
     id: c.ids.REPLACE_ZINDEX,
+    type: c.types.REPLACE,
     prop: 'style.zIndex',
     resolve({ value }) {
       return Number(value)
     },
   },
   {
-    id: c.ids.REQUIRED,
+    id: c.ids.REPLACE_REQUIRED,
+    type: c.types.REPLACE,
     prop: 'required',
-    resolve({ value: required }) {
-      return isBooleanTrue(required)
+    resolve({ value }) {
+      return isBooleanTrue(value)
     },
   },
   {
     id: c.ids.VIDEO,
     prop: 'style.objectFit',
+    cond: ({ component }) => component.type === 'video',
     resolve() {
       return 'contain'
     },
@@ -639,8 +644,15 @@ export default [
     id: c.ids.REPLACE_VIDEOFORMAT,
     type: c.types.REPLACE,
     prop: 'videoFormat',
+    cond: ({ component }) => component.type === 'video',
     resolve({ value }) {
       return `video/${value}`
     },
   },
-] as const
+  {
+    id: c.ids.SETUP,
+    resolve({ component }) {
+      if (!component.style) component.style = {}
+    },
+  },
+] as ConsumerObject[]

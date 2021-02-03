@@ -13,7 +13,9 @@ const getPosition: ResolverFn = (component, { viewport }) => {
     if ('zIndex' in style) {
       component.setStyle('zIndex', Number(style.zIndex))
     }
-    if (typeof style.top !== 'undefined') {
+    if (!('top' in style)) {
+      component.setStyle('top', 'auto')
+    } else {
       styles = handlePosition(style, 'top', viewport.height as number)
       if (styles) {
         component.assignStyles(styles)

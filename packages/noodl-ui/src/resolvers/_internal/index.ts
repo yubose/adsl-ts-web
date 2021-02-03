@@ -1,6 +1,7 @@
 import handleList from './handleList'
 import handlePage from './handlePage'
 import handleTextboard from './handleTextboard'
+import handleTimer from './handleTimer'
 import { InternalResolver } from '../../Resolver'
 import { _resolveChildren } from './helpers'
 import { findParent, publish } from '../../utils/noodl'
@@ -41,6 +42,9 @@ _internalResolver.setResolver((component, options, ref) => {
       }
       if (c.get('textBoard')) {
         return handleTextboard(c as any, options, _internalResolver)
+      }
+      if (c.contentType === 'timer') {
+        return handleTimer(c, options)
       }
       // Deeply parses every child node in the tree
       _resolveChildren(c, {

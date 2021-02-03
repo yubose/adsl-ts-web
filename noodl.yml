@@ -1,0 +1,11 @@
+initialOption: server
+objects:
+  json:
+    dir: scripts/objects
+  yml:
+    dir: scripts/serverFiles
+server:
+  baseUrl: 'http://127.0.0.1'
+  dir: scripts/serverFiles
+  port: 3000
+  url: 'http://127.0.0.1:3001/'

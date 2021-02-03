@@ -31,6 +31,10 @@ const plugins = [
     exclude: /node_modules/,
     include: /src/,
   }),
+  new webpack.ContextReplacementPlugin(
+    /date\-fns[\/\\]/,
+    new RegExp(`[/\\\\\](${['en-US'].join('|')})[/\\\\\]index\.js$`),
+  ),
   new webpack.DefinePlugin({
     // if process.env.DEPLOYING === true, this forces the config url in
     // src/app/noodl.ts to point to the public.aitmed.com host

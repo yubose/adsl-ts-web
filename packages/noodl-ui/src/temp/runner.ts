@@ -4,18 +4,18 @@ import { AnyFn } from '../types'
 
 const runner = (function () {
   const o = {
+    // draw === util.Consumer.consume
     run(args: { component: WritableDraft<ComponentObject>; draw: AnyFn }) {
-      const { component, draw, ...rest } = args
-
+      const { component, draw } = args
       if (component) {
-        draw(args)
+        draw(component)
         if (Array.isArray(component.children)) {
           const numChildren = component.children.length
           for (let index = 0; index < numChildren; index++) {
-            draw({ component: component.children[index], draw, ...rest })
+            draw(component.children[index])
           }
         } else if (component.children) {
-          draw({ component: component.children, draw, ...rest })
+          draw(component.children)
         }
       }
     },

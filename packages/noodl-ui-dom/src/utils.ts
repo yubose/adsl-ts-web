@@ -110,7 +110,19 @@ export function findWindowDocument(
     doc: Document | HTMLIFrameElement['contentDocument'],
   ) => boolean | null | undefined,
 ) {
-  const win = findWindow((w) => cb(w?.['contentDocument'] || w?.document))
+  let win: Window | null | undefined
+  win = findWindow((w) => {
+    try {
+      return cb(w?.['contentDocument'] || w?.document)
+    } catch (error) {
+      // Allow the loop to continue if it is accessing an outside origin window
+      if (error.name === 'SecurityError' || error.code === 18) {
+      } else {
+        console.error(`[${error.name}]: ${error.message}`)
+      }
+      return false
+    }
+  })
   return (win?.['contentDocument'] || win?.document) as
     | Document
     | HTMLIFrameElement['contentDocument']
