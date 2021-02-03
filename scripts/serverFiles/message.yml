@@ -1,4 +1,4 @@
-apiHost: ecostest.aitmed.com
+apiHost: testapi2.aitmed.com
 apiPort: '443'
 webApiHost: apiHost
 appApiHost: apiHost
