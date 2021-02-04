@@ -1,9 +1,8 @@
 import axios from 'axios'
 import CADL from '@aitmed/cadl'
-import getSeconds from 'date-fns/getSeconds'
-import subSeconds from 'date-fns/subSeconds'
 import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
+import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
 import NOODLUIDOM, { eventId, NOODLDOMElement, Page } from 'noodl-ui-dom'
 import get from 'lodash/get'
@@ -15,6 +14,7 @@ import {
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import {
+  Component,
   ComponentInstance,
   event as noodluiEvent,
   getAllResolversAsMap,
@@ -105,11 +105,11 @@ class App {
       'Initialized service worker',
       this._store.messaging.serviceRegistration,
     )
-    this._store.messaging.token = await this.messaging.getToken({
-      vapidKey: webPushCertificatesKeyPair,
-      serviceWorkerRegistration: this._store.messaging.serviceRegistration,
-    })
-    log.green('Received firebase messaging token', this._store.messaging.token)
+    // this._store.messaging.token = await this.messaging.getToken({
+    //   vapidKey: webPushCertificatesKeyPair,
+    //   serviceWorkerRegistration: this._store.messaging.serviceRegistration,
+    // })
+    // log.green('Received firebase messaging token', this._store.messaging.token)
 
     const unsubscribe = this.messaging.onMessage(
       function nextOrObserver(obs) {
@@ -163,6 +163,23 @@ class App {
         await noodl.initPage(pageName, [], {
           ...this.noodluidom.page.getState().modifiers[pageName],
           builtIn: {
+            FCMOnTokenReceive: async (...args: any[]) => {
+              const token = await this.messaging.getToken(...args)
+              log.gold(
+                `FCMOnTokenReceive noodl.initPage builtIn: PAGE TOKEN`,
+                token,
+              )
+              noodlui.emit('register', {
+                key: 'globalRegister',
+                id: 'FCMOnTokenReceive',
+                prop: 'onEvent',
+                data: token,
+              })
+              return token
+            },
+            FCMOnTokenRefresh: this.messaging.onTokenRefresh.bind(
+              this.messaging,
+            ),
             checkField: this.noodluidom.builtIns.checkField?.find(Boolean)?.fn,
             goto: this.noodluidom.builtIns.goto?.find(Boolean)?.fn,
             videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
@@ -175,6 +192,31 @@ class App {
           pageObject: noodl.root[pageName],
           snapshot: this.noodluidom.page.snapshot(),
         })
+        if (noodl.root?.Global?.globalRegister) {
+          const Global = noodl.root.Global
+          if (Array.isArray(Global.globalRegister)) {
+            if (Global.globalRegister.length) {
+              log.grey(
+                `Scanning ${Global.globalRegister.length} items found in Global.globalRegister`,
+                Global.globalRegister,
+              )
+              Global.globalRegister.forEach((value: any) => {
+                if (isPlainObject(value)) {
+                  if (value.type === 'register') {
+                    log.grey(
+                      `Found and registered a "register" component to Global`,
+                      value,
+                    )
+                    noodlui.register({
+                      key: 'globalRegister',
+                      component: value,
+                    })
+                  }
+                }
+              })
+            }
+          }
+        }
         return noodl.root[pageName]
       } catch (error) {
         throw new Error(error)

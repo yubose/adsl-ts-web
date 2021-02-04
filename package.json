@@ -49,7 +49,8 @@
   },
   "dependencies": {
     "date-fns": "^2.16.1",
-    "noodl-types": "^1.0.20",
+    "firebase": "^8.2.5",
+    "noodl-types": "^1.0.28",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-utils": "file:packages/noodl-utils",

@@ -1,9 +1,16 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
 import noop from 'lodash/noop'
+import isPlainObject from 'lodash/isPlainObject'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
-import { ActionType, ComponentObject } from 'noodl-types'
+import {
+  ActionType,
+  ComponentObject,
+  EmitObject,
+  Identify,
+  RegisterComponentObject,
+} from 'noodl-types'
 import {
   createEmitDataKey,
   evalIf,
@@ -38,6 +45,7 @@ import EmitAction from './Action/EmitAction'
 import getStore from './store'
 import { event } from './constants'
 import * as T from './types'
+import { EmitActionObject } from './types'
 
 const log = Logger.create('noodl-ui')
 let id = 0
@@ -65,6 +73,13 @@ class NOODL {
       [event.NEW_PAGE]: ((page: string) => Promise<NOODL> | undefined)[]
       [event.NEW_PAGE_REF]: ((ref: Page) => Promise<void> | undefined)[]
     }
+    registered: {
+      [key: string]: {
+        onEvent?: {
+          [eventName: string]: { component: T.ComponentInstance }
+        }
+      }
+    }
   } = {
     action: {},
     builtIn: {},
@@ -77,6 +92,7 @@ class NOODL {
       [event.NEW_PAGE]: [],
       [event.NEW_PAGE_REF]: [],
     },
+    registered: {},
   }
   #fetch = ((typeof window !== 'undefined' && window.fetch) || noop) as T.Fetch
   #getAssetsUrl: () => string = () => ''
@@ -511,6 +527,134 @@ class NOODL {
     return this
   }
 
+  // TODO - Support other types of register args
+  register({
+    component,
+    key,
+  }: {
+    component: T.ComponentInstance | RegisterComponentObject
+    key: string
+  }) {
+    let id: string = ''
+    let inst: T.ComponentInstance
+    let prop: string = 'onEvent' // Hard code to onEvent for now
+    let cbs = this.getCbs('register')
+
+    if (isComponent(component)) {
+      id = component.original?.onEvent || ''
+      inst = component
+    } else {
+      id = component.onEvent || ''
+      inst = this.resolveComponents(component)
+    }
+
+    if (!cbs[key]) cbs[key] = {}
+    if (!cbs[key][prop]) cbs[key][prop] = {}
+
+    cbs[key][prop][id] = async (emittedArgs: {
+      prop: 'onEvent'
+      key: string
+      id?: string
+      data?: any
+    }) => {
+      log.func('onNOODLUIEmit')
+      log.grey('', emittedArgs)
+      if (inst.original?.emit) {
+        // Limiting the consumer objs to 1 for now
+        const obj = getStore().actions.emit?.find?.(
+          (o) => o.trigger === 'register',
+        )
+
+        if (typeof obj?.fn === 'function') {
+          const emitObj = { emit: inst.original.emit } as EmitObject
+          const dataKey = inst.original.emit?.dataKey
+          const emitAction = new EmitAction(emitObj as EmitActionObject, {
+            trigger: 'register',
+          })
+
+          const { prop = '', data } = emittedArgs
+
+          if (dataKey === 'onEvent' && prop === 'onEvent') {
+            emitAction.setDataKey(data)
+            emitAction.callback = async (snapshot) => {
+              log.grey(`Executing register emit action callback`, snapshot)
+              const result = await obj?.fn?.(
+                emitAction,
+                this.getConsumerOptions({ component: inst }),
+                this.actionsContext,
+              )
+              return (Array.isArray(result) ? result[0] : result) || ''
+            }
+
+            let result = await emitAction.execute(emitObj)
+            debugger
+            inst.emit('onEvent', result)
+
+            log.gold(`REGISTER EMIT PROCESS FINISHED`, {
+              dataKey,
+              emitAction,
+              emitObj,
+              ...emittedArgs,
+              result,
+            })
+          }
+        }
+      }
+    }
+
+    return this
+  }
+
+  // emit(eventName: T.NOODLComponentEventId, cb: T.ComponentEventCallback): void
+  emit(
+    eventName: 'register',
+    args: { key: string; id?: string; prop: 'onEvent'; data?: string },
+  ): this
+  emit(
+    eventName: T.EventId,
+    ...args: Parameters<T.ComponentEventCallback>
+  ): this
+  emit(eventName: string, ...args: any[]) {
+    if (typeof eventName === 'string') {
+      if (eventName === 'register') {
+        // type ex: "onEvent"
+        const { prop = '', key = '', id = '', data } = args[0] || {}
+        if (prop === 'onEvent') {
+          const cbs = this.getCbs('register')
+          const fn = cbs[key]?.[prop]?.[id]
+          if (typeof fn === 'function') {
+            const result = fn(args[0])
+            if (isPromise(result)) {
+              result
+                .then((res) => {
+                  log.grey(`Emit result for register event: `, res)
+                })
+                .catch((err) => {
+                  throw new Error(err)
+                })
+            } else {
+              log.grey(`Emit result for register event: `, result)
+            }
+          } else {
+            log.func('emit')
+            log.red(
+              'Could not locate a "register" component to send this message to',
+              args[0],
+            )
+          }
+        }
+      } else {
+        const path = this.#getCbPath(eventName)
+        if (path) {
+          let cbs = get(this.#cb, path) as Function[]
+          if (!Array.isArray(cbs)) cbs = cbs ? [cbs] : []
+          cbs.forEach((cb) => cb(...args))
+        }
+      }
+    }
+    return this
+  }
+
   off(eventName: T.EventId, cb: T.ComponentEventCallback) {
     if (typeof eventName === 'string') {
       const path = this.#getCbPath(eventName)
@@ -525,19 +669,6 @@ class NOODL {
             )
           }
         }
-      }
-    }
-    return this
-  }
-
-  // emit(eventName: T.NOODLComponentEventId, cb: T.ComponentEventCallback): void
-  emit(eventName: T.EventId, ...args: Parameters<T.ComponentEventCallback>) {
-    if (typeof eventName === 'string') {
-      const path = this.#getCbPath(eventName)
-      if (path) {
-        let cbs = get(this.#cb, path) as Function[]
-        if (!Array.isArray(cbs)) cbs = cbs ? [cbs] : []
-        cbs.forEach((cb) => cb(...args))
       }
     }
     return this
@@ -579,21 +710,22 @@ class NOODL {
       | 'actions'
       | 'builtIns'
       | 'chaining'
+      | 'register'
       | typeof event.SET_PAGE
       | typeof event.NEW_PAGE
       | typeof event.NEW_PAGE_REF,
   ) {
-    if (key) {
-      switch (key) {
-        case 'actions':
-        case 'builtIns':
-        case 'chaining':
-          return getStore()[key] as any
-        case event.SET_PAGE:
-        case event.NEW_PAGE:
-        case event.NEW_PAGE_REF:
-          return this.#cb.on[key]
-      }
+    switch (key) {
+      case 'actions':
+      case 'builtIns':
+      case 'chaining':
+        return getStore()[key] as any
+      case 'register':
+        return this.#cb.registered
+      case event.SET_PAGE:
+      case event.NEW_PAGE:
+      case event.NEW_PAGE_REF:
+        return this.#cb.on[key]
     }
     return this.#cb
   }
@@ -769,26 +901,6 @@ class NOODL {
       return this.getState().registry[pageName]
     }
     return this.getState().registry
-  }
-
-  // TODO - Support other types of register args
-  register(component: T.ComponentInstance) {
-    if (isComponent(component)) {
-      if (component.get('onEvent')) {
-        const eventName = component.get('onEvent') || ''
-        if (!this.#state.registry.onEvent[this.page]) {
-          this.#state.registry.onEvent[this.page] = {
-            [eventName]: {
-              called: false,
-              callCount: 0,
-              refs: {},
-            },
-          }
-        }
-      }
-    }
-
-    return this
   }
 
   /**
