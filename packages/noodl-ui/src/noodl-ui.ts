@@ -76,7 +76,18 @@ class NOODL {
     registered: {
       [key: string]: {
         onEvent?: {
-          [eventName: string]: { component: T.ComponentInstance }
+          [eventName: string]: {
+            component: T.ComponentInstance
+            key: string
+            id: string
+            prop: 'onEvent'
+            fn: (emittedArgs: {
+              key: string
+              id: string
+              prop: 'onEvent'
+              data: any
+            }) => Promise<any>
+          }
         }
       }
     }
@@ -551,57 +562,60 @@ class NOODL {
     if (!cbs[key]) cbs[key] = {}
     if (!cbs[key][prop]) cbs[key][prop] = {}
 
-    cbs[key][prop][id] = async (emittedArgs: {
-      prop: 'onEvent'
-      key: string
-      id?: string
-      data?: any
-    }) => {
-      log.func('onNOODLUIEmit')
-      log.grey('', emittedArgs)
-      if (inst.original?.emit) {
-        // Limiting the consumer objs to 1 for now
-        const obj = getStore().actions.emit?.find?.(
-          (o) => o.trigger === 'register',
-        )
+    cbs[key][prop][id] = {
+      component,
+      prop,
+      id,
+      key,
+      fn: async (data: any) => {
+        log.func('onNOODLUIEmit')
 
-        if (typeof obj?.fn === 'function') {
-          const emitObj = { emit: inst.original.emit } as EmitObject
-          const dataKey = inst.original.emit?.dataKey
-          const emitAction = new EmitAction(emitObj as EmitActionObject, {
-            trigger: 'register',
-          })
+        const registerInfo = { component, prop, id, key, data }
 
-          const { prop = '', data } = emittedArgs
+        log.grey('', registerInfo)
 
-          if (dataKey === 'onEvent' && prop === 'onEvent') {
-            emitAction.setDataKey(data)
-            emitAction.callback = async (snapshot) => {
-              log.grey(`Executing register emit action callback`, snapshot)
-              const result = await obj?.fn?.(
-                emitAction,
-                this.getConsumerOptions({ component: inst }),
-                this.actionsContext,
-              )
-              return (Array.isArray(result) ? result[0] : result) || ''
-            }
+        if (inst.original?.emit) {
+          // Limiting the consumer objs to 1 for now
+          const obj = getStore().actions.emit?.find?.(
+            (o) => o.trigger === 'register',
+          )
 
-            let result = await emitAction.execute(emitObj)
-            inst.emit('onEvent', result)
-
-            log.gold(`REGISTER EMIT PROCESS FINISHED`, {
-              dataKey,
-              emitAction,
-              emitObj,
-              ...emittedArgs,
-              result,
+          if (typeof obj?.fn === 'function') {
+            const emitObj = { emit: inst.original.emit } as EmitObject
+            const dataKey = inst.original.emit?.dataKey
+            const emitAction = new EmitAction(emitObj as EmitActionObject, {
+              trigger: 'register',
             })
+
+            if (dataKey === 'onEvent' && registerInfo.prop === 'onEvent') {
+              emitAction.setDataKey(registerInfo.data)
+              emitAction.callback = async (snapshot) => {
+                log.grey(`Executing register emit action callback`, snapshot)
+                const result = await obj?.fn?.(
+                  emitAction,
+                  this.getConsumerOptions({ component: inst }),
+                  this.actionsContext,
+                )
+                return (Array.isArray(result) ? result[0] : result) || ''
+              }
+
+              let result = await emitAction.execute(emitObj)
+              inst.emit('onEvent', { ...registerInfo, result })
+
+              log.gold(`REGISTER EMIT PROCESS FINISHED`, {
+                dataKey,
+                emitAction,
+                emitObj,
+                registerInfo,
+                result,
+              })
+            }
           }
         }
-      }
+      },
     }
 
-    return this
+    return cbs[key][prop][id]
   }
 
   // emit(eventName: T.NOODLComponentEventId, cb: T.ComponentEventCallback): void
@@ -620,9 +634,9 @@ class NOODL {
         const { prop = '', key = '', id = '', data } = args[0] || {}
         if (prop === 'onEvent') {
           const cbs = this.getCbs('register')
-          const fn = cbs[key]?.[prop]?.[id]
+          const fn = cbs[key]?.[prop]?.[id]?.fn
           if (typeof fn === 'function') {
-            const result = fn(args[0])
+            const result = fn(data)
             if (isPromise(result)) {
               result
                 .then((res) => {

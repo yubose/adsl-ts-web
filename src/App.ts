@@ -37,7 +37,7 @@ import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
 import firebaseApp from './app/firebase'
-import { WritableDraft } from 'immer/dist/internal'
+import { Draft, WritableDraft } from 'immer/dist/internal'
 
 const log = Logger.create('App.ts')
 
@@ -207,10 +207,12 @@ class App {
                       `Found and registered a "register" component to Global`,
                       value,
                     )
-                    noodlui.register({
+                    const res = noodlui.register({
                       key: 'globalRegister',
                       component: value,
                     })
+                    log.green(`RECEIVED OBSERVEER`, res)
+                    value.onEvent = res.fn
                   }
                 }
               })
