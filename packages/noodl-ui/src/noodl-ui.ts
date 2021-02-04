@@ -45,7 +45,6 @@ import EmitAction from './Action/EmitAction'
 import getStore from './store'
 import { event } from './constants'
 import * as T from './types'
-import { EmitActionObject } from './types'
 
 const log = Logger.create('noodl-ui')
 let id = 0
@@ -563,7 +562,7 @@ class NOODL {
     if (!cbs[key][prop]) cbs[key][prop] = {}
 
     cbs[key][prop][id] = {
-      component,
+      component: inst,
       prop,
       id,
       key,
@@ -583,11 +582,11 @@ class NOODL {
           if (typeof obj?.fn === 'function') {
             const emitObj = { emit: inst.original.emit } as EmitObject
             const dataKey = inst.original.emit?.dataKey
-            const emitAction = new EmitAction(emitObj as EmitActionObject, {
+            const emitAction = new EmitAction(emitObj as T.EmitActionObject, {
               trigger: 'register',
             })
 
-            if (dataKey === 'onEvent' && registerInfo.prop === 'onEvent') {
+            if (dataKey === prop) {
               emitAction.setDataKey(registerInfo.data)
               emitAction.callback = async (snapshot) => {
                 log.grey(`Executing register emit action callback`, snapshot)
@@ -600,7 +599,7 @@ class NOODL {
               }
 
               let result = await emitAction.execute(emitObj)
-              inst.emit('onEvent', { ...registerInfo, result })
+              inst.emit(prop, { ...registerInfo, result })
 
               log.gold(`REGISTER EMIT PROCESS FINISHED`, {
                 dataKey,

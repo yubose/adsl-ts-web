@@ -205,14 +205,15 @@ class App {
                   if (value.type === 'register') {
                     log.grey(
                       `Found and registered a "register" component to Global`,
-                      value,
+                      { ...value },
                     )
                     const res = noodlui.register({
                       key: 'globalRegister',
                       component: value,
                     })
                     log.green(`RECEIVED OBSERVEER`, res)
-                    value.onEvent = res.fn
+                    // SDK sets this
+                    // value.onEvent = res.fn
                   }
                 }
               })
