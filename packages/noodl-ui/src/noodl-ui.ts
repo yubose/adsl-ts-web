@@ -1,7 +1,6 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
 import noop from 'lodash/noop'
-import isPlainObject from 'lodash/isPlainObject'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
 import {
@@ -45,6 +44,7 @@ import EmitAction from './Action/EmitAction'
 import getStore from './store'
 import { event } from './constants'
 import * as T from './types'
+import { isPlainObject } from 'lodash'
 
 const log = Logger.create('noodl-ui')
 let id = 0
@@ -586,29 +586,39 @@ class NOODL {
               trigger: 'register',
             })
 
-            if (dataKey === prop) {
-              emitAction.setDataKey(registerInfo.data)
-              emitAction.callback = async (snapshot) => {
-                log.grey(`Executing register emit action callback`, snapshot)
-                const result = await obj?.fn?.(
-                  emitAction,
-                  this.getConsumerOptions({ component: inst }),
-                  this.actionsContext,
-                )
-                return (Array.isArray(result) ? result[0] : result) || ''
-              }
-
-              let result = await emitAction.execute(emitObj)
-              inst.emit(prop, { ...registerInfo, result })
-
-              log.gold(`REGISTER EMIT PROCESS FINISHED`, {
-                dataKey,
-                emitAction,
-                emitObj,
-                registerInfo,
-                result,
-              })
+            if (typeof dataKey === 'string') {
+              if (dataKey === prop) emitAction.setDataKey(registerInfo.data)
+              else emitAction.setDataKey(prop)
+            } else if (isPlainObject(dataKey)) {
+              emitAction.setDataKey(
+                Object.entries(dataKey).reduce((acc, [key, value]) => {
+                  if (value === prop) acc[key] = registerInfo.data
+                  else acc[key] = value
+                  return acc
+                }, {}),
+              )
             }
+
+            emitAction.callback = async (snapshot) => {
+              log.grey(`Executing register emit action callback`, snapshot)
+              const result = await obj?.fn?.(
+                emitAction,
+                this.getConsumerOptions({ component: inst }),
+                this.actionsContext,
+              )
+              return (Array.isArray(result) ? result[0] : result) || ''
+            }
+
+            let result = await emitAction.execute(emitObj)
+            inst.emit(prop, { ...registerInfo, result })
+
+            log.gold(`REGISTER EMIT PROCESS FINISHED`, {
+              dataKey,
+              emitAction,
+              emitObj,
+              registerInfo,
+              result,
+            })
           }
         }
       },
@@ -638,9 +648,9 @@ class NOODL {
             const result = fn(data)
             if (isPromise(result)) {
               result
-                .then((res) => {
-                  log.grey(`Emit result for register event: `, res)
-                })
+                .then((res) =>
+                  log.grey(`Emit result for register event: `, res),
+                )
                 .catch((err) => {
                   throw new Error(err)
                 })

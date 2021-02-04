@@ -14,7 +14,6 @@ import {
   LocalVideoTrackPublication,
 } from 'twilio-video'
 import {
-  Component,
   ComponentInstance,
   event as noodluiEvent,
   getAllResolversAsMap,
@@ -37,7 +36,7 @@ import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
 import firebaseApp from './app/firebase'
-import { Draft, WritableDraft } from 'immer/dist/internal'
+import { WritableDraft } from 'immer/dist/internal'
 
 const log = Logger.create('App.ts')
 
