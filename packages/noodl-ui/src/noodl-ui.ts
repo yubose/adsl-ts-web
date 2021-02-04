@@ -587,7 +587,6 @@ class NOODL {
             }
 
             let result = await emitAction.execute(emitObj)
-            debugger
             inst.emit('onEvent', result)
 
             log.gold(`REGISTER EMIT PROCESS FINISHED`, {
