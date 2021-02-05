@@ -23,7 +23,7 @@ const NOTIFICATION = getConfigEndpoint('message')
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : TESTPAGE
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
-const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
+const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : NOTIFICATION
 
 const noodl = new NOODL({
   aspectRatio:
