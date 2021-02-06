@@ -330,6 +330,41 @@ const createActions = function ({
     trigger: 'placeholder',
   })
 
+  /** REGISTER EMIT */
+  noodluidom.register({
+    actionType: 'emit',
+    fn: async (
+      action: EmitAction<EmitActionObject>,
+      options: ActionConsumerCallbackOptions,
+      { noodl },
+    ) => {
+      log.func('emit [register]')
+      // noodl-ui should have prefilled the instance with the data at this point
+      const { context } = options
+      const page = context.page || ''
+
+      const emitParams = {
+        actions: action.original.emit.actions,
+        pageName: page,
+      } as any
+
+      if (action.original.emit.dataKey) {
+        emitParams.dataKey = action.dataKey
+      }
+
+      log.grey(`Calling emitCall`, { action, options, emitParams })
+
+      const result = await noodl.emitCall(emitParams)
+
+      log.grey(
+        `emitCall call result: ${result === '' ? '(empty string)' : result}`,
+      )
+
+      return Array.isArray(result) ? result[0] : result
+    },
+    trigger: 'register',
+  })
+
   noodluidom.register({
     actionType: 'evalObject',
     fn: async (

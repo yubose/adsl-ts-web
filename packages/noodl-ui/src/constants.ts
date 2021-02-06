@@ -25,6 +25,7 @@ export const resolveEmitTriggers = [
   'dataValue',
   'path',
   'placeholder',
+  'register',
 ] as const
 
 export const emitTriggers = [
@@ -153,6 +154,9 @@ export const event = {
       MISSING_COMPONENTS: 'component:page:missing.components',
       RESOLVED_COMPONENTS: 'component:page:resolved.components',
       SET_REF: 'component:page:set.ref',
+    },
+    register: {
+      ONEVENT: 'onEvent',
     },
   },
   SET_PAGE: 'set.page',

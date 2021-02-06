@@ -1,11 +1,11 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { NOODLComponent } from 'noodl-ui'
-import { noodlui } from '../utils/test-utils'
+import { getByDataUX, NOODLComponent } from 'noodl-ui'
+import { noodlui, page } from '../utils/test-utils'
 import Meeting from './Meeting'
+import Stream from './Stream'
 import Streams from './Streams'
 import Substreams from './Substreams'
-import Stream from './Stream'
 
 class MockParticipant {
   sid = 'mysid123'
@@ -64,7 +64,55 @@ describe('Meeting', () => {
       //
     })
   })
+
   describe('adding remote participants', () => {
+    it('should hide the "Waiting for others to join" label and the white circle', () => {
+      page.render([
+        {
+          type: 'label',
+          contentType: 'passwordHidden',
+          text: 'Waiting for others to join',
+        },
+        {
+          type: 'image',
+          contentType: 'passwordHidden',
+          path: 'circle.png',
+        },
+      ])
+      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
+        expect(node).to.be.visible
+      })
+      Meeting.hideWaitingElements()
+      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
+        expect(node).not.to.be.visible
+      })
+    })
+
+    it('should show the "Waiting for others to join" label and the white circle', () => {
+      page.render([
+        {
+          type: 'label',
+          contentType: 'passwordHidden',
+          text: 'Waiting for others to join',
+        },
+        {
+          type: 'image',
+          contentType: 'passwordHidden',
+          path: 'circle.png',
+        },
+      ])
+      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
+        node.style.visibility = 'hidden'
+      })
+      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
+        expect(node).not.to.be.visible
+      })
+      Meeting.showWaitingElements()
+      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
+        expect(node).to.be.visible
+      })
+    })
+
     describe('when mainStream doesnt have any participants', () => {
       it('should assign the participant immediately to the mainStream', () => {
         expect(mainStream.isAnyParticipantSet()).to.be.false

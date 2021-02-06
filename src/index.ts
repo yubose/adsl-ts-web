@@ -6,6 +6,9 @@ import './styles.css'
 
 window.addEventListener('load', async () => {
   const { Account } = await import('@aitmed/cadl')
+  const { default: firebase, ...restFirebaseProps } = await import(
+    './app/firebase'
+  )
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui, getWindowHelpers } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
@@ -34,6 +37,10 @@ window.addEventListener('load', async () => {
 
   try {
     await app.initialize({
+      firebase: {
+        firebase,
+        ...restFirebaseProps,
+      },
       meeting: Meeting,
       noodlui,
       noodluidom,

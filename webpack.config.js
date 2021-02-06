@@ -8,6 +8,7 @@ const noodluiPkg = require('./packages/noodl-ui/package.json')
 const noodlutilsPkg = require('./packages/noodl-utils/package.json')
 const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
 const CircularDependencyPlugin = require('circular-dependency-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 //
 const htmlPluginOptions = {
@@ -174,6 +175,14 @@ module.exports = {
   },
   plugins: [
     ...plugins,
+    new CopyPlugin({
+      patterns: [
+        {
+          from: 'src/firebase-messaging-sw.js',
+          to: 'public/firebase-messaging-sw.js',
+        },
+      ],
+    }),
     new webpack.ProgressPlugin({
       handler(percentage, msg, ...args) {
         console.clear()

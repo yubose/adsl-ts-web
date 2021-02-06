@@ -1,9 +1,8 @@
 import axios from 'axios'
 import CADL from '@aitmed/cadl'
-import getSeconds from 'date-fns/getSeconds'
-import subSeconds from 'date-fns/subSeconds'
 import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
+import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
 import NOODLUIDOM, { eventId, NOODLDOMElement, Page } from 'noodl-ui-dom'
 import get from 'lodash/get'
@@ -36,6 +35,7 @@ import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
+import firebaseApp from './app/firebase'
 import { WritableDraft } from 'immer/dist/internal'
 
 const log = Logger.create('App.ts')
@@ -46,9 +46,19 @@ class App {
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
   #preparePage = {} as (pageName: string) => Promise<PageObject>
   #viewportUtils = {} as ViewportUtils
+  _store: {
+    messaging: { serviceRegistration: ServiceWorkerRegistration; token: string }
+  } = {
+    messaging: {
+      serviceRegistration: {} as ServiceWorkerRegistration,
+      token: '',
+    },
+  }
   authStatus: AuthStatus | '' = ''
   initialized: boolean = false
+  firebase = {} as typeof firebaseApp
   meeting: IMeeting = {} as IMeeting
+  messaging = {} as ReturnType<typeof firebaseApp.messaging>
   noodl = {} as CADL
   noodlui = {} as NOODLUI
   noodluidom = {} as NOODLUIDOM
@@ -57,19 +67,26 @@ class App {
   async initialize({
     // actions,
     // builtIn,
+    firebase: { firebase, webPushCertificatesKeyPair },
     meeting,
     noodlui,
     noodluidom,
   }: {
     // actions: ReturnType<typeof createActions>
     // builtIn: ReturnType<typeof createBuiltInActions>
+    firebase: {
+      firebase: typeof firebaseApp
+      webPushCertificatesKeyPair: string
+    }
     meeting: IMeeting
     noodlui: NOODLUI
     noodluidom: NOODLUIDOM
   }) {
     const { Account } = await import('@aitmed/cadl')
     const noodl = (await import('app/noodl')).default
-    noodluidom.use(noodlui)
+
+    this.firebase = firebase
+    this.messaging = this.firebase.messaging()
     this.meeting = meeting
     this.noodl = noodl
     this.noodlui = noodlui
@@ -77,9 +94,42 @@ class App {
     this.streams = meeting.getStreams()
     this.#viewportUtils = createViewportHandler(new Viewport())
 
-    await noodl.init.call(noodl)
+    noodluidom.use(noodlui)
+
+    log.func('initialize')
+    this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
+      'firebase-messaging-sw.js',
+    )
+    log.green(
+      'Initialized service worker',
+      this._store.messaging.serviceRegistration,
+    )
+    // this._store.messaging.token = await this.messaging.getToken({
+    //   vapidKey: webPushCertificatesKeyPair,
+    //   serviceWorkerRegistration: this._store.messaging.serviceRegistration,
+    // })
+    // log.green('Received firebase messaging token', this._store.messaging.token)
+
+    const unsubscribe = this.messaging.onMessage(
+      function nextOrObserver(obs) {
+        log.func('onMessage')
+        log.green('[nextOrObserver]: obs', obs)
+      },
+      function onError(err) {
+        log.func('onMessage')
+        log.red(`[onError]: ${err.message}`, err)
+      },
+      function onComplete() {
+        log.func('[onComplete]')
+        log.grey(`from onMessage`)
+      },
+    )
+
+    await noodl.init()
+
     createActions({ noodlui, noodluidom })
     createBuiltIns({ noodl, noodlui, noodluidom })
+
     meeting.initialize({
       noodluidom,
       page: this.noodluidom.page,
@@ -112,6 +162,19 @@ class App {
         await noodl.initPage(pageName, [], {
           ...this.noodluidom.page.getState().modifiers[pageName],
           builtIn: {
+            FCMOnTokenReceive: async (...args: any[]) => {
+              const token = await this.messaging.getToken(...args)
+              noodlui.emit('register', {
+                key: 'globalRegister',
+                id: 'FCMOnTokenReceive',
+                prop: 'onEvent',
+                data: token,
+              })
+              return token
+            },
+            FCMOnTokenRefresh: this.messaging.onTokenRefresh.bind(
+              this.messaging,
+            ),
             checkField: this.noodluidom.builtIns.checkField?.find(Boolean)?.fn,
             goto: this.noodluidom.builtIns.goto?.find(Boolean)?.fn,
             videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
@@ -124,6 +187,33 @@ class App {
           pageObject: noodl.root[pageName],
           snapshot: this.noodluidom.page.snapshot(),
         })
+        if (noodl.root?.Global?.globalRegister) {
+          const Global = noodl.root.Global
+          if (Array.isArray(Global.globalRegister)) {
+            if (Global.globalRegister.length) {
+              log.grey(
+                `Scanning ${Global.globalRegister.length} items found in Global.globalRegister`,
+                Global.globalRegister,
+              )
+              Global.globalRegister.forEach((value: any) => {
+                if (isPlainObject(value)) {
+                  if (value.type === 'register') {
+                    log.grey(
+                      `Found and registered a "register" component to Global`,
+                      { ...value },
+                    )
+                    const res = noodlui.register({
+                      key: 'globalRegister',
+                      component: value,
+                    })
+                    // SDK sets this
+                    // value.onEvent = res.fn
+                  }
+                }
+              })
+            }
+          }
+        }
         return noodl.root[pageName]
       } catch (error) {
         throw new Error(error)
