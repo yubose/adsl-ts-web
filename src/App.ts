@@ -164,10 +164,6 @@ class App {
           builtIn: {
             FCMOnTokenReceive: async (...args: any[]) => {
               const token = await this.messaging.getToken(...args)
-              log.gold(
-                `FCMOnTokenReceive noodl.initPage builtIn: PAGE TOKEN`,
-                token,
-              )
               noodlui.emit('register', {
                 key: 'globalRegister',
                 id: 'FCMOnTokenReceive',
@@ -210,7 +206,6 @@ class App {
                       key: 'globalRegister',
                       component: value,
                     })
-                    log.green(`RECEIVED OBSERVEER`, res)
                     // SDK sets this
                     // value.onEvent = res.fn
                   }
