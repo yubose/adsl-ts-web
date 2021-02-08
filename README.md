@@ -139,6 +139,13 @@ PAc1893f64325658d1acec25e99a158da7 | 8882462345 (Desktop)
 
 ## Firebase
 
+1091
+
+Subtypes
+-- | --
+1 | Android
+2 | Web
+
 ## goto examples
 
 ```yml

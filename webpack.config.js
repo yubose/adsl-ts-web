@@ -179,7 +179,7 @@ module.exports = {
       patterns: [
         {
           from: 'src/firebase-messaging-sw.js',
-          to: 'public/firebase-messaging-sw.js',
+          to: 'firebase-messaging-sw.js',
         },
       ],
     }),

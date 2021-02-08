@@ -96,8 +96,6 @@ class App {
 
     noodluidom.use(noodlui)
 
-    log.func('initialize')
-
     // this._store.messaging.token = await this.messaging.getToken({
     //   vapidKey: webPushCertificatesKeyPair,
     //   serviceWorkerRegistration: this._store.messaging.serviceRegistration,
@@ -161,8 +159,8 @@ class App {
                 this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
                   'firebase-messaging-sw.js',
                 )
-                args[1] = {
-                  ...args[1],
+                args[0] = {
+                  ...args[0],
                   serviceWorkerRegistration: this._store.messaging
                     .serviceRegistration,
                 }
@@ -383,7 +381,7 @@ class App {
 
   observePages(page: Page) {
     page
-      .on(pageEvent.ON_NAVIGATE_START, (snapshot) => {
+      .on(pageEvent.ON_NAVIGATE_START, (snapshot: any) => {
         console.log(
           `%cRendering the DOM for page: "${snapshot.requesting}"`,
           `color:#95a5a6;`,

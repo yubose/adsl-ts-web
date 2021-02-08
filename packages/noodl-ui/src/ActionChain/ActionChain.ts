@@ -250,7 +250,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
       }, 10000)
       result = await action.execute(handlerOptions)
       if (isPlainObject(result)) {
-        if ('wait' in result)
+        if ('wait' in (result || {}))
           await this.abort(
             `An action returned from a "${action.actionType}" type requested to wait`,
           )
@@ -308,9 +308,9 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
       // for now until we find a better solution
       else {
         if (typeof actionObj === 'object') {
-          if ('emit' in actionObj) {
+          if ('emit' in (actionObj || {})) {
             actionObj.actionType = 'emit'
-          } else if ('goto' in actionObj) {
+          } else if ('goto' in (actionObj || {})) {
             ;(actionObj as T.GotoObject).actionType = 'goto'
           }
           if (typeof this.createAction[actionObj.actionType] === 'function') {
@@ -353,7 +353,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
       this.status === 'aborted' ||
       (this.status &&
         typeof this.status === 'object' &&
-        'aborted' in this.status)
+        'aborted' in (typeof this.status === 'object' ? this.status || {} : {}))
     )
   }
 
@@ -362,7 +362,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
   useAction(action: T.StoreActionObject<any> | T.StoreActionObject<any>[]) {
     // Built in actions are forwarded to this.useBuiltIn
     ;(Array.isArray(action) ? action : [action]).forEach((obj) => {
-      if ('funcName' in obj) {
+      if ('funcName' in (obj || {})) {
         this.useBuiltIn(obj)
       } else {
         this.fns.action[obj.actionType] = [
