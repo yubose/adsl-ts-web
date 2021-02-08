@@ -1,13 +1,14 @@
-const childProcess = require('child_process')
+const execa = require('execa')
 const { Command } = require('commander')
 
 const program = new Command('aitmed-noodl-web cli scripts')
 
 program.command('build <env> [serve]').action((env, serve) => {
   let shell
+  let args = 'npm run build'
 
   if (env === 'test') {
-    shell = childProcess.exec('npm run build:test', { shell: true })
+    args
 
     shell.on('data', (data) => {
       console.log(data)

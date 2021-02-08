@@ -1,3 +1,4 @@
+import yaml from 'yaml'
 import Logger from 'logsnap'
 import firebase from 'firebase/app'
 import 'firebase/auth'
