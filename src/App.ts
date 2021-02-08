@@ -97,13 +97,7 @@ class App {
     noodluidom.use(noodlui)
 
     log.func('initialize')
-    this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
-      'firebase-messaging-sw.js',
-    )
-    log.green(
-      'Initialized service worker',
-      this._store.messaging.serviceRegistration,
-    )
+
     // this._store.messaging.token = await this.messaging.getToken({
     //   vapidKey: webPushCertificatesKeyPair,
     //   serviceWorkerRegistration: this._store.messaging.serviceRegistration,
@@ -163,6 +157,25 @@ class App {
           ...this.noodluidom.page.getState().modifiers[pageName],
           builtIn: {
             FCMOnTokenReceive: async (...args: any[]) => {
+              if ('navigator' in window) {
+                this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
+                  'firebase-messaging-sw.js',
+                )
+                args[1] = {
+                  ...args[1],
+                  serviceWorkerRegistration: this._store.messaging
+                    .serviceRegistration,
+                }
+                log.green(
+                  'Initialized service worker',
+                  this._store.messaging.serviceRegistration,
+                )
+              } else {
+                log.red(
+                  `Could not initiate the firebase service worker because window.navigator is not found`,
+                )
+              }
+              log.grey(`Running getToken with args: `, args)
               const token = await this.messaging.getToken(...args)
               noodlui.emit('register', {
                 key: 'globalRegister',
