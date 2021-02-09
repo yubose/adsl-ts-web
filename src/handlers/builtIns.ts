@@ -529,8 +529,20 @@ const createBuiltInActions = function ({
         }
 
         if (!isSamePage) {
-          if (reload) return (window.location.href = destinationParam)
-          else await noodluidom.page.requestPageChange(destination)
+          if (reload) {
+            let urlToGoToInstead = ''
+            const parts = noodluidom.page.pageUrl.split('-')
+            if (parts.length > 1) {
+              if (!parts[0].startsWith('index.html')) {
+                parts.unshift('index.html?')
+                parts.push(destination)
+                urlToGoToInstead = parts.join('-')
+              }
+            } else {
+              urlToGoToInstead = 'index.html?' + destination
+            }
+            window.location.href = urlToGoToInstead
+          } else await noodluidom.page.requestPageChange(destination)
 
           if (!destination) {
             log.func('builtIn')
