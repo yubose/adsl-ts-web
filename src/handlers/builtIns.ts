@@ -389,12 +389,47 @@ const createBuiltInActions = function ({
       ) {
         log.func('builtIn [goto]')
         log.red('', { action, ...options })
-        const destinationParam =
-          (typeof action === 'string'
-            ? action
-            : isPlainObject(action)
-            ? (action as any).destination
-            : '') || ''
+        let destinationParam: string = ''
+        let reload: boolean | undefined
+
+        // "Reload" currently is only known to be used in goto when runnning
+        // an action chain and given an object like { destination, reload }
+        if (typeof action === 'string') {
+          destinationParam = action
+        } else if (action instanceof Action) {
+          const gotoObj = action.original
+          if (typeof gotoObj === 'string') {
+            destinationParam = gotoObj
+          } else if (isPlainObject(gotoObj)) {
+            if ('goto' in gotoObj) {
+              if (isPlainObject(gotoObj.goto)) {
+                destinationParam = gotoObj.goto.destination
+                if ('reload' in gotoObj.goto) reload = gotoObj.goto.reload
+              } else if (typeof gotoObj.goto === 'string') {
+                destinationParam = gotoObj.goto
+              }
+            } else {
+              if (isPlainObject(gotoObj)) {
+                destinationParam = gotoObj.destination
+                if ('reload' in gotoObj) reload = gotoObj.reload
+              }
+            }
+          }
+        } else if (isPlainObject(action)) {
+          if ('destination' in action) {
+            destinationParam = action.destination
+            if ('reload' in action) reload = action.reload
+          }
+        }
+
+        if (reload !== undefined) {
+          noodluidom.page.setModifier(destinationParam, { reload })
+        }
+
+        log.grey(`Computed goto params`, {
+          destination: destinationParam,
+          reload,
+        })
 
         let findWindow: any
         let findByElementId: any

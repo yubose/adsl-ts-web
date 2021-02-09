@@ -72,7 +72,7 @@ class Page {
    */
   async requestPageChange(
     newPage: string = '',
-    { force }: { force?: boolean } = {},
+    { force, reload }: { force?: boolean; reload?: boolean } = {},
   ) {
     const { current } = this.getState()
     if (newPage !== current || newPage?.startsWith('http') || !!force) {

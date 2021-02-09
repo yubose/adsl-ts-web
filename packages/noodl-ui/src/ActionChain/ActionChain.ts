@@ -98,11 +98,21 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     } as any
 
     log.func('abort')
-    log.orange('Aborting...', { reasons, status: this.status })
+    log.orange('Aborting...', {
+      reasons,
+      status: this.status,
+      current: this.current,
+      ref: this,
+    })
 
     if (this.current) {
       this.#queue.unshift(this.current)
       this.current = null
+      log.grey('Inserted current action back to queue to abort', {
+        queue: this.#queue.slice(),
+        current: this.current,
+        ref: this,
+      })
     }
 
     // Exhaust the remaining actions in the queue and abort them
@@ -148,19 +158,21 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
             }
             // Goto action (will replace the soon-to-be-deprecated actionType: pageJump action)
             else {
-              result = await this.execute(
-                action,
-                this.getDefaultCallbackArgs({ event }),
-              )
-              // log.grey('Current results from action chain', result)
-              if (isPlainObject(result)) {
-                iterator = await this.next(result)
-              } else if (typeof result === 'string') {
-                // TODO
-              } else if (typeof result === 'function') {
-                // TODO
-              } else {
-                iterator = await this.next(result)
+              if (!this.isAborted()) {
+                result = await this.execute(
+                  action,
+                  this.getDefaultCallbackArgs({ event }),
+                )
+                // log.grey('Current results from action chain', result)
+                if (isPlainObject(result)) {
+                  iterator = await this.next(result)
+                } else if (typeof result === 'string') {
+                  // TODO
+                } else if (typeof result === 'function') {
+                  // TODO
+                } else {
+                  iterator = await this.next(result)
+                }
               }
             }
           }
@@ -191,8 +203,8 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
    */
   async next(args?: any) {
     const result = await this.gen.next(args)
-    if (result.value && result.value instanceof Action) {
-      this.current = result.value
+    if (result.value?.action instanceof Action) {
+      this.current = result.value.action
     }
     return result
   }
@@ -220,6 +232,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     let results: T.ActionChainGeneratorResult[] = []
 
     while (this.#queue.length) {
+      if (this.isAborted()) return results
       action = this.#queue.shift()
       results.push({
         action: action,
@@ -253,7 +266,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
             throw new AbortExecuteError(err)
           })
       }, 10000)
-      result = await action.execute(handlerOptions)
+      if (!this.isAborted()) result = await action.execute(handlerOptions)
       if (isPlainObject(result)) {
         if ('wait' in (result || {}))
           await this.abort(
