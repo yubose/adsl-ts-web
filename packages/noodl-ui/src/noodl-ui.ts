@@ -27,6 +27,7 @@ import {
   getRandomKey,
   hasLetter,
   isPromise,
+  toNumber,
 } from './utils/common'
 import {
   findListDataObject,
@@ -219,7 +220,7 @@ class NOODL {
   #resolve = (c: T.ComponentType | T.ComponentInstance | ComponentObject) => {
     const component = createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
-    const baseStyles = this.getBaseStyles(component.original.style)
+    const baseStyles = this.getBaseStyles(component)
 
     component.id = component.id || getRandomKey()
     component.assignStyles(baseStyles)
@@ -790,7 +791,60 @@ class NOODL {
     return this
   }
 
-  getBaseStyles(styles?: T.Style) {
+  getBaseStyles(component?: T.ComponentInstance) {
+    let styles = (component?.original?.style as T.Style) || undefined
+    // if (styles?.top === 'auto') styles.top = '0'
+    if (isPlainObject(styles)) {
+      if (!('top' in styles)) styles.top = '0'
+
+      if (isComponent(component)) {
+        const parent = component.parent() as T.ComponentInstance
+        let top
+
+        if (parent) {
+          let parentTop = parent?.style?.top
+          let parentHeight = parent?.style?.height
+
+          // if (parentTop === 'auto') parentTop = '0'
+          if (parentTop !== undefined) top = toNumber(parentTop)
+          if (parentHeight !== undefined) top = top + toNumber(parentHeight)
+
+          if (typeof top === 'number') {
+            top = (this.viewport.height as number) - top
+            component.setStyle('top', top + 'px')
+            if (!('height' in (component.style || {}))) {
+              // component.setStyle('height', 'auto')
+            }
+          }
+
+          if (parent.style?.axis === 'vertical') {
+            styles.position = 'relative'
+            styles.height = 'auto'
+          }
+
+          log.gold('Component is missing "top"', {
+            original: component.original,
+            component,
+            parent: component.parent(),
+            parentTop,
+            parentHeight,
+            computedTopForThisComponent: top,
+            viewport: {
+              width: this.viewport.width,
+              height: this.viewport.height,
+            },
+          })
+        } else {
+        }
+
+        if (!('height' in component.style)) {
+          component.style.height = 'auto'
+        }
+      } else if (isPlainObject(component)) {
+        //
+      }
+    }
+
     return {
       ...this.#getRoot().Style,
       position: 'absolute',

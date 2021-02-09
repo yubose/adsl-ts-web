@@ -1,3 +1,4 @@
+import e from 'express'
 import isPlainObject from 'lodash/isPlainObject'
 import spread from 'lodash/spread'
 
@@ -91,4 +92,17 @@ export function isAllString(
  */
 export function isBrowser() {
   return typeof window !== 'undefined'
+}
+
+export function toNumber(str: string) {
+  let value: any
+  if (hasLetter(str)) {
+    const results = str.match(/[a-zA-Z]/i)
+    if (results && results.index > -1) {
+      value = Number(str.substring(0, results.index))
+    }
+  } else {
+    value = Number(str)
+  }
+  return value
 }

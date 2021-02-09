@@ -94,6 +94,7 @@ app.get('/HomePageUrl_en.yml', (req, res) => {
 const otherFiles = [
   'cadlEndpoint.yml',
   'message.yml',
+  'meet2.yml',
   'meet2d.yml',
   'ww2.yml',
   'www.yml',
