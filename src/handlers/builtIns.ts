@@ -529,7 +529,8 @@ const createBuiltInActions = function ({
         }
 
         if (!isSamePage) {
-          await noodluidom.page.requestPageChange(destination)
+          if (reload) return (window.location.href = destinationParam)
+          else await noodluidom.page.requestPageChange(destination)
 
           if (!destination) {
             log.func('builtIn')
