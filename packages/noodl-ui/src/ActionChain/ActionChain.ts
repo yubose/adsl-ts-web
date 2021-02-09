@@ -34,7 +34,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     | EmitActionObject
     | GotoActionObject
     | ToastActionObject
-  >
+  > | null
   fns = { action: {}, builtIn: {} } as {
     action: Record<
       T.ActionType | 'anonymous' | 'emit' | 'goto' | 'toast',
@@ -99,6 +99,11 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
 
     log.func('abort')
     log.orange('Aborting...', { reasons, status: this.status })
+
+    if (this.current) {
+      this.#queue.unshift(this.current)
+      this.current = null
+    }
 
     // Exhaust the remaining actions in the queue and abort them
     while (this.#queue.length) {
