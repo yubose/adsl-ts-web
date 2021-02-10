@@ -822,9 +822,10 @@ const createActions = function ({
 
         // This is the more older version of the updateObject action object where it used
         // the "object" property
-        if ('object' in action.original) {
+        if (isPlainObject(action.original) && 'object' in action.original) {
           await callObject(action.original.object, callObjectOptions)
         }
+
         // This is the more newer version that is more descriptive, utilizing the data key
         // action = { actionType: 'updateObject', dataKey, dataObject }
         else {

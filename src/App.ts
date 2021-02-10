@@ -44,6 +44,7 @@ export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
 class App {
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
+  #messaging = {} as ReturnType<typeof firebaseApp.messaging>
   #preparePage = {} as (pageName: string) => Promise<PageObject>
   #viewportUtils = {} as ViewportUtils
   _store: {
@@ -58,7 +59,6 @@ class App {
   initialized: boolean = false
   firebase = {} as typeof firebaseApp
   meeting: IMeeting = {} as IMeeting
-  messaging = {} as ReturnType<typeof firebaseApp.messaging>
   noodl = {} as CADL
   noodlui = {} as NOODLUI
   noodluidom = {} as NOODLUIDOM
@@ -128,6 +128,35 @@ class App {
       viewport: this.#viewportUtils.viewport,
     })
 
+    if ('serviceWorker' in navigator) {
+      // this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
+      //   'firebase-messaging-sw.js',
+      // )
+      // navigator.serviceWorker
+      //   .register('firebase-messaging-sw.js')
+      //   .then(async (registration) => {
+      //     const { vapidKey } = await import('./app/firebase')
+      //     this._store.messaging.serviceRegistration = registration
+      //     window.serviceWorkerRegistration = this._store.messaging.serviceRegistration
+      //     console.log('SW registered: ', registration)
+      //     window.getToken = async () => {
+      //       try {
+      //         const token = await this.messaging.getToken({
+      //           vapidKey,
+      //           serviceWorkerRegistration: this._store.messaging
+      //             .serviceRegistration,
+      //         })
+      //         log.green(`RAN getToken AND RECEIVED TOKEN`, token)
+      //       } catch (error) {
+      //         throw new Error(error)
+      //       }
+      //     }
+      //   })
+      //   .catch((registrationError) => {
+      //     console.log('SW registration failed: ', registrationError)
+      //   })
+    }
+
     let startPage = noodl?.cadlEndpoint?.startPage
 
     if (!this.authStatus) {
@@ -155,33 +184,54 @@ class App {
           ...this.noodluidom.page.getState().modifiers[pageName],
           builtIn: {
             FCMOnTokenReceive: async (...args: any[]) => {
-              if ('navigator' in window) {
-                this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
-                  'firebase-messaging-sw.js',
-                )
-                args[0] = {
-                  ...args[0],
-                  serviceWorkerRegistration: this._store.messaging
-                    .serviceRegistration,
-                }
-                log.green(
-                  'Initialized service worker',
-                  this._store.messaging.serviceRegistration,
-                )
-              } else {
-                log.red(
-                  `Could not initiate the firebase service worker because window.navigator is not found`,
-                )
+              try {
+                const permission = await Notification.requestPermission()
+                log.func('messaging.requestPermission')
+                log.green(`Notification permission ${permission}`)
+              } catch (err) {
+                log.func('messaging.requestPermission')
+                log.red('Unable to get permission to notify.', err)
               }
-              log.grey(`Running getToken with args: `, args)
-              const token = await this.messaging.getToken(...args)
-              noodlui.emit('register', {
-                key: 'globalRegister',
-                id: 'FCMOnTokenReceive',
-                prop: 'onEvent',
-                data: token,
-              })
-              return token
+              try {
+                if ('navigator' in window) {
+                  this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
+                    'firebase-messaging-sw.js',
+                  )
+                  args[0] = {
+                    ...args[0],
+                    serviceWorkerRegistration: this._store.messaging
+                      .serviceRegistration,
+                  }
+                  log.green(
+                    'Initialized service worker',
+                    this._store.messaging.serviceRegistration,
+                  )
+                } else {
+                  log.red(
+                    `Could not initiate the firebase service worker because window.navigator is not found`,
+                  )
+                }
+
+                this.messaging.onMessage((...args) => {
+                  log.func('messaging.onMessage')
+                  log.green(`Received a message`, args)
+                })
+
+                log.grey(`Running getToken with args: `, args)
+                const token = await this.messaging.getToken(...args)
+                log.green(`Received token`, token)
+                noodlui.emit('register', {
+                  key: 'globalRegister',
+                  id: 'FCMOnTokenReceive',
+                  prop: 'onEvent',
+                  data: token,
+                })
+
+                return token
+              } catch (error) {
+                console.error(error)
+                return error
+              }
             },
             FCMOnTokenRefresh: this.messaging.onTokenRefresh.bind(
               this.messaging,
@@ -289,6 +339,14 @@ class App {
       }
     }
     this.initialized = true
+  }
+
+  get messaging() {
+    return this.#messaging
+  }
+
+  set messaging(messaging) {
+    this.#messaging = messaging
   }
 
   getViewportUtils() {

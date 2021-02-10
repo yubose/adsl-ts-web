@@ -178,7 +178,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: 'src/firebase-messaging-sw.js',
+          from: 'public/firebase-messaging-sw.js',
           to: 'firebase-messaging-sw.js',
         },
       ],

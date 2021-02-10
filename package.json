@@ -57,7 +57,7 @@
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.210",
+    "@aitmed/cadl": "^1.0.211",
     "@aitmed/ecos-lvl2-sdk": "^1.4.123",
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.6",
@@ -104,7 +104,6 @@
     "eslint-plugin-prettier": "^3.1.4",
     "execa": "^5.0.0",
     "express": "^4.17.1",
-    "firebase-admin": "^9.4.1",
     "fs-extra": "^9.0.1",
     "globby": "^11.0.2",
     "html-webpack-plugin": "^4.3.0",

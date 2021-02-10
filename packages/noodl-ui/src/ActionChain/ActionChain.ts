@@ -380,7 +380,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
   useAction(action: T.StoreActionObject<any> | T.StoreActionObject<any>[]) {
     // Built in actions are forwarded to this.useBuiltIn
     ;(Array.isArray(action) ? action : [action]).forEach((obj) => {
-      if ('funcName' in (obj || {})) {
+      if ('funcName' in (typeof obj === 'object' ? obj : {} || {})) {
         this.useBuiltIn(obj)
       } else {
         this.fns.action[obj.actionType] = [

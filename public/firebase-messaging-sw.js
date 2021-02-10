@@ -1,6 +1,6 @@
-// import { messaging } from './app/firebase'
-importScripts('https://www.gstatic.com/firebasejs/8.2.3/firebase-app.js')
-importScripts('https://www.gstatic.com/firebasejs/8.2.3/firebase-messaging.js')
+importScripts('https://www.gstatic.com/firebasejs/8.2.6/firebase-app.js')
+importScripts('https://www.gstatic.com/firebasejs/8.2.6/firebase-messaging.js')
+
 // If you would like to customize notifications that are received in the
 // background (Web app is closed or not in browser focus) then you should
 // implement this optional method.
@@ -26,8 +26,20 @@ messaging.onBackgroundMessage(function (payload) {
   const notificationTitle = 'Background Message Title'
   const notificationOptions = {
     body: 'Background Message body.',
-    icon: '/public/logo.png',
+    icon: 'favicon.ico',
   }
 
   self.registration.showNotification(notificationTitle, notificationOptions)
+})
+
+self.addEventListener('notificationclick', function (event) {
+  // do what you want
+  // ...
+  console.log(event)
+  console.log(event)
+  console.log(event)
+  console.log(event)
+  console.log(event)
+
+  window.alert('You sent an event', event)
 })

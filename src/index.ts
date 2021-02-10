@@ -29,10 +29,17 @@ window.addEventListener('load', async () => {
   window.build = process.env.BUILD
   window.componentCache = noodlui.componentCache.bind(noodlui)
   window.cp = copyToClipboard
+  Object.defineProperty(window, 'msg', {
+    get() {
+      return app.messaging
+    },
+  })
   window.noodl = noodl
   window.noodlui = noodlui
   window.noodluidom = noodluidom
   window.addRemoteParticipant = Meeting.addRemoteParticipant
+  window.vapidKey =
+    'BMVzqbFGARITrYSAi2mPaEMEl6WFBzkliYC8r92Ru3SGtyywC7t4boMPlwnFIeNSEBSyaxV6ue_uo2SMf7rdEHs'
   Object.assign(window, getWindowHelpers())
 
   try {
