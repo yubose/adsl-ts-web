@@ -7,16 +7,16 @@ import 'firebase/messaging'
 const log = Logger.create('firebase.ts')
 
 export const vapidKey =
-  'BEb8QpoY40PkX-CNNH218EIe30xVh1SQSTm0vsQVXDrto42Hh1Q7rxK_bAmEFQfeIwYg7pldhdKF25IXWMd2HiE'
+  'BMVzqbFGARITrYSAi2mPaEMEl6WFBzkliYC8r92Ru3SGtyywC7t4boMPlwnFIeNSEBSyaxV6ue_uo2SMf7rdEHs'
 
 export const firebaseConfig = {
-  apiKey: 'AIzaSyCLZ-Dt3JAWN9PdihiYGuETs6K_30bSjEo',
-  authDomain: 'aitmed-web-messaging.firebaseapp.com',
-  projectId: 'aitmed-web-messaging',
-  storageBucket: 'aitmed-web-messaging.appspot.com',
-  messagingSenderId: '669708592038',
-  appId: '1:669708592038:web:c9752e240c6d60761a6567',
-  measurementId: 'G-BD4SJ9X3SL',
+  apiKey: 'AIzaSyCjNVKmHuDKra5Ct1MKAJ5fI0iQ3UnK7Ho',
+  authDomain: 'aitmessage.firebaseapp.com',
+  databaseURL: 'https://aitmessage.firebaseio.com',
+  projectId: 'aitmessage',
+  storageBucket: 'aitmessage.appspot.com',
+  messagingSenderId: '121837683309',
+  appId: '1:121837683309:web:7fda76efe79928215f3564',
 }
 
 export const webPushCertificatesKeyPair =

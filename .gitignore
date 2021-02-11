@@ -2,12 +2,13 @@
 _data
 build
 dist
-generated
+generated/
 node_modules
 compiled
 scripts/objects/**
-scripts/ymls/**
+scripts/yml/**
 scripts/serverFiles/**
 coverage/
 report*
 server/
+serverFiles/

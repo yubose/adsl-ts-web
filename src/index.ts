@@ -6,7 +6,7 @@ import './styles.css'
 
 window.addEventListener('load', async () => {
   const { Account } = await import('@aitmed/cadl')
-  const { default: firebase, ...restFirebaseProps } = await import(
+  const { default: firebase, vapidKey, ...restFirebaseProps } = await import(
     './app/firebase'
   )
   const { default: noodl } = await import('app/noodl')
@@ -38,8 +38,8 @@ window.addEventListener('load', async () => {
   window.noodlui = noodlui
   window.noodluidom = noodluidom
   window.addRemoteParticipant = Meeting.addRemoteParticipant
-  window.vapidKey =
-    'BEb8QpoY40PkX-CNNH218EIe30xVh1SQSTm0vsQVXDrto42Hh1Q7rxK_bAmEFQfeIwYg7pldhdKF25IXWMd2HiE'
+  // @ts-expect-error
+  window.vapidKey = vapidKey
   Object.assign(window, getWindowHelpers())
 
   try {

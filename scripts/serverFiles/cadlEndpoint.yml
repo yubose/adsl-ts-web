@@ -1,9 +1,9 @@
 baseUrl: ${cadlBaseUrl}
 assetsUrl: ${cadlBaseUrl}assets/
 languageSuffix:
-  zh_CN : _cn
-  es_ES : _es
-  unknown : _en
+  zh_CN: _cn
+  es_ES: _es
+  unknown: _en
 fileSuffix: .yml
 startPage: SignIn
 preload:
