@@ -67,7 +67,7 @@ class App {
   async initialize({
     // actions,
     // builtIn,
-    firebase: { firebase, webPushCertificatesKeyPair },
+    firebase: { firebase, vapidKey },
     meeting,
     noodlui,
     noodluidom,
@@ -76,7 +76,7 @@ class App {
     // builtIn: ReturnType<typeof createBuiltInActions>
     firebase: {
       firebase: typeof firebaseApp
-      webPushCertificatesKeyPair: string
+      vapidKey: string
     }
     meeting: IMeeting
     noodlui: NOODLUI
@@ -199,7 +199,7 @@ class App {
                   )
                   args[0] = {
                     ...args[0],
-                    vapidKey: this.firebase.vapidKey,
+                    vapidKey,
                     serviceWorkerRegistration: this._store.messaging
                       .serviceRegistration,
                   }
