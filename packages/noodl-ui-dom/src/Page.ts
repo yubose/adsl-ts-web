@@ -130,12 +130,6 @@ class Page {
 
       const requestingPage = this.getState().requesting
 
-      log.hotpink('', {
-        requestingPage,
-        pageName,
-        snapshot: this.snapshot(),
-      })
-
       // Sometimes a navigate request coming from another location like a
       // "goto" action can invoke a request in the middle of this operation.
       // Give the latest call the priority

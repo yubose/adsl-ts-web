@@ -129,8 +129,6 @@ class NOODL {
   } = {}) {
     id++
     this.#id = id
-    log.func('Constructor')
-    log.grey(`Instance id ${id} created`, this)
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
   }
@@ -572,8 +570,6 @@ class NOODL {
 
         const registerInfo = { component, prop, id, key, data }
 
-        log.grey('', registerInfo)
-
         if (inst.original?.emit) {
           // Limiting the consumer objs to 1 for now
           const obj = getStore().actions.emit?.find?.(
@@ -612,14 +608,6 @@ class NOODL {
 
             let result = await emitAction.execute(emitObj)
             inst.emit(prop, { ...registerInfo, result })
-
-            log.gold(`REGISTER EMIT PROCESS FINISHED`, {
-              dataKey,
-              emitAction,
-              emitObj,
-              registerInfo,
-              result,
-            })
           }
         }
       },
@@ -821,20 +809,6 @@ class NOODL {
             styles.position = 'relative'
             styles.height = 'auto'
           }
-
-          log.gold('Component is missing "top"', {
-            original: component.original,
-            component,
-            parent: component.parent(),
-            parentTop,
-            parentHeight,
-            computedTopForThisComponent: top,
-            viewport: {
-              width: this.viewport.width,
-              height: this.viewport.height,
-            },
-          })
-        } else {
         }
 
         if (!('height' in component.style)) {

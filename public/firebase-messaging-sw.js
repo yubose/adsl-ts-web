@@ -22,23 +22,33 @@ messaging.onBackgroundMessage(function (payload) {
     '[firebase-messaging-sw.js] Received background message ',
     payload,
   )
-  // Customize notification here
-  const notificationTitle = 'Background Message Title'
+  // payload.from example --> "669708592038"
+  const { collapseKey, data, from, notification } = payload
+  const notificationTitle = notification.title || ''
   const notificationOptions = {
-    body: 'Background Message body.',
+    body: notification.body || '',
     icon: 'favicon.ico',
   }
-
   self.registration.showNotification(notificationTitle, notificationOptions)
 })
 
-self.addEventListener('push', (event) => {
+self.addEventListener('push', (event /* PushEvent */) => {
   console.log(`Received push event`, event)
+  const data = event.data // PushMessageData
+  const currentTarget = event.currentTarget // ServiceWorkerGlobalScope
+  const location = currentTarget.location // WorkerLocation
+  const navigator = currentTarget.navigator // WorkerNavigator
+  const connection = navigator.connection // NetworkInformation
+  const storage = navigator.storage // StorageManager
+  const { onLine, userAgent } = navigator
+  const platform = navigator.platform // ex: "MacIntel"
+  const userAgentData = navigator.userAgentData // NavigatorUAData
+  const isMobile = userAgentData.mobile
+  const self = target.self // ServiceWorkerGlobalScope
+  const caches = self.caches // CacheStorage
 })
 
 self.addEventListener('notificationclick', function (event) {
-  // do what you want
-  // ...
   console.log(event)
   console.log(event)
   console.log(event)

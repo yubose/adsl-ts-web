@@ -40,6 +40,13 @@ window.addEventListener('load', async () => {
   window.addRemoteParticipant = Meeting.addRemoteParticipant
   // @ts-expect-error
   window.vapidKey = vapidKey
+  // @ts-expect-error
+  window.FCMOnTokenReceive = (args: any) => {
+    noodl.root.builtIn
+      .FCMOnTokenReceive({ vapidKey, ...args })
+      .then(console.log)
+      .catch(console.error)
+  }
   Object.assign(window, getWindowHelpers())
 
   try {

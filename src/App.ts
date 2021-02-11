@@ -25,6 +25,8 @@ import {
   Resolver,
   Viewport,
 } from 'noodl-ui'
+import { WritableDraft } from 'immer/dist/internal'
+import { copyToClipboard } from './utils/dom'
 import { AuthStatus } from './app/types/commonTypes'
 import { IMeeting } from './meeting'
 import { CACHED_PAGES, pageEvent, pageStatus } from './constants'
@@ -36,7 +38,6 @@ import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
 import firebaseApp from './app/firebase'
-import { WritableDraft } from 'immer/dist/internal'
 
 const log = Logger.create('App.ts')
 
@@ -128,35 +129,6 @@ class App {
       viewport: this.#viewportUtils.viewport,
     })
 
-    if ('serviceWorker' in navigator) {
-      // this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
-      //   'firebase-messaging-sw.js',
-      // )
-      // navigator.serviceWorker
-      //   .register('firebase-messaging-sw.js')
-      //   .then(async (registration) => {
-      //     const { vapidKey } = await import('./app/firebase')
-      //     this._store.messaging.serviceRegistration = registration
-      //     window.serviceWorkerRegistration = this._store.messaging.serviceRegistration
-      //     console.log('SW registered: ', registration)
-      //     window.getToken = async () => {
-      //       try {
-      //         const token = await this.messaging.getToken({
-      //           vapidKey,
-      //           serviceWorkerRegistration: this._store.messaging
-      //             .serviceRegistration,
-      //         })
-      //         log.green(`RAN getToken AND RECEIVED TOKEN`, token)
-      //       } catch (error) {
-      //         throw new Error(error)
-      //       }
-      //     }
-      //   })
-      //   .catch((registrationError) => {
-      //     console.log('SW registration failed: ', registrationError)
-      //   })
-    }
-
     let startPage = noodl?.cadlEndpoint?.startPage
 
     if (!this.authStatus) {
@@ -187,7 +159,7 @@ class App {
               try {
                 const permission = await Notification.requestPermission()
                 log.func('messaging.requestPermission')
-                log.green(`Notification permission ${permission}`)
+                log.grey(`Notification permission ${permission}`)
               } catch (err) {
                 log.func('messaging.requestPermission')
                 log.red('Unable to get permission to notify.', err)
@@ -198,12 +170,12 @@ class App {
                     'firebase-messaging-sw.js',
                   )
                   args[0] = {
-                    ...args[0],
                     vapidKey,
                     serviceWorkerRegistration: this._store.messaging
                       .serviceRegistration,
+                    ...args[0],
                   }
-                  log.green(
+                  log.grey(
                     'Initialized service worker',
                     this._store.messaging.serviceRegistration,
                   )
@@ -219,8 +191,11 @@ class App {
                 })
 
                 log.grey(`Running getToken with args: `, args)
-                const token = await this.messaging.getToken()
-                log.green(`Received token`, token)
+
+                const token = await this.messaging.getToken(...args)
+
+                copyToClipboard(token)
+
                 noodlui.emit('register', {
                   key: 'globalRegister',
                   id: 'FCMOnTokenReceive',
@@ -573,7 +548,7 @@ class App {
                 },
               )
               log.func('page [before-page-render]')
-              log.green('Initialized noodl-ui client', this.noodlui)
+              log.grey('Initialized noodl-ui client', this.noodlui)
             }
             const previousPage = page.getState().previous
             log.func('page [before-page-render]')
@@ -605,7 +580,7 @@ class App {
         pageEvent.ON_COMPONENTS_RENDERED,
         async ({ requesting: pageName, components }) => {
           log.func('page [rendered]')
-          log.green(`Done rendering DOM nodes for ${pageName}`)
+          log.grey(`Done rendering DOM nodes for ${pageName}`)
           window.pcomponents = components
           // Cache to rehydrate if they disconnect
           // TODO

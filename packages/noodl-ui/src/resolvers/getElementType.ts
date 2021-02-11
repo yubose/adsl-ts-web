@@ -52,6 +52,7 @@ export function getTagName(component: ComponentInstance): string {
     case 'footer':
     case 'header':
     case 'popUp':
+    case 'register':
     case 'view':
       return 'div'
     case 'video':

@@ -805,7 +805,7 @@ const createBuiltInActions = function ({
       },
     })
 
-  log.green('Registered noodl-ui-dom listeners')
+  log.grey('Registered noodl-ui-dom listeners')
 
   let componentCacheSize = 0
 
