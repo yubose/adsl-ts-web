@@ -199,8 +199,7 @@ class App {
                   )
                   args[0] = {
                     ...args[0],
-                    vapidKey:
-                      'BEb8QpoY40PkX-CNNH218EIe30xVh1SQSTm0vsQVXDrto42Hh1Q7rxK_bAmEFQfeIwYg7pldhdKF25IXWMd2HiE',
+                    vapidKey: this.firebase.vapidKey,
                     serviceWorkerRegistration: this._store.messaging
                       .serviceRegistration,
                   }
