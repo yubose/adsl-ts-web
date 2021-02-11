@@ -1,84 +1,22 @@
 baseUrl: ${cadlBaseUrl}
 assetsUrl: ${cadlBaseUrl}assets/
 languageSuffix:
-  zh_CN: _cn
-  es_ES: _es
-  unknown: _en
+  zh_CN : _cn
+  es_ES : _es
+  unknown : _en
 fileSuffix: .yml
 startPage: SignIn
 preload:
   - BasePage
   - BaseCSS
   - BaseDataModel
+  - BaseMessage
 page:
-  - Welcome # page1   /
-  - WelcomeLoad # page2  /
-  - SignIn # page3  page45 /
-  - EditProfile # page4 /
-  - DisplayProfile #page6  /
-  - PubProfile #page6-1  /
-  - ShareProfile #page7
-  - PersonalDocuments #page8 /
-  - DocumentDetail # page10
-  - DocumentNotes
-  - MyDocumentDetail # page10
-  - MyDocumentNotes
-  - FreeTrialPage
-  - FreeTrialPageEnded
-  - FreeTrailMysubscription
-  - Subscriptions
-  - MonthlySubscriptions
-  - MonthlySubscriptSummary
-  - AddDateAndPaymentAmount
-  - SelectPayment
-  - SubAndPaySuccessful
-  - ConfirmSubscription
-  - ActiveMonthlySubscription
-  - MeetingRoomInvited #page12 /
-  - MeetingRoomCreate # page13 /
-  - MeetingRoomHistory #page14 /
-  - MeetingSummary #page15 /
-  - MeetingSharedDocuments #/
-  - SideMenuBar #page17  /
-  - ContactsList #page18
-  - UploadContact
-  - UploadContact2
-  - FavoriteList #page19  /
-  - UploadFavorite
-  - UploadFavorite2
-  - RecentList
-  - UploadRecent
-  - UploadRecent2
-  - AddContact #page20  /
-  - AddDocuments # /
-  - SharedDocuments
-  - ContactInformation # page21  /
-  - EditContact
-  - MeetingLobby
-  - UploadDocuments
-  - UploadSharedDocuments
-  - MeetingDocumentsNotes #page27 /
-  - MeetingDocumentsShared #page28
-  - InviteContact
-  - InviteContact2
-  - InviteeInfo01 #page30  /
-  - InviteeInfo02 #page31 /
-  - InviteSuccess01 # page32 /
-  - InviteSuccess02 #page33 /
-  - InactiveMySubscription
-  - FAQs #page34 /
-  - ContactSupport #page35 /
-  - AboutAitmed #page36 /
-  - ManageMeeting #page 44 /
-  - SignUp # /
-  - CreateNewAccount # /
-  - VideoChat #/
-  - Logout #/
-  - EmptyPage #
-  - PrivacyPolicy
-  - UserAgreement
-  - ServicesAgreement
-  - ScanQRCode #v0.17 page360
-  - AccessToPhotos #v0.17 page370
-  - MyQRCode #v0.17 page380
-  - EditMyDocument #v0.17 page524
+  - SignIn
+  - SignUp
+  - Logout
+  - CreateNewAccount
+  - ChatPage
+  - ChatList
+  - NewChat
+  - SideNav

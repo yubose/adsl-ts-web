@@ -199,6 +199,8 @@ class App {
                   )
                   args[0] = {
                     ...args[0],
+                    vapidKey:
+                      'BEb8QpoY40PkX-CNNH218EIe30xVh1SQSTm0vsQVXDrto42Hh1Q7rxK_bAmEFQfeIwYg7pldhdKF25IXWMd2HiE',
                     serviceWorkerRegistration: this._store.messaging
                       .serviceRegistration,
                   }
@@ -218,7 +220,7 @@ class App {
                 })
 
                 log.grey(`Running getToken with args: `, args)
-                const token = await this.messaging.getToken(...args)
+                const token = await this.messaging.getToken()
                 log.green(`Received token`, token)
                 noodlui.emit('register', {
                   key: 'globalRegister',

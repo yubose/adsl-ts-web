@@ -39,7 +39,7 @@ window.addEventListener('load', async () => {
   window.noodluidom = noodluidom
   window.addRemoteParticipant = Meeting.addRemoteParticipant
   window.vapidKey =
-    'BMVzqbFGARITrYSAi2mPaEMEl6WFBzkliYC8r92Ru3SGtyywC7t4boMPlwnFIeNSEBSyaxV6ue_uo2SMf7rdEHs'
+    'BEb8QpoY40PkX-CNNH218EIe30xVh1SQSTm0vsQVXDrto42Hh1Q7rxK_bAmEFQfeIwYg7pldhdKF25IXWMd2HiE'
   Object.assign(window, getWindowHelpers())
 
   try {
