@@ -1,4 +1,3 @@
-import e from 'express'
 import isPlainObject from 'lodash/isPlainObject'
 import spread from 'lodash/spread'
 

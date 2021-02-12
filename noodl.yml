@@ -1,11 +1,15 @@
-initialOption: server
+defaultOption: server.files
+defaultPanel: null
+server:
+  dir: server
+  host: ""
+  port: 3001
+  protocol: ""
+  config: ""
 objects:
   json:
-    dir: scripts/objects
+    dir: generated/json
   yml:
-    dir: scripts/serverFiles
-server:
-  baseUrl: 'http://127.0.0.1'
-  dir: scripts/serverFiles
-  port: 3000
-  url: 'http://127.0.0.1:3001/'
+    dir:
+      - generated/yml
+      - server

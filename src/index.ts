@@ -84,5 +84,25 @@ window.addEventListener('load', async () => {
       page.pageUrl = 'index.html?'
     }
     await page.requestPageChange(goBackPage)
+    //
   })
 })
+
+if (module.hot) {
+  module.hot.decline([
+    '@aitmed/cadl',
+    '@aitmed/ecos-lvl2-sdk',
+    'axios',
+    'date-fns',
+    'lodash',
+    'firebase/app',
+    'firebase/auth',
+    'firebase/messaging',
+    'noodl-types',
+    'twilio-video',
+    'yaml',
+    'vercel-toast',
+  ])
+
+  module.hot.accept(['noodl-ui', 'noodl-ui-dom', 'noodl-utils'])
+}

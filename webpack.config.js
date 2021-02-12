@@ -10,7 +10,7 @@ const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
-//
+
 const htmlPluginOptions = {
   filename: 'index.html',
   title: 'AiTmed Noodl Web',
@@ -98,7 +98,24 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: {
+    main: './src/index.ts',
+    common: [
+      '@aitmed/cadl',
+      '@aitmed/ecos-lvl2-sdk',
+      'date-fns',
+      'lodash',
+      'firebase/app',
+      'firebase/auth',
+      'firebase/messaging',
+      'immer',
+      'noodl-types',
+      'noodl-ui',
+      'noodl-ui-dom',
+      'noodl-utils',
+      'yaml',
+    ],
+  },
   output: {
     filename: '[name].[hash].js',
     path: path.resolve(__dirname, 'build'),
@@ -109,8 +126,8 @@ module.exports = {
       path.join(__dirname, 'public'),
       path.join(__dirname, 'src', 'assets'),
     ],
-    host: '127.0.0.1',
     hot: true,
+    host: '127.0.0.1',
     port: 3000,
   },
   devtool: 'inline-source-map',

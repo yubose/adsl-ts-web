@@ -936,6 +936,7 @@ class App {
   /** Sets the list of cached pages */
   setCachedPages(cache: CachedPageObject[]) {
     window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+    //
   }
 
   get onAuthStatus() {
