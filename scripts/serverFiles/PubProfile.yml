@@ -1,0 +1,407 @@
+PubProfile:
+  pageNumber: "330"
+  title: "Public Profile"
+  init: 
+    - .SignInCheck
+    - ..profile.docAPI.get
+    - actionType: evalObject
+      object:
+        .DisplayProfile.profileObject@: =..docResponse.doc.0
+  #dataObject: .EditProfile.profile.document
+  profileObject:
+    .Document: ""
+    eid: .Global.rootNotebookID
+    type: .DocType.PubProfile
+    name:
+      title: ""
+      # type: ..profile.docAPI.store.type.mediaType
+      type: "application/json"
+      data:
+        avatarUrl: drImg.png
+        phone: .Global.currentUser.vertex.uid
+        email: ""
+        firstName: ""
+        middleName: ""
+        lastName: ""
+        mailingAddress: ""
+        city: ""
+        state: ""
+        zip: ""
+        language: ""
+        note: ""
+        country: ""
+  profile:
+    docAPI: 
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        ids:
+          - .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.PubProfile #  type: "257"
+        obfname: "mtime"
+        maxcount: "1"
+        dataKey: docResponse
+  docResponse: 
+    doc:
+      - type: .DocType.PubProfile # - type: "257" # private profile
+        eid: .Global.rootNotebookID
+        name: ""
+    error: ""
+    jwt: ""   
+  components:
+    - type: scrollView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1.7"                                                       
+        contentSize:
+          width: "1"
+          height: "1.7"
+      children:     
+        - .BaseHeader3:
+        - .HeaderLeftButton:
+        - .HeaderRightButton:
+          text: Edit
+          onClick:
+            - goto: EditProfile
+        - type: image
+          dataModel: editProviderForm
+          dataId: profilePhoto
+          path: drImg.png
+          #path: ..profile.document.name.data.avatarUrl
+          style:
+            left: "0.34"
+            top: "0.1"
+            width: "0.25"
+            border:
+              style: "5"
+            borderRadius: 60 
+          onClick:
+            - goto: DisplayProfile
+        - type: view
+          style:
+            top: "0.2"
+          children:            
+            - type: label
+              text: "Aitmed ID"
+              style:
+                left: "0.15"
+                top: "0.05"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center   
+            - type: label
+              dataKey: Global.currentUser.vertex.id
+              contentType: text
+              style:
+                left: "0.35"
+                top: "0.05"
+                width: "0.5"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"           
+            - type: label
+              text: "Phone #"
+              style:
+                left: "0.15"
+                top: "0.1"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              #placeholder: "(714) 123-4212"
+              dataKey: Global.currentUser.vertex.uid
+              contentType: phoneNumber
+              style:
+                left: "0.15"
+                top: "0.15"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"
+            - type: label
+              text: "Email"
+              style:
+                left: "0.15"
+                top: "0.2"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              #placeholder: "gmarshall@urgentcareac.com"
+              dataKey: profileObject.name.data.email
+              contentType: email
+              style:
+                left: "0.15"
+                top: "0.25"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"
+            - type: label
+              text: "name"
+              style:
+                left: "0.15"
+                top: "0.3"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              #placeholder: United States
+              dataKey: profileObject.name.data.firstName
+              contentType: text
+              style:
+                left: "0.15"
+                top: "0.35"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"
+            - type: label
+              text: "Mailing address"
+              style:
+                left: "0.15"
+                top: "0.4"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              #placeholder: "1234 Anaheim Street"
+              dataKey: profileObject.name.data.mailingAddress
+              contentType: text
+              style:
+                left: "0.15"
+                top: "0.45"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"
+            - type: label
+              text: Mailing City
+              style:
+                left: "0.15"
+                top: "0.5"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              #placeholder: "Anaheim"
+              dataKey: profileObject.name.data.city
+              contentType: text
+              style:
+                left: "0.15"
+                top: "0.55"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"
+            - type: label
+              text: Mailing State
+              style:
+                left: "0.15"
+                top: "0.6"
+                width: "0.325"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              #placeholder: "California"
+              dataKey: profileObject.name.data.state 
+              style:
+                left: "0.15"
+                top: "0.65"
+                width: "0.7"
+                height: "0.04"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"       
+            - type: label
+              text: Mailing Zip
+              style:
+                left: "0.15"
+                top: "0.7"
+                width: "0.325"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              #placeholder: 91234
+              dataKey: profileObject.name.data.zip
+              contentType: number
+              style:
+                left: "0.15"
+                top: "0.75"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"
+            - type: label
+              text: "Language"
+              style:
+                left: "0.15"
+                top: "0.8"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              #placeholder: "English, Spanish"
+              dataKey: profileObject.name.data.language
+              contentType: text
+              style:
+                left: "0.15"
+                top: "0.85"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"
+            - type: label
+              text: Notes
+              style:
+                left: "0.15"
+                top: "0.9"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "12"
+                color: "0x00000058"
+                textAlign:
+                  x: left
+                  y: center     
+            - type: label
+              #placeholder: "Been in the provider for 10 years"
+              dataKey: profileObject.name.data.note
+              contentType: text
+              style:
+                left: "0.15"
+                top: "0.95"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "16"
+                textAlign:
+                  x: left
+                  y: center
+                border:
+                  style: "2"
+                  width: "1"
+                  color: "0x00000058"
+            - type: button
+              onClick:
+                - goto: PersonalDocuments
+              style:
+                left: "0"
+                top: "1.02"
+                width: "1"
+                height: "0.15" 
+                backgroundColor: "0xffffff"
+              children:
+                - type: image
+                  dataModel: editProviderForm
+                  dataId: documents
+                  path: documents.png
+                  style:
+                    left: "0.1"
+                    top: "0.025"
+                    height: "0.1"
+                    border:
+                      style: "5"
+                - type: label
+                  text: Health Records & Medical Documentation
+                  style:
+                    left: "0.4"
+                    top: "0.06"
+                    fontStyle: bold
+                    width: "0.5"
+                    height: "0.04"
+                    fontSize: "14"
+                    color: "0x000000"
+                    textAlign:
+                      x: left
+                      y: center  

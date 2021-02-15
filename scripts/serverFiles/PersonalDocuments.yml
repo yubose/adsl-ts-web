@@ -1,0 +1,170 @@
+PersonalDocuments:
+    pageNumber: "410"  # xd page 32
+    title: "My Documents"
+    init:
+      - .SignInCheck
+      - ..listData.get
+      - if:
+        - =..listData.personalDoc.doc.0
+        - continue
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100       
+    listData:
+      personalDoc:
+        doc:
+          name:
+            title: "No Title in DocumentList"
+      get:
+        .DocAPI.get : ""
+        api: rd
+        dataKey: listData.personalDoc
+        ObjType: 4
+        ids: 
+          - .Global.rootNotebookID
+        sCondition: .DocType.GetAllDocument # all the uploaded documents
+        xfname: eid
+        #xfname: refid
+        obfname : "mtime" 
+        maxcount : "40"
+        _nonce: =.Global._nonce
+    searchData:
+      searchContact: ""    
+    components: 
+      - type: view
+        style:
+          left: "0"
+          top: "0"
+          width: "1"
+          height: "1"
+        children:
+          - .BaseHeader3:
+          - .HeaderLeftButton:
+          - .HeaderRightImg:
+            path: sideNav2.png
+            onClick:
+              - goto: SideMenuBar
+          - type: view
+            style:
+              top: "0.1"
+              left: "0.05"
+              width: "0.9"
+              height: "0.08"
+            children:
+              - .SearchField:
+                placeholder: "  Search Documents"
+                style:
+                  left: "0.1"
+                  top: "0.025"
+              - .SearchDoc: 
+                style:
+                  top: "0.026"
+                  left: "0.75"
+              - type: image
+                path: add.png
+                onClick:
+                  - goto: AddDocuments
+                style:
+                  top: "0.024"
+                  left: "0"
+                  height: "0.03"
+              - type: label
+                contentType: messageHidden
+                text: "No documents added"
+                style:
+                  left: "0.25"
+                  top: "0.08"
+                  width: "0.72"
+                  height: "0.04"
+                  color: "0x000058"
+                  fontSize: "16"
+                  isHidden: "true"                        
+          - type: view
+            style: 
+              top: "0.17"
+            children:
+              - type: list
+                contentType: listObject
+                listObject: ..listData.personalDoc.doc
+                iteratorVar: itemObject
+                style:
+                  left: "0.05"
+                  top: "0"
+                  width: "0.9"
+                  height: "0.7"
+                children:
+                  - type: listItem
+                    itemObject: ""
+                    style:
+                      left: "0"
+                      top: "0"
+                      width: "1"
+                      height: "0.1"
+                      border:
+                        style: "2"
+                      borderWidth: "1"
+                      borderColor: "0x00000011"
+                    onClick:
+                      - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                        dataKey: Global.DocReference.document
+                        dataObject: itemObject # this must be a rootRoom
+                      - actionType: evalObject
+                        object:
+                          - if:
+                            - =.Global.DocReference.document.name.data.note
+                            - goto: MyDocumentNotes
+                            - goto: MyDocumentDetail
+                    children:
+                      - type: label
+                        # text=func: .builtIn.string.formatUnixtime_en
+                        text: Urgent Care Evaluation Report
+                        dataKey: itemObject.name.title
+                        style:
+                          left: "0.05"
+                          top: "0.02"
+                          width: "0.7"
+                          height: "0.02"
+                          fontSize: "13"
+                          fontWeight: "500" 
+                          textAlign:
+                            y: center
+                      - type: label
+                        text: 10.30am
+                        text=func: =.builtIn.string.formatUnixtime_en
+                        dataKey: itemObject.ctime # Mon Day, Year hh:mm:ss
+                        style:
+                          color: "0x808080"
+                          left: "0.05"
+                          top: "0.06"
+                          width: "0.4"
+                          height: "0.02"
+                          fontSize: "12"
+                      # - type: label
+                      #   text: "Shared by:"
+                      #   # text: July 4,2020
+                      #   # text=func:  .builtIn.string.formatDurationInSecond
+                      #   # dataKey: itemObject.tage # hh:mm'ss"
+                      #   style:
+                      #     color: "0x808080"
+                      #     left: "0.7"
+                      #     top: "0.02"
+                      #     width: "0.3"
+                      #     height: "0.02"
+                      #     fontSize: "12"
+                      #     textAlign:
+                      #       y: center
+                      # - type: label
+                      #   text: "Dr. Christopher Grenz"
+                      #   # text: July 4,2020
+                      #   # text=func:  .builtIn.string.formatDurationInSecond
+                      #   # dataKey: itemObject.tage # hh:mm'ss"
+                      #   style:
+                      #     color: "0x808080"
+                      #     left: "0.6"
+                      #     top: "0.05"
+                      #     width: "0.4"
+                      #     height: "0.02"
+                      #     fontSize: "12"
+                      #     textAlign:
+                      #       y: center

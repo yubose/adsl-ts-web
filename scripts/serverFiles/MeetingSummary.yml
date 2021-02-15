@@ -1,0 +1,291 @@
+MeetingSummary: #This is page name
+  pageNumber: "270"  # xd page 7
+  title: Meeting Summary
+  init:
+    - .SignInCheck
+    - ..meetingNote.docAPI.get 
+    - actionType: evalObject
+      object:
+        if:
+          - =.Global.rootRoomInfo.edge.refid
+          - continue
+          - .Global.rootRoomInfo.edge.refid@: =.Global.rootRoomInfo.edge.id
+    - actionType: evalObject
+      object:
+        =.builtIn.string.concat:
+          dataIn:
+            - =.Global.rootRoomInfo.edge.name.fullName
+            - " "
+            - "and more(click to see)"
+          dataOut: MeetingSummary.participant 
+    - ..listData.get          
+  participant: ""                  
+  dataObject: .Global.rootRoomInfo.edge
+  docResponse: 
+    doc:
+      - type: .DocType.MeetingNote # "6" # private profile
+        eid: .Global.rootRoomInfo.edge.refid
+        name: ""
+    error: ""
+    jwt: ""  
+  meetingNote:
+    document: ""
+    docAPI:
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        ids:
+          - .Global.rootRoomInfo.edge.refid
+        xfname: eid
+        type: .DocType.MeetingNote # "6"
+        maxcount: "1"
+        obfname: "mtime"
+        dataKey: docResponse
+        _nonce: =.Global._nonce
+  listData: 
+    response:
+      edge:
+    edge:
+      .Edge: ""
+      #id: .MeetingLobby.rootRoom.edge.id
+      id: .Global.rootRoomInfo.edge.refid
+      type : 1053
+      xfname : refid
+      maxcount : "20"
+    get:
+      .EdgeAPI.get : ""
+      api: re
+      dataIn: listData.edge
+      dataOut: listData.response
+      _nonce: =.Global._nonce        
+  components: 
+    - .BaseHeader3:
+    - .HeaderLeftButton:
+      onClick:
+        - goto: MeetingRoomHistory  
+    - type: button
+      text: "View Meeting Documents"
+      onClick:
+        - goto: MeetingSharedDocuments
+      style:
+        width: "0.7"
+        left: "0.15"
+        top: "0.13"
+        height: "0.05"
+        color: "0xffffffff"
+        backgroundColor: "0x388eccff"
+        textAlign: 
+          x: center
+        borderRadius: "5"
+    - type: view
+      style:
+        left: "0"
+        top: "0.15" 
+        width: "1"
+        height: "0.7"
+      children:
+        - type: view
+          style: 
+            left: "0.03"
+            width: "0.9"
+            top: "0.07"
+            height: "0.47"
+            backgroundColor: "0xefefef"
+            border:   
+              style: "3"
+            borderRadius: "15"
+          children: 
+            - type: label
+              text: Meeting Name
+              style: 
+                top: "0.02"
+                left: "0.04"
+                width: "0.6"
+                height: "0.03"
+                color: "0x00000088"
+                fontWeight: "500"
+                fontSize: "17"
+                textAlign: 
+                  x: left
+            - type: label
+              dataKey: dataObject.name.roomName
+              style: 
+                top: "0.06"
+                left: "0.04"
+                width: "0.8"
+                height: "0.03"
+                fontWeight: "500"
+                fontSize: "16"
+                color: "0x000000"
+                paddingBottom: "10px"
+                border: 
+                  style: "2"
+                borderColor: "0x000000ad"
+                borderWidth: "1"
+                textIndent: "20px"
+                textAlign: 
+                  x: center
+            - type: label
+              text: Participants
+              style: 
+                top: "0.13"
+                left: "0.04"
+                width: "0.6"
+                height: "0.03"
+                color: "0x00000088"
+                fontWeight: "500"
+                fontSize: "17"
+                textAlign: 
+                  x: left
+            - type: label
+              dataKey: MeetingSummary.participant
+              onClick: 
+                - actionType: popUp
+                  popUpView: participantView
+                  dismissOnTouchOutside: true              
+              style: 
+                top: "0.17"
+                left: "0.04"
+                width: "0.8"
+                height: "0.03"
+                fontWeight: "500"
+                fontSize: "16"
+                color: "0x000000"
+                paddingBottom: "10px"
+                border: 
+                  style: "2"
+                borderColor: "0x000000ad"
+                borderWidth: "1"
+                textIndent: "20px"
+                textAlign: 
+                  x: center
+            - type: label
+              text: "Started on:"
+              style: 
+                top: "0.24"
+                left: "0.04"
+                width: "0.6"
+                height: "0.03"
+                color: "0x00000088"
+                fontWeight: "500"
+                fontSize: "17"
+                textAlign: 
+                  x: left
+            - type: label
+              text=func: =.builtIn.string.formatUnixtime_en
+              dataKey: dataObject.ctime # Mon Day, Year hh:mm:ss
+              style: 
+                top: "0.28"
+                left: "0.04"
+                width: "0.8"
+                height: "0.03"
+                fontWeight: "500"
+                fontSize: "16"
+                color: "0x000000"
+                paddingBottom: "10px"
+                border: 
+                  style: "2"
+                borderColor: "0x000000ad"
+                borderWidth: "1"
+                textIndent: "20px"
+                textAlign: 
+                  x: center
+            - type: label
+              text: In-Meeting Duration
+              style: 
+                top: "0.35"
+                left: "0.04"
+                width: "0.6"
+                height: "0.03"
+                color: "0x00000088"
+                fontWeight: "500"
+                fontSize: "17"
+                textAlign: 
+                  x: left
+            - type: label
+              text=func: =.builtIn.string.formatDurationInSecond
+              dataKey: dataObject.tage # hh:mm'ss"
+              style: 
+                top: "0.39"
+                left: "0.04"
+                width: "0.8"
+                height: "0.03"
+                fontWeight: "500"
+                fontSize: "16"
+                color: "0x000000"
+                paddingBottom: "10px"
+                border: 
+                  style: "2"
+                borderColor: "0x000000ad"
+                borderWidth: "1"
+                textIndent: "20px"
+                textAlign: 
+                  x: center
+    - type: popUp # view
+      viewTag: participantView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1" 
+        backgroundColor: "0x00000066" 
+      children:    
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.2"
+            width: "0.89333"
+            height: "0.6"
+            backgroundColor: "0xeeeeeeff"
+            border:
+              style: "5"
+            borderRadius: "15" 
+          children:
+            - type: label
+              text: "Participants: "
+              style:
+                left: "0.05"
+                top: "0.02"
+                width: "0.8"
+                height: "0.03"
+                fontSize: "18"
+                fontStyle: bold
+                color: "0x000000ff"            
+            - type: list # hardcoded listObject
+              contentType: listObject
+              listObject: ..listData.response.edge # to dataObject to enumerate the list
+              iteratorVar: itemObject # iteratorVar is a reserve key of CADL
+              #for (itemObject in listObject) do something
+              #  ..messageDoc@ = itemObject
+              style:
+                left: "0.05"
+                top: "0.03"
+                width: "0.8"
+                # backgroundColor: "0xcdcdcd"
+                height: "0.48"
+              #for loop through listObject, we got each itemObject
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    top: "0"
+                    width: "0.8"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                      color: "0x000000ff"
+                    borderWidth: "0.8"
+                  children:
+                    - type: label
+                      dataKey: itemObject.name.fullName
+                      style:
+                        left: "0"
+                        top: "0.04"
+                        width: "0.8"
+                        height: "0.03"
+                        fontSize: "16"
+                        # fontStyle: bold
+                        color: "0x000000ff"
+                        textAlign: 
+                          x: center                        

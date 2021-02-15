@@ -1,0 +1,205 @@
+TestRedraw:
+  title: "Test Redaw"
+  logoName:
+    - key: partnerLogo/a1lawyerLogo.png
+    - key: partnerLogo/advocatelawfirmLogo.png
+    - key: partnerLogo/aitmedLogo_accare.png
+    - key: partnerLogo/aitmedLogo_thespinepro2.png
+    - key: partnerLogo/anaheimclinicLogo.png
+
+  logo1:
+    - key: partnerLogo/a1lawyerLogo.png
+    - key: partnerLogo/advocatelawfirmLogo.png
+    - key: partnerLogo/aitmedLogo_accare.png
+    - key: partnerLogo/aitmedLogo_thespinepro2.png
+    - key: partnerLogo/anaheimclinicLogo.png
+
+  logo2:
+    - key: partnerLogo/mendyouLogo.png
+    - key: partnerLogo/mosaiccareLogo.png
+    - key: partnerLogo/mtmccLogo.png
+    - key: partnerLogo/pathlabLogo.png
+
+  generalInfo:
+    isPage: "1"
+    solid: "circle_solid.png"
+    hollow: "circle_hollow.png"
+  components:
+    - .BaseHeader:
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "10"
+        backgroundColor: "#F5F5F5"
+      children: 
+        - type: view
+          style: 
+            top: "0.2"
+            width: "1"
+            left: "0"
+            height: "1.2"
+            backgroundColor: "0xffffff" 
+          children:
+            - type: label
+              text: "Our Partners"
+              style:
+                left: "0.15"
+                width: "0.7"
+                top: "0.04"
+                height: "0.1"
+                color: "0x000000"
+                fontFamily: "sans-serif"
+                fontSize: "5.5vh"
+                fontWeight: "500"
+                textAlign: 
+                  x: center
+            - type: view
+              style:
+                width: "1"
+                height: "0.9"
+                left: "0"
+                top: "0.2"
+              viewTag: partnersImage
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..logoName # to dataObject to enumerate the list
+                  iteratorVar: itemObject  
+                  # viewTag: partnersImage
+                  style:
+                    top: "0"
+                    left: "0"
+                    width: "1"
+                    height: "0.9"
+                    display: "flex"
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      style:
+                        left: "0"
+                        top: "0"
+                        display: "inline-block"
+                        width: "0.24"
+                        height: "0.17"
+                      # viewTag: partnersImage
+                      children:
+                        - type: image
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                #- emit: $var.key
+                                - if:
+                                  - =$var.key
+                                  - $var.key
+                                  - $var.key
+                          style:
+                            top: "0"
+                            width: "0.18"
+                            left: "0.03"
+            - type: view
+              style:
+                top: "0.8"
+                width: "1"
+                left: "0"
+                height: "0.05"
+                backgroundColor: "0xffffff"
+              viewTag: LogoTag
+              children:
+                - type: image
+                  path:
+                    emit:
+                      dataKey:
+                        # var1: ..generalInfo
+                      actions:                       
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =.TestRedraw.generalInfo.isPage
+                                string2: "1"
+                          - ..generalInfo.solid
+                          - ..generalInfo.hollow
+                  onClick:
+                    - emit:
+                        dataKey:
+                        actions:
+                          - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.TestRedraw.generalInfo.isPage
+                                  string2: "1"
+                            - =.builtIn.object.set:
+                                dataIn:
+                                  object: =.TestRedraw.generalInfo
+                                  key: isPage
+                                  value: "2"
+                            - =.builtIn.object.set:
+                                dataIn:
+                                  object: =.TestRedraw.generalInfo
+                                  key: isPage
+                                  value: "1"
+                    - actionType: evalObject
+                      object:
+                        - .TestRedraw.logoName@: =.TestRedraw.logo1
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: LogoTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: partnersImage
+                  style:
+                    top: "0"
+                    width: "0.012"
+                    left: "0.48"
+                - type: image
+                  path:              
+                    emit:
+                      dataKey:
+                      actions:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =.TestRedraw.generalInfo.isPage
+                                string2: "1"
+                          - ..generalInfo.hollow
+                          - ..generalInfo.solid
+                  onClick:
+                    - emit:
+                        dataKey:
+                        actions:
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =.TestRedraw.generalInfo.isPage
+                                    string2: "1"
+                              - =.builtIn.object.set:
+                                  dataIn:
+                                    object: =.TestRedraw.generalInfo
+                                    key: isPage
+                                    value: "2"
+                              - =.builtIn.object.set:
+                                  dataIn:
+                                    object: =.TestRedraw.generalInfo
+                                    key: isPage
+                                    value: "1"
+                    - actionType: evalObject
+                      object:
+                        - .TestRedraw.logoName@: =.TestRedraw.logo2
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: LogoTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: partnersImage
+                  style:
+                    top: "0"
+                    width: "0.012"
+                    left: "0.5" 
+
+
+
+
+

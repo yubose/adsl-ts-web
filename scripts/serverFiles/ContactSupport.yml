@@ -1,0 +1,141 @@
+ContactSupport:
+  pageNumber: "480"
+  title: "Contact Support"
+  init: ""
+  save:
+    - ..formData.edgeAPI.store
+  formData:
+    edge:
+      name:
+        subject: "subject"
+        question: "Question"
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataKey: formData.edge
+  components:
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+        - .BaseHeader3:
+        - .HeaderLeftButton:
+        - type: view
+          style:
+            left: "0"
+            top: "0.09"
+            width: "1"
+            height: "0.42"
+          children:
+            - type: label
+              # text: "Please call our Customer Service number with any questions and concerns you may have!"
+              textBoard:
+                - text: "Please call our Customer Service"
+                - br:
+                - text: "number with any questions and"
+                - br:
+                - text: "concerns you may have!"
+              style:
+                color: "0x000000"
+                left: "0.125"
+                top: "0.15"
+                width: "0.8"
+                height: "0.08"
+                fontSize: "16"
+                fontWeight: 400
+                textAlign:
+                  x: center
+                  # y: center
+            - type: button
+              text: "Call  (714) 600-2529"
+              onClick: 
+                - actionType: popUp
+                  popUpView: callView
+              # onClick:
+              #   - goto: SideMenuBar 
+              #   - actionType: saveObject
+              #     object: ..save
+              style:
+                left: "0.25"
+                top: "0.3"
+                width: "0.5"
+                height: "0.05"
+                color: "0xffffffff"
+                borderRadius: "5"
+                backgroundColor: "0x388ecc"
+                textAlign:
+                  x: center
+
+            - type: label
+              text: We will be glad to assist you!
+              # onClick: 
+              #   - goto: SideMenuBar
+              style:
+                left: "0.15"
+                top: "0.36"
+                width: "0.7"
+                height: "0.07"
+                color: "0x2FB355"
+                backgroundColor: "0xFFFFFF"
+                textAlign:
+                  x: center
+        - type: popUp
+          viewTag: callView
+          style: 
+            left: "0"
+            width: "1"
+            height: "1"
+            top: "0"
+            backgroundColor: "0x00000055"
+          children:
+            - type: view
+              style: 
+                left: "0"
+                top: "0.85"
+                height: "0.15"
+                width: "1"
+                backgroundColor: "0xa9a9a9"
+              children: 
+                - type: button
+                  text: Call  (714) 600-2529
+                  style: 
+                    left: "0.02"
+                    width: "0.96"
+                    height: "0.06"
+                    top: "0"
+                    fontStyle: "bold"
+                    fontSize: "18"
+                    color: "0x3090ff"
+                    backgroundColor: "0xe9e9e9"
+                    border: 
+                      style: "3"
+                    borderColor: "0xe9e9e9"
+                    borderRadius: "10"
+                    textAlign: 
+                      x: center
+                - type: button
+                  text: Cancel
+                  onClick: 
+                    - actionType: popUpDismiss
+                      popUpView: callView
+                  style:
+                    left: "0.02"
+                    width: "0.96"
+                    height: "0.06"
+                    top: "0.07"
+                    fontStyle: "bold"
+                    color: "0x3090ff"
+                    fontSize: "20"
+                    backgroundColor: "0xffffff"
+                    border: 
+                      style: "3"
+                    borderColor: "0xffffff"
+                    borderRadius: "10"
+                    textAlign: 
+                      x: center
+                  
+

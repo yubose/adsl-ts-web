@@ -1,0 +1,293 @@
+ActiveMonthlySubscription:
+  title: "My Subscription"
+  pageNumber: "" #xd page 46
+  viewPort: "top"
+  init:
+    - .SignInCheck
+  newSubscription:
+    document:
+      .Document: ""
+      # subtype:
+      #   applicationDataType : .Const.contact # 104
+      eid: .Global.rootsubscriptionID
+      type: .DocType.Sybscription
+      name:
+        title: ""
+        type: ..newSubscription.docAPI.store.subtype.mediaType
+        data:
+          phoneNumber: ""
+          email: ""
+          firstName: ""
+          middleName: ""
+          lastName: ""
+          note: ""
+          isFavorite: false
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: newContact.document
+        subtype:
+          mediaType: "application/json" # mediaType : "image/jpeg"
+  components: 
+    - type: view
+      style: 
+        top: "0"
+        width: "1"
+        height: "0.13"
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton:
+        - .HeaderRightImg:
+          onClick:
+            - goto: SideMenuBar
+        - type: button
+          text: "ACTIVE"
+          style: 
+            top: "0.1"
+            height: "0.05"
+            width: "1"
+            color: "0xffffff"
+            fontSize: "18"
+            fontStyle: "bold"
+            backgroundColor: "0x2fb355"
+    - .ForeachSubView:
+      style: 
+        top: "0.18"
+    - type: label
+      text: "My Subsciption details"
+      style: 
+        top: "0.44"
+        height: "0.05"
+        width: "1"
+        fontSize: "20"
+        fontStyle: "bold"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: center
+    - .MonthlyCard:
+      style: 
+        top: "0.5"
+    - type: label
+      textBoard:
+        - text: "Subscription ends on:"
+        - text: "11/20/2020"
+          color: "0xd53c42"
+      style: 
+        top: "0.74"
+        height: "0.05"
+        width: "1"
+        fontSize: "16"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: center
+    - type: button
+      text: "Pay now"
+      onClick: 
+        - goto: MonthlySubscriptions
+      style: 
+        left: "0.3"
+        width: "0.4"
+        top: "0.79"
+        height: "0.045"
+        color: "0xffffff"
+        backgroundColor: "0x2fb355"
+        fontSize: "16"
+        border: 
+          style: "3"
+        borderColor: "0x2fb355"
+        borderRadius: "3"
+    - type: button
+      text: "My Subscription"
+      onClick: 
+        - goto: SubsciptionDetails
+      style: 
+        left: "0.05"
+        width: "0.4"
+        top: "0.85"
+        height: "0.045"
+        color: "0xffffff"
+        backgroundColor: "0x388ecc"
+        fontSize: "16"
+        border: 
+          style: "3"
+        borderColor: "0x388ecc"
+        borderRadius: "3"
+    - type: button
+      text: "View more options"
+      onClick:
+        - goto: SubsciptionOptions
+      style: 
+        left: "0.55"
+        width: "0.4"
+        top: "0.85"
+        height: "0.045"
+        color: "0xffffff"
+        backgroundColor: "0x388ecc"
+        fontSize: "16"
+        border: 
+          style: "3"
+        borderColor: "0x388ecc"
+        borderRadius: "3"
+    - type: divider
+      style: 
+        width: "1"
+        top: "0.91"
+        height: "0.001"
+        backgroundColor: "0xb7b7b7"
+    - type: label
+      text: "Payment options:"
+      style: 
+        left: "0.05"
+        width: "0.5"
+        top: "0.93"
+        height: "0.04"
+        fontStyle: "bold"
+        fontSize: "18"
+    - type: divider
+      style: 
+        width: "1"
+        top: "0.965"
+        height: "0.001"
+        backgroundColor: "0xb7b7b7"
+    - type: view
+      style:
+        width: "1"
+        top: "0.99"
+        height: "0.3"
+      children:
+      - type: view
+        onClick:
+          - goto: AddPaymentMethod
+        style:
+          width: "1"
+          top: "0"
+          height: "0.1"
+          border:
+            style: "2"
+          borderWidth: "2"
+          borderColor: "0xefefef"
+        children:
+        - type: image
+          path: "visa.png"
+          style: 
+            left: "0.05"
+            height: "0.04"
+            top: "0.03"
+        - type: view
+          style:
+            height: "0.1"
+          children:
+            - type: label
+              text: Card ending in 4444
+              style:
+                left: "0.25"
+                height: "0.02"
+                width: "0.5"
+                top: "0.012"
+                fontSize: "10"
+                fontWeight: "500"
+            # - br:
+            - type: label
+              text: Exp 12/2020
+              style:
+                left: "0.25"
+                fontSize: "10"
+                width: "0.5"
+                height: "0.02"
+                top: "0.037"
+            # - br:
+            - type: label
+              text: Last used on 10/19/2020
+              style:
+                left: "0.25"
+                fontSize: "10"
+                width: "0.5"
+                height: "0.02"
+                top: "0.062"
+            - type: image
+              path: "providerOn.png"
+              style: 
+                left: "0.84"
+                top: "0.028"
+                width: "0.08"
+      - type: view
+        style:
+          width: "1"
+          top: "0.11"
+          height: "0.1"
+          border:
+            style: "2"
+          borderWidth: "2"
+          borderColor: "0xefefef"
+        children:
+        - type: image
+          path: "mastercard.png"
+          style: 
+            left: "0.05"
+            height: "0.04"
+            top: "0.03"
+        - type: view
+          style:
+            height: "0.1"
+          children:
+            - type: label
+              text: Card ending in 4444
+              style:
+                left: "0.25"
+                width: "0.5"
+                height: "0.025"
+                top: "0.012"
+                fontSize: "10"
+                fontWeight: "500"
+            # - br:
+            - type: label
+              text: Exp 12/2020
+              style:
+                left: "0.25"
+                width: "0.5"
+                fontSize: "10"
+                height: "0.025"
+                top: "0.037"
+            # - br:
+            - type: label
+              text: Last used on 10/19/2020
+              style:
+                left: "0.25"
+                fontSize: "10"
+                width: "0.5"
+                height: "0.025"
+                top: "0.062"
+
+    - type: button
+      text: "Payment History"
+      onClick:
+        - goto: PaymentHistory
+      style: 
+        left: "0.05"
+        width: "0.4"
+        top: "1.23"
+        height: "0.045"
+        color: "0xffffff"
+        backgroundColor: "0x388ecc"
+        fontSize: "16"
+        border: 
+          style: "3"
+        borderColor: "0x388ecc"
+        borderRadius: "3"
+    - type: button
+      text: "Add payment method"
+      onClick:
+        - goto: AddPaymentMethod
+      style: 
+        left: "0.5"
+        width: "0.45"
+        top: "1.23"
+        height: "0.045"
+        color: "0xffffff"
+        backgroundColor: "0x388ecc"
+        fontSize: "16"
+        border: 
+          style: "3"
+        borderColor: "0x388ecc"
+        borderRadius: "3"

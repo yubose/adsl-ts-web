@@ -1,0 +1,29 @@
+Home:
+  pageNumber: "290" # xd page 9
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        top: "0"
+        left: "0"
+      children:
+        - type: button
+          style:
+            width: "0.4"
+            height: "0.06"
+            top: "0"
+            left: "0.3"
+          text: "Goto Star page"
+          onClick:
+            - goto: Star
+        - type: button
+          style:
+            width: "0.4"
+            height: "0.06"
+            top: "0.1"
+            left: "0.3"
+          text: "Goto TestPlugIn page"
+          onClick:
+            - goto: TestPlugIn
+

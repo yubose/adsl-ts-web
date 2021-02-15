@@ -1,0 +1,295 @@
+PatientChartObstetrical:
+  pageNumber: "179"
+  title: Patient Chart
+  init:
+    #判断DM文件PatientChart.Obstetrica中是否有Mammograme,有则说明之前有过存储
+  #   - if:
+  #     - DM.PatientChart.Obstetrical.Mammograme
+  #     - ..Obstetrical@: DM.PatientChart.Obstetrical
+  #     - continue
+  # save:
+  #   - .Global.PatientChat.docAPI.store
+  obstetrical: .PatientChartDM.patientChart.document.data.obstetricalHistory  #引用用户总表单对象
+  obstetricalTemp:
+    Mammograme:
+      Radio:
+        - key: Are you currently on birth control?
+          value: ""
+          detail: 
+            - key: Pills
+              value: ""
+            - key: Condoms
+              value: ""
+        - key: Ever have an abnormal result?
+          value: ""
+          detail: ""
+      Input:
+        - key: When was the last one?
+          value: ""
+        - key: Ever have an abnormal result?
+          value: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    - .HeaderRightButton:
+      text: Skip
+      onClick:
+        - goto: PatientChart
+    - type: view
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+      children:
+        - type: image
+          path: Progresspercent80.png
+          style: 
+            width: "0.9"
+            top: "0.02"
+            height: "0.035"
+            left: "0.05"
+        - type: view
+          style: 
+            top: "0.05"
+            width: "1"
+            left: "0"
+            height: "1.12"
+          children:
+            - .H6:
+              text: "Obstetrical History"
+              style:
+                top: "0"
+                left: "0.1"
+                fontStyle: "bold"
+            - type: label
+              textBoard:
+              - text: "if male,please move to next area"
+              style:
+                top: "0.07"
+                left: "0.1"
+                color: "#8d8d8d"
+                fontSize: "14"
+            - .BaseView:
+              style:
+                top: "0.1"
+              children:
+               - .H6:
+                  text: "Mammogram"
+                  style:
+                    top: "0"
+                    left: "0.1"
+                    fontStyle: "bold"
+            - type: list
+              contentType: listObject
+              listObject: ..Obstetrical.Mammograme.Radio
+              iteratorVar: itemObject
+              style:
+                top: "0.25"
+                left: "0"
+                height: "0.4"
+                width: "1"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style: 
+                    left: "0"
+                    top: "0"
+                    width: "1"
+                    height: "0.12"
+                    backgroundColor: "0xffffffff"
+                  viewTag: genderTag
+                  children: 
+                    - .ChartLabel:
+                      dataKey: itemObject.key
+                    - type: image
+                      viewTag: yesTag
+                      onClick:
+                        - if:
+                          - =.builtIn.string.equal:
+                            - itemObject.value
+                            - "Yes"
+                          # remove移除对应object中key对应的value值
+                          - =.builtIn.remove:
+                              object: ..Obstetrical.Mammogram.Radio
+                              key: itemObject.key
+                          # remove设置对应object中key对应的value值
+                          - =.builtIn.set:
+                              object: ..Obstetrical.Mammogram.Radio
+                              key: itemObject.key
+                              value: "Yes"
+                          - actionType: builtIn
+                            funcName: redraw
+                            viewTag: genderTag
+                      path:
+                        #equal函数，判断key和object是否相同
+                        if:
+                          - =.builtIn.string.equal:
+                            - itemObject.value
+                            - "Yes"
+                          - selectOn.png
+                          - selectOff.png    
+                      style:
+                        height: "0.025"
+                        width: "0.042"
+                        top: "0"
+                        left: "0.7"
+                    - type: label
+                      text: "Yes"
+                      style:
+                        top: "0"
+                        left: "0.75"  
+                        color: "#5f5f5f"  
+                        fontSize: "14"  
+                    - type: image
+                      viewTag: noTag
+                      onClick:
+                        - if:
+                          - =.builtIn.string.equal:
+                            - itemObject.value
+                            - "No"
+                          # remove移除对应object中key对应的value值
+                          - =.builtIn.remove:
+                            object: ..Obstetrical.Mammogram.Radio
+                            key: itemObject.key
+                          # remove设置对应object中key对应的value值
+                          - =.builtIn.set:
+                            object: ..Obstetrical.Mammogram.Radio
+                            key: itemObject.key
+                            value: "Yes"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: genderTag
+                      path:
+                        #equal函数，判断key和object是否相同
+                        if:
+                          - =.builtIn.string.equal:
+                            - itemObject.value
+                            - "No"
+                          - selectOn.png
+                          - selectOff.png     
+                      style:
+                        height: "0.025"
+                        width: "0.042"
+                        top: "0"
+                        left: "0.85"
+                    - type: label
+                      text: "No"
+                      style:
+                        top: "0"
+                        left: "0.9"  
+                        color: "#5f5f5f"  
+                        fontSize: "14"
+
+                    #进行二重循环，暂时不支持
+                    - type: list
+                      contentType: listObject
+                      listObject: itemObject.detail
+                      iteratorVar: itemObject
+                      style:
+                        top: "0.05"
+                        left: "0"
+                        height: "0.4"
+                        width: "1"
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style: 
+                            left: "0"
+                            top: "0"
+                            width: "1"
+                            height: "0.03"
+                            backgroundColor: "0xffffffff"
+                          viewTag: genderTag
+                          children:
+                            - type: image
+                              viewTag: labelTag
+                              onClick:
+                                - if:
+                                  - =.builtIn.has:
+                                    object: DM.PatientChart.Obstetrical
+                                    key: itemObject.key
+                                  # remove移除对应object中key对应的value值
+                                  - =.builtIn.remove:
+                                      object: ..Obstetrical.Mammogram.Radio
+                                      key: itemObject.key
+                                  # remove设置对应object中key对应的value值
+                                  - =.builtIn.set:
+                                      object: ..Obstetrical.Mammogram.Radio
+                                      key: itemObject.key
+                                      value: "Yes"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: genderTag
+                              path:
+  
+                                if:
+                                  - =.builtIn.has:
+                                    object: DM.PatientChart.Obstetrical
+                                    key: itemObject.key
+                                  - selectOn.png
+                                  - selectOff.png        
+                              style:
+                                height: "0.025"
+                                width: "0.042"
+                                top: "0"
+                                left: "0.2"
+                            - .ChartLabel:
+                              dataKey: itemObject.key
+                              style:
+                                left: "0.26"
+            - type: list
+              contentType: listObject
+              listObject: ..Obstetrical.Mammograme.Input
+              iteratorVar: itemObject
+              style:
+                top: "0.4"
+                left: "0"
+                width: "1"
+                height: "0.3"
+              children: 
+                - type: listItem
+                  itemObject: ""
+                  style: 
+                    left: "0"
+                    top: "0"
+                    width: "1"
+                    height: "0.03"
+                    backgroundColor: "0xffffffff"
+                  children:
+                    - .ChartLabel:
+                      dataKey: itemObject.key
+                    - .DateTextField:   
+                      placeholder: "Enter"
+                      dataKey: itemObject.value
+                      style:
+                        width: "0.25"
+                        top: "0.05"
+                        left: "0.7"
+                        textAlign:
+                          x: center
+           
+            - type: button
+              text: "Save"
+              onClick:
+                - actionType: updateObject
+                  dataObject: ..Obstetrical
+                  dataKey: DM.PatientChart.Obstetrical
+                - .Global.PatientChat.document.name.data@: DM.PatientChart
+                - actionType: saveObject
+                  object: ..save
+                - goto: PatientChart
+              style:
+                left: "0.2"
+                top: "0.6"
+                width: "0.6"
+                height: "0.05"
+                backgroundColor: "#388ecc"
+                color: "0xFFFFFF"
+                fontSize: "17"
+                display: inline
+                borderRadius: 10
+                border:
+                  style: 1
