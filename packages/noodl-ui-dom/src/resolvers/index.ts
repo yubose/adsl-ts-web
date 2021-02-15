@@ -7,7 +7,6 @@ export { default as page } from './components/page'
 export { default as plugin } from './components/plugin'
 export { default as select } from './components/select'
 export { default as video } from './components/video'
-export { default as chart } from './components/chart'
 // Others
 export { default as common } from './common'
 export { default as dataset } from './dataset'

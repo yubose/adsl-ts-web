@@ -5,14 +5,15 @@ import {
   LocalParticipant,
   RemoteParticipant,
 } from 'twilio-video'
+import echarts from '@types/echarts'
 import Modal from 'components/NOODLModal'
 import Meeting from '../../meeting'
 import { App } from '../../app'
 
 declare global {
+  const echarts: echarts
+
   interface Window {
-    // client.ts
-    // index.ts
     ac: any
     account: any
     addRemoteParticipant: any

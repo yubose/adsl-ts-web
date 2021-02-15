@@ -1,11 +1,11 @@
 defaultOption: server.files
-defaultPanel: null
+# defaultPanel: server.files
 server:
   dir: server
-  host: ""
+  host: ''
   port: 3001
-  protocol: ""
-  config: ""
+  protocol: ''
+  config: 'testpage'
 objects:
   json:
     dir: generated/json

@@ -4,7 +4,12 @@ import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
 import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
-import NOODLUIDOM, { eventId, NOODLDOMElement, Page } from 'noodl-ui-dom'
+import NOODLUIDOM, {
+  eventId,
+  NOODLDOMElement,
+  Page,
+  RegisterOptions,
+} from 'noodl-ui-dom'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import some from 'lodash/some'
@@ -723,6 +728,21 @@ class App {
     /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
+
+    this.noodluidom.register({
+      name: 'chart',
+      cond: 'chart',
+      resolve(node: HTMLDivElement, component) {
+        const dataValue = component.get('data-value') || '' || 'dataKey'
+        if (node) {
+          node['style'].width = component.getStyle('width') as string
+          node['style'].height = component.getStyle('height') as string
+          const myChart = echarts.init(node)
+          const option = dataValue
+          option && myChart.setOption(option)
+        }
+      },
+    } as RegisterOptions)
 
     this.noodluidom.register({
       name: 'videoChat.timer.updater',

@@ -11,11 +11,19 @@ git push
 
 ## All noodl-ui related packages are now merged into this repo and managed by [lerna](https://github.com/lerna/lerna)
 
-- `logsnap`
 - `noodl-ui`
 - `noodl-ui-dom`
+- `noodl-utils`
 
 This allows for faster compilation, faster load times and quicker development flow by symlinking the dependencies
+
+## Globals
+
+These variables are available globally:
+
+| Variable  | Description                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| `echarts` | [Chart library](https://echarts.apache.org/examples/en/index.html) used for components of type `chart` |
 
 ## References
 
