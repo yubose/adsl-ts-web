@@ -3,6 +3,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const fs = require('fs-extra')
 const path = require('path')
 
+fs.ensureDirSync('generated')
+
 const pathToLibsFile = path.resolve(path.join(__dirname, '../public/libs.html'))
 const pathToEmitDataFile = 'generated/InjectScriptsPlugin_compilationData.json'
 
