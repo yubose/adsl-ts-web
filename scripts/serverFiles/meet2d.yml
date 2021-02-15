@@ -1,0 +1,75 @@
+apiHost: ecostest.aitmed.com
+apiPort: '443'
+webApiHost: apiHost
+appApiHost: apiHost
+connectiontimeout: '5'
+loadingLevel: 1
+debug: console_log_api
+viewWidthHeightRatio:
+  min: 0.56
+  max: 0.7
+web:
+  cadlVersion:
+    stable: 0.13d
+    test: 0.13d
+ios:
+  cadlVersion:
+    stable: 0.13d
+    test: 0.13d
+android:
+  cadlVersion:
+    stable: 0.13d
+    test: 0.13d
+cadlBaseUrl: http://127.0.0.1:3001/
+cadlMain: cadlEndpoint.yml
+timestamp: 12082020
+myBaseUrl: http://127.0.0.1:3001/
+keywords:
+  - telemedicine
+  - Telehealth
+  - Blockchain Telemedicine
+  - Fast, Private, Secure
+  - Blockchain Telehealth Platform
+  - HIPAA Compliance
+  - Pandemic
+  - Covid19
+  - Wellness and illness
+  - Telemedicine clinic
+  - Telemedicine Pediatric
+  - Telemedicine Urgent Care
+  - Telemedicine dermatology
+  - Telemedicine Senior House
+  - Telemedicine Hospital
+  - Telemedicine RADIOLOGY
+  - Telemedicine Neurology
+  - Telehealth Lab
+  - Telehealth Pandemic
+  - Telehealth Covid19
+  - Telehealth clinic
+  - Telehealth Pediatric
+  - Telehealth Urgent Care
+  - Telehealth dermatology
+  - Telehealth Senior House
+  - Telehealth Hospital
+  - Telehealth RADIOLOGY
+  - Telehealth Neurology
+  - Telehealth Lab
+  - Doctor Virtual Platform
+  - Telemedicine Imaging
+  - Online Medical Practice
+  - Online schedule
+  - E-prescription
+  - Virtual Meeting Room
+  - Virtual platform
+  - Secure Platform
+  - Virtual Visit
+  - Private Visit
+  - doctor
+  - patient
+  - chronic illness
+  - Medical clinic
+  - medical platform
+  - Medical knowledge
+  - telecommunication
+  - virtual
+  - Vital Sign

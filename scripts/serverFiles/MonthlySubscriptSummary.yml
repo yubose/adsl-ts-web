@@ -1,0 +1,259 @@
+MonthlySubscriptSummary: # This is page name
+  module: Subscript
+  pageNumber: "" # xd page 59  
+  title: Subscript Summary
+  init:
+    - .SignInCheck
+    - ..listData.get
+  listData:
+    response:
+      edge:
+    edge:
+      .Edge: ""
+      id: .Global.currentUser.vertex.id
+      type: 1094
+      xfname: bvid
+      maxcount: "5"
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: listData.edge
+      dataOut: listData.response
+
+    init:
+      - .SignInCheck
+      - ..subscription.docAPI.get
+      - actionType: evalObject
+        object:
+          .subscriptionSummary.subscriptionNote.document@: =..docResponse.doc.0
+    dataObject: .Global.subscriptionInfo.edge
+    docResponse:
+      doc:
+        - type: .DocType.subscriptionNote # "6" # private profile
+          eid: .Global.subscriptionInfo.edge.refid
+          name: ""
+      error: ""
+      jwt: ""
+    subscriptionNote:
+      document: ""
+      docAPI:
+        get:
+          .DocAPI.get: ""
+          api: rd
+          ids:
+            - .Global.subscriptiongInfo.edge.refid
+          xfname: eid
+          type: .DocType.subscriptionNote # "9"
+          maxcount: "1"
+          obfname: "mtime"
+          dataKey: docResponse
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton:
+        - .HeaderRightImg:
+          path: sideNav2.png
+          onClick:
+            - goto: SideMenuBar
+        - type: view
+          style:
+            width: "1"
+            height: "0.3"
+            top: "0.12"
+          children:
+            - .MonthlyCard:
+        - type: view
+          style:
+            width: "1"
+            height: "0.4"
+            top: "0.35"
+          children:
+            - type: view
+              style:
+                width: "1"
+                top: "0.02"
+                height: "0.04"
+              children:
+                - type: label
+                  text: "End date:"
+                  style:
+                    height: "0.04"
+                    width: "0.5"
+                    textAlign:
+                      x: right
+                - type: label
+                  text: "11/20/2020"
+                  style:
+                    height: "0.04"
+                    width: "0.47"
+                    left: "0.52"
+            - type: view
+              style:
+                width: "1"
+                top: "0.06"
+                height: "0.06"
+              children:
+                - type: label
+                  text: "Subscription length:"
+                  style:
+                    height: "0.05"
+                    width: "0.5"
+                    textAlign:
+                      x: right
+                - type: label
+                  text: "1 month"
+                  style:
+                    height: "0.06"
+                    width: "0.2"
+                    left: "0.52"
+                - type: label
+                  text: "Change"
+                  onClick:
+                    - goto: AddDateAndPaymentAmount
+                  style:
+                    width: "0.2"
+                    height: "0.05"
+                    left: "0.8"
+                    color: "0x4998d0"
+            - type: view
+              style:
+                width: "1"
+                top: "0.1"
+                height: "0.04"
+              children:
+                - type: label
+                  text: "Total due:"
+                  style:
+                    left: "0"
+                    height: "0.04"
+                    width: "0.5"
+                    fontSize: "20"
+                    textAlign:
+                      x: right
+                - type: label
+                  text: "$35.95"
+                  style:
+                    width: "0.3"
+                    left: "0.52"
+                    fontSize: "24"
+                    height: '0.04'
+                    fontWeight: "500"
+                    textAlign:
+                      y: center
+
+        - type: view
+          style:
+            width: "1"
+            height: "0.04"
+            top: "0.5"
+            border:
+              style: "2"
+            borderWidth: "1"
+        - type: view
+          style:
+            width: "1"
+            height: "0.4"
+            top: "0.55"
+          children:
+            - type: text
+              text: "Payment details"
+              style:
+                textAlign:
+                  x: center
+                top: "0"
+                fontSize: "25"
+                fontWeight: 600""
+                width: "1"
+                height: "0.04"
+            - type: label
+              text: "Payment amount:"
+              style:
+                width: "0.5"
+                top: "0.06"
+                height: "0.04"
+                fontSize: "18"
+                textAlign:
+                  x: right
+            - type: textField
+              placeholder: "$35.95"
+              style:
+                width: "0.45"
+                left: "0.55"
+                top: "0.055"
+                height: "0.04"
+                fontSize: "22"
+                textAlign:
+                  x: left
+            - type: view
+              style:
+                width: "1"
+                top: "0.07"
+                height: "0.05"
+              children:
+                - type: label
+                  text: "Payment method:"
+                  style:
+                    width: "0.5"
+                    top: "0.05"
+                    height: "0.04"
+                    fontSize: "18"
+                    textAlign:
+                      x: right
+                - type: textField
+                  placeholder: "x4444"
+                  style:
+                    width: "0.45"
+                    left: "0.55"
+                    top: "0.045"
+                    height: "0.04"
+                    fontSize: "20"
+                    textAlign:
+                      x: left
+                - type: label
+                  text: "Change"
+                  style:
+                    top: "0.05"
+                    width: "0.2"
+                    left: "0.8"
+                    height: "0.05"
+                    color: "0x4998d0"
+            - type: button
+              text: "Confirm"
+              onClick:
+                - goto: SubAndPaySuccessful
+              style:
+                width: "0.3"
+                left: "0.35"
+                height: "0.04"
+                backgroundColor: "0x388ecc"
+                color: "0xffffff"
+                top: "0.2"
+              # onClick:
+              #   - goto: MonthlySubscriptSummary
+            - type: label
+              text: "Your payment will be processed with"
+              style: 
+                width: "1"
+                height: "0.04"
+                textAlign:
+                  x: center
+                fontSize: "20"
+                fontWeight: "600"
+                top: "0.26"
+            - type: image
+              path: stripe.png
+              style: 
+                width: "0.2"
+                left: "0.4"
+                top: "0.32"
+
+                  
+                
+              
+
+

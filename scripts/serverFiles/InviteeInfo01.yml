@@ -1,0 +1,436 @@
+InviteeInfo01: # This is page name
+  module: meetingroom
+  title: "Invite"
+  pageNumber: "140"  # xd page 16
+  init:
+    - .SignInCheck
+  save:
+    - ..inviteMeeting.edgeAPI.store
+  update: 
+    - =.InviteeInfo01.newContact.docAPI.store: ""
+  newContact:
+    document:
+      .Document: ""
+      # subtype: 
+      #   applicationDataType : .Const.contact # 104
+      eid: .Global.rootNotebookID
+      type: .DocType.Contact # 2
+      name:
+        title: ""
+        type: ..newContact.docAPI.store.subtype.mediaType
+        data: 
+          phoneNumber: ""
+          email: ""
+          firstName: ""
+          fullName: ""
+          lastName: ""
+          note: ""
+          isFavorite: false  
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: newContact.document
+        subtype:
+          mediaType: "application/json" # mediaType : "image/jpeg"
+  inviteMeeting:
+    edge:
+      .Edge: ""
+      type: 1053
+      refid: .Global.rootRoomInfo.edge.id
+      bvid: .Global.currentUser.vertex.id
+      name:
+        phoneNumber: ""
+        firstName: ""
+        lastName: ""
+        fullName: ""
+        hostName: .Global.currentUser.vertex.name.fullName
+        roomName: .MeetingLobby.rootRoom.edge.name.roomName
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: inviteMeeting.edge
+
+  components:
+    - .BaseHeader3:
+    - .HeaderLeftButton:
+    # - .HeaderRightButton:
+    #   text: Contacts
+    - type: view
+      style:
+        left: "0"
+        top: "0.12"
+        width: "1"
+        height: "0.35"
+      children:
+        - type: label
+          text: "Phone #"
+          style:
+            left: "0.1333"
+            top: "0.05"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "16"
+        - type: textField
+          dataKey: inviteMeeting.edge.name.phoneNumber
+          contentType: phone
+          style:
+            left: "0.1333"
+            top: "0.09"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "19"
+            color: "0x707070ff"
+            border:
+              style: "2"
+              color: "0x707070ff"
+            borderWidth: "1"
+        - type: label
+          text: "First Name:"
+          style:
+            left: "0.1333"
+            top: "0.155"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "16"
+        - type: textField
+          dataKey: inviteMeeting.edge.name.firstName
+          contentType: text
+          style:
+            left: "0.1333"
+            top: "0.195"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "19"
+            color: "0x707070ff"
+            border:
+              style: "2"
+              color: "0x707070ff"
+            borderWidth: "1"
+        - type: label
+          text: "Last Name:"
+          style:
+            left: "0.1333"
+            top: "0.26"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "16"
+        - type: textField
+          dataKey: inviteMeeting.edge.name.lastName
+          contentType: text
+          style:
+            left: "0.1333"
+            top: "0.3"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "19"
+            color: "0x707070ff"
+            border:
+              style: "2"
+              color: "0x707070ff"
+            borderWidth: "1"
+    - type: button
+      onClick:
+        - actionType: popUp
+          popUpView: confirmView
+      text: Invite
+      style:
+        left: "0.1"
+        top: "0.75"
+        width: "0.8"
+        height: "0.05"
+        color: "0xffffffff"
+        fontSize: "19"
+        backgroundColor: "0x388eccff"
+        textAlign:
+          x: center
+        border:
+          style: "1"
+    - type: popUp # view
+      viewTag: confirmView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1" 
+        backgroundColor: "0x00000066" 
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.15"
+            width: "0.89333"
+            height: "0.35"
+            backgroundColor: "0xeeeeeeff"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "Send Invite Link"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.04"
+                  width: "0.89333"
+                  height: "0.04"
+                  color: "0x00000088"
+                  fontSize: "20"
+                  fontStyle: bold
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center
+            - type: label
+              text: "Send invite link to"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.1"
+                  width: "0.89333"
+                  height: "0.04"
+                  color: "0x00000088"
+                  fontSize: "14"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+            - type: label
+              # text: "John"
+              dataKey: inviteMeeting.edge.name.firstName
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.15"
+                  width: "0.89333"
+                  height: "0.027247"
+                  color: "0x00000088"
+                  fontSize: "14"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+            - type: label
+              #text: "+1 7148397253"
+              dataKey: inviteMeeting.edge.name.phoneNumber
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.20"
+                  width: "0.89333"
+                  height: "0.027247"
+                  color: "0x00000088"
+                  fontSize: "14"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0"
+                  top: "0.25436"
+                  width: "0.89333"
+                  height: "0.001"
+                  backgroundColor: "0x00000088"
+            - type: button
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: confirmView
+              text: Cancel
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "17"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+                  border:
+                    style: "5"
+                  borderRadius: "15"
+
+            - type: button
+              onClick: 
+                - actionType: evalObject
+                  object:
+                    =.builtIn.string.concat:
+                      dataIn:
+                        - =..inviteMeeting.edge.name.firstName
+                        - " "
+                        - =..inviteMeeting.edge.name.lastName
+                      dataOut: InviteeInfo01.inviteMeeting.edge.name.fullName              
+                - actionType: saveObject
+                  object: ..save
+                - actionType: evalObject
+                  object: 
+                    .Global._nonce@: 
+                      =.builtIn.math.random: ""
+                - actionType: popUpDismiss
+                  popUpView: confirmView
+                - actionType: evalObject
+                  object: 
+                    - .Global.contact.document.name.data.phoneNumber@: =..inviteMeeting.edge.name.phoneNumber
+                    - .Global.contact.document.name.data.firstName@: =..inviteMeeting.edge.name.firstName
+                - actionType: popUp
+                  popUpView: addContact
+              text: Confirm
+              style:
+                .LabelStyle:
+                  left: "0.45"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "17"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+                  border:
+                    style: "5"
+                  borderRadius: "15"
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0.45"
+                  top: "0.26"
+                  width: "0.001"
+                  height: "0.07"
+                  backgroundColor: "0x00000088"
+    - type: popUp # view
+      viewTag: addContact
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1" 
+        backgroundColor: "0x00000066" 
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.15"
+            width: "0.89333"
+            height: "0.35"
+            backgroundColor: "0xeeeeeeff"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "Do you want to add"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.1"
+                  width: "0.89333"
+                  height: "0.04"
+                  color: "0x00000088"
+                  fontSize: "14"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+            - type: label
+              # text: "John"
+              dataKey: inviteMeeting.edge.name.firstName
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.15"
+                  width: "0.89333"
+                  height: "0.027247"
+                  color: "0x00000088"
+                  fontSize: "14"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+            - type: label
+              text: "in Contacts?"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.20"
+                  width: "0.89333"
+                  height: "0.027247"
+                  color: "0x00000088"
+                  fontSize: "14"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0"
+                  top: "0.25436"
+                  width: "0.89333"
+                  height: "0.001"
+                  backgroundColor: "0x00000088"
+            - type: button
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: addContact
+                - goto: InviteSuccess01 
+              text: Cancel
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "17"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+                  border:
+                    style: "5"
+                  borderRadius: "15"
+
+            - type: button
+              onClick: 
+                - actionType: evalObject
+                  object: 
+                    - ..newContact.document.name.data.phoneNumber@: =..inviteMeeting.edge.name.phoneNumber
+                    - ..newContact.document.name.data.firstName@: =..inviteMeeting.edge.name.firstName
+                    - ..newContact.document.name.data.lastName@: =..inviteMeeting.edge.name.lastName
+                    - ..newContact.document.name.data.fullName@: =..inviteMeeting.edge.name.fullName
+                - actionType: evalObject
+                  object: ..update
+                - actionType: popUpDismiss
+                  popUpView: addContact
+                - goto: InviteSuccess01
+              text: Confirm
+              style:
+                .LabelStyle:
+                  left: "0.45"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "17"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+                  border:
+                    style: "5"
+                  borderRadius: "15"
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0.45"
+                  top: "0.26"
+                  width: "0.001"
+                  height: "0.07"
+                  backgroundColor: "0x00000088"
+

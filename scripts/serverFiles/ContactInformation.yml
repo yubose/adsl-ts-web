@@ -1,0 +1,140 @@
+ ContactInformation:
+  pageNumber: "380"  # xd page 380
+  title: "Contact Information"
+  init:
+    - .SignInCheck
+  dataObject: .Global.DocReference.document
+  components:
+    - .BaseHeader3:
+    - .HeaderLeftButton:
+    - .HeaderRightButton:
+      text: Edit
+      onClick:
+        - goto: EditContact
+    - type: scrollView
+      style:
+        left: "0"
+        top: "0.1"
+        width: "1"
+        height: "1"
+        contentSize:
+          width: "1"
+          height: "1"
+      children:
+        - type: label
+          text: First Name
+          style:
+            left: "0.15"
+            top: "0.03"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0xc2c2c2"
+            textAlign:
+              x: left
+              y: center
+        - type: label
+          dataKey: dataObject.name.data.firstName
+          contentType: text
+          style:
+            left: "0.15"
+            top: "0.07"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0xc2c2c2"
+        - type: label
+          text: Last Name
+          style:
+            left: "0.15"
+            top: "0.12"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0xc2c2c2"
+            textAlign:
+              x: left
+              y: center              
+        - type: label
+          dataKey: dataObject.name.data.lastName
+          contentType: text
+          style:
+            left: "0.15"
+            top: "0.16"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0xc2c2c2"        
+        - type: label
+          text: "Phone #"
+          style:
+            left: "0.15"
+            top: "0.21"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0xc2c2c2"
+            textAlign:
+              x: left
+              y: center
+        - type: label
+          dataKey: dataObject.name.data.phoneNumber
+          contentType: text
+          style:
+            left: "0.15"
+            top: "0.25"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0xc2c2c2"
+        - type: label
+          text: "Notes"
+          style:
+            left: "0.15"
+            top: "0.31"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "12"
+            color: "0x00000058"
+            textAlign:
+              x: left
+              y: center
+            # border:
+            #   style: "2"
+            #   width: "1"
+            #   color: "0xc2c2c2"
+        - type: label
+          # text: Been in the provider for 10 yrs
+          contentType: text
+          dataKey: dataObject.name.data.note
+          style:
+            left: "0.15"
+            top: "0.35"
+            width: "0.7"
+            height: "0.04"
+            fontSize: "16"
+            textAlign:
+              x: left
+              y: center
+            border:
+              style: "2"
+              width: "1"
+              color: "0xc2c2c2"

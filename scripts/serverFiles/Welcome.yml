@@ -1,0 +1,57 @@
+Welcome:
+  pageNumber: "10"
+  components:
+    - type: view
+      style:
+        left: "0."
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: image
+          path: "backpic.png"
+          style: 
+            left: "0"
+            width: "1"
+            height: "1"
+            top: "0"
+        - type: image
+          path: ~/assets/mLogo.png
+          style:
+            top: "0.3"
+            width: "0.38"
+            left: "0.31"
+        - type: label
+          text: WELCOME TO
+          style:
+            color: "0xFFFFFF"
+            left: "0.15"
+            top: "0.5"
+            width: "0.7"
+            height: "0.041"
+            fontSize: "26"
+            display: inline
+            textAlign:
+              x: center
+              y: center
+        - type: label
+          text: AiTmeet
+          style:
+            color: "0xFFFFFF"
+            left: "0.15"
+            top: "0.55"
+            width: "0.7"
+            height: "0.041"
+            fontSize: "28"
+            # fontStyle: bold
+            display: inline
+            textAlign:
+              x: center
+              y: center      
+        - type: image
+          path: progressBar10persent.png
+          style:
+            left: "0.0"
+            top: "0.98"
+            width: "1"
+            height: "0.02"  

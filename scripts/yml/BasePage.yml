@@ -1,0 +1,146 @@
+BasePage:
+  pageNumber: "0"
+BackButton:
+  backLabel: Back
+  type: view
+  style: .LeftButtonStyle
+  onClick:
+    - actionType: builtIn
+      funcName: goBack
+  children:
+    - type: image
+      path: backWhiteArrow.png
+      style:
+        left: "0"
+        top: "0.003412"
+        width: "0.053333"
+        height: "0.027247"
+        color: "0xffffffff"
+        backgroundColor: "0x388eccff"
+    - type: label
+      text: Back
+      style:
+        left: "0.0667"
+        top: "0"
+        width: "0.12"
+        height: "0.03406"
+        color: "0xffffffff"
+        backgroundColor: "0x388eccff"
+RightButtonStyle:
+  .Style:
+    left: "0.849"
+    top: "0"
+    width: "0.1173"
+    height: "0.03405"
+RightButton:
+  type: label
+  text: Next
+  nextPage: EmptyPage
+  style: .RightButtonStyle
+  onClick:
+    - actionType: pageJump
+      destination: ..nextPage
+HeaderTitleStyle:
+  .Style:
+    left: "0.213"
+    top: "0"
+    width: "0.587"
+    height: "0.03405"
+    fontSize: "18"
+    display: inline
+    color: "0xffffffff"
+    backgroundColor: "0x388eccff"
+    textAlign:
+      x: center
+      y: center
+HeaderTitle:
+  type: label
+  text: ..title
+  style: .HeaderTitleStyle
+HeaderStyle:
+  .Style:
+    height: "0.0599"
+    backgroundColor: "0x388eccff"
+NavMenu:
+  type: image
+  path: sideNav.png
+  nextPage: SideNavPatient
+  style:
+    left: "0.88"
+    top: "0"
+    width: "0.06667"
+    height: "0.03406"
+  onClick:
+    - actionType: pageJump
+      destination: ..nextPage
+HeaderNav:
+  type: header
+  title: No Title/Header Nav
+  style: .HeaderStyle
+  children:
+    - .HeaderTitle:
+        text: ..title
+    - .NavMenu: ""
+HeaderBack:
+  type: header
+  title: No Title/Header Back
+  style: .HeaderStyle
+  children:
+    - .BackButton
+    - .HeaderTitle: null
+      title: ..title
+HeaderRightButton:
+  type: header
+  title: No Title/Header Nav
+  style: .HeaderStyle
+  rightButtonText: Next
+  children:
+    - .HeaderTitle: null
+      text: ..title
+    - .RightButton: null
+      text: ..rightButtonText
+HeaderBackNext:
+  title: No Title/Back Next
+  rightButtonText: Next
+  nextPage: EmptyPage
+  type: header
+  style: .HeaderStyle
+  children:
+    - .BackButton
+    - type: label
+      text: ..title
+      style:
+        .HeaderTitleStyle: ""
+    - .RightButton: ""
+      text: ..rightButtonText
+      nextPage: ..nextPage
+HeaderBackMenu:
+  title: No Title/Back Menu
+  nextPage: SideNavPatient
+  type: header
+  style: .HeaderStyle
+  children:
+    - .BackButton
+    - type: label
+      text: ..title
+      style: .HeaderTitleStyle
+    - type: image
+      path: sideNav.png
+      style:
+        left: "0.88"
+        top: "0"
+        width: "0.06667"
+        height: "0.03406"
+      onClick:
+        - actionType: pageJump
+          destination: ..nextPage
+LogoSign:
+  type: image
+  path: ~/assets/myLogo.png
+  style:
+    left: "0.1"
+    top: "0.15"
+    width: "0.321"
+    height: "0.04"
+  onClick:
+    - goto: https://www.aitmed.com/
