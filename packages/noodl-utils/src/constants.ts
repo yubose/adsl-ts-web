@@ -16,6 +16,7 @@ export const actionTypes = [
 
 export const componentTypes: T.ComponentType[] = [
   'button',
+  'chart',
   'date' as any,
   'divider',
   'footer',

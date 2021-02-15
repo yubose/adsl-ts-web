@@ -17,6 +17,8 @@ export function getTagName(component: ComponentInstance): string {
   switch (component?.noodlType) {
     case 'br':
       return 'br'
+    case 'chart':
+      return 'div'
     case 'button':
       return 'button'
     case 'date':

@@ -35,6 +35,7 @@ export const emitTriggers = [
 
 export const componentTypes = [
   'button',
+  'chart',
   'date',
   'divider',
   'footer',
