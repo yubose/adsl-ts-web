@@ -6,10 +6,9 @@ export default {
   cond: 'chart',
   resolve(node: HTMLLabelElement, component) {
     const dataValue = component.get('data-value') || ''||('dataKey')
-    console.dir(dataValue)
-    var chartDom = node;
-    chartDom.style.width = '400px'
-    chartDom.style.height = '400px'
+    const chartDom = node;
+    chartDom.style.width = component.getStyle('width')
+    chartDom.style.height = component.getStyle('height')
     var myChart = echarts.init(chartDom);
     var option = dataValue;
     option && myChart.setOption(option);
