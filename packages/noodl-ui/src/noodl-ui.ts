@@ -23,7 +23,6 @@ import Viewport from './Viewport'
 import handleRegister from './resolvers/_internal/handleRegister'
 import _internalResolver from './resolvers/_internal'
 import {
-  callAll,
   forEachDeepEntries,
   formatColor,
   getRandomKey,

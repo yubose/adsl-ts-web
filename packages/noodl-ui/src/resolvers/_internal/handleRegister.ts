@@ -4,11 +4,6 @@ import { _resolveChildren } from './helpers'
 
 const log = Logger.create('handleRegister')
 
-/*
-  twilioOnPeopleJoin
-  twilioOnNoParticipant
-*/
-
 let msg = ''
 let lastMsg = '' // Temp solution to the duplicate console logging
 

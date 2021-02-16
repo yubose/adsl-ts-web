@@ -1,9 +1,5 @@
 export const CACHED_PAGES = 'CACHED_PAGES'
 
-export const modalIds = {
-  VERIFICATON_CODE: 'VERIFICATON_CODE',
-} as const
-
 /** Ordered by occurrence */
 export const pageEvent = {
   ON_NAVIGATE_START: 'on:navigate.start',

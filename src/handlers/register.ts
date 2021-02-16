@@ -38,6 +38,7 @@ function registerCallbacks({ noodl, noodlui, noodluidom, Meeting }: Options) {
       prop: string
       eventName: string
       component?: ComponentInstance
+      next?(): void
     }) {
       log.func('twilioOnPeopleJoin')
       log.grey('', arguments[0])
@@ -60,6 +61,7 @@ function registerCallbacks({ noodl, noodlui, noodluidom, Meeting }: Options) {
       prop: string
       eventName: string
       component?: ComponentInstance
+      next?(): void
     }) {
       log.func('twilioOnNoParticipant')
       log.grey('', arguments[0])

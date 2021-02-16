@@ -1,8 +1,6 @@
 import { copyToClipboard } from './utils/dom'
 import App from './App'
 import Meeting from './meeting'
-// import createActions from './handlers/actions'
-// import createBuiltIns from './handlers/builtIns'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
 
@@ -29,11 +27,13 @@ window.addEventListener('load', async () => {
   window.build = process.env.BUILD
   window.componentCache = noodlui.componentCache.bind(noodlui)
   window.cp = copyToClipboard
+
   Object.defineProperty(window, 'msg', {
     get() {
       return app.messaging
     },
   })
+
   window.noodl = noodl
   window.noodlui = noodlui
   window.noodluidom = noodluidom
@@ -43,6 +43,7 @@ window.addEventListener('load', async () => {
       .then(console.log)
       .catch(console.error)
   }
+
   Object.assign(window, getWindowHelpers())
 
   try {
@@ -52,9 +53,6 @@ window.addEventListener('load', async () => {
       noodlui,
       noodluidom,
     })
-    // noodluidom.use(noodlui)
-    // createActions({ noodl, noodlui, noodluidom })
-    // createBuiltIns({ noodl, noodlui, noodluidom })
   } catch (error) {
     console.error(error)
   }

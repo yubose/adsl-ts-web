@@ -1,5 +1,4 @@
 import Logger from 'logsnap'
-import { GotoObject, GotoUrl, ToastObject } from 'noodl-types'
 import {
   IAction,
   ActionCallback,
@@ -12,7 +11,6 @@ import {
 } from '../types/actionTypes'
 import { getRandomKey } from '../utils/common'
 import { AbortExecuteError } from '../errors'
-import { ComponentType } from '../types'
 
 const log = Logger.create('Action')
 
