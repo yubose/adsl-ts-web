@@ -6,7 +6,6 @@ const path = require('path')
 fs.ensureDirSync('generated')
 
 const pathToLibsFile = path.resolve(path.join(__dirname, '../public/libs.html'))
-const pathToEmitDataFile = 'generated/InjectScriptsPlugin_compilationData.json'
 
 class InjectScriptsPlugin {
   apply(compiler) {
