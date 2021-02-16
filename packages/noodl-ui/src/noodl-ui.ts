@@ -78,7 +78,7 @@ function _createState(initialState?: Partial<T.State>) {
   } as T.State
 }
 
-class NOODL {
+class NOODLUI {
   #id: number
   #cache = createComponentCache()
   #cb: {
@@ -89,7 +89,7 @@ class NOODL {
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     on: {
       [event.SET_PAGE]: ((pageName: string) => void)[]
-      [event.NEW_PAGE]: ((page: string) => Promise<NOODL> | undefined)[]
+      [event.NEW_PAGE]: ((page: string) => Promise<NOODLUI> | undefined)[]
       [event.NEW_PAGE_REF]: ((ref: Page) => Promise<void> | undefined)[]
     }
     registered: RegisterCallbacks
@@ -117,8 +117,10 @@ class NOODL {
   #state: T.State
   #viewport: Viewport
   actionsContext: T.ActionChainContext = { noodlui: this }
-  refs: { main: NOODL } & { [page: string]: NOODL } = {} as { main: NOODL } & {
-    [page: string]: NOODL
+  refs: { main: NOODLUI } & { [page: string]: NOODLUI } = {} as {
+    main: NOODLUI
+  } & {
+    [page: string]: NOODLUI
   }
   initialized: boolean = false
 
@@ -198,8 +200,6 @@ class NOODL {
         ),
       ].forEach((c) => this.#resolve(c))
     }
-
-    // ;[...this.registry(this.page)]
 
     // Finish off with the internal resolvers to handle the children
     components.forEach((c) => {
@@ -549,7 +549,7 @@ class NOODL {
   ): this
   on(
     e: typeof event.NEW_PAGE_REF,
-    fn: (ref: NOODL) => Promise<void> | undefined,
+    fn: (ref: NOODLUI) => Promise<void> | undefined,
   ): this
   on(e: any, fn: any) {
     if ([event.SET_PAGE, event.NEW_PAGE, event.NEW_PAGE_REF].includes(e)) {
@@ -834,7 +834,7 @@ class NOODL {
     getAssetsUrl,
     getRoot,
     viewport,
-  }: { _log?: boolean; actionsContext?: NOODL['actionsContext'] } & {
+  }: { _log?: boolean; actionsContext?: NOODLUI['actionsContext'] } & {
     getAssetsUrl?: () => string
     getRoot?: () => T.Root
     plugins?: {
@@ -1027,7 +1027,7 @@ class NOODL {
   use(action: T.ActionChainUseObject | T.ActionChainUseObject[]): this
   use(viewport: Viewport): this
   use(o: {
-    actionsContext?: Partial<NOODL['actionsContext']>
+    actionsContext?: Partial<NOODLUI['actionsContext']>
     fetch?: T.Fetch
     getAssetsUrl?(): string
     getBaseUrl?(): string
@@ -1042,7 +1042,7 @@ class NOODL {
       | T.ActionChainUseObject
       | Viewport
       | {
-          actionsContext?: Partial<NOODL['actionsContext']>
+          actionsContext?: Partial<NOODLUI['actionsContext']>
           getAssetsUrl?(): string
           getBaseUrl?(): string
           getPreloadPages?(): string[]
@@ -1054,7 +1054,7 @@ class NOODL {
           | Resolver
           | T.ActionChainUseObject
           | {
-              actionsContext?: Partial<NOODL['actionsContext']>
+              actionsContext?: Partial<NOODLUI['actionsContext']>
               getAssetsUrl?(): string
               getBaseUrl?(): string
               getPreloadPages?(): string[]
@@ -1154,4 +1154,4 @@ class NOODL {
   }
 }
 
-export default NOODL
+export default NOODLUI
