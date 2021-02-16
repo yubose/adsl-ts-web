@@ -22,6 +22,7 @@ declare global {
     componentCache: any
     noodl: any
     env: string | undefined
+    FCMOnTokenReceive: any
     getByDataUX: any
     getDataValues: any
     components: NOODLComponent[]

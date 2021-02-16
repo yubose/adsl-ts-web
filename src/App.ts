@@ -32,17 +32,20 @@ import {
 } from 'noodl-ui'
 import { WritableDraft } from 'immer/dist/internal'
 import { copyToClipboard } from './utils/dom'
-import { AuthStatus } from './app/types/commonTypes'
 import { IMeeting } from './meeting'
 import { CACHED_PAGES, pageEvent, pageStatus } from './constants'
-import { CachedPageObject } from './app/types'
+import {
+  AuthStatus,
+  CachedPageObject,
+  FirebaseApp,
+  FirebaseMessaging,
+} from './app/types'
 import { isMobile } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
 import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
-import firebaseApp from './app/firebase'
 
 const log = Logger.create('App.ts')
 
@@ -50,7 +53,6 @@ export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
 class App {
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
-  #messaging = {} as ReturnType<typeof firebaseApp.messaging>
   #preparePage = {} as (pageName: string) => Promise<PageObject>
   #viewportUtils = {} as ViewportUtils
   _store: {
@@ -62,8 +64,9 @@ class App {
     },
   }
   authStatus: AuthStatus | '' = ''
-  initialized: boolean = false
-  firebase = {} as typeof firebaseApp
+  firebase = {} as FirebaseApp
+  initialized = false
+  messaging = {} as FirebaseMessaging
   meeting: IMeeting = {} as IMeeting
   noodl = {} as CADL
   noodlui = {} as NOODLUI
@@ -71,19 +74,12 @@ class App {
   streams = {} as ReturnType<IMeeting['getStreams']>
 
   async initialize({
-    // actions,
-    // builtIn,
-    firebase: { firebase, vapidKey },
+    firebase: { client: firebase, vapidKey },
     meeting,
     noodlui,
     noodluidom,
   }: {
-    // actions: ReturnType<typeof createActions>
-    // builtIn: ReturnType<typeof createBuiltInActions>
-    firebase: {
-      firebase: typeof firebaseApp
-      vapidKey: string
-    }
+    firebase: { client: App['firebase']; vapidKey: string }
     meeting: IMeeting
     noodlui: NOODLUI
     noodluidom: NOODLUIDOM
@@ -100,13 +96,17 @@ class App {
     this.streams = meeting.getStreams()
     this.#viewportUtils = createViewportHandler(new Viewport())
 
-    noodluidom.use(noodlui)
+    await noodl.init()
 
-    // this._store.messaging.token = await this.messaging.getToken({
-    //   vapidKey: webPushCertificatesKeyPair,
-    //   serviceWorkerRegistration: this._store.messaging.serviceRegistration,
-    // })
-    // log.green('Received firebase messaging token', this._store.messaging.token)
+    noodluidom.use(noodlui)
+    createActions({ noodlui, noodluidom })
+    createBuiltIns({ noodl, noodlui, noodluidom })
+
+    meeting.initialize({
+      noodluidom,
+      page: noodluidom.page,
+      viewport: this.#viewportUtils.viewport,
+    })
 
     const unsubscribe = this.messaging.onMessage(
       function nextOrObserver(obs) {
@@ -122,17 +122,6 @@ class App {
         log.grey(`from onMessage`)
       },
     )
-
-    await noodl.init()
-
-    createActions({ noodlui, noodluidom })
-    createBuiltIns({ noodl, noodlui, noodluidom })
-
-    meeting.initialize({
-      noodluidom,
-      page: this.noodluidom.page,
-      viewport: this.#viewportUtils.viewport,
-    })
 
     let startPage = noodl?.cadlEndpoint?.startPage
 
@@ -158,7 +147,7 @@ class App {
     this.#preparePage = async (pageName: string): Promise<PageObject> => {
       try {
         await noodl.initPage(pageName, [], {
-          ...this.noodluidom.page.getState().modifiers[pageName],
+          ...noodluidom.page.getState().modifiers[pageName],
           builtIn: {
             FCMOnTokenReceive: async (...args: any[]) => {
               try {
@@ -186,7 +175,7 @@ class App {
                   )
                 } else {
                   log.red(
-                    `Could not initiate the firebase service worker because window.navigator is not found`,
+                    `Could not initiate the firebase service worker because navigator is not found`,
                   )
                 }
 
@@ -217,17 +206,17 @@ class App {
             FCMOnTokenRefresh: this.messaging.onTokenRefresh.bind(
               this.messaging,
             ),
-            checkField: this.noodluidom.builtIns.checkField?.find(Boolean)?.fn,
-            goto: this.noodluidom.builtIns.goto?.find(Boolean)?.fn,
+            checkField: noodluidom.builtIns.checkField?.find(Boolean)?.fn,
+            goto: noodluidom.builtIns.goto?.find(Boolean)?.fn,
             videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
           },
         })
         log.func('createPreparePage')
         log.grey(`Ran noodl.initPage on page "${pageName}"`, {
           pageName,
-          pageModifiers: this.noodluidom.page.getState().modifiers[pageName],
+          pageModifiers: noodluidom.page.getState().modifiers[pageName],
           pageObject: noodl.root[pageName],
-          snapshot: this.noodluidom.page.snapshot(),
+          snapshot: noodluidom.page.snapshot(),
         })
         if (noodl.root?.Global?.globalRegister) {
           const Global = noodl.root.Global
@@ -264,8 +253,8 @@ class App {
 
     this.observeClient({ noodlui, noodl })
     this.observeInternal(noodlui)
-    this.observeViewport(this.getViewportUtils())
-    this.observePages(this.noodluidom.page)
+    this.observeViewport(this.#viewportUtils)
+    this.observePages(noodluidom.page)
     this.observeMeetings(meeting)
 
     /* -------------------------------------------------------
@@ -274,64 +263,57 @@ class App {
     // Override the start page if they were on a previous page
     let cachedPages = this.getCachedPages()
     let cachedPage = cachedPages[0]
+
     if (cachedPages?.length) {
       if (cachedPage?.name && cachedPage.name !== startPage) {
         startPage = cachedPage.name
       }
     }
-    if (
-      !window.localStorage.getItem('tempConfigKey') &&
-      window.localStorage.getItem('config')
-    ) {
-      let localConfig = JSON.parse(window.localStorage.getItem('config') || '')
-      window.localStorage.setItem('tempConfigKey', localConfig.timestamp)
+
+    const ls = window.localStorage
+
+    if (!ls.getItem('tempConfigKey') && ls.getItem('config')) {
+      ls.setItem(
+        'tempConfigKey',
+        JSON.parse(ls.getItem('config') || '')?.timestamp,
+      )
     }
 
-    if (this.noodluidom.page && window.location.href) {
-      let newPage = noodl.cadlEndpoint.startPage
-      let hrefArr = window.location.href.split('/')
-      let urlArr = hrefArr[hrefArr.length - 1]
-      let localConfig = JSON.parse(window.localStorage.getItem('config') || '')
+    if (noodluidom.page && location.href) {
+      let startPage = noodl.cadlEndpoint.startPage
+      let urlParts = location.href.split('/')
+      let pathname = urlParts[urlParts.length - 1]
+      let localConfig = JSON.parse(ls.getItem('config') || '') || {}
+      let tempConfigKey = ls.getItem('tempConfigKey')
+
       if (
-        window.localStorage.getItem('tempConfigKey') &&
-        window.localStorage.getItem('tempConfigKey') !==
-          JSON.stringify(localConfig.timestamp)
+        tempConfigKey &&
+        tempConfigKey !== JSON.stringify(localConfig.timestamp)
       ) {
-        window.localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
-        this.noodluidom.page.pageUrl = 'index.html?'
-        await this.noodluidom.page.requestPageChange(newPage)
+        ls.setItem('CACHED_PAGES', JSON.stringify([]))
+        noodluidom.page.pageUrl = 'index.html?'
+        await noodluidom.page.requestPageChange(startPage)
       } else {
-        if (!urlArr?.startsWith('index.html?')) {
-          this.noodluidom.page.pageUrl = 'index.html?'
-          await this.noodluidom.page.requestPageChange(newPage)
+        if (!pathname?.startsWith('index.html?')) {
+          noodluidom.page.pageUrl = 'index.html?'
+          await noodluidom.page.requestPageChange(startPage)
         } else {
-          let pagesArr = urlArr.split('-')
-          if (pagesArr.length > 1) {
-            newPage = pagesArr[pagesArr.length - 1]
+          let pageParts = pathname.split('-')
+          if (pageParts.length > 1) {
+            startPage = pageParts[pageParts.length - 1]
           } else {
-            let baseArr = pagesArr[0].split('?')
+            let baseArr = pageParts[0].split('?')
             if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
-              newPage = baseArr[baseArr.length - 1]
+              startPage = baseArr[baseArr.length - 1]
             }
           }
-          this.noodluidom.page.pageUrl = urlArr
-          await this.noodluidom.page.requestPageChange(newPage)
+          noodluidom.page.pageUrl = pathname
+          await noodluidom.page.requestPageChange(startPage)
         }
       }
     }
+
     this.initialized = true
-  }
-
-  get messaging() {
-    return this.#messaging
-  }
-
-  set messaging(messaging) {
-    this.#messaging = messaging
-  }
-
-  getViewportUtils() {
-    return this.#viewportUtils
   }
 
   observeClient({ noodl, noodlui }: { noodl: any; noodlui: NOODLUI }) {
@@ -348,7 +330,7 @@ class App {
     })
   }
 
-  // Cleans window.ac (used for debugging atm)
+  // Cleans ac (used for debugging atm)
   observeInternal(noodlui: NOODLUI) {
     noodlui.on(noodluiEvent.SET_PAGE, () => {
       if (typeof window !== 'undefined' && 'ac' in window) {
@@ -380,11 +362,11 @@ class App {
       setMaxAspectRatio(max)
     }
 
-    const { aspectRatio, width, height, min, max } = computeViewportSize({
-      width: window.innerWidth,
-      height: window.innerHeight,
-      previousWidth: window.innerWidth,
-      previousHeight: window.innerHeight,
+    const { aspectRatio, width, height } = computeViewportSize({
+      width: innerWidth,
+      height: innerHeight,
+      previousWidth: innerWidth,
+      previousHeight: innerHeight,
     })
 
     setViewportSize({ width, height })
@@ -597,7 +579,7 @@ class App {
         console.error(error)
         log.func('page.onError')
         log.red(error.message, error)
-        // window.alert(error.message)
+        // alert(error.message)
         // TODO - narrow the reasons down more
       })
   }
@@ -631,16 +613,16 @@ class App {
         room.localParticipant.videoTracks.forEach(unpublishTracks)
         room.localParticipant.audioTracks.forEach(unpublishTracks)
         // Clean up listeners
-        window.removeEventListener('beforeunload', disconnect)
-        if (isMobile()) window.removeEventListener('pagehide', disconnect)
+        removeEventListener('beforeunload', disconnect)
+        if (isMobile()) removeEventListener('pagehide', disconnect)
       }
 
       room.on('participantConnected', this.meeting.addRemoteParticipant)
       room.on('participantDisconnected', this.meeting.removeRemoteParticipant)
       room.once('disconnected', disconnected)
 
-      window.addEventListener('beforeunload', disconnect)
-      if (isMobile()) window.addEventListener('pagehide', disconnect)
+      addEventListener('beforeunload', disconnect)
+      if (isMobile()) addEventListener('pagehide', disconnect)
 
       /* -------------------------------------------------------
       ---- INITIATING MEDIA TRACKS / STREAMS 
@@ -928,6 +910,7 @@ class App {
   /* -------------------------------------------------------
   ---- LOCAL STORAGE HELPERS FOR CACHED PAGES
 -------------------------------------------------------- */
+
   /** Adds the current page name to the end in the list of cached pages */
   cachePage(name: string) {
     const cacheObj = { name } as CachedPageObject
@@ -942,7 +925,7 @@ class App {
   /** Retrieves a list of cached pages */
   getCachedPages(): CachedPageObject[] {
     let result: CachedPageObject[] = []
-    const pageHistory = window.localStorage.getItem(CACHED_PAGES)
+    const pageHistory = localStorage.getItem(CACHED_PAGES)
     if (pageHistory) {
       try {
         result = JSON.parse(pageHistory) || []
@@ -955,7 +938,7 @@ class App {
 
   /** Sets the list of cached pages */
   setCachedPages(cache: CachedPageObject[]) {
-    window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+    localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
     //
   }
 

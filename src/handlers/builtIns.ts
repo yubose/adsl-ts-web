@@ -16,6 +16,7 @@ import {
 import NOODLUIDOM, {
   getByDataUX,
   isTextFieldLike,
+  NOODLDOMDataValueElement,
   NOODLDOMElement,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject } from 'noodl-types'
@@ -27,7 +28,6 @@ import {
   Room,
 } from 'twilio-video'
 import {
-  getByDataViewTag,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isBooleanFalse,
@@ -633,18 +633,26 @@ const createBuiltInActions = function ({
           ({ createOnDataValueChangeFn }) => {
             ;(node as NOODLDOMElement)?.addEventListener(
               'change',
-              createOnDataValueChangeFn(node, component, {
-                onChange: component.get('onChange'),
-                eventName: 'onchange',
-              }),
+              createOnDataValueChangeFn(
+                node as NOODLDOMDataValueElement,
+                component,
+                {
+                  onChange: component.get('onChange'),
+                  eventName: 'onchange',
+                },
+              ),
             )
             if (component.get('onBlur')) {
               ;(node as NOODLDOMElement)?.addEventListener(
                 'blur',
-                createOnDataValueChangeFn(node, component, {
-                  onBlur: component.get('onBlur'),
-                  eventName: 'onblur',
-                }),
+                createOnDataValueChangeFn(
+                  node as NOODLDOMDataValueElement,
+                  component,
+                  {
+                    onBlur: component.get('onBlur'),
+                    eventName: 'onblur',
+                  },
+                ),
               )
             }
           },
@@ -685,7 +693,7 @@ const createBuiltInActions = function ({
         if (typeof src === 'string') {
           if (src.startsWith('http')) {
             if (src.endsWith('.js')) {
-              const { default: axios } = await import('../app/axios')
+              const { default: axios } = await import('axios')
               const { data } = await axios.get(src)
               /**
                * TODO - Check the ext of the filename
@@ -931,13 +939,6 @@ export function onVideoChatBuiltIn({
       window.alert(`[${error.name}]: ${error.message}`)
     }
   }
-}
-
-export function onBuiltinMissing(
-  action: BuiltInObject,
-  options: ActionConsumerCallbackOptions,
-) {
-  window.alert(`The button "${action.funcName}" is not available to use yet`)
 }
 
 export default createBuiltInActions

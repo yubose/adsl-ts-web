@@ -1,5 +1,9 @@
 import isPlainObject from 'lodash/isPlainObject'
 import spread from 'lodash/spread'
+import { AnyFn } from '../types'
+
+export const callAll = (...fns: AnyFn[]) => (arg: any) =>
+  fns.forEach((fn) => fn?.(arg))
 
 /**
  * Runs forEach on each key/value pair of the value, passing in the key as the first

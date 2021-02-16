@@ -1,5 +1,6 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
+import isPlainObject from 'lodash/isPlainObject'
 import noop from 'lodash/noop'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
@@ -7,7 +8,6 @@ import {
   ActionType,
   ComponentObject,
   EmitObject,
-  Identify,
   RegisterComponentObject,
 } from 'noodl-types'
 import {
@@ -22,6 +22,7 @@ import Resolver from './Resolver'
 import Viewport from './Viewport'
 import _internalResolver from './resolvers/_internal'
 import {
+  callAll,
   forEachDeepEntries,
   formatColor,
   getRandomKey,
@@ -45,7 +46,25 @@ import EmitAction from './Action/EmitAction'
 import getStore from './store'
 import { event } from './constants'
 import * as T from './types'
-import { isPlainObject } from 'lodash'
+
+export interface RegisterCallbacks {
+  [key: string]: {
+    onEvent?: {
+      [eventName: string]: {
+        component: T.ComponentInstance
+        key: string
+        id: string
+        prop: 'onEvent'
+        fn: (emittedArgs: {
+          key: string
+          id: string
+          prop: 'onEvent'
+          data: any
+        }) => Promise<any>
+      }
+    }
+  }
+}
 
 const log = Logger.create('noodl-ui')
 let id = 0
@@ -73,24 +92,7 @@ class NOODL {
       [event.NEW_PAGE]: ((page: string) => Promise<NOODL> | undefined)[]
       [event.NEW_PAGE_REF]: ((ref: Page) => Promise<void> | undefined)[]
     }
-    registered: {
-      [key: string]: {
-        onEvent?: {
-          [eventName: string]: {
-            component: T.ComponentInstance
-            key: string
-            id: string
-            prop: 'onEvent'
-            fn: (emittedArgs: {
-              key: string
-              id: string
-              prop: 'onEvent'
-              data: any
-            }) => Promise<any>
-          }
-        }
-      }
-    }
+    registered: RegisterCallbacks
   } = {
     action: {},
     builtIn: {},
@@ -217,6 +219,21 @@ class NOODL {
 
   #resolve = (c: T.ComponentType | T.ComponentInstance | ComponentObject) => {
     const component = createComponent(c as any)
+
+    if (component.noodlType === 'register') {
+      if (
+        component.original?.onEvent &&
+        component.id !== component.original?.onEvent
+      ) {
+        component.id = component.original.onEvent
+      }
+      // Skip the resolving for register type components since they only need
+      // to be processed once in the lifetime of the page
+      if (this.componentCache().has(component)) {
+        return component
+      }
+    }
+
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component)
 
@@ -541,13 +558,16 @@ class NOODL {
   register({
     component,
     key,
+    prop = 'onEvent', // Hard code to onEvent for now
+    fn, // Note: fn MUST be passed in if the register component does not have an emit
   }: {
     component: T.ComponentInstance | RegisterComponentObject
     key: string
+    prop?: string
+    fn?: T.AnyFn
   }) {
     let id: string = ''
     let inst: T.ComponentInstance
-    let prop: string = 'onEvent' // Hard code to onEvent for now
     let cbs = this.getCbs('register')
 
     if (isComponent(component)) {
@@ -567,10 +587,7 @@ class NOODL {
       id,
       key,
       fn: async (data: any) => {
-        log.func('onNOODLUIEmit')
-
         const registerInfo = { component, prop, id, key, data }
-
         if (inst.original?.emit) {
           // Limiting the consumer objs to 1 for now
           const obj = getStore().actions.emit?.find?.(
@@ -598,6 +615,7 @@ class NOODL {
             }
 
             emitAction.callback = async (snapshot) => {
+              log.func('register [callback]')
               log.grey(`Executing register emit action callback`, snapshot)
               const result = await obj?.fn?.(
                 emitAction,
@@ -609,6 +627,15 @@ class NOODL {
 
             let result = await emitAction.execute(emitObj)
             inst.emit(prop, { ...registerInfo, result })
+          } else {
+            const cbs = this.getCbs('register')
+            if (!cbs[registerInfo.id]) {
+              cbs[registerInfo.id] = {
+                [registerInfo.prop]: {
+                  [registerInfo.id]: fn,
+                },
+              }
+            }
           }
         }
       },
@@ -717,6 +744,7 @@ class NOODL {
   ): Partial<
     Record<ActionType | 'emit' | 'goto' | 'toast', T.StoreBuiltInObject[]>
   >
+  getCbs(key: 'register'): RegisterCallbacks
   getCbs(
     key?:
       | 'actions'
@@ -879,6 +907,7 @@ class NOODL {
       getState: this.getState.bind(this),
       plugins: this.plugins.bind(this),
       page: this.page,
+      register: this.register.bind(this),
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
       showDataKey: this.#state.showDataKey,
@@ -924,14 +953,6 @@ class NOODL {
     }
   }
 
-  getRef(key: string) {
-    return this.refs[key]
-  }
-
-  setRef(key: string, ref: NOODL) {
-    this.refs[key] = ref
-  }
-
   setPlugin(value: T.PluginCreationType) {
     if (!value) return
     const plugin: T.PluginObject = this.createPluginObject(value)
@@ -952,33 +973,6 @@ class NOODL {
       return this.getState().registry[pageName]
     }
     return this.getState().registry
-  }
-
-  /**
-   * Spawns a new noodl-ui instance and stores the reference in memory
-   * This is used to create a "sandboxed" noodl-ui engine to render isolated
-   * components (useful for iframes). This by default is used internally by
-   * components of type: page
-   * @param { string } page - Page name
-   * @param { ...object } constructorArgs - Arguments to the constructor
-   */
-  spawn(page: string, ...constructorArgs: ConstructorParameters<typeof NOODL>) {
-    this.refs[page] = new NOODL(...constructorArgs)
-    this.refs[page].init({ actionsContext: this.actionsContext })
-    this.refs[page].setPage(page)
-    // this.refs[page].viewport.width = this.viewport.width
-    // this.refs[page].viewport.height = this.viewport.height
-    this.refs[page].use({
-      fetch: this.#fetch.bind(this),
-      getAssetsUrl: (() => this.assetsUrl).bind(this),
-      getBaseUrl: this.#getBaseUrl.bind(this),
-      getPreloadPages: this.#getPreloadPages.bind(this),
-      getPages: this.#getPages.bind(this),
-      getRoot: this.#getRoot.bind(this),
-      plugins: this.plugins.bind(this),
-    })
-    this.refs[page].setRef('parent', this)
-    return this.refs[page]
   }
 
   use(resolver: Resolver | Resolver[]): this

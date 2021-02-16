@@ -1,7 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { createToast, Toast } from 'vercel-toast'
-import { NOODLDOMElement } from 'noodl-ui-dom'
-import { FileInputEvent } from '../app/types'
 import { forEachEntries } from './common'
 
 export function copyToClipboard(value: string) {
@@ -26,6 +24,10 @@ export function getDocumentScrollTop(doc?: Document | null) {
  */
 export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
+}
+
+type FileInputEvent = Event & {
+  target: Event['target'] & { files: FileList }
 }
 
 interface OnSelectFileBaseResult {
@@ -195,7 +197,7 @@ export function toast(message: string | number, options?: Toast['options']) {
  * @param { function? } cond - Function returning 'visible' or 'hidden'
  */
 export function toggleVisibility(
-  node: NOODLDOMElement,
+  node: HTMLElement,
   cond?: (arg: { isHidden: boolean }) => 'visible' | 'hidden',
 ) {
   if (node?.style) {

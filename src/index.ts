@@ -1,14 +1,14 @@
 import { copyToClipboard } from './utils/dom'
 import App from './App'
 import Meeting from './meeting'
+// import createActions from './handlers/actions'
+// import createBuiltIns from './handlers/builtIns'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
 
 window.addEventListener('load', async () => {
   const { Account } = await import('@aitmed/cadl')
-  const { default: firebase, vapidKey, ...restFirebaseProps } = await import(
-    './app/firebase'
-  )
+  const { default: firebase, vapidKey } = await import('./app/firebase')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui, getWindowHelpers } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
@@ -37,10 +37,6 @@ window.addEventListener('load', async () => {
   window.noodl = noodl
   window.noodlui = noodlui
   window.noodluidom = noodluidom
-  window.addRemoteParticipant = Meeting.addRemoteParticipant
-  // @ts-expect-error
-  window.vapidKey = vapidKey
-  // @ts-expect-error
   window.FCMOnTokenReceive = (args: any) => {
     noodl.root.builtIn
       .FCMOnTokenReceive({ vapidKey, ...args })
@@ -51,14 +47,14 @@ window.addEventListener('load', async () => {
 
   try {
     await app.initialize({
-      firebase: {
-        firebase,
-        ...restFirebaseProps,
-      },
+      firebase: { client: firebase, vapidKey },
       meeting: Meeting,
       noodlui,
       noodluidom,
     })
+    // noodluidom.use(noodlui)
+    // createActions({ noodl, noodlui, noodluidom })
+    // createBuiltIns({ noodl, noodlui, noodluidom })
   } catch (error) {
     console.error(error)
   }
@@ -84,25 +80,5 @@ window.addEventListener('load', async () => {
       page.pageUrl = 'index.html?'
     }
     await page.requestPageChange(goBackPage)
-    //
   })
 })
-
-if (module.hot) {
-  module.hot.decline([
-    '@aitmed/cadl',
-    '@aitmed/ecos-lvl2-sdk',
-    'axios',
-    'date-fns',
-    'lodash',
-    'firebase/app',
-    'firebase/auth',
-    'firebase/messaging',
-    'noodl-types',
-    'twilio-video',
-    'yaml',
-    'vercel-toast',
-  ])
-
-  module.hot.accept(['noodl-ui', 'noodl-ui-dom', 'noodl-utils'])
-}

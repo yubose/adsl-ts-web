@@ -1,6 +1,0 @@
-# test for rate app
-TestPlugIn:
-  pageNumber: "10"
-  components:
-    - type: plugin
-      path: test.js

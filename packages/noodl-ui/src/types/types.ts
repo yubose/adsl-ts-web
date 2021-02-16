@@ -130,39 +130,7 @@ export interface ConsumerOptions {
   getAssetsUrl(): string
   getBaseUrl(): string
   getBaseStyles(styles?: Style): Partial<Style>
-  getCbs(
-    key: 'actions',
-  ): Partial<
-    Record<ActionType | 'emit' | 'goto' | 'toast', StoreActionObject[]>
-  >
-  getCbs(
-    key: 'builtIns',
-  ): Partial<
-    Record<ActionType | 'emit' | 'goto' | 'toast', StoreBuiltInObject[]>
-  >
-  getCbs(
-    key: 'chaining',
-  ): Partial<
-    Record<
-      ActionType | 'emit' | 'goto' | 'toast',
-      ActionChainUseObjectBase<any, any>[]
-    >
-  >
-  getCbs(key: PageEventId): ((page: string) => any)[]
-  getCbs(key: 'new.page.ref'): ((component: any) => Promise<void> | undefined)[]
-  getCbs(
-    key?: 'actions' | 'builtIns' | 'chaining' | PageEventId,
-  ): {
-    action: Partial<
-      Record<
-        ActionType | 'emit' | 'goto' | 'toast',
-        ActionChainUseObjectBase<any, any>[]
-      >
-    >
-    builtIn: { [funcName: string]: ActionChainActionCallback<any>[] }
-    chaining: Partial<Record<ActionChainEventId, Function[]>>
-    on: Partial<Record<PageEventId, any[]>>
-  }
+  getCbs: NOODLUI['getCbs']
   getPageObject: StateHelpers['getPageObject']
   getPages(): string[]
   getPreloadPages(): string[]
@@ -174,6 +142,7 @@ export interface ConsumerOptions {
   plugins(location: 'body-top'): State['plugins']['body']['top']
   plugins(location: 'body-bottom'): State['plugins']['body']['bottom']
   plugins(location?: never): State['plugins']
+  register: NOODLUI['register']
   resolveComponent(
     c:
       | (ComponentType | ComponentInstance | ComponentObject)

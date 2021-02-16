@@ -14,12 +14,6 @@ class InjectScriptsPlugin {
       HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(
         'InjectScriptsPlugin',
         (data, cb) => {
-          // Save the compilation stats for analyzing
-          fs.writeFileSync(
-            pathToEmitDataFile,
-            JSON.stringify(compiler, null, 2),
-            { encoding: 'utf8' },
-          )
           if (fs.existsSync(pathToLibsFile)) {
             // Add the CDN scripts to the html
             data.html += fs.readFileSync(pathToLibsFile, { encoding: 'utf8' })

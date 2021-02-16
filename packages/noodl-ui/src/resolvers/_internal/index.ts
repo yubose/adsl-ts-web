@@ -1,5 +1,6 @@
 import handleList from './handleList'
 import handlePage from './handlePage'
+import handleRegister from './handleRegister'
 import handleTextboard from './handleTextboard'
 import handleTimer from './handleTimer'
 import { InternalResolver } from '../../Resolver'
@@ -40,6 +41,10 @@ _internalResolver.setResolver((component, options, ref) => {
       if (c.noodlType === 'page') {
         return handlePage(c as any, options, { _internalResolver, ref })
       }
+      if (c.noodlType === 'register') {
+        return handleRegister(c as any, options)
+      }
+      // @ts-expect-error
       if (c.get('textBoard')) {
         return handleTextboard(c as any, options, _internalResolver)
       }
