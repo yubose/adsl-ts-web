@@ -9,6 +9,9 @@ const log = Logger.create('handleRegister')
   twilioOnNoParticipant
 */
 
+let msg = ''
+let lastMsg = '' // Temp solution to the duplicate console logging
+
 const handleRegister = async (
   component: ComponentInstance,
   options: ConsumerOptions,
@@ -47,23 +50,23 @@ const handleRegister = async (
     // through the store
     if (obj.component !== component) {
       obj.component = component
-      log.grey(
-        `The register component for ${id} was attached to the noodl-ui register object`,
-        obj,
-      )
+      msg = `The register component for ${id} was attached to the noodl-ui register object`
+      if (lastMsg !== msg) log.grey(msg, obj)
     }
   } else {
     // TODO - Check if this becomes a memory leak at this point
-    log.orange(
-      `No ${prop} callbacks were registered with the name ${id} through the ` +
-        `so this component cannot be attached anywhere and will not be in effect`,
-      {
+    msg =
+      `No ${prop} callbacks were registered with the name ${id} ` +
+      `so this component cannot be attached anywhere and will not be in effect`
+    if (lastMsg !== msg) {
+      log.orange(msg, {
         component,
         options,
         registeredCbs: options.getCbs('register'),
-      },
-    )
+      })
+    }
   }
+  lastMsg = msg
 }
 
 export default handleRegister
