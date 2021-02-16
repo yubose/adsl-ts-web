@@ -32,7 +32,7 @@ import {
 } from 'noodl-ui'
 import { WritableDraft } from 'immer/dist/internal'
 import { copyToClipboard } from './utils/dom'
-import { IMeeting } from './meeting'
+import Meeting, { IMeeting } from './meeting'
 import { CACHED_PAGES, pageEvent, pageStatus } from './constants'
 import {
   AuthStatus,
@@ -42,6 +42,7 @@ import {
 } from './app/types'
 import { isMobile } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
+import createRegisters from './handlers/register'
 import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
@@ -99,8 +100,10 @@ class App {
     await noodl.init()
 
     noodluidom.use(noodlui)
+
     createActions({ noodlui, noodluidom })
     createBuiltIns({ noodl, noodlui, noodluidom })
+    createRegisters({ noodl, noodlui, noodluidom, Meeting })
 
     meeting.initialize({
       noodluidom,
@@ -682,6 +685,13 @@ class App {
       if (this.meeting.getWaitingMessageElement()) {
         this.meeting.getWaitingMessageElement().style.visibility = 'hidden'
       }
+      this.noodlui.emit('register', {
+        id: 'twilioOnPeopleJoin',
+        key: 'twilioOnPeopleJoin',
+        prop: 'onEvent',
+        participant,
+        stream,
+      })
     }
 
     meeting.onRemoveRemoteParticipant = (participant, stream) => {
@@ -704,6 +714,12 @@ class App {
         if (this.meeting.getWaitingMessageElement()) {
           this.meeting.getWaitingMessageElement().style.visibility = 'visible'
         }
+        this.noodlui.emit('register', {
+          id: 'twilioOnNoParticipant',
+          key: 'twilioOnNoParticipant',
+          prop: 'onEvent',
+          data: { room: Meeting.room },
+        })
       }
     }
 

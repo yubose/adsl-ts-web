@@ -117,6 +117,56 @@ const createBuiltInActions = function ({
     })
     .register({
       actionType: 'builtIn',
+      funcName: 'hide',
+      async fn(action, options, { findAllByViewTag } = {}) {
+        const viewTag = action.original?.viewTag || ''
+        const nodes = findAllByViewTag(viewTag) as NodeListOf<HTMLElement>
+
+        log.func('hide')
+
+        if (nodes?.length) {
+          for (const node of nodes) {
+            log.grey('Toggling visibility off', {
+              action,
+              options,
+              viewTag,
+              node,
+              component: options.component,
+            })
+            node.style.visibility = 'hidden'
+          }
+        } else {
+          log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
+        }
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'show',
+      async fn(action, options, { findAllByViewTag } = {}) {
+        const viewTag = action.original?.viewTag || ''
+        const nodes = findAllByViewTag(viewTag) as NodeListOf<HTMLElement>
+
+        log.func('show')
+
+        if (nodes?.length) {
+          for (const node of nodes) {
+            log.grey('Toggling visibility on', {
+              action,
+              options,
+              viewTag,
+              node,
+              component: options.component,
+            })
+            node.style.visibility = 'visible'
+          }
+        } else {
+          log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
+        }
+      },
+    })
+    .register({
+      actionType: 'builtIn',
       funcName: 'toggleCameraOnOff',
       async fn(
         action: Action<BuiltInActionObject>,

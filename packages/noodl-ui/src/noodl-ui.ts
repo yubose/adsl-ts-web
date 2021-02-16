@@ -20,6 +20,7 @@ import {
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
+import handleRegister from './resolvers/_internal/handleRegister'
 import _internalResolver from './resolvers/_internal'
 import {
   callAll,
@@ -220,6 +221,12 @@ class NOODL {
   #resolve = (c: T.ComponentType | T.ComponentInstance | ComponentObject) => {
     const component = createComponent(c as any)
 
+    const consumerOptions = this.getConsumerOptions({ component })
+    const baseStyles = this.getBaseStyles(component)
+
+    component.id = component.id || getRandomKey()
+    component.assignStyles(baseStyles)
+
     if (component.noodlType === 'register') {
       if (
         component.original?.onEvent &&
@@ -227,18 +234,23 @@ class NOODL {
       ) {
         component.id = component.original.onEvent
       }
+      log.func('#resolve')
       // Skip the resolving for register type components since they only need
       // to be processed once in the lifetime of the page
       if (this.componentCache().has(component)) {
-        return component
+        log.grey(
+          `This register component was found in the cache and was returned it instead`,
+          this.componentCache().state(),
+        )
+      } else {
+        handleRegister(component, consumerOptions)
       }
+      return component
     }
 
-    const consumerOptions = this.getConsumerOptions({ component })
-    const baseStyles = this.getBaseStyles(component)
-
-    component.id = component.id || getRandomKey()
-    component.assignStyles(baseStyles)
+    getStore().resolvers.forEach((obj) => {
+      obj.resolver.resolve(component, consumerOptions)
+    })
 
     // Finalizing
     if (component.style && typeof component.style === 'object') {
@@ -252,10 +264,6 @@ class NOODL {
         }
       })
     }
-
-    getStore().resolvers.forEach((obj) => {
-      obj.resolver.resolve(component, consumerOptions)
-    })
 
     return component
   }
@@ -561,7 +569,7 @@ class NOODL {
     prop = 'onEvent', // Hard code to onEvent for now
     fn, // Note: fn MUST be passed in if the register component does not have an emit
   }: {
-    component: T.ComponentInstance | RegisterComponentObject
+    component: T.ComponentInstance | RegisterComponentObject | null
     key: string
     prop?: string
     fn?: T.AnyFn
@@ -570,75 +578,96 @@ class NOODL {
     let inst: T.ComponentInstance
     let cbs = this.getCbs('register')
 
-    if (isComponent(component)) {
-      id = component.original?.onEvent || ''
-      inst = component
-    } else {
-      id = component.onEvent || ''
-      inst = this.resolveComponents(component)
-    }
-
     if (!cbs[key]) cbs[key] = {}
     if (!cbs[key][prop]) cbs[key][prop] = {}
 
-    cbs[key][prop][id] = {
-      component: inst,
-      prop,
-      id,
-      key,
-      fn: async (data: any) => {
-        const registerInfo = { component, prop, id, key, data }
-        if (inst.original?.emit) {
-          // Limiting the consumer objs to 1 for now
-          const obj = getStore().actions.emit?.find?.(
-            (o) => o.trigger === 'register',
-          )
+    if (component !== null) {
+      if (isComponent(component)) {
+        id = component.original?.onEvent || ''
+        inst = component
+      } else {
+        id = component.onEvent || ''
+        inst = this.resolveComponents(component)
+      }
 
-          if (typeof obj?.fn === 'function') {
-            const emitObj = { emit: inst.original.emit } as EmitObject
-            const dataKey = inst.original.emit?.dataKey
-            const emitAction = new EmitAction(emitObj as T.EmitActionObject, {
-              trigger: 'register',
-            })
+      log.func('register')
+      log.grey(`[${prop}] Registering ${id}: `, {
+        ...arguments[0],
+        instance: inst,
+      })
 
-            if (typeof dataKey === 'string') {
-              if (dataKey === prop) emitAction.setDataKey(registerInfo.data)
-              else emitAction.setDataKey(prop)
-            } else if (isPlainObject(dataKey)) {
-              emitAction.setDataKey(
-                Object.entries(dataKey).reduce((acc, [key, value]) => {
-                  if (value === prop) acc[key] = registerInfo.data
-                  else acc[key] = value
-                  return acc
-                }, {}),
-              )
-            }
+      cbs[key][prop][id] = {
+        component: inst,
+        prop,
+        id,
+        key,
+        fn: async (data: any) => {
+          const registerInfo = { component, prop, id, key, data }
+          if (inst.original?.emit) {
+            // Limiting the consumer objs to 1 for now
+            const obj = getStore().actions.emit?.find?.(
+              (o) => o.trigger === 'register',
+            )
 
-            emitAction.callback = async (snapshot) => {
-              log.func('register [callback]')
-              log.grey(`Executing register emit action callback`, snapshot)
-              const result = await obj?.fn?.(
-                emitAction,
-                this.getConsumerOptions({ component: inst }),
-                this.actionsContext,
-              )
-              return (Array.isArray(result) ? result[0] : result) || ''
-            }
+            if (typeof obj?.fn === 'function') {
+              const emitObj = { emit: inst.original.emit } as EmitObject
+              const dataKey = inst.original.emit?.dataKey
+              const emitAction = new EmitAction(emitObj as T.EmitActionObject, {
+                trigger: 'register',
+              })
 
-            let result = await emitAction.execute(emitObj)
-            inst.emit(prop, { ...registerInfo, result })
-          } else {
-            const cbs = this.getCbs('register')
-            if (!cbs[registerInfo.id]) {
-              cbs[registerInfo.id] = {
-                [registerInfo.prop]: {
-                  [registerInfo.id]: fn,
-                },
+              if (typeof dataKey === 'string') {
+                if (dataKey === prop) emitAction.setDataKey(registerInfo.data)
+                else emitAction.setDataKey(prop)
+              } else if (isPlainObject(dataKey)) {
+                emitAction.setDataKey(
+                  Object.entries(dataKey).reduce((acc, [key, value]) => {
+                    if (value === prop) acc[key] = registerInfo.data
+                    else acc[key] = value
+                    return acc
+                  }, {}),
+                )
+              }
+
+              emitAction.callback = async (snapshot) => {
+                log.func('register [callback]')
+                log.grey(`Executing register emit action callback`, snapshot)
+                const result = await obj?.fn?.(
+                  emitAction,
+                  this.getConsumerOptions({ component: inst }),
+                  this.actionsContext,
+                )
+                return (Array.isArray(result) ? result[0] : result) || ''
+              }
+
+              let result = await emitAction.execute(emitObj)
+              inst.emit(prop, { ...registerInfo, result })
+            } else {
+              const cbs = this.getCbs('register')
+              if (!cbs[registerInfo.id]) {
+                cbs[registerInfo.id] = {
+                  [registerInfo.prop]: {
+                    [registerInfo.id]: fn,
+                  },
+                }
               }
             }
           }
-        }
-      },
+        },
+      }
+    } else {
+      if (!id) id = key
+      // If this call reaches here then this was registered sometime in the
+      // beginning prior to parsing components if component is explicitly set
+      // to null. When resolveComponents is called and this component is encountered,
+      // it will set the component at that time.
+      cbs[key][prop][id] = {
+        component: null,
+        prop,
+        id,
+        key,
+        fn,
+      }
     }
 
     return cbs[key][prop][id]
@@ -657,12 +686,32 @@ class NOODL {
     if (typeof eventName === 'string') {
       if (eventName === 'register') {
         // type ex: "onEvent"
-        const { prop = '', key = '', id = '', data } = args[0] || {}
+        const { prop = '', key = '', id = '', ...rest } = args[0] || {}
         if (prop === 'onEvent') {
           const cbs = this.getCbs('register')
-          const fn = cbs[key]?.[prop]?.[id]?.fn
+          const obj = cbs[key]?.[prop]?.[id]
+          const fn = obj?.fn
+          const params = { id, key, prop, ...rest }
           if (typeof fn === 'function') {
-            const result = fn(data)
+            if (obj.component) {
+              if (obj.component?.original?.actions) {
+                // Create the action chain and pass it as a final callback
+                console.log(obj)
+                params.next = () => {
+                  return this.createActionChainHandler(
+                    obj.component.original.actions,
+                    {
+                      ...getActionConsumerOptions(this),
+                      component: obj.component,
+                      trigger: 'register',
+                    },
+                  )()
+                }
+              }
+            }
+            // The result can be passed as args to the action chain if this component
+            // has an action chain waiting to be called
+            const result = fn(params)
             if (isPromise(result)) {
               result
                 .then((res) =>

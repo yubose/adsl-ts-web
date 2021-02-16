@@ -3,6 +3,7 @@ import NOODLUIDOMInternal from './Internal'
 import {
   findByElementId,
   findByViewTag,
+  findAllByViewTag,
   findWindow,
   findWindowDocument,
   isPageConsumer,
@@ -30,6 +31,7 @@ const createResolver = function createResolver() {
           ..._internal.noodlui?.actionsContext,
           findByElementId,
           findByViewTag,
+          findAllByViewTag,
           findWindow,
           findWindowDocument,
           isPageConsumer,

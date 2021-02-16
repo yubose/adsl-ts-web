@@ -1,21 +1,30 @@
-import { AnyFn, ComponentInstance, ConsumerOptions } from '../../types'
+import Logger from 'logsnap'
+import { ComponentInstance, ConsumerOptions } from '../../types'
 import { _resolveChildren } from './helpers'
-import { callAll } from '../../utils/common'
+
+const log = Logger.create('handleRegister')
+
+/*
+  twilioOnPeopleJoin
+  twilioOnNoParticipant
+*/
 
 const handleRegister = async (
   component: ComponentInstance,
   options: ConsumerOptions,
 ) => {
-  const id = component.id
   const prop = 'onEvent'
   const eventName = component?.original?.onEvent
+  let id = eventName || component.id
 
-  if (options.getCbs('register')?.[id]?.[prop]?.[eventName]) {
-    let cbs = (options?.getCbs?.('register')?.[id]?.[prop]?.[eventName] ||
-      []) as AnyFn[]
+  if (component.original?.emit) {
+    // Register components that call emit are registered slightly different (see below)
+    return
+  }
 
-    if (!Array.isArray(cbs)) cbs = []
+  const obj = options.getCbs('register')?.[id]?.[prop]?.[eventName]
 
+  if (obj) {
     /**
      * There are two flows for register components
      *
@@ -26,7 +35,7 @@ const handleRegister = async (
      *
      *  2. actions
      *    Components that have an "actions" array will create an action chain
-     *    with its actions and will be stored as a callback. This action chain is also
+     *    with its actions and will be converted as a callback. This action chain is
      *    called when using noodlui.emit(eventName)
      */
 
@@ -36,14 +45,24 @@ const handleRegister = async (
     // If the component does not have an emit but an "actions", an action chain is
     // created, waiting to be called by noodlui.emit() from functions registered
     // through the store
-    options.register({
-      component,
-      key: component.id,
-      prop: 'onEvent',
-      fn: (arg) => {
-        callAll(...cbs)(arg)
+    if (obj.component !== component) {
+      obj.component = component
+      log.grey(
+        `The register component for ${id} was attached to the noodl-ui register object`,
+        obj,
+      )
+    }
+  } else {
+    // TODO - Check if this becomes a memory leak at this point
+    log.orange(
+      `No ${prop} callbacks were registered with the name ${id} through the ` +
+        `so this component cannot be attached anywhere and will not be in effect`,
+      {
+        component,
+        options,
+        registeredCbs: options.getCbs('register'),
       },
-    })
+    )
   }
 }
 
