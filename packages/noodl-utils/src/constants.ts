@@ -1,4 +1,4 @@
-import * as T from 'noodl-types'
+import { ComponentType } from 'noodl-types'
 
 export const actionTypes = [
   'anonymous', // lib
@@ -14,7 +14,7 @@ export const actionTypes = [
   'updateObject',
 ] as const
 
-export const componentTypes: T.ComponentType[] = [
+export const componentTypes: ComponentType[] = [
   'button',
   'chart',
   'date' as any,

@@ -1,8 +1,8 @@
-import * as T from 'noodl-types'
-import { actionTypes, componentTypes, contentTypes } from './constants'
+import { ActionType, EmitObject, IfObject } from 'noodl-types'
+import { componentTypes } from './constants'
 import { isBool, isObj } from './_internal'
 
-export function isAction(value: any, actionType?: T.ActionType) {
+export function isAction(value: any, actionType?: ActionType) {
   if (arguments.length === 1) {
     return (
       isObj(value) &&
@@ -63,11 +63,11 @@ export function isComponent(value: unknown) {
   )
 }
 
-export function isEmitObj(value: unknown): value is T.EmitObject {
+export function isEmitObj(value: unknown): value is EmitObject {
   return !!(value && typeof value === 'object' && 'emit' in value)
 }
 
-export function isIfObj(value: any): value is T.IfObject {
+export function isIfObj(value: any): value is IfObject {
   return value && typeof value === 'object' && 'if' in value
 }
 
