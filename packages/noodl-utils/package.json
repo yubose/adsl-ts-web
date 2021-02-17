@@ -23,18 +23,12 @@
   ],
   "homepage": "",
   "license": "ISC",
-  "directories": {
-    "dist": "dist"
-  },
   "files": [
     "dist"
   ],
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/noodl-utils.git"
-  },
-  "devDependencies": {
-    "noodl-types": "file:../noodl-types"
   },
   "prettier": {
     "arrowParens": "always",

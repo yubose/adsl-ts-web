@@ -23,7 +23,7 @@ const MESSAGE = getConfigEndpoint('message')
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : TESTPAGE
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
-const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
+const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : MESSAGE
 
 const noodl = new NOODL({
   aspectRatio:
@@ -40,7 +40,7 @@ function getConfigEndpoint(name: string) {
   const isLocal = process.env.NODE_ENV === 'development'
   const isLocalExplicit = process.env.USE_DEV_PATHS
   if (isLocal || isLocalExplicit) {
-    path = '/' + name + '.yml'
+    path = `/${name}.yml`
   }
   return base + path
 }

@@ -3,7 +3,7 @@ const chalk = require('chalk')
 const webpack = require('webpack')
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
-const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
+// const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
@@ -53,15 +53,6 @@ if (process.env.NODE_ENV === 'production') {
 module.exports = {
   entry: {
     main: './src/index.ts',
-    common: [
-      '@aitmed/cadl',
-      '@aitmed/ecos-lvl2-sdk',
-      'firebase/app',
-      'firebase/auth',
-      'firebase/messaging',
-      'immer',
-      'yaml',
-    ],
   },
   output: {
     filename: '[name].[hash].js',
@@ -135,9 +126,9 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   plugins: [
-    new BundleStatsWebpackPlugin({
-      baseline: true,
-    }),
+    // new BundleStatsWebpackPlugin({
+    //   baseline: true,
+    // }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
       include: /src/,

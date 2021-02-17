@@ -11,6 +11,7 @@ export function copyToClipboard(value: string) {
   textarea.setSelectionRange(0, 9999999)
   document.execCommand('copy')
   textarea.remove()
+  return null
 }
 
 export function getDocumentScrollTop(doc?: Document | null) {
@@ -77,12 +78,12 @@ export function onSelectFile(
   // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
   return new Promise((resolve, reject) => {
     const input = inputNode || document.createElement('input')
-    input.style['visibility'] = 'hidden'
-    input['type'] = 'file'
+    input.style.visibility = 'hidden'
+    input.type = 'file'
 
-    input['onclick'] = function (event) {
-      document.body['onfocus'] = () => {
-        document.body['onfocus'] = null
+    input.onclick = function (event) {
+      document.body.onfocus = () => {
+        document.body.onfocus = null
         setTimeout(() => {
           document.body.removeChild(input)
           resolve({
@@ -94,7 +95,7 @@ export function onSelectFile(
       }
     }
 
-    input['onerror'] = function onFileInputError(
+    input.onerror = function onFileInputError(
       message,
       source,
       lineNumber,
@@ -102,13 +103,21 @@ export function onSelectFile(
       error,
     ) {
       document.body.onfocus = null
-      reject({
-        message,
-        source,
-        lineNumber,
-        columnNumber,
-        error,
-      })
+      reject(
+        new Error(
+          JSON.stringify(
+            {
+              message,
+              source,
+              lineNumber,
+              columnNumber,
+              error,
+            },
+            null,
+            2,
+          ),
+        ),
+      )
     }
 
     document.body.appendChild(input)
@@ -203,9 +212,9 @@ export function toggleVisibility(
   if (node?.style) {
     const isHidden = node.style.visibility === 'hidden'
     if (typeof cond === 'function') {
-      node.style['visibility'] = cond({ isHidden })
+      node.style.visibility = cond({ isHidden })
     } else {
-      node.style['visibility'] = isHidden ? 'visible' : 'hidden'
+      node.style.visibility = isHidden ? 'visible' : 'hidden'
     }
   }
 }

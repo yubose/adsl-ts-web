@@ -68,7 +68,7 @@ export function getAspectRatio(width: number, height: number) {
   }
 
   const getSizes = (w: number, h: number) => {
-    var d = getGCD(w, h)
+    const d = getGCD(w, h)
     return [w / d, h / d]
   }
 

@@ -10,7 +10,6 @@
     "module": "esnext",
     "moduleResolution": "node",
     "outDir": "build",
-    "noEmit": true,
     "noEmitOnError": false,
     "noImplicitAny": true,
     "noImplicitThis": true,
