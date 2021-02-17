@@ -5,7 +5,7 @@ server:
   host: ''
   port: 3001
   protocol: ''
-  config: 'message'
+  config: 'meet2d'
 objects:
   json:
     dir: generated/json
