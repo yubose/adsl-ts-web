@@ -2,14 +2,13 @@
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "composite": true,
+    "baseUrl": "src",
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
-    "lib": ["es6"],
+    "lib": ["es6", "dom", "dom.iterable", "esnext"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "noEmit": true,
     "noEmitOnError": false,
     "noImplicitAny": true,
     "outDir": "dist",
@@ -17,8 +16,8 @@
     "strictNullChecks": true,
     "skipLibCheck": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es5"
+    "target": "es2015"
   },
-  "exclude": ["node_modules"],
-  "include": ["src"]
+  "exclude": ["node_modules/**/*"],
+  "include": ["src/**/*"]
 }
