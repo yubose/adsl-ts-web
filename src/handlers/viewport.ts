@@ -80,12 +80,6 @@ const createViewportHandler = function (viewport: Viewport) {
       console.log('Viewport changed', args)
       const results = o.computeViewportSize(args)
       o.setViewportSize(results)
-      // if (aspectRatio > 1 !== cache['landscape']) {
-      //   cache['landscape'] = !cache.landscape
-      //   callCount++
-      //   await page.requestPageChange(page.currentPage, { force: true })
-      // } else {
-      // }
       fns.forEach((fn) => fn(results))
     }
   }

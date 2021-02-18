@@ -112,15 +112,15 @@ class App {
     })
 
     const unsubscribe = this.messaging.onMessage(
-      function nextOrObserver(obs) {
+      (obs) => {
         log.func('onMessage')
         log.green('[nextOrObserver]: obs', obs)
       },
-      function onError(err) {
+      (err) => {
         log.func('onMessage')
         log.red(`[onError]: ${err.message}`, err)
       },
-      function onComplete() {
+      () => {
         log.func('[onComplete]')
         log.grey(`from onMessage`)
       },
@@ -222,7 +222,7 @@ class App {
           snapshot: noodluidom.page.snapshot(),
         })
         if (noodl.root?.Global?.globalRegister) {
-          const Global = noodl.root.Global
+          const {Global} = noodl.root
           if (Array.isArray(Global.globalRegister)) {
             if (Global.globalRegister.length) {
               log.grey(
@@ -264,8 +264,8 @@ class App {
       ---- LOCAL STORAGE
     -------------------------------------------------------- */
     // Override the start page if they were on a previous page
-    let cachedPages = this.getCachedPages()
-    let cachedPage = cachedPages[0]
+    const cachedPages = this.getCachedPages()
+    const cachedPage = cachedPages[0]
 
     if (cachedPages?.length) {
       if (cachedPage?.name && cachedPage.name !== startPage) {
@@ -283,11 +283,11 @@ class App {
     }
 
     if (noodluidom.page && location.href) {
-      let startPage = noodl.cadlEndpoint.startPage
-      let urlParts = location.href.split('/')
-      let pathname = urlParts[urlParts.length - 1]
-      let localConfig = JSON.parse(ls.getItem('config') || '') || {}
-      let tempConfigKey = ls.getItem('tempConfigKey')
+      let {startPage} = noodl.cadlEndpoint
+      const urlParts = location.href.split('/')
+      const pathname = urlParts[urlParts.length - 1]
+      const localConfig = JSON.parse(ls.getItem('config') || '') || {}
+      const tempConfigKey = ls.getItem('tempConfigKey')
 
       if (
         tempConfigKey &&
@@ -296,16 +296,15 @@ class App {
         ls.setItem('CACHED_PAGES', JSON.stringify([]))
         noodluidom.page.pageUrl = 'index.html?'
         await noodluidom.page.requestPageChange(startPage)
-      } else {
-        if (!pathname?.startsWith('index.html?')) {
+      } else if (!pathname?.startsWith('index.html?')) {
           noodluidom.page.pageUrl = 'index.html?'
           await noodluidom.page.requestPageChange(startPage)
         } else {
-          let pageParts = pathname.split('-')
+          const pageParts = pathname.split('-')
           if (pageParts.length > 1) {
             startPage = pageParts[pageParts.length - 1]
           } else {
-            let baseArr = pageParts[0].split('?')
+            const baseArr = pageParts[0].split('?')
             if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
               startPage = baseArr[baseArr.length - 1]
             }
@@ -313,7 +312,6 @@ class App {
           noodluidom.page.pageUrl = pathname
           await noodluidom.page.requestPageChange(startPage)
         }
-      }
     }
 
     this.initialized = true
@@ -449,9 +447,9 @@ class App {
           }
 
           let pageSnapshot = {} as { name: string; object: any } | 'old.request'
-          let pageModifiers = page.getState().modifiers[pageName]
+          const pageModifiers = page.getState().modifiers[pageName]
 
-          if (pageName !== page.getState().current || pageModifiers?.force) {
+          if (pageName !== page.getState().current ) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
             const noodluidomPageSnapshot = this.noodluidom.page.snapshot()
@@ -558,10 +556,10 @@ class App {
               page.rootNode.id = pageName
             }
             return pageSnapshot
-          } else {
+          } 
             log.func('page [before-page-render]')
             log.green('Avoided a duplicate navigate request')
-          }
+          
 
           return pageSnapshot
         },
@@ -631,7 +629,7 @@ class App {
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
       // Local participant
-      const localParticipant = room.localParticipant
+      const {localParticipant} = room
       const selfStream = this.streams.getSelfStream()
       if (!selfStream.isSameParticipant(localParticipant)) {
         selfStream.setParticipant(localParticipant)
@@ -733,8 +731,8 @@ class App {
       resolve(node: HTMLDivElement, component) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
-          node['style'].width = component.getStyle('width') as string
-          node['style'].height = component.getStyle('height') as string
+          node.style.width = component.getStyle('width') as string
+          node.style.height = component.getStyle('height') as string
           const myChart = echarts.init(node)
           const option = dataValue
           option && myChart.setOption(option)
@@ -799,9 +797,9 @@ class App {
                 }) => {
                   this.noodl.editDraft(
                     (draft: WritableDraft<{ [key: string]: any }>) => {
-                      let seconds = get(draft, dataKey, 0)
+                      const seconds = get(draft, dataKey, 0)
                       set(draft, dataKey, seconds + 1)
-                      let updatedSecs = get(draft, dataKey)
+                      const updatedSecs = get(draft, dataKey)
                       if (
                         updatedSecs !== null &&
                         typeof updatedSecs === 'number'

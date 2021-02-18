@@ -54,20 +54,6 @@ describe('Page', () => {
       page.requestPageChange(requestingPage)
       expect(spy).to.be.called
     })
-
-    it(
-      `should always proceed if the ${highlight(
-        'force',
-      )} modifier was set on the page's ` + `modifiers object`,
-      async () => {
-        const spy = sinon.spy()
-        const requestingPage = 'hello'
-        page.setCurrentPage(requestingPage)
-        page.on(pageEvent.ON_COMPONENTS_RENDERED, spy)
-        await page.requestPageChange(requestingPage, { force: true })
-        expect(spy).to.be.calledOnce
-      },
-    )
   })
 
   describe(`when retrieving a snapshot`, () => {
