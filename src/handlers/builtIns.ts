@@ -41,7 +41,7 @@ import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
 
-const createBuiltInActions = function ({
+const createBuiltInActions = function createBuiltInActions({
   noodl,
   noodlui,
   noodluidom,
@@ -67,8 +67,8 @@ const createBuiltInActions = function ({
       ) {
         log.func('checkField')
         log.grey('checkField', { action, options })
-        let contentType: string = '',
-          delay: number | boolean = 0
+        let contentType = ''
+        let delay: number | boolean = 0
 
         if (action instanceof Action) {
           contentType = action.original?.contentType || ''
@@ -118,14 +118,14 @@ const createBuiltInActions = function ({
     .register({
       actionType: 'builtIn',
       funcName: 'hide',
-      async fn(action, options, { findAllByViewTag } = {}) {
+      async fn(action, options, { findAllByViewTag }) {
         const viewTag = action.original?.viewTag || ''
         const nodes = findAllByViewTag(viewTag) as NodeListOf<HTMLElement>
 
         log.func('hide')
 
         if (nodes?.length) {
-          for (const node of nodes) {
+          Array.from(nodes).forEach((node) => {
             log.grey('Toggling visibility off', {
               action,
               options,
@@ -134,7 +134,7 @@ const createBuiltInActions = function ({
               component: options.component,
             })
             node.style.visibility = 'hidden'
-          }
+          })
         } else {
           log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
         }
@@ -143,14 +143,14 @@ const createBuiltInActions = function ({
     .register({
       actionType: 'builtIn',
       funcName: 'show',
-      async fn(action, options, { findAllByViewTag } = {}) {
+      async fn(action, options, { findAllByViewTag }) {
         const viewTag = action.original?.viewTag || ''
         const nodes = findAllByViewTag(viewTag) as NodeListOf<HTMLElement>
 
         log.func('show')
 
         if (nodes?.length) {
-          for (const node of nodes) {
+          Array.from(nodes).forEach((node) => {
             log.grey('Toggling visibility on', {
               action,
               options,
@@ -159,7 +159,7 @@ const createBuiltInActions = function ({
               component: options.component,
             })
             node.style.visibility = 'visible'
-          }
+          })
         } else {
           log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
         }
@@ -176,7 +176,7 @@ const createBuiltInActions = function ({
         log.func('toggleCameraOnOff')
         const path = 'VideoChat.cameraOn'
 
-        let localParticipant = Meeting.localParticipant
+        const { localParticipant } = Meeting
         let videoTrack: LocalVideoTrack | undefined
 
         if (localParticipant) {
@@ -223,7 +223,7 @@ const createBuiltInActions = function ({
         log.func('toggleMicrophoneOnOff')
         const path = 'VideoChat.micOn'
 
-        let localParticipant = Meeting.localParticipant
+        const { localParticipant } = Meeting
         let audioTrack: LocalAudioTrack | undefined
 
         if (localParticipant) {
@@ -266,15 +266,15 @@ const createBuiltInActions = function ({
         console.log({ action, ...options })
         const { findByElementId } = actionsContext
         const { component } = options
-        const page = noodlui.page
+        const { page } = noodlui
         const { dataKey = '' } = action.original || {}
         let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
         const node = findByElementId(component)
 
         let dataValue: any
         let dataObject: any
-        let previousDataValue: boolean | undefined = undefined
-        let nextDataValue: boolean | undefined = undefined
+        let previousDataValue: boolean | undefined
+        let nextDataValue: boolean | undefined
         let newSrc = ''
 
         if (isDraft(path)) path = original(path)
@@ -282,7 +282,7 @@ const createBuiltInActions = function ({
         log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
 
         if (dataKey?.startsWith(iteratorVar)) {
-          let parts = dataKey.split('.').slice(1)
+          const parts = dataKey.split('.').slice(1)
           dataObject = findListDataObject(component)
           previousDataValue = get(dataObject, parts)
           // previousDataValueInSdk = _.get(noodl.root[context.page])
@@ -302,7 +302,7 @@ const createBuiltInActions = function ({
           ) => {
             let nextValue: any
             if (isNOODLBoolean(previousValue)) {
-              nextValue = isBooleanTrue(previousValue) ? false : true
+              nextValue = !isBooleanTrue(previousValue)
             }
             nextValue = !previousValue
             if (updateDraft) {
@@ -439,7 +439,7 @@ const createBuiltInActions = function ({
       ) {
         log.func('builtIn [goto]')
         log.red('', { action, ...options })
-        let destinationParam: string = ''
+        let destinationParam = ''
         let reload: boolean | undefined
 
         // "Reload" currently is only known to be used in goto when runnning
@@ -458,11 +458,9 @@ const createBuiltInActions = function ({
               } else if (typeof gotoObj.goto === 'string') {
                 destinationParam = gotoObj.goto
               }
-            } else {
-              if (isPlainObject(gotoObj)) {
-                destinationParam = gotoObj.destination
-                if ('reload' in gotoObj) reload = gotoObj.reload
-              }
+            } else if (isPlainObject(gotoObj)) {
+              destinationParam = gotoObj.destination
+              if ('reload' in gotoObj) reload = gotoObj.reload
             }
           }
         } else if (isPlainObject(action)) {
@@ -490,7 +488,7 @@ const createBuiltInActions = function ({
         // from a page object. Since actionsContext is not available at that time,
         // we have to manually import these utilities on demand if they aren't available
         if (!actionsContext) {
-          let noodluidomlib = await import('noodl-ui-dom')
+          const noodluidomlib = await import('noodl-ui-dom')
           findWindow = noodluidomlib.findWindow
           findByElementId = noodluidomlib.findByElementId
           findByViewTag = noodluidomlib.findByViewTag
@@ -524,7 +522,7 @@ const createBuiltInActions = function ({
               win = window
               doc = window.document
             } else {
-              win = findWindow((w) => {
+              win = findWindow((w: any) => {
                 if (w) {
                   if ('contentDocument' in w) {
                     doc = (w as any).contentDocument
@@ -532,7 +530,8 @@ const createBuiltInActions = function ({
                     doc = w.document
                   }
                   return doc?.contains?.(node)
-                } else return false
+                }
+                return false
               })
             }
             const scroll = () => {
@@ -617,7 +616,7 @@ const createBuiltInActions = function ({
 
         const viewTag = action?.original?.viewTag || ''
 
-        let components = Object.values(
+        const components = Object.values(
           noodlui.componentCache().state() || {},
         ).reduce((acc: ComponentInstance[], c: any) => {
           if (c && c.get('viewTag') === viewTag) return acc.concat(c)
@@ -798,24 +797,24 @@ const createBuiltInActions = function ({
                 node && (node.style[styleKey] = '')
               })
 
-              newParent.style['display'] = 'flex'
-              newParent.style['alignItems'] = 'center'
-              newParent.style['background'] = 'none'
+              newParent.style.display = 'flex'
+              newParent.style.alignItems = 'center'
+              newParent.style.background = 'none'
 
-              node && (node.style['width'] = '100%')
-              node && (node.style['height'] = '100%')
+              node && (node.style.width = '100%')
+              node && (node.style.height = '100%')
 
-              eyeContainer.style['top'] = '0px'
-              eyeContainer.style['bottom'] = '0px'
-              eyeContainer.style['right'] = '6px'
-              eyeContainer.style['width'] = '42px'
-              eyeContainer.style['background'] = 'none'
-              eyeContainer.style['border'] = '0px'
-              eyeContainer.style['outline'] = 'none'
+              eyeContainer.style.top = '0px'
+              eyeContainer.style.bottom = '0px'
+              eyeContainer.style.right = '6px'
+              eyeContainer.style.width = '42px'
+              eyeContainer.style.background = 'none'
+              eyeContainer.style.border = '0px'
+              eyeContainer.style.outline = 'none'
 
-              eyeIcon.style['width'] = '100%'
-              eyeIcon.style['height'] = '100%'
-              eyeIcon.style['userSelect'] = 'none'
+              eyeIcon.style.width = '100%'
+              eyeIcon.style.height = '100%'
+              eyeIcon.style.userSelect = 'none'
 
               eyeIcon.setAttribute('src', eyeClosed)
               eyeContainer.setAttribute(
@@ -850,7 +849,7 @@ const createBuiltInActions = function ({
                   node?.setAttribute('type', 'password')
                 }
                 selected = !selected
-                eyeContainer['title'] = !selected
+                eyeContainer.title = !selected
                   ? 'Click here to hide your password'
                   : 'Click here to reveal your password'
               }
@@ -875,7 +874,7 @@ const createBuiltInActions = function ({
   async function _onLockLogout() {
     const dataValues = getDataValues() as { password: string }
     const hiddenPwLabel = getByDataUX('passwordHidden') as HTMLDivElement
-    let password = dataValues.password || ''
+    const password = dataValues.password || ''
     // Reset the visible status since this is a new attempt
     if (hiddenPwLabel) {
       const isVisible = hiddenPwLabel.style.visibility === 'visible'
@@ -889,9 +888,8 @@ const createBuiltInActions = function ({
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
       else window.alert('Password is incorrect')
       return 'abort'
-    } else {
-      if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
     }
+    if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
   }
 
   return noodluidom

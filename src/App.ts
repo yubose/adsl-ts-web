@@ -446,7 +446,7 @@ class App {
             !/videochat/i.test(pageName)
           ) {
             this.meeting.leave()
-            log.func('page [before-page-render]')
+            log.func('before-page-render')
             log.grey(`Disconnected from room`, this.meeting.room)
 
             const mainStream = this.streams.getMainStream()
@@ -878,7 +878,7 @@ class App {
     this.noodluidom.on(
       eventId.page.status.ANY,
       function onStatusChange(this: App, status: string) {
-        log.func('[noodl-ui-dom] onStatusChange')
+        log.func('onStatusChange')
         log.grey('Status changed: ' + status)
       },
     )
