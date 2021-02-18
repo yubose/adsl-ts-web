@@ -17,6 +17,7 @@ import { ComponentObject } from 'noodl-types'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
+  RemoteParticipant,
 } from 'twilio-video'
 import {
   ComponentInstance,
@@ -47,6 +48,7 @@ import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
+import Stream from './meeting/Stream'
 
 const log = Logger.create('App.ts')
 
@@ -147,8 +149,14 @@ class App {
       }
     }
 
-    this.#preparePage = async (pageName: string): Promise<PageObject> => {
+    this.#preparePage = async function preparePage(
+      this: App,
+      pageName: string,
+    ): Promise<PageObject> {
       try {
+        console.log(this.noodluidom.page.snapshot())
+        console.log(this.noodluidom.page.snapshot())
+        console.log(this.noodluidom.page.snapshot())
         await noodl.initPage(pageName, [], {
           ...noodluidom.page.getState().modifiers[pageName],
           builtIn: {
@@ -222,7 +230,7 @@ class App {
           snapshot: noodluidom.page.snapshot(),
         })
         if (noodl.root?.Global?.globalRegister) {
-          const {Global} = noodl.root
+          const { Global } = noodl.root
           if (Array.isArray(Global.globalRegister)) {
             if (Global.globalRegister.length) {
               log.grey(
@@ -252,7 +260,7 @@ class App {
       } catch (error) {
         throw new Error(error)
       }
-    }
+    }.bind(this)
 
     this.observeClient({ noodlui, noodl })
     this.observeInternal(noodlui)
@@ -283,7 +291,7 @@ class App {
     }
 
     if (noodluidom.page && location.href) {
-      let {startPage} = noodl.cadlEndpoint
+      let { startPage } = noodl.cadlEndpoint
       const urlParts = location.href.split('/')
       const pathname = urlParts[urlParts.length - 1]
       const localConfig = JSON.parse(ls.getItem('config') || '') || {}
@@ -297,21 +305,21 @@ class App {
         noodluidom.page.pageUrl = 'index.html?'
         await noodluidom.page.requestPageChange(startPage)
       } else if (!pathname?.startsWith('index.html?')) {
-          noodluidom.page.pageUrl = 'index.html?'
-          await noodluidom.page.requestPageChange(startPage)
+        noodluidom.page.pageUrl = 'index.html?'
+        await noodluidom.page.requestPageChange(startPage)
+      } else {
+        const pageParts = pathname.split('-')
+        if (pageParts.length > 1) {
+          startPage = pageParts[pageParts.length - 1]
         } else {
-          const pageParts = pathname.split('-')
-          if (pageParts.length > 1) {
-            startPage = pageParts[pageParts.length - 1]
-          } else {
-            const baseArr = pageParts[0].split('?')
-            if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
-              startPage = baseArr[baseArr.length - 1]
-            }
+          const baseArr = pageParts[0].split('?')
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
+            startPage = baseArr[baseArr.length - 1]
           }
-          noodluidom.page.pageUrl = pathname
-          await noodluidom.page.requestPageChange(startPage)
         }
+        noodluidom.page.pageUrl = pathname
+        await noodluidom.page.requestPageChange(startPage)
+      }
     }
 
     this.initialized = true
@@ -375,11 +383,10 @@ class App {
 
     on(
       'resize',
-      ({
-        aspectRatio,
-        width,
-        height,
-      }: ReturnType<typeof computeViewportSize>) => {
+      function onResize(
+        this: App,
+        { aspectRatio, width, height }: ReturnType<typeof computeViewportSize>,
+      ) {
         log.func('on resize [viewport]')
         if (this.noodlui.page === 'VideoChat') {
           return log.grey(
@@ -397,22 +404,43 @@ class App {
           this.noodl?.root?.[this.noodluidom.page.getState().current]
             ?.components,
         )
-      },
+      }.bind(this),
     )
   }
 
   observePages(page: Page) {
     page
-      .on(pageEvent.ON_NAVIGATE_START, (snapshot: any) => {
-        console.log(
-          `%cRendering the DOM for page: "${snapshot.requesting}"`,
-          `color:#95a5a6;`,
-          snapshot,
-        )
-      })
+      .on(
+        pageEvent.ON_NAVIGATE_START,
+        function onNavigateStart(this: App, snapshot: any) {
+          log.func('onNavigateStart')
+          log.grey(
+            `Starting navigate request to ${snapshot.requesting}`,
+            snapshot,
+          )
+        },
+      )
       .on(
         pageEvent.ON_BEFORE_RENDER_COMPONENTS as any,
-        async ({ requesting: pageName }) => {
+        async function onBeforeRenderComponents(
+          this: App,
+          { requesting: pageName, ref, ...rest },
+        ) {
+          log.func('onBeforeRenderComponents')
+
+          if (ref.request.name !== pageName) {
+            log.red(
+              `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
+              { requesting: pageName, ref, ...rest },
+            )
+            return 'old.request'
+          }
+          log.grey(`Rendering the DOM for page: "${pageName}"`, {
+            requesting: pageName,
+            ref,
+            ...rest,
+          })
+
           if (
             /videochat/i.test(page.getState().current) &&
             !/videochat/i.test(pageName)
@@ -449,7 +477,7 @@ class App {
           let pageSnapshot = {} as { name: string; object: any } | 'old.request'
           const pageModifiers = page.getState().modifiers[pageName]
 
-          if (pageName !== page.getState().current ) {
+          if (pageName !== page.getState().current) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
             const noodluidomPageSnapshot = this.noodluidom.page.snapshot()
@@ -480,8 +508,9 @@ class App {
                 pageSnapshot,
               })
 
-              const fetch = (url: string) =>
-                axios.get(url).then(({ data }) => data)
+              function fetch(url: string) {
+                return axios.get(url).then(({ data }) => data)
+              }
               // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
               const config = this.noodl.getConfig()
               const plugins = [] as ComponentObject[]
@@ -538,35 +567,27 @@ class App {
               log.func('page [before-page-render]')
               log.grey('Initialized noodl-ui client', this.noodlui)
             }
-            const previousPage = page.getState().previous
-            log.func('page [before-page-render]')
-            log.grey(`${previousPage} --> ${pageName}`, page.snapshot())
             // Refresh the root
             // TODO - Leave root/page auto binded to the lib
             this.noodlui.setPage(pageName)
-            log.grey(`Set root + page obj after receiving page object`, {
-              previousPage: page.getState().previous,
-              currentPage: page.getState().current,
-              requestedPage: pageName,
-              pageName,
-              pageObject,
-            })
             // NOTE: not being used atm
             if (page.rootNode && page.rootNode.id !== pageName) {
               page.rootNode.id = pageName
             }
             return pageSnapshot
-          } 
-            log.func('page [before-page-render]')
-            log.green('Avoided a duplicate navigate request')
-          
+          }
+          log.func('page [before-page-render]')
+          log.green('Avoided a duplicate navigate request')
 
           return pageSnapshot
-        },
+        }.bind(this),
       )
       .on(
         pageEvent.ON_COMPONENTS_RENDERED,
-        async ({ requesting: pageName, components }) => {
+        async function onComponentsRendered(
+          this: App,
+          { requesting: pageName, components },
+        ) {
           log.func('page [rendered]')
           log.grey(`Done rendering DOM nodes for ${pageName}`)
           window.pcomponents = components
@@ -574,15 +595,18 @@ class App {
           // TODO
           this.cachePage(pageName)
           log.grey(`Cached page: "${pageName}"`)
+        }.bind(this),
+      )
+      .on(
+        pageEvent.ON_NAVIGATE_ERROR,
+        function onNavigateError(this: App, { error }) {
+          console.error(error)
+          log.func('page.onError')
+          log.red(error.message, error)
+          // alert(error.message)
+          // TODO - narrow the reasons down more
         },
       )
-      .on(pageEvent.ON_NAVIGATE_ERROR, ({ error }) => {
-        console.error(error)
-        log.func('page.onError')
-        log.red(error.message, error)
-        // alert(error.message)
-        // TODO - narrow the reasons down more
-      })
   }
 
   /**
@@ -629,7 +653,7 @@ class App {
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
       // Local participant
-      const {localParticipant} = room
+      const { localParticipant } = room
       const selfStream = this.streams.getSelfStream()
       if (!selfStream.isSameParticipant(localParticipant)) {
         selfStream.setParticipant(localParticipant)
@@ -648,7 +672,11 @@ class App {
      * @param { RemoteParticipant } participant
      * @param { Stream } stream - mainStream or a subStream
      */
-    meeting.onAddRemoteParticipant = (participant, stream) => {
+    meeting.onAddRemoteParticipant = function onAddRemoteParticipant(
+      this: App,
+      participant: RemoteParticipant,
+      stream: Stream,
+    ) {
       log.func('Meeting.onAddRemoteParticipant')
       log.green(`Bound remote participant to ${stream.type}`, {
         participant,
@@ -664,14 +692,16 @@ class App {
          * to be an array if it's not already an array
          * @param { RemoteParticipant } participant
          */
-        this.noodl.editDraft((draft: any) => {
-          const participants = this.meeting
-            .removeFalseyParticipants(
-              draft?.VideoChat?.listData?.participants || [],
-            )
-            .concat(participant)
-          set(draft, 'VideoChat.listData.participants', participants)
-        })
+        this.noodl.editDraft(
+          function editDraft(this: App, draft: any) {
+            const participants = this.meeting
+              .removeFalseyParticipants(
+                draft?.VideoChat?.listData?.participants || [],
+              )
+              .concat(participant)
+            set(draft, 'VideoChat.listData.participants', participants)
+          }.bind(this),
+        )
 
         log.func('Meeting.onAddRemoteParticipant')
         log.green('Updated SDK with new participant', {
@@ -690,15 +720,19 @@ class App {
         participant,
         stream,
       })
-    }
+    }.bind(this)
 
-    meeting.onRemoveRemoteParticipant = (participant, stream) => {
+    meeting.onRemoveRemoteParticipant = function onRemoveRemoteParticipant(
+      this: App,
+      participant: RemoteParticipant,
+      stream: Stream,
+    ) {
       /**
        * Updates the participants list in the sdk. This will also force the value
        * to be an array if it's not already an array
        * @param { RemoteParticipant } participant
        */
-      this.noodl.editDraft((draft: any) => {
+      this.noodl.editDraft(function editDraft(this: App, draft: any) {
         set(
           draft.VideoChat.listData,
           'participants',
@@ -719,7 +753,7 @@ class App {
           data: { room: Meeting.room },
         })
       }
-    }
+    }.bind(this)
 
     /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
@@ -743,7 +777,7 @@ class App {
     this.noodluidom.register({
       name: 'videoChat.timer.updater',
       cond: (n, c) => typeof c.get('text=func') === 'function',
-      resolve: (node, component) => {
+      resolve: function onVideoChatTImerUpdate(this: App, node, component) {
         const dataKey = component.get('dataKey')
 
         if (component.contentType === 'timer') {
@@ -768,33 +802,39 @@ class App {
           // the api declaration
           component.on(
             'timer.ref',
-            (ref: {
-              start(): void
-              current: Date
-              ref: NodeJS.Timeout
-              clear: () => void
-              increment(): void
-              set(value: any): void
-              onInterval?:
-                | ((args: {
-                    node: NOODLDOMElement
-                    component: ComponentInstance
-                    ref: typeof ref
-                  }) => void)
-                | null
-            }) => {
+            function onTimerRef(
+              this: App,
+              ref: {
+                start(): void
+                current: Date
+                ref: NodeJS.Timeout
+                clear: () => void
+                increment(): void
+                set(value: any): void
+                onInterval?:
+                  | ((args: {
+                      node: NOODLDOMElement
+                      component: ComponentInstance
+                      ref: typeof ref
+                    }) => void)
+                  | null
+              },
+            ) {
               const textFunc = component.get('text=func') || ((x: any) => x)
 
               component.on(
                 'interval',
-                ({
-                  node,
-                  component,
-                }: {
-                  node: NOODLDOMElement
-                  component: ComponentInstance
-                  ref: typeof ref
-                }) => {
+                function onInterval(
+                  this: App,
+                  {
+                    node,
+                    component,
+                  }: {
+                    node: NOODLDOMElement
+                    component: ComponentInstance
+                    ref: typeof ref
+                  },
+                ) {
                   this.noodl.editDraft(
                     (draft: WritableDraft<{ [key: string]: any }>) => {
                       const seconds = get(draft, dataKey, 0)
@@ -825,29 +865,44 @@ class App {
                       }
                     },
                   )
-                },
+                }.bind(this),
               )
 
               ref.start()
-            },
+            }.bind(this),
           )
         }
-      },
+      }.bind(this),
     })
 
-    this.noodluidom.on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
-      console.log('Removed from componentCache: ' + component.id)
-      this.noodlui.componentCache().remove(component)
-      publish(component, (c) => {
+    this.noodluidom.on(
+      eventId.page.status.ANY,
+      function onStatusChange(this: App, status: string) {
+        log.func('[noodl-ui-dom] onStatusChange')
+        log.grey('Status changed: ' + status)
+      },
+    )
+
+    this.noodluidom.on(
+      eventId.redraw.ON_BEFORE_CLEANUP,
+      function onBeforeCleanup(this: App, node, component) {
         console.log('Removed from componentCache: ' + component.id)
-        this.noodlui.componentCache().remove(c)
-      })
-    })
+        this.noodlui.componentCache().remove(component)
+        publish(component, (c) => {
+          console.log('Removed from componentCache: ' + component.id)
+          this.noodlui.componentCache().remove(c)
+        })
+      }.bind(this),
+    )
 
     this.noodluidom.register({
       name: 'meeting',
       cond: (node: any, component: any) => !!(node && component),
-      resolve: (node: any, component: any) => {
+      resolve: function onMeetingComponent(
+        this: App,
+        node: any,
+        component: any,
+      ) {
         // Dominant/main participant/speaker
         if (identify.stream.video.isMainStream(component.toJS())) {
           const mainStream = this.streams.getMainStream()
@@ -917,7 +972,7 @@ class App {
             )
           }
         }
-      },
+      }.bind(this),
     })
   }
 

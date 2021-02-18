@@ -81,20 +81,19 @@ class Page {
     newPage: string = '',
     { delay }: { reload?: boolean; delay?: number } = {},
   ) {
-    console.info(this.snapshot())
-    if (this.ref.request.name === newPage && this.ref.request.timer) {
-      log.func('requestPageChange')
-      await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-        ...this.snapshot(),
-        reason: 'debounced',
-        from: 'requestPageChange',
-      })
-      return log.orange(
-        `Aborted the request to "${newPage}" because a previous request ` +
-          `to the page was just requested`,
-        this.snapshot(),
-      )
-    }
+    // if (this.ref.request.name === newPage && this.ref.request.timer) {
+    //   log.func('requestPageChange')
+    //   await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
+    //     ...this.snapshot(),
+    //     reason: 'debounced',
+    //     from: 'requestPageChange',
+    //   })
+    //   return log.orange(
+    //     `Aborted the request to "${newPage}" because a previous request ` +
+    //       `to the same page was just requested`,
+    //     this.snapshot(),
+    //   )
+    // }
 
     if (newPage) {
       this.ref.request.timer && clearTimeout(this.ref.request.timer)
@@ -161,6 +160,12 @@ class Page {
       )) as Record<string, PageObject> | 'old.request'
 
       if (pageSnapshot === 'old.request') {
+        await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
+          ...this.snapshot(),
+          pageName,
+          from: 'navigate',
+          reason: pageSnapshot,
+        })
         return
       }
 
@@ -320,6 +325,7 @@ class Page {
   setStatus(status: T.PageStatus) {
     this.#state.status = status
     this.emitSync(status, status)
+    this.emitSync(eventId.page.status.ANY, status)
     if (status === eventId.page.status.IDLE) this.setRequestingPage('')
     else if (status === eventId.page.status.NAVIGATE_ERROR)
       this.setRequestingPage('')
