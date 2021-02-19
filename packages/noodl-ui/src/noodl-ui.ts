@@ -67,6 +67,7 @@ export interface RegisterCallbacks {
 }
 
 const log = Logger.create('noodl-ui')
+const stable = process.env.ECOS_ENV === 'stable'
 let id = 0
 
 function _createState(initialState?: Partial<T.State>) {
@@ -682,6 +683,7 @@ class NOODLUI {
     ...args: Parameters<T.ComponentEventCallback>
   ): this
   emit(eventName: string, ...args: any[]) {
+    stable && log.cyan(`Emitting: ${eventName}`, args)
     if (typeof eventName === 'string') {
       if (eventName === 'register') {
         // type ex: "onEvent"
@@ -695,8 +697,8 @@ class NOODLUI {
             if (obj.component) {
               if (obj.component?.original?.actions) {
                 // Create the action chain and pass it as a final callback
-                console.log(obj)
                 params.next = () => {
+                  stable && log.cyan(`next() is getting called`)
                   return this.createActionChainHandler(
                     obj.component.original.actions,
                     {
@@ -706,11 +708,25 @@ class NOODLUI {
                     },
                   )()
                 }
+              } else {
+                stable &&
+                  log.cyan(
+                    `A "register" component not using an emit object did not have an "actions" list. Is this supported?`,
+                    {
+                      ...obj,
+                      params,
+                    },
+                  )
               }
             }
             // The result can be passed as args to the action chain if this component
             // has an action chain waiting to be called
             const result = fn(params)
+            stable &&
+              log.cyan(`Ran the "func" on the register component`, {
+                result,
+                ...obj,
+              })
             if (isPromise(result)) {
               result
                 .then((res) =>

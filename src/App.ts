@@ -41,7 +41,7 @@ import {
   FirebaseApp,
   FirebaseMessaging,
 } from './app/types'
-import { isMobile } from './utils/common'
+import { isMobile, isStable } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
 import createRegisters from './handlers/register'
 import createActions from './handlers/actions'
@@ -51,6 +51,7 @@ import MeetingSubstreams from './meeting/Substreams'
 import Stream from './meeting/Stream'
 
 const log = Logger.create('App.ts')
+const stable = isStable()
 
 export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
@@ -92,6 +93,7 @@ class App {
 
     this.firebase = firebase
     this.messaging = this.firebase.messaging()
+    stable && log.cyan(`Initialized firebase messaging instance`)
     this.meeting = meeting
     this.noodl = noodl
     this.noodlui = noodlui
@@ -99,9 +101,11 @@ class App {
     this.streams = meeting.getStreams()
     this.#viewportUtils = createViewportHandler(new Viewport())
 
+    stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
     await noodl.init()
-
+    stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
     noodluidom.use(noodlui)
+    stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
     createActions({ noodlui, noodluidom })
     createBuiltIns({ noodl, noodlui, noodluidom })
@@ -129,6 +133,7 @@ class App {
     )
 
     let startPage = noodl?.cadlEndpoint?.startPage
+    stable && log.cyan(`Start page: ${startPage}`) 
 
     if (!this.authStatus) {
       // Initialize the user's state before proceeding to decide on how to direct them
@@ -154,9 +159,7 @@ class App {
       pageName: string,
     ): Promise<PageObject> {
       try {
-        console.log(this.noodluidom.page.snapshot())
-        console.log(this.noodluidom.page.snapshot())
-        console.log(this.noodluidom.page.snapshot())
+        stable && log.cyan(`Running noodl.initPage on ${pageName}`) 
         await noodl.initPage(pageName, [], {
           ...noodluidom.page.getState().modifiers[pageName],
           builtIn: {
@@ -200,7 +203,9 @@ class App {
                 const token = await this.messaging.getToken(...args)
 
                 copyToClipboard(token)
+                stable && log.cyan(`Copied token to clipboard`) 
 
+                
                 noodlui.emit('register', {
                   key: 'globalRegister',
                   id: 'FCMOnTokenReceive',
@@ -934,7 +939,7 @@ class App {
               resolver: this.noodlui.resolveComponents.bind(this.noodlui),
             })
             log.func('onCreateNode')
-            log.green('Created subStreams container', subStreams)
+            log.green('Initiated subStreams container', subStreams)
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup

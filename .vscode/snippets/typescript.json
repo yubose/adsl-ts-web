@@ -64,6 +64,14 @@
     "prefix": "toast",
     "body": "import toast from 'vercel-toast'"
   },
+  "logstable (func)": {
+    "prefix": "logstable",
+    "body": "isStable() && log.cyan(`$1`) $2"
+  },
+  "logstable (var)": {
+    "prefix": "logstvar",
+    "body": "stable && log.cyan(`$1`) $2"
+  },
   "prettyDOM": {
     "prefix": "importpdom",
     "body": "import { prettyDOM } from '@testing-library/dom'"

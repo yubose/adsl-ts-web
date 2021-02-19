@@ -1,8 +1,13 @@
-import { copyToClipboard } from './utils/dom'
+import Logger from 'logsnap'
 import App from './App'
 import Meeting from './meeting'
+import { copyToClipboard } from './utils/dom'
+import { isStable } from './utils/common'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
+
+const log = Logger.create('App.ts')
+const stable = isStable()
 
 window.addEventListener('load', async () => {
   const { Account } = await import('@aitmed/cadl')
@@ -11,7 +16,7 @@ window.addEventListener('load', async () => {
   const { default: noodlui, getWindowHelpers } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
 
-  const page = noodluidom.page
+  const { page } = noodluidom
   const app = new App()
 
   window.app = {
@@ -47,35 +52,46 @@ window.addEventListener('load', async () => {
   Object.assign(window, getWindowHelpers())
 
   try {
+    stable && log.cyan('Initializing [App] instance')
     await app.initialize({
       firebase: { client: firebase, vapidKey },
       meeting: Meeting,
       noodlui,
       noodluidom,
     })
+    stable && log.cyan('Initialized [App] instance')
   } catch (error) {
     console.error(error)
   }
 
-  window.addEventListener('popstate', async function onPopState(e) {
+  window.addEventListener('popstate', async (e) => {
     const goBackPage = page.getPreviousPage(noodl.cadlEndpoint?.startPage)
-    let parts = page.pageUrl.split('-')
+    stable && log.cyan(`Received the "goBack" page as ${goBackPage}`)
+    const parts = page.pageUrl.split('-')
+    stable && log.cyan(`URL parts`, parts)
     if (parts.length > 1) {
-      parts.pop()
+      let popped = parts.pop()
+      stable && log.cyan(`Popped: ${popped}`)
       while (parts[parts.length - 1].endsWith('MenuBar') && parts.length > 1) {
-        parts.pop()
+        popped = parts.pop()
+        stable && log.cyan(`Popped`)
       }
+      stable && log.cyan(`Page URL: ${page.pageUrl}`)
       if (parts.length > 1) {
         page.pageUrl = parts.join('-')
+        stable && log.cyan(`Page URL: ${page.pageUrl}`)
       } else if (parts.length === 1) {
         if (parts[0].endsWith('MenuBar')) {
+          stable && log.cyan(`Page URL: ${page.pageUrl}`)
           page.pageUrl = 'index.html?'
         } else {
           page.pageUrl = parts[0]
+          stable && log.cyan(`Page URL: ${page.pageUrl}`)
         }
       }
     } else {
       page.pageUrl = 'index.html?'
+      stable && log.cyan(`Page URL: ${page.pageUrl}`)
     }
     await page.requestPageChange(goBackPage)
   })

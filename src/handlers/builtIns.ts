@@ -34,12 +34,13 @@ import {
   parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import { resolvePageUrl } from '../utils/common'
+import { isStable, resolvePageUrl } from '../utils/common'
 import { scrollToElem, toggleVisibility } from '../utils/dom'
 import { pageEvent } from '../constants'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
+const stable = isStable()
 
 const createBuiltInActions = function createBuiltInActions({
   noodl,
@@ -986,6 +987,8 @@ export function onVideoChatBuiltIn({
       console.error(error)
       window.alert(`[${error.name}]: ${error.message}`)
     }
+
+    stable && log.cyan(`Initialized builtIn funcs`)
   }
 }
 
