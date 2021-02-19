@@ -31,9 +31,6 @@ import {
   parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import { pageEvent } from '../constants'
-import { resolvePageUrl } from '../utils/common'
-import { onSelectFile, scrollToElem, toast } from '../utils/dom'
 import {
   EvalActionObject,
   PageJumpActionObject,
@@ -43,10 +40,14 @@ import {
   SaveActionObject,
   UpdateActionObject,
 } from 'noodl-types'
+import { pageEvent } from '../constants'
+import { isStable, resolvePageUrl } from '../utils/common'
+import { onSelectFile, scrollToElem, toast } from '../utils/dom'
 
 const log = Logger.create('actions.ts')
+const stable = isStable()
 
-const createActions = function ({
+const createActions = function createActions({
   noodlui,
   noodluidom,
 }: {
@@ -55,35 +56,41 @@ const createActions = function ({
 }) {
   noodluidom.register({
     actionType: 'anonymous',
-    fn: async (
+    fn: async function onAnonymousAction(
       action: Action<AnonymousObject>,
       options: ActionConsumerCallbackOptions,
-    ) => {
+    ) {
       const { fn } = action.original || {}
-      if (options?.component) fn?.()
+      if (options?.component) {
+        if (stable) {
+          log.func('anonymous')
+          log.cyan(`Calling anonymous action`, { action, options })
+        }
+        fn?.()
+      }
     },
   })
 
   /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
   noodluidom.register({
     actionType: 'emit',
-    fn: async (
+    fn: async function onDataKeyEmit(
       action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions,
       { noodl },
-    ) => {
-      log.func('emit [dataKey]')
-      log.gold('Emitting', { action, ...options })
-
+    ) {
       const emitParams = {
         actions: action.actions,
         dataKey: action.dataKey,
         pageName: noodlui.page,
       } as any
 
+      log.func('emit [dataKey]')
+      log.gold('Emitting', { action, emitParams, ...options })
+
       const emitResult = await noodl.emitCall(emitParams)
 
-      log.grey(`Called emitCall`, {
+      log.grey(`Emitted`, {
         action,
         component: options.component,
         emitParams,
@@ -100,14 +107,11 @@ const createActions = function ({
   /** DATA VALUE EMIT */
   noodluidom.register({
     actionType: 'emit',
-    fn: async (
+    fn: async function onDataValueEmit(
       action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions,
       { noodl },
-    ) => {
-      log.func('emit [dataValue]')
-      log.grey('', { action, options })
-
+    ) {
       const emitParams = {
         actions: action.actions,
         pageName: noodlui.page,
@@ -117,9 +121,12 @@ const createActions = function ({
         emitParams.dataKey = action.dataKey
       }
 
+      log.func('emit [dataValue]')
+      log.grey('Emitting', { action, emitParams, options })
+
       const emitResult = await noodl.emitCall(emitParams)
 
-      log.grey('Called emitCall [dataValue]', {
+      log.grey('Emitted [dataValue]', {
         action,
         actionChain: options.ref,
         component: options.component,
@@ -136,14 +143,11 @@ const createActions = function ({
   /** onBlur EMIT */
   noodluidom.register({
     actionType: 'emit',
-    fn: async (
+    fn: async function onBlurEmit(
       action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions,
       { noodl },
-    ) => {
-      log.func('emit [onBlur]')
-      log.grey('', { action, options })
-
+    ) {
       const emitParams = {
         actions: action.actions,
         pageName: noodlui.page,
@@ -153,9 +157,12 @@ const createActions = function ({
         emitParams.dataKey = action.dataKey
       }
 
+      log.func('emit [onBlur]')
+      log.grey('Emitting', { action, emitParams, options })
+
       const emitResult = await noodl.emitCall(emitParams)
 
-      log.grey('Called emitCall', {
+      log.grey('Emitted', {
         action,
         actionChain: options.ref,
         component: options.component,
@@ -172,14 +179,11 @@ const createActions = function ({
   /** onClick EMIT */
   noodluidom.register({
     actionType: 'emit',
-    fn: async (
+    fn: async function onClickEmit(
       action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions,
       { noodl },
-    ) => {
-      log.func('emit [onClick]')
-      log.gold('Emitting', { action, noodl, noodlui, ...options })
-
+    ) {
       const emitParams = {
         actions: action.actions,
         pageName: options?.page,
@@ -189,9 +193,12 @@ const createActions = function ({
         emitParams.dataKey = action.dataKey
       }
 
+      log.func('emit [onClick]')
+      log.gold('Emitting', { action, emitParams, noodl, noodlui, ...options })
+
       const emitResult = await noodl.emitCall(emitParams)
 
-      log.gold(`Ran emitCall [onClick]`, {
+      log.gold(`Emitted [onClick]`, {
         action,
         actions: action.actions,
         component: options.component,
@@ -208,14 +215,11 @@ const createActions = function ({
   /** onChange EMIT */
   noodluidom.register({
     actionType: 'emit',
-    fn: async (
+    fn: async function onChangeEmit(
       action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions,
       { noodl },
-    ) => {
-      log.func('emit [onChange]')
-      log.grey('', { action, options })
-
+    ) {
       const emitParams = {
         actions: action.actions,
         pageName: noodlui.page,
@@ -225,9 +229,12 @@ const createActions = function ({
         emitParams.dataKey = action.dataKey
       }
 
+      log.func('emit [onChange]')
+      log.grey('Emitting', { action, emitParams, options })
+
       const emitResult = await noodl.emitCall(emitParams)
 
-      log.grey('Called emitCall', {
+      log.grey('Emitted', {
         action,
         actionChain: options.ref,
         component: options.component,
@@ -244,12 +251,11 @@ const createActions = function ({
   /** PATH EMIT */
   noodluidom.register({
     actionType: 'emit',
-    fn: async (
+    fn: async function onPathEmit(
       action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions & { path: EmitObject },
       { noodl },
-    ) => {
-      log.func('emit [path]')
+    ) {
       const { component, context, getRoot, getPageObject, path } = options
       const page = context.page || ''
       const dataObject = findListDataObject(component)
@@ -271,11 +277,13 @@ const createActions = function ({
           { iteratorVar },
         )
       }
+
+      log.func('emit [path]')
+      log.grey('Emitting', { action, emitParams, options })
+
       const result = await noodl.emitCall(emitParams)
 
-      log.grey(
-        `emitCall call result: ${result === '' ? '(empty string)' : result}`,
-      )
+      log.grey(`Emitted: ${result === '' ? '(empty string)' : result}`)
 
       return Array.isArray(result) ? result[0] : result
     },
@@ -285,13 +293,11 @@ const createActions = function ({
   /** PLACEHOLDER EMIT */
   noodluidom.register({
     actionType: 'emit',
-    fn: async (
+    fn: async function onPlaceholderEmit(
       action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions & { path: EmitObject },
       { noodl },
-    ) => {
-      log.func('emit [placeholder]')
-      log.grey('', { action, ...options })
+    ) {
       const {
         component,
         context,
@@ -319,11 +325,13 @@ const createActions = function ({
           { iteratorVar },
         )
       }
+
+      log.func('emit [placeholder]')
+      log.grey('Emitting', { action, emitParams, ...options })
+
       const result = await noodl.emitCall(emitParams)
 
-      log.grey(
-        `emitCall call result: ${result === '' ? '(empty string)' : result}`,
-      )
+      log.grey(`Emitted: ${result === '' ? '(empty string)' : result}`, action)
 
       return Array.isArray(result) ? result[0] : result
     },
@@ -333,12 +341,11 @@ const createActions = function ({
   /** REGISTER EMIT */
   noodluidom.register({
     actionType: 'emit',
-    fn: async (
+    fn: async function onRegisterEmit(
       action: EmitAction<EmitActionObject>,
       options: ActionConsumerCallbackOptions,
       { noodl },
-    ) => {
-      log.func('emit [register]')
+    ) {
       // noodl-ui should have prefilled the instance with the data at this point
       const { context } = options
       const page = context.page || ''
@@ -352,25 +359,27 @@ const createActions = function ({
         emitParams.dataKey = action.dataKey
       }
 
-      log.grey(`Calling emitCall`, { action, options, emitParams })
+      log.func('emit [register]')
+      log.grey('Emitting', { action, emitParams, ...options })
 
-      const result = await noodl.emitCall(emitParams)
+      const emitResult = await noodl.emitCall(emitParams)
 
-      log.grey(
-        `emitCall call result: ${result === '' ? '(empty string)' : result}`,
-      )
+      log.func('emit [register]')
+      log.grey('Emitted', { action, emitParams, emitResult, ...options })
 
-      return Array.isArray(result) ? result[0] : result
+      log.grey(`Emitted: ${emitResult === '' ? '(empty string)' : emitResult}`)
+
+      return Array.isArray(emitResult) ? emitResult[0] : emitResult
     },
     trigger: 'register',
   })
 
   noodluidom.register({
     actionType: 'evalObject',
-    fn: async (
+    fn: async function onEvalObject(
       action: Action<EvalActionObject>,
       options: ActionConsumerCallbackOptions,
-    ) => {
+    ) {
       log.func('evalObject')
       try {
         if (typeof action?.original?.object === 'function') {
@@ -381,7 +390,12 @@ const createActions = function ({
             if (isPlainObject(result) && 'wait' in result) {
               // await ref.abort()
               throw new Error('aborted')
-            } else log.grey('newAction', { newAction, queue: ref?.getQueue() })
+            } else {
+              log.grey(`An evalObject action is injecting a new action`, {
+                action: newAction,
+                queue: ref?.getQueue(),
+              })
+            }
             // return newAction.execute(options)
           }
         } else if ('if' in (action.original.object || {})) {
@@ -394,23 +408,26 @@ const createActions = function ({
               let value
               if (isNOODLBoolean(valEvaluating)) {
                 return isBooleanTrue(valEvaluating)
-              } else {
-                if (typeof valEvaluating === 'string') {
-                  if (isPossiblyDataKey(valEvaluating)) {
-                    if (has(noodl.root, valEvaluating)) {
-                      value = get(noodl.root[pageName], valEvaluating)
-                    } else if (has(pageObject, valEvaluating)) {
-                      value = get(pageObject, valEvaluating)
-                    }
-                  }
-                  if (isNOODLBoolean(value)) return isBooleanTrue(value)
-                  return !!value
-                } else {
-                  return !!value
-                }
               }
+              if (typeof valEvaluating === 'string') {
+                if (isPossiblyDataKey(valEvaluating)) {
+                  if (has(noodl.root, valEvaluating)) {
+                    value = get(noodl.root[pageName], valEvaluating)
+                  } else if (has(pageObject, valEvaluating)) {
+                    value = get(pageObject, valEvaluating)
+                  }
+                }
+                if (isNOODLBoolean(value)) return isBooleanTrue(value)
+                return !!value
+              }
+              return !!value
             }, ifObj)
             if (typeof object === 'function') {
+              stable &&
+                log.cyan(
+                  `The "object" if evalObject is a function. Invoking it ` +
+                    `without parameters now..`,
+                )
               const result = await object()
               if (result) {
                 log.hotpink(
@@ -448,13 +465,17 @@ const createActions = function ({
 
   noodluidom.register({
     actionType: 'goto',
-    fn: async (
+    fn: async function onGoto(
       action: Action<GotoActionObject>,
       options: ActionConsumerCallbackOptions,
       actionsContext,
-    ) => {
+    ) {
       log.func('goto')
-      log.red('goto action', { action, options, ...actionsContext })
+      log.grey(action.original?.goto || action?.goto || 'goto', {
+        action,
+        options,
+        ...actionsContext,
+      })
 
       const {
         findWindow,
@@ -479,17 +500,25 @@ const createActions = function ({
         noodluidom.page.setRequestingPage(destination)
       }
 
-      log.grey('', {
-        destinationParam,
-        destination,
-        duration,
-        id,
-        isSamePage,
-      })
+      stable &&
+        log.cyan(`Evaluated goto information`, {
+          destinationParam,
+          destination,
+          duration,
+          id,
+          isSamePage,
+        })
 
       if (id) {
         const isInsidePageComponent = isPageConsumer(options.component)
         const node = findByViewTag(id) || findByElementId(id)
+
+        stable &&
+          log.cyan(
+            `The destination of ${destinationParam} is ${
+              isInsidePageComponent ? '' : 'NOT '
+            }inside this page`,
+          )
 
         if (node) {
           let win: Window | undefined | null
@@ -506,19 +535,15 @@ const createActions = function ({
                   doc = w.document
                 }
                 return doc?.contains?.(node)
-              } else return false
+              }
+              return false
             })
           }
-          console.log(`WIN: `, {
-            win,
-            node,
-            boundingClientRect: node.getBoundingClientRect(),
-          })
-          const scroll = () => {
+          function scroll() {
             if (isInsidePageComponent) {
               scrollToElem(node, { win, doc, duration })
             } else {
-              node.scrollIntoView({
+              node?.scrollIntoView({
                 behavior: 'smooth',
                 block: 'center',
                 inline: 'center',
@@ -553,11 +578,16 @@ const createActions = function ({
           pageUrl: noodluidom.page.pageUrl,
           startPage: noodl.cadlEndpoint.startPage,
         })
+        stable && log.cyan(`Page URL evaluates to: ${noodluidom.page.pageUrl}`)
       } else {
         destination = destinationParam
       }
 
       if (!isSamePage) {
+        stable &&
+          log.cyan(
+            `Sending a page request to page "${destination}" noodluidom...`,
+          )
         await noodluidom.page.requestPageChange(destination)
 
         if (!destination) {
@@ -573,27 +603,31 @@ const createActions = function ({
 
   noodluidom.register({
     actionType: 'pageJump',
-    fn: async (
+    fn: async function onPageJump(
       action: Action<PageJumpActionObject>,
       options: ActionConsumerCallbackOptions,
-    ) => {
+    ) {
       log.func('pageJump')
       log.grey('', { action, ...options })
+      stable &&
+        log.cyan(
+          `Sending a page request to page "${action.original.destination}" noodluidom...`,
+        )
       await noodluidom.page.requestPageChange(action.original.destination)
     },
   })
 
   noodluidom.register({
     actionType: 'popUp',
-    fn: async (
+    fn: async function onPopUp(
       action: Action<PopupActionObject | PopupDismissActionObject>,
       options: ActionConsumerCallbackOptions,
-    ) => {
-      log.func('popUp')
+    ) {
+      log.func(action.actionType)
       log.grey('', { action, ...options })
       const { ref } = options
       const elem = getByDataUX(action.original.popUpView) as HTMLElement
-      log.gold('popUp action', { action, ...options, elem })
+      const popUpView = action.original.popUpView || ''
       if (action.original.dismissOnTouchOutside) {
         const onTouchOutside = function onTouchOutside(
           this: HTMLDivElement,
@@ -602,13 +636,16 @@ const createActions = function ({
           e.preventDefault()
           elem.style.visibility = 'hidden'
           document.body.removeEventListener('click', onTouchOutside)
+          stable &&
+            log.cyan(`Removed the "dismissOnTouchOutside" func listener`)
         }
         document.body.addEventListener('click', onTouchOutside)
+        stable && log.cyan(`Attached a "dismissOnTouchOutside" func listener`)
       }
       if (elem?.style) {
-        if (action.original.actionType === 'popUp') {
+        if (action.actionType === 'popUp') {
           elem.style.visibility = 'visible'
-        } else if (action.original.actionType === 'popUpDismiss') {
+        } else if (action.actionType === 'popUpDismiss') {
           elem.style.visibility = 'hidden'
         }
         // Some popup components render values using the dataKey. There is a bug
@@ -622,7 +659,7 @@ const createActions = function ({
           if (isNOODLBoolean(action.original.wait)) {
             if (isBooleanTrue(action.original.wait)) {
               log.grey(
-                `Popup action for popUpView "${action.original.popUpView}" is ` +
+                `Popup action for popUpView "${popUpView}" is ` +
                   `waiting on a response. Aborting now...`,
                 { action, ...options },
               )
@@ -662,53 +699,58 @@ const createActions = function ({
               })
             }
           }
-        } else {
-          log.func('popUp')
-          log.red(
-            `Tried to render a ${action.original.actionType} element but the element was null or undefined`,
-            { action, ...options },
-          )
         }
+      } else {
+        let msg = 'Tried to '
+
+        if (action.actionType === 'popUp') msg += 'show'
+        else if (action.actionType === 'popUpDismiss') msg += 'hide'
+
+        log.func(action.actionType)
+        log.red(
+          `${msg} a ${action.actionType} element but the element ` +
+            `was null or undefined`,
+          { action, popUpView, ...options },
+        )
       }
     },
   })
 
   noodluidom.register({
     actionType: 'popUpDismiss',
-    fn: async (
+    fn: async function onPopUpDismiss(
       action: Action<PopupDismissActionObject>,
       options: ActionConsumerCallbackOptions,
       actionsContext,
-    ) => {
-      log.func('popUpDismiss')
-      log.grey('', { action, ...options })
+    ) {
       await Promise.all(
         noodluidom.actions.popUp.map((obj) =>
           obj.fn(action, options, actionsContext),
         ),
       )
-      return
     },
   })
 
   noodluidom.register({
     actionType: 'refresh',
-    fn: (
+    fn: function onRefresh(
       action: Action<RefreshActionObject>,
       options: ActionConsumerCallbackOptions,
-    ) => {
+    ) {
       log.func('refresh')
-      log.grey(action.original.actionType, { action, ...options })
+      log.grey(action.actionType, { action, ...options })
       window.location.reload()
     },
   })
 
   noodluidom.register({
     actionType: 'saveObject',
-    fn: async (
+    fn: async function onSaveObject(
       action: Action<SaveActionObject>,
       options: ActionConsumerCallbackOptions,
-    ) => {
+    ) {
+      log.func('saveObject')
+      log.grey('', { action, ...options })
       const { default: noodl } = await import('../app/noodl')
       const { abort, getRoot, getPageObject, page } = options
 
@@ -716,11 +758,12 @@ const createActions = function ({
         const { object } = action.original
         if (typeof object === 'function') {
           log.func('saveObject')
-          log.grey(`Directly invoking the object function with no parameters`, {
+          log.grey(
+            `Directly invoking the object function with no parameters`,
             action,
-            ...options,
-          })
+          )
           await object()
+          log.grey(`Invoked`, action)
         } else if (Array.isArray(object)) {
           const numObjects = object.length
           for (let index = 0; index < numObjects; index++) {
@@ -739,14 +782,18 @@ const createActions = function ({
                   let nameField
 
                   if (isReference(nameFieldPath)) {
+                    stable &&
+                      log.cyan(`Found reference: ${nameFieldPath}`, action)
                     nameField = parseReference(nameFieldPath, {
                       page: noodlui.page,
                       root: getRoot(),
                     })
+                    stable && log.cyan(`Parsed reference: ${nameField}`, action)
                   } else {
                     nameField =
                       get(noodl?.root, nameFieldPath, null) ||
                       get(noodl?.root?.[noodlui?.page], nameFieldPath, {})
+                    stable && log.cyan(`Name field: ${nameField}`, action)
                   }
 
                   const params = { ...nameField }
@@ -757,7 +804,7 @@ const createActions = function ({
 
                   await save(params)
                   log.func('saveObject')
-                  log.green(`Invoked saveObject with these parameters`, params)
+                  log.grey(`Invoked saveObject with these parameters`, params)
                 }
               }
             }
@@ -780,10 +827,10 @@ const createActions = function ({
 
   noodluidom.register({
     actionType: 'toast',
-    fn: async (
+    fn: async function onToast(
       action: Action<ToastActionObject>,
       options: ActionConsumerCallbackOptions,
-    ) => {
+    ) {
       try {
         log.func('toast')
         log.gold('', { action, options })
@@ -796,13 +843,14 @@ const createActions = function ({
 
   noodluidom.register({
     actionType: 'updateObject',
-    fn: async (
+    fn: async function onUpdateObject(
       action: Action<UpdateActionObject>,
       options: ActionConsumerCallbackOptions,
       { noodl },
-    ) => {
+    ) {
       const { abort, component } = options
       log.func('updateObject')
+      log.grey('', { action, ...options })
 
       const callObjectOptions = { action, ...options } as any
 
@@ -810,15 +858,13 @@ const createActions = function ({
         if (action.original?.dataObject === 'BLOB') {
           const { files, status } = await onSelectFile()
           if (status === 'selected' && files?.[0]) {
-            log.green(`File selected`, files[0])
-            callObjectOptions['file'] = files[0]
+            log.grey(`File selected`, files[0])
+            callObjectOptions.file = files[0]
           } else if (status === 'canceled') {
             log.red('File was not selected and the operation was aborted')
             await abort?.('File input window was closed')
           }
         }
-
-        log.grey(`uploadObject callback options`, callObjectOptions)
 
         // This is the more older version of the updateObject action object where it used
         // the "object" property
@@ -828,11 +874,9 @@ const createActions = function ({
 
         // This is the more newer version that is more descriptive, utilizing the data key
         // action = { actionType: 'updateObject', dataKey, dataObject }
-        else {
-          if (action.original?.dataKey || action.original?.dataObject) {
-            const object = omit(action.original, 'actionType')
-            await callObject(object, callObjectOptions)
-          }
+        else if (action.original?.dataKey || action.original?.dataObject) {
+          const object = omit(action.original, 'actionType')
+          await callObject(object, callObjectOptions)
         }
 
         async function callObject(
@@ -843,7 +887,16 @@ const createActions = function ({
           },
         ) {
           if (typeof object === 'function') {
-            await object()
+            if (stable) {
+              log.func('callObject')
+              log.cyan(
+                `Calling the object func on an updateObject with no parameters`,
+                { object, ...opts },
+              )
+            }
+            const result = await object()
+            stable &&
+              log.cyan(`Called`, { object, resultIfAny: result, ...opts })
           } else if (typeof object === 'string') {
             log.red(
               `Received a string as an object property of updateObject. ` +
@@ -856,7 +909,9 @@ const createActions = function ({
               if (typeof obj === 'function') {
                 // Handle promises/functions separately because they need to be
                 // awaited in this line for control flow
+                stable && log.cyan(`Calling obj function`)
                 await obj()
+                stable && log.cyan(`obj function called`)
               } else {
                 await callObject(obj, opts)
               }
@@ -866,7 +921,10 @@ const createActions = function ({
             const iteratorVar = component.get('iteratorVar') || ''
 
             if (/(file|blob)/i.test(dataObject)) {
+              const name = dataObject
+              stable && log.cyan(`The data object is requesting a "${name}"`)
               dataObject = opts.file || dataObject
+              stable && log.cyan(`Attached the "${name}"`, dataObject)
             }
 
             // TODO - Replace this hardcoded "itemObject" string with iteratorVar
@@ -876,12 +934,19 @@ const createActions = function ({
             ) {
               dataObject = findListDataObject(component)
               if (!dataObject) dataObject = (options as any)?.file
+              else
+                stable &&
+                  log.cyan(
+                    `Found a dataObject for this list related component`,
+                    dataObject,
+                  )
             }
             if (dataObject) {
               const params = { dataKey, dataObject }
               log.func('updateObject')
-              log.green(`Parameters`, params)
-              await noodl.updateObject(params)
+              log.cyan(`Calling updateObject with params: `, params)
+              const result = await noodl.updateObject(params)
+              log.cyan(`Called updateObject: `, { params, resultIfAny: result })
             } else {
               log.red(`dataObject is null or undefined`, {
                 action,
@@ -897,6 +962,8 @@ const createActions = function ({
       }
     },
   })
+
+  stable && log.cyan(`Initiated action funcs`)
 }
 
 export default createActions

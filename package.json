@@ -159,11 +159,13 @@
     "rules": {
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-explicit-any": "off",
+      "consistent-return": "off",
       "no-param-reassign": "off",
       "eqeqeq": 0,
       "import/extensions": "off",
       "lines-between-class-members": "off",
       "no-bitwise": "off",
+      "no-inner-declarations": "off",
       "no-template-curly-in-string": "off",
       "no-unused-expressions": "off",
       "no-shadow": "off",

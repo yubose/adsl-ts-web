@@ -40,7 +40,7 @@ import {
   FirebaseApp,
   FirebaseMessaging,
 } from './app/types'
-import { isMobile } from './utils/common'
+import { isMobile, isStable } from './utils/common'
 import { forEachParticipant } from './utils/twilio'
 import createRegisters from './handlers/register'
 import createActions from './handlers/actions'
@@ -49,6 +49,7 @@ import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
 
 const log = Logger.create('App.ts')
+const stable = isStable()
 
 export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
@@ -90,6 +91,7 @@ class App {
 
     this.firebase = firebase
     this.messaging = this.firebase.messaging()
+    stable && log.cyan(`Initialized firebase messaging instance`)
     this.meeting = meeting
     this.noodl = noodl
     this.noodlui = noodlui
@@ -97,9 +99,11 @@ class App {
     this.streams = meeting.getStreams()
     this.#viewportUtils = createViewportHandler(new Viewport())
 
+    stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
     await noodl.init()
-
+    stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
     noodluidom.use(noodlui)
+    stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
     createActions({ noodlui, noodluidom })
     createBuiltIns({ noodl, noodlui, noodluidom })
@@ -112,21 +116,22 @@ class App {
     })
 
     const unsubscribe = this.messaging.onMessage(
-      function nextOrObserver(obs) {
+      (obs) => {
         log.func('onMessage')
         log.green('[nextOrObserver]: obs', obs)
       },
-      function onError(err) {
+      (err) => {
         log.func('onMessage')
         log.red(`[onError]: ${err.message}`, err)
       },
-      function onComplete() {
+      () => {
         log.func('[onComplete]')
         log.grey(`from onMessage`)
       },
     )
 
     let startPage = noodl?.cadlEndpoint?.startPage
+    stable && log.cyan(`Start page: ${startPage}`) 
 
     if (!this.authStatus) {
       // Initialize the user's state before proceeding to decide on how to direct them
@@ -149,6 +154,7 @@ class App {
 
     this.#preparePage = async (pageName: string): Promise<PageObject> => {
       try {
+        stable && log.cyan(`Running noodl.initPage on ${pageName}`) 
         await noodl.initPage(pageName, [], {
           ...noodluidom.page.getState().modifiers[pageName],
           builtIn: {
@@ -192,7 +198,9 @@ class App {
                 const token = await this.messaging.getToken(...args)
 
                 copyToClipboard(token)
+                stable && log.cyan(`Copied token to clipboard`) 
 
+                
                 noodlui.emit('register', {
                   key: 'globalRegister',
                   id: 'FCMOnTokenReceive',
@@ -222,7 +230,7 @@ class App {
           snapshot: noodluidom.page.snapshot(),
         })
         if (noodl.root?.Global?.globalRegister) {
-          const Global = noodl.root.Global
+          const { Global } = noodl.root
           if (Array.isArray(Global.globalRegister)) {
             if (Global.globalRegister.length) {
               log.grey(
@@ -264,8 +272,8 @@ class App {
       ---- LOCAL STORAGE
     -------------------------------------------------------- */
     // Override the start page if they were on a previous page
-    let cachedPages = this.getCachedPages()
-    let cachedPage = cachedPages[0]
+    const cachedPages = this.getCachedPages()
+    const cachedPage = cachedPages[0]
 
     if (cachedPages?.length) {
       if (cachedPage?.name && cachedPage.name !== startPage) {
@@ -283,11 +291,11 @@ class App {
     }
 
     if (noodluidom.page && location.href) {
-      let startPage = noodl.cadlEndpoint.startPage
-      let urlParts = location.href.split('/')
-      let pathname = urlParts[urlParts.length - 1]
-      let localConfig = JSON.parse(ls.getItem('config') || '') || {}
-      let tempConfigKey = ls.getItem('tempConfigKey')
+      let { startPage } = noodl.cadlEndpoint
+      const urlParts = location.href.split('/')
+      const pathname = urlParts[urlParts.length - 1]
+      const localConfig = JSON.parse(ls.getItem('config') || '') || {}
+      const tempConfigKey = ls.getItem('tempConfigKey')
 
       if (
         tempConfigKey &&
@@ -296,23 +304,21 @@ class App {
         ls.setItem('CACHED_PAGES', JSON.stringify([]))
         noodluidom.page.pageUrl = 'index.html?'
         await noodluidom.page.requestPageChange(startPage)
+      } else if (!pathname?.startsWith('index.html?')) {
+        noodluidom.page.pageUrl = 'index.html?'
+        await noodluidom.page.requestPageChange(startPage)
       } else {
-        if (!pathname?.startsWith('index.html?')) {
-          noodluidom.page.pageUrl = 'index.html?'
-          await noodluidom.page.requestPageChange(startPage)
+        const pageParts = pathname.split('-')
+        if (pageParts.length > 1) {
+          startPage = pageParts[pageParts.length - 1]
         } else {
-          let pageParts = pathname.split('-')
-          if (pageParts.length > 1) {
-            startPage = pageParts[pageParts.length - 1]
-          } else {
-            let baseArr = pageParts[0].split('?')
-            if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
-              startPage = baseArr[baseArr.length - 1]
-            }
+          const baseArr = pageParts[0].split('?')
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
+            startPage = baseArr[baseArr.length - 1]
           }
-          noodluidom.page.pageUrl = pathname
-          await noodluidom.page.requestPageChange(startPage)
         }
+        noodluidom.page.pageUrl = pathname
+        await noodluidom.page.requestPageChange(startPage)
       }
     }
 
@@ -449,7 +455,7 @@ class App {
           }
 
           let pageSnapshot = {} as { name: string; object: any } | 'old.request'
-          let pageModifiers = page.getState().modifiers[pageName]
+          const pageModifiers = page.getState().modifiers[pageName]
 
           if (pageName !== page.getState().current || pageModifiers?.force) {
             // Load the page in the SDK
@@ -558,10 +564,9 @@ class App {
               page.rootNode.id = pageName
             }
             return pageSnapshot
-          } else {
-            log.func('page [before-page-render]')
-            log.green('Avoided a duplicate navigate request')
           }
+          log.func('page [before-page-render]')
+          log.green('Avoided a duplicate navigate request')
 
           return pageSnapshot
         },
@@ -631,7 +636,7 @@ class App {
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
       // Local participant
-      const localParticipant = room.localParticipant
+      const { localParticipant } = room
       const selfStream = this.streams.getSelfStream()
       if (!selfStream.isSameParticipant(localParticipant)) {
         selfStream.setParticipant(localParticipant)
@@ -733,8 +738,8 @@ class App {
       resolve(node: HTMLDivElement, component) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
-          node['style'].width = component.getStyle('width') as string
-          node['style'].height = component.getStyle('height') as string
+          node.style.width = component.getStyle('width') as string
+          node.style.height = component.getStyle('height') as string
           const myChart = echarts.init(node)
           const option = dataValue
           option && myChart.setOption(option)
@@ -799,9 +804,9 @@ class App {
                 }) => {
                   this.noodl.editDraft(
                     (draft: WritableDraft<{ [key: string]: any }>) => {
-                      let seconds = get(draft, dataKey, 0)
+                      const seconds = get(draft, dataKey, 0)
                       set(draft, dataKey, seconds + 1)
-                      let updatedSecs = get(draft, dataKey)
+                      const updatedSecs = get(draft, dataKey)
                       if (
                         updatedSecs !== null &&
                         typeof updatedSecs === 'number'
@@ -881,7 +886,7 @@ class App {
               resolver: this.noodlui.resolveComponents.bind(this.noodlui),
             })
             log.func('onCreateNode')
-            log.green('Created subStreams container', subStreams)
+            log.green('Initiated subStreams container', subStreams)
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup

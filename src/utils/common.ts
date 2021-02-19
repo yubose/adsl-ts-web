@@ -87,6 +87,14 @@ export function isMobile() {
     : false
 }
 
+export function isStable() {
+  return process.env.ECOS_ENV === 'stable'
+}
+
+export function isTest() {
+  return process.env.ECOS_ENV === 'test'
+}
+
 /**
  * Parses a NOODL destination, commonly received from goto
  * or pageJump actions as a string. The return value (for now) is
