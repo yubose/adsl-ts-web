@@ -151,19 +151,20 @@
       "import/resolver": {
         "node": {
           "moduleDirectory": [
-            "node_modules",
-            "src"
+            "node_modules"
           ]
         }
       }
     },
     "rules": {
+      "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-extra-semi": "off",
       "@typescript-eslint/no-empty-function": "off",
       "@typescript-eslint/no-unused-vars": "off",
       "consistent-return": "off",
+      "dot-notation": "off",
       "no-param-reassign": "off",
       "class-methods-use-this": "off",
       "eqeqeq": 0,
@@ -183,8 +184,10 @@
       "no-return-assign": "off",
       "no-shadow": "off",
       "no-underscore-dangle": "off",
+      "no-useless-catch": "off",
       "prefer-arrow-callback": "off",
       "prefer-const": "off",
+      "prefer-destructuring": "off",
       "prefer-template": "off"
     }
   },

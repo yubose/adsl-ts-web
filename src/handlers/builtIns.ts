@@ -121,7 +121,7 @@ const createBuiltInActions = function createBuiltInActions({
       funcName: 'hide',
       async fn(action, options, { findAllByViewTag }) {
         const viewTag = action.original?.viewTag || ''
-        const nodes = findAllByViewTag(viewTag) as NodeListOf<HTMLElement>
+        const nodes = findAllByViewTag(viewTag)
 
         log.func('hide')
 
@@ -146,7 +146,7 @@ const createBuiltInActions = function createBuiltInActions({
       funcName: 'show',
       async fn(action, options, { findAllByViewTag }) {
         const viewTag = action.original?.viewTag || ''
-        const nodes = findAllByViewTag(viewTag) as NodeListOf<HTMLElement>
+        const nodes = findAllByViewTag(viewTag)
 
         log.func('show')
 

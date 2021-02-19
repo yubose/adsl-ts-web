@@ -68,10 +68,15 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
    * @param { NOODLComponent | NOODLComponent[] } components
    */
   render(rawComponents: NOODLComponent | NOODLComponent[]) {
-    // if (!this.#R.get('noodlui'))
-    // throw new Error(
-    //   'Cannot render without a noodlui or page component',
-    // )
+    const currentPage = this.page.getState().current
+    if (this.page.rootNode && this.page.rootNode.id === currentPage) {
+      return console.log(
+        `%cSkipped rendering the DOM for page "${currentPage}" because the DOM ` +
+          `nodes are already rendered`,
+        `color:#ec0000;font-weight:bold;`,
+        this.page.snapshot(),
+      )
+    }
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     this.page.setStatus(eventId.page.status.RESOLVING_COMPONENTS)

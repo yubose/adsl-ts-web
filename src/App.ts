@@ -41,14 +41,13 @@ import {
   FirebaseApp,
   FirebaseMessaging,
 } from './app/types'
-import { isMobile, isStable } from './utils/common'
-import { forEachParticipant } from './utils/twilio'
+import { isStable } from './utils/common'
 import createRegisters from './handlers/register'
 import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
+import createMeetingHandlers from './handlers/meeting'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
-import Stream from './meeting/Stream'
 
 const log = Logger.create('App.ts')
 const stable = isStable()
@@ -110,6 +109,7 @@ class App {
     createActions({ noodlui, noodluidom })
     createBuiltIns({ noodl, noodlui, noodluidom })
     createRegisters({ noodl, noodlui, noodluidom, Meeting })
+    createMeetingHandlers({ noodl, noodlui, noodluidom, Meeting })
 
     meeting.initialize({
       noodluidom,
@@ -133,7 +133,7 @@ class App {
     )
 
     let startPage = noodl?.cadlEndpoint?.startPage
-    stable && log.cyan(`Start page: ${startPage}`) 
+    stable && log.cyan(`Start page: ${startPage}`)
 
     if (!this.authStatus) {
       // Initialize the user's state before proceeding to decide on how to direct them
@@ -159,7 +159,7 @@ class App {
       pageName: string,
     ): Promise<PageObject> {
       try {
-        stable && log.cyan(`Running noodl.initPage on ${pageName}`) 
+        stable && log.cyan(`Running noodl.initPage on ${pageName}`)
         await noodl.initPage(pageName, [], {
           ...noodluidom.page.getState().modifiers[pageName],
           builtIn: {
@@ -203,9 +203,8 @@ class App {
                 const token = await this.messaging.getToken(...args)
 
                 copyToClipboard(token)
-                stable && log.cyan(`Copied token to clipboard`) 
+                stable && log.cyan(`Copied token to clipboard`)
 
-                
                 noodlui.emit('register', {
                   key: 'globalRegister',
                   id: 'FCMOnTokenReceive',
@@ -507,7 +506,7 @@ class App {
             // Initialize the noodl-ui client (parses components) if it
             // isn't already initialized
             if (!this.initialized) {
-              log.func('page [before-page-render]')
+              log.func('before-page-render')
               log.grey('Initializing noodl-ui client', {
                 noodl: this.noodl,
                 pageSnapshot,
@@ -569,7 +568,7 @@ class App {
                   this.noodlui.use({ name, resolver: r })
                 },
               )
-              log.func('page [before-page-render]')
+              log.func('before-page-render')
               log.grey('Initialized noodl-ui client', this.noodlui)
             }
             // Refresh the root
@@ -581,7 +580,7 @@ class App {
             }
             return pageSnapshot
           }
-          log.func('page [before-page-render]')
+          log.func('before-page-render')
           log.green('Avoided a duplicate navigate request')
 
           return pageSnapshot
@@ -593,7 +592,7 @@ class App {
           this: App,
           { requesting: pageName, components },
         ) {
-          log.func('page [rendered]')
+          log.func('onComponentsRendered')
           log.grey(`Done rendering DOM nodes for ${pageName}`)
           window.pcomponents = components
           // Cache to rehydrate if they disconnect
@@ -621,145 +620,6 @@ class App {
    * @param { Room } room - Room instance
    */
   observeMeetings(meeting: IMeeting) {
-    meeting.onConnected = (room) => {
-      /* -------------------------------------------------------
-      ---- LISTEN FOR INCOMING MEDIA PUBLISH/SUBSCRIBE EVENTS
-    -------------------------------------------------------- */
-      // Disconnect using the room instance
-      function disconnect() {
-        room.disconnect?.()
-      }
-      // Callback runs when the LocalParticipant disconnects
-      const disconnected = async () => {
-        const unpublishTracks = (
-          trackPublication:
-            | LocalVideoTrackPublication
-            | LocalAudioTrackPublication,
-        ) => {
-          trackPublication?.track?.stop?.()
-          trackPublication?.unpublish?.()
-        }
-        // Unpublish local tracks
-        room.localParticipant.videoTracks.forEach(unpublishTracks)
-        room.localParticipant.audioTracks.forEach(unpublishTracks)
-        // Clean up listeners
-        removeEventListener('beforeunload', disconnect)
-        if (isMobile()) removeEventListener('pagehide', disconnect)
-      }
-
-      room.on('participantConnected', this.meeting.addRemoteParticipant)
-      room.on('participantDisconnected', this.meeting.removeRemoteParticipant)
-      room.once('disconnected', disconnected)
-
-      addEventListener('beforeunload', disconnect)
-      if (isMobile()) addEventListener('pagehide', disconnect)
-
-      /* -------------------------------------------------------
-      ---- INITIATING MEDIA TRACKS / STREAMS 
-    -------------------------------------------------------- */
-      // Local participant
-      const { localParticipant } = room
-      const selfStream = this.streams.getSelfStream()
-      if (!selfStream.isSameParticipant(localParticipant)) {
-        selfStream.setParticipant(localParticipant)
-        if (selfStream.isSameParticipant(localParticipant)) {
-          log.func('Meeting.onConnected')
-          log.green(`Bound local participant to selfStream`, selfStream)
-        }
-      }
-      // Remote participants
-      forEachParticipant(room.participants, this.meeting.addRemoteParticipant)
-    }
-
-    /**
-     * Callback invoked when a new participant was added either as a mainStream
-     * or into the subStreams collection
-     * @param { RemoteParticipant } participant
-     * @param { Stream } stream - mainStream or a subStream
-     */
-    meeting.onAddRemoteParticipant = function onAddRemoteParticipant(
-      this: App,
-      participant: RemoteParticipant,
-      stream: Stream,
-    ) {
-      log.func('Meeting.onAddRemoteParticipant')
-      log.green(`Bound remote participant to ${stream.type}`, {
-        participant,
-        stream,
-      })
-      const isInSdk = some(
-        this.noodl.root?.VideoChat?.listData?.participants || [],
-        (p) => p.sid === participant.sid,
-      )
-      if (!isInSdk) {
-        /**
-         * Updates the participants list in the sdk. This will also force the value
-         * to be an array if it's not already an array
-         * @param { RemoteParticipant } participant
-         */
-        this.noodl.editDraft(
-          function editDraft(this: App, draft: any) {
-            const participants = this.meeting
-              .removeFalseyParticipants(
-                draft?.VideoChat?.listData?.participants || [],
-              )
-              .concat(participant)
-            set(draft, 'VideoChat.listData.participants', participants)
-          }.bind(this),
-        )
-
-        log.func('Meeting.onAddRemoteParticipant')
-        log.green('Updated SDK with new participant', {
-          addedParticipant: participant,
-          newParticipantsList: this.noodl.root?.VideoChat?.listData
-            ?.participants,
-        })
-      }
-      if (this.meeting.getWaitingMessageElement()) {
-        this.meeting.getWaitingMessageElement().style.visibility = 'hidden'
-      }
-      this.noodlui.emit('register', {
-        id: 'twilioOnPeopleJoin',
-        key: 'twilioOnPeopleJoin',
-        prop: 'onEvent',
-        participant,
-        stream,
-      })
-    }.bind(this)
-
-    meeting.onRemoveRemoteParticipant = function onRemoveRemoteParticipant(
-      this: App,
-      participant: RemoteParticipant,
-      stream: Stream,
-    ) {
-      /**
-       * Updates the participants list in the sdk. This will also force the value
-       * to be an array if it's not already an array
-       * @param { RemoteParticipant } participant
-       */
-      this.noodl.editDraft(function editDraft(this: App, draft: any) {
-        set(
-          draft.VideoChat.listData,
-          'participants',
-          this.meeting.removeFalseyParticipants(
-            draft?.VideoChat?.listData?.participants ||
-              [].filter((p) => p !== participant),
-          ),
-        )
-      })
-      if (!this.meeting.room.participants.size) {
-        if (this.meeting.getWaitingMessageElement()) {
-          this.meeting.getWaitingMessageElement().style.visibility = 'visible'
-        }
-        this.noodlui.emit('register', {
-          id: 'twilioOnNoParticipant',
-          key: 'twilioOnNoParticipant',
-          prop: 'onEvent',
-          data: { room: Meeting.room },
-        })
-      }
-    }.bind(this)
-
     /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */

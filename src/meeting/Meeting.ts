@@ -33,7 +33,7 @@ export type IMeeting = typeof Meeting
 // import makePublications from './makePublications'
 // import makeTrack from './makeTrack'
 
-const Meeting = (function () {
+const Meeting = (function _Meeting() {
   const _internal: Internal = {
     _page: undefined,
     _viewport: undefined,
@@ -74,7 +74,9 @@ const Meeting = (function () {
             },
           },
         })
+
         _internal['_room'] = room
+
         // TEMPORARY
         setTimeout(() => {
           Meeting.onConnected?.(room)

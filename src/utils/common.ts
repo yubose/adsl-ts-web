@@ -1,6 +1,9 @@
 import spread from 'lodash/spread'
 import isPlainObject from 'lodash/isPlainObject'
 
+export const callAll = (...fns: ((...args: any[]) => any)[]) => (arg: any) =>
+  fns.forEach((fn) => fn?.(arg))
+
 export function createEmptyObjectWithKeys<K extends string = any, I = any>(
   keys: K[],
   initiatingValue?: I,
