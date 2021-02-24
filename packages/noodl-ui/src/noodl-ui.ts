@@ -721,7 +721,14 @@ class NOODLUI {
             }
             // The result can be passed as args to the action chain if this component
             // has an action chain waiting to be called
-            const result = fn(params)
+            const result = fn(params.data)
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
             stable &&
               log.cyan(`Ran the "func" on the register component`, {
                 result,
