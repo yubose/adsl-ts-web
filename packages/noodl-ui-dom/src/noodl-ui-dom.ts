@@ -109,7 +109,14 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         // Don't create a node. Except just emit the events accordingly
         // This is to allow the caller to determine whether they want to create
         // a separate DOM node or not
-        if (component.noodlType === 'plugin') {
+        const path = component.get('path') || ''
+        const isDirectLink = typeof path === 'string' // To filter out emit/if paths
+        if (
+          component.noodlType === 'plugin' &&
+          isDirectLink &&
+          !path.endsWith('.html')
+        ) {
+          // These types of plugin components are most likely going to be run by eval()
           this.#R.run(node, component)
           return node
         } else {

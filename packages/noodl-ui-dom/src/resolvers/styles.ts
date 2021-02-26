@@ -6,7 +6,7 @@ export default {
     !!(node && component && node?.tagName !== 'SCRIPT'),
   resolve: (node: NOODLDOMElement, component) => {
     const { style } = component
-    if (style != null && typeof style === 'object') {
+    if (style != null && typeof style === 'object' && node.style) {
       Object.entries(style).forEach(([k, v]) => (node.style[k] = v))
     }
   },

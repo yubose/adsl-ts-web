@@ -68,6 +68,6 @@ export async function getToken(messaging: any) {
   }
 }
 
-const app = firebase.initializeApp(firebaseConfig)
+const app = firebase.initializeApp(aitMessage.config)
 
 export default app
