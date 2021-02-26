@@ -870,6 +870,20 @@ class App {
           } catch (error) {
             console.error(`[${error.name}]: ${error.message}`)
           }
+        } else if (path.endsWith('.css')) {
+          const styleElem = (node = document.createElement('style'))
+
+          component.on('plugin:content', (content) => {
+            styleElem.innerHTML += String(content)
+          })
+
+          if (typeof getNode === 'function') getNode(styleElem)
+
+          try {
+            document.body.appendChild(styleElem)
+          } catch (error) {
+            console.error(`[${error.name}]: ${error.message}`)
+          }
         }
       },
     })

@@ -2,7 +2,7 @@ import { isPluginComponent } from 'noodl-utils'
 import { RegisterOptions } from '../../types'
 
 export default {
-  name: 'plugin/pluginHead/pluginBodyTop/pluginBodyTail',
+  name: 'pluginHead/pluginBodyTop/pluginBodyTail',
   cond: (node, component) =>
     // The "plugin" component is handled in the main client and/or the consumer handler
     isPluginComponent(component) && component.noodlType !== 'plugin',
@@ -10,6 +10,7 @@ export default {
   // This is specific for these plugin components but may be extended to be used more later
   resolve(getNode, component) {
     const plugin = component.get('plugin')
+    const isOutsideDomain = component.get('contentType') === 'library'
     let node: HTMLScriptElement | undefined
     let src = component.get('src') || ''
     let mimeType = ''
@@ -40,7 +41,7 @@ export default {
         }
 
         component.on('path', (newSrc: string) => {
-          src = newSrc
+          src = isOutsideDomain ? component.get('path') : newSrc
           node && (node.src = src)
         })
 

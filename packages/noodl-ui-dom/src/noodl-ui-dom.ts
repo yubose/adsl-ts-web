@@ -111,10 +111,12 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         // a separate DOM node or not
         const path = component.get('path') || ''
         const isDirectLink = typeof path === 'string' // To filter out emit/if paths
+        const isOutsideDomain = component.get('contentType') === 'library'
         if (
           component.noodlType === 'plugin' &&
           isDirectLink &&
-          !path.endsWith('.html')
+          !path.endsWith('.html') &&
+          !path.endsWith('.css')
         ) {
           // These types of plugin components are most likely going to be run by eval()
           this.#R.run(node, component)
