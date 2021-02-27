@@ -43,11 +43,11 @@ const getPlugins = (function (): ResolverFn {
         fetch = window.fetch
       }
 
-      let src: string
-
       if (pluginExists(path as string, plugins)) return
 
-      getPluginUrl(component.get('path') as string, getAssetsUrl(), createSrc)
+      let src: string
+
+      getPluginUrl(path, getAssetsUrl(), createSrc)
         .then((result) => {
           src = result
           component.set('src', src).emit('path', src)

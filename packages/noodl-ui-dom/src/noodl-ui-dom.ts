@@ -106,52 +106,37 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
     if (component) {
       if (isPluginComponent(component)) {
-        // Don't create a node. Except just emit the events accordingly
-        // This is to allow the caller to determine whether they want to create
-        // a separate DOM node or not
-        const path = component.get('path') || ''
-        const isDirectLink = typeof path === 'string' // To filter out emit/if paths
-        const isOutsideDomain = component.get('contentType') === 'library'
-        if (
-          component.noodlType === 'plugin' &&
-          isDirectLink &&
-          !path.endsWith('.html') &&
-          !path.endsWith('.css')
-        ) {
-          // These types of plugin components are most likely going to be run by eval()
-          this.#R.run(node, component)
-          return node
-        } else {
-          // We will delegate the role of the node creation to the consumer
-          this.#R.run((result: T.NOODLDOMElement) => (node = result), component)
-        }
-      } else {
-        if (component.noodlType === 'image') {
-          node = isEmitObj((component as any).get('path'))
-            ? createAsyncImageElement(
-                (container || document.body) as HTMLElement,
-                {},
-              )
-            : document.createElement('img')
-        } else {
-          node = document.createElement(
-            getTagName(component as ComponentInstance),
-          )
-        }
+        // We will delegate the role of the node creation to the consumer
+        const getNode = (elem: HTMLElement) => (node = elem)
+        this.#R.run(getNode, component)
+        return node
+      } else if (component.noodlType === 'image') {
+        node = isEmitObj((component as any).get('path'))
+          ? createAsyncImageElement(
+              (container || document.body) as HTMLElement,
+              {},
+            )
+          : document.createElement('img')
         this.#R.run(node, component)
-        if (node) {
-          const parent = container || document.body
-          if (!parent.contains(node)) parent.appendChild(node)
-          if (component.length) {
-            component.children().forEach((child: ComponentInstance) => {
-              const childNode = this.draw(child, node) as T.NOODLDOMElement
-              node?.appendChild(childNode)
-            })
-          }
+      } else {
+        node = document.createElement(
+          getTagName(component as ComponentInstance),
+        )
+        this.#R.run(node, component)
+      }
+      if (node) {
+        let parent = container || document.body
+
+        parent.appendChild(node)
+
+        if (component.length) {
+          component.children().forEach((child: ComponentInstance) => {
+            const childNode = this.draw(child, parent) as T.NOODLDOMElement
+            node?.appendChild(childNode)
+          })
         }
       }
     }
-
     return node || null
   }
 

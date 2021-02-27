@@ -839,54 +839,6 @@ class App {
         }
       }.bind(this),
     })
-
-    this.noodluidom.register({
-      name: 'plugin',
-      cond: 'plugin',
-      resolve(getNode, component) {
-        log.func('plugin')
-        log.grey(`Rendering a DOM node for a plugin inside App`, {
-          // node: node || (node = document.createElement('div')),
-          component,
-        })
-        let node: HTMLDivElement | undefined
-        // Emit/if objects were filtered away by noodl-ui-dom
-        const path = component.get('path') as string
-
-        // noodl-ui-dom sends us a getNode function to delegate the responsibility
-        // of creating the node ourselves. They expect a node as an argument in return
-
-        if (path.endsWith('.html')) {
-          node = document.createElement('div')
-
-          component.on('plugin:content', (content) => {
-            node && (node.innerHTML += String(content))
-          })
-
-          if (typeof getNode === 'function') getNode(node)
-
-          try {
-            document.body.appendChild(node)
-          } catch (error) {
-            console.error(`[${error.name}]: ${error.message}`)
-          }
-        } else if (path.endsWith('.css')) {
-          const styleElem = (node = document.createElement('style'))
-
-          component.on('plugin:content', (content) => {
-            styleElem.innerHTML += String(content)
-          })
-
-          if (typeof getNode === 'function') getNode(styleElem)
-
-          try {
-            document.body.appendChild(styleElem)
-          } catch (error) {
-            console.error(`[${error.name}]: ${error.message}`)
-          }
-        }
-      },
-    })
   }
 
   /* -------------------------------------------------------

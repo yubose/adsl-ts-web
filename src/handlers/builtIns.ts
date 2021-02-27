@@ -736,35 +736,6 @@ const createBuiltInActions = function createBuiltInActions({
       },
     })
     .register({
-      name: 'plugin',
-      cond: 'plugin',
-      async resolve(node, component: any) {
-        const src = component?.get?.('src')
-        if (typeof src === 'string') {
-          if (src.startsWith('http')) {
-            if (src.endsWith('.js')) {
-              const { default: axios } = await import('axios')
-              const { data } = await axios.get(src)
-              /**
-               * TODO - Check the ext of the filename
-               * TODO - If its js, run eval on it
-               */
-              try {
-                eval(data)
-              } catch (error) {
-                console.error(error)
-              }
-            }
-          } else {
-            console.error(
-              `Received a src from a "plugin" component that did not start with an http(s) protocol`,
-              { component: component.toJS(), src },
-            )
-          }
-        }
-      },
-    })
-    .register({
       name: 'textField (password + non password)',
       cond: 'textField',
       resolve(node: any, component: any) {
