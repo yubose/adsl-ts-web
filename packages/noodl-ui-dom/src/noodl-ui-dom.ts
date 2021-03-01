@@ -131,7 +131,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
         if (component.length) {
           component.children().forEach((child: ComponentInstance) => {
-            const childNode = this.draw(child, parent) as T.NOODLDOMElement
+            const childNode = this.draw(child, node) as T.NOODLDOMElement
             node?.appendChild(childNode)
           })
         }
