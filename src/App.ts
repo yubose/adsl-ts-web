@@ -55,6 +55,9 @@ const stable = isStable()
 export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
 class App {
+  #enabled = {
+    firebase: true,
+  }
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
   #preparePage = {} as (pageName: string) => Promise<PageObject>
   #viewportUtils = {} as ViewportUtils
@@ -69,7 +72,7 @@ class App {
   authStatus: AuthStatus | '' = ''
   firebase = {} as FirebaseApp
   initialized = false
-  messaging = {} as FirebaseMessaging
+  messaging = null as FirebaseMessaging | null
   meeting: IMeeting = {} as IMeeting
   noodl = {} as CADL
   noodlui = {} as NOODLUI
@@ -89,9 +92,12 @@ class App {
   }) {
     const { Account } = await import('@aitmed/cadl')
     const noodl = (await import('app/noodl')).default
+    const { isSupported: firebaseSupported } = await import('app/firebase')
+
+    !firebaseSupported() && (this.#enabled.firebase = false)
 
     this.firebase = firebase
-    this.messaging = this.firebase.messaging()
+    this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
     stable && log.cyan(`Initialized firebase messaging instance`)
     this.meeting = meeting
     this.noodl = noodl
@@ -117,20 +123,22 @@ class App {
       viewport: this.#viewportUtils.viewport,
     })
 
-    const unsubscribe = this.messaging.onMessage(
-      (obs) => {
-        log.func('onMessage')
-        log.green('[nextOrObserver]: obs', obs)
-      },
-      (err) => {
-        log.func('onMessage')
-        log.red(`[onError]: ${err.message}`, err)
-      },
-      () => {
-        log.func('[onComplete]')
-        log.grey(`from onMessage`)
-      },
-    )
+    if (this.#enabled.firebase) {
+      this.messaging?.onMessage(
+        (obs) => {
+          log.func('onMessage')
+          log.green('[nextOrObserver]: obs', obs)
+        },
+        (err) => {
+          log.func('onMessage')
+          log.red(`[onError]: ${err.message}`, err)
+        },
+        () => {
+          log.func('[onComplete]')
+          log.grey(`from onMessage`)
+        },
+      )
+    }
 
     let startPage = noodl?.cadlEndpoint?.startPage
     stable && log.cyan(`Start page: ${startPage}`)
@@ -173,7 +181,7 @@ class App {
                 log.red('Unable to get permission to notify.', err)
               }
               try {
-                if ('navigator' in window) {
+                if (this.#enabled.firebase) {
                   this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
                     'firebase-messaging-sw.js',
                   )
@@ -187,30 +195,40 @@ class App {
                     'Initialized service worker',
                     this._store.messaging.serviceRegistration,
                   )
+
+                  this.messaging?.onMessage((...args) => {
+                    log.func('messaging.onMessage')
+                    log.green(`Received a message`, args)
+                  })
                 } else {
                   log.red(
-                    `Could not initiate the firebase service worker because navigator is not found`,
+                    `Could not initiate the firebase service worker because this browser ` +
+                      `does not support it`,
+                    this,
                   )
                 }
 
-                this.messaging.onMessage((...args) => {
-                  log.func('messaging.onMessage')
-                  log.green(`Received a message`, args)
-                })
-
-                log.grey(`Running getToken with args: `, args)
-
-                const token = await this.messaging.getToken(...args)
+                const token = this.#enabled.firebase
+                  ? (await this.messaging?.getToken(...args)) || ''
+                  : ''
 
                 copyToClipboard(token)
-                stable && log.cyan(`Copied token to clipboard`)
 
-                noodlui.emit('register', {
-                  key: 'globalRegister',
-                  id: 'FCMOnTokenReceive',
-                  prop: 'onEvent',
-                  data: token,
-                })
+                if (this.#enabled.firebase) {
+                  noodlui.emit('register', {
+                    key: 'globalRegister',
+                    id: 'FCMOnTokenReceive',
+                    prop: 'onEvent',
+                    data: token,
+                  })
+                } else {
+                  log.func('FCMOnTokenReceive')
+                  log.red(
+                    `Could not emit the "FCMOnTokenReceive" event because firebase ` +
+                      `messaging is disabled. Is it supported by this browser?`,
+                    this,
+                  )
+                }
 
                 return token
               } catch (error) {
@@ -218,9 +236,9 @@ class App {
                 return error
               }
             },
-            FCMOnTokenRefresh: this.messaging.onTokenRefresh.bind(
-              this.messaging,
-            ),
+            FCMOnTokenRefresh: this.#enabled.firebase
+              ? this.messaging?.onTokenRefresh.bind(this.messaging)
+              : undefined,
             checkField: noodluidom.builtIns.checkField?.find(Boolean)?.fn,
             goto: noodluidom.builtIns.goto?.find(Boolean)?.fn,
             videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),

@@ -9,9 +9,9 @@ import './styles.css'
 const log = Logger.create('App.ts')
 const stable = isStable()
 
-window.addEventListener('load', async () => {
+window.addEventListener('load', async (e) => {
   const { Account } = await import('@aitmed/cadl')
-  const { default: firebase, vapidKey } = await import('./app/firebase')
+  const { default: firebase, aitMessage } = await import('./app/firebase')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui, getWindowHelpers } = await import('app/noodl-ui')
   const { default: noodluidom } = await import('app/noodl-ui-dom')
@@ -44,7 +44,7 @@ window.addEventListener('load', async () => {
   window.noodluidom = noodluidom
   window.FCMOnTokenReceive = (args: any) => {
     noodl.root.builtIn
-      .FCMOnTokenReceive({ vapidKey, ...args })
+      .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
       .then(console.log)
       .catch(console.error)
   }
@@ -54,7 +54,7 @@ window.addEventListener('load', async () => {
   try {
     stable && log.cyan('Initializing [App] instance')
     await app.initialize({
-      firebase: { client: firebase, vapidKey },
+      firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
       meeting: Meeting,
       noodlui,
       noodluidom,

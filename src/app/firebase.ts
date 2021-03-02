@@ -68,6 +68,10 @@ export async function getToken(messaging: any) {
   }
 }
 
+export function isSupported() {
+  return firebase.messaging.isSupported()
+}
+
 const app = firebase.initializeApp(aitMessage.config)
 
 export default app
