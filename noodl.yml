@@ -5,7 +5,7 @@ server:
   host: ''
   port: 3001
   protocol: ''
-  config: 'meet2p'
+  config: 'testpage'
   # config: 'pcr644'
 objects:
   json:

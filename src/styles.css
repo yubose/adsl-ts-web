@@ -3,7 +3,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -39,4 +39,19 @@ div.pluginBodyTop,
 div.pluginBodyTail {
   position: absolute;
   visibility: hidden;
+}
+
+/*
+  NOODL COMPONENTS (Currently experimenting as of 03/04/21)
+*/
+
+.scroll-view {
+  overflow-y: auto;
+}
+
+.scroll-view > * {
+  position: relative;
+}
+
+.text-board {
 }

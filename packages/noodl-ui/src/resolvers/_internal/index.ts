@@ -44,6 +44,13 @@ _internalResolver.setResolver((component, options, ref) => {
       if (c.noodlType === 'register') {
         return handleRegister(c as any, options)
       }
+      if (c.noodlType === 'scrollView') {
+        _resolveChildren(component, {
+          onResolve: (c: any) => c?.assignStyles({ position: 'relative' }),
+          resolveComponent: options.resolveComponentDeep,
+        })
+        return
+      }
       // @ts-expect-error
       if (c.get('textBoard')) {
         return handleTextboard(c as any, options, _internalResolver)
