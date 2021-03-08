@@ -49,9 +49,12 @@ div.pluginBodyTail {
   overflow-y: auto;
 }
 
-.scroll-view > * {
-  position: relative;
+.scroll-view div {
+  height: 100% !important;
+  overflow-y: hidden;
 }
 
 .text-board {
+  height: 100% !important;
+  overflow-y: auto;
 }

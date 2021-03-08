@@ -44,13 +44,6 @@ _internalResolver.setResolver((component, options, ref) => {
       if (c.noodlType === 'register') {
         return handleRegister(c as any, options)
       }
-      if (c.noodlType === 'scrollView') {
-        _resolveChildren(component, {
-          onResolve: (c: any) => c?.assignStyles({ position: 'relative' }),
-          resolveComponent: options.resolveComponentDeep,
-        })
-        return
-      }
       // @ts-expect-error
       if (c.get('textBoard')) {
         return handleTextboard(c as any, options, _internalResolver)
@@ -58,11 +51,19 @@ _internalResolver.setResolver((component, options, ref) => {
       if (c.contentType === 'timer') {
         return handleTimer(c, options)
       }
+
       // Deeply parses every child node in the tree
       _resolveChildren(c, {
-        onResolve: (o) => run(o),
-        resolveComponent: (...args) => resolveComponents?.(...args),
+        onResolve: run,
+        resolveComponent: resolveComponents?.bind(ref),
       })
+
+      if (c.noodlType === 'scrollView') {
+        // Set immediate children to relative so they can stack on eachother
+        c.children().forEach((child: ComponentInstance) => {
+          child?.setStyle?.('position', 'relative')
+        })
+      }
     }
   }
 
