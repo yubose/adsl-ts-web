@@ -47,14 +47,26 @@ div.pluginBodyTail {
 
 .scroll-view {
   overflow-y: auto;
+  /* position: absolute !important; */
+}
+
+.scroll-view > * {
+  position: relative !important;
+}
+
+.scroll-view > :not('div') {
+  /* height: 100% !important; */
+  /* overflow-y: hidden; */
+  /* position: relative; */
 }
 
 .scroll-view div {
-  height: 100% !important;
-  overflow-y: hidden;
+}
+
+.scroll-view button {
+  /* position: relative !important; */
 }
 
 .text-board {
   height: 100% !important;
-  overflow-y: auto;
 }

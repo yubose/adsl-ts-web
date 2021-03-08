@@ -32,6 +32,7 @@ export function getTagName(component: ComponentInstance): string {
     case 'image':
       return 'img'
     case 'label':
+      if (component.get('textBoard')) return 'div'
       return 'label'
     case 'list':
       return 'ul'

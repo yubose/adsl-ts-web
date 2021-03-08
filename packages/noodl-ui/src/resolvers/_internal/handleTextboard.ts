@@ -47,7 +47,7 @@ const handleTextboardInternalResolver = (
          * to get around this issue. For now we'll hard code known props like "color"
          */
         const text = createComponent({
-          type: 'label',
+          type: 'div',
           noodlType: 'label',
           style: {
             display: 'inline-block',

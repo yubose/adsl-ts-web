@@ -27,10 +27,11 @@ PrivacyPolicy:
           x: center
     - type: scrollView
       style:
-        top: '0.2'
-        width: '0.9'
-        height: '0.8'
-        left: '0.05'
+        top: '0.201'
+        width: '0.86'
+        height: '0.799'
+        left: '0.07'
+        axis: vertical
         border:
           style: '3'
           color: '0x9f9f9f'
@@ -40,8 +41,6 @@ PrivacyPolicy:
             color: '0x9f9f9f'
             fontSize: '13'
             width: '0.86'
-            left: '0.02'
-            top: '0.02'
             textAlign:
               x: left
           textBoard:
@@ -242,7 +241,7 @@ PrivacyPolicy:
               funcName: goBack
               reload: false
           style:
-            marginTop: 200
+            marginTop: 100
             width: '0.7'
             backgroundColor: '0x388ecc'
             height: '0.06'
@@ -252,6 +251,7 @@ PrivacyPolicy:
               style: '1'
             textAlign:
               x: center
+
     # - type: button
     #   text: I do NOT agree
     #   onClick:
@@ -265,8 +265,8 @@ PrivacyPolicy:
     #     color: "0xffffff"
     #     left: "0.15"
     # empty view
-    - type: view
-      style:
-        width: '1'
-        height: '0.1'
-        top: '6.03'
+    # - type: view
+    #   style:
+    #     width: "1"
+    #     height: "0.1"
+    #     top: "6.03"
