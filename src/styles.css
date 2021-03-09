@@ -69,6 +69,27 @@ div.pluginBodyTail {
   position: relative !important;
 }
 
-.text-board {
-  /* height: 100% !important; */
+.hidden {
+  display: none;
+}
+
+.active {
+  display: block;
+}
+
+.popup-global {
+  border: 1px solid magenta;
+  position: fixed;
+  /* top: 10%;
+  padding: 40px 50px;
+  border-radius: 8px;
+  background-color: white; */
+  z-index: 1000;
+  /* width: 400px;
+  min-height: 100px; */
+  display: none;
+  /* left: 50%; */
+  /* margin-left: -200px; */
+  /* max-height: 80%; */
+  box-sizing: border-box;
 }

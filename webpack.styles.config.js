@@ -80,19 +80,12 @@ module.exports = {
     modules: [path.resolve(__dirname, 'styleboard'), 'node_modules'],
   },
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-    }),
     new HtmlWebpackPlugin({
       filename,
       title,
       favicon,
       scriptLoading: 'defer',
       minify: false,
-      ...(process.env.ECOS_ENV !== 'test'
-        ? { template: 'styleboard/index.html' }
-        : undefined),
     }),
     new webpack.ProgressPlugin({
       handler(percentage, msg, ...args) {

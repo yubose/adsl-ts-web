@@ -1,4 +1,20 @@
 {
+  "globalPopUp": {
+    "type": "popUp",
+    "viewTag": "minimizeVideoChat",
+    "global": true,
+    "style": {
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "height": "1"
+    },
+    "image": "iconUrl",
+    "onClick": [
+      { "actionType": "builtIn", "funcName": "goBack", "reload": false },
+      { "actionType": "popUpDismiss", "popUpView": "minimizeVidwoChat" }
+    ]
+  },
   "scrollView": {
     "type": "scrollView",
     "style": {

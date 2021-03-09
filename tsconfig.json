@@ -22,7 +22,7 @@
   },
   "include": [
     "src/**/*",
-    "styleboard/**/*",
+    "styleboard",
     "packages/noodl-ui/dist",
     "packages/noodl-utils/dist",
     "packages/noodl-ui-dom/dist"

@@ -24,7 +24,7 @@
     "start:test": "cross-env ECOS_ENV=test USE_DEV_PATHS=true npm run start",
     "scripts:build": "webpack --mode production --config webpack.scripts.js",
     "scripts:start": "rm -rf scripts/compiled && webpack --mode development --config webpack.scripts.js --watch",
-    "styleboard": "cross-env ECOS_ENV=test NODE_ENV=production HMR=true webpack-dev-server --mode=development --config webpack.styles.config.js",
+    "styleboard": "rm -rf sbuild && webpack-dev-server --mode=development --config webpack.styles.config.js",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r ts-node/register --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register -r tsconfig-paths/register --extensions ts --file src/setupTests.ts --watch --watch-files src",
     "test:noodlui": "lerna exec --scope noodl-ui \"npm run test\"",

@@ -1,4 +1,3 @@
-import { getSize } from './getSizes'
 import { ResolverFn } from '../types'
 
 /** Returns styles using the className if found from the baseCss object */
