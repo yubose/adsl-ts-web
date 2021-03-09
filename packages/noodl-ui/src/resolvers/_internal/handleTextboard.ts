@@ -29,7 +29,7 @@ const handleTextboardInternalResolver = (
 
     textBoard.forEach((item) => {
       if (isBreakLineTextBoardItem(item)) {
-        const br = createComponent('br')
+        const br = createComponent('view')
         component.createChild(br as any)
         stable &&
           log.cyan(`Created and attached custom "BR" child component`, {

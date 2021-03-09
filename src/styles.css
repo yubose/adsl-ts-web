@@ -3,7 +3,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  /* overflow-y: hidden; */
+  overflow-y: hidden;
   overflow-x: auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -50,6 +50,11 @@ div.pluginBodyTail {
   /* position: absolute !important; */
 }
 
+.scroll-view > label {
+  /* display: inline-block; */
+  /* height: unset; */
+}
+
 .scroll-view > * {
   position: relative !important;
 }
@@ -60,13 +65,10 @@ div.pluginBodyTail {
   /* position: relative; */
 }
 
-.scroll-view div {
-}
-
-.scroll-view button {
-  /* position: relative !important; */
+.scroll-view > button {
+  position: relative !important;
 }
 
 .text-board {
-  height: 100% !important;
+  /* height: 100% !important; */
 }

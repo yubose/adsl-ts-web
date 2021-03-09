@@ -234,23 +234,25 @@ PrivacyPolicy:
             - text: ''
             - br:
             - text: 'To ask questions or comment about this privacy policy and our privacy practices, contact us through (a) telephone at [telephone number]; (b) email at contact@aitmed.com; or (c) mail at AITMED INCORPORATED (attn: Legal Department) at 1000 S. Anaheim Blvd., Anaheim, CA 92805. '
-        - type: button
-          text: Done
-          onClick:
-            - actionType: builtIn
-              funcName: goBack
-              reload: false
-          style:
-            marginTop: 100
-            width: '0.7'
-            backgroundColor: '0x388ecc'
-            height: '0.06'
-            color: '0xffffff'
-            left: '0.08'
-            border:
-              style: '1'
-            textAlign:
-              x: center
+        - type: view
+          children:
+            - type: button
+              text: Done
+              onClick:
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: false
+              style:
+                marginTop: 100
+                width: '0.7'
+                backgroundColor: '0x388ecc'
+                height: '0.06'
+                color: '0xffffff'
+                left: '0.08'
+                border:
+                  style: '1'
+                textAlign:
+                  x: center
 
     # - type: button
     #   text: I do NOT agree
