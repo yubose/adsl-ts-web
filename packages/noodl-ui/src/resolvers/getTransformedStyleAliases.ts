@@ -26,11 +26,25 @@ const getTransformedStyleAliases: ResolverFn = (component) => {
   if (isBooleanTrue(required)) component.set('required', true)
   else if (isBooleanFalse(required)) component.set('required', false)
 
-  if (margin) component.setStyle('margin', margin)
-  if (marginTop) component.setStyle('marginTop', marginTop)
-  if (marginRight) component.setStyle('marginRight', marginRight)
-  if (marginBottom) component.setStyle('marginBottom', marginBottom)
-  if (marginLeft) component.setStyle('marginLeft', marginLeft)
+  const marginKeys = [
+    'margin',
+    'marginTop',
+    'marginRight',
+    'marginBottom',
+    'marginLeft',
+  ] as const
+
+  const numMarginKeys = marginKeys.length
+
+  // for (let index = 0; index < numMarginKeys; index++) {
+  //   const key = marginKeys[index]
+  //   if (key in (component.style || {})) {
+  //     console.log({
+  //       [key]: component.getStyle(key),
+  //       [`${key}...`]: component.style[key],
+  //     })
+  //   }
+  // }
 }
 
 export default getTransformedStyleAliases
