@@ -22,9 +22,10 @@
   },
   "include": [
     "src/**/*",
+    "styleboard/**/*",
     "packages/noodl-ui/dist",
     "packages/noodl-utils/dist",
     "packages/noodl-ui-dom/dist"
   ],
-  "exclude": ["node_modules/**/*"]
+  "exclude": ["node_modules/**/*", "build", "sbuild"]
 }
