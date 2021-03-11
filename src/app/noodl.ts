@@ -28,7 +28,7 @@ const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 const noodl = new NOODL({
   aspectRatio:
     typeof window !== 'undefined'
-      ? getAspectRatio(window.innerWidth, window.innerHeight)
+      ? getAspectRatio(document.body.clientWidth, document.body.clientHeight)
       : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
   configUrl,

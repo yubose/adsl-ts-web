@@ -18,6 +18,14 @@ export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
 }
 
+export function hide(node: HTMLElement | null | undefined) {
+  node && (node.style.visibility = 'hidden')
+}
+
+export function show(node: HTMLElement | null | undefined) {
+  node && (node.style.visibility = 'visible')
+}
+
 /**
  * Returns true if the value can be displayed in the UI as normal.
  * A displayable value is any value that is a string or number

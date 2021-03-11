@@ -22,8 +22,8 @@ class Viewport implements IViewport {
       this.#onResize = () => {
         const previousWidth = this.width
         const previousHeight = this.height
-        this.width = window.innerWidth
-        this.height = window.innerHeight
+        this.width = document.body.clientWidth
+        this.height = document.body.clientHeight
 
         callback({
           width: this.width,
