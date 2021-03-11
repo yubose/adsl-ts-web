@@ -21,6 +21,12 @@ const isUnd = (v: any): v is undefined => typeof v === 'undefined'
 const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
   typeof v === 'function'
 
+export function addClassName(className: string, node: HTMLElement) {
+  if (!node.classList.contains(className)) {
+    node.classList.add(className)
+  }
+}
+
 /**
  * Creates an image element that loads asynchronously
  * @param { HTMLElement } container - Element to attach the image in

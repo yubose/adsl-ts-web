@@ -1,5 +1,6 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
+import merge from 'lodash/merge'
 import isPlainObject from 'lodash/isPlainObject'
 import noop from 'lodash/noop'
 import { isDraft, original } from 'immer'
@@ -21,6 +22,7 @@ import {
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import handleRegister from './resolvers/_internal/handleRegister'
+import { getSize } from './resolvers/getSizes'
 import _internalResolver from './resolvers/_internal'
 import {
   forEachDeepEntries,
@@ -880,10 +882,13 @@ class NOODLUI {
   }
 
   getBaseStyles(component?: T.ComponentInstance) {
-    let styles = (component?.original?.style as T.Style) || undefined
+    let originalStyle = (component?.original?.style as T.Style) || undefined
+    let styles = { ...originalStyle } as T.Style
+
     // if (styles?.top === 'auto') styles.top = '0'
-    if (isPlainObject(styles)) {
-      if (!('top' in styles)) styles.top = '0'
+    if (isPlainObject(originalStyle)) {
+      // "Auto top" for web. Set top to 0 to start immediately after the previous
+      if (!('top' in originalStyle)) styles.top = '0'
 
       if (isComponent(component)) {
         const parent = component.parent() as T.ComponentInstance
@@ -894,37 +899,59 @@ class NOODLUI {
           let parentHeight = parent?.style?.height
 
           // if (parentTop === 'auto') parentTop = '0'
-          if (parentTop !== undefined) top = toNumber(parentTop)
-          if (parentHeight !== undefined) top = top + toNumber(parentHeight)
+          if (parentTop !== undefined) {
+            if (parentTop === 'auto') {
+              top = 0
+            } else {
+              top = Viewport.getSize(parentTop, this.viewport.height as number)
+            }
+          }
+          if (parentHeight !== undefined) {
+            top = Viewport.getSize(
+              top + toNumber(parentHeight === 'auto' ? '0' : parentHeight),
+              this.viewport.height as number,
+            )
+          }
 
           if (typeof top === 'number') {
-            top = (this.viewport.height as number) - top
-            component.setStyle('top', top + 'px')
-            if (!('height' in (component.style || {}))) {
-              // component.setStyle('height', 'auto')
+            // REMINDER: "top" is a value here like 0.202 (not yet converted to size in px)
+            top =
+              (this.viewport.height as number) -
+              Viewport.getSize(top, this.viewport.height as number)
+
+            styles.top = Viewport.getSize(top, this.viewport.height as number, {
+              unit: 'px',
+            })
+            if (!('height' in originalStyle)) {
+              styles.height = 'auto'
             }
           }
 
-          if (parent.style?.axis === 'vertical') {
-            styles.position = 'relative'
-            styles.height = 'auto'
+          if (parent?.original?.style?.axis === 'vertical') {
+            Object.assign(styles, {
+              position: 'relative',
+              height: 'auto',
+            })
           }
         }
 
-        if (!('height' in component.style)) {
-          component.style.height = 'auto'
+        if (!('height' in styles)) {
+          styles.height = 'auto'
         }
       } else if (isPlainObject(component)) {
         //
       }
     }
 
-    return {
-      ...this.#getRoot().Style,
-      position: 'absolute',
-      outline: 'none',
-      ...styles,
-    }
+    return merge(
+      {
+        ...this.#getRoot().Style,
+        position: 'absolute',
+        outline: 'none',
+      },
+      originalStyle,
+      styles,
+    )
   }
 
   getActionsContext() {

@@ -17,12 +17,27 @@ import './styles.css'
 
 function createElement<T extends ComponentType>(
   type: LiteralUnion<T | ComponentType, string>,
-  classes: string[] = [],
+  {
+    style = {},
+    classes = [],
+    ...rest
+  }: { classes?: string | string[]; style?: any } & { [key: string]: any } = {},
 ) {
   const node = document.createElement(type)
-  classes.forEach((className) => {
+
+  array(classes).forEach((className: string) => {
     node.classList.add(className)
   })
+
+  // eslint-disable-next-line
+  for (const [key, val] of Object.entries(style)) {
+    node.style[key as any] = String(val)
+  }
+  // eslint-disable-next-line
+  for (const [key, val] of Object.entries(rest)) {
+    // @ts-expect-error
+    node[key] = val
+  }
   return node
 }
 

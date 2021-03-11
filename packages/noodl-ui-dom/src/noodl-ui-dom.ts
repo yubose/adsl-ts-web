@@ -118,6 +118,12 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
             )
           : document.createElement('img')
         this.#R.run(node, component)
+      } else if (component.noodlType === 'popUp' && component.has('global')) {
+        node = document.createElement(getTagName(component))
+        this.#R.run(node, component)
+        // Delegating global popUps (a.k.a modals) to the consumer to decide
+        // how to determine their parent/child behavior
+        return node
       } else {
         node = document.createElement(
           getTagName(component as ComponentInstance),
