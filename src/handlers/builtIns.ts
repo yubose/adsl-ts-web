@@ -442,6 +442,7 @@ const createBuiltInActions = function createBuiltInActions({
         log.red('', { action, ...options })
         let destinationParam = ''
         let reload: boolean | undefined
+        let reloadPageObject: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
 
         // "Reload" currently is only known to be used in goto when runnning
         // an action chain and given an object like { destination, reload }
@@ -456,18 +457,24 @@ const createBuiltInActions = function createBuiltInActions({
               if (isPlainObject(gotoObj.goto)) {
                 destinationParam = gotoObj.goto.destination
                 if ('reload' in gotoObj.goto) reload = gotoObj.goto.reload
+                if ('reloadPageObject' in gotoObj.goto)
+                  reloadPageObject = gotoObj.goto.reloadPageObject
               } else if (typeof gotoObj.goto === 'string') {
                 destinationParam = gotoObj.goto
               }
             } else if (isPlainObject(gotoObj)) {
               destinationParam = gotoObj.destination
               if ('reload' in gotoObj) reload = gotoObj.reload
+              if ('reloadPageObject' in gotoObj)
+                reloadPageObject = gotoObj.reloadPageObject
             }
           }
         } else if (isPlainObject(action)) {
           if ('destination' in action) {
             destinationParam = action.destination
             if ('reload' in action) reload = action.reload
+            if ('reloadPageObject' in action)
+              reloadPageObject = action.reloadPageObject
           }
         }
 
@@ -475,9 +482,14 @@ const createBuiltInActions = function createBuiltInActions({
           noodluidom.page.setModifier(destinationParam, { reload })
         }
 
+        if (reloadPageObject !== undefined) {
+          noodluidom.page.setModifier(destinationParam, { reloadPageObject })
+        }
+
         log.grey(`Computed goto params`, {
           destination: destinationParam,
           reload,
+          reloadPageObject,
         })
 
         let findWindow: any
