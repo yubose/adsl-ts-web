@@ -28,6 +28,9 @@ const getSizes: ResolverFn = (component, options) => {
       String(getSize(height, viewport.height as number)),
     )
   }
+  if (component.has('text=func')) {
+    debugger
+  }
 }
 
 /**

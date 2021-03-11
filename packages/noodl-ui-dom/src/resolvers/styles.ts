@@ -13,7 +13,13 @@ export default {
   resolve: (node: NOODLDOMElement, component) => {
     const { style } = component
     if (style != null && typeof style === 'object' && node.style) {
+      if (component.has('text=func')) {
+        debugger
+      }
       Object.entries(style).forEach(([k, v]) => (node.style[k] = v))
+      if (component.has('text=func')) {
+        debugger
+      }
     }
 
     // TEMP - Experimenting CSS
