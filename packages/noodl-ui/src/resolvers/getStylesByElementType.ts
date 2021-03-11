@@ -69,15 +69,15 @@ const getStylesByElementType: ResolverFn = (component, options) => {
     case 'popUp':
       return void component.setStyle('visibility', 'hidden')
     // case 'scrollView':
-    //   return void component.assignStyles({
-    //     // overflowY: 'auto',
-    //     maxHeight: String(
-    //       getSize(
-    //         component.getStyle('height'),
-    //         options.viewport.height as number,
-    //       ),
-    //     ),
-    //   })
+    // return void component.assignStyles({
+    // overflowY: 'auto',
+    // maxHeight: String(
+    //   getSize(
+    //     component.getStyle('height'),
+    //     options.viewport.height as number,
+    //   ),
+    // ),
+    // })
     case 'textView':
       return void component.setStyle('rows', 10)
     default:

@@ -45,8 +45,17 @@ div.pluginBodyTail {
   NOODL COMPONENTS (Currently experimenting as of 03/04/21)
 */
 
+.axis-vertical {
+  display: block !important;
+}
+
+.axis-vertical > * {
+  position: relative !important;
+}
+
 .scroll-view {
   overflow-y: auto;
+  border: 1px solid magenta !important;
   /* position: absolute !important; */
 }
 
@@ -66,7 +75,7 @@ div.pluginBodyTail {
 }
 
 .scroll-view > button {
-  position: relative !important;
+  /* position: relative !important; */
 }
 
 .hidden {

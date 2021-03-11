@@ -1,9 +1,8 @@
 import { RegisterOptions } from '../../types'
-import {addClassName} from '../../utils'
-
+import { addClassName } from '../../utils'
 
 function hide(node: HTMLElement) {
-  node && !isHidden(node) && (node.)
+  // node && !isHidden(node) && (node.)
 }
 
 function isHidden(node: HTMLElement) {
@@ -17,9 +16,8 @@ export default {
     if (component.has('global')) {
       const image = component.get('image')
       const onClick = component.get('onClick')
-      console.log(component.toJS())
 
-      
+      console.log({ component: component.toJS(), node })
     }
   },
 } as RegisterOptions

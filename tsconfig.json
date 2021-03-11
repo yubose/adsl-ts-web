@@ -13,6 +13,7 @@
     "noEmitOnError": false,
     "noImplicitAny": true,
     "noImplicitThis": true,
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
     "resolveJsonModule": true,
     "sourceMap": true,
     "skipLibCheck": true,
@@ -22,7 +23,7 @@
   },
   "include": [
     "src/**/*",
-    "styleboard",
+    "styleboard/**/*",
     "packages/noodl-ui/dist",
     "packages/noodl-utils/dist",
     "packages/noodl-ui-dom/dist"

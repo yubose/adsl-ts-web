@@ -1,0 +1,892 @@
+import axios from 'axios'
+import CADL from '@aitmed/cadl'
+import startOfDay from 'date-fns/startOfDay'
+import add from 'date-fns/add'
+import isPlainObject from 'lodash/isPlainObject'
+import Logger from 'logsnap'
+import NOODLUIDOM, {
+  eventId,
+  NOODLDOMElement,
+  Page,
+  RegisterOptions,
+} from 'noodl-ui-dom'
+import get from 'lodash/get'
+import set from 'lodash/set'
+import { ComponentObject } from 'noodl-types'
+import {
+  ComponentInstance,
+  event as noodluiEvent,
+  getAllResolversAsMap,
+  identify,
+  List,
+  NOODL as NOODLUI,
+  PageObject,
+  publish,
+  Resolver,
+  Viewport,
+} from 'noodl-ui'
+import { WritableDraft } from 'immer/dist/internal'
+import { copyToClipboard } from './utils/dom'
+import { CACHED_PAGES, pageEvent, pageStatus } from './constants'
+import { isStable } from './utils/common'
+import createActions from './actions'
+import createBuiltIns, { onVideoChatBuiltIn } from './builtIns'
+import createViewportHandler from './viewport'
+
+const log = Logger.create('App.ts')
+const stable = isStable()
+
+export type ViewportUtils = ReturnType<typeof createViewportHandler>
+
+class App {
+  #enabled = {
+    firebase: true,
+  }
+  #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
+  #preparePage = {} as (pageName: string) => Promise<PageObject>
+  #viewportUtils = {} as ViewportUtils
+  _store: {
+    messaging: { serviceRegistration: ServiceWorkerRegistration; token: string }
+  } = {
+    messaging: {
+      serviceRegistration: {} as ServiceWorkerRegistration,
+      token: '',
+    },
+  }
+  authStatus: AuthStatus | '' = ''
+  firebase = {} as FirebaseApp
+  initialized = false
+  messaging = null as FirebaseMessaging | null
+  meeting: IMeeting = {} as IMeeting
+  noodl = {} as CADL
+  noodlui = {} as NOODLUI
+  noodluidom = {} as NOODLUIDOM
+  streams = {} as ReturnType<IMeeting['getStreams']>
+
+  async initialize({
+    firebase: { client: firebase, vapidKey },
+    meeting,
+    noodl,
+    noodlui,
+    noodluidom,
+  }: {
+    firebase: { client: App['firebase']; vapidKey: string }
+    meeting: IMeeting
+    noodl: any
+    noodlui: NOODLUI
+    noodluidom: NOODLUIDOM
+  }) {
+    const { Account } = await import('@aitmed/cadl')
+    // const { isSupported: firebaseSupported } = await import('app/firebase')
+    const firebaseSupported = () => false
+
+    !firebaseSupported() && (this.#enabled.firebase = false)
+
+    this.firebase = firebase
+    this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
+    stable && log.cyan(`Initialized firebase messaging instance`)
+    this.meeting = meeting
+    this.noodl = noodl
+    this.noodlui = noodlui
+    this.noodluidom = noodluidom
+    this.streams = meeting.getStreams()
+    this.#viewportUtils = createViewportHandler(new Viewport())
+
+    stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
+    await noodl.init()
+    stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
+    noodluidom.use(noodlui)
+    stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
+
+    createActions({ noodlui, noodluidom })
+    createBuiltIns({ noodl, noodlui, noodluidom })
+    createRegisters({ noodl, noodlui, noodluidom, Meeting: {} })
+    createMeetingHandlers({ noodl, noodlui, noodluidom, Meeting: {} })
+
+    meeting.initialize({
+      noodluidom,
+      page: noodluidom.page,
+      viewport: this.#viewportUtils.viewport,
+    })
+
+    if (this.#enabled.firebase) {
+      this.messaging?.onMessage(
+        (obs) => {
+          log.func('onMessage')
+          log.green('[nextOrObserver]: obs', obs)
+        },
+        (err) => {
+          log.func('onMessage')
+          log.red(`[onError]: ${err.message}`, err)
+        },
+        () => {
+          log.func('[onComplete]')
+          log.grey(`from onMessage`)
+        },
+      )
+    }
+
+    let startPage = noodl?.cadlEndpoint?.startPage
+    stable && log.cyan(`Start page: ${startPage}`)
+
+    if (!this.authStatus) {
+      // Initialize the user's state before proceeding to decide on how to direct them
+      const storedStatus = await Account.getStatus()
+      if (storedStatus.code === 0) {
+        noodl.setFromLocalStorage('user')
+        this.authStatus = 'logged.in'
+        this.onAuthStatus?.('logged.in')
+      } else if (storedStatus.code === 1) {
+        this.authStatus = 'logged.out'
+        this.onAuthStatus?.('logged.out')
+      } else if (storedStatus.code === 2) {
+        this.authStatus = 'new.device'
+        this.onAuthStatus?.('new.device')
+      } else if (storedStatus.code === 3) {
+        this.authStatus = 'temporary'
+        this.onAuthStatus?.('temporary')
+      }
+    }
+
+    this.#preparePage = async function preparePage(
+      this: App,
+      pageName: string,
+    ): Promise<PageObject> {
+      try {
+        stable && log.cyan(`Running noodl.initPage on ${pageName}`)
+        await noodl.initPage(pageName, [], {
+          ...noodluidom.page.getState().modifiers[pageName],
+          builtIn: {
+            FCMOnTokenReceive: async (...args: any[]) => {
+              try {
+                const permission = await Notification.requestPermission()
+                log.func('messaging.requestPermission')
+                log.grey(`Notification permission ${permission}`)
+              } catch (err) {
+                log.func('messaging.requestPermission')
+                log.red('Unable to get permission to notify.', err)
+              }
+              try {
+                if (this.#enabled.firebase) {
+                  this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
+                    'firebase-messaging-sw.js',
+                  )
+                  args[0] = {
+                    vapidKey,
+                    serviceWorkerRegistration: this._store.messaging
+                      .serviceRegistration,
+                    ...args[0],
+                  }
+                  log.grey(
+                    'Initialized service worker',
+                    this._store.messaging.serviceRegistration,
+                  )
+
+                  this.messaging?.onMessage((...args) => {
+                    log.func('messaging.onMessage')
+                    log.green(`Received a message`, args)
+                  })
+                } else {
+                  log.red(
+                    `Could not initiate the firebase service worker because this browser ` +
+                      `does not support it`,
+                    this,
+                  )
+                }
+
+                const token = this.#enabled.firebase
+                  ? (await this.messaging?.getToken(...args)) || ''
+                  : ''
+
+                copyToClipboard(token)
+
+                if (this.#enabled.firebase) {
+                  noodlui.emit('register', {
+                    key: 'globalRegister',
+                    id: 'FCMOnTokenReceive',
+                    prop: 'onEvent',
+                    data: token,
+                  })
+                } else {
+                  log.func('FCMOnTokenReceive')
+                  log.red(
+                    `Could not emit the "FCMOnTokenReceive" event because firebase ` +
+                      `messaging is disabled. Is it supported by this browser?`,
+                    this,
+                  )
+                }
+
+                return token
+              } catch (error) {
+                console.error(error)
+                return error
+              }
+            },
+            FCMOnTokenRefresh: this.#enabled.firebase
+              ? this.messaging?.onTokenRefresh.bind(this.messaging)
+              : undefined,
+            checkField: noodluidom.builtIns.checkField?.find(Boolean)?.fn,
+            goto: noodluidom.builtIns.goto?.find(Boolean)?.fn,
+            videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
+          },
+        })
+        log.func('createPreparePage')
+        log.grey(`Ran noodl.initPage on page "${pageName}"`, {
+          pageName,
+          pageModifiers: noodluidom.page.getState().modifiers[pageName],
+          pageObject: noodl.root[pageName],
+          snapshot: noodluidom.page.snapshot(),
+        })
+        if (noodl.root?.Global?.globalRegister) {
+          const { Global } = noodl.root
+          if (Array.isArray(Global.globalRegister)) {
+            if (Global.globalRegister.length) {
+              log.grey(
+                `Scanning ${Global.globalRegister.length} items found in Global.globalRegister`,
+                Global.globalRegister,
+              )
+              Global.globalRegister.forEach((value: any) => {
+                if (isPlainObject(value)) {
+                  if (value.type === 'register') {
+                    log.grey(
+                      `Found and registered a "register" component to Global`,
+                      { ...value },
+                    )
+                    const res = noodlui.register({
+                      key: 'globalRegister',
+                      component: value,
+                    })
+                    // SDK sets this
+                    // value.onEvent = res.fn
+                  }
+                }
+              })
+            }
+          }
+        }
+        return noodl.root[pageName]
+      } catch (error) {
+        throw new Error(error)
+      }
+    }.bind(this)
+
+    this.observeClient({ noodlui, noodl })
+    this.observeInternal(noodlui)
+    this.observeViewport(this.#viewportUtils)
+    this.observePages(noodluidom.page)
+    this.observeMeetings(meeting)
+
+    /* -------------------------------------------------------
+      ---- LOCAL STORAGE
+    -------------------------------------------------------- */
+    // Override the start page if they were on a previous page
+    const cachedPages = this.getCachedPages()
+    const cachedPage = cachedPages[0]
+
+    if (cachedPages?.length) {
+      if (cachedPage?.name && cachedPage.name !== startPage) {
+        startPage = cachedPage.name
+      }
+    }
+
+    const ls = window.localStorage
+
+    if (!ls.getItem('tempConfigKey') && ls.getItem('config')) {
+      ls.setItem(
+        'tempConfigKey',
+        JSON.parse(ls.getItem('config') || '')?.timestamp,
+      )
+    }
+
+    if (noodluidom.page && location.href) {
+      let { startPage } = noodl.cadlEndpoint
+      const urlParts = location.href.split('/')
+      const pathname = urlParts[urlParts.length - 1]
+      const localConfig = JSON.parse(ls.getItem('config') || '') || {}
+      const tempConfigKey = ls.getItem('tempConfigKey')
+
+      if (
+        tempConfigKey &&
+        tempConfigKey !== JSON.stringify(localConfig.timestamp)
+      ) {
+        ls.setItem('CACHED_PAGES', JSON.stringify([]))
+        noodluidom.page.pageUrl = 'index.html?'
+        await noodluidom.page.requestPageChange(startPage)
+      } else if (!pathname?.startsWith('index.html?')) {
+        noodluidom.page.pageUrl = 'index.html?'
+        await noodluidom.page.requestPageChange(startPage)
+      } else {
+        const pageParts = pathname.split('-')
+        if (pageParts.length > 1) {
+          startPage = pageParts[pageParts.length - 1]
+        } else {
+          const baseArr = pageParts[0].split('?')
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
+            startPage = baseArr[baseArr.length - 1]
+          }
+        }
+        noodluidom.page.pageUrl = pathname
+        await noodluidom.page.requestPageChange(startPage)
+      }
+    }
+
+    this.initialized = true
+  }
+
+  observeClient({ noodl, noodlui }: { noodl: any; noodlui: NOODLUI }) {
+    // When noodl-ui emits this it expects a new "child" instance. To keep memory usage
+    // to a minimum, keep the root references the same as the one in the parent instance
+    // Currently this is used by components of type: page
+    noodlui.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
+      await noodl.initPage(ref.page)
+      log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
+      log.grey(`Initiated page: ${ref.page}`)
+      Object.values(getAllResolversAsMap).forEach((resolver) => {
+        ref.use(new Resolver().setResolver(resolver))
+      })
+    })
+  }
+
+  // Cleans ac (used for debugging atm)
+  observeInternal(noodlui: NOODLUI) {
+    noodlui.on(noodluiEvent.SET_PAGE, () => {
+      if (typeof window !== 'undefined' && 'ac' in window) {
+        Object.keys(window.ac).forEach((key) => {
+          delete window.ac[key]
+        })
+      }
+    })
+  }
+
+  observeViewport(utils: ReturnType<typeof createViewportHandler>) {
+    const {
+      computeViewportSize,
+      on,
+      setMinAspectRatio,
+      setMaxAspectRatio,
+      setViewportSize,
+    } = utils
+
+    // The viewWidthHeightRatio in cadlEndpoint (app config) overwrites the
+    // viewWidthHeightRatio in root config
+    const viewWidthHeightRatio =
+      this.noodl.cadlEndpoint?.viewWidthHeightRatio ||
+      this.noodl.getConfig?.()?.viewWidthHeightRatio
+
+    if (viewWidthHeightRatio) {
+      const { min, max } = viewWidthHeightRatio
+      setMinAspectRatio(min)
+      setMaxAspectRatio(max)
+    }
+
+    const { aspectRatio, width, height } = computeViewportSize({
+      width: innerWidth,
+      height: innerHeight,
+      previousWidth: innerWidth,
+      previousHeight: innerHeight,
+    })
+
+    setViewportSize({ width, height })
+    this.noodl.aspectRatio = aspectRatio
+
+    on(
+      'resize',
+      function onResize(
+        this: App,
+        { aspectRatio, width, height }: ReturnType<typeof computeViewportSize>,
+      ) {
+        log.func('on resize [viewport]')
+        if (this.noodlui.page === 'VideoChat') {
+          return log.grey(
+            `Skipping avoiding the page rerender on the VideoChat "onresize" event`,
+          )
+        }
+        this.noodl.aspectRatio = aspectRatio
+        document.body.style.width = `${width}px`
+        document.body.style.height = `${height}px`
+        if (this.noodluidom.page.rootNode) {
+          this.noodluidom.page.rootNode.style.width = `${width}px`
+          this.noodluidom.page.rootNode.style.height = `${height}px`
+        }
+        this.noodluidom.render(
+          this.noodl?.root?.[this.noodluidom.page.getState().current]
+            ?.components,
+        )
+      }.bind(this),
+    )
+  }
+
+  observePages(page: Page) {
+    page
+      .on(
+        pageEvent.ON_NAVIGATE_START,
+        function onNavigateStart(this: App, snapshot: any) {
+          log.func('onNavigateStart')
+          log.grey(
+            `Starting navigate request to ${snapshot.requesting}`,
+            snapshot,
+          )
+        },
+      )
+      .on(
+        pageEvent.ON_BEFORE_RENDER_COMPONENTS as any,
+        async function onBeforeRenderComponents(
+          this: App,
+          { requesting: pageName, ref, ...rest },
+        ) {
+          log.func('onBeforeRenderComponents')
+
+          if (ref.request.name !== pageName) {
+            log.red(
+              `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
+              { requesting: pageName, ref, ...rest },
+            )
+            return 'old.request'
+          }
+          log.grey(`Rendering the DOM for page: "${pageName}"`, {
+            requesting: pageName,
+            ref,
+            ...rest,
+          })
+
+          if (
+            /videochat/i.test(page.getState().current) &&
+            !/videochat/i.test(pageName)
+          ) {
+            this.meeting.leave()
+            log.func('before-page-render')
+            log.grey(`Disconnected from room`, this.meeting.room)
+
+            const mainStream = this.streams.getMainStream()
+            const selfStream = this.streams.getSelfStream()
+            const subStreamsContainer = this.streams.getSubStreamsContainer()
+            const subStreams = subStreamsContainer?.getSubstreamsCollection()
+
+            if (mainStream.getElement()) {
+              log.grey('Wiping mainStream state', mainStream.reset())
+            }
+            if (selfStream.getElement()) {
+              log.grey('Wiping selfStream state', selfStream.reset())
+            }
+            if (subStreamsContainer?.length) {
+              const logMsg = `Wiping subStreams container's state`
+              log.grey(logMsg, subStreamsContainer.reset())
+            }
+            if (Array.isArray(subStreams)) {
+              subStreams.forEach((subStream) => {
+                if (subStream.getElement()) {
+                  log.grey(`Wiping a subStream's state`, subStream.reset())
+                  subStreamsContainer?.removeSubStream(subStream)
+                }
+              })
+            }
+          }
+
+          let pageSnapshot = {} as { name: string; object: any } | 'old.request'
+          const pageModifiers = page.getState().modifiers[pageName]
+
+          if (pageName !== page.getState().current) {
+            // Load the page in the SDK
+            const pageObject = await this.#preparePage(pageName)
+            const noodluidomPageSnapshot = this.noodluidom.page.snapshot()
+            // There is a bug that two parallel requests can happen at the same time, and
+            // when the second request finishes before the first, the page renders the first page
+            // in the DOM. To work around this bug we can determine this is occurring using
+            // the conditions below
+            if (
+              noodluidomPageSnapshot.requesting === '' &&
+              noodluidomPageSnapshot.status === pageStatus.IDLE &&
+              noodluidomPageSnapshot.current !== pageName
+            ) {
+              pageSnapshot = 'old.request'
+            } else {
+              // This will be passed into the page renderer
+              pageSnapshot = {
+                name: pageName,
+                object: pageObject,
+              }
+            }
+
+            // Initialize the noodl-ui client (parses components) if it
+            // isn't already initialized
+            if (!this.initialized) {
+              log.func('before-page-render')
+              log.grey('Initializing noodl-ui client', {
+                noodl: this.noodl,
+                pageSnapshot,
+              })
+
+              function fetch(url: string) {
+                return axios.get(url).then(({ data }) => data)
+              }
+              // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
+              const config = this.noodl.getConfig()
+              const plugins = [] as ComponentObject[]
+              if (config.headPlugin) {
+                plugins.push(
+                  this.noodlui.createPluginObject({
+                    type: 'pluginHead',
+                    path: config.headPlugin,
+                  }) as any,
+                )
+              }
+              if (config.bodyTopPplugin) {
+                plugins.push(
+                  this.noodlui.createPluginObject({
+                    type: 'pluginBodyTop',
+                    path: config.bodyTopPplugin,
+                  }) as any,
+                )
+              }
+              if (config.bodyTailPplugin) {
+                plugins.push(
+                  this.noodlui.createPluginObject({
+                    type: 'pluginBodyTail',
+                    path: config.bodyTailPplugin,
+                  }) as any,
+                )
+              }
+              this.noodlui
+                .init({
+                  actionsContext: {
+                    noodl: this.noodl,
+                    noodluidom: this.noodluidom,
+                  } as any,
+                  viewport: this.#viewportUtils.viewport,
+                })
+                .setPage(pageName)
+                .use(this.#viewportUtils.viewport)
+                .use({
+                  fetch,
+                  getAssetsUrl: () => this.noodl.assetsUrl,
+                  getBaseUrl: () => this.noodl.cadlBaseUrl,
+                  getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
+                  getPages: () => this.noodl.cadlEndpoint?.page || [],
+                  getRoot: () => this.noodl.root,
+                  plugins,
+                })
+
+              Object.entries(getAllResolversAsMap()).forEach(
+                ([name, resolver]) => {
+                  const r = new Resolver().setResolver(resolver)
+                  this.noodlui.use({ name, resolver: r })
+                },
+              )
+              log.func('before-page-render')
+              log.grey('Initialized noodl-ui client', this.noodlui)
+            }
+            // Refresh the root
+            // TODO - Leave root/page auto binded to the lib
+            this.noodlui.setPage(pageName)
+            // NOTE: not being used atm
+            if (page.rootNode && page.rootNode.id !== pageName) {
+              page.rootNode.id = pageName
+            }
+            return pageSnapshot
+          }
+          log.func('before-page-render')
+          log.green('Avoided a duplicate navigate request')
+
+          return pageSnapshot
+        }.bind(this),
+      )
+      .on(
+        pageEvent.ON_COMPONENTS_RENDERED,
+        async function onComponentsRendered(
+          this: App,
+          { requesting: pageName, components },
+        ) {
+          log.func('onComponentsRendered')
+          log.grey(`Done rendering DOM nodes for ${pageName}`)
+          window.pcomponents = components
+          // Cache to rehydrate if they disconnect
+          // TODO
+          this.cachePage(pageName)
+          log.grey(`Cached page: "${pageName}"`)
+        }.bind(this),
+      )
+      .on(
+        pageEvent.ON_NAVIGATE_ERROR,
+        function onNavigateError(this: App, { error }) {
+          console.error(error)
+          log.func('page.onError')
+          log.red(error.message, error)
+          // alert(error.message)
+          // TODO - narrow the reasons down more
+        },
+      )
+  }
+
+  /**
+   * Callback invoked when Meeting.joinRoom receives the room instance.
+   * Initiates participant tracks as well as register listeners for state changes on
+   * the room instance.
+   * @param { Room } room - Room instance
+   */
+  observeMeetings(meeting: IMeeting) {
+    /* -------------------------------------------------------
+    ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
+  -------------------------------------------------------- */
+
+    this.noodluidom.register({
+      name: 'chart',
+      cond: 'chart',
+      resolve(node: HTMLDivElement, component) {
+        const dataValue = component.get('data-value') || '' || 'dataKey'
+        if (node) {
+          node.style.width = component.getStyle('width') as string
+          node.style.height = component.getStyle('height') as string
+          const myChart = echarts.init(node)
+          const option = dataValue
+          option && myChart.setOption(option)
+        }
+      },
+    } as RegisterOptions)
+
+    this.noodluidom.register({
+      name: 'videoChat.timer.updater',
+      cond: (n, c) => typeof c.get('text=func') === 'function',
+      resolve: function onVideoChatTImerUpdate(this: App, node, component) {
+        const dataKey = component.get('dataKey')
+
+        if (component.contentType === 'timer') {
+          component.on(
+            'initial.timer',
+            (setInitialTime: (date: Date) => void) => {
+              const initialTime = startOfDay(new Date())
+              // Initial SDK value is set in seconds
+              const initialSeconds = get(this.noodl.root, dataKey, 0) as number
+              // Sdk evaluates from start of day. So we must add onto the start of day
+              // the # of seconds of the initial value in the Global object
+              let initialValue = add(initialTime, { seconds: initialSeconds })
+              if (initialValue === null || initialValue === undefined) {
+                initialValue = new Date()
+              }
+              setInitialTime(initialValue)
+            },
+          )
+
+          // Look at the hard code implementation in noodl-ui-dom
+          // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
+          // the api declaration
+          component.on(
+            'timer.ref',
+            function onTimerRef(
+              this: App,
+              ref: {
+                start(): void
+                current: Date
+                ref: NodeJS.Timeout
+                clear: () => void
+                increment(): void
+                set(value: any): void
+                onInterval?:
+                  | ((args: {
+                      node: NOODLDOMElement
+                      component: ComponentInstance
+                      ref: typeof ref
+                    }) => void)
+                  | null
+              },
+            ) {
+              const textFunc = component.get('text=func') || ((x: any) => x)
+
+              component.on(
+                'interval',
+                function onInterval(
+                  this: App,
+                  {
+                    node,
+                    component,
+                  }: {
+                    node: NOODLDOMElement
+                    component: ComponentInstance
+                    ref: typeof ref
+                  },
+                ) {
+                  this.noodl.editDraft(
+                    (draft: WritableDraft<{ [key: string]: any }>) => {
+                      const seconds = get(draft, dataKey, 0)
+                      set(draft, dataKey, seconds + 1)
+                      const updatedSecs = get(draft, dataKey)
+                      if (
+                        updatedSecs !== null &&
+                        typeof updatedSecs === 'number'
+                      ) {
+                        if (seconds === updatedSecs) {
+                          // Not updated
+                          log.func('text=func timer [noodluidom.register]')
+                          log.red(
+                            `Tried to update the value of ${dataKey} but the value remained the same`,
+                            {
+                              node,
+                              component,
+                              seconds,
+                              updatedSecs,
+                              ref,
+                            },
+                          )
+                        } else {
+                          // Updated
+                          ref.increment()
+                          node.textContent = textFunc(ref.current)
+                        }
+                      }
+                    },
+                  )
+                }.bind(this),
+              )
+
+              ref.start()
+            }.bind(this),
+          )
+        }
+      }.bind(this),
+    })
+
+    this.noodluidom.on(
+      eventId.page.status.ANY,
+      function onStatusChange(this: App, status: string) {
+        log.func('onStatusChange')
+        log.grey('Status changed: ' + status)
+      },
+    )
+
+    this.noodluidom.on(
+      eventId.redraw.ON_BEFORE_CLEANUP,
+      function onBeforeCleanup(this: App, node, component) {
+        console.log('Removed from componentCache: ' + component.id)
+        this.noodlui.componentCache().remove(component)
+        publish(component, (c) => {
+          console.log('Removed from componentCache: ' + component.id)
+          this.noodlui.componentCache().remove(c)
+        })
+      }.bind(this),
+    )
+
+    this.noodluidom.register({
+      name: 'meeting',
+      cond: (node: any, component: any) => !!(node && component),
+      resolve: function onMeetingComponent(
+        this: App,
+        node: any,
+        component: any,
+      ) {
+        // Dominant/main participant/speaker
+        if (identify.stream.video.isMainStream(component.toJS())) {
+          const mainStream = this.streams.getMainStream()
+          if (!mainStream.isSameElement(node)) {
+            mainStream.setElement(node, { uxTag: 'mainStream' })
+            log.func('onCreateNode')
+            log.green('Bound an element to mainStream', { mainStream, node })
+          }
+        }
+        // Local participant
+        else if (identify.stream.video.isSelfStream(component.toJS())) {
+          const selfStream = this.streams.getSelfStream()
+          if (!selfStream.isSameElement(node)) {
+            selfStream.setElement(node, { uxTag: 'selfStream' })
+            log.func('onCreateNode')
+            log.green('Bound an element to selfStream', { selfStream, node })
+          }
+        }
+        // Remote participants container
+        else if (
+          /(vidoeSubStream|videoSubStream)/i.test(
+            component.get('contentType') || '',
+          )
+        ) {
+          let subStreams = this.streams.getSubStreamsContainer()
+          if (!subStreams) {
+            subStreams = this.streams.createSubStreamsContainer(node, {
+              blueprint: component.getBlueprint(),
+              resolver: this.noodlui.resolveComponents.bind(this.noodlui),
+            })
+            log.func('onCreateNode')
+            log.green('Initiated subStreams container', subStreams)
+          } else {
+            // If an existing subStreams container is already existent in memory, re-initiate
+            // the DOM node and blueprint since it was reset from a previous cleanup
+            log.red(`BLUEPRINT`, (component as List).blueprint)
+            subStreams.container = node
+            subStreams.blueprint = component.getBlueprint()
+            subStreams.resolver = this.noodlui.resolveComponents.bind(
+              this.noodlui,
+            )
+          }
+        }
+        // Individual remote participant video element container
+        else if (identify.stream.video.isSubStream(component.toJS())) {
+          const subStreams = this.streams.getSubStreamsContainer() as MeetingSubstreams
+          if (subStreams) {
+            if (!subStreams.elementExists(node)) {
+            } else {
+              log.func('onCreateNode')
+              log.red(
+                `Attempted to add an element to a subStream but it ` +
+                  `already exists in the subStreams container`,
+                { subStreams, node, component },
+              )
+            }
+          } else {
+            log.func('onCreateNode')
+            log.red(
+              `Attempted to create a subStream but a container was not available`,
+              {
+                node,
+                component,
+                mainStream: this.streams.getMainStream(),
+                selfStream: this.streams.getSelfStream(),
+              },
+            )
+          }
+        }
+      }.bind(this),
+    })
+  }
+
+  /* -------------------------------------------------------
+  ---- LOCAL STORAGE HELPERS FOR CACHED PAGES
+-------------------------------------------------------- */
+
+  /** Adds the current page name to the end in the list of cached pages */
+  cachePage(name: string) {
+    const cacheObj = { name } as CachedPageObject
+    const prevCache = this.getCachedPages()
+    if (prevCache[0]?.name === name) return
+    const cache = [cacheObj, ...prevCache]
+    if (cache.length >= 12) cache.pop()
+    cacheObj.timestamp = Date.now()
+    this.setCachedPages(cache)
+  }
+
+  /** Retrieves a list of cached pages */
+  getCachedPages(): CachedPageObject[] {
+    let result: CachedPageObject[] = []
+    const pageHistory = localStorage.getItem(CACHED_PAGES)
+    if (pageHistory) {
+      try {
+        result = JSON.parse(pageHistory) || []
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    return result
+  }
+
+  /** Sets the list of cached pages */
+  setCachedPages(cache: CachedPageObject[]) {
+    localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+    //
+  }
+
+  get onAuthStatus() {
+    return this.#onAuthStatus
+  }
+
+  set onAuthStatus(fn) {
+    this.#onAuthStatus = fn
+  }
+}
+
+export default App

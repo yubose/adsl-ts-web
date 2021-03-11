@@ -17,6 +17,10 @@ export default {
     }
 
     // TEMP - Experimenting CSS
+    if (component.original?.axis === 'vertical') {
+      addClassName('axis-vertical', node)
+    }
+
     if (component.noodlType === 'scrollView') {
       addClassName('scroll-view', node)
     }

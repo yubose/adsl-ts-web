@@ -80,16 +80,6 @@ export function hasLetter(value: any): boolean {
   return /[a-zA-Z]/i.test(String(value))
 }
 
-export function isAllString(values: unknown): values is string
-export function isAllString(values: unknown[]): values is string[]
-export function isAllString(
-  values: unknown | unknown[],
-): values is string | string[] {
-  return Array.isArray(values)
-    ? !values.some((v) => typeof v !== 'string')
-    : typeof values === 'string'
-}
-
 /**
  * Returns true if we are in the browser environment
  */
@@ -101,7 +91,7 @@ export function toNumber(str: string) {
   let value: any
   if (hasLetter(str)) {
     const results = str.match(/[a-zA-Z]/i)
-    if (results && results.index > -1) {
+    if (typeof results?.index === 'number' && results.index > -1) {
       value = Number(str.substring(0, results.index))
     }
   } else {

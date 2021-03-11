@@ -6,6 +6,10 @@ const favicon = 'public/favicon.ico'
 const filename = 'index.html'
 const title = 'AiTmed Noodl Web'
 
+console.log('process.env.ECOS_ENV', process.env.ECOS_ENV)
+console.log('process.env.ECOS_ENV', process.env.ECOS_ENV)
+console.log('process.env.ECOS_ENV', process.env.ECOS_ENV)
+
 module.exports = {
   entry: {
     main: './styleboard/index.ts',
@@ -15,7 +19,7 @@ module.exports = {
     path: path.resolve(__dirname, 'sbuild'),
   },
   devServer: {
-    contentBase: [path.join(__dirname, 'styleboard')],
+    contentBase: [path.join(__dirname, 'public')],
     host: '127.0.0.1',
     port: 3000,
   },
@@ -60,10 +64,8 @@ module.exports = {
           'style-loader',
           {
             loader: 'css-loader',
-            options: {
-              importLoaders: 1,
-              modules: false,
-            },
+            options: { esModule: true },
+            // options: { importLoaders: 1, modules: false },
           },
         ],
         include: /\.module\.css$/,
@@ -86,6 +88,9 @@ module.exports = {
       favicon,
       scriptLoading: 'defer',
       minify: false,
+      ...(process.env.ECOS_ENV !== 'test'
+        ? { template: 'styleboard/index.html' }
+        : undefined),
     }),
     new webpack.ProgressPlugin({
       handler(percentage, msg, ...args) {

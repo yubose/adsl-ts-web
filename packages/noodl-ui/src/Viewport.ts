@@ -1,11 +1,54 @@
 import { IViewport, ViewportListener } from './types'
-import { isBrowser } from './utils/common'
+import { hasLetter, hasDecimal, isBrowser } from './utils/common'
 
-class Viewport implements IViewport {
+class NOODLViewport implements IViewport {
   #onResize: () => void
 
   width: number | undefined = undefined
   height: number | undefined = undefined
+
+  /**
+   *
+   * @param { string | number } value - Size in decimals as written in NOODL
+   * @param { number } viewportSize - The maximum width (or height)
+   */
+  static getSize(
+    value: string | number,
+    viewportSize: number,
+    { unit }: { unit?: 'px' } = {},
+  ) {
+    let result: any
+
+    if (value == '0') {
+      result = 0
+    } else if (value == '1') {
+      result = viewportSize
+    } else {
+      if (typeof value === 'string') {
+        if (!hasLetter(value)) {
+          result = Number(value) * viewportSize
+        } else {
+          result = value.replace(/[a-zA-Z]+/gi, '')
+        }
+      } else if (typeof value === 'number') {
+        if (hasDecimal(value)) {
+          result = value * viewportSize
+        } else {
+          result = value
+        }
+      }
+    }
+    return result !== undefined
+      ? unit
+        ? `${result}${unit}`
+        : Number(result)
+      : result
+  }
+
+  constructor({ width, height }: { width?: number; height?: number } = {}) {
+    this.width = width
+    this.height = height
+  }
 
   isValid() {
     return this.width !== null && this.height !== null
@@ -44,6 +87,17 @@ class Viewport implements IViewport {
       }
     }
   }
+
+  getWidth(dec: string, opts?: Parameters<typeof NOODLViewport['getSize']>[2]) {
+    return NOODLViewport.getSize(dec, this.width as number, opts)
+  }
+
+  getHeight(
+    dec: string,
+    opts?: Parameters<typeof NOODLViewport['getSize']>[2],
+  ) {
+    return NOODLViewport.getSize(dec, this.height as number, opts)
+  }
 }
 
-export default Viewport
+export default NOODLViewport
