@@ -1,7 +1,9 @@
 import { LiteralUnion } from 'type-fest'
 import { ComponentType, getTagName, NOODL as NOODLUI, Viewport } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
+import NOODLUIDOM from 'noodl-ui-dom'
 import componentFixtures from './fixtures/components.json'
+import signInPage from './fixtures/SignIn.json'
 
 function createElement<T extends ComponentType>(
   type: LiteralUnion<T | ComponentType, string>,
@@ -16,28 +18,26 @@ function createElement<T extends ComponentType>(
 
 const viewport = new Viewport()
 const noodlui = new NOODLUI({ viewport })
+const noodluidom = new NOODLUIDOM()
 
-viewport.width = 375
-viewport.height = 667
+noodluidom.use(noodlui)
 
-const mainViewport = document.getElementById('viewport-main')
+noodlui.viewport.width = 375
+noodlui.viewport.height = 667
 
-mainViewport.style.width = viewport.width + 'px'
-mainViewport.style.height = viewport.height + 'px'
-mainViewport.style.border = '1px solid magenta'
+// const textBoard = noodlui.resolveComponents(
+//   componentFixtures.textBoard as ComponentObject,
+// )
 
-const textBoard = noodlui.resolveComponents(
-  componentFixtures.textBoard as ComponentObject,
-)
+// const scrollView = noodlui.resolveComponents(
+//   componentFixtures.scrollView as ComponentObject,
+// )
 
-const scrollView = noodlui.resolveComponents(
-  componentFixtures.scrollView as ComponentObject,
-)
+// const textBoardElem = createElement(getTagName(textBoard), ['text-board'])
+// const scrollViewElem = createElement(getTagName(scrollView), ['scroll-view'])
 
-const textBoardElem = createElement(getTagName(textBoard), ['text-board'])
-const scrollViewElem = createElement(getTagName(scrollView), ['scroll-view'])
+// const components = noodlui.resolveComponents(signInPage.components)
 
-mainViewport.appendChild(textBoardElem)
-mainViewport.appendChild(scrollViewElem)
+const node = noodluidom.render(signInPage.components)
 
-console.log(textBoardElem)
+console.log(node)
