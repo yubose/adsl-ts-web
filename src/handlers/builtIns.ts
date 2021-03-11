@@ -35,7 +35,7 @@ import {
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import { isStable, resolvePageUrl } from '../utils/common'
-import { scrollToElem, toggleVisibility } from '../utils/dom'
+import { hide, show, scrollToElem, toggleVisibility } from '../utils/dom'
 import { pageEvent } from '../constants'
 import Meeting from '../meeting'
 
@@ -82,10 +82,9 @@ const createBuiltInActions = function createBuiltInActions({
         const onCheckField = () => {
           const node = getByDataUX(contentType)
           if (node) {
-            toggleVisibility(
-              Array.isArray(node) ? node[0] : node,
-              ({ isHidden }) => (isHidden ? 'visible' : 'hidden'),
-            )
+            ;(Array.isArray(node) ? node : [node]).forEach((n) => {
+              show(n)
+            })
           }
         }
 
