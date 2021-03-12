@@ -34,6 +34,7 @@ const getAlignAttrs: ResolverFn = (component) => {
         if (x !== undefined) {
           value = getTextAlign(x)
           if (value) {
+            console.log({ component, value, style: component.style })
             component.assignStyles(value)
             if (!('textAlign' in value)) {
               component.removeStyle('textAlign')
@@ -46,7 +47,13 @@ const getAlignAttrs: ResolverFn = (component) => {
             // The y value needs to be handled manually here since getTextAlign will
             //    return { textAlign } which is meant for x
             if (y === 'center') {
-              component.assignStyles({ display: 'flex', alignItems: 'center' })
+              component.assignStyles({
+                display: 'flex',
+                alignItems: 'center',
+              })
+              if (style.textAlign?.x === 'center') {
+                component.setStyle('justifyContent', 'center')
+              }
             } else {
               component.assignStyles(value).removeStyle('textAlign')
             }

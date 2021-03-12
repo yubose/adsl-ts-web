@@ -1,3 +1,4 @@
+import Viewport from '../Viewport'
 import { ResolverFn } from '../types'
 
 /** Returns styles using the className if found from the baseCss object */
@@ -68,16 +69,16 @@ const getStylesByElementType: ResolverFn = (component, options) => {
     // Defaults to being hidden
     case 'popUp':
       return void component.setStyle('visibility', 'hidden')
-    // case 'scrollView':
-    // return void component.assignStyles({
-    // overflowY: 'auto',
-    // maxHeight: String(
-    //   getSize(
-    //     component.getStyle('height'),
-    //     options.viewport.height as number,
-    //   ),
-    // ),
-    // })
+    case 'scrollView':
+      return void component.assignStyles({
+        display: 'block',
+        // maxHeight: String(
+        //   Viewport.getSize(
+        //     component.getStyle('height'),
+        //     options.viewport.height as number,
+        //   ),
+        // ),
+      })
     case 'textView':
       return void component.setStyle('rows', 10)
     default:

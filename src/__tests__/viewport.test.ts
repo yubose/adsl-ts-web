@@ -4,7 +4,6 @@ import { getAspectRatio } from '../utils/common'
 import { deviceSize, viewport } from '../utils/test-utils'
 import getViewportSizeWithMinMax from '../utils/getViewportSizeWithMinMax'
 import createViewportHandler from '../handlers/viewport'
-import { spy } from 'sinon'
 
 let viewWidthHeightMinMax = { min: 0.7, max: 1.5 } as { min: any; max: any }
 let viewportHandler: ReturnType<typeof createViewportHandler>

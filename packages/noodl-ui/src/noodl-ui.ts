@@ -922,10 +922,14 @@ class NOODLUI {
             // originalStyle.top = Viewport.getSize(
             //   top,
             //   this.viewport.height as number,
-            //   {
-            //     unit: 'px',
-            //   },
+            //   { unit: 'px' },
             // )
+            component.setStyle(
+              'top',
+              Viewport.getSize(top, this.viewport.height as number, {
+                unit: 'px',
+              }),
+            )
             if (!('height' in originalStyle)) {
               styles.height = 'auto'
             }
@@ -933,10 +937,15 @@ class NOODLUI {
 
           if (parent?.original?.style?.axis === 'vertical') {
             Object.assign(styles, {
-              position: 'relative',
-              height: 'auto',
+              // position: 'relative',
+              // height: 'inherit',
             })
           }
+        }
+
+        if (!('top' in originalStyle) && !('height' in originalStyle)) {
+          styles.position = 'relative'
+          styles.height = 'auto'
         }
 
         if (!('height' in styles)) {
