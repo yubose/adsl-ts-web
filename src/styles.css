@@ -46,15 +46,15 @@ div.pluginBodyTail {
 */
 
 .axis-vertical {
-  display: block !important;
+  /* display: block !important; */
 }
 
 .axis-vertical > * {
-  position: relative !important;
+  /* position: relative !important; */
 }
 
 .scroll-view {
-  overflow-y: auto;
+  /* overflow-y: auto !important; */
   border: 1px solid magenta !important;
   /* position: absolute !important; */
 }
@@ -65,7 +65,7 @@ div.pluginBodyTail {
 }
 
 .scroll-view > * {
-  position: relative !important;
+  /* position: relative !important; */
 }
 
 .scroll-view > :not('div') {

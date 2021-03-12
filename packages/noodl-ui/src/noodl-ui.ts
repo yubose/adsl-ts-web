@@ -919,9 +919,13 @@ class NOODLUI {
               (this.viewport.height as number) -
               Viewport.getSize(top, this.viewport.height as number)
 
-            styles.top = Viewport.getSize(top, this.viewport.height as number, {
-              unit: 'px',
-            })
+            // originalStyle.top = Viewport.getSize(
+            //   top,
+            //   this.viewport.height as number,
+            //   {
+            //     unit: 'px',
+            //   },
+            // )
             if (!('height' in originalStyle)) {
               styles.height = 'auto'
             }

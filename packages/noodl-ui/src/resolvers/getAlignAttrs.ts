@@ -16,7 +16,7 @@ const getAlignAttrs: ResolverFn = (component) => {
       if (style.axis === 'horizontal') {
         component.assignStyles({ display: 'flex', flexWrap: 'nowrap' })
       } else if (style.axis === 'vertical') {
-        // component.assignStyles({ display: 'flex', flexDirection: 'column' })
+        component.assignStyles({ display: 'flex', flexDirection: 'column' })
       }
     }
 

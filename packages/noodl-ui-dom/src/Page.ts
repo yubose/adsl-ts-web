@@ -43,14 +43,14 @@ class Page {
 
   constructor(render?: T.Render | undefined) {
     if (render) this.render = render
-    this.rootNode = document.createElement('div')
-    // this.rootNode = document.body
+    // this.rootNode = document.createElement('div')
+    this.rootNode = document.body
     this.rootNode.id = 'root'
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
-    if (!document.body.contains(this.rootNode))
-      document.body.appendChild(this.rootNode)
+    // if (!document.body.contains(this.rootNode))
+    // document.body.appendChild(this.rootNode)
   }
 
   getCbs() {
