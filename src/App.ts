@@ -446,7 +446,7 @@ class App {
         pageEvent.ON_BEFORE_RENDER_COMPONENTS as any,
         async function onBeforeRenderComponents(
           this: App,
-          { requesting: pageName, ref, ...rest },
+          { requesting: pageNamef, pageName, ref, ...rest },
         ) {
           log.func('onBeforeRenderComponents')
 

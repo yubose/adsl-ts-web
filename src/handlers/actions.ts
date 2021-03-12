@@ -477,6 +477,10 @@ const createActions = function createActions({
         ...actionsContext,
       })
 
+      let allProps = {} as any // Temp used for debugging/logging
+      let gotoObject = { goto: action.original.goto } as any
+      let pageModifiers = {} as any
+
       const {
         findWindow,
         findByElementId,
@@ -489,15 +493,32 @@ const createActions = function createActions({
         (typeof action.original.goto === 'string'
           ? action.original.goto
           : isPlainObject(action.original.goto)
-          ? action.original.destination || action.original.goto
+          ? action.original.goto.destination ||
+            action.original.goto.dataIn?.destination ||
+            action.original.goto
           : '') || ''
 
-      let { destination, id = '', isSamePage, duration } = parse.destination(
-        destinationParam,
-      )
+      let computedDestinationProps = parse.destination(destinationParam)
+
+      const {
+        destination,
+        id = '',
+        isSamePage,
+        duration,
+      } = computedDestinationProps
 
       if (destination === destinationParam) {
         noodluidom.page.setRequestingPage(destination)
+      }
+
+      if (isPlainObject(gotoObject.goto?.dataIn)) {
+        const dataIn = gotoObject.goto.dataIn
+        'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
+        'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
+      } else if (isPlainObject(gotoObject)) {
+        'reload' in gotoObject && (pageModifiers.reload = gotoObject.reload)
+        'pageReload' in gotoObject &&
+          (pageModifiers.pageReload = gotoObject.pageReload)
       }
 
       stable &&
@@ -582,6 +603,17 @@ const createActions = function createActions({
       } else {
         destination = destinationParam
       }
+
+      allProps = {
+        gotoObject,
+        computedDestinationProps,
+        destinationParam,
+        isSamePage,
+        pageModifiers,
+        updatedQueryString: noodluidom.page.pageUrl,
+      }
+
+      log.grey(`Computed [action] goto props`, allProps)
 
       if (!isSamePage) {
         stable &&
