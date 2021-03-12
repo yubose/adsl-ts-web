@@ -442,6 +442,7 @@ const createBuiltInActions = function createBuiltInActions({
         let destinationParam = ''
         let reload: boolean | undefined
         let reloadPageObject: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+        let dataIn: any // sdk use
 
         // "Reload" currently is only known to be used in goto when runnning
         // an action chain and given an object like { destination, reload }
@@ -458,6 +459,7 @@ const createBuiltInActions = function createBuiltInActions({
                 if ('reload' in gotoObj.goto) reload = gotoObj.goto.reload
                 if ('reloadPageObject' in gotoObj.goto)
                   reloadPageObject = gotoObj.goto.reloadPageObject
+                if ('dataIn' in gotoObj.goto) dataIn = gotoObj.goto.dataIn
               } else if (typeof gotoObj.goto === 'string') {
                 destinationParam = gotoObj.goto
               }
@@ -466,6 +468,7 @@ const createBuiltInActions = function createBuiltInActions({
               if ('reload' in gotoObj) reload = gotoObj.reload
               if ('reloadPageObject' in gotoObj)
                 reloadPageObject = gotoObj.reloadPageObject
+              if ('dataIn' in gotoObj) dataIn = gotoObj.dataIn
             }
           }
         } else if (isPlainObject(action)) {
@@ -474,6 +477,7 @@ const createBuiltInActions = function createBuiltInActions({
             if ('reload' in action) reload = action.reload
             if ('reloadPageObject' in action)
               reloadPageObject = action.reloadPageObject
+            if ('dataIn' in action) dataIn = action.dataIn
           }
         }
 
@@ -483,6 +487,10 @@ const createBuiltInActions = function createBuiltInActions({
 
         if (reloadPageObject !== undefined) {
           noodluidom.page.setModifier(destinationParam, { reloadPageObject })
+        }
+
+        if (dataIn !== undefined) {
+          noodluidom.page.setModifier(destinationParam, { ...dataIn })
         }
 
         log.grey(`Computed goto params`, {
