@@ -725,6 +725,100 @@ class App {
   -------------------------------------------------------- */
 
     this.noodluidom.register({
+<<<<<<< Updated upstream
+=======
+      name: 'chart',
+      cond: 'chart',
+      resolve(node: HTMLDivElement, component) {
+        const dataValue = component.get('data-value') || '' || 'dataKey'
+        if (node) {
+          node['style'].width = component.getStyle('width') as string
+          node['style'].height = component.getStyle('height') as string
+          const myChart = echarts.init(node)
+          const option = dataValue
+          option && myChart.setOption(option)
+        }
+      },
+    } as RegisterOptions)
+
+    this.noodluidom.register({
+      name: 'map',
+      cond: 'map',
+      resolve(node: HTMLDivElement, component) {
+        const dataValue = component.get('data-value') || '' || 'dataKey'
+        if (node) {
+          console.log("test map1",dataValue)
+          const parent = component.parent?.()
+          mapboxgl.accessToken = 'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
+          if(dataValue.mapType == 1){
+            let map = new mapboxgl.Map({
+                container: parent.id,
+                style: 'mapbox://styles/mapbox/streets-v11',
+                center: dataValue.data[0],
+                zoom: dataValue.zoom,
+                // logoPosition:"bottom-right"
+            })
+            map.addControl(new mapboxgl.NavigationControl())
+            let features: any[] =[]
+            dataValue.data.forEach(element => {
+                let item={
+                  // feature for Mapbox DC
+                  'type': 'Feature',
+                  'geometry': {
+                      'type': 'Point',
+                      'coordinates': element
+                  }
+                }
+                features.push(item)
+            })
+            console.log("test map2",features)
+            //start
+            map.on('load', function () {
+              // Add an image to use as a custom marker
+              map.loadImage(
+                  'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
+                  function (error:any, image:any) {
+                      if (error) throw error;
+                      map.addImage('custom-marker', image)
+                      // Add a GeoJSON source with 2 points
+                      map.addSource('points', {
+                          'type': 'geojson',
+                          'data': {
+                              'type': 'FeatureCollection',
+                              'features': features
+                          }
+                      })
+      
+                      // Add a symbol layer
+                      map.addLayer({
+                        'id': 'symbols',
+                        'type': 'symbol',
+                        'source': 'points',
+                        'layout': {
+                          'icon-image': 'custom-marker',
+                          'text-offset': [0, 1.25],
+                          'text-anchor': 'top',
+                          'icon-allow-overlap': true,
+                          'icon-ignore-placement': true,
+                          'icon-padding': 0,
+                          'text-allow-overlap': true
+                        }
+                      })
+                  }
+              )
+          })
+      
+            //end
+          }
+
+          
+
+        }
+      },
+    } as RegisterOptions)
+
+    this.noodluidom.register({
+>>>>>>> Stashed changes
       name: 'videoChat.timer.updater',
       cond: (n, c) => typeof c.get('text=func') === 'function',
       resolve: (node, component) => {
