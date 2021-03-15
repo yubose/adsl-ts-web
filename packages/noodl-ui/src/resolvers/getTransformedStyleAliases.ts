@@ -1,4 +1,6 @@
 import { isBooleanFalse, isBooleanTrue } from 'noodl-utils'
+import { isObj } from '../utils/internal'
+import { hasDecimal, hasLetter } from '../utils/common'
 import { ResolverFn } from '../types'
 
 /**
@@ -9,11 +11,6 @@ const getTransformedStyleAliases: ResolverFn = (component) => {
   const isHidden = component.getStyle('isHidden')
   const shadow = component.getStyle('shadow')
   const required = component.getStyle('required')
-  const margin = component.getStyle('margin')
-  const marginTop = component.getStyle('marginTop')
-  const marginRight = component.getStyle('marginRight')
-  const marginBottom = component.getStyle('marginBottom')
-  const marginLeft = component.getStyle('marginLeft')
 
   if (isHidden) {
     component.setStyle('visibility', 'hidden')
@@ -26,11 +23,36 @@ const getTransformedStyleAliases: ResolverFn = (component) => {
   if (isBooleanTrue(required)) component.set('required', true)
   else if (isBooleanFalse(required)) component.set('required', false)
 
-  if (margin) component.setStyle('margin', margin)
-  if (marginTop) component.setStyle('marginTop', marginTop)
-  if (marginRight) component.setStyle('marginRight', marginRight)
-  if (marginBottom) component.setStyle('marginBottom', marginBottom)
-  if (marginLeft) component.setStyle('marginLeft', marginLeft)
+  const marginKeys = [
+    'margin',
+    'marginTop',
+    'marginRight',
+    'marginBottom',
+    'marginLeft',
+  ] as const
+
+  const numMarginKeys = marginKeys.length
+
+  if (isObj(component.style)) {
+    for (let index = 0; index < numMarginKeys; index++) {
+      const key = marginKeys[index]
+      if (key in (component.style || {})) {
+        let value = component.getStyle(key)
+        if (typeof value === 'string') {
+          if (hasDecimal(value)) {
+            value = Number(value) * 100
+          }
+        }
+        component.setStyle(
+          key,
+          !hasLetter(String(value)) ? value + 'px' : value,
+        )
+      }
+    }
+  } else {
+    // If the code reaches this block it might be a string and most likely
+    // a parsing / dereference error
+  }
 }
 
 export default getTransformedStyleAliases

@@ -39,16 +39,20 @@ const getPlugins = (function (): ResolverFn {
       const path = component.get('path') || ''
       const plugin = (component.get('plugin') as PluginObject) || {}
 
-      let src: string
+      if (fetch === undefined && typeof window !== undefined) {
+        fetch = window.fetch
+      }
 
       if (pluginExists(path as string, plugins)) return
 
-      getPluginUrl(component.get('path') as string, getAssetsUrl(), createSrc)
+      let src: string
+
+      getPluginUrl(path, getAssetsUrl(), createSrc)
         .then((result) => {
           src = result
           component.set('src', src).emit('path', src)
           // Use the default fetcher for now
-          if (src) return fetch(src)
+          if (src) return fetch?.(src)
         })
         .then((content) => {
           plugin.content = content

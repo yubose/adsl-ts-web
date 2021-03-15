@@ -636,6 +636,11 @@ class Component implements IComponent<any> {
   }
 
   emit(eventName: string, ...args: any[]) {
+    // log.func('emit')
+    // log.grey(`Component emit: ${eventName}`, {
+    //   args: arguments,
+    //   component: this,
+    // })
     this.#cb[eventName]?.forEach((fn) => fn(...args))
     return this
   }

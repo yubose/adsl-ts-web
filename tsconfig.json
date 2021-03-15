@@ -6,14 +6,14 @@
     "declaration": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["es6", "dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
     "outDir": "build",
-    "noEmit": true,
     "noEmitOnError": false,
     "noImplicitAny": true,
     "noImplicitThis": true,
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
     "resolveJsonModule": true,
     "sourceMap": true,
     "skipLibCheck": true,
@@ -23,9 +23,10 @@
   },
   "include": [
     "src/**/*",
+    "styleboard/**/*",
     "packages/noodl-ui/dist",
     "packages/noodl-utils/dist",
     "packages/noodl-ui-dom/dist"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules/**/*", "build", "sbuild"]
 }

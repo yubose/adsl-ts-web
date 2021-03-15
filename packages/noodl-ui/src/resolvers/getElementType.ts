@@ -32,7 +32,7 @@ export function getTagName(component: ComponentInstance): string {
     case 'image':
       return 'img'
     case 'label':
-      return 'label'
+      return 'div'
     case 'list':
       return 'ul'
     case 'listItem':

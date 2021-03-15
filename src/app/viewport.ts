@@ -20,15 +20,17 @@ interface WrapperFn {
 const handleViewWidthHeightRatio = (function () {
   const fns = new Map<ConsumerFn, (event: UIEvent) => void>()
 
-  const wrap: WrapperFn = (consumerFn: ConsumerFn) => {
-    return function onResize(event: UIEvent): any {
+  const wrap: WrapperFn = (consumerFn: ConsumerFn) =>
+    function onResize(event: UIEvent): any {
       consumerFn(event, {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        aspectRatio: getAspectRatio(window.innerWidth, window.innerHeight),
+        width: document.body.clientWidth,
+        height: document.body.clientHeight,
+        aspectRatio: getAspectRatio(
+          document.body.clientWidth,
+          document.body.clientHeight,
+        ),
       })
     }
-  }
 
   function use(fn: ConsumerFn) {
     if (typeof fn === 'function') {

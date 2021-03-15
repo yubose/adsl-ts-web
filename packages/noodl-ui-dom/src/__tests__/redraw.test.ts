@@ -38,7 +38,7 @@ let componentCache = noodlui.componentCache.bind(
   noodlui,
 ) as typeof noodlui.componentCache
 
-describe.only('redraw', () => {
+describe('redraw', () => {
   describe(`events`, () => {
     it(`should convert the action chain arrays back to their function handlers`, async () => {
       const [node, component] = toDOM({

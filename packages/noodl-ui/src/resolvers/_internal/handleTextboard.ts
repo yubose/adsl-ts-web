@@ -8,6 +8,7 @@ import Component from '../../components/Base'
 import createComponent from '../../utils/createComponent'
 
 const log = Logger.create('internal[handleList]')
+const stable = process.env.ECOS_ENV === 'stable'
 
 const handleTextboardInternalResolver = (
   component: Component,
@@ -28,8 +29,14 @@ const handleTextboardInternalResolver = (
 
     textBoard.forEach((item) => {
       if (isBreakLineTextBoardItem(item)) {
-        const br = createComponent('br')
+        const br = createComponent('view')
         component.createChild(br as any)
+        stable &&
+          log.cyan(`Created and attached custom "BR" child component`, {
+            br,
+            component,
+            textBoard,
+          })
       } else {
         /**
          * NOTE: Normally in the return type we would return the child
@@ -40,7 +47,7 @@ const handleTextboardInternalResolver = (
          * to get around this issue. For now we'll hard code known props like "color"
          */
         const text = createComponent({
-          type: 'label',
+          type: 'div',
           noodlType: 'label',
           style: {
             display: 'inline-block',
@@ -48,7 +55,17 @@ const handleTextboardInternalResolver = (
           },
           text: item.text,
         })
+        stable &&
+          log.cyan(`Created a text component (label)`, {
+            label: text,
+            component,
+          })
         component.createChild(text as any)
+        stable &&
+          log.cyan(`Attached the new text component as a child`, {
+            label: text,
+            component,
+          })
       }
     })
   } else {

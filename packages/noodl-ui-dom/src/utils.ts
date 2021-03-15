@@ -21,6 +21,12 @@ const isUnd = (v: any): v is undefined => typeof v === 'undefined'
 const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
   typeof v === 'function'
 
+export function addClassName(className: string, node: HTMLElement) {
+  if (!node.classList.contains(className)) {
+    node.classList.add(className)
+  }
+}
+
 /**
  * Creates an image element that loads asynchronously
  * @param { HTMLElement } container - Element to attach the image in
@@ -85,6 +91,7 @@ export function makeFinder(
 
 export const findByElementId = makeFinder('id', getByElementId)
 export const findByViewTag = makeFinder('viewTag', getByViewTag)
+export const findAllByViewTag = makeFinder('viewTag', getByAllViewTag)
 
 export function findWindow(
   cb: (
@@ -162,6 +169,13 @@ export function getByViewTag(
   doc?: Document | null | undefined,
 ): NOODLDOMElement | Element | null {
   return (doc || document).querySelector(`[data-viewtag="${value}"]`)
+}
+
+export function getByAllViewTag(
+  value: string,
+  doc?: Document | null | undefined,
+): NodeListOf<NOODLDOMElement | Element> {
+  return (doc || document).querySelectorAll(`[data-viewtag="${value}"]`)
 }
 
 export function getByElementId(

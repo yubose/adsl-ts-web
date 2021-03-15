@@ -11,6 +11,7 @@ import { _resolveChildren } from './helpers'
 import createComponent from '../../utils/createComponent'
 
 const log = Logger.create('handleList')
+const stable = process.env.ECOS_ENV === 'stable'
 
 const handleListInternalResolver = (
   component: List,
@@ -39,6 +40,14 @@ const handleListInternalResolver = (
 
   const resolveBlueprint = (noodlListItem: NOODLComponent) => {
     const deepChildren = (noodlComponent: any) => {
+      if (stable && noodlComponent !== noodlListItem) {
+        log.func('resolveBlueprint [deepChildren]')
+        log.cyan(`Generating a child descendant for the blueprint`, {
+          rawListItemObject: noodlListItem,
+          rawChildDescendantObject: noodlComponent,
+        })
+      }
+
       const props = {
         style: {
           ...getBaseStyles(),
@@ -78,6 +87,10 @@ const handleListInternalResolver = (
         c.set('dataObject', result.dataObject)
         c.set('listIndex', result.index)
         c.assign(commonProps)
+        if (stable) {
+          log.func('_resolveChildren [onResolve]')
+          log.cyan('Resolved child node for listItem', c)
+        }
         // _internalResolver.resolve(c, {
         //   ...args,
         //   ...options,
@@ -108,6 +121,11 @@ const handleListInternalResolver = (
     )
     const dataObjectBefore = listItem?.getDataObject?.()
     listItem?.setDataObject(null)
+    stable &&
+      log.cyan(`Removed dataObject`, {
+        dataObjectBefore,
+        dataObjectAfter: listItem?.getDataObject(),
+      })
     if (listItem) {
       component.removeChild()
       componentCache().remove(listItem)
@@ -139,6 +157,7 @@ const handleListInternalResolver = (
       index as number
     ]
     listItem?.setDataObject(dataObject)
+    stable && log.cyan(`Attached dataObject to listItem`, dataObject)
     component.emit(
       event.component.list.UPDATE_LIST_ITEM,
       { ...result, listItem: listItem as ListItem },
@@ -146,10 +165,18 @@ const handleListInternalResolver = (
     )
   })
 
+  const blueprint = resolveBlueprint(
+    rawBlueprint as NOODLComponent,
+  ) as ListBlueprint
+
+  stable &&
+    log.cyan(`Setting the blueprint for creating listItem components`, {
+      list: component,
+      blueprint,
+    })
+
   // Initiate the blueprint
-  component.setBlueprint(
-    resolveBlueprint(rawBlueprint as NOODLComponent) as ListBlueprint,
-  )
+  component.setBlueprint(blueprint)
 }
 
 export default handleListInternalResolver

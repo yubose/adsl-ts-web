@@ -1,0 +1,189 @@
+FirebaseToken:
+  edge:
+    .Edge: ""
+    type: 1090
+    name:
+      accessToken: ""
+      deviceType: Android
+    evid: ""
+    refid: ""
+  edgeAPI:
+    .EdgeAPI: ""
+    store:
+      api: ce
+      dataKey: FirebaseToken.edge
+    delete:
+      api: dx
+      dataKey: FirebaseToken.edge
+  unregisterToken:
+    - =.FirebaseToken.edgeAPI.delete
+  checkTokenExpire:
+    if:
+      - =.builtIn.needUpdateToken
+      - =.FirebaseToken.registerToken
+      - continue
+CreateChatRelation:
+  createChatEdge:
+    edge:
+      .Edge: ""
+      id: ""
+      type: 1091
+      name: ""
+      subType: ""
+      refid: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: CreateChatRelation.createChatEdge.edge
+        dataOut: CreateChatRelation.createChatEdge.result
+    result: ""
+  fun_createGroupChatRootEdge:
+    parameter:
+      name:
+        InviteePhoneNumber: ""
+        InviterName: ""
+    execute:
+      - .CreateChatRelation.createChatEdge.edge.id@: ""
+      - .CreateChatRelation.createChatEdge.edge.refid@: ""
+      - .CreateChatRelation.createChatEdge.edge.subType@: 1
+      - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_createGroupChatRootEdge.parameter.name
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+  fun_createGroupChatInviteEdge:
+    parameter:
+      refid: ""
+      name:
+        InviteePhoneNumber: ""
+        InviterName: ""
+    execute:
+      - .CreateChatRelation.createChatEdge.edge.id@: ""
+      - .CreateChatRelation.createChatEdge.edge.refid@: =.CreateChatRelation.fun_createGroupChatInviteEdge.parameter.refid
+      - .CreateChatRelation.createChatEdge.edge.subType@: 1
+      - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_createGroupChatInviteEdge.parameter.name
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+  fun_create1To1ChatEdge:
+    parameter:
+      refid: ""
+      name:
+        InviteePhoneNumber: ""
+        InviterName: ""
+    execute:
+      - .CreateChatRelation.createChatEdge.edge.id@: ""
+      - .CreateChatRelation.createChatEdge.edge.subType@: 0
+      - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_create1To1ChatEdge.parameter.name
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+CreateDocInChat:
+  document:
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        eid: ""
+        type: 0
+        subtype:
+          isOnServer: auto
+          isZipped: 0
+          isBinary: 0
+          isEncrypted: 0
+          isExtraKeyNeeded: 0
+          isEditable: 0
+          applicationDataType: 0
+          mediaType: 0
+        name:
+          title: default title
+          data: ""
+  fun_createFileDoc:
+    parameter:
+      name:
+        data:
+          fileContent: bntData
+          senderName: ""
+    execute:
+      - .CreateDocInChat.document.docAPI.store.subtype.isOnServer@: 0
+      - .CreateDocInChat.document.docAPI.store.subtype.mediaType@: 4
+      - .CreateDocInChat.document.docAPI.store.type@: 1025
+      - .CreateDocInChat.document.docAPI.store.name.data@: =.CreateDocInChat.fun_createFileDoc.parameter.name.data
+      - .CreateDocInChat.document.docAPI.store.eid@: =.CreateDocInChat.fun_createFileDoc.parameter.eid
+      - =.CreateDocInChat.document.docAPI.store
+  fun_createMessageDoc:
+    parameter:
+      eid: ""
+      data:
+        text: ""
+        senderName: ""
+        senderAvatar: ""
+    execute:
+      - .CreateDocInChat.document.docAPI.store.subtype.isOnServer@: 1
+      - .CreateDocInChat.document.docAPI.store.subtype.mediaType@: 8
+      - .CreateDocInChat.document.docAPI.store.type@: 769
+      - .CreateDocInChat.document.docAPI.store.name.data@: =.CreateDocInChat.fun_createMessageDoc.parameter.data
+      - .CreateDocInChat.document.docAPI.store.eid@: =.CreateDocInChat.fun_createMessageDoc.parameter.eid
+      - =.CreateDocInChat.document.docAPI.store
+  fun_createInviteDoc:
+    parameter:
+      eid: ""
+      data:
+        inviteeName: ""
+        inviteePhoneNumber: ""
+        senderName: ""
+    execute:
+      - .CreateDocInChat.document.docAPI.store.type@: 1281
+      - .CreateDocInChat.document.docAPI.store.name.data@: =.CreateDocInChat.fun_createInviteDoc.parameter.data
+      - .CreateDocInChat.document.docAPI.store.eid@: =.CreateDocInChat.fun_createInviteDoc.parameter.eid
+      - =.CreateDocInChat.document.docAPI.store
+ReceiveMessagePopUp:
+  type: popUp
+  viewTag: receiveMessagePopUp
+  style:
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.7"
+    backgroundColor: "0x00000066"
+  children:
+    - type: view
+      style:
+        left: "0.05"
+        top: "0.2"
+        width: "0.89333"
+        height: "0.3"
+        backgroundColor: "0xeeeeeeff"
+        border:
+          style: "5"
+        borderRadius: "15"
+      children:
+        - type: label
+          text: Received a new message
+          style:
+            .LabelStyle:
+              left: "0"
+              top: "0.04"
+              width: "0.89333"
+              height: "0.027247"
+              color: "0x00000088"
+              fontSize: "20"
+              fontStyle: bold
+              display: inline
+              textAlign:
+                x: center
+                y: center
+        - type: button
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: receiveMessagePopUp
+          text: OK
+          style:
+            .LabelStyle:
+              left: "0"
+              top: "0.225"
+              width: "0.89333"
+              height: "0.06812"
+              color: "0x007affff"
+              fontSize: "17"
+              display: inline
+              textAlign:
+                x: center
+                y: center
+              border:
+                style: "5"
+              borderRadius: "15"

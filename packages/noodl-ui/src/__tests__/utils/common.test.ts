@@ -1,67 +1,52 @@
 import difference from 'lodash/difference'
 import isPlainObject from 'lodash/isPlainObject'
 import { expect } from 'chai'
-import { NOODLComponent } from '../types'
-import { forEachEntries, forEachDeepEntries, isAllString } from './common'
+import { forEachEntries, forEachDeepEntries } from '../../utils/common'
+import { ComponentObject } from 'noodl-types'
 
-describe('forEachDeepEntries', () => {
-  const listComponent = getMockListComponent()
-  const entries = [] as any[]
+describe(`common utilities`, () => {
+  describe('forEachDeepEntries', () => {
+    const listComponent = getMockListComponent()
+    const entries = [] as any[]
 
-  let next = [] as any[]
+    let next = [] as any[]
 
-  forEachEntries(listComponent, (key, value) => {
-    entries.push(key)
-    if (isPlainObject(value) || Array.isArray(value)) {
-      next.push(value)
-    }
-  })
-
-  while (next.length) {
-    const value = next.shift()
-    if (Array.isArray(value)) {
-      value.forEach((val) => {
-        if (isPlainObject(val) || Array.isArray(val)) {
-          next.push(val)
-        }
-      })
-    } else if (isPlainObject(value)) {
-      forEachEntries(value, (key, val) => {
-        entries.push(key)
-        if (isPlainObject(val) || Array.isArray(val)) {
-          next.push(val)
-        }
-      })
-    }
-  }
-
-  it('should traverse deeply nested object properties', () => {
-    const results = []
-    forEachDeepEntries(listComponent, (key, value) => {
-      results.push(key)
+    forEachEntries(listComponent, (key, value) => {
+      entries.push(key)
+      if (isPlainObject(value) || Array.isArray(value)) {
+        next.push(value)
+      }
     })
-    expect(difference(entries, results).length).to.eq(0)
+
+    while (next.length) {
+      const value = next.shift()
+      if (Array.isArray(value)) {
+        value.forEach((val) => {
+          if (isPlainObject(val) || Array.isArray(val)) {
+            next.push(val)
+          }
+        })
+      } else if (isPlainObject(value)) {
+        forEachEntries(value, (key, val) => {
+          entries.push(key)
+          if (isPlainObject(val) || Array.isArray(val)) {
+            next.push(val)
+          }
+        })
+      }
+    }
+
+    it('should traverse deeply nested object properties', () => {
+      const results = [] as any[]
+      forEachDeepEntries(listComponent, (key, value) => {
+        results.push(key)
+      })
+      expect(difference(entries, results).length).to.eq(0)
+    })
   })
 })
 
-describe('isAllString', () => {
-  it('should return true', () => {
-    expect(isAllString(['undefined', '55', 'affs', 'vcw', ";';,."])).to.be.true
-    expect(isAllString('f')).to.be.true
-    expect(isAllString('null')).to.be.true
-    expect(isAllString('false')).to.be.true
-    expect(isAllString('5')).to.be.true
-  })
-
-  it('should return false', () => {
-    expect(isAllString(['undefined', undefined, 'fls'])).to.be.false
-    expect(isAllString(['undefined', null, 'fls'])).to.be.false
-    expect(isAllString(['undefined', () => {}, 'fls'])).to.be.false
-    expect(isAllString(['undefined', 5, 'fls'])).to.be.false
-  })
-})
-
-function getMockListComponent(): NOODLComponent {
+function getMockListComponent(): ComponentObject {
   return {
     type: 'list',
     contentType: 'listObject',

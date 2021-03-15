@@ -68,10 +68,15 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
    * @param { NOODLComponent | NOODLComponent[] } components
    */
   render(rawComponents: NOODLComponent | NOODLComponent[]) {
-    // if (!this.#R.get('noodlui'))
-    // throw new Error(
-    //   'Cannot render without a noodlui or page component',
-    // )
+    const currentPage = this.page.getState().current
+    if (this.page.rootNode && this.page.rootNode.id === currentPage) {
+      return console.log(
+        `%cSkipped rendering the DOM for page "${currentPage}" because the DOM ` +
+          `nodes are already rendered`,
+        `color:#ec0000;font-weight:bold;`,
+        this.page.snapshot(),
+      )
+    }
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     this.page.setStatus(eventId.page.status.RESOLVING_COMPONENTS)
@@ -101,43 +106,43 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
     if (component) {
       if (isPluginComponent(component)) {
-        // Don't create a node. Except just emit the events accordingly
-        // This is to allow the caller to determine whether they want to create
-        // a separate DOM node or not
-        if (component.noodlType === 'plugin') {
-          this.#R.run(node, component)
-          return node
-        } else {
-          // We will delegate the role of the node creation to the consumer
-          this.#R.run((result: T.NOODLDOMElement) => (node = result), component)
-        }
-      } else {
-        if (component.noodlType === 'image') {
-          node = isEmitObj((component as any).get('path'))
-            ? createAsyncImageElement(
-                (container || document.body) as HTMLElement,
-                {},
-              )
-            : document.createElement('img')
-        } else {
-          node = document.createElement(
-            getTagName(component as ComponentInstance),
-          )
-        }
+        // We will delegate the role of the node creation to the consumer
+        const getNode = (elem: HTMLElement) => (node = elem)
+        this.#R.run(getNode, component)
+        return node
+      } else if (component.noodlType === 'image') {
+        node = isEmitObj((component as any).get('path'))
+          ? createAsyncImageElement(
+              (container || document.body) as HTMLElement,
+              {},
+            )
+          : document.createElement('img')
         this.#R.run(node, component)
-        if (node) {
-          const parent = container || document.body
-          if (!parent.contains(node)) parent.appendChild(node)
-          if (component.length) {
-            component.children().forEach((child: ComponentInstance) => {
-              const childNode = this.draw(child, node) as T.NOODLDOMElement
-              node?.appendChild(childNode)
-            })
-          }
+      } else if (component.noodlType === 'popUp' && component.has('global')) {
+        node = document.createElement(getTagName(component))
+        this.#R.run(node, component)
+        // Delegating global popUps (a.k.a modals) to the consumer to decide
+        // how to determine their parent/child behavior
+        return node
+      } else {
+        node = document.createElement(
+          getTagName(component as ComponentInstance),
+        )
+        this.#R.run(node, component)
+      }
+      if (node) {
+        let parent = container || document.body
+
+        parent.appendChild(node)
+
+        if (component.length) {
+          component.children().forEach((child: ComponentInstance) => {
+            const childNode = this.draw(child, node) as T.NOODLDOMElement
+            node?.appendChild(childNode)
+          })
         }
       }
     }
-
     return node || null
   }
 

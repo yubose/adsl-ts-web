@@ -16,6 +16,7 @@ import {
 } from '../types'
 
 const log = Logger.create('ActionChain')
+const stable = process.env.ECOS_ENV === 'stable'
 
 class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
   #consumerArgs: T.ActionConsumerCallbackOptions & {
@@ -80,6 +81,10 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     )
     if (options?.trigger) this.trigger = options.trigger
     this.createAction = createActionCreatorFactory(this, options)
+    if (stable) {
+      log.func('constructor')
+      log.cyan(`Instantiated a new ActionChain instance`, this)
+    }
   }
 
   /**
@@ -87,6 +92,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
    * @param { string | string[] | undefined } reason
    */
   async abort(reason?: string | string[]) {
+    log.func('abort')
     const reasons = reason
       ? Array.isArray(reason)
         ? reason
@@ -97,7 +103,6 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
       aborted: reasons.length ? { reasons } : true,
     } as any
 
-    log.func('abort')
     log.orange('Aborting...', {
       reasons,
       status: this.status,
@@ -138,7 +143,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
     const actionChainHandler = async (event?: any) => {
       try {
         this.status = 'in.progress'
-        log.func('actionChainHandler')
+        log.func('build')
         log.grey('Action chain started', {
           ...this.getDefaultCallbackArgs({ event }),
           fns: this.fns,
@@ -202,15 +207,31 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
    * @param { any } args - Args for the next async call
    */
   async next(args?: any) {
+    log.func('next')
+    stable &&
+      log.cyan(`Calling ActionChain#gen.next()`, {
+        snapshot: this.getSnapshot(),
+      })
     const result = await this.gen.next(args)
     if (result.value?.action instanceof Action) {
+      stable &&
+        log.cyan(`Next action: ${result.value.action.actionType}`, {
+          action: result.value.action,
+          ref: this,
+        })
       this.current = result.value.action
     }
     return result
   }
 
   refresh() {
-    if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
+    if (this.#timeoutRef) {
+      clearTimeout(this.#timeoutRef)
+      stable &&
+        log.cyan(`Cleared a timeout that was running`, {
+          snapshot: this.getSnapshot(),
+        })
+    }
     this.#queue = []
     this.status = null
     this.loadQueue()
@@ -245,6 +266,14 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
 
   loadGen() {
     this.gen = this.createGenerator()
+    if (stable) {
+      log.func('loadGen')
+      log.cyan(`Created the generator for this action chain`, {
+        generator: this.gen,
+        ref: this,
+      })
+    }
+
     return this
   }
 
@@ -254,7 +283,16 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
   ) {
     let result
     try {
-      if (this.#timeoutRef) clearTimeout(this.#timeoutRef)
+      if (this.#timeoutRef) {
+        clearTimeout(this.#timeoutRef)
+        if (stable) {
+          log.func('execute')
+          stable &&
+            log.cyan(`Cleared a timeout that was running`, {
+              snapshot: this.getSnapshot(),
+            })
+        }
+      }
       this.#timeoutRef = setTimeout(() => {
         const msg = `Action of type "${action.actionType}" timed out`
         action.abort(msg)
@@ -266,7 +304,16 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
             throw new AbortExecuteError(err)
           })
       }, 10000)
-      if (!this.isAborted()) result = await action.execute(handlerOptions)
+      stable && log.cyan(`Attached timeout to this execution`, this.#timeoutRef)
+      if (!this.isAborted()) {
+        result = await action.execute(handlerOptions)
+      } else {
+        if (stable) {
+          log.cyan(
+            `"abort" was called on this action chain. It will no longer execute`,
+          )
+        }
+      }
       if (isPlainObject(result)) {
         if ('wait' in (result || {}))
           await this.abort(
@@ -310,6 +357,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
    * as soon as they are done executing
    */
   loadQueue() {
+    log.func('loadQueue')
     this.actions.forEach((actionObj: T.ActionObject | Function | string) => {
       let action:
         | Action<T.ActionObject>
@@ -321,6 +369,13 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
           actionType: 'anonymous',
           fn: actionObj,
         })
+        if (stable) {
+          log.cyan(
+            `Receiving a function as an action object. What is this? ` +
+              `(Defaulted to an "anonymous" action, which is always going to be invoked)`,
+            { action, actions: this.actions, ref: this },
+          )
+        }
       }
       // Temporarily hardcode the actionType to blend in with the other actions
       // for now until we find a better solution
@@ -338,7 +393,14 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
           }
         }
       }
-      if (action) this.#queue.push(action as Action<T.ActionObject>)
+      if (action) {
+        this.#queue.push(action as Action<T.ActionObject>)
+        stable &&
+          log.cyan(
+            `Loading ${action.actionType} action to the queue:`,
+            actionObj,
+          )
+      }
     })
     return this
   }
@@ -359,6 +421,11 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
       | EmitAction<T.EmitActionObject>
       | undefined
     if (typeof this.createAction[actionObj.actionType] === 'function') {
+      if (stable) {
+        log.func('insertIntermediaryAction')
+        stable && log.cyan(`Injected mediary action`, actionObj)
+      }
+
       action = this.createAction[actionObj.actionType](actionObj as any)
       this.#queue.unshift(action as Action<ActionObjects[number]>)
       this.intermediary.push(action as Action<ActionObjects[number]>)
@@ -378,6 +445,7 @@ class ActionChain<ActionObjects extends T.ActionObject[] = T.ActionObject[]> {
   useAction(action: T.StoreActionObject<any>): this
   useAction(action: T.StoreActionObject<any>[]): this
   useAction(action: T.StoreActionObject<any> | T.StoreActionObject<any>[]) {
+    log.func('useAction')
     // Built in actions are forwarded to this.useBuiltIn
     ;(Array.isArray(action) ? action : [action]).forEach((obj) => {
       if ('funcName' in (typeof obj === 'object' ? obj : {} || {})) {

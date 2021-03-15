@@ -1,7 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { createToast, Toast } from 'vercel-toast'
-import { NOODLDOMElement } from 'noodl-ui-dom'
-import { FileInputEvent } from '../app/types'
 import { forEachEntries } from './common'
 
 export function copyToClipboard(value: string) {
@@ -13,10 +11,19 @@ export function copyToClipboard(value: string) {
   textarea.setSelectionRange(0, 9999999)
   document.execCommand('copy')
   textarea.remove()
+  return null
 }
 
 export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
+}
+
+export function hide(node: HTMLElement | null | undefined) {
+  node && (node.style.visibility = 'hidden')
+}
+
+export function show(node: HTMLElement | null | undefined) {
+  node && (node.style.visibility = 'visible')
 }
 
 /**
@@ -26,6 +33,10 @@ export function getDocumentScrollTop(doc?: Document | null) {
  */
 export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
+}
+
+type FileInputEvent = Event & {
+  target: Event['target'] & { files: FileList }
 }
 
 interface OnSelectFileBaseResult {
@@ -75,12 +86,12 @@ export function onSelectFile(
   // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
   return new Promise((resolve, reject) => {
     const input = inputNode || document.createElement('input')
-    input.style['visibility'] = 'hidden'
-    input['type'] = 'file'
+    input.style.visibility = 'hidden'
+    input.type = 'file'
 
-    input['onclick'] = function (event) {
-      document.body['onfocus'] = () => {
-        document.body['onfocus'] = null
+    input.onclick = function (event) {
+      document.body.onfocus = () => {
+        document.body.onfocus = null
         setTimeout(() => {
           document.body.removeChild(input)
           resolve({
@@ -92,7 +103,7 @@ export function onSelectFile(
       }
     }
 
-    input['onerror'] = function onFileInputError(
+    input.onerror = function onFileInputError(
       message,
       source,
       lineNumber,
@@ -100,13 +111,21 @@ export function onSelectFile(
       error,
     ) {
       document.body.onfocus = null
-      reject({
-        message,
-        source,
-        lineNumber,
-        columnNumber,
-        error,
-      })
+      reject(
+        new Error(
+          JSON.stringify(
+            {
+              message,
+              source,
+              lineNumber,
+              columnNumber,
+              error,
+            },
+            null,
+            2,
+          ),
+        ),
+      )
     }
 
     document.body.appendChild(input)
@@ -195,15 +214,15 @@ export function toast(message: string | number, options?: Toast['options']) {
  * @param { function? } cond - Function returning 'visible' or 'hidden'
  */
 export function toggleVisibility(
-  node: NOODLDOMElement,
+  node: HTMLElement,
   cond?: (arg: { isHidden: boolean }) => 'visible' | 'hidden',
 ) {
   if (node?.style) {
     const isHidden = node.style.visibility === 'hidden'
     if (typeof cond === 'function') {
-      node.style['visibility'] = cond({ isHidden })
+      node.style.visibility = cond({ isHidden })
     } else {
-      node.style['visibility'] = isHidden ? 'visible' : 'hidden'
+      node.style.visibility = isHidden ? 'visible' : 'hidden'
     }
   }
 }

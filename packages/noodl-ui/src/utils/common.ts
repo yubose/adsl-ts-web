@@ -1,5 +1,9 @@
 import isPlainObject from 'lodash/isPlainObject'
 import spread from 'lodash/spread'
+import { AnyFn } from '../types'
+
+export const callAll = (...fns: AnyFn[]) => (arg: any) =>
+  fns.forEach((fn) => fn?.(arg))
 
 /**
  * Runs forEach on each key/value pair of the value, passing in the key as the first
@@ -76,16 +80,6 @@ export function hasLetter(value: any): boolean {
   return /[a-zA-Z]/i.test(String(value))
 }
 
-export function isAllString(values: unknown): values is string
-export function isAllString(values: unknown[]): values is string[]
-export function isAllString(
-  values: unknown | unknown[],
-): values is string | string[] {
-  return Array.isArray(values)
-    ? !values.some((v) => typeof v !== 'string')
-    : typeof values === 'string'
-}
-
 /**
  * Returns true if we are in the browser environment
  */
@@ -97,7 +91,7 @@ export function toNumber(str: string) {
   let value: any
   if (hasLetter(str)) {
     const results = str.match(/[a-zA-Z]/i)
-    if (results && results.index > -1) {
+    if (typeof results?.index === 'number' && results.index > -1) {
       value = Number(str.substring(0, results.index))
     }
   } else {

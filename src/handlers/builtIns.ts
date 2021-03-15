@@ -16,6 +16,7 @@ import {
 import NOODLUIDOM, {
   getByDataUX,
   isTextFieldLike,
+  NOODLDOMDataValueElement,
   NOODLDOMElement,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject } from 'noodl-types'
@@ -27,21 +28,21 @@ import {
   Room,
 } from 'twilio-video'
 import {
-  getByDataViewTag,
   isBoolean as isNOODLBoolean,
   isBooleanTrue,
   isBooleanFalse,
   parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import { resolvePageUrl } from '../utils/common'
-import { scrollToElem, toggleVisibility } from '../utils/dom'
+import { isStable, resolvePageUrl } from '../utils/common'
+import { hide, show, scrollToElem, toggleVisibility } from '../utils/dom'
 import { pageEvent } from '../constants'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
+const stable = isStable()
 
-const createBuiltInActions = function ({
+const createBuiltInActions = function createBuiltInActions({
   noodl,
   noodlui,
   noodluidom,
@@ -67,8 +68,8 @@ const createBuiltInActions = function ({
       ) {
         log.func('checkField')
         log.grey('checkField', { action, options })
-        let contentType: string = '',
-          delay: number | boolean = 0
+        let contentType = ''
+        let delay: number | boolean = 0
 
         if (action instanceof Action) {
           contentType = action.original?.contentType || ''
@@ -81,10 +82,9 @@ const createBuiltInActions = function ({
         const onCheckField = () => {
           const node = getByDataUX(contentType)
           if (node) {
-            toggleVisibility(
-              Array.isArray(node) ? node[0] : node,
-              ({ isHidden }) => (isHidden ? 'visible' : 'hidden'),
-            )
+            ;(Array.isArray(node) ? node : [node]).forEach((n) => {
+              show(n)
+            })
           }
         }
 
@@ -117,6 +117,56 @@ const createBuiltInActions = function ({
     })
     .register({
       actionType: 'builtIn',
+      funcName: 'hide',
+      async fn(action, options, { findAllByViewTag }) {
+        const viewTag = action.original?.viewTag || ''
+        const nodes = findAllByViewTag(viewTag)
+
+        log.func('hide')
+
+        if (nodes?.length) {
+          Array.from(nodes).forEach((node) => {
+            log.grey('Toggling visibility off', {
+              action,
+              options,
+              viewTag,
+              node,
+              component: options.component,
+            })
+            node.style.visibility = 'hidden'
+          })
+        } else {
+          log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
+        }
+      },
+    })
+    .register({
+      actionType: 'builtIn',
+      funcName: 'show',
+      async fn(action, options, { findAllByViewTag }) {
+        const viewTag = action.original?.viewTag || ''
+        const nodes = findAllByViewTag(viewTag)
+
+        log.func('show')
+
+        if (nodes?.length) {
+          Array.from(nodes).forEach((node) => {
+            log.grey('Toggling visibility on', {
+              action,
+              options,
+              viewTag,
+              node,
+              component: options.component,
+            })
+            node.style.visibility = 'visible'
+          })
+        } else {
+          log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
+        }
+      },
+    })
+    .register({
+      actionType: 'builtIn',
       funcName: 'toggleCameraOnOff',
       async fn(
         action: Action<BuiltInActionObject>,
@@ -126,7 +176,7 @@ const createBuiltInActions = function ({
         log.func('toggleCameraOnOff')
         const path = 'VideoChat.cameraOn'
 
-        let localParticipant = Meeting.localParticipant
+        const { localParticipant } = Meeting
         let videoTrack: LocalVideoTrack | undefined
 
         if (localParticipant) {
@@ -173,7 +223,7 @@ const createBuiltInActions = function ({
         log.func('toggleMicrophoneOnOff')
         const path = 'VideoChat.micOn'
 
-        let localParticipant = Meeting.localParticipant
+        const { localParticipant } = Meeting
         let audioTrack: LocalAudioTrack | undefined
 
         if (localParticipant) {
@@ -216,15 +266,15 @@ const createBuiltInActions = function ({
         console.log({ action, ...options })
         const { findByElementId } = actionsContext
         const { component } = options
-        const page = noodlui.page
+        const { page } = noodlui
         const { dataKey = '' } = action.original || {}
         let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
         const node = findByElementId(component)
 
         let dataValue: any
         let dataObject: any
-        let previousDataValue: boolean | undefined = undefined
-        let nextDataValue: boolean | undefined = undefined
+        let previousDataValue: boolean | undefined
+        let nextDataValue: boolean | undefined
         let newSrc = ''
 
         if (isDraft(path)) path = original(path)
@@ -232,7 +282,7 @@ const createBuiltInActions = function ({
         log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
 
         if (dataKey?.startsWith(iteratorVar)) {
-          let parts = dataKey.split('.').slice(1)
+          const parts = dataKey.split('.').slice(1)
           dataObject = findListDataObject(component)
           previousDataValue = get(dataObject, parts)
           // previousDataValueInSdk = _.get(noodl.root[context.page])
@@ -252,7 +302,7 @@ const createBuiltInActions = function ({
           ) => {
             let nextValue: any
             if (isNOODLBoolean(previousValue)) {
-              nextValue = isBooleanTrue(previousValue) ? false : true
+              nextValue = !isBooleanTrue(previousValue)
             }
             nextValue = !previousValue
             if (updateDraft) {
@@ -389,8 +439,10 @@ const createBuiltInActions = function ({
       ) {
         log.func('builtIn [goto]')
         log.red('', { action, ...options })
-        let destinationParam: string = ''
+        let destinationParam = ''
         let reload: boolean | undefined
+        let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+        let dataIn: any // sdk use
 
         // "Reload" currently is only known to be used in goto when runnning
         // an action chain and given an object like { destination, reload }
@@ -405,20 +457,25 @@ const createBuiltInActions = function ({
               if (isPlainObject(gotoObj.goto)) {
                 destinationParam = gotoObj.goto.destination
                 if ('reload' in gotoObj.goto) reload = gotoObj.goto.reload
+                if ('pageReload' in gotoObj.goto)
+                  pageReload = gotoObj.goto.pageReload
+                if ('dataIn' in gotoObj.goto) dataIn = gotoObj.goto.dataIn
               } else if (typeof gotoObj.goto === 'string') {
                 destinationParam = gotoObj.goto
               }
-            } else {
-              if (isPlainObject(gotoObj)) {
-                destinationParam = gotoObj.destination
-                if ('reload' in gotoObj) reload = gotoObj.reload
-              }
+            } else if (isPlainObject(gotoObj)) {
+              destinationParam = gotoObj.destination
+              if ('reload' in gotoObj) reload = gotoObj.reload
+              if ('pageReload' in gotoObj) pageReload = gotoObj.pageReload
+              if ('dataIn' in gotoObj) dataIn = gotoObj.dataIn
             }
           }
         } else if (isPlainObject(action)) {
           if ('destination' in action) {
             destinationParam = action.destination
             if ('reload' in action) reload = action.reload
+            if ('pageReload' in action) pageReload = action.pageReload
+            if ('dataIn' in action) dataIn = action.dataIn
           }
         }
 
@@ -426,9 +483,18 @@ const createBuiltInActions = function ({
           noodluidom.page.setModifier(destinationParam, { reload })
         }
 
+        if (pageReload !== undefined) {
+          noodluidom.page.setModifier(destinationParam, { pageReload })
+        }
+
+        if (dataIn !== undefined) {
+          noodluidom.page.setModifier(destinationParam, { ...dataIn })
+        }
+
         log.grey(`Computed goto params`, {
           destination: destinationParam,
           reload,
+          pageReload,
         })
 
         let findWindow: any
@@ -440,7 +506,7 @@ const createBuiltInActions = function ({
         // from a page object. Since actionsContext is not available at that time,
         // we have to manually import these utilities on demand if they aren't available
         if (!actionsContext) {
-          let noodluidomlib = await import('noodl-ui-dom')
+          const noodluidomlib = await import('noodl-ui-dom')
           findWindow = noodluidomlib.findWindow
           findByElementId = noodluidomlib.findByElementId
           findByViewTag = noodluidomlib.findByViewTag
@@ -474,7 +540,7 @@ const createBuiltInActions = function ({
               win = window
               doc = window.document
             } else {
-              win = findWindow((w) => {
+              win = findWindow((w: any) => {
                 if (w) {
                   if ('contentDocument' in w) {
                     doc = (w as any).contentDocument
@@ -482,7 +548,8 @@ const createBuiltInActions = function ({
                     doc = w.document
                   }
                   return doc?.contains?.(node)
-                } else return false
+                }
+                return false
               })
             }
             const scroll = () => {
@@ -541,6 +608,9 @@ const createBuiltInActions = function ({
             } else {
               urlToGoToInstead = 'index.html?' + destination
             }
+
+            debugger
+
             window.location.href = urlToGoToInstead
           } else await noodluidom.page.requestPageChange(destination)
 
@@ -567,7 +637,7 @@ const createBuiltInActions = function ({
 
         const viewTag = action?.original?.viewTag || ''
 
-        let components = Object.values(
+        const components = Object.values(
           noodlui.componentCache().state() || {},
         ).reduce((acc: ComponentInstance[], c: any) => {
           if (c && c.get('viewTag') === viewTag) return acc.concat(c)
@@ -633,18 +703,26 @@ const createBuiltInActions = function ({
           ({ createOnDataValueChangeFn }) => {
             ;(node as NOODLDOMElement)?.addEventListener(
               'change',
-              createOnDataValueChangeFn(node, component, {
-                onChange: component.get('onChange'),
-                eventName: 'onchange',
-              }),
+              createOnDataValueChangeFn(
+                node as NOODLDOMDataValueElement,
+                component,
+                {
+                  onChange: component.get('onChange'),
+                  eventName: 'onchange',
+                },
+              ),
             )
             if (component.get('onBlur')) {
               ;(node as NOODLDOMElement)?.addEventListener(
                 'blur',
-                createOnDataValueChangeFn(node, component, {
-                  onBlur: component.get('onBlur'),
-                  eventName: 'onblur',
-                }),
+                createOnDataValueChangeFn(
+                  node as NOODLDOMDataValueElement,
+                  component,
+                  {
+                    onBlur: component.get('onBlur'),
+                    eventName: 'onblur',
+                  },
+                ),
               )
             }
           },
@@ -674,35 +752,6 @@ const createBuiltInActions = function ({
             )
           }
           parentNode?.appendChild(iframeEl)
-        }
-      },
-    })
-    .register({
-      name: 'plugin',
-      cond: 'plugin',
-      async resolve(node, component: any) {
-        const src = component?.get?.('src')
-        if (typeof src === 'string') {
-          if (src.startsWith('http')) {
-            if (src.endsWith('.js')) {
-              const { default: axios } = await import('../app/axios')
-              const { data } = await axios.get(src)
-              /**
-               * TODO - Check the ext of the filename
-               * TODO - If its js, run eval on it
-               */
-              try {
-                eval(data)
-              } catch (error) {
-                console.error(error)
-              }
-            }
-          } else {
-            console.error(
-              `Received a src from a "plugin" component that did not start with an http(s) protocol`,
-              { component: component.toJS(), src },
-            )
-          }
         }
       },
     })
@@ -740,24 +789,24 @@ const createBuiltInActions = function ({
                 node && (node.style[styleKey] = '')
               })
 
-              newParent.style['display'] = 'flex'
-              newParent.style['alignItems'] = 'center'
-              newParent.style['background'] = 'none'
+              newParent.style.display = 'flex'
+              newParent.style.alignItems = 'center'
+              newParent.style.background = 'none'
 
-              node && (node.style['width'] = '100%')
-              node && (node.style['height'] = '100%')
+              node && (node.style.width = '100%')
+              node && (node.style.height = '100%')
 
-              eyeContainer.style['top'] = '0px'
-              eyeContainer.style['bottom'] = '0px'
-              eyeContainer.style['right'] = '6px'
-              eyeContainer.style['width'] = '42px'
-              eyeContainer.style['background'] = 'none'
-              eyeContainer.style['border'] = '0px'
-              eyeContainer.style['outline'] = 'none'
+              eyeContainer.style.top = '0px'
+              eyeContainer.style.bottom = '0px'
+              eyeContainer.style.right = '6px'
+              eyeContainer.style.width = '42px'
+              eyeContainer.style.background = 'none'
+              eyeContainer.style.border = '0px'
+              eyeContainer.style.outline = 'none'
 
-              eyeIcon.style['width'] = '100%'
-              eyeIcon.style['height'] = '100%'
-              eyeIcon.style['userSelect'] = 'none'
+              eyeIcon.style.width = '100%'
+              eyeIcon.style.height = '100%'
+              eyeIcon.style.userSelect = 'none'
 
               eyeIcon.setAttribute('src', eyeClosed)
               eyeContainer.setAttribute(
@@ -792,7 +841,7 @@ const createBuiltInActions = function ({
                   node?.setAttribute('type', 'password')
                 }
                 selected = !selected
-                eyeContainer['title'] = !selected
+                eyeContainer.title = !selected
                   ? 'Click here to hide your password'
                   : 'Click here to reveal your password'
               }
@@ -817,7 +866,7 @@ const createBuiltInActions = function ({
   async function _onLockLogout() {
     const dataValues = getDataValues() as { password: string }
     const hiddenPwLabel = getByDataUX('passwordHidden') as HTMLDivElement
-    let password = dataValues.password || ''
+    const password = dataValues.password || ''
     // Reset the visible status since this is a new attempt
     if (hiddenPwLabel) {
       const isVisible = hiddenPwLabel.style.visibility === 'visible'
@@ -831,9 +880,8 @@ const createBuiltInActions = function ({
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
       else window.alert('Password is incorrect')
       return 'abort'
-    } else {
-      if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
     }
+    if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
   }
 
   return noodluidom
@@ -930,14 +978,9 @@ export function onVideoChatBuiltIn({
       console.error(error)
       window.alert(`[${error.name}]: ${error.message}`)
     }
-  }
-}
 
-export function onBuiltinMissing(
-  action: BuiltInObject,
-  options: ActionConsumerCallbackOptions,
-) {
-  window.alert(`The button "${action.funcName}" is not available to use yet`)
+    stable && log.cyan(`Initialized builtIn funcs`)
+  }
 }
 
 export default createBuiltInActions

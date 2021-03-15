@@ -1,5 +1,7 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
+import merge from 'lodash/merge'
+import isPlainObject from 'lodash/isPlainObject'
 import noop from 'lodash/noop'
 import { isDraft, original } from 'immer'
 import Logger from 'logsnap'
@@ -7,7 +9,6 @@ import {
   ActionType,
   ComponentObject,
   EmitObject,
-  Identify,
   RegisterComponentObject,
 } from 'noodl-types'
 import {
@@ -20,6 +21,8 @@ import {
 } from 'noodl-utils'
 import Resolver from './Resolver'
 import Viewport from './Viewport'
+import handleRegister from './resolvers/_internal/handleRegister'
+import { getSize } from './resolvers/getSizes'
 import _internalResolver from './resolvers/_internal'
 import {
   forEachDeepEntries,
@@ -45,9 +48,28 @@ import EmitAction from './Action/EmitAction'
 import getStore from './store'
 import { event } from './constants'
 import * as T from './types'
-import { isPlainObject } from 'lodash'
+
+export interface RegisterCallbacks {
+  [key: string]: {
+    onEvent?: {
+      [eventName: string]: {
+        component: T.ComponentInstance
+        key: string
+        id: string
+        prop: 'onEvent'
+        fn: (emittedArgs: {
+          key: string
+          id: string
+          prop: 'onEvent'
+          data: any
+        }) => Promise<any>
+      }
+    }
+  }
+}
 
 const log = Logger.create('noodl-ui')
+const stable = process.env.ECOS_ENV === 'stable'
 let id = 0
 
 function _createState(initialState?: Partial<T.State>) {
@@ -59,7 +81,7 @@ function _createState(initialState?: Partial<T.State>) {
   } as T.State
 }
 
-class NOODL {
+class NOODLUI {
   #id: number
   #cache = createComponentCache()
   #cb: {
@@ -70,27 +92,10 @@ class NOODL {
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     on: {
       [event.SET_PAGE]: ((pageName: string) => void)[]
-      [event.NEW_PAGE]: ((page: string) => Promise<NOODL> | undefined)[]
+      [event.NEW_PAGE]: ((page: string) => Promise<NOODLUI> | undefined)[]
       [event.NEW_PAGE_REF]: ((ref: Page) => Promise<void> | undefined)[]
     }
-    registered: {
-      [key: string]: {
-        onEvent?: {
-          [eventName: string]: {
-            component: T.ComponentInstance
-            key: string
-            id: string
-            prop: 'onEvent'
-            fn: (emittedArgs: {
-              key: string
-              id: string
-              prop: 'onEvent'
-              data: any
-            }) => Promise<any>
-          }
-        }
-      }
-    }
+    registered: RegisterCallbacks
   } = {
     action: {},
     builtIn: {},
@@ -115,8 +120,10 @@ class NOODL {
   #state: T.State
   #viewport: Viewport
   actionsContext: T.ActionChainContext = { noodlui: this }
-  refs: { main: NOODL } & { [page: string]: NOODL } = {} as { main: NOODL } & {
-    [page: string]: NOODL
+  refs: { main: NOODLUI } & { [page: string]: NOODLUI } = {} as {
+    main: NOODLUI
+  } & {
+    [page: string]: NOODLUI
   }
   initialized: boolean = false
 
@@ -197,8 +204,6 @@ class NOODL {
       ].forEach((c) => this.#resolve(c))
     }
 
-    // ;[...this.registry(this.page)]
-
     // Finish off with the internal resolvers to handle the children
     components.forEach((c) => {
       const component = this.#resolve(c)
@@ -217,11 +222,37 @@ class NOODL {
 
   #resolve = (c: T.ComponentType | T.ComponentInstance | ComponentObject) => {
     const component = createComponent(c as any)
+
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component)
 
     component.id = component.id || getRandomKey()
     component.assignStyles(baseStyles)
+
+    if (component.noodlType === 'register') {
+      if (
+        component.original?.onEvent &&
+        component.id !== component.original?.onEvent
+      ) {
+        component.id = component.original.onEvent
+      }
+      log.func('#resolve')
+      // Skip the resolving for register type components since they only need
+      // to be processed once in the lifetime of the page
+      if (this.componentCache().has(component)) {
+        log.grey(
+          `This register component was found in the cache and was returned it instead`,
+          this.componentCache().state(),
+        )
+      } else {
+        handleRegister(component, consumerOptions)
+      }
+      return component
+    }
+
+    getStore().resolvers.forEach((obj) => {
+      obj.resolver.resolve(component, consumerOptions)
+    })
 
     // Finalizing
     if (component.style && typeof component.style === 'object') {
@@ -235,10 +266,6 @@ class NOODL {
         }
       })
     }
-
-    getStore().resolvers.forEach((obj) => {
-      obj.resolver.resolve(component, consumerOptions)
-    })
 
     return component
   }
@@ -525,7 +552,7 @@ class NOODL {
   ): this
   on(
     e: typeof event.NEW_PAGE_REF,
-    fn: (ref: NOODL) => Promise<void> | undefined,
+    fn: (ref: NOODLUI) => Promise<void> | undefined,
   ): this
   on(e: any, fn: any) {
     if ([event.SET_PAGE, event.NEW_PAGE, event.NEW_PAGE_REF].includes(e)) {
@@ -541,77 +568,108 @@ class NOODL {
   register({
     component,
     key,
+    prop = 'onEvent', // Hard code to onEvent for now
+    fn, // Note: fn MUST be passed in if the register component does not have an emit
   }: {
-    component: T.ComponentInstance | RegisterComponentObject
+    component: T.ComponentInstance | RegisterComponentObject | null
     key: string
+    prop?: string
+    fn?: T.AnyFn
   }) {
     let id: string = ''
     let inst: T.ComponentInstance
-    let prop: string = 'onEvent' // Hard code to onEvent for now
     let cbs = this.getCbs('register')
-
-    if (isComponent(component)) {
-      id = component.original?.onEvent || ''
-      inst = component
-    } else {
-      id = component.onEvent || ''
-      inst = this.resolveComponents(component)
-    }
 
     if (!cbs[key]) cbs[key] = {}
     if (!cbs[key][prop]) cbs[key][prop] = {}
 
-    cbs[key][prop][id] = {
-      component: inst,
-      prop,
-      id,
-      key,
-      fn: async (data: any) => {
-        log.func('onNOODLUIEmit')
+    if (component !== null) {
+      if (isComponent(component)) {
+        id = component.original?.onEvent || ''
+        inst = component
+      } else {
+        id = component.onEvent || ''
+        inst = this.resolveComponents(component)
+      }
 
-        const registerInfo = { component, prop, id, key, data }
+      log.func('register')
+      log.grey(`[${prop}] Registering ${id}: `, {
+        ...arguments[0],
+        instance: inst,
+      })
 
-        if (inst.original?.emit) {
-          // Limiting the consumer objs to 1 for now
-          const obj = getStore().actions.emit?.find?.(
-            (o) => o.trigger === 'register',
-          )
+      cbs[key][prop][id] = {
+        component: inst,
+        prop,
+        id,
+        key,
+        fn: async (data: any) => {
+          const registerInfo = { component, prop, id, key, data }
+          if (inst.original?.emit) {
+            // Limiting the consumer objs to 1 for now
+            const obj = getStore().actions.emit?.find?.(
+              (o) => o.trigger === 'register',
+            )
 
-          if (typeof obj?.fn === 'function') {
-            const emitObj = { emit: inst.original.emit } as EmitObject
-            const dataKey = inst.original.emit?.dataKey
-            const emitAction = new EmitAction(emitObj as T.EmitActionObject, {
-              trigger: 'register',
-            })
+            if (typeof obj?.fn === 'function') {
+              const emitObj = { emit: inst.original.emit } as EmitObject
+              const dataKey = inst.original.emit?.dataKey
+              const emitAction = new EmitAction(emitObj as T.EmitActionObject, {
+                trigger: 'register',
+              })
 
-            if (typeof dataKey === 'string') {
-              if (dataKey === prop) emitAction.setDataKey(registerInfo.data)
-              else emitAction.setDataKey(prop)
-            } else if (isPlainObject(dataKey)) {
-              emitAction.setDataKey(
-                Object.entries(dataKey).reduce((acc, [key, value]) => {
-                  if (value === prop) acc[key] = registerInfo.data
-                  else acc[key] = value
-                  return acc
-                }, {}),
-              )
+              if (typeof dataKey === 'string') {
+                if (dataKey === prop) emitAction.setDataKey(registerInfo.data)
+                else emitAction.setDataKey(prop)
+              } else if (isPlainObject(dataKey)) {
+                emitAction.setDataKey(
+                  Object.entries(dataKey).reduce((acc, [key, value]) => {
+                    if (value === prop) acc[key] = registerInfo.data
+                    else acc[key] = value
+                    return acc
+                  }, {}),
+                )
+              }
+
+              emitAction.callback = async (snapshot) => {
+                log.func('register [callback]')
+                log.grey(`Executing register emit action callback`, snapshot)
+                const result = await obj?.fn?.(
+                  emitAction,
+                  this.getConsumerOptions({ component: inst }),
+                  this.actionsContext,
+                )
+                return (Array.isArray(result) ? result[0] : result) || ''
+              }
+
+              let result = await emitAction.execute(emitObj)
+              inst.emit(prop, { ...registerInfo, result })
+            } else {
+              const cbs = this.getCbs('register')
+              if (!cbs[registerInfo.id]) {
+                cbs[registerInfo.id] = {
+                  [registerInfo.prop]: {
+                    [registerInfo.id]: fn,
+                  },
+                }
+              }
             }
-
-            emitAction.callback = async (snapshot) => {
-              log.grey(`Executing register emit action callback`, snapshot)
-              const result = await obj?.fn?.(
-                emitAction,
-                this.getConsumerOptions({ component: inst }),
-                this.actionsContext,
-              )
-              return (Array.isArray(result) ? result[0] : result) || ''
-            }
-
-            let result = await emitAction.execute(emitObj)
-            inst.emit(prop, { ...registerInfo, result })
           }
-        }
-      },
+        },
+      }
+    } else {
+      if (!id) id = key
+      // If this call reaches here then this was registered sometime in the
+      // beginning prior to parsing components if component is explicitly set
+      // to null. When resolveComponents is called and this component is encountered,
+      // it will set the component at that time.
+      cbs[key][prop][id] = {
+        component: null,
+        prop,
+        id,
+        key,
+        fn,
+      }
     }
 
     return cbs[key][prop][id]
@@ -627,15 +685,57 @@ class NOODL {
     ...args: Parameters<T.ComponentEventCallback>
   ): this
   emit(eventName: string, ...args: any[]) {
+    stable && log.cyan(`Emitting: ${eventName}`, args)
     if (typeof eventName === 'string') {
       if (eventName === 'register') {
         // type ex: "onEvent"
-        const { prop = '', key = '', id = '', data } = args[0] || {}
+        const { prop = '', key = '', id = '', ...rest } = args[0] || {}
         if (prop === 'onEvent') {
           const cbs = this.getCbs('register')
-          const fn = cbs[key]?.[prop]?.[id]?.fn
+          const obj = cbs[key]?.[prop]?.[id]
+          const fn = obj?.fn
+          const params = { id, key, prop, ...rest }
           if (typeof fn === 'function') {
-            const result = fn(data)
+            if (obj.component) {
+              if (obj.component?.original?.actions) {
+                // Create the action chain and pass it as a final callback
+                params.next = () => {
+                  stable && log.cyan(`next() is getting called`)
+                  return this.createActionChainHandler(
+                    obj.component.original.actions,
+                    {
+                      ...getActionConsumerOptions(this),
+                      component: obj.component,
+                      trigger: 'register',
+                    },
+                  )()
+                }
+              } else {
+                stable &&
+                  log.cyan(
+                    `A "register" component not using an emit object did not have an "actions" list. Is this supported?`,
+                    {
+                      ...obj,
+                      params,
+                    },
+                  )
+              }
+            }
+            // The result can be passed as args to the action chain if this component
+            // has an action chain waiting to be called
+            const result = fn(params.data)
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            console.info({ result, params })
+            stable &&
+              log.cyan(`Ran the "func" on the register component`, {
+                result,
+                ...obj,
+              })
             if (isPromise(result)) {
               result
                 .then((res) =>
@@ -717,6 +817,7 @@ class NOODL {
   ): Partial<
     Record<ActionType | 'emit' | 'goto' | 'toast', T.StoreBuiltInObject[]>
   >
+  getCbs(key: 'register'): RegisterCallbacks
   getCbs(
     key?:
       | 'actions'
@@ -758,7 +859,7 @@ class NOODL {
     getAssetsUrl,
     getRoot,
     viewport,
-  }: { _log?: boolean; actionsContext?: NOODL['actionsContext'] } & {
+  }: { _log?: boolean; actionsContext?: NOODLUI['actionsContext'] } & {
     getAssetsUrl?: () => string
     getRoot?: () => T.Root
     plugins?: {
@@ -781,10 +882,13 @@ class NOODL {
   }
 
   getBaseStyles(component?: T.ComponentInstance) {
-    let styles = (component?.original?.style as T.Style) || undefined
+    let originalStyle = (component?.original?.style as T.Style) || undefined
+    let styles = { ...originalStyle } as T.Style
+
     // if (styles?.top === 'auto') styles.top = '0'
-    if (isPlainObject(styles)) {
-      if (!('top' in styles)) styles.top = '0'
+    if (isPlainObject(originalStyle)) {
+      // "Auto top" for web. Set top to 0 to start immediately after the previous
+      if (!('top' in originalStyle)) styles.top = '0'
 
       if (isComponent(component)) {
         const parent = component.parent() as T.ComponentInstance
@@ -795,37 +899,72 @@ class NOODL {
           let parentHeight = parent?.style?.height
 
           // if (parentTop === 'auto') parentTop = '0'
-          if (parentTop !== undefined) top = toNumber(parentTop)
-          if (parentHeight !== undefined) top = top + toNumber(parentHeight)
+          if (parentTop !== undefined) {
+            if (parentTop === 'auto') {
+              top = 0
+            } else {
+              top = Viewport.getSize(parentTop, this.viewport.height as number)
+            }
+          }
+          if (parentHeight !== undefined) {
+            top = Viewport.getSize(
+              top + toNumber(parentHeight === 'auto' ? '0' : parentHeight),
+              this.viewport.height as number,
+            )
+          }
 
           if (typeof top === 'number') {
-            top = (this.viewport.height as number) - top
-            component.setStyle('top', top + 'px')
-            if (!('height' in (component.style || {}))) {
-              // component.setStyle('height', 'auto')
+            // REMINDER: "top" is a value here like 0.202 (not yet converted to size in px)
+            top =
+              (this.viewport.height as number) -
+              Viewport.getSize(top, this.viewport.height as number)
+
+            // originalStyle.top = Viewport.getSize(
+            //   top,
+            //   this.viewport.height as number,
+            //   { unit: 'px' },
+            // )
+            component.setStyle(
+              'top',
+              Viewport.getSize(top, this.viewport.height as number, {
+                unit: 'px',
+              }),
+            )
+            if (!('height' in originalStyle)) {
+              styles.height = 'auto'
             }
           }
 
-          if (parent.style?.axis === 'vertical') {
-            styles.position = 'relative'
-            styles.height = 'auto'
+          if (parent?.original?.style?.axis === 'vertical') {
+            Object.assign(styles, {
+              // position: 'relative',
+              // height: 'inherit',
+            })
           }
         }
 
-        if (!('height' in component.style)) {
-          component.style.height = 'auto'
+        if (!('top' in originalStyle) && !('height' in originalStyle)) {
+          styles.position = 'relative'
+          styles.height = 'auto'
+        }
+
+        if (!('height' in styles)) {
+          styles.height = 'auto'
         }
       } else if (isPlainObject(component)) {
         //
       }
     }
 
-    return {
-      ...this.#getRoot().Style,
-      position: 'absolute',
-      outline: 'none',
-      ...styles,
-    }
+    return merge(
+      {
+        ...this.#getRoot().Style,
+        position: 'absolute',
+        outline: 'none',
+      },
+      originalStyle,
+      styles,
+    )
   }
 
   getActionsContext() {
@@ -879,6 +1018,7 @@ class NOODL {
       getState: this.getState.bind(this),
       plugins: this.plugins.bind(this),
       page: this.page,
+      register: this.register.bind(this),
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
       showDataKey: this.#state.showDataKey,
@@ -924,14 +1064,6 @@ class NOODL {
     }
   }
 
-  getRef(key: string) {
-    return this.refs[key]
-  }
-
-  setRef(key: string, ref: NOODL) {
-    this.refs[key] = ref
-  }
-
   setPlugin(value: T.PluginCreationType) {
     if (!value) return
     const plugin: T.PluginObject = this.createPluginObject(value)
@@ -954,38 +1086,11 @@ class NOODL {
     return this.getState().registry
   }
 
-  /**
-   * Spawns a new noodl-ui instance and stores the reference in memory
-   * This is used to create a "sandboxed" noodl-ui engine to render isolated
-   * components (useful for iframes). This by default is used internally by
-   * components of type: page
-   * @param { string } page - Page name
-   * @param { ...object } constructorArgs - Arguments to the constructor
-   */
-  spawn(page: string, ...constructorArgs: ConstructorParameters<typeof NOODL>) {
-    this.refs[page] = new NOODL(...constructorArgs)
-    this.refs[page].init({ actionsContext: this.actionsContext })
-    this.refs[page].setPage(page)
-    // this.refs[page].viewport.width = this.viewport.width
-    // this.refs[page].viewport.height = this.viewport.height
-    this.refs[page].use({
-      fetch: this.#fetch.bind(this),
-      getAssetsUrl: (() => this.assetsUrl).bind(this),
-      getBaseUrl: this.#getBaseUrl.bind(this),
-      getPreloadPages: this.#getPreloadPages.bind(this),
-      getPages: this.#getPages.bind(this),
-      getRoot: this.#getRoot.bind(this),
-      plugins: this.plugins.bind(this),
-    })
-    this.refs[page].setRef('parent', this)
-    return this.refs[page]
-  }
-
   use(resolver: Resolver | Resolver[]): this
   use(action: T.ActionChainUseObject | T.ActionChainUseObject[]): this
   use(viewport: Viewport): this
   use(o: {
-    actionsContext?: Partial<NOODL['actionsContext']>
+    actionsContext?: Partial<NOODLUI['actionsContext']>
     fetch?: T.Fetch
     getAssetsUrl?(): string
     getBaseUrl?(): string
@@ -1000,7 +1105,7 @@ class NOODL {
       | T.ActionChainUseObject
       | Viewport
       | {
-          actionsContext?: Partial<NOODL['actionsContext']>
+          actionsContext?: Partial<NOODLUI['actionsContext']>
           getAssetsUrl?(): string
           getBaseUrl?(): string
           getPreloadPages?(): string[]
@@ -1012,7 +1117,7 @@ class NOODL {
           | Resolver
           | T.ActionChainUseObject
           | {
-              actionsContext?: Partial<NOODL['actionsContext']>
+              actionsContext?: Partial<NOODLUI['actionsContext']>
               getAssetsUrl?(): string
               getBaseUrl?(): string
               getPreloadPages?(): string[]
@@ -1112,4 +1217,4 @@ class NOODL {
   }
 }
 
-export default NOODL
+export default NOODLUI

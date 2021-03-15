@@ -4,7 +4,12 @@ import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
 import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
-import NOODLUIDOM, { eventId, NOODLDOMElement, Page } from 'noodl-ui-dom'
+import NOODLUIDOM, {
+  eventId,
+  NOODLDOMElement,
+  Page,
+  RegisterOptions,
+} from 'noodl-ui-dom'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import some from 'lodash/some'
@@ -12,6 +17,7 @@ import { ComponentObject } from 'noodl-types'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
+  RemoteParticipant,
 } from 'twilio-video'
 import {
   ComponentInstance,
@@ -27,25 +33,32 @@ import {
 } from 'noodl-ui'
 import { WritableDraft } from 'immer/dist/internal'
 import { copyToClipboard } from './utils/dom'
-import { AuthStatus } from './app/types/commonTypes'
-import { IMeeting } from './meeting'
+import Meeting, { IMeeting } from './meeting'
 import { CACHED_PAGES, pageEvent, pageStatus } from './constants'
-import { CachedPageObject } from './app/types'
-import { isMobile } from './utils/common'
-import { forEachParticipant } from './utils/twilio'
+import {
+  AuthStatus,
+  CachedPageObject,
+  FirebaseApp,
+  FirebaseMessaging,
+} from './app/types'
+import { isStable } from './utils/common'
+import createRegisters from './handlers/register'
 import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
+import createMeetingHandlers from './handlers/meeting'
 import createViewportHandler from './handlers/viewport'
 import MeetingSubstreams from './meeting/Substreams'
-import firebaseApp from './app/firebase'
 
 const log = Logger.create('App.ts')
+const stable = isStable()
 
 export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
 class App {
+  #enabled = {
+    firebase: true,
+  }
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
-  #messaging = {} as ReturnType<typeof firebaseApp.messaging>
   #preparePage = {} as (pageName: string) => Promise<PageObject>
   #viewportUtils = {} as ViewportUtils
   _store: {
@@ -57,8 +70,9 @@ class App {
     },
   }
   authStatus: AuthStatus | '' = ''
-  initialized: boolean = false
-  firebase = {} as typeof firebaseApp
+  firebase = {} as FirebaseApp
+  initialized = false
+  messaging = null as FirebaseMessaging | null
   meeting: IMeeting = {} as IMeeting
   noodl = {} as CADL
   noodlui = {} as NOODLUI
@@ -66,28 +80,25 @@ class App {
   streams = {} as ReturnType<IMeeting['getStreams']>
 
   async initialize({
-    // actions,
-    // builtIn,
-    firebase: { firebase, vapidKey },
+    firebase: { client: firebase, vapidKey },
     meeting,
     noodlui,
     noodluidom,
   }: {
-    // actions: ReturnType<typeof createActions>
-    // builtIn: ReturnType<typeof createBuiltInActions>
-    firebase: {
-      firebase: typeof firebaseApp
-      vapidKey: string
-    }
+    firebase: { client: App['firebase']; vapidKey: string }
     meeting: IMeeting
     noodlui: NOODLUI
     noodluidom: NOODLUIDOM
   }) {
     const { Account } = await import('@aitmed/cadl')
     const noodl = (await import('app/noodl')).default
+    const { isSupported: firebaseSupported } = await import('app/firebase')
+
+    !firebaseSupported() && (this.#enabled.firebase = false)
 
     this.firebase = firebase
-    this.messaging = this.firebase.messaging()
+    this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
+    stable && log.cyan(`Initialized firebase messaging instance`)
     this.meeting = meeting
     this.noodl = noodl
     this.noodlui = noodlui
@@ -95,41 +106,42 @@ class App {
     this.streams = meeting.getStreams()
     this.#viewportUtils = createViewportHandler(new Viewport())
 
-    noodluidom.use(noodlui)
-
-    // this._store.messaging.token = await this.messaging.getToken({
-    //   vapidKey: webPushCertificatesKeyPair,
-    //   serviceWorkerRegistration: this._store.messaging.serviceRegistration,
-    // })
-    // log.green('Received firebase messaging token', this._store.messaging.token)
-
-    const unsubscribe = this.messaging.onMessage(
-      function nextOrObserver(obs) {
-        log.func('onMessage')
-        log.green('[nextOrObserver]: obs', obs)
-      },
-      function onError(err) {
-        log.func('onMessage')
-        log.red(`[onError]: ${err.message}`, err)
-      },
-      function onComplete() {
-        log.func('[onComplete]')
-        log.grey(`from onMessage`)
-      },
-    )
-
+    stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
     await noodl.init()
+    stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
+    noodluidom.use(noodlui)
+    stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
     createActions({ noodlui, noodluidom })
     createBuiltIns({ noodl, noodlui, noodluidom })
+    createRegisters({ noodl, noodlui, noodluidom, Meeting })
+    createMeetingHandlers({ noodl, noodlui, noodluidom, Meeting })
 
     meeting.initialize({
       noodluidom,
-      page: this.noodluidom.page,
+      page: noodluidom.page,
       viewport: this.#viewportUtils.viewport,
     })
 
+    if (this.#enabled.firebase) {
+      this.messaging?.onMessage(
+        (obs) => {
+          log.func('onMessage')
+          log.green('[nextOrObserver]: obs', obs)
+        },
+        (err) => {
+          log.func('onMessage')
+          log.red(`[onError]: ${err.message}`, err)
+        },
+        () => {
+          log.func('[onComplete]')
+          log.grey(`from onMessage`)
+        },
+      )
+    }
+
     let startPage = noodl?.cadlEndpoint?.startPage
+    stable && log.cyan(`Start page: ${startPage}`)
 
     if (!this.authStatus) {
       // Initialize the user's state before proceeding to decide on how to direct them
@@ -150,10 +162,14 @@ class App {
       }
     }
 
-    this.#preparePage = async (pageName: string): Promise<PageObject> => {
+    this.#preparePage = async function preparePage(
+      this: App,
+      pageName: string,
+    ): Promise<PageObject> {
       try {
+        stable && log.cyan(`Running noodl.initPage on ${pageName}`)
         await noodl.initPage(pageName, [], {
-          ...this.noodluidom.page.getState().modifiers[pageName],
+          ...noodluidom.page.getState().modifiers[pageName],
           builtIn: {
             FCMOnTokenReceive: async (...args: any[]) => {
               try {
@@ -165,7 +181,7 @@ class App {
                 log.red('Unable to get permission to notify.', err)
               }
               try {
-                if ('navigator' in window) {
+                if (this.#enabled.firebase) {
                   this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
                     'firebase-messaging-sw.js',
                   )
@@ -179,29 +195,40 @@ class App {
                     'Initialized service worker',
                     this._store.messaging.serviceRegistration,
                   )
+
+                  this.messaging?.onMessage((...args) => {
+                    log.func('messaging.onMessage')
+                    log.green(`Received a message`, args)
+                  })
                 } else {
                   log.red(
-                    `Could not initiate the firebase service worker because window.navigator is not found`,
+                    `Could not initiate the firebase service worker because this browser ` +
+                      `does not support it`,
+                    this,
                   )
                 }
 
-                this.messaging.onMessage((...args) => {
-                  log.func('messaging.onMessage')
-                  log.green(`Received a message`, args)
-                })
-
-                log.grey(`Running getToken with args: `, args)
-
-                const token = await this.messaging.getToken(...args)
+                const token = this.#enabled.firebase
+                  ? (await this.messaging?.getToken(...args)) || ''
+                  : ''
 
                 copyToClipboard(token)
 
-                noodlui.emit('register', {
-                  key: 'globalRegister',
-                  id: 'FCMOnTokenReceive',
-                  prop: 'onEvent',
-                  data: token,
-                })
+                if (this.#enabled.firebase) {
+                  noodlui.emit('register', {
+                    key: 'globalRegister',
+                    id: 'FCMOnTokenReceive',
+                    prop: 'onEvent',
+                    data: token,
+                  })
+                } else {
+                  log.func('FCMOnTokenReceive')
+                  log.red(
+                    `Could not emit the "FCMOnTokenReceive" event because firebase ` +
+                      `messaging is disabled. Is it supported by this browser?`,
+                    this,
+                  )
+                }
 
                 return token
               } catch (error) {
@@ -209,23 +236,23 @@ class App {
                 return error
               }
             },
-            FCMOnTokenRefresh: this.messaging.onTokenRefresh.bind(
-              this.messaging,
-            ),
-            checkField: this.noodluidom.builtIns.checkField?.find(Boolean)?.fn,
-            goto: this.noodluidom.builtIns.goto?.find(Boolean)?.fn,
+            FCMOnTokenRefresh: this.#enabled.firebase
+              ? this.messaging?.onTokenRefresh.bind(this.messaging)
+              : undefined,
+            checkField: noodluidom.builtIns.checkField?.find(Boolean)?.fn,
+            goto: noodluidom.builtIns.goto?.find(Boolean)?.fn,
             videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
           },
         })
         log.func('createPreparePage')
         log.grey(`Ran noodl.initPage on page "${pageName}"`, {
           pageName,
-          pageModifiers: this.noodluidom.page.getState().modifiers[pageName],
+          pageModifiers: noodluidom.page.getState().modifiers[pageName],
           pageObject: noodl.root[pageName],
-          snapshot: this.noodluidom.page.snapshot(),
+          snapshot: noodluidom.page.snapshot(),
         })
         if (noodl.root?.Global?.globalRegister) {
-          const Global = noodl.root.Global
+          const { Global } = noodl.root
           if (Array.isArray(Global.globalRegister)) {
             if (Global.globalRegister.length) {
               log.grey(
@@ -255,78 +282,69 @@ class App {
       } catch (error) {
         throw new Error(error)
       }
-    }
+    }.bind(this)
 
     this.observeClient({ noodlui, noodl })
     this.observeInternal(noodlui)
-    this.observeViewport(this.getViewportUtils())
-    this.observePages(this.noodluidom.page)
+    this.observeViewport(this.#viewportUtils)
+    this.observePages(noodluidom.page)
     this.observeMeetings(meeting)
 
     /* -------------------------------------------------------
       ---- LOCAL STORAGE
     -------------------------------------------------------- */
     // Override the start page if they were on a previous page
-    let cachedPages = this.getCachedPages()
-    let cachedPage = cachedPages[0]
+    const cachedPages = this.getCachedPages()
+    const cachedPage = cachedPages[0]
+
     if (cachedPages?.length) {
       if (cachedPage?.name && cachedPage.name !== startPage) {
         startPage = cachedPage.name
       }
     }
-    if (
-      !window.localStorage.getItem('tempConfigKey') &&
-      window.localStorage.getItem('config')
-    ) {
-      let localConfig = JSON.parse(window.localStorage.getItem('config') || '')
-      window.localStorage.setItem('tempConfigKey', localConfig.timestamp)
+
+    const ls = window.localStorage
+
+    if (!ls.getItem('tempConfigKey') && ls.getItem('config')) {
+      ls.setItem(
+        'tempConfigKey',
+        JSON.parse(ls.getItem('config') || '')?.timestamp,
+      )
     }
 
-    if (this.noodluidom.page && window.location.href) {
-      let newPage = noodl.cadlEndpoint.startPage
-      let hrefArr = window.location.href.split('/')
-      let urlArr = hrefArr[hrefArr.length - 1]
-      let localConfig = JSON.parse(window.localStorage.getItem('config') || '')
+    if (noodluidom.page && location.href) {
+      let { startPage } = noodl.cadlEndpoint
+      const urlParts = location.href.split('/')
+      const pathname = urlParts[urlParts.length - 1]
+      const localConfig = JSON.parse(ls.getItem('config') || '') || {}
+      const tempConfigKey = ls.getItem('tempConfigKey')
+
       if (
-        window.localStorage.getItem('tempConfigKey') &&
-        window.localStorage.getItem('tempConfigKey') !==
-          JSON.stringify(localConfig.timestamp)
+        tempConfigKey &&
+        tempConfigKey !== JSON.stringify(localConfig.timestamp)
       ) {
-        window.localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
-        this.noodluidom.page.pageUrl = 'index.html?'
-        await this.noodluidom.page.requestPageChange(newPage)
+        ls.setItem('CACHED_PAGES', JSON.stringify([]))
+        noodluidom.page.pageUrl = 'index.html?'
+        await noodluidom.page.requestPageChange(startPage)
+      } else if (!pathname?.startsWith('index.html?')) {
+        noodluidom.page.pageUrl = 'index.html?'
+        await noodluidom.page.requestPageChange(startPage)
       } else {
-        if (!urlArr?.startsWith('index.html?')) {
-          this.noodluidom.page.pageUrl = 'index.html?'
-          await this.noodluidom.page.requestPageChange(newPage)
+        const pageParts = pathname.split('-')
+        if (pageParts.length > 1) {
+          startPage = pageParts[pageParts.length - 1]
         } else {
-          let pagesArr = urlArr.split('-')
-          if (pagesArr.length > 1) {
-            newPage = pagesArr[pagesArr.length - 1]
-          } else {
-            let baseArr = pagesArr[0].split('?')
-            if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
-              newPage = baseArr[baseArr.length - 1]
-            }
+          const baseArr = pageParts[0].split('?')
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
+            startPage = baseArr[baseArr.length - 1]
           }
-          this.noodluidom.page.pageUrl = urlArr
-          await this.noodluidom.page.requestPageChange(newPage)
         }
+        noodluidom.page.pageUrl = pathname
+        await noodluidom.page.requestPageChange(startPage)
       }
     }
+
     this.initialized = true
-  }
-
-  get messaging() {
-    return this.#messaging
-  }
-
-  set messaging(messaging) {
-    this.#messaging = messaging
-  }
-
-  getViewportUtils() {
-    return this.#viewportUtils
   }
 
   observeClient({ noodl, noodlui }: { noodl: any; noodlui: NOODLUI }) {
@@ -343,7 +361,7 @@ class App {
     })
   }
 
-  // Cleans window.ac (used for debugging atm)
+  // Cleans ac (used for debugging atm)
   observeInternal(noodlui: NOODLUI) {
     noodlui.on(noodluiEvent.SET_PAGE, () => {
       if (typeof window !== 'undefined' && 'ac' in window) {
@@ -375,11 +393,11 @@ class App {
       setMaxAspectRatio(max)
     }
 
-    const { aspectRatio, width, height, min, max } = computeViewportSize({
-      width: window.innerWidth,
-      height: window.innerHeight,
-      previousWidth: window.innerWidth,
-      previousHeight: window.innerHeight,
+    const { aspectRatio, width, height } = computeViewportSize({
+      width: innerWidth,
+      height: innerHeight,
+      previousWidth: innerWidth,
+      previousHeight: innerHeight,
     })
 
     setViewportSize({ width, height })
@@ -387,11 +405,10 @@ class App {
 
     on(
       'resize',
-      ({
-        aspectRatio,
-        width,
-        height,
-      }: ReturnType<typeof computeViewportSize>) => {
+      function onResize(
+        this: App,
+        { aspectRatio, width, height }: ReturnType<typeof computeViewportSize>,
+      ) {
         log.func('on resize [viewport]')
         if (this.noodlui.page === 'VideoChat') {
           return log.grey(
@@ -409,28 +426,49 @@ class App {
           this.noodl?.root?.[this.noodluidom.page.getState().current]
             ?.components,
         )
-      },
+      }.bind(this),
     )
   }
 
   observePages(page: Page) {
     page
-      .on(pageEvent.ON_NAVIGATE_START, (snapshot: any) => {
-        console.log(
-          `%cRendering the DOM for page: "${snapshot.requesting}"`,
-          `color:#95a5a6;`,
-          snapshot,
-        )
-      })
+      .on(
+        pageEvent.ON_NAVIGATE_START,
+        function onNavigateStart(this: App, snapshot: any) {
+          log.func('onNavigateStart')
+          log.grey(
+            `Starting navigate request to ${snapshot.requesting}`,
+            snapshot,
+          )
+        },
+      )
       .on(
         pageEvent.ON_BEFORE_RENDER_COMPONENTS as any,
-        async ({ requesting: pageName }) => {
+        async function onBeforeRenderComponents(
+          this: App,
+          { requesting: pageNamef, pageName, ref, ...rest },
+        ) {
+          log.func('onBeforeRenderComponents')
+
+          if (ref.request.name !== pageName) {
+            log.red(
+              `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
+              { requesting: pageName, ref, ...rest },
+            )
+            return 'old.request'
+          }
+          log.grey(`Rendering the DOM for page: "${pageName}"`, {
+            requesting: pageName,
+            ref,
+            ...rest,
+          })
+
           if (
             /videochat/i.test(page.getState().current) &&
             !/videochat/i.test(pageName)
           ) {
             this.meeting.leave()
-            log.func('page [before-page-render]')
+            log.func('before-page-render')
             log.grey(`Disconnected from room`, this.meeting.room)
 
             const mainStream = this.streams.getMainStream()
@@ -459,9 +497,9 @@ class App {
           }
 
           let pageSnapshot = {} as { name: string; object: any } | 'old.request'
-          let pageModifiers = page.getState().modifiers[pageName]
+          const pageModifiers = page.getState().modifiers[pageName]
 
-          if (pageName !== page.getState().current || pageModifiers?.force) {
+          if (pageName !== page.getState().current) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
             const noodluidomPageSnapshot = this.noodluidom.page.snapshot()
@@ -486,14 +524,15 @@ class App {
             // Initialize the noodl-ui client (parses components) if it
             // isn't already initialized
             if (!this.initialized) {
-              log.func('page [before-page-render]')
+              log.func('before-page-render')
               log.grey('Initializing noodl-ui client', {
                 noodl: this.noodl,
                 pageSnapshot,
               })
 
-              const fetch = (url: string) =>
-                axios.get(url).then(({ data }) => data)
+              function fetch(url: string) {
+                return axios.get(url).then(({ data }) => data)
+              }
               // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
               const config = this.noodl.getConfig()
               const plugins = [] as ComponentObject[]
@@ -547,54 +586,49 @@ class App {
                   this.noodlui.use({ name, resolver: r })
                 },
               )
-              log.func('page [before-page-render]')
+              log.func('before-page-render')
               log.grey('Initialized noodl-ui client', this.noodlui)
             }
-            const previousPage = page.getState().previous
-            log.func('page [before-page-render]')
-            log.grey(`${previousPage} --> ${pageName}`, page.snapshot())
             // Refresh the root
             // TODO - Leave root/page auto binded to the lib
             this.noodlui.setPage(pageName)
-            log.grey(`Set root + page obj after receiving page object`, {
-              previousPage: page.getState().previous,
-              currentPage: page.getState().current,
-              requestedPage: pageName,
-              pageName,
-              pageObject,
-            })
             // NOTE: not being used atm
             if (page.rootNode && page.rootNode.id !== pageName) {
               page.rootNode.id = pageName
             }
             return pageSnapshot
-          } else {
-            log.func('page [before-page-render]')
-            log.green('Avoided a duplicate navigate request')
           }
+          log.func('before-page-render')
+          log.green('Avoided a duplicate navigate request')
 
           return pageSnapshot
-        },
+        }.bind(this),
       )
       .on(
         pageEvent.ON_COMPONENTS_RENDERED,
-        async ({ requesting: pageName, components }) => {
-          log.func('page [rendered]')
+        async function onComponentsRendered(
+          this: App,
+          { requesting: pageName, components },
+        ) {
+          log.func('onComponentsRendered')
           log.grey(`Done rendering DOM nodes for ${pageName}`)
           window.pcomponents = components
           // Cache to rehydrate if they disconnect
           // TODO
           this.cachePage(pageName)
           log.grey(`Cached page: "${pageName}"`)
+        }.bind(this),
+      )
+      .on(
+        pageEvent.ON_NAVIGATE_ERROR,
+        function onNavigateError(this: App, { error }) {
+          console.error(error)
+          log.func('page.onError')
+          log.red(error.message, error)
+          // alert(error.message)
+          // TODO - narrow the reasons down more
         },
       )
-      .on(pageEvent.ON_NAVIGATE_ERROR, ({ error }) => {
-        console.error(error)
-        log.func('page.onError')
-        log.red(error.message, error)
-        // window.alert(error.message)
-        // TODO - narrow the reasons down more
-      })
   }
 
   /**
@@ -604,129 +638,11 @@ class App {
    * @param { Room } room - Room instance
    */
   observeMeetings(meeting: IMeeting) {
-    meeting.onConnected = (room) => {
-      /* -------------------------------------------------------
-      ---- LISTEN FOR INCOMING MEDIA PUBLISH/SUBSCRIBE EVENTS
-    -------------------------------------------------------- */
-      // Disconnect using the room instance
-      function disconnect() {
-        room.disconnect?.()
-      }
-      // Callback runs when the LocalParticipant disconnects
-      const disconnected = async () => {
-        const unpublishTracks = (
-          trackPublication:
-            | LocalVideoTrackPublication
-            | LocalAudioTrackPublication,
-        ) => {
-          trackPublication?.track?.stop?.()
-          trackPublication?.unpublish?.()
-        }
-        // Unpublish local tracks
-        room.localParticipant.videoTracks.forEach(unpublishTracks)
-        room.localParticipant.audioTracks.forEach(unpublishTracks)
-        // Clean up listeners
-        window.removeEventListener('beforeunload', disconnect)
-        if (isMobile()) window.removeEventListener('pagehide', disconnect)
-      }
-
-      room.on('participantConnected', this.meeting.addRemoteParticipant)
-      room.on('participantDisconnected', this.meeting.removeRemoteParticipant)
-      room.once('disconnected', disconnected)
-
-      window.addEventListener('beforeunload', disconnect)
-      if (isMobile()) window.addEventListener('pagehide', disconnect)
-
-      /* -------------------------------------------------------
-      ---- INITIATING MEDIA TRACKS / STREAMS 
-    -------------------------------------------------------- */
-      // Local participant
-      const localParticipant = room.localParticipant
-      const selfStream = this.streams.getSelfStream()
-      if (!selfStream.isSameParticipant(localParticipant)) {
-        selfStream.setParticipant(localParticipant)
-        if (selfStream.isSameParticipant(localParticipant)) {
-          log.func('Meeting.onConnected')
-          log.green(`Bound local participant to selfStream`, selfStream)
-        }
-      }
-      // Remote participants
-      forEachParticipant(room.participants, this.meeting.addRemoteParticipant)
-    }
-
-    /**
-     * Callback invoked when a new participant was added either as a mainStream
-     * or into the subStreams collection
-     * @param { RemoteParticipant } participant
-     * @param { Stream } stream - mainStream or a subStream
-     */
-    meeting.onAddRemoteParticipant = (participant, stream) => {
-      log.func('Meeting.onAddRemoteParticipant')
-      log.green(`Bound remote participant to ${stream.type}`, {
-        participant,
-        stream,
-      })
-      const isInSdk = some(
-        this.noodl.root?.VideoChat?.listData?.participants || [],
-        (p) => p.sid === participant.sid,
-      )
-      if (!isInSdk) {
-        /**
-         * Updates the participants list in the sdk. This will also force the value
-         * to be an array if it's not already an array
-         * @param { RemoteParticipant } participant
-         */
-        this.noodl.editDraft((draft: any) => {
-          const participants = this.meeting
-            .removeFalseyParticipants(
-              draft?.VideoChat?.listData?.participants || [],
-            )
-            .concat(participant)
-          set(draft, 'VideoChat.listData.participants', participants)
-        })
-
-        log.func('Meeting.onAddRemoteParticipant')
-        log.green('Updated SDK with new participant', {
-          addedParticipant: participant,
-          newParticipantsList: this.noodl.root?.VideoChat?.listData
-            ?.participants,
-        })
-      }
-      if (this.meeting.getWaitingMessageElement()) {
-        this.meeting.getWaitingMessageElement().style.visibility = 'hidden'
-      }
-    }
-
-    meeting.onRemoveRemoteParticipant = (participant, stream) => {
-      /**
-       * Updates the participants list in the sdk. This will also force the value
-       * to be an array if it's not already an array
-       * @param { RemoteParticipant } participant
-       */
-      this.noodl.editDraft((draft: any) => {
-        set(
-          draft.VideoChat.listData,
-          'participants',
-          this.meeting.removeFalseyParticipants(
-            draft?.VideoChat?.listData?.participants ||
-              [].filter((p) => p !== participant),
-          ),
-        )
-      })
-      if (!this.meeting.room.participants.size) {
-        if (this.meeting.getWaitingMessageElement()) {
-          this.meeting.getWaitingMessageElement().style.visibility = 'visible'
-        }
-      }
-    }
-
     /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
     this.noodluidom.register({
-<<<<<<< Updated upstream
-=======
       name: 'chart',
       cond: 'chart',
       resolve(node: HTMLDivElement, component) {
@@ -746,23 +662,21 @@ class App {
       cond: 'map',
       resolve(node: HTMLDivElement, component) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
-        if (node) {
-          console.log("test map1",dataValue)
-          const parent = component.parent?.()
-          mapboxgl.accessToken = 'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
-          if(dataValue.mapType == 1){
-            let map = new mapboxgl.Map({
+        if (node) {	
+          console.log("test map1",dataValue)	
+          const parent = component.parent?.()	
+          mapboxgl.accessToken = 'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'	
+          if(dataValue.mapType == 1){	
+            let map = new mapboxgl.Map({	
                 container: parent.id,
                 style: 'mapbox://styles/mapbox/streets-v11',
                 center: dataValue.data[0],
                 zoom: dataValue.zoom,
-                // logoPosition:"bottom-right"
             })
             map.addControl(new mapboxgl.NavigationControl())
             let features: any[] =[]
             dataValue.data.forEach(element => {
                 let item={
-                  // feature for Mapbox DC
                   'type': 'Feature',
                   'geometry': {
                       'type': 'Point',
@@ -776,52 +690,54 @@ class App {
             map.on('load', function () {
               // Add an image to use as a custom marker
               map.loadImage(
-                  'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
-                  function (error:any, image:any) {
-                      if (error) throw error;
-                      map.addImage('custom-marker', image)
-                      // Add a GeoJSON source with 2 points
-                      map.addSource('points', {
-                          'type': 'geojson',
-                          'data': {
-                              'type': 'FeatureCollection',
-                              'features': features
-                          }
-                      })
-      
-                      // Add a symbol layer
-                      map.addLayer({
-                        'id': 'symbols',
-                        'type': 'symbol',
-                        'source': 'points',
-                        'layout': {
-                          'icon-image': 'custom-marker',
-                          'text-offset': [0, 1.25],
-                          'text-anchor': 'top',
-                          'icon-allow-overlap': true,
-                          'icon-ignore-placement': true,
-                          'icon-padding': 0,
-                          'text-allow-overlap': true
-                        }
-                      })
-                  }
-              )
-          })
-      
-            //end
+                  'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',	
+                  function (error:any, image:any) {	
+                      if (error) throw error;	
+                      map.addImage('custom-marker', image)	
+                      // Add a GeoJSON source with 2 points	
+                      map.addSource('points', {	
+                          'type': 'geojson',	
+                          'data': {	
+                              'type': 'FeatureCollection',	
+                              'features': features	
+                          }	
+                      })	      	
+                      // Add a symbol layer	
+                      map.addLayer({	
+                        'id': 'symbols',	
+                        'type': 'symbol',	
+                        'source': 'points',	
+                        'layout': {	
+                          'icon-image': 'custom-marker',	
+                          'text-offset': [0, 1.25],	
+                          'text-anchor': 'top',	
+                          'icon-allow-overlap': true,	
+                          'icon-ignore-placement': true,	
+                          'icon-padding': 0,	
+                          'text-allow-overlap': true	
+                        }	
+                      })	
+                  }	
+              )	
+          })	      	            //end	
           }
+	
 
+	
           
+	
 
+	
         }
+	
       },
+	
     } as RegisterOptions)
 
     this.noodluidom.register({
->>>>>>> Stashed changes
       name: 'videoChat.timer.updater',
       cond: (n, c) => typeof c.get('text=func') === 'function',
-      resolve: (node, component) => {
+      resolve: function onVideoChatTImerUpdate(this: App, node, component) {
         const dataKey = component.get('dataKey')
 
         if (component.contentType === 'timer') {
@@ -846,38 +762,44 @@ class App {
           // the api declaration
           component.on(
             'timer.ref',
-            (ref: {
-              start(): void
-              current: Date
-              ref: NodeJS.Timeout
-              clear: () => void
-              increment(): void
-              set(value: any): void
-              onInterval?:
-                | ((args: {
-                    node: NOODLDOMElement
-                    component: ComponentInstance
-                    ref: typeof ref
-                  }) => void)
-                | null
-            }) => {
+            function onTimerRef(
+              this: App,
+              ref: {
+                start(): void
+                current: Date
+                ref: NodeJS.Timeout
+                clear: () => void
+                increment(): void
+                set(value: any): void
+                onInterval?:
+                  | ((args: {
+                      node: NOODLDOMElement
+                      component: ComponentInstance
+                      ref: typeof ref
+                    }) => void)
+                  | null
+              },
+            ) {
               const textFunc = component.get('text=func') || ((x: any) => x)
 
               component.on(
                 'interval',
-                ({
-                  node,
-                  component,
-                }: {
-                  node: NOODLDOMElement
-                  component: ComponentInstance
-                  ref: typeof ref
-                }) => {
+                function onInterval(
+                  this: App,
+                  {
+                    node,
+                    component,
+                  }: {
+                    node: NOODLDOMElement
+                    component: ComponentInstance
+                    ref: typeof ref
+                  },
+                ) {
                   this.noodl.editDraft(
                     (draft: WritableDraft<{ [key: string]: any }>) => {
-                      let seconds = get(draft, dataKey, 0)
+                      const seconds = get(draft, dataKey, 0)
                       set(draft, dataKey, seconds + 1)
-                      let updatedSecs = get(draft, dataKey)
+                      const updatedSecs = get(draft, dataKey)
                       if (
                         updatedSecs !== null &&
                         typeof updatedSecs === 'number'
@@ -903,29 +825,44 @@ class App {
                       }
                     },
                   )
-                },
+                }.bind(this),
               )
 
               ref.start()
-            },
+            }.bind(this),
           )
         }
-      },
+      }.bind(this),
     })
 
-    this.noodluidom.on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
-      console.log('Removed from componentCache: ' + component.id)
-      this.noodlui.componentCache().remove(component)
-      publish(component, (c) => {
+    this.noodluidom.on(
+      eventId.page.status.ANY,
+      function onStatusChange(this: App, status: string) {
+        log.func('onStatusChange')
+        log.grey('Status changed: ' + status)
+      },
+    )
+
+    this.noodluidom.on(
+      eventId.redraw.ON_BEFORE_CLEANUP,
+      function onBeforeCleanup(this: App, node, component) {
         console.log('Removed from componentCache: ' + component.id)
-        this.noodlui.componentCache().remove(c)
-      })
-    })
+        this.noodlui.componentCache().remove(component)
+        publish(component, (c) => {
+          console.log('Removed from componentCache: ' + component.id)
+          this.noodlui.componentCache().remove(c)
+        })
+      }.bind(this),
+    )
 
     this.noodluidom.register({
       name: 'meeting',
       cond: (node: any, component: any) => !!(node && component),
-      resolve: (node: any, component: any) => {
+      resolve: function onMeetingComponent(
+        this: App,
+        node: any,
+        component: any,
+      ) {
         // Dominant/main participant/speaker
         if (identify.stream.video.isMainStream(component.toJS())) {
           const mainStream = this.streams.getMainStream()
@@ -957,7 +894,7 @@ class App {
               resolver: this.noodlui.resolveComponents.bind(this.noodlui),
             })
             log.func('onCreateNode')
-            log.green('Created subStreams container', subStreams)
+            log.green('Initiated subStreams container', subStreams)
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup
@@ -995,13 +932,14 @@ class App {
             )
           }
         }
-      },
+      }.bind(this),
     })
   }
 
   /* -------------------------------------------------------
   ---- LOCAL STORAGE HELPERS FOR CACHED PAGES
 -------------------------------------------------------- */
+
   /** Adds the current page name to the end in the list of cached pages */
   cachePage(name: string) {
     const cacheObj = { name } as CachedPageObject
@@ -1016,7 +954,7 @@ class App {
   /** Retrieves a list of cached pages */
   getCachedPages(): CachedPageObject[] {
     let result: CachedPageObject[] = []
-    const pageHistory = window.localStorage.getItem(CACHED_PAGES)
+    const pageHistory = localStorage.getItem(CACHED_PAGES)
     if (pageHistory) {
       try {
         result = JSON.parse(pageHistory) || []
@@ -1029,7 +967,7 @@ class App {
 
   /** Sets the list of cached pages */
   setCachedPages(cache: CachedPageObject[]) {
-    window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+    localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
     //
   }
 

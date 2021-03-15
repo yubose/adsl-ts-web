@@ -6,7 +6,15 @@ import {
   NOODL as NOODLUI,
   NOODLComponent,
 } from 'noodl-ui'
-import NOODLUIDOM from'./noodl-ui-dom
+import NOODLUIDOM from './noodl-ui-dom'
+import {
+  findAllByViewTag,
+  findByViewTag,
+  findByElementId,
+  findWindow,
+  findWindowDocument,
+  isPageConsumer,
+} from './utils'
 import { eventId } from './constants'
 
 export interface AnyFn {
@@ -14,23 +22,12 @@ export interface AnyFn {
 }
 
 export interface ActionChainDOMContext extends ActionChainContext {
-  findByElementId(
-    c: ComponentInstance | string,
-  ): NOODLDOMElement | null | undefined
-  findByViewTag(
-    c: ComponentInstance | string,
-  ): NOODLDOMElement | null | undefined
-  findWindow(
-    fn: (
-      win: Window | HTMLIFrameElement['contentWindow'],
-    ) => boolean | null | undefined,
-  ): Window | null
-  findWindowDocument(
-    fn: (
-      doc: Document | HTMLIFrameElement['contentDocument'],
-    ) => boolean | null | undefined,
-  ): Document | null
-  isPageConsumer(component: ComponentInstance | undefined): boolean
+  findAllByViewTag: typeof findAllByViewTag
+  findByElementId: typeof findByElementId
+  findByViewTag: typeof findByViewTag
+  findWindow: typeof findWindow
+  findWindowDocument: typeof findWindowDocument
+  isPageConsumer: typeof isPageConsumer
 }
 
 export type NOODLDOMElementTypes = keyof NOODLDOMElements

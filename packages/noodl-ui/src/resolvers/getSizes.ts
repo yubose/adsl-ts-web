@@ -35,7 +35,7 @@ const getSizes: ResolverFn = (component, options) => {
  * @param { string | number } value - width / height value
  * @param { number } viewportSize
  */
-function getSize(value: string | number, viewportSize: number) {
+export function getSize(value: string | number, viewportSize: number) {
   if (value == '0') {
     return '0px'
   } else if (value == '1') {

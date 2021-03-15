@@ -1,8 +1,16 @@
 import chalk from 'chalk'
-import { ComponentInstance, List, ListItem, NOODLComponent } from 'noodl-ui'
+import sinon from 'sinon'
+import {
+  ComponentInstance,
+  createComponent,
+  List,
+  ListItem,
+  NOODLComponent,
+} from 'noodl-ui'
 import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { applyMockDOMResolver, noodlui, toDOM } from '../test-utils'
+import { applyMockDOMResolver, noodlui, noodluidom, toDOM } from '../test-utils'
+import NOODLUIDOM from '../noodl-ui-dom'
 import * as resolvers from '../resolvers'
 
 const getNoodlList = () =>
@@ -244,6 +252,61 @@ describe('page', () => {
       })
     },
   )
+})
+
+describe.only(`plugin`, () => {
+  it(`should receive a function as the node argument`, () => {
+    const spy = sinon.spy()
+    const noodluidom = new NOODLUIDOM()
+    noodluidom.register({ cond: 'plugin', resolve: spy })
+    noodluidom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
+    expect(spy.firstCall.args[0]).to.be.a('function')
+  })
+
+  it(`should use the argument node passed to the function as the final node`, () => {
+    const node = document.createElement('div')
+    node.id = 'hello'
+    const noodluidom = new NOODLUIDOM()
+    noodluidom.register({ cond: 'plugin', resolve: (getNode) => getNode(node) })
+    noodluidom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
+    console.info(document.body.children.length)
+    expect(document.body.contains(node)).to.be.true
+  })
+
+  describe(`.html`, () => {
+    xit(`should render the html to the DOM`, async () => {
+      const html = '<div id="hello"><button class="abc">morning</button></div>'
+      const fetch = window.fetch
+      window.fetch = () => Promise.resolve(html)
+      const noodlComponent = { type: 'plugin', path: 'abc.html' }
+      const component = noodlui.resolveComponents(noodlComponent)
+      const node = noodluidom.draw(component)
+      await waitFor(() => {
+        expect(document.body.contains(node)).to.be.true
+      })
+      window.fetch = fetch
+    })
+  })
+
+  describe(`.css`, () => {
+    xit(``, () => {
+      //
+    })
+  })
+
+  describe(`.js`, () => {
+    describe(`noodl paths`, () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe(`lib paths (outside of domain)`, () => {
+      xit(``, () => {
+        //
+      })
+    })
+  })
 })
 
 describe('video', () => {

@@ -16,6 +16,7 @@ export const eventId = {
     },
     /** Sorted by order of occurrence */
     status: {
+      ANY: 'status:any',
       IDLE: 'status:idle',
       NAVIGATING: 'status:navigating',
       NAVIGATE_ERROR: 'status:navigate.error',

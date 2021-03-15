@@ -1,34 +1,21 @@
-import { ActionChainActionCallback, BuiltInObject } from 'noodl-ui'
-
-export * from './commonTypes'
-export * from './domExtendedTypes'
-export * from './libExtensionTypes'
+import firebase from 'firebase'
 export * from './meetingTypes'
-export * from './pageTypes'
 
 export interface AnyFn<Args = any, RT = any> {
   (...args: Args[]): RT
 }
 
-export type BuiltInFuncName =
-  | 'checkField'
-  | 'checkUsernamePassword'
-  | 'cleanLocalStorage'
-  | 'goBack'
-  | 'goto'
-  | 'lockApplication'
-  | 'logOutOfApplication'
-  | 'logout'
-  | 'redraw'
-  | 'toggleCameraOnOff'
-  | 'toggleFlag'
-  | 'toggleMicrophoneOnOff'
-
-export type BuiltInActions<Obj extends BuiltInObject = BuiltInObject> = Partial<
-  Record<BuiltInFuncName, ActionChainActionCallback<Obj>>
->
+export type AuthStatus =
+  | 'logged.in'
+  | 'logged.out'
+  | 'new.device'
+  | 'temporary'
+  | null
 
 export interface CachedPageObject {
   name: string
   timestamp: number
 }
+
+export type FirebaseApp = firebase.app.App
+export type FirebaseMessaging = firebase.messaging.Messaging

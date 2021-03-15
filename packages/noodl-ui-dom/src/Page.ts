@@ -14,7 +14,7 @@ class Page {
     previous: '',
     requesting: '',
     modifiers: {} as {
-      [pageName: string]: { force?: boolean; reload?: boolean } & {
+      [pageName: string]: { reload?: boolean } & {
         [key: string]: any
       }
     },
@@ -34,16 +34,23 @@ class Page {
   #render: T.Render | undefined
   pageUrl: string = 'index.html?'
   rootNode: HTMLDivElement
+  ref: {
+    request: {
+      name: string
+      timer: NodeJS.Timeout | null
+    }
+  } = { request: { name: '', timer: null } }
 
   constructor(render?: T.Render | undefined) {
     if (render) this.render = render
-    this.rootNode = document.createElement('div')
+    // this.rootNode = document.createElement('div')
+    this.rootNode = document.body
     this.rootNode.id = 'root'
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
-    if (!document.body.contains(this.rootNode))
-      document.body.appendChild(this.rootNode)
+    // if (!document.body.contains(this.rootNode))
+    // document.body.appendChild(this.rootNode)
   }
 
   getCbs() {
@@ -68,36 +75,36 @@ class Page {
    * TODO - Merge this into page.navigate
    * !NOTE - Page modifiers (ex: "reload") is expected to be set before this call via page.setModifier
    * @param { string } newPage - Page name to request
-   * @param { boolean | undefined } options.force - Force the navigate to happen
+   * @param { boolean | undefined } options.reload - Parameter for NOODL's evolve
+   * @param { number | undefined } options.delay - Request debouncing delay (defaults to 800 (ms))
    */
   async requestPageChange(
     newPage: string = '',
-    { force, reload }: { force?: boolean; reload?: boolean } = {},
+    { delay }: { reload?: boolean; delay?: number } = {},
   ) {
-    const { current } = this.getState()
-    if (newPage !== current || newPage?.startsWith('http') || !!force) {
-      this.setRequestingPage(newPage)
+    // if (this.ref.request.name === newPage && this.ref.request.timer) {
+    //   log.func('requestPageChange')
+    //   await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
+    //     ...this.snapshot(),
+    //     reason: 'debounced',
+    //     from: 'requestPageChange',
+    //   })
+    //   return log.orange(
+    //     `Aborted the request to "${newPage}" because a previous request ` +
+    //       `to the same page was just requested`,
+    //     this.snapshot(),
+    //   )
+    // }
+
+    if (newPage) {
+      this.ref.request.timer && clearTimeout(this.ref.request.timer)
+      this.setRequestingPage(newPage, { delay })
       if (process.env.NODE_ENV !== 'test') {
         history.pushState({}, '', this.pageUrl)
       }
       await this.navigate(newPage)
-      this.setPreviousPage(current)
+      this.setPreviousPage(this.getState().current)
       this.setCurrentPage(newPage)
-    } else {
-      log.func('requestPageChange')
-      log.orange(
-        'Skipped the request to change page because we are already on the page',
-        {
-          ...pick(this.getState(), ['previous', 'current']),
-          requestedPage: newPage,
-        },
-      )
-      // TODO - handle this
-      await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-        ...this.snapshot(),
-        reason: 'duplicate-request',
-        from: 'requestPageChange',
-      })
     }
   }
 
@@ -150,10 +157,16 @@ class Page {
       // The caller is expected to provide their own page object
       const pageSnapshot = (await this.emit(
         eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
-        this.snapshot(),
+        { ...this.snapshot(), pageName },
       )) as Record<string, PageObject> | 'old.request'
 
       if (pageSnapshot === 'old.request') {
+        await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
+          ...this.snapshot(),
+          pageName,
+          from: 'navigate',
+          reason: pageSnapshot,
+        })
         return
       }
 
@@ -232,7 +245,7 @@ class Page {
   snapshot() {
     return {
       ...pick(this.getState(), ['status', 'previous', 'current', 'requesting']),
-      rootNode: this.rootNode,
+      ref: this.ref,
     }
   }
 
@@ -255,7 +268,7 @@ class Page {
     fn: T.AnyFn | Partial<T.PageCallbackObjectConfig>,
   ) {
     if (!Array.isArray(this.#cbs[event])) this.#cbs[event] = []
-    this.#cbs[event] = this.#cbs[event].concat(this.createCbConfig(fn))
+    this.#cbs[event] = this.#cbs[event].concat(this.createCbConfig(fn as any))
     return this
   }
 
@@ -313,6 +326,7 @@ class Page {
   setStatus(status: T.PageStatus) {
     this.#state.status = status
     this.emitSync(status, status)
+    this.emitSync(eventId.page.status.ANY, status)
     if (status === eventId.page.status.IDLE) this.setRequestingPage('')
     else if (status === eventId.page.status.NAVIGATE_ERROR)
       this.setRequestingPage('')
@@ -335,8 +349,13 @@ class Page {
     return this
   }
 
-  setRequestingPage(name: string) {
+  setRequestingPage(name: string, { delay = 800 }: { delay?: number } = {}) {
     this.#state.requesting = name
+    this.ref.request.name = name
+    this.ref.request.timer = setTimeout(() => {
+      this.ref.request.name = ''
+      this.ref.request.timer = null
+    }, delay)
     return this
   }
 

@@ -1,5 +1,6 @@
 import handleList from './handleList'
 import handlePage from './handlePage'
+import handleRegister from './handleRegister'
 import handleTextboard from './handleTextboard'
 import handleTimer from './handleTimer'
 import { InternalResolver } from '../../Resolver'
@@ -40,17 +41,29 @@ _internalResolver.setResolver((component, options, ref) => {
       if (c.noodlType === 'page') {
         return handlePage(c as any, options, { _internalResolver, ref })
       }
+      if (c.noodlType === 'register') {
+        return handleRegister(c as any, options)
+      }
+      // @ts-expect-error
       if (c.get('textBoard')) {
         return handleTextboard(c as any, options, _internalResolver)
       }
       if (c.contentType === 'timer') {
         return handleTimer(c, options)
       }
+
       // Deeply parses every child node in the tree
       _resolveChildren(c, {
-        onResolve: (o) => run(o),
-        resolveComponent: (...args) => resolveComponents?.(...args),
+        onResolve: run,
+        resolveComponent: resolveComponents?.bind(ref),
       })
+
+      if (c.noodlType === 'scrollView') {
+        // Set immediate children to relative so they can stack on eachother
+        c.children().forEach((child: ComponentInstance) => {
+          child.assignStyles({ position: 'relative', display: 'block' })
+        })
+      }
     }
   }
 
