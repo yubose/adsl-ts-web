@@ -666,60 +666,66 @@ class App {
           console.log("test map1",dataValue)	
           const parent = component.parent?.()	
           mapboxgl.accessToken = 'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'	
-          if(dataValue.mapType == 1){	
+          if(dataValue.mapType == 1){
+            dataValue.zoom = dataValue.zoom?dataValue.zoom:9
+            let flag = !dataValue.hasOwnProperty("data")? false:dataValue.data.length==0?false: true
+            let initcenter = flag?dataValue.data[0]:[-117.9086,33.8359]
             let map = new mapboxgl.Map({	
                 container: parent.id,
                 style: 'mapbox://styles/mapbox/streets-v11',
-                center: dataValue.data[0],
+                center: initcenter,
                 zoom: dataValue.zoom,
             })
             map.addControl(new mapboxgl.NavigationControl())
-            let features: any[] =[]
-            dataValue.data.forEach(element => {
-                let item={
-                  'type': 'Feature',
-                  'geometry': {
-                      'type': 'Point',
-                      'coordinates': element
+            if(flag){
+              let features: any[] =[]
+              dataValue.data.forEach(element=> {
+                  let item={
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': element
+                    }
                   }
-                }
-                features.push(item)
-            })
-            console.log("test map2",features)
-            //start
-            map.on('load', function () {
-              // Add an image to use as a custom marker
-              map.loadImage(
-                  'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',	
-                  function (error:any, image:any) {	
-                      if (error) throw error;	
-                      map.addImage('custom-marker', image)	
-                      // Add a GeoJSON source with 2 points	
-                      map.addSource('points', {	
-                          'type': 'geojson',	
-                          'data': {	
-                              'type': 'FeatureCollection',	
-                              'features': features	
+                  features.push(item)
+              })
+              console.log("test map2",features)
+              //start
+              map.on('load', function () {
+                // Add an image to use as a custom marker
+                map.loadImage(
+                    'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',	
+                    function (error:any, image:any) {	
+                        if (error) throw error;	
+                        map.addImage('custom-marker', image)	
+                        // Add a GeoJSON source with 2 points	
+                        map.addSource('points', {	
+                            'type': 'geojson',	
+                            'data': {	
+                                'type': 'FeatureCollection',	
+                                'features': features	
+                            }	
+                        })	      	
+                        // Add a symbol layer	
+                        map.addLayer({	
+                          'id': 'symbols',	
+                          'type': 'symbol',	
+                          'source': 'points',	
+                          'layout': {	
+                            'icon-image': 'custom-marker',	
+                            'text-offset': [0, 1.25],	
+                            'text-anchor': 'top',	
+                            'icon-allow-overlap': true,	
+                            'icon-ignore-placement': true,	
+                            'icon-padding': 0,	
+                            'text-allow-overlap': true	
                           }	
-                      })	      	
-                      // Add a symbol layer	
-                      map.addLayer({	
-                        'id': 'symbols',	
-                        'type': 'symbol',	
-                        'source': 'points',	
-                        'layout': {	
-                          'icon-image': 'custom-marker',	
-                          'text-offset': [0, 1.25],	
-                          'text-anchor': 'top',	
-                          'icon-allow-overlap': true,	
-                          'icon-ignore-placement': true,	
-                          'icon-padding': 0,	
-                          'text-allow-overlap': true	
-                        }	
-                      })	
-                  }	
-              )	
-          })	      	            //end	
+                        })	
+                    }	
+                )	
+              })	      	            
+              //end	
+            }
           }
         }
 	
