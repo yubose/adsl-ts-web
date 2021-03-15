@@ -648,8 +648,8 @@ class App {
       resolve(node: HTMLDivElement, component) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
-          node['style'].width = component.getStyle('width') as string
-          node['style'].height = component.getStyle('height') as string
+          node.style.width = component.getStyle('width') as string
+          node.style.height = component.getStyle('height') as string
           const myChart = echarts.init(node)
           const option = dataValue
           option && myChart.setOption(option)
@@ -721,13 +721,6 @@ class App {
               )	
           })	      	            //end	
           }
-	
-
-	
-          
-	
-
-	
         }
 	
       },
