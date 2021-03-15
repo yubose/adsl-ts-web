@@ -25,17 +25,6 @@ export function createEmitDataKey(
     )
   } else if (isObj(dataKey)) {
     return Object.keys(dataKey).reduce((acc, property) => {
-      console.log({
-        dataKey,
-        dataObject,
-        acc,
-        property,
-        opts,
-        excludedIteratorVar: excludeIteratorVar(
-          dataKey[property],
-          opts?.iteratorVar,
-        ),
-      })
       acc[property] = findDataValue(
         dataObject,
         excludeIteratorVar(dataKey[property], opts?.iteratorVar),

@@ -54,6 +54,7 @@ export function getTagName(component: ComponentInstance): string {
     case 'chart':
     case 'footer':
     case 'header':
+    case 'map':
     case 'popUp':
     case 'register':
     case 'view':
