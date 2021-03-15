@@ -142,8 +142,8 @@ const createMeetingHandlers = function _createMeetingHandlers({
     room.on('participantConnected', Meeting.addRemoteParticipant)
     room.on('participantDisconnected', Meeting.removeRemoteParticipant)
     room.once('disconnected', disconnected)
-    window.addEventListener('beforeunload', disconnect)
-    isMobile() && addEventListener('pagehide', disconnect)
+    // window.addEventListener('beforeunload', disconnect)
+    // isMobile() && addEventListener('pagehide', disconnect)
     /* -------------------------------------------------------
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
