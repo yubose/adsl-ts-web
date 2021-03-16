@@ -43,7 +43,7 @@ export {
   contentTypes,
 } from './constants'
 export * from './types'
-export { isPromise } from './utils/common'
+export { hasLetter, hasDecimal, isPromise } from './utils/common'
 export {
   findChild,
   findListDataObject,

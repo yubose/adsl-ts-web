@@ -34,7 +34,6 @@ const getAlignAttrs: ResolverFn = (component) => {
         if (x !== undefined) {
           value = getTextAlign(x)
           if (value) {
-            console.log({ component, value, style: component.style })
             component.assignStyles(value)
             if (!('textAlign' in value)) {
               component.removeStyle('textAlign')

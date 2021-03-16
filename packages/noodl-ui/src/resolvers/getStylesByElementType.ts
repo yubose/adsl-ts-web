@@ -68,10 +68,8 @@ const getStylesByElementType: ResolverFn = (component, options) => {
     }
     // Defaults to being hidden
     case 'popUp':
-      return void component.assignStyles({
-        // position: 'fixed',
-        visibility: 'hidden',
-      })
+      debugger
+      return void component.assignStyles({ visibility: 'hidden' })
     case 'scrollView':
       return void component.assignStyles({
         display: 'block',

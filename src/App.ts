@@ -355,8 +355,10 @@ class App {
       await noodl.initPage(ref.page)
       log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
       log.grey(`Initiated page: ${ref.page}`)
-      Object.values(getAllResolversAsMap).forEach((resolver) => {
-        ref.use(new Resolver().setResolver(resolver))
+      Object.entries(getAllResolversAsMap).forEach(([name, resolver]) => {
+        if (!/(getAlignAttrs|getPosition)/i.test(name)) {
+          ref.use(new Resolver().setResolver(resolver))
+        }
       })
     })
   }
@@ -580,10 +582,11 @@ class App {
                   plugins,
                 })
 
-              Object.entries(getAllResolversAsMap()).forEach(
+              Object.entries(getAllResolversAsMap).forEach(
                 ([name, resolver]) => {
-                  const r = new Resolver().setResolver(resolver)
-                  this.noodlui.use({ name, resolver: r })
+                  if (!/(getAlign|getPosition)/i.test(name)) {
+                    ref.use(new Resolver().setResolver(resolver))
+                  }
                 },
               )
               log.func('before-page-render')

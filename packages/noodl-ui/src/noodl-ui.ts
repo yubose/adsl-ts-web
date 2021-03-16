@@ -175,11 +175,11 @@ class NOODLUI {
     let components: any[] = []
     let resolvedComponents: T.ComponentInstance[] = []
 
-    if (this.styleFinalizer.viewport !== this.viewport) {
-      this.styleFinalizer.viewport = this.viewport
-    }
+    // if (this.styleFinalizer.viewport !== this.viewport) {
+    //   this.styleFinalizer.viewport = this.viewport
+    // }
 
-    this.styleFinalizer.clear()
+    // this.styleFinalizer.clear()
 
     if (componentsParams) {
       if (isComponent(componentsParams)) {
@@ -890,7 +890,7 @@ class NOODLUI {
     return this
   }
 
-  getBaseStyles(component?: T.ComponentInstance) {
+  getBaseStyles(component?: T.ComponentInstance, force = false) {
     let originalStyle = (component?.original?.style as T.Style) || undefined
     let styles = { ...originalStyle } as T.Style
 

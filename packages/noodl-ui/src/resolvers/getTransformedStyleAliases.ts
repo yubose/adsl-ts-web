@@ -34,21 +34,21 @@ const getTransformedStyleAliases: ResolverFn = (component) => {
   const numMarginKeys = marginKeys.length
 
   if (isObj(component.style)) {
-    for (let index = 0; index < numMarginKeys; index++) {
-      const key = marginKeys[index]
-      if (key in (component.style || {})) {
-        let value = component.getStyle(key)
-        if (typeof value === 'string') {
-          if (hasDecimal(value)) {
-            value = Number(value) * 100
-          }
-        }
-        component.setStyle(
-          key,
-          !hasLetter(String(value)) ? value + 'px' : value,
-        )
-      }
-    }
+    // for (let index = 0; index < numMarginKeys; index++) {
+    //   const key = marginKeys[index]
+    //   if (key in (component.style || {})) {
+    //     let value = component.getStyle(key)
+    //     if (typeof value === 'string') {
+    //       if (hasDecimal(value)) {
+    //         value = Number(value) * 100
+    //       }
+    //     }
+    //     component.setStyle(
+    //       key,
+    //       !hasLetter(String(value)) ? value + 'px' : value,
+    //     )
+    //   }
+    // }
   } else {
     // If the code reaches this block it might be a string and most likely
     // a parsing / dereference error

@@ -1,9 +1,23 @@
 import { expect } from 'chai'
-import { noodlui } from '../utils/test-utils'
 import Viewport from '../Viewport'
 
 describe(`Viewport`, () => {
   describe(`getSize`, () => {
+    it(`should return px if unit is "px"`, () => {
+      expect(Viewport.getSize('0.2', 375, { unit: 'px' })).to.eq('75px')
+    })
+
+    it(`should convert back to noodl type value if unit is "noodl"`, () => {
+      expect(Viewport.getSize(75, 375, { unit: 'noodl' })).to.eq('0.2')
+      expect(Viewport.getSize(355, 1000, { unit: 'noodl' })).to.eq('0.355')
+      expect(Viewport.getSize(2000, 2000, { unit: 'noodl' })).to.eq('1')
+      expect(Viewport.getSize(3000, 2000, { unit: 'noodl' })).to.eq('1.5')
+      expect(Viewport.getSize(0, 2000, { unit: 'noodl' })).to.eq('0')
+      expect(Viewport.getSize(100, 101, { unit: 'noodl' })).to.eq(
+        '0.9900990099009901',
+      )
+    })
+
     it(`should return "0px" if value is a string "0"`, () => {
       const viewport = new Viewport({ width: 375, height: 667 })
       expect(Viewport.getSize('0', 300, { unit: 'px' })).to.eq('0px')
@@ -77,35 +91,5 @@ describe(`Viewport`, () => {
         expect(viewport.getHeight(height)).to.eq(533.6)
       },
     )
-  })
-
-  describe(`positioning from parent/child ancestry`, () => {
-    it.only(`should return the font size size`, () => {
-      const getLineSpacing = (v: number) => v * 1.5
-      const getLetterSpacing = (v: number) => v * 0.12
-      const getSpacing = (v: number) => v * 2
-      const getWordSpacing = (v: number) => v * 0.16
-      const fontSize = 14
-      const dims = {
-        lineSpacing: getLineSpacing(fontSize),
-        letterSpacing: getLetterSpacing(fontSize),
-        spacing: getSpacing(fontSize),
-        wordSpacing: getWordSpacing(fontSize),
-      }
-      console.log(dims)
-      // expect(Viewport.getSize(child.width, viewport.width)).to.eq(75)
-    })
-
-    describe(`when parent has both top and height`, () => {
-      describe(`parent: { width: "0.2", height: "0.5" }`, () => {
-        const parentDims = { width: '0.2', height: '0.5' }
-
-        it(`should calculate the child's dimensions correctly`, () => {
-          const viewport = { width: 375, height: 667 }
-          const child = { width: '0.4', height: '0.2' }
-          expect(Viewport.getSize(child.width, viewport.width)).to.eq(75)
-        })
-      })
-    })
   })
 })

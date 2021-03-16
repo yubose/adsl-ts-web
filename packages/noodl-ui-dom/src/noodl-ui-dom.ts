@@ -8,10 +8,12 @@ import {
   findParent,
   getTagName,
   GotoActionObject,
+  getAllResolversAsMap,
   NOODL as NOODLUI,
   NOODLComponent,
   Page as PageComponent,
   publish,
+  Resolver,
   StoreActionObject,
   StoreBuiltInObject,
   ToastActionObject,
@@ -117,20 +119,21 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
               {},
             )
           : document.createElement('img')
-        this.#R.run(node, component)
-      } else if (component.noodlType === 'popUp' && component.has('global')) {
+      } else if (component.noodlType === 'popUp') {
         node = document.createElement(getTagName(component))
         this.#R.run(node, component)
-        // Delegating global popUps (a.k.a modals) to the consumer to decide
-        // how to determine their parent/child behavior
+        //   // Delegating global popUps (a.k.a modals) to the consumer to decide
+        //   // how to determine their parent/child behavior
         return node
       } else {
         node = document.createElement(
           getTagName(component as ComponentInstance),
         )
-        this.#R.run(node, component)
       }
+
       if (node) {
+        this.#R.run(node, component)
+
         let parent = container || document.body
 
         parent.appendChild(node)

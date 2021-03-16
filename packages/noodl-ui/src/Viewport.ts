@@ -1,5 +1,11 @@
 import { IViewport, ViewportListener } from './types'
 import { hasLetter, hasDecimal, isBrowser } from './utils/common'
+import { isObj, isStr, isNum, isNil } from './utils/internal'
+
+// const getLineSpacing = (v: number) => v * 1.5
+// const getLetterSpacing = (v: number) => v * 0.12
+// const getSpacing = (v: number) => v * 2
+// const getWordSpacing = (v: number) => v * 0.16
 
 class NOODLViewport implements IViewport {
   #onResize: () => void
@@ -15,7 +21,7 @@ class NOODLViewport implements IViewport {
   static getSize(
     value: string | number,
     viewportSize: number,
-    { unit }: { unit?: 'px' } = {},
+    { unit }: { unit?: 'px' | 'noodl' } = {},
   ) {
     let result: any
 
@@ -24,13 +30,13 @@ class NOODLViewport implements IViewport {
     } else if (value == '1') {
       result = viewportSize
     } else {
-      if (typeof value === 'string') {
+      if (isStr(value)) {
         if (!hasLetter(value)) {
           result = Number(value) * viewportSize
         } else {
           result = value.replace(/[a-zA-Z]+/gi, '')
         }
-      } else if (typeof value === 'number') {
+      } else if (isNum(value)) {
         if (hasDecimal(value)) {
           result = value * viewportSize
         } else {
@@ -38,11 +44,17 @@ class NOODLViewport implements IViewport {
         }
       }
     }
-    return result !== undefined
-      ? unit
-        ? `${result}${unit}`
-        : Number(result)
-      : result
+
+    if (isNil(result)) return result
+
+    switch (unit) {
+      case 'noodl':
+        return String(Number(result) / viewportSize)
+      case 'px':
+        return `${result}px`
+      default:
+        return Number(result)
+    }
   }
 
   constructor({ width, height }: { width?: number; height?: number } = {}) {

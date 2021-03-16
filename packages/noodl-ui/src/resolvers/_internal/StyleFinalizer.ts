@@ -8,6 +8,11 @@ import { ComponentInstance, ConsumerOptions } from '../../types'
 
 const toNum = (v: any) => Number(String(v).replace(/[a-zA-Z]+/g, ''))
 
+/*
+  Should be invoked when components are resolved and are approaching the 
+  end of their resolving phase
+*/
+
 class StyleFinalizer {
   #viewport: Viewport
   cache = {}
@@ -19,6 +24,10 @@ class StyleFinalizer {
   constructor(viewport: Viewport) {
     this.node = document.createElement('div')
     this.viewport = viewport
+
+    if (typeof window !== 'undefined') {
+      window['sfcache'] = this.cache
+    }
   }
 
   set viewport(viewport) {
@@ -39,7 +48,7 @@ class StyleFinalizer {
 
     const obj = {
       page,
-      component,
+      // component,
       get originalStyle() {
         return component.original?.style
       },
@@ -50,16 +59,10 @@ class StyleFinalizer {
     }
 
     const style = component.style || {}
-    const unwrap = (n: any) => {
-      if (isStr(n)) {
-        if (hasLetter(n)) n = toNum(n)
-      }
-      return Number(n)
-    }
 
     const parent = component.parent?.()
-    const parentTop = unwrap(parent?.style?.top) || this.lastTop
-    const parentLeft = parent?.style?.left || 'auto'
+    // const parentTop = unwrap(parent?.style?.top) || this.lastTop
+    // const parentLeft = parent?.style?.left || 'auto'
 
     if (parent) {
       //
@@ -83,10 +86,10 @@ class StyleFinalizer {
 
     const dims = {} as Record<string, any>
 
-    !isNil(style.top) && (dims.top = unwrap(style.top))
-    !isNil(style.left) && (dims.left = unwrap(style.left))
-    !isNil(style.width) && (dims.width = unwrap(style.width))
-    !isNil(style.height) && (dims.height = unwrap(style.height))
+    // !isNil(style.top) && (dims.top = unwrap(style.top))
+    // !isNil(style.left) && (dims.left = unwrap(style.left))
+    // !isNil(style.width) && (dims.width = unwrap(style.width))
+    // !isNil(style.height) && (dims.height = unwrap(style.height))
 
     this.cache[id] = obj
 
