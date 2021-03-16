@@ -122,6 +122,7 @@ describe('when using getters', () => {
       'getState',
       'page',
       'plugins',
+      'register',
       'resolveComponent',
       'resolveComponentDeep',
       'showDataKey',

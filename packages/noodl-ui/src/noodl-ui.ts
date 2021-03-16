@@ -22,7 +22,7 @@ import {
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import handleRegister from './resolvers/_internal/handleRegister'
-import { getSize } from './resolvers/getSizes'
+import StyleFinalizer from './resolvers/_internal/StyleFinalizer'
 import _internalResolver from './resolvers/_internal'
 import {
   forEachDeepEntries,
@@ -126,6 +126,7 @@ class NOODLUI {
     [page: string]: NOODLUI
   }
   initialized: boolean = false
+  styleFinalizer: StyleFinalizer
 
   constructor({
     showDataKey,
@@ -138,6 +139,7 @@ class NOODLUI {
     this.#id = id
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
+    this.styleFinalizer = new StyleFinalizer(this.#viewport)
   }
 
   get id() {
@@ -172,6 +174,12 @@ class NOODLUI {
   ) {
     let components: any[] = []
     let resolvedComponents: T.ComponentInstance[] = []
+
+    if (this.styleFinalizer.viewport !== this.viewport) {
+      this.styleFinalizer.viewport = this.viewport
+    }
+
+    this.styleFinalizer.clear()
 
     if (componentsParams) {
       if (isComponent(componentsParams)) {
@@ -265,6 +273,7 @@ class NOODLUI {
           }
         }
       })
+      this.styleFinalizer.finalize(component, consumerOptions)
     }
 
     return component
@@ -950,6 +959,10 @@ class NOODLUI {
 
         if (!('height' in styles)) {
           styles.height = 'auto'
+        }
+
+        if (component.original?.children?.length || component.length) {
+          // styles.position = 'relative'
         }
       } else if (isPlainObject(component)) {
         //

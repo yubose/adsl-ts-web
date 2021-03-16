@@ -8,9 +8,6 @@ import { hasDecimal, hasLetter } from '../utils/common'
  */
 const getSizes: ResolverFn = (component, options) => {
   const { viewport } = options
-  if (component.noodlType === 'page') {
-    console.log({ viewport, component, ...options })
-  }
 
   const width = component.getStyle('width')
   const height = component.getStyle('height')

@@ -36,7 +36,8 @@
     "test:noodlutils": "lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "lerna exec --scope noodl-utils \"npm run test:file\"",
     "lib:build": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
-    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
+    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start",
+    "nodemon": "nodemon"
   },
   "dependencies": {
     "@aitmed/cadl": "^1.0.226",
@@ -102,6 +103,7 @@
     "jsdom-global": "^3.0.2",
     "lerna": "^3.22.1",
     "mocha": "^8.2.1",
+    "nodemon": "^2.0.7",
     "prettier": "^2.1.2",
     "rollup": "^2.35.1",
     "rollup-plugin-filesize": "^9.0.2",
@@ -148,7 +150,8 @@
     ],
     "env": {
       "browser": true,
-      "es6": true
+      "es6": true,
+      "mocha": true
     },
     "settings": {
       "import/resolver": {
@@ -166,6 +169,7 @@
       "@typescript-eslint/no-extra-semi": "off",
       "@typescript-eslint/no-empty-function": "off",
       "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-var-requires": "off",
       "consistent-return": "off",
       "dot-notation": "off",
       "no-param-reassign": "off",
@@ -179,6 +183,7 @@
       "no-empty-function": "off",
       "no-eval": "off",
       "no-inner-declarations": "off",
+      "no-nested-ternary": "off",
       "no-template-curly-in-string": "off",
       "no-plusplus": "off",
       "no-use-before-define": "off",

@@ -34,15 +34,17 @@ export function _resolveChildren<
     }
 
     if (noodlChildren) {
-      noodlChildren.forEach(
-        (noodlChild) =>
-          noodlChild &&
-          onResolve?.(
-            resolveComponent?.(
-              (c as any).createChild(createComponent(noodlChild, { props })),
-            ) as ComponentInstance,
-          ),
-      )
+      noodlChildren.forEach((noodlChild) => {
+        const child = resolveComponent?.(
+          (c as any).createChild(createComponent(noodlChild, { props })),
+        ) as ComponentInstance
+
+        // child.setStyle('position', 'absolute')
+
+        if (noodlChild) {
+          onResolve?.(child)
+        }
+      })
     }
   }
 }
