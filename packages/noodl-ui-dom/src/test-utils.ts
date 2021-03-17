@@ -4,6 +4,7 @@ import NOODLUIDOM from './noodl-ui-dom'
 
 export const assetsUrl = 'https://aitmed.com/assets/'
 export const noodluidom = new NOODLUIDOM()
+export const ndom = noodluidom
 export const noodlui = new NOODLUI()
 export const viewport = new Viewport()
 

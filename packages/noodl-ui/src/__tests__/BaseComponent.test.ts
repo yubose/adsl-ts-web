@@ -44,47 +44,6 @@ describe('BaseComponent', () => {
     })
   })
 
-  describe('touch/untouch', () => {
-    it('should populate touched/untouched keys in the beginning', () => {
-      const component = new Component({
-        type: 'view',
-        viewTag: 'subStream',
-        required: 'false',
-        style: { fontStyle: 'bold', left: '0.015' },
-      })
-      expect(component.untouched).to.include.members([
-        'type',
-        'viewTag',
-        'style',
-      ])
-    })
-
-    it('should add to touched', () => {
-      const component = new Component({ type: 'view' })
-      expect(component.touched).not.to.have.members(['type'])
-      component.touch('type')
-      expect(component.touched).to.have.members(['type'])
-    })
-
-    it('should add to untouched when touching a key', () => {
-      const component = new Component({ type: 'view' })
-      expect(component.untouched.includes('type')).to.be.true
-      component.touch('type')
-      expect(component.untouched.includes('type')).to.be.false
-    })
-
-    it('should add to touched style', () => {
-      const component = new Component({
-        type: 'view',
-        style: { fontStyle: 'bold' },
-      })
-      expect(component.stylesUntouched.includes('fontStyle')).to.be.true
-      component.touchStyle('fontStyle')
-      expect(component.stylesUntouched.includes('fontStyle')).to.be.false
-      expect(component.stylesTouched.includes('fontStyle')).to.be.true
-    })
-  })
-
   describe('when working with styles', () => {
     it('should be able to retrieve styles', () => {
       const component = new Component({ type: 'view' })

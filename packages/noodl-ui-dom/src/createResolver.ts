@@ -1,6 +1,11 @@
-import { ComponentInstance, ComponentType, NOODL as NOODLUI } from 'noodl-ui'
+import { NOODL as NOODLUI } from 'noodl-ui'
 import NOODLUIDOMInternal from './Internal'
 import {
+  assign,
+  isArr,
+  isFnc,
+  isObj,
+  isStr,
   findByElementId,
   findByViewTag,
   findAllByViewTag,
@@ -19,8 +24,7 @@ const createResolver = function createResolver() {
     noodluidom: any
   } = {
     objs: [],
-    // @ts-ignore
-    noodlui: undefined,
+    noodlui: undefined as any,
     noodluidom: undefined,
   }
 
@@ -37,10 +41,10 @@ const createResolver = function createResolver() {
           isPageConsumer,
         }
       },
-      options(...args: T.NodeResolverBaseArgs) {
+      options(...[node, component]: T.NodeResolverBaseArgs) {
         return {
           ...util.actionsContext(),
-          original: args[1].original,
+          original: component.original,
           noodlui: _internal.noodlui,
           noodluidom: _internal.noodluidom,
           draw: _internal.noodluidom.draw.bind(_internal.noodluidom),
@@ -50,33 +54,18 @@ const createResolver = function createResolver() {
     }
   })()
 
-  function _isResolverConfig(value: any): value is T.NodeResolverConfig {
-    return (
-      !!value &&
-      typeof value === 'object' &&
-      typeof value.resolve === 'function'
-    )
-  }
-
-  function _isComponentEvent(
-    type: ComponentType,
-    component: ComponentInstance,
-  ) {
-    return type === component?.noodlType || type === component?.type
-  }
-
   function _getRunners(...args: T.NodeResolverBaseArgs) {
     const attach = (
       lifeCycleEvent: T.NodeResolverLifeCycleEvent,
       acc: T.NodeResolverLifecycle,
       obj: T.NodeResolverConfig,
     ) => {
-      if (typeof obj.cond === 'string') {
+      if (isStr(obj.cond)) {
         // If they passed in a resolver strictly for this node/component
-        if (_isComponentEvent(obj.cond, args[1])) {
+        if (obj.cond === args[1]?.noodlType || obj.cond === args[1]?.type) {
           acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.NodeResolver)
         }
-      } else if (typeof obj.cond === 'function') {
+      } else if (isFnc(obj.cond)) {
         // If they only want this resolver depending on a certain condition
         if (obj.cond(...args, util.options(...args))) {
           acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.NodeResolver)
@@ -126,22 +115,19 @@ const createResolver = function createResolver() {
     },
     get: _get,
     use(value: UseObject | UseObject[]) {
-      if (Array.isArray(value)) {
+      if (isArr(value)) {
         value.forEach((val) => o.use(val))
       } else if (value) {
-        if (_isResolverConfig(value)) {
-          o.register(value)
+        if (!!value && isObj(value) && isFnc(value['resolve'])) {
+          o.register(value as any)
         } else if (value instanceof NOODLUI) {
           _internal.noodlui = value
           if (_internal.noodlui.actionsContext) {
-            Object.assign(
-              _internal.noodlui.actionsContext,
-              util.actionsContext(),
-            )
+            assign(_internal.noodlui.actionsContext, util.actionsContext())
           }
         } else if (value instanceof NOODLUIDOMInternal) {
           _internal.noodluidom = value
-        } else if (typeof value === 'object') {
+        } else if (isObj(value)) {
           //
         }
       }

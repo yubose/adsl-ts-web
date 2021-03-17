@@ -1,16 +1,20 @@
 import chalk from 'chalk'
 import sinon from 'sinon'
+import { ComponentObject } from 'noodl-types'
 import {
   ComponentInstance,
   createComponent,
+  getStore,
   List,
   ListItem,
   NOODLComponent,
 } from 'noodl-ui'
-import { waitFor } from '@testing-library/dom'
+import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { applyMockDOMResolver, noodlui, noodluidom, toDOM } from '../test-utils'
+import { applyMockDOMResolver, noodlui, ndom, toDOM } from '../test-utils'
+import { eventId } from '../constants'
 import NOODLUIDOM from '../noodl-ui-dom'
+
 import * as resolvers from '../resolvers'
 
 const getNoodlList = () =>
@@ -241,7 +245,7 @@ describe('page', () => {
     component = result.component
   })
 
-  it(
+  xit(
     `should draw and attach each resolved component as children DOM nodes to ` +
       `node.contentDocument.body`,
     async () => {
@@ -254,21 +258,21 @@ describe('page', () => {
   )
 })
 
-describe.only(`plugin`, () => {
+describe.skip(`plugin`, () => {
   it(`should receive a function as the node argument`, () => {
     const spy = sinon.spy()
-    const noodluidom = new NOODLUIDOM()
-    noodluidom.register({ cond: 'plugin', resolve: spy })
-    noodluidom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
+    const ndom = new NOODLUIDOM()
+    ndom.register({ cond: 'plugin', resolve: spy })
+    ndom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
     expect(spy.firstCall.args[0]).to.be.a('function')
   })
 
   it(`should use the argument node passed to the function as the final node`, () => {
     const node = document.createElement('div')
     node.id = 'hello'
-    const noodluidom = new NOODLUIDOM()
-    noodluidom.register({ cond: 'plugin', resolve: (getNode) => getNode(node) })
-    noodluidom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
+    const ndom = new NOODLUIDOM()
+    ndom.register({ cond: 'plugin', resolve: (getNode) => getNode(node) })
+    ndom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
     console.info(document.body.children.length)
     expect(document.body.contains(node)).to.be.true
   })
@@ -280,7 +284,7 @@ describe.only(`plugin`, () => {
       window.fetch = () => Promise.resolve(html)
       const noodlComponent = { type: 'plugin', path: 'abc.html' }
       const component = noodlui.resolveComponents(noodlComponent)
-      const node = noodluidom.draw(component)
+      const node = ndom.draw(component)
       await waitFor(() => {
         expect(document.body.contains(node)).to.be.true
       })
@@ -302,6 +306,89 @@ describe.only(`plugin`, () => {
     })
 
     describe(`lib paths (outside of domain)`, () => {
+      xit(``, () => {
+        //
+      })
+    })
+  })
+})
+
+describe.only(`styles`, () => {
+  let ndom: NOODLUIDOM
+
+  beforeEach(() => {
+    ndom = new NOODLUIDOM()
+    ndom.use(noodlui)
+  })
+
+  describe(`positioning (starting from parent down)`, () => {
+    it.only(`should always set width, height, top, and left`, async () => {
+      const component = {
+        type: 'view',
+        style: { width: '1', height: '1', top: '0', left: '0' },
+        children: [
+          { type: 'label', style: { top: '0.2' }, text: 'Good morning' },
+          { type: 'button', style: { width: '0.2' }, text: 'Submit' },
+        ],
+      } as ComponentObject
+
+      ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
+        object: { components: [component] },
+      }))
+
+      const { snapshot } = await ndom.page.requestPageChange('Hello')
+      console.info(snapshot.components[0].toJSON())
+    })
+
+    it(`should save last used top to lastTop`, async () => {
+      const component = {
+        type: 'view',
+        style: { width: '1', height: '1', top: '0', left: '0' },
+        children: [
+          {
+            type: 'view',
+            style: {
+              top: '0.125',
+              left: '0.1',
+              height: '0.05',
+              width: '0.01',
+            },
+            children: [
+              { type: 'label', style: { top: '0.2' }, text: 'Good morning' },
+              { type: 'button', style: { width: '0.2' }, text: 'Submit' },
+            ],
+          },
+        ],
+      } as ComponentObject
+      ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
+        object: { components: [component] },
+      }))
+      const result = await ndom.page.requestPageChange('Hello')
+      console.info(prettyDOM())
+      console.info(ndom.state)
+    })
+
+    it(
+      `should be reachable to look at for its dimensions when the child ` +
+        `is resolving its positioning`,
+      () => {
+        //
+      },
+    )
+
+    describe(`when missing top`, () => {
+      xit(`should take the last top that was known`, () => {
+        //
+      })
+    })
+
+    describe(`when missing height`, () => {
+      xit(`should `, () => {
+        //
+      })
+    })
+
+    describe(`when missing both top and height`, () => {
       xit(``, () => {
         //
       })

@@ -1,10 +1,9 @@
 import isPlainObject from 'lodash/isPlainObject'
 import find from 'lodash/find'
-import merge from 'lodash/merge'
 import Logger from 'logsnap'
 import { WritableDraft } from 'immer/dist/internal'
-import { createDraft, isDraft, finishDraft, original, current } from 'immer'
-import { ComponentObject } from 'noodl-types'
+import { isDraft, original, current } from 'immer'
+import { ComponentObject, StyleObject } from 'noodl-types'
 import { eventTypes } from '../constants'
 import {
   ComponentCreationType,
@@ -15,7 +14,8 @@ import {
 } from '../types'
 import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import isComponent from '../utils/isComponent'
-import { forEachEntries, getRandomKey } from '../utils/common'
+import { getRandomKey } from '../utils/common'
+import * as u from '../utils/internal'
 
 const log = Logger.create('Base')
 
@@ -24,26 +24,16 @@ const log = Logger.create('Base')
 class Component implements IComponent<any> {
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
-  #cb: { [eventName: string]: Function[] } = {}
+  #cb: { [eventName: string]: ((...args: any[]) => any)[] } = {}
   #cbIds: string[] = []
   #component: WritableDraft<ComponentObject> | ComponentObject
   #children: ComponentInstance[] = []
-  #id: string = ''
+  #id = ''
   #noodlType: ComponentType
   #parent: ComponentInstance | null = null
   #status: 'drafting' | 'idle' = 'drafting'
-  #stylesHandled: string[] = []
-  #stylesUnhandled: string[] = []
-  context: { [key: string]: any } = {}
   original: ComponentObject
-  resolved: boolean = false
   keys: string[]
-  handled: string[] = []
-  unhandled: string[] = []
-  touched: string[] = []
-  untouched: string[] = []
-  stylesTouched: string[] = []
-  stylesUntouched: string[] = []
 
   constructor(component: ComponentCreationType) {
     const keys = isComponent(component)
@@ -57,8 +47,6 @@ class Component implements IComponent<any> {
       ? { noodlType: component }
       : (component as any)
     this['keys'] = keys
-    this['untouched'] = keys.slice()
-    this['unhandled'] = keys.slice()
 
     this.#cache = {}
     this.#component = createComponentDraftSafely(
@@ -69,13 +57,6 @@ class Component implements IComponent<any> {
     this['noodlType'] = this.#component.noodlType as any
 
     if (!this.#component.style) this.#component['style'] = {}
-
-    if (isPlainObject(this.#component.style)) {
-      this.#stylesUnhandled = Object.keys(this.#component.style)
-      this['stylesUntouched'] = this.#stylesUnhandled.slice()
-    } else if (isDraft(this.#component.style)) {
-      // this.#component.style = current(this.#component.style)
-    }
 
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
@@ -99,18 +80,6 @@ class Component implements IComponent<any> {
         //   : component[eventType]
       }
     })
-
-    // Immer proxifies some funcs / objects but we need them in their original form
-    // in the resolve process, so we need to convert them to their original form
-    keys.forEach((key) => {
-      if (isDraft(this.#component[key])) {
-        const orig = original(this.#component[key])
-        // this.#component[key] = original(this.#component[key])
-        if (typeof this.original === 'object') {
-          // this.original[key] = orig
-        }
-      }
-    })
   }
 
   /**
@@ -131,7 +100,7 @@ class Component implements IComponent<any> {
       return value
     }
     // component.get(['someKey', 'someOtherKey'])
-    else if (Array.isArray(key)) {
+    if (Array.isArray(key)) {
       const value = {} as Record<K, ComponentObject[K]>
       key.forEach((k) => (value[k] = this.#retrieve(k)))
       return value
@@ -147,21 +116,19 @@ class Component implements IComponent<any> {
 
     if (key === 'cache') {
       return this.#cache
-    } else if (key === 'style') {
+    }
+    if (key === 'style') {
       // Retrieve the entire style object
       if (styleKey === undefined) {
-        if (this.status !== 'drafting') this.touch('style')
         value = isDraft(this.original.style)
           ? original(this.original.style)
           : this.original.style
       }
       // Retrieve a property of the style object
       else if (typeof styleKey === 'string') {
-        if (this.status !== 'drafting') this.touchStyle(styleKey)
         value = this.original.style?.[styleKey]
       }
     } else {
-      if (this.status !== 'drafting') this.touch(key as string)
       // Return the original type only for this case
       if (key === 'type') {
         value = this.original.type
@@ -187,19 +154,9 @@ class Component implements IComponent<any> {
   set<O extends ComponentObject>(key: O, value?: any, styleChanges?: any): this
   set<K extends string = any>(key: K, value?: any, styleChanges?: any) {
     if (key === 'style') {
-      if (this.#component.style) {
-        this.#component.style[value] = styleChanges
-        if (!this.isHandled('style')) {
-          this.#setHandledKey('style')
-        }
-        this.#setHandledStyleKey(value)
-      }
+      this.style && (this.style[value] = styleChanges)
     } else {
-      if (key === 'type') this.#component['type'] = value
-      else {
-        this.#component[key as keyof ComponentObject] = value
-        if (this.status !== 'drafting') this.#setHandledKey(key as string)
-      }
+      this.#component[key] = value
     }
     return this
   }
@@ -230,110 +187,15 @@ class Component implements IComponent<any> {
 
   /** Returns the most recent styles at the time of this call */
   get style() {
-    return (
-      (isDraft(this.#component.style)
-        ? current(this.#component.style)
-        : this.#component.style) || {}
-    )
+    return this.#component.style as StyleObject
+  }
+
+  set style(style: StyleObject) {
+    if (this.#component) this.#component.style = style
   }
 
   get status() {
     return isDraft(this.#status) ? current(this.#status) : this.#status
-  }
-
-  /**
-   * Turns the mode of this component to "drafting" state. This allows
-   * mutations to be set on this instance until .done() is called
-   */
-  draft() {
-    this.#status = 'drafting'
-    this.#component = isDraft(this.#component)
-      ? this.#component
-      : createDraft(this.#component)
-    return this
-  }
-
-  /**
-   * Turns the mode of this component to 'idle' and sets this.resolved to true
-   * When the status is "idle", this component should not perform any mutation
-   * operations unless this.draft() is called
-   */
-  done({ mergeUntouched = false } = {}) {
-    if (this.status === 'drafting') {
-      if (mergeUntouched) {
-        this.untouched.forEach((untouchedKey) => {
-          this.set(untouchedKey, this.#component[untouchedKey])
-        })
-      }
-      // Prevent style keys that are not in valid DOM shapes from leaking to the DOM
-      ;([
-        'border',
-        'isHidden',
-        'required',
-        'shadow',
-        'textColor',
-      ] as const).forEach((styleKey) => {
-        this.removeStyle(styleKey)
-      })
-      this.#component = isDraft(this.#component)
-        ? finishDraft(this.#component)
-        : this.#component
-      this.#status = 'idle'
-      if (Array.isArray(this.#cb.resolved)) {
-        this.#cb.resolved.forEach((fn) => fn(this.#component))
-      }
-    }
-    // this.resolved is meant to be set only once as soon as it has been set
-    // to true the first time
-    if (this.resolved === undefined) this['resolved'] = true
-    return this
-  }
-
-  touch(key: string) {
-    // Only operate on the props that this component was provided with
-    if (this.keys.includes(key)) {
-      if (!this.isTouched(key)) this.touched.push(key)
-      const index = this.untouched.indexOf(key)
-      if (index !== -1) this.untouched.splice(index, 1)
-    }
-    return this
-  }
-
-  isTouched(key: string) {
-    return this.touched.includes(key)
-  }
-
-  touchStyle(styleKey: string) {
-    if (!this.isStyleTouched(styleKey)) this.stylesTouched.push(styleKey)
-    const index = this.stylesUntouched.indexOf(styleKey)
-    if (index !== -1) this.stylesUntouched.splice(index, 1)
-    return this
-  }
-
-  isStyleTouched(styleKey: string) {
-    return this.stylesTouched.includes(styleKey)
-  }
-
-  isHandled(key: string) {
-    return this.handled.includes(key)
-  }
-
-  isStyleHandled(styleKey: string) {
-    return this.#stylesHandled.includes(styleKey)
-  }
-
-  #setHandledKey = (key: string) => {
-    if (!this.isHandled(key)) this.handled.push(key)
-    const index = this.unhandled.indexOf(key)
-    if (index !== -1) this.unhandled.splice(index, 1)
-    return this
-  }
-
-  #setHandledStyleKey = (styleKey: string) => {
-    if (!this.isStyleHandled(styleKey)) this.#stylesHandled.push(styleKey)
-    const index = this.#stylesUnhandled.indexOf(styleKey)
-    if (index !== -1) this.#stylesUnhandled.splice(index, 1)
-    return this
   }
 
   /**
@@ -355,49 +217,25 @@ class Component implements IComponent<any> {
             { key, value, style: this.#component.style },
           )
         } else {
-          Object.assign(this.#component.style, value)
+          u.assign(this.#component.style, value)
         }
       } else {
-        Object.assign(this.#component[key], value)
+        u.assign(this.#component[key], value)
       }
     } else if (isPlainObject(key)) {
-      Object.assign(this.#component, key)
+      u.assign(this.#component, key)
     }
     return this
   }
 
   /**
-   * Returns true if the key exists on the component, false otherwise.
-   * Returns true if the styleKey exists on the component's style object if key === 'style', false otherwise.
+   * Returns true if the key exists on the blueprint
+   * NOTE: It is very important to remember that this method only cares about
+   * the blueprint!
    * @param { string } key - Component property or "style" if using styleKey for style lookups
-   * @param { string? } styleKey - Style property if key === 'style'
    */
-  has(key: string, styleKey?: keyof Style) {
-    if (key === 'style') {
-      if (typeof styleKey === 'string') {
-        return styleKey in (this.#component.style || {})
-      }
-      return false
-    }
-    return key in (this.#component || {})
-  }
-
-  /**
-   * Merges value into the component's property using key, or merges value into the style object if key === "string",
-   * or merges props directly into the component if key is an object
-   * @param { string | object } key - Component property or "style" if merging into the style object, or an object of component props to merge directly into the component
-   */
-  merge(key: string | { [key: string]: any }, value?: any) {
-    if (typeof key === 'string') {
-      if (key === 'style') {
-        merge(this.#component.style, value)
-      } else {
-        merge(this.#component, value)
-      }
-    } else if (isPlainObject(key)) {
-      merge(this.#component, key)
-    }
-    return this
+  has<K extends keyof ComponentObject>(key: K) {
+    return key in (this.original || {})
   }
 
   /**
@@ -437,14 +275,6 @@ class Component implements IComponent<any> {
   }
 
   /**
-   * Returns true of the component is using the styleKey in its style objext
-   * @param { string } styleKey
-   */
-  hasStyle<K extends keyof Style>(styleKey: K) {
-    return this.has('style', styleKey)
-  }
-
-  /**
    * Updates/creates a new key/value into the style object using the styleKey and value
    * @param { string } styleKey
    * @param { any } value - Value to set for the styleKey
@@ -456,13 +286,10 @@ class Component implements IComponent<any> {
     if (typeof styleKey === 'string') {
       if (this.#component.style) {
         this.#component.style[styleKey] = value
-        this.touchStyle(styleKey)
       }
     } else if (typeof styleKey === 'string') {
       const style = this.#component.style as Style
-      forEachEntries(styleKey, (key, value) => {
-        style[key] = value
-      })
+      u.entries(styleKey).forEach(([key, value]) => (style[key] = value))
     }
     return this
   }
@@ -482,23 +309,14 @@ class Component implements IComponent<any> {
    * If it is still a draft it is converted into plain JS
    */
   snapshot() {
-    return Object.assign(
-      { id: this.#id, noodlType: this.original.type as ComponentType },
-      this.toJS(),
-      {
-        _cache: this.#cache,
-        _touched: this.touched,
-        _untouched: this.untouched,
-        _touchedStyles: this.stylesTouched,
-        _untouchedStyles: this.stylesUntouched,
-        _handled: this.handled,
-        _unhandled: this.unhandled,
-      },
-    )
+    return {
+      ...this.toJSON(),
+      _cache: this.#cache,
+    }
   }
 
   /** Returns the JS representation of the currently resolved component */
-  toJS(): ComponentObject {
+  toJS() {
     const obj = isDraft(this.#component)
       ? current(this.#component)
       : this.#component
@@ -509,7 +327,7 @@ class Component implements IComponent<any> {
         children: this.children().map((child) => child?.toJS?.()),
       }
     }
-    return obj as ComponentObject
+    return obj
   }
 
   /**
@@ -517,15 +335,11 @@ class Component implements IComponent<any> {
    * @param { number | undefined } spaces - Spaces to indent in the JSON string
    */
   toString({ spaces = 2 }: { spaces?: number } = {}) {
-    return JSON.stringify(this.toJS(), null, spaces)
+    return JSON.stringify(this.toJSON(), null, spaces)
   }
 
   parent() {
     return this.#parent as any
-  }
-
-  hasParent() {
-    return !!this.#parent && isComponent(this.#parent)
   }
 
   setParent(parent: ComponentInstance | null) {
@@ -563,7 +377,8 @@ class Component implements IComponent<any> {
   hasChild(child: ComponentInstance | string): boolean {
     if (typeof child === 'string') {
       return !!find(this.#children, (c) => c?.id === child)
-    } else if (isComponent(child)) {
+    }
+    if (isComponent(child)) {
       return this.#children.includes(child)
     }
     return false
@@ -611,7 +426,7 @@ class Component implements IComponent<any> {
     return this.#children?.length || 0
   }
 
-  on(eventName: string, cb: Function, id: string = '') {
+  on(eventName: string, cb: Function, id = '') {
     if (id) {
       if (!this.#cbIds.includes(id)) this.#cbIds.push(id)
       else return this
@@ -660,6 +475,65 @@ class Component implements IComponent<any> {
       }
     })
     return this
+  }
+
+  edit(fn: (props: ComponentObject) => ComponentObject | undefined | void): void
+  edit(prop: Record<string, any>): void
+  edit(prop: string, value: any): void
+  edit(
+    fn:
+      | Record<string, any>
+      | string
+      | ((props: ComponentObject) => ComponentObject | undefined | void),
+    value?: any,
+  ) {
+    if (u.isFnc(fn)) {
+      const props = fn(this.#component)
+      if (u.isObj(props)) {
+        u.entries(props).forEach(([k, v]) => {
+          if (k === 'style') {
+            if (!this.style) this.style = {}
+            u.isObj(v) && u.assign(this.style, v)
+          } else {
+            this.#component[k] = v
+          }
+        })
+      }
+    } else if (u.isStr(fn)) {
+      this.#component[fn] = value
+    } else if (u.isObj(fn)) {
+      u.entries(fn).forEach(([k, v]) => {
+        if (k === 'style') {
+          if (u.isObj(v)) u.assign(this.style, v)
+          else this.style = v
+        } else {
+          this.#component[k] = v
+        }
+      })
+    }
+  }
+
+  /**
+   * Returns the value of the component property using key, or
+   * Returns the value of the property of the component's style object
+   * using styleKey if key === 'style'
+   * @param { string } key - Component property or "style" if using styleKey for style lookups
+   */
+  props() {
+    return {
+      ...this.#component,
+      id: this.#id,
+    } as ComponentObject & { id: string }
+  }
+
+  /** Returns the JS representation of the currently resolved component */
+  toJSON() {
+    const result = {} as ReturnType<IComponent['toJSON']>
+    u.assign(result, this.props(), {
+      parentId: this.parent?.()?.id || '',
+      children: this.children().map((child) => child?.toJSON?.()),
+    })
+    return result
   }
 }
 

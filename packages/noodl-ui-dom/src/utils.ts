@@ -10,15 +10,22 @@ import {
 } from 'noodl-ui'
 import { NOODLDOMElement } from './types'
 
-const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
-const isArr = (v: any): v is any[] => Array.isArray(v)
-const isBool = (v: any): v is boolean => typeof v === 'boolean'
-const isObj = (v: any): v is { [key: string]: any } =>
+export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
+export const assign = (
+  v: Record<string, any>,
+  ...rest: (Record<string, any> | undefined)[]
+) => Object.assign(v, ...rest)
+export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
+export const isArr = (v: any): v is any[] => Array.isArray(v)
+export const isBool = (v: any): v is boolean => typeof v === 'boolean'
+export const isObj = (v: any): v is { [key: string]: any } =>
   !!v && !isArr(v) && typeof v === 'object'
-const isNum = (v: any): v is number => typeof v === 'number'
-const isStr = (v: any): v is string => typeof v === 'string'
-const isUnd = (v: any): v is undefined => typeof v === 'undefined'
-const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
+export const isNum = (v: any): v is number => typeof v === 'number'
+export const isStr = (v: any): v is string => typeof v === 'string'
+export const isUnd = (v: any): v is undefined => typeof v === 'undefined'
+export const isNull = (v: any): v is null => v === null
+export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
+export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
   typeof v === 'function'
 
 export function addClassName(className: string, node: HTMLElement) {

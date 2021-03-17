@@ -1,7 +1,12 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { getAllResolversAsMap, Resolver, publish } from 'noodl-ui'
+import {
+  getAllResolversAsMap,
+  Resolver,
+  publish,
+  resolveStyles,
+} from 'noodl-ui'
 import { eventId } from './constants'
 import { assetsUrl, noodlui, noodluidom, viewport } from './test-utils'
 
@@ -28,10 +33,6 @@ before(() => {
   viewport.height = 667
 
   logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
-
-  Object.entries(getAllResolversAsMap()).forEach(([name, r]) => {
-    noodlui.use({ name, resolver: new Resolver().setResolver(r) } as any)
-  })
 })
 
 after(() => {
@@ -44,6 +45,22 @@ beforeEach(() => {
     getBaseUrl: () => 'https://google.com/',
     getRoot: () => root,
   })
+
+  Object.entries(getAllResolversAsMap()).forEach(([name, resolver]) => {
+    if (
+      !/(getAlign|getPosition|getBorder|getColors|getFont|getPosition|getSizes|getStylesBy|getTransformedStyle)/i.test(
+        name,
+      )
+    ) {
+      const r = new Resolver().setResolver(resolver)
+      noodlui.use({ name, resolver: r })
+    }
+  })
+
+  noodlui.use({
+    name: 'resolveStyles',
+    resolver: new Resolver().setResolver(resolveStyles),
+  })
 })
 
 afterEach(() => {
@@ -51,4 +68,5 @@ afterEach(() => {
   document.body.textContent = ''
   // Resets plugins, registry, noodlui.page
   noodlui.reset()
+  noodluidom.reset()
 })

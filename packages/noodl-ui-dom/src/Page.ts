@@ -102,10 +102,12 @@ class Page {
       if (process.env.NODE_ENV !== 'test') {
         history.pushState({}, '', this.pageUrl)
       }
-      await this.navigate(newPage)
+      const snapshot = await this.navigate(newPage)
       this.setPreviousPage(this.getState().current)
       this.setCurrentPage(newPage)
+      return snapshot || { snapshot: null }
     }
+    return { snapshot: null }
   }
 
   /**

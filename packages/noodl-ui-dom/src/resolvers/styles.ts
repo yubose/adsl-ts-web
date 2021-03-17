@@ -1,18 +1,17 @@
 import {
   getAllResolversAsMap,
   hasLetter,
-  hasDecimal,
   Resolver,
   Viewport,
   ComponentInstance,
-  ConsumerOptions,
 } from 'noodl-ui'
 import { NOODLDOMElement, RegisterOptions } from '../types'
+import { entries, isObj, isStr } from '../utils'
 
 let { getAlignAttrs, getPosition } = Object.entries(
   getAllResolversAsMap(),
 ).reduce((acc, [name, fn]) => {
-  if (/(getAlignAttrs|getPosition)/i.test(name)) acc[name] = fn
+  if (/(getAlig|getPos)/i.test(name)) acc[name] = fn
   return acc
 }, {} as any)
 
@@ -25,12 +24,9 @@ function addClassName(className: string, node: NOODLDOMElement) {
   }
 }
 
-const isPlo = (v: any): boolean =>
-  v !== null && !Array.isArray(v) && typeof v === 'object'
-
 const isNoodl = (v: any): v is string => typeof v === 'string' && !hasLetter(v)
 
-class PositionEditor {
+class XYEditor {
   #component: ComponentInstance
   #viewport: Viewport
 
@@ -39,7 +35,7 @@ class PositionEditor {
     this.#viewport = viewport
   }
 
-  #updateViewportStyleProp = (prop: string, vpKey: string) => {
+  #updateVpProp = (prop: string, vpKey: string) => {
     this.edit(
       prop,
       Viewport.getSize(
@@ -50,17 +46,17 @@ class PositionEditor {
     )
   }
 
-  edit(v: any, s?: any) {
-    if (isPlo(v)) this.#component.assignStyles(v)
-    else if (typeof v === 'string') this.#component.setStyle(v, s)
+  edit(key: string | Record<string, any>, s?: any) {
+    if (isObj(key)) this.#component.assignStyles(key)
+    else if (isStr(key)) this.#component.setStyle(key, s)
   }
 
   updateY(prop: string) {
-    this.#updateViewportStyleProp(prop, 'height')
+    this.#updateVpProp(prop, 'height')
   }
 
   updateX(prop: string) {
-    this.#updateViewportStyleProp(prop, 'width')
+    this.#updateVpProp(prop, 'width')
   }
 }
 
@@ -72,7 +68,7 @@ function fixTextAlign(c: ComponentInstance) {
   const origStyle = c.original?.style || {}
   const axises = ['x', 'y'] as const
   axises.forEach((ax) => {
-    if (isPlo(origStyle.textAlign)) {
+    if (isObj(origStyle.textAlign)) {
       const origVal = origStyle.textAlign?.[ax]
       if (origVal) {
         if (ax === 'x') {
@@ -92,16 +88,22 @@ function fixTextAlign(c: ComponentInstance) {
   })
 }
 
+let _state: {
+  [page: string]: {
+    lastTop: number
+  }
+} = {}
+
 export default {
-  name: '[noodl-ui-dom] styles',
+  name: '[noodl-dom] Styles',
   cond: (node: NOODLDOMElement, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
   resolve: (node: HTMLElement, component, { noodlui }) => {
     const originalStyle = component.original?.style || {}
-    let style = component.style
+    let currentStyle = component.style
 
-    if (style !== null && typeof style === 'object') {
-      const editor = new PositionEditor(component, noodlui.viewport)
+    if (isObj(currentStyle)) {
+      const editor = new XYEditor(component, noodlui.viewport)
 
       posKeys.forEach((key) => {
         if (isNoodl(originalStyle[key])) {
@@ -133,28 +135,27 @@ export default {
       fixTextAlign(component)
     }
 
-    style = component.style
+    currentStyle = component.style
 
-    if (style != null && typeof style === 'object' && node.style) {
-      Object.entries(style).forEach(([k, v]) => {
-        node.style[k] = v
-      })
+    if (isObj(currentStyle) && node.style) {
+      entries(currentStyle).forEach(([k, v]) => (node.style[k] = v))
     }
+
+    /* -------------------------------------------------------
+      ---- TEMP - Experimenting CSS
+    -------------------------------------------------------- */
 
     if (component.noodlType === 'popUp') {
-      // if (style.visibility !== 'hidden') {
-      //   style.visibility = 'hidden'
-      // }
       addClassName('popup', node)
     }
-
-    // TEMP - Experimenting CSS
     if (component.noodlType === 'scrollView') {
       addClassName('scroll-view', node)
     }
-
     if (component.has('textBoard')) {
       addClassName('text-board', node)
     }
+  },
+  after(node, component) {
+    //
   },
 } as RegisterOptions

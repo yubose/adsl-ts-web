@@ -39,6 +39,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       cleanup: [] as ((...args: Parameters<NOODLUIDOM['redraw']>) => void)[],
     },
   }
+  #state = {} as { [page: string]: { lastTop: number } }
   page: Page
 
   constructor() {
@@ -63,6 +64,10 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
   get callbacks() {
     return this.#cbs
+  }
+
+  get state() {
+    return this.#state
   }
 
   /**
@@ -315,7 +320,15 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#R.get()
   }
 
-  reset() {
+  reset({ only }: { only?: ['state'] | 'state' } = {}) {
+    if (only) {
+      const fn = (val: any) => {
+        if (val === 'state') {
+          this.#state = {}
+        }
+      }
+      ;(Array.isArray(only) ? only : [only]).forEach(fn)
+    }
     this.#R.clear()
     const clearCbs = (obj: any) => {
       if (Array.isArray(obj)) {

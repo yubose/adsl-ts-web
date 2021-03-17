@@ -24,6 +24,7 @@ export { default as getSizes } from './resolvers/getSizes'
 export { default as getStylesByElementType } from './resolvers/getStylesByElementType'
 export { default as getTransformedAliases } from './resolvers/getTransformedAliases'
 export { default as getTransformedStyleAliases } from './resolvers/getTransformedStyleAliases'
+export { default as resolveStyles } from './resolvers/resolveStyles'
 export { default as Resolver } from './Resolver'
 // Other
 export { default as createComponent } from './utils/createComponent'
@@ -60,3 +61,4 @@ export {
   publish,
 } from './utils/noodl'
 export { getTagName } from './resolvers/getElementType'
+export { default as getStore } from './store'

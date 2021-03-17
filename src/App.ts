@@ -29,6 +29,7 @@ import {
   PageObject,
   publish,
   Resolver,
+  resolveStyles,
   Viewport,
 } from 'noodl-ui'
 import { WritableDraft } from 'immer/dist/internal'
@@ -588,12 +589,22 @@ class App {
 
               Object.entries(getAllResolversAsMap()).forEach(
                 ([name, resolver]) => {
-                  if (!/(getAlign|getPosition)/i.test(name)) {
+                  if (
+                    !/(getAlign|getPosition|getBorder|getColors|getFont|getPosition|getSizes|getStylesBy|getTransformedStyle)/i.test(
+                      name,
+                    )
+                  ) {
                     const r = new Resolver().setResolver(resolver)
                     this.noodlui.use({ name, resolver: r })
                   }
                 },
               )
+
+              this.noodlui.use({
+                name: 'resolveStyles',
+                resolver: new Resolver().setResolver(resolveStyles),
+              })
+
               log.func('before-page-render')
               log.grey('Initialized noodl-ui client', this.noodlui)
             }

@@ -18,7 +18,10 @@ export type ComponentCreationType =
   | NOODLComponent
   | ComponentInstance
 
-export interface IComponent<C extends ComponentObject, Type extends C['type']> {
+export interface IComponent<
+  C extends ComponentObject = ComponentObject,
+  Type extends C['type'] = C['type']
+> {
   id: string
   type: string
   noodlType: Type
@@ -26,10 +29,6 @@ export interface IComponent<C extends ComponentObject, Type extends C['type']> {
   length: number
   original: C
   status: 'drafting' | 'idle' | 'idle/resolved'
-  stylesTouched: keyof StyleObject[]
-  stylesUntouched: keyof StyleObject[]
-  touched: keyof C[]
-  untouched: keyof C[]
   assign(key: keyof C | PlainObject, value?: PlainObject): this
   assignStyles(styles: StyleObject): this
   child(index?: number): ComponentInstance | undefined
@@ -41,8 +40,6 @@ export interface IComponent<C extends ComponentObject, Type extends C['type']> {
   removeChild(id: string): ComponentInstance | undefined
   removeChild(index: number): ComponentInstance | undefined
   removeChild(): ComponentInstance | undefined
-  done(options?: { mergeUntouched?: boolean }): this
-  draft(): this
   get<K extends keyof C>(key: K, styleKey?: keyof StyleObject): C[K]
   get<K extends keyof C>(
     key: K[],
@@ -51,34 +48,24 @@ export interface IComponent<C extends ComponentObject, Type extends C['type']> {
   get(key: keyof C, styleKey?: keyof StyleObject): any
   getStyle<K extends keyof StyleObject>(styleKey: K): StyleObject[K]
   has(key: keyof C, styleKey?: keyof StyleObject): boolean
-  hasParent(): boolean
-  hasStyle<K extends keyof StyleObject>(styleKey: K): boolean
-  isHandled(key: keyof C): boolean
-  isTouched(key: keyof C): boolean
-  isStyleTouched(styleKey: keyof StyleObject): boolean
-  isStyleHandled(key: keyof StyleObject): boolean
-  keys: keyof C[]
-  merge(key: keyof C | PlainObject, value?: any): this
+  keys: string[]
   on(eventName: string, cb: Function): this
   off(eventName: string, cb: Function): this
   parent(): ComponentInstance | null
+  props(): { id: string } & ComponentObject
   remove(key: keyof C, styleKey?: keyof StyleObject): this
   removeStyle<K extends keyof StyleObject>(styleKey: K): this
   set<K extends keyof C>(key: K, value?: any, styleChanges?: any): this
   set<O extends C>(key: O, value?: any, styleChanges?: any): this
   setParent(parent: ComponentInstance): this
   setStyle<K extends keyof StyleObject>(styleKey: K, value: any): this
-  snapshot(): ProxiedComponent & {
-    _touched: keyof C[]
-    _untouched: keyof C[]
-    _touchedStyles: keyof StyleObject[]
-    _untouchedStyles: keyof StyleObject[]
-    _handled: keyof C[]
-    _unhandled: keyof C[]
-    noodlType: Type
+  snapshot(): ReturnType<IComponent['toJSON']> & {
+    _cache: any
   }
-  touch(key: keyof C): this
-  touchStyle(styleKey: keyof StyleObject): this
+  toJSON(): Omit<ReturnType<IComponent['props']>, 'children'> & {
+    children: ReturnType<IComponent['toJSON']>[]
+    parentId: string | null
+  }
   toJS(): any
 }
 

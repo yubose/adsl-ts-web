@@ -26,9 +26,9 @@
     "styleboard/**/*",
     "scripts/pos.js",
     "scripts/mocha.js",
-    "packages/noodl-ui/dist",
-    "packages/noodl-utils/dist",
-    "packages/noodl-ui-dom/dist"
+    "packages/noodl-ui/src",
+    "packages/noodl-utils/src",
+    "packages/noodl-ui-dom/src"
   ],
   "exclude": ["node_modules/**/*", "build", "sbuild"]
 }

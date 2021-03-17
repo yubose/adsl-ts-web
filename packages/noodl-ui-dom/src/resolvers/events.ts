@@ -13,6 +13,7 @@ export default {
         // gets their data values updated.
         // TODO - Unit test + think of a better solution
         node.addEventListener(normalizeEventName(eventType), (e) => {
+          console.log(component.get(eventType))
           setTimeout(() => Promise.resolve(component.get(eventType)(e)))
         })
       }
