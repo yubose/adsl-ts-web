@@ -337,7 +337,7 @@ describe.only(`styles`, () => {
       }))
 
       const { snapshot } = await ndom.page.requestPageChange('Hello')
-      console.info(snapshot.components[0].toJSON())
+      console.info(snapshot.components[0].style)
     })
 
     it(`should save last used top to lastTop`, async () => {
@@ -364,8 +364,8 @@ describe.only(`styles`, () => {
         object: { components: [component] },
       }))
       const result = await ndom.page.requestPageChange('Hello')
-      console.info(prettyDOM())
-      console.info(ndom.state)
+      // console.info(prettyDOM())
+      // console.info(ndom.state)
     })
 
     it(
