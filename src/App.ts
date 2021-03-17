@@ -90,261 +90,265 @@ class App {
     noodlui: NOODLUI
     noodluidom: NOODLUIDOM
   }) {
-    const { Account } = await import('@aitmed/cadl')
-    const noodl = (await import('app/noodl')).default
-    const { isSupported: firebaseSupported } = await import('app/firebase')
+    try {
+      const { Account } = await import('@aitmed/cadl')
+      const noodl = (await import('app/noodl')).default
+      const { isSupported: firebaseSupported } = await import('app/firebase')
 
-    !firebaseSupported() && (this.#enabled.firebase = false)
+      !firebaseSupported() && (this.#enabled.firebase = false)
 
-    this.firebase = firebase
-    this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
-    stable && log.cyan(`Initialized firebase messaging instance`)
-    this.meeting = meeting
-    this.noodl = noodl
-    this.noodlui = noodlui
-    this.noodluidom = noodluidom
-    this.streams = meeting.getStreams()
-    this.#viewportUtils = createViewportHandler(new Viewport())
+      this.firebase = firebase
+      this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
+      stable && log.cyan(`Initialized firebase messaging instance`)
+      this.meeting = meeting
+      this.noodl = noodl
+      this.noodlui = noodlui
+      this.noodluidom = noodluidom
+      this.streams = meeting.getStreams()
+      this.#viewportUtils = createViewportHandler(new Viewport())
 
-    stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
-    await noodl.init()
-    stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
-    noodluidom.use(noodlui)
-    stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
+      stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
+      await noodl.init()
+      stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
+      noodluidom.use(noodlui)
+      stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
-    createActions({ noodlui, noodluidom })
-    createBuiltIns({ noodl, noodlui, noodluidom })
-    createRegisters({ noodl, noodlui, noodluidom, Meeting })
-    createMeetingHandlers({ noodl, noodlui, noodluidom, Meeting })
+      createActions({ noodlui, noodluidom })
+      createBuiltIns({ noodl, noodlui, noodluidom })
+      createRegisters({ noodl, noodlui, noodluidom, Meeting })
+      createMeetingHandlers({ noodl, noodlui, noodluidom, Meeting })
 
-    meeting.initialize({
-      noodluidom,
-      page: noodluidom.page,
-      viewport: this.#viewportUtils.viewport,
-    })
+      meeting.initialize({
+        noodluidom,
+        page: noodluidom.page,
+        viewport: this.#viewportUtils.viewport,
+      })
 
-    if (this.#enabled.firebase) {
-      this.messaging?.onMessage(
-        (obs) => {
-          log.func('onMessage')
-          log.green('[nextOrObserver]: obs', obs)
-        },
-        (err) => {
-          log.func('onMessage')
-          log.red(`[onError]: ${err.message}`, err)
-        },
-        () => {
-          log.func('[onComplete]')
-          log.grey(`from onMessage`)
-        },
-      )
-    }
-
-    let startPage = noodl?.cadlEndpoint?.startPage
-    stable && log.cyan(`Start page: ${startPage}`)
-
-    if (!this.authStatus) {
-      // Initialize the user's state before proceeding to decide on how to direct them
-      const storedStatus = await Account.getStatus()
-      if (storedStatus.code === 0) {
-        noodl.setFromLocalStorage('user')
-        this.authStatus = 'logged.in'
-        this.onAuthStatus?.('logged.in')
-      } else if (storedStatus.code === 1) {
-        this.authStatus = 'logged.out'
-        this.onAuthStatus?.('logged.out')
-      } else if (storedStatus.code === 2) {
-        this.authStatus = 'new.device'
-        this.onAuthStatus?.('new.device')
-      } else if (storedStatus.code === 3) {
-        this.authStatus = 'temporary'
-        this.onAuthStatus?.('temporary')
-      }
-    }
-
-    this.#preparePage = async function preparePage(
-      this: App,
-      pageName: string,
-    ): Promise<PageObject> {
-      try {
-        stable && log.cyan(`Running noodl.initPage on ${pageName}`)
-        await noodl.initPage(pageName, [], {
-          ...noodluidom.page.getState().modifiers[pageName],
-          builtIn: {
-            FCMOnTokenReceive: async (...args: any[]) => {
-              try {
-                const permission = await Notification.requestPermission()
-                log.func('messaging.requestPermission')
-                log.grey(`Notification permission ${permission}`)
-              } catch (err) {
-                log.func('messaging.requestPermission')
-                log.red('Unable to get permission to notify.', err)
-              }
-              try {
-                if (this.#enabled.firebase) {
-                  this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
-                    'firebase-messaging-sw.js',
-                  )
-                  args[0] = {
-                    vapidKey,
-                    serviceWorkerRegistration: this._store.messaging
-                      .serviceRegistration,
-                    ...args[0],
-                  }
-                  log.grey(
-                    'Initialized service worker',
-                    this._store.messaging.serviceRegistration,
-                  )
-
-                  this.messaging?.onMessage((...args) => {
-                    log.func('messaging.onMessage')
-                    log.green(`Received a message`, args)
-                  })
-                } else {
-                  log.red(
-                    `Could not initiate the firebase service worker because this browser ` +
-                      `does not support it`,
-                    this,
-                  )
-                }
-
-                const token = this.#enabled.firebase
-                  ? (await this.messaging?.getToken(...args)) || ''
-                  : ''
-
-                copyToClipboard(token)
-
-                if (this.#enabled.firebase) {
-                  noodlui.emit('register', {
-                    key: 'globalRegister',
-                    id: 'FCMOnTokenReceive',
-                    prop: 'onEvent',
-                    data: token,
-                  })
-                } else {
-                  log.func('FCMOnTokenReceive')
-                  log.red(
-                    `Could not emit the "FCMOnTokenReceive" event because firebase ` +
-                      `messaging is disabled. Is it supported by this browser?`,
-                    this,
-                  )
-                }
-
-                return token
-              } catch (error) {
-                console.error(error)
-                return error
-              }
-            },
-            FCMOnTokenRefresh: this.#enabled.firebase
-              ? this.messaging?.onTokenRefresh.bind(this.messaging)
-              : undefined,
-            checkField: noodluidom.builtIns.checkField?.find(Boolean)?.fn,
-            goto: noodluidom.builtIns.goto?.find(Boolean)?.fn,
-            videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
+      if (this.#enabled.firebase) {
+        this.messaging?.onMessage(
+          (obs) => {
+            log.func('onMessage')
+            log.green('[nextOrObserver]: obs', obs)
           },
-        })
-        log.func('createPreparePage')
-        log.grey(`Ran noodl.initPage on page "${pageName}"`, {
-          pageName,
-          pageModifiers: noodluidom.page.getState().modifiers[pageName],
-          pageObject: noodl.root[pageName],
-          snapshot: noodluidom.page.snapshot(),
-        })
-        if (noodl.root?.Global?.globalRegister) {
-          const { Global } = noodl.root
-          if (Array.isArray(Global.globalRegister)) {
-            if (Global.globalRegister.length) {
-              log.grey(
-                `Scanning ${Global.globalRegister.length} items found in Global.globalRegister`,
-                Global.globalRegister,
-              )
-              Global.globalRegister.forEach((value: any) => {
-                if (isPlainObject(value)) {
-                  if (value.type === 'register') {
-                    log.grey(
-                      `Found and registered a "register" component to Global`,
-                      { ...value },
-                    )
-                    const res = noodlui.register({
-                      key: 'globalRegister',
-                      component: value,
-                    })
-                    // SDK sets this
-                    // value.onEvent = res.fn
-                  }
+          (err) => {
+            log.func('onMessage')
+            log.red(`[onError]: ${err.message}`, err)
+          },
+          () => {
+            log.func('[onComplete]')
+            log.grey(`from onMessage`)
+          },
+        )
+      }
+
+      let startPage = noodl?.cadlEndpoint?.startPage
+      stable && log.cyan(`Start page: ${startPage}`)
+
+      if (!this.authStatus) {
+        // Initialize the user's state before proceeding to decide on how to direct them
+        const storedStatus = await Account.getStatus()
+        if (storedStatus.code === 0) {
+          noodl.setFromLocalStorage('user')
+          this.authStatus = 'logged.in'
+          this.onAuthStatus?.('logged.in')
+        } else if (storedStatus.code === 1) {
+          this.authStatus = 'logged.out'
+          this.onAuthStatus?.('logged.out')
+        } else if (storedStatus.code === 2) {
+          this.authStatus = 'new.device'
+          this.onAuthStatus?.('new.device')
+        } else if (storedStatus.code === 3) {
+          this.authStatus = 'temporary'
+          this.onAuthStatus?.('temporary')
+        }
+      }
+
+      this.#preparePage = async function preparePage(
+        this: App,
+        pageName: string,
+      ): Promise<PageObject> {
+        try {
+          stable && log.cyan(`Running noodl.initPage on ${pageName}`)
+          await noodl.initPage(pageName, [], {
+            ...noodluidom.page.getState().modifiers[pageName],
+            builtIn: {
+              FCMOnTokenReceive: async (...args: any[]) => {
+                try {
+                  const permission = await Notification.requestPermission()
+                  log.func('messaging.requestPermission')
+                  log.grey(`Notification permission ${permission}`)
+                } catch (err) {
+                  log.func('messaging.requestPermission')
+                  log.red('Unable to get permission to notify.', err)
                 }
-              })
+                try {
+                  if (this.#enabled.firebase) {
+                    this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
+                      'firebase-messaging-sw.js',
+                    )
+                    args[0] = {
+                      vapidKey,
+                      serviceWorkerRegistration: this._store.messaging
+                        .serviceRegistration,
+                      ...args[0],
+                    }
+                    log.grey(
+                      'Initialized service worker',
+                      this._store.messaging.serviceRegistration,
+                    )
+
+                    this.messaging?.onMessage((...args) => {
+                      log.func('messaging.onMessage')
+                      log.green(`Received a message`, args)
+                    })
+                  } else {
+                    log.red(
+                      `Could not initiate the firebase service worker because this browser ` +
+                        `does not support it`,
+                      this,
+                    )
+                  }
+
+                  const token = this.#enabled.firebase
+                    ? (await this.messaging?.getToken(...args)) || ''
+                    : ''
+
+                  copyToClipboard(token)
+
+                  if (this.#enabled.firebase) {
+                    noodlui.emit('register', {
+                      key: 'globalRegister',
+                      id: 'FCMOnTokenReceive',
+                      prop: 'onEvent',
+                      data: token,
+                    })
+                  } else {
+                    log.func('FCMOnTokenReceive')
+                    log.red(
+                      `Could not emit the "FCMOnTokenReceive" event because firebase ` +
+                        `messaging is disabled. Is it supported by this browser?`,
+                      this,
+                    )
+                  }
+
+                  return token
+                } catch (error) {
+                  console.error(error)
+                  return error
+                }
+              },
+              FCMOnTokenRefresh: this.#enabled.firebase
+                ? this.messaging?.onTokenRefresh.bind(this.messaging)
+                : undefined,
+              checkField: noodluidom.builtIns.checkField?.find(Boolean)?.fn,
+              goto: noodluidom.builtIns.goto?.find(Boolean)?.fn,
+              videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
+            },
+          })
+          log.func('createPreparePage')
+          log.grey(`Ran noodl.initPage on page "${pageName}"`, {
+            pageName,
+            pageModifiers: noodluidom.page.getState().modifiers[pageName],
+            pageObject: noodl.root[pageName],
+            snapshot: noodluidom.page.snapshot(),
+          })
+          if (noodl.root?.Global?.globalRegister) {
+            const { Global } = noodl.root
+            if (Array.isArray(Global.globalRegister)) {
+              if (Global.globalRegister.length) {
+                log.grey(
+                  `Scanning ${Global.globalRegister.length} items found in Global.globalRegister`,
+                  Global.globalRegister,
+                )
+                Global.globalRegister.forEach((value: any) => {
+                  if (isPlainObject(value)) {
+                    if (value.type === 'register') {
+                      log.grey(
+                        `Found and registered a "register" component to Global`,
+                        { ...value },
+                      )
+                      const res = noodlui.register({
+                        key: 'globalRegister',
+                        component: value,
+                      })
+                      // SDK sets this
+                      // value.onEvent = res.fn
+                    }
+                  }
+                })
+              }
             }
           }
+          return noodl.root[pageName]
+        } catch (error) {
+          throw new Error(error)
         }
-        return noodl.root[pageName]
-      } catch (error) {
-        throw new Error(error)
-      }
-    }.bind(this)
+      }.bind(this)
 
-    this.observeClient({ noodlui, noodl })
-    this.observeInternal(noodlui)
-    this.observeViewport(this.#viewportUtils)
-    this.observePages(noodluidom.page)
-    this.observeMeetings(meeting)
+      this.observeClient({ noodlui, noodl })
+      this.observeInternal(noodlui)
+      this.observeViewport(this.#viewportUtils)
+      this.observePages(noodluidom.page)
+      this.observeMeetings(meeting)
 
-    /* -------------------------------------------------------
+      /* -------------------------------------------------------
       ---- LOCAL STORAGE
     -------------------------------------------------------- */
-    // Override the start page if they were on a previous page
-    const cachedPages = this.getCachedPages()
-    const cachedPage = cachedPages[0]
+      // Override the start page if they were on a previous page
+      const cachedPages = this.getCachedPages()
+      const cachedPage = cachedPages[0]
 
-    if (cachedPages?.length) {
-      if (cachedPage?.name && cachedPage.name !== startPage) {
-        startPage = cachedPage.name
-      }
-    }
-
-    const ls = window.localStorage
-
-    if (!ls.getItem('tempConfigKey') && ls.getItem('config')) {
-      ls.setItem(
-        'tempConfigKey',
-        JSON.parse(ls.getItem('config') || '')?.timestamp,
-      )
-    }
-
-    if (noodluidom.page && location.href) {
-      let { startPage } = noodl.cadlEndpoint
-      const urlParts = location.href.split('/')
-      const pathname = urlParts[urlParts.length - 1]
-      const localConfig = JSON.parse(ls.getItem('config') || '') || {}
-      const tempConfigKey = ls.getItem('tempConfigKey')
-
-      if (
-        tempConfigKey &&
-        tempConfigKey !== JSON.stringify(localConfig.timestamp)
-      ) {
-        ls.setItem('CACHED_PAGES', JSON.stringify([]))
-        noodluidom.page.pageUrl = 'index.html?'
-        await noodluidom.page.requestPageChange(startPage)
-      } else if (!pathname?.startsWith('index.html?')) {
-        noodluidom.page.pageUrl = 'index.html?'
-        await noodluidom.page.requestPageChange(startPage)
-      } else {
-        const pageParts = pathname.split('-')
-        if (pageParts.length > 1) {
-          startPage = pageParts[pageParts.length - 1]
-        } else {
-          const baseArr = pageParts[0].split('?')
-          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
-            startPage = baseArr[baseArr.length - 1]
-          }
+      if (cachedPages?.length) {
+        if (cachedPage?.name && cachedPage.name !== startPage) {
+          startPage = cachedPage.name
         }
-        noodluidom.page.pageUrl = pathname
-        await noodluidom.page.requestPageChange(startPage)
       }
-    }
 
-    this.initialized = true
+      const ls = window.localStorage
+
+      if (!ls.getItem('tempConfigKey') && ls.getItem('config')) {
+        ls.setItem(
+          'tempConfigKey',
+          JSON.parse(ls.getItem('config') || '')?.timestamp,
+        )
+      }
+
+      if (noodluidom.page && location.href) {
+        let { startPage } = noodl.cadlEndpoint
+        const urlParts = location.href.split('/')
+        const pathname = urlParts[urlParts.length - 1]
+        const localConfig = JSON.parse(ls.getItem('config') || '') || {}
+        const tempConfigKey = ls.getItem('tempConfigKey')
+
+        if (
+          tempConfigKey &&
+          tempConfigKey !== JSON.stringify(localConfig.timestamp)
+        ) {
+          ls.setItem('CACHED_PAGES', JSON.stringify([]))
+          noodluidom.page.pageUrl = 'index.html?'
+          await noodluidom.page.requestPageChange(startPage)
+        } else if (!pathname?.startsWith('index.html?')) {
+          noodluidom.page.pageUrl = 'index.html?'
+          await noodluidom.page.requestPageChange(startPage)
+        } else {
+          const pageParts = pathname.split('-')
+          if (pageParts.length > 1) {
+            startPage = pageParts[pageParts.length - 1]
+          } else {
+            const baseArr = pageParts[0].split('?')
+            if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
+              startPage = baseArr[baseArr.length - 1]
+            }
+          }
+          noodluidom.page.pageUrl = pathname
+          await noodluidom.page.requestPageChange(startPage)
+        }
+      }
+
+      this.initialized = true
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   observeClient({ noodl, noodlui }: { noodl: any; noodlui: NOODLUI }) {
@@ -355,9 +359,9 @@ class App {
       await noodl.initPage(ref.page)
       log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
       log.grey(`Initiated page: ${ref.page}`)
-      Object.entries(getAllResolversAsMap).forEach(([name, resolver]) => {
-        if (!/(getAlignAttrs|getPosition)/i.test(name)) {
-          ref.use(new Resolver().setResolver(resolver))
+      Object.entries(getAllResolversAsMap()).forEach(([name, resolver]) => {
+        if (!/(getAlign|getPosition)/i.test(name)) {
+          ref?.use?.(new Resolver().setResolver(resolver))
         }
       })
     })
@@ -582,10 +586,11 @@ class App {
                   plugins,
                 })
 
-              Object.entries(getAllResolversAsMap).forEach(
+              Object.entries(getAllResolversAsMap()).forEach(
                 ([name, resolver]) => {
                   if (!/(getAlign|getPosition)/i.test(name)) {
-                    ref.use(new Resolver().setResolver(resolver))
+                    const r = new Resolver().setResolver(resolver)
+                    this.noodlui.use({ name, resolver: r })
                   }
                 },
               )

@@ -119,13 +119,15 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
               {},
             )
           : document.createElement('img')
-      } else if (component.noodlType === 'popUp') {
-        node = document.createElement(getTagName(component))
-        this.#R.run(node, component)
-        //   // Delegating global popUps (a.k.a modals) to the consumer to decide
-        //   // how to determine their parent/child behavior
-        return node
-      } else {
+      }
+      // else if (component.noodlType === 'popUp') {
+      //   node = document.createElement(getTagName(component))
+      //   this.#R.run(node, component)
+      //   //   // Delegating global popUps (a.k.a modals) to the consumer to decide
+      //   //   // how to determine their parent/child behavior
+      //   return node
+      // }
+      else {
         node = document.createElement(
           getTagName(component as ComponentInstance),
         )

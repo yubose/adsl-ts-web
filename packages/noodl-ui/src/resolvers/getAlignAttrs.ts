@@ -1,5 +1,4 @@
 import isPlainObject from 'lodash/isPlainObject'
-import cloneDeep from 'lodash/cloneDeep'
 import { ResolverFn } from '../types'
 import { textAlignStrings } from '../constants'
 
@@ -46,10 +45,7 @@ const getAlignAttrs: ResolverFn = (component) => {
             // The y value needs to be handled manually here since getTextAlign will
             //    return { textAlign } which is meant for x
             if (y === 'center') {
-              component.assignStyles({
-                display: 'flex',
-                alignItems: 'center',
-              })
+              component.assignStyles({ display: 'flex', alignItems: 'center' })
               if (style.textAlign?.x === 'center') {
                 component.setStyle('justifyContent', 'center')
               }

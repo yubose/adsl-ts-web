@@ -5,6 +5,7 @@ import {
   Resolver,
   Viewport,
   ComponentInstance,
+  ConsumerOptions,
 } from 'noodl-ui'
 import { NOODLDOMElement, RegisterOptions } from '../types'
 
@@ -26,10 +27,69 @@ function addClassName(className: string, node: NOODLDOMElement) {
 
 const isPlo = (v: any): boolean =>
   v !== null && !Array.isArray(v) && typeof v === 'object'
+
 const isNoodl = (v: any): v is string => typeof v === 'string' && !hasLetter(v)
-const createEdit = (component: ComponentInstance) => (v: any, s?: any) => {
-  if (isPlo(v)) component.assignStyles(v)
-  else if (typeof v === 'string') component.setStyle(v, s)
+
+class PositionEditor {
+  #component: ComponentInstance
+  #viewport: Viewport
+
+  constructor(component: ComponentInstance, viewport: Viewport) {
+    this.#component = component
+    this.#viewport = viewport
+  }
+
+  #updateViewportStyleProp = (prop: string, vpKey: string) => {
+    this.edit(
+      prop,
+      Viewport.getSize(
+        this.#component.style[prop],
+        this.#viewport[vpKey] as number,
+        { unit: 'px' },
+      ),
+    )
+  }
+
+  edit(v: any, s?: any) {
+    if (isPlo(v)) this.#component.assignStyles(v)
+    else if (typeof v === 'string') this.#component.setStyle(v, s)
+  }
+
+  updateY(prop: string) {
+    this.#updateViewportStyleProp(prop, 'height')
+  }
+
+  updateX(prop: string) {
+    this.#updateViewportStyleProp(prop, 'width')
+  }
+}
+
+const xKeys = ['left', 'width', 'marginLeft'] as const
+const yKeys = ['top', 'height', 'marginTop'] as const
+const posKeys = [...xKeys, ...yKeys]
+
+function fixTextAlign(c: ComponentInstance) {
+  const origStyle = c.original?.style || {}
+  const axises = ['x', 'y'] as const
+  axises.forEach((ax) => {
+    if (isPlo(origStyle.textAlign)) {
+      const origVal = origStyle.textAlign?.[ax]
+      if (origVal) {
+        if (ax === 'x') {
+          if (c.style.textAlign !== origVal) {
+            c.setStyle('textAlign', origVal)
+          }
+        } else {
+          //
+        }
+      }
+    } else if (typeof origStyle.textAlign === 'string') {
+      const origVal = origStyle.textAlign
+      if (origVal !== c.style.textAlign) {
+        c.setStyle('textAlign', origVal)
+      }
+    }
+  })
 }
 
 export default {
@@ -37,76 +97,55 @@ export default {
   cond: (node: NOODLDOMElement, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
   resolve: (node: HTMLElement, component, { noodlui }) => {
-    const edit = createEdit(component)
+    const originalStyle = component.original?.style || {}
     let style = component.style
 
     if (style !== null && typeof style === 'object') {
-      const { top, left, width, height, marginTop } = style
+      const editor = new PositionEditor(component, noodlui.viewport)
 
-      if (isNoodl(marginTop)) {
-        edit(
-          'marginTop',
-          Viewport.getSize(marginTop, noodlui.viewport.height as number, {
-            unit: 'px',
-          }),
-        )
-      }
+      posKeys.forEach((key) => {
+        if (isNoodl(originalStyle[key])) {
+          if (xKeys.includes(key as any)) editor.updateX(key)
+          else if (yKeys.includes(key as any)) editor.updateY(key)
+        }
+      })
 
-      if (isNoodl(top)) {
-        edit(
-          'top',
-          Viewport.getSize(top, noodlui.viewport.height as number, {
-            unit: 'px',
-          }),
-        )
-      }
+      let hasFlexAlignCenter = () =>
+        component.style.display === 'flex' &&
+        component.style.alignItems === 'center'
 
-      if (isNoodl(height)) {
-        edit(
-          'height',
-          Viewport.getSize(height, noodlui.viewport.height as number, {
-            unit: 'px',
-          }),
-        )
-      }
-
-      if (isNoodl(left)) {
-        edit(
-          'left',
-          Viewport.getSize(left, noodlui.viewport.width as number, {
-            unit: 'px',
-          }),
-        )
-      }
-
-      if (isNoodl(width)) {
-        edit(
-          'width',
-          Viewport.getSize(width, noodlui.viewport.width as number, {
-            unit: 'px',
-          }),
-        )
-      }
+      let hasFAC = hasFlexAlignCenter()
 
       getAlignAttrs.resolve(component)
       getPosition.resolve(component, {
         viewport: noodlui.viewport,
       })
+
+      if (hasFAC !== hasFlexAlignCenter()) {
+        if (hasFAC === false) {
+          component.assignStyles({ display: 'flex', alignItems: 'center' })
+          // component.setStyle('display', 'block')
+          // component.removeStyle('alignItems')
+          // component.removeStyle('display')
+        }
+      }
+
+      fixTextAlign(component)
     }
 
     style = component.style
 
-    if (component.noodlType === 'popUp') {
-      console.log(component.getStyle('visibility'))
-    }
-
     if (style != null && typeof style === 'object' && node.style) {
       Object.entries(style).forEach(([k, v]) => {
-        // if (/(marginTop|top|left|width|height)/i.test(k)) {
-        // console.log({ [k]: v })
-        // }
         node.style[k] = v
       })
+    }
+
+    if (component.noodlType === 'popUp') {
+      // if (style.visibility !== 'hidden') {
+      //   style.visibility = 'hidden'
+      // }
+      addClassName('popup', node)
     }
 
     // TEMP - Experimenting CSS

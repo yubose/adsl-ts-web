@@ -13,12 +13,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-input[type='button'] {
-  /* -moz-appearance: none !important;
-  -webkit-appearance: none !important;
-  appearance: none !important; */
-}
-
 button {
   cursor: pointer;
 }
@@ -34,7 +28,7 @@ input::placeholder {
 .actions button,
 input,
 select {
-  /* flex-grow: 1; */
+  flex-grow: 1;
 }
 
 video::-webkit-media-controls-fullscreen-button {
@@ -61,6 +55,10 @@ div.pluginBodyTail {
 .text-board {
   display: block !important;
   overflow-y: auto;
+}
+
+.popup {
+  /* visibility: hidden; */
 }
 
 .popup-global {

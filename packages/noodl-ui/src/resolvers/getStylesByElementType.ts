@@ -28,10 +28,13 @@ const getStylesByElementType: ResolverFn = (component, options) => {
         .setStyle('overflowX', 'hidden')
         .setStyle('listStyle', 'none')
         .setStyle('padding', '0px')
-        .setStyle(
-          'display',
-          component.original.style?.axis === 'horizontal' ? 'flex' : 'block',
-        )
+
+      if (component.original.style?.axis === 'horizontal') {
+        component.setStyle('display', 'flex')
+      } else {
+        component.setStyle('display', 'block')
+      }
+
       return void component.setStyle('overflowY', 'auto')
     // Flipping the position to relative to make the list items stack on top of eachother.
     //    Since the container is a type: list and already has their entire height defined in absolute values,
@@ -68,7 +71,6 @@ const getStylesByElementType: ResolverFn = (component, options) => {
     }
     // Defaults to being hidden
     case 'popUp':
-      debugger
       return void component.assignStyles({ visibility: 'hidden' })
     case 'scrollView':
       return void component.assignStyles({

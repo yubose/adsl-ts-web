@@ -273,7 +273,7 @@ class NOODLUI {
           }
         }
       })
-      this.styleFinalizer.finalize(component, consumerOptions)
+      // this.styleFinalizer.finalize(component, consumerOptions)
     }
 
     return component
