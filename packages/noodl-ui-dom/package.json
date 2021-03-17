@@ -44,6 +44,7 @@
     "noodl-ui": "^0.1.35"
   },
   "devDependencies": {
+    "noodl-types": "^1.0.39",
     "noodl-ui": "file:../noodl-ui"
   }
 }
