@@ -5,12 +5,7 @@ export default {
   name: '[noodl-ui-dom] video',
   cond: 'video',
   resolve(node: HTMLVideoElement, component) {
-    const { controls, poster, src, videoType } = component.get([
-      'controls',
-      'poster',
-      'src',
-      'videoType',
-    ])
+    const { controls, poster, src, videoType } = component.props()
     if (node) {
       const videoEl = node as HTMLVideoElement
       let sourceEl: HTMLSourceElement

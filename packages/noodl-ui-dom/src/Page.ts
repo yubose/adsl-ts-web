@@ -1,9 +1,10 @@
 import Logger from 'logsnap'
 import pick from 'lodash/pick'
-import { ComponentInstance, NOODLComponent } from 'noodl-ui'
-import { PageObject } from 'noodl-types'
+import { ComponentInstance } from 'noodl-ui'
+import { ComponentObject, PageObject } from 'noodl-types'
 import { createEmptyObjectWithKeys, openOutboundURL } from './utils'
 import { eventId } from './constants'
+import * as u from './utils/internal'
 import * as T from './types'
 
 const log = Logger.create('Page')
@@ -18,20 +19,20 @@ class Page {
         [key: string]: any
       }
     },
-    status: eventId.page.status.IDLE as T.PageStatus,
+    status: eventId.page.status.IDLE as T.Page.Status,
     rootNode: false,
   }
   #cbs = {
     ...createEmptyObjectWithKeys(
-      Object.values(eventId.page.on),
+      u.values(eventId.page.on),
       [] as T.PageCallbackObjectConfig[],
     ),
     ...createEmptyObjectWithKeys(
-      Object.values(eventId.page.status),
+      u.values(eventId.page.status),
       [] as T.PageCallbackObjectConfig[],
     ),
   }
-  #render: T.Render | undefined
+  #render: T.Render.Func | undefined
   pageUrl: string = 'index.html?'
   rootNode: HTMLDivElement
   ref: {
@@ -41,7 +42,7 @@ class Page {
     }
   } = { request: { name: '', timer: null } }
 
-  constructor(render?: T.Render | undefined) {
+  constructor(render?: T.Render.Func | undefined) {
     if (render) this.render = render
     // this.rootNode = document.createElement('div')
     this.rootNode = document.body
@@ -58,7 +59,7 @@ class Page {
   }
 
   clearCbs() {
-    Object.values(this.#cbs).forEach((arr) => {
+    u.values(this.#cbs).forEach((arr) => {
       while (arr.length) {
         arr.pop()
       }
@@ -175,7 +176,7 @@ class Page {
       this.setStatus(eventId.page.status.SNAPSHOT_RECEIVED)
 
       const components = this.render(
-        pageSnapshot?.object?.components as NOODLComponent[],
+        pageSnapshot?.object?.components as ComponentObject[],
       ) as ComponentInstance[]
 
       await this.emit(eventId.page.on.ON_COMPONENTS_RENDERED, {
@@ -187,7 +188,7 @@ class Page {
       this.#onNavigateEnd({ pageName })
 
       return {
-        snapshot: Object.assign({ components }, pageSnapshot),
+        snapshot: { ...pageSnapshot, components },
       }
     } catch (error) {
       await this.emit(eventId.page.on.ON_NAVIGATE_ERROR, {
@@ -260,13 +261,13 @@ class Page {
     if (typeof fn === 'function') {
       config.fn = fn
     } else if (fn && typeof fn === 'object') {
-      Object.keys(fn).forEach((key) => ((config as any)[key] = fn[key]))
+      u.keys(fn).forEach((key) => ((config as any)[key] = fn[key]))
     }
     return config
   }
 
   on(
-    event: T.PageEvent | T.PageStatus,
+    event: T.Page.Event | T.Page.Status,
     fn: T.AnyFn | Partial<T.PageCallbackObjectConfig>,
   ) {
     if (!Array.isArray(this.#cbs[event])) this.#cbs[event] = []
@@ -275,11 +276,11 @@ class Page {
   }
 
   once(
-    event: T.PageEvent | T.PageStatus,
+    event: T.Page.Event | T.Page.Status,
     config: Partial<T.PageCallbackObjectConfig>,
   ): this
-  once(event: T.PageEvent | T.PageStatus, fn: T.AnyFn): this
-  once(event: T.PageEvent | T.PageStatus, fn: any) {
+  once(event: T.Page.Event | T.Page.Status, fn: T.AnyFn): this
+  once(event: T.Page.Event | T.Page.Status, fn: any) {
     if (!Array.isArray(this.#cbs[event])) this.#cbs[event] = []
     this.#cbs[event].push(
       this.createCbConfig(typeof fn === 'function' ? { fn, once: true } : fn),
@@ -287,7 +288,7 @@ class Page {
     return this
   }
 
-  async emit(event: T.PageEvent | T.PageStatus, ...args: any[]) {
+  async emit(event: T.Page.Event | T.Page.Status, ...args: any[]) {
     let result
     let objs = this.#cbs[event]
     if (objs?.length) {
@@ -306,7 +307,7 @@ class Page {
     return result
   }
 
-  emitSync(event: T.PageEvent | T.PageStatus, ...args: any[]) {
+  emitSync(event: T.Page.Event | T.Page.Status, ...args: any[]) {
     let result
     let objs = this.#cbs[event]
     if (objs?.length) {
@@ -325,7 +326,7 @@ class Page {
     return result
   }
 
-  setStatus(status: T.PageStatus) {
+  setStatus(status: T.Page.Status) {
     this.#state.status = status
     this.emitSync(status, status)
     this.emitSync(eventId.page.status.ANY, status)
@@ -347,7 +348,7 @@ class Page {
 
   setModifier(page: string, obj: { [key: string]: any }) {
     if (!this.#state.modifiers[page]) this.#state.modifiers[page] = {}
-    Object.assign(this.#state.modifiers[page], obj)
+    u.assign(this.#state.modifiers[page], obj)
     return this
   }
 
@@ -362,10 +363,10 @@ class Page {
   }
 
   get render() {
-    return this.#render as T.Render
+    return this.#render as T.Render.Func
   }
 
-  set render(fn: T.Render) {
+  set render(fn: T.Render.Func) {
     this.#render = fn
   }
 }

@@ -21,7 +21,7 @@ class NOODLViewport implements IViewport {
   static getSize(
     value: string | number,
     viewportSize: number,
-    { unit }: { unit?: 'px' | 'noodl' } = {},
+    { toFixed = 2, unit }: { toFixed?: number; unit?: 'px' | 'noodl' } = {},
   ) {
     let result: any
 
@@ -49,11 +49,11 @@ class NOODLViewport implements IViewport {
 
     switch (unit) {
       case 'noodl':
-        return String(Number(result) / viewportSize)
+        return (Number(result) / viewportSize).toFixed(toFixed)
       case 'px':
-        return `${result}px`
+        return `${Number(result).toFixed(toFixed)}px`
       default:
-        return Number(result)
+        return Number(result).toFixed(toFixed)
     }
   }
 

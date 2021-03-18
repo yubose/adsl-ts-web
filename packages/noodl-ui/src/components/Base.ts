@@ -56,7 +56,7 @@ class Component implements IComponent<any> {
     this['id'] = this.#component.id || getRandomKey()
     this['noodlType'] = this.#component.noodlType as any
 
-    if (!this.#component.style) this.#component['style'] = {}
+    this.style = isDraft(this.style) ? current(this.style) : this.style
 
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
@@ -187,11 +187,14 @@ class Component implements IComponent<any> {
 
   /** Returns the most recent styles at the time of this call */
   get style() {
+    if (!this.#component.style || typeof this.#component.style === 'string') {
+      this.#component.style = {}
+    }
     return this.#component.style as StyleObject
   }
 
   set style(style: StyleObject) {
-    if (this.#component) this.#component.style = style
+    this.#component.style = style
   }
 
   get status() {

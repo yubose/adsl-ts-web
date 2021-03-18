@@ -1,31 +1,28 @@
 import { NOODL as NOODLUI } from 'noodl-ui'
+import NOODLDOM from './noodl-ui-dom'
 import NOODLUIDOMInternal from './Internal'
+import { assign, entries, isArr, isFnc, isObj, isStr } from './utils/internal'
 import {
-  assign,
-  isArr,
-  isFnc,
-  isObj,
-  isStr,
   findByElementId,
   findByViewTag,
   findAllByViewTag,
   findWindow,
   findWindowDocument,
   isPageConsumer,
-} from './utils'
+} from './utils/utils'
 import * as T from './types'
 
-type UseObject = T.NodeResolverConfig | NOODLUI | NOODLUIDOMInternal
+type UseObject = T.Resolve.Config | NOODLUI | NOODLUIDOMInternal
 
-const createResolver = function createResolver() {
+const createResolver = function createResolver(ndom: NOODLDOM) {
   const _internal: {
-    objs: T.NodeResolverConfig[]
+    objs: T.Resolve.Config[]
     noodlui: NOODLUI
-    noodluidom: any
+    ndom: NOODLDOM
   } = {
     objs: [],
     noodlui: undefined as any,
-    noodluidom: undefined,
+    ndom,
   }
 
   const util = (function () {
@@ -41,34 +38,36 @@ const createResolver = function createResolver() {
           isPageConsumer,
         }
       },
-      options(...[node, component]: T.NodeResolverBaseArgs) {
-        return {
+      options(...[node, component]: T.Resolve.BaseArgs) {
+        const options = {
           ...util.actionsContext(),
           original: component.original,
           noodlui: _internal.noodlui,
-          noodluidom: _internal.noodluidom,
-          draw: _internal.noodluidom.draw.bind(_internal.noodluidom),
-          redraw: _internal.noodluidom.redraw.bind(_internal.noodluidom),
-        } as T.NodeResolverUtils
+          noodluidom: ndom,
+          draw: ndom.draw.bind(ndom),
+          redraw: ndom.redraw.bind(ndom),
+          state: ndom.state,
+        } as T.Resolve.Options
+        return options
       },
     }
   })()
 
-  function _getRunners(...args: T.NodeResolverBaseArgs) {
+  function _getRunners(...args: T.Resolve.BaseArgs) {
     const attach = (
-      lifeCycleEvent: T.NodeResolverLifeCycleEvent,
-      acc: T.NodeResolverLifecycle,
-      obj: T.NodeResolverConfig,
+      lifeCycleEvent: T.Resolve.LifeCycleEvent,
+      acc: T.Resolve.LifeCycle,
+      obj: T.Resolve.Config,
     ) => {
       if (isStr(obj.cond)) {
         // If they passed in a resolver strictly for this node/component
         if (obj.cond === args[1]?.noodlType || obj.cond === args[1]?.type) {
-          acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.NodeResolver)
+          acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.Resolve.Func)
         }
       } else if (isFnc(obj.cond)) {
         // If they only want this resolver depending on a certain condition
         if (obj.cond(...args, util.options(...args))) {
-          acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.NodeResolver)
+          acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.Resolve.Func)
         }
       }
     }
@@ -83,7 +82,7 @@ const createResolver = function createResolver() {
         before: [],
         resolve: [],
         after: [],
-      } as T.NodeResolverLifecycle,
+      } as T.Resolve.LifeCycle,
     )
   }
 
@@ -95,11 +94,11 @@ const createResolver = function createResolver() {
   }
 
   const o = {
-    register(obj: T.NodeResolverConfig) {
+    register(obj: T.Resolve.Config) {
       if (!_internal.objs.includes(obj)) _internal.objs.push(obj)
       return o
     },
-    run: (...args: T.NodeResolverBaseArgs) => {
+    run: (...args: T.Resolve.BaseArgs) => {
       const { before, resolve, after } = _getRunners(...args)
       const runners = [...before, ...resolve, ...after]
       const total = runners.length
@@ -120,13 +119,24 @@ const createResolver = function createResolver() {
       } else if (value) {
         if (!!value && isObj(value) && isFnc(value['resolve'])) {
           o.register(value as any)
+
+          if (value.observe) {
+            entries(value.observe).forEach(([evt, fn]) => {
+              if (
+                ndom.observers.page.on[evt] &&
+                !ndom.observers.page.on[evt]?.includes(fn)
+              ) {
+                ndom.on(evt, fn)
+              }
+            })
+          }
         } else if (value instanceof NOODLUI) {
           _internal.noodlui = value
           if (_internal.noodlui.actionsContext) {
             assign(_internal.noodlui.actionsContext, util.actionsContext())
           }
         } else if (value instanceof NOODLUIDOMInternal) {
-          _internal.noodluidom = value
+          ndom = value as any
         } else if (isObj(value)) {
           //
         }

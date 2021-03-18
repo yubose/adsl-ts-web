@@ -16,8 +16,6 @@ export default {
     if (component.has('global')) {
       const image = component.get('image')
       const onClick = component.get('onClick')
-
-      console.log({ component: component.toJS(), node })
     }
   },
 } as RegisterOptions

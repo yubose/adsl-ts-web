@@ -1,4 +1,5 @@
-import { ActionType } from 'noodl-types'
+import { ActionType, ComponentObject } from 'noodl-types'
+import produce from 'immer'
 import {
   ActionObject,
   BuiltInObject,
@@ -8,46 +9,55 @@ import {
   findParent,
   getTagName,
   GotoActionObject,
-  getAllResolversAsMap,
   NOODL as NOODLUI,
-  NOODLComponent,
   Page as PageComponent,
   publish,
-  Resolver,
   StoreActionObject,
   StoreBuiltInObject,
   ToastActionObject,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { eventId } from './constants'
-import { createAsyncImageElement, getShape, isPageConsumer } from './utils'
+import {
+  createAsyncImageElement,
+  getShape,
+  isPageConsumer,
+} from './utils/utils'
 import createResolver from './createResolver'
 import NOODLUIDOMInternal from './Internal'
 import Page from './Page'
 import * as defaultResolvers from './resolvers'
+import * as u from './utils/internal'
 import * as T from './types'
+
+const getDefaultRenderState = (
+  initialState?: Record<string, any>,
+): T.Render.State[keyof T.Render.State] => ({
+  lastTop: 0,
+  ...initialState,
+})
 
 class NOODLUIDOM extends NOODLUIDOMInternal {
   #R: ReturnType<typeof createResolver>
   #cbs = {
     page: {
-      on: {
-        [eventId.page.on.ON_DOM_CLEANUP]: [] as (() => void)[],
-      },
-    },
-    redraw: {
-      cleanup: [] as ((...args: Parameters<NOODLUIDOM['redraw']>) => void)[],
+      on: u
+        .keys(eventId.page.on)
+        .reduce(
+          (acc, key) => u.assign(acc, { [eventId.page.on[key]]: [] }),
+          {} as Record<keyof T.Observer, T.Observer[keyof T.Observer][]>,
+        ),
     },
   }
-  #state = {} as { [page: string]: { lastTop: number } }
+  #state = { render: {} }
   page: Page
 
   constructor() {
     super()
     this.page = new Page(this.render.bind(this))
-    this.#R = createResolver()
+    this.#R = createResolver(this)
     this.#R.use(this)
-    this.#R.use(Object.values(defaultResolvers))
+    this.#R.use(u.values(defaultResolvers))
   }
 
   get actions() {
@@ -66,16 +76,25 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#cbs
   }
 
+  get observers() {
+    return this.#cbs
+  }
+
   get state() {
     return this.#state
   }
 
   /**
    * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
-   * @param { NOODLComponent | NOODLComponent[] } components
+   * @param { ComponentObject | ComponentObject[] } components
    */
-  render(rawComponents: NOODLComponent | NOODLComponent[]) {
+  render(rawComponents: ComponentObject | ComponentObject[]) {
+    this.reset({ only: 'render-state' })
+
     const currentPage = this.page.getState().current
+
+    this.#state[currentPage] = getDefaultRenderState()
+
     if (this.page.rootNode && this.page.rootNode.id === currentPage) {
       return console.log(
         `%cSkipped rendering the DOM for page "${currentPage}" because the DOM ` +
@@ -87,16 +106,23 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     this.page.setStatus(eventId.page.status.RESOLVING_COMPONENTS)
+
     const resolved = this.#R.get('noodlui')?.resolveComponents(rawComponents)
+
     this.page.setStatus(eventId.page.status.COMPONENTS_RECEIVED)
-    const components = Array.isArray(resolved) ? resolved : [resolved]
-    this.#emit(eventId.page.on.ON_DOM_CLEANUP)
+
+    const components = u.isArr(resolved) ? resolved : [resolved]
+
+    this.emit(eventId.page.on.ON_DOM_CLEANUP, this.page.rootNode)
+
     this.page.rootNode.innerHTML = ''
+
     this.page.setStatus(eventId.page.status.RENDERING_COMPONENTS)
-    components.forEach((component) => {
-      this.draw(component, this.page.rootNode)
-    })
+
+    components.forEach((component) => this.draw(component, this.page.rootNode))
+
     this.page.setStatus(eventId.page.status.COMPONENTS_RENDERED)
+
     return components
   }
 
@@ -124,33 +150,58 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
               {},
             )
           : document.createElement('img')
-      }
-      // else if (component.noodlType === 'popUp') {
-      //   node = document.createElement(getTagName(component))
-      //   this.#R.run(node, component)
-      //   //   // Delegating global popUps (a.k.a modals) to the consumer to decide
-      //   //   // how to determine their parent/child behavior
-      //   return node
-      // }
-      else {
+      } else {
         node = document.createElement(
           getTagName(component as ComponentInstance),
         )
       }
 
       if (node) {
-        this.#R.run(node, component)
-
-        let parent = container || document.body
-
+        const parent = container || document.body
         parent.appendChild(node)
 
-        if (component.length) {
-          component.children().forEach((child: ComponentInstance) => {
-            const childNode = this.draw(child, node) as T.NOODLDOMElement
+        this.#R.run(node, component)
+
+        component
+          .children?.()
+          ?.forEach?.((child: ComponentInstance, index: number) => {
+            const childNode = this.draw(child, node) as HTMLElement
+
+            let appendChildArgs = {
+              component: {
+                instance: component,
+                node: node as HTMLElement,
+                bounds: node?.getBoundingClientRect() as DOMRect,
+              },
+              child: {
+                instance: child,
+                node: childNode,
+                bounds: childNode.getBoundingClientRect(),
+                index,
+              },
+            }
+
+            this.emit(
+              eventId.page.on[eventId.page.on.ON_BEFORE_APPEND_CHILD],
+              appendChildArgs,
+            )
+
             node?.appendChild(childNode)
+
+            if (
+              this.#cbs.page.on[eventId.page.on.ON_AFTER_APPEND_CHILD]?.length
+            ) {
+              this.emit(
+                eventId.page.on.ON_AFTER_APPEND_CHILD,
+                produce(appendChildArgs, (draft) => {
+                  draft.component.bounds = node?.getBoundingClientRect() as any
+                  draft.child.bounds = childNode?.getBoundingClientRect()
+                }),
+              )
+            }
+
+            appendChildArgs = null as any
           })
-        }
       }
     }
     return node || null
@@ -178,7 +229,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       // }
       // Remove the parent reference
       component.setParent?.(null)
-      this.#emit(eventId.redraw.ON_BEFORE_CLEANUP, node, component, args)
+      this.emit(eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, node, component)
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {
@@ -250,43 +301,24 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return [newNode, newComponent] as [typeof node, typeof component]
   }
 
-  #emit = (event: Parameters<NOODLUIDOM['on']>[0], ...args: any[]) => {
-    if (event === eventId.redraw.ON_BEFORE_CLEANUP) {
-      this.#cbs.redraw.cleanup.forEach((cb) => {
-        cb(...(args as Parameters<NOODLUIDOM['redraw']>))
-      })
-    } else if (event === eventId.page.on.ON_DOM_CLEANUP) {
-      this.#cbs.page.on[eventId.page.on.ON_DOM_CLEANUP]?.forEach((cb) => cb())
+  emit<K extends keyof T.Observer>(evt: K, ...args: Parameters<T.Observer[K]>) {
+    this.#cbs.page.on[evt]?.forEach?.((cb: any) =>
+      (cb as any)?.call?.(this, ...args),
+    )
+    return this
+  }
+
+  on<K extends keyof T.Observer>(evt: K, fn: T.Observer[K]) {
+    if (this.#cbs.page.on[evt] && !this.#cbs.page.on[evt].includes(fn)) {
+      this.#cbs.page.on[evt].push(fn)
     }
     return this
   }
 
-  on(event: typeof eventId.page.on.ON_DOM_CLEANUP, fn: () => void): this
-  on(
-    event: typeof eventId.redraw.ON_BEFORE_CLEANUP,
-    fn: (...args: Parameters<NOODLUIDOM['redraw']>) => void,
-  ): this
-  on(
-    event:
-      | typeof eventId.page.on.ON_DOM_CLEANUP
-      | typeof eventId.redraw.ON_BEFORE_CLEANUP,
-    fn: (...args: any[]) => void,
-  ) {
-    if (event === eventId.page.on.ON_DOM_CLEANUP) {
-      this.#cbs.page.on[eventId.page.on.ON_DOM_CLEANUP].push(fn)
-    } else if (event === eventId.redraw.ON_BEFORE_CLEANUP) {
-      if (!this.#cbs.redraw.cleanup.includes(fn)) {
-        this.#cbs.redraw.cleanup.push(fn)
-      }
-    }
-    return this
-  }
-
-  off(event: typeof eventId.page.on.ON_DOM_CLEANUP, fn: any) {
-    if (event === eventId.page.on.ON_DOM_CLEANUP) {
-      this.#cbs.page.on[eventId.page.on.ON_DOM_CLEANUP] = this.#cbs.page.on[
-        eventId.page.on.ON_DOM_CLEANUP
-      ].filter((cb) => cb !== fn)
+  off<K extends keyof T.Observer>(evt: K, fn: T.Observer[K]) {
+    if (this.#cbs.page.on[evt]?.includes?.(fn)) {
+      const index = this.#cbs.page.on[evt].indexOf(fn)
+      this.#cbs.page.on[evt].splice(index, 1)
     }
     return this
   }
@@ -301,10 +333,10 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
   register<B extends BuiltInObject>(
     obj: StoreBuiltInObject<B, T.ActionChainDOMContext>,
   ): this
-  register<R extends T.NodeResolverConfig>(obj: R): this
+  register<R extends T.Resolve.Config>(obj: R): this
   register(
     obj:
-      | T.NodeResolverConfig
+      | T.Resolve.Config
       | StoreActionObject<any, T.ActionChainDOMContext>
       | StoreBuiltInObject<any, T.ActionChainDOMContext>,
   ): this {
@@ -320,24 +352,26 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#R.get()
   }
 
-  reset({ only }: { only?: ['state'] | 'state' } = {}) {
+  reset({ only }: { only?: ['render-state'] | 'render-state' } = {}) {
     if (only) {
       const fn = (val: any) => {
-        if (val === 'state') {
-          this.#state = {}
+        if (val === 'render-state') {
+          this.#state.render = getDefaultRenderState()
         }
       }
-      ;(Array.isArray(only) ? only : [only]).forEach(fn)
-    }
-    this.#R.clear()
-    const clearCbs = (obj: any) => {
-      if (Array.isArray(obj)) {
-        obj.length = 0
-      } else if (obj && typeof obj === 'object') {
-        Object.values(obj).forEach((o) => clearCbs(o))
+      ;(u.isArr(only) ? only : [only]).forEach(fn)
+    } else {
+      this.#R.clear()
+      const clearCbs = (obj: any) => {
+        if (u.isArr(obj)) {
+          obj.length = 0
+        } else if (obj && typeof obj === 'object') {
+          u.values(obj).forEach((o) => clearCbs(o))
+        }
       }
+      u.values(this.#cbs).forEach((obj) => clearCbs(obj))
     }
-    Object.values(this.#cbs).forEach((obj) => clearCbs(obj))
+
     return this
   }
 

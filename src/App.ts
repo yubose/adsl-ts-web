@@ -786,7 +786,7 @@ class App {
     )
 
     this.noodluidom.on(
-      eventId.redraw.ON_BEFORE_CLEANUP,
+      eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
       function onBeforeCleanup(this: App, node, component) {
         console.log('Removed from componentCache: ' + component.id)
         this.noodlui.componentCache().remove(component)

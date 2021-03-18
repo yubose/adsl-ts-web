@@ -7,26 +7,10 @@ import {
   isComponent,
   NOODLComponent,
   SelectOption,
+  Viewport,
 } from 'noodl-ui'
-import { NOODLDOMElement } from './types'
-
-export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
-export const assign = (
-  v: Record<string, any>,
-  ...rest: (Record<string, any> | undefined)[]
-) => Object.assign(v, ...rest)
-export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
-export const isArr = (v: any): v is any[] => Array.isArray(v)
-export const isBool = (v: any): v is boolean => typeof v === 'boolean'
-export const isObj = (v: any): v is { [key: string]: any } =>
-  !!v && !isArr(v) && typeof v === 'object'
-export const isNum = (v: any): v is number => typeof v === 'number'
-export const isStr = (v: any): v is string => typeof v === 'string'
-export const isUnd = (v: any): v is undefined => typeof v === 'undefined'
-export const isNull = (v: any): v is null => v === null
-export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
-export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
-  typeof v === 'function'
+import { NOODLDOMElement } from '../types'
+import * as u from './internal'
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
@@ -84,7 +68,7 @@ export function makeFinder(
     let str = ''
     let cb = (doc: Document | null | undefined) => fn(str, doc)
     if (!c) return null
-    if (isStr(c)) {
+    if (u.isStr(c)) {
       str = c
     } else {
       str = c?.[key] || c?.get?.(key) || c?.original?.[key] || ''
@@ -143,7 +127,7 @@ export function findWindowDocument(
 }
 
 export const get = <T = any>(o: T, k: string) => {
-  if (!isObj(o) || !isStr(k)) return
+  if (!u.isObj(o) || !u.isStr(k)) return
 
   let parts = k.split('.').reverse()
   let result: any = o
@@ -211,6 +195,37 @@ export function getDataAttribKeys() {
 }
 
 /**
+ * Returns the expected height (using top and height) of the element in the DOM
+ * This is a shallow calculation which doesn't take into account its children or
+ * its parent
+ * @param { HTMLElement } node
+ * @param { ComponentInstance } component
+ */
+export function getDisplayHeight({
+  component: c,
+  viewport: vp,
+  unit = 'px',
+}: {
+  component: ComponentInstance
+  viewport: Viewport
+  unit?: Pick<
+    NonNullable<Parameters<typeof Viewport['getSize']>[2]>,
+    'unit'
+  >['unit']
+}) {
+  let result = 0
+  if (c) {
+    u.yKeys.forEach((key) => {
+      const value = c.style?.[key]
+      if (!u.isNil(value) && u.isNoodlUnit(value)) result += Number(value)
+    })
+  }
+  return Viewport.getSize(String(result), vp.height as number, {
+    unit,
+  }) as number
+}
+
+/**
  *
  * @param { ComponentInstance | ComponentObject | ComponentType } component - NOODL component object, instance, or type
  */
@@ -252,11 +267,11 @@ export function getShape(
 
   if (isComponent(component)) {
     return getShape(component.original, { ...opts, parent: component.original })
-  } else if (isStr(component)) {
+  } else if (u.isStr(component)) {
     return { type: component }
-  } else if (isArr(component)) {
+  } else if (u.isArr(component)) {
     return component.map((c) => getShape(c, opts)) as any
-  } else if (component && isObj(component)) {
+  } else if (component && u.isObj(component)) {
     const noodlComponent = component as ComponentObject
     // The noodl yml may also place the value of iteratorVar as a property
     // as an empty string. So we include the value as a property to keep as well
@@ -264,7 +279,7 @@ export function getShape(
       if (key in noodlComponent) {
         if (key === 'children') {
           // @ts-expect-error
-          shape.children = isArr(noodlComponent.children)
+          shape.children = u.isArr(noodlComponent.children)
             ? (noodlComponent.children as ComponentObject[])?.map(
                 (noodlChild) =>
                   getShape(noodlChild, {
@@ -277,10 +292,10 @@ export function getShape(
                 // @ts-expect-error
                 noodlType:
                   (opts as any)?.noodlType ||
-                  (isObj(noodlComponent.children)
+                  (u.isObj(noodlComponent.children)
                     ? (noodlComponent.children as any).noodlType ||
                       (noodlComponent.children as any).type
-                    : isStr(noodlComponent.children)
+                    : u.isStr(noodlComponent.children)
                     ? noodlComponent.children
                     : undefined) ||
                   (opts as any)?.type,
@@ -335,7 +350,7 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
  * @param { string } key - The value of a data-ux element
  */
 export function getByDataUX(key: string) {
-  if (isStr(key)) {
+  if (u.isStr(key)) {
     const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
     if (nodeList.length) {
       const nodes = [] as HTMLElement[]
@@ -371,7 +386,7 @@ export function isBrowser() {
  * @param { any } value
  */
 export function isDisplayable(value: unknown): value is string | number {
-  return value == 0 || isStr(value) || isNum(value)
+  return value == 0 || u.isStr(value) || u.isNum(value)
 }
 
 /**
@@ -385,7 +400,7 @@ export function isPageConsumer(component: any): boolean {
 }
 
 export function normalizeEventName(eventName: string) {
-  return isStr(eventName)
+  return u.isStr(eventName)
     ? eventName.startsWith('on')
       ? eventName.replace('on', '').toLowerCase()
       : eventName.toLowerCase()
@@ -423,7 +438,7 @@ export function isTextFieldLike(
 }
 
 export function toSelectOption(value: any): SelectOption {
-  if (!isObj(value)) {
+  if (!u.isObj(value)) {
     return { key: value, label: value, value }
   }
   return value as SelectOption

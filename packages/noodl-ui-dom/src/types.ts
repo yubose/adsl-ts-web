@@ -4,7 +4,6 @@ import {
   ComponentInstance,
   ComponentType,
   NOODL as NOODLUI,
-  NOODLComponent,
 } from 'noodl-ui'
 import NOODLUIDOM from './noodl-ui-dom'
 import {
@@ -14,7 +13,7 @@ import {
   findWindow,
   findWindowDocument,
   isPageConsumer,
-} from './utils'
+} from './utils/utils'
 import { eventId } from './constants'
 
 export interface AnyFn {
@@ -37,9 +36,10 @@ export type NOODLDOMDataValueElement =
   | HTMLSelectElement
   | HTMLTextAreaElement
 
-export type NOODLDOMElement =
-  | Extract<NOODLDOMElements[NOODLDOMElementTypes], HTMLElement>
-  | Element
+export type NOODLDOMElement = Extract<
+  NOODLDOMElements[NOODLDOMElementTypes],
+  HTMLElement
+>
 
 export type NOODLDOMElements = Pick<
   HTMLElementTagNameMap,
@@ -63,84 +63,109 @@ export type NOODLDOMElements = Pick<
   | 'video'
 >
 
+export type Observer = {
+  [eventId.page.on.ON_DOM_CLEANUP](
+    this: NOODLUIDOM,
+    rootNode: NOODLUIDOM['page']['rootNode'],
+  ): void
+  [eventId.page.on.ON_BEFORE_APPEND_CHILD](
+    this: NOODLUIDOM,
+    args: {
+      component: {
+        instance: ComponentInstance
+        node: HTMLElement
+        bounds: DOMRect
+      }
+      child: {
+        instance: ComponentInstance
+        node: HTMLElement
+        bounds: DOMRect
+        index: number
+      }
+    },
+  ): void
+  [eventId.page.on
+    .ON_AFTER_APPEND_CHILD]: Observer[typeof eventId.page.on.ON_BEFORE_APPEND_CHILD]
+  // Redraw events
+  [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
+    this: NOODLUIDOM,
+    node: HTMLElement | null,
+    component: ComponentInstance,
+  ): void
+}
+
 /**
  * Type utility/factory to construct node resolver func types. Node resolver
  * funcs in noodl-ui-dom are any functions that take a DOM node as the first
  * argument and a component instance as the second, at its base structure
  */
-export interface NOODLUIDOMResolveFunc<
-  N extends NOODLDOMElement,
-  C extends ComponentInstance,
-  Args extends unknown,
-  RT extends unknown
-> {
-  (node: N | null | ((node: N | null) => any), component: C, args: Args): RT
-}
-
-export type NodeResolver<RT = any> = NOODLUIDOMResolveFunc<
-  NOODLDOMElement,
-  ComponentInstance,
-  ActionChainDOMContext & {
-    noodlui: NOODLUI
-    noodluidom: NOODLUIDOM
-    original: ComponentObject
-    draw: Parse
-    redraw: Redraw
-  },
-  RT | void
->
-
-export type NodeResolverBaseArgs = [
-  Parameters<NodeResolver>[0],
-  Parameters<NodeResolver>[1],
-]
-
-export type NodeResolverUtils = Parameters<NodeResolver>[2]
-
-export interface NodeResolverConfig {
-  name?: string
-  cond?: ComponentType | NodeResolver<boolean>
-  before?: NodeResolverConfig | NodeResolver
-  resolve?: NodeResolverConfig | NodeResolver
-  after?: NodeResolverConfig | NodeResolver
-}
-
-export interface NodeResolverLifecycle {
-  before: NodeResolver[]
-  resolve: NodeResolver[]
-  after: NodeResolver[]
-}
-
-export type NodeResolverLifeCycleEvent = 'before' | 'resolve' | 'after'
 
 export interface Parse<C extends ComponentInstance = any> {
   (component: C, container?: NOODLDOMElement | null): NOODLDOMElement | null
 }
 
-export type Redraw = NOODLUIDOMResolveFunc<
-  NOODLDOMElement,
-  ComponentInstance,
-  {
-    resolver(
-      noodlComponent: ComponentObject | ComponentObject[],
-    ): ComponentInstance | ComponentInstance[]
-  },
-  [NOODLDOMElement, ComponentInstance]
->
+export type Redraw = any
 
-export interface Render {
-  (noodlComponents: NOODLComponent | NOODLComponent[]): ComponentInstance[]
+export namespace Resolve {
+  export type BaseArgs = [node: HTMLElement, component: ComponentInstance]
+
+  export interface Config {
+    name?: string
+    cond?: ComponentType | Func<boolean>
+    before?: Resolve.Config | Func
+    resolve?: Resolve.Config | Func
+    after?: Resolve.Config | Func
+    observe?: Partial<Observer>
+  }
+
+  export interface Func<RT = void> {
+    (
+      node: HTMLElement | null,
+      component: ComponentInstance,
+      args: ActionChainDOMContext & Options,
+    ): RT
+  }
+
+  export interface LifeCycle {
+    before: Func[]
+    resolve: Func[]
+    after: Func[]
+  }
+
+  export type LifeCycleEvent = 'before' | 'resolve' | 'after'
+  export interface Options {
+    noodlui: NOODLUI
+    noodluidom: NOODLUIDOM
+    original: ComponentObject
+    draw: Parse
+    redraw: Redraw
+    state: NOODLUIDOM['state']
+  }
 }
 
-export type RegisterOptions = NodeResolverConfig
+export namespace Render {
+  export interface Func {
+    (components: ComponentObject | ComponentObject[]): ComponentInstance[]
+  }
+
+  export interface State {
+    lastTop: number
+  }
+}
+
+export type RegisterOptions = Resolve.Config
 
 /* -------------------------------------------------------
   ---- PAGE TYPES
 -------------------------------------------------------- */
 
-export type PageCbs<K extends PageEvent | PageStatus> = Record<K, AnyFn[]>
-export type PageEvent = typeof eventId.page.on[keyof typeof eventId.page.on]
-export type PageStatus = typeof eventId.page.status[keyof typeof eventId.page.status]
+export namespace Page {
+  export type Cbs<K extends Event | Status> = Record<K, AnyFn[]>
+
+  export type Event = typeof eventId.page.on[keyof typeof eventId.page.on]
+
+  export type Status = typeof eventId.page.status[keyof typeof eventId.page.status]
+}
 
 export interface PageCallbackObjectConfig {
   fn: AnyFn
@@ -149,7 +174,7 @@ export interface PageCallbackObjectConfig {
 }
 
 export interface PageSnapshot {
-  status: PageStatus
+  status: Page.Status
   previous: string
   current: string
   requestingPage: string

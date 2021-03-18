@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import sinon from 'sinon'
+import { enableES5 } from 'immer'
 import { ComponentObject } from 'noodl-types'
 import {
   ComponentInstance,
@@ -14,7 +15,6 @@ import { expect } from 'chai'
 import { applyMockDOMResolver, noodlui, ndom, toDOM } from '../test-utils'
 import { eventId } from '../constants'
 import NOODLUIDOM from '../noodl-ui-dom'
-
 import * as resolvers from '../resolvers'
 
 const getNoodlList = () =>
@@ -36,6 +36,10 @@ const getNoodlList = () =>
       },
     ],
   } as NOODLComponent)
+
+before(() => {
+  enableES5()
+})
 
 describe(chalk.keyword('orange')('resolvers'), () => {
   it('should display data value if it is displayable', () => {
@@ -321,26 +325,144 @@ describe.only(`styles`, () => {
     ndom.use(noodlui)
   })
 
-  describe(`positioning (starting from parent down)`, () => {
-    it.only(`should always set width, height, top, and left`, async () => {
-      const component = {
-        type: 'view',
-        style: { width: '1', height: '1', top: '0', left: '0' },
-        children: [
-          { type: 'label', style: { top: '0.2' }, text: 'Good morning' },
-          { type: 'button', style: { width: '0.2' }, text: 'Submit' },
-        ],
-      } as ComponentObject
+  describe(`positioning / sizing`, () => {
+    describe(
+      `when a component is missing "top" which is treated as ` +
+        `"auto" in NOODL logic`,
+      () => {
+        const finalKeys = ['top', 'height']
 
-      ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
-        object: { components: [component] },
-      }))
+        it(`should always eventually have a value for both of its top and height`, async () => {
+          const componentObj = {
+            type: 'view',
+            style: { width: '1', height: '1', top: '0', left: '0' },
+            children: [
+              { type: 'label', style: { top: '0.2' }, text: 'Good morning' },
+              { type: 'button', style: { width: '0.2' }, text: 'Submit' },
+            ],
+          } as ComponentObject
 
-      const { snapshot } = await ndom.page.requestPageChange('Hello')
-      console.info(snapshot.components[0].style)
-    })
+          ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
+            object: { components: [componentObj] },
+          }))
 
-    it(`should save last used top to lastTop`, async () => {
+          const {
+            snapshot: { components },
+          } = await ndom.page.requestPageChange('Hello')
+
+          const label = components[0].child()
+          const button = components[0].child(1)
+          const testSubjects = [components[0], label, button]
+
+          testSubjects.forEach((component) => {
+            expect(component.style).to.have.property('top').to.exist
+            expect(component.style).to.have.property('height').to.exist
+          })
+        })
+
+        it(
+          `should always set the first child to have the same value of top ` +
+            `as its parent`,
+          async () => {
+            const componentObj = {
+              type: 'view',
+              style: { width: '1', height: '1', top: '0.3', left: '0' },
+              children: [
+                { type: 'label', style: {}, text: 'Good morning' },
+                { type: 'button', style: { width: '0.2' }, text: 'Submit' },
+              ],
+            } as ComponentObject
+
+            ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
+              object: { components: componentObj },
+            }))
+
+            const {
+              snapshot: { components },
+            } = await ndom.page.requestPageChange('Hello')
+
+            const parent = components[0]
+            const child1 = parent.child()
+            const child2 = parent.child(1)
+
+            const parentNode = document.getElementById(parent.id) as any
+            const child1Node = document.getElementById(child1.id) as any
+            const child2Node = document.getElementById(child2.id) as any
+
+            expect(parent.style).to.have.property('top').to.eq(child1.style.top)
+            expect(parentNode.style)
+              .to.have.property('top')
+              .to.eq(child1Node.style.top)
+          },
+        )
+
+        it(
+          `should not make the second child follow the first child logic but ` +
+            `instead compute its top position using the first child's final ` +
+            `top value`,
+          async () => {
+            const componentObj = {
+              type: 'view',
+              style: { width: '1', height: '1', top: '0.3', left: '0' },
+              children: [
+                { type: 'label', style: {}, text: 'Good morning' },
+                { type: 'button', style: { width: '0.2' }, text: 'Submit' },
+              ],
+            } as ComponentObject
+
+            ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
+              object: { components: componentObj },
+            }))
+
+            const {
+              snapshot: { components },
+            } = await ndom.page.requestPageChange('Hello')
+
+            const parent = components[0]
+            const child2 = parent.child(1)
+
+            const parentNode = document.getElementById(parent.id) as any
+            const child2Node = document.getElementById(child2.id) as any
+
+            expect(parentNode.style)
+              .to.have.property('top')
+              .to.not.to.eq(child2Node.style.top)
+          },
+        )
+
+        finalKeys.forEach((key) => {
+          xit(`should treat ${key} as "auto" if it is missing`, () => {})
+        })
+
+        it(`should set marginTop to "0px" if it is missing`, async () => {
+          const componentObj = {
+            type: 'view',
+            style: { width: '1', height: '1', top: '0.3', left: '0' },
+          } as ComponentObject
+
+          ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
+            object: { components: componentObj },
+          }))
+
+          const {
+            snapshot: { components },
+          } = await ndom.page.requestPageChange('Hello')
+
+          const component = components[0]
+          expect(component.style).to.have.property('marginTop').to.to.eq('0px')
+        })
+
+        xit(
+          `should set the child to have the same top as its previous sibling ` +
+            `if it is set to "align"`,
+          () => {
+            //
+          },
+        )
+      },
+    )
+
+    it(`should save last used top to lastTop render state`, async () => {
       const component = {
         type: 'view',
         style: { width: '1', height: '1', top: '0', left: '0' },
@@ -360,12 +482,14 @@ describe.only(`styles`, () => {
           },
         ],
       } as ComponentObject
+
       ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
         object: { components: [component] },
       }))
+
       const result = await ndom.page.requestPageChange('Hello')
       // console.info(prettyDOM())
-      // console.info(ndom.state)
+      console.info(ndom.state)
     })
 
     it(

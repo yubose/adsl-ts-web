@@ -21,7 +21,7 @@ before(() => {
   console.clear()
   noodlui.init({ _log: false })
   noodluidom
-    .on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
+    .on(eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, (node, component) => {
       noodlui.componentCache().remove(component)
       publish(component, (c) => {
         noodlui.componentCache().remove(c)
@@ -40,11 +40,14 @@ after(() => {
 })
 
 beforeEach(() => {
-  noodlui.setPage(page).use({
-    getAssetsUrl: () => assetsUrl,
-    getBaseUrl: () => 'https://google.com/',
-    getRoot: () => root,
-  })
+  noodlui
+    .setPage(page)
+    .use(viewport)
+    .use({
+      getAssetsUrl: () => assetsUrl,
+      getBaseUrl: () => 'https://google.com/',
+      getRoot: () => root,
+    })
 
   Object.entries(getAllResolversAsMap()).forEach(([name, resolver]) => {
     if (

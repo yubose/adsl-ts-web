@@ -4,7 +4,7 @@ export default {
   name: '[noodl-ui-dom] button',
   cond: 'button',
   resolve(node: HTMLButtonElement, component) {
-    const { onClick: onClickProp, src = '' } = component.get(['onClick', 'src'])
+    const { onClick: onClickProp, src = '' } = component.props()
     /**
      * Buttons that have a "src" property
      * ? NOTE: Seems like these components are deprecated. Leave this here for now
