@@ -32,7 +32,7 @@ import * as T from './types'
 
 const getDefaultRenderState = (
   initialState?: Record<string, any>,
-): T.Render.State[keyof T.Render.State] => ({
+): T.Render.State => ({
   lastTop: 0,
   ...initialState,
 })
