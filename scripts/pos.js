@@ -1,5 +1,6 @@
-const { expect } = require('chai')
+global.window = { console: { log: () => {} } }
 const isNaN = require('lodash/isNaN')
+const VP = require('noodl-ui').Viewport
 
 const hasLetter = (v) => /[a-zA-Z]/i.test(v)
 const hasDec = (v) => Number(v) % 1 !== 0
@@ -47,76 +48,22 @@ const c = {
 
 const sizables = Object.values(c)
 
-function NOODLPosition() {}
+function NOODLPos() {}
 
-NOODLPosition.prototype.getDimensions = function getDimensions(obj) {
-  const dims = {}
+const pos = new NOODLPos()
 
-  if (isObj(obj)) {
-    let x = 0
-    let y = 0
-
-    sizables.forEach((s) => {
-      if (s in obj) {
-        if (isX(s)) {
-          //
-        } else if (isY(y)) {
-          //
-        }
-      }
-    })
-  }
-
-  return dims
+function getTop() {
+  let results = []
 }
 
-NOODLPosition.prototype.getSize = function getSize(
-  value,
-  maxViewportSize,
-  { unit } = {},
-) {
-  let result
+// console.log(VP.getSize('0.2', 667))
 
-  if (value == '0') {
-    result = 0
-  } else if (value == '1') {
-    result = maxViewportSize
-  } else if (isStr(value)) {
-    if (!hasLetter(value)) {
-      result = Number(value) * maxViewportSize
-    } else {
-      result = toNum(value)
-    }
-  } else if (isNum(value)) {
-    if (hasDec(value)) {
-      result = value * maxViewportSize
-    } else {
-      result = value
-    }
+const fib = (n) => {
+  let results = [0, 1]
+  for (let i = 2; i <= n; i++) {
+    results[i] = results[i - 1] + results[i - 2]
   }
-
-  result = !isUnd(result)
-    ? unit
-      ? `${result}${unit}`
-      : Number(result)
-    : result
-
-  if (isNaN(result)) throw new Error(`Encountered a NaN (invalid) value`)
-  if (result === null) throw new Error(`null is not allowed`)
-  if (result === undefined) throw new Error(`undefined is not allowed`)
-
-  return result
+  return results[n]
 }
 
-const pos = new NOODLPosition()
-
-describe(`when parent has both top and height`, () => {
-  describe(`parent: { width: "0.2", height: "0.5" }`, () => {
-    const parentDims = { width: '0.2', height: '0.5' }
-
-    it(`should calculate the child's dimensions correctly`, () => {
-      const viewport = { width: 375, height: 667 }
-      expect(pos.getSize('0.2', viewport.width)).to.eq(75)
-    })
-  })
-})
+console.log(fib(34))

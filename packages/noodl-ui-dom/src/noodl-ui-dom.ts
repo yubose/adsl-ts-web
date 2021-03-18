@@ -30,13 +30,6 @@ import * as defaultResolvers from './resolvers'
 import * as u from './utils/internal'
 import * as T from './types'
 
-const getDefaultRenderState = (
-  initialState?: Record<string, any>,
-): T.Render.State => ({
-  lastTop: 0,
-  ...initialState,
-})
-
 class NOODLUIDOM extends NOODLUIDOMInternal {
   #R: ReturnType<typeof createResolver>
   #cbs = {
@@ -49,7 +42,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         ),
     },
   }
-  #state = { render: {} }
   page: Page
 
   constructor() {
@@ -80,20 +72,14 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#cbs
   }
 
-  get state() {
-    return this.#state
-  }
-
   /**
    * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
    * @param { ComponentObject | ComponentObject[] } components
    */
   render(rawComponents: ComponentObject | ComponentObject[]) {
-    this.reset({ only: 'render-state' })
+    this.page.reset('render')
 
-    const currentPage = this.page.getState().current
-
-    this.#state[currentPage] = getDefaultRenderState()
+    const currentPage = this.page.state.current
 
     if (this.page.rootNode && this.page.rootNode.id === currentPage) {
       return console.log(
@@ -178,6 +164,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
                 bounds: childNode.getBoundingClientRect(),
                 index,
               },
+              page: this.page,
             }
 
             this.emit(
@@ -352,25 +339,16 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#R.get()
   }
 
-  reset({ only }: { only?: ['render-state'] | 'render-state' } = {}) {
-    if (only) {
-      const fn = (val: any) => {
-        if (val === 'render-state') {
-          this.#state.render = getDefaultRenderState()
-        }
+  reset() {
+    this.#R.clear()
+    const clearCbs = (obj: any) => {
+      if (u.isArr(obj)) {
+        obj.length = 0
+      } else if (obj && typeof obj === 'object') {
+        u.values(obj).forEach((o) => clearCbs(o))
       }
-      ;(u.isArr(only) ? only : [only]).forEach(fn)
-    } else {
-      this.#R.clear()
-      const clearCbs = (obj: any) => {
-        if (u.isArr(obj)) {
-          obj.length = 0
-        } else if (obj && typeof obj === 'object') {
-          u.values(obj).forEach((o) => clearCbs(o))
-        }
-      }
-      u.values(this.#cbs).forEach((obj) => clearCbs(obj))
     }
+    u.values(this.#cbs).forEach((obj) => clearCbs(obj))
 
     return this
   }

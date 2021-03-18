@@ -5,15 +5,14 @@ import {
   isComponent,
   Viewport,
 } from 'noodl-ui'
-import { isDraft, current } from 'immer'
 import { NOODLDOMElement, RegisterOptions } from '../types'
 import {
   addClassName,
   entries,
   fixTextAlign,
   isNoodlUnit,
+  isNum,
   isObj,
-  isStr,
   isUnd,
   toNum,
   xKeys,
@@ -48,7 +47,7 @@ class XYEditor {
   }
 
   #updateVpProp = (prop: string, vpKey: string) => {
-    this.edit(
+    this.#component.setStyle(
       prop,
       Viewport.getSize(
         this.#component.style[prop],
@@ -56,11 +55,6 @@ class XYEditor {
         { unit: 'px' },
       ),
     )
-  }
-
-  edit(key: string | Record<string, any>, s?: any) {
-    if (isObj(key)) this.#component.assignStyles(key)
-    else if (isStr(key)) this.#component.setStyle(key, s)
   }
 
   updateY(prop: string) {
@@ -76,28 +70,40 @@ export default {
   name: '[noodl-dom] Styles',
   cond: (node: NOODLDOMElement, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
-  before(node, component, ctx) {
-    // if (component.length) {
-    //   const child1 = component.child() as ComponentInstance
-    //   if (child1) {
-    //     const origChildStyle = child1.original?.style
-    //     if (isNil(origChildStyle?.top)) {
-    //       console.log(
-    //         `%cSetting first child's top (${origChildStyle?.top}) to be the same ` +
-    //           `as its parent (${component.style.top}) because it is missing`,
-    //         `color:#95a5a6;`,
-    //         { node, component, child: child1 },
-    //       )
-    //       console.info('HELLO')
-    //       console.info(child1.style.top)
-    //       console.info(component.style.top)
-    //       child1.style.top = component.style.top
-    //       console.info('BYE')
-    //       console.info(child1.style.top)
-    //       console.info(component.style.top)
-    //     }
-    //   }
-    // }
+  before(node, component, { editStyle, noodlui, page }) {
+    const renderState = page.state.render
+    const marginTop = component.style.marginTop
+    const top = component.style.top
+    const height = component.style.height
+
+    let addToLastTop = 0
+
+    if (!renderState.lastTop.componentIds.includes(component.id)) {
+      if (isNil(marginTop)) {
+        editStyle({ marginTop: '0px' })
+      }
+
+      if (isNil(top)) {
+        editStyle({ top: renderState.lastTop.value + 'px' })
+      }
+
+      if (isNil(height)) {
+        debugger
+      } else {
+        if (isNoodlUnit(height)) {
+          const componentHeight = Number(
+            getSize(height, noodlui.viewport.height as number),
+          )
+          component.style.height = componentHeight + 'px'
+          renderState.lastTop.value += componentHeight
+          addToLastTop += componentHeight
+        } else if (isNum(height)) {
+          addToLastTop += height
+        }
+      }
+
+      renderState.lastTop.componentIds.push(component.id)
+    }
   },
   resolve: (node: HTMLElement, component, { noodlui }) => {
     const originalStyle = component?.style || {}
@@ -157,13 +163,8 @@ export default {
       addClassName('text-board', node)
     }
   },
-  after(node, component, { noodlui, noodluidom, state }) {
+  after(node, component, { noodlui, noodluidom }) {
     if (!node || !component) return
-
-    if (isNil(component?.style?.top)) {
-      const bounds = node.getBoundingClientRect()
-      state.render.lastTop += bounds.height
-    }
 
     let top = component.style.top
     let height = component.style.height
@@ -230,13 +231,17 @@ export default {
       //     }
       //   })
       // }
+    } else {
+      // node.style.position = 'absolute'
     }
   },
   observe: {
     [eventId.page.on.ON_AFTER_APPEND_CHILD]({
       component: componentOptions,
       child: childOptions,
+      page,
     }) {
+      // Finalize the marginTop/top/height dimensions before saving to renderState
       if (componentOptions.instance.length) {
         if (childOptions.index === 0) {
           const component = componentOptions.instance
@@ -250,8 +255,32 @@ export default {
                 { node: componentOptions.node, component, child: child1 },
               )
               child1.style.top = component.style.top
-              childOptions.node.style.top = component.style.top
+              childOptions.node.style.top = '0px'
+              // childOptions.node.style.top = componentOptions.node.style.top
             }
+          }
+        }
+      }
+
+      if (componentOptions.instance?.id) {
+        const renderState = page.state?.render
+        const component = componentOptions.instance
+
+        let addToLastTop = 0
+
+        if (!renderState.lastTop.componentIds.includes(component.id)) {
+          if (isNil(component.style.marginTop)) {
+            component.style.marginTop = '0px'
+          }
+
+          if (isNil(component.style.top)) {
+            // component.style.top = renderState.lastTop + 'px'
+          }
+
+          if (isNil(component.style.height)) {
+            // debugger
+          } else {
+            // addToLastTop += toNum()
           }
         }
       }

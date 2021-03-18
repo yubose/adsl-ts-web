@@ -1,4 +1,4 @@
-import { NOODL as NOODLUI } from 'noodl-ui'
+import { ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLUIDOMInternal from './Internal'
 import { assign, entries, isArr, isFnc, isObj, isStr } from './utils/internal'
@@ -9,7 +9,7 @@ import {
   findWindow,
   findWindowDocument,
   isPageConsumer,
-} from './utils/utils'
+} from './utils'
 import * as T from './types'
 
 type UseObject = T.Resolve.Config | NOODLUI | NOODLUIDOMInternal
@@ -38,16 +38,35 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
           isPageConsumer,
         }
       },
-      options(...[node, component]: T.Resolve.BaseArgs) {
+      options(...args: T.Resolve.BaseArgs) {
+        function createStyleEditor(component: ComponentInstance) {
+          function editComponentStyles(
+            styles: Record<string, any> | undefined,
+            { remove }: { remove?: string | string[] | false } = {},
+          ) {
+            if (styles) {
+              component?.edit?.(() => ({ style: styles }))
+            }
+            if (isArr(remove)) {
+              remove.forEach(
+                (styleKey) => styleKey && delete component.style[styleKey],
+              )
+            } else if (remove && isStr(remove)) delete component.style[remove]
+          }
+          return editComponentStyles
+        }
+
         const options = {
           ...util.actionsContext(),
-          original: component.original,
+          editStyle: createStyleEditor(args[1]),
+          original: args[1].original,
           noodlui: _internal.noodlui,
           noodluidom: ndom,
+          page: ndom.page,
           draw: ndom.draw.bind(ndom),
           redraw: ndom.redraw.bind(ndom),
-          state: ndom.state,
         } as T.Resolve.Options
+
         return options
       },
     }

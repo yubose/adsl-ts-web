@@ -3,10 +3,10 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import { ComponentObject, Identify } from 'noodl-types'
 import { findDataValue, isBreakLineTextBoardItem } from 'noodl-utils'
-import { ComponentInstance } from '../types'
+import { ComponentInstance, ConsumerOptions } from '../types'
 import Resolver from '../Resolver'
 import createComponent from '../utils/createComponent'
-import { formatColor, getRandomKey } from '../utils/common'
+import { formatColor } from '../utils/common'
 import {
   findIteratorVar,
   findListDataObject,
@@ -18,9 +18,10 @@ import {
 import * as c from '../constants'
 import * as u from '../utils/internal'
 
-const componentResolver = new Resolver('resolveComponents')
-
-componentResolver.setResolver((component, options, next) => {
+function resolveComponents(
+  component: ComponentInstance,
+  options: ConsumerOptions,
+) {
   const {
     cache,
     context,
@@ -31,7 +32,7 @@ componentResolver.setResolver((component, options, next) => {
     resolveComponents,
   } = options
 
-  const original = component.blueprint || {}
+  const original = component.original || {}
   const originalStyle = original.style || {}
   const { contentType, dataKey, path, text, textBoard, type } = original
 
@@ -43,6 +44,8 @@ componentResolver.setResolver((component, options, next) => {
     ---- LIST
   -------------------------------------------------------- */
 
+  debugger
+
   if (isListLike(component)) {
     function getListObject() {
       return original.listObject || []
@@ -50,7 +53,7 @@ componentResolver.setResolver((component, options, next) => {
 
     function getRawBlueprint(component: ComponentInstance) {
       const childrenKey = getChildrenKey()
-      const children = component.blueprint?.[childrenKey]
+      const children = component.original?.[childrenKey]
       const blueprint = u.isArr(children) ? { ...children?.[0] } : children
       if (u.isObj(blueprint) && childrenKey === 'chatItem') {
         blueprint.type = 'listItem'
@@ -355,8 +358,6 @@ componentResolver.setResolver((component, options, next) => {
       set(dataObject, dataKey, dataValue)
     }
   }
+}
 
-  next?.()
-})
-
-export default componentResolver
+export default resolveComponents

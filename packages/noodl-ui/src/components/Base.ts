@@ -5,13 +5,7 @@ import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original, current } from 'immer'
 import { ComponentObject, StyleObject } from 'noodl-types'
 import { eventTypes } from '../constants'
-import {
-  ComponentCreationType,
-  ComponentInstance,
-  ComponentType,
-  IComponent,
-  Style,
-} from '../types'
+import { ComponentInstance, ComponentType, IComponent, Style } from '../types'
 import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import { getRandomKey } from '../utils/common'
 import * as u from '../utils/internal'
@@ -20,7 +14,8 @@ const log = Logger.create('Base')
 
 // Current component events: 'path' attached by createSrc
 
-class Component implements IComponent<any> {
+class Component<C extends ComponentObject = ComponentObject>
+  implements IComponent<C> {
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
   #cb: { [eventName: string]: ((...args: any[]) => any)[] } = {}
@@ -31,19 +26,31 @@ class Component implements IComponent<any> {
   #noodlType: ComponentType
   #parent: ComponentInstance | null = null
   #status: 'drafting' | 'idle' = 'drafting'
-  original: ComponentObject
+  #type: ComponentType
+  original: C
   keys: string[]
 
   static isComponent(component: unknown) {
-    return !!(
-      component &&
-      typeof component !== 'string' &&
-      (component instanceof Component ||
-        typeof (component as any)?.props === 'function')
+    return (
+      !!component &&
+      !u.isStr(component) &&
+      (component instanceof Component || u.isFnc((component as any)?.props))
     )
   }
 
-  constructor(component: ComponentCreationType) {
+  [Symbol.iterator]() {
+    const entries = u.entries(this.#component)
+    return {
+      next() {
+        return {
+          done: !entries.length,
+          value: entries.pop() || [],
+        }
+      },
+    }
+  }
+
+  constructor(component: C, opts?: { id?: string }) {
     const keys = Component.isComponent(component)
       ? component.keys
       : Object.keys(
@@ -55,13 +62,14 @@ class Component implements IComponent<any> {
       ? { noodlType: component }
       : (component as any)
     this['keys'] = keys
+    this.#type = this.original.type
 
     this.#cache = {}
     this.#component = createComponentDraftSafely(
       component,
     ) as WritableDraft<ComponentObject>
 
-    this['id'] = this.#component.id || getRandomKey()
+    this.#id = opts?.id || this.#component.id || getRandomKey()
     this['noodlType'] = this.#component.noodlType as any
 
     this.style = isDraft(this.style) ? current(this.style) : this.style
@@ -90,6 +98,42 @@ class Component implements IComponent<any> {
     })
   }
 
+  get contentType() {
+    return this.original?.contentType
+  }
+
+  get id() {
+    return this.#id
+  }
+
+  get type() {
+    return this.#type
+  }
+
+  get noodlType() {
+    return this.#noodlType
+  }
+
+  set noodlType(value: ComponentType) {
+    this.#noodlType = value
+  }
+
+  /** Returns the most recent styles at the time of this call */
+  get style() {
+    if (!this.#component.style || u.isStr(this.#component.style)) {
+      this.#component.style = {}
+    }
+    return this.#component.style as StyleObject
+  }
+
+  set style(style: StyleObject) {
+    this.#component.style = style
+  }
+
+  get status() {
+    return isDraft(this.#status) ? current(this.#status) : this.#status
+  }
+
   /**
    * Returns the value of the component property using key, or
    * Returns the value of the property of the component's style object
@@ -108,7 +152,7 @@ class Component implements IComponent<any> {
       return value
     }
     // component.get(['someKey', 'someOtherKey'])
-    if (Array.isArray(key)) {
+    if (u.isArr(key)) {
       const value = {} as Record<K, ComponentObject[K]>
       key.forEach((k) => (value[k] = this.#retrieve(k)))
       return value
@@ -167,46 +211,6 @@ class Component implements IComponent<any> {
       this.#component[key] = value
     }
     return this
-  }
-
-  get contentType() {
-    return this.original?.contentType
-  }
-
-  get id() {
-    return this.#id || ''
-  }
-
-  set id(value: string) {
-    this.#id = value
-  }
-
-  get type() {
-    return this.#component?.type as ComponentType
-  }
-
-  get noodlType() {
-    return this.#noodlType
-  }
-
-  set noodlType(value: ComponentType) {
-    this.#noodlType = value
-  }
-
-  /** Returns the most recent styles at the time of this call */
-  get style() {
-    if (!this.#component.style || typeof this.#component.style === 'string') {
-      this.#component.style = {}
-    }
-    return this.#component.style as StyleObject
-  }
-
-  set style(style: StyleObject) {
-    this.#component.style = style
-  }
-
-  get status() {
-    return isDraft(this.#status) ? current(this.#status) : this.#status
   }
 
   /**
@@ -437,21 +441,21 @@ class Component implements IComponent<any> {
     return this.#children?.length || 0
   }
 
-  on(eventName: string, cb: Function, id = '') {
+  on(eventName: string, cb: (...args: any[]) => any, id = '') {
     if (id) {
       if (!this.#cbIds.includes(id)) this.#cbIds.push(id)
       else return this
     }
 
-    if (!Array.isArray(this.#cb[eventName])) this.#cb[eventName] = []
+    if (!u.isArr(this.#cb[eventName])) this.#cb[eventName] = []
     // log.func(`on [${this.noodlType}]`)
     // log.grey(`Subscribing listener for "${eventName}"`, this)
     this.#cb[eventName].push(cb)
     return this
   }
 
-  off(eventName: any, cb: Function) {
-    if (Array.isArray(this.#cb[eventName])) {
+  off(eventName: any, cb: (...args: any[]) => any) {
+    if (u.isArr(this.#cb[eventName])) {
       if (this.#cb[eventName].includes(cb)) {
         log.func(`off [${this.noodlType}]`)
         log.grey(`Removing listener for "${eventName}"`, this)
@@ -475,17 +479,23 @@ class Component implements IComponent<any> {
     return this.#cb
   }
 
-  hasCb(eventName: string, cb: Function) {
+  hasCb(eventName: string, cb: (...args: any[]) => any) {
     return !!this.#cb[eventName]?.includes?.(cb)
   }
 
   clearCbs() {
     Object.keys(this.#cb).forEach((eventName) => {
-      if (Array.isArray(this.#cb[eventName])) {
+      if (u.isArr(this.#cb[eventName])) {
         this.#cb[eventName].length = 0
       }
     })
     return this
+  }
+
+  clearChildren() {
+    if (u.isArr(this.#children)) {
+      this.#children.length = 0
+    }
   }
 
   edit(fn: (props: ComponentObject) => ComponentObject | undefined | void): void

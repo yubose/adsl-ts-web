@@ -325,14 +325,14 @@ describe.only(`styles`, () => {
     ndom.use(noodlui)
   })
 
-  describe(`positioning / sizing`, () => {
+  describe(`Positioning / Sizing`, () => {
     describe(
-      `when a component is missing "top" which is treated as ` +
-        `"auto" in NOODL logic`,
+      `when a component's "top" is being treated as "auto" (a.k.a it was not ` +
+        `explicitly set as a positional value like "0.2")`,
       () => {
         const finalKeys = ['top', 'height']
 
-        it(`should always eventually have a value for both of its top and height`, async () => {
+        it(`should always set a value for top, height, and marginTop`, async () => {
           const componentObj = {
             type: 'view',
             style: { width: '1', height: '1', top: '0', left: '0' },
@@ -355,14 +355,15 @@ describe.only(`styles`, () => {
           const testSubjects = [components[0], label, button]
 
           testSubjects.forEach((component) => {
+            expect(component.style).to.have.property('marginTop').to.exist
             expect(component.style).to.have.property('top').to.exist
             expect(component.style).to.have.property('height').to.exist
           })
         })
 
-        it(
-          `should always set the first child to have the same value of top ` +
-            `as its parent`,
+        it.only(
+          `should always set the first child to have the same value of ` +
+            `the parent's top position in the DOM`,
           async () => {
             const componentObj = {
               type: 'view',
@@ -383,11 +384,8 @@ describe.only(`styles`, () => {
 
             const parent = components[0]
             const child1 = parent.child()
-            const child2 = parent.child(1)
-
             const parentNode = document.getElementById(parent.id) as any
             const child1Node = document.getElementById(child1.id) as any
-            const child2Node = document.getElementById(child2.id) as any
 
             expect(parent.style).to.have.property('top').to.eq(child1.style.top)
             expect(parentNode.style)
@@ -398,8 +396,8 @@ describe.only(`styles`, () => {
 
         it(
           `should not make the second child follow the first child logic but ` +
-            `instead compute its top position using the first child's final ` +
-            `top value`,
+            `instead compute its top position using the first child's calculated ` +
+            `top + height value`,
           async () => {
             const componentObj = {
               type: 'view',
@@ -419,14 +417,23 @@ describe.only(`styles`, () => {
             } = await ndom.page.requestPageChange('Hello')
 
             const parent = components[0]
+            const child1 = parent.child(1)
             const child2 = parent.child(1)
 
             const parentNode = document.getElementById(parent.id) as any
+            const child1Node = document.getElementById(child1.id) as any
             const child2Node = document.getElementById(child2.id) as any
 
             expect(parentNode.style)
               .to.have.property('top')
               .to.not.to.eq(child2Node.style.top)
+            // expect(child2Node).to.have.property('top').to.eq(child1Node)
+            console.info(parentNode.style.top)
+            console.info(child1Node.style.top)
+            console.info(child2Node.style.top)
+            console.info(parentNode.style.height)
+            console.info(child1Node.style.height)
+            console.info(child2Node.style.height)
           },
         )
 

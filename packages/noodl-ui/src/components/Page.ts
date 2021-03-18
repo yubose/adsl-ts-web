@@ -521,7 +521,6 @@ class Page
     const component = this.createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component.original?.style)
-    component.id = component.id || getRandomKey()
     component.assignStyles(baseStyles)
 
     // Finalizing

@@ -74,7 +74,6 @@ const handleListInternalResolver = (
 
     let listItem = createComponent(component?.getBlueprint() as any) as ListItem
     if (listItem) {
-      listItem.id = getRandomKey()
       listItem.setParent(component as any)
       listItem.setDataObject?.(result.dataObject)
       listItem.set('listIndex', result.index)

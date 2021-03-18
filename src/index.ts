@@ -59,6 +59,20 @@ window.addEventListener('load', async (e) => {
       noodlui,
       noodluidom,
     })
+    // @ts-expect-error
+    window.grid = () => {
+      const grid = document.getElementById('gridlines')
+      if (grid) {
+        grid.remove()
+      } else {
+        showGridLines.call(app, {
+          width: noodlui.viewport.width,
+          height: noodlui.viewport.height,
+        })
+      }
+    }
+    // @ts-expect-error
+    window.grid()
     stable && log.cyan('Initialized [App] instance')
   } catch (error) {
     console.error(error)
@@ -96,3 +110,71 @@ window.addEventListener('load', async (e) => {
     await page.requestPageChange(goBackPage)
   })
 })
+
+function showGridLines(
+  this: App,
+  {
+    width = '100%',
+    height = 0,
+  }: {
+    width: any
+    height: any
+  },
+) {
+  if (typeof window !== 'undefined') {
+    const container = document.createElement('div')
+    const gridLines: HTMLDivElement[] = []
+
+    document.body.appendChild(container)
+    container.classList.add('grid-lines')
+    container.id = 'gridlines'
+    container.style.position = 'absolute'
+    container.style.width = width
+    container.style.height = '100%'
+    container.style.minHeight = height
+    container.style.top = '0px'
+    container.style.right = '0px'
+    container.style.left = '0px'
+    container.style.pointerEvents = 'none'
+    container.style.userSelect = 'none'
+
+    let currTop = 0
+    let offset = 50
+
+    const createGridLineElem = ({
+      top,
+      text = '',
+    }: {
+      top: any
+      text: string | ((...args: any[]) => any)
+    }) => {
+      const node = document.createElement('div')
+      node.classList.add('grid-line')
+      node.style.position = 'absolute'
+      node.style.top = top + 'px'
+      node.style.width = width + 'px'
+      node.style.height = '100px'
+      node.style.zIndex = '10000'
+      // node.style.border = '0.5px dashed rgba(0, 0, 0, 0.15)'
+      const child = document.createElement('div')
+      child.style.position = 'absolute'
+      child.style.left = '0px'
+      child.style.width = width
+      child.style.color = 'hotpink'
+      child.style.fontSize = '11.5px'
+      child.textContent = typeof text === 'function' ? text(node) : text
+      node.appendChild(child)
+      return node
+    }
+
+    while (currTop < height) {
+      const node = createGridLineElem({
+        top: currTop,
+        text: currTop + 'px',
+      })
+      container.appendChild(node)
+      gridLines.push(node)
+      currTop += offset
+    }
+  }
+}

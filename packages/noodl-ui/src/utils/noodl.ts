@@ -175,12 +175,17 @@ export function findParent<C extends ComponentInstance>(
 export function findListDataObject(component: ComponentInstance) {
   let dataObject
   let listItem: any
-  if (component?.noodlType === 'listItem') {
-    listItem = component as any
+
+  if (/listItem/i.test(component.noodlType)) {
+    listItem = component
   } else {
-    listItem = findParent(component, (p) => p?.noodlType === 'listItem') as any
+    listItem = findParent(
+      component,
+      (p) => !!/listItem/i.test(p?.noodlType || ''),
+    )
   }
-  if (listItem) {
+
+  if (isComponent(listItem)) {
     dataObject = listItem.getDataObject?.()
     let listIndex = listItem.get('listIndex')
     if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
@@ -203,8 +208,15 @@ export function findListDataObject(component: ComponentInstance) {
   return dataObject || null
 }
 
-export function findIteratorVar(component: ComponentInstance) {
-  const listItem = findParent(component, (p) => {})
+export function findIteratorVar(
+  component: ComponentInstance | undefined,
+): string {
+  if (isComponent(component)) {
+    if (component.type === 'list') return component.get('iteratorVar') || ''
+    const list = findParent(component, (p) => p?.type === 'list')
+    if (isComponent(list)) return list.get('iteratorVar') || ''
+  }
+  return ''
 }
 
 /**
@@ -426,6 +438,10 @@ export function isListConsumer(component: any) {
     component?.noodlType === 'listItem' ||
     (component && findParent(component, (p) => p?.noodlType === 'listItem'))
   )
+}
+
+export function isListLike(component: ComponentInstance) {
+  return component.type === 'chatList' || component.type === 'list'
 }
 
 // export function isPasswordInput(value: unknown) {

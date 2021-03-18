@@ -107,12 +107,12 @@ describe('BaseComponent', () => {
 
   describe('when working with children', () => {
     beforeEach(() => {
-      component.id = 'abc123'
       component.createChild(
         createComponent({
           type: 'button',
           text: 'hello',
           style: { width: '0.2', height: '0.2' },
+          id: 'abc123',
         }),
       )
       component.createChild(

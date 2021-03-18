@@ -9,8 +9,18 @@ import * as T from './types'
 
 const log = Logger.create('Page')
 
+const getDefaultRenderState = (
+  initialState?: Record<string, any>,
+): T.Page.State['render'] => ({
+  lastTop: {
+    value: 0,
+    componentIds: [],
+  },
+  ...initialState,
+})
+
 class Page {
-  #state = {
+  #state: T.Page.State = {
     current: '',
     previous: '',
     requesting: '',
@@ -20,6 +30,7 @@ class Page {
       }
     },
     status: eventId.page.status.IDLE as T.Page.Status,
+    render: getDefaultRenderState(),
     rootNode: false,
   }
   #cbs = {
@@ -52,6 +63,18 @@ class Page {
     this.rootNode.style.height = '100%'
     // if (!document.body.contains(this.rootNode))
     // document.body.appendChild(this.rootNode)
+  }
+
+  get render() {
+    return this.#render as T.Render.Func
+  }
+
+  set render(fn: T.Render.Func) {
+    this.#render = fn
+  }
+
+  get state() {
+    return this.#state
   }
 
   getCbs() {
@@ -362,12 +385,11 @@ class Page {
     return this
   }
 
-  get render() {
-    return this.#render as T.Render.Func
-  }
-
-  set render(fn: T.Render.Func) {
-    this.#render = fn
+  reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {
+    if (slice) {
+      if (slice === 'render') this.#state.render = getDefaultRenderState()
+    }
+    // this.#state = getDefaultState()
   }
 }
 

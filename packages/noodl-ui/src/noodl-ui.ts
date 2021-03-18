@@ -234,16 +234,9 @@ class NOODLUI {
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component)
 
-    component.id = component.id || getRandomKey()
     component.assignStyles(baseStyles)
 
     if (component.noodlType === 'register') {
-      if (
-        component.original?.onEvent &&
-        component.id !== component.original?.onEvent
-      ) {
-        component.id = component.original.onEvent
-      }
       log.func('#resolve')
       // Skip the resolving for register type components since they only need
       // to be processed once in the lifetime of the page

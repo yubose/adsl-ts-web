@@ -9,9 +9,9 @@ import ListItem from '../components/ListItem'
 import Page from '../components/Page'
 
 export interface PropsOptionFunc<T> {
-  (child: T): Partial<ComponentObject>
+  (child: T): Partial<PropsOptionObj>
 }
-export type PropsOptionObj = ComponentObject
+export type PropsOptionObj = ComponentObject | { id?: string }
 
 interface Options {
   props?: PropsOptionObj | PropsOptionFunc<ComponentInstance>
@@ -32,7 +32,7 @@ function createComponent<K extends ComponentType = ComponentType>(
 ): ComponentInstance
 
 function createComponent<K extends ComponentType = ComponentType>(
-  value: ComponentObject,
+  value: PropsOptionObj,
   options?: Options,
 ): ComponentInstance
 
@@ -42,7 +42,7 @@ function createComponent<K extends ComponentType = ComponentType>(
 ): ComponentInstance
 
 function createComponent<K extends ComponentType = ComponentType>(
-  value: K | ComponentObject | Component,
+  value: K | PropsOptionObj | Component,
   options?: Options,
 ): ComponentInstance | List | ListItem | Page {
   let childComponent: any
@@ -69,15 +69,10 @@ function createComponent<K extends ComponentType = ComponentType>(
     else id += getRandomKey()
   }
 
-  // Resync the child's id to match the parent's id. This can possibly be the
-  // case when we're re-rendering and choose to pass in existing component
-  // instances to shortcut into parsing
-  if (id !== childComponent.id) childComponent['id'] = id
-
   return childComponent
 }
 
-function toInstance(value: ComponentObject) {
+function toInstance(value: PropsOptionObj) {
   if (!('children' in value)) {
     // value.children = []
   }
@@ -96,7 +91,7 @@ function toInstance(value: ComponentObject) {
 function toProps(
   value: any,
   props?: Options['props'],
-): Partial<ComponentObject> | void {
+): Partial<PropsOptionObj> | void {
   if (props) {
     if (typeof props === 'function') return props(value)
     return props
