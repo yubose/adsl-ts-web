@@ -548,7 +548,7 @@ class Page
     return {
       ...super.toJS(),
       id: this.id,
-      children: this.children().map((child) => child?.toJS?.()),
+      children: this.children.map((child) => child?.toJS?.()),
       assetsUrl: this.getAssetsUrl(),
       baseUrl: this.getBaseUrl(),
       currentPage: this.page,

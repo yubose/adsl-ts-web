@@ -10,7 +10,7 @@ export default {
     const listComponent = component as List
     const listObject = listComponent.getData()
     const numDataObjects = listObject?.length || 0
-    listComponent.children().forEach((c: ListItem) => {
+    listComponent.children.forEach((c: ListItem) => {
       c?.setDataObject?.(null)
       listComponent.removeDataObject(0)
     })

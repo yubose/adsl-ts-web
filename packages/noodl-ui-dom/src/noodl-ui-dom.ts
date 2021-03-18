@@ -162,9 +162,8 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
         this.#R.run(node, component)
 
-        component
-          .children?.()
-          ?.forEach?.((child: ComponentInstance, index: number) => {
+        component.children?.forEach?.(
+          (child: ComponentInstance, index: number) => {
             const childNode = this.draw(child, node) as HTMLElement
 
             let appendChildArgs = {
@@ -201,7 +200,8 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
             }
 
             appendChildArgs = null as any
-          })
+          },
+        )
       }
     }
     return node || null

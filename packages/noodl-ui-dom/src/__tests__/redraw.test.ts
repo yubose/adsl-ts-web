@@ -59,11 +59,11 @@ describe('redraw', () => {
   it(`should remove the redrawing components from the component cache`, () => {
     const list = getListGender()
     const node = noodluidom.draw(list) as HTMLUListElement
-    const idsToBeRemoved = list.children().map(({ id }) => id)
+    const idsToBeRemoved = list.children.map(({ id }) => id)
     expect(componentCache()).to.have.lengthOf(4)
-    list
-      .children()
-      .forEach((child: any) => expect(componentCache().has(child)).to.be.true)
+    list.children.forEach(
+      (child: any) => expect(componentCache().has(child)).to.be.true,
+    )
     noodluidom.redraw(node, list)
     idsToBeRemoved.forEach(
       (id: string) => expect(componentCache().has(id)).to.be.false,
@@ -174,7 +174,7 @@ describe('redraw', () => {
   xit('should recursively remove child references', () => {
     const node = noodluidom.draw(listGender)
     const listItem = listGender.child()
-    const [label, image] = listItem?.children() || []
+    const [label, image] = listItem?.children || []
     expect(!!findChild(listGender, (c) => c === image)).to.be.true
     expect(!!findChild(listGender, (c) => c === label)).to.be.true
     const [newNode, newComponent] = noodluidom.redraw(node, listGender)
@@ -545,7 +545,7 @@ describe('redraw', () => {
       }
       const view = noodlui.resolveComponents(noodlView)
       input.id = 'mocknodeid'
-      const [textField, image, button] = view.children()
+      const [textField, image, button] = view.children
 
       let inputValue = 'yes value'
       let imgSrc = 'selectOn.png'
@@ -709,7 +709,7 @@ describe('redraw', () => {
     // data.forEach((d) => list.removeDataObject(d))
     // data.forEach((d) => list.addDataObject(d))
     // const listItem = list.child() as ListItem
-    // const [textField, label, image] = listItem.children()
+    // const [textField, label, image] = listItem.children
     noodluidom.on('component', (n, c) => {
       if (c.get('onChange')) n.onchange = c.get('onChange')
       if (c.get('onClick')) n.onclick = c.get('onClick')

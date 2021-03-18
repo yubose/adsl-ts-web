@@ -58,7 +58,7 @@ describe('_internalResolver', () => {
     it('should start with no children (removes the listItem placeholder)', () => {
       const component = new List({ type: 'list', listObject: [] })
       expect(component).to.have.lengthOf(0)
-      expect(component.children()).to.have.lengthOf(0)
+      expect(component.children).to.have.lengthOf(0)
     })
 
     it('should have initiated the blueprint using the raw noodl list item component', () => {
@@ -250,7 +250,7 @@ describe('_internalResolver', () => {
       const data = component.getData()
       component?.set('listObject', [])
       data.forEach((d: any) => component.addDataObject(d))
-      const [listItem1] = component?.children() || []
+      const [listItem1] = component?.children || []
       expect(listItem1.child()?.get?.('listId')).to.exist
       expect(listItem1.child()?.get?.('iteratorVar')).to.exist
     })
@@ -302,7 +302,7 @@ describe('_internalResolver', () => {
       const data = list.getData()
       list?.set('listObject', [])
       data.forEach((d) => list.addDataObject(d))
-      const [listItem1] = list?.children() || []
+      const [listItem1] = list?.children || []
       expect(listItem1.child()?.get?.('data-value')).to.equal(dataObject1.title)
       // expect(listItem1.child(1)?.child(0)?.get('data-value')).to.equal(
       //   dataObject1.color,

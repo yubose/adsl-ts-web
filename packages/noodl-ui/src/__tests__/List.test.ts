@@ -305,7 +305,7 @@ describe('List', () => {
         children: [{ type: 'listItem' }],
       })
 
-      component.children().forEach((c: ListItem) => {
+      component.children.forEach((c: ListItem) => {
         const li = document.createElement('li')
         li.id = c.id
         li.textContent += c.getDataObject().fruits[0]
@@ -353,7 +353,7 @@ describe('List', () => {
             ],
           })
 
-          component.children().forEach((c) => {
+          component.children.forEach((c) => {
             const li = document.createElement('li')
             li.id = c.id
             li.textContent += c.getDataObject().fruits[0]

@@ -13,7 +13,6 @@ import {
   Style,
 } from '../types'
 import createComponentDraftSafely from '../utils/createComponentDraftSafely'
-import isComponent from '../utils/isComponent'
 import { getRandomKey } from '../utils/common'
 import * as u from '../utils/internal'
 
@@ -35,13 +34,22 @@ class Component implements IComponent<any> {
   original: ComponentObject
   keys: string[]
 
+  static isComponent(component: unknown) {
+    return !!(
+      component &&
+      typeof component !== 'string' &&
+      (component instanceof Component ||
+        typeof (component as any)?.props === 'function')
+    )
+  }
+
   constructor(component: ComponentCreationType) {
-    const keys = isComponent(component)
+    const keys = Component.isComponent(component)
       ? component.keys
       : Object.keys(
           typeof component === 'string' ? { type: component } : component,
         )
-    this['original'] = isComponent(component)
+    this['original'] = Component.isComponent(component)
       ? component.original
       : typeof component === 'string'
       ? { noodlType: component }
@@ -327,7 +335,7 @@ class Component implements IComponent<any> {
       return {
         ...obj,
         id: this.id,
-        children: this.children().map((child) => child?.toJS?.()),
+        children: this.children.map((child) => child?.toJS?.()),
       }
     }
     return obj
@@ -381,7 +389,7 @@ class Component implements IComponent<any> {
     if (typeof child === 'string') {
       return !!find(this.#children, (c) => c?.id === child)
     }
-    if (isComponent(child)) {
+    if (Component.isComponent(child)) {
       return this.#children.includes(child)
     }
     return false
@@ -421,7 +429,7 @@ class Component implements IComponent<any> {
     return removedChild
   }
 
-  children() {
+  get children() {
     return this.#children || []
   }
 
@@ -534,7 +542,7 @@ class Component implements IComponent<any> {
     const result = {} as ReturnType<IComponent['toJSON']>
     u.assign(result, this.props(), {
       parentId: this.parent?.()?.id || '',
-      children: this.children().map((child) => child?.toJSON?.()),
+      children: this.children.map((child) => child?.toJSON?.()),
     })
     return result
   }

@@ -18,7 +18,7 @@ export default {
     component.on(
       noodluiEvent.component.page.RESOLVED_COMPONENTS,
       () => {
-        component.children().forEach((child: ComponentInstance) => {
+        component.children.forEach((child: ComponentInstance) => {
           const childNode = draw(child, node.contentDocument?.body)
           // redraw(childNode, child, options)
           ;(window as any).child = childNode

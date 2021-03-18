@@ -39,7 +39,7 @@ export function forEachDeepChildren<
         forEachDeepChildren(child, cb)
       })
     } else if (typeof component.children === 'function') {
-      component.children().forEach((child) => {
+      component.children.forEach((child) => {
         cb(component, child)
         forEachDeepChildren(child, cb)
       })
@@ -137,13 +137,13 @@ export function findChild<C extends ComponentInstance>(
   fn: (child: ComponentInstance) => boolean,
 ): ComponentInstance | null {
   let child: ComponentInstance | null | undefined
-  let children = component?.children?.()?.slice?.() || []
+  let children = component?.children?.slice?.() || []
 
   if (isComponent(component)) {
     child = children.shift() || null
     while (child) {
       if (fn(child)) return child
-      child.children?.().forEach((c: ComponentInstance) => children.push(c))
+      child.children?.forEach((c: ComponentInstance) => children.push(c))
       child = children.pop()
     }
   }
@@ -477,9 +477,9 @@ export function publish(
     typeof component === 'object' &&
     typeof component['children'] === 'function'
   ) {
-    component.children().forEach((child: ComponentInstance) => {
+    component.children.forEach((child: ComponentInstance) => {
       cb(child)
-      child?.children()?.forEach?.((c: ComponentInstance) => {
+      child?.children?.forEach?.((c: ComponentInstance) => {
         cb(c)
         publish(c, cb)
       })

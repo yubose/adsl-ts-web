@@ -153,9 +153,7 @@ const handleListInternalResolver = (
   component.on(event.component.list.UPDATE_DATA_OBJECT, (result, options) => {
     log.func(`on[${event.component.list.UPDATE_DATA_OBJECT}]`)
     const { index, dataObject } = result
-    const listItem: ListItem | undefined = component.children()?.[
-      index as number
-    ]
+    const listItem: ListItem | undefined = component.children?.[index as number]
     listItem?.setDataObject(dataObject)
     stable && log.cyan(`Attached dataObject to listItem`, dataObject)
     component.emit(

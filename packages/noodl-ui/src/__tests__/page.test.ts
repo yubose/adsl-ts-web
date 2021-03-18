@@ -154,7 +154,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
     await waitFor(() => {
       expect(spy).to.be.called
       const args = spy.args[0][0]
-      expect(args).to.include.members(component.children())
+      expect(args).to.include.members(component.children)
     })
   })
 
@@ -438,7 +438,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
 
   it(`should resolve components dimensions using the page components's viewport`, () => {
     const page = noodlui.resolveComponents(noodlComponent) as Page
-    expect(page.children()).to.have.length.greaterThan(0)
+    expect(page.children).to.have.length.greaterThan(0)
     const child = page.child()
     expect(child.style.width).to.eq(page.style.width)
     expect(child.style.height).to.eq(page.style.height)

@@ -182,7 +182,7 @@ describe('list', () => {
     })
     const component = result.component as List
     const componentCache = result.componentCache
-    component.children().forEach((child: any) => {
+    component.children.forEach((child: any) => {
       expect(componentCache().has(child)).to.be.true
     })
     expect(componentCache().length).to.eq(4)

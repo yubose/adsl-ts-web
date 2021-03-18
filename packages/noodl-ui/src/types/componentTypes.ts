@@ -32,7 +32,7 @@ export interface IComponent<
   assign(key: keyof C | PlainObject, value?: PlainObject): this
   assignStyles(styles: StyleObject): this
   child(index?: number): ComponentInstance | undefined
-  children(): ComponentInstance[]
+  children: ComponentInstance[]
   createChild<Child extends ComponentInstance = any>(child: Child): Child
   hasChild(id: string): boolean
   hasChild(child: ComponentInstance): boolean

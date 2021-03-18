@@ -137,7 +137,7 @@ describe('BaseComponent', () => {
       expect(component.child()).to.be.undefined
       const child = createComponent({ type: 'view' })
       component.createChild(child)
-      expect(component.children()).to.have.lengthOf(1)
+      expect(component.children).to.have.lengthOf(1)
       expect(component.child()).to.equal(child)
     })
 
@@ -171,11 +171,11 @@ describe('BaseComponent', () => {
         const component = new Component({ type: 'label' })
         component.createChild(createComponent('button'))
         const child2 = component.createChild(createComponent('view'))
-        const children = component.children()
+        const children = component.children
         const index = 1
         expect(children[index]).to.equal(child2)
         component.removeChild(index)
-        expect(component.children().includes(child2)).to.be.false
+        expect(component.children.includes(child2)).to.be.false
       })
     })
 
@@ -210,17 +210,17 @@ describe('BaseComponent', () => {
     })
 
     it('should return all of its children', () => {
-      expect(component.children()).to.have.lengthOf(2)
+      expect(component.children).to.have.lengthOf(2)
     })
 
     xit('should prefix the ids of their children with its own component id', () => {
-      ;(component.children() as IComponent[]).forEach((child) => {
+      ;(component.children as IComponent[]).forEach((child) => {
         expect(child.id.startsWith(component.id)).to.be.true
       })
     })
 
     it('should allow children to get access to this instance', () => {
-      const children = component.children() as IComponent[]
+      const children = component.children as IComponent[]
       children.forEach((child) => {
         expect(child.parent()).to.equal(component)
       })
