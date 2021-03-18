@@ -97,6 +97,18 @@ const createBuiltInActions = function createBuiltInActions({
     })
     .register({
       actionType: 'builtIn',
+      funcName: 'disconnectMeeting',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) {
+        log.func('disconnectMeeting')
+        log.grey('', { action, room: Meeting.room, options })
+        Meeting.room.disconnect()
+      },
+    })
+    .register({
+      actionType: 'builtIn',
       funcName: 'goBack',
       async fn(
         action: Action<BuiltInActionObject>,
@@ -441,7 +453,7 @@ const createBuiltInActions = function createBuiltInActions({
         log.red('', { action, ...options })
         let destinationParam = ''
         let reload: boolean | undefined
-        let reloadPageObject: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+        let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
         let dataIn: any // sdk use
 
         // "Reload" currently is only known to be used in goto when runnning
@@ -457,8 +469,8 @@ const createBuiltInActions = function createBuiltInActions({
               if (isPlainObject(gotoObj.goto)) {
                 destinationParam = gotoObj.goto.destination
                 if ('reload' in gotoObj.goto) reload = gotoObj.goto.reload
-                if ('reloadPageObject' in gotoObj.goto)
-                  reloadPageObject = gotoObj.goto.reloadPageObject
+                if ('pageReload' in gotoObj.goto)
+                  pageReload = gotoObj.goto.pageReload
                 if ('dataIn' in gotoObj.goto) dataIn = gotoObj.goto.dataIn
               } else if (typeof gotoObj.goto === 'string') {
                 destinationParam = gotoObj.goto
@@ -466,8 +478,7 @@ const createBuiltInActions = function createBuiltInActions({
             } else if (isPlainObject(gotoObj)) {
               destinationParam = gotoObj.destination
               if ('reload' in gotoObj) reload = gotoObj.reload
-              if ('reloadPageObject' in gotoObj)
-                reloadPageObject = gotoObj.reloadPageObject
+              if ('pageReload' in gotoObj) pageReload = gotoObj.pageReload
               if ('dataIn' in gotoObj) dataIn = gotoObj.dataIn
             }
           }
@@ -475,8 +486,7 @@ const createBuiltInActions = function createBuiltInActions({
           if ('destination' in action) {
             destinationParam = action.destination
             if ('reload' in action) reload = action.reload
-            if ('reloadPageObject' in action)
-              reloadPageObject = action.reloadPageObject
+            if ('pageReload' in action) pageReload = action.pageReload
             if ('dataIn' in action) dataIn = action.dataIn
           }
         }
@@ -485,8 +495,8 @@ const createBuiltInActions = function createBuiltInActions({
           noodluidom.page.setModifier(destinationParam, { reload })
         }
 
-        if (reloadPageObject !== undefined) {
-          noodluidom.page.setModifier(destinationParam, { reloadPageObject })
+        if (pageReload !== undefined) {
+          noodluidom.page.setModifier(destinationParam, { pageReload })
         }
 
         if (dataIn !== undefined) {
@@ -496,7 +506,7 @@ const createBuiltInActions = function createBuiltInActions({
         log.grey(`Computed goto params`, {
           destination: destinationParam,
           reload,
-          reloadPageObject,
+          pageReload,
         })
 
         let findWindow: any
@@ -610,6 +620,9 @@ const createBuiltInActions = function createBuiltInActions({
             } else {
               urlToGoToInstead = 'index.html?' + destination
             }
+
+            debugger
+
             window.location.href = urlToGoToInstead
           } else await noodluidom.page.requestPageChange(destination)
 

@@ -34,7 +34,7 @@ class ListItem extends Component implements IComponent {
     return typeof index === 'number' ? this.#children[index] : undefined
   }
 
-  children {
+  get children() {
     return this.#children
   }
 

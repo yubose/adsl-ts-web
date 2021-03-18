@@ -160,7 +160,7 @@ class Page {
       // The caller is expected to provide their own page object
       const pageSnapshot = (await this.emit(
         eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
-        this.snapshot(),
+        { ...this.snapshot(), pageName },
       )) as Record<string, PageObject> | 'old.request'
 
       if (pageSnapshot === 'old.request') {

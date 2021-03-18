@@ -1,13 +1,12 @@
 import { isBooleanFalse, isBooleanTrue } from 'noodl-utils'
 import { isObj } from '../utils/internal'
-import { hasDecimal, hasLetter } from '../utils/common'
 import { ResolverFn } from '../types'
 
 /**
  * Renames/transforms some keywords to align more with css styles
  *  ex: isHidden: true --> styleObj.visibility = 'hidden'
  */
-const getTransformedStyleAliases: ResolverFn = (component) => {
+const getTransformedStyleAliases: ResolverFn = (component, { viewport }) => {
   const isHidden = component.getStyle('isHidden')
   const shadow = component.getStyle('shadow')
   const required = component.getStyle('required')

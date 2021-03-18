@@ -28,7 +28,7 @@ class NOODLViewport implements IViewport {
     if (value == '0') {
       result = 0
     } else if (value == '1') {
-      result = viewportSize
+      result = Number(viewportSize)
     } else {
       if (isStr(value)) {
         if (!hasLetter(value)) {
@@ -42,6 +42,7 @@ class NOODLViewport implements IViewport {
         } else {
           result = value
         }
+        result = value * viewportSize
       }
     }
 

@@ -75,7 +75,7 @@ class List extends Component implements IComponent {
     return 'list' as const
   }
 
-  children {
+  get children() {
     return this.#children as any
   }
 
