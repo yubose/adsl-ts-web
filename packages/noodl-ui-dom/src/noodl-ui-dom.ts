@@ -131,9 +131,28 @@ class NOODLOM extends NOODLDOMInternal {
 
         this.#R.run(node, component)
 
-        component.children?.forEach?.((child: ComponentInstance) => {
-          node?.appendChild(this.draw(child, node) as HTMLElement)
-        })
+        let lastTop = 0
+        let currentTop = lastTop
+
+        const appendChild = (n: typeof node, childNode: HTMLElement) => {
+          childNode.style.top = currentTop + 'px'
+          currentTop = childNode?.getBoundingClientRect().bottom
+          console.log(
+            `Adding next lastTop of ${currentTop} to previous lastTop ${lastTop}`,
+            // this.page.state.render.lastTop,
+            node?.id,
+          )
+          lastTop += currentTop - lastTop
+          // lastTop = childNode.getBoundingClientRect().bottom
+          n?.appendChild(childNode)
+        }
+
+        component.children?.forEach?.(
+          (child: ComponentInstance, index: number) => {
+            appendChild(node, this.draw(child, node) as HTMLElement)
+            if (index === component.length - 1) console.log(node)
+          },
+        )
 
         this.page.emitSync(eventId.page.on.ON_CHILD_NODES_RENDERED, {
           blueprint: component.original,
