@@ -273,8 +273,9 @@ class NOODLOM extends NOODLDOMInternal {
     return this.#R.get()
   }
 
-  reset() {
-    this.#R.clear()
+  reset(key?: 'resolvers') {
+    if (key) this.resolvers().length = 0
+    else this.#R.clear()
     return this
   }
 

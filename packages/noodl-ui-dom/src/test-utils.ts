@@ -1,7 +1,10 @@
 import { ComponentObject, PageObject } from 'noodl-types'
 import { ComponentInstance, NOODL as NOODLUI, Viewport } from 'noodl-ui'
 import { NOODLDOMElement, Page, Resolve } from './types'
+import { array, entries, keys } from './utils/internal'
+import { eventId } from './constants'
 import NOODLDOM from './noodl-ui-dom'
+import * as resolvers from './resolvers'
 
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = baseUrl + 'assets/'
@@ -15,25 +18,51 @@ export const viewport = new Viewport()
  * inserts the pageName and pageObject if they are both set, so its entirely optional
  * to provide a getRoot function in that case
  */
-export function useResolver(opts: {
+export function useResolver<Evt extends Page.HookEvent = Page.HookEvent>({
+  on,
+  ...opts
+}: {
   component: ComponentObject
   noodlui?: NOODLUI
-  on?: Partial<Page.Hook>
+  on?: Partial<Record<Evt, Page.Hook[Evt]>>
   pageName?: string
   pageObject?: PageObject
-  resolver: Resolve.Config
+  resolver?:
+    | Resolve.Config
+    | keyof typeof resolvers
+    | (Resolve.Config | keyof typeof resolvers)[]
   root?: Record<string, any>
 }) {
-  ndom.register({ resolve: opts.resolver })
+  ndom.reset('resolvers')
 
-  if (opts.on) {
-    Object.entries(opts.on).forEach(([evt, fn]) => {
-      // ndom.page.on(evt, fn)
-    })
+  if (!opts.resolver) {
+    opts.resolver = keys(resolvers) as (keyof typeof resolvers)[]
+  }
+
+  array(opts.resolver).forEach(
+    (resolver: Resolve.Config | keyof typeof resolvers) => {
+      if (typeof resolver === 'string') {
+        resolvers[resolver] && ndom.register({ resolve: resolvers[resolver] })
+      } else {
+        resolver && ndom.register({ resolve: resolver })
+      }
+    },
+  )
+
+  if (on) {
+    entries(on).forEach(([evt, fn]) =>
+      ndom.page.on<Evt>(evt as Evt, fn as Page.Hook[Evt]),
+    )
+  }
+
+  if (!ndom.resolvers().find((o) => o.name === resolvers.id.name)) {
+    ndom.register({ resolve: resolvers.id })
   }
 
   const nui = opts.noodlui || noodlui
+
   if (opts.pageName) {
+    nui.setPage(opts.pageName)
     nui.use({
       getRoot: () => ({
         [opts.pageName as string]: {
@@ -44,13 +73,25 @@ export function useResolver(opts: {
       }),
     })
   }
-  const component = nui.resolveComponents(opts.component)
+
+  ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, async () => ({
+    name: nui.page,
+    object: {
+      ...nui.root[nui.page],
+      components: opts.component
+        ? [opts.component]
+        : nui.root[nui.page]?.components || [],
+    },
+  }))
+
   return {
     assetsUrl,
-    component,
-    componentCache: () => nui.componentCache(),
-    node: ndom.draw(component) as HTMLElement,
+    componentCache: nui.componentCache.bind(nui),
     page: ndom.page,
+    async requestPageChange(name: string = nui.page) {
+      const components = await ndom.page.requestPageChange(name)
+      return components.snapshot.components as ComponentInstance[]
+    },
   }
 }
 
@@ -60,7 +101,7 @@ export function toDOM<
 >(props: any) {
   let node: N | null = null
   let component: C | undefined
-  if (typeof props?.children === 'function') {
+  if (typeof props?.props === 'function') {
     node = ndom.draw(props as any) as N
     component = props as any
   } else if (typeof props === 'object' && 'type' in props) {

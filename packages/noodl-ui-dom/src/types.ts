@@ -139,11 +139,12 @@ export namespace Page {
     ): void
     [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
       snapshot: Snapshot,
-    ):
+    ): Promise<
       | 'old.request'
       | { name: string; object: Record<string, any> }
       | void
       | undefined
+    >
     [eventId.page.on.ON_COMPONENTS_RENDERED](
       snapshot: Snapshot & { components: ComponentInstance[] },
     ): void

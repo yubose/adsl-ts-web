@@ -10,7 +10,6 @@ import {
   addClassName,
   entries,
   fixTextAlign,
-  isNum,
   isObj,
   isStr,
   xKeys,

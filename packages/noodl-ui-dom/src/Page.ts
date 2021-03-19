@@ -1,5 +1,4 @@
 import Logger from 'logsnap'
-import pick from 'lodash/pick'
 import { ComponentInstance, Viewport } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
 import { openOutboundURL } from './utils'
@@ -22,11 +21,11 @@ class Page {
     render: u.getDefaultRenderState(),
   }
   #hooks = u
-    .keys(eventId.page.on)
-    .reduce(
-      (acc, key) => u.assign(acc, { [eventId.page.on[key]]: [] }),
-      {},
-    ) as Record<T.Page.HookEvent, T.Page.HookDescriptor[]>
+    .values(eventId.page.on)
+    .reduce((acc, key) => u.assign(acc, { [key]: [] }), {}) as Record<
+    T.Page.HookEvent,
+    T.Page.HookDescriptor[]
+  >
   #render: T.Render.Func | undefined
   #viewport = {} as Viewport
   pageUrl: string = 'index.html?'
@@ -75,14 +74,12 @@ class Page {
   }
 
   getCbs() {
-    return this.#hooks
+    return this.hooks
   }
 
   clearCbs() {
-    u.values(this.#hooks).forEach((arr) => {
-      while (arr.length) {
-        arr.pop()
-      }
+    u.values(this.hooks).forEach((arr) => {
+      while (arr.length) arr.pop()
     })
     return this
   }
@@ -116,7 +113,6 @@ class Page {
     //     this.snapshot(),
     //   )
     // }
-    console.log(newPage)
     if (newPage) {
       this.ref.request.timer && clearTimeout(this.ref.request.timer)
       this.setRequestingPage(newPage, { delay })
@@ -124,8 +120,8 @@ class Page {
         history.pushState({}, '', this.pageUrl)
       }
       const snapshot = await this.navigate(newPage)
-      this.setPreviousPage(this.getState().current)
-      this.setCurrentPage(newPage)
+      this.setPreviousPage(this.state.current)
+      this.#state.current = newPage
       return snapshot || { snapshot: null }
     }
     return { snapshot: null }
@@ -162,15 +158,16 @@ class Page {
 
       await this.emitAsync(eventId.page.on.ON_NAVIGATE_START, this.snapshot())
 
-      const requesting = this.getState().requesting
+      const { requesting } = this.state
 
       // Sometimes a navigate request coming from another location like a
       // "goto" action can invoke a request in the middle of this operation.
       // Give the latest call the priority
-      if (this.getState().requesting !== pageName) {
-        log.orange(
-          `Aborting this navigate request for ${pageName} because a more ` +
+      if (requesting !== pageName) {
+        console.log(
+          `%cAborting this navigate request for ${pageName} because a more ` +
             `recent request to "${requesting}" was called`,
+          `color:#FF5722;`,
           { pageAborting: pageName, pageRequesting: requesting },
         )
         await this.emitAsync(eventId.page.on.ON_NAVIGATE_ABORT, this.snapshot())
@@ -184,9 +181,13 @@ class Page {
       )
 
       if (pageSnapshot === 'old.request') {
-        await this.emitAsync(eventId.page.on.ON_NAVIGATE_ABORT, this.snapshot())
-        return
+        return void (await this.emitAsync(
+          eventId.page.on.ON_NAVIGATE_ABORT,
+          this.snapshot(),
+        ))
       }
+
+      if (!pageSnapshot) throw new Error(`Page snapshot was empty`)
 
       this.setStatus(eventId.page.status.SNAPSHOT_RECEIVED)
 
@@ -207,7 +208,8 @@ class Page {
         snapshot: { ...pageSnapshot, components },
       }
     } catch (error) {
-      await this.emitAsync(
+      this.emitSync(eventId.page.on.ON_NAVIGATE_ABORT, this.snapshot({ error }))
+      this.emitSync(
         eventId.page.on.ON_NAVIGATE_ERROR,
         this.snapshot({ error }) as T.Page.Snapshot & { error: Error },
       )
@@ -271,21 +273,21 @@ class Page {
   }
 
   on<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
-    if (this.#hooks[evt] && !this.#hooks[evt].some((o) => o.id === evt)) {
-      this.#hooks[evt].push({ id: evt, fn })
+    if (this.hooks[evt] && !this.hooks[evt].some((o) => o.id === evt)) {
+      this.hooks[evt].push({ id: evt, fn })
     }
     return this
   }
 
   off<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
-    const index = this.#hooks[evt]?.findIndex?.((o) => o.fn === fn) || -1
-    if (index !== -1) this.#hooks[evt].splice(index, 1)
+    const index = this.hooks[evt]?.findIndex?.((o) => o.fn === fn) || -1
+    if (index !== -1) this.hooks[evt].splice(index, 1)
     return this
   }
 
   once<Evt extends T.Page.HookEvent>(evt: Evt, fn: T.Page.Hook[Evt]) {
     const descriptor: T.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
-    this.#hooks[evt].push(descriptor)
+    this.hooks[evt].push(descriptor)
     return this
   }
 
@@ -294,11 +296,8 @@ class Page {
     ...args: Parameters<T.Page.Hook[K]>
   ) {
     let results
-    console.log(this.#hooks[evt])
-    if (u.isArr(this.#hooks[evt])) {
-      results = await Promise.all(
-        this.#hooks[evt].map((o) => (o.fn as any)(...args)),
-      )
+    if (u.isArr(this.hooks[evt])) {
+      results = await Promise.all(this.hooks[evt].map((o) => o.fn(...args)))
     }
     return results ? results.find(Boolean) : results
   }
@@ -307,9 +306,9 @@ class Page {
     evt: K,
     ...args: Parameters<T.Page.Hook[K]>
   ) {
-    this.#hooks[evt]?.forEach?.((d, index) => {
+    this.hooks[evt]?.forEach?.((d, index) => {
       d.fn?.call?.(this, ...args)
-      if (d.once) this.#hooks[evt].splice(index, 1)
+      if (d.once) this.hooks[evt].splice(index, 1)
     })
     return this
   }
@@ -324,11 +323,6 @@ class Page {
 
   setPreviousPage(name: string) {
     this.#state.previous = name
-    return this
-  }
-
-  setCurrentPage(name: string) {
-    this.#state.current = name
     return this
   }
 
