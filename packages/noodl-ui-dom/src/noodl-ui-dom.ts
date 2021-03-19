@@ -15,6 +15,7 @@ import {
   StoreActionObject,
   StoreBuiltInObject,
   ToastActionObject,
+  Viewport as VP,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { eventId } from './constants'
@@ -30,13 +31,6 @@ import * as defaultResolvers from './resolvers'
 import * as u from './utils/internal'
 import * as T from './types'
 
-const getDefaultRenderState = (
-  initialState?: Record<string, any>,
-): T.Render.State => ({
-  lastTop: 0,
-  ...initialState,
-})
-
 class NOODLUIDOM extends NOODLUIDOMInternal {
   #R: ReturnType<typeof createResolver>
   #cbs = {
@@ -49,7 +43,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
         ),
     },
   }
-  #state = { render: {} }
   page: Page
 
   constructor() {
@@ -80,20 +73,13 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#cbs
   }
 
-  get state() {
-    return this.#state
-  }
-
   /**
    * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
    * @param { ComponentObject | ComponentObject[] } components
    */
   render(rawComponents: ComponentObject | ComponentObject[]) {
-    this.reset({ only: 'render-state' })
-
-    const currentPage = this.page.getState().current
-
-    this.#state[currentPage] = getDefaultRenderState()
+    const currentPage = this.page.state.current
+    this.page.state.render = u.getDefaultRenderState()
 
     if (this.page.rootNode && this.page.rootNode.id === currentPage) {
       return console.log(
@@ -158,15 +144,23 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
       if (node) {
         const parent = container || document.body
+
         parent.appendChild(node)
+
+        this.emit(eventId.page.on.ON_APPEND_NODE, {
+          page: this.page,
+          parentNode: parent,
+          component,
+          node,
+        })
 
         this.#R.run(node, component)
 
         component.children?.forEach?.(
           (child: ComponentInstance, index: number) => {
-            const childNode = this.draw(child, node) as HTMLElement
+            let childNode = this.draw(child, node) as HTMLElement
 
-            let appendChildArgs = {
+            this.emit(eventId.page.on[eventId.page.on.ON_BEFORE_APPEND_CHILD], {
               component: {
                 instance: component,
                 node: node as HTMLElement,
@@ -178,30 +172,18 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
                 bounds: childNode.getBoundingClientRect(),
                 index,
               },
-            }
-
-            this.emit(
-              eventId.page.on[eventId.page.on.ON_BEFORE_APPEND_CHILD],
-              appendChildArgs,
-            )
+            })
 
             node?.appendChild(childNode)
-
-            if (
-              this.#cbs.page.on[eventId.page.on.ON_AFTER_APPEND_CHILD]?.length
-            ) {
-              this.emit(
-                eventId.page.on.ON_AFTER_APPEND_CHILD,
-                produce(appendChildArgs, (draft) => {
-                  draft.component.bounds = node?.getBoundingClientRect() as any
-                  draft.child.bounds = childNode?.getBoundingClientRect()
-                }),
-              )
-            }
-
-            appendChildArgs = null as any
           },
         )
+
+        this.emit(eventId.page.on.ON_CHILD_NODES_RENDERED, {
+          blueprint: component.original,
+          component,
+          node,
+          page: this.page,
+        })
       }
     }
     return node || null
@@ -352,25 +334,16 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#R.get()
   }
 
-  reset({ only }: { only?: ['render-state'] | 'render-state' } = {}) {
-    if (only) {
-      const fn = (val: any) => {
-        if (val === 'render-state') {
-          this.#state.render = getDefaultRenderState()
-        }
+  reset() {
+    this.#R.clear()
+    const clearCbs = (obj: any) => {
+      if (u.isArr(obj)) {
+        obj.length = 0
+      } else if (obj && typeof obj === 'object') {
+        u.values(obj).forEach((o) => clearCbs(o))
       }
-      ;(u.isArr(only) ? only : [only]).forEach(fn)
-    } else {
-      this.#R.clear()
-      const clearCbs = (obj: any) => {
-        if (u.isArr(obj)) {
-          obj.length = 0
-        } else if (obj && typeof obj === 'object') {
-          u.values(obj).forEach((o) => clearCbs(o))
-        }
-      }
-      u.values(this.#cbs).forEach((obj) => clearCbs(obj))
     }
+    u.values(this.#cbs).forEach((obj) => clearCbs(obj))
 
     return this
   }
@@ -378,6 +351,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
   use(obj: NOODLUI) {
     if (obj instanceof NOODLUI) {
       this.#R.use(obj)
+      this.page.viewport = obj.viewport
     }
     return this
   }

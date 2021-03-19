@@ -1,6 +1,6 @@
 import Logger from 'logsnap'
 import pick from 'lodash/pick'
-import { ComponentInstance } from 'noodl-ui'
+import { ComponentInstance, Viewport } from 'noodl-ui'
 import { ComponentObject, PageObject } from 'noodl-types'
 import { createEmptyObjectWithKeys, openOutboundURL } from './utils'
 import { eventId } from './constants'
@@ -21,6 +21,7 @@ class Page {
     },
     status: eventId.page.status.IDLE as T.Page.Status,
     rootNode: false,
+    render: u.getDefaultRenderState(),
   }
   #cbs = {
     ...createEmptyObjectWithKeys(
@@ -33,6 +34,7 @@ class Page {
     ),
   }
   #render: T.Render.Func | undefined
+  #viewport = {} as Viewport
   pageUrl: string = 'index.html?'
   rootNode: HTMLDivElement
   ref: {
@@ -52,6 +54,26 @@ class Page {
     this.rootNode.style.height = '100%'
     // if (!document.body.contains(this.rootNode))
     // document.body.appendChild(this.rootNode)
+  }
+
+  get render() {
+    return this.#render as T.Render.Func
+  }
+
+  set render(fn: T.Render.Func) {
+    this.#render = fn
+  }
+
+  get state() {
+    return this.#state
+  }
+
+  get viewport() {
+    return this.#viewport
+  }
+
+  set viewport(viewport) {
+    this.#viewport = viewport
   }
 
   getCbs() {
@@ -360,14 +382,6 @@ class Page {
       this.ref.request.timer = null
     }, delay)
     return this
-  }
-
-  get render() {
-    return this.#render as T.Render.Func
-  }
-
-  set render(fn: T.Render.Func) {
-    this.#render = fn
   }
 }
 

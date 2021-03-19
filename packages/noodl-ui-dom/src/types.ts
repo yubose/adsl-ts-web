@@ -5,7 +5,8 @@ import {
   ComponentType,
   NOODL as NOODLUI,
 } from 'noodl-ui'
-import NOODLUIDOM from './noodl-ui-dom'
+import NOODLDOM from './noodl-ui-dom'
+import NOODLDOMPage from './Page'
 import {
   findAllByViewTag,
   findByViewTag,
@@ -15,6 +16,7 @@ import {
   isPageConsumer,
 } from './utils/utils'
 import { eventId } from './constants'
+import { ComponentInstance } from '../../noodl-ui/dist'
 
 export interface AnyFn {
   (...args: any[]): any
@@ -65,11 +67,20 @@ export type NOODLDOMElements = Pick<
 
 export type Observer = {
   [eventId.page.on.ON_DOM_CLEANUP](
-    this: NOODLUIDOM,
-    rootNode: NOODLUIDOM['page']['rootNode'],
+    this: NOODLDOM,
+    rootNode: NOODLDOM['page']['rootNode'],
+  ): void
+  [eventId.page.on.ON_APPEND_NODE](
+    this: NOODLDOM,
+    args: {
+      page: NOODLDOMPage
+      parentNode: HTMLElement
+      node: HTMLElement
+      component: ComponentInstance
+    },
   ): void
   [eventId.page.on.ON_BEFORE_APPEND_CHILD](
-    this: NOODLUIDOM,
+    this: NOODLDOM,
     args: {
       component: {
         instance: ComponentInstance
@@ -86,9 +97,15 @@ export type Observer = {
   ): void
   [eventId.page.on
     .ON_AFTER_APPEND_CHILD]: Observer[typeof eventId.page.on.ON_BEFORE_APPEND_CHILD]
+  [eventId.page.on.ON_CHILD_NODES_RENDERED](args: {
+    node: HTMLElement
+    component: ComponentInstance
+    blueprint: ComponentObject
+    page: NOODLDOMPage
+  }): void
   // Redraw events
   [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
-    this: NOODLUIDOM,
+    this: NOODLDOM,
     node: HTMLElement | null,
     component: ComponentInstance,
   ): void
@@ -135,21 +152,16 @@ export namespace Resolve {
   export type LifeCycleEvent = 'before' | 'resolve' | 'after'
   export interface Options {
     noodlui: NOODLUI
-    noodluidom: NOODLUIDOM
+    noodluidom: NOODLDOM
     original: ComponentObject
     draw: Parse
     redraw: Redraw
-    state: NOODLUIDOM['state']
   }
 }
 
 export namespace Render {
   export interface Func {
     (components: ComponentObject | ComponentObject[]): ComponentInstance[]
-  }
-
-  export interface State {
-    lastTop: number
   }
 }
 
@@ -165,6 +177,22 @@ export namespace Page {
   export type Event = typeof eventId.page.on[keyof typeof eventId.page.on]
 
   export type Status = typeof eventId.page.status[keyof typeof eventId.page.status]
+
+  export interface State {
+    previous: string
+    current: string
+    requesting: string
+    modifiers: {
+      [pageName: string]: { reload?: boolean } & {
+        [key: string]: any
+      }
+    }
+    render: {
+      lastTop: number
+    }
+    rootNode: boolean
+    status: Status
+  }
 }
 
 export interface PageCallbackObjectConfig {

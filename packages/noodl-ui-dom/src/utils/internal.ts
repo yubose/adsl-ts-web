@@ -1,4 +1,5 @@
 import { ComponentInstance } from 'noodl-ui'
+import { Page } from '../types'
 
 export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
 export const assign = (
@@ -47,13 +48,11 @@ export function fixTextAlign(c: ComponentInstance) {
   })
 }
 
+export function getDefaultRenderState(
+  initialState?: Record<string, any>,
+): Page.State['render'] {
+  return { lastTop: 0, ...initialState }
+}
+
 export const xKeys = ['left', 'width', 'marginLeft']
 export const yKeys = ['top', 'height', 'marginTop']
-
-export function isNoodlUnit(v: any): v is string {
-  return isStr(v) && !/[a-zA-Z]/i.test(v)
-}
-
-export function toNum(s: any) {
-  return Number(String(s).replace(/[a-zA-Z]/gi, ''))
-}
