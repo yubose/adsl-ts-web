@@ -159,7 +159,9 @@ export default {
       component,
       node,
       page,
+      bounds: boundsProp,
     }) {
+      console.info(boundsProp)
       // Calculate the height
       if (isObj(blueprint.style) && VP.isNil(blueprint.style.height)) {
         const bounds = node.getBoundingClientRect()

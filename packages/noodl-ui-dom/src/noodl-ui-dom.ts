@@ -140,6 +140,7 @@ class NOODLOM extends NOODLDOMInternal {
           component,
           node,
           page: this.page,
+          bounds: node.getBoundingClientRect(),
         })
       }
     }

@@ -1,12 +1,9 @@
-import Logger from 'logsnap'
 import { ComponentInstance, Viewport } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
 import { openOutboundURL } from './utils'
 import { eventId } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
-
-const log = Logger.create('Page')
 
 class Page {
   #state: T.Page.State = {

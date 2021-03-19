@@ -4,7 +4,7 @@ import { NOODLDOMElement, Page, Resolve } from './types'
 import { array, entries, keys } from './utils/internal'
 import { eventId } from './constants'
 import NOODLDOM from './noodl-ui-dom'
-import * as resolvers from './resolvers'
+import * as defaultResolvers from './resolvers'
 
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = baseUrl + 'assets/'
@@ -29,22 +29,22 @@ export function useResolver<Evt extends Page.HookEvent = Page.HookEvent>({
   pageObject?: PageObject
   resolver?:
     | Resolve.Config
-    | keyof typeof resolvers
-    | (Resolve.Config | keyof typeof resolvers)[]
+    | keyof typeof defaultResolvers
+    | (Resolve.Config | keyof typeof defaultResolvers)[]
   root?: Record<string, any>
 }) {
   ndom.reset('resolvers')
 
   if (!opts.resolver) {
-    opts.resolver = keys(resolvers) as (keyof typeof resolvers)[]
+    opts.resolver = keys(defaultResolvers) as (keyof typeof defaultResolvers)[]
   }
 
   array(opts.resolver).forEach(
-    (resolver: Resolve.Config | keyof typeof resolvers) => {
+    (resolver: Resolve.Config | keyof typeof defaultResolvers) => {
       if (typeof resolver === 'string') {
-        resolvers[resolver] && ndom.register({ resolve: resolvers[resolver] })
+        defaultResolvers[resolver] && ndom.register(defaultResolvers[resolver])
       } else {
-        resolver && ndom.register({ resolve: resolver })
+        resolver && ndom.register(resolver)
       }
     },
   )
@@ -55,8 +55,8 @@ export function useResolver<Evt extends Page.HookEvent = Page.HookEvent>({
     )
   }
 
-  if (!ndom.resolvers().find((o) => o.name === resolvers.id.name)) {
-    ndom.register({ resolve: resolvers.id })
+  if (!ndom.resolvers().find((o) => o.name === defaultResolvers.id.name)) {
+    ndom.register(defaultResolvers.id)
   }
 
   const nui = opts.noodlui || noodlui

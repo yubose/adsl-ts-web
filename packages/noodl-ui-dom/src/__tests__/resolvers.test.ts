@@ -383,8 +383,6 @@ describe.only(`styles`, () => {
           const child1Node = document.getElementById(label.id) as any
           const child2Node = document.getElementById(button.id) as any
 
-          console.info(prettyDOM(ndom.page.rootNode))
-
           const vh = page.viewport.height
 
           // expect(parentNode.style)
