@@ -74,7 +74,7 @@ export default {
     }
   },
   resolve: (node: HTMLElement, component, { noodlui }) => {
-    const originalStyle = component?.style || {}
+    const originalStyle = component?.original?.style || {}
     let currentStyle = component.style
 
     if (isObj(currentStyle)) {
@@ -113,23 +113,13 @@ export default {
       entries(currentStyle).forEach(([k, v]) => (node.style[k] = v))
     }
 
-    if (!('marginTop' in originalStyle)) {
-      component.style.marginTop = '0px'
-    }
-
     /* -------------------------------------------------------
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */
 
-    if (component.noodlType === 'popUp') {
-      addClassName('popup', node)
-    }
-    if (component.noodlType === 'scrollView') {
-      addClassName('scroll-view', node)
-    }
-    if (component.has('textBoard')) {
-      addClassName('text-board', node)
-    }
+    if (component.noodlType === 'popUp') addClassName('popup', node)
+    if (component.noodlType === 'scrollView') addClassName('scroll-view', node)
+    if (component.has('textBoard')) addClassName('text-board', node)
   },
   after(node, component, { noodlui }) {
     if (!node || !component) return

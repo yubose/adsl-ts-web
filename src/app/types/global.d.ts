@@ -30,7 +30,7 @@ declare global {
     meeting: Meeting
     modal: Modal
     noodlui: NOODL
-    noodluidom: any
+    ndom: any
     redraw: any
     room: Room | null
     streams: any

@@ -1,3 +1,3 @@
-import NOODLUIDOM from 'noodl-ui-dom'
-const noodluidom = new NOODLUIDOM()
-export default noodluidom
+import NOODLDOM from 'noodl-ui-dom'
+const ndom = new NOODLDOM()
+export default ndom

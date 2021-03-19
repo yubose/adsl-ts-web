@@ -19,7 +19,9 @@ export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
 export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
   typeof v === 'function'
 export const keys = (v: any) => Object.keys(v)
-export const values = <V = any>(v: any): V[] => Object.values(v)
+export const values = <O extends Record<string, any>, K extends keyof O>(
+  v: O,
+): O[K][] => Object.values(v)
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {

@@ -1,5 +1,5 @@
 import { Viewport } from 'noodl-ui'
-import NOODLUIDOM, { Page } from 'noodl-ui-dom'
+import NOODLOM, { Page } from 'noodl-ui-dom'
 import {
   LocalParticipant,
   LocalTrack,
@@ -16,7 +16,7 @@ export type RoomParticipantTrackPublication =
 export type RoomTrack = LocalTrack | RemoteTrack
 
 export interface InitializeMeetingOptions {
-  noodluidom: NOODLUIDOM
+  ndom: NOODLOM
   page: Page
   viewport: Viewport
 }

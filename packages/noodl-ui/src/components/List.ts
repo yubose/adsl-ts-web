@@ -87,6 +87,10 @@ class List extends Component implements IComponent {
     )
   }
 
+  props() {
+    return super.props()
+  }
+
   addDataObject<DataObject = any>(
     dataObject: DataObject,
   ): ListDataObjectOperationResult<DataObject> {

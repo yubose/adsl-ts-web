@@ -37,10 +37,10 @@ describe('Page', () => {
 
     it(`should not proceed if the user is already on the requested page`, () => {
       const spy = sinon.spy()
-      const requestingPage = 'hello'
-      page.setCurrentPage(requestingPage)
+      const requesting = 'hello'
+      page.setCurrentPage(requesting)
       page.on(pageEvent.ON_NAVIGATE_ABORT, spy)
-      page.requestPageChange(requestingPage)
+      page.requestPageChange(requesting)
       expect(spy.args[0][0]).to.have.property('from').eq('requestPageChange')
     })
 
@@ -48,10 +48,10 @@ describe('Page', () => {
       'http',
     )} link`, () => {
       const spy = sinon.spy()
-      const requestingPage = 'https://google.com'
-      page.setCurrentPage(requestingPage)
+      const requesting = 'https://google.com'
+      page.setCurrentPage(requesting)
       page.on(pageEvent.ON_OUTBOUND_REDIRECT, spy)
-      page.requestPageChange(requestingPage)
+      page.requestPageChange(requesting)
       expect(spy).to.be.called
     })
   })

@@ -17,7 +17,7 @@ class BasePage {
   actionsContext: {
     noodl?: any
     noodlui: BasePage
-    noodluidom?: any
+    ndom?: any
   }
   id = ''
   viewport: Viewport

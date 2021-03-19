@@ -4,7 +4,7 @@ import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
 import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
-import NOODLUIDOM, {
+import NOODLDOM, {
   eventId,
   NOODLDOMElement,
   Page,
@@ -60,7 +60,7 @@ class App {
   meeting: IMeeting = {} as IMeeting
   noodl = {} as CADL
   noodlui = {} as NOODLUI
-  noodluidom = {} as NOODLUIDOM
+  ndom = {} as NOODLDOM
   streams = {} as ReturnType<IMeeting['getStreams']>
 
   async initialize({
@@ -68,13 +68,13 @@ class App {
     meeting,
     noodl,
     noodlui,
-    noodluidom,
+    ndom,
   }: {
     firebase: { client: App['firebase']; vapidKey: string }
     meeting: IMeeting
     noodl: any
     noodlui: NOODLUI
-    noodluidom: NOODLUIDOM
+    ndom: NOODLDOM
   }) {
     const { Account } = await import('@aitmed/cadl')
     // const { isSupported: firebaseSupported } = await import('app/firebase')
@@ -88,24 +88,24 @@ class App {
     this.meeting = meeting
     this.noodl = noodl
     this.noodlui = noodlui
-    this.noodluidom = noodluidom
+    this.ndom = ndom
     this.streams = meeting.getStreams()
     this.#viewportUtils = createViewportHandler(new Viewport())
 
     stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
     await noodl.init()
     stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
-    noodluidom.use(noodlui)
+    ndom.use(noodlui)
     stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
-    createActions({ noodlui, noodluidom })
-    createBuiltIns({ noodl, noodlui, noodluidom })
-    createRegisters({ noodl, noodlui, noodluidom, Meeting: {} })
-    createMeetingHandlers({ noodl, noodlui, noodluidom, Meeting: {} })
+    createActions({ noodlui, ndom })
+    createBuiltIns({ noodl, noodlui, ndom })
+    createRegisters({ noodl, noodlui, ndom, Meeting: {} })
+    createMeetingHandlers({ noodl, noodlui, ndom, Meeting: {} })
 
     meeting.initialize({
-      noodluidom,
-      page: noodluidom.page,
+      ndom,
+      page: ndom.page,
       viewport: this.#viewportUtils.viewport,
     })
 
@@ -155,7 +155,7 @@ class App {
       try {
         stable && log.cyan(`Running noodl.initPage on ${pageName}`)
         await noodl.initPage(pageName, [], {
-          ...noodluidom.page.getState().modifiers[pageName],
+          ...ndom.page.getState().modifiers[pageName],
           builtIn: {
             FCMOnTokenReceive: async (...args: any[]) => {
               try {
@@ -225,17 +225,17 @@ class App {
             FCMOnTokenRefresh: this.#enabled.firebase
               ? this.messaging?.onTokenRefresh.bind(this.messaging)
               : undefined,
-            checkField: noodluidom.builtIns.checkField?.find(Boolean)?.fn,
-            goto: noodluidom.builtIns.goto?.find(Boolean)?.fn,
+            checkField: ndom.builtIns.checkField?.find(Boolean)?.fn,
+            goto: ndom.builtIns.goto?.find(Boolean)?.fn,
             videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
           },
         })
         log.func('createPreparePage')
         log.grey(`Ran noodl.initPage on page "${pageName}"`, {
           pageName,
-          pageModifiers: noodluidom.page.getState().modifiers[pageName],
+          pageModifiers: ndom.page.getState().modifiers[pageName],
           pageObject: noodl.root[pageName],
-          snapshot: noodluidom.page.snapshot(),
+          snapshot: ndom.page.snapshot(),
         })
         if (noodl.root?.Global?.globalRegister) {
           const { Global } = noodl.root
@@ -273,7 +273,7 @@ class App {
     this.observeClient({ noodlui, noodl })
     this.observeInternal(noodlui)
     this.observeViewport(this.#viewportUtils)
-    this.observePages(noodluidom.page)
+    this.observePages(ndom.page)
     this.observeMeetings(meeting)
 
     /* -------------------------------------------------------
@@ -298,7 +298,7 @@ class App {
       )
     }
 
-    if (noodluidom.page && location.href) {
+    if (ndom.page && location.href) {
       let { startPage } = noodl.cadlEndpoint
       const urlParts = location.href.split('/')
       const pathname = urlParts[urlParts.length - 1]
@@ -310,11 +310,11 @@ class App {
         tempConfigKey !== JSON.stringify(localConfig.timestamp)
       ) {
         ls.setItem('CACHED_PAGES', JSON.stringify([]))
-        noodluidom.page.pageUrl = 'index.html?'
-        await noodluidom.page.requestPageChange(startPage)
+        ndom.page.pageUrl = 'index.html?'
+        await ndom.page.requestPageChange(startPage)
       } else if (!pathname?.startsWith('index.html?')) {
-        noodluidom.page.pageUrl = 'index.html?'
-        await noodluidom.page.requestPageChange(startPage)
+        ndom.page.pageUrl = 'index.html?'
+        await ndom.page.requestPageChange(startPage)
       } else {
         const pageParts = pathname.split('-')
         if (pageParts.length > 1) {
@@ -325,8 +325,8 @@ class App {
             startPage = baseArr[baseArr.length - 1]
           }
         }
-        noodluidom.page.pageUrl = pathname
-        await noodluidom.page.requestPageChange(startPage)
+        ndom.page.pageUrl = pathname
+        await ndom.page.requestPageChange(startPage)
       }
     }
 
@@ -404,13 +404,12 @@ class App {
         this.noodl.aspectRatio = aspectRatio
         document.body.style.width = `${width}px`
         document.body.style.height = `${height}px`
-        if (this.noodluidom.page.rootNode) {
-          this.noodluidom.page.rootNode.style.width = `${width}px`
-          this.noodluidom.page.rootNode.style.height = `${height}px`
+        if (this.ndom.page.rootNode) {
+          this.ndom.page.rootNode.style.width = `${width}px`
+          this.ndom.page.rootNode.style.height = `${height}px`
         }
-        this.noodluidom.render(
-          this.noodl?.root?.[this.noodluidom.page.getState().current]
-            ?.components,
+        this.ndom.render(
+          this.noodl?.root?.[this.ndom.page.getState().current]?.components,
         )
       }.bind(this),
     )
@@ -488,7 +487,7 @@ class App {
           if (pageName !== page.getState().current) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
-            const noodluidomPageSnapshot = this.noodluidom.page.snapshot()
+            const noodluidomPageSnapshot = this.ndom.page.snapshot()
             // There is a bug that two parallel requests can happen at the same time, and
             // when the second request finishes before the first, the page renders the first page
             // in the DOM. To work around this bug we can determine this is occurring using
@@ -550,7 +549,7 @@ class App {
                 .init({
                   actionsContext: {
                     noodl: this.noodl,
-                    noodluidom: this.noodluidom,
+                    ndom: this.ndom,
                   } as any,
                   viewport: this.#viewportUtils.viewport,
                 })
@@ -628,7 +627,7 @@ class App {
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
 
-    this.noodluidom.register({
+    this.ndom.register({
       name: 'chart',
       cond: 'chart',
       resolve(node: HTMLDivElement, component) {
@@ -643,7 +642,7 @@ class App {
       },
     } as RegisterOptions)
 
-    this.noodluidom.register({
+    this.ndom.register({
       name: 'videoChat.timer.updater',
       cond: (n, c) => typeof c.get('text=func') === 'function',
       resolve: function onVideoChatTImerUpdate(this: App, node, component) {
@@ -715,7 +714,7 @@ class App {
                       ) {
                         if (seconds === updatedSecs) {
                           // Not updated
-                          log.func('text=func timer [noodluidom.register]')
+                          log.func('text=func timer [ndom.register]')
                           log.red(
                             `Tried to update the value of ${dataKey} but the value remained the same`,
                             {
@@ -744,15 +743,7 @@ class App {
       }.bind(this),
     })
 
-    this.noodluidom.on(
-      eventId.page.status.ANY,
-      function onStatusChange(this: App, status: string) {
-        log.func('onStatusChange')
-        log.grey('Status changed: ' + status)
-      },
-    )
-
-    this.noodluidom.on(
+    this.ndom.page(
       eventId.redraw.ON_BEFORE_CLEANUP,
       function onBeforeCleanup(this: App, node, component) {
         console.log('Removed from componentCache: ' + component.id)
@@ -764,7 +755,7 @@ class App {
       }.bind(this),
     )
 
-    this.noodluidom.register({
+    this.ndom.register({
       name: 'meeting',
       cond: (node: any, component: any) => !!(node && component),
       resolve: function onMeetingComponent(

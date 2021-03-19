@@ -8,7 +8,7 @@ import {
   resolveStyles,
 } from 'noodl-ui'
 import { eventId } from './constants'
-import { assetsUrl, noodlui, noodluidom, viewport } from './test-utils'
+import { assetsUrl, noodlui, ndom, viewport } from './test-utils'
 
 chai.use(sinonChai)
 
@@ -20,14 +20,13 @@ const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 before(() => {
   console.clear()
   noodlui.init({ _log: false })
-  noodluidom
-    .on(eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, (node, component) => {
-      noodlui.componentCache().remove(component)
-      publish(component, (c) => {
-        noodlui.componentCache().remove(c)
-      })
+  ndom.page.on(eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, (node, component) => {
+    noodlui.componentCache().remove(component)
+    publish(component, (c) => {
+      noodlui.componentCache().remove(c)
     })
-    .use(noodlui)
+  })
+  ndom.use(noodlui)
 
   viewport.width = 375
   viewport.height = 667
@@ -69,7 +68,6 @@ beforeEach(() => {
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
-  // Resets plugins, registry, noodlui.page
   noodlui.reset()
-  noodluidom.reset()
+  ndom.reset()
 })

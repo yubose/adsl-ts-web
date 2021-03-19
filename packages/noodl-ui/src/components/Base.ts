@@ -64,7 +64,9 @@ class Component implements IComponent<any> {
     this['id'] = this.#component.id || getRandomKey()
     this['noodlType'] = this.#component.noodlType as any
 
-    this.style = isDraft(this.style) ? current(this.style) : this.style
+    this.#component.style = isDraft(this.#component.style)
+      ? original(this.#component.style)
+      : this.#component.style
 
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
@@ -437,7 +439,7 @@ class Component implements IComponent<any> {
     return this.#children?.length || 0
   }
 
-  on(eventName: string, cb: Function, id = '') {
+  on(eventName: string, cb: (...args: any[]) => any, id = '') {
     if (id) {
       if (!this.#cbIds.includes(id)) this.#cbIds.push(id)
       else return this
@@ -450,7 +452,7 @@ class Component implements IComponent<any> {
     return this
   }
 
-  off(eventName: any, cb: Function) {
+  off(eventName: any, cb: (...args: any[]) => any) {
     if (Array.isArray(this.#cb[eventName])) {
       if (this.#cb[eventName].includes(cb)) {
         log.func(`off [${this.noodlType}]`)
@@ -475,7 +477,7 @@ class Component implements IComponent<any> {
     return this.#cb
   }
 
-  hasCb(eventName: string, cb: Function) {
+  hasCb(eventName: string, cb: (...args: any[]) => any) {
     return !!this.#cb[eventName]?.includes?.(cb)
   }
 
@@ -503,8 +505,8 @@ class Component implements IComponent<any> {
       if (u.isObj(props)) {
         u.entries(props).forEach(([k, v]) => {
           if (k === 'style') {
-            if (!this.style) this.style = {}
-            u.isObj(v) && u.assign(this.style, v)
+            if (!this.#component.style) this.#component.style = {}
+            u.isObj(v) && u.assign(this.#component.style, v)
           } else {
             this.#component[k] = v
           }
@@ -515,8 +517,8 @@ class Component implements IComponent<any> {
     } else if (u.isObj(fn)) {
       u.entries(fn).forEach(([k, v]) => {
         if (k === 'style') {
-          if (u.isObj(v)) u.assign(this.style, v)
-          else this.style = v
+          if (u.isObj(v)) u.assign(this.#component.style as StyleObject, v)
+          else this.#component.style = v
         } else {
           this.#component[k] = v
         }

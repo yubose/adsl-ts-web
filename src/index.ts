@@ -14,9 +14,9 @@ window.addEventListener('load', async (e) => {
   const { default: firebase, aitMessage } = await import('./app/firebase')
   const { default: noodl } = await import('app/noodl')
   const { default: noodlui, getWindowHelpers } = await import('app/noodl-ui')
-  const { default: noodluidom } = await import('app/noodl-ui-dom')
+  const { default: ndom } = await import('app/noodl-ui-dom')
 
-  const { page } = noodluidom
+  const { page } = ndom
   const app = new App()
 
   window.app = {
@@ -41,7 +41,7 @@ window.addEventListener('load', async (e) => {
 
   window.noodl = noodl
   window.noodlui = noodlui
-  window.noodluidom = noodluidom
+  window.ndom = ndom
   window.FCMOnTokenReceive = (args: any) => {
     noodl.root.builtIn
       .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
@@ -57,7 +57,7 @@ window.addEventListener('load', async (e) => {
       firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
       meeting: Meeting,
       noodlui,
-      noodluidom,
+      ndom,
     })
     stable && log.cyan('Initialized [App] instance')
   } catch (error) {
@@ -93,6 +93,7 @@ window.addEventListener('load', async (e) => {
       page.pageUrl = 'index.html?'
       stable && log.cyan(`Page URL: ${page.pageUrl}`)
     }
+
     await page.requestPageChange(goBackPage)
   })
 })

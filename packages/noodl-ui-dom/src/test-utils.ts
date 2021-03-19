@@ -1,10 +1,11 @@
+import { ComponentObject, PageObject } from 'noodl-types'
 import { ComponentInstance, NOODL as NOODLUI, Viewport } from 'noodl-ui'
-import { NOODLDOMElement } from './types'
-import NOODLUIDOM from './noodl-ui-dom'
+import { NOODLDOMElement, Page, Resolve } from './types'
+import NOODLDOM from './noodl-ui-dom'
 
-export const assetsUrl = 'https://aitmed.com/assets/'
-export const noodluidom = new NOODLUIDOM()
-export const ndom = noodluidom
+export const baseUrl = 'https://aitmed.com/'
+export const assetsUrl = baseUrl + 'assets/'
+export const ndom = new NOODLDOM()
 export const noodlui = new NOODLUI()
 export const viewport = new Viewport()
 
@@ -14,41 +15,43 @@ export const viewport = new Viewport()
  * inserts the pageName and pageObject if they are both set, so its entirely optional
  * to provide a getRoot function in that case
  */
-export function applyMockDOMResolver(opts: {
-  assetsUrl?: string
-  baseUrl?: string
-  component?: any
+export function useResolver(opts: {
+  component: ComponentObject
+  noodlui?: NOODLUI
+  on?: Partial<Page.Hook>
   pageName?: string
-  pageObject?: any
-  resolver: any
-  root?: { [key: string]: any }
+  pageObject?: PageObject
+  resolver: Resolve.Config
+  root?: Record<string, any>
 }) {
-  const utils = {
-    assetsUrl: opts.assetsUrl || noodlui.assetsUrl,
-    componentCache: noodlui.componentCache.bind(noodlui),
-  } as {
-    assetsUrl: string
-    componentCache: NOODLUI['componentCache']
-    noodlui: NOODLUI
-    noodluidom: NOODLUIDOM
-    node: NOODLDOMElement
-    component: ComponentInstance
+  ndom.register({ resolve: opts.resolver })
+
+  if (opts.on) {
+    Object.entries(opts.on).forEach(([evt, fn]) => {
+      // ndom.page.on(evt, fn)
+    })
   }
-  noodluidom.register({ resolve: opts.resolver })
-  noodlui.setPage(opts.pageName || '').use({
-    getAssetsUrl: () => utils.assetsUrl,
-    getBaseUrl: () => opts.baseUrl || 'https://google.com/',
-    getRoot: () => ({
-      ...opts.root,
-      [opts.pageName || '']: {
-        ...opts.pageObject,
-        ...opts.root?.[opts.pageName || ''],
-      },
-    }),
-  })
-  utils.component = noodlui.resolveComponents(opts.component)
-  utils.node = noodluidom.draw(utils.component) as NOODLDOMElement
-  return utils
+
+  const nui = opts.noodlui || noodlui
+  if (opts.pageName) {
+    nui.use({
+      getRoot: () => ({
+        [opts.pageName as string]: {
+          components: [],
+          ...opts.pageObject,
+          ...opts.root?.[opts.pageName as string],
+        },
+      }),
+    })
+  }
+  const component = nui.resolveComponents(opts.component)
+  return {
+    assetsUrl,
+    component,
+    componentCache: () => nui.componentCache(),
+    node: ndom.draw(component) as HTMLElement,
+    page: ndom.page,
+  }
 }
 
 export function toDOM<
@@ -58,12 +61,12 @@ export function toDOM<
   let node: N | null = null
   let component: C | undefined
   if (typeof props?.children === 'function') {
-    node = noodluidom.draw(props as any) as N
+    node = ndom.draw(props as any) as N
     component = props as any
   } else if (typeof props === 'object' && 'type' in props) {
     component = noodlui.resolveComponents(props) as any
     // @ts-expect-error
-    node = noodluidom.draw(component) as N
+    node = ndom.draw(component) as N
   }
   if (node) document.body.appendChild(node as any)
   return [node, component] as [NonNullable<N>, C]

@@ -34,9 +34,9 @@ import { NOODLDOMElement, Page } from 'noodl-ui-dom'
 import { ComponentInstance, Viewport } from 'noodl-ui'
 >>>>>>> dev2
 import noodlui from '../app/noodl-ui'
-import noodluidom from '../app/noodl-ui-dom'
+import ndom from '../app/noodl-ui-dom'
 
-export { noodlui, noodluidom }
+export { noodlui, ndom }
 
 export const page = new Page()
 export const assetsUrl = 'https://aitmed.com/assets/'
@@ -154,7 +154,7 @@ export function toDOM<C extends IComponent = Component>(
   props: C,
   container: any = page.rootNode || document.body,
 ): NOODLDOMElement {
-  const node = noodluidom.parse(props)
+  const node = ndom.parse(props)
   container.appendChild(node as NOODLDOMElement)
   return node
 }
@@ -335,12 +335,12 @@ export function toDOM<
   let node: N | null = null
   let component: C | undefined
   if (typeof props?.children === 'function') {
-    node = noodluidom.draw(props as any) as N
+    node = ndom.draw(props as any) as N
     component = props as any
   } else if (typeof props === 'object' && 'type' in props) {
     component = noodlui.resolveComponents(props) as any
     // @ts-expect-error
-    node = noodluidom.draw(component) as N
+    node = ndom.draw(component) as N
   }
   if (node) document.body.appendChild(node as any)
   return [node, component] as [NonNullable<N>, C]

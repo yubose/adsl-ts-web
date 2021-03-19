@@ -285,7 +285,7 @@ describe('when creating action chain handlers', () => {
 
   // describe('textBoard', () => {
   //   it.only('should be in the correct form in the DOM', () => {
-  //     const { node } = applyMockDOMResolver({
+  //     const { node } = useResolver({
   //       component: {
   //         type: 'label',
   //         textBoard: [

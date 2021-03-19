@@ -66,6 +66,10 @@ class ListItem extends Component implements IComponent {
     this.#iteratorVar = iteratorVar
   }
 
+  props() {
+    return super.props()
+  }
+
   get(...args: Parameters<IComponent['get']>) {
     if (args[0] === 'iteratorVar') return this.iteratorVar
     if (args[0] === 'listId') return this.listId

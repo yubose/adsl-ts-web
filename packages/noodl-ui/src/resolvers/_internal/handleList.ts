@@ -2,7 +2,6 @@ import Logger from 'logsnap'
 import { ComponentObject } from 'noodl-types'
 import List from '../../components/List'
 import ListItem from '../../components/ListItem'
-import { getRandomKey } from '../../utils/common'
 import { ConsumerOptions, ListBlueprint, NOODLComponent } from '../../types'
 import { InternalResolver } from '../../Resolver'
 import { publish } from '../../utils/noodl'
@@ -74,7 +73,7 @@ const handleListInternalResolver = (
 
     let listItem = createComponent(component?.getBlueprint() as any) as ListItem
     if (listItem) {
-      listItem.id = getRandomKey()
+      // listItem.id = getRandomKey()
       listItem.setParent(component as any)
       listItem.setDataObject?.(result.dataObject)
       listItem.set('listIndex', result.index)

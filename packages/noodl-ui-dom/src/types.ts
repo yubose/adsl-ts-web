@@ -14,9 +14,8 @@ import {
   findWindow,
   findWindowDocument,
   isPageConsumer,
-} from './utils/utils'
+} from './utils'
 import { eventId } from './constants'
-import { ComponentInstance } from '../../noodl-ui/dist'
 
 export interface AnyFn {
   (...args: any[]): any
@@ -65,52 +64,6 @@ export type NOODLDOMElements = Pick<
   | 'video'
 >
 
-export type Observer = {
-  [eventId.page.on.ON_DOM_CLEANUP](
-    this: NOODLDOM,
-    rootNode: NOODLDOM['page']['rootNode'],
-  ): void
-  [eventId.page.on.ON_APPEND_NODE](
-    this: NOODLDOM,
-    args: {
-      page: NOODLDOMPage
-      parentNode: HTMLElement
-      node: HTMLElement
-      component: ComponentInstance
-    },
-  ): void
-  [eventId.page.on.ON_BEFORE_APPEND_CHILD](
-    this: NOODLDOM,
-    args: {
-      component: {
-        instance: ComponentInstance
-        node: HTMLElement
-        bounds: DOMRect
-      }
-      child: {
-        instance: ComponentInstance
-        node: HTMLElement
-        bounds: DOMRect
-        index: number
-      }
-    },
-  ): void
-  [eventId.page.on
-    .ON_AFTER_APPEND_CHILD]: Observer[typeof eventId.page.on.ON_BEFORE_APPEND_CHILD]
-  [eventId.page.on.ON_CHILD_NODES_RENDERED](args: {
-    node: HTMLElement
-    component: ComponentInstance
-    blueprint: ComponentObject
-    page: NOODLDOMPage
-  }): void
-  // Redraw events
-  [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
-    this: NOODLDOM,
-    node: HTMLElement | null,
-    component: ComponentInstance,
-  ): void
-}
-
 /**
  * Type utility/factory to construct node resolver func types. Node resolver
  * funcs in noodl-ui-dom are any functions that take a DOM node as the first
@@ -132,7 +85,7 @@ export namespace Resolve {
     before?: Resolve.Config | Func
     resolve?: Resolve.Config | Func
     after?: Resolve.Config | Func
-    observe?: Partial<Observer>
+    observe?: Partial<Page.Hook>
   }
 
   export interface Func<RT = void> {
@@ -152,7 +105,7 @@ export namespace Resolve {
   export type LifeCycleEvent = 'before' | 'resolve' | 'after'
   export interface Options {
     noodlui: NOODLUI
-    noodluidom: NOODLDOM
+    ndom: NOODLDOM
     original: ComponentObject
     draw: Parse
     redraw: Redraw
@@ -172,9 +125,74 @@ export type RegisterOptions = Resolve.Config
 -------------------------------------------------------- */
 
 export namespace Page {
-  export type Cbs<K extends Event | Status> = Record<K, AnyFn[]>
+  export type HookEvent = keyof Hook
 
-  export type Event = typeof eventId.page.on[keyof typeof eventId.page.on]
+  export type Hook = {
+    [eventId.page.on.ON_NAVIGATE_START](snapshot: Snapshot): void
+    [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
+    [eventId.page.on.ON_NAVIGATE_ERROR](
+      snapshot: Snapshot & { error: Error },
+    ): void
+    [eventId.page.on.ON_OUTBOUND_REDIRECT](snapshot: Snapshot): void
+    [eventId.page.on.ON_DOM_CLEANUP](
+      rootNode: NOODLDOM['page']['rootNode'],
+    ): void
+    [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
+      snapshot: Snapshot,
+    ):
+      | 'old.request'
+      | { name: string; object: Record<string, any> }
+      | void
+      | undefined
+    [eventId.page.on.ON_COMPONENTS_RENDERED](
+      snapshot: Snapshot & { components: ComponentInstance[] },
+    ): void
+    [eventId.page.on.ON_APPEND_NODE](args: {
+      page: NOODLDOMPage
+      parentNode: HTMLElement
+      node: HTMLElement
+      component: ComponentInstance
+    }): void
+    [eventId.page.on.ON_BEFORE_APPEND_CHILD](args: {
+      component: {
+        instance: ComponentInstance
+        node: HTMLElement
+        bounds: DOMRect
+      }
+      child: {
+        instance: ComponentInstance
+        node: HTMLElement
+        bounds: DOMRect
+        index: number
+      }
+    }): void
+    [eventId.page.on
+      .ON_AFTER_APPEND_CHILD]: Hook[typeof eventId.page.on.ON_BEFORE_APPEND_CHILD]
+    [eventId.page.on.ON_CHILD_NODES_RENDERED](args: {
+      node: HTMLElement
+      component: ComponentInstance
+      blueprint: ComponentObject
+      page: NOODLDOMPage
+    }): void
+    // Redraw events
+    [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
+      node: HTMLElement | null,
+      component: ComponentInstance,
+    ): void
+  }
+
+  export interface HookDescriptor<Evt extends Page.HookEvent = Page.HookEvent> {
+    id: Evt
+    once?: boolean
+    fn: Page.Hook[Evt]
+  }
+
+  export interface Snapshot {
+    previous: string
+    current: string
+    requesting: string
+    status: Page.Status
+  }
 
   export type Status = typeof eventId.page.status[keyof typeof eventId.page.status]
 
@@ -193,18 +211,4 @@ export namespace Page {
     rootNode: boolean
     status: Status
   }
-}
-
-export interface PageCallbackObjectConfig {
-  fn: AnyFn
-  cond?(snapshot?: PageSnapshot): boolean
-  once?: boolean
-}
-
-export interface PageSnapshot {
-  status: Page.Status
-  previous: string
-  current: string
-  requestingPage: string
-  rootNode: HTMLDivElement
 }

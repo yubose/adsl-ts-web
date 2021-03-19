@@ -353,6 +353,8 @@ function resolveStyles(component: ComponentInstance, options: ConsumerOptions) {
   if (Identify.isBoolean(required)) {
     edit({ required: Identify.isBooleanTrue(required) })
   }
+
+  debugger
 }
 
 export default resolveStyles

@@ -1,7 +1,7 @@
 import { NOODL as NOODLUI } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLUIDOMInternal from './Internal'
-import { assign, entries, isArr, isFnc, isObj, isStr } from './utils/internal'
+import { assign, entries, isFnc, isStr } from './utils/internal'
 import {
   findByElementId,
   findByViewTag,
@@ -11,8 +11,6 @@ import {
   isPageConsumer,
 } from './utils/utils'
 import * as T from './types'
-
-type UseObject = T.Resolve.Config | NOODLUI | NOODLUIDOMInternal
 
 const createResolver = function createResolver(ndom: NOODLDOM) {
   const _internal: {
@@ -27,7 +25,7 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
 
   const util = (function () {
     return {
-      actionsContext(): T.ActionChainDOMContext {
+      actionsContext() {
         return {
           ..._internal.noodlui?.actionsContext,
           findByElementId,
@@ -43,10 +41,9 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
           ...util.actionsContext(),
           original: component.original,
           noodlui: _internal.noodlui,
-          noodluidom: ndom,
+          ndom: ndom,
           draw: ndom.draw.bind(ndom),
           redraw: ndom.redraw.bind(ndom),
-          state: ndom.state,
         } as T.Resolve.Options
         return options
       },
@@ -95,7 +92,7 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
 
   const o = {
     register(obj: T.Resolve.Config) {
-      if (!_internal.objs.includes(obj)) _internal.objs.push(obj)
+      !_internal.objs.includes(obj) && _internal.objs.push(obj)
       return o
     },
     run: (...args: T.Resolve.BaseArgs) => {
@@ -113,32 +110,22 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
       return o
     },
     get: _get,
-    use(value: UseObject | UseObject[]) {
-      if (isArr(value)) {
-        value.forEach((val) => o.use(val))
+    use(value: T.Resolve.Config | NOODLUI | NOODLUIDOMInternal) {
+      if (value instanceof NOODLUI) {
+        _internal.noodlui = value
+        if (_internal.noodlui.actionsContext) {
+          assign(_internal.noodlui.actionsContext, util.actionsContext())
+        }
+      } else if (value instanceof NOODLUIDOMInternal) {
+        ndom = value as NOODLDOM
       } else if (value) {
-        if (!!value && isObj(value) && isFnc(value['resolve'])) {
-          o.register(value as any)
-
-          if (value.observe) {
-            entries(value.observe).forEach(([evt, fn]) => {
-              if (
-                ndom.observers.page.on[evt] &&
-                !ndom.observers.page.on[evt]?.includes(fn)
-              ) {
-                ndom.on(evt, fn)
-              }
-            })
-          }
-        } else if (value instanceof NOODLUI) {
-          _internal.noodlui = value
-          if (_internal.noodlui.actionsContext) {
-            assign(_internal.noodlui.actionsContext, util.actionsContext())
-          }
-        } else if (value instanceof NOODLUIDOMInternal) {
-          ndom = value as any
-        } else if (isObj(value)) {
-          //
+        o.register(value)
+        if (value.observe) {
+          entries(value.observe).forEach(([evt, fn]) => {
+            if (ndom.page.hooks[evt] && !ndom.page.hooks[evt]?.includes(fn)) {
+              ndom.page.on(evt as T.Page.HookEvent, fn)
+            }
+          })
         }
       }
       return o
