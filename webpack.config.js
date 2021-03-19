@@ -155,8 +155,9 @@ module.exports = {
         ecosEnv: process.env.ECOS_ENV,
         nodeEnv: process.env.NODE_ENV,
         packages: {
-          '@aitmed/cadl': pkg.devDependencies['@aitmed/cadl'],
-          '@aitmed/ecos-lvl2-sdk': pkg.devDependencies['@aitmed/ecos-lvl2-sdk'],
+          '@aitmed/cadl': pkg.dependencies['@aitmed/cadl'],
+          '@aitmed/ecos-lvl2-sdk': pkg.dependencies['@aitmed/ecos-lvl2-sdk'],
+          'noodl-types': pkg.dependencies['noodl-types'],
           'noodl-ui': noodluiPkg.version,
           'noodl-utils': noodlutilsPkg.version,
           'noodl-ui-dom': noodluidomPkg.version,

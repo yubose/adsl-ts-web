@@ -135,7 +135,6 @@ class NOODLOM extends NOODLDOMInternal {
         let currentTop = lastTop
 
         const appendChild = (n: typeof node, childNode: HTMLElement) => {
-          childNode.style.top = currentTop + 'px'
           currentTop = childNode?.getBoundingClientRect().bottom
           console.log(
             `Adding next lastTop of ${currentTop} to previous lastTop ${lastTop}`,
@@ -149,7 +148,9 @@ class NOODLOM extends NOODLDOMInternal {
 
         component.children?.forEach?.(
           (child: ComponentInstance, index: number) => {
-            appendChild(node, this.draw(child, node) as HTMLElement)
+            const childNode = this.draw(child, node) as HTMLElement
+            // if ()
+            appendChild(node, childNode)
             if (index === component.length - 1) console.log(node)
           },
         )
