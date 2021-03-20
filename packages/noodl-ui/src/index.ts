@@ -14,7 +14,6 @@ export { default as getAlignAttrs } from './resolvers/getAlignAttrs'
 export { default as getBorderAttrs } from './resolvers/getBorderAttrs'
 export { default as getColors } from './resolvers/getColors'
 export { default as getCustomDataAttrs } from './resolvers/getCustomDataAttrs'
-export { default as getElementType } from './resolvers/getElementType'
 export { default as getEventHandlers } from './resolvers/getEventHandlers'
 export { default as getFontAttrs } from './resolvers/getFontAttrs'
 export { default as getPlugins } from './resolvers/getPlugins'
@@ -36,13 +35,7 @@ export { default as isReference } from './utils/isReference'
 export { default as isComponent } from './utils/isComponent'
 export { default as NOODL } from './noodl-ui'
 export { default as Viewport } from './Viewport'
-export {
-  event,
-  eventTypes,
-  actionTypes,
-  componentTypes,
-  contentTypes,
-} from './constants'
+export { event, actionTypes } from './constants'
 export * from './types'
 export { hasLetter, hasDecimal, isPromise } from './utils/common'
 export {
@@ -60,5 +53,4 @@ export {
   parseReference,
   publish,
 } from './utils/noodl'
-export { getTagName } from './resolvers/getElementType'
 export { default as getStore } from './store'

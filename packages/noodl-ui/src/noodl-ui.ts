@@ -6,10 +6,14 @@ import noop from 'lodash/noop'
 import { isDraft, original, setUseProxies, enableES5 } from 'immer'
 import Logger from 'logsnap'
 import {
+  ActionObject,
   ActionType,
   ComponentObject,
+  ComponentType,
   EmitObject,
+  IfObject,
   RegisterComponentObject,
+  StyleObject,
 } from 'noodl-types'
 import {
   createEmitDataKey,
@@ -22,12 +26,10 @@ import {
 import Resolver from './Resolver'
 import Viewport from './Viewport'
 import handleRegister from './resolvers/_internal/handleRegister'
-import StyleFinalizer from './resolvers/_internal/StyleFinalizer'
 import _internalResolver from './resolvers/_internal'
 import {
   forEachDeepEntries,
   formatColor,
-  getRandomKey,
   hasLetter,
   isPromise,
   toNumber,
@@ -46,7 +48,8 @@ import isComponent from './utils/isComponent'
 import ActionChain from './ActionChain'
 import EmitAction from './Action/EmitAction'
 import getStore from './store'
-import { event } from './constants'
+import { event as nuiEvent } from './constants'
+import * as u from './utils/internal'
 import * as T from './types'
 
 enableES5()
@@ -89,27 +92,27 @@ class NOODLUI {
   #cache = createComponentCache()
   #cb: {
     action: Partial<
-      Record<T.ActionType | 'emit' | 'goto' | 'toast', T.StoreActionObject[]>
+      Record<ActionType | 'emit' | 'goto' | 'toast', T.StoreActionObject[]>
     >
     builtIn: { [funcName: string]: T.StoreBuiltInObject[] }
     chaining: Partial<Record<T.ActionChainEventId, Function[]>>
     on: {
-      [event.SET_PAGE]: ((pageName: string) => void)[]
-      [event.NEW_PAGE]: ((page: string) => Promise<NOODLUI> | undefined)[]
-      [event.NEW_PAGE_REF]: ((ref: Page) => Promise<void> | undefined)[]
+      [nuiEvent.SET_PAGE]: ((pageName: string) => void)[]
+      [nuiEvent.NEW_PAGE]: ((page: string) => Promise<NOODLUI> | undefined)[]
+      [nuiEvent.NEW_PAGE_REF]: ((ref: Page) => Promise<void> | undefined)[]
     }
     registered: RegisterCallbacks
   } = {
     action: {},
     builtIn: {},
-    chaining: Object.values(event.actionChain).reduce(
+    chaining: Object.values(nuiEvent.actionChain).reduce(
       (acc, key) => Object.assign(acc, { [key]: [] }),
       {},
     ),
     on: {
-      [event.SET_PAGE]: [],
-      [event.NEW_PAGE]: [],
-      [event.NEW_PAGE_REF]: [],
+      [nuiEvent.SET_PAGE]: [],
+      [nuiEvent.NEW_PAGE]: [],
+      [nuiEvent.NEW_PAGE_REF]: [],
     },
     registered: {},
   }
@@ -129,7 +132,6 @@ class NOODLUI {
     [page: string]: NOODLUI
   }
   initialized: boolean = false
-  styleFinalizer: StyleFinalizer
 
   constructor({
     showDataKey,
@@ -142,7 +144,6 @@ class NOODLUI {
     this.#id = id
     this.#state = _createState({ showDataKey })
     this.#viewport = viewport || new Viewport()
-    this.styleFinalizer = new StyleFinalizer(this.#viewport)
   }
 
   get id() {
@@ -178,27 +179,18 @@ class NOODLUI {
     let components: any[] = []
     let resolvedComponents: T.ComponentInstance[] = []
 
-    // if (this.styleFinalizer.viewport !== this.viewport) {
-    //   this.styleFinalizer.viewport = this.viewport
-    // }
-
-    // this.styleFinalizer.clear()
-
     if (componentsParams) {
       if (isComponent(componentsParams)) {
         components = [componentsParams]
-      } else if (
-        !Array.isArray(componentsParams) &&
-        typeof componentsParams === 'object'
-      ) {
+      } else if (!u.isArr(componentsParams) && u.isObj(componentsParams)) {
         if ('components' in componentsParams) {
           components = componentsParams.components
         } else {
           components = [componentsParams]
         }
-      } else if (Array.isArray(componentsParams)) {
+      } else if (u.isArr(componentsParams)) {
         components = componentsParams
-      } else if (typeof componentsParams === 'string') {
+      } else if (u.isStr(componentsParams)) {
         components = [componentsParams]
       }
     }
@@ -226,12 +218,12 @@ class NOODLUI {
       resolvedComponents.push(component)
     })
 
-    return Array.isArray(componentsParams)
+    return u.isArr(componentsParams)
       ? resolvedComponents
       : resolvedComponents[0]
   }
 
-  #resolve = (c: T.ComponentType | T.ComponentInstance | ComponentObject) => {
+  #resolve = (c: ComponentType | T.ComponentInstance | ComponentObject) => {
     const component = createComponent(c as any)
 
     const consumerOptions = this.getConsumerOptions({ component })
@@ -239,7 +231,7 @@ class NOODLUI {
 
     component.assignStyles(baseStyles)
 
-    if (component.noodlType === 'register') {
+    if (component.type === 'register') {
       log.func('#resolve')
       // Skip the resolving for register type components since they only need
       // to be processed once in the lifetime of the page
@@ -263,9 +255,9 @@ class NOODLUI {
       forEachDeepEntries(component.style, (key, value) => {
         if (typeof value === 'string') {
           if (value.startsWith('0x')) {
-            component.set('style', key, formatColor(value))
+            component.style.key = formatColor(value)
           } else if (/(fontsize|borderwidth|borderradius)/i.test(key)) {
-            if (!hasLetter(value)) component.set('style', key, `${value}px`)
+            if (!hasLetter(value)) component.style[key] = `${value}px`
           }
         }
       })
@@ -276,13 +268,13 @@ class NOODLUI {
   }
 
   createActionChainHandler(
-    actions: T.ActionObject[],
+    actions: ActionObject[],
     options: T.ActionConsumerCallbackOptions & {
       trigger?: T.ActionChainEmitTrigger
     },
   ) {
     const actionChain = new ActionChain(
-      Array.isArray(actions) ? actions : [actions],
+      u.isArr(actions) ? actions : [actions],
       options as T.ActionConsumerCallbackOptions & {
         trigger: T.ActionChainEmitTrigger
       },
@@ -309,11 +301,11 @@ class NOODLUI {
     return actionChain.build.call(actionChain).bind(actionChain)
   }
 
-  createSrc<O extends T.EmitObject>(
+  createSrc<O extends EmitObject>(
     path: O,
     component?: T.ComponentInstance,
   ): string | Promise<string>
-  createSrc<O extends T.IfObject>(
+  createSrc<O extends IfObject>(
     path: O,
     component?: T.ComponentInstance,
   ): string | Promise<string>
@@ -322,7 +314,7 @@ class NOODLUI {
     component?: T.ComponentInstance,
   ): string | Promise<string>
   createSrc(
-    path: string | T.EmitObject | T.IfObject,
+    path: string | EmitObject | IfObject,
     component?: T.ComponentInstance,
   ) {
     log.func('createSrc')
@@ -330,7 +322,7 @@ class NOODLUI {
     if (isDraft(path)) path = original(path) as typeof path
 
     if (path) {
-      if (typeof path === 'string') {
+      if (u.isStr(path)) {
         // Components of type "noodl" can have a path that points directly to a page
         // ex: "path: LeftPage"
         if (
@@ -355,7 +347,7 @@ class NOODLUI {
               return val()
             }
             return !!val
-          }, path as T.IfObject),
+          }, path as IfObject),
           this.assetsUrl,
         )
       }
@@ -405,7 +397,7 @@ class NOODLUI {
               ),
             )
 
-            return (Array.isArray(result) ? result[0] : result) || ''
+            return (u.isArr(result) ? result[0] : result) || ''
           }
 
           // Result returned should be a string type
@@ -477,7 +469,7 @@ class NOODLUI {
   }
 
   createPluginObject(component: T.ComponentInstance): T.PluginObject
-  createPluginObject(component: T.ComponentObject): T.PluginObject
+  createPluginObject(component: ComponentObject): T.PluginObject
   createPluginObject(plugin: T.PluginObject): T.PluginObject
   createPluginObject(path: string): T.PluginObject
   createPluginObject(plugin: T.PluginCreationType): T.PluginObject
@@ -497,7 +489,7 @@ class NOODLUI {
     } else if (isComponent(plugin)) {
       plugin = {
         content: plugin.get('content') || '',
-        location: getPluginTypeLocation(plugin.noodlType) as T.PluginLocation,
+        location: getPluginTypeLocation(plugin.type) as T.PluginLocation,
         path: plugin.get('path'),
         ref: plugin,
       }
@@ -510,9 +502,7 @@ class NOODLUI {
           content: '',
           path: '',
           ...plugin,
-          location:
-            getPluginTypeLocation(plugin.noodlType || plugin.type || '') ||
-            'head',
+          location: getPluginTypeLocation(plugin.type || '') || 'head',
         }),
       }
     } else if (
@@ -550,17 +540,19 @@ class NOODLUI {
     return plugin.ref.get('plugin')
   }
 
-  on(e: typeof event.SET_PAGE, fn: (page: string) => void): this
+  on(e: typeof nuiEvent.SET_PAGE, fn: (page: string) => void): this
   on(
-    e: typeof event.NEW_PAGE,
-    fn: (page: string) => Promise<T.NOODLComponent[] | undefined>,
+    e: typeof nuiEvent.NEW_PAGE,
+    fn: (page: string) => Promise<ComponentObject[] | undefined>,
   ): this
   on(
-    e: typeof event.NEW_PAGE_REF,
+    e: typeof nuiEvent.NEW_PAGE_REF,
     fn: (ref: NOODLUI) => Promise<void> | undefined,
   ): this
   on(e: any, fn: any) {
-    if ([event.SET_PAGE, event.NEW_PAGE, event.NEW_PAGE_REF].includes(e)) {
+    if (
+      [nuiEvent.SET_PAGE, nuiEvent.NEW_PAGE, nuiEvent.NEW_PAGE_REF].includes(e)
+    ) {
       if (!this.#cb.on[e]) this.#cb.on[e] = []
       if (!this.#cb.on[e].includes(fn)) {
         this.#cb.on[e].push(fn)
@@ -644,7 +636,7 @@ class NOODLUI {
                   this.getConsumerOptions({ component: inst }),
                   this.actionsContext,
                 )
-                return (Array.isArray(result) ? result[0] : result) || ''
+                return (u.isArr(result) ? result[0] : result) || ''
               }
 
               let result = await emitAction.execute(emitObj)
@@ -680,7 +672,7 @@ class NOODLUI {
     return cbs[key][prop][id]
   }
 
-  // emit(eventName: T.NOODLComponentEventId, cb: T.ComponentEventCallback): void
+  // emit(eventName: ComponentObjectEventId, cb: T.ComponentEventCallback): void
   emit(
     eventName: 'register',
     args: { key: string; id?: string; prop: 'onEvent'; data?: string },
@@ -729,13 +721,6 @@ class NOODLUI {
             // The result can be passed as args to the action chain if this component
             // has an action chain waiting to be called
             const result = fn(params.data)
-            console.info({ result, params })
-            console.info({ result, params })
-            console.info({ result, params })
-            console.info({ result, params })
-            console.info({ result, params })
-            console.info({ result, params })
-            console.info({ result, params })
             stable &&
               log.cyan(`Ran the "func" on the register component`, {
                 result,
@@ -744,13 +729,13 @@ class NOODLUI {
             if (isPromise(result)) {
               result
                 .then((res) =>
-                  log.grey(`Emit result for register event: `, res),
+                  log.grey(`Emit result for register nuiEvent: `, res),
                 )
                 .catch((err) => {
                   throw new Error(err)
                 })
             } else {
-              log.grey(`Emit result for register event: `, result)
+              log.grey(`Emit result for register nuiEvent: `, result)
             }
           } else {
             log.func('emit')
@@ -764,7 +749,7 @@ class NOODLUI {
         const path = this.#getCbPath(eventName)
         if (path) {
           let cbs = get(this.#cb, path) as Function[]
-          if (!Array.isArray(cbs)) cbs = cbs ? [cbs] : []
+          if (!u.isArr(cbs)) cbs = cbs ? [cbs] : []
           cbs.forEach((cb) => cb(...args))
         }
       }
@@ -777,7 +762,7 @@ class NOODLUI {
       const path = this.#getCbPath(eventName)
       if (path) {
         const cbs = get(this.#cb, path)
-        if (Array.isArray(cbs)) {
+        if (u.isArr(cbs)) {
           if (cbs.includes(cb)) {
             set(
               this.#cb,
@@ -793,7 +778,6 @@ class NOODLUI {
 
   #getCbPath = (key: T.EventId | 'action' | 'chaining' | 'all') => {
     let path = ''
-    const store = getStore()
     if (key === 'all') {
       path = 'component.all'
     } else if (key in this.#cb) {
@@ -805,7 +789,9 @@ class NOODLUI {
     } else if (key in this.#cb.chaining) {
       path = `chaining.${key}`
     } else if (
-      [event.SET_PAGE, event.NEW_PAGE, event.NEW_PAGE_REF].includes(key as any)
+      [nuiEvent.SET_PAGE, nuiEvent.NEW_PAGE, nuiEvent.NEW_PAGE_REF].includes(
+        key as any,
+      )
     ) {
       path = `on.${key}`
     }
@@ -829,9 +815,9 @@ class NOODLUI {
       | 'builtIns'
       | 'chaining'
       | 'register'
-      | typeof event.SET_PAGE
-      | typeof event.NEW_PAGE
-      | typeof event.NEW_PAGE_REF,
+      | typeof nuiEvent.SET_PAGE
+      | typeof nuiEvent.NEW_PAGE
+      | typeof nuiEvent.NEW_PAGE_REF,
   ) {
     switch (key) {
       case 'actions':
@@ -840,9 +826,9 @@ class NOODLUI {
         return getStore()[key] as any
       case 'register':
         return this.#cb.registered
-      case event.SET_PAGE:
-      case event.NEW_PAGE:
-      case event.NEW_PAGE_REF:
+      case nuiEvent.SET_PAGE:
+      case nuiEvent.NEW_PAGE:
+      case nuiEvent.NEW_PAGE_REF:
         return this.#cb.on[key]
     }
     return this.#cb
@@ -886,9 +872,9 @@ class NOODLUI {
     return this
   }
 
-  getBaseStyles(component?: T.ComponentInstance, force = false) {
-    let originalStyle = (component?.original?.style as T.Style) || undefined
-    let styles = { ...originalStyle } as T.Style
+  getBaseStyles(component?: T.ComponentInstance) {
+    let originalStyle = (component?.original?.style as StyleObject) || undefined
+    let styles = { ...originalStyle } as StyleObject
 
     // if (styles?.top === 'auto') styles.top = '0'
     if (isPlainObject(originalStyle)) {
@@ -941,7 +927,7 @@ class NOODLUI {
           }
 
           if (parent?.original?.style?.axis === 'vertical') {
-            Object.assign(styles, {
+            u.assign(styles, {
               // position: 'relative',
               // height: 'inherit',
             })
@@ -1047,7 +1033,7 @@ class NOODLUI {
 
   setPage(pageName: string) {
     this.#state['page'] = pageName
-    this.#cb.on[event.SET_PAGE]?.forEach((cb) => cb?.(pageName))
+    this.#cb.on[nuiEvent.SET_PAGE]?.forEach((cb) => cb?.(pageName))
     this.componentCache().clear()
     return this
   }
@@ -1084,15 +1070,6 @@ class NOODLUI {
       this.#state?.plugins?.body.bottom.push(plugin)
     }
     return plugin
-  }
-
-  registry<K extends string = any>(pageName: string): T.State['registry'][K]
-  registry(pageName?: string): T.State['registry']
-  registry(pageName?: string) {
-    if (typeof pageName === 'string' && pageName in this.getState().registry) {
-      return this.getState().registry[pageName]
-    }
-    return this.getState().registry
   }
 
   use(resolver: Resolver | Resolver[]): this
@@ -1137,7 +1114,7 @@ class NOODLUI {
         )[],
     ...rest: any[]
   ) {
-    const mods = ((Array.isArray(mod) ? mod : [mod]) as any[]).concat(rest)
+    const mods = ((u.isArr(mod) ? mod : [mod]) as any[]).concat(rest)
     const handleMod = (m: typeof mods[number]) => {
       if (m) {
         if ('actionType' in m || 'funcName' in m || 'resolver' in m) {
@@ -1165,7 +1142,7 @@ class NOODLUI {
           if ('getRoot' in m) this.#getRoot = m.getRoot
           if ('fetch' in m) this.#fetch = this.#createFetch(m.fetch)
           if ('plugins' in m) {
-            if (Array.isArray(m.plugins)) {
+            if (u.isArr(m.plugins)) {
               m.plugins.forEach((plugin: T.PluginCreationType) => {
                 this.setPlugin(plugin)
               })
@@ -1176,7 +1153,7 @@ class NOODLUI {
     }
 
     mods.forEach((m) => {
-      if (Array.isArray(m)) [...m, ...rest].forEach((_m) => handleMod(_m))
+      if (u.isArr(m)) [...m, ...rest].forEach((_m) => handleMod(_m))
       else handleMod(m)
     })
 
@@ -1210,7 +1187,6 @@ class NOODLUI {
   ) {
     const newState = {} as Partial<T.State>
     if (opts.keepPlugins) newState.plugins = this.#state.plugins
-    if (opts.keepRegistry) newState.registry = this.#state.registry
     this.#state = _createState(newState)
     if (!opts.keepCallbacks) {
       this.#cb = {

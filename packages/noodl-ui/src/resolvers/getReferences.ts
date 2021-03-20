@@ -9,8 +9,11 @@ import isReference from '../utils/isReference'
 const getReferences: ResolverFn = (component, { context, getRoot }) => {
   let key: any, value: any
 
-  for (let index = 0; index < component.keys.length; index++) {
-    key = component.keys[index]
+  const keys = Object.keys(component.original)
+  const numKeys = keys.length
+
+  for (let index = 0; index < numKeys; index++) {
+    key = keys[index]
     value = component.get(key)
 
     if (isReference(key)) {

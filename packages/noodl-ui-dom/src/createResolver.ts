@@ -78,7 +78,7 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
     ) => {
       if (isStr(obj.cond)) {
         // If they passed in a resolver strictly for this node/component
-        if (obj.cond === args[1]?.noodlType || obj.cond === args[1]?.type) {
+        if (obj.cond === args[1]?.type) {
           acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.Resolve.Func)
         }
       } else if (isFnc(obj.cond)) {

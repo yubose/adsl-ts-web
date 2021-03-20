@@ -15,38 +15,38 @@ function createComponentDraftSafely(
   component: ComponentCreationType,
 ): WritableDraft<ProxiedComponent> {
   let value: WritableDraft<ProxiedComponent> | undefined
-  let noodlType: ComponentType | undefined
+  let type: ComponentType | undefined
   // Already a drafted component
   if (isDraft(component)) {
     value = component as WritableDraft<ProxiedComponent>
-    value['noodlType'] = noodlType
-    noodlType = value.noodlType as ComponentType
+    value['type'] = type
+    type = value.type as ComponentType
   }
   // Component type
   else if (typeof component === 'string') {
-    noodlType = component as ComponentType
-    const proxiedComponent = { type: noodlType, noodlType } as ProxiedComponent
+    type = component as ComponentType
+    const proxiedComponent = { type: type, type } as ProxiedComponent
     value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
   }
   // Component instance
   else if (typeof component.toJS === 'function') {
     const proxiedComponent = component.toJS() as ProxiedComponent
     value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
-    noodlType = proxiedComponent.noodlType as ComponentType
+    type = proxiedComponent.type as ComponentType
   }
   // Proxied component
   else if (isPlainObject(component)) {
-    noodlType = component.noodlType || (component.type as ComponentType)
+    type = component.type || (component.type as ComponentType)
     value = createDraft({
       ...component,
-      noodlType,
+      type,
     } as ProxiedComponent) as WritableDraft<ProxiedComponent>
   }
   // Create an empty draft
   else {
     value = createDraft({} as any) as WritableDraft<ProxiedComponent>
   }
-  if (!value.noodlType && noodlType) value['noodlType'] = noodlType
+  if (!value.type && type) value['type'] = type
 
   return value as WritableDraft<ProxiedComponent>
 }

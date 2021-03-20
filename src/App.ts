@@ -12,7 +12,7 @@ import NOODLOM, {
 } from 'noodl-ui-dom'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import { ComponentObject } from 'noodl-types'
+import { ComponentObject, PageObject } from 'noodl-types'
 import {
   ComponentInstance,
   event as noodluiEvent,
@@ -20,7 +20,6 @@ import {
   identify,
   List,
   NOODL as NOODLUI,
-  PageObject,
   publish,
   Resolver,
   resolveStyles,
@@ -710,18 +709,16 @@ class App {
       )
       .on(
         eventId.page.on.ON_COMPONENTS_RENDERED,
-        async function onComponentsRendered(
-          this: App,
-          { requesting: pageName, components },
-        ) {
+        async ({ requesting: pageName, components }) => {
           log.func('onComponentsRendered')
           log.grey(`Done rendering DOM nodes for ${pageName}`, components)
+          // @ts-expect-error
           window.pcomponents = components
           // Cache to rehydrate if they disconnect
           // TODO
           this.cachePage(pageName)
           log.grey(`Cached page: "${pageName}"`)
-        }.bind(this),
+        },
       )
       .on(
         eventId.page.on.ON_NAVIGATE_ERROR,
@@ -773,7 +770,7 @@ class App {
             'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
           if (dataValue.mapType == 1) {
             dataValue.zoom = dataValue.zoom ? dataValue.zoom : 9
-            let flag = !dataValue.hasOwnProperty('data')
+            let flag = !dataValue.hawsOwnProperty('data')
               ? false
               : dataValue.data.length == 0
               ? false
@@ -788,7 +785,7 @@ class App {
             map.addControl(new mapboxgl.NavigationControl())
             if (flag) {
               let features: any[] = []
-              dataValue.data.forEach((element) => {
+              dataValue.data.forEach((element: any) => {
                 let item = {
                   type: 'Feature',
                   geometry: {
@@ -843,7 +840,7 @@ class App {
     this.ndom.register({
       name: 'videoChat.timer.updater',
       cond: (n, c) => typeof c.get('text=func') === 'function',
-      resolve: function onVideoChatTImerUpdate(this: App, node, component) {
+      resolve: (node, component) => {
         const dataKey = component.get('dataKey')
 
         if (component.contentType === 'timer') {
@@ -868,39 +865,33 @@ class App {
           // the api declaration
           component.on(
             'timer.ref',
-            function onTimerRef(
-              this: App,
-              ref: {
-                start(): void
-                current: Date
-                ref: NodeJS.Timeout
-                clear: () => void
-                increment(): void
-                set(value: any): void
-                onInterval?:
-                  | ((args: {
-                      node: NOODLDOMElement
-                      component: ComponentInstance
-                      ref: typeof ref
-                    }) => void)
-                  | null
-              },
-            ) {
+            (ref: {
+              start(): void
+              current: Date
+              ref: NodeJS.Timeout
+              clear: () => void
+              increment(): void
+              set(value: any): void
+              onInterval?:
+                | ((args: {
+                    node: NOODLDOMElement
+                    component: ComponentInstance
+                    ref: typeof ref
+                  }) => void)
+                | null
+            }) => {
               const textFunc = component.get('text=func') || ((x: any) => x)
 
               component.on(
                 'interval',
-                function onInterval(
-                  this: App,
-                  {
-                    node,
-                    component,
-                  }: {
-                    node: NOODLDOMElement
-                    component: ComponentInstance
-                    ref: typeof ref
-                  },
-                ) {
+                ({
+                  node,
+                  component,
+                }: {
+                  node: NOODLDOMElement
+                  component: ComponentInstance
+                  ref: typeof ref
+                }) => {
                   this.noodl.editDraft(
                     (draft: WritableDraft<{ [key: string]: any }>) => {
                       const seconds = get(draft, dataKey, 0)
@@ -931,26 +922,26 @@ class App {
                       }
                     },
                   )
-                }.bind(this),
+                },
               )
 
               ref.start()
-            }.bind(this),
+            },
           )
         }
-      }.bind(this),
+      },
     })
 
     this.ndom.page.on(
       eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
-      function onBeforeCleanup(this: App, node, component) {
+      (node, component) => {
         console.log('Removed from componentCache: ' + component.id)
         this.noodlui.componentCache().remove(component)
         publish(component, (c) => {
           console.log('Removed from componentCache: ' + component.id)
           this.noodlui.componentCache().remove(c)
         })
-      }.bind(this),
+      },
     )
 
     this.ndom.register({

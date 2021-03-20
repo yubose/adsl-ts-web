@@ -1,12 +1,12 @@
+import { contentTypes } from 'noodl-types'
+import { createEmitDataKey, isBooleanTrue, isEmitObj } from 'noodl-utils'
 import get from 'lodash/get'
 import Logger from 'logsnap'
-import { createEmitDataKey, isBooleanTrue, isEmitObj } from 'noodl-utils'
 import EmitAction from '../Action/EmitAction'
-import { contentTypes } from '../constants'
 import getStore from '../store'
+import isReference from '../utils/isReference'
 import { EmitActionObject, ResolverFn, StoreActionObject } from '../types'
 import { isPromise } from '../utils/common'
-import isReference from '../utils/isReference'
 import { findListDataObject } from '../utils/noodl'
 
 const log = Logger.create('getTransformedAliases')
@@ -27,17 +27,7 @@ const getTransformedAliases: ResolverFn = (component, consumerOptions) => {
     placeholder,
     poster,
     controls,
-  } = component.get([
-    'type',
-    'contentType',
-    'options',
-    'path',
-    'placeholder',
-    'resource',
-    'required',
-    'poster',
-    'controls',
-  ])
+  } = component.props()
 
   // Input (textfield) components
   if (contentType) {

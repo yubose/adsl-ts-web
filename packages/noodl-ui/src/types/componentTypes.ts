@@ -1,9 +1,9 @@
-import { ComponentObject, StyleObject } from 'noodl-types'
+import { ComponentObject, ComponentType, StyleObject } from 'noodl-types'
 import Component from '../components/Base'
 import List from '../components/List'
 import ListItem from '../components/ListItem'
 import Page from '../components/Page'
-import { NOODLComponent, ProxiedComponent } from './types'
+import { ProxiedComponent } from './types'
 import { PlainObject } from '.'
 
 export type ComponentInstance = Component | List | ListItem | Page
@@ -12,23 +12,17 @@ export type ComponentConstructor = new (
   component: ComponentCreationType,
 ) => ComponentInstance
 
-export type ComponentCreationType =
-  | string
-  | ComponentObject
-  | NOODLComponent
-  | ComponentInstance
+export type ComponentCreationType = string | ComponentObject | ComponentInstance
 
 export interface IComponent<
   C extends ComponentObject = ComponentObject,
-  Type extends C['type'] = C['type']
+  Type extends keyof C = ComponentType
 > {
   id: string
-  type: string
-  noodlType: Type
+  type: Type
   style: StyleObject
   length: number
   original: C
-  status: 'drafting' | 'idle' | 'idle/resolved'
   assign(key: keyof C | PlainObject, value?: PlainObject): this
   assignStyles(styles: StyleObject): this
   child(index?: number): ComponentInstance | undefined
@@ -48,7 +42,6 @@ export interface IComponent<
   get(key: keyof C, styleKey?: keyof StyleObject): any
   getStyle<K extends keyof StyleObject>(styleKey: K): StyleObject[K]
   has(key: keyof C, styleKey?: keyof StyleObject): boolean
-  keys: string[]
   on(eventName: string, cb: Function): this
   off(eventName: string, cb: Function): this
   parent(): ComponentInstance | null

@@ -24,9 +24,8 @@ class Page {
       [pageName: string]: { reload?: boolean } & Record<string, any>
     },
     status: eventId.page.status.IDLE as T.Page.Status,
-    render: getDefaultRenderState(),
     rootNode: false,
-    render: u.getDefaultRenderState(),
+    render: getDefaultRenderState(),
   }
   #hooks = u
     .values(eventId.page.on)
@@ -55,6 +54,10 @@ class Page {
     this.rootNode.style.height = '100%'
     // if (!document.body.contains(this.rootNode))
     // document.body.appendChild(this.rootNode)
+  }
+
+  get hooks() {
+    return this.#hooks
   }
 
   get render() {

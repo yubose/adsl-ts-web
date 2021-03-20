@@ -6,7 +6,6 @@ import {
   createComponent,
   EmitActionObject,
   findParent,
-  getTagName,
   GotoActionObject,
   NOODL as NOODLUI,
   Page as PageComponent,
@@ -17,7 +16,12 @@ import {
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { eventId } from './constants'
-import { createAsyncImageElement, getShape, isPageConsumer } from './utils'
+import {
+  createAsyncImageElement,
+  getShape,
+  getTagName,
+  isPageConsumer,
+} from './utils'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
 import Page from './Page'
@@ -55,7 +59,7 @@ class NOODLOM extends NOODLDOMInternal {
    */
   render(rawComponents: ComponentObject | ComponentObject[]) {
     const currentPage = this.page.state.current
-    this.page.state.render = u.getDefaultRenderState()
+    this.page.reset('render')
 
     if (this.page.rootNode && this.page.rootNode.id === currentPage) {
       return console.log(
@@ -105,7 +109,7 @@ class NOODLOM extends NOODLDOMInternal {
         const getNode = (elem: HTMLElement) => (node = elem)
         this.#R.run(getNode, component)
         return node
-      } else if (component.noodlType === 'image') {
+      } else if (component.type === 'image') {
         node = isEmitObj((component as any).get('path'))
           ? createAsyncImageElement(
               (container || document.body) as HTMLElement,
@@ -113,9 +117,7 @@ class NOODLOM extends NOODLDOMInternal {
             )
           : document.createElement('img')
       } else {
-        node = document.createElement(
-          getTagName(component as ComponentInstance),
-        )
+        node = document.createElement(getTagName(component))
       }
 
       if (node) {
@@ -167,7 +169,7 @@ class NOODLOM extends NOODLDOMInternal {
       // Clean up noodl-ui listeners
       component.clearCbs?.()
 
-      // if (parent?.noodlType === 'list') {
+      // if (parent?.type === 'list') {
       // dataObject && parent.removeDataObject(dataObject)
       // }
       // Remove the parent reference
@@ -191,7 +193,7 @@ class NOODLOM extends NOODLDOMInternal {
       })
       // Create the new component
       newComponent = createComponent(shape)
-      if (dataObject && newComponent?.noodlType === 'listItem') {
+      if (dataObject && newComponent?.type === 'listItem') {
         // Set the original dataObject on the new component instance if available
         ;(newComponent as any).setDataObject?.(dataObject)
       }
@@ -207,7 +209,7 @@ class NOODLOM extends NOODLDOMInternal {
       if (_isPageConsumer) {
         const page = findParent(
           component,
-          (p) => p?.noodlType === 'page',
+          (p) => p?.type === 'page',
         ) as PageComponent
 
         resolveComponents = page?.resolveComponents?.bind?.(page)

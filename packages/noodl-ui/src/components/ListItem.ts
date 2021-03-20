@@ -130,9 +130,8 @@ class ListItem extends Component implements IComponent {
       listIndex: this.listIndex,
       id: this.id,
       iteratorVar: this.iteratorVar,
-      noodlType: this.noodlType,
-      style: this.style,
       type: this.type,
+      style: this.style,
     } as ComponentObject
   }
 

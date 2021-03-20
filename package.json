@@ -48,6 +48,7 @@
     "immer": "^8.0.1",
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
+    "noodl-action-chain": "^0.0.43",
     "noodl-types": "^1.0.39",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",

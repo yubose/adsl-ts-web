@@ -1,5 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
-import { ComponentInstance, ResolveComponent } from '../../types'
+import { ComponentCreationType, ComponentInstance } from '../../types'
 import createComponent, { PropsOptionObj } from '../../utils/createComponent'
 
 /**
@@ -17,7 +17,7 @@ export function _resolveChildren<
   opts: {
     onResolve?(child: ComponentInstance): void
     props?: PropsOptionObj
-    resolveComponent: ResolveComponent
+    resolveComponent: (c: ComponentCreationType) => ComponentInstance
   },
 ) {
   if (c?.original?.children) {
@@ -33,18 +33,15 @@ export function _resolveChildren<
       noodlChildren = c.original.children
     }
 
-    if (noodlChildren) {
-      noodlChildren.forEach((noodlChild) => {
-        const child = resolveComponent?.(
-          (c as any).createChild(createComponent(noodlChild, { props })),
-        ) as ComponentInstance
-
-        // child.setStyle('position', 'absolute')
-
-        if (noodlChild) {
-          onResolve?.(child)
-        }
-      })
-    }
+    noodlChildren &&
+      noodlChildren.forEach(
+        (noodlChild) =>
+          noodlChild &&
+          onResolve?.(
+            resolveComponent(
+              c.createChild(createComponent(noodlChild, { props })),
+            ),
+          ),
+      )
   }
 }

@@ -361,7 +361,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       expect(js).to.have.property('root', root)
       expect(js).to.have.property('style')
       // expect(js).to.have.property('type', 'iframe')
-      expect(js).to.have.property('noodlType', 'page')
+      expect(js).to.have.property('type', 'page')
     })
   })
 
@@ -423,7 +423,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       expect(list1.type).to.eq(list2.type)
       expect(list1.children).to.have.lengthOf(list2.children.length)
       expect(list1.children).to.have.lengthOf(list2.children.length)
-      expect(list1.noodlType).to.eq(list2.noodlType)
+      expect(list1.type).to.eq(list2.type)
       expect(list1.iteratorVar).to.exist
       expect(list1.iteratorVar).to.eq(list2.iteratorVar)
       expect(liBlueprint1.type).to.eq(liBlueprint2.type)
@@ -432,7 +432,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       expect(isEqual(listObject1, listObject2)).to.be.true
       expect(isEqual(list1.style, list2.style)).to.be.true
       expect(list1.children[0].children[0].type).to.eq('img')
-      expect(list1.children[0].children[0].noodlType).to.eq('image')
+      expect(list1.children[0].children[0].type).to.eq('image')
     })
   })
 

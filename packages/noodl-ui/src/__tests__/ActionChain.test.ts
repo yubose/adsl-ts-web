@@ -1,4 +1,10 @@
 import { expect } from 'chai'
+import {
+  UpdateActionObject,
+  PageJumpActionObject,
+  PopupDismissActionObject,
+  userEvent,
+} from 'noodl-types'
 import chalk from 'chalk'
 import sinon from 'sinon'
 import ActionChain from '../ActionChain'
@@ -8,14 +14,8 @@ import Component from '../components/Base'
 import EmitAction from '../Action/EmitAction'
 import List from '../components/List'
 import { assetsUrl, noodlui } from '../utils/test-utils'
-import { actionChainEmitTriggers, actionTypes } from '../constants'
-import {
-  ActionChainContext,
-  UpdateObject,
-  PageJumpObject,
-  PopupDismissObject,
-  ActionChainConstructorArgs,
-} from '../types'
+import { actionTypes } from '../constants'
+import { ActionChainContext, ActionChainConstructorArgs } from '../types'
 
 const actionsContext = { noodl: {}, noodlui }
 
@@ -41,24 +41,28 @@ let getRoot = () => ({
   SignIn: { formData: { greeting: 'hello' } },
 })
 
-const pageJumpAction: PageJumpObject = {
+const pageJumpAction: PageJumpActionObject = {
   actionType: 'pageJump',
   destination: 'MeetingRoomCreate',
 }
 
-const popUpDismissAction: PopupDismissObject = {
+const popUpDismissAction: PopupDismissActionObject = {
   actionType: 'popUpDismiss',
   popUpView: 'warningView',
 }
 
-const updateObjectAction: UpdateObject = {
+const updateObjectAction: UpdateActionObject = {
   actionType: 'updateObject',
   object: {
     '.Global.meetroom.edge.refid@': '___.itemObject.id',
   },
 }
 
-let actions: [PopupDismissObject, UpdateObject, PageJumpObject]
+let actions: [
+  PopupDismissActionObject,
+  UpdateActionObject,
+  PageJumpActionObject,
+]
 let actionChain: ActionChain<any[]>
 
 const createActionChain = <Args extends ActionChainConstructorArgs<any>>(
@@ -780,7 +784,7 @@ describe(chalk.keyword('orange')('ActionChain'), () => {
         expect(emitSpy.firstCall.args[0]).to.have.property('trigger', 'onClick')
       })
 
-      actionChainEmitTriggers.forEach((trigger) => {
+      userEvent.forEach((trigger) => {
         const onChangeEmitObj = {
           emit: {
             dataKey: { var: 'itemObject' },

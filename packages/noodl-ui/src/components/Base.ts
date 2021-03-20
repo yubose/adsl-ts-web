@@ -3,11 +3,10 @@ import find from 'lodash/find'
 import Logger from 'logsnap'
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original, current } from 'immer'
-import { ComponentObject, StyleObject } from 'noodl-types'
-import { eventTypes } from '../constants'
-import { ComponentInstance, ComponentType, IComponent, Style } from '../types'
-import createComponentDraftSafely from '../utils/createComponentDraftSafely'
+import { ComponentObject, StyleObject, userEvent } from 'noodl-types'
+import { ComponentInstance, IComponent } from '../types'
 import { getRandomKey } from '../utils/common'
+import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import * as u from '../utils/internal'
 
 const log = Logger.create('Base')
@@ -23,18 +22,15 @@ class Component<C extends ComponentObject = ComponentObject>
   #component: WritableDraft<ComponentObject> | ComponentObject
   #children: ComponentInstance[] = []
   #id = ''
-  #noodlType: ComponentType
   #parent: ComponentInstance | null = null
-  #status: 'drafting' | 'idle' = 'drafting'
-  #type: ComponentType
   original: C
   keys: string[]
 
-  static isComponent(component: unknown) {
+  static isComponent(component: any): component is ComponentInstance {
     return (
       !!component &&
       !u.isStr(component) &&
-      (component instanceof Component || u.isFnc((component as any)?.props))
+      (component instanceof Component || u.isFnc(component?.props))
     )
   }
 
@@ -51,26 +47,15 @@ class Component<C extends ComponentObject = ComponentObject>
   }
 
   constructor(component: C, opts?: { id?: string }) {
-    const keys = Component.isComponent(component)
-      ? component.keys
-      : Object.keys(
-          typeof component === 'string' ? { type: component } : component,
-        )
-    this['original'] = Component.isComponent(component)
+    this.original = Component.isComponent(component)
       ? component.original
-      : typeof component === 'string'
-      ? { noodlType: component }
-      : (component as any)
-    this['keys'] = keys
-    this.#type = this.original.type
-
+      : component
     this.#cache = {}
     this.#component = createComponentDraftSafely(
       component,
     ) as WritableDraft<ComponentObject>
 
     this.#id = opts?.id || this.#component.id || getRandomKey()
-    this['noodlType'] = this.#component.noodlType as any
 
     this.#component.style = isDraft(this.#component.style)
       ? original(this.#component.style)
@@ -78,24 +63,17 @@ class Component<C extends ComponentObject = ComponentObject>
 
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
-    eventTypes.forEach((eventType) => {
-      if (keys.includes(eventType)) {
+    userEvent.forEach((eventType) => {
+      if (this.has(eventType)) {
         // If the cached handler is a function, it is caching a function that
         // was previously created internally. Since we need a reference to the
         // original action objects to re-create actions on-demand, we must
         // ensure that these are in their original form
-        if (
-          !this.#cache[eventType] ||
-          typeof this.#cache[eventType] === 'function'
-        ) {
+        if (!this.#cache[eventType] || u.isFnc(this.#cache[eventType])) {
           this.#cache[eventType] = isDraft(this.#component[eventType])
             ? original(this.#component[eventType])
             : this.#component[eventType]
         }
-        // TODO - Find out more about how our code is using this around the app
-        // this.action[eventType] = isDraft(component[eventType])
-        //   ? original(component[eventType])
-        //   : component[eventType]
       }
     })
   }
@@ -106,18 +84,6 @@ class Component<C extends ComponentObject = ComponentObject>
 
   get id() {
     return this.#id
-  }
-
-  get type() {
-    return this.#type
-  }
-
-  get noodlType() {
-    return this.#noodlType
-  }
-
-  set noodlType(value: ComponentType) {
-    this.#noodlType = value
   }
 
   /** Returns the most recent styles at the time of this call */
@@ -132,8 +98,8 @@ class Component<C extends ComponentObject = ComponentObject>
     this.#component.style = style
   }
 
-  get status() {
-    return isDraft(this.#status) ? current(this.#status) : this.#status
+  get type() {
+    return this.original.type
   }
 
   /**
@@ -144,12 +110,12 @@ class Component<C extends ComponentObject = ComponentObject>
    */
   get<K extends keyof ComponentObject>(
     key: K | K[],
-    styleKey?: keyof Style,
+    styleKey?: keyof StyleObject,
   ): ComponentObject[K] | Record<K, ComponentObject[K]> | undefined {
     if (typeof key === 'string') {
       // Returns the original type
-      // TODO - Deprecate component.noodlType since component.type is sufficient enough now
-      if (key === 'type') return this.original.type as any
+      // TODO - Deprecate component.type since component.type is sufficient enough now
+      if (key === 'type') return this.type
       const value = this.#retrieve(key, styleKey)
       return value
     }
@@ -164,7 +130,7 @@ class Component<C extends ComponentObject = ComponentObject>
   /** Used by this.get */
   #retrieve = <K extends keyof ComponentObject | 'cache'>(
     key: K,
-    styleKey?: keyof Style,
+    styleKey?: keyof StyleObject,
   ) => {
     let value
 
@@ -260,7 +226,7 @@ class Component<C extends ComponentObject = ComponentObject>
    * using styleKey if key === 'style'
    * @param { string } key - Component property, or "style" if removing a style property using styleKey
    */
-  remove(key: string, styleKey?: keyof Style) {
+  remove(key: string, styleKey?: keyof StyleObject) {
     if (key === 'style' && typeof styleKey === 'string') {
       if (this.#component.style) {
         delete this.#component.style[styleKey]
@@ -279,7 +245,7 @@ class Component<C extends ComponentObject = ComponentObject>
    * Merges style props to the component's styles. Any styles with clashing names will be overridden
    * @param { object } styles
    */
-  assignStyles(styles: Partial<Style>) {
+  assignStyles(styles: Partial<StyleObject>) {
     return this.assign('style', styles)
   }
 
@@ -287,7 +253,7 @@ class Component<C extends ComponentObject = ComponentObject>
    * Retrieves a value from the style object using styleKey
    * @param { string } styleKey
    */
-  getStyle<K extends keyof Style>(styleKey: K) {
+  getStyle<K extends keyof StyleObject>(styleKey: K) {
     return this.#component.style?.[styleKey]
   }
 
@@ -297,15 +263,15 @@ class Component<C extends ComponentObject = ComponentObject>
    * @param { any } value - Value to set for the styleKey
    */
   setStyle(styleKey: string, value: any): this
-  setStyle<K extends keyof Style>(styles: K): this
-  setStyle<K extends keyof Style>(styleKey: string | K, value?: any) {
+  setStyle<K extends keyof StyleObject>(styles: K): this
+  setStyle<K extends keyof StyleObject>(styleKey: string | K, value?: any) {
     if (!this.#component.style) this.#component.style = {}
     if (typeof styleKey === 'string') {
       if (this.#component.style) {
         this.#component.style[styleKey] = value
       }
     } else if (typeof styleKey === 'string') {
-      const style = this.#component.style as Style
+      const style = this.#component.style as StyleObject
       u.entries(styleKey).forEach(([key, value]) => (style[key] = value))
     }
     return this
@@ -315,7 +281,7 @@ class Component<C extends ComponentObject = ComponentObject>
    * Removes a property from the style object using the styleKey
    * @param { string } styleKey
    */
-  removeStyle<K extends keyof Style>(styleKey: K) {
+  removeStyle<K extends keyof StyleObject>(styleKey: K) {
     this.remove('style', styleKey)
     return this
   }
@@ -450,7 +416,7 @@ class Component<C extends ComponentObject = ComponentObject>
     }
 
     if (!u.isArr(this.#cb[eventName])) this.#cb[eventName] = []
-    // log.func(`on [${this.noodlType}]`)
+    // log.func(`on [${this.type}]`)
     // log.grey(`Subscribing listener for "${eventName}"`, this)
     this.#cb[eventName].push(cb)
     return this
@@ -459,7 +425,7 @@ class Component<C extends ComponentObject = ComponentObject>
   off(eventName: any, cb: (...args: any[]) => any) {
     if (u.isArr(this.#cb[eventName])) {
       if (this.#cb[eventName].includes(cb)) {
-        log.func(`off [${this.noodlType}]`)
+        log.func(`off [${this.type}]`)
         log.grey(`Removing listener for "${eventName}"`, this)
         this.#cb[eventName].splice(this.#cb[eventName].indexOf(cb), 1)
       }

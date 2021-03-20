@@ -111,8 +111,8 @@ export default {
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */
 
-    if (component.noodlType === 'popUp') addClassName('popup', node)
-    if (component.noodlType === 'scrollView') addClassName('scroll-view', node)
+    if (component.type === 'popUp') addClassName('popup', node)
+    if (component.type === 'scrollView') addClassName('scroll-view', node)
     if (component.has('textBoard')) addClassName('text-board', node)
   },
   after(node, component, { noodlui }) {

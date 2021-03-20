@@ -24,7 +24,7 @@ class NOODLUIDOMInternal {
       const component = args[1]?.component
       if (isPageConsumer(component)) {
         // prettier-ignore
-        const page = findParent(component, (p) => p?.noodlType === 'page') as Page
+        const page = findParent(component, (p) => p?.type === 'page') as Page
         if (page) {
           return cachedFn(
             args[0],

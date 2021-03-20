@@ -1,7 +1,6 @@
 import fs from 'fs-extra'
 import { ComponentObject, PageComponentObject } from 'noodl-types'
 import { ResolverFn, ConsumerOptions, ComponentInstance } from '../types'
-import { getTagName } from '../resolvers/getElementType'
 import NOODLUi from '../noodl-ui'
 import Viewport from '../Viewport'
 import _internalResolver from '../resolvers/_internal'
@@ -43,7 +42,7 @@ export function createResolverTest(
   ) {
     const instance = createComponent({
       ...component,
-      noodlType: component.noodlType || component.type,
+      type: component.type,
     })
     resolver(
       instance as any,
@@ -75,18 +74,3 @@ export function saveToFs(
 export const noodlui = new NOODLUi()
 
 export const viewport = new Viewport()
-
-export function toDOM<C extends Component, N extends HTMLElement = HTMLElement>(
-  noodlComponent: ComponentObject,
-  parentNode?: any,
-): {
-  component: C
-  node: N
-  parentNode: N | null
-} {
-  const component = noodlui.resolveComponents(noodlComponent) as C
-  const node = document.createElement(getTagName(component)) as N
-  parentNode = parentNode || document.body
-  parentNode.appendChild(node)
-  return { component, node, parentNode }
-}

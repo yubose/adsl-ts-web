@@ -38,7 +38,7 @@ class ListItemChildComponent extends Component {
     let parent: Component | null = super.parent()
 
     while (parent) {
-      if (parent?.noodlType === 'listItem') {
+      if (parent?.type === 'listItem') {
         return (parent as any).getDataObject()
       }
     }

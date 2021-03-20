@@ -16,12 +16,7 @@ import { ResolverFn } from '../types'
 const getCustomDataAttrs: ResolverFn = (component, options) => {
   const { context, getCbs, getPageObject, getRoot } = options
   const { page } = context
-  const { noodlType } = component
-  const { contentType = '', dataKey, viewTag } = component.get([
-    'contentType',
-    'dataKey',
-    'viewTag',
-  ])
+  const { contentType = '', dataKey, viewTag, type } = component.props()
 
   /* -------------------------------------------------------
      ---- UI VISIBILITY RELATED
@@ -35,14 +30,14 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
   /* -------------------------------------------------------
       ---- POPUPS
     -------------------------------------------------------- */
-  if (noodlType === 'popUp') {
+  if (type === 'popUp') {
     component.set('data-ux', viewTag)
   }
 
   /* -------------------------------------------------------
       ---- LISTS
     -------------------------------------------------------- */
-  if (noodlType === 'list') {
+  if (type === 'list') {
     component.set('data-listid', component.id)
   }
 
@@ -83,7 +78,7 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
           return (Array.isArray(result) ? result[0] : result) || ''
         },
         dataKey: createEmitDataKey(
-          dataValue.emit.dataKey,
+          dataValue.emit.dataKey as any,
           [dataObject, () => getPageObject(context.page), () => getRoot()],
           { iteratorVar },
         ),

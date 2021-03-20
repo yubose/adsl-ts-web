@@ -2,7 +2,7 @@ import Logger from 'logsnap'
 import { ComponentObject } from 'noodl-types'
 import List from '../../components/List'
 import ListItem from '../../components/ListItem'
-import { ConsumerOptions, ListBlueprint, NOODLComponent } from '../../types'
+import { ConsumerOptions, ListBlueprint } from '../../types'
 import { InternalResolver } from '../../Resolver'
 import { publish } from '../../utils/noodl'
 import { event } from '../../constants'
@@ -37,9 +37,9 @@ const handleListInternalResolver = (
     iteratorVar: component.iteratorVar,
   }
 
-  const resolveBlueprint = (noodlListItem: NOODLComponent) => {
+  const resolveBlueprint = (noodlListItem: ComponentObject) => {
     const deepChildren = (noodlComponent: any) => {
-      if (stable && noodlComponent !== noodlListItem) {
+      if (noodlComponent !== noodlListItem) {
         log.func('resolveBlueprint [deepChildren]')
         log.cyan(`Generating a child descendant for the blueprint`, {
           rawListItemObject: noodlListItem,
@@ -64,7 +64,7 @@ const handleListInternalResolver = (
       }
       return props
     }
-    return deepChildren(noodlListItem) as NOODLComponent
+    return deepChildren(noodlListItem) as ComponentObject
   }
 
   // Creates list items as new data objects are added
@@ -161,9 +161,7 @@ const handleListInternalResolver = (
     )
   })
 
-  const blueprint = resolveBlueprint(
-    rawBlueprint as NOODLComponent,
-  ) as ListBlueprint
+  const blueprint = resolveBlueprint(rawBlueprint as ComponentObject)
 
   stable &&
     log.cyan(`Setting the blueprint for creating listItem components`, {

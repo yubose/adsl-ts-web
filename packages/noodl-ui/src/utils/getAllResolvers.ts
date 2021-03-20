@@ -2,7 +2,6 @@ import getAlignAttrs from '../resolvers/getAlignAttrs'
 import getBorderAttrs from '../resolvers/getBorderAttrs'
 import getColors from '../resolvers/getColors'
 import getCustomDataAttrs from '../resolvers/getCustomDataAttrs'
-import getElementType from '../resolvers/getElementType'
 import getEventHandlers from '../resolvers/getEventHandlers'
 import getFontAttrs from '../resolvers/getFontAttrs'
 import getPlugins from '../resolvers/getPlugins'
@@ -20,7 +19,6 @@ function getAllResolvers() {
     getBorderAttrs,
     getColors,
     getCustomDataAttrs,
-    getElementType,
     getEventHandlers,
     getFontAttrs,
     getPlugins,
@@ -39,7 +37,6 @@ export function getAllResolversAsMap() {
     getBorderAttrs,
     getColors,
     getCustomDataAttrs,
-    getElementType,
     getEventHandlers,
     getFontAttrs,
     getPlugins,

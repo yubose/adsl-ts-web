@@ -16,3 +16,4 @@ export const isObj = <V extends PlainObject>(v: any): v is V =>
 export const assign = (v: PlainObject, ...rest: (PlainObject | undefined)[]) =>
   Object.assign(v, ...rest)
 export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
+export const keys = (v: any) => Object.keys(v)

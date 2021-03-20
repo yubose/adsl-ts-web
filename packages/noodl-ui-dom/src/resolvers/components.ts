@@ -5,7 +5,6 @@ import {
   SelectOption,
 } from 'noodl-ui'
 import { isBooleanTrue, isPluginComponent } from 'noodl-utils'
-import NOODLDOM from 'noodl-ui-dom'
 import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
 import * as u from '../utils/internal'
@@ -18,8 +17,11 @@ const domComponentsResolver: Resolve.Config = {
       const props = component.props() || {}
 
       const {
+        children,
         contentType,
         controls,
+        mimeType,
+        onClick,
         options: selectOptions,
         placeholder,
         plugin,
@@ -27,23 +29,23 @@ const domComponentsResolver: Resolve.Config = {
         src,
         text,
         videoType,
-      } = props
+      } = original
 
       // BUTTON
       if (Identify.component.button(original)) {
-        if (props['data-src']) {
+        if (props.src) {
           node.style.overflow = 'hidden'
           node.style.display = 'flex'
           node.style.alignItems = 'center'
         }
-        node.style.cursor = props.onClick ? 'pointer' : 'auto'
+        node.style.cursor = onClick ? 'pointer' : 'auto'
       }
       // IMAGE
       else if (Identify.component.image(original)) {
-        if (props.onClick) node.style.cursor = 'pointer'
+        if (onClick) node.style.cursor = 'pointer'
         // If an image has children, we will assume it is some icon button overlapping
         //    Ex: profile photos and showing pencil icon on top to change it
-        if (original.children) {
+        if (children) {
           node.style.width = '100%'
           node.style.height = '100%'
         }
@@ -56,25 +58,30 @@ const domComponentsResolver: Resolve.Config = {
         if (props['data-value']) node.innerHTML = String(props['data-value'])
         else if (text) node.innerHTML = String(text)
         else if (placeholder) node.innerHTML = String(placeholder)
-        props.onClick && (node.style.cursor = 'pointer')
+        onClick && (node.style.cursor = 'pointer')
       }
       // LIST
       else if (Identify.component.list(original)) {
-        const iteratorVar = original.iteratorVar || ''
         // noodl-ui delegates the responsibility for us to decide how
         // to control how list children are first rendered to the DOM
-        const listObject = component.getData?.()
-        const numDataObjects = listObject?.length || 0
-        component.children.forEach((c: ComponentInstance) => {
+        const listObject = props.listObject || []
+        const numDataObjects = listObject.length
+
+        component.edit({ listObject: [] })
+        component.clearChildren()
+
+        component.children.forEach((c) => {
           c?.setDataObject?.(null)
           component.removeDataObject?.(0)
         })
-        component.set?.('listObject', [])
+
         // Remove the placeholders
         for (let index = 0; index < numDataObjects; index++) {
           // This emits the "create list item" event that we should already have a listener for
           component.addDataObject?.(listObject[index])
+          console.log(listObject[index])
         }
+
         component.on(noodluiEvent.component.list.CREATE_LIST_ITEM, (result) => {
           noodlui?.componentCache().set(result.listItem)
         })
@@ -93,7 +100,7 @@ const domComponentsResolver: Resolve.Config = {
         )
       }
       // PAGE
-      else if (component.noodlType === 'page') {
+      else if (component.type === 'page') {
         node.name = component.get('path') || ''
 
         component.on(
@@ -126,8 +133,8 @@ const domComponentsResolver: Resolve.Config = {
         // resolved node instead
         // This is specific for these plugin components but may be extended to be used more later
         function getMetadata(component: ComponentInstance) {
-          const src = String(component.get('src'))
-          const isLib = component.contentType === 'library'
+          const src = String(props.src)
+          const isLib = contentType === 'library'
           const metadata = {} as { type: string; tagName: string }
 
           if (src.endsWith('.css')) {
@@ -140,7 +147,7 @@ const domComponentsResolver: Resolve.Config = {
             metadata.type = 'text/javascript'
             metadata.tagName = 'SCRIPT'
           } else {
-            metadata.type = component.get('mimeType') || 'text/plain'
+            metadata.type = mimeType || 'text/plain'
             metadata.tagName = 'SCRIPT'
           }
           return metadata
@@ -155,7 +162,6 @@ const domComponentsResolver: Resolve.Config = {
 
         if (metadata.type === 'text/javascript') {
           pluginNode.onload = function onLoadJsPluginDOMNode(evt) {
-            console.log('[plugin] ONLOAD', { node, component, event: evt })
             const location = plugin?.location || ''
             if (location) {
               try {
@@ -183,7 +189,7 @@ const domComponentsResolver: Resolve.Config = {
         ) {
           component.on(
             'plugin:content',
-            (content) => (node.innerHTML += content),
+            (content: string) => (node.innerHTML += content),
           )
         }
         // If the node is a function then it is expecting us to decide what node to use
@@ -253,10 +259,4 @@ const domComponentsResolver: Resolve.Config = {
   },
 }
 
-const createResolveComponents = function _createResolveComponents(
-  NOODLDOM: NOODLDOM,
-) {
-  return domComponentsResolver
-}
-
-export default createResolveComponents
+export default domComponentsResolver

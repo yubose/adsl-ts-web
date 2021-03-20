@@ -1,7 +1,76 @@
-import { StyleObject, ToastObject } from 'noodl-types'
+import {
+  ActionObject,
+  BuiltInActionObject,
+  EmitObject,
+  EvalActionObject,
+  GotoObject,
+  PageJumpActionObject,
+  PopupActionObject,
+  PopupDismissActionObject,
+  RefreshActionObject,
+  SaveActionObject,
+  ToastObject,
+  UpdateActionObject,
+} from 'noodl-types'
+import { ActionChain } from 'noodl-action-chain'
 import { AbortExecuteError } from '../errors'
-import { ConsumerOptions, IfObject } from './types'
+import { ConsumerOptions } from './types'
+import { NOODLUIActionType, NOODLUITrigger } from './constantTypes'
 import Action from '../Action'
+import EmitAction from '../Action/EmitAction'
+
+export type NOODLUIActionChain = ActionChain<
+  NOODLUIActionObject,
+  NOODLUITrigger
+>
+
+// Raw / non-ensured actionType
+export type NOODLUIActionObjectInput =
+  | NOODLUIActionObject
+  | EmitObject
+  | GotoObject
+  | ToastObject
+
+// With ensured actionType appended
+export type NOODLUIActionObject =
+  | AnonymousActionObject
+  | BuiltInActionObject
+  | EmitActionObject
+  | EvalActionObject
+  | GotoActionObject
+  | PageJumpActionObject
+  | PopupActionObject
+  | PopupDismissActionObject
+  | RefreshActionObject
+  | SaveActionObject
+  | ToastActionObject
+  | UpdateActionObject
+
+export type NOODLUIAction = any
+
+// export type NOODLUIAction =
+//   | Action<NOODLUIActionType, NOODLUITrigger>
+//   | EmitAction
+
+export interface AnonymousActionObject extends ActionObject {
+  actionType: 'anonymous'
+  fn?: (...args: any[]) => any
+}
+
+export interface EmitActionObject extends ActionObject, EmitObject {
+  actionType: 'emit'
+  [key: string]: any
+}
+
+export interface GotoActionObject extends ActionObject, GotoObject {
+  actionType: 'goto'
+  [key: string]: any
+}
+
+export interface ToastActionObject extends ActionObject, ToastObject {
+  actionType: 'toast'
+  [key: string]: any
+}
 
 export interface IAction<A extends ActionObject = any> {
   abort(reason: string | string[], callback?: IAction<A>['callback']): void
@@ -22,103 +91,16 @@ export interface IAction<A extends ActionObject = any> {
   trigger: string
 }
 
-export type ActionObject = BaseActionObject &
-  (
-    | AnonymousObject
-    | BuiltInObject
-    | EmitActionObject
-    | EvalObject
-    | GotoObject
-    | PageJumpObject
-    | PopupObject
-    | PopupDismissObject
-    | RefreshObject
-    | SaveObject
-    | ToastObject
-    | UpdateObject
-  )
-
-export interface BaseActionObject {
-  actionType: string
-}
-
-export interface AnonymousObject extends BaseActionObject {
+export interface AnonymousObject extends ActionObject {
   actionType: 'anonymous'
   fn?: Function
-}
-
-export interface BuiltInObject extends BaseActionObject {
-  actionType: 'builtIn'
-  funcName: string
-}
-
-export interface EmitActionObject extends BaseActionObject, EmitObject {
-  actionType: 'emit'
-}
-
-export interface EmitObject {
-  emit: {
-    actions: [any, any, any]
-    dataKey: string | { [key: string]: string }
-  }
-}
-
-export interface EvalObject extends BaseActionObject {
-  actionType: 'evalObject'
-  object?: Function | IfObject
-}
-
-export interface GotoActionObject extends BaseActionObject {
-  actionType: 'goto'
-  goto: string
-  [key: string]: any
-}
-
-export interface GotoObject extends BaseActionObject {
-  actionType: 'goto'
-  destination?: string
-}
-
-export interface PageJumpObject extends BaseActionObject {
-  actionType: 'pageJump'
-  destination: string
-}
-
-export interface PopupObject extends BaseActionObject {
-  actionType: 'popUp'
-  popUpView: string
-}
-
-export interface PopupDismissObject extends BaseActionObject {
-  actionType: 'popUpDismiss'
-  popUpView: string
-}
-
-export interface RefreshObject extends BaseActionObject {
-  actionType: 'refresh'
-}
-
-export interface SaveObject extends BaseActionObject {
-  actionType: 'saveObject'
-  object?: [string, (...args: any[]) => any] | ((...args: any[]) => any)
-}
-
-export interface ToastActionObject extends BaseActionObject {
-  actionType: 'toast'
-  message: string
-  style?: Partial<StyleObject>
-}
-
-export type UpdateObject<T = any> = {
-  actionType: 'updateObject'
-  object?: T
 }
 
 export interface ActionCallback<A extends Action<any> = Action<any>> {
   (snapshot: A, handlerOptions?: ConsumerOptions): any
 }
 
-export interface ActionOptions<OriginalAction extends BaseActionObject = any> {
+export interface ActionOptions<OriginalAction extends ActionObject = any> {
   callback?: ActionCallback
   id?: string
   onPending?: (snapshot: ActionSnapshot<OriginalAction>) => any
@@ -151,12 +133,3 @@ export type ActionStatus =
   | 'aborted'
   | 'error'
   | 'timed-out'
-
-export interface IBuiltIn<
-  Func extends (...args: any[]) => any = (...args: any[]) => any,
-  FuncName extends string = string
-> {
-  execute<Args extends any[]>(...args: Args): Promise<any>
-  func: Func
-  funcName: FuncName
-}

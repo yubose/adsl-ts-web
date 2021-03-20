@@ -1,12 +1,12 @@
+import { userEvent } from 'noodl-types'
 import { ResolverFn } from '../types'
-import { eventTypes } from '../constants'
 
 /** Transforms the event property (ex: onClick, onHover, etc) */
 const getEventHandlers: ResolverFn = (component, options) => {
   if (component) {
     const { createActionChainHandler } = options
-    eventTypes.forEach((eventType) => {
-      if (component.keys.includes(eventType)) {
+    userEvent.forEach((eventType) => {
+      if (component.has(eventType)) {
         const actionObj = component.get('cache')?.[eventType]
         if (actionObj) {
           const handler = createActionChainHandler(actionObj, {

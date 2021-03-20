@@ -152,8 +152,8 @@ describe('BaseComponent', () => {
     it('should create a child using a noodl component type', () => {
       const component = new Component({ type: 'label' })
       expect(component.child()).to.be.undefined
-      const noodlType = 'label'
-      const child = component.createChild(noodlType)
+      const type = 'label'
+      const child = component.createChild(type)
       expect(component.child()).to.equal(child)
     })
 
@@ -196,8 +196,8 @@ describe('BaseComponent', () => {
       expect(component?.child?.()?.id.endsWith('[0]')).to.be.true
     })
 
-    it('should set the noodlType on instantiation', () => {
-      expect(component.noodlType).to.equal(component.type)
+    it('should set the type on instantiation', () => {
+      expect(component.type).to.equal(component.type)
     })
 
     it('"done" should not continue its code if the status property is not "drafting"', () => {

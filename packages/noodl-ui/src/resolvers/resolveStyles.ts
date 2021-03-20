@@ -13,9 +13,7 @@ function createStyleEditor(component: ComponentInstance) {
     styles: Record<string, any> | undefined,
     { remove }: { remove?: string | string[] | false } = {},
   ) {
-    if (styles) {
-      component?.edit?.(() => ({ style: styles }))
-    }
+    if (styles) component?.edit?.(() => ({ style: styles }))
     if (u.isArr(remove)) {
       remove.forEach((styleKey) => styleKey && delete component.style[styleKey])
     } else if (remove && u.isStr(remove)) delete component.style[remove]
@@ -288,13 +286,12 @@ function resolveStyles(component: ComponentInstance, options: ConsumerOptions) {
   /* -------------------------------------------------------
     ---- SPECIFIC TO COMPONENTS
   -------------------------------------------------------- */
-  const { type } = component
-  // TODO - Deprecate noodlType for just "type"
-  const noodlType = component.noodlType
+  // TODO - Deprecate type for just "type"
+  const type = component.type
 
-  if (noodlType === 'header') {
+  if (type === 'header') {
     edit({ zIndex: 100 })
-  } else if (noodlType === 'image') {
+  } else if (type === 'image') {
     // Remove the height to maintain the aspect ratio since images are
     // assumed to have an object-fit of 'contain'
     if (!('height' in styles)) edit(undefined, { remove: 'height' })
@@ -302,7 +299,7 @@ function resolveStyles(component: ComponentInstance, options: ConsumerOptions) {
     // assumed to have an object-fit of 'contain'
     if (!('width' in styles)) edit(undefined, { remove: 'width' })
     edit({ objectFit: 'contain' })
-  } else if (['chatList', 'list'].includes(noodlType)) {
+  } else if (['chatList', 'list'].includes(type)) {
     edit({
       overflowX: 'hidden',
       overflowY: 'auto',
@@ -314,16 +311,16 @@ function resolveStyles(component: ComponentInstance, options: ConsumerOptions) {
     } else {
       edit({ display: 'block' })
     }
-  } else if (noodlType === 'listItem') {
+  } else if (type === 'listItem') {
     // Flipping the position to relative to make the list items stack on top of eachother.
     //    Since the container is a type: list and already has their entire height defined in absolute values,
     //    this shouldn't have any UI issues because they'll stay contained within
     edit({ listStyle: 'none', padding: 0, position: 'relative' })
-  } else if (noodlType === 'popUp') {
+  } else if (type === 'popUp') {
     edit({ visibility: 'hidden' })
-  } else if (noodlType === 'textView') {
+  } else if (type === 'textView') {
     edit({ rows: 10 })
-  } else if (noodlType === 'video') {
+  } else if (type === 'video') {
     edit({ objectFit: 'contain' })
   }
 

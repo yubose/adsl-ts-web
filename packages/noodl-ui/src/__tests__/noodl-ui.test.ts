@@ -1,17 +1,17 @@
 import sinon from 'sinon'
+import { ComponentObject } from 'noodl-types'
 import { expect } from 'chai'
-import { NOODLComponent } from '../types'
 import { noodlui } from '../utils/test-utils'
 import { mock } from './mockData'
 import Component from '../components/Base'
 import List from '../components/List'
 import Viewport from '../Viewport'
 
-let noodlComponent: NOODLComponent
+let noodlComponent: ComponentObject
 let component: Component
 
 beforeEach(() => {
-  noodlComponent = mock.raw.getNOODLView() as NOODLComponent
+  noodlComponent = mock.raw.getNOODLView() as ComponentObject
   component = new Component(noodlComponent)
 })
 
@@ -174,10 +174,10 @@ describe('when using setters', () => {
 })
 
 describe('when resolving components', () => {
-  it('should attach a noodlType property with the original component type', () => {
+  it('should attach a type property with the original component type', () => {
     noodlComponent = { type: 'view', text: 'hello' }
     const resolvedComponent = noodlui.resolveComponents(noodlComponent)
-    expect(resolvedComponent.toJS()).to.have.property('noodlType', 'view')
+    expect(resolvedComponent.toJS()).to.have.property('type', 'view')
   })
 
   it('should convert onClick to a function', () => {

@@ -1,6 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { ResolverFn } from '../types'
-import { textAlignStrings } from '../constants'
 
 /**
  * Takes an object and resolves its align properties by returning a new object generated with
@@ -82,7 +81,8 @@ const getAlignAttrs: ResolverFn = (component) => {
  * @param { string } textAlign - NOODL textAlign value
  */
 function getTextAlign(textAlign: string): undefined | object {
-  if (!textAlignStrings.includes(textAlign)) return
+  if (!['centerX', 'centerY', 'left', 'center', 'right'].includes(textAlign))
+    return
   if (textAlign === 'centerX') {
     return { textAlign: 'center' }
   } else if (textAlign === 'centerY') {

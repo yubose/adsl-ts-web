@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { componentTypes } from './constants'
+import { componentTypes } from 'noodl-types'
 import * as n from '.'
 
 describe('identify', () => {

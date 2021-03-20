@@ -2,9 +2,14 @@ import Logger from 'logsnap'
 import merge from 'lodash/merge'
 import isPlainObject from 'lodash/isPlainObject'
 import {
+  ActionObject,
+  BuiltInActionObject,
   ComponentObject,
   ComponentType,
+  EmitObject,
+  IfObject,
   PageComponentObject,
+  StyleObject,
 } from 'noodl-types'
 import {
   createEmitDataKey,
@@ -15,7 +20,7 @@ import {
   isEmitObj,
   isIfObj,
 } from 'noodl-utils'
-import { current, isDraft, original } from 'immer'
+import { isDraft, original } from 'immer'
 import { event } from '../constants'
 import {
   findListDataObject,
@@ -31,7 +36,6 @@ import * as u from '../utils/internal'
 import {
   forEachDeepEntries,
   formatColor,
-  getRandomKey,
   hasLetter,
   isPromise,
   toNumber,
@@ -40,7 +44,6 @@ import getActionConsumerOptions from '../utils/getActionConsumerOptions'
 import * as T from '../types'
 import EmitAction from '../Action/EmitAction'
 import componentCache from '../utils/componentCache'
-import { ActionObject } from '../types'
 
 const log = Logger.create('Page (component)')
 
@@ -112,7 +115,7 @@ class Page
   emit(event: typeof e.SET_REF, ref: any): this
   emit(
     event: typeof e.COMPONENTS_RECEIVED,
-    noodlComponents: T.NOODLComponent[],
+    noodlComponents: ComponentObject[],
   ): this
   emit(
     event: typeof e.RESOLVED_COMPONENTS,
@@ -139,7 +142,7 @@ class Page
   on(event: typeof e.SET_REF, fn: (ref: any) => any): this
   on(
     event: typeof e.COMPONENTS_RECEIVED,
-    fn: (noodlComponents: T.NOODLComponent[]) => any,
+    fn: (noodlComponents: ComponentObject[]) => any,
   ): this
   on(
     event: typeof e.RESOLVED_COMPONENTS,
@@ -188,7 +191,7 @@ class Page
   }
 
   createActionChainHandler(
-    actions: T.ActionObject[],
+    actions: ActionObject[],
     options: T.ActionConsumerCallbackOptions & {
       trigger: T.ActionChainEmitTrigger
     },
@@ -220,11 +223,11 @@ class Page
     return actionChain.build().bind(actionChain)
   }
 
-  createSrc<O extends T.EmitObject>(
+  createSrc<O extends EmitObject>(
     path: O,
     component?: T.ComponentInstance,
   ): string | Promise<string>
-  createSrc<O extends T.IfObject>(
+  createSrc<O extends IfObject>(
     path: O,
     component?: T.ComponentInstance,
   ): string | Promise<string>
@@ -233,7 +236,7 @@ class Page
     component?: T.ComponentInstance,
   ): string | Promise<string>
   createSrc(
-    path: string | T.EmitObject | T.IfObject,
+    path: string | EmitObject | IfObject,
     component?: T.ComponentInstance,
   ) {
     log.func('createSrc')
@@ -262,7 +265,7 @@ class Page
               return val()
             }
             return !!val
-          }, path as T.IfObject),
+          }, path as IfObject),
           this.getAssetsUrl(),
         )
       }
@@ -373,8 +376,8 @@ class Page
   }
 
   getBaseStyles(component?: T.ComponentInstance, force = false) {
-    let originalStyle = (component?.original?.style as T.Style) || undefined
-    let styles = { ...originalStyle } as T.Style
+    let originalStyle = (component?.original?.style as StyleObject) || undefined
+    let styles = { ...originalStyle } as StyleObject
 
     // if (styles?.top === 'auto') styles.top = '0'
     if (isPlainObject(originalStyle)) {
@@ -645,8 +648,8 @@ class Page
     return []
   }
 
-  use<A extends T.ActionObject>(obj: T.StoreActionObject<A>): this
-  use<B extends T.BuiltInObject>(obj: T.StoreBuiltInObject<B>): this
+  use<A extends ActionObject>(obj: T.StoreActionObject<A>): this
+  use<B extends BuiltInActionObject>(obj: T.StoreBuiltInObject<B>): this
   use<V extends Viewport>(viewport: V): this
   use(options: {
     actionsContext?: Partial<T.ActionChainContext>

@@ -1,11 +1,8 @@
-import { ComponentObject } from 'noodl-types'
+import { ComponentObject, ComponentType, userEvent } from 'noodl-types'
 import {
   ComponentInstance,
-  ComponentType,
-  eventTypes,
   findParent,
   isComponent,
-  NOODLComponent,
   SelectOption,
   Viewport as VP,
 } from 'noodl-ui'
@@ -46,6 +43,60 @@ export function createEmptyObjectWithKeys<K extends string = any, I = any>(
     (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
     startingValue,
   )
+}
+
+export function getTagName(
+  component: ComponentInstance,
+): keyof HTMLElementTagNameMap {
+  switch (component?.type) {
+    case 'br':
+      return 'br'
+    case 'button':
+      return 'button'
+    case 'date':
+    case 'dateSelect':
+    case 'searchBar':
+    case 'textField':
+      return 'input'
+    case 'divider':
+      return 'hr'
+    case 'image':
+      return 'img'
+    case 'list':
+      return 'ul'
+    case 'listItem':
+      return 'li'
+    case 'page':
+      return 'iframe'
+    case 'pluginHead':
+    case 'pluginBodyTail':
+      return 'script'
+    case 'select':
+      return 'select'
+    case 'textView':
+      return 'textarea'
+    case 'chart':
+    case 'footer':
+    case 'header':
+    case 'label':
+    case 'map':
+    case 'plugin':
+    case 'popUp':
+    case 'register':
+    case 'scrollView':
+    case 'view':
+      return 'div'
+    case 'video':
+      return 'video'
+    default:
+      console.log(
+        `%cNone of the node types matched with "${component?.type}". Perhaps it needs to be ' +
+        'supported? (Defaulting to "div" instead)`,
+        'color:#e74c3c;font-weight:bold;',
+        component.toJSON(),
+      )
+      return 'div'
+  }
 }
 
 /**
@@ -287,10 +338,10 @@ export function getShape(
             : getShape(noodlComponent.children as any, {
                 ...opts,
                 // @ts-expect-error
-                noodlType:
-                  (opts as any)?.noodlType ||
+                type:
+                  (opts as any)?.type ||
                   (u.isObj(noodlComponent.children)
-                    ? (noodlComponent.children as any).noodlType ||
+                    ? (noodlComponent.children as any).type ||
                       (noodlComponent.children as any).type
                     : u.isStr(noodlComponent.children)
                     ? noodlComponent.children
@@ -307,7 +358,7 @@ export function getShape(
   return shape
 }
 
-export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
+export function getShapeKeys<K extends keyof ComponentObject>(...keys: K[]) {
   const regex = /(required?)\s*$/i
   return [
     'type',
@@ -321,7 +372,7 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
     'iteratorVar',
     'listObject',
     'maxPresent',
-    'noodlType',
+    'type',
     'options',
     'path',
     'pathSelected',
@@ -336,7 +387,7 @@ export function getShapeKeys<K extends keyof NOODLComponent>(...keys: K[]) {
     'text=func',
     'viewTag',
     'videoFormat',
-    ...eventTypes,
+    ...userEvent,
     ...keys,
   ] as string[]
 }
@@ -392,7 +443,7 @@ export function isDisplayable(value: unknown): value is string | number {
  */
 export function isPageConsumer(component: any): boolean {
   return isComponent(component)
-    ? !!findParent(component, (parent) => parent?.noodlType === 'page')
+    ? !!findParent(component, (parent) => parent?.type === 'page')
     : false
 }
 

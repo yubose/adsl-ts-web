@@ -20,7 +20,7 @@ _internalResolver.setResolver((component, options, ref) => {
   let resolveComponents: Page['resolveComponents'] | undefined
 
   findParent(component, (p: Page) => {
-    if (p?.noodlType === 'page') {
+    if (p?.type === 'page') {
       resolveComponents = p.resolveComponents.bind(p)
       return true
     }
@@ -35,16 +35,16 @@ _internalResolver.setResolver((component, options, ref) => {
 
   const run = (c: ComponentInstance) => {
     if (c) {
-      if (c.noodlType === 'list') {
+      if (c.type === 'list') {
         return handleList(c as any, options, _internalResolver)
       }
-      if (c.noodlType === 'page') {
+      if (c.type === 'page') {
         return handlePage(c as any, options, { _internalResolver, ref })
       }
-      if (c.noodlType === 'register') {
+      if (c.type === 'register') {
         return handleRegister(c as any, options)
       }
-      if (c.get('textBoard')) {
+      if (c.has('textBoard')) {
         return handleTextboard(c as any, options, _internalResolver)
       }
       if (c.contentType === 'timer') {
@@ -57,7 +57,7 @@ _internalResolver.setResolver((component, options, ref) => {
         resolveComponent: resolveComponents?.bind(ref),
       })
 
-      if (c.noodlType === 'scrollView') {
+      if (c.type === 'scrollView') {
         // Set immediate children to relative so they can stack on eachother
         c.children.forEach((child: ComponentInstance) => {
           child.assignStyles({ position: 'relative', display: 'block' })

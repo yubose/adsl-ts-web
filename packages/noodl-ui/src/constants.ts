@@ -1,97 +1,14 @@
-export const actionTypes = [
-  'anonymous', // lib
-  'builtIn',
-  'emit', // lib
-  'evalObject',
-  'goto', // lib
-  'pageJump',
-  'popUp',
-  'popUpDismiss',
-  'refresh',
-  'saveObject',
-  'toast',
-  'updateObject',
-] as const
+import { actionTypes as noodlTypesActionTypes, userEvent } from 'noodl-types'
 
-export const actionChainEmitTriggers = [
-  'onBlur',
-  'onClick',
-  'onChange',
-  'toast',
-] as const
+// Extended constants from this lib
+export const lib = {
+  actionTypes: ['anonymous', 'emit', 'goto', 'toast'],
+  components: ['br'],
+  emitTriggers: ['dataKey', 'dataValue', 'path', 'placeholder', 'register'],
+} as const
 
-export const resolveEmitTriggers = [
-  'dataKey',
-  'dataValue',
-  'path',
-  'placeholder',
-  'register',
-] as const
-
-export const emitTriggers = [
-  ...actionChainEmitTriggers,
-  ...resolveEmitTriggers,
-] as const
-
-export const componentTypes = [
-  'button',
-  'chart',
-  'date',
-  'divider',
-  'footer',
-  'header',
-  'image',
-  'label',
-  'list',
-  'listItem',
-  'page',
-  'plugin',
-  'pluginHead',
-  'pluginBodyTop',
-  'pluginBodyTail',
-  'popUp',
-  'register',
-  'searchBar',
-  'select',
-  'scrollView',
-  'textField',
-  'textView',
-  'video',
-  'view',
-] as const
-
-export const contentTypes = [
-  'countryCode',
-  'email',
-  'formattedDate',
-  'formattedDuration',
-  'listObject',
-  'number',
-  'password',
-  'passwordHidden',
-  'phoneNumber',
-  'phone',
-  'tel',
-  'text',
-  'timer',
-  'videoSubStream',
-  'vidoeSubStream',
-] as const
-
-export const eventTypes = [
-  'onBlur',
-  'onClick',
-  'onChange',
-  'onHover',
-  'onMouseEnter',
-  'onMouseLeave',
-  'onMouseOut',
-  'onMouseOver',
-] as const
-
-export const customComponentTypes = [
-  'br', // Created customly in components with a textBoard implementation
-] as const
+export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]
+export const triggers = [...lib.emitTriggers, ...userEvent]
 
 export const presets = {
   border: {
@@ -165,17 +82,21 @@ export const event = {
   NEW_PAGE_REF: 'new.page.ref',
 } as const
 
-/** { textAlign: '' } */
-export const textAlignStrings = [
-  'left',
-  'center',
-  'right',
-  'centerX',
-  'centerY',
-]
-
-/** { textAlign: { x, y } } */
-export const textAlignXYStrings = ['left', 'center', 'right']
+export const trigger = {
+  DATA_KEY: 'dataKey',
+  DATA_VALUE: 'dataValue',
+  PATH: 'path',
+  PLACEHOLDER: 'placeholder',
+  REGISTER: 'register',
+  ON_BLUR: 'onBlur',
+  ON_CLICK: 'onClick',
+  ON_CHANGE: 'onChange',
+  ON_HOVER: 'onHover',
+  ON_MOUSEENTER: 'onMouseEnter',
+  ON_MOUSELEAVE: 'onMouseLeave',
+  ON_MOUSEOUT: 'onMouseOut',
+  ON_MOUSEOVER: 'onMouseOver',
+} as const
 
 /* -------------------------------------------------------
   ---- LIB CONSTANTS

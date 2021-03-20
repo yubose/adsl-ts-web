@@ -1,5 +1,4 @@
-import { ActionType, EmitObject, IfObject } from 'noodl-types'
-import { componentTypes } from './constants'
+import { ActionType, componentTypes, EmitObject, IfObject } from 'noodl-types'
 import { isBool, isObj } from './_internal'
 
 export function isAction(value: any, actionType?: ActionType) {
@@ -74,7 +73,7 @@ export function isIfObj(value: any): value is IfObject {
 const pluginTypes = ['plugin', 'pluginHead', 'pluginBodyTop', 'pluginBodyTail']
 
 export function isPluginComponent(value: any) {
-  return !!(value && pluginTypes.includes(value?.noodlType || value?.type))
+  return !!(value && pluginTypes.includes(value?.type))
 }
 
 /**

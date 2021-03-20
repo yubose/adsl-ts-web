@@ -325,7 +325,7 @@ describe('_internalResolver', () => {
         ],
       })
       const label = parent.child()
-      expect(label?.child()).to.have.property('noodlType', 'label')
+      expect(label?.child()).to.have.property('type', 'label')
     })
 
     it('should create br child components for "br" items', () => {
@@ -339,9 +339,9 @@ describe('_internalResolver', () => {
         ],
       } as any)
       const label = parent.child()
-      expect(label?.child(0)).to.have.property('noodlType', 'br')
-      expect(label?.child(1)).to.have.property('noodlType', 'label')
-      expect(label?.child(2)).to.have.property('noodlType', 'br')
+      expect(label?.child(0)).to.have.property('type', 'br')
+      expect(label?.child(1)).to.have.property('type', 'label')
+      expect(label?.child(2)).to.have.property('type', 'br')
     })
 
     it('items should not be wrapped by resolveComponent', () => {

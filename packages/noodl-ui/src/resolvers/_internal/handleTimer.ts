@@ -29,7 +29,7 @@ const handleTimer = (
     let isListDescendant = isListConsumer(component)
 
     findParent(component, (p) => {
-      if (p?.noodlType === 'page') return (isPageDescendant = true)
+      if (p?.type === 'page') return (isPageDescendant = true)
       return false
     })
 

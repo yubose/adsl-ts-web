@@ -1,20 +1,18 @@
-import { ComponentObject } from 'noodl-types'
+import { ComponentObject, userEvent } from 'noodl-types'
 import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
 import {
   ActionChainEmitTrigger,
-  ComponentCreationType,
   ComponentInstance,
   PluginLocation,
 } from '../types'
 import { isBrowser } from './common'
-import { actionChainEmitTriggers } from '../constants'
 import isComponent from './isComponent'
 
 export function isActionChainEmitTrigger(
   trigger: any,
 ): trigger is ActionChainEmitTrigger {
-  return actionChainEmitTriggers.includes(trigger)
+  return userEvent.includes(trigger)
 }
 
 // function createRegexKeysOnProps(keys: string | string[]) {
@@ -138,13 +136,10 @@ export function findListDataObject(component: ComponentInstance) {
   let dataObject
   let listItem: any
 
-  if (/listItem/i.test(component.noodlType)) {
+  if (/listItem/i.test(component?.type)) {
     listItem = component
   } else {
-    listItem = findParent(
-      component,
-      (p) => !!/listItem/i.test(p?.noodlType || ''),
-    )
+    listItem = findParent(component, (p) => !!/listItem/i.test(p?.type || ''))
   }
 
   if (isComponent(listItem)) {
@@ -397,8 +392,8 @@ export function isListConsumer(component: any) {
     component?.get?.('iteratorVar') ||
     component?.get?.('listId') ||
     component?.get?.('listIndex') != undefined ||
-    component?.noodlType === 'listItem' ||
-    (component && findParent(component, (p) => p?.noodlType === 'listItem'))
+    component?.type === 'listItem' ||
+    (component && findParent(component, (p) => p?.type === 'listItem'))
   )
 }
 

@@ -23,11 +23,11 @@ interface Options {
  * @param { string | object | ComponentInstance } value - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
-function createComponent(noodlType: 'list', options?: Options): List
-function createComponent(noodlType: 'listItem', options?: Options): ListItem
-function createComponent(noodlType: 'page', options?: Options): Page
+function createComponent(type: 'list', options?: Options): List
+function createComponent(type: 'listItem', options?: Options): ListItem
+function createComponent(type: 'page', options?: Options): Page
 function createComponent<K extends ComponentType = ComponentType>(
-  noodlType: K,
+  type: K,
   options?: Options,
 ): ComponentInstance
 
@@ -76,7 +76,7 @@ function toInstance(value: PropsOptionObj) {
   if (!('children' in value)) {
     // value.children = []
   }
-  switch (value.noodlType || value.type) {
+  switch (value.type) {
     case 'list':
       return new List(value)
     case 'listItem':
