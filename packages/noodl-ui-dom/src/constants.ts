@@ -7,6 +7,7 @@ export const eventId = {
       ON_OUTBOUND_REDIRECT: 'on:outbound.redirect',
       ON_DOM_CLEANUP: 'on:dom.cleanup',
       ON_BEFORE_RENDER_COMPONENTS: 'on:before.render.components',
+      ON_BEFORE_APPEND_COMPONENT_CHILD_NODE: 'on:before.append.child.node',
       ON_APPEND_NODE: 'on:append.node',
       ON_BEFORE_APPEND_CHILD: 'on:before.append.child',
       ON_AFTER_APPEND_CHILD: 'on:after.append.child',

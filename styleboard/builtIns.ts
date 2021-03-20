@@ -15,6 +15,7 @@ import {
 } from 'noodl-ui'
 import NOODLOM, {
   eventId,
+  findByElementId,
   getByDataUX,
   isTextFieldLike,
   NOODLDOMDataValueElement,
@@ -608,7 +609,6 @@ const createBuiltInActions = function createBuiltInActions({
       async fn(
         action: Action<BuiltInActionObject>,
         options: ActionConsumerCallbackOptions,
-        { findByElementId },
       ) {
         log.func('redraw')
         log.red('', { action, options })
@@ -637,6 +637,7 @@ const createBuiltInActions = function createBuiltInActions({
             action,
             ...options,
             component,
+            viewTag,
           })
         } else {
           log.grey(`Redrawing ${components.length} components`, components)
@@ -646,7 +647,7 @@ const createBuiltInActions = function createBuiltInActions({
 
         while (startCount < components.length) {
           const viewTagComponent = components[startCount] as ComponentInstance
-          const node = findByElementId(viewTagComponent)
+          const node = findByViewTag(viewTag)
           const dataObject = findListDataObject(viewTagComponent)
           const opts = { dataObject }
           const [newNode, newComponent] = ndom.redraw(

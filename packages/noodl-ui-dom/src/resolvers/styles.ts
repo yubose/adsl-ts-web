@@ -5,6 +5,7 @@ import {
   isComponent,
   Viewport as VP,
 } from 'noodl-ui'
+import { Identify } from 'noodl-types'
 import { NOODLDOMElement, RegisterOptions } from '../types'
 import {
   addClassName,
@@ -154,75 +155,33 @@ export default {
     }
   },
   observe: {
-    [eventId.page.on.ON_CHILD_NODES_RENDERED]({
-      blueprint,
-      component,
-      node,
+    [eventId.page.on.ON_BEFORE_APPEND_COMPONENT_CHILD_NODE]({
       page,
+      component,
+      child,
+      childNode,
     }) {
+      const renderState = page.state.render
+      const currentTop = childNode?.getBoundingClientRect().bottom
+      renderState.lastTop += currentTop - renderState.lastTop
+
+      // Calculate the top
+      if (
+        isObj(child.original?.style) &&
+        VP.isNil(child.original?.style?.top) &&
+        !Identify.component.list(component.original)
+      ) {
+        child.style.top = childNode.getBoundingClientRect().top + 'px'
+        childNode.style.top = child.style.top
+      }
+
       // Calculate the height
-      if (isObj(blueprint.style) && VP.isNil(blueprint.style.height)) {
-        const bounds = node.getBoundingClientRect()
-        const clientHeight = node.clientHeight // Includes padding -- Excludes borders, margins, horizontal scrollbars
-        const offsetHeight = node.offsetHeight // Includes padding, border, horizontal scrollbars
-        const scrollHeight = node.scrollHeight // Actual content of the element, regardless if any content is hidden inside scrollbars
-        const renderState = page.state.render
-        const vh = page.viewport.height
-        const marginTop = component.style.marginTop
-        const top = component.style.top
-        const height = component.style.height
-
-        console.log({
-          origHeight: blueprint.style.height,
-          bounds,
-          node,
-          marginTop,
-          top,
-          height,
-          clientHeight,
-          offsetHeight,
-          scrollHeight,
-        })
-
-        // if (VP.isNil(marginTop)) {
-        //   component.style.marginTop = '0px'
-        // } else {
-        //   if (VP.isNoodlUnit(marginTop)) {
-        //     component.style.marginTop =
-        //       VP.getSize(marginTop, vh, { unit: 'px' }) || undefined
-        //   } else {
-        //     console.log(
-        //       `%cREMINDER: If you see this message go fix this ASAP`,
-        //       `color:#ec0000;`,
-        //     )
-        //   }
-        // }
-        // if (!VP.isNil(component.style.top)) {
-        //   if (VP.isNoodlUnit(component.style.top))
-        //     renderState.lastTop += Number(VP.getSize(component.style.top, vh))
-        // } else {
-        //   component.style.top = '0px'
-        // }
-        // if (!VP.isNil(height)) {
-        //   if (VP.isNoodlUnit(height)) {
-        //     const result = Number(VP.getSize(height, vh))
-        //     if (isNum(result)) {
-        //       component.style.height = result + 'px'
-        //       renderState.lastTop += result
-        //     }
-        //   } else {
-        //     // console.log({
-        //     //   offsetHeight: node.offsetHeight,
-        //     //   clientTop: node.clientTop,
-        //     //   scrollTop: node.scrollTop,
-        //     //   height,
-        //     //   node,
-        //     // })
-        //     // renderState.lastTop += VP.toNum(
-        //     //   VP.getSize(VP.toNum(height), vh),
-        //     // )
-        //   }
-        // }
+      if (isObj(component.style) && VP.isNil(component.style.height)) {
+        if (component.has('textBoard')) {
+          child.style.height = childNode.getBoundingClientRect().height + 'px'
+          childNode.style.height = child.style.height
+          // renderState.lastTop += childNode.getBoundingClientRect().height
+        }
       }
     },
   },

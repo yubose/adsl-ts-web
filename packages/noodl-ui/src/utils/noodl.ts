@@ -434,19 +434,13 @@ export function publish(
   component: ComponentInstance,
   cb: (child: ComponentInstance) => void,
 ) {
-  if (
-    component &&
-    typeof component === 'object' &&
-    typeof component['children'] === 'function'
-  ) {
-    component.children.forEach((child: ComponentInstance) => {
-      cb(child)
-      child?.children?.forEach?.((c: ComponentInstance) => {
-        cb(c)
-        publish(c, cb)
-      })
+  component.children?.forEach?.((child: ComponentInstance) => {
+    cb(child)
+    child?.children?.forEach?.((c: ComponentInstance) => {
+      cb(c)
+      publish(c, cb)
     })
-  }
+  })
 }
 
 export function resolveAssetUrl(pathValue: string, assetsUrl: string) {

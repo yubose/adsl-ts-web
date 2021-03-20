@@ -122,45 +122,28 @@ class NOODLOM extends NOODLDOMInternal {
         const parent = container || document.body
         parent.appendChild(node)
 
-        this.page.emitSync(eventId.page.on.ON_APPEND_NODE, {
-          page: this.page,
-          parentNode: parent,
-          component,
-          node,
-        })
-
         this.#R.run(node, component)
 
-        let lastTop = 0
-        let currentTop = lastTop
-
-        const appendChild = (n: typeof node, childNode: HTMLElement) => {
-          currentTop = childNode?.getBoundingClientRect().bottom
-          console.log(
-            `Adding next lastTop of ${currentTop} to previous lastTop ${lastTop}`,
-            // this.page.state.render.lastTop,
-            node?.id,
+        component.children?.forEach?.((child: ComponentInstance) => {
+          const childNode = this.draw(child, node) as HTMLElement
+          this.page.emitSync(
+            eventId.page.on.ON_BEFORE_APPEND_COMPONENT_CHILD_NODE,
+            {
+              page: this.page,
+              component,
+              node: node as HTMLElement,
+              child,
+              childNode,
+            },
           )
-          lastTop += currentTop - lastTop
-          // lastTop = childNode.getBoundingClientRect().bottom
-          n?.appendChild(childNode)
-        }
-
-        component.children?.forEach?.(
-          (child: ComponentInstance, index: number) => {
-            const childNode = this.draw(child, node) as HTMLElement
-            // if ()
-            appendChild(node, childNode)
-            if (index === component.length - 1) console.log(node)
-          },
-        )
+          node?.appendChild(childNode)
+        })
 
         this.page.emitSync(eventId.page.on.ON_CHILD_NODES_RENDERED, {
           blueprint: component.original,
           component,
           node,
           page: this.page,
-          bounds: node.getBoundingClientRect(),
         })
       }
     }

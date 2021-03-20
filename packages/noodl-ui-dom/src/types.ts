@@ -145,6 +145,13 @@ export namespace Page {
       | void
       | undefined
     >
+    [eventId.page.on.ON_BEFORE_APPEND_COMPONENT_CHILD_NODE](args: {
+      page: NOODLDOMPage
+      component: ComponentInstance
+      node: HTMLElement
+      child: ComponentInstance
+      childNode: HTMLElement
+    }): void
     [eventId.page.on.ON_COMPONENTS_RENDERED](
       snapshot: Snapshot & { components: ComponentInstance[] },
     ): void

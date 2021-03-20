@@ -444,10 +444,21 @@ class App {
       await noodl.initPage(ref.page)
       log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
       log.grey(`Initiated page: ${ref.page}`)
+
       Object.entries(getAllResolversAsMap()).forEach(([name, resolver]) => {
-        if (!/(getAlign|getPosition)/i.test(name)) {
-          ref?.use?.(new Resolver().setResolver(resolver))
+        if (
+          !/(getAlign|getPosition|getBorder|getColors|getFont|getPosition|getSizes|getStylesBy|getTransformedStyle)/i.test(
+            name,
+          )
+        ) {
+          const r = new Resolver().setResolver(resolver)
+          ref.use({ name, resolver: r })
         }
+      })
+
+      ref.use({
+        name: 'resolveStyles',
+        resolver: new Resolver().setResolver(resolveStyles),
       })
     })
   }

@@ -237,7 +237,6 @@ class NOODLUI {
     const consumerOptions = this.getConsumerOptions({ component })
     const baseStyles = this.getBaseStyles(component)
 
-    component.id = component.id || getRandomKey()
     component.assignStyles(baseStyles)
 
     if (component.noodlType === 'register') {
