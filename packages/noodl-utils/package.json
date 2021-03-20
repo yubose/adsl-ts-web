@@ -38,5 +38,8 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
+  },
+  "devDependencies": {
+    "noodl-ui-test-utils": "file:../noodl-ui-test-utils"
   }
 }

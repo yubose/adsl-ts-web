@@ -28,7 +28,8 @@
     "scripts/mocha.js",
     "packages/noodl-ui/src",
     "packages/noodl-utils/src",
-    "packages/noodl-ui-dom/src"
+    "packages/noodl-ui-dom/src",
+    "packages/noodl-ui-test-utils/src"
   ],
   "exclude": ["node_modules/**/*", "build", "sbuild"]
 }
