@@ -72,7 +72,9 @@ class Component<C extends ComponentObject = ComponentObject>
     this.#id = opts?.id || this.#component.id || getRandomKey()
     this['noodlType'] = this.#component.noodlType as any
 
-    this.style = isDraft(this.style) ? current(this.style) : this.style
+    this.#component.style = isDraft(this.#component.style)
+      ? original(this.#component.style)
+      : this.#component.style
 
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
@@ -513,8 +515,8 @@ class Component<C extends ComponentObject = ComponentObject>
       if (u.isObj(props)) {
         u.entries(props).forEach(([k, v]) => {
           if (k === 'style') {
-            if (!this.style) this.style = {}
-            u.isObj(v) && u.assign(this.style, v)
+            if (!this.#component.style) this.#component.style = {}
+            u.isObj(v) && u.assign(this.#component.style, v)
           } else {
             this.#component[k] = v
           }
@@ -525,8 +527,8 @@ class Component<C extends ComponentObject = ComponentObject>
     } else if (u.isObj(fn)) {
       u.entries(fn).forEach(([k, v]) => {
         if (k === 'style') {
-          if (u.isObj(v)) u.assign(this.style, v)
-          else this.style = v
+          if (u.isObj(v)) u.assign(this.#component.style as StyleObject, v)
+          else this.#component.style = v
         } else {
           this.#component[k] = v
         }

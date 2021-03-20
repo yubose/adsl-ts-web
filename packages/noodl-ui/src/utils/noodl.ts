@@ -11,44 +11,6 @@ import { isBrowser } from './common'
 import { actionChainEmitTriggers } from '../constants'
 import isComponent from './isComponent'
 
-/**
- * Deeply traverses all children down the component's family tree
- * @param { ComponentInstance | NOODLComponent | ProxiedComponent | ProxiedComponent } component
- */
-export function forEachDeepChildren<C extends ComponentInstance>(
-  component: C,
-  cb: (component: C, child: ComponentCreationType) => void,
-): void
-export function forEachDeepChildren<C extends ComponentObject>(
-  component: C,
-  cb: (component: C, child: ComponentCreationType) => void,
-): void
-export function forEachDeepChildren<
-  C extends ComponentInstance | ComponentObject
->(
-  component: C,
-  cb: (
-    parent: ComponentInstance | ComponentObject,
-    child: ComponentCreationType,
-  ) => void,
-): void {
-  if (component) {
-    if (Array.isArray(component.children)) {
-      component.children.forEach((child) => {
-        cb(component, child)
-        forEachDeepChildren(child, cb)
-      })
-    } else if (typeof component.children === 'function') {
-      component.children.forEach((child) => {
-        cb(component, child)
-        forEachDeepChildren(child, cb)
-      })
-    } else if (component.children) {
-      cb(component, component.children as ComponentCreationType)
-    }
-  }
-}
-
 export function isActionChainEmitTrigger(
   trigger: any,
 ): trigger is ActionChainEmitTrigger {
@@ -488,19 +450,13 @@ export function publish(
   component: ComponentInstance,
   cb: (child: ComponentInstance) => void,
 ) {
-  if (
-    component &&
-    typeof component === 'object' &&
-    typeof component['children'] === 'function'
-  ) {
-    component.children.forEach((child: ComponentInstance) => {
-      cb(child)
-      child?.children?.forEach?.((c: ComponentInstance) => {
-        cb(c)
-        publish(c, cb)
-      })
+  component.children?.forEach?.((child: ComponentInstance) => {
+    cb(child)
+    child?.children?.forEach?.((c: ComponentInstance) => {
+      cb(c)
+      publish(c, cb)
     })
-  }
+  })
 }
 
 export function resolveAssetUrl(pathValue: string, assetsUrl: string) {

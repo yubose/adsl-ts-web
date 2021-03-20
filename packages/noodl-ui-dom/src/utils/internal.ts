@@ -1,4 +1,5 @@
 import { ComponentInstance } from 'noodl-ui'
+import { Page } from '../types'
 
 export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
 export const assign = (
@@ -18,7 +19,9 @@ export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
 export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
   typeof v === 'function'
 export const keys = (v: any) => Object.keys(v)
-export const values = <V = any>(v: any): V[] => Object.values(v)
+export const values = <O extends Record<string, any>, K extends keyof O>(
+  v: O,
+): O[K][] => Object.values(v)
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
@@ -47,13 +50,11 @@ export function fixTextAlign(c: ComponentInstance) {
   })
 }
 
+export function getDefaultRenderState(
+  initialState?: Record<string, any>,
+): Page.State['render'] {
+  return { lastTop: 0, ...initialState }
+}
+
 export const xKeys = ['left', 'width', 'marginLeft']
 export const yKeys = ['top', 'height', 'marginTop']
-
-export function isNoodlUnit(v: any): v is string {
-  return isStr(v) && !/[a-zA-Z]/i.test(v)
-}
-
-export function toNum(s: any) {
-  return Number(String(s).replace(/[a-zA-Z]/gi, ''))
-}

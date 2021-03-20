@@ -1,13 +1,9 @@
-import Logger from 'logsnap'
-import pick from 'lodash/pick'
-import { ComponentInstance } from 'noodl-ui'
-import { ComponentObject, PageObject } from 'noodl-types'
-import { createEmptyObjectWithKeys, openOutboundURL } from './utils'
+import { ComponentInstance, Viewport } from 'noodl-ui'
+import { ComponentObject } from 'noodl-types'
+import { openOutboundURL } from './utils'
 import { eventId } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
-
-const log = Logger.create('Page')
 
 const getDefaultRenderState = (
   initialState?: Record<string, any>,
@@ -25,27 +21,23 @@ class Page {
     previous: '',
     requesting: '',
     modifiers: {} as {
-      [pageName: string]: { reload?: boolean } & {
-        [key: string]: any
-      }
+      [pageName: string]: { reload?: boolean } & Record<string, any>
     },
     status: eventId.page.status.IDLE as T.Page.Status,
     render: getDefaultRenderState(),
     rootNode: false,
+    render: u.getDefaultRenderState(),
   }
-  #cbs = {
-    ...createEmptyObjectWithKeys(
-      u.values(eventId.page.on),
-      [] as T.PageCallbackObjectConfig[],
-    ),
-    ...createEmptyObjectWithKeys(
-      u.values(eventId.page.status),
-      [] as T.PageCallbackObjectConfig[],
-    ),
-  }
+  #hooks = u
+    .values(eventId.page.on)
+    .reduce((acc, key) => u.assign(acc, { [key]: [] }), {}) as Record<
+    T.Page.HookEvent,
+    T.Page.HookDescriptor[]
+  >
   #render: T.Render.Func | undefined
+  #viewport = {} as Viewport
   pageUrl: string = 'index.html?'
-  rootNode: HTMLDivElement
+  rootNode: HTMLBodyElement
   ref: {
     request: {
       name: string
@@ -56,7 +48,7 @@ class Page {
   constructor(render?: T.Render.Func | undefined) {
     if (render) this.render = render
     // this.rootNode = document.createElement('div')
-    this.rootNode = document.body
+    this.rootNode = document.body as HTMLBodyElement
     this.rootNode.id = 'root'
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
@@ -77,15 +69,21 @@ class Page {
     return this.#state
   }
 
+  get viewport() {
+    return this.#viewport
+  }
+
+  set viewport(viewport) {
+    this.#viewport = viewport
+  }
+
   getCbs() {
-    return this.#cbs
+    return this.hooks
   }
 
   clearCbs() {
-    u.values(this.#cbs).forEach((arr) => {
-      while (arr.length) {
-        arr.pop()
-      }
+    u.values(this.hooks).forEach((arr) => {
+      while (arr.length) arr.pop()
     })
     return this
   }
@@ -119,7 +117,6 @@ class Page {
     //     this.snapshot(),
     //   )
     // }
-
     if (newPage) {
       this.ref.request.timer && clearTimeout(this.ref.request.timer)
       this.setRequestingPage(newPage, { delay })
@@ -127,8 +124,8 @@ class Page {
         history.pushState({}, '', this.pageUrl)
       }
       const snapshot = await this.navigate(newPage)
-      this.setPreviousPage(this.getState().current)
-      this.setCurrentPage(newPage)
+      this.setPreviousPage(this.state.current)
+      this.#state.current = newPage
       return snapshot || { snapshot: null }
     }
     return { snapshot: null }
@@ -148,53 +145,53 @@ class Page {
           'Cannot navigate without a renderer. ' +
             'Pass one in by directing setting the "render" property',
         )
+
       this.setStatus(eventId.page.status.NAVIGATING)
 
       // Outside link
-      if (typeof pageName === 'string' && pageName?.startsWith('http')) {
-        await this.emit(eventId.page.on.ON_OUTBOUND_REDIRECT, this.snapshot())
+      if (pageName?.startsWith?.('http')) {
+        await this.emitAsync(
+          eventId.page.on.ON_OUTBOUND_REDIRECT,
+          this.snapshot(),
+        )
         openOutboundURL(pageName)
         return this.#onNavigateEnd({ pageName })
       }
 
       // TODO - Put a page checker here
 
-      await this.emit(eventId.page.on.ON_NAVIGATE_START, this.snapshot())
+      await this.emitAsync(eventId.page.on.ON_NAVIGATE_START, this.snapshot())
 
-      const requestingPage = this.getState().requesting
+      const { requesting } = this.state
 
       // Sometimes a navigate request coming from another location like a
       // "goto" action can invoke a request in the middle of this operation.
       // Give the latest call the priority
-      if (this.getState().requesting !== pageName) {
-        log.orange(
-          `Aborting this navigate request for ${pageName} because a more ` +
-            `recent request to "${requestingPage}" was called`,
-          { pageAborting: pageName, pageRequesting: requestingPage },
+      if (requesting !== pageName) {
+        console.log(
+          `%cAborting this navigate request for ${pageName} because a more ` +
+            `recent request to "${requesting}" was called`,
+          `color:#FF5722;`,
+          { pageAborting: pageName, pageRequesting: requesting },
         )
-        await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-          ...this.snapshot(),
-          pageName,
-          from: 'navigate',
-        })
+        await this.emitAsync(eventId.page.on.ON_NAVIGATE_ABORT, this.snapshot())
         return this.#onNavigateEnd({ pageName })
       }
 
       // The caller is expected to provide their own page object
-      const pageSnapshot = (await this.emit(
+      const pageSnapshot = await this.emitAsync(
         eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
-        { ...this.snapshot(), pageName },
-      )) as Record<string, PageObject> | 'old.request'
+        this.snapshot({ ref: this.ref }),
+      )
 
       if (pageSnapshot === 'old.request') {
-        await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-          ...this.snapshot(),
-          pageName,
-          from: 'navigate',
-          reason: pageSnapshot,
-        })
-        return
+        return void (await this.emitAsync(
+          eventId.page.on.ON_NAVIGATE_ABORT,
+          this.snapshot(),
+        ))
       }
+
+      if (!pageSnapshot) throw new Error(`Page snapshot was empty`)
 
       this.setStatus(eventId.page.status.SNAPSHOT_RECEIVED)
 
@@ -202,11 +199,12 @@ class Page {
         pageSnapshot?.object?.components as ComponentObject[],
       ) as ComponentInstance[]
 
-      await this.emit(eventId.page.on.ON_COMPONENTS_RENDERED, {
-        ...this.snapshot(),
-        pageName,
-        components,
-      })
+      await this.emitAsync(
+        eventId.page.on.ON_COMPONENTS_RENDERED,
+        this.snapshot({ components }) as T.Page.Snapshot & {
+          components: ComponentInstance[]
+        },
+      )
 
       this.#onNavigateEnd({ pageName })
 
@@ -214,11 +212,11 @@ class Page {
         snapshot: { ...pageSnapshot, components },
       }
     } catch (error) {
-      await this.emit(eventId.page.on.ON_NAVIGATE_ERROR, {
-        error,
-        pageName,
-        ...this.snapshot(),
-      })
+      this.emitSync(eventId.page.on.ON_NAVIGATE_ABORT, this.snapshot({ error }))
+      this.emitSync(
+        eventId.page.on.ON_NAVIGATE_ERROR,
+        this.snapshot({ error }) as T.Page.Snapshot & { error: Error },
+      )
       this.#onNavigateEnd({ error, pageName })
       throw new Error(error)
     }
@@ -268,91 +266,59 @@ class Page {
   /**
    * Returns a JS representation of the current state of this page instance
    */
-  snapshot() {
+  snapshot(opts?: Record<string, any>) {
     return {
-      ...pick(this.getState(), ['status', 'previous', 'current', 'requesting']),
-      ref: this.ref,
+      status: this.state.status,
+      previous: this.state.status,
+      current: this.state.current,
+      requesting: this.state.requesting,
+      ...opts,
     }
   }
 
-  createCbConfig(
-    config: Partial<T.PageCallbackObjectConfig>,
-  ): T.PageCallbackObjectConfig
-  createCbConfig(fn: T.AnyFn): T.PageCallbackObjectConfig
-  createCbConfig(fn: any) {
-    const config = {} as T.PageCallbackObjectConfig
-    if (typeof fn === 'function') {
-      config.fn = fn
-    } else if (fn && typeof fn === 'object') {
-      u.keys(fn).forEach((key) => ((config as any)[key] = fn[key]))
+  on<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+    if (this.hooks[evt] && !this.hooks[evt].some((o) => o.id === evt)) {
+      this.hooks[evt].push({ id: evt, fn })
     }
-    return config
+    return this
   }
 
-  on(
-    event: T.Page.Event | T.Page.Status,
-    fn: T.AnyFn | Partial<T.PageCallbackObjectConfig>,
+  off<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+    const index = this.hooks[evt]?.findIndex?.((o) => o.fn === fn) || -1
+    if (index !== -1) this.hooks[evt].splice(index, 1)
+    return this
+  }
+
+  once<Evt extends T.Page.HookEvent>(evt: Evt, fn: T.Page.Hook[Evt]) {
+    const descriptor: T.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
+    this.hooks[evt].push(descriptor)
+    return this
+  }
+
+  async emitAsync<K extends T.Page.HookEvent>(
+    evt: K,
+    ...args: Parameters<T.Page.Hook[K]>
   ) {
-    if (!Array.isArray(this.#cbs[event])) this.#cbs[event] = []
-    this.#cbs[event] = this.#cbs[event].concat(this.createCbConfig(fn as any))
-    return this
-  }
-
-  once(
-    event: T.Page.Event | T.Page.Status,
-    config: Partial<T.PageCallbackObjectConfig>,
-  ): this
-  once(event: T.Page.Event | T.Page.Status, fn: T.AnyFn): this
-  once(event: T.Page.Event | T.Page.Status, fn: any) {
-    if (!Array.isArray(this.#cbs[event])) this.#cbs[event] = []
-    this.#cbs[event].push(
-      this.createCbConfig(typeof fn === 'function' ? { fn, once: true } : fn),
-    )
-    return this
-  }
-
-  async emit(event: T.Page.Event | T.Page.Status, ...args: any[]) {
-    let result
-    let objs = this.#cbs[event]
-    if (objs?.length) {
-      const numObjs = objs.length
-      for (let index = 0; index < numObjs; index++) {
-        const obj = objs[index]
-        // Remove the observer if the consumer registered it as a "once"ified handler
-        if (obj.once) objs.splice(objs.indexOf(obj), 1)
-        // For now we will just use the first return value received
-        // as the value to the caller that called emit if they are
-        // expecting some value
-        if (!result) result = await obj.fn(...args)
-        else await obj.fn(...args)
-      }
+    let results
+    if (u.isArr(this.hooks[evt])) {
+      results = await Promise.all(this.hooks[evt].map((o) => o.fn(...args)))
     }
-    return result
+    return results ? results.find(Boolean) : results
   }
 
-  emitSync(event: T.Page.Event | T.Page.Status, ...args: any[]) {
-    let result
-    let objs = this.#cbs[event]
-    if (objs?.length) {
-      const numObjs = objs.length
-      for (let index = 0; index < numObjs; index++) {
-        const obj = objs[index]
-        // Remove the observer if the consumer registered it as a "once"ified handler
-        if (obj.once) objs.splice(objs.indexOf(obj), 1)
-        // For now we will just use the first return value received
-        // as the value to the caller that called emit if they are
-        // expecting some value
-        if (!result) result = obj.fn(...args)
-        else obj.fn(...args)
-      }
-    }
-    return result
+  emitSync<K extends T.Page.HookEvent>(
+    evt: K,
+    ...args: Parameters<T.Page.Hook[K]>
+  ) {
+    this.hooks[evt]?.forEach?.((d, index) => {
+      d.fn?.call?.(this, ...args)
+      if (d.once) this.hooks[evt].splice(index, 1)
+    })
+    return this
   }
 
   setStatus(status: T.Page.Status) {
     this.#state.status = status
-    this.emitSync(status, status)
-    this.emitSync(eventId.page.status.ANY, status)
     if (status === eventId.page.status.IDLE) this.setRequestingPage('')
     else if (status === eventId.page.status.NAVIGATE_ERROR)
       this.setRequestingPage('')
@@ -361,11 +327,6 @@ class Page {
 
   setPreviousPage(name: string) {
     this.#state.previous = name
-    return this
-  }
-
-  setCurrentPage(name: string) {
-    this.#state.current = name
     return this
   }
 

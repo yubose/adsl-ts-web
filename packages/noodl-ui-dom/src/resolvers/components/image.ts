@@ -9,7 +9,6 @@ export default {
     if (typeof onClick === 'function') {
       node.style['cursor'] = 'pointer'
     }
-
     // If an image has children, we will assume it is some icon button overlapping
     //    Ex: profile photos and showing pencil icon on top to change it
     if (component.original?.children) {

@@ -1,4 +1,6 @@
 import Logger from 'logsnap'
+import merge from 'lodash/merge'
+import isPlainObject from 'lodash/isPlainObject'
 import {
   ComponentObject,
   ComponentType,
@@ -32,6 +34,7 @@ import {
   getRandomKey,
   hasLetter,
   isPromise,
+  toNumber,
 } from '../utils/common'
 import getActionConsumerOptions from '../utils/getActionConsumerOptions'
 import * as T from '../types'
@@ -369,13 +372,94 @@ class Page
     return ''
   }
 
-  getBaseStyles(styles?: T.Style) {
-    return {
-      ...this.getRoot().Style,
-      position: 'absolute',
-      outline: 'none',
-      ...styles,
+  getBaseStyles(component?: T.ComponentInstance, force = false) {
+    let originalStyle = (component?.original?.style as T.Style) || undefined
+    let styles = { ...originalStyle } as T.Style
+
+    // if (styles?.top === 'auto') styles.top = '0'
+    if (isPlainObject(originalStyle)) {
+      // "Auto top" for web. Set top to 0 to start immediately after the previous
+      if (!('top' in originalStyle)) styles.top = '0'
+
+      if (isComponent(component)) {
+        const parent = component.parent() as T.ComponentInstance
+        let top
+
+        if (parent) {
+          let parentTop = parent?.style?.top
+          let parentHeight = parent?.style?.height
+
+          // if (parentTop === 'auto') parentTop = '0'
+          if (parentTop !== undefined) {
+            if (parentTop === 'auto') {
+              top = 0
+            } else {
+              top = Viewport.getSize(parentTop, this.viewport.height as number)
+            }
+          }
+          if (parentHeight !== undefined) {
+            top = Viewport.getSize(
+              top + toNumber(parentHeight === 'auto' ? '0' : parentHeight),
+              this.viewport.height as number,
+            )
+          }
+
+          if (typeof top === 'number') {
+            // REMINDER: "top" is a value here like 0.202 (not yet converted to size in px)
+            top =
+              (this.viewport.height as number) -
+              Viewport.getSize(top, this.viewport.height as number)
+
+            // originalStyle.top = Viewport.getSize(
+            //   top,
+            //   this.viewport.height as number,
+            //   { unit: 'px' },
+            // )
+            component.setStyle(
+              'top',
+              Viewport.getSize(top, this.viewport.height as number, {
+                unit: 'px',
+              }),
+            )
+            if (!('height' in originalStyle)) {
+              styles.height = 'auto'
+            }
+          }
+
+          if (parent?.original?.style?.axis === 'vertical') {
+            Object.assign(styles, {
+              // position: 'relative',
+              // height: 'inherit',
+            })
+          }
+        }
+
+        if (!('top' in originalStyle) && !('height' in originalStyle)) {
+          styles.position = 'relative'
+          styles.height = 'auto'
+        }
+
+        if (!('height' in styles)) {
+          styles.height = 'auto'
+        }
+
+        if (component.original?.children?.length || component.length) {
+          // styles.position = 'relative'
+        }
+      } else if (isPlainObject(component)) {
+        //
+      }
     }
+
+    return merge(
+      {
+        ...this.#getRoot().Style,
+        position: 'absolute',
+        outline: 'none',
+      },
+      originalStyle,
+      styles,
+    )
   }
 
   getContext() {
@@ -520,8 +604,12 @@ class Page
   #resolve = (c: ComponentType | T.ComponentInstance | ComponentObject) => {
     const component = this.createComponent(c as any)
     const consumerOptions = this.getConsumerOptions({ component })
-    const baseStyles = this.getBaseStyles(component.original?.style)
+    const baseStyles = this.getBaseStyles(component)
     component.assignStyles(baseStyles)
+
+    getStore().resolvers.forEach((obj) =>
+      obj.resolver.resolve(component, consumerOptions),
+    )
 
     // Finalizing
     if (component.style && typeof component.style === 'object') {
@@ -535,10 +623,6 @@ class Page
         }
       })
     }
-
-    getStore().resolvers.forEach((obj) =>
-      obj.resolver.resolve(component, consumerOptions as T.ConsumerOptions),
-    )
 
     return component
   }

@@ -3,7 +3,7 @@ import set from 'lodash/set'
 import merge from 'lodash/merge'
 import isPlainObject from 'lodash/isPlainObject'
 import noop from 'lodash/noop'
-import { isDraft, original } from 'immer'
+import { isDraft, original, setUseProxies, enableES5 } from 'immer'
 import Logger from 'logsnap'
 import {
   ActionType,
@@ -48,6 +48,9 @@ import EmitAction from './Action/EmitAction'
 import getStore from './store'
 import { event } from './constants'
 import * as T from './types'
+
+enableES5()
+setUseProxies(false)
 
 export interface RegisterCallbacks {
   [key: string]: {

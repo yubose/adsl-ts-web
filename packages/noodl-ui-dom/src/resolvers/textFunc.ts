@@ -19,7 +19,7 @@ export default (function () {
   return {
     name: '[noodl-ui-dom] text=func',
     cond: (n, c) => typeof c.get('text=func') === 'function',
-    resolve: (node: NOODLDOMElement, component, { noodluidom }) => {
+    resolve: (node: NOODLDOMElement, component, { ndom }) => {
       if (component.contentType === 'timer') {
         setTimeout(() => {
           component.emit('initial.timer', (initialTime: Date) => {
@@ -48,7 +48,7 @@ export default (function () {
               },
               clear() {
                 clearInterval(timers[component.id].ref)
-                noodluidom.off(
+                ndom.page.off(
                   eventId.page.on.ON_DOM_CLEANUP,
                   timers[component.id]?.clear,
                 )
@@ -56,7 +56,7 @@ export default (function () {
               },
             }
 
-            noodluidom.on(
+            ndom.page.on(
               eventId.page.on.ON_DOM_CLEANUP,
               timers[component.id]?.clear,
             )

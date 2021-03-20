@@ -18,14 +18,14 @@ const getFilePath = (...args) => path.resolve(path.join(process.cwd(), ...args))
 
 const dirs = {
   noodlui: 'packages/noodl-ui',
-  noodluidom: 'packages/noodl-ui-dom',
+  ndom: 'packages/noodl-ui-dom',
   noodlutils: 'packages/noodl-utils',
 }
 
 const getFilesList = async () => {
   switch (cli.args[0]) {
     case 'redraw':
-      return globby(path.join(dirs.noodluidom, 'src/__tests__/redraw.test.ts'))
+      return globby(path.join(dirs.ndom, 'src/__tests__/redraw.test.ts'))
     case 'resolver':
       return [
         path.join(dirs.noodlui, 'src/__tests__/ComponentResolver.test.ts'),
@@ -55,7 +55,7 @@ const mocha = new Mocha({
 // mocha.enableGlobalSetup(true)
 
 // mocha.globalSetup((done) => {
-//   // import(getFilePath(dirs.noodluidom, 'src/setupTests.ts'))
+//   // import(getFilePath(dirs.ndom, 'src/setupTests.ts'))
 
 //   done()
 // })

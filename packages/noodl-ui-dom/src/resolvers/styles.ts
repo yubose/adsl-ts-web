@@ -3,29 +3,23 @@ import {
   Resolver,
   ComponentInstance,
   isComponent,
-  Viewport,
+  Viewport as VP,
 } from 'noodl-ui'
+import { Identify } from 'noodl-types'
 import { NOODLDOMElement, RegisterOptions } from '../types'
 import {
   addClassName,
   entries,
   fixTextAlign,
-  isNoodlUnit,
-  isNum,
   isObj,
-  isUnd,
-  toNum,
   xKeys,
   yKeys,
 } from '../utils/internal'
 import { eventId } from '../constants'
 
-const getSize = Viewport.getSize
+const getSize = VP.getSize
 const getSizeTypeKey = (s: string) => (xKeys.includes(s) ? 'width' : 'height')
 const posKeys = [...xKeys, ...yKeys]
-
-const isNil = (v: any): v is null | undefined | '' | 'auto' =>
-  v === null || isUnd(v) || v === 'auto' || v === ''
 
 let { getAlignAttrs, getPosition } = Object.entries(
   getAllResolversAsMap(),
@@ -39,9 +33,9 @@ getPosition = new Resolver().setResolver(getPosition)
 
 class XYEditor {
   #component: ComponentInstance
-  #viewport: Viewport
+  #viewport: VP
 
-  constructor(component: ComponentInstance, viewport: Viewport) {
+  constructor(component: ComponentInstance, viewport: VP) {
     this.#component = component
     this.#viewport = viewport
   }
@@ -49,11 +43,9 @@ class XYEditor {
   #updateVpProp = (prop: string, vpKey: string) => {
     this.#component.setStyle(
       prop,
-      Viewport.getSize(
-        this.#component.style[prop],
-        this.#viewport[vpKey] as number,
-        { unit: 'px' },
-      ),
+      VP.getSize(this.#component.style[prop], this.#viewport[vpKey] as number, {
+        unit: 'px',
+      }),
     )
   }
 
@@ -70,50 +62,20 @@ export default {
   name: '[noodl-dom] Styles',
   cond: (node: NOODLDOMElement, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
-  before(node, component, { editStyle, noodlui, page }) {
-    const renderState = page.state.render
-    const marginTop = component.style.marginTop
-    const top = component.style.top
-    const height = component.style.height
-
-    let addToLastTop = 0
-
-    if (!renderState.lastTop.componentIds.includes(component.id)) {
-      if (isNil(marginTop)) {
-        editStyle({ marginTop: '0px' })
-      }
-
-      if (isNil(top)) {
-        editStyle({ top: renderState.lastTop.value + 'px' })
-      }
-
-      if (isNil(height)) {
-        debugger
-      } else {
-        if (isNoodlUnit(height)) {
-          const componentHeight = Number(
-            getSize(height, noodlui.viewport.height as number),
-          )
-          component.style.height = componentHeight + 'px'
-          renderState.lastTop.value += componentHeight
-          addToLastTop += componentHeight
-        } else if (isNum(height)) {
-          addToLastTop += height
-        }
-      }
-
-      renderState.lastTop.componentIds.push(component.id)
+  before(node, component) {
+    if (VP.isNil(component.style.marginTop)) {
+      component.style.marginTop = '0px'
     }
   },
   resolve: (node: HTMLElement, component, { noodlui }) => {
-    const originalStyle = component?.style || {}
+    const originalStyle = component?.original?.style || {}
     let currentStyle = component.style
 
     if (isObj(currentStyle)) {
       const editor = new XYEditor(component, noodlui.viewport)
 
       posKeys.forEach((key) => {
-        if (isNoodlUnit(originalStyle[key])) {
+        if (VP.isNoodlUnit(originalStyle[key])) {
           if (xKeys.includes(key as any)) editor.updateX(key)
           else if (yKeys.includes(key as any)) editor.updateY(key)
         }
@@ -145,32 +107,22 @@ export default {
       entries(currentStyle).forEach(([k, v]) => (node.style[k] = v))
     }
 
-    if (!('marginTop' in originalStyle)) {
-      component.style.marginTop = '0px'
-    }
-
     /* -------------------------------------------------------
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */
 
-    if (component.noodlType === 'popUp') {
-      addClassName('popup', node)
-    }
-    if (component.noodlType === 'scrollView') {
-      addClassName('scroll-view', node)
-    }
-    if (component.has('textBoard')) {
-      addClassName('text-board', node)
-    }
+    if (component.noodlType === 'popUp') addClassName('popup', node)
+    if (component.noodlType === 'scrollView') addClassName('scroll-view', node)
+    if (component.has('textBoard')) addClassName('text-board', node)
   },
-  after(node, component, { noodlui, noodluidom }) {
+  after(node, component, { noodlui }) {
     if (!node || !component) return
 
     let top = component.style.top
     let height = component.style.height
     let parentIncSum = 0
 
-    if (isNil(top) || isNil(height)) {
+    if (VP.isNil(top) || VP.isNil(height)) {
       let parent = component.parent() as ComponentInstance
       let parentTouchedProp = {} as Record<string, any>
       let newTop = 0
@@ -178,126 +130,53 @@ export default {
       if (isComponent(parent)) {
         let parentStyle = parent.style || {}
         posKeys.forEach((key) => {
-          if (!isNil(parentStyle[key])) {
+          if (!VP.isNil(parentStyle[key])) {
             const value = parentStyle[key] || ''
             parentTouchedProp[key] = value
             const incSum = getSize(
               value,
               noodlui.viewport[getSizeTypeKey(key)] as number,
             )
-            // console.log(
-            //   `%cAdding incoming parent sum of ${parentIncSum} to incSum of ${incSum}`,
-            //   `color:#95a5a6;`,
-            //   {
-            //     parent,
-            //     parentIncSum,
-            //     incSum,
-            //     top,
-            //     height,
-            //   },
-            // )
             parentIncSum += Number(incSum)
           }
         })
-        // console.log(
-        //   `%cAdding parentIncSum of ${parentIncSum} to newTop of ${newTop}`,
-        //   `color:#95a5a6;`,
-        // )
         newTop += parentIncSum
       }
-      const topNum = toNum(top)
-      const heightNum = toNum(height)
+      const topNum = VP.toNum(top)
+      const heightNum = VP.toNum(height)
       const componentTopAndHeight = topNum + heightNum
-      if (newTop !== componentTopAndHeight) {
-        // node.style.top = newTop + 'px'
-        component.style.top = newTop + 'px'
-        // renderState.lastTop += newTop
-      }
-      // console.log([
-      //   [newTop, parentIncSum],
-      //   top,
-      //   height,
-      //   component.parent()?.style.top,
-      //   component.parent()?.style.height,
-      //   renderState,
-      // ])
-      // for (const elem of noodluidom.page.rootNode.children) {
-      //   const childrenNodes = Array.from(elem.children)
-      //   // Temp for debugging
-      //   childrenNodes.forEach((elem) => {
-      //     if (elem instanceof HTMLImageElement) {
-      //       // elem.style.position = 'absolute'
-      //       // elem.style.top = '0px'
-      //     }
-      //   })
-      // }
-    } else {
-      // node.style.position = 'absolute'
+      if (newTop !== componentTopAndHeight) component.style.top = newTop + 'px'
     }
   },
   observe: {
-    [eventId.page.on.ON_AFTER_APPEND_CHILD]({
-      component: componentOptions,
-      child: childOptions,
+    [eventId.page.on.ON_BEFORE_APPEND_COMPONENT_CHILD_NODE]({
       page,
+      component,
+      child,
+      childNode,
     }) {
-      // Finalize the marginTop/top/height dimensions before saving to renderState
-      if (componentOptions.instance.length) {
-        if (childOptions.index === 0) {
-          const component = componentOptions.instance
-          const child1 = component.child() as ComponentInstance
-          if (child1) {
-            if (isNil(child1.original?.style?.top)) {
-              console.log(
-                `%cSetting first child's top (${child1.original?.style?.top}) to be the same ` +
-                  `as its parent (${component.style.top}) because it is missing`,
-                `color:#95a5a6;`,
-                { node: componentOptions.node, component, child: child1 },
-              )
-              child1.style.top = component.style.top
-              childOptions.node.style.top = '0px'
-              // childOptions.node.style.top = componentOptions.node.style.top
-            }
-          }
-        }
+      const renderState = page.state.render
+      const currentTop = childNode?.getBoundingClientRect().bottom
+      renderState.lastTop.value += currentTop - renderState.lastTop.value
+
+      // Calculate the top
+      if (
+        isObj(child.original?.style) &&
+        VP.isNil(child.original?.style?.top) &&
+        !Identify.component.list(component.original)
+      ) {
+        child.style.top = childNode.getBoundingClientRect().top + 'px'
+        childNode.style.top = child.style.top
       }
 
-      if (componentOptions.instance?.id) {
-        const renderState = page.state?.render
-        const component = componentOptions.instance
-
-        let addToLastTop = 0
-
-        if (!renderState.lastTop.componentIds.includes(component.id)) {
-          if (isNil(component.style.marginTop)) {
-            component.style.marginTop = '0px'
-          }
-
-          if (isNil(component.style.top)) {
-            // component.style.top = renderState.lastTop + 'px'
-          }
-
-          if (isNil(component.style.height)) {
-            // debugger
-          } else {
-            // addToLastTop += toNum()
-          }
+      // Calculate the height
+      if (isObj(component.style) && VP.isNil(component.style.height)) {
+        if (component.has('textBoard')) {
+          child.style.height = childNode.getBoundingClientRect().height + 'px'
+          childNode.style.height = child.style.height
+          // renderState.lastTop += childNode.getBoundingClientRect().height
         }
       }
-
-      // const props = component.instance.props()
-      // const childProps = child.instance.props()
-      //
-      // Resolve the top/height and update lastTop for child nodes to follow
-      // console.log({
-      //   component,
-      //   child,
-      //   ndom: this,
-      //   originalStyle: component.instance.original?.style,
-      //   currentStyle: isDraft(component.instance.style)
-      //     ? current(component.instance.style)
-      //     : component.instance.style,
-      // })
     },
   },
 } as RegisterOptions

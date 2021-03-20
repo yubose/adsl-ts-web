@@ -1,20 +1,19 @@
 import chalk from 'chalk'
 import sinon from 'sinon'
-import { enableES5 } from 'immer'
 import { ComponentObject } from 'noodl-types'
 import {
   ComponentInstance,
   createComponent,
-  getStore,
   List,
   ListItem,
   NOODLComponent,
+  Viewport as VP,
 } from 'noodl-ui'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { applyMockDOMResolver, noodlui, ndom, toDOM } from '../test-utils'
+import { useResolver, noodlui, ndom, toDOM } from '../test-utils'
 import { eventId } from '../constants'
-import NOODLUIDOM from '../noodl-ui-dom'
+import NOODLDOM from '../noodl-ui-dom'
 import * as resolvers from '../resolvers'
 
 const getNoodlList = () =>
@@ -37,13 +36,9 @@ const getNoodlList = () =>
     ],
   } as NOODLComponent)
 
-before(() => {
-  enableES5()
-})
-
 describe(chalk.keyword('orange')('resolvers'), () => {
   it('should display data value if it is displayable', () => {
-    const { node } = applyMockDOMResolver({
+    const { node } = useResolver({
       resolver: resolvers.common,
       pageName: 'F',
       pageObject: { formData: { password: 'asfafsbc' } },
@@ -59,7 +54,7 @@ describe(chalk.keyword('orange')('resolvers'), () => {
   describe('button', () => {
     it('should have a pointer cursor if it has an onClick', () => {
       expect(
-        applyMockDOMResolver({
+        useResolver({
           resolver: resolvers.button,
           pageName: 'F',
           pageObject: { formData: { password: 'asfafsbc' } },
@@ -140,7 +135,7 @@ describe('events', () => {
 describe('image', () => {
   it('should attach the pointer cursor if it has onClick', () => {
     expect(
-      applyMockDOMResolver({
+      useResolver({
         component: { type: 'image', onClick: [] },
         resolver: resolvers.image,
       }).node.style,
@@ -152,7 +147,7 @@ describe('image', () => {
   it('should set width and height to 100% if it has children (deprecate soon)', () => {
     const {
       node: { style },
-    } = applyMockDOMResolver({
+    } = useResolver({
       component: { type: 'image', children: [] },
       resolver: resolvers.image,
     })
@@ -164,7 +159,7 @@ describe('image', () => {
 describe('label', () => {
   it('should attach the pointer cursor if it has onClick', () => {
     expect(
-      applyMockDOMResolver({
+      useResolver({
         component: { type: 'label', onClick: [] },
         resolver: resolvers.label,
       }).node.style,
@@ -176,7 +171,7 @@ describe('label', () => {
 
 describe('list', () => {
   it(`should add created list items to the component cache`, () => {
-    const result = applyMockDOMResolver({
+    const result = useResolver({
       component: getNoodlList(),
       resolver: resolvers.image,
     })
@@ -191,7 +186,7 @@ describe('list', () => {
   })
 
   it(`should remove removed list items from the component cache`, () => {
-    const result = applyMockDOMResolver({
+    const result = useResolver({
       component: getNoodlList(),
       resolver: resolvers.image,
     })
@@ -205,7 +200,7 @@ describe('list', () => {
   })
 
   it(`should remove the corresponding list item's DOM node from the DOM`, () => {
-    const result = applyMockDOMResolver({
+    const result = useResolver({
       component: getNoodlList(),
       resolver: resolvers.image,
     })
@@ -221,12 +216,12 @@ describe('list', () => {
 })
 
 describe('page', () => {
-  let result: ReturnType<typeof applyMockDOMResolver>
+  let result: ReturnType<typeof useResolver>
   let node: HTMLIFrameElement
   let component: ComponentInstance
 
   beforeEach(() => {
-    result = applyMockDOMResolver({
+    result = useResolver({
       component: { type: 'page', path: 'LeftPage' },
       pageName: 'Hello',
       pageObject: {},
@@ -265,7 +260,7 @@ describe('page', () => {
 describe.skip(`plugin`, () => {
   it(`should receive a function as the node argument`, () => {
     const spy = sinon.spy()
-    const ndom = new NOODLUIDOM()
+    const ndom = new NOODLDOM()
     ndom.register({ cond: 'plugin', resolve: spy })
     ndom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
     expect(spy.firstCall.args[0]).to.be.a('function')
@@ -274,7 +269,8 @@ describe.skip(`plugin`, () => {
   it(`should use the argument node passed to the function as the final node`, () => {
     const node = document.createElement('div')
     node.id = 'hello'
-    const ndom = new NOODLUIDOM()
+    const ndom = new NOODLDOM()
+    // @ts-expect-error
     ndom.register({ cond: 'plugin', resolve: (getNode) => getNode(node) })
     ndom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
     console.info(document.body.children.length)
@@ -285,6 +281,7 @@ describe.skip(`plugin`, () => {
     xit(`should render the html to the DOM`, async () => {
       const html = '<div id="hello"><button class="abc">morning</button></div>'
       const fetch = window.fetch
+      // @ts-expect-error
       window.fetch = () => Promise.resolve(html)
       const noodlComponent = { type: 'plugin', path: 'abc.html' }
       const component = noodlui.resolveComponents(noodlComponent)
@@ -318,133 +315,103 @@ describe.skip(`plugin`, () => {
 })
 
 describe.only(`styles`, () => {
-  let ndom: NOODLUIDOM
+  let ndom: NOODLDOM
 
   beforeEach(() => {
-    ndom = new NOODLUIDOM()
+    ndom = new NOODLDOM()
     ndom.use(noodlui)
   })
 
   describe(`Positioning / Sizing`, () => {
-    describe(
-      `when a component's "top" is being treated as "auto" (a.k.a it was not ` +
-        `explicitly set as a positional value like "0.2")`,
-      () => {
-        const finalKeys = ['top', 'height']
+    describe(`when components are missing "top"`, () => {
+      const finalKeys = ['top', 'height']
 
-        it(`should always set a value for top, height, and marginTop`, async () => {
-          const componentObj = {
+      it(`should always eventually have a value for both of its top and height`, async () => {
+        const { requestPageChange } = useResolver({
+          component: {
             type: 'view',
             style: { width: '1', height: '1', top: '0', left: '0' },
             children: [
               { type: 'label', style: { top: '0.2' }, text: 'Good morning' },
               { type: 'button', style: { width: '0.2' }, text: 'Submit' },
             ],
-          } as ComponentObject
+          },
+          resolver: ['id', 'styles'],
+        })
 
-          ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
-            object: { components: [componentObj] },
-          }))
+        const components = await requestPageChange()
+        const label = components[0].child()
+        const button = components[0].child(1)
+        const testSubjects = [components[0], label, button]
 
-          const {
-            snapshot: { components },
-          } = await ndom.page.requestPageChange('Hello')
+        testSubjects.forEach((component) => {
+          expect(component.style).to.have.property('top').to.exist
+          expect(component.style).to.have.property('height').to.exist
+        })
+      })
 
-          const label = components[0].child()
-          const button = components[0].child(1)
-          const testSubjects = [components[0], label, button]
-
-          testSubjects.forEach((component) => {
-            expect(component.style).to.have.property('marginTop').to.exist
-            expect(component.style).to.have.property('top').to.exist
-            expect(component.style).to.have.property('height').to.exist
+      it.only(
+        `should always make the first child to have the same value of top (in the DOM)` +
+          `as their parent`,
+        async () => {
+          const { page, requestPageChange } = useResolver({
+            component: {
+              type: 'view',
+              style: { width: '1', height: '1', top: '0.3', left: '0' },
+              children: [
+                {
+                  type: 'scrollView',
+                  style: { height: '0.1' },
+                  children: [
+                    { type: 'label', style: {}, text: 'Good morning' },
+                    { type: 'button', style: { width: '0.2' }, text: 'Submit' },
+                  ],
+                },
+              ],
+            },
           })
-        })
 
-        it.only(
-          `should always set the first child to have the same value of ` +
-            `the parent's top position in the DOM`,
-          async () => {
-            const componentObj = {
-              type: 'view',
-              style: { width: '1', height: '1', top: '0.3', left: '0' },
-              children: [
-                { type: 'label', style: {}, text: 'Good morning' },
-                { type: 'button', style: { width: '0.2' }, text: 'Submit' },
-              ],
-            } as ComponentObject
+          const components = await requestPageChange()
 
-            ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
-              object: { components: componentObj },
-            }))
+          const view = components[0]
+          const scrollView = view.child()
+          const label = scrollView.child()
+          const button = scrollView.child(1)
 
-            const {
-              snapshot: { components },
-            } = await ndom.page.requestPageChange('Hello')
+          const grandParentNode = document.getElementById(view.id) as any
+          const parentNode = document.getElementById(scrollView.id) as any
+          const child1Node = document.getElementById(label.id) as any
+          const child2Node = document.getElementById(button.id) as any
 
-            const parent = components[0]
-            const child1 = parent.child()
-            const parentNode = document.getElementById(parent.id) as any
-            const child1Node = document.getElementById(child1.id) as any
+          const vh = page.viewport.height
 
-            expect(parent.style).to.have.property('top').to.eq(child1.style.top)
-            expect(parentNode.style)
-              .to.have.property('top')
-              .to.eq(child1Node.style.top)
-          },
-        )
+          // expect(parentNode.style)
+          //   .to.have.property('top')
+          //   .eq(
+          //     VP.toNum(grandParentNode.style.top) +
+          //       VP.toNum(grandParentNode.style.height) +
+          //       'px',
+          //   )
 
-        it(
-          `should not make the second child follow the first child logic but ` +
-            `instead compute its top position using the first child's calculated ` +
-            `top + height value`,
-          async () => {
-            const componentObj = {
-              type: 'view',
-              style: { width: '1', height: '1', top: '0.3', left: '0' },
-              children: [
-                { type: 'label', style: {}, text: 'Good morning' },
-                { type: 'button', style: { width: '0.2' }, text: 'Submit' },
-              ],
-            } as ComponentObject
+          // expect(parentNode.style).to.have.property('top').to.eq(VP.toNum)
+          // expect(parentNode.style)
+          //   .to.have.property('top')
+          //   .to.eq(child1Node.style.top)
+        },
+      )
 
-            ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
-              object: { components: componentObj },
-            }))
-
-            const {
-              snapshot: { components },
-            } = await ndom.page.requestPageChange('Hello')
-
-            const parent = components[0]
-            const child1 = parent.child(1)
-            const child2 = parent.child(1)
-
-            const parentNode = document.getElementById(parent.id) as any
-            const child1Node = document.getElementById(child1.id) as any
-            const child2Node = document.getElementById(child2.id) as any
-
-            expect(parentNode.style)
-              .to.have.property('top')
-              .to.not.to.eq(child2Node.style.top)
-            // expect(child2Node).to.have.property('top').to.eq(child1Node)
-            console.info(parentNode.style.top)
-            console.info(child1Node.style.top)
-            console.info(child2Node.style.top)
-            console.info(parentNode.style.height)
-            console.info(child1Node.style.height)
-            console.info(child2Node.style.height)
-          },
-        )
-
-        finalKeys.forEach((key) => {
-          xit(`should treat ${key} as "auto" if it is missing`, () => {})
-        })
-
-        it(`should set marginTop to "0px" if it is missing`, async () => {
+      it(
+        `should not make the second child follow the first child logic but ` +
+          `instead compute its top position using the first child's final ` +
+          `top value`,
+        async () => {
           const componentObj = {
             type: 'view',
             style: { width: '1', height: '1', top: '0.3', left: '0' },
+            children: [
+              { type: 'label', style: {}, text: 'Good morning' },
+              { type: 'button', style: { width: '0.2' }, text: 'Submit' },
+            ],
           } as ComponentObject
 
           ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
@@ -455,19 +422,48 @@ describe.only(`styles`, () => {
             snapshot: { components },
           } = await ndom.page.requestPageChange('Hello')
 
-          const component = components[0]
-          expect(component.style).to.have.property('marginTop').to.to.eq('0px')
-        })
+          const parent = components[0]
+          const child2 = parent.child(1)
 
-        xit(
-          `should set the child to have the same top as its previous sibling ` +
-            `if it is set to "align"`,
-          () => {
-            //
-          },
-        )
-      },
-    )
+          const parentNode = document.getElementById(parent.id) as any
+          const child2Node = document.getElementById(child2.id) as any
+
+          expect(parentNode.style)
+            .to.have.property('top')
+            .to.not.to.eq(child2Node.style.top)
+        },
+      )
+
+      finalKeys.forEach((key) => {
+        xit(`should treat ${key} as "auto" if it is missing`, () => {})
+      })
+
+      it(`should set marginTop to "0px" if it is missing`, async () => {
+        const componentObj = {
+          type: 'view',
+          style: { width: '1', height: '1', top: '0.3', left: '0' },
+        } as ComponentObject
+
+        ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
+          object: { components: componentObj },
+        }))
+
+        const {
+          snapshot: { components },
+        } = await ndom.page.requestPageChange('Hello')
+
+        const component = components[0]
+        expect(component.style).to.have.property('marginTop').to.to.eq('0px')
+      })
+
+      xit(
+        `should set the child to have the same top as its previous sibling ` +
+          `if it is set to "align"`,
+        () => {
+          //
+        },
+      )
+    })
 
     it(`should save last used top to lastTop render state`, async () => {
       const component = {
@@ -530,7 +526,7 @@ describe.only(`styles`, () => {
 describe('video', () => {
   it('should have object-fit set to "contain"', () => {
     expect(
-      applyMockDOMResolver({
+      useResolver({
         component: { type: 'video', videoFormat: 'mp4' },
         resolver: resolvers.video,
       }).node.style.objectFit,
@@ -538,7 +534,7 @@ describe('video', () => {
   })
 
   it('should create the source element as a child if the src is present', () => {
-    const sourceEl = applyMockDOMResolver({
+    const sourceEl = useResolver({
       component: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
       resolver: resolvers.video,
     }).node?.querySelector('source')
@@ -547,7 +543,7 @@ describe('video', () => {
 
   it('should have src set on the child source element instead of the video element itself', () => {
     const path = 'asdloldlas.mp4'
-    const { node } = applyMockDOMResolver({
+    const { node } = useResolver({
       component: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
       resolver: resolvers.video,
     })
@@ -557,7 +553,7 @@ describe('video', () => {
   })
 
   it('should have the video type on the child source element instead of the video element itself', () => {
-    const { node } = applyMockDOMResolver({
+    const { node } = useResolver({
       component: { type: 'video', path: 'abc123.mp4', videoFormat: 'mp4' },
       resolver: resolvers.video,
     })
@@ -567,7 +563,7 @@ describe('video', () => {
   })
 
   it('should include the "browser not supported" message', () => {
-    const { node } = applyMockDOMResolver({
+    const { node } = useResolver({
       component: { type: 'video', path: 'abc.jpeg', videoFormat: 'mp4' },
       resolver: resolvers.video,
     })
@@ -577,7 +573,7 @@ describe('video', () => {
 
   it('should create a "source" element and attach the src attribute for video components', () => {
     const path = 'pathology.mp4'
-    const { assetsUrl } = applyMockDOMResolver({
+    const { assetsUrl } = useResolver({
       component: { type: 'video', path, videoFormat: 'mp4', id: 'id123' },
       resolver: resolvers.video,
     })

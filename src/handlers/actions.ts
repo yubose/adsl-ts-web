@@ -4,7 +4,7 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
-import NOODLUIDOM, { getByDataUX } from 'noodl-ui-dom'
+import NOODLOM, { getByDataUX } from 'noodl-ui-dom'
 import {
   Action,
   ActionConsumerCallbackOptions,
@@ -49,12 +49,12 @@ const stable = isStable()
 
 const createActions = function createActions({
   noodlui,
-  noodluidom,
+  ndom,
 }: {
   noodlui: NOODLUI
-  noodluidom: NOODLUIDOM
+  ndom: NOODLOM
 }) {
-  noodluidom.register({
+  ndom.register({
     actionType: 'anonymous',
     fn: async function onAnonymousAction(
       action: Action<AnonymousObject>,
@@ -72,7 +72,7 @@ const createActions = function createActions({
   })
 
   /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
-  noodluidom.register({
+  ndom.register({
     actionType: 'emit',
     fn: async function onDataKeyEmit(
       action: EmitAction<EmitActionObject>,
@@ -105,7 +105,7 @@ const createActions = function createActions({
   })
 
   /** DATA VALUE EMIT */
-  noodluidom.register({
+  ndom.register({
     actionType: 'emit',
     fn: async function onDataValueEmit(
       action: EmitAction<EmitActionObject>,
@@ -141,7 +141,7 @@ const createActions = function createActions({
   })
 
   /** onBlur EMIT */
-  noodluidom.register({
+  ndom.register({
     actionType: 'emit',
     fn: async function onBlurEmit(
       action: EmitAction<EmitActionObject>,
@@ -177,7 +177,7 @@ const createActions = function createActions({
   })
 
   /** onClick EMIT */
-  noodluidom.register({
+  ndom.register({
     actionType: 'emit',
     fn: async function onClickEmit(
       action: EmitAction<EmitActionObject>,
@@ -213,7 +213,7 @@ const createActions = function createActions({
   })
 
   /** onChange EMIT */
-  noodluidom.register({
+  ndom.register({
     actionType: 'emit',
     fn: async function onChangeEmit(
       action: EmitAction<EmitActionObject>,
@@ -249,7 +249,7 @@ const createActions = function createActions({
   })
 
   /** PATH EMIT */
-  noodluidom.register({
+  ndom.register({
     actionType: 'emit',
     fn: async function onPathEmit(
       action: EmitAction<EmitActionObject>,
@@ -291,7 +291,7 @@ const createActions = function createActions({
   })
 
   /** PLACEHOLDER EMIT */
-  noodluidom.register({
+  ndom.register({
     actionType: 'emit',
     fn: async function onPlaceholderEmit(
       action: EmitAction<EmitActionObject>,
@@ -339,7 +339,7 @@ const createActions = function createActions({
   })
 
   /** REGISTER EMIT */
-  noodluidom.register({
+  ndom.register({
     actionType: 'emit',
     fn: async function onRegisterEmit(
       action: EmitAction<EmitActionObject>,
@@ -374,7 +374,7 @@ const createActions = function createActions({
     trigger: 'register',
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'evalObject',
     fn: async function onEvalObject(
       action: Action<EvalActionObject>,
@@ -463,7 +463,7 @@ const createActions = function createActions({
     },
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'goto',
     fn: async function onGoto(
       action: Action<GotoActionObject>,
@@ -508,7 +508,7 @@ const createActions = function createActions({
       } = computedDestinationProps
 
       if (destination === destinationParam) {
-        noodluidom.page.setRequestingPage(destination)
+        ndom.page.setRequestingPage(destination)
       }
 
       if (isPlainObject(gotoObject.goto?.dataIn)) {
@@ -574,7 +574,7 @@ const createActions = function createActions({
           if (isSamePage) {
             scroll()
           } else {
-            noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+            ndom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
           }
         } else {
           log.red(
@@ -594,12 +594,12 @@ const createActions = function createActions({
       }
 
       if (!destinationParam?.startsWith?.('http')) {
-        noodluidom.page.pageUrl = resolvePageUrl({
+        ndom.page.pageUrl = resolvePageUrl({
           destination,
-          pageUrl: noodluidom.page.pageUrl,
+          pageUrl: ndom.page.pageUrl,
           startPage: noodl.cadlEndpoint.startPage,
         })
-        stable && log.cyan(`Page URL evaluates to: ${noodluidom.page.pageUrl}`)
+        stable && log.cyan(`Page URL evaluates to: ${ndom.page.pageUrl}`)
       } else {
         destination = destinationParam
       }
@@ -610,17 +610,15 @@ const createActions = function createActions({
         destinationParam,
         isSamePage,
         pageModifiers,
-        updatedQueryString: noodluidom.page.pageUrl,
+        updatedQueryString: ndom.page.pageUrl,
       }
 
       log.grey(`Computed [action] goto props`, allProps)
 
       if (!isSamePage) {
         stable &&
-          log.cyan(
-            `Sending a page request to page "${destination}" noodluidom...`,
-          )
-        await noodluidom.page.requestPageChange(destination)
+          log.cyan(`Sending a page request to page "${destination}" ndom...`)
+        await ndom.page.requestPageChange(destination)
 
         if (!destination) {
           log.func('goto')
@@ -633,7 +631,7 @@ const createActions = function createActions({
     },
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'pageJump',
     fn: async function onPageJump(
       action: Action<PageJumpActionObject>,
@@ -643,13 +641,13 @@ const createActions = function createActions({
       log.grey('', { action, ...options })
       stable &&
         log.cyan(
-          `Sending a page request to page "${action.original.destination}" noodluidom...`,
+          `Sending a page request to page "${action.original.destination}" ndom...`,
         )
-      await noodluidom.page.requestPageChange(action.original.destination)
+      await ndom.page.requestPageChange(action.original.destination)
     },
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'popUp',
     fn: async function onPopUp(
       action: Action<PopupActionObject | PopupDismissActionObject>,
@@ -748,7 +746,7 @@ const createActions = function createActions({
     },
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'popUpDismiss',
     fn: async function onPopUpDismiss(
       action: Action<PopupDismissActionObject>,
@@ -756,14 +754,14 @@ const createActions = function createActions({
       actionsContext,
     ) {
       await Promise.all(
-        noodluidom.actions.popUp.map((obj) =>
+        ndom.actions.popUp.map((obj) =>
           obj.fn(action, options, actionsContext),
         ),
       )
     },
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'refresh',
     fn: function onRefresh(
       action: Action<RefreshActionObject>,
@@ -775,7 +773,7 @@ const createActions = function createActions({
     },
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'saveObject',
     fn: async function onSaveObject(
       action: Action<SaveActionObject>,
@@ -857,7 +855,7 @@ const createActions = function createActions({
     },
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'toast',
     fn: async function onToast(
       action: Action<ToastActionObject>,
@@ -873,7 +871,7 @@ const createActions = function createActions({
     },
   })
 
-  noodluidom.register({
+  ndom.register({
     actionType: 'updateObject',
     fn: async function onUpdateObject(
       action: Action<UpdateActionObject>,

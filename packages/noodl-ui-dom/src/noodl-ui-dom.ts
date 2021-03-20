@@ -1,5 +1,4 @@
 import { ActionType, ComponentObject } from 'noodl-types'
-import produce from 'immer'
 import {
   ActionObject,
   BuiltInObject,
@@ -18,30 +17,16 @@ import {
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { eventId } from './constants'
-import {
-  createAsyncImageElement,
-  getShape,
-  isPageConsumer,
-} from './utils/utils'
+import { createAsyncImageElement, getShape, isPageConsumer } from './utils'
 import createResolver from './createResolver'
-import NOODLUIDOMInternal from './Internal'
+import NOODLDOMInternal from './Internal'
 import Page from './Page'
 import * as defaultResolvers from './resolvers'
 import * as u from './utils/internal'
 import * as T from './types'
 
-class NOODLUIDOM extends NOODLUIDOMInternal {
+class NOODLOM extends NOODLDOMInternal {
   #R: ReturnType<typeof createResolver>
-  #cbs = {
-    page: {
-      on: u
-        .keys(eventId.page.on)
-        .reduce(
-          (acc, key) => u.assign(acc, { [eventId.page.on[key]]: [] }),
-          {} as Record<keyof T.Observer, T.Observer[keyof T.Observer][]>,
-        ),
-    },
-  }
   page: Page
 
   constructor() {
@@ -49,7 +34,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     this.page = new Page(this.render.bind(this))
     this.#R = createResolver(this)
     this.#R.use(this)
-    this.#R.use(u.values(defaultResolvers))
+    u.values(defaultResolvers).forEach(this.#R.use.bind(this.#R))
   }
 
   get actions() {
@@ -64,22 +49,13 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     }
   }
 
-  get callbacks() {
-    return this.#cbs
-  }
-
-  get observers() {
-    return this.#cbs
-  }
-
   /**
    * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
    * @param { ComponentObject | ComponentObject[] } components
    */
   render(rawComponents: ComponentObject | ComponentObject[]) {
-    this.page.reset('render')
-
     const currentPage = this.page.state.current
+    this.page.state.render = u.getDefaultRenderState()
 
     if (this.page.rootNode && this.page.rootNode.id === currentPage) {
       return console.log(
@@ -99,7 +75,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
     const components = u.isArr(resolved) ? resolved : [resolved]
 
-    this.emit(eventId.page.on.ON_DOM_CLEANUP, this.page.rootNode)
+    this.page.emitSync(eventId.page.on.ON_DOM_CLEANUP, this.page.rootNode)
 
     this.page.rootNode.innerHTML = ''
 
@@ -148,47 +124,27 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
 
         this.#R.run(node, component)
 
-        component.children?.forEach?.(
-          (child: ComponentInstance, index: number) => {
-            const childNode = this.draw(child, node) as HTMLElement
-
-            let appendChildArgs = {
-              component: {
-                instance: component,
-                node: node as HTMLElement,
-                bounds: node?.getBoundingClientRect() as DOMRect,
-              },
-              child: {
-                instance: child,
-                node: childNode,
-                bounds: childNode.getBoundingClientRect(),
-                index,
-              },
+        component.children?.forEach?.((child: ComponentInstance) => {
+          const childNode = this.draw(child, node) as HTMLElement
+          this.page.emitSync(
+            eventId.page.on.ON_BEFORE_APPEND_COMPONENT_CHILD_NODE,
+            {
               page: this.page,
-            }
+              component,
+              node: node as HTMLElement,
+              child,
+              childNode,
+            },
+          )
+          node?.appendChild(childNode)
+        })
 
-            this.emit(
-              eventId.page.on[eventId.page.on.ON_BEFORE_APPEND_CHILD],
-              appendChildArgs,
-            )
-
-            node?.appendChild(childNode)
-
-            if (
-              this.#cbs.page.on[eventId.page.on.ON_AFTER_APPEND_CHILD]?.length
-            ) {
-              this.emit(
-                eventId.page.on.ON_AFTER_APPEND_CHILD,
-                produce(appendChildArgs, (draft) => {
-                  draft.component.bounds = node?.getBoundingClientRect() as any
-                  draft.child.bounds = childNode?.getBoundingClientRect()
-                }),
-              )
-            }
-
-            appendChildArgs = null as any
-          },
-        )
+        this.page.emitSync(eventId.page.on.ON_CHILD_NODES_RENDERED, {
+          blueprint: component.original,
+          component,
+          node,
+          page: this.page,
+        })
       }
     }
     return node || null
@@ -216,7 +172,11 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
       // }
       // Remove the parent reference
       component.setParent?.(null)
-      this.emit(eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, node, component)
+      this.page.emitSync(
+        eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
+        node,
+        component,
+      )
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {
@@ -288,28 +248,6 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return [newNode, newComponent] as [typeof node, typeof component]
   }
 
-  emit<K extends keyof T.Observer>(evt: K, ...args: Parameters<T.Observer[K]>) {
-    this.#cbs.page.on[evt]?.forEach?.((cb: any) =>
-      (cb as any)?.call?.(this, ...args),
-    )
-    return this
-  }
-
-  on<K extends keyof T.Observer>(evt: K, fn: T.Observer[K]) {
-    if (this.#cbs.page.on[evt] && !this.#cbs.page.on[evt].includes(fn)) {
-      this.#cbs.page.on[evt].push(fn)
-    }
-    return this
-  }
-
-  off<K extends keyof T.Observer>(evt: K, fn: T.Observer[K]) {
-    if (this.#cbs.page.on[evt]?.includes?.(fn)) {
-      const index = this.#cbs.page.on[evt].indexOf(fn)
-      this.#cbs.page.on[evt].splice(index, 1)
-    }
-    return this
-  }
-
   register<
     A extends
       | ActionObject
@@ -339,26 +277,19 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     return this.#R.get()
   }
 
-  reset() {
-    this.#R.clear()
-    const clearCbs = (obj: any) => {
-      if (u.isArr(obj)) {
-        obj.length = 0
-      } else if (obj && typeof obj === 'object') {
-        u.values(obj).forEach((o) => clearCbs(o))
-      }
-    }
-    u.values(this.#cbs).forEach((obj) => clearCbs(obj))
-
+  reset(key?: 'resolvers') {
+    if (key) this.resolvers().length = 0
+    else this.#R.clear()
     return this
   }
 
   use(obj: NOODLUI) {
     if (obj instanceof NOODLUI) {
       this.#R.use(obj)
+      this.page.viewport = obj.viewport
     }
     return this
   }
 }
 
-export default NOODLUIDOM
+export default NOODLOM

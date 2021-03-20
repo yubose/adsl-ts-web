@@ -4,7 +4,7 @@ import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
 import { eventId } from 'noodl-ui-dom'
 import { getAllResolversAsMap, publish, Resolver } from 'noodl-ui'
-import { assetsUrl, noodlui, noodluidom, viewport } from './utils/test-utils'
+import { assetsUrl, noodlui, ndom, viewport } from './utils/test-utils'
 
 chai.use(sinonChai)
 
@@ -21,7 +21,7 @@ before(() => {
 
   logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
 
-  noodluidom
+  ndom
     .on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
       noodlui.componentCache().remove(component)
       publish(component, (c) => {

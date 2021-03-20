@@ -1,7 +1,7 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import NOODLUIDOM from 'noodl-ui-dom'
+import NOODLOM from 'noodl-ui-dom'
 import Logger from 'logsnap'
 import { current, Draft } from 'immer'
 import { Action, ActionChain, NOODL as NOODLUI } from 'noodl-ui'
@@ -22,12 +22,12 @@ const createMeetingHandlers = function _createMeetingHandlers({
   Meeting,
   noodl,
   noodlui,
-  noodluidom,
+  ndom,
 }: {
   Meeting: IMeeting
   noodl: any
   noodlui: NOODLUI
-  noodluidom: NOODLUIDOM
+  ndom: NOODLOM
 }) {
   function _getDisconnectFns(room: IMeeting['room']) {
     function _disconnect() {

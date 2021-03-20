@@ -44,7 +44,6 @@ _internalResolver.setResolver((component, options, ref) => {
       if (c.noodlType === 'register') {
         return handleRegister(c as any, options)
       }
-      // @ts-expect-error
       if (c.get('textBoard')) {
         return handleTextboard(c as any, options, _internalResolver)
       }

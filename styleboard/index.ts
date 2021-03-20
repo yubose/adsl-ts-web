@@ -2,7 +2,7 @@ import noop from 'lodash/noop'
 import { LiteralUnion } from 'type-fest'
 import CADL from '@aitmed/cadl'
 import { ComponentObject } from 'noodl-types'
-import NOODLUIDOM from '../node_modules/noodl-ui-dom'
+import NOODLOM from '../node_modules/noodl-ui-dom'
 import {
   ComponentType,
   getTagName,
@@ -52,14 +52,14 @@ const noodl = new CADL({
   configUrl: `https://public.aitmed.com/config/meet2d.yml`,
 })
 const noodlui = new NOODLUI()
-const noodluidom = new NOODLUIDOM()
+const ndom = new NOODLOM()
 
 Object.assign(window, {
   assetsUrl,
   baseUrl,
   noodl,
   noodlui,
-  noodluidom,
+  ndom,
   viewport,
 })
 
@@ -89,8 +89,8 @@ noodl
     noodlui.viewport.width = 375
     noodlui.viewport.height = 667
 
-    noodluidom.use(noodlui)
-    noodluidom.page
+    ndom.use(noodlui)
+    ndom.page
       .on('on:before.render.components', async () => ({
         name: 'SignIn',
         components: noodl.root.SignIn.components,
@@ -140,11 +140,11 @@ noodl
           noodl.aspectRatio = aspectRatio
           document.body.style.width = `${width}px`
           document.body.style.height = `${height}px`
-          if (noodluidom.page.rootNode) {
-            noodluidom.page.rootNode.style.width = `${width}px`
-            noodluidom.page.rootNode.style.height = `${height}px`
+          if (ndom.page.rootNode) {
+            ndom.page.rootNode.style.width = `${width}px`
+            ndom.page.rootNode.style.height = `${height}px`
           }
-          noodluidom.render(noodl.root.SignIn.components)
+          ndom.render(noodl.root.SignIn.components)
         },
       )
     }

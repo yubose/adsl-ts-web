@@ -13,7 +13,9 @@ import {
   getDataValues,
   NOODL as NOODLUI,
 } from 'noodl-ui'
-import NOODLUIDOM, {
+import NOODLOM, {
+  eventId,
+  findByElementId,
   getByDataUX,
   isTextFieldLike,
   NOODLDOMDataValueElement,
@@ -42,11 +44,11 @@ const stable = isStable()
 const createBuiltInActions = function createBuiltInActions({
   noodl,
   noodlui,
-  noodluidom,
+  ndom,
 }: {
   noodl: any
   noodlui: NOODLUI
-  noodluidom: NOODLUIDOM
+  ndom: NOODLOM
 }) {
   /* -------------------------------------------------------
     ---- ACTIONS (non-builtIn)
@@ -55,7 +57,7 @@ const createBuiltInActions = function createBuiltInActions({
   /* -------------------------------------------------------
   ---- ACTIONS (builtIn)
   -------------------------------------------------------- */
-  noodluidom
+  ndom
     .register({
       actionType: 'builtIn',
       funcName: 'checkField',
@@ -103,8 +105,8 @@ const createBuiltInActions = function createBuiltInActions({
         log.func('goBack')
         log.grey('', { action, ...options })
         if (typeof action.original?.reload === 'boolean') {
-          noodluidom.page.setModifier(
-            noodluidom.page
+          ndom.page.setModifier(
+            ndom.page
               .getPreviousPage(noodl.cadlEndpoint.startPage || '')
               .trim(),
             { reload: action.original.reload },
@@ -359,11 +361,11 @@ const createBuiltInActions = function createBuiltInActions({
           }
 
           if (/mic/i.test(dataKey)) {
-            noodluidom.builtIns.toggleMicrophoneOnOff
+            ndom.builtIns.toggleMicrophoneOnOff
               .find(Boolean)
               ?.fn?.(action, options, actionsContext)
           } else if (/camera/i.test(dataKey)) {
-            noodluidom.builtIns.toggleCameraOnOff
+            ndom.builtIns.toggleCameraOnOff
               .find(Boolean)
               ?.fn?.(action, options, actionsContext)
           }
@@ -469,7 +471,7 @@ const createBuiltInActions = function createBuiltInActions({
         }
 
         if (reload !== undefined) {
-          noodluidom.page.setModifier(destinationParam, { reload })
+          ndom.page.setModifier(destinationParam, { reload })
         }
 
         log.grey(`Computed goto params`, {
@@ -498,7 +500,7 @@ const createBuiltInActions = function createBuiltInActions({
         )
 
         if (destination === destinationParam) {
-          noodluidom.page.setRequestingPage(destination)
+          ndom.page.setRequestingPage(destination)
         }
 
         log.grey('', {
@@ -546,7 +548,7 @@ const createBuiltInActions = function createBuiltInActions({
             if (isSamePage) {
               scroll()
             } else {
-              noodluidom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+              ndom.page.once(eventId.page.on.ON_COMPONENTS_RENDERED, scroll)
             }
           } else {
             log.red(
@@ -566,9 +568,9 @@ const createBuiltInActions = function createBuiltInActions({
         }
 
         if (!destinationParam?.startsWith?.('http')) {
-          noodluidom.page.pageUrl = resolvePageUrl({
+          ndom.page.pageUrl = resolvePageUrl({
             destination,
-            pageUrl: noodluidom.page.pageUrl,
+            pageUrl: ndom.page.pageUrl,
             startPage: noodl.cadlEndpoint.startPage,
           })
         } else {
@@ -578,7 +580,7 @@ const createBuiltInActions = function createBuiltInActions({
         if (!isSamePage) {
           if (reload) {
             let urlToGoToInstead = ''
-            const parts = noodluidom.page.pageUrl.split('-')
+            const parts = ndom.page.pageUrl.split('-')
             if (parts.length > 1) {
               if (!parts[0].startsWith('index.html')) {
                 parts.unshift('index.html?')
@@ -589,7 +591,7 @@ const createBuiltInActions = function createBuiltInActions({
               urlToGoToInstead = 'index.html?' + destination
             }
             window.location.href = urlToGoToInstead
-          } else await noodluidom.page.requestPageChange(destination)
+          } else await ndom.page.requestPageChange(destination)
 
           if (!destination) {
             log.func('builtIn')
@@ -607,7 +609,6 @@ const createBuiltInActions = function createBuiltInActions({
       async fn(
         action: Action<BuiltInActionObject>,
         options: ActionConsumerCallbackOptions,
-        { findByElementId },
       ) {
         log.func('redraw')
         log.red('', { action, options })
@@ -636,6 +637,7 @@ const createBuiltInActions = function createBuiltInActions({
             action,
             ...options,
             component,
+            viewTag,
           })
         } else {
           log.grey(`Redrawing ${components.length} components`, components)
@@ -645,10 +647,10 @@ const createBuiltInActions = function createBuiltInActions({
 
         while (startCount < components.length) {
           const viewTagComponent = components[startCount] as ComponentInstance
-          const node = findByElementId(viewTagComponent)
+          const node = findByViewTag(viewTag)
           const dataObject = findListDataObject(viewTagComponent)
           const opts = { dataObject }
-          const [newNode, newComponent] = noodluidom.redraw(
+          const [newNode, newComponent] = ndom.redraw(
             node as HTMLElement,
             viewTagComponent,
             opts,
@@ -669,7 +671,7 @@ const createBuiltInActions = function createBuiltInActions({
   /* -------------------------------------------------------
     ---- NODE RESOLVERS
   -------------------------------------------------------- */
-  noodluidom
+  ndom
     .register({
       name: 'data-value (sync with sdk)',
       cond: (node) => isTextFieldLike(node),
@@ -858,7 +860,7 @@ const createBuiltInActions = function createBuiltInActions({
     if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
   }
 
-  return noodluidom
+  return ndom
 }
 
 /* -------------------------------------------------------

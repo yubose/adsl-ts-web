@@ -2,12 +2,12 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import chalk from 'chalk'
 import Page from '../Page'
-import { noodluidom } from '../test-utils'
+import { ndom } from '../test-utils'
 
 let page: Page
 
 beforeEach(() => {
-  page = noodluidom.page
+  page = ndom.page
   page.setPreviousPage('Hello').setCurrentPage('Cereal')
 })
 

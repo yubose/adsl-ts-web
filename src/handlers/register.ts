@@ -5,7 +5,7 @@
 import { RemoteParticipant } from 'twilio-video'
 import { ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
 import Logger from 'logsnap'
-import NOODLUIDOM from 'noodl-ui-dom'
+import NOODLOM from 'noodl-ui-dom'
 import { isStable } from '../utils/common'
 import AppMeeting from '../meeting/Meeting'
 import Stream from '../meeting/Stream'
@@ -16,11 +16,11 @@ const stable = isStable()
 interface Options {
   noodl: any
   noodlui: NOODLUI
-  noodluidom: NOODLUIDOM
+  ndom: NOODLOM
   Meeting: typeof AppMeeting
 }
 
-function registerCallbacks({ noodl, noodlui, noodluidom, Meeting }: Options) {
+function registerCallbacks({ noodl, noodlui, ndom, Meeting }: Options) {
   noodlui.register({
     component: null,
     key: 'twilioOnPeopleJoin',

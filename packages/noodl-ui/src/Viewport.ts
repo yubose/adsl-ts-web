@@ -1,6 +1,6 @@
 import { IViewport, ViewportListener } from './types'
 import { hasLetter, hasDecimal, isBrowser } from './utils/common'
-import { isObj, isStr, isNum, isNil } from './utils/internal'
+import { isObj, isStr, isNum, isNil, isUnd } from './utils/internal'
 
 // const getLineSpacing = (v: number) => v * 1.5
 // const getLetterSpacing = (v: number) => v * 0.12
@@ -10,8 +10,8 @@ import { isObj, isStr, isNum, isNil } from './utils/internal'
 class NOODLViewport implements IViewport {
   #onResize: () => void
 
-  width: number | undefined = undefined
-  height: number | undefined = undefined
+  width: number = undefined as any
+  height: number = undefined as any
 
   /**
    *
@@ -58,9 +58,21 @@ class NOODLViewport implements IViewport {
     }
   }
 
+  static isNil(v: unknown): v is null | undefined | '' | 'auto' {
+    return v === null || isUnd(v) || v === 'auto' || v === ''
+  }
+
+  static isNoodlUnit(v: unknown): v is string {
+    return isStr(v) && !/[a-zA-Z]/i.test(v)
+  }
+
+  static toNum(s: unknown) {
+    return Number(String(s).replace(/[a-zA-Z]/gi, ''))
+  }
+
   constructor({ width, height }: { width?: number; height?: number } = {}) {
-    this.width = width
-    this.height = height
+    this.width = width as number
+    this.height = height as number
   }
 
   isValid() {

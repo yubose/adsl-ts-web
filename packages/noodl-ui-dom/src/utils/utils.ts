@@ -7,7 +7,7 @@ import {
   isComponent,
   NOODLComponent,
   SelectOption,
-  Viewport,
+  Viewport as VP,
 } from 'noodl-ui'
 import { NOODLDOMElement } from '../types'
 import * as u from './internal'
@@ -207,20 +207,17 @@ export function getDisplayHeight({
   unit = 'px',
 }: {
   component: ComponentInstance
-  viewport: Viewport
-  unit?: Pick<
-    NonNullable<Parameters<typeof Viewport['getSize']>[2]>,
-    'unit'
-  >['unit']
+  viewport: VP
+  unit?: Pick<NonNullable<Parameters<typeof VP['getSize']>[2]>, 'unit'>['unit']
 }) {
   let result = 0
   if (c) {
     u.yKeys.forEach((key) => {
       const value = c.style?.[key]
-      if (!u.isNil(value) && u.isNoodlUnit(value)) result += Number(value)
+      if (!u.isNil(value) && VP.isNoodlUnit(value)) result += Number(value)
     })
   }
-  return Viewport.getSize(String(result), vp.height as number, {
+  return VP.getSize(String(result), vp.height as number, {
     unit,
   }) as number
 }

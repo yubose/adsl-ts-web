@@ -13,7 +13,7 @@ import {
   ComponentInstance,
   createComponent,
 } from 'noodl-ui'
-import { assetsUrl, noodlui, noodluidom, toDOM } from '../test-utils'
+import { assetsUrl, noodlui, ndom, toDOM } from '../test-utils'
 
 const getListGender = () =>
   noodlui.resolveComponents({
@@ -45,7 +45,7 @@ describe('redraw', () => {
         type: 'label',
         onClick: [{ emit: { dataKey: { var1: 'hey' }, actions: [] } }],
       })
-      const [newNode, newComponent] = noodluidom.redraw(node, component) as [
+      const [newNode, newComponent] = ndom.redraw(node, component) as [
         HTMLSelectElement,
         ComponentInstance,
       ]
@@ -58,13 +58,13 @@ describe('redraw', () => {
 
   it(`should remove the redrawing components from the component cache`, () => {
     const list = getListGender()
-    const node = noodluidom.draw(list) as HTMLUListElement
+    const node = ndom.draw(list) as HTMLUListElement
     const idsToBeRemoved = list.children.map(({ id }) => id)
     expect(componentCache()).to.have.lengthOf(4)
     list.children.forEach(
       (child: any) => expect(componentCache().has(child)).to.be.true,
     )
-    noodluidom.redraw(node, list)
+    ndom.redraw(node, list)
     idsToBeRemoved.forEach(
       (id: string) => expect(componentCache().has(id)).to.be.false,
     )
@@ -94,7 +94,7 @@ describe('redraw', () => {
         expect(optionNode.value).to.eq(options[index])
       })
       options.push(...otherOptions)
-      let result = noodluidom.redraw(node, component)
+      let result = ndom.redraw(node, component)
       node = result[0] as HTMLSelectElement
       component = result[1]
       expect(node.options).to.have.lengthOf(4)
@@ -107,7 +107,7 @@ describe('redraw', () => {
       const spy = sinon.spy()
       const options = ['00:00', '00:10', '00:20']
       noodlui.use({ actionType: 'emit', fn: spy, trigger: 'onChange' })
-      const [node, component] = noodluidom.redraw(
+      const [node, component] = ndom.redraw(
         ...toDOM({
           type: 'select',
           options,
@@ -143,8 +143,8 @@ describe('redraw', () => {
     evtNames.forEach((evt) => {
       expect(list.hasCb(evt as ListEventId, evts[evt])).to.be.true
     })
-    const node = noodluidom.draw(list)
-    noodluidom.redraw(node, list)
+    const node = ndom.draw(list)
+    ndom.redraw(node, list)
     evtNames.forEach((evt) => {
       expect(list.hasCb(evt as ListEventId, evts[evt])).to.be.false
     })
@@ -155,8 +155,8 @@ describe('redraw', () => {
     const list = getListGender()
     list.setParent(view)
     expect(list.parent()).to.eq(view)
-    const node = noodluidom.draw(list)
-    noodluidom.redraw(node, list)
+    const node = ndom.draw(list)
+    ndom.redraw(node, list)
     expect(list.parent()).to.be.null
   })
 
@@ -166,18 +166,18 @@ describe('redraw', () => {
     view.createChild(list)
     list.setParent(view)
     expect(view.hasChild(list)).to.be.true
-    const node = noodluidom.draw(list)
-    noodluidom.redraw(node, list)
+    const node = ndom.draw(list)
+    ndom.redraw(node, list)
     expect(view.hasChild(list)).to.be.false
   })
 
   xit('should recursively remove child references', () => {
-    const node = noodluidom.draw(listGender)
+    const node = ndom.draw(listGender)
     const listItem = listGender.child()
     const [label, image] = listItem?.children || []
     expect(!!findChild(listGender, (c) => c === image)).to.be.true
     expect(!!findChild(listGender, (c) => c === label)).to.be.true
-    const [newNode, newComponent] = noodluidom.redraw(node, listGender)
+    const [newNode, newComponent] = ndom.redraw(node, listGender)
     expect(!!findChild(newComponent, (c) => c === image)).to.be.false
     expect(!!findChild(newComponent, (c) => c === label)).to.be.false
   })
@@ -187,13 +187,13 @@ describe('redraw', () => {
     const list = getListGender()
     list.setParent(view)
     view.createChild(list)
-    const node = noodluidom.draw(view)
+    const node = ndom.draw(view)
     const listItem = list.child() as ListItem
     const image = listItem?.child(1)
     const imageNode = document.getElementById(image?.id)
     const parentNode = imageNode?.parentNode
     expect(!!parentNode?.contains(imageNode)).to.be.true
-    // noodluidom.redraw(imageNode, image)
+    // ndom.redraw(imageNode, image)
     // expect(!!parentNode?.contains(imageNode)).to.be.false
   })
 
@@ -202,10 +202,10 @@ describe('redraw', () => {
     const list = getListGender()
     view.createChild(list)
     list.setParent(view)
-    noodluidom.draw(view)
+    ndom.draw(view)
     const listItem = list.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
-    const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
+    const [newLiNode, newListItem] = ndom.redraw(liNode, listItem)
     expect(newListItem?.parent()).to.eq(list)
   })
 
@@ -214,19 +214,19 @@ describe('redraw', () => {
     const list = getListGender()
     view.createChild(list)
     list.setParent(view)
-    noodluidom.draw(view)
+    ndom.draw(view)
     const listItem = list.child() as ListItem
-    const [empty, newListItem] = noodluidom.redraw(null, listItem)
+    const [empty, newListItem] = ndom.redraw(null, listItem)
     expect(list.hasChild(newListItem)).to.be.true
   })
 
   // it('the redrawing component + node should hold the same ID', () => {
-  //   noodluidom.draw(view)
+  //   ndom.draw(view)
   //   const listItem = listGender.child() as ListItem
   //   const liNode = document.getElementById(listItem?.id || '')
-  //   const [newLiNode, newListItem] = noodluidom.redraw(liNode, listItem)
+  //   const [newLiNode, newListItem] = ndom.redraw(liNode, listItem)
   //   expect(newLiNode).to.have.property('id').that.is.eq(newListItem.id)
-  //   noodluidom.off('component', onComponentAttachId)
+  //   ndom.off('component', onComponentAttachId)
   // })
 
   it('should attach to the original parentNode as the new childNode', () => {
@@ -234,12 +234,12 @@ describe('redraw', () => {
     const list = getListGender()
     view.createChild(list)
     list.setParent(view)
-    noodluidom.draw(view)
+    ndom.draw(view)
     const listItem = list.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const ulNode = liNode?.parentNode
     expect(ulNode.contains(liNode)).to.be.true
-    const [newNode] = noodluidom.redraw(liNode, listItem)
+    const [newNode] = ndom.redraw(liNode, listItem)
     expect(ulNode.contains(liNode)).to.be.false
     expect(ulNode.children).to.have.length.greaterThan(0)
     expect(newNode.parentNode).to.eq(ulNode)
@@ -251,8 +251,8 @@ describe('redraw', () => {
       noodlComponent: ComponentObject,
       newInstance: Component,
     ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
-    const node = noodluidom.draw(list)
-    const [newNode, newComponent] = noodluidom.redraw(node, list)
+    const node = ndom.draw(list)
+    const [newNode, newComponent] = ndom.redraw(node, list)
     const isEqual = createIsEqual(list.original, newComponent)
     Object.keys(list.original).forEach((prop) => {
       if (prop === 'children') {
@@ -269,8 +269,8 @@ describe('redraw', () => {
       noodlComponent: ComponentObject,
       newInstance: Component,
     ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
-    const node = noodluidom.draw(list)
-    const [newNode, newComponent] = noodluidom.redraw(node, list)
+    const node = ndom.draw(list)
+    const [newNode, newComponent] = ndom.redraw(node, list)
     const isEqual = createIsEqual(list.original, newComponent)
     Object.keys(list.original).forEach((prop) => {
       if (prop === 'children') {
@@ -303,7 +303,7 @@ describe('redraw', () => {
         fn: onClickSpy,
         trigger: 'onClick',
       } as any)
-      noodluidom.on('image', (n: HTMLInputElement, c) => {
+      ndom.on('image', (n: HTMLInputElement, c) => {
         n.setAttribute('src', c.get('src'))
         n.onclick = async (e) => {
           await c.get('onClick')(e)
@@ -320,10 +320,10 @@ describe('redraw', () => {
         ],
       })
       const image = view.child() as Component
-      noodluidom.draw(view)
+      ndom.draw(view)
       await image.get('onClick')()
 
-      noodluidom.redraw(document.querySelector('img'), image)
+      ndom.redraw(document.querySelector('img'), image)
       const img = document.querySelector('img')
       // img?.click()
       await waitFor(() => {
@@ -346,7 +346,7 @@ describe('redraw', () => {
       const onClick = async (action, { component }) => {
         state.url = state.url === abc ? hello : abc
         noodlui.use({ getRoot: () => ({ SignIn: { url: 'hehehehe' } }) })
-        noodluidom.redraw(document.getElementById(component.id), component)
+        ndom.redraw(document.getElementById(component.id), component)
       }
 
       noodlui
@@ -361,9 +361,9 @@ describe('redraw', () => {
       //   onClick: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
       // }) as Component
 
-      noodluidom.on('image', (n, c) => {
+      ndom.on('image', (n, c) => {
         n.onclick = c.get('onClick')
-        // noodluidom.redraw(n, c)
+        // ndom.redraw(n, c)
       })
 
       const listItem = noodlui.resolveComponents({
@@ -379,11 +379,11 @@ describe('redraw', () => {
         ],
       })
 
-      noodluidom.draw(listItem)
+      ndom.draw(listItem)
 
       await waitFor(() => {
         expect(document.querySelector('img')?.src).to.eq(assetsUrl + abc)
-        noodluidom.redraw(document.querySelector('li'), listItem, {
+        ndom.redraw(document.querySelector('li'), listItem, {
           resolver: (c: any) => noodlui.resolveComponents(c),
         })
         // expect(document.querySelector('img')?.src).to.eq(assetsUrl + hello)
@@ -418,7 +418,7 @@ describe('redraw', () => {
             actionType: 'builtIn',
             funcName: 'redraw',
             fn: async (a, { component }) =>
-              void noodluidom.redraw(
+              void ndom.redraw(
                 document.getElementById(component.id),
                 component,
               ),
@@ -442,14 +442,14 @@ describe('redraw', () => {
           ],
         })
         const image = view.child() as Component
-        const node = noodluidom.draw(image)
+        const node = ndom.draw(image)
         await waitFor(() => {
           const imgNode = document.querySelector(
             `img[src=${assetsUrl + 'myimg.png'}]`,
           )
           expect(imgNode).to.exist
         })
-        const [newNode, newComponent] = noodluidom.redraw(node, image)
+        const [newNode, newComponent] = ndom.redraw(node, image)
       },
     )
   })
@@ -473,7 +473,7 @@ describe('redraw', () => {
         children: [{ type: 'textField', dataKey: 'formData.password' }],
       })
       const textField = view.child() as Component
-      noodluidom.on('textField', (node: HTMLInputElement, c) => {
+      ndom.on('textField', (node: HTMLInputElement, c) => {
         node.dataset.value = c.get('data-value') || ''
         node.value = c.get('data-value') || ''
 
@@ -485,7 +485,7 @@ describe('redraw', () => {
           throw new Error('i ran')
         })
       })
-      const container = noodluidom.draw(view)
+      const container = ndom.draw(view)
       const input = screen.getByDisplayValue('mypassword')
       // expect(input.dataset.value).to.eq('mypassword')
       expect(input.value).to.eq('mypassword')
@@ -500,12 +500,12 @@ describe('redraw', () => {
     'action chains should still be able to operate on the DOM without ' +
       'having to re-assign them',
     () => {
-      noodluidom.on('textField', function (n: HTMLInputElement, c) {
+      ndom.on('textField', function (n: HTMLInputElement, c) {
         n.onchange = (e) => {
           e.value = !e.value
         }
       })
-      noodluidom.on('image', (n: HTMLImageElement, c) => {
+      ndom.on('image', (n: HTMLImageElement, c) => {
         n.onclick = (e) => {
           const targetId = 'targetme'
           let targetNode = document.getElementById(targetId)
@@ -583,8 +583,8 @@ describe('redraw', () => {
           { component: button, trigger: 'onClick' },
         ),
       }
-      const container = noodluidom.draw(view)
-      const [newNode, newComponent] = noodluidom.redraw(
+      const container = ndom.draw(view)
+      const [newNode, newComponent] = ndom.redraw(
         document.getElementById(button.id),
         button,
         {
@@ -597,7 +597,7 @@ describe('redraw', () => {
   )
 
   xit('should deeply resolve the entire noodl-ui component tree down', () => {
-    const [newNode, newComponent] = noodluidom.redraw(null, view)
+    const [newNode, newComponent] = ndom.redraw(null, view)
   })
 
   it('dom nodes should remain in the dom', async () => {
@@ -652,12 +652,12 @@ describe('redraw', () => {
     const getListItemNodes = () => document.querySelectorAll('li')
     const getImageNodes = () => document.querySelectorAll('img')
     const getInputNodes = () => document.querySelectorAll('input')
-    noodluidom.draw(list)
+    ndom.draw(list)
     expect(getListNodes()).to.have.lengthOf(1)
     expect(getListItemNodes()).to.have.lengthOf(2)
     expect(getImageNodes()).to.have.lengthOf(2)
     expect(getInputNodes()).to.have.lengthOf(2)
-    noodluidom.redraw(list.child(), document.querySelector('listItem'))
+    ndom.redraw(list.child(), document.querySelector('listItem'))
     expect(getListNodes()).to.have.lengthOf(1)
     expect(getListItemNodes()).to.have.lengthOf(2)
     expect(getImageNodes()).to.have.lengthOf(2)
@@ -710,19 +710,19 @@ describe('redraw', () => {
     // data.forEach((d) => list.addDataObject(d))
     // const listItem = list.child() as ListItem
     // const [textField, label, image] = listItem.children
-    noodluidom.on('component', (n, c) => {
+    ndom.on('component', (n, c) => {
       if (c.get('onChange')) n.onchange = c.get('onChange')
       if (c.get('onClick')) n.onclick = c.get('onClick')
     })
-    noodluidom.on('image', (n, c) => {
+    ndom.on('image', (n, c) => {
       // n.src = c.get('src')
     })
-    noodluidom.on('textField', (n, c) => {
+    ndom.on('textField', (n, c) => {
       n?.dataset.key = c.get('dataKey')
       n?.dataset.value = c.get('data-value')
       n.value = c.get('data-value')
     })
-    noodluidom.draw(view)
+    ndom.draw(view)
   })
 })
 
@@ -765,7 +765,7 @@ xdescribe('redraw(new)', () => {
     onClickSpy = sinon.spy(async () => {
       return (path = path === 'male.png' ? 'female.png' : 'male.png')
     })
-    redrawSpy = sinon.spy(noodluidom, 'redraw')
+    redrawSpy = sinon.spy(ndom, 'redraw')
     noodlui.actionsContext = { noodl: { emitCall: async () => [''] } } as any
     noodlui
       .removeCbs('emit')
@@ -1011,8 +1011,8 @@ xdescribe('redraw', () => {
 
   it('should be able to grab list consumer components with the viewTag', async () => {
     const emitCall = sinon.spy()
-    const redrawSpy = sinon.spy(noodluidom, 'redraw')
-    noodlui.init({ actionsContext: { noodl: { emitCall }, noodluidom } })
+    const redrawSpy = sinon.spy(ndom, 'redraw')
+    noodlui.init({ actionsContext: { noodl: { emitCall }, ndom } })
     // noodlui.getCbs('builtIn').redraw = [spy]
     const view = page.render(noodlComponents).components[0]
     const select = findChild(
