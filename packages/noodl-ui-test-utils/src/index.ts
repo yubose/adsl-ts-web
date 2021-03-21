@@ -208,34 +208,6 @@ export function getHeaderComponent(
   return { type: 'header', ...props }
 }
 
-export function getGenderListComponent({
-  iteratorVar = 'itemObject',
-}: ComponentProps<ListComponentObject> & {
-  contentType?: string
-  iteratorVar?: string
-  listObject?: any[]
-} = {}): ListComponentObject {
-  return {
-    type: 'list',
-    listObject: getGenderListObject(),
-    contentType: 'listObject',
-    iteratorVar,
-    children: [
-      {
-        type: 'listItem',
-        [iteratorVar]: '',
-        children: [
-          {
-            type: 'label',
-            dataKey: 'itemObject.value',
-            style: { border: { style: '1' } },
-          },
-        ],
-      },
-    ],
-  }
-}
-
 export function getImageComponent({
   path = 'abc.png' as any,
   ...rest
@@ -261,6 +233,34 @@ export function getLabelComponent(
     dataKey: 'formData.firstName',
     style: { border: { style: '1' } },
     ...props,
+  }
+}
+
+export function getListComponent({
+  iteratorVar = 'itemObject',
+}: ComponentProps<ListComponentObject> & {
+  contentType?: string
+  iteratorVar?: string
+  listObject?: any[]
+} = {}): ListComponentObject {
+  return {
+    type: 'list',
+    listObject: getGenderListObject(),
+    contentType: 'listObject',
+    iteratorVar,
+    children: [
+      {
+        type: 'listItem',
+        [iteratorVar]: '',
+        children: [
+          {
+            type: 'label',
+            dataKey: 'itemObject.value',
+            style: { border: { style: '1' } },
+          },
+        ],
+      },
+    ],
   }
 }
 
