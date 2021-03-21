@@ -826,8 +826,8 @@ class App {
                         map.getCanvas().style.cursor = ''
                     })
                   })
-                  parent.addEvent("click",function(){
-                  })
+                  // parent.addEvent("click",function(){
+                  // })
 
               //end
             }
