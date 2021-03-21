@@ -25,6 +25,7 @@ import {
   PluginComponentObject,
   PluginHeadComponentObject,
   PopupActionObject,
+  PopUpComponentObject,
   PopupDismissActionObject,
   RefreshActionObject,
   RegisterComponentObject,
@@ -240,6 +241,7 @@ export function getLabelComponent(
 
 export function getListComponent({
   iteratorVar = 'itemObject',
+  ...rest
 }: ComponentProps<ListComponentObject> & {
   contentType?: string
   iteratorVar?: string
@@ -263,6 +265,7 @@ export function getListComponent({
         ],
       },
     ],
+    ...rest,
   }
 }
 
@@ -315,6 +318,12 @@ export function getPluginBodyTailComponent(
   props?: ComponentProps<PluginBodyTailComponentObject> & { path?: string },
 ): PluginBodyTailComponentObject {
   return { type: 'pluginBodyTail', path: 'googleTM.js', ...props }
+}
+
+export function getPopUpComponent(
+  props?: ComponentProps<PopUpComponentObject> & { popUpView?: string },
+): PopUpComponentObject {
+  return { type: 'popUp', popUpView: 'genderView', ...props }
 }
 
 export function getRegisterComponent(
