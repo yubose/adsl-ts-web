@@ -64,7 +64,8 @@ export function getActionChain({
 
   const getInstance = (obj: NOODLUIActionObject) => {
     const action = Identify.emit(obj)
-      ? new EmitAction(trigger, obj)
+      ? // @ts-expect-error
+        new EmitAction(trigger, obj)
       : new Action(trigger, obj)
 
     if (isExtendedActions) {
@@ -72,6 +73,7 @@ export function getActionChain({
         (o: T.MockGetActionChainExtendedActionsArg) => o.action === obj,
       ) as T.MockGetActionChainExtendedActionsArg
       // Convenience if they want to provide spies
+      // @ts-expect-error
       typeof o?.fn === 'function' && (action.executor = o.fn)
     }
 
