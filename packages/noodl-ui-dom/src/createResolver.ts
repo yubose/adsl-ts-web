@@ -1,7 +1,7 @@
-import { ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
+import { ComponentInstance, NOODLUI as NUI } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLUIDOMInternal from './Internal'
-import { assign, entries, isArr, isFnc, isStr } from './utils/internal'
+import { entries, isArr, isFnc, isStr } from './utils/internal'
 import {
   findByElementId,
   findByViewTag,
@@ -15,11 +15,11 @@ import * as T from './types'
 const createResolver = function createResolver(ndom: NOODLDOM) {
   const _internal: {
     objs: T.Resolve.Config[]
-    noodlui: NOODLUI
+    nui: typeof NUI
     ndom: NOODLDOM
   } = {
     objs: [],
-    noodlui: undefined as any,
+    nui: undefined as any,
     ndom,
   }
 
@@ -27,7 +27,6 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
     return {
       actionsContext() {
         return {
-          ..._internal.noodlui?.actionsContext,
           findByElementId,
           findByViewTag,
           findAllByViewTag,
@@ -58,7 +57,7 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
           ...util.actionsContext(),
           editStyle: createStyleEditor(args[1]),
           original: args[1].original,
-          noodlui: _internal.noodlui,
+          nui: _internal.nui,
           ndom: ndom,
           page: ndom.page,
           draw: ndom.draw.bind(ndom),
@@ -103,10 +102,10 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
     )
   }
 
-  function _get(key: 'noodlui'): NOODLUI
+  function _get(key: 'nui'): typeof NUI
   function _get(key?: undefined): typeof _internal.objs
-  function _get(key?: 'noodlui' | undefined) {
-    if (key === 'noodlui') return _internal.noodlui
+  function _get(key?: 'nui' | undefined) {
+    if (key === 'nui') return _internal.nui
     return _internal.objs
   }
 
@@ -130,14 +129,11 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
       return o
     },
     get: _get,
-    use(value: T.Resolve.Config | NOODLUI | NOODLUIDOMInternal) {
-      if (value instanceof NOODLUI) {
-        _internal.noodlui = value
-        if (_internal.noodlui.actionsContext) {
-          assign(_internal.noodlui.actionsContext, util.actionsContext())
-        }
-      } else if (value instanceof NOODLUIDOMInternal) {
+    use(value: T.Resolve.Config | typeof NUI | NOODLUIDOMInternal) {
+      if (value instanceof NOODLUIDOMInternal) {
         ndom = value as NOODLDOM
+      } else if (typeof value?.['resolveComponents'] === 'function') {
+        _internal.nui = value as typeof NUI
       } else if (value) {
         o.register(value)
         if (value.observe) {

@@ -1,5 +1,5 @@
 import { ComponentObject, PageObject } from 'noodl-types'
-import { ComponentInstance, NOODL as NOODLUI, Viewport } from 'noodl-ui'
+import { ComponentInstance, NOODLUI as NUI, Viewport } from 'noodl-ui'
 import { NOODLDOMElement, Page, Resolve } from './types'
 import { array, entries, keys } from './utils/internal'
 import { eventId } from './constants'
@@ -9,7 +9,6 @@ import * as defaultResolvers from './resolvers'
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = baseUrl + 'assets/'
 export const ndom = new NOODLDOM()
-export const noodlui = new NOODLUI()
 export const viewport = new Viewport()
 
 /**
@@ -23,7 +22,7 @@ export function useResolver<Evt extends Page.HookEvent = Page.HookEvent>({
   ...opts
 }: {
   component: ComponentObject
-  noodlui?: NOODLUI
+  noodlui?: typeof NUI
   on?: Partial<Record<Evt, Page.Hook[Evt]>>
   pageName?: string
   pageObject?: PageObject
@@ -59,7 +58,7 @@ export function useResolver<Evt extends Page.HookEvent = Page.HookEvent>({
     ndom.register(defaultResolvers.id)
   }
 
-  const nui = opts.noodlui || noodlui
+  const nui = opts.noodlui || NUI
 
   if (opts.pageName) {
     nui.setPage(opts.pageName)
@@ -86,7 +85,6 @@ export function useResolver<Evt extends Page.HookEvent = Page.HookEvent>({
 
   return {
     assetsUrl,
-    componentCache: nui.componentCache.bind(nui),
     page: ndom.page,
     async requestPageChange(name: string = nui.page) {
       const components = await ndom.page.requestPageChange(name)
@@ -105,7 +103,7 @@ export function toDOM<
     node = ndom.draw(props as any) as N
     component = props as any
   } else if (typeof props === 'object' && 'type' in props) {
-    component = noodlui.resolveComponents(props) as any
+    component = NUI.resolveComponents(props) as any
     // @ts-expect-error
     node = ndom.draw(component) as N
   }

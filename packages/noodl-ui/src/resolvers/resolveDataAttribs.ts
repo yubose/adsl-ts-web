@@ -95,7 +95,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     }
 
     component.edit(
-      { 'data-key': dataKey, 'data-value': result || '' },
+      { 'data-key': dataKey, 'data-value': result || '', 'data-name': field },
       { remove: 'dataKey' },
     )
   }
@@ -178,10 +178,14 @@ dataAttribsResolver.setResolver((component, options, next) => {
       }
 
       if (src) {
-        src = n.resolveAssetUrl(src, getAssetsUrl())
-        // TODO - Deprecate "src" in favor of data-value
-        component.edit({ 'data-src': src })
-        component.emit('path', src)
+        // Wrapping this in a setTimeout allows DOM elements to subscribe
+        // their callbacks before this fires
+        setTimeout(() => {
+          src = n.resolveAssetUrl(src, getAssetsUrl())
+          // TODO - Deprecate "src" in favor of data-value
+          component.edit({ 'data-src': src })
+          component.emit('path', src)
+        })
       }
     }
   }

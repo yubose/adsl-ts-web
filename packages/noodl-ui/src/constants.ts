@@ -52,6 +52,9 @@ export const event = {
     ON_AFTER_RESOLVE: 'afterResolve',
   },
   component: {
+    image: {
+      PATH: 'path',
+    },
     list: {
       ADD_DATA_OBJECT: 'add-data-object',
       DELETE_DATA_OBJECT: 'delete-data-object',
@@ -75,6 +78,9 @@ export const event = {
     },
     register: {
       ONEVENT: 'onEvent',
+    },
+    textField: {
+      placeholder: 'PLACEHOLDER',
     },
   },
   SET_PAGE: 'set-page',

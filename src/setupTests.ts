@@ -3,7 +3,7 @@ import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
 import { eventId } from 'noodl-ui-dom'
-import { getAllResolversAsMap, publish, Resolver } from 'noodl-ui'
+import { publish, Resolver } from 'noodl-ui'
 import { assetsUrl, noodlui, ndom, viewport } from './utils/test-utils'
 
 chai.use(sinonChai)
@@ -29,12 +29,6 @@ before(() => {
       })
     })
     .use(noodlui)
-
-  Object.entries(getAllResolversAsMap()).forEach(([name, r]) => {
-    const resolver = new Resolver().setResolver(r)
-    noodlui.use(resolver)
-    noodlui.use({ name, resolver } as any)
-  })
 
   viewport.width = 375
   viewport.height = 667

@@ -1,21 +1,11 @@
-import {
-  ActionType,
-  ActionObject,
-  BuiltInActionObject,
-  ComponentObject,
-} from 'noodl-types'
+import { ActionType, ComponentObject, Identify } from 'noodl-types'
 import {
   ComponentInstance,
   createComponent,
-  EmitActionObject,
   findParent,
-  GotoActionObject,
-  NOODL as NOODLUI,
-  Page as PageComponent,
+  NOODLUI as NUI,
   publish,
-  StoreActionObject,
-  StoreBuiltInObject,
-  ToastActionObject,
+  Store,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import { eventId } from './constants'
@@ -45,14 +35,14 @@ class NOODLOM extends NOODLDOMInternal {
   }
 
   get actions() {
-    return this.#R.get('noodlui').getCbs('actions') as {
-      [K in ActionType]: StoreActionObject<any, T.ActionChainDOMContext>[]
+    return this.#R.get('nui').getActions() as {
+      [K in ActionType]: Store.ActionObject[]
     }
   }
 
   get builtIns() {
-    return this.#R.get('noodlui').getCbs('builtIns') as {
-      [funcName: string]: StoreBuiltInObject<any, T.ActionChainDOMContext>[]
+    return this.#R.get('nui').getBuiltIns() as {
+      [funcName: string]: Store.BuiltInObject[]
     }
   }
 
@@ -76,7 +66,7 @@ class NOODLOM extends NOODLDOMInternal {
     // The root node is a direct child of document.body
     this.page.setStatus(eventId.page.status.RESOLVING_COMPONENTS)
 
-    const resolved = this.#R.get('noodlui')?.resolveComponents(rawComponents)
+    const resolved = this.#R.get('nui')?.resolveComponents(rawComponents)
 
     this.page.setStatus(eventId.page.status.COMPONENTS_RECEIVED)
 
@@ -112,7 +102,7 @@ class NOODLOM extends NOODLDOMInternal {
         const getNode = (elem: HTMLElement) => (node = elem)
         this.#R.run(getNode, component)
         return node
-      } else if (component.type === 'image') {
+      } else if (Identify.component.image(component)) {
         node = isEmitObj((component as any).get('path'))
           ? createAsyncImageElement(
               (container || document.body) as HTMLElement,
@@ -170,7 +160,7 @@ class NOODLOM extends NOODLDOMInternal {
       const _isPageConsumer = isPageConsumer(component)
 
       // Clean up noodl-ui listeners
-      component.clearCbs?.()
+      component.clear()
 
       // if (parent?.type === 'list') {
       // dataObject && parent.removeDataObject(dataObject)
@@ -187,7 +177,7 @@ class NOODLOM extends NOODLDOMInternal {
         if (c) {
           const cParent = c.parent
           // Remove listeners
-          c.clearCbs()
+          c.clear()
           // Remove child component references
           cParent?.removeChild?.(c)
           // Remove the child's parent reference
@@ -200,7 +190,7 @@ class NOODLOM extends NOODLDOMInternal {
         // Set the original dataObject on the new component instance if available
         ;(newComponent as any).setDataObject?.(dataObject)
       }
-      let resolveComponents: NOODLUI['resolveComponents'] | undefined
+      let resolveComponents: any | undefined
       if (parent && newComponent) {
         // Set the original parent on the new component
         newComponent.setParent(parent)
@@ -210,16 +200,13 @@ class NOODLOM extends NOODLDOMInternal {
         parent.createChild(newComponent)
       }
       if (_isPageConsumer) {
-        const page = findParent(
-          component,
-          (p) => p?.type === 'page',
-        ) as PageComponent
+        const page = findParent(component, Identify.component.page)
 
-        resolveComponents = page?.resolveComponents?.bind?.(page)
+        resolveComponents = NUI.resolveComponents.bind(NUI)
       }
       if (!resolveComponents) resolveComponents = args?.resolveComponents
       if (!resolveComponents) {
-        const noodlui = this.#R.get('noodlui')
+        const noodlui = this.#R.get('nui')
         resolveComponents = noodlui.resolveComponents?.bind?.(noodlui)
       }
       newComponent = resolveComponents?.(newComponent) || newComponent
@@ -253,27 +240,16 @@ class NOODLOM extends NOODLDOMInternal {
     return [newNode, newComponent] as [typeof node, typeof component]
   }
 
-  register<
-    A extends
-      | ActionObject
-      | EmitActionObject
-      | GotoActionObject
-      | ToastActionObject
-  >(obj: StoreActionObject<A, T.ActionChainDOMContext>): this
-  register<B extends BuiltInActionObject>(
-    obj: StoreBuiltInObject<B, T.ActionChainDOMContext>,
-  ): this
-  register<R extends T.Resolve.Config>(obj: R): this
+  register(obj: Store.ActionObject): this
+  register(obj: Store.BuiltInObject): this
+  register(obj: T.Resolve.Config): this
   register(
-    obj:
-      | T.Resolve.Config
-      | StoreActionObject<any, T.ActionChainDOMContext>
-      | StoreBuiltInObject<any, T.ActionChainDOMContext>,
+    obj: T.Resolve.Config | Store.ActionObject | Store.BuiltInObject,
   ): this {
     if ('resolve' in obj) {
       this.#R.use(obj)
     } else if ('actionType' in obj || 'funcName' in obj) {
-      this.#R.get('noodlui').use(obj)
+      this.#R.get('nui').use(obj)
     }
     return this
   }
@@ -288,10 +264,10 @@ class NOODLOM extends NOODLDOMInternal {
     return this
   }
 
-  use(obj: NOODLUI) {
-    if (obj instanceof NOODLUI) {
+  use(obj: typeof NUI) {
+    if (typeof obj?.resolveComponents === 'function') {
       this.#R.use(obj)
-      this.page.viewport = obj.viewport
+      this.page.viewport = obj.getRootPage().viewport
     }
     return this
   }

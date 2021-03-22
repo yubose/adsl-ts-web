@@ -739,13 +739,13 @@ class App {
       }.bind(this),
     })
 
-    this.ndom.page(
-      eventId.redraw.ON_BEFORE_CLEANUP,
+    this.ndom.page.on(
+      eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
       function onBeforeCleanup(this: App, node, component) {
-        console.log('Removed from componentCache: ' + component.id)
+        console.log('Removed from component cache: ' + component.id)
         this.noodlui.componentCache().remove(component)
         publish(component, (c) => {
-          console.log('Removed from componentCache: ' + component.id)
+          console.log('Removed from component cache: ' + component.id)
           this.noodlui.componentCache().remove(c)
         })
       }.bind(this),
@@ -786,7 +786,7 @@ class App {
           let subStreams = this.streams.getSubStreamsContainer()
           if (!subStreams) {
             subStreams = this.streams.createSubStreamsContainer(node, {
-              blueprint: component.getBlueprint(),
+              blueprint: component.original?.children?.[0],
               resolver: this.noodlui.resolveComponents.bind(this.noodlui),
             })
             log.func('onCreateNode')
@@ -796,7 +796,7 @@ class App {
             // the DOM node and blueprint since it was reset from a previous cleanup
             log.red(`BLUEPRINT`, (component as List).blueprint)
             subStreams.container = node
-            subStreams.blueprint = component.getBlueprint()
+            subStreams.blueprint = component.original?.children?.[0]
             subStreams.resolver = this.noodlui.resolveComponents.bind(
               this.noodlui,
             )

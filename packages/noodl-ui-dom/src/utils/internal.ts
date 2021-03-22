@@ -49,5 +49,6 @@ export function fixTextAlign(c: ComponentInstance) {
   })
 }
 
-export const xKeys = ['left', 'width', 'marginLeft']
-export const yKeys = ['top', 'height', 'marginTop']
+export const xKeys = ['width', 'left']
+export const yKeys = ['height', 'top']
+export const posKeys = [...xKeys, ...yKeys]

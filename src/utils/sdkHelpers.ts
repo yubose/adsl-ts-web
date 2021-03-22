@@ -14,10 +14,11 @@ import {
   findListDataObject,
   isListConsumer,
   isListKey,
+  NOODLUI as NUI,
+  NOODLUIActionChain,
 } from 'noodl-ui'
 import { isTextFieldLike, NOODLDOMDataValueElement } from 'noodl-ui-dom'
 import noodl from '../app/noodl'
-import noodlui from '../app/noodl-ui'
 
 const log = Logger.create('sdkHelpers.ts')
 
@@ -36,7 +37,7 @@ export function createOnDataValueChangeFn(
   {
     eventName,
     onChange: onChangeProp,
-  }: { eventName: 'onchange'; onChange?(event: Event): Promise<any> },
+  }: { eventName: 'onchange'; onChange?: NOODLUIActionChain },
 ) {
   log.func('createOnDataValueChangeFn')
   let iteratorVar = component.get('iteratorVar') || ''
@@ -60,7 +61,7 @@ export function createOnDataValueChangeFn(
         })
       | null = event.target
 
-    const localRoot = noodl?.root?.[noodlui.page]
+    const localRoot = noodl?.root?.[NUI.getRootPage().page]
     const value = target?.value || ''
 
     if (isListKey(dataKey, component)) {
@@ -77,11 +78,11 @@ export function createOnDataValueChangeFn(
       }
       // TODO - Come back to this to provide more robust functionality
       if (isEmitObj(component.get('dataValue'))) {
-        await onChangeProp?.(event)
+        await onChangeProp?.execute?.(event)
       }
     } else {
       noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
-        if (!has(draft?.[noodlui.page], dataKey)) {
+        if (!has(draft?.[NUI.getRootPage().page], dataKey)) {
           log.orange(
             `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +
               `If this is intended then ignore this message.`,
@@ -91,13 +92,13 @@ export function createOnDataValueChangeFn(
               draftRoot: original(draft),
               localRoot,
               node,
-              pageName: noodlui.page,
-              pageObject: noodl.root[noodlui.page],
+              pageName: NUI.getRootPage().page,
+              pageObject: noodl.root[NUI.getRootPage().page],
               value,
             },
           )
         }
-        set(draft?.[noodlui.page], dataKey, value)
+        set(draft?.[NUI.getRootPage().page], dataKey, value)
         component.set('data-value', value)
         node.dataset.value = value
 
@@ -124,7 +125,7 @@ export function createOnDataValueChangeFn(
           }
         }
       })
-      onChangeProp?.(event)
+      onChangeProp?.execute?.(event)
     }
   }
 

@@ -360,14 +360,14 @@ const createActions = function createActions(app: App) {
           const result = await action.original?.object()
           if (result) {
             const { ref } = options
-            const newAction = ref?.insertIntermediaryAction.call(ref, result)
+            const newAction = ref?.inject.call(ref, result)
             if (isPlainObject(result) && 'wait' in result) {
               // await ref.abort()
               throw new Error('aborted')
             } else {
               log.grey(`An evalObject action is injecting a new action`, {
                 action: newAction,
-                queue: ref?.getQueue(),
+                queue: ref?.queue,
               })
             }
             // return newAction.execute(options)

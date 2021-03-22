@@ -13,14 +13,32 @@ class NOODLViewport implements IViewport {
   width: number = undefined as any
   height: number = undefined as any
 
+  // TODO - Unit test this
+  /**
+   * Returns the aspect ratio of size
+   * @param { number } vpSize - Viewport size
+   * @param { string | number } size
+   */
+  static getRatio(vpSize: number, size: string | number) {
+    if (isStr(size)) {
+      if (hasDecimal(size)) return vpSize * Number(size)
+      return vpSize / Number(size)
+    }
+    if (isNum(size)) {
+      if (hasDecimal(size)) return vpSize * Number(size)
+      return vpSize / Number(size)
+    }
+    return vpSize
+  }
+
   /**
    *
    * @param { string | number } value - Size in decimals as written in NOODL
-   * @param { number } viewportSize - The maximum width (or height)
+   * @param { number } vpSize - The maximum width (or height)
    */
   static getSize(
     value: string | number,
-    viewportSize: number,
+    vpSize: number,
     { toFixed = 2, unit }: { toFixed?: number; unit?: 'px' | 'noodl' } = {},
   ) {
     let result: any
@@ -28,21 +46,21 @@ class NOODLViewport implements IViewport {
     if (value == '0') {
       result = 0
     } else if (value == '1') {
-      result = Number(viewportSize)
+      result = Number(vpSize)
     } else {
       if (isStr(value)) {
         if (!hasLetter(value)) {
-          result = Number(value) * viewportSize
+          result = Number(value) * vpSize
         } else {
           result = value.replace(/[a-zA-Z]+/gi, '')
         }
       } else if (isNum(value)) {
         if (hasDecimal(value)) {
-          result = value * viewportSize
+          result = value * vpSize
         } else {
           result = value
         }
-        result = value * viewportSize
+        result = value * vpSize
       }
     }
 
@@ -50,7 +68,7 @@ class NOODLViewport implements IViewport {
 
     switch (unit) {
       case 'noodl':
-        return (Number(result) / viewportSize).toFixed(toFixed)
+        return (Number(result) / vpSize).toFixed(toFixed)
       case 'px':
         return `${Number(result).toFixed(toFixed)}px`
       default:

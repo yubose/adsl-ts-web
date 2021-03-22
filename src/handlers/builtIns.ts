@@ -343,7 +343,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             log.red(
               `${dataKey} is not a path of the data object. ` +
                 `Defaulting to attaching ${dataKey} as a path to the root object`,
-              { context: NUI.getContext?.(), dataObject, dataKey },
+              { dataObject, dataKey },
             )
             dataObject = app.noodl.root
             previousDataValue = undefined
@@ -637,11 +637,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             newComponent,
             dataObject,
           })
-          NUI.cache.component.set(newComponent)
+          NUI.cache.component.add(newComponent)
           startCount++
         }
 
-        componentCacheSize = getComponentCacheSize()
+        componentCacheSize = getComponentCacheSize(NUI)
         log.red(`COMPONENT CACHE SIZE: ${componentCacheSize}`)
       },
     })
@@ -691,8 +691,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       async resolve(node, component) {
         const img = node as HTMLImageElement
         const parent = component.parent
-        const context = NUI.getContext()
-        const pageObject = NUI.getRoot()[context?.page || ''] || {}
+        const pageObject = NUI.getRoot()[NUI.getRootPage()?.page || ''] || {}
         if (
           img?.src === pageObject?.docDetail?.document?.name?.data &&
           pageObject?.docDetail?.document?.name?.type == 'application/pdf'
@@ -715,10 +714,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       cond: 'textField',
       resolve(node: any, component: any) {
         // Password inputs
-        if (component.get('contentType') === 'password') {
+        if (component.contentType === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-            import('../app/noodl-ui').then(({ default: noodlui }) => {
-              const assetsUrl = noodlui.assetsUrl || ''
+            import('../app/noodl-ui').then(() => {
+              const assetsUrl = app.nui.getAssetsUrl() || ''
               const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
               const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
               const originalParent = node?.parentNode as HTMLDivElement
@@ -813,8 +812,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   let componentCacheSize = 0
 
-  function getComponentCacheSize(noodlui: NOODLUI) {
-    return Object.keys(noodlui.componentCache().state()).length
+  function getComponentCacheSize(nui: typeof NUI) {
+    return nui.cache.component.length
   }
 
   /** Shared common logic for both lock/logout logic */

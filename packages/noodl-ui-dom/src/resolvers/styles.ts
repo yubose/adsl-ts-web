@@ -1,9 +1,8 @@
 import {
-  getAllResolversAsMap,
-  Resolver,
   ComponentInstance,
   isComponent,
   Viewport as VP,
+  hasDecimal,
 } from 'noodl-ui'
 import { Identify } from 'noodl-types'
 import { NOODLDOMElement, RegisterOptions } from '../types'
@@ -11,25 +10,28 @@ import {
   addClassName,
   entries,
   fixTextAlign,
+  isArr,
   isObj,
+  isStr,
+  isNil,
   xKeys,
   yKeys,
+  posKeys,
 } from '../utils/internal'
 import { eventId } from '../constants'
 
 const getSize = VP.getSize
 const getSizeTypeKey = (s: string) => (xKeys.includes(s) ? 'width' : 'height')
-const posKeys = [...xKeys, ...yKeys]
 
-let { getAlignAttrs, getPosition } = Object.entries(
-  getAllResolversAsMap(),
-).reduce((acc, [name, fn]) => {
-  if (/(getAlig|getPos)/i.test(name)) acc[name] = fn
-  return acc
-}, {} as any)
+// let { getAlignAttrs, getPosition } = Object.entries(
+//   getAllResolversAsMap(),
+// ).reduce((acc, [name, fn]) => {
+//   if (/(getAlig|getPos)/i.test(name)) acc[name] = fn
+//   return acc
+// }, {} as any)
 
-getAlignAttrs = new Resolver().setResolver(getAlignAttrs)
-getPosition = new Resolver().setResolver(getPosition)
+// getAlignAttrs = new Resolver().setResolver(getAlignAttrs)
+// getPosition = new Resolver().setResolver(getPosition)
 
 class XYEditor {
   #component: ComponentInstance
@@ -58,21 +60,57 @@ class XYEditor {
   }
 }
 
+function createStyleEditor(component: ComponentInstance) {
+  function editComponentStyles(
+    styles: Record<string, any> | undefined,
+    { remove }: { remove?: string | string[] | false } = {},
+  ) {
+    styles && component.edit({ style: styles })
+    if (isArr(remove)) {
+      remove.forEach((styleKey) => styleKey && delete component.style[styleKey])
+    } else if (remove && isStr(remove)) delete component.style[remove]
+  }
+  return editComponentStyles
+}
+
+// Copied from noodl-ui.
+// TODO - Move somewhere else
+function handlePosition(
+  styleObj: any,
+  key: 'top' | 'height' | 'width' | 'left',
+  viewportSize: number,
+) {
+  const value = styleObj[key]
+  // String
+  if (typeof value === 'string') {
+    if (value == '0') return { [key]: '0px' }
+    if (value == '1') return { [key]: `${viewportSize}px` }
+    if (!/[a-zA-Z]/i.test(value))
+      return { [key]: VP.getRatio(viewportSize, value) + 'px' }
+  }
+  // Number
+  else if (hasDecimal(styleObj[key]))
+    return { [key]: VP.getRatio(viewportSize, value) + 'px' }
+
+  return undefined
+}
+
 export default {
   name: '[noodl-dom] Styles',
   cond: (node: NOODLDOMElement, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
   before(node, component) {
-    if (VP.isNil(component.style.marginTop)) {
+    if (VP.isNil(component.original?.style?.marginTop)) {
       component.style.marginTop = '0px'
     }
   },
-  resolve: (node: HTMLElement, component, { noodlui }) => {
+  resolve: (node: HTMLElement, component, { nui }) => {
     const originalStyle = component?.original?.style || {}
     let currentStyle = component.style
 
     if (isObj(currentStyle)) {
-      const editor = new XYEditor(component, noodlui.viewport)
+      const editor = new XYEditor(component, nui.getRootPage().viewport)
+      const edit = createStyleEditor(component)
 
       posKeys.forEach((key) => {
         if (VP.isNoodlUnit(originalStyle[key])) {
@@ -87,10 +125,80 @@ export default {
 
       let hasFAC = hasFlexAlignCenter()
 
-      getAlignAttrs.resolve(component)
-      getPosition.resolve(component, {
-        viewport: noodlui.viewport,
-      })
+      // TODO - Move handling of alignment somewhere else
+
+      {
+        /* -------------------------------------------------------
+          ---- ALIGNMENT
+        -------------------------------------------------------- */
+
+        const { textAlign } = component.props()
+
+        if (textAlign === 'left') edit({ textAlign: 'left' })
+        else if (textAlign === 'center') edit({ textAlign: 'center' })
+        else if (textAlign === 'right') edit({ textAlign: 'right' })
+        else if (textAlign === 'centerX') edit({ textAlign: 'center' })
+        else if (textAlign === 'centerY') {
+          edit(
+            { display: 'flex', alignItems: 'center' },
+            { remove: 'textAlign' },
+          )
+        } else if (isObj(textAlign)) {
+          if (textAlign.x !== undefined) {
+            edit({
+              textAlign: textAlign.x === 'centerX' ? 'center' : textAlign.x,
+            })
+          }
+          if (textAlign.y !== undefined) {
+            // The y value needs to be handled manually here since util.getTextAlign will
+            //    return { textAlign } which is meant for x
+            if (textAlign.y === 'center' || textAlign.y === 'centerY') {
+              edit(
+                { display: 'flex', alignItems: 'center' },
+                { remove: 'textAlign' },
+              )
+              if (textAlign.x === 'center') edit({ justifyContent: 'center' })
+            }
+          }
+        }
+
+        /* -------------------------------------------------------
+          ---- POSITION
+        -------------------------------------------------------- */
+
+        posKeys.forEach((key) => {
+          const value = originalStyle[key]
+          if (isNil(value)) {
+            edit({ [key]: '0px' })
+          } else {
+          }
+        })
+
+        if ('zIndex' in component.style) {
+          edit({ zIndex: Number(originalStyle.zIndex) })
+        }
+
+        if (!('top' in component.style)) {
+          edit({ top: 'auto' })
+        } else {
+          edit(
+            handlePosition(
+              originalStyle,
+              'top',
+              nui.getRootPage().viewport.height,
+            ),
+          )
+        }
+        // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
+        if (isObj(component.style?.textAlign)) {
+          edit(undefined, { remove: 'textAlign' })
+        }
+      }
+
+      // getAlignAttrs.resolve(component)
+      // getPosition.resolve(component, {
+      //   viewport: nui.viewport,
+      // })
 
       if (hasFAC !== hasFlexAlignCenter()) {
         if (hasFAC === false) {
@@ -115,7 +223,7 @@ export default {
     if (component.type === 'scrollView') addClassName('scroll-view', node)
     if (component.has('textBoard')) addClassName('text-board', node)
   },
-  after(node, component, { noodlui }) {
+  after(node, component, { nui }) {
     if (!node || !component) return
 
     let top = component.style.top
@@ -135,7 +243,7 @@ export default {
             parentTouchedProp[key] = value
             const incSum = getSize(
               value,
-              noodlui.viewport[getSizeTypeKey(key)] as number,
+              nui.getRootPage().viewport[getSizeTypeKey(key)] as number,
             )
             parentIncSum += Number(incSum)
           }

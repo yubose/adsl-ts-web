@@ -14,7 +14,6 @@ import set from 'lodash/set'
 import { ComponentObject, PageObject } from 'noodl-types'
 import {
   ComponentInstance,
-  event as noodluiEvent,
   identify,
   NOODLUI as NUI,
   Page as NUIPage,
@@ -65,6 +64,7 @@ class App {
   messaging = null as FirebaseMessaging | null
   meeting: IMeeting = {} as IMeeting
   noodl = {} as CADL
+  nui: typeof NUI
   ndom = {} as NOODLOM
   mainPage: NUIPage
   streams = {} as ReturnType<IMeeting['getStreams']>
@@ -165,6 +165,7 @@ class App {
       name: 'root',
       viewport: this.#viewportUtils.viewport,
     })
+    this.nui = NUI
   }
 
   async initialize({
@@ -439,22 +440,22 @@ class App {
     // When noodl-ui emits this it expects a new "child" instance. To keep memory usage
     // to a minimum, keep the root references the same as the one in the parent instance
     // Currently this is used by components of type: page
-    this.mainPage.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
-      await this.noodl.initPage(ref.page)
-      log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
-      log.grey(`Initiated page: ${ref.page}`)
-    })
+    // this.nui.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
+    //   await this.noodl.initPage(ref.page)
+    //   log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
+    //   log.grey(`Initiated page: ${ref.page}`)
+    // })
   }
 
   // Cleans ac (used for debugging atm)
   observeInternal() {
-    this.mainPage.on(noodluiEvent.SET_PAGE, () => {
-      if (typeof window !== 'undefined' && 'ac' in window) {
-        Object.keys(window.ac).forEach((key) => {
-          delete window.ac[key]
-        })
-      }
-    })
+    // this.mainPage.on(noodluiEvent.SET_PAGE, () => {
+    //   if (typeof window !== 'undefined' && 'ac' in window) {
+    //     Object.keys(window.ac).forEach((key) => {
+    //       delete window.ac[key]
+    //     })
+    //   }
+    // })
   }
 
   observeViewport(utils: ReturnType<typeof createViewportHandler>) {
@@ -637,8 +638,8 @@ class App {
                 getPlugins: () => plugins,
               })
 
-              log.func('before-page-render')
-              log.grey('Initialized noodl-ui client', this.noodlui)
+              // log.func('before-page-render')
+              // log.grey('Initialized noodl-ui client', this.nui)
             }
             // Refresh the root
             // TODO - Leave root/page auto binded to the lib
@@ -882,10 +883,10 @@ class App {
     this.ndom.page.on(
       eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
       (node, component) => {
-        console.log('Removed from componentCache: ' + component.id)
+        console.log('Removed from component cache: ' + component.id)
         NUI.cache.component.remove(component)
         publish(component, (c) => {
-          console.log('Removed from componentCache: ' + component.id)
+          console.log('Removed from component cache: ' + component.id)
           NUI.cache.component.remove(c)
         })
       },
@@ -919,14 +920,12 @@ class App {
         }
         // Remote participants container
         else if (
-          /(vidoeSubStream|videoSubStream)/i.test(
-            component.get('contentType') || '',
-          )
+          /(vidoeSubStream|videoSubStream)/i.test(component.contentType || '')
         ) {
           let subStreams = this.streams.getSubStreamsContainer()
           if (!subStreams) {
             subStreams = this.streams.createSubStreamsContainer(node, {
-              blueprint: component.getBlueprint(),
+              blueprint: component.original?.children?.[0],
               resolver: NUI.resolveComponents.bind(NUI),
             })
             log.func('onCreateNode')
@@ -936,7 +935,7 @@ class App {
             // the DOM node and blueprint since it was reset from a previous cleanup
             log.red(`BLUEPRINT`, component.blueprint)
             subStreams.container = node
-            subStreams.blueprint = component.getBlueprint()
+            subStreams.blueprint = component.original?.children?.[0]
             subStreams.resolver = NUI.resolveComponents.bind(NUI)
           }
         }

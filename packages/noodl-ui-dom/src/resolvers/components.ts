@@ -11,7 +11,8 @@ import * as u from '../utils/internal'
 
 const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] Default Component Resolvers`,
-  resolve(node, component, { draw, noodlui }) {
+  cond: (n, c) => !!(n && c),
+  resolve(node, component, { draw, nui }) {
     if (node && !u.isFnc(node)) {
       const original = component.original || {}
       const props = component.props() || {}
@@ -41,7 +42,7 @@ const domComponentsResolver: Resolve.Config = {
         node.style.cursor = onClick ? 'pointer' : 'auto'
       }
       // IMAGE
-      else if (Identify.component.image(original)) {
+      else if (Identify.component.image(component)) {
         if (onClick) node.style.cursor = 'pointer'
         // If an image has children, we will assume it is some icon button overlapping
         //    Ex: profile photos and showing pencil icon on top to change it
@@ -49,6 +50,7 @@ const domComponentsResolver: Resolve.Config = {
           node.style.width = '100%'
           node.style.height = '100%'
         }
+
         component.on('path', (result: string) => {
           node && ((node as HTMLImageElement).src = result)
         })
@@ -61,33 +63,29 @@ const domComponentsResolver: Resolve.Config = {
         onClick && (node.style.cursor = 'pointer')
       }
       // LIST
-      else if (Identify.component.list(original)) {
+      else if (Identify.component.listLike(component)) {
         // noodl-ui delegates the responsibility for us to decide how
         // to control how list children are first rendered to the DOM
         const listObject = props.listObject || []
         const numDataObjects = listObject.length
+        console.info(component)
 
-        component.edit({ listObject: [] })
-        component.clearChildren()
-
-        component.children.forEach((c) => {
-          c?.setDataObject?.(null)
-          component.removeDataObject?.(0)
-        })
+        // component.edit({ listObject: [] })
+        // component.clear('children')
 
         // Remove the placeholders
         for (let index = 0; index < numDataObjects; index++) {
           // This emits the "create list item" event that we should already have a listener for
-          component.addDataObject?.(listObject[index])
-          console.log(listObject[index])
+          // component.addDataObject?.(listObject[index])
+          // console.log(listObject[index])
         }
 
         component.on(noodluiEvent.component.list.CREATE_LIST_ITEM, (result) => {
-          noodlui?.componentCache().set(result.listItem)
+          nui.cache.component.set(result.listItem)
         })
 
         component.on(noodluiEvent.component.list.REMOVE_LIST_ITEM, (result) => {
-          noodlui?.componentCache().remove(result.listItem)
+          nui.cache.component.remove(result.listItem)
           document.getElementById(result.listItem.id)?.remove?.()
         })
 

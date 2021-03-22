@@ -41,7 +41,7 @@ async function resolveAsync(
     if (Identify.emit(path)) {
       const ac = await createActionChain(
         'path',
-        [{ emit: path?.emit, actionType: 'emit' }],
+        [{ ...path, actionType: 'emit' }],
         { loadQueue: true },
       ).execute()
       let result = ac?.find((val) => !!val?.result)?.result

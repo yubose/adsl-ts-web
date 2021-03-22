@@ -350,7 +350,7 @@ const createBuiltInActions = function createBuiltInActions({
             log.red(
               `${dataKey} is not a path of the data object. ` +
                 `Defaulting to attaching ${dataKey} as a path to the root object`,
-              { context: noodlui.getContext?.(), dataObject, dataKey },
+              { dataObject, dataKey },
             )
             dataObject = noodl.root
             previousDataValue = undefined
@@ -374,7 +374,6 @@ const createBuiltInActions = function createBuiltInActions({
         log.grey('', {
           component: component.toJS(),
           componentInst: component,
-          context: noodlui.getContext?.(),
           dataKey,
           dataValue,
           dataObject,
@@ -711,7 +710,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       name: 'image',
       cond: 'image',
-      async resolve(node, component, { findByElementId }) {
+      async resolve(node, component) {
         const img = node as HTMLImageElement
         const parent = component.parent
         const context = noodlui.getContext()
@@ -740,7 +739,7 @@ const createBuiltInActions = function createBuiltInActions({
         // Password inputs
         if (component.get('contentType') === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-            const assetsUrl = noodlui.assetsUrl || ''
+            const assetsUrl = noodlui || ''
             const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
             const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
             const originalParent = node?.parentNode as HTMLDivElement

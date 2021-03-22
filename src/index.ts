@@ -27,7 +27,7 @@ window.addEventListener('load', async (e) => {
     cp: copyToClipboard,
     meeting: Meeting,
     noodl,
-    noodlui: NOODLUI,
+    noodlui: NUI,
     page,
   }
   window.build = process.env.BUILD
@@ -41,7 +41,7 @@ window.addEventListener('load', async (e) => {
   })
 
   window.noodl = noodl
-  window.noodlui = NOODLUI
+  window.noodlui = NUI
   window.ndom = ndom
   window.FCMOnTokenReceive = (args: any) => {
     noodl.root.builtIn
@@ -71,8 +71,6 @@ window.addEventListener('load', async (e) => {
         })
       }
     }
-    // @ts-expect-error
-    window.grid()
     stable && log.cyan('Initialized [App] instance')
   } catch (error) {
     console.error(error)

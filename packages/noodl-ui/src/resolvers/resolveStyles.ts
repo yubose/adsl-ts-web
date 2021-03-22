@@ -66,34 +66,34 @@ resolveStyles.setResolver(
     if (textAlign) {
       // "centerX", "centerY", "left", "center", "right"
       if (u.isStr(textAlign)) {
-        if (textAlign === 'left') edit({ textAlign: 'left' })
-        else if (textAlign === 'center') edit({ textAlign: 'center' })
-        else if (textAlign === 'right') edit({ textAlign: 'right' })
-        else if (textAlign === 'centerX') edit({ textAlign: 'center' })
-        else if (textAlign === 'centerY') {
-          edit(
-            { display: 'flex', alignItems: 'center' },
-            { remove: 'textAlign' },
-          )
-        }
+        // if (textAlign === 'left') edit({ textAlign: 'left' })
+        // else if (textAlign === 'center') edit({ textAlign: 'center' })
+        // else if (textAlign === 'right') edit({ textAlign: 'right' })
+        // else if (textAlign === 'centerX') edit({ textAlign: 'center' })
+        // else if (textAlign === 'centerY') {
+        //   edit(
+        //     { display: 'flex', alignItems: 'center' },
+        //     { remove: 'textAlign' },
+        //   )
+        // }
       }
       // { x, y }
       else if (u.isObj(textAlign)) {
-        if (textAlign.x !== undefined) {
-          edit({
-            textAlign: textAlign.x === 'centerX' ? 'center' : textAlign.x,
-          })
-        }
-        if (textAlign.y !== undefined) {
-          // The y value needs to be handled manually here since util.getTextAlign will
-          //    return { textAlign } which is meant for x
-          if (textAlign.y === 'center' || textAlign.y === 'centerY') {
-            edit({ display: 'flex', alignItems: 'center' })
-            if (textAlign.x === 'center') edit({ justifyContent: 'center' })
-          } else {
-            edit({ textAlign }, { remove: 'textAlign' })
-          }
-        }
+        // if (textAlign.x !== undefined) {
+        //   edit({
+        //     textAlign: textAlign.x === 'centerX' ? 'center' : textAlign.x,
+        //   })
+        // }
+        // if (textAlign.y !== undefined) {
+        //   // The y value needs to be handled manually here since util.getTextAlign will
+        //   //    return { textAlign } which is meant for x
+        //   if (textAlign.y === 'center' || textAlign.y === 'centerY') {
+        //     edit({ display: 'flex', alignItems: 'center' })
+        //     if (textAlign.x === 'center') edit({ justifyContent: 'center' })
+        //   } else {
+        //     edit({ textAlign }, { remove: 'textAlign' })
+        //   }
+        // }
       }
     }
 
@@ -225,25 +225,24 @@ resolveStyles.setResolver(
   -------------------------------------------------------- */
 
     {
-      util.posKeys.forEach((key) => {
-        const value = originalStyles[key]
-        if (u.isNil(value)) {
-          edit({ [key]: '0px' })
-        } else {
-          edit(
-            util.handlePosition(
-              originalStyles,
-              key as any,
-              viewport[util.xKeys.includes(key) ? 'width' : 'height'],
-            ),
-          )
-        }
-      })
-
-      // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
-      if (u.isObj(component.style?.textAlign)) {
-        delete component.style.textAlign
-      }
+      // util.posKeys.forEach((key) => {
+      //   const value = originalStyles[key]
+      //   if (u.isNil(value)) {
+      //     edit({ [key]: '0px' })
+      //   } else {
+      //     edit(
+      //       util.handlePosition(
+      //         originalStyles,
+      //         key as any,
+      //         viewport[util.xKeys.includes(key) ? 'width' : 'height'],
+      //       ),
+      //     )
+      //   }
+      // })
+      // // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
+      // if (u.isObj(component.style?.textAlign)) {
+      //   delete component.style.textAlign
+      // }
     }
 
     /* -------------------------------------------------------

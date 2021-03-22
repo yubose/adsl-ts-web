@@ -1,10 +1,5 @@
-import { ComponentObject } from 'noodl-types'
-import {
-  ActionChainContext,
-  ComponentInstance,
-  ComponentType,
-  NOODL as NOODLUI,
-} from 'noodl-ui'
+import { ComponentObject, ComponentType } from 'noodl-types'
+import { ActionChainContext, ComponentInstance, NOODLUI as NUI } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import {
@@ -108,7 +103,7 @@ export namespace Resolve {
       styles: Record<string, any> | undefined,
       args?: { remove?: string | string[] | false },
     ): void
-    noodlui: NOODLUI
+    nui: typeof NUI
     ndom: NOODLDOM
     original: ComponentObject
     draw: Parse

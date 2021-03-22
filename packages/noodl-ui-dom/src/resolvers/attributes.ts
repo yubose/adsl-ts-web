@@ -1,7 +1,6 @@
 import { Identify, userEvent } from 'noodl-types'
 import { NOODLUIActionChain } from 'noodl-ui'
 import { isActionChain } from 'noodl-action-chain'
-import { resolveAssetUrl } from 'noodl-ui/dist/utils/noodl'
 import { NodeResolverConfig, NodeResolverFactoryFunc } from '../types'
 import * as u from '../utils'
 

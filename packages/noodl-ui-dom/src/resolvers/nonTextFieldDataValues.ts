@@ -7,11 +7,11 @@ export default {
     !!node &&
     !isTextFieldLike(node) &&
     (component.get('text') ||
-      component.get('placeholder') ||
+      component.get('data-placeholder') ||
       component.get('data-value')),
   resolve: (node: NOODLDOMElement, component) => {
     let dataValue = component.get('data-value')
-    let placeholder = component.get('placeholder')
+    let placeholder = component.get('data-placeholder')
     let text = component.get('text')
     text = typeof dataValue === 'string' ? dataValue : text || text || ''
     // if (!text && children) text = `${children}` || ''

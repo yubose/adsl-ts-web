@@ -236,7 +236,7 @@ const NOODLUI = (function _NOODLUI() {
             }
             return !!val
           }, args as IfObject),
-          this.assetsUrl,
+          o.getAssetsUrl(),
         )
       } else {
       }
@@ -267,7 +267,7 @@ const NOODLUI = (function _NOODLUI() {
 
   function _getBaseStyles({
     component,
-    page,
+    page = o.getRootPage(),
   }: {
     component: T.ComponentInstance
     page: any
