@@ -826,9 +826,15 @@ class App {
                         map.getCanvas().style.cursor = ''
                     })
                   })
+              // let canvasContainer:any = node.parentNode?.children[1]
+              let canvasContainer:any = document.querySelector(".mapboxgl-canvas-container")
+              console.log("test map show canvas", canvasContainer)
+              canvasContainer['style']['width'] = "100%"
+              canvasContainer['style']['height'] = "100%"
+
                   // parent.addEvent("click",function(){
                   // })
-
+              // let canvasContainer = document.getElementById("mapboxgl-canvas-container")
               //end
             }
           }
