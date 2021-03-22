@@ -4,29 +4,35 @@ import Logger from 'logsnap'
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original, current } from 'immer'
 import { ComponentObject, StyleObject, userEvent } from 'noodl-types'
-import { ComponentInstance, IComponent } from '../types'
-import { getRandomKey } from '../utils/common'
 import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import * as u from '../utils/internal'
+import * as T from '../types'
 
 const log = Logger.create('Base')
 
-// Current component events: 'path' attached by createSrc
+interface EditResolutionOptions {
+  remove?: string | string[] | Record<string, () => boolean>
+}
+
+// Current component events: 'path' attached by createSrcf
 
 class Component<C extends ComponentObject = ComponentObject>
-  implements IComponent<C> {
+  implements T.IComponent<C> {
+  #blueprint: ComponentObject
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
-  #cb: { [eventName: string]: ((...args: any[]) => any)[] } = {}
-  #cbIds: string[] = []
+  #hooks: Partial<
+    Record<T.Component.HookEvent, T.Component.Hook[T.Component.HookEvent][]>
+  > = {}
+  #hookCbIds: string[] = []
   #component: WritableDraft<ComponentObject> | ComponentObject
-  #children: ComponentInstance[] = []
+  #children: T.ComponentInstance[] = []
   #id = ''
-  #parent: ComponentInstance | null = null
-  original: C
-  keys: string[]
+  #parent: T.ComponentInstance | null = null
+  #type: C['type']
+  original: ComponentObject
 
-  static isComponent(component: any): component is ComponentInstance {
+  static isComponent(component: any): component is T.ComponentInstance {
     return (
       !!component &&
       !u.isStr(component) &&
@@ -46,21 +52,29 @@ class Component<C extends ComponentObject = ComponentObject>
     }
   }
 
+  [u.inspect]() {
+    return {
+      ...this.toJSON(),
+      blueprint: this.#blueprint,
+      cache: this.#cache,
+      hooks: this.hooks,
+      hookIds: this.#hookCbIds,
+      parentId: this.parent?.id,
+    }
+  }
+
   constructor(component: C, opts?: { id?: string }) {
-    this.original = Component.isComponent(component)
-      ? component.original
+    this.#blueprint = Component.isComponent(component)
+      ? component.blueprint
       : component
+    this.original = this.#blueprint
     this.#cache = {}
     this.#component = createComponentDraftSafely(
       component,
     ) as WritableDraft<ComponentObject>
 
-    this.#id = opts?.id || this.#component.id || getRandomKey()
-
-    this.#component.style = isDraft(this.#component.style)
-      ? original(this.#component.style)
-      : this.#component.style
-
+    this.#id = opts?.id || this.#component.id || u.getRandomKey()
+    this.#type = this.#blueprint.type
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
     userEvent.forEach((eventType) => {
@@ -78,12 +92,25 @@ class Component<C extends ComponentObject = ComponentObject>
     })
   }
 
+  get blueprint() {
+    if (!this.#blueprint) this.#blueprint = { type: this.type }
+    return this.#blueprint
+  }
+
   get contentType() {
     return this.original?.contentType
   }
 
+  get hooks() {
+    return this.#hooks
+  }
+
   get id() {
     return this.#id
+  }
+
+  get parent() {
+    return this.#parent
   }
 
   /** Returns the most recent styles at the time of this call */
@@ -321,11 +348,7 @@ class Component<C extends ComponentObject = ComponentObject>
     return JSON.stringify(this.toJSON(), null, spaces)
   }
 
-  parent() {
-    return this.#parent as any
-  }
-
-  setParent(parent: ComponentInstance | null) {
+  setParent(parent: T.ComponentInstance | null) {
     this.#parent = parent
     return this
   }
@@ -345,7 +368,7 @@ class Component<C extends ComponentObject = ComponentObject>
    * Creates and appends the new child instance to the childrens list
    * @param { IComponentType } props
    */
-  createChild<C extends ComponentInstance>(child: C): C {
+  createChild<C extends T.ComponentInstance>(child: C): C {
     child?.setParent?.(this)
     this.#children.push(child)
     return child
@@ -353,11 +376,11 @@ class Component<C extends ComponentObject = ComponentObject>
 
   /**
    * Returns true if the child exists in the tree
-   * @param { ComponentInstance | string } child - Child component or id
+   * @param { T.ComponentInstance | string } child - Child component or id
    */
   hasChild(child: string): boolean
-  hasChild(child: ComponentInstance): boolean
-  hasChild(child: ComponentInstance | string): boolean {
+  hasChild(child: T.ComponentInstance): boolean
+  hasChild(child: T.ComponentInstance | string): boolean {
     if (typeof child === 'string') {
       return !!find(this.#children, (c) => c?.id === child)
     }
@@ -371,14 +394,14 @@ class Component<C extends ComponentObject = ComponentObject>
    * Removes a child from its children. You can pass in either the instance
    * directly, the index leading to the child, the component's id, or leave the args empty to
    * remove the first child by default
-   * @param { ComponentInstance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
+   * @param { T.ComponentInstance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
    */
-  removeChild(index: number): ComponentInstance | undefined
-  removeChild(id: string): ComponentInstance | undefined
-  removeChild(child: ComponentInstance): ComponentInstance | undefined
-  removeChild(): ComponentInstance | undefined
-  removeChild(child?: ComponentInstance | number | string) {
-    let removedChild: ComponentInstance | undefined
+  removeChild(index: number): T.ComponentInstance | undefined
+  removeChild(id: string): T.ComponentInstance | undefined
+  removeChild(child: T.ComponentInstance): T.ComponentInstance | undefined
+  removeChild(): T.ComponentInstance | undefined
+  removeChild(child?: T.ComponentInstance | number | string) {
+    let removedChild: T.ComponentInstance | undefined
     if (!arguments.length) {
       removedChild = this.#children.shift()
     } else if (typeof child === 'number' && this.#children[child]) {
@@ -387,8 +410,8 @@ class Component<C extends ComponentObject = ComponentObject>
       removedChild = child
         ? find(this.#children, (c) => c.id === child)
         : undefined
-    } else if (this.hasChild(child as ComponentInstance)) {
-      if (this.#children.includes(child as ComponentInstance)) {
+    } else if (this.hasChild(child as T.ComponentInstance)) {
+      if (this.#children.includes(child as T.ComponentInstance)) {
         this.#children = this.#children.filter((c) => {
           if (c === child) {
             removedChild = child
@@ -402,87 +425,89 @@ class Component<C extends ComponentObject = ComponentObject>
   }
 
   get children() {
-    return this.#children || []
+    if (!this.#children) this.#children = []
+    return this.#children
   }
 
   get length() {
     return this.#children?.length || 0
   }
 
-  on(eventName: string, cb: (...args: any[]) => any, id = '') {
+  on<Evt extends T.Component.HookEvent>(
+    eventName: Evt,
+    cb: (...args: Parameters<T.Component.Hook[Evt]>) => void,
+    id = '',
+  ) {
     if (id) {
-      if (!this.#cbIds.includes(id)) this.#cbIds.push(id)
+      // Prevents duplicates
+      if (!this.#hookCbIds.includes(id)) this.#hookCbIds.push(id)
       else return this
     }
-
-    if (!u.isArr(this.#cb[eventName])) this.#cb[eventName] = []
-    // log.func(`on [${this.type}]`)
-    // log.grey(`Subscribing listener for "${eventName}"`, this)
-    this.#cb[eventName].push(cb)
+    !u.isArr(this.hooks[eventName]) && (this.hooks[eventName] = [])
+    this.hooks[eventName]?.push(cb)
     return this
   }
 
-  off(eventName: any, cb: (...args: any[]) => any) {
-    if (u.isArr(this.#cb[eventName])) {
-      if (this.#cb[eventName].includes(cb)) {
-        log.func(`off [${this.type}]`)
-        log.grey(`Removing listener for "${eventName}"`, this)
-        this.#cb[eventName].splice(this.#cb[eventName].indexOf(cb), 1)
-      }
+  off<Evt extends T.Component.HookEvent>(
+    eventName: Evt,
+    cb: (...args: Parameters<T.Component.Hook[Evt]>) => void,
+  ) {
+    if (!u.isArr(this.hooks[eventName])) return this
+    if (this.hooks[eventName]?.includes(cb)) {
+      this.hooks[eventName]?.splice(
+        this.#hooks[eventName]?.indexOf(cb) as number,
+        1,
+      )
     }
     return this
   }
 
-  emit(eventName: string, ...args: any[]) {
+  emit<Evt extends T.Component.HookEvent>(
+    eventName: Evt,
+    ...args: Parameters<T.Component.Hook[Evt]>
+  ) {
     // log.func('emit')
     // log.grey(`Component emit: ${eventName}`, {
     //   args: arguments,
     //   component: this,
     // })
-    this.#cb[eventName]?.forEach((fn) => fn(...args))
+    this.#hooks[eventName]?.forEach((cb) => (cb as any)(...args))
     return this
   }
 
-  getCbs() {
-    return this.#cb
-  }
-
-  hasCb(eventName: string, cb: (...args: any[]) => any) {
-    return !!this.#cb[eventName]?.includes?.(cb)
-  }
-
-  clearCbs() {
-    Object.keys(this.#cb).forEach((eventName) => {
-      if (u.isArr(this.#cb[eventName])) {
-        this.#cb[eventName].length = 0
-      }
-    })
-    return this
-  }
-
-  clearChildren() {
-    if (u.isArr(this.#children)) {
-      this.#children.length = 0
+  clear(filter?: 'children' | 'hooks' | ('children' | 'hooks')[]) {
+    const _clearChildren = () => (this.#children.length = 0)
+    const _clearHooks = () => {
+      u.keys(this.#hooks).forEach((evt) => (this.#hooks[evt].length = 0))
     }
+    if (u.isArr(filter) || u.isStr(filter)) {
+      u.array(filter).forEach((s: typeof filter) => {
+        if (s === 'children') _clearChildren()
+        else if (s === 'hooks') _clearHooks()
+      })
+      return this
+    }
+    _clearChildren()
+    _clearHooks()
+    return this
   }
 
   edit(fn: (props: ComponentObject) => ComponentObject | undefined | void): void
-  edit(prop: Record<string, any>): void
+  edit(prop: Record<string, any>, opts?: EditResolutionOptions): void
   edit(prop: string, value: any): void
   edit(
     fn:
       | Record<string, any>
       | string
       | ((props: ComponentObject) => ComponentObject | undefined | void),
-    value?: any,
+    value?: EditResolutionOptions,
   ) {
     if (u.isFnc(fn)) {
       const props = fn(this.#component)
       if (u.isObj(props)) {
         u.entries(props).forEach(([k, v]) => {
           if (k === 'style') {
-            if (!this.#component.style) this.#component.style = {}
-            u.isObj(v) && u.assign(this.#component.style, v)
+            u.assign(this.style, v)
           } else {
             this.#component[k] = v
           }
@@ -491,12 +516,29 @@ class Component<C extends ComponentObject = ComponentObject>
     } else if (u.isStr(fn)) {
       this.#component[fn] = value
     } else if (u.isObj(fn)) {
+      const remove = value?.remove
+        ? (prop?: 'style') => {
+            const obj = prop === 'style' ? this.style : this.#component
+            if (u.isStr(value.remove)) {
+              delete obj[value.remove]
+            } else if (u.isArr(value.remove)) {
+              value.remove.forEach((key) => delete obj[key])
+            } else if (u.isObj(value.remove)) {
+              u.entries(value.remove).forEach(
+                ([k, pred]) => pred?.() && delete obj[k],
+              )
+            }
+          }
+        : undefined
+
       u.entries(fn).forEach(([k, v]) => {
         if (k === 'style') {
-          if (u.isObj(v)) u.assign(this.#component.style as StyleObject, v)
-          else this.#component.style = v
+          if (u.isObj(v)) u.assign(this.style, v)
+          else this.style = v
+          remove?.('style')
         } else {
           this.#component[k] = v
+          remove?.()
         }
       })
     }
@@ -517,9 +559,9 @@ class Component<C extends ComponentObject = ComponentObject>
 
   /** Returns the JS representation of the currently resolved component */
   toJSON() {
-    const result = {} as ReturnType<IComponent['toJSON']>
+    const result = {} as ReturnType<T.IComponent['toJSON']>
     u.assign(result, this.props(), {
-      parentId: this.parent?.()?.id || '',
+      parentId: this.parent?.id || '',
       children: this.children.map((child) => child?.toJSON?.()),
     })
     return result

@@ -1,5 +1,5 @@
-import { LiteralUnion } from 'type-fest'
-import { PlainObject } from '../types'
+import { actionTypes } from 'noodl-types'
+import { NOODLUIActionType, PlainObject } from '../types'
 
 export const isArr = (v: any): v is any[] => Array.isArray(v)
 export const isBool = (v: any): v is boolean => typeof v === 'boolean'
@@ -9,11 +9,38 @@ export const isFnc = (v: any): v is (...args: any[]) => any =>
 export const isStr = (v: any): v is string => typeof v === 'string'
 export const isNull = (v: any): v is null => v === null
 export const isUnd = (v: any): v is undefined => v === undefined
-export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
+export const isNil = (v: any): v is null | undefined => isNull(v) || isUnd(v)
 export const isObj = <V extends PlainObject>(v: any): v is V =>
   !!v && !isArr(v) && typeof v === 'object'
 
-export const assign = (v: PlainObject, ...rest: (PlainObject | undefined)[]) =>
-  Object.assign(v, ...rest)
+export const assign = (
+  v: PlainObject = {},
+  ...rest: (PlainObject | undefined)[]
+) => Object.assign(v, ...rest)
+export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
 export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
 export const keys = (v: any) => Object.keys(v)
+export const values = <O extends Record<string, any>, K extends keyof O>(
+  v: O,
+): O[K][] => Object.values(v)
+
+/**
+ * Returns a random 7-character string
+ */
+export function getRandomKey() {
+  return `_${Math.random().toString(36).substr(2, 9)}`
+}
+
+// Custom formatting output for NodeJS console
+// https://nodejs.org/api/util.html#util_util_inspect_custom
+export const inspect = Symbol.for('nodejs.util.inspect.custom')
+
+export function mapActionTypesToOwnArrays<V = any>(): Record<
+  NOODLUIActionType,
+  V[]
+> {
+  return actionTypes.reduce(
+    (acc, t: NOODLUIActionType) => assign(acc, { [t]: [] }),
+    {},
+  )
+}

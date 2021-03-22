@@ -515,9 +515,6 @@ class App {
                 pageSnapshot,
               })
 
-              function fetch(url: string) {
-                return axios.get(url).then(({ data }) => data)
-              }
               // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
               const config = this.noodl.getConfig()
               const plugins = [] as ComponentObject[]
@@ -556,7 +553,6 @@ class App {
                 .setPage(pageName)
                 .use(this.#viewportUtils.viewport)
                 .use({
-                  fetch,
                   getAssetsUrl: () => this.noodl.assetsUrl,
                   getBaseUrl: () => this.noodl.cadlBaseUrl,
                   getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],

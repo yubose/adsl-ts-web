@@ -1,4 +1,5 @@
 import Logger from 'logsnap'
+import { NOODLUI as NUI } from 'noodl-ui'
 import App from './App'
 import Meeting from './meeting'
 import { copyToClipboard } from './utils/dom'
@@ -13,7 +14,7 @@ window.addEventListener('load', async (e) => {
   const { Account } = await import('@aitmed/cadl')
   const { default: firebase, aitMessage } = await import('./app/firebase')
   const { default: noodl } = await import('app/noodl')
-  const { default: noodlui, getWindowHelpers } = await import('app/noodl-ui')
+  const { getWindowHelpers } = await import('app/noodl-ui')
   const { default: ndom } = await import('app/noodl-ui-dom')
 
   const { page } = ndom
@@ -26,11 +27,11 @@ window.addEventListener('load', async (e) => {
     cp: copyToClipboard,
     meeting: Meeting,
     noodl,
-    noodlui,
+    noodlui: NOODLUI,
     page,
   }
   window.build = process.env.BUILD
-  window.componentCache = noodlui.componentCache.bind(noodlui)
+  window.cache = NUI.cache
   window.cp = copyToClipboard
 
   Object.defineProperty(window, 'msg', {
@@ -40,7 +41,7 @@ window.addEventListener('load', async (e) => {
   })
 
   window.noodl = noodl
-  window.noodlui = noodlui
+  window.noodlui = NOODLUI
   window.ndom = ndom
   window.FCMOnTokenReceive = (args: any) => {
     noodl.root.builtIn
@@ -56,7 +57,6 @@ window.addEventListener('load', async (e) => {
     await app.initialize({
       firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
       meeting: Meeting,
-      noodlui,
       ndom,
     })
     // @ts-expect-error
@@ -66,8 +66,8 @@ window.addEventListener('load', async (e) => {
         grid.remove()
       } else {
         showGridLines.call(app, {
-          width: noodlui.viewport.width,
-          height: noodlui.viewport.height,
+          width: app.mainPage.viewport.width,
+          height: app.mainPage.viewport.height,
         })
       }
     }

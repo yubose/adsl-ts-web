@@ -1,10 +1,10 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import NOODLOM from 'noodl-ui-dom'
 import Logger from 'logsnap'
+import { ActionChain } from 'noodl-action-chain'
 import { current, Draft } from 'immer'
-import { Action, ActionChain, NOODL as NOODLUI } from 'noodl-ui'
+import { NOODLUI as NUI } from 'noodl-ui'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,
@@ -15,20 +15,11 @@ import { forEachParticipant } from '../utils/twilio'
 import { isMobile } from '../utils/common'
 import { IMeeting } from '../meeting'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, noodlEvent } from '../constants'
+import App from '../App'
 
 const log = Logger.create('builtIns.ts')
 
-const createMeetingHandlers = function _createMeetingHandlers({
-  Meeting,
-  noodl,
-  noodlui,
-  ndom,
-}: {
-  Meeting: IMeeting
-  noodl: any
-  noodlui: NOODLUI
-  ndom: NOODLOM
-}) {
+const createMeetingHandlers = function _createMeetingHandlers(app: App) {
   function _getDisconnectFns(room: IMeeting['room']) {
     function _disconnect() {
       room?.disconnect?.()
@@ -76,23 +67,20 @@ const createMeetingHandlers = function _createMeetingHandlers({
       if (room) {
         try {
           if (participant || room.localParticipant) {
-            const execute = noodlui.createActionChainHandler(
-              [
-                {
-                  actionType: 'builtIn',
-                  funcName: 'hide',
-                  viewTag: 'waitForOtherTag',
-                },
-              ],
-              { trigger: 'onChange' },
-            ) as ActionChain
-            execute()
+            const ac = NUI.createActionChain('onChange', [
+              {
+                actionType: 'builtIn',
+                funcName: 'hide',
+                viewTag: 'waitForOtherTag',
+              },
+            ]) as ActionChain
+            ac.execute()
           }
           const duplicatedParticipant = {
             ...(participant || room.localParticipant),
           }
           duplicatedParticipants.push(duplicatedParticipant)
-          Meeting.addRemoteParticipant(duplicatedParticipant as any, {
+          app.meeting.addRemoteParticipant(duplicatedParticipant as any, {
             force: '',
           })
           log.func('duplicateRemoteParticipant')
@@ -111,7 +99,7 @@ const createMeetingHandlers = function _createMeetingHandlers({
             duplicatedParticipants[duplicatedParticipants.length - 1]
         }
       }
-      Meeting.removeRemoteParticipant(participant as RemoteParticipant)
+      app.meeting.removeRemoteParticipant(participant as RemoteParticipant)
       if (duplicatedParticipants.includes(participant)) {
         duplicatedParticipants.splice(
           duplicatedParticipants.indexOf(participant),
@@ -139,8 +127,8 @@ const createMeetingHandlers = function _createMeetingHandlers({
       'participantConnected',
       _attachDebugUtilsToWindow(room).participantConnected,
     )
-    room.on('participantConnected', Meeting.addRemoteParticipant)
-    room.on('participantDisconnected', Meeting.removeRemoteParticipant)
+    room.on('participantConnected', app.meeting.addRemoteParticipant)
+    room.on('participantDisconnected', app.meeting.removeRemoteParticipant)
     room.once('disconnected', disconnected)
     // window.addEventListener('beforeunload', disconnect)
     // isMobile() && addEventListener('pagehide', disconnect)
@@ -148,7 +136,7 @@ const createMeetingHandlers = function _createMeetingHandlers({
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
     const { localParticipant } = room
-    const selfStream = Meeting.getStreams().getSelfStream()
+    const selfStream = app.meeting.getStreams().getSelfStream()
     if (!selfStream.isSameParticipant(localParticipant)) {
       selfStream.setParticipant(localParticipant)
       if (selfStream.isSameParticipant(localParticipant)) {
@@ -156,7 +144,7 @@ const createMeetingHandlers = function _createMeetingHandlers({
         log.grey(`Bound local participant to selfStream`, selfStream)
       }
     }
-    forEachParticipant(room.participants, Meeting.addRemoteParticipant)
+    forEachParticipant(room.participants, app.meeting.addRemoteParticipant)
   }
 
   /**
@@ -174,7 +162,10 @@ const createMeetingHandlers = function _createMeetingHandlers({
       participant,
       stream,
     })
-    const participants = get(noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)
+    const participants = get(
+      app.noodl.root,
+      PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+    )
     const isInSdk = participants?.some(function _isInSdk(p: RemoteParticipant) {
       return p.sid === participant.sid
     })
@@ -184,10 +175,14 @@ const createMeetingHandlers = function _createMeetingHandlers({
        * to be an array if it's not already an array
        * @param { RemoteParticipant } participant
        */
-      noodl.editDraft(function editDraft(draft: Draft<typeof noodl.root>) {
-        const participants = Meeting.removeFalseyParticipants(
-          draft?.VideoChat?.listData?.participants || [],
-        ).concat(participant)
+      app.noodl.editDraft(function editDraft(
+        draft: Draft<typeof app.noodl.root>,
+      ) {
+        const participants = app.meeting
+          .removeFalseyParticipants(
+            draft?.VideoChat?.listData?.participants || [],
+          )
+          .concat(participant)
         if (!has(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
           log.func('editDraft')
           log.red(
@@ -200,7 +195,7 @@ const createMeetingHandlers = function _createMeetingHandlers({
       })
     }
 
-    const waitingElem = Meeting.getWaitingMessageElement()
+    const waitingElem = app.meeting.getWaitingMessageElement()
     waitingElem && (waitingElem.style.visibility = 'hidden')
 
     noodlui.emit('register', {
@@ -221,31 +216,33 @@ const createMeetingHandlers = function _createMeetingHandlers({
      * to be an array if it's not already an array
      * @param { RemoteParticipant } participant
      */
-    noodl.editDraft(function editDraft(draft: Draft<typeof noodl.root>) {
+    app.noodl.editDraft(function editDraft(
+      draft: Draft<typeof app.noodl.root>,
+    ) {
       set(
         draft,
         PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-        Meeting.removeFalseyParticipants(
+        app.meeting.removeFalseyParticipants(
           draft?.VideoChat?.listData?.participants ||
             [].filter((p) => p !== participant),
         ),
       )
     })
-    if (!Meeting.room.participants.size) {
-      let waitingElem = Meeting.getWaitingMessageElement()
+    if (!app.meeting.room.participants.size) {
+      let waitingElem = app.meeting.getWaitingMessageElement()
       waitingElem && (waitingElem.style.visibility = 'visible')
       noodlui.emit('register', {
         id: noodlEvent.TWILIO_ON_NO_PARTICIPANT,
         key: noodlEvent.TWILIO_ON_NO_PARTICIPANT,
         prop: 'onEvent',
-        data: { room: Meeting.room },
+        data: { room: app.meeting.room },
       })
     }
   }
 
-  Meeting.onConnected = onConnected
-  Meeting.onAddRemoteParticipant = onAddRemoteParticipant
-  Meeting.onRemoveRemoteParticipant = onRemoveRemoteParticipant
+  app.meeting.onConnected = onConnected
+  app.meeting.onAddRemoteParticipant = onAddRemoteParticipant
+  app.meeting.onRemoveRemoteParticipant = onRemoveRemoteParticipant
 
   return {
     onConnected,

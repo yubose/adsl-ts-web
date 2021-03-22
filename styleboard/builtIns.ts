@@ -713,7 +713,7 @@ const createBuiltInActions = function createBuiltInActions({
       cond: 'image',
       async resolve(node, component, { findByElementId }) {
         const img = node as HTMLImageElement
-        const parent = component.parent()
+        const parent = component.parent
         const context = noodlui.getContext()
         const pageObject = noodlui.root[context?.page || ''] || {}
         if (

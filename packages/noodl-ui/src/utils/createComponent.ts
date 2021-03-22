@@ -1,12 +1,9 @@
 import isPlainObject from 'lodash/isPlainObject'
-import { ComponentObject } from 'noodl-types'
-import { ComponentInstance, ComponentType } from '../types'
-import { forEachEntries, getRandomKey } from './common'
+import { ComponentObject, ComponentType } from 'noodl-types'
+import { ComponentInstance } from '../types'
+import { forEachEntries } from './common'
 import isComponent from './isComponent'
 import Component from '../components/Base'
-import List from '../components/List'
-import ListItem from '../components/ListItem'
-import Page from '../components/Page'
 
 export interface PropsOptionFunc<T> {
   (child: T): Partial<PropsOptionObj>
@@ -23,9 +20,6 @@ interface Options {
  * @param { string | object | ComponentInstance } value - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
-function createComponent(type: 'list', options?: Options): List
-function createComponent(type: 'listItem', options?: Options): ListItem
-function createComponent(type: 'page', options?: Options): Page
 function createComponent<K extends ComponentType = ComponentType>(
   type: K,
   options?: Options,
@@ -44,14 +38,14 @@ function createComponent<K extends ComponentType = ComponentType>(
 function createComponent<K extends ComponentType = ComponentType>(
   value: K | PropsOptionObj | Component,
   options?: Options,
-): ComponentInstance | List | ListItem | Page {
+): ComponentInstance {
   let childComponent: any
   let id: string = ''
   const props = toProps(value, options?.props)
 
   // ComponentType
   if (typeof value === 'string') {
-    childComponent = toInstance({ type: value, ...props })
+    childComponent = new Component({ type: value, ...props })
   } else if (isComponent(value)) {
     // IComponentInstanceType
     childComponent = value
@@ -61,31 +55,10 @@ function createComponent<K extends ComponentType = ComponentType>(
     }
   } else {
     // IComponentObjectType
-    childComponent = toInstance({ ...value, ...props })
-  }
-
-  if (!id) {
-    if (childComponent.length) id += `[${childComponent.length - 1}]`
-    else id += getRandomKey()
+    childComponent = new Component({ ...value, ...props })
   }
 
   return childComponent
-}
-
-function toInstance(value: PropsOptionObj) {
-  if (!('children' in value)) {
-    // value.children = []
-  }
-  switch (value.type) {
-    case 'list':
-      return new List(value)
-    case 'listItem':
-      return new ListItem(value)
-    case 'page':
-      return new Page(value)
-    default:
-      return new Component(value)
-  }
 }
 
 function toProps(

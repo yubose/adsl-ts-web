@@ -1,7 +1,10 @@
-import { ActionType, ComponentObject } from 'noodl-types'
 import {
+  ActionType,
   ActionObject,
-  BuiltInObject,
+  BuiltInActionObject,
+  ComponentObject,
+} from 'noodl-types'
+import {
   ComponentInstance,
   createComponent,
   EmitActionObject,
@@ -162,7 +165,7 @@ class NOODLOM extends NOODLDOMInternal {
     let { dataObject } = args
 
     if (component) {
-      const parent = component.parent?.()
+      const parent = component.parent
       const shape = getShape(component)
       const _isPageConsumer = isPageConsumer(component)
 
@@ -182,7 +185,7 @@ class NOODLOM extends NOODLDOMInternal {
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {
-          const cParent = c.parent?.()
+          const cParent = c.parent
           // Remove listeners
           c.clearCbs()
           // Remove child component references
@@ -257,7 +260,7 @@ class NOODLOM extends NOODLDOMInternal {
       | GotoActionObject
       | ToastActionObject
   >(obj: StoreActionObject<A, T.ActionChainDOMContext>): this
-  register<B extends BuiltInObject>(
+  register<B extends BuiltInActionObject>(
     obj: StoreBuiltInObject<B, T.ActionChainDOMContext>,
   ): this
   register<R extends T.Resolve.Config>(obj: R): this

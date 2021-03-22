@@ -1,0 +1,51 @@
+alignment:
+  - in:
+      textAlign: centerX
+    out:
+      textAlign: center
+  - in:
+      textAlign: centerY
+    out:
+      display: flex
+      alignItems: center
+  - in:
+      textAlign: left
+  - out:
+      textAlign: left
+  - in:
+      textAlign: center
+  - out:
+      textAlign: center
+  - in:
+      textAlign: right
+  - out:
+      textAlign: right
+  - in:
+      textAlign:
+        x: left
+    out:
+      textAlign: left
+  - in:
+      textAlign:
+        y: left
+    out:
+      textAlign: left
+  - in:
+      textAlign:
+        x: center
+    out:
+      textAlign: center
+  - in:
+      textAlign:
+        y: center
+    out:
+      textAlign: center
+  - in:
+      textAlign:
+    out:
+      textAlign: right
+  - in:
+      textAlign:
+        y: right
+    out:
+      textAlign: right

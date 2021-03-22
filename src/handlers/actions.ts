@@ -4,23 +4,25 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
-import NOODLOM, { getByDataUX } from 'noodl-ui-dom'
 import {
-  Action,
+  findWindow,
+  findByElementId,
+  findByViewTag,
+  getByDataUX,
+  isPageConsumer,
+} from 'noodl-ui-dom'
+import { Action } from 'noodl-action-chain'
+import {
   ActionConsumerCallbackOptions,
-  AnonymousObject,
   EmitAction,
-  EmitObject,
   findListDataObject,
   findParent,
   getDataValues,
-  IfObject,
   isReference,
-  NOODL as NOODLUI,
+  NOODLUI as NUI,
+  Page as NUIPage,
   parseReference,
-  EmitActionObject,
-  GotoActionObject,
-  ToastActionObject,
+  ComponentInstance,
 } from 'noodl-ui'
 import {
   createEmitDataKey,
@@ -31,33 +33,20 @@ import {
   parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import {
-  EvalActionObject,
-  PageJumpActionObject,
-  PopupActionObject,
-  PopupDismissActionObject,
-  RefreshActionObject,
-  SaveActionObject,
-  UpdateActionObject,
-} from 'noodl-types'
+import { EmitObject, IfObject } from 'noodl-types'
 import { pageEvent } from '../constants'
 import { isStable, resolvePageUrl } from '../utils/common'
 import { onSelectFile, scrollToElem, toast } from '../utils/dom'
+import App from '../App'
 
 const log = Logger.create('actions.ts')
 const stable = isStable()
 
-const createActions = function createActions({
-  noodlui,
-  ndom,
-}: {
-  noodlui: NOODLUI
-  ndom: NOODLOM
-}) {
-  ndom.register({
+const createActions = function createActions(app: App) {
+  app.ndom.register({
     actionType: 'anonymous',
     fn: async function onAnonymousAction(
-      action: Action<AnonymousObject>,
+      action: Action<'anonymous'>,
       options: ActionConsumerCallbackOptions,
     ) {
       const { fn } = action.original || {}
@@ -72,23 +61,22 @@ const createActions = function createActions({
   })
 
   /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
-  ndom.register({
+  app.ndom.register({
     actionType: 'emit',
     fn: async function onDataKeyEmit(
-      action: EmitAction<EmitActionObject>,
+      action: EmitAction,
       options: ActionConsumerCallbackOptions,
-      { noodl },
     ) {
       const emitParams = {
         actions: action.actions,
         dataKey: action.dataKey,
-        pageName: noodlui.page,
+        pageName: app.mainPage.page,
       } as any
 
       log.func('emit [dataKey]')
       log.gold('Emitting', { action, emitParams, ...options })
 
-      const emitResult = await noodl.emitCall(emitParams)
+      const emitResult = await app.noodl.emitCall(emitParams)
 
       log.grey(`Emitted`, {
         action,
@@ -105,16 +93,15 @@ const createActions = function createActions({
   })
 
   /** DATA VALUE EMIT */
-  ndom.register({
+  app.ndom.register({
     actionType: 'emit',
     fn: async function onDataValueEmit(
-      action: EmitAction<EmitActionObject>,
+      action: EmitAction,
       options: ActionConsumerCallbackOptions,
-      { noodl },
     ) {
       const emitParams = {
         actions: action.actions,
-        pageName: noodlui.page,
+        pageName: app.mainPage.page,
       } as any
 
       if ('dataKey' in action.original.emit || {}) {
@@ -124,7 +111,7 @@ const createActions = function createActions({
       log.func('emit [dataValue]')
       log.grey('Emitting', { action, emitParams, options })
 
-      const emitResult = await noodl.emitCall(emitParams)
+      const emitResult = await app.noodl.emitCall(emitParams)
 
       log.grey('Emitted [dataValue]', {
         action,
@@ -141,16 +128,15 @@ const createActions = function createActions({
   })
 
   /** onBlur EMIT */
-  ndom.register({
+  app.ndom.register({
     actionType: 'emit',
     fn: async function onBlurEmit(
-      action: EmitAction<EmitActionObject>,
+      action: EmitAction,
       options: ActionConsumerCallbackOptions,
-      { noodl },
     ) {
       const emitParams = {
         actions: action.actions,
-        pageName: noodlui.page,
+        pageName: app.mainPage.page,
       } as any
 
       if ('dataKey' in action.original.emit || {}) {
@@ -160,7 +146,7 @@ const createActions = function createActions({
       log.func('emit [onBlur]')
       log.grey('Emitting', { action, emitParams, options })
 
-      const emitResult = await noodl.emitCall(emitParams)
+      const emitResult = await app.noodl.emitCall(emitParams)
 
       log.grey('Emitted', {
         action,
@@ -177,12 +163,11 @@ const createActions = function createActions({
   })
 
   /** onClick EMIT */
-  ndom.register({
+  app.ndom.register({
     actionType: 'emit',
     fn: async function onClickEmit(
-      action: EmitAction<EmitActionObject>,
+      action: EmitAction,
       options: ActionConsumerCallbackOptions,
-      { noodl },
     ) {
       const emitParams = {
         actions: action.actions,
@@ -194,9 +179,9 @@ const createActions = function createActions({
       }
 
       log.func('emit [onClick]')
-      log.gold('Emitting', { action, emitParams, noodl, noodlui, ...options })
+      log.gold('Emitting', { action, emitParams, ...options })
 
-      const emitResult = await noodl.emitCall(emitParams)
+      const emitResult = await app.noodl.emitCall(emitParams)
 
       log.gold(`Emitted [onClick]`, {
         action,
@@ -213,16 +198,15 @@ const createActions = function createActions({
   })
 
   /** onChange EMIT */
-  ndom.register({
+  app.ndom.register({
     actionType: 'emit',
     fn: async function onChangeEmit(
-      action: EmitAction<EmitActionObject>,
+      action: EmitAction,
       options: ActionConsumerCallbackOptions,
-      { noodl },
     ) {
       const emitParams = {
         actions: action.actions,
-        pageName: noodlui.page,
+        pageName: app.mainPage.page,
       } as any
 
       if ('dataKey' in action.original.emit || {}) {
@@ -232,7 +216,7 @@ const createActions = function createActions({
       log.func('emit [onChange]')
       log.grey('Emitting', { action, emitParams, options })
 
-      const emitResult = await noodl.emitCall(emitParams)
+      const emitResult = await app.noodl.emitCall(emitParams)
 
       log.grey('Emitted', {
         action,
@@ -249,21 +233,21 @@ const createActions = function createActions({
   })
 
   /** PATH EMIT */
-  ndom.register({
+  app.ndom.register({
     actionType: 'emit',
     fn: async function onPathEmit(
-      action: EmitAction<EmitActionObject>,
+      action: EmitAction,
       options: ActionConsumerCallbackOptions & { path: EmitObject },
-      { noodl },
     ) {
-      const { component, context, getRoot, getPageObject, path } = options
-      const page = context.page || ''
-      const dataObject = findListDataObject(component)
+      const { component, getRoot, getPageObject, path } = options
+      const page = app.mainPage.page || ''
+      const dataObject = findListDataObject(component as ComponentInstance)
       const iteratorVar =
-        component.get('iteratorVar') ||
-        findParent(component, (p: any) => !!p?.get?.('iteratorVar'))?.get?.(
-          'iteratorVar',
-        ) ||
+        component?.get('iteratorVar') ||
+        findParent(
+          component as ComponentInstance,
+          (p: any) => !!p?.get?.('iteratorVar'),
+        )?.get?.('iteratorVar') ||
         ''
       const emitParams = {
         actions: path.emit.actions,
@@ -281,7 +265,7 @@ const createActions = function createActions({
       log.func('emit [path]')
       log.grey('Emitting', { action, emitParams, options })
 
-      const result = await noodl.emitCall(emitParams)
+      const result = await app.noodl.emitCall(emitParams)
 
       log.grey(`Emitted: ${result === '' ? '(empty string)' : result}`)
 
@@ -291,21 +275,14 @@ const createActions = function createActions({
   })
 
   /** PLACEHOLDER EMIT */
-  ndom.register({
+  app.ndom.register({
     actionType: 'emit',
     fn: async function onPlaceholderEmit(
-      action: EmitAction<EmitActionObject>,
+      action: EmitAction,
       options: ActionConsumerCallbackOptions & { path: EmitObject },
-      { noodl },
     ) {
-      const {
-        component,
-        context,
-        getRoot,
-        getPageObject,
-        placeholder,
-      } = options
-      const page = context.page || ''
+      const { component, getRoot, getPageObject, placeholder } = options
+      const page = app.mainPage.page
       const dataObject = findListDataObject(component)
       const iteratorVar =
         component.get('iteratorVar') ||
@@ -329,7 +306,7 @@ const createActions = function createActions({
       log.func('emit [placeholder]')
       log.grey('Emitting', { action, emitParams, ...options })
 
-      const result = await noodl.emitCall(emitParams)
+      const result = await app.noodl.emitCall(emitParams)
 
       log.grey(`Emitted: ${result === '' ? '(empty string)' : result}`, action)
 
@@ -339,16 +316,13 @@ const createActions = function createActions({
   })
 
   /** REGISTER EMIT */
-  ndom.register({
+  app.ndom.register({
     actionType: 'emit',
     fn: async function onRegisterEmit(
-      action: EmitAction<EmitActionObject>,
+      action: EmitAction,
       options: ActionConsumerCallbackOptions,
-      { noodl },
     ) {
-      // noodl-ui should have prefilled the instance with the data at this point
-      const { context } = options
-      const page = context.page || ''
+      const page = app.mainPage.page
 
       const emitParams = {
         actions: action.original.emit.actions,
@@ -362,7 +336,7 @@ const createActions = function createActions({
       log.func('emit [register]')
       log.grey('Emitting', { action, emitParams, ...options })
 
-      const emitResult = await noodl.emitCall(emitParams)
+      const emitResult = await app.noodl.emitCall(emitParams)
 
       log.func('emit [register]')
       log.grey('Emitted', { action, emitParams, emitResult, ...options })
@@ -374,10 +348,10 @@ const createActions = function createActions({
     trigger: 'register',
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'evalObject',
     fn: async function onEvalObject(
-      action: Action<EvalActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
     ) {
       log.func('evalObject')
@@ -402,8 +376,8 @@ const createActions = function createActions({
           const ifObj = action.original.object as IfObject
           if (Array.isArray(ifObj)) {
             const { default: noodl } = await import('../app/noodl')
-            const pageName = noodlui.page || ''
-            const pageObject = noodl.root[noodlui.page]
+            const pageName = app.mainPage.page || ''
+            const pageObject = noodl.root[app.mainPage.page]
             const object = evalIf((valEvaluating) => {
               let value
               if (isNOODLBoolean(valEvaluating)) {
@@ -463,31 +437,23 @@ const createActions = function createActions({
     },
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'goto',
     fn: async function onGoto(
-      action: Action<GotoActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
-      actionsContext,
     ) {
       log.func('goto')
       log.grey(action.original?.goto || action?.goto || 'goto', {
         action,
         options,
-        ...actionsContext,
       })
 
       let allProps = {} as any // Temp used for debugging/logging
       let gotoObject = { goto: action.original.goto } as any
       let pageModifiers = {} as any
 
-      const {
-        findWindow,
-        findByElementId,
-        findByViewTag,
-        isPageConsumer,
-        noodl,
-      } = actionsContext
+      const noodl = app.noodl
 
       const destinationParam =
         (typeof action.original.goto === 'string'
@@ -508,7 +474,7 @@ const createActions = function createActions({
       } = computedDestinationProps
 
       if (destination === destinationParam) {
-        ndom.page.setRequestingPage(destination)
+        app.ndom.page.setRequestingPage(destination)
       }
 
       if (isPlainObject(gotoObject.goto?.dataIn)) {
@@ -574,7 +540,7 @@ const createActions = function createActions({
           if (isSamePage) {
             scroll()
           } else {
-            ndom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+            app.ndom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
           }
         } else {
           log.red(
@@ -587,19 +553,18 @@ const createActions = function createActions({
               duration,
               action,
               options,
-              actionsContext,
             },
           )
         }
       }
 
       if (!destinationParam?.startsWith?.('http')) {
-        ndom.page.pageUrl = resolvePageUrl({
+        app.ndom.page.pageUrl = resolvePageUrl({
           destination,
-          pageUrl: ndom.page.pageUrl,
+          pageUrl: app.ndom.page.pageUrl,
           startPage: noodl.cadlEndpoint.startPage,
         })
-        stable && log.cyan(`Page URL evaluates to: ${ndom.page.pageUrl}`)
+        stable && log.cyan(`Page URL evaluates to: ${app.ndom.page.pageUrl}`)
       } else {
         destination = destinationParam
       }
@@ -610,15 +575,17 @@ const createActions = function createActions({
         destinationParam,
         isSamePage,
         pageModifiers,
-        updatedQueryString: ndom.page.pageUrl,
+        updatedQueryString: app.ndom.page.pageUrl,
       }
 
       log.grey(`Computed [action] goto props`, allProps)
 
       if (!isSamePage) {
         stable &&
-          log.cyan(`Sending a page request to page "${destination}" ndom...`)
-        await ndom.page.requestPageChange(destination)
+          log.cyan(
+            `Sending a page request to page "${destination}" app.ndom...`,
+          )
+        await app.ndom.page.requestPageChange(destination)
 
         if (!destination) {
           log.func('goto')
@@ -631,26 +598,26 @@ const createActions = function createActions({
     },
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'pageJump',
     fn: async function onPageJump(
-      action: Action<PageJumpActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
     ) {
       log.func('pageJump')
       log.grey('', { action, ...options })
       stable &&
         log.cyan(
-          `Sending a page request to page "${action.original.destination}" ndom...`,
+          `Sending a page request to page "${action.original.destination}" app.ndom...`,
         )
-      await ndom.page.requestPageChange(action.original.destination)
+      await app.ndom.page.requestPageChange(action.original.destination)
     },
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'popUp',
     fn: async function onPopUp(
-      action: Action<PopupActionObject | PopupDismissActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
     ) {
       log.func(action.actionType)
@@ -711,7 +678,7 @@ const createActions = function createActions({
             >()
             if (String(dataValues?.phoneNumber).startsWith('888')) {
               import('../app/noodl').then(({ default: noodl }) => {
-                const pageName = noodlui?.page || ''
+                const pageName = app.mainPage?.page || ''
                 const pathToTage = 'verificationCode.response.edge.tage'
                 let vcode = get(noodl.root?.[pageName], pathToTage, '')
                 if (vcode) {
@@ -746,25 +713,22 @@ const createActions = function createActions({
     },
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'popUpDismiss',
     fn: async function onPopUpDismiss(
-      action: Action<PopupDismissActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
-      actionsContext,
     ) {
       await Promise.all(
-        ndom.actions.popUp.map((obj) =>
-          obj.fn(action, options, actionsContext),
-        ),
+        app.ndom.actions.popUp.map((obj) => obj.fn(action, options)),
       )
     },
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'refresh',
     fn: function onRefresh(
-      action: Action<RefreshActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
     ) {
       log.func('refresh')
@@ -773,16 +737,16 @@ const createActions = function createActions({
     },
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'saveObject',
     fn: async function onSaveObject(
-      action: Action<SaveActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
     ) {
       log.func('saveObject')
       log.grey('', { action, ...options })
       const { default: noodl } = await import('../app/noodl')
-      const { abort, getRoot, getPageObject, page } = options
+      const { abort, getRoot } = options
 
       try {
         const { object } = action.original
@@ -815,14 +779,14 @@ const createActions = function createActions({
                     stable &&
                       log.cyan(`Found reference: ${nameFieldPath}`, action)
                     nameField = parseReference(nameFieldPath, {
-                      page: noodlui.page,
+                      page: app.mainPage.page,
                       root: getRoot(),
                     })
                     stable && log.cyan(`Parsed reference: ${nameField}`, action)
                   } else {
                     nameField =
                       get(noodl?.root, nameFieldPath, null) ||
-                      get(noodl?.root?.[noodlui?.page], nameFieldPath, {})
+                      get(noodl?.root?.[app.mainPage?.page], nameFieldPath, {})
                     stable && log.cyan(`Name field: ${nameField}`, action)
                   }
 
@@ -855,10 +819,10 @@ const createActions = function createActions({
     },
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'toast',
     fn: async function onToast(
-      action: Action<ToastActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
     ) {
       try {
@@ -871,12 +835,11 @@ const createActions = function createActions({
     },
   })
 
-  ndom.register({
+  app.ndom.register({
     actionType: 'updateObject',
     fn: async function onUpdateObject(
-      action: Action<UpdateActionObject>,
+      action: Action,
       options: ActionConsumerCallbackOptions,
-      { noodl },
     ) {
       const { abort, component } = options
       log.func('updateObject')
@@ -975,7 +938,7 @@ const createActions = function createActions({
               const params = { dataKey, dataObject }
               log.func('updateObject')
               log.cyan(`Calling updateObject with params: `, params)
-              const result = await noodl.updateObject(params)
+              const result = await app.noodl.updateObject(params)
               log.cyan(`Called updateObject: `, { params, resultIfAny: result })
             } else {
               log.red(`dataObject is null or undefined`, {

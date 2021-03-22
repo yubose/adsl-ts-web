@@ -1,5 +1,9 @@
 import { hasDecimal, hasLetter } from './common'
 
+export const xKeys = ['width', 'left']
+export const yKeys = ['height', 'top']
+export const posKeys = [...xKeys, ...yKeys]
+
 export const textAlignStrings = [
   'left',
   'center',
@@ -10,7 +14,7 @@ export const textAlignStrings = [
 
 export function handlePosition(
   styleObj: any,
-  key: string,
+  key: 'marginTop' | 'top' | 'height' | 'width' | 'left',
   viewportSize: number,
 ) {
   const value = styleObj[key]
@@ -22,7 +26,7 @@ export function handlePosition(
       return { [key]: getViewportRatio(viewportSize, value) + 'px' }
   }
   // Number
-  else if (hasDecimal(styleObj.top))
+  else if (hasDecimal(styleObj[key]))
     return { [key]: getViewportRatio(viewportSize, value) + 'px' }
 
   return undefined

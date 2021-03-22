@@ -15,9 +15,8 @@ import {
 import { ActionChain } from 'noodl-action-chain'
 import { AbortExecuteError } from '../errors'
 import { ConsumerOptions } from './types'
-import { NOODLUIActionType, NOODLUITrigger } from './constantTypes'
+import { NOODLUITrigger } from './constantTypes'
 import Action from '../Action'
-import EmitAction from '../Action/EmitAction'
 
 export type NOODLUIActionChain = ActionChain<
   NOODLUIActionObject,

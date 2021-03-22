@@ -1,12 +1,37 @@
 import { ComponentObject, ComponentType, StyleObject } from 'noodl-types'
 import Component from '../components/Base'
-import List from '../components/List'
-import ListItem from '../components/ListItem'
-import Page from '../components/Page'
+import { event } from '../constants'
 import { ProxiedComponent } from './types'
 import { PlainObject } from '.'
 
-export type ComponentInstance = Component | List | ListItem | Page
+export namespace Component {
+  export type HookEvent = keyof Hook | 'path'
+
+  export interface Hook {
+    [event.component.list.ADD_DATA_OBJECT](args: {
+      dataObject: any
+      index: number
+    }): void
+    [event.component.list.DELETE_DATA_OBJECT](args: {
+      component: ComponentInstance
+      dataObject: any
+      index: number
+    }): void
+    [event.component.list.UPDATE_DATA_OBJECT](args: {
+      dataObject: any
+      index: number
+    }): void
+    [event.component.register.ONEVENT](): any
+    content(pluginContent: string): void
+    dataValue(dataValue: any): void
+    path(src: string): void
+    placeholder(src: string): void
+  }
+
+  export type Instance = Component
+}
+
+export type ComponentInstance = Component
 
 export type ComponentConstructor = new (
   component: ComponentCreationType,
@@ -22,7 +47,8 @@ export interface IComponent<
   type: Type
   style: StyleObject
   length: number
-  original: C
+  blueprint: ComponentObject
+  original: ComponentObject
   assign(key: keyof C | PlainObject, value?: PlainObject): this
   assignStyles(styles: StyleObject): this
   child(index?: number): ComponentInstance | undefined
@@ -44,7 +70,7 @@ export interface IComponent<
   has(key: keyof C, styleKey?: keyof StyleObject): boolean
   on(eventName: string, cb: Function): this
   off(eventName: string, cb: Function): this
-  parent(): ComponentInstance | null
+  parent: ComponentInstance | null
   props(): { id: string } & ComponentObject
   remove(key: keyof C, styleKey?: keyof StyleObject): this
   removeStyle<K extends keyof StyleObject>(styleKey: K): this

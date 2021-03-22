@@ -1,7 +1,5 @@
 import { findChild, findParent } from './noodl'
 import isComponent from './isComponent'
-import List from '../components/List'
-import ListItem from '../components/ListItem'
 import Component from '../components/Base'
 
 /**
@@ -11,14 +9,14 @@ import Component from '../components/Base'
  * @param { string | Component } component - Component id or instance
  */
 function findList(
-  lists: Map<List, List>,
+  lists: Map<any, any>,
   component: string | Component,
 ): any[] | null {
   let result: any[] | null = null
 
   if (component) {
-    let listComponent: List
-    let listComponents: List[]
+    let listComponent: any
+    let listComponents: any[]
     let listSize = lists.size
 
     // Assuming it is a component's id, we will use this and traverse the whole list,
@@ -43,13 +41,10 @@ function findList(
     }
     // TODO - Unit tests were failing on this if condition below. Come back to this later
     // Directly return the data
-    else if (component instanceof List) {
-      result = component.getData()
+    else if (component.type === 'list') {
+      result = component.get('listObject')
     }
-    // List item components should always be direct children of ListComponents
-    else if (component instanceof ListItem) {
-      result = (component.parent() as List)?.getData?.()
-    }
+
     // Regular components should not hold the list data or data objects, so we
     // will assume here that it is some nested child. We can get the list by
     // traversing parents

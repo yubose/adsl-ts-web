@@ -1,4 +1,3 @@
-import axios from 'axios'
 import CADL from '@aitmed/cadl'
 import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
@@ -16,18 +15,15 @@ import { ComponentObject, PageObject } from 'noodl-types'
 import {
   ComponentInstance,
   event as noodluiEvent,
-  getAllResolversAsMap,
   identify,
-  List,
-  NOODL as NOODLUI,
+  NOODLUI as NUI,
+  Page as NUIPage,
   publish,
-  Resolver,
-  resolveStyles,
   Viewport,
 } from 'noodl-ui'
 import { WritableDraft } from 'immer/dist/internal'
 import { copyToClipboard } from './utils/dom'
-import Meeting, { IMeeting } from './meeting'
+import { IMeeting } from './meeting'
 import { CACHED_PAGES, pageStatus } from './constants'
 import {
   AuthStatus,
@@ -69,8 +65,8 @@ class App {
   messaging = null as FirebaseMessaging | null
   meeting: IMeeting = {} as IMeeting
   noodl = {} as CADL
-  noodlui = {} as NOODLUI
   ndom = {} as NOODLOM
+  mainPage: NUIPage
   streams = {} as ReturnType<IMeeting['getStreams']>
 
   // addRequestParams(page: string, opts: Record<string, any>) {
@@ -163,15 +159,21 @@ class App {
   //   await this.rootPage.request(pageName)
   // }
 
+  constructor() {
+    this.#viewportUtils = createViewportHandler(new Viewport())
+    this.mainPage = NUI.createPage({
+      name: 'root',
+      viewport: this.#viewportUtils.viewport,
+    })
+  }
+
   async initialize({
     firebase: { client: firebase, vapidKey },
     meeting,
-    noodlui,
     ndom,
   }: {
     firebase: { client: App['firebase']; vapidKey: string }
     meeting: IMeeting
-    noodlui: NOODLUI
     ndom: NOODLOM
   }) {
     try {
@@ -186,21 +188,19 @@ class App {
       stable && log.cyan(`Initialized firebase messaging instance`)
       this.meeting = meeting
       this.noodl = noodl
-      this.noodlui = noodlui
       this.ndom = ndom
       this.streams = meeting.getStreams()
-      this.#viewportUtils = createViewportHandler(new Viewport())
 
       stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
       await noodl.init()
       stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
-      ndom.use(noodlui)
+      ndom.use(NUI)
       stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
-      createActions({ noodlui, ndom })
-      createBuiltIns({ noodl, noodlui, ndom })
-      createRegisters({ noodl, noodlui, ndom, Meeting })
-      createMeetingHandlers({ noodl, noodlui, ndom, Meeting })
+      createActions(this)
+      createBuiltIns(this)
+      createRegisters(this)
+      createMeetingHandlers(this)
 
       meeting.initialize({
         ndom,
@@ -369,8 +369,8 @@ class App {
         }
       }.bind(this)
 
-      this.observeClient({ noodlui, noodl })
-      this.observeInternal(noodlui)
+      this.observeClient()
+      this.observeInternal()
       this.observeViewport(this.#viewportUtils)
       this.observePages(ndom.page)
       this.observeMeetings(meeting)
@@ -435,36 +435,20 @@ class App {
     }
   }
 
-  observeClient({ noodl, noodlui }: { noodl: any; noodlui: NOODLUI }) {
+  observeClient() {
     // When noodl-ui emits this it expects a new "child" instance. To keep memory usage
     // to a minimum, keep the root references the same as the one in the parent instance
     // Currently this is used by components of type: page
-    noodlui.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
-      await noodl.initPage(ref.page)
+    this.mainPage.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
+      await this.noodl.initPage(ref.page)
       log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
       log.grey(`Initiated page: ${ref.page}`)
-
-      Object.entries(getAllResolversAsMap()).forEach(([name, resolver]) => {
-        if (
-          !/(getAlign|getPosition|getBorder|getColors|getFont|getPosition|getSizes|getStylesBy|getTransformedStyle)/i.test(
-            name,
-          )
-        ) {
-          const r = new Resolver().setResolver(resolver)
-          ref.use({ name, resolver: r })
-        }
-      })
-
-      ref.use({
-        name: 'resolveStyles',
-        resolver: new Resolver().setResolver(resolveStyles),
-      })
     })
   }
 
   // Cleans ac (used for debugging atm)
-  observeInternal(noodlui: NOODLUI) {
-    noodlui.on(noodluiEvent.SET_PAGE, () => {
+  observeInternal() {
+    this.mainPage.on(noodluiEvent.SET_PAGE, () => {
       if (typeof window !== 'undefined' && 'ac' in window) {
         Object.keys(window.ac).forEach((key) => {
           delete window.ac[key]
@@ -511,7 +495,7 @@ class App {
         { aspectRatio, width, height }: ReturnType<typeof computeViewportSize>,
       ) {
         log.func('on resize [viewport]')
-        if (this.noodlui.page === 'VideoChat') {
+        if (this.mainPage.page === 'VideoChat') {
           return log.grey(
             `Skipping avoiding the page rerender on the VideoChat "onresize" event`,
           )
@@ -621,72 +605,36 @@ class App {
                 pageSnapshot,
               })
 
-              function fetch(url: string) {
-                return axios.get(url).then(({ data }) => data)
-              }
               // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
               const config = this.noodl.getConfig()
               const plugins = [] as ComponentObject[]
               if (config.headPlugin) {
-                plugins.push(
-                  this.noodlui.createPluginObject({
-                    type: 'pluginHead',
-                    path: config.headPlugin,
-                  }) as any,
-                )
+                plugins.push({
+                  type: 'pluginHead',
+                  path: config.headPlugin,
+                } as any)
               }
               if (config.bodyTopPplugin) {
-                plugins.push(
-                  this.noodlui.createPluginObject({
-                    type: 'pluginBodyTop',
-                    path: config.bodyTopPplugin,
-                  }) as any,
-                )
+                plugins.push({
+                  type: 'pluginBodyTop',
+                  path: config.bodyTopPplugin,
+                } as any)
               }
               if (config.bodyTailPplugin) {
-                plugins.push(
-                  this.noodlui.createPluginObject({
-                    type: 'pluginBodyTail',
-                    path: config.bodyTailPplugin,
-                  }) as any,
-                )
+                plugins.push({
+                  type: 'pluginBodyTail',
+                  path: config.bodyTailPplugin,
+                } as any)
               }
-              this.noodlui
-                .init({
-                  actionsContext: {
-                    noodl: this.noodl,
-                    ndom: this.ndom,
-                  } as any,
-                  viewport: this.#viewportUtils.viewport,
-                })
-                .setPage(pageName)
-                .use(this.#viewportUtils.viewport)
-                .use({
-                  fetch,
-                  getAssetsUrl: () => this.noodl.assetsUrl,
-                  getBaseUrl: () => this.noodl.cadlBaseUrl,
-                  getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
-                  getPages: () => this.noodl.cadlEndpoint?.page || [],
-                  getRoot: () => this.noodl.root,
-                  plugins,
-                })
-
-              Object.entries(getAllResolversAsMap()).forEach(
-                ([name, resolver]) => {
-                  if (
-                    !/(getAlign|getPosition|getBorder|getColors|getFont|getPosition|getSizes|getStylesBy|getTransformedStyle)/i.test(
-                      name,
-                    )
-                  ) {
-                    const r = new Resolver().setResolver(resolver)
-                    this.noodlui.use({ name, resolver: r })
-                  }
-                },
-              )
-
-              this.noodlui.use({
-                name: 'resolveStyles',
-                resolver: new Resolver().setResolver(resolveStyles),
+              this.mainPage.page = pageName
+              this.mainPage.viewport = this.#viewportUtils.viewport
+              NUI.use({
+                getAssetsUrl: () => this.noodl.assetsUrl,
+                getBaseUrl: () => this.noodl.cadlBaseUrl || '',
+                getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
+                getPages: () => this.noodl.cadlEndpoint?.page || [],
+                getRoot: () => this.noodl.root,
+                getPlugins: () => plugins,
               })
 
               log.func('before-page-render')
@@ -694,7 +642,7 @@ class App {
             }
             // Refresh the root
             // TODO - Leave root/page auto binded to the lib
-            this.noodlui.setPage(pageName)
+            this.mainPage.page = pageName
             // NOTE: not being used atm
             if (page.rootNode && page.rootNode.id !== pageName) {
               page.rootNode.id = pageName
@@ -712,7 +660,6 @@ class App {
         async ({ requesting: pageName, components }) => {
           log.func('onComponentsRendered')
           log.grey(`Done rendering DOM nodes for ${pageName}`, components)
-          // @ts-expect-error
           window.pcomponents = components
           // Cache to rehydrate if they disconnect
           // TODO
@@ -765,7 +712,7 @@ class App {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           console.log('test map1', dataValue)
-          const parent = component.parent?.()
+          const parent = component.parent
           mapboxgl.accessToken =
             'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
           if (dataValue.mapType == 1) {
@@ -936,10 +883,10 @@ class App {
       eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
       (node, component) => {
         console.log('Removed from componentCache: ' + component.id)
-        this.noodlui.componentCache().remove(component)
+        NUI.cache.component.remove(component)
         publish(component, (c) => {
           console.log('Removed from componentCache: ' + component.id)
-          this.noodlui.componentCache().remove(c)
+          NUI.cache.component.remove(c)
         })
       },
     )
@@ -980,19 +927,17 @@ class App {
           if (!subStreams) {
             subStreams = this.streams.createSubStreamsContainer(node, {
               blueprint: component.getBlueprint(),
-              resolver: this.noodlui.resolveComponents.bind(this.noodlui),
+              resolver: NUI.resolveComponents.bind(NUI),
             })
             log.func('onCreateNode')
             log.green('Initiated subStreams container', subStreams)
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup
-            log.red(`BLUEPRINT`, (component as List).blueprint)
+            log.red(`BLUEPRINT`, component.blueprint)
             subStreams.container = node
             subStreams.blueprint = component.getBlueprint()
-            subStreams.resolver = this.noodlui.resolveComponents.bind(
-              this.noodlui,
-            )
+            subStreams.resolver = NUI.resolveComponents.bind(NUI)
           }
         }
         // Individual remote participant video element container

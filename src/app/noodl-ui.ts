@@ -14,8 +14,6 @@ import * as lib from 'noodl-ui'
 import { findReferences } from 'noodl-utils'
 import { toast } from '../utils/dom'
 
-const noodlui = new lib.NOODL()
-
 /**
  * Just a helper to return the utilities that are meant to be attached
  * to the global window object
@@ -51,5 +49,3 @@ export function getWindowHelpers() {
     ]),
   )
 }
-
-export default noodlui

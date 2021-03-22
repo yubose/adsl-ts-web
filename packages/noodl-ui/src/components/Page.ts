@@ -1,5 +1,6 @@
 import Logger from 'logsnap'
 import merge from 'lodash/merge'
+import { ActionChain } from 'noodl-action-chain'
 import isPlainObject from 'lodash/isPlainObject'
 import {
   ActionObject,
@@ -28,7 +29,6 @@ import {
   publish,
   resolveAssetUrl,
 } from '../utils/noodl'
-import ActionChain from '../ActionChain'
 import Component from './Base'
 import getStore from '../store'
 import Viewport from '../Viewport'
@@ -42,8 +42,8 @@ import {
 } from '../utils/common'
 import getActionConsumerOptions from '../utils/getActionConsumerOptions'
 import * as T from '../types'
-import EmitAction from '../Action/EmitAction'
-import componentCache from '../utils/componentCache'
+import EmitAction from '../actions/EmitAction'
+import componentCache from '../cache/ComponentCache'
 
 const log = Logger.create('Page (component)')
 
@@ -385,7 +385,7 @@ class Page
       if (!('top' in originalStyle)) styles.top = '0'
 
       if (isComponent(component)) {
-        const parent = component.parent() as T.ComponentInstance
+        const parent = component.parent as T.ComponentInstance
         let top
 
         if (parent) {

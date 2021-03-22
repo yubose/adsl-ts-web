@@ -33,7 +33,6 @@ describe(`Viewport`, () => {
         `should just return the value back untouched assuming it is already ` +
           `suffixed with their unit if the value is a string and has a letter`,
         () => {
-          const viewport = new Viewport({ width: 375, height: 667 })
           expect(Viewport.getSize('20px', 300000, { unit: 'px' })).to.eq('20px')
         },
       )
@@ -42,13 +41,11 @@ describe(`Viewport`, () => {
         `should return the size in px when the value does not have a letter by ` +
           `multiplying by their corresponding viewport size if it is in decimal form`,
         () => {
-          const viewport = new Viewport({ width: 375, height: 667 })
           expect(Viewport.getSize('0.2', 500, { unit: 'px' })).to.eq('100px')
         },
       )
 
       it(`should return the correct size in px when it doesn't have a letter`, () => {
-        const viewport = new Viewport({ width: 375, height: 667 })
         expect(Viewport.getSize('1', 500, { unit: 'px' })).to.eq('500px')
       })
 
@@ -56,7 +53,6 @@ describe(`Viewport`, () => {
         `should return the correct size in px when the value is a string ` +
           `representing a number greater than "1"`,
         () => {
-          const viewport = new Viewport({ width: 375, height: 667 })
           expect(Viewport.getSize('2', 500, { unit: 'px' })).to.eq('1000px')
         },
       )
@@ -67,13 +63,11 @@ describe(`Viewport`, () => {
         `should return the size in px by multiplying by their corresponding ` +
           `viewport size if it is in decimal form`,
         () => {
-          const viewport = new Viewport({ width: 375, height: 667 })
           expect(Viewport.getSize('2', 500, { unit: 'px' })).to.eq('1000px')
         },
       )
 
       it(`should return the correct size in px`, () => {
-        const viewport = new Viewport({ width: 375, height: 667 })
         expect(Viewport.getSize('2', 500, { unit: 'px' })).to.eq('1000px')
       })
     })

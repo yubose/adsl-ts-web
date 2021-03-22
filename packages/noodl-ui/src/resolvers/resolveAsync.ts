@@ -8,15 +8,19 @@ import Resolver from '../Resolver'
 import { resolveAssetUrl } from '../utils/noodl'
 import * as u from '../utils/internal'
 
-const actionsResolver = new Resolver('resolveActions')
+const asyncResolver = new Resolver('resolveActions')
 
-async function resolveAsyncActions(
+async function resolveAsync(
   component: ComponentInstance,
   { createActionChain, getAssetsUrl }: ConsumerOptions,
 ) {
   try {
     const original = component.blueprint || {}
     const { dataValue, path, placeholder } = original
+
+    /* -------------------------------------------------------
+      ---- DATAVALUE
+    -------------------------------------------------------- */
 
     if (Identify.emit(dataValue)) {
       const ac = createActionChain(
@@ -30,6 +34,10 @@ async function resolveAsyncActions(
       component.emit('dataValue', result)
     }
 
+    /* -------------------------------------------------------
+      ---- PATH
+    -------------------------------------------------------- */
+
     if (Identify.emit(path)) {
       const ac = await createActionChain(
         'path',
@@ -39,7 +47,7 @@ async function resolveAsyncActions(
       let result = ac?.find((val) => !!val?.result)?.result
       result = result ? resolveAssetUrl(result, getAssetsUrl()) : ''
       component.edit({ 'data-src': result })
-      component?.emit('path', result)
+      component.emit('path', result)
     }
 
     if (Identify.emit(placeholder)) {
@@ -50,20 +58,23 @@ async function resolveAsyncActions(
       ).execute()
       const result = ac?.find((v) => !!v.result)?.result
       component.edit({ 'data-placeholder': result })
-      component?.emit('placeholder', result)
+      component.emit('placeholder', result)
     }
   } catch (error) {
     console.error(error)
   }
 }
 
-actionsResolver.setResolver((component, options, next) => {
+asyncResolver.setResolver((component, options, next) => {
   const original = component.blueprint || {}
   const { createActionChain } = options
 
-  resolveAsyncActions(component, options)
+  resolveAsync(component, options)
 
-  // onClick, onHover, onBlur, etc
+  /* -------------------------------------------------------
+    ---- USER EVENTS (onClick, onHover, onBlur, etc)
+  -------------------------------------------------------- */
+
   userEvent.forEach((eventType) => {
     if (u.isArr(original[eventType]) || 'emit' in (original[eventType] || {})) {
       const actionChain = createActionChain(
@@ -82,4 +93,4 @@ actionsResolver.setResolver((component, options, next) => {
   next?.()
 })
 
-export default actionsResolver
+export default asyncResolver

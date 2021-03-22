@@ -71,7 +71,6 @@ noodl
       .setPage('SignIn')
       .use(viewport)
       .use({
-        fetch,
         getAssetsUrl: () => assetsUrl,
         getBaseUrl: () => baseUrl,
         getPreloadPages: () => [],

@@ -37,7 +37,8 @@
     "test:noodlutils:file": "lerna exec --scope noodl-utils \"npm run test:file\"",
     "lib:build": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start",
-    "nodemon": "nodemon"
+    "nodemon": "nodemon",
+    "publish": "node scripts/publish.js -p"
   },
   "dependencies": {
     "@aitmed/cadl": "^1.0.231",
@@ -49,7 +50,7 @@
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
     "noodl-action-chain": "^0.0.43",
-    "noodl-types": "^1.0.39",
+    "noodl-types": "^1.0.42",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-utils": "file:packages/noodl-utils",
@@ -70,6 +71,7 @@
     "@testing-library/dom": "^7.24.1",
     "@testing-library/user-event": "^12.1.0",
     "@types/chai": "^4.2.14",
+    "@types/chai-as-promised": "^7.1.3",
     "@types/commander": "^2.12.2",
     "@types/fs-extra": "^9.0.1",
     "@types/lodash": "^4.14.156",
@@ -84,6 +86,7 @@
     "babel-plugin-lodash": "^3.3.4",
     "bundle-stats-webpack-plugin": "^2.2.0",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "chalk": "^4.1.0",
     "circular-dependency-plugin": "^5.2.0",
     "commander": "^6.1.0",
@@ -105,6 +108,7 @@
     "lerna": "^3.22.1",
     "mocha": "^8.2.1",
     "nodemon": "^2.0.7",
+    "noodl-common": "^0.0.5",
     "prettier": "^2.1.2",
     "rollup": "^2.35.1",
     "rollup-plugin-filesize": "^9.0.2",

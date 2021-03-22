@@ -4,7 +4,7 @@ import {
   findDataValue,
   isEmitObj,
 } from 'noodl-utils'
-import EmitAction from '../Action/EmitAction'
+import EmitAction from '../actions/EmitAction'
 import { isPromise } from '../utils/common'
 import { findListDataObject } from '../utils/noodl'
 import { ResolverFn } from '../types'
@@ -125,8 +125,9 @@ const getCustomDataAttrs: ResolverFn = (component, options) => {
       resolvedValue = textFunc(resolvedValue)
     }
 
+    component.edit({ 'data-key': dataKey }, { remove: 'dataKey' })
+
     component.assign({
-      'data-key': dataKey,
       'data-name': field,
       'data-value': resolvedValue || '',
     })

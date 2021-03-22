@@ -121,11 +121,11 @@ export function findParent<C extends ComponentInstance>(
   component: C,
   fn: (parent: ComponentInstance | null) => boolean,
 ) {
-  let parent = component?.parent?.()
+  let parent = component?.parent
   if (fn(parent)) return parent
   if (parent) {
     while (parent) {
-      parent = parent.parent?.()
+      parent = parent.parent
       if (fn(parent)) return parent
     }
   }
@@ -147,7 +147,7 @@ export function findListDataObject(component: ComponentInstance) {
     let listIndex = listItem.get('listIndex')
     if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
     if (!dataObject && typeof listIndex === 'number') {
-      const list = listItem?.parent?.() as any
+      const list = listItem?.parent as any
       if (list) {
         let listObject = list.getData()
         if (listObject?.length) {
@@ -457,16 +457,11 @@ export function publish(
 export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
   let src = ''
   if (typeof pathValue === 'string') {
-    if (/^(http|blob)/i.test(pathValue)) {
-      src = pathValue
-    } else if (pathValue.startsWith('~/')) {
+    if (/^(http|blob)/i.test(pathValue)) src = pathValue
+    else if (pathValue.startsWith('~/')) {
       // Should be handled by an SDK
-    } else {
-      src = assetsUrl + pathValue
-    }
-  } else {
-    src = `${assetsUrl}${pathValue}`
-  }
+    } else src = assetsUrl + pathValue
+  } else src = `${assetsUrl}${pathValue}`
   return src
 }
 

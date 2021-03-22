@@ -4,17 +4,23 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import isObjectLike from 'lodash/isObjectLike'
 import { isDraft, original } from 'immer'
+import { Action } from 'noodl-action-chain'
 import {
-  Action,
   ActionConsumerCallbackOptions,
-  BuiltInObject,
   ComponentInstance,
+  ConsumerOptions,
   findListDataObject,
   getDataValues,
-  NOODL as NOODLUI,
+  NOODLUI as NUI,
+  Page as NUIPage,
 } from 'noodl-ui'
-import NOODLOM, {
+import {
+  findAllByViewTag,
+  findByElementId,
+  findByViewTag,
+  findWindow,
   getByDataUX,
+  isPageConsumer,
   isTextFieldLike,
   NOODLDOMDataValueElement,
   NOODLDOMElement,
@@ -35,22 +41,15 @@ import {
 } from 'noodl-utils'
 import Logger from 'logsnap'
 import { isStable, resolvePageUrl } from '../utils/common'
-import { hide, show, scrollToElem, toggleVisibility } from '../utils/dom'
+import { hide, show, scrollToElem } from '../utils/dom'
 import { pageEvent } from '../constants'
+import App from '../App'
 import Meeting from '../meeting'
 
 const log = Logger.create('builtIns.ts')
 const stable = isStable()
 
-const createBuiltInActions = function createBuiltInActions({
-  noodl,
-  noodlui,
-  ndom,
-}: {
-  noodl: any
-  noodlui: NOODLUI
-  ndom: NOODLOM
-}) {
+const createBuiltInActions = function createBuiltInActions(app: App) {
   /* -------------------------------------------------------
     ---- ACTIONS (non-builtIn)
   -------------------------------------------------------- */
@@ -58,14 +57,11 @@ const createBuiltInActions = function createBuiltInActions({
   /* -------------------------------------------------------
   ---- ACTIONS (builtIn)
   -------------------------------------------------------- */
-  ndom
+  app.ndom
     .register({
       actionType: 'builtIn',
       funcName: 'checkField',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         log.func('checkField')
         log.grey('checkField', { action, options })
         let contentType = ''
@@ -98,10 +94,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'disconnectMeeting',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         log.func('disconnectMeeting')
         log.grey('', { action, room: Meeting.room, options })
         Meeting.room.disconnect()
@@ -110,16 +103,13 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'goBack',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         log.func('goBack')
         log.grey('', { action, ...options })
         if (typeof action.original?.reload === 'boolean') {
-          ndom.page.setModifier(
-            ndom.page
-              .getPreviousPage(noodl.cadlEndpoint.startPage || '')
+          app.ndom.page.setModifier(
+            app.ndom.page
+              .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
               .trim(),
             { reload: action.original.reload },
           )
@@ -130,7 +120,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'hide',
-      async fn(action, options, { findAllByViewTag }) {
+      async fn(action: Action, options: ConsumerOptions) {
         const viewTag = action.original?.viewTag || ''
         const nodes = findAllByViewTag(viewTag)
 
@@ -155,7 +145,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'show',
-      async fn(action, options, { findAllByViewTag }) {
+      async fn(action, options) {
         const viewTag = action.original?.viewTag || ''
         const nodes = findAllByViewTag(viewTag)
 
@@ -180,11 +170,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'toggleCameraOnOff',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-        actionsContext,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         log.func('toggleCameraOnOff')
         const path = 'VideoChat.cameraOn'
 
@@ -227,11 +213,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'toggleMicrophoneOnOff',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-        actionsContext,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         log.func('toggleMicrophoneOnOff')
         const path = 'VideoChat.micOn'
 
@@ -269,16 +251,11 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'toggleFlag',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-        actionsContext,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         log.func('toggleFlag')
         console.log({ action, ...options })
-        const { findByElementId } = actionsContext
         const { component } = options
-        const { page } = noodlui
+        const { page } = app.mainPage
         const { dataKey = '' } = action.original || {}
         let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
         const node = findByElementId(component)
@@ -318,7 +295,7 @@ const createBuiltInActions = function createBuiltInActions({
             }
             nextValue = !previousValue
             if (updateDraft) {
-              noodl.editDraft((draft: any) => {
+              app.noodl.editDraft((draft: any) => {
                 set(draft, updateDraft.path, nextValue)
               })
             }
@@ -332,26 +309,30 @@ const createBuiltInActions = function createBuiltInActions({
                 valEvaluating = nextValue
               } else {
                 valEvaluating =
-                  get(noodl.root, valEvaluating) ||
-                  get(noodl.root[page || ''], valEvaluating)
+                  get(app.noodl.root, valEvaluating) ||
+                  get(app.noodl.root[page || ''], valEvaluating)
               }
-              newSrc = noodlui.createSrc(
-                valEvaluating ? path?.if?.[1] : path?.if?.[2],
-                component,
-              ) as string
+              newSrc =
+                NUI.getAssetsUrl() + valEvaluating
+                  ? path?.if?.[1]
+                  : path?.if?.[2]
+              // newSrc = NUI.createSrc(
+              //   valEvaluating ? path?.if?.[1] : path?.if?.[2],
+              //   component,
+              // ) as string
               node.setAttribute('src', newSrc)
             }
             return nextValue
           }
 
-          dataObject = noodl.root
+          dataObject = app.noodl.root
 
-          if (has(noodl.root, dataKey)) {
-            dataObject = noodl.root
+          if (has(app.noodl.root, dataKey)) {
+            dataObject = app.noodl.root
             previousDataValue = get(dataObject, dataKey)
             onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-          } else if (has(noodl.root[page], dataKey)) {
-            dataObject = noodl.root[page]
+          } else if (has(app.noodl.root[page], dataKey)) {
+            dataObject = app.noodl.root[page]
             previousDataValue = get(dataObject, dataKey)
             onNextValue(previousDataValue, {
               updateDraft: {
@@ -362,9 +343,9 @@ const createBuiltInActions = function createBuiltInActions({
             log.red(
               `${dataKey} is not a path of the data object. ` +
                 `Defaulting to attaching ${dataKey} as a path to the root object`,
-              { context: noodlui.getContext?.(), dataObject, dataKey },
+              { context: NUI.getContext?.(), dataObject, dataKey },
             )
-            dataObject = noodl.root
+            dataObject = app.noodl.root
             previousDataValue = undefined
             nextDataValue = false
             onNextValue(previousDataValue, {
@@ -373,20 +354,19 @@ const createBuiltInActions = function createBuiltInActions({
           }
 
           if (/mic/i.test(dataKey)) {
-            ndom.builtIns.toggleMicrophoneOnOff
+            app.ndom.builtIns.toggleMicrophoneOnOff
               .find(Boolean)
-              ?.fn?.(action, options, actionsContext)
+              ?.fn?.(action, options)
           } else if (/camera/i.test(dataKey)) {
-            ndom.builtIns.toggleCameraOnOff
+            app.ndom.builtIns.toggleCameraOnOff
               .find(Boolean)
-              ?.fn?.(action, options, actionsContext)
+              ?.fn?.(action, options)
           }
         }
 
         log.grey('', {
           component: component.toJS(),
           componentInst: component,
-          context: noodlui.getContext?.(),
           dataKey,
           dataValue,
           dataObject,
@@ -402,10 +382,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'lockApplication',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         const result = await _onLockLogout()
         if (result === 'abort') return 'abort'
         const { Account } = await import('@aitmed/cadl')
@@ -416,10 +393,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'logOutOfApplication',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         const result = await _onLockLogout()
         if (result === 'abort') return 'abort'
         const { Account } = await import('@aitmed/cadl')
@@ -430,10 +404,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'logout',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         const result = await _onLockLogout()
         if (result === 'abort') return 'abort'
         const { Account } = await import('@aitmed/cadl')
@@ -444,11 +415,7 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'goto',
-      async fn(
-        action: Action<any>,
-        options: ActionConsumerCallbackOptions,
-        actionsContext,
-      ) {
+      async fn(action: Action<any>, options: ActionConsumerCallbackOptions) {
         log.func('builtIn [goto]')
         log.red('', { action, ...options })
         let destinationParam = ''
@@ -492,15 +459,15 @@ const createBuiltInActions = function createBuiltInActions({
         }
 
         if (reload !== undefined) {
-          ndom.page.setModifier(destinationParam, { reload })
+          app.ndom.page.setModifier(destinationParam, { reload })
         }
 
         if (pageReload !== undefined) {
-          ndom.page.setModifier(destinationParam, { pageReload })
+          app.ndom.page.setModifier(destinationParam, { pageReload })
         }
 
         if (dataIn !== undefined) {
-          ndom.page.setModifier(destinationParam, { ...dataIn })
+          app.ndom.page.setModifier(destinationParam, { ...dataIn })
         }
 
         log.grey(`Computed goto params`, {
@@ -509,28 +476,12 @@ const createBuiltInActions = function createBuiltInActions({
           pageReload,
         })
 
-        let findWindow: any
-        let findByElementId: any
-        let findByViewTag: any
-        let isPageConsumer: any
-
-        // Since some builtIn funcs like "goto" are invoked early on by an "init"
-        // from a page object. Since actionsContext is not available at that time,
-        // we have to manually import these utilities on demand if they aren't available
-        if (!actionsContext) {
-          const noodluidomlib = await import('noodl-ui-dom')
-          findWindow = noodluidomlib.findWindow
-          findByElementId = noodluidomlib.findByElementId
-          findByViewTag = noodluidomlib.findByViewTag
-          isPageConsumer = noodluidomlib.isPageConsumer
-        }
-
         let { destination, id = '', isSamePage, duration } = parse.destination(
           destinationParam,
         )
 
         if (destination === destinationParam) {
-          ndom.page.setRequestingPage(destination)
+          app.ndom.page.setRequestingPage(destination)
         }
 
         log.grey('', {
@@ -578,7 +529,7 @@ const createBuiltInActions = function createBuiltInActions({
             if (isSamePage) {
               scroll()
             } else {
-              ndom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+              app.ndom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
             }
           } else {
             log.red(
@@ -591,17 +542,16 @@ const createBuiltInActions = function createBuiltInActions({
                 duration,
                 action,
                 options,
-                actionsContext,
               },
             )
           }
         }
 
         if (!destinationParam?.startsWith?.('http')) {
-          ndom.page.pageUrl = resolvePageUrl({
+          app.ndom.page.pageUrl = resolvePageUrl({
             destination,
-            pageUrl: ndom.page.pageUrl,
-            startPage: noodl.cadlEndpoint.startPage,
+            pageUrl: app.ndom.page.pageUrl,
+            startPage: app.noodl.cadlEndpoint.startPage,
           })
         } else {
           destination = destinationParam
@@ -610,7 +560,7 @@ const createBuiltInActions = function createBuiltInActions({
         if (!isSamePage) {
           if (reload) {
             let urlToGoToInstead = ''
-            const parts = ndom.page.pageUrl.split('-')
+            const parts = app.ndom.page.pageUrl.split('-')
             if (parts.length > 1) {
               if (!parts[0].startsWith('index.html')) {
                 parts.unshift('index.html?')
@@ -622,7 +572,7 @@ const createBuiltInActions = function createBuiltInActions({
             }
 
             window.location.href = urlToGoToInstead
-          } else await ndom.page.requestPageChange(destination)
+          } else await app.ndom.page.requestPageChange(destination)
 
           if (!destination) {
             log.func('builtIn')
@@ -637,18 +587,14 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       actionType: 'builtIn',
       funcName: 'redraw',
-      async fn(
-        action: Action<BuiltInActionObject>,
-        options: ActionConsumerCallbackOptions,
-        { findByElementId },
-      ) {
+      async fn(action: Action, options: ActionConsumerCallbackOptions) {
         log.func('redraw')
         log.red('', { action, options })
 
         const viewTag = action?.original?.viewTag || ''
 
         const components = Object.values(
-          noodlui.componentCache().state() || {},
+          NUI.cache.component.get() || {},
         ).reduce((acc: ComponentInstance[], c: any) => {
           if (c && c.get('viewTag') === viewTag) return acc.concat(c)
           return acc
@@ -681,7 +627,7 @@ const createBuiltInActions = function createBuiltInActions({
           const node = findByElementId(viewTagComponent)
           const dataObject = findListDataObject(viewTagComponent)
           const opts = { dataObject }
-          const [newNode, newComponent] = ndom.redraw(
+          const [newNode, newComponent] = app.ndom.redraw(
             node as HTMLElement,
             viewTagComponent,
             opts,
@@ -691,18 +637,18 @@ const createBuiltInActions = function createBuiltInActions({
             newComponent,
             dataObject,
           })
-          noodlui.componentCache().set(newComponent)
+          NUI.cache.component.set(newComponent)
           startCount++
         }
 
-        componentCacheSize = getComponentCacheSize(noodlui)
+        componentCacheSize = getComponentCacheSize()
         log.red(`COMPONENT CACHE SIZE: ${componentCacheSize}`)
       },
     })
   /* -------------------------------------------------------
     ---- NODE RESOLVERS
   -------------------------------------------------------- */
-  ndom
+  app.ndom
     .register({
       name: 'data-value (sync with sdk)',
       cond: (node) => isTextFieldLike(node),
@@ -742,12 +688,11 @@ const createBuiltInActions = function createBuiltInActions({
     .register({
       name: 'image',
       cond: 'image',
-      async resolve(node, component, { findByElementId }) {
-        const { default: noodlui } = await import('../app/noodl-ui')
+      async resolve(node, component) {
         const img = node as HTMLImageElement
-        const parent = component.parent()
-        const context = noodlui.getContext()
-        const pageObject = noodlui.root[context?.page || ''] || {}
+        const parent = component.parent
+        const context = NUI.getContext()
+        const pageObject = NUI.getRoot()[context?.page || ''] || {}
         if (
           img?.src === pageObject?.docDetail?.document?.name?.data &&
           pageObject?.docDetail?.document?.name?.type == 'application/pdf'
@@ -894,7 +839,7 @@ const createBuiltInActions = function createBuiltInActions({
     if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
   }
 
-  return ndom
+  return app.ndom
 }
 
 /* -------------------------------------------------------
@@ -908,7 +853,7 @@ export function onVideoChatBuiltIn({
   joinRoom: (token: string) => Promise<any>
 }) {
   return async function onVideoChat(
-    action: BuiltInObject & {
+    action: BuiltInActionObject & {
       roomId: string
       accessToken: string
     },

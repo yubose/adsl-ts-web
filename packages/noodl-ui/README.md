@@ -36,3 +36,15 @@ npm install --save noodl-ui
 #### Custom integrations
 
 - Some components are attached with the prop `data-ux` for UX interactions between the library and web apps
+
+#### Transformations
+
+##### Alignment
+
+```yml
+- textAlign: centerX
+```
+
+```json
+{ "textAlign": "center" }
+```

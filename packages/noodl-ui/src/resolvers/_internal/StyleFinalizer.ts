@@ -60,7 +60,7 @@ class StyleFinalizer {
 
     const style = component.style || {}
 
-    const parent = component.parent?.()
+    const parent = component.parent
     // const parentTop = unwrap(parent?.style?.top) || this.lastTop
     // const parentLeft = parent?.style?.left || 'auto'
 

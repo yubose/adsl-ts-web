@@ -1,66 +1,62 @@
-import {
-  ComponentObject,
-  ComponentType,
-  PageObject,
-  StyleObject,
-} from 'noodl-types'
-import { ActionConsumerCallbackOptions } from './actionChainTypes'
+import { ComponentObject, PageObject, StyleObject } from 'noodl-types'
+import { LiteralUnion } from 'type-fest'
 import { ComponentInstance } from './componentTypes'
-import componentCache from '../utils/componentCache'
-import NOODLUI from '../noodl-ui'
+import { Store } from './storeTypes'
+import RegisterCache from '../cache/RegisterCache'
+import ComponentCache from '../cache/ComponentCache'
+import NUI from '../noodl-ui'
+import NUIPage from '../Page'
 import Viewport from '../Viewport'
+import { NOODLUITrigger } from './constantTypes'
+import { NOODLUIActionChain, NOODLUIActionObject } from './actionTypes'
 
-export interface BuiltInActions {
-  [funcName: string]: <A extends {}>(
-    action: A,
-    options: ActionConsumerCallbackOptions,
-  ) => Promise<any> | any
-}
-
-export type ComponentCache = ReturnType<typeof componentCache>
-
-export interface ComponentEventCallback {
-  (
-    noodlComponent: ComponentObject,
-    args: {
-      component: ComponentInstance
-      parent: ComponentInstance | null
-    },
-  ): void
-}
-
-export interface ConsumerOptions {
-  componentCache(): ComponentCache
-  component: ComponentInstance
-  context: ResolverContext
-  createActionChainHandler: NOODLUI['createActionChainHandler']
-  createSrc(path: Parameters<NOODLUI['createSrc']>[0]): string
-  fetch?: Fetch
-  getAssetsUrl(): string
-  getBaseUrl(): string
-  getBaseStyles(styles?: StyleObject): Partial<StyleObject>
-  getCbs: NOODLUI['getCbs']
-  getPageObject: StateHelpers['getPageObject']
-  getPages(): string[]
-  getPreloadPages(): string[]
-  getResolvers: NOODLUI['getResolvers']
-  getRoot(): { [key: string]: any }
-  getState: StateHelpers['getState']
-  plugins(location: 'head'): State['plugins']['head']
-  plugins(location: 'body'): State['plugins']['body']
-  plugins(location: 'body-top'): State['plugins']['body']['top']
-  plugins(location: 'body-bottom'): State['plugins']['body']['bottom']
-  plugins(location?: never): State['plugins']
-  register: NOODLUI['register']
-  resolveComponent(
-    c:
-      | (ComponentType | ComponentInstance | ComponentObject)
-      | (ComponentType | ComponentInstance | ComponentObject)[],
-  ): ComponentInstance
-  resolveComponentDeep: NOODLUI['resolveComponents']
-  setPlugin(plugin: string | PluginObject): this
-  showDataKey: boolean
+export interface IPage {
+  id: 'root' | string | number
+  page: string
   viewport: Viewport
+}
+
+export namespace Cache {
+  export type Component = ComponentCache
+
+  export type ComponentHookEvent = 'add' | 'clear' | 'remove'
+
+  export interface ComponentHook {
+    add(component: ComponentInstance): void
+    clear(components: { [id: string]: ComponentInstance }): void
+    remove(component: ReturnType<ComponentInstance['toJSON']>): void
+  }
+
+  export type Pages = Map<PageId, Cache.PageEntry>
+
+  export type PageId = IPage['id']
+
+  export interface PageEntry {
+    page: NUIPage
+  }
+
+  export type Register = RegisterCache
+}
+
+export type ComponentResolverArgs = [
+  component: ComponentInstance,
+  options: ConsumerOptions,
+  next: (opts?: Record<string, any>) => void,
+]
+
+export type ConsumerOptions = Omit<
+  ReturnType<typeof NUI['getConsumerOptions']>,
+  'createActionChain' | 'getBaseStyles'
+> & {
+  createActionChain(
+    trigger: NOODLUITrigger,
+    actions: NOODLUIActionObject | NOODLUIActionObject[],
+    opts?: { loadQueue?: boolean },
+  ): NOODLUIActionChain
+  getBaseStyles(
+    component: ComponentInstance,
+  ): StyleObject & { [key: string]: any }
+  ref?: NOODLUIActionChain
 }
 
 export interface Fetch {
@@ -94,6 +90,8 @@ export interface ProxiedComponent extends Omit<ComponentObject, 'children'> {
   'data-key'?: string
   'data-listid'?: any
   'data-name'?: string
+  'data-placeholder'?: string
+  'data-src'?: string
   'data-value'?: string
   'data-ux'?: string
   id?: string
@@ -108,14 +106,26 @@ export interface ProxiedComponent extends Omit<ComponentObject, 'children'> {
   [key: string]: any
 }
 
+export type RegisterStore = Map<
+  RegisterPage,
+  Record<string, Store.RegisterObject>
+>
+
+export type RegisterPage<P extends string = '_global'> = LiteralUnion<P, string>
+
+export interface RegisterPageObject {
+  [name: string]: Store.RegisterObject
+}
+
 export interface ResolverContext {
   actionsContext: { noodl: any; noodlui: NOODLUI }
   assetsUrl: string
+  iteratorVar?: string
   page: string
 }
 
 export interface ResolverFn<C extends ComponentInstance = any> {
-  (component: C, consumerOptions: ConsumerOptions): void
+  (component: C, consumerOptions: ConsumerOptions, next?: () => void): void
 }
 
 export interface State {

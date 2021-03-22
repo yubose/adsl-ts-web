@@ -1,8 +1,95 @@
-import { ComponentInstance, ConsumerOptions, ResolverFn } from './types'
+import NOODLUI from './noodl-ui'
+import {
+  ComponentInstance,
+  ComponentResolverArgs,
+  ConsumerOptions,
+  ResolverFn,
+} from './types'
+import { isObj } from './utils/internal'
 
-class Resolver {
+export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
+  next: Inst | null
+  resolver: Func
+}
+
+class Resolver<Func extends (...args: any[]) => any, Inst = any>
+  implements IResolver<Func> {
+  #resolve: IResolver<Func>['resolver']
+  #next: Inst | null = null
+
+  get next() {
+    return this.#next
+  }
+
+  set next(node) {
+    this.#next = node
+  }
+
+  get resolver() {
+    return this.#resolve
+  }
+
+  set resolver(resolve) {
+    this.#resolve = resolve
+  }
+}
+
+class ComponentResolver<
+  Func extends (...args: ComponentResolverArgs) => void
+> extends Resolver<Func, ComponentResolver<Func>> {
   #isInternal: boolean = false
-  #resolver: ResolverFn | null = null
+  #name: string
+
+  constructor(name = '', resolver?: Func) {
+    super()
+    this.#name = name
+    if (resolver) this.resolver = resolver
+  }
+
+  get internal() {
+    return this.#isInternal
+  }
+
+  set internal(internal: boolean) {
+    if (!internal) {
+      throw new Error(
+        'An internal resolver cannot disable its internal behavior',
+      )
+    }
+    this.#isInternal = internal
+  }
+
+  get name() {
+    return this.#name
+  }
+
+  setResolver(resolver: ComponentResolver<Func>['resolver']) {
+    super.resolver = resolver.bind(this)
+    return this
+  }
+
+  resolve(component: ComponentInstance, options: ConsumerOptions) {
+    const resolveNext = function _resolveNext(
+      this: ComponentResolver<Func>,
+      opts?: Record<string, any>,
+    ) {
+      if (isObj(opts)) options = { ...options, ...opts }
+      this.next?.resolve?.(component, options)
+    }.bind(this)
+
+    this.resolver?.(component, options, resolveNext)
+
+    return this
+  }
+
+  toString() {
+    return `Resolver [${this.#name}]`
+  }
+}
+
+export class InternalComponentResolver {
+  #isInternal: boolean = false
+  #resolver: Parameters<InternalComponentResolver['setResolver']>[0]
 
   get internal() {
     return this.#isInternal
@@ -18,48 +105,22 @@ class Resolver {
   }
 
   setResolver(resolver: ResolverFn) {
-    this.#resolver = resolver
+    this.#resolver = resolver.bind(this)
     return this
   }
 
-  resolve(component: ComponentInstance, options: ConsumerOptions) {
-    this.#resolver?.(component, options)
-    return this
-  }
-}
-
-export class InternalResolver {
-  #isInternal: boolean = false
-  #resolver: Parameters<InternalResolver['setResolver']>[0]
-
-  get internal() {
-    return this.#isInternal
-  }
-
-  set internal(internal: boolean) {
-    if (!internal) {
-      throw new Error(
-        'An internal resolver cannot disable its internal behavior',
-      )
-    }
-    this.#isInternal = internal
-  }
-
-  setResolver(
-    resolver: <C extends ComponentInstance>(
-      component: C,
-      consumerOptions: ConsumerOptions,
-      ref: any,
-    ) => void,
+  resolve<C extends ComponentInstance = ComponentInstance>(
+    component: C,
+    options: ConsumerOptions,
+    ref: NOODLUI,
   ) {
-    this.#resolver = resolver
-    return this
-  }
-
-  resolve(component: ComponentInstance, options: ConsumerOptions, ref: any) {
     this.#resolver?.(component, options, ref)
     return this
   }
+
+  toString() {
+    return `Resolver [__internal__]`
+  }
 }
 
-export default Resolver
+export default ComponentResolver

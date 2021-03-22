@@ -34,14 +34,10 @@ const getPlugins = (function (): ResolverFn {
     return url
   }
 
-  return (component, { createSrc, fetch, getAssetsUrl, plugins }) => {
+  return (component, { createSrc, getAssetsUrl, plugins }) => {
     if (isPluginComponent(component)) {
       const path = component.get('path') || ''
       const plugin = (component.get('plugin') as PluginObject) || {}
-
-      if (fetch === undefined && typeof window !== undefined) {
-        fetch = window.fetch
-      }
 
       if (pluginExists(path as string, plugins)) return
 

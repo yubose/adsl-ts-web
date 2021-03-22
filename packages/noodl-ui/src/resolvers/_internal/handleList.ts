@@ -2,7 +2,7 @@ import Logger from 'logsnap'
 import { ComponentObject } from 'noodl-types'
 import List from '../../components/List'
 import ListItem from '../../components/ListItem'
-import { ConsumerOptions, ListBlueprint } from '../../types'
+import { ConsumerOptions } from '../../types'
 import { InternalResolver } from '../../Resolver'
 import { publish } from '../../utils/noodl'
 import { event } from '../../constants'
@@ -17,12 +17,7 @@ const handleListInternalResolver = (
   options: ConsumerOptions,
   _internalResolver: InternalResolver,
 ) => {
-  const {
-    getBaseStyles,
-    resolveComponent,
-    resolveComponentDeep,
-    componentCache,
-  } = options
+  const { getBaseStyles, resolveComponent, componentCache } = options
 
   const rawBlueprint = (Array.isArray(component?.original?.children)
     ? { ...component.original.children[0] }

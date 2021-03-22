@@ -1,11 +1,11 @@
 import { ComponentObject } from 'noodl-types'
 import produce from 'immer'
 import NOODLUI from '../noodl-ui'
-import { getAllResolversAsMap } from '../utils/getAllResolvers'
+import getDefaultResolvers from './getDefaultResolvers'
 import * as T from '../types'
 
 function runner(noodlui: NOODLUI) {
-  const resolvers = Object.values(getAllResolversAsMap())
+  const resolvers = getDefaultResolvers()
   const createEmpty = (obj?: any) => Object.assign({}, obj)
   const mutator = (mutate) => (step) => (acc, obj) => step(acc, mutate(obj))
   const filter = (pred) => (step) => (acc, obj) =>

@@ -123,7 +123,7 @@ export default {
     let parentIncSum = 0
 
     if (VP.isNil(top) || VP.isNil(height)) {
-      let parent = component.parent() as ComponentInstance
+      let parent = component.parent as ComponentInstance
       let parentTouchedProp = {} as Record<string, any>
       let newTop = 0
       // Get the parent's dimensions to initiate the newTop

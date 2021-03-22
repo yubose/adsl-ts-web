@@ -3,25 +3,15 @@
 // are currently handled in App.ts
 
 import { RemoteParticipant } from 'twilio-video'
-import { ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
+import { ComponentInstance, NOODLUI as NUI } from 'noodl-ui'
 import Logger from 'logsnap'
-import NOODLOM from 'noodl-ui-dom'
-import { isStable } from '../utils/common'
-import AppMeeting from '../meeting/Meeting'
 import Stream from '../meeting/Stream'
+import App from '../App'
 
 const log = Logger.create('src/handlers/register.ts')
-const stable = isStable()
 
-interface Options {
-  noodl: any
-  noodlui: NOODLUI
-  ndom: NOODLOM
-  Meeting: typeof AppMeeting
-}
-
-function registerCallbacks({ noodl, noodlui, ndom, Meeting }: Options) {
-  noodlui.register({
+function registerCallbacks(app: App) {
+  NUI.cache.register.set('_global', 'twilioOnPeopleJoin', {
     component: null,
     key: 'twilioOnPeopleJoin',
     prop: 'onEvent',
@@ -48,7 +38,7 @@ function registerCallbacks({ noodl, noodlui, ndom, Meeting }: Options) {
     },
   })
 
-  noodlui.register({
+  NUI.cache.register.set('_global', 'twilioOnNoParticipant', {
     component: null,
     key: 'twilioOnNoParticipant',
     prop: 'onEvent',
@@ -70,8 +60,6 @@ function registerCallbacks({ noodl, noodlui, ndom, Meeting }: Options) {
       next?.()
     },
   })
-
-  stable && log.cyan(`Initialized register funcs`)
 }
 
 export default registerCallbacks

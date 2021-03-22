@@ -5,6 +5,7 @@ export * from './noodl-ui-dom'
 export * from './types'
 
 export {
+  findAllByViewTag,
   findByElementId,
   findByViewTag,
   findWindow,

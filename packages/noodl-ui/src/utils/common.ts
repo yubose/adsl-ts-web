@@ -52,13 +52,6 @@ export function formatColor(value: string) {
   return value || ''
 }
 
-/**
- * Returns a random 7-character string
- */
-export function getRandomKey() {
-  return `_${Math.random().toString(36).substr(2, 9)}`
-}
-
 export function isPromise(value: unknown): value is Promise<any> {
   window.isPromise = isPromise
   return value && typeof value === 'object' && 'then' in value
@@ -85,6 +78,26 @@ export function hasLetter(value: any): boolean {
  */
 export function isBrowser() {
   return typeof window !== 'undefined'
+}
+
+export async function promiseAllSafely(
+  promises: Promise<any>[],
+  getResult?: <RT = any>(err: null | Error, result: any) => RT,
+) {
+  const results = [] as any[]
+
+  for (let index = 0; index < promises.length; index++) {
+    const promise = promises[index]
+    try {
+      const result = await promise
+      results.push(getResult ? getResult(null, result) : result)
+    } catch (error) {
+      const err = new Error(error.message)
+      results.push(getResult ? getResult(err, undefined) : err)
+    }
+  }
+
+  return results
 }
 
 export function toNumber(str: string) {

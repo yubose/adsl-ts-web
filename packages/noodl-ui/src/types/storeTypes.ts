@@ -1,46 +1,61 @@
-import { ActionObject } from 'noodl-types'
-import {
-  ActionChainActionCallback,
-  ActionChainContext,
-} from './actionChainTypes'
-import { ActionChainEmitTrigger, ResolveEmitTrigger } from './constantTypes'
-import {
-  BuiltInObject,
-  EmitActionObject,
-  GotoActionObject,
-  ToastActionObject,
-} from './actionTypes'
-import Action from '../Action'
-import { AnyFn } from '.'
+import { ComponentType, RegisterComponentObject } from 'noodl-types'
+import { LiteralUnion } from 'type-fest'
+import { ComponentInstance } from './componentTypes'
+import { NOODLUIActionType, NOODLUITrigger } from './constantTypes'
+import { ConsumerOptions, RegisterPage } from './types'
 
-export interface StoreActionObject<
-  A extends
-    | ActionObject
-    | EmitActionObject
-    | GotoActionObject
-    | ToastActionObject = any,
-  AContext extends ActionChainContext = any
-> {
-  actionType: A['actionType']
-  fn: ActionChainActionCallback<Action<A>, AContext>
-  trigger?: ActionChainEmitTrigger | ResolveEmitTrigger
-}
+export namespace Store {
+  export interface ActionObject {
+    actionType: NOODLUIActionType
+    fn: (...args: any[]) => any
+    trigger?: NOODLUITrigger
+  }
 
-export interface StoreBuiltInObject<
-  A extends BuiltInObject = BuiltInObject,
-  AContext extends ActionChainContext = any
-> {
-  actionType: BuiltInObject['actionType']
-  fn: ActionChainActionCallback<Action<A>, AContext>
-  funcName: string
-}
+  export interface BuiltInObject {
+    actionType: 'builtIn'
+    fn: (...args: any[]) => any
+    funcName: string
+  }
 
-export interface StoreChainingObject {}
+  export interface ObserverObject {
+    name?: string
+    cond?: ComponentType | ((...args: any[]) => boolean)
+    observe(component: ComponentInstance, options: ConsumerOptions): void
+  }
 
-export interface StoreResolverObject {
-  name?: string
-  cond?(...args: any[]): boolean
-  before?: AnyFn
-  resolve: AnyFn
-  after?: AnyFn
+  export interface Plugins {
+    head: PluginObject[]
+    body: {
+      top: PluginObject[]
+      bottom: PluginObject[]
+    }
+  }
+
+  export interface PluginObject {
+    initiated?: boolean
+    location?: 'head' | 'body-top' | 'body-bottom'
+    path?: string
+    content?: string
+    ref: ComponentInstance
+  }
+
+  export interface RegisterObject<P extends RegisterPage = '_global'> {
+    type: LiteralUnion<'onEvent', string> // 'onEvent'
+    name: string
+    component: ComponentInstance | null
+    fn:
+      | RegisterObjectInput<
+          LiteralUnion<P | '_global' | RegisterPage, string>
+        >['fn']
+      | undefined
+    page: P
+    callback(data: any): void
+  }
+
+  export interface RegisterObjectInput<P extends string = '_global'> {
+    component?: RegisterComponentObject | ComponentInstance
+    fn?<D = any>(data?: D): D
+    name?: string
+    page: P
+  }
 }

@@ -21,7 +21,7 @@ declare global {
     addRemoteParticipant: any
     app: any
     build: any
-    componentCache: any
+    cache: any
     noodl: any
     env: string | undefined
     FCMOnTokenReceive: any
