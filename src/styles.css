@@ -50,7 +50,7 @@ div.pluginBodyTail {
 */
 
 .scroll-view {
-  position: relative !important;
+  position: absolute !important;
   align-items: flex-start !important;
   overflow-y: auto !important;
 }

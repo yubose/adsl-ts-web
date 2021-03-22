@@ -59,8 +59,8 @@ _internalResolver.setResolver((component, options, ref) => {
 
       if (c.type === 'scrollView') {
         // Set immediate children to relative so they can stack on eachother
-        c.children.forEach((child: ComponentInstance) => {
-          child.assignStyles({ position: 'relative', display: 'block' })
+        c.children().forEach((child: ComponentInstance) => {
+          child.assignStyles({ position: 'absolute', display: 'block' })
         })
       }
     }

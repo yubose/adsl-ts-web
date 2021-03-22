@@ -117,6 +117,19 @@ export default {
           if (xKeys.includes(key as any)) editor.updateX(key)
           else if (yKeys.includes(key as any)) editor.updateY(key)
         }
+  resolve: (node: HTMLElement, component) => {
+    const originalStyle = component.original?.style || {}
+    const { style } = component
+    if (style != null && typeof style === 'object' && node.style) {
+      if (component.has('text=func')) {
+        // debugger
+      }
+      Object.entries(style).forEach(([k, v]) => {
+        // if (k === 'height' && v === 'auto') {
+        //   node.style.cssText += `height: inherit !important;`
+        // } else {
+        node.style[k] = v
+        // }
       })
 
       let hasFlexAlignCenter = () =>
@@ -254,6 +267,12 @@ export default {
       const heightNum = VP.toNum(height)
       const componentTopAndHeight = topNum + heightNum
       if (newTop !== componentTopAndHeight) component.style.top = newTop + 'px'
+    }
+
+    if (!originalStyle?.top || originalStyle?.top === 'auto') {
+      node.style.position = 'relative'
+    } else {
+      node.style.position = 'absolute'
     }
   },
   observe: {
