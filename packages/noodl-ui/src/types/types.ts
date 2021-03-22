@@ -1,7 +1,6 @@
 import { ComponentObject, PageObject, StyleObject } from 'noodl-types'
 import { LiteralUnion } from 'type-fest'
 import { ComponentInstance } from './componentTypes'
-import { Store } from './storeTypes'
 import RegisterCache from '../cache/RegisterCache'
 import ComponentCache from '../cache/ComponentCache'
 import NUI from '../noodl-ui'
@@ -59,10 +58,6 @@ export type ConsumerOptions = Omit<
   ref?: NOODLUIActionChain
 }
 
-export interface Fetch {
-  (...args: any[]): Promise<any>
-}
-
 export type PageObjectContainer<K extends string = string> = Record<
   K,
   PageObject
@@ -106,15 +101,20 @@ export interface ProxiedComponent extends Omit<ComponentObject, 'children'> {
   [key: string]: any
 }
 
-export type RegisterStore = Map<
-  RegisterPage,
-  Record<string, Store.RegisterObject>
->
+export namespace Register {
+  export interface Object {
+    type: LiteralUnion<'onEvent', string> // 'onEvent'
+    registerEvent: string
+    component: ComponentInstance | null
+    fn: // | RegisterObjectInput<LiteralUnion<Page | '_global' | Page, string>>['fn']
+    undefined
+    page: Page
+    callback(data: any): void
+  }
 
-export type RegisterPage<P extends string = '_global'> = LiteralUnion<P, string>
+  export type Page<P extends string = '_global'> = LiteralUnion<P, string>
 
-export interface RegisterPageObject {
-  [name: string]: Store.RegisterObject
+  export type Storage = Map<Page, Record<string, Object>>
 }
 
 export interface ResolverContext {

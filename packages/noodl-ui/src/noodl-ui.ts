@@ -246,18 +246,21 @@ const NOODLUI = (function _NOODLUI() {
   function _emit(
     evt: LiteralUnion<'register', string>,
     {
-      id,
       page = '_global',
       data = null,
+      registerEvent = '',
     }: {
-      id: string
       data?: any
-      page: T.RegisterPage
+      page: T.Register.Page
+      registerEvent: string
     } & { [key: string]: any },
   ) {
     if (evt === 'register') {
-      if (cache.register.has(page, id)) {
-        const register = cache.register.get(page, id) as T.Store.RegisterObject
+      if (cache.register.has(page, registerEvent)) {
+        const register = cache.register.get(
+          page,
+          registerEvent,
+        ) as T.Register.Object
         register.callback(data)
       } else {
         //
@@ -503,7 +506,7 @@ const NOODLUI = (function _NOODLUI() {
       return c
     }
 
-    components.forEach((c) =>
+    components.forEach((c: T.ComponentInstance) =>
       resolvedComponents.push(xform(createComponent(c))),
     )
 
@@ -534,13 +537,11 @@ const NOODLUI = (function _NOODLUI() {
         store.use(mod)
       } else if ('location' in mod) {
         store.use(mod)
-      } else if ('type' in mod) {
+      } else if ('registerEvent' in mod) {
         if (!cache.register.has(mod.page, mod.name)) {
           cache.register.set(mod.page, mod.name, mod)
         }
       } else if ('resolve' in mod) {
-        store.use(mod)
-      } else if ('observe' in mod) {
         store.use(mod)
       } else if (mod) {
         if ('getAssetsUrl' in mod && mod.getAssetsUrl) {

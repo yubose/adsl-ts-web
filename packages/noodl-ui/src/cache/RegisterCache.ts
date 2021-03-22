@@ -1,27 +1,28 @@
-import {
-  RegisterPage,
-  RegisterPageObject,
-  RegisterStore,
-  Store,
-} from '../types'
+import { Register, Store } from '../types'
 
 class RegisterCache {
-  static _inst: RegisterCache
+  #cache: Register.Storage = new Map()
 
-  #cache: RegisterStore = new Map()
+  static _inst: RegisterCache
 
   constructor() {
     if (RegisterCache._inst) return RegisterCache._inst
     RegisterCache._inst = this
   }
 
-  get<P extends RegisterPage>(page: P): RegisterPageObject
-  get<P extends RegisterPage, N extends string = string>(
+  get<P extends Register.Page>(
+    page: P,
+  ): {
+    [name: string]: Store.RegisterObject
+  }
+  get<P extends Register.Page, N extends string = string>(
     page: P,
     name: N,
   ): Store.RegisterObject
-  get<P extends RegisterPage, N extends string = string>(page: P, name?: N) {
-    let pagesCache = this.#cache.get(page) as RegisterPageObject
+  get<P extends Register.Page, N extends string = string>(page: P, name?: N) {
+    let pagesCache = this.#cache.get(page) as {
+      [name: string]: Store.RegisterObject
+    }
 
     if (!pagesCache) {
       pagesCache = {}
@@ -32,24 +33,26 @@ class RegisterCache {
     return this.#cache.get(page)
   }
 
-  has<P extends RegisterPage>(page: P): boolean
-  has<N extends string>(page: RegisterPage, name?: N): boolean
-  has<P extends RegisterPage, N extends string = string>(page: P, name?: N) {
+  has<P extends Register.Page>(page: P): boolean
+  has<N extends string>(page: Register.Page, name?: N): boolean
+  has<P extends Register.Page, N extends string = string>(page: P, name?: N) {
     if (!name) return this.#cache.has(page)
     return !!this.#cache.get(page)?.[name]
   }
 
-  set<P extends RegisterPage, N extends string = string>(
+  set<P extends Register.Page, N extends string = string>(
     page: P,
     name: N,
     obj: Store.RegisterObject,
   ): Store.RegisterObject
-  set<P extends RegisterPage>(
+  set<P extends Register.Page>(
     page: P,
     name?: string,
     obj?: Store.RegisterObject,
-  ): RegisterPageObject
-  set<P extends RegisterPage, N extends string = string>(
+  ): {
+    [name: string]: Store.RegisterObject
+  }
+  set<P extends Register.Page, N extends string = string>(
     page: P,
     name?: N,
     obj?: Store.RegisterObject,

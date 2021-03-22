@@ -1,8 +1,7 @@
 import { ComponentType, RegisterComponentObject } from 'noodl-types'
-import { LiteralUnion } from 'type-fest'
 import { ComponentInstance } from './componentTypes'
 import { NOODLUIActionType, NOODLUITrigger } from './constantTypes'
-import { ConsumerOptions, RegisterPage } from './types'
+import { ConsumerOptions, Register } from './types'
 
 export namespace Store {
   export interface ActionObject {
@@ -39,20 +38,8 @@ export namespace Store {
     ref: ComponentInstance
   }
 
-  export interface RegisterObject<P extends RegisterPage = '_global'> {
-    type: LiteralUnion<'onEvent', string> // 'onEvent'
-    name: string
-    component: ComponentInstance | null
-    fn:
-      | RegisterObjectInput<
-          LiteralUnion<P | '_global' | RegisterPage, string>
-        >['fn']
-      | undefined
-    page: P
-    callback(data: any): void
-  }
-
-  export interface RegisterObjectInput<P extends string = '_global'> {
+  export interface RegisterObject<P extends Register.Page = '_global'> {
+    registerEvent: string
     component?: RegisterComponentObject | ComponentInstance
     fn?<D = any>(data?: D): D
     name?: string

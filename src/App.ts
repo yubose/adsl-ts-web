@@ -301,11 +301,10 @@ class App {
                   copyToClipboard(token)
 
                   if (this.#enabled.firebase) {
-                    noodlui.emit('register', {
-                      key: 'globalRegister',
-                      id: 'FCMOnTokenReceive',
-                      prop: 'onEvent',
+                    this.nui.emit('register', {
                       data: token,
+                      page: '_global',
+                      registerEvent: 'FCMOnTokenReceive',
                     })
                   } else {
                     log.func('FCMOnTokenReceive')
@@ -352,9 +351,11 @@ class App {
                         `Found and registered a "register" component to Global`,
                         { ...value },
                       )
-                      const res = noodlui.register({
-                        key: 'globalRegister',
+                      const res = this.nui.use({
+                        registerEvent: '',
+                        page: '_global',
                         component: value,
+                        type: 'onEvent',
                       })
                       // SDK sets this
                       // value.onEvent = res.fn
