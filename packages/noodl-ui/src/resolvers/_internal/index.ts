@@ -61,7 +61,7 @@ _internalResolver.setResolver((component, options, ref) => {
       if (c.noodlType === 'scrollView') {
         // Set immediate children to relative so they can stack on eachother
         c.children().forEach((child: ComponentInstance) => {
-          child.assignStyles({ position: 'relative', display: 'block' })
+          child.assignStyles({ position: 'absolute', display: 'block' })
         })
       }
     }

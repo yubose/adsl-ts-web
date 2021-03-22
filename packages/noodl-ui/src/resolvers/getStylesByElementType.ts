@@ -64,7 +64,7 @@ const getStylesByElementType: ResolverFn = (component, options) => {
       return void component
         .setStyle('listStyle', 'none')
         .setStyle('padding', 0)
-        .setStyle('position', 'relative')
+        .setStyle('position', 'absolute')
     }
     // Defaults to being hidden
     case 'popUp':

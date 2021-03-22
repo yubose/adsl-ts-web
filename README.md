@@ -181,3 +181,7 @@ fn(stepFn)
 fn(stepFn)
 fn(stepFn)
 -->
+
+if (top) --> absolute
+if (no top) --> relative
+if marginTop --> marginTop

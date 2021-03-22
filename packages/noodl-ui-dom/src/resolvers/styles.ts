@@ -11,6 +11,7 @@ export default {
   cond: (node: NOODLDOMElement, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
   resolve: (node: HTMLElement, component) => {
+    const originalStyle = component.original?.style || {}
     const { style } = component
     if (style != null && typeof style === 'object' && node.style) {
       if (component.has('text=func')) {
@@ -39,6 +40,12 @@ export default {
 
     if (component.has('textBoard')) {
       addClassName('text-board', node)
+    }
+
+    if (!originalStyle?.top || originalStyle?.top === 'auto') {
+      node.style.position = 'relative'
+    } else {
+      node.style.position = 'absolute'
     }
   },
 } as RegisterOptions
