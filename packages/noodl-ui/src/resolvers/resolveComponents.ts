@@ -4,7 +4,6 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import { findDataValue, isBreakLineTextBoardItem } from 'noodl-utils'
-import { ComponentInstance } from '../types'
 import Resolver from '../Resolver'
 import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
@@ -17,6 +16,7 @@ import {
   isListLike,
   publish,
 } from '../utils/noodl'
+import { NUIComponent } from '../types'
 import * as c from '../constants'
 import * as u from '../utils/internal'
 
@@ -48,7 +48,7 @@ componentResolver.setResolver((component, options, next) => {
   if (isListLike(component)) {
     const listItemBlueprint = getRawBlueprint(component)
 
-    function getChildrenKey(component: ComponentInstance) {
+    function getChildrenKey(component: NUIComponent.Instance) {
       return component.type === 'chatList' ? 'chatItem' : 'children'
     }
 
@@ -56,7 +56,7 @@ componentResolver.setResolver((component, options, next) => {
       return original.listObject || []
     }
 
-    function getRawBlueprint(component: ComponentInstance) {
+    function getRawBlueprint(component: NUIComponent.Instance) {
       const childrenKey = getChildrenKey(component)
       const children = original[childrenKey]
       const blueprint = cloneDeep(u.isArr(children) ? children[0] : children)
@@ -67,7 +67,7 @@ componentResolver.setResolver((component, options, next) => {
     }
 
     function drawListItemChildren(args: {
-      component: ComponentInstance
+      component: NUIComponent.Instance
       dataObject: any
       index: number
     }) {
@@ -200,7 +200,7 @@ componentResolver.setResolver((component, options, next) => {
 
         const newPageComponents = (pageObject?.components
           ? resolveComponents(pageObject.components)
-          : []) as ComponentInstance[]
+          : []) as NUIComponent.Instance[]
 
         // Add these components to the page component (the goal here is to provide a
         // "sandboxed" environment for further processing)

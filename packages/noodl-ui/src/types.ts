@@ -136,7 +136,7 @@ export namespace NUIComponent {
     remove?: string | string[] | Record<string, () => boolean>
   }
 
-  export type HookEvent = keyof Hook | 'path'
+  export type HookEvent = keyof Hook
 
   export interface Hook {
     [event.component.list.ADD_DATA_OBJECT](args: {

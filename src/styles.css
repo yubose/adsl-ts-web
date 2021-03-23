@@ -51,12 +51,12 @@ div.pluginBodyTail {
 
 .scroll-view {
   /* position: absolute !important; */
-  align-items: flex-start !important;
+  /* align-items: flex-start !important; */
   overflow-y: auto !important;
 }
 
 .text-board {
-  display: block !important;
+  /* display: block !important; */
   overflow-y: auto;
 }
 

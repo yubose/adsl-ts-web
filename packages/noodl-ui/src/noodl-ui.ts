@@ -310,7 +310,7 @@ const NOODLUI = (function _NOODLUI() {
       styles.position = 'absolute'
     }
 
-    if (Viewport.isNil(originalStyle.height)) styles.height = 'auto'
+    if (u.isNil(originalStyle.height)) styles.height = 'auto'
 
     return merge(
       {

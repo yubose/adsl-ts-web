@@ -349,7 +349,7 @@ class Component<C extends ComponentObject = ComponentObject>
 
   on<Evt extends T.NUIComponent.HookEvent>(
     eventName: Evt,
-    cb: (...args: Parameters<T.NUIComponent.Hook[Evt]>) => void,
+    cb: T.NUIComponent.Hook[Evt],
     id = '',
   ) {
     if (id) {
@@ -364,7 +364,7 @@ class Component<C extends ComponentObject = ComponentObject>
 
   off<Evt extends T.NUIComponent.HookEvent>(
     eventName: Evt,
-    cb: (...args: Parameters<T.NUIComponent.Hook[Evt]>) => void,
+    cb: T.NUIComponent.Hook[Evt],
   ) {
     if (!u.isArr(this.hooks[eventName])) return this
     if (this.hooks[eventName]?.includes(cb)) {

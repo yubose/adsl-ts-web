@@ -62,47 +62,52 @@ resolveStyles.setResolver(
       edit({ display: 'flex', flexDirection: 'column' }, { remove: 'axis' })
     }
 
-    // TEXTALIGN
-    if (textAlign) {
-      // "centerX", "centerY", "left", "center", "right"
-      if (u.isStr(textAlign)) {
-        // if (textAlign === 'left') edit({ textAlign: 'left' })
-        // else if (textAlign === 'center') edit({ textAlign: 'center' })
-        // else if (textAlign === 'right') edit({ textAlign: 'right' })
-        // else if (textAlign === 'centerX') edit({ textAlign: 'center' })
-        // else if (textAlign === 'centerY') {
-        //   edit(
-        //     { display: 'flex', alignItems: 'center' },
-        //     { remove: 'textAlign' },
-        //   )
-        // }
-      }
-      // { x, y }
-      else if (u.isObj(textAlign)) {
-        // if (textAlign.x !== undefined) {
-        //   edit({
-        //     textAlign: textAlign.x === 'centerX' ? 'center' : textAlign.x,
-        //   })
-        // }
-        // if (textAlign.y !== undefined) {
-        //   // The y value needs to be handled manually here since util.getTextAlign will
-        //   //    return { textAlign } which is meant for x
-        //   if (textAlign.y === 'center' || textAlign.y === 'centerY') {
-        //     edit({ display: 'flex', alignItems: 'center' })
-        //     if (textAlign.x === 'center') edit({ justifyContent: 'center' })
-        //   } else {
-        //     edit({ textAlign }, { remove: 'textAlign' })
-        //   }
-        // }
-      }
-    }
-
     // ALIGN
     if (align) {
       if (align === 'centerX') {
         edit({ display: 'flex', justifyContent: 'center' }, { remove: 'align' })
       } else if (align === 'centerY') {
         edit({ display: 'flex', alignItems: 'center' }, { remove: 'align' })
+      }
+    }
+
+    // TEXTALIGN
+    if (textAlign) {
+      // "centerX", "centerY", "left", "center", "right"
+      if (u.isStr(textAlign)) {
+        if (textAlign === 'left') edit({ textAlign: 'left' })
+        else if (textAlign === 'center') edit({ textAlign: 'center' })
+        else if (textAlign === 'right') edit({ textAlign: 'right' })
+        else if (textAlign === 'centerX') edit({ textAlign: 'center' })
+        else if (textAlign === 'centerY') {
+          edit(
+            { display: 'flex', alignItems: 'center' },
+            { remove: 'textAlign' },
+          )
+        }
+      }
+      // { x, y }
+      else if (u.isObj(textAlign)) {
+        if (textAlign.x != undefined) {
+          edit({
+            textAlign: textAlign.x === 'centerX' ? 'center' : textAlign.x,
+          })
+        }
+        if (textAlign.y != undefined) {
+          // The y value needs to be handled manually here since util.getTextAlign will
+          //    return { textAlign } which is meant for x
+          if (textAlign.y === 'center' || textAlign.y === 'centerY') {
+            edit(
+              { display: 'flex', alignItems: 'center' },
+              {
+                remove:
+                  !['center', 'centerX'].includes(textAlign.x || '') &&
+                  'textAlign',
+              },
+            )
+            textAlign.x === 'center' && edit({ justifyContent: 'center' })
+          }
+        }
       }
     }
 
@@ -226,14 +231,15 @@ resolveStyles.setResolver(
 
     {
       util.posKeys.forEach((key) => {
-        if (!u.isNil(originalStyles[key])) {
-          edit(
-            util.handlePosition(
-              originalStyles,
-              key as any,
-              viewport[util.xKeys.includes(key) ? 'width' : 'height'],
-            ),
+        if (!u.isNil(component.original?.style?.[key])) {
+          const result = util.handlePosition(
+            component.original.style,
+            key as any,
+            viewport[util.xKeys.includes(key) ? 'width' : 'height'],
           )
+          if (result) {
+            u.assign(component.style, result)
+          }
         }
       })
       // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
@@ -257,8 +263,6 @@ resolveStyles.setResolver(
     /* -------------------------------------------------------
     ---- COMPONENTS
   -------------------------------------------------------- */
-    // TODO - Deprecate type for just "type"
-    const type = component.type
 
     if (Identify.component.header(component)) {
       edit({ zIndex: 100 })
@@ -271,26 +275,17 @@ resolveStyles.setResolver(
       if (!('width' in originalStyles)) edit(undefined, { remove: 'width' })
       edit({ objectFit: 'contain' })
     } else if (Identify.component.listLike(component)) {
-      // edit({
-      //   overflowX: 'hidden',
-      //   overflowY: 'auto',
-      //   listStyle: 'none',
-      //   padding: '0px',
-      // })
-      component
-        .setStyle('overflowX', 'hidden')
-        .setStyle('listStyle', 'none')
-        .setStyle('padding', '0px')
-      if (originalStyles?.axis === 'horizontal') {
-        edit({ display: 'flex' })
-      } else {
-        edit({ display: 'block' })
-      }
+      edit({
+        display: originalStyles?.axis === 'horizontal' ? 'flex' : 'block',
+        listStyle: 'none',
+        // overflowX: 'hidden',
+        padding: '0px',
+      })
     } else if (Identify.component.listItem(component)) {
       // Flipping the position to relative to make the list items stack on top of eachother.
       //    Since the container is a type: list and already has their entire height defined in absolute values,
       //    this shouldn't have any UI issues because they'll stay contained within
-      edit({ listStyle: 'none', padding: 0, position: 'absolute' })
+      edit({ listStyle: 'none', padding: 0 })
     } else if (Identify.component.popUp(component)) {
       edit({ visibility: 'hidden' })
     } else if (Identify.component.scrollView(component)) {

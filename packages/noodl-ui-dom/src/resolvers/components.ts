@@ -23,14 +23,13 @@ const domComponentsResolver: Resolve.Config = {
         placeholder,
         plugin,
         poster,
-        src,
         text,
         videoType,
       } = original
 
       // BUTTON
       if (Identify.component.button(original)) {
-        if (props.src) {
+        if (props['data-src']) {
           node.style.overflow = 'hidden'
           node.style.display = 'flex'
           node.style.alignItems = 'center'
@@ -46,16 +45,17 @@ const domComponentsResolver: Resolve.Config = {
           node.style.width = '100%'
           node.style.height = '100%'
         }
-
-        component.on('path', (result: string) => {
+        component.on('path', (result) => {
           node && ((node as HTMLImageElement).src = result)
         })
       }
       // LABEL
-      else if (Identify.component.label(original)) {
+      else if (Identify.component.label(component)) {
         if (props['data-value']) node.innerHTML = String(props['data-value'])
         else if (text) node.innerHTML = String(text)
-        else if (placeholder) node.innerHTML = String(placeholder)
+        else if (props['data-placeholder']) {
+          node.innerHTML = String(props['data-placeholder'])
+        }
         onClick && (node.style.cursor = 'pointer')
       }
       // LIST

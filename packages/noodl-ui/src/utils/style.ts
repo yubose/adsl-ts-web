@@ -1,7 +1,7 @@
 import { hasDecimal, hasLetter } from './common'
 
 export const xKeys = ['width', 'left']
-export const yKeys = ['height', 'top']
+export const yKeys = ['height', 'top', 'marginTop']
 export const posKeys = [...xKeys, ...yKeys]
 
 export const textAlignStrings = [
