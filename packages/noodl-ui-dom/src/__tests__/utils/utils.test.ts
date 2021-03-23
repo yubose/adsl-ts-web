@@ -1,19 +1,18 @@
 import chalk from 'chalk'
 import { expect } from 'chai'
-import { ComponentInstance, createComponent, Page } from 'noodl-ui'
-import { noodlui } from '../../test-utils'
+import { NOODLUI as NUI, NUIComponent, createComponent, Page } from 'noodl-ui'
 import * as u from '../../utils'
 
-describe(chalk.keyword('orange')('isPageConsumer'), () => {
+xdescribe(chalk.keyword('orange')('isPageConsumer'), () => {
   let pageName = 'What'
   let page: Page
 
   beforeEach(() => {
-    noodlui.setPage('Hello')
-    noodlui.use({
+    NUI.getRootPage().page = pageName
+    NUI.use({
       getRoot: () => ({
         Hello: {},
-        What: {
+        [pageName]: {
           components: [
             {
               type: 'view',
@@ -23,15 +22,10 @@ describe(chalk.keyword('orange')('isPageConsumer'), () => {
         },
       }),
     })
-    page = noodlui.resolveComponents({
-      type: 'page',
-      style: {},
-      path: pageName,
-    }) as Page
   })
 
   it(`should return true if it is a descendant of a "page" component`, () => {
-    const popUp = page.child()?.child()?.child() as ComponentInstance
+    const popUp = page.child()?.child()?.child() as NUIComponent.Instance
     expect(u.isPageConsumer(popUp)).to.be.true
   })
 })

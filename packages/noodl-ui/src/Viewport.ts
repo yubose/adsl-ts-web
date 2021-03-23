@@ -1,6 +1,6 @@
 import { IViewport, ViewportListener } from './types'
 import { hasLetter, hasDecimal, isBrowser } from './utils/common'
-import { isObj, isStr, isNum, isNil, isUnd } from './utils/internal'
+import { isStr, isNum, isNil, isUnd } from './utils/internal'
 
 // const getLineSpacing = (v: number) => v * 1.5
 // const getLetterSpacing = (v: number) => v * 0.12

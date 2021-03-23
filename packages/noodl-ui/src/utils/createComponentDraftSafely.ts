@@ -1,37 +1,34 @@
 import isPlainObject from 'lodash/isPlainObject'
+import { ComponentType } from 'noodl-types'
 import { createDraft, isDraft } from 'immer'
 import { WritableDraft } from 'immer/dist/internal'
-import {
-  ComponentCreationType,
-  ComponentType,
-  ProxiedComponent,
-} from '../types'
+import { NUIComponent } from '../types'
 
 /**
  * A helper utility to safely create a draft component
- * @param { ComponentCreationType } component - Component type, component instance, or a plain component JS object
+ * @param { Component.CreateType } component - Component type, component instance, or a plain component JS object
  */
 function createComponentDraftSafely(
-  component: ComponentCreationType,
-): WritableDraft<ProxiedComponent> {
-  let value: WritableDraft<ProxiedComponent> | undefined
+  component: NUIComponent.CreateType,
+): WritableDraft<NUIComponent.Proxy> {
+  let value: WritableDraft<NUIComponent.Proxy> | undefined
   let type: ComponentType | undefined
   // Already a drafted component
   if (isDraft(component)) {
-    value = component as WritableDraft<ProxiedComponent>
+    value = component as WritableDraft<NUIComponent.Proxy>
     value['type'] = type
     type = value.type as ComponentType
   }
   // Component type
   else if (typeof component === 'string') {
     type = component as ComponentType
-    const proxiedComponent = { type: type, type } as ProxiedComponent
-    value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
+    const proxiedComponent = { type } as NUIComponent.Proxy
+    value = createDraft(proxiedComponent) as WritableDraft<NUIComponent.Proxy>
   }
   // Component instance
-  else if (typeof component.toJS === 'function') {
-    const proxiedComponent = component.toJS() as ProxiedComponent
-    value = createDraft(proxiedComponent) as WritableDraft<ProxiedComponent>
+  else if (typeof component.toJSON === 'function') {
+    const proxiedComponent = component.toJSON() as NUIComponent.Proxy
+    value = createDraft(proxiedComponent) as WritableDraft<NUIComponent.Proxy>
     type = proxiedComponent.type as ComponentType
   }
   // Proxied component
@@ -40,15 +37,15 @@ function createComponentDraftSafely(
     value = createDraft({
       ...component,
       type,
-    } as ProxiedComponent) as WritableDraft<ProxiedComponent>
+    } as NUIComponent.Proxy) as WritableDraft<NUIComponent.Proxy>
   }
   // Create an empty draft
   else {
-    value = createDraft({} as any) as WritableDraft<ProxiedComponent>
+    value = createDraft({} as any) as WritableDraft<NUIComponent.Proxy>
   }
   if (!value.type && type) value['type'] = type
 
-  return value as WritableDraft<ProxiedComponent>
+  return value as WritableDraft<NUIComponent.Proxy>
 }
 
 export default createComponentDraftSafely

@@ -1,21 +1,10 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
-import createComponent from './createComponent'
+import createComponent from '../utils/createComponent'
 import Component from '../components/Base'
-import List from '../components/List'
-import ListItem from '../components/ListItem'
-import createDeepChildren from '../utils/createDeepChildren'
-import * as n from './noodl'
+import * as n from '../utils/noodl'
 
 describe('noodl (utils)', () => {
-  describe(`createDeepChildren`, () => {
-    it(`should create/parse everything from a raw noodl object`, () => {
-      createDeepChildren('view', {
-        depth: 10,
-      })
-    })
-  })
-
   it('should call the callback everytime a nested child is encountered', () => {
     const spy = sinon.spy()
     const component = {

@@ -14,6 +14,7 @@ import set from 'lodash/set'
 import { ComponentObject, PageObject } from 'noodl-types'
 import {
   ComponentInstance,
+  event as nuiEvent,
   identify,
   NOODLUI as NUI,
   Page as NUIPage,
@@ -371,6 +372,7 @@ class App {
         }
       }.bind(this)
 
+      this.observeComponents()
       this.observeClient()
       this.observeInternal()
       this.observeViewport(this.#viewportUtils)
@@ -435,6 +437,21 @@ class App {
     } catch (error) {
       console.error(error)
     }
+  }
+
+  observeComponents() {
+    this.nui.use({
+      observe: [
+        {
+          cond: nuiEvent.component.page.PAGE_OBJECT,
+          fn: async (component, options) => {
+            const path = component.get('path') || ''
+            const pageObject = await this.#preparePage(path)
+            return pageObject
+          },
+        },
+      ],
+    })
   }
 
   observeClient() {
@@ -902,7 +919,7 @@ class App {
         component: any,
       ) {
         // Dominant/main participant/speaker
-        if (identify.stream.video.isMainStream(component.toJS())) {
+        if (identify.stream.video.isMainStream(component.blueprint)) {
           const mainStream = this.streams.getMainStream()
           if (!mainStream.isSameElement(node)) {
             mainStream.setElement(node, { uxTag: 'mainStream' })
@@ -911,7 +928,7 @@ class App {
           }
         }
         // Local participant
-        else if (identify.stream.video.isSelfStream(component.toJS())) {
+        else if (identify.stream.video.isSelfStream(component.blueprint)) {
           const selfStream = this.streams.getSelfStream()
           if (!selfStream.isSameElement(node)) {
             selfStream.setElement(node, { uxTag: 'selfStream' })
@@ -941,7 +958,7 @@ class App {
           }
         }
         // Individual remote participant video element container
-        else if (identify.stream.video.isSubStream(component.toJS())) {
+        else if (identify.stream.video.isSubStream(component.blueprint)) {
           const subStreams = this.streams.getSubStreamsContainer() as MeetingSubstreams
           if (subStreams) {
             if (!subStreams.elementExists(node)) {

@@ -70,6 +70,7 @@ export const event = {
       REDRAWED: 'redrawed',
     },
     page: {
+      PAGE_OBJECT: 'page-object',
       RETRIEVE_COMPONENTS: 'retrieve-components',
       COMPONENTS_RECEIVED: 'components-received',
       MISSING_COMPONENTS: 'missing-components',

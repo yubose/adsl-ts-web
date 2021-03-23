@@ -1,4 +1,4 @@
-import { ComponentInstance, Viewport } from 'noodl-ui'
+import { Component, Viewport } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
 import { openOutboundURL } from './utils'
 import { eventId } from './constants'
@@ -200,12 +200,12 @@ class Page {
 
       const components = this.render(
         pageSnapshot?.object?.components as ComponentObject[],
-      ) as ComponentInstance[]
+      ) as Component[]
 
       await this.emitAsync(
         eventId.page.on.ON_COMPONENTS_RENDERED,
         this.snapshot({ components }) as T.Page.Snapshot & {
-          components: ComponentInstance[]
+          components: Component[]
         },
       )
 

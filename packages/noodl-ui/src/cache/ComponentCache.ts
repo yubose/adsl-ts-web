@@ -1,12 +1,12 @@
 import isComponent from '../utils/isComponent'
-import { Cache, ComponentInstance } from '../types'
+import { Cache, NUIComponent } from '../types'
 import { isArr, isStr } from '../utils/internal'
 
 class ComponentCache {
-  #cache = new Map<string, ComponentInstance>()
+  #cache = new Map<string, NUIComponent.Instance>()
   #observers: Record<
-    Cache.ComponentHookEvent,
-    Cache.ComponentHook[Cache.ComponentHookEvent][]
+    Cache.ComponentCacheHookEvent,
+    Cache.ComponentCacheHook[Cache.ComponentCacheHookEvent][]
   > = { add: [], clear: [], remove: [] }
 
   static _inst: ComponentCache
@@ -20,27 +20,27 @@ class ComponentCache {
     return this.#cache.size
   }
 
-  on(e: 'add', fn: Cache.ComponentHook['add']): this
-  on(e: 'clear', fn: Cache.ComponentHook['clear']): this
-  on(e: 'remove', fn: Cache.ComponentHook['remove']): this
-  on<Evt extends Cache.ComponentHookEvent>(
+  on(e: 'add', fn: Cache.ComponentCacheHook['add']): this
+  on(e: 'clear', fn: Cache.ComponentCacheHook['clear']): this
+  on(e: 'remove', fn: Cache.ComponentCacheHook['remove']): this
+  on<Evt extends Cache.ComponentCacheHookEvent>(
     e: Evt,
-    fn: Cache.ComponentHook[Evt],
+    fn: Cache.ComponentCacheHook[Evt],
   ) {
     const obs = this.#observers[e]
     isArr(obs) && !obs.includes(fn) && obs.push(fn)
     return this
   }
 
-  emit<Evt extends Cache.ComponentHookEvent>(
+  emit<Evt extends Cache.ComponentCacheHookEvent>(
     evt: Evt,
-    ...args: Parameters<Cache.ComponentHook[Evt]>
+    ...args: Parameters<Cache.ComponentCacheHook[Evt]>
   ) {
     this.#observers[evt]?.forEach?.((fn: any) => fn(...args))
     return this
   }
 
-  add(component: ComponentInstance) {
+  add(component: NUIComponent.Instance) {
     this.#cache.set(component.id, component)
     this.emit('add', component)
     return this
@@ -56,25 +56,26 @@ class ComponentCache {
     return this
   }
 
-  get(component?: ComponentInstance | string): ComponentInstance
-  get(value?: never): Map<string, ComponentInstance>
-  get(component?: ComponentInstance | string) {
+  get(component?: NUIComponent.Instance | string): NUIComponent.Instance
+  get(value?: never): Map<string, NUIComponent.Instance>
+  get(component?: NUIComponent.Instance | string) {
     if (isComponent(component)) return this.#cache.get(component.id)
     if (isStr(component)) return this.#cache.get(component)
     return this.#cache
   }
 
-  has(component: ComponentInstance | string) {
+  has(component: NUIComponent.Instance | string) {
     return (isStr(component) ? component : component?.id || '') in this.#cache
   }
 
-  remove(component: ComponentInstance | string) {
+  remove(component: NUIComponent.Instance | string) {
     if (isStr(component)) {
-      component = this.#cache[component]
+      component = this.#cache.get(component) as NUIComponent.Instance
     }
     if (isComponent(component)) {
-      delete this.#cache[component.id]
-      this.emit('remove', component.toJSON())
+      const json = component.toJSON()
+      this.#cache.delete(component.id)
+      this.emit('remove', json)
     }
     return this
   }

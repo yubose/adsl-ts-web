@@ -2,7 +2,6 @@ import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
 import { NOODLDOMElement, RegisterOptions } from '../types'
 import { eventId } from '../constants'
-import { ComponentInstance } from 'noodl-ui'
 
 export default (function () {
   const timers = {} as {

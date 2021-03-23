@@ -125,7 +125,7 @@ export function createOnDataValueChangeFn(
           }
         }
       })
-      onChangeProp?.execute?.(event)
+      await onChangeProp?.execute?.(event)
     }
   }
 

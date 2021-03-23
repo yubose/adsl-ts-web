@@ -82,11 +82,17 @@ class Page
   createComponent: (...args: any[]) => any = (f) => f
   showDataKey = true
 
-  constructor(...args: any | ConstructorParameters<T.ComponentConstructor>) {
+  constructor(
+    ...args:
+      | any
+      | ConstructorParameters<
+          new (component: T.Component.CreateType) => T.ComponentInstance
+        >
+  ) {
     super(
-      ...((args.length
-        ? args
-        : [{ type: 'page' }]) as ConstructorParameters<T.ComponentConstructor>),
+      ...((args.length ? args : [{ type: 'page' }]) as ConstructorParameters<
+        new (component: T.Component.CreateType) => T.ComponentInstance
+      >),
     )
     this.setPage(this.get('path') as string)
     this.#state = _createState()
@@ -438,7 +444,7 @@ class Page
         }
 
         if (!('top' in originalStyle) && !('height' in originalStyle)) {
-          styles.position = 'relative'
+          styles.position = 'absolute'
           styles.height = 'auto'
         }
 
@@ -463,14 +469,6 @@ class Page
       originalStyle,
       styles,
     )
-  }
-
-  getContext() {
-    return {
-      actionsContext: this.actionsContext,
-      assetsUrl: this.getAssetsUrl(),
-      page: this.page,
-    } as T.ResolverContext
   }
 
   getAssetsUrl() {
@@ -546,14 +544,12 @@ class Page
     }
   }
 
-  resolveComponents(component: T.ComponentCreationType): T.ComponentInstance
-  resolveComponents(
-    components: T.ComponentCreationType[],
-  ): T.ComponentInstance[]
+  resolveComponents(component: T.Component.CreateType): T.ComponentInstance
+  resolveComponents(components: T.Component.CreateType[]): T.ComponentInstance[]
   resolveComponents(
     componentsParams:
-      | T.ComponentCreationType
-      | T.ComponentCreationType[]
+      | T.Component.CreateType
+      | T.Component.CreateType[]
       | T.PageObjectContainer['object'],
   ) {
     let components: any[] = []

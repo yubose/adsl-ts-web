@@ -1,9 +1,5 @@
 import { Identify } from 'noodl-types'
-import {
-  ComponentInstance,
-  event as noodluiEvent,
-  SelectOption,
-} from 'noodl-ui'
+import { NUIComponent, event as noodluiEvent, SelectOption } from 'noodl-ui'
 import { isBooleanTrue, isPluginComponent } from 'noodl-utils'
 import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
@@ -68,7 +64,6 @@ const domComponentsResolver: Resolve.Config = {
         // to control how list children are first rendered to the DOM
         const listObject = props.listObject || []
         const numDataObjects = listObject.length
-        console.info(component)
 
         // component.edit({ listObject: [] })
         // component.clear('children')
@@ -81,7 +76,7 @@ const domComponentsResolver: Resolve.Config = {
         }
 
         component.on(noodluiEvent.component.list.CREATE_LIST_ITEM, (result) => {
-          nui.cache.component.set(result.listItem)
+          nui.cache.component.add(result.listItem)
         })
 
         component.on(noodluiEvent.component.list.REMOVE_LIST_ITEM, (result) => {
@@ -98,7 +93,7 @@ const domComponentsResolver: Resolve.Config = {
         )
       }
       // PAGE
-      else if (component.type === 'page') {
+      else if (Identify.component.page(component)) {
         node.name = component.get('path') || ''
 
         component.on(
@@ -110,7 +105,7 @@ const domComponentsResolver: Resolve.Config = {
         component.on(
           noodluiEvent.component.page.RESOLVED_COMPONENTS,
           () => {
-            component.children.forEach((child: ComponentInstance) => {
+            component.children.forEach((child: NUIComponent.Instance) => {
               const childNode = draw(child, node.contentDocument?.body)
               // redraw(childNode, child, options)
               ;(window as any).child = childNode
@@ -130,7 +125,7 @@ const domComponentsResolver: Resolve.Config = {
         // !NOTE - We passed the node argument as a function that expects our
         // resolved node instead
         // This is specific for these plugin components but may be extended to be used more later
-        function getMetadata(component: ComponentInstance) {
+        function getMetadata(component: NUIComponent.Instance) {
           const src = String(props.src)
           const isLib = contentType === 'library'
           const metadata = {} as { type: string; tagName: string }

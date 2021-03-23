@@ -1,5 +1,5 @@
 import { ComponentObject, PageObject } from 'noodl-types'
-import { ComponentInstance, NOODLUI as NUI, Viewport } from 'noodl-ui'
+import { Component, NOODLUI as NUI, Viewport } from 'noodl-ui'
 import { NOODLDOMElement, Page, Resolve } from './types'
 import { array, entries, keys } from './utils/internal'
 import { eventId } from './constants'
@@ -61,7 +61,7 @@ export function useResolver<Evt extends Page.HookEvent = Page.HookEvent>({
   const nui = opts.noodlui || NUI
 
   if (opts.pageName) {
-    nui.setPage(opts.pageName)
+    nui.getRootPage().page = opts.pageName
     nui.use({
       getRoot: () => ({
         [opts.pageName as string]: {
@@ -74,28 +74,30 @@ export function useResolver<Evt extends Page.HookEvent = Page.HookEvent>({
   }
 
   ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, async () => ({
-    name: nui.page,
+    name: nui.getRootPage().page,
     object: {
-      ...nui.root[nui.page],
+      ...nui.getRoot()[nui.getRootPage().page],
       components: opts.component
         ? [opts.component]
-        : nui.root[nui.page]?.components || [],
+        : nui.getRoot()[nui.getRootPage().page]?.components || [],
     },
   }))
 
   return {
     assetsUrl,
     page: ndom.page,
-    async requestPageChange(name: string = nui.page) {
+    async requestPageChange(
+      name: string = nui.getRoot()[nui.getRootPage().page],
+    ) {
       const components = await ndom.page.requestPageChange(name)
-      return components.snapshot.components as ComponentInstance[]
+      return components.snapshot.components as Component[]
     },
   }
 }
 
 export function toDOM<
   N extends NOODLDOMElement = NOODLDOMElement,
-  C extends ComponentInstance = ComponentInstance
+  C extends Component = Component
 >(props: any) {
   let node: N | null = null
   let component: C | undefined

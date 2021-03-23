@@ -75,10 +75,6 @@ dataAttribsResolver.setResolver((component, options, next) => {
       component.edit({ 'data-value': result })
     }
 
-    const textFunc = original['text=func']
-
-    if (u.isFnc(textFunc)) component.edit({ 'data-value': result })
-
     // TODO - Deprecate this logic below for an easier implementation
     let fieldParts = dataKey?.split?.('.')
     let field = fieldParts?.shift?.() || ''
@@ -95,7 +91,13 @@ dataAttribsResolver.setResolver((component, options, next) => {
     }
 
     component.edit(
-      { 'data-key': dataKey, 'data-value': result || '', 'data-name': field },
+      {
+        'data-key': dataKey,
+        'data-name': field,
+        'data-value': original['text=func']
+          ? original['text=func'](result)
+          : result || '',
+      },
       { remove: 'dataKey' },
     )
   }

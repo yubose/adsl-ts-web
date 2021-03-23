@@ -1,4 +1,4 @@
-import { ComponentInstance, NOODLUI as NUI } from 'noodl-ui'
+import { Component, NOODLUI as NUI } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLUIDOMInternal from './Internal'
 import { entries, isArr, isFnc, isStr } from './utils/internal'
@@ -36,7 +36,7 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
         }
       },
       options(...args: T.Resolve.BaseArgs) {
-        function createStyleEditor(component: ComponentInstance) {
+        function createStyleEditor(component: Component) {
           function editComponentStyles(
             styles: Record<string, any> | undefined,
             { remove }: { remove?: string | string[] | false } = {},

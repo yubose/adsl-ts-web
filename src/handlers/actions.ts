@@ -13,16 +13,15 @@ import {
 } from 'noodl-ui-dom'
 import { Action } from 'noodl-action-chain'
 import {
-  ActionConsumerCallbackOptions,
+  ConsumerOptions,
   EmitAction,
   findListDataObject,
   findParent,
   getDataValues,
-  isReference,
   NOODLUI as NUI,
+  NUIComponent,
   Page as NUIPage,
   parseReference,
-  ComponentInstance,
 } from 'noodl-ui'
 import {
   createEmitDataKey,
@@ -33,7 +32,7 @@ import {
   parse,
 } from 'noodl-utils'
 import Logger from 'logsnap'
-import { EmitObject, IfObject } from 'noodl-types'
+import { EmitObject, IfObject, Identify } from 'noodl-types'
 import { pageEvent } from '../constants'
 import { isStable, resolvePageUrl } from '../utils/common'
 import { onSelectFile, scrollToElem, toast } from '../utils/dom'
@@ -47,7 +46,7 @@ const createActions = function createActions(app: App) {
     actionType: 'anonymous',
     fn: async function onAnonymousAction(
       action: Action<'anonymous'>,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
       const { fn } = action.original || {}
       if (options?.component) {
@@ -65,7 +64,7 @@ const createActions = function createActions(app: App) {
     actionType: 'emit',
     fn: async function onDataKeyEmit(
       action: EmitAction,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
       const emitParams = {
         actions: action.actions,
@@ -97,7 +96,7 @@ const createActions = function createActions(app: App) {
     actionType: 'emit',
     fn: async function onDataValueEmit(
       action: EmitAction,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
       const emitParams = {
         actions: action.actions,
@@ -132,7 +131,7 @@ const createActions = function createActions(app: App) {
     actionType: 'emit',
     fn: async function onBlurEmit(
       action: EmitAction,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
       const emitParams = {
         actions: action.actions,
@@ -167,11 +166,11 @@ const createActions = function createActions(app: App) {
     actionType: 'emit',
     fn: async function onClickEmit(
       action: EmitAction,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
       const emitParams = {
         actions: action.actions,
-        pageName: options?.page,
+        pageName: options.page?.page,
       } as any
 
       if (action.original.emit.dataKey) {
@@ -202,7 +201,7 @@ const createActions = function createActions(app: App) {
     actionType: 'emit',
     fn: async function onChangeEmit(
       action: EmitAction,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
       const emitParams = {
         actions: action.actions,
@@ -237,9 +236,9 @@ const createActions = function createActions(app: App) {
     actionType: 'emit',
     fn: async function onPathEmit(
       action: EmitAction,
-      options: ActionConsumerCallbackOptions & { path: EmitObject },
+      options: ConsumerOptions,
     ) {
-      const { component, getRoot, getPageObject, path } = options
+      const { component, getRoot, getPageObject } = options
       const page = app.mainPage.page || ''
       const dataObject = findListDataObject(component as ComponentInstance)
       const iteratorVar =
@@ -250,7 +249,7 @@ const createActions = function createActions(app: App) {
         )?.get?.('iteratorVar') ||
         ''
       const emitParams = {
-        actions: path.emit.actions,
+        actions: action.original.emit.actions,
         pageName: page,
       } as any
 
@@ -279,7 +278,7 @@ const createActions = function createActions(app: App) {
     actionType: 'emit',
     fn: async function onPlaceholderEmit(
       action: EmitAction,
-      options: ActionConsumerCallbackOptions & { path: EmitObject },
+      options: ConsumerOptions & { path: EmitObject },
     ) {
       const { component, getRoot, getPageObject, placeholder } = options
       const page = app.mainPage.page
@@ -320,7 +319,7 @@ const createActions = function createActions(app: App) {
     actionType: 'emit',
     fn: async function onRegisterEmit(
       action: EmitAction,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
       const page = app.mainPage.page
 
@@ -350,27 +349,23 @@ const createActions = function createActions(app: App) {
 
   app.ndom.register({
     actionType: 'evalObject',
-    fn: async function onEvalObject(
-      action: Action,
-      options: ActionConsumerCallbackOptions,
-    ) {
+    fn: async function onEvalObject(action: Action, options: ConsumerOptions) {
       log.func('evalObject')
       try {
         if (typeof action?.original?.object === 'function') {
           const result = await action.original?.object()
           if (result) {
             const { ref } = options
-            const newAction = ref?.inject.call(ref, result)
-            if (isPlainObject(result) && 'wait' in result) {
-              // await ref.abort()
-              throw new Error('aborted')
-            } else {
+            if (isPlainObject(result)) {
+              const newAction = ref?.inject.call(ref, result)
               log.grey(`An evalObject action is injecting a new action`, {
-                action: newAction,
+                newAction,
                 queue: ref?.queue,
               })
+              if ('wait' in result) {
+                throw new Error('aborted')
+              }
             }
-            // return newAction.execute(options)
           }
         } else if ('if' in (action.original.object || {})) {
           const ifObj = action.original.object as IfObject
@@ -439,10 +434,7 @@ const createActions = function createActions(app: App) {
 
   app.ndom.register({
     actionType: 'goto',
-    fn: async function onGoto(
-      action: Action,
-      options: ActionConsumerCallbackOptions,
-    ) {
+    fn: async function onGoto(action: Action, options: ConsumerOptions) {
       log.func('goto')
       log.grey(action.original?.goto || action?.goto || 'goto', {
         action,
@@ -600,10 +592,7 @@ const createActions = function createActions(app: App) {
 
   app.ndom.register({
     actionType: 'pageJump',
-    fn: async function onPageJump(
-      action: Action,
-      options: ActionConsumerCallbackOptions,
-    ) {
+    fn: async function onPageJump(action: Action, options: ConsumerOptions) {
       log.func('pageJump')
       log.grey('', { action, ...options })
       stable &&
@@ -616,10 +605,7 @@ const createActions = function createActions(app: App) {
 
   app.ndom.register({
     actionType: 'popUp',
-    fn: async function onPopUp(
-      action: Action,
-      options: ActionConsumerCallbackOptions,
-    ) {
+    fn: async function onPopUp(action: Action, options: ConsumerOptions) {
       log.func(action.actionType)
       log.grey('', { action, ...options })
       const { ref } = options
@@ -717,7 +703,7 @@ const createActions = function createActions(app: App) {
     actionType: 'popUpDismiss',
     fn: async function onPopUpDismiss(
       action: Action,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
       await Promise.all(
         app.ndom.actions.popUp.map((obj) => obj.fn(action, options)),
@@ -727,10 +713,7 @@ const createActions = function createActions(app: App) {
 
   app.ndom.register({
     actionType: 'refresh',
-    fn: function onRefresh(
-      action: Action,
-      options: ActionConsumerCallbackOptions,
-    ) {
+    fn: function onRefresh(action: Action, options: ConsumerOptions) {
       log.func('refresh')
       log.grey(action.actionType, { action, ...options })
       window.location.reload()
@@ -739,14 +722,11 @@ const createActions = function createActions(app: App) {
 
   app.ndom.register({
     actionType: 'saveObject',
-    fn: async function onSaveObject(
-      action: Action,
-      options: ActionConsumerCallbackOptions,
-    ) {
+    fn: async function onSaveObject(action: Action, options: ConsumerOptions) {
       log.func('saveObject')
       log.grey('', { action, ...options })
       const { default: noodl } = await import('../app/noodl')
-      const { abort, getRoot } = options
+      const { abort, getRoot, ref } = options
 
       try {
         const { object } = action.original
@@ -775,7 +755,7 @@ const createActions = function createActions(app: App) {
                 ) {
                   let nameField
 
-                  if (isReference(nameFieldPath)) {
+                  if (Identify.reference(nameFieldPath)) {
                     stable &&
                       log.cyan(`Found reference: ${nameFieldPath}`, action)
                     nameField = parseReference(nameFieldPath, {
@@ -814,17 +794,15 @@ const createActions = function createActions(app: App) {
       } catch (error) {
         console.error(error)
         toast(error.message)
-        return abort?.()
+        abort?.()
+        ref?.abort?.()
       }
     },
   })
 
   app.ndom.register({
     actionType: 'toast',
-    fn: async function onToast(
-      action: Action,
-      options: ActionConsumerCallbackOptions,
-    ) {
+    fn: async function onToast(action: Action, options: ConsumerOptions) {
       try {
         log.func('toast')
         log.gold('', { action, options })
@@ -839,11 +817,11 @@ const createActions = function createActions(app: App) {
     actionType: 'updateObject',
     fn: async function onUpdateObject(
       action: Action,
-      options: ActionConsumerCallbackOptions,
+      options: ConsumerOptions,
     ) {
-      const { abort, component } = options
+      const { component, ref } = options
       log.func('updateObject')
-      log.grey('', { action, ...options })
+      log.grey('', { abort, action, ...options })
 
       const callObjectOptions = { action, ...options } as any
 
@@ -856,6 +834,7 @@ const createActions = function createActions(app: App) {
           } else if (status === 'canceled') {
             log.red('File was not selected and the operation was aborted')
             await abort?.('File input window was closed')
+            await ref?.abort?.('File input window was closed')
           }
         }
 
@@ -874,7 +853,7 @@ const createActions = function createActions(app: App) {
 
         async function callObject(
           object: any,
-          opts: ActionConsumerCallbackOptions & {
+          opts: ConsumerOptions & {
             action: any
             file?: File
           },

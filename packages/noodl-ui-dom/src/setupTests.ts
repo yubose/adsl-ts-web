@@ -1,27 +1,26 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { Resolver, NOODLUI as NUI, publish, resolveStyles } from 'noodl-ui'
+import { NOODLUI as NUI, publish } from 'noodl-ui'
 import { eventId } from './constants'
-import { assetsUrl, noodlui, ndom, viewport } from './test-utils'
+import { assetsUrl, ndom, viewport } from './test-utils'
 
 chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 
 const page = 'GeneralInfo'
-const rooft = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
+const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 
 before(() => {
   console.clear()
-  noodlui.init({ _log: false })
   ndom.page.on(eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, (node, component) => {
-    noodlui.cache.component.remove(component)
+    NUI.cache.component.remove(component)
     publish(component, (c) => {
       NUI.cache.component.remove(c)
     })
   })
-  ndom.use(noodlui)
+  ndom.use(NUI)
 
   viewport.width = 375
   viewport.height = 667
@@ -34,19 +33,18 @@ after(() => {
 })
 
 beforeEach(() => {
-  noodlui
-    .setPage(page)
-    .use(viewport)
-    .use({
-      getAssetsUrl: () => assetsUrl,
-      getBaseUrl: () => 'https://google.com/',
-      getRoot: () => root,
-    })
+  NUI.getRootPage().page = page
+  NUI.use({
+    getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => 'https://google.com/',
+    getRoot: () => root,
+    getPages: () => [page],
+    getPreloadPages: () => [],
+  })
 })
 
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
-  noodlui.reset()
   ndom.reset()
 })

@@ -1,20 +1,9 @@
-import isPlainObject from 'lodash/isPlainObject'
-import find from 'lodash/find'
-import Logger from 'logsnap'
 import { WritableDraft } from 'immer/dist/internal'
-import { isDraft, original, current } from 'immer'
+import { isDraft, original } from 'immer'
 import { ComponentObject, StyleObject, userEvent } from 'noodl-types'
 import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import * as u from '../utils/internal'
 import * as T from '../types'
-
-const log = Logger.create('Base')
-
-interface EditResolutionOptions {
-  remove?: string | string[] | Record<string, () => boolean>
-}
-
-// Current component events: 'path' attached by createSrcf
 
 class Component<C extends ComponentObject = ComponentObject>
   implements T.IComponent<C> {
@@ -22,17 +11,20 @@ class Component<C extends ComponentObject = ComponentObject>
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
   #hooks: Partial<
-    Record<T.Component.HookEvent, T.Component.Hook[T.Component.HookEvent][]>
+    Record<
+      T.NUIComponent.HookEvent,
+      T.NUIComponent.Hook[T.NUIComponent.HookEvent][]
+    >
   > = {}
   #hookCbIds: string[] = []
   #component: WritableDraft<ComponentObject> | ComponentObject
-  #children: T.ComponentInstance[] = []
+  #children: T.NUIComponent.Instance[] = []
   #id = ''
-  #parent: T.ComponentInstance | null = null
+  #parent: T.NUIComponent.Instance | null = null
   #type: C['type']
   original: ComponentObject
 
-  static isComponent(component: any): component is T.ComponentInstance {
+  static isComponent(component: any): component is T.NUIComponent.Instance {
     return (
       !!component &&
       !u.isStr(component) &&
@@ -67,7 +59,6 @@ class Component<C extends ComponentObject = ComponentObject>
     this.#blueprint = Component.isComponent(component)
       ? component.blueprint
       : component
-    this.original = this.#blueprint
     this.#cache = {}
     this.#component = createComponentDraftSafely(
       component,
@@ -75,6 +66,7 @@ class Component<C extends ComponentObject = ComponentObject>
 
     this.#id = opts?.id || this.#component.id || u.getRandomKey()
     this.#type = this.#blueprint.type
+    this.original = this.#blueprint
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
     userEvent.forEach((eventType) => {
@@ -97,6 +89,11 @@ class Component<C extends ComponentObject = ComponentObject>
     return this.#blueprint
   }
 
+  get children() {
+    if (!this.#children) this.#children = []
+    return this.#children
+  }
+
   get contentType() {
     return this.original?.contentType
   }
@@ -107,6 +104,10 @@ class Component<C extends ComponentObject = ComponentObject>
 
   get id() {
     return this.#id
+  }
+
+  get length() {
+    return this.children.length || 0
   }
 
   get parent() {
@@ -126,7 +127,7 @@ class Component<C extends ComponentObject = ComponentObject>
   }
 
   get type() {
-    return this.original.type
+    return this.#type
   }
 
   /**
@@ -139,7 +140,7 @@ class Component<C extends ComponentObject = ComponentObject>
     key: K | K[],
     styleKey?: keyof StyleObject,
   ): ComponentObject[K] | Record<K, ComponentObject[K]> | undefined {
-    if (typeof key === 'string') {
+    if (u.isStr(key)) {
       // Returns the original type
       // TODO - Deprecate component.type since component.type is sufficient enough now
       if (key === 'type') return this.type
@@ -172,7 +173,7 @@ class Component<C extends ComponentObject = ComponentObject>
           : this.original.style
       }
       // Retrieve a property of the style object
-      else if (typeof styleKey === 'string') {
+      else if (u.isStr(styleKey)) {
         value = this.original.style?.[styleKey]
       }
     } else {
@@ -209,36 +210,6 @@ class Component<C extends ComponentObject = ComponentObject>
   }
 
   /**
-   * Merges values into a component's property using key or by using key as the incoming
-   * values to merge directly into the component props if it is an object,.
-   * You can also choose to merge into the style object if key === "style" and using
-   * value as the styles
-   * @param { string } key - Component property or "style" if using value to update the component's style object
-   * @param { object? } value - Object to merge into the component props (or into the component's style object if key === "style")
-   */
-  assign(key: string | { [key: string]: any }, value?: { [key: string]: any }) {
-    if (typeof key === 'string') {
-      if (key === 'style') {
-        if (typeof this.#component.style !== 'object') {
-          log.func('assign')
-          log.red(
-            `Cannot assign style object properties to a type "${typeof this
-              .#component.style}"`,
-            { key, value, style: this.#component.style },
-          )
-        } else {
-          u.assign(this.#component.style, value)
-        }
-      } else {
-        u.assign(this.#component[key], value)
-      }
-    } else if (isPlainObject(key)) {
-      u.assign(this.#component, key)
-    }
-    return this
-  }
-
-  /**
    * Returns true if the key exists on the blueprint
    * NOTE: It is very important to remember that this method only cares about
    * the blueprint!
@@ -254,7 +225,7 @@ class Component<C extends ComponentObject = ComponentObject>
    * @param { string } key - Component property, or "style" if removing a style property using styleKey
    */
   remove(key: string, styleKey?: keyof StyleObject) {
-    if (key === 'style' && typeof styleKey === 'string') {
+    if (key === 'style' && u.isStr(styleKey)) {
       if (this.#component.style) {
         delete this.#component.style[styleKey]
       }
@@ -267,14 +238,6 @@ class Component<C extends ComponentObject = ComponentObject>
   /* -------------------------------------------------------
   ---- Syntax sugar for working with styles
 -------------------------------------------------------- */
-
-  /**
-   * Merges style props to the component's styles. Any styles with clashing names will be overridden
-   * @param { object } styles
-   */
-  assignStyles(styles: Partial<StyleObject>) {
-    return this.assign('style', styles)
-  }
 
   /**
    * Retrieves a value from the style object using styleKey
@@ -293,11 +256,11 @@ class Component<C extends ComponentObject = ComponentObject>
   setStyle<K extends keyof StyleObject>(styles: K): this
   setStyle<K extends keyof StyleObject>(styleKey: string | K, value?: any) {
     if (!this.#component.style) this.#component.style = {}
-    if (typeof styleKey === 'string') {
+    if (u.isStr(styleKey)) {
       if (this.#component.style) {
         this.#component.style[styleKey] = value
       }
-    } else if (typeof styleKey === 'string') {
+    } else if (u.isStr(styleKey)) {
       const style = this.#component.style as StyleObject
       u.entries(styleKey).forEach(([key, value]) => (style[key] = value))
     }
@@ -325,21 +288,6 @@ class Component<C extends ComponentObject = ComponentObject>
     }
   }
 
-  /** Returns the JS representation of the currently resolved component */
-  toJS() {
-    const obj = isDraft(this.#component)
-      ? current(this.#component)
-      : this.#component
-    if (obj?.children) {
-      return {
-        ...obj,
-        id: this.id,
-        children: this.children.map((child) => child?.toJS?.()),
-      }
-    }
-    return obj
-  }
-
   /**
    * Returns a stringified JSON object of the current component
    * @param { number | undefined } spaces - Spaces to indent in the JSON string
@@ -348,7 +296,7 @@ class Component<C extends ComponentObject = ComponentObject>
     return JSON.stringify(this.toJSON(), null, spaces)
   }
 
-  setParent(parent: T.ComponentInstance | null) {
+  setParent(parent: T.NUIComponent.Instance | null) {
     this.#parent = parent
     return this
   }
@@ -360,82 +308,48 @@ class Component<C extends ComponentObject = ComponentObject>
    * @param { number } index
    */
   child(index?: number) {
-    if (!arguments.length) return this.#children?.[0]
-    return this.#children?.[index as number]
+    if (!u.isNum(index)) return this.children[0]
+    return this.children[index]
   }
 
   /**
    * Creates and appends the new child instance to the childrens list
    * @param { IComponentType } props
    */
-  createChild<C extends T.ComponentInstance>(child: C): C {
+  createChild<C extends T.NUIComponent.Instance>(child: C): C {
     child?.setParent?.(this)
     this.#children.push(child)
     return child
   }
 
   /**
-   * Returns true if the child exists in the tree
-   * @param { T.ComponentInstance | string } child - Child component or id
-   */
-  hasChild(child: string): boolean
-  hasChild(child: T.ComponentInstance): boolean
-  hasChild(child: T.ComponentInstance | string): boolean {
-    if (typeof child === 'string') {
-      return !!find(this.#children, (c) => c?.id === child)
-    }
-    if (Component.isComponent(child)) {
-      return this.#children.includes(child)
-    }
-    return false
-  }
-
-  /**
    * Removes a child from its children. You can pass in either the instance
    * directly, the index leading to the child, the component's id, or leave the args empty to
    * remove the first child by default
-   * @param { T.ComponentInstance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
+   * @param { T.NUIComponent.Instance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
    */
-  removeChild(index: number): T.ComponentInstance | undefined
-  removeChild(id: string): T.ComponentInstance | undefined
-  removeChild(child: T.ComponentInstance): T.ComponentInstance | undefined
-  removeChild(): T.ComponentInstance | undefined
-  removeChild(child?: T.ComponentInstance | number | string) {
-    let removedChild: T.ComponentInstance | undefined
-    if (!arguments.length) {
-      removedChild = this.#children.shift()
-    } else if (typeof child === 'number' && this.#children[child]) {
-      removedChild = this.#children.splice(child, 1)[0]
-    } else if (typeof child === 'string') {
-      removedChild = child
-        ? find(this.#children, (c) => c.id === child)
-        : undefined
-    } else if (this.hasChild(child as T.ComponentInstance)) {
-      if (this.#children.includes(child as T.ComponentInstance)) {
-        this.#children = this.#children.filter((c) => {
-          if (c === child) {
-            removedChild = child
-            return false
-          }
-          return true
-        })
-      }
+  removeChild(index: number): T.NUIComponent.Instance | undefined
+  removeChild(id: string): T.NUIComponent.Instance | undefined
+  removeChild(
+    child: T.NUIComponent.Instance,
+  ): T.NUIComponent.Instance | undefined
+  removeChild(): T.NUIComponent.Instance | undefined
+  removeChild(child?: T.NUIComponent.Instance | number | string) {
+    if (child == undefined) {
+      return this.children.shift()
+    } else if (u.isNum(child)) {
+      return this.children.splice(child, 1)[0]
+    } else if (u.isStr(child)) {
+      const index = this.children.findIndex((c) => c.id === child)
+      if (index > -1) return this.children.splice(index, 1)[0]
+    } else if (this.children.includes(child)) {
+      return this.children.splice(this.children.indexOf(child), 1)[0]
     }
-    return removedChild
   }
 
-  get children() {
-    if (!this.#children) this.#children = []
-    return this.#children
-  }
-
-  get length() {
-    return this.#children?.length || 0
-  }
-
-  on<Evt extends T.Component.HookEvent>(
+  on<Evt extends T.NUIComponent.HookEvent>(
     eventName: Evt,
-    cb: (...args: Parameters<T.Component.Hook[Evt]>) => void,
+    cb: (...args: Parameters<T.NUIComponent.Hook[Evt]>) => void,
     id = '',
   ) {
     if (id) {
@@ -448,9 +362,9 @@ class Component<C extends ComponentObject = ComponentObject>
     return this
   }
 
-  off<Evt extends T.Component.HookEvent>(
+  off<Evt extends T.NUIComponent.HookEvent>(
     eventName: Evt,
-    cb: (...args: Parameters<T.Component.Hook[Evt]>) => void,
+    cb: (...args: Parameters<T.NUIComponent.Hook[Evt]>) => void,
   ) {
     if (!u.isArr(this.hooks[eventName])) return this
     if (this.hooks[eventName]?.includes(cb)) {
@@ -462,9 +376,9 @@ class Component<C extends ComponentObject = ComponentObject>
     return this
   }
 
-  emit<Evt extends T.Component.HookEvent>(
+  emit<Evt extends T.NUIComponent.HookEvent>(
     eventName: Evt,
-    ...args: Parameters<T.Component.Hook[Evt]>
+    ...args: Parameters<T.NUIComponent.Hook[Evt]>
   ) {
     // log.func('emit')
     // log.grey(`Component emit: ${eventName}`, {
@@ -492,15 +406,23 @@ class Component<C extends ComponentObject = ComponentObject>
     return this
   }
 
+  /**
+   * Explicitly setting style to null resets it back to an empty object
+   * @param { string | function | object } props
+   * @param { any | undefined } value
+   */
   edit(fn: (props: ComponentObject) => ComponentObject | undefined | void): void
-  edit(prop: Record<string, any>, opts?: EditResolutionOptions): void
+  edit(
+    prop: Record<string, any>,
+    opts?: T.NUIComponent.EditResolutionOptions,
+  ): void
   edit(prop: string, value: any): void
   edit(
     fn:
       | Record<string, any>
       | string
       | ((props: ComponentObject) => ComponentObject | undefined | void),
-    value?: EditResolutionOptions,
+    value?: T.NUIComponent.EditResolutionOptions,
   ) {
     if (u.isFnc(fn)) {
       const props = fn(this.#component)
@@ -533,7 +455,8 @@ class Component<C extends ComponentObject = ComponentObject>
 
       u.entries(fn).forEach(([k, v]) => {
         if (k === 'style') {
-          if (u.isObj(v)) u.assign(this.style, v)
+          if (v === null) this.style = {}
+          else if (u.isObj(v)) u.assign(this.style, v)
           else this.style = v
           remove?.('style')
         } else {

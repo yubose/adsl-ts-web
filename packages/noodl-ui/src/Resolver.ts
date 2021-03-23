@@ -1,10 +1,4 @@
-import NOODLUI from './noodl-ui'
-import {
-  ComponentInstance,
-  ComponentResolverArgs,
-  ConsumerOptions,
-  ResolverFn,
-} from './types'
+import { Component, ConsumerOptions, ResolverFn } from './types'
 import { isObj } from './utils/internal'
 
 export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
@@ -35,7 +29,7 @@ class Resolver<Func extends (...args: any[]) => any, Inst = any>
 }
 
 class ComponentResolver<
-  Func extends (...args: ComponentResolverArgs) => void
+  Func extends (...args: Component.ResolverArgs) => void
 > extends Resolver<Func, ComponentResolver<Func>> {
   #isInternal: boolean = false
   #name: string
@@ -68,7 +62,7 @@ class ComponentResolver<
     return this
   }
 
-  resolve(component: ComponentInstance, options: ConsumerOptions) {
+  resolve(component: Component.Instance, options: ConsumerOptions) {
     const resolveNext = function _resolveNext(
       this: ComponentResolver<Func>,
       opts?: Record<string, any>,
@@ -109,10 +103,10 @@ export class InternalComponentResolver {
     return this
   }
 
-  resolve<C extends ComponentInstance = ComponentInstance>(
+  resolve<C extends Component.Instance = Component.Instance>(
     component: C,
     options: ConsumerOptions,
-    ref: NOODLUI,
+    ref: any,
   ) {
     this.#resolver?.(component, options, ref)
     return this

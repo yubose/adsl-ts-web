@@ -1,6 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { ComponentObject, ComponentType } from 'noodl-types'
-import { ComponentInstance } from '../types'
 import { forEachEntries } from './common'
 import isComponent from './isComponent'
 import Component from '../components/Base'
@@ -11,34 +10,34 @@ export interface PropsOptionFunc<T> {
 export type PropsOptionObj = ComponentObject | { id?: string }
 
 interface Options {
-  props?: PropsOptionObj | PropsOptionFunc<ComponentInstance>
+  props?: PropsOptionObj | PropsOptionFunc<Component>
 }
 
 /**
  * A helper/utility to create Component instances corresponding to their NOODL
  * component type
- * @param { string | object | ComponentInstance } value - NOODL component type, a component object, or a Component instance
+ * @param { string | object | Component } value - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
 function createComponent<K extends ComponentType = ComponentType>(
   type: K,
   options?: Options,
-): ComponentInstance
+): Component
 
 function createComponent<K extends ComponentType = ComponentType>(
   value: PropsOptionObj,
   options?: Options,
-): ComponentInstance
+): Component
 
 function createComponent<K extends ComponentType = ComponentType>(
-  component: ComponentInstance,
+  component: Component,
   options?: Options,
-): ComponentInstance
+): Component
 
 function createComponent<K extends ComponentType = ComponentType>(
   value: K | PropsOptionObj | Component,
   options?: Options,
-): ComponentInstance {
+): Component {
   let childComponent: any
   let id: string = ''
   const props = toProps(value, options?.props)

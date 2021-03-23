@@ -1,5 +1,5 @@
 import { actionTypes } from 'noodl-types'
-import { NOODLUIActionType, PlainObject } from '../types'
+import { NOODLUIActionType } from '../types'
 
 export const isArr = (v: any): v is any[] => Array.isArray(v)
 export const isBool = (v: any): v is boolean => typeof v === 'boolean'
@@ -10,12 +10,12 @@ export const isStr = (v: any): v is string => typeof v === 'string'
 export const isNull = (v: any): v is null => v === null
 export const isUnd = (v: any): v is undefined => v === undefined
 export const isNil = (v: any): v is null | undefined => isNull(v) || isUnd(v)
-export const isObj = <V extends PlainObject>(v: any): v is V =>
+export const isObj = <V extends Record<string, any>>(v: any): v is V =>
   !!v && !isArr(v) && typeof v === 'object'
 
 export const assign = (
-  v: PlainObject = {},
-  ...rest: (PlainObject | undefined)[]
+  v: Record<string, any> = {},
+  ...rest: (Record<string, any> | undefined)[]
 ) => Object.assign(v, ...rest)
 export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
 export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])

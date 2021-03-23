@@ -1,9 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
 import spread from 'lodash/spread'
-import { AnyFn } from '../types'
-
-export const callAll = (...fns: AnyFn[]) => (arg: any) =>
-  fns.forEach((fn) => fn?.(arg))
 
 /**
  * Runs forEach on each key/value pair of the value, passing in the key as the first
@@ -52,8 +48,7 @@ export function formatColor(value: string) {
   return value || ''
 }
 
-export function isPromise(value: unknown): value is Promise<any> {
-  window.isPromise = isPromise
+export function isPromise(value: any): value is Promise<any> {
   return value && typeof value === 'object' && 'then' in value
 }
 

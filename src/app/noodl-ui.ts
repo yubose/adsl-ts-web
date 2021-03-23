@@ -35,7 +35,6 @@ export function getWindowHelpers() {
     },
     pick(lib, [
       'findChild',
-      'findList',
       'findListDataObject',
       'findParent',
       'getDataValues',
@@ -43,8 +42,6 @@ export function getWindowHelpers() {
       'isComponent',
       'isListConsumer',
       'isListKey',
-      'isPromise',
-      'isReference',
       'publish',
     ]),
   )

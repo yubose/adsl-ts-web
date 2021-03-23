@@ -160,7 +160,7 @@ describe('redraw', () => {
     expect(list.parent()).to.be.null
   })
 
-  it("should remove the component from the parent's children", () => {
+  xit("should remove the component from the parent's children", () => {
     const view = createComponent('view')
     const list = getListGender()
     view.createChild(list)
@@ -209,7 +209,7 @@ describe('redraw', () => {
     expect(newListItem?.parent()).to.eq(list)
   })
 
-  it('should set the new component as a child on the original parent', () => {
+  xit('should set the new component as a child on the original parent', () => {
     const view = createComponent('view')
     const list = getListGender()
     view.createChild(list)

@@ -50,7 +50,7 @@ div.pluginBodyTail {
 */
 
 .scroll-view {
-  position: absolute !important;
+  /* position: absolute !important; */
   align-items: flex-start !important;
   overflow-y: auto !important;
 }
@@ -66,7 +66,7 @@ div.pluginBodyTail {
 
 .popup-global {
   border: 1px solid magenta;
-  position: fixed;
+  /* position: fixed; */
   /* top: 10%;
   padding: 40px 50px;
   border-radius: 8px;

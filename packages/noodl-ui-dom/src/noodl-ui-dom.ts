@@ -1,6 +1,6 @@
 import { ActionType, ComponentObject, Identify } from 'noodl-types'
 import {
-  ComponentInstance,
+  Component,
   createComponent,
   findParent,
   NOODLUI as NUI,
@@ -88,9 +88,9 @@ class NOODLOM extends NOODLDOMInternal {
   /**
    * Parses props and returns a DOM Node described by props. This also
    * resolves its children hieararchy until there are none left
-   * @param { ComponentInstance } props
+   * @param { Component } props
    */
-  draw<C extends ComponentInstance = any>(
+  draw<C extends Component = any>(
     component: C,
     container?: T.NOODLDOMElement | null,
   ) {
@@ -119,7 +119,7 @@ class NOODLOM extends NOODLDOMInternal {
 
         this.#R.run(node, component)
 
-        component.children?.forEach?.((child: ComponentInstance) => {
+        component.children?.forEach?.((child: Component) => {
           const childNode = this.draw(child, node) as HTMLElement
           this.page.emitSync(
             eventId.page.on.ON_BEFORE_APPEND_COMPONENT_CHILD_NODE,
@@ -147,11 +147,11 @@ class NOODLOM extends NOODLDOMInternal {
 
   redraw(
     node: T.NOODLDOMElement | null, // ex: li (dom node)
-    component: ComponentInstance, // ex: listItem (component instance)
+    component: Component, // ex: listItem (component instance)
     args: { dataObject?: any; resolveComponents?: any } = {},
   ) {
     let newNode: T.NOODLDOMElement | null = null
-    let newComponent: ComponentInstance | undefined
+    let newComponent: Component | undefined
     let { dataObject } = args
 
     if (component) {
@@ -182,6 +182,7 @@ class NOODLOM extends NOODLDOMInternal {
           cParent?.removeChild?.(c)
           // Remove the child's parent reference
           c.setParent?.(null)
+          console.info(c)
         }
       })
       // Create the new component
@@ -234,7 +235,7 @@ class NOODLOM extends NOODLDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.draw(newComponent as ComponentInstance)
+      this.draw(newComponent as Component)
     }
 
     return [newNode, newComponent] as [typeof node, typeof component]

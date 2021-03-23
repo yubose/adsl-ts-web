@@ -4,15 +4,15 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import isObjectLike from 'lodash/isObjectLike'
 import { isDraft, original } from 'immer'
-import { Action } from 'noodl-action-chain'
+import { Action, isAction } from 'noodl-action-chain'
 import {
-  ActionConsumerCallbackOptions,
-  ComponentInstance,
   ConsumerOptions,
   findListDataObject,
+  findIteratorVar,
   getDataValues,
   NOODLUI as NUI,
-  Page as NUIPage,
+  NOODLUIActionChain,
+  NUIComponent,
 } from 'noodl-ui'
 import {
   findAllByViewTag,
@@ -61,27 +61,19 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'checkField',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         log.func('checkField')
         log.grey('checkField', { action, options })
-        let contentType = ''
-        let delay: number | boolean = 0
-
-        if (action instanceof Action) {
-          contentType = action.original?.contentType || ''
-          delay = action.original?.wait || 0
-        } else {
-          contentType = (action as any).contentType || ''
-          delay = (action as any).wait || 0
-        }
+        let contentType =
+          action.original?.contentType || (action as any)?.contentType || ''
+        let delay: number | boolean =
+          action.original?.wait || (action as any).wait || 0
 
         const onCheckField = () => {
           const node = getByDataUX(contentType)
-          if (node) {
-            ;(Array.isArray(node) ? node : [node]).forEach((n) => {
-              show(n)
-            })
-          }
+          ;(Array.isArray(node) ? node : [node]).forEach((n) => {
+            n && show(n)
+          })
         }
 
         if (delay > 0) {
@@ -94,7 +86,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'disconnectMeeting',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         log.func('disconnectMeeting')
         log.grey('', { action, room: Meeting.room, options })
         Meeting.room.disconnect()
@@ -103,7 +95,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'goBack',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         log.func('goBack')
         log.grey('', { action, ...options })
         if (typeof action.original?.reload === 'boolean') {
@@ -170,7 +162,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'toggleCameraOnOff',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         log.func('toggleCameraOnOff')
         const path = 'VideoChat.cameraOn'
 
@@ -213,7 +205,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'toggleMicrophoneOnOff',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         log.func('toggleMicrophoneOnOff')
         const path = 'VideoChat.micOn'
 
@@ -251,14 +243,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'toggleFlag',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         log.func('toggleFlag')
         console.log({ action, ...options })
         const { component } = options
         const { page } = app.mainPage
         const { dataKey = '' } = action.original || {}
-        let { iteratorVar, path } = component.get(['iteratorVar', 'path'])
+        const iteratorVar = findIteratorVar(component)
         const node = findByElementId(component)
+        let path = component?.get('path')
 
         let dataValue: any
         let dataObject: any
@@ -272,7 +265,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
         if (dataKey?.startsWith(iteratorVar)) {
           const parts = dataKey.split('.').slice(1)
-          dataObject = findListDataObject(component)
+          dataObject = findListDataObject(component as NUIComponent.Instance)
           previousDataValue = get(dataObject, parts)
           // previousDataValueInSdk = _.get(noodl.root[context.page])
           dataValue = previousDataValue
@@ -365,7 +358,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
 
         log.grey('', {
-          component: component.toJS(),
+          component: component?.toJSON(),
           componentInst: component,
           dataKey,
           dataValue,
@@ -382,7 +375,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'lockApplication',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         const result = await _onLockLogout()
         if (result === 'abort') return 'abort'
         const { Account } = await import('@aitmed/cadl')
@@ -393,7 +386,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'logOutOfApplication',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         const result = await _onLockLogout()
         if (result === 'abort') return 'abort'
         const { Account } = await import('@aitmed/cadl')
@@ -404,7 +397,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'logout',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         const result = await _onLockLogout()
         if (result === 'abort') return 'abort'
         const { Account } = await import('@aitmed/cadl')
@@ -415,7 +408,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'goto',
-      async fn(action: Action<any>, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action<any>, options: ConsumerOptions) {
         log.func('builtIn [goto]')
         log.red('', { action, ...options })
         let destinationParam = ''
@@ -427,7 +420,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         // an action chain and given an object like { destination, reload }
         if (typeof action === 'string') {
           destinationParam = action
-        } else if (action instanceof Action) {
+        } else if (isAction(action)) {
           const gotoObj = action.original
           if (typeof gotoObj === 'string') {
             destinationParam = gotoObj
@@ -587,7 +580,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     .register({
       actionType: 'builtIn',
       funcName: 'redraw',
-      async fn(action: Action, options: ActionConsumerCallbackOptions) {
+      async fn(action: Action, options: ConsumerOptions) {
         log.func('redraw')
         log.red('', { action, options })
 
@@ -595,7 +588,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
         const components = Object.values(
           NUI.cache.component.get() || {},
-        ).reduce((acc: ComponentInstance[], c: any) => {
+        ).reduce((acc: NUIComponent.Instance[], c: any) => {
           if (c && c.get('viewTag') === viewTag) return acc.concat(c)
           return acc
         }, [])
@@ -604,10 +597,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
         if (
           viewTag &&
-          component.get('viewTag') === viewTag &&
-          !components.includes(component)
+          component?.get('viewTag') === viewTag &&
+          !components.includes(component as NUIComponent.Instance)
         ) {
-          components.push(component)
+          components.push(component as NUIComponent.Instance)
         }
 
         if (!components.length) {
@@ -623,7 +616,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         let startCount = 0
 
         while (startCount < components.length) {
-          const viewTagComponent = components[startCount] as ComponentInstance
+          const viewTagComponent = components[
+            startCount
+          ] as NUIComponent.Instance
           const node = findByElementId(viewTagComponent)
           const dataObject = findListDataObject(viewTagComponent)
           const opts = { dataObject }
@@ -632,17 +627,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             viewTagComponent,
             opts,
           )
-          log.grey('Resolved redrawed component/node', {
-            newNode,
-            newComponent,
-            dataObject,
-          })
           NUI.cache.component.add(newComponent)
           startCount++
         }
 
-        componentCacheSize = getComponentCacheSize(NUI)
-        log.red(`COMPONENT CACHE SIZE: ${componentCacheSize}`)
+        log.red(`COMPONENT CACHE SIZE: ${NUI.cache.component.length}`)
       },
     })
   /* -------------------------------------------------------
@@ -663,7 +652,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                 node as NOODLDOMDataValueElement,
                 component,
                 {
-                  onChange: component.get('onChange'),
+                  onChange: component.get('onChange') as NOODLUIActionChain,
                   eventName: 'onchange',
                 },
               ),
@@ -811,10 +800,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   log.grey('Registered noodl-ui-dom listeners')
 
   let componentCacheSize = 0
-
-  function getComponentCacheSize(nui: typeof NUI) {
-    return nui.cache.component.length
-  }
 
   /** Shared common logic for both lock/logout logic */
   async function _onLockLogout() {

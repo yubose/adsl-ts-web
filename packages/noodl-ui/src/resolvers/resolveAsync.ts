@@ -1,9 +1,5 @@
 import { Identify, userEvent } from 'noodl-types'
-import {
-  ComponentInstance,
-  ConsumerOptions,
-  NOODLUIActionObject,
-} from '../types'
+import { ConsumerOptions, NUIComponent, NOODLUIActionObject } from '../types'
 import Resolver from '../Resolver'
 import { resolveAssetUrl } from '../utils/noodl'
 import * as u from '../utils/internal'
@@ -11,7 +7,7 @@ import * as u from '../utils/internal'
 const asyncResolver = new Resolver('resolveActions')
 
 async function resolveAsync(
-  component: ComponentInstance,
+  component: NUIComponent.Instance,
   { createActionChain, getAssetsUrl }: ConsumerOptions,
 ) {
   try {
@@ -41,7 +37,7 @@ async function resolveAsync(
     if (Identify.emit(path)) {
       const ac = await createActionChain(
         'path',
-        [{ ...path, actionType: 'emit' }],
+        [{ emit: path.emit, actionType: 'emit' }],
         { loadQueue: true },
       ).execute()
       let result = ac?.find((val) => !!val?.result)?.result

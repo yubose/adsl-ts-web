@@ -1,4 +1,4 @@
-import { ComponentInstance } from 'noodl-ui'
+import { NUIComponent } from 'noodl-ui'
 
 export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
 export const assign = (
@@ -28,7 +28,7 @@ export function addClassName(className: string, node: HTMLElement) {
   }
 }
 
-export function fixTextAlign(c: ComponentInstance) {
+export function fixTextAlign(c: NUIComponent.Instance) {
   const origStyle = c.original?.style || {}
   const axises = ['x', 'y']
 

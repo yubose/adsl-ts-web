@@ -1,6 +1,7 @@
 import { EmitObject } from 'noodl-types'
 import { Action, IAction } from 'noodl-action-chain'
 import { EmitActionObject, NOODLUITrigger } from '../types'
+import { isObj } from '../utils/internal'
 
 class EmitAction
   extends Action<'emit', NOODLUITrigger>
@@ -9,13 +10,12 @@ class EmitAction
   dataKey: string | Record<string, any> | undefined
 
   constructor(trigger: NOODLUITrigger, obj: EmitObject | EmitActionObject) {
-    const actionObjArg =
-      (typeof obj === 'object' && !('emit' in obj)
-        ? ({ ...obj, actionType: 'emit' } as EmitActionObject)
-        : (obj as EmitActionObject)) || undefined
-    super(trigger, actionObjArg)
-    this.actions = actionObjArg.emit?.actions || []
-    this.dataKey = actionObjArg.emit?.dataKey
+    if (isObj(obj) && obj.actionType !== 'emit') {
+      obj = { ...obj, actionType: 'emit' }
+    }
+    super(trigger, obj as EmitActionObject)
+    this.actions = obj.emit?.actions || []
+    this.dataKey = obj.emit?.dataKey
   }
 
   get executor() {

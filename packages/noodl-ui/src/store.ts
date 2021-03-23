@@ -1,30 +1,37 @@
 import { ActionObject, BuiltInActionObject } from 'noodl-types'
-import { RegisterPage, Store } from './types'
-import { isArr, isObj, mapActionTypesToOwnArrays } from './utils/internal'
+import { Register, Store } from './types'
+import {
+  array,
+  isArr,
+  isObj,
+  mapActionTypesToOwnArrays,
+} from './utils/internal'
 import Resolver from './Resolver'
 
 const store = (function _store() {
   let actions = mapActionTypesToOwnArrays<Store.ActionObject>()
   let builtIns = {} as { [funcName: string]: Store.BuiltInObject[] }
-  let observers = [] as Store.ObserverObject[]
+  let observers = {} as { [evt: string]: Store.ObserverObject[] }
   let plugins = { head: [], body: { top: [], bottom: [] } } as Store.Plugins
   let resolvers = [] as Resolver<any>[]
   let registers = {} as Record<
-    RegisterPage,
-    Record<Store.RegisterObject['type'], Store.RegisterObject[]>
+    Register.Page,
+    Record<Register.Object['type'], Store.RegisterObject[]>
   >
 
   function use<A extends ActionObject>(action: Store.ActionObject): void
   function use<B extends BuiltInActionObject>(action: Store.BuiltInObject): void
   function use<B extends Store.PluginObject>(plugin: Store.PluginObject): void
-  function use<B extends Store.ObserverObject>(plugin: Store.PluginObject): void
+  function use(obs: {
+    observe: Store.ObserverObject | Store.ObserverObject[]
+  }): void
   function use(resolver: Resolver<any>): void
   function use(
     mod:
       | Store.ActionObject
       | Store.BuiltInObject
       | Store.PluginObject
-      | Store.ObserverObject
+      | { observe: Store.ObserverObject | Store.ObserverObject[] }
       | Resolver<any>,
     ...rest: any[]
   ) {
@@ -38,6 +45,11 @@ const store = (function _store() {
           ) {
             resolvers.push(m)
           }
+        } else if ('observe' in m) {
+          array(m.observe).forEach((mod: Store.ObserverObject) => {
+            if (!isArr(observers[mod.cond])) observers[mod.cond] = []
+            observers[mod.cond].push(mod)
+          })
         } else if (isObj(m)) {
           if (m.actionType === 'builtIn' || 'funcName' in m) {
             if (!('actionType' in m)) m.actionType = 'builtIn'

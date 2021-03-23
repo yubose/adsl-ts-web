@@ -1,19 +1,9 @@
-import { ComponentObject, userEvent } from 'noodl-types'
+import { ComponentObject, Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
-import {
-  ActionChainEmitTrigger,
-  ComponentInstance,
-  PluginLocation,
-} from '../types'
-import { isBrowser } from './common'
 import isComponent from './isComponent'
-
-export function isActionChainEmitTrigger(
-  trigger: any,
-): trigger is ActionChainEmitTrigger {
-  return userEvent.includes(trigger)
-}
+import { NUIComponent } from '../types'
+import { isBrowser } from './common'
 
 // function createRegexKeysOnProps(keys: string | string[]) {
 //   const regex = new RegExp(Array.isArray(keys) ? )
@@ -89,21 +79,21 @@ export function checkForNoodlProp(
  * Traverses the children hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned child
- * @param { ComponentInstance } component
+ * @param { NUIComponent.Instance } component
  * @param { function } fn - Comparator function
  */
-export function findChild<C extends ComponentInstance>(
+export function findChild<C extends NUIComponent.Instance>(
   component: C,
-  fn: (child: ComponentInstance) => boolean,
-): ComponentInstance | null {
-  let child: ComponentInstance | null | undefined
+  fn: (child: NUIComponent.Instance) => boolean,
+): NUIComponent.Instance | null {
+  let child: NUIComponent.Instance | null | undefined
   let children = component?.children?.slice?.() || []
 
   if (isComponent(component)) {
     child = children.shift() || null
     while (child) {
       if (fn(child)) return child
-      child.children?.forEach((c: ComponentInstance) => children.push(c))
+      child.children?.forEach((c: NUIComponent.Instance) => children.push(c))
       child = children.pop()
     }
   }
@@ -114,36 +104,40 @@ export function findChild<C extends ComponentInstance>(
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
- * @param { ComponentInstance } component
+ * @param { NUIComponent.Instance } component
  * @param { function } fn
  */
-export function findParent<C extends ComponentInstance>(
+export function findParent<C extends NUIComponent.Instance>(
   component: C,
-  fn: (parent: ComponentInstance | null) => boolean,
+  fn: (parent: NUIComponent.Instance | null) => boolean,
 ) {
-  let parent = component?.parent
+  let parent = component?.parent as NUIComponent.Instance
   if (fn(parent)) return parent
   if (parent) {
     while (parent) {
-      parent = parent.parent
+      parent = parent.parent as NUIComponent.Instance
       if (fn(parent)) return parent
     }
   }
   return parent || null
 }
 
-export function findListDataObject(component: ComponentInstance) {
+export function findListDataObject(component: NUIComponent.Instance) {
   let dataObject
   let listItem: any
 
-  if (/listItem/i.test(component?.type)) {
+  if (Identify.component.listItem(component)) {
     listItem = component
   } else {
-    listItem = findParent(component, (p) => !!/listItem/i.test(p?.type || ''))
+    listItem = findParent(component, (p) => Identify.component.listItem(p))
   }
-
   if (isComponent(listItem)) {
-    dataObject = listItem.getDataObject?.()
+    let list = listItem.parent
+
+    if (list) {
+      dataObject = listItem.get(list.get('iteratorVar') || '')
+    }
+
     let listIndex = listItem.get('listIndex')
     if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
     if (!dataObject && typeof listIndex === 'number') {
@@ -166,7 +160,7 @@ export function findListDataObject(component: ComponentInstance) {
 }
 
 export function findIteratorVar(
-  component: ComponentInstance | undefined,
+  component: NUIComponent.Instance | undefined,
 ): string {
   if (isComponent(component)) {
     if (component.type === 'list') return component.get('iteratorVar') || ''
@@ -317,53 +311,18 @@ export function getDataValues<Fields, K extends keyof Fields>(
 }
 
 /**
- * A helper to extract a value from a dataObject using the dataKey and iteratorVar
- * @param { object } dataObject
- * @param { string } dataKey
- * @param { string } iteratorVar
- */
-export function getDataObjectValue<T = any>({
-  dataObject,
-  dataKey,
-  iteratorVar,
-}: {
-  dataObject: T
-  dataKey: string
-  iteratorVar: string
-}) {
-  if (typeof dataObject === 'string') return dataObject
-  if (iteratorVar && dataKey.startsWith(iteratorVar)) {
-    dataKey = dataKey.split('.').slice(1).join('.')
-  }
-  return get(dataObject, dataKey)
-}
-
-export function getPluginTypeLocation(value: string): PluginLocation | '' {
-  switch (value) {
-    case 'pluginHead':
-      return 'head'
-    case 'pluginBodyTop':
-      return 'body-top'
-    case 'pluginBodyTail':
-      return 'body-bottom'
-    default:
-      return ''
-  }
-}
-
-/**
  * Returns true if the dataKey begins with the value of iteratorVar
  * @param {  }  -
  */
 export function isListKey(dataKey: string, iteratorVar: string): boolean
 export function isListKey(
   dataKey: string,
-  component: ComponentInstance,
+  component: NUIComponent.Instance,
 ): boolean
 export function isListKey(dataKey: string, component: ComponentObject): boolean
 export function isListKey(
   dataKey: string,
-  component: string | ComponentInstance | ComponentObject,
+  component: string | NUIComponent.Instance | ComponentObject,
 ) {
   if (arguments.length < 2) {
     throw new Error('Missing second argument')
@@ -397,7 +356,7 @@ export function isListConsumer(component: any) {
   )
 }
 
-export function isListLike(component: ComponentInstance) {
+export function isListLike(component: NUIComponent.Instance) {
   return component.type === 'chatList' || component.type === 'list'
 }
 
@@ -408,16 +367,6 @@ export function isListLike(component: ComponentInstance) {
 //     value['contentType'] === 'password'
 //   )
 // }
-
-/**
- * Returns true if value has a viewTag of "subStream", false otherwise
- * @param { any } value
- */
-export function isSubStreamComponent(value: any) {
-  return checkForNoodlProp(value, 'viewTag', (val: string) => {
-    return typeof val === 'string' && /subStream/i.test(val)
-  })
-}
 
 export function parseReference(
   ref: string,
@@ -437,17 +386,17 @@ export function parseReference(
 
 /**
  * Recursively invokes the provided callback on each child
- * @param { ComponentInstance } component
+ * @param { NUIComponent.Instance } component
  * @param { function } cb
  */
 // TODO - Depth option
 export function publish(
-  component: ComponentInstance,
-  cb: (child: ComponentInstance) => void,
+  component: NUIComponent.Instance,
+  cb: (child: NUIComponent.Instance) => void,
 ) {
-  component.children?.forEach?.((child: ComponentInstance) => {
+  component.children?.forEach?.((child: NUIComponent.Instance) => {
     cb(child)
-    child?.children?.forEach?.((c: ComponentInstance) => {
+    child?.children?.forEach?.((c: NUIComponent.Instance) => {
       cb(c)
       publish(c, cb)
     })

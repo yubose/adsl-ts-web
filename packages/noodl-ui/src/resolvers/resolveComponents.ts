@@ -2,7 +2,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, Identify } from 'noodl-types'
+import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import { findDataValue, isBreakLineTextBoardItem } from 'noodl-utils'
 import { ComponentInstance } from '../types'
 import Resolver from '../Resolver'
@@ -27,6 +27,7 @@ componentResolver.setResolver((component, options, next) => {
     cache,
     context,
     createPage,
+    emit,
     getRoot,
     getRootPage,
     page,
@@ -72,9 +73,8 @@ componentResolver.setResolver((component, options, next) => {
     }) {
       args?.component?.blueprint?.children?.forEach?.(
         (child: ComponentObject) => {
-          let childInstance = createComponent(child)
-          childInstance = resolveComponents({
-            components: args.component.createChild(childInstance),
+          const childInstance = resolveComponents({
+            components: args.component.createChild(createComponent(child)),
             page,
             context: {
               index: args.index,
@@ -82,13 +82,6 @@ componentResolver.setResolver((component, options, next) => {
               dataObject: args.dataObject,
             },
           })
-          if (childInstance?.blueprint?.children?.length) {
-            drawListItemChildren({
-              component: childInstance,
-              dataObject: args.dataObject,
-              index: args.index,
-            })
-          }
         },
       )
 
@@ -107,7 +100,7 @@ componentResolver.setResolver((component, options, next) => {
           context: { index, iteratorVar, dataObject },
         })
         if (listItem?.blueprint?.children?.length) {
-          drawListItemChildren({ component: listItem, dataObject, index })
+          // drawListItemChildren({ component: listItem, dataObject, index })
         }
       },
       'ADD_DATA_OBJECT',
@@ -185,43 +178,47 @@ componentResolver.setResolver((component, options, next) => {
 
     component.edit('page', nuiPage)
 
-    const pageObject = getRoot()[nuiPage.page]
+    emit('page-component', { component, options })
+      .then((pageObject: PageObject) => {
+        if (pageObject) {
+          console.log(`%cPage object grabbed`, `color:#c4a901;`, {
+            component,
+            pageObject,
+            path,
+          })
+        } else if (!pageObject) {
+          console.log(
+            `%cExpected a page object but received ${typeof pageObject}`,
+            `color:#ec0000;font-weight:bold;`,
+            { component, pageObject, path },
+          )
+        }
 
-    if (pageObject) {
-      console.log(`%cPage object grabbed`, `color:#c4a901;`, {
-        component,
-        pageObject,
-        path,
+        // Setting a timeout allows this call to run after consumers attach
+        // listeners to this component, which will allow them to catch this
+        // event when attaching listeners
+
+        const newPageComponents = (pageObject?.components
+          ? resolveComponents(pageObject.components)
+          : []) as ComponentInstance[]
+
+        // Add these components to the page component (the goal here is to provide a
+        // "sandboxed" environment for further processing)
+        newPageComponents?.forEach((c) => {
+          component.createChild(c)
+          c?.setParent?.(component)
+        })
+
+        setTimeout(() =>
+          component.emit(
+            c.event.component.page.RESOLVED_COMPONENTS,
+            newPageComponents,
+          ),
+        )
       })
-    } else if (!pageObject) {
-      console.log(
-        `%cExpected a page object but received ${typeof pageObject}`,
-        `color:#ec0000;font-weight:bold;`,
-        { component, pageObject, path },
-      )
-    }
-
-    // Setting a timeout allows this call to run after consumers attach
-    // listeners to this component, which will allow them to catch this
-    // event when attaching listeners
-
-    const newPageComponents = (pageObject?.components
-      ? resolveComponents(pageObject.components)
-      : []) as ComponentInstance[]
-
-    // Add these components to the page component (the goal here is to provide a
-    // "sandboxed" environment for further processing)
-    newPageComponents?.forEach((c) => {
-      component.createChild(c)
-      c?.setParent?.(component)
-    })
-
-    setTimeout(() =>
-      component.emit(
-        c.event.component.page.RESOLVED_COMPONENTS,
-        newPageComponents,
-      ),
-    )
+      .catch((err: Error) => {
+        throw new Error(err.message)
+      })
   }
 
   /* -------------------------------------------------------

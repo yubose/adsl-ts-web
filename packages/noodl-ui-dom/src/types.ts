@@ -1,5 +1,5 @@
 import { ComponentObject, ComponentType } from 'noodl-types'
-import { ActionChainContext, ComponentInstance, NOODLUI as NUI } from 'noodl-ui'
+import { Component, NOODLUI as NUI } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import {
@@ -16,7 +16,7 @@ export interface AnyFn {
   (...args: any[]): any
 }
 
-export interface ActionChainDOMContext extends ActionChainContext {
+export interface ActionChainDOMContext {
   findAllByViewTag: typeof findAllByViewTag
   findByElementId: typeof findByElementId
   findByViewTag: typeof findByViewTag
@@ -65,14 +65,14 @@ export type NOODLDOMElements = Pick<
  * argument and a component instance as the second, at its base structure
  */
 
-export interface Parse<C extends ComponentInstance = any> {
+export interface Parse<C extends Component = any> {
   (component: C, container?: NOODLDOMElement | null): NOODLDOMElement | null
 }
 
 export type Redraw = any
 
 export namespace Resolve {
-  export type BaseArgs = [node: HTMLElement, component: ComponentInstance]
+  export type BaseArgs = [node: HTMLElement, component: Component]
 
   export interface Config {
     name?: string
@@ -86,7 +86,7 @@ export namespace Resolve {
   export interface Func<RT = void> {
     (
       node: HTMLElement | null,
-      component: ComponentInstance,
+      component: Component,
       args: ActionChainDOMContext & Options,
     ): RT
   }
@@ -114,7 +114,7 @@ export namespace Resolve {
 
 export namespace Render {
   export interface Func {
-    (components: ComponentObject | ComponentObject[]): ComponentInstance[]
+    (components: ComponentObject | ComponentObject[]): Component[]
   }
 }
 
@@ -147,28 +147,28 @@ export namespace Page {
     >
     [eventId.page.on.ON_BEFORE_APPEND_COMPONENT_CHILD_NODE](args: {
       page: NOODLDOMPage
-      component: ComponentInstance
+      component: Component
       node: HTMLElement
-      child: ComponentInstance
+      child: Component
       childNode: HTMLElement
     }): void
     [eventId.page.on.ON_COMPONENTS_RENDERED](
-      snapshot: Snapshot & { components: ComponentInstance[] },
+      snapshot: Snapshot & { components: Component[] },
     ): void
     [eventId.page.on.ON_APPEND_NODE](args: {
       page: NOODLDOMPage
       parentNode: HTMLElement
       node: HTMLElement
-      component: ComponentInstance
+      component: Component
     }): void
     [eventId.page.on.ON_BEFORE_APPEND_CHILD](args: {
       component: {
-        instance: ComponentInstance
+        instance: Component
         node: HTMLElement
         bounds: DOMRect
       }
       child: {
-        instance: ComponentInstance
+        instance: Component
         node: HTMLElement
         bounds: DOMRect
         index: number
@@ -178,14 +178,14 @@ export namespace Page {
       .ON_AFTER_APPEND_CHILD]: Hook[typeof eventId.page.on.ON_BEFORE_APPEND_CHILD]
     [eventId.page.on.ON_CHILD_NODES_RENDERED](args: {
       node: HTMLElement
-      component: ComponentInstance
+      component: Component
       blueprint: ComponentObject
       page: NOODLDOMPage
     }): void
     // Redraw events
     [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
       node: HTMLElement | null,
-      component: ComponentInstance,
+      component: Component,
     ): void
   }
 

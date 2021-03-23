@@ -1,5 +1,4 @@
 export { default as components } from './components'
-// Others
 export { default as common } from './common'
 export { default as dataset } from './dataset'
 export { default as events } from './events'

@@ -1,15 +1,15 @@
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar } from 'noodl-utils'
-import { ComponentInstance, ConsumerOptions } from '../types'
+import { NUIComponent, ConsumerOptions } from '../types'
 import { presets } from '../constants'
-import { findListDataObject } from '../utils/noodl'
+import { findListDataObject, findIteratorVar } from '../utils/noodl'
 import ComponentResolver from '../Resolver'
 import * as com from '../utils/common'
 import * as u from '../utils/internal'
 import * as util from '../utils/style'
 
-function createStyleEditor(component: ComponentInstance) {
+function createStyleEditor(component: NUIComponent.Instance) {
   function editComponentStyles(
     styles: Record<string, any> | undefined,
     { remove }: { remove?: string | string[] | false } = {},
@@ -25,13 +25,13 @@ function createStyleEditor(component: ComponentInstance) {
 const resolveStyles = new ComponentResolver('resolveStyles')
 
 resolveStyles.setResolver(
-  (component: ComponentInstance, options: ConsumerOptions, next) => {
+  (component: NUIComponent.Instance, options: ConsumerOptions, next) => {
     const { context, getBaseStyles, viewport } = options
     const edit = createStyleEditor(component)
 
     const original = component.original || component.blueprint
     const originalStyles = original?.style || {}
-    const iteratorVar = context.iteratorVar || ''
+    const iteratorVar = context?.iteratorVar || findIteratorVar(component) || ''
 
     edit(getBaseStyles(component))
 
@@ -225,24 +225,21 @@ resolveStyles.setResolver(
   -------------------------------------------------------- */
 
     {
-      // util.posKeys.forEach((key) => {
-      //   const value = originalStyles[key]
-      //   if (u.isNil(value)) {
-      //     edit({ [key]: '0px' })
-      //   } else {
-      //     edit(
-      //       util.handlePosition(
-      //         originalStyles,
-      //         key as any,
-      //         viewport[util.xKeys.includes(key) ? 'width' : 'height'],
-      //       ),
-      //     )
-      //   }
-      // })
-      // // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
-      // if (u.isObj(component.style?.textAlign)) {
-      //   delete component.style.textAlign
-      // }
+      util.posKeys.forEach((key) => {
+        if (!u.isNil(originalStyles[key])) {
+          edit(
+            util.handlePosition(
+              originalStyles,
+              key as any,
+              viewport[util.xKeys.includes(key) ? 'width' : 'height'],
+            ),
+          )
+        }
+      })
+      // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
+      if (u.isObj(component.style?.textAlign)) {
+        delete component.style.textAlign
+      }
     }
 
     /* -------------------------------------------------------
@@ -293,7 +290,7 @@ resolveStyles.setResolver(
       // Flipping the position to relative to make the list items stack on top of eachother.
       //    Since the container is a type: list and already has their entire height defined in absolute values,
       //    this shouldn't have any UI issues because they'll stay contained within
-      edit({ listStyle: 'none', padding: 0, position: 'relative' })
+      edit({ listStyle: 'none', padding: 0, position: 'absolute' })
     } else if (Identify.component.popUp(component)) {
       edit({ visibility: 'hidden' })
     } else if (Identify.component.scrollView(component)) {

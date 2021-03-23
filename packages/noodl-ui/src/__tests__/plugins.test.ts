@@ -1,6 +1,5 @@
 import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { noodlui } from '../utils/test-utils'
 
 describe('when working with plugins', () => {
   describe('when instantiating noodl-ui', () => {

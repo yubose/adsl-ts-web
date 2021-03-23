@@ -13,15 +13,12 @@ import {
 import _internalResolver from '../resolvers/_internal'
 import chalk from 'chalk'
 import sinon from 'sinon'
-import { StoreActionObject, StoreBuiltInObject } from '../types'
-import { noodlui, createResolverTest } from '../utils/test-utils'
 import { event as eventId } from '../constants'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 import NOODLUI from '../noodl-ui'
 import internalHandlePage from '../resolvers/_internal/handlePage'
 import getStore from '../store'
-import List from '../components/List'
 import Page from '../components/Page'
 import createComponent from '../utils/createComponent'
 
@@ -331,38 +328,6 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
     const page = noodlui.resolveComponents(noodlComponent) as Page
     expect(getStore().resolvers.length).to.be.greaterThan(1)
     expect(page.getResolvers()).to.have.lengthOf(getStore().resolvers.length)
-  })
-
-  describe(`toJS`, () => {
-    it(`should return the expected object`, () => {
-      const actionsContext = { fruits: [] }
-      const assetsUrl = 'https://abc.com/assets/'
-      const baseUrl = 'https://abc.com/'
-      const currentPage = 'Apple'
-      const preloadPages = ['hello', 'hi']
-      const pages = ['Go', 'Bye']
-      const root = { greeting: 'hi' }
-      const page = new Page()
-      page.setPage(currentPage)
-      page.use({
-        actionsContext,
-        getAssetsUrl: () => assetsUrl,
-        getBaseUrl: () => baseUrl,
-        getPages: () => pages,
-        getPreloadPages: () => preloadPages,
-        getRoot: () => root,
-      })
-      const js = page.toJS()
-      expect(js).to.have.property('assetsUrl', assetsUrl)
-      expect(js).to.have.property('baseUrl', baseUrl)
-      expect(js).to.have.property('currentPage', currentPage)
-      expect(js).to.have.property('preloadPages', preloadPages)
-      expect(js).to.have.property('pages', pages)
-      expect(js).to.have.property('root', root)
-      expect(js).to.have.property('style')
-      // expect(js).to.have.property('type', 'iframe')
-      expect(js).to.have.property('type', 'page')
-    })
   })
 
   describe(`resolveComponents`, () => {

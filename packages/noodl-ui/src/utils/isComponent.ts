@@ -1,7 +1,6 @@
 import Component from '../components/Base'
-import { ComponentInstance } from '../types'
 
-function isComponent(component: unknown): component is ComponentInstance {
+function isComponent(component: unknown): component is Component {
   return Component.isComponent(component)
 }
 

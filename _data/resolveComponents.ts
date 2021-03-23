@@ -236,7 +236,7 @@ function resolveComponents(
   if (Identify.component.scrollView(original)) {
     original.children?.forEach((origChild) => {
       const child = resolveComponents({ page, components: origChild })
-      child.style.position = 'relative'
+      child.style.position = 'absolute'
     })
   }
 
