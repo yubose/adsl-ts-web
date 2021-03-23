@@ -1,14 +1,12 @@
 {
   "name": "noodl-ui-test-utils",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Test utilities for the noodl-ui library",
   "scripts": {
     "build": "tsc",
     "start": "tsc -w",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
-  "devDependencies": {},
-  "peerDependencies": {},
   "keywords": [
     "noodl-ui",
     "noodl",
