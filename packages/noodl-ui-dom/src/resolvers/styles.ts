@@ -75,7 +75,7 @@ export default {
           ---- ALIGNMENT
         -------------------------------------------------------- */
 
-        const { textAlign } = originalStyle
+        const textAlign = originalStyle.textAlign
 
         if (textAlign === 'left') edit({ textAlign: 'left' })
         else if (textAlign === 'center') edit({ textAlign: 'center' })

@@ -47,13 +47,22 @@ class Page {
   constructor(render?: T.Render.Func | undefined) {
     if (render) this.render = render
     // this.rootNode = document.createElement('div')
-    this.rootNode = document.body as HTMLBodyElement
-    this.rootNode.id = 'root'
+    this.clearRootNode()
+    // if (!document.body.contains(this.rootNode))
+    // document.body.appendChild(this.rootNode)
+  }
+
+  clearRootNode() {
+    if (!this.rootNode) {
+      this.rootNode = document.body as any
+      this.rootNode.id = 'root'
+    }
+    this.rootNode.innerHTML = ''
+    this.rootNode.style.cssText = ''
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
-    // if (!document.body.contains(this.rootNode))
-    // document.body.appendChild(this.rootNode)
+    return this
   }
 
   get hooks() {

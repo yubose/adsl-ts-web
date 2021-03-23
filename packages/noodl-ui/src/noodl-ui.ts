@@ -303,7 +303,15 @@ const NOODLUI = (function _NOODLUI() {
   }) {
     const originalStyle = component?.blueprint?.style || {}
     const styles = { ...originalStyle } as any
-    if (Viewport.isNil(styles.height)) styles.height = 'auto'
+
+    if (Viewport.isNil(originalStyle?.top) || originalStyle?.top === 'auto') {
+      styles.position = 'relative'
+    } else {
+      styles.position = 'absolute'
+    }
+
+    if (Viewport.isNil(originalStyle.height)) styles.height = 'auto'
+
     return merge(
       {
         ...o.getRoot().Style,

@@ -74,7 +74,7 @@ class NOODLOM extends NOODLDOMInternal {
 
     this.page.emitSync(eventId.page.on.ON_DOM_CLEANUP, this.page.rootNode)
 
-    this.page.rootNode.innerHTML = ''
+    this.page.clearRootNode()
 
     this.page.setStatus(eventId.page.status.RENDERING_COMPONENTS)
 
