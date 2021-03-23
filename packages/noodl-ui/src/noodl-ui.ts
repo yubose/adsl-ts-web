@@ -891,7 +891,6 @@ class NOODLUI {
       styles.position = 'absolute'
     }
 
-
     // if (styles?.top === 'auto') styles.top = '0'
     // if (isPlainObject(originalStyle)) {
     //   // "Auto top" for web. Set top to 0 to start immediately after the previous
@@ -955,9 +954,9 @@ class NOODLUI {
     //       styles.height = 'auto'
     //     }
 
-    //     if (!('height' in styles)) {
-    //       styles.height = 'auto'
-    //     }
+    if (!('height' in styles)) {
+      styles.height = 'auto'
+    }
     //   } else if (isPlainObject(component)) {
     //     //
     //   }
@@ -1001,10 +1000,9 @@ class NOODLUI {
     component: T.ComponentInstance
     [key: string]: any
   }) {
-    return {
+    const options = {
       component,
       componentCache: this.componentCache.bind(this),
-      context: this.getContext(),
       createActionChainHandler: (action, options) =>
         this.createActionChainHandler(action, {
           ...getActionConsumerOptions(this),
@@ -1024,7 +1022,6 @@ class NOODLUI {
       getRoot: this.#getRoot.bind(this),
       getState: this.getState.bind(this),
       plugins: this.plugins.bind(this),
-      page: this.page,
       register: this.register.bind(this),
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
@@ -1033,6 +1030,13 @@ class NOODLUI {
       setPlugin: this.setPlugin.bind(this),
       ...rest,
     } as T.ConsumerOptions
+
+    Object.defineProperties(options, {
+      page: { get: () => this.page },
+      context: { get: () => this.getContext() },
+    })
+
+    return options
   }
 
   getResolvers() {

@@ -12,12 +12,15 @@ export default {
     !!(node && component && node?.tagName !== 'SCRIPT'),
   resolve: (node: HTMLElement, component) => {
     const originalStyle = component.original?.style || {}
-    const { style } = component
-    if (style != null && typeof style === 'object' && node.style) {
+    if (
+      component.style != null &&
+      typeof component.style === 'object' &&
+      node.style
+    ) {
       if (component.has('text=func')) {
         // debugger
       }
-      Object.entries(style).forEach(([k, v]) => {
+      Object.entries(component.style).forEach(([k, v]) => {
         // if (k === 'height' && v === 'auto') {
         //   node.style.cssText += `height: inherit !important;`
         // } else {

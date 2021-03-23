@@ -44,13 +44,22 @@ class Page {
   constructor(render?: T.Render | undefined) {
     if (render) this.render = render
     // this.rootNode = document.createElement('div')
-    this.rootNode = document.body
-    this.rootNode.id = 'root'
+    this.clearRootNode()
+    // if (!document.body.contains(this.rootNode))
+    // document.body.appendChild(this.rootNode)
+  }
+
+  clearRootNode() {
+    if (!this.rootNode) {
+      this.rootNode = document.body as any
+      this.rootNode.id = 'root'
+    }
+    this.rootNode.innerHTML = ''
+    this.rootNode.style.cssText = ''
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
-    // if (!document.body.contains(this.rootNode))
-    // document.body.appendChild(this.rootNode)
+    return this
   }
 
   getCbs() {
@@ -97,13 +106,14 @@ class Page {
     // }
 
     if (newPage) {
+      const currentPage = this.getState().current
       this.ref.request.timer && clearTimeout(this.ref.request.timer)
       this.setRequestingPage(newPage, { delay })
       if (process.env.NODE_ENV !== 'test') {
         history.pushState({}, '', this.pageUrl)
       }
       await this.navigate(newPage)
-      this.setPreviousPage(this.getState().current)
+      this.setPreviousPage(currentPage)
       this.setCurrentPage(newPage)
     }
   }

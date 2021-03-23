@@ -84,7 +84,7 @@ class NOODLUIDOM extends NOODLUIDOMInternal {
     this.page.setStatus(eventId.page.status.COMPONENTS_RECEIVED)
     const components = Array.isArray(resolved) ? resolved : [resolved]
     this.#emit(eventId.page.on.ON_DOM_CLEANUP)
-    this.page.rootNode.innerHTML = ''
+    this.page.clearRootNode()
     this.page.setStatus(eventId.page.status.RENDERING_COMPONENTS)
     components.forEach((component) => {
       this.draw(component, this.page.rootNode)
