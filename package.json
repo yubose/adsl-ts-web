@@ -41,7 +41,7 @@
     "publish": "node scripts/publish.js -p"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.232",
+    "@aitmed/cadl": "^1.0.233",
     "@aitmed/ecos-lvl2-sdk": "^1.4.125",
     "axios": "^0.19.2",
     "date-fns": "^2.17.0",
