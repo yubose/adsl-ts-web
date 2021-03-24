@@ -84,8 +84,11 @@ class NOODLViewport implements IViewport {
     return isStr(v) && !/[a-zA-Z]/i.test(v)
   }
 
-  static toNum(s: unknown) {
-    return Number(String(s).replace(/[a-zA-Z]/gi, ''))
+  /** https://tc39.es/ecma262/#sec-tonumber */
+  static toNum(v: unknown) {
+    if (isNum(v)) return v
+    else if (isStr(v)) return Number(v.replace(/[a-zA-Z]/gi, ''))
+    return Number(String(v))
   }
 
   constructor({ width, height }: { width?: number; height?: number } = {}) {

@@ -1,13 +1,13 @@
 import isPlainObject from 'lodash/isPlainObject'
-import { ComponentObject, ComponentType } from 'noodl-types'
-import { forEachEntries } from './common'
+import { ComponentObject } from 'noodl-types'
+import { NOODLUIComponentType } from '../types'
 import isComponent from './isComponent'
 import Component from '../components/Base'
 
 export interface PropsOptionFunc<T> {
   (child: T): Partial<PropsOptionObj>
 }
-export type PropsOptionObj = ComponentObject | { id?: string }
+export type PropsOptionObj = ComponentObject & { id?: string }
 
 interface Options {
   props?: PropsOptionObj | PropsOptionFunc<Component>
@@ -16,47 +16,37 @@ interface Options {
 /**
  * A helper/utility to create Component instances corresponding to their NOODL
  * component type
- * @param { string | object | Component } value - NOODL component type, a component object, or a Component instance
+ * @param { string | object | Component } component - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
-function createComponent<K extends ComponentType = ComponentType>(
+function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
   type: K,
   options?: Options,
 ): Component
 
-function createComponent<K extends ComponentType = ComponentType>(
+function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
   value: PropsOptionObj,
   options?: Options,
 ): Component
 
-function createComponent<K extends ComponentType = ComponentType>(
+function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
   component: Component,
   options?: Options,
 ): Component
 
-function createComponent<K extends ComponentType = ComponentType>(
+function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
   value: K | PropsOptionObj | Component,
   options?: Options,
 ): Component {
   let childComponent: any
-  let id: string = ''
   const props = toProps(value, options?.props)
-
-  // ComponentType
   if (typeof value === 'string') {
     childComponent = new Component({ type: value, ...props })
   } else if (isComponent(value)) {
-    // IComponentInstanceType
-    childComponent = value
-    id = childComponent.id
-    if (props && isPlainObject(props)) {
-      forEachEntries(props, (k, v) => childComponent.set(k, v))
-    }
+    if (props && isPlainObject(props)) value.edit(props)
   } else {
-    // IComponentObjectType
     childComponent = new Component({ ...value, ...props })
   }
-
   return childComponent
 }
 

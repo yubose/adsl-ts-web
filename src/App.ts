@@ -3,21 +3,20 @@ import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
 import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
-import NOODLOM, {
+import NOODLDOM, {
   eventId,
   NOODLDOMElement,
-  Page,
+  Page as NOODLDOMPage,
   RegisterOptions,
 } from 'noodl-ui-dom'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import { ComponentObject, PageObject } from 'noodl-types'
 import {
-  ComponentInstance,
+  NUIComponent,
   event as nuiEvent,
   identify,
   NOODLUI as NUI,
-  Page as NUIPage,
   publish,
   Viewport,
 } from 'noodl-ui'
@@ -65,9 +64,8 @@ class App {
   messaging = null as FirebaseMessaging | null
   meeting: IMeeting = {} as IMeeting
   noodl = {} as CADL
-  nui: typeof NUI
-  ndom = {} as NOODLOM
-  mainPage: NUIPage
+  ndom = {} as NOODLDOM
+  mainPage: NOODLDOMPage
   streams = {} as ReturnType<IMeeting['getStreams']>
 
   // addRequestParams(page: string, opts: Record<string, any>) {
@@ -162,11 +160,13 @@ class App {
 
   constructor() {
     this.#viewportUtils = createViewportHandler(new Viewport())
-    this.mainPage = NUI.createPage({
-      name: 'root',
-      viewport: this.#viewportUtils.viewport,
-    })
-    this.nui = NUI
+    this.ndom = new NOODLDOM()
+    this.mainPage = this.ndom.use(
+      NUI.createPage({
+        name: 'root',
+        viewport: this.#viewportUtils.viewport,
+      }),
+    )
   }
 
   async initialize({
@@ -176,7 +176,7 @@ class App {
   }: {
     firebase: { client: App['firebase']; vapidKey: string }
     meeting: IMeeting
-    ndom: NOODLOM
+    ndom: NOODLDOM
   }) {
     try {
       const { Account } = await import('@aitmed/cadl')
@@ -196,7 +196,6 @@ class App {
       stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
       await noodl.init()
       stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
-      ndom.use(NUI)
       stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
       createActions(this)
@@ -302,7 +301,7 @@ class App {
                   copyToClipboard(token)
 
                   if (this.#enabled.firebase) {
-                    this.nui.emit('register', {
+                    NUI.emit('register', {
                       data: token,
                       page: '_global',
                       registerEvent: 'FCMOnTokenReceive',
@@ -352,7 +351,7 @@ class App {
                         `Found and registered a "register" component to Global`,
                         { ...value },
                       )
-                      const res = this.nui.use({
+                      const res = NUI.use({
                         registerEvent: '',
                         page: '_global',
                         component: value,
@@ -440,7 +439,7 @@ class App {
   }
 
   observeComponents() {
-    this.nui.use({
+    NUI.use({
       observe: [
         {
           cond: nuiEvent.component.page.PAGE_OBJECT,
@@ -458,7 +457,7 @@ class App {
     // When noodl-ui emits this it expects a new "child" instance. To keep memory usage
     // to a minimum, keep the root references the same as the one in the parent instance
     // Currently this is used by components of type: page
-    // this.nui.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
+    // NUI.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
     //   await this.noodl.initPage(ref.page)
     //   log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
     //   log.grey(`Initiated page: ${ref.page}`)
@@ -533,7 +532,7 @@ class App {
     )
   }
 
-  observePages(page: Page) {
+  observePages(page: NOODLDOMPage) {
     page
       .on(
         eventId.page.on.ON_BEFORE_RENDER_COMPONENTS as any,
@@ -657,7 +656,7 @@ class App {
               })
 
               // log.func('before-page-render')
-              // log.grey('Initialized noodl-ui client', this.nui)
+              // log.grey('Initialized noodl-ui client', NUI)
             }
             // Refresh the root
             // TODO - Leave root/page auto binded to the lib
@@ -841,7 +840,7 @@ class App {
               onInterval?:
                 | ((args: {
                     node: NOODLDOMElement
-                    component: ComponentInstance
+                    component: NUIComponent.Instance
                     ref: typeof ref
                   }) => void)
                 | null
@@ -855,7 +854,7 @@ class App {
                   component,
                 }: {
                   node: NOODLDOMElement
-                  component: ComponentInstance
+                  component: NUIComponent.Instance
                   ref: typeof ref
                 }) => {
                   this.noodl.editDraft(

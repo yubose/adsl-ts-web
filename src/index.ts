@@ -15,9 +15,7 @@ window.addEventListener('load', async (e) => {
   const { default: firebase, aitMessage } = await import('./app/firebase')
   const { default: noodl } = await import('app/noodl')
   const { getWindowHelpers } = await import('app/noodl-ui')
-  const { default: ndom } = await import('app/noodl-ui-dom')
 
-  const { page } = ndom
   const app = new App()
 
   window.app = {
@@ -27,8 +25,8 @@ window.addEventListener('load', async (e) => {
     cp: copyToClipboard,
     meeting: Meeting,
     noodl,
-    noodlui: NUI,
-    page,
+    nui: NUI,
+    page: app.mainPage,
   }
   window.build = process.env.BUILD
   window.cache = NUI.cache
@@ -41,8 +39,8 @@ window.addEventListener('load', async (e) => {
   })
 
   window.noodl = noodl
-  window.noodlui = NUI
-  window.ndom = ndom
+  window.nui = NUI
+  window.ndom = app.ndom
   window.FCMOnTokenReceive = (args: any) => {
     noodl.root.builtIn
       .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
@@ -57,7 +55,7 @@ window.addEventListener('load', async (e) => {
     await app.initialize({
       firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
       meeting: Meeting,
-      ndom,
+      ndom: app.ndom,
     })
     // @ts-expect-error
     window.grid = () => {
@@ -77,9 +75,11 @@ window.addEventListener('load', async (e) => {
   }
 
   window.addEventListener('popstate', async (e) => {
-    const goBackPage = page.getPreviousPage(noodl.cadlEndpoint?.startPage)
+    const goBackPage = app.mainPage.getPreviousPage(
+      noodl.cadlEndpoint?.startPage,
+    )
     stable && log.cyan(`Received the "goBack" page as ${goBackPage}`)
-    const parts = page.pageUrl.split('-')
+    const parts = app.mainPage.pageUrl.split('-')
     stable && log.cyan(`URL parts`, parts)
     if (parts.length > 1) {
       let popped = parts.pop()
@@ -88,25 +88,25 @@ window.addEventListener('load', async (e) => {
         popped = parts.pop()
         stable && log.cyan(`Popped`)
       }
-      stable && log.cyan(`Page URL: ${page.pageUrl}`)
+      stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
       if (parts.length > 1) {
-        page.pageUrl = parts.join('-')
-        stable && log.cyan(`Page URL: ${page.pageUrl}`)
+        app.mainPage.pageUrl = parts.join('-')
+        stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
       } else if (parts.length === 1) {
         if (parts[0].endsWith('MenuBar')) {
-          stable && log.cyan(`Page URL: ${page.pageUrl}`)
-          page.pageUrl = 'index.html?'
+          stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
+          app.mainPage.pageUrl = 'index.html?'
         } else {
-          page.pageUrl = parts[0]
-          stable && log.cyan(`Page URL: ${page.pageUrl}`)
+          app.mainPage.pageUrl = parts[0]
+          stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
         }
       }
     } else {
-      page.pageUrl = 'index.html?'
-      stable && log.cyan(`Page URL: ${page.pageUrl}`)
+      app.mainPage.pageUrl = 'index.html?'
+      stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
     }
 
-    await page.requestPageChange(goBackPage)
+    await app.mainPage.requestPageChange(goBackPage)
   })
 })
 

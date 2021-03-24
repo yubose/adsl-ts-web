@@ -250,7 +250,7 @@ const NOODLUI = (function _NOODLUI() {
   }
 
   function _emit(
-    evt: 'page-component',
+    evt: typeof nuiEvent.REQUEST_PAGE_OBJECT,
     opts: { component: T.NUIComponent.Instance; options: T.ConsumerOptions },
   ): Promise<PageObject | undefined>
   function _emit(
@@ -262,7 +262,10 @@ const NOODLUI = (function _NOODLUI() {
     } & { [key: string]: any },
   ): void
   function _emit(
-    evt: LiteralUnion<'page-component' | 'register', string>,
+    evt: LiteralUnion<
+      typeof nuiEvent['REQUEST_PAGE_OBJECT'] | 'register',
+      string
+    >,
     opts:
       | ({
           data?: any
@@ -271,7 +274,7 @@ const NOODLUI = (function _NOODLUI() {
         } & { [key: string]: any })
       | { component: T.NUIComponent.Instance; options: T.ConsumerOptions },
   ) {
-    if (evt === 'page-component') {
+    if (evt === nuiEvent.REQUEST_PAGE_OBJECT) {
       const fns = store.observers[nuiEvent.component.page.PAGE_OBJECT] || []
       return Promise.all(
         fns.map((obs) => Promise.resolve(obs.fn(opts.component, opts.options))),
@@ -350,7 +353,7 @@ const NOODLUI = (function _NOODLUI() {
     context,
   }: {
     component?: T.NUIComponent.Instance
-    page: ReturnType<PageCache['create']>
+    page: NUIPage
     context?: Record<string, any>
   } & { [key: string]: any }) {
     return {
@@ -400,7 +403,7 @@ const NOODLUI = (function _NOODLUI() {
   function _getQueryObjects(
     opts: {
       component?: T.NUIComponent.Instance
-      page?: ReturnType<PageCache['create']>
+      page?: NUIPage
       queries?: () => Record<string, any> | (() => Record<string, any>)[]
     } = {},
   ) {
@@ -427,21 +430,21 @@ const NOODLUI = (function _NOODLUI() {
   )
 
   function _resolveComponents(opts: {
-    page?: ReturnType<PageCache['create']>
+    page?: NUIPage
     components: T.NUIComponent.CreateType
     context?: Record<string, any>
   }): T.NUIComponent.Instance
   function _resolveComponents(opts: {
-    page: ReturnType<PageCache['create']>
+    page: NUIPage
     components: T.NUIComponent.CreateType[]
     context?: Record<string, any>
   }): T.NUIComponent.Instance[]
   function _resolveComponents(
-    page: ReturnType<PageCache['create']>,
+    page: NUIPage,
     component: T.NUIComponent.CreateType,
   ): T.NUIComponent.Instance
   function _resolveComponents(
-    page: ReturnType<PageCache['create']>,
+    page: NUIPage,
     component: T.NUIComponent.CreateType[],
   ): T.NUIComponent.Instance[]
   function _resolveComponents(
@@ -450,11 +453,11 @@ const NOODLUI = (function _NOODLUI() {
   ): T.NUIComponent.Instance[]
   function _resolveComponents(
     pageProp:
-      | ReturnType<PageCache['create']>
+      | NUIPage
       | T.NUIComponent.CreateType
       | T.NUIComponent.CreateType[]
       | {
-          page?: ReturnType<PageCache['create']>
+          page?: NUIPage
           components: T.NUIComponent.CreateType | T.NUIComponent.CreateType[]
           context?: Record<string, any>
         },
@@ -463,7 +466,7 @@ const NOODLUI = (function _NOODLUI() {
     let isArr = true
     let resolvedComponents: T.NUIComponent.Instance[] = []
     let components: T.NUIComponent.CreateType[] = []
-    let page: ReturnType<PageCache['create']>
+    let page: NUIPage
     let context: Record<string, any> = {}
 
     if (isPage(pageProp)) {
@@ -501,21 +504,7 @@ const NOODLUI = (function _NOODLUI() {
   }
 
   function _use(
-    mod:
-      | T.Store.ActionObject
-      | T.Store.BuiltInObject
-      | T.Store.PluginObject
-      | T.Store.RegisterObject
-      | ComponentResolver<any>
-      | {
-          getAssetsUrl?(): string
-          getBaseUrl?(): string
-          getPages?(): string[]
-          getPreloadPages?(): string[]
-          getRoot?(): Record<string, any>
-          getPlugins?: T.PluginCreationType[]
-          observe?: T.Store.ObserverObject | T.Store.ObserverObject[]
-        },
+    mod: T.Use
   ) {
     if (mod) {
       if ('funcName' in mod) {
@@ -572,7 +561,7 @@ const NOODLUI = (function _NOODLUI() {
       opts?: {
         component?: T.NUIComponent.Instance
         loadQueue?: boolean
-        page?: ReturnType<PageCache['create']>
+        page?: NUIPage
       },
     ) {
       if (!u.isArr(actions)) actions = [actions]
@@ -639,7 +628,7 @@ const NOODLUI = (function _NOODLUI() {
                 callbacks,
                 _getConsumerOptions({
                   component: opts?.component,
-                  page: opts?.page as ReturnType<PageCache['create']>,
+                  page: opts?.page as NUIPage,
                 }),
               )
 
@@ -659,7 +648,7 @@ const NOODLUI = (function _NOODLUI() {
                 : store.actions[obj.actionType]) || [],
               _getConsumerOptions({
                 component: opts?.component,
-                page: opts?.page as ReturnType<PageCache['create']>,
+                page: opts?.page as NUIPage,
               }),
             )
 

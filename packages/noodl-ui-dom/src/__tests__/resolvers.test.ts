@@ -11,7 +11,7 @@ import {
 } from 'noodl-ui'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { useResolver, noodlui, ndom, toDOM } from '../test-utils'
+import { mockDraw, noodlui, ndom, toDOM } from '../test-utils'
 import { eventId } from '../constants'
 import NOODLDOM from '../noodl-ui-dom'
 import * as resolvers from '../resolvers'
@@ -38,7 +38,7 @@ const getNoodlList = () =>
 
 describe(chalk.keyword('orange')('resolvers'), () => {
   it('should display data value if it is displayable', () => {
-    const { node } = useResolver({
+    const { node } = mockDraw({
       resolver: resolvers.common,
       pageName: 'F',
       pageObject: { formData: { password: 'asfafsbc' } },
@@ -54,7 +54,7 @@ describe(chalk.keyword('orange')('resolvers'), () => {
   describe('button', () => {
     it('should have a pointer cursor if it has an onClick', () => {
       expect(
-        useResolver({
+        mockDraw({
           resolver: resolvers.button,
           pageName: 'F',
           pageObject: { formData: { password: 'asfafsbc' } },
@@ -135,7 +135,7 @@ describe('events', () => {
 describe('image', () => {
   it('should attach the pointer cursor if it has onClick', () => {
     expect(
-      useResolver({
+      mockDraw({
         component: { type: 'image', onClick: [] },
         resolver: resolvers.image,
       }).node.style,
@@ -147,7 +147,7 @@ describe('image', () => {
   it('should set width and height to 100% if it has children (deprecate soon)', () => {
     const {
       node: { style },
-    } = useResolver({
+    } = mockDraw({
       component: { type: 'image', children: [] },
       resolver: resolvers.image,
     })
@@ -159,7 +159,7 @@ describe('image', () => {
 describe('label', () => {
   it('should attach the pointer cursor if it has onClick', () => {
     expect(
-      useResolver({
+      mockDraw({
         component: { type: 'label', onClick: [] },
         resolver: resolvers.label,
       }).node.style,
@@ -171,7 +171,7 @@ describe('label', () => {
 
 describe('list', () => {
   it(`should add created list items to the component cache`, () => {
-    const result = useResolver({
+    const result = mockDraw({
       component: getNoodlList(),
       resolver: resolvers.image,
     })
@@ -186,7 +186,7 @@ describe('list', () => {
   })
 
   it(`should remove removed list items from the component cache`, () => {
-    const result = useResolver({
+    const result = mockDraw({
       component: getNoodlList(),
       resolver: resolvers.image,
     })
@@ -200,7 +200,7 @@ describe('list', () => {
   })
 
   it(`should remove the corresponding list item's DOM node from the DOM`, () => {
-    const result = useResolver({
+    const result = mockDraw({
       component: getNoodlList(),
       resolver: resolvers.image,
     })
@@ -216,12 +216,12 @@ describe('list', () => {
 })
 
 describe('page', () => {
-  let result: ReturnType<typeof useResolver>
+  let result: ReturnType<typeof mockDraw>
   let node: HTMLIFrameElement
   let component: ComponentInstance
 
   beforeEach(() => {
-    result = useResolver({
+    result = mockDraw({
       component: { type: 'page', path: 'LeftPage' },
       pageName: 'Hello',
       pageObject: {},
@@ -327,7 +327,7 @@ describe.only(`styles`, () => {
       const finalKeys = ['top', 'height']
 
       it(`should always eventually have a value for both of its top and height`, async () => {
-        const { requestPageChange } = useResolver({
+        const { requestPageChange } = mockDraw({
           component: {
             type: 'view',
             style: { width: '1', height: '1', top: '0', left: '0' },
@@ -354,7 +354,7 @@ describe.only(`styles`, () => {
         `should always make the first child to have the same value of top (in the DOM)` +
           `as their parent`,
         async () => {
-          const { page, requestPageChange } = useResolver({
+          const { page, requestPageChange } = mockDraw({
             component: {
               type: 'view',
               style: { width: '1', height: '1', top: '0.3', left: '0' },
@@ -526,7 +526,7 @@ describe.only(`styles`, () => {
 describe('video', () => {
   it('should have object-fit set to "contain"', () => {
     expect(
-      useResolver({
+      mockDraw({
         component: { type: 'video', videoFormat: 'mp4' },
         resolver: resolvers.video,
       }).node.style.objectFit,
@@ -534,7 +534,7 @@ describe('video', () => {
   })
 
   it('should create the source element as a child if the src is present', () => {
-    const sourceEl = useResolver({
+    const sourceEl = mockDraw({
       component: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
       resolver: resolvers.video,
     }).node?.querySelector('source')
@@ -543,7 +543,7 @@ describe('video', () => {
 
   it('should have src set on the child source element instead of the video element itself', () => {
     const path = 'asdloldlas.mp4'
-    const { node } = useResolver({
+    const { node } = mockDraw({
       component: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
       resolver: resolvers.video,
     })
@@ -553,7 +553,7 @@ describe('video', () => {
   })
 
   it('should have the video type on the child source element instead of the video element itself', () => {
-    const { node } = useResolver({
+    const { node } = mockDraw({
       component: { type: 'video', path: 'abc123.mp4', videoFormat: 'mp4' },
       resolver: resolvers.video,
     })
@@ -563,7 +563,7 @@ describe('video', () => {
   })
 
   it('should include the "browser not supported" message', () => {
-    const { node } = useResolver({
+    const { node } = mockDraw({
       component: { type: 'video', path: 'abc.jpeg', videoFormat: 'mp4' },
       resolver: resolvers.video,
     })
@@ -573,7 +573,7 @@ describe('video', () => {
 
   it('should create a "source" element and attach the src attribute for video components', () => {
     const path = 'pathology.mp4'
-    const { assetsUrl } = useResolver({
+    const { assetsUrl } = mockDraw({
       component: { type: 'video', path, videoFormat: 'mp4', id: 'id123' },
       resolver: resolvers.video,
     })

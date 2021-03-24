@@ -8,7 +8,7 @@ import * as u from '../utils/internal'
 const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] Default Component Resolvers`,
   cond: (n, c) => !!(n && c),
-  resolve(node, component, { draw, nui }) {
+  resolve(node, component, { draw }) {
     if (node && !u.isFnc(node)) {
       const original = component.original || {}
       const props = component.props() || {}
@@ -60,47 +60,11 @@ const domComponentsResolver: Resolve.Config = {
       }
       // LIST
       else if (Identify.component.listLike(component)) {
-        // noodl-ui delegates the responsibility for us to decide how
-        // to control how list children are first rendered to the DOM
-        const listObject = props.listObject || []
-        const numDataObjects = listObject.length
-
-        // component.edit({ listObject: [] })
-        // component.clear('children')
-
-        // Remove the placeholders
-        for (let index = 0; index < numDataObjects; index++) {
-          // This emits the "create list item" event that we should already have a listener for
-          // component.addDataObject?.(listObject[index])
-          // console.log(listObject[index])
-        }
-
-        component.on(noodluiEvent.component.list.CREATE_LIST_ITEM, (result) => {
-          nui.cache.component.add(result.listItem)
-        })
-
-        component.on(noodluiEvent.component.list.REMOVE_LIST_ITEM, (result) => {
-          nui.cache.component.remove(result.listItem)
-          document.getElementById(result.listItem.id)?.remove?.()
-        })
-
-        component.on(
-          noodluiEvent.component.list.UPDATE_LIST_ITEM,
-          (result, options) => {
-            // const childNode = document.getElementById(result.listItem?.id)
-            // redraw(childNode, result.listItem, options as any)
-          },
-        )
+        //
       }
       // PAGE
       else if (Identify.component.page(component)) {
         node.name = component.get('path') || ''
-
-        component.on(
-          noodluiEvent.component.page.COMPONENTS_RECEIVED,
-          () => {},
-          `[noodl-ui-dom] ${noodluiEvent.component.page.COMPONENTS_RECEIVED}`,
-        )
 
         component.on(
           noodluiEvent.component.page.RESOLVED_COMPONENTS,
@@ -112,12 +76,6 @@ const domComponentsResolver: Resolve.Config = {
             })
           },
           `[noodl-ui-dom] ${noodluiEvent.component.page.RESOLVED_COMPONENTS}`,
-        )
-
-        component.on(
-          noodluiEvent.component.page.MISSING_COMPONENTS,
-          () => {},
-          `[noodl-ui-dom] ${noodluiEvent.component.page.MISSING_COMPONENTS}`,
         )
       }
       // PLUGIN

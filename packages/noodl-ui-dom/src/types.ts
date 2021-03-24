@@ -1,5 +1,5 @@
 import { ComponentObject, ComponentType } from 'noodl-types'
-import { Component, NOODLUI as NUI } from 'noodl-ui'
+import { Component, NOODLUI as NUI, UseObject as NUIUseObject } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import {
@@ -10,11 +10,8 @@ import {
   findWindowDocument,
   isPageConsumer,
 } from './utils'
+import MiddlewareUtils from './MiddlewareUtils'
 import { eventId } from './constants'
-
-export interface AnyFn {
-  (...args: any[]): any
-}
 
 export interface ActionChainDOMContext {
   findAllByViewTag: typeof findAllByViewTag
@@ -103,13 +100,16 @@ export namespace Resolve {
       styles: Record<string, any> | undefined,
       args?: { remove?: string | string[] | false },
     ): void
-    nui: typeof NUI
     ndom: NOODLDOM
     original: ComponentObject
     draw: Parse
     page: NOODLDOMPage
     redraw: Redraw
   }
+}
+
+export namespace Middleware {
+  export type Utils = MiddlewareUtils
 }
 
 export namespace Render {
@@ -145,13 +145,6 @@ export namespace Page {
       | void
       | undefined
     >
-    [eventId.page.on.ON_BEFORE_APPEND_COMPONENT_CHILD_NODE](args: {
-      page: NOODLDOMPage
-      component: Component
-      node: HTMLElement
-      child: Component
-      childNode: HTMLElement
-    }): void
     [eventId.page.on.ON_COMPONENTS_RENDERED](
       snapshot: Snapshot & { components: Component[] },
     ): void
@@ -160,27 +153,6 @@ export namespace Page {
       parentNode: HTMLElement
       node: HTMLElement
       component: Component
-    }): void
-    [eventId.page.on.ON_BEFORE_APPEND_CHILD](args: {
-      component: {
-        instance: Component
-        node: HTMLElement
-        bounds: DOMRect
-      }
-      child: {
-        instance: Component
-        node: HTMLElement
-        bounds: DOMRect
-        index: number
-      }
-    }): void
-    [eventId.page.on
-      .ON_AFTER_APPEND_CHILD]: Hook[typeof eventId.page.on.ON_BEFORE_APPEND_CHILD]
-    [eventId.page.on.ON_CHILD_NODES_RENDERED](args: {
-      node: HTMLElement
-      component: Component
-      blueprint: ComponentObject
-      page: NOODLDOMPage
     }): void
     // Redraw events
     [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
@@ -222,4 +194,8 @@ export namespace Page {
     requesting: string
     status: Page.Status
   }
+}
+
+export interface UseObject extends NUIUseObject {
+  createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
 }

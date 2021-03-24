@@ -1,10 +1,6 @@
 import firebase from 'firebase'
 export * from './meetingTypes'
 
-export interface AnyFn<Args = any, RT = any> {
-  (...args: Args[]): RT
-}
-
 export type AuthStatus =
   | 'logged.in'
   | 'logged.out'

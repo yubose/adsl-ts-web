@@ -15,11 +15,9 @@ import * as T from './types'
 const createResolver = function createResolver(ndom: NOODLDOM) {
   const _internal: {
     objs: T.Resolve.Config[]
-    nui: typeof NUI
     ndom: NOODLDOM
   } = {
     objs: [],
-    nui: undefined as any,
     ndom,
   }
 
@@ -57,7 +55,6 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
           ...util.actionsContext(),
           editStyle: createStyleEditor(args[1]),
           original: args[1].original,
-          nui: _internal.nui,
           ndom: ndom,
           page: ndom.page,
           draw: ndom.draw.bind(ndom),
@@ -102,13 +99,6 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
     )
   }
 
-  function _get(key: 'nui'): typeof NUI
-  function _get(key?: undefined): typeof _internal.objs
-  function _get(key?: 'nui' | undefined) {
-    if (key === 'nui') return _internal.nui
-    return _internal.objs
-  }
-
   const o = {
     register(obj: T.Resolve.Config) {
       !_internal.objs.includes(obj) && _internal.objs.push(obj)
@@ -128,12 +118,12 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
       _internal.objs.length = 0
       return o
     },
-    get: _get,
+    get() {
+      return _internal.objs
+    },
     use(value: T.Resolve.Config | typeof NUI | NOODLUIDOMInternal) {
       if (value instanceof NOODLUIDOMInternal) {
         ndom = value as NOODLDOM
-      } else if (typeof value?.['resolveComponents'] === 'function') {
-        _internal.nui = value as typeof NUI
       } else if (value) {
         o.register(value)
         if (value.observe) {

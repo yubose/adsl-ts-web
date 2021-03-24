@@ -11,7 +11,6 @@ import { formatColor } from '../utils/common'
 import {
   findIteratorVar,
   findListDataObject,
-  findParent,
   isListConsumer,
   isListLike,
   publish,
@@ -92,16 +91,15 @@ componentResolver.setResolver((component, options, next) => {
     component.on(
       c.event.component.list.ADD_DATA_OBJECT,
       ({ index, dataObject }) => {
-        let listItem = component.createChild(createComponent(listItemBlueprint))
-        listItem.edit({ [iteratorVar]: dataObject })
+        let listItem = createComponent(listItemBlueprint)
+        listItem = component.createChild(listItem)
         listItem = resolveComponents({
           components: listItem,
           page,
           context: { index, iteratorVar, dataObject },
         })
-        if (listItem?.blueprint?.children?.length) {
-          // drawListItemChildren({ component: listItem, dataObject, index })
-        }
+        listItem.edit({ [iteratorVar]: dataObject })
+        cache.component.add(listItem)
       },
       'ADD_DATA_OBJECT',
     )
@@ -115,9 +113,9 @@ componentResolver.setResolver((component, options, next) => {
         )
         if (listItem) {
           const liProps = listItem.props()
-          liProps[iteratorVar] = null
+          liProps[iteratorVar] = ''
           if (listItem) {
-            component.removeChild()
+            component.removeChild(listItem)
             cache.component.remove(listItem)
             publish(listItem, (c) => {
               console.log(`%cRemoving from cache: ${c.id}`, `color:#00b406`)
@@ -178,43 +176,19 @@ componentResolver.setResolver((component, options, next) => {
 
     component.edit('page', nuiPage)
 
-    emit('page-component', { component, options })
+    setTimeout(() => {
+      component.emit(c.event.component.page.PAGE_INSTANCE_CREATED, nuiPage)
+    })
+
+    emit(c.event.REQUEST_PAGE_OBJECT, { component, options })
       .then((pageObject: PageObject) => {
-        if (pageObject) {
-          console.log(`%cPage object grabbed`, `color:#c4a901;`, {
-            component,
-            pageObject,
-            path,
-          })
-        } else if (!pageObject) {
-          console.log(
-            `%cExpected a page object but received ${typeof pageObject}`,
-            `color:#ec0000;font-weight:bold;`,
-            { component, pageObject, path },
-          )
-        }
-
-        // Setting a timeout allows this call to run after consumers attach
-        // listeners to this component, which will allow them to catch this
-        // event when attaching listeners
-
-        const newPageComponents = (pageObject?.components
-          ? resolveComponents(pageObject.components)
-          : []) as NUIComponent.Instance[]
-
-        // Add these components to the page component (the goal here is to provide a
-        // "sandboxed" environment for further processing)
-        newPageComponents?.forEach((c) => {
-          component.createChild(c)
-          c?.setParent?.(component)
-        })
-
-        setTimeout(() =>
-          component.emit(
-            c.event.component.page.RESOLVED_COMPONENTS,
-            newPageComponents,
-          ),
-        )
+        const components = pageObject?.components
+          ? resolveComponents({
+              components: pageObject.components,
+              page: nuiPage,
+            })
+          : []
+        components?.forEach((c) => component.createChild(c))
       })
       .catch((err: Error) => {
         throw new Error(err.message)
@@ -279,15 +253,7 @@ componentResolver.setResolver((component, options, next) => {
     let dataObject: any
     let dataValue: any
 
-    let isPageDescendant: boolean
-    let isListDescendant = isListConsumer(component)
-
-    findParent(component, (p) => {
-      if (p?.type === 'page') return (isPageDescendant = true)
-      return false
-    })
-
-    if (isListDescendant) {
+    if (isListConsumer(component)) {
       dataObject = findListDataObject(component)
       if (!has(dataObject, dataKey)) {
         console.log(
@@ -343,7 +309,7 @@ componentResolver.setResolver((component, options, next) => {
   // Children of list components are created by the lib. All other children
   // are handled here
   if (!isListLike(component)) {
-    component.original?.children?.forEach?.((childObject: ComponentObject) => {
+    component.blueprint?.children?.forEach?.((childObject: ComponentObject) => {
       component.createChild(
         resolveComponents({ components: childObject, context, page }),
       )

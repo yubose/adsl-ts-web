@@ -5,17 +5,17 @@ import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import * as u from '../utils/internal'
 import * as T from '../types'
 
+type Hooks = Record<
+  T.NUIComponent.HookEvent,
+  T.NUIComponent.Hook[T.NUIComponent.HookEvent][]
+>
+
 class Component<C extends ComponentObject = ComponentObject>
   implements T.IComponent<C> {
   #blueprint: ComponentObject
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
-  #hooks: Partial<
-    Record<
-      T.NUIComponent.HookEvent,
-      T.NUIComponent.Hook[T.NUIComponent.HookEvent][]
-    >
-  > = {}
+  #hooks = {} as Hooks
   #hookCbIds: string[] = []
   #component: WritableDraft<ComponentObject> | ComponentObject
   #children: T.NUIComponent.Instance[] = []
@@ -47,11 +47,11 @@ class Component<C extends ComponentObject = ComponentObject>
   [u.inspect]() {
     return {
       ...this.toJSON(),
+      type: this.type,
       blueprint: this.#blueprint,
       cache: this.#cache,
       hooks: this.hooks,
       hookIds: this.#hookCbIds,
-      parentId: this.parent?.id,
     }
   }
 
@@ -63,9 +63,8 @@ class Component<C extends ComponentObject = ComponentObject>
     this.#component = createComponentDraftSafely(
       component,
     ) as WritableDraft<ComponentObject>
-
-    this.#id = opts?.id || this.#component.id || u.getRandomKey()
     this.#type = this.#blueprint.type
+    this.#id = opts?.id || this.#component.id || u.getRandomKey()
     this.original = this.#blueprint
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
@@ -476,6 +475,7 @@ class Component<C extends ComponentObject = ComponentObject>
   props() {
     return {
       ...this.#component,
+      type: this.type,
       id: this.#id,
     } as ComponentObject & { id: string }
   }
@@ -484,7 +484,7 @@ class Component<C extends ComponentObject = ComponentObject>
   toJSON() {
     const result = {} as ReturnType<T.IComponent['toJSON']>
     u.assign(result, this.props(), {
-      parentId: this.parent?.id || '',
+      parentId: this.parent?.id || null,
       children: this.children.map((child) => child?.toJSON?.()),
     })
     return result

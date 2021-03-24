@@ -115,8 +115,8 @@ resolveStyles.setResolver(
     if (display === 'inline') edit({ display: 'inline' })
 
     /* -------------------------------------------------------
-    ---- BORDERS
-  -------------------------------------------------------- */
+      ---- BORDERS
+    -------------------------------------------------------- */
 
     /**
      * Returns border attributes according to the "border" property defined in the NOODL as well
@@ -299,6 +299,12 @@ resolveStyles.setResolver(
     /* -------------------------------------------------------
     ---- OTHER / UNCATEGORIZED
   -------------------------------------------------------- */
+
+    // Global (Components with global: true should not be associated with other components.
+    // They should be treated as modals or dialogs)
+    if (component.has('global')) {
+      edit({ zIndex: 1001 })
+    }
 
     // Shadow
     if (Identify.isBooleanTrue(shadow)) {

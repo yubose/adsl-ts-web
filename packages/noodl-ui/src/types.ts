@@ -28,6 +28,7 @@ import RegisterCache from './cache/RegisterCache'
 import EmitAction from './actions/EmitAction'
 import NUI from './noodl-ui'
 import NUIPage from './Page'
+import ComponentResolver from './Resolver'
 import Viewport from './Viewport'
 import { event, lib } from './constants'
 
@@ -152,11 +153,12 @@ export namespace NUIComponent {
       dataObject: any
       index: number
     }): void
+    [event.component.page.PAGE_INSTANCE_CREATED](page: NUIPage): void
     [event.component.page.PAGE_OBJECT](
       component: NUIComponent.Instance,
       options: ConsumerOptions,
     ): Promise<void | PageObject>
-    [event.component.register.ONEVENT](): any
+    [event.component.register.ONEVENT](): void
     content(pluginContent: string): void
     dataValue(dataValue: any): void
     path(src: string): void
@@ -224,7 +226,11 @@ export interface IComponent<
   get(key: keyof C, styleKey?: keyof StyleObject): any
   getStyle<K extends keyof StyleObject>(styleKey: K): StyleObject[K]
   has(key: keyof C, styleKey?: keyof StyleObject): boolean
-  on(eventName: string, cb: Function): this
+  on<Evt extends NUIComponent.HookEvent>(
+    evt: Evt,
+    cb: NUIComponent.Hook[Evt],
+    id?: string,
+  ): this
   off(eventName: string, cb: Function): this
   parent: NUIComponent.Instance | null
   props(): { id: string } & ComponentObject
@@ -374,4 +380,22 @@ export interface ViewportListener {
       previousHeight: number | undefined
     },
   ): Promise<any> | any
+}
+
+export type Use =
+  | Store.ActionObject
+  | Store.BuiltInObject
+  | Store.PluginObject
+  | Store.RegisterObject
+  | UseObject
+  | ComponentResolver<any>
+
+export interface UseObject {
+  getAssetsUrl?(): string
+  getBaseUrl?(): string
+  getPages?(): string[]
+  getPreloadPages?(): string[]
+  getRoot?(): Record<string, any>
+  getPlugins?: Plugin.CreateType[]
+  observe?: Store.ObserverObject | Store.ObserverObject[]
 }

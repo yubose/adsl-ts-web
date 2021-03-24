@@ -3,24 +3,17 @@ import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { NOODLUI as NUI, publish } from 'noodl-ui'
 import { eventId } from './constants'
-import { assetsUrl, ndom, viewport } from './test-utils'
+import { assetsUrl, baseUrl, ndom, viewport } from './test-utils'
 
 chai.use(sinonChai)
 
 let logSpy: sinon.SinonStub
 
-const page = 'GeneralInfo'
+const defaultPageName = 'GeneralInfo'
 const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 
 before(() => {
   console.clear()
-  ndom.page.on(eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, (node, component) => {
-    NUI.cache.component.remove(component)
-    publish(component, (c) => {
-      NUI.cache.component.remove(c)
-    })
-  })
-  ndom.use(NUI)
 
   viewport.width = 375
   viewport.height = 667
@@ -33,12 +26,16 @@ after(() => {
 })
 
 beforeEach(() => {
-  NUI.getRootPage().page = page
+  ndom.createPage(defaultPageName)
+  ndom.page.on(eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, (node, component) => {
+    NUI.cache.component.remove(component)
+    publish(component, (c) => NUI.cache.component.remove(c))
+  })
   NUI.use({
     getAssetsUrl: () => assetsUrl,
-    getBaseUrl: () => 'https://google.com/',
+    getBaseUrl: () => baseUrl,
     getRoot: () => root,
-    getPages: () => [page],
+    getPages: () => [defaultPageName],
     getPreloadPages: () => [],
   })
 })

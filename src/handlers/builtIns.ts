@@ -706,7 +706,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (component.contentType === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
             import('../app/noodl-ui').then(() => {
-              const assetsUrl = app.nui.getAssetsUrl() || ''
+              const assetsUrl = NUI.getAssetsUrl() || ''
               const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
               const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
               const originalParent = node?.parentNode as HTMLDivElement

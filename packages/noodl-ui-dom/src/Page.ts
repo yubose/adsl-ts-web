@@ -1,4 +1,4 @@
-import { Component, Viewport } from 'noodl-ui'
+import { Component, NUIComponent, Page as NUIPage } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
 import { openOutboundURL } from './utils'
 import { eventId } from './constants'
@@ -16,6 +16,7 @@ const getDefaultRenderState = (
 })
 
 class Page {
+  #nuiPage: NUIPage
   #state: T.Page.State = {
     current: '',
     previous: '',
@@ -33,8 +34,7 @@ class Page {
     T.Page.HookEvent,
     T.Page.HookDescriptor[]
   >
-  #render: T.Render.Func | undefined
-  #viewport = {} as Viewport
+  components: ComponentObject[] = []
   pageUrl: string = 'index.html?'
   rootNode: HTMLBodyElement
   ref: {
@@ -42,20 +42,27 @@ class Page {
       name: string
       timer: NodeJS.Timeout | null
     }
-  } = { request: { name: '', timer: null } }
+  } = { request: { name: '', timer: null } };
 
-  constructor(render?: T.Render.Func | undefined) {
-    if (render) this.render = render
-    // this.rootNode = document.createElement('div')
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      ...this.snapshot(),
+      id: this.id,
+      nuiPage: this.#nuiPage,
+      pageUrl: this.pageUrl,
+      viewport: { width: this.viewport.width, height: this.viewport.height },
+    }
+  }
+
+  constructor(nuiPage: NUIPage) {
+    this.#nuiPage = nuiPage
     this.clearRootNode()
-    // if (!document.body.contains(this.rootNode))
-    // document.body.appendChild(this.rootNode)
   }
 
   clearRootNode() {
     if (!this.rootNode) {
       this.rootNode = document.body as any
-      this.rootNode.id = 'root'
+      this.rootNode.id = this.id as string
     }
     this.rootNode.innerHTML = ''
     this.rootNode.style.cssText = ''
@@ -69,12 +76,16 @@ class Page {
     return this.#hooks
   }
 
-  get render() {
-    return this.#render as T.Render.Func
+  get id() {
+    return this.#nuiPage.id
   }
 
-  set render(fn: T.Render.Func) {
-    this.#render = fn
+  get page() {
+    return this.#nuiPage.page as string
+  }
+
+  set page(page: string) {
+    this.#nuiPage.page = page
   }
 
   get state() {
@@ -82,11 +93,19 @@ class Page {
   }
 
   get viewport() {
-    return this.#viewport
+    return this.#nuiPage.viewport
   }
 
   set viewport(viewport) {
-    this.#viewport = viewport
+    this.#nuiPage.viewport = viewport
+  }
+
+  getNuiPage() {
+    return this.#nuiPage
+  }
+
+  isEqual(val: NUIPage | Page) {
+    return val === this.getNuiPage() || val === this
   }
 
   getCbs() {
@@ -135,12 +154,12 @@ class Page {
       if (process.env.NODE_ENV !== 'test') {
         history.pushState({}, '', this.pageUrl)
       }
-      const snapshot = await this.navigate(newPage)
+      const result = await this.navigate(newPage)
       this.setPreviousPage(this.state.current)
       this.#state.current = newPage
-      return snapshot || { snapshot: null }
+      return (result && result?.snapshot?.components) || []
     }
-    return { snapshot: null }
+    return []
   }
 
   /**
@@ -252,7 +271,7 @@ class Page {
     pageName && delete this.#state.modifiers[pageName]
   }
 
-  getPreviousPage(startPage: string = this.getState().previous) {
+  getPreviousPage(startPage: string = this.state.previous) {
     let previousPage
     let parts = this.pageUrl.split('-')
     if (parts.length > 1) {
@@ -313,7 +332,9 @@ class Page {
   ) {
     let results
     if (u.isArr(this.hooks[evt])) {
-      results = await Promise.all(this.hooks[evt].map((o) => o.fn(...args)))
+      results = await Promise.all(
+        this.hooks[evt].map((o) => (o.fn as any)(...args)),
+      )
     }
     return results ? results.find(Boolean) : results
   }

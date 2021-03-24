@@ -5,15 +5,17 @@ import { addClassName, entries, isObj } from '../utils/internal'
 
 export default {
   name: '[noodl-dom] Styles',
-  cond: (node: NOODLDOMElement, component) =>
+  cond: (node, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
   resolve: (node: HTMLElement, component) => {
     if (isObj(component.style?.textAlign)) {
       delete component.style.textAlign
     }
+
     entries(component.style).forEach(([styleKey, styleValue]) => {
       node.style[styleKey] = String(styleValue)
     })
+
     if (VP.isNil(component.original?.style?.marginTop)) {
       component.style.marginTop = '0px'
     }

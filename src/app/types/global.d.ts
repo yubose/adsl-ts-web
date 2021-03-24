@@ -31,7 +31,7 @@ declare global {
     pcomponents: ProxiedComponent[]
     meeting: Meeting
     modal: Modal
-    noodlui: NOODL
+    nui: NOODL
     ndom: NOODLDOM
     redraw: any
     room: Room | null
