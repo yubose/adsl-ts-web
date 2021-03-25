@@ -18,6 +18,7 @@ class Page {
         [key: string]: any
       }
     },
+    reqQueue: [] as string[],
     status: eventId.page.status.IDLE as T.PageStatus,
     rootNode: false,
   }
@@ -91,6 +92,12 @@ class Page {
     newPage: string = '',
     { delay }: { reload?: boolean; delay?: number } = {},
   ) {
+    this.#state.reqQueue.unshift(newPage)
+    console.log(
+      `%cAdded ${newPage} to reqQueue`,
+      `color:#00b406;`,
+      this.#state.reqQueue,
+    )
     // if (this.ref.request.name === newPage && this.ref.request.timer) {
     //   log.func('requestPageChange')
     //   await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
@@ -375,6 +382,25 @@ class Page {
 
   set render(fn: T.Render) {
     this.#render = fn
+  }
+
+  isStale(pageName: string) {
+    const getQueue = () => this.#state.reqQueue
+
+    while (getQueue().length > 1) {
+      const removed = getQueue().pop()
+      console.log(
+        `%cRemoved ${removed} from reqQueue`,
+        `color:#00b406;`,
+        getQueue(),
+      )
+    }
+
+    if (getQueue().length <= 1) {
+      return !getQueue().includes(pageName)
+    }
+
+    return getQueue()[0] === pageName
   }
 }
 
