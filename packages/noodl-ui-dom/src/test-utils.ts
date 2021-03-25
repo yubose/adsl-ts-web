@@ -1,30 +1,46 @@
 import { ComponentObject, PageObject } from 'noodl-types'
 import { NUIComponent, NOODLUI as NUI, Viewport } from 'noodl-ui'
-import { NOODLDOMElement, Page, Resolve } from './types'
-import { array, entries, keys, isUnd } from './utils/internal'
-import { eventId } from './constants'
+import { NOODLDOMElement, Resolve } from './types'
+import { array, keys, isArr, isStr, isUnd } from './utils/internal'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import * as defaultResolvers from './resolvers'
 
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = baseUrl + 'assets/'
-export const ndom = new NOODLDOM()
-export const viewport = new Viewport()
+export const ndom = new NOODLDOM(NUI)
+export const viewport = new Viewport({ width: 375, height: 667 })
+
+const defaultResolversKeys = keys(
+  defaultResolvers,
+) as (keyof typeof defaultResolvers)[]
 
 type MockDrawResolver =
   | Resolve.Config
   | keyof typeof defaultResolvers
   | (Resolve.Config | keyof typeof defaultResolvers)[]
 
-interface MockDrawOptions<Evt extends Page.HookEvent = Page.HookEvent> {
-  component?: ComponentObject
-  on?: Partial<Record<Evt, Page.Hook[Evt]>>
+interface MockRenderOptions {
+  components?: ComponentObject | ComponentObject[]
+  currentPage?: string
   page?: NOODLDOMPage
   pageName?: string
   pageObject?: PageObject
   resolver?: MockDrawResolver
   root?: Record<string, any>
+}
+
+interface CreateRenderReturnObject {
+  assetsUrl: string
+  baseUrl: string
+  nui: typeof NUI
+  ndom: NOODLDOM
+  page: NOODLDOMPage
+  pageObject: PageObject
+  root: Record<string, any>
+  render(
+    page?: NOODLDOMPage,
+  ): Promise<{ node: HTMLElement | null; component: NUIComponent.Instance }[]>
 }
 
 /**
@@ -33,36 +49,35 @@ interface MockDrawOptions<Evt extends Page.HookEvent = Page.HookEvent> {
  * inserts the pageName and pageObject if they are both set, so its entirely optional
  * to provide a getRoot function in that case
  */
-export function mockDraw<Evt extends Page.HookEvent = Page.HookEvent>({
-  on,
-  ...opts
-}: MockDrawOptions = {}) {
+export function createRender(opts: MockRenderOptions) {
   ndom.reset()
 
-  let pageName = 'Hello'
-  let page = (opts.page || ndom.page) as NOODLDOMPage
-  let pageObject = (opts.pageObject || {}) as PageObject
+  let currentPage = ''
+  let pageRequesting = ''
+  let page: NOODLDOMPage | undefined
+  let pageObject: PageObject | undefined
 
-  if (!opts.resolver) {
-    opts.resolver = keys(defaultResolvers) as (keyof typeof defaultResolvers)[]
-  }
+  currentPage = opts.currentPage || ''
+  page = opts.page
+  pageRequesting = opts.pageName || page?.requesting || 'Hello'
+  pageObject =
+    (opts.pageObject
+      ? ({
+          ...opts.pageObject,
+          components: opts.components || opts.pageObject.components || [],
+        } as PageObject)
+      : undefined) ||
+    ({ components: opts.components || page?.components || [] } as PageObject)
 
-  if (opts.pageName) {
-    pageName = opts.pageName
-  }
+  !page && (page = ndom.page || ndom.createPage(currentPage))
+  !opts.resolver && (opts.resolver = defaultResolversKeys)
 
-  if (!page) page = ndom.createPage()
-  if (!page.page) page.page = 'Hello'
-
-  if (on) {
-    entries(on).forEach(([evt, fn]) =>
-      page.on<Evt>(evt as Evt, fn as Page.Hook[Evt]),
-    )
-  }
+  if (page.requesting !== pageRequesting) page.requesting = pageRequesting
+  if (page.page !== currentPage) page.page = currentPage
 
   array(opts.resolver).forEach(
-    (resolver: Resolve.Config | keyof typeof defaultResolvers) => {
-      if (typeof resolver === 'string') {
+    (resolver: Resolve.Config | typeof defaultResolversKeys[number]) => {
+      if (isStr(resolver)) {
         defaultResolvers[resolver] && ndom.register(defaultResolvers[resolver])
       } else {
         resolver && ndom.register(resolver)
@@ -70,49 +85,46 @@ export function mockDraw<Evt extends Page.HookEvent = Page.HookEvent>({
     },
   )
 
-  if (!ndom.resolvers().find((o) => o.name === defaultResolvers.id.name)) {
-    ndom.register(defaultResolvers.id)
-  }
-
   pageObject = {
-    ...opts.root?.[pageName],
+    ...NUI.getRoot()[pageRequesting],
+    ...opts.root?.[pageRequesting],
     ...pageObject,
   }
 
-  if (opts.component) {
-    pageObject.components = array(opts.component)
-  } else {
-    if (!pageObject.components) {
-      pageObject.components = opts.component ? array(opts.component) : []
-    }
+  if (!isArr(pageObject?.components)) {
+    // @ts-expect-error
+    pageObject.components = [pageObject.components]
   }
-
-  NUI.use({
-    getRoot: () => ({ ...NUI.getRoot(), [pageName]: pageObject }),
-  })
 
   if (isUnd(page.viewport.width) || isUnd(page.viewport.height)) {
-    page.viewport.width = 375
-    page.viewport.height = 667
+    page.viewport.width = page.viewport.width || 375
+    page.viewport.height = page.viewport.height || 667
   }
 
-  page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, async () => ({
-    name: page.page,
-    object: pageObject,
-  }))
+  const use = {
+    getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => baseUrl,
+    getPageObject: async () => pageObject as PageObject,
+    getPages: () => [pageRequesting],
+    getPreloadPages: () => [],
+    getRoot: () => ({
+      ...NUI.getRoot(),
+      ...opts.root,
+      [pageRequesting]: pageObject,
+    }),
+  }
+
+  ndom.use(use)
 
   return {
+    ...use,
     assetsUrl,
+    baseUrl,
+    nui: NUI,
+    ndom,
     page,
     pageObject,
-    async render(name: string = pageName) {
-      const components = await ndom.render(page)
-      return components
-    },
-    async requestPageChange(name: string = pageName) {
-      const components = await page.requestPageChange(name)
-      return components
-    },
+    render: () => ndom.render(page as NOODLDOMPage),
   }
 }
 

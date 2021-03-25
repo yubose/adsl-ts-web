@@ -1,6 +1,5 @@
-import { Component, NUIComponent, Page as NUIPage } from 'noodl-ui'
+import { Page as NUIPage } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
-import { openOutboundURL } from './utils'
 import { eventId } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
@@ -18,7 +17,6 @@ const getDefaultRenderState = (
 class Page {
   #nuiPage: NUIPage
   #state: T.Page.State = {
-    current: '',
     previous: '',
     requesting: '',
     modifiers: {} as {
@@ -81,11 +79,27 @@ class Page {
   }
 
   get page() {
-    return this.#nuiPage.page as string
+    return (this.#nuiPage?.page as string) || ''
   }
 
   set page(page: string) {
-    this.#nuiPage.page = page
+    this.#nuiPage.page = page || ''
+  }
+
+  get previous() {
+    return this.#state.previous
+  }
+
+  set previous(pageName: string) {
+    this.#state.previous = pageName || ''
+  }
+
+  get requesting() {
+    return this.#state.requesting
+  }
+
+  set requesting(pageName: string) {
+    this.#state.requesting = pageName || ''
   }
 
   get state() {
@@ -123,154 +137,6 @@ class Page {
     return this.#state
   }
 
-  /**
-   * Requests to change the page to another page
-   * TODO - Merge this into page.navigate
-   * !NOTE - Page modifiers (ex: "reload") is expected to be set before this call via page.setModifier
-   * @param { string } newPage - Page name to request
-   * @param { boolean | undefined } options.reload - Parameter for NOODL's evolve
-   * @param { number | undefined } options.delay - Request debouncing delay (defaults to 800 (ms))
-   */
-  async requestPageChange(
-    newPage: string = '',
-    { delay }: { reload?: boolean; delay?: number } = {},
-  ) {
-    // if (this.ref.request.name === newPage && this.ref.request.timer) {
-    //   log.func('requestPageChange')
-    //   await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-    //     ...this.snapshot(),
-    //     reason: 'debounced',
-    //     from: 'requestPageChange',
-    //   })
-    //   return log.orange(
-    //     `Aborted the request to "${newPage}" because a previous request ` +
-    //       `to the same page was just requested`,
-    //     this.snapshot(),
-    //   )
-    // }
-    if (newPage) {
-      this.ref.request.timer && clearTimeout(this.ref.request.timer)
-      this.setRequestingPage(newPage, { delay })
-      if (process.env.NODE_ENV !== 'test') {
-        history.pushState({}, '', this.pageUrl)
-      }
-      const result = await this.navigate(newPage)
-      this.setPreviousPage(this.state.current)
-      this.#state.current = newPage
-      return (result && result?.snapshot?.components) || []
-    }
-    return []
-  }
-
-  /**
-   * Navigates to the next page using pageName. It first prepares the rootNode
-   * and begins parsing the NOODL components before rendering them to the rootNode.
-   * Returns a snapshot of the page name, object, and its parsed/rendered components
-   * @param { string } pageName
-   */
-  async navigate(pageName: string): Promise<{ snapshot: any } | void> {
-    // TODO: onTimedOut
-    try {
-      if (!this.render)
-        throw new Error(
-          'Cannot navigate without a renderer. ' +
-            'Pass one in by directing setting the "render" property',
-        )
-
-      this.setStatus(eventId.page.status.NAVIGATING)
-
-      // Outside link
-      if (pageName?.startsWith?.('http')) {
-        await this.emitAsync(
-          eventId.page.on.ON_OUTBOUND_REDIRECT,
-          this.snapshot(),
-        )
-        openOutboundURL(pageName)
-        return this.#onNavigateEnd({ pageName })
-      }
-
-      // TODO - Put a page checker here
-
-      await this.emitAsync(eventId.page.on.ON_NAVIGATE_START, this.snapshot())
-
-      const { requesting } = this.state
-
-      // Sometimes a navigate request coming from another location like a
-      // "goto" action can invoke a request in the middle of this operation.
-      // Give the latest call the priority
-      if (requesting !== pageName) {
-        console.log(
-          `%cAborting this navigate request for ${pageName} because a more ` +
-            `recent request to "${requesting}" was called`,
-          `color:#FF5722;`,
-          { pageAborting: pageName, pageRequesting: requesting },
-        )
-        await this.emitAsync(eventId.page.on.ON_NAVIGATE_ABORT, this.snapshot())
-        return this.#onNavigateEnd({ pageName })
-      }
-
-      // The caller is expected to provide their own page object
-      const pageSnapshot = await this.emitAsync(
-        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
-        this.snapshot({ ref: this.ref }),
-      )
-
-      if (pageSnapshot === 'old.request') {
-        return void (await this.emitAsync(
-          eventId.page.on.ON_NAVIGATE_ABORT,
-          this.snapshot(),
-        ))
-      }
-
-      if (!pageSnapshot) throw new Error(`Page snapshot was empty`)
-
-      this.setStatus(eventId.page.status.SNAPSHOT_RECEIVED)
-
-      const components = this.render(
-        pageSnapshot?.object?.components as ComponentObject[],
-      ) as Component[]
-
-      await this.emitAsync(
-        eventId.page.on.ON_COMPONENTS_RENDERED,
-        this.snapshot({ components }) as T.Page.Snapshot & {
-          components: Component[]
-        },
-      )
-
-      this.#onNavigateEnd({ pageName })
-
-      return {
-        snapshot: { ...pageSnapshot, components },
-      }
-    } catch (error) {
-      this.emitSync(eventId.page.on.ON_NAVIGATE_ABORT, this.snapshot({ error }))
-      this.emitSync(
-        eventId.page.on.ON_NAVIGATE_ERROR,
-        this.snapshot({ error }) as T.Page.Snapshot & { error: Error },
-      )
-      this.#onNavigateEnd({ error, pageName })
-      throw new Error(error)
-    }
-  }
-
-  /**
-   * Encapsulates common cleanup operations when navigation is ending
-   * !NOTE - Should not be called if an error occurred
-   */
-  #onNavigateEnd = ({
-    error,
-    pageName,
-  }: {
-    error?: boolean
-    pageName?: string
-  } = {}) => {
-    this.setStatus(
-      error ? eventId.page.status.NAVIGATE_ERROR : eventId.page.status.IDLE,
-    )
-    // Remove the page modifiers so they don't propagate to subsequent navigates
-    pageName && delete this.#state.modifiers[pageName]
-  }
-
   getPreviousPage(startPage: string = this.state.previous) {
     let previousPage
     let parts = this.pageUrl.split('-')
@@ -301,7 +167,7 @@ class Page {
     return {
       status: this.state.status,
       previous: this.state.status,
-      current: this.state.current,
+      current: this.page,
       requesting: this.state.requesting,
       ...opts,
     }
@@ -352,9 +218,9 @@ class Page {
 
   setStatus(status: T.Page.Status) {
     this.#state.status = status
-    if (status === eventId.page.status.IDLE) this.setRequestingPage('')
-    else if (status === eventId.page.status.NAVIGATE_ERROR)
-      this.setRequestingPage('')
+    if (status === eventId.page.status.IDLE) this.requesting = ''
+    else if (status === eventId.page.status.NAVIGATE_ERROR) this.requesting = ''
+    this.emitSync(eventId.page.on.ON_STATUS_CHANGE, status)
     return this
   }
 
@@ -369,21 +235,10 @@ class Page {
     return this
   }
 
-  setRequestingPage(name: string, { delay = 800 }: { delay?: number } = {}) {
-    this.#state.requesting = name
-    this.ref.request.name = name
-    this.ref.request.timer = setTimeout(() => {
-      this.ref.request.name = ''
-      this.ref.request.timer = null
-    }, delay)
-    return this
-  }
-
   reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {
     if (slice) {
       if (slice === 'render') this.#state.render = getDefaultRenderState()
     }
-    // this.#state = getDefaultState()
   }
 }
 

@@ -5,6 +5,7 @@ import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
 import NOODLDOM, {
   eventId,
+  isPage as isNOODLDOMPage,
   NOODLDOMElement,
   Page as NOODLDOMPage,
   RegisterOptions,
@@ -161,12 +162,48 @@ class App {
   constructor() {
     this.#viewportUtils = createViewportHandler(new Viewport())
     this.ndom = new NOODLDOM()
-    this.mainPage = this.ndom.use(
+    this.mainPage = this.ndom.createPage(
       NUI.createPage({
-        name: 'root',
         viewport: this.#viewportUtils.viewport,
       }),
     )
+  }
+
+  /**
+   * Navigates to a page specified in page.requesting
+   * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
+   * @param { NOODLDOMPage } page
+   * @param { string | undefined } pageRequesting
+   */
+  async navigate(page: NOODLDOMPage): Promise<void>
+  async navigate(pageRequesting: string): Promise<void>
+  async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
+    try {
+      let _page: NOODLDOMPage
+      let _pageRequesting = ''
+
+      if (isNOODLDOMPage(page)) {
+        _page = page as NOODLDOMPage
+        pageRequesting && (_pageRequesting = pageRequesting)
+      } else {
+        _page = this.mainPage
+        typeof page === 'string' && (_pageRequesting = page)
+      }
+
+      if (_pageRequesting && _page.requesting !== _pageRequesting) {
+        _page.requesting = _pageRequesting
+      }
+      // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
+      // our init() method. Page.components should also contain the components retrieved from
+      // that page object
+      const req = await this.ndom.request(_page)
+      if (req) {
+        req.render()
+      }
+    } catch (error) {
+      console.error(error)
+      throw new Error(error)
+    }
   }
 
   async initialize({
@@ -197,6 +234,13 @@ class App {
       await noodl.init()
       stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
       stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
+
+      this.ndom.use({
+        getPageObject: async (page) => {
+          const pageObject = await this.#preparePage(page.requesting)
+          return pageObject
+        },
+      })
 
       createActions(this)
       createBuiltIns(this)

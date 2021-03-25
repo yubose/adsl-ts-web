@@ -1,11 +1,12 @@
 import { ComponentObject, ComponentType, userEvent } from 'noodl-types'
 import {
-  ComponentInstance,
+  NUIComponent,
   findParent,
   isComponent,
   SelectOption,
   Viewport as VP,
 } from 'noodl-ui'
+import NOODLDOMPage from '../Page'
 import { NOODLDOMElement } from '../types'
 import * as u from './internal'
 
@@ -46,7 +47,7 @@ export function createEmptyObjectWithKeys<K extends string = any, I = any>(
 }
 
 export function getTagName(
-  component: ComponentInstance,
+  component: NUIComponent.Instance,
 ): keyof HTMLElementTagNameMap {
   switch (component?.type) {
     case 'br':
@@ -114,7 +115,7 @@ export function makeFinder(
   ) => NOODLDOMElement | HTMLElement | Element | null,
 ) {
   const find = (
-    c: string | ComponentInstance,
+    c: string | NUIComponent.Instance,
   ): NOODLDOMElement | HTMLElement | Element | null => {
     let str = ''
     let cb = (doc: Document | null | undefined) => fn(str, doc)
@@ -250,14 +251,14 @@ export function getDataAttribKeys() {
  * This is a shallow calculation which doesn't take into account its children or
  * its parent
  * @param { HTMLElement } node
- * @param { ComponentInstance } component
+ * @param { NUIComponent.Instance } component
  */
 export function getDisplayHeight({
   component: c,
   viewport: vp,
   unit = 'px',
 }: {
-  component: ComponentInstance
+  component: NUIComponent.Instance
   viewport: VP
   unit?: Pick<NonNullable<Parameters<typeof VP['getSize']>[2]>, 'unit'>['unit']
 }) {
@@ -275,10 +276,10 @@ export function getDisplayHeight({
 
 /**
  *
- * @param { ComponentInstance | ComponentObject | ComponentType } component - NOODL component object, instance, or type
+ * @param { NUIComponent.Instance | ComponentObject | ComponentType } component - NOODL component object, instance, or type
  */
 export function getShape(
-  component: ComponentInstance,
+  component: NUIComponent.Instance,
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
@@ -290,11 +291,11 @@ export function getShape(
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
-  components: (ComponentInstance | ComponentObject | ComponentType)[],
+  components: (NUIComponent.Instance | ComponentObject | ComponentType)[],
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject
 export function getShape(
-  component: ComponentInstance | ComponentObject | ComponentType,
+  component: NUIComponent.Instance | ComponentObject | ComponentType,
   opts?: { parent?: ComponentObject; shapeKeys?: string[] },
 ): ComponentObject {
   const shape = {} as ComponentObject
@@ -437,9 +438,13 @@ export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || u.isStr(value) || u.isNum(value)
 }
 
+export function isPage(val: unknown): val is NOODLDOMPage {
+  return !!(val && val instanceof NOODLDOMPage)
+}
+
 /**
  * Returns true if the component is a descendant of a component of type: "page"
- * @param { ComponentInstance } component
+ * @param { NUIComponent.Instance } component
  */
 export function isPageConsumer(component: any): boolean {
   return isComponent(component)

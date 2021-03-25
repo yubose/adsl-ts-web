@@ -1,4 +1,4 @@
-import { ComponentObject, ComponentType } from 'noodl-types'
+import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
 import { Component, NOODLUI as NUI, UseObject as NUIUseObject } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
@@ -11,7 +11,7 @@ import {
   isPageConsumer,
 } from './utils'
 import MiddlewareUtils from './MiddlewareUtils'
-import { eventId } from './constants'
+import { eventId, transaction } from './constants'
 
 export interface ActionChainDOMContext {
   findAllByViewTag: typeof findAllByViewTag
@@ -120,6 +120,10 @@ export namespace Render {
 
 export type RegisterOptions = Resolve.Config
 
+export interface Transaction {
+  [transaction.GET_PAGE_OBJECT](page: NOODLDOMPage): Promise<PageObject>
+}
+
 /* -------------------------------------------------------
   ---- PAGE TYPES
 -------------------------------------------------------- */
@@ -128,6 +132,7 @@ export namespace Page {
   export type HookEvent = keyof Hook
 
   export type Hook = {
+    [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
     [eventId.page.on.ON_NAVIGATE_START](snapshot: Snapshot): void
     [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
     [eventId.page.on.ON_NAVIGATE_ERROR](
@@ -169,7 +174,6 @@ export namespace Page {
 
   export interface State {
     previous: string
-    current: string
     requesting: string
     modifiers: {
       [pageName: string]: { reload?: boolean } & {
@@ -198,4 +202,5 @@ export namespace Page {
 
 export interface UseObject extends NUIUseObject {
   createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
+  getPageObject?: Transaction[typeof transaction.GET_PAGE_OBJECT]
 }

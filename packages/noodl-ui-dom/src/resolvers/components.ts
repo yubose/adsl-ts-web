@@ -133,7 +133,7 @@ const domComponentsResolver: Resolve.Config = {
               }
             }
           }
-          pluginNode.src = src
+          pluginNode.src = component.get('data-src')
         } else if (
           metadata.type === 'text/html' ||
           metadata.type === 'text/css'
@@ -192,11 +192,11 @@ const domComponentsResolver: Resolve.Config = {
         let notSupportedEl: HTMLParagraphElement
         videoEl.controls = isBooleanTrue(controls)
         if (poster) videoEl.setAttribute('poster', poster)
-        if (src) {
+        if (component.get('data-src')) {
           sourceEl = document.createElement('source')
           notSupportedEl = document.createElement('p')
           if (videoType) sourceEl.setAttribute('type', videoType)
-          sourceEl.setAttribute('src', src)
+          sourceEl.setAttribute('src', component.get('data-src'))
           notSupportedEl.style.textAlign = 'center'
           // This text will not appear unless the browser isn't able to play the video
           notSupportedEl.innerHTML =

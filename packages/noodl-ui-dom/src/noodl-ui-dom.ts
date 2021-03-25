@@ -1,4 +1,4 @@
-import { ActionType, ComponentObject, Identify } from 'noodl-types'
+import { ActionType, Identify } from 'noodl-types'
 import {
   Component,
   createComponent,
@@ -16,6 +16,7 @@ import {
   getShape,
   getTagName,
   isPageConsumer,
+  openOutboundURL,
 } from './utils'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
@@ -25,6 +26,8 @@ import * as defaultResolvers from './resolvers'
 import * as c from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
+
+const pageEvt = c.eventId.page
 
 interface Middleware {
   inst: MiddlewareUtils
@@ -56,6 +59,12 @@ class NOODLDOM extends NOODLDOMInternal {
     pages: {},
     components: {},
   }
+  transactions: Record<
+    keyof T.Transaction,
+    T.Transaction[keyof T.Transaction]
+  > = u
+    .keys(c.transaction)
+    .reduce((acc, key) => u.assign(acc, { [key]: undefined }), {})
   page: Page // This is the main (root) page. All other pages are stored in this.#pages
 
   static _nui: typeof NUI
@@ -133,36 +142,152 @@ class NOODLDOM extends NOODLDOMInternal {
     return page as Page
   }
 
+  transact<Evt extends keyof T.Transaction>(
+    evt: Evt,
+    args: Parameters<T.Transaction[Evt]>[0],
+  ) {
+    const result = this.transactions[evt]?.(args)
+    if (result instanceof Promise) {
+      return result
+        .then((value) => {
+          return value
+        })
+        .catch((err) => {
+          throw err
+        })
+    }
+    return result
+  }
+
+  /**
+   * Initiates a request to the parameters set in Page.
+   * The page.requesting value should be set prior to calling this method
+   * @param { NOODLDOMPage } page
+   */
+  async request(page = this.page) {
+    // Cache the currently requesting page to detect for newer requests during the call
+    const pageRequesting = page.requesting
+
+    try {
+      if (!this.transactions[c.transaction.GET_PAGE_OBJECT]) {
+        throw new Error(
+          `Cannot render without the ${c.transaction.GET_PAGE_OBJECT} transaction`,
+        )
+      }
+
+      page.ref.request.timer && clearTimeout(page.ref.request.timer)
+
+      const pageObject = await this.transact(
+        c.transaction.GET_PAGE_OBJECT,
+        page,
+      )
+
+      const action = async (cb: () => any | Promise<any>) => {
+        try {
+          if (pageRequesting === page.requesting) {
+            const result = cb()
+            if (result && typeof result === 'object' && 'then' in result) {
+              await result
+            }
+          } else {
+            console.log(
+              `%cAborting this navigate request for ${pageRequesting} because a more ` +
+                `recent request to "${page.requesting}" was called`,
+              `color:#FF5722;`,
+              {
+                pageAborting: pageRequesting,
+                pageRequesting: page.requesting,
+              },
+            )
+            await page.emitAsync(pageEvt.on.ON_NAVIGATE_ABORT, page.snapshot())
+            // Remove the page modifiers so they don't propagate to subsequent navigates
+            delete page.state.modifiers[pageRequesting]
+            throw new Error(
+              `A more recent request to ${page.requesting} was called`,
+            )
+          }
+        } catch (error) {
+          throw error
+        }
+      }
+
+      await action(() => {
+        pageObject && (page.components = pageObject.components)
+      })
+
+      page.setStatus(pageEvt.status.NAVIGATING)
+
+      // Outside link
+      if (pageRequesting?.startsWith('http')) {
+        await page.emitAsync(pageEvt.on.ON_OUTBOUND_REDIRECT, page.snapshot())
+        await action(() => void (page.requesting = ''))
+        return void openOutboundURL(pageRequesting)
+      }
+
+      await action(() => {
+        page.emitAsync(pageEvt.on.ON_NAVIGATE_START, page.snapshot())
+        if (process.env.NODE_ENV !== 'test') {
+          history.pushState({}, '', page.pageUrl)
+        }
+      })
+
+      await action(async () => {
+        if (
+          (await page.emitAsync(
+            pageEvt.on.ON_BEFORE_RENDER_COMPONENTS,
+            page.snapshot(),
+          )) === 'old.request'
+        ) {
+          await page.emitAsync(pageEvt.on.ON_NAVIGATE_ABORT, page.snapshot())
+          throw new Error(`A more recent request was called`)
+        }
+      })
+
+      await action(() => {
+        page.previous = page.page
+        page.page = page.requesting
+        page.requesting = ''
+      })
+    } catch (error) {
+      if (pageRequesting === page.requesting) {
+        page.requesting = ''
+      }
+      throw error
+    }
+
+    return {
+      render: () => this.render(page),
+    }
+  }
+
   /**
    * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
    * @param { ComponentObject | ComponentObject[] } components
    */
   render(page: Page) {
-    const currentPage = page.state.current
-
     page.reset('render')
 
-    if (page.rootNode && page.rootNode.id === currentPage) {
-      return console.log(
-        `%cSkipped rendering the DOM for page "${currentPage}" because the DOM ` +
-          `nodes are already rendered`,
-        `color:#ec0000;font-weight:bold;`,
-        page.snapshot(),
-      )
-    }
+    // if (page.rootNode && page.rootNode.id === page.state.current) {
+    //   return console.log(
+    //     `%cSkipped rendering the DOM for page "${currentPage}" because the DOM ` +
+    //       `nodes are already rendered`,
+    //     `color:#ec0000;font-weight:bold;`,
+    //     page.snapshot(),
+    //   )
+    // }
 
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
 
-    const resolved = NOODLDOM._nui.resolveComponents.call(NOODLDOM._nui, {
-      components: rawComponents,
-      page: page.getNuiPage(),
-    })
+    const components = u.array(
+      NOODLDOM._nui.resolveComponents.call(NOODLDOM._nui, {
+        components: page.components,
+        page: page.getNuiPage(),
+      }),
+    ) as NUIComponent.Instance[]
 
     page.setStatus(c.eventId.page.status.COMPONENTS_RECEIVED)
-
-    const components = u.isArr(resolved) ? resolved : [resolved]
 
     page.emitSync(c.eventId.page.on.ON_DOM_CLEANUP, page.rootNode)
 
@@ -312,7 +437,6 @@ class NOODLDOM extends NOODLDOMInternal {
       // component is still running
       this.draw(newComponent as NUIComponent.Instance)
     }
-
     return [newNode, newComponent] as [typeof node, typeof component]
   }
 
@@ -334,39 +458,65 @@ class NOODLDOM extends NOODLDOMInternal {
     return this.#R.get()
   }
 
-  reset(opts?: { global?: boolean; pages?: boolean; resolvers?: boolean }): this
-  reset(key?: 'resolvers'): this
+  reset(opts?: {
+    componentCache?: boolean
+    global?: boolean
+    pages?: boolean
+    resolvers?: boolean
+    transactions?: boolean
+  }): this
+  reset(key?: 'resolvers' | 'transactions'): this
   reset(
     key?:
-      | { global?: boolean; pages?: boolean; resolvers?: boolean }
-      | 'resolvers',
+      | {
+          componentCache?: boolean
+          global?: boolean
+          pages?: boolean
+          resolvers?: boolean
+          transactions?: boolean
+        }
+      | 'resolvers'
+      | 'transactions',
   ) {
+    const resetComponentCache = () => {
+      NOODLDOM._nui.cache.component.clear()
+    }
     const resetPages = () => {
       this.page = undefined as any
       u.keys(this.pages).forEach((k) => delete this.pages[k])
+      NOODLDOM._nui.cache.page.clear()
     }
-    const resetResolvers = () => (this.resolvers().length = 0)
+    const resetResolvers = () => void (this.resolvers().length = 0)
     const resetGlobal = () => {
       resetPages()
       u.keys(this.global.components).forEach(
         (k) => delete this.global.components[k],
       )
     }
+    const resetTransactions = () => {
+      u.keys(this.transactions).forEach((k) => delete this.transactions[k])
+    }
+
     if (key !== undefined) {
       if (u.isObj(key)) {
+        key.componentCache && resetComponentCache()
         key.global && resetGlobal()
         key.pages && resetPages()
         key.resolvers && resetResolvers()
-        return this
+        key.transactions && resetTransactions()
       } else if (key === 'resolvers') {
         resetResolvers()
-        return this
+      } else if (key === 'transactions') {
+        resetTransactions()
       }
+      return this
     }
     // The operations below is equivalent to a "full reset"
+    resetComponentCache()
     resetGlobal()
     resetPages()
     resetResolvers()
+    resetTransactions()
     return this
   }
 
@@ -378,6 +528,9 @@ class NOODLDOM extends NOODLDOMInternal {
     } else if (u.isObj(obj)) {
       if (obj.createGlobalComponentId) {
         this.#middleware.createGlobalComponentId = obj.createGlobalComponentId
+      }
+      if (obj.getPageObject) {
+        this.transactions[c.transaction.GET_PAGE_OBJECT] = obj.getPageObject
       }
     }
     return this

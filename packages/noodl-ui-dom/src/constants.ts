@@ -2,6 +2,7 @@ export const eventId = {
   page: {
     /** Sorted by order of occurrence */
     on: {
+      ON_STATUS_CHANGE: 'on:status.change',
       ON_NAVIGATE_START: 'on:navigate.start',
       ON_NAVIGATE_ABORT: 'on:navigate.abort',
       ON_OUTBOUND_REDIRECT: 'on:outbound.redirect',
@@ -28,6 +29,10 @@ export const eventId = {
       COMPONENTS_RENDERED: 'status:components.rendered',
     },
   },
+} as const
+
+export const transaction = {
+  GET_PAGE_OBJECT: 'GET_PAGE_OBJECT',
 } as const
 
 export const CREATE_GLOBAL_ID = 'CREATE_GLOBAL_ID'
