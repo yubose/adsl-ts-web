@@ -13,6 +13,7 @@ import {
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import {
   createAsyncImageElement,
+  findByDataGlobalId,
   getShape,
   getTagName,
   isPageConsumer,
@@ -89,6 +90,10 @@ class NOODLDOM extends NOODLDOMInternal {
     }
   }
 
+  get cache() {
+    return NOODLDOM._nui.cache
+  }
+
   get length() {
     return Object.keys(this.global.pages).length
   }
@@ -157,6 +162,51 @@ class NOODLDOM extends NOODLDOMInternal {
         })
     }
     return result
+  }
+
+  removeComponent(component: NUIComponent.Instance | undefined | null) {
+    if (!component) return this
+    component.parent?.removeChild?.(component)
+    component.setParent(null)
+    publish(component, (c) => {
+      c.parent?.removeChild?.(c)
+      c.setParent(null)
+      // Removes from cache store
+      this.cache.component.remove(c)
+    })
+    this.cache.component.remove(component)
+    return this
+  }
+
+  removeNode(node: T.NOODLDOMElement) {
+    if (node instanceof HTMLElement && node.id) {
+      // Remove from global store
+      if (
+        node.dataset.globalid &&
+        this.global.components[node.dataset.globalid]
+      ) {
+        let globalObj = this.global.components[node.dataset.globalid]
+        let componentId = globalObj.componentId
+        // Remove from DOM
+        globalObj.node && globalObj.node !== node && globalObj.node.remove()
+        // Remove parent/child references
+        componentId &&
+          this.cache.component.has(componentId) &&
+          this.removeComponent(this.cache.component.get(globalObj.componentId))
+        // Remove global object
+        delete this.global.components[globalObj.globalId]
+      }
+      // Remove from component cache
+      if (this.cache.component.has(node?.id)) {
+        this.removeComponent(this.cache.component.get(node?.id))
+      }
+      // Remove parent references
+      node?.parentNode?.removeChild?.(node)
+      // Remove from DOM
+      node?.remove?.()
+    }
+
+    return this
   }
 
   /**
@@ -333,29 +383,74 @@ class NOODLDOM extends NOODLDOMInternal {
       }
 
       if (component.has('global')) {
-        const globalId = (
-          this.#middleware.createGlobalComponentId ||
-          this.#middleware.inst.createGlobalComponentId
-        )?.(page, component)
+        let globalId = component.get('globalId') as string
 
-        component.edit({ globalId })
+        if (!globalId || !(globalId in this.global.components)) {
+          globalId = (
+            this.#middleware.createGlobalComponentId ||
+            this.#middleware.inst.createGlobalComponentId
+          )?.(page, component)
 
-        this.global.components[globalId] = {
-          componentId: component.id,
-          globalId,
-          pageId: page.id as string,
-          node,
+          // TODO - remove "globalId" key in favor of data-globalid
+          component.edit({ 'data-globalid': globalId, globalId })
+        }
+
+        if (!u.isObj(this.global.components[globalId])) {
+          this.global.components[globalId] = {
+            componentId: component.id,
+            globalId,
+            pageId: page.id as string,
+            node,
+          }
+        }
+
+        // Check if there are any missing information in its global object
+        let globalObj = this.global.components[globalId]
+
+        if (globalObj.componentId !== component.id) {
+          globalObj.componentId = component.id
+        }
+
+        if (globalObj.globalId !== globalId) {
+          globalObj.globalId = globalId
+        }
+
+        if (globalObj.pageId !== page.id) {
+          globalObj.pageId = page.id as string
+        }
+
+        if (node) {
+          // Don't replace the node but just copy the attributes/styles to it. This
+          // is to prevent disruptions in media streams like webcams
+          if (globalObj.node) {
+            if (globalObj.node !== node) {
+              // TODO - Copy existing styles/attributes to the existing node
+              // Remove parent/child references if any
+              node.parentNode?.removeChild?.(node)
+              node.remove()
+              node = globalObj.node
+            }
+          } else {
+            globalObj.node = node
+          }
+        }
+
+        if (node.dataset.globalid !== globalId) {
+          node.dataset.globalid = globalId
         }
       }
 
       if (node) {
-        const parent = container || document.body
-        parent.appendChild(node)
+        const parent = component.has('global')
+          ? document.body
+          : container || document.body
+
+        if (!parent.contains(node)) parent.appendChild(node)
 
         this.#R.run(node, component)
 
         component.children?.forEach?.((child: Component) => {
-          const childNode = this.draw(child, node) as HTMLElement
+          const childNode = this.draw(child, node, page) as HTMLElement
           node?.appendChild(childNode)
         })
       }
@@ -435,7 +530,7 @@ class NOODLDOM extends NOODLDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.draw(newComponent as NUIComponent.Instance)
+      this.draw(newComponent as NUIComponent.Instance, null, page)
     }
     return [newNode, newComponent] as [typeof node, typeof component]
   }

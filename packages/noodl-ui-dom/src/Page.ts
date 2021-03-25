@@ -78,6 +78,11 @@ class Page {
     return this.#nuiPage.id
   }
 
+  get modifiers() {
+    if (!this.#state.modifiers) this.#state.modifiers = {}
+    return this.state.modifiers
+  }
+
   get page() {
     return (this.#nuiPage?.page as string) || ''
   }

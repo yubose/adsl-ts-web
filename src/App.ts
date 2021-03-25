@@ -49,7 +49,7 @@ class App {
     firebase: true,
   }
   #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
-  #preparePage = {} as (pageName: string) => Promise<PageObject>
+  #preparePage = {} as (page: NOODLDOMPage) => Promise<PageObject>
   #viewportUtils = {} as ViewportUtils
   _store: {
     messaging: { serviceRegistration: ServiceWorkerRegistration; token: string }
@@ -172,11 +172,12 @@ class App {
   /**
    * Navigates to a page specified in page.requesting
    * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
+   * If only a page name is provided, by default the main page instance will be used
    * @param { NOODLDOMPage } page
    * @param { string | undefined } pageRequesting
    */
-  async navigate(page: NOODLDOMPage): Promise<void>
-  async navigate(pageRequesting: string): Promise<void>
+  async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
+  async navigate(pageRequesting: string, opts?: never): Promise<void>
   async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
     try {
       let _page: NOODLDOMPage
@@ -197,9 +198,7 @@ class App {
       // our init() method. Page.components should also contain the components retrieved from
       // that page object
       const req = await this.ndom.request(_page)
-      if (req) {
-        req.render()
-      }
+      req && req.render()
     } catch (error) {
       console.error(error)
       throw new Error(error)
@@ -237,7 +236,7 @@ class App {
 
       this.ndom.use({
         getPageObject: async (page) => {
-          const pageObject = await this.#preparePage(page.requesting)
+          const pageObject = await this.#preparePage(page)
           return pageObject
         },
       })
@@ -294,12 +293,13 @@ class App {
 
       this.#preparePage = async function preparePage(
         this: App,
-        pageName: string,
+        page: NOODLDOMPage,
       ): Promise<PageObject> {
         try {
-          stable && log.cyan(`Running noodl.initPage on ${pageName}`)
-          await noodl.initPage(pageName, [], {
-            ...ndom.page.getState().modifiers[pageName],
+          const pageRequesting = page.requesting
+          stable && log.cyan(`Running noodl.initPage on ${pageRequesting}`)
+          await noodl.initPage(pageRequesting, [], {
+            ...page.state.modifiers,
             builtIn: {
               FCMOnTokenReceive: async (...args: any[]) => {
                 try {
@@ -374,11 +374,11 @@ class App {
             },
           })
           log.func('createPreparePage')
-          log.grey(`Ran noodl.initPage on page "${pageName}"`, {
-            pageName,
-            pageModifiers: ndom.page.getState().modifiers[pageName],
-            pageObject: noodl.root[pageName],
-            snapshot: ndom.page.snapshot(),
+          log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
+            pageRequesting,
+            pageModifiers: page.state.modifiers,
+            pageObject: noodl.root[pageRequesting],
+            snapshot: page.snapshot(),
           })
           if (noodl.root?.Global?.globalRegister) {
             const { Global } = noodl.root
@@ -409,7 +409,7 @@ class App {
               }
             }
           }
-          return noodl.root[pageName]
+          return noodl.root[pageRequesting]
         } catch (error) {
           throw new Error(error)
         }
@@ -457,10 +457,10 @@ class App {
         ) {
           ls.setItem('CACHED_PAGES', JSON.stringify([]))
           ndom.page.pageUrl = 'index.html?'
-          await ndom.page.requestPageChange(startPage)
+          await this.navigate(startPage)
         } else if (!pathname?.startsWith('index.html?')) {
           ndom.page.pageUrl = 'index.html?'
-          await ndom.page.requestPageChange(startPage)
+          await this.navigate(startPage)
         } else {
           const pageParts = pathname.split('-')
           if (pageParts.length > 1) {
@@ -471,8 +471,8 @@ class App {
               startPage = baseArr[baseArr.length - 1]
             }
           }
-          ndom.page.pageUrl = pathname
-          await ndom.page.requestPageChange(startPage)
+          this.mainPage.pageUrl = pathname
+          await this.navigate(startPage)
         }
       }
 
@@ -488,8 +488,10 @@ class App {
         {
           cond: nuiEvent.component.page.PAGE_OBJECT,
           fn: async (component, options) => {
-            const path = component.get('path') || ''
-            const pageObject = await this.#preparePage(path)
+            const pageObject = await this.navigate(
+              component.get('page'),
+              component.get('path'),
+            )
             return pageObject
           },
         },
@@ -569,9 +571,9 @@ class App {
           this.ndom.page.rootNode.style.width = `${width}px`
           this.ndom.page.rootNode.style.height = `${height}px`
         }
-        this.ndom.render(
-          this.noodl?.root?.[this.ndom.page.getState().current]?.components,
-        )
+        this.mainPage.components =
+          this.noodl?.root?.[this.mainPage.page]?.components || []
+        this.ndom.render(this.mainPage)
       }.bind(this),
     )
   }
@@ -600,10 +602,7 @@ class App {
             ...rest,
           })
 
-          if (
-            /videochat/i.test(page.getState().current) &&
-            !/videochat/i.test(pageName)
-          ) {
+          if (/videochat/i.test(page.page) && !/videochat/i.test(pageName)) {
             this.meeting.leave()
             log.func('before-page-render')
             log.grey(`Disconnected from room`, this.meeting.room)
@@ -634,12 +633,12 @@ class App {
           }
 
           let pageSnapshot = {} as { name: string; object: any } | 'old.request'
-          const pageModifiers = page.getState().modifiers[pageName]
+          const pageModifiers = page.state.modifiers
 
-          if (pageName !== page.getState().current) {
+          if (pageName !== page.page) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
-            const noodluidomPageSnapshot = this.ndom.page.snapshot()
+            const noodluidomPageSnapshot = this.mainPage.snapshot()
             // There is a bug that two parallel requests can happen at the same time, and
             // when the second request finishes before the first, the page renders the first page
             // in the DOM. To work around this bug we can determine this is occurring using
@@ -786,7 +785,7 @@ class App {
               : true
             let initcenter = flag ? dataValue.data[0] : [-117.9086, 33.8359]
             let map = new mapboxgl.Map({
-              container: parent.id,
+              container: parent?.id,
               style: 'mapbox://styles/mapbox/streets-v11',
               center: initcenter,
               zoom: dataValue.zoom,

@@ -108,22 +108,27 @@ export function getTagName(
  * @param { function } fn
  */
 export function makeFinder(
-  key: 'id' | 'viewTag',
+  key: 'globalId' | 'id' | 'viewTag',
   fn: (
     id: string,
     doc?: Document | null | undefined,
-  ) => NOODLDOMElement | HTMLElement | Element | null,
+  ) => NodeListOf<NOODLDOMElement> | NOODLDOMElement | HTMLElement | null,
 ) {
   const find = (
     c: string | NUIComponent.Instance,
-  ): NOODLDOMElement | HTMLElement | Element | null => {
+  ): NodeListOf<NOODLDOMElement> | NOODLDOMElement | HTMLElement | null => {
     let str = ''
     let cb = (doc: Document | null | undefined) => fn(str, doc)
     if (!c) return null
     if (u.isStr(c)) {
       str = c
     } else {
-      str = c?.[key] || c?.get?.(key) || c?.original?.[key] || ''
+      str =
+        c?.[key] ||
+        c?.get?.(key) ||
+        c?.blueprint?.[key] ||
+        c?.original?.[key] ||
+        ''
       if (isPageConsumer(c)) return cb(findWindowDocument((doc) => !!cb(doc)))
     }
     // return fn(str)
@@ -132,6 +137,7 @@ export function makeFinder(
   return find
 }
 
+export const findByDataGlobalId = makeFinder('globalId', getByDataGlobalId)
 export const findByElementId = makeFinder('id', getByElementId)
 export const findByViewTag = makeFinder('viewTag', getByViewTag)
 export const findAllByViewTag = makeFinder('viewTag', getByAllViewTag)
@@ -193,38 +199,45 @@ export const get = <T = any>(o: T, k: string) => {
   return result
 }
 
+export function getByDataGlobalId(
+  v: string,
+  doc?: Document | null | undefined,
+): NOODLDOMElement | null {
+  return (doc || document).querySelector(`[data-globalid="${v}"]`)
+}
+
 export function getByDataKey(
   value: string,
   doc?: Document | null | undefined,
-): NOODLDOMElement | Element | null {
+): NOODLDOMElement | null {
   return (doc || document).querySelector(`[data-key="${value}"]`)
 }
 
 export function getByListId(
   value: string,
   doc?: Document | null | undefined,
-): NOODLDOMElement | Element | null {
+): NOODLDOMElement | null {
   return (doc || document).querySelector(`[data-listid="${value}"]`)
 }
 
 export function getByViewTag(
   value: string,
   doc?: Document | null | undefined,
-): NOODLDOMElement | Element | null {
+): NOODLDOMElement | null {
   return (doc || document).querySelector(`[data-viewtag="${value}"]`)
 }
 
 export function getByAllViewTag(
   value: string,
   doc?: Document | null | undefined,
-): NodeListOf<NOODLDOMElement | Element> {
+): NodeListOf<NOODLDOMElement> {
   return (doc || document).querySelectorAll(`[data-viewtag="${value}"]`)
 }
 
 export function getByElementId(
   id: string,
   doc?: Document | null | undefined,
-): NOODLDOMElement | Element | null {
+): NOODLDOMElement | null {
   return (doc || document).getElementById(id)
 }
 
@@ -271,7 +284,7 @@ export function getDisplayHeight({
   }
   return VP.getSize(String(result), vp.height as number, {
     unit,
-  }) as number
+  })
 }
 
 /**

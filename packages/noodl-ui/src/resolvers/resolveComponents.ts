@@ -310,10 +310,17 @@ componentResolver.setResolver((component, options, next) => {
   // are handled here
   if (!isListLike(component)) {
     component.blueprint?.children?.forEach?.((childObject: ComponentObject) => {
-      component.createChild(
+      const child = component.createChild(
         resolveComponents({ components: childObject, context, page }),
       )
+      if (!cache.component.has(child)) {
+        cache.component.add(child)
+      }
     })
+  }
+
+  if (!cache.component.has(component)) {
+    cache.component.add(component)
   }
 
   next?.()

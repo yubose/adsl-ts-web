@@ -4,7 +4,7 @@ import { expect } from 'chai'
 import { ComponentObject, PageObject } from 'noodl-types'
 import { createComponent, event as nuiEvent, NOODLUI as NUI } from 'noodl-ui'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { getShape, getShapeKeys } from '../utils'
+import { getByDataGlobalId, getShape, getShapeKeys } from '../utils'
 import { ndom, createRender } from '../test-utils'
 import NOODLDOM from '../noodl-ui-dom'
 import NOODLDOMPage from '../Page'
@@ -72,32 +72,64 @@ describe(coolGold(`noodl-ui-dom`), () => {
             },
           })
           const req = await ndom.request(page)
-          await req.navigate()
-          const component = req.render()[0]
-          const globalId = component.get('globalId')
+          const component = req?.render()[0]
+          const globalId = component?.get('globalId')
           const globalItem = ndom.global.components[globalId]
           expect(globalId).to.exist
           expect(globalItem).to.exist
           expect(globalItem).to.have.property('globalId', globalId)
-          expect(globalItem).to.have.property('componentId', component.id)
+          expect(globalItem).to.have.property('componentId', component?.id)
           expect(globalItem).to.have.property('pageId', page.id)
           expect(globalItem).to.have.property('node').instanceOf(HTMLElement)
         },
       )
 
-      describe(
-        `when a structurally equivalent component with global: true ` +
-          `is encountered in draw`,
+      describe.only(
+        `when encountering an equivalent or structurally equivalent ` +
+          `component with global: true `,
         () => {
-          xit(``, () => {
-            //
-          })
+          it(
+            `should update existing values in the global object it if ` +
+              `this object was previously added but not replace the node`,
+            async () => {
+              const globalPopUpComponent = mock.getPopUpComponent({
+                popUpView: 'cerealView',
+                global: true,
+              })
+              const pageName = 'Hello'
+              const { page, ndom } = createRender({
+                pageName,
+                pageObject: {
+                  components: [
+                    mock.getSelectComponent(),
+                    mock.getButtonComponent(),
+                    globalPopUpComponent,
+                  ],
+                },
+              })
+              let req = await ndom.request(page)
+              req?.render()
+              const nodes = document.getElementsByClassName('popup')
+              const node = nodes[0] as HTMLElement
+              ndom.cache.component.get(node.id)
+              page.components = [{ ...globalPopUpComponent }]
+              page.requesting = pageName
+              req = await ndom.request(page)
+              req?.render()
+              console.info(prettyDOM())
+              console.info(ndom.global.components)
+              expect(document.body.contains(node)).to.be.true
+              expect(document.getElementsByClassName('popup')).to.have.lengthOf(
+                1,
+              )
+            },
+          )
         },
       )
     })
   })
 
-  describe.only(italic(`request`), () => {
+  describe(italic(`request`), () => {
     it(
       `should throw if the ${c.transaction.GET_PAGE_OBJECT} transaction ` +
         `doesn't exist`,
@@ -167,6 +199,23 @@ describe(coolGold(`noodl-ui-dom`), () => {
         expect(document.body.contains(document.getElementsByTagName(t)[0])).to
           .exist
       })
+    })
+
+    it(`should not remove components with global: true`, async () => {
+      const { page, ndom } = createRender({
+        pageObject: {
+          formData: { password: 'hello123' },
+          components: [
+            mock.getButtonComponent(),
+            mock.getTextFieldComponent(),
+            mock.getSelectComponent(),
+            mock.getVideoComponent({ global: true }),
+          ],
+        },
+      })
+      const req = await ndom.request(page)
+      req?.render()
+      console.info(prettyDOM())
     })
   })
 })

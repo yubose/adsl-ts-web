@@ -1,5 +1,10 @@
 import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
-import { Component, NOODLUI as NUI, UseObject as NUIUseObject } from 'noodl-ui'
+import {
+  Component,
+  DataAttribute,
+  NOODLUI as NUI,
+  UseObject as NUIUseObject,
+} from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import {
@@ -21,6 +26,8 @@ export interface ActionChainDOMContext {
   findWindowDocument: typeof findWindowDocument
   isPageConsumer: typeof isPageConsumer
 }
+
+export type NOODLDOMDataAttribute = DataAttribute | 'data-globalid'
 
 export type NOODLDOMElementTypes = keyof NOODLDOMElements
 

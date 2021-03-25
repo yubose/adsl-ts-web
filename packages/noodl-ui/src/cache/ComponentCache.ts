@@ -50,7 +50,7 @@ class ComponentCache {
     const removed = {}
     this.#cache.forEach((component, id) => {
       removed[id] = component
-      delete this.#cache[id]
+      this.#cache.delete(id)
       this.emit('clear', removed)
     })
     return this

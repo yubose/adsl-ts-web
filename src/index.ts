@@ -105,8 +105,7 @@ window.addEventListener('load', async (e) => {
       app.mainPage.pageUrl = 'index.html?'
       stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
     }
-
-    await app.navigate(app.mainPage, goBackPage)
+    await app.navigate(goBackPage)
   })
 })
 

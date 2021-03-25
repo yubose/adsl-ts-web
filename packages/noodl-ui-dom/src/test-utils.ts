@@ -124,7 +124,9 @@ export function createRender(opts: MockRenderOptions) {
     ndom,
     page,
     pageObject,
-    render: () => ndom.render(page as NOODLDOMPage),
+    render: (pgName) => {
+      ndom.render(page as NOODLDOMPage)
+    },
   }
 }
 

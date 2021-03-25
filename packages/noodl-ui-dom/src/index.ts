@@ -12,9 +12,11 @@ export {
   findWindowDocument,
   getByDataUX,
   getDataAttribKeys,
+  getByDataGlobalId,
   getDynamicShapeKeys,
   getShape,
   getShapeKeys,
+  isPage,
   isPageConsumer,
   isTextFieldLike,
 } from './utils'
