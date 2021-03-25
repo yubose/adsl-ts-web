@@ -57,7 +57,7 @@ componentResolver.setResolver((component, options, next) => {
 
     function getRawBlueprint(component: NUIComponent.Instance) {
       const childrenKey = getChildrenKey(component)
-      const children = original[childrenKey]
+      const children = component.blueprint.children
       const blueprint = cloneDeep(u.isArr(children) ? children[0] : children)
       if (u.isObj(blueprint) && childrenKey === 'chatItem') {
         blueprint.type = 'listItem'
@@ -98,7 +98,7 @@ componentResolver.setResolver((component, options, next) => {
           page,
           context: { index, iteratorVar, dataObject },
         })
-        listItem.edit({ [iteratorVar]: dataObject })
+        listItem?.edit({ [iteratorVar]: dataObject })
         cache.component.add(listItem)
       },
       'ADD_DATA_OBJECT',

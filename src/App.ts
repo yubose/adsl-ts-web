@@ -198,7 +198,14 @@ class App {
       // our init() method. Page.components should also contain the components retrieved from
       // that page object
       const req = await this.ndom.request(_page)
-      req && req.render()
+      if (req) {
+        const components = req.render()
+        log.func('navigate')
+        log.grey(
+          `Rendered ${components.length} components on ${_pageRequesting}`,
+          components,
+        )
+      }
     } catch (error) {
       console.error(error)
       throw new Error(error)
@@ -248,7 +255,7 @@ class App {
 
       meeting.initialize({
         ndom,
-        page: ndom.page,
+        page: this.mainPage,
         viewport: this.#viewportUtils.viewport,
       })
 
@@ -299,7 +306,7 @@ class App {
           const pageRequesting = page.requesting
           stable && log.cyan(`Running noodl.initPage on ${pageRequesting}`)
           await noodl.initPage(pageRequesting, [], {
-            ...page.state.modifiers,
+            ...page.modifiers,
             builtIn: {
               FCMOnTokenReceive: async (...args: any[]) => {
                 try {
@@ -376,7 +383,7 @@ class App {
           log.func('createPreparePage')
           log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
             pageRequesting,
-            pageModifiers: page.state.modifiers,
+            pageModifiers: page.modifiers,
             pageObject: noodl.root[pageRequesting],
             snapshot: page.snapshot(),
           })
@@ -399,7 +406,6 @@ class App {
                         registerEvent: '',
                         page: '_global',
                         component: value,
-                        type: 'onEvent',
                       })
                       // SDK sets this
                       // value.onEvent = res.fn
@@ -419,7 +425,7 @@ class App {
       this.observeClient()
       this.observeInternal()
       this.observeViewport(this.#viewportUtils)
-      this.observePages(ndom.page)
+      this.observePages()
       this.observeMeetings(meeting)
 
       /* -------------------------------------------------------
@@ -444,7 +450,7 @@ class App {
         )
       }
 
-      if (ndom.page && location.href) {
+      if (this.mainPage && location.href) {
         let { startPage } = noodl.cadlEndpoint
         const urlParts = location.href.split('/')
         const pathname = urlParts[urlParts.length - 1]
@@ -456,11 +462,11 @@ class App {
           tempConfigKey !== JSON.stringify(localConfig.timestamp)
         ) {
           ls.setItem('CACHED_PAGES', JSON.stringify([]))
-          ndom.page.pageUrl = 'index.html?'
-          await this.navigate(startPage)
+          this.mainPage.pageUrl = 'index.html?'
+          await this.navigate(this.mainPage, startPage)
         } else if (!pathname?.startsWith('index.html?')) {
-          ndom.page.pageUrl = 'index.html?'
-          await this.navigate(startPage)
+          this.mainPage.pageUrl = 'index.html?'
+          await this.navigate(this.mainPage, startPage)
         } else {
           const pageParts = pathname.split('-')
           if (pageParts.length > 1) {
@@ -472,7 +478,7 @@ class App {
             }
           }
           this.mainPage.pageUrl = pathname
-          await this.navigate(startPage)
+          await this.navigate(this.mainPage, startPage)
         }
       }
 
@@ -559,18 +565,11 @@ class App {
         { aspectRatio, width, height }: ReturnType<typeof computeViewportSize>,
       ) {
         log.func('on resize [viewport]')
-        if (this.mainPage.page === 'VideoChat') {
-          return log.grey(
-            `Skipping avoiding the page rerender on the VideoChat "onresize" event`,
-          )
-        }
         this.noodl.aspectRatio = aspectRatio
         document.body.style.width = `${width}px`
         document.body.style.height = `${height}px`
-        if (this.ndom.page.rootNode) {
-          this.ndom.page.rootNode.style.width = `${width}px`
-          this.ndom.page.rootNode.style.height = `${height}px`
-        }
+        this.mainPage.rootNode.style.width = `${width}px`
+        this.mainPage.rootNode.style.height = `${height}px`
         this.mainPage.components =
           this.noodl?.root?.[this.mainPage.page]?.components || []
         this.ndom.render(this.mainPage)
@@ -578,8 +577,8 @@ class App {
     )
   }
 
-  observePages(page: NOODLDOMPage) {
-    page
+  observePages() {
+    this.mainPage
       .on(
         eventId.page.on.ON_BEFORE_RENDER_COMPONENTS as any,
         async function onBeforeRenderComponents(
@@ -602,7 +601,10 @@ class App {
             ...rest,
           })
 
-          if (/videochat/i.test(page.page) && !/videochat/i.test(pageName)) {
+          if (
+            /videochat/i.test(this.mainPage.page) &&
+            !/videochat/i.test(pageName)
+          ) {
             this.meeting.leave()
             log.func('before-page-render')
             log.grey(`Disconnected from room`, this.meeting.room)
@@ -633,10 +635,9 @@ class App {
           }
 
           let pageSnapshot = {} as { name: string; object: any } | 'old.request'
-          const pageModifiers = page.state.modifiers
 
           // isStale
-          if (pageName !== page.page) {
+          if (pageName !== this.mainPage.page) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
             // isStale
@@ -706,8 +707,11 @@ class App {
               // TODO - Leave root/page auto binded to the lib
               this.mainPage.page = pageName
               // NOTE: not being used atm
-              if (page.rootNode && page.rootNode.id !== pageName) {
-                page.rootNode.id = pageName
+              if (
+                this.mainPage.rootNode &&
+                this.mainPage.rootNode.id !== pageName
+              ) {
+                this.mainPage.rootNode.id = pageName
               }
               return pageSnapshot
             }

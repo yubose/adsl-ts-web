@@ -1,19 +1,44 @@
 import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
-import { ComponentObject, PageObject } from 'noodl-types'
-import { createComponent, event as nuiEvent, NOODLUI as NUI } from 'noodl-ui'
-import { coolGold, italic, magenta } from 'noodl-common'
-import { getByDataGlobalId, getShape, getShapeKeys } from '../utils'
+import { NOODLUI as NUI } from 'noodl-ui'
+import { coolGold, italic } from 'noodl-common'
+import { getByDataGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
-import NOODLDOM from '../noodl-ui-dom'
-import NOODLDOMPage from '../Page'
 import * as c from '../constants'
 
 describe(coolGold(`noodl-ui-dom`), () => {
   describe(italic(`Instantiating`), () => {
     xit(`should load up the styles resolver`, () => {
       //
+    })
+  })
+
+  describe(italic(`clearRootNode`), () => {
+    it(`should not remove nodes associated with global components`, async () => {
+      const globalPopUpComponent = mock.getPopUpComponent({
+        popUpView: 'cerealView',
+        global: true,
+      })
+      const { page, ndom } = createRender({
+        pageName: 'Hello',
+        pageObject: {
+          components: [
+            mock.getSelectComponent(),
+            mock.getButtonComponent(),
+            globalPopUpComponent,
+          ],
+        },
+      })
+      const req = await ndom.request(page)
+      const component = req?.render()[2]
+      const node = getByDataGlobalId(component?.get('globalId'))
+      expect(document.body.contains(node)).to.be.true
+      expect(page.rootNode.children).to.have.lengthOf(2)
+      page.clearRootNode()
+      expect(page.rootNode.children).to.have.lengthOf(0)
+      expect(document.body.contains(node)).to.be.true
+      expect(document.body.children.length).to.eq(2)
     })
   })
 
@@ -84,7 +109,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
         },
       )
 
-      describe.only(
+      describe(
         `when encountering an equivalent or structurally equivalent ` +
           `component with global: true `,
         () => {
@@ -111,13 +136,14 @@ describe(coolGold(`noodl-ui-dom`), () => {
               req?.render()
               const nodes = document.getElementsByClassName('popup')
               const node = nodes[0] as HTMLElement
+              expect(document.body.contains(node)).to.be.true
+              expect(document.getElementsByClassName('popup')).to.have.lengthOf(
+                1,
+              )
               ndom.cache.component.get(node.id)
               page.components = [{ ...globalPopUpComponent }]
-              page.requesting = pageName
-              req = await ndom.request(page)
+              req = await ndom.request(page, 'Cereal')
               req?.render()
-              console.info(prettyDOM())
-              console.info(ndom.global.components)
               expect(document.body.contains(node)).to.be.true
               expect(document.getElementsByClassName('popup')).to.have.lengthOf(
                 1,
@@ -215,7 +241,6 @@ describe(coolGold(`noodl-ui-dom`), () => {
       })
       const req = await ndom.request(page)
       req?.render()
-      console.info(prettyDOM())
     })
   })
 })

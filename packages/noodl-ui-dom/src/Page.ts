@@ -35,7 +35,7 @@ class Page {
   >
   components: ComponentObject[] = []
   pageUrl: string = 'index.html?'
-  rootNode: HTMLBodyElement
+  rootNode: HTMLDivElement
   ref: {
     request: {
       name: string
@@ -60,7 +60,7 @@ class Page {
 
   clearRootNode() {
     if (!this.rootNode) {
-      this.rootNode = document.body as any
+      this.rootNode = document.createElement('div')
       this.rootNode.id = this.id as string
     }
     this.rootNode.innerHTML = ''
@@ -68,6 +68,9 @@ class Page {
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
+    if (!document.body.contains(this.rootNode)) {
+      document.body.appendChild(this.rootNode)
+    }
     return this
   }
 

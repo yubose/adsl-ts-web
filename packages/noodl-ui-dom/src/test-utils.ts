@@ -116,7 +116,7 @@ export function createRender(opts: MockRenderOptions) {
 
   ndom.use(use)
 
-  return {
+  const o = {
     ...use,
     assetsUrl,
     baseUrl,
@@ -124,10 +124,14 @@ export function createRender(opts: MockRenderOptions) {
     ndom,
     page,
     pageObject,
-    render: (pgName) => {
-      ndom.render(page as NOODLDOMPage)
+    request: (pgName?: string) => {
+      pgName && page && (page.requesting = pgName)
+      return ndom.request(page)
     },
+    render: () => ndom.render(page as NOODLDOMPage),
   }
+
+  return o
 }
 
 export function toDOM<

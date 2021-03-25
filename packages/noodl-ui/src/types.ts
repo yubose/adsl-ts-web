@@ -280,6 +280,13 @@ export type PageObjectContainer<K extends string = string> = Record<
 >
 
 export namespace Register {
+  export interface ObjectInput {
+    registerEvent: string
+    page: Register.Page
+    component: NUIComponent.Instance | null
+    callback(...args: any[]): Promise<{ input?: any }>
+  }
+
   export interface Object {
     type: LiteralUnion<'onEvent', string> // 'onEvent'
     registerEvent: string

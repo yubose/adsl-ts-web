@@ -4,7 +4,7 @@ import Resolver from '../Resolver'
 import { resolveAssetUrl } from '../utils/noodl'
 import * as u from '../utils/internal'
 
-const asyncResolver = new Resolver('resolveActions')
+const asyncResolver = new Resolver('resolveAsync')
 
 async function resolveAsync(
   component: NUIComponent.Instance,

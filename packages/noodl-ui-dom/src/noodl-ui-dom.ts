@@ -211,12 +211,13 @@ class NOODLDOM extends NOODLDOMInternal {
 
   /**
    * Initiates a request to the parameters set in Page.
-   * The page.requesting value should be set prior to calling this method
+   * The page.requesting value should be set prior to calling this method unless
+   * pageRequesting is provided. If it is provided, it will be set automatically
    * @param { NOODLDOMPage } page
    */
-  async request(page = this.page) {
+  async request(page = this.page, pageRequesting = '') {
     // Cache the currently requesting page to detect for newer requests during the call
-    const pageRequesting = page.requesting
+    pageRequesting = pageRequesting || page.requesting
 
     try {
       if (!this.transactions[c.transaction.GET_PAGE_OBJECT]) {
@@ -239,10 +240,10 @@ class NOODLDOM extends NOODLDOMInternal {
             if (result && typeof result === 'object' && 'then' in result) {
               await result
             }
-          } else {
+          } else if (page.requesting) {
             console.log(
-              `%cAborting this navigate request for ${pageRequesting} because a more ` +
-                `recent request to "${page.requesting}" was called`,
+              `%cAborting this navigate request to ${pageRequesting} because a more ` +
+                `recent request for "${page.requesting}" was instantiated`,
               `color:#FF5722;`,
               {
                 pageAborting: pageRequesting,
@@ -316,16 +317,6 @@ class NOODLDOM extends NOODLDOMInternal {
    */
   render(page: Page) {
     page.reset('render')
-
-    // if (page.rootNode && page.rootNode.id === page.state.current) {
-    //   return console.log(
-    //     `%cSkipped rendering the DOM for page "${currentPage}" because the DOM ` +
-    //       `nodes are already rendered`,
-    //     `color:#ec0000;font-weight:bold;`,
-    //     page.snapshot(),
-    //   )
-    // }
-
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
@@ -349,7 +340,7 @@ class NOODLDOM extends NOODLDOMInternal {
 
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
 
-    return components
+    return components as NUIComponent.Instance[]
   }
 
   /**

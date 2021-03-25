@@ -178,14 +178,13 @@ describe(italic(`createPage`), () => {
       name: 'Hello',
       viewport: { width: 375, height: 667 },
     })
-    console.info(NUI.cache.page.get(page.id))
     expect(page).to.be.instanceOf(Page)
     expect(NUI.cache.page.has(page.id)).to.be.true
     expect(NUI.cache.page.get(page.id).page).to.eq(page)
   })
 })
 
-describe.only(italic(`createSrc`), () => {
+describe(italic(`createSrc`), () => {
   describe(`when passing in a string`, () => {
     it(`should just return the url untouched if it starts with http`, () => {
       const url = `https://www.google.com/hello.jpeg`
@@ -277,7 +276,7 @@ describe.only(italic(`createSrc`), () => {
         page,
       })
       const image = component.child().child()
-      image.on('path', (s) => {
+      image?.on('path', (s) => {
         const expectedResult = NUI.getAssetsUrl() + 'halloween.jpg'
         expect(s).to.eq(expectedResult)
         expect(image.get('data-src')).to.eq(expectedResult)
@@ -359,5 +358,11 @@ describe(italic(`use`), () => {
     expect(NUI.getRoot()).not.to.eq('abc')
     NUI.use({ getRoot: () => ['apple'] })
     expect(NUI.getRoot()).to.deep.eq(['apple'])
+  })
+
+  describe(`register`, () => {
+    xit(``, () => {
+      //
+    })
   })
 })

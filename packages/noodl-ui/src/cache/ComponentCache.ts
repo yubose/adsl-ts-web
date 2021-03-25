@@ -41,8 +41,10 @@ class ComponentCache {
   }
 
   add(component: NUIComponent.Instance) {
-    this.#cache.set(component.id, component)
-    this.emit('add', component)
+    if (component) {
+      this.#cache.set(component.id, component)
+      this.emit('add', component)
+    }
     return this
   }
 

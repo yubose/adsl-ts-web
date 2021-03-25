@@ -43,6 +43,7 @@ function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
   if (typeof value === 'string') {
     childComponent = new Component({ type: value, ...props })
   } else if (isComponent(value)) {
+    childComponent = value
     if (props && isPlainObject(props)) value.edit(props)
   } else {
     childComponent = new Component({ ...value, ...props })

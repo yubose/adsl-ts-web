@@ -193,6 +193,7 @@ export namespace Page {
         componentIds: string[]
       }
     }
+    reqQueue: string[]
     status: Status
     rootNode: boolean
   }

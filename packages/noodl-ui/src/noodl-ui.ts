@@ -250,10 +250,6 @@ const NOODLUI = (function _NOODLUI() {
   }
 
   function _emit(
-    evt: typeof nuiEvent.REQUEST_PAGE_OBJECT,
-    opts: { component: T.NUIComponent.Instance; options: T.ConsumerOptions },
-  ): Promise<PageObject | undefined>
-  function _emit(
     evt: 'register',
     opts: {
       data?: any
@@ -262,10 +258,11 @@ const NOODLUI = (function _NOODLUI() {
     } & { [key: string]: any },
   ): void
   function _emit(
-    evt: LiteralUnion<
-      typeof nuiEvent['REQUEST_PAGE_OBJECT'] | 'register',
-      string
-    >,
+    evt: typeof nuiEvent.REQUEST_PAGE_OBJECT,
+    opts: { component: T.NUIComponent.Instance; options: T.ConsumerOptions },
+  ): Promise<PageObject | undefined>
+  function _emit(
+    evt: typeof nuiEvent.REQUEST_PAGE_OBJECT | 'register',
     opts:
       | ({
           data?: any
@@ -496,16 +493,14 @@ const NOODLUI = (function _NOODLUI() {
       return c
     }
 
-    components.forEach((c: T.NUIComponent.Instance) =>
-      resolvedComponents.push(xform(createComponent(c))),
-    )
+    components.forEach((c: T.NUIComponent.Instance) => {
+      resolvedComponents.push(xform(createComponent(c)))
+    })
 
     return isArr ? resolvedComponents : resolvedComponents[0]
   }
 
-  function _use(
-    mod: T.Use
-  ) {
+  function _use(mod: T.Use) {
     if (mod) {
       if ('funcName' in mod) {
         store.use(mod)
