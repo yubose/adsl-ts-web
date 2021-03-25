@@ -180,7 +180,7 @@ componentResolver.setResolver((component, options, next) => {
       component.emit(c.event.component.page.PAGE_INSTANCE_CREATED, nuiPage)
     })
 
-    emit(c.event.REQUEST_PAGE_OBJECT, { component, options })
+    emit(c.nuiEmit.REQUEST_PAGE_OBJECT, { component, options })
       .then((pageObject: PageObject) => {
         const components = pageObject?.components
           ? resolveComponents({

@@ -12,10 +12,11 @@ import NOODLDOM, {
 } from 'noodl-ui-dom'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import { ComponentObject, PageObject } from 'noodl-types'
+import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import {
   NUIComponent,
   event as nuiEvent,
+  nuiEmit as nuiEmitEvt,
   identify,
   NOODLUI as NUI,
   publish,
@@ -352,10 +353,10 @@ class App {
                   copyToClipboard(token)
 
                   if (this.#enabled.firebase) {
-                    NUI.emit('register', {
+                    NUI.emit(nuiEmitEvt.REGISTER, {
                       data: token,
                       page: '_global',
-                      registerEvent: 'FCMOnTokenReceive',
+                      name: 'FCMOnTokenReceive',
                     })
                   } else {
                     log.func('FCMOnTokenReceive')
@@ -397,15 +398,17 @@ class App {
                 )
                 Global.globalRegister.forEach((value: any) => {
                   if (isPlainObject(value)) {
-                    if (value.type === 'register') {
+                    if (Identify.component.register(value)) {
                       log.grey(
                         `Found and registered a "register" component to Global`,
                         { ...value },
                       )
-                      const res = NUI.use({
-                        registerEvent: '',
-                        page: '_global',
-                        component: value,
+                      NUI.use({
+                        register: {
+                          name: value.onEvent,
+                          component: value,
+                          page: '_global',
+                        },
                       })
                       // SDK sets this
                       // value.onEvent = res.fn

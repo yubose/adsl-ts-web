@@ -81,10 +81,15 @@ export const event = {
       placeholder: 'PLACEHOLDER',
     },
   },
-  REQUEST_PAGE_OBJECT: 'request-page-object',
+
   SET_PAGE: 'set-page',
   NEW_PAGE: 'new-page',
   NEW_PAGE_REF: 'new-page-ref',
+} as const
+
+export const nuiEmit = {
+  REGISTER: 'register',
+  REQUEST_PAGE_OBJECT: 'request-page-object',
 } as const
 
 export const trigger = {

@@ -319,7 +319,7 @@ describe(italic(`getConsumerOptions`), () => {
 
 describe(italic(`resolveComponents`), () => {
   it(`should return component instances`, () => {
-    const page = NUI.createPage('Hello')
+    const page = NUI.createPage({ name: 'Hello' })
     expect(
       NUI.resolveComponents({ page, components: mock.getDividerComponent() }),
     ).to.be.instanceOf(Component)
@@ -361,8 +361,10 @@ describe(italic(`use`), () => {
   })
 
   describe(`register`, () => {
-    xit(``, () => {
-      //
+    it(`should add to the register store`, () => {
+      expect(NUI.cache.register.has('_global', 'hello')).to.be.false
+      NUI.use({ register: { name: 'hello', page: '_global' } })
+      expect(NUI.cache.register.has('_global', 'hello')).to.be.true
     })
   })
 })

@@ -508,10 +508,6 @@ const NOODLUI = (function _NOODLUI() {
         store.use(mod)
       } else if ('location' in mod) {
         store.use(mod)
-      } else if ('registerEvent' in mod) {
-        if (!cache.register.has(mod.page, mod.name)) {
-          cache.register.set(mod.page, mod.name, mod)
-        }
       } else if ('resolve' in mod) {
         store.use(mod)
       } else if (mod) {
@@ -539,6 +535,13 @@ const NOODLUI = (function _NOODLUI() {
             observe: mod.observe as
               | T.Store.ObserverObject
               | T.Store.ObserverObject[],
+          })
+        }
+        if ('register' in mod) {
+          u.array(mod.register).forEach((obj: T.Store.RegisterObject) => {
+            if (!cache.register.has(obj.page, obj.name)) {
+              cache.register.set(obj.page, obj.name, obj)
+            }
           })
         }
       }

@@ -30,7 +30,7 @@ import NUI from './noodl-ui'
 import NUIPage from './Page'
 import ComponentResolver from './Resolver'
 import Viewport from './Viewport'
-import { event, lib } from './constants'
+import { event, lib, nuiEmit } from './constants'
 
 export type NOODLUIActionType = ActionType | typeof lib.actionTypes[number]
 export type NOODLUIComponentType = ComponentType | typeof lib.components[number]
@@ -61,6 +61,13 @@ export type NOODLUIActionObjectInput =
   | EmitObject
   | GotoObject
   | ToastObject
+
+export interface Emit {
+  [nuiEmit.REGISTER](page: NUIPage): Promise<PageObject>
+  [nuiEmit.REQUEST_PAGE_OBJECT](page: NUIPage): Promise<PageObject>
+}
+
+export type EmitEvent = keyof Emit
 
 // With ensured actionType appended
 export type NOODLUIActionObject =
@@ -343,11 +350,10 @@ export namespace Store {
   }
 
   export interface RegisterObject<P extends Register.Page = '_global'> {
-    registerEvent: string
-    component?: RegisterComponentObject | NUIComponent.Instance
-    fn?<D = any>(data?: D): D
-    name?: string
+    component?: RegisterComponentObject | NUIComponent.Instance | null
+    name: string
     page: P
+    fn?<D = any>(data?: D): D
   }
 }
 
@@ -393,7 +399,6 @@ export type Use =
   | Store.ActionObject
   | Store.BuiltInObject
   | Store.PluginObject
-  | Store.RegisterObject
   | UseObject
   | ComponentResolver<any>
 
@@ -405,4 +410,5 @@ export interface UseObject {
   getRoot?(): Record<string, any>
   getPlugins?: Plugin.CreateType[]
   observe?: Store.ObserverObject | Store.ObserverObject[]
+  register?: Store.RegisterObject | Store.RegisterObject[]
 }
