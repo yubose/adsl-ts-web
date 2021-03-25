@@ -22,6 +22,7 @@ class Page {
     modifiers: {} as {
       [pageName: string]: { reload?: boolean } & Record<string, any>
     },
+    reqQueue: [],
     status: eventId.page.status.IDLE as T.Page.Status,
     rootNode: false,
     render: getDefaultRenderState(),
@@ -244,6 +245,25 @@ class Page {
     if (slice) {
       if (slice === 'render') this.#state.render = getDefaultRenderState()
     }
+  }
+
+  isStale(pageName: string) {
+    const getQueue = () => this.#state.reqQueue
+
+    while (getQueue().length > 1) {
+      const removed = getQueue().pop()
+      console.log(
+        `%cRemoved ${removed} from reqQueue`,
+        `color:#00b406;`,
+        getQueue(),
+      )
+    }
+
+    if (getQueue().length <= 1) {
+      return !getQueue().includes(pageName)
+    }
+
+    return getQueue()[0] === pageName
   }
 }
 

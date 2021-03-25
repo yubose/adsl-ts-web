@@ -589,13 +589,13 @@ class App {
           log.func('onBeforeRenderComponents')
           console.log({ pageName, ref })
 
-          if (ref.request.name !== pageName) {
-            log.red(
-              `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
-              { requesting: pageName, ref, ...rest },
-            )
-            return 'old.request'
-          }
+          // if (ref.request.name !== pageName) {
+          //   log.red(
+          //     `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
+          //     { requesting: pageName, ref, ...rest },
+          //   )
+          //   return 'old.request'
+          // }
           log.grey(`Rendering the DOM for page: "${pageName}"`, {
             requesting: pageName,
             ref,
@@ -635,9 +635,11 @@ class App {
           let pageSnapshot = {} as { name: string; object: any } | 'old.request'
           const pageModifiers = page.state.modifiers
 
+          // isStale
           if (pageName !== page.page) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
+            // isStale
             const noodluidomPageSnapshot = this.mainPage.snapshot()
             // There is a bug that two parallel requests can happen at the same time, and
             // when the second request finishes before the first, the page renders the first page
@@ -655,65 +657,65 @@ class App {
                 name: pageName,
                 object: pageObject,
               }
-            }
 
-            // Initialize the noodl-ui client (parses components) if it
-            // isn't already initialized
-            if (!this.initialized) {
-              log.func('before-page-render')
-              log.grey('Initializing noodl-ui client', {
-                noodl: this.noodl,
-                pageSnapshot,
-              })
+              // Initialize the noodl-ui client (parses components) if it
+              // isn't already initialized
+              if (!this.initialized) {
+                log.func('before-page-render')
+                log.grey('Initializing noodl-ui client', {
+                  noodl: this.noodl,
+                  pageSnapshot,
+                })
 
-              // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
-              const config = this.noodl.getConfig()
-              const plugins = [] as ComponentObject[]
-              if (config.headPlugin) {
-                plugins.push({
-                  type: 'pluginHead',
-                  path: config.headPlugin,
-                } as any)
+                // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
+                const config = this.noodl.getConfig()
+                const plugins = [] as ComponentObject[]
+                if (config.headPlugin) {
+                  plugins.push({
+                    type: 'pluginHead',
+                    path: config.headPlugin,
+                  } as any)
+                }
+                if (config.bodyTopPplugin) {
+                  plugins.push({
+                    type: 'pluginBodyTop',
+                    path: config.bodyTopPplugin,
+                  } as any)
+                }
+                if (config.bodyTailPplugin) {
+                  plugins.push({
+                    type: 'pluginBodyTail',
+                    path: config.bodyTailPplugin,
+                  } as any)
+                }
+                this.mainPage.page = pageName
+                this.mainPage.viewport = this.#viewportUtils.viewport
+                NUI.use({
+                  getAssetsUrl: () => this.noodl.assetsUrl,
+                  getBaseUrl: () => this.noodl.cadlBaseUrl || '',
+                  getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
+                  getPages: () => this.noodl.cadlEndpoint?.page || [],
+                  getRoot: () => this.noodl.root,
+                  getPlugins: () => plugins,
+                })
+
+                // log.func('before-page-render')
+                // log.grey('Initialized noodl-ui client', NUI)
               }
-              if (config.bodyTopPplugin) {
-                plugins.push({
-                  type: 'pluginBodyTop',
-                  path: config.bodyTopPplugin,
-                } as any)
-              }
-              if (config.bodyTailPplugin) {
-                plugins.push({
-                  type: 'pluginBodyTail',
-                  path: config.bodyTailPplugin,
-                } as any)
-              }
+              // Refresh the root
+              // TODO - Leave root/page auto binded to the lib
               this.mainPage.page = pageName
-              this.mainPage.viewport = this.#viewportUtils.viewport
-              NUI.use({
-                getAssetsUrl: () => this.noodl.assetsUrl,
-                getBaseUrl: () => this.noodl.cadlBaseUrl || '',
-                getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
-                getPages: () => this.noodl.cadlEndpoint?.page || [],
-                getRoot: () => this.noodl.root,
-                getPlugins: () => plugins,
-              })
+              // NOTE: not being used atm
+              if (page.rootNode && page.rootNode.id !== pageName) {
+                page.rootNode.id = pageName
+              }
+              return pageSnapshot
+            }
+            log.func('before-page-render')
+            log.green(`Avoided a duplicate navigate request to "${pageName}"`)
 
-              // log.func('before-page-render')
-              // log.grey('Initialized noodl-ui client', NUI)
-            }
-            // Refresh the root
-            // TODO - Leave root/page auto binded to the lib
-            this.mainPage.page = pageName
-            // NOTE: not being used atm
-            if (page.rootNode && page.rootNode.id !== pageName) {
-              page.rootNode.id = pageName
-            }
             return pageSnapshot
           }
-          log.func('before-page-render')
-          log.green('Avoided a duplicate navigate request')
-
-          return pageSnapshot
         }.bind(this),
       )
       .on(
@@ -780,7 +782,7 @@ class App {
             dataValue.zoom = dataValue.zoom ? dataValue.zoom : 9
             let flag = !dataValue.hawsOwnProperty('data')
               ? false
-              : dataValue.data.length == 0
+              : dataValue.data.length != 0
               ? false
               : true
             let initcenter = flag ? dataValue.data[0] : [-117.9086, 33.8359]
@@ -817,7 +819,7 @@ class App {
                       type: 'geojson',
                       data: {
                         type: 'FeatureCollection',
-                        features: features,
+                        features,
                       },
                     })
                     // Add a symbol layer
