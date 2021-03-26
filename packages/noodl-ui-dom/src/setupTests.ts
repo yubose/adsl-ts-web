@@ -1,4 +1,5 @@
 import chai from 'chai'
+import invariant from 'invariant'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import chaiAsPromised from 'chai-as-promised'
@@ -7,11 +8,13 @@ import { ndom } from './test-utils'
 chai.use(sinonChai)
 chai.use(chaiAsPromised)
 
-let logSpy: sinon.SinonStub
+let logStub: sinon.SinonStub
+let invariantStub: sinon.SinonStub<any>
 
 before(() => {
   console.clear()
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
+  invariantStub = sinon.stub(global.console, 'error').callsFake(() => {})
+  logStub = sinon.stub(global.console, 'log').callsFake(() => () => {})
 })
 
 afterEach(() => {
@@ -21,5 +24,6 @@ afterEach(() => {
 })
 
 after(() => {
-  logSpy.restore()
+  logStub.restore()
+  invariantStub.restore()
 })

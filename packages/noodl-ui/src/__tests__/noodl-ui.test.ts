@@ -5,10 +5,11 @@ import { isActionChain } from 'noodl-action-chain'
 import { italic, magenta } from 'noodl-common'
 import { userEvent } from 'noodl-types'
 import { expect } from 'chai'
+import { createDataKeyReference } from '../utils/test-utils'
+import { nuiEmitEvt } from '../constants'
 import Component from '../components/Base'
 import Page from '../Page'
 import NUI from '../noodl-ui'
-import { createDataKeyReference } from '../utils/test-utils'
 
 describe(italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
@@ -287,6 +288,38 @@ describe(italic(`createSrc`), () => {
   })
 })
 
+describe(italic(`emit`), () => {
+  describe(`type: ${magenta(nuiEmitEvt.REGISTER)}`, () => {
+    it(`should throw if a callback was not provided`, () => {
+      NUI.use({
+        register: { name: 'myRegister', page: '_global' },
+      })
+      return expect(
+        NUI.emit({
+          type: 'register',
+          args: { name: 'myRegister', page: '_global' } as any,
+        }),
+      ).to.eventually.be.rejectedWith(/callback is required/i)
+    })
+
+    it(`should pass the register object to the callback as args`, async () => {
+      const spy = sinon.spy(() => Promise.resolve())
+      NUI.use({ register: { name: 'myRegister', page: '_global' } })
+      await NUI.emit({
+        type: 'register',
+        args: { name: 'myRegister', page: '_global', callback: spy },
+      })
+      expect(spy.args[0][0 as any]).to.eq(
+        NUI.cache.register.get('_global', 'myRegister'),
+      )
+    })
+  })
+
+  describe(`type: ${magenta(nuiEmitEvt.REQUEST_PAGE_OBJECT)}`, () => {
+    //
+  })
+})
+
 describe(italic(`getConsumerOptions`), () => {
   it(`should return the expected consumer options`, () => {
     const page = NUI.createPage()
@@ -361,9 +394,21 @@ describe(italic(`use`), () => {
   })
 
   describe(`register`, () => {
+    it(`should throw if it cannot locate a name or identifier`, () => {
+      expect(() => {
+        NUI.use({ register: { component: {} as any, page: '_global' } })
+      }).to.throw(/could not locate/i)
+    })
+
     it(`should add to the register store`, () => {
       expect(NUI.cache.register.has('_global', 'hello')).to.be.false
       NUI.use({ register: { name: 'hello', page: '_global' } })
+      expect(NUI.cache.register.has('_global', 'hello')).to.be.true
+    })
+
+    it(`should default the page to "_global" if it is not provided`, () => {
+      expect(NUI.cache.register.has('_global', 'hello')).to.be.false
+      NUI.use({ register: { name: 'hello' } })
       expect(NUI.cache.register.has('_global', 'hello')).to.be.true
     })
   })

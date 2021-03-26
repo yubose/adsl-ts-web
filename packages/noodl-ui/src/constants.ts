@@ -87,9 +87,13 @@ export const event = {
   NEW_PAGE_REF: 'new-page-ref',
 } as const
 
-export const nuiEmit = {
+export const nuiEmitType = {
   REGISTER: 'register',
-  REQUEST_PAGE_OBJECT: 'request-page-object',
+  TRANSACTION: 'transaction',
+} as const
+
+export const nuiEmitTransaction = {
+  REQUEST_PAGE_OBJECT: 'register-page-object',
 } as const
 
 export const trigger = {

@@ -3,7 +3,7 @@
 // are currently handled in App.ts
 
 import { RemoteParticipant } from 'twilio-video'
-import { ComponentInstance, NOODLUI as NUI } from 'noodl-ui'
+import { NUIComponent, NOODLUI as NUI } from 'noodl-ui'
 import Logger from 'logsnap'
 import Stream from '../meeting/Stream'
 import App from '../App'
@@ -29,7 +29,7 @@ function registerCallbacks(app: App) {
       id: string
       prop: string
       eventName: string
-      component?: ComponentInstance
+      component?: NUIComponent.Instance
       next?(): void
     }) {
       log.func('twilioOnPeopleJoin')
@@ -52,7 +52,7 @@ function registerCallbacks(app: App) {
       id: string
       prop: string
       eventName: string
-      component?: ComponentInstance
+      component?: NUIComponent.Instance
       next?(): void
     }) {
       log.func('twilioOnNoParticipant')

@@ -1,4 +1,4 @@
-import { Register, Store } from '../types'
+import { Register } from '../types'
 
 class RegisterCache {
   #cache: Register.Storage = new Map()
@@ -10,27 +10,30 @@ class RegisterCache {
     RegisterCache._inst = this
   }
 
-  get<P extends Register.Page>(
-    page: P,
-  ): {
-    [name: string]: Store.RegisterObject
+  clear() {
+    this.#cache.clear()
+    return this
   }
+
   get<P extends Register.Page, N extends string = string>(
     page: P,
     name: N,
-  ): Store.RegisterObject
-  get<P extends Register.Page, N extends string = string>(page: P, name?: N) {
-    let pagesCache = this.#cache.get(page) as {
-      [name: string]: Store.RegisterObject
+  ): Register.Object
+  get<P extends Register.Page>(page: P): Record<string, Register.Object>
+  get(): Register.Storage
+  get<P extends Register.Page, N extends string = string>(page?: P, name?: N) {
+    if (page) {
+      let pagesCache = this.#cache.get(page)
+
+      if (!pagesCache) {
+        pagesCache = {}
+        this.#cache.set(page, pagesCache)
+      }
+      if (page && name) return pagesCache[name]
+      return this.#cache.get(page)
     }
 
-    if (!pagesCache) {
-      pagesCache = {}
-      this.#cache.set(page, pagesCache)
-    }
-
-    if (page && name) return pagesCache[name]
-    return this.#cache.get(page)
+    return this.#cache
   }
 
   has<P extends Register.Page>(page: P): boolean
@@ -43,19 +46,19 @@ class RegisterCache {
   set<P extends Register.Page, N extends string = string>(
     page: P,
     name: N,
-    obj: Store.RegisterObject,
-  ): Store.RegisterObject
+    obj: Register.Object,
+  ): Register.Object
   set<P extends Register.Page>(
     page: P,
     name?: string,
-    obj?: Store.RegisterObject,
+    obj?: Register.Object,
   ): {
-    [name: string]: Store.RegisterObject
+    [name: string]: Register.Object
   }
   set<P extends Register.Page, N extends string = string>(
     page: P,
     name?: N,
-    obj?: Store.RegisterObject,
+    obj?: Register.Object,
   ) {
     let pagesCache = this.get(page) || {}
 

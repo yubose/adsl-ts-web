@@ -30,7 +30,7 @@ import NUI from './noodl-ui'
 import NUIPage from './Page'
 import ComponentResolver from './Resolver'
 import Viewport from './Viewport'
-import { event, lib, nuiEmit } from './constants'
+import { event, lib, nuiEmitType, nuiEmitTransaction } from './constants'
 
 export type NOODLUIActionType = ActionType | typeof lib.actionTypes[number]
 export type NOODLUIComponentType = ComponentType | typeof lib.components[number]
@@ -62,12 +62,32 @@ export type NOODLUIActionObjectInput =
   | GotoObject
   | ToastObject
 
-export interface Emit {
-  [nuiEmit.REGISTER](page: NUIPage): Promise<PageObject>
-  [nuiEmit.REQUEST_PAGE_OBJECT](page: NUIPage): Promise<PageObject>
-}
+export namespace NUIEmit {
+  export interface RegisterObject {
+    type: 'register'
+    args: {
+      page: Register.Page
+      name: string
+      callback(obj: Register.Object): Promise<void>
+    }
+  }
 
-export type EmitEvent = keyof Emit
+  export type TransactionId = typeof nuiEmitTransaction[keyof typeof nuiEmitTransaction]
+
+  export interface TransactionObject<K extends TransactionId = TransactionId> {
+    type: 'transaction'
+    transaction: K
+    callback: Transaction[K]['callback']
+    params?: Transaction[K]['params']
+  }
+
+  interface Transaction {
+    [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: {
+      params: { page: string; modifiers?: Record<string, any> }
+      callback(pageObject: PageObject): Promise<void>
+    }
+  }
+}
 
 // With ensured actionType appended
 export type NOODLUIActionObject =
@@ -287,21 +307,11 @@ export type PageObjectContainer<K extends string = string> = Record<
 >
 
 export namespace Register {
-  export interface ObjectInput {
-    registerEvent: string
-    page: Register.Page
-    component: NUIComponent.Instance | null
-    callback(...args: any[]): Promise<{ input?: any }>
-  }
-
-  export interface Object {
-    type: LiteralUnion<'onEvent', string> // 'onEvent'
-    registerEvent: string
-    component: NUIComponent.Instance | null
-    fn: // | RegisterObjectInput<LiteralUnion<Page | '_global' | Page, string>>['fn']
-    undefined
-    page: Page
-    callback(data: any): void
+  export interface Object<P extends Register.Page = '_global'> {
+    name: string
+    component?: RegisterComponentObject | null
+    page: P
+    callback?(obj: Register.Object): Promise<void>
   }
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
@@ -326,11 +336,12 @@ export namespace Store {
     funcName: string
   }
 
-  export interface ObserverObject<
-    Evt extends NUIComponent.HookEvent = NUIComponent.HookEvent
-  > {
-    cond: ComponentType | Evt
-    fn: NUIComponent.Hook[Evt]
+  export interface TransactionObject<T extends string = string> {
+    transaction: T
+    callback(args: {
+      component: NUIComponent.Instance
+      options: ConsumerOptions
+    }): Promise<PageObject>
   }
 
   export interface Plugins {
@@ -347,13 +358,6 @@ export namespace Store {
     path?: string
     content?: string
     ref: NUIComponent.Instance
-  }
-
-  export interface RegisterObject<P extends Register.Page = '_global'> {
-    component?: RegisterComponentObject | NUIComponent.Instance | null
-    name: string
-    page: P
-    fn?<D = any>(data?: D): D
   }
 }
 
@@ -409,6 +413,6 @@ export interface UseObject {
   getPreloadPages?(): string[]
   getRoot?(): Record<string, any>
   getPlugins?: Plugin.CreateType[]
-  observe?: Store.ObserverObject | Store.ObserverObject[]
-  register?: Store.RegisterObject | Store.RegisterObject[]
+  transaction?: Store.TransactionObject | Store.TransactionObject[]
+  register?: Register.Object | Register.Object[]
 }

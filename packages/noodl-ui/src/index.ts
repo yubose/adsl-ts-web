@@ -12,7 +12,7 @@ export { default as NOODLUI } from './noodl-ui'
 export { default as store } from './store'
 export { default as Page } from './Page'
 export { default as Viewport } from './Viewport'
-export { event } from './constants'
+export { event, nuiEmitEvt } from './constants'
 export {
   findChild,
   findListDataObject,

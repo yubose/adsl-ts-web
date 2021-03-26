@@ -1,6 +1,6 @@
+import invariant from 'invariant'
 import merge from 'lodash/merge'
 import { setUseProxies, enableES5 } from 'immer'
-import { LiteralUnion } from 'type-fest'
 import {
   ActionObject,
   EmitObject,
@@ -15,6 +15,7 @@ import ComponentResolver from './Resolver'
 import createAction from './utils/createAction'
 import createActionChain from './utils/createActionChain'
 import createComponent from './utils/createComponent'
+import isComponent from './utils/isComponent'
 import isPage from './utils/isPage'
 import NUIPage from './Page'
 import PageCache from './cache/PageCache'
@@ -31,9 +32,10 @@ import {
   findListDataObject,
   resolveAssetUrl,
 } from './utils/noodl'
-import { event as nuiEvent } from './constants'
+import { event as nuiEvent, nuiEmitType, nuiEmitTransaction } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
+import { nuiEmitEvt } from '../dist'
 
 enableES5()
 setUseProxies(false)
@@ -249,48 +251,38 @@ const NOODLUI = (function _NOODLUI() {
     }
   }
 
-  function _emit(
-    evt: 'register',
-    opts: {
-      data?: any
-      page: T.Register.Page
-      registerEvent: string
-    } & { [key: string]: any },
-  ): void
-  function _emit(
-    evt: typeof nuiEvent.REQUEST_PAGE_OBJECT,
-    opts: { component: T.NUIComponent.Instance; options: T.ConsumerOptions },
-  ): Promise<PageObject | undefined>
-  function _emit(
-    evt: typeof nuiEvent.REQUEST_PAGE_OBJECT | 'register',
-    opts:
-      | ({
-          data?: any
-          page: T.Register.Page
-          registerEvent: string
-        } & { [key: string]: any })
-      | { component: T.NUIComponent.Instance; options: T.ConsumerOptions },
-  ) {
-    if (evt === nuiEvent.REQUEST_PAGE_OBJECT) {
-      const fns = store.observers[nuiEvent.component.page.PAGE_OBJECT] || []
-      return Promise.all(
-        fns.map((obs) => Promise.resolve(obs.fn(opts.component, opts.options))),
-      )
-        .then((results) => results.find(Boolean))
-        .catch((err) => {
-          throw err
-        })
-    } else if (evt === 'register') {
-      const { page = '_global', data = null, registerEvent = '' } = opts
-      if (cache.register.has(page, registerEvent)) {
-        const register = cache.register.get(
-          page,
-          registerEvent,
-        ) as T.Register.Object
-        register.callback(data)
-      } else {
-        //
+  async function _emit<
+    TType extends T.NUIEmit.TransactionId = T.NUIEmit.TransactionId
+  >(
+    obj: T.NUIEmit.TransactionObject<TType>,
+  ): Promise<ReturnType<T.NUIEmit.TransactionObject['callback']>>
+  async function _emit<
+    TType extends T.NUIEmit.TransactionId = T.NUIEmit.TransactionId
+  >(opts: T.NUIEmit.RegisterObject | T.NUIEmit.TransactionObject<TType>) {
+    try {
+      if (opts.type === nuiEmitType.REGISTER) {
+        const { args } = opts
+        const page = args.page || '_global'
+        if (cache.register.has(page, args.name)) {
+          const obj = cache.register.get(page, args.name)
+          invariant(
+            u.isFnc(args.callback),
+            `A callback is required for emitting register events`,
+          )
+          await args.callback(obj)
+        } else {
+          console.log(
+            `%cWarning: Emitted a register object that was not previously ` +
+              `inserted to the register store`,
+            `color:#FF5722;`,
+          )
+        }
+      } else if (opts.type === nuiEmitType.TRANSACTION) {
+        return opts.callback(await store.transactions[opts.transaction])
       }
+    } catch (error) {
+      console.error(error)
+      throw error
     }
   }
 
@@ -529,19 +521,28 @@ const NOODLUI = (function _NOODLUI() {
         if ('getPlugins' in mod && mod.getPlugins) {
           // o.getPlugins = mod.getPlugins
         }
-        if ('observe' in mod) {
-          // Observers
-          store.use({
-            observe: mod.observe as
-              | T.Store.ObserverObject
-              | T.Store.ObserverObject[],
-          })
+        if ('transaction' in mod) {
+          u.array(mod.transaction).forEach(store.use.bind(store))
         }
+        // The register object here does not have to include a callback because
+        // the "emit" function will be called to invoke them. However, objects
+        // can use this here to merge arbitrary props to its "params" object as
+        // arguments in the handler. If a page is not provided, it will default
+        // to "_global", which means it will be invoked every time it gets requested
         if ('register' in mod) {
-          u.array(mod.register).forEach((obj: T.Store.RegisterObject) => {
-            if (!cache.register.has(obj.page, obj.name)) {
-              cache.register.set(obj.page, obj.name, obj)
+          u.array(mod.register).forEach((obj: T.Register.Object) => {
+            let page = obj.page || '_global'
+            let name =
+              obj.name || (obj.component && obj.component.onEvent) || ''
+            invariant(
+              !!name,
+              `Could not locate an identifier/name for this register object`,
+              obj,
+            )
+            if (!cache.register.has(page, name)) {
+              cache.register.set(page, name, obj)
             }
+            // TODO - Merge arbitrary props to its params object here
           })
         }
       }
@@ -703,6 +704,7 @@ const NOODLUI = (function _NOODLUI() {
         u.values(store.builtIns).forEach((obj) => (obj.length = 0))
         cache.component.clear()
         cache.page.clear()
+        cache.register.clear()
       }
       _defineGetter('getAssetsUrl', () => '')
       _defineGetter('getActions', () => store.actions)

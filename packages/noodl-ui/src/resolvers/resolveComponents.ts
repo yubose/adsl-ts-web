@@ -180,7 +180,14 @@ componentResolver.setResolver((component, options, next) => {
       component.emit(c.event.component.page.PAGE_INSTANCE_CREATED, nuiPage)
     })
 
-    emit(c.nuiEmit.REQUEST_PAGE_OBJECT, { component, options })
+    emit({
+      type: c.nuiEmitType.TRANSACTION,
+      transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+      params: { page: nuiPage.page, modifiers: {} },
+      callback(pageObject) {
+        //
+      },
+    })
       .then((pageObject: PageObject) => {
         const components = pageObject?.components
           ? resolveComponents({

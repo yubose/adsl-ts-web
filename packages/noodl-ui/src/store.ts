@@ -1,5 +1,5 @@
-import { ActionObject, BuiltInActionObject } from 'noodl-types'
-import { Register, Store } from './types'
+import { ActionObject } from 'noodl-types'
+import { Store } from './types'
 import {
   array,
   isArr,
@@ -11,27 +11,23 @@ import Resolver from './Resolver'
 const store = (function _store() {
   let actions = mapActionTypesToOwnArrays<Store.ActionObject>()
   let builtIns = {} as { [funcName: string]: Store.BuiltInObject[] }
-  let observers = {} as { [evt: string]: Store.ObserverObject[] }
   let plugins = { head: [], body: { top: [], bottom: [] } } as Store.Plugins
   let resolvers = [] as Resolver<any>[]
-  let registers = {} as Record<
-    Register.Page,
-    Record<Register.Object['type'], Store.RegisterObject[]>
-  >
+  let transactions = {} as {
+    [transaction: string]: Store.TransactionObject['callback']
+  }
 
-  function use<A extends ActionObject>(action: Store.ActionObject): void
-  function use<B extends BuiltInActionObject>(action: Store.BuiltInObject): void
-  function use<B extends Store.PluginObject>(plugin: Store.PluginObject): void
-  function use(obs: {
-    observe: Store.ObserverObject | Store.ObserverObject[]
-  }): void
+  function use(action: Store.ActionObject): void
+  function use(action: Store.BuiltInObject): void
+  function use(plugin: Store.PluginObject): void
+  function use(transaction: Store.TransactionObject): void
   function use(resolver: Resolver<any>): void
   function use(
     mod:
       | Store.ActionObject
       | Store.BuiltInObject
       | Store.PluginObject
-      | { observe: Store.ObserverObject | Store.ObserverObject[] }
+      | Store.TransactionObject
       | Resolver<any>,
     ...rest: any[]
   ) {
@@ -45,10 +41,9 @@ const store = (function _store() {
           ) {
             resolvers.push(m)
           }
-        } else if ('observe' in m) {
-          array(m.observe).forEach((mod: Store.ObserverObject) => {
-            if (!isArr(observers[mod.cond])) observers[mod.cond] = []
-            observers[mod.cond].push(mod)
+        } else if ('transaction' in m) {
+          array(m).forEach((mod: Store.TransactionObject) => {
+            transactions[mod.transaction] = mod.callback
           })
         } else if (isObj(m)) {
           if (m.actionType === 'builtIn' || 'funcName' in m) {
@@ -82,17 +77,14 @@ const store = (function _store() {
     get builtIns() {
       return builtIns
     },
-    get observers() {
-      return observers
-    },
     get plugins() {
       return plugins
     },
-    get registers() {
-      return registers
-    },
     get resolvers() {
       return resolvers
+    },
+    get transactions() {
+      return transactions
     },
     clearActions() {
       Object.values(actions).forEach((arr) => (arr.length = 0))

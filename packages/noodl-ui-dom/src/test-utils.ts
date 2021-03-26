@@ -1,3 +1,4 @@
+import sinon from 'sinon'
 import { ComponentObject, PageObject } from 'noodl-types'
 import { NUIComponent, NOODLUI as NUI, Viewport } from 'noodl-ui'
 import { NOODLDOMElement, Resolve } from './types'
@@ -132,6 +133,11 @@ export function createRender(opts: MockRenderOptions) {
   }
 
   return o
+}
+
+export function stubInvariant() {
+  const stub = sinon.stub(global.console, 'error').callsFake(() => {})
+  return stub
 }
 
 export function toDOM<
