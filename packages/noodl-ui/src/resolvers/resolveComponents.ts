@@ -2,7 +2,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, Identify, PageObject } from 'noodl-types'
+import { ComponentObject, Identify } from 'noodl-types'
 import { findDataValue, isBreakLineTextBoardItem } from 'noodl-utils'
 import Resolver from '../Resolver'
 import createComponent from '../utils/createComponent'
@@ -112,7 +112,7 @@ componentResolver.setResolver((component, options, next) => {
           (child) => child.get(iteratorVar) === args.dataObject,
         )
         if (listItem) {
-          const liProps = listItem.props()
+          const liProps = listItem.props
           liProps[iteratorVar] = ''
           if (listItem) {
             component.removeChild(listItem)
@@ -184,17 +184,19 @@ componentResolver.setResolver((component, options, next) => {
       type: c.nuiEmitType.TRANSACTION,
       transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
       params: { page: nuiPage.page, modifiers: {} },
-      callback(pageObject) {
-        //
-      },
     })
-      .then((pageObject: PageObject) => {
-        const components = pageObject?.components
+      .then((pageObject) => {
+        console.log(
+          `%cReceived page object from transaction "${c.nuiEmitTransaction.REQUEST_PAGE_OBJECT}"`,
+          `color:#e50087;`,
+          pageObject,
+        )
+        const components = (pageObject?.components
           ? resolveComponents({
               components: pageObject.components,
               page: nuiPage,
             })
-          : []
+          : []) as NUIComponent.Instance[]
         components?.forEach((c) => component.createChild(c))
       })
       .catch((err: Error) => {

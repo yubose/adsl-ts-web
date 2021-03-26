@@ -29,7 +29,7 @@ resolveStyles.setResolver(
     const { context, getBaseStyles, viewport } = options
     const edit = createStyleEditor(component)
 
-    const original = component.original || component.blueprint
+    const original = component.blueprint
     const originalStyles = original?.style || {}
     const iteratorVar = context?.iteratorVar || findIteratorVar(component) || ''
 
@@ -231,9 +231,9 @@ resolveStyles.setResolver(
 
     {
       util.posKeys.forEach((key) => {
-        if (!u.isNil(component.original?.style?.[key])) {
+        if (!u.isNil(component.blueprint?.style?.[key])) {
           const result = util.handlePosition(
-            component.original.style,
+            component.blueprint.style,
             key as any,
             viewport[util.xKeys.includes(key) ? 'width' : 'height'],
           )

@@ -27,7 +27,7 @@ describe(coolGold(`BaseComponent`), () => {
       it(`should merge the returned object to the component`, () => {
         const component = new Component(mock.getLabelComponent())
         component.edit(() => ({ display: 'flex', alignItems: 'flex-start' }))
-        expect(component.props()).to.satisfy(
+        expect(component.props).to.satisfy(
           (props: any) =>
             props.display === 'flex' && props.alignItems === 'flex-start',
         )
@@ -43,7 +43,7 @@ describe(coolGold(`BaseComponent`), () => {
           component.edit(() => ({
             style: { display: 'flex', alignItems: 'flex-start' },
           }))
-          expect(component.props()).to.satisfy(
+          expect(component.props).to.satisfy(
             (props: any) =>
               props.style.display === 'flex' &&
               props.style.alignItems === 'flex-start' &&
@@ -57,7 +57,7 @@ describe(coolGold(`BaseComponent`), () => {
       it(`should merge the object to the component`, () => {
         const component = new Component(mock.getLabelComponent())
         component.edit({ display: 'flex', alignItems: 'flex-start' })
-        expect(component.props()).to.satisfy(
+        expect(component.props).to.satisfy(
           (props: any) =>
             props.display === 'flex' && props.alignItems === 'flex-start',
         )
@@ -73,7 +73,7 @@ describe(coolGold(`BaseComponent`), () => {
           component.edit(() => ({
             style: { display: 'flex', alignItems: 'flex-start' },
           }))
-          expect(component.props()).to.satisfy(
+          expect(component.props).to.satisfy(
             (props: any) =>
               props.style.display === 'flex' &&
               props.style.alignItems === 'flex-start' &&
@@ -96,7 +96,7 @@ describe(coolGold(`BaseComponent`), () => {
             }),
           )
           component.edit({ style: null })
-          expect(component.props()).to.have.property('style').to.be.empty
+          expect(component.props).to.have.property('style').to.be.empty
         },
       )
 
@@ -104,7 +104,7 @@ describe(coolGold(`BaseComponent`), () => {
         it(`should set the key/value pair on the component`, () => {
           const component = new Component(mock.getLabelComponent())
           component.edit('placeholder', 'hello!')
-          expect(component.props()).to.have.property('placeholder', 'hello!')
+          expect(component.props).to.have.property('placeholder', 'hello!')
         })
       })
     })

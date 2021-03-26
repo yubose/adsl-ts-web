@@ -10,8 +10,8 @@ const domComponentsResolver: Resolve.Config = {
   cond: (n, c) => !!(n && c),
   resolve(node, component, { draw }) {
     if (node && !u.isFnc(node)) {
-      const original = component.original || {}
-      const props = component.props() || {}
+      const original = component.blueprint || {}
+      const props = component.props || {}
 
       const {
         children,

@@ -99,8 +99,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         log.func('goBack')
         log.grey('', { action, ...options })
         if (typeof action.original?.reload === 'boolean') {
-          app.ndom.page.setModifier(
-            app.ndom.page
+          app.mainPage.setModifier(
+            app.mainPage
               .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
               .trim(),
             { reload: action.original.reload },
@@ -452,15 +452,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
 
         if (reload !== undefined) {
-          app.ndom.page.setModifier(destinationParam, { reload })
+          app.mainPage.setModifier(destinationParam, { reload })
         }
 
         if (pageReload !== undefined) {
-          app.ndom.page.setModifier(destinationParam, { pageReload })
+          app.mainPage.setModifier(destinationParam, { pageReload })
         }
 
         if (dataIn !== undefined) {
-          app.ndom.page.setModifier(destinationParam, { ...dataIn })
+          app.mainPage.setModifier(destinationParam, { ...dataIn })
         }
 
         log.grey(`Computed goto params`, {
@@ -474,7 +474,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         )
 
         if (destination === destinationParam) {
-          app.ndom.page.setRequestingPage(destination)
+          app.mainPage.requesting = destination
         }
 
         log.grey('', {
@@ -522,7 +522,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             if (isSamePage) {
               scroll()
             } else {
-              app.ndom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+              app.mainPage.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
             }
           } else {
             log.red(
@@ -541,9 +541,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
 
         if (!destinationParam?.startsWith?.('http')) {
-          app.ndom.page.pageUrl = resolvePageUrl({
+          app.mainPage.pageUrl = resolvePageUrl({
             destination,
-            pageUrl: app.ndom.page.pageUrl,
+            pageUrl: app.mainPage.pageUrl,
             startPage: app.noodl.cadlEndpoint.startPage,
           })
         } else {
@@ -553,7 +553,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (!isSamePage) {
           if (reload) {
             let urlToGoToInstead = ''
-            const parts = app.ndom.page.pageUrl.split('-')
+            const parts = app.mainPage.pageUrl.split('-')
             if (parts.length > 1) {
               if (!parts[0].startsWith('index.html')) {
                 parts.unshift('index.html?')
@@ -565,7 +565,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             }
 
             window.location.href = urlToGoToInstead
-          } else await app.ndom.page.requestPageChange(destination)
+          } else await app.navigate(destination)
 
           if (!destination) {
             log.func('builtIn')
@@ -621,11 +621,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           ] as NUIComponent.Instance
           const node = findByElementId(viewTagComponent)
           const dataObject = findListDataObject(viewTagComponent)
-          const opts = { dataObject }
           const [newNode, newComponent] = app.ndom.redraw(
             node as HTMLElement,
             viewTagComponent,
-            opts,
           )
           NUI.cache.component.add(newComponent)
           startCount++
@@ -652,7 +650,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                 node as NOODLDOMDataValueElement,
                 component,
                 {
-                  onChange: component.get('onChange') as NOODLUIActionChain,
+                  onChange: component.get('onChange'),
                   eventName: 'onchange',
                 },
               ),

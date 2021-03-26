@@ -9,7 +9,7 @@ import { parseReference } from '../utils/noodl'
 const getReferences: ResolverFn = (component, { context, getRoot }) => {
   let key: any, value: any
 
-  const keys = Object.keys(component.original)
+  const keys = Object.keys(component.blueprint)
   const numKeys = keys.length
 
   for (let index = 0; index < numKeys; index++) {

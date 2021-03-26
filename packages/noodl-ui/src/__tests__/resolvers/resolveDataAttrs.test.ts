@@ -26,7 +26,7 @@ describe(coolGold(`resolveDataAttrs`), () => {
         mock.getLabelComponent({ dataKey: 'formData.password' }),
       )
       expect(component.get('data-key')).to.eq('formData.password')
-      expect('dataKey' in component.props()).to.be.false
+      expect('dataKey' in component.props).to.be.false
     })
   })
 

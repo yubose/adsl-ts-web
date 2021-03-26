@@ -6,10 +6,11 @@ import { italic, magenta } from 'noodl-common'
 import { userEvent } from 'noodl-types'
 import { expect } from 'chai'
 import { createDataKeyReference } from '../utils/test-utils'
-import { nuiEmitEvt } from '../constants'
+import { nuiEmitType, nuiEmitTransaction } from '../constants'
 import Component from '../components/Base'
 import Page from '../Page'
 import NUI from '../noodl-ui'
+import store from '../store'
 
 describe(italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
@@ -289,7 +290,7 @@ describe(italic(`createSrc`), () => {
 })
 
 describe(italic(`emit`), () => {
-  describe(`type: ${magenta(nuiEmitEvt.REGISTER)}`, () => {
+  describe(`type: ${magenta(nuiEmitType.REGISTER)}`, () => {
     it(`should throw if a callback was not provided`, () => {
       NUI.use({
         register: { name: 'myRegister', page: '_global' },
@@ -315,8 +316,21 @@ describe(italic(`emit`), () => {
     })
   })
 
-  describe(`type: ${magenta(nuiEmitEvt.REQUEST_PAGE_OBJECT)}`, () => {
-    //
+  describe(`type: ${magenta(nuiEmitTransaction.REQUEST_PAGE_OBJECT)}`, () => {
+    it(
+      `should retrieve the callback in the transactions store using ` +
+        `the provided transaction key`,
+      async () => {
+        const spy = sinon.spy(store, 'transactions', ['get'])
+        const cbSpy = sinon.spy()
+        NUI.use({
+          transaction: { transaction: 'hello', callback: cbSpy },
+        })
+        await NUI.emit({ transaction: 'hello', type: 'transaction' } as any)
+        expect(spy.get.calledOnce).to.be.true
+        expect(cbSpy).to.be.calledOnce
+      },
+    )
   })
 })
 
@@ -408,7 +422,7 @@ describe(italic(`use`), () => {
 
     it(`should default the page to "_global" if it is not provided`, () => {
       expect(NUI.cache.register.has('_global', 'hello')).to.be.false
-      NUI.use({ register: { name: 'hello' } })
+      NUI.use({ register: { name: 'hello' } as any })
       expect(NUI.cache.register.has('_global', 'hello')).to.be.true
     })
   })

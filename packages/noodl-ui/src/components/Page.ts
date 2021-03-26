@@ -382,7 +382,8 @@ class Page
   }
 
   getBaseStyles(component?: T.ComponentInstance, force = false) {
-    let originalStyle = (component?.original?.style as StyleObject) || undefined
+    let originalStyle =
+      (component?.blueprint?.style as StyleObject) || undefined
     let styles = { ...originalStyle } as StyleObject
 
     // if (styles?.top === 'auto') styles.top = '0'
@@ -435,7 +436,7 @@ class Page
             }
           }
 
-          if (parent?.original?.style?.axis === 'vertical') {
+          if (parent?.blueprint?.style?.axis === 'vertical') {
             Object.assign(styles, {
               // position: 'relative',
               // height: 'inherit',
@@ -452,7 +453,7 @@ class Page
           styles.height = 'auto'
         }
 
-        if (component.original?.children?.length || component.length) {
+        if (component.blueprint?.children?.length || component.length) {
           // styles.position = 'relative'
         }
       } else if (isPlainObject(component)) {

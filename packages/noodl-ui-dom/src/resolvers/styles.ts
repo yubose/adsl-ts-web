@@ -16,7 +16,7 @@ export default {
       node.style[styleKey] = String(styleValue)
     })
 
-    if (VP.isNil(component.original?.style?.marginTop)) {
+    if (VP.isNil(component.blueprint?.style?.marginTop)) {
       component.style.marginTop = '0px'
     }
 

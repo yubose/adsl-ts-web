@@ -65,27 +65,22 @@ export type NOODLUIActionObjectInput =
 export namespace NUIEmit {
   export interface RegisterObject {
     type: 'register'
-    args: {
-      page: Register.Page
-      name: string
-      callback(obj: Register.Object): Promise<void>
-    }
+    args: Register.Object
   }
 
-  export type TransactionId = typeof nuiEmitTransaction[keyof typeof nuiEmitTransaction]
-
-  export interface TransactionObject<K extends TransactionId = TransactionId> {
-    type: 'transaction'
-    transaction: K
-    callback: Transaction[K]['callback']
-    params?: Transaction[K]['params']
-  }
-
-  interface Transaction {
+  export interface Transaction {
     [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: {
       params: { page: string; modifiers?: Record<string, any> }
-      callback(pageObject: PageObject): Promise<void>
+      callback(pageObject: PageObject): void
     }
+  }
+
+  export type TransactionId = keyof Transaction
+
+  export interface TransactionInput<K extends TransactionId = TransactionId> {
+    type: 'transaction'
+    transaction: K
+    params?: Transaction[K]['params']
   }
 }
 
@@ -260,7 +255,7 @@ export interface IComponent<
   ): this
   off(eventName: string, cb: Function): this
   parent: NUIComponent.Instance | null
-  props(): { id: string } & ComponentObject
+  props: { id: string } & ComponentObject
   remove(key: keyof C, styleKey?: keyof StyleObject): this
   removeStyle<K extends keyof StyleObject>(styleKey: K): this
   set<K extends keyof C>(key: K, value?: any, styleChanges?: any): this
@@ -307,11 +302,12 @@ export type PageObjectContainer<K extends string = string> = Record<
 >
 
 export namespace Register {
-  export interface Object<P extends Register.Page = '_global'> {
-    name: string
+  export interface Object<P extends Register.Page = '_global', Params = any> {
+    name?: string
     component?: RegisterComponentObject | null
     page: P
-    callback?(obj: Register.Object): Promise<void>
+    params?: Params
+    callback?(obj: Register.Object, params?: Params): Promise<void>
   }
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>

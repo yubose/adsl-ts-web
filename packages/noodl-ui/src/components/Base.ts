@@ -1,5 +1,5 @@
 import { WritableDraft } from 'immer/dist/internal'
-import { isDraft, original } from 'immer'
+import produce, { isDraft, original } from 'immer'
 import { ComponentObject, StyleObject, userEvent } from 'noodl-types'
 import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import * as u from '../utils/internal'
@@ -60,9 +60,10 @@ class Component<C extends ComponentObject = ComponentObject>
       ? component.blueprint
       : component
     this.#cache = {}
-    this.#component = createComponentDraftSafely(
-      component,
-    ) as WritableDraft<ComponentObject>
+    // this.#component = createComponentDraftSafely(
+    //   component,
+    // ) as WritableDraft<ComponentObject>
+    this.#component = { ...component }
     this.#type = this.#blueprint.type
     this.#id = opts?.id || this.#component.id || u.getRandomKey()
     this.original = this.#blueprint
@@ -111,6 +112,20 @@ class Component<C extends ComponentObject = ComponentObject>
 
   get parent() {
     return this.#parent
+  }
+
+  /**
+   * Returns the value of the component property using key, or
+   * Returns the value of the property of the component's style object
+   * using styleKey if key === 'style'
+   * @param { string } key - Component property or "style" if using styleKey for style lookups
+   */
+  get props() {
+    return {
+      ...this.#component,
+      type: this.type,
+      id: this.#id,
+    } as ComponentObject & { id: string }
   }
 
   /** Returns the most recent styles at the time of this call */
@@ -466,24 +481,10 @@ class Component<C extends ComponentObject = ComponentObject>
     }
   }
 
-  /**
-   * Returns the value of the component property using key, or
-   * Returns the value of the property of the component's style object
-   * using styleKey if key === 'style'
-   * @param { string } key - Component property or "style" if using styleKey for style lookups
-   */
-  props() {
-    return {
-      ...this.#component,
-      type: this.type,
-      id: this.#id,
-    } as ComponentObject & { id: string }
-  }
-
   /** Returns the JS representation of the currently resolved component */
   toJSON() {
     const result = {} as ReturnType<T.IComponent['toJSON']>
-    u.assign(result, this.props(), {
+    u.assign(result, this.props, {
       parentId: this.parent?.id || null,
       children: this.children.map((child) => child?.toJSON?.()),
     })

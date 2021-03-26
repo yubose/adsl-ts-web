@@ -12,7 +12,7 @@ const resolveAttributes: NodeResolverConfig = {
   name: `[noodl-ui-dom] Default Common Resolvers`,
   resolve({ node, component }) {
     const original = component?.blueprint || {}
-    const props = component?.props() || {}
+    const props = component?.props || {}
     const dataAttribKeys = u.getDataAttribKeys()
 
     const { contentType, text, placeholder, path } = props

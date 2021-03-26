@@ -16,7 +16,8 @@ import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import {
   NUIComponent,
   event as nuiEvent,
-  nuiEmitEvt,
+  nuiEmitTransaction,
+  nuiEmitType,
   identify,
   NOODLUI as NUI,
   publish,
@@ -243,7 +244,9 @@ class App {
       stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
       this.ndom.use({
-        getPageObject: async (page) => {
+        getPageObject: async (pageName: string | NOODLDOMPage) => {
+          let page = typeof pageName === 'string' ? this.mainPage : pageName
+          if (typeof pageName === 'string') page.requesting = pageName
           const pageObject = await this.#preparePage(page)
           return pageObject
         },
@@ -354,13 +357,16 @@ class App {
 
                   if (this.#enabled.firebase) {
                     NUI.emit({
-                      type: nuiEmitEvt.REGISTER,
+                      type: nuiEmitType.REGISTER,
                       args: {
                         page: '_global',
                         name: 'FCMOnTokenReceive',
                         async callback(obj) {
                           log.func('emit')
-                          log.orange(`[${nuiEmitEvt.REGISTER}]`, { obj, token })
+                          log.orange(`[${nuiEmitType.REGISTER}]`, {
+                            obj,
+                            token,
+                          })
                         },
                       },
                     })
@@ -416,8 +422,6 @@ class App {
                           page: '_global',
                         },
                       })
-                      // SDK sets this
-                      // value.onEvent = res.fn
                     }
                   }
                 })
@@ -499,17 +503,17 @@ class App {
 
   observeComponents() {
     NUI.use({
-      observe: [
-        {
-          cond: nuiEvent.component.page.PAGE_OBJECT,
-          fn: async (component, options) => {
-            const pageObject = await this.navigate(
-              component.get('page'),
-              component.get('path'),
-            )
-            return pageObject
-          },
-        },
+      register: [
+        // {
+        //   cond: nuiEvent.component.page.PAGE_OBJECT,
+        //   fn: async (component, options) => {
+        //     const pageObject = await this.navigate(
+        //       component.get('page'),
+        //       component.get('path'),
+        //     )
+        //     return pageObject
+        //   },
+        // },
       ],
     })
   }
@@ -648,7 +652,8 @@ class App {
           // isStale
           if (pageName !== this.mainPage.page) {
             // Load the page in the SDK
-            const pageObject = await this.#preparePage(pageName)
+            this.mainPage.requesting = pageName
+            const pageObject = await this.#preparePage(this.mainPage)
             // isStale
             const noodluidomPageSnapshot = this.mainPage.snapshot()
             // There is a bug that two parallel requests can happen at the same time, and
@@ -1000,7 +1005,7 @@ class App {
           let subStreams = this.streams.getSubStreamsContainer()
           if (!subStreams) {
             subStreams = this.streams.createSubStreamsContainer(node, {
-              blueprint: component.original?.children?.[0],
+              blueprint: component.blueprint?.children?.[0],
               resolver: NUI.resolveComponents.bind(NUI),
             })
             log.func('onCreateNode')
@@ -1010,7 +1015,7 @@ class App {
             // the DOM node and blueprint since it was reset from a previous cleanup
             log.red(`BLUEPRINT`, component.blueprint)
             subStreams.container = node
-            subStreams.blueprint = component.original?.children?.[0]
+            subStreams.blueprint = component.blueprint?.children?.[0]
             subStreams.resolver = NUI.resolveComponents.bind(NUI)
           }
         }

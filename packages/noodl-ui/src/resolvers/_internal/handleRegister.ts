@@ -15,7 +15,7 @@ const handleRegister = async (
   const eventName = component?.original?.onEvent
   let id = eventName || component.id
 
-  if (component.original?.emit) {
+  if (component.blueprint?.emit) {
     // Register components that call emit are registered slightly different (see below)
     return
   }

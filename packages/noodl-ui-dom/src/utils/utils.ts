@@ -318,7 +318,7 @@ export function getShape(
       getDynamicShapeKeys(
         opts.parent,
         isComponent(component)
-          ? component.original
+          ? component.blueprint
           : (component as ComponentObject),
       ),
     )
@@ -328,7 +328,10 @@ export function getShape(
   }
 
   if (isComponent(component)) {
-    return getShape(component.original, { ...opts, parent: component.original })
+    return getShape(component.blueprint, {
+      ...opts,
+      parent: component.blueprint,
+    })
   } else if (u.isStr(component)) {
     return { type: component }
   } else if (u.isArr(component)) {

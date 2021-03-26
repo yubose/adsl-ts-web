@@ -198,12 +198,13 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     const waitingElem = app.meeting.getWaitingMessageElement()
     waitingElem && (waitingElem.style.visibility = 'hidden')
 
-    noodlui.emit('register', {
-      id: noodlEvent.TWILIO_ON_PEOPLE_JOIN,
-      key: noodlEvent.TWILIO_ON_PEOPLE_JOIN,
-      prop: 'onEvent',
-      participant,
-      stream,
+    NUI.emit({
+      type: 'register',
+      args: {
+        page: '_global',
+        name: noodlEvent.TWILIO_ON_PEOPLE_JOIN,
+        params: { room: app.meeting.room, participant },
+      },
     })
   }
 
@@ -231,11 +232,13 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     if (!app.meeting.room.participants.size) {
       let waitingElem = app.meeting.getWaitingMessageElement()
       waitingElem && (waitingElem.style.visibility = 'visible')
-      noodlui.emit('register', {
-        id: noodlEvent.TWILIO_ON_NO_PARTICIPANT,
-        key: noodlEvent.TWILIO_ON_NO_PARTICIPANT,
-        prop: 'onEvent',
-        data: { room: app.meeting.room },
+      NUI.emit({
+        type: 'register',
+        args: {
+          page: '_global',
+          name: noodlEvent.TWILIO_ON_NO_PARTICIPANT,
+          params: { room: app.meeting.room },
+        },
       })
     }
   }

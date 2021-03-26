@@ -1,13 +1,7 @@
 import invariant from 'invariant'
 import merge from 'lodash/merge'
 import { setUseProxies, enableES5 } from 'immer'
-import {
-  ActionObject,
-  EmitObject,
-  Identify,
-  IfObject,
-  PageObject,
-} from 'noodl-types'
+import { ActionObject, EmitObject, Identify, IfObject } from 'noodl-types'
 import { createEmitDataKey, evalIf } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
 import ComponentCache from './cache/ComponentCache'
@@ -15,7 +9,6 @@ import ComponentResolver from './Resolver'
 import createAction from './utils/createAction'
 import createActionChain from './utils/createActionChain'
 import createComponent from './utils/createComponent'
-import isComponent from './utils/isComponent'
 import isPage from './utils/isPage'
 import NUIPage from './Page'
 import PageCache from './cache/PageCache'
@@ -35,7 +28,6 @@ import {
 import { event as nuiEvent, nuiEmitType, nuiEmitTransaction } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
-import { nuiEmitEvt } from '../dist'
 
 enableES5()
 setUseProxies(false)
@@ -254,22 +246,25 @@ const NOODLUI = (function _NOODLUI() {
   async function _emit<
     TType extends T.NUIEmit.TransactionId = T.NUIEmit.TransactionId
   >(
-    obj: T.NUIEmit.TransactionObject<TType>,
-  ): Promise<ReturnType<T.NUIEmit.TransactionObject['callback']>>
+    obj: T.NUIEmit.TransactionInput<TType>,
+  ): Promise<Parameters<T.NUIEmit.Transaction[TType]['callback']>[0]>
+  async function _emit(opts: T.NUIEmit.RegisterObject): Promise<never>
   async function _emit<
     TType extends T.NUIEmit.TransactionId = T.NUIEmit.TransactionId
-  >(opts: T.NUIEmit.RegisterObject | T.NUIEmit.TransactionObject<TType>) {
+  >(opts: T.NUIEmit.TransactionInput<TType> | T.NUIEmit.RegisterObject) {
     try {
       if (opts.type === nuiEmitType.REGISTER) {
         const { args } = opts
         const page = args.page || '_global'
         if (cache.register.has(page, args.name)) {
-          const obj = cache.register.get(page, args.name)
+          const obj = cache.register.get(page, args.name as string)
           invariant(
             u.isFnc(args.callback),
             `A callback is required for emitting register events`,
           )
-          await args.callback(obj)
+          // TODO - Refactor this awkward code
+          await obj.callback?.(obj, args.params)
+          await args.callback?.(obj, args.params)
         } else {
           console.log(
             `%cWarning: Emitted a register object that was not previously ` +
@@ -278,7 +273,15 @@ const NOODLUI = (function _NOODLUI() {
           )
         }
       } else if (opts.type === nuiEmitType.TRANSACTION) {
-        return opts.callback(await store.transactions[opts.transaction])
+        const fn = store.transactions[opts.transaction]
+        invariant(
+          u.isFnc(fn),
+          `Missing a callback handler for transaction "${
+            opts.transaction
+          }" but received ${typeof fn}`,
+          opts,
+        )
+        return fn?.(opts.params as any)
       }
     } catch (error) {
       console.error(error)
@@ -521,9 +524,6 @@ const NOODLUI = (function _NOODLUI() {
         if ('getPlugins' in mod && mod.getPlugins) {
           // o.getPlugins = mod.getPlugins
         }
-        if ('transaction' in mod) {
-          u.array(mod.transaction).forEach(store.use.bind(store))
-        }
         // The register object here does not have to include a callback because
         // the "emit" function will be called to invoke them. However, objects
         // can use this here to merge arbitrary props to its "params" object as
@@ -544,6 +544,9 @@ const NOODLUI = (function _NOODLUI() {
             }
             // TODO - Merge arbitrary props to its params object here
           })
+        }
+        if ('transaction' in mod) {
+          u.array(mod.transaction).forEach(store.use.bind(store))
         }
       }
     }

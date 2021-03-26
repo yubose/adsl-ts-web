@@ -17,6 +17,7 @@ import {
   EmitAction,
   findListDataObject,
   findParent,
+  findIteratorVar,
   getDataValues,
   NOODLUI as NUI,
   NUIComponent,
@@ -238,16 +239,10 @@ const createActions = function createActions(app: App) {
       action: EmitAction,
       options: ConsumerOptions,
     ) {
-      const { component, getRoot, getPageObject } = options
+      const { component, getRoot } = options
       const page = app.mainPage.page || ''
-      const dataObject = findListDataObject(component as ComponentInstance)
-      const iteratorVar =
-        component?.get('iteratorVar') ||
-        findParent(
-          component as ComponentInstance,
-          (p: any) => !!p?.get?.('iteratorVar'),
-        )?.get?.('iteratorVar') ||
-        ''
+      const dataObject = findListDataObject(component as NUIComponent.Instance)
+      const iteratorVar = findIteratorVar(component)
       const emitParams = {
         actions: action.original.emit.actions,
         pageName: page,
@@ -256,7 +251,7 @@ const createActions = function createActions(app: App) {
       if (action.original.emit.dataKey) {
         emitParams.dataKey = createEmitDataKey(
           action.original.emit.dataKey,
-          [dataObject, () => getPageObject(page), () => getRoot()],
+          [dataObject, () => getRoot()[page], () => getRoot()],
           { iteratorVar },
         )
       }
@@ -280,15 +275,10 @@ const createActions = function createActions(app: App) {
       action: EmitAction,
       options: ConsumerOptions & { path: EmitObject },
     ) {
-      const { component, getRoot, getPageObject, placeholder } = options
+      const { component, getRoot, placeholder } = options
       const page = app.mainPage.page
       const dataObject = findListDataObject(component)
-      const iteratorVar =
-        component.get('iteratorVar') ||
-        findParent(component, (p: any) => !!p?.get?.('iteratorVar'))?.get?.(
-          'iteratorVar',
-        ) ||
-        ''
+      const iteratorVar = findIteratorVar(component)
       const emitParams = {
         actions: placeholder.emit.actions,
         pageName: page,
@@ -297,7 +287,7 @@ const createActions = function createActions(app: App) {
       if (action.original.emit.dataKey) {
         emitParams.dataKey = createEmitDataKey(
           action.original.emit.dataKey,
-          [dataObject, () => getPageObject(page), () => getRoot()],
+          [dataObject, () => getRoot()[page], () => getRoot()],
           { iteratorVar },
         )
       }
@@ -466,7 +456,7 @@ const createActions = function createActions(app: App) {
       } = computedDestinationProps
 
       if (destination === destinationParam) {
-        app.ndom.page.setRequestingPage(destination)
+        app.mainPage.requesting = destination
       }
 
       if (isPlainObject(gotoObject.goto?.dataIn)) {
@@ -532,7 +522,7 @@ const createActions = function createActions(app: App) {
           if (isSamePage) {
             scroll()
           } else {
-            app.ndom.page.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+            app.mainPage.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
           }
         } else {
           log.red(
@@ -551,12 +541,12 @@ const createActions = function createActions(app: App) {
       }
 
       if (!destinationParam?.startsWith?.('http')) {
-        app.ndom.page.pageUrl = resolvePageUrl({
+        app.mainPage.pageUrl = resolvePageUrl({
           destination,
-          pageUrl: app.ndom.page.pageUrl,
+          pageUrl: app.mainPage.pageUrl,
           startPage: noodl.cadlEndpoint.startPage,
         })
-        stable && log.cyan(`Page URL evaluates to: ${app.ndom.page.pageUrl}`)
+        stable && log.cyan(`Page URL evaluates to: ${app.mainPage.pageUrl}`)
       } else {
         destination = destinationParam
       }
@@ -567,7 +557,7 @@ const createActions = function createActions(app: App) {
         destinationParam,
         isSamePage,
         pageModifiers,
-        updatedQueryString: app.ndom.page.pageUrl,
+        updatedQueryString: app.mainPage.pageUrl,
       }
 
       log.grey(`Computed [action] goto props`, allProps)
@@ -577,7 +567,7 @@ const createActions = function createActions(app: App) {
           log.cyan(
             `Sending a page request to page "${destination}" app.ndom...`,
           )
-        await app.ndom.page.requestPageChange(destination)
+        await app.navigate(destination)
 
         if (!destination) {
           log.func('goto')
@@ -599,7 +589,7 @@ const createActions = function createActions(app: App) {
         log.cyan(
           `Sending a page request to page "${action.original.destination}" app.ndom...`,
         )
-      await app.ndom.page.requestPageChange(action.original.destination)
+      await app.navigate(action.original.destination)
     },
   })
 
@@ -636,21 +626,6 @@ const createActions = function createActions(app: App) {
         // this moment the popup is not aware that it needs to read the dataKey if
         // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
 
-        // If popUp has wait: true, the action chain should pause until a response
-        // is received from something (ex: waiting on user confirming their password)
-        if (action.original.wait) {
-          if (isNOODLBoolean(action.original.wait)) {
-            if (isBooleanTrue(action.original.wait)) {
-              log.grey(
-                `Popup action for popUpView "${popUpView}" is ` +
-                  `waiting on a response. Aborting now...`,
-                { action, ...options },
-              )
-              await ref?.abort?.()
-            }
-          }
-        }
-
         // Auto prefills the verification code when ECOS_ENV === 'test'
         // and when the entered phone number starts with 888
         if (process.env.ECOS_ENV === 'test') {
@@ -680,6 +655,21 @@ const createActions = function createActions(app: App) {
                   })
                 }
               })
+            }
+          }
+        }
+
+        // If popUp has wait: true, the action chain should pause until a response
+        // is received from something (ex: waiting on user confirming their password)
+        if (action.original.wait) {
+          if (isNOODLBoolean(action.original.wait)) {
+            if (isBooleanTrue(action.original.wait)) {
+              log.grey(
+                `Popup action for popUpView "${popUpView}" is ` +
+                  `waiting on a response. Aborting now...`,
+                { action, ...options },
+              )
+              await ref?.abort?.()
             }
           }
         }
@@ -726,7 +716,7 @@ const createActions = function createActions(app: App) {
       log.func('saveObject')
       log.grey('', { action, ...options })
       const { default: noodl } = await import('../app/noodl')
-      const { abort, getRoot, ref } = options
+      const { getRoot, ref } = options
 
       try {
         const { object } = action.original
@@ -794,7 +784,6 @@ const createActions = function createActions(app: App) {
       } catch (error) {
         console.error(error)
         toast(error.message)
-        abort?.()
         ref?.abort?.()
       }
     },
@@ -821,7 +810,7 @@ const createActions = function createActions(app: App) {
     ) {
       const { component, ref } = options
       log.func('updateObject')
-      log.grey('', { abort, action, ...options })
+      log.grey('', { action, ...options })
 
       const callObjectOptions = { action, ...options } as any
 
@@ -833,7 +822,6 @@ const createActions = function createActions(app: App) {
             callObjectOptions.file = files[0]
           } else if (status === 'canceled') {
             log.red('File was not selected and the operation was aborted')
-            await abort?.('File input window was closed')
             await ref?.abort?.('File input window was closed')
           }
         }
@@ -890,7 +878,7 @@ const createActions = function createActions(app: App) {
             }
           } else if (isObjectLike(object)) {
             let { dataKey, dataObject } = object
-            const iteratorVar = component.get('iteratorVar') || ''
+            const iteratorVar = findIteratorVar(component)
 
             if (/(file|blob)/i.test(dataObject)) {
               const name = dataObject

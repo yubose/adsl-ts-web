@@ -334,7 +334,7 @@ export function isListKey(
     if (isComponent(component)) {
       const iteratorVar =
         component.get('iteratorVar') ||
-        component.original?.iteratorVar ||
+        component.blueprint?.iteratorVar ||
         findParent(component, (p) => !!p?.get('iteratorVar')) ||
         ''
       return !!(iteratorVar && dataKey.startsWith(iteratorVar))

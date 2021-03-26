@@ -50,7 +50,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         component
           .get('listObject')
           .forEach((dataObject: any, index: number) => {
-            expect(component.child(index).props()).to.have.property(
+            expect(component.child(index).props).to.have.property(
               iteratorVar,
               dataObject,
             )
