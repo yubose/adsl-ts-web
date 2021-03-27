@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { expect } from 'chai'
-import { getAspectRatio } from '../utils/common'
+import { Viewport as VP } from 'noodl-ui'
 import { deviceSize, viewport } from '../utils/test-utils'
 import getViewportSizeWithMinMax from '../utils/getViewportSizeWithMinMax'
 import createViewportHandler from '../handlers/viewport'
@@ -49,7 +49,7 @@ describe('viewport', () => {
             getViewportSizeWithMinMax({
               ...deviceSize.galaxys5,
               ...viewWidthHeightMinMax,
-              aspectRatio: getAspectRatio(
+              aspectRatio: VP.getAspectRatio(
                 deviceSize.galaxys5.width,
                 deviceSize.galaxys5.height,
               ),
@@ -76,7 +76,7 @@ describe('viewport', () => {
               ...deviceSize.widescreen,
               ...viewWidthHeightMinMax,
 
-              aspectRatio: getAspectRatio(
+              aspectRatio: VP.getAspectRatio(
                 deviceSize.widescreen.width,
                 deviceSize.widescreen.height,
               ),

@@ -1,4 +1,5 @@
-import { ActionType, Identify } from 'noodl-types'
+import invariant from 'invariant'
+import { Identify, PageObject } from 'noodl-types'
 import {
   Component,
   createComponent,
@@ -7,13 +8,15 @@ import {
   NOODLUI as NUI,
   Page as NUIPage,
   NUIComponent,
+  nuiEmitTransaction,
   publish,
   Store,
+  Transaction as NUITransaction,
+  TransactionId,
 } from 'noodl-ui'
 import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import {
   createAsyncImageElement,
-  findByDataGlobalId,
   getShape,
   getTagName,
   isPageConsumer,
@@ -60,12 +63,6 @@ class NOODLDOM extends NOODLDOMInternal {
     pages: {},
     components: {},
   }
-  transactions: Record<
-    keyof T.Transaction,
-    T.Transaction[keyof T.Transaction]
-  > = u
-    .keys(c.transaction)
-    .reduce((acc, key) => u.assign(acc, { [key]: undefined }), {})
   page: Page // This is the main (root) page. All other pages are stored in this.#pages
 
   static _nui: typeof NUI
@@ -78,19 +75,15 @@ class NOODLDOM extends NOODLDOMInternal {
     NOODLDOM._nui = nui || NUI
   }
 
-  get actions() {
-    return NOODLDOM._nui.getActions() as {
-      [K in ActionType]: Store.ActionObject[]
-    }
+  get actions(): ReturnType<typeof NOODLDOM._nui.getActions> {
+    return NOODLDOM._nui.getActions()
   }
 
-  get builtIns() {
-    return NOODLDOM._nui.getBuiltIns() as {
-      [funcName: string]: Store.BuiltInObject[]
-    }
+  get builtIns(): ReturnType<typeof NOODLDOM._nui.getBuiltIns> {
+    return NOODLDOM._nui.getBuiltIns()
   }
 
-  get cache() {
+  get cache(): typeof NOODLDOM._nui.cache {
     return NOODLDOM._nui.cache
   }
 
@@ -100,6 +93,10 @@ class NOODLDOM extends NOODLDOMInternal {
 
   get pages() {
     return this.global.pages
+  }
+
+  get transactions(): NUITransaction {
+    return NOODLDOM._nui.getTransactions()
   }
 
   createPage(nuiPage?: NUIPage): Page
@@ -145,23 +142,6 @@ class NOODLDOM extends NOODLDOMInternal {
     this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
     !this.page && (this.page = page)
     return page as Page
-  }
-
-  transact<Evt extends keyof T.Transaction>(
-    evt: Evt,
-    args: Parameters<T.Transaction[Evt]>[0],
-  ) {
-    const result = this.transactions[evt]?.(args)
-    if (result instanceof Promise) {
-      return result
-        .then((value) => {
-          return value
-        })
-        .catch((err) => {
-          throw err
-        })
-    }
-    return result
   }
 
   removeComponent(component: NUIComponent.Instance | undefined | null) {
@@ -220,26 +200,17 @@ class NOODLDOM extends NOODLDOMInternal {
     pageRequesting = pageRequesting || page.requesting
 
     try {
-      if (!this.transactions[c.transaction.GET_PAGE_OBJECT]) {
-        throw new Error(
-          `Cannot render without the ${c.transaction.GET_PAGE_OBJECT} transaction`,
-        )
-      }
-
       page.ref.request.timer && clearTimeout(page.ref.request.timer)
 
       const pageObject = await this.transact(
-        c.transaction.GET_PAGE_OBJECT,
+        nuiEmitTransaction.REQUEST_PAGE_OBJECT,
         page,
       )
 
       const action = async (cb: () => any | Promise<any>) => {
         try {
           if (pageRequesting === page.requesting) {
-            const result = cb()
-            if (result && typeof result === 'object' && 'then' in result) {
-              await result
-            }
+            await cb()
           } else if (page.requesting) {
             console.log(
               `%cAborting this navigate request to ${pageRequesting} because a more ` +
@@ -263,7 +234,7 @@ class NOODLDOM extends NOODLDOMInternal {
       }
 
       await action(() => {
-        pageObject && (page.components = pageObject.components)
+        pageObject && (page.components = pageObject?.components)
       })
 
       page.setStatus(pageEvt.status.NAVIGATING)
@@ -436,7 +407,7 @@ class NOODLDOM extends NOODLDOMInternal {
           ? document.body
           : container || document.body
 
-        if (!parent.contains(node)) parent.appendChild(node)
+        parent.appendChild(node)
 
         this.#R.run(node, component)
 
@@ -535,7 +506,7 @@ class NOODLDOM extends NOODLDOMInternal {
     if ('resolve' in obj) {
       this.#R.use(obj)
     } else if ('actionType' in obj || 'funcName' in obj) {
-      NUI.use(obj)
+      NOODLDOM._nui.use(obj)
     }
     return this
   }
@@ -606,18 +577,66 @@ class NOODLDOM extends NOODLDOMInternal {
     return this
   }
 
+  async transact<TType extends TransactionId>(
+    transaction: TType,
+    args: Parameters<T.Transaction[TType]>[0],
+  ) {
+    return this.transactions[transaction]?.fn?.(args)
+  }
+
   use(nuiPage: NUIPage): Page
-  use(opts: T.UseObject): this
-  use(obj: NUIPage | T.UseObject) {
+  use(opts: Partial<T.UseObject>): this
+  use(obj: NUIPage | Partial<T.UseObject>) {
     if (isPage(obj)) {
       return this.createPage(obj)
+    } else if (
+      'actionType' in obj ||
+      'funcName' in obj ||
+      'location' in obj ||
+      'resolve' in obj
+    ) {
+      NOODLDOM._nui.use(obj)
     } else if (u.isObj(obj)) {
-      if (obj.createGlobalComponentId) {
-        this.#middleware.createGlobalComponentId = obj.createGlobalComponentId
-      }
-      if (obj.getPageObject) {
-        this.transactions[c.transaction.GET_PAGE_OBJECT] = obj.getPageObject
-      }
+      u.entries(obj).forEach(([key, o]) => {
+        if (key === 'createGlobalComponentId') {
+          this.#middleware.createGlobalComponentId = o
+        } else if (key === 'resolver') {
+          this.register(o)
+        } else if (key === 'transaction') {
+          if (o[nuiEmitTransaction.REQUEST_PAGE_OBJECT]) {
+            NOODLDOM._nui.use({
+              transaction: {
+                [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (pageProp) => {
+                  let originalFn = o[nuiEmitTransaction.REQUEST_PAGE_OBJECT]
+
+                  invariant(
+                    u.isFnc(originalFn),
+                    `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
+                  )
+
+                  let nuiPage = u.isStr(pageProp)
+                    ? this.page.getNuiPage()
+                    : pageProp
+                  let pageObject: PageObject | undefined
+                  let page = u
+                    .values(this.pages)
+                    .find((pg) => pg.isEqual(nuiPage))
+                  if (page) {
+                    pageObject = await originalFn?.(page)
+                  } else {
+                    // TODO
+                  }
+                  return pageObject as PageObject
+                },
+              },
+            })
+          } else {
+            NOODLDOM._nui.use({ transaction: o })
+          }
+        } else {
+          NOODLDOM._nui.use({ [key]: o })
+        }
+      })
     }
     return this
   }

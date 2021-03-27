@@ -1,9 +1,8 @@
 import Logger from 'logsnap'
-import { Viewport, ViewportListener } from 'noodl-ui'
-import { getAspectRatio } from '../utils/common'
+import { Viewport as VP } from 'noodl-ui'
 import getViewportSizeWithMinMax from '../utils/getViewportSizeWithMinMax'
 
-const createViewportHandler = function (viewport: Viewport) {
+const createViewportHandler = function (viewport: VP) {
   let min: number
   let max: number
   const log = Logger.create('createViewportHandler')
@@ -15,8 +14,15 @@ const createViewportHandler = function (viewport: Viewport) {
       height,
       previousWidth,
       previousHeight,
-    }: Parameters<ViewportListener>[0]) {
-      const aspectRatio = getAspectRatio(width, height)
+    }: Parameters<
+      (
+        viewport: { width: number; height: number } & {
+          previousWidth: number | undefined
+          previousHeight: number | undefined
+        },
+      ) => Promise<any> | any
+    >[0]) {
+      const aspectRatio = VP.getAspectRatio(width, height)
       if (typeof min === 'number' && typeof max === 'number') {
         const newSizes = getViewportSizeWithMinMax({
           width,
@@ -39,7 +45,10 @@ const createViewportHandler = function (viewport: Viewport) {
       }
     },
     getCurrentAspectRatio() {
-      return getAspectRatio(viewport.width as number, viewport.height as number)
+      return VP.getAspectRatio(
+        viewport.width as number,
+        viewport.height as number,
+      )
     },
     getMinMaxRatio() {
       return { min, max }
@@ -51,7 +60,7 @@ const createViewportHandler = function (viewport: Viewport) {
       }
     },
     on(ev: string, fn: Function) {
-      if (ev === 'resize') fns.push(fn as Viewport['onResize'])
+      if (ev === 'resize') fns.push(fn as VP['onResize'])
       return o
     },
     setMinAspectRatio(value: number) {
@@ -77,7 +86,7 @@ const createViewportHandler = function (viewport: Viewport) {
     log.func('onResize')
     const { width, height, previousWidth, previousHeight } = args
     if (width !== previousWidth || height !== previousHeight) {
-      console.log('Viewport changed', args)
+      console.log('VP changed', args)
       const results = o.computeViewportSize(args)
       o.setViewportSize(results)
       fns.forEach((fn) => fn(results))

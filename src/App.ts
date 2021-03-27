@@ -21,11 +21,10 @@ import {
   identify,
   NOODLUI as NUI,
   publish,
-  Viewport,
+  Viewport as VP,
 } from 'noodl-ui'
 import { WritableDraft } from 'immer/dist/internal'
 import { copyToClipboard } from './utils/dom'
-import { IMeeting } from './meeting'
 import { CACHED_PAGES, pageStatus } from './constants'
 import {
   AuthStatus,
@@ -33,26 +32,29 @@ import {
   FirebaseApp,
   FirebaseMessaging,
 } from './app/types'
-import { isStable } from './utils/common'
-import createRegisters from './handlers/register'
+import { isDev, isStable } from './utils/common'
 import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
+import createRegisters from './handlers/register'
+import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
 import createViewportHandler from './handlers/viewport'
+import createMeetingFns from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
+import * as T from './app/types'
 
 const log = Logger.create('App.ts')
 const stable = isStable()
-
-export type ViewportUtils = ReturnType<typeof createViewportHandler>
 
 class App {
   #enabled = {
     firebase: true,
   }
-  #onAuthStatus: (authStatus: AuthStatus) => void = () => {}
+  #meeting: T.AppConstructorOptions['meeting']
+  #noodl: T.AppConstructorOptions['noodl']
+  #nui: T.AppConstructorOptions['nui']
+  #ndom: T.AppConstructorOptions['ndom']
   #preparePage = {} as (page: NOODLDOMPage) => Promise<PageObject>
-  #viewportUtils = {} as ViewportUtils
   _store: {
     messaging: { serviceRegistration: ServiceWorkerRegistration; token: string }
   } = {
@@ -63,13 +65,10 @@ class App {
   }
   authStatus: AuthStatus | '' = ''
   firebase = {} as FirebaseApp
+  getStatus: T.AppConstructorOptions['getStatus']
   initialized = false
   messaging = null as FirebaseMessaging | null
-  meeting: IMeeting = {} as IMeeting
-  noodl = {} as CADL
-  ndom = {} as NOODLDOM
-  mainPage: NOODLDOMPage
-  streams = {} as ReturnType<IMeeting['getStreams']>
+  mainPage: NOODLDOM['page']
 
   // addRequestParams(page: string, opts: Record<string, any>) {
   //   if (!this.pageModifiers[page]) this.pageModifiers[page] = {}
@@ -94,81 +93,46 @@ class App {
   //   return this
   // }
 
-  // async getPageObject(pageName: string): Promise<PageObject> {
-  //   try {
-  //     // this.emit(obs.ON_BEFORE_INIT_PAGE, {
-  //     //   name: pageName,
-  //     //   modifiers: this.pageModifiers[pageName],
-  //     // })
-  //     await this.noodl.initPage(pageName, [], {
-  //       ...this.pageModifiers[pageName],
-  //       builtIn: {
-  //         onNewMessageDisplay: this.sdkBuiltIns.onNewMessageDisplay,
-  //         FCMOnTokenReceive: this.sdkBuiltIns.FCMOnTokenReceive,
-  //         FCMOnTokenRefresh: this.sdkBuiltIns.FCMOnTokenRefresh,
-  //         checkField: this.sdkBuiltIns.checkField,
-  //         goto: this.sdkBuiltIns.goto,
-  //         videoChat: this.sdkBuiltIns.videoChat,
-  //       },
-  //     })
-  //     this.emit(obs.ON_AFTER_INIT_PAGE, { name: pageName })
-  //     const pageObject = this.noodl.root[pageName]
-  //     log.func('getPageObject')
-  //     log.grey(
-  //       `Ran noodl.initPage and received pageObject for page "${pageName}"`,
-  //       {
-  //         pageName,
-  //         pageObject,
-  //         snapshot: this.rootPage.snapshot(),
-  //       },
-  //     )
-  //     return pageObject
-  //   } catch (error) {
-  //     throw new Error(error)
-  //   } finally {
-  // if (this.pageModifiers[pageName]) {
-  //   console.log(
-  //     `%c[App/getPageObject] Deleting modifiers for page ${pageName}"`,
-  //     `color:#95a5a6;`,
-  //     { ...this.pageModifiers[pageName] },
-  //   )
-  //   delete this.pageModifiers[pageName]
-  // }
-  //   }
-  // }
+  constructor({
+    getStatus,
+    meeting,
+    noodl,
+    nui = NUI,
+    ndom = new NOODLDOM(nui),
+    viewport = new VP(),
+  }: T.AppConstructorOptions = {}) {
+    this.getStatus = getStatus
+    this.mainPage = ndom.createPage(nui.createPage({ viewport }))
+    this.#meeting = meeting || createMeetingFns(this)
+    this.#ndom = ndom
+    this.#nui = nui
 
-  // async navigate(pageName: string) {
-  //   console.log(
-  //     `%c[App/navigate] Navigating to "${pageName}"`,
-  //     `color:#95a5a6;`,
-  //   )
-  //   if (
-  //     pageName &&
-  //     this.rootPage.requesting &&
-  //     this.rootPage.requesting !== pageName
-  //   ) {
-  //     console.log(
-  //       `%cPrevented page "${pageName}" from continuing because a more recent request to ${this.rootPage.requesting} was instantiated`,
-  //       `color:#00b406;`,
-  //       {
-  //         snapshot: this.rootPage.snapshot(),
-  //         cancellingRequest: this.rootPage.ref[pageName],
-  //         newerRequest: this.rootPage.ref[this.rootPage.requesting],
-  //       },
-  //     )
-  //     return
-  //   }
-  //   await this.rootPage.request(pageName)
-  // }
+    noodl && (this.#noodl = noodl)
+    this.observeViewport(viewport)
+  }
 
-  constructor() {
-    this.#viewportUtils = createViewportHandler(new Viewport())
-    this.ndom = new NOODLDOM()
-    this.mainPage = this.ndom.createPage(
-      NUI.createPage({
-        viewport: this.#viewportUtils.viewport,
-      }),
-    )
+  get meeting() {
+    return this.#meeting as NonNullable<T.AppConstructorOptions['meeting']>
+  }
+
+  get noodl() {
+    return this.#noodl as NonNullable<T.AppConstructorOptions['noodl']>
+  }
+
+  get nui() {
+    return this.#nui as NonNullable<T.AppConstructorOptions['nui']>
+  }
+
+  get ndom() {
+    return this.#ndom as NonNullable<T.AppConstructorOptions['ndom']>
+  }
+
+  get streams() {
+    return this.meeting.getStreams()
+  }
+
+  get viewport() {
+    return this.mainPage.viewport as VP
   }
 
   /**
@@ -209,59 +173,70 @@ class App {
         )
       }
     } catch (error) {
-      console.error(error)
       throw new Error(error)
     }
   }
 
   async initialize({
-    firebase: { client: firebase, vapidKey },
-    meeting,
-    ndom,
+    firebase: { client: firebase, vapidKey } = {},
+    firebaseSupported = true,
   }: {
-    firebase: { client: App['firebase']; vapidKey: string }
-    meeting: IMeeting
-    ndom: NOODLDOM
-  }) {
+    firebase?: { client?: App['firebase']; vapidKey?: string }
+    firebaseSupported?: boolean
+  } = {}) {
     try {
-      const { Account } = await import('@aitmed/cadl')
-      const noodl = (await import('app/noodl')).default
-      const { isSupported: firebaseSupported } = await import('app/firebase')
+      !firebaseSupported && (this.#enabled.firebase = false)
 
-      !firebaseSupported() && (this.#enabled.firebase = false)
+      !this.getStatus &&
+        (this.getStatus = (await import('@aitmed/cadl')).Account.getStatus)
 
-      this.firebase = firebase
+      !this.noodl && (this.#noodl = (await import('app/noodl')).default)
+
+      this.firebase = firebase as T.FirebaseApp
       this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
-      stable && log.cyan(`Initialized firebase messaging instance`)
-      this.meeting = meeting
-      this.noodl = noodl
-      this.ndom = ndom
-      this.streams = meeting.getStreams()
 
-      stable && log.cyan(`Initializing @aitmed/cadl sdk instance`)
-      await noodl.init()
+      await this.noodl.init()
+
+      log.func('initialize')
       stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
-      stable && log.cyan(`Registered noodl-ui instance onto noodl-ui-dom`)
 
       this.ndom.use({
-        getPageObject: async (pageName: string | NOODLDOMPage) => {
-          let page = typeof pageName === 'string' ? this.mainPage : pageName
-          if (typeof pageName === 'string') page.requesting = pageName
-          const pageObject = await this.#preparePage(page)
-          return pageObject
+        transaction: {
+          [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: (p: NOODLDOMPage) =>
+            this.#preparePage(p),
         },
       })
 
-      createActions(this)
-      createBuiltIns(this)
-      createRegisters(this)
+      let storedStatus = {} as { code: number }
+
+      if (process.env.NODE_ENV === 'test') {
+        storedStatus = { code: 0 }
+      } else {
+        storedStatus = await this.getStatus()
+      }
+      // Initialize the user's state before proceeding to decide on how to direct them
+      if (storedStatus.code === 0) {
+        this.noodl.setFromLocalStorage('user')
+        this.authStatus = 'logged.in'
+      } else if (storedStatus.code === 1) {
+        this.authStatus = 'logged.out'
+      } else if (storedStatus.code === 2) {
+        this.authStatus = 'new.device'
+      } else if (storedStatus.code === 3) {
+        this.authStatus = 'temporary'
+      }
+
+      const actions = createActions(this)
+      const builtIns = createBuiltIns(this)
+      const registers = createRegisters(this)
+      const domResolvers = createExtendedDOMResolvers(this)
+
       createMeetingHandlers(this)
 
-      meeting.initialize({
-        ndom,
-        page: this.mainPage,
-        viewport: this.#viewportUtils.viewport,
-      })
+      actions.forEach((obj) => this.ndom.use(obj))
+      builtIns.forEach((obj) => this.ndom.use(obj))
+      registers.forEach((obj) => this.ndom.use({ register: obj }))
+      domResolvers.forEach((obj) => this.ndom.use({ resolver: obj }))
 
       if (this.#enabled.firebase) {
         this.messaging?.onMessage(
@@ -280,28 +255,6 @@ class App {
         )
       }
 
-      let startPage = noodl?.cadlEndpoint?.startPage
-      stable && log.cyan(`Start page: ${startPage}`)
-
-      if (!this.authStatus) {
-        // Initialize the user's state before proceeding to decide on how to direct them
-        const storedStatus = await Account.getStatus()
-        if (storedStatus.code === 0) {
-          noodl.setFromLocalStorage('user')
-          this.authStatus = 'logged.in'
-          this.onAuthStatus?.('logged.in')
-        } else if (storedStatus.code === 1) {
-          this.authStatus = 'logged.out'
-          this.onAuthStatus?.('logged.out')
-        } else if (storedStatus.code === 2) {
-          this.authStatus = 'new.device'
-          this.onAuthStatus?.('new.device')
-        } else if (storedStatus.code === 3) {
-          this.authStatus = 'temporary'
-          this.onAuthStatus?.('temporary')
-        }
-      }
-
       this.#preparePage = async function preparePage(
         this: App,
         page: NOODLDOMPage,
@@ -309,7 +262,7 @@ class App {
         try {
           const pageRequesting = page.requesting
           stable && log.cyan(`Running noodl.initPage on ${pageRequesting}`)
-          await noodl.initPage(pageRequesting, [], {
+          await this.noodl?.initPage(pageRequesting, [], {
             ...page.modifiers,
             builtIn: {
               FCMOnTokenReceive: async (...args: any[]) => {
@@ -388,20 +341,20 @@ class App {
               FCMOnTokenRefresh: this.#enabled.firebase
                 ? this.messaging?.onTokenRefresh.bind(this.messaging)
                 : undefined,
-              checkField: ndom.builtIns.checkField?.find(Boolean)?.fn,
-              goto: ndom.builtIns.goto?.find(Boolean)?.fn,
-              videoChat: onVideoChatBuiltIn({ joinRoom: meeting.join }),
+              checkField: this.ndom.builtIns.checkField?.find(Boolean)?.fn,
+              goto: this.ndom.builtIns.goto?.find(Boolean)?.fn,
+              videoChat: onVideoChatBuiltIn({ joinRoom: this.meeting.join }),
             },
           })
           log.func('createPreparePage')
           log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
             pageRequesting,
             pageModifiers: page.modifiers,
-            pageObject: noodl.root[pageRequesting],
+            pageObject: this.noodl?.root[pageRequesting],
             snapshot: page.snapshot(),
           })
-          if (noodl.root?.Global?.globalRegister) {
-            const { Global } = noodl.root
+          if (this.noodl?.root?.Global?.globalRegister) {
+            const { Global } = this.noodl.root
             if (Array.isArray(Global.globalRegister)) {
               if (Global.globalRegister.length) {
                 log.grey(
@@ -418,7 +371,7 @@ class App {
                       NUI.use({
                         register: {
                           name: value.onEvent,
-                          component: value,
+                          // component: value,
                           page: '_global',
                         },
                       })
@@ -428,22 +381,22 @@ class App {
               }
             }
           }
-          return noodl.root[pageRequesting]
+          return this.noodl.root[pageRequesting]
         } catch (error) {
           throw new Error(error)
         }
       }.bind(this)
 
       this.observeComponents()
-      this.observeClient()
-      this.observeInternal()
-      this.observeViewport(this.#viewportUtils)
-      this.observePages()
-      this.observeMeetings(meeting)
+      // this.observePages()
+      this.observeMeetings()
 
       /* -------------------------------------------------------
       ---- LOCAL STORAGE
     -------------------------------------------------------- */
+      let startPage = this.noodl.cadlEndpoint?.startPage
+      stable && log.cyan(`Start page: ${startPage}`)
+
       // Override the start page if they were on a previous page
       const cachedPages = this.getCachedPages()
       const cachedPage = cachedPages[0]
@@ -464,16 +417,17 @@ class App {
       }
 
       if (this.mainPage && location.href) {
-        let { startPage } = noodl.cadlEndpoint
+        let { startPage } = this.noodl.cadlEndpoint
         const urlParts = location.href.split('/')
         const pathname = urlParts[urlParts.length - 1]
-        const localConfig = JSON.parse(ls.getItem('config') || '') || {}
+        const localConfig = JSON.parse(ls.getItem('config') || '{}') || {}
         const tempConfigKey = ls.getItem('tempConfigKey')
 
         if (
           tempConfigKey &&
           tempConfigKey !== JSON.stringify(localConfig.timestamp)
         ) {
+          // Set the URL / cached pages to their base state
           ls.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = 'index.html?'
           await this.navigate(this.mainPage, startPage)
@@ -498,6 +452,7 @@ class App {
       this.initialized = true
     } catch (error) {
       console.error(error)
+      throw error
     }
   }
 
@@ -518,36 +473,12 @@ class App {
     })
   }
 
-  observeClient() {
-    // When noodl-ui emits this it expects a new "child" instance. To keep memory usage
-    // to a minimum, keep the root references the same as the one in the parent instance
-    // Currently this is used by components of type: page
-    // NUI.on(noodluiEvent.NEW_PAGE_REF, async (ref: NOODLUI) => {
-    //   await this.noodl.initPage(ref.page)
-    //   log.func(`[observeClient][${noodluiEvent.NEW_PAGE_REF}]`)
-    //   log.grey(`Initiated page: ${ref.page}`)
-    // })
-  }
-
-  // Cleans ac (used for debugging atm)
-  observeInternal() {
-    // this.mainPage.on(noodluiEvent.SET_PAGE, () => {
-    //   if (typeof window !== 'undefined' && 'ac' in window) {
-    //     Object.keys(window.ac).forEach((key) => {
-    //       delete window.ac[key]
-    //     })
-    //   }
-    // })
-  }
-
-  observeViewport(utils: ReturnType<typeof createViewportHandler>) {
-    const {
-      computeViewportSize,
-      on,
-      setMinAspectRatio,
-      setMaxAspectRatio,
-      setViewportSize,
-    } = utils
+  observeViewport(viewport: VP) {
+    let aspectRatio: number | undefined
+    let min: number | undefined
+    let max: number | undefined
+    let width: number
+    let height: number
 
     // The viewWidthHeightRatio in cadlEndpoint (app config) overwrites the
     // viewWidthHeightRatio in root config
@@ -556,29 +487,49 @@ class App {
       this.noodl.getConfig?.()?.viewWidthHeightRatio
 
     if (viewWidthHeightRatio) {
-      const { min, max } = viewWidthHeightRatio
-      setMinAspectRatio(min)
-      setMaxAspectRatio(max)
+      min = Number(viewWidthHeightRatio.min)
+      max = Number(viewWidthHeightRatio.max)
     }
 
-    const { aspectRatio, width, height } = computeViewportSize({
-      width: innerWidth,
-      height: innerHeight,
-      previousWidth: innerWidth,
-      previousHeight: innerHeight,
-    })
+    const computeViewportSize = () => {
+      aspectRatio = VP.getAspectRatio(width, height)
+      if (typeof min === 'number' && typeof max === 'number') {
+        getViewportSizeWithMinMax()
+      }
+    }
 
-    setViewportSize({ width, height })
-    this.noodl.aspectRatio = aspectRatio
+    const getViewportSizeWithMinMax = () => {
+      min = Number(min)
+      max = Number(max)
+      if (aspectRatio !== undefined) {
+        if (aspectRatio < min) {
+          width = min * height
+        } else if (aspectRatio > max) {
+          width = max * height
+        }
+      }
+    }
 
-    on(
-      'resize',
-      function onResize(
-        this: App,
-        { aspectRatio, width, height }: ReturnType<typeof computeViewportSize>,
-      ) {
-        log.func('on resize [viewport]')
-        this.noodl.aspectRatio = aspectRatio
+    const setViewportSize = () => {
+      this.viewport.width = width
+      this.viewport.height = height
+    }
+
+    computeViewportSize()
+    setViewportSize()
+
+    aspectRatio !== undefined && (this.noodl.aspectRatio = aspectRatio)
+
+    viewport.onResize = async (args) => {
+      if (width !== args.previousWidth || height !== args.previousHeight) {
+        console.log('VP changed', args)
+        width = args.width
+        height = args.height
+
+        computeViewportSize()
+        setViewportSize()
+
+        this.noodl.aspectRatio = aspectRatio as number
         document.body.style.width = `${width}px`
         document.body.style.height = `${height}px`
         this.mainPage.rootNode.style.width = `${width}px`
@@ -586,8 +537,8 @@ class App {
         this.mainPage.components =
           this.noodl?.root?.[this.mainPage.page]?.components || []
         this.ndom.render(this.mainPage)
-      }.bind(this),
-    )
+      }
+    }
   }
 
   observePages() {
@@ -600,7 +551,7 @@ class App {
         ) {
           log.func('onBeforeRenderComponents')
           console.log({ pageName, ref })
-
+          // return
           // if (ref.request.name !== pageName) {
           //   log.red(
           //     `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
@@ -704,7 +655,7 @@ class App {
                   } as any)
                 }
                 this.mainPage.page = pageName
-                this.mainPage.viewport = this.#viewportUtils.viewport
+                this.mainPage.viewport = this.viewport
                 NUI.use({
                   getAssetsUrl: () => this.noodl.assetsUrl,
                   getBaseUrl: () => this.noodl.cadlBaseUrl || '',
@@ -748,16 +699,6 @@ class App {
           log.grey(`Cached page: "${pageName}"`)
         },
       )
-      .on(
-        eventId.page.on.ON_NAVIGATE_ERROR,
-        function onNavigateError(this: App, { error }) {
-          console.error(error)
-          log.func('page.onError')
-          log.red(error.message, error)
-          // alert(error.message)
-          // TODO - narrow the reasons down more
-        },
-      )
   }
 
   /**
@@ -766,7 +707,7 @@ class App {
    * the room instance.
    * @param { Room } room - Room instance
    */
-  observeMeetings(meeting: IMeeting) {
+  observeMeetings() {
     /* -------------------------------------------------------
     ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
   -------------------------------------------------------- */
@@ -1065,7 +1006,7 @@ class App {
   }
 
   /** Retrieves a list of cached pages */
-  getCachedPages(): CachedPageObject[] {
+  getCachedPages(): T.CachedPageObject[] {
     let result: CachedPageObject[] = []
     const pageHistory = localStorage.getItem(CACHED_PAGES)
     if (pageHistory) {
@@ -1080,16 +1021,8 @@ class App {
 
   /** Sets the list of cached pages */
   setCachedPages(cache: CachedPageObject[]) {
-    localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+    window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
     //
-  }
-
-  get onAuthStatus() {
-    return this.#onAuthStatus
-  }
-
-  set onAuthStatus(fn) {
-    this.#onAuthStatus = fn
   }
 }
 

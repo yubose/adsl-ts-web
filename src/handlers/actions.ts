@@ -11,18 +11,18 @@ import {
   getByDataUX,
   isPageConsumer,
 } from 'noodl-ui-dom'
-import { Action } from 'noodl-action-chain'
 import {
   ConsumerOptions,
   EmitAction,
   findListDataObject,
-  findParent,
   findIteratorVar,
   getDataValues,
   NOODLUI as NUI,
   NUIComponent,
   Page as NUIPage,
   parseReference,
+  Store,
+  NOODLUIActionType,
 } from 'noodl-ui'
 import {
   createEmitDataKey,
@@ -35,20 +35,21 @@ import {
 import Logger from 'logsnap'
 import { EmitObject, IfObject, Identify } from 'noodl-types'
 import { pageEvent } from '../constants'
-import { isStable, resolvePageUrl } from '../utils/common'
 import { onSelectFile, scrollToElem, toast } from '../utils/dom'
 import App from '../App'
+import * as u from '../utils/common'
 
-const log = Logger.create('actions.ts')
-const stable = isStable()
+const log = Logger.create('src/handlers/actions.ts')
+const stable = u.isStable()
 
 const createActions = function createActions(app: App) {
-  app.ndom.register({
-    actionType: 'anonymous',
-    fn: async function onAnonymousAction(
-      action: Action<'anonymous'>,
-      options: ConsumerOptions,
-    ) {
+  const actions: Record<
+    Exclude<NOODLUIActionType, 'builtIn' | 'register'>,
+    | Omit<Store.ActionObject, 'actionType'>
+    | Store.ActionObject['fn']
+    | (Omit<Store.ActionObject, 'actionType'> | Store.ActionObject['fn'])[]
+  > = {
+    async anonymous(action, options) {
       const { fn } = action.original || {}
       if (options?.component) {
         if (stable) {
@@ -58,288 +59,242 @@ const createActions = function createActions(app: App) {
         fn?.()
       }
     },
-  })
+    emit: [
+      // DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML
+      {
+        fn: async function onDataKeyEmit(action: EmitAction, options) {
+          const emitParams = {
+            actions: action.actions,
+            dataKey: action.dataKey,
+            pageName: app.mainPage.page,
+          } as any
 
-  /** DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML */
-  app.ndom.register({
-    actionType: 'emit',
-    fn: async function onDataKeyEmit(
-      action: EmitAction,
-      options: ConsumerOptions,
-    ) {
-      const emitParams = {
-        actions: action.actions,
-        dataKey: action.dataKey,
-        pageName: app.mainPage.page,
-      } as any
+          log.func('emit [dataKey]')
+          log.gold('Emitting', { action, emitParams, ...options })
 
-      log.func('emit [dataKey]')
-      log.gold('Emitting', { action, emitParams, ...options })
+          const emitResult = await app.noodl.emitCall(emitParams)
 
-      const emitResult = await app.noodl.emitCall(emitParams)
+          log.grey(`Emitted`, {
+            action,
+            component: options.component,
+            emitParams,
+            emitResult,
+            options,
+            originalDataKey: action.original?.emit?.dataKey,
+          })
 
-      log.grey(`Emitted`, {
-        action,
-        component: options.component,
-        emitParams,
-        emitResult,
-        options,
-        originalDataKey: action.original?.emit?.dataKey,
-      })
+          return emitResult
+        },
+        trigger: 'dataKey',
+      },
+      // DATA VALUE EMIT
+      {
+        fn: async function onDataValueEmit(action: EmitAction, options) {
+          const emitParams = {
+            actions: action.actions,
+            pageName: app.mainPage.page,
+          } as any
 
-      return emitResult
-    },
-    trigger: 'dataKey',
-  })
+          if ('dataKey' in action.original.emit || {}) {
+            emitParams.dataKey = action.dataKey
+          }
 
-  /** DATA VALUE EMIT */
-  app.ndom.register({
-    actionType: 'emit',
-    fn: async function onDataValueEmit(
-      action: EmitAction,
-      options: ConsumerOptions,
-    ) {
-      const emitParams = {
-        actions: action.actions,
-        pageName: app.mainPage.page,
-      } as any
+          log.func('emit [dataValue]')
+          log.grey('Emitting', { action, emitParams, options })
 
-      if ('dataKey' in action.original.emit || {}) {
-        emitParams.dataKey = action.dataKey
-      }
+          const emitResult = await app.noodl.emitCall(emitParams)
 
-      log.func('emit [dataValue]')
-      log.grey('Emitting', { action, emitParams, options })
+          log.grey('Emitted [dataValue]', {
+            action,
+            actionChain: options.ref,
+            component: options.component,
+            emitParams,
+            emitResult,
+            options,
+          })
 
-      const emitResult = await app.noodl.emitCall(emitParams)
+          return emitResult
+        },
+        trigger: 'dataValue',
+      },
+      // onBlur EMIT
+      {
+        fn: async function onBlurEmit(action: EmitAction, options) {
+          const emitParams = {
+            actions: action.actions,
+            pageName: app.mainPage.page,
+          } as any
 
-      log.grey('Emitted [dataValue]', {
-        action,
-        actionChain: options.ref,
-        component: options.component,
-        emitParams,
-        emitResult,
-        options,
-      })
+          if ('dataKey' in action.original.emit || {}) {
+            emitParams.dataKey = action.dataKey
+          }
 
-      return emitResult
-    },
-    trigger: 'dataValue',
-  })
+          log.func('emit [onBlur]')
+          log.grey('Emitting', { action, emitParams, options })
 
-  /** onBlur EMIT */
-  app.ndom.register({
-    actionType: 'emit',
-    fn: async function onBlurEmit(
-      action: EmitAction,
-      options: ConsumerOptions,
-    ) {
-      const emitParams = {
-        actions: action.actions,
-        pageName: app.mainPage.page,
-      } as any
+          const emitResult = await app.noodl.emitCall(emitParams)
 
-      if ('dataKey' in action.original.emit || {}) {
-        emitParams.dataKey = action.dataKey
-      }
+          log.grey('Emitted', {
+            action,
+            actionChain: options.ref,
+            component: options.component,
+            emitParams,
+            emitResult,
+            options,
+          })
 
-      log.func('emit [onBlur]')
-      log.grey('Emitting', { action, emitParams, options })
+          return emitResult
+        },
+        trigger: 'onBlur',
+      },
+      // onClick EMIT
+      {
+        fn: async function onClickEmit(action: EmitAction, options) {
+          const emitParams = {
+            actions: action.actions,
+            pageName: options.page?.page,
+          } as any
 
-      const emitResult = await app.noodl.emitCall(emitParams)
+          if (action.original.emit.dataKey) {
+            emitParams.dataKey = action.dataKey
+          }
 
-      log.grey('Emitted', {
-        action,
-        actionChain: options.ref,
-        component: options.component,
-        emitParams,
-        emitResult,
-        options,
-      })
+          log.func('emit [onClick]')
+          log.gold('Emitting', { action, emitParams, ...options })
 
-      return emitResult
-    },
-    trigger: 'onBlur',
-  })
+          const emitResult = await app.noodl.emitCall(emitParams)
 
-  /** onClick EMIT */
-  app.ndom.register({
-    actionType: 'emit',
-    fn: async function onClickEmit(
-      action: EmitAction,
-      options: ConsumerOptions,
-    ) {
-      const emitParams = {
-        actions: action.actions,
-        pageName: options.page?.page,
-      } as any
+          log.gold(`Emitted [onClick]`, {
+            action,
+            actions: action.actions,
+            component: options.component,
+            emitParams,
+            emitResult,
+            options,
+          })
 
-      if (action.original.emit.dataKey) {
-        emitParams.dataKey = action.dataKey
-      }
+          return emitResult
+        },
+        trigger: 'onClick',
+      },
+      // onChange EMIT
+      {
+        fn: async function onChangeEmit(action: EmitAction, options) {
+          const emitParams = {
+            actions: action.actions,
+            pageName: app.mainPage.page,
+          } as any
 
-      log.func('emit [onClick]')
-      log.gold('Emitting', { action, emitParams, ...options })
+          if ('dataKey' in action.original.emit || {}) {
+            emitParams.dataKey = action.dataKey
+          }
 
-      const emitResult = await app.noodl.emitCall(emitParams)
+          log.func('emit [onChange]')
+          log.grey('Emitting', { action, emitParams, options })
 
-      log.gold(`Emitted [onClick]`, {
-        action,
-        actions: action.actions,
-        component: options.component,
-        emitParams,
-        emitResult,
-        options,
-      })
+          const emitResult = await app.noodl.emitCall(emitParams)
 
-      return emitResult
-    },
-    trigger: 'onClick',
-  })
+          log.grey('Emitted', {
+            action,
+            actionChain: options.ref,
+            component: options.component,
+            emitParams,
+            emitResult,
+            options,
+          })
 
-  /** onChange EMIT */
-  app.ndom.register({
-    actionType: 'emit',
-    fn: async function onChangeEmit(
-      action: EmitAction,
-      options: ConsumerOptions,
-    ) {
-      const emitParams = {
-        actions: action.actions,
-        pageName: app.mainPage.page,
-      } as any
+          return emitResult
+        },
+        trigger: 'onChange',
+      },
+      // Path EMIT
+      {
+        fn: async function onPathEmit(action: EmitAction, options) {
+          const { component, getRoot } = options
+          const page = app.mainPage.page || ''
+          const dataObject = findListDataObject(
+            component as NUIComponent.Instance,
+          )
+          const iteratorVar = findIteratorVar(component)
+          const emitParams = {
+            actions: action.original.emit.actions,
+            pageName: page,
+          } as any
 
-      if ('dataKey' in action.original.emit || {}) {
-        emitParams.dataKey = action.dataKey
-      }
+          if (action.original.emit.dataKey) {
+            emitParams.dataKey = createEmitDataKey(
+              action.original.emit.dataKey,
+              [dataObject, () => getRoot()[page], () => getRoot()],
+              { iteratorVar },
+            )
+          }
 
-      log.func('emit [onChange]')
-      log.grey('Emitting', { action, emitParams, options })
+          log.func('emit [path]')
+          log.grey('Emitting', { action, emitParams, options })
+          const result = await app.noodl.emitCall(emitParams)
+          log.grey(`Emitted`, result)
 
-      const emitResult = await app.noodl.emitCall(emitParams)
+          return Array.isArray(result) ? result[0] : result
+        },
+        trigger: 'path',
+      },
+      // Placeholder EMIT
+      {
+        fn: async function onPlaceholderEmit(
+          action: EmitAction,
+          options: ConsumerOptions & { placeholder: EmitObject },
+        ) {
+          const { component, getRoot, placeholder } = options
+          const page = app.mainPage.page
+          const dataObject = findListDataObject(component)
+          const iteratorVar = findIteratorVar(component)
+          const emitParams = {
+            actions: placeholder.emit.actions,
+            pageName: page,
+          } as any
 
-      log.grey('Emitted', {
-        action,
-        actionChain: options.ref,
-        component: options.component,
-        emitParams,
-        emitResult,
-        options,
-      })
+          if (action.original.emit.dataKey) {
+            emitParams.dataKey = createEmitDataKey(
+              action.original.emit.dataKey,
+              [dataObject, () => getRoot()[page], () => getRoot()],
+              { iteratorVar },
+            )
+          }
 
-      return emitResult
-    },
-    trigger: 'onChange',
-  })
+          log.func('emit [placeholder]')
+          log.grey('Emitting', { action, emitParams, ...options })
+          const result = await app.noodl.emitCall(emitParams)
+          log.grey(`Emitted`, { action, result })
 
-  /** PATH EMIT */
-  app.ndom.register({
-    actionType: 'emit',
-    fn: async function onPathEmit(
-      action: EmitAction,
-      options: ConsumerOptions,
-    ) {
-      const { component, getRoot } = options
-      const page = app.mainPage.page || ''
-      const dataObject = findListDataObject(component as NUIComponent.Instance)
-      const iteratorVar = findIteratorVar(component)
-      const emitParams = {
-        actions: action.original.emit.actions,
-        pageName: page,
-      } as any
+          return Array.isArray(result) ? result[0] : result
+        },
+        trigger: 'placeholder',
+      },
+      // Register EMIT
+      {
+        fn: async function onRegisterEmit(action: EmitAction, options) {
+          const page = app.mainPage.page
 
-      if (action.original.emit.dataKey) {
-        emitParams.dataKey = createEmitDataKey(
-          action.original.emit.dataKey,
-          [dataObject, () => getRoot()[page], () => getRoot()],
-          { iteratorVar },
-        )
-      }
+          const emitParams = {
+            actions: action.original.emit.actions,
+            pageName: page,
+          } as any
 
-      log.func('emit [path]')
-      log.grey('Emitting', { action, emitParams, options })
+          if (action.original.emit.dataKey) {
+            emitParams.dataKey = action.dataKey
+          }
 
-      const result = await app.noodl.emitCall(emitParams)
+          log.func('emit [register]')
+          log.grey('Emitting', { action, emitParams, ...options })
+          const emitResult = await app.noodl.emitCall(emitParams)
+          log.grey('Emitted', { action, emitParams, emitResult, ...options })
 
-      log.grey(`Emitted: ${result === '' ? '(empty string)' : result}`)
-
-      return Array.isArray(result) ? result[0] : result
-    },
-    trigger: 'path',
-  })
-
-  /** PLACEHOLDER EMIT */
-  app.ndom.register({
-    actionType: 'emit',
-    fn: async function onPlaceholderEmit(
-      action: EmitAction,
-      options: ConsumerOptions & { path: EmitObject },
-    ) {
-      const { component, getRoot, placeholder } = options
-      const page = app.mainPage.page
-      const dataObject = findListDataObject(component)
-      const iteratorVar = findIteratorVar(component)
-      const emitParams = {
-        actions: placeholder.emit.actions,
-        pageName: page,
-      } as any
-
-      if (action.original.emit.dataKey) {
-        emitParams.dataKey = createEmitDataKey(
-          action.original.emit.dataKey,
-          [dataObject, () => getRoot()[page], () => getRoot()],
-          { iteratorVar },
-        )
-      }
-
-      log.func('emit [placeholder]')
-      log.grey('Emitting', { action, emitParams, ...options })
-
-      const result = await app.noodl.emitCall(emitParams)
-
-      log.grey(`Emitted: ${result === '' ? '(empty string)' : result}`, action)
-
-      return Array.isArray(result) ? result[0] : result
-    },
-    trigger: 'placeholder',
-  })
-
-  /** REGISTER EMIT */
-  app.ndom.register({
-    actionType: 'emit',
-    fn: async function onRegisterEmit(
-      action: EmitAction,
-      options: ConsumerOptions,
-    ) {
-      const page = app.mainPage.page
-
-      const emitParams = {
-        actions: action.original.emit.actions,
-        pageName: page,
-      } as any
-
-      if (action.original.emit.dataKey) {
-        emitParams.dataKey = action.dataKey
-      }
-
-      log.func('emit [register]')
-      log.grey('Emitting', { action, emitParams, ...options })
-
-      const emitResult = await app.noodl.emitCall(emitParams)
-
-      log.func('emit [register]')
-      log.grey('Emitted', { action, emitParams, emitResult, ...options })
-
-      log.grey(`Emitted: ${emitResult === '' ? '(empty string)' : emitResult}`)
-
-      return Array.isArray(emitResult) ? emitResult[0] : emitResult
-    },
-    trigger: 'register',
-  })
-
-  app.ndom.register({
-    actionType: 'evalObject',
-    fn: async function onEvalObject(action: Action, options: ConsumerOptions) {
+          return Array.isArray(emitResult) ? emitResult[0] : emitResult
+        },
+        trigger: 'register',
+      },
+    ],
+    async evalObject(action, options) {
       log.func('evalObject')
       try {
         if (typeof action?.original?.object === 'function') {
@@ -420,11 +375,7 @@ const createActions = function createActions(app: App) {
         console.error(error)
       }
     },
-  })
-
-  app.ndom.register({
-    actionType: 'goto',
-    fn: async function onGoto(action: Action, options: ConsumerOptions) {
+    async goto(action, options) {
       log.func('goto')
       log.grey(action.original?.goto || action?.goto || 'goto', {
         action,
@@ -541,7 +492,7 @@ const createActions = function createActions(app: App) {
       }
 
       if (!destinationParam?.startsWith?.('http')) {
-        app.mainPage.pageUrl = resolvePageUrl({
+        app.mainPage.pageUrl = u.resolvePageUrl({
           destination,
           pageUrl: app.mainPage.pageUrl,
           startPage: noodl.cadlEndpoint.startPage,
@@ -578,11 +529,7 @@ const createActions = function createActions(app: App) {
         }
       }
     },
-  })
-
-  app.ndom.register({
-    actionType: 'pageJump',
-    fn: async function onPageJump(action: Action, options: ConsumerOptions) {
+    async pageJump(action, options) {
       log.func('pageJump')
       log.grey('', { action, ...options })
       stable &&
@@ -591,11 +538,7 @@ const createActions = function createActions(app: App) {
         )
       await app.navigate(action.original.destination)
     },
-  })
-
-  app.ndom.register({
-    actionType: 'popUp',
-    fn: async function onPopUp(action: Action, options: ConsumerOptions) {
+    async popUp(action, options) {
       log.func(action.actionType)
       log.grey('', { action, ...options })
       const { ref } = options
@@ -687,32 +630,17 @@ const createActions = function createActions(app: App) {
         )
       }
     },
-  })
-
-  app.ndom.register({
-    actionType: 'popUpDismiss',
-    fn: async function onPopUpDismiss(
-      action: Action,
-      options: ConsumerOptions,
-    ) {
+    async popUpDismiss(action, options) {
       await Promise.all(
         app.ndom.actions.popUp.map((obj) => obj.fn(action, options)),
       )
     },
-  })
-
-  app.ndom.register({
-    actionType: 'refresh',
-    fn: function onRefresh(action: Action, options: ConsumerOptions) {
+    async refresh(action, options) {
       log.func('refresh')
       log.grey(action.actionType, { action, ...options })
       window.location.reload()
     },
-  })
-
-  app.ndom.register({
-    actionType: 'saveObject',
-    fn: async function onSaveObject(action: Action, options: ConsumerOptions) {
+    async saveObject(action, options) {
       log.func('saveObject')
       log.grey('', { action, ...options })
       const { default: noodl } = await import('../app/noodl')
@@ -787,11 +715,7 @@ const createActions = function createActions(app: App) {
         ref?.abort?.()
       }
     },
-  })
-
-  app.ndom.register({
-    actionType: 'toast',
-    fn: async function onToast(action: Action, options: ConsumerOptions) {
+    async toast(action, options) {
       try {
         log.func('toast')
         log.gold('', { action, options })
@@ -800,14 +724,7 @@ const createActions = function createActions(app: App) {
         throw new Error(error)
       }
     },
-  })
-
-  app.ndom.register({
-    actionType: 'updateObject',
-    fn: async function onUpdateObject(
-      action: Action,
-      options: ConsumerOptions,
-    ) {
+    async updateObject(action, options) {
       const { component, ref } = options
       log.func('updateObject')
       log.grey('', { action, ...options })
@@ -820,6 +737,7 @@ const createActions = function createActions(app: App) {
           if (status === 'selected' && files?.[0]) {
             log.grey(`File selected`, files[0])
             callObjectOptions.file = files[0]
+            // @ts-expect-error
           } else if (status === 'canceled') {
             log.red('File was not selected and the operation was aborted')
             await ref?.abort?.('File input window was closed')
@@ -906,7 +824,10 @@ const createActions = function createActions(app: App) {
               log.func('updateObject')
               log.cyan(`Calling updateObject with params: `, params)
               const result = await app.noodl.updateObject(params)
-              log.cyan(`Called updateObject: `, { params, resultIfAny: result })
+              log.cyan(`Called updateObject: `, {
+                params,
+                resultIfAny: result,
+              })
             } else {
               log.red(`dataObject is null or undefined`, {
                 action,
@@ -918,12 +839,40 @@ const createActions = function createActions(app: App) {
       } catch (error) {
         console.error(error)
         toast(error.message)
-        // await abort?.(error.message)
       }
     },
-  })
+  }
 
-  stable && log.cyan(`Initiated action funcs`)
+  const insert = (
+    type: keyof typeof actions,
+    obj: typeof actions[keyof typeof actions],
+  ) => {
+    const action = { actionType: type } as Store.ActionObject
+
+    if (u.isFnc(obj)) {
+      action.fn = obj
+    } else if (u.isArr(obj)) {
+      obj.forEach((o) => {
+        if (u.isFnc(o)) {
+          action.fn = o
+        } else u.assign(action, o)
+      })
+    } else {
+      u.assign(action, obj)
+    }
+
+    return action
+  }
+
+  return Object.entries(actions).reduce((acc, [type, obj]) => {
+    const objs = [] as Store.ActionObject[]
+    if (u.isArr(obj)) {
+      obj.forEach((o) => objs.push(insert(type as keyof typeof actions, o)))
+    } else {
+      objs.push(insert(type as keyof typeof actions, obj))
+    }
+    return acc.concat(objs)
+  }, [] as Store.ActionObject[])
 }
 
 export default createActions

@@ -29,8 +29,7 @@ resolveStyles.setResolver(
     const { context, getBaseStyles, viewport } = options
     const edit = createStyleEditor(component)
 
-    const original = component.blueprint
-    const originalStyles = original?.style || {}
+    const originalStyles = component.blueprint?.style || {}
     const iteratorVar = context?.iteratorVar || findIteratorVar(component) || ''
 
     edit(getBaseStyles(component))
@@ -247,6 +246,8 @@ resolveStyles.setResolver(
         delete component.style.textAlign
       }
     }
+
+    debugger
 
     /* -------------------------------------------------------
     ---- SIZES

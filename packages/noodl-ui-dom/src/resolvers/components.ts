@@ -11,7 +11,6 @@ const domComponentsResolver: Resolve.Config = {
   resolve(node, component, { draw }) {
     if (node && !u.isFnc(node)) {
       const original = component.blueprint || {}
-      const props = component.props || {}
 
       const {
         children,
@@ -29,7 +28,7 @@ const domComponentsResolver: Resolve.Config = {
 
       // BUTTON
       if (Identify.component.button(original)) {
-        if (props['data-src']) {
+        if (component.props['data-src']) {
           node.style.overflow = 'hidden'
           node.style.display = 'flex'
           node.style.alignItems = 'center'
@@ -51,10 +50,11 @@ const domComponentsResolver: Resolve.Config = {
       }
       // LABEL
       else if (Identify.component.label(component)) {
-        if (props['data-value']) node.innerHTML = String(props['data-value'])
+        if (component.props['data-value'])
+          node.innerHTML = String(component.props['data-value'])
         else if (text) node.innerHTML = String(text)
-        else if (props['data-placeholder']) {
-          node.innerHTML = String(props['data-placeholder'])
+        else if (component.props['data-placeholder']) {
+          node.innerHTML = String(component.props['data-placeholder'])
         }
         onClick && (node.style.cursor = 'pointer')
       }
@@ -84,7 +84,7 @@ const domComponentsResolver: Resolve.Config = {
         // resolved node instead
         // This is specific for these plugin components but may be extended to be used more later
         function getMetadata(component: NUIComponent.Instance) {
-          const src = String(props.src)
+          const src = String(component.props.src)
           const isLib = contentType === 'library'
           const metadata = {} as { type: string; tagName: string }
 
@@ -174,7 +174,7 @@ const domComponentsResolver: Resolve.Config = {
             optionNode.id = option.key
             optionNode.value = option.value
             optionNode.textContent = option.label
-            if (option?.value === component.get('data-value')) {
+            if (option?.value === component.props['data-value']) {
               // Default to the selected index if the user already has a state set before
               selectNode.selectedIndex = index
               selectNode.dataset.value = option.value
@@ -192,11 +192,11 @@ const domComponentsResolver: Resolve.Config = {
         let notSupportedEl: HTMLParagraphElement
         videoEl.controls = isBooleanTrue(controls)
         if (poster) videoEl.setAttribute('poster', poster)
-        if (component.get('data-src')) {
+        if (component.props['data-src']) {
           sourceEl = document.createElement('source')
           notSupportedEl = document.createElement('p')
           if (videoType) sourceEl.setAttribute('type', videoType)
-          sourceEl.setAttribute('src', component.get('data-src'))
+          sourceEl.setAttribute('src', component.props['data-src'])
           notSupportedEl.style.textAlign = 'center'
           // This text will not appear unless the browser isn't able to play the video
           notSupportedEl.innerHTML =

@@ -1,11 +1,6 @@
 import { ActionObject } from 'noodl-types'
-import { Store } from './types'
-import {
-  array,
-  isArr,
-  isObj,
-  mapActionTypesToOwnArrays,
-} from './utils/internal'
+import { Store, Transaction } from './types'
+import { isArr, isObj, mapActionTypesToOwnArrays } from './utils/internal'
 import Resolver from './Resolver'
 
 const store = (function _store() {
@@ -13,21 +8,17 @@ const store = (function _store() {
   let builtIns = {} as { [funcName: string]: Store.BuiltInObject[] }
   let plugins = { head: [], body: { top: [], bottom: [] } } as Store.Plugins
   let resolvers = [] as Resolver<any>[]
-  let transactions = {} as {
-    [transaction: string]: Store.TransactionObject['callback']
-  }
+  let transactions = {} as Transaction
 
   function use(action: Store.ActionObject): void
   function use(action: Store.BuiltInObject): void
   function use(plugin: Store.PluginObject): void
-  function use(transaction: Store.TransactionObject): void
   function use(resolver: Resolver<any>): void
   function use(
     mod:
       | Store.ActionObject
       | Store.BuiltInObject
       | Store.PluginObject
-      | Store.TransactionObject
       | Resolver<any>,
     ...rest: any[]
   ) {
@@ -41,10 +32,6 @@ const store = (function _store() {
           ) {
             resolvers.push(m)
           }
-        } else if ('transaction' in m) {
-          array(m).forEach((mod: Store.TransactionObject) => {
-            transactions[mod.transaction] = mod.callback
-          })
         } else if (isObj(m)) {
           if (m.actionType === 'builtIn' || 'funcName' in m) {
             if (!('actionType' in m)) m.actionType = 'builtIn'

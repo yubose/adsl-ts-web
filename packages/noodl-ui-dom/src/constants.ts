@@ -31,8 +31,6 @@ export const eventId = {
   },
 } as const
 
-export const transaction = {
-  GET_PAGE_OBJECT: 'GET_PAGE_OBJECT',
-} as const
+export const transaction = {} as const
 
 export const CREATE_GLOBAL_ID = 'CREATE_GLOBAL_ID'

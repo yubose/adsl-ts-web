@@ -58,6 +58,7 @@ async function resolveAsync(
     }
   } catch (error) {
     console.error(error)
+    throw error
   }
 }
 

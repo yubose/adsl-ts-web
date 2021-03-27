@@ -1,45 +1,68 @@
-import { IViewport, ViewportListener } from './types'
+import isNaN from 'lodash/isNaN'
 import { hasLetter, hasDecimal, isBrowser } from './utils/common'
 import { isStr, isNum, isNil, isUnd } from './utils/internal'
 
-// const getLineSpacing = (v: number) => v * 1.5
-// const getLetterSpacing = (v: number) => v * 0.12
-// const getSpacing = (v: number) => v * 2
-// const getWordSpacing = (v: number) => v * 0.16
+interface GetSizeOptions<U extends 'px' | 'noodl' = 'px' | 'noodl'> {
+  toFixed?: number
+  unit?: U
+}
 
-class NOODLViewport implements IViewport {
+class NOODLViewport {
   #onResize: () => void
 
   width: number = undefined as any
   height: number = undefined as any
 
-  // TODO - Unit test this
-  /**
-   * Returns the aspect ratio of size
-   * @param { number } vpSize - Viewport size
-   * @param { string | number } size
-   */
-  static getRatio(vpSize: number, size: string | number) {
-    if (isStr(size)) {
-      if (hasDecimal(size)) return vpSize * Number(size)
-      return vpSize / Number(size)
+  static getAspectRatio(width: number, height: number) {
+    /**
+     * The binary Great Common Divisor calculator
+     * https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
+     * @param { number } u - Upper
+     * @param { number } v - Lower
+     */
+    const getGCD = (u: number, v: number): any => {
+      if (u === v) return u
+      if (u === 0) return v
+      if (v === 0) return u
+      if (~u & 1)
+        if (v & 1) return getGCD(u >> 1, v)
+        else return getGCD(u >> 1, v >> 1) << 1
+      if (~v & 1) return getGCD(u, v >> 1)
+      if (u > v) return getGCD((u - v) >> 1, v)
+      return getGCD((v - u) >> 1, u)
     }
-    if (isNum(size)) {
-      if (hasDecimal(size)) return vpSize * Number(size)
-      return vpSize / Number(size)
+
+    const getSizes = (w: number, h: number) => {
+      const d = getGCD(w, h)
+      return [w / d, h / d]
     }
-    return vpSize
+
+    const [newWidth, newHeight] = getSizes(width, height)
+    const aspectRatio = newWidth / newHeight
+    return aspectRatio
   }
 
   /**
-   *
+   * Returns the computed size.
    * @param { string | number } value - Size in decimals as written in NOODL
    * @param { number } vpSize - The maximum width (or height)
    */
   static getSize(
     value: string | number,
     vpSize: number,
-    { toFixed = 2, unit }: { toFixed?: number; unit?: 'px' | 'noodl' } = {},
+    opts: GetSizeOptions,
+  ): string
+
+  static getSize(
+    value: string | number,
+    vpSize: number,
+    opts: Omit<GetSizeOptions, 'unit'>,
+  ): number
+
+  static getSize(
+    value: string | number,
+    vpSize: number,
+    { toFixed = 2, unit }: GetSizeOptions = {},
   ) {
     let result: any
 
@@ -67,21 +90,36 @@ class NOODLViewport implements IViewport {
     if (isNil(result)) return result
 
     switch (unit) {
+      // NOODL
       case 'noodl':
         return (Number(result) / vpSize).toFixed(toFixed)
+      // Transformed
       case 'px':
         return `${Number(result).toFixed(toFixed)}px`
       default:
+        // TODO - Wrap to coerce to number type
         return Number(result).toFixed(toFixed)
     }
   }
 
+  /**
+   * Returns true if the value is considered an "invalid" data value to set on
+   * a viewport's dimensions. This is mostly intended to trigger the auto-top
+   * concept. Invalid values are: null, undefined, '', 'auto
+   * @param { unknown } value
+   */
   static isNil(v: unknown): v is null | undefined | '' | 'auto' {
     return v === null || isUnd(v) || v === 'auto' || v === ''
   }
 
+  /**
+   * Returns true if the value is a NOODL value that the Viewport will treat as
+   * "not yet transformed/parsed". The Viewport sees a NOODL value as a value
+   * that is a string, does not have any letters, and is coercible to a number
+   * @param { unknown } value
+   */
   static isNoodlUnit(v: unknown): v is string {
-    return isStr(v) && !/[a-zA-Z]/i.test(v)
+    return isStr(v) && !/[a-zA-Z]/i.test(v) && !isNaN(Number(v))
   }
 
   /** https://tc39.es/ecma262/#sec-tonumber */
@@ -104,7 +142,14 @@ class NOODLViewport implements IViewport {
     return this.#onResize
   }
 
-  set onResize(callback: ViewportListener) {
+  set onResize(
+    callback: (
+      viewport: { width: number; height: number } & {
+        previousWidth: number | undefined
+        previousHeight: number | undefined
+      },
+    ) => Promise<any> | any,
+  ) {
     if (isBrowser()) {
       window.removeEventListener('resize', this.#onResize)
 
@@ -135,14 +180,14 @@ class NOODLViewport implements IViewport {
   }
 
   getWidth(dec: string, opts?: Parameters<typeof NOODLViewport['getSize']>[2]) {
-    return NOODLViewport.getSize(dec, this.width as number, opts)
+    return NOODLViewport.getSize(dec, this.width, opts)
   }
 
   getHeight(
     dec: string,
     opts?: Parameters<typeof NOODLViewport['getSize']>[2],
   ) {
-    return NOODLViewport.getSize(dec, this.height as number, opts)
+    return NOODLViewport.getSize(dec, this.height, opts)
   }
 }
 

@@ -64,21 +64,12 @@ export type NOODLUIActionObjectInput =
 
 export namespace NUIEmit {
   export interface RegisterObject {
-    type: 'register'
+    type: typeof nuiEmitType.REGISTER
     args: Register.Object
   }
 
-  export interface Transaction {
-    [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: {
-      params: { page: string; modifiers?: Record<string, any> }
-      callback(pageObject: PageObject): void
-    }
-  }
-
-  export type TransactionId = keyof Transaction
-
-  export interface TransactionInput<K extends TransactionId = TransactionId> {
-    type: 'transaction'
+  export interface TransactionObject<K extends TransactionId = TransactionId> {
+    type: typeof nuiEmitType.TRANSACTION
     transaction: K
     params?: Transaction[K]['params']
   }
@@ -265,7 +256,7 @@ export interface IComponent<
   snapshot(): ReturnType<IComponent['toJSON']> & {
     _cache: any
   }
-  toJSON(): Omit<ReturnType<IComponent['props']>, 'children'> & {
+  toJSON(): Omit<IComponent['props'], 'children'> & {
     children: ReturnType<IComponent['toJSON']>[]
     parentId: string | null
   }
@@ -320,24 +311,28 @@ export interface ResolverFn<C extends NUIComponent.Instance = any> {
 }
 
 export namespace Store {
-  export interface ActionObject {
-    actionType: NOODLUIActionType
-    fn: (...args: any[]) => any
-    trigger?: NOODLUITrigger
+  export interface ActionObject<
+    AType extends NOODLUIActionType = NOODLUIActionType,
+    ATrigger extends NOODLUITrigger = NOODLUITrigger
+  > {
+    actionType: AType
+    fn(
+      action: Action<AType, ATrigger>,
+      options: ConsumerOptions,
+    ): Promise<any[] | void>
+    trigger?: ATrigger
   }
 
-  export interface BuiltInObject {
+  export interface BuiltInObject<
+    FuncName extends string = string,
+    ATrigger extends NOODLUITrigger = NOODLUITrigger
+  > {
     actionType: 'builtIn'
-    fn: (...args: any[]) => any
-    funcName: string
-  }
-
-  export interface TransactionObject<T extends string = string> {
-    transaction: T
-    callback(args: {
-      component: NUIComponent.Instance
-      options: ConsumerOptions
-    }): Promise<PageObject>
+    fn(
+      action: Action<'builtIn', ATrigger>,
+      options: ConsumerOptions,
+    ): Promise<any[] | void>
+    funcName: FuncName
   }
 
   export interface Plugins {
@@ -379,21 +374,15 @@ export interface SelectOption {
   value: string
 }
 
-export interface IViewport {
-  width: number | undefined
-  height: number | undefined
-  isValid(): boolean
-  onResize: ViewportListener | undefined
+export interface Transaction {
+  [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: {
+    params: { page: string; modifiers?: Record<string, any> }
+    fn(page: NUIPage | NUIPage['page']): Promise<PageObject>
+    callback(pageObject: PageObject): void
+  }
 }
 
-export interface ViewportListener {
-  (
-    viewport: { width: number; height: number } & {
-      previousWidth: number | undefined
-      previousHeight: number | undefined
-    },
-  ): Promise<any> | any
-}
+export type TransactionId = keyof Transaction
 
 export type Use =
   | Store.ActionObject
@@ -409,6 +398,6 @@ export interface UseObject {
   getPreloadPages?(): string[]
   getRoot?(): Record<string, any>
   getPlugins?: Plugin.CreateType[]
-  transaction?: Store.TransactionObject | Store.TransactionObject[]
   register?: Register.Object | Register.Object[]
+  transaction?: Record<TransactionId, Transaction[TransactionId]['fn']>
 }

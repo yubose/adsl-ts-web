@@ -1,7 +1,6 @@
 import Logger from 'logsnap'
 import { NOODLUI as NUI } from 'noodl-ui'
 import App from './App'
-import Meeting from './meeting'
 import { copyToClipboard } from './utils/dom'
 import { isStable } from './utils/common'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -12,18 +11,25 @@ const stable = isStable()
 
 window.addEventListener('load', async (e) => {
   const { Account } = await import('@aitmed/cadl')
-  const { default: firebase, aitMessage } = await import('./app/firebase')
+  const {
+    default: firebase,
+    aitMessage,
+    isSupported: firebaseSupported,
+  } = await import('./app/firebase')
   const { default: noodl } = await import('app/noodl')
   const { getWindowHelpers } = await import('app/noodl-ui')
 
-  const app = new App()
+  const app = new App({
+    noodl,
+    getStatus: Account.getStatus.bind(Account),
+  })
 
   window.app = {
     Account,
     app,
     build: process.env.BUILD,
     cp: copyToClipboard,
-    meeting: Meeting,
+    meeting: app.meeting,
     noodl,
     nui: NUI,
     page: app.mainPage,
@@ -54,8 +60,7 @@ window.addEventListener('load', async (e) => {
     stable && log.cyan('Initializing [App] instance')
     await app.initialize({
       firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
-      meeting: Meeting,
-      ndom: app.ndom,
+      firebaseSupported: firebaseSupported(),
     })
     // @ts-expect-error
     window.grid = () => {

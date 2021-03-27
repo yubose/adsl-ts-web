@@ -3,40 +3,43 @@
 // are currently handled in App.ts
 
 import { RemoteParticipant, Room } from 'twilio-video'
+import { Register } from 'noodl-ui'
 import { noodlEvent } from '../constants'
 import App from '../App'
+import * as u from '../utils/common'
 
 function registerCallbacks(app: App) {
-  app.ndom.use({
-    register: {
-      name: noodlEvent.TWILIO_ON_PEOPLE_JOIN,
-      page: '_global',
-      async callback(
+  const registers: Record<
+    string,
+    Omit<Partial<Register.Object>, 'name'> | Register.Object['callback']
+  > = {
+    async [noodlEvent.TWILIO_ON_PEOPLE_JOIN](
+      obj,
+      params: { room: Room; participant: RemoteParticipant },
+    ) {
+      console.log(`%c[${noodlEvent.TWILIO_ON_PEOPLE_JOIN}]`, `color:#95a5a6;`, {
         obj,
-        params: { room: Room; participant: RemoteParticipant },
-      ) {
-        console.log(
-          `%c[${noodlEvent.TWILIO_ON_PEOPLE_JOIN}]`,
-          `color:#95a5a6;`,
-          { obj, params },
-        )
-      },
+        params,
+      })
     },
-  })
+    async [noodlEvent.TWILIO_ON_NO_PARTICIPANT](obj, params: { room: Room }) {
+      console.log(
+        `%c[${noodlEvent.TWILIO_ON_NO_PARTICIPANT}]`,
+        `color:#95a5a6;`,
+        { obj, params },
+      )
+    },
+  }
 
-  app.ndom.use({
-    register: {
-      name: noodlEvent.TWILIO_ON_NO_PARTICIPANT,
-      page: '_global',
-      async callback(obj, params: { room: Room }) {
-        console.log(
-          `%c[${noodlEvent.TWILIO_ON_NO_PARTICIPANT}]`,
-          `color:#95a5a6;`,
-          { obj, params },
-        )
-      },
-    },
-  })
+  return Object.entries(registers).reduce((acc, [name, obj]) => {
+    const register = { name } as Register.Object
+
+    if (u.isFnc(obj)) {
+      register.callback = obj
+    } else u.assign(register, obj)
+
+    return acc.concat(register)
+  }, [] as Register.Object[])
 }
 
 export default registerCallbacks

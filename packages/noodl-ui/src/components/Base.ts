@@ -1,5 +1,6 @@
+import cloneDeep from 'lodash/cloneDeep'
 import { WritableDraft } from 'immer/dist/internal'
-import produce, { isDraft, original } from 'immer'
+import { isDraft, original } from 'immer'
 import { ComponentObject, StyleObject, userEvent } from 'noodl-types'
 import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import * as u from '../utils/internal'
@@ -28,7 +29,7 @@ class Component<C extends ComponentObject = ComponentObject>
     return (
       !!component &&
       !u.isStr(component) &&
-      (component instanceof Component || u.isFnc(component?.props))
+      (component instanceof Component || 'blueprint' in component)
     )
   }
 
@@ -60,10 +61,13 @@ class Component<C extends ComponentObject = ComponentObject>
       ? component.blueprint
       : component
     this.#cache = {}
-    // this.#component = createComponentDraftSafely(
-    //   component,
-    // ) as WritableDraft<ComponentObject>
-    this.#component = { ...component }
+    this.#component = createComponentDraftSafely(
+      this.#blueprint,
+    ) as WritableDraft<ComponentObject>
+    // this.#component = {
+    //   ...this.#blueprint,
+    //   style: cloneDeep(this.#blueprint.style),
+    // }
     this.#type = this.#blueprint.type
     this.#id = opts?.id || this.#component.id || u.getRandomKey()
     this.original = this.#blueprint
@@ -95,7 +99,7 @@ class Component<C extends ComponentObject = ComponentObject>
   }
 
   get contentType() {
-    return this.original?.contentType
+    return this.blueprint?.contentType
   }
 
   get hooks() {
@@ -121,19 +125,15 @@ class Component<C extends ComponentObject = ComponentObject>
    * @param { string } key - Component property or "style" if using styleKey for style lookups
    */
   get props() {
-    return {
-      ...this.#component,
-      type: this.type,
-      id: this.#id,
-    } as ComponentObject & { id: string }
+    return this.#component as ComponentObject & { id: string }
   }
 
   /** Returns the most recent styles at the time of this call */
   get style() {
-    if (!this.#component.style || u.isStr(this.#component.style)) {
-      this.#component.style = {}
+    if (!this.props.style || u.isStr(this.props.style)) {
+      this.props.style = {}
     }
-    return this.#component.style as StyleObject
+    return this.props.style as StyleObject
   }
 
   set style(style: StyleObject) {
@@ -182,22 +182,22 @@ class Component<C extends ComponentObject = ComponentObject>
     if (key === 'style') {
       // Retrieve the entire style object
       if (styleKey === undefined) {
-        value = isDraft(this.original.style)
-          ? original(this.original.style)
-          : this.original.style
+        value = isDraft(this.blueprint.style)
+          ? original(this.blueprint.style)
+          : this.blueprint.style
       }
       // Retrieve a property of the style object
       else if (u.isStr(styleKey)) {
-        value = this.original.style?.[styleKey]
+        value = this.blueprint.style?.[styleKey]
       }
     } else {
       // Return the original type only for this case
       if (key === 'type') {
-        value = this.original.type
+        value = this.blueprint.type
       } else {
         value =
           this.#component[key as keyof ComponentObject] ||
-          this.original[key as keyof ComponentObject]
+          this.#blueprint[key as keyof ComponentObject]
       }
     }
 
@@ -230,7 +230,7 @@ class Component<C extends ComponentObject = ComponentObject>
    * @param { string } key - Component property or "style" if using styleKey for style lookups
    */
   has<K extends keyof ComponentObject>(key: K) {
-    return key in (this.original || {})
+    return key in (this.blueprint || {})
   }
 
   /**
@@ -439,22 +439,22 @@ class Component<C extends ComponentObject = ComponentObject>
     value?: T.NUIComponent.EditResolutionOptions,
   ) {
     if (u.isFnc(fn)) {
-      const props = fn(this.#component)
+      const props = fn(this.props)
       if (u.isObj(props)) {
         u.entries(props).forEach(([k, v]) => {
           if (k === 'style') {
             u.assign(this.style, v)
           } else {
-            this.#component[k] = v
+            this.props[k] = v
           }
         })
       }
     } else if (u.isStr(fn)) {
-      this.#component[fn] = value
+      this.props[fn] = value
     } else if (u.isObj(fn)) {
       const remove = value?.remove
         ? (prop?: 'style') => {
-            const obj = prop === 'style' ? this.style : this.#component
+            const obj = prop === 'style' ? this.style : this.props
             if (u.isStr(value.remove)) {
               delete obj[value.remove]
             } else if (u.isArr(value.remove)) {
@@ -474,7 +474,7 @@ class Component<C extends ComponentObject = ComponentObject>
           else this.style = v
           remove?.('style')
         } else {
-          this.#component[k] = v
+          this.props[k] = v
           remove?.()
         }
       })

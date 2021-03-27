@@ -3,6 +3,10 @@ import {
   Component,
   DataAttribute,
   NOODLUI as NUI,
+  NUIEmit,
+  nuiEmitTransaction,
+  Transaction as NUITransaction,
+  TransactionId,
   UseObject as NUIUseObject,
 } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
@@ -127,10 +131,6 @@ export namespace Render {
 
 export type RegisterOptions = Resolve.Config
 
-export interface Transaction {
-  [transaction.GET_PAGE_OBJECT](page: NOODLDOMPage): Promise<PageObject>
-}
-
 /* -------------------------------------------------------
   ---- PAGE TYPES
 -------------------------------------------------------- */
@@ -208,7 +208,19 @@ export namespace Page {
   }
 }
 
-export interface UseObject extends NUIUseObject {
+export interface Transaction
+  extends Omit<NUITransaction, typeof nuiEmitTransaction.REQUEST_PAGE_OBJECT> {
+  [nuiEmitTransaction.REQUEST_PAGE_OBJECT](
+    page: NOODLDOMPage,
+  ): Promise<PageObject>
+}
+
+export interface UseObject extends Omit<NUIUseObject, 'transaction'> {
   createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
-  getPageObject?: Transaction[typeof transaction.GET_PAGE_OBJECT]
+  resolver?: Resolve.Config
+  transaction?: Transaction &
+    Omit<
+      NUIUseObject['transaction'],
+      typeof nuiEmitTransaction.REQUEST_PAGE_OBJECT
+    >
 }

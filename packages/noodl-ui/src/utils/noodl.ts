@@ -122,7 +122,11 @@ export function findParent<C extends NUIComponent.Instance>(
   return parent || null
 }
 
-export function findListDataObject(component: NUIComponent.Instance) {
+export function findListDataObject(
+  component: NUIComponent.Instance | undefined,
+) {
+  if (!component) return null
+
   let dataObject
   let listItem: any
 

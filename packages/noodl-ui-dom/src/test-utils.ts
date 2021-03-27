@@ -1,6 +1,11 @@
 import sinon from 'sinon'
 import { ComponentObject, PageObject } from 'noodl-types'
-import { NUIComponent, NOODLUI as NUI, Viewport } from 'noodl-ui'
+import {
+  nuiEmitTransaction,
+  NUIComponent,
+  NOODLUI as NUI,
+  Viewport,
+} from 'noodl-ui'
 import { NOODLDOMElement, Resolve } from './types'
 import { array, keys, isArr, isStr, isUnd } from './utils/internal'
 import NOODLDOM from './noodl-ui-dom'
@@ -24,6 +29,7 @@ type MockDrawResolver =
 interface MockRenderOptions {
   components?: ComponentObject | ComponentObject[]
   currentPage?: string
+  getPageObject?: (page: string) => Promise<PageObject>
   page?: NOODLDOMPage
   pageName?: string
   pageObject?: PageObject
@@ -114,6 +120,13 @@ export function createRender(opts: MockRenderOptions) {
       [pageRequesting]: pageObject,
     }),
   }
+
+  ndom.use({
+    transaction: {
+      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
+        pageObject as PageObject,
+    },
+  })
 
   ndom.use(use)
 

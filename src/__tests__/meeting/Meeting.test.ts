@@ -1,11 +1,11 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { getByDataUX, NOODLComponent } from 'noodl-ui'
-import { noodlui, page } from '../utils/test-utils'
-import Meeting from './Meeting'
-import Stream from './Stream'
-import Streams from './Streams'
-import Substreams from './Substreams'
+import { noodlui, page } from '../../utils/test-utils'
+import Meeting from '../../meeting/Meeting'
+import Stream from '../../meeting/Stream'
+import Streams from '../../meeting/Streams'
+import Substreams from '../../meeting/Substreams'
 
 class MockParticipant {
   sid = 'mysid123'

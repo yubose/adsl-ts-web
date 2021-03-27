@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import userEvent from '@testing-library/user-event'
-import { onSelectFile } from './dom'
+import { onSelectFile } from '../../utils/dom'
 
 describe('dom (utils)', () => {
   describe('onSelectFile (passing in an existing input)', () => {

@@ -108,14 +108,14 @@ export function getTagName(
  * @param { function } fn
  */
 export function makeFinder(
-  key: 'globalId' | 'id' | 'viewTag',
+  key: 'data-globalid' | 'id' | 'data-viewtag',
   fn: (
     id: string,
     doc?: Document | null | undefined,
   ) => NodeListOf<NOODLDOMElement> | NOODLDOMElement | HTMLElement | null,
 ) {
   const find = (
-    c: string | NUIComponent.Instance,
+    c: string | NUIComponent.Instance | undefined | null,
   ): NodeListOf<NOODLDOMElement> | NOODLDOMElement | HTMLElement | null => {
     let str = ''
     let cb = (doc: Document | null | undefined) => fn(str, doc)
@@ -137,10 +137,10 @@ export function makeFinder(
   return find
 }
 
-export const findByDataGlobalId = makeFinder('globalId', getByDataGlobalId)
+export const findByDataGlobalId = makeFinder('data-globalid', getByDataGlobalId)
 export const findByElementId = makeFinder('id', getByElementId)
-export const findByViewTag = makeFinder('viewTag', getByViewTag)
-export const findAllByViewTag = makeFinder('viewTag', getByAllViewTag)
+export const findByViewTag = makeFinder('data-viewtag', getByViewTag)
+export const findAllByViewTag = makeFinder('data-viewtag', getByAllViewTag)
 
 export function findWindow(
   cb: (

@@ -14,7 +14,7 @@ import NUIPage from './Page'
 import PageCache from './cache/PageCache'
 import RegisterCache from './cache/RegisterCache'
 import store from './store'
-import Viewport from './Viewport'
+import VP from './Viewport'
 import resolveAsync from './resolvers/resolveAsync'
 import resolveComponents from './resolvers/resolveComponents'
 import resolveStyles from './resolvers/resolveStyles'
@@ -88,7 +88,7 @@ const NOODLUI = (function _NOODLUI() {
   function _createPage(
     args?: {
       name?: string
-      viewport?: Viewport | { width?: number; height?: number }
+      viewport?: VP | { width?: number; height?: number }
     },
     never?: never,
   ): NUIPage
@@ -97,27 +97,27 @@ const NOODLUI = (function _NOODLUI() {
       | string
       | {
           name?: string
-          viewport?: Viewport | { width?: number; height?: number }
+          viewport?: VP | { width?: number; height?: number }
         },
-    opts: { viewport?: Viewport | { width?: number; height?: number } } = {},
+    opts: { viewport?: VP | { width?: number; height?: number } } = {},
   ) {
     let name: string = ''
     let page: NUIPage | undefined
-    let viewport: Viewport | undefined
+    let viewport: VP | undefined
     if (u.isStr(args)) {
       name = args
       if (opts?.viewport) {
-        if (opts.viewport instanceof Viewport) viewport = opts.viewport
-        else if (u.isObj(opts.viewport)) viewport = new Viewport(opts.viewport)
+        if (opts.viewport instanceof VP) viewport = opts.viewport
+        else if (u.isObj(opts.viewport)) viewport = new VP(opts.viewport)
       }
     } else if (u.isObj(args)) {
       args.name && (name = args.name)
       if (args?.viewport) {
-        if (args.viewport instanceof Viewport) viewport = args.viewport
-        else if (u.isObj(args.viewport)) viewport = new Viewport(args.viewport)
+        if (args.viewport instanceof VP) viewport = args.viewport
+        else if (u.isObj(args.viewport)) viewport = new VP(args.viewport)
       }
     }
-    page = cache.page.create({ viewport: viewport as Viewport })
+    page = cache.page.create({ viewport: viewport as VP })
     name && (page.page = name)
     return page
   }
@@ -243,15 +243,13 @@ const NOODLUI = (function _NOODLUI() {
     }
   }
 
-  async function _emit<
-    TType extends T.NUIEmit.TransactionId = T.NUIEmit.TransactionId
-  >(
-    obj: T.NUIEmit.TransactionInput<TType>,
-  ): Promise<Parameters<T.NUIEmit.Transaction[TType]['callback']>[0]>
+  async function _emit<TType extends T.TransactionId = T.TransactionId>(
+    obj: T.NUIEmit.TransactionObject<TType>,
+  ): Promise<Parameters<T.Transaction[TType]['callback']>[0]>
   async function _emit(opts: T.NUIEmit.RegisterObject): Promise<never>
-  async function _emit<
-    TType extends T.NUIEmit.TransactionId = T.NUIEmit.TransactionId
-  >(opts: T.NUIEmit.TransactionInput<TType> | T.NUIEmit.RegisterObject) {
+  async function _emit<TType extends T.TransactionId = T.TransactionId>(
+    opts: T.NUIEmit.TransactionObject<TType> | T.NUIEmit.RegisterObject,
+  ) {
     try {
       if (opts.type === nuiEmitType.REGISTER) {
         const { args } = opts
@@ -299,7 +297,7 @@ const NOODLUI = (function _NOODLUI() {
     const originalStyle = component?.blueprint?.style || {}
     const styles = { ...originalStyle } as any
 
-    if (Viewport.isNil(originalStyle?.top) || originalStyle?.top === 'auto') {
+    if (VP.isNil(originalStyle?.top) || originalStyle?.top === 'auto') {
       styles.position = 'relative'
     } else {
       styles.position = 'absolute'
@@ -546,7 +544,14 @@ const NOODLUI = (function _NOODLUI() {
           })
         }
         if ('transaction' in mod) {
-          u.array(mod.transaction).forEach(store.use.bind(store))
+          u.entries(mod.transaction).forEach(
+            ([tid, fn]: [
+              tid: T.TransactionId,
+              fn: T.Transaction[T.TransactionId]['fn'],
+            ]) => {
+              store.transactions[tid] = { ...store.transactions[tid], fn }
+            },
+          )
         }
       }
     }
@@ -677,15 +682,30 @@ const NOODLUI = (function _NOODLUI() {
     getRoot: () => ({} as Record<string, any>),
     getRootPage() {
       if (!cache.page.has('root')) {
-        return cache.page.create({ viewport: new Viewport() })
+        return cache.page.create({ viewport: new VP() })
       }
       return u.array(cache.page.get('root'))[0]?.page as NUIPage
     },
+    getTransactions: () => store.transactions,
     resolveComponents: _resolveComponents,
     reset(
       filter?:
-        | ('actions' | 'builtIns' | 'components' | 'pages' | 'resolvers')
-        | ('actions' | 'builtIns' | 'components' | 'pages' | 'resolvers')[],
+        | (
+            | 'actions'
+            | 'builtIns'
+            | 'components'
+            | 'pages'
+            | 'resolvers'
+            | 'transactions'
+          )
+        | (
+            | 'actions'
+            | 'builtIns'
+            | 'components'
+            | 'pages'
+            | 'resolvers'
+            | 'transactions'
+          )[],
     ) {
       if (filter) {
         u.array(filter).forEach((f: typeof filter) => {
@@ -699,12 +719,17 @@ const NOODLUI = (function _NOODLUI() {
             cache.page.clear()
           } else if (f === 'resolvers') {
             store.resolvers.length = 0
+          } else if (f === 'transactions') {
+            u.keys(store.transactions).forEach(
+              (k) => delete store.transactions[k],
+            )
           }
         })
       } else {
         store.resolvers.length = 0
         u.values(store.actions).forEach((obj) => (obj.length = 0))
         u.values(store.builtIns).forEach((obj) => (obj.length = 0))
+        u.keys(store.transactions).forEach((k) => delete store.transactions[k])
         cache.component.clear()
         cache.page.clear()
         cache.register.clear()
@@ -712,6 +737,7 @@ const NOODLUI = (function _NOODLUI() {
       _defineGetter('getAssetsUrl', () => '')
       _defineGetter('getActions', () => store.actions)
       _defineGetter('getBuiltIns', () => store.builtIns)
+      _defineGetter('getTransactions', () => store.transactions)
       _defineGetter('getBaseUrl', () => '')
       _defineGetter('getPages', () => [])
       _defineGetter('getPreloadPages', () => [])

@@ -1,4 +1,4 @@
-import { getAspectRatio } from './common'
+import { Viewport as VP } from 'noodl-ui'
 
 export interface GetViewportSizeWithMinMaxArgs {
   width: number
@@ -14,7 +14,7 @@ function getViewportSizeWithMinMax({
   height,
   min,
   max,
-  aspectRatio = getAspectRatio(Number(width), Number(height)),
+  aspectRatio = VP.getAspectRatio(Number(width), Number(height)),
 }: GetViewportSizeWithMinMaxArgs) {
   min = Number(min)
   max = Number(max)
