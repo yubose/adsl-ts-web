@@ -685,21 +685,6 @@ const createActions = function createActions({
         // this moment the popup is not aware that it needs to read the dataKey if
         // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
 
-        // If popUp has wait: true, the action chain should pause until a response
-        // is received from something (ex: waiting on user confirming their password)
-        if (action.original.wait) {
-          if (isNOODLBoolean(action.original.wait)) {
-            if (isBooleanTrue(action.original.wait)) {
-              log.grey(
-                `Popup action for popUpView "${popUpView}" is ` +
-                  `waiting on a response. Aborting now...`,
-                { action, ...options },
-              )
-              await ref?.abort?.()
-            }
-          }
-        }
-
         // Auto prefills the verification code when ECOS_ENV === 'test'
         // and when the entered phone number starts with 888
         if (process.env.ECOS_ENV === 'test') {
@@ -729,6 +714,21 @@ const createActions = function createActions({
                   })
                 }
               })
+            }
+          }
+        }
+
+        // If popUp has wait: true, the action chain should pause until a response
+        // is received from something (ex: waiting on user confirming their password)
+        if (action.original.wait) {
+          if (isNOODLBoolean(action.original.wait)) {
+            if (isBooleanTrue(action.original.wait)) {
+              log.grey(
+                `Popup action for popUpView "${popUpView}" is ` +
+                  `waiting on a response. Aborting now...`,
+                { action, ...options },
+              )
+              await ref?.abort?.()
             }
           }
         }

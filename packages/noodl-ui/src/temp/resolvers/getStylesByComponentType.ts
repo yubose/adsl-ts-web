@@ -43,7 +43,7 @@ export default {
         return void Object.assign(component.style, {
           listStyle: 'none',
           padding: 0,
-          position: 'relative',
+          position: 'absolute',
         })
       }
       // Defaults to being hidden

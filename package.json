@@ -39,15 +39,15 @@
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.229",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.124",
+    "@aitmed/cadl": "^1.0.235",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.125",
     "axios": "^0.19.2",
     "date-fns": "^2.17.0",
     "firebase": "^8.2.7",
     "immer": "^8.0.1",
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
-    "noodl-types": "^1.0.34",
+    "noodl-types": "^1.0.39",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-utils": "file:packages/noodl-utils",

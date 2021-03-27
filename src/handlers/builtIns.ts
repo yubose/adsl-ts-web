@@ -97,6 +97,18 @@ const createBuiltInActions = function createBuiltInActions({
     })
     .register({
       actionType: 'builtIn',
+      funcName: 'disconnectMeeting',
+      async fn(
+        action: Action<BuiltInActionObject>,
+        options: ActionConsumerCallbackOptions,
+      ) {
+        log.func('disconnectMeeting')
+        log.grey('', { action, room: Meeting.room, options })
+        Meeting.room.disconnect()
+      },
+    })
+    .register({
+      actionType: 'builtIn',
       funcName: 'goBack',
       async fn(
         action: Action<BuiltInActionObject>,

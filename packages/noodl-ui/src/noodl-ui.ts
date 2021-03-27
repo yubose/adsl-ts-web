@@ -885,76 +885,82 @@ class NOODLUI {
     let originalStyle = (component?.original?.style as T.Style) || undefined
     let styles = { ...originalStyle } as T.Style
 
-    // if (styles?.top === 'auto') styles.top = '0'
-    if (isPlainObject(originalStyle)) {
-      // "Auto top" for web. Set top to 0 to start immediately after the previous
-      if (!('top' in originalStyle)) styles.top = '0'
-
-      if (isComponent(component)) {
-        const parent = component.parent() as T.ComponentInstance
-        let top
-
-        if (parent) {
-          let parentTop = parent?.style?.top
-          let parentHeight = parent?.style?.height
-
-          // if (parentTop === 'auto') parentTop = '0'
-          if (parentTop !== undefined) {
-            if (parentTop === 'auto') {
-              top = 0
-            } else {
-              top = Viewport.getSize(parentTop, this.viewport.height as number)
-            }
-          }
-          if (parentHeight !== undefined) {
-            top = Viewport.getSize(
-              top + toNumber(parentHeight === 'auto' ? '0' : parentHeight),
-              this.viewport.height as number,
-            )
-          }
-
-          if (typeof top === 'number') {
-            // REMINDER: "top" is a value here like 0.202 (not yet converted to size in px)
-            top =
-              (this.viewport.height as number) -
-              Viewport.getSize(top, this.viewport.height as number)
-
-            // originalStyle.top = Viewport.getSize(
-            //   top,
-            //   this.viewport.height as number,
-            //   { unit: 'px' },
-            // )
-            component.setStyle(
-              'top',
-              Viewport.getSize(top, this.viewport.height as number, {
-                unit: 'px',
-              }),
-            )
-            if (!('height' in originalStyle)) {
-              styles.height = 'auto'
-            }
-          }
-
-          if (parent?.original?.style?.axis === 'vertical') {
-            Object.assign(styles, {
-              // position: 'relative',
-              // height: 'inherit',
-            })
-          }
-        }
-
-        if (!('top' in originalStyle) && !('height' in originalStyle)) {
-          styles.position = 'relative'
-          styles.height = 'auto'
-        }
-
-        if (!('height' in styles)) {
-          styles.height = 'auto'
-        }
-      } else if (isPlainObject(component)) {
-        //
-      }
+    if (!originalStyle?.top || originalStyle?.top === 'auto') {
+      styles.position = 'relative'
+    } else {
+      styles.position = 'absolute'
     }
+
+    // if (styles?.top === 'auto') styles.top = '0'
+    // if (isPlainObject(originalStyle)) {
+    //   // "Auto top" for web. Set top to 0 to start immediately after the previous
+    //   if (!('top' in originalStyle)) styles.top = '0'
+
+    //   if (isComponent(component)) {
+    //     const parent = component.parent() as T.ComponentInstance
+    //     let top
+
+    //     if (parent) {
+    //       let parentTop = parent?.style?.top
+    //       let parentHeight = parent?.style?.height
+
+    //       // if (parentTop === 'auto') parentTop = '0'
+    //       if (parentTop !== undefined) {
+    //         if (parentTop === 'auto') {
+    //           top = 0
+    //         } else {
+    //           top = Viewport.getSize(parentTop, this.viewport.height as number)
+    //         }
+    //       }
+    //       if (parentHeight !== undefined) {
+    //         top = Viewport.getSize(
+    //           top + toNumber(parentHeight === 'auto' ? '0' : parentHeight),
+    //           this.viewport.height as number,
+    //         )
+    //       }
+
+    //       if (typeof top === 'number') {
+    //         // REMINDER: "top" is a value here like 0.202 (not yet converted to size in px)
+    //         top =
+    //           (this.viewport.height as number) -
+    //           Viewport.getSize(top, this.viewport.height as number)
+
+    //         // originalStyle.top = Viewport.getSize(
+    //         //   top,
+    //         //   this.viewport.height as number,
+    //         //   { unit: 'px' },
+    //         // )
+    //         component.setStyle(
+    //           'top',
+    //           Viewport.getSize(top, this.viewport.height as number, {
+    //             unit: 'px',
+    //           }),
+    //         )
+    //         if (!('height' in originalStyle)) {
+    //           styles.height = 'auto'
+    //         }
+    //       }
+
+    //       if (parent?.original?.style?.axis === 'vertical') {
+    //         Object.assign(styles, {
+    //           // position: 'relative',
+    //           // height: 'inherit',
+    //         })
+    //       }
+    //     }
+
+    //     if (!('top' in originalStyle) && !('height' in originalStyle)) {
+    //       styles.position = 'absolute'
+    //       styles.height = 'auto'
+    //     }
+
+    if (!('height' in styles)) {
+      styles.height = 'auto'
+    }
+    //   } else if (isPlainObject(component)) {
+    //     //
+    //   }
+    // }
 
     return merge(
       {
@@ -994,10 +1000,9 @@ class NOODLUI {
     component: T.ComponentInstance
     [key: string]: any
   }) {
-    return {
+    const options = {
       component,
       componentCache: this.componentCache.bind(this),
-      context: this.getContext(),
       createActionChainHandler: (action, options) =>
         this.createActionChainHandler(action, {
           ...getActionConsumerOptions(this),
@@ -1017,7 +1022,6 @@ class NOODLUI {
       getRoot: this.#getRoot.bind(this),
       getState: this.getState.bind(this),
       plugins: this.plugins.bind(this),
-      page: this.page,
       register: this.register.bind(this),
       resolveComponent: this.#resolve.bind(this),
       resolveComponentDeep: this.resolveComponents.bind(this),
@@ -1026,6 +1030,13 @@ class NOODLUI {
       setPlugin: this.setPlugin.bind(this),
       ...rest,
     } as T.ConsumerOptions
+
+    Object.defineProperties(options, {
+      page: { get: () => this.page },
+      context: { get: () => this.getContext() },
+    })
+
+    return options
   }
 
   getResolvers() {

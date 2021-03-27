@@ -18,6 +18,7 @@ class Page {
         [key: string]: any
       }
     },
+    reqQueue: [] as string[],
     status: eventId.page.status.IDLE as T.PageStatus,
     rootNode: false,
   }
@@ -44,13 +45,22 @@ class Page {
   constructor(render?: T.Render | undefined) {
     if (render) this.render = render
     // this.rootNode = document.createElement('div')
-    this.rootNode = document.body
-    this.rootNode.id = 'root'
+    this.clearRootNode()
+    // if (!document.body.contains(this.rootNode))
+    // document.body.appendChild(this.rootNode)
+  }
+
+  clearRootNode() {
+    if (!this.rootNode) {
+      this.rootNode = document.body as any
+      this.rootNode.id = 'root'
+    }
+    this.rootNode.innerHTML = ''
+    this.rootNode.style.cssText = ''
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
-    // if (!document.body.contains(this.rootNode))
-    // document.body.appendChild(this.rootNode)
+    return this
   }
 
   getCbs() {
@@ -82,6 +92,12 @@ class Page {
     newPage: string = '',
     { delay }: { reload?: boolean; delay?: number } = {},
   ) {
+    this.#state.reqQueue.unshift(newPage)
+    console.log(
+      `%cAdded ${newPage} to reqQueue`,
+      `color:#00b406;`,
+      this.#state.reqQueue,
+    )
     // if (this.ref.request.name === newPage && this.ref.request.timer) {
     //   log.func('requestPageChange')
     //   await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
@@ -97,13 +113,14 @@ class Page {
     // }
 
     if (newPage) {
+      const currentPage = this.getState().current
       this.ref.request.timer && clearTimeout(this.ref.request.timer)
       this.setRequestingPage(newPage, { delay })
       if (process.env.NODE_ENV !== 'test') {
         history.pushState({}, '', this.pageUrl)
       }
       await this.navigate(newPage)
-      this.setPreviousPage(this.getState().current)
+      this.setPreviousPage(currentPage)
       this.setCurrentPage(newPage)
     }
   }
@@ -365,6 +382,25 @@ class Page {
 
   set render(fn: T.Render) {
     this.#render = fn
+  }
+
+  isStale(pageName: string) {
+    const getQueue = () => this.#state.reqQueue
+
+    while (getQueue().length > 1) {
+      const removed = getQueue().pop()
+      console.log(
+        `%cRemoved ${removed} from reqQueue`,
+        `color:#00b406;`,
+        getQueue(),
+      )
+    }
+
+    if (getQueue().length <= 1) {
+      return !getQueue().includes(pageName)
+    }
+
+    return getQueue()[0] === pageName
   }
 }
 

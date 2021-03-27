@@ -77,6 +77,7 @@ class App {
   noodl = {} as CADL
   noodlui = {} as NOODLUI
   noodluidom = {} as NOODLUIDOM
+  reqQueue = [] as string[]
   streams = {} as ReturnType<IMeeting['getStreams']>
   
   async initialize({
@@ -167,7 +168,7 @@ class App {
       pageName: string,
     ): Promise<PageObject> {
       try {
-        stable && log.cyan(`Running noodl.initPage on ${pageName}`)
+        log.cyan(`Running noodl.initPage on ${pageName}`)
         await noodl.initPage(pageName, [], {
           ...noodluidom.page.getState().modifiers[pageName],
           builtIn: {
@@ -450,13 +451,13 @@ class App {
         ) {
           log.func('onBeforeRenderComponents')
 
-          if (ref.request.name !== pageName) {
-            log.red(
-              `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
-              { requesting: pageName, ref, ...rest },
-            )
-            return 'old.request'
-          }
+          // if (ref.request.name !== pageName) {
+          //   log.red(
+          //     `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
+          //     { requesting: pageName, ref, ...rest },
+          //   )
+          //   return 'old.request'
+          // }
           log.grey(`Rendering the DOM for page: "${pageName}"`, {
             requesting: pageName,
             ref,
@@ -499,107 +500,114 @@ class App {
           let pageSnapshot = {} as { name: string; object: any } | 'old.request'
           const pageModifiers = page.getState().modifiers[pageName]
 
-          if (pageName !== page.getState().current) {
+          if (!page.isStale(pageName)) {
+            // if (pageName !== page.getState().current) {
             // Load the page in the SDK
             const pageObject = await this.#preparePage(pageName)
-            const noodluidomPageSnapshot = this.noodluidom.page.snapshot()
-            // There is a bug that two parallel requests can happen at the same time, and
-            // when the second request finishes before the first, the page renders the first page
-            // in the DOM. To work around this bug we can determine this is occurring using
-            // the conditions below
-            if (
-              noodluidomPageSnapshot.requesting === '' &&
-              noodluidomPageSnapshot.status === pageStatus.IDLE &&
-              noodluidomPageSnapshot.current !== pageName
-            ) {
-              pageSnapshot = 'old.request'
-            } else {
-              // This will be passed into the page renderer
-              pageSnapshot = {
-                name: pageName,
-                object: pageObject,
+            if (!page.isStale(pageName)) {
+              const noodluidomPageSnapshot = this.noodluidom.page.snapshot()
+              // There is a bug that two parallel requests can happen at the same time, and
+              // when the second request finishes before the first, the page renders the first page
+              // in the DOM. To work around this bug we can determine this is occurring using
+              // the conditions below
+              if (
+                noodluidomPageSnapshot.requesting === '' &&
+                noodluidomPageSnapshot.status === pageStatus.IDLE &&
+                noodluidomPageSnapshot.current !== pageName
+              ) {
+                pageSnapshot = 'old.request'
+              } else {
+                // This will be passed into the page renderer
+                pageSnapshot = {
+                  name: pageName,
+                  object: pageObject,
+                }
               }
-            }
 
-            // Initialize the noodl-ui client (parses components) if it
-            // isn't already initialized
-            if (!this.initialized) {
-              log.func('before-page-render')
-              log.grey('Initializing noodl-ui client', {
-                noodl: this.noodl,
-                pageSnapshot,
-              })
-
-              function fetch(url: string) {
-                return axios.get(url).then(({ data }) => data)
-              }
-              // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
-              const config = this.noodl.getConfig()
-              const plugins = [] as ComponentObject[]
-              if (config.headPlugin) {
-                plugins.push(
-                  this.noodlui.createPluginObject({
-                    type: 'pluginHead',
-                    path: config.headPlugin,
-                  }) as any,
-                )
-              }
-              if (config.bodyTopPplugin) {
-                plugins.push(
-                  this.noodlui.createPluginObject({
-                    type: 'pluginBodyTop',
-                    path: config.bodyTopPplugin,
-                  }) as any,
-                )
-              }
-              if (config.bodyTailPplugin) {
-                plugins.push(
-                  this.noodlui.createPluginObject({
-                    type: 'pluginBodyTail',
-                    path: config.bodyTailPplugin,
-                  }) as any,
-                )
-              }
-              this.noodlui
-                .init({
-                  actionsContext: {
-                    noodl: this.noodl,
-                    noodluidom: this.noodluidom,
-                  } as any,
-                  viewport: this.#viewportUtils.viewport,
-                })
-                .setPage(pageName)
-                .use(this.#viewportUtils.viewport)
-                .use({
-                  fetch,
-                  getAssetsUrl: () => this.noodl.assetsUrl,
-                  getBaseUrl: () => this.noodl.cadlBaseUrl,
-                  getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
-                  getPages: () => this.noodl.cadlEndpoint?.page || [],
-                  getRoot: () => this.noodl.root,
-                  plugins,
+              // Initialize the noodl-ui client (parses components) if it
+              // isn't already initialized
+              if (!this.initialized) {
+                log.func('before-page-render')
+                log.grey('Initializing noodl-ui client', {
+                  noodl: this.noodl,
+                  pageSnapshot,
                 })
 
-              Object.entries(getAllResolversAsMap()).forEach(
-                ([name, resolver]) => {
-                  const r = new Resolver().setResolver(resolver)
-                  this.noodlui.use({ name, resolver: r })
-                },
-              )
-              log.func('before-page-render')
-              log.grey('Initialized noodl-ui client', this.noodlui)
+                function fetch(url: string) {
+                  return axios.get(url).then(({ data }) => data)
+                }
+                // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
+                const config = this.noodl.getConfig()
+                const plugins = [] as ComponentObject[]
+                if (config.headPlugin) {
+                  plugins.push(
+                    this.noodlui.createPluginObject({
+                      type: 'pluginHead',
+                      path: config.headPlugin,
+                    }) as any,
+                  )
+                }
+                if (config.bodyTopPplugin) {
+                  plugins.push(
+                    this.noodlui.createPluginObject({
+                      type: 'pluginBodyTop',
+                      path: config.bodyTopPplugin,
+                    }) as any,
+                  )
+                }
+                if (config.bodyTailPplugin) {
+                  plugins.push(
+                    this.noodlui.createPluginObject({
+                      type: 'pluginBodyTail',
+                      path: config.bodyTailPplugin,
+                    }) as any,
+                  )
+                }
+                this.noodlui
+                  .init({
+                    actionsContext: {
+                      noodl: this.noodl,
+                      noodluidom: this.noodluidom,
+                    } as any,
+                    viewport: this.#viewportUtils.viewport,
+                  })
+                  .setPage(pageName)
+                  .use(this.#viewportUtils.viewport)
+                  .use({
+                    fetch,
+                    getAssetsUrl: () => this.noodl.assetsUrl,
+                    getBaseUrl: () => this.noodl.cadlBaseUrl,
+                    getPreloadPages: () =>
+                      this.noodl.cadlEndpoint?.preload || [],
+                    getPages: () => this.noodl.cadlEndpoint?.page || [],
+                    getRoot: () => this.noodl.root,
+                    plugins,
+                  })
+
+                Object.entries(getAllResolversAsMap()).forEach(
+                  ([name, resolver]) => {
+                    const r = new Resolver().setResolver(resolver)
+                    this.noodlui.use({ name, resolver: r })
+                  },
+                )
+                log.func('before-page-render')
+                log.grey('Initialized noodl-ui client', this.noodlui)
+              }
+              // Refresh the root
+              // TODO - Leave root/page auto binded to the lib
+              this.noodlui.setPage(pageName)
+              // NOTE: not being used atm
+              if (page.rootNode && page.rootNode.id !== pageName) {
+                page.rootNode.id = pageName
+              }
+              return pageSnapshot
             }
-            // Refresh the root
-            // TODO - Leave root/page auto binded to the lib
-            this.noodlui.setPage(pageName)
-            // NOTE: not being used atm
-            if (page.rootNode && page.rootNode.id !== pageName) {
-              page.rootNode.id = pageName
-            }
-            return pageSnapshot
+            log.func('before-page-render')
+            log.green(`Avoided a stale navigate request to "${pageName}"`)
+            return
           }
           log.func('before-page-render')
-          log.green('Avoided a duplicate navigate request')
+          log.green(`Avoided a duplicate navigate request to "${pageName}"`)
 
           return pageSnapshot
         }.bind(this),
@@ -839,9 +847,7 @@ class App {
             }
           }
         }
-	
       },
-	
     } as RegisterOptions)
 
     this.noodluidom.register({

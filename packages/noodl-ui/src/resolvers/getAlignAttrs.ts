@@ -10,72 +10,61 @@ import { textAlignStrings } from '../constants'
 const getAlignAttrs: ResolverFn = (component) => {
   let value
 
-  if (component.style) {
-    const { style } = component
-    if (style.axis) {
-      if (style.axis === 'horizontal') {
+  if (component.original?.style) {
+    if (component.original?.style?.axis) {
+      if (component.original?.style?.axis === 'horizontal') {
         component.assignStyles({ display: 'flex', flexWrap: 'nowrap' })
-      } else if (style.axis === 'vertical') {
+      } else if (component.style.axis === 'vertical') {
         component.assignStyles({ display: 'flex', flexDirection: 'column' })
       }
     }
 
-    if (style.textAlign) {
+    if (component.original?.style?.textAlign) {
       // "centerX", "centerY", "left", "center", "right"
-      if (typeof style.textAlign === 'string') {
-        value = getTextAlign(style.textAlign)
-        if (value) {
-          component.removeStyle('textAlign').assignStyles(value)
-        }
+      if (
+        typeof component.original?.style?.textAlign === 'string' ||
+        typeof component.style?.textAlign === 'string'
+      ) {
+        const val =
+          component.original?.style?.textAlign || component.style?.textAlign
+        component.assignStyles({
+          textAlign: val === 'centerX' ? 'center' : val,
+        })
       }
       // { x, y }
-      else if (isPlainObject(style.textAlign)) {
-        const { x, y } = style.textAlign
-        if (x !== undefined) {
-          value = getTextAlign(x)
-          if (value) {
-            component.assignStyles(value)
-            if (!('textAlign' in value)) {
-              component.removeStyle('textAlign')
+      else if (isPlainObject(component.original?.style?.textAlign)) {
+        if (
+          ['center', 'centerX'].includes(
+            component.original?.style?.textAlign?.x || '',
+          )
+        ) {
+          component.assignStyles({ textAlign: 'center' })
+        }
+
+        if (component.original?.style.textAlign?.y !== undefined) {
+          if (component.original?.style?.textAlign?.y === 'center') {
+            component.assignStyles({ display: 'flex', alignItems: 'center' })
+            if (component.original?.style?.textAlign?.x === 'center') {
+              component.setStyle('justifyContent', 'center')
             }
           }
         }
-        if (y !== undefined) {
-          value = getTextAlign(y)
-          if (value) {
-            // The y value needs to be handled manually here since getTextAlign will
-            //    return { textAlign } which is meant for x
-            if (y === 'center') {
-              component.assignStyles({
-                display: 'flex',
-                alignItems: 'center',
-              })
-              if (style.textAlign?.x === 'center') {
-                component.setStyle('justifyContent', 'center')
-              }
-            } else {
-              component.assignStyles(value).removeStyle('textAlign')
-            }
-          }
+        if (isPlainObject(component.style?.textAlign)) {
+          component.removeStyle('textAlign')
         }
-        // If it's still an object delete it since it is invalid (and that we forgot)
       }
     }
 
-    if (style.align) {
-      if (style.align === 'centerX') {
+    if (component.original?.style?.align) {
+      if (component.original?.style?.align === 'centerX') {
         component.assignStyles({ display: 'flex', justifyContent: 'center' })
-      } else if (style.align === 'centerY') {
+      } else if (component.original?.style?.align === 'centerY') {
         component.assignStyles({ display: 'flex', alignItems: 'center' })
       }
     }
 
-    if (style.display === 'inline') {
+    if (component.original?.style?.display === 'inline') {
       component.setStyle('display', 'inline')
-    }
-
-    if (isPlainObject(component.getStyle('textAlign'))) {
-      component.removeStyle('textAlign')
     }
   }
 }

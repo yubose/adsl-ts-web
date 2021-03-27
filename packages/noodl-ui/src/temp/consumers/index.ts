@@ -227,7 +227,7 @@ export default [
       return {
         listStyle: 'none',
         padding: '0px',
-        position: 'relative',
+        position: 'absolute',
       }
     },
   },

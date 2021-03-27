@@ -11,12 +11,16 @@ export default {
   cond: (node: NOODLDOMElement, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
   resolve: (node: HTMLElement, component) => {
-    const { style } = component
-    if (style != null && typeof style === 'object' && node.style) {
+    const originalStyle = component.original?.style || {}
+    if (
+      component.style != null &&
+      typeof component.style === 'object' &&
+      node.style
+    ) {
       if (component.has('text=func')) {
         // debugger
       }
-      Object.entries(style).forEach(([k, v]) => {
+      Object.entries(component.style).forEach(([k, v]) => {
         // if (k === 'height' && v === 'auto') {
         //   node.style.cssText += `height: inherit !important;`
         // } else {
@@ -39,6 +43,12 @@ export default {
 
     if (component.has('textBoard')) {
       addClassName('text-board', node)
+    }
+
+    if (!originalStyle?.top || originalStyle?.top === 'auto') {
+      node.style.position = 'relative'
+    } else {
+      node.style.position = 'absolute'
     }
   },
 } as RegisterOptions
