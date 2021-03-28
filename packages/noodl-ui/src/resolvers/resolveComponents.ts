@@ -93,12 +93,12 @@ componentResolver.setResolver((component, options, next) => {
       ({ index, dataObject }) => {
         let listItem = createComponent(listItemBlueprint)
         listItem = component.createChild(listItem)
+        listItem?.edit({ [iteratorVar]: dataObject, index })
         listItem = resolveComponents({
           components: listItem,
           page,
           context: { index, iteratorVar, dataObject },
         })
-        listItem?.edit({ [iteratorVar]: dataObject })
         cache.component.add(listItem)
       },
       'ADD_DATA_OBJECT',
@@ -155,14 +155,16 @@ componentResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.page(component)) {
-    const nuiPage = createPage(path)
+    const nuiPage = createPage({ id: component.id, name: path })
     const viewport = nuiPage.viewport
 
     if (u.isNil(originalStyle.width)) {
       viewport.width = getRootPage().viewport.width
     } else {
       viewport.width = Number(
-        VP.getSize(originalStyle.width, getRootPage().viewport.width),
+        VP.getSize(originalStyle.width, getRootPage().viewport.width, {
+          toFixed: 2,
+        }),
       )
     }
 
@@ -170,20 +172,20 @@ componentResolver.setResolver((component, options, next) => {
       viewport.height = getRootPage().viewport.height
     } else {
       viewport.height = Number(
-        VP.getSize(originalStyle.height, getRootPage().viewport.height),
+        VP.getSize(originalStyle.height, getRootPage().viewport.height, {
+          toFixed: 2,
+        }),
       )
     }
 
     component.edit('page', nuiPage)
 
-    setTimeout(() => {
-      component.emit(c.event.component.page.PAGE_INSTANCE_CREATED, nuiPage)
-    })
+    nuiPage.page = path
 
     emit({
       type: c.nuiEmitType.TRANSACTION,
       transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-      params: { page: nuiPage.page, modifiers: {} },
+      params: nuiPage,
     })
       .then((pageObject) => {
         console.log(
@@ -197,10 +199,13 @@ componentResolver.setResolver((component, options, next) => {
               page: nuiPage,
             })
           : []) as NUIComponent.Instance[]
-        components?.forEach((c) => component.createChild(c))
+        components?.forEach(component.createChild.bind(component))
+        component.emit(c.event.component.page.PAGE_COMPONENTS, components)
       })
       .catch((err: Error) => {
-        throw new Error(err.message)
+        throw new Error(
+          `[Attempted to get page (${nuiPage.page}) object for a page component]: ${err.message}`,
+        )
       })
   }
 

@@ -66,7 +66,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
         getQueryObjects({
           component,
           page,
-          queries: () => context?.dataObject || {},
+          listDataObject: context?.dataObject,
         }),
         (iteratorVar && dataKey.startsWith(iteratorVar)
           ? excludeIteratorVar(dataKey, iteratorVar)

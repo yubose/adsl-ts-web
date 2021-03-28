@@ -1,7 +1,7 @@
 import NOODL from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 
-const LOCAL_SERVER = 'http://127.0.0.1:3001/testpage.yml'
+const LOCAL_SERVER = 'http://127.0.0.1:3001/meet2d.yml'
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
 const DOCC19 = getConfigEndpoint('docc19')
 const WWW = getConfigEndpoint('www')
@@ -23,12 +23,12 @@ const MESSAGE = getConfigEndpoint('message')
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : TESTPAGE
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
-const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
+const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
 
 const noodl = new NOODL({
   aspectRatio:
     typeof window !== 'undefined'
-      ? VP.getAspectRatio(document.body.clientWidth, document.body.clientHeight)
+      ? VP.getAspectRatio(window.innerWidth, window.innerHeight)
       : 1,
   cadlVersion: process.env.ECOS_ENV === 'stable' ? 'stable' : 'test',
   configUrl,

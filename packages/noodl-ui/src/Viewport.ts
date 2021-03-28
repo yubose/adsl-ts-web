@@ -13,7 +13,51 @@ class NOODLViewport {
   width: number = undefined as any
   height: number = undefined as any
 
+  /**
+   * Returns an object with width and height, computed by apply the min/max values for the aspect ratio
+   * @param { number | undefined } width - Defaults to window.innerWidth
+   * @param { number | undefined } height - Defaults to window.innerHeight
+   * @param { number } min - Minimum aspect ratio for width
+   * @param { number } max - Maximum aspect ratio for height
+   * @param { number } aspectRatio - Defaults to the aspect ratio of window.innerWidth and window.innerHeight
+   */
+  static applyMinMax({
+    width,
+    height,
+    min,
+    max,
+    aspectRatio = NOODLViewport.getAspectRatio(Number(width), Number(height)),
+  }: {
+    width: number
+    height: number
+    min: number
+    max: number
+    aspectRatio: number
+  }) {
+    if (isNil(width) || isNil(height)) {
+      width = innerWidth
+      height = innerHeight
+    }
+    if (aspectRatio < min) {
+      width = min * height
+    } else if (aspectRatio > max) {
+      width = max * height
+    }
+    return { width, height }
+  }
+
+  /**
+   * Returns the aspect ratio relative to the width and height. Defaults to window.innerWidth
+   * and window.innerHeight
+   * @param { number | undefined } width - Defaults to window.innerWidth
+   * @param { number | undefined } height - Defaults to window.innerHeight
+   */
   static getAspectRatio(width: number, height: number) {
+    if (isNil(width) || isNil(height)) {
+      width = innerWidth
+      height = innerHeight
+    }
+
     /**
      * The binary Great Common Divisor calculator
      * https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
@@ -32,13 +76,11 @@ class NOODLViewport {
       return getGCD((v - u) >> 1, u)
     }
 
-    const getSizes = (w: number, h: number) => {
-      const d = getGCD(w, h)
-      return [w / d, h / d]
-    }
-
-    const [newWidth, newHeight] = getSizes(width, height)
+    const gcd = getGCD(width, height)
+    const newWidth = width / gcd
+    const newHeight = height / gcd
     const aspectRatio = newWidth / newHeight
+
     return aspectRatio
   }
 
@@ -156,8 +198,8 @@ class NOODLViewport {
       this.#onResize = () => {
         const previousWidth = this.width
         const previousHeight = this.height
-        this.width = document.body.clientWidth
-        this.height = document.body.clientHeight
+        this.width = window.innerWidth
+        this.height = window.innerHeight
 
         callback({
           width: this.width,
@@ -180,14 +222,14 @@ class NOODLViewport {
   }
 
   getWidth(dec: string, opts?: Parameters<typeof NOODLViewport['getSize']>[2]) {
-    return NOODLViewport.getSize(dec, this.width, opts)
+    return NOODLViewport.getSize(dec, this.width, opts as any)
   }
 
   getHeight(
     dec: string,
     opts?: Parameters<typeof NOODLViewport['getSize']>[2],
   ) {
-    return NOODLViewport.getSize(dec, this.height, opts)
+    return NOODLViewport.getSize(dec, this.height, opts as any)
   }
 }
 

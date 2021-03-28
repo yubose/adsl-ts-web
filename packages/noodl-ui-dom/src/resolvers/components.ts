@@ -8,7 +8,7 @@ import * as u from '../utils/internal'
 const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] Default Component Resolvers`,
   cond: (n, c) => !!(n && c),
-  resolve(node, component, { draw }) {
+  resolve(node, component, { draw, ndom }) {
     if (node && !u.isFnc(node)) {
       const original = component.blueprint || {}
 
@@ -64,18 +64,21 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        node.name = component.get('path') || ''
-
+        const page = ndom.pages[component.id]
+        if (page.rootNode !== node) {
+          page.rootNode.remove()
+          page.rootNode = node as any
+        }
         component.on(
-          noodluiEvent.component.page.RESOLVED_COMPONENTS,
+          noodluiEvent.component.page.PAGE_COMPONENTS,
           () => {
             component.children.forEach((child: NUIComponent.Instance) => {
-              const childNode = draw(child, node.contentDocument?.body)
+              const childNode = draw(child, node.contentDocument?.body, page)
               // redraw(childNode, child, options)
               ;(window as any).child = childNode
             })
           },
-          `[noodl-ui-dom] ${noodluiEvent.component.page.RESOLVED_COMPONENTS}`,
+          `[noodl-ui-dom] ${noodluiEvent.component.page.PAGE_COMPONENTS}`,
         )
       }
       // PLUGIN

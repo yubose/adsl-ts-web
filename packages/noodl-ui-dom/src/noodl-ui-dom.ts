@@ -292,6 +292,8 @@ class NOODLDOM extends NOODLDOMInternal {
     // The root node is a direct child of document.body
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
 
+    this.reset('componentCache')
+
     const components = u.array(
       NOODLDOM._nui.resolveComponents.call(NOODLDOM._nui, {
         components: page.components,
@@ -425,7 +427,10 @@ class NOODLDOM extends NOODLDOMInternal {
     component: Component, // ex: listItem (component instance)
     pageProp?: Page,
   ) {
-    let page = pageProp || this.page
+    let page =
+      pageProp ||
+      (Identify.component.page(component) && component.get('page')) ||
+      this.page
     let newNode: T.NOODLDOMElement | null = null
     let newComponent: Component | undefined
 
@@ -434,7 +439,7 @@ class NOODLDOM extends NOODLDOMInternal {
       const shape = getShape(component)
       const _isPageConsumer = isPageConsumer(component)
       // Clean up state from the component
-      component.clear()
+      component.clear('hooks')
       // Remove the parent reference
       component.setParent?.(null)
       page.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, node, component)
@@ -443,7 +448,7 @@ class NOODLDOM extends NOODLDOMInternal {
         if (c) {
           const cParent = c.parent
           // Remove listeners
-          c.clear()
+          c.clear('hooks')
           // Remove child component references
           cParent?.removeChild?.(c)
           // Remove the child's parent reference
@@ -522,7 +527,7 @@ class NOODLDOM extends NOODLDOMInternal {
     resolvers?: boolean
     transactions?: boolean
   }): this
-  reset(key?: 'resolvers' | 'transactions'): this
+  reset(key?: 'componentCache' | 'resolvers' | 'transactions'): this
   reset(
     key?:
       | {
@@ -532,6 +537,7 @@ class NOODLDOM extends NOODLDOMInternal {
           resolvers?: boolean
           transactions?: boolean
         }
+      | 'componentCache'
       | 'resolvers'
       | 'transactions',
   ) {
@@ -561,6 +567,8 @@ class NOODLDOM extends NOODLDOMInternal {
         key.pages && resetPages()
         key.resolvers && resetResolvers()
         key.transactions && resetTransactions()
+      } else if (key === 'componentCache') {
+        resetComponentCache()
       } else if (key === 'resolvers') {
         resetResolvers()
       } else if (key === 'transactions') {
@@ -614,18 +622,28 @@ class NOODLDOM extends NOODLDOMInternal {
                     `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
                   )
 
-                  let nuiPage = u.isStr(pageProp)
-                    ? this.page.getNuiPage()
-                    : pageProp
-                  let pageObject: PageObject | undefined
-                  let page = u
-                    .values(this.pages)
-                    .find((pg) => pg.isEqual(nuiPage))
-                  if (page) {
-                    pageObject = await originalFn?.(page)
+                  let nuiPage: NUIPage
+
+                  if (u.isStr(pageProp)) {
+                    // Default to main page
+                    nuiPage = this.page.getNuiPage()
                   } else {
-                    // TODO
+                    // Most likely coming from a page component's "nuiPage" property
+                    nuiPage = pageProp
                   }
+
+                  let pageObject: PageObject | undefined
+                  let page =
+                    u.values(this.pages).find((pg) => pg.isEqual(nuiPage)) ||
+                    this.createPage(nuiPage)
+
+                  if (!page.requesting) {
+                    // Default to use the one set on the NUIPage
+                    // This is to be compatible with page components being generated on the fly
+                    page.requesting = nuiPage.page
+                  }
+
+                  pageObject = await originalFn?.(page)
                   return pageObject as PageObject
                 },
               },

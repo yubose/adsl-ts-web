@@ -19,11 +19,9 @@ async function resolveAsync(
     -------------------------------------------------------- */
 
     if (Identify.emit(dataValue)) {
-      const ac = createActionChain(
-        'dataValue',
-        [{ emit: dataValue.emit, actionType: 'emit' }],
-        { loadQueue: true },
-      )
+      const ac = createActionChain('dataValue', [
+        { emit: dataValue.emit, actionType: 'emit' },
+      ])
       const results = await ac?.execute?.()
       const result = results.find((val) => !!val?.result)?.result
       component.edit({ 'data-value': result })
@@ -35,11 +33,9 @@ async function resolveAsync(
     -------------------------------------------------------- */
 
     if (Identify.emit(path)) {
-      const ac = await createActionChain(
-        'path',
-        [{ emit: path.emit, actionType: 'emit' }],
-        { loadQueue: true },
-      ).execute()
+      const ac = await createActionChain('path', [
+        { emit: path.emit, actionType: 'emit' },
+      ]).execute()
       let result = ac?.find((val) => !!val?.result)?.result
       result = result ? resolveAssetUrl(result, getAssetsUrl()) : ''
       component.edit({ 'data-src': result })
@@ -47,11 +43,9 @@ async function resolveAsync(
     }
 
     if (Identify.emit(placeholder)) {
-      const ac = await createActionChain(
-        'placeholder',
-        [{ emit: placeholder.emit, actionType: 'emit' }],
-        { loadQueue: true },
-      ).execute()
+      const ac = await createActionChain('placeholder', [
+        { emit: placeholder.emit, actionType: 'emit' },
+      ]).execute()
       const result = ac?.find((v) => !!v.result)?.result
       component.edit({ 'data-placeholder': result })
       component.emit('placeholder', result)
@@ -73,17 +67,13 @@ asyncResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   userEvent.forEach((eventType) => {
-    if (u.isArr(original[eventType]) || 'emit' in (original[eventType] || {})) {
+    if (u.isArr(original[eventType]) || Identify.emit(original[eventType])) {
       const actionChain = createActionChain(
         eventType,
         u.array(original[eventType] as NOODLUIActionObject[]),
+        { loadQueue: true },
       )
       component.edit({ [eventType]: actionChain })
-      // TEMP for debugging
-      // @ts-expect-error
-      if (!window.ac) window['ac'] = {}
-      // @ts-expect-error
-      window.ac[component?.id || ''] = original[eventType]
     }
   })
 

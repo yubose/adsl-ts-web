@@ -63,9 +63,9 @@ module.exports = {
     compress: false,
     contentBase: [path.join(__dirname, 'public')],
     hot: false,
-    host: '127.0.0.1',
+    // host: '127.0.0.1',
     liveReload: true,
-    port: 3000,
+    // port: 3000,
     before: function (app, server, compiler) {
       app.get('/debug', (req, res) => {
         res.json({ hello: 'EH?' })

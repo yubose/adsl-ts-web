@@ -8,9 +8,11 @@ import {
   findAllByViewTag,
   findWindow,
   findWindowDocument,
+  isPage,
   isPageConsumer,
 } from './utils'
 import * as T from './types'
+import { Identify } from 'noodl-types'
 
 const createResolver = function createResolver(ndom: NOODLDOM) {
   const _internal: {
@@ -60,6 +62,12 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
           draw: ndom.draw.bind(ndom),
           redraw: ndom.redraw.bind(ndom),
         } as T.Resolve.Options
+
+        // if (Identify.component.page(args[1])) {
+        //   if (isPage(args[1])) {
+        //     options.page = args[1]
+        //   }
+        // }
 
         return options
       },

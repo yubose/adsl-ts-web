@@ -45,10 +45,7 @@ const createViewportHandler = function (viewport: VP) {
       }
     },
     getCurrentAspectRatio() {
-      return VP.getAspectRatio(
-        viewport.width as number,
-        viewport.height as number,
-      )
+      return VP.getAspectRatio(viewport.width, viewport.height)
     },
     getMinMaxRatio() {
       return { min, max }

@@ -61,13 +61,13 @@ class Component<C extends ComponentObject = ComponentObject>
       ? component.blueprint
       : component
     this.#cache = {}
-    this.#component = createComponentDraftSafely(
-      this.#blueprint,
-    ) as WritableDraft<ComponentObject>
-    // this.#component = {
-    //   ...this.#blueprint,
-    //   style: cloneDeep(this.#blueprint.style),
-    // }
+    // this.#component = createComponentDraftSafely(
+    //   this.#blueprint,
+    // ) as WritableDraft<ComponentObject>
+    this.#component = {
+      ...this.#blueprint,
+      style: cloneDeep(this.#blueprint.style),
+    }
     this.#type = this.#blueprint.type
     this.#id = opts?.id || this.#component.id || u.getRandomKey()
     this.original = this.#blueprint
@@ -394,11 +394,14 @@ class Component<C extends ComponentObject = ComponentObject>
     eventName: Evt,
     ...args: Parameters<T.NUIComponent.Hook[Evt]>
   ) {
-    // log.func('emit')
-    // log.grey(`Component emit: ${eventName}`, {
-    //   args: arguments,
-    //   component: this,
-    // })
+    // console.log(
+    //   `%cEmitting from a ${this.type}: ${eventName}`,
+    //   `color:#95a5a6;`,
+    //   {
+    //     args: arguments,
+    //     component: this,
+    //   },
+    // )
     this.#hooks[eventName]?.forEach((cb) => (cb as any)(...args))
     return this
   }

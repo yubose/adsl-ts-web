@@ -68,6 +68,7 @@ export const event = {
     page: {
       PAGE_INSTANCE_CREATED: 'page-instance-created',
       PAGE_OBJECT: 'page-object',
+      PAGE_COMPONENTS: 'page-components',
       RETRIEVE_COMPONENTS: 'retrieve-components',
       COMPONENTS_RECEIVED: 'components-received',
       MISSING_COMPONENTS: 'missing-components',

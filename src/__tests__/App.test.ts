@@ -19,10 +19,12 @@ beforeEach(() => {
 })
 
 describe(coolGold(`App`), () => {
-  describe(italic(`Instantiating`), () => {
+  describe.only(italic(`Instantiating`), () => {
     it('should initiate the viewport', async () => {
       const app = await initializeApp()
       expect(app.viewport).to.be.instanceOf(Viewport)
+      expect(app.viewport.width).not.to.be.undefined
+      expect(app.viewport.height).not.to.be.undefined
     })
 
     it(`should initiate the main NOODLDOM page`, async () => {

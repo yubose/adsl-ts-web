@@ -58,8 +58,8 @@ class ComponentCache {
     return this
   }
 
-  get(component?: NUIComponent.Instance | string): NUIComponent.Instance
-  get(value?: never): Map<string, NUIComponent.Instance>
+  get(component: NUIComponent.Instance | string): NUIComponent.Instance
+  get(): Map<string, NUIComponent.Instance>
   get(component?: NUIComponent.Instance | string) {
     if (isComponent(component)) return this.#cache.get(component.id)
     if (isStr(component)) return this.#cache.get(component)

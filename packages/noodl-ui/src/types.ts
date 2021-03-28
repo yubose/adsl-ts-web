@@ -171,6 +171,9 @@ export namespace NUIComponent {
       component: NUIComponent.Instance,
       options: ConsumerOptions,
     ): Promise<void | PageObject>
+    [event.component.page.PAGE_COMPONENTS](
+      components: NUIComponent.Instance[],
+    ): void
     [event.component.register.ONEVENT](): void
     content(pluginContent: string): void
     dataValue(dataValue: any): void

@@ -34,9 +34,9 @@ class PageCache {
     }
   }
 
-  create({ viewport }: { viewport?: Viewport } = {}) {
+  create({ id, viewport }: { id?: string; viewport?: Viewport } = {}) {
     const page = new NOODLUIPage(viewport, {
-      id: !this.#pages.size ? 'root' : undefined,
+      id: id || (!this.#pages.size ? 'root' : undefined),
     })
     this.#pages.set(page.id, { page })
     return this.#pages.get(page.id)?.page as NOODLUIPage

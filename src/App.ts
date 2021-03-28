@@ -23,7 +23,7 @@ import {
   publish,
   Viewport as VP,
 } from 'noodl-ui'
-import { WritableDraft } from 'immer/dist/internal'
+import { is, WritableDraft } from 'immer/dist/internal'
 import { copyToClipboard } from './utils/dom'
 import { CACHED_PAGES, pageStatus } from './constants'
 import {
@@ -32,7 +32,6 @@ import {
   FirebaseApp,
   FirebaseMessaging,
 } from './app/types'
-import { isDev, isStable } from './utils/common'
 import createActions from './handlers/actions'
 import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
 import createRegisters from './handlers/register'
@@ -41,10 +40,11 @@ import createMeetingHandlers from './handlers/meeting'
 import createViewportHandler from './handlers/viewport'
 import createMeetingFns from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
+import * as u from './utils/common'
 import * as T from './app/types'
 
 const log = Logger.create('App.ts')
-const stable = isStable()
+const stable = u.isStable()
 
 class App {
   #enabled = {
@@ -171,6 +171,7 @@ class App {
           `Rendered ${components.length} components on ${_pageRequesting}`,
           components,
         )
+        window.pcomponents = components
       }
     } catch (error) {
       throw new Error(error)
@@ -202,8 +203,9 @@ class App {
 
       this.ndom.use({
         transaction: {
-          [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: (p: NOODLDOMPage) =>
-            this.#preparePage(p),
+          [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: (p: NOODLDOMPage) => {
+            return this.#preparePage(p)
+          },
         },
       })
 
@@ -225,6 +227,35 @@ class App {
       } else if (storedStatus.code === 3) {
         this.authStatus = 'temporary'
       }
+
+      const config = this.noodl.getConfig()
+      const plugins = [] as ComponentObject[]
+      if (config.headPlugin) {
+        plugins.push({
+          type: 'pluginHead',
+          path: config.headPlugin,
+        } as any)
+      }
+      if (config.bodyTopPplugin) {
+        plugins.push({
+          type: 'pluginBodyTop',
+          path: config.bodyTopPplugin,
+        } as any)
+      }
+      if (config.bodyTailPplugin) {
+        plugins.push({
+          type: 'pluginBodyTail',
+          path: config.bodyTailPplugin,
+        } as any)
+      }
+      NUI.use({
+        getAssetsUrl: () => this.noodl.assetsUrl,
+        getBaseUrl: () => this.noodl.cadlBaseUrl || '',
+        getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
+        getPages: () => this.noodl.cadlEndpoint?.page || [],
+        getRoot: () => this.noodl.root,
+        // getPlugins: () => plugins,
+      })
 
       const actions = createActions(this)
       const builtIns = createBuiltIns(this)
@@ -474,66 +505,76 @@ class App {
   }
 
   observeViewport(viewport: VP) {
-    let aspectRatio: number | undefined
+    let aspectRatio = VP.getAspectRatio(innerWidth, innerHeight)
     let min: number | undefined
     let max: number | undefined
-    let width: number
-    let height: number
 
-    // The viewWidthHeightRatio in cadlEndpoint (app config) overwrites the
-    // viewWidthHeightRatio in root config
-    const viewWidthHeightRatio =
-      this.noodl.cadlEndpoint?.viewWidthHeightRatio ||
-      this.noodl.getConfig?.()?.viewWidthHeightRatio
+    this.noodl.aspectRatio = u.isUnd(aspectRatio)
+      ? this.noodl.aspectRatio
+      : aspectRatio
 
-    if (viewWidthHeightRatio) {
-      min = Number(viewWidthHeightRatio.min)
-      max = Number(viewWidthHeightRatio.max)
-    }
+    // REMINDER: The viewWidthHeightRatio in cadlEndpoint (app config) overwrites the viewWidthHeightRatio in root config
+    const initMinMax = () => {
+      const viewWidthHeightRatio =
+        this.noodl.cadlEndpoint?.viewWidthHeightRatio ||
+        this.noodl.getConfig?.()?.viewWidthHeightRatio
 
-    const computeViewportSize = () => {
-      aspectRatio = VP.getAspectRatio(width, height)
-      if (typeof min === 'number' && typeof max === 'number') {
-        getViewportSizeWithMinMax()
+      if (!u.isUnd(viewWidthHeightRatio)) {
+        min = Number(viewWidthHeightRatio.min)
+        max = Number(viewWidthHeightRatio.max)
       }
     }
 
-    const getViewportSizeWithMinMax = () => {
-      min = Number(min)
-      max = Number(max)
-      if (aspectRatio !== undefined) {
-        if (aspectRatio < min) {
-          width = min * height
-        } else if (aspectRatio > max) {
-          width = max * height
-        }
+    // Should be participating in the 'resize' event
+    const refreshWidthAndHeight = (w?: number, h?: number) => {
+      if (u.isUnd(w) || u.isUnd(h)) {
+        w = innerWidth
+        h = innerHeight
+      }
+
+      if (u.isNum(min) && u.isNum(max)) {
+        console.log(h)
+        if ((aspectRatio as number) < min) w = min * h
+        else if ((aspectRatio as number) > max) w = max * h
+        u.assign(
+          viewport,
+          VP.applyMinMax({
+            aspectRatio,
+            min: min as number,
+            max: max as number,
+            width: w,
+            height: h,
+          }),
+        )
+      } else {
+        viewport.width = w
+        viewport.height = h
       }
     }
 
-    const setViewportSize = () => {
-      this.viewport.width = width
-      this.viewport.height = height
-    }
-
-    computeViewportSize()
-    setViewportSize()
-
-    aspectRatio !== undefined && (this.noodl.aspectRatio = aspectRatio)
+    initMinMax()
+    refreshWidthAndHeight()
 
     viewport.onResize = async (args) => {
-      if (width !== args.previousWidth || height !== args.previousHeight) {
+      console.log(args)
+      if (
+        args.width !== args.previousWidth ||
+        args.height !== args.previousHeight
+      ) {
         console.log('VP changed', args)
-        width = args.width
-        height = args.height
-
-        computeViewportSize()
-        setViewportSize()
+        if (this.mainPage.page === 'VideoChat') {
+          log.func('onResize')
+          return log.grey(
+            `Skipping avoiding the page rerender on the VideoChat "onresize" event`,
+          )
+        }
 
         this.noodl.aspectRatio = aspectRatio as number
-        document.body.style.width = `${width}px`
-        document.body.style.height = `${height}px`
-        this.mainPage.rootNode.style.width = `${width}px`
-        this.mainPage.rootNode.style.height = `${height}px`
+        refreshWidthAndHeight()
+        document.body.style.width = `${args.width}px`
+        document.body.style.height = `${args.height}px`
+        this.mainPage.rootNode.style.width = `${args.width}px`
+        this.mainPage.rootNode.style.height = `${args.height}px`
         this.mainPage.components =
           this.noodl?.root?.[this.mainPage.page]?.components || []
         this.ndom.render(this.mainPage)
@@ -692,7 +733,7 @@ class App {
         async ({ requesting: pageName, components }) => {
           log.func('onComponentsRendered')
           log.grey(`Done rendering DOM nodes for ${pageName}`, components)
-          window.pcomponents = components
+
           // Cache to rehydrate if they disconnect
           // TODO
           this.cachePage(pageName)
@@ -904,10 +945,12 @@ class App {
     this.ndom.page.on(
       eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
       (node, component) => {
-        console.log('Removed from component cache: ' + component.id)
+        console.log(
+          `Removed a ${component.type} component from cache: ${component.id}`,
+        )
         NUI.cache.component.remove(component)
         publish(component, (c) => {
-          console.log('Removed from component cache: ' + component.id)
+          console.log(`Removed a ${c.type} component from cache: ${c.id}`)
           NUI.cache.component.remove(c)
         })
       },

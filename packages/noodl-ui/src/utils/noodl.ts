@@ -3,6 +3,7 @@ import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
 import isComponent from './isComponent'
 import { NUIComponent } from '../types'
+import { isNum } from './internal'
 import { isBrowser } from './common'
 
 // function createRegexKeysOnProps(keys: string | string[]) {
@@ -125,7 +126,7 @@ export function findParent<C extends NUIComponent.Instance>(
 export function findListDataObject(
   component: NUIComponent.Instance | undefined,
 ) {
-  if (!component) return null
+  if (!isComponent(component)) return null
 
   let dataObject
   let listItem: any
@@ -133,31 +134,28 @@ export function findListDataObject(
   if (Identify.component.listItem(component)) {
     listItem = component
   } else {
-    listItem = findParent(component, (p) => Identify.component.listItem(p))
+    listItem = findParent(component, Identify.component.listItem)
   }
+
   if (isComponent(listItem)) {
     let list = listItem.parent
+    let listIndex = isNum(listItem.get('index'))
+      ? listItem.get('index')
+      : listItem.get('listIndex')
+    let iteratorVar = list?.get?.('iteratorVar') || ''
 
-    if (list) {
-      dataObject = listItem.get(list.get('iteratorVar') || '')
-    }
-
-    let listIndex = listItem.get('listIndex')
-    if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
-    if (!dataObject && typeof listIndex === 'number') {
-      const list = listItem?.parent as any
-      if (list) {
-        let listObject = list.getData()
-        if (listObject?.length) {
-          dataObject = listObject[listIndex]
-        }
-        if (!dataObject) {
-          listObject = list.original?.listObject || []
-          if (listObject?.length) {
-            dataObject = listObject[listIndex] || listObject[listIndex]
-          }
-        }
+    if (isComponent(list)) {
+      if (Identify.component.listItem(component)) {
+        dataObject = listItem.get(iteratorVar)
+      } else {
+        dataObject = list.get('listObject')?.[listIndex]
       }
+    }
+    if (!dataObject && isNum(listIndex)) {
+      const listObject = isComponent(list)
+        ? list.blueprint?.listObject
+        : undefined
+      listObject?.length && (dataObject = listObject[listIndex])
     }
   }
   return dataObject || null
@@ -167,9 +165,14 @@ export function findIteratorVar(
   component: NUIComponent.Instance | undefined,
 ): string {
   if (isComponent(component)) {
-    if (component.type === 'list') return component.get('iteratorVar') || ''
-    const list = findParent(component, (p) => p?.type === 'list')
-    if (isComponent(list)) return list.get('iteratorVar') || ''
+    if (Identify.component.list(component)) {
+      return component.get('iteratorVar') || ''
+    }
+    return (
+      findParent(component, (p) => Identify.component.list(p))?.get?.(
+        'iteratorVar',
+      ) || ''
+    )
   }
   return ''
 }
@@ -350,13 +353,16 @@ export function isListKey(
   return false
 }
 
-export function isListConsumer(component: any) {
+export function isListConsumer(
+  component: unknown,
+): component is NUIComponent.Instance {
+  if (!isComponent(component)) return false
   return !!(
-    component?.get?.('iteratorVar') ||
-    component?.get?.('listId') ||
-    component?.get?.('listIndex') != undefined ||
-    component?.type === 'listItem' ||
-    (component && findParent(component, (p) => p?.type === 'listItem'))
+    'iteratorVar' in component.props ||
+    'listId' in component.props ||
+    'listIndex' in component.props != undefined ||
+    Identify.component.listItem(component) ||
+    (component && findParent(component, Identify.component.listItem))
   )
 }
 
@@ -400,10 +406,11 @@ export function publish(
 ) {
   component.children?.forEach?.((child: NUIComponent.Instance) => {
     cb(child)
-    child?.children?.forEach?.((c: NUIComponent.Instance) => {
-      cb(c)
-      publish(c, cb)
-    })
+    publish(child, cb)
+    // child?.children?.forEach?.((c: NUIComponent.Instance) => {
+    //   cb(c)
+    //   publish(c, cb)
+    // })
   })
 }
 

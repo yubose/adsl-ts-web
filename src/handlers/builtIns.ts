@@ -22,7 +22,7 @@ import {
   getByDataUX,
   isPageConsumer,
 } from 'noodl-ui-dom'
-import { BuiltInActionObject } from 'noodl-types'
+import { BuiltInActionObject, Identify } from 'noodl-types'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
@@ -521,47 +521,50 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       log.red('', { action, options })
 
       const viewTag = action?.original?.viewTag || ''
+      const components = [] as NUIComponent.Instance[]
 
-      const components = Object.values(NUI.cache.component.get() || {}).reduce(
-        (acc: NUIComponent.Instance[], c: any) => {
-          if (c && c.get('viewTag') === viewTag) return acc.concat(c)
-          return acc
-        },
-        [],
-      )
+      for (const c of NUI.cache.component.get().values()) {
+        c && c.get('viewTag') === viewTag && components.push(c)
+      }
 
       const { component } = options
 
-      if (
-        viewTag &&
-        component?.get('viewTag') === viewTag &&
-        !components.includes(component as NUIComponent.Instance)
-      ) {
-        components.push(component as NUIComponent.Instance)
-      }
+      try {
+        if (
+          viewTag &&
+          component?.get('viewTag') === viewTag &&
+          !components.includes(component as NUIComponent.Instance)
+        ) {
+          components.push(component as NUIComponent.Instance)
+        }
 
-      if (!components.length) {
-        log.red(`Could not find any components to redraw`, {
-          action,
-          ...options,
-          component,
-        })
-      } else {
-        log.grey(`Redrawing ${components.length} components`, components)
-      }
+        if (!components.length) {
+          log.red(`Could not find any components to redraw`, {
+            action,
+            ...options,
+            component,
+          })
+        } else {
+          log.grey(`Redrawing ${components.length} components`, components)
+        }
 
-      let startCount = 0
+        let startCount = 0
 
-      while (startCount < components.length) {
-        const viewTagComponent = components[startCount] as NUIComponent.Instance
-        const node = findByElementId(viewTagComponent)
-        const dataObject = findListDataObject(viewTagComponent)
-        const [newNode, newComponent] = app.ndom.redraw(
-          node as HTMLElement,
-          viewTagComponent,
-        )
-        NUI.cache.component.add(newComponent)
-        startCount++
+        while (startCount < components.length) {
+          const viewTagComponent = components[
+            startCount
+          ] as NUIComponent.Instance
+          const node = findByElementId(viewTagComponent)
+          const [newNode, newComponent] = app.ndom.redraw(
+            node as HTMLElement,
+            viewTagComponent,
+          )
+          NUI.cache.component.add(newComponent)
+          startCount++
+        }
+      } catch (error) {
+        console.error(error)
+        throw error
       }
 
       log.red(`COMPONENT CACHE SIZE: ${NUI.cache.component.length}`)

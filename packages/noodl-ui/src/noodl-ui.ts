@@ -23,9 +23,10 @@ import { isPromise, promiseAllSafely } from './utils/common'
 import {
   findIteratorVar,
   findListDataObject,
+  isListConsumer,
   resolveAssetUrl,
 } from './utils/noodl'
-import { event as nuiEvent, nuiEmitType, nuiEmitTransaction } from './constants'
+import { nuiEmitType } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
 
@@ -88,6 +89,7 @@ const NOODLUI = (function _NOODLUI() {
   function _createPage(
     args?: {
       name?: string
+      id?: string
       viewport?: VP | { width?: number; height?: number }
     },
     never?: never,
@@ -97,11 +99,13 @@ const NOODLUI = (function _NOODLUI() {
       | string
       | {
           name?: string
+          id?: string
           viewport?: VP | { width?: number; height?: number }
         },
     opts: { viewport?: VP | { width?: number; height?: number } } = {},
   ) {
     let name: string = ''
+    let id: string | undefined = undefined
     let page: NUIPage | undefined
     let viewport: VP | undefined
     if (u.isStr(args)) {
@@ -112,12 +116,13 @@ const NOODLUI = (function _NOODLUI() {
       }
     } else if (u.isObj(args)) {
       args.name && (name = args.name)
+      args.id && (id = args.id)
       if (args?.viewport) {
         if (args.viewport instanceof VP) viewport = args.viewport
         else if (u.isObj(args.viewport)) viewport = new VP(args.viewport)
       }
     }
-    page = cache.page.create({ viewport: viewport as VP })
+    page = cache.page.create({ id, viewport: viewport as VP })
     name && (page.page = name)
     return page
   }
@@ -198,11 +203,6 @@ const NOODLUI = (function _NOODLUI() {
           let result = emitAction.execute(args) as string | Promise<string>
           let finalizedRes = ''
 
-          console.log(`%cResult received from emit action`, `color:#95a5a6;`, {
-            action: emitAction,
-            result,
-          })
-
           if (isPromise(result)) {
             return result
               .then((res) => {
@@ -271,7 +271,8 @@ const NOODLUI = (function _NOODLUI() {
           )
         }
       } else if (opts.type === nuiEmitType.TRANSACTION) {
-        const fn = store.transactions[opts.transaction]
+        const fn = store.transactions[opts.transaction]?.fn
+
         invariant(
           u.isFnc(fn),
           `Missing a callback handler for transaction "${
@@ -279,7 +280,8 @@ const NOODLUI = (function _NOODLUI() {
           }" but received ${typeof fn}`,
           opts,
         )
-        return fn?.(opts.params as any)
+
+        return fn?.(opts.params as string | NUIPage)
       }
     } catch (error) {
       console.error(error)
@@ -395,11 +397,24 @@ const NOODLUI = (function _NOODLUI() {
       component?: T.NUIComponent.Instance
       page?: NUIPage
       queries?: () => Record<string, any> | (() => Record<string, any>)[]
+      listDataObject?: any
     } = {},
   ) {
     const queries = []
     if (opts?.component) {
-      queries.push(findListDataObject(opts.component))
+      if (isListConsumer(opts.component)) {
+        const dataObject =
+          opts?.listDataObject || findListDataObject(opts.component)
+        if (dataObject) {
+          queries.push(dataObject)
+        } else {
+          console.log(
+            `%cCould not find a data object for a list consumer "${opts.component.type}" component`,
+            `color:#ec0000;`,
+            opts.component,
+          )
+        }
+      }
     }
     if (opts?.page) {
       queries.push(() => o.getRoot()[opts.page?.page || ''])
