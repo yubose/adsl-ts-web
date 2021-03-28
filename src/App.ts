@@ -681,7 +681,7 @@ class App {
           if(dataValue.mapType == 1){
             dataValue.zoom = dataValue.zoom?dataValue.zoom:9
             let flag = !dataValue.hasOwnProperty("data")? false:dataValue.data.length==0?false: true
-            let initcenter = flag?dataValue.data[0]:[-117.9086,33.8359]
+            let initcenter = flag?dataValue.data[0].data:[-117.9086,33.8359]
             let map = new mapboxgl.Map({	
                 container: parent.id,
                 style: 'mapbox://styles/mapbox/streets-v11',
@@ -711,9 +711,15 @@ class App {
               dataValue.data.forEach(element => {
                   let item={
                     'type': 'Feature',
+                    'properties':{
+                      'Name': element.information.Name,
+                      'Speciality': element.information.Speciality,
+                      'Title': element.information.Title,
+                      'address': element.information.address
+                    },
                     'geometry': {
                         'type': 'Point',
-                        'coordinates': element
+                        'coordinates': element.data
                     }
                   }
                   featuresData.push(item)
@@ -798,7 +804,6 @@ class App {
                  
                 // inspect a cluster on click
                         map.on('click', 'clusters', function (e:any) {
-                            console.log("test map 13","test click")
                             let features = map.queryRenderedFeatures(e.point, {
                             layers: ['clusters']
                         })
@@ -820,9 +825,17 @@ class App {
                 // the location of the feature, with
                 // description HTML from its properties.
                     map.on('click', 'unclustered-point', function (e:any) {
-                        let coordinates = e.features[0].geometry.coordinates.slice()          
+                      // 'Name': element.Name,
+                      // 'Speciality': element.Speciality,
+                      // 'Title': element.Title,
+                      // 'address' 
+                        let coordinates = e.features[0].geometry.coordinates.slice() 
+                        let Name = e.features[0].properties.Name
+                        let Speciality = e.features[0].properties.Speciality 
+                        let Title = e.features[0].properties.Title
+                        let address = e.features[0].properties.address
                         new mapboxgl.Popup().setLngLat(coordinates).setHTML(
-                                "test click"
+                                Name+" <br> "+Speciality+"<br> "+address
                         ).addTo(map)
                     })
                  
@@ -845,6 +858,39 @@ class App {
               // let canvasContainer = document.getElementById("mapboxgl-canvas-container")
               //end
             }
+          }else if(dataValue.mapType == 2){
+            dataValue.zoom = dataValue.zoom?dataValue.zoom:9
+            let flag = !dataValue.hasOwnProperty("data")? false:dataValue.data.length==0?false: true
+            let initcenter = flag?dataValue.data[0].data:[-117.9086,33.8359]
+            let map = new mapboxgl.Map({	
+                container: parent.id,
+                style: 'mapbox://styles/mapbox/streets-v11',
+                center: initcenter,
+                zoom: dataValue.zoom,
+                trackResize: true,
+                dragPan: true,
+                boxZoom: false, // 加载地图使禁用拉框缩放
+                // attributionControl: false, // 隐藏地图控件链接
+                // logoPosition: 'bottom-right' // 设置mapboxLogo位置
+                // zoomControl: true,
+                // antialias: false, //抗锯齿，通过false关闭提升性能
+                // attributionControl: false,
+            })
+
+            map.addControl(new mapboxgl.NavigationControl()) //添加放大缩小控件
+            map.addControl(  //添加定位
+              new mapboxgl.GeolocateControl({
+                positionOptions: {
+                  enableHighAccuracy: true
+                },
+                trackUserLocation: true
+              })
+            )
+            new mapboxgl.Marker().setLngLat(initcenter).addTo(map);
+            let canvasContainer:any = document.querySelector(".mapboxgl-canvas-container")
+            console.log("test map show canvas", canvasContainer)
+            canvasContainer['style']['width'] = "100%"
+            canvasContainer['style']['height'] = "100%"
           }
         }
       },
