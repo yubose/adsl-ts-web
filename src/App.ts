@@ -15,10 +15,8 @@ import set from 'lodash/set'
 import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import {
   NUIComponent,
-  event as nuiEvent,
   nuiEmitTransaction,
   nuiEmitType,
-  identify,
   NOODLUI as NUI,
   publish,
   Viewport as VP,
@@ -261,13 +259,17 @@ class App {
       const builtIns = createBuiltIns(this)
       const registers = createRegisters(this)
       const domResolvers = createExtendedDOMResolvers(this)
-
-      createMeetingHandlers(this)
+      const meetingfns = createMeetingHandlers(this)
 
       actions.forEach((obj) => this.ndom.use(obj))
       builtIns.forEach((obj) => this.ndom.use(obj))
       registers.forEach((obj) => this.ndom.use({ register: obj }))
       domResolvers.forEach((obj) => this.ndom.use({ resolver: obj }))
+
+      this.meeting.onConnected = meetingfns.onConnected
+      this.meeting.onAddRemoteParticipant = meetingfns.onAddRemoteParticipant
+      this.meeting.onRemoveRemoteParticipant =
+        meetingfns.onRemoveRemoteParticipant
 
       if (this.#enabled.firebase) {
         this.messaging?.onMessage(
@@ -965,7 +967,7 @@ class App {
         component: any,
       ) {
         // Dominant/main participant/speaker
-        if (identify.stream.video.isMainStream(component.blueprint)) {
+        if (/mainStream/i.test(String(component.blueprint.viewTag))) {
           const mainStream = this.streams.getMainStream()
           if (!mainStream.isSameElement(node)) {
             mainStream.setElement(node, { uxTag: 'mainStream' })
@@ -974,7 +976,7 @@ class App {
           }
         }
         // Local participant
-        else if (identify.stream.video.isSelfStream(component.blueprint)) {
+        else if (/selfStream/i.test(String(component.blueprint.viewTag))) {
           const selfStream = this.streams.getSelfStream()
           if (!selfStream.isSameElement(node)) {
             selfStream.setElement(node, { uxTag: 'selfStream' })
@@ -1004,7 +1006,7 @@ class App {
           }
         }
         // Individual remote participant video element container
-        else if (identify.stream.video.isSubStream(component.blueprint)) {
+        else if (/subStream/i.test(String(component.blueprint.viewTag))) {
           const subStreams = this.streams.getSubStreamsContainer() as MeetingSubstreams
           if (subStreams) {
             if (!subStreams.elementExists(node)) {

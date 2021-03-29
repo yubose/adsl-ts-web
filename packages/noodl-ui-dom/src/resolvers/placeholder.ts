@@ -1,4 +1,4 @@
-import { isEmitObj } from 'noodl-utils'
+import { Identify } from 'noodl-types'
 import { RegisterOptions } from '../types'
 
 export default {
@@ -8,7 +8,7 @@ export default {
   resolve: (node: HTMLInputElement, component) => {
     const placeholder = component.get('placeholder') || ''
 
-    if (isEmitObj(placeholder)) {
+    if (Identify.emit(placeholder)) {
       component.on('placeholder', (result) => {
         setTimeout(() => {
           node.placeholder = result

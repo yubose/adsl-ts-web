@@ -1,6 +1,3 @@
-import spread from 'lodash/spread'
-import isPlainObject from 'lodash/isPlainObject'
-
 export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
 export const assign = (
   v: Record<string, any>,
@@ -32,42 +29,6 @@ export function createEmptyObjectWithKeys<K extends string = any, I = any>(
     (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
     startingValue,
   )
-}
-
-/**
- * Runs forEach on each key/value pair of the value, passing in the key as the first
- * argument and the value as the second argument on each iteration
- * @param { object } value
- * @param { function } callback - Callback function to run on each key/value entry
- */
-export function forEachEntries<Obj>(
-  value: Obj,
-  callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
-) {
-  if (value && typeof value === 'object') {
-    Object.entries(value).forEach(spread(callback))
-  }
-}
-
-/**
- * Runs forEach on each key/value pair of the value, passing in the key as the first
- * argument and the value as the second argument on each iteration.
- * This is a recursion version of forEachEntries
- * @param { object } value
- * @param { function } callback - Callback function to run on each key/value entry
- */
-export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
-  value: Obj | undefined,
-  callback: (key: string, value: Obj[K], obj: Obj) => void,
-) {
-  if (Array.isArray(value)) {
-    value.forEach((val) => forEachDeepEntries(val, callback))
-  } else if (isPlainObject(value)) {
-    forEachEntries(value as Obj, (k, v: Obj[K]) => {
-      callback(k, v, value as Obj)
-      forEachDeepEntries(v, callback as any)
-    })
-  }
 }
 
 /**

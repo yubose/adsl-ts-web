@@ -9,12 +9,7 @@ import NOODLDOM, {
   Resolve,
   Transaction,
 } from 'noodl-ui-dom'
-import { NOODLUI as NUI, NUIComponent, Viewport } from 'noodl-ui'
-import createActions from '../handlers/actions'
-import createBuiltIns from '../handlers/builtIns'
-import createRegisters from '../handlers/register'
-import createExtendedDOMResolvers from '../handlers/dom'
-import createMeetingFns from '../handlers/meeting'
+import { NOODLUI as NUI, Viewport } from 'noodl-ui'
 import App from '../App'
 import * as u from './common'
 

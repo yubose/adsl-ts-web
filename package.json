@@ -50,7 +50,7 @@
     "invariant": "^2.2.4",
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
-    "noodl-action-chain": "^0.0.43",
+    "noodl-action-chain": "^0.0.51",
     "noodl-types": "^1.0.42",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",

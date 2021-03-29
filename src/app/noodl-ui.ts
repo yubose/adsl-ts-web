@@ -35,14 +35,15 @@ export function getWindowHelpers() {
     },
     pick(lib, [
       'findChild',
+      'findIteratorVar',
       'findListDataObject',
       'findParent',
+      'flatten',
       'getDataValues',
-      'identify',
-      'isComponent',
-      'isListConsumer',
-      'isListKey',
+      'getLast',
+      'parseReference',
       'publish',
+      'resolveAssetUrl',
     ]),
   )
 }

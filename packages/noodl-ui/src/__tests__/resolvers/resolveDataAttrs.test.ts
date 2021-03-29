@@ -165,7 +165,6 @@ describe(coolGold(`resolveDataAttrs`), () => {
       const list = view.child()
       const listItem = list.child()
       const textField = listItem.child()
-      console.info(textField)
       await waitFor(() => {
         expect(textField.get('data-value')).to.eq('iamjoshua')
       })

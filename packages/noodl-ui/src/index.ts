@@ -18,11 +18,13 @@ export {
   findListDataObject,
   findIteratorVar,
   findParent,
+  flatten,
   getDataValues,
-  isListKey,
+  getLast,
   isListConsumer,
-  identify,
   parseReference,
   publish,
+  resolveAssetUrl,
 } from './utils/noodl'
+export { formatColor } from './utils/common'
 export * from './types'

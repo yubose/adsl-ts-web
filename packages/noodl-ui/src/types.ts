@@ -177,6 +177,7 @@ export namespace NUIComponent {
     [event.component.register.ONEVENT](): void
     content(pluginContent: string): void
     dataValue(dataValue: any): void
+    image(src: string): void
     path(src: string): void
     placeholder(src: string): void
   }

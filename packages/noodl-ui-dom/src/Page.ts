@@ -175,7 +175,7 @@ class Page {
   snapshot(opts?: Record<string, any>) {
     return {
       status: this.state.status,
-      previous: this.state.status,
+      previous: this.state.previous,
       current: this.page,
       requesting: this.state.requesting,
       ...opts,

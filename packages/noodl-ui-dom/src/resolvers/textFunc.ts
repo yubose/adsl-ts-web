@@ -51,7 +51,7 @@ export default (function () {
                   eventId.page.on.ON_DOM_CLEANUP,
                   timers[component.id]?.clear,
                 )
-                console.info(`Cleared timer`, timers[component.id])
+                console.log(`Cleared timer`, timers[component.id])
               },
             }
 

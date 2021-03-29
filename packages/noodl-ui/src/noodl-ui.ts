@@ -450,11 +450,13 @@ const NOODLUI = (function _NOODLUI() {
   ): T.NUIComponent.Instance
   function _resolveComponents(
     page: NUIPage,
-    component: T.NUIComponent.CreateType[],
+    components: T.NUIComponent.CreateType[],
   ): T.NUIComponent.Instance[]
   function _resolveComponents(
-    component: T.NUIComponent.CreateType[],
-    _?: never,
+    component: T.NUIComponent.CreateType,
+  ): T.NUIComponent.Instance
+  function _resolveComponents(
+    components: T.NUIComponent.CreateType[],
   ): T.NUIComponent.Instance[]
   function _resolveComponents(
     pageProp:

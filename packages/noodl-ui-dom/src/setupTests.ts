@@ -1,5 +1,4 @@
 import chai from 'chai'
-import invariant from 'invariant'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import chaiAsPromised from 'chai-as-promised'

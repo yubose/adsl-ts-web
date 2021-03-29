@@ -30,17 +30,11 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from 'twilio-video'
-import {
-  isBoolean as isNOODLBoolean,
-  isBooleanTrue,
-  isBooleanFalse,
-  parse,
-} from 'noodl-utils'
+import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
 import { show, scrollToElem } from '../utils/dom'
 import { pageEvent } from '../constants'
 import App from '../App'
-import Meeting from '../meeting'
 import * as u from '../utils/common'
 
 const log = Logger.create('src/handlers/builtIns.ts')
@@ -70,8 +64,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     },
     async disconnectMeeting(action, options) {
       log.func('disconnectMeeting')
-      log.grey('', { action, room: Meeting.room, options })
-      Meeting.room.disconnect()
+      log.grey('', { action, room: app.meeting.room, options })
+      app.meeting.room.disconnect()
     },
     async goBack(action, options) {
       log.func('goBack')
@@ -130,9 +124,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     },
     async toggleCameraOnOff(action: Action, options: ConsumerOptions) {
       log.func('toggleCameraOnOff')
+      log.green({ action, options })
       const path = 'VideoChat.cameraOn'
 
-      const { localParticipant } = Meeting
+      const { localParticipant } = app.meeting
       let videoTrack: LocalVideoTrack | undefined
 
       if (localParticipant) {
@@ -140,8 +135,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           (trackPublication) => trackPublication.kind === 'video',
         )?.track as LocalVideoTrack
 
-        const { default: noodl } = await import('../app/noodl')
-        noodl.editDraft((draft: any) => {
+        app.noodl.editDraft((draft: any) => {
           if (videoTrack) {
             if (videoTrack.isEnabled) {
               videoTrack.disable()
@@ -161,7 +155,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           } else {
             log.red(
               `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
-              { localParticipant, room: Meeting.room },
+              { localParticipant, room: app.meeting.room },
             )
           }
         })
@@ -169,9 +163,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     },
     async toggleMicrophoneOnOff(action: Action, options: ConsumerOptions) {
       log.func('toggleMicrophoneOnOff')
+      log.green({ action, options })
       const path = 'VideoChat.micOn'
 
-      const { localParticipant } = Meeting
+      const { localParticipant } = app.meeting
       let audioTrack: LocalAudioTrack | undefined
 
       if (localParticipant) {
@@ -204,128 +199,134 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     async toggleFlag(action: Action, options: ConsumerOptions) {
       log.func('toggleFlag')
       console.log({ action, ...options })
-      const { component } = options
-      const { page } = app.mainPage
-      const { dataKey = '' } = action.original || {}
-      const iteratorVar = findIteratorVar(component)
-      const node = findByElementId(component)
-      let path = component?.get('path')
+      try {
+        const { component } = options
+        const { dataKey = '' } = action.original || {}
+        const iteratorVar = findIteratorVar(component)
+        const node = findByElementId(component)
+        let path = component?.get('path')
 
-      let dataValue: any
-      let dataObject: any
-      let previousDataValue: boolean | undefined
-      let nextDataValue: boolean | undefined
-      let newSrc = ''
+        let dataValue: any
+        let dataObject: any
+        let previousDataValue: boolean | undefined
+        let nextDataValue: boolean | undefined
+        let newSrc = ''
 
-      if (isDraft(path)) path = original(path)
+        if (isDraft(path)) path = original(path)
 
-      log.gold(`iteratorVar: ${iteratorVar} | dataKey: ${dataKey}`)
-
-      if (dataKey?.startsWith(iteratorVar)) {
-        const parts = dataKey.split('.').slice(1)
-        dataObject = findListDataObject(component as NUIComponent.Instance)
-        previousDataValue = get(dataObject, parts)
-        // previousDataValueInSdk = _.get(noodl.root[context.page])
-        dataValue = previousDataValue
-        if (isNOODLBoolean(dataValue)) {
-          // true -> false / false -> true
-          nextDataValue = !isBooleanTrue(dataValue)
-        } else {
-          // Set to true if am item exists
-          nextDataValue = !dataValue
-        }
-        set(dataObject, parts, nextDataValue)
-      } else {
-        const onNextValue = (
-          previousValue: any,
-          { updateDraft }: { updateDraft?: { path: string } } = {},
-        ) => {
-          let nextValue: any
-          if (isNOODLBoolean(previousValue)) {
-            nextValue = !isBooleanTrue(previousValue)
+        if (dataKey?.startsWith(iteratorVar)) {
+          const parts = dataKey.split('.').slice(1)
+          dataObject = findListDataObject(component as NUIComponent.Instance)
+          previousDataValue = get(dataObject, parts)
+          // previousDataValueInSdk = _.get(noodl.root[context.page])
+          dataValue = previousDataValue
+          if (Identify.isBoolean(dataValue)) {
+            // true -> false / false -> true
+            nextDataValue = !Identify.isBooleanTrue(dataValue)
+          } else {
+            // Set to true if am item exists
+            nextDataValue = !dataValue
           }
-          nextValue = !previousValue
-          if (updateDraft) {
-            app.noodl.editDraft((draft: any) => {
-              set(draft, updateDraft.path, nextValue)
+          set(dataObject, parts, nextDataValue)
+        } else {
+          const onNextValue = (
+            previousValue: any,
+            { updateDraft }: { updateDraft?: { path: string } } = {},
+          ) => {
+            let nextValue: any
+            if (Identify.isBoolean(previousValue)) {
+              nextValue = !Identify.isBooleanTrue(previousValue)
+            }
+            nextValue = !previousValue
+            if (updateDraft) {
+              app.noodl.editDraft((draft: any) => {
+                set(draft, updateDraft.path, nextValue)
+              })
+            }
+            // Propagate the changes to to UI if there is a path "if" object that
+            // references the value as well
+            if (node && isObjectLike(path)) {
+              let valEvaluating = path?.if?.[0]
+              // If the dataKey is the same as the the value we are evaluating we can
+              // just re-use the nextDataValue
+              if (valEvaluating === dataKey) {
+                valEvaluating = nextValue
+              } else {
+                valEvaluating =
+                  get(app.noodl.root, valEvaluating) ||
+                  get(app.noodl.root[app.mainPage.page || ''], valEvaluating)
+              }
+              newSrc =
+                NUI.getAssetsUrl() + valEvaluating
+                  ? path?.if?.[1]
+                  : path?.if?.[2]
+              // newSrc = NUI.createSrc(
+              //   valEvaluating ? path?.if?.[1] : path?.if?.[2],
+              //   component,
+              // ) as string
+              node.setAttribute('src', newSrc)
+            }
+            return nextValue
+          }
+
+          dataObject = app.noodl.root
+
+          if (has(app.noodl.root, dataKey)) {
+            dataObject = app.noodl.root
+            previousDataValue = get(dataObject, dataKey)
+            onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
+          } else if (has(app.noodl.root[app.mainPage.page], dataKey)) {
+            dataObject = app.noodl.root[app.mainPage.page]
+            previousDataValue = get(dataObject, dataKey)
+            onNextValue(previousDataValue, {
+              updateDraft: {
+                path: `${dataKey}${
+                  app.mainPage.page ? `.${app.mainPage.page}` : ''
+                }`,
+              },
+            })
+          } else {
+            log.red(
+              `${dataKey} is not a path of the data object. ` +
+                `Defaulting to attaching ${dataKey} as a path to the root object`,
+              { dataObject, dataKey },
+            )
+            dataObject = app.noodl.root
+            previousDataValue = undefined
+            nextDataValue = false
+            onNextValue(previousDataValue, {
+              updateDraft: { path: `${dataKey}.${app.mainPage.page || ''}` },
             })
           }
-          // Propagate the changes to to UI if there is a path "if" object that
-          // references the value as well
-          if (node && isObjectLike(path)) {
-            let valEvaluating = path?.if?.[0]
-            // If the dataKey is the same as the the value we are evaluating we can
-            // just re-use the nextDataValue
-            if (valEvaluating === dataKey) {
-              valEvaluating = nextValue
-            } else {
-              valEvaluating =
-                get(app.noodl.root, valEvaluating) ||
-                get(app.noodl.root[page || ''], valEvaluating)
-            }
-            newSrc =
-              NUI.getAssetsUrl() + valEvaluating ? path?.if?.[1] : path?.if?.[2]
-            // newSrc = NUI.createSrc(
-            //   valEvaluating ? path?.if?.[1] : path?.if?.[2],
-            //   component,
-            // ) as string
-            node.setAttribute('src', newSrc)
-          }
-          return nextValue
-        }
-
-        dataObject = app.noodl.root
-
-        if (has(app.noodl.root, dataKey)) {
-          dataObject = app.noodl.root
-          previousDataValue = get(dataObject, dataKey)
-          onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-        } else if (has(app.noodl.root[page], dataKey)) {
-          dataObject = app.noodl.root[page]
-          previousDataValue = get(dataObject, dataKey)
-          onNextValue(previousDataValue, {
-            updateDraft: {
-              path: `${dataKey}${page ? `.${page}` : ''}`,
-            },
-          })
-        } else {
-          log.red(
-            `${dataKey} is not a path of the data object. ` +
-              `Defaulting to attaching ${dataKey} as a path to the root object`,
-            { dataObject, dataKey },
-          )
-          dataObject = app.noodl.root
-          previousDataValue = undefined
-          nextDataValue = false
-          onNextValue(previousDataValue, {
-            updateDraft: { path: `${dataKey}.${page || ''}` },
-          })
         }
 
         if (/mic/i.test(dataKey)) {
-          app.ndom.builtIns.toggleMicrophoneOnOff
+          await app.ndom.builtIns.toggleMicrophoneOnOff
             .find(Boolean)
             ?.fn?.(action, options)
         } else if (/camera/i.test(dataKey)) {
-          app.ndom.builtIns.toggleCameraOnOff
+          await app.ndom.builtIns.toggleCameraOnOff
             .find(Boolean)
             ?.fn?.(action, options)
         }
-      }
 
-      log.grey('', {
-        component: component?.toJSON(),
-        componentInst: component,
-        dataKey,
-        dataValue,
-        dataObject,
-        previousDataValue,
-        nextDataValue,
-        previousDataValueInSdk: newSrc,
-        node,
-        path,
-        options,
-      })
+        log.grey('', {
+          component: component?.toJSON(),
+          componentInst: component,
+          dataKey,
+          dataValue,
+          dataObject,
+          previousDataValue,
+          nextDataValue,
+          previousDataValueInSdk: newSrc,
+          node,
+          path,
+          options,
+        })
+      } catch (error) {
+        console.error(error)
+        throw error
+      }
     },
     async lockApplication(action, options) {
       const result = await _onLockLogout()
@@ -663,20 +664,20 @@ export function onVideoChatBuiltIn({
         const enable = toggle('enable')
         const disable = toggle('disable')
 
-        if (isNOODLBoolean(cameraOn)) {
-          if (isBooleanTrue(cameraOn)) {
+        if (Identify.isBoolean(cameraOn)) {
+          if (Identify.isBooleanTrue(cameraOn)) {
             enable(localParticipant?.videoTracks)
-          } else if (isBooleanFalse(cameraOn)) {
+          } else if (Identify.isBooleanFalse(cameraOn)) {
             disable(localParticipant?.videoTracks)
           }
         } else {
           // Automatically disable by default
           disable(localParticipant?.videoTracks)
         }
-        if (isNOODLBoolean(micOn)) {
-          if (isBooleanTrue(micOn)) {
+        if (Identify.isBoolean(micOn)) {
+          if (Identify.isBooleanTrue(micOn)) {
             enable(localParticipant?.audioTracks)
-          } else if (isBooleanFalse(micOn)) {
+          } else if (Identify.isBooleanFalse(micOn)) {
             disable(localParticipant?.audioTracks)
           }
         } else {

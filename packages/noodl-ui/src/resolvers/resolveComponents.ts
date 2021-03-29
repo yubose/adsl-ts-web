@@ -3,7 +3,7 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { ComponentObject, Identify } from 'noodl-types'
-import { findDataValue, isBreakLineTextBoardItem } from 'noodl-utils'
+import { findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
@@ -98,6 +98,11 @@ componentResolver.setResolver((component, options, next) => {
           components: listItem,
           page,
           context: { index, iteratorVar, dataObject },
+        })
+        drawListItemChildren({
+          component: listItem,
+          dataObject,
+          index,
         })
         cache.component.add(listItem)
       },
@@ -225,7 +230,7 @@ componentResolver.setResolver((component, options, next) => {
       }
 
       textBoard.forEach((item) => {
-        if (isBreakLineTextBoardItem(item)) {
+        if (Identify.textBoardItem(item)) {
           component.createChild(createComponent('br'))
         } else {
           /**

@@ -7,6 +7,18 @@ export default {
   name: '[noodl-dom] Styles',
   cond: (node, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
+  before(node, component) {
+    if (component.has('global')) {
+      component.on('image', (src) => {
+        console.log(
+          `%cReceived src for Global Component`,
+          `color:#00b406;`,
+          src,
+        )
+        node && (node.style.backgroundImage = `url("${src}")`)
+      })
+    }
+  },
   resolve: (node: HTMLElement, component) => {
     if (isObj(component.style?.textAlign)) {
       delete component.style.textAlign
@@ -28,5 +40,6 @@ export default {
     if (Identify.component.scrollView(component))
       addClassName('scroll-view', node)
     if (component.has('textBoard')) addClassName('text-board', node)
+    if (component.has('global')) addClassName('global', node)
   },
 } as RegisterOptions

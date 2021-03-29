@@ -273,7 +273,6 @@ describe.skip(`plugin`, () => {
     // @ts-expect-error
     ndom.register({ cond: 'plugin', resolve: (getNode) => getNode(node) })
     ndom.draw(createComponent({ type: 'plugin', path: 'abc.js' }))
-    console.info(document.body.children.length)
     expect(document.body.contains(node)).to.be.true
   })
 
@@ -492,7 +491,6 @@ describe.only(`styles`, () => {
 
       const result = await ndom.page.requestPageChange('Hello')
       // console.info(prettyDOM())
-      console.info(ndom.state)
     })
 
     it(

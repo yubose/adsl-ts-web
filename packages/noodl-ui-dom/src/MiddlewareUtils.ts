@@ -14,7 +14,7 @@ class MiddlewareUtils {
     component: NUIComponent.Instance,
   ) {
     let s = Identify.component.popUp(component)
-      ? component.get('popUpView')
+      ? component.get('popUpView') || component.get('viewTag')
       : ''
     let globalId = `${page.page}:${s}`
     return globalId

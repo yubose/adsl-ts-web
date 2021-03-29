@@ -1,6 +1,11 @@
 import { Identify } from 'noodl-types'
-import { NUIComponent, event as noodluiEvent, SelectOption } from 'noodl-ui'
-import { isBooleanTrue, isPluginComponent } from 'noodl-utils'
+import {
+  createComponent,
+  formatColor,
+  NUIComponent,
+  event as noodluiEvent,
+  SelectOption,
+} from 'noodl-ui'
 import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
 import * as u from '../utils/internal'
@@ -82,7 +87,7 @@ const domComponentsResolver: Resolve.Config = {
         )
       }
       // PLUGIN
-      else if (isPluginComponent(original)) {
+      else if (Identify.component.plugin(original)) {
         // !NOTE - We passed the node argument as a function that expects our
         // resolved node instead
         // This is specific for these plugin components but may be extended to be used more later
@@ -187,13 +192,61 @@ const domComponentsResolver: Resolve.Config = {
         }
         // Default to the first item if the user did not previously set their state
         if (node?.selectedIndex === -1) node.selectedIndex = 0
+      } else if (Identify.textBoard(original)) {
+        const { textBoard, text } = component.props
+        if (u.isArr(component)) {
+          if (Array.isArray(textBoard)) {
+            if (typeof text === 'string') {
+              console.log(
+                `%cA component cannot have a "text" and "textBoard" property ` +
+                  `because they both overlap. The "text" will take precedence.`,
+                `color:#ec0000;`,
+                component.snapshot(),
+              )
+            }
+
+            textBoard.forEach((item) => {
+              if (Identify.textBoardItem(item)) {
+                const br = createComponent('view')
+                component.createChild(br as any)
+              } else {
+                /**
+                 * NOTE: Normally in the return type we would return the child
+                 * component wrapped with a resolveComponent call but it is conflicting
+                 * with our custom implementation because its being assigned unwanted style
+                 * attributes like "position: absolute" which disrupts the text display.
+                 * TODO: Instead of a resolverComponent, we should make a resolveStyles
+                 * to get around this issue. For now we'll hard code known props like "color"
+                 */
+                const text = createComponent({
+                  type: 'label',
+                  style: {
+                    display: 'inline-block',
+                    ...(item.color
+                      ? { color: formatColor(item.color) }
+                      : undefined),
+                  },
+                  text: item.text,
+                })
+                component.createChild(text as any)
+              }
+            })
+          } else {
+            console.log(
+              `%cExpected textBoard to be an array but received "${typeof textBoard}". ` +
+                `This part of the component will not be included in the output`,
+              `color:#ec0000;`,
+              { component: component.snapshot(), textBoard },
+            )
+          }
+        }
       }
       // VIDEO
       else if (Identify.component.video(original)) {
         const videoEl = node as HTMLVideoElement
         let sourceEl: HTMLSourceElement
         let notSupportedEl: HTMLParagraphElement
-        videoEl.controls = isBooleanTrue(controls)
+        videoEl.controls = Identify.isBooleanTrue(controls)
         if (poster) videoEl.setAttribute('poster', poster)
         if (component.props['data-src']) {
           sourceEl = document.createElement('source')

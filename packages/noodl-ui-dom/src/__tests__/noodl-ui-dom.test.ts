@@ -1,7 +1,12 @@
 import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
-import { NOODLUI as NUI, nuiEmitTransaction } from 'noodl-ui'
+import {
+  flatten,
+  isComponent,
+  NOODLUI as NUI,
+  nuiEmitTransaction,
+} from 'noodl-ui'
 import { coolGold, italic } from 'noodl-common'
 import { getByDataGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
@@ -34,8 +39,6 @@ describe(coolGold(`noodl-ui-dom`), () => {
       const components = req?.render()
       const component = components?.[2]
       const node = getByDataGlobalId(component?.get('globalId'))
-      console.info(components)
-      console.info(ndom.page)
       expect(document.body.contains(node)).to.be.true
       // expect(page.rootNode.children).to.have.lengthOf(2)
       // page.clearRootNode()
@@ -81,7 +84,27 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`draw`), () => {
+  describe.only(italic(`draw`), () => {
+    it(`should have all components in the component cache`, async () => {
+      const rawComponents = [
+        mock.getListComponent({
+          children: [
+            mock.getListItemComponent({
+              children: [
+                mock.getLabelComponent({ text: 'red' }),
+                mock.getTextFieldComponent(),
+                mock.getLabelComponent({ text: 'blue' }),
+              ],
+            }),
+          ],
+        }),
+      ]
+      const { ndom, request } = createRender({ components: rawComponents })
+      const req = await request('Cereal')
+      const flattened = flatten(req?.render()[0])
+      flattened.forEach((c) => expect(ndom.cache.component.has(c)).to.be.true)
+    })
+
     describe(`when drawing components with global: true`, () => {
       it(
         `should create a global object to the middleware store ` +
@@ -202,6 +225,38 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
+  describe.only(italic(`redraw`), () => {
+    it(`should delete all components involved in the redraw from the component cache`, async () => {
+      const rawComponents = [
+        mock.getListComponent({
+          children: [
+            mock.getListItemComponent({
+              children: [
+                mock.getLabelComponent({ text: 'red' }),
+                mock.getTextFieldComponent(),
+                mock.getLabelComponent({ text: 'blue' }),
+              ],
+            }),
+          ],
+        }),
+      ]
+      const { getPageObject, ndom, page, request, render } = createRender({
+        components: rawComponents,
+      })
+      page.components = rawComponents
+      const req = await request('Hat')
+      const list = req?.render()?.[0]
+      const listItem = list?.child()
+      const label1 = listItem?.child()
+      const textField = listItem?.child(1)
+      const label2 = listItem?.child(2)
+      const components = [list, listItem, label1, textField, label2]
+      components.forEach((c) => {
+        expect(ndom.cache.component.has(c as any)).to.be.true
+      })
+    })
+  })
+
   describe(italic(`render`), () => {
     it(`should render noodl components to the DOM`, async () => {
       const { page } = createRender({
@@ -268,7 +323,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
           nuiEmitTransaction.REQUEST_PAGE_OBJECT,
           page,
         )
-        expect(pageObject.components).to.eq(components)
+        expect(pageObject?.components).to.eq(components)
       },
     )
 

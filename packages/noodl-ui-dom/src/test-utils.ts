@@ -37,19 +37,6 @@ interface MockRenderOptions {
   root?: Record<string, any>
 }
 
-interface CreateRenderReturnObject {
-  assetsUrl: string
-  baseUrl: string
-  nui: typeof NUI
-  ndom: NOODLDOM
-  page: NOODLDOMPage
-  pageObject: PageObject
-  root: Record<string, any>
-  render(
-    page?: NOODLDOMPage,
-  ): Promise<{ node: HTMLElement | null; component: NUIComponent.Instance }[]>
-}
-
 /**
  * A helper that tests a noodl-ui-dom DOM resolver. This helps to automatically prepare
  * the noodl-ui client when testing resolvers. The root object automatically
@@ -63,6 +50,7 @@ export function createRender(opts: MockRenderOptions) {
   let pageRequesting = ''
   let page: NOODLDOMPage | undefined
   let pageObject: PageObject | undefined
+  let root = { ...NUI.getRoot(), ...opts?.root }
 
   currentPage = opts.currentPage || ''
   page = opts.page
@@ -93,8 +81,8 @@ export function createRender(opts: MockRenderOptions) {
   )
 
   pageObject = {
-    ...NUI.getRoot()[pageRequesting],
-    ...opts.root?.[pageRequesting],
+    ...root,
+    ...root[pageRequesting],
     ...pageObject,
   }
 
@@ -115,7 +103,6 @@ export function createRender(opts: MockRenderOptions) {
     getPages: () => [pageRequesting],
     getPreloadPages: () => [],
     getRoot: () => ({
-      ...NUI.getRoot(),
       ...opts.root,
       [pageRequesting]: pageObject,
     }),

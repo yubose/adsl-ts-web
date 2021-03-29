@@ -27,8 +27,6 @@ import {
 import {
   createEmitDataKey,
   evalIf,
-  isBoolean as isNOODLBoolean,
-  isBooleanTrue,
   isPossiblyDataKey,
   parse,
 } from 'noodl-utils'
@@ -302,13 +300,17 @@ const createActions = function createActions(app: App) {
           if (result) {
             const { ref } = options
             if (isPlainObject(result)) {
-              const newAction = ref?.inject.call(ref, result)
-              log.grey(`An evalObject action is injecting a new action`, {
-                newAction,
-                queue: ref?.queue,
-              })
+              log.grey(
+                `An evalObject action is injecting a new object to the chain`,
+                {
+                  instance: ref?.inject.call(ref, result),
+                  object: result,
+                  queue: ref?.queue.slice(),
+                },
+              )
               if ('wait' in result) {
-                throw new Error('aborted')
+                // await ref.abort()
+                // throw new Error('aborted')
               }
             }
           }
@@ -320,18 +322,19 @@ const createActions = function createActions(app: App) {
             const pageObject = noodl.root[app.mainPage.page]
             const object = evalIf((valEvaluating) => {
               let value
-              if (isNOODLBoolean(valEvaluating)) {
-                return isBooleanTrue(valEvaluating)
+              if (Identify.isBoolean(valEvaluating)) {
+                return Identify.isBooleanTrue(valEvaluating)
               }
               if (typeof valEvaluating === 'string') {
-                if (isPossiblyDataKey(valEvaluating)) {
+                if (valEvaluating.includes('.')) {
                   if (has(noodl.root, valEvaluating)) {
                     value = get(noodl.root[pageName], valEvaluating)
                   } else if (has(pageObject, valEvaluating)) {
                     value = get(pageObject, valEvaluating)
                   }
                 }
-                if (isNOODLBoolean(value)) return isBooleanTrue(value)
+                if (Identify.isBoolean(value))
+                  return Identify.isBooleanTrue(value)
                 return !!value
               }
               return !!value
@@ -605,8 +608,8 @@ const createActions = function createActions(app: App) {
         // If popUp has wait: true, the action chain should pause until a response
         // is received from something (ex: waiting on user confirming their password)
         if (action.original.wait) {
-          if (isNOODLBoolean(action.original.wait)) {
-            if (isBooleanTrue(action.original.wait)) {
+          if (Identify.isBoolean(action.original.wait)) {
+            if (Identify.isBooleanTrue(action.original.wait)) {
               log.grey(
                 `Popup action for popUpView "${popUpView}" is ` +
                   `waiting on a response. Aborting now...`,

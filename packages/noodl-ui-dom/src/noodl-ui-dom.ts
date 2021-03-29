@@ -14,7 +14,6 @@ import {
   Transaction as NUITransaction,
   TransactionId,
 } from 'noodl-ui'
-import { isEmitObj, isPluginComponent } from 'noodl-utils'
 import {
   createAsyncImageElement,
   getShape,
@@ -224,7 +223,7 @@ class NOODLDOM extends NOODLDOMInternal {
             await page.emitAsync(pageEvt.on.ON_NAVIGATE_ABORT, page.snapshot())
             // Remove the page modifiers so they don't propagate to subsequent navigates
             delete page.state.modifiers[pageRequesting]
-            throw new Error(
+            return console.error(
               `A more recent request to ${page.requesting} was called`,
             )
           }
@@ -330,13 +329,13 @@ class NOODLDOM extends NOODLDOMInternal {
     let page: Page = pageProp || this.page
 
     if (component) {
-      if (isPluginComponent(component)) {
+      if (Identify.component.plugin(component)) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem)
         this.#R.run(getNode, component)
         return node
       } else if (Identify.component.image(component)) {
-        node = isEmitObj(component.get('path'))
+        node = Identify.emit(component.blueprint?.path)
           ? createAsyncImageElement(
               (container || document.body) as HTMLElement,
               {},

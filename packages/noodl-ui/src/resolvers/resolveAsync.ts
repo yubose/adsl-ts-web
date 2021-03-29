@@ -73,6 +73,37 @@ asyncResolver.setResolver((component, options, next) => {
         u.array(original[eventType] as NOODLUIActionObject[]),
         { loadQueue: true },
       )
+
+      // actionChain.use({
+      // onAbortError(obj) {
+      //   window.ac
+      //   debugger
+      // },
+      // onBeforeAbortAction(obj) {
+      //   window.ac = actionChain
+      //   debugger
+      // },
+      // onAfterAbortAction(obj) {
+      //   window.ac = actionChain
+      //   debugger
+      // },w
+      // onBeforeInject(obj) {
+      //   window.ac = actionChain
+      //   debugger
+      // },
+      // onAfterInject(obj) {
+      //   window.ac = actionChain
+      //   debugger
+      // },
+      // onBeforeActionExecute(obj) {
+      //   window.ac = actionChain
+      //   debugger
+      // },
+      // onExecuteResult(obj) {
+      //   window.ac = actionChain
+      //   debugger
+      // },
+      // })
       component.edit({ [eventType]: actionChain })
     }
   })

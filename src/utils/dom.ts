@@ -1,6 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { createToast, Toast } from 'vercel-toast'
-import { forEachEntries } from './common'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -244,7 +243,7 @@ export function setStyle(node: HTMLElement, key?: string | any, value?: any) {
       }
       node.style[key as any] = value
     } else if (isPlainObject(key)) {
-      forEachEntries(key, (k: any, v) => {
+      Object.entries(key).forEach(([k, v]: any) => {
         node.style[k] = v
       })
     }

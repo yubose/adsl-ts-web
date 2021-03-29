@@ -3,7 +3,7 @@
 // picking them up
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
-import { excludeIteratorVar, findDataValue, isBoolean } from 'noodl-utils'
+import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import * as n from '../utils/noodl'
 import * as u from '../utils/internal'
@@ -18,6 +18,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     controls,
     dataKey,
     dataValue,
+    image,
     path,
     placeholder,
     poster,
@@ -90,6 +91,10 @@ dataAttribsResolver.setResolver((component, options, next) => {
       field = fieldParts?.[0] || ''
     }
 
+    if (original['text=func']) {
+      // const res = original['text=func'](result)
+    }
+
     component.edit(
       {
         'data-key': dataKey,
@@ -156,14 +161,15 @@ dataAttribsResolver.setResolver((component, options, next) => {
     component.edit({ poster: n.resolveAssetUrl(poster, getAssetsUrl()) })
   }
 
-  isBoolean(controls) && component.edit({ controls: true })
+  Identify.isBoolean(controls) && component.edit({ controls: true })
 
   // Images / Videos
-  if (path || resource) {
+  if (path || resource || image) {
     let src = ''
 
     if (u.isStr(path)) src = path
     else if (u.isStr(resource)) src = resource
+    else if (u.isStr(image)) src = image
 
     // Path emits are handled in resolveActions
     if (u.isStr(src)) {
@@ -186,7 +192,8 @@ dataAttribsResolver.setResolver((component, options, next) => {
           src = n.resolveAssetUrl(src, getAssetsUrl())
           // TODO - Deprecate "src" in favor of data-value
           component.edit({ 'data-src': src })
-          component.emit('path', src)
+          path && component.emit('path', src)
+          image && component.emit('image', src)
         })
       }
     }
@@ -197,25 +204,35 @@ dataAttribsResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
   // Hardcoding / custom injecting these for now
   if (viewTag) {
-    if (viewTag === 'mainStream') {
-      component.edit('data-ux', 'mainStream')
-    } else if (viewTag === 'camera') {
-      component.edit('data-ux', 'camera')
-    } else if (viewTag === 'microphone') {
-      component.edit('data-ux', 'microphone')
-    } else if (viewTag === 'hangUp') {
-      component.edit('data-ux', 'hangUp')
-    } else if (viewTag === 'inviteOthers') {
-      component.edit('data-ux', 'inviteOthers')
-    } else if (viewTag === 'subStream') {
-      component.edit('data-ux', 'subStream')
-    } else if (viewTag === 'selfStream') {
-      component.edit('data-ux', 'selfStream')
+    component.edit({ 'data-viewtag': viewTag })
+    if (
+      /(mainStream|selfStream|subStream|camera|microphone|hangUp|inviteOthers)/i.test(
+        viewTag,
+      )
+    ) {
+      component.edit({ 'data-ux': viewTag })
     } else {
       // TODO convert others to use data-view-tag
       component.edit('data-viewtag', viewTag)
       if (!original['data-ux']) component.edit({ 'data-ux': viewTag })
     }
+    // if (viewTag === 'mainStream') {
+    //   component.edit('data-ux', 'mainStream')
+    // } else if (viewTag === 'camera') {
+    //   component.edit({ 'data-ux': 'camera', 'data-viewtag': 'camera' })
+    // } else if (viewTag === 'microphone') {
+    //   component.edit({ 'data-ux': 'microphone', 'data-viewtag': 'microphone' })
+    // } else if (viewTag === 'hangUp') {
+    //   component.edit({ 'data-ux': 'hangUp', 'data-viewtag': 'hangUp' })
+    // } else if (viewTag === 'inviteOthers') {
+    //   component.edit('data-ux', 'inviteOthers')
+    // } else if (viewTag === 'subStream') {
+    //   component.edit('data-ux', 'subStream')
+    // } else if (viewTag === 'selfStream') {
+    //   component.edit('data-ux', 'selfStream')
+    // } else {
+
+    // }
   }
 
   next?.()

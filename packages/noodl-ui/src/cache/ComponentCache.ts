@@ -67,7 +67,7 @@ class ComponentCache {
   }
 
   has(component: NUIComponent.Instance | string) {
-    return (isStr(component) ? component : component?.id || '') in this.#cache
+    return this.#cache.has(isStr(component) ? component : component?.id || '')
   }
 
   remove(component: NUIComponent.Instance | string) {

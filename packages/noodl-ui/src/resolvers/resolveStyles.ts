@@ -299,11 +299,6 @@ resolveStyles.setResolver(
     ---- OTHER / UNCATEGORIZED
   -------------------------------------------------------- */
 
-    // Global (Components with global: true should not be associated with other components.
-    // They should be treated as modals or dialogs)
-    if (component.has('global')) {
-      edit({ zIndex: 1001 })
-    }
 
     // Shadow
     if (Identify.isBooleanTrue(shadow)) {

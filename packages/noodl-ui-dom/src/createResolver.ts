@@ -134,7 +134,6 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
         ndom = value as NOODLDOM
       } else if (value) {
         o.register(value)
-        console.log(value)
         if (value.observe) {
           entries(value.observe).forEach(([evt, fn]) => {
             if (ndom.page.hooks[evt] && !ndom.page.hooks[evt]?.includes(fn)) {

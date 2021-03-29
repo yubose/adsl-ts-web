@@ -8,12 +8,12 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import upperFirst from 'lodash/upperFirst'
 import Logger from 'logsnap'
-import { excludeIteratorVar, getAllByDataKey, isEmitObj } from 'noodl-utils'
+import { Identify } from 'noodl-types'
+import { excludeIteratorVar, getAllByDataKey } from 'noodl-utils'
 import {
   Component,
   findListDataObject,
-  isListConsumer,
-  isListKey,
+  findIteratorVar,
   NOODLUI as NUI,
   NOODLUIActionChain,
 } from 'noodl-ui'
@@ -40,7 +40,7 @@ export function createOnDataValueChangeFn(
   }: { eventName: 'onchange'; onChange?: NOODLUIActionChain },
 ) {
   log.func('createOnDataValueChangeFn')
-  let iteratorVar = component.get('iteratorVar') || ''
+  let iteratorVar = findIteratorVar(component)
   let dataKey = component.get('data-key') || component.get('dataKey') || ''
 
   // Initiates the values
@@ -64,11 +64,11 @@ export function createOnDataValueChangeFn(
     const localRoot = noodl?.root?.[NUI.getRootPage().page]
     const value = target?.value || ''
 
-    if (isListKey(dataKey, component)) {
+    if (iteratorVar) {
       const dataObject = findListDataObject(component)
       if (dataObject) {
         set(dataObject, excludeIteratorVar(dataKey, iteratorVar), value)
-        component.set('data-value', value)
+        component.edit('data-value', value)
         node.dataset.value = value
       } else {
         log.red(
@@ -77,7 +77,7 @@ export function createOnDataValueChangeFn(
         )
       }
       // TODO - Come back to this to provide more robust functionality
-      if (isEmitObj(component.get('dataValue'))) {
+      if (Identify.emit(component.blueprint.dataValue)) {
         await onChangeProp?.execute?.(event)
       }
     } else {
@@ -99,10 +99,10 @@ export function createOnDataValueChangeFn(
           )
         }
         set(draft?.[NUI.getRootPage().page], dataKey, value)
-        component.set('data-value', value)
+        component.edit('data-value', value)
         node.dataset.value = value
 
-        if (!isListConsumer(component)) {
+        if (!iteratorVar) {
           /**
            * EXPERIMENTAL - When a data key from the local root is being updated
            * by a node, update all other nodes that are referencing it.

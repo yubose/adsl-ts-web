@@ -1,6 +1,6 @@
 import Logger from 'logsnap'
 import { current, isDraft } from 'immer'
-import { isBreakLineTextBoardItem } from 'noodl-utils'
+import { Identify } from 'noodl-types'
 import { formatColor } from '../../utils/common'
 import { ConsumerOptions } from '../../types'
 import { _resolveChildren } from './helpers'
@@ -28,7 +28,7 @@ const handleTextboardInternalResolver = (
     }
 
     textBoard.forEach((item) => {
-      if (isBreakLineTextBoardItem(item)) {
+      if (Identify.textBoardItem(item)) {
         const br = createComponent('view')
         component.createChild(br as any)
         stable &&

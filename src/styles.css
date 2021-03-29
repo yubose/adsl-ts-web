@@ -42,6 +42,10 @@ div.pluginBodyTail {
   visibility: hidden;
 }
 
+.global {
+  z-index: 1500 !important;
+}
+
 .grid-lines {
 }
 
