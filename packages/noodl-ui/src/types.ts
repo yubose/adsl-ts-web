@@ -41,6 +41,7 @@ export type ActionChainEventAlias = keyof typeof event.actionChain
 export type ActionChainEventId = typeof event.actionChain[ActionChainEventAlias]
 export type ActionEventAlias = keyof typeof event.action
 export type ActionEventId = typeof event.action[ActionEventAlias]
+export type DataAttribute = typeof lib.dataAttributes[number]
 export type EventId = ActionEventId | ActionChainEventId | PageComponentEventId
 export type PageEventId = typeof event.SET_PAGE | typeof event.NEW_PAGE
 export type PageComponentEventId = PageComponentEventObject[keyof PageComponentEventObject]
@@ -198,6 +199,8 @@ export namespace NUIComponent {
     options: ConsumerOptions,
     next: (opts?: Record<string, any>) => void,
   ]
+
+  export type Type = NOODLUIComponentType
 }
 
 export namespace Plugin {
@@ -280,16 +283,6 @@ export type ConsumerOptions = Omit<
   ): StyleObject & { [key: string]: any }
   ref?: NOODLUIActionChain
 }
-
-export type DataAttribute =
-  | 'data-key'
-  | 'data-listid'
-  | 'data-name'
-  | 'data-placeholder'
-  | 'data-src'
-  | 'data-value'
-  | 'data-viewtag'
-  | 'data-ux'
 
 export type PageObjectContainer<K extends string = string> = Record<
   K,

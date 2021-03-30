@@ -305,6 +305,19 @@ export function parseReference(
   return ''
 }
 
+export function pullFromComponent(
+  key: string,
+  component: NUIComponent.Instance | undefined | null,
+) {
+  if (!key || !isComponent(component)) return null
+  return (
+    component.get(key) ||
+    component[key] ||
+    (component.has(key) && component.blueprint?.[key]) ||
+    null
+  )
+}
+
 /**
  * Recursively invokes the provided callback on each child.
  * @param { NUIComponent.Instance } component

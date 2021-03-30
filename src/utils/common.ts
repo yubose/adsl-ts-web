@@ -20,17 +20,6 @@ export const values = <O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] => Object.values(v)
 
-export function createEmptyObjectWithKeys<K extends string = any, I = any>(
-  keys: K[],
-  initiatingValue?: I,
-  startingValue?: any,
-): Record<K, I> {
-  return keys.reduce(
-    (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
-    startingValue,
-  )
-}
-
 /**
  * Returns whether the web app is running on a mobile browser.
  * @return { boolean }

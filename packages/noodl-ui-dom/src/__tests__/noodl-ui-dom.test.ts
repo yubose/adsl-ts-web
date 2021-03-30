@@ -8,9 +8,8 @@ import {
   nuiEmitTransaction,
 } from 'noodl-ui'
 import { coolGold, italic } from 'noodl-common'
-import { getByDataGlobalId } from '../utils'
+import { findByGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
-import * as c from '../constants'
 
 describe(coolGold(`noodl-ui-dom`), () => {
   describe(italic(`Instantiating`), () => {
@@ -38,8 +37,8 @@ describe(coolGold(`noodl-ui-dom`), () => {
       const req = await request('')
       const components = req?.render()
       const component = components?.[2]
-      const node = getByDataGlobalId(component?.get('globalId'))
-      expect(document.body.contains(node)).to.be.true
+      const node = findByGlobalId(component?.get('globalId'))
+      expect(document.body.contains(node as HTMLElement)).to.be.true
       // expect(page.rootNode.children).to.have.lengthOf(2)
       // page.clearRootNode()
       // expect(page.rootNode.children).to.have.lengthOf(0)

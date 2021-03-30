@@ -28,7 +28,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     videoFormat,
     viewTag,
   } = original
-  const iteratorVar = original.iteratorVar || context?.iteratorVar || ''
+  const iteratorVar = context?.iteratorVar || n.findIteratorVar(component)
 
   /* -------------------------------------------------------
     ---- UI / VISIBILITY
@@ -62,17 +62,29 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
   if (u.isStr(dataKey)) {
     let result: any
-    if (!Identify.emit(dataValue)) {
-      result = findDataValue(
-        getQueryObjects({
-          component,
-          page,
-          listDataObject: context?.dataObject,
-        }),
-        (iteratorVar && dataKey.startsWith(iteratorVar)
-          ? excludeIteratorVar(dataKey, iteratorVar)
-          : dataKey) || dataKey,
-      )
+    if (!Identify.emit(dataKey)) {
+      if (iteratorVar) {
+        if (iteratorVar === dataKey) {
+          result = context?.dataObject
+        } else {
+          result = get(
+            context?.dataObject,
+            excludeIteratorVar(dataKey, iteratorVar),
+          )
+        }
+        if (component.has('text=func')) {
+          result = component.get('text=func')?.(result)
+        }
+      } else {
+        result = findDataValue(
+          getQueryObjects({
+            component,
+            page,
+            listDataObject: context?.dataObject,
+          }),
+          excludeIteratorVar(dataKey, iteratorVar),
+        )
+      }
       component.edit({ 'data-value': result })
     }
 
@@ -91,18 +103,8 @@ dataAttribsResolver.setResolver((component, options, next) => {
       field = fieldParts?.[0] || ''
     }
 
-    if (original['text=func']) {
-      // const res = original['text=func'](result)
-    }
-
     component.edit(
-      {
-        'data-key': dataKey,
-        'data-name': field,
-        'data-value': original['text=func']
-          ? original['text=func'](result)
-          : result || '',
-      },
+      { 'data-key': dataKey, 'data-name': field },
       { remove: 'dataKey' },
     )
   }

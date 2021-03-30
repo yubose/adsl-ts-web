@@ -92,6 +92,7 @@ class Page {
   }
 
   set page(page: string) {
+    console.log(page)
     this.#nuiPage.page = page || ''
   }
 
@@ -108,6 +109,7 @@ class Page {
   }
 
   set requesting(pageName: string) {
+    if (pageName === '') this.#state.modifiers = {}
     this.#state.requesting = pageName || ''
   }
 
@@ -146,7 +148,8 @@ class Page {
     return this.#state
   }
 
-  getPreviousPage(startPage: string = this.state.previous) {
+  getPreviousPage(startPage: string) {
+    startPage = startPage || this.previous
     let previousPage
     let parts = this.pageUrl.split('-')
     if (parts.length > 1) {
@@ -157,11 +160,8 @@ class Page {
       if (parts.length > 1) {
         previousPage = parts[parts.length - 1]
       } else if (parts.length === 1) {
-        if (parts[0]?.endsWith('MenuBar')) {
-          previousPage = startPage
-        } else {
-          previousPage = parts[0].split('?')[1]
-        }
+        if (parts[0]?.endsWith('MenuBar')) previousPage = startPage
+        else previousPage = parts[0].split('?')[1]
       }
     } else {
       previousPage = startPage
@@ -242,6 +242,42 @@ class Page {
     if (!this.#state.modifiers[page]) this.#state.modifiers[page] = {}
     u.assign(this.#state.modifiers[page], obj)
     return this
+  }
+
+  remove() {
+    try {
+      this.ref.request.timer && clearTimeout(this.ref.request.timer)
+      this.rootNode.innerHTML = ''
+      if (this.rootNode.parentNode) {
+        this.rootNode.parentNode?.removeChild?.(this.rootNode)
+        console.log(
+          `%c[Page] Removed rootNode from parentNode`,
+          `color:#00b406;`,
+        )
+      }
+
+      if (this.rootNode) {
+        this.rootNode.remove?.()
+        this.rootNode = null
+        console.log(
+          `%c[Page] Removed rootNode by this.remove`,
+          `color:#00b406;`,
+        )
+      }
+
+      if (this.rootNode) {
+        console.log(
+          `%c[Page] rootNode is still here!`,
+          `color:#ec0000;font-weight:bold;`,
+        )
+      }
+
+      this.#nuiPage.viewport = null as any
+      this.components.length = 0
+      u.values(this.#hooks).forEach((v) => v && (v.length = 0))
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {

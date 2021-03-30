@@ -24,7 +24,12 @@ export {
   isListConsumer,
   parseReference,
   publish,
+  pullFromComponent,
   resolveAssetUrl,
 } from './utils/noodl'
 export { formatColor } from './utils/common'
 export * from './types'
+
+import { lib } from './constants'
+
+export const dataAttributes = lib.dataAttributes

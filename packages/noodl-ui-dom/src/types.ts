@@ -1,29 +1,19 @@
 import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
 import {
   Component,
-  DataAttribute,
-  NOODLUI as NUI,
-  NUIEmit,
   nuiEmitTransaction,
   Transaction as NUITransaction,
-  TransactionId,
   UseObject as NUIUseObject,
 } from 'noodl-ui'
+import findWindow from './utils/findWindow'
+import findWindowDocument from './utils/findWindowDocument'
+import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
-import {
-  findAllByViewTag,
-  findByViewTag,
-  findByElementId,
-  findWindow,
-  findWindowDocument,
-  isPageConsumer,
-} from './utils'
-import MiddlewareUtils from './MiddlewareUtils'
-import { eventId, transaction } from './constants'
+import { findByViewTag, findByElementId, isPageConsumer } from './utils'
+import { eventId, dataAttributes } from './constants'
 
 export interface ActionChainDOMContext {
-  findAllByViewTag: typeof findAllByViewTag
   findByElementId: typeof findByElementId
   findByViewTag: typeof findByViewTag
   findWindow: typeof findWindow
@@ -31,20 +21,15 @@ export interface ActionChainDOMContext {
   isPageConsumer: typeof isPageConsumer
 }
 
-export type NOODLDOMDataAttribute = DataAttribute | 'data-globalid'
-
-export type NOODLDOMElementTypes = keyof NOODLDOMElements
-
+export type NOODLDOMDataAttribute = typeof dataAttributes[number]
 export type NOODLDOMDataValueElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement
-
 export type NOODLDOMElement = Extract<
   NOODLDOMElements[NOODLDOMElementTypes],
   HTMLElement
 >
-
 export type NOODLDOMElements = Pick<
   HTMLElementTagNameMap,
   | 'br'
@@ -67,6 +52,7 @@ export type NOODLDOMElements = Pick<
   | 'video'
 >
 
+export type NOODLDOMElementTypes = keyof NOODLDOMElements
 /**
  * Type utility/factory to construct node resolver func types. Node resolver
  * funcs in noodl-ui-dom are any functions that take a DOM node as the first

@@ -69,16 +69,26 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        const page = ndom.pages[component.id]
-        if (page.rootNode !== node) {
-          page.rootNode.remove()
-          page.rootNode = node as any
+        if (ndom.pages[component.id].rootNode !== node) {
+          try {
+            if (document.body.contains(ndom.pages[component.id].rootNode)) {
+              ndom.pages[component.id].rootNode.textContent = ''
+              document.body.removeChild(ndom.pages[component.id].rootNode)
+            }
+          } catch (error) {
+            console.error(error)
+          }
+          ndom.pages[component.id].rootNode = node as any
         }
         component.on(
           noodluiEvent.component.page.PAGE_COMPONENTS,
           () => {
             component.children.forEach((child: NUIComponent.Instance) => {
-              const childNode = draw(child, node.contentDocument?.body, page)
+              const childNode = draw(
+                child,
+                node.contentDocument?.body,
+                ndom.pages[component.id],
+              )
               // redraw(childNode, child, options)
               ;(window as any).child = childNode
             })
@@ -92,7 +102,7 @@ const domComponentsResolver: Resolve.Config = {
         // resolved node instead
         // This is specific for these plugin components but may be extended to be used more later
         function getMetadata(component: NUIComponent.Instance) {
-          const src = String(component.props.src)
+          const src = String(component.get('data-src'))
           const isLib = contentType === 'library'
           const metadata = {} as { type: string; tagName: string }
 
@@ -242,23 +252,37 @@ const domComponentsResolver: Resolve.Config = {
         }
       }
       // VIDEO
-      else if (Identify.component.video(original)) {
+      else if (Identify.component.video(component)) {
         const videoEl = node as HTMLVideoElement
         let sourceEl: HTMLSourceElement
         let notSupportedEl: HTMLParagraphElement
         videoEl.controls = Identify.isBooleanTrue(controls)
         if (poster) videoEl.setAttribute('poster', poster)
-        if (component.props['data-src']) {
-          sourceEl = document.createElement('source')
-          notSupportedEl = document.createElement('p')
-          if (videoType) sourceEl.setAttribute('type', videoType)
-          sourceEl.setAttribute('src', component.props['data-src'])
-          notSupportedEl.style.textAlign = 'center'
-          // This text will not appear unless the browser isn't able to play the video
-          notSupportedEl.innerHTML =
-            "Sorry, your browser doesn's support embedded videos."
-          videoEl.appendChild(sourceEl)
-          videoEl.appendChild(notSupportedEl)
+        if (component.has('path')) {
+          component.on('path', (res) => {
+            sourceEl = document.createElement('source')
+            notSupportedEl = document.createElement('p')
+            if (videoType) sourceEl.setAttribute('type', videoType)
+            sourceEl.setAttribute('src', res)
+            notSupportedEl.style.textAlign = 'center'
+            // This text will not appear unless the browser isn't able to play the video
+            notSupportedEl.innerHTML =
+              "Sorry, your browser doesn's support embedded videos."
+            videoEl.appendChild(sourceEl)
+            videoEl.appendChild(notSupportedEl)
+          })
+        }
+        if (component.get('data-src')) {
+          // sourceEl = document.createElement('source')
+          // notSupportedEl = document.createElement('p')
+          // if (videoType) sourceEl.setAttribute('type', videoType)
+          // sourceEl.setAttribute('src', component.get('data-src'))
+          // notSupportedEl.style.textAlign = 'center'
+          // // This text will not appear unless the browser isn't able to play the video
+          // notSupportedEl.innerHTML =
+          //   "Sorry, your browser doesn's support embedded videos."
+          // videoEl.appendChild(sourceEl)
+          // videoEl.appendChild(notSupportedEl)
         }
         videoEl.style.objectFit = 'contain'
       }

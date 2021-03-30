@@ -36,9 +36,11 @@ componentResolver.setResolver((component, options, next) => {
   const original = component.blueprint || {}
   const originalStyle = original.style || {}
   const { contentType, dataKey, path, text, textBoard, type } = original
-  const iteratorVar = isListLike(component)
-    ? component.get('iteratorVar') || ''
-    : findIteratorVar(component)
+  const iteratorVar =
+    context?.iteratorVar ||
+    (Identify.component.list(component)
+      ? component.get('iteratorVar') || ''
+      : findIteratorVar(component))
 
   /* -------------------------------------------------------
     ---- LIST
@@ -52,7 +54,7 @@ componentResolver.setResolver((component, options, next) => {
     }
 
     function getListObject() {
-      return original.listObject || []
+      return component.blueprint?.listObject || []
     }
 
     function getRawBlueprint(component: NUIComponent.Instance) {
@@ -65,46 +67,36 @@ componentResolver.setResolver((component, options, next) => {
       return blueprint as ComponentObject
     }
 
-    function drawListItemChildren(args: {
-      component: NUIComponent.Instance
-      dataObject: any
-      index: number
-    }) {
-      args?.component?.blueprint?.children?.forEach?.(
-        (child: ComponentObject) => {
-          const childInstance = resolveComponents({
-            components: args.component.createChild(createComponent(child)),
-            page,
-            context: {
-              index: args.index,
-              iteratorVar,
-              dataObject: args.dataObject,
-            },
-          })
-        },
-      )
-
-      return args.component
-    }
-
     // Creates list items as new data objects are added
     component.on(
       c.event.component.list.ADD_DATA_OBJECT,
       ({ index, dataObject }) => {
+        const ctx = { index, iteratorVar, dataObject }
         let listItem = createComponent(listItemBlueprint)
         listItem = component.createChild(listItem)
-        listItem?.edit({ [iteratorVar]: dataObject, index })
+        listItem.edit({ [iteratorVar]: dataObject })
         listItem = resolveComponents({
           components: listItem,
+          context: ctx,
           page,
-          context: { index, iteratorVar, dataObject },
         })
-        drawListItemChildren({
-          component: listItem,
-          dataObject,
-          index,
-        })
+        // listItem.blueprint?.children?.forEach((child) => {
+        //   resolveComponents({
+        //     components: listItem?.createChild(createComponent(child)),
+        //     page,
+        //     context: ctx,
+        //   })
+        // })
         cache.component.add(listItem)
+        const numGeneratedChildren = listItem.length
+        const expectedNumChildren = listItem.blueprint?.children?.length
+        if (listItem.length > (listItem.blueprint?.children?.length || 0)) {
+          console.log(
+            `%cA listItem has more children (${numGeneratedChildren}) than what its blueprint represents (${expectedNumChildren})`,
+            `color:#ec0000;`,
+            { list: component, listItem, dataObject, index },
+          )
+        }
       },
       'ADD_DATA_OBJECT',
     )
@@ -332,15 +324,10 @@ componentResolver.setResolver((component, options, next) => {
       const child = component.createChild(
         resolveComponents({ components: childObject, context, page }),
       )
-      if (!cache.component.has(child)) {
-        cache.component.add(child)
-      }
+      !cache.component.has(child) && cache.component.add(child)
     })
   }
-
-  if (!cache.component.has(component)) {
-    cache.component.add(component)
-  }
+  !cache.component.has(component) && cache.component.add(component)
 
   next?.()
 })

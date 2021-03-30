@@ -1,5 +1,5 @@
 import { Identify, userEvent } from 'noodl-types'
-import { NOODLUIActionChain } from 'noodl-ui'
+import { dataAttributes, NOODLUIActionChain } from 'noodl-ui'
 import { isActionChain } from 'noodl-action-chain'
 import { NodeResolverConfig, NodeResolverFactoryFunc } from '../types'
 import * as u from '../utils'
@@ -13,7 +13,6 @@ const resolveAttributes: NodeResolverConfig = {
   resolve({ node, component }) {
     const original = component?.blueprint || {}
     const props = component?.props || {}
-    const dataAttribKeys = u.getDataAttribKeys()
 
     const { contentType, text, placeholder, path } = props
 
@@ -22,7 +21,7 @@ const resolveAttributes: NodeResolverConfig = {
       /* -------------------------------------------------------
         ---- DATA ATTRIBUTES
       -------------------------------------------------------- */
-      dataAttribKeys.forEach((key) => {
+      dataAttributes.forEach((key) => {
         if (!u.isUnd(props[key])) {
           node.dataset[key.replace('data-', '')] = props[key]
         }

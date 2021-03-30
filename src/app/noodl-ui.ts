@@ -1,14 +1,17 @@
 import pick from 'lodash/pick'
 import {
+  findByDataAttrib,
+  findByDataKey,
   findByElementId,
+  findByGlobalId,
+  findByPlaceholder,
+  findBySelector,
+  findBySrc,
   findByViewTag,
+  findByUX,
   findWindow,
   findWindowDocument,
   getByDataUX,
-  getDataAttribKeys,
-  getDynamicShapeKeys,
-  getShape,
-  getShapeKeys,
 } from 'noodl-ui-dom'
 import * as lib from 'noodl-ui'
 import { findReferences } from 'noodl-utils'
@@ -21,16 +24,19 @@ import { toast } from '../utils/dom'
 export function getWindowHelpers() {
   return Object.assign(
     {
-      findReferences,
+      findByDataAttrib,
+      findByDataKey,
       findByElementId,
+      findByGlobalId,
+      findByPlaceholder,
+      findBySelector,
+      findBySrc,
       findByViewTag,
+      findByUX,
+      findReferences,
       findWindow,
       findWindowDocument,
       getByDataUX,
-      getDataAttribKeys,
-      getDynamicShapeKeys,
-      getShape,
-      getShapeKeys,
       toast,
     },
     pick(lib, [

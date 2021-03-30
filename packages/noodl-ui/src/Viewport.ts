@@ -92,18 +92,6 @@ class NOODLViewport {
   static getSize(
     value: string | number,
     vpSize: number,
-    opts: GetSizeOptions,
-  ): string
-
-  static getSize(
-    value: string | number,
-    vpSize: number,
-    opts: Omit<GetSizeOptions, 'unit'>,
-  ): number
-
-  static getSize(
-    value: string | number,
-    vpSize: number,
     { toFixed = 2, unit }: GetSizeOptions = {},
   ) {
     let result: any

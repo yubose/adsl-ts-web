@@ -1,14 +1,18 @@
-import { ComponentObject, ComponentType, userEvent } from 'noodl-types'
+import { component, ComponentObject } from 'noodl-types'
 import {
-  NUIComponent,
   findParent,
   isComponent,
+  NUIComponent,
+  NOODLUIComponentType,
+  pullFromComponent,
   SelectOption,
-  Viewport as VP,
 } from 'noodl-ui'
 import NOODLDOMPage from '../Page'
-import { NOODLDOMElement } from '../types'
+import findElement from './findElement'
+import { NOODLDOMDataAttribute } from '../types'
+import { dataAttributes } from '../constants'
 import * as u from './internal'
+import { LiteralUnion } from 'type-fest'
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
@@ -37,378 +41,108 @@ export function createAsyncImageElement(
   return node
 }
 
-export function createEmptyObjectWithKeys<K extends string = any, I = any>(
-  keys: K[],
-  initiatingValue?: I,
-  startingValue?: any,
-): Record<K, I> {
-  return keys.reduce(
-    (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
-    startingValue,
-  )
+export function getElementTag(
+  component: NUIComponent.Instance | NOODLUIComponentType | undefined,
+): keyof HTMLElementTagNameMap {
+  const componentType = u.isStr(component) ? component : component?.type || ''
+  const tagName = getElementTag.prototype.elementMap[componentType]
+
+  if (!tagName) {
+    console.log(
+      `%cNone of the node types matched with "${componentType}". Perhaps it needs to be ' +
+      'supported? (Defaulting to "div" instead)`,
+      'color:#e74c3c;font-weight:bold;',
+      {
+        component: u.isStr(component) ? componentType : component?.toJSON(),
+        elementMap: getElementTag.prototype.elementMap,
+      },
+    )
+    return 'div'
+  }
+
+  return tagName
 }
 
-export function getTagName(
-  component: NUIComponent.Instance,
-): keyof HTMLElementTagNameMap {
-  switch (component?.type) {
-    case 'br':
-      return 'br'
-    case 'button':
-      return 'button'
-    case 'date':
-    case 'dateSelect':
-    case 'searchBar':
-    case 'textField':
-      return 'input'
-    case 'divider':
-      return 'hr'
-    case 'image':
-      return 'img'
-    case 'list':
-      return 'ul'
-    case 'listItem':
-      return 'li'
-    case 'page':
-      return 'iframe'
-    case 'pluginHead':
-    case 'pluginBodyTail':
-      return 'script'
-    case 'select':
-      return 'select'
-    case 'textView':
-      return 'textarea'
-    case 'chart':
-    case 'footer':
-    case 'header':
-    case 'label':
-    case 'map':
-    case 'plugin':
-    case 'popUp':
-    case 'register':
-    case 'scrollView':
-    case 'view':
-      return 'div'
-    case 'video':
-      return 'video'
-    default:
-      console.log(
-        `%cNone of the node types matched with "${component?.type}". Perhaps it needs to be ' +
-        'supported? (Defaulting to "div" instead)`,
-        'color:#e74c3c;font-weight:bold;',
-        component.toJSON(),
-      )
-      return 'div'
-  }
-}
+getElementTag.prototype.elementMap = {
+  br: 'br',
+  button: 'button',
+  chart: 'div',
+  date: 'input',
+  dateSelect: 'input',
+  divider: 'hr',
+  footer: 'div',
+  header: 'div',
+  searchBar: 'input',
+  textField: 'input',
+  image: 'img',
+  label: 'div',
+  list: 'ul',
+  listItem: 'li',
+  map: 'div',
+  page: 'iframe',
+  popUp: 'div',
+  plugin: 'div',
+  pluginHead: 'script',
+  pluginBodyTail: 'script',
+  register: 'div',
+  scrollView: 'div',
+  select: 'select',
+  textView: 'textarea',
+  video: 'video',
+  view: 'div',
+} as const
 
 /**
  * Creates a function that queries for a DOM node.
  * This method searches through several window/document objects and is most
  * useful for page consumer components
- * @param { string } key
- * @param { function } fn
+ * @param { string } attr
+ * @return { function }
  */
-export function makeFinder(
-  key: 'data-globalid' | 'id' | 'data-viewtag',
-  fn: (
-    id: string,
-    doc?: Document | null | undefined,
-  ) => NodeListOf<NOODLDOMElement> | NOODLDOMElement | HTMLElement | null,
+export function makeFindByAttr(
+  attr: LiteralUnion<NOODLDOMDataAttribute, string>,
 ) {
-  const find = (
-    c: string | NUIComponent.Instance | undefined | null,
-  ): NodeListOf<NOODLDOMElement> | NOODLDOMElement | HTMLElement | null => {
-    let str = ''
-    let cb = (doc: Document | null | undefined) => fn(str, doc)
-    if (!c) return null
-    if (u.isStr(c)) {
-      str = c
-    } else {
-      str =
-        c?.[key] ||
-        c?.get?.(key) ||
-        c?.blueprint?.[key] ||
-        c?.original?.[key] ||
-        ''
-      if (isPageConsumer(c)) return cb(findWindowDocument((doc) => !!cb(doc)))
-    }
-    // return fn(str)
-    return cb(findWindowDocument((doc) => !!cb(doc)))
+  const findByAttr = function findByAttr(
+    component?:
+      | NUIComponent.Instance
+      | LiteralUnion<NOODLDOMDataAttribute, string>,
+  ) {
+    if (component === undefined) return findBySelector(`[${attr}]`)
+    else if (!component) return null
+    return dataAttributes.includes(attr as NOODLDOMDataAttribute)
+      ? findByDataAttrib(
+          attr,
+          isComponent(component)
+            ? pullFromComponent(attr, component)
+            : component,
+        )
+      : findBySelector(`[${attr}]`)
   }
-  return find
+
+  return findByAttr
 }
 
-export const findByDataGlobalId = makeFinder('data-globalid', getByDataGlobalId)
-export const findByElementId = makeFinder('id', getByElementId)
-export const findByViewTag = makeFinder('data-viewtag', getByViewTag)
-export const findAllByViewTag = makeFinder('data-viewtag', getByAllViewTag)
+export function findBySelector(selector: string | undefined) {
+  return selector ? findElement((doc) => doc?.querySelectorAll(selector)) : null
+}
 
-export function findWindow(
-  cb: (
-    win: Window | HTMLIFrameElement['contentWindow'],
-  ) => boolean | null | undefined,
+export function findByDataAttrib(
+  dataAttrib: LiteralUnion<NOODLDOMDataAttribute, string> | undefined,
+  value?: string,
 ) {
-  if (isBrowser()) {
-    if (window.length) {
-      let index = 0
-      while (index < window.length) {
-        if (cb(window[index])) return window[index]
-        index++
-      }
-    } else {
-      if (cb(window)) return window
-    }
-  }
-  return null
+  return findBySelector(
+    value ? `[${dataAttrib}="${value}"]` : `[${dataAttrib}]`,
+  )
 }
+export const findByDataKey = makeFindByAttr('data-key')
+export const findByGlobalId = makeFindByAttr('data-globalid')
+export const findByPlaceholder = makeFindByAttr('data-placeholder')
+export const findBySrc = makeFindByAttr('data-src')
+export const findByViewTag = makeFindByAttr('data-viewtag')
+export const findByUX = makeFindByAttr('data-ux')
 
-export function findWindowDocument(
-  cb: (
-    doc: Document | HTMLIFrameElement['contentDocument'],
-  ) => boolean | null | undefined,
-) {
-  let win: Window | null | undefined
-  win = findWindow((w) => {
-    try {
-      return cb(w?.['contentDocument'] || w?.document)
-    } catch (error) {
-      // Allow the loop to continue if it is accessing an outside origin window
-      if (error.name === 'SecurityError' || error.code === 18) {
-      } else {
-        console.error(`[${error.name}]: ${error.message}`)
-      }
-      return false
-    }
-  })
-  return (win?.['contentDocument'] || win?.document) as
-    | Document
-    | HTMLIFrameElement['contentDocument']
-}
-
-export const get = <T = any>(o: T, k: string) => {
-  if (!u.isObj(o) || !u.isStr(k)) return
-
-  let parts = k.split('.').reverse()
-  let result: any = o
-  let key = ''
-
-  while (parts.length) {
-    key = parts.pop() as string
-    result = result[key]
-  }
-
-  return result
-}
-
-export function getByDataGlobalId(
-  v: string,
-  doc?: Document | null | undefined,
-): NOODLDOMElement | null {
-  return (doc || document).querySelector(`[data-globalid="${v}"]`)
-}
-
-export function getByDataKey(
-  value: string,
-  doc?: Document | null | undefined,
-): NOODLDOMElement | null {
-  return (doc || document).querySelector(`[data-key="${value}"]`)
-}
-
-export function getByListId(
-  value: string,
-  doc?: Document | null | undefined,
-): NOODLDOMElement | null {
-  return (doc || document).querySelector(`[data-listid="${value}"]`)
-}
-
-export function getByViewTag(
-  value: string,
-  doc?: Document | null | undefined,
-): NOODLDOMElement | null {
-  return (doc || document).querySelector(`[data-viewtag="${value}"]`)
-}
-
-export function getByAllViewTag(
-  value: string,
-  doc?: Document | null | undefined,
-): NodeListOf<NOODLDOMElement> {
-  return (doc || document).querySelectorAll(`[data-viewtag="${value}"]`)
-}
-
-export function getByElementId(
-  id: string,
-  doc?: Document | null | undefined,
-): NOODLDOMElement | null {
-  return (doc || document).getElementById(id)
-}
-
-export function getDataAttribKeys() {
-  return [
-    'data-key',
-    'data-listid',
-    'data-name',
-    'data-viewtag',
-    'data-value',
-    'data-ux',
-  ] as (
-    | 'data-key'
-    | 'data-listid'
-    | 'data-name'
-    | 'data-viewtag'
-    | 'data-value'
-    | 'data-ux'
-  )[]
-}
-
-/**
- * Returns the expected height (using top and height) of the element in the DOM
- * This is a shallow calculation which doesn't take into account its children or
- * its parent
- * @param { HTMLElement } node
- * @param { NUIComponent.Instance } component
- */
-export function getDisplayHeight({
-  component: c,
-  viewport: vp,
-  unit = 'px',
-}: {
-  component: NUIComponent.Instance
-  viewport: VP
-  unit?: Pick<NonNullable<Parameters<typeof VP['getSize']>[2]>, 'unit'>['unit']
-}) {
-  let result = 0
-  if (c) {
-    u.yKeys.forEach((key) => {
-      const value = c.style?.[key]
-      if (!u.isNil(value) && VP.isNoodlUnit(value)) result += Number(value)
-    })
-  }
-  return VP.getSize(String(result), vp.height as number, {
-    unit,
-  })
-}
-
-/**
- *
- * @param { NUIComponent.Instance | ComponentObject | ComponentType } component - NOODL component object, instance, or type
- */
-export function getShape(
-  component: NUIComponent.Instance,
-  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
-): ComponentObject
-export function getShape(
-  noodlComponent: ComponentObject,
-  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
-): ComponentObject
-export function getShape(
-  componentType: ComponentType,
-  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
-): ComponentObject
-export function getShape(
-  components: (NUIComponent.Instance | ComponentObject | ComponentType)[],
-  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
-): ComponentObject
-export function getShape(
-  component: NUIComponent.Instance | ComponentObject | ComponentType,
-  opts?: { parent?: ComponentObject; shapeKeys?: string[] },
-): ComponentObject {
-  const shape = {} as ComponentObject
-  let shapeKeys = getShapeKeys()
-  if (opts?.parent) {
-    shapeKeys = shapeKeys.concat(
-      getDynamicShapeKeys(
-        opts.parent,
-        isComponent(component)
-          ? component.blueprint
-          : (component as ComponentObject),
-      ),
-    )
-  }
-  if (opts?.shapeKeys) {
-    shapeKeys = shapeKeys.concat(opts.shapeKeys)
-  }
-
-  if (isComponent(component)) {
-    return getShape(component.blueprint, {
-      ...opts,
-      parent: component.blueprint,
-    })
-  } else if (u.isStr(component)) {
-    return { type: component }
-  } else if (u.isArr(component)) {
-    return component.map((c) => getShape(c, opts)) as any
-  } else if (component && u.isObj(component)) {
-    const noodlComponent = component as ComponentObject
-    // The noodl yml may also place the value of iteratorVar as a property
-    // as an empty string. So we include the value as a property to keep as well
-    shapeKeys.forEach((key) => {
-      if (key in noodlComponent) {
-        if (key === 'children') {
-          // @ts-expect-error
-          shape.children = u.isArr(noodlComponent.children)
-            ? (noodlComponent.children as ComponentObject[])?.map(
-                (noodlChild) =>
-                  getShape(noodlChild, {
-                    ...opts,
-                    parent: noodlComponent,
-                  }),
-              )
-            : getShape(noodlComponent.children as any, {
-                ...opts,
-                // @ts-expect-error
-                type:
-                  (opts as any)?.type ||
-                  (u.isObj(noodlComponent.children)
-                    ? (noodlComponent.children as any).type ||
-                      (noodlComponent.children as any).type
-                    : u.isStr(noodlComponent.children)
-                    ? noodlComponent.children
-                    : undefined) ||
-                  (opts as any)?.type,
-                parent: noodlComponent,
-              })
-        } else {
-          shape[key] = noodlComponent[key]
-        }
-      }
-    })
-  }
-  return shape
-}
-
-export function getShapeKeys<K extends keyof ComponentObject>(...keys: K[]) {
-  const regex = /(required?)\s*$/i
-  return [
-    'type',
-    'style',
-    'children',
-    'controls',
-    'dataKey',
-    'contentType',
-    'inputType',
-    'isEditable',
-    'iteratorVar',
-    'listObject',
-    'maxPresent',
-    'type',
-    'options',
-    'path',
-    'pathSelected',
-    'poster',
-    'placeholder',
-    'resource',
-    'required',
-    'selected',
-    'text',
-    'textSelectd',
-    'textBoard',
-    'text=func',
-    'viewTag',
-    'videoFormat',
-    ...userEvent,
-    ...keys,
-  ] as string[]
+export function findByElementId(c: NUIComponent.Instance | string | undefined) {
+  return findElement((doc) => doc?.getElementById(u.isStr(c) ? c : c?.id || ''))
 }
 
 /**
@@ -428,19 +162,6 @@ export function getByDataUX(key: string) {
     }
   }
   return null
-}
-
-export function getDynamicShapeKeys(
-  noodlParent: ComponentObject,
-  noodlChild: ComponentObject,
-) {
-  const shapeKeys = [] as string[]
-  if (noodlParent?.iteratorVar) {
-    if (noodlParent.iteratorVar in noodlChild) {
-      shapeKeys.push(noodlParent.iteratorVar)
-    }
-  }
-  return shapeKeys
 }
 
 export function isBrowser() {
@@ -486,14 +207,6 @@ export function openOutboundURL(url: string) {
   if (typeof window !== 'undefined') {
     window.location.href = url
   }
-}
-
-export function optionExists(node: HTMLSelectElement, option: any) {
-  return (
-    !!node &&
-    !!option &&
-    [...node.options].some((opt) => opt.value === toSelectOption(option).value)
-  )
 }
 
 export function isTextFieldLike(

@@ -68,12 +68,6 @@ class App {
   messaging = null as FirebaseMessaging | null
   mainPage: NOODLDOM['page']
 
-  // addRequestParams(page: string, opts: Record<string, any>) {
-  //   if (!this.pageModifiers[page]) this.pageModifiers[page] = {}
-  //   this.pageModifiers[page] = { ...this.pageModifiers[page], ...opts }
-  //   return this.pageModifiers[page]
-  // }
-
   // emit<Evt extends keyof T.AppObserver>(
   //   evt: Evt,
   //   ...args: Parameters<T.AppObserverFn<Evt>>
@@ -158,6 +152,43 @@ class App {
       if (_pageRequesting && _page.requesting !== _pageRequesting) {
         _page.requesting = _pageRequesting
       }
+
+      // if (
+      //   /videochat/i.test(_page.page) &&
+      //   !/videochat/i.test(_page.requesting)
+      // ) {
+      //   this.meeting.leave()
+
+      //   log.func('navigate')
+      //   log.grey(`Disconnected from room`, this.meeting.room)
+
+      //   const mainStream = this.streams.getMainStream()
+      //   const selfStream = this.streams.getSelfStream()
+      //   const subStreamsContainer = this.streams.getSubStreamsContainer()
+      //   const subStreams = subStreamsContainer?.getSubstreamsCollection()
+
+      //   if (mainStream.getElement()) {
+      //     log.grey('Wiping mainStream state', mainStream.reset())
+      //   }
+      //   if (selfStream.getElement()) {
+      //     log.grey('Wiping selfStream state', selfStream.reset())
+      //   }
+      //   if (subStreamsContainer?.length) {
+      //     log.grey(
+      //       `Wiping subStreams container's state`,
+      //       subStreamsContainer.reset(),
+      //     )
+      //   }
+      //   if (Array.isArray(subStreams)) {
+      //     subStreams.forEach((subStream) => {
+      //       if (subStream.getElement()) {
+      //         log.grey(`Wiping a subStream's state`, subStream.reset())
+      //         subStreamsContainer?.removeSubStream(subStream)
+      //       }
+      //     })
+      //   }
+      // }
+
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
       // our init() method. Page.components should also contain the components retrieved from
       // that page object
@@ -296,7 +327,7 @@ class App {
           const pageRequesting = page.requesting
           stable && log.cyan(`Running noodl.initPage on ${pageRequesting}`)
           await this.noodl?.initPage(pageRequesting, [], {
-            ...page.modifiers,
+            ...page.modifiers[pageRequesting],
             builtIn: {
               FCMOnTokenReceive: async (...args: any[]) => {
                 try {
@@ -647,6 +678,7 @@ class App {
           if (pageName !== this.mainPage.page) {
             // Load the page in the SDK
             this.mainPage.requesting = pageName
+            debugger
             const pageObject = await this.#preparePage(this.mainPage)
             // isStale
             const noodluidomPageSnapshot = this.mainPage.snapshot()

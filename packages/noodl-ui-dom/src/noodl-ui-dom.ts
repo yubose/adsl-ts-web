@@ -4,7 +4,7 @@ import {
   Component,
   createComponent,
   findParent,
-  isPage,
+  isPage as isNUIPage,
   NOODLUI as NUI,
   Page as NUIPage,
   NUIComponent,
@@ -16,11 +16,11 @@ import {
 } from 'noodl-ui'
 import {
   createAsyncImageElement,
-  getShape,
-  getTagName,
+  getElementTag,
   isPageConsumer,
   openOutboundURL,
 } from './utils'
+import { isPage as isNDOMPage } from './utils/utils'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
 import MiddlewareUtils from './MiddlewareUtils'
@@ -119,7 +119,7 @@ class NOODLDOM extends NOODLDOMInternal {
       return Object.values(this.pages).find((page) => page.isEqual(nuiPage))
     }
 
-    if (isPage(args)) {
+    if (isNUIPage(args)) {
       page = getExistingPage(args)
       if (!page) page = new Page(args)
     } else if (u.isObj(args)) {
@@ -141,6 +141,24 @@ class NOODLDOM extends NOODLDOMInternal {
     this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
     !this.page && (this.page = page)
     return page as Page
+  }
+
+  /** TODO - More cases */
+  findPage(nuiPage: NUIPage) {
+    if (isNUIPage(nuiPage)) {
+      return Object.values(this.global.pages).find((page) =>
+        page.isEqual(nuiPage),
+      )
+    }
+    return null
+  }
+
+  removePage(page: Page | undefined | null) {
+    if (page) {
+      page.remove()
+      if (page.id in this.global.pages) delete this.global.pages[page.id]
+      page = null
+    }
   }
 
   removeComponent(component: NUIComponent.Instance | undefined | null) {
@@ -197,6 +215,10 @@ class NOODLDOM extends NOODLDOMInternal {
   async request(page = this.page, pageRequesting = '') {
     // Cache the currently requesting page to detect for newer requests during the call
     pageRequesting = pageRequesting || page.requesting
+
+    u.keys(page.modifiers).forEach(
+      (key) => key !== pageRequesting && delete page.modifiers[key],
+    )
 
     try {
       page.ref.request.timer && clearTimeout(page.ref.request.timer)
@@ -342,7 +364,7 @@ class NOODLDOM extends NOODLDOMInternal {
             )
           : document.createElement('img')
       } else {
-        node = document.createElement(getTagName(component))
+        node = document.createElement(getElementTag(component))
       }
 
       if (component.has('global')) {
@@ -390,7 +412,7 @@ class NOODLDOM extends NOODLDOMInternal {
               // TODO - Copy existing styles/attributes to the existing node
               // Remove parent/child references if any
               node.parentNode?.removeChild?.(node)
-              node.remove()
+              node.remove?.()
               node = globalObj.node
             }
           } else {
@@ -426,25 +448,45 @@ class NOODLDOM extends NOODLDOMInternal {
     component: Component, // ex: listItem (component instance)
     pageProp?: Page,
   ) {
+    let newNode: T.NOODLDOMElement | null = null
+    let newComponent: Component | undefined
     let page =
       pageProp ||
       (Identify.component.page(component) && component.get('page')) ||
       this.page
-    let newNode: T.NOODLDOMElement | null = null
-    let newComponent: Component | undefined
+
+    debugger
 
     if (component) {
       const parent = component.parent
-      const shape = getShape(component)
-      const _isPageConsumer = isPageConsumer(component)
       // Clean up state from the component
       component.clear('hooks')
       // Remove the parent reference
       component.setParent?.(null)
+
       page.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, node, component)
+
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {
+          if (Identify.component.page(c)) {
+            const page = this.findPage(c.get('page'))
+            if (page) {
+              console.log(
+                `%cRedrawing a page component`,
+                `color:#00b406;`,
+                page,
+              )
+              this.removePage(page)
+
+              // page.rootNode = null as any
+            } else {
+              console.log(
+                `%cCould not find a NUIPage in redraw`,
+                `color:#ec0000;`,
+              )
+            }
+          }
           const cParent = c.parent
           // Remove listeners
           c.clear('hooks')
@@ -452,13 +494,12 @@ class NOODLDOM extends NOODLDOMInternal {
           cParent?.removeChild?.(c)
           // Remove the child's parent reference
           c.setParent?.(null)
+          // this.cache.component.remove(c)
         }
       })
+
       // Create the new component
-      newComponent = createComponent(shape)
-
-      let resolveComponents: any | undefined
-
+      newComponent = createComponent(component.blueprint)
       if (parent && newComponent) {
         // Set the original parent on the new component
         newComponent.setParent(parent)
@@ -467,14 +508,12 @@ class NOODLDOM extends NOODLDOMInternal {
         // Set the new component as a child on the parent
         parent.createChild(newComponent)
       }
-      if (_isPageConsumer) {
-        const page = findParent(component, Identify.component.page)
-        resolveComponents = NUI.resolveComponents.bind(page)
-      }
-      if (!resolveComponents) {
-        resolveComponents = NUI.resolveComponents?.bind?.(NUI)
-      }
-      newComponent = resolveComponents?.(newComponent) || newComponent
+
+      newComponent =
+        NOODLDOM._nui.resolveComponents?.({
+          components: newComponent,
+          page,
+        }) || newComponent
     }
 
     if (node) {
@@ -497,6 +536,10 @@ class NOODLDOM extends NOODLDOMInternal {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
       this.draw(newComponent as NUIComponent.Instance, null, page)
+    }
+    if (node instanceof HTMLElement) {
+      console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)
+      node.remove()
     }
     return [newNode, newComponent] as [typeof node, typeof component]
   }
@@ -594,7 +637,7 @@ class NOODLDOM extends NOODLDOMInternal {
   use(nuiPage: NUIPage): Page
   use(opts: Partial<T.UseObject>): this
   use(obj: NUIPage | Partial<T.UseObject>) {
-    if (isPage(obj)) {
+    if (isNUIPage(obj)) {
       return this.createPage(obj)
     } else if (
       'actionType' in obj ||

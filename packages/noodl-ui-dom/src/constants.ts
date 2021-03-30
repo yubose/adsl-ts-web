@@ -1,3 +1,10 @@
+import { dataAttributes as noodluiDataAttributes } from 'noodl-ui'
+
+export const dataAttributes = [
+  ...noodluiDataAttributes,
+  'data-globalid',
+] as const
+
 export const eventId = {
   page: {
     /** Sorted by order of occurrence */

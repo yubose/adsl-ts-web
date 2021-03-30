@@ -15,9 +15,9 @@ import {
   Store,
 } from 'noodl-ui'
 import {
-  findAllByViewTag,
-  findByElementId,
   findByViewTag,
+  findByElementId,
+  findByUX,
   findWindow,
   getByDataUX,
   isPageConsumer,
@@ -50,7 +50,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         action.original?.wait || (action as any).wait || 0
 
       const onCheckField = () => {
-        const node = getByDataUX(contentType)
+        const node = findByUX(contentType)
         ;(Array.isArray(node) ? node : [node]).forEach((n) => {
           n && show(n)
         })
@@ -70,19 +70,19 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     async goBack(action, options) {
       log.func('goBack')
       log.grey('', { action, ...options })
-      if (typeof action.original?.reload === 'boolean') {
-        app.mainPage.setModifier(
-          app.mainPage
-            .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
-            .trim(),
-          { reload: action.original.reload },
-        )
+
+      if (u.isBool(action.original?.reload)) {
+        const prevPage = app.mainPage
+          .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
+          .trim()
+        app.mainPage.requesting = prevPage
+        app.mainPage.setModifier(prevPage, { reload: action.original.reload })
       }
       window.history.back()
     },
     async hide(action, options) {
       const viewTag = action.original?.viewTag || ''
-      const nodes = findAllByViewTag(viewTag)
+      const nodes = findByViewTag(viewTag)
 
       log.func('hide')
 
@@ -103,7 +103,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     },
     async show(action, options) {
       const viewTag = action.original?.viewTag || ''
-      const nodes = findAllByViewTag(viewTag)
+      const nodes = findByViewTag(viewTag)
 
       log.func('show')
 
@@ -506,7 +506,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           }
 
           window.location.href = urlToGoToInstead
-        } else await app.navigate(app.mainPage, destination)
+        } else await app.navigate(destination)
 
         if (!destination) {
           log.func('builtIn')
@@ -533,7 +533,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       try {
         if (
           viewTag &&
-          component?.get('viewTag') === viewTag &&
+          component?.get('data-viewtag') === viewTag &&
           !components.includes(component as NUIComponent.Instance)
         ) {
           components.push(component as NUIComponent.Instance)
@@ -657,9 +657,7 @@ export function onVideoChatBuiltIn({
             LocalVideoTrackPublication | LocalAudioTrackPublication
           >,
         ) => {
-          tracks.forEach((publication) => {
-            publication?.track?.[state]?.()
-          })
+          tracks.forEach((publication) => publication?.track?.[state]?.())
         }
         const enable = toggle('enable')
         const disable = toggle('disable')

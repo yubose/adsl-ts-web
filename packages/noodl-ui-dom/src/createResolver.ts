@@ -1,18 +1,11 @@
 import { Component, NOODLUI as NUI } from 'noodl-ui'
+import { entries, isArr, isFnc, isStr } from './utils/internal'
+import { findByElementId, findByViewTag, isPageConsumer } from './utils'
+import findWindow from './utils/findWindow'
+import findWindowDocument from './utils/findWindowDocument'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLUIDOMInternal from './Internal'
-import { entries, isArr, isFnc, isStr } from './utils/internal'
-import {
-  findByElementId,
-  findByViewTag,
-  findAllByViewTag,
-  findWindow,
-  findWindowDocument,
-  isPage,
-  isPageConsumer,
-} from './utils'
 import * as T from './types'
-import { Identify } from 'noodl-types'
 
 const createResolver = function createResolver(ndom: NOODLDOM) {
   const _internal: {
@@ -29,7 +22,6 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
         return {
           findByElementId,
           findByViewTag,
-          findAllByViewTag,
           findWindow,
           findWindowDocument,
           isPageConsumer,

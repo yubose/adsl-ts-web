@@ -1,228 +1,127 @@
+import * as mock from 'noodl-ui-test-utils'
 import chalk from 'chalk'
 import sinon from 'sinon'
-import { ComponentObject } from 'noodl-types'
+import { ComponentObject, userEvent } from 'noodl-types'
 import {
-  ComponentInstance,
+  NUIComponent,
   createComponent,
-  List,
-  ListItem,
-  NOODLComponent,
+  flatten,
   Viewport as VP,
 } from 'noodl-ui'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { mockDraw, noodlui, ndom, toDOM } from '../test-utils'
+import { coolGold, italic, magenta } from 'noodl-common'
+import { createRender, ndom, toDOM } from '../test-utils'
 import { eventId } from '../constants'
+import createElement from '../utils/createElement'
 import NOODLDOM from '../noodl-ui-dom'
 import * as resolvers from '../resolvers'
+import * as n from '../utils'
 
-const getNoodlList = () =>
-  ({
-    type: 'list',
-    iteratorVar: 'itemObject',
-    listObject: [
-      { key: 'gender', value: 'Male' },
-      { key: 'gender', value: 'Female' },
-      { key: 'gender', value: 'Other' },
-    ],
-    children: [
-      {
-        type: 'listItem',
-        children: [
-          { type: 'label', dataKey: 'itemObject.value' },
-          { type: 'image', path: 'abc.png' },
-        ],
-      },
-    ],
-  } as NOODLComponent)
-
-describe(chalk.keyword('orange')('resolvers'), () => {
-  it('should display data value if it is displayable', () => {
-    const { node } = mockDraw({
-      resolver: resolvers.common,
+describe(coolGold(`resolvers`), () => {
+  it('should display data value if it is displayable', async () => {
+    const dataValue = 'asfafsbc'
+    const { render } = createRender({
       pageName: 'F',
-      pageObject: { formData: { password: 'asfafsbc' } },
-      component: {
-        type: 'label',
-        dataKey: 'F.formData.password',
-        text: 'fdsfdsf',
-      },
+      pageObject: { formData: { password: dataValue } },
+      components: { type: 'label', dataKey: 'F.formData.password' },
     })
-    expect(node.textContent).to.eq('asfafsbc')
+    expect(n.findByElementId(await render())?.textContent).to.eq(dataValue)
   })
 
-  describe('button', () => {
-    it('should have a pointer cursor if it has an onClick', () => {
-      expect(
-        mockDraw({
-          resolver: resolvers.button,
-          pageName: 'F',
-          pageObject: { formData: { password: 'asfafsbc' } },
-          component: {
-            type: 'button',
-            text: 'hello',
-            style: { fontSize: '14' },
-            onClick: [{ emit: { dataKey: { var1: 'g' }, actions: [] } }],
-          },
-        }).node.style,
-      )
-        .to.have.property('cursor')
-        .eq('pointer')
-    })
-  })
-
-  describe('dataset', () => {
-    let node: any
-
-    beforeEach(() => {
-      noodlui
-        .setPage('F')
-        .use({ getRoot: () => ({ F: { formData: { password: 'abc' } } }) })
-      node = toDOM({
-        type: 'view',
-        dataKey: 'formData.password',
-        viewTag: 'myviewtag',
-        listId: 'onetwo',
-      })[0]
-    })
-    ;['key', 'name', 'value', 'ux', 'viewtag'].forEach((key) => {
-      it(`should attach the ${chalk.yellow('data-' + key)} key`, () => {
-        expect(node.dataset).to.have.property(key)
+  describe(italic(`button`), () => {
+    it('should have a pointer cursor if it has an onClick', async () => {
+      const { render } = createRender({
+        components: {
+          type: 'button',
+          text: 'hello',
+          onClick: [mock.getEmitObject()],
+        },
       })
+      const node = n.findByElementId(await render())
+      expect(node?.style).to.have.property('cursor').eq('pointer')
     })
   })
 })
 
-describe('events', () => {
-  let node: any
-
-  beforeEach(() => {
-    node = toDOM({
-      type: 'view',
-      dataKey: 'formData.password',
-      viewTag: 'myviewtag',
-      listId: 'onetwo',
-      onHover: [],
-      onClick: [],
-    })[0]
-    node.attachStatus = 'pending'
-    // prettier-ignore
-    node.addEventListener('click', () => (node.attachStatus = 'attached[onclick]'))
-    // prettier-ignore
-    node.addEventListener('change', () => (node.attachStatus = 'attached[onchange]'))
-  })
-
-  after(() => {
-    node = null
-  })
-
-  // TODO - onEnter and others
-  const eventNames = ['onBlur', 'onClick', 'onChange']
-  eventNames.forEach((eventName) => {
-    it(`should attach the ${chalk.yellow(eventName)} handler`, () => {
-      if (eventName === 'onClick') {
-        node.click()
-        expect(node).to.have.property('attachStatus').eq('attached[onclick]')
-      }
-      if (eventName === 'onChange') {
-        node.dispatchEvent(new Event('change'))
-        expect(node).to.have.property('attachStatus').eq('attached[onchange]')
-      }
-    })
-  })
+describe(italic(`events`), () => {
+  //
 })
 
-describe('image', () => {
-  it('should attach the pointer cursor if it has onClick', () => {
-    expect(
-      mockDraw({
-        component: { type: 'image', onClick: [] },
-        resolver: resolvers.image,
-      }).node.style,
-    )
+describe(italic(`image`), () => {
+  it('should attach the pointer cursor if it has onClick', async () => {
+    const { render } = createRender({
+      components: { type: 'image', onClick: [] },
+    })
+    expect(n.findByElementId(await render())?.style)
       .to.have.property('cursor')
       .eq('pointer')
   })
 
-  it('should set width and height to 100% if it has children (deprecate soon)', () => {
-    const {
-      node: { style },
-    } = mockDraw({
-      component: { type: 'image', children: [] },
-      resolver: resolvers.image,
+  it('should set width and height to 100% if it has children (deprecate soon)', async () => {
+    const { render } = createRender({
+      components: { type: 'image', children: [] },
     })
-    expect(style).to.have.property('width').eq('100%')
-    expect(style).to.have.property('height').eq('100%')
+    const node = n.findByElementId(await render())
+    expect(node?.style).to.have.property('width').eq('100%')
+    expect(node?.style).to.have.property('height').eq('100%')
   })
 })
 
-describe('label', () => {
-  it('should attach the pointer cursor if it has onClick', () => {
-    expect(
-      mockDraw({
-        component: { type: 'label', onClick: [] },
-        resolver: resolvers.label,
-      }).node.style,
-    )
+describe(italic(`label`), () => {
+  it('should attach the pointer cursor if it has onClick', async () => {
+    const { render } = createRender({
+      components: { type: 'label', onClick: [] },
+    })
+    expect(n.findByElementId(await render()).style)
       .to.have.property('cursor')
       .eq('pointer')
   })
 })
 
-describe('list', () => {
-  it(`should add created list items to the component cache`, () => {
-    const result = mockDraw({
-      component: getNoodlList(),
-      resolver: resolvers.image,
+describe(italic(`list`), () => {
+  xit(
+    `should generate the same amount of children as the amount of data ` +
+      `objects provided`,
+    () => {
+      //
+    },
+  )
+
+  xit(`should remove removed list items from the component cache`, async () => {
+    const listObject = mock.getGenderListObject()
+    const { ndom, render } = createRender({
+      components: mock.getListComponent({ listObject }),
     })
-    const component = result.component as List
-    const componentCache = result.componentCache
-    component.children.forEach((child: any) => {
-      expect(componentCache().has(child)).to.be.true
-    })
-    expect(componentCache().length).to.eq(4)
-    component.addDataObject({})
-    expect(componentCache().length).to.eq(5)
+    const component = await render()
+    const flattened = flatten(component)
+    expect(ndom.cache.component.length).to.eq(flattened.length)
+    const child2 = component.child(1)
+    expect(ndom.cache.component.has(child2)).to.be.true
+    expect(ndom.cache.component.has(child2)).to.be.false
   })
 
-  it(`should remove removed list items from the component cache`, () => {
-    const result = mockDraw({
-      component: getNoodlList(),
-      resolver: resolvers.image,
+  it(`should remove the corresponding list item's DOM node from the DOM`, async () => {
+    const { render } = createRender({
+      components: mock.getListComponent(),
     })
-    const component = result.component as List
-    const componentCache = result.componentCache
-    expect(componentCache().length).to.eq(4)
-    const child2 = component.child(1) as ListItem
-    expect(componentCache().has(child2)).to.be.true
-    component.removeDataObject(child2.getDataObject())
-    expect(componentCache().has(child2)).to.be.false
-  })
-
-  it(`should remove the corresponding list item's DOM node from the DOM`, () => {
-    const result = mockDraw({
-      component: getNoodlList(),
-      resolver: resolvers.image,
-    })
-    const component = result.component as List
+    const component = await render()
     const child2 = component.child(1)
     const child2Node = document.getElementById(child2?.id || '')
     expect(document.body.contains(child2Node)).to.be.true
-    component.removeDataObject(child2?.getDataObject())
-    expect(document.body.contains(child2Node)).to.be.false
   })
 
   // TODO - update.list.item handling?
 })
 
-describe('page', () => {
-  let result: ReturnType<typeof mockDraw>
+xdescribe(italic(`page`), () => {
+  let result: ReturnType<typeof createRender>
   let node: HTMLIFrameElement
-  let component: ComponentInstance
+  let component: NUIComponent.Instance
 
   beforeEach(() => {
-    result = mockDraw({
-      component: { type: 'page', path: 'LeftPage' },
+    result = createRender({
+      components: { type: 'page', path: 'LeftPage' },
       pageName: 'Hello',
       pageObject: {},
       root: {
@@ -313,21 +212,14 @@ describe.skip(`plugin`, () => {
   })
 })
 
-describe.only(`styles`, () => {
-  let ndom: NOODLDOM
-
-  beforeEach(() => {
-    ndom = new NOODLDOM()
-    ndom.use(noodlui)
-  })
-
+describe(italic(`styles`), () => {
   describe(`Positioning / Sizing`, () => {
     describe(`when components are missing "top"`, () => {
       const finalKeys = ['top', 'height']
 
       it(`should always eventually have a value for both of its top and height`, async () => {
-        const { requestPageChange } = mockDraw({
-          component: {
+        const { render } = createRender({
+          components: {
             type: 'view',
             style: { width: '1', height: '1', top: '0', left: '0' },
             children: [
@@ -338,23 +230,23 @@ describe.only(`styles`, () => {
           resolver: ['id', 'styles'],
         })
 
-        const components = await requestPageChange()
-        const label = components[0].child()
-        const button = components[0].child(1)
-        const testSubjects = [components[0], label, button]
-
+        const component = await render()
+        const label = component.child()
+        const button = component.child(1)
+        const testSubjects = [component, label, button]
         testSubjects.forEach((component) => {
-          expect(component.style).to.have.property('top').to.exist
-          expect(component.style).to.have.property('height').to.exist
+          const node = n.findByElementId(component)
+          expect(node.style).to.have.property('top').to.exist
+          expect(node.style).to.have.property('height').to.exist
         })
       })
 
-      it.only(
+      it(
         `should always make the first child to have the same value of top (in the DOM)` +
           `as their parent`,
         async () => {
-          const { page, requestPageChange } = mockDraw({
-            component: {
+          const { page, render } = createRender({
+            components: {
               type: 'view',
               style: { width: '1', height: '1', top: '0.3', left: '0' },
               children: [
@@ -370,9 +262,7 @@ describe.only(`styles`, () => {
             },
           })
 
-          const components = await requestPageChange()
-
-          const view = components[0]
+          const view = await render()
           const scrollView = view.child()
           const label = scrollView.child()
           const button = scrollView.child(1)
@@ -399,59 +289,11 @@ describe.only(`styles`, () => {
         },
       )
 
-      it(
-        `should not make the second child follow the first child logic but ` +
-          `instead compute its top position using the first child's final ` +
-          `top value`,
-        async () => {
-          const componentObj = {
-            type: 'view',
-            style: { width: '1', height: '1', top: '0.3', left: '0' },
-            children: [
-              { type: 'label', style: {}, text: 'Good morning' },
-              { type: 'button', style: { width: '0.2' }, text: 'Submit' },
-            ],
-          } as ComponentObject
-
-          ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
-            object: { components: componentObj },
-          }))
-
-          const {
-            snapshot: { components },
-          } = await ndom.page.requestPageChange('Hello')
-
-          const parent = components[0]
-          const child2 = parent.child(1)
-
-          const parentNode = document.getElementById(parent.id) as any
-          const child2Node = document.getElementById(child2.id) as any
-
-          expect(parentNode.style)
-            .to.have.property('top')
-            .to.not.to.eq(child2Node.style.top)
-        },
-      )
-
-      finalKeys.forEach((key) => {
-        xit(`should treat ${key} as "auto" if it is missing`, () => {})
-      })
-
       it(`should set marginTop to "0px" if it is missing`, async () => {
-        const componentObj = {
-          type: 'view',
-          style: { width: '1', height: '1', top: '0.3', left: '0' },
-        } as ComponentObject
-
-        ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
-          object: { components: componentObj },
-        }))
-
-        const {
-          snapshot: { components },
-        } = await ndom.page.requestPageChange('Hello')
-
-        const component = components[0]
+        const { render } = createRender({
+          components: [mock.getListComponent()],
+        })
+        const component = await render()
         expect(component.style).to.have.property('marginTop').to.to.eq('0px')
       })
 
@@ -462,35 +304,6 @@ describe.only(`styles`, () => {
           //
         },
       )
-    })
-
-    it(`should save last used top to lastTop render state`, async () => {
-      const component = {
-        type: 'view',
-        style: { width: '1', height: '1', top: '0', left: '0' },
-        children: [
-          {
-            type: 'view',
-            style: {
-              top: '0.125',
-              left: '0.1',
-              height: '0.05',
-              width: '0.01',
-            },
-            children: [
-              { type: 'label', style: { top: '0.2' }, text: 'Good morning' },
-              { type: 'button', style: { width: '0.2' }, text: 'Submit' },
-            ],
-          },
-        ],
-      } as ComponentObject
-
-      ndom.page.on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, () => ({
-        object: { components: [component] },
-      }))
-
-      const result = await ndom.page.requestPageChange('Hello')
-      // console.info(prettyDOM())
     })
 
     it(
@@ -522,60 +335,75 @@ describe.only(`styles`, () => {
 })
 
 describe('video', () => {
-  it('should have object-fit set to "contain"', () => {
-    expect(
-      mockDraw({
-        component: { type: 'video', videoFormat: 'mp4' },
-        resolver: resolvers.video,
-      }).node.style.objectFit,
-    ).to.equal('contain')
+  it('should have object-fit set to "contain"', async () => {
+    const { render } = createRender({
+      components: { type: 'video', videoFormat: 'mp4' },
+    })
+    const component = await render()
+    expect(n.findByElementId(component)?.style.objectFit).to.equal('contain')
   })
 
-  it('should create the source element as a child if the src is present', () => {
-    const sourceEl = mockDraw({
-      component: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
-      resolver: resolvers.video,
-    }).node?.querySelector('source')
-    expect(sourceEl).to.exist
+  it('should create the source element as a child if the src is present', async () => {
+    const { render } = createRender({
+      components: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
+    })
+    const node = n.findByElementId(await render())
+    await waitFor(() => {
+      const sourceEl = node?.querySelector('source')
+      expect(sourceEl).to.be.instanceOf(HTMLElement)
+    })
   })
 
-  it('should have src set on the child source element instead of the video element itself', () => {
+  it('should have src set on the child source element instead of the video element itself', async () => {
     const path = 'asdloldlas.mp4'
-    const { node } = mockDraw({
-      component: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
-      resolver: resolvers.video,
+    const { assetsUrl, render } = createRender({
+      components: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
     })
-    const sourceEl = node?.querySelector('source')
-    expect(node?.getAttribute('src')).not.to.equal(noodlui.assetsUrl + path)
-    expect(sourceEl?.getAttribute('src')).to.equal(noodlui.assetsUrl + path)
+    const node = n.findByElementId(await render())
+    await waitFor(() => {
+      const sourceEl = node?.querySelector('source')
+      expect(node?.getAttribute('src')).not.to.equal(assetsUrl + path)
+      expect(sourceEl?.getAttribute('src')).to.equal(assetsUrl + path)
+    })
   })
 
-  it('should have the video type on the child source element instead of the video element itself', () => {
-    const { node } = mockDraw({
-      component: { type: 'video', path: 'abc123.mp4', videoFormat: 'mp4' },
+  xit(
+    `should have the video type on the child source element instead of ` +
+      `the video element itself`,
+    async () => {
+      const { render } = createRender({
+        components: { type: 'video', path: 'abc123.mp4', videoFormat: 'mp4' },
+      })
+      const node = n.findByElementId(await render())
+      await waitFor(() => {
+        const sourceEl = node?.querySelector('source')
+        expect(node?.getAttribute('type')).not.to.equal('mp4')
+        expect(sourceEl?.getAttribute('type')).to.equal(`video/mp4`)
+      })
+    },
+  )
+
+  it('should include the "browser not supported" message', async () => {
+    const { render } = createRender({
+      components: { type: 'video', path: 'abc.jpeg', videoFormat: 'mp4' },
       resolver: resolvers.video,
     })
-    const sourceEl = node?.querySelector('source')
-    expect(node?.getAttribute('type')).not.to.equal('mp4')
-    expect(sourceEl?.getAttribute('type')).to.equal(`video/mp4`)
-  })
-
-  it('should include the "browser not supported" message', () => {
-    const { node } = mockDraw({
-      component: { type: 'video', path: 'abc.jpeg', videoFormat: 'mp4' },
-      resolver: resolvers.video,
+    const node = n.findByElementId(await render())
+    await waitFor(() => {
+      const p = node.querySelector('p')
+      expect(/sorry/i.test(p?.textContent as string)).to.be.true
     })
-    const p = node.querySelector('p')
-    expect(/sorry/i.test(p?.textContent as string)).to.be.true
   })
 
-  it('should create a "source" element and attach the src attribute for video components', () => {
+  it('should create a "source" element and attach the src attribute for video components', async () => {
     const path = 'pathology.mp4'
-    const { assetsUrl } = mockDraw({
-      component: { type: 'video', path, videoFormat: 'mp4', id: 'id123' },
-      resolver: resolvers.video,
+    const { assetsUrl, render } = createRender({
+      components: { type: 'video', path, videoFormat: 'mp4', id: 'id123' },
     })
-    const sourceElem = document.body?.querySelector('source')
-    expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + path)
+    const node = n.findByElementId(await render())
+    await waitFor(() => {
+      const sourceElem = node.querySelector('source')
+      expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + path)
+    })
   })
 })

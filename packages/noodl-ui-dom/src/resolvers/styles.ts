@@ -1,4 +1,4 @@
-import { Identify } from 'noodl-types'
+import { Identify as is } from 'noodl-types'
 import { Viewport as VP } from 'noodl-ui'
 import { NOODLDOMElement, RegisterOptions } from '../types'
 import { addClassName, entries, isObj } from '../utils/internal'
@@ -36,10 +36,10 @@ export default {
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */
 
-    if (Identify.component.popUp(component)) addClassName('popup', node)
-    if (Identify.component.scrollView(component))
-      addClassName('scroll-view', node)
-    if (component.has('textBoard')) addClassName('text-board', node)
-    if (component.has('global')) addClassName('global', node)
+    is.component.page(component) && addClassName('page', node)
+    is.component.popUp(component) && addClassName('popup', node)
+    is.component.scrollView(component) && addClassName('scroll-view', node)
+    component.has('global') && addClassName('global', node)
+    component.has('textBoard') && addClassName('text-board', node)
   },
 } as RegisterOptions

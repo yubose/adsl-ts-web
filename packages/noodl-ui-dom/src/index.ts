@@ -4,20 +4,25 @@ export * as defaultResolvers from './resolvers'
 export * from './constants'
 export * from './noodl-ui-dom'
 export * from './types'
-
+export { default as createElement } from './utils/createElement'
+export { default as findElement } from './utils/findElement'
+export { default as findWindow } from './utils/findWindow'
+export { default as findWindowDocument } from './utils/findWindowDocument'
 export {
-  findAllByViewTag,
+  findByDataAttrib,
+  findByDataKey,
   findByElementId,
+  findByGlobalId,
+  findByPlaceholder,
+  findBySelector,
+  findBySrc,
   findByViewTag,
-  findWindow,
-  findWindowDocument,
+  findByUX,
   getByDataUX,
-  getDataAttribKeys,
-  getByDataGlobalId,
-  getDynamicShapeKeys,
-  getShape,
-  getShapeKeys,
+  getElementTag,
+  isDisplayable,
   isPage,
   isPageConsumer,
   isTextFieldLike,
+  makeFindByAttr,
 } from './utils'

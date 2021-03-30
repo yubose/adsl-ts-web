@@ -5,6 +5,16 @@ export const lib = {
   actionTypes: ['anonymous', 'emit', 'goto', 'toast'],
   components: ['br'],
   emitTriggers: ['dataKey', 'dataValue', 'path', 'placeholder', 'register'],
+  dataAttributes: [
+    'data-key',
+    'data-listid',
+    'data-name',
+    'data-placeholder',
+    'data-src',
+    'data-value',
+    'data-viewtag',
+    'data-ux',
+  ],
 } as const
 
 export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]

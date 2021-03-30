@@ -14,9 +14,13 @@ export default {
         // gets their data values updated.
         const fn = component.get(eventType)
         // TODO - Unit test + think of a better solution
-        node.addEventListener(normalizeEventName(eventType), (e) => {
-          setTimeout(() => Promise.resolve(fn.execute?.(e)))
-        })
+        node.addEventListener(
+          normalizeEventName(eventType),
+          (e) => {
+            setTimeout(() => Promise.resolve(fn.execute?.(e)))
+          },
+          { passive: true },
+        )
       }
     })
   },

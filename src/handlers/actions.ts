@@ -5,6 +5,7 @@ import set from 'lodash/set'
 import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
 import {
+  findByUX,
   findWindow,
   findByElementId,
   findByViewTag,
@@ -545,7 +546,7 @@ const createActions = function createActions(app: App) {
       log.func(action.actionType)
       log.grey('', { action, ...options })
       const { ref } = options
-      const elem = getByDataUX(action.original.popUpView) as HTMLElement
+      const elem = findByUX(action.original.popUpView) as HTMLElement
       const popUpView = action.original.popUpView || ''
       if (action.original.dismissOnTouchOutside) {
         const onTouchOutside = function onTouchOutside(

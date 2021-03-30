@@ -29,10 +29,10 @@ type MockDrawResolver =
 interface MockRenderOptions {
   components?: ComponentObject | ComponentObject[]
   currentPage?: string
-  getPageObject?: (page: string) => Promise<PageObject>
+  getPageObject?: (page: string) => Promise<Partial<PageObject>>
   page?: NOODLDOMPage
   pageName?: string
-  pageObject?: PageObject
+  pageObject?: Partial<PageObject>
   resolver?: MockDrawResolver
   root?: Record<string, any>
 }
@@ -49,7 +49,7 @@ export function createRender(opts: MockRenderOptions) {
   let currentPage = ''
   let pageRequesting = ''
   let page: NOODLDOMPage | undefined
-  let pageObject: PageObject | undefined
+  let pageObject: Partial<PageObject> | undefined
   let root = { ...NUI.getRoot(), ...opts?.root }
 
   currentPage = opts.currentPage || ''
@@ -86,9 +86,8 @@ export function createRender(opts: MockRenderOptions) {
     ...pageObject,
   }
 
-  if (!isArr(pageObject?.components)) {
-    // @ts-expect-error
-    pageObject.components = [pageObject.components]
+  if (pageObject && !isArr(pageObject?.components)) {
+    pageObject.components = [pageObject.components as any]
   }
 
   if (isUnd(page.viewport.width) || isUnd(page.viewport.height)) {
@@ -129,7 +128,10 @@ export function createRender(opts: MockRenderOptions) {
       pgName && page && (page.requesting = pgName)
       return ndom.request(page)
     },
-    render: () => ndom.render(page as NOODLDOMPage),
+    render: async (pgName?: string) => {
+      const req = await o.request(pgName)
+      return req?.render()[0] as NUIComponent.Instance
+    },
   }
 
   return o
