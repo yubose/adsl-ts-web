@@ -100,7 +100,6 @@ class App {
     this.#nui = nui
 
     noodl && (this.#noodl = noodl)
-    this.observeViewport(viewport)
   }
 
   get meeting() {
@@ -226,6 +225,8 @@ class App {
       this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
 
       await this.noodl.init()
+
+      this.observeViewport(this.viewport)
 
       log.func('initialize')
       stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
@@ -542,6 +543,8 @@ class App {
     let min: number | undefined
     let max: number | undefined
 
+    console.log('aspectRatio', aspectRatio)
+
     this.noodl.aspectRatio = u.isUnd(aspectRatio)
       ? this.noodl.aspectRatio
       : aspectRatio
@@ -552,7 +555,10 @@ class App {
         this.noodl.cadlEndpoint?.viewWidthHeightRatio ||
         this.noodl.getConfig?.()?.viewWidthHeightRatio
 
-      if (!u.isUnd(viewWidthHeightRatio)) {
+      console.log('this.noodl.getConfig?.()', this.noodl.getConfig?.())
+      console.log('viewWidthHeightRatio', viewWidthHeightRatio)
+
+      if (viewWidthHeightRatio) {
         min = Number(viewWidthHeightRatio.min)
         max = Number(viewWidthHeightRatio.max)
       }
@@ -565,20 +571,18 @@ class App {
         h = innerHeight
       }
 
-      if (u.isNum(min) && u.isNum(max)) {
-        console.log(h)
+      if (min && max) {
         if ((aspectRatio as number) < min) w = min * h
         else if ((aspectRatio as number) > max) w = max * h
-        u.assign(
-          viewport,
-          VP.applyMinMax({
-            aspectRatio,
-            min: min as number,
-            max: max as number,
-            width: w,
-            height: h,
-          }),
-        )
+        const sizes = VP.applyMinMax({
+          aspectRatio,
+          min: min,
+          max: max,
+          width: w,
+          height: h,
+        })
+        viewport.width = sizes.width
+        viewport.height = sizes.height
       } else {
         viewport.width = w
         viewport.height = h
@@ -589,7 +593,6 @@ class App {
     refreshWidthAndHeight()
 
     viewport.onResize = async (args) => {
-      console.log(args)
       if (
         args.width !== args.previousWidth ||
         args.height !== args.previousHeight

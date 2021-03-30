@@ -1,4 +1,4 @@
-export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
+export const array = <O>(o: O | O[]): O[] => (isArr(o) ? o : [o])
 export const assign = (
   v: Record<string, any>,
   ...rest: (Record<string, any> | undefined)[]

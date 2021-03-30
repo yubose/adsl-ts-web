@@ -13,6 +13,7 @@ import {
   NOODLUI as NUI,
   NUIComponent,
   Store,
+  Viewport as VP,
 } from 'noodl-ui'
 import {
   findByViewTag,
@@ -81,31 +82,52 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       window.history.back()
     },
     async hide(action, options) {
-      const viewTag = action.original?.viewTag || ''
-      const nodes = findByViewTag(viewTag)
+      let viewTag = action.original?.viewTag || ''
+      let nodes = findByViewTag(viewTag)
 
-      log.func('hide')
-
-      if (nodes?.length) {
-        Array.from(nodes).forEach((node) => {
-          log.grey('Toggling visibility off', {
-            action,
-            options,
-            viewTag,
-            node,
-            component: options.component,
-          })
+      if (nodes) {
+        nodes = u.array(nodes)
+        nodes.forEach((node) => {
           node.style.visibility = 'hidden'
+          const top = options.component?.blueprint.style?.top
+          if (VP.isNil(top)) {
+            console.log(
+              `%cHiding a node with a NiL "top" style attribute.`,
+              `color:#ec0000;`,
+            )
+            node.style.position = 'relative'
+          } else {
+            if (node.style.position !== 'absoliute') {
+              node.style.position = 'absolute'
+            }
+          }
         })
-      } else {
+      }
+      if (!nodes || !nodes.length) {
+        log.func('hide')
         log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
       }
     },
     async show(action, options) {
-      const viewTag = action.original?.viewTag || ''
-      const nodes = findByViewTag(viewTag)
+      let viewTag = action.original?.viewTag || ''
+      let nodes = findByViewTag(viewTag)
 
       log.func('show')
+
+      if (nodes) {
+        nodes = u.array(nodes)
+        nodes.forEach((node) => {
+          node.style.visibility = 'visible'
+          const top = options.component?.blueprint.style?.top
+          // if (VP.isNil(top)) {
+          //   node.style.position = 'relative'
+          // } else {
+          //   if (node.style.position !== 'absoliute') {
+          //     node.style.position = 'absolute'
+          //   }
+          // }
+        })
+      }
 
       if (nodes?.length) {
         Array.from(nodes).forEach((node) => {

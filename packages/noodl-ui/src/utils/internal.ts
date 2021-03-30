@@ -17,7 +17,7 @@ export const assign = (
   v: Record<string, any> = {},
   ...rest: (Record<string, any> | undefined)[]
 ) => Object.assign(v, ...rest)
-export const array = <O>(o: O | O[]): any[] => (isArr(o) ? o : [o])
+export const array = <O>(o: O | O[]): O[] => (isArr(o) ? o : [o])
 export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
 export const keys = (v: any) => Object.keys(v)
 export const values = <O extends Record<string, any>, K extends keyof O>(
