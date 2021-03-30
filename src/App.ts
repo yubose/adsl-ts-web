@@ -829,10 +829,11 @@ class App {
                       // 'Speciality': element.Speciality,
                       // 'Title': element.Title,
                       // 'address' 
+                        console.log("test map3",e)
                         let coordinates = e.features[0].geometry.coordinates.slice() 
                         let Name = e.features[0].properties.Name
                         let Speciality = e.features[0].properties.Speciality 
-                        let Title = e.features[0].properties.Title
+                        // let Title = e.features[0].properties.Title
                         let address = e.features[0].properties.address
                         new mapboxgl.Popup().setLngLat(coordinates).setHTML(
                                 Name+" <br> "+Speciality+"<br> "+address
