@@ -455,8 +455,6 @@ class NOODLDOM extends NOODLDOMInternal {
       (Identify.component.page(component) && component.get('page')) ||
       this.page
 
-    debugger
-
     if (component) {
       const parent = component.parent
       // Clean up state from the component

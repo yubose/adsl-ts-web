@@ -678,7 +678,6 @@ class App {
           if (pageName !== this.mainPage.page) {
             // Load the page in the SDK
             this.mainPage.requesting = pageName
-            debugger
             const pageObject = await this.#preparePage(this.mainPage)
             // isStale
             const noodluidomPageSnapshot = this.mainPage.snapshot()
