@@ -83,26 +83,19 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     },
     async hide(action, options) {
       log.func('hide')
-      log.magenta('', action)
+      log.grey('', action)
 
       const viewTag = action.original?.viewTag || ''
       const elemCount = hide(findByViewTag(viewTag), (node) => {
-        const top = options.component?.blueprint?.style?.top
-        // if (!top || VP.isNil(top)) {
         if (VP.isNil(node.style.top, 'px')) {
           if (node.style.display !== 'none') {
             node.style.display = 'none'
-            let nextSibling = node.nextElementSibling as HTMLElement
-
-            while (nextSibling) {
-              if (nextSibling.style.position === 'absolute') {
-                nextSibling.style.position = 'relative'
-              }
-              nextSibling = nextSibling.nextElementSibling
-            }
+          }
+        } else {
+          if (node.style.display === 'none') {
+            node.style.display = 'block'
           }
         }
-        // }
       })
       if (!elemCount) {
         log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
@@ -110,22 +103,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     },
     async show(action, options) {
       log.func('show')
-      log.magenta('', action)
+      log.grey('', action)
 
       const viewTag = action.original?.viewTag || ''
       const elemCount = show(findByViewTag(viewTag), (node) => {
         const component = options.component
         if (component) {
-          node.style.position = 'absolute'
-          if (node.style.position !== component.style.position) {
-            //   log.teal(
-            //     `Restoring the node's current position "${node.style.position}" to ` +
-            //       `"${component.style.position}"`,
-            //   )
-            //   if (VP.isNil(node.style.top)) {
-            //     node.style.position = ''
-            //   }
-            //   node.style.position = component.style.position
+          if (VP.isNil(node.style.top)) {
+            if (node.style.visibility === 'hidden') {
+              node.style.visibility = 'visible'
+            }
+            node.style.display === 'none' && (node.style.display = 'block')
           }
         }
       })

@@ -1,5 +1,4 @@
-import { isActionChain } from 'noodl-action-chain'
-import { Identify, Identify as is, userEvent } from 'noodl-types'
+import { Identify as is } from 'noodl-types'
 import { Viewport as VP } from 'noodl-ui'
 import { RegisterOptions } from '../types'
 import { addClassName, entries, isObj } from '../utils/internal'
