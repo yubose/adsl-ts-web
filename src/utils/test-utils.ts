@@ -9,8 +9,16 @@ import NOODLDOM, {
   Resolve,
   Transaction,
 } from 'noodl-ui-dom'
-import { NOODLUI as NUI, Viewport } from 'noodl-ui'
+import {
+  nuiEmitTransaction,
+  NOODLUI as NUI,
+  NUIComponent,
+  Viewport,
+  Store,
+} from 'noodl-ui'
 import App from '../App'
+import createActions from '../handlers/actions'
+import createBuiltIns from '../handlers/builtIns'
 import * as u from './common'
 
 export const deviceSize = {
@@ -61,7 +69,8 @@ export function createRender(opts: MockRenderOptions) {
   let currentPage = ''
   let pageRequesting = ''
   let page: NOODLDOMPage | undefined
-  let pageObject: PageObject | undefined
+  let pageObject: Partial<PageObject> | undefined
+  let root = { ...NUI.getRoot(), ...opts?.root }
 
   currentPage = opts.currentPage || ''
   page = opts.page
@@ -92,14 +101,13 @@ export function createRender(opts: MockRenderOptions) {
   )
 
   pageObject = {
-    ...NUI.getRoot()[pageRequesting],
-    ...opts.root?.[pageRequesting],
+    ...root,
+    ...root[pageRequesting],
     ...pageObject,
   }
 
-  if (!u.isArr(pageObject?.components)) {
-    // @ts-expect-error
-    pageObject.components = [pageObject?.components]
+  if (pageObject && !u.isArr(pageObject?.components)) {
+    pageObject.components = [pageObject.components as any]
   }
 
   if (u.isUnd(page.viewport.width) || u.isUnd(page.viewport.height)) {
@@ -114,11 +122,17 @@ export function createRender(opts: MockRenderOptions) {
     getPages: () => [pageRequesting],
     getPreloadPages: () => [],
     getRoot: () => ({
-      ...NUI.getRoot(),
       ...opts.root,
       [pageRequesting]: pageObject,
     }),
   }
+
+  ndom.use({
+    transaction: {
+      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
+        pageObject as PageObject,
+    },
+  })
 
   ndom.use(use)
 
@@ -134,7 +148,10 @@ export function createRender(opts: MockRenderOptions) {
       pgName && page && (page.requesting = pgName)
       return ndom.request(page)
     },
-    render: () => ndom.render(page as NOODLDOMPage),
+    render: async (pgName?: string) => {
+      const req = await o.request(pgName)
+      return req && (req?.render()[0] as NUIComponent.Instance)
+    },
   }
 
   return o
@@ -150,7 +167,7 @@ export class MockNoodl {
   root = root
   viewWidthHeightRatio?: { min: number; max: number }
   constructor({ startPage }: { startPage?: string } = {}) {
-    startPage && (this.cadlEndoint.startPage = startPage)
+    startPage && (this.cadlEndpoint.startPage = startPage)
   }
   async init() {}
   async initPage(
@@ -220,4 +237,28 @@ export async function initializeApp(
   })
 
   return app as App
+}
+
+export function getActions(app: any = {}) {
+  return createActions(app)
+}
+
+export function getBuiltIns<FuncName extends string = string>(
+  funcNames: FuncName | FuncName[],
+): Record<FuncName, Store.BuiltInObject>
+export function getBuiltIns(app?: any): Store.BuiltInObject[]
+export function getBuiltIns<FuncName extends string = string>(
+  app: FuncName | FuncName[] | App | {},
+) {
+  if (u.isStr(app) || u.isArr(app)) {
+    const _fns = createBuiltIns({} as any)
+    const _fnNames = u.array(app)
+    return _fns.reduce((acc, obj) => {
+      if (_fnNames.includes(obj.funcName as FuncName)) {
+        acc[obj.funcName as FuncName] = obj
+      }
+      return acc
+    }, {} as Record<FuncName, Store.BuiltInObject>)
+  }
+  return createBuiltIns(app || ({} as any))
 }

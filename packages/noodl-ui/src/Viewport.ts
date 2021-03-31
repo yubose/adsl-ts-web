@@ -138,8 +138,10 @@ class NOODLViewport {
    * concept. Invalid values are: null, undefined, '', 'auto
    * @param { unknown } value
    */
-  static isNil(v: unknown): v is null | undefined | '' | 'auto' {
-    return v === null || isUnd(v) || v === 'auto' || v === ''
+  static isNil(v: unknown, unit?: string): v is null | undefined | '' | 'auto' {
+    return (
+      v === null || isUnd(v) || v === 'auto' || v === '' || v === `0${unit}`
+    )
   }
 
   /**

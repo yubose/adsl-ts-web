@@ -87,18 +87,22 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
       const viewTag = action.original?.viewTag || ''
       const elemCount = hide(findByViewTag(viewTag), (node) => {
-        const top = options.component?.style?.top
-        if (!top || VP.isNil(top)) {
-          console.log(
-            `%cHiding a node with a NiL "top" style attribute.`,
-            `color:#ec0000;`,
-          )
-          node.style.position = 'relative'
-        } else {
-          if (node.style.position !== 'absolute') {
-            node.style.position = 'absolute'
+        const top = options.component?.blueprint?.style?.top
+        // if (!top || VP.isNil(top)) {
+        if (VP.isNil(node.style.top, 'px')) {
+          if (node.style.display !== 'none') {
+            node.style.display = 'none'
+            let nextSibling = node.nextElementSibling as HTMLElement
+
+            while (nextSibling) {
+              if (nextSibling.style.position === 'absolute') {
+                nextSibling.style.position = 'relative'
+              }
+              nextSibling = nextSibling.nextElementSibling
+            }
           }
         }
+        // }
       })
       if (!elemCount) {
         log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
@@ -112,15 +116,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const elemCount = show(findByViewTag(viewTag), (node) => {
         const component = options.component
         if (component) {
+          node.style.position = 'absolute'
           if (node.style.position !== component.style.position) {
-            log.teal(
-              `Restoring the node's current position "${node.style.position}" to ` +
-                `"${component.style.position}"`,
-            )
-            if (VP.isNil(node.style.top)) {
-              node.style.position = ''
-            }
-            node.style.position = component.style.position
+            //   log.teal(
+            //     `Restoring the node's current position "${node.style.position}" to ` +
+            //       `"${component.style.position}"`,
+            //   )
+            //   if (VP.isNil(node.style.top)) {
+            //     node.style.position = ''
+            //   }
+            //   node.style.position = component.style.position
           }
         }
       })

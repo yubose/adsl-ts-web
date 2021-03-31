@@ -19,7 +19,10 @@ export function getDocumentScrollTop(doc?: Document | null) {
 }
 
 export const hide = makeElemFn((node) => (node.style.visibility = 'hidden'))
-export const show = makeElemFn((node) => (node.style.visibility = 'visible'))
+export const show = makeElemFn((node) => {
+  node.style.visibility !== 'visible' && (node.style.visibility = 'visible')
+  node.style.display === 'none' && (node.style.display = 'block')
+})
 
 /**
  * Returns true if the value can be displayed in the UI as normal.

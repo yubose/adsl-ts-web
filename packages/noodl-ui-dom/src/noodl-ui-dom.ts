@@ -361,8 +361,11 @@ class NOODLDOM extends NOODLDOMInternal {
                   const viewTag = obj.viewTag
                   // if (node.style.position)
                   console.log(`A node has a "show" action`)
-                  page.state.viewTag[obj.viewTag] = [component.id]
-                  break
+                  if (!page.state.viewTag) {
+                    // page.state.viewTag = {}}
+                    // page.state.viewTag[obj.viewTag] = [component.id]
+                    break
+                  }
                 }
               }
             }
@@ -586,20 +589,26 @@ class NOODLDOM extends NOODLDOMInternal {
     resolvers?: boolean
     transactions?: boolean
   }): this
-  reset(key?: 'componentCache' | 'resolvers' | 'transactions'): this
+  reset(key?: 'actions' | 'componentCache' | 'resolvers' | 'transactions'): this
   reset(
     key?:
       | {
+          actions?: boolean
           componentCache?: boolean
           global?: boolean
           pages?: boolean
           resolvers?: boolean
           transactions?: boolean
         }
+      | 'actions'
       | 'componentCache'
       | 'resolvers'
       | 'transactions',
   ) {
+    const resetActions = () => {
+      u.values(NOODLDOM._nui.getActions()).forEach((arr) => (arr.length = 0))
+      u.values(NOODLDOM._nui.getBuiltIns()).forEach((arr) => (arr.length = 0))
+    }
     const resetComponentCache = () => {
       NOODLDOM._nui.cache.component.clear()
     }
@@ -626,6 +635,8 @@ class NOODLDOM extends NOODLDOMInternal {
         key.pages && resetPages()
         key.resolvers && resetResolvers()
         key.transactions && resetTransactions()
+      } else if (key === 'actions') {
+        resetActions()
       } else if (key === 'componentCache') {
         resetComponentCache()
       } else if (key === 'resolvers') {
@@ -636,11 +647,13 @@ class NOODLDOM extends NOODLDOMInternal {
       return this
     }
     // The operations below is equivalent to a "full reset"
+    resetActions()
     resetComponentCache()
     resetGlobal()
     resetPages()
     resetResolvers()
     resetTransactions()
+
     return this
   }
 

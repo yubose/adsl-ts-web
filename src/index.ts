@@ -1,5 +1,6 @@
 import Logger from 'logsnap'
 import { NOODLUI as NUI } from 'noodl-ui'
+import { asHtmlElement, findByViewTag } from 'noodl-ui-dom'
 import App from './App'
 import { copyToClipboard } from './utils/dom'
 import { isStable } from './utils/common'
@@ -23,6 +24,54 @@ window.addEventListener('load', async (e) => {
     const app = new App({
       noodl,
       getStatus: Account.getStatus.bind(Account),
+    })
+
+    document.body.addEventListener('keydown', async (e) => {
+      if ((e.key == '1' || e.key == '2') && e.metaKey) {
+        e.preventDefault()
+        let node: HTMLElement | null = null
+        if (e.key == '1') {
+          // const usernameAc = app.nui.createActionChain(
+          //   'onClick',
+          //   [
+          //     {
+          //       actionType: 'builtIn',
+          //       funcName: 'show',
+          //       viewTag: 'useUserName',
+          //     },
+          //     {
+          //       actionType: 'builtIn',
+          //       funcName: 'hide',
+          //       viewTag: 'usePhoneNumber',
+          //     },
+          //   ],
+          //   { loadQueue: true },
+          // )
+          // await usernameAc.execute(e)
+          node = asHtmlElement(findByViewTag('1')) as HTMLElement
+        } else if (e.key == '2') {
+          node = asHtmlElement(findByViewTag('2')) as HTMLElement
+          // const phoneAc = app.nui.createActionChain(
+          //   'onClick',
+          //   [
+          //     {
+          //       actionType: 'builtIn',
+          //       funcName: 'show',
+          //       viewTag: 'usePhoneNumber',
+          //     },
+          //     {
+          //       actionType: 'builtIn',
+          //       funcName: 'hide',
+          //       viewTag: 'useUserName',
+          //     },
+          //   ],
+          //   { loadQueue: true },
+          // )
+          // await phoneAc.execute(e)
+        }
+        console.log(node)
+        node?.click?.()
+      }
     })
 
     window.app = {

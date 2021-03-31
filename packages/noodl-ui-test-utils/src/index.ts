@@ -40,19 +40,19 @@ import {
   ViewComponentObject,
 } from 'noodl-types'
 import {
-  ComponentInstance,
   createComponent,
   EmitAction,
   NOODLUIAction,
   NOODLUIActionObject,
   NOODLUIActionObjectInput,
   NOODLUITrigger,
+  NUIComponent,
 } from 'noodl-ui'
 import * as T from './types'
 
-type ComponentProps<C extends ComponentObject = ComponentObject> = Partial<
-  { [K in NOODLUITrigger]: NOODLUIActionObjectInput[] } & C
->
+type ComponentProps<
+  C extends Partial<ComponentObject> = ComponentObject
+> = Partial<{ [K in NOODLUITrigger]: NOODLUIActionObjectInput[] } & C>
 
 export function getActionChain({
   actions,
@@ -64,8 +64,7 @@ export function getActionChain({
 
   const getInstance = (obj: NOODLUIActionObject) => {
     const action = Identify.emit(obj)
-      ? // @ts-expect-error
-        new EmitAction(trigger, obj)
+      ? new EmitAction(trigger, obj)
       : new Action(trigger, obj)
 
     if (isExtendedActions) {
@@ -73,7 +72,6 @@ export function getActionChain({
         (o: T.MockGetActionChainExtendedActionsArg) => o.action === obj,
       ) as T.MockGetActionChainExtendedActionsArg
       // Convenience if they want to provide spies
-      // @ts-expect-error
       typeof o?.fn === 'function' && (action.executor = o.fn)
     }
 
@@ -421,7 +419,7 @@ export function getComponentInstance({
   component,
 }: {
   component: ComponentObject | ComponentType
-}): ComponentInstance {
+}): NUIComponent.Instance {
   const result =
     typeof component === 'string'
       ? createComponent({ type: component })

@@ -2,6 +2,7 @@ import jsdom from 'jsdom-global'
 jsdom(undefined, {
   url: 'http://localhost',
 })
+import chaiAsPromised from 'chai-as-promised'
 import noop from 'lodash/noop'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
@@ -9,24 +10,25 @@ import sinon from 'sinon'
 import { ndom } from './utils/test-utils'
 
 chai.use(sinonChai)
+chai.use(chaiAsPromised)
 
-let logSpy: sinon.SinonStub
-// let errSpy: sinon.SinonStub
+let logStub: sinon.SinonStub
+let invariantStub: sinon.SinonStub<any>
 
 before(function () {
-  global.localStorage = window.localStorage
   console.clear()
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
-  // errSpy = sinon.stub(global.console, 'error').callsFake(() => noop)
-})
-
-after(() => {
-  logSpy.restore()
-  // errSpy.restore()
+  global.localStorage = window.localStorage
+  logStub = sinon.stub(global.console, 'log').callsFake(() => noop)
+  invariantStub = sinon.stub(global.console, 'error').callsFake(() => () => {})
 })
 
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
   ndom.reset()
+})
+
+after(() => {
+  logStub.restore()
+  invariantStub.restore()
 })

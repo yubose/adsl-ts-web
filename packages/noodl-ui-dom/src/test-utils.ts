@@ -130,7 +130,7 @@ export function createRender(opts: MockRenderOptions) {
     },
     render: async (pgName?: string) => {
       const req = await o.request(pgName)
-      return req?.render()[0] as NUIComponent.Instance
+      return req && (req?.render()[0] as NUIComponent.Instance)
     },
   }
 
