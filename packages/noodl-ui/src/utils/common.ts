@@ -29,13 +29,6 @@ export function hasLetter(value: any): boolean {
   return /[a-zA-Z]/i.test(String(value))
 }
 
-/**
- * Returns true if we are in the browser environment
- */
-export function isBrowser() {
-  return typeof window !== 'undefined'
-}
-
 export async function promiseAllSafely(
   promises: Promise<any>[],
   getResult?: <RT = any>(err: null | Error, result: any) => RT,

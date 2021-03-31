@@ -1,9 +1,9 @@
 import invariant from 'invariant'
-import { Identify, PageObject } from 'noodl-types'
+import { isActionChain } from 'noodl-action-chain'
+import { Identify, PageObject, userEvent } from 'noodl-types'
 import {
   Component,
   createComponent,
-  findParent,
   isPage as isNUIPage,
   NOODLUI as NUI,
   Page as NUIPage,
@@ -17,10 +17,8 @@ import {
 import {
   createAsyncImageElement,
   getElementTag,
-  isPageConsumer,
   openOutboundURL,
 } from './utils'
-import { isPage as isNDOMPage } from './utils/utils'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
 import MiddlewareUtils from './MiddlewareUtils'
@@ -261,10 +259,10 @@ class NOODLDOM extends NOODLDOMInternal {
       page.setStatus(pageEvt.status.NAVIGATING)
 
       // Outside link
-      if (pageRequesting?.startsWith('http')) {
+      if (pageRequesting.startsWith('http')) {
         await page.emitAsync(pageEvt.on.ON_OUTBOUND_REDIRECT, page.snapshot())
         await action(() => void (page.requesting = ''))
-        return void openOutboundURL(pageRequesting)
+        return openOutboundURL(pageRequesting)
       }
 
       await action(() => {
@@ -351,6 +349,27 @@ class NOODLDOM extends NOODLDOMInternal {
     let page: Page = pageProp || this.page
 
     if (component) {
+      for (const evt of userEvent) {
+        if (component.has(evt)) {
+          const ac = component.get(evt)
+          if (isActionChain(ac)) {
+            const numActions = ac.actions.length
+            for (let index = 0; index < numActions; index++) {
+              const obj = ac.actions[index]
+              if (Identify.action.builtIn(obj)) {
+                if (obj.funcName === 'show') {
+                  const viewTag = obj.viewTag
+                  // if (node.style.position)
+                  console.log(`A node has a "show" action`)
+                  page.state.viewTag[obj.viewTag] = [component.id]
+                  break
+                }
+              }
+            }
+          }
+        }
+      }
+
       if (Identify.component.plugin(component)) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem)

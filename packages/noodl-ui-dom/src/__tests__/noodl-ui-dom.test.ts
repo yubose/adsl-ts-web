@@ -1,12 +1,7 @@
 import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
-import {
-  flatten,
-  isComponent,
-  NOODLUI as NUI,
-  nuiEmitTransaction,
-} from 'noodl-ui'
+import { flatten, NOODLUI as NUI, nuiEmitTransaction } from 'noodl-ui'
 import { coolGold, italic } from 'noodl-common'
 import { findByGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
@@ -83,7 +78,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe.only(italic(`draw`), () => {
+  describe(italic(`draw`), () => {
     it(`should have all components in the component cache`, async () => {
       const rawComponents = [
         mock.getListComponent({

@@ -1,4 +1,3 @@
-import { component, ComponentObject } from 'noodl-types'
 import {
   findParent,
   isComponent,
@@ -7,17 +6,32 @@ import {
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
+import { LiteralUnion } from 'type-fest'
 import NOODLDOMPage from '../Page'
 import findElement from './findElement'
-import { NOODLDOMDataAttribute } from '../types'
+import { DOMNodeInput, NOODLDOMDataAttribute } from '../types'
 import { dataAttributes } from '../constants'
 import * as u from './internal'
-import { LiteralUnion } from 'type-fest'
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
     node.classList.add(className)
   }
+}
+
+/**
+ * Normalizes the queried nodes to an HTMLElement or an array of HTMLElement
+ * @param { NodeList | HTMLCollection | HTMLElement } nodes
+ */
+export function asHtmlElement(nodes: DOMNodeInput) {
+  if (nodes instanceof NodeList || nodes instanceof HTMLCollection) {
+    if (nodes.length === 0) return null
+    if (nodes.length === 1) return nodes.item(0) as HTMLElement
+    const results = [] as HTMLElement[]
+    for (const node of nodes) results.push(node as HTMLElement)
+    return results
+  }
+  return nodes || null
 }
 
 /**
@@ -41,6 +55,10 @@ export function createAsyncImageElement(
   return node
 }
 
+/**
+ * Returns the DOM element tag name for the NOODL component
+ * @param { NUIComponent.Instance | NOODLUIComponentType } component
+ */
 export function getElementTag(
   component: NUIComponent.Instance | NOODLUIComponentType | undefined,
 ): keyof HTMLElementTagNameMap {
@@ -97,7 +115,6 @@ getElementTag.prototype.elementMap = {
  * This method searches through several window/document objects and is most
  * useful for page consumer components
  * @param { string } attr
- * @return { function }
  */
 export function makeFindByAttr(
   attr: LiteralUnion<NOODLDOMDataAttribute, string>,
@@ -155,17 +172,26 @@ export function getByDataUX(key: string) {
     const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
     if (nodeList.length) {
       const nodes = [] as HTMLElement[]
-      nodeList.forEach((node: HTMLElement, key) => {
-        nodes.push(node)
-      })
+      nodeList.forEach((node: HTMLElement) => nodes.push(node))
       return nodes.length === 1 ? nodes[0] : nodes
     }
   }
   return null
 }
 
-export function isBrowser() {
-  return typeof window !== 'undefined'
+export function makeElemFn(fn: (node: HTMLElement) => void) {
+  const onNodes = function _onNodes(nodes: DOMNodeInput, cb?: typeof fn) {
+    let count = 0
+    u.array(asHtmlElement(nodes)).forEach((node) => {
+      if (node) {
+        count++
+        fn(node)
+        cb?.(node)
+      }
+    })
+    return count || false
+  }
+  return onNodes
 }
 
 /**

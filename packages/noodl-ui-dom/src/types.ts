@@ -5,21 +5,18 @@ import {
   Transaction as NUITransaction,
   UseObject as NUIUseObject,
 } from 'noodl-ui'
-import findWindow from './utils/findWindow'
-import findWindowDocument from './utils/findWindowDocument'
 import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
-import { findByViewTag, findByElementId, isPageConsumer } from './utils'
 import { eventId, dataAttributes } from './constants'
 
-export interface ActionChainDOMContext {
-  findByElementId: typeof findByElementId
-  findByViewTag: typeof findByViewTag
-  findWindow: typeof findWindow
-  findWindowDocument: typeof findWindowDocument
-  isPageConsumer: typeof isPageConsumer
-}
+export type DOMNodeInput =
+  | NodeListOf<any>
+  | NodeList
+  | HTMLCollection
+  | HTMLElement
+  | HTMLElement[]
+  | null
 
 export type NOODLDOMDataAttribute = typeof dataAttributes[number]
 export type NOODLDOMDataValueElement =
@@ -53,6 +50,7 @@ export type NOODLDOMElements = Pick<
 >
 
 export type NOODLDOMElementTypes = keyof NOODLDOMElements
+
 /**
  * Type utility/factory to construct node resolver func types. Node resolver
  * funcs in noodl-ui-dom are any functions that take a DOM node as the first
@@ -70,19 +68,15 @@ export namespace Resolve {
 
   export interface Config {
     name?: string
-    cond?: ComponentType | Func<boolean>
+    cond?: ComponentType | Func
     before?: Resolve.Config | Func
     resolve?: Resolve.Config | Func
     after?: Resolve.Config | Func
     observe?: Partial<Page.Hook>
   }
 
-  export interface Func<RT = void> {
-    (
-      node: HTMLElement | null,
-      component: Component,
-      args: ActionChainDOMContext & Options,
-    ): RT
+  export interface Func<RT = any, N extends HTMLElement | null = HTMLElement> {
+    (node: N, component: Component): RT
   }
 
   export interface LifeCycle {
@@ -173,12 +167,7 @@ export namespace Page {
         [key: string]: any
       }
     }
-    render: {
-      lastTop: {
-        value: number
-        componentIds: string[]
-      }
-    }
+    render: {}
     reqQueue: string[]
     status: Status
     rootNode: boolean

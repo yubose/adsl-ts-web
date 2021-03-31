@@ -49,6 +49,10 @@ export function fixTextAlign(c: NUIComponent.Instance) {
   })
 }
 
+export function isOutboundLink(s: string | undefined = '') {
+  return /https?:\/\//.test(s)
+}
+
 export const xKeys = ['width', 'left']
 export const yKeys = ['height', 'top']
 export const posKeys = [...xKeys, ...yKeys]

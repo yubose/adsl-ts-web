@@ -13,12 +13,29 @@ import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { createRender, ndom, toDOM } from '../test-utils'
 import { eventId } from '../constants'
+import { DOMNodeInput } from '../types'
 import createElement from '../utils/createElement'
 import NOODLDOM from '../noodl-ui-dom'
 import * as resolvers from '../resolvers'
+import * as u from '../utils/internal'
 import * as n from '../utils'
+import * as c from '../constants'
+
+const findByElemId = (component: NUIComponent.Instance) =>
+  u
+    .array(n.asHtmlElement(n.findByElementId(component)))
+    .find(Boolean) as HTMLElement
+
+const findAllByElemId = (component: NUIComponent.Instance) =>
+  u.array(n.asHtmlElement(n.findByElementId(component))) as HTMLElement[]
 
 describe(coolGold(`resolvers`), () => {
+  it(`should attach the component id as the element id`, async () => {
+    const { render } = createRender({ components: { type: 'label' } })
+    const component = await render()
+    expect(findByElemId(component)).to.have.property('id').eq(component.id)
+  })
+
   it('should display data value if it is displayable', async () => {
     const dataValue = 'asfafsbc'
     const { render } = createRender({
@@ -26,7 +43,46 @@ describe(coolGold(`resolvers`), () => {
       pageObject: { formData: { password: dataValue } },
       components: { type: 'label', dataKey: 'F.formData.password' },
     })
-    expect(n.findByElementId(await render())?.textContent).to.eq(dataValue)
+    expect(findByElemId(await render()).textContent).to.eq(dataValue)
+  })
+
+  describe(italic(`Data attributes`), () => {
+    c.dataAttributes.forEach((attr) => {
+      it(`should be able to attach the ${magenta(
+        attr,
+      )} attribute to a DOM element`, async () => {
+        const iteratorVar = 'orange'
+        const { request } = createRender({
+          components: [
+            mock.getListComponent({
+              listObject: mock.getGenderListObject().slice(0, 1),
+              contentType: 'listObject',
+              iteratorVar,
+              children: [
+                mock.getListItemComponent({
+                  children: [
+                    // prettier-ignore
+                    mock.getLabelComponent({ dataKey: `${iteratorVar}.value`, } as any),
+                    // prettier-ignore
+                    mock.getPopUpComponent({ viewTag: 'bagTag', popUpView: 'color', }),
+                    mock.getButtonComponent({ global: true }),
+                    mock.getImageComponent({ path: '99.png' } as any),
+                    mock.getTextFieldComponent({ placeholder: 'sun' } as any),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        })
+        const req = await request()
+        req?.render()
+        await waitFor(() => {
+          expect(
+            u.array(n.asHtmlElement(n.findByDataAttrib(attr)))[0],
+          ).to.be.instanceOf(HTMLElement)
+        })
+      })
+    })
   })
 
   describe(italic(`button`), () => {
@@ -38,8 +94,9 @@ describe(coolGold(`resolvers`), () => {
           onClick: [mock.getEmitObject()],
         },
       })
-      const node = n.findByElementId(await render())
-      expect(node?.style).to.have.property('cursor').eq('pointer')
+      expect(findByElemId(await render()).style)
+        .to.have.property('cursor')
+        .eq('pointer')
     })
   })
 })
@@ -53,7 +110,7 @@ describe(italic(`image`), () => {
     const { render } = createRender({
       components: { type: 'image', onClick: [] },
     })
-    expect(n.findByElementId(await render())?.style)
+    expect(findByElemId(await render())?.style)
       .to.have.property('cursor')
       .eq('pointer')
   })
@@ -62,7 +119,7 @@ describe(italic(`image`), () => {
     const { render } = createRender({
       components: { type: 'image', children: [] },
     })
-    const node = n.findByElementId(await render())
+    const node = findByElemId(await render())
     expect(node?.style).to.have.property('width').eq('100%')
     expect(node?.style).to.have.property('height').eq('100%')
   })
@@ -73,7 +130,7 @@ describe(italic(`label`), () => {
     const { render } = createRender({
       components: { type: 'label', onClick: [] },
     })
-    expect(n.findByElementId(await render()).style)
+    expect(findByElemId(await render()).style)
       .to.have.property('cursor')
       .eq('pointer')
   })
@@ -88,7 +145,7 @@ describe(italic(`list`), () => {
     },
   )
 
-  xit(`should remove removed list items from the component cache`, async () => {
+  xit(`should remove removed li2st items from the component cache`, async () => {
     const listObject = mock.getGenderListObject()
     const { ndom, render } = createRender({
       components: mock.getListComponent({ listObject }),
@@ -114,33 +171,25 @@ describe(italic(`list`), () => {
   // TODO - update.list.item handling?
 })
 
-xdescribe(italic(`page`), () => {
+describe(italic(`page`), () => {
   let result: ReturnType<typeof createRender>
   let node: HTMLIFrameElement
   let component: NUIComponent.Instance
 
-  beforeEach(() => {
-    result = createRender({
-      components: { type: 'page', path: 'LeftPage' },
-      pageName: 'Hello',
-      pageObject: {},
-      root: {
-        LeftPage: {
-          components: [
-            { type: 'image', path: 'abc.png' },
-            {
-              type: 'button',
-              text: 'what',
-              onClick: [{ goto: 'Somewhere' }],
-            },
-            { type: 'label', text: 'label text' },
-          ],
-        },
-      },
-      resolver: resolvers.page,
+  it(``, () => {
+    //
+  })
+
+  it(`should render the page component as an iframe`, async () => {
+    const { render } = createRender({
+      components: mock.getPageComponent({
+        path: 'Dog' as any,
+        // prettier-ignore
+        children: [ mock.getTextViewComponent({ placeholder: 'Type something here', } as any), ],
+      }),
     })
-    node = result.node as HTMLIFrameElement
-    component = result.component
+    const node = findByElemId(await render())
+    expect(node).to.have.property('tagName', 'IFRAME')
   })
 
   xit(
@@ -148,9 +197,9 @@ xdescribe(italic(`page`), () => {
       `node.contentDocument.body`,
     async () => {
       await waitFor(() => {
-        expect(result.node.querySelector('img')).to.exist
-        expect(result.node.querySelector('button')).to.exist
-        expect(result.node.querySelector('label')).to.exist
+        // expect(result.node.querySelector('img')).to.exist
+        // expect(result.node.querySelector('button')).to.exist
+        // expect(result.node.querySelector('label')).to.exist
       })
     },
   )
@@ -182,7 +231,7 @@ describe.skip(`plugin`, () => {
       // @ts-expect-error
       window.fetch = () => Promise.resolve(html)
       const noodlComponent = { type: 'plugin', path: 'abc.html' }
-      const component = noodlui.resolveComponents(noodlComponent)
+      const component = NOODLDOM._nui.resolveComponents(noodlComponent)
       const node = ndom.draw(component)
       await waitFor(() => {
         expect(document.body.contains(node)).to.be.true
@@ -235,7 +284,7 @@ describe(italic(`styles`), () => {
         const button = component.child(1)
         const testSubjects = [component, label, button]
         testSubjects.forEach((component) => {
-          const node = n.findByElementId(component)
+          const node = findByElemId(component)
           expect(node.style).to.have.property('top').to.exist
           expect(node.style).to.have.property('height').to.exist
         })
@@ -334,20 +383,45 @@ describe(italic(`styles`), () => {
   })
 })
 
-describe('video', () => {
+describe(italic(`text=func`), () => {
+  describe(`timer`, () => {
+    xit(``, () => {
+      //
+    })
+  })
+
+  describe(`non-timer`, () => {
+    it(`should be able to display a text=func's data values for non timers`, async () => {
+      const date = new Date().toISOString()
+      const { render } = createRender({
+        pageObject: { formData: { date } },
+        components: [
+          mock.getLabelComponent({
+            dataKey: 'formData.date',
+            'text=func': () => 'hello',
+          } as any),
+        ],
+      })
+      const component = await render()
+      expect(findByElemId(component).textContent).to.eq(date)
+    })
+  })
+})
+
+describe(italic(`video`), () => {
   it('should have object-fit set to "contain"', async () => {
     const { render } = createRender({
       components: { type: 'video', videoFormat: 'mp4' },
     })
     const component = await render()
-    expect(n.findByElementId(component)?.style.objectFit).to.equal('contain')
+    expect(findByElemId(component)?.style.objectFit).to.equal('contain')
   })
 
   it('should create the source element as a child if the src is present', async () => {
     const { render } = createRender({
       components: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
     })
-    const node = n.findByElementId(await render())
+    const node = findByElemId(await render())
     await waitFor(() => {
       const sourceEl = node?.querySelector('source')
       expect(sourceEl).to.be.instanceOf(HTMLElement)
@@ -359,7 +433,7 @@ describe('video', () => {
     const { assetsUrl, render } = createRender({
       components: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
     })
-    const node = n.findByElementId(await render())
+    const node = findByElemId(await render())
     await waitFor(() => {
       const sourceEl = node?.querySelector('source')
       expect(node?.getAttribute('src')).not.to.equal(assetsUrl + path)
@@ -374,7 +448,7 @@ describe('video', () => {
       const { render } = createRender({
         components: { type: 'video', path: 'abc123.mp4', videoFormat: 'mp4' },
       })
-      const node = n.findByElementId(await render())
+      const node = findByElemId(await render())
       await waitFor(() => {
         const sourceEl = node?.querySelector('source')
         expect(node?.getAttribute('type')).not.to.equal('mp4')
@@ -386,9 +460,8 @@ describe('video', () => {
   it('should include the "browser not supported" message', async () => {
     const { render } = createRender({
       components: { type: 'video', path: 'abc.jpeg', videoFormat: 'mp4' },
-      resolver: resolvers.video,
     })
-    const node = n.findByElementId(await render())
+    const node = findByElemId(await render())
     await waitFor(() => {
       const p = node.querySelector('p')
       expect(/sorry/i.test(p?.textContent as string)).to.be.true
@@ -400,7 +473,7 @@ describe('video', () => {
     const { assetsUrl, render } = createRender({
       components: { type: 'video', path, videoFormat: 'mp4', id: 'id123' },
     })
-    const node = n.findByElementId(await render())
+    const node = findByElemId(await render())
     await waitFor(() => {
       const sourceElem = node.querySelector('source')
       expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + path)

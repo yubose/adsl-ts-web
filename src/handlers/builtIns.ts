@@ -33,12 +33,12 @@ import {
 } from 'twilio-video'
 import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
-import { show, scrollToElem } from '../utils/dom'
+import { hide, show, scrollToElem } from '../utils/dom'
 import { pageEvent } from '../constants'
 import App from '../App'
 import * as u from '../utils/common'
 
-const log = Logger.create('src/handlers/builtIns.ts')
+const log = Logger.create('builtIns.ts')
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
   const builtIns: Record<string, Store.BuiltInObject['fn']> = {
@@ -82,65 +82,49 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       window.history.back()
     },
     async hide(action, options) {
-      let viewTag = action.original?.viewTag || ''
-      let nodes = findByViewTag(viewTag)
+      log.func('hide')
+      log.magenta('', action)
 
-      if (nodes) {
-        nodes = u.array(nodes)
-        nodes.forEach((node) => {
-          node.style.visibility = 'hidden'
-          const top = options.component?.blueprint.style?.top
-          if (VP.isNil(top)) {
-            console.log(
-              `%cHiding a node with a NiL "top" style attribute.`,
-              `color:#ec0000;`,
-            )
-            node.style.position = 'relative'
-          } else {
-            if (node.style.position !== 'absoliute') {
-              node.style.position = 'absolute'
-            }
+      const viewTag = action.original?.viewTag || ''
+      const elemCount = hide(findByViewTag(viewTag), (node) => {
+        const top = options.component?.style?.top
+        if (!top || VP.isNil(top)) {
+          console.log(
+            `%cHiding a node with a NiL "top" style attribute.`,
+            `color:#ec0000;`,
+          )
+          node.style.position = 'relative'
+        } else {
+          if (node.style.position !== 'absolute') {
+            node.style.position = 'absolute'
           }
-        })
-      }
-      if (!nodes || !nodes.length) {
-        log.func('hide')
+        }
+      })
+      if (!elemCount) {
         log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
       }
     },
     async show(action, options) {
-      let viewTag = action.original?.viewTag || ''
-      let nodes = findByViewTag(viewTag)
-
       log.func('show')
+      log.magenta('', action)
 
-      if (nodes) {
-        nodes = u.array(nodes)
-        nodes.forEach((node) => {
-          node.style.visibility = 'visible'
-          const top = options.component?.blueprint.style?.top
-          // if (VP.isNil(top)) {
-          //   node.style.position = 'relative'
-          // } else {
-          //   if (node.style.position !== 'absoliute') {
-          //     node.style.position = 'absolute'
-          //   }
-          // }
-        })
-      }
-
-      if (nodes?.length) {
-        Array.from(nodes).forEach((node) => {
-          log.grey('Toggling visibility on', {
-            action,
-            options,
-            viewTag,
-            node,
-            component: options.component,
-          })
-          node.style.visibility = 'visible'
-        })
-      } else {
+      const viewTag = action.original?.viewTag || ''
+      const elemCount = show(findByViewTag(viewTag), (node) => {
+        const component = options.component
+        if (component) {
+          if (node.style.position !== component.style.position) {
+            log.teal(
+              `Restoring the node's current position "${node.style.position}" to ` +
+                `"${component.style.position}"`,
+            )
+            if (VP.isNil(node.style.top)) {
+              node.style.position = ''
+            }
+            node.style.position = component.style.position
+          }
+        }
+      })
+      if (!elemCount) {
         log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
       }
     },
@@ -426,12 +410,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         app.mainPage.setModifier(destinationParam, { ...dataIn })
       }
 
-      log.grey(`Computed goto params`, {
-        destination: destinationParam,
-        reload,
-        pageReload,
-      })
-
       let { destination, id = '', isSamePage, duration } = parse.destination(
         destinationParam,
       )
@@ -440,12 +418,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         app.mainPage.requesting = destination
       }
 
-      log.grey('', {
-        destinationParam,
+      log.grey(`Computed goto params`, {
         destination,
+        destinationParam,
         duration,
         id,
         isSamePage,
+        reload,
+        pageReload,
       })
 
       if (id) {
@@ -503,7 +483,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       }
 
-      if (!destinationParam?.startsWith?.('http')) {
+      if (!destinationParam.startsWith('http')) {
         app.mainPage.pageUrl = u.resolvePageUrl({
           destination,
           pageUrl: app.mainPage.pageUrl,

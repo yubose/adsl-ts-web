@@ -31,6 +31,10 @@ export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
+export function isOutboundLink(s: string | undefined = '') {
+  return /https?:\/\//.test(s)
+}
+
 // Custom formatting output for NodeJS console
 // https://nodejs.org/api/util.html#util_util_inspect_custom
 export const inspect = Symbol.for('nodejs.util.inspect.custom')

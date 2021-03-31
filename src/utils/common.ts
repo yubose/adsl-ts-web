@@ -42,6 +42,10 @@ export function isTest() {
   return process.env.ECOS_ENV === 'test'
 }
 
+export function isOutboundLink(s: string | undefined = '') {
+  return /https?:\/\//.test(s)
+}
+
 /**
  * Parses a NOODL destination, commonly received from goto
  * or pageJump actions as a string. The return value (for now) is

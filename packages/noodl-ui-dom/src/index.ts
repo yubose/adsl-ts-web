@@ -9,6 +9,7 @@ export { default as findElement } from './utils/findElement'
 export { default as findWindow } from './utils/findWindow'
 export { default as findWindowDocument } from './utils/findWindowDocument'
 export {
+  asHtmlElement,
   findByDataAttrib,
   findByDataKey,
   findByElementId,
@@ -24,5 +25,6 @@ export {
   isPage,
   isPageConsumer,
   isTextFieldLike,
+  makeElemFn,
   makeFindByAttr,
 } from './utils'

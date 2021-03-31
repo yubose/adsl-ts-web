@@ -3,8 +3,7 @@ import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
 import isComponent from './isComponent'
 import { NUIComponent } from '../types'
-import { isNum } from './internal'
-import { isBrowser } from './common'
+import { array, isNum } from './internal'
 
 /**
  * Traverses the children hierarchy, running the comparator function in each
@@ -132,7 +131,7 @@ export function flatten(
 export function getDataFields(
   dataKeys?: string | string[],
 ): { [key: string]: HTMLElement | null } | undefined {
-  if (isBrowser()) {
+  if (typeof window !== 'undefined') {
     if (dataKeys) {
       // Ensure that it is an array
       if (typeof dataKeys === 'string') dataKeys = [dataKeys]
@@ -306,7 +305,7 @@ export function parseReference(
 }
 
 export function pullFromComponent(
-  key: string,
+  key: string | undefined,
   component: NUIComponent.Instance | undefined | null,
 ) {
   if (!key || !isComponent(component)) return null
@@ -316,6 +315,19 @@ export function pullFromComponent(
     (component.has(key) && component.blueprint?.[key]) ||
     null
   )
+}
+
+export function find(
+  key: string | string[] | undefined,
+  component: NUIComponent.Instance | null | undefined,
+) {
+  const keys = array(key)
+  const numKeys = keys.length
+  for (let index = 0; index < numKeys; index++) {
+    const k = keys[index]
+    const value = pullFromComponent(k, component)
+    if (value != undefined) return value
+  }
 }
 
 /**

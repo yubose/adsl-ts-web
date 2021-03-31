@@ -1,20 +1,20 @@
 import { Identify, userEvent } from 'noodl-types'
-import { dataAttributes, NOODLUIActionChain } from 'noodl-ui'
+import { dataAttributes } from 'noodl-ui'
 import { isActionChain } from 'noodl-action-chain'
-import { NodeResolverConfig, NodeResolverFactoryFunc } from '../types'
-import * as u from '../utils'
+import { Resolve } from '../types'
+import { isTextFieldLike, normalizeEventName } from '../utils'
+import * as u from '../utils/internal'
 
 /* -------------------------------------------------------
   ---- DEFAULT RESOLVERS
 -------------------------------------------------------- */
 
-const resolveAttributes: NodeResolverConfig = {
+const resolveAttributes: Resolve.Config = {
   name: `[noodl-ui-dom] Default Common Resolvers`,
-  resolve({ node, component }) {
+  resolve(node, component) {
     const original = component?.blueprint || {}
-    const props = component?.props || {}
 
-    const { contentType, text, placeholder, path } = props
+    const { contentType, text, placeholder, path } = original
 
     if (component && node && !u.isFnc(node)) {
       node.id = component.id
@@ -22,14 +22,14 @@ const resolveAttributes: NodeResolverConfig = {
         ---- DATA ATTRIBUTES
       -------------------------------------------------------- */
       dataAttributes.forEach((key) => {
-        if (!u.isUnd(props[key])) {
-          node.dataset[key.replace('data-', '')] = props[key]
+        if (!u.isUnd(original[key])) {
+          node.dataset[key.replace('data-', '')] = original[key]
         }
       })
       // NON-INPUT FIELDS DISPLAYABLE VALUES (ex: label, p, span, etc)
-      if (!u.isTextFieldLike(node)) {
-        if (text || placeholder || props['data-value']) {
-          const dataValue = props['data-value']
+      if (!isTextFieldLike(node)) {
+        if (text || placeholder || original['data-value']) {
+          const dataValue = original['data-value']
           let textVal = u.isStr(dataValue) ? dataValue : text || text || ''
           if (!textVal && placeholder) textVal = placeholder
           if (!textVal) textVal = ''
@@ -37,33 +37,33 @@ const resolveAttributes: NodeResolverConfig = {
         }
       } else {
         // if (!node.innerHTML?.trim()) {
-        //   if (u.isDisplayable(props['data-value'])) {
-        //     node.innerHTML = `${props['data-value']}`
+        //   if (u.isDisplayable(original['data-value'])) {
+        //     node.innerHTML = `${original['data-value']}`
         //   } else if (u.isDisplayable(text)) {
         //     node.innerHTML = `${text}`
         //   }
         // }
       }
       // INPUT FIELDS DISPLAYABLE VALUES (ex: input, textarea, select, etc)
-      if (props['data-placeholder']) {
+      if (original['data-placeholder']) {
         if (Identify.emit(original.placeholder)) {
           component.on('placeholder', (src: string) => {
             setTimeout(() => ((node as HTMLInputElement).placeholder = src))
           })
         } else {
-          ;(node as HTMLInputElement).placeholder = props['data-placeholder']
+          ;(node as HTMLInputElement).placeholder = original['data-placeholder']
         }
       }
       // MEDIA (images / videos)
-      if (path && props['data-src']) {
+      if (path && original['data-src']) {
         // Images
         if (node.tagName !== 'VIDEO' && node.tagName !== 'IFRAME') {
-          ;(node as HTMLImageElement).src = props['data-src'] || ''
+          ;(node as HTMLImageElement).src = original['data-src'] || ''
         }
       }
       // TEXTFUNC ('text=func') [date components most likely]
       if (u.isFnc(original['text=func']) && contentType === 'timer') {
-        node.textContent = props['data-value'] || ''
+        node.textContent = original['data-value'] || ''
       }
       /* -------------------------------------------------------
         ---- USER EVENTS
@@ -84,14 +84,14 @@ const resolveAttributes: NodeResolverConfig = {
 
       // Attach event handlers on user events (ex: onClick, onHover, etc)
       userEvent.forEach((eventType) => {
-        const actionChain = component.get(eventType) as NOODLUIActionChain
+        const actionChain = component.get(eventType)
         if (isActionChain(actionChain)) {
           // Putting a setTimeout here helps to avoid the race condition in where
           // the emitted action handlers are being called before local root object
           // gets their data values updated.
           // TODO - Unit test + think of a better solution
           node.addEventListener(
-            u.normalizeEventName(eventType),
+            normalizeEventName(eventType),
             async function onClickEvent(mouseEvent) {
               if (!isActionChain(actionChain)) {
                 console.log(
@@ -129,7 +129,7 @@ const resolveAttributes: NodeResolverConfig = {
   },
 }
 
-const createResolveAttributes: NodeResolverFactoryFunc = function _createResolverAttributes(
+const createResolveAttributes: Resolve.Func = function _createResolverAttributes(
   ndom,
 ) {
   return resolveAttributes

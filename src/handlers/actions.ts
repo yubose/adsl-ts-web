@@ -25,12 +25,7 @@ import {
   Store,
   NOODLUIActionType,
 } from 'noodl-ui'
-import {
-  createEmitDataKey,
-  evalIf,
-  isPossiblyDataKey,
-  parse,
-} from 'noodl-utils'
+import { createEmitDataKey, evalIf, parse } from 'noodl-utils'
 import Logger from 'logsnap'
 import { EmitObject, IfObject, Identify } from 'noodl-types'
 import { pageEvent } from '../constants'
@@ -495,7 +490,7 @@ const createActions = function createActions(app: App) {
         }
       }
 
-      if (!destinationParam?.startsWith?.('http')) {
+      if (!destinationParam.startsWith('http')) {
         app.mainPage.pageUrl = u.resolvePageUrl({
           destination,
           pageUrl: app.mainPage.pageUrl,

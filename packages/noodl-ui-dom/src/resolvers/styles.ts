@@ -1,6 +1,7 @@
-import { Identify as is } from 'noodl-types'
+import { isActionChain } from 'noodl-action-chain'
+import { Identify, Identify as is, userEvent } from 'noodl-types'
 import { Viewport as VP } from 'noodl-ui'
-import { NOODLDOMElement, RegisterOptions } from '../types'
+import { RegisterOptions } from '../types'
 import { addClassName, entries, isObj } from '../utils/internal'
 
 export default {
@@ -31,6 +32,25 @@ export default {
     if (VP.isNil(component.blueprint?.style?.marginTop)) {
       component.style.marginTop = '0px'
     }
+
+    // for (const evt of userEvent) {
+    //   if (component.has(evt)) {
+    //     const ac = component.get(evt)
+    //     if (isActionChain(ac)) {
+    //       const numActions = ac.actions.length
+    //       for (let index = 0; index < numActions; index++) {
+    //         const obj = ac.actions[index]
+    //         if (Identify.action.builtIn(obj)) {
+    //           if (obj.funcName === 'show') {
+    //             // if (node.style.position)
+    //             console.log(`A node has a "show" action`)
+    //             break
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     /* -------------------------------------------------------
       ---- TEMP - Experimenting CSS

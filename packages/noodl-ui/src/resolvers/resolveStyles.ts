@@ -299,7 +299,6 @@ resolveStyles.setResolver(
     ---- OTHER / UNCATEGORIZED
   -------------------------------------------------------- */
 
-
     // Shadow
     if (Identify.isBooleanTrue(shadow)) {
       edit(

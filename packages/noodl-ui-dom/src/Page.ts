@@ -7,10 +7,6 @@ import * as T from './types'
 const getDefaultRenderState = (
   initialState?: Record<string, any>,
 ): T.Page.State['render'] => ({
-  lastTop: {
-    value: 0,
-    componentIds: [],
-  },
   ...initialState,
 })
 
@@ -254,24 +250,9 @@ class Page {
           `%c[Page] Removed rootNode from parentNode`,
           `color:#00b406;`,
         )
-      }
-
-      if (this.rootNode) {
+      } else {
         this.rootNode.remove?.()
-        this.rootNode = null
-        console.log(
-          `%c[Page] Removed rootNode by this.remove`,
-          `color:#00b406;`,
-        )
       }
-
-      if (this.rootNode) {
-        console.log(
-          `%c[Page] rootNode is still here!`,
-          `color:#ec0000;font-weight:bold;`,
-        )
-      }
-
       this.#nuiPage.viewport = null as any
       this.components.length = 0
       u.values(this.#hooks).forEach((v) => v && (v.length = 0))
@@ -283,26 +264,9 @@ class Page {
   reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {
     if (slice) {
       if (slice === 'render') this.#state.render = getDefaultRenderState()
+    } else {
+      this.#state.render = getDefaultRenderState()
     }
-  }
-
-  isStale(pageName: string) {
-    const getQueue = () => this.#state.reqQueue
-
-    while (getQueue().length > 1) {
-      const removed = getQueue().pop()
-      console.log(
-        `%cRemoved ${removed} from reqQueue`,
-        `color:#00b406;`,
-        getQueue(),
-      )
-    }
-
-    if (getQueue().length <= 1) {
-      return !getQueue().includes(pageName)
-    }
-
-    return getQueue()[0] === pageName
   }
 }
 

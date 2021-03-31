@@ -1,5 +1,5 @@
 import isNaN from 'lodash/isNaN'
-import { hasLetter, hasDecimal, isBrowser } from './utils/common'
+import { hasLetter, hasDecimal } from './utils/common'
 import { isStr, isNum, isNil, isUnd } from './utils/internal'
 
 interface GetSizeOptions<U extends 'px' | 'noodl' = 'px' | 'noodl'> {
@@ -180,7 +180,7 @@ class NOODLViewport {
       },
     ) => Promise<any> | any,
   ) {
-    if (isBrowser()) {
+    if (typeof window !== 'undefined') {
       window.removeEventListener('resize', this.#onResize)
 
       this.#onResize = () => {

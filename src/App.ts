@@ -152,6 +152,11 @@ class App {
         _page.requesting = _pageRequesting
       }
 
+      if (u.isOutboundLink(_pageRequesting)) {
+        _page.requesting = ''
+        return (window.location.href = _pageRequesting)
+      }
+
       // if (
       //   /videochat/i.test(_page.page) &&
       //   !/videochat/i.test(_page.requesting)
