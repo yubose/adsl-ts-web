@@ -22,6 +22,7 @@ import {
   findWindow,
   getByDataUX,
   isPageConsumer,
+  asHtmlElement,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, Identify } from 'noodl-types'
 import {
@@ -528,7 +529,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       try {
         if (
           viewTag &&
-          component?.get('data-viewtag') === viewTag &&
+          (component?.get('data-viewtag') === viewTag ||
+            component?.get('viewTag') === viewTag) &&
           !components.includes(component as NUIComponent.Instance)
         ) {
           components.push(component as NUIComponent.Instance)
@@ -550,7 +552,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           const viewTagComponent = components[
             startCount
           ] as NUIComponent.Instance
-          const node = findByElementId(viewTagComponent)
+          const node = u.array(
+            asHtmlElement(findByElementId(viewTagComponent.id)),
+          )[0]
           const [newNode, newComponent] = app.ndom.redraw(
             node as HTMLElement,
             viewTagComponent,

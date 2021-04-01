@@ -22,8 +22,8 @@ class Component<C extends ComponentObject = ComponentObject>
   #children: T.NUIComponent.Instance[] = []
   #id = ''
   #parent: T.NUIComponent.Instance | null = null
-  #type: C['type']
   original: ComponentObject
+  type: C['type']
 
   static isComponent(component: any): component is T.NUIComponent.Instance {
     return (
@@ -68,9 +68,9 @@ class Component<C extends ComponentObject = ComponentObject>
       ...this.#blueprint,
       style: cloneDeep(this.#blueprint.style),
     }
-    this.#type = this.#blueprint.type
     this.#id = opts?.id || this.#component.id || u.getRandomKey()
     this.original = this.#blueprint
+    this.type = this.#blueprint.type
     // Immer proxies these actions objects. Since we need this to be
     // in its original form, we will convert these back to the original form
     userEvent.forEach((eventType) => {
@@ -138,10 +138,6 @@ class Component<C extends ComponentObject = ComponentObject>
 
   set style(style: StyleObject) {
     this.#component.style = style
-  }
-
-  get type() {
-    return this.#type
   }
 
   /**

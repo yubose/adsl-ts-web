@@ -90,7 +90,7 @@ const domComponentsResolver: Resolve.Config = {
                 ndom.pages[component.id],
               )
               // redraw(childNode, child, options)
-              ;(window as any).child = childNode
+              // ;(window as any).child = childNode
             })
           },
           `[noodl-ui-dom] ${noodluiEvent.component.page.PAGE_COMPONENTS}`,

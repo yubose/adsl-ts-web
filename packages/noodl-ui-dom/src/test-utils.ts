@@ -1,9 +1,11 @@
+import isNil from 'lodash/isNil'
 import sinon from 'sinon'
 import { ComponentObject, PageObject } from 'noodl-types'
 import {
   nuiEmitTransaction,
   NUIComponent,
   NOODLUI as NUI,
+  Page as NUIPage,
   Viewport,
 } from 'noodl-ui'
 import { NOODLDOMElement, Resolve } from './types'
@@ -35,6 +37,29 @@ interface MockRenderOptions {
   pageObject?: Partial<PageObject>
   resolver?: MockDrawResolver
   root?: Record<string, any>
+}
+
+export function createDataKeyReference({
+  nui = NUI,
+  page = nui.getRootPage(),
+  pageName = page.page,
+  pageObject,
+}: {
+  nui?: typeof NUI
+  page?: NUIPage
+  pageName?: string
+  pageObject?: Record<string, any>
+}) {
+  if (isNil(page.viewport.width)) page.viewport.width = 375
+  if (isNil(page.viewport.height)) page.viewport.height = 667
+  pageObject = {
+    ...nui.getRoot()[pageName],
+    ...pageObject,
+  }
+  if (page.page !== pageName) page.page = pageName
+  const root = { ...nui.getRoot(), [pageName]: pageObject }
+  nui.use({ getRoot: () => root })
+  return { page }
 }
 
 /**

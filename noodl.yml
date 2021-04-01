@@ -1,12 +1,11 @@
 defaultOption: server.files
-# defaultPanel: run.server
+defaultPanel: null
 server:
   dir: server
-  host: ''
+  host: ""
   port: 3001
-  protocol: ''
-  config: 'meet2d'
-  # config: 'pcr644'
+  protocol: ""
+  config: meet2d
 objects:
   json:
     dir:

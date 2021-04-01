@@ -28,7 +28,16 @@ dataAttribsResolver.setResolver((component, options, next) => {
     videoFormat,
     viewTag,
   } = original
+
   const iteratorVar = context?.iteratorVar || n.findIteratorVar(component)
+
+  if (Identify.component.listItem(component)) {
+    // When redrawing a listItem the context must be customly injected back into the context via invoking resolveComponents directly, since by default the only way to receive this information is through rendering listItem children from the list parent
+    if (!component.get(iteratorVar) && context?.dataObject) {
+      component.edit(iteratorVar, context.dataObject)
+      !u.isNil(context.index) && component.edit('index', context.index)
+    }
+  }
 
   /* -------------------------------------------------------
     ---- UI / VISIBILITY
@@ -152,7 +161,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
       //         excludeIteratorVar(value, iteratorVar),
       //       ),
       //     })
-      // }
+      //   }
       // }
     }
   }

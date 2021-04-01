@@ -8,7 +8,7 @@ const asyncResolver = new Resolver('resolveAsync')
 
 async function resolveAsync(
   component: NUIComponent.Instance,
-  { createActionChain, getAssetsUrl }: ConsumerOptions,
+  { context, createActionChain, getAssetsUrl }: ConsumerOptions,
 ) {
   try {
     const original = component.blueprint || {}
@@ -33,9 +33,11 @@ async function resolveAsync(
     -------------------------------------------------------- */
 
     if (Identify.emit(path)) {
-      const ac = await createActionChain('path', [
-        { emit: path.emit, actionType: 'emit' },
-      ]).execute()
+      const ac = await createActionChain(
+        'path',
+        [{ emit: path.emit, actionType: 'emit' }],
+        { context },
+      ).execute()
       let result = ac?.find((val) => !!val?.result)?.result
       result = result ? resolveAssetUrl(result, getAssetsUrl()) : ''
       component.edit({ 'data-src': result })

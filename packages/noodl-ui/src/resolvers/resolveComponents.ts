@@ -71,10 +71,10 @@ componentResolver.setResolver((component, options, next) => {
     component.on(
       c.event.component.list.ADD_DATA_OBJECT,
       ({ index, dataObject }) => {
-        const ctx = { index, iteratorVar, dataObject }
+        const ctx = { index: index || 0, iteratorVar, dataObject }
         let listItem = createComponent(listItemBlueprint)
         listItem = component.createChild(listItem)
-        listItem.edit({ [iteratorVar]: dataObject })
+        listItem.edit({ index, [iteratorVar]: dataObject })
         listItem = resolveComponents({
           components: listItem,
           context: ctx,
@@ -194,6 +194,7 @@ componentResolver.setResolver((component, options, next) => {
           ? resolveComponents({
               components: pageObject.components,
               page: nuiPage,
+              context,
             })
           : []) as NUIComponent.Instance[]
         components?.forEach(component.createChild.bind(component))

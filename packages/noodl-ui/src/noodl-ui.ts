@@ -23,6 +23,7 @@ import { isPromise, promiseAllSafely } from './utils/common'
 import {
   findIteratorVar,
   findListDataObject,
+  findParent,
   isListConsumer,
   resolveAssetUrl,
 } from './utils/noodl'
@@ -584,6 +585,7 @@ const NOODLUI = (function _NOODLUI() {
       actions: T.NOODLUIActionObjectInput | T.NOODLUIActionObjectInput[],
       opts?: {
         component?: T.NUIComponent.Instance
+        context?: Record<string, any>
         loadQueue?: boolean
         page?: NUIPage
       },
@@ -631,14 +633,16 @@ const NOODLUI = (function _NOODLUI() {
                 'type' in obj ? { emit: obj.emit } : obj,
               )
               if (opts?.component) {
+                const iteratorVar = findIteratorVar(opts.component)
                 if (obj.emit?.dataKey) {
                   action.dataKey = createEmitDataKey(
                     obj.emit.dataKey as any,
                     _getQueryObjects({
                       component: opts.component,
                       page: opts.page,
+                      listDataObject: opts.context?.dataObject,
                     }),
-                    { iteratorVar: findIteratorVar(opts.component) },
+                    { iteratorVar },
                   )
                 }
               }

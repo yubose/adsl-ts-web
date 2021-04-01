@@ -4,6 +4,7 @@ import { Identify, PageObject, userEvent } from 'noodl-types'
 import {
   Component,
   createComponent,
+  findIteratorVar,
   isPage as isNUIPage,
   NOODLUI as NUI,
   Page as NUIPage,
@@ -478,6 +479,16 @@ class NOODLDOM extends NOODLDOMInternal {
       this.page
 
     if (component) {
+      const resolveContext = {} as any
+      if (Identify.component.listItem(component)) {
+        const iteratorVar = findIteratorVar(component)
+        if (iteratorVar) {
+          resolveContext.index = component.get('index') || 0
+          resolveContext.dataObject = component.get(iteratorVar)
+          resolveContext.iteratorVar = iteratorVar
+        }
+      }
+      console.log(resolveContext)
       const parent = component.parent
       // Clean up state from the component
       component.clear('hooks')
@@ -533,6 +544,7 @@ class NOODLDOM extends NOODLDOMInternal {
         NOODLDOM._nui.resolveComponents?.({
           components: newComponent,
           page,
+          context: resolveContext,
         }) || newComponent
     }
 
@@ -558,8 +570,13 @@ class NOODLDOM extends NOODLDOMInternal {
       this.draw(newComponent as NUIComponent.Instance, null, page)
     }
     if (node instanceof HTMLElement) {
-      console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)
-      node.remove()
+      // console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)
+      try {
+        node.parentNode?.removeChild?.(node)
+        node.remove()
+      } catch (error) {
+        console.error(error)
+      }
     }
     return [newNode, newComponent] as [typeof node, typeof component]
   }
