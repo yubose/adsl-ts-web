@@ -72,9 +72,6 @@ dataAttribsResolver.setResolver((component, options, next) => {
             excludeIteratorVar(dataKey, iteratorVar),
           )
         }
-        if (component.has('text=func')) {
-          result = component.get('text=func')?.(result)
-        }
       } else {
         result = findDataValue(
           getQueryObjects({
@@ -85,6 +82,11 @@ dataAttribsResolver.setResolver((component, options, next) => {
           excludeIteratorVar(dataKey, iteratorVar),
         )
       }
+
+      if (component.has('text=func')) {
+        result = component.get('text=func')?.(result)
+      }
+
       component.edit({ 'data-value': result })
     }
 

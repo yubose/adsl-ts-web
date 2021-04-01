@@ -8,7 +8,7 @@ import {
   flatten,
   Viewport as VP,
 } from 'noodl-ui'
-import { prettyDOM, waitFor } from '@testing-library/dom'
+import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { createRender, ndom, toDOM } from '../test-utils'
@@ -184,8 +184,11 @@ describe(italic(`page`), () => {
     const { render } = createRender({
       components: mock.getPageComponent({
         path: 'Dog' as any,
-        // prettier-ignore
-        children: [ mock.getTextViewComponent({ placeholder: 'Type something here', } as any), ],
+        children: [
+          mock.getTextViewComponent({
+            placeholder: 'Type something here',
+          } as any),
+        ],
       }),
     })
     const node = findByElemId(await render())
@@ -383,22 +386,60 @@ describe(italic(`styles`), () => {
   })
 })
 
-describe(italic(`text=func`), () => {
-  describe(`timer`, () => {
-    xit(``, () => {
-      //
+describe.only(italic(`text=func`), () => {
+  it(`[lists] should use the dataKey to get the value and pass as args to the text=func func`, async () => {
+    const date = new Date().toISOString()
+    const spy = sinon.spy((v) => date)
+    const ctime = 'abc'
+    const { render } = createRender({
+      components: mock.getListComponent({
+        listObject: [{ ctime }],
+        iteratorVar: 'itemObject',
+        children: [
+          mock.getListItemComponent({
+            children: [
+              mock.getLabelComponent({
+                dataKey: 'itemObject.ctime',
+                'text=func': spy,
+              } as any),
+            ],
+          }),
+        ],
+      }),
     })
+    await render()
+    expect(spy).to.be.calledOnce
+    expect(spy).to.be.calledWith(ctime)
+    expect(screen.getByText(date)).to.exist
+  })
+
+  it(`[non-lists] should use the dataKey to get the value passed as args to the text=func function`, async () => {
+    const date = new Date().toISOString()
+    const spy = sinon.spy((v) => 'mock-computed-time-value')
+    const { render } = createRender({
+      pageObject: { formData: { ctime: date } },
+      components: [
+        mock.getLabelComponent({
+          dataKey: 'formData.ctime',
+          'text=func': spy,
+        } as any),
+      ],
+    })
+    await render()
+    expect(spy).to.be.calledOnce
+    expect(spy).to.be.calledWith(date)
+    expect(screen.getByText('mock-computed-time-value')).to.exist
   })
 
   describe(`non-timer`, () => {
-    it(`should be able to display a text=func's data values for non timers`, async () => {
+    xit(`should be able to display a text=func's data values for non timers`, async () => {
       const date = new Date().toISOString()
       const { render } = createRender({
-        pageObject: { formData: { date } },
+        pageObject: { formData: { ctime: date } },
         components: [
           mock.getLabelComponent({
-            dataKey: 'formData.date',
-            'text=func': () => 'hello',
+            dataKey: 'itemObject.ctime',
+            'text=func': (v: any) => v,
           } as any),
         ],
       })
