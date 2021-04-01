@@ -20,10 +20,8 @@ export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
 }
 
-export function getVcodeElem() {
-  return array(
-    asHtmlElement(findByDataKey('formData.code')),
-  )[0] as HTMLInputElement
+export function getVcodeElem(dataKey = 'formData.code') {
+  return array(asHtmlElement(findByDataKey(dataKey)))[0] as HTMLInputElement
 }
 
 export const hide = makeElemFn((node) => (node.style.visibility = 'hidden'))

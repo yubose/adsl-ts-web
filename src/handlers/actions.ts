@@ -10,6 +10,9 @@ import {
   findByElementId,
   findByViewTag,
   isPageConsumer,
+  findByDataKey,
+  findByDataAttrib,
+  asHtmlElement,
 } from 'noodl-ui-dom'
 import {
   actionTypes as nuiActionTypes,
@@ -505,7 +508,15 @@ const createActions = function createActions(app: App) {
         // and when the entered phone number starts with 888
         if (process.env.ECOS_ENV === 'test') {
           const vcodeInput = getVcodeElem()
-          if (String(vcodeInput?.value).startsWith('888')) {
+          const phoneInput = u.array(
+            asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
+          )[0] as HTMLInputElement
+          const phoneNumber = String(phoneInput?.value)
+          if (
+            phoneNumber.startsWith('888') ||
+            phoneNumber.startsWith('+1888') ||
+            phoneNumber.startsWith('+1 888')
+          ) {
             const pageName = app.mainPage?.page || ''
             const pathToTage = /settings/i.test(pageName)
               ? 'formData.code'

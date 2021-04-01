@@ -15,7 +15,7 @@ import {
 } from 'noodl-ui-dom'
 import * as lib from 'noodl-ui'
 import { findReferences } from 'noodl-utils'
-import { toast } from '../utils/dom'
+import { getVcodeElem, toast } from '../utils/dom'
 
 /**
  * Just a helper to return the utilities that are meant to be attached
@@ -36,6 +36,7 @@ export function getWindowHelpers() {
       findReferences,
       findWindow,
       findWindowDocument,
+      getVcodeElem,
       getByDataUX,
       toast,
     },
