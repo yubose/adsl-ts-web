@@ -9,31 +9,31 @@ import {
   findWindow,
   findByElementId,
   findByViewTag,
-  getByDataUX,
   isPageConsumer,
 } from 'noodl-ui-dom'
 import {
+  actionTypes as nuiActionTypes,
   ConsumerOptions,
   EmitAction,
   findListDataObject,
   findIteratorVar,
   getDataValues,
-  NOODLUI as NUI,
   NUIComponent,
-  Page as NUIPage,
   parseReference,
   Store,
   NOODLUIActionType,
+  trigger,
 } from 'noodl-ui'
 import { createEmitDataKey, evalIf, parse } from 'noodl-utils'
 import Logger from 'logsnap'
 import { EmitObject, IfObject, Identify } from 'noodl-types'
 import { pageEvent } from '../constants'
-import { onSelectFile, scrollToElem, toast } from '../utils/dom'
+import { getVcodeElem, onSelectFile, scrollToElem, toast } from '../utils/dom'
 import App from '../App'
+import * as T from '../app/types'
 import * as u from '../utils/common'
 
-const log = Logger.create('src/handlers/actions.ts')
+const log = Logger.create('actions.ts')
 const stable = u.isStable()
 
 const createActions = function createActions(app: App) {
@@ -43,73 +43,42 @@ const createActions = function createActions(app: App) {
     | Store.ActionObject['fn']
     | (Omit<Store.ActionObject, 'actionType'> | Store.ActionObject['fn'])[]
   > = {
-    async anonymous(action, options) {
-      const { fn } = action.original || {}
-      if (options?.component) {
-        if (stable) {
-          log.func('anonymous')
-          log.cyan(`Calling anonymous action`, { action, options })
-        }
-        fn?.()
-      }
-    },
+    anonymous: (action) => action.original?.fn?.(),
     emit: [
-      // DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML
       {
+        // DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML
         fn: async function onDataKeyEmit(action: EmitAction, options) {
           const emitParams = {
             actions: action.actions,
             dataKey: action.dataKey,
             pageName: app.mainPage.page,
-          } as any
-
+          } as T.EmitCallParams
           log.func('emit [dataKey]')
-          log.gold('Emitting', { action, emitParams, ...options })
-
+          log.gold('Emitting', { action, emitParams, options })
           const emitResult = await app.noodl.emitCall(emitParams)
-
-          log.grey(`Emitted`, {
-            action,
-            component: options.component,
-            emitParams,
-            emitResult,
-            options,
-            originalDataKey: action.original?.emit?.dataKey,
-          })
-
+          log.grey(`Emit result`, { emitParams, emitResult })
           return emitResult
         },
-        trigger: 'dataKey',
+        trigger: trigger.DATA_VALUE,
       },
-      // DATA VALUE EMIT
       {
+        // DATA VALUE EMIT
         fn: async function onDataValueEmit(action: EmitAction, options) {
           const emitParams = {
             actions: action.actions,
             pageName: app.mainPage.page,
-          } as any
+          } as T.EmitCallParams
 
           if ('dataKey' in action.original.emit || {}) {
             emitParams.dataKey = action.dataKey
           }
-
           log.func('emit [dataValue]')
           log.grey('Emitting', { action, emitParams, options })
-
           const emitResult = await app.noodl.emitCall(emitParams)
-
-          log.grey('Emitted [dataValue]', {
-            action,
-            actionChain: options.ref,
-            component: options.component,
-            emitParams,
-            emitResult,
-            options,
-          })
-
+          log.grey('Emit result', { emitParams, emitResult })
           return emitResult
         },
-        trigger: 'dataValue',
+        trigger: trigger.DATA_VALUE,
       },
       // onBlur EMIT
       {
@@ -118,25 +87,13 @@ const createActions = function createActions(app: App) {
             actions: action.actions,
             pageName: app.mainPage.page,
           } as any
-
           if ('dataKey' in action.original.emit || {}) {
             emitParams.dataKey = action.dataKey
           }
-
           log.func('emit [onBlur]')
           log.grey('Emitting', { action, emitParams, options })
-
           const emitResult = await app.noodl.emitCall(emitParams)
-
-          log.grey('Emitted', {
-            action,
-            actionChain: options.ref,
-            component: options.component,
-            emitParams,
-            emitResult,
-            options,
-          })
-
+          log.grey('Emit result', { emitParams, emitResult })
           return emitResult
         },
         trigger: 'onBlur',
@@ -148,25 +105,13 @@ const createActions = function createActions(app: App) {
             actions: action.actions,
             pageName: options.page?.page,
           } as any
-
           if (action.original.emit.dataKey) {
             emitParams.dataKey = action.dataKey
           }
-
           log.func('emit [onClick]')
           log.gold('Emitting', { action, emitParams, ...options })
-
           const emitResult = await app.noodl.emitCall(emitParams)
-
-          log.gold(`Emitted [onClick]`, {
-            action,
-            actions: action.actions,
-            component: options.component,
-            emitParams,
-            emitResult,
-            options,
-          })
-
+          log.grey('Emit result', { emitParams, emitResult })
           return emitResult
         },
         trigger: 'onClick',
@@ -178,25 +123,13 @@ const createActions = function createActions(app: App) {
             actions: action.actions,
             pageName: app.mainPage.page,
           } as any
-
           if ('dataKey' in action.original.emit || {}) {
             emitParams.dataKey = action.dataKey
           }
-
           log.func('emit [onChange]')
           log.grey('Emitting', { action, emitParams, options })
-
           const emitResult = await app.noodl.emitCall(emitParams)
-
-          log.grey('Emitted', {
-            action,
-            actionChain: options.ref,
-            component: options.component,
-            emitParams,
-            emitResult,
-            options,
-          })
-
+          log.grey('Emit result', { emitParams, emitResult })
           return emitResult
         },
         trigger: 'onChange',
@@ -225,10 +158,10 @@ const createActions = function createActions(app: App) {
 
           log.func('emit [path]')
           log.grey('Emitting', { action, emitParams, options })
-          const result = await app.noodl.emitCall(emitParams)
-          log.grey(`Emitted`, result)
+          const emitResult = await app.noodl.emitCall(emitParams)
+          log.grey('Emit result', { emitParams, emitResult })
 
-          return Array.isArray(result) ? result[0] : result
+          return Array.isArray(emitResult) ? emitResult[0] : emitResult
         },
         trigger: 'path',
       },
@@ -571,32 +504,33 @@ const createActions = function createActions(app: App) {
         // Auto prefills the verification code when ECOS_ENV === 'test'
         // and when the entered phone number starts with 888
         if (process.env.ECOS_ENV === 'test') {
-          const vcodeInput = document.querySelector(
-            `input[data-key="formData.code"]`,
-          ) as HTMLInputElement
-          if (vcodeInput) {
-            const dataValues = getDataValues<
-              { phoneNumber?: string },
-              'phoneNumber'
-            >()
-            if (String(dataValues?.phoneNumber).startsWith('888')) {
-              import('../app/noodl').then(({ default: noodl }) => {
-                const pageName = app.mainPage?.page || ''
-                const pathToTage = 'verificationCode.response.edge.tage'
-                let vcode = get(noodl.root?.[pageName], pathToTage, '')
-                if (vcode) {
-                  vcode = String(vcode)
-                  vcodeInput.value = vcode
-                  vcodeInput.dataset.value = vcode
-                  noodl.editDraft((draft: any) => {
-                    set(
-                      draft[pageName],
-                      (vcodeInput.dataset.key as string) || 'formData.code',
-                      vcode,
-                    )
-                  })
-                }
+          const vcodeInput = getVcodeElem()
+          if (String(vcodeInput?.value).startsWith('888')) {
+            const pageName = app.mainPage?.page || ''
+            const pathToTage = /settings/i.test(pageName)
+              ? 'formData.code'
+              : 'verificationCode.response.edge.tage'
+            let vcode = get(app.noodl.root?.[pageName], pathToTage, '')
+            if (!pageName) {
+              log.red(
+                `Could not determine the page to query the verification code for`,
+              )
+            }
+            if (vcode) {
+              vcode = String(vcode)
+              vcodeInput.value = vcode
+              vcodeInput.dataset.value = vcode
+              app.noodl.editDraft((draft: any) => {
+                set(
+                  draft[pageName],
+                  vcodeInput.dataset.key || 'formData.code',
+                  vcode,
+                )
               })
+            } else {
+              log.orange(
+                `Could not find a verification code at path "${pathToTage}"`,
+              )
             }
           }
         }
@@ -854,7 +788,9 @@ const createActions = function createActions(app: App) {
       obj.forEach((o) => {
         if (u.isFnc(o)) {
           action.fn = o
-        } else u.assign(action, o)
+        } else if (u.isObj(o)) {
+          u.assign(action, o)
+        }
       })
     } else {
       u.assign(action, obj)
@@ -863,7 +799,7 @@ const createActions = function createActions(app: App) {
     return action
   }
 
-  return Object.entries(actions).reduce((acc, [type, obj]) => {
+  return u.entries(actions).reduce((acc, [type, obj]) => {
     const objs = [] as Store.ActionObject[]
     if (u.isArr(obj)) {
       obj.forEach((o) => objs.push(insert(type as keyof typeof actions, o)))

@@ -2,7 +2,6 @@ import cloneDeep from 'lodash/cloneDeep'
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original } from 'immer'
 import { ComponentObject, StyleObject, userEvent } from 'noodl-types'
-import createComponentDraftSafely from '../utils/createComponentDraftSafely'
 import * as u from '../utils/internal'
 import * as T from '../types'
 

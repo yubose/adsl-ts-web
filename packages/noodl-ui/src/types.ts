@@ -1,9 +1,10 @@
 import {
+  ActionObject,
   ActionType,
+  BuiltInActionObject,
   ComponentObject,
   ComponentType,
   EventType,
-  BuiltInActionObject,
   EmitObject,
   EvalActionObject,
   GotoObject,
@@ -12,13 +13,12 @@ import {
   PopupActionObject,
   PopupDismissActionObject,
   RefreshActionObject,
-  ToastObject,
+  RegisterComponentObject,
   SaveActionObject,
   StyleObject,
+  ToastObject,
   UpdateActionObject,
   userEvent,
-  ActionObject,
-  RegisterComponentObject,
 } from 'noodl-types'
 import { Action, ActionChain } from 'noodl-action-chain'
 import { LiteralUnion } from 'type-fest'
@@ -184,15 +184,6 @@ export namespace NUIComponent {
   }
 
   export type Instance = ComponentBase
-
-  export interface Proxy
-    extends ComponentObject,
-      Partial<Record<DataAttribute, string>> {
-    blueprint?: NUIComponent.Proxy
-    id?: string
-    location?: Plugin.Location
-    [key: string]: any
-  }
 
   export type ResolverArgs = [
     component: NUIComponent.Instance,

@@ -1,6 +1,8 @@
 import isPlainObject from 'lodash/isPlainObject'
+import { asHtmlElement, findByDataKey } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
 import { makeElemFn } from 'noodl-ui-dom'
+import { array } from './common'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -16,6 +18,12 @@ export function copyToClipboard(value: string) {
 
 export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
+}
+
+export function getVcodeElem() {
+  return array(
+    asHtmlElement(findByDataKey('formData.code')),
+  )[0] as HTMLInputElement
 }
 
 export const hide = makeElemFn((node) => (node.style.visibility = 'hidden'))

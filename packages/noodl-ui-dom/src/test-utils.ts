@@ -144,7 +144,7 @@ export function createRender(opts: MockRenderOptions) {
   const o = {
     ...use,
     assetsUrl,
-    baseUrl,
+    baseUrl,w
     nui: NUI,
     ndom,
     page,

@@ -94,5 +94,9 @@
   "queryByDataUx": {
     "prefix": "qdataux",
     "body": "import { queryByDataUx } from 'utils/test-utils'"
+  },
+  "import * as mock from 'noodl-ui-test-utils'": {
+    "prefix": "mock",
+    "body": "import * as mock from 'noodl-ui-test-utils'"
   }
 }

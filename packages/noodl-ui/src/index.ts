@@ -30,8 +30,8 @@ export {
   resolveAssetUrl,
 } from './utils/noodl'
 export { formatColor } from './utils/common'
+export { actionTypes, trigger } from './constants'
 export * from './types'
 
 import { lib } from './constants'
-
 export const dataAttributes = lib.dataAttributes

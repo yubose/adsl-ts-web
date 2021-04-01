@@ -361,7 +361,6 @@ class NOODLDOM extends NOODLDOMInternal {
                 if (obj.funcName === 'show') {
                   const viewTag = obj.viewTag
                   // if (node.style.position)
-                  console.log(`A node has a "show" action`)
                   if (!page.state.viewTag) {
                     // page.state.viewTag = {}}
                     // page.state.viewTag[obj.viewTag] = [component.id]
@@ -536,7 +535,7 @@ class NOODLDOM extends NOODLDOMInternal {
         newComponent.setParent(parent)
         // Remove the child reference from the parent
         parent?.removeChild?.(component)
-        // Set the new component as a child on the parent
+        // Set the new component as a child on the pafrent
         parent.createChild(newComponent)
       }
 

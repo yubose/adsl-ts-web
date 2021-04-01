@@ -162,6 +162,10 @@ export function findByElementId(c: NUIComponent.Instance | string | undefined) {
   return findElement((doc) => doc?.getElementById(u.isStr(c) ? c : c?.id || ''))
 }
 
+export function getFirstByElementId(c: Parameters<typeof findByElementId>[0]) {
+  return u.array(asHtmlElement(findByElementId(c)))[0] as HTMLElement
+}
+
 /**
  * Returns the HTML DOM node or an array of HTML DOM nodes using the data-ux,
  * otherwise returns null

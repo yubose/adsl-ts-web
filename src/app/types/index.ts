@@ -1,6 +1,7 @@
 import firebase from 'firebase'
 import CADL, { Account } from '@aitmed/cadl'
 import { NOODLUI as NUI, Viewport } from 'noodl-ui'
+import { EmitObject } from 'noodl-types'
 import NOODLDOM from 'noodl-ui-dom'
 import createMeetingFns from '../../meeting'
 export * from './meetingTypes'
@@ -24,6 +25,12 @@ export type AuthStatus =
 export interface CachedPageObject {
   name: string
   timestamp: number
+}
+
+export interface EmitCallParams {
+  actions: EmitObject['emit']['actions']
+  dataKey?: EmitObject['emit']['dataKey']
+  pageName: string
 }
 
 export type FirebaseApp = firebase.app.App

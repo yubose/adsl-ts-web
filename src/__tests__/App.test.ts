@@ -5,21 +5,18 @@ import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { nuiEmitTransaction, NOODLUI as NUI, store, Viewport } from 'noodl-ui'
 import { Page as NOODLDOMPage } from 'noodl-ui-dom'
-import { initializeApp, ndom, MockNoodl } from '../utils/test-utils'
+import { initializeApp, ndom } from '../utils/test-utils'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
 
-let mockNoodl: CADL & MockNoodl
-
 beforeEach(() => {
   ndom.reset()
-  mockNoodl = new MockNoodl() as any
 })
 
 describe(coolGold(`App`), () => {
-  describe.only(italic(`Instantiating`), () => {
+  describe(italic(`Instantiating`), () => {
     it('should initiate the viewport', async () => {
       const app = await initializeApp()
       expect(app.viewport).to.be.instanceOf(Viewport)

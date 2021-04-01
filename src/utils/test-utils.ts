@@ -148,9 +148,9 @@ export function createRender(opts: MockRenderOptions) {
       pgName && page && (page.requesting = pgName)
       return ndom.request(page)
     },
-    render: async (pgName?: string) => {
+    render: async (pgName?: string): Promise<NUIComponent.Instance> => {
       const req = await o.request(pgName)
-      return req && (req?.render()[0] as NUIComponent.Instance)
+      return req && req?.render()[0]
     },
   }
 

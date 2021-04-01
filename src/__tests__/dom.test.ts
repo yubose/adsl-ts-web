@@ -1,37 +1,37 @@
+import * as mock from 'noodl-ui-test-utils'
 import { expect } from 'chai'
 import { screen, waitFor } from '@testing-library/dom'
-import { NOODLComponent } from 'noodl-ui'
-import { assetsUrl, noodlui, page } from '../utils/test-utils'
+import { getFirstByElementId } from 'noodl-ui-dom'
+import { coolGold, italic, magenta } from 'noodl-common'
+import { assetsUrl, createRender } from '../utils/test-utils'
 
-describe('DOM', () => {
-  describe('type: "textField" with contentType: "password"', () => {
+describe(coolGold('DOM'), () => {
+  xdescribe(italic(`textField (password)`), () => {
     const dataKey = 'formData.greeting'
-    const greeting = 'good morning'
     let eyeOpened = 'makePasswordVisiable.png'
     let eyeClosed = 'makePasswordInvisible.png'
     let regexTitlePwInvisible = /click here to reveal your password/i
 
-    const noodlComponent = {
+    const getPasswordTextField = () => ({
       type: 'textField',
+      id: 'password',
       contentType: 'password',
       dataKey,
       placeholder: 'your password',
-    } as NOODLComponent
-
-    beforeEach(() => {
-      noodlui
-        .use({ getRoot: () => ({ formData: { greeting } }) })
-        .setPage('SignIn')
     })
 
     it('should start off with hidden password mode for password inputs', async () => {
-      page.render({
-        type: 'view',
-        children: [{ type: 'textField', contentType: 'password' }],
+      const { render } = createRender({
+        components: [
+          mock.getViewComponent({ children: [getPasswordTextField()] }),
+        ],
       })
-      const input = await screen.findByTestId('password')
-      expect(input).to.exist
-      expect((input as HTMLInputElement).type).to.equal('password')
+      const component = await render()
+      const node = getFirstByElementId('password') as HTMLInputElement
+      expect(node).to.exist
+      await waitFor(() => {
+        expect(node.type).to.equal('password')
+      })
     })
 
     it('should start off showing the eye closed icon', async () => {
