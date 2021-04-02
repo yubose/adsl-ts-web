@@ -1,7 +1,7 @@
 import NOODL from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 
-const LOCAL_SERVER = 'http://127.0.0.1:3001/meet2d.yml'
+const LOCAL_SERVER = 'http://127.0.0.1:3001/testpage.yml'
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
 const DOCC19 = getConfigEndpoint('docc19')
 const WWW = getConfigEndpoint('www')
@@ -16,6 +16,7 @@ const MEET2P = getConfigEndpoint('meet2p') // meet2p.aitmed.io
 const MEET3D = getConfigEndpoint('meet3d')
 const TESTPAGE = getConfigEndpoint('testpage')
 const MESSAGE = getConfigEndpoint('message')
+const SETTING = getConfigEndpoint('settingtest')
 // SAFE_DEPLOY_URL is a guard to force the app to use one of the above links
 // that use public.aitmed.com as the host name when deploying to s3.
 // So this should never be edited. Instead, change the 2nd condition
