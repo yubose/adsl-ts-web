@@ -819,70 +819,248 @@ class App {
           const parent = component.parent
           mapboxgl.accessToken =
             'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
+          let link = document.createElement('link')
+          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css'
+          link.rel = 'stylesheet'
+          document.head.appendChild(link)
           if (dataValue.mapType == 1) {
             dataValue.zoom = dataValue.zoom ? dataValue.zoom : 9
-            let flag = !dataValue.hawsOwnProperty('data')
+            let flag = !dataValue.hasOwnProperty('data')
               ? false
-              : dataValue.data.length != 0
+              : dataValue.data.length == 0
               ? false
               : true
-            let initcenter = flag ? dataValue.data[0] : [-117.9086, 33.8359]
+            let initcenter = flag
+              ? dataValue.data[0].data
+              : [-117.9086, 33.8359]
             let map = new mapboxgl.Map({
               container: parent?.id,
               style: 'mapbox://styles/mapbox/streets-v11',
               center: initcenter,
               zoom: dataValue.zoom,
+              trackResize: true,
+              dragPan: true,
+              boxZoom: false, // 加载地图使禁用拉框缩放
+              // attributionControl: false, // 隐藏地图控件链接
+              // logoPosition: 'bottom-right' // 设置mapboxLogo位置
+              // zoomControl: true,
+              // antialias: false, //抗锯齿，通过false关闭提升性能
+              // attributionControl: false,
             })
-            map.addControl(new mapboxgl.NavigationControl())
+
+            map.addControl(new mapboxgl.NavigationControl()) //添加放大缩小控件
+            map.addControl(
+              //添加定位
+              new mapboxgl.GeolocateControl({
+                positionOptions: {
+                  enableHighAccuracy: true,
+                },
+                trackUserLocation: true,
+              }),
+            )
             if (flag) {
-              let features: any[] = []
-              dataValue.data.forEach((element: any) => {
+              let featuresData: any[] = []
+              dataValue.data.forEach((element) => {
                 let item = {
                   type: 'Feature',
+                  properties: {
+                    Name: element.information.Name,
+                    Speciality: element.information.Speciality,
+                    Title: element.information.Title,
+                    address: element.information.address,
+                  },
                   geometry: {
                     type: 'Point',
-                    coordinates: element,
+                    coordinates: element.data,
                   },
                 }
-                features.push(item)
+                featuresData.push(item)
               })
-              console.log('test map2', features)
+              console.log('test map2', featuresData)
+
               //start
               map.on('load', function () {
-                // Add an image to use as a custom marker
-                map.loadImage(
-                  'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
-                  function (error: any, image: any) {
-                    if (error) throw error
-                    map.addImage('custom-marker', image)
-                    // Add a GeoJSON source with 2 points
-                    map.addSource('points', {
-                      type: 'geojson',
-                      data: {
-                        type: 'FeatureCollection',
-                        features,
-                      },
-                    })
-                    // Add a symbol layer
-                    map.addLayer({
-                      id: 'symbols',
-                      type: 'symbol',
-                      source: 'points',
-                      layout: {
-                        'icon-image': 'custom-marker',
-                        'text-offset': [0, 1.25],
-                        'text-anchor': 'top',
-                        'icon-allow-overlap': true,
-                        'icon-ignore-placement': true,
-                        'icon-padding': 0,
-                        'text-allow-overlap': true,
-                      },
-                    })
+                // Add a new source from our GeoJSON data and
+                // set the 'cluster' option to true. GL-JS will
+                // add the point_count property to your source data.
+                map.addSource('earthquakes', {
+                  type: 'geojson',
+                  // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+                  // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+                  // data:'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson',
+                  data: {
+                    type: 'FeatureCollection',
+                    features: featuresData,
                   },
-                )
+                  cluster: true,
+                  clusterMaxZoom: 14, // Max zoom to cluster points on
+                  clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+                })
+
+                map.addLayer({
+                  id: 'clusters',
+                  type: 'circle',
+                  source: 'earthquakes',
+                  filter: ['has', 'point_count'],
+                  paint: {
+                    // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+                    // with three steps to implement three types of circles:
+                    //   * Blue, 20px circles when point count is less than 100
+                    //   * Yellow, 30px circles when point count is between 100 and 750
+                    //   * Pink, 40px circles when point count is greater than or equal to 750
+                    'circle-color': [
+                      'step',
+                      ['get', 'point_count'],
+                      '#51bbd6',
+                      10,
+                      '#f1f075',
+                      50,
+                      '#f28cb1',
+                    ],
+                    'circle-radius': [
+                      'step',
+                      ['get', 'point_count'],
+                      20,
+                      100,
+                      30,
+                      750,
+                      40,
+                    ],
+                  },
+                })
+
+                map.addLayer({
+                  id: 'cluster-count',
+                  type: 'symbol',
+                  source: 'earthquakes',
+                  filter: ['has', 'point_count'],
+                  layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': [
+                      'DIN Offc Pro Medium',
+                      'Arial Unicode MS Bold',
+                    ],
+                    'text-size': 12,
+                  },
+                })
+
+                map.addLayer({
+                  id: 'unclustered-point',
+                  type: 'circle',
+                  source: 'earthquakes',
+                  filter: ['!', ['has', 'point_count']],
+                  paint: {
+                    'circle-color': '#11b4da',
+                    'circle-radius': 10,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#fff',
+                  },
+                })
+
+                // inspect a cluster on click
+                map.on('click', 'clusters', function (e: any) {
+                  let features = map.queryRenderedFeatures(e.point, {
+                    layers: ['clusters'],
+                  })
+                  let clusterId = features[0].properties.cluster_id
+                  map
+                    .getSource('earthquakes')
+                    .getClusterExpansionZoom(
+                      clusterId,
+                      function (err: any, zoom: any) {
+                        if (err) return
+                        map.easeTo({
+                          center: features[0].geometry.coordinates,
+                          zoom: zoom,
+                        })
+                      },
+                    )
+                })
+
+                // When a click event occurs on a feature in
+                // the unclustered-point layer, open a popup at
+                // the location of the feature, with
+                // description HTML from its properties.
+                map.on('click', 'unclustered-point', function (e: any) {
+                  // 'Name': element.Name,
+                  // 'Speciality': element.Speciality,
+                  // 'Title': element.Title,
+                  // 'address'
+                  console.log('test map3', e)
+                  let coordinates = e.features[0].geometry.coordinates.slice()
+                  let Name = e.features[0].properties.Name
+                  let Speciality = e.features[0].properties.Speciality
+                  // let Title = e.features[0].properties.Title
+                  let address = e.features[0].properties.address
+                  new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(Name + ' <br> ' + Speciality + '<br> ' + address)
+                    .addTo(map)
+                })
+
+                map.on('mouseenter', 'clusters', function () {
+                  console.log('test map12', 'mouse enter point')
+                  map.getCanvas().style.cursor = 'pointer'
+                })
+                map.on('mouseleave', 'clusters', function () {
+                  map.getCanvas().style.cursor = ''
+                })
               })
+              // let canvasContainer:any = node.parentNode?.children[1]
+              let canvasContainer: any = document.querySelector(
+                '.mapboxgl-canvas-container',
+              )
+              console.log('test map show canvas', canvasContainer)
+              canvasContainer['style']['width'] = '100%'
+              canvasContainer['style']['height'] = '100%'
+
+              // parent.addEvent("click",function(){
+              // })
+              // let canvasContainer = document.getElementById("mapboxgl-canvas-container")
               //end
             }
+          } else if (dataValue.mapType == 2) {
+            dataValue.zoom = dataValue.zoom ? dataValue.zoom : 9
+            let flag = !dataValue.hasOwnProperty('data')
+              ? false
+              : dataValue.data.length == 0
+              ? false
+              : true
+            let initcenter = flag
+              ? dataValue.data[0].data
+              : [-117.9086, 33.8359]
+            let map = new mapboxgl.Map({
+              container: parent?.id,
+              style: 'mapbox://styles/mapbox/streets-v11',
+              center: initcenter,
+              zoom: dataValue.zoom,
+              trackResize: true,
+              dragPan: true,
+              boxZoom: false, // 加载地图使禁用拉框缩放
+              // attributionControl: false, // 隐藏地图控件链接
+              // logoPosition: 'bottom-right' // 设置mapboxLogo位置
+              // zoomControl: true,
+              // antialias: false, //抗锯齿，通过false关闭提升性能
+              // attributionControl: false,
+            })
+
+            map.addControl(new mapboxgl.NavigationControl()) //添加放大缩小控件
+            map.addControl(
+              //添加定位
+              new mapboxgl.GeolocateControl({
+                positionOptions: {
+                  enableHighAccuracy: true,
+                },
+                trackUserLocation: true,
+              }),
+            )
+            new mapboxgl.Marker().setLngLat(initcenter).addTo(map)
+            let canvasContainer: any = document.querySelector(
+              '.mapboxgl-canvas-container',
+            )
+            console.log('test map show canvas', canvasContainer)
+            canvasContainer['style']['width'] = '100%'
+            canvasContainer['style']['height'] = '100%'
           }
         }
       },
