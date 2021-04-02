@@ -35,12 +35,9 @@ componentResolver.setResolver((component, options, next) => {
 
   const original = component.blueprint || {}
   const originalStyle = original.style || {}
-  const { contentType, dataKey, path, text, textBoard, type } = original
+  const { contentType, dataKey, path, text, textBoard } = original
   const iteratorVar =
-    context?.iteratorVar ||
-    (Identify.component.list(component)
-      ? component.get('iteratorVar') || ''
-      : findIteratorVar(component))
+    context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
 
   /* -------------------------------------------------------
     ---- LIST
@@ -54,7 +51,7 @@ componentResolver.setResolver((component, options, next) => {
     }
 
     function getListObject() {
-      return component.blueprint?.listObject || []
+      return component.blueprint.listObject || []
     }
 
     function getRawBlueprint(component: NUIComponent.Instance) {
@@ -72,19 +69,19 @@ componentResolver.setResolver((component, options, next) => {
       c.event.component.list.ADD_DATA_OBJECT,
       ({ index, dataObject }) => {
         const ctx = { index: index || 0, iteratorVar, dataObject }
-        let listItem = createComponent(listItemBlueprint)
-        listItem = component.createChild(listItem)
+        let listItem = component.createChild(createComponent(listItemBlueprint))
         listItem.edit({ index, [iteratorVar]: dataObject })
         listItem = resolveComponents({
           components: listItem,
           context: ctx,
           page,
         })
-        // listItem.blueprint?.children?.forEach((child) => {
+        // listItemBlueprint.children?.forEach((child) => {
+        //   let childInst = listItem.createChild(createComponent(child))
         //   resolveComponents({
-        //     components: listItem?.createChild(createComponent(child)),
-        //     page,
+        //     components: childInst,
         //     context: ctx,
+        //     page,
         //   })
         // })
         cache.component.add(listItem)
@@ -322,9 +319,9 @@ componentResolver.setResolver((component, options, next) => {
   // are handled here
   if (!isListLike(component)) {
     component.blueprint?.children?.forEach?.((childObject: ComponentObject) => {
-      const child = component.createChild(
-        resolveComponents({ components: childObject, context, page }),
-      )
+      let child = createComponent(childObject)
+      child = component.createChild(child)
+      child = resolveComponents({ components: child, context, page })
       !cache.component.has(child) && cache.component.add(child)
     })
   }

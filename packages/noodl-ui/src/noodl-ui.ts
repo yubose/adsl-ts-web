@@ -2,7 +2,7 @@ import invariant from 'invariant'
 import merge from 'lodash/merge'
 import { setUseProxies, enableES5 } from 'immer'
 import { ActionObject, EmitObject, Identify, IfObject } from 'noodl-types'
-import { createEmitDataKey, evalIf } from 'noodl-utils'
+import { createEmitDataKey, evalIf, excludeIteratorVar } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
 import ComponentCache from './cache/ComponentCache'
 import ComponentResolver from './Resolver'
@@ -23,7 +23,6 @@ import { isPromise, promiseAllSafely } from './utils/common'
 import {
   findIteratorVar,
   findListDataObject,
-  findParent,
   isListConsumer,
   resolveAssetUrl,
 } from './utils/noodl'
@@ -134,7 +133,10 @@ const NOODLUI = (function _NOODLUI() {
   }): Promise<string>
   function _createSrc(
     path: EmitObject,
-    opts?: { component: T.NUIComponent.Instance },
+    opts?: {
+      component: T.NUIComponent.Instance
+      context?: Record<string, any>
+    },
   ): Promise<string>
   function _createSrc(path: IfObject): string
   function _createSrc(path: string): string
@@ -142,9 +144,16 @@ const NOODLUI = (function _NOODLUI() {
     args:
       | EmitObject
       | IfObject
-      | { component: T.NUIComponent.Instance; page: NUIPage }
+      | {
+          context?: Record<string, any>
+          component: T.NUIComponent.Instance
+          page: NUIPage
+        }
       | string,
-    opts?: { component?: T.NUIComponent.Instance },
+    opts?: {
+      component?: T.NUIComponent.Instance
+      context?: Record<string, any>
+    },
   ) {
     let component: T.NUIComponent.Instance
     let page: NUIPage = o.getRootPage()
@@ -163,7 +172,8 @@ const NOODLUI = (function _NOODLUI() {
         component = opts?.component as T.NUIComponent.Instance
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = o.getActions().emit?.find?.((o) => o.trigger === 'path')
-        const iteratorVar = findIteratorVar(component)
+        const iteratorVar =
+          opts?.context?.iteratorVar || findIteratorVar(component)
 
         if (u.isFnc(obj?.fn)) {
           const emitObj = { ...args, actionType: 'emit' }
@@ -171,11 +181,11 @@ const NOODLUI = (function _NOODLUI() {
           if ('dataKey' in (emitAction.original?.emit || {})) {
             emitAction.dataKey = createEmitDataKey(
               emitObj.emit.dataKey as any,
-              [
-                findListDataObject(component),
-                () => o.getRoot()[page.page],
-                () => o.getRoot(),
-              ],
+              _getQueryObjects({
+                component,
+                page,
+                listDataObject: opts?.context?.dataObject,
+              }),
               { iteratorVar },
             )
           }
@@ -358,10 +368,14 @@ const NOODLUI = (function _NOODLUI() {
       createActionChain(
         trigger: T.NOODLUITrigger,
         actions: T.NOODLUIActionObject | T.NOODLUIActionObject[],
-        { loadQueue = true }: { loadQueue?: boolean } = {},
+        {
+          context: contextProp,
+          loadQueue = true,
+        }: { context?: Record<string, any>; loadQueue?: boolean } = {},
       ) {
         return o.createActionChain(trigger, actions, {
           loadQueue,
+          context: { ...context, ...contextProp },
           component,
           page,
         })
@@ -633,14 +647,17 @@ const NOODLUI = (function _NOODLUI() {
                 'type' in obj ? { emit: obj.emit } : obj,
               )
               if (opts?.component) {
-                const iteratorVar = findIteratorVar(opts.component)
+                const iteratorVar =
+                  opts?.context?.iteratorVar || findIteratorVar(opts.component)
+                const dataObject = opts?.context?.dataObject
+
                 if (obj.emit?.dataKey) {
                   action.dataKey = createEmitDataKey(
                     obj.emit.dataKey as any,
                     _getQueryObjects({
                       component: opts.component,
                       page: opts.page,
-                      listDataObject: opts.context?.dataObject,
+                      listDataObject: dataObject,
                     }),
                     { iteratorVar },
                   )

@@ -24,7 +24,6 @@ const domComponentsResolver: Resolve.Config = {
         mimeType,
         onClick,
         options: selectOptions,
-        placeholder,
         plugin,
         poster,
         text,
@@ -50,8 +49,12 @@ const domComponentsResolver: Resolve.Config = {
           node.style.height = '100%'
         }
         component.on('path', (result) => {
+          console.log(`component.on('path')`, result)
           node && ((node as HTMLImageElement).src = result)
         })
+        if (component.get('data-src')) {
+          node.src = component.get('data-src')
+        }
       }
       // LABEL
       else if (Identify.component.label(component)) {

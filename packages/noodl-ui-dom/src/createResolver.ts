@@ -1,3 +1,4 @@
+import { Identify } from 'noodl-types'
 import { Component, NOODLUI as NUI } from 'noodl-ui'
 import { entries, isArr, isFnc, isStr } from './utils/internal'
 import { findByElementId, findByViewTag, isPageConsumer } from './utils'
@@ -55,11 +56,9 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
           redraw: ndom.redraw.bind(ndom),
         } as T.Resolve.Options
 
-        // if (Identify.component.page(args[1])) {
-        //   if (isPage(args[1])) {
-        //     options.page = args[1]
-        //   }
-        // }
+        if (Identify.component.page(args[1])) {
+          options.page = ndom.findPage(args[1].get('page')) || options.page
+        }
 
         return options
       },

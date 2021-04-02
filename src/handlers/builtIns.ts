@@ -14,6 +14,7 @@ import {
   NUIComponent,
   Store,
   Viewport as VP,
+  isListConsumer,
 } from 'noodl-ui'
 import {
   findByViewTag,
@@ -23,6 +24,7 @@ import {
   getByDataUX,
   isPageConsumer,
   asHtmlElement,
+  getFirstByElementId,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, Identify } from 'noodl-types'
 import {
@@ -513,9 +515,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       }
     },
-    async redraw(action: Action, options: ConsumerOptions) {
+    async redraw(action: Action, options: ConsumerOptions, ctx) {
       log.func('redraw')
-      log.red('', { action, options })
+      log.red('', { action, options, ndomCtx: ctx })
 
       const viewTag = action?.original?.viewTag || ''
       const components = [] as NUIComponent.Instance[]
@@ -524,7 +526,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         c && c.get('viewTag') === viewTag && components.push(c)
       }
 
-      const { component } = options
+      const { context, component } = options
 
       try {
         if (
@@ -552,12 +554,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           const viewTagComponent = components[
             startCount
           ] as NUIComponent.Instance
-          const node = u.array(
-            asHtmlElement(findByElementId(viewTagComponent.id)),
-          )[0]
+          const node = getFirstByElementId(viewTagComponent)
+          const ctx = {} as any
+          if (isListConsumer(viewTagComponent)) {
+            const dataObject = findListDataObject(viewTagComponent)
+            if (dataObject) ctx.dataObject = dataObject
+          }
           const [newNode, newComponent] = app.ndom.redraw(
             node as HTMLElement,
             viewTagComponent,
+            app.mainPage,
+            ctx,
           )
           NUI.cache.component.add(newComponent)
           startCount++

@@ -149,7 +149,7 @@ const createActions = function createActions(app: App) {
           const emitParams = {
             actions: action.original.emit.actions,
             pageName: page,
-          } as any
+          } as T.EmitCallParams
 
           if (action.original.emit.dataKey) {
             emitParams.dataKey = createEmitDataKey(
@@ -163,7 +163,6 @@ const createActions = function createActions(app: App) {
           log.grey('Emitting', { action, emitParams, options })
           const emitResult = await app.noodl.emitCall(emitParams)
           log.grey('Emit result', { emitParams, emitResult })
-
           return Array.isArray(emitResult) ? emitResult[0] : emitResult
         },
         trigger: 'path',
@@ -518,9 +517,7 @@ const createActions = function createActions(app: App) {
             phoneNumber.startsWith('+1 888')
           ) {
             const pageName = app.mainPage?.page || ''
-            const pathToTage = /settings/i.test(pageName)
-              ? 'formData.code'
-              : 'verificationCode.response.edge.tage'
+            const pathToTage = 'verificationCode.response.edge.tage'
             let vcode = get(app.noodl.root?.[pageName], pathToTage, '')
             if (!pageName) {
               log.red(

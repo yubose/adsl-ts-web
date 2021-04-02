@@ -33,22 +33,23 @@ async function resolveAsync(
     -------------------------------------------------------- */
 
     if (Identify.emit(path)) {
-      const ac = await createActionChain(
-        'path',
-        [{ emit: path.emit, actionType: 'emit' }],
-        { context },
-      ).execute()
-      let result = ac?.find((val) => !!val?.result)?.result
+      const ac = createActionChain('path', [
+        { emit: path.emit, actionType: 'emit' },
+      ])
+      const results = await ac.execute()
+      let result = results?.find((val) => !!val?.result)?.result
       result = result ? resolveAssetUrl(result, getAssetsUrl()) : ''
+      component.edit({ src: result })
       component.edit({ 'data-src': result })
       component.emit('path', result)
     }
 
     if (Identify.emit(placeholder)) {
-      const ac = await createActionChain('placeholder', [
+      const ac = createActionChain('placeholder', [
         { emit: placeholder.emit, actionType: 'emit' },
-      ]).execute()
-      const result = ac?.find((v) => !!v.result)?.result
+      ])
+      const results = await ac.execute?.()
+      const result = results?.find((v) => !!v.result)?.result
       component.edit({ 'data-placeholder': result })
       component.emit('placeholder', result)
     }
@@ -62,53 +63,30 @@ asyncResolver.setResolver((component, options, next) => {
   const original = component.blueprint || {}
   const { createActionChain } = options
 
-  resolveAsync(component, options)
+  userEvent.forEach((eventType) => {
+    if (original[eventType]) {
+      const actionChain = createActionChain(
+        eventType,
+        original[eventType] as NOODLUIActionObject[],
+      )
+      component.edit({ [eventType]: actionChain })
+    }
+  })
 
+  resolveAsync(component, options)
   /* -------------------------------------------------------
     ---- USER EVENTS (onClick, onHover, onBlur, etc)
   -------------------------------------------------------- */
 
-  userEvent.forEach((eventType) => {
-    if (u.isArr(original[eventType]) || Identify.emit(original[eventType])) {
-      const actionChain = createActionChain(
-        eventType,
-        u.array(original[eventType] as NOODLUIActionObject[]),
-        { loadQueue: true },
-      )
-
-      // actionChain.use({
-      // onAbortError(obj) {
-      //   window.ac
-      //   debugger
-      // },
-      // onBeforeAbortAction(obj) {
-      //   window.ac = actionChain
-      //   debugger
-      // },
-      // onAfterAbortAction(obj) {
-      //   window.ac = actionChain
-      //   debugger
-      // },w
-      // onBeforeInject(obj) {
-      //   window.ac = actionChain
-      //   debugger
-      // },
-      // onAfterInject(obj) {
-      //   window.ac = actionChain
-      //   debugger
-      // },
-      // onBeforeActionExecute(obj) {
-      //   window.ac = actionChain
-      //   debugger
-      // },
-      // onExecuteResult(obj) {
-      //   window.ac = actionChain
-      //   debugger
-      // },
-      // })
-      component.edit({ [eventType]: actionChain })
-    }
-  })
+  // userEvent.forEach((eventType) => {
+  //   if (u.isArr(original[eventType]) || Identify.emit(original[eventType])) {
+  //     const actionChain = createActionChain(
+  //       eventType,
+  //       u.array(original[eventType] as NOODLUIActionObject[]),
+  //     )
+  //     component.edit({ [eventType]: actionChain })
+  //   }
+  // })
 
   next?.()
 })

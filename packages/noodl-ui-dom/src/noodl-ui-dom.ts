@@ -345,33 +345,34 @@ class NOODLDOM extends NOODLDOMInternal {
     component: C,
     container?: T.NOODLDOMElement | null,
     pageProp?: Page,
+    context?: Record<string, any>,
   ) {
     let node: T.NOODLDOMElement | null = null
     let page: Page = pageProp || this.page
 
     if (component) {
-      for (const evt of userEvent) {
-        if (component.has(evt)) {
-          const ac = component.get(evt)
-          if (isActionChain(ac)) {
-            const numActions = ac.actions.length
-            for (let index = 0; index < numActions; index++) {
-              const obj = ac.actions[index]
-              if (Identify.action.builtIn(obj)) {
-                if (obj.funcName === 'show') {
-                  const viewTag = obj.viewTag
-                  // if (node.style.position)
-                  if (!page.state.viewTag) {
-                    // page.state.viewTag = {}}
-                    // page.state.viewTag[obj.viewTag] = [component.id]
-                    break
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      // for (const evt of userEvent) {
+      //   if (component.has(evt)) {
+      //     const ac = component.get(evt)
+      //     if (isActionChain(ac)) {
+      //       const numActions = ac.actions.length
+      //       for (let index = 0; index < numActions; index++) {
+      //         const obj = ac.actions[index]
+      //         if (Identify.action.builtIn(obj)) {
+      //           if (obj.funcName === 'show') {
+      //             const viewTag = obj.viewTag
+      //             // if (node.style.position)
+      //             if (!page.state.viewTag) {
+      //               // page.state.viewTag = {}}
+      //               // page.state.viewTag[obj.viewTag] = [component.id]
+      //               break
+      //             }
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
 
       if (Identify.component.plugin(component)) {
         // We will delegate the role of the node creation to the consumer
@@ -379,7 +380,7 @@ class NOODLDOM extends NOODLDOMInternal {
         this.#R.run(getNode, component)
         return node
       } else if (Identify.component.image(component)) {
-        node = Identify.emit(component.blueprint?.path)
+        node = Identify.emit(component.get('path'))
           ? createAsyncImageElement(
               (container || document.body) as HTMLElement,
               {},
@@ -457,7 +458,7 @@ class NOODLDOM extends NOODLDOMInternal {
         this.#R.run(node, component)
 
         component.children?.forEach?.((child: Component) => {
-          const childNode = this.draw(child, node, page) as HTMLElement
+          const childNode = this.draw(child, node, page, context) as HTMLElement
           node?.appendChild(childNode)
         })
       }
@@ -469,6 +470,7 @@ class NOODLDOM extends NOODLDOMInternal {
     node: T.NOODLDOMElement | null, // ex: li (dom node)
     component: Component, // ex: listItem (component instance)
     pageProp?: Page,
+    context,
   ) {
     let newNode: T.NOODLDOMElement | null = null
     let newComponent: Component | undefined
@@ -478,16 +480,15 @@ class NOODLDOM extends NOODLDOMInternal {
       this.page
 
     if (component) {
-      const resolveContext = {} as any
       if (Identify.component.listItem(component)) {
         const iteratorVar = findIteratorVar(component)
         if (iteratorVar) {
-          resolveContext.index = component.get('index') || 0
-          resolveContext.dataObject = component.get(iteratorVar)
-          resolveContext.iteratorVar = iteratorVar
+          context = { ...context }
+          context.index = component.get('index') || 0
+          context.dataObject = context?.dataObject || component.get(iteratorVar)
+          context.iteratorVar = iteratorVar
         }
       }
-      console.log(resolveContext)
       const parent = component.parent
       // Clean up state from the component
       component.clear('hooks')
@@ -543,7 +544,7 @@ class NOODLDOM extends NOODLDOMInternal {
         NOODLDOM._nui.resolveComponents?.({
           components: newComponent,
           page,
-          context: resolveContext,
+          context,
         }) || newComponent
     }
 
@@ -554,6 +555,7 @@ class NOODLDOM extends NOODLDOMInternal {
           newComponent,
           parentNode || (document.body as any),
           page,
+          context,
         )
       }
       if (parentNode) {
@@ -566,7 +568,7 @@ class NOODLDOM extends NOODLDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.draw(newComponent as NUIComponent.Instance, null, page)
+      this.draw(newComponent as NUIComponent.Instance, null, page, context)
     }
     if (node instanceof HTMLElement) {
       // console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)

@@ -18,13 +18,10 @@ export function createEmitDataKey(
   dataObject: T.QueryObj | T.QueryObj[],
   opts?: { iteratorVar?: string },
 ): any {
+  const iteratorVar = opts?.iteratorVar || ''
   if (isStr(dataKey)) {
-    return findDataValue(
-      dataObject,
-      excludeIteratorVar(dataKey, opts?.iteratorVar),
-    )
+    return findDataValue(dataObject, excludeIteratorVar(dataKey, iteratorVar))
   } else if (isObj(dataKey)) {
-    const iteratorVar = opts?.iteratorVar || ''
     return Object.keys(dataKey).reduce((acc, property) => {
       acc[property] = findDataValue(
         dataObject,

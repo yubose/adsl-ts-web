@@ -44,12 +44,10 @@ export function createAsyncImageElement(
   container: HTMLElement,
   opts?: { onLoad?(event: Event): void },
 ) {
-  if (!container) container = document.body
   let node = new Image()
-  let temp = document.createElement('span')
-  container.appendChild(temp)
   node.onload = (event) => {
-    container.replaceChild(node, temp)
+    if (!container) container = document.body
+    container.insertBefore(node as HTMLImageElement, container.childNodes[0])
     opts?.onLoad?.(event)
   }
   return node

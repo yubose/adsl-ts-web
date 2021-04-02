@@ -21,19 +21,13 @@ import * as u from '../utils/internal'
 import * as n from '../utils'
 import * as c from '../constants'
 
-const findByElemId = (component: NUIComponent.Instance) =>
-  u
-    .array(n.asHtmlElement(n.findByElementId(component)))
-    .find(Boolean) as HTMLElement
-
-const findAllByElemId = (component: NUIComponent.Instance) =>
-  u.array(n.asHtmlElement(n.findByElementId(component))) as HTMLElement[]
-
 describe(coolGold(`resolvers`), () => {
   it(`should attach the component id as the element id`, async () => {
     const { render } = createRender({ components: { type: 'label' } })
     const component = await render()
-    expect(findByElemId(component)).to.have.property('id').eq(component.id)
+    expect(n.getFirstByElementId(component))
+      .to.have.property('id')
+      .eq(component.id)
   })
 
   it('should display data value if it is displayable', async () => {
@@ -43,7 +37,7 @@ describe(coolGold(`resolvers`), () => {
       pageObject: { formData: { password: dataValue } },
       components: { type: 'label', dataKey: 'F.formData.password' },
     })
-    expect(findByElemId(await render()).textContent).to.eq(dataValue)
+    expect(n.getFirstByElementId(await render()).textContent).to.eq(dataValue)
   })
 
   describe(italic(`Data attributes`), () => {
@@ -94,7 +88,7 @@ describe(coolGold(`resolvers`), () => {
           onClick: [mock.getEmitObject()],
         },
       })
-      expect(findByElemId(await render()).style)
+      expect(n.getFirstByElementId(await render()).style)
         .to.have.property('cursor')
         .eq('pointer')
     })
@@ -110,7 +104,7 @@ describe(italic(`image`), () => {
     const { render } = createRender({
       components: { type: 'image', onClick: [] },
     })
-    expect(findByElemId(await render())?.style)
+    expect(n.getFirstByElementId(await render())?.style)
       .to.have.property('cursor')
       .eq('pointer')
   })
@@ -119,7 +113,7 @@ describe(italic(`image`), () => {
     const { render } = createRender({
       components: { type: 'image', children: [] },
     })
-    const node = findByElemId(await render())
+    const node = n.getFirstByElementId(await render())
     expect(node?.style).to.have.property('width').eq('100%')
     expect(node?.style).to.have.property('height').eq('100%')
   })
@@ -130,7 +124,7 @@ describe(italic(`label`), () => {
     const { render } = createRender({
       components: { type: 'label', onClick: [] },
     })
-    expect(findByElemId(await render()).style)
+    expect(n.getFirstByElementId(await render()).style)
       .to.have.property('cursor')
       .eq('pointer')
   })
@@ -191,7 +185,7 @@ describe(italic(`page`), () => {
         ],
       }),
     })
-    const node = findByElemId(await render())
+    const node = n.getFirstByElementId(await render())
     expect(node).to.have.property('tagName', 'IFRAME')
   })
 
@@ -287,7 +281,7 @@ describe(italic(`styles`), () => {
         const button = component.child(1)
         const testSubjects = [component, label, button]
         testSubjects.forEach((component) => {
-          const node = findByElemId(component)
+          const node = n.getFirstByElementId(component)
           expect(node.style).to.have.property('top').to.exist
           expect(node.style).to.have.property('height').to.exist
         })
@@ -444,7 +438,7 @@ describe.only(italic(`text=func`), () => {
         ],
       })
       const component = await render()
-      expect(findByElemId(component).textContent).to.eq(date)
+      expect(n.getFirstByElementId(component).textContent).to.eq(date)
     })
   })
 })
@@ -455,14 +449,16 @@ describe(italic(`video`), () => {
       components: { type: 'video', videoFormat: 'mp4' },
     })
     const component = await render()
-    expect(findByElemId(component)?.style.objectFit).to.equal('contain')
+    expect(n.getFirstByElementId(component)?.style.objectFit).to.equal(
+      'contain',
+    )
   })
 
   it('should create the source element as a child if the src is present', async () => {
     const { render } = createRender({
       components: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
     })
-    const node = findByElemId(await render())
+    const node = n.getFirstByElementId(await render())
     await waitFor(() => {
       const sourceEl = node?.querySelector('source')
       expect(sourceEl).to.be.instanceOf(HTMLElement)
@@ -474,7 +470,7 @@ describe(italic(`video`), () => {
     const { assetsUrl, render } = createRender({
       components: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
     })
-    const node = findByElemId(await render())
+    const node = n.getFirstByElementId(await render())
     await waitFor(() => {
       const sourceEl = node?.querySelector('source')
       expect(node?.getAttribute('src')).not.to.equal(assetsUrl + path)
@@ -489,7 +485,7 @@ describe(italic(`video`), () => {
       const { render } = createRender({
         components: { type: 'video', path: 'abc123.mp4', videoFormat: 'mp4' },
       })
-      const node = findByElemId(await render())
+      const node = n.getFirstByElementId(await render())
       await waitFor(() => {
         const sourceEl = node?.querySelector('source')
         expect(node?.getAttribute('type')).not.to.equal('mp4')
@@ -502,7 +498,7 @@ describe(italic(`video`), () => {
     const { render } = createRender({
       components: { type: 'video', path: 'abc.jpeg', videoFormat: 'mp4' },
     })
-    const node = findByElemId(await render())
+    const node = n.getFirstByElementId(await render())
     await waitFor(() => {
       const p = node.querySelector('p')
       expect(/sorry/i.test(p?.textContent as string)).to.be.true
@@ -514,7 +510,7 @@ describe(italic(`video`), () => {
     const { assetsUrl, render } = createRender({
       components: { type: 'video', path, videoFormat: 'mp4', id: 'id123' },
     })
-    const node = findByElemId(await render())
+    const node = n.getFirstByElementId(await render())
     await waitFor(() => {
       const sourceElem = node.querySelector('source')
       expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + path)
