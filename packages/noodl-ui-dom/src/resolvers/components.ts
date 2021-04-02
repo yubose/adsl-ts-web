@@ -31,8 +31,8 @@ const domComponentsResolver: Resolve.Config = {
       } = original
 
       // BUTTON
-      if (Identify.component.button(original)) {
-        if (component.props['data-src']) {
+      if (Identify.component.button(component)) {
+        if (component.get('data-src')) {
           node.style.overflow = 'hidden'
           node.style.display = 'flex'
           node.style.alignItems = 'center'
@@ -58,11 +58,12 @@ const domComponentsResolver: Resolve.Config = {
       }
       // LABEL
       else if (Identify.component.label(component)) {
-        if (component.props['data-value'])
-          node.innerHTML = String(component.props['data-value'])
-        else if (text) node.innerHTML = String(text)
-        else if (component.props['data-placeholder']) {
-          node.innerHTML = String(component.props['data-placeholder'])
+        if (component.get('data-value')) {
+          node.innerHTML = String(component.get('data-value'))
+        } else if (text) {
+          node.innerHTML = String(text)
+        } else if (component.get('data-placeholder')) {
+          node.innerHTML = String(component.get('data-placeholder'))
         }
         onClick && (node.style.cursor = 'pointer')
       }

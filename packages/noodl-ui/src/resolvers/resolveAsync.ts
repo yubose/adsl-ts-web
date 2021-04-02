@@ -46,7 +46,7 @@ async function resolveAsync(
 
     if (Identify.emit(placeholder)) {
       const ac = createActionChain('placeholder', [
-        { emit: placeholder.emit, actionType: 'emit' },
+        { emit: placeholder?.emit, actionType: 'emit' },
       ])
       const results = await ac.execute?.()
       const result = results?.find((v) => !!v.result)?.result

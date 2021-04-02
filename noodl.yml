@@ -5,7 +5,7 @@ server:
   host: ""
   port: 3001
   protocol: ""
-  config: meet2d
+  config: testpage
 objects:
   json:
     dir:

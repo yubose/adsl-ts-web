@@ -178,7 +178,7 @@ const createActions = function createActions(app: App) {
           const dataObject = findListDataObject(component)
           const iteratorVar = findIteratorVar(component)
           const emitParams = {
-            actions: placeholder.emit.actions,
+            actions: action.original?.emit?.actions,
             pageName: page,
           } as any
 

@@ -45,25 +45,29 @@ const resolveAttributes: Resolve.Config = {
         // }
       }
       // INPUT FIELDS DISPLAYABLE VALUES (ex: input, textarea, select, etc)
-      if (original['data-placeholder']) {
+      if (component.get('data-placeholder')) {
         if (Identify.emit(original.placeholder)) {
           component.on('placeholder', (src: string) => {
-            setTimeout(() => ((node as HTMLInputElement).placeholder = src))
+            setTimeout(
+              () => node && ((node as HTMLInputElement).placeholder = src),
+            )
           })
         } else {
-          ;(node as HTMLInputElement).placeholder = original['data-placeholder']
+          ;(node as HTMLInputElement).placeholder = component.get(
+            'data-placeholder',
+          )
         }
       }
       // MEDIA (images / videos)
-      if (path && original['data-src']) {
+      if (path && component.get('data-src')) {
         // Images
         if (node.tagName !== 'VIDEO' && node.tagName !== 'IFRAME') {
-          ;(node as HTMLImageElement).src = original['data-src'] || ''
+          ;(node as HTMLImageElement).src = component.get('data-src') || ''
         }
       }
       // TEXTFUNC ('text=func') [date components most likely]
       if (u.isFnc(original['text=func']) && contentType === 'timer') {
-        node.textContent = original['data-value'] || ''
+        node.textContent = component.get('data-value') || ''
       }
       /* -------------------------------------------------------
         ---- USER EVENTS

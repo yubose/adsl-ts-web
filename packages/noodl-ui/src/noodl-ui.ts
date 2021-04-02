@@ -171,7 +171,7 @@ const NOODLUI = (function _NOODLUI() {
       if (Identify.emit(args)) {
         component = opts?.component as T.NUIComponent.Instance
         // TODO - narrow this query to avoid only using the first encountered obj
-        const obj = o.getActions().emit?.find?.((o) => o.trigger === 'path')
+        const obj = o.getActions()?.emit?.find?.((o) => o.trigger === 'path')
         const iteratorVar =
           opts?.context?.iteratorVar || findIteratorVar(component)
 
