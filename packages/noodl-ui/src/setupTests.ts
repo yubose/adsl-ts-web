@@ -17,12 +17,11 @@ let defaultRoot = { [defaultPage]: defaultPageObject }
 
 before(() => {
   console.clear()
+  logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
+  invariantStub = sinon.stub(global.console, 'error').callsFake(() => () => {})
 })
 
 beforeEach(() => {
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
-  invariantStub = sinon.stub(global.console, 'error').callsFake(() => () => {})
-
   NUI.createPage({ name: defaultPage, viewport: { width: 375, height: 667 } })
   NUI.use({
     getAssetsUrl: () => assetsUrl,
@@ -36,6 +35,9 @@ beforeEach(() => {
 afterEach(() => {
   document.body.textContent = ''
   NUI.reset()
+})
+
+after(() => {
   invariantStub.restore()
   logSpy.restore?.()
 })

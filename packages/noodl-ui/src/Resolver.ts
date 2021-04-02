@@ -29,7 +29,9 @@ class Resolver<Func extends (...args: any[]) => any, Inst = any>
 }
 
 class ComponentResolver<
-  Func extends (...args: NUIComponent.ResolverArgs) => void
+  Func extends (...args: NUIComponent.ResolverArgs) => void = (
+    ...args: NUIComponent.ResolverArgs
+  ) => void
 > extends Resolver<Func, ComponentResolver<Func>> {
   #isInternal: boolean = false
   #name: string

@@ -27,6 +27,7 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import { nuiEmitType } from './constants'
+import use_next from './use'
 import * as u from './utils/internal'
 import * as T from './types'
 
@@ -724,6 +725,7 @@ const NOODLUI = (function _NOODLUI() {
       }
       return u.array(cache.page.get('root'))[0]?.page as NUIPage
     },
+    getResolvers: () => store.resolvers,
     getTransactions: () => store.transactions,
     resolveComponents: _resolveComponents,
     reset(
@@ -784,7 +786,9 @@ const NOODLUI = (function _NOODLUI() {
     use: _use,
   }
 
-  return o
+  o['use_next'] = use_next.bind(o)
+
+  return o as typeof o & { use_next: typeof use_next }
 })()
 
 export default NOODLUI

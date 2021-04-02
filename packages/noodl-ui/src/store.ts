@@ -33,7 +33,8 @@ const store = (function _store() {
             resolvers.push(m)
           }
         } else if (isObj(m)) {
-          if (m.actionType === 'builtIn' || 'funcName' in m) {
+          if ('funcName' in m) {
+            const obj = { funcName: m.funcName }
             if (!('actionType' in m)) m.actionType = 'builtIn'
             if (!isArr(store.builtIns[m.funcName])) {
               store.builtIns[m.funcName] = []

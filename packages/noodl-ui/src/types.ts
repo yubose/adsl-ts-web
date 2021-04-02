@@ -43,7 +43,6 @@ export type ActionEventAlias = keyof typeof event.action
 export type ActionEventId = typeof event.action[ActionEventAlias]
 export type DataAttribute = typeof lib.dataAttributes[number]
 export type EventId = ActionEventId | ActionChainEventId | PageComponentEventId
-export type PageEventId = typeof event.SET_PAGE | typeof event.NEW_PAGE
 export type PageComponentEventId = PageComponentEventObject[keyof PageComponentEventObject]
 export type PageComponentEventObject = typeof event.component.page
 
@@ -95,7 +94,7 @@ export type NOODLUIAction = Action | EmitAction
 
 export interface AnonymousActionObject extends ActionObject {
   actionType: 'anonymous'
-  fn?: (...args: any[]) => any
+  fn?(...args: any[]): any
 }
 
 export interface EmitActionObject extends ActionObject, EmitObject {
@@ -372,13 +371,6 @@ export interface Transaction {
 
 export type TransactionId = keyof Transaction
 
-export type Use =
-  | Store.ActionObject
-  | Store.BuiltInObject
-  | Store.PluginObject
-  | UseObject
-  | ComponentResolver<any>
-
 export interface UseObject {
   getAssetsUrl?(): string
   getBaseUrl?(): string
@@ -389,3 +381,10 @@ export interface UseObject {
   register?: Register.Object | Register.Object[]
   transaction?: Record<TransactionId, Transaction[TransactionId]['fn']>
 }
+
+export type Use =
+  | Store.ActionObject
+  | Store.BuiltInObject
+  | Store.PluginObject
+  | UseObject
+  | ComponentResolver<any>
