@@ -1,15 +1,24 @@
+import { dataAttributes as noodluiDataAttributes } from 'noodl-ui'
+
+export const dataAttributes = [
+  ...noodluiDataAttributes,
+  'data-globalid',
+] as const
+
 export const eventId = {
-  redraw: {
-    ON_BEFORE_CLEANUP: 'redraw:on.before.cleanup',
-  },
   page: {
     /** Sorted by order of occurrence */
     on: {
+      ON_STATUS_CHANGE: 'on:status.change',
       ON_NAVIGATE_START: 'on:navigate.start',
       ON_NAVIGATE_ABORT: 'on:navigate.abort',
       ON_OUTBOUND_REDIRECT: 'on:outbound.redirect',
       ON_DOM_CLEANUP: 'on:dom.cleanup',
       ON_BEFORE_RENDER_COMPONENTS: 'on:before.render.components',
+      ON_APPEND_NODE: 'on:append.node',
+      ON_BEFORE_APPEND_CHILD: 'on:before.append.child',
+      ON_AFTER_APPEND_CHILD: 'on:after.append.child',
+      ON_REDRAW_BEFORE_CLEANUP: 'on:redraw.before.cleanup',
       ON_COMPONENTS_RENDERED: 'on:components.rendered',
       ON_NAVIGATE_ERROR: 'on:navigate.error',
       ON_MODAL_STATE_CHANGE: 'on:modal.state.change',
@@ -28,3 +37,7 @@ export const eventId = {
     },
   },
 } as const
+
+export const transaction = {} as const
+
+export const CREATE_GLOBAL_ID = 'CREATE_GLOBAL_ID'

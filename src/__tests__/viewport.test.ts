@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import { expect } from 'chai'
-import { getAspectRatio } from '../utils/common'
+import { coolGold, italic } from 'noodl-common'
+import { Viewport as VP } from 'noodl-ui'
 import { deviceSize, viewport } from '../utils/test-utils'
 import getViewportSizeWithMinMax from '../utils/getViewportSizeWithMinMax'
 import createViewportHandler from '../handlers/viewport'
@@ -34,8 +35,8 @@ afterEach(() => {
   })
 })
 
-describe('viewport', () => {
-  describe('viewWidthHeightMinMax', () => {
+describe(coolGold(`viewport`), () => {
+  describe(italic(`viewWidthHeightMinMax`), () => {
     describe(
       `when the user\'s aspect ratio is less than the ` +
         `${chalk.yellow('min')}`,
@@ -49,15 +50,12 @@ describe('viewport', () => {
             getViewportSizeWithMinMax({
               ...deviceSize.galaxys5,
               ...viewWidthHeightMinMax,
-              aspectRatio: getAspectRatio(
+              aspectRatio: VP.getAspectRatio(
                 deviceSize.galaxys5.width,
                 deviceSize.galaxys5.height,
               ),
             }).width,
           ).to.eq(viewWidthHeightMinMax.min * deviceSize.galaxys5.height)
-        })
-        xit(`should be able to scroll left and right`, () => {
-          //
         })
       },
     )
@@ -76,28 +74,14 @@ describe('viewport', () => {
               ...deviceSize.widescreen,
               ...viewWidthHeightMinMax,
 
-              aspectRatio: getAspectRatio(
+              aspectRatio: VP.getAspectRatio(
                 deviceSize.widescreen.width,
                 deviceSize.widescreen.height,
               ),
             }).width,
           ).to.eq(viewWidthHeightMinMax.max * deviceSize.widescreen.height)
         })
-
-        // NOTE - This should leave the left and right sides blank
-        xit(`should set the user's view to the center`, () => {
-          //
-        })
       },
     )
-  })
-
-  describe('viewport', () => {
-    describe('isConstrained', () => {
-      it('should return true', () => {
-        viewportHandler.setViewportSize(deviceSize.galaxys5)
-        expect(viewportHandler.isConstrained()).to.be.true
-      })
-    })
   })
 })

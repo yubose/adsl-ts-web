@@ -13,12 +13,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-input[type='button'] {
-  /* -moz-appearance: none !important;
-  -webkit-appearance: none !important;
-  appearance: none !important; */
-}
-
 button {
   cursor: pointer;
 }
@@ -34,7 +28,7 @@ input::placeholder {
 .actions button,
 input,
 select {
-  /* flex-grow: 1; */
+  flex-grow: 1;
 }
 
 video::-webkit-media-controls-fullscreen-button {
@@ -48,24 +42,38 @@ div.pluginBodyTail {
   visibility: hidden;
 }
 
+.global {
+  z-index: 1500 !important;
+}
+
+.page {
+}
+
+.grid-lines {
+}
+
 /*
   NOODL COMPONENTS (Currently experimenting)
 */
 
 .scroll-view {
-  position: absolute !important;
-  align-items: flex-start !important;
+  /* position: absolute !important; */
+  /* align-items: flex-start !important; */
   overflow-y: auto !important;
 }
 
 .text-board {
-  display: block !important;
+  /* display: block !important; */
   overflow-y: auto;
+}
+
+.popup {
+  /* visibility: hidden; */
 }
 
 .popup-global {
   border: 1px solid magenta;
-  position: fixed;
+  /* position: fixed; */
   /* top: 10%;
   padding: 40px 50px;
   border-radius: 8px;

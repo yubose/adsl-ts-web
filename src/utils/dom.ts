@@ -1,6 +1,8 @@
 import isPlainObject from 'lodash/isPlainObject'
+import { asHtmlElement, findByDataKey } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
-import { forEachEntries } from './common'
+import { makeElemFn } from 'noodl-ui-dom'
+import { array } from './common'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -18,13 +20,15 @@ export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
 }
 
-export function hide(node: HTMLElement | null | undefined) {
-  node && (node.style.visibility = 'hidden')
+export function getVcodeElem(dataKey = 'formData.code') {
+  return array(asHtmlElement(findByDataKey(dataKey)))[0] as HTMLInputElement
 }
 
-export function show(node: HTMLElement | null | undefined) {
-  node && (node.style.visibility = 'visible')
-}
+export const hide = makeElemFn((node) => (node.style.visibility = 'hidden'))
+export const show = makeElemFn((node) => {
+  node.style.visibility !== 'visible' && (node.style.visibility = 'visible')
+  node.style.display === 'none' && (node.style.display = 'block')
+})
 
 /**
  * Returns true if the value can be displayed in the UI as normal.
@@ -197,6 +201,30 @@ export function scrollToElem(
   node && scrollTo(node.getBoundingClientRect().top, duration, { doc, win })
 }
 
+/**
+ * Sets the style for an HTML DOM element. If key is an empty string it
+ * will erase all styles
+ * @param { HTMLElement } node
+ * @param { string | Styles | undefined } key
+ * @param { any | undefined } value
+ */
+export function setStyle(node: HTMLElement, key?: string | any, value?: any) {
+  if (node) {
+    if (typeof key === 'string') {
+      // Normalize unsetting
+      if (key === '') {
+        key = 'cssText'
+        value = ''
+      }
+      node.style[key as any] = value
+    } else if (isPlainObject(key)) {
+      Object.entries(key).forEach(([k, v]: any) => {
+        node.style[k] = v
+      })
+    }
+  }
+}
+
 export function toast(message: string | number, options?: Toast['options']) {
   return createToast(String(message), {
     cancel: 'Close',
@@ -223,30 +251,6 @@ export function toggleVisibility(
       node.style.visibility = cond({ isHidden })
     } else {
       node.style.visibility = isHidden ? 'visible' : 'hidden'
-    }
-  }
-}
-
-/**
- * Sets the style for an HTML DOM element. If key is an empty string it
- * will erase all styles
- * @param { HTMLElement } node
- * @param { string | Styles | undefined } key
- * @param { any | undefined } value
- */
-export function setStyle(node: HTMLElement, key?: string | any, value?: any) {
-  if (node) {
-    if (typeof key === 'string') {
-      // Normalize unsetting
-      if (key === '') {
-        key = 'cssText'
-        value = ''
-      }
-      node.style[key as any] = value
-    } else if (isPlainObject(key)) {
-      forEachEntries(key, (k: any, v) => {
-        node.style[k] = v
-      })
     }
   }
 }

@@ -5,6 +5,7 @@ import {
   LocalParticipant,
   RemoteParticipant,
 } from 'twilio-video'
+import NOODLDOM from 'noodl-ui-dom'
 import echarts from '@types/echarts'
 import Modal from 'components/NOODLModal'
 import Meeting from '../../meeting'
@@ -12,6 +13,7 @@ import { App } from '../../app'
 
 declare global {
   const echarts: echarts
+  const mapboxgl: any
 
   interface Window {
     ac: any
@@ -19,7 +21,7 @@ declare global {
     addRemoteParticipant: any
     app: any
     build: any
-    componentCache: any
+    cache: any
     noodl: any
     env: string | undefined
     FCMOnTokenReceive: any
@@ -29,8 +31,8 @@ declare global {
     pcomponents: ProxiedComponent[]
     meeting: Meeting
     modal: Modal
-    noodlui: NOODL
-    noodluidom: any
+    nui: NOODL
+    ndom: NOODLDOM
     redraw: any
     room: Room | null
     streams: any

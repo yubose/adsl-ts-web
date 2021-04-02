@@ -1,20 +1,21 @@
 import pick from 'lodash/pick'
 import {
+  findByDataAttrib,
+  findByDataKey,
   findByElementId,
+  findByGlobalId,
+  findByPlaceholder,
+  findBySelector,
+  findBySrc,
   findByViewTag,
+  findByUX,
   findWindow,
   findWindowDocument,
   getByDataUX,
-  getDataAttribKeys,
-  getDynamicShapeKeys,
-  getShape,
-  getShapeKeys,
 } from 'noodl-ui-dom'
 import * as lib from 'noodl-ui'
 import { findReferences } from 'noodl-utils'
-import { toast } from '../utils/dom'
-
-const noodlui = new lib.NOODL()
+import { getVcodeElem, toast } from '../utils/dom'
 
 /**
  * Just a helper to return the utilities that are meant to be attached
@@ -23,33 +24,33 @@ const noodlui = new lib.NOODL()
 export function getWindowHelpers() {
   return Object.assign(
     {
-      findReferences,
+      findByDataAttrib,
+      findByDataKey,
       findByElementId,
+      findByGlobalId,
+      findByPlaceholder,
+      findBySelector,
+      findBySrc,
       findByViewTag,
+      findByUX,
+      findReferences,
       findWindow,
       findWindowDocument,
+      getVcodeElem,
       getByDataUX,
-      getDataAttribKeys,
-      getDynamicShapeKeys,
-      getShape,
-      getShapeKeys,
       toast,
     },
     pick(lib, [
       'findChild',
-      'findList',
+      'findIteratorVar',
       'findListDataObject',
       'findParent',
+      'flatten',
       'getDataValues',
-      'identify',
-      'isComponent',
-      'isListConsumer',
-      'isListKey',
-      'isPromise',
-      'isReference',
+      'getLast',
+      'parseReference',
       'publish',
+      'resolveAssetUrl',
     ]),
   )
 }
-
-export default noodlui

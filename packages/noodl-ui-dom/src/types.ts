@@ -1,46 +1,32 @@
-import { ComponentObject } from 'noodl-types'
+import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
 import {
-  ActionChainContext,
-  ComponentInstance,
-  ComponentType,
-  NOODL as NOODLUI,
-  NOODLComponent,
+  Component,
+  nuiEmitTransaction,
+  Transaction as NUITransaction,
+  UseObject as NUIUseObject,
 } from 'noodl-ui'
-import NOODLUIDOM from './noodl-ui-dom'
-import {
-  findAllByViewTag,
-  findByViewTag,
-  findByElementId,
-  findWindow,
-  findWindowDocument,
-  isPageConsumer,
-} from './utils'
-import { eventId } from './constants'
+import MiddlewareUtils from './MiddlewareUtils'
+import NOODLDOM from './noodl-ui-dom'
+import NOODLDOMPage from './Page'
+import { eventId, dataAttributes } from './constants'
 
-export interface AnyFn {
-  (...args: any[]): any
-}
+export type DOMNodeInput =
+  | NodeListOf<any>
+  | NodeList
+  | HTMLCollection
+  | HTMLElement
+  | HTMLElement[]
+  | null
 
-export interface ActionChainDOMContext extends ActionChainContext {
-  findAllByViewTag: typeof findAllByViewTag
-  findByElementId: typeof findByElementId
-  findByViewTag: typeof findByViewTag
-  findWindow: typeof findWindow
-  findWindowDocument: typeof findWindowDocument
-  isPageConsumer: typeof isPageConsumer
-}
-
-export type NOODLDOMElementTypes = keyof NOODLDOMElements
-
+export type NOODLDOMDataAttribute = typeof dataAttributes[number]
 export type NOODLDOMDataValueElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement
-
-export type NOODLDOMElement =
-  | Extract<NOODLDOMElements[NOODLDOMElementTypes], HTMLElement>
-  | Element
-
+export type NOODLDOMElement = Extract<
+  NOODLDOMElements[NOODLDOMElementTypes],
+  HTMLElement
+>
 export type NOODLDOMElements = Pick<
   HTMLElementTagNameMap,
   | 'br'
@@ -63,95 +49,153 @@ export type NOODLDOMElements = Pick<
   | 'video'
 >
 
+export type NOODLDOMElementTypes = keyof NOODLDOMElements
+
 /**
  * Type utility/factory to construct node resolver func types. Node resolver
  * funcs in noodl-ui-dom are any functions that take a DOM node as the first
  * argument and a component instance as the second, at its base structure
  */
-export interface NOODLUIDOMResolveFunc<
-  N extends NOODLDOMElement,
-  C extends ComponentInstance,
-  Args extends unknown,
-  RT extends unknown
-> {
-  (node: N | null | ((node: N | null) => any), component: C, args: Args): RT
-}
 
-export type NodeResolver<RT = any> = NOODLUIDOMResolveFunc<
-  NOODLDOMElement,
-  ComponentInstance,
-  ActionChainDOMContext & {
-    noodlui: NOODLUI
-    noodluidom: NOODLUIDOM
-    original: ComponentObject
-    draw: Parse
-    redraw: Redraw
-  },
-  RT | void
->
-
-export type NodeResolverBaseArgs = [
-  Parameters<NodeResolver>[0],
-  Parameters<NodeResolver>[1],
-]
-
-export type NodeResolverUtils = Parameters<NodeResolver>[2]
-
-export interface NodeResolverConfig {
-  name?: string
-  cond?: ComponentType | NodeResolver<boolean>
-  before?: NodeResolverConfig | NodeResolver
-  resolve?: NodeResolverConfig | NodeResolver
-  after?: NodeResolverConfig | NodeResolver
-}
-
-export interface NodeResolverLifecycle {
-  before: NodeResolver[]
-  resolve: NodeResolver[]
-  after: NodeResolver[]
-}
-
-export type NodeResolverLifeCycleEvent = 'before' | 'resolve' | 'after'
-
-export interface Parse<C extends ComponentInstance = any> {
+export interface Parse<C extends Component = any> {
   (component: C, container?: NOODLDOMElement | null): NOODLDOMElement | null
 }
 
-export type Redraw = NOODLUIDOMResolveFunc<
-  NOODLDOMElement,
-  ComponentInstance,
-  {
-    resolver(
-      noodlComponent: ComponentObject | ComponentObject[],
-    ): ComponentInstance | ComponentInstance[]
-  },
-  [NOODLDOMElement, ComponentInstance]
->
+export type Redraw = any
 
-export interface Render {
-  (noodlComponents: NOODLComponent | NOODLComponent[]): ComponentInstance[]
+export namespace Resolve {
+  export type BaseArgs = [node: HTMLElement, component: Component]
+
+  export interface Config {
+    name?: string
+    cond?: ComponentType | Func
+    before?: Resolve.Config | Func
+    resolve?: Resolve.Config | Func
+    after?: Resolve.Config | Func
+    observe?: Partial<Page.Hook>
+  }
+
+  export interface Func<RT = any, N extends HTMLElement | null = HTMLElement> {
+    (node: N, component: Component): RT
+  }
+
+  export interface LifeCycle {
+    before: Func[]
+    resolve: Func[]
+    after: Func[]
+  }
+
+  export type LifeCycleEvent = 'before' | 'resolve' | 'after'
+  export interface Options {
+    editStyle(
+      styles: Record<string, any> | undefined,
+      args?: { remove?: string | string[] | false },
+    ): void
+    ndom: NOODLDOM
+    original: ComponentObject
+    draw: Parse
+    page: NOODLDOMPage
+    redraw: Redraw
+  }
 }
 
-export type RegisterOptions = NodeResolverConfig
+export namespace Middleware {
+  export type Utils = MiddlewareUtils
+}
+
+export namespace Render {
+  export interface Func {
+    (components: ComponentObject | ComponentObject[]): Component[]
+  }
+}
+
+export type RegisterOptions = Resolve.Config
 
 /* -------------------------------------------------------
   ---- PAGE TYPES
 -------------------------------------------------------- */
 
-export type PageCbs<K extends PageEvent | PageStatus> = Record<K, AnyFn[]>
-export type PageEvent = typeof eventId.page.on[keyof typeof eventId.page.on]
-export type PageStatus = typeof eventId.page.status[keyof typeof eventId.page.status]
+export namespace Page {
+  export type HookEvent = keyof Hook
 
-export interface PageCallbackObjectConfig {
-  fn: AnyFn
-  cond?(snapshot?: PageSnapshot): boolean
-  once?: boolean
+  export type Hook = {
+    [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
+    [eventId.page.on.ON_NAVIGATE_START](snapshot: Snapshot): void
+    [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
+    [eventId.page.on.ON_NAVIGATE_ERROR](
+      snapshot: Snapshot & { error: Error },
+    ): void
+    [eventId.page.on.ON_OUTBOUND_REDIRECT](snapshot: Snapshot): void
+    [eventId.page.on.ON_DOM_CLEANUP](
+      rootNode: NOODLDOM['page']['rootNode'],
+    ): void
+    [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
+      snapshot: Snapshot,
+    ): Promise<
+      | 'old.request'
+      | { name: string; object: Record<string, any> }
+      | void
+      | undefined
+    >
+    [eventId.page.on.ON_COMPONENTS_RENDERED](
+      snapshot: Snapshot & { components: Component[] },
+    ): void
+    [eventId.page.on.ON_APPEND_NODE](args: {
+      page: NOODLDOMPage
+      parentNode: HTMLElement
+      node: HTMLElement
+      component: Component
+    }): void
+    // Redraw events
+    [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
+      node: HTMLElement | null,
+      component: Component,
+    ): void
+  }
+
+  export interface HookDescriptor<Evt extends Page.HookEvent = Page.HookEvent> {
+    id: Evt
+    once?: boolean
+    fn: Page.Hook[Evt]
+  }
+
+  export interface State {
+    previous: string
+    requesting: string
+    modifiers: {
+      [pageName: string]: { reload?: boolean } & {
+        [key: string]: any
+      }
+    }
+    render: {}
+    reqQueue: string[]
+    status: Status
+    rootNode: boolean
+  }
+
+  export type Status = typeof eventId.page.status[keyof typeof eventId.page.status]
+
+  export interface Snapshot {
+    previous: string
+    current: string
+    requesting: string
+    status: Page.Status
+  }
 }
 
-export interface PageSnapshot {
-  status: PageStatus
-  previous: string
-  current: string
-  requestingPage: string
-  rootNode: HTMLDivElement
+export interface Transaction
+  extends Omit<NUITransaction, typeof nuiEmitTransaction.REQUEST_PAGE_OBJECT> {
+  [nuiEmitTransaction.REQUEST_PAGE_OBJECT](
+    page: NOODLDOMPage,
+  ): Promise<PageObject>
+}
+
+export interface UseObject extends Omit<NUIUseObject, 'transaction'> {
+  createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
+  resolver?: Resolve.Config
+  transaction?: Transaction &
+    Omit<
+      NUIUseObject['transaction'],
+      typeof nuiEmitTransaction.REQUEST_PAGE_OBJECT
+    >
 }

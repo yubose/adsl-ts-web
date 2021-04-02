@@ -1,0 +1,127 @@
+import * as mock from 'noodl-ui-test-utils'
+import { expect } from 'chai'
+import { coolGold, italic, magenta } from 'noodl-common'
+import { ComponentObject } from 'noodl-types'
+import NUI from '../../noodl-ui'
+import NUIPage from '../../Page'
+import Viewport from '../../Viewport'
+
+function resolveComponent(component: ComponentObject) {
+  const page = NUI.createPage({
+    name: 'Hello',
+    viewport: { width: 375, height: 667 },
+  })
+  return NUI.resolveComponents({ components: component, page })
+}
+
+describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
+  describe(italic(`list`), () => {
+    let listObject: ReturnType<typeof mock.getGenderListObject>
+    let componentObject: ReturnType<typeof mock.getListComponent>
+
+    beforeEach(() => {
+      listObject = mock.getGenderListObject()
+      componentObject = mock.getListComponent({
+        contentType: 'listObject',
+        iteratorVar: 'cereal',
+        listObject,
+      })
+    })
+
+    it(
+      `should generate the same amount of children as the length of ` +
+        `its listObject`,
+      () => {
+        const component = resolveComponent(componentObject)
+        expect(component)
+          .to.have.property('children')
+          .lengthOf(listObject.length)
+      },
+    )
+
+    it(
+      `should provide the dataObject to each listItem children by setting ` +
+        `it as the value to a property that is taken from value of ${magenta(
+          'iteratorVar',
+        )}`,
+      () => {
+        const component = resolveComponent(componentObject)
+        const iteratorVar = component.get('iteratorVar') || ''
+        component
+          .get('listObject')
+          .forEach((dataObject: any, index: number) => {
+            expect(component.child(index).props).to.have.property(
+              iteratorVar,
+              dataObject,
+            )
+          })
+      },
+    )
+  })
+
+  describe(italic(`page`), () => {
+    let componentObject: ReturnType<typeof mock.getPageComponent>
+
+    beforeEach(() => {
+      componentObject = mock.getPageComponent({ path: 'Cereal' })
+    })
+
+    it(`should obtain a "page" property that is a Page instance`, () => {
+      expect(resolveComponent(componentObject).get('page')).to.be.instanceOf(
+        NUIPage,
+      )
+    })
+
+    it(`should set its page name to the value of its "path"`, () => {
+      expect(resolveComponent(componentObject).get('page').page).to.eq('Cereal')
+    })
+
+    it(`should have created its own Viewport inside the Page`, () => {
+      expect(resolveComponent(componentObject).get('page'))
+        .to.have.property('viewport')
+        .instanceOf(Viewport)
+    })
+
+    it(
+      `should have set the Viewport's width/height as the same as the ` +
+        `component if it was provided`,
+      () => {
+        const component = resolveComponent({
+          ...componentObject,
+          style: { width: '0.2', height: '0.5', top: '0' },
+        })
+        const page = component.get('page') as NUIPage
+        expect(page.viewport.width + 'px').to.eq(component.style.width)
+        expect(page.viewport.height + 'px').to.eq(component.style.height)
+      },
+    )
+
+    it(
+      `should have set the Viewport's width/height to the root page's viewport's ` +
+        `width/height if it was not provided`,
+      () => {
+        const component = resolveComponent({ ...componentObject, style: {} })
+        const page = component.get('page') as NUIPage
+        const rootPage = NUI.cache.page.get()?.[0].page as NUIPage
+        expect(page.viewport.width).to.eq(rootPage.viewport.width)
+        expect(page.viewport.height).to.eq(rootPage.viewport.height)
+      },
+    )
+  })
+
+  describe(italic(`register`), () => {
+    //
+  })
+
+  describe(italic(`scrollView`), () => {
+    //
+  })
+
+  describe(italic(`textBoard`), () => {
+    //
+  })
+
+  describe(italic(`contentType: timer`), () => {
+    //
+  })
+})

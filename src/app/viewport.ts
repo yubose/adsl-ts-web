@@ -1,4 +1,4 @@
-import { getAspectRatio } from '../utils/common'
+import { Viewport as VP } from 'noodl-ui'
 
 /**
  * This is a handler for the viewWidthHeightRatio object in the config
@@ -25,7 +25,7 @@ const handleViewWidthHeightRatio = (function () {
       consumerFn(event, {
         width: document.body.clientWidth,
         height: document.body.clientHeight,
-        aspectRatio: getAspectRatio(
+        aspectRatio: VP.getAspectRatio(
           document.body.clientWidth,
           document.body.clientHeight,
         ),

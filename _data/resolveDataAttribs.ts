@@ -1,0 +1,220 @@
+// Resolve data attributes which get attached to the outcome as data-* properties
+// If any emit objects are encountered the resolveActions resolver should be
+// picking them up
+import get from 'lodash/get'
+import { Identify } from 'noodl-types'
+import { excludeIteratorVar, findDataValue, isBoolean } from 'noodl-utils'
+import Resolver from '../Resolver'
+
+import * as n from '../utils/noodl'
+import * as u from '../utils/internal'
+
+const dataAttribsResolver = new Resolver('resolveDataAttribs')
+
+dataAttribsResolver.setResolver((component, options, next) => {
+  const original = component.blueprint || {}
+  const { context, getAssetsUrl, getQueryObjects, getRoot, page } = options
+  const {
+    contentType,
+    controls,
+    dataKey,
+    dataValue,
+    path,
+    placeholder,
+    poster,
+    options: selectOptions,
+    required,
+    resource,
+    videoFormat,
+    viewTag,
+  } = original
+  const iteratorVar = original.iteratorVar || context?.iteratorVar || ''
+
+  /* -------------------------------------------------------
+    ---- UI / VISIBILITY
+  -------------------------------------------------------- */
+
+  if (/(passwordHidden|messageHidden)/i.test(contentType)) {
+    component.edit({ 'data-ux': contentType })
+  } else if (/(vidoeSubStream|videoSubStream)/i.test(contentType)) {
+    component.edit({ 'data-ux': contentType })
+  }
+
+  /* -------------------------------------------------------
+    ---- POP UP
+  -------------------------------------------------------- */
+
+  if (Identify.component.popUp(original)) {
+    component.edit({ 'data-ux': viewTag })
+  }
+
+  /* -------------------------------------------------------
+    ---- LISTS
+  -------------------------------------------------------- */
+
+  if (n.isListLike(component)) {
+    component.edit({ 'data-listid': component.id })
+  }
+
+  /* -------------------------------------------------------
+    ---- REFERENCES / DATAKEY 
+  -------------------------------------------------------- */
+
+  if (u.isStr(dataKey)) {
+    let result: any
+    if (!Identify.emit(dataValue)) {
+      result = findDataValue(
+        getQueryObjects({
+          component,
+          page,
+          queries: () => context?.dataObject || {},
+        }),
+        (iteratorVar && dataKey.startsWith(iteratorVar)
+          ? excludeIteratorVar(dataKey, iteratorVar)
+          : dataKey) || dataKey,
+      )
+      component.edit({ 'data-value': result })
+    }
+
+    const textFunc = original['text=func']
+
+    if (u.isFnc(textFunc)) component.edit({ 'data-value': result })
+
+    // TODO - Deprecate this logic below for an easier implementation
+    let fieldParts = dataKey?.split?.('.')
+    let field = fieldParts?.shift?.() || ''
+    let fieldValue = getRoot()?.[page.page]?.[field]
+
+    if (fieldParts?.length) {
+      while (fieldParts.length) {
+        field = (fieldParts?.shift?.() as string) || ''
+        field = field[0]?.toLowerCase?.() + field.substring(1)
+        fieldValue = fieldValue?.[field]
+      }
+    } else {
+      field = fieldParts?.[0] || ''
+    }
+
+    component.edit({
+      'data-key': dataKey,
+      'data-name': field,
+      'data-value': result || '',
+    })
+  }
+
+  /* -------------------------------------------------------
+    ---- ARBITRARY PROP TRANSFORMING
+  -------------------------------------------------------- */
+  for (const [key = '', value] of component) {
+    // Check the value if they are a string and are a reference
+    if (u.isStr(value)) {
+      /* -------------------------------------------------------
+        ---- REFERENCES
+      -------------------------------------------------------- */
+      if (Identify.reference(value)) {
+        if (key === 'style') {
+          u.assign(
+            component.style,
+            n.parseReference(value, { page: page.page, root: getRoot() }),
+          )
+        } else {
+          component.edit(
+            n.parseReference(value, { page: page.page, root: getRoot() }),
+          )
+        }
+      }
+
+      /* -------------------------------------------------------
+        ---- LIST CONSUMER DATA OBJECTS
+      -------------------------------------------------------- */
+      // if (
+      //   context?.iteratorVar &&
+      //   context?.dataObject &&
+      //   value.startsWith(context.iteratorVar)
+      // ) {
+      //   if (
+      //     !n.isListLike(component) &&
+      //     !Identify.component.listItem(original)
+      //   ) {
+      //     const { iteratorVar, dataObject } = context
+      //     component.edit({
+      //       'data-value': get(
+      //         dataObject,
+      //         excludeIteratorVar(value, iteratorVar),
+      //       ),
+      //     })
+      // }
+      // }
+    }
+  }
+
+  /* -------------------------------------------------------
+    ---- MEDIA
+  -------------------------------------------------------- */
+
+  if (poster) {
+    component.edit({ poster: n.resolveAssetUrl(poster, getAssetsUrl()) })
+  }
+
+  isBoolean(controls) && component.edit({ controls: true })
+
+  // Images / Videos
+  if (path || resource) {
+    let src = ''
+
+    if (u.isStr(path)) src = path
+    else if (u.isStr(resource)) src = resource
+
+    // Path emits are handled in resolveActions
+    if (u.isStr(src)) {
+      if (Identify.reference(src)) {
+        if (src.startsWith('..')) {
+          // Local
+          src = src.substring(2)
+          src = get(getRoot()[page.page], src)
+        } else if (src.startsWith('.')) {
+          // Root
+          src = src.substring(1)
+          src = get(getRoot(), src)
+        }
+      }
+
+      if (src) {
+        src = n.resolveAssetUrl(src, getAssetsUrl())
+        // TODO - Deprecate "src" in favor of data-value
+        component.edit({ 'data-src': src })
+        component.emit('path', src)
+      }
+    }
+  }
+
+  /* -------------------------------------------------------
+    ---- OTHER
+  -------------------------------------------------------- */
+  // Hardcoding / custom injecting these for now
+  if (viewTag) {
+    if (viewTag === 'mainStream') {
+      component.edit('data-ux', 'mainStream')
+    } else if (viewTag === 'camera') {
+      component.edit('data-ux', 'camera')
+    } else if (viewTag === 'microphone') {
+      component.edit('data-ux', 'microphone')
+    } else if (viewTag === 'hangUp') {
+      component.edit('data-ux', 'hangUp')
+    } else if (viewTag === 'inviteOthers') {
+      component.edit('data-ux', 'inviteOthers')
+    } else if (viewTag === 'subStream') {
+      component.edit('data-ux', 'subStream')
+    } else if (viewTag === 'selfStream') {
+      component.edit('data-ux', 'selfStream')
+    } else {
+      // TODO convert others to use data-view-tag
+      component.edit('data-viewtag', viewTag)
+      if (!original['data-ux']) component.edit({ 'data-ux': viewTag })
+    }
+  }
+
+  next?.()
+})
+
+export default dataAttribsResolver

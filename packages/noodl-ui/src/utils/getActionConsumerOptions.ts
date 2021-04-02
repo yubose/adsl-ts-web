@@ -1,6 +1,4 @@
 import pick from 'lodash/pick'
-import { ActionConsumerCallbackOptions } from '../types'
-import NOODLUI from '../noodl-ui'
 import Page from '../components/Page'
 import isComponent from './isComponent'
 
@@ -9,9 +7,7 @@ import isComponent from './isComponent'
  * to be exported for use
  * @param { NOODLUI } instance - noodl-ui client or Page component
  */
-function getActionConsumerOptions(
-  instance: NOODLUI | Page,
-): ActionConsumerCallbackOptions {
+function getActionConsumerOptions(instance: any | Page): any {
   return Object.assign(
     {},
     pick(

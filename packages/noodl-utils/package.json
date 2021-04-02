@@ -1,6 +1,6 @@
 {
   "name": "noodl-utils",
-  "version": "0.0.41",
+  "version": "0.0.43",
   "description": "Utility/helpers for working with NOODL values",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "main": "dist/index.js",
@@ -38,5 +38,8 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
+  },
+  "devDependencies": {
+    "noodl-ui-test-utils": "file:../noodl-ui-test-utils"
   }
 }

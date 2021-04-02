@@ -1,14 +1,5 @@
-// Strictly targeted components
-export { default as button } from './components/button'
-export { default as image } from './components/image'
-export { default as label } from './components/label'
-export { default as list } from './components/list'
-export { default as page } from './components/page'
-export { default as plugin } from './components/plugin'
-export { default as popUp } from './components/popUp'
-export { default as select } from './components/select'
-export { default as video } from './components/video'
-// Others
+// export { default as attributes } from './attributes'
+export { default as components } from './components'
 export { default as common } from './common'
 export { default as dataset } from './dataset'
 export { default as events } from './events'

@@ -1,4 +1,4 @@
-import { isPluginComponent } from 'noodl-utils'
+import { Identify } from 'noodl-types'
 import { ConsumerOptions, PluginObject, ResolverFn } from '../types'
 import { isPromise } from '../utils/common'
 import { resolveAssetUrl } from '../utils/noodl'
@@ -34,14 +34,10 @@ const getPlugins = (function (): ResolverFn {
     return url
   }
 
-  return (component, { createSrc, fetch, getAssetsUrl, plugins }) => {
-    if (isPluginComponent(component)) {
+  return (component, { createSrc, getAssetsUrl, plugins }) => {
+    if (Identify.component.plugin(component)) {
       const path = component.get('path') || ''
       const plugin = (component.get('plugin') as PluginObject) || {}
-
-      if (fetch === undefined && typeof window !== undefined) {
-        fetch = window.fetch
-      }
 
       if (pluginExists(path as string, plugins)) return
 

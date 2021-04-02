@@ -1,47 +1,25 @@
-import { queryHelpers } from '@testing-library/dom'
-<<<<<<< HEAD
-import { isEmitObj } from 'noodl-utils'
+import { Status } from '@aitmed/ecos-lvl2-sdk'
+import CADL from '@aitmed/cadl'
+import noop from 'lodash/noop'
+import { Draft } from 'immer'
+import { ComponentObject, PageObject } from 'noodl-types'
+import NOODLDOM, {
+  defaultResolvers,
+  Page as NOODLDOMPage,
+  Resolve,
+  Transaction,
+} from 'noodl-ui-dom'
 import {
-  createComponent as createComponentInstance,
-  getElementType,
-  getAlignAttrs,
-  getBorderAttrs,
-  getCustomDataAttrs,
-  getColors,
-  getEventHandlers,
-  getFontAttrs,
-  getPlugins,
-  getPosition,
-  getReferences,
-  getStylesByElementType,
-  getSizes,
-  getTransformedAliases,
-  getTransformedStyleAliases,
-  ResolverFn,
-  EmitObject,
-  ComponentType,
-  ActionObject,
-  ActionType,
-  ComponentObject,
-  Component,
-  List,
-  ListItem,
-  IComponent,
+  nuiEmitTransaction,
+  NOODLUI as NUI,
+  NUIComponent,
+  Viewport,
+  Store,
 } from 'noodl-ui'
-import { NOODLDOMElement } from 'noodl-ui-dom'
-=======
-import { NOODLDOMElement, Page } from 'noodl-ui-dom'
-import { ComponentInstance, Viewport } from 'noodl-ui'
->>>>>>> dev2
-import noodlui from '../app/noodl-ui'
-import noodluidom from '../app/noodl-ui-dom'
-
-export { noodlui, noodluidom }
-
-export const page = new Page()
-export const assetsUrl = 'https://aitmed.com/assets/'
-export const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
-export const viewport = new Viewport()
+import App from '../App'
+import createActions from '../handlers/actions'
+import createBuiltIns from '../handlers/builtIns'
+import * as u from './common'
 
 export const deviceSize = {
   galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },
@@ -50,299 +28,237 @@ export const deviceSize = {
   widescreen: { width: 1920, height: 1080, aspectRatio: 1.777777777777778 },
 } as const
 
+export const baseUrl = 'https://aitmed.com/'
+export const assetsUrl = `${baseUrl}assets/`
+export const nui = NUI
+export const ndom = new NOODLDOM(nui)
+export const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
+export const viewport = new Viewport({
+  width: deviceSize.iphone6.width,
+  height: deviceSize.iphone6.height,
+})
+
+const defaultResolversKeys = u.keys(
+  defaultResolvers,
+) as (keyof typeof defaultResolvers)[]
+
+type MockDrawResolver =
+  | Resolve.Config
+  | keyof typeof defaultResolvers
+  | (Resolve.Config | keyof typeof defaultResolvers)[]
+
+interface MockRenderOptions {
+  components?: ComponentObject | ComponentObject[]
+  currentPage?: string
+  page?: NOODLDOMPage
+  pageName?: string
+  pageObject?: PageObject
+  resolver?: MockDrawResolver
+  root?: Record<string, any>
+}
+
+/**
+ * A helper that tests a noodl-ui-dom DOM resolver. This helps to automatically prepare
+ * the noodl-ui client when testing resolvers. The root object automatically
+ * inserts the pageName and pageObject if they are both set, so its entirely optional
+ * to provide a getRoot function in that case
+ */
+export function createRender(opts: MockRenderOptions) {
+  ndom.reset()
+
+  let currentPage = ''
+  let pageRequesting = ''
+  let page: NOODLDOMPage | undefined
+  let pageObject: Partial<PageObject> | undefined
+  let root = { ...NUI.getRoot(), ...opts?.root }
+
+  currentPage = opts.currentPage || ''
+  page = opts.page
+  pageRequesting = opts.pageName || page?.requesting || 'Hello'
+  pageObject =
+    (opts.pageObject
+      ? ({
+          ...opts.pageObject,
+          components: opts.components || opts.pageObject.components || [],
+        } as PageObject)
+      : undefined) ||
+    ({ components: opts.components || page?.components || [] } as PageObject)
+
+  !page && (page = ndom.page || ndom.createPage(currentPage))
+  !opts.resolver && (opts.resolver = defaultResolversKeys)
+
+  if (page.requesting !== pageRequesting) page.requesting = pageRequesting
+  if (page.page !== currentPage) page.page = currentPage
+
+  u.array(opts.resolver).forEach(
+    (resolver: Resolve.Config | typeof defaultResolversKeys[number]) => {
+      if (u.isStr(resolver)) {
+        defaultResolvers[resolver] && ndom.register(defaultResolvers[resolver])
+      } else {
+        resolver && ndom.register(resolver)
+      }
+    },
+  )
+
+  pageObject = {
+    ...root,
+    ...root[pageRequesting],
+    ...pageObject,
+  }
+
+  if (pageObject && !u.isArr(pageObject?.components)) {
+    pageObject.components = [pageObject.components as any]
+  }
+
+  if (u.isUnd(page.viewport.width) || u.isUnd(page.viewport.height)) {
+    page.viewport.width = page.viewport.width || 375
+    page.viewport.height = page.viewport.height || 667
+  }
+
+  const use = {
+    getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => baseUrl,
+    getPageObject: async () => pageObject as PageObject,
+    getPages: () => [pageRequesting],
+    getPreloadPages: () => [],
+    getRoot: () => ({
+      ...opts.root,
+      [pageRequesting]: pageObject,
+    }),
+  }
+
+  ndom.use({
+    transaction: {
+      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
+        pageObject as PageObject,
+    },
+  })
+
+  ndom.use(use)
+
+  const o = {
+    ...use,
+    assetsUrl,
+    baseUrl,
+    nui: NUI,
+    ndom,
+    page,
+    pageObject,
+    request: (pgName?: string) => {
+      pgName && page && (page.requesting = pgName)
+      return ndom.request(page)
+    },
+    render: async (pgName?: string): Promise<NUIComponent.Instance> => {
+      const req = await o.request(pgName)
+      return req && req?.render()[0]
+    },
+  }
+
+  return o
+}
+
 export class MockNoodl {
+  aspectRatio = 1
   assetsUrl = assetsUrl
+  baseUrl = baseUrl
+  cadlBaseUrl = baseUrl
+  cadlEndpoint = { page: [], preload: [], startPage: '' }
   emitCall = (arg: any) => Promise.resolve(arg)
   root = root
+  viewWidthHeightRatio?: { min: number; max: number }
+  constructor({ startPage }: { startPage?: string } = {}) {
+    startPage && (this.cadlEndpoint.startPage = startPage)
+  }
+  async init() {}
+  async initPage(
+    pageName: string,
+    someArr?: string[],
+    opts?: { builtIn?: {} },
+  ) {}
+  editDraft(fn: (draft: Draft<typeof root>) => void) {
+    fn(this.root)
+  }
+  getConfig() {
+    return {}
+  }
+  async getStatus() {
+    return ({ code: 0 } as any) as () => Promise<
+      Status & { userId: string; phone_number: string }
+    >
+  }
+  setFromLocalStorage(key: string) {}
 }
 
 // Mock noodl SDK
-export const noodl = new MockNoodl()
+export const noodl = new MockNoodl() as MockNoodl
 
-export function getByDataKey(dataKey: string, container?: Element) {
-  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
-}
-
-export function getByDataListId(dataKey: string, container?: Element) {
-  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
-}
-
-export function getByDataUx(dataKey: string, container?: Element) {
-  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
-}
-
-export function getByDataValue(dataKey: string, container?: Element) {
-  return (container || document.body).querySelector(`[data-key="${dataKey}"]`)
-}
-
-export function getAllByDataKey(dataKey: string, container?: Element) {
-  return (container || document.body).querySelectorAll(
-    `[data-key="${dataKey}"]`,
-  )
-}
-
-export function getAllByDataName(dataName: string, container?: Element) {
-  return (container || document.body).querySelectorAll(
-    `[data-name="${dataName}"]`,
-  )
-}
-
-export function getAllByDataListId(listId: string, container?: Element) {
-  return (container || document.body).querySelectorAll(
-    `[data-listid="${listId}"]`,
-  )
-}
-
-export function getAllByDataUx(dataUx: string, container?: Element) {
-  return (container || document.body).querySelectorAll(`[data-ux="${dataUx}"]`)
-}
-
-export function getAllByDataValue(dataValue: string, container?: Element) {
-  return (container || document.body).querySelectorAll(
-    `[data-value="${dataValue}"]`,
-  )
-}
-
-export const queryByDataKey = queryHelpers.queryByAttribute.bind(
-  null,
-  'data-key',
-)
-
-export const queryByDataListId = queryHelpers.queryByAttribute.bind(
-  null,
-  'data-listid',
-)
-
-export const queryByDataName = queryHelpers.queryByAttribute.bind(
-  null,
-  'data-name',
-)
-
-export const queryByDataValue = queryHelpers.queryByAttribute.bind(
-  null,
-  'data-value',
-)
-
-export const queryByDataUx = queryHelpers.queryByAttribute.bind(null, 'data-ux')
-
-export const queryByDataViewtag = queryHelpers.queryByAttribute.bind(
-  null,
-  'data-viewtag',
-)
-
-<<<<<<< HEAD
-export function getAllResolvers() {
-  return [
-    getAlignAttrs,
-    getBorderAttrs,
-    getColors,
-    getCustomDataAttrs,
-    getElementType,
-    getEventHandlers,
-    getFontAttrs,
-    getPlugins,
-    getPosition,
-    getReferences,
-    getSizes,
-    getStylesByElementType,
-    getTransformedAliases,
-    getTransformedStyleAliases,
-  ] as ResolverFn[]
-}
-
-export function toDOM<C extends IComponent = Component>(
-  props: C,
-  container: any = page.rootNode || document.body,
-): NOODLDOMElement {
-  const node = noodluidom.parse(props)
-  container.appendChild(node as NOODLDOMElement)
-  return node
-}
-
-/* -------------------------------------------------------
-  ---- TEST UTILITIES 
--------------------------------------------------------- */
-
-export type ActionSelection = ActionType | ActionObject
-export type ActionsConfig =
-  | ActionSelection[]
-  | Record<ActionType, ActionObject>
-  | { builtIn?: string[] }
-export type DataKeyType<K extends string = 'emit' | 'key'> = K
-export type PathType = 'emit' | 'if' | 'url'
-
-export function createComponent(
-  noodlComponent: ComponentObject,
-  opts?: Parameters<typeof createNOODLComponent>[1],
+export async function initializeApp(
+  opts?: Parameters<App['initialize']>[0] & {
+    app?: App
+    noodl?: CADL | MockNoodl
+    transaction?: Partial<Transaction>
+  },
 ) {
-  return createComponentInstance(createNOODLComponent(noodlComponent, opts)) as
-    | Component
-    | List
-    | ListItem
+  const meeting = {
+    getStreams: () =>
+      ({
+        getMainStream: noop,
+        getSelfStream: noop,
+        getSubStreamsContainer: noop,
+        getSubstreamsCollection: noop,
+        createSubStreamsContainer: noop,
+      } as any),
+    initialize: noop as any,
+    join: noop as any,
+    leave: noop as any,
+    room: noop as any,
+  } as any
+
+  const app =
+    opts?.app ||
+    new App({
+      getStatus: noodl.getStatus.bind(noodl) as any,
+      meeting,
+      noodl: (opts?.noodl || noodl || new MockNoodl()) as CADL,
+      nui,
+      ndom,
+      viewport,
+    })
+
+  // const actions = createActions(app)
+  // const builtIns = createBuiltIns(app)
+  // const registers = createRegisters(app)
+  // const domResolvers = createExtendedDOMResolvers(app)
+  // const meetingFns = createMeetingFns(app)
+
+  await app.initialize({
+    firebase: { client: { messaging: noop } as any, vapidKey: '' },
+    firebaseSupported: false,
+  })
+
+  return app as App
 }
 
-export function createNOODLComponent(
-  noodlComponent: ComponentType | Partial<ComponentObject>,
-  opts?: {
-    props?: Partial<ComponentObject>
-    dataKey?: DataKeyType
-    iteratorVar?: string
-    onClick?: ActionsConfig
-    onChange?: ActionsConfig
-    path?: boolean | PathType
-    resolver?: typeof noodlui['resolveComponents']
-  } & Partial<Omit<ComponentObject, 'path' | 'onClick' | 'dataKey'>>,
+export function getActions(app: any = {}) {
+  return createActions(app)
+}
+
+export function getBuiltIns<FuncName extends string = string>(
+  funcNames: FuncName | FuncName[],
+): Record<FuncName, Store.BuiltInObject>
+export function getBuiltIns(app?: any): Store.BuiltInObject[]
+export function getBuiltIns<FuncName extends string = string>(
+  app: FuncName | FuncName[] | App | {},
 ) {
-  const props = {
-    ...opts,
-    type:
-      typeof noodlComponent === 'string' ? noodlComponent : noodlComponent.type,
-  } as ComponentObject
-
-  const createActionObjs = (configs: ActionsConfig) => {
-    const arr = Array.isArray(configs) ? configs : [configs]
-    return arr.reduce((acc, obj) => {
-      if (typeof obj === 'string') {
-        const parts = obj.split(':')
-        const [actionType] = parts
-        switch (actionType) {
-          case 'builtIn':
-            const funcName = parts[1]
-            const args = parts
-              .slice(2)
-              .reduce((acc, keyval) => {
-                if (acc.length) {
-                  if (!acc[acc.length - 1]) acc[acc.length - 1].push(keyval)
-                  if (acc[acc.length - 1].length < 2) {
-                    acc[acc.length - 1].push(keyval)
-                  } else {
-                    acc.push([keyval])
-                  }
-                } else {
-                  acc.push([keyval])
-                }
-                return acc
-              }, [])
-              .reduce(
-                (acc, [key, val]) => Object.assign(acc, { [key]: val }),
-                {},
-              )
-
-            if (args && typeof args === 'string') {
-              try {
-                args = JSON.parse(args)
-                console.info(args)
-              } catch (error) {
-                console.error(error.message)
-              }
-            }
-            return acc.concat({
-              actionType: 'builtIn',
-              funcName,
-              ...(typeof args === 'object' ? args : undefined),
-            })
-          case 'emit':
-            return acc.concat(
-              createEmitObj({
-                keys: ['hello1', 'hello2'],
-                iteratorVar: opts?.iteratorVar,
-              }),
-            )
-          default:
-            break
-        }
-      } else if (obj && !Array.isArray(obj) && typeof obj === 'object') {
-        // if 'emit' in obj
-        // if 'actionType' in obj
-        // etc
+  if (u.isStr(app) || u.isArr(app)) {
+    const _fns = createBuiltIns({} as any)
+    const _fnNames = u.array(app)
+    return _fns.reduce((acc, obj) => {
+      if (_fnNames.includes(obj.funcName as FuncName)) {
+        acc[obj.funcName as FuncName] = obj
       }
       return acc
-    }, [] as any[])
+    }, {} as Record<FuncName, Store.BuiltInObject>)
   }
-
-  const createDataKey = (type: DataKeyType, opts) =>
-    type === 'emit' ? createEmitObj(opts) : opts
-
-  const createEmitObj = (
-    opts?:
-      | {
-          actions?: [any, any, any]
-          keys?: string | string[]
-          iteratorVar?: string
-        }
-      | boolean,
-  ) => {
-    const getPrefilledEmitObj = () => {
-      const iteratorVar = (typeof opts === 'object' && opts.iteratorVar) || ''
-      return {
-        emit: {
-          dataKey: {
-            var1: iteratorVar || 'itemObject',
-            var2: `${iteratorVar || 'itemObject'}.value`,
-          },
-          actions: [{}, {}, {}],
-        },
-      }
-    }
-    if (typeof opts === 'boolean') {
-      return getPrefilledEmitObj()
-    } else if (!opts?.keys) {
-      return getPrefilledEmitObj()
-    } else {
-      return {
-        emit: {
-          dataKey: Array.isArray(opts.keys)
-            ? opts?.keys.reduce(
-                (acc, key, index) =>
-                  Object.assign(acc, { [`var${index + 1}`]: key }),
-                {},
-              )
-            : opts?.keys,
-        },
-      } as EmitObject
-    }
-  }
-
-  const createPath = (type: PathType | boolean, iteratorVar?: string = '') =>
-    type === 'emit'
-      ? createEmitObj({ iteratorVar })
-      : path === 'if'
-      ? { if: [] }
-      : path
-
-  if (opts) {
-    if (opts.dataKey) props.dataKey = createDataKey(opts.dataKey, opts)
-    if (opts.path) props.path = createPath(opts.path)
-    if (opts.onClick) props.onClick = createActionObjs(opts.onClick)
-    if (opts.onChange) props.onChange = createActionObjs(opts.onChange)
-  }
-
-  return opts?.resolver?.call?.(noodlui, props) || props
-}
-
-export function createNOODLElement<N extends HTMLElement>(
-  noodlComponent: Parameters<typeof createNOODLComponent>[0],
-  options?: Parameters<typeof createNOODLComponent>[1],
-) {
-  const component = createComponent(noodlComponent, options) as any
-  const node = toDOM(component)
-  return node as N
-=======
-export function toDOM<
-  N extends NOODLDOMElement = NOODLDOMElement,
-  C extends ComponentInstance = any
->(props: any) {
-  let node: N | null = null
-  let component: C | undefined
-  if (typeof props?.children === 'function') {
-    node = noodluidom.draw(props as any) as N
-    component = props as any
-  } else if (typeof props === 'object' && 'type' in props) {
-    component = noodlui.resolveComponents(props) as any
-    // @ts-expect-error
-    node = noodluidom.draw(component) as N
-  }
-  if (node) document.body.appendChild(node as any)
-  return [node, component] as [NonNullable<N>, C]
->>>>>>> dev2
+  return createBuiltIns(app || ({} as any))
 }

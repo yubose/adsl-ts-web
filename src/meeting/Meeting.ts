@@ -9,9 +9,10 @@ import {
   Room,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import NOODLUIDOM, { getByDataUX, Page } from 'noodl-ui-dom'
+import NOODLOM, { getByDataUX, Page } from 'noodl-ui-dom'
 import { Viewport } from 'noodl-ui'
 import { isMobile } from '../utils/common'
+import App from '../App'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
 import MeetingSubstreams from '../meeting/Substreams'
@@ -21,35 +22,27 @@ const log = Logger.create('Meeting.ts')
 
 interface Internal {
   _page: Page | undefined
-  _noodluidom: NOODLUIDOM
+  _ndom: NOODLOM
   _viewport: Viewport | undefined
   _room: Room
   _streams: Streams
   _token: string
 }
 
-export type IMeeting = typeof Meeting
-
 // import makePublications from './makePublications'
 // import makeTrack from './makeTrack'
 
-const Meeting = (function _Meeting() {
+const createMeetingFns = function _createMeetingFns(app: App) {
   const _internal: Internal = {
-    _page: undefined,
-    _viewport: undefined,
-    _noodluidom: null as any,
+    _page: app.mainPage,
+    _viewport: app.viewport,
+    _ndom: app.ndom,
     _room: new EventEmitter() as Room,
     _streams: new Streams(),
     _token: '',
   } as Internal
 
   const o = {
-    initialize({ noodluidom, page, viewport }: T.InitializeMeetingOptions) {
-      _internal['_noodluidom'] = noodluidom
-      _internal['_page'] = page
-      _internal['_viewport'] = viewport
-      return this
-    },
     /**
      * Joins and returns the room using the token
      * @param { string } token - Room token
@@ -79,7 +72,7 @@ const Meeting = (function _Meeting() {
 
         // TEMPORARY
         setTimeout(() => {
-          Meeting.onConnected?.(room)
+          app.meeting.onConnected?.(room)
         }, 2000)
         // _handleRoomCreated
         return _internal._room
@@ -142,7 +135,7 @@ const Meeting = (function _Meeting() {
           // Just set the participant as the mainStream  since it's open
           if (!mainStream.isAnyParticipantSet()) {
             mainStream.setParticipant(participant)
-            Meeting.onAddRemoteParticipant?.(participant, mainStream)
+            app.meeting.onAddRemoteParticipant?.(participant, mainStream)
             return this
           }
 
@@ -154,11 +147,11 @@ const Meeting = (function _Meeting() {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = subStreams.blueprint
-              const node = _internal._noodluidom.draw(
+              const node = _internal._ndom.draw(
                 subStreams.resolver?.(props) || props,
               ) as any
               const subStream = subStreams.create({ node, participant }).last()
-              Meeting.onAddRemoteParticipant?.(participant, mainStream)
+              app.meeting.onAddRemoteParticipant?.(participant, mainStream)
               log.green(
                 `Created a new subStream and bound the newly connected participant to it`,
                 { blueprint: props, node, participant, subStream },
@@ -206,7 +199,7 @@ const Meeting = (function _Meeting() {
           // since we create them customly and are not included in the NOODL, we
           // would call subStream.removeElement() for those
           mainStream.unpublish().detachParticipant()
-          Meeting.onRemoveRemoteParticipant?.(participant, mainStream)
+          app.meeting.onRemoveRemoteParticipant?.(participant, mainStream)
 
           let nextMainParticipant: T.RoomParticipant | null
 
@@ -261,7 +254,7 @@ const Meeting = (function _Meeting() {
           if (subStream) {
             subStream.unpublish().detachParticipant().removeElement()
             subStreams?.removeSubStream(subStream)
-            Meeting.onRemoveRemoteParticipant?.(participant, subStream)
+            app.meeting.onRemoveRemoteParticipant?.(participant, subStream)
           }
         }
       }
@@ -373,6 +366,6 @@ const Meeting = (function _Meeting() {
     getInternal?(): typeof _internal
     setInternal?(opts: typeof _internal): void
   }
-})()
+}
 
-export default Meeting
+export default createMeetingFns

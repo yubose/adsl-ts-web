@@ -1,46 +1,3 @@
-import isPlainObject from 'lodash/isPlainObject'
-import spread from 'lodash/spread'
-import { AnyFn } from '../types'
-
-export const callAll = (...fns: AnyFn[]) => (arg: any) =>
-  fns.forEach((fn) => fn?.(arg))
-
-/**
- * Runs forEach on each key/value pair of the value, passing in the key as the first
- * argument and the value as the second argument on each iteration
- * @param { object } value
- * @param { function } callback - Callback function to run on each key/value entry
- */
-export function forEachEntries<Obj extends {}, K extends keyof Obj>(
-  value: Obj,
-  callback: (key: string, value: Obj[K]) => void,
-) {
-  if (isPlainObject(value)) {
-    Object.entries(value).forEach(spread(callback))
-  }
-}
-
-/**
- * Runs forEach on each key/value pair of the value, passing in the key as the first
- * argument and the value as the second argument on each iteration.
- * This is a recursion version of forEachEntries
- * @param { object } value
- * @param { function } callback - Callback function to run on each key/value entry
- */
-export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
-  value: Obj | undefined,
-  callback: (key: string, value: Obj[K], obj: Obj) => void,
-) {
-  if (Array.isArray(value)) {
-    value.forEach((val) => forEachDeepEntries(val, callback))
-  } else if (isPlainObject(value)) {
-    Object.entries(value as Obj).forEach(([k, v]: [string, Obj[K]]) => {
-      callback(k, v, value as Obj)
-      forEachDeepEntries(v, callback as any)
-    })
-  }
-}
-
 /**
  * Converts 0x000000 to #000000 format
  * @param { string } value - Raw color value from NOODL
@@ -52,15 +9,7 @@ export function formatColor(value: string) {
   return value || ''
 }
 
-/**
- * Returns a random 7-character string
- */
-export function getRandomKey() {
-  return `_${Math.random().toString(36).substr(2, 9)}`
-}
-
-export function isPromise(value: unknown): value is Promise<any> {
-  window.isPromise = isPromise
+export function isPromise(value: any): value is Promise<any> {
   return value && typeof value === 'object' && 'then' in value
 }
 
@@ -80,11 +29,24 @@ export function hasLetter(value: any): boolean {
   return /[a-zA-Z]/i.test(String(value))
 }
 
-/**
- * Returns true if we are in the browser environment
- */
-export function isBrowser() {
-  return typeof window !== 'undefined'
+export async function promiseAllSafely(
+  promises: Promise<any>[],
+  getResult?: <RT = any>(err: null | Error, result: any) => RT,
+) {
+  const results = [] as any[]
+
+  for (let index = 0; index < promises.length; index++) {
+    const promise = promises[index]
+    try {
+      const result = await promise
+      results.push(getResult ? getResult(null, result) : result)
+    } catch (error) {
+      const err = new Error(error.message)
+      results.push(getResult ? getResult(err, undefined) : err)
+    }
+  }
+
+  return results
 }
 
 export function toNumber(str: string) {

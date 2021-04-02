@@ -2,76 +2,44 @@
 // TEMP: "Register" components that operate with "emit" objects
 // are currently handled in App.ts
 
-import { RemoteParticipant } from 'twilio-video'
-import { ComponentInstance, NOODL as NOODLUI } from 'noodl-ui'
-import Logger from 'logsnap'
-import NOODLUIDOM from 'noodl-ui-dom'
-import { isStable } from '../utils/common'
-import AppMeeting from '../meeting/Meeting'
-import Stream from '../meeting/Stream'
+import { RemoteParticipant, Room } from 'twilio-video'
+import { Register } from 'noodl-ui'
+import { noodlEvent } from '../constants'
+import App from '../App'
+import * as u from '../utils/common'
 
-const log = Logger.create('src/handlers/register.ts')
-const stable = isStable()
-
-interface Options {
-  noodl: any
-  noodlui: NOODLUI
-  noodluidom: NOODLUIDOM
-  Meeting: typeof AppMeeting
-}
-
-function registerCallbacks({ noodl, noodlui, noodluidom, Meeting }: Options) {
-  noodlui.register({
-    component: null,
-    key: 'twilioOnPeopleJoin',
-    prop: 'onEvent',
-    fn({
-      participant,
-      stream,
-      id,
-      prop,
-      eventName,
-      component,
-      next,
-    }: {
-      participant: RemoteParticipant
-      stream: Stream
-      id: string
-      prop: string
-      eventName: string
-      component?: ComponentInstance
-      next?(): void
-    }) {
-      log.func('twilioOnPeopleJoin')
-      log.grey('', arguments[0])
-      next?.()
+function registerCallbacks(app: App) {
+  const registers: Record<
+    string,
+    Omit<Partial<Register.Object>, 'name'> | Register.Object['callback']
+  > = {
+    async [noodlEvent.TWILIO_ON_PEOPLE_JOIN](
+      obj,
+      params: { room: Room; participant: RemoteParticipant },
+    ) {
+      console.log(`%c[${noodlEvent.TWILIO_ON_PEOPLE_JOIN}]`, `color:#95a5a6;`, {
+        obj,
+        params,
+      })
     },
-  })
-
-  noodlui.register({
-    component: null,
-    key: 'twilioOnNoParticipant',
-    prop: 'onEvent',
-    fn({
-      id,
-      prop,
-      eventName,
-      component,
-      next,
-    }: {
-      id: string
-      prop: string
-      eventName: string
-      component?: ComponentInstance
-      next?(): void
-    }) {
-      log.func('twilioOnNoParticipant')
-      log.grey('', arguments[0])
-      next?.()
+    async [noodlEvent.TWILIO_ON_NO_PARTICIPANT](obj, params: { room: Room }) {
+      console.log(
+        `%c[${noodlEvent.TWILIO_ON_NO_PARTICIPANT}]`,
+        `color:#95a5a6;`,
+        { obj, params },
+      )
     },
-  })
+  }
 
-  stable && log.cyan(`Initialized register funcs`)
+  return Object.entries(registers).reduce((acc, [name, obj]) => {
+    const register = { name } as Register.Object
+
+    if (u.isFnc(obj)) {
+      register.callback = obj
+    } else u.assign(register, obj)
+
+    return acc.concat(register)
+  }, [] as Register.Object[])
 }
 
 export default registerCallbacks

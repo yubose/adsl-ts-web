@@ -185,3 +185,7 @@ fn(stepFn)
 if (top) --> absolute
 if (no top) --> relative
 if marginTop --> marginTop
+
+for hide/show builtIn:
+if hide and relative, dont hold the space
+if absolute, hold the space

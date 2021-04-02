@@ -51,10 +51,13 @@
     "prefix": "test",
     "body": [
       "import { expect } from 'chai'",
+      "import { coolGold, italic } from 'noodl-common'",
+      "import * as mock from 'noodl-ui-test-utils'",
+      "$1",
       "",
-      "describe(`$1`, () => {",
-      "  xit(`$2`, () => {",
-      "    $3",
+      "describe(coolGold(`$2`), () => {",
+      "  xit(italic(`$3`), () => {",
+      "    $4",
       "  })",
       "})",
       ""
@@ -91,5 +94,9 @@
   "queryByDataUx": {
     "prefix": "qdataux",
     "body": "import { queryByDataUx } from 'utils/test-utils'"
+  },
+  "import * as mock from 'noodl-ui-test-utils'": {
+    "prefix": "mock",
+    "body": "import * as mock from 'noodl-ui-test-utils'"
   }
 }

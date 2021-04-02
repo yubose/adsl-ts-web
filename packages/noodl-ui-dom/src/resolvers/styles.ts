@@ -1,54 +1,64 @@
-import { NOODLDOMElement, RegisterOptions } from '../types'
-
-function addClassName(className: string, node: NOODLDOMElement) {
-  if (!node.classList.contains(className)) {
-    node.classList.add(className)
-  }
-}
+import { Identify as is } from 'noodl-types'
+import { Viewport as VP } from 'noodl-ui'
+import { RegisterOptions } from '../types'
+import { addClassName, entries, isObj } from '../utils/internal'
 
 export default {
-  name: '[noodl-ui-dom] styles',
-  cond: (node: NOODLDOMElement, component) =>
+  name: '[noodl-dom] Styles',
+  cond: (node, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
-  resolve: (node: HTMLElement, component) => {
-    const originalStyle = component.original?.style || {}
-    if (
-      component.style != null &&
-      typeof component.style === 'object' &&
-      node.style
-    ) {
-      if (component.has('text=func')) {
-        // debugger
-      }
-      Object.entries(component.style).forEach(([k, v]) => {
-        // if (k === 'height' && v === 'auto') {
-        //   node.style.cssText += `height: inherit !important;`
-        // } else {
-        node.style[k] = v
-        // }
+  before(node, component) {
+    if (component.has('global')) {
+      component.on('image', (src) => {
+        console.log(
+          `%cReceived src for Global Component`,
+          `color:#00b406;`,
+          src,
+        )
+        node && (node.style.backgroundImage = `url("${src}")`)
       })
-      if (component.has('text=func')) {
-        // debugger
-      }
+    }
+  },
+  resolve: (node: HTMLElement, component) => {
+    if (isObj(component.style?.textAlign)) {
+      delete component.style.textAlign
     }
 
-    // TEMP - Experimenting CSS
-    if (component.original?.axis === 'vertical') {
-      addClassName('axis-vertical', node)
+    entries(component.style).forEach(([styleKey, styleValue]) => {
+      node.style[styleKey] = String(styleValue)
+    })
+
+    if (VP.isNil(component.blueprint?.style?.marginTop)) {
+      component.style.marginTop = '0px'
     }
 
-    if (component.noodlType === 'scrollView') {
-      addClassName('scroll-view', node)
-    }
+    // for (const evt of userEvent) {
+    //   if (component.has(evt)) {
+    //     const ac = component.get(evt)
+    //     if (isActionChain(ac)) {
+    //       const numActions = ac.actions.length
+    //       for (let index = 0; index < numActions; index++) {
+    //         const obj = ac.actions[index]
+    //         if (Identify.action.builtIn(obj)) {
+    //           if (obj.funcName === 'show') {
+    //             // if (node.style.position)
+    //             console.log(`A node has a "show" action`)
+    //             break
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
-    if (component.has('textBoard')) {
-      addClassName('text-board', node)
-    }
+    /* -------------------------------------------------------
+      ---- TEMP - Experimenting CSS
+    -------------------------------------------------------- */
 
-    if (!originalStyle?.top || originalStyle?.top === 'auto') {
-      node.style.position = 'relative'
-    } else {
-      node.style.position = 'absolute'
-    }
+    is.component.page(component) && addClassName('page', node)
+    is.component.popUp(component) && addClassName('popup', node)
+    is.component.scrollView(component) && addClassName('scroll-view', node)
+    component.has('global') && addClassName('global', node)
+    component.has('textBoard') && addClassName('text-board', node)
   },
 } as RegisterOptions

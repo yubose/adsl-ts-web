@@ -1,149 +1,29 @@
-import { ComponentObject } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
-import {
-  ActionChainEmitTrigger,
-  ComponentCreationType,
-  ComponentInstance,
-  PluginLocation,
-} from '../types'
-import { isBrowser } from './common'
-import { actionChainEmitTriggers } from '../constants'
 import isComponent from './isComponent'
-
-/**
- * Deeply traverses all children down the component's family tree
- * @param { ComponentInstance | NOODLComponent | ProxiedComponent | ProxiedComponent } component
- */
-export function forEachDeepChildren<C extends ComponentInstance>(
-  component: C,
-  cb: (component: C, child: ComponentCreationType) => void,
-): void
-export function forEachDeepChildren<C extends ComponentObject>(
-  component: C,
-  cb: (component: C, child: ComponentCreationType) => void,
-): void
-export function forEachDeepChildren<
-  C extends ComponentInstance | ComponentObject
->(
-  component: C,
-  cb: (
-    parent: ComponentInstance | ComponentObject,
-    child: ComponentCreationType,
-  ) => void,
-): void {
-  if (component) {
-    if (Array.isArray(component.children)) {
-      component.children.forEach((child) => {
-        cb(component, child)
-        forEachDeepChildren(child, cb)
-      })
-    } else if (typeof component.children === 'function') {
-      component.children().forEach((child) => {
-        cb(component, child)
-        forEachDeepChildren(child, cb)
-      })
-    } else if (component.children) {
-      cb(component, component.children as ComponentCreationType)
-    }
-  }
-}
-
-export function isActionChainEmitTrigger(
-  trigger: any,
-): trigger is ActionChainEmitTrigger {
-  return actionChainEmitTriggers.includes(trigger)
-}
-
-// function createRegexKeysOnProps(keys: string | string[]) {
-//   const regex = new RegExp(Array.isArray(keys) ? )
-// }
-export const identify = (function () {
-  const o = {
-    stream: {
-      video: {
-        /** Returns true if value has a viewTag of "mainStream" */
-        isMainStream: (value: any) => {
-          const fn = (val: string) =>
-            typeof val === 'string' && /mainStream/i.test(val)
-          return (
-            checkForNoodlProp(value, 'viewTag', fn) ||
-            checkForNoodlProp(value, 'data-ux', fn)
-          )
-        },
-        /** Returns true if value has a viewTag of "selfStream" */
-        isSelfStream: (value: any) => {
-          const fn = (val: string) =>
-            typeof val === 'string' && /selfStream/i.test(val)
-          return (
-            checkForNoodlProp(value, 'viewTag', fn) ||
-            checkForNoodlProp(value, 'data-ux', fn)
-          )
-        },
-        /**
-         * Returns true if value has a contentType of "videoSubStream",
-         * false otherwise
-         */
-        isSubStreamsContainer(value: any) {
-          return checkForNoodlProp(value, 'contentType', (val: string) => {
-            return (
-              typeof val === 'string' &&
-              /(vidoeSubStream|videoSubStream)/i.test(val)
-            )
-          })
-        },
-        /** Returns true if value has a viewTag of "subStream", */
-        isSubStream(value: any) {
-          return checkForNoodlProp(value, 'viewTag', (val: string) => {
-            return typeof val === 'string' && /(subStream)/i.test(val)
-          })
-        },
-      },
-    },
-  }
-
-  return o
-})()
-
-/**
- * Checks for a prop in the component object in the top level as well as the "noodl" property level
- * @param { object } component - NOODL component
- * @param { string } prop - Prop key
- * @param { function } predicate - The function to call to decide if the condition is truthy or not
- */
-export function checkForNoodlProp(
-  component: any,
-  prop: string,
-  predicate: (o: any) => boolean,
-) {
-  if (
-    (component && typeof component === 'object') ||
-    (typeof component === 'function' && typeof prop === 'string')
-  ) {
-    if (predicate(component[prop])) return true
-  }
-  return false
-}
+import { NUIComponent } from '../types'
+import { array, isNum } from './internal'
 
 /**
  * Traverses the children hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned child
- * @param { ComponentInstance } component
+ * @param { NUIComponent.Instance } component
  * @param { function } fn - Comparator function
  */
-export function findChild<C extends ComponentInstance>(
+export function findChild<C extends NUIComponent.Instance>(
   component: C,
-  fn: (child: ComponentInstance) => boolean,
-): ComponentInstance | null {
-  let child: ComponentInstance | null | undefined
-  let children = component?.children?.()?.slice?.() || []
+  fn: (child: NUIComponent.Instance) => boolean,
+): NUIComponent.Instance | null {
+  let child: NUIComponent.Instance | null | undefined
+  let children = component?.children?.slice?.() || []
 
-  if (isComponent(component)) {
-    child = children.shift() || null
+  if (isComponent(component) && component.length) {
+    child = children.shift()
     while (child) {
       if (fn(child)) return child
-      child.children?.().forEach((c: ComponentInstance) => children.push(c))
+      child.children?.forEach((c: NUIComponent.Instance) => children.push(c))
       child = children.pop()
     }
   }
@@ -154,65 +34,92 @@ export function findChild<C extends ComponentInstance>(
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
- * @param { ComponentInstance } component
+ * @param { NUIComponent.Instance } component
  * @param { function } fn
  */
-export function findParent<C extends ComponentInstance>(
-  component: C,
-  fn: (parent: ComponentInstance | null) => boolean,
+export function findParent<C extends NUIComponent.Instance>(
+  component: C | undefined,
+  fn: (parent: NUIComponent.Instance | null) => boolean,
 ) {
-  let parent = component?.parent?.()
+  if (!component) return null
+  let parent = component?.parent as NUIComponent.Instance
   if (fn(parent)) return parent
-  if (parent) {
-    while (parent) {
-      parent = parent.parent?.()
-      if (fn(parent)) return parent
-    }
+  while (parent) {
+    if (fn(parent.parent)) return parent.parent
+    parent = parent.parent as NUIComponent.Instance
   }
   return parent || null
 }
 
-export function findListDataObject(component: ComponentInstance) {
+export function findListDataObject(
+  component: NUIComponent.Instance | undefined,
+) {
+  if (!isComponent(component) || !isListConsumer(component)) return null
+
   let dataObject
   let listItem: any
-  if (component?.noodlType === 'listItem') {
-    listItem = component as any
+  let iteratorVar = findIteratorVar(component)
+
+  if (Identify.component.listItem(component)) {
+    listItem = component
   } else {
-    listItem = findParent(component, (p) => p?.noodlType === 'listItem') as any
+    listItem = findParent(component, Identify.component.listItem)
   }
-  if (listItem) {
-    dataObject = listItem.getDataObject?.()
-    let listIndex = listItem.get('listIndex')
-    if (typeof listIndex !== 'number') listIndex = component.get('listIndex')
-    if (!dataObject && typeof listIndex === 'number') {
-      const list = listItem?.parent?.() as any
-      if (list) {
-        let listObject = list.getData()
-        if (listObject?.length) {
-          dataObject = listObject[listIndex]
-        }
-        if (!dataObject) {
-          listObject = list.original?.listObject || []
-          if (listObject?.length) {
-            dataObject = listObject[listIndex] || listObject[listIndex]
-          }
-        }
+
+  if (isComponent(listItem)) {
+    if (iteratorVar && listItem.props[iteratorVar]) {
+      // console.log(
+      //   `%cFound dataObject in listItem.props[iteratorVar]`,
+      //   `color:#00b406;`,
+      //   listItem.props[iteratorVar],
+      // )
+      return listItem.props[iteratorVar]
+    }
+
+    let list = listItem.parent
+    let listIndex = isNum(listItem.get('index'))
+      ? listItem.get('index')
+      : listItem.get('listIndex')
+
+    if (isComponent(list)) {
+      if (Identify.component.listItem(component)) {
+        dataObject = listItem.get(iteratorVar)
+      } else {
+        dataObject = list.get('listObject')?.[listIndex]
       }
+    }
+    if (!dataObject && isNum(listIndex)) {
+      const listObject = isComponent(list)
+        ? list.blueprint?.listObject
+        : undefined
+      listObject?.length && (dataObject = listObject[listIndex])
     }
   }
   return dataObject || null
 }
 
-export function findIteratorVar(component: ComponentInstance) {
-  const listItem = findParent(component, (p) => {})
+export function findIteratorVar(
+  component: NUIComponent.Instance | undefined,
+): string {
+  if (isComponent(component)) {
+    if (Identify.component.list(component)) {
+      return component.blueprint?.iteratorVar || ''
+    }
+    return (
+      findParent(component, (p) => Identify.component.list(p))?.blueprint
+        ?.iteratorVar || ''
+    )
+  }
+  return ''
 }
 
-/**
- * Returns the node matching the data key
- * @param { string } dataKey - Data path leading to the value in the data model object
- */
-function getDataField(dataKey: string) {
-  return document.querySelector(`[data-key="${dataKey}"]`)
+export function flatten(
+  component: NUIComponent.Instance | undefined,
+): NUIComponent.Instance[] {
+  if (!component) return []
+  const children = [component] as NUIComponent.Instance[]
+  publish(component, (child) => children.push(child))
+  return children
 }
 
 /**
@@ -223,15 +130,15 @@ function getDataField(dataKey: string) {
  */
 export function getDataFields(
   dataKeys?: string | string[],
-): { [key: string]: ReturnType<typeof getDataField> } | undefined {
-  if (isBrowser()) {
+): { [key: string]: HTMLElement | null } | undefined {
+  if (typeof window !== 'undefined') {
     if (dataKeys) {
       // Ensure that it is an array
       if (typeof dataKeys === 'string') dataKeys = [dataKeys]
 
       return Array.isArray(dataKeys)
         ? dataKeys.reduce((acc, dataKey) => {
-            acc[dataKey] = getDataField(dataKey)
+            acc[dataKey] = document.querySelector(`[data-key="${dataKey}"]`)
             return acc
           }, {})
         : []
@@ -242,7 +149,9 @@ export function getDataFields(
       nodeList.forEach((node) => {
         const dataset = node['dataset']
         if (dataset['key'] && dataset['name']) {
-          result[dataset.name] = getDataField(dataset.key)
+          result[dataset.name] = document.querySelector(
+            `[data-key="${dataset.key}"]`,
+          )
         } else {
           console.log(
             `%cInvalid data name and/or data key`,
@@ -266,7 +175,7 @@ function getDataValue(node: string | null | Element): string | number | null {
   if (node) {
     if (typeof node === 'string') {
       const dataKey = node
-      node = getDataField(dataKey)
+      node = document.querySelector(`[data-key="${dataKey}"]`)
     }
     if (node instanceof Element) {
       switch (node.constructor.name) {
@@ -347,103 +256,36 @@ export function getDataValues<Fields, K extends keyof Fields>(
   return result
 }
 
-/**
- * A helper to extract a value from a dataObject using the dataKey and iteratorVar
- * @param { object } dataObject
- * @param { string } dataKey
- * @param { string } iteratorVar
- */
-export function getDataObjectValue<T = any>({
-  dataObject,
-  dataKey,
-  iteratorVar,
-}: {
-  dataObject: T
-  dataKey: string
-  iteratorVar: string
-}) {
-  if (typeof dataObject === 'string') return dataObject
-  if (iteratorVar && dataKey.startsWith(iteratorVar)) {
-    dataKey = dataKey.split('.').slice(1).join('.')
-  }
-  return get(dataObject, dataKey)
-}
-
-export function getPluginTypeLocation(value: string): PluginLocation | '' {
-  switch (value) {
-    case 'pluginHead':
-      return 'head'
-    case 'pluginBodyTop':
-      return 'body-top'
-    case 'pluginBodyTail':
-      return 'body-bottom'
-    default:
-      return ''
-  }
-}
-
-/**
- * Returns true if the dataKey begins with the value of iteratorVar
- * @param {  }  -
- */
-export function isListKey(dataKey: string, iteratorVar: string): boolean
-export function isListKey(
-  dataKey: string,
-  component: ComponentInstance,
-): boolean
-export function isListKey(dataKey: string, component: ComponentObject): boolean
-export function isListKey(
-  dataKey: string,
-  component: string | ComponentInstance | ComponentObject,
-) {
-  if (arguments.length < 2) {
-    throw new Error('Missing second argument')
-  }
-  if (typeof dataKey === 'string' && component) {
-    if (typeof component === 'string') {
-      return dataKey.startsWith(component)
-    }
-    if (isComponent(component)) {
-      const iteratorVar =
-        component.get('iteratorVar') ||
-        component.original?.iteratorVar ||
-        findParent(component, (p) => !!p?.get('iteratorVar')) ||
-        ''
-      return !!(iteratorVar && dataKey.startsWith(iteratorVar))
-    }
-    if ('iteratorVar' in component) {
-      return dataKey.startsWith(component.iteratorVar || '')
-    }
-  }
-  return false
-}
-
-export function isListConsumer(component: any) {
-  return !!(
-    component?.get?.('iteratorVar') ||
-    component?.get?.('listId') ||
-    component?.get?.('listIndex') != undefined ||
-    component?.noodlType === 'listItem' ||
-    (component && findParent(component, (p) => p?.noodlType === 'listItem'))
-  )
-}
-
-// export function isPasswordInput(value: unknown) {
-//   return (
-//     _.isObjectLike(value) &&
-//     value['type'] === 'textField' &&
-//     value['contentType'] === 'password'
-//   )
-// }
-
-/**
- * Returns true if value has a viewTag of "subStream", false otherwise
- * @param { any } value
- */
-export function isSubStreamComponent(value: any) {
-  return checkForNoodlProp(value, 'viewTag', (val: string) => {
-    return typeof val === 'string' && /subStream/i.test(val)
+export function getRootParent(component: NUIComponent.Instance) {
+  if (!component.parent) return component
+  const temp = [] as NUIComponent.Instance[]
+  findParent(component, (p) => {
+    p && temp.push(p)
+    return false
   })
+  const rootParent = temp[0] || null
+  temp.length = 0
+  return rootParent
+}
+
+export function getLast(component: NUIComponent.Instance | undefined) {
+  if (!component?.length) return component
+  const temp = [] as NUIComponent.Instance[]
+  publish(component, (c) => void temp.push(c))
+  const last = temp.length ? temp[temp.length - 1] : null
+  temp.length = 0
+  return last
+}
+
+export function isListConsumer(
+  component: unknown,
+): component is NUIComponent.Instance {
+  if (!isComponent(component)) return false
+  return !!findIteratorVar(component)
+}
+
+export function isListLike(component: NUIComponent.Instance) {
+  return component.type === 'chatList' || component.type === 'list'
 }
 
 export function parseReference(
@@ -462,44 +304,59 @@ export function parseReference(
   return ''
 }
 
-/**
- * Recursively invokes the provided callback on each child
- * @param { ComponentInstance } component
- * @param { function } cb
- */
-// TODO - Depth option
-export function publish(
-  component: ComponentInstance,
-  cb: (child: ComponentInstance) => void,
+export function pullFromComponent(
+  key: string | undefined,
+  component: NUIComponent.Instance | undefined | null,
 ) {
-  if (
-    component &&
-    typeof component === 'object' &&
-    typeof component['children'] === 'function'
-  ) {
-    component.children().forEach((child: ComponentInstance) => {
-      cb(child)
-      child?.children()?.forEach?.((c: ComponentInstance) => {
-        cb(c)
-        publish(c, cb)
-      })
-    })
+  if (!key || !isComponent(component)) return null
+  return (
+    component.get(key) ||
+    component[key] ||
+    (component.has(key) && component.blueprint?.[key]) ||
+    null
+  )
+}
+
+export function find(
+  key: string | string[] | undefined,
+  component: NUIComponent.Instance | null | undefined,
+) {
+  const keys = array(key)
+  const numKeys = keys.length
+  for (let index = 0; index < numKeys; index++) {
+    const k = keys[index]
+    const value = pullFromComponent(k, component)
+    if (value != undefined) return value
   }
 }
 
-export function resolveAssetUrl(pathValue: string, assetsUrl: string) {
+/**
+ * Recursively invokes the provided callback on each child.
+ * @param { NUIComponent.Instance } component
+ * @param { function } cb
+ */
+export function publish(
+  component: NUIComponent.Instance | undefined,
+  cb: (child: NUIComponent.Instance) => void,
+) {
+  component?.children?.forEach?.((child: NUIComponent.Instance) => {
+    cb(child)
+    publish(child, cb)
+  })
+}
+
+export function resolveAssetUrl(
+  pathValue: string | undefined,
+  assetsUrl: string,
+) {
+  if (!pathValue) return assetsUrl || ''
   let src = ''
   if (typeof pathValue === 'string') {
-    if (/^(http|blob)/i.test(pathValue)) {
-      src = pathValue
-    } else if (pathValue.startsWith('~/')) {
+    if (/^(http|blob)/i.test(pathValue)) src = pathValue
+    else if (pathValue.startsWith('~/')) {
       // Should be handled by an SDK
-    } else {
-      src = assetsUrl + pathValue
-    }
-  } else {
-    src = `${assetsUrl}${pathValue}`
-  }
+    } else src = assetsUrl + pathValue
+  } else src = `${assetsUrl}${pathValue}`
   return src
 }
 

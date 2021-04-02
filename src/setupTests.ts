@@ -1,60 +1,34 @@
+import jsdom from 'jsdom-global'
+jsdom(undefined, {
+  url: 'http://localhost',
+})
+import chaiAsPromised from 'chai-as-promised'
 import noop from 'lodash/noop'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
-import { eventId } from 'noodl-ui-dom'
-import { getAllResolversAsMap, publish, Resolver } from 'noodl-ui'
-import { assetsUrl, noodlui, noodluidom, viewport } from './utils/test-utils'
+import { ndom } from './utils/test-utils'
 
 chai.use(sinonChai)
+chai.use(chaiAsPromised)
 
-let logSpy: sinon.SinonStub
-let root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
+let logStub: sinon.SinonStub
+let invariantStub: sinon.SinonStub<any>
 
-before(() => {
+before(function () {
   console.clear()
-  noodlui.init({ _log: false })
-  // @ts-expect-error
-  delete window.location
-  // @ts-expect-error
-  window.location = {}
-
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => noop)
-
-  noodluidom
-    .on(eventId.redraw.ON_BEFORE_CLEANUP, (node, component) => {
-      noodlui.componentCache().remove(component)
-      publish(component, (c) => {
-        noodlui.componentCache().remove(c)
-      })
-    })
-    .use(noodlui)
-
-  Object.entries(getAllResolversAsMap()).forEach(([name, r]) => {
-    const resolver = new Resolver().setResolver(r)
-    noodlui.use(resolver)
-    noodlui.use({ name, resolver } as any)
-  })
-
-  viewport.width = 375
-  viewport.height = 667
-})
-
-after(() => {
-  logSpy?.restore?.()
-})
-
-beforeEach(() => {
-  noodlui.setPage('GeneralInfo').use({
-    getAssetsUrl: () => assetsUrl,
-    getBaseUrl: () => 'https://google.com/',
-    getRoot: () => root,
-  })
+  global.localStorage = window.localStorage
+  logStub = sinon.stub(global.console, 'log').callsFake(() => noop)
+  invariantStub = sinon.stub(global.console, 'error').callsFake(() => () => {})
 })
 
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
-  // Resets plugins, registry, noodlui.page
-  noodlui.reset({ keepCallbacks: false })
+  ndom.reset()
+})
+
+after(() => {
+  logStub.restore()
+  invariantStub.restore()
 })

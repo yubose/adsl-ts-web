@@ -1,11 +1,7 @@
-import { ComponentInstance } from '../types'
+import Component from '../components/Base'
 
-function isComponent(component: any): component is ComponentInstance {
-  return !!(
-    component &&
-    typeof component !== 'string' &&
-    typeof component.children === 'function'
-  )
+function isComponent(component: unknown): component is Component {
+  return Component.isComponent(component)
 }
 
 export default isComponent

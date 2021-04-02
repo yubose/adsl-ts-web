@@ -13,15 +13,12 @@ import {
 import _internalResolver from '../resolvers/_internal'
 import chalk from 'chalk'
 import sinon from 'sinon'
-import { StoreActionObject, StoreBuiltInObject } from '../types'
-import { noodlui, createResolverTest } from '../utils/test-utils'
 import { event as eventId } from '../constants'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
 import NOODLUI from '../noodl-ui'
 import internalHandlePage from '../resolvers/_internal/handlePage'
 import getStore from '../store'
-import List from '../components/List'
 import Page from '../components/Page'
 import createComponent from '../utils/createComponent'
 
@@ -154,7 +151,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
     await waitFor(() => {
       expect(spy).to.be.called
       const args = spy.args[0][0]
-      expect(args).to.include.members(component.children())
+      expect(args).to.include.members(component.children)
     })
   })
 
@@ -333,38 +330,6 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
     expect(page.getResolvers()).to.have.lengthOf(getStore().resolvers.length)
   })
 
-  describe(`toJS`, () => {
-    it(`should return the expected object`, () => {
-      const actionsContext = { fruits: [] }
-      const assetsUrl = 'https://abc.com/assets/'
-      const baseUrl = 'https://abc.com/'
-      const currentPage = 'Apple'
-      const preloadPages = ['hello', 'hi']
-      const pages = ['Go', 'Bye']
-      const root = { greeting: 'hi' }
-      const page = new Page()
-      page.setPage(currentPage)
-      page.use({
-        actionsContext,
-        getAssetsUrl: () => assetsUrl,
-        getBaseUrl: () => baseUrl,
-        getPages: () => pages,
-        getPreloadPages: () => preloadPages,
-        getRoot: () => root,
-      })
-      const js = page.toJS()
-      expect(js).to.have.property('assetsUrl', assetsUrl)
-      expect(js).to.have.property('baseUrl', baseUrl)
-      expect(js).to.have.property('currentPage', currentPage)
-      expect(js).to.have.property('preloadPages', preloadPages)
-      expect(js).to.have.property('pages', pages)
-      expect(js).to.have.property('root', root)
-      expect(js).to.have.property('style')
-      // expect(js).to.have.property('type', 'iframe')
-      expect(js).to.have.property('noodlType', 'page')
-    })
-  })
-
   describe(`resolveComponents`, () => {
     it(`should render identical components in structure as the noodl-ui instance`, () => {
       noodlui.setPage(path)
@@ -423,7 +388,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       expect(list1.type).to.eq(list2.type)
       expect(list1.children).to.have.lengthOf(list2.children.length)
       expect(list1.children).to.have.lengthOf(list2.children.length)
-      expect(list1.noodlType).to.eq(list2.noodlType)
+      expect(list1.type).to.eq(list2.type)
       expect(list1.iteratorVar).to.exist
       expect(list1.iteratorVar).to.eq(list2.iteratorVar)
       expect(liBlueprint1.type).to.eq(liBlueprint2.type)
@@ -432,13 +397,13 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       expect(isEqual(listObject1, listObject2)).to.be.true
       expect(isEqual(list1.style, list2.style)).to.be.true
       expect(list1.children[0].children[0].type).to.eq('img')
-      expect(list1.children[0].children[0].noodlType).to.eq('image')
+      expect(list1.children[0].children[0].type).to.eq('image')
     })
   })
 
   it(`should resolve components dimensions using the page components's viewport`, () => {
     const page = noodlui.resolveComponents(noodlComponent) as Page
-    expect(page.children()).to.have.length.greaterThan(0)
+    expect(page.children).to.have.length.greaterThan(0)
     const child = page.child()
     expect(child.style.width).to.eq(page.style.width)
     expect(child.style.height).to.eq(page.style.height)

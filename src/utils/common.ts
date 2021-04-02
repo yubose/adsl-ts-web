@@ -1,84 +1,24 @@
-import spread from 'lodash/spread'
-import isPlainObject from 'lodash/isPlainObject'
-
-export const callAll = (...fns: ((...args: any[]) => any)[]) => (arg: any) =>
-  fns.forEach((fn) => fn?.(arg))
-
-export function createEmptyObjectWithKeys<K extends string = any, I = any>(
-  keys: K[],
-  initiatingValue?: I,
-  startingValue?: any,
-): Record<K, I> {
-  return keys.reduce(
-    (acc = {}, key) => Object.assign(acc, { [key]: initiatingValue }),
-    startingValue,
-  )
-}
-
-/**
- * Runs forEach on each key/value pair of the value, passing in the key as the first
- * argument and the value as the second argument on each iteration
- * @param { object } value
- * @param { function } callback - Callback function to run on each key/value entry
- */
-export function forEachEntries<Obj>(
-  value: Obj,
-  callback: <K extends keyof Obj>(key: K, value: Obj[K]) => void,
-) {
-  if (value && typeof value === 'object') {
-    Object.entries(value).forEach(spread(callback))
-  }
-}
-
-/**
- * Runs forEach on each key/value pair of the value, passing in the key as the first
- * argument and the value as the second argument on each iteration.
- * This is a recursion version of forEachEntries
- * @param { object } value
- * @param { function } callback - Callback function to run on each key/value entry
- */
-export function forEachDeepEntries<Obj extends {}, K extends keyof Obj>(
-  value: Obj | undefined,
-  callback: (key: string, value: Obj[K], obj: Obj) => void,
-) {
-  if (Array.isArray(value)) {
-    value.forEach((val) => forEachDeepEntries(val, callback))
-  } else if (isPlainObject(value)) {
-    forEachEntries(value as Obj, (k, v: Obj[K]) => {
-      callback(k, v, value as Obj)
-      forEachDeepEntries(v, callback as any)
-    })
-  }
-}
-
-export function getAspectRatio(width: number, height: number) {
-  /**
-   * The binary Great Common Divisor calculator (fastest performance)
-   * https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
-   * @param { number } u - Upper
-   * @param { number } v - Lower
-   */
-  const getGCD = (u: number, v: number): any => {
-    if (u === v) return u
-    if (u === 0) return v
-    if (v === 0) return u
-    if (~u & 1)
-      if (v & 1) return getGCD(u >> 1, v)
-      else return getGCD(u >> 1, v >> 1) << 1
-    if (~v & 1) return getGCD(u, v >> 1)
-    if (u > v) return getGCD((u - v) >> 1, v)
-    return getGCD((v - u) >> 1, u)
-  }
-
-  const getSizes = (w: number, h: number) => {
-    const d = getGCD(w, h)
-    return [w / d, h / d]
-  }
-
-  const [newWidth, newHeight] = getSizes(width, height)
-  const aspectRatio = newWidth / newHeight
-  return aspectRatio
-}
+export const array = <O>(o: O | O[]): O[] => (isArr(o) ? o : [o])
+export const assign = (
+  v: Record<string, any>,
+  ...rest: (Record<string, any> | undefined)[]
+) => Object.assign(v, ...rest)
+export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
+export const isArr = (v: any): v is any[] => Array.isArray(v)
+export const isBool = (v: any): v is boolean => typeof v === 'boolean'
+export const isObj = (v: any): v is { [key: string]: any } =>
+  !!v && !isArr(v) && typeof v === 'object'
+export const isNum = (v: any): v is number => typeof v === 'number'
+export const isStr = (v: any): v is string => typeof v === 'string'
+export const isUnd = (v: any): v is undefined => typeof v === 'undefined'
+export const isNull = (v: any): v is null => v === null
+export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
+export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
+  typeof v === 'function'
+export const keys = (v: any) => Object.keys(v)
+export const values = <O extends Record<string, any>, K extends keyof O>(
+  v: O,
+): O[K][] => Object.values(v)
 
 /**
  * Returns whether the web app is running on a mobile browser.
@@ -90,12 +30,20 @@ export function isMobile() {
     : false
 }
 
+export function isDev() {
+  return process.env.NODE_ENV === 'test'
+}
+
 export function isStable() {
   return process.env.ECOS_ENV === 'stable'
 }
 
 export function isTest() {
   return process.env.ECOS_ENV === 'test'
+}
+
+export function isOutboundLink(s: string | undefined = '') {
+  return /https?:\/\//.test(s)
 }
 
 /**

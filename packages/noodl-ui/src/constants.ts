@@ -1,97 +1,24 @@
-export const actionTypes = [
-  'anonymous', // lib
-  'builtIn',
-  'emit', // lib
-  'evalObject',
-  'goto', // lib
-  'pageJump',
-  'popUp',
-  'popUpDismiss',
-  'refresh',
-  'saveObject',
-  'toast',
-  'updateObject',
-] as const
+import { actionTypes as noodlTypesActionTypes, userEvent } from 'noodl-types'
 
-export const actionChainEmitTriggers = [
-  'onBlur',
-  'onClick',
-  'onChange',
-  'toast',
-] as const
+// Extended constants from this lib
+export const lib = {
+  actionTypes: ['anonymous', 'emit', 'goto', 'toast'],
+  components: ['br'],
+  emitTriggers: ['dataKey', 'dataValue', 'path', 'placeholder', 'register'],
+  dataAttributes: [
+    'data-key',
+    'data-listid',
+    'data-name',
+    'data-placeholder',
+    'data-src',
+    'data-value',
+    'data-viewtag',
+    'data-ux',
+  ],
+} as const
 
-export const resolveEmitTriggers = [
-  'dataKey',
-  'dataValue',
-  'path',
-  'placeholder',
-  'register',
-] as const
-
-export const emitTriggers = [
-  ...actionChainEmitTriggers,
-  ...resolveEmitTriggers,
-] as const
-
-export const componentTypes = [
-  'button',
-  'chart',
-  'date',
-  'divider',
-  'footer',
-  'header',
-  'image',
-  'label',
-  'list',
-  'listItem',
-  'page',
-  'plugin',
-  'pluginHead',
-  'pluginBodyTop',
-  'pluginBodyTail',
-  'popUp',
-  'register',
-  'searchBar',
-  'select',
-  'scrollView',
-  'textField',
-  'textView',
-  'video',
-  'view',
-] as const
-
-export const contentTypes = [
-  'countryCode',
-  'email',
-  'formattedDate',
-  'formattedDuration',
-  'listObject',
-  'number',
-  'password',
-  'passwordHidden',
-  'phoneNumber',
-  'phone',
-  'tel',
-  'text',
-  'timer',
-  'videoSubStream',
-  'vidoeSubStream',
-] as const
-
-export const eventTypes = [
-  'onBlur',
-  'onClick',
-  'onChange',
-  'onHover',
-  'onMouseEnter',
-  'onMouseLeave',
-  'onMouseOut',
-  'onMouseOver',
-] as const
-
-export const customComponentTypes = [
-  'br', // Created customly in components with a textBoard implementation
-] as const
+export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]
+export const triggers = [...lib.emitTriggers, ...userEvent]
 
 export const presets = {
   border: {
@@ -135,47 +62,66 @@ export const event = {
     ON_AFTER_RESOLVE: 'afterResolve',
   },
   component: {
+    image: {
+      PATH: 'path',
+    },
     list: {
-      ADD_DATA_OBJECT: 'add.data.object',
-      DELETE_DATA_OBJECT: 'delete.data.object',
-      RETRIEVE_DATA_OBJECT: 'retrieve.data.object',
-      UPDATE_DATA_OBJECT: 'update.data.object',
-      CREATE_LIST_ITEM: 'create.list.item',
-      REMOVE_LIST_ITEM: 'remove.list.item',
-      RETRIEVE_LIST_ITEM: 'retrieve.list.item',
-      UPDATE_LIST_ITEM: 'update.list.item',
+      ADD_DATA_OBJECT: 'add-data-object',
+      DELETE_DATA_OBJECT: 'delete-data-object',
+      RETRIEVE_DATA_OBJECT: 'retrieve-data-object',
+      UPDATE_DATA_OBJECT: 'update-data-object',
     },
     listItem: {
       REDRAW: 'redraw',
       REDRAWED: 'redrawed',
     },
     page: {
-      RETRIEVE_COMPONENTS: 'component:page:retrieve.components',
-      COMPONENTS_RECEIVED: 'component:page:components.received',
-      MISSING_COMPONENTS: 'component:page:missing.components',
-      RESOLVED_COMPONENTS: 'component:page:resolved.components',
-      SET_REF: 'component:page:set.ref',
+      PAGE_INSTANCE_CREATED: 'page-instance-created',
+      PAGE_OBJECT: 'page-object',
+      PAGE_COMPONENTS: 'page-components',
+      RETRIEVE_COMPONENTS: 'retrieve-components',
+      COMPONENTS_RECEIVED: 'components-received',
+      MISSING_COMPONENTS: 'missing-components',
+      RESOLVED_COMPONENTS: 'resolved-components',
+      SET_REF: 'set-ref',
     },
     register: {
       ONEVENT: 'onEvent',
     },
+    textField: {
+      placeholder: 'PLACEHOLDER',
+    },
   },
-  SET_PAGE: 'set.page',
-  NEW_PAGE: 'new.page',
-  NEW_PAGE_REF: 'new.page.ref',
+
+  SET_PAGE: 'set-page',
+  NEW_PAGE: 'new-page',
+  NEW_PAGE_REF: 'new-page-ref',
 } as const
 
-/** { textAlign: '' } */
-export const textAlignStrings = [
-  'left',
-  'center',
-  'right',
-  'centerX',
-  'centerY',
-]
+export const nuiEmitType = {
+  REGISTER: 'register',
+  TRANSACTION: 'transaction',
+} as const
 
-/** { textAlign: { x, y } } */
-export const textAlignXYStrings = ['left', 'center', 'right']
+export const nuiEmitTransaction = {
+  REQUEST_PAGE_OBJECT: 'register-page-object',
+} as const
+
+export const trigger = {
+  DATA_KEY: 'dataKey',
+  DATA_VALUE: 'dataValue',
+  PATH: 'path',
+  PLACEHOLDER: 'placeholder',
+  REGISTER: 'register',
+  ON_BLUR: 'onBlur',
+  ON_CLICK: 'onClick',
+  ON_CHANGE: 'onChange',
+  ON_HOVER: 'onHover',
+  ON_MOUSEENTER: 'onMouseEnter',
+  ON_MOUSELEAVE: 'onMouseLeave',
+  ON_MOUSEOUT: 'onMouseOut',
+  ON_MOUSEOVER: 'onMouseOver',
+} as const
 
 /* -------------------------------------------------------
   ---- LIB CONSTANTS

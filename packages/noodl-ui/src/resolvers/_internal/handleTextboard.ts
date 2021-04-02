@@ -1,6 +1,6 @@
 import Logger from 'logsnap'
 import { current, isDraft } from 'immer'
-import { isBreakLineTextBoardItem } from 'noodl-utils'
+import { Identify } from 'noodl-types'
 import { formatColor } from '../../utils/common'
 import { ConsumerOptions } from '../../types'
 import { _resolveChildren } from './helpers'
@@ -28,7 +28,7 @@ const handleTextboardInternalResolver = (
     }
 
     textBoard.forEach((item) => {
-      if (isBreakLineTextBoardItem(item)) {
+      if (Identify.textBoardItem(item)) {
         const br = createComponent('view')
         component.createChild(br as any)
         stable &&
@@ -47,8 +47,7 @@ const handleTextboardInternalResolver = (
          * to get around this issue. For now we'll hard code known props like "color"
          */
         const text = createComponent({
-          type: 'div',
-          noodlType: 'label',
+          type: 'label',
           style: {
             display: 'inline-block',
             ...(item.color ? { color: formatColor(item.color) } : undefined),

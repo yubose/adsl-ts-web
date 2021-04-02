@@ -1,38 +1,35 @@
-import Logger from 'logsnap'
-import pick from 'lodash/pick'
-import { ComponentInstance, NOODLComponent } from 'noodl-ui'
-import { PageObject } from 'noodl-types'
-import { createEmptyObjectWithKeys, openOutboundURL } from './utils'
+import { Page as NUIPage } from 'noodl-ui'
+import { ComponentObject } from 'noodl-types'
 import { eventId } from './constants'
+import * as u from './utils/internal'
 import * as T from './types'
 
-const log = Logger.create('Page')
+const getDefaultRenderState = (
+  initialState?: Record<string, any>,
+): T.Page.State['render'] => ({
+  ...initialState,
+})
 
 class Page {
-  #state = {
-    current: '',
+  #nuiPage: NUIPage
+  #state: T.Page.State = {
     previous: '',
     requesting: '',
     modifiers: {} as {
-      [pageName: string]: { reload?: boolean } & {
-        [key: string]: any
-      }
+      [pageName: string]: { reload?: boolean } & Record<string, any>
     },
-    reqQueue: [] as string[],
-    status: eventId.page.status.IDLE as T.PageStatus,
+    reqQueue: [],
+    status: eventId.page.status.IDLE as T.Page.Status,
     rootNode: false,
+    render: getDefaultRenderState(),
   }
-  #cbs = {
-    ...createEmptyObjectWithKeys(
-      Object.values(eventId.page.on),
-      [] as T.PageCallbackObjectConfig[],
-    ),
-    ...createEmptyObjectWithKeys(
-      Object.values(eventId.page.status),
-      [] as T.PageCallbackObjectConfig[],
-    ),
-  }
-  #render: T.Render | undefined
+  #hooks = u
+    .values(eventId.page.on)
+    .reduce((acc, key) => u.assign(acc, { [key]: [] }), {}) as Record<
+    T.Page.HookEvent,
+    T.Page.HookDescriptor[]
+  >
+  components: ComponentObject[] = []
   pageUrl: string = 'index.html?'
   rootNode: HTMLDivElement
   ref: {
@@ -40,38 +37,105 @@ class Page {
       name: string
       timer: NodeJS.Timeout | null
     }
-  } = { request: { name: '', timer: null } }
+  } = { request: { name: '', timer: null } };
 
-  constructor(render?: T.Render | undefined) {
-    if (render) this.render = render
-    // this.rootNode = document.createElement('div')
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      ...this.snapshot(),
+      id: this.id,
+      nuiPage: this.#nuiPage,
+      pageUrl: this.pageUrl,
+      viewport: { width: this.viewport.width, height: this.viewport.height },
+    }
+  }
+
+  constructor(nuiPage: NUIPage) {
+    this.#nuiPage = nuiPage
     this.clearRootNode()
-    // if (!document.body.contains(this.rootNode))
-    // document.body.appendChild(this.rootNode)
   }
 
   clearRootNode() {
     if (!this.rootNode) {
-      this.rootNode = document.body as any
-      this.rootNode.id = 'root'
+      this.rootNode = document.createElement('div')
+      this.rootNode.id = this.id as string
     }
     this.rootNode.innerHTML = ''
     this.rootNode.style.cssText = ''
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
+    if (!document.body.contains(this.rootNode)) {
+      document.body.appendChild(this.rootNode)
+    }
     return this
   }
 
+  get hooks() {
+    return this.#hooks
+  }
+
+  get id() {
+    return this.#nuiPage.id
+  }
+
+  get modifiers() {
+    if (!this.#state.modifiers) this.#state.modifiers = {}
+    return this.state.modifiers
+  }
+
+  get page() {
+    return (this.#nuiPage?.page as string) || ''
+  }
+
+  set page(page: string) {
+    console.log(page)
+    this.#nuiPage.page = page || ''
+  }
+
+  get previous() {
+    return this.#state.previous
+  }
+
+  set previous(pageName: string) {
+    this.#state.previous = pageName || ''
+  }
+
+  get requesting() {
+    return this.#state.requesting
+  }
+
+  set requesting(pageName: string) {
+    if (pageName === '') this.#state.modifiers = {}
+    this.#state.requesting = pageName || ''
+  }
+
+  get state() {
+    return this.#state
+  }
+
+  get viewport() {
+    return this.#nuiPage.viewport
+  }
+
+  set viewport(viewport) {
+    this.#nuiPage.viewport = viewport
+  }
+
+  getNuiPage() {
+    return this.#nuiPage
+  }
+
+  isEqual(val: NUIPage | Page) {
+    return val === this.getNuiPage() || val === this
+  }
+
   getCbs() {
-    return this.#cbs
+    return this.hooks
   }
 
   clearCbs() {
-    Object.values(this.#cbs).forEach((arr) => {
-      while (arr.length) {
-        arr.pop()
-      }
+    u.values(this.hooks).forEach((arr) => {
+      while (arr.length) arr.pop()
     })
     return this
   }
@@ -80,160 +144,8 @@ class Page {
     return this.#state
   }
 
-  /**
-   * Requests to change the page to another page
-   * TODO - Merge this into page.navigate
-   * !NOTE - Page modifiers (ex: "reload") is expected to be set before this call via page.setModifier
-   * @param { string } newPage - Page name to request
-   * @param { boolean | undefined } options.reload - Parameter for NOODL's evolve
-   * @param { number | undefined } options.delay - Request debouncing delay (defaults to 800 (ms))
-   */
-  async requestPageChange(
-    newPage: string = '',
-    { delay }: { reload?: boolean; delay?: number } = {},
-  ) {
-    this.#state.reqQueue.unshift(newPage)
-    console.log(
-      `%cAdded ${newPage} to reqQueue`,
-      `color:#00b406;`,
-      this.#state.reqQueue,
-    )
-    // if (this.ref.request.name === newPage && this.ref.request.timer) {
-    //   log.func('requestPageChange')
-    //   await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-    //     ...this.snapshot(),
-    //     reason: 'debounced',
-    //     from: 'requestPageChange',
-    //   })
-    //   return log.orange(
-    //     `Aborted the request to "${newPage}" because a previous request ` +
-    //       `to the same page was just requested`,
-    //     this.snapshot(),
-    //   )
-    // }
-
-    if (newPage) {
-      const currentPage = this.getState().current
-      this.ref.request.timer && clearTimeout(this.ref.request.timer)
-      this.setRequestingPage(newPage, { delay })
-      if (process.env.NODE_ENV !== 'test') {
-        history.pushState({}, '', this.pageUrl)
-      }
-      await this.navigate(newPage)
-      this.setPreviousPage(currentPage)
-      this.setCurrentPage(newPage)
-    }
-  }
-
-  /**
-   * Navigates to the next page using pageName. It first prepares the rootNode
-   * and begins parsing the NOODL components before rendering them to the rootNode.
-   * Returns a snapshot of the page name, object, and its parsed/rendered components
-   * @param { string } pageName
-   */
-  async navigate(pageName: string): Promise<{ snapshot: any } | void> {
-    // TODO: onTimedOut
-    try {
-      if (!this.render)
-        throw new Error(
-          'Cannot navigate without a renderer. ' +
-            'Pass one in by directing setting the "render" property',
-        )
-      this.setStatus(eventId.page.status.NAVIGATING)
-
-      // Outside link
-      if (typeof pageName === 'string' && pageName?.startsWith('http')) {
-        await this.emit(eventId.page.on.ON_OUTBOUND_REDIRECT, this.snapshot())
-        openOutboundURL(pageName)
-        return this.#onNavigateEnd({ pageName })
-      }
-
-      // TODO - Put a page checker here
-
-      await this.emit(eventId.page.on.ON_NAVIGATE_START, this.snapshot())
-
-      const requestingPage = this.getState().requesting
-
-      // Sometimes a navigate request coming from another location like a
-      // "goto" action can invoke a request in the middle of this operation.
-      // Give the latest call the priority
-      if (this.getState().requesting !== pageName) {
-        log.orange(
-          `Aborting this navigate request for ${pageName} because a more ` +
-            `recent request to "${requestingPage}" was called`,
-          { pageAborting: pageName, pageRequesting: requestingPage },
-        )
-        await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-          ...this.snapshot(),
-          pageName,
-          from: 'navigate',
-        })
-        return this.#onNavigateEnd({ pageName })
-      }
-
-      // The caller is expected to provide their own page object
-      const pageSnapshot = (await this.emit(
-        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
-        { ...this.snapshot(), pageName },
-      )) as Record<string, PageObject> | 'old.request'
-
-      if (pageSnapshot === 'old.request') {
-        await this.emit(eventId.page.on.ON_NAVIGATE_ABORT, {
-          ...this.snapshot(),
-          pageName,
-          from: 'navigate',
-          reason: pageSnapshot,
-        })
-        return
-      }
-
-      this.setStatus(eventId.page.status.SNAPSHOT_RECEIVED)
-
-      const components = this.render(
-        pageSnapshot?.object?.components as NOODLComponent[],
-      ) as ComponentInstance[]
-
-      await this.emit(eventId.page.on.ON_COMPONENTS_RENDERED, {
-        ...this.snapshot(),
-        pageName,
-        components,
-      })
-
-      this.#onNavigateEnd({ pageName })
-
-      return {
-        snapshot: Object.assign({ components }, pageSnapshot),
-      }
-    } catch (error) {
-      await this.emit(eventId.page.on.ON_NAVIGATE_ERROR, {
-        error,
-        pageName,
-        ...this.snapshot(),
-      })
-      this.#onNavigateEnd({ error, pageName })
-      throw new Error(error)
-    }
-  }
-
-  /**
-   * Encapsulates common cleanup operations when navigation is ending
-   * !NOTE - Should not be called if an error occurred
-   */
-  #onNavigateEnd = ({
-    error,
-    pageName,
-  }: {
-    error?: boolean
-    pageName?: string
-  } = {}) => {
-    this.setStatus(
-      error ? eventId.page.status.NAVIGATE_ERROR : eventId.page.status.IDLE,
-    )
-    // Remove the page modifiers so they don't propagate to subsequent navigates
-    pageName && delete this.#state.modifiers[pageName]
-  }
-
-  getPreviousPage(startPage: string = this.getState().previous) {
+  getPreviousPage(startPage: string) {
+    startPage = startPage || this.previous
     let previousPage
     let parts = this.pageUrl.split('-')
     if (parts.length > 1) {
@@ -244,11 +156,8 @@ class Page {
       if (parts.length > 1) {
         previousPage = parts[parts.length - 1]
       } else if (parts.length === 1) {
-        if (parts[0]?.endsWith('MenuBar')) {
-          previousPage = startPage
-        } else {
-          previousPage = parts[0].split('?')[1]
-        }
+        if (parts[0]?.endsWith('MenuBar')) previousPage = startPage
+        else previousPage = parts[0].split('?')[1]
       }
     } else {
       previousPage = startPage
@@ -259,94 +168,64 @@ class Page {
   /**
    * Returns a JS representation of the current state of this page instance
    */
-  snapshot() {
+  snapshot(opts?: Record<string, any>) {
     return {
-      ...pick(this.getState(), ['status', 'previous', 'current', 'requesting']),
-      ref: this.ref,
+      status: this.state.status,
+      previous: this.state.previous,
+      current: this.page,
+      requesting: this.state.requesting,
+      ...opts,
     }
   }
 
-  createCbConfig(
-    config: Partial<T.PageCallbackObjectConfig>,
-  ): T.PageCallbackObjectConfig
-  createCbConfig(fn: T.AnyFn): T.PageCallbackObjectConfig
-  createCbConfig(fn: any) {
-    const config = {} as T.PageCallbackObjectConfig
-    if (typeof fn === 'function') {
-      config.fn = fn
-    } else if (fn && typeof fn === 'object') {
-      Object.keys(fn).forEach((key) => ((config as any)[key] = fn[key]))
+  on<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+    if (this.hooks[evt] && !this.hooks[evt].some((o) => o.id === evt)) {
+      this.hooks[evt].push({ id: evt, fn })
     }
-    return config
+    return this
   }
 
-  on(
-    event: T.PageEvent | T.PageStatus,
-    fn: T.AnyFn | Partial<T.PageCallbackObjectConfig>,
+  off<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+    const index = this.hooks[evt]?.findIndex?.((o) => o.fn === fn) || -1
+    if (index !== -1) this.hooks[evt].splice(index, 1)
+    return this
+  }
+
+  once<Evt extends T.Page.HookEvent>(evt: Evt, fn: T.Page.Hook[Evt]) {
+    const descriptor: T.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
+    this.hooks[evt].push(descriptor)
+    return this
+  }
+
+  async emitAsync<K extends T.Page.HookEvent>(
+    evt: K,
+    ...args: Parameters<T.Page.Hook[K]>
   ) {
-    if (!Array.isArray(this.#cbs[event])) this.#cbs[event] = []
-    this.#cbs[event] = this.#cbs[event].concat(this.createCbConfig(fn as any))
+    let results
+    if (u.isArr(this.hooks[evt])) {
+      results = await Promise.all(
+        this.hooks[evt].map((o) => (o.fn as any)(...args)),
+      )
+    }
+    return results ? results.find(Boolean) : results
+  }
+
+  emitSync<K extends T.Page.HookEvent>(
+    evt: K,
+    ...args: Parameters<T.Page.Hook[K]>
+  ) {
+    this.hooks[evt]?.forEach?.((d, index) => {
+      d.fn?.call?.(this, ...args)
+      if (d.once) this.hooks[evt].splice(index, 1)
+    })
     return this
   }
 
-  once(
-    event: T.PageEvent | T.PageStatus,
-    config: Partial<T.PageCallbackObjectConfig>,
-  ): this
-  once(event: T.PageEvent | T.PageStatus, fn: T.AnyFn): this
-  once(event: T.PageEvent | T.PageStatus, fn: any) {
-    if (!Array.isArray(this.#cbs[event])) this.#cbs[event] = []
-    this.#cbs[event].push(
-      this.createCbConfig(typeof fn === 'function' ? { fn, once: true } : fn),
-    )
-    return this
-  }
-
-  async emit(event: T.PageEvent | T.PageStatus, ...args: any[]) {
-    let result
-    let objs = this.#cbs[event]
-    if (objs?.length) {
-      const numObjs = objs.length
-      for (let index = 0; index < numObjs; index++) {
-        const obj = objs[index]
-        // Remove the observer if the consumer registered it as a "once"ified handler
-        if (obj.once) objs.splice(objs.indexOf(obj), 1)
-        // For now we will just use the first return value received
-        // as the value to the caller that called emit if they are
-        // expecting some value
-        if (!result) result = await obj.fn(...args)
-        else await obj.fn(...args)
-      }
-    }
-    return result
-  }
-
-  emitSync(event: T.PageEvent | T.PageStatus, ...args: any[]) {
-    let result
-    let objs = this.#cbs[event]
-    if (objs?.length) {
-      const numObjs = objs.length
-      for (let index = 0; index < numObjs; index++) {
-        const obj = objs[index]
-        // Remove the observer if the consumer registered it as a "once"ified handler
-        if (obj.once) objs.splice(objs.indexOf(obj), 1)
-        // For now we will just use the first return value received
-        // as the value to the caller that called emit if they are
-        // expecting some value
-        if (!result) result = obj.fn(...args)
-        else obj.fn(...args)
-      }
-    }
-    return result
-  }
-
-  setStatus(status: T.PageStatus) {
+  setStatus(status: T.Page.Status) {
     this.#state.status = status
-    this.emitSync(status, status)
-    this.emitSync(eventId.page.status.ANY, status)
-    if (status === eventId.page.status.IDLE) this.setRequestingPage('')
-    else if (status === eventId.page.status.NAVIGATE_ERROR)
-      this.setRequestingPage('')
+    if (status === eventId.page.status.IDLE) this.requesting = ''
+    else if (status === eventId.page.status.NAVIGATE_ERROR) this.requesting = ''
+    this.emitSync(eventId.page.on.ON_STATUS_CHANGE, status)
     return this
   }
 
@@ -355,52 +234,39 @@ class Page {
     return this
   }
 
-  setCurrentPage(name: string) {
-    this.#state.current = name
-    return this
-  }
-
   setModifier(page: string, obj: { [key: string]: any }) {
     if (!this.#state.modifiers[page]) this.#state.modifiers[page] = {}
-    Object.assign(this.#state.modifiers[page], obj)
+    u.assign(this.#state.modifiers[page], obj)
     return this
   }
 
-  setRequestingPage(name: string, { delay = 800 }: { delay?: number } = {}) {
-    this.#state.requesting = name
-    this.ref.request.name = name
-    this.ref.request.timer = setTimeout(() => {
-      this.ref.request.name = ''
-      this.ref.request.timer = null
-    }, delay)
-    return this
-  }
-
-  get render() {
-    return this.#render as T.Render
-  }
-
-  set render(fn: T.Render) {
-    this.#render = fn
-  }
-
-  isStale(pageName: string) {
-    const getQueue = () => this.#state.reqQueue
-
-    while (getQueue().length > 1) {
-      const removed = getQueue().pop()
-      console.log(
-        `%cRemoved ${removed} from reqQueue`,
-        `color:#00b406;`,
-        getQueue(),
-      )
+  remove() {
+    try {
+      this.ref.request.timer && clearTimeout(this.ref.request.timer)
+      this.rootNode.innerHTML = ''
+      if (this.rootNode.parentNode) {
+        this.rootNode.parentNode?.removeChild?.(this.rootNode)
+        console.log(
+          `%c[Page] Removed rootNode from parentNode`,
+          `color:#00b406;`,
+        )
+      } else {
+        this.rootNode.remove?.()
+      }
+      this.#nuiPage.viewport = null as any
+      this.components.length = 0
+      u.values(this.#hooks).forEach((v) => v && (v.length = 0))
+    } catch (error) {
+      console.error(error)
     }
+  }
 
-    if (getQueue().length <= 1) {
-      return !getQueue().includes(pageName)
+  reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {
+    if (slice) {
+      if (slice === 'render') this.#state.render = getDefaultRenderState()
+    } else {
+      this.#state.render = getDefaultRenderState()
     }
-
-    return getQueue()[0] === pageName
   }
 }
 
