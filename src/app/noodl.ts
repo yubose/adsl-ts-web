@@ -17,6 +17,7 @@ const MEET3D = getConfigEndpoint('meet3d')
 const TESTPAGE = getConfigEndpoint('testpage')
 const MESSAGE = getConfigEndpoint('message')
 const SETTING = getConfigEndpoint('settingtest')
+const SEARCH = getConfigEndpoint('search')
 // SAFE_DEPLOY_URL is a guard to force the app to use one of the above links
 // that use public.aitmed.com as the host name when deploying to s3.
 // So this should never be edited. Instead, change the 2nd condition

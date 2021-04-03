@@ -17,12 +17,9 @@ dataAttribsResolver.setResolver((component, options, next) => {
     contentType,
     controls,
     dataKey,
-    dataValue,
     image,
     path,
-    placeholder,
     poster,
-    options: selectOptions,
     required,
     resource,
     videoFormat,
@@ -141,28 +138,6 @@ dataAttribsResolver.setResolver((component, options, next) => {
           )
         }
       }
-
-      /* -------------------------------------------------------
-        ---- LIST CONSUMER DATA OBJECTS
-      -------------------------------------------------------- */
-      // if (
-      //   context?.iteratorVar &&
-      //   context?.dataObject &&
-      //   value.startsWith(context.iteratorVar)
-      // ) {
-      //   if (
-      //     !n.isListLike(component) &&
-      //     !Identify.component.listItem(original)
-      //   ) {
-      //     const { iteratorVar, dataObject } = context
-      //     component.edit({
-      //       'data-value': get(
-      //         dataObject,
-      //         excludeIteratorVar(value, iteratorVar),
-      //       ),
-      //     })
-      //   }
-      // }
     }
   }
 
@@ -227,25 +202,8 @@ dataAttribsResolver.setResolver((component, options, next) => {
     } else {
       // TODO convert others to use data-view-tag
       component.edit('data-viewtag', viewTag)
-      if (!original['data-ux']) component.edit({ 'data-ux': viewTag })
+      if (!component.get('data-ux')) component.edit({ 'data-ux': viewTag })
     }
-    // if (viewTag === 'mainStream') {
-    //   component.edit('data-ux', 'mainStream')
-    // } else if (viewTag === 'camera') {
-    //   component.edit({ 'data-ux': 'camera', 'data-viewtag': 'camera' })
-    // } else if (viewTag === 'microphone') {
-    //   component.edit({ 'data-ux': 'microphone', 'data-viewtag': 'microphone' })
-    // } else if (viewTag === 'hangUp') {
-    //   component.edit({ 'data-ux': 'hangUp', 'data-viewtag': 'hangUp' })
-    // } else if (viewTag === 'inviteOthers') {
-    //   component.edit('data-ux', 'inviteOthers')
-    // } else if (viewTag === 'subStream') {
-    //   component.edit('data-ux', 'subStream')
-    // } else if (viewTag === 'selfStream') {
-    //   component.edit('data-ux', 'selfStream')
-    // } else {
-
-    // }
   }
 
   next?.()

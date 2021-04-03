@@ -1,9 +1,9 @@
 import cloneDeep from 'lodash/cloneDeep'
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original } from 'immer'
-import { ComponentObject, StyleObject, userEvent } from 'noodl-types'
-import * as u from '../utils/internal'
-import * as T from '../types'
+import { ComponentObject, StyleObject } from 'noodl-types'
+import * as u from './utils/internal'
+import * as T from './types'
 
 type Hooks = Record<
   T.NUIComponent.HookEvent,
@@ -21,6 +21,7 @@ class Component<C extends ComponentObject = ComponentObject>
   #children: T.NUIComponent.Instance[] = []
   #id = ''
   #parent: T.NUIComponent.Instance | null = null
+  #propPath = ''
   original: ComponentObject
   type: C['type']
 
@@ -65,26 +66,11 @@ class Component<C extends ComponentObject = ComponentObject>
     // ) as WritableDraft<ComponentObject>
     this.#component = {
       ...this.#blueprint,
-      style: cloneDeep(this.#blueprint.style),
+      style: { ...this.#blueprint.style },
     }
     this.#id = opts?.id || this.#component.id || u.getRandomKey()
     this.original = this.#blueprint
     this.type = this.#blueprint.type
-    // Immer proxies these actions objects. Since we need this to be
-    // in its original form, we will convert these back to the original form
-    userEvent.forEach((eventType) => {
-      if (this.has(eventType)) {
-        // If the cached handler is a function, it is caching a function that
-        // was previously created internally. Since we need a reference to the
-        // original action objects to re-create actions on-demand, we must
-        // ensure that these are in their original form
-        if (!this.#cache[eventType] || u.isFnc(this.#cache[eventType])) {
-          this.#cache[eventType] = isDraft(this.#component[eventType])
-            ? original(this.#component[eventType])
-            : this.#component[eventType]
-        }
-      }
-    })
   }
 
   get blueprint() {
@@ -242,6 +228,14 @@ class Component<C extends ComponentObject = ComponentObject>
       delete this.#component[key]
     }
     return this
+  }
+
+  get ppath() {
+    return this.#propPath
+  }
+
+  set ppath(path) {
+    this.#propPath = path
   }
 
   /* -------------------------------------------------------

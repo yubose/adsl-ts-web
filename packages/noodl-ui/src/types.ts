@@ -22,7 +22,7 @@ import {
 } from 'noodl-types'
 import { Action, ActionChain } from 'noodl-action-chain'
 import { LiteralUnion } from 'type-fest'
-import ComponentBase from './components/Base'
+import ComponentBase from './Component'
 import _ComponentCache from './cache/ComponentCache'
 import RegisterCache from './cache/RegisterCache'
 import EmitAction from './actions/EmitAction'

@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import createComponent from '../utils/createComponent'
-import Component from '../components/Base'
+import Component from '../Component'
 import * as n from '../utils/noodl'
 
 describe('noodl (utils)', () => {

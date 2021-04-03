@@ -1,4 +1,4 @@
-import { actionTypes } from 'noodl-types'
+import { actionTypes } from '../constants'
 import { NOODLUIActionType } from '../types'
 
 export const isArr = (v: any): v is any[] => Array.isArray(v)

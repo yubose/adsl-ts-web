@@ -2,7 +2,7 @@ import invariant from 'invariant'
 import merge from 'lodash/merge'
 import { setUseProxies, enableES5 } from 'immer'
 import { ActionObject, EmitObject, Identify, IfObject } from 'noodl-types'
-import { createEmitDataKey, evalIf, excludeIteratorVar } from 'noodl-utils'
+import { createEmitDataKey, evalIf } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
 import ComponentCache from './cache/ComponentCache'
 import ComponentResolver from './Resolver'
@@ -27,7 +27,7 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import { nuiEmitType } from './constants'
-import use_next from './use'
+import use from './use'
 import * as u from './utils/internal'
 import * as T from './types'
 
@@ -64,8 +64,6 @@ const NOODLUI = (function _NOODLUI() {
     key: string,
     opts: ((...args: any[]) => any) | PropertyDescriptor,
   ) {
-    // const descriptor = Object.getOwnPropertyDescriptor(o, key)
-    // descriptor && (descriptor.get = u.isFnc(opts) ? () => opts : () => opts.get)
     Object.defineProperty(o, key, {
       get: u.isFnc(opts) ? () => opts : () => opts.get,
     })
@@ -125,6 +123,9 @@ const NOODLUI = (function _NOODLUI() {
     }
     page = cache.page.create({ id, viewport: viewport as VP })
     name && (page.page = name)
+    page.use(() =>
+      page?.page ? NOODLUI.getRoot()[page.page] : { components: [] },
+    )
     return page
   }
 
@@ -193,7 +194,8 @@ const NOODLUI = (function _NOODLUI() {
 
           emitAction.executor = async (snapshot) => {
             const callbacks = (o.getActions().emit || []).reduce(
-              (acc, obj) => (obj?.trigger === 'path' ? acc.concat(obj) : acc),
+              (acc, obj) =>
+                obj?.trigger === 'path' ? acc.concat(obj as any) : acc,
               [],
             )
 
@@ -284,7 +286,6 @@ const NOODLUI = (function _NOODLUI() {
         }
       } else if (opts.type === nuiEmitType.TRANSACTION) {
         const fn = store.transactions[opts.transaction]?.fn
-
         invariant(
           u.isFnc(fn),
           `Missing a callback handler for transaction "${
@@ -519,80 +520,17 @@ const NOODLUI = (function _NOODLUI() {
       return c
     }
 
-    components.forEach((c: T.NUIComponent.Instance) => {
-      resolvedComponents.push(xform(createComponent(c)))
+    components.forEach((c: T.NUIComponent.Instance, i) => {
+      const component = createComponent(c)
+      component.ppath = `[${i}]`
+      resolvedComponents.push(xform(component))
     })
 
     return isArr ? resolvedComponents : resolvedComponents[0]
   }
 
-  function _use(mod: T.Use) {
-    if (mod) {
-      if ('funcName' in mod) {
-        store.use(mod)
-      } else if ('actionType' in mod) {
-        store.use(mod)
-      } else if ('location' in mod) {
-        store.use(mod)
-      } else if ('resolve' in mod) {
-        store.use(mod)
-      } else if (mod) {
-        if ('getAssetsUrl' in mod && mod.getAssetsUrl) {
-          _defineGetter('getAssetsUrl', mod.getAssetsUrl)
-        }
-        if ('getBaseUrl' in mod && mod.getBaseUrl) {
-          _defineGetter('getBaseUrl', mod.getBaseUrl)
-        }
-        if ('getPages' in mod && mod.getPages) {
-          _defineGetter('getPages', mod.getPages)
-        }
-        if ('getPreloadPages' in mod && mod.getPreloadPages) {
-          _defineGetter('getPreloadPages', mod.getPreloadPages)
-        }
-        if ('getRoot' in mod && mod.getRoot) {
-          _defineGetter('getRoot', mod.getRoot)
-        }
-        if ('getPlugins' in mod && mod.getPlugins) {
-          // o.getPlugins = mod.getPlugins
-        }
-        // The register object here does not have to include a callback because
-        // the "emit" function will be called to invoke them. However, objects
-        // can use this here to merge arbitrary props to its "params" object as
-        // arguments in the handler. If a page is not provided, it will default
-        // to "_global", which means it will be invoked every time it gets requested
-        if ('register' in mod) {
-          u.array(mod.register).forEach((obj: T.Register.Object) => {
-            let page = obj.page || '_global'
-            let name =
-              obj.name || (obj.component && obj.component.onEvent) || ''
-            invariant(
-              !!name,
-              `Could not locate an identifier/name for this register object`,
-              obj,
-            )
-            if (!cache.register.has(page, name)) {
-              cache.register.set(page, name, obj)
-            }
-            // TODO - Merge arbitrary props to its params object here
-          })
-        }
-        if ('transaction' in mod) {
-          u.entries(mod.transaction).forEach(
-            ([tid, fn]: [
-              tid: T.TransactionId,
-              fn: T.Transaction[T.TransactionId]['fn'],
-            ]) => {
-              store.transactions[tid] = { ...store.transactions[tid], fn }
-            },
-          )
-        }
-      }
-    }
-
-    return this
-  }
-
   const o = {
+    _defineGetter,
     cache,
     createPage: _createPage,
     createActionChain(
@@ -783,12 +721,11 @@ const NOODLUI = (function _NOODLUI() {
       _defineGetter('getPreloadPages', () => [])
       _defineGetter('getRoot', () => '')
     },
-    use: _use,
   }
 
-  o['use_next'] = use_next.bind(o)
+  o['use'] = use.bind(o)
 
-  return o as typeof o & { use_next: typeof use_next }
+  return o as typeof o & { use: typeof use }
 })()
 
 export default NOODLUI

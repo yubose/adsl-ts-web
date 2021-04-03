@@ -2,7 +2,7 @@ import * as mock from 'noodl-ui-test-utils'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import sinon from 'sinon'
-import Component from '../components/Base'
+import Component from '../Component'
 import createComponent from '../utils/createComponent'
 
 describe(coolGold(`BaseComponent`), () => {

@@ -1,5 +1,4 @@
 import * as mock from 'noodl-ui-test-utils'
-import has from 'lodash/has'
 import sinon from 'sinon'
 import sample from 'lodash/sample'
 import { isActionChain } from 'noodl-action-chain'
@@ -8,9 +7,9 @@ import { userEvent } from 'noodl-types'
 import { expect } from 'chai'
 import { createDataKeyReference, nui } from '../utils/test-utils'
 import { nuiEmitType, nuiEmitTransaction } from '../constants'
-import Component from '../components/Base'
+import Component from '../Component'
 import Page from '../Page'
-import store from '../store'
+import Resolver from '../Resolver'
 
 describe(italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
@@ -205,7 +204,7 @@ describe(italic(`createSrc`), () => {
       const emit = { emit: { dataKey: { var1: 'abc' }, actions: [] } }
       nui.use({
         actionType: 'emit',
-        fn: () => Promise.resolve(path),
+        fn: () => Promise.resolve(path) as any,
         trigger: 'path',
       })
       return expect(nui.createSrc(emit)).to.eventually.eq(
@@ -218,7 +217,7 @@ describe(italic(`createSrc`), () => {
       const emit = { emit: { dataKey: { var1: 'abc' }, actions: [] } }
       nui.use({
         actionType: 'emit',
-        fn: () => Promise.resolve(path),
+        fn: () => Promise.resolve(path) as any,
         trigger: 'path',
       })
       return expect(nui.createSrc(emit)).to.eventually.eq(path)
@@ -228,7 +227,7 @@ describe(italic(`createSrc`), () => {
       const path = { emit: { dataKey: { var1: 'cereal.fruit' }, actions: [] } }
       nui.use({
         actionType: 'emit',
-        fn: () => Promise.resolve('halloween.jpg'),
+        fn: () => Promise.resolve('halloween.jpg') as any,
         trigger: 'path',
       })
       const listObject = [{ fruit: 'apple.jpg' }, { fruit: 'orange.jpg' }]
@@ -257,7 +256,7 @@ describe(italic(`createSrc`), () => {
       const path = { emit: { dataKey: { var1: 'cereal.fruit' }, actions: [] } }
       nui.use({
         actionType: 'emit',
-        fn: () => Promise.resolve('halloween.jpg'),
+        fn: () => Promise.resolve('halloween.jpg') as any,
         trigger: 'path',
       })
       const listObject = [{ fruit: 'apple.jpg' }, { fruit: 'orange.jpg' }]
@@ -317,20 +316,19 @@ describe(italic(`emit`), () => {
   })
 
   describe(`type: ${magenta(nuiEmitTransaction.REQUEST_PAGE_OBJECT)}`, () => {
-    it(
-      `should retrieve the callback in the transactions store using ` +
-        `the provided transaction key`,
-      async () => {
-        const spy = sinon.spy(store, 'transactions', ['get'])
-        const cbSpy = sinon.spy()
-        nui.use({
-          transaction: { transaction: 'hello', callback: cbSpy },
-        })
-        await nui.emit({ transaction: 'hello', type: 'transaction' } as any)
-        expect(spy.get.calledOnce).to.be.true
-        expect(cbSpy).to.be.calledOnce
-      },
-    )
+    it(`should call the function`, async () => {
+      const cbSpy = sinon.spy()
+      nui.use({
+        transaction: {
+          [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: cbSpy,
+        },
+      })
+      await nui.emit({
+        transaction: nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+        type: nuiEmitType.TRANSACTION,
+      })
+      expect(cbSpy).to.be.calledOnce
+    })
   })
 })
 
@@ -373,104 +371,135 @@ describe(italic(`resolveComponents`), () => {
   })
 })
 
-describe.only(italic(`use`), () => {
+describe(italic(`use`), () => {
   it(`should bind "this" to the main noodl-ui api`, () => {
-    const spy = sinon.spy(nui, 'use_next')
-    nui.use_next({} as any)
+    const spy = sinon.spy(nui, 'use')
+    nui.use({} as any)
     expect(spy.thisValues[0]).to.eq(nui)
     spy.restore()
   })
 
-  it(`should add an action using actionType as the key`, () => {
-    const spy = sinon.spy()
-    const obj = { actionType: 'evalObject', fn: spy } as any
-    expect(has(nui.getActions(), 'evalObject')).to.be.true
-    expect(nui.getActions().evalObject).not.to.have.length.greaterThan(0)
-    nui.use_next(obj)
-    expect(nui.getActions().evalObject).to.have.length.greaterThan(0)
-    expect(nui.getActions().evalObject.find((o) => o.fn)).to.have.property(
-      'fn',
-      spy,
-    )
-  })
+  describe(`action`, () => {
+    const hasAction = (type: any, spy: any) =>
+      nui.getActions()[type].some((o: any) => o.fn === spy)
 
-  it(
-    `should throw if an action's actionType is "builtIn" and did not ` +
-      `come with a "funcName"`,
-    () => {
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { actionType: 'evalObject', fn: spy } as any
+      expect(hasAction(obj.actionType, spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction(obj.actionType, spy)).to.be.true
+    })
+
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { evalObject: spy } } as any
+      expect(hasAction('evalObject', spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction('evalObject', spy)).to.be.true
+    })
+
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { evalObject: [spy] } } as any
+      expect(hasAction('evalObject', spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction('evalObject', spy)).to.be.true
+    })
+
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { evalObject: { fn: spy } } } as any
+      expect(hasAction('evalObject', spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction('evalObject', spy)).to.be.true
+    })
+
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { evalObject: [{ fn: spy }] } } as any
+      expect(hasAction('evalObject', spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction('evalObject', spy)).to.be.true
+    })
+
+    it(`should accept this syntax for emits`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { emit: [{ fn: spy, trigger: 'path' }] } } as any
+      expect(hasAction('emit', spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction('emit', spy)).to.be.true
+    })
+
+    it(`should accept this syntax for emits`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { emit: { fn: spy, trigger: 'path' } } } as any
+      expect(hasAction('emit', spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction('emit', spy)).to.be.true
+    })
+
+    it(`should throw if registering an emit but a trigger was not provided with it`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { emit: spy } } as any
+      expect(hasAction('emit', spy)).to.be.false
       expect(() => {
-        nui.use_next({ actionType: 'builtIn', fn: sinon.spy() })
-      }).to.throw(/funcName/i)
-    },
-  )
-
-  it(`should add a builtIn using funcName as the key`, () => {
-    const spy = sinon.spy()
-    expect(has(nui.getBuiltIns(), 'hello')).to.be.false
-    nui.use_next({ funcName: 'hello', fn: spy })
-    expect(has(nui.getBuiltIns(), 'hello')).to.be.true
-  })
-
-  describe(`actions`, () => {
-    it(`should accept { [actionType]: <function> }`, () => {
-      const spy = sinon.spy()
-      const obj = { popUp: spy } as any
-      expect(nui.getActions().popUp).to.have.length(0)
-      nui.use_next(obj)
-      expect(nui.getActions().popUp).to.have.length.greaterThan(0)
-      expect(nui.getActions().popUp[0]).to.have.property('fn', spy)
-    })
-
-    it(`should accept { [actionType]: <function>[] }`, () => {
-      const spy = sinon.spy()
-      const spy2 = sinon.spy()
-      const obj = { popUp: [spy, spy2] } as any
-      expect(nui.getActions().popUp).to.have.length(0)
-      nui.use_next(obj)
-      expect(nui.getActions().popUp).to.have.length(2)
-      expect(nui.getActions().popUp.find((o) => o.fn === spy)).to.have.property(
-        'fn',
-        spy,
-      )
-      expect(
-        nui.getActions().popUp.find((o) => o.fn === spy2),
-      ).to.have.property('fn', spy2)
-    })
-
-    it(`should accept { [actionType]: { fn: <function> } }`, () => {
-      const spy = sinon.spy()
-      const obj = { popUp: { fn: spy } } as any
-      expect(nui.getActions().popUp).to.have.length(0)
-      nui.use_next(obj)
-      expect(nui.getActions().popUp).to.have.length(1)
-      expect(nui.getActions().popUp.find((o) => o.fn === spy)).to.have.property(
-        'fn',
-        spy,
-      )
-    })
-
-    it(`should accept { [actionType]: { fn: <function> }[] }`, () => {
-      const spy = sinon.spy()
-      const obj = { popUp: [{ fn: spy }] } as any
-      expect(nui.getActions().popUp).to.have.length(0)
-      nui.use_next(obj)
-      expect(nui.getActions().popUp).to.have.length(1)
-      expect(nui.getActions().popUp.find((o) => o.fn === spy)).to.have.property(
-        'fn',
-        spy,
-      )
+        nui.use(obj)
+      }).to.throw(/trigger/i)
     })
   })
 
-  describe(`builtIns`, () => {
-    xit(``, () => {
-      //
+  describe(`builtIn`, () => {
+    const hasBuiltIns = (funcName: any, spy: any) =>
+      !!nui.getBuiltIns()[funcName]?.some((o) => o.fn === spy)
+
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { builtIn: { hello: spy } } as any
+      expect(hasBuiltIns('hello', spy)).to.be.false
+      nui.use(obj)
+      expect(hasBuiltIns('hello', spy)).to.be.true
+    })
+
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { builtIn: { hello: [spy] } } as any
+      expect(hasBuiltIns('hello', spy)).to.be.false
+      nui.use(obj)
+      expect(hasBuiltIns('hello', spy)).to.be.true
+    })
+
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { builtIn: { hello: { fn: spy } } } as any
+      expect(hasBuiltIns('hello', spy)).to.be.false
+      nui.use(obj)
+      expect(hasBuiltIns('hello', spy)).to.be.true
+    })
+
+    it(`should support this syntax`, () => {
+      const spy = sinon.spy()
+      const obj = { builtIn: { hello: [{ fn: spy }] } } as any
+      expect(hasBuiltIns('hello', spy)).to.be.false
+      nui.use(obj)
+      expect(hasBuiltIns('hello', spy)).to.be.true
     })
   })
 
-  describe(`plugins`, () => {
-    xit(``, () => {
-      //
+  describe(`plugin`, () => {
+    it(`should add the plugin objects`, () => {
+      let obj = { location: 'head', path: 'abc.html' } as any
+      expect(nui.getPlugins('head')).not.to.include.members([obj])
+      nui.use(obj)
+      expect(nui.getPlugins('head')).to.include.members([obj])
+      expect(nui.getPlugins('body-top')).not.to.include.members([obj])
+      obj = { ...obj, location: 'body-top' }
+      nui.use(obj)
+      expect(nui.getPlugins('body-top')).to.include.members([obj])
+      expect(nui.getPlugins('body-bottom')).not.to.include.members([obj])
+      obj = { ...obj, location: 'body-bottom' }
+      nui.use(obj)
+      expect(nui.getPlugins('body-bottom')).to.include.members([obj])
     })
   })
 
@@ -524,6 +553,36 @@ describe.only(italic(`use`), () => {
       expect(nui.cache.register.has('_global', 'hello')).to.be.false
       nui.use({ register: { name: 'hello' } as any })
       expect(nui.cache.register.has('_global', 'hello')).to.be.true
+    })
+  })
+
+  describe(italic(`resolver`), () => {
+    it(`should add the resolver`, () => {
+      const spy = sinon.spy()
+      const resolver = new Resolver('hello', spy)
+      expect(nui.getResolvers()).not.to.include.members([resolver])
+      nui.use(resolver)
+      expect(nui.getResolvers()).to.include.members([resolver])
+    })
+  })
+
+  describe(italic(`transaction`), () => {
+    it(`should add the transaction to the store`, () => {
+      const spy = sinon.spy()
+      expect(nui.getTransactions()).not.to.have.property(
+        nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+      )
+      nui.use({
+        transaction: {
+          [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: spy,
+        },
+      })
+      expect(nui.getTransactions()).to.have.property(
+        nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+      )
+      expect(
+        nui.getTransactions()[nuiEmitTransaction.REQUEST_PAGE_OBJECT],
+      ).to.have.property('fn', spy)
     })
   })
 })

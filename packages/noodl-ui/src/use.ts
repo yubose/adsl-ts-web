@@ -1,15 +1,20 @@
 import get from 'lodash/get'
 import set from 'lodash/set'
 import invariant from 'invariant'
-import { Identify } from 'noodl-types'
 import Resolver from './Resolver'
 import NUI from './noodl-ui'
-import { entries, isArr, isFnc, isObj } from './utils/internal'
-import { NOODLUIActionType, Store } from './types'
-import { actionTypes as nuiActionTypes } from './constants'
+import { array, entries, isArr, isFnc, isObj, isStr } from './utils/internal'
+import {
+  NOODLUIActionType,
+  Plugin,
+  Register,
+  Store,
+  Transaction,
+  TransactionId,
+} from './types'
 
 interface UseAction {
-  actionType: NOODLUIActionType
+  actionType: Exclude<NOODLUIActionType, 'builtIn'>
   fn: Store.ActionObject['fn']
   trigger?: Store.ActionObject['trigger']
 }
@@ -20,14 +25,34 @@ interface UseBuiltIn {
   fn: Store.BuiltInObject['fn']
 }
 
-function use(action: UseAction): typeof NUI
-function use(action: UseBuiltIn): typeof NUI
-function use(plugin: Store.PluginObject): typeof NUI
-function use(resolver: Resolver): typeof NUI
 function use(
   this: typeof NUI,
-  obj: UseAction | UseBuiltIn | Store.PluginObject | Resolver,
-) {
+  args:
+    | {
+        action?: Record<
+          UseAction['actionType'],
+          UseAction['fn'] | UseAction | UseAction[] | UseAction['fn'][]
+        >
+        builtIn?: Record<
+          UseBuiltIn['funcName'],
+          UseBuiltIn['fn'] | UseBuiltIn | UseBuiltIn[] | UseBuiltIn['fn'][]
+        >
+        register?: Register.Object | Register.Object[]
+        transaction?: Record<TransactionId, Transaction[TransactionId]['fn']>
+        getAssetsUrl?(): string
+        getBaseUrl?(): string
+        getPages?(): string[]
+        getPreloadPages?(): string[]
+        getRoot?(): Record<string, any>
+        getPlugins?: Plugin.CreateType[]
+      }
+    | UseAction
+    | UseBuiltIn
+    | (UseAction | UseBuiltIn)[]
+    | Store.PluginObject
+    | Resolver,
+): typeof NUI {
+  const self = this
   const getArr = <O extends Record<string, any>, K extends keyof O>(
     obj: O,
     path: K,
@@ -36,107 +61,137 @@ function use(
     return get(obj, path)
   }
 
-  if (isObj(obj)) {
-    if ('actionType' in obj) {
-      if ('funcName' in obj) {
-        if (obj.actionType !== 'builtIn') obj.actionType = 'builtIn'
-        invariant(isFnc(obj.fn), 'fn is required')
-        getArr(this.getBuiltIns(), obj.funcName).push(obj)
-      } else {
-        if (obj.actionType === 'builtIn') {
-          invariant(
-            obj.actionType === 'builtIn' && !!obj['funcName'],
-            `"funcName" is required`,
-          )
-        } else {
-          invariant(isFnc(obj.fn), 'fn is required')
-          getArr(this.getActions(), obj.actionType).push(obj)
-        }
-      }
-    } else if ('funcName' in obj) {
-      if (obj.actionType !== 'builtIn') obj.actionType = 'builtIn'
-      invariant(
-        obj.actionType === 'builtIn' && !!obj['funcName'],
-        `"funcName" is required`,
-      )
-      invariant(isFnc(obj.fn), 'fn is required')
-      getArr(this.getBuiltIns(), obj.funcName).push(obj)
-    } else if ('location' in obj) {
-      // this.getPlugins(obj.location)
-    } else if (obj instanceof Resolver) {
-      if (
-        obj.name &&
-        this.getResolvers().every((resolver) => resolver.name !== obj.name)
-      ) {
-        this.getResolvers().push(obj)
+  function useAction(
+    actionType: NOODLUIActionType,
+    opts: UseAction | UseBuiltIn | Store.ActionObject['fn'],
+  ) {
+    if (actionType === 'builtIn') {
+      invariant('funcName' in opts, `Missing funcName for a builtIn`)
+      if (isObj(opts)) {
+        if (opts.actionType !== actionType) opts.actionType = actionType
+        getArr(self.getBuiltIns(), opts.funcName).push(
+          opts as Store.BuiltInObject,
+        )
       }
     } else {
-      const useAction = (actionType: NOODLUIActionType, v: any) => {
-        if (isFnc(v)) {
-          getArr(this.getActions(), actionType)?.push({ actionType, fn: v })
-        } else if (isObj(v)) {
+      if (isFnc(opts)) {
+        getArr(self.getActions(), actionType).push({ actionType, fn: opts })
+      } else if (isObj(opts)) {
+        invariant('fn' in opts, `fn is missing for action "${actionType}"`)
+        if (actionType === 'emit') {
           invariant(
-            isFnc(v.fn),
-            `fn is required for actionType "${actionType}"`,
+            'trigger' in opts,
+            `An emit trigger is required when registering emit action handlers`,
           )
-          getArr(this.getActions(), actionType)?.push({ actionType, ...v })
         }
+        getArr(self.getActions(), actionType).push({ ...opts, actionType })
       }
+    }
+  }
 
-      for (const [key, val] of entries(obj)) {
+  if (args instanceof Resolver) {
+    if (
+      args.name &&
+      this.getResolvers().every((resolver) => resolver.name !== args.name)
+    ) {
+      this.getResolvers().push(args)
+    }
+  } else if ('location' in args) {
+    const location = args.location
+    if (location === 'head') {
+      this.getPlugins(location).push(args)
+    } else if (location === 'body-top') {
+      this.getPlugins(location).push(args)
+    } else if (location === 'body-bottom') {
+      this.getPlugins(location).push(args)
+    }
+  } else if ('register' in args) {
+    array(args.register).forEach((obj: Register.Object) => {
+      let page = obj.page || '_global'
+      let name = obj.name || (obj.component && obj.component.onEvent) || ''
+      invariant(
+        !!name,
+        `Could not locate an identifier/name for this register object`,
+        obj,
+      )
+      if (!this.cache.register.has(page, name)) {
+        this.cache.register.set(page, name, obj)
+      }
+    })
+  } else if ('transaction' in args) {
+    entries(args.transaction).forEach(
+      ([tid, fn]: [
+        tid: TransactionId,
+        fn: Transaction[TransactionId]['fn'],
+      ]) => {
+        this.getTransactions()[tid] = { ...this.getTransactions()[tid], fn }
+      },
+    )
+  } else {
+    if ('actionType' in args) {
+      invariant(isFnc(args.fn), 'fn is not a function')
+      invariant(isStr(args.actionType), 'Missing actionType')
+      useAction(args.actionType, args)
+    } else if ('funcName' in args) {
+      if (args.actionType !== 'builtIn') args.actionType = 'builtIn'
+      invariant(!!args.funcName, `"funcName" is required`)
+      invariant(isFnc(args.fn), 'fn is not a function')
+      useAction('builtIn', args)
+    } else {
+      for (const [key, val] of entries(args)) {
         if (key === 'action') {
-          if (isArr(val)) {
-            //
-          } else if (isObj(val)) {
-            //
-          }
+          entries(val).forEach(([k, v]) => {
+            if (isArr(v)) {
+              v.forEach((_v) => {
+                useAction(
+                  k as UseAction['actionType'],
+                  isFnc(_v) ? { actionType: k, fn: _v } : _v,
+                )
+              })
+            }
+            useAction(
+              k as UseAction['actionType'],
+              isFnc(v) ? { actionType: k, fn: v } : v,
+            )
+          })
         } else if (key === 'builtIn') {
-          if (isArr(val)) {
-            //
-          } else if (isObj(val)) {
-            //
-          }
-        } else if (nuiActionTypes.includes(key as NOODLUIActionType)) {
-          if (isArr(val)) {
-            val.forEach((v) => useAction(key, v))
-          } else {
+          if ('funcName' in val) {
             useAction(key, val)
+          } else {
+            entries(val).forEach(([funcName, v]) => {
+              if (isArr(v)) {
+                v.forEach((o) => {
+                  if (isFnc(o)) {
+                    useAction(key, { funcName, fn: o })
+                  } else if (isObj(o)) {
+                    useAction(key, { ...o, funcName } as Store.BuiltInObject)
+                  }
+                })
+              } else if (isFnc(v)) {
+                useAction(key, { funcName, fn: v })
+              } else if (isObj(v)) {
+                useAction(key, { ...v, funcName } as Store.BuiltInObject)
+              }
+            })
+          }
+        } else {
+          if (
+            [
+              'getAssetsUrl',
+              'getBaseUrl',
+              'getPages',
+              'getPreloadPages',
+              'getRoot',
+              'getPlugins',
+            ].includes(key)
+          ) {
+            this._defineGetter(key, val)
           }
         }
       }
     }
   }
-  // const mods = ((isArr(mod) ? mod : [mod]) as any[]).concat(rest)
-  // const handleMod = (m: any) => {
-  //   if (m) {
-  //     if (m instanceof Resolver) {
-  //       if (m.name && resolvers.every((resolver) => resolver.name !== m.name)) {
-  //         resolvers.push(m)
-  //       }
-  //     } else if (isObj(m)) {
-  //       if ('funcName' in m) {
-  //         const obj = { funcName: m.funcName }
-  //         if (!('actionType' in m)) m.actionType = 'builtIn'
-  //         if (!isArr(store.builtIns[m.funcName])) {
-  //           store.builtIns[m.funcName] = []
-  //         }
-  //         store.builtIns[m.funcName] = store.builtIns[m.funcName].concat(
-  //           isArr(m) ? m : [m],
-  //         )
-  //       } else if ('actionType' in m) {
-  //         if (!isArr(store.actions[m.actionType])) {
-  //           store.actions[m.actionType] = []
-  //         }
-  //         store.actions[m.actionType]?.push(m)
-  //       } else if ('location' in m) {
-  //         store.plugins[m.location].push(m)
-  //       }
-  //     }
-  //   }
-  // }
-  // mods.forEach((m) =>
-  //   isArr(m) ? m.concat(rest).forEach(handleMod) : handleMod(m),
-  // )
+
   return this
 }
 

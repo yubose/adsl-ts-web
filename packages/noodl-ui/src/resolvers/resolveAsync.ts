@@ -1,14 +1,13 @@
 import { Identify, userEvent } from 'noodl-types'
 import { ConsumerOptions, NUIComponent, NOODLUIActionObject } from '../types'
-import Resolver from '../Resolver'
 import { resolveAssetUrl } from '../utils/noodl'
-import * as u from '../utils/internal'
+import Resolver from '../Resolver'
 
 const asyncResolver = new Resolver('resolveAsync')
 
 async function resolveAsync(
   component: NUIComponent.Instance,
-  { context, createActionChain, getAssetsUrl }: ConsumerOptions,
+  { createActionChain, getAssetsUrl }: ConsumerOptions,
 ) {
   try {
     const original = component.blueprint || {}
@@ -63,6 +62,10 @@ asyncResolver.setResolver((component, options, next) => {
   const original = component.blueprint || {}
   const { createActionChain } = options
 
+  /* -------------------------------------------------------
+    ---- USER EVENTS (onClick, onHover, onBlur, etc)
+  -------------------------------------------------------- */
+
   userEvent.forEach((eventType) => {
     if (original[eventType]) {
       const actionChain = createActionChain(
@@ -74,19 +77,6 @@ asyncResolver.setResolver((component, options, next) => {
   })
 
   resolveAsync(component, options)
-  /* -------------------------------------------------------
-    ---- USER EVENTS (onClick, onHover, onBlur, etc)
-  -------------------------------------------------------- */
-
-  // userEvent.forEach((eventType) => {
-  //   if (u.isArr(original[eventType]) || Identify.emit(original[eventType])) {
-  //     const actionChain = createActionChain(
-  //       eventType,
-  //       u.array(original[eventType] as NOODLUIActionObject[]),
-  //     )
-  //     component.edit({ [eventType]: actionChain })
-  //   }
-  // })
 
   next?.()
 })

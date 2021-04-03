@@ -2,9 +2,9 @@ defaultOption: server.files
 defaultPanel: null
 server:
   dir: server
-  host: ''
+  host: ""
   port: 3001
-  protocol: ''
+  protocol: ""
   config: testpage
 objects:
   json:

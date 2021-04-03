@@ -1,4 +1,4 @@
-export { default as Component } from './components/Base'
+export { default as Component } from './Component'
 export { default as EmitAction } from './actions/EmitAction'
 export { default as resolveAsync } from './resolvers/resolveAsync'
 export { default as resolveComponents } from './resolvers/resolveComponents'

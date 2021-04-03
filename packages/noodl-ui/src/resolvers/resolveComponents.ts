@@ -7,15 +7,16 @@ import { findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
-import { formatColor } from '../utils/common'
+import { formatColor, isPromise } from '../utils/common'
 import {
   findIteratorVar,
   findListDataObject,
   isListConsumer,
   isListLike,
   publish,
+  resolveAssetUrl,
 } from '../utils/noodl'
-import { NUIComponent } from '../types'
+import { ConsumerOptions, NUIComponent, Store } from '../types'
 import * as c from '../constants'
 import * as u from '../utils/internal'
 
@@ -26,9 +27,12 @@ componentResolver.setResolver((component, options, next) => {
     cache,
     context,
     createPage,
+    createSrc,
     emit,
+    getAssetsUrl,
     getRoot,
     getRootPage,
+    getPlugins,
     page,
     resolveComponents,
   } = options
@@ -68,8 +72,9 @@ componentResolver.setResolver((component, options, next) => {
     component.on(
       c.event.component.list.ADD_DATA_OBJECT,
       ({ index, dataObject }) => {
-        const ctx = { index: index || 0, iteratorVar, dataObject }
+        const ctx = { index, iteratorVar, dataObject }
         let listItem = component.createChild(createComponent(listItemBlueprint))
+        listItem.ppath = `${component.ppath}.children[${index}]`
         listItem.edit({ index, [iteratorVar]: dataObject })
         listItem = resolveComponents({
           components: listItem,
@@ -205,6 +210,65 @@ componentResolver.setResolver((component, options, next) => {
   }
 
   /* -------------------------------------------------------
+    ---- PLUGIN
+  -------------------------------------------------------- */
+
+  if (Identify.component.plugin(component)) {
+    /**
+     * Returns true if a plugin with the same path was previously loaded
+     * @param { string } path - The image path
+     * @param { function } plugins - Plugin getter
+     */
+    const pluginExists = (path: string) =>
+      typeof path === 'string' &&
+      getPlugins('head')
+        .concat(getPlugins('body-top').concat(getPlugins('body-bottom')))
+        .some((obj) => obj.path === path && obj.initiated)
+
+    /**
+     * Resolves the path, returning the final url
+     * @param { string } path - Image path
+     * @param { string } assetsUrl - Assets url
+     * @param { function } createSrc
+     */
+    const getPluginUrl = async (
+      path: string,
+      assetsUrl: string,
+      createSrc: ConsumerOptions['createSrc'],
+    ) => {
+      let url = createSrc(path)
+      if (isPromise(url)) {
+        const finalizedUrl = await url
+        url = resolveAssetUrl(finalizedUrl, assetsUrl)
+      }
+      return url
+    }
+
+    const path = component.get('path') || ''
+    const plugin = (component.get('plugin') as Store.PluginObject) || {}
+
+    if (pluginExists(path as string)) return
+
+    let src: string
+
+    getPluginUrl(path, getAssetsUrl(), createSrc)
+      .then((result) => {
+        src = result
+        component.set('src', src).emit('path', src)
+        // Use the default fetcher for now
+        if (src) return fetch?.(src)
+      })
+      .then((content) => {
+        plugin && (plugin.content = content)
+        component
+          .set('content', plugin.content)
+          .emit('plugin:content', plugin.content)
+      })
+      // .catch((err) => console.error(`[${err.name}]: ${err.message}`, err))
+      .finally(() => (plugin.initiated = true))
+  }
+
+  /* -------------------------------------------------------
     ---- TEXTBOARD (LABEL)
   -------------------------------------------------------- */
 
@@ -318,12 +382,15 @@ componentResolver.setResolver((component, options, next) => {
   // Children of list components are created by the lib. All other children
   // are handled here
   if (!isListLike(component)) {
-    component.blueprint?.children?.forEach?.((childObject: ComponentObject) => {
-      let child = createComponent(childObject)
-      child = component.createChild(child)
-      child = resolveComponents({ components: child, context, page })
-      !cache.component.has(child) && cache.component.add(child)
-    })
+    component.blueprint?.children?.forEach?.(
+      (childObject: ComponentObject, i) => {
+        let child = createComponent(childObject)
+        child = component.createChild(child)
+        child.ppath = `${component.ppath || ''}.children[${i}]`
+        child = resolveComponents({ components: child, context, page })
+        !cache.component.has(child) && cache.component.add(child)
+      },
+    )
   }
   !cache.component.has(component) && cache.component.add(component)
 

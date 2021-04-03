@@ -2,7 +2,7 @@ import isPlainObject from 'lodash/isPlainObject'
 import { ComponentObject } from 'noodl-types'
 import { NOODLUIComponentType } from '../types'
 import isComponent from './isComponent'
-import Component from '../components/Base'
+import Component from '../Component'
 
 export interface PropsOptionFunc<T> {
   (child: T): Partial<PropsOptionObj>
@@ -10,6 +10,7 @@ export interface PropsOptionFunc<T> {
 export type PropsOptionObj = ComponentObject & { id?: string }
 
 interface Options {
+  path?: string
   props?: PropsOptionObj | PropsOptionFunc<Component>
 }
 
