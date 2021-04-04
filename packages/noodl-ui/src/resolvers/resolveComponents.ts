@@ -55,7 +55,11 @@ componentResolver.setResolver((component, options, next) => {
     }
 
     function getListObject() {
+<<<<<<< Updated upstream
       if(typeof component.blueprint.listObject == 'string'){
+=======
+      if(typeof component.blueprint.listObject == "string"){
+>>>>>>> Stashed changes
         return []
       }
       return component.blueprint.listObject || []
