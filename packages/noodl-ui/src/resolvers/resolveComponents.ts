@@ -55,6 +55,9 @@ componentResolver.setResolver((component, options, next) => {
     }
 
     function getListObject() {
+      if(typeof component.blueprint.listObject == 'string'){
+        return []
+      }
       return component.blueprint.listObject || []
     }
 
