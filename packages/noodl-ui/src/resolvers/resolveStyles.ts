@@ -317,8 +317,10 @@ resolveStyles.setResolver(
 
     // HANDLING ARTBITRARY STYLES
     Object.entries(originalStyles).forEach(([styleKey, value]) => {
+      const colorAttribs:any[] = ['backgroundColor','color','borderColor']
       if (u.isStr(value)) {
-        if (styleKey === 'textColor' || value.startsWith('0x')) {
+        if (styleKey === 'textColor' || value.startsWith('0x') || (iteratorVar && value.startsWith(iteratorVar))|| colorAttribs.includes(styleKey)) {
+         
           /* -------------------------------------------------------
           ---- COLORS - REMINDER: Convert color values like 0x00000000 to #00000000
         -------------------------------------------------------- */
