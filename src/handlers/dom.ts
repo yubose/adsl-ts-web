@@ -80,6 +80,19 @@ const createExtendedDOMResolvers = function (app: App) {
           component.edit('data-value', value)
           node.dataset.value = value
 
+          /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
+          if (/settings/i.test(app.mainPage.page)) {
+            if (node.dataset?.name === 'code') {
+              const pathToTage = 'verificationCode.response.edge.tage'
+              if (has(app.noodl.root?.[app.mainPage.page], pathToTage)) {
+                app.noodl.editDraft((draft: any) => {
+                  set(draft?.[app.mainPage.page], pathToTage, value)
+                  console.log(`Updated: SettingsUpdate.${pathToTage}`)
+                })
+              }
+            }
+          }
+
           if (!iteratorVar) {
             /**
              * EXPERIMENTAL - When a data key from the local root is being updated

@@ -524,22 +524,18 @@ const createActions = function createActions(app: App) {
               )
             }
             if (vcode) {
-              if (vcodeInput.dataset.value !== vcode) {
-                vcodeInput.dataset.value = vcode
-              }
-              if (vcodeInput.value !== vcode) {
+              if (!vcodeInput.value || vcodeInput.value == '0') {
+                vcode = String(vcode)
                 vcodeInput.value = vcode
+                vcodeInput.dataset.value = vcode
+                app.noodl.editDraft((draft: any) => {
+                  set(
+                    draft[pageName],
+                    vcodeInput.dataset.key || 'formData.code',
+                    vcode,
+                  )
+                })
               }
-              vcode = String(vcode)
-              vcodeInput.value = vcode
-              vcodeInput.dataset.value = vcode
-              app.noodl.editDraft((draft: any) => {
-                set(
-                  draft[pageName],
-                  vcodeInput.dataset.key || 'formData.code',
-                  vcode,
-                )
-              })
             } else {
               log.orange(
                 `Could not find a verification code at path "${pathToTage}"`,
