@@ -503,14 +503,18 @@ const createActions = function createActions(app: App) {
           const phoneInput = u.array(
             asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
           )[0] as HTMLInputElement
-          const phoneNumber = String(phoneInput?.value)
+          const phoneNumber = String(
+            phoneInput?.value || phoneInput?.dataset?.value,
+          )
           if (
             phoneNumber.startsWith('888') ||
             phoneNumber.startsWith('+1888') ||
             phoneNumber.startsWith('+1 888')
           ) {
             const pageName = app.mainPage?.page || ''
-            const pathToTage = 'verificationCode.response.edge.tage'
+            const pathToTage = /settings/i.test(pageName)
+              ? 'formData.code'
+              : 'verificationCode.response.edge.tage'
             let vcode = get(app.noodl.root?.[pageName], pathToTage, '')
             if (!pageName) {
               log.red(
