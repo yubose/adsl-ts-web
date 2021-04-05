@@ -512,16 +512,24 @@ const createActions = function createActions(app: App) {
             phoneNumber.startsWith('+1 888')
           ) {
             const pageName = app.mainPage?.page || ''
-            const pathToTage = /settings/i.test(pageName)
-              ? 'formData.code'
-              : 'verificationCode.response.edge.tage'
+            const pathToTage = 'verificationCode.response.edge.tage'
+            // const pathToTage = /settings/i.test(pageName)
+            //   ? 'formData.code'
+            //   : 'verificationCode.response.edge.tage'
             let vcode = get(app.noodl.root?.[pageName], pathToTage, '')
+
             if (!pageName) {
               log.red(
                 `Could not determine the page to query the verification code for`,
               )
             }
             if (vcode) {
+              if (vcodeInput.dataset.value !== vcode) {
+                vcodeInput.dataset.value = vcode
+              }
+              if (vcodeInput.value !== vcode) {
+                vcodeInput.value = vcode
+              }
               vcode = String(vcode)
               vcodeInput.value = vcode
               vcodeInput.dataset.value = vcode
