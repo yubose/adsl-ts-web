@@ -31,7 +31,7 @@ function registerCallbacks(app: App) {
     },
   }
 
-  return Object.entries(registers).reduce((acc, [name, obj]) => {
+  return u.entries(registers).reduce((acc, [name, obj]) => {
     const register = { name } as Register.Object
 
     if (u.isFnc(obj)) {

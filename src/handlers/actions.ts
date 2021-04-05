@@ -1,3 +1,4 @@
+import Logger from 'logsnap'
 import isObjectLike from 'lodash/isObjectLike'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
@@ -10,25 +11,21 @@ import {
   findByElementId,
   findByViewTag,
   isPageConsumer,
-  findByDataKey,
   findByDataAttrib,
   asHtmlElement,
 } from 'noodl-ui-dom'
 import {
-  actionTypes as nuiActionTypes,
   ConsumerOptions,
   EmitAction,
   findListDataObject,
   findIteratorVar,
-  getDataValues,
   NUIComponent,
   parseReference,
   Store,
-  NOODLUIActionType,
   trigger,
+  Use,
 } from 'noodl-ui'
 import { createEmitDataKey, evalIf, parse } from 'noodl-utils'
-import Logger from 'logsnap'
 import { EmitObject, IfObject, Identify } from 'noodl-types'
 import { pageEvent } from '../constants'
 import { getVcodeElem, onSelectFile, scrollToElem, toast } from '../utils/dom'
@@ -40,15 +37,11 @@ const log = Logger.create('actions.ts')
 const stable = u.isStable()
 
 const createActions = function createActions(app: App) {
-  const actions: Record<
-    Exclude<NOODLUIActionType, 'builtIn' | 'register'>,
-    | Omit<Store.ActionObject, 'actionType'>
-    | Store.ActionObject['fn']
-    | (Omit<Store.ActionObject, 'actionType'> | Store.ActionObject['fn'])[]
-  > = {
+  const actions: Use.Action = {
     anonymous: (action) => action.original?.fn?.(),
     emit: [
       {
+        actionType: 'emit',
         // DATA KEY EMIT --- CURRENTLY NOT USED IN THE NOODL YML
         fn: async function onDataKeyEmit(action: EmitAction, options) {
           const emitParams = {
@@ -89,7 +82,7 @@ const createActions = function createActions(app: App) {
           const emitParams = {
             actions: action.actions,
             pageName: app.mainPage.page,
-          } as any
+          } as T.EmitCallParams
           if ('dataKey' in action.original.emit || {}) {
             emitParams.dataKey = action.dataKey
           }
@@ -107,7 +100,7 @@ const createActions = function createActions(app: App) {
           const emitParams = {
             actions: action.actions,
             pageName: options.page?.page,
-          } as any
+          } as T.EmitCallParams
           if (action.original.emit.dataKey) {
             emitParams.dataKey = action.dataKey
           }
@@ -125,7 +118,7 @@ const createActions = function createActions(app: App) {
           const emitParams = {
             actions: action.actions,
             pageName: app.mainPage.page,
-          } as any
+          } as T.EmitCallParams
           if ('dataKey' in action.original.emit || {}) {
             emitParams.dataKey = action.dataKey
           }
@@ -180,7 +173,7 @@ const createActions = function createActions(app: App) {
           const emitParams = {
             actions: action.original?.emit?.actions,
             pageName: page,
-          } as any
+          } as T.EmitCallParams
 
           if (action.original.emit.dataKey) {
             emitParams.dataKey = createEmitDataKey(
@@ -207,7 +200,7 @@ const createActions = function createActions(app: App) {
           const emitParams = {
             actions: action.original.emit.actions,
             pageName: page,
-          } as any
+          } as T.EmitCallParams
 
           if (action.original.emit.dataKey) {
             emitParams.dataKey = action.dataKey
@@ -782,7 +775,7 @@ const createActions = function createActions(app: App) {
         toast(error.message)
       }
     },
-  }
+  } as Use.Action
 
   const insert = (
     type: keyof typeof actions,

@@ -379,7 +379,7 @@ describe(italic(`use`), () => {
     spy.restore()
   })
 
-  describe(`action`, () => {
+  describe.only(`action`, () => {
     const hasAction = (type: any, spy: any) =>
       nui.getActions()[type].some((o: any) => o.fn === spy)
 
@@ -439,13 +439,28 @@ describe(italic(`use`), () => {
       expect(hasAction('emit', spy)).to.be.true
     })
 
-    it(`should throw if registering an emit but a trigger was not provided with it`, () => {
+    it(`should accept this syntax for emits`, () => {
       const spy = sinon.spy()
-      const obj = { action: { emit: spy } } as any
+      const obj = { action: { emit: { path: spy } } } as any
       expect(hasAction('emit', spy)).to.be.false
-      expect(() => {
-        nui.use(obj)
-      }).to.throw(/trigger/i)
+      nui.use(obj)
+      expect(hasAction('emit', spy)).to.be.true
+    })
+
+    it(`should accept this syntax for emits`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { emit: { path: [spy] } } } as any
+      expect(hasAction('emit', spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction('emit', spy)).to.be.true
+    })
+
+    it(`should accept this syntax for emits`, () => {
+      const spy = sinon.spy()
+      const obj = { action: { emit: [{ path: [spy] }] } } as any
+      expect(hasAction('emit', spy)).to.be.false
+      nui.use(obj)
+      expect(hasAction('emit', spy)).to.be.true
     })
   })
 

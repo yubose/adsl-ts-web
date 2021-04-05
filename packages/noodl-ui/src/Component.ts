@@ -1,4 +1,3 @@
-import cloneDeep from 'lodash/cloneDeep'
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original } from 'immer'
 import { ComponentObject, StyleObject } from 'noodl-types'

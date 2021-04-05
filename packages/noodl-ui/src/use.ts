@@ -6,51 +6,35 @@ import NUI from './noodl-ui'
 import { array, entries, isArr, isFnc, isObj, isStr } from './utils/internal'
 import {
   NOODLUIActionType,
-  Plugin,
+  NOODLUITrigger,
   Register,
   Store,
   Transaction,
   TransactionId,
+  Use,
 } from './types'
-
-interface UseAction {
-  actionType: Exclude<NOODLUIActionType, 'builtIn'>
-  fn: Store.ActionObject['fn']
-  trigger?: Store.ActionObject['trigger']
-}
-
-interface UseBuiltIn {
-  actionType?: 'builtIn'
-  funcName: Store.BuiltInObject['funcName']
-  fn: Store.BuiltInObject['fn']
-}
 
 function use(
   this: typeof NUI,
   args:
     | {
-        action?: Record<
-          UseAction['actionType'],
-          UseAction['fn'] | UseAction | UseAction[] | UseAction['fn'][]
-        >
-        builtIn?: Record<
-          UseBuiltIn['funcName'],
-          UseBuiltIn['fn'] | UseBuiltIn | UseBuiltIn[] | UseBuiltIn['fn'][]
-        >
-        register?: Register.Object | Register.Object[]
-        transaction?: Record<TransactionId, Transaction[TransactionId]['fn']>
-        getAssetsUrl?(): string
-        getBaseUrl?(): string
-        getPages?(): string[]
-        getPreloadPages?(): string[]
-        getRoot?(): Record<string, any>
-        getPlugins?: Plugin.CreateType[]
+        action?: Use.Action
+        builtIn?: Use.BuiltIn
+        emit?: Use.Emit
+        register?: Use.Register
+        transaction?: Use.Transaction
+        getAssetsUrl?: Use.GetAssetsUrl
+        getBaseUrl?: Use.GetBaseUrl
+        getPages?: Use.GetPages
+        getPreloadPages?: Use.GetPreloadPages
+        getRoot?: Use.GetRoot
+        getPlugins?: Use.GetPlugins
       }
-    | UseAction
-    | UseBuiltIn
-    | (UseAction | UseBuiltIn)[]
-    | Store.PluginObject
-    | Resolver,
+    | Use.Action
+    | Use.BuiltIn
+    | (Use.Action | Use.BuiltIn)[]
+    | Use.Plugin
+    | Use.Resolver,
 ): typeof NUI {
   const self = this
   const getArr = <O extends Record<string, any>, K extends keyof O>(
@@ -63,12 +47,12 @@ function use(
 
   function useAction(
     actionType: NOODLUIActionType,
-    opts: UseAction | UseBuiltIn | Store.ActionObject['fn'],
+    opts: Store.ActionObject | Store.BuiltInObject | Store.ActionObject['fn'],
   ) {
     if (actionType === 'builtIn') {
       invariant('funcName' in opts, `Missing funcName for a builtIn`)
       if (isObj(opts)) {
-        if (opts.actionType !== actionType) opts.actionType = actionType
+        opts.actionType = actionType
         getArr(self.getBuiltIns(), opts.funcName).push(
           opts as Store.BuiltInObject,
         )
@@ -77,14 +61,23 @@ function use(
       if (isFnc(opts)) {
         getArr(self.getActions(), actionType).push({ actionType, fn: opts })
       } else if (isObj(opts)) {
-        invariant('fn' in opts, `fn is missing for action "${actionType}"`)
         if (actionType === 'emit') {
-          invariant(
-            'trigger' in opts,
-            `An emit trigger is required when registering emit action handlers`,
-          )
+          if ('trigger' in opts) {
+            getArr(self.getActions(), actionType).push({ ...opts, actionType })
+          } else {
+            entries(opts).forEach(([trigger, o]) => {
+              getArr(self.getActions(), actionType).push({
+                ...opts,
+                actionType,
+                fn: isFnc(o) ? o : o.fn,
+                trigger: trigger as NOODLUITrigger,
+              })
+            })
+          }
+        } else {
+          invariant('fn' in opts, `fn is missing for action "${actionType}"`)
+          getArr(self.getActions(), actionType).push({ ...opts, actionType })
         }
-        getArr(self.getActions(), actionType).push({ ...opts, actionType })
       }
     }
   }
@@ -99,11 +92,11 @@ function use(
   } else if ('location' in args) {
     const location = args.location
     if (location === 'head') {
-      this.getPlugins(location).push(args)
+      this.getPlugins(location).push(args as Use.Plugin)
     } else if (location === 'body-top') {
-      this.getPlugins(location).push(args)
+      this.getPlugins(location).push(args as Use.Plugin)
     } else if (location === 'body-bottom') {
-      this.getPlugins(location).push(args)
+      this.getPlugins(location).push(args as Use.Plugin)
     }
   } else if ('register' in args) {
     array(args.register).forEach((obj: Register.Object) => {
@@ -131,9 +124,9 @@ function use(
     if ('actionType' in args) {
       invariant(isFnc(args.fn), 'fn is not a function')
       invariant(isStr(args.actionType), 'Missing actionType')
-      useAction(args.actionType, args)
+      useAction(args.actionType as any, args)
     } else if ('funcName' in args) {
-      if (args.actionType !== 'builtIn') args.actionType = 'builtIn'
+      args.actionType = 'builtIn' as any
       invariant(!!args.funcName, `"funcName" is required`)
       invariant(isFnc(args.fn), 'fn is not a function')
       useAction('builtIn', args)
@@ -144,13 +137,13 @@ function use(
             if (isArr(v)) {
               v.forEach((_v) => {
                 useAction(
-                  k as UseAction['actionType'],
+                  k as Store.ActionObject['actionType'],
                   isFnc(_v) ? { actionType: k, fn: _v } : _v,
                 )
               })
             }
             useAction(
-              k as UseAction['actionType'],
+              k as Store.ActionObject['actionType'],
               isFnc(v) ? { actionType: k, fn: v } : v,
             )
           })
@@ -162,27 +155,32 @@ function use(
               if (isArr(v)) {
                 v.forEach((o) => {
                   if (isFnc(o)) {
-                    useAction(key, { funcName, fn: o })
+                    useAction(key, { funcName, fn: o } as Store.BuiltInObject)
                   } else if (isObj(o)) {
                     useAction(key, { ...o, funcName } as Store.BuiltInObject)
                   }
                 })
               } else if (isFnc(v)) {
-                useAction(key, { funcName, fn: v })
+                useAction(key, { funcName, fn: v } as Store.BuiltInObject)
               } else if (isObj(v)) {
                 useAction(key, { ...v, funcName } as Store.BuiltInObject)
               }
             })
           }
+        } else if (key === 'emit') {
+          //
         } else {
           if (
             [
               'getAssetsUrl',
+              'getActions',
+              'getBuiltIns',
               'getBaseUrl',
               'getPages',
               'getPreloadPages',
-              'getRoot',
               'getPlugins',
+              'getRoot',
+              'getTransactions',
             ].includes(key)
           ) {
             this._defineGetter(key, val)

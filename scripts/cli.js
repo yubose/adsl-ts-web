@@ -1,25 +1,12 @@
-const execa = require('execa')
-const { Command } = require('commander')
+console.clear()
+const path = require('path')
+const { exec, execSync, execFile, spawn, spawnSync } = require('child_process')
 
-const program = new Command('aitmed-noodl-web cli scripts')
+const file = exec('git status')
 
-program.command('build <env> [serve]').action((env, serve) => {
-  let shell
-  let args = 'npm run build'
-
-  if (env === 'test') {
-    args
-
-    shell.on('data', (data) => {
-      console.log(data)
-    })
-
-    shell.stdout.pipe(process.stdin)
-  } else {
-    //
-  }
+file.stdout.on('data', (d) => {
+  console.log(d)
 })
 
-const args = program.parse(process.env.argv)
-
-console.log(`Args`, args)
+// file.stdout.pipe(process.stdout)
+// process.stdout.pipe(file.stdout)

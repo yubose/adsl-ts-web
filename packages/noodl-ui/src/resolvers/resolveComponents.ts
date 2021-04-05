@@ -55,10 +55,10 @@ componentResolver.setResolver((component, options, next) => {
     }
 
     function getListObject() {
-      if(typeof component.blueprint.listObject == "string"){
-        return []
+      if (u.isArr(component.blueprint.listObject)) {
+        return component.blueprint.listObject
       }
-      return component.blueprint.listObject || []
+      return []
     }
 
     function getRawBlueprint(component: NUIComponent.Instance) {

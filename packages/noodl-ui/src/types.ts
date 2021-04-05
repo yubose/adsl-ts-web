@@ -382,9 +382,58 @@ export interface UseObject {
   transaction?: Record<TransactionId, Transaction[TransactionId]['fn']>
 }
 
-export type Use =
-  | Store.ActionObject
-  | Store.BuiltInObject
-  | Store.PluginObject
-  | UseObject
-  | ComponentResolver<any>
+type _Transaction = Transaction
+
+export namespace Use {
+  interface _ActionObject {
+    actionType: Exclude<NOODLUIActionType, 'builtIn'>
+    fn: Store.ActionObject['fn']
+    trigger?: Store.ActionObject['trigger']
+  }
+
+  interface _BuiltInObject {
+    actionType?: 'builtIn'
+    funcName: Store.BuiltInObject['funcName']
+    fn: Store.BuiltInObject['fn']
+  }
+
+  export type Action = Partial<
+    Record<
+      _ActionObject['actionType'],
+      | _ActionObject['fn']
+      | _ActionObject
+      | _ActionObject[]
+      | _ActionObject['fn'][]
+    >
+  >
+
+  export type BuiltIn = Partial<
+    Record<
+      _BuiltInObject['funcName'],
+      | _BuiltInObject['fn']
+      | _BuiltInObject
+      | _BuiltInObject[]
+      | _BuiltInObject['fn'][]
+    >
+  >
+
+  export type Emit =
+    | Partial<Record<NOODLUITrigger, _ActionObject['fn']>>
+    | Partial<Record<NOODLUITrigger, _ActionObject['fn'][]>>
+    | _ActionObject
+    | _ActionObject[]
+
+  export type GetAssetsUrl = () => string
+  export type GetBaseUrl = () => string
+  export type GetPages = string[]
+  export type GetPreloadPages = string[]
+  export type GetRoot = Record<string, any>
+  export type GetPlugins = Plugin.CreateType[]
+  export type Plugin = Store.PluginObject
+  export type Resolver = ComponentResolver
+  export type Register = Register.Object | Register.Object[]
+
+  export type Transaction = Partial<
+    Record<TransactionId, _Transaction[TransactionId]['fn']>
+  >
+}

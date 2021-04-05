@@ -34,25 +34,6 @@ import * as T from './types'
 enableES5()
 setUseProxies(false)
 
-export interface RegisterCallbacks {
-  [key: string]: {
-    onEvent?: {
-      [eventName: string]: {
-        component: T.NUIComponent.Instance
-        key: string
-        id: string
-        prop: 'onEvent'
-        fn: (emittedArgs: {
-          key: string
-          id: string
-          prop: 'onEvent'
-          data: any
-        }) => Promise<any>
-      }
-    }
-  }
-}
-
 const NOODLUI = (function _NOODLUI() {
   const cache = {
     component: new ComponentCache(),
@@ -712,14 +693,14 @@ const NOODLUI = (function _NOODLUI() {
         cache.page.clear()
         cache.register.clear()
       }
-      _defineGetter('getAssetsUrl', () => '')
-      _defineGetter('getActions', () => store.actions)
-      _defineGetter('getBuiltIns', () => store.builtIns)
-      _defineGetter('getTransactions', () => store.transactions)
-      _defineGetter('getBaseUrl', () => '')
-      _defineGetter('getPages', () => [])
-      _defineGetter('getPreloadPages', () => [])
-      _defineGetter('getRoot', () => '')
+      o._defineGetter('getAssetsUrl', () => '')
+      o._defineGetter('getActions', () => store.actions)
+      o._defineGetter('getBuiltIns', () => store.builtIns)
+      o._defineGetter('getTransactions', () => store.transactions)
+      o._defineGetter('getBaseUrl', () => '')
+      o._defineGetter('getPages', () => [])
+      o._defineGetter('getPreloadPages', () => [])
+      o._defineGetter('getRoot', () => '')
     },
   }
 

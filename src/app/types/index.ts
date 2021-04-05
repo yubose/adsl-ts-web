@@ -29,7 +29,7 @@ export interface CachedPageObject {
 
 export interface EmitCallParams {
   actions: EmitObject['emit']['actions']
-  dataKey?: EmitObject['emit']['dataKey']
+  dataKey: EmitObject['emit']['dataKey']
   pageName: string
 }
 
