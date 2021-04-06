@@ -1,15 +1,15 @@
 import { EmitObject } from 'noodl-types'
 import { Action, IAction } from 'noodl-action-chain'
-import { EmitActionObject, NOODLUITrigger } from '../types'
+import { EmitActionObject, NUITrigger } from '../types'
 import { isObj } from '../utils/internal'
 
 class EmitAction
-  extends Action<'emit', NOODLUITrigger>
-  implements IAction<'emit', NOODLUITrigger> {
+  extends Action<'emit', NUITrigger>
+  implements IAction<'emit', NUITrigger> {
   actions: any[]
   dataKey: string | Record<string, any> | undefined
 
-  constructor(trigger: NOODLUITrigger, obj: EmitObject | EmitActionObject) {
+  constructor(trigger: NUITrigger, obj: EmitObject | EmitActionObject) {
     if (isObj(obj) && obj.actionType !== 'emit') {
       obj = { ...obj, actionType: 'emit' }
     }

@@ -49,7 +49,6 @@ const domComponentsResolver: Resolve.Config = {
           node.style.height = '100%'
         }
         component.on('path', (result) => {
-          console.log(`component.on('path')`, result)
           node && ((node as HTMLImageElement).src = result)
         })
         if (component.get('data-src')) {

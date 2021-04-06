@@ -99,9 +99,7 @@ resolveStyles.setResolver(
             edit(
               { display: 'flex', alignItems: 'center' },
               {
-                remove:
-                  !['center', 'centerX'].includes(textAlign.x || '') &&
-                  'textAlign',
+                remove: !textAlign.x && 'textAlign',
               },
             )
             textAlign.x === 'center' && edit({ justifyContent: 'center' })
@@ -318,11 +316,14 @@ resolveStyles.setResolver(
     // HANDLING ARTBITRARY STYLES
     Object.entries(originalStyles).forEach(([styleKey, value]) => {
       if (u.isStr(value)) {
-        if (styleKey === 'textColor' || value.startsWith('0x') || (iteratorVar && value.startsWith(iteratorVar))) {
-         
+        if (
+          styleKey === 'textColor' ||
+          value.startsWith('0x') ||
+          (iteratorVar && value.startsWith(iteratorVar))
+        ) {
           /* -------------------------------------------------------
-          ---- COLORS - REMINDER: Convert color values like 0x00000000 to #00000000
-        -------------------------------------------------------- */
+            ---- COLORS - REMINDER: Convert color values like 0x00000000 to #00000000
+          -------------------------------------------------------- */
           if (styleKey === 'textColor') {
             return edit(
               { color: com.formatColor(value) },

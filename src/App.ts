@@ -17,7 +17,7 @@ import {
   NUIComponent,
   nuiEmitTransaction,
   nuiEmitType,
-  NOODLUI as NUI,
+  NUI,
   publish,
   Viewport as VP,
 } from 'noodl-ui'

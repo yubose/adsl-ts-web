@@ -2,16 +2,16 @@
  * Types for unit testing. Mostly used for typing mock functions
  */
 import { ActionChainInstancesLoader } from 'noodl-action-chain'
-import { NOODLUIActionObject, NOODLUITrigger } from 'noodl-ui'
+import { NUIActionObject, NUITrigger } from 'noodl-ui'
 
 export interface MockGetActionChainOptions {
-  actions: (NOODLUIActionObject | MockGetActionChainExtendedActionsArg)[]
+  actions: (NUIActionObject | MockGetActionChainExtendedActionsArg)[]
   load?: boolean
   loader?: ActionChainInstancesLoader
-  trigger: NOODLUITrigger
+  trigger: NUITrigger
 }
 
 export interface MockGetActionChainExtendedActionsArg {
-  action: NOODLUIActionObject
+  action: NUIActionObject
   fn: (...args: any[]) => any
 }

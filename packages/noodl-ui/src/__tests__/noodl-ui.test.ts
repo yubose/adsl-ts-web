@@ -379,11 +379,11 @@ describe(italic(`use`), () => {
     spy.restore()
   })
 
-  describe.only(`action`, () => {
+  describe(`action`, () => {
     const hasAction = (type: any, spy: any) =>
       nui.getActions()[type].some((o: any) => o.fn === spy)
 
-    it(`should support this syntax`, () => {
+    it(`should add { [actionType]: <function> }`, () => {
       const spy = sinon.spy()
       const obj = { actionType: 'evalObject', fn: spy } as any
       expect(hasAction(obj.actionType, spy)).to.be.false
@@ -391,7 +391,7 @@ describe(italic(`use`), () => {
       expect(hasAction(obj.actionType, spy)).to.be.true
     })
 
-    it(`should support this syntax`, () => {
+    it(`should add { action: { [actionType]: <function> } }`, () => {
       const spy = sinon.spy()
       const obj = { action: { evalObject: spy } } as any
       expect(hasAction('evalObject', spy)).to.be.false
@@ -399,7 +399,7 @@ describe(italic(`use`), () => {
       expect(hasAction('evalObject', spy)).to.be.true
     })
 
-    it(`should support this syntax`, () => {
+    it(`should add { action: { [actionType]: <function>[] }}`, () => {
       const spy = sinon.spy()
       const obj = { action: { evalObject: [spy] } } as any
       expect(hasAction('evalObject', spy)).to.be.false
@@ -407,7 +407,7 @@ describe(italic(`use`), () => {
       expect(hasAction('evalObject', spy)).to.be.true
     })
 
-    it(`should support this syntax`, () => {
+    it(`should add { action: { evalObject: { fn: spy } } }`, () => {
       const spy = sinon.spy()
       const obj = { action: { evalObject: { fn: spy } } } as any
       expect(hasAction('evalObject', spy)).to.be.false
@@ -415,7 +415,7 @@ describe(italic(`use`), () => {
       expect(hasAction('evalObject', spy)).to.be.true
     })
 
-    it(`should support this syntax`, () => {
+    it(`should add { action: { evalObject: [{ fn: spy }] } }`, () => {
       const spy = sinon.spy()
       const obj = { action: { evalObject: [{ fn: spy }] } } as any
       expect(hasAction('evalObject', spy)).to.be.false
@@ -423,7 +423,7 @@ describe(italic(`use`), () => {
       expect(hasAction('evalObject', spy)).to.be.true
     })
 
-    it(`should accept this syntax for emits`, () => {
+    it(`should add { action: { emit: [{ fn: spy, trigger: 'path' }] } }`, () => {
       const spy = sinon.spy()
       const obj = { action: { emit: [{ fn: spy, trigger: 'path' }] } } as any
       expect(hasAction('emit', spy)).to.be.false
@@ -431,7 +431,7 @@ describe(italic(`use`), () => {
       expect(hasAction('emit', spy)).to.be.true
     })
 
-    it(`should accept this syntax for emits`, () => {
+    it(`should add { action: { emit: { fn: spy, trigger: 'path' } } }`, () => {
       const spy = sinon.spy()
       const obj = { action: { emit: { fn: spy, trigger: 'path' } } } as any
       expect(hasAction('emit', spy)).to.be.false
@@ -439,7 +439,7 @@ describe(italic(`use`), () => {
       expect(hasAction('emit', spy)).to.be.true
     })
 
-    it(`should accept this syntax for emits`, () => {
+    it(`should add { action: { emit: { path: spy } } }`, () => {
       const spy = sinon.spy()
       const obj = { action: { emit: { path: spy } } } as any
       expect(hasAction('emit', spy)).to.be.false
@@ -447,7 +447,7 @@ describe(italic(`use`), () => {
       expect(hasAction('emit', spy)).to.be.true
     })
 
-    it(`should accept this syntax for emits`, () => {
+    it(`should add { action: { emit: { path: [spy] } } }`, () => {
       const spy = sinon.spy()
       const obj = { action: { emit: { path: [spy] } } } as any
       expect(hasAction('emit', spy)).to.be.false
@@ -455,7 +455,7 @@ describe(italic(`use`), () => {
       expect(hasAction('emit', spy)).to.be.true
     })
 
-    it(`should accept this syntax for emits`, () => {
+    it(`should add { action: { emit: [{ path: [spy] }] } }`, () => {
       const spy = sinon.spy()
       const obj = { action: { emit: [{ path: [spy] }] } } as any
       expect(hasAction('emit', spy)).to.be.false
@@ -498,6 +498,27 @@ describe(italic(`use`), () => {
       expect(hasBuiltIns('hello', spy)).to.be.false
       nui.use(obj)
       expect(hasBuiltIns('hello', spy)).to.be.true
+    })
+  })
+
+  describe(italic(`emit`), () => {
+    it(`should accept trigger as the key and the func as the value`, () => {
+      const spy = sinon.spy(async () => 'hello') as any
+      expect(nui.getActions().emit).to.have.lengthOf(0)
+      nui.use({ emit: { dataValue: spy as any } })
+      expect(nui.getActions().emit).to.have.lengthOf(1)
+      expect(nui.getActions().emit.find((obj) => obj.fn === spy))
+    })
+
+    it(`should accept trigger as the key and an array of funcs as the value`, () => {
+      const spy = sinon.spy(async () => 'hello')
+      const spy2 = sinon.spy(async () => 'hello')
+      expect(nui.getActions().emit).to.have.lengthOf(0)
+      nui.use({ emit: { dataValue: [spy, spy2] as any } })
+      expect(nui.getActions().emit).to.have.lengthOf(2)
+      expect(nui.getActions().emit[0].fn).to.eq(spy)
+      expect(nui.getActions().emit[1].fn).to.eq(spy2)
+      expect(nui.getActions().emit[1].fn).to.eq(spy2)
     })
   })
 

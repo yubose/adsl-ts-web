@@ -153,7 +153,7 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
       })
     })
 
-    it(`shoud format the borderColor to hex format`, () => {
+    it(`should format the borderColor to hex format`, () => {
       expect(
         resolveComponent(
           mock.getTextFieldComponent({
@@ -446,12 +446,6 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
             return style.listStyle === 'none' && style.padding === '0px'
           },
         )
-      })
-
-      it(`should set overflowX to "hidden"`, () => {
-        expect(
-          resolveComponent(mock.getListComponent()).style,
-        ).to.have.property('overflowX', 'hidden')
       })
     })
 

@@ -3,33 +3,31 @@ import { Action, createAction as __createAction } from 'noodl-action-chain'
 import getActionType from './getActionType'
 import { isObj, isStr } from './internal'
 import {
-  NOODLUIAction,
-  NOODLUIActionObject,
-  NOODLUIActionObjectInput,
-  NOODLUITrigger,
+  NUIAction,
+  NUIActionObject,
+  NUIActionObjectInput,
+  NUITrigger,
 } from '../types'
 import EmitAction from '../actions/EmitAction'
 
-type EmitLikeObject = Extract<NOODLUIActionObjectInput, EmitObject>
-type NonEmitLikeObject = Exclude<NOODLUIActionObjectInput, EmitObject>
+type EmitLikeObject = Extract<NUIActionObjectInput, EmitObject>
+type NonEmitLikeObject = Exclude<NUIActionObjectInput, EmitObject>
 
 function createAction(args: {
   action: NonEmitLikeObject
-  trigger: NOODLUITrigger
+  trigger: NUITrigger
 }): Action
 function createAction(args: {
   action: EmitLikeObject
-  trigger: NOODLUITrigger
+  trigger: NUITrigger
 }): EmitAction
-function createAction(trigger: NOODLUITrigger, obj: NonEmitLikeObject): Action
-function createAction(trigger: NOODLUITrigger, obj: EmitLikeObject): EmitAction
+function createAction(trigger: NUITrigger, obj: NonEmitLikeObject): Action
+function createAction(trigger: NUITrigger, obj: EmitLikeObject): EmitAction
 function createAction(
-  args:
-    | NOODLUITrigger
-    | { action: NOODLUIActionObjectInput; trigger: NOODLUITrigger },
-  args2?: NOODLUIActionObjectInput | string,
+  args: NUITrigger | { action: NUIActionObjectInput; trigger: NUITrigger },
+  args2?: NUIActionObjectInput | string,
 ) {
-  let action: NOODLUIAction | undefined
+  let action: NUIAction | undefined
 
   if (isStr(args)) {
     if (Identify.emit(args2)) {
@@ -43,7 +41,7 @@ function createAction(
           else if (Identify.toast(args2)) args2['actionType'] = 'toast'
           else args2['actionType'] = 'anonymous'
         }
-        action = __createAction(args, args2 as NOODLUIActionObject)
+        action = __createAction(args, args2 as NUIActionObject)
       }
     }
   } else {
@@ -53,7 +51,7 @@ function createAction(
       if (!('actionType' in args.action)) {
         args.action = { ...args.action, actionType: getActionType(args.action) }
       }
-      action = __createAction(args.trigger, args.action as NOODLUIActionObject)
+      action = __createAction(args.trigger, args.action as NUIActionObject)
     }
   }
 

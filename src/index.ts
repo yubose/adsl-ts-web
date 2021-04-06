@@ -1,5 +1,5 @@
 import Logger from 'logsnap'
-import { NOODLUI as NUI } from 'noodl-ui'
+import { NUI } from 'noodl-ui'
 import { asHtmlElement, findByViewTag } from 'noodl-ui-dom'
 import App from './App'
 import { copyToClipboard } from './utils/dom'

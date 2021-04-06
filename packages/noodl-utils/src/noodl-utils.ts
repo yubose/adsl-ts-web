@@ -106,17 +106,6 @@ export function findReferences(obj: any): string[] {
   return results
 }
 
-export function getActionType<A extends ActionObject = any>(
-  obj: A | undefined,
-) {
-  if (obj && typeof obj === 'object') {
-    if ('actionType' in obj) return obj.actionType
-    if ('emit' in obj) return 'emit'
-    if ('goto' in obj) return 'goto'
-  }
-  return 'anonymous'
-}
-
 export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(
   dataKey?: string,
 ) {

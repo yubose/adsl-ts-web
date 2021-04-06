@@ -4,7 +4,7 @@ import { ComponentObject, PageObject } from 'noodl-types'
 import {
   nuiEmitTransaction,
   NUIComponent,
-  NOODLUI as NUI,
+  NUI,
   Page as NUIPage,
   Viewport,
 } from 'noodl-ui'

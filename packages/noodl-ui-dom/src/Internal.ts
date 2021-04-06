@@ -1,2 +1,2 @@
-class NOODLUIDOMInternal {}
-export default NOODLUIDOMInternal
+class NUIDOMInternal {}
+export default NUIDOMInternal

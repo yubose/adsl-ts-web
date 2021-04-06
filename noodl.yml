@@ -1,11 +1,5 @@
 defaultOption: server.files
-defaultPanel: null
-server:
-  dir: server
-  host: ""
-  port: 3001
-  protocol: ""
-  config: testpage
+defaultPanel: SELECT_ROUTE
 objects:
   json:
     dir:
@@ -13,3 +7,9 @@ objects:
   yml:
     dir:
       - server
+server:
+  dir: server
+  host: ""
+  port: 3001
+  protocol: ""
+  config: testpage

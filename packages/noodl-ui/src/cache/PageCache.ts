@@ -1,4 +1,4 @@
-import NOODLUIPage from '../Page'
+import NUIPage from '../Page'
 import Viewport from '../Viewport'
 import { Cache } from '../types'
 
@@ -35,11 +35,11 @@ class PageCache {
   }
 
   create({ id, viewport }: { id?: string; viewport?: Viewport } = {}) {
-    const page = new NOODLUIPage(viewport, {
+    const page = new NUIPage(viewport, {
       id: id || (!this.#pages.size ? 'root' : undefined),
     })
     this.#pages.set(page.id, { page })
-    return this.#pages.get(page.id)?.page as NOODLUIPage
+    return this.#pages.get(page.id)?.page as NUIPage
   }
 
   get(id: Cache.PageId): Cache.PageEntry

@@ -6,7 +6,7 @@ import {
   createComponent,
   findIteratorVar,
   isPage as isNUIPage,
-  NOODLUI as NUI,
+  NUI,
   Page as NUIPage,
   NUIComponent,
   nuiEmitTransaction,

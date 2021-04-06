@@ -1,6 +1,6 @@
 import firebase from 'firebase'
 import CADL, { Account } from '@aitmed/cadl'
-import { NOODLUI as NUI, Viewport } from 'noodl-ui'
+import { NUI, Viewport } from 'noodl-ui'
 import { EmitObject } from 'noodl-types'
 import NOODLDOM from 'noodl-ui-dom'
 import createMeetingFns from '../../meeting'

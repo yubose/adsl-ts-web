@@ -1,11 +1,11 @@
 import { Identify } from 'noodl-types'
-import { Component, NOODLUI as NUI } from 'noodl-ui'
+import { Component, NUI } from 'noodl-ui'
 import { entries, isArr, isFnc, isStr } from './utils/internal'
 import { findByElementId, findByViewTag, isPageConsumer } from './utils'
 import findWindow from './utils/findWindow'
 import findWindowDocument from './utils/findWindowDocument'
 import NOODLDOM from './noodl-ui-dom'
-import NOODLUIDOMInternal from './Internal'
+import NUIDOMInternal from './Internal'
 import * as T from './types'
 
 const createResolver = function createResolver(ndom: NOODLDOM) {
@@ -120,8 +120,8 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
     get() {
       return _internal.objs
     },
-    use(value: T.Resolve.Config | typeof NUI | NOODLUIDOMInternal) {
-      if (value instanceof NOODLUIDOMInternal) {
+    use(value: T.Resolve.Config | typeof NUI | NUIDOMInternal) {
+      if (value instanceof NUIDOMInternal) {
         ndom = value as NOODLDOM
       } else if (value) {
         o.register(value)

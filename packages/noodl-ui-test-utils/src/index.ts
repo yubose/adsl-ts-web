@@ -42,17 +42,17 @@ import {
 import {
   createComponent,
   EmitAction,
-  NOODLUIAction,
-  NOODLUIActionObject,
-  NOODLUIActionObjectInput,
-  NOODLUITrigger,
+  NUIAction,
+  NUIActionObject,
+  NUIActionObjectInput,
+  NUITrigger,
   NUIComponent,
 } from 'noodl-ui'
 import * as T from './types'
 
 type ComponentProps<
   C extends Partial<ComponentObject> = ComponentObject
-> = Partial<{ [K in NOODLUITrigger]: NOODLUIActionObjectInput[] } & C>
+> = Partial<{ [K in NUITrigger]: NUIActionObjectInput[] } & C>
 
 export function getActionChain({
   actions,
@@ -62,7 +62,7 @@ export function getActionChain({
 }: T.MockGetActionChainOptions) {
   let isExtendedActions = 'fn' in actions[0] || 'action' in actions[0]
 
-  const getInstance = (obj: NOODLUIActionObject) => {
+  const getInstance = (obj: NUIActionObject) => {
     const action = Identify.emit(obj)
       ? new EmitAction(trigger, obj)
       : new Action(trigger, obj)
@@ -75,17 +75,17 @@ export function getActionChain({
       typeof o?.fn === 'function' && (action.executor = o.fn)
     }
 
-    return action as NOODLUIAction
+    return action as NUIAction
   }
 
   const actionChain = createActionChain(
     trigger,
     (isExtendedActions
       ? actions.map(
-          (o: { action: NOODLUIActionObject; fn: (...args: any[]) => any }) =>
+          (o: { action: NUIActionObject; fn: (...args: any[]) => any }) =>
             o.action,
         )
-      : actions) as NOODLUIActionObject[],
+      : actions) as NUIActionObject[],
     (actions) => (loader ? loader(actions) : actions.map(getInstance)) as any,
   )
 

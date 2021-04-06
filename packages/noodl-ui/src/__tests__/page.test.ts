@@ -16,7 +16,6 @@ import sinon from 'sinon'
 import { event as eventId } from '../constants'
 import Resolver from '../Resolver'
 import Viewport from '../Viewport'
-import NOODLUI from '../noodl-ui'
 import internalHandlePage from '../resolvers/_internal/handlePage'
 import getStore from '../store'
 import Page from '../components/Page'
@@ -346,7 +345,7 @@ describe(`component: ${chalk.keyword('orange')('Page')}`, () => {
       const baseUrl = 'https://abc.com/'
       const assetsUrl = baseUrl + 'assets/'
       const root = noodlui.root
-      const initInstance = (inst: Page | NOODLUI) => {
+      const initInstance = (inst: Page | typeof NUI) => {
         inst
           .setPage(path)
           .use(noodlui.viewport as any)

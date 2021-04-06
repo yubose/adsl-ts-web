@@ -10,7 +10,7 @@ import {
   findListDataObject,
   findIteratorVar,
   getDataValues,
-  NOODLUI as NUI,
+  NUI,
   NUIComponent,
   Store,
   Viewport as VP,

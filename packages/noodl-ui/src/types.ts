@@ -32,9 +32,9 @@ import ComponentResolver from './Resolver'
 import Viewport from './Viewport'
 import { event, lib, nuiEmitType, nuiEmitTransaction } from './constants'
 
-export type NOODLUIActionType = ActionType | typeof lib.actionTypes[number]
-export type NOODLUIComponentType = ComponentType | typeof lib.components[number]
-export type NOODLUITrigger = EventType | typeof lib.emitTriggers[number]
+export type NUIActionType = ActionType | typeof lib.actionTypes[number]
+export type NUIComponentType = ComponentType | typeof lib.components[number]
+export type NUITrigger = EventType | typeof lib.emitTriggers[number]
 
 export type ActionChainEmitTrigger = typeof userEvent[number]
 export type ActionChainEventAlias = keyof typeof event.actionChain
@@ -50,14 +50,11 @@ export type PageComponentEventObject = typeof event.component.page
   ---- ACTIONS 
 -------------------------------------------------------- */
 
-export type NOODLUIActionChain = ActionChain<
-  NOODLUIActionObject,
-  NOODLUITrigger
->
+export type NUIActionChain = ActionChain<NUIActionObject, NUITrigger>
 
 // Raw / non-ensured actionType
-export type NOODLUIActionObjectInput =
-  | NOODLUIActionObject
+export type NUIActionObjectInput =
+  | NUIActionObject
   | EmitObject
   | GotoObject
   | ToastObject
@@ -76,7 +73,7 @@ export namespace NUIEmit {
 }
 
 // With ensured actionType appended
-export type NOODLUIActionObject =
+export type NUIActionObject =
   | AnonymousActionObject
   | BuiltInActionObject
   | EmitActionObject
@@ -90,7 +87,7 @@ export type NOODLUIActionObject =
   | ToastActionObject
   | UpdateActionObject
 
-export type NOODLUIAction = Action | EmitAction
+export type NUIAction = Action | EmitAction
 
 export interface AnonymousActionObject extends ActionObject {
   actionType: 'anonymous'
@@ -190,7 +187,7 @@ export namespace NUIComponent {
     next: (opts?: Record<string, any>) => void,
   ]
 
-  export type Type = NOODLUIComponentType
+  export type Type = NUIComponentType
 }
 
 export namespace Plugin {
@@ -264,14 +261,14 @@ export type ConsumerOptions = Omit<
   'createActionChain' | 'getBaseStyles'
 > & {
   createActionChain(
-    trigger: NOODLUITrigger,
-    actions: NOODLUIActionObject | NOODLUIActionObject[],
+    trigger: NUITrigger,
+    actions: NUIActionObject | NUIActionObject[],
     opts?: { loadQueue?: boolean },
-  ): NOODLUIActionChain
+  ): NUIActionChain
   getBaseStyles(
     component: NUIComponent.Instance,
   ): StyleObject & { [key: string]: any }
-  ref?: NOODLUIActionChain
+  ref?: NUIActionChain
 }
 
 export type PageObjectContainer<K extends string = string> = Record<
@@ -299,8 +296,8 @@ export interface ResolverFn<C extends NUIComponent.Instance = any> {
 
 export namespace Store {
   export interface ActionObject<
-    AType extends NOODLUIActionType = NOODLUIActionType,
-    ATrigger extends NOODLUITrigger = NOODLUITrigger
+    AType extends NUIActionType = NUIActionType,
+    ATrigger extends NUITrigger = NUITrigger
   > {
     actionType: AType
     fn(
@@ -312,7 +309,7 @@ export namespace Store {
 
   export interface BuiltInObject<
     FuncName extends string = string,
-    ATrigger extends NOODLUITrigger = NOODLUITrigger
+    ATrigger extends NUITrigger = NUITrigger
   > {
     actionType: 'builtIn'
     fn(
@@ -386,7 +383,7 @@ type _Transaction = Transaction
 
 export namespace Use {
   interface _ActionObject {
-    actionType: Exclude<NOODLUIActionType, 'builtIn'>
+    actionType: Exclude<NUIActionType, 'builtIn'>
     fn: Store.ActionObject['fn']
     trigger?: Store.ActionObject['trigger']
   }
@@ -397,19 +394,21 @@ export namespace Use {
     fn: Store.BuiltInObject['fn']
   }
 
-  export type Action = Partial<
-    Record<
-      _ActionObject['actionType'],
-      | _ActionObject['fn']
-      | _ActionObject
-      | _ActionObject[]
-      | _ActionObject['fn'][]
-    >
-  >
+  export type Action =
+    | Partial<
+        Record<
+          Omit<Store.ActionObject, 'emit'>['actionType'],
+          | _ActionObject['fn']
+          | _ActionObject
+          | _ActionObject[]
+          | _ActionObject['fn'][]
+        >
+      >
+    | Record<'emit', Emit>
 
   export type BuiltIn = Partial<
     Record<
-      _BuiltInObject['funcName'],
+      Store.BuiltInObject['funcName'],
       | _BuiltInObject['fn']
       | _BuiltInObject
       | _BuiltInObject[]
@@ -418,10 +417,8 @@ export namespace Use {
   >
 
   export type Emit =
-    | Partial<Record<NOODLUITrigger, _ActionObject['fn']>>
-    | Partial<Record<NOODLUITrigger, _ActionObject['fn'][]>>
-    | _ActionObject
-    | _ActionObject[]
+    | Partial<Record<NUITrigger, _ActionObject['fn']>>
+    | Partial<Record<NUITrigger, _ActionObject['fn'][]>>
 
   export type GetAssetsUrl = () => string
   export type GetBaseUrl = () => string

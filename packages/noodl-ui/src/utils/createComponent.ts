@@ -1,6 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { ComponentObject } from 'noodl-types'
-import { NOODLUIComponentType } from '../types'
+import { NUIComponentType } from '../types'
 import isComponent from './isComponent'
 import Component from '../Component'
 
@@ -20,22 +20,22 @@ interface Options {
  * @param { string | object | Component } component - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
-function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
+function createComponent<K extends NUIComponentType = NUIComponentType>(
   type: K,
   options?: Options,
 ): Component
 
-function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
+function createComponent<K extends NUIComponentType = NUIComponentType>(
   value: PropsOptionObj,
   options?: Options,
 ): Component
 
-function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
+function createComponent<K extends NUIComponentType = NUIComponentType>(
   component: Component,
   options?: Options,
 ): Component
 
-function createComponent<K extends NOODLUIComponentType = NOODLUIComponentType>(
+function createComponent<K extends NUIComponentType = NUIComponentType>(
   value: K | PropsOptionObj | Component,
   options?: Options,
 ): Component {

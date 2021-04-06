@@ -4,7 +4,7 @@ import set from 'lodash/set'
 import Logger from 'logsnap'
 import { ActionChain } from 'noodl-action-chain'
 import { current, Draft } from 'immer'
-import { NOODLUI as NUI } from 'noodl-ui'
+import { NUI } from 'noodl-ui'
 import {
   LocalAudioTrackPublication,
   LocalVideoTrackPublication,

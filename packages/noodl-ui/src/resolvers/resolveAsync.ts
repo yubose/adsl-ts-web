@@ -1,5 +1,5 @@
 import { Identify, userEvent } from 'noodl-types'
-import { ConsumerOptions, NUIComponent, NOODLUIActionObject } from '../types'
+import { ConsumerOptions, NUIComponent, NUIActionObject } from '../types'
 import { resolveAssetUrl } from '../utils/noodl'
 import Resolver from '../Resolver'
 
@@ -70,7 +70,7 @@ asyncResolver.setResolver((component, options, next) => {
     if (original[eventType]) {
       const actionChain = createActionChain(
         eventType,
-        original[eventType] as NOODLUIActionObject[],
+        original[eventType] as NUIActionObject[],
       )
       component.edit({ [eventType]: actionChain })
     }

@@ -2,7 +2,7 @@ import {
   findParent,
   isComponent,
   NUIComponent,
-  NOODLUIComponentType,
+  NUIComponentType,
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
@@ -55,10 +55,10 @@ export function createAsyncImageElement(
 
 /**
  * Returns the DOM element tag name for the NOODL component
- * @param { NUIComponent.Instance | NOODLUIComponentType } component
+ * @param { NUIComponent.Instance | NUIComponentType } component
  */
 export function getElementTag(
-  component: NUIComponent.Instance | NOODLUIComponentType | undefined,
+  component: NUIComponent.Instance | NUIComponentType | undefined,
 ): keyof HTMLElementTagNameMap {
   const componentType = u.isStr(component) ? component : component?.type || ''
   const tagName = getElementTag.prototype.elementMap[componentType]

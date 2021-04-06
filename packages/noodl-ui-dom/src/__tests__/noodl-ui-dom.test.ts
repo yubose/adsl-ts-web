@@ -1,7 +1,7 @@
 import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
-import { flatten, NOODLUI as NUI, nuiEmitTransaction } from 'noodl-ui'
+import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
 import { coolGold, italic } from 'noodl-common'
 import { findByGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'

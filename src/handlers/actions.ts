@@ -523,6 +523,15 @@ const createActions = function createActions(app: App) {
                 `Could not determine the page to query the verification code for`,
               )
             }
+            // const saveBtn = [...elem.querySelectorAll('button')].find((n) =>
+            //   /submit/i.test(n.innerHTML),
+            // )
+            // const onSubmit = () => {
+            //   vcodeInput.dataset.value = ''
+            //   vcodeInput.value = ''
+            //   saveBtn?.removeEventListener('click', onSubmit)
+            // }
+            // saveBtn?.addEventListener('click', onSubmit)
             if (vcode) {
               if (!vcodeInput.value || vcodeInput.value == '0') {
                 vcode = String(vcode)

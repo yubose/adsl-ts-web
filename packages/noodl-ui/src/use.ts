@@ -3,10 +3,18 @@ import set from 'lodash/set'
 import invariant from 'invariant'
 import Resolver from './Resolver'
 import NUI from './noodl-ui'
-import { array, entries, isArr, isFnc, isObj, isStr } from './utils/internal'
 import {
-  NOODLUIActionType,
-  NOODLUITrigger,
+  array,
+  assign,
+  entries,
+  isArr,
+  isFnc,
+  isObj,
+  isStr,
+} from './utils/internal'
+import { triggers } from './constants'
+import {
+  NUIActionType,
   Register,
   Store,
   Transaction,
@@ -30,11 +38,14 @@ function use(
         getRoot?: Use.GetRoot
         getPlugins?: Use.GetPlugins
       }
-    | Use.Action
-    | Use.BuiltIn
-    | (Use.Action | Use.BuiltIn)[]
-    | Use.Plugin
-    | Use.Resolver,
+    | (
+        | Use.Action
+        | Use.BuiltIn
+        | Use.Emit
+        | (Use.Action | Use.BuiltIn)[]
+        | Use.Plugin
+        | Use.Resolver
+      ),
 ): typeof NUI {
   const self = this
   const getArr = <O extends Record<string, any>, K extends keyof O>(
@@ -46,38 +57,39 @@ function use(
   }
 
   function useAction(
-    actionType: NOODLUIActionType,
+    actionType: NUIActionType,
     opts: Store.ActionObject | Store.BuiltInObject | Store.ActionObject['fn'],
   ) {
     if (actionType === 'builtIn') {
       invariant('funcName' in opts, `Missing funcName for a builtIn`)
       if (isObj(opts)) {
         opts.actionType = actionType
-        getArr(self.getBuiltIns(), opts.funcName).push(
-          opts as Store.BuiltInObject,
-        )
+        getArr(self.getBuiltIns(), opts.funcName).push(opts)
       }
+    } else if (actionType === 'emit') {
+      const getEmitArr = () => self.getActions().emit
+      array(opts).forEach((opt) => {
+        if ('trigger' in opt) {
+          invariant(
+            isFnc(opt.fn),
+            `fn is required for emit trigger "${opt.trigger}"`,
+          )
+          getEmitArr().push({ ...opt, actionType: 'emit' })
+        } else {
+          entries(opt).forEach(([trigger, opt]) => {
+            array(opt).forEach((fn) => {
+              if (isFnc(fn)) {
+                getEmitArr().push({ actionType: 'emit', fn, trigger })
+              }
+            })
+          })
+        }
+      })
     } else {
       if (isFnc(opts)) {
         getArr(self.getActions(), actionType).push({ actionType, fn: opts })
       } else if (isObj(opts)) {
-        if (actionType === 'emit') {
-          if ('trigger' in opts) {
-            getArr(self.getActions(), actionType).push({ ...opts, actionType })
-          } else {
-            entries(opts).forEach(([trigger, o]) => {
-              getArr(self.getActions(), actionType).push({
-                ...opts,
-                actionType,
-                fn: isFnc(o) ? o : o.fn,
-                trigger: trigger as NOODLUITrigger,
-              })
-            })
-          }
-        } else {
-          invariant('fn' in opts, `fn is missing for action "${actionType}"`)
-          getArr(self.getActions(), actionType).push({ ...opts, actionType })
-        }
+        getArr(self.getActions(), actionType).push({ ...opts, actionType })
       }
     }
   }
@@ -123,29 +135,33 @@ function use(
   } else {
     if ('actionType' in args) {
       invariant(isFnc(args.fn), 'fn is not a function')
-      invariant(isStr(args.actionType), 'Missing actionType')
-      useAction(args.actionType as any, args)
+      useAction(args.actionType, args)
     } else if ('funcName' in args) {
-      args.actionType = 'builtIn' as any
       invariant(!!args.funcName, `"funcName" is required`)
       invariant(isFnc(args.fn), 'fn is not a function')
       useAction('builtIn', args)
+    } else if ('emit' in args) {
+      useAction('emit', args.emit)
     } else {
       for (const [key, val] of entries(args)) {
         if (key === 'action') {
           entries(val).forEach(([k, v]) => {
-            if (isArr(v)) {
-              v.forEach((_v) => {
-                useAction(
-                  k as Store.ActionObject['actionType'],
-                  isFnc(_v) ? { actionType: k, fn: _v } : _v,
-                )
-              })
+            if (k === 'emit') {
+              useAction('emit', v)
+            } else {
+              if (isArr(v)) {
+                v.forEach((_v) => {
+                  useAction(
+                    k as Store.ActionObject['actionType'],
+                    isFnc(_v) ? { actionType: k, fn: _v } : _v,
+                  )
+                })
+              }
+              useAction(
+                k as Store.ActionObject['actionType'],
+                isFnc(v) ? { actionType: k, fn: v } : v,
+              )
             }
-            useAction(
-              k as Store.ActionObject['actionType'],
-              isFnc(v) ? { actionType: k, fn: v } : v,
-            )
           })
         } else if (key === 'builtIn') {
           if ('funcName' in val) {
@@ -168,7 +184,7 @@ function use(
             })
           }
         } else if (key === 'emit') {
-          //
+          useAction(key, val)
         } else {
           if (
             [

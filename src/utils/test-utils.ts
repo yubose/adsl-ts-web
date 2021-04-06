@@ -11,7 +11,7 @@ import NOODLDOM, {
 } from 'noodl-ui-dom'
 import {
   nuiEmitTransaction,
-  NOODLUI as NUI,
+  NUI,
   NUIComponent,
   Viewport,
   Store,

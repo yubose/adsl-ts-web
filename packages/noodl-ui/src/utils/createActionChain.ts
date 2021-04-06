@@ -4,46 +4,46 @@ import {
   createActionChain as __createActionChain,
 } from 'noodl-action-chain'
 import {
-  NOODLUIAction,
-  NOODLUIActionChain,
-  NOODLUIActionObject,
-  NOODLUITrigger,
+  NUIAction,
+  NUIActionChain,
+  NUIActionObject,
+  NUITrigger,
 } from '../types'
 
 function createActionChain(args: {
-  actions: NOODLUIActionObject[]
-  trigger: NOODLUITrigger
-  loader?: ActionChainInstancesLoader<NOODLUIActionObject, NOODLUIAction>
-}): NOODLUIActionChain
+  actions: NUIActionObject[]
+  trigger: NUITrigger
+  loader?: ActionChainInstancesLoader<NUIActionObject, NUIAction>
+}): NUIActionChain
 
 function createActionChain(
-  trigger: NOODLUITrigger,
-  actions: NOODLUIActionObject[],
-  loader?: ActionChainInstancesLoader<NOODLUIActionObject, NOODLUIAction>,
-): NOODLUIActionChain
+  trigger: NUITrigger,
+  actions: NUIActionObject[],
+  loader?: ActionChainInstancesLoader<NUIActionObject, NUIAction>,
+): NUIActionChain
 
 function createActionChain(
   args:
-    | NOODLUITrigger
+    | NUITrigger
     | {
-        actions: NOODLUIActionObject[]
-        trigger: NOODLUITrigger
-        loader?: ActionChainInstancesLoader<NOODLUIActionObject, NOODLUIAction>
+        actions: NUIActionObject[]
+        trigger: NUITrigger
+        loader?: ActionChainInstancesLoader<NUIActionObject, NUIAction>
       },
   actions?:
-    | NOODLUIActionObject[]
-    | ActionChainInstancesLoader<NOODLUIActionObject, NOODLUIAction>,
-  loader?: ActionChainInstancesLoader<NOODLUIActionObject, NOODLUIAction>,
+    | NUIActionObject[]
+    | ActionChainInstancesLoader<NUIActionObject, NUIAction>,
+  loader?: ActionChainInstancesLoader<NUIActionObject, NUIAction>,
 ) {
   let ac: ActionChain
 
   if (typeof args === 'string') {
-    ac = __createActionChain(args, actions as NOODLUIActionObject[], loader)
+    ac = __createActionChain(args, actions as NUIActionObject[], loader)
   } else {
     ac = __createActionChain(args)
   }
 
-  return ac as NOODLUIActionChain
+  return ac as NUIActionChain
 }
 
 export default createActionChain

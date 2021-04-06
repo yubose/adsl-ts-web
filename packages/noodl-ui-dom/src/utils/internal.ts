@@ -1,6 +1,7 @@
 import { NUIComponent } from 'noodl-ui'
 
-export const array = <O>(o: O | O[]): O[] => (isArr(o) ? o : [o])
+export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
+  isArr(o) ? o : [o]
 export const assign = (
   v: Record<string, any>,
   ...rest: (Record<string, any> | undefined)[]

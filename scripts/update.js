@@ -48,7 +48,7 @@ console.log(args)
   let shell = spawn(cmds.join(' && '), { shell: true })
 
   shell.stdout.on('data', (data) => {
-    console.log(data.toString())
+    process.stdout.write(data.toString())
   })
 
   shell.stdout.on('end', () => {
@@ -57,15 +57,12 @@ console.log(args)
     let nodejs = exec('npm run build:deploy:test', { shell: true })
 
     nodejs.stdout.on('data', (data) => {
-      console.log(data.toString())
+      process.stdout.write(data.toString())
     })
 
-    // nodejs.stdout.pipe(process.stdout)
-    process.stdout.pipe(nodejs.stdout)
-
     nodejs.stdout.on('end', () => {
-      console.log(magenta(`\nDeployed`))
-      nodejs.disconnect()
+      console.log(magenta(`\nDeployed\n`))
+      process.exit(0)
     })
   })
 })()

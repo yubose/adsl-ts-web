@@ -13,7 +13,7 @@ import { excludeIteratorVar, getAllByDataKey } from 'noodl-utils'
 import {
   findIteratorVar,
   findListDataObject,
-  NOODLUIActionChain,
+  NUIActionChain,
   NUIComponent,
 } from 'noodl-ui'
 import App from '../App'
@@ -23,7 +23,7 @@ const log = Logger.create('src/handlers/dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
   const getOnChange = function _getOnChangeFn(args: {
-    actionChain: NOODLUIActionChain | undefined
+    actionChain: NUIActionChain | undefined
     component: NUIComponent.Instance
     node: NOODLDOMDataValueElement
     dataKey: string

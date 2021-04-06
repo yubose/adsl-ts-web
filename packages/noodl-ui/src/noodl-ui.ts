@@ -34,7 +34,7 @@ import * as T from './types'
 enableES5()
 setUseProxies(false)
 
-const NOODLUI = (function _NOODLUI() {
+const NUI = (function _NUI() {
   const cache = {
     component: new ComponentCache(),
     page: new PageCache(),
@@ -50,7 +50,7 @@ const NOODLUI = (function _NOODLUI() {
     })
   }
 
-  function finalizeActionObjects(actions: T.NOODLUIActionObjectInput[]) {
+  function finalizeActionObjects(actions: T.NUIActionObjectInput[]) {
     return actions?.reduce(
       (
         acc: (ActionObject | T.EmitActionObject | T.GotoActionObject)[],
@@ -104,9 +104,7 @@ const NOODLUI = (function _NOODLUI() {
     }
     page = cache.page.create({ id, viewport: viewport as VP })
     name && (page.page = name)
-    page.use(() =>
-      page?.page ? NOODLUI.getRoot()[page.page] : { components: [] },
-    )
+    page.use(() => (page?.page ? NUI.getRoot()[page.page] : { components: [] }))
     return page
   }
 
@@ -349,8 +347,8 @@ const NOODLUI = (function _NOODLUI() {
       context, // Internal context during component resolving
       createPage: _createPage,
       createActionChain(
-        trigger: T.NOODLUITrigger,
-        actions: T.NOODLUIActionObject | T.NOODLUIActionObject[],
+        trigger: T.NUITrigger,
+        actions: T.NUIActionObject | T.NUIActionObject[],
         {
           context: contextProp,
           loadQueue = true,
@@ -515,8 +513,8 @@ const NOODLUI = (function _NOODLUI() {
     cache,
     createPage: _createPage,
     createActionChain(
-      trigger: T.NOODLUITrigger,
-      actions: T.NOODLUIActionObjectInput | T.NOODLUIActionObjectInput[],
+      trigger: T.NUITrigger,
+      actions: T.NUIActionObjectInput | T.NUIActionObjectInput[],
       opts?: {
         component?: T.NUIComponent.Instance
         context?: Record<string, any>
@@ -529,9 +527,9 @@ const NOODLUI = (function _NOODLUI() {
       const actionChain = createActionChain({
         actions: finalizeActionObjects(actions),
         trigger,
-        loader(this: T.NOODLUIActionChain, objs) {
+        loader(this: T.NUIActionChain, objs) {
           function __createExecutor(
-            action: T.NOODLUIAction,
+            action: T.NUIAction,
             fns: (T.Store.ActionObject | T.Store.BuiltInObject)[] = [],
             options: T.ConsumerOptions,
           ) {
@@ -709,4 +707,4 @@ const NOODLUI = (function _NOODLUI() {
   return o as typeof o & { use: typeof use }
 })()
 
-export default NOODLUI
+export default NUI

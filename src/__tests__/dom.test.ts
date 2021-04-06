@@ -1,4 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
+import sinon from 'sinon'
 import { expect } from 'chai'
 import { screen, waitFor } from '@testing-library/dom'
 import { getFirstByElementId } from 'noodl-ui-dom'
@@ -6,6 +7,45 @@ import { coolGold, italic, magenta } from 'noodl-common'
 import { assetsUrl, createRender } from '../utils/test-utils'
 
 describe(coolGold('DOM'), () => {
+  it.only(`should display the resolved data-value for a dataValue emit`, async () => {
+    const email = 'abc@gmail.com'
+    const value = 'myval123'
+    const { ndom, render } = createRender({
+      pageObject: {
+        formData: { email },
+        components: [
+          mock.getTextFieldComponent({
+            id: 't',
+            dataValue: [
+              mock.getEmitObject({
+                dataKey: { var1: `formData.email` },
+                actions: [],
+              }),
+            ],
+          }),
+        ],
+      },
+    })
+    const spy = sinon.spy(async () => value)
+    ndom.use({
+      action: {
+        emit: [
+          {
+            fn: spy,
+            trigger: 'dataValue',
+          },
+        ],
+      },
+    })
+    await render()
+    const node = getFirstByElementId('t') as HTMLInputElement
+    console.info(node)
+    await waitFor(() => {
+      expect(node.dataset.value).to.eq(value)
+      expect(node.value).to.eq(value)
+    })
+  })
+
   xdescribe(italic(`textField (password)`), () => {
     const dataKey = 'formData.greeting'
     let eyeOpened = 'makePasswordVisiable.png'
