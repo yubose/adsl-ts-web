@@ -301,7 +301,7 @@ export namespace Store {
   > {
     actionType: AType
     fn(
-      action: Action<AType, ATrigger>,
+      action: AType extends 'emit' ? EmitAction : Action<AType, ATrigger>,
       options: ConsumerOptions,
     ): Promise<any[] | void>
     trigger?: ATrigger
@@ -382,43 +382,35 @@ export interface UseObject {
 type _Transaction = Transaction
 
 export namespace Use {
-  interface _ActionObject {
-    actionType: Exclude<NUIActionType, 'builtIn'>
+  interface ActionObj {
+    actionType: Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>
     fn: Store.ActionObject['fn']
     trigger?: Store.ActionObject['trigger']
   }
 
-  interface _BuiltInObject {
+  interface BuiltInObj {
     actionType?: 'builtIn'
     funcName: Store.BuiltInObject['funcName']
     fn: Store.BuiltInObject['fn']
   }
 
-  export type Action =
-    | Partial<
-        Record<
-          Omit<Store.ActionObject, 'emit'>['actionType'],
-          | _ActionObject['fn']
-          | _ActionObject
-          | _ActionObject[]
-          | _ActionObject['fn'][]
-        >
-      >
-    | Record<'emit', Emit>
+  export type Action = Partial<
+    Record<
+      ActionObj['actionType'],
+      ActionObj | ActionObj[] | ActionObj['fn'] | ActionObj['fn'][]
+    >
+  >
 
   export type BuiltIn = Partial<
     Record<
       Store.BuiltInObject['funcName'],
-      | _BuiltInObject['fn']
-      | _BuiltInObject
-      | _BuiltInObject[]
-      | _BuiltInObject['fn'][]
+      BuiltInObj | BuiltInObj[] | BuiltInObj['fn'] | BuiltInObj['fn'][]
     >
   >
 
   export type Emit =
-    | Partial<Record<NUITrigger, _ActionObject['fn']>>
-    | Partial<Record<NUITrigger, _ActionObject['fn'][]>>
+    | Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn']>>
+    | Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn'][]>>
 
   export type GetAssetsUrl = () => string
   export type GetBaseUrl = () => string

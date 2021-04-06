@@ -88,13 +88,11 @@ describe(italic(`createActionChain`), () => {
       actionType: 'builtIn',
       fn: spy1,
       funcName: 'kitty',
-      trigger: 'onFocus',
     })
     nui.use({
       actionType: 'builtIn',
       fn: spy2,
       funcName: 'cereal',
-      trigger: 'onFocus',
     })
     const page = nui.createPage()
     const ac = nui.createActionChain(

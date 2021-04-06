@@ -3,16 +3,8 @@ import set from 'lodash/set'
 import invariant from 'invariant'
 import Resolver from './Resolver'
 import NUI from './noodl-ui'
-import {
-  array,
-  assign,
-  entries,
-  isArr,
-  isFnc,
-  isObj,
-  isStr,
-} from './utils/internal'
-import { triggers } from './constants'
+import { array, entries, isArr, isFnc, isObj } from './utils/internal'
+import { actionTypes } from './constants'
 import {
   NUIActionType,
   Register,
@@ -22,30 +14,49 @@ import {
   Use,
 } from './types'
 
+function isActionObject(obj: any): obj is Store.ActionObject {
+  return (
+    isObj(obj) && 'actionType' in obj && 'fn' in obj && !('funcName' in obj)
+  )
+}
+
+function isBuiltInObject(obj: any): obj is Store.BuiltInObject {
+  return (
+    isObj(obj) &&
+    'actionType' in obj &&
+    obj.actionType === 'builtIn' &&
+    'funcName' in obj
+  )
+}
+
 function use(
   this: typeof NUI,
-  args:
-    | {
-        action?: Use.Action
-        builtIn?: Use.BuiltIn
-        emit?: Use.Emit
-        register?: Use.Register
-        transaction?: Use.Transaction
-        getAssetsUrl?: Use.GetAssetsUrl
-        getBaseUrl?: Use.GetBaseUrl
-        getPages?: Use.GetPages
-        getPreloadPages?: Use.GetPreloadPages
-        getRoot?: Use.GetRoot
-        getPlugins?: Use.GetPlugins
-      }
-    | (
-        | Use.Action
-        | Use.BuiltIn
-        | Use.Emit
-        | (Use.Action | Use.BuiltIn)[]
-        | Use.Plugin
-        | Use.Resolver
-      ),
+  args: {
+    action?: Use.Action
+    builtIn?: Use.BuiltIn
+    emit?: Use.Emit
+    register?: Use.Register
+    transaction?: Use.Transaction
+    getAssetsUrl?: Use.GetAssetsUrl
+    getBaseUrl?: Use.GetBaseUrl
+    getPages?: Use.GetPages
+    getPreloadPages?: Use.GetPreloadPages
+    getRoot?: Use.GetRoot
+    getPlugins?: Use.GetPlugins
+  } & Partial<
+    Record<
+      Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>,
+      Store.ActionObject['fn'] | Store.ActionObject['fn'][]
+    >
+  > &
+    (
+      | Store.ActionObject
+      | Store.BuiltInObject
+      | Use.Emit
+      | (Store.ActionObject | Store.BuiltInObject)[]
+      | Use.Plugin
+      | Use.Resolver
+    ),
 ): typeof NUI {
   const self = this
   const getArr = <O extends Record<string, any>, K extends keyof O>(
@@ -132,6 +143,8 @@ function use(
         this.getTransactions()[tid] = { ...this.getTransactions()[tid], fn }
       },
     )
+  } else if (isActionObject(args) || isBuiltInObject(args)) {
+    useAction(args.actionType, args)
   } else {
     if ('actionType' in args) {
       invariant(isFnc(args.fn), 'fn is not a function')
@@ -156,11 +169,12 @@ function use(
                     isFnc(_v) ? { actionType: k, fn: _v } : _v,
                   )
                 })
+              } else {
+                useAction(
+                  k as Store.ActionObject['actionType'],
+                  isFnc(v) ? { actionType: k, fn: v } : v,
+                )
               }
-              useAction(
-                k as Store.ActionObject['actionType'],
-                isFnc(v) ? { actionType: k, fn: v } : v,
-              )
             }
           })
         } else if (key === 'builtIn') {
@@ -186,6 +200,10 @@ function use(
         } else if (key === 'emit') {
           useAction(key, val)
         } else {
+          if (actionTypes.includes(key as NUIActionType)) {
+            array(val).forEach((v) => useAction(key as NUIActionType, v))
+          }
+
           if (
             [
               'getAssetsUrl',

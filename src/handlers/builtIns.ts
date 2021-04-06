@@ -1,9 +1,7 @@
-import isPlainObject from 'lodash/isPlainObject'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import isObjectLike from 'lodash/isObjectLike'
-import { isDraft, original } from 'immer'
+import { Draft, isDraft, original } from 'immer'
 import { Action, isAction } from 'noodl-action-chain'
 import {
   ConsumerOptions,
@@ -36,7 +34,7 @@ import {
 } from 'twilio-video'
 import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
-import { hide, show, scrollToElem } from '../utils/dom'
+import { toast, hide, show, scrollToElem } from '../utils/dom'
 import { pageEvent } from '../constants'
 import App from '../App'
 import * as u from '../utils/common'
@@ -45,35 +43,28 @@ const log = Logger.create('builtIns.ts')
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
   const builtIns: Record<string, Store.BuiltInObject['fn']> = {
-    async checkField(action, options) {
+    async checkField(action) {
       log.func('checkField')
-      log.grey('checkField', { action, options })
+      log.grey('', action)
       let contentType =
-        action.original?.contentType || (action as any)?.contentType || ''
-      let delay: number | boolean =
-        action.original?.wait || (action as any).wait || 0
+        action.original?.contentType || action?.contentType || ''
+      let delay: number | boolean = action.original?.wait || action.wait || 0
 
       const onCheckField = () => {
         const node = findByUX(contentType)
-        ;(Array.isArray(node) ? node : [node]).forEach((n) => {
-          n && show(n)
-        })
+        u.array(node).forEach((n) => n && show(n))
       }
-
-      if (delay > 0) {
-        setTimeout(() => onCheckField(), delay as any)
-      } else {
-        onCheckField()
-      }
+      if (delay > 0) setTimeout(() => onCheckField(), delay as any)
+      else onCheckField()
     },
     async disconnectMeeting(action, options) {
       log.func('disconnectMeeting')
-      log.grey('', { action, room: app.meeting.room, options })
+      log.grey('', { action, room: app.meeting.room })
       app.meeting.room.disconnect()
     },
     async goBack(action, options) {
       log.func('goBack')
-      log.grey('', { action, ...options })
+      log.grey('', action)
 
       if (u.isBool(action.original?.reload)) {
         const prevPage = app.mainPage
@@ -84,7 +75,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
       window.history.back()
     },
-    async hide(action, options) {
+    async hide(action) {
       log.func('hide')
       log.grey('', action)
 
@@ -126,10 +117,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     },
     async toggleCameraOnOff(action: Action, options: ConsumerOptions) {
       log.func('toggleCameraOnOff')
-      log.green({ action, options })
+      log.green('', action)
       const path = 'VideoChat.cameraOn'
 
-      const { localParticipant } = app.meeting
+      let { localParticipant } = app.meeting
       let videoTrack: LocalVideoTrack | undefined
 
       if (localParticipant) {
@@ -137,22 +128,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           (trackPublication) => trackPublication.kind === 'video',
         )?.track as LocalVideoTrack
 
-        app.noodl.editDraft((draft: any) => {
+        app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
           if (videoTrack) {
             if (videoTrack.isEnabled) {
               videoTrack.disable()
               set(draft, path, false)
-              log.grey(
-                `Toggled video OFF for LocalParticipant`,
-                localParticipant,
-              )
+              log.grey(`Toggled video off `, localParticipant)
             } else {
               videoTrack.enable()
               set(draft, path, true)
-              log.grey(
-                `Toggled video ON for LocalParticipant`,
-                localParticipant,
-              )
+              log.grey(`Toggled video on`, localParticipant)
             }
           } else {
             log.red(
@@ -163,12 +148,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         })
       }
     },
-    async toggleMicrophoneOnOff(action: Action, options: ConsumerOptions) {
+    async toggleMicrophoneOnOff(action) {
       log.func('toggleMicrophoneOnOff')
-      log.green({ action, options })
+      log.green('', action)
       const path = 'VideoChat.micOn'
 
-      const { localParticipant } = app.meeting
+      let { localParticipant } = app.meeting
       let audioTrack: LocalAudioTrack | undefined
 
       if (localParticipant) {
@@ -176,21 +161,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           (trackPublication) => trackPublication.kind === 'audio',
         )?.track as LocalAudioTrack
 
-        const { default: noodl } = await import('../app/noodl')
-        noodl.editDraft((draft: any) => {
+        app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
           if (audioTrack) {
             if (audioTrack.isEnabled) {
               audioTrack.disable()
               set(draft, path, false)
-              log.grey(
-                `Toggled audio OFF for LocalParticipant`,
-                localParticipant,
-              )
+              log.grey(`Toggled audio off`, localParticipant)
             } else {
-              log.grey(
-                `Toggled audio ON for LocalParticipant`,
-                localParticipant,
-              )
+              log.grey(`Toggled audio on`, localParticipant)
               audioTrack.enable()
               set(draft, path, true)
             }
@@ -198,14 +176,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         })
       }
     },
-    async toggleFlag(action: Action, options: ConsumerOptions) {
+    async toggleFlag(action, options) {
       log.func('toggleFlag')
-      console.log({ action, ...options })
+      log.grey('', action)
       try {
-        const { component } = options
+        const { component, getAssetsUrl } = options
         const { dataKey = '' } = action.original || {}
         const iteratorVar = findIteratorVar(component)
-        const node = findByElementId(component)
+        const node = getFirstByElementId(component)
+        const pageName = app.mainPage.page || ''
         let path = component?.get('path')
 
         let dataValue: any
@@ -218,9 +197,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
         if (dataKey?.startsWith(iteratorVar)) {
           const parts = dataKey.split('.').slice(1)
-          dataObject = findListDataObject(component as NUIComponent.Instance)
+          dataObject = findListDataObject(component)
           previousDataValue = get(dataObject, parts)
-          // previousDataValueInSdk = _.get(noodl.root[context.page])
           dataValue = previousDataValue
           if (Identify.isBoolean(dataValue)) {
             // true -> false / false -> true
@@ -240,14 +218,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               nextValue = !Identify.isBooleanTrue(previousValue)
             }
             nextValue = !previousValue
-            if (updateDraft) {
-              app.noodl.editDraft((draft: any) => {
+            updateDraft &&
+              app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
                 set(draft, updateDraft.path, nextValue)
               })
-            }
             // Propagate the changes to to UI if there is a path "if" object that
             // references the value as well
-            if (node && isObjectLike(path)) {
+            if (node && u.isObj(path)) {
               let valEvaluating = path?.if?.[0]
               // If the dataKey is the same as the the value we are evaluating we can
               // just re-use the nextDataValue
@@ -256,12 +233,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               } else {
                 valEvaluating =
                   get(app.noodl.root, valEvaluating) ||
-                  get(app.noodl.root[app.mainPage.page || ''], valEvaluating)
+                  get(app.noodl.root[pageName], valEvaluating)
               }
               newSrc =
-                NUI.getAssetsUrl() + valEvaluating
-                  ? path?.if?.[1]
-                  : path?.if?.[2]
+                getAssetsUrl() + valEvaluating ? path?.if?.[1] : path?.if?.[2]
               // newSrc = NUI.createSrc(
               //   valEvaluating ? path?.if?.[1] : path?.if?.[2],
               //   component,
@@ -277,14 +252,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             dataObject = app.noodl.root
             previousDataValue = get(dataObject, dataKey)
             onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-          } else if (has(app.noodl.root[app.mainPage.page], dataKey)) {
-            dataObject = app.noodl.root[app.mainPage.page]
+          } else if (has(app.noodl.root[pageName], dataKey)) {
+            dataObject = app.noodl.root[pageName]
             previousDataValue = get(dataObject, dataKey)
             onNextValue(previousDataValue, {
               updateDraft: {
-                path: `${dataKey}${
-                  app.mainPage.page ? `.${app.mainPage.page}` : ''
-                }`,
+                path: `${dataKey}${pageName ? `.${pageName}` : ''}`,
               },
             })
           } else {
@@ -313,8 +286,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
 
         log.grey('', {
-          component: component?.toJSON(),
-          componentInst: component,
+          component,
           dataKey,
           dataValue,
           dataObject,
@@ -332,28 +304,24 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     },
     async lockApplication(action, options) {
       const result = await _onLockLogout()
-      if (result === 'abort') return 'abort'
-      const { Account } = await import('@aitmed/cadl')
-      await Account.logout(false)
+      if (result === 'abort') options?.ref?.abort?.()
+      await (await import('@aitmed/cadl')).Account.logout(false)
       window.location.reload()
     },
     async logOutOfApplication(action, options) {
-      const result = await _onLockLogout()
-      if (result === 'abort') return 'abort'
-      const { Account } = await import('@aitmed/cadl')
-      await Account.logout(true)
+      if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
+      await (await import('@aitmed/cadl')).Account.logout(true)
       window.location.reload()
     },
     async logout(action, options) {
-      const result = await _onLockLogout()
-      if (result === 'abort') return 'abort'
-      const { Account } = await import('@aitmed/cadl')
-      await Account.logout(true)
+      if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
+      await (await import('@aitmed/cadl')).Account.logout(true)
       window.location.reload()
     },
     async goto(action: Action<any>, options: ConsumerOptions) {
-      log.func('builtIn [goto]')
-      log.red('', { action, ...options })
+      log.func('<builtIn> goto]')
+      log.red('', action)
+
       let destinationParam = ''
       let reload: boolean | undefined
       let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
@@ -361,60 +329,55 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
       // "Reload" currently is only known to be used in goto when runnning
       // an action chain and given an object like { destination, reload }
-      if (typeof action === 'string') {
+      if (u.isStr(action)) {
         destinationParam = action
       } else if (isAction(action)) {
         const gotoObj = action.original
-        if (typeof gotoObj === 'string') {
+        if (u.isStr(gotoObj)) {
           destinationParam = gotoObj
-        } else if (isPlainObject(gotoObj)) {
+        } else if (u.isObj(gotoObj)) {
           if ('goto' in gotoObj) {
-            if (isPlainObject(gotoObj.goto)) {
+            if (u.isObj(gotoObj.goto)) {
               destinationParam = gotoObj.goto.destination
-              if ('reload' in gotoObj.goto) reload = gotoObj.goto.reload
-              if ('pageReload' in gotoObj.goto)
-                pageReload = gotoObj.goto.pageReload
-              if ('dataIn' in gotoObj.goto) dataIn = gotoObj.goto.dataIn
-            } else if (typeof gotoObj.goto === 'string') {
+              'reload' in gotoObj.goto && (reload = gotoObj.goto.reload)
+              'pageReload' in gotoObj.goto &&
+                (pageReload = gotoObj.goto.pageReload)
+              'dataIn' in gotoObj.goto && (dataIn = gotoObj.goto.dataIn)
+            } else if (u.isStr(gotoObj.goto)) {
               destinationParam = gotoObj.goto
             }
-          } else if (isPlainObject(gotoObj)) {
+          } else if (u.isObj(gotoObj)) {
             destinationParam = gotoObj.destination
-            if ('reload' in gotoObj) reload = gotoObj.reload
-            if ('pageReload' in gotoObj) pageReload = gotoObj.pageReload
-            if ('dataIn' in gotoObj) dataIn = gotoObj.dataIn
+            'reload' in gotoObj && (reload = gotoObj.reload)
+            'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
+            'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
           }
         }
-      } else if (isPlainObject(action)) {
+      } else if (u.isObj(action)) {
         if ('destination' in action) {
           destinationParam = action.destination
-          if ('reload' in action) reload = action.reload
-          if ('pageReload' in action) pageReload = action.pageReload
-          if ('dataIn' in action) dataIn = action.dataIn
+          'reload' in action && (reload = action.reload)
+          'pageReload' in action && (pageReload = action.pageReload)
+          'dataIn' in action && (dataIn = action.dataIn)
         }
       }
-
-      if (reload !== undefined) {
+      if (!u.isUnd(reload)) {
         app.mainPage.setModifier(destinationParam, { reload })
       }
-
-      if (pageReload !== undefined) {
+      if (!u.isUnd(pageReload)) {
         app.mainPage.setModifier(destinationParam, { pageReload })
       }
-
-      if (dataIn !== undefined) {
+      if (!u.isUnd(dataIn)) {
         app.mainPage.setModifier(destinationParam, { ...dataIn })
       }
-
       let { destination, id = '', isSamePage, duration } = parse.destination(
         destinationParam,
       )
-
       if (destination === destinationParam) {
         app.mainPage.requesting = destination
       }
 
-      log.grey(`Computed goto params`, {
+      log.grey(`Goto info`, {
         destination,
         destinationParam,
         duration,
@@ -426,12 +389,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
       if (id) {
         const isInsidePageComponent = isPageConsumer(options.component)
-        const node = findByViewTag(id) || findByElementId(id)
+        const node = findByViewTag(id) || getFirstByElementId(id)
 
         if (node) {
           let win: Window | undefined | null
           let doc: Document | null | undefined
-          if (document.contains?.(node)) {
+          if (document.contains?.(node as HTMLElement)) {
             win = window
             doc = window.document
           } else {
@@ -442,7 +405,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                 } else {
                   doc = w.document
                 }
-                return doc?.contains?.(node)
+                return doc?.contains?.(node as HTMLElement)
               }
               return false
             })
@@ -451,7 +414,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             if (isInsidePageComponent) {
               scrollToElem(node, { win, doc, duration })
             } else {
-              node.scrollIntoView({
+              ;(node as HTMLElement).scrollIntoView({
                 behavior: 'smooth',
                 block: 'center',
                 inline: 'center',
@@ -515,18 +478,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       }
     },
-    async redraw(action: Action, options: ConsumerOptions, ctx) {
+    async redraw(action, options) {
       log.func('redraw')
-      log.red('', { action, options, ndomCtx: ctx })
+      log.red('', { action, options })
 
       const viewTag = action?.original?.viewTag || ''
       const components = [] as NUIComponent.Instance[]
+      const { component } = options
 
       for (const c of NUI.cache.component.get().values()) {
         c && c.get('viewTag') === viewTag && components.push(c)
       }
-
-      const { context, component } = options
 
       try {
         if (
@@ -551,9 +513,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         let startCount = 0
 
         while (startCount < components.length) {
-          const viewTagComponent = components[
-            startCount
-          ] as NUIComponent.Instance
+          const viewTagComponent = components[startCount]
           const node = getFirstByElementId(viewTagComponent)
           const ctx = {} as any
           if (isListConsumer(viewTagComponent)) {
@@ -571,6 +531,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       } catch (error) {
         console.error(error)
+        toast(error.message, { type: 'error' })
         throw error
       }
 
@@ -589,8 +550,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (isVisible) hiddenPwLabel.style.visibility = 'hidden'
     }
     // Validate if their password is correct or not
-    const { Account } = await import('@aitmed/cadl')
-    const isValid = Account.verifyUserPassword(password)
+    const isValid = await (
+      await import('@aitmed/cadl')
+    ).Account?.verifyUserPassword?.(password)
     if (!isValid) {
       console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
@@ -615,11 +577,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 -------------------------------------------------------- */
 
 // This goes on the SDK
-export function onVideoChatBuiltIn({
-  joinRoom,
-}: {
-  joinRoom: (token: string) => Promise<any>
-}) {
+export function createVideoChatBuiltIn(app: App) {
   return async function onVideoChat(
     action: BuiltInActionObject & {
       roomId: string
@@ -627,13 +585,13 @@ export function onVideoChatBuiltIn({
     },
   ) {
     try {
+      log.func('onVideoChat')
       if (action) {
         let msg = ''
         if (action.accessToken) msg += 'Received access token '
         if (action.roomId) msg += 'and room id'
-        log.func('onVideoChat').grey(msg, action)
+        log.grey(msg, action)
       } else {
-        log.func('onVideoChat')
         log.red(
           'Expected an action object but the value passed in was null or undefined',
           action,
@@ -647,14 +605,13 @@ export function onVideoChatBuiltIn({
       //   if (connecting) setConnecting(false)
       // }
       if (action?.roomId) log.grey(`Connecting to room id: ${action.roomId}`)
-      const newRoom = (await joinRoom(action.accessToken)) as Room
+      const newRoom = (await app.meeting.join(action.accessToken)) as Room
       if (newRoom) {
         log.func('onVideoChat')
         log.green(`Connected to room: ${newRoom.name}`, newRoom)
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
         // to initiate the default values for audio/video default enabled/disabled state
-        const { default: noodl } = await import('../app/noodl')
-        const { cameraOn, micOn } = noodl.root.VideoChat || {}
+        const { cameraOn, micOn } = app.noodl.root.VideoChat || {}
         const { localParticipant } = newRoom
 
         const toggle = (state: 'enable' | 'disable') => (
@@ -685,7 +642,6 @@ export function onVideoChatBuiltIn({
             disable(localParticipant?.audioTracks)
           }
         } else {
-          // Automatically disable by default
           disable(localParticipant?.audioTracks)
         }
       } else {

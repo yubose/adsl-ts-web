@@ -31,11 +31,10 @@ import {
   FirebaseMessaging,
 } from './app/types'
 import createActions from './handlers/actions'
-import createBuiltIns, { onVideoChatBuiltIn } from './handlers/builtIns'
+import createBuiltIns, { createVideoChatBuiltIn } from './handlers/builtIns'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
-import createViewportHandler from './handlers/viewport'
 import createMeetingFns from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
 import * as u from './utils/common'
@@ -292,13 +291,14 @@ class App {
         // getPlugins: () => plugins,
       })
 
-      const actions = createActions(this)
+      const { action: actions, emit: emitActions } = createActions(this)
       const builtIns = createBuiltIns(this)
       const registers = createRegisters(this)
       const domResolvers = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
 
-      actions.forEach((obj) => this.ndom.use(obj))
+      this.ndom.use({ action: actions, emit: emitActions })
+      // actions.forEach((obj) => this.ndom.use(obj))
       builtIns.forEach((obj) => this.ndom.use(obj))
       registers.forEach((obj) => this.ndom.use({ register: obj }))
       domResolvers.forEach((obj) => this.ndom.use({ resolver: obj }))
@@ -413,7 +413,7 @@ class App {
                 : undefined,
               checkField: this.ndom.builtIns.checkField?.find(Boolean)?.fn,
               goto: this.ndom.builtIns.goto?.find(Boolean)?.fn,
-              videoChat: onVideoChatBuiltIn({ joinRoom: this.meeting.join }),
+              videoChat: createVideoChatBuiltIn(this),
             },
           })
           log.func('createPreparePage')
@@ -548,8 +548,6 @@ class App {
     let min: number | undefined
     let max: number | undefined
 
-    console.log('aspectRatio', aspectRatio)
-
     this.noodl.aspectRatio = u.isUnd(aspectRatio)
       ? this.noodl.aspectRatio
       : aspectRatio
@@ -559,9 +557,6 @@ class App {
       const viewWidthHeightRatio =
         this.noodl.cadlEndpoint?.viewWidthHeightRatio ||
         this.noodl.getConfig?.()?.viewWidthHeightRatio
-
-      console.log('this.noodl.getConfig?.()', this.noodl.getConfig?.())
-      console.log('viewWidthHeightRatio', viewWidthHeightRatio)
 
       if (viewWidthHeightRatio) {
         min = Number(viewWidthHeightRatio.min)
@@ -860,7 +855,7 @@ class App {
             )
             if (flag) {
               let featuresData: any[] = []
-              dataValue.data.forEach((element) => {
+              dataValue.data.forEach((element: any) => {
                 let item = {
                   type: 'Feature',
                   properties: {

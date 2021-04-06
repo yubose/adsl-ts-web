@@ -31,43 +31,9 @@ window.addEventListener('load', async (e) => {
         e.preventDefault()
         let node: HTMLElement | null = null
         if (e.key == '1') {
-          // const usernameAc = app.nui.createActionChain(
-          //   'onClick',
-          //   [
-          //     {
-          //       actionType: 'builtIn',
-          //       funcName: 'show',
-          //       viewTag: 'useUserName',
-          //     },
-          //     {
-          //       actionType: 'builtIn',
-          //       funcName: 'hide',
-          //       viewTag: 'usePhoneNumber',
-          //     },
-          //   ],
-          //   { loadQueue: true },
-          // )
-          // await usernameAc.execute(e)
           node = asHtmlElement(findByViewTag('1')) as HTMLElement
         } else if (e.key == '2') {
           node = asHtmlElement(findByViewTag('2')) as HTMLElement
-          // const phoneAc = app.nui.createActionChain(
-          //   'onClick',
-          //   [
-          //     {
-          //       actionType: 'builtIn',
-          //       funcName: 'show',
-          //       viewTag: 'usePhoneNumber',
-          //     },
-          //     {
-          //       actionType: 'builtIn',
-          //       funcName: 'hide',
-          //       viewTag: 'useUserName',
-          //     },
-          //   ],
-          //   { loadQueue: true },
-          // )
-          // await phoneAc.execute(e)
         }
         console.log(node)
         node?.click?.()
