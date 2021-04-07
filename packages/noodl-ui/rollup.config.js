@@ -30,9 +30,7 @@ const configs = [
       progress(),
       resolve({
         extensions,
-        customResolveOptions: {
-          moduleDirectory: ['node_modules'],
-        },
+        moduleDirectories: ['node_modules'],
       }),
       typescript({
         rollupCommonJSResolveHack: true,

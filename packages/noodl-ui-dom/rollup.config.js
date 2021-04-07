@@ -32,9 +32,7 @@ const config = {
     resolve({
       browser: true,
       extensions,
-      customResolveOptions: {
-        moduleDirectory: ['node_modules'],
-      },
+      moduleDirectories: ['node_modules'],
     }),
     typescript({
       rollupCommonJSResolveHack: true,
