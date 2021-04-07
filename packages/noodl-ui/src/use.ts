@@ -7,27 +7,13 @@ import { array, entries, isArr, isFnc, isObj } from './utils/internal'
 import { actionTypes } from './constants'
 import {
   NUIActionType,
+  NUITrigger,
   Register,
   Store,
   Transaction,
   TransactionId,
   Use,
 } from './types'
-
-function isActionObject(obj: any): obj is Store.ActionObject {
-  return (
-    isObj(obj) && 'actionType' in obj && 'fn' in obj && !('funcName' in obj)
-  )
-}
-
-function isBuiltInObject(obj: any): obj is Store.BuiltInObject {
-  return (
-    isObj(obj) &&
-    'actionType' in obj &&
-    obj.actionType === 'builtIn' &&
-    'funcName' in obj
-  )
-}
 
 function use(
   this: typeof NUI,
@@ -87,7 +73,7 @@ function use(
           )
           getEmitArr().push({ ...opt, actionType: 'emit' })
         } else {
-          entries(opt).forEach(([trigger, opt]) => {
+          entries(opt).forEach(([trigger, opt]: [NUITrigger, any]) => {
             array(opt).forEach((fn) => {
               if (isFnc(fn)) {
                 getEmitArr().push({ actionType: 'emit', fn, trigger })
@@ -143,10 +129,8 @@ function use(
         this.getTransactions()[tid] = { ...this.getTransactions()[tid], fn }
       },
     )
-  } else if (isActionObject(args) || isBuiltInObject(args)) {
-    useAction(args.actionType, args)
   } else {
-    if ('actionType' in args) {
+    if ('actionType' in args && !('funcName' in args)) {
       invariant(isFnc(args.fn), 'fn is not a function')
       useAction(args.actionType, args)
     } else if ('funcName' in args) {

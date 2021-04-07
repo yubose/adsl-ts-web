@@ -138,11 +138,11 @@ export function onSelectFile(
   })
 }
 
-export function isVisible(node: any) {
-  return (
-    node?.style?.visibility === 'visible' ||
-    node?.style?.visibility !== 'hidden'
-  )
+export function isVisible(node: HTMLElement | null) {
+  return node
+    ? node?.style?.visibility === 'visible' ||
+        node?.style?.visibility !== 'hidden'
+    : false
 }
 
 /**

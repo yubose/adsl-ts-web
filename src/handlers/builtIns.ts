@@ -16,12 +16,10 @@ import {
 } from 'noodl-ui'
 import {
   findByViewTag,
-  findByElementId,
   findByUX,
   findWindow,
   getByDataUX,
   isPageConsumer,
-  asHtmlElement,
   getFirstByElementId,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, Identify } from 'noodl-types'
@@ -34,7 +32,7 @@ import {
 } from 'twilio-video'
 import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
-import { toast, hide, show, scrollToElem } from '../utils/dom'
+import { isVisible, toast, hide, show, scrollToElem } from '../utils/dom'
 import { pageEvent } from '../constants'
 import App from '../App'
 import * as u from '../utils/common'
@@ -46,12 +44,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     async checkField(action) {
       log.func('checkField')
       log.grey('', action)
-      let contentType =
-        action.original?.contentType || action?.contentType || ''
-      let delay: number | boolean = action.original?.wait || action.wait || 0
-
+      const delay: number | boolean = action.original?.wait || action.wait || 0
       const onCheckField = () => {
-        const node = findByUX(contentType)
+        const node = findByUX(
+          action.original?.contentType || action?.contentType || '',
+        )
         u.array(node).forEach((n) => n && show(n))
       }
       if (delay > 0) setTimeout(() => onCheckField(), delay as any)
@@ -62,65 +59,54 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       log.grey('', { action, room: app.meeting.room })
       app.meeting.room.disconnect()
     },
-    async goBack(action, options) {
+    async goBack(action) {
       log.func('goBack')
       log.grey('', action)
-
       if (u.isBool(action.original?.reload)) {
-        const prevPage = app.mainPage
+        app.mainPage.requesting = app.mainPage
           .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
           .trim()
-        app.mainPage.requesting = prevPage
-        app.mainPage.setModifier(prevPage, { reload: action.original.reload })
+        app.mainPage.setModifier(app.mainPage.requesting, {
+          reload: action.original?.reload,
+        })
       }
       window.history.back()
     },
     async hide(action) {
       log.func('hide')
       log.grey('', action)
-
       const viewTag = action.original?.viewTag || ''
-      const elemCount = hide(findByViewTag(viewTag), (node) => {
+      const onElem = (node: HTMLElement) => {
         if (VP.isNil(node.style.top, 'px')) {
-          if (node.style.display !== 'none') {
-            node.style.display = 'none'
-          }
+          node.style.display !== 'none' && (node.style.display = 'none')
         } else {
-          if (node.style.display === 'none') {
-            node.style.display = 'block'
-          }
+          node.style.display === 'none' && (node.style.display = 'block')
         }
-      })
-      if (!elemCount) {
-        log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
       }
+      const elemCount = hide(findByViewTag(viewTag), onElem)
+      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
     },
     async show(action, options) {
       log.func('show')
       log.grey('', action)
 
       const viewTag = action.original?.viewTag || ''
-      const elemCount = show(findByViewTag(viewTag), (node) => {
+      const onElem = (node: HTMLElement) => {
         const component = options.component
-        if (component) {
-          if (VP.isNil(node.style.top)) {
-            if (node.style.visibility === 'hidden') {
-              node.style.visibility = 'visible'
-            }
-            node.style.display === 'none' && (node.style.display = 'block')
-          }
+        if (component && VP.isNil(node.style.top)) {
+          !isVisible(node) && (node.style.visibility = 'visible')
+          node.style.display === 'none' && (node.style.display = 'block')
         }
-      })
-      if (!elemCount) {
-        log.red(`Cannot find any DOM nodes for viewTag "${viewTag}"`)
       }
+      const elemCount = show(findByViewTag(viewTag), onElem)
+      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
     },
     async toggleCameraOnOff(action: Action, options: ConsumerOptions) {
       log.func('toggleCameraOnOff')
       log.green('', action)
-      const path = 'VideoChat.cameraOn'
 
-      let { localParticipant } = app.meeting
+      let path = 'VideoChat.cameraOn'
+      let localParticipant = app.meeting.localParticipant
       let videoTrack: LocalVideoTrack | undefined
 
       if (localParticipant) {
@@ -151,9 +137,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     async toggleMicrophoneOnOff(action) {
       log.func('toggleMicrophoneOnOff')
       log.green('', action)
-      const path = 'VideoChat.micOn'
 
-      let { localParticipant } = app.meeting
+      let path = 'VideoChat.micOn'
+      let localParticipant = app.meeting.localParticipant
       let audioTrack: LocalAudioTrack | undefined
 
       if (localParticipant) {
@@ -196,7 +182,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (isDraft(path)) path = original(path)
 
         if (dataKey?.startsWith(iteratorVar)) {
-          const parts = dataKey.split('.').slice(1)
+          let parts = dataKey.split('.').slice(1)
           dataObject = findListDataObject(component)
           previousDataValue = get(dataObject, parts)
           dataValue = previousDataValue
@@ -218,10 +204,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               nextValue = !Identify.isBooleanTrue(previousValue)
             }
             nextValue = !previousValue
-            updateDraft &&
+            if (updateDraft) {
               app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
                 set(draft, updateDraft.path, nextValue)
               })
+            }
             // Propagate the changes to to UI if there is a path "if" object that
             // references the value as well
             if (node && u.isObj(path)) {
@@ -235,13 +222,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                   get(app.noodl.root, valEvaluating) ||
                   get(app.noodl.root[pageName], valEvaluating)
               }
-              newSrc =
-                getAssetsUrl() + valEvaluating ? path?.if?.[1] : path?.if?.[2]
-              // newSrc = NUI.createSrc(
-              //   valEvaluating ? path?.if?.[1] : path?.if?.[2],
-              //   component,
-              // ) as string
-              node.setAttribute('src', newSrc)
+              node.setAttribute(
+                'src',
+                getAssetsUrl() + valEvaluating ? path?.if?.[1] : path?.if?.[2],
+              )
             }
             return nextValue
           }
@@ -313,12 +297,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       await (await import('@aitmed/cadl')).Account.logout(true)
       window.location.reload()
     },
-    async logout(action, options) {
+    async logout(_, options) {
       if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
       await (await import('@aitmed/cadl')).Account.logout(true)
       window.location.reload()
     },
-    async goto(action: Action<any>, options: ConsumerOptions) {
+    async goto(action, options) {
       log.func('<builtIn> goto]')
       log.red('', action)
 

@@ -1,7 +1,7 @@
 import invariant from 'invariant'
 import merge from 'lodash/merge'
 import { setUseProxies, enableES5 } from 'immer'
-import { ActionObject, EmitObject, Identify, IfObject } from 'noodl-types'
+import { EmitObject, Identify, IfObject } from 'noodl-types'
 import { createEmitDataKey, evalIf } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
 import ComponentCache from './cache/ComponentCache'
@@ -48,22 +48,6 @@ const NUI = (function _NUI() {
     Object.defineProperty(o, key, {
       get: u.isFnc(opts) ? () => opts : () => opts.get,
     })
-  }
-
-  function finalizeActionObjects(actions: T.NUIActionObjectInput[]) {
-    return actions?.reduce(
-      (
-        acc: (ActionObject | T.EmitActionObject | T.GotoActionObject)[],
-        obj,
-      ) => {
-        if (u.isObj(obj) && !('actionType' in obj)) {
-          if (Identify.emit(obj)) obj = { ...obj, actionType: 'emit' }
-          else if (Identify.goto(obj)) obj = { ...obj, actionType: 'goto' }
-        }
-        return acc.concat(obj as ActionObject)
-      },
-      [],
-    )
   }
 
   function _createPage(
@@ -171,7 +155,7 @@ const NUI = (function _NUI() {
             )
           }
 
-          emitAction.executor = async (snapshot) => {
+          emitAction.executor = async () => {
             const callbacks = (o.getActions().emit || []).reduce(
               (acc, obj) =>
                 obj?.trigger === 'path' ? acc.concat(obj as any) : acc,
@@ -223,7 +207,7 @@ const NUI = (function _NUI() {
         return resolveAssetUrl(
           evalIf((val: any) => {
             if (Identify.isBoolean(val)) return Identify.isBooleanTrue(val)
-            if (typeof val === 'function') {
+            if (u.isFnc(val)) {
               if (component) return val(findListDataObject(component))
               return val()
             }
@@ -396,7 +380,8 @@ const NUI = (function _NUI() {
       listDataObject?: any
     } = {},
   ) {
-    const queries = []
+    const queries = [] as any[]
+    // Query for a list data object
     if (opts?.component) {
       if (isListConsumer(opts.component)) {
         const dataObject =
@@ -412,14 +397,11 @@ const NUI = (function _NUI() {
         }
       }
     }
-    if (opts?.page) {
-      queries.push(() => o.getRoot()[opts.page?.page || ''])
-    }
+    // Page object
+    opts?.page && queries.push(() => o.getRoot()[opts.page?.page || ''])
+    // Root object
     queries.push(() => o.getRoot())
-    opts?.queries &&
-      (u.isArr(opts.queries) ? opts.queries : [opts.queries]).forEach((q) =>
-        queries.unshift(q),
-      )
+    opts?.queries && u.array(opts.queries).forEach((q) => queries.unshift(q))
     return queries
   }
 
@@ -525,7 +507,16 @@ const NUI = (function _NUI() {
       if (!u.isArr(actions)) actions = [actions]
 
       const actionChain = createActionChain({
-        actions: finalizeActionObjects(actions),
+        actions: actions?.reduce((acc: T.NUIActionObject[], obj) => {
+          if (u.isObj(obj) && !('actionType' in obj)) {
+            if (Identify.emit(obj)) obj = { ...obj, actionType: 'emit' }
+            else if (Identify.goto(obj)) obj = { ...obj, actionType: 'goto' }
+            else if (Identify.toast(obj)) obj = { ...obj, actionType: 'toast' }
+          } else if (u.isFnc(obj)) {
+            obj = { actionType: 'anonymous', fn: obj }
+          }
+          return acc.concat(obj as T.NUIActionObject[])
+        }, []),
         trigger,
         loader(this: T.NUIActionChain, objs) {
           function __createExecutor(
@@ -540,16 +531,17 @@ const NUI = (function _NUI() {
                   async function executeActionChainCallback(
                     obj: T.Store.ActionObject | T.Store.BuiltInObject,
                   ) {
-                    return obj.fn?.(action, {
+                    return obj.fn?.(action as any, {
                       ...options,
                       component: opts?.component,
-                      event,
+                      // @ts-expect-error
+                      event: event as any,
                       ref: actionChain,
                     })
                   },
                 )
                 results = await promiseAllSafely(
-                  callbacks as any[],
+                  callbacks,
                   (err, result) => err || result,
                 )
               }

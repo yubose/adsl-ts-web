@@ -1,4 +1,3 @@
-import CADL from '@aitmed/cadl'
 import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
 import isPlainObject from 'lodash/isPlainObject'
@@ -66,23 +65,6 @@ class App {
   initialized = false
   messaging = null as FirebaseMessaging | null
   mainPage: NOODLDOM['page']
-
-  // emit<Evt extends keyof T.AppObserver>(
-  //   evt: Evt,
-  //   ...args: Parameters<T.AppObserverFn<Evt>>
-  // ) {
-  //   console.log(`%c[App/emit] emitting "${evt}"`, `color:#95a5a6;`)
-  //   this.#obs[evt]?.forEach?.((cb: any) => (cb as any)?.(...args))
-  // }
-
-  // on<Evt extends keyof T.AppObserver>(evt: Evt, cb: T.AppObserverFn<Evt>) {
-  //   if (!u.isArr(this.#obs[evt])) this.#obs[evt] = []
-  //   if (!this.#obs[evt].includes(cb as any)) {
-  //     console.log(`%c[App/on] on: ${evt}`, `color:#95a5a6;`)
-  //     this.#obs[evt].push(cb as any)
-  //   }
-  //   return this
-  // }
 
   constructor({
     getStatus,

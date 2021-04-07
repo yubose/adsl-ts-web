@@ -8,7 +8,7 @@ export * from './meetingTypes'
 
 export interface AppConstructorOptions {
   getStatus?: typeof Account.getStatus
-  meeting?: ReturnType<typeof createMeetingFns>
+  meeting?: Meeting
   noodl?: CADL
   ndom?: NOODLDOM
   nui?: typeof NUI
@@ -35,3 +35,5 @@ export interface EmitCallParams {
 
 export type FirebaseApp = firebase.app.App
 export type FirebaseMessaging = firebase.messaging.Messaging
+
+export type Meeting = ReturnType<typeof createMeetingFns>

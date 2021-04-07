@@ -13,14 +13,14 @@ import {
 import Stream from '../meeting/Stream'
 import { forEachParticipant } from '../utils/twilio'
 import { isMobile } from '../utils/common'
-import { IMeeting } from '../meeting'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, noodlEvent } from '../constants'
+import { Meeting } from '../app/types'
 import App from '../App'
 
 const log = Logger.create('builtIns.ts')
 
 const createMeetingHandlers = function _createMeetingHandlers(app: App) {
-  function _getDisconnectFns(room: IMeeting['room']) {
+  function _getDisconnectFns(room: Meeting['room']) {
     function _disconnect() {
       room?.disconnect?.()
     }
@@ -44,7 +44,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     trackPublication?.unpublish?.()
   }
 
-  function _attachDebugUtilsToWindow(room: IMeeting['room']) {
+  function _attachDebugUtilsToWindow(room: Meeting['room']) {
     const duplicatedParticipants = [] as any[]
     // @ts-expect-error
     window.l = room.localParticipant
@@ -118,11 +118,11 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     }
   }
 
-  function onConnected(room: IMeeting['room']) {
+  function onConnected(room: Meeting['room']) {
     /* -------------------------------------------------------
       ---- LISTEN FOR INCOMING MEDIA PUBLISH/SUBSCRIBE EVENTS
     -------------------------------------------------------- */
-    const { disconnect, disconnected } = _getDisconnectFns(room)
+    const { disconnected } = _getDisconnectFns(room)
     room.on(
       'participantConnected',
       _attachDebugUtilsToWindow(room).participantConnected,

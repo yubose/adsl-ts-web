@@ -3,28 +3,22 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import get from 'lodash/get'
-import { isAction } from 'noodl-action-chain'
+import { Draft } from 'immer'
 import {
+  asHtmlElement,
   findByUX,
   findWindow,
   findByElementId,
   findByViewTag,
-  isPageConsumer,
   findByDataAttrib,
-  asHtmlElement,
+  isPageConsumer,
 } from 'noodl-ui-dom'
 import {
-  createAction,
   findListDataObject,
   findIteratorVar,
   NUIComponent,
   parseReference,
-  Store,
   Use,
-  NUIActionType,
-  NUIActionObject,
-  ConsumerOptions,
-  NUIAction,
 } from 'noodl-ui'
 import { createEmitDataKey, evalIf, parse } from 'noodl-utils'
 import { IfObject, Identify } from 'noodl-types'
@@ -83,9 +77,7 @@ const createActions = function createActions(app: App) {
         actions: action.actions,
         pageName: options.page?.page,
       } as T.EmitCallParams
-      if (action.original.emit.dataKey) {
-        emitParams.dataKey = action.dataKey
-      }
+      action.original.emit.dataKey && (emitParams.dataKey = action.dataKey)
       log.func('emit [onClick]')
       log.gold('Emitting', { action, emitParams, ...options })
       const emitResult = await app.noodl.emitCall(emitParams as any)
@@ -97,9 +89,7 @@ const createActions = function createActions(app: App) {
         actions: action.actions,
         pageName: app.mainPage.page,
       } as T.EmitCallParams
-      if ('dataKey' in action.original.emit || {}) {
-        emitParams.dataKey = action.dataKey
-      }
+      'dataKey' in action.original.emit && (emitParams.dataKey = action.dataKey)
       log.func('emit [onChange]')
       log.grey('Emitting', { action, emitParams, options })
       const emitResult = await app.noodl.emitCall(emitParams as any)
@@ -107,6 +97,8 @@ const createActions = function createActions(app: App) {
       return emitResult
     },
     async path(action, options) {
+      log.func('emit [path]')
+      log.grey('', action)
       const { component, getRoot } = options
       const page = app.mainPage.page || ''
       const dataObject = findListDataObject(component as NUIComponent.Instance)
@@ -115,7 +107,6 @@ const createActions = function createActions(app: App) {
         actions: action.original.emit.actions,
         pageName: page,
       } as T.EmitCallParams
-
       if (action.original.emit.dataKey) {
         emitParams.dataKey = createEmitDataKey(
           action.original.emit.dataKey,
@@ -123,8 +114,6 @@ const createActions = function createActions(app: App) {
           { iteratorVar },
         )
       }
-
-      log.func('emit [path]')
       log.grey('Emitting', { action, emitParams, options })
       const emitResult = await app.noodl.emitCall(emitParams as any)
       log.grey('Emit result', { emitParams, emitResult })
@@ -139,7 +128,6 @@ const createActions = function createActions(app: App) {
         actions: action.original?.emit?.actions,
         pageName: page,
       } as T.EmitCallParams
-
       if (action.original.emit.dataKey) {
         emitParams.dataKey = createEmitDataKey(
           action.original.emit.dataKey,
@@ -147,37 +135,28 @@ const createActions = function createActions(app: App) {
           { iteratorVar },
         )
       }
-
       log.func('emit [placeholder]')
       log.grey('Emitting', { action, emitParams, ...options })
       const result = await app.noodl.emitCall(emitParams as any)
       log.grey(`Emitted`, { action, result })
-
       return u.isArr(result) ? result[0] : result
     },
     async register(action, options) {
-      const page = app.mainPage.page
-
       const emitParams = {
         actions: action.original.emit.actions,
-        pageName: page,
+        pageName: app.mainPage.page,
       } as T.EmitCallParams
-
-      if (action.original.emit.dataKey) {
-        emitParams.dataKey = action.dataKey
-      }
-
+      action.original.emit.dataKey && (emitParams.dataKey = action.dataKey)
       log.func('emit [register]')
       log.grey('Emitting', { action, emitParams, ...options })
       const emitResult = await app.noodl.emitCall(emitParams as any)
       log.grey('Emitted', { action, emitParams, emitResult, ...options })
-
       return u.isArr(emitResult) ? emitResult[0] : emitResult
     },
   }
 
   const action: Use.Action = {
-    anonymous: (action) => action.original?.fn?.(),
+    anonymous: (a, o) => a.execute?.(a, o),
     async evalObject(action, options) {
       log.func('evalObject')
       try {
@@ -245,7 +224,6 @@ const createActions = function createActions(app: App) {
       log.func('goto')
       log.grey(action.original?.goto || action?.goto || 'goto', action)
 
-      let allProps = {} as any // Temp used for debugging/logging
       let gotoObject = { goto: action.original.goto } as any
       let pageModifiers = {} as any
 
@@ -287,45 +265,30 @@ const createActions = function createActions(app: App) {
             doc = window.document
           } else {
             win = findWindow((w) => {
-              if (w) {
-                if ('contentDocument' in w) {
-                  doc = (w as any).contentDocument
-                } else {
-                  doc = w.document
-                }
-                return doc?.contains?.(node as any)
-              }
-              return false
+              if (!w) return false
+              return ('contentDocument' in w
+                ? w['contentDocument']
+                : w.document
+              )?.contains?.(node as HTMLElement)
             })
           }
           function scroll() {
             if (isInsidePageComponent) {
               scrollToElem(node, { win, doc, duration })
             } else {
-              // @ts-expect-error
-              node?.scrollIntoView({
+              ;(node as HTMLElement)?.scrollIntoView({
                 behavior: 'smooth',
                 block: 'center',
                 inline: 'center',
               })
             }
           }
-          if (isSamePage) {
-            scroll()
-          } else {
-            app.mainPage.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
-          }
+          if (isSamePage) scroll()
+          else app.mainPage.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
         } else {
           log.red(
             `Could not search for a DOM node with an identity of "${id}"`,
-            {
-              node,
-              id,
-              destination,
-              isSamePage,
-              duration,
-              action,
-            },
+            { id, destination, isSamePage, duration, action },
           )
         }
       }
@@ -420,7 +383,7 @@ const createActions = function createActions(app: App) {
                 vcode = String(vcode)
                 vcodeInput.value = vcode
                 vcodeInput.dataset.value = vcode
-                app.noodl.editDraft((draft: any) => {
+                app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
                   set(
                     draft[pageName],
                     vcodeInput.dataset.key || 'formData.code',
@@ -447,11 +410,7 @@ const createActions = function createActions(app: App) {
           await ref?.abort?.()
         }
       } else {
-        let msg = 'Tried to '
-
-        if (action.actionType === 'popUp') msg += 'show'
-        else if (action.actionType === 'popUpDismiss') msg += 'hide'
-
+        let msg = `Tried to ${action.actionType === 'popUp' ? 'show' : 'hide'}`
         log.func(action.actionType)
         log.red(
           `${msg} a ${action.actionType} element but the element ` +
@@ -555,56 +514,53 @@ const createActions = function createActions(app: App) {
           }
         }
 
+        let object: any
+
         // This is the more older version of the updateObject action object where it used
         // the "object" property
         if (u.isObj(action.original) && 'object' in action.original) {
-          await callObjectFn(action.original.object)
+          object = action.original.object
         }
         // This is the more newer version that is more descriptive, utilizing the data key
         // action = { actionType: 'updateObject', dataKey, dataObject }
         else if (action.original?.dataKey || action.original?.dataObject) {
-          await callObjectFn(omit(action.original, 'actionType'))
+          object = omit(action.original, 'actionType')
         }
 
-        async function callObjectFn(object: any) {
-          if (u.isFnc(object)) {
-            const result = await object()
-            log.grey(`Called a function from updateObject`, { object, result })
-          } else if (u.isStr(object)) {
-            log.red(
-              `Received a string as an object property of updateObject. ` +
-                `Possibly parsed incorrectly?`,
-              { action, object },
-            )
-          } else if (u.isArr(object)) {
-            for (const obj of object) {
-              if (u.isFnc(obj)) await obj()
-              else await callObjectFn(obj)
-            }
-          } else if (u.isObj(object)) {
-            let { dataKey, dataObject } = object
-            const iteratorVar = findIteratorVar(component)
+        if (u.isFnc(object)) {
+          const result = await object()
+          log.grey(`Invoked "object" that was a function`, { object, result })
+        } else if (u.isStr(object)) {
+          log.red(
+            `A string was received as the "object" property. Possible parsing error?`,
+            action,
+          )
+        } else if (u.isArr(object)) {
+          for (const obj of object) u.isFnc(obj) && (await obj())
+        } else if (u.isObj(object)) {
+          let { dataKey, dataObject } = object
+          let iteratorVar = findIteratorVar(component)
 
-            if (u.isStr(dataObject) && /(file|blob)/i.test(dataObject)) {
+          if (u.isStr(dataObject)) {
+            if (/(file|blob)/i.test(dataObject)) {
               const name = dataObject
               log.grey(`The data object is requesting a "${name}"`)
               dataObject = file || dataObject
               log.grey(`Attached the "${name}"`, dataObject)
-            }
-
-            if (u.isStr(dataObject) && dataObject.startsWith(iteratorVar)) {
+            } else if (dataObject.startsWith(iteratorVar)) {
               dataObject = findListDataObject(component)
               !dataObject && (dataObject = file)
             }
-            if (dataObject) {
-              const params = { dataKey, dataObject }
-              log.func('updateObject')
-              log.grey(`Calling updateObject: `, params)
-              const result = await app.noodl.updateObject(params)
-              log.grey(`Called updateObject: `, { params, result })
-            } else {
-              log.red(`Invalid/empty dataObject`, { action, dataObject })
-            }
+          }
+
+          if (dataObject) {
+            const params = { dataKey, dataObject }
+            log.func('updateObject')
+            log.grey(`Calling updateObject with:`, params)
+            const result = await app.noodl.updateObject(params)
+            log.grey(`Called updateObject and received: `, result)
+          } else {
+            log.red(`Invalid/empty dataObject`, { action, dataObject })
           }
         }
       } catch (error) {
@@ -616,18 +572,16 @@ const createActions = function createActions(app: App) {
 
   // function withRawActionObjectsFromSDK(_actions: typeof action) {
   //   return u.entries(_actions).reduce((acc, [actionType, fn]) => {
-  //     const wrapper = function wrap(
-  //      wrappedFn: typeof fn
-  //     ) {
-  //       return async (inst: NUIActionObject | NUIAction, options: ConsumerOptions) => {
+  //     const wrapper = function wrap(wrappedFn: typeof fn) {
+  //       return async (
+  //         inst: NUIActionObject | NUIAction,
+  //         options: ConsumerOptions,
+  //       ) => {
   //         const result = await wrappedFn()
   //       }
   //     }
 
-  //     acc[actionType] = async function (
-  //       inst: NUIActionObject | NUIAction,
-  //       options: ConsumerOptions,
-  //     )  {
+  //     acc[actionType] = async function () {
   //       try {
   //         if (u.isFnc(fn)) {
   //           if (isAction(inst)) {
