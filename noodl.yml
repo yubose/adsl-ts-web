@@ -1,5 +1,5 @@
-defaultOption: server.files
-defaultPanel: SELECT_ROUTE
+defaultOption: SERVER_FILES
+defaultPanel: null
 objects:
   json:
     dir:
@@ -9,7 +9,7 @@ objects:
       - server
 server:
   dir: server
-  host: ""
+  host: 127.0.0.1
   port: 3001
-  protocol: ""
-  config: testpage
+  protocol: http
+  config: meet2d

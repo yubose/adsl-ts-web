@@ -1,7 +1,7 @@
 import NOODL from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 
-const LOCAL_SERVER = 'http://127.0.0.1:3001/meet2d.yml'
+const LOCAL_SERVER = 'http://127.0.0.1:3001/testpage.yml'
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
 const DOCC19 = getConfigEndpoint('docc19')
 const WWW = getConfigEndpoint('www')
