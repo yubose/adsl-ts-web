@@ -377,7 +377,7 @@ describe(italic(`use`), () => {
     spy.restore()
   })
 
-  describe(`action`, () => {
+  describe(italic(`action`), () => {
     const hasAction = (type: any, spy: any) =>
       nui.getActions()[type].some((o: any) => o.fn === spy)
 
@@ -462,7 +462,7 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(`builtIn`, () => {
+  describe(italic(`builtIn`), () => {
     const hasBuiltIns = (funcName: any, spy: any) =>
       !!nui.getBuiltIns()[funcName]?.some((o) => o.fn === spy)
 
@@ -520,18 +520,24 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(`plugin`, () => {
-    it(`should add the plugin objects`, () => {
+  describe(italic(`plugin`), () => {
+    it(`should add plugins of ${magenta('head')}`, () => {
       let obj = { location: 'head', path: 'abc.html' } as any
       expect(nui.getPlugins('head')).not.to.include.members([obj])
       nui.use(obj)
       expect(nui.getPlugins('head')).to.include.members([obj])
+    })
+
+    it(`should add plugins of ${magenta('body-top')}`, () => {
+      let obj = { location: 'body-top', path: 'abc.html' } as any
       expect(nui.getPlugins('body-top')).not.to.include.members([obj])
-      obj = { ...obj, location: 'body-top' }
       nui.use(obj)
       expect(nui.getPlugins('body-top')).to.include.members([obj])
+    })
+
+    it(`should add plugins of ${magenta('body-bottom')}`, () => {
+      let obj = { location: 'body-bottom', path: 'abc.html' } as any
       expect(nui.getPlugins('body-bottom')).not.to.include.members([obj])
-      obj = { ...obj, location: 'body-bottom' }
       nui.use(obj)
       expect(nui.getPlugins('body-bottom')).to.include.members([obj])
     })
@@ -570,7 +576,7 @@ describe(italic(`use`), () => {
     expect(nui.getRoot()).to.deep.eq(['apple'])
   })
 
-  describe(`register`, () => {
+  describe(italic(`register`), () => {
     it(`should throw if it cannot locate a name or identifier`, () => {
       expect(() => {
         nui.use({ register: { component: {} as any, page: '_global' } })

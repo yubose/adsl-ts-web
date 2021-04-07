@@ -15,16 +15,19 @@ type NonEmitLikeObject = Exclude<NUIActionObjectInput, EmitObject>
 
 function createAction(args: {
   action: NonEmitLikeObject
-  trigger: NUITrigger
+  trigger: NUITrigger | ''
 }): Action
 function createAction(args: {
   action: EmitLikeObject
-  trigger: NUITrigger
+  trigger: NUITrigger | ''
 }): EmitAction
-function createAction(trigger: NUITrigger, obj: NonEmitLikeObject): Action
-function createAction(trigger: NUITrigger, obj: EmitLikeObject): EmitAction
+function createAction(trigger: NUITrigger | '', obj: NonEmitLikeObject): Action
+function createAction(trigger: NUITrigger | '', obj: EmitLikeObject): EmitAction
 function createAction(
-  args: NUITrigger | { action: NUIActionObjectInput; trigger: NUITrigger },
+  args:
+    | NUITrigger
+    | ''
+    | { action: NUIActionObjectInput; trigger: NUITrigger | '' },
   args2?: NUIActionObjectInput | string,
 ) {
   let action: NUIAction | undefined
@@ -44,7 +47,7 @@ function createAction(
         action = __createAction(args, args2 as NUIActionObject)
       }
     }
-  } else {
+  } else if ('action' in args) {
     if (Identify.emit(args.action)) {
       action = new EmitAction(args.trigger, args.action)
     } else {

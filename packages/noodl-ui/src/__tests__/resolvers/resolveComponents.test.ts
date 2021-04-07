@@ -1,10 +1,12 @@
 import * as mock from 'noodl-ui-test-utils'
+import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { ComponentObject } from 'noodl-types'
 import NUI from '../../noodl-ui'
 import NUIPage from '../../Page'
 import Viewport from '../../Viewport'
+import { waitFor } from '@testing-library/dom'
 
 function resolveComponent(component: ComponentObject) {
   const page = NUI.createPage({
@@ -107,6 +109,41 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         expect(page.viewport.height).to.eq(rootPage.viewport.height)
       },
     )
+  })
+
+  describe(italic(`plugin`), () => {
+    it(
+      `should emit the ${magenta(`content`)} event with the content when ` +
+        `contents are fetched`,
+      async () => {
+        const component = NUI.resolveComponents({
+          components: mock.getPluginBodyTailComponent({ path: 'abc.html' }),
+        })
+        const spy = sinon.spy(async () => 'hello123')
+        component.on('content', spy)
+        await waitFor(() => {
+          expect(spy).to.be.calledOnce
+        })
+      },
+    )
+
+    xit(`should set this "content" property with the data received as its value`, async () => {
+      const component = NUI.resolveComponents({
+        components: mock.getPluginHeadComponent({ path: 'abc.html' }),
+      })
+      const contents = 'hello123'
+      global.fetch = (f) => f
+      const spy = sinon
+        .stub(global, 'fetch')
+        .returns(() => Promise.resolve(contents))
+      global.fetch = spy
+      component.on('content', spy)
+      await waitFor(() => {
+        expect(spy).to.be.calledOnce
+        expect(spy).to.be.calledWith(contents)
+        // expect(spy
+      })
+    })
   })
 
   describe(italic(`register`), () => {

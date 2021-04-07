@@ -48,7 +48,7 @@ const domComponentsResolver: Resolve.Config = {
           node.style.width = '100%'
           node.style.height = '100%'
         }
-        component.on('path', (result) => {
+        component.on('path', (result: string) => {
           node && ((node as HTMLImageElement).src = result)
         })
         if (component.get('data-src')) {
@@ -86,7 +86,7 @@ const domComponentsResolver: Resolve.Config = {
         component.on(
           noodluiEvent.component.page.PAGE_COMPONENTS,
           () => {
-            component.children.forEach((child: NUIComponent.Instance) => {
+            component.children?.forEach((child: NUIComponent.Instance) => {
               const childNode = draw(
                 child,
                 node.contentDocument?.body,
@@ -160,7 +160,7 @@ const domComponentsResolver: Resolve.Config = {
           metadata.type === 'text/css'
         ) {
           component.on(
-            'plugin:content',
+            'content',
             (content: string) => (node.innerHTML += content),
           )
         }

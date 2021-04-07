@@ -3,6 +3,7 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import get from 'lodash/get'
+import { isAction } from 'noodl-action-chain'
 import {
   findByUX,
   findWindow,
@@ -13,11 +14,17 @@ import {
   asHtmlElement,
 } from 'noodl-ui-dom'
 import {
+  createAction,
   findListDataObject,
   findIteratorVar,
   NUIComponent,
   parseReference,
+  Store,
   Use,
+  NUIActionType,
+  NUIActionObject,
+  ConsumerOptions,
+  NUIAction,
 } from 'noodl-ui'
 import { createEmitDataKey, evalIf, parse } from 'noodl-utils'
 import { IfObject, Identify } from 'noodl-types'
@@ -48,7 +55,6 @@ const createActions = function createActions(app: App) {
         actions: action.actions,
         pageName: app.mainPage.page,
       } as T.EmitCallParams
-
       if ('dataKey' in action.original.emit || {}) {
         emitParams.dataKey = action.dataKey
       }
@@ -608,7 +614,49 @@ const createActions = function createActions(app: App) {
     },
   } as Use.Action
 
-  return { action, emit }
+  // function withRawActionObjectsFromSDK(_actions: typeof action) {
+  //   return u.entries(_actions).reduce((acc, [actionType, fn]) => {
+  //     const wrapper = function wrap(
+  //      wrappedFn: typeof fn
+  //     ) {
+  //       return async (inst: NUIActionObject | NUIAction, options: ConsumerOptions) => {
+  //         const result = await wrappedFn()
+  //       }
+  //     }
+
+  //     acc[actionType] = async function (
+  //       inst: NUIActionObject | NUIAction,
+  //       options: ConsumerOptions,
+  //     )  {
+  //       try {
+  //         if (u.isFnc(fn)) {
+  //           if (isAction(inst)) {
+  //             return inst.execute()
+  //           } else if (u.isObj(inst) && Identify.action.any(inst)) {
+  //             inst = app.nui.createActionChain('', [inst], {
+  //               component: options.component,
+  //               context: options.context,
+  //               loadQueue: true,
+  //               page: options.page,
+  //             }).queue[0]
+  //             return inst.execute()
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.error(error)
+  //         toast(error.message, { type: 'error' })
+  //       }
+  //     }
+  //     return acc
+  //   }, {} as typeof action)
+  // }
+
+  return {
+    // action: withRawActionObjectsFromSDK(action),
+    action,
+    emit,
+    // withRawActionObjectsFromSDK,
+  }
 }
 
 export default createActions

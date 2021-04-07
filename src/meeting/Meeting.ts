@@ -12,6 +12,7 @@ import Logger from 'logsnap'
 import NOODLOM, { getByDataUX, Page } from 'noodl-ui-dom'
 import { Viewport } from 'noodl-ui'
 import { isMobile } from '../utils/common'
+import { toast } from '../utils/dom'
 import App from '../App'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
@@ -50,7 +51,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     async join(token: string, options?: ConnectOptions) {
       try {
-        _internal['_token'] = token
+        _internal._token = token
         // TODO - timeout
         const room = await connect(token, {
           dominantSpeaker: true,
@@ -68,7 +69,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           },
         })
 
-        _internal['_room'] = room
+        _internal._room = room
 
         // TEMPORARY
         setTimeout(() => {
@@ -77,7 +78,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         // _handleRoomCreated
         return _internal._room
       } catch (error) {
-        throw error
+        console.error(error)
+        toast(error.message, { type: 'error' })
       }
     },
     /** Disconnects from the room */
@@ -135,7 +137,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           // Just set the participant as the mainStream  since it's open
           if (!mainStream.isAnyParticipantSet()) {
             mainStream.setParticipant(participant)
-            app.meeting.onAddRemoteParticipant?.(participant, mainStream)
+            app.meeting.onAddRemoteParticipant?.(
+              participant as RemoteParticipant,
+              mainStream,
+            )
             return this
           }
 
@@ -150,8 +155,13 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               const node = _internal._ndom.draw(
                 subStreams.resolver?.(props) || props,
               ) as any
-              const subStream = subStreams.create({ node, participant }).last()
-              app.meeting.onAddRemoteParticipant?.(participant, mainStream)
+              const subStream = subStreams
+                .create({ node, participant: participant as RemoteParticipant })
+                .last()
+              app.meeting.onAddRemoteParticipant?.(
+                participant as RemoteParticipant,
+                mainStream,
+              )
               log.green(
                 `Created a new subStream and bound the newly connected participant to it`,
                 { blueprint: props, node, participant, subStream },

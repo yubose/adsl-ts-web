@@ -414,10 +414,10 @@ export namespace Use {
 
   export type GetAssetsUrl = () => string
   export type GetBaseUrl = () => string
-  export type GetPages = string[]
-  export type GetPreloadPages = string[]
-  export type GetRoot = Record<string, any>
-  export type GetPlugins = Plugin.CreateType[]
+  export type GetPages = () => string[]
+  export type GetPreloadPages = () => string[]
+  export type GetRoot = () => Record<string, any>
+  export type GetPlugins = () => Plugin.CreateType[]
   export type Plugin = Store.PluginObject
   export type Resolver = ComponentResolver
   export type Register = Register.Object | Register.Object[]

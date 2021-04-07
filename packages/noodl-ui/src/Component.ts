@@ -396,10 +396,9 @@ class Component<C extends ComponentObject = ComponentObject>
 
   clear(filter?: 'children' | 'hooks' | ('children' | 'hooks')[]) {
     const _clearChildren = () => (this.#children.length = 0)
-    const _clearHooks = () => {
+    const _clearHooks = () =>
       u.keys(this.#hooks).forEach((evt) => (this.#hooks[evt].length = 0))
-    }
-    if (u.isArr(filter) || u.isStr(filter)) {
+    if (filter) {
       u.array(filter).forEach((s: typeof filter) => {
         if (s === 'children') _clearChildren()
         else if (s === 'hooks') _clearHooks()

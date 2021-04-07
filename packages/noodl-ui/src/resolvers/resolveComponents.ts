@@ -216,17 +216,23 @@ componentResolver.setResolver((component, options, next) => {
     ---- PLUGIN
   -------------------------------------------------------- */
 
-  if (Identify.component.plugin(component)) {
+  if (
+    Identify.component.plugin(component) ||
+    Identify.component.pluginHead(component) ||
+    Identify.component.pluginBodyTail(component)
+  ) {
     /**
      * Returns true if a plugin with the same path was previously loaded
      * @param { string } path - The image path
-     * @param { function } plugins - Plugin getter
      */
-    const pluginExists = (path: string) =>
-      typeof path === 'string' &&
-      getPlugins('head')
-        .concat(getPlugins('body-top').concat(getPlugins('body-bottom')))
-        .some((obj) => obj.path === path && obj.initiated)
+    function pluginExists(path: string) {
+      return (
+        u.isStr(path) &&
+        getPlugins('head')
+          .concat([...getPlugins('body-top'), ...getPlugins('body-bottom')])
+          .some((obj) => obj.path === path && !!obj.initiated)
+      )
+    }
 
     /**
      * Resolves the path, returning the final url
@@ -234,11 +240,11 @@ componentResolver.setResolver((component, options, next) => {
      * @param { string } assetsUrl - Assets url
      * @param { function } createSrc
      */
-    const getPluginUrl = async (
+    async function getPluginUrl(
       path: string,
       assetsUrl: string,
       createSrc: ConsumerOptions['createSrc'],
-    ) => {
+    ) {
       let url = createSrc(path)
       if (isPromise(url)) {
         const finalizedUrl = await url
@@ -247,27 +253,25 @@ componentResolver.setResolver((component, options, next) => {
       return url
     }
 
-    const path = component.get('path') || ''
-    const plugin = (component.get('plugin') as Store.PluginObject) || {}
+    const plugin = component
+      .set('plugin', component.get('plugin' || {}))
+      .get('plugin') as Store.PluginObject
 
     if (pluginExists(path as string)) return
 
-    let src: string
-
     getPluginUrl(path, getAssetsUrl(), createSrc)
-      .then((result) => {
-        src = result
-        component.set('src', src).emit('path', src)
+      .then((src) => {
+        component.set('src', src).emit('path', src).emit('data-src', src)
         // Use the default fetcher for now
-        if (src) return fetch?.(src)
+        if (src) return window.fetch?.(src)
       })
+      .then((res) => res?.json?.())
       .then((content) => {
         plugin && (plugin.content = content)
-        component
-          .set('content', plugin.content)
-          .emit('plugin:content', plugin.content)
+        component.set('content', content)
+        component.emit('content', content || '')
       })
-      // .catch((err) => console.error(`[${err.name}]: ${err.message}`, err))
+      .catch((err) => console.error(`[${err.name}]: ${err.message}`, err))
       .finally(() => (plugin.initiated = true))
   }
 

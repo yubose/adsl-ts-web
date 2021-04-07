@@ -57,7 +57,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (delay > 0) setTimeout(() => onCheckField(), delay as any)
       else onCheckField()
     },
-    async disconnectMeeting(action, options) {
+    async disconnectMeeting(action) {
       log.func('disconnectMeeting')
       log.grey('', { action, room: app.meeting.room })
       app.meeting.room.disconnect()

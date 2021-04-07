@@ -7,7 +7,7 @@ import { coolGold, italic, magenta } from 'noodl-common'
 import { assetsUrl, createRender } from '../utils/test-utils'
 
 describe(coolGold('DOM'), () => {
-  it.only(`should display the resolved data-value for a dataValue emit`, async () => {
+  xit(`should display the resolved data-value for a dataValue emit`, async () => {
     const email = 'abc@gmail.com'
     const value = 'myval123'
     const { ndom, render } = createRender({

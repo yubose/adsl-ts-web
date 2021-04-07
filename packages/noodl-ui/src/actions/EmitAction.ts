@@ -4,12 +4,12 @@ import { EmitActionObject, NUITrigger } from '../types'
 import { isObj } from '../utils/internal'
 
 class EmitAction
-  extends Action<'emit', NUITrigger>
-  implements IAction<'emit', NUITrigger> {
+  extends Action<'emit', NUITrigger | ''>
+  implements IAction<'emit', NUITrigger | ''> {
   actions: any[]
   dataKey: string | Record<string, any> | undefined
 
-  constructor(trigger: NUITrigger, obj: EmitObject | EmitActionObject) {
+  constructor(trigger: NUITrigger | '', obj: EmitObject | EmitActionObject) {
     if (isObj(obj) && obj.actionType !== 'emit') {
       obj = { ...obj, actionType: 'emit' }
     }
