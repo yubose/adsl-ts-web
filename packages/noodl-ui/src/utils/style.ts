@@ -33,6 +33,37 @@ export function handlePosition(
 }
 
 /**
+ * Takes a value and a full viewport size and returns a computed value in px
+ * @param { string | number } value - width / height value
+ * @param { number } viewportSize
+ */
+export function getSize(value: string | number, viewportSize: number) {
+  if (value == '0') {
+    return '0px'
+  }
+  if (value == '1') {
+    return `${viewportSize}px`
+  }
+  if (typeof value === 'string') {
+    if (!hasLetter(value)) {
+      if (hasDecimal(value)) {
+        return `${Number(value) * viewportSize}px`
+      }
+      return `${value}px`
+    }
+    // Assuming it already has a 'px' appended
+    return value
+  }
+  if (isFinite(value)) {
+    if (hasDecimal(value)) {
+      return `${value * viewportSize}px`
+    }
+    return `${value}px`
+  }
+  return value
+}
+
+/**
  *  Returns an object transformed using the value of textAlign
  * @param { object } style
  * @param { string } textAlign - NOODL textAlign value
