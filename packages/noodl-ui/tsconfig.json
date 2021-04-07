@@ -12,6 +12,7 @@
     "outDir": "dist",
     "strictNullChecks": true,
     "skipLibCheck": true,
+    "strict": true,
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "esnext"
