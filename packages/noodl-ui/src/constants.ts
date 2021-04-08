@@ -9,6 +9,7 @@ export const lib = {
     'data-key',
     'data-listid',
     'data-name',
+    'data-options',
     'data-placeholder',
     'data-src',
     'data-value',

@@ -18,6 +18,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     controls,
     dataKey,
     image,
+    options: selectOptions,
     path,
     poster,
     required,
@@ -184,6 +185,32 @@ dataAttribsResolver.setResolver((component, options, next) => {
           image && component.emit('image', src)
         })
       }
+    }
+  }
+
+  /* -------------------------------------------------------
+    ---- SELECT
+  -------------------------------------------------------- */
+
+  if (
+    Identify.component.select(component) &&
+    u.isStr(selectOptions) &&
+    iteratorVar &&
+    selectOptions.startsWith(iteratorVar)
+  ) {
+    const dataObject = n.findListDataObject(component)
+    if (dataObject) {
+      const dataKey = excludeIteratorVar(selectOptions, iteratorVar)
+      const dataOptions =
+        (dataKey ? get(dataObject, dataKey) : dataObject) || []
+      component.set('data-options', dataOptions)
+      setTimeout(() => component.emit('options', dataOptions))
+    } else {
+      console.log(
+        `%cCould not find the list of options for a select component using the path "${selectOptions}"`,
+        `color:#ec0000;`,
+        component,
+      )
     }
   }
 

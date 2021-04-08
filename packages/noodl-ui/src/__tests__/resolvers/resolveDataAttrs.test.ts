@@ -71,6 +71,81 @@ describe(coolGold(`resolveDataAttrs`), () => {
     ).eq('pfft@gmail.com')
   })
 
+  describe(italic(`data-options`), () => {
+    let iteratorVar = 'itemObject'
+    let listObject: { key: string; doc: number[] }[]
+
+    beforeEach(() => {
+      listObject = [
+        { key: 'children', doc: [1, 2, 3, 4] },
+        { key: 'adults', doc: [18, 19, 20, 21] },
+        { key: 'seniors', doc: [59, 60, 61, 62] },
+      ]
+      createDataKeyReference({
+        pageObject: { formData: { doc: listObject } },
+      })
+    })
+
+    describe(`when options is provided through a reference string`, () => {
+      it(`should use options as the dataKey to get its options`, async () => {
+        const component = NUI.resolveComponents(
+          mock.getListComponent({
+            contentType: 'listObject',
+            iteratorVar,
+            listObject,
+            children: [
+              mock.getListItemComponent({
+                [iteratorVar]: '',
+                children: [
+                  mock.getSelectComponent({ options: 'itemObject.doc' }),
+                ],
+              }),
+            ],
+          }),
+        )
+        const select1 = component.child().child()
+        const select2 = component.child(1).child()
+        const select3 = component.child(2).child()
+        await waitFor(() => {
+          expect(select1.get('data-options')).to.eq(listObject[0].doc)
+          expect(select2.get('data-options')).to.eq(listObject[1].doc)
+          expect(select3.get('data-options')).to.eq(listObject[2].doc)
+        })
+      })
+    })
+
+    it(`should emit the "options" component event`, async () => {
+      const spy1 = sinon.spy()
+      const spy2 = sinon.spy()
+      const spy3 = sinon.spy()
+      const component = NUI.resolveComponents(
+        mock.getListComponent({
+          contentType: 'listObject',
+          iteratorVar,
+          listObject,
+          children: [
+            mock.getListItemComponent({
+              [iteratorVar]: '',
+              children: [
+                mock.getSelectComponent({ options: 'itemObject.doc' }),
+              ],
+            }),
+          ],
+        }),
+      )
+      component.child().child().on('options', spy1)
+      component.child(1).child().on('options', spy2)
+      component.child(2).child().on('options', spy3)
+      const spies = [spy1, spy2, spy3]
+      await waitFor(() => {
+        spies.forEach((spy, index) => {
+          expect(spy).to.be.calledOnce
+          expect(spy).to.be.calledWith(listObject[index].doc)
+        })
+      })
+    })
+  })
+
   describe(italic(`data-viewtag`), () => {
     it('should attach viewTag as the value for data-viewtag', () => {
       expect(
@@ -133,7 +208,7 @@ describe(coolGold(`resolveDataAttrs`), () => {
   )
 
   describe('when handling dataValue emits', () => {
-    it.only('should pass the value from the emit executor', async () => {
+    it('should pass the value from the emit executor', async () => {
       const spy = sinon.spy(() => Promise.resolve('iamjoshua'))
       const dataObject = { fruit: 'apple' }
       const iteratorVar = 'hello'
@@ -173,12 +248,10 @@ describe(coolGold(`resolveDataAttrs`), () => {
 
   it('should look in the page object to find its dataObject (non list consumers)', () => {
     const pageObject = { hello: { gender: 'Female' } }
+    createDataKeyReference({ pageObject })
     expect(
       NUI.resolveComponents(
-        mock.getLabelComponent(
-          { type: 'label', dataKey: 'hello.gender' },
-          { getPageObject: () => pageObject },
-        ),
+        mock.getLabelComponent({ type: 'label', dataKey: 'hello.gender' }),
       ).get('data-value'),
     ).to.eq('Female')
   })
@@ -188,12 +261,13 @@ describe(coolGold(`resolveDataAttrs`), () => {
       'isnt available in the page object',
     () => {
       const pageObject = { hello: { gender: 'Female' } }
+      createDataKeyReference({ pageName: 'SignIn', pageObject })
       expect(
         NUI.resolveComponents(
-          mock.getLabelComponent(
-            { type: 'label', dataKey: 'SignIn.hello.gender' },
-            { getRoot: () => ({ SignIn: pageObject }) },
-          ),
+          mock.getLabelComponent({
+            type: 'label',
+            dataKey: 'SignIn.hello.gender',
+          }),
         ).get('data-value'),
       ).to.eq('Female')
     },

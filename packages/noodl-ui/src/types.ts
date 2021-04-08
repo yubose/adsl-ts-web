@@ -179,6 +179,7 @@ export namespace NUIComponent {
     dataValue(dataValue: any): void
     'data-src'(src: string): void
     image(src: string): void
+    options(options: any[]): void
     path(src: string): void
     placeholder(src: string): void
   }
