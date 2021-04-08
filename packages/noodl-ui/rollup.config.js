@@ -31,7 +31,7 @@ const configs = [
     ],
     plugins: [
       external(),
-      commonjs({ extensions: ['.js'] }),
+      commonjs(),
       filesize(),
       progress(),
       resolve({
