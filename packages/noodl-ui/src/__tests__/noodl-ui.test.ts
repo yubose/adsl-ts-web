@@ -10,6 +10,8 @@ import { nuiEmitType, nuiEmitTransaction } from '../constants'
 import Component from '../Component'
 import Page from '../Page'
 import Resolver from '../Resolver'
+import NUI from '../noodl-ui'
+import { waitFor } from '@testing-library/dom'
 
 describe(italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
@@ -180,6 +182,32 @@ describe(italic(`createPage`), () => {
     expect(page).to.be.instanceOf(Page)
     expect(nui.cache.page.has(page.id)).to.be.true
     expect(nui.cache.page.get(page.id).page).to.eq(page)
+  })
+})
+
+describe(italic(`createPlugin`), () => {
+  const hasPlugin = (loc: any, obj: any) =>
+    NUI.getPlugins(loc).some((o) => o.path === obj.path)
+
+  it(`should add plugins of ${magenta('head')}`, () => {
+    let obj = { location: 'head', path: 'abc.html' } as any
+    expect(hasPlugin('head', obj)).to.be.false
+    NUI.createPlugin('head', obj)
+    expect(hasPlugin('head', obj)).to.be.true
+  })
+
+  it(`should add plugins of ${magenta('body-top')}`, () => {
+    let obj = { location: 'body-top', path: 'abc.html' } as any
+    expect(hasPlugin('body-top', obj)).to.be.false
+    nui.createPlugin('body-top', obj)
+    expect(hasPlugin('body-top', obj)).to.be.true
+  })
+
+  it(`should add plugins of ${magenta('body-bottom')}`, () => {
+    let obj = { location: 'body-bottom', path: 'abc.html' } as any
+    expect(hasPlugin('body-bottom', obj)).to.be.false
+    nui.createPlugin('body-bottom', obj)
+    expect(hasPlugin('body-bottom', obj)).to.be.true
   })
 })
 
@@ -521,25 +549,76 @@ describe(italic(`use`), () => {
   })
 
   describe(italic(`plugin`), () => {
-    it(`should add plugins of ${magenta('head')}`, () => {
-      let obj = { location: 'head', path: 'abc.html' } as any
-      expect(nui.getPlugins('head')).not.to.include.members([obj])
-      nui.use(obj)
-      expect(nui.getPlugins('head')).to.include.members([obj])
+    it(`should initiate a plugin object on the "plugin" property on the component`, () => {
+      const path = 'coffee.js'
+      const component = NUI.resolveComponents(mock.getPluginComponent({ path }))
+      const plugin = component.get('plugin')
+      expect(plugin).to.be.an('object')
+      expect(plugin).to.have.property('location', 'head')
+      expect(plugin).to.have.property('path', path)
     })
 
-    it(`should add plugins of ${magenta('body-top')}`, () => {
-      let obj = { location: 'body-top', path: 'abc.html' } as any
-      expect(nui.getPlugins('body-top')).not.to.include.members([obj])
-      nui.use(obj)
-      expect(nui.getPlugins('body-top')).to.include.members([obj])
+    it(`should set the plugin id`, () => {
+      expect(
+        NUI.resolveComponents(
+          mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
+        ).get('plugin'),
+      ).to.have.property('id', 'body-bottom:coffee.js')
     })
 
-    it(`should add plugins of ${magenta('body-bottom')}`, () => {
-      let obj = { location: 'body-bottom', path: 'abc.html' } as any
-      expect(nui.getPlugins('body-bottom')).not.to.include.members([obj])
-      nui.use(obj)
-      expect(nui.getPlugins('body-bottom')).to.include.members([obj])
+    it(`should not do anything if the plugin was previously added`, () => {
+      let component = NUI.resolveComponents(
+        mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
+      )
+      expect(NUI.getPlugins('body-bottom')).to.have.lengthOf(1)
+      component = NUI.resolveComponents(
+        mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
+      )
+      expect(NUI.getPlugins('body-bottom')).to.have.lengthOf(1)
+      expect(NUI.getPlugins('body-bottom')[0]).to.have.property(
+        'id',
+        'body-bottom:coffee.js',
+      )
+    })
+
+    it(
+      `should set the plugin path/url on the data-src property and emit ` +
+        `the "path" event`,
+      async () => {
+        const spy = sinon.spy()
+        NUI.resolveComponents(
+          mock.getPluginComponent({ path: 'coffee.js' }),
+        ).on('path', spy)
+        await waitFor(() => expect(spy).to.be.calledOnce)
+      },
+    )
+
+    it(
+      `should set the fetched plugin contents on the "content" property ` +
+        `and emit the "content" event`,
+      async () => {
+        const spy = sinon.spy()
+        const component = NUI.resolveComponents(
+          mock.getPluginComponent({ path: 'coffee.js' }),
+        ).on('content', spy)
+        const spy2 = sinon.spy(component, 'set')
+        await waitFor(() => {
+          expect(spy).to.be.calledOnce
+          expect(spy2).to.be.calledOnce
+          expect(spy2).to.be.calledWith('content')
+        })
+      },
+    )
+
+    it(`should set the "initiated" property to ${magenta(
+      `true`,
+    )} afterwards`, async () => {
+      const component = NUI.resolveComponents(
+        mock.getPluginComponent({ path: 'coffee.js' }),
+      )
+      await waitFor(() =>
+        expect(component.get('plugin')).to.have.property('initiated', true),
+      )
     })
   })
 

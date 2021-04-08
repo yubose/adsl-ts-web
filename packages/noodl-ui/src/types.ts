@@ -19,6 +19,9 @@ import {
   ToastObject,
   UpdateActionObject,
   userEvent,
+  PluginComponentObject,
+  PluginHeadComponentObject,
+  PluginBodyTailComponentObject,
 } from 'noodl-types'
 import { Action, ActionChain } from 'noodl-action-chain'
 import { LiteralUnion } from 'type-fest'
@@ -174,6 +177,7 @@ export namespace NUIComponent {
     [event.component.register.ONEVENT](): void
     content(pluginContent: string): void
     dataValue(dataValue: any): void
+    'data-src'(src: string): void
     image(src: string): void
     path(src: string): void
     placeholder(src: string): void
@@ -191,10 +195,15 @@ export namespace NUIComponent {
 }
 
 export namespace Plugin {
+  export type ComponentObject =
+    | PluginComponentObject
+    | PluginHeadComponentObject
+    | PluginBodyTailComponentObject
+
   export type CreateType =
     | string
     | NUIComponent.Instance
-    | ComponentObject
+    | Plugin.ComponentObject
     | Plugin.Object
 
   export type Location = 'head' | 'body-top' | 'body-bottom'
@@ -204,7 +213,7 @@ export namespace Plugin {
     location?: Plugin.Location
     path?: string
     content?: string
-    ref: NUIComponent.Instance
+    id?: string
   }
 }
 
@@ -326,14 +335,6 @@ export namespace Store {
       bottom: Plugin.Object[]
     }
   }
-
-  export interface PluginObject {
-    initiated?: boolean
-    location?: 'head' | 'body-top' | 'body-bottom'
-    path?: string
-    content?: string
-    ref: NUIComponent.Instance
-  }
 }
 
 export interface State {
@@ -418,7 +419,6 @@ export namespace Use {
   export type GetPreloadPages = () => string[]
   export type GetRoot = () => Record<string, any>
   export type GetPlugins = () => Plugin.CreateType[]
-  export type Plugin = Store.PluginObject
   export type Resolver = ComponentResolver
   export type Register = Register.Object | Register.Object[]
 

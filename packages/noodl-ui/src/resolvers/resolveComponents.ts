@@ -27,6 +27,7 @@ componentResolver.setResolver((component, options, next) => {
     cache,
     context,
     createPage,
+    createPlugin,
     createSrc,
     emit,
     getAssetsUrl,
@@ -84,14 +85,6 @@ componentResolver.setResolver((component, options, next) => {
           context: ctx,
           page,
         })
-        // listItemBlueprint.children?.forEach((child) => {
-        //   let childInst = listItem.createChild(createComponent(child))
-        //   resolveComponents({
-        //     components: childInst,
-        //     context: ctx,
-        //     page,
-        //   })
-        // })
         cache.component.add(listItem)
         const numGeneratedChildren = listItem.length
         const expectedNumChildren = listItem.blueprint?.children?.length
@@ -159,7 +152,6 @@ componentResolver.setResolver((component, options, next) => {
   if (Identify.component.page(component)) {
     const nuiPage = createPage({ id: component.id, name: path })
     const viewport = nuiPage.viewport
-
     if (u.isNil(originalStyle.width)) {
       viewport.width = getRootPage().viewport.width
     } else {
@@ -169,7 +161,6 @@ componentResolver.setResolver((component, options, next) => {
         }),
       )
     }
-
     if (u.isNil(originalStyle.height)) {
       viewport.height = getRootPage().viewport.height
     } else {
@@ -179,11 +170,8 @@ componentResolver.setResolver((component, options, next) => {
         }),
       )
     }
-
     component.edit('page', nuiPage)
-
     nuiPage.page = path
-
     emit({
       type: c.nuiEmitType.TRANSACTION,
       transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
@@ -253,23 +241,22 @@ componentResolver.setResolver((component, options, next) => {
       return url
     }
 
-    const plugin = component
-      .set('plugin', component.get('plugin' || {}))
-      .get('plugin') as Store.PluginObject
+    const plugin = createPlugin(component)
+    component.set('plugin', plugin)
 
     if (pluginExists(path as string)) return
 
     getPluginUrl(path, getAssetsUrl(), createSrc)
       .then((src) => {
-        component.set('src', src).emit('path', src).emit('data-src', src)
-        // Use the default fetcher for now
+        // src is also being resolved in the resolveDataAttrs resolver
+        // so we don't need to handle setting the data-src and emitting the
+        // path event here
         if (src) return window.fetch?.(src)
       })
       .then((res) => res?.json?.())
       .then((content) => {
         plugin && (plugin.content = content)
-        component.set('content', content)
-        component.emit('content', content || '')
+        component.set('content', content).emit('content', content || '')
       })
       .catch((err) => console.error(`[${err.name}]: ${err.message}`, err))
       .finally(() => (plugin.initiated = true))

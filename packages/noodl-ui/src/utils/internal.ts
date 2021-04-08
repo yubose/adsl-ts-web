@@ -1,5 +1,12 @@
+import {
+  Identify,
+  PluginComponentObject,
+  PluginHeadComponentObject,
+  PluginBodyTailComponentObject,
+  ComponentType,
+} from 'noodl-types'
 import { actionTypes } from '../constants'
-import { NUIActionType } from '../types'
+import { NUIActionType, NUIComponent, Plugin } from '../types'
 
 export const isArr = (v: any): v is any[] => Array.isArray(v)
 export const isBool = (v: any): v is boolean => typeof v === 'boolean'
@@ -24,6 +31,46 @@ export const keys = (v: any) => Object.keys(v)
 export const values = <O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] => Object.values(v)
+
+export function createPluginId(
+  location: Plugin.Location,
+  component:
+    | NUIComponent.Instance
+    | PluginComponentObject
+    | PluginHeadComponentObject
+    | PluginBodyTailComponentObject
+    | undefined,
+) {
+  let id = location + ':'
+  if (component) {
+    id +=
+      'get' in component ? component?.blueprint?.path : component?.path || ''
+  } else {
+    id += 'head'
+  }
+  return id
+}
+
+export function getPluginLocation(
+  component:
+    | NUIComponent.Instance
+    | PluginComponentObject
+    | PluginHeadComponentObject
+    | PluginBodyTailComponentObject
+    | string
+    | undefined,
+): Plugin.Location {
+  if (isStr(component)) {
+    return component as Plugin.Location
+  } else {
+    switch ((component?.type as ComponentType) || '') {
+      case 'pluginBodyTail':
+        return 'body-bottom'
+      default:
+        return 'head'
+    }
+  }
+}
 
 /**
  * Returns a random 7-character string

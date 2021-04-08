@@ -9,6 +9,7 @@ import ComponentResolver from './Resolver'
 import createAction from './utils/createAction'
 import createActionChain from './utils/createActionChain'
 import createComponent from './utils/createComponent'
+import isComponent from './utils/isComponent'
 import isPage from './utils/isPage'
 import NUIPage from './Page'
 import PageCache from './cache/PageCache'
@@ -91,6 +92,42 @@ const NUI = (function _NUI() {
     page.use(() => (page?.page ? NUI.getRoot()[page.page] : { components: [] }))
     return page
   }
+  function _createPlugin(
+    location:
+      | T.Plugin.Location
+      | T.Plugin.ComponentObject
+      | T.NUIComponent.Instance = 'head',
+    obj?: T.NUIComponent.Instance | T.Plugin.ComponentObject,
+  ) {
+    let _location = '' as T.Plugin.Location
+    let _path = ''
+
+    if (u.isStr(location)) {
+      _location = location
+    } else {
+      _location = u.getPluginLocation(location)
+      obj = location
+    }
+    _path = isComponent(obj) ? obj.blueprint?.path : obj?.path
+
+    invariant(!!_path, `Path is required`)
+    invariant(u.isStr(_path), `Path is not a string`)
+
+    const id = u.createPluginId(_location, obj)
+    const plugin = {
+      id,
+      content: '',
+      initiated: false,
+      location: _location,
+      path: _path,
+    } as T.Plugin.Object
+
+    if (!_getPlugins(_location).some((o) => o.id === id)) {
+      _getPlugins(_location).push(plugin)
+    }
+
+    return plugin
+  }
 
   function _createSrc(args: {
     component: T.NUIComponent.Instance
@@ -139,7 +176,6 @@ const NUI = (function _NUI() {
         const obj = o.getActions()?.emit?.find?.((o) => o.trigger === 'path')
         const iteratorVar =
           opts?.context?.iteratorVar || findIteratorVar(component)
-
         if (u.isFnc(obj?.fn)) {
           const emitObj = { ...args, actionType: 'emit' }
           const emitAction = new EmitAction('path', emitObj)
@@ -154,16 +190,13 @@ const NUI = (function _NUI() {
               { iteratorVar },
             )
           }
-
           emitAction.executor = async () => {
             const callbacks = (o.getActions().emit || []).reduce(
               (acc, obj) =>
                 obj?.trigger === 'path' ? acc.concat(obj as any) : acc,
               [],
             )
-
             if (!callbacks.length) return ''
-
             const result = await Promise.race(
               callbacks.map((obj: T.Store.ActionObject) =>
                 obj.fn?.(
@@ -172,10 +205,8 @@ const NUI = (function _NUI() {
                 ),
               ),
             )
-
             return (u.isArr(result) ? result[0] : result) || ''
           }
-
           // Result returned should be a string type
           let result = emitAction.execute(args) as string | Promise<string>
           let finalizedRes = ''
@@ -345,6 +376,7 @@ const NUI = (function _NUI() {
           page,
         })
       },
+      createPlugin: _createPlugin,
       createSrc: _createSrc,
       emit: _emit,
       getBaseStyles: (c: T.NUIComponent.Instance) =>
@@ -356,10 +388,9 @@ const NUI = (function _NUI() {
     }
   }
 
-  function _getPlugins(location: 'head'): T.Store.PluginObject[]
-  function _getPlugins(location: 'body-top'): T.Store.PluginObject[]
-  function _getPlugins(location: 'body-bottom'): T.Store.PluginObject[]
-  function _getPlugins(location?: T.Store.PluginObject['location']) {
+  function _getPlugins(location: T.Plugin.Location): T.Plugin.Object[]
+  function _getPlugins(): T.Store.Plugins
+  function _getPlugins(location?: T.Plugin.Location) {
     switch (location) {
       case 'head':
         return store?.plugins?.head
@@ -494,6 +525,7 @@ const NUI = (function _NUI() {
     _defineGetter,
     cache,
     createPage: _createPage,
+    createPlugin: _createPlugin,
     createActionChain(
       trigger: T.NUITrigger,
       actions: T.NUIActionObjectInput | T.NUIActionObjectInput[],
@@ -644,6 +676,7 @@ const NUI = (function _NUI() {
             | 'builtIns'
             | 'components'
             | 'pages'
+            | 'plugins'
             | 'resolvers'
             | 'transactions'
           )
@@ -652,6 +685,7 @@ const NUI = (function _NUI() {
             | 'builtIns'
             | 'components'
             | 'pages'
+            | 'plugins'
             | 'resolvers'
             | 'transactions'
           )[],
@@ -666,6 +700,9 @@ const NUI = (function _NUI() {
             cache.component.clear()
           } else if (f === 'pages') {
             cache.page.clear()
+          } else if (f === 'plugins') {
+            store.plugins.head.length = 0
+            u.values(store.plugins.body).forEach((arr) => (arr.length = 0))
           } else if (f === 'resolvers') {
             store.resolvers.length = 0
           } else if (f === 'transactions') {
@@ -675,9 +712,11 @@ const NUI = (function _NUI() {
           }
         })
       } else {
+        store.plugins.head.length = 0
         store.resolvers.length = 0
         u.values(store.actions).forEach((obj) => (obj.length = 0))
         u.values(store.builtIns).forEach((obj) => (obj.length = 0))
+        u.values(store.plugins.body).forEach((arr) => (arr.length = 0))
         u.keys(store.transactions).forEach((k) => delete store.transactions[k])
         cache.component.clear()
         cache.page.clear()

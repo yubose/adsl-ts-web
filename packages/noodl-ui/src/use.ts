@@ -53,6 +53,10 @@ function use(
     return get(obj, path)
   }
 
+  const isActionObject = (val: unknown): val is Use.Action => {
+    //
+  }
+
   function useAction(
     actionType: NUIActionType,
     opts: Store.ActionObject | Store.BuiltInObject | Store.ActionObject['fn'],

@@ -151,7 +151,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
   Identify.isBoolean(controls) && component.edit({ controls: true })
 
-  // Images / Videos
+  // Images / Plugins / Videos
   if (path || resource || image) {
     let src = ''
 
