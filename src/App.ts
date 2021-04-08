@@ -220,7 +220,9 @@ class App {
       this.ndom.use({
         transaction: {
           [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: (p: NOODLDOMPage) => {
-            return this.#preparePage(p)
+            return this.#preparePage(p).then(
+              (pageObject) => (window.pageObject = pageObject),
+            )
           },
         },
       })

@@ -39,7 +39,7 @@ const args = program.opts()
     }
   }
 
-  const pkgName = getPkgName()
+  const pkgName = getPkgName(args.publish)
 
   if (!pkgName) {
     throw new Error(
@@ -55,7 +55,7 @@ const args = program.opts()
     `lerna exec --scope ${pkgName} "npm version patch"`,
     `git add packages/${pkgName}`,
     `git commit -m "${message}"`,
-    `lerna exec --scope ${pkgName} "npm run build && npm publish --access public"`,
+    `lerna exec --scope ${args.publish} "npm run build && npm publish --access public"`,
   ].join(' && ')
 
   const shell = childProcess.spawn(commands, {

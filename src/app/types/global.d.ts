@@ -28,6 +28,7 @@ declare global {
     getByDataUX: any
     getDataValues: any
     components: NOODLComponent[]
+    pageObject: any
     pcomponents: ProxiedComponent[]
     meeting: Meeting
     modal: Modal

@@ -175,32 +175,39 @@ const domComponentsResolver: Resolve.Config = {
       }
       // SELECT
       else if (Identify.component.select(original)) {
-        if (u.isArr(selectOptions)) {
-          const selectNode = node as HTMLSelectElement
-
-          function clearOptions(node: HTMLSelectElement) {
-            const numOptions = node.options
-            for (let index = 0; index < numOptions.length; index++) {
-              const option = node.options[index]
-              option.remove()
-            }
+        function clearOptions(_node: HTMLSelectElement) {
+          const numOptions = _node.options
+          for (let index = 0; index < numOptions.length; index++) {
+            const option = _node.options[index]
+            option.remove()
           }
+        }
 
-          clearOptions(selectNode)
-
-          selectOptions.forEach((option: SelectOption, index) => {
+        function setSelectOptions(_node: HTMLSelectElement, opts: any[]) {
+          opts.forEach((option: SelectOption, index) => {
             option = toSelectOption(option)
             const optionNode = document.createElement('option')
-            selectNode.appendChild(optionNode)
+            _node.appendChild(optionNode)
             optionNode.id = option.key
             optionNode.value = option.value
             optionNode.textContent = option.label
             if (option?.value === component.props['data-value']) {
               // Default to the selected index if the user already has a state set before
-              selectNode.selectedIndex = index
-              selectNode.dataset.value = option.value
-              selectNode.value = option.value
+              _node.selectedIndex = index
+              _node.dataset.value = option.value
+              _node.value = option.value
             }
+          })
+        }
+
+        clearOptions(node)
+
+        if (u.isArr(selectOptions)) {
+          setSelectOptions(node, selectOptions)
+        } else if (u.isStr(selectOptions)) {
+          // Retrieved through reference
+          component.on('options', (dataOptions: any[]) => {
+            setSelectOptions(node, dataOptions)
           })
         }
         // Default to the first item if the user did not previously set their state

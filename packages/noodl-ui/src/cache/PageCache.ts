@@ -1,8 +1,8 @@
 import NUIPage from '../Page'
 import Viewport from '../Viewport'
-import { Cache } from '../types'
+import { ICache, Cache } from '../types'
 
-class PageCache {
+class PageCache implements ICache {
   #pages = new Map() as Map<Cache.PageId, Cache.PageEntry>
 
   static _inst: PageCache;

@@ -518,7 +518,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         toast(error.message, { type: 'error' })
         throw error
       }
-
       log.red(`COMPONENT CACHE SIZE: ${NUI.cache.component.length}`)
     },
   }

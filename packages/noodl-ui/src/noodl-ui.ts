@@ -13,6 +13,7 @@ import isComponent from './utils/isComponent'
 import isPage from './utils/isPage'
 import NUIPage from './Page'
 import PageCache from './cache/PageCache'
+import PluginCache from './cache/PluginCache'
 import RegisterCache from './cache/RegisterCache'
 import store from './store'
 import VP from './Viewport'
@@ -39,6 +40,7 @@ const NUI = (function _NUI() {
   const cache = {
     component: new ComponentCache(),
     page: new PageCache(),
+    plugin: new PluginCache(),
     register: new RegisterCache(),
   }
 
@@ -122,8 +124,8 @@ const NUI = (function _NUI() {
       path: _path,
     } as T.Plugin.Object
 
-    if (!_getPlugins(_location).some((o) => o.id === id)) {
-      _getPlugins(_location).push(plugin)
+    if (!cache.plugin.has(id)) {
+      cache.plugin.add(_location, plugin)
     }
 
     return plugin
@@ -143,6 +145,7 @@ const NUI = (function _NUI() {
   function _createSrc(path: IfObject): string
   function _createSrc(path: string): string
   function _createSrc(
+    this: typeof o,
     args:
       | EmitObject
       | IfObject
@@ -201,7 +204,7 @@ const NUI = (function _NUI() {
               callbacks.map((obj: T.Store.ActionObject) =>
                 obj.fn?.(
                   emitAction,
-                  this.getConsumerOptions({ component, path: args }),
+                  this.getConsumerOptions({ component, page, path: args }),
                 ),
               ),
             )
@@ -388,21 +391,6 @@ const NUI = (function _NUI() {
     }
   }
 
-  function _getPlugins(location: T.Plugin.Location): T.Plugin.Object[]
-  function _getPlugins(): T.Store.Plugins
-  function _getPlugins(location?: T.Plugin.Location) {
-    switch (location) {
-      case 'head':
-        return store?.plugins?.head
-      case 'body-top':
-        return store?.plugins?.body.top
-      case 'body-bottom':
-        return store?.plugins?.body.bottom
-      default:
-        return store?.plugins
-    }
-  }
-
   function _getQueryObjects(
     opts: {
       component?: T.NUIComponent.Instance
@@ -512,8 +500,8 @@ const NUI = (function _NUI() {
       return c
     }
 
-    components.forEach((c: T.NUIComponent.Instance, i) => {
-      const component = createComponent(c)
+    components.forEach((c, i) => {
+      const component = createComponent(c as T.NUIComponent.Instance)
       component.ppath = `[${i}]`
       resolvedComponents.push(xform(component))
     })
@@ -656,7 +644,7 @@ const NUI = (function _NUI() {
     getBaseUrl: () => '',
     getBaseStyles: _getBaseStyles,
     getConsumerOptions: _getConsumerOptions,
-    getPlugins: _getPlugins,
+    getPlugins: (location?: T.Plugin.Location) => cache.plugin.get(location),
     getPages: () => [] as string[],
     getPreloadPages: () => [] as string[],
     getRoot: () => ({} as Record<string, any>),
@@ -701,8 +689,7 @@ const NUI = (function _NUI() {
           } else if (f === 'pages') {
             cache.page.clear()
           } else if (f === 'plugins') {
-            store.plugins.head.length = 0
-            u.values(store.plugins.body).forEach((arr) => (arr.length = 0))
+            cache.plugin.clear()
           } else if (f === 'resolvers') {
             store.resolvers.length = 0
           } else if (f === 'transactions') {
@@ -712,14 +699,13 @@ const NUI = (function _NUI() {
           }
         })
       } else {
-        store.plugins.head.length = 0
         store.resolvers.length = 0
         u.values(store.actions).forEach((obj) => (obj.length = 0))
         u.values(store.builtIns).forEach((obj) => (obj.length = 0))
-        u.values(store.plugins.body).forEach((arr) => (arr.length = 0))
         u.keys(store.transactions).forEach((k) => delete store.transactions[k])
         cache.component.clear()
         cache.page.clear()
+        cache.plugin.clear()
         cache.register.clear()
       }
       o._defineGetter('getAssetsUrl', () => '')
@@ -729,6 +715,7 @@ const NUI = (function _NUI() {
       o._defineGetter('getBaseUrl', () => '')
       o._defineGetter('getPages', () => [])
       o._defineGetter('getPreloadPages', () => [])
+      o._defineGetter('getPlugins', () => cache.plugin.get())
       o._defineGetter('getRoot', () => '')
     },
   }

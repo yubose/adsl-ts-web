@@ -548,7 +548,7 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(`plugin`), () => {
+  describe.only(italic(`plugin`), () => {
     it(`should initiate a plugin object on the "plugin" property on the component`, () => {
       const path = 'coffee.js'
       const component = NUI.resolveComponents(mock.getPluginComponent({ path }))
@@ -570,11 +570,11 @@ describe(italic(`use`), () => {
       let component = NUI.resolveComponents(
         mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
       )
-      expect(NUI.getPlugins('body-bottom')).to.have.lengthOf(1)
+      expect(NUI.getPlugins('body-bottom').size).to.eq(0)
       component = NUI.resolveComponents(
         mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
       )
-      expect(NUI.getPlugins('body-bottom')).to.have.lengthOf(1)
+      expect(NUI.getPlugins('body-bottom').size).to.eq(1)
       expect(NUI.getPlugins('body-bottom')[0]).to.have.property(
         'id',
         'body-bottom:coffee.js',

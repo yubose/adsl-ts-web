@@ -8,6 +8,7 @@ import { actionTypes } from './constants'
 import {
   NUIActionType,
   NUITrigger,
+  Plugin,
   Register,
   Store,
   Transaction,
@@ -40,7 +41,7 @@ function use(
       | Store.BuiltInObject
       | Use.Emit
       | (Store.ActionObject | Store.BuiltInObject)[]
-      | Use.Plugin
+      | Plugin.Object
       | Use.Resolver
     ),
 ): typeof NUI {
@@ -51,10 +52,6 @@ function use(
   ) => {
     if (!isArr(get(obj, path))) set(obj, path, [])
     return get(obj, path)
-  }
-
-  const isActionObject = (val: unknown): val is Use.Action => {
-    //
   }
 
   function useAction(
@@ -105,11 +102,11 @@ function use(
   } else if ('location' in args) {
     const location = args.location
     if (location === 'head') {
-      this.getPlugins(location).push(args as Use.Plugin)
+      this.getPlugins(location).push(args as Plugin.Object)
     } else if (location === 'body-top') {
-      this.getPlugins(location).push(args as Use.Plugin)
+      this.getPlugins(location).push(args as Plugin.Object)
     } else if (location === 'body-bottom') {
-      this.getPlugins(location).push(args as Use.Plugin)
+      this.getPlugins(location).push(args as Plugin.Object)
     }
   } else if ('register' in args) {
     array(args.register).forEach((obj: Register.Object) => {

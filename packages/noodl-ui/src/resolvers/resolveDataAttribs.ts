@@ -21,9 +21,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     options: selectOptions,
     path,
     poster,
-    required,
     resource,
-    videoFormat,
     viewTag,
   } = original
 

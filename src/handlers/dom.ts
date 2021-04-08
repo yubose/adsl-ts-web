@@ -19,28 +19,25 @@ import {
 import App from '../App'
 import * as u from '../utils/common'
 
-const log = Logger.create('src/handlers/dom.ts')
+const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
   const getOnChange = function _getOnChangeFn(args: {
-    actionChain: NUIActionChain | undefined
     component: NUIComponent.Instance
-    node: NOODLDOMDataValueElement
     dataKey: string
+    node: NOODLDOMDataValueElement
     evtName: string
-    iteratorVar?: string
+    iteratorVar: string
   }) {
-    const { actionChain, component, node, dataKey, evtName, iteratorVar } = args
+    let { component, dataKey, node, evtName, iteratorVar = '' } = args
+    let actionChain = component.get(evtName) as NUIActionChain | undefined
+    let pageName = app.mainPage.page
 
     async function onChange(event: Event) {
-      const target:
-        | (typeof event.target & {
-            value?: string
-          })
-        | null = event.target
+      pageName !== app.mainPage.page && (pageName = app.mainPage.page)
 
-      const localRoot = app.noodl?.root?.[app.mainPage.page]
-      const value = target?.value || ''
+      const localRoot = app.noodl?.root?.[pageName]
+      const value = (event.target as any)?.value || ''
 
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
@@ -50,8 +47,9 @@ const createExtendedDOMResolvers = function (app: App) {
           node.dataset.value = value
         } else {
           log.red(
-            'Expected a dataObject to update from onChange but no dataObject was found',
-            { component, node, dataKey, currentValue: value, event, evtName },
+            `A ${component.type} component from a "${evtName}" handler tried ` +
+              `to update its value but a dataObject was not found`,
+            { component, dataKey, pageName },
           )
         }
 
@@ -60,58 +58,61 @@ const createExtendedDOMResolvers = function (app: App) {
           await actionChain?.execute?.(event)
         }
       } else {
-        app.noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
-          if (!has(draft?.[app.mainPage.page], dataKey)) {
-            log.orange(
-              `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +
-                `If this is intended then ignore this message.`,
-              {
-                component,
-                dataKey,
-                localRoot,
-                node,
-                pageName: app.mainPage.page,
-                pageObject: app.noodl.root[app.mainPage.page],
-                value,
-              },
-            )
-          }
-          set(draft?.[app.mainPage.page], dataKey, value)
-          component.edit('data-value', value)
-          node.dataset.value = value
+        if (dataKey) {
+          app.noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
+            if (!has(draft?.[app.mainPage.page], dataKey)) {
+              log.orange(
+                `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +
+                  `If this is intended then ignore this message.`,
+                {
+                  component,
+                  dataKey,
+                  localRoot,
+                  node,
+                  pageName: app.mainPage.page,
+                  pageObject: app.noodl.root[app.mainPage.page],
+                  value,
+                },
+              )
+            }
+            set(draft?.[app.mainPage.page], dataKey, value)
+            component.edit('data-value', value)
+            node.dataset.value = value
 
-          /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
-          if (/settings/i.test(app.mainPage.page)) {
-            if (node.dataset?.name === 'code') {
-              const pathToTage = 'verificationCode.response.edge.tage'
-              if (has(app.noodl.root?.[app.mainPage.page], pathToTage)) {
-                app.noodl.editDraft((draft: any) => {
-                  set(draft?.[app.mainPage.page], pathToTage, value)
-                  console.log(`Updated: SettingsUpdate.${pathToTage}`)
-                })
+            /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
+            if (/settings/i.test(app.mainPage.page)) {
+              if (node.dataset?.name === 'code') {
+                const pathToTage = 'verificationCode.response.edge.tage'
+                if (has(app.noodl.root?.[app.mainPage.page], pathToTage)) {
+                  app.noodl.editDraft((draft: any) => {
+                    set(draft?.[app.mainPage.page], pathToTage, value)
+                    console.log(`Updated: SettingsUpdate.${pathToTage}`)
+                  })
+                }
               }
             }
-          }
 
-          if (!iteratorVar) {
-            /**
-             * EXPERIMENTAL - When a data key from the local root is being updated
-             * by a node, update all other nodes that are referencing it.
-             * Note: This will not work for list items which is fine because they
-             * reference their own data objects
-             */
-            getAllByDataKey(dataKey)?.forEach((node) => {
-              // Since select elements have options as children, we should not
-              // edit by innerHTML or we would have to unnecessarily re-render the nodes
-              if (node.tagName === 'SELECT') {
-              } else if (isTextFieldLike(node)) {
-                node.dataset.value = value
-              } else {
-                node.innerHTML = `${value || ''}`
-              }
-            })
-          }
-        })
+            if (!iteratorVar) {
+              /**
+               * EXPERIMENTAL - When a data key from the local root is being updated
+               * by a node, update all other nodes that are referencing it.
+               * Note: This will not work for list items which is fine because they
+               * reference their own data objects
+               */
+              getAllByDataKey(dataKey)?.forEach((node) => {
+                // Since select elements have options as children, we should not
+                // edit by innerHTML or we would have to unnecessarily re-render the nodes
+                if (node.tagName === 'SELECT') {
+                } else if (isTextFieldLike(node)) {
+                  node.dataset.value = value
+                } else {
+                  node.innerHTML = `${value || ''}`
+                }
+              })
+            }
+          })
+        }
+
         await actionChain?.execute?.(event)
       }
     }
@@ -137,26 +138,27 @@ const createExtendedDOMResolvers = function (app: App) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.get('dataKey') || ''
-        node.addEventListener(
-          'change',
-          getOnChange({
-            actionChain: component.get('onChange'),
-            component,
-            evtName: 'onchange',
-            node: node as NOODLDOMDataValueElement,
-            dataKey,
-            iteratorVar,
-          }),
-        )
+        if (dataKey) {
+          node.addEventListener(
+            'change',
+            getOnChange({
+              component,
+              dataKey,
+              evtName: 'onChange',
+              node: node as NOODLDOMDataValueElement,
+              iteratorVar,
+            }),
+          )
+        }
+
         if (component.has('onBlur')) {
           node.addEventListener(
             'blur',
             getOnChange({
-              actionChain: component.get('onBlur'),
               node: node as NOODLDOMDataValueElement,
               component,
               dataKey,
-              evtName: 'onblur',
+              evtName: 'onBlur',
               iteratorVar,
             }),
           )

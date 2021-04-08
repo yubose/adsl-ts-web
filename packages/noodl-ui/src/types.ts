@@ -27,6 +27,7 @@ import { Action, ActionChain } from 'noodl-action-chain'
 import { LiteralUnion } from 'type-fest'
 import ComponentBase from './Component'
 import _ComponentCache from './cache/ComponentCache'
+import _PluginCache from './cache/PluginCache'
 import RegisterCache from './cache/RegisterCache'
 import EmitAction from './actions/EmitAction'
 import NUI from './noodl-ui'
@@ -112,6 +113,11 @@ export interface ToastActionObject extends ActionObject, ToastObject {
   [key: string]: any
 }
 
+export interface ICache {
+  clear(): void
+  length: number
+}
+
 export interface IPage {
   id: 'root' | string | number
   page: string
@@ -136,6 +142,8 @@ export namespace Cache {
   export interface PageEntry {
     page: NUIPage
   }
+
+  export type PluginCache = _PluginCache
 
   export type Register = RegisterCache
 }

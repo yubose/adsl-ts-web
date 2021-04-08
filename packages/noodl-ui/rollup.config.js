@@ -38,7 +38,6 @@ const configs = [
         browser: true,
         extensions,
         moduleDirectories: ['node_modules'],
-        preferBuiltins: true,
       }),
       typescript({
         rollupCommonJSResolveHack: true,
