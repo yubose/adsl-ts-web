@@ -31,11 +31,10 @@ const configs = [
     ],
     plugins: [
       external(),
-      commonjs(),
+      commonjs({ extensions: ['.js'] }),
       filesize(),
       progress(),
       resolve({
-        browser: true,
         extensions,
         moduleDirectories: ['node_modules'],
       }),
