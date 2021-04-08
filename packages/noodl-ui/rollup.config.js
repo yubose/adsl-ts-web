@@ -22,6 +22,12 @@ const configs = [
         sourcemap: true,
         globals: {},
       },
+      // {
+      //   dir: 'dist',
+      //   format: 'es',
+      //   preserveModules: false,
+      //   sourcemap: true,
+      // },
     ],
     plugins: [
       external(),
