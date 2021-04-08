@@ -49,8 +49,8 @@ const configs = [
       babel({
         babelHelpers: 'runtime',
         include: ['src/**/*'],
-        exclude: ['node_modules'],
-        extensions,
+        exclude: ['node_modules/**'],
+        extensions: ['.js', '.ts'],
       }),
     ],
   },
