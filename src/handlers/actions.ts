@@ -365,9 +365,10 @@ const createActions = function createActions(app: App) {
             phoneInput?.value || phoneInput?.dataset?.value,
           )
           if (
-            phoneNumber.startsWith('888') ||
-            phoneNumber.startsWith('+1888') ||
-            phoneNumber.startsWith('+1 888')
+            vcodeInput &&
+            (phoneNumber.startsWith('888') ||
+              phoneNumber.startsWith('+1888') ||
+              phoneNumber.startsWith('+1 888'))
           ) {
             const pageName = app.mainPage?.page || ''
             const pathToTage = 'verificationCode.response.edge.tage'

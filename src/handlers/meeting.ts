@@ -12,7 +12,7 @@ import {
 } from 'twilio-video'
 import Stream from '../meeting/Stream'
 import { forEachParticipant } from '../utils/twilio'
-import { isMobile } from '../utils/common'
+import { array, isMobile } from '../utils/common'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, noodlEvent } from '../constants'
 import { Meeting } from '../app/types'
 import App from '../App'
@@ -195,8 +195,9 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       })
     }
 
-    const waitingElem = app.meeting.getWaitingMessageElement()
-    waitingElem && (waitingElem.style.visibility = 'hidden')
+    array(app.meeting.getWaitingMessageElement()).forEach((waitingElem) => {
+      waitingElem && (waitingElem.style.visibility = 'hidden')
+    })
 
     NUI.emit({
       type: 'register',
@@ -230,8 +231,10 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       )
     })
     if (!app.meeting.room.participants.size) {
-      let waitingElem = app.meeting.getWaitingMessageElement()
-      waitingElem && (waitingElem.style.visibility = 'visible')
+      array(app.meeting.getWaitingMessageElement()).forEach((waitingElem) => {
+        waitingElem && (waitingElem.style.visibility = 'visible')
+      })
+
       NUI.emit({
         type: 'register',
         args: {

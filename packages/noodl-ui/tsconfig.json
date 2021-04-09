@@ -4,7 +4,6 @@
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationDir": "dist",
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "sourceMap": false,
     "keyofStringsOnly": true,
@@ -19,8 +18,8 @@
     "skipLibCheck": true,
     "strict": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es2015"
+    "target": "esnext"
   },
-  "exclude": ["node_modules"],
-  "include": ["src"]
+  "exclude": ["node_modules/**/*"],
+  "include": ["src/**/*"]
 }

@@ -22,6 +22,7 @@ export {
   getByDataUX,
   getElementTag,
   getFirstByElementId,
+  getFirstByViewTag,
   isDisplayable,
   isPage,
   isPageConsumer,

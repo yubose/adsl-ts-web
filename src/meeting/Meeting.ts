@@ -2,16 +2,20 @@ import { EventEmitter } from 'events'
 import {
   connect,
   ConnectOptions,
+  createLocalVideoTrack,
   LocalAudioTrackPublication,
+  createLocalAudioTrack,
   LocalParticipant,
   LocalVideoTrackPublication,
   RemoteParticipant,
   Room,
+  LocalAudioTrack,
+  LocalVideoTrack,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import NOODLOM, { getByDataUX, Page } from 'noodl-ui-dom'
+import NOODLOM, { getFirstByViewTag, findByUX, Page } from 'noodl-ui-dom'
 import { Viewport } from 'noodl-ui'
-import { isMobile } from '../utils/common'
+import { array, isMobile } from '../utils/common'
 import { toast } from '../utils/dom'
 import App from '../App'
 import Stream from '../meeting/Stream'
@@ -57,6 +61,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           dominantSpeaker: true,
           logLevel: 'info',
           ...options,
+          tracks: [],
           bandwidthProfile: {
             ...options?.bandwidthProfile,
             video: {
@@ -69,13 +74,41 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           },
         })
 
-        _internal._room = room
+        function handleTrackErr(kind: 'audio' | 'video', err: Error) {
+          console.error(err)
+          let errMsg = ''
 
-        // TEMPORARY
-        setTimeout(() => {
-          app.meeting.onConnected?.(room)
-        }, 2000)
-        // _handleRoomCreated
+          if (/NotAllowedError/i.test(err.name)) {
+            errMsg = `Permission to your ${kind} device was denied.`
+          } else if (/NotFoundError/i.test(err.name)) {
+            errMsg = `Could not locate your ${kind} device.`
+          } else if (/NotReadableError/i.test(err.name)) {
+            errMsg = `Failed to start your ${kind} device. It may be busy or is being used by another tab.`
+          } else {
+            errMsg = err.message
+          }
+
+          toast(errMsg, { type: 'error' })
+        }
+
+        let localAudioTrack: LocalAudioTrack
+        let localVideoTrack: LocalVideoTrack
+
+        try {
+          localAudioTrack = await createLocalAudioTrack()
+          room.localParticipant.publishTrack(localAudioTrack)
+        } catch (error) {
+          handleTrackErr('audio', error)
+        }
+        try {
+          localVideoTrack = await createLocalVideoTrack()
+          room.localParticipant.publishTrack(localVideoTrack)
+        } catch (error) {
+          handleTrackErr('video', error)
+        }
+
+        setTimeout(() => app.meeting.onConnected?.(room), 2000)
+        _internal._room = room
         return _internal._room
       } catch (error) {
         console.error(error)
@@ -192,8 +225,11 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
       return this
     },
-    removeRemoteParticipant(participant: T.RoomParticipant) {
-      if (participant && !o.isParticipantLocal(participant)) {
+    removeRemoteParticipant(
+      participant: T.RoomParticipant,
+      { force }: { force?: boolean } = {},
+    ) {
+      if (participant && (force || !o.isParticipantLocal(participant))) {
         let mainStream: Stream | null = _internal._streams.getMainStream()
         let subStreams: MeetingSubstreams | null = _internal._streams?.getSubStreamsContainer()
         let subStream: Stream | null | undefined = null
@@ -291,35 +327,35 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {
-      return getByDataUX('mainStream') as HTMLDivElement
+      return getFirstByViewTag('mainStream') as HTMLDivElement
     },
     /** Element that the local participant uses (self mirror) */
     getSelfStreamElement(): HTMLDivElement | null {
-      return getByDataUX('selfStream') as HTMLDivElement
+      return getFirstByViewTag('selfStream') as HTMLDivElement
     },
     /** Element that renders a remote participant into the participants list */
     getSubStreamElement(): HTMLDivElement | HTMLDivElement[] | null {
-      return getByDataUX('subStream') as HTMLDivElement
+      return getFirstByViewTag('subStream') as HTMLDivElement
     },
     /** Element that toggles the camera on/off */
     getCameraElement(): HTMLImageElement | null {
-      return getByDataUX('camera') as HTMLImageElement
+      return getFirstByViewTag('camera') as HTMLImageElement
     },
     /** Element that toggles the microphone on/off */
     getMicrophoneElement(): HTMLImageElement | null {
-      return getByDataUX('microphone') as HTMLImageElement
+      return getFirstByViewTag('microphone') as HTMLImageElement
     },
     /** Element that completes the meeting when clicked */
     getHangUpElement(): HTMLImageElement | null {
-      return getByDataUX('hangUp') as HTMLImageElement
+      return getFirstByViewTag('hangUp') as HTMLImageElement
     },
     /** Element to invite other participants into the meeting */
     getInviteOthersElement(): HTMLImageElement | null {
-      return getByDataUX('inviteOthers') as HTMLImageElement
+      return getFirstByViewTag('inviteOthers') as HTMLImageElement
     },
     /** Element that renders a list of remote participants on the bottom */
     getParticipantsListElement(): HTMLUListElement | null {
-      return getByDataUX('vidoeSubStream') as HTMLUListElement
+      return getFirstByViewTag('vidoeSubStream') as HTMLUListElement
     },
     getVideoChatElements() {
       return {
@@ -334,7 +370,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
     },
     getWaitingMessageElement() {
-      return getByDataUX('passwordHidden') as HTMLDivElement
+      const elems = array(findByUX('waitForOtherTag') as HTMLDivElement)
+      return elems.length > 1 ? elems : elems[0] || null
     },
     getStreams() {
       return _internal._streams

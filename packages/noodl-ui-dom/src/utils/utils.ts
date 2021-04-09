@@ -164,6 +164,10 @@ export function getFirstByElementId(c: Parameters<typeof findByElementId>[0]) {
   return u.array(asHtmlElement(findByElementId(c)))[0] as HTMLElement
 }
 
+export function getFirstByViewTag(c: Parameters<typeof findByUX>[0]) {
+  return u.array(asHtmlElement(findByUX(c)))[0] as HTMLElement
+}
+
 /**
  * Returns the HTML DOM node or an array of HTML DOM nodes using the data-ux,
  * otherwise returns null

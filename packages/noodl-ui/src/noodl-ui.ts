@@ -270,6 +270,7 @@ const NUI = (function _NUI() {
           invariant(
             u.isFnc(args.callback),
             `A callback is required for emitting register events`,
+            args,
           )
           // TODO - Refactor this awkward code
           await obj.callback?.(obj, args.params)
