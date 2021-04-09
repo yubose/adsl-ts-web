@@ -66,7 +66,7 @@ export type NUIActionObjectInput =
 export namespace NUIEmit {
   export interface RegisterObject {
     type: typeof nuiEmitType.REGISTER
-    args: Register.Object
+    args: Required<Pick<Register.Object, 'name' | 'params'>>
   }
 
   export interface TransactionObject<K extends TransactionId = TransactionId> {
@@ -296,11 +296,11 @@ export type PageObjectContainer<K extends string = string> = Record<
 
 export namespace Register {
   export interface Object<P extends Register.Page = '_global', Params = any> {
-    name?: string
+    name: string
     component?: RegisterComponentObject | null
     page: P
     params?: Params
-    callback?(obj: Register.Object, params?: Params): Promise<void>
+    fn?(obj: Register.Object, params?: Params): Promise<void>
   }
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
@@ -429,7 +429,7 @@ export namespace Use {
   export type GetRoot = () => Record<string, any>
   export type GetPlugins = () => Plugin.CreateType[]
   export type Resolver = ComponentResolver
-  export type Register = Register.Object | Register.Object[]
+  export type Register = Partial<Register.Object> | Partial<Register.Object>[]
 
   export type Transaction = Partial<
     Record<TransactionId, _Transaction[TransactionId]['fn']>

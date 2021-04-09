@@ -13,7 +13,7 @@ import {
 import Stream from '../meeting/Stream'
 import { forEachParticipant } from '../utils/twilio'
 import { array, isMobile } from '../utils/common'
-import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, noodlEvent } from '../constants'
+import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from '../constants'
 import { Meeting } from '../app/types'
 import App from '../App'
 
@@ -166,9 +166,9 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       app.noodl.root,
       PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
     )
-    const isInSdk = participants?.some(function _isInSdk(p: RemoteParticipant) {
-      return p.sid === participant.sid
-    })
+    const isInSdk = participants?.some(
+      (p: RemoteParticipant) => p.sid === participant.sid,
+    )
     if (!isInSdk) {
       /**
        * Updates the participants list in the sdk. This will also force the value
@@ -195,16 +195,11 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       })
     }
 
-    array(app.meeting.getWaitingMessageElement()).forEach((waitingElem) => {
-      waitingElem && (waitingElem.style.visibility = 'hidden')
-    })
-
     NUI.emit({
       type: 'register',
       args: {
-        page: '_global',
-        name: noodlEvent.TWILIO_ON_PEOPLE_JOIN,
-        params: { room: app.meeting.room, participant },
+        name: 'twilioOnPeopleJoin',
+        params: { room: app.meeting.room },
       },
     })
   }
@@ -238,8 +233,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       NUI.emit({
         type: 'register',
         args: {
-          page: '_global',
-          name: noodlEvent.TWILIO_ON_NO_PARTICIPANT,
+          name: 'twilioOnNoParticipant',
           params: { room: app.meeting.room },
         },
       })

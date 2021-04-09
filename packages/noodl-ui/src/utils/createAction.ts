@@ -1,6 +1,7 @@
 import { EmitObject, Identify } from 'noodl-types'
 import { Action, createAction as __createAction } from 'noodl-action-chain'
 import getActionType from './getActionType'
+import getActionObjectErrors from './getActionObjectErrors'
 import { isObj, isStr } from './internal'
 import {
   NUIAction,
@@ -56,6 +57,12 @@ function createAction(
       }
       action = __createAction(args.trigger, args.action as NUIActionObject)
     }
+  }
+
+  if (action?.original) {
+    getActionObjectErrors(action.original).forEach((errMsg) => {
+      console.log(`%c${errMsg}`, `color:#ec0000;`, action?.original)
+    })
   }
 
   return action

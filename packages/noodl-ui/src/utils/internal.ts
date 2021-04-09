@@ -1,12 +1,17 @@
 import {
+  ComponentType,
   Identify,
   PluginComponentObject,
   PluginHeadComponentObject,
   PluginBodyTailComponentObject,
-  ComponentType,
 } from 'noodl-types'
 import { actionTypes } from '../constants'
-import { NUIActionType, NUIComponent, Plugin } from '../types'
+import {
+  NUIActionType,
+  NUIActionObjectInput,
+  NUIComponent,
+  Plugin,
+} from '../types'
 
 export const isArr = (v: any): v is any[] => Array.isArray(v)
 export const isBool = (v: any): v is boolean => typeof v === 'boolean'
@@ -93,6 +98,6 @@ export function mapActionTypesToOwnArrays<V = any>(): Record<
 > {
   return actionTypes.reduce(
     (acc, t: NUIActionType) => assign(acc, { [t]: [] }),
-    {},
+    {} as Record<NUIActionType, V[]>,
   )
 }

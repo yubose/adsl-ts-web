@@ -11,39 +11,37 @@ import {
   Plugin,
   Register,
   Store,
-  Transaction,
-  TransactionId,
   Use,
 } from './types'
 
 function use(
   this: typeof NUI,
-  args: {
-    action?: Use.Action
-    builtIn?: Use.BuiltIn
-    emit?: Use.Emit
-    register?: Use.Register
-    transaction?: Use.Transaction
-    getAssetsUrl?: Use.GetAssetsUrl
-    getBaseUrl?: Use.GetBaseUrl
-    getPages?: Use.GetPages
-    getPreloadPages?: Use.GetPreloadPages
-    getRoot?: Use.GetRoot
-    getPlugins?: Use.GetPlugins
-  } & Partial<
-    Record<
-      Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>,
-      Store.ActionObject['fn'] | Store.ActionObject['fn'][]
-    >
-  > &
-    (
-      | Store.ActionObject
-      | Store.BuiltInObject
-      | Use.Emit
-      | (Store.ActionObject | Store.BuiltInObject)[]
-      | Plugin.Object
-      | Use.Resolver
-    ),
+  args:
+    | ({
+        action?: Use.Action
+        builtIn?: Use.BuiltIn
+        emit?: Use.Emit
+        register?: Use.Register
+        transaction?: Use.Transaction
+        getAssetsUrl?: Use.GetAssetsUrl
+        getBaseUrl?: Use.GetBaseUrl
+        getPages?: Use.GetPages
+        getPreloadPages?: Use.GetPreloadPages
+        getRoot?: Use.GetRoot
+      } & Partial<
+        Record<
+          Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>,
+          Store.ActionObject['fn'] | Store.ActionObject['fn'][]
+        >
+      >)
+    | (
+        | Store.ActionObject
+        | Store.BuiltInObject
+        | Use.Emit
+        | (Store.ActionObject | Store.BuiltInObject)[]
+        | Plugin.Object
+        | Use.Resolver
+      ),
 ): typeof NUI {
   const self = this
   const getArr = <O extends Record<string, any>, K extends keyof O>(
@@ -74,10 +72,14 @@ function use(
           )
           getEmitArr().push({ ...opt, actionType: 'emit' })
         } else {
-          entries(opt).forEach(([trigger, opt]: [NUITrigger, any]) => {
+          entries(opt).forEach(([trigger, opt]) => {
             array(opt).forEach((fn) => {
               if (isFnc(fn)) {
-                getEmitArr().push({ actionType: 'emit', fn, trigger })
+                getEmitArr().push({
+                  actionType: 'emit',
+                  fn,
+                  trigger: trigger as NUITrigger,
+                })
               }
             })
           })
@@ -100,16 +102,18 @@ function use(
       this.getResolvers().push(args)
     }
   } else if ('location' in args) {
-    const location = args.location
-    if (location === 'head') {
-      this.getPlugins(location).push(args as Plugin.Object)
-    } else if (location === 'body-top') {
-      this.getPlugins(location).push(args as Plugin.Object)
-    } else if (location === 'body-bottom') {
-      this.getPlugins(location).push(args as Plugin.Object)
+    invariant(
+      ['head', 'body-top', 'body-bottom'].includes(
+        args.location as Plugin.Location,
+      ),
+      `Invalid plugin location "${args.location}". Available options are: ` +
+        `"head", "body-top", and "body-bottom"`,
+    )
+    if (!this.cache.plugin.has(args.path as string)) {
+      this.cache.plugin.add(args.location as Plugin.Location, args)
     }
   } else if ('register' in args) {
-    array(args.register).forEach((obj: Register.Object) => {
+    array(args.register as Register.Object).forEach((obj) => {
       let page = obj.page || '_global'
       let name = obj.name || (obj.component && obj.component.onEvent) || ''
       invariant(
@@ -122,14 +126,9 @@ function use(
       }
     })
   } else if ('transaction' in args) {
-    entries(args.transaction).forEach(
-      ([tid, fn]: [
-        tid: TransactionId,
-        fn: Transaction[TransactionId]['fn'],
-      ]) => {
-        this.getTransactions()[tid] = { ...this.getTransactions()[tid], fn }
-      },
-    )
+    entries(args.transaction).forEach(([tid, fn]) => {
+      this.getTransactions()[tid] = { ...this.getTransactions()[tid], fn }
+    })
   } else {
     if ('actionType' in args && !('funcName' in args)) {
       invariant(isFnc(args.fn), 'fn is not a function')
@@ -139,7 +138,7 @@ function use(
       invariant(isFnc(args.fn), 'fn is not a function')
       useAction('builtIn', args)
     } else if ('emit' in args) {
-      useAction('emit', args.emit)
+      useAction('emit', args.emit as Store.ActionObject)
     } else {
       for (const [key, val] of entries(args)) {
         if (key === 'action') {
@@ -197,9 +196,7 @@ function use(
               'getBaseUrl',
               'getPages',
               'getPreloadPages',
-              'getPlugins',
               'getRoot',
-              'getTransactions',
             ].includes(key)
           ) {
             this._defineGetter(key, val)

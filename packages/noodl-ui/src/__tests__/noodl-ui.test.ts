@@ -1,6 +1,7 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import sample from 'lodash/sample'
+import { waitFor } from '@testing-library/dom'
 import { isActionChain } from 'noodl-action-chain'
 import { italic, magenta } from 'noodl-common'
 import { userEvent } from 'noodl-types'
@@ -11,7 +12,7 @@ import Component from '../Component'
 import Page from '../Page'
 import Resolver from '../Resolver'
 import NUI from '../noodl-ui'
-import { waitFor } from '@testing-library/dom'
+import { Plugin } from '../types'
 
 describe(italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
@@ -186,28 +187,22 @@ describe(italic(`createPage`), () => {
 })
 
 describe(italic(`createPlugin`), () => {
-  const hasPlugin = (loc: any, obj: any) =>
-    NUI.getPlugins(loc).some((o) => o.path === obj.path)
-
   it(`should add plugins of ${magenta('head')}`, () => {
     let obj = { location: 'head', path: 'abc.html' } as any
-    expect(hasPlugin('head', obj)).to.be.false
-    NUI.createPlugin('head', obj)
-    expect(hasPlugin('head', obj)).to.be.true
+    expect(NUI.cache.plugin.has(NUI.createPlugin('head', obj).id as string)).to
+      .be.true
   })
 
   it(`should add plugins of ${magenta('body-top')}`, () => {
     let obj = { location: 'body-top', path: 'abc.html' } as any
-    expect(hasPlugin('body-top', obj)).to.be.false
-    nui.createPlugin('body-top', obj)
-    expect(hasPlugin('body-top', obj)).to.be.true
+    expect(NUI.cache.plugin.has(nui.createPlugin('body-top', obj).id as string))
+      .to.be.true
   })
 
   it(`should add plugins of ${magenta('body-bottom')}`, () => {
     let obj = { location: 'body-bottom', path: 'abc.html' } as any
-    expect(hasPlugin('body-bottom', obj)).to.be.false
-    nui.createPlugin('body-bottom', obj)
-    expect(hasPlugin('body-bottom', obj)).to.be.true
+    const { id } = nui.createPlugin('body-bottom', obj)
+    expect(NUI.cache.plugin.has(id as string)).to.be.true
   })
 })
 
@@ -316,28 +311,27 @@ describe(italic(`createSrc`), () => {
 
 describe(italic(`emit`), () => {
   describe(`type: ${magenta(nuiEmitType.REGISTER)}`, () => {
-    it(`should throw if a callback was not provided`, () => {
-      nui.use({
-        register: { name: 'myRegister', page: '_global' },
-      })
-      return expect(
-        nui.emit({
-          type: 'register',
-          args: { name: 'myRegister', page: '_global' } as any,
-        }),
-      ).to.eventually.be.rejectedWith(/callback is required/i)
-    })
-
     it(`should pass the register object to the callback as args`, async () => {
       const spy = sinon.spy(() => Promise.resolve())
-      nui.use({ register: { name: 'myRegister', page: '_global' } })
+      const params = {}
+      nui.use({ register: { name: 'myRegister', page: '_global', fn: spy } })
       await nui.emit({
         type: 'register',
-        args: { name: 'myRegister', page: '_global', callback: spy },
+        args: { name: 'myRegister', params },
       })
-      expect(spy.args[0][0 as any]).to.eq(
-        nui.cache.register.get('_global', 'myRegister'),
-      )
+      expect(spy.args[0][0 as any]).to.have.property('fn', spy)
+    })
+
+    it(`should return a result back if any`, async () => {
+      const data = {} as any
+      const spy = sinon.spy(() => Promise.resolve(data))
+      const params = {}
+      nui.use({ register: { name: 'myRegister', page: '_global', fn: spy } })
+      const result = await nui.emit({
+        type: 'register',
+        args: { name: 'myRegister', params },
+      })
+      expect(result).to.eq(data)
     })
   })
 
@@ -548,50 +542,26 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe.only(italic(`plugin`), () => {
-    it(`should initiate a plugin object on the "plugin" property on the component`, () => {
-      const path = 'coffee.js'
-      const component = NUI.resolveComponents(mock.getPluginComponent({ path }))
-      const plugin = component.get('plugin')
-      expect(plugin).to.be.an('object')
-      expect(plugin).to.have.property('location', 'head')
-      expect(plugin).to.have.property('path', path)
-    })
-
+  describe(italic(`plugin`), () => {
     it(`should set the plugin id`, () => {
       expect(
         NUI.resolveComponents(
           mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
         ).get('plugin'),
-      ).to.have.property('id', 'body-bottom:coffee.js')
+      ).to.have.property('id', 'coffee.js')
     })
 
     it(`should not do anything if the plugin was previously added`, () => {
-      let component = NUI.resolveComponents(
-        mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
-      )
       expect(NUI.getPlugins('body-bottom').size).to.eq(0)
-      component = NUI.resolveComponents(
+      NUI.resolveComponents(
         mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
       )
       expect(NUI.getPlugins('body-bottom').size).to.eq(1)
-      expect(NUI.getPlugins('body-bottom')[0]).to.have.property(
-        'id',
-        'body-bottom:coffee.js',
+      NUI.resolveComponents(
+        mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
       )
+      expect(NUI.getPlugins('body-bottom').size).to.eq(1)
     })
-
-    it(
-      `should set the plugin path/url on the data-src property and emit ` +
-        `the "path" event`,
-      async () => {
-        const spy = sinon.spy()
-        NUI.resolveComponents(
-          mock.getPluginComponent({ path: 'coffee.js' }),
-        ).on('path', spy)
-        await waitFor(() => expect(spy).to.be.calledOnce)
-      },
-    )
 
     it(
       `should set the fetched plugin contents on the "content" property ` +
@@ -609,17 +579,6 @@ describe(italic(`use`), () => {
         })
       },
     )
-
-    it(`should set the "initiated" property to ${magenta(
-      `true`,
-    )} afterwards`, async () => {
-      const component = NUI.resolveComponents(
-        mock.getPluginComponent({ path: 'coffee.js' }),
-      )
-      await waitFor(() =>
-        expect(component.get('plugin')).to.have.property('initiated', true),
-      )
-    })
   })
 
   it(`should use the getAssetsUrl provided function`, () => {
@@ -656,6 +615,17 @@ describe(italic(`use`), () => {
   })
 
   describe(italic(`register`), () => {
+    it(`should be able to register { name, fn }`, () => {
+      const spy = sinon.spy()
+      const obj = { name: 'hello', fn: spy }
+      NUI.use({ register: obj })
+      expect(NUI.cache.register.has('_global', 'hello')).to.be.true
+      expect(NUI.cache.register.get('_global', 'hello')).to.have.property(
+        'fn',
+        spy,
+      )
+    })
+
     it(`should throw if it cannot locate a name or identifier`, () => {
       expect(() => {
         nui.use({ register: { component: {} as any, page: '_global' } })

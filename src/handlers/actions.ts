@@ -16,6 +16,7 @@ import {
 import {
   findListDataObject,
   findIteratorVar,
+  getActionObjectErrors,
   NUIComponent,
   parseReference,
   Use,
@@ -165,6 +166,9 @@ const createActions = function createActions(app: App) {
           if (result) {
             const { ref: actionChain } = options
             if (u.isObj(result)) {
+              getActionObjectErrors(result).forEach((errMsg: string) =>
+                log.red(errMsg, result),
+              )
               log.grey(
                 `An evalObject action is injecting a new object to the chain`,
                 {

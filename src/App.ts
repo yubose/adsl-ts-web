@@ -20,8 +20,7 @@ import {
   publish,
   Viewport as VP,
 } from 'noodl-ui'
-import { is, WritableDraft } from 'immer/dist/internal'
-import { copyToClipboard } from './utils/dom'
+import { WritableDraft } from 'immer/dist/internal'
 import { CACHED_PAGES, pageStatus } from './constants'
 import {
   AuthStatus,
@@ -205,7 +204,7 @@ class App {
       !this.getStatus &&
         (this.getStatus = (await import('@aitmed/cadl')).Account.getStatus)
 
-      !this.noodl && (this.#noodl = (await import('app/noodl')).default)
+      !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
       this.firebase = firebase as T.FirebaseApp
       this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
@@ -248,24 +247,14 @@ class App {
 
       const config = this.noodl.getConfig()
       const plugins = [] as ComponentObject[]
-      if (config.headPlugin) {
-        plugins.push({
-          type: 'pluginHead',
-          path: config.headPlugin,
-        } as any)
-      }
-      if (config.bodyTopPplugin) {
-        plugins.push({
-          type: 'pluginBodyTop',
-          path: config.bodyTopPplugin,
-        } as any)
-      }
-      if (config.bodyTailPplugin) {
-        plugins.push({
-          type: 'pluginBodyTail',
-          path: config.bodyTailPplugin,
-        } as any)
-      }
+
+      config.headPlugin &&
+        plugins.push({ type: 'pluginHead', path: config.headPlugin })
+      config.bodyTopPplugin &&
+        plugins.push({ type: 'pluginBodyTop', path: config.bodyTopPplugin })
+      config.bodyTailPplugin &&
+        plugins.push({ type: 'pluginBodyTail', path: config.bodyTailPplugin })
+
       NUI.use({
         getAssetsUrl: () => this.noodl.assetsUrl,
         getBaseUrl: () => this.noodl.cadlBaseUrl || '',
@@ -319,78 +308,12 @@ class App {
           await this.noodl?.initPage(pageRequesting, [], {
             ...page.modifiers[pageRequesting],
             builtIn: {
-              FCMOnTokenReceive: async (...args: any[]) => {
-                try {
-                  const permission = await Notification.requestPermission()
-                  log.func('messaging.requestPermission')
-                  log.grey(`Notification permission ${permission}`)
-                } catch (err) {
-                  log.func('messaging.requestPermission')
-                  log.red('Unable to get permission to notify.', err)
-                }
-                try {
-                  if (this.#enabled.firebase) {
-                    this._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
-                      'firebase-messaging-sw.js',
-                    )
-                    args[0] = {
-                      vapidKey,
-                      serviceWorkerRegistration: this._store.messaging
-                        .serviceRegistration,
-                      ...args[0],
-                    }
-                    log.grey(
-                      'Initialized service worker',
-                      this._store.messaging.serviceRegistration,
-                    )
-
-                    this.messaging?.onMessage((...args) => {
-                      log.func('messaging.onMessage')
-                      log.green(`Received a message`, args)
-                    })
-                  } else {
-                    log.red(
-                      `Could not initiate the firebase service worker because this browser ` +
-                        `does not support it`,
-                      this,
-                    )
-                  }
-
-                  const token = this.#enabled.firebase
-                    ? (await this.messaging?.getToken(...args)) || ''
-                    : ''
-
-                  copyToClipboard(token)
-
-                  if (this.#enabled.firebase) {
-                    NUI.emit({
-                      type: nuiEmitType.REGISTER,
-                      args: {
-                        page: '_global',
-                        name: 'FCMOnTokenReceive',
-                        async callback(obj) {
-                          log.func('emit')
-                          log.orange(`[${nuiEmitType.REGISTER}]`, {
-                            obj,
-                            token,
-                          })
-                        },
-                      },
-                    })
-                  } else {
-                    log.func('FCMOnTokenReceive')
-                    log.red(
-                      `Could not emit the "FCMOnTokenReceive" event because firebase ` +
-                        `messaging is disabled. Is it supported by this browser?`,
-                      this,
-                    )
-                  }
-
-                  return token
-                } catch (error) {
-                  console.error(error)
-                  return error
-                }
+              FCMOnTokenReceive: async (options?: any) => {
+                const token = await NUI.emit({
+                  type: 'register',
+                  args: { name: 'FCMOnTokenReceive', params: options },
+                })
+                return token
               },
               FCMOnTokenRefresh: this.#enabled.firebase
                 ? this.messaging?.onTokenRefresh.bind(this.messaging)
@@ -508,6 +431,10 @@ class App {
       console.error(error)
       throw error
     }
+  }
+
+  getEnabledServices() {
+    return this.#enabled
   }
 
   observeComponents() {

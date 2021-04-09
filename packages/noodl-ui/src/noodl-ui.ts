@@ -9,6 +9,7 @@ import ComponentResolver from './Resolver'
 import createAction from './utils/createAction'
 import createActionChain from './utils/createActionChain'
 import createComponent from './utils/createComponent'
+import getActionObjectErrors from './utils/getActionObjectErrors'
 import isComponent from './utils/isComponent'
 import isPage from './utils/isPage'
 import NUIPage from './Page'
@@ -115,7 +116,7 @@ const NUI = (function _NUI() {
     invariant(!!_path, `Path is required`)
     invariant(u.isStr(_path), `Path is not a string`)
 
-    const id = u.createPluginId(_location, obj)
+    const id = _path
     const plugin = {
       id,
       content: '',
@@ -124,10 +125,7 @@ const NUI = (function _NUI() {
       path: _path,
     } as T.Plugin.Object
 
-    if (!cache.plugin.has(id)) {
-      cache.plugin.add(_location, plugin)
-    }
-
+    !cache.plugin.has(id) && cache.plugin.add(_location, plugin)
     return plugin
   }
 
@@ -264,22 +262,15 @@ const NUI = (function _NUI() {
     try {
       if (opts.type === nuiEmitType.REGISTER) {
         const { args } = opts
-        const page = args.page || '_global'
-        if (cache.register.has(page, args.name)) {
-          const obj = cache.register.get(page, args.name as string)
-          invariant(
-            u.isFnc(args.callback),
-            `A callback is required for emitting register events`,
-            args,
-          )
+        if (cache.register.has('_global', args.name)) {
+          const obj = cache.register.get('_global', args.name)
           // TODO - Refactor this awkward code
-          await obj.callback?.(obj, args.params)
-          await args.callback?.(obj, args.params)
+          return obj.fn?.(obj, args.params)
         } else {
           console.log(
-            `%cWarning: Emitted a register object that was not previously ` +
-              `inserted to the register store`,
+            `%cWarning: Emitted a register object that was not in the store`,
             `color:#FF5722;`,
+            args,
           )
         }
       } else if (opts.type === nuiEmitType.TRANSACTION) {
@@ -529,6 +520,13 @@ const NUI = (function _NUI() {
 
       const actionChain = createActionChain({
         actions: actions?.reduce((acc: T.NUIActionObject[], obj) => {
+          const errors = getActionObjectErrors(obj)
+          if (errors.length) {
+            errors.forEach((errMsg) => {
+              console.log(`%c${errMsg}`, `color:#ec0000;`, obj)
+            })
+          }
+
           if (u.isObj(obj) && !('actionType' in obj)) {
             if (Identify.emit(obj)) obj = { ...obj, actionType: 'emit' }
             else if (Identify.goto(obj)) obj = { ...obj, actionType: 'goto' }
@@ -716,7 +714,6 @@ const NUI = (function _NUI() {
       o._defineGetter('getBaseUrl', () => '')
       o._defineGetter('getPages', () => [])
       o._defineGetter('getPreloadPages', () => [])
-      o._defineGetter('getPlugins', () => cache.plugin.get())
       o._defineGetter('getRoot', () => '')
     },
   }

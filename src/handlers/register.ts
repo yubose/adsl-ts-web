@@ -2,44 +2,107 @@
 // TEMP: "Register" components that operate with "emit" objects
 // are currently handled in App.ts
 
-import { RemoteParticipant, Room } from 'twilio-video'
+import Logger from 'logsnap'
+import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
-import { noodlEvent } from '../constants'
+import { copyToClipboard, hide, show } from '../utils/dom'
+import { aitMessage } from '../app/firebase'
 import App from '../App'
 import * as u from '../utils/common'
 
-function registerCallbacks(app: App) {
-  const registers: Record<
-    string,
-    Omit<Partial<Register.Object>, 'name'> | Register.Object['callback']
-  > = {
-    async [noodlEvent.TWILIO_ON_PEOPLE_JOIN](
-      obj,
-      params: { room: Room; participant: RemoteParticipant },
+const log = Logger.create('register.ts')
+
+function createRegisters(app: App) {
+  const o = {
+    async FCMOnTokenReceive(
+      obj: Register.Object,
+      { options }: { options?: Record<string, any> } = {},
     ) {
-      console.log(`%c[${noodlEvent.TWILIO_ON_PEOPLE_JOIN}]`, `color:#95a5a6;`, {
-        obj,
-        params,
-      })
+      log.func('FCMOnTokenReceive')
+      log.grey('', obj)
+      try {
+        const permission = await Notification.requestPermission()
+        log.func('messaging.requestPermission')
+        log.grey(`Notification permission ${permission}`)
+      } catch (err) {
+        log.func('messaging.requestPermission')
+        log.red('Unable to get permission to notify.', err)
+      }
+      try {
+        if (app.getEnabledServices().firebase) {
+          app._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
+            'firebase-messaging-sw.js',
+          )
+          log.grey(
+            'Initialized service worker',
+            app._store.messaging.serviceRegistration,
+          )
+
+          app.messaging?.onMessage((...args) => {
+            log.func('app._store.messaging.onMessage')
+            log.green(`Received a message`, args)
+          })
+        } else {
+          log.func('FCMOnTokenReceive')
+          log.red(
+            `Could not emit the "FCMOnTokenReceive" event because firebase ` +
+              `messaging is disabled. Is it supported by app browser?`,
+            app,
+          )
+        }
+
+        const getTokenOptions = {
+          vapidKey: aitMessage.vapidKey,
+          serviceWorkerRegistration: app._store.messaging.serviceRegistration,
+          ...options,
+        }
+
+        const token = app.getEnabledServices().firebase
+          ? (await app.messaging?.getToken(getTokenOptions)) || ''
+          : ''
+
+        copyToClipboard(token)
+
+        return token
+      } catch (error) {
+        console.error(error)
+        return error
+      }
     },
-    async [noodlEvent.TWILIO_ON_NO_PARTICIPANT](obj, params: { room: Room }) {
-      console.log(
-        `%c[${noodlEvent.TWILIO_ON_NO_PARTICIPANT}]`,
-        `color:#95a5a6;`,
-        { obj, params },
-      )
+    twilioOnPeopleJoin(obj: Register.Object, { room }: { room?: Room } = {}) {
+      console.log(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, obj)
+      if (
+        room?.participants.size ||
+        app.noodl.root?.VideoChat?.listData?.participants?.length
+      ) {
+        u.array(app.meeting.getWaitingMessageElement()).forEach((node) =>
+          hide(node),
+        )
+      }
+    },
+    twilioOnNoParticipant(
+      obj: Register.Object,
+      { room }: { room?: Room } = {},
+    ) {
+      console.log(`%c[twilioOnNoParticipant]`, `color:#95a5a6;`, obj)
+      if (
+        room?.participants?.size === 0 ||
+        app.noodl.root?.VideoChat?.listData?.participants?.length === 0
+      ) {
+        u.array(app.meeting.getWaitingMessageElement()).forEach((node) =>
+          show(node),
+        )
+      }
     },
   }
 
-  return u.entries(registers).reduce((acc, [name, obj]) => {
-    const register = { name } as Register.Object
-
-    if (u.isFnc(obj)) {
-      register.callback = obj
-    } else u.assign(register, obj)
-
-    return acc.concat(register)
-  }, [] as Register.Object[])
+  return u.entries(o).map(
+    ([name, fn]) => ({
+      name,
+      fn,
+    }),
+    [] as Register.Object[],
+  )
 }
 
-export default registerCallbacks
+export default createRegisters

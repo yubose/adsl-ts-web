@@ -16,7 +16,7 @@ import {
   publish,
   resolveAssetUrl,
 } from '../utils/noodl'
-import { ConsumerOptions, NUIComponent, Store } from '../types'
+import { ConsumerOptions, NUIComponent } from '../types'
 import * as c from '../constants'
 import * as u from '../utils/internal'
 
@@ -33,7 +33,6 @@ componentResolver.setResolver((component, options, next) => {
     getAssetsUrl,
     getRoot,
     getRootPage,
-    getPlugins,
     page,
     resolveComponents,
   } = options
@@ -210,19 +209,6 @@ componentResolver.setResolver((component, options, next) => {
     Identify.component.pluginBodyTail(component)
   ) {
     /**
-     * Returns true if a plugin with the same path was previously loaded
-     * @param { string } path - The image path
-     */
-    function pluginExists(path: string) {
-      return (
-        u.isStr(path) &&
-        getPlugins('head')
-          .concat([...getPlugins('body-top'), ...getPlugins('body-bottom')])
-          .some((obj) => obj.path === path && !!obj.initiated)
-      )
-    }
-
-    /**
      * Resolves the path, returning the final url
      * @param { string } path - Image path
      * @param { string } assetsUrl - Assets url
@@ -241,10 +227,10 @@ componentResolver.setResolver((component, options, next) => {
       return url
     }
 
+    if (cache.plugin.has(path)) return
+
     const plugin = createPlugin(component)
     component.set('plugin', plugin)
-
-    if (pluginExists(path as string)) return
 
     getPluginUrl(path, getAssetsUrl(), createSrc)
       .then((src) => {

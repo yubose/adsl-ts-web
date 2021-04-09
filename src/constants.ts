@@ -25,8 +25,3 @@ export const pageStatus = {
 
 export const PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT =
   'VideoChat.listData.participants'
-
-export const noodlEvent = {
-  TWILIO_ON_PEOPLE_JOIN: 'twilioOnPeopleJoin',
-  TWILIO_ON_NO_PARTICIPANT: 'twilioOnNoParticipant',
-}

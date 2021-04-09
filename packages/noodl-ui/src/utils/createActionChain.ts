@@ -3,6 +3,7 @@ import {
   ActionChainInstancesLoader,
   createActionChain as __createActionChain,
 } from 'noodl-action-chain'
+import getActionObjectErrors from '../utils/getActionObjectErrors'
 import {
   NUIAction,
   NUIActionChain,
@@ -42,6 +43,14 @@ function createActionChain(
   } else {
     ac = __createActionChain(args)
   }
+
+  ac.use({
+    onBeforeInject(action) {
+      getActionObjectErrors(action).forEach((errMsg) => {
+        console.log(`%c${errMsg}`, `color:#ec0000;`, action)
+      })
+    },
+  })
 
   return ac as NUIActionChain
 }
