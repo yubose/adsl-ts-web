@@ -16,7 +16,7 @@ import Logger from 'logsnap'
 import NOODLOM, { getFirstByViewTag, findByUX, Page } from 'noodl-ui-dom'
 import { Viewport } from 'noodl-ui'
 import { array, isMobile } from '../utils/common'
-import { toast } from '../utils/dom'
+import { hide, show, toast } from '../utils/dom'
 import App from '../App'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
@@ -114,6 +114,16 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         console.error(error)
         toast(error.message, { type: 'error' })
       }
+    },
+    hideWaitingOthersMessage() {
+      array(app.meeting.getWaitingMessageElement()).forEach((node) =>
+        hide(node),
+      )
+    },
+    showWaitingOthersMessage() {
+      array(app.meeting.getWaitingMessageElement()).forEach((node) =>
+        show(node),
+      )
     },
     /** Disconnects from the room */
     leave() {

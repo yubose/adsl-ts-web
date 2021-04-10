@@ -5,7 +5,7 @@
 import Logger from 'logsnap'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
-import { copyToClipboard, hide, show } from '../utils/dom'
+import { copyToClipboard } from '../utils/dom'
 import { aitMessage } from '../app/firebase'
 import App from '../App'
 import * as u from '../utils/common'
@@ -75,9 +75,7 @@ function createRegisters(app: App) {
         room?.participants.size ||
         app.noodl.root?.VideoChat?.listData?.participants?.length
       ) {
-        u.array(app.meeting.getWaitingMessageElement()).forEach((node) =>
-          hide(node),
-        )
+        app.meeting.hideWaitingOthersMessage()
       }
     },
     twilioOnNoParticipant(
@@ -89,9 +87,7 @@ function createRegisters(app: App) {
         room?.participants?.size === 0 ||
         app.noodl.root?.VideoChat?.listData?.participants?.length === 0
       ) {
-        u.array(app.meeting.getWaitingMessageElement()).forEach((node) =>
-          show(node),
-        )
+        app.meeting.showWaitingOthersMessage()
       }
     },
   }

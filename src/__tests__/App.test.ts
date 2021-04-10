@@ -47,21 +47,21 @@ describe(coolGold(`App`), () => {
       },
     )
 
-    createActions({} as any).forEach((obj) => {
-      it(`should attach at least one handler for the ${magenta(
-        obj.actionType,
-      )} to the store`, async () => {
-        let app = await initializeApp()
-        let exists = false
-        for (const aObj of Object.values(app.ndom.actions)) {
-          if (aObj.length) {
-            exists = true
-            break
-          }
-        }
-        expect(exists).to.be.true
-      })
-    })
+    // createActions({} as any).action((obj) => {
+    //   it(`should attach at least one handler for the ${magenta(
+    //     obj.actionType,
+    //   )} to the store`, async () => {
+    //     let app = await initializeApp()
+    //     let exists = false
+    //     for (const aObj of Object.values(app.ndom.actions)) {
+    //       if (aObj.length) {
+    //         exists = true
+    //         break
+    //       }
+    //     }
+    //     expect(exists).to.be.true
+    //   })
+    // })
 
     createBuiltIns({} as any).forEach((obj) => {
       it(`should attach at least one handler for the builtIn function ${magenta(
