@@ -1,18 +1,3 @@
-import {
-  ComponentType,
-  Identify,
-  PluginComponentObject,
-  PluginHeadComponentObject,
-  PluginBodyTailComponentObject,
-} from 'noodl-types'
-import { actionTypes } from '../constants'
-import {
-  NUIActionType,
-  NUIActionObjectInput,
-  NUIComponent,
-  Plugin,
-} from '../types'
-
 export const isArr = (v: any): v is any[] => Array.isArray(v)
 export const isBool = (v: any): v is boolean => typeof v === 'boolean'
 export const isNum = (v: any): v is number => typeof v === 'number'
@@ -37,46 +22,6 @@ export const values = <O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] => Object.values(v)
 
-export function createPluginId(
-  location: Plugin.Location,
-  component:
-    | NUIComponent.Instance
-    | PluginComponentObject
-    | PluginHeadComponentObject
-    | PluginBodyTailComponentObject
-    | undefined,
-) {
-  let id = location + ':'
-  if (component) {
-    id +=
-      'get' in component ? component?.blueprint?.path : component?.path || ''
-  } else {
-    id += 'head'
-  }
-  return id
-}
-
-export function getPluginLocation(
-  component:
-    | NUIComponent.Instance
-    | PluginComponentObject
-    | PluginHeadComponentObject
-    | PluginBodyTailComponentObject
-    | string
-    | undefined,
-): Plugin.Location {
-  if (isStr(component)) {
-    return component as Plugin.Location
-  } else {
-    switch ((component?.type as ComponentType) || '') {
-      case 'pluginBodyTail':
-        return 'body-bottom'
-      default:
-        return 'head'
-    }
-  }
-}
-
 /**
  * Returns a random 7-character string
  */
@@ -84,20 +29,13 @@ export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
-export function isOutboundLink(s: string | undefined = '') {
-  return /https?:\/\//.test(s)
-}
-
 // Custom formatting output for NodeJS console
 // https://nodejs.org/api/util.html#util_util_inspect_custom
 export const inspect = Symbol.for('nodejs.util.inspect.custom')
 
-export function mapActionTypesToOwnArrays<V = any>(): Record<
-  NUIActionType,
-  V[]
-> {
-  return actionTypes.reduce(
-    (acc, t: NUIActionType) => assign(acc, { [t]: [] }),
-    {} as Record<NUIActionType, V[]>,
+export function mapKeysToOwnArrays<K extends string, A = any>(keys: K[]) {
+  return keys.reduce(
+    (acc, key) => assign(acc, { [key]: [] }),
+    {} as Record<K, A[]>,
   )
 }

@@ -1,6 +1,8 @@
+console.clear()
 const path = require('path')
 const chalk = require('chalk')
 const webpack = require('webpack')
+const singleLog = require('single-line-log')
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 // const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
@@ -12,6 +14,18 @@ const noodluiPkg = require('./packages/noodl-ui/package.json')
 const noodlutilsPkg = require('./packages/noodl-utils/package.json')
 const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
 
+const { blueBright, magenta, yellow } = chalk
+
+const noodlSdkVersion = pkg.dependencies['@aitmed/cadl']
+const ecosSdkVersion = pkg.dependencies['@aitmed/cadl']
+const nuiVersion = pkg.dependencies['noodl-ui']
+const ndomVersion = pkg.dependencies['noodl-ui-dom']
+
+const ecosEnv = process.env.ECOS_ENV
+const nodeEnv = process.env.NODE_ENV
+const ecos = ecosEnv ? ecosEnv.toUpperCase() : '<Variable not set>'
+const env = nodeEnv ? nodeEnv.toUpperCase() : '<Variable not set>'
+
 const favicon = 'public/favicon.ico'
 const filename = 'index.html'
 const title = 'AiTmed Noodl Web'
@@ -20,16 +34,11 @@ const productionOptions = {}
 if (process.env.NODE_ENV === 'production') {
   productionOptions.optimization = {
     // minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        parallel: 4,
-        sourceMap: true,
-      }),
-    ],
+    minimizer: [new TerserPlugin({ parallel: 4 })],
     splitChunks: {
       chunks: 'async',
       minSize: 20000,
-      maxSize: 0,
+      maxSize: 50000,
       minChunks: 1,
       maxAsyncRequests: 30,
       maxInitialRequests: 30,
@@ -55,7 +64,7 @@ module.exports = {
     main: './src/index.ts',
   },
   output: {
-    filename: '[name].[hash].js',
+    filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'build'),
   },
   devServer: {
@@ -133,6 +142,7 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   plugins: [
+    new webpack.ProvidePlugin({ process: 'process' }),
     // new BundleStatsWebpackPlugin({
     //   baseline: true,
     // }),
@@ -174,9 +184,7 @@ module.exports = {
       cache: false,
       scriptLoading: 'defer',
       minify: false,
-      ...(process.env.ECOS_ENV !== 'test'
-        ? { template: 'public/index.html' }
-        : undefined),
+      ...(ecosEnv !== 'test' ? { template: 'public/index.html' } : undefined),
     }),
     new InjectScriptsPlugin(),
     new CopyPlugin({
@@ -189,62 +197,22 @@ module.exports = {
     }),
     new webpack.ProgressPlugin({
       handler(percentage, msg, ...args) {
-        console.clear()
-        console.log('')
-        console.log('')
-        console.log('-------------------------------------------------------')
-        console.log(
-          `Your app is being built for ${chalk.yellow('eCOS')} ${chalk.magenta(
-            process.env.ECOS_ENV
-              ? process.env.ECOS_ENV.toUpperCase()
-              : '<Variable not set>',
-          )} environment in ${chalk.yellow(
-            process.env.NODE_ENV
-              ? process.env.NODE_ENV.toUpperCase()
-              : '<Variable not set>',
-          )} mode`,
-        )
-        console.log(`Status:   ${chalk.blueBright(msg.toUpperCase())}`)
-        console.log(`Progress: ${chalk.magenta(percentage.toFixed(4) * 100)}%`)
-        console.log(`File:  ${chalk.magenta(args[0])}`)
-        console.log('')
-        console.log(`${chalk('eCOS packages')}:`)
-        console.log(
-          `${chalk.yellow(`@aitmed/cadl`)}:            ${chalk.magenta(
-            pkg.dependencies['@aitmed/cadl'] ||
-              pkg.devDependencies['@aitmed/cadl'],
-          )}`,
-        )
-        console.log(
-          `${chalk.yellow(`@aitmed/ecos-lvl2-sdk`)}:   ${chalk.magenta(
-            pkg.dependencies['@aitmed/ecos-lvl2-sdk'] ||
-              pkg.devDependencies['@aitmed/ecos-lvl2-sdk'],
-          )}`,
-        )
-        console.log(
-          `${chalk.yellow(`noodl-ui`)}:                ${chalk.magenta(
-            pkg.dependencies['noodl-ui'],
-          )}`,
-        )
-        console.log(
-          `${chalk.yellow(`noodl-ui-dom`)}:            ${chalk.magenta(
-            pkg.dependencies['noodl-ui-dom'],
-          )}`,
-        )
-        if (process.env.NODE_ENV === 'production') {
-          console.log('')
-          console.log(
-            `An ${chalk.magenta(
-              filename,
-            )} file will be generated inside your ${chalk.magenta(
-              'build',
-            )} directory.`,
-          )
-          console.log(
-            `The title of the page was set to "${chalk.yellow(title)}"`,
-          )
-        }
-        console.log('-------------------------------------------------------')
+        // prettier-ignore
+        singleLog.stdout(`
+----------------------------------------------------------------------------------------------------
+  Your app is being built for ${yellow(`eCOS`)} ${magenta(ecos)} environment in ${yellow(env)} mode
+  Status:    ${blueBright(msg.toUpperCase())}
+  File:      ${magenta(args[0])}
+  Progress:  ${magenta(percentage.toFixed(4) * 100)}%
+  ${blueBright('eCOS packages')}:
+  ${yellow(`@aitmed/cadl`)}:            ${magenta(noodlSdkVersion)}
+  ${yellow(`@aitmed/ecos-lvl2-sdk`)}:   ${magenta(ecosSdkVersion)}
+  ${yellow(`noodl-ui`)}:                ${magenta(nuiVersion)}
+  ${yellow(`noodl-ui-dom`)}:            ${magenta(ndomVersion)}
+  ${nodeEnv === 'production' && `
+  A "${magenta(filename)}" file will be generated inside your ${magenta('build')} directory.
+  The title of the page was set to "${yellow(title)}"`})
+----------------------------------------------------------------------------------------------------`)
       },
     }),
   ],

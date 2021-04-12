@@ -1,11 +1,12 @@
 import invariant from 'invariant'
+import get from 'lodash/get'
+import set from 'lodash/set'
 import merge from 'lodash/merge'
 import { setUseProxies, enableES5 } from 'immer'
 import { EmitObject, Identify, IfObject } from 'noodl-types'
 import { createEmitDataKey, evalIf } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
 import ComponentCache from './cache/ComponentCache'
-import ComponentResolver from './Resolver'
 import createAction from './utils/createAction'
 import createActionChain from './utils/createActionChain'
 import createComponent from './utils/createComponent'
@@ -13,9 +14,11 @@ import getActionObjectErrors from './utils/getActionObjectErrors'
 import isComponent from './utils/isComponent'
 import isPage from './utils/isPage'
 import NUIPage from './Page'
+import ActionsCache from './cache/ActionsCache'
 import PageCache from './cache/PageCache'
 import PluginCache from './cache/PluginCache'
 import RegisterCache from './cache/RegisterCache'
+import Resolver from './Resolver'
 import store from './store'
 import VP from './Viewport'
 import resolveAsync from './resolvers/resolveAsync'
@@ -29,8 +32,7 @@ import {
   isListConsumer,
   resolveAssetUrl,
 } from './utils/noodl'
-import { nuiEmitType } from './constants'
-import use from './use'
+import { actionTypes as nuiActionTypes, nuiEmitType } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
 
@@ -39,94 +41,11 @@ setUseProxies(false)
 
 const NUI = (function _NUI() {
   const cache = {
+    actions: new ActionsCache(),
     component: new ComponentCache(),
     page: new PageCache(),
     plugin: new PluginCache(),
     register: new RegisterCache(),
-  }
-
-  function _defineGetter(
-    key: string,
-    opts: ((...args: any[]) => any) | PropertyDescriptor,
-  ) {
-    Object.defineProperty(o, key, {
-      get: u.isFnc(opts) ? () => opts : () => opts.get,
-    })
-  }
-
-  function _createPage(
-    args?: {
-      name?: string
-      id?: string
-      viewport?: VP | { width?: number; height?: number }
-    },
-    never?: never,
-  ): NUIPage
-  function _createPage(
-    args?:
-      | string
-      | {
-          name?: string
-          id?: string
-          viewport?: VP | { width?: number; height?: number }
-        },
-    opts: { viewport?: VP | { width?: number; height?: number } } = {},
-  ) {
-    let name: string = ''
-    let id: string | undefined = undefined
-    let page: NUIPage | undefined
-    let viewport: VP | undefined
-    if (u.isStr(args)) {
-      name = args
-      if (opts?.viewport) {
-        if (opts.viewport instanceof VP) viewport = opts.viewport
-        else if (u.isObj(opts.viewport)) viewport = new VP(opts.viewport)
-      }
-    } else if (u.isObj(args)) {
-      args.name && (name = args.name)
-      args.id && (id = args.id)
-      if (args?.viewport) {
-        if (args.viewport instanceof VP) viewport = args.viewport
-        else if (u.isObj(args.viewport)) viewport = new VP(args.viewport)
-      }
-    }
-    page = cache.page.create({ id, viewport: viewport as VP })
-    name && (page.page = name)
-    page.use(() => (page?.page ? NUI.getRoot()[page.page] : { components: [] }))
-    return page
-  }
-  function _createPlugin(
-    location:
-      | T.Plugin.Location
-      | T.Plugin.ComponentObject
-      | T.NUIComponent.Instance = 'head',
-    obj?: T.NUIComponent.Instance | T.Plugin.ComponentObject,
-  ) {
-    let _location = '' as T.Plugin.Location
-    let _path = ''
-
-    if (u.isStr(location)) {
-      _location = location
-    } else {
-      _location = u.getPluginLocation(location)
-      obj = location
-    }
-    _path = isComponent(obj) ? obj.blueprint?.path : obj?.path
-
-    invariant(!!_path, `Path is required`)
-    invariant(u.isStr(_path), `Path is not a string`)
-
-    const id = _path
-    const plugin = {
-      id,
-      content: '',
-      initiated: false,
-      location: _location,
-      path: _path,
-    } as T.Plugin.Object
-
-    !cache.plugin.has(id) && cache.plugin.add(_location, plugin)
-    return plugin
   }
 
   function _createSrc(args: {
@@ -143,7 +62,6 @@ const NUI = (function _NUI() {
   function _createSrc(path: IfObject): string
   function _createSrc(path: string): string
   function _createSrc(
-    this: typeof o,
     args:
       | EmitObject
       | IfObject
@@ -202,7 +120,7 @@ const NUI = (function _NUI() {
               callbacks.map((obj: T.Store.ActionObject) =>
                 obj.fn?.(
                   emitAction,
-                  this.getConsumerOptions({ component, page, path: args }),
+                  o.getConsumerOptions({ component, page, path: args }),
                 ),
               ),
             )
@@ -291,98 +209,6 @@ const NUI = (function _NUI() {
     }
   }
 
-  function _getBaseStyles({
-    component,
-    page = o.getRootPage(),
-  }: {
-    component: T.NUIComponent.Instance
-    page: any
-  }) {
-    const originalStyle = component?.blueprint?.style || {}
-    const styles = { ...originalStyle } as any
-
-    if (VP.isNil(originalStyle?.top) || originalStyle?.top === 'auto') {
-      styles.position = 'relative'
-    } else {
-      styles.position = 'absolute'
-    }
-
-    if (u.isNil(originalStyle.height)) styles.height = 'auto'
-
-    return merge(
-      {
-        ...o.getRoot().Style,
-        position: 'absolute',
-        outline: 'none',
-      },
-      originalStyle,
-      styles,
-    )
-  }
-
-  function _getResolverChain(
-    ...resolvers: ComponentResolver<
-      (...args: T.NUIComponent.ResolverArgs) => void
-    >[]
-  ) {
-    let index = 0
-    let resolver = resolvers[index]
-
-    while (resolver) {
-      resolver.next = resolvers[++index]
-      resolver = resolver.next
-    }
-
-    return function resolve(
-      component: T.NUIComponent.Instance,
-      options: T.ConsumerOptions,
-    ) {
-      return resolvers[0].resolve(component, options)
-    }
-  }
-
-  function _getConsumerOptions({
-    component,
-    page,
-    context,
-  }: {
-    component?: T.NUIComponent.Instance
-    page: NUIPage
-    context?: Record<string, any>
-  } & { [key: string]: any }) {
-    return {
-      ...o,
-      cache,
-      component,
-      context, // Internal context during component resolving
-      createPage: _createPage,
-      createActionChain(
-        trigger: T.NUITrigger,
-        actions: T.NUIActionObject | T.NUIActionObject[],
-        {
-          context: contextProp,
-          loadQueue = true,
-        }: { context?: Record<string, any>; loadQueue?: boolean } = {},
-      ) {
-        return o.createActionChain(trigger, actions, {
-          loadQueue,
-          context: { ...context, ...contextProp },
-          component,
-          page,
-        })
-      },
-      createPlugin: _createPlugin,
-      createSrc: _createSrc,
-      emit: _emit,
-      getBaseStyles: (c: T.NUIComponent.Instance) =>
-        o.getBaseStyles?.({ component: c, page }),
-      getQueryObjects: _getQueryObjects,
-      page,
-      resolveComponents: _resolveComponents,
-      viewport: page?.viewport,
-    }
-  }
-
   function _getQueryObjects(
     opts: {
       component?: T.NUIComponent.Instance
@@ -416,12 +242,22 @@ const NUI = (function _NUI() {
     return queries
   }
 
-  const _transform = _getResolverChain(
+  const _transformers = [
     resolveAsync,
     resolveComponents,
     resolveStyles,
     resolveDataAttribs,
-  )
+  ]
+
+  let index = 0
+  let resolver = _transformers[index]
+
+  while (resolver) {
+    resolver.next = _transformers[++index]
+    resolver = resolver.next
+  }
+
+  const _transform = _transformers[0].resolve.bind(_transformers[0])
 
   function _resolveComponents(opts: {
     page?: NUIPage
@@ -488,7 +324,7 @@ const NUI = (function _NUI() {
     }
 
     function xform(c: T.NUIComponent.Instance) {
-      _transform(c, _getConsumerOptions({ component: c, page, context }))
+      _transform(c, o.getConsumerOptions({ component: c, page, context }))
       return c
     }
 
@@ -502,10 +338,88 @@ const NUI = (function _NUI() {
   }
 
   const o = {
-    _defineGetter,
+    _defineGetter(
+      key: string,
+      opts: ((...args: any[]) => any) | PropertyDescriptor,
+    ) {
+      Object.defineProperty(this, key, {
+        get: u.isFnc(opts) ? () => opts : () => opts.get,
+      })
+    },
     cache,
-    createPage: _createPage,
-    createPlugin: _createPlugin,
+    createPage(
+      args?:
+        | string
+        | {
+            name?: string
+            id?: string
+            viewport?: VP | { width?: number; height?: number }
+          },
+      opts:
+        | { viewport?: VP | { width?: number; height?: number } }
+        | never = {},
+    ) {
+      let name: string = ''
+      let id: string | undefined = undefined
+      let page: NUIPage | undefined
+      let viewport: VP | undefined
+
+      if (u.isStr(args)) {
+        name = args
+        if (opts?.viewport) {
+          if (opts.viewport instanceof VP) viewport = opts.viewport
+          else if (u.isObj(opts.viewport)) viewport = new VP(opts.viewport)
+        }
+      } else if (u.isObj(args)) {
+        args.name && (name = args.name)
+        args.id && (id = args.id)
+        if (args?.viewport) {
+          if (args.viewport instanceof VP) viewport = args.viewport
+          else if (u.isObj(args.viewport)) viewport = new VP(args.viewport)
+        }
+      }
+
+      page = cache.page.create({ id, viewport: viewport as VP })
+      name && (page.page = name)
+      page.use(() =>
+        page?.page ? NUI.getRoot()[page.page] : { components: [] },
+      )
+
+      return page
+    },
+    createPlugin(
+      location:
+        | T.Plugin.Location
+        | T.Plugin.ComponentObject
+        | T.NUIComponent.Instance = 'head',
+      obj?: T.NUIComponent.Instance | T.Plugin.ComponentObject,
+    ) {
+      let _location = '' as T.Plugin.Location
+      let _path = ''
+
+      if (u.isStr(location)) {
+        _location = location
+      } else {
+        _location = location?.type === 'pluginBodyTail' ? 'body-bottom' : 'head'
+        obj = location
+      }
+      _path = isComponent(obj) ? obj.blueprint?.path : obj?.path
+
+      invariant(!!_path, `Path is required`)
+      invariant(u.isStr(_path), `Path is not a string`)
+
+      const id = _path
+      const plugin = {
+        id,
+        content: '',
+        initiated: false,
+        location: _location,
+        path: _path,
+      } as T.Plugin.Object
+
+      !cache.plugin.has(id) && cache.plugin.add(_location, plugin)
+      return plugin
+    },
     createActionChain(
       trigger: T.NUITrigger,
       actions: T.NUIActionObjectInput | T.NUIActionObjectInput[],
@@ -537,7 +451,7 @@ const NUI = (function _NUI() {
           return acc.concat(obj as T.NUIActionObject[])
         }, []),
         trigger,
-        loader(this: T.NUIActionChain, objs) {
+        loader: (objs) => {
           function __createExecutor(
             action: T.NUIAction,
             fns: (T.Store.ActionObject | T.Store.BuiltInObject)[] = [],
@@ -553,7 +467,6 @@ const NUI = (function _NUI() {
                     return obj.fn?.(action as any, {
                       ...options,
                       component: opts?.component,
-                      // @ts-expect-error
                       event: event as any,
                       ref: actionChain,
                     })
@@ -594,13 +507,13 @@ const NUI = (function _NUI() {
               }
 
               const callbacks =
-                store.actions?.emit?.filter?.((o) => o.trigger === trigger) ||
+                o.getActions()?.emit?.filter?.((o) => o.trigger === trigger) ||
                 []
 
               action.executor = __createExecutor(
                 action,
                 callbacks,
-                _getConsumerOptions({
+                o.getConsumerOptions({
                   component: opts?.component,
                   page: opts?.page as NUIPage,
                 }),
@@ -614,13 +527,13 @@ const NUI = (function _NUI() {
             action.executor = __createExecutor(
               action,
               (Identify.action.builtIn(obj)
-                ? store.builtIns[obj.funcName]
+                ? o.getBuiltIns()[obj.funcName]
                 : Identify.goto(obj)
-                ? store.actions.goto
+                ? o.getActions().goto
                 : Identify.toast(obj)
-                ? store.actions.toast
-                : store.actions[obj.actionType]) || [],
-              _getConsumerOptions({
+                ? o.getActions().toast
+                : o.getActions()[obj.actionType]) || [],
+              o.getConsumerOptions({
                 component: opts?.component,
                 page: opts?.page as NUIPage,
               }),
@@ -641,8 +554,86 @@ const NUI = (function _NUI() {
     getActions: () => store.actions,
     getBuiltIns: () => store.builtIns,
     getBaseUrl: () => '',
-    getBaseStyles: _getBaseStyles,
-    getConsumerOptions: _getConsumerOptions,
+    getBaseStyles({
+      component,
+      page = o.getRootPage(),
+    }: {
+      component: T.NUIComponent.Instance
+      page: any
+    }) {
+      const originalStyle = component?.blueprint?.style || {}
+      const styles = { ...originalStyle } as any
+
+      if (VP.isNil(originalStyle?.top) || originalStyle?.top === 'auto') {
+        styles.position = 'relative'
+      } else {
+        styles.position = 'absolute'
+      }
+
+      if (u.isNil(originalStyle.height)) styles.height = 'auto'
+
+      return merge(
+        {
+          ...o.getRoot().Style,
+          position: 'absolute',
+          outline: 'none',
+        },
+        originalStyle,
+        styles,
+      )
+    },
+    getConsumerOptions({
+      component,
+      page,
+      context,
+    }: {
+      component?: T.NUIComponent.Instance
+      page: NUIPage
+      context?: Record<string, any>
+    } & { [key: string]: any }) {
+      return {
+        ...o,
+        cache,
+        component,
+        context, // Internal context during component resolving
+        get createPage() {
+          return o.createPage
+        },
+        createActionChain(
+          trigger: T.NUITrigger,
+          actions: T.NUIActionObject | T.NUIActionObject[],
+          {
+            context: contextProp,
+            loadQueue = true,
+          }: { context?: Record<string, any>; loadQueue?: boolean } = {},
+        ) {
+          return o.createActionChain(trigger, actions, {
+            loadQueue,
+            context: { ...context, ...contextProp },
+            component,
+            page,
+          })
+        },
+        get createPlugin() {
+          return o.createPlugin
+        },
+        createSrc: _createSrc,
+        emit: _emit,
+        getBaseStyles(c: T.NUIComponent.Instance) {
+          return o.getBaseStyles?.({ component: c, page })
+        },
+        get getQueryObjects() {
+          return _getQueryObjects
+        },
+        page,
+        get resolveComponents() {
+          return _resolveComponents
+        },
+        get viewport() {
+          return page?.viewport
+        },
+      }
+    },
     getPlugins: (location?: T.Plugin.Location) => cache.plugin.get(location),
     getPages: () => [] as string[],
     getPreloadPages: () => [] as string[],
@@ -653,7 +644,7 @@ const NUI = (function _NUI() {
       }
       return u.array(cache.page.get('root'))[0]?.page as NUIPage
     },
-    getResolvers: () => store.resolvers,
+    getResolvers: () => _transformers,
     getTransactions: () => store.transactions,
     resolveComponents: _resolveComponents,
     reset(
@@ -680,9 +671,9 @@ const NUI = (function _NUI() {
       if (filter) {
         u.array(filter).forEach((f: typeof filter) => {
           if (f === 'actions') {
-            u.values(store.actions).forEach((obj) => (obj.length = 0))
+            u.values(o.getActions()).forEach((obj) => (obj.length = 0))
           } else if (f === 'builtIns') {
-            u.values(store.builtIns).forEach((obj) => (obj.length = 0))
+            u.values(o.getBuiltIns()).forEach((obj) => (obj.length = 0))
           } else if (f === 'components') {
             cache.component.clear()
           } else if (f === 'pages') {
@@ -690,37 +681,237 @@ const NUI = (function _NUI() {
           } else if (f === 'plugins') {
             cache.plugin.clear()
           } else if (f === 'resolvers') {
-            store.resolvers.length = 0
+            o.getResolvers().length = 0
           } else if (f === 'transactions') {
-            u.keys(store.transactions).forEach(
-              (k) => delete store.transactions[k],
+            u.keys(o.getTransactions()).forEach(
+              (k) => delete o.getTransactions()[k],
             )
           }
         })
       } else {
-        store.resolvers.length = 0
-        u.values(store.actions).forEach((obj) => (obj.length = 0))
-        u.values(store.builtIns).forEach((obj) => (obj.length = 0))
-        u.keys(store.transactions).forEach((k) => delete store.transactions[k])
+        o.getResolvers().length = 0
+        u.values(o.getActions()).forEach((obj) => (obj.length = 0))
+        u.values(o.getBuiltIns()).forEach((obj) => (obj.length = 0))
+        u.keys(o.getTransactions()).forEach(
+          (k) => delete o.getTransactions()[k],
+        )
         cache.component.clear()
         cache.page.clear()
         cache.plugin.clear()
         cache.register.clear()
       }
       o._defineGetter('getAssetsUrl', () => '')
-      o._defineGetter('getActions', () => store.actions)
-      o._defineGetter('getBuiltIns', () => store.builtIns)
-      o._defineGetter('getTransactions', () => store.transactions)
       o._defineGetter('getBaseUrl', () => '')
       o._defineGetter('getPages', () => [])
       o._defineGetter('getPreloadPages', () => [])
       o._defineGetter('getRoot', () => '')
     },
+    use(
+      args:
+        | ({
+            action?: T.Use.Action
+            builtIn?: T.Use.BuiltIn
+            emit?: T.Use.Emit
+            register?: T.Use.Register
+            transaction?: T.Use.Transaction
+            getAssetsUrl?: T.Use.GetAssetsUrl
+            getBaseUrl?: T.Use.GetBaseUrl
+            getPages?: T.Use.GetPages
+            getPreloadPages?: T.Use.GetPreloadPages
+            getRoot?: T.Use.GetRoot
+          } & Partial<
+            Record<
+              Exclude<T.NUIActionType, 'builtIn' | 'emit' | 'register'>,
+              T.Store.ActionObject['fn'] | T.Store.ActionObject['fn'][]
+            >
+          >)
+        | (
+            | T.Store.ActionObject
+            | T.Store.BuiltInObject
+            | T.Use.Emit
+            | (T.Store.ActionObject | T.Store.BuiltInObject)[]
+            | T.Plugin.Object
+            | T.Use.Resolver
+          ),
+    ) {
+      const getArr = <O extends Record<string, any>, K extends keyof O>(
+        obj: O,
+        path: K,
+      ) => {
+        if (!u.isArr(get(obj, path))) set(obj, path, [])
+        return get(obj, path)
+      }
+
+      const useAction = (
+        actionType: T.NUIActionType,
+        opts:
+          | T.Store.ActionObject
+          | T.Store.BuiltInObject
+          | T.Store.ActionObject['fn'],
+      ) => {
+        if (actionType === 'builtIn') {
+          invariant('funcName' in opts, `Missing funcName for a builtIn`)
+          if (u.isObj(opts)) {
+            opts.actionType = actionType
+            getArr(o.getBuiltIns(), opts.funcName).push(opts)
+          }
+        } else if (actionType === 'emit') {
+          const getEmitArr = () => o.getActions().emit
+          u.array(opts).forEach((opt) => {
+            if ('trigger' in opt) {
+              invariant(
+                u.isFnc(opt.fn),
+                `fn is required for emit trigger "${opt.trigger}"`,
+              )
+              getEmitArr().push({ ...opt, actionType: 'emit' })
+            } else {
+              u.entries(opt).forEach(([trigger, opt]) => {
+                u.array(opt).forEach((fn) => {
+                  if (u.isFnc(fn)) {
+                    getEmitArr().push({
+                      actionType: 'emit',
+                      fn,
+                      trigger: trigger as T.NUITrigger,
+                    })
+                  }
+                })
+              })
+            }
+          })
+        } else {
+          if (u.isFnc(opts)) {
+            getArr(o.getActions(), actionType).push({ actionType, fn: opts })
+          } else if (u.isObj(opts)) {
+            getArr(o.getActions(), actionType).push({ ...opts, actionType })
+          }
+        }
+      }
+
+      if (args instanceof Resolver) {
+        if (
+          args.name &&
+          o.getResolvers().every((resolver) => resolver.name !== args.name)
+        ) {
+          o.getResolvers().push(args)
+        }
+      } else if ('location' in args) {
+        invariant(
+          ['head', 'body-top', 'body-bottom'].includes(
+            args.location as T.Plugin.Location,
+          ),
+          `Invalid plugin location "${args.location}". Available options are: ` +
+            `"head", "body-top", and "body-bottom"`,
+        )
+        if (!o.cache.plugin.has(args.path as string)) {
+          o.cache.plugin.add(args.location as T.Plugin.Location, args)
+        }
+      } else if ('register' in args) {
+        u.array(args.register as T.Register.Object).forEach((obj) => {
+          let page = obj.page || '_global'
+          let name = obj.name || (obj.component && obj.component.onEvent) || ''
+          invariant(
+            !!name,
+            `Could not locate an identifier/name for this register object`,
+            obj,
+          )
+          if (!o.cache.register.has(page, name)) {
+            o.cache.register.set(page, name, obj)
+          }
+        })
+      } else if ('transaction' in args) {
+        u.entries(args.transaction).forEach(([tid, fn]) => {
+          o.getTransactions()[tid] = { ...o.getTransactions()[tid], fn }
+        })
+      } else {
+        if ('actionType' in args && !('funcName' in args)) {
+          invariant(u.isFnc(args.fn), 'fn is not a function')
+          useAction(args.actionType, args)
+        } else if ('funcName' in args) {
+          invariant(!!args.funcName, `"funcName" is required`)
+          invariant(u.isFnc(args.fn), 'fn is not a function')
+          useAction('builtIn', args)
+        } else if ('emit' in args) {
+          useAction('emit', args.emit as T.Store.ActionObject)
+        } else {
+          for (const [key, val] of u.entries(args)) {
+            if (key === 'action') {
+              u.entries(val).forEach(([k, v]) => {
+                if (k === 'emit') {
+                  useAction('emit', v)
+                } else {
+                  if (u.isArr(v)) {
+                    v.forEach((_v) => {
+                      useAction(
+                        k as T.Store.ActionObject['actionType'],
+                        u.isFnc(_v) ? { actionType: k, fn: _v } : _v,
+                      )
+                    })
+                  } else {
+                    useAction(
+                      k as T.Store.ActionObject['actionType'],
+                      u.isFnc(v) ? { actionType: k, fn: v } : v,
+                    )
+                  }
+                }
+              })
+            } else if (key === 'builtIn') {
+              if ('funcName' in val) {
+                useAction(key, val)
+              } else {
+                u.entries(val).forEach(([funcName, v]) => {
+                  if (u.isArr(v)) {
+                    v.forEach((o) => {
+                      if (u.isFnc(o)) {
+                        useAction(key, {
+                          funcName,
+                          fn: o,
+                        } as T.Store.BuiltInObject)
+                      } else if (u.isObj(o)) {
+                        useAction(key, {
+                          ...o,
+                          funcName,
+                        } as T.Store.BuiltInObject)
+                      }
+                    })
+                  } else if (u.isFnc(v)) {
+                    useAction(key, { funcName, fn: v } as T.Store.BuiltInObject)
+                  } else if (u.isObj(v)) {
+                    useAction(key, { ...v, funcName } as T.Store.BuiltInObject)
+                  }
+                })
+              }
+            } else if (key === 'emit') {
+              useAction(key, val)
+            } else {
+              if (nuiActionTypes.includes(key as T.NUIActionType)) {
+                u.array(val).forEach((v) =>
+                  useAction(key as T.NUIActionType, v),
+                )
+              }
+
+              if (
+                [
+                  'getAssetsUrl',
+                  'getActions',
+                  'getBuiltIns',
+                  'getBaseUrl',
+                  'getPages',
+                  'getPreloadPages',
+                  'getRoot',
+                ].includes(key)
+              ) {
+                o._defineGetter(key, val)
+              }
+            }
+          }
+        }
+      }
+
+      return o
+    },
   }
 
-  o['use'] = use.bind(o)
-
-  return o as typeof o & { use: typeof use }
+  return o
 })()
 
 export default NUI

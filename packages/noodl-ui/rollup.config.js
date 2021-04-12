@@ -1,4 +1,5 @@
 import { DEFAULT_EXTENSIONS } from '@babel/core'
+import nodePolyfills from 'rollup-plugin-node-polyfills'
 import babel from '@rollup/plugin-babel'
 import typescript from 'rollup-plugin-typescript2'
 import resolve from '@rollup/plugin-node-resolve'
@@ -30,6 +31,7 @@ const configs = [
       // },
     ],
     plugins: [
+      nodePolyfills(),
       external(),
       commonjs(),
       filesize(),

@@ -4,8 +4,6 @@ import { NUIActionObjectInput } from '../types'
 function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
   const results = [] as string[]
 
-  console.log(obj)
-
   if (Identify.emit(obj)) {
     //
   } else if (Identify.goto(obj)) {

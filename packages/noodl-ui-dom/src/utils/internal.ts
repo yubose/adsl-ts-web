@@ -1,5 +1,3 @@
-import { NUIComponent } from 'noodl-ui'
-
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
 export const assign = (
@@ -27,31 +25,6 @@ export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
     node.classList.add(className)
   }
-}
-
-export function fixTextAlign(c: NUIComponent.Instance) {
-  const origStyle = c.original?.style || {}
-  const axises = ['x', 'y']
-
-  axises.forEach((ax) => {
-    if (isObj(origStyle.textAlign)) {
-      const origVal = origStyle.textAlign?.[ax]
-      if (origVal) {
-        if (ax === 'x') {
-          if (c.style.textAlign !== origVal) c.setStyle('textAlign', origVal)
-        } else {
-          //
-        }
-      }
-    } else if (isStr(origStyle.textAlign)) {
-      if (origStyle.textAlign !== c.style.textAlign)
-        c.setStyle('textAlign', origStyle.textAlign)
-    }
-  })
-}
-
-export function isOutboundLink(s: string | undefined = '') {
-  return /https?:\/\//.test(s)
 }
 
 export const xKeys = ['width', 'left']

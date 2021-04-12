@@ -7,12 +7,16 @@ import { italic, magenta } from 'noodl-common'
 import { userEvent } from 'noodl-types'
 import { expect } from 'chai'
 import { createDataKeyReference, nui } from '../utils/test-utils'
-import { nuiEmitType, nuiEmitTransaction } from '../constants'
+import {
+  nuiEmitType,
+  nuiEmitTransaction,
+  actionTypes as nuiActionTypes,
+} from '../constants'
 import Component from '../Component'
 import Page from '../Page'
 import Resolver from '../Resolver'
 import NUI from '../noodl-ui'
-import { Plugin } from '../types'
+import * as u from '../utils/internal'
 
 describe(italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
@@ -206,7 +210,7 @@ describe(italic(`createPlugin`), () => {
   })
 })
 
-describe(italic(`createSrc`), () => {
+describe.only(italic(`createSrc`), () => {
   describe(`when passing in a string`, () => {
     it(`should just return the url untouched if it starts with http`, () => {
       const url = `https://www.google.com/hello.jpeg`
@@ -352,6 +356,49 @@ describe(italic(`emit`), () => {
   })
 })
 
+describe.skip(italic(`getActions`), () => {
+  it(`should return the map of actions`, () => {
+    const actions = NUI.getActions()
+    nuiActionTypes.forEach((actionType) => {
+      expect(actions).to.have.property(actionType).to.be.an('array')
+    })
+  })
+})
+
+describe(italic(`getBuiltIns`), () => {
+  it(`should return the map of actions`, () => {
+    const spy1 = sinon.spy()
+    const spy2 = sinon.spy()
+    const spy3 = sinon.spy()
+    const builtIn = {
+      hello: spy1,
+      abc: spy2,
+      apple: spy3,
+    }
+    NUI.use({ builtIn })
+    const builtIns = NUI.getBuiltIns()
+    u.entries(builtIn).forEach(([funcName, fn]) => {
+      expect(builtIns).to.have.property(funcName).to.be.an('array')
+      expect(builtIns[funcName]).to.satisfy((arr) =>
+        arr.some((obj) => obj.fn === fn),
+      )
+    })
+  })
+})
+
+describe(italic(`getResolvers`), () => {
+  it(`should return the transformers`, () => {
+    console.info(nui.getResolvers())
+    expect(NUI.getResolvers()).to.be.an('array')
+  })
+})
+
+describe(italic(`getTransactions`), () => {
+  xit(``, () => {
+    //
+  })
+})
+
 describe(italic(`getConsumerOptions`), () => {
   it(`should return the expected consumer options`, () => {
     const page = nui.createPage()
@@ -392,13 +439,6 @@ describe(italic(`resolveComponents`), () => {
 })
 
 describe(italic(`use`), () => {
-  it(`should bind "this" to the main noodl-ui api`, () => {
-    const spy = sinon.spy(nui, 'use')
-    nui.use({} as any)
-    expect(spy.thisValues[0]).to.eq(nui)
-    spy.restore()
-  })
-
   describe(italic(`action`), () => {
     const hasAction = (type: any, spy: any) =>
       nui.getActions()[type].some((o: any) => o.fn === spy)

@@ -1,9 +1,12 @@
-import { Store, Transaction } from './types'
-import { mapActionTypesToOwnArrays } from './utils/internal'
+import { NUIActionType, Store, Transaction } from './types'
+import { mapKeysToOwnArrays } from './utils/internal'
 import Resolver from './Resolver'
+import { actionTypes } from './constants'
 
 const store = (function _store() {
-  let actions = mapActionTypesToOwnArrays<Store.ActionObject>()
+  let actions = mapKeysToOwnArrays<NUIActionType, Store.ActionObject>(
+    actionTypes,
+  )
   let builtIns = {} as { [funcName: string]: Store.BuiltInObject[] }
   let plugins = { head: [], body: { top: [], bottom: [] } } as Store.Plugins
   let resolvers = [] as Resolver<any>[]
