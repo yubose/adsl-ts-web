@@ -12,6 +12,7 @@ import {
   nuiEmitType,
   nuiEmitTransaction,
   actionTypes as nuiActionTypes,
+  triggers as nuiTriggers,
 } from '../constants'
 import Component from '../Component'
 import Page from '../Page'
@@ -300,7 +301,7 @@ describe(italic(`emit`), () => {
       const data = {} as any
       const spy = sinon.spy(() => Promise.resolve(data))
       const params = {}
-      nui.use({ register: { name: 'myRegister', page: '_global', fn: spy } })
+      NUI.use({ register: { name: 'myRegister', page: '_global', fn: spy } })
       const result = await nui.emit({
         type: 'register',
         args: { name: 'myRegister', params },
@@ -312,12 +313,13 @@ describe(italic(`emit`), () => {
   describe(`type: ${magenta(nuiEmitTransaction.REQUEST_PAGE_OBJECT)}`, () => {
     it(`should call the function`, async () => {
       const cbSpy = sinon.spy()
-      nui.use({
+      console.info(NUI.cache.transactions.get())
+      NUI.use({
         transaction: {
           [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: cbSpy,
         },
       })
-      await nui.emit({
+      await NUI.emit({
         transaction: nuiEmitTransaction.REQUEST_PAGE_OBJECT,
         type: nuiEmitType.TRANSACTION,
       })
@@ -326,12 +328,9 @@ describe(italic(`emit`), () => {
   })
 })
 
-describe.skip(italic(`getActions`), () => {
+describe(italic(`getActions`), () => {
   it(`should return the map of actions`, () => {
-    const actions = NUI.getActions()
-    nuiActionTypes.forEach((actionType) => {
-      expect(actions).to.have.property(actionType).to.be.an('array')
-    })
+    expect(NUI.getActions()).to.eq(NUI.cache.actions)
   })
 })
 
@@ -363,8 +362,8 @@ describe(italic(`getResolvers`), () => {
 })
 
 describe(italic(`getTransactions`), () => {
-  xit(``, () => {
-    //
+  it(`should return the transactions`, () => {
+    expect(NUI.getTransactions()).to.eq(NUI.cache.transactions)
   })
 })
 
@@ -449,28 +448,32 @@ describe(italic(`use`), () => {
   })
 
   describe(italic(`emit`), () => {
-    it(`should accept trigger as the key and the func as the value`, () => {
-      const getEmits = () => NUI.getActions('emit')
-      const spy = sinon.spy(async () => 'hello') as any
-      expect(getEmits().get('dataValue')).to.have.lengthOf(0)
-      NUI.use({ emit: { dataValue: spy } })
-      expect(getEmits().get('dataValue')).to.have.lengthOf(1)
-      expect(
-        getEmits()
-          .get('dataValue')
-          ?.some((obj) => obj.fn === spy),
-      ).to.be.true
-    })
+    const getEmits = () => NUI.getActions('emit')
 
-    xit(`should accept trigger as the key and an array of funcs as the value`, () => {
-      const spy = sinon.spy(async () => 'hello')
-      const spy2 = sinon.spy(async () => 'hello')
-      expect(nui.getActions('emit')).to.have.lengthOf(0)
-      nui.use({ emit: { dataValue: [spy, spy2] as any } })
-      expect(nui.getActions('emit')).to.have.lengthOf(2)
-      expect(nui.getActions('emit')[0].fn).to.eq(spy)
-      expect(nui.getActions('emit')[1].fn).to.eq(spy2)
-      expect(nui.getActions('emit')[1].fn).to.eq(spy2)
+    nuiTriggers.forEach((trigger) => {
+      it(`should support { [${trigger}]: <function> }`, () => {
+        const spy = sinon.spy(async () => 'hello') as any
+        expect(getEmits().get(trigger)).to.have.lengthOf(0)
+        NUI.use({ emit: { [trigger]: spy } })
+        expect(getEmits().get(trigger)).to.have.lengthOf(1)
+        expect(
+          getEmits()
+            .get(trigger)
+            ?.some((obj) => obj.fn === spy),
+        ).to.be.true
+      })
+
+      it(`should support { [${trigger}]: <function>[] }`, () => {
+        const spy = sinon.spy(async () => 'hello') as any
+        expect(getEmits().get(trigger)).to.have.lengthOf(0)
+        NUI.use({ emit: { [trigger]: [spy] } })
+        expect(getEmits().get(trigger)).to.have.lengthOf(1)
+        expect(
+          getEmits()
+            .get(trigger)
+            ?.some((obj) => obj.fn === spy),
+        ).to.be.true
+      })
     })
   })
 
@@ -560,8 +563,8 @@ describe(italic(`use`), () => {
 
     it(`should throw if it cannot locate a name or identifier`, () => {
       expect(() => {
-        nui.use({ register: { component: {} as any, page: '_global' } })
-      }).to.throw(/could not locate/i)
+        NUI.use({ register: { component: {} as any, page: '_global' } as any })
+      }).to.throw(/identifier/i)
     })
 
     it(`should add to the register store`, () => {
@@ -590,19 +593,17 @@ describe(italic(`use`), () => {
   describe(italic(`transaction`), () => {
     it(`should add the transaction to the store`, () => {
       const spy = sinon.spy()
-      expect(nui.getTransactions()).not.to.have.property(
-        nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-      )
+      expect(nui.getTransactions().has(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
+        .to.be.false
       nui.use({
         transaction: {
           [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: spy,
         },
       })
-      expect(nui.getTransactions()).to.have.property(
-        nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-      )
+      expect(nui.getTransactions().get(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
+        .to.exist
       expect(
-        nui.getTransactions()[nuiEmitTransaction.REQUEST_PAGE_OBJECT],
+        nui.getTransactions().get(nuiEmitTransaction.REQUEST_PAGE_OBJECT),
       ).to.have.property('fn', spy)
     })
   })

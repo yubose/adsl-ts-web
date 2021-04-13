@@ -1,4 +1,4 @@
-import { NUIComponent, ConsumerOptions, ResolverFn } from './types'
+import { NUIComponent, ConsumerOptions } from './types'
 import { isObj } from './utils/internal'
 
 export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
@@ -8,7 +8,7 @@ export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
 
 class Resolver<Func extends (...args: any[]) => any, Inst = any>
   implements IResolver<Func> {
-  #resolve: IResolver<Func>['resolver']
+  #resolve = {} as IResolver<Func>['resolver']
   #next: Inst | null = null
 
   get next() {
@@ -60,7 +60,7 @@ class ComponentResolver<
   }
 
   setResolver(resolver: ComponentResolver<Func>['resolver']) {
-    super.resolver = resolver.bind(this)
+    super.resolver = resolver
     return this
   }
 
@@ -92,7 +92,7 @@ class ComponentResolver<
 
 export class InternalComponentResolver {
   #isInternal: boolean = false
-  #resolver: Parameters<InternalComponentResolver['setResolver']>[0]
+  #resolver = {} as Parameters<InternalComponentResolver['setResolver']>[0]
 
   get internal() {
     return this.#isInternal
@@ -107,13 +107,19 @@ export class InternalComponentResolver {
     this.#isInternal = internal
   }
 
-  setResolver(resolver: ResolverFn) {
+  setResolver(
+    resolver: (
+      component: NUIComponent.Instance,
+      consumerOptions: ConsumerOptions,
+      next?: () => void,
+    ) => void,
+  ) {
     this.#resolver = resolver.bind(this)
     return this
   }
 
-  resolve<C extends NUIComponent.Instance = NUIComponent.Instance>(
-    component: C,
+  resolve(
+    component: NUIComponent.Instance,
     options: ConsumerOptions,
     ref: any,
   ) {

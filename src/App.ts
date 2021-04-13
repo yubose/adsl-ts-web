@@ -311,7 +311,6 @@ class App {
                         register: {
                           name: value.onEvent as string,
                           component: value,
-                          page: '_global',
                         },
                       })
                     }

@@ -1,9 +1,9 @@
 import NUIPage from '../Page'
 import Viewport from '../Viewport'
-import { ICache, Cache } from '../types'
+import { ICache, IPage } from '../types'
 
 class PageCache implements ICache {
-  #pages = new Map() as Map<Cache.PageId, Cache.PageEntry>
+  #pages = new Map() as Map<IPage['id'], { page: NUIPage }>
 
   static _inst: PageCache;
 
@@ -42,22 +42,22 @@ class PageCache implements ICache {
     return this.#pages.get(page.id)?.page as NUIPage
   }
 
-  get(id: Cache.PageId): Cache.PageEntry
-  get(id?: never): [Cache.PageEntry]
-  get(id?: Cache.PageId) {
+  get(id: IPage['id']): { page: NUIPage }
+  get(id?: never): [{ page: NUIPage }]
+  get(id?: IPage['id']) {
     if (!id) return Array.from(this.#pages.values())
     else return this.#pages.get(id)
   }
 
-  has(id: Cache.PageId) {
+  has(id: IPage['id']) {
     return this.#pages.has(id)
   }
 
   forEach(
     fn: (
-      page: Cache.PageEntry,
-      index: Cache.PageId,
-      collection: Cache.Pages,
+      page: { page: NUIPage },
+      index: IPage['id'],
+      collection: Map<IPage['id'], { page: NUIPage }>,
     ) => void,
   ) {
     this.#pages.forEach((obj, key, collection) => {

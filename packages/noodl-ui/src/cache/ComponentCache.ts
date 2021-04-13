@@ -1,12 +1,20 @@
 import isComponent from '../utils/isComponent'
-import { Cache, NUIComponent } from '../types'
+import { NUIComponent } from '../types'
 import { isArr, isStr } from '../utils/internal'
+
+type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
+
+interface ComponentCacheHook {
+  add(component: NUIComponent.Instance): void
+  clear(components: { [id: string]: NUIComponent.Instance }): void
+  remove(component: ReturnType<NUIComponent.Instance['toJSON']>): void
+}
 
 class ComponentCache {
   #cache = new Map<string, NUIComponent.Instance>()
   #observers: Record<
-    Cache.ComponentCacheHookEvent,
-    Cache.ComponentCacheHook[Cache.ComponentCacheHookEvent][]
+    ComponentCacheHookEvent,
+    ComponentCacheHook[ComponentCacheHookEvent][]
   > = { add: [], clear: [], remove: [] }
 
   static _inst: ComponentCache
@@ -20,21 +28,18 @@ class ComponentCache {
     return this.#cache.size
   }
 
-  on(e: 'add', fn: Cache.ComponentCacheHook['add']): this
-  on(e: 'clear', fn: Cache.ComponentCacheHook['clear']): this
-  on(e: 'remove', fn: Cache.ComponentCacheHook['remove']): this
-  on<Evt extends Cache.ComponentCacheHookEvent>(
-    e: Evt,
-    fn: Cache.ComponentCacheHook[Evt],
-  ) {
+  on(e: 'add', fn: ComponentCacheHook['add']): this
+  on(e: 'clear', fn: ComponentCacheHook['clear']): this
+  on(e: 'remove', fn: ComponentCacheHook['remove']): this
+  on<Evt extends ComponentCacheHookEvent>(e: Evt, fn: ComponentCacheHook[Evt]) {
     const obs = this.#observers[e]
     isArr(obs) && !obs.includes(fn) && obs.push(fn)
     return this
   }
 
-  emit<Evt extends Cache.ComponentCacheHookEvent>(
+  emit<Evt extends ComponentCacheHookEvent>(
     evt: Evt,
-    ...args: Parameters<Cache.ComponentCacheHook[Evt]>
+    ...args: Parameters<ComponentCacheHook[Evt]>
   ) {
     this.#observers[evt]?.forEach?.((fn: any) => fn(...args))
     return this

@@ -8,7 +8,7 @@ interface GetSizeOptions<U extends 'px' | 'noodl' = 'px' | 'noodl'> {
 }
 
 class NOODLViewport {
-  #onResize: () => void
+  #onResize = {} as () => void
 
   width: number = undefined as any
   height: number = undefined as any

@@ -97,7 +97,7 @@ describe(coolGold(`resolveDataAttrs`), () => {
               mock.getListItemComponent({
                 [iteratorVar]: '',
                 children: [
-                  mock.getSelectComponent({ options: 'itemObject.doc' }),
+                  mock.getSelectComponent({ options: 'itemObject.doc' } as any),
                 ],
               }),
             ],

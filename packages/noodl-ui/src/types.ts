@@ -18,7 +18,6 @@ import {
   StyleObject,
   ToastObject,
   UpdateActionObject,
-  userEvent,
   PluginComponentObject,
   PluginHeadComponentObject,
   PluginBodyTailComponentObject,
@@ -28,7 +27,6 @@ import { LiteralUnion } from 'type-fest'
 import ComponentBase from './Component'
 import _ComponentCache from './cache/ComponentCache'
 import _PluginCache from './cache/PluginCache'
-import RegisterCache from './cache/RegisterCache'
 import EmitAction from './actions/EmitAction'
 import NUI from './noodl-ui'
 import NUIPage from './Page'
@@ -45,16 +43,7 @@ export type NUIActionType = ActionType | typeof lib.actionTypes[number]
 export type NUIActionGroupedType = typeof groupedActionTypes[number]
 export type NUIComponentType = ComponentType | typeof lib.components[number]
 export type NUITrigger = EventType | typeof lib.emitTriggers[number]
-
-export type ActionChainEmitTrigger = typeof userEvent[number]
-export type ActionChainEventAlias = keyof typeof event.actionChain
-export type ActionChainEventId = typeof event.actionChain[ActionChainEventAlias]
-export type ActionEventAlias = keyof typeof event.action
-export type ActionEventId = typeof event.action[ActionEventAlias]
 export type DataAttribute = typeof lib.dataAttributes[number]
-export type EventId = ActionEventId | ActionChainEventId | PageComponentEventId
-export type PageComponentEventId = PageComponentEventObject[keyof PageComponentEventObject]
-export type PageComponentEventObject = typeof event.component.page
 
 /* -------------------------------------------------------
   ---- ACTIONS 
@@ -130,30 +119,6 @@ export interface IPage {
   id: 'root' | string | number
   page: string
   viewport: Viewport
-}
-
-export namespace Cache {
-  export type ComponentCache = _ComponentCache
-
-  export interface ComponentCacheHook {
-    add(component: NUIComponent.Instance): void
-    clear(components: { [id: string]: NUIComponent.Instance }): void
-    remove(component: ReturnType<NUIComponent.Instance['toJSON']>): void
-  }
-
-  export type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
-
-  export type Pages = Map<PageId, Cache.PageEntry>
-
-  export type PageId = IPage['id']
-
-  export interface PageEntry {
-    page: NUIPage
-  }
-
-  export type PluginCache = _PluginCache
-
-  export type Register = RegisterCache
 }
 
 export namespace NUIComponent {
@@ -298,16 +263,11 @@ export type ConsumerOptions = Omit<
   ref?: NUIActionChain
 }
 
-export type PageObjectContainer<K extends string = string> = Record<
-  K,
-  PageObject
->
-
 export namespace Register {
   export interface Object<P extends Register.Page = '_global', Params = any> {
     name: string
     component?: RegisterComponentObject | null
-    page: P
+    page?: P
     params?: Params
     fn?(obj: Register.Object, params?: Params): Promise<void>
   }
@@ -315,10 +275,6 @@ export namespace Register {
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
 
   export type Storage = Map<Page, Record<string, Object>>
-}
-
-export interface ResolverFn<C extends NUIComponent.Instance = any> {
-  (component: C, consumerOptions: ConsumerOptions, next?: () => void): void
 }
 
 export namespace Store {
@@ -353,22 +309,6 @@ export namespace Store {
       bottom: Plugin.Object[]
     }
   }
-}
-
-export interface State {
-  page: string
-  plugins: {
-    head: Plugin.Object[]
-    body: {
-      top: Plugin.Object[]
-      bottom: Plugin.Object[]
-    }
-  }
-  showDataKey: boolean
-}
-
-export interface Root {
-  [key: string]: any
 }
 
 export interface SelectOption {

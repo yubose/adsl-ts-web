@@ -1,6 +1,5 @@
 import invariant from 'invariant'
-import { isActionChain } from 'noodl-action-chain'
-import { Identify, PageObject, userEvent } from 'noodl-types'
+import { Identify, PageObject } from 'noodl-types'
 import {
   Component,
   createComponent,
@@ -12,8 +11,6 @@ import {
   nuiEmitTransaction,
   publish,
   Store,
-  Transaction as NUITransaction,
-  TransactionId,
 } from 'noodl-ui'
 import {
   createAsyncImageElement,
@@ -73,15 +70,15 @@ class NOODLDOM extends NOODLDOMInternal {
     NOODLDOM._nui = nui || NUI
   }
 
-  get actions(): ReturnType<typeof NOODLDOM._nui.getActions> {
+  get actions() {
     return NOODLDOM._nui.getActions()
   }
 
-  get builtIns(): ReturnType<typeof NOODLDOM._nui.getBuiltIns> {
+  get builtIns() {
     return NOODLDOM._nui.getBuiltIns()
   }
 
-  get cache(): typeof NOODLDOM._nui.cache {
+  get cache() {
     return NOODLDOM._nui.cache
   }
 
@@ -93,7 +90,7 @@ class NOODLDOM extends NOODLDOMInternal {
     return this.global.pages
   }
 
-  get transactions(): NUITransaction {
+  get transactions() {
     return NOODLDOM._nui.getTransactions()
   }
 
@@ -591,7 +588,9 @@ class NOODLDOM extends NOODLDOMInternal {
     if ('resolve' in obj) {
       this.#R.use(obj)
     } else if ('actionType' in obj || 'funcName' in obj) {
-      NOODLDOM._nui.use(obj)
+      NOODLDOM._nui.use({
+        [obj.actionType]: obj,
+      })
     }
     return this
   }
@@ -624,8 +623,7 @@ class NOODLDOM extends NOODLDOMInternal {
       | 'transactions',
   ) {
     const resetActions = () => {
-      u.values(NOODLDOM._nui.getActions()).forEach((arr) => (arr.length = 0))
-      u.values(NOODLDOM._nui.getBuiltIns()).forEach((arr) => (arr.length = 0))
+      NOODLDOM._nui.cache.actions.clear()
     }
     const resetComponentCache = () => {
       NOODLDOM._nui.cache.component.clear()
@@ -643,7 +641,7 @@ class NOODLDOM extends NOODLDOMInternal {
       )
     }
     const resetTransactions = () => {
-      u.keys(this.transactions).forEach((k) => delete this.transactions[k])
+      NOODLDOM._nui.cache.transactions.clear()
     }
 
     if (key !== undefined) {
@@ -679,7 +677,7 @@ class NOODLDOM extends NOODLDOMInternal {
     transaction: TType,
     args: Parameters<T.Transaction[TType]>[0],
   ) {
-    return this.transactions[transaction]?.fn?.(args)
+    return NOODLDOM._nui.getTransactions().get(transaction)?.fn?.(args)
   }
 
   use(nuiPage: NUIPage): Page
@@ -687,12 +685,11 @@ class NOODLDOM extends NOODLDOMInternal {
   use(obj: NUIPage | Partial<T.UseObject>) {
     if (isNUIPage(obj)) {
       return this.createPage(obj)
-    } else if (
-      'actionType' in obj ||
-      'funcName' in obj ||
-      'location' in obj ||
-      'resolve' in obj
-    ) {
+    } else if ('actionType' in obj || 'funcName' in obj) {
+      NOODLDOM._nui.use({
+        [obj.actionType]: obj,
+      })
+    } else if ('location' in obj || 'resolve' in obj) {
       NOODLDOM._nui.use(obj)
     } else if (u.isObj(obj)) {
       u.entries(obj).forEach(([key, o]) => {

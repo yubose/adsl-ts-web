@@ -1,6 +1,4 @@
 import invariant from 'invariant'
-import get from 'lodash/get'
-import set from 'lodash/set'
 import merge from 'lodash/merge'
 import { setUseProxies, enableES5 } from 'immer'
 import { EmitObject, Identify, IfObject } from 'noodl-types'
@@ -19,8 +17,8 @@ import ActionsCache from './cache/ActionsCache'
 import PageCache from './cache/PageCache'
 import PluginCache from './cache/PluginCache'
 import RegisterCache from './cache/RegisterCache'
+import TransactionCache from './cache/TransactionsCache'
 import Resolver from './Resolver'
-import store from './store'
 import VP from './Viewport'
 import resolveAsync from './resolvers/resolveAsync'
 import resolveComponents from './resolvers/resolveComponents'
@@ -55,6 +53,7 @@ const NUI = (function _NUI() {
     page: new PageCache(),
     plugin: new PluginCache(),
     register: new RegisterCache(),
+    transactions: new TransactionCache(),
   }
 
   function _createSrc(args: {
@@ -201,12 +200,12 @@ const NUI = (function _NUI() {
           )
         }
       } else if (opts.type === nuiEmitType.TRANSACTION) {
-        const fn = store.transactions[opts.transaction]?.fn
-        invariant(
-          u.isFnc(fn),
-          `Missing a callback handler for transaction "${
+        const fn = cache.transactions.get(opts.transaction)?.fn
+        console.log(
+          `%cMissing a callback handler for transaction "${
             opts.transaction
           }" but received ${typeof fn}`,
+          `color:#ec0000;`,
           opts,
         )
 
@@ -670,7 +669,7 @@ const NUI = (function _NUI() {
       return u.array(cache.page.get('root'))[0]?.page as NUIPage
     },
     getResolvers: () => _transformers,
-    getTransactions: () => store.transactions,
+    getTransactions: () => cache.transactions,
     resolveComponents: _resolveComponents,
     reset(
       filter?:
@@ -708,22 +707,18 @@ const NUI = (function _NUI() {
           } else if (f === 'resolvers') {
             o.getResolvers().length = 0
           } else if (f === 'transactions') {
-            u.keys(o.getTransactions()).forEach(
-              (k) => delete o.getTransactions()[k],
-            )
+            cache.transactions.clear()
           }
         })
       } else {
         o.getResolvers().length = 0
-        u.keys(o.getTransactions()).forEach(
-          (k) => delete o.getTransactions()[k],
-        )
         cache.actions.clear()
         cache.actions.reset()
         cache.component.clear()
         cache.page.clear()
         cache.plugin.clear()
         cache.register.clear()
+        cache.transactions.clear()
       }
       o._defineGetter('getAssetsUrl', () => '')
       o._defineGetter('getBaseUrl', () => '')
@@ -742,14 +737,11 @@ const NUI = (function _NUI() {
           } & {
             register?: T.Register.Object | T.Register.Object[]
             transaction?: Partial<
-              Record<
-                keyof T.Transaction,
-                T.Transaction[keyof T.Transaction]['fn']
-              >
+              Record<T.TransactionId, T.Transaction[T.TransactionId]['fn']>
             >
           } & Partial<
               Record<
-                Exclude<T.NUIActionType, 'builtIn' | 'emit'>,
+                T.NUIActionGroupedType,
                 T.Store.ActionObject['fn'] | T.Store.ActionObject['fn'][]
               > & {
                 builtIn: Partial<
@@ -825,15 +817,17 @@ const NUI = (function _NUI() {
         }
 
         if ('emit' in args) {
-          for (const [trigger, fn] of u.entries(args.emit)) {
-            invariant(
-              u.isFnc(fn),
-              `fn is required for emit trigger "${trigger}"`,
-            )
-            o.cache.actions.emit.get(trigger as T.NUITrigger)?.push({
-              actionType: 'emit',
-              fn,
-              trigger: trigger as T.NUITrigger,
+          for (const [trigger, func] of u.entries(args.emit)) {
+            u.array(func).forEach((fn) => {
+              invariant(
+                u.isFnc(fn),
+                `fn is required for emit trigger "${trigger}"`,
+              )
+              o.cache.actions.emit.get(trigger as T.NUITrigger)?.push({
+                actionType: 'emit',
+                fn,
+                trigger: trigger as T.NUITrigger,
+              })
             })
           }
         }
@@ -845,7 +839,7 @@ const NUI = (function _NUI() {
               obj.name || (obj.component && obj.component.onEvent) || ''
             invariant(
               !!name,
-              `Could not locate an identifier/name for this register object`,
+              `Could not compute an identifier/name for this register object`,
               obj,
             )
             if (!o.cache.register.has(page, name)) {
@@ -856,14 +850,15 @@ const NUI = (function _NUI() {
 
         if ('transaction' in args) {
           u.entries(args.transaction).forEach(([tid, fn]) => {
-            o.getTransactions()[tid] = { ...o.getTransactions()[tid], fn }
+            o.getTransactions().set(tid as T.TransactionId, {
+              ...o.getTransactions().get(tid as T.TransactionId),
+              fn,
+            })
           })
         }
 
         for (const key of [
           'getAssetsUrl',
-          'getActions',
-          'getBuiltIns',
           'getBaseUrl',
           'getPages',
           'getPreloadPages',

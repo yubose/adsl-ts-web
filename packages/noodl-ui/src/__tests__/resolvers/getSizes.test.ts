@@ -1,6 +1,4 @@
 import { expect } from 'chai'
-import createComponent from '../../utils/createComponent'
-import getSizes from '../../resolvers/getSizes'
 import Viewport from '../../Viewport'
 
 let viewport: Viewport
