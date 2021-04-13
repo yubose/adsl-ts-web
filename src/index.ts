@@ -18,8 +18,8 @@ window.addEventListener('load', async (e) => {
       aitMessage,
       isSupported: firebaseSupported,
     } = await import('./app/firebase')
-    const { default: noodl } = await import('app/noodl')
-    const { getWindowHelpers } = await import('app/noodl-ui')
+    const { default: noodl } = await import('./app/noodl')
+    const { getWindowHelpers } = await import('./app/noodl-ui')
 
     const app = new App({
       noodl,

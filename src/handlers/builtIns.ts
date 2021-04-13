@@ -332,7 +332,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
-    await (await import('@aitmed/cadl')).Account.logout(true)
+    ;(await import('@aitmed/cadl')).Account.logout(true)
     window.location.reload()
   }
 
@@ -586,7 +586,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (isVisible) hiddenPwLabel.style.visibility = 'hidden'
     }
     // Validate if their password is correct or not
-    const isValid = await (
+    const isValid = (
       await import('@aitmed/cadl')
     ).Account?.verifyUserPassword?.(password)
     if (!isValid) {
