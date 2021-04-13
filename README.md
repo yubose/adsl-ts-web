@@ -189,3 +189,33 @@ if marginTop --> marginTop
 for hide/show builtIn:
 if hide and relative, dont hold the space
 if absolute, hold the space
+
+## Register
+
+```js
+import { NUI } from 'noodl-ui'
+
+NUI.use({
+  register: {
+    name: 'twilioOnPeopleJoin',
+    fn: async (registerObj, params) => {
+      // ...
+    },
+  },
+})
+
+// Sometime later
+NUI.emit({
+  type: 'register',
+  args: {
+    name: 'twilioOnPeopleJoin',
+    params: { token: 'abcdefghijklmnop.....xyz' },
+  },
+})
+  .then((result) => {
+    console.log(result)
+  })
+  .catch((err) => {
+    console.error(err)
+  })
+```
