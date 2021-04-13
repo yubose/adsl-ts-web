@@ -159,7 +159,7 @@ module.exports = {
       // src/app/noodl.ts to point to the public.aitmed.com host
       'process.env.DEPLOYING': JSON.stringify(process.env.DEPLOYING),
       'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+      // 'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
       'process.env.USE_DEV_PATHS': JSON.stringify(process.env.USE_DEV_PATHS),
       'process.env.BUILD': JSON.stringify({
         ecosEnv: process.env.ECOS_ENV,

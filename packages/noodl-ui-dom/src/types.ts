@@ -3,6 +3,7 @@ import {
   Component,
   nuiEmitTransaction,
   Transaction as NUITransaction,
+  Use,
   UseObject as NUIUseObject,
 } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
@@ -190,7 +191,7 @@ export interface Transaction
   ): Promise<PageObject>
 }
 
-export interface UseObject extends Omit<NUIUseObject, 'transaction'> {
+export interface UseObject extends Omit<Use, 'transaction'>, Use.Action {
   createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
   resolver?: Resolve.Config
   transaction?: Transaction &

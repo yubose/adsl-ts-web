@@ -8,6 +8,11 @@ function getActionType(obj: NUIActionObjectInput): NUIActionType {
     if (Identify.goto(obj)) return 'goto'
     if (Identify.toast(obj)) return 'toast'
   }
+  console.log(
+    `%cUnknown actionType "${obj['actionType']}". It will be set to "anonymous"`,
+    `color:#ec0000;`,
+    obj,
+  )
   return 'anonymous'
 }
 

@@ -32,11 +32,17 @@ import RegisterCache from './cache/RegisterCache'
 import EmitAction from './actions/EmitAction'
 import NUI from './noodl-ui'
 import NUIPage from './Page'
-import ComponentResolver from './Resolver'
 import Viewport from './Viewport'
-import { event, lib, nuiEmitType, nuiEmitTransaction } from './constants'
+import {
+  event,
+  groupedActionTypes,
+  lib,
+  nuiEmitType,
+  nuiEmitTransaction,
+} from './constants'
 
 export type NUIActionType = ActionType | typeof lib.actionTypes[number]
+export type NUIActionGroupedType = typeof groupedActionTypes[number]
 export type NUIComponentType = ComponentType | typeof lib.components[number]
 export type NUITrigger = EventType | typeof lib.emitTriggers[number]
 
@@ -69,7 +75,9 @@ export namespace NUIEmit {
     args: Required<Pick<Register.Object, 'name' | 'params'>>
   }
 
-  export interface TransactionObject<K extends TransactionId = TransactionId> {
+  export interface TransactionObject<
+    K extends keyof Transaction = keyof Transaction
+  > {
     type: typeof nuiEmitType.TRANSACTION
     transaction: K
     params?: Transaction[K]['params']
@@ -283,6 +291,7 @@ export type ConsumerOptions = Omit<
     actions: NUIActionObject | NUIActionObject[],
     opts?: { loadQueue?: boolean },
   ): NUIActionChain
+  event?: Event
   getBaseStyles(
     component: NUIComponent.Instance,
   ): StyleObject & { [key: string]: any }
@@ -377,61 +386,3 @@ export interface Transaction {
 }
 
 export type TransactionId = keyof Transaction
-
-export interface UseObject {
-  getAssetsUrl?(): string
-  getBaseUrl?(): string
-  getPages?(): string[]
-  getPreloadPages?(): string[]
-  getRoot?(): Record<string, any>
-  getPlugins?: Plugin.CreateType[]
-  register?: Register.Object | Register.Object[]
-  transaction?: Record<TransactionId, Transaction[TransactionId]['fn']>
-}
-
-type _Transaction = Transaction
-
-export namespace Use {
-  interface ActionObj {
-    actionType: Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>
-    fn: Store.ActionObject['fn']
-    trigger?: Store.ActionObject['trigger']
-  }
-
-  interface BuiltInObj {
-    actionType?: 'builtIn'
-    funcName: Store.BuiltInObject['funcName']
-    fn: Store.BuiltInObject['fn']
-  }
-
-  export type Action = Partial<
-    Record<
-      ActionObj['actionType'],
-      ActionObj | ActionObj[] | ActionObj['fn'] | ActionObj['fn'][]
-    >
-  >
-
-  export type BuiltIn = Partial<
-    Record<
-      Store.BuiltInObject['funcName'],
-      BuiltInObj | BuiltInObj[] | BuiltInObj['fn'] | BuiltInObj['fn'][]
-    >
-  >
-
-  export type Emit =
-    | Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn']>>
-    | Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn'][]>>
-
-  export type GetAssetsUrl = () => string
-  export type GetBaseUrl = () => string
-  export type GetPages = () => string[]
-  export type GetPreloadPages = () => string[]
-  export type GetRoot = () => Record<string, any>
-  export type GetPlugins = () => Plugin.CreateType[]
-  export type Resolver = ComponentResolver
-  export type Register = Partial<Register.Object> | Partial<Register.Object>[]
-
-  export type Transaction = Partial<
-    Record<TransactionId, _Transaction[TransactionId]['fn']>
-  >
-}

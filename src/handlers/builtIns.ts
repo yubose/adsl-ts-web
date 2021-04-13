@@ -2,9 +2,8 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { Draft, isDraft, original } from 'immer'
-import { Action, isAction } from 'noodl-action-chain'
+import { isAction } from 'noodl-action-chain'
 import {
-  ConsumerOptions,
   findListDataObject,
   findIteratorVar,
   getDataValues,
@@ -40,486 +39,540 @@ import * as u from '../utils/common'
 const log = Logger.create('builtIns.ts')
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
-  const builtIns: Record<string, Store.BuiltInObject['fn']> = {
-    async checkField(action) {
-      log.func('checkField')
-      log.grey('', action)
-      const delay: number | boolean = action.original?.wait || action.wait || 0
-      const onCheckField = () => {
-        const node = findByUX(
-          action.original?.contentType || action?.contentType || '',
-        )
-        u.array(node).forEach((n) => n && show(n))
-      }
-      if (delay > 0) setTimeout(() => onCheckField(), delay as any)
-      else onCheckField()
-    },
-    async disconnectMeeting(action) {
-      log.func('disconnectMeeting')
-      log.grey('', { action, room: app.meeting.room })
-      app.meeting.room.disconnect()
-    },
-    async goBack(action) {
-      log.func('goBack')
-      log.grey('', action)
-      if (u.isBool(action.original?.reload)) {
-        app.mainPage.requesting = app.mainPage
-          .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
-          .trim()
-        app.mainPage.setModifier(app.mainPage.requesting, {
-          reload: action.original?.reload,
-        })
-      }
-      window.history.back()
-    },
-    async hide(action) {
-      log.func('hide')
-      log.grey('', action)
-      const viewTag = action.original?.viewTag || ''
-      const onElem = (node: HTMLElement) => {
-        if (VP.isNil(node.style.top, 'px')) {
-          node.style.display !== 'none' && (node.style.display = 'none')
-        } else {
-          node.style.display === 'none' && (node.style.display = 'block')
-        }
-      }
-      const elemCount = hide(findByViewTag(viewTag), onElem)
-      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
-    },
-    async show(action, options) {
-      log.func('show')
-      log.grey('', action)
-
-      const viewTag = action.original?.viewTag || ''
-      const onElem = (node: HTMLElement) => {
-        const component = options.component
-        if (component && VP.isNil(node.style.top)) {
-          !isVisible(node) && (node.style.visibility = 'visible')
-          node.style.display === 'none' && (node.style.display = 'block')
-        }
-      }
-      const elemCount = show(findByViewTag(viewTag), onElem)
-      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
-    },
-    async toggleCameraOnOff(action: Action, options: ConsumerOptions) {
-      log.func('toggleCameraOnOff')
-      log.green('', action)
-
-      let path = 'VideoChat.cameraOn'
-      let localParticipant = app.meeting.localParticipant
-      let videoTrack: LocalVideoTrack | undefined
-
-      if (localParticipant) {
-        videoTrack = Array.from(localParticipant.tracks.values()).find(
-          (trackPublication) => trackPublication.kind === 'video',
-        )?.track as LocalVideoTrack
-
-        app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
-          if (videoTrack) {
-            if (videoTrack.isEnabled) {
-              videoTrack.disable()
-              set(draft, path, false)
-              log.grey(`Toggled video off `, localParticipant)
-            } else {
-              videoTrack.enable()
-              set(draft, path, true)
-              log.grey(`Toggled video on`, localParticipant)
-            }
-          } else {
-            log.red(
-              `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
-              { localParticipant, room: app.meeting.room },
-            )
-          }
-        })
-      }
-    },
-    async toggleMicrophoneOnOff(action) {
-      log.func('toggleMicrophoneOnOff')
-      log.green('', action)
-
-      let path = 'VideoChat.micOn'
-      let localParticipant = app.meeting.localParticipant
-      let audioTrack: LocalAudioTrack | undefined
-
-      if (localParticipant) {
-        audioTrack = Array.from(localParticipant.tracks.values()).find(
-          (trackPublication) => trackPublication.kind === 'audio',
-        )?.track as LocalAudioTrack
-
-        app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
-          if (audioTrack) {
-            if (audioTrack.isEnabled) {
-              audioTrack.disable()
-              set(draft, path, false)
-              log.grey(`Toggled audio off`, localParticipant)
-            } else {
-              log.grey(`Toggled audio on`, localParticipant)
-              audioTrack.enable()
-              set(draft, path, true)
-            }
-          }
-        })
-      }
-    },
-    async toggleFlag(action, options) {
-      log.func('toggleFlag')
-      log.grey('', action)
-      try {
-        const { component, getAssetsUrl } = options
-        const { dataKey = '' } = action.original || {}
-        const iteratorVar = findIteratorVar(component)
-        const node = getFirstByElementId(component)
-        const pageName = app.mainPage.page || ''
-        let path = component?.get('path')
-
-        let dataValue: any
-        let dataObject: any
-        let previousDataValue: boolean | undefined
-        let nextDataValue: boolean | undefined
-        let newSrc = ''
-
-        if (isDraft(path)) path = original(path)
-
-        if (dataKey?.startsWith(iteratorVar)) {
-          let parts = dataKey.split('.').slice(1)
-          dataObject = findListDataObject(component)
-          previousDataValue = get(dataObject, parts)
-          dataValue = previousDataValue
-          if (Identify.isBoolean(dataValue)) {
-            // true -> false / false -> true
-            nextDataValue = !Identify.isBooleanTrue(dataValue)
-          } else {
-            // Set to true if am item exists
-            nextDataValue = !dataValue
-          }
-          set(dataObject, parts, nextDataValue)
-        } else {
-          const onNextValue = (
-            previousValue: any,
-            { updateDraft }: { updateDraft?: { path: string } } = {},
-          ) => {
-            let nextValue: any
-            if (Identify.isBoolean(previousValue)) {
-              nextValue = !Identify.isBooleanTrue(previousValue)
-            }
-            nextValue = !previousValue
-            if (updateDraft) {
-              app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
-                set(draft, updateDraft.path, nextValue)
-              })
-            }
-            // Propagate the changes to to UI if there is a path "if" object that
-            // references the value as well
-            if (node && u.isObj(path)) {
-              let valEvaluating = path?.if?.[0]
-              // If the dataKey is the same as the the value we are evaluating we can
-              // just re-use the nextDataValue
-              if (valEvaluating === dataKey) {
-                valEvaluating = nextValue
-              } else {
-                valEvaluating =
-                  get(app.noodl.root, valEvaluating) ||
-                  get(app.noodl.root[pageName], valEvaluating)
-              }
-              node.setAttribute(
-                'src',
-                getAssetsUrl() + valEvaluating ? path?.if?.[1] : path?.if?.[2],
-              )
-            }
-            return nextValue
-          }
-
-          dataObject = app.noodl.root
-
-          if (has(app.noodl.root, dataKey)) {
-            dataObject = app.noodl.root
-            previousDataValue = get(dataObject, dataKey)
-            onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-          } else if (has(app.noodl.root[pageName], dataKey)) {
-            dataObject = app.noodl.root[pageName]
-            previousDataValue = get(dataObject, dataKey)
-            onNextValue(previousDataValue, {
-              updateDraft: {
-                path: `${dataKey}${pageName ? `.${pageName}` : ''}`,
-              },
-            })
-          } else {
-            log.red(
-              `${dataKey} is not a path of the data object. ` +
-                `Defaulting to attaching ${dataKey} as a path to the root object`,
-              { dataObject, dataKey },
-            )
-            dataObject = app.noodl.root
-            previousDataValue = undefined
-            nextDataValue = false
-            onNextValue(previousDataValue, {
-              updateDraft: { path: `${dataKey}.${app.mainPage.page || ''}` },
-            })
-          }
-        }
-
-        if (/mic/i.test(dataKey)) {
-          await app.ndom.builtIns.toggleMicrophoneOnOff
-            .find(Boolean)
-            ?.fn?.(action, options)
-        } else if (/camera/i.test(dataKey)) {
-          await app.ndom.builtIns.toggleCameraOnOff
-            .find(Boolean)
-            ?.fn?.(action, options)
-        }
-
-        log.grey('', {
-          component,
-          dataKey,
-          dataValue,
-          dataObject,
-          previousDataValue,
-          nextDataValue,
-          previousDataValueInSdk: newSrc,
-          node,
-          path,
-          options,
-        })
-      } catch (error) {
-        console.error(error)
-        throw error
-      }
-    },
-    async lockApplication(action, options) {
-      const result = await _onLockLogout()
-      if (result === 'abort') options?.ref?.abort?.()
-      await (await import('@aitmed/cadl')).Account.logout(false)
-      window.location.reload()
-    },
-    async logOutOfApplication(action, options) {
-      if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
-      await (await import('@aitmed/cadl')).Account.logout(true)
-      window.location.reload()
-    },
-    async logout(_, options) {
-      if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
-      await (await import('@aitmed/cadl')).Account.logout(true)
-      window.location.reload()
-    },
-    async goto(action, options) {
-      log.func('<builtIn> goto]')
-      log.red('', action)
-
-      let destinationParam = ''
-      let reload: boolean | undefined
-      let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
-      let dataIn: any // sdk use
-
-      // "Reload" currently is only known to be used in goto when runnning
-      // an action chain and given an object like { destination, reload }
-      if (u.isStr(action)) {
-        destinationParam = action
-      } else if (isAction(action)) {
-        const gotoObj = action.original
-        if (u.isStr(gotoObj)) {
-          destinationParam = gotoObj
-        } else if (u.isObj(gotoObj)) {
-          if ('goto' in gotoObj) {
-            if (u.isObj(gotoObj.goto)) {
-              destinationParam = gotoObj.goto.destination
-              'reload' in gotoObj.goto && (reload = gotoObj.goto.reload)
-              'pageReload' in gotoObj.goto &&
-                (pageReload = gotoObj.goto.pageReload)
-              'dataIn' in gotoObj.goto && (dataIn = gotoObj.goto.dataIn)
-            } else if (u.isStr(gotoObj.goto)) {
-              destinationParam = gotoObj.goto
-            }
-          } else if (u.isObj(gotoObj)) {
-            destinationParam = gotoObj.destination
-            'reload' in gotoObj && (reload = gotoObj.reload)
-            'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
-            'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
-          }
-        }
-      } else if (u.isObj(action)) {
-        if ('destination' in action) {
-          destinationParam = action.destination
-          'reload' in action && (reload = action.reload)
-          'pageReload' in action && (pageReload = action.pageReload)
-          'dataIn' in action && (dataIn = action.dataIn)
-        }
-      }
-      if (!u.isUnd(reload)) {
-        app.mainPage.setModifier(destinationParam, { reload })
-      }
-      if (!u.isUnd(pageReload)) {
-        app.mainPage.setModifier(destinationParam, { pageReload })
-      }
-      if (!u.isUnd(dataIn)) {
-        app.mainPage.setModifier(destinationParam, { ...dataIn })
-      }
-      let { destination, id = '', isSamePage, duration } = parse.destination(
-        destinationParam,
+  const checkField: Store.BuiltInObject['fn'] = async function onCheckField(
+    action,
+  ) {
+    log.func('checkField')
+    log.grey('', action)
+    const delay: number | boolean = action.original?.wait || action.wait || 0
+    const onCheckField = () => {
+      const node = findByUX(
+        action.original?.contentType || action?.contentType || '',
       )
-      if (destination === destinationParam) {
-        app.mainPage.requesting = destination
-      }
+      u.array(node).forEach((n) => n && show(n))
+    }
+    if (delay > 0) setTimeout(() => onCheckField(), delay as any)
+    else onCheckField()
+  }
 
-      log.grey(`Goto info`, {
-        destination,
-        destinationParam,
-        duration,
-        id,
-        isSamePage,
-        reload,
-        pageReload,
+  const disconnectMeeting: Store.BuiltInObject['fn'] = async function onDisconnectMeeting(
+    action,
+  ) {
+    log.func('disconnectMeeting')
+    log.grey('', { action, room: app.meeting.room })
+    app.meeting.room.disconnect()
+  }
+
+  const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
+    log.func('goBack')
+    log.grey('', action)
+    if (u.isBool(action.original?.reload)) {
+      app.mainPage.requesting = app.mainPage
+        .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
+        .trim()
+      app.mainPage.setModifier(app.mainPage.requesting, {
+        reload: action.original?.reload,
       })
+    }
+    window.history.back()
+  }
 
-      if (id) {
-        const isInsidePageComponent = isPageConsumer(options.component)
-        const node = findByViewTag(id) || getFirstByElementId(id)
+  const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
+    log.func('hide')
+    log.grey('', action)
+    const viewTag = action.original?.viewTag || ''
+    const onElem = (node: HTMLElement) => {
+      if (VP.isNil(node.style.top, 'px')) {
+        node.style.display !== 'none' && (node.style.display = 'none')
+      } else {
+        node.style.display === 'none' && (node.style.display = 'block')
+      }
+    }
+    const elemCount = hide(findByViewTag(viewTag), onElem)
+    !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+  }
 
-        if (node) {
-          let win: Window | undefined | null
-          let doc: Document | null | undefined
-          if (document.contains?.(node as HTMLElement)) {
-            win = window
-            doc = window.document
+  const showAction: Store.BuiltInObject['fn'] = async function onShow(
+    action,
+    options,
+  ) {
+    log.func('show')
+    log.grey('', action)
+
+    const viewTag = action.original?.viewTag || ''
+    const onElem = (node: HTMLElement) => {
+      const component = options.component
+      if (component && VP.isNil(node.style.top)) {
+        !isVisible(node) && (node.style.visibility = 'visible')
+        node.style.display === 'none' && (node.style.display = 'block')
+      }
+    }
+    const elemCount = show(findByViewTag(viewTag), onElem)
+    !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+  }
+
+  const toggleCameraOnOff: Store.BuiltInObject['fn'] = async function onToggleCameraOnOff(
+    action,
+    options,
+  ) {
+    log.func('toggleCameraOnOff')
+    log.green('', action)
+
+    let path = 'VideoChat.cameraOn'
+    let localParticipant = app.meeting.localParticipant
+    let videoTrack: LocalVideoTrack | undefined
+
+    if (localParticipant) {
+      videoTrack = Array.from(localParticipant.tracks.values()).find(
+        (trackPublication) => trackPublication.kind === 'video',
+      )?.track as LocalVideoTrack
+
+      app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
+        if (videoTrack) {
+          if (videoTrack.isEnabled) {
+            videoTrack.disable()
+            set(draft, path, false)
+            log.grey(`Toggled video off `, localParticipant)
           } else {
-            win = findWindow((w: any) => {
-              if (w) {
-                if ('contentDocument' in w) {
-                  doc = (w as any).contentDocument
-                } else {
-                  doc = w.document
-                }
-                return doc?.contains?.(node as HTMLElement)
-              }
-              return false
-            })
-          }
-          const scroll = () => {
-            if (isInsidePageComponent) {
-              scrollToElem(node, { win, doc, duration })
-            } else {
-              ;(node as HTMLElement).scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-                inline: 'center',
-              })
-            }
-          }
-          if (isSamePage) {
-            scroll()
-          } else {
-            app.mainPage.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+            videoTrack.enable()
+            set(draft, path, true)
+            log.grey(`Toggled video on`, localParticipant)
           }
         } else {
           log.red(
-            `Could not search for a DOM node with an identity of "${id}"`,
-            {
-              node,
-              id,
-              destination,
-              isSamePage,
-              duration,
-              action,
-              options,
-            },
+            `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
+            { localParticipant, room: app.meeting.room },
           )
         }
-      }
+      })
+    }
+  }
 
-      if (!destinationParam.startsWith('http')) {
-        app.mainPage.pageUrl = u.resolvePageUrl({
-          destination,
-          pageUrl: app.mainPage.pageUrl,
-          startPage: app.noodl.cadlEndpoint.startPage,
-        })
-      } else {
-        destination = destinationParam
-      }
+  const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] = async function onToggleMicrophoneOnOff(
+    action,
+    options,
+  ) {
+    log.func('toggleMicrophoneOnOff')
+    log.green('', action)
 
-      if (!isSamePage) {
-        if (reload) {
-          let urlToGoToInstead = ''
-          const parts = app.mainPage.pageUrl.split('-')
-          if (parts.length > 1) {
-            if (!parts[0].startsWith('index.html')) {
-              parts.unshift('index.html?')
-              parts.push(destination)
-              urlToGoToInstead = parts.join('-')
-            }
+    let path = 'VideoChat.micOn'
+    let localParticipant = app.meeting.localParticipant
+    let audioTrack: LocalAudioTrack | undefined
+
+    if (localParticipant) {
+      audioTrack = Array.from(localParticipant.tracks.values()).find(
+        (trackPublication) => trackPublication.kind === 'audio',
+      )?.track as LocalAudioTrack
+
+      app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
+        if (audioTrack) {
+          if (audioTrack.isEnabled) {
+            audioTrack.disable()
+            set(draft, path, false)
+            log.grey(`Toggled audio off`, localParticipant)
           } else {
-            urlToGoToInstead = 'index.html?' + destination
+            log.grey(`Toggled audio on`, localParticipant)
+            audioTrack.enable()
+            set(draft, path, true)
           }
-
-          window.location.href = urlToGoToInstead
-        } else await app.navigate(destination)
-
-        if (!destination) {
-          log.func('builtIn')
-          log.red(
-            'Tried to go to a page but could not find information on the whereabouts',
-            { action, ...options },
-          )
         }
-      }
-    },
-    async redraw(action, options) {
-      log.func('redraw')
-      log.red('', { action, options })
+      })
+    }
+  }
 
-      const viewTag = action?.original?.viewTag || ''
-      const components = [] as NUIComponent.Instance[]
-      const { component } = options
+  const toggleFlag: Store.BuiltInObject['fn'] = async function onToggleFlag(
+    action,
+    options,
+  ) {
+    log.func('toggleFlag')
+    log.grey('', action)
+    try {
+      const { component, getAssetsUrl } = options
+      const { dataKey = '' } = action.original || {}
+      const iteratorVar = findIteratorVar(component)
+      const node = getFirstByElementId(component)
+      const pageName = app.mainPage.page || ''
+      let path = component?.get('path')
 
-      for (const c of NUI.cache.component.get().values()) {
-        c && c.get('viewTag') === viewTag && components.push(c)
-      }
+      let dataValue: any
+      let dataObject: any
+      let previousDataValue: boolean | undefined
+      let nextDataValue: boolean | undefined
+      let newSrc = ''
 
-      try {
-        if (
-          viewTag &&
-          (component?.get('data-viewtag') === viewTag ||
-            component?.get('viewTag') === viewTag) &&
-          !components.includes(component as NUIComponent.Instance)
-        ) {
-          components.push(component as NUIComponent.Instance)
+      if (isDraft(path)) path = original(path)
+
+      if (dataKey?.startsWith(iteratorVar)) {
+        let parts = dataKey.split('.').slice(1)
+        dataObject = findListDataObject(component)
+        previousDataValue = get(dataObject, parts)
+        dataValue = previousDataValue
+        if (Identify.isBoolean(dataValue)) {
+          // true -> false / false -> true
+          nextDataValue = !Identify.isBooleanTrue(dataValue)
+        } else {
+          // Set to true if am item exists
+          nextDataValue = !dataValue
+        }
+        set(dataObject, parts, nextDataValue)
+      } else {
+        const onNextValue = (
+          previousValue: any,
+          { updateDraft }: { updateDraft?: { path: string } } = {},
+        ) => {
+          let nextValue: any
+          if (Identify.isBoolean(previousValue)) {
+            nextValue = !Identify.isBooleanTrue(previousValue)
+          }
+          nextValue = !previousValue
+          if (updateDraft) {
+            app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
+              set(draft, updateDraft.path, nextValue)
+            })
+          }
+          // Propagate the changes to to UI if there is a path "if" object that
+          // references the value as well
+          if (node && u.isObj(path)) {
+            let valEvaluating = path?.if?.[0]
+            // If the dataKey is the same as the the value we are evaluating we can
+            // just re-use the nextDataValue
+            if (valEvaluating === dataKey) {
+              valEvaluating = nextValue
+            } else {
+              valEvaluating =
+                get(app.noodl.root, valEvaluating) ||
+                get(app.noodl.root[pageName], valEvaluating)
+            }
+            node.setAttribute(
+              'src',
+              getAssetsUrl() + valEvaluating ? path?.if?.[1] : path?.if?.[2],
+            )
+          }
+          return nextValue
         }
 
-        if (!components.length) {
-          log.red(`Could not find any components to redraw`, {
-            action,
-            ...options,
-            component,
+        dataObject = app.noodl.root
+
+        if (has(app.noodl.root, dataKey)) {
+          dataObject = app.noodl.root
+          previousDataValue = get(dataObject, dataKey)
+          onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
+        } else if (has(app.noodl.root[pageName], dataKey)) {
+          dataObject = app.noodl.root[pageName]
+          previousDataValue = get(dataObject, dataKey)
+          onNextValue(previousDataValue, {
+            updateDraft: {
+              path: `${dataKey}${pageName ? `.${pageName}` : ''}`,
+            },
           })
         } else {
-          log.grey(`Redrawing ${components.length} components`, components)
-        }
-
-        let startCount = 0
-
-        while (startCount < components.length) {
-          const viewTagComponent = components[startCount]
-          const node = getFirstByElementId(viewTagComponent)
-          const ctx = {} as any
-          if (isListConsumer(viewTagComponent)) {
-            const dataObject = findListDataObject(viewTagComponent)
-            if (dataObject) ctx.dataObject = dataObject
-          }
-          const [newNode, newComponent] = app.ndom.redraw(
-            node as HTMLElement,
-            viewTagComponent,
-            app.mainPage,
-            ctx,
+          log.red(
+            `${dataKey} is not a path of the data object. ` +
+              `Defaulting to attaching ${dataKey} as a path to the root object`,
+            { dataObject, dataKey },
           )
-          NUI.cache.component.add(newComponent)
-          startCount++
+          dataObject = app.noodl.root
+          previousDataValue = undefined
+          nextDataValue = false
+          onNextValue(previousDataValue, {
+            updateDraft: { path: `${dataKey}.${app.mainPage.page || ''}` },
+          })
         }
-      } catch (error) {
-        console.error(error)
-        toast(error.message, { type: 'error' })
-        throw error
       }
-      log.red(`COMPONENT CACHE SIZE: ${NUI.cache.component.length}`)
-    },
+
+      if (/mic/i.test(dataKey)) {
+        await app.ndom.builtIns.toggleMicrophoneOnOff
+          .find(Boolean)
+          ?.fn?.(action, options)
+      } else if (/camera/i.test(dataKey)) {
+        await app.ndom.builtIns.toggleCameraOnOff
+          .find(Boolean)
+          ?.fn?.(action, options)
+      }
+
+      log.grey('', {
+        component,
+        dataKey,
+        dataValue,
+        dataObject,
+        previousDataValue,
+        nextDataValue,
+        previousDataValueInSdk: newSrc,
+        node,
+        path,
+        options,
+      })
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
+  }
+
+  const lockApplication: Store.BuiltInObject['fn'] = async function onLockApplication(
+    action,
+    options,
+  ) {
+    const result = await _onLockLogout()
+    if (result === 'abort') options?.ref?.abort?.()
+    await (await import('@aitmed/cadl')).Account.logout(false)
+    window.location.reload()
+  }
+
+  const logOutOfApplication: Store.BuiltInObject['fn'] = async function onLogOutOfApplication(
+    action,
+    options,
+  ) {
+    if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
+    await (await import('@aitmed/cadl')).Account.logout(true)
+    window.location.reload()
+  }
+
+  const logout: Store.BuiltInObject['fn'] = async function onLogout(
+    action,
+    options,
+  ) {
+    if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
+    await (await import('@aitmed/cadl')).Account.logout(true)
+    window.location.reload()
+  }
+
+  const goto: Store.BuiltInObject['fn'] = async function onGoto(
+    action,
+    options,
+  ) {
+    log.func('<builtIn> goto]')
+    log.red('', action)
+
+    let destinationParam = ''
+    let reload: boolean | undefined
+    let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+    let dataIn: any // sdk use
+
+    // "Reload" currently is only known to be used in goto when runnning
+    // an action chain and given an object like { destination, reload }
+    if (u.isStr(action)) {
+      destinationParam = action
+    } else if (isAction(action)) {
+      const gotoObj = action.original
+      if (u.isStr(gotoObj)) {
+        destinationParam = gotoObj
+      } else if (u.isObj(gotoObj)) {
+        if ('goto' in gotoObj) {
+          if (u.isObj(gotoObj.goto)) {
+            destinationParam = gotoObj.goto.destination
+            'reload' in gotoObj.goto && (reload = gotoObj.goto.reload)
+            'pageReload' in gotoObj.goto &&
+              (pageReload = gotoObj.goto.pageReload)
+            'dataIn' in gotoObj.goto && (dataIn = gotoObj.goto.dataIn)
+          } else if (u.isStr(gotoObj.goto)) {
+            destinationParam = gotoObj.goto
+          }
+        } else if (u.isObj(gotoObj)) {
+          destinationParam = gotoObj.destination
+          'reload' in gotoObj && (reload = gotoObj.reload)
+          'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
+          'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
+        }
+      }
+    } else if (u.isObj(action)) {
+      if ('destination' in action) {
+        destinationParam = action.destination
+        'reload' in action && (reload = action.reload)
+        'pageReload' in action && (pageReload = action.pageReload)
+        'dataIn' in action && (dataIn = action.dataIn)
+      }
+    }
+    if (!u.isUnd(reload)) {
+      app.mainPage.setModifier(destinationParam, { reload })
+    }
+    if (!u.isUnd(pageReload)) {
+      app.mainPage.setModifier(destinationParam, { pageReload })
+    }
+    if (!u.isUnd(dataIn)) {
+      app.mainPage.setModifier(destinationParam, { ...dataIn })
+    }
+    let { destination, id = '', isSamePage, duration } = parse.destination(
+      destinationParam,
+    )
+    if (destination === destinationParam) {
+      app.mainPage.requesting = destination
+    }
+
+    log.grey(`Goto info`, {
+      destination,
+      destinationParam,
+      duration,
+      id,
+      isSamePage,
+      reload,
+      pageReload,
+    })
+
+    if (id) {
+      const isInsidePageComponent = isPageConsumer(options.component)
+      const node = findByViewTag(id) || getFirstByElementId(id)
+
+      if (node) {
+        let win: Window | undefined | null
+        let doc: Document | null | undefined
+        if (document.contains?.(node as HTMLElement)) {
+          win = window
+          doc = window.document
+        } else {
+          win = findWindow((w: any) => {
+            if (w) {
+              if ('contentDocument' in w) {
+                doc = (w as any).contentDocument
+              } else {
+                doc = w.document
+              }
+              return doc?.contains?.(node as HTMLElement)
+            }
+            return false
+          })
+        }
+        const scroll = () => {
+          if (isInsidePageComponent) {
+            scrollToElem(node, { win, doc, duration })
+          } else {
+            ;(node as HTMLElement).scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'center',
+            })
+          }
+        }
+        if (isSamePage) {
+          scroll()
+        } else {
+          app.mainPage.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+        }
+      } else {
+        log.red(`Could not search for a DOM node with an identity of "${id}"`, {
+          node,
+          id,
+          destination,
+          isSamePage,
+          duration,
+          action,
+          options,
+        })
+      }
+    }
+
+    if (!destinationParam.startsWith('http')) {
+      app.mainPage.pageUrl = u.resolvePageUrl({
+        destination,
+        pageUrl: app.mainPage.pageUrl,
+        startPage: app.noodl.cadlEndpoint.startPage,
+      })
+    } else {
+      destination = destinationParam
+    }
+
+    if (!isSamePage) {
+      if (reload) {
+        let urlToGoToInstead = ''
+        const parts = app.mainPage.pageUrl.split('-')
+        if (parts.length > 1) {
+          if (!parts[0].startsWith('index.html')) {
+            parts.unshift('index.html?')
+            parts.push(destination)
+            urlToGoToInstead = parts.join('-')
+          }
+        } else {
+          urlToGoToInstead = 'index.html?' + destination
+        }
+
+        window.location.href = urlToGoToInstead
+      } else await app.navigate(destination)
+
+      if (!destination) {
+        log.func('builtIn')
+        log.red(
+          'Tried to go to a page but could not find information on the whereabouts',
+          { action, ...options },
+        )
+      }
+    }
+  }
+
+  const redraw: Store.BuiltInObject['fn'] = async function onRedraw(
+    action,
+    options,
+  ) {
+    log.func('redraw')
+    log.red('', { action, options })
+
+    const viewTag = action?.original?.viewTag || ''
+    const components = [] as NUIComponent.Instance[]
+    const { component } = options
+
+    for (const c of NUI.cache.component.get().values()) {
+      c && c.get('viewTag') === viewTag && components.push(c)
+    }
+
+    try {
+      if (
+        viewTag &&
+        (component?.get('data-viewtag') === viewTag ||
+          component?.get('viewTag') === viewTag) &&
+        !components.includes(component as NUIComponent.Instance)
+      ) {
+        components.push(component as NUIComponent.Instance)
+      }
+
+      if (!components.length) {
+        log.red(`Could not find any components to redraw`, {
+          action,
+          ...options,
+          component,
+        })
+      } else {
+        log.grey(`Redrawing ${components.length} components`, components)
+      }
+
+      let startCount = 0
+
+      while (startCount < components.length) {
+        const viewTagComponent = components[startCount]
+        const node = getFirstByElementId(viewTagComponent)
+        const ctx = {} as any
+        if (isListConsumer(viewTagComponent)) {
+          const dataObject = findListDataObject(viewTagComponent)
+          if (dataObject) ctx.dataObject = dataObject
+        }
+        const [newNode, newComponent] = app.ndom.redraw(
+          node as HTMLElement,
+          viewTagComponent,
+          app.mainPage,
+          ctx,
+        )
+        NUI.cache.component.add(newComponent)
+        startCount++
+      }
+    } catch (error) {
+      console.error(error)
+      toast(error.message, { type: 'error' })
+      throw error
+    }
+    log.red(`COMPONENT CACHE SIZE: ${NUI.cache.component.length}`)
+  }
+
+  const builtIns = {
+    checkField,
+    disconnectMeeting,
+    goBack,
+    hide: hideAction,
+    show: showAction,
+    toggleCameraOnOff,
+    toggleMicrophoneOnOff,
+    toggleFlag,
+    lockApplication,
+    logOutOfApplication,
+    logout,
+    goto,
+    redraw,
   }
 
   /** Shared common logic for both lock/logout logic */
@@ -545,14 +598,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
   }
 
-  return Object.entries(builtIns).reduce((acc, [funcName, obj]) => {
-    const builtIn = { actionType: 'builtIn', funcName } as Store.BuiltInObject
-
-    if (u.isFnc(obj)) builtIn.fn = obj
-    else if (u.isObj(obj)) u.assign(builtIn, obj)
-
-    return acc.concat(builtIn)
-  }, [] as Store.BuiltInObject[])
+  return builtIns as Record<keyof typeof builtIns, Store.BuiltInObject['fn']>
 }
 
 /* -------------------------------------------------------

@@ -8,6 +8,7 @@ import { userEvent } from 'noodl-types'
 import { expect } from 'chai'
 import { createDataKeyReference, nui } from '../utils/test-utils'
 import {
+  groupedActionTypes,
   nuiEmitType,
   nuiEmitTransaction,
   actionTypes as nuiActionTypes,
@@ -51,18 +52,15 @@ describe(italic(`createActionChain`), () => {
     const spies = [spy1, spy2, spy3, spy4, spy5, spy6, spy7, spy8]
     const page = nui.createPage()
     nui.use({
-      actionType: 'builtIn',
-      fn: spy4,
-      funcName: 'too',
-      trigger: 'onFocus',
+      builtIn: { too: spy4 },
+      emit: { onFocus: spy3 },
+      goto: spy1,
+      pageJump: spy2,
+      saveObject: spy5,
+      updateObject: spy6,
+      evalObject: spy7,
+      refresh: spy8,
     })
-    nui.use({ actionType: 'goto', fn: spy1, trigger: 'onFocus' })
-    nui.use({ actionType: 'pageJump', fn: spy2, trigger: 'onFocus' })
-    nui.use({ actionType: 'emit', fn: spy3, trigger: 'onFocus' })
-    nui.use({ actionType: 'saveObject', fn: spy5, trigger: 'onFocus' })
-    nui.use({ actionType: 'updateObject', fn: spy6, trigger: 'onFocus' })
-    nui.use({ actionType: 'evalObject', fn: spy7, trigger: 'onFocus' })
-    nui.use({ actionType: 'refresh', fn: spy8, trigger: 'onFocus' })
     const ac = nui.createActionChain(
       'onFocus',
       [
@@ -91,16 +89,7 @@ describe(italic(`createActionChain`), () => {
   it(`should attach builtIn action handlers from the store`, async () => {
     const spy1 = sinon.spy()
     const spy2 = sinon.spy()
-    nui.use({
-      actionType: 'builtIn',
-      fn: spy1,
-      funcName: 'kitty',
-    })
-    nui.use({
-      actionType: 'builtIn',
-      fn: spy2,
-      funcName: 'cereal',
-    })
+    nui.use({ builtIn: { cereal: spy2, kitty: spy1 } })
     const page = nui.createPage()
     const ac = nui.createActionChain(
       'onHover',
@@ -137,18 +126,15 @@ describe(italic(`createActionChain`), () => {
       const spies = [spy1, spy2, spy3, spy4, spy5, spy6, spy7, spy8]
       const page = nui.createPage()
       nui.use({
-        actionType: 'builtIn',
-        fn: spy4,
-        funcName: 'too',
-        trigger: 'onFocus',
+        builtIn: { too: spy4 },
+        emit: { onFocus: spy3 },
+        goto: spy1,
+        pageJump: spy2,
+        saveObject: spy5,
+        updateObject: spy6,
+        evalObject: spy7,
+        refresh: spy8,
       })
-      nui.use({ actionType: 'goto', fn: spy1, trigger: 'onFocus' })
-      nui.use({ actionType: 'pageJump', fn: spy2, trigger: 'onFocus' })
-      nui.use({ actionType: 'emit', fn: spy3, trigger: 'onFocus' })
-      nui.use({ actionType: 'saveObject', fn: spy5, trigger: 'onFocus' })
-      nui.use({ actionType: 'updateObject', fn: spy6, trigger: 'onFocus' })
-      nui.use({ actionType: 'evalObject', fn: spy7, trigger: 'onFocus' })
-      nui.use({ actionType: 'refresh', fn: spy8, trigger: 'onFocus' })
       const ac = nui.createActionChain(
         'onFocus',
         [
@@ -210,7 +196,7 @@ describe(italic(`createPlugin`), () => {
   })
 })
 
-describe.only(italic(`createSrc`), () => {
+describe(italic(`createSrc`), () => {
   describe(`when passing in a string`, () => {
     it(`should just return the url untouched if it starts with http`, () => {
       const url = `https://www.google.com/hello.jpeg`
@@ -227,11 +213,7 @@ describe.only(italic(`createSrc`), () => {
     it(`should format the string if it doesn't start with http`, () => {
       const path = 'too.jpg'
       const emit = { emit: { dataKey: { var1: 'abc' }, actions: [] } }
-      nui.use({
-        actionType: 'emit',
-        fn: () => Promise.resolve(path) as any,
-        trigger: 'path',
-      })
+      nui.use({ emit: { path: () => Promise.resolve(path) as any } })
       return expect(nui.createSrc(emit)).to.eventually.eq(
         nui.getAssetsUrl() + path,
       )
@@ -239,22 +221,14 @@ describe.only(italic(`createSrc`), () => {
 
     it(`should resolve to the returned value from the promise if it starts with http`, () => {
       const path = 'https://www.google.com/too.jpg'
-      const emit = { emit: { dataKey: { var1: 'abc' }, actions: [] } }
-      nui.use({
-        actionType: 'emit',
-        fn: () => Promise.resolve(path) as any,
-        trigger: 'path',
-      })
+      const emit = { emit: { path: { var1: 'abc' }, actions: [] } }
+      nui.use({ emit: { path: () => Promise.resolve(path) as any } })
       return expect(nui.createSrc(emit)).to.eventually.eq(path)
     })
 
     it(`should be able to resolve emit paths from list consumers`, async () => {
       const path = { emit: { dataKey: { var1: 'cereal.fruit' }, actions: [] } }
-      nui.use({
-        actionType: 'emit',
-        fn: () => Promise.resolve('halloween.jpg') as any,
-        trigger: 'path',
-      })
+      nui.use({ emit: { path: () => Promise.resolve('halloween.jpg') as any } })
       const listObject = [{ fruit: 'apple.jpg' }, { fruit: 'orange.jpg' }]
       createDataKeyReference({ pageObject: { info: { people: listObject } } })
       const page = nui.createPage()
@@ -279,11 +253,7 @@ describe.only(italic(`createSrc`), () => {
 
     it(`should emit the "path" event after receiving the value from an emit object`, (done) => {
       const path = { emit: { dataKey: { var1: 'cereal.fruit' }, actions: [] } }
-      nui.use({
-        actionType: 'emit',
-        fn: () => Promise.resolve('halloween.jpg') as any,
-        trigger: 'path',
-      })
+      nui.use({ emit: { path: () => Promise.resolve('halloween.jpg') as any } })
       const listObject = [{ fruit: 'apple.jpg' }, { fruit: 'orange.jpg' }]
       createDataKeyReference({ pageObject: { info: { people: listObject } } })
       const page = nui.createPage()
@@ -388,7 +358,6 @@ describe(italic(`getBuiltIns`), () => {
 
 describe(italic(`getResolvers`), () => {
   it(`should return the transformers`, () => {
-    console.info(nui.getResolvers())
     expect(NUI.getResolvers()).to.be.an('array')
   })
 })
@@ -439,146 +408,69 @@ describe(italic(`resolveComponents`), () => {
 })
 
 describe(italic(`use`), () => {
-  describe(italic(`action`), () => {
-    const hasAction = (type: any, spy: any) =>
-      nui.getActions()[type].some((o: any) => o.fn === spy)
-
-    it(`should add { [actionType]: <function> }`, () => {
+  groupedActionTypes.forEach((actionType) => {
+    it(`should take { [${actionType}]: <function> }`, () => {
       const spy = sinon.spy()
-      const obj = { actionType: 'evalObject', fn: spy } as any
-      expect(hasAction(obj.actionType, spy)).to.be.false
+      const obj = { [actionType]: spy }
+      expect(NUI.cache.actions.exists(spy)).to.be.false
       nui.use(obj)
-      expect(hasAction(obj.actionType, spy)).to.be.true
+      expect(NUI.cache.actions.exists(spy)).to.be.true
     })
 
-    it(`should add { action: { [actionType]: <function> } }`, () => {
+    it(`should take { [${actionType}]: <function>[] }`, () => {
       const spy = sinon.spy()
-      const obj = { action: { evalObject: spy } } as any
-      expect(hasAction('evalObject', spy)).to.be.false
+      const obj = { [actionType]: [spy] }
+      expect(NUI.cache.actions.exists(spy)).to.be.false
       nui.use(obj)
-      expect(hasAction('evalObject', spy)).to.be.true
-    })
-
-    it(`should add { action: { [actionType]: <function>[] }}`, () => {
-      const spy = sinon.spy()
-      const obj = { action: { evalObject: [spy] } } as any
-      expect(hasAction('evalObject', spy)).to.be.false
-      nui.use(obj)
-      expect(hasAction('evalObject', spy)).to.be.true
-    })
-
-    it(`should add { action: { evalObject: { fn: spy } } }`, () => {
-      const spy = sinon.spy()
-      const obj = { action: { evalObject: { fn: spy } } } as any
-      expect(hasAction('evalObject', spy)).to.be.false
-      nui.use(obj)
-      expect(hasAction('evalObject', spy)).to.be.true
-    })
-
-    it(`should add { action: { evalObject: [{ fn: spy }] } }`, () => {
-      const spy = sinon.spy()
-      const obj = { action: { evalObject: [{ fn: spy }] } } as any
-      expect(hasAction('evalObject', spy)).to.be.false
-      nui.use(obj)
-      expect(hasAction('evalObject', spy)).to.be.true
-    })
-
-    it(`should add { action: { emit: [{ fn: spy, trigger: 'path' }] } }`, () => {
-      const spy = sinon.spy()
-      const obj = { action: { emit: [{ fn: spy, trigger: 'path' }] } } as any
-      expect(hasAction('emit', spy)).to.be.false
-      nui.use(obj)
-      expect(hasAction('emit', spy)).to.be.true
-    })
-
-    it(`should add { action: { emit: { fn: spy, trigger: 'path' } } }`, () => {
-      const spy = sinon.spy()
-      const obj = { action: { emit: { fn: spy, trigger: 'path' } } } as any
-      expect(hasAction('emit', spy)).to.be.false
-      nui.use(obj)
-      expect(hasAction('emit', spy)).to.be.true
-    })
-
-    it(`should add { action: { emit: { path: spy } } }`, () => {
-      const spy = sinon.spy()
-      const obj = { action: { emit: { path: spy } } } as any
-      expect(hasAction('emit', spy)).to.be.false
-      nui.use(obj)
-      expect(hasAction('emit', spy)).to.be.true
-    })
-
-    it(`should add { action: { emit: { path: [spy] } } }`, () => {
-      const spy = sinon.spy()
-      const obj = { action: { emit: { path: [spy] } } } as any
-      expect(hasAction('emit', spy)).to.be.false
-      nui.use(obj)
-      expect(hasAction('emit', spy)).to.be.true
-    })
-
-    it(`should add { action: { emit: [{ path: [spy] }] } }`, () => {
-      const spy = sinon.spy()
-      const obj = { action: { emit: [{ path: [spy] }] } } as any
-      expect(hasAction('emit', spy)).to.be.false
-      nui.use(obj)
-      expect(hasAction('emit', spy)).to.be.true
+      expect(NUI.cache.actions.exists(spy)).to.be.true
     })
   })
 
   describe(italic(`builtIn`), () => {
-    const hasBuiltIns = (funcName: any, spy: any) =>
-      !!nui.getBuiltIns()[funcName]?.some((o) => o.fn === spy)
-
-    it(`should support this syntax`, () => {
-      const spy = sinon.spy()
-      const obj = { builtIn: { hello: spy } } as any
-      expect(hasBuiltIns('hello', spy)).to.be.false
-      nui.use(obj)
-      expect(hasBuiltIns('hello', spy)).to.be.true
-    })
-
-    it(`should support this syntax`, () => {
-      const spy = sinon.spy()
-      const obj = { builtIn: { hello: [spy] } } as any
-      expect(hasBuiltIns('hello', spy)).to.be.false
-      nui.use(obj)
-      expect(hasBuiltIns('hello', spy)).to.be.true
-    })
-
-    it(`should support this syntax`, () => {
-      const spy = sinon.spy()
-      const obj = { builtIn: { hello: { fn: spy } } } as any
-      expect(hasBuiltIns('hello', spy)).to.be.false
-      nui.use(obj)
-      expect(hasBuiltIns('hello', spy)).to.be.true
-    })
-
-    it(`should support this syntax`, () => {
-      const spy = sinon.spy()
-      const obj = { builtIn: { hello: [{ fn: spy }] } } as any
-      expect(hasBuiltIns('hello', spy)).to.be.false
-      nui.use(obj)
-      expect(hasBuiltIns('hello', spy)).to.be.true
+    const spy = sinon.spy()
+    const builtIns = {
+      hello: spy,
+      fruit: spy,
+      abc: [spy],
+    }
+    u.entries(builtIns).forEach(([funcName, fn]) => {
+      u.array(fn).forEach((f) => {
+        it(`should take { [${funcName}]: <function>[] }`, () => {
+          NUI.use({ builtIn: builtIns })
+          expect(NUI.cache.actions.builtIn)
+            .to.have.property(funcName)
+            .to.be.an('array')
+          expect(NUI.cache.actions.builtIn[funcName]).to.satisfy((arr) =>
+            arr.some((obj) => obj.fn === f),
+          )
+        })
+      })
     })
   })
 
   describe(italic(`emit`), () => {
     it(`should accept trigger as the key and the func as the value`, () => {
+      const getEmits = () => NUI.getActions('emit')
       const spy = sinon.spy(async () => 'hello') as any
-      expect(nui.getActions().emit).to.have.lengthOf(0)
-      nui.use({ emit: { dataValue: spy as any } })
-      expect(nui.getActions().emit).to.have.lengthOf(1)
-      expect(nui.getActions().emit.find((obj) => obj.fn === spy))
+      expect(getEmits().get('dataValue')).to.have.lengthOf(0)
+      NUI.use({ emit: { dataValue: spy } })
+      expect(getEmits().get('dataValue')).to.have.lengthOf(1)
+      expect(
+        getEmits()
+          .get('dataValue')
+          ?.some((obj) => obj.fn === spy),
+      ).to.be.true
     })
 
-    it(`should accept trigger as the key and an array of funcs as the value`, () => {
+    xit(`should accept trigger as the key and an array of funcs as the value`, () => {
       const spy = sinon.spy(async () => 'hello')
       const spy2 = sinon.spy(async () => 'hello')
-      expect(nui.getActions().emit).to.have.lengthOf(0)
+      expect(nui.getActions('emit')).to.have.lengthOf(0)
       nui.use({ emit: { dataValue: [spy, spy2] as any } })
-      expect(nui.getActions().emit).to.have.lengthOf(2)
-      expect(nui.getActions().emit[0].fn).to.eq(spy)
-      expect(nui.getActions().emit[1].fn).to.eq(spy2)
-      expect(nui.getActions().emit[1].fn).to.eq(spy2)
+      expect(nui.getActions('emit')).to.have.lengthOf(2)
+      expect(nui.getActions('emit')[0].fn).to.eq(spy)
+      expect(nui.getActions('emit')[1].fn).to.eq(spy2)
+      expect(nui.getActions('emit')[1].fn).to.eq(spy2)
     })
   })
 

@@ -48,8 +48,8 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
       //
     } else {
       results.push(
-        // prettier-ignore
-        `Could not identify an input as an action: ${JSON.stringify(obj,null,2)}`,
+        `Encountered an unsupported action object of type "${obj.actionType}". ` +
+          `Check typos or letter casings.`,
       )
     }
   }

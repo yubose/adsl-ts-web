@@ -15,7 +15,6 @@ import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import {
   NUIComponent,
   nuiEmitTransaction,
-  nuiEmitType,
   NUI,
   publish,
   Viewport as VP,
@@ -137,42 +136,6 @@ class App {
         return (window.location.href = _pageRequesting)
       }
 
-      // if (
-      //   /videochat/i.test(_page.page) &&
-      //   !/videochat/i.test(_page.requesting)
-      // ) {
-      //   this.meeting.leave()
-
-      //   log.func('navigate')
-      //   log.grey(`Disconnected from room`, this.meeting.room)
-
-      //   const mainStream = this.streams.getMainStream()
-      //   const selfStream = this.streams.getSelfStream()
-      //   const subStreamsContainer = this.streams.getSubStreamsContainer()
-      //   const subStreams = subStreamsContainer?.getSubstreamsCollection()
-
-      //   if (mainStream.getElement()) {
-      //     log.grey('Wiping mainStream state', mainStream.reset())
-      //   }
-      //   if (selfStream.getElement()) {
-      //     log.grey('Wiping selfStream state', selfStream.reset())
-      //   }
-      //   if (subStreamsContainer?.length) {
-      //     log.grey(
-      //       `Wiping subStreams container's state`,
-      //       subStreamsContainer.reset(),
-      //     )
-      //   }
-      //   if (Array.isArray(subStreams)) {
-      //     subStreams.forEach((subStream) => {
-      //       if (subStream.getElement()) {
-      //         log.grey(`Wiping a subStream's state`, subStream.reset())
-      //         subStreamsContainer?.removeSubStream(subStream)
-      //       }
-      //     })
-      //   }
-      // }
-
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
       // our init() method. Page.components should also contain the components retrieved from
       // that page object
@@ -264,15 +227,14 @@ class App {
         // getPlugins: () => plugins,
       })
 
-      const { action: actions, emit: emitActions } = createActions(this)
+      const actions = createActions(this)
       const builtIns = createBuiltIns(this)
       const registers = createRegisters(this)
       const domResolvers = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
 
-      this.ndom.use({ action: actions, emit: emitActions })
-      // actions.forEach((obj) => this.ndom.use(obj))
-      builtIns.forEach((obj) => this.ndom.use(obj))
+      this.ndom.use(actions)
+      this.ndom.use({ builtIn: builtIns })
       registers.forEach((obj) => this.ndom.use({ register: obj }))
       domResolvers.forEach((obj) => this.ndom.use({ resolver: obj }))
 
@@ -347,8 +309,8 @@ class App {
                       )
                       NUI.use({
                         register: {
-                          name: value.onEvent,
-                          // component: value,
+                          name: value.onEvent as string,
+                          component: value,
                           page: '_global',
                         },
                       })
@@ -650,7 +612,6 @@ class App {
                   getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
                   getPages: () => this.noodl.cadlEndpoint?.page || [],
                   getRoot: () => this.noodl.root,
-                  getPlugins: () => plugins,
                 })
 
                 // log.func('before-page-render')

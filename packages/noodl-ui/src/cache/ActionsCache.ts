@@ -1,29 +1,31 @@
+import { LiteralUnion } from 'type-fest'
 import { inspect } from 'util'
 import { ICache, NUIActionType, NUITrigger, Store } from '../types'
-import { actionTypes, triggers } from '../constants'
+import { isFnc } from '../utils/internal'
+import { groupedActionTypes, triggers } from '../constants'
 
-type OtherActionTypes = Exclude<NUIActionType, 'builtIn' | 'emit'>
-
-const otherActions = actionTypes.filter(
-  (t) => !/(builtIn|emit)/i.test(t),
-) as OtherActionTypes[]
+type OtherActionTypes = Exclude<
+  LiteralUnion<NUIActionType, string>,
+  'builtIn' | 'emit' | 'register'
+>
 
 const getInitialActionsState = <AType extends string, StoreObj = any>(
   actionTypes: AType[],
 ) => {
-  const actions = new Map<AType, StoreObj[]>()
+  const actions = new Map<LiteralUnion<AType, string>, StoreObj[]>()
   actionTypes.forEach((t) => actions.set(t, []))
   return actions
 }
 
+type ActionsStore<AType extends string, StoreObj = any> = Map<
+  LiteralUnion<AType, string>,
+  StoreObj[]
+>
+
 class ActionsCache implements ICache {
-  #actions = getInitialActionsState<OtherActionTypes, Store.ActionObject>([
-    ...otherActions,
-  ])
-  #builtIns = getInitialActionsState<'builtIn', Store.BuiltInObject>([])
-  #emits = getInitialActionsState<NUITrigger, Store.ActionObject[]>([
-    ...triggers,
-  ]);
+  #actions: ActionsStore<OtherActionTypes, Store.ActionObject>
+  #builtIns: ActionsStore<'builtIn', Store.BuiltInObject>
+  #emits: ActionsStore<LiteralUnion<NUITrigger, string>, Store.ActionObject[]>;
 
   [Symbol.iterator]() {
     const items = [
@@ -44,6 +46,10 @@ class ActionsCache implements ICache {
   }
 
   constructor() {
+    this.#actions = getInitialActionsState([...groupedActionTypes])
+    this.#builtIns = getInitialActionsState([])
+    this.#emits = getInitialActionsState([...triggers])
+
     for (const actionType of this.#actions.keys()) {
       Object.defineProperty(this, actionType, {
         configurable: true,
@@ -73,8 +79,26 @@ class ActionsCache implements ICache {
     this.#emits.clear()
   }
 
+  exists(fn: Store.ActionObject['fn'] | Store.BuiltInObject['fn']) {
+    if (isFnc(fn)) {
+      for (const objs of this) {
+        if (objs) {
+          for (const obj of objs) {
+            if ('actionType' in obj) {
+              if (obj.fn === fn) return true
+            } else {
+              if (obj.some((o) => o.fn === fn)) return true
+            }
+          }
+        }
+      }
+    }
+    return false
+  }
+
   reset() {
-    this.#actions = getInitialActionsState([...otherActions])
+    this.#actions = getInitialActionsState([...groupedActionTypes])
+    this.#builtIns = getInitialActionsState([])
     this.#emits = getInitialActionsState([...triggers])
   }
 }

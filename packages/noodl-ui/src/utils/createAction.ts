@@ -40,11 +40,7 @@ function createAction(
       if (isStr(args2)) {
         action = __createAction(args, { actionType: 'goto', goto: args2 })
       } else if (isObj(args2)) {
-        if (!('actionType' in args2)) {
-          if (Identify.goto(args2)) args2.actionType = 'goto'
-          else if (Identify.toast(args2)) args2['actionType'] = 'toast'
-          else args2['actionType'] = 'anonymous'
-        }
+        if (!('actionType' in args2)) args2['actionType'] = getActionType(args2)
         action = __createAction(args, args2 as NUIActionObject)
       }
     }

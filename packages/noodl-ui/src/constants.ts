@@ -1,4 +1,5 @@
 import { actionTypes as noodlTypesActionTypes, userEvent } from 'noodl-types'
+import { NUIActionType } from './types'
 
 // Extended constants from this lib
 export const lib = {
@@ -20,6 +21,10 @@ export const lib = {
 
 export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]
 export const triggers = [...lib.emitTriggers, ...userEvent]
+
+export const groupedActionTypes = actionTypes.filter(
+  (t) => !/(builtIn|emit|register)/i.test(t),
+) as Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>[]
 
 export const presets = {
   border: {

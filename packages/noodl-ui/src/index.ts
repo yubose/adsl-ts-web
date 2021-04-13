@@ -31,7 +31,7 @@ export {
   resolveAssetUrl,
 } from './utils/noodl'
 export { formatColor } from './utils/common'
-export { actionTypes, trigger } from './constants'
+export { actionTypes, trigger, triggers } from './constants'
 export * from './types'
 
 import { lib } from './constants'

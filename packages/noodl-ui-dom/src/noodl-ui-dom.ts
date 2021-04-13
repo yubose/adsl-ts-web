@@ -675,7 +675,7 @@ class NOODLDOM extends NOODLDOMInternal {
     return this
   }
 
-  async transact<TType extends TransactionId>(
+  async transact<TType extends keyof T.Transaction>(
     transaction: TType,
     args: Parameters<T.Transaction[TType]>[0],
   ) {
