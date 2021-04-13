@@ -37,6 +37,7 @@ const configs = [
       filesize(),
       progress(),
       resolve({
+        browser: true,
         extensions,
         moduleDirectories: ['node_modules'],
       }),
