@@ -467,7 +467,7 @@ class NOODLDOM extends NOODLDOMInternal {
     node: T.NOODLDOMElement | null, // ex: li (dom node)
     component: Component, // ex: listItem (component instance)
     pageProp?: Page,
-    context,
+    context?: any,
   ) {
     let newNode: T.NOODLDOMElement | null = null
     let newComponent: Component | undefined
