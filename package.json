@@ -42,8 +42,8 @@
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.252",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.137",
+    "@aitmed/cadl": "^1.0.253",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.139",
     "axios": "^0.21.1",
     "date-fns": "^2.20.1",
     "firebase": "^8.2.7",
