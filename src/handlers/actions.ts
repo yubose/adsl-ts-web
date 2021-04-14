@@ -94,6 +94,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     log.func('evalObject')
+    log.grey('', action)
     try {
       if (u.isFnc(action?.original?.object)) {
         const result = await action.original.object?.()
@@ -325,6 +326,7 @@ const createActions = function createActions(app: App) {
               `Could not determine the page to query the verification code for`,
             )
           }
+
           if (vcode) {
             if (!vcodeInput.value || vcodeInput.value == '0') {
               vcode = String(vcode)

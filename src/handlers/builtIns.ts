@@ -613,8 +613,9 @@ export function createVideoChatBuiltIn(app: App) {
       accessToken: string
     },
   ) {
+    log.func('onVideoChat')
+    log.grey('', action)
     try {
-      log.func('onVideoChat')
       if (action) {
         let msg = ''
         if (action.accessToken) msg += 'Received access token '
@@ -682,7 +683,7 @@ export function createVideoChatBuiltIn(app: App) {
       }
     } catch (error) {
       console.error(error)
-      window.alert(`[${error.name}]: ${error.message}`)
+      toast(error.message, { type: 'error' })
     }
   }
 }

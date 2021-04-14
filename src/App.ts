@@ -271,7 +271,8 @@ class App {
       ): Promise<PageObject> {
         try {
           const pageRequesting = page.requesting
-          stable && log.cyan(`Running noodl.initPage on ${pageRequesting}`)
+          log.grey(`Running noodl.initPage on ${pageRequesting}`)
+          // debugger
           await this.noodl?.initPage(pageRequesting, [], {
             ...page.modifiers[pageRequesting],
             builtIn: {

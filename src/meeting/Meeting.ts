@@ -99,6 +99,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
 
         setTimeout(() => app.meeting.onConnected?.(room), 2000)
         _internal._room = room
+        console.log('"HELLOOO')
         return _internal._room
       } catch (error) {
         console.error(error)

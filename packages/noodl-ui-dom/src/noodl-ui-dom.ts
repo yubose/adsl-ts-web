@@ -218,12 +218,11 @@ class NOODLDOM extends NOODLDOMInternal {
 
     try {
       page.ref.request.timer && clearTimeout(page.ref.request.timer)
-
       const pageObject = await this.transact(
         nuiEmitTransaction.REQUEST_PAGE_OBJECT,
         page,
       )
-
+      debugger
       const action = async (cb: () => any | Promise<any>) => {
         try {
           if (pageRequesting === page.requesting) {
@@ -310,7 +309,6 @@ class NOODLDOM extends NOODLDOMInternal {
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
 
     this.reset('componentCache')
-
     const components = u.array(
       NOODLDOM._nui.resolveComponents.call(NOODLDOM._nui, {
         components: page.components,
@@ -327,7 +325,6 @@ class NOODLDOM extends NOODLDOMInternal {
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
 
     components.forEach((component) => this.draw(component, page.rootNode, page))
-
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
 
     return components as NUIComponent.Instance[]

@@ -13,10 +13,6 @@ import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
 import * as u from '../utils/common'
 
-beforeEach(() => {
-  ndom.reset()
-})
-
 describe(coolGold(`App`), () => {
   describe(italic(`Instantiating`), () => {
     it('should initiate the viewport', async () => {
@@ -94,11 +90,10 @@ describe(coolGold(`App`), () => {
       })
     })
 
-    describe.only(`noodl registers`, () => {
+    describe(`noodl registers`, () => {
       createRegisters({} as any).forEach((obj) => {
         it(`should register the "${magenta(obj.name)}" object`, async () => {
           const app = await initializeApp()
-          console.info(app.ndom.cache.register.get('_global', obj.name))
           expect(app.ndom.cache.register.has(obj.name))
         })
       })
