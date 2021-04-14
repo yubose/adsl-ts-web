@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
-    "allowJs": true,
+    "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
-    "sourceMap": true,
     "keyofStringsOnly": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "listEmittedFiles": true,
@@ -17,10 +16,9 @@
     "noImplicitAny": false,
     "strictNullChecks": true,
     "skipLibCheck": true,
-    "strict": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "esnext"
+    "target": "es2015"
   },
-  "exclude": ["node_modules/**/*"],
-  "include": ["src/**/*"]
+  "exclude": ["node_modules", "dist"],
+  "include": ["src"]
 }

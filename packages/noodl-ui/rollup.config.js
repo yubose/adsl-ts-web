@@ -2,6 +2,7 @@ import { DEFAULT_EXTENSIONS } from '@babel/core'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import babel from '@rollup/plugin-babel'
 import typescript from 'rollup-plugin-typescript2'
+// import typescript from '@rollup/plugin-typescript'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
@@ -15,13 +16,18 @@ const configs = [
   {
     input: 'src/index.ts',
     output: [
+      // {
+      //   dir: 'dist',
+      //   exports: 'named',
+      //   format: 'umd',
+      //   name: 'noodlui',
+      //   sourcemap: true,
+      //   globals: {},
+      // },
       {
         dir: 'dist',
-        exports: 'named',
-        format: 'umd',
-        name: 'noodlui',
-        sourcemap: true,
-        globals: {},
+        format: 'cjs',
+        sourcemap: 'inline',
       },
     ],
     plugins: [
@@ -31,7 +37,6 @@ const configs = [
       filesize(),
       progress(),
       resolve({
-        browser: true,
         extensions,
         moduleDirectories: ['node_modules'],
       }),
@@ -46,8 +51,8 @@ const configs = [
       babel({
         babelHelpers: 'bundled',
         include: ['src'],
-        exclude: ['node_modules/**'],
-        extensions,
+        exclude: ['node_modules'],
+        extensions: ['.js'],
       }),
     ],
   },
