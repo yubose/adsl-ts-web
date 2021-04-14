@@ -13,8 +13,7 @@ import {
   LocalVideoTrack,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import NOODLOM, { getFirstByViewTag, findByUX, Page } from 'noodl-ui-dom'
-import { Viewport } from 'noodl-ui'
+import { getFirstByViewTag, findByUX, Page } from 'noodl-ui-dom'
 import { array, isMobile } from '../utils/common'
 import { hide, show, toast } from '../utils/dom'
 import App from '../App'
@@ -26,12 +25,8 @@ import * as T from '../app/types/meetingTypes'
 const log = Logger.create('Meeting.ts')
 
 interface Internal {
-  _page: Page | undefined
-  _ndom: NOODLOM
-  _viewport: Viewport | undefined
   _room: Room
   _streams: Streams
-  _token: string
 }
 
 // import makePublications from './makePublications'
@@ -39,12 +34,8 @@ interface Internal {
 
 const createMeetingFns = function _createMeetingFns(app: App) {
   const _internal: Internal = {
-    _page: app.mainPage,
-    _viewport: app.viewport,
-    _ndom: app.ndom,
     _room: new EventEmitter() as Room,
     _streams: new Streams(),
-    _token: '',
   } as Internal
 
   const o = {
@@ -55,7 +46,6 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     async join(token: string, options?: ConnectOptions) {
       try {
-        _internal._token = token
         // TODO - timeout
         const room = await connect(token, {
           dominantSpeaker: true,
@@ -195,7 +185,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = subStreams.blueprint
-              const node = _internal._ndom.draw(
+              const node = app.ndom.draw(
                 subStreams.resolver?.(props) || props,
               ) as any
               const subStream = subStreams
@@ -255,7 +245,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           // since we create them customly and are not included in the NOODL, we
           // would call subStream.removeElement() for those
           mainStream.unpublish().detachParticipant()
-          app.meeting.onRemoveRemoteParticipant?.(participant, mainStream)
+          app.meeting.onRemoveRemoteParticipant?.(
+            participant as RemoteParticipant,
+            mainStream,
+          )
 
           let nextMainParticipant: T.RoomParticipant | null
 
@@ -310,7 +303,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           if (subStream) {
             subStream.unpublish().detachParticipant().removeElement()
             subStreams?.removeSubStream(subStream)
-            app.meeting.onRemoveRemoteParticipant?.(participant, subStream)
+            app.meeting.onRemoveRemoteParticipant?.(
+              participant as RemoteParticipant,
+              subStream,
+            )
           }
         }
       }
@@ -391,11 +387,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     reset() {
       Object.assign(_internal, {
-        _page: undefined,
-        _viewport: undefined,
         _room: new EventEmitter() as Room,
         _streams: new Streams(),
-        _token: '',
       })
       return this
     },

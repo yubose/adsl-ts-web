@@ -11,7 +11,6 @@ import {
   groupedActionTypes,
   nuiEmitType,
   nuiEmitTransaction,
-  actionTypes as nuiActionTypes,
   triggers as nuiTriggers,
 } from '../constants'
 import Component from '../Component'
@@ -550,6 +549,17 @@ describe(italic(`use`), () => {
   })
 
   describe(italic(`register`), () => {
+    it(`should support { [name]: <function> }`, () => {
+      const spy = sinon.spy() as any
+      expect(NUI.cache.register.has('hello')).to.be.false
+      NUI.use({ register: { hello: spy } })
+      expect(NUI.cache.register.has('_global', 'hello')).to.be.true
+      expect(NUI.cache.register.get('_global', 'hello')).to.have.property(
+        'fn',
+        spy,
+      )
+    })
+
     it(`should be able to register { name, fn }`, () => {
       const spy = sinon.spy()
       const obj = { name: 'hello', fn: spy }
@@ -559,12 +569,6 @@ describe(italic(`use`), () => {
         'fn',
         spy,
       )
-    })
-
-    it(`should throw if it cannot locate a name or identifier`, () => {
-      expect(() => {
-        NUI.use({ register: { component: {} as any, page: '_global' } as any })
-      }).to.throw(/identifier/i)
     })
 
     it(`should add to the register store`, () => {

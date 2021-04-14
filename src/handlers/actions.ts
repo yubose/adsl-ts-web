@@ -374,7 +374,7 @@ const createActions = function createActions(app: App) {
     log.func('popUpDismiss')
     log.grey('', action)
     await Promise.all(
-      app.ndom.actions.popUp.map((obj: Store.ActionObject) =>
+      app.ndom.actions?.popUp?.map((obj: Store.ActionObject) =>
         obj?.fn?.(action, options),
       ),
     )

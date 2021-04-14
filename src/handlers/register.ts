@@ -6,7 +6,6 @@ import Logger from 'logsnap'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
 import { copyToClipboard } from '../utils/dom'
-import { aitMessage } from '../app/firebase'
 import App from '../App'
 import * as u from '../utils/common'
 
@@ -52,7 +51,7 @@ function createRegisters(app: App) {
         }
 
         const getTokenOptions = {
-          vapidKey: aitMessage.vapidKey,
+          vapidKey: app._store.messaging.vapidKey,
           serviceWorkerRegistration: app._store.messaging.serviceRegistration,
           ...options,
         }
@@ -71,10 +70,7 @@ function createRegisters(app: App) {
     },
     twilioOnPeopleJoin(obj: Register.Object, { room }: { room?: Room } = {}) {
       console.log(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, obj)
-      if (
-        room?.participants.size ||
-        app.noodl.root?.VideoChat?.listData?.participants?.length
-      ) {
+      if (room?.participants.size) {
         app.meeting.hideWaitingOthersMessage()
       }
     },
@@ -83,10 +79,7 @@ function createRegisters(app: App) {
       { room }: { room?: Room } = {},
     ) {
       console.log(`%c[twilioOnNoParticipant]`, `color:#95a5a6;`, obj)
-      if (
-        room?.participants?.size === 0 ||
-        app.noodl.root?.VideoChat?.listData?.participants?.length === 0
-      ) {
+      if (room?.participants?.size === 0) {
         app.meeting.showWaitingOthersMessage()
       }
     },

@@ -232,7 +232,7 @@ export async function initializeApp(
   // const meetingFns = createMeetingFns(app)
 
   await app.initialize({
-    firebase: { client: { messaging: noop } as any, vapidKey: '' },
+    firebase: { client: { messaging: noop } as any, vapidKey: 'mockVapidKey' },
     firebaseSupported: false,
   })
 

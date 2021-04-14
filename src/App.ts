@@ -50,11 +50,16 @@ class App {
   #ndom: T.AppConstructorOptions['ndom']
   #preparePage = {} as (page: NOODLDOMPage) => Promise<PageObject>
   _store: {
-    messaging: { serviceRegistration: ServiceWorkerRegistration; token: string }
+    messaging: {
+      serviceRegistration: ServiceWorkerRegistration
+      token: string
+      vapidKey?: string
+    }
   } = {
     messaging: {
       serviceRegistration: {} as ServiceWorkerRegistration,
       token: '',
+      vapidKey: '',
     },
   }
   authStatus: AuthStatus | '' = ''
@@ -163,6 +168,7 @@ class App {
   } = {}) {
     try {
       !firebaseSupported && (this.#enabled.firebase = false)
+      vapidKey && (this._store.messaging.vapidKey = vapidKey)
 
       !this.getStatus &&
         (this.getStatus = (await import('@aitmed/cadl')).Account.getStatus)
@@ -224,7 +230,6 @@ class App {
         getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
         getPages: () => this.noodl.cadlEndpoint?.page || [],
         getRoot: () => this.noodl.root,
-        // getPlugins: () => plugins,
       })
 
       const actions = createActions(this)
@@ -325,8 +330,6 @@ class App {
         }
       }.bind(this)
 
-      this.observeComponents()
-      // this.observePages()
       this.observeMeetings()
 
       /* -------------------------------------------------------
@@ -396,23 +399,6 @@ class App {
 
   getEnabledServices() {
     return this.#enabled
-  }
-
-  observeComponents() {
-    NUI.use({
-      register: [
-        // {
-        //   cond: nuiEvent.component.page.PAGE_OBJECT,
-        //   fn: async (component, options) => {
-        //     const pageObject = await this.navigate(
-        //       component.get('page'),
-        //       component.get('path'),
-        //     )
-        //     return pageObject
-        //   },
-        // },
-      ],
-    })
   }
 
   observeViewport(viewport: VP) {

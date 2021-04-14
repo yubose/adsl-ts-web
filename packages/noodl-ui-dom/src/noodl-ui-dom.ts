@@ -624,6 +624,7 @@ class NOODLDOM extends NOODLDOMInternal {
   ) {
     const resetActions = () => {
       NOODLDOM._nui.cache.actions.clear()
+      NOODLDOM._nui.cache.actions.reset()
     }
     const resetComponentCache = () => {
       NOODLDOM._nui.cache.component.clear()
@@ -685,27 +686,27 @@ class NOODLDOM extends NOODLDOMInternal {
   use(obj: NUIPage | Partial<T.UseObject>) {
     if (isNUIPage(obj)) {
       return this.createPage(obj)
-    } else if ('actionType' in obj || 'funcName' in obj) {
-      NOODLDOM._nui.use({
-        [obj.actionType]: obj,
-      })
-    } else if ('location' in obj || 'resolve' in obj) {
-      NOODLDOM._nui.use(obj)
-    } else if (u.isObj(obj)) {
-      u.entries(obj).forEach(([key, o]) => {
-        if (key === 'createGlobalComponentId') {
-          this.#middleware.createGlobalComponentId = o
-        } else if (key === 'resolver') {
-          this.register(o)
-        } else if (key === 'transaction') {
-          if (o[nuiEmitTransaction.REQUEST_PAGE_OBJECT]) {
+    } else {
+      const { createGlobalComponentId, transaction, resolver, ...rest } = obj
+
+      if (createGlobalComponentId) {
+        this.#middleware.createGlobalComponentId = obj.createGlobalComponentId
+      }
+
+      if (resolver) {
+        this.register(resolver)
+      }
+
+      if (transaction) {
+        u.entries(transaction).forEach(([id, val]) => {
+          if (id === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
+            const getPageObject =
+              transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]
             NOODLDOM._nui.use({
               transaction: {
                 [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (pageProp) => {
-                  let originalFn = o[nuiEmitTransaction.REQUEST_PAGE_OBJECT]
-
                   invariant(
-                    u.isFnc(originalFn),
+                    u.isFnc(getPageObject),
                     `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
                   )
 
@@ -730,18 +731,18 @@ class NOODLDOM extends NOODLDOMInternal {
                     page.requesting = nuiPage.page
                   }
 
-                  pageObject = await originalFn?.(page)
+                  pageObject = await getPageObject?.(page)
                   return pageObject as PageObject
                 },
               },
             })
           } else {
-            NOODLDOM._nui.use({ transaction: o })
+            NOODLDOM._nui.use({ transaction: { [id]: val } })
           }
-        } else {
-          NOODLDOM._nui.use({ [key]: o })
-        }
-      })
+        })
+      }
+
+      NOODLDOM._nui.use(rest)
     }
     return this
   }

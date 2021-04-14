@@ -3,13 +3,15 @@ import sinon from 'sinon'
 import CADL from '@aitmed/cadl'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { nuiEmitTransaction, NUI, Viewport } from 'noodl-ui'
+import { nuiEmitTransaction, NUI, Viewport, Store } from 'noodl-ui'
 import { Page as NOODLDOMPage } from 'noodl-ui-dom'
 import { initializeApp, ndom } from '../utils/test-utils'
+import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
+import * as u from '../utils/common'
 
 beforeEach(() => {
   ndom.reset()
@@ -32,90 +34,74 @@ describe(coolGold(`App`), () => {
   })
 
   describe(italic(`initialize`), () => {
-    xit(`should initialize the noodl SDK`, () => {
-      //
-    })
-
     it(
       `should register the ${nuiEmitTransaction.REQUEST_PAGE_OBJECT} ` +
         `transaction callback`,
       async () => {
+        const spy = sinon.spy()
         const app = await initializeApp()
-        expect(app.ndom.transactions).to.have.property(
-          nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-        )
+        app.ndom.use({
+          transaction: {
+            [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: spy,
+          },
+        })
+        expect(
+          app.ndom.transactions.has(nuiEmitTransaction.REQUEST_PAGE_OBJECT),
+        ).to.be.true
       },
     )
 
-    // createActions({} as any).action((obj) => {
-    //   it(`should attach at least one handler for the ${magenta(
-    //     obj.actionType,
-    //   )} to the store`, async () => {
-    //     let app = await initializeApp()
-    //     let exists = false
-    //     for (const aObj of Object.values(app.ndom.actions)) {
-    //       if (aObj.length) {
-    //         exists = true
-    //         break
-    //       }
-    //     }
-    //     expect(exists).to.be.true
-    //   })
-    // })
-
-    createBuiltIns({} as any).forEach((obj) => {
-      it(`should attach at least one handler for the builtIn function ${magenta(
-        obj.funcName,
-      )} to the store`, async () => {
-        let app = await initializeApp()
-        let exists = false
-        for (const aObj of Object.values(app.ndom.builtIns)) {
-          if (aObj.length) {
-            exists = true
-            break
+    describe(`noodl actions (excluding builtIns)`, () => {
+      u.entries(createActions({} as any)).forEach(([actionType, fn]) => {
+        it(`should attach at least one handler for the ${magenta(
+          actionType,
+        )} to the store`, async () => {
+          const app = await initializeApp()
+          if (actionType === 'emit') {
+            u.entries(fn).forEach(([trigger, f]) => {
+              expect(app.nui.cache.actions.emit.has(trigger as any)).to.be.true
+              expect(
+                app.nui.cache.actions.emit.get(trigger as any),
+              ).to.have.lengthOf(1)
+            })
           }
-        }
-        expect(exists).to.be.true
+        })
       })
     })
 
-    createExtendedDOMResolvers({} as any).forEach((obj) => {
-      it(`should attach the extended DOM resolver ${magenta(
-        obj.name,
-      )} to the list of DOM resolvers`, async () => {
-        let app = await initializeApp()
-        let exists = false
-        for (const rObj of Object.values(app.ndom.resolvers())) {
-          if (rObj.name === obj.name) {
-            exists = true
-            break
-          }
-        }
-        expect(exists).to.be.true
+    describe(`noodl builtIns`, () => {
+      u.entries(createBuiltIns({} as any)).forEach(([funcName, fn]) => {
+        it(`should attach the builtIn "${magenta(
+          funcName,
+        )}" to the store`, async () => {
+          const app = await initializeApp()
+          expect(app.nui.cache.actions.builtIn).to.have.property(funcName)
+          expect(app.nui.cache.actions.builtIn[funcName]).to.have.lengthOf(1)
+        })
       })
     })
 
-    createRegisters({} as any).forEach((obj) => {
-      it(`should attach the register object ${magenta(
-        obj.name,
-      )} to the register cache`, async () => {
-        let app = await initializeApp()
-        let exists = false
-        for (const [page, o] of app.ndom.cache.register.get()) {
-          if (
-            app.ndom.cache.register.has(page, obj.name) &&
-            (obj.name as string) in o
-          ) {
-            exists = true
-            break
-          }
-        }
-        expect(exists).to.be.true
+    describe(`extended DOM resolvers`, () => {
+      createExtendedDOMResolvers({} as any).forEach((obj) => {
+        it(`should attach the extended DOM resolver ${magenta(
+          obj.name,
+        )} to the list of DOM resolvers`, async () => {
+          const app = await initializeApp()
+          expect(app.ndom.resolvers()).to.satisfy((objs: any) =>
+            objs.some((r: any) => r.name === obj.name),
+          )
+        })
       })
     })
 
-    xit(`should register all of the register events`, () => {
-      //
+    describe.only(`noodl registers`, () => {
+      createRegisters({} as any).forEach((obj) => {
+        it(`should register the "${magenta(obj.name)}" object`, async () => {
+          const app = await initializeApp()
+          console.info(app.ndom.cache.register.get('_global', obj.name))
+          expect(app.ndom.cache.register.has(obj.name))
+        })
+      })
     })
 
     xit(`should initialize the meeting state`, () => {

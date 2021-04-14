@@ -60,7 +60,7 @@ class ComponentResolver<
   }
 
   setResolver(resolver: ComponentResolver<Func>['resolver']) {
-    super.resolver = resolver
+    this.resolver = resolver
     return this
   }
 

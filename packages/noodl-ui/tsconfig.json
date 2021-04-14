@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "allowJs": false,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
+    "downlevelIteration": true,
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
@@ -18,7 +19,7 @@
     "skipLibCheck": true,
     "strict": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es5"
+    "target": "esnext"
   },
   "exclude": ["node_modules/**/*"],
   "include": ["src/**/*"]

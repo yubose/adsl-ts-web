@@ -1,7 +1,6 @@
 import { LiteralUnion } from 'type-fest'
-import { inspect } from 'util'
 import { ICache, NUIActionType, NUITrigger, Store } from '../types'
-import { isFnc } from '../utils/internal'
+import { inspect, isFnc } from '../utils/internal'
 import { groupedActionTypes, triggers } from '../constants'
 
 type OtherActionTypes = Exclude<
@@ -38,7 +37,7 @@ class ActionsCache implements ICache {
     }
   }
 
-  [inspect.custom]() {
+  [inspect]() {
     return {
       ...this,
       length: this.length,

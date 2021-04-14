@@ -735,7 +735,10 @@ const NUI = (function _NUI() {
             getPreloadPages?: () => string[]
             getRoot?: () => Record<string, any>
           } & {
-            register?: T.Register.Object | T.Register.Object[]
+            register?:
+              | T.Register.Object
+              | T.Register.Object[]
+              | Record<string, T.Register.Object['fn']>
             transaction?: Partial<
               Record<T.TransactionId, T.Transaction[T.TransactionId]['fn']>
             >
@@ -788,7 +791,7 @@ const NUI = (function _NUI() {
                   u.isFnc(fn),
                   `fn is required for handling actionType "${actionType}"`,
                 )
-                cache.actions[actionType].push({ actionType, fn })
+                cache.actions[actionType]?.push({ actionType, fn })
               },
             )
           }
@@ -833,18 +836,37 @@ const NUI = (function _NUI() {
         }
 
         if ('register' in args) {
-          u.array(args.register as T.Register.Object).forEach((obj) => {
-            let page = obj.page || '_global'
-            let name =
-              obj.name || (obj.component && obj.component.onEvent) || ''
-            invariant(
-              !!name,
-              `Could not compute an identifier/name for this register object`,
-              obj,
-            )
-            if (!o.cache.register.has(page, name)) {
-              o.cache.register.set(page, name, obj)
+          u.array(args.register).forEach((obj) => {
+            const registerObj = { page: '_global' } as T.Register.Object
+
+            if (obj) {
+              if ('name' in obj) {
+                registerObj.name = (obj as T.Register.Object).name || ''
+                'fn' in obj && (registerObj.fn = obj.fn)
+              } else if (u.isObj(obj)) {
+                u.entries(obj).forEach(([_name, fn]) => {
+                  registerObj.name = _name
+                  registerObj.fn = fn
+                })
+              }
+              if (
+                !o.cache.register.has(
+                  registerObj.page as string,
+                  registerObj.name,
+                )
+              ) {
+                o.cache.register.set(
+                  registerObj.page as string,
+                  registerObj.name,
+                  registerObj,
+                )
+              }
             }
+            invariant(
+              !!registerObj.name,
+              `Could not compute an identifier/name for this register object`,
+              registerObj,
+            )
           })
         }
 
