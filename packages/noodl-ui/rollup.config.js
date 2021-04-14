@@ -31,6 +31,7 @@ const configs = [
       filesize(),
       progress(),
       resolve({
+        browser: true,
         extensions,
         moduleDirectories: ['node_modules'],
       }),
@@ -45,7 +46,7 @@ const configs = [
       babel({
         babelHelpers: 'bundled',
         include: ['src'],
-        exclude: ['node_modules'],
+        exclude: ['node_modules/**'],
         extensions,
       }),
     ],
