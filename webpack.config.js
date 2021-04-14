@@ -17,7 +17,7 @@ const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
 const { blueBright, magenta, yellow } = chalk
 
 const noodlSdkVersion = pkg.dependencies['@aitmed/cadl']
-const ecosSdkVersion = pkg.dependencies['@aitmed/cadl']
+const ecosSdkVersion = pkg.dependencies['@aitmed/ecos-lvl2-sdk']
 const nuiVersion = pkg.dependencies['noodl-ui']
 const ndomVersion = pkg.dependencies['noodl-ui-dom']
 
