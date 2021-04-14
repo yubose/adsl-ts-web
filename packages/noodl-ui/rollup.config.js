@@ -43,9 +43,9 @@ const configs = [
       // Env var set by root lerna repo
       // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),s,
       babel({
-        babelHelpers: 'runtime',
-        include: ['src/**/*'],
-        exclude: ['node_modules/**'],
+        babelHelpers: 'bundled',
+        include: ['src'],
+        exclude: ['node_modules'],
         extensions,
       }),
     ],

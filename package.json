@@ -32,7 +32,6 @@
     "test:noodlui:file:nosetup": "lerna exec --scope noodl-ui \"npm run test:file:nosetup\"",
     "test:noodluidom": "lerna exec --scope noodl-ui-dom \"npm run test\"",
     "test:noodluidom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
-    "test:actionchain": "lerna exec --scope noodl-ui \"npm run test:file src/__tests__/ActionChain.test.ts --verbose\"",
     "test:noodlutils": "lerna exec --scope noodl-utils \"npm run test\"",
     "test:noodlutils:file": "lerna exec --scope noodl-utils \"npm run test:file\"",
     "lib:build": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
