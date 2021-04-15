@@ -48,23 +48,45 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     async join(token: string, options?: ConnectOptions) {
       try {
-        // TODO - timeout
-        const room = await connect(token, {
-          dominantSpeaker: true,
-          logLevel: 'info',
-          ...options,
-          tracks: [],
-          bandwidthProfile: {
-            ...options?.bandwidthProfile,
-            video: {
-              dominantSpeakerPriority: 'high',
-              mode: 'collaboration',
-              // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
-              ...(isMobile() ? { maxSubscriptionBitrate: 2500000 } : undefined),
-              ...options?.bandwidthProfile?.video,
+        if (!_room || _room.state !== 'connected') {
+          // TODO - timeout
+          _room = await connect(token, {
+            dominantSpeaker: true,
+            logLevel: 'info',
+            ...options,
+            tracks: [],
+            bandwidthProfile: {
+              ...options?.bandwidthProfile,
+              video: {
+                dominantSpeakerPriority: 'high',
+                mode: 'collaboration',
+                // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
+                ...(isMobile()
+                  ? { maxSubscriptionBitrate: 2500000 }
+                  : undefined),
+                ...options?.bandwidthProfile?.video,
+              },
             },
-          },
-        })
+          })
+
+          let localAudioTrack: LocalAudioTrack
+          let localVideoTrack: LocalVideoTrack
+
+          try {
+            localAudioTrack = await createLocalAudioTrack()
+            _room.localParticipant.publishTrack(localAudioTrack)
+          } catch (error) {
+            handleTrackErr('audio', error)
+          }
+          try {
+            localVideoTrack = await createLocalVideoTrack()
+            _room.localParticipant.publishTrack(localVideoTrack)
+          } catch (error) {
+            handleTrackErr('video', error)
+          }
+        } else {
+          log.grey(`Reusing existent local tracks and DOM nodes`)
+        }
 
         function handleTrackErr(kind: 'audio' | 'video', err: Error) {
           console.error(err)
@@ -83,25 +105,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           toast(errMsg, { type: 'error' })
         }
 
-        let localAudioTrack: LocalAudioTrack
-        let localVideoTrack: LocalVideoTrack
-
-        try {
-          localAudioTrack = await createLocalAudioTrack()
-          room.localParticipant.publishTrack(localAudioTrack)
-        } catch (error) {
-          handleTrackErr('audio', error)
-        }
-        try {
-          localVideoTrack = await createLocalVideoTrack()
-          room.localParticipant.publishTrack(localVideoTrack)
-        } catch (error) {
-          handleTrackErr('video', error)
-        }
-
-        setTimeout(() => app.meeting.onConnected?.(room), 2000)
-        _room = room
-        console.log('"HELLOOO')
+        setTimeout(() => app.meeting.onConnected?.(_room), 2000)
         return _room
       } catch (error) {
         console.error(error)
@@ -144,13 +148,13 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       {
         force = '',
       }: {
-        force?: 'mainStream' | 'selfStream' | 'subStream' | ''
+        force?: 'mainStream' | 'selfStream' | 'subStream' | '' | boolean
       } = {},
     ) {
       if (_room?.state === 'connected') {
         if (force || !o.isParticipantLocal(participant)) {
-          const mainStream = _streams?.getMainStream()
-          const subStreams = _streams?.getSubStreamsContainer()
+          const mainStream = _streams?.mainStream
+          const subStreams = _streams?.subStreams
           // Safe checking -- remove the participant from a subStream if they
           // are in an existing one for some reason
           if (!force && mainStream.isSameParticipant(participant)) {
@@ -159,15 +163,15 @@ const createMeetingFns = function _createMeetingFns(app: App) {
                 s.isSameParticipant(participant),
               )
               if (subStream) {
-                subStream.unpublish()
-                subStream.removeElement()
+                subStream?.unpublish()
+                subStream?.removeElement()
                 subStreams?.removeSubStream(subStream)
               }
             }
             return this
           }
           // Just set the participant as the mainStream  since it's open
-          if (!mainStream.isAnyParticipantSet()) {
+          if (!mainStream.hasParticipant()) {
             mainStream.setParticipant(participant)
             app.meeting.onAddRemoteParticipant?.(
               participant as RemoteParticipant,
@@ -229,7 +233,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       { force }: { force?: boolean } = {},
     ) {
       if (participant && (force || !o.isParticipantLocal(participant))) {
-        let mainStream: Stream | null = _streams.getMainStream()
+        let mainStream: Stream | null = _streams.mainStream
         let subStreams: MeetingSubstreams | null = _streams?.getSubStreamsContainer()
         let subStream: Stream | null | undefined = null
 
@@ -238,12 +242,12 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           log.orange(
             'This participant was mainstreaming. Removing it from mainStream now',
           )
-          mainStream = _streams.getMainStream()
+          mainStream = _streams.mainStream
           // NOTE: Be careful not to call mainStream.removeElement() here.
           // In the NOODL the mainStream is part of the page. For subStreams,
           // since we create them customly and are not included in the NOODL, we
           // would call subStream.removeElement() for those
-          mainStream.unpublish().detachParticipant()
+          mainStream?.unpublish().detachParticipant()
           app.meeting.onRemoveRemoteParticipant?.(
             participant as RemoteParticipant,
             mainStream,
@@ -253,7 +257,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
 
           if (subStreams) {
             subStream = subStreams.findBy((stream: Stream) =>
-              stream.isAnyParticipantSet(),
+              stream.hasParticipant(),
             )
             // The next participant in the subStreams collection will move to be
             // the new dominant speaker if the participant we are removing is the
@@ -263,7 +267,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               // to the mainStream
               nextMainParticipant = subStream.getParticipant()
               if (nextMainParticipant) {
-                subStream.unpublish().detachParticipant().removeElement()
+                subStream?.unpublish().detachParticipant().removeElement()
                 mainStream.setParticipant(nextMainParticipant)
                 log.func('removeRemoteParticipant')
                 log.green(
@@ -377,9 +381,14 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     /**
      * Wipes the entire internal state. This is mainly just used for testing
      */
-    reset() {
-      _room = new EventEmitter() as Room
-      _streams = new Streams()
+    reset(key?: 'room' | 'streams') {
+      if (key) {
+        key === 'room' && (_room = new EventEmitter() as Room)
+        key === 'streams' && (_streams = new Streams())
+      } else {
+        _room = new EventEmitter() as Room
+        _streams = new Streams()
+      }
       return this
     },
     removeFalseyParticipants(participants: any[]) {

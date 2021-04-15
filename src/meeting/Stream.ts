@@ -1,3 +1,4 @@
+import { inspect } from 'util'
 import { getByDataUX, NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
 import {
@@ -7,6 +8,7 @@ import {
   StreamType,
 } from '../app/types'
 import { attachAudioTrack, attachVideoTrack } from '../utils/twilio'
+import { isNil } from '../utils/common'
 
 const log = Logger.create('Streams.ts')
 
@@ -15,7 +17,19 @@ class MeetingStream {
   #participant: RoomParticipant | null = null
   #uxTag: string = ''
   previous: { sid?: string; identity?: string } = {}
-  type: StreamType | null = null
+  type: StreamType | null = null;
+
+  [inspect.custom]() {
+    return {
+      hasElement: this.hasElement(),
+      hasParticipant: this.hasParticipant(),
+      hasVideoElement: !!this.getElement()?.querySelector?.('video'),
+      hasAudioElement: !!this.getElement()?.querySelector?.('audio'),
+      previousParticipant: this.previous,
+      sid: this.getParticipant()?.sid,
+      type: this.type,
+    }
+  }
 
   constructor(
     type: StreamType,
@@ -97,9 +111,8 @@ class MeetingStream {
   }
 
   /**
-   * Returns true if at least one participant has previously been bound
-   * on this stream
-   */
+   * TODO - deprecate in favor of hasParticipant
+   * */
   isAnyParticipantSet() {
     return !!this.#participant
   }
@@ -107,6 +120,14 @@ class MeetingStream {
   /** Returns the participant that is bound to this stream */
   getParticipant() {
     return this.#participant
+  }
+
+  /**
+   * Returns true if at least one participant has previously been bound
+   * on this stream
+   */
+  hasParticipant() {
+    return 'sid' in (this.#participant || {})
   }
 
   /**
@@ -256,6 +277,7 @@ class MeetingStream {
    * Useful for cleanup operations and avoids memory leaks
    */
   reset() {
+    // this.#node?.remove?.()
     this.#node = null
     this.#participant = null
     this.previous = {}

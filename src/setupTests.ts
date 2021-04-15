@@ -26,6 +26,7 @@ afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
   ndom.reset()
+  // ndom.page?.clearRootNode()
 })
 
 after(() => {

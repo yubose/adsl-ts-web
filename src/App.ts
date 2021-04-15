@@ -46,7 +46,7 @@ class App {
   #enabled = {
     firebase: true,
   }
-  #meeting: T.AppConstructorOptions['meeting']
+  #meeting: ReturnType<typeof createMeetingFns>
   #noodl: T.AppConstructorOptions['noodl']
   #nui: T.AppConstructorOptions['nui']
   #ndom: T.AppConstructorOptions['ndom']
@@ -81,7 +81,9 @@ class App {
   }: T.AppConstructorOptions = {}) {
     this.getStatus = getStatus
     this.mainPage = ndom.createPage(nui.createPage({ viewport }))
-    this.#meeting = meeting || createMeetingFns(this)
+    this.#meeting =
+      (meeting && typeof meeting === 'function' ? meeting(this) : meeting) ||
+      createMeetingFns(this)
     this.#ndom = ndom
     this.#nui = nui
 
@@ -89,7 +91,7 @@ class App {
   }
 
   get meeting() {
-    return this.#meeting as NonNullable<T.AppConstructorOptions['meeting']>
+    return this.#meeting
   }
 
   get noodl() {
@@ -105,7 +107,7 @@ class App {
   }
 
   get streams() {
-    return this.meeting.getStreams()
+    return this.meeting.streams
   }
 
   get viewport() {
@@ -272,14 +274,22 @@ class App {
         page: NOODLDOMPage,
       ) {
         try {
+          log.func('#preparePage')
           const pageRequesting = page.requesting
-          log.grey(`Running noodl.initPage for page "${pageRequesting}"`)
+          log.grey(
+            `Running noodl.initPage for page "${pageRequesting}"`,
+            page.snapshot(),
+          )
 
-          if (pageRequesting === 'VideoChat') {
+          if (page.page === 'VideoChat' && pageRequesting !== 'VideoChat') {
             // Empty the current participants list since we manage the list of
             // participants ourselves
             const { participants } = this.noodl?.root?.VideoChat?.listData || {}
             participants?.length && (participants.length = 0)
+            this.streams.mainStream.reset()
+            this.streams.selfStream.reset()
+            this.streams.subStreams?.reset()
+            log.gold(`Clearing mainStream, selfStream, and subStreams`)
           }
 
           await this.noodl?.initPage(pageRequesting, [], {
@@ -519,9 +529,9 @@ class App {
             log.func('before-page-render')
             log.grey(`Disconnected from room`, this.meeting.room)
 
-            const mainStream = this.streams.getMainStream()
-            const selfStream = this.streams.getSelfStream()
-            const subStreamsContainer = this.streams.getSubStreamsContainer()
+            const mainStream = this.streams.mainStream
+            const selfStream = this.streams.selfStream
+            const subStreamsContainer = this.streams.subStreams
             const subStreams = subStreamsContainer?.getSubstreamsCollection()
 
             if (mainStream.getElement()) {
@@ -1048,7 +1058,7 @@ class App {
       ) {
         // Dominant/main participant/speaker
         if (/mainStream/i.test(String(component.blueprint.viewTag))) {
-          const mainStream = this.streams.getMainStream()
+          const mainStream = this.streams.mainStream
           if (!mainStream.isSameElement(node)) {
             mainStream.setElement(node, { uxTag: 'mainStream' })
             log.func('onCreateNode')
@@ -1057,7 +1067,7 @@ class App {
         }
         // Local participant
         else if (/selfStream/i.test(String(component.blueprint.viewTag))) {
-          const selfStream = this.streams.getSelfStream()
+          const selfStream = this.streams.selfStream
           if (!selfStream.isSameElement(node)) {
             selfStream.setElement(node, { uxTag: 'selfStream' })
             log.func('onCreateNode')
@@ -1068,7 +1078,7 @@ class App {
         else if (
           /(vidoeSubStream|videoSubStream)/i.test(component.contentType || '')
         ) {
-          let subStreams = this.streams.getSubStreamsContainer()
+          let subStreams = this.streams.subStreams
           if (!subStreams) {
             subStreams = this.streams.createSubStreamsContainer(node, {
               blueprint: component.blueprint?.children?.[0],
@@ -1087,7 +1097,7 @@ class App {
         }
         // Individual remote participant video element container
         else if (/subStream/i.test(String(component.blueprint.viewTag))) {
-          const subStreams = this.streams.getSubStreamsContainer() as MeetingSubstreams
+          const subStreams = this.streams.subStreams as MeetingSubstreams
           if (subStreams) {
             if (!subStreams.elementExists(node)) {
             } else {
@@ -1105,8 +1115,8 @@ class App {
               {
                 node,
                 component,
-                mainStream: this.streams.getMainStream(),
-                selfStream: this.streams.getSelfStream(),
+                mainStream: this.streams.mainStream,
+                selfStream: this.streams.selfStream,
               },
             )
           }

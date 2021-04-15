@@ -19,7 +19,7 @@ import {
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
-import createMeetingFns from '../handlers/meeting'
+import createMeetingFns from '../meeting'
 import * as u from './common'
 
 export const deviceSize = {
@@ -211,7 +211,7 @@ export async function initializeApp(
     opts?.app ||
     new App({
       getStatus: noodl.getStatus.bind(noodl) as any,
-      // meeting,
+      // meeting: createMeetingFns,
       noodl: (opts?.noodl || noodl || new MockNoodl()) as CADL,
       nui,
       ndom,
@@ -241,6 +241,12 @@ export async function initializeApp(
       app.meeting.room.emit('participantConnected', participant)
       app.meeting.addRemoteParticipant(participant)
     },
+    clear() {
+      app.streams.mainStream.reset()
+      app.streams.selfStream.reset()
+      app.streams.subStreams?.reset()
+      app.meeting.reset()
+    },
   }
 
   Object.defineProperty(app, '_test', { value: _test })
@@ -253,6 +259,7 @@ export async function initializeApp(
         app.meeting.room.participants = room.participants
         if (app.meeting.room.participants.size) {
           for (const participant of app.meeting.room.participants.values()) {
+            app.meeting.room.participants.set(participant.sid, participant)
             app.meeting.addRemoteParticipant(participant)
           }
         }
@@ -265,6 +272,10 @@ export async function initializeApp(
       }
     }
   }
+
+  app.meeting.streams.mainStream.reset()
+  app.meeting.streams.selfStream.reset()
+  app.meeting.streams.subStreams?.reset()
 
   return app as App & { _test: typeof _test }
 }

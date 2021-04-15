@@ -74,7 +74,18 @@ class MeetingStreams {
   }
 
   snapshot() {
-    return {
+    const getSubstreamsSnapshot = () => ({
+      items:
+        this.#subStreams?.getSubstreamsCollection().map((subStream, index) => {
+          return {
+            index,
+            hasElement: subStream.hasElement(),
+            hasParticipant: subStream.isAnyParticipantSet(),
+          }
+        }) || [],
+    })
+
+    const snapshot = {
       mainStream: {
         hasElement: this.mainStream.hasElement(),
         hasParticipant: this.mainStream.isAnyParticipantSet(),
@@ -83,18 +94,12 @@ class MeetingStreams {
         hasElement: this.selfStream.hasElement(),
         hasParticipant: this.selfStream.isAnyParticipantSet(),
       },
-      subStreams: {
-        items: this.#subStreams
-          ?.getSubstreamsCollection()
-          .map((subStream, index) => {
-            return {
-              index,
-              hasElement: subStream.hasElement(),
-              hasParticipant: subStream.isAnyParticipantSet(),
-            }
-          }),
+      get subStreams() {
+        return getSubstreamsSnapshot()
       },
     }
+
+    return snapshot
   }
 }
 
