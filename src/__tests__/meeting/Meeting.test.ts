@@ -1,195 +1,190 @@
+import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
+import { RemoteParticipant } from 'twilio-video'
+import { prettyDOM, waitFor } from '@testing-library/dom'
+import { coolGold, italic, magenta } from 'noodl-common'
+import fs from 'fs-extra'
+import path from 'path'
+import { ComponentObject } from 'noodl-types'
 import { expect } from 'chai'
-import { getByDataUX, NOODLComponent } from 'noodl-ui'
-import { noodlui, page } from '../../utils/test-utils'
+import {
+  asHtmlElement,
+  getFirstByUX,
+  getFirstByViewTag,
+  getFirstByElementId,
+  findByUX,
+  findByViewTag,
+  findByDataKey,
+} from 'noodl-ui-dom'
+import { initializeApp } from '../../utils/test-utils'
+import getVideoChatPage from '../../__tests__/helpers/getVideoChatPage'
 import Meeting from '../../meeting/Meeting'
 import Stream from '../../meeting/Stream'
 import Streams from '../../meeting/Streams'
 import Substreams from '../../meeting/Substreams'
+import * as u from '../../utils/common'
+import * as dom from '../../utils/dom'
+import getVideoChatPageObject from '../../__tests__/helpers/getVideoChatPage'
 
 class MockParticipant {
-  sid = 'mysid123'
+  sid = u.getRandomKey()
   identity = 'mike'
   tracks = new Map()
+  audioTracks = new Map()
+  videoTracks = new Map()
   on() {}
+  once() {}
   off() {}
 }
 
-let streams: Streams
 let subStreams: Substreams
 let selfStream: Stream
 let mainStream: Stream
 let participant: any
-let rootEl: HTMLDivElement
 
-before(() => {})
+// @ts-expect-error
+const getMockParticipant = () => new MockParticipant() as RemoteParticipant
 
-beforeEach(() => {
-  Meeting.setInternal?.({ _room: { state: 'connected' } } as any)
-  streams = Meeting.getStreams()
-  subStreams = streams.createSubStreamsContainer(
-    document.createElement('div'),
-    {
-      blueprint: getMockSubstreamsContainer().children[0],
-      resolver: noodlui.resolveComponents.bind(noodlui),
-    },
-  )
-  selfStream = streams.getSelfStream()
-  mainStream = streams.getMainStream()
-  participant = new MockParticipant()
-  rootEl = document.createElement('div')
-  rootEl.id = 'VideoChat'
-  rootEl.appendChild(subStreams.container)
-  document.body.appendChild(rootEl)
-})
-
-afterEach(() => {
-  Meeting.reset()
-  rootEl.remove()
-})
+const getApp = async ({
+  room,
+  navigate,
+}: Partial<Parameters<typeof initializeApp>[0]> & {
+  navigate?: boolean
+} = {}) => {
+  const app = await initializeApp({
+    pageName: 'VideoChat',
+    pageObject: getVideoChatPageObject(),
+    room: { state: 'connected', ...room },
+  })
+  if (navigate) await app.navigate('VideoChat')
+  return app
+}
 
 describe('Meeting', () => {
-  describe('when leaving the meeting', () => {
-    it('should disconnect from the room', () => {
-      const spy = sinon.spy()
-      Meeting.room.disconnect = spy
-      Meeting.room.state = 'connected'
-      expect(Meeting.room.state).to.eq('connected')
-      expect(Meeting.room.disconnect).not.to.have.been.called
-      Meeting.leave()
-      expect(Meeting.room.disconnect).to.have.been.called
-    })
-
-    xit('should unpublish tracks', () => {
-      //
-    })
+  xdescribe('when leaving the meeting', () => {
+    //
   })
 
-  describe('adding remote participants', () => {
-    it('should hide the "Waiting for others to join" label and the white circle', () => {
-      page.render([
-        {
-          type: 'label',
-          contentType: 'passwordHidden',
-          text: 'Waiting for others to join',
-        },
-        {
-          type: 'image',
-          contentType: 'passwordHidden',
-          path: 'circle.png',
-        },
-      ])
-      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
-        expect(node).to.be.visible
-      })
-      Meeting.hideWaitingElements()
-      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
-        expect(node).not.to.be.visible
-      })
+  describe('when adding participants', () => {
+    it(`should find at least 1 "Waiting for others to join" element`, async () => {
+      const app = await getApp({ navigate: true })
+      expect(
+        app.meeting.getWaitingMessageElements(),
+      ).to.have.length.greaterThan(0)
     })
 
-    it('should show the "Waiting for others to join" label and the white circle', () => {
-      page.render([
-        {
-          type: 'label',
-          contentType: 'passwordHidden',
-          text: 'Waiting for others to join',
-        },
-        {
-          type: 'image',
-          contentType: 'passwordHidden',
-          path: 'circle.png',
-        },
-      ])
-      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
-        node.style.visibility = 'hidden'
-      })
-      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
-        expect(node).not.to.be.visible
-      })
-      Meeting.showWaitingElements()
-      ;(getByDataUX('passwordHidden') as any[]).forEach((node) => {
-        expect(node).to.be.visible
-      })
+    it('should hide the "Waiting for others to join" message when there are participants', async () => {
+      const app = await initializeApp({ room: { participants: { hello: {} } } })
+      await app.navigate('VideoChat')
+      app.meeting
+        .getWaitingMessageElements()
+        .forEach((elem) => expect(dom.isVisible(elem)).to.be.true)
+      app.meeting
+        .addRemoteParticipant(getMockParticipant())
+        .getWaitingMessageElements()
+        .forEach((elem) => expect(dom.isVisible(elem)).to.be.false)
+    })
+
+    it('should show the "Waiting for others to join" message when there are no participants', async () => {
+      const app = await getApp({ navigate: true })
+      app.meeting
+        .getWaitingMessageElements()
+        .forEach((elem) => expect(dom.isVisible(elem)).to.be.true)
     })
 
     describe('when mainStream doesnt have any participants', () => {
-      it('should assign the participant immediately to the mainStream', () => {
+      it('should assign the participant immediately to the mainStream', async () => {
+        const app = await getApp({ navigate: true })
+        const mainStream = app.meeting.streams.getMainStream()
         expect(mainStream.isAnyParticipantSet()).to.be.false
-        Meeting.addRemoteParticipant(participant)
+        app._test.addParticipant(getMockParticipant())
         expect(mainStream.isAnyParticipantSet()).to.be.true
       })
 
-      it('should try to publish their tracks when the stream has a DOM node', () => {
+      it('should try to publish their tracks when the stream has a DOM node', async () => {
+        const app = await getApp({ navigate: true })
+        const participant = getMockParticipant()
         const spy = sinon.stub(participant.tracks, 'forEach')
-        mainStream.setElement(document.createElement('div'))
-        Meeting.addRemoteParticipant(participant)
+        app.streams.mainStream.setElement(document.createElement('div'))
+        app._test.addParticipant(participant)
         expect(spy.called).to.be.true
         spy.restore()
       })
-
-      it("should not try to publish their tracks when the stream doesn't have a DOM node", () => {
-        const spy = sinon.stub(participant.tracks, 'forEach')
-        Meeting.addRemoteParticipant(participant)
-        expect(spy.called).to.be.false
-        spy.restore()
-      })
     })
 
-    describe('when mainStream has a participant but is a different participant than the one being added', () => {
-      beforeEach(() => {
-        const otherParticipant = new MockParticipant() as any
-        mainStream.setParticipant(otherParticipant)
-      })
+    it.only(
+      `should create a new stream inside subStreams with the new participant ` +
+        `if mainStream is occupied by another participant`,
+      async () => {
+        const app = await getApp({ navigate: true })
+        expect(app.streams.subStreams).to.have.lengthOf(0)
+        app._test.addParticipant(getMockParticipant())
+        expect(app.streams.subStreams).to.have.lengthOf(1)
+        // expect(app.streams.subStreams?.participantExists(participant)).to.be
+        //   .true
+      },
+    )
 
-      describe('when subStreams doesnt have this participant anywhere', () => {
-        it('should create a new stream and create it to the subStreams collection', () => {
-          expect(subStreams).to.have.lengthOf(0)
-          Meeting.addRemoteParticipant(participant)
-          expect(subStreams).to.have.lengthOf(1)
-          expect(subStreams.participantExists(participant)).to.be.true
+    describe(
+      `when mainStream has a participant but is a different participant ` +
+        `than the one being added`,
+      () => {
+        let mainParticipant: MockParticipant
+
+        beforeEach(() => {
+          mainParticipant = new MockParticipant()
+          mainStream.setParticipant(mainParticipant as any)
         })
 
-        xit('should have created a node using the blueprint and attached it to the stream', () => {
-          let stream = subStreams.findBy((s) =>
-            s.isSameParticipant(participant),
-          )
-          expect(stream).to.be.undefined
-          Meeting.addRemoteParticipant(participant)
-          stream = subStreams.findBy((s) => s.isSameParticipant(participant))
-          expect(stream?.getElement()).to.be.instanceOf(HTMLElement)
-        })
-
-        it('should have attached the participant to the new stream ', () => {
-          Meeting.addRemoteParticipant(participant)
-          const stream = subStreams.findBy((s) =>
-            s.isSameParticipant(participant),
-          )
-          expect(stream?.isSameParticipant(participant)).to.be.true
-        })
-      })
-
-      describe('when subStreams already has this participant in a subStream', () => {
-        it('should not proceed to create a duplicate participant', () => {
-          const mainStreamParticipant = new MockParticipant() as any
-          const otherParticipant = new MockParticipant() as any
-          mainStream.setParticipant(mainStreamParticipant)
-          subStreams.create({
-            node: document.createElement('div'),
-            participant: otherParticipant as any,
+        describe('when subStreams doesnt have this participant anywhere', () => {
+          it('should create a new stream and create it to the subStreams collection', () => {
+            expect(subStreams).to.have.lengthOf(0)
+            Meeting.addRemoteParticipant(participant)
+            expect(subStreams).to.have.lengthOf(1)
+            expect(subStreams.participantExists(participant)).to.be.true
           })
-          subStreams.create({
-            node: document.createElement('div'),
-            participant: participant as any,
+
+          xit('should have created a node using the blueprint and attached it to the stream', () => {
+            let stream = subStreams.findBy((s) =>
+              s.isSameParticipant(participant),
+            )
+            expect(stream).to.be.undefined
+            Meeting.addRemoteParticipant(participant)
+            stream = subStreams.findBy((s) => s.isSameParticipant(participant))
+            expect(stream?.getElement()).to.be.instanceOf(HTMLElement)
           })
-          expect(subStreams.participantExists(participant)).to.be.true
-          expect(subStreams).to.have.lengthOf(2)
-          Meeting.addRemoteParticipant(participant)
-          expect(subStreams.participantExists(participant)).to.be.true
-          expect(subStreams).to.have.lengthOf(2)
+
+          it('should have attached the participant to the new stream ', () => {
+            Meeting.addRemoteParticipant(participant)
+            const stream = subStreams.findBy((s) =>
+              s.isSameParticipant(participant),
+            )
+            expect(stream?.isSameParticipant(participant)).to.be.true
+          })
         })
-      })
-    })
+
+        describe('when subStreams already has this participant in a subStream', () => {
+          it('should not proceed to create a duplicate participant', () => {
+            const mainStreamParticipant = new MockParticipant() as any
+            const otherParticipant = new MockParticipant() as any
+            mainStream.setParticipant(mainStreamParticipant)
+            subStreams.create({
+              node: document.createElement('div'),
+              participant: otherParticipant as any,
+            })
+            subStreams.create({
+              node: document.createElement('div'),
+              participant: participant as any,
+            })
+            expect(subStreams.participantExists(participant)).to.be.true
+            expect(subStreams).to.have.lengthOf(2)
+            Meeting.addRemoteParticipant(participant)
+            expect(subStreams.participantExists(participant)).to.be.true
+            expect(subStreams).to.have.lengthOf(2)
+          })
+        })
+      },
+    )
 
     describe('when the participant is already mainStreaming', () => {
       it('should try to find the same participant in the subStreams and remove it if found', () => {
@@ -367,5 +362,5 @@ function getMockSubstreamsContainer() {
         ],
       },
     ],
-  } as NOODLComponent
+  } as ComponentObject
 }

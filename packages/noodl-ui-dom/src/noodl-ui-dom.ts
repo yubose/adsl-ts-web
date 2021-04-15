@@ -222,7 +222,6 @@ class NOODLDOM extends NOODLDOMInternal {
         nuiEmitTransaction.REQUEST_PAGE_OBJECT,
         page,
       )
-      debugger
       const action = async (cb: () => any | Promise<any>) => {
         try {
           if (pageRequesting === page.requesting) {

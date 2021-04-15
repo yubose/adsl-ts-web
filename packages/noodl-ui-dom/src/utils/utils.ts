@@ -164,7 +164,11 @@ export function getFirstByElementId(c: Parameters<typeof findByElementId>[0]) {
   return u.array(asHtmlElement(findByElementId(c)))[0] as HTMLElement
 }
 
-export function getFirstByViewTag(c: Parameters<typeof findByUX>[0]) {
+export function getFirstByViewTag(c: Parameters<typeof findByViewTag>[0]) {
+  return u.array(asHtmlElement(findByViewTag(c)))[0] as HTMLElement
+}
+
+export function getFirstByUX(c: Parameters<typeof findByUX>[0]) {
   return u.array(asHtmlElement(findByUX(c)))[0] as HTMLElement
 }
 

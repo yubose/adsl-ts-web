@@ -24,21 +24,23 @@ import * as T from '../app/types/meetingTypes'
 
 const log = Logger.create('Meeting.ts')
 
-interface Internal {
-  _room: Room
-  _streams: Streams
-}
-
 // import makePublications from './makePublications'
 // import makeTrack from './makeTrack'
 
 const createMeetingFns = function _createMeetingFns(app: App) {
-  const _internal: Internal = {
-    _room: new EventEmitter() as Room,
-    _streams: new Streams(),
-  } as Internal
+  let _room = new EventEmitter() as Room
+  let _streams = new Streams()
 
   const o = {
+    get localParticipant() {
+      return _room?.localParticipant
+    },
+    get room() {
+      return _room
+    },
+    get streams() {
+      return _streams
+    },
     /**
      * Joins and returns the room using the token
      * @param { string } token - Room token
@@ -98,29 +100,25 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         }
 
         setTimeout(() => app.meeting.onConnected?.(room), 2000)
-        _internal._room = room
+        _room = room
         console.log('"HELLOOO')
-        return _internal._room
+        return _room
       } catch (error) {
         console.error(error)
         toast(error.message, { type: 'error' })
       }
     },
     hideWaitingOthersMessage() {
-      array(app.meeting.getWaitingMessageElement()).forEach((node) =>
-        hide(node),
-      )
+      app.meeting.getWaitingMessageElements().forEach((node) => hide(node))
     },
     showWaitingOthersMessage() {
-      array(app.meeting.getWaitingMessageElement()).forEach((node) =>
-        show(node),
-      )
+      app.meeting.getWaitingMessageElements().forEach((node) => show(node))
     },
     /** Disconnects from the room */
     leave() {
       log.func('leave')
       log.red(`LEAVING MEETING ROOM`, new Error('test').stack)
-      if (_internal._room?.state) {
+      if (_room?.state) {
         const unpublishTracks = (
           trackPublication:
             | LocalVideoTrackPublication
@@ -130,9 +128,9 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           trackPublication?.unpublish?.()
         }
         // Unpublish local tracks
-        _internal._room?.localParticipant?.audioTracks.forEach(unpublishTracks)
-        _internal._room?.localParticipant?.videoTracks.forEach(unpublishTracks)
-        _internal._room?.disconnect?.()
+        _room?.localParticipant?.audioTracks.forEach(unpublishTracks)
+        _room?.localParticipant?.videoTracks.forEach(unpublishTracks)
+        _room?.disconnect?.()
       }
       return this
     },
@@ -149,10 +147,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         force?: 'mainStream' | 'selfStream' | 'subStream' | ''
       } = {},
     ) {
-      if (_internal._room?.state === 'connected') {
+      if (_room?.state === 'connected') {
         if (force || !o.isParticipantLocal(participant)) {
-          const mainStream = _internal._streams?.getMainStream()
-          const subStreams = _internal._streams?.getSubStreamsContainer()
+          const mainStream = _streams?.getMainStream()
+          const subStreams = _streams?.getSubStreamsContainer()
           // Safe checking -- remove the participant from a subStream if they
           // are in an existing one for some reason
           if (!force && mainStream.isSameParticipant(participant)) {
@@ -216,7 +214,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               `Cannot add participant without the subStreams container, ` +
                 `which doesn't exist. This participant will not be shown on ` +
                 `the page`,
-              { participant, streams: _internal._streams },
+              { participant, streams: _streams },
             )
           }
         } else {
@@ -231,16 +229,16 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       { force }: { force?: boolean } = {},
     ) {
       if (participant && (force || !o.isParticipantLocal(participant))) {
-        let mainStream: Stream | null = _internal._streams.getMainStream()
-        let subStreams: MeetingSubstreams | null = _internal._streams?.getSubStreamsContainer()
+        let mainStream: Stream | null = _streams.getMainStream()
+        let subStreams: MeetingSubstreams | null = _streams?.getSubStreamsContainer()
         let subStream: Stream | null | undefined = null
 
-        if (_internal._streams?.isMainStreaming?.(participant)) {
+        if (_streams?.isMainStreaming?.(participant)) {
           log.func('removeRemoteParticipant')
           log.orange(
             'This participant was mainstreaming. Removing it from mainStream now',
           )
-          mainStream = _internal._streams.getMainStream()
+          mainStream = _streams.getMainStream()
           // NOTE: Be careful not to call mainStream.removeElement() here.
           // In the NOODL the mainStream is part of the page. For subStreams,
           // since we create them customly and are not included in the NOODL, we
@@ -295,7 +293,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               `The subStreams container was not initiated. Nothing else will happen`,
             )
           }
-        } else if (_internal._streams?.isSubStreaming(participant)) {
+        } else if (_streams?.isSubStreaming(participant)) {
           log.func('removeRemoteParticipant')
           log.orange('This remote participant was substreaming')
           subStream = subStreams?.findBy((stream: Stream) =>
@@ -320,17 +318,11 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     isParticipantLocal(
       participant: T.RoomParticipant,
     ): participant is LocalParticipant {
-      return participant === _internal._room?.localParticipant
+      return participant === _room?.localParticipant
     },
     resetRoom() {
-      _internal._room = new EventEmitter() as Room
+      _room = new EventEmitter() as Room
       return this
-    },
-    get room() {
-      return _internal._room
-    },
-    get localParticipant() {
-      return _internal._room?.localParticipant
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {
@@ -376,21 +368,18 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         vidoeSubStream: o.getParticipantsListElement(),
       }
     },
-    getWaitingMessageElement() {
-      const elems = array(findByUX('waitForOtherTag') as HTMLDivElement)
-      return elems.length > 1 ? elems : elems[0] || null
+    getWaitingMessageElements() {
+      return array(findByUX('waitForOtherTag')).filter(Boolean) as HTMLElement[]
     },
     getStreams() {
-      return _internal._streams
+      return _streams
     },
     /**
      * Wipes the entire internal state. This is mainly just used for testing
      */
     reset() {
-      Object.assign(_internal, {
-        _room: new EventEmitter() as Room,
-        _streams: new Streams(),
-      })
+      _room = new EventEmitter() as Room
+      _streams = new Streams()
       return this
     },
     removeFalseyParticipants(participants: any[]) {

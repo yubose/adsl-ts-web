@@ -23,6 +23,7 @@ export {
   getElementTag,
   getFirstByElementId,
   getFirstByViewTag,
+  getFirstByUX,
   isDisplayable,
   isPage,
   isPageConsumer,

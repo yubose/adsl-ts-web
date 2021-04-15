@@ -1,3 +1,4 @@
+import { inspect } from 'util'
 import { ComponentObject } from 'noodl-types'
 import { NUI } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
@@ -8,11 +9,29 @@ import Substreams from '../meeting/Substreams'
 class MeetingStreams {
   #mainStream: Stream
   #selfStream: Stream
-  #subStreams: Substreams | null = null
+  #subStreams: Substreams | null = null;
+
+  [inspect.custom]() {
+    return {
+      ...this.snapshot(),
+    }
+  }
 
   constructor() {
     this.#mainStream = new Stream('mainStream')
     this.#selfStream = new Stream('selfStream')
+  }
+
+  get mainStream() {
+    return this.#mainStream
+  }
+
+  get selfStream() {
+    return this.#selfStream
+  }
+
+  get subStreams() {
+    return this.#subStreams
   }
 
   getMainStream() {
@@ -52,6 +71,30 @@ class MeetingStreams {
 
   isSubStreaming(participant: RoomParticipant) {
     return this.#subStreams?.participantExists(participant)
+  }
+
+  snapshot() {
+    return {
+      mainStream: {
+        hasElement: this.mainStream.hasElement(),
+        hasParticipant: this.mainStream.isAnyParticipantSet(),
+      },
+      selfStream: {
+        hasElement: this.selfStream.hasElement(),
+        hasParticipant: this.selfStream.isAnyParticipantSet(),
+      },
+      subStreams: {
+        items: this.#subStreams
+          ?.getSubstreamsCollection()
+          .map((subStream, index) => {
+            return {
+              index,
+              hasElement: subStream.hasElement(),
+              hasParticipant: subStream.isAnyParticipantSet(),
+            }
+          }),
+      },
+    }
   }
 }
 

@@ -19,6 +19,7 @@ import {
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
+import createMeetingFns from '../handlers/meeting'
 import * as u from './common'
 
 export const deviceSize = {
@@ -195,48 +196,77 @@ export const noodl = new MockNoodl() as MockNoodl
 export async function initializeApp(
   opts?: Parameters<App['initialize']>[0] & {
     app?: App
+    components?: ComponentObject | ComponentObject[]
     noodl?: CADL | MockNoodl
+    pageName?: string
+    pageObject?: PageObject
+    room?: {
+      state?: string
+      participants?: Record<string, any> | Map<string, any>
+    }
     transaction?: Partial<Transaction>
   },
 ) {
-  const meeting = {
-    getStreams: () =>
-      ({
-        getMainStream: noop,
-        getSelfStream: noop,
-        getSubStreamsContainer: noop,
-        getSubstreamsCollection: noop,
-        createSubStreamsContainer: noop,
-      } as any),
-    initialize: noop as any,
-    join: noop as any,
-    leave: noop as any,
-    room: noop as any,
-  } as any
-
   const app =
     opts?.app ||
     new App({
       getStatus: noodl.getStatus.bind(noodl) as any,
-      meeting,
+      // meeting,
       noodl: (opts?.noodl || noodl || new MockNoodl()) as CADL,
       nui,
       ndom,
       viewport,
     })
 
-  // const actions = createActions(app)
-  // const builtIns = createBuiltIns(app)
-  // const registers = createRegisters(app)
-  // const domResolvers = createExtendedDOMResolvers(app)
-  // const meetingFns = createMeetingFns(app)
-
   await app.initialize({
     firebase: { client: { messaging: noop } as any, vapidKey: 'mockVapidKey' },
     firebaseSupported: false,
   })
 
-  return app as App
+  if (opts?.pageObject) {
+    opts.pageName && (app.mainPage.page = opts.pageName)
+    app.mainPage.components = (opts.components ||
+      opts.pageObject.components ||
+      []) as ComponentObject[]
+  }
+
+  const _test = {
+    addParticipant(participant: any) {
+      if (!(app.meeting.room.participants instanceof Map)) {
+        app.meeting.room.participants = new Map()
+      }
+      participant.sid = participant.sid || u.getRandomKey()
+      app.meeting.room.participants.set(participant.sid, participant)
+      // TODO - the emit call here is actually not emitting the event
+      app.meeting.room.emit('participantConnected', participant)
+      app.meeting.addRemoteParticipant(participant)
+    },
+  }
+
+  Object.defineProperty(app, '_test', { value: _test })
+
+  if (opts?.room) {
+    const { room } = opts
+    room.state && (app.meeting.room.state = room.state)
+    if (room.participants) {
+      if (room.participants instanceof Map) {
+        app.meeting.room.participants = room.participants
+        if (app.meeting.room.participants.size) {
+          for (const participant of app.meeting.room.participants.values()) {
+            app.meeting.addRemoteParticipant(participant)
+          }
+        }
+      } else {
+        app.meeting.room.participants = new Map()
+        u.entries(room.participants).forEach(([sid, participant]) => {
+          app.meeting.room?.participants?.set(sid, participant)
+          app.meeting.addRemoteParticipant(participant)
+        })
+      }
+    }
+  }
+
+  return app as App & { _test: typeof _test }
 }
 
 export function getActions(app: any = {}) {

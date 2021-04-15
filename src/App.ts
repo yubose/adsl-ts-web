@@ -10,6 +10,7 @@ import NOODLDOM, {
   RegisterOptions,
 } from 'noodl-ui-dom'
 import get from 'lodash/get'
+import has from 'lodash/has'
 import set from 'lodash/set'
 import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import {
@@ -34,6 +35,7 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
+import toast from 'vercel-toast'
 import * as u from './utils/common'
 import * as T from './app/types'
 
@@ -48,7 +50,7 @@ class App {
   #noodl: T.AppConstructorOptions['noodl']
   #nui: T.AppConstructorOptions['nui']
   #ndom: T.AppConstructorOptions['ndom']
-  #preparePage = {} as (page: NOODLDOMPage) => Promise<PageObject>
+  #preparePage = {} as (page: NOODLDOMPage) => Promise<PageObject | undefined>
   _store: {
     messaging: {
       serviceRegistration: ServiceWorkerRegistration
@@ -268,11 +270,18 @@ class App {
       this.#preparePage = async function preparePage(
         this: App,
         page: NOODLDOMPage,
-      ): Promise<PageObject> {
+      ) {
         try {
           const pageRequesting = page.requesting
-          log.grey(`Running noodl.initPage on ${pageRequesting}`)
-          // debugger
+          log.grey(`Running noodl.initPage for page "${pageRequesting}"`)
+
+          if (pageRequesting === 'VideoChat') {
+            // Empty the current participants list since we manage the list of
+            // participants ourselves
+            const { participants } = this.noodl?.root?.VideoChat?.listData || {}
+            participants?.length && (participants.length = 0)
+          }
+
           await this.noodl?.initPage(pageRequesting, [], {
             ...page.modifiers[pageRequesting],
             builtIn: {
@@ -327,7 +336,8 @@ class App {
           }
           return this.noodl.root[pageRequesting]
         } catch (error) {
-          throw new Error(error)
+          console.error(error)
+          toast.createToast(error.message, { type: 'error' })
         }
       }.bind(this)
 

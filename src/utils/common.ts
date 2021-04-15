@@ -21,6 +21,10 @@ export const values = <O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] => Object.values(v)
 
+export function getRandomKey() {
+  return `_${Math.random().toString(36).substr(2, 9)}`
+}
+
 /**
  * Returns whether the web app is running on a mobile browser.
  * @return { boolean }

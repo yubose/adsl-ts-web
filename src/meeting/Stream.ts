@@ -27,8 +27,20 @@ class MeetingStream {
     if (!type) console.log({ this: this, node, uxTag })
   }
 
+  isActivelyStreaming() {
+    // const vid = document.createElement('video')
+  }
+
+  hasElement() {
+    return this.#node !== null && this.#node instanceof HTMLElement
+  }
+
   getElement() {
     return (this.#node || getByDataUX(this.#uxTag)) as NOODLDOMElement | null
+  }
+
+  getVideoElem() {
+    return this.getElement()?.querySelector?.('video') || null
   }
 
   /**
@@ -258,7 +270,7 @@ class MeetingStream {
    */
   #handlePublishTracks = () => {
     this.#participant?.tracks?.forEach?.(this.#handleAttachTracks)
-    this.#participant?.on('trackPublished', this.#handleAttachTracks)
+    this.#participant?.on?.('trackPublished', this.#handleAttachTracks)
   }
 
   /**

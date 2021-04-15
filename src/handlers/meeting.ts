@@ -3,7 +3,7 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import Logger from 'logsnap'
 import { ActionChain } from 'noodl-action-chain'
-import { current, Draft } from 'immer'
+import { current, Draft, isDraft } from 'immer'
 import { NUI } from 'noodl-ui'
 import {
   LocalAudioTrackPublication,
@@ -188,7 +188,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           log.red(
             'Could not find a path to remote participants in the VideoChat page! Path: ' +
               PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-            current(draft),
+            isDraft(draft) ? current(draft) : draft,
           )
         }
         set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, participants)
@@ -226,7 +226,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       )
     })
     if (!app.meeting.room.participants.size) {
-      array(app.meeting.getWaitingMessageElement()).forEach((waitingElem) => {
+      app.meeting.getWaitingMessageElements().forEach((waitingElem) => {
         waitingElem && (waitingElem.style.visibility = 'visible')
       })
 
