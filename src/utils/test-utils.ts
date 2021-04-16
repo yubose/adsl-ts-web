@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events'
 import { Status } from '@aitmed/ecos-lvl2-sdk'
 import CADL from '@aitmed/cadl'
 import noop from 'lodash/noop'
@@ -19,6 +20,8 @@ import {
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
+import getMockRoom from '../__tests__/helpers/getMockRoom'
+import getMockParticipant from '../__tests__/helpers/getMockParticipant'
 import * as u from './common'
 
 export const deviceSize = {
@@ -160,7 +163,7 @@ export function createRender(opts: MockRenderOptions) {
   return o
 }
 
-export class MockNoodl {
+export class MockNoodl extends EventEmitter {
   aspectRatio = 1
   assetsUrl = assetsUrl
   baseUrl = baseUrl
@@ -170,6 +173,7 @@ export class MockNoodl {
   root = root
   viewWidthHeightRatio?: { min: number; max: number }
   constructor({ startPage }: { startPage?: string } = {}) {
+    super()
     startPage && (this.cadlEndpoint.startPage = startPage)
   }
   async init() {}
@@ -253,9 +257,22 @@ export async function initializeApp(
   }
 
   Object.defineProperty(_app, '_test', { value: _test })
+
   if (opts?.room) {
-    const { room } = opts
-    room.state && (_app.meeting.room.state = room.state)
+    let room = getMockRoom(opts.room)
+    _app.meeting.join = async () => room
+    Object.defineProperty(_app.meeting, 'room', {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return room
+      },
+      set(_room) {
+        room = _room
+      },
+    })
+
+    // room.state && (_app.meeting.room.state = room.state)
     if (room.participants) {
       if (room.participants instanceof Map) {
         _app.meeting.room.participants = room.participants

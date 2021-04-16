@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
+import unary from 'lodash/unary'
 import {
   connect,
-  ConnectOptions,
   createLocalVideoTrack,
   LocalAudioTrackPublication,
   createLocalAudioTrack,
@@ -9,11 +9,9 @@ import {
   LocalVideoTrackPublication,
   RemoteParticipant,
   Room,
-  LocalAudioTrack,
-  LocalVideoTrack,
 } from 'twilio-video'
 import Logger from 'logsnap'
-import { getFirstByViewTag, findByUX, Page } from 'noodl-ui-dom'
+import { getFirstByViewTag, findByUX } from 'noodl-ui-dom'
 import { array, isMobile } from '../utils/common'
 import { hide, show, toast } from '../utils/dom'
 import App from '../App'
@@ -81,6 +79,9 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     get room() {
       return _room
     },
+    set room(room) {
+      _room = room
+    },
     get streams() {
       return _streams
     },
@@ -104,11 +105,19 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         toast(error.message, { type: 'error' })
       }
     },
+    async rejoin() {
+      if (_room) {
+        await _startTracks()
+        setTimeout(() => app.meeting.onConnected?.(_room), 2000)
+      }
+
+      return _room
+    },
     hideWaitingOthersMessage() {
-      app.meeting.getWaitingMessageElements().forEach((node) => hide(node))
+      app.meeting.getWaitingMessageElements().forEach(unary(hide))
     },
     showWaitingOthersMessage() {
-      app.meeting.getWaitingMessageElements().forEach((node) => show(node))
+      app.meeting.getWaitingMessageElements().forEach(unary(show))
     },
     /** Disconnects from the room */
     leave() {
@@ -178,16 +187,23 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               const node = app.ndom.draw(
                 subStreams.resolver?.(props) || props,
               ) as any
-              const subStream = subStreams
-                .create({ node, participant: participant as RemoteParticipant })
-                .last()
               app.meeting.onAddRemoteParticipant?.(
                 participant as RemoteParticipant,
                 mainStream,
               )
               log.green(
                 `Created a new subStream and bound the newly connected participant to it`,
-                { blueprint: props, node, participant, subStream },
+                {
+                  blueprint: props,
+                  node,
+                  participant,
+                  subStream: subStreams
+                    .create({
+                      node,
+                      participant: participant as RemoteParticipant,
+                    })
+                    .last(),
+                },
               )
             } else {
               log.func('addRemoteParticipant')
@@ -363,8 +379,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     // @ts-expect-error
     o.getInternal = () => _internal
     // @ts-expect-error
-    o.setInternal = (opts: typeof _internal) =>
-      void Object.assign(_internal, opts)
+    o.setInternal = (opts: typeof _internal) => void Object.assign({}, opts)
   }
 
   return o as typeof o & {
@@ -374,8 +389,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       participant: RemoteParticipant,
       stream: Stream,
     ): any
-    getInternal?(): typeof _internal
-    setInternal?(opts: typeof _internal): void
+    // getInternal?(): typeof _internal
+    // setInternal?(opts: typeof _internal): void
   }
 }
 

@@ -1,28 +1,15 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
-import { RemoteParticipant } from 'twilio-video'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { expect } from 'chai'
+import { asHtmlElement, findByGlobalId } from 'noodl-ui-dom'
 import { initializeApp } from '../../utils/test-utils'
 import Stream from '../../meeting/Stream'
+import getMockParticipant from '../helpers/getMockParticipant'
+import getVideoChatPageObject from '../../__tests__/helpers/getVideoChatPage'
 import * as u from '../../utils/common'
 import * as dom from '../../utils/dom'
-import getVideoChatPageObject from '../../__tests__/helpers/getVideoChatPage'
-
-class MockParticipant {
-  sid = u.getRandomKey()
-  identity = 'mike'
-  tracks = new Map()
-  audioTracks = new Map()
-  videoTracks = new Map()
-  on() {}
-  once() {}
-  off() {}
-}
-
-// @ts-expect-error
-const getMockParticipant = () => new MockParticipant() as RemoteParticipant
 
 const getApp = async ({
   room,
@@ -295,6 +282,31 @@ describe(coolGold(`Meeting`), () => {
         app.meeting.removeRemoteParticipant(subStreamParticipant)
         expect(subStreams?.findByParticipant(subStreamParticipant)).to.be
           .undefined
+      })
+    })
+  })
+
+  describe.only(`when using global popUp in a meeting`, () => {
+    describe(`when navigating away`, () => {
+      it(`should not have disconnected from the room`, async () => {
+        const app = await getApp()
+        const spy = sinon.spy(app.meeting.room, 'disconnect')
+        await app.meeting.join('token')
+        expect(spy).not.to.be.called
+        await app.navigate('VideoChat')
+        expect(spy).to.be.calledOnce
+      })
+
+      xit(`should still have tracks on`, () => {
+        //
+      })
+
+      xit(`should still have all streams in memory`, () => {
+        //
+      })
+
+      xit(`should still have all DOM nodes in memory`, () => {
+        //
       })
     })
   })

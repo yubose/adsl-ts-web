@@ -60,7 +60,8 @@ class Page {
         document.createElement('div')) as HTMLDivElement
       this.rootNode.id = this.id as string
     }
-    this.rootNode.innerHTML = ''
+    this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.rootNode)
+    this.rootNode.textContent = ''
     this.rootNode.style.cssText = ''
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
@@ -90,7 +91,6 @@ class Page {
   }
 
   set page(page: string) {
-    console.log(page)
     this.#nuiPage.page = page || ''
   }
 

@@ -1,6 +1,5 @@
 import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
-import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
 import { createToast } from 'vercel-toast'
 import NOODLDOM, {
@@ -191,6 +190,7 @@ class App {
       await this.noodl.init()
 
       this.observeViewport(this.viewport)
+      this.observePages(this.mainPage)
 
       log.func('initialize')
       stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
@@ -287,19 +287,7 @@ class App {
             page.snapshot(),
           )
 
-          if (page.page === 'VideoChat' && pageRequesting !== 'VideoChat') {
-            // Empty the current participants list since we manage the list of
-            // participants ourselves
-            const { participants } = this.noodl?.root?.VideoChat?.listData || {}
-            participants?.length && (participants.length = 0)
-            this.streams.mainStream.reset()
-            this.streams.selfStream.reset()
-            this.streams.subStreams?.reset()
-            log.gold(`Clearing mainStream, selfStream, and subStreams`)
-          }
-
           let self = this
-          if (pageRequesting === 'VideoChat') debugger
           await this.noodl?.initPage(pageRequesting, [], {
             ...page.modifiers[pageRequesting],
             builtIn: {
@@ -338,7 +326,7 @@ class App {
                   Global.globalRegister,
                 )
                 Global.globalRegister.forEach((value: any) => {
-                  if (isPlainObject(value)) {
+                  if (u.isObj(value)) {
                     if (Identify.component.register(value)) {
                       log.grey(
                         `Found and attached a "register" component to the register store`,
@@ -509,139 +497,60 @@ class App {
     }
   }
 
-  observePages() {
-    this.mainPage
+  observePages(page: NOODLDOMPage) {
+    page
       .on(
-        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS as any,
-        async function onBeforeRenderComponents(
-          this: App,
-          { requesting: pageName, ref, ...rest }: any,
-        ) {
-          log.func('onBeforeRenderComponents')
-          log.grey(`Rendering the DOM for page: "${pageName}"`, {
-            requesting: pageName,
-            ref,
-            ...rest,
-          })
-
-          if (
-            /videochat/i.test(this.mainPage.page) &&
-            !/videochat/i.test(pageName)
-          ) {
-            this.meeting.leave()
-            log.func('before-page-render')
-            log.grey(`Disconnected from room`, this.meeting.room)
-
-            const mainStream = this.streams.mainStream
-            const selfStream = this.streams.selfStream
-            const subStreamsContainer = this.streams.subStreams
-            const subStreams = subStreamsContainer?.getSubstreamsCollection()
-
-            if (mainStream.getElement()) {
-              log.grey('Wiping mainStream state', mainStream.reset())
+        eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE,
+        function onBeforeClearRootNode(this: App) {
+          if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+            // Empty the current participants list since we manage the list of
+            // participants ourselves
+            let participants = get(
+              this.noodl.root,
+              PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+            )
+            if (participants?.length) {
+              let participantsBefore = participants.slice()
+              participants.length = 0
+              log.grey('Removed participants from SDK', {
+                before: participantsBefore,
+                after: get(
+                  this.noodl.root,
+                  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+                ),
+              })
+              participantsBefore = null
             }
-            if (selfStream.getElement()) {
-              log.grey('Wiping selfStream state', selfStream.reset())
-            }
-            if (subStreamsContainer?.length) {
-              const logMsg = `Wiping subStreams container's state`
-              log.grey(logMsg, subStreamsContainer.reset())
-            }
-            if (Array.isArray(subStreams)) {
-              subStreams.forEach((subStream) => {
-                if (subStream.getElement()) {
-                  log.grey(`Wiping a subStream's state`, subStream.reset())
-                  subStreamsContainer?.removeSubStream(subStream)
-                }
+            if (this.streams.mainStream.hasElement()) {
+              const before = this.streams.mainStream.snapshot()
+              this.streams.mainStream.reset()
+              log.grey('Wiping mainStream state', {
+                before,
+                after: this.streams.mainStream.snapshot(),
               })
             }
-          }
-
-          let pageSnapshot = {} as { name: string; object: any } | 'old.request'
-
-          // isStale
-          if (pageName !== this.mainPage.page) {
-            // Load the page in the SDK
-            this.mainPage.requesting = pageName
-            const pageObject = await this.#preparePage(this.mainPage)
-            // isStale
-            const noodluidomPageSnapshot = this.mainPage.snapshot()
-            // There is a bug that two parallel requests can happen at the same time, and
-            // when the second request finishes before the first, the page renders the first page
-            // in the DOM. To work around this bug we can determine this is occurring using
-            // the conditions below
-            if (
-              noodluidomPageSnapshot.requesting === '' &&
-              noodluidomPageSnapshot.status === pageStatus.IDLE &&
-              noodluidomPageSnapshot.current !== pageName
-            ) {
-              pageSnapshot = 'old.request'
-            } else {
-              // This will be passed into the page renderer
-              pageSnapshot = {
-                name: pageName,
-                object: pageObject,
-              }
-
-              // Initialize the noodl-ui client (parses components) if it
-              // isn't already initialized
-              if (!this.initialized) {
-                log.func('before-page-render')
-                log.grey('Initializing noodl-ui client', {
-                  noodl: this.noodl,
-                  pageSnapshot,
-                })
-
-                // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
-                const config = this.noodl.getConfig()
-                const plugins = [] as ComponentObject[]
-                if (config.headPlugin) {
-                  plugins.push({
-                    type: 'pluginHead',
-                    path: config.headPlugin,
-                  } as any)
-                }
-                if (config.bodyTopPplugin) {
-                  plugins.push({
-                    type: 'pluginBodyTop',
-                    path: config.bodyTopPplugin,
-                  } as any)
-                }
-                if (config.bodyTailPplugin) {
-                  plugins.push({
-                    type: 'pluginBodyTail',
-                    path: config.bodyTailPplugin,
-                  } as any)
-                }
-                this.mainPage.page = pageName
-                this.mainPage.viewport = this.viewport
-                NUI.use({
-                  getAssetsUrl: () => this.noodl.assetsUrl,
-                  getBaseUrl: () => this.noodl.cadlBaseUrl || '',
-                  getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
-                  getPages: () => this.noodl.cadlEndpoint?.page || [],
-                  getRoot: () => this.noodl.root,
-                })
-
-                // log.func('before-page-render')
-                // log.grey('Initialized noodl-ui client', NUI)
-              }
-              // Refresh the root
-              // TODO - Leave root/page auto binded to the lib
-              this.mainPage.page = pageName
-              // NOTE: not being used atm
-              if (
-                this.mainPage.rootNode &&
-                this.mainPage.rootNode.id !== pageName
-              ) {
-                this.mainPage.rootNode.id = pageName
-              }
-              return pageSnapshot
+            if (this.streams.selfStream.hasElement()) {
+              const before = this.streams.selfStream.snapshot()
+              this.streams.selfStream.reset()
+              log.grey('Wiping selfStream state', {
+                before,
+                after: this.streams.selfStream.snapshot(),
+              })
             }
-            log.func('before-page-render')
-            log.green(`Avoided a duplicate navigate request to "${pageName}"`)
+            if (this.streams.subStreams?.length) {
+              const before = this.streams.subStreams
+                .getSubstreamsCollection()
+                ?.map((stream) => stream?.snapshot?.())
 
-            return pageSnapshot
+              this.streams.subStreams.reset()
+
+              log.grey('Wiping subStreams state', {
+                before,
+                after: this.streams.subStreams
+                  .getSubstreamsCollection()
+                  ?.map((stream) => stream?.snapshot?.()),
+              })
+            }
           }
         }.bind(this),
       )

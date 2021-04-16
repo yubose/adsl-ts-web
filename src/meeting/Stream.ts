@@ -8,7 +8,6 @@ import {
   StreamType,
 } from '../app/types'
 import { attachAudioTrack, attachVideoTrack } from '../utils/twilio'
-import { isNil } from '../utils/common'
 
 const log = Logger.create('Streams.ts')
 
@@ -16,19 +15,12 @@ class MeetingStream {
   #node: NOODLDOMElement | null = null
   #participant: RoomParticipant | null = null
   #uxTag: string = ''
+  tempChildren: any
   previous: { sid?: string; identity?: string } = {}
   type: StreamType | null = null;
 
   [inspect.custom]() {
-    return {
-      hasElement: this.hasElement(),
-      hasParticipant: this.hasParticipant(),
-      hasVideoElement: !!this.getElement()?.querySelector?.('video'),
-      hasAudioElement: !!this.getElement()?.querySelector?.('audio'),
-      previousParticipant: this.previous,
-      sid: this.getParticipant()?.sid,
-      type: this.type,
-    }
+    return this.snapshot()
   }
 
   constructor(
@@ -263,9 +255,12 @@ class MeetingStream {
   /** Returns a JS representation of the current state of this stream */
   snapshot(otherArgs?: any) {
     return {
-      node: this.#node,
-      participant: this.#participant,
-      previous: this.previous,
+      hasElement: this.hasElement(),
+      hasParticipant: this.hasParticipant(),
+      hasVideoElement: !!this.getElement()?.querySelector?.('video'),
+      hasAudioElement: !!this.getElement()?.querySelector?.('audio'),
+      previousParticipant: this.previous.sid,
+      sid: this.getParticipant()?.sid || '',
       streamType: this.type,
       tracks: this.getParticipant()?.tracks,
       ...otherArgs,
@@ -277,8 +272,19 @@ class MeetingStream {
    * Useful for cleanup operations and avoids memory leaks
    */
   reset() {
-    // this.#node?.remove?.()
-    this.#node = null
+    if (this.#node?.childNodes) {
+      for (const child of this.#node.childNodes) {
+        child?.remove?.()
+      }
+    }
+    try {
+      this.#node?.parentElement?.removeChild?.(this.#node)
+      this.#node?.remove?.()
+      this.#node = null
+      this.unpublish(this.#participant)
+    } catch (error) {
+      console.error(error)
+    }
     this.#participant = null
     this.previous = {}
     this.type = null

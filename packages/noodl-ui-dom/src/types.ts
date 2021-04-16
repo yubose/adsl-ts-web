@@ -70,6 +70,7 @@ export namespace Resolve {
   export interface Config {
     name?: string
     cond?: ComponentType | Func
+    // createNode?()
     before?: Resolve.Config | Func
     resolve?: Resolve.Config | Func
     after?: Resolve.Config | Func
@@ -127,6 +128,7 @@ export namespace Page {
       snapshot: Snapshot & { error: Error },
     ): void
     [eventId.page.on.ON_OUTBOUND_REDIRECT](snapshot: Snapshot): void
+    [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](rootNode: HTMLElement): void
     [eventId.page.on.ON_DOM_CLEANUP](
       rootNode: NOODLDOM['page']['rootNode'],
     ): void

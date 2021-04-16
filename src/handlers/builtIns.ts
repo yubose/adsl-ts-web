@@ -345,6 +345,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('<builtIn> goto]')
     log.red('', action)
 
+    debugger
+
     let destinationParam = ''
     let reload: boolean | undefined
     let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
@@ -409,6 +411,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       reload,
       pageReload,
     })
+
+    debugger
 
     if (id) {
       const isInsidePageComponent = isPageConsumer(options.component)
@@ -548,7 +552,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           node as HTMLElement,
           viewTagComponent,
           app.mainPage,
-          ctx,
+          { context: ctx },
         )
         NUI.cache.component.add(newComponent)
         startCount++
@@ -630,17 +634,28 @@ export function createVideoChatBuiltIn(app: App) {
         )
       }
 
+      let newRoom: Room | null = null
       // Disconnect from the room if for some reason we
       // are still connected to one
       // if (room.state === 'connected' || room.state === 'reconnecting') {
       //   room?.disconnect?.()
       //   if (connecting) setConnecting(false)
       // }
-      if (action?.roomId) log.grey(`Connecting to room id: ${action.roomId}`)
-      const newRoom = (await app.meeting.join(action.accessToken)) as Room
+
+      log.func('onVideoChat')
+      // Reuse the existing room
+      if (app.meeting.room?.state === 'connected') {
+        newRoom = await app.meeting.rejoin()
+        log.green(
+          `Reusing existent room that you are already connected to`,
+          newRoom,
+        )
+      } else {
+        if (action?.roomId) log.grey(`Connecting to room ide: ${action.roomId}`)
+        newRoom = (await app.meeting.join(action.accessToken)) as Room
+        newRoom && log.green(`Connected to room: ${newRoom.name}`, newRoom)
+      }
       if (newRoom) {
-        log.func('onVideoChat')
-        log.green(`Connected to room: ${newRoom.name}`, newRoom)
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
         // to initiate the default values for audio/video default enabled/disabled state
         const { cameraOn, micOn } = app.noodl.root.VideoChat || {}
@@ -654,6 +669,7 @@ export function createVideoChatBuiltIn(app: App) {
         ) => {
           tracks.forEach((publication) => publication?.track?.[state]?.())
         }
+
         const enable = toggle('enable')
         const disable = toggle('disable')
 

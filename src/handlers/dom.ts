@@ -121,6 +121,19 @@ const createExtendedDOMResolvers = function (app: App) {
   }
 
   const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
+    '[App] selfStream': {
+      cond: (node, component) => component?.blueprint?.viewTag === 'selfStream',
+      resolve(node) {
+        if (app.meeting.streams.selfStream.tempChildren) {
+          app.meeting.streams.selfStream.tempChildren.forEach(
+            (childNode: HTMLElement) => {
+              node.appendChild(childNode)
+            },
+          )
+          app.meeting.streams.selfStream.tempChildren = null
+        }
+      },
+    },
     '[App] data-value': {
       cond: (node) => isTextFieldLike(node),
       before(node, component) {

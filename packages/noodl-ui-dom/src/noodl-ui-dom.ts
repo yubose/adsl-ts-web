@@ -338,9 +338,9 @@ class NOODLDOM extends NOODLDOMInternal {
     component: C,
     container?: T.NOODLDOMElement | null,
     pageProp?: Page,
-    context?: Record<string, any>,
+    options?: { context?: Record<string, any>; node?: HTMLElement | null },
   ) {
-    let node: T.NOODLDOMElement | null = null
+    let node: T.NOODLDOMElement | null = options?.node || null
     let page: Page = pageProp || this.page
 
     if (component) {
@@ -428,7 +428,7 @@ class NOODLDOM extends NOODLDOMInternal {
         this.#R.run(node, component)
 
         component.children?.forEach?.((child: Component) => {
-          const childNode = this.draw(child, node, page, context) as HTMLElement
+          const childNode = this.draw(child, node, page, options) as HTMLElement
           node?.appendChild(childNode)
         })
       }
@@ -440,8 +440,9 @@ class NOODLDOM extends NOODLDOMInternal {
     node: T.NOODLDOMElement | null, // ex: li (dom node)
     component: Component, // ex: listItem (component instance)
     pageProp?: Page,
-    context?: any,
+    options?: Parameters<NOODLDOM['draw']>[3],
   ) {
+    let context: any = options?.context
     let newNode: T.NOODLDOMElement | null = null
     let newComponent: Component | undefined
     let page =
@@ -525,7 +526,7 @@ class NOODLDOM extends NOODLDOMInternal {
           newComponent,
           parentNode || (document.body as any),
           page,
-          context,
+          { ...options, context },
         )
       }
       if (parentNode) {
@@ -538,7 +539,10 @@ class NOODLDOM extends NOODLDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.draw(newComponent as NUIComponent.Instance, null, page, context)
+      this.draw(newComponent as NUIComponent.Instance, null, page, {
+        ...options,
+        context,
+      })
     }
     if (node instanceof HTMLElement) {
       // console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)

@@ -186,6 +186,7 @@ class MeetingSubstreams {
   }
 
   reset() {
+    this.#subStreams?.forEach?.((subStream) => subStream.reset())
     this.#subStreams = []
     this.blueprint = {} as ComponentObject
     this.container?.remove?.()
