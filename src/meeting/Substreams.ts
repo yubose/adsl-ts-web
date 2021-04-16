@@ -144,6 +144,10 @@ class MeetingSubstreams {
     return this.#subStreams.find(cb)
   }
 
+  findByParticipant(participant: RoomParticipant) {
+    return this.#subStreams.find((s) => s.isSameParticipant(participant))
+  }
+
   /**
    * Removes the given stream from the subStreams collection
    * If stream was passed as an index then it is used as the index to remove
@@ -184,7 +188,7 @@ class MeetingSubstreams {
   reset() {
     this.#subStreams = []
     this.blueprint = {} as ComponentObject
-    // this.container?.remove?.()
+    this.container?.remove?.()
     this.container = null
     return this
   }

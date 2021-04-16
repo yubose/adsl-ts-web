@@ -7,7 +7,7 @@ import noop from 'lodash/noop'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
-import { ndom } from './utils/test-utils'
+import { getMostRecentApp, ndom } from './utils/test-utils'
 
 chai.use(sinonChai)
 chai.use(chaiAsPromised)
@@ -25,8 +25,10 @@ before(function () {
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
-  ndom.reset()
-  // ndom.page?.clearRootNode()
+  let app = getMostRecentApp()
+  if (app) {
+    app.reset()
+  } else ndom.reset()
 })
 
 after(() => {

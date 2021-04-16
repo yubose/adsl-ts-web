@@ -31,6 +31,49 @@ const createMeetingFns = function _createMeetingFns(app: App) {
   let _room = new EventEmitter() as Room
   let _streams = new Streams()
 
+  async function _createRoom(token: string) {
+    return connect(token, {
+      dominantSpeaker: true,
+      logLevel: 'info',
+      tracks: [],
+      bandwidthProfile: {
+        video: {
+          dominantSpeakerPriority: 'high',
+          mode: 'collaboration',
+          // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
+          ...(isMobile() ? { maxSubscriptionBitrate: 2500000 } : undefined),
+        },
+      },
+    })
+  }
+
+  async function _startTracks() {
+    function handleTrackErr(kind: 'audio' | 'video', err: Error) {
+      let errMsg = ''
+      if (/NotAllowedError/i.test(err.name)) {
+        errMsg = `Permission to your ${kind} device was denied.`
+      } else if (/NotFoundError/i.test(err.name)) {
+        errMsg = `Could not locate your ${kind} device.`
+      } else if (/NotReadableError/i.test(err.name)) {
+        errMsg = `Failed to start your ${kind} device. It may be busy or is being used by another tab.`
+      } else {
+        errMsg = err.message
+      }
+      console.error(err)
+      toast(errMsg, { type: 'error' })
+    }
+    try {
+      _room.localParticipant.publishTrack(await createLocalAudioTrack())
+    } catch (error) {
+      handleTrackErr('audio', error)
+    }
+    try {
+      _room.localParticipant.publishTrack(await createLocalVideoTrack())
+    } catch (error) {
+      handleTrackErr('video', error)
+    }
+  }
+
   const o = {
     get localParticipant() {
       return _room?.localParticipant
@@ -44,67 +87,16 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     /**
      * Joins and returns the room using the token
      * @param { string } token - Room token
-     * @param { ConnectOptions? } options - Options passed to the connect call
      */
-    async join(token: string, options?: ConnectOptions) {
+    async join(token: string) {
       try {
-        if (!_room || _room.state !== 'connected') {
-          // TODO - timeout
-          _room = await connect(token, {
-            dominantSpeaker: true,
-            logLevel: 'info',
-            ...options,
-            tracks: [],
-            bandwidthProfile: {
-              ...options?.bandwidthProfile,
-              video: {
-                dominantSpeakerPriority: 'high',
-                mode: 'collaboration',
-                // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
-                ...(isMobile()
-                  ? { maxSubscriptionBitrate: 2500000 }
-                  : undefined),
-                ...options?.bandwidthProfile?.video,
-              },
-            },
-          })
-
-          let localAudioTrack: LocalAudioTrack
-          let localVideoTrack: LocalVideoTrack
-
-          try {
-            localAudioTrack = await createLocalAudioTrack()
-            _room.localParticipant.publishTrack(localAudioTrack)
-          } catch (error) {
-            handleTrackErr('audio', error)
-          }
-          try {
-            localVideoTrack = await createLocalVideoTrack()
-            _room.localParticipant.publishTrack(localVideoTrack)
-          } catch (error) {
-            handleTrackErr('video', error)
-          }
+        if (!_room) {
+          _room = await _createRoom(token)
         } else {
-          log.grey(`Reusing existent local tracks and DOM nodes`)
+          _room.state === 'disconnected' && o.leave()
+          _room = await _createRoom(token)
         }
-
-        function handleTrackErr(kind: 'audio' | 'video', err: Error) {
-          console.error(err)
-          let errMsg = ''
-
-          if (/NotAllowedError/i.test(err.name)) {
-            errMsg = `Permission to your ${kind} device was denied.`
-          } else if (/NotFoundError/i.test(err.name)) {
-            errMsg = `Could not locate your ${kind} device.`
-          } else if (/NotReadableError/i.test(err.name)) {
-            errMsg = `Failed to start your ${kind} device. It may be busy or is being used by another tab.`
-          } else {
-            errMsg = err.message
-          }
-
-          toast(errMsg, { type: 'error' })
-        }
-
+        await _startTracks()
         setTimeout(() => app.meeting.onConnected?.(_room), 2000)
         return _room
       } catch (error) {
@@ -153,15 +145,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     ) {
       if (_room?.state === 'connected') {
         if (force || !o.isParticipantLocal(participant)) {
-          const mainStream = _streams?.mainStream
-          const subStreams = _streams?.subStreams
-          // Safe checking -- remove the participant from a subStream if they
-          // are in an existing one for some reason
+          const { mainStream, subStreams } = _streams
           if (!force && mainStream.isSameParticipant(participant)) {
             if (!subStreams?.participantExists(participant)) {
-              let subStream = subStreams?.findBy((s: Stream) =>
-                s.isSameParticipant(participant),
-              )
+              let subStream = subStreams?.findByParticipant(participant)
               if (subStream) {
                 subStream?.unpublish()
                 subStream?.removeElement()
@@ -221,9 +208,6 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               { participant, streams: _streams },
             )
           }
-        } else {
-          log.func('addRemoteParticipant')
-          log.red('This call is intended for remote participants')
         }
       }
       return this
@@ -237,12 +221,11 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         let subStreams: MeetingSubstreams | null = _streams?.getSubStreamsContainer()
         let subStream: Stream | null | undefined = null
 
-        if (_streams?.isMainStreaming?.(participant)) {
+        if (mainStream.isSameParticipant?.(participant)) {
           log.func('removeRemoteParticipant')
           log.orange(
             'This participant was mainstreaming. Removing it from mainStream now',
           )
-          mainStream = _streams.mainStream
           // NOTE: Be careful not to call mainStream.removeElement() here.
           // In the NOODL the mainStream is part of the page. For subStreams,
           // since we create them customly and are not included in the NOODL, we
@@ -275,34 +258,13 @@ const createMeetingFns = function _createMeetingFns(app: App) {
                   { mainStream, participant: nextMainParticipant },
                 )
                 subStreams?.removeSubStream(subStream)
-                log.green(
-                  `Removed inactive subStream from the subStreams collection`,
-                )
-              } else {
-                log.func('removeRemoteParticipant')
-                log.grey(
-                  `No other participant was found in any of the subStreams collection`,
-                )
               }
-            } else {
-              log.func('removeRemoteParticipant')
-              log.grey(
-                `No participant is subStreaming right now and the mainStream ` +
-                  `will remain blank`,
-              )
             }
-          } else {
-            log.func('removeRemoteParticipant')
-            log.red(
-              `The subStreams container was not initiated. Nothing else will happen`,
-            )
           }
         } else if (_streams?.isSubStreaming(participant)) {
           log.func('removeRemoteParticipant')
           log.orange('This remote participant was substreaming')
-          subStream = subStreams?.findBy((stream: Stream) =>
-            stream.isSameParticipant(participant),
-          )
+          subStream = subStreams?.findByParticipant(participant)
           if (subStream) {
             subStream.unpublish().detachParticipant().removeElement()
             subStreams?.removeSubStream(subStream)

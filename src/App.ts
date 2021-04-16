@@ -2,6 +2,7 @@ import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
 import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
+import { createToast } from 'vercel-toast'
 import NOODLDOM, {
   eventId,
   isPage as isNOODLDOMPage,
@@ -20,8 +21,12 @@ import {
   publish,
   Viewport as VP,
 } from 'noodl-ui'
-import { WritableDraft } from 'immer/dist/internal'
-import { CACHED_PAGES, pageStatus } from './constants'
+import { Draft, WritableDraft } from 'immer/dist/internal'
+import {
+  CACHED_PAGES,
+  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+  pageStatus,
+} from './constants'
 import {
   AuthStatus,
   CachedPageObject,
@@ -35,7 +40,6 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
-import toast from 'vercel-toast'
 import * as u from './utils/common'
 import * as T from './app/types'
 
@@ -80,9 +84,11 @@ class App {
     viewport = new VP(),
   }: T.AppConstructorOptions = {}) {
     this.getStatus = getStatus
-    this.mainPage = ndom.createPage(nui.createPage({ viewport }))
+    this.mainPage = ndom.createPage(
+      nui.cache.page.length ? nui.getRootPage() : nui.createPage({ viewport }),
+    )
     this.#meeting =
-      (meeting && typeof meeting === 'function' ? meeting(this) : meeting) ||
+      (meeting && u.isFnc(meeting) ? meeting(this) : meeting) ||
       createMeetingFns(this)
     this.#ndom = ndom
     this.#nui = nui
@@ -122,18 +128,18 @@ class App {
    * @param { string | undefined } pageRequesting
    */
   async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
-  async navigate(pageRequesting: string, opts?: never): Promise<void>
+  async navigate(pageRequesting: string): Promise<void>
   async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
     try {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
 
       if (isNOODLDOMPage(page)) {
-        _page = page as NOODLDOMPage
+        _page = page
         pageRequesting && (_pageRequesting = pageRequesting)
       } else {
         _page = this.mainPage
-        typeof page === 'string' && (_pageRequesting = page)
+        u.isStr(page) && (_pageRequesting = page)
       }
 
       if (_pageRequesting && _page.requesting !== _pageRequesting) {
@@ -142,7 +148,7 @@ class App {
 
       if (u.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
-        return (window.location.href = _pageRequesting)
+        return void (window.location.href = _pageRequesting)
       }
 
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
@@ -292,6 +298,8 @@ class App {
             log.gold(`Clearing mainStream, selfStream, and subStreams`)
           }
 
+          let self = this
+          if (pageRequesting === 'VideoChat') debugger
           await this.noodl?.initPage(pageRequesting, [], {
             ...page.modifiers[pageRequesting],
             builtIn: {
@@ -305,8 +313,12 @@ class App {
               FCMOnTokenRefresh: this.#enabled.firebase
                 ? this.messaging?.onTokenRefresh.bind(this.messaging)
                 : undefined,
-              checkField: this.ndom.builtIns.checkField?.find(Boolean)?.fn,
-              goto: this.ndom.builtIns.goto?.find(Boolean)?.fn,
+              get checkField() {
+                return self.ndom.builtIns.get('checkField')?.find(Boolean)?.fn
+              },
+              get goto() {
+                return self.ndom.builtIns.get('goto')?.find(Boolean)?.fn
+              },
               videoChat: createVideoChatBuiltIn(this),
             },
           })
@@ -347,7 +359,7 @@ class App {
           return this.noodl.root[pageRequesting]
         } catch (error) {
           console.error(error)
-          toast.createToast(error.message, { type: 'error' })
+          createToast(error.message, { type: 'error' })
         }
       }.bind(this)
 
@@ -506,15 +518,6 @@ class App {
           { requesting: pageName, ref, ...rest }: any,
         ) {
           log.func('onBeforeRenderComponents')
-          console.log({ pageName, ref })
-          // return
-          // if (ref.request.name !== pageName) {
-          //   log.red(
-          //     `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
-          //     { requesting: pageName, ref, ...rest },
-          //   )
-          //   return 'old.request'
-          // }
           log.grey(`Rendering the DOM for page: "${pageName}"`, {
             requesting: pageName,
             ref,
@@ -1089,7 +1092,6 @@ class App {
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup
-            log.red(`BLUEPRINT`, component.blueprint)
             subStreams.container = node
             subStreams.blueprint = component.blueprint?.children?.[0]
             subStreams.resolver = NUI.resolveComponents.bind(NUI)
@@ -1123,6 +1125,57 @@ class App {
         }
       }.bind(this),
     })
+  }
+
+  reset() {
+    this.meeting.streams.mainStream.reset()
+    this.meeting.streams.selfStream.reset()
+    this.meeting.streams.subStreams?.reset()
+
+    if (this.#ndom) {
+      this.#ndom.reset()
+      this.mainPage = this.#ndom.createPage(
+        this.nui.cache.page.length
+          ? this.nui.getRootPage()
+          : this.nui.createPage({ viewport: this.viewport }),
+      ) as NOODLDOMPage
+      this.#ndom.page = this.mainPage
+    }
+
+    if (has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
+      this.updateRoot((draft) => {
+        set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, [])
+      })
+    }
+  }
+
+  updateRoot<P extends string>(
+    path: P,
+    value: any,
+    cb?: (root: Record<string, any>) => void,
+  ): void
+  updateRoot(
+    fn: (
+      draft: Draft<App['noodl']['root']>,
+      cb?: (root: Record<string, any>) => void,
+    ) => void,
+  ): void
+  updateRoot<P extends string>(
+    fn: ((draft: Draft<App['noodl']['root']>) => void) | P,
+    value?: any | (() => void),
+    cb?: (root: Record<string, any>) => void,
+  ) {
+    this.noodl?.editDraft?.(function editDraft(
+      draft: Draft<App['noodl']['root']>,
+    ) {
+      if (u.isStr(fn)) {
+        set(draft, fn, value)
+      } else {
+        fn(draft)
+        u.isFnc(value) && (cb = value)
+      }
+    })
+    cb?.(this.noodl.root)
   }
 
   /* -------------------------------------------------------

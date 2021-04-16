@@ -59,7 +59,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       } else {
         if (dataKey) {
-          app.noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
+          app.updateRoot((draft) => {
             if (!has(draft?.[app.mainPage.page], dataKey)) {
               log.orange(
                 `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +

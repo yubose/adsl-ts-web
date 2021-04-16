@@ -56,7 +56,8 @@ class Page {
 
   clearRootNode() {
     if (!this.rootNode) {
-      this.rootNode = document.createElement('div')
+      this.rootNode = (document.getElementById(String(this.id)) ||
+        document.createElement('div')) as HTMLDivElement
       this.rootNode.id = this.id as string
     }
     this.rootNode.innerHTML = ''
@@ -64,6 +65,7 @@ class Page {
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
+
     if (!document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
     }

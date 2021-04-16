@@ -281,12 +281,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       if (/mic/i.test(dataKey)) {
-        await app.ndom.builtIns.toggleMicrophoneOnOff
-          .find(Boolean)
+        await app.ndom.builtIns
+          .get('toggleMicrophoneOnOff')
+          ?.find(Boolean)
           ?.fn?.(action, options)
       } else if (/camera/i.test(dataKey)) {
-        await app.ndom.builtIns.toggleCameraOnOff
-          .find(Boolean)
+        await app.ndom.builtIns
+          .get('toggleCameraOnOff')
+          ?.find(Boolean)
           ?.fn?.(action, options)
       }
 

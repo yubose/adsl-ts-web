@@ -19,7 +19,6 @@ import {
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
-import createMeetingFns from '../meeting'
 import * as u from './common'
 
 export const deviceSize = {
@@ -29,6 +28,9 @@ export const deviceSize = {
   widescreen: { width: 1920, height: 1080, aspectRatio: 1.777777777777778 },
 } as const
 
+let _app: App
+
+export const getMostRecentApp = () => _app
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = `${baseUrl}assets/`
 export const nui = NUI
@@ -207,7 +209,7 @@ export async function initializeApp(
     transaction?: Partial<Transaction>
   },
 ) {
-  const app =
+  _app =
     opts?.app ||
     new App({
       getStatus: noodl.getStatus.bind(noodl) as any,
@@ -218,66 +220,66 @@ export async function initializeApp(
       viewport,
     })
 
-  await app.initialize({
+  await _app.initialize({
     firebase: { client: { messaging: noop } as any, vapidKey: 'mockVapidKey' },
     firebaseSupported: false,
   })
 
   if (opts?.pageObject) {
-    opts.pageName && (app.mainPage.page = opts.pageName)
-    app.mainPage.components = (opts.components ||
+    opts.pageName && (_app.mainPage.page = opts.pageName)
+    _app.mainPage.components = (opts.components ||
       opts.pageObject.components ||
       []) as ComponentObject[]
+    _app.mainPage.getNuiPage().object().components = _app.mainPage.components
   }
 
   const _test = {
     addParticipant(participant: any) {
-      if (!(app.meeting.room.participants instanceof Map)) {
-        app.meeting.room.participants = new Map()
+      if (!(_app.meeting.room.participants instanceof Map)) {
+        _app.meeting.room.participants = new Map()
       }
       participant.sid = participant.sid || u.getRandomKey()
-      app.meeting.room.participants.set(participant.sid, participant)
+      _app.meeting.room.participants.set(participant.sid, participant)
       // TODO - the emit call here is actually not emitting the event
-      app.meeting.room.emit('participantConnected', participant)
-      app.meeting.addRemoteParticipant(participant)
+      _app.meeting.room.emit('participantConnected', participant)
+      _app.meeting.addRemoteParticipant(participant)
     },
     clear() {
-      app.streams.mainStream.reset()
-      app.streams.selfStream.reset()
-      app.streams.subStreams?.reset()
-      app.meeting.reset()
+      _app.streams.mainStream.reset()
+      _app.streams.selfStream.reset()
+      _app.streams.subStreams?.reset()
+      _app.meeting.reset()
     },
   }
 
-  Object.defineProperty(app, '_test', { value: _test })
-
+  Object.defineProperty(_app, '_test', { value: _test })
   if (opts?.room) {
     const { room } = opts
-    room.state && (app.meeting.room.state = room.state)
+    room.state && (_app.meeting.room.state = room.state)
     if (room.participants) {
       if (room.participants instanceof Map) {
-        app.meeting.room.participants = room.participants
-        if (app.meeting.room.participants.size) {
-          for (const participant of app.meeting.room.participants.values()) {
-            app.meeting.room.participants.set(participant.sid, participant)
-            app.meeting.addRemoteParticipant(participant)
+        _app.meeting.room.participants = room.participants
+        if (_app.meeting.room.participants.size) {
+          for (const participant of _app.meeting.room.participants.values()) {
+            _app.meeting.room.participants.set(participant.sid, participant)
+            _app.meeting.addRemoteParticipant(participant)
           }
         }
       } else {
-        app.meeting.room.participants = new Map()
+        _app.meeting.room.participants = new Map()
         u.entries(room.participants).forEach(([sid, participant]) => {
-          app.meeting.room?.participants?.set(sid, participant)
-          app.meeting.addRemoteParticipant(participant)
+          _app.meeting.room?.participants?.set(sid, participant)
+          _app.meeting.addRemoteParticipant(participant)
         })
       }
     }
   }
 
-  app.meeting.streams.mainStream.reset()
-  app.meeting.streams.selfStream.reset()
-  app.meeting.streams.subStreams?.reset()
+  _app.meeting.streams.mainStream.reset()
+  _app.meeting.streams.selfStream.reset()
+  _app.meeting.streams.subStreams?.reset()
 
-  return app as App & { _test: typeof _test }
+  return _app as App & { _test: typeof _test }
 }
 
 export function getActions(app: any = {}) {

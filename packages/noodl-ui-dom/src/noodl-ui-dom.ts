@@ -71,11 +71,11 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   get actions() {
-    return NOODLDOM._nui.getActions()
+    return NOODLDOM._nui.cache.actions
   }
 
   get builtIns() {
-    return NOODLDOM._nui.getBuiltIns()
+    return NOODLDOM._nui.cache.actions.builtIn
   }
 
   get cache() {
@@ -344,29 +344,6 @@ class NOODLDOM extends NOODLDOMInternal {
     let page: Page = pageProp || this.page
 
     if (component) {
-      // for (const evt of userEvent) {
-      //   if (component.has(evt)) {
-      //     const ac = component.get(evt)
-      //     if (isActionChain(ac)) {
-      //       const numActions = ac.actions.length
-      //       for (let index = 0; index < numActions; index++) {
-      //         const obj = ac.actions[index]
-      //         if (Identify.action.builtIn(obj)) {
-      //           if (obj.funcName === 'show') {
-      //             const viewTag = obj.viewTag
-      //             // if (node.style.position)
-      //             if (!page.state.viewTag) {
-      //               // page.state.viewTag = {}}
-      //               // page.state.viewTag[obj.viewTag] = [component.id]
-      //               break
-      //             }
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
-
       if (Identify.component.plugin(component)) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem)
