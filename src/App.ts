@@ -665,9 +665,89 @@ class App {
         if (node) {
           node.style.width = component.getStyle('width') as string
           node.style.height = component.getStyle('height') as string
-          const myChart = echarts.init(node)
-          const option = dataValue
-          option && myChart.setOption(option)
+          // get chart type
+
+          if (dataValue.chartType) {
+            let chartType = dataValue.chartType.toString()
+            switch (chartType) {
+              case "graph": {
+                let myChart = echarts.init(node)
+                let option = dataValue
+                option && myChart.setOption(option)
+                break
+              }
+              case "table": {
+                let option = dataValue
+                console.error(option)
+                let tableData: any = {
+                  pagination: { limit: "" },
+                  language: {
+                    search: {
+                      placeholder: ""
+                    },
+                    pagination: {
+                      showing: ""
+                    }
+                  },
+                  chartType: option.chartType,
+                  data: []
+                }
+                if (option.style) tableData.style = option.style
+                if (option.tableHeader) tableData.columns = option.tableHeader
+                if (option.attribute) {
+                  let attribute = option.attribute
+                  if (attribute.search) {
+                    tableData.search = true
+                    tableData.language.search.placeholder = attribute.search
+                  }
+                  if (attribute.sort) tableData.sort = true
+                  if (attribute.pagination) tableData.pagination.limit = attribute.pagination
+                }
+                if (option.allowOnclick) {
+                  let onclickFunc = {
+                    name: 'Actions',
+                    formatter: (cell: any, row: any) => {
+                      return gridjs.h('button', {
+                        onClick: () => {
+                          let resData = row
+                          let dataArray: any[] = []
+                          let resArray: any[] = []
+                          resData._cells.pop()
+                          resData._cells.forEach((item: any) => {
+                            dataArray.push(item['data'])
+                          })
+                          for (const key in option.dataHeader) {
+                            if (Object.prototype.hasOwnProperty.call(option.dataHeader, key)) {
+                              const element = option.dataHeader[key];
+                              resArray[element] = dataArray[parseInt(key)]
+                            }
+                          }
+                          option.response = resArray
+                        }
+                      }, option.allowOnclick.value);
+                    }
+                  }
+                  if (findIndex(tableData.columns, ["name", "Actions"]) == -1) {
+                    tableData.columns.push(onclickFunc)
+                  }
+                }
+                option.dataObject.forEach((item: any) => {
+                  let dataArray: any = []
+                  option.dataHeader.forEach((key: any) => {
+                    dataArray.push(item[key])
+                  })
+                  tableData.data.push(dataArray)
+                });
+                console.error(tableData);
+                new gridjs.Grid(tableData).render(node);
+              }
+            }
+          } else {
+            // default echart
+            let myChart = echarts.init(node)
+            let option = dataValue
+            option && myChart.setOption(option)
+          }
         }
       },
     } as RegisterOptions)
