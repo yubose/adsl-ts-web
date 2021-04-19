@@ -16,6 +16,7 @@ export const eventId = {
       ON_DOM_CLEANUP: 'on:dom.cleanup',
       ON_BEFORE_RENDER_COMPONENTS: 'on:before.render.components',
       ON_APPEND_NODE: 'on:append.node',
+      ON_BEFORE_CLEAR_ROOT_NODE: 'on:before.clear.root.node',
       ON_BEFORE_APPEND_CHILD: 'on:before.append.child',
       ON_AFTER_APPEND_CHILD: 'on:after.append.child',
       ON_REDRAW_BEFORE_CLEANUP: 'on:redraw.before.cleanup',

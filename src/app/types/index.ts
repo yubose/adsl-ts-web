@@ -8,7 +8,7 @@ export * from './meetingTypes'
 
 export interface AppConstructorOptions {
   getStatus?: typeof Account.getStatus
-  meeting?: Meeting
+  meeting?: Meeting | typeof createMeetingFns
   noodl?: CADL
   ndom?: NOODLDOM
   nui?: typeof NUI

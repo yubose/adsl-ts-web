@@ -1,3 +1,4 @@
+import { inspect } from 'util'
 import { getByDataUX, NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
 import {
@@ -14,8 +15,13 @@ class MeetingStream {
   #node: NOODLDOMElement | null = null
   #participant: RoomParticipant | null = null
   #uxTag: string = ''
+  tempChildren: any
   previous: { sid?: string; identity?: string } = {}
-  type: StreamType | null = null
+  type: StreamType | null = null;
+
+  [inspect.custom]() {
+    return this.snapshot()
+  }
 
   constructor(
     type: StreamType,
@@ -97,9 +103,8 @@ class MeetingStream {
   }
 
   /**
-   * Returns true if at least one participant has previously been bound
-   * on this stream
-   */
+   * TODO - deprecate in favor of hasParticipant
+   * */
   isAnyParticipantSet() {
     return !!this.#participant
   }
@@ -107,6 +112,14 @@ class MeetingStream {
   /** Returns the participant that is bound to this stream */
   getParticipant() {
     return this.#participant
+  }
+
+  /**
+   * Returns true if at least one participant has previously been bound
+   * on this stream
+   */
+  hasParticipant() {
+    return 'sid' in (this.#participant || {})
   }
 
   /**
@@ -242,9 +255,12 @@ class MeetingStream {
   /** Returns a JS representation of the current state of this stream */
   snapshot(otherArgs?: any) {
     return {
-      node: this.#node,
-      participant: this.#participant,
-      previous: this.previous,
+      hasElement: this.hasElement(),
+      hasParticipant: this.hasParticipant(),
+      hasVideoElement: !!this.getElement()?.querySelector?.('video'),
+      hasAudioElement: !!this.getElement()?.querySelector?.('audio'),
+      previousParticipant: this.previous.sid,
+      sid: this.getParticipant()?.sid || '',
       streamType: this.type,
       tracks: this.getParticipant()?.tracks,
       ...otherArgs,
@@ -256,7 +272,19 @@ class MeetingStream {
    * Useful for cleanup operations and avoids memory leaks
    */
   reset() {
-    this.#node = null
+    if (this.#node?.childNodes) {
+      for (const child of this.#node.childNodes) {
+        child?.remove?.()
+      }
+    }
+    try {
+      this.#node?.parentElement?.removeChild?.(this.#node)
+      this.#node?.remove?.()
+      this.#node = null
+      this.unpublish(this.#participant)
+    } catch (error) {
+      console.error(error)
+    }
     this.#participant = null
     this.previous = {}
     this.type = null

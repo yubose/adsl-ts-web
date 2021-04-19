@@ -59,7 +59,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       } else {
         if (dataKey) {
-          app.noodl.editDraft((draft: Draft<{ [key: string]: any }>) => {
+          app.updateRoot((draft) => {
             if (!has(draft?.[app.mainPage.page], dataKey)) {
               log.orange(
                 `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +
@@ -121,6 +121,19 @@ const createExtendedDOMResolvers = function (app: App) {
   }
 
   const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
+    '[App] selfStream': {
+      cond: (node, component) => component?.blueprint?.viewTag === 'selfStream',
+      resolve(node) {
+        if (app.meeting.streams.selfStream.tempChildren) {
+          app.meeting.streams.selfStream.tempChildren.forEach(
+            (childNode: HTMLElement) => {
+              node.appendChild(childNode)
+            },
+          )
+          app.meeting.streams.selfStream.tempChildren = null
+        }
+      },
+    },
     '[App] data-value': {
       cond: (node) => isTextFieldLike(node),
       before(node, component) {

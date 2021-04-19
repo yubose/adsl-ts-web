@@ -1,7 +1,7 @@
 import startOfDay from 'date-fns/startOfDay'
 import add from 'date-fns/add'
-import isPlainObject from 'lodash/isPlainObject'
 import Logger from 'logsnap'
+import { createToast } from 'vercel-toast'
 import NOODLDOM, {
   eventId,
   isPage as isNOODLDOMPage,
@@ -20,8 +20,12 @@ import {
   publish,
   Viewport as VP,
 } from 'noodl-ui'
-import { WritableDraft } from 'immer/dist/internal'
-import { CACHED_PAGES, pageStatus } from './constants'
+import { Draft, WritableDraft } from 'immer/dist/internal'
+import {
+  CACHED_PAGES,
+  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+  pageStatus,
+} from './constants'
 import {
   AuthStatus,
   CachedPageObject,
@@ -35,7 +39,6 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import MeetingSubstreams from './meeting/Substreams'
-import toast from 'vercel-toast'
 import * as u from './utils/common'
 import * as T from './app/types'
 
@@ -46,7 +49,7 @@ class App {
   #enabled = {
     firebase: true,
   }
-  #meeting: T.AppConstructorOptions['meeting']
+  #meeting: ReturnType<typeof createMeetingFns>
   #noodl: T.AppConstructorOptions['noodl']
   #nui: T.AppConstructorOptions['nui']
   #ndom: T.AppConstructorOptions['ndom']
@@ -80,8 +83,12 @@ class App {
     viewport = new VP(),
   }: T.AppConstructorOptions = {}) {
     this.getStatus = getStatus
-    this.mainPage = ndom.createPage(nui.createPage({ viewport }))
-    this.#meeting = meeting || createMeetingFns(this)
+    this.mainPage = ndom.createPage(
+      nui.cache.page.length ? nui.getRootPage() : nui.createPage({ viewport }),
+    )
+    this.#meeting =
+      (meeting && u.isFnc(meeting) ? meeting(this) : meeting) ||
+      createMeetingFns(this)
     this.#ndom = ndom
     this.#nui = nui
 
@@ -89,7 +96,7 @@ class App {
   }
 
   get meeting() {
-    return this.#meeting as NonNullable<T.AppConstructorOptions['meeting']>
+    return this.#meeting
   }
 
   get noodl() {
@@ -105,7 +112,7 @@ class App {
   }
 
   get streams() {
-    return this.meeting.getStreams()
+    return this.meeting.streams
   }
 
   get viewport() {
@@ -120,18 +127,18 @@ class App {
    * @param { string | undefined } pageRequesting
    */
   async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
-  async navigate(pageRequesting: string, opts?: never): Promise<void>
+  async navigate(pageRequesting: string): Promise<void>
   async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
     try {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
 
       if (isNOODLDOMPage(page)) {
-        _page = page as NOODLDOMPage
+        _page = page
         pageRequesting && (_pageRequesting = pageRequesting)
       } else {
         _page = this.mainPage
-        typeof page === 'string' && (_pageRequesting = page)
+        u.isStr(page) && (_pageRequesting = page)
       }
 
       if (_pageRequesting && _page.requesting !== _pageRequesting) {
@@ -140,7 +147,7 @@ class App {
 
       if (u.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
-        return (window.location.href = _pageRequesting)
+        return void (window.location.href = _pageRequesting)
       }
 
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
@@ -183,6 +190,7 @@ class App {
       await this.noodl.init()
 
       this.observeViewport(this.viewport)
+      this.observePages(this.mainPage)
 
       log.func('initialize')
       stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
@@ -272,16 +280,14 @@ class App {
         page: NOODLDOMPage,
       ) {
         try {
+          log.func('#preparePage')
           const pageRequesting = page.requesting
-          log.grey(`Running noodl.initPage for page "${pageRequesting}"`)
+          log.grey(
+            `Running noodl.initPage for page "${pageRequesting}"`,
+            page.snapshot(),
+          )
 
-          if (pageRequesting === 'VideoChat') {
-            // Empty the current participants list since we manage the list of
-            // participants ourselves
-            const { participants } = this.noodl?.root?.VideoChat?.listData || {}
-            participants?.length && (participants.length = 0)
-          }
-
+          let self = this
           await this.noodl?.initPage(pageRequesting, [], {
             ...page.modifiers[pageRequesting],
             builtIn: {
@@ -295,8 +301,12 @@ class App {
               FCMOnTokenRefresh: this.#enabled.firebase
                 ? this.messaging?.onTokenRefresh.bind(this.messaging)
                 : undefined,
-              checkField: this.ndom.builtIns.checkField?.find(Boolean)?.fn,
-              goto: this.ndom.builtIns.goto?.find(Boolean)?.fn,
+              get checkField() {
+                return self.ndom.builtIns.get('checkField')?.find(Boolean)?.fn
+              },
+              get goto() {
+                return self.ndom.builtIns.get('goto')?.find(Boolean)?.fn
+              },
               videoChat: createVideoChatBuiltIn(this),
             },
           })
@@ -316,7 +326,7 @@ class App {
                   Global.globalRegister,
                 )
                 Global.globalRegister.forEach((value: any) => {
-                  if (isPlainObject(value)) {
+                  if (u.isObj(value)) {
                     if (Identify.component.register(value)) {
                       log.grey(
                         `Found and attached a "register" component to the register store`,
@@ -337,7 +347,7 @@ class App {
           return this.noodl.root[pageRequesting]
         } catch (error) {
           console.error(error)
-          toast.createToast(error.message, { type: 'error' })
+          createToast(error.message, { type: 'error' })
         }
       }.bind(this)
 
@@ -487,148 +497,60 @@ class App {
     }
   }
 
-  observePages() {
-    this.mainPage
+  observePages(page: NOODLDOMPage) {
+    page
       .on(
-        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS as any,
-        async function onBeforeRenderComponents(
-          this: App,
-          { requesting: pageName, ref, ...rest }: any,
-        ) {
-          log.func('onBeforeRenderComponents')
-          console.log({ pageName, ref })
-          // return
-          // if (ref.request.name !== pageName) {
-          //   log.red(
-          //     `Skipped rendering the DOM for page "${pageName}" because a more recent request to "${ref.request.name}" was instantiated`,
-          //     { requesting: pageName, ref, ...rest },
-          //   )
-          //   return 'old.request'
-          // }
-          log.grey(`Rendering the DOM for page: "${pageName}"`, {
-            requesting: pageName,
-            ref,
-            ...rest,
-          })
-
-          if (
-            /videochat/i.test(this.mainPage.page) &&
-            !/videochat/i.test(pageName)
-          ) {
-            this.meeting.leave()
-            log.func('before-page-render')
-            log.grey(`Disconnected from room`, this.meeting.room)
-
-            const mainStream = this.streams.getMainStream()
-            const selfStream = this.streams.getSelfStream()
-            const subStreamsContainer = this.streams.getSubStreamsContainer()
-            const subStreams = subStreamsContainer?.getSubstreamsCollection()
-
-            if (mainStream.getElement()) {
-              log.grey('Wiping mainStream state', mainStream.reset())
+        eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE,
+        function onBeforeClearRootNode(this: App) {
+          if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+            // Empty the current participants list since we manage the list of
+            // participants ourselves
+            let participants = get(
+              this.noodl.root,
+              PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+            )
+            if (participants?.length) {
+              let participantsBefore = participants.slice()
+              participants.length = 0
+              log.grey('Removed participants from SDK', {
+                before: participantsBefore,
+                after: get(
+                  this.noodl.root,
+                  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+                ),
+              })
+              participantsBefore = null
             }
-            if (selfStream.getElement()) {
-              log.grey('Wiping selfStream state', selfStream.reset())
-            }
-            if (subStreamsContainer?.length) {
-              const logMsg = `Wiping subStreams container's state`
-              log.grey(logMsg, subStreamsContainer.reset())
-            }
-            if (Array.isArray(subStreams)) {
-              subStreams.forEach((subStream) => {
-                if (subStream.getElement()) {
-                  log.grey(`Wiping a subStream's state`, subStream.reset())
-                  subStreamsContainer?.removeSubStream(subStream)
-                }
+            if (this.streams.mainStream.hasElement()) {
+              const before = this.streams.mainStream.snapshot()
+              this.streams.mainStream.reset()
+              log.grey('Wiping mainStream state', {
+                before,
+                after: this.streams.mainStream.snapshot(),
               })
             }
-          }
-
-          let pageSnapshot = {} as { name: string; object: any } | 'old.request'
-
-          // isStale
-          if (pageName !== this.mainPage.page) {
-            // Load the page in the SDK
-            this.mainPage.requesting = pageName
-            const pageObject = await this.#preparePage(this.mainPage)
-            // isStale
-            const noodluidomPageSnapshot = this.mainPage.snapshot()
-            // There is a bug that two parallel requests can happen at the same time, and
-            // when the second request finishes before the first, the page renders the first page
-            // in the DOM. To work around this bug we can determine this is occurring using
-            // the conditions below
-            if (
-              noodluidomPageSnapshot.requesting === '' &&
-              noodluidomPageSnapshot.status === pageStatus.IDLE &&
-              noodluidomPageSnapshot.current !== pageName
-            ) {
-              pageSnapshot = 'old.request'
-            } else {
-              // This will be passed into the page renderer
-              pageSnapshot = {
-                name: pageName,
-                object: pageObject,
-              }
-
-              // Initialize the noodl-ui client (parses components) if it
-              // isn't already initialized
-              if (!this.initialized) {
-                log.func('before-page-render')
-                log.grey('Initializing noodl-ui client', {
-                  noodl: this.noodl,
-                  pageSnapshot,
-                })
-
-                // .catch((err) => console.error(`[${err.name}]: ${err.message}`))
-                const config = this.noodl.getConfig()
-                const plugins = [] as ComponentObject[]
-                if (config.headPlugin) {
-                  plugins.push({
-                    type: 'pluginHead',
-                    path: config.headPlugin,
-                  } as any)
-                }
-                if (config.bodyTopPplugin) {
-                  plugins.push({
-                    type: 'pluginBodyTop',
-                    path: config.bodyTopPplugin,
-                  } as any)
-                }
-                if (config.bodyTailPplugin) {
-                  plugins.push({
-                    type: 'pluginBodyTail',
-                    path: config.bodyTailPplugin,
-                  } as any)
-                }
-                this.mainPage.page = pageName
-                this.mainPage.viewport = this.viewport
-                NUI.use({
-                  getAssetsUrl: () => this.noodl.assetsUrl,
-                  getBaseUrl: () => this.noodl.cadlBaseUrl || '',
-                  getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
-                  getPages: () => this.noodl.cadlEndpoint?.page || [],
-                  getRoot: () => this.noodl.root,
-                })
-
-                // log.func('before-page-render')
-                // log.grey('Initialized noodl-ui client', NUI)
-              }
-              // Refresh the root
-              // TODO - Leave root/page auto binded to the lib
-              this.mainPage.page = pageName
-              // NOTE: not being used atm
-              if (
-                this.mainPage.rootNode &&
-                this.mainPage.rootNode.id !== pageName
-              ) {
-                this.mainPage.rootNode.id = pageName
-              }
-              return pageSnapshot
+            if (this.streams.selfStream.hasElement()) {
+              const before = this.streams.selfStream.snapshot()
+              this.streams.selfStream.reset()
+              log.grey('Wiping selfStream state', {
+                before,
+                after: this.streams.selfStream.snapshot(),
+              })
             }
-            log.func('before-page-render')
-            log.green(`Avoided a duplicate navigate request to "${pageName}"`)
+            if (this.streams.subStreams?.length) {
+              const before = this.streams.subStreams
+                .getSubstreamsCollection()
+                ?.map((stream) => stream?.snapshot?.())
 
-            return pageSnapshot
+              this.streams.subStreams.reset()
+
+              log.grey('Wiping subStreams state', {
+                before,
+                after: this.streams.subStreams
+                  .getSubstreamsCollection()
+                  ?.map((stream) => stream?.snapshot?.()),
+              })
+            }
           }
         }.bind(this),
       )
@@ -1128,7 +1050,7 @@ class App {
       ) {
         // Dominant/main participant/speaker
         if (/mainStream/i.test(String(component.blueprint.viewTag))) {
-          const mainStream = this.streams.getMainStream()
+          const mainStream = this.streams.mainStream
           if (!mainStream.isSameElement(node)) {
             mainStream.setElement(node, { uxTag: 'mainStream' })
             log.func('onCreateNode')
@@ -1137,7 +1059,7 @@ class App {
         }
         // Local participant
         else if (/selfStream/i.test(String(component.blueprint.viewTag))) {
-          const selfStream = this.streams.getSelfStream()
+          const selfStream = this.streams.selfStream
           if (!selfStream.isSameElement(node)) {
             selfStream.setElement(node, { uxTag: 'selfStream' })
             log.func('onCreateNode')
@@ -1148,7 +1070,7 @@ class App {
         else if (
           /(vidoeSubStream|videoSubStream)/i.test(component.contentType || '')
         ) {
-          let subStreams = this.streams.getSubStreamsContainer()
+          let subStreams = this.streams.subStreams
           if (!subStreams) {
             subStreams = this.streams.createSubStreamsContainer(node, {
               blueprint: component.blueprint?.children?.[0],
@@ -1159,7 +1081,6 @@ class App {
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup
-            log.red(`BLUEPRINT`, component.blueprint)
             subStreams.container = node
             subStreams.blueprint = component.blueprint?.children?.[0]
             subStreams.resolver = NUI.resolveComponents.bind(NUI)
@@ -1167,7 +1088,7 @@ class App {
         }
         // Individual remote participant video element container
         else if (/subStream/i.test(String(component.blueprint.viewTag))) {
-          const subStreams = this.streams.getSubStreamsContainer() as MeetingSubstreams
+          const subStreams = this.streams.subStreams as MeetingSubstreams
           if (subStreams) {
             if (!subStreams.elementExists(node)) {
             } else {
@@ -1185,14 +1106,65 @@ class App {
               {
                 node,
                 component,
-                mainStream: this.streams.getMainStream(),
-                selfStream: this.streams.getSelfStream(),
+                mainStream: this.streams.mainStream,
+                selfStream: this.streams.selfStream,
               },
             )
           }
         }
       }.bind(this),
     })
+  }
+
+  reset() {
+    this.meeting.streams.mainStream.reset()
+    this.meeting.streams.selfStream.reset()
+    this.meeting.streams.subStreams?.reset()
+
+    if (this.#ndom) {
+      this.#ndom.reset()
+      this.mainPage = this.#ndom.createPage(
+        this.nui.cache.page.length
+          ? this.nui.getRootPage()
+          : this.nui.createPage({ viewport: this.viewport }),
+      ) as NOODLDOMPage
+      this.#ndom.page = this.mainPage
+    }
+
+    if (has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
+      this.updateRoot((draft) => {
+        set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, [])
+      })
+    }
+  }
+
+  updateRoot<P extends string>(
+    path: P,
+    value: any,
+    cb?: (root: Record<string, any>) => void,
+  ): void
+  updateRoot(
+    fn: (
+      draft: Draft<App['noodl']['root']>,
+      cb?: (root: Record<string, any>) => void,
+    ) => void,
+  ): void
+  updateRoot<P extends string>(
+    fn: ((draft: Draft<App['noodl']['root']>) => void) | P,
+    value?: any | (() => void),
+    cb?: (root: Record<string, any>) => void,
+  ) {
+    this.noodl?.editDraft?.(function editDraft(
+      draft: Draft<App['noodl']['root']>,
+    ) {
+      if (u.isStr(fn)) {
+        set(draft, fn, value)
+      } else {
+        fn(draft)
+        u.isFnc(value) && (cb = value)
+      }
+    })
+    cb?.(this.noodl.root)
   }
 
   /* -------------------------------------------------------

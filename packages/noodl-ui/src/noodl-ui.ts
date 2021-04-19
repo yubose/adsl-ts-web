@@ -45,7 +45,7 @@ const NUI = (function _NUI() {
         T.NUIActionGroupedType,
         T.Store.ActionObject<T.NUIActionGroupedType>[]
       > & {
-        builtIn: Record<string, T.Store.BuiltInObject[]>
+        builtIn: Map<string, T.Store.BuiltInObject[]>
         emit: Map<T.NUITrigger, T.Store.ActionObject[]>
         register: Record<string, T.Register.Object[]>
       },
@@ -557,7 +557,7 @@ const NUI = (function _NUI() {
             action.executor = __createExecutor(
               action,
               Identify.action.builtIn(obj)
-                ? o.cache.actions.builtIn[obj.funcName]
+                ? o.cache.actions.builtIn.get(obj.funcName)
                 : Identify.goto(obj)
                 ? o.cache.actions.goto
                 : Identify.toast(obj)
@@ -697,7 +697,7 @@ const NUI = (function _NUI() {
           if (f === 'actions') {
             o.cache.actions.clear()
           } else if (f === 'builtIns') {
-            u.values(o.getBuiltIns()).forEach((obj) => (obj.length = 0))
+            o.cache.actions.builtIn.clear()
           } else if (f === 'components') {
             cache.component.clear()
           } else if (f === 'pages') {
@@ -747,11 +747,9 @@ const NUI = (function _NUI() {
                 T.NUIActionGroupedType,
                 T.Store.ActionObject['fn'] | T.Store.ActionObject['fn'][]
               > & {
-                builtIn: Partial<
-                  Record<
-                    string,
-                    T.Store.BuiltInObject['fn'] | T.Store.BuiltInObject['fn'][]
-                  >
+                builtIn: Map<
+                  string,
+                  T.Store.BuiltInObject['fn'] | T.Store.BuiltInObject['fn'][]
                 >
                 emit: Partial<
                   Record<
@@ -806,10 +804,10 @@ const NUI = (function _NUI() {
                   u.isFnc(f),
                   `fn is not a function for builtIn "${funcName}"`,
                 )
-                if (!u.isArr(cache.actions.builtIn[funcName])) {
-                  cache.actions.builtIn[funcName] = []
+                if (!cache.actions.builtIn.has(funcName)) {
+                  cache.actions.builtIn.set(funcName, [])
                 }
-                cache.actions.builtIn[funcName]?.push({
+                cache.actions.builtIn.get(funcName)?.push({
                   actionType: 'builtIn',
                   funcName,
                   fn: f,

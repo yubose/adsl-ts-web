@@ -1,10 +1,13 @@
 import Logger from 'logsnap'
 import inRange from 'lodash/inRange'
 import last from 'lodash/last'
-import { NOODL, ListBlueprint } from 'noodl-ui'
+import { ComponentObject } from 'noodl-types'
+import { inspect } from 'util'
+import { NUI } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
-import { RoomParticipant } from 'app/types'
+import { RoomParticipant } from '../app/types'
+import { isObj, isFnc } from '../utils/common'
 import Stream from './Stream'
 
 const log = Logger.create('Substreams.ts')
@@ -12,17 +15,31 @@ const log = Logger.create('Substreams.ts')
 /** The container for subStreams */
 class MeetingSubstreams {
   #subStreams: Stream[] = []
-  blueprint: ListBlueprint
-  container: NOODLDOMElement
-  resolver: NOODL['resolveComponents'] = (c: any) => c
+  blueprint: ComponentObject
+  container: NOODLDOMElement | null
+  resolver: typeof NUI.resolveComponents = (c: any) => c;
+
+  [inspect.custom]() {
+    return {
+      collection: this.getSubstreamsCollection(),
+      container: this.container,
+      hasBlueprint: isObj(this.blueprint) && 'type' in this.blueprint,
+      hasResolver: isFnc(this.resolver),
+      length: this.length,
+      type: 'subStreams',
+    }
+  }
 
   constructor(
     container: NOODLDOMElement,
-    opts?: { blueprint?: ListBlueprint; resolver?: NOODL['resolveComponents'] },
+    opts?: {
+      blueprint?: ComponentObject
+      resolver?: typeof NUI.resolveComponents
+    },
   ) {
     this.container = container
-    this.blueprint = (opts?.blueprint || {}) as ListBlueprint
-    this.resolver = opts?.resolver as NOODL['resolveComponents']
+    this.blueprint = (opts?.blueprint || {}) as ComponentObject
+    this.resolver = opts?.resolver as typeof NUI.resolveComponents
   }
 
   get length() {
@@ -41,10 +58,8 @@ class MeetingSubstreams {
     participant,
   }: { node?: NOODLDOMElement; participant?: RemoteParticipant } = {}) {
     const stream = new Stream('subStream', { node })
-    if (node) {
-      if (!this.container.contains(node)) {
-        this.container.appendChild(node)
-      }
+    if (node && this.container && !this.container.contains(node)) {
+      this.container?.appendChild(node)
     }
     // Apply the blueprint onto the new node to align with the current items
     if (participant) {
@@ -70,9 +85,6 @@ class MeetingSubstreams {
         )
       } else {
         this.#subStreams.push(stream)
-        if (!(stream instanceof Stream)) {
-          console.trace()
-        }
         log.grey('Added new subStream to subStreams collection', {
           stream,
           subStreamsCollection: this.getSubstreamsCollection(),
@@ -110,7 +122,6 @@ class MeetingSubstreams {
    */
   participantExists(participant: RoomParticipant) {
     return this.#subStreams.some((subStream: Stream) => {
-      console.log(subStream)
       return subStream && subStream.isSameParticipant(participant)
     })
   }
@@ -131,6 +142,10 @@ class MeetingSubstreams {
    */
   findBy(cb: (stream: Stream) => boolean) {
     return this.#subStreams.find(cb)
+  }
+
+  findByParticipant(participant: RoomParticipant) {
+    return this.#subStreams.find((s) => s.isSameParticipant(participant))
   }
 
   /**
@@ -171,9 +186,11 @@ class MeetingSubstreams {
   }
 
   reset() {
+    this.#subStreams?.forEach?.((subStream) => subStream.reset())
     this.#subStreams = []
-    this['blueprint'] = {} as ListBlueprint
-    this['container'] = null
+    this.blueprint = {} as ComponentObject
+    this.container?.remove?.()
+    this.container = null
     return this
   }
 }

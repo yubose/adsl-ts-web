@@ -71,11 +71,11 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   get actions() {
-    return NOODLDOM._nui.getActions()
+    return NOODLDOM._nui.cache.actions
   }
 
   get builtIns() {
-    return NOODLDOM._nui.getBuiltIns()
+    return NOODLDOM._nui.cache.actions.builtIn
   }
 
   get cache() {
@@ -338,35 +338,12 @@ class NOODLDOM extends NOODLDOMInternal {
     component: C,
     container?: T.NOODLDOMElement | null,
     pageProp?: Page,
-    context?: Record<string, any>,
+    options?: { context?: Record<string, any>; node?: HTMLElement | null },
   ) {
-    let node: T.NOODLDOMElement | null = null
+    let node: T.NOODLDOMElement | null = options?.node || null
     let page: Page = pageProp || this.page
 
     if (component) {
-      // for (const evt of userEvent) {
-      //   if (component.has(evt)) {
-      //     const ac = component.get(evt)
-      //     if (isActionChain(ac)) {
-      //       const numActions = ac.actions.length
-      //       for (let index = 0; index < numActions; index++) {
-      //         const obj = ac.actions[index]
-      //         if (Identify.action.builtIn(obj)) {
-      //           if (obj.funcName === 'show') {
-      //             const viewTag = obj.viewTag
-      //             // if (node.style.position)
-      //             if (!page.state.viewTag) {
-      //               // page.state.viewTag = {}}
-      //               // page.state.viewTag[obj.viewTag] = [component.id]
-      //               break
-      //             }
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
-
       if (Identify.component.plugin(component)) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem)
@@ -451,7 +428,7 @@ class NOODLDOM extends NOODLDOMInternal {
         this.#R.run(node, component)
 
         component.children?.forEach?.((child: Component) => {
-          const childNode = this.draw(child, node, page, context) as HTMLElement
+          const childNode = this.draw(child, node, page, options) as HTMLElement
           node?.appendChild(childNode)
         })
       }
@@ -463,8 +440,9 @@ class NOODLDOM extends NOODLDOMInternal {
     node: T.NOODLDOMElement | null, // ex: li (dom node)
     component: Component, // ex: listItem (component instance)
     pageProp?: Page,
-    context?: any,
+    options?: Parameters<NOODLDOM['draw']>[3],
   ) {
+    let context: any = options?.context
     let newNode: T.NOODLDOMElement | null = null
     let newComponent: Component | undefined
     let page =
@@ -548,7 +526,7 @@ class NOODLDOM extends NOODLDOMInternal {
           newComponent,
           parentNode || (document.body as any),
           page,
-          context,
+          { ...options, context },
         )
       }
       if (parentNode) {
@@ -561,7 +539,10 @@ class NOODLDOM extends NOODLDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.draw(newComponent as NUIComponent.Instance, null, page, context)
+      this.draw(newComponent as NUIComponent.Instance, null, page, {
+        ...options,
+        context,
+      })
     }
     if (node instanceof HTMLElement) {
       // console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)

@@ -13,6 +13,7 @@ import {
 import Stream from '../meeting/Stream'
 import { forEachParticipant } from '../utils/twilio'
 import { array, isMobile } from '../utils/common'
+import { hide, show } from '../utils/dom'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from '../constants'
 import { Meeting } from '../app/types'
 import App from '../App'
@@ -123,26 +124,19 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       ---- LISTEN FOR INCOMING MEDIA PUBLISH/SUBSCRIBE EVENTS
     -------------------------------------------------------- */
     const { disconnected } = _getDisconnectFns(room)
-    room.on(
-      'participantConnected',
-      _attachDebugUtilsToWindow(room).participantConnected,
-    )
+    const { participantConnected } = _attachDebugUtilsToWindow(room)
+    room.on('participantConnected', participantConnected)
     room.on('participantConnected', app.meeting.addRemoteParticipant)
     room.on('participantDisconnected', app.meeting.removeRemoteParticipant)
     room.once('disconnected', disconnected)
-    // window.addEventListener('beforeunload', disconnect)
-    // isMobile() && addEventListener('pagehide', disconnect)
     /* -------------------------------------------------------
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
-    const { localParticipant } = room
-    const selfStream = app.meeting.getStreams().getSelfStream()
-    if (!selfStream.isSameParticipant(localParticipant)) {
-      selfStream.setParticipant(localParticipant)
-      if (selfStream.isSameParticipant(localParticipant)) {
-        log.func('onConnected')
-        log.grey(`Bound local participant to selfStream`, selfStream)
-      }
+    const selfStream = app.meeting.streams.selfStream
+    if (!selfStream.isSameParticipant(room.localParticipant)) {
+      selfStream.setParticipant(room.localParticipant)
+      log.func('onConnected')
+      log.grey(`Bound local participant to selfStream`, selfStream)
     }
     forEachParticipant(room.participants, app.meeting.addRemoteParticipant)
   }
@@ -157,7 +151,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     participant: RemoteParticipant,
     stream: Stream,
   ) {
-    log.func('Meeting.onAddRemoteParticipant')
+    log.func('onAddRemoteParticipant')
     log.grey(`Bound remote participant to ${stream.type}`, {
       participant,
       stream,
@@ -175,33 +169,30 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
        * to be an array if it's not already an array
        * @param { RemoteParticipant } participant
        */
-      app.noodl.editDraft(function editDraft(
-        draft: Draft<typeof app.noodl.root>,
-      ) {
-        const participants = app.meeting
-          .removeFalseyParticipants(
-            draft?.VideoChat?.listData?.participants || [],
-          )
-          .concat(participant)
-        if (!has(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
-          log.func('editDraft')
-          log.red(
-            'Could not find a path to remote participants in the VideoChat page! Path: ' +
-              PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-            isDraft(draft) ? current(draft) : draft,
-          )
-        }
-        set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, participants)
-      })
+      app.updateRoot(
+        PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+        app.meeting.removeFalseyParticipants([
+          ...get(app.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, []),
+          participant,
+        ]),
+        (root) => {
+          if (!has(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
+            log.red(
+              'Could not find a path to remote participants in the VideoChat page! Path: ' +
+                PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+              root,
+            )
+          }
+          NUI.emit({
+            type: 'register',
+            args: {
+              name: 'twilioOnPeopleJoin',
+              params: { room: app.meeting.room },
+            },
+          })
+        },
+      )
     }
-
-    NUI.emit({
-      type: 'register',
-      args: {
-        name: 'twilioOnPeopleJoin',
-        params: { room: app.meeting.room },
-      },
-    })
   }
 
   function onRemoveRemoteParticipant(
@@ -213,31 +204,24 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
      * to be an array if it's not already an array
      * @param { RemoteParticipant } participant
      */
-    app.noodl.editDraft(function editDraft(
-      draft: Draft<typeof app.noodl.root>,
-    ) {
-      set(
-        draft,
-        PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-        app.meeting.removeFalseyParticipants(
-          draft?.VideoChat?.listData?.participants ||
-            [].filter((p) => p !== participant),
-        ),
-      )
-    })
-    if (!app.meeting.room.participants.size) {
-      app.meeting.getWaitingMessageElements().forEach((waitingElem) => {
-        waitingElem && (waitingElem.style.visibility = 'visible')
-      })
-
-      NUI.emit({
-        type: 'register',
-        args: {
-          name: 'twilioOnNoParticipant',
-          params: { room: app.meeting.room },
-        },
-      })
-    }
+    app.updateRoot(
+      PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+      app.meeting.removeFalseyParticipants(
+        get(app.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT),
+      ),
+      () => {
+        if (!app.meeting.room.participants.size) {
+          app.meeting.showWaitingOthersMessage()
+          NUI.emit({
+            type: 'register',
+            args: {
+              name: 'twilioOnNoParticipant',
+              params: { room: app.meeting.room },
+            },
+          })
+        }
+      },
+    )
   }
 
   app.meeting.onConnected = onConnected

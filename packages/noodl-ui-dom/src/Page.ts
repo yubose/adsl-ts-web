@@ -56,14 +56,17 @@ class Page {
 
   clearRootNode() {
     if (!this.rootNode) {
-      this.rootNode = document.createElement('div')
+      this.rootNode = (document.getElementById(String(this.id)) ||
+        document.createElement('div')) as HTMLDivElement
       this.rootNode.id = this.id as string
     }
-    this.rootNode.innerHTML = ''
+    this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.rootNode)
+    this.rootNode.textContent = ''
     this.rootNode.style.cssText = ''
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
+
     if (!document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
     }
@@ -88,7 +91,6 @@ class Page {
   }
 
   set page(page: string) {
-    console.log(page)
     this.#nuiPage.page = page || ''
   }
 
