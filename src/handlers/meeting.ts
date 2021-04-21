@@ -32,8 +32,6 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         // Unpublish local tracks
         room.localParticipant.videoTracks.forEach(_unpublishTracks)
         room.localParticipant.audioTracks.forEach(_unpublishTracks)
-        // Clean up listeners
-        room.removeAllListeners()
         removeEventListener('beforeunload', _disconnect)
         if (isMobile()) removeEventListener('pagehide', _disconnect)
       },
@@ -84,7 +82,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           }
           duplicatedParticipants.push(duplicatedParticipant)
           app.meeting.addRemoteParticipant(duplicatedParticipant as any, {
-            force: '',
+            force: true,
           })
           log.func('duplicateRemoteParticipant')
           log.grey(`Forcefully added remote participant`)
@@ -135,7 +133,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
     const selfStream = app.meeting.streams.selfStream
-    if (!selfStream.isSameParticipant(room.localParticipant)) {
+    if (!selfStream.isParticipant(room.localParticipant)) {
       selfStream.setParticipant(room.localParticipant)
       log.func('onConnected')
       log.grey(`Bound local participant to selfStream`, selfStream)
@@ -173,7 +171,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
        */
       app.updateRoot(
         PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-        app.meeting.removeFalseyParticipants([
+        app.meeting.removeFalseParticipants([
           ...get(app.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, []),
           participant,
         ]),
@@ -208,7 +206,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
      */
     app.updateRoot(
       PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-      app.meeting.removeFalseyParticipants(
+      app.meeting.removeFalseParticipants(
         get(app.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT),
       ),
       () => {

@@ -121,9 +121,9 @@ class MeetingSubstreams {
    * @param { RoomParticipant } participant
    */
   participantExists(participant: RoomParticipant) {
-    return this.#subStreams.some((subStream: Stream) => {
-      return subStream && subStream.isSameParticipant(participant)
-    })
+    return this.#subStreams.some(
+      (subStream: Stream) => subStream && subStream.isParticipant(participant),
+    )
   }
 
   /**
@@ -131,7 +131,7 @@ class MeetingSubstreams {
    * @param { RoomParticipant } participant
    */
   getSubStream(participant: RoomParticipant) {
-    const fn = (subStream: Stream) => subStream.isSameParticipant(participant)
+    const fn = (subStream: Stream) => subStream.isParticipant(participant)
     return this.findBy(fn)
   }
 
@@ -145,7 +145,7 @@ class MeetingSubstreams {
   }
 
   findByParticipant(participant: RoomParticipant) {
-    return this.#subStreams.find((s) => s.isSameParticipant(participant))
+    return this.#subStreams.find((s) => s.isParticipant(participant))
   }
 
   /**

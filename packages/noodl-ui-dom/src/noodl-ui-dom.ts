@@ -280,7 +280,7 @@ class NOODLDOM extends NOODLDOMInternal {
       }
 
       await action(() => {
-        page.emitAsync(pageEvt.on.ON_NAVIGATE_START, page.snapshot())
+        page.emitSync(pageEvt.on.ON_NAVIGATE_START, page)
         if (process.env.NODE_ENV !== 'test') {
           history.pushState({}, '', page.pageUrl)
         }

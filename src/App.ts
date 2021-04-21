@@ -157,6 +157,14 @@ class App {
           `Rendered ${components.length} components on ${_pageRequesting}`,
           components,
         )
+
+        log.gold('ROOM EVENTS COUNTER', {
+          disconnected: this.meeting.room['_events']?.disconnected?.length,
+          participantConnected: this.meeting.room['_events']
+            ?.participantConnected?.length,
+          participantDisconnected: this.meeting.room['_events']
+            ?.participantDisconnected?.length,
+        })
         window.pcomponents = components
       }
     } catch (error) {
@@ -480,6 +488,16 @@ class App {
 
   observePages(page: NOODLDOMPage) {
     page
+      .on(
+        eventId.page.on.ON_NAVIGATE_START,
+        function onNavigateStart(this: App) {
+          if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+            log.func('onNavigateStart')
+            log.grey(`Removing room listeners...`)
+            this.meeting.room?.removeAllListeners?.()
+          }
+        }.bind(this),
+      )
       .on(
         eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE,
         function onBeforeClearRootNode(this: App) {

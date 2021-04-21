@@ -127,7 +127,7 @@ export namespace Page {
 
   export type Hook = {
     [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
-    [eventId.page.on.ON_NAVIGATE_START](snapshot: Snapshot): void
+    [eventId.page.on.ON_NAVIGATE_START](page: NOODLDOMPage): void
     [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
     [eventId.page.on.ON_NAVIGATE_ERROR](
       snapshot: Snapshot & { error: Error },

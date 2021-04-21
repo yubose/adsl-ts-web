@@ -61,8 +61,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('disconnectMeeting')
     log.grey('', { action, room: app.meeting.room })
-    app.meeting.room.disconnect()
-    app.meeting.calledOnConnected = false
+    app.meeting.leave()
   }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {

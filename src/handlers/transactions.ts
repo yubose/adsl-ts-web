@@ -34,7 +34,7 @@ const createTransactions = function _createTransactions(app: App) {
         let viewTag = component.blueprint?.viewTag || ''
 
         if (viewTag === 'selfStream' && app.mainPage.page === 'VideoChat') {
-          log.grey(`Entered the resolve function for selfStream`, {
+          log.grey(`Entered element binding resolver for selfStream`, {
             component,
             selfStream: selfStream.snapshot(),
           })
@@ -42,12 +42,12 @@ const createTransactions = function _createTransactions(app: App) {
           // media tracks on it
           if (selfStream.hasElement()) {
             node = selfStream.getElement() as HTMLDivElement
-            // if (
-            //   !selfStream.hasAudioElement() ||
-            //   !selfStream.hasVideoElement()
-            // ) {
-            selfStream.reloadTracks()
-            // }
+            if (
+              !selfStream.hasAudioElement() &&
+              !selfStream.hasVideoElement()
+            ) {
+              selfStream.reloadTracks()
+            }
           } else {
             log.grey(
               `The selfStream instance does not have any DOM elements. Will ` +

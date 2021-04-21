@@ -1,6 +1,15 @@
 import { inspect } from 'util'
+import {
+  createLocalAudioTrack,
+  createLocalVideoTrack,
+  LocalTrack,
+  RemoteTrack,
+  LocalParticipant,
+  RemoteParticipant,
+} from 'twilio-video'
 import { getByDataUX, NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
+import { toast } from '../utils/dom'
 import {
   RoomParticipant,
   RoomParticipantTrackPublication,
@@ -42,7 +51,7 @@ class MeetingStream {
   }
 
   getElement() {
-    return (this.#node || getByDataUX(this.#uxTag)) as NOODLDOMElement | null
+    return this.#node as NOODLDOMElement | null
   }
 
   getAudioElement() {
@@ -149,7 +158,7 @@ class MeetingStream {
    * Returns true if the node is already set on this instance
    * @param { NOODLDOMElement } node
    */
-  isSameParticipant(participant: RoomParticipant) {
+  isParticipant(participant: RoomParticipant) {
     return !!participant && this.#participant === participant
   }
 
@@ -202,53 +211,65 @@ class MeetingStream {
    */
   reloadTracks(only?: 'audio' | 'video') {
     log.func('reloadTracks')
+    log.grey(`[${this.type || 'Stream'}] Loading tracks...`, { args: { only } })
 
-    const getNotAvailableMsg = (missingType: 'node' | 'participant') =>
+    const getErrMsg = (missingType: 'node' | 'participant') =>
       `Tried to reload one or more tracks but the ${missingType} set on this instance is ` +
       `not available`
 
-    if (!this.#node) {
-      return log.red(getNotAvailableMsg('node'), this.snapshot())
-    }
-    if (!this.#participant) {
-      return log.red(getNotAvailableMsg('participant'), this.snapshot())
-    }
-    if (this.#node.dataset.sid !== this.#participant.sid) {
-      this.#node.dataset.sid = this.#participant.sid
+    !this.hasElement() && log.red(getErrMsg('node'), this.snapshot())
+    !this.hasParticipant() && log.red(getErrMsg('participant'), this.snapshot())
+
+    let node = this.getElement() as HTMLElement
+    let participant = this.getParticipant() as RoomParticipant
+
+    if (node.dataset.sid !== participant.sid) {
+      node.dataset.sid = participant.sid
+      log.grey(`Attached participant SID in the element's dataset`)
     }
 
-    this.#participant.tracks?.forEach?.(
-      (publication: RoomParticipantTrackPublication) => {
-        const track = publication?.track
+    if (!participant.tracks?.size) {
+      const createTrack = async (kind: 'audio' | 'video') => {
+        const fn =
+          kind === 'audio' ? createLocalAudioTrack : createLocalVideoTrack
+        try {
+          this.#attachTrack(await fn())
+        } catch (err) {
+          console.error(`[${kind}]: ${err.message}`)
+          toast(err.message, { type: 'error' })
+        } finally {
+          log.grey(`Created ${kind} track`)
+        }
+      }
+      log.grey(`Participant is missing both tracks. Creating them now...`)
+      createTrack('audio')
+      createTrack('video')
+    } else {
+      const handleTrack = (track: LocalTrack | RemoteTrack | null) => {
         if (track) {
-          if (track.kind === 'audio' && only !== 'video') {
-            let audioElem = this.#node?.querySelector('audio')
-
-            if (audioElem) {
-              log.grey('Removing previous audio element', audioElem)
-              audioElem.remove()
-              audioElem = null
-            }
-
-            this.#node?.appendChild(track.attach())
-            log.green(`Loaded participant's audio track`, this.snapshot())
-          } else if (track.kind === 'video' && only !== 'audio') {
-            let videoElem = this.getVideoElement()
-
-            if (videoElem) {
-              log.grey('Removing previous video element', videoElem)
-              videoElem.remove()
-              videoElem = null
-            }
-
+          const label = track.kind === 'audio' ? 'audio' : 'video'
+          const counterLabel = label === 'audio' ? 'video' : 'audio'
+          let elem = this.#node?.querySelector?.(label)
+          log.grey(`Removing previous ${label} element`, elem)
+          elem?.remove?.()
+          elem = null
+          if (track.kind === 'audio' && only !== counterLabel) {
+            this.#node?.appendChild?.(track.attach())
+            log.grey(`Started the audio element`)
+          } else if (track.kind === 'video' && only !== counterLabel) {
             if (this.#node) {
               attachVideoTrack(this.#node, track)
-              log.green(`Loaded participant's video track`, this.snapshot())
+              log.grey(`Started the video element`)
             }
           }
         }
-      },
-    )
+      }
+      participant.tracks?.forEach?.(
+        (publication: RoomParticipantTrackPublication) => {
+          publication?.track && handleTrack(publication.track)
+        },
+      )
+    }
   }
 
   /** Removes the participant from the instance */

@@ -46,7 +46,11 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     })
   }
 
+  /**
+   * Start LocalParticipant tracks (intended to be used immediately after room.join)
+   */
   async function _startTracks() {
+    log.func('_startTracks')
     function handleTrackErr(kind: 'audio' | 'video', err: Error) {
       let errMsg = ''
       if (/NotAllowedError/i.test(err.name)) {
@@ -61,22 +65,36 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       console.error(err)
       toast(errMsg, { type: 'error' })
     }
-    if (_streams?.selfStream?.hasElement?.()) {
+    if (o.selfStream?.hasElement?.()) {
+      log.grey(
+        `Starting tracks using the existent selfStream instance`,
+        o.selfStream.snapshot(),
+      )
+      if (!o.selfStream.hasParticipant()) {
+        log.grey(
+          `Missing LocalParticipant in selfStream. Setting the LocalParticipant on it now`,
+          o.selfStream.snapshot(),
+        )
+        o.selfStream.setParticipant(_room.localParticipant)
+      }
       try {
-        _streams.selfStream.reloadTracks()
-        console.log(_streams.selfStream)
+        o.selfStream.reloadTracks()
       } catch (error) {
         console.error(error)
         toast(error.message, { type: 'error' })
       }
     } else {
+      log.grey(
+        `Starting brand new tracks because selfStream did not have an element`,
+        o.selfStream.snapshot(),
+      )
       try {
-        _room.localParticipant.publishTrack(await createLocalAudioTrack())
+        _room.localParticipant?.publishTrack(await createLocalAudioTrack())
       } catch (error) {
         handleTrackErr('audio', error)
       }
       try {
-        _room.localParticipant.publishTrack(await createLocalVideoTrack())
+        _room.localParticipant?.publishTrack(await createLocalVideoTrack())
       } catch (error) {
         handleTrackErr('video', error)
       }
@@ -98,6 +116,15 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     set room(room) {
       _room = room
+    },
+    get mainStream() {
+      return _streams?.mainStream
+    },
+    get selfStream() {
+      return _streams?.selfStream
+    },
+    get subStreams() {
+      return _streams?.subStreams
     },
     get streams() {
       return _streams
@@ -124,6 +151,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
     },
     async rejoin() {
+      log.func('rejoin')
+      log.grey(`Rejoining room`, _room)
       await _startTracks()
       setTimeout(() => app.meeting.onConnected?.(_room), 2000)
       o.calledOnConnected = true
@@ -138,7 +167,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     /** Disconnects from the room */
     leave() {
       log.func('leave')
-      log.red(`LEAVING MEETING ROOM`, new Error('test').stack)
+      log.red(`LEAVING MEETING ROOM`)
       if (_room?.state) {
         const unpublishTracks = (
           trackPublication:
@@ -152,6 +181,9 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         _room?.localParticipant?.audioTracks.forEach(unpublishTracks)
         _room?.localParticipant?.videoTracks.forEach(unpublishTracks)
         _room?.disconnect?.()
+        o.selfStream?.reset()
+        o.mainStream?.reset()
+        o.subStreams?.reset()
         _calledOnConnected = false
       }
       return this
@@ -164,49 +196,45 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     addRemoteParticipant(
       participant: T.RoomParticipant,
       {
-        force = '',
+        force = false,
       }: {
-        force?: 'mainStream' | 'selfStream' | 'subStream' | '' | boolean
+        force?: boolean
       } = {},
     ) {
       if (_room?.state === 'connected') {
-        if (force || !o.isParticipantLocal(participant)) {
-          const { mainStream, subStreams } = _streams
-          if (!force && mainStream.isSameParticipant(participant)) {
-            if (!subStreams?.participantExists(participant)) {
-              let subStream = subStreams?.findByParticipant(participant)
+        if (force || !o.isLocalParticipant(participant)) {
+          if (!force && o.mainStream.isParticipant(participant)) {
+            if (!o.subStreams?.participantExists(participant)) {
+              const subStream = o.subStreams?.findByParticipant(participant)
               if (subStream) {
                 subStream?.unpublish()
                 subStream?.removeElement()
-                subStreams?.removeSubStream(subStream)
+                o.subStreams?.removeSubStream(subStream)
               }
             }
             return this
           }
           // Just set the participant as the mainStream  since it's open
-          if (!mainStream.hasParticipant()) {
-            mainStream.setParticipant(participant)
+          if (!o.mainStream.hasParticipant()) {
+            o.mainStream.setParticipant(participant)
             app.meeting.onAddRemoteParticipant?.(
               participant as RemoteParticipant,
-              mainStream,
+              o.mainStream,
             )
             return this
           }
 
-          if (subStreams) {
-            if (
-              force === 'subStream' ||
-              !subStreams.participantExists(participant)
-            ) {
+          if (o.subStreams) {
+            if (force || !o.subStreams.participantExists(participant)) {
               log.func('addRemoteParticipant')
               // Create a new DOM node
-              const props = subStreams.blueprint
+              const props = o.subStreams.blueprint
               const node = app.ndom.draw(
-                subStreams.resolver?.(props) || props,
+                o.subStreams.resolver?.(props) || props,
               ) as any
               app.meeting.onAddRemoteParticipant?.(
                 participant as RemoteParticipant,
-                mainStream,
+                o.mainStream,
               )
               log.green(
                 `Created a new subStream and bound the newly connected participant to it`,
@@ -214,7 +242,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
                   blueprint: props,
                   node,
                   participant,
-                  subStream: subStreams
+                  subStream: o.subStreams
                     .create({
                       node,
                       participant: participant as RemoteParticipant,
@@ -242,6 +270,11 @@ const createMeetingFns = function _createMeetingFns(app: App) {
             )
           }
         }
+      } else {
+        log.red(`Cannot add participant to a disconnected room`, {
+          participant,
+          room: _room,
+        })
       }
       return this
     },
@@ -249,12 +282,12 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       participant: T.RoomParticipant,
       { force }: { force?: boolean } = {},
     ) {
-      if (participant && (force || !o.isParticipantLocal(participant))) {
+      if (participant && (force || !o.isLocalParticipant(participant))) {
         let mainStream: Stream | null = _streams.mainStream
         let subStreams: MeetingSubstreams | null = _streams?.getSubStreamsContainer()
         let subStream: Stream | null | undefined = null
 
-        if (mainStream.isSameParticipant?.(participant)) {
+        if (mainStream.isParticipant?.(participant)) {
           log.func('removeRemoteParticipant')
           log.orange(
             'This participant was mainstreaming. Removing it from mainStream now',
@@ -314,14 +347,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * Returns true if the participant is the LocalParticipant
      * @param { RoomParticipant } participant
      */
-    isParticipantLocal(
+    isLocalParticipant(
       participant: T.RoomParticipant,
     ): participant is LocalParticipant {
-      return participant === _room?.localParticipant
-    },
-    resetRoom() {
-      _room = new EventEmitter() as Room
-      return this
+      return !!(_room && participant === _room.localParticipant)
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {
@@ -353,7 +382,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     /** Element that renders a list of remote participants on the bottom */
     getParticipantsListElement(): HTMLUListElement | null {
-      return getFirstByViewTag('vidoeSubStream') as HTMLUListElement
+      return getFirstByViewTag('videoSubStream') as HTMLUListElement
     },
     getVideoChatElements() {
       return {
@@ -364,14 +393,11 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         microphone: o.getMicrophoneElement(),
         hangUp: o.getHangUpElement(),
         inviteOthers: o.getInviteOthersElement(),
-        vidoeSubStream: o.getParticipantsListElement(),
+        videoSubStream: o.getParticipantsListElement(),
       }
     },
     getWaitingMessageElements() {
       return array(findByUX('waitForOtherTag')).filter(Boolean) as HTMLElement[]
-    },
-    getStreams() {
-      return _streams
     },
     /**
      * Wipes the entire internal state. This is mainly just used for testing
@@ -386,17 +412,9 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
       return this
     },
-    removeFalseyParticipants(participants: any[]) {
+    removeFalseParticipants(participants: any[]) {
       return participants.filter((p) => !!p?.sid)
     },
-  }
-
-  // Helpers for unit testing
-  if (process.env.NODE_ENV === 'test') {
-    // @ts-expect-error
-    o.getInternal = () => _internal
-    // @ts-expect-error
-    o.setInternal = (opts: typeof _internal) => void Object.assign({}, opts)
   }
 
   return o as typeof o & {
@@ -406,8 +424,6 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       participant: RemoteParticipant,
       stream: Stream,
     ): any
-    // getInternal?(): typeof _internal
-    // setInternal?(opts: typeof _internal): void
   }
 }
 

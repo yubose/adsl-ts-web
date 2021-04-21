@@ -38,7 +38,7 @@ class MeetingStreams {
   }
 
   isMainStreaming(participant: RoomParticipant) {
-    return this.#mainStream.isSameParticipant(participant)
+    return this.#mainStream.isParticipant(participant)
   }
 
   getSubStreamsContainer() {
@@ -61,18 +61,7 @@ class MeetingStreams {
   }
 
   snapshot() {
-    const getSubstreamsSnapshot = () => ({
-      items:
-        this.#subStreams?.getSubstreamsCollection().map((subStream, index) => {
-          return {
-            index,
-            hasElement: subStream.hasElement(),
-            hasParticipant: subStream.isAnyParticipantSet(),
-          }
-        }) || [],
-    })
-
-    const snapshot = {
+    return {
       mainStream: this.mainStream.snapshot(),
       selfStream: this.selfStream.snapshot(),
       subStreams:
@@ -80,8 +69,6 @@ class MeetingStreams {
           ?.getSubstreamsCollection()
           .map((stream) => stream.snapshot()) || [],
     }
-
-    return snapshot
   }
 }
 
